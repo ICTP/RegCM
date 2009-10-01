@@ -1,0 +1,60 @@
+define view/xlim=0.00,1.00/ylim=0.00,1.00 top1
+define view/xlim=0.00,1.00/ylim=0.00,1.00 top2
+
+SET WINDOW/aspect=0.83 1
+cancel viewport
+
+if `col ne 1` then
+  SET MODE METAFILE:($outfil).plt
+endif
+
+let csize=0.16
+set grid vplot
+set viewport top2
+go mp_orthographic -95 34
+let mp_x = my_new_lon
+let mp_y = my_new_lat
+  ppl conset `csize`,`csd`,,,,,,`cspace`
+if `pal_center eq 1` then
+  if `col eq 1` then
+    fill/noaxis/nokey/nolabel/levels=(`-1*cmax`)(`-1*y2`,`y2`,`df`)(`cmax`)/pal=($ipal) var2d, x_page, y_page
+    contour/over/noaxis/nolabel/size=`csize`/sigdig=`csd`/spacing=`cspace`/levels=(`-1*y2`,`y2`,`dy`) var2d, x_page, y_page
+!   contour/over/noaxis/nolabel/levels=(`-1*y2`,`y2`,`dy`) var2d, x_page, y_page
+  else
+    fill/noaxis/nokey/nolabel/levels=(`-1*cmax`,`-1*df`,`df`)/pal=lite_lite_gray var2d, x_page, y_page
+    fill/over/noaxis/nokey/nolabel/levels=(`df`,`cmax`,`df`)/pal=lite_gray var2d, x_page, y_page
+    contour/over/noaxis/nolabel/size=`csize`/sigdig=`csd`/spacing=`cspace`/levels=(`-1*y2`,`y2`,`dy`) var2d, x_page, y_page
+!   contour/over/noaxis/nolabel/levels=(`-1*y2`,`y2`,`dy`) var2d, x_page, y_page
+  endif
+else
+  fill/noaxis/nokey/nolabel/levels=(`d1`,`d2`,`di`)(`f1`,`y2`,`df`)(`cmax`)/pal=($ipal) var2d, x_page, y_page
+  contour/over/noaxis/nolabel/size=`csize`/sigdig=`csd`/spacing=`cspace`/levels=(`y1`,`y2`,`dy`) var2d, x_page, y_page
+endif
+! go box `xlo1` `xhi1` `ylo1` `yhi1` 7
+! go box `xlo2` `xhi2` `ylo2` `yhi2` 7
+let mp_x = x
+let mp_y = y
+go "/home/RAID-D4/jpal/MonthSims/mp_land_rotmer" 1 " " 1 1
+let mp_x = my_new_lon
+let mp_y = my_new_lat
+go mp_graticule -150 -50 10 0 60 10 1
+set viewport top1
+if `vecplot eq 1` then 
+  vector/noaxis/nolabel/length=`vlen`/xskip=`vskip`/yskip=`vskip` uvect, vvect
+  ppl veckey,-22,-13.5
+  ppl axset 0
+  PPL AXLABP 0,0
+  PPL TICS 0,0,0,0
+  ppl vector
+else
+  contour/noaxis/nolabel/levels=(`-10*cmax`,`-10*cmax`,1) vplot[l=1]
+endif
+go box `xlo` `xhi` `ylo` `yhi` 1
+
+
+if `col eq 1` then
+  frame/file=($outfil).gif
+else
+!  cancel mode metafile
+endif
+

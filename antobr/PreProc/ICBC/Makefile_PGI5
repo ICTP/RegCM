@@ -1,0 +1,93 @@
+#  Makefile for RegCM@  run on PC_LINUX by using Portland Group FORTRAN
+#   compiler version 5.1-6
+
+FC = pgf90 -byteswapio
+LD = $(FC)
+
+SRC1a = SST_1DEG.f
+OBJ1a = SST_1DEG.o
+
+SRC1b = SST_FVGCM.f
+OBJ1b = SST_FVGCM.o
+
+SRC1c = SST_EH5OM.f
+OBJ1c = SST_EH5OM.o
+
+SRC1d = SST_ERSST.f
+OBJ1d = SST_ERSST.o
+
+SRC2 = ICBC.f
+OBJ2 = ICBC.o
+
+SRC3a = ERAHI_HT.f
+OBJ3a = ERAHI_HT.o
+
+SRC3b = ERAHI_PS.f
+OBJ3b = ERAHI_PS.o
+
+SRC3c = ERAHI_T.f
+OBJ3c = ERAHI_T.o
+
+SRC3d = ERAHI_Q.f
+OBJ3d = ERAHI_Q.o
+
+SRC3e = ERAHI_U.f
+OBJ3e = ERAHI_U.o
+
+SRC3f = ERAHI_V.f
+OBJ3f = ERAHI_V.o
+
+all: SST SST_FVGCM SST_EH5OM SST_ERSST ERAHI_HT ERAHI_PS ERAHI_T ERAHI_Q ERAHI_U ERAHI_V ICBC
+
+.f.o:
+	$(FC) -c $(FFLAGS) $*.f
+
+SST: $(OBJ1a)
+	$(LD) -o $@ $(OBJ1a) -L../../Commons/env/liblinux/ -lnetcdf
+
+SST_FVGCM: $(OBJ1b)
+	$(LD) -o $@ $(OBJ1b)
+
+SST_EH5OM: $(OBJ1c)
+	$(LD) -o $@ $(OBJ1c)
+
+SST_ERSST: $(OBJ1d)
+	$(LD) -o $@ $(OBJ1d) -L../../Commons/env/liblinux/ -lnetcdf
+
+ERAHI_HT: $(OBJ3a)
+	$(LD) -o $@ $(OBJ3a) -L../../Commons/env/liblinux/ -lemos
+
+ERAHI_PS: $(OBJ3b)
+	$(LD) -o $@ $(OBJ3b) -L../../Commons/env/liblinux/ -lemos
+
+ERAHI_T: $(OBJ3c)
+	$(LD) -o $@ $(OBJ3c) -L../../Commons/env/liblinux/ -lemos
+
+ERAHI_Q: $(OBJ3d)
+	$(LD) -o $@ $(OBJ3d) -L../../Commons/env/liblinux/ -lemos
+
+ERAHI_U: $(OBJ3e)
+	$(LD) -o $@ $(OBJ3e) -L../../Commons/env/liblinux/ -lemos
+
+ERAHI_V: $(OBJ3f)
+	$(LD) -o $@ $(OBJ3f) -L../../Commons/env/liblinux/ -lemos
+
+ICBC: $(OBJ2)
+	$(LD) -o $@ $(OBJ2) -L../../Commons/env/liblinux/ -lnetcdf
+
+clean:
+	rm -f *.o SST SST_FVGCM SST_EH5OM SST_ERSST ERAHI_HT ERAHI_PS ERAHI_T ERAHI_Q ERAHI_U ERAHI_V ICBC
+# --------------------------------------------------------------------
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+SST_1DEG.o: icbc.param SST_1DEG.f
+SST_FVGCM.o: icbc.param SST_FVGCM.f
+SST_EH5OM.o: icbc.param SST_EH5OM.f
+SST_ERSST.o: icbc.param SST_ERSST.f
+ERAHI_HT.o: ERAHI.param ERAHI_HT.f
+ERAHI_PS.o: ERAHI.param ERAHI_PS.f
+ERAHI_T.o: ERAHI.param ERAHI_T.f
+ERAHI_Q.o: ERAHI.param ERAHI_Q.f
+ERAHI_U.o: ERAHI.param ERAHI_U.f
+ERAHI_V.o: ERAHI.param ERAHI_V.f
+ICBC.o: icbc.param ICBC.f

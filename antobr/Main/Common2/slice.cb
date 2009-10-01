@@ -1,0 +1,11 @@
+c----------------------------------------------------------------------
+      real*8 qvb3d, tb3d, ubx3d, vbx3d, rhob3d, qcb3d, rhb3d
+     &     , qsb3d, pb3d, ubd3d, vbd3d, chib3d
+c                                                                   
+      common/cbslice/ qvb3d(ix,kx,-1:jxp+2),  tb3d(ix,kx,-1:jxp+2)
+     &              , ubx3d(ix,kx,jxp), vbx3d(ix,kx,jxp)
+     &              , ubd3d(ix,kx,-1:jxp+2), vbd3d(ix,kx,-1:jxp+2)
+     &              ,rhob3d(ix,kx,jxp), qcb3d(ix,kx,-1:jxp+2)
+     &              , rhb3d(ix,kx,jxp), qsb3d(ix,kx,jxp)
+     &              ,  pb3d(ix,kx,jxp),chib3d(ix,kx,-1:jxp+2,ntr)
+c-----------------------------------------------------------------------

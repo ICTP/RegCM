@@ -1,0 +1,13 @@
+c----------------------------------------------------------------------
+      real*8  thx3d
+      real*8  thvx
+      real*8  dzq
+      real*8  za
+      real*8  zq
+      real*8  rhox2d
+c
+      common/pbldim/thx3d(ix,kx,jx), thvx(ix,kx,jx),
+     &              dzq(ix,kx,jx),za(ix,kx,jx),zq(ix,kxp1),
+     &             rhox2d(ix,jx)
+
+c----------------------------------------------------------------------

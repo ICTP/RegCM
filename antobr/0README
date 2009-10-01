@@ -1,0 +1,22 @@
+###
+###
+# This file should be improved...
+###
+Step-by-step for RegCM model users:
+
+I. Pre-processing: (under RegCM/PreProc directory) 
+
+Step I.0: run datalinker.x (after you prepare all the datasets ready) in 
+          RegCM/PreProc/DATA/
+
+Step I.1: prepare the terrain and landuse data of your domain (and your
+          sub-BATS domain) in RegCM/PreProc/Terrain
+
+Step I.2: prepare the ICBC files of your domain in
+          RegCM/PreProc/ICBC 
+
+II. Running the model
+
+Create a RegCM/Run directory, and ... ...
+
+III. Post-processing

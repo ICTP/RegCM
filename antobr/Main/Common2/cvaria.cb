@@ -1,0 +1,52 @@
+c----------------------------------------------------------------------
+      real*8  psc
+      real*8  uc
+      real*8  vc
+      real*8  tc
+      real*8  qvc
+      real*8  qcc
+      real*8  u
+      real*8  v
+      real*8  t
+      real*8  qv
+      real*8  qc
+      real*8  qdot
+      real*8  pdota
+      real*8  pten
+      real*8  uten
+      real*8  vten
+      real*8  tten
+      real*8  qvten
+      real*8  qcten
+      real*8  psd
+      real*8  td
+      real*8  phi
+      real*8  xkc
+      real*8  difft
+      real*8  diffq
+      real*8  difuu
+      real*8  difuv
+      real*8  omega
+      real*8  qvcs
+c                                                                   
+      common/cvaria/ psc(ix,jxp), uc(ix,kx,jxp), vc(ix,kx,jxp),
+     &            tc(ix,kx,jxp),qvc(ix,kx,jxp),qcc(ix,kx,jxp),
+     &             u(ix,kx,0:jxp+1),  v(ix,kx,0:jxp+1),
+     &             t(ix,kx,0:jxp+1),
+     &            qv(ix,kx,0:jxp+1), qc(ix,kx,0:jxp+1),
+     &            qdot(ix,kxp1,0:jxp+1),
+     &          pdota(ix,jxp),pten(ix,jxp),
+     &          uten(ix,kx,jxp), vten(ix,kx,jxp), tten(ix,kx,jxp),
+     &         qvten(ix,kx,jxp),qcten(ix,kx,jxp),
+     &         psd(ix,0:jxp+1),td(ix,kx,jxp),
+     &         phi(ix,kx,0:jxp),xkc(ix,kx,jxp),
+     &         difft(ix,kx,jxp),diffq(ix,kx,jxp),difuu(ix,kx,jxp),
+     &         difuv(ix,kx,jxp),omega(ix,kx,jxp), qvcs(ix,kx)
+
+Cchem2
+      real*8  chi, chiten, chic
+      common/tracer/ chic(ix,kx,jxp,ntr),chi(ix,kx,0:jxp+1,ntr)
+     &              ,chiten(ix,kx,jxp,ntr)
+Cchem2_
+
+c-----------------------------------------------------------------------                                                              

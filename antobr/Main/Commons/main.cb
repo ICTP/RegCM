@@ -1,0 +1,54 @@
+c----------------------------------------------------------------------
+      real*8  ua
+      real*8  ub
+      real*8  va
+      real*8  vb
+      real*8  ta
+      real*8  tb
+      real*8  qva
+      real*8  qvb
+      real*8  qca
+      real*8  qcb
+      real*8  so4
+      real*8  psa
+      real*8  psb
+      real*8  pdotb
+      real*8  rainc
+      real*8  rainnc
+      real*8  TBASE
+      real*8  CLDEFI
+      real*8  f
+      real*8  msfx
+      real*8  msfd
+      real*8  ht
+      real*8  htsd
+      real*8  xlat
+      real*8  xlong
+      real*8  hfx
+      real*8  qfx
+      real*8  tga
+      real*8  tgb
+      real*8  satbrt
+      real*8  snowc
+      real*8  hgfact
+      real*8  zpbl
+      real*8  tgbb
+c                                                                       
+      common/mainCM/ ua(ix,kx,jx), ub(ix,kx,jx), va(ix,kx,jx),
+     &               vb(ix,kx,jx), ta(ix,kx,jx), tb(ix,kx,jx),
+     &              qva(ix,kx,jx),qvb(ix,kx,jx),qca(ix,kx,jx),
+     &              qcb(ix,kx,jx),so4(ix,kx,jx),
+     &              f(ix,jx),  msfx(ix,jx),
+     &            psa(ix,jx),psb(ix,jx),pdotb(ix,jx),rainc(ix,jx),
+     &         rainnc(ix,jx),   TBASE(ix,kx,jx),CLDEFI(ix,jx),
+     &           msfd(ix,jx),    ht(ix,jx),  xlat(ix,jx),
+     &          xlong(ix,jx),
+     &            hfx(ix,jx),   qfx(ix,jx),   tga(ix,jx),
+     &            tgb(ix,jx),satbrt(ix,jx),
+     &          snowc(NNSG,ix,jx),
+     &         hgfact(ix,jx),  htsd(ix,jx),  zpbl(ix,jx),
+     &           tgbb(ix,jx)
+c                                                                      
+      real*8  uvdrag
+      common/uvdrg/ uvdrag(ix,jx)
+c----------------------------------------------------------------------

@@ -1,0 +1,80 @@
+let nxx1=$1
+let nyy1=$2
+let nxx2=$3
+let nyy2=$4
+let delx=$5
+let clatt=$6
+let clonn=$7
+
+let Pi = atan(1.)*4
+let pi90=2.*atan(1.)              ! PI OVER TWO (90 DEGREES)
+let pi4=0.25*pi
+let deg2rad=atan(1.)/45.            ! CONVERT DEGREES TO RADIANS
+let rad2deg=1/deg2rad
+
+if `clatt gt 0` then
+  let lattr=30
+  let pole=90.
+else
+  let lattr=-30
+  let pole=-90.
+endif
+let colat=pole-clatt                ! COLAT OF CENTER
+let psi1=lattr*deg2rad
+let psi2=(pole-lattr)*deg2rad
+let psi0=colat*deg2rad
+let psi0a=clatt*deg2rad
+let earthr = 6.371229E6   ! Earth Radius
+let grdfac=ln(cos(psi1)/cos(psi2))/ln(tan(pi4+0.5*psi2)/tan(pi4+0.5*psi1))
+let rgrdf=1./grdfac
+
+let cell=earthr*sin(psi1)*rgrdf
+let cell2=tan(psi0*0.5)/tan(psi1*0.5)
+let xoff=0
+let yoff=-1*grdfac/abs(grdfac)*cell*(cell2)^(grdfac/abs(grdfac)*grdfac)
+
+let lonmin=-1*int(nx/2)*delx
+let latmin=-1*int(ny/2)*delx
+let my_x = delx+lonmin+delx*(i[i=`nxx1`:`nxx2`]-1)+xoff
+let my_y = delx+latmin+delx*(j[j=`nyy1`:`nyy2`]-1)+yoff
+
+if `clatt lt 0` then
+  let flp=rgrdf/abs(rgrdf)*atan2(my_x,my_y)*rgrdf*rad2deg+clon
+else
+  let flp=atan2(my_x,(-1)*my_y)*rgrdf*rad2deg+clon
+endif
+let flp0=if my_y eq 0 then pole*deg2rad else flp
+let flp1=if flp0 gt 180 then flp0-360 else flp0
+let flp2=if flp1 lt -180 then flp1+360 else flp1
+let my_new_lon=flp2
+
+let rdist=(my_x^2+my_y^2)^0.5
+let yarg=rdist*grdfac/(earthr*sin(psi1))
+let yarg1=tan(psi1/2.)*yarg^(rgrdf/abs(rgrdf)*rgrdf)
+let yarg2=atan(yarg1)
+let my_new_lat=pole-2*yarg2*rad2deg
+
+! For drawing map
+let mp_x = x
+let mp_y = y
+
+let mp_central_meridian = $7
+let mp_standard_parallel = $6
+
+let mp_R = 1
+let mp_k0 = 1
+let mp_lambda0 = mp_central_meridian * deg2rad
+let mp_lambda = mp_x * deg2rad
+let mp_phi = mp_y * deg2rad
+let mp_phi0 = mp_standard_parallel * deg2rad
+let mp_phi1 = psi1
+let mp_phi2 = psi2
+
+let F=cos(mp_phi1)/tan(pi4+0.5*mp_phi1)^grdfac/grdfac
+let rho=F/tan(pi4+0.5*mp_phi)^grdfac
+let rho0=F/tan(pi4+0.5*mp_phi0)^grdfac
+let x_page=rho*sin(grdfac*(mp_lambda-mp_lambda0))
+let y_page=rho0-rho*cos(grdfac*(mp_lambda-mp_lambda0))
+
+let mp_mask = 1
+

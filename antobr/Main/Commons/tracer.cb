@@ -1,0 +1,7 @@
+      real*8 co2mmr,   ! co2 mass mixing ratio
+     &         ch40,   ! tropospheric mass mixing ratio for ch4
+     &         n2o0,   ! tropospheric mass mixing ratio for n2o
+     &       cfc110,   ! tropospheric mass mixing ratio for cfc11
+     &       cfc120    ! tropospheric mass mixing ratio for cfc12
+
+      common/tracer/co2mmr,   ch40,   n2o0, cfc110, cfc120

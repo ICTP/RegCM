@@ -1,0 +1,23 @@
+c
+c $Id: crdcon.h,v 1.1.1.1 1995/02/09 23:26:46 ccm2 Exp $
+c $Author: ccm2 $
+c
+C
+C Radiation constants
+C
+      common/crdcon/gravit  ,rga     ,cpair   ,epsilo  ,sslp    ,
+     $              stebol  ,rgsslp  ,co2vmr  ,dpfo3   ,dpfco2  ,
+     $              dayspy  ,pie
+C
+      real*8  gravit,    ! Acceleration of gravity
+     $     rga,       ! 1./gravit
+     $     cpair,     ! Specific heat of dry air
+     $     epsilo,    ! Ratio of mol. wght of H2O to dry air
+     $     sslp,      ! Standard sea-level pressure
+     $     stebol,    ! Stefan-Boltzmann's constant
+     $     rgsslp,    ! 0.5/(gravit*sslp)
+     $     co2vmr,    ! CO2 volume mixing ratio
+     $     dpfo3,     ! Voigt correction factor for O3
+     $     dpfco2,    ! Voigt correction factor for CO2
+     $     dayspy,    ! Number of days per 1 year
+     $     pie        ! 3.14.....

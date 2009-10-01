@@ -1,0 +1,72 @@
+c----------------------------------------------------------------------
+      integer kxout
+      integer jxsex
+      integer kt
+      integer kclo
+      integer kcmd
+      integer kchi
+      integer ispgd
+      integer ispgx
+      integer julday
+      integer mdate0
+      integer mdate
+      integer moutdate
+      integer k700
+      integer ncld
+      integer julian
+      integer ntimax
+      common/iparam3/  kxout, jxsex, kt,kclo,kcmd,kchi,ispgd,ispgx,
+     5                 julday,mdate0,mdate,k700,ncld,julian,ntimax
+     5                ,moutdate
+
+      real*8  deltmx
+      real*8  r
+      real*8  cp
+      real*8  rovcp
+      real*8  g
+      real*8  rovg
+      real*8  karman
+      real*8  rhos
+      real*8  cd
+      real*8  cdsea
+      real*8  ch
+      real*8  chsea
+      real*8  ptop
+      real*8  ptop4
+      real*8  gmt
+      real*8  degrad
+      real*8  declin
+      real*8  dectim
+      real*8  dpd
+      real*8  eomeg
+      real*8  solcon
+      real*8  stbolt
+      real*8  alpha
+      real*8  beta
+      real*8  gnu
+      real*8  gnuhf
+      real*8  omu
+      real*8  omuhf
+      real*8  wgtd
+      real*8  wgtx
+      real*8  sigma
+      real*8  dsigma
+      real*8  a
+      real*8  twt
+      real*8  qcon
+      real*8  anudg
+      real*8  tauht
+      real*8  akht1
+      real*8  akht2
+      real*8  thrlh1
+      real*8  thrlh2
+      common/param3/ deltmx,     r,    cp, rovcp,     g,  rovg,   
+     &               karman,  rhos,    cd, cdsea,    ch, chsea,  ptop,  
+     &                ptop4,   gmt,degrad,declin,dectim,   dpd,   
+     &                eomeg,solcon,stbolt, alpha,  beta,   gnu, gnuhf,   
+     &                  omu, omuhf,  wgtd(nspgd),  wgtx(nspgx),
+     &                sigma(kxp1),dsigma(kx),     a(kx),  
+     &                  twt(kx,2),  qcon(kx),  anudg(kx),
+     &                tauht, akht1, akht2,thrlh1,thrlh2  
+c                                                                       
+c----------------------------------------------------------------------

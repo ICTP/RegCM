@@ -1,0 +1,209 @@
+\ cancel mode verify    
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+! mp_graticule.jnl --  Overlay a graticule on a map projection.  For working
+!                  with map projection scripts in Ferret v4.50
+!                               
+! Jonathan Callahan
+! 5/97
+! This version from Ned Cokelet,  april 2001
+
+! *acm* 6/13/2001  bug fix: in restoring central meridians etc at the end
+!                  use grave accents to fix them.  else scripts like mp_polymark
+!                  cancels the grid and then recomputes x_page etc based on 
+!                  central meridian using the wrong x range 
+! *acm* 6/15/2001  add ppl window off  (and on at the end)  so graticule lines 
+!		   around the plot edge are complete.
+
+! Description:  Overlay a graticule on a map.
+!
+! This journal file comes from equations in:
+!  J. P. Snyder & P. M. Voxland, 1989, An Album of Map Projections,
+!    U.S. Geological Survey, Professional Paper 1453, U.S. Government
+!    Printing Office, Washington, DC, 249 pp. 
+!
+! This script presumes that following are predefined a projection script
+! run previous to this script:
+!
+!       mp_lambda  longitude in radians
+!       mp_phi     latitude in radians
+!       x_page  field describing transformation from lat/lon to X page coordinates
+!       x_page  field describing transformation from lat/lon to Y page coordinates
+!
+! Usage:              arg1      arg2      arg3        arg4      arg5      arg6      arg7
+!  go mp_graticule [lon_min] [lon_max] [lon_delta] [lat_min] [lat_max] [lat_delta] [pen]
+!
+! arg 1 - minimum longitude
+! arg 2 - maximum longitude
+! arg 3 - spacing for the longitude graticule
+! arg 4 - minimum latitude
+! arg 5 - maximum latitude
+! arg 6 - spacing for the latitude graticule
+! arg 7 - pen number
+!
+! examples:
+!         go mp_graticule                         ! default - whole world in black
+!         go mp_graticule 120 220 20 35 65 2.5 5  ! graticule over northern Pacific in cyan
+!
+
+define region/default save
+set grid/save
+
+! let/quiet mp_x = x
+! let/quiet mp_y = y
+
+!   Turn windowing of plot lines off, so the  
+!   lines are complete around the edge of the plot.
+
+! ppl window off
+!
+! create reasonable defaults for graticule spacing
+!
+let/quiet mp_xmin = $1"`mp_x[i=@min]`"
+let/quiet mp_xmax = $2"`mp_x[i=@max]`"
+
+if `mp_xmax - mp_xmin ge 180` then
+  let/quiet mp_xdel = $3"30"
+elif `mp_xmax - mp_xmin ge 60` then
+  let/quiet mp_xdel = $3"10"
+elif `mp_xmax - mp_xmin ge 10` then
+  let/quiet mp_xdel = $3"5"
+else
+  let/quiet mp_xdel = $3"1"
+endif
+
+let/quiet mp_ymin = $4"`mp_y[j=@min]`"
+let/quiet mp_ymax = $5"`mp_y[j=@max]`"
+
+if `mp_ymax - mp_ymin ge 180` then
+  let/quiet mp_ydel = $6"30"
+elif `mp_ymax - mp_ymin ge 60` then
+  let/quiet mp_ydel = $6"10"
+elif `mp_ymax - mp_ymin ge 10` then
+  let/quiet mp_ydel = $6"5"
+else
+  let/quiet mp_ydel = $6"1"
+endif
+
+!
+! This test will keep the central meridians defined by "from space" views
+!
+let/quiet mp_test = `mp_central_meridian` - `(mp_x[i=@max,j=@max] + mp_x[i=@min,j=@min])/2`
+
+if `mp_test eq 0` then
+   let/quiet mp_central_meridian = `(mp_x[i=@max,j=@max] + mp_x[i=@min,j=@min])/2`
+endif
+
+let/quiet mp_test = `mp_standard_parallel` - `(mp_y[i=@max,j=@max] + mp_y[i=@min,j=@min])/2`
+
+if `mp_test eq 0` then
+   let/quiet mp_standard_parallel = `(mp_y[i=@max,j=@max] + mp_y[i=@min,j=@min])/2`
+endif
+
+cancel variable mp_test
+
+let/quiet mp_std_parallel_north = `mp_y[i=@max,j=@max]`
+let/quiet mp_std_parallel_south = `mp_y[i=@min,j=@min]`
+
+!
+! Now for the appropriate latitude lines:
+!   Define a grid with the 'fast' index being longitude
+!   Have the axis be one point 'too long' and make the last point a bad value to avoid 'sweep-back'
+!   Set the region appropriately
+!   Redefine mp_lambda and mp_phi, mask and plot
+!
+!  ACM  6/01
+! Ned's  def uses mp_xdel.  This can be too coarse and results in a spider-web 
+! effect on projection plots over large areas
+!define axis/x=`mp_xmin`:`mp_xmax + mp_xdel`:`mp_xdel` lon_field_i_axis
+
+! Use delta of 1 as in Jon's original script, or mp_xdel if its smaller
+let/quiet mp_xaxdel = MIN(mp_xdel, 1)
+define axis/x=`mp_xmin`:`mp_xmax + mp_xaxdel`:`mp_xaxdel` lon_field_i_axis
+define axis/y=`mp_ymin`:`mp_ymax`:`mp_ydel` lon_field_j_axis
+
+let i_index = i[gx=lon_field_i_axis]
+let j_index = j[gy=lon_field_j_axis]
+
+let i_index_max = i_index[i=@max]
+let j_index_max = j_index[j=@max]
+
+set region/x=`mp_xmin`:`mp_xmax + mp_xaxdel`/y=`mp_ymin`:`mp_ymax`
+
+define grid/x=lon_field_i_axis/y=lon_field_j_axis lon_field_grid
+
+let/quiet lon_field_i = x[g=lon_field_grid] + 0*y[g=lon_field_grid]
+let/quiet lon_field_j = 0*x[g=lon_field_grid] + y[g=lon_field_grid]
+let/quiet lon_field_i_2 = if i[g=lon_field_grid] ne i_index_max then lon_field_i
+
+let/quiet mp_lambda = lon_field_i_2 * deg2rad
+let/quiet mp_phi    = lon_field_j   * deg2rad
+
+let/quiet masked_x_page = mp_mask * x_page
+let/quiet masked_y_page = mp_mask * y_page
+
+plot/vs/over/nolab/line=$7"1" masked_x_page, masked_y_page
+
+
+!
+! Now for the appropriate longitude lines:
+!
+! ACM 6/2001 choose smaller delta here too.
+!define axis/x=`mp_ymin`:`mp_ymax + mp_ydel`:`mp_ydel` lat_field_i_axis
+
+let/quiet mp_yaxdel = MIN(mp_ydel,1)
+define axis/x=`mp_ymin`:`mp_ymax + mp_yaxdel`:`mp_yaxdel` lat_field_i_axis
+define axis/y=`mp_xmin`:`mp_xmax`:`mp_xdel` lat_field_j_axis
+
+let i_index = i[gx=lat_field_i_axis]
+let j_index = j[gy=lat_field_j_axis]
+
+set region/x=`mp_ymin`:`mp_ymax + mp_yaxdel`/y=`mp_xmin`:`mp_xmax`
+
+define grid/x=lat_field_i_axis/y=lat_field_j_axis lat_field_grid
+
+let/quiet lat_field_i = x[g=lat_field_grid] + 0*y[g=lat_field_grid]
+let/quiet lat_field_j = 0*x[g=lat_field_grid] + y[g=lat_field_grid]
+let/quiet lat_field_i_2 = if i[g=lat_field_grid] ne i_index_max then lat_field_i
+
+let/quiet mp_lambda = lat_field_j   * deg2rad
+!let/quiet mp_phi    = lat_field_i_2 * deg2rad
+
+let/quiet mp_phi    = lat_field_i_2[g=lat_field_grid] * deg2rad	! acm - like Jons original
+
+let/quiet masked_x_page = mp_mask * x_page
+let/quiet masked_y_page = mp_mask * y_page
+
+plot/vs/over/nolab/line=$7"1" masked_x_page, masked_y_page
+
+
+!
+! Restore all the previous settings and variables
+!
+set region save
+set grid/restore
+
+! ppl window on
+
+! let/quiet mp_x = x
+! let/quiet mp_y = y
+
+let/quiet mp_test = `mp_central_meridian` - `(mp_x[i=@max,j=@max] + mp_x[i=@min,j=@min])/2`
+
+if `mp_test eq 0` then
+   let/quiet mp_central_meridian = (mp_x[i=@max,j=@max] + mp_x[i=@min,j=@min])/2
+endif
+
+let/quiet mp_test = `mp_standard_parallel` - `(mp_y[i=@max,j=@max] + mp_y[i=@min,j=@min])/2`
+if `mp_test eq 0` then
+   let/quiet mp_standard_parallel = (mp_y[i=@max,j=@max] + mp_y[i=@min,j=@min])/2
+endif
+
+cancel variable mp_test
+
+let/quiet mp_std_parallel_north = mp_y[i=@max,j=@max]
+let/quiet mp_std_parallel_south = mp_y[i=@min,j=@min]
+let/quiet mp_lambda = mp_x * deg2rad
+let/quiet mp_phi = mp_y * deg2rad
+
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+set mode/last verify
