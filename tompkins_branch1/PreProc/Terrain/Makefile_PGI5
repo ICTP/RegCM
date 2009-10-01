@@ -1,0 +1,25 @@
+#  Makefile for RegCM@  run on PC_LINUX by using Portland Group FORTRAN
+#   compiler version 5.1-6
+FC = pgf90 -O1 -byteswapio -Ktrap=fp
+FFLAGS = -L../../Commons/env/liblinux/ -lnetcdf
+
+LD = $(FC)
+
+SRC = terrain.f
+
+OBJ = terrain.o
+
+all: terrain
+
+.f.o:
+	$(FC) -c $(FFLAGS) $*.f
+
+terrain: $(OBJ)
+	$(LD) -o $@ $(OBJ) $(FFLAGS)
+
+clean:
+	rm -f *.o terrain
+# --------------------------------------------------------------------
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+terrain.o: domain.param terrain.f 

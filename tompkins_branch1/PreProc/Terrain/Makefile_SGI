@@ -1,0 +1,24 @@
+#  Makefile for RegCM@   on SGI Origin workstation
+
+FFLAGS = -64 -trapuv -g
+FC = f90 
+LD = $(FC)
+
+SRC = terrain.f
+
+OBJ = terrain.o
+
+all: terrain
+
+.f.o:
+	$(FC) -c $(FFLAGS) $*.f
+
+terrain: $(OBJ)
+	$(LD) -o $@ $(OBJ) $(FFLAGS) -L../../Commons/env/libsgi/ -lnetcdf
+
+clean:
+	rm -f *.o terrain
+# --------------------------------------------------------------------
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+terrain.o: domain.param terrain.f 

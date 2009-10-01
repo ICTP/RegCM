@@ -1,0 +1,26 @@
+cccc SET DOMAIN DIMENSIONS                                                    
+cccc ny = number of north-south points                                        
+cccc nx = number of east-west points                                          
+cccc nz = number of vertical levels                                           
+cccc SET MODEL OUTPUT INTERVALS                                               
+cccc dtbc = ibdyfrq = ICBC output interval (hrs)                              
+cccc dtout = atmfrq = atmospheric output interval (hrs)                       
+cccc dtbat = srffrq = surface output interval (hrs)                           
+cccc dtrad = radfrq = radiation output interval (hrs)                         
+cccc DIRECT ACCESS BINARY SPECIFICATION                                       
+cccc ibyte = 4 for PGI, IFC; 1 for SUN, SGI, DEC, IBM                         
+      integer nxf,nyf,nz,nxs,nys                                              
+      parameter (nyf =  34)                                                   
+      parameter (nxf =  51)                                                   
+      parameter (nz  =  18)                                                   
+      parameter (nxs =   1)                                                   
+      parameter (nys =   1)                                                   
+      integer ibyte                                                           
+      parameter (ibyte =   4)                                                 
+      real dtbc,dtout,dtbat,dtrad,dtche,dtsub                                 
+      parameter (dtbc  =      6.00)                                           
+      parameter (dtout =      6.00)                                           
+      parameter (dtbat =      3.00)                                           
+      parameter (dtrad =      6.00)                                           
+      parameter (dtche =      6.00)                                           
+      parameter (dtsub =      3.00)                                           

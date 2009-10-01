@@ -1,0 +1,60 @@
+c DEFINE WINDOW
+c   x1win     = the westerly most point (west negative)
+c   x2win     = the easterly most point (west negative)
+c   y1win     = the southerly most point (south negative)
+c   y2win     = the northerly most point (south negative)
+c   nlevwin   = the top NCEP level of interest
+c               (see plev defined below: e.g. 14 corresponds to 50mb)
+c   idate1    = first date of intereste (yyyymmddhh)
+c   idate2    = last date of intereste (yyyymmddhh)
+c   infildir  = directory location of the complete data set
+c   outfildir = output file directory
+c   outfilext = name to add to the new output files
+c               (e.g 'WIN' makes a file call air.WIN.1993.nc)
+
+      real x1win, x2win, y1win, y2win
+      integer nlevwin, idate1, idate2
+      character outfilext*10, outfildir*64, infildir*64
+      parameter (x1win=  -40., x2win=  80.)
+      parameter (y1win=  -60., y2win=  70.)
+      parameter (nlevwin = 14)
+      parameter (idate1=1992122900, idate2=1993010200)
+      parameter (outfilext='WIN')
+      parameter (outfildir='./')
+      parameter (infildir='/home/RAID-D9/public/NNRP2/')
+
+
+C DEFINE FIELDS OF INTEREST (ORIGINAL FILES)
+c   nfld     = number of fields to process
+c   vnam     = the name of each field
+c   vnamfil  = the prefix of each file (usually the same as vnam)
+c   numdim   = the number of spatial dimensions of each field
+c              (atmospheric fields are 3D, surface fields are 2d)
+      integer nfld
+      parameter (nfld=8)
+      integer numdim(nfld), ifld
+      character vnam(nfld)*10, vnamfil(nfld)*15
+      DATA  (vnam(ifld),ifld=1,nfld)
+     &   /'uwnd','vwnd','air','rhum','hgt','omega','pres','mslp'/
+      DATA  (vnamfil(ifld),ifld=1,nfld)
+     &   /'uwnd','vwnd','air','rhum','hgt','omega','pres.sfc','mslp'/
+      DATA  (numdim(ifld),ifld=1,nfld)
+     &   / 3, 3, 3, 3, 3, 3, 2, 2/
+
+C DEFINE ORIGINAL LAT-LON-PRES GRID
+c   x1,x2    = minimum and maximum longitudes (west negative)
+c   y1,y2    = minimum and maximum latitudes (south negative)
+c   nlev     = number of vertical levels
+c   ddeg     = spatial resolution
+c   dt       = temporal resolution
+c   plev     = pressure level definition
+      integer nx, ny, nlev, dt, klev
+      parameter (nlev=17)
+      real x1, x2, y1, y2, ddeg, plev(nlev)
+      parameter (x1=   0., x2 = 357.5)  ! longitude definition
+      parameter (y1= -90., y2 =  90.)   ! latitude definition
+      parameter (ddeg = 2.5, dt=6)      ! grid and time resolution
+      DATA (plev(klev),klev=1,nlev)
+     &   / 1000., 925., 850., 700., 600., 500., 400., 300., 250.
+     &   ,  200., 150., 100.,  70.,  50.,  30.,  20.,  10. /
+      parameter (nx=nint((x2-x1)/ddeg+1), ny=nint((y2-y1)/ddeg)+1)

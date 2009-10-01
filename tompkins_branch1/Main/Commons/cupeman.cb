@@ -1,0 +1,21 @@
+      real*8 minsig
+      real*8 elcrit
+      real*8 tlcrit
+      real*8 entp
+      real*8 sigd
+      real*8 sigs
+      real*8 omtrain
+      real*8 omtsnow
+      real*8 coeffr
+      real*8 coeffs
+      real*8 cu
+      real*8 betae
+      real*8 dtmax
+      real*8 alphae
+      real*8 damp
+
+      common /cupemanparam/ minsig, elcrit, tlcrit, entp
+     &     , sigd, sigs, omtrain, omtsnow, coeffr, coeffs, cu
+     &     , betae, dtmax, alphae, damp
+      integer minorig
+      common /intcupeman/ minorig

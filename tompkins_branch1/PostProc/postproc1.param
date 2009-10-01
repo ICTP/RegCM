@@ -1,0 +1,79 @@
+      integer nx,ny,nx1,ny1,nb1,nxb,nyb
+     &      , ni3d,ni2d,ni3d2,ni2d2,nbc3d,nbc2d,nitot
+     &      , no3d,no2d,no3d2,no2d2,nout3d,nout2d,notot
+     &      , nbat,nbat2,nsub,nsub2,nr2d,nr3d,nrtot
+     &      , nhrbc,nhrout,nhrbat,nhrsub,nhrrad,nhrche
+     &      , ntrac,nc2d,nc3d,nctot
+     &      , nxsf,nysf,nxsb,nysb,npl
+      parameter (ny=nyf-2, nx=nxf-2)
+      parameter (nysf=nyf*nys,nxsf=nxf*nxs)
+      parameter (nysb=ny*nys,nxsb=nx*nxs)
+                                                                              
+      parameter (ny1=ny,nx1=nx)
+      parameter (nb1=1,nyb=ny,nxb=nx)
+
+      parameter (nhrbc=24.001/dtbc,nhrout=24.001/dtout
+     &        ,  nhrbat=24.001/dtbat,nhrsub=24.001/dtsub
+     &        ,  nhrrad=24.001/dtrad,nhrche=24.001/dtche)  
+                                                                              
+c ******************* SET NUMBER OF OUTPUT FIELDS ****************** c
+c **** ni3d = number of 3D ICBC atmospheric fields              **** c
+c **** ni2d = number of 2D ICBC atmospheric fields              **** c
+c **** no3d = number of 3D atmospheric fields (from model)      **** c
+c **** no2d = number of 2D atmospheric fields (from model)      **** c
+c **** nbat = number of surface fields (from model)             **** c
+c **** nsub = number of subbats-surface fields (from model)     **** c
+c **** nr3d = number of 3D radiation fields (from model)        **** c
+c **** nr2d = number of 2D radiation fields (from model)        **** c
+c ****                                                          **** c
+c **** The other fields (ni3d2, ni2d2, no3d2, no2d2, nbat2 and  **** c
+c **** nsub2) should only be changed if additional fields are   **** c
+c **** computed from the model output.  Examples of additional  **** c
+c **** computed fields are geopotential height, moist static    **** c
+c **** energy, and relative humidity.                           **** c
+c ****************************************************************** c
+      parameter (ni3d=4, ni2d=2)
+      parameter (no3d=6, no2d=5)
+      parameter (nbat=27)
+      parameter (nsub=16)
+      parameter (nr3d=4,nr2d=9)
+      parameter (ntrac = 6)                                                   
+      parameter (nc3d=ntrac*1+3, nc2d=ntrac*7+2)                                  
+                   
+      parameter (ni3d2=6, ni2d2=1)
+      parameter (no3d2=6, no2d2=1)
+      parameter (nbat2=nbat+1)
+      parameter (nsub2=nsub+1)
+
+      parameter (nbc3d=ni3d+ni3d2, nbc2d=ni2d+ni2d2
+     &         , nitot=nbc3d+nbc2d)
+      parameter (nout3d=no3d+no3d2, nout2d=no2d+no2d2
+     &         , notot=nout3d+nout2d)
+      parameter (nrtot=nr3d+nr2d)
+      parameter (nctot= nc3d + nc2d ) 
+      parameter (npl=11)
+      real plev(npl),plevr(npl)
+      data    plev/1000.,925.,850.,700.,500.,400.,300.,250.,200.
+     &             ,150.,100./
+      data    plevr/100.,150.,200.,250.,300.,400.,500.,700.,850.
+     &             ,925., 1000./
+
+ 
+c ****************************************************************** c
+c **** nfmax is the maximum number of files outputed by the     **** c
+c **** model simulation.                                        **** c
+c ****************************************************************** c
+      integer nfmax
+      parameter (nfmax=999)
+
+c ********************* NAME OF THE INPUT FILE ********************* c
+c **** This file ("plist") contains the information on the      **** c
+c **** dates and filenames to processed and the type of         **** c
+c **** processing to be performed.                              **** c
+c ****                                                          **** c
+c **** If "plist" is modified, the postprocessing code does not **** c
+c **** need to be recompile.                                    **** c
+c ****************************************************************** c
+      character plist*70, ulist*70
+      parameter(plist  = 'postproc.in')
+      parameter(ulist  = 'user.in')

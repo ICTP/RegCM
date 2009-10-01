@@ -1,0 +1,17 @@
+let mp_x = my_new_lon
+let mp_y = my_new_lat
+let xmn=my_new_lon[i=@min,j=@min]
+let xmx=my_new_lon[i=@max,j=@max]
+let ymn=my_new_lat[i=@min,j=@min]
+let ymx=my_new_lat[i=@max,j=@max]
+go "../Commons/Ferret/mp_land_rotmer" 1 " " 1 1 xmn xmx ymn ymx msm
+let dx=my_new_lon[i=@max,j=@max]-my_new_lon[i=@min,j=@min]
+let dy=my_new_lat[i=@max,j=@max]-my_new_lat[i=@min,j=@min]
+let xint=int(dx/4)-mod(int(dx/4),5)
+let yint=int(dy/4)-mod(int(dy/4),5)
+let xint=yint
+let xmin=int(my_new_lon[i=@min,j=@min]/`xint`)*`xint`-`xint`
+let xmax=int(my_new_lon[i=@max,j=@max]/`xint`)*`xint`+`xint`
+let ymin=int(my_new_lat[i=@min,j=@min]/`yint`)*`yint`-`yint`
+let ymax=int(my_new_lat[i=@max,j=@max]/`yint`)*`yint`+`yint`
+go "../Commons/Ferret/mp_graticulenew" `xmin` `xmax` `xint` `ymin` `ymax` `yint` 3

@@ -1,0 +1,13 @@
+
+      INTEGER        NSTRT0,NSTART,NNNEND,NNNCHK
+      COMMON /ICONTR/NSTRT0,NSTART,NNNEND,NNNCHK
+      INTEGER        IDATE0,IDATE1,IDATE2,IDATES,IDATEE,idatex
+      COMMON /UNIFY/ IDATE0,IDATE1,IDATE2,IDATES,IDATEE,idatex
+
+      integer nyear,nmonth
+      common /nowadays/ nyear,nmonth
+
+      INTEGER mmrec, NDATE0, NDATE1
+      COMMON /TIME10/ mmrec,NDATE0,NDATE1
+      integer ldatez,lyear,lmonth,lday,lhour,NNNNNN,NNBASE
+      common /ctltime/ldatez,lyear,lmonth,lday,lhour,NNNNNN,NNBASE

@@ -1,0 +1,49 @@
+c----------------------------------------------------------------------
+      real*8  psc
+      real*8  uc
+      real*8  vc
+      real*8  tc
+      real*8  qvc
+      real*8  qcc
+      real*8  u
+      real*8  v
+      real*8  t
+      real*8  qv
+      real*8  qc
+      real*8  qdot
+      real*8  pdota
+      real*8  pten
+      real*8  uten
+      real*8  vten
+      real*8  tten
+      real*8  qvten
+      real*8  qcten
+      real*8  psd
+      real*8  td
+      real*8  phi
+      real*8  xkc
+      real*8  difft
+      real*8  diffq
+      real*8  difuu
+      real*8  difuv
+      real*8  omega
+      real*8  qvcs
+c                                                                   
+      common/cvaria/ psc(ix,jx), uc(ix,kx,jx), vc(ix,kx,jx),
+     &            tc(ix,kx,jx),qvc(ix,kx,jx),qcc(ix,kx,jx),
+     &             u(ix,kx,jx),  v(ix,kx,jx),    t(ix,kx,jx),
+     &            qv(ix,kx,jx), qc(ix,kx,jx), qdot(ix,kxp1,jx),
+     &          pdota(ix,jx),pten(ix,jx),
+     &          uten(ix,kx,jx), vten(ix,kx,jx),   tten(ix,kx,jx),
+     &         qvten(ix,kx,jx),qcten(ix,kx,jx),
+     &         psd(ix,jx),td(ix,kx,jx),phi(ix,kx,jx),xkc(ix,kx,jx),
+     &         difft(ix,kx,jx),diffq(ix,kx,jx),difuu(ix,kx,jx),
+     &         difuv(ix,kx,jx),omega(ix,kx,jx), qvcs(ix,kx)
+
+Cchem2
+      real*8  chi, chiten, chic
+      common/tracer/ chic(ix,kx,jx,ntr),chi(ix,kx,jx,ntr)
+     &              ,chiten(ix,kx,jx,ntr)
+Cchem2_
+
+c-----------------------------------------------------------------------                                                              

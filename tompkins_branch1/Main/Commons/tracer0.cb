@@ -1,0 +1,2 @@
+      real*4  cgas
+      common /tracer0/ cgas(6,1850:2100)

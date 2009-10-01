@@ -1,0 +1,89 @@
+c------------------------------------------------------------------------
+      real*8 ueb
+      real*8 uwb
+      real*8 uebt
+      real*8 uwbt
+      real*8 veb
+      real*8 vwb
+      real*8 vebt
+      real*8 vwbt
+      real*8 teb
+      real*8 twb
+      real*8 tebt
+      real*8 twbt
+      real*8 qeb
+      real*8 qwb
+      real*8 qebt
+      real*8 qwbt
+      real*8 uj1
+      real*8 uj2
+      real*8 ujlx
+      real*8 ujl
+      real*8 vj1
+      real*8 vj2
+      real*8 vjlx
+      real*8 vjl
+      real*8 unb
+      real*8 usb
+      real*8 unbt
+      real*8 usbt
+      real*8 vnb
+      real*8 vsb
+      real*8 vnbt
+      real*8 vsbt
+      real*8 tnb
+      real*8 tsb
+      real*8 tnbt
+      real*8 tsbt
+      real*8 qnb
+      real*8 qsb
+      real*8 qnbt
+      real*8 qsbt
+      real*8 ui1
+      real*8 ui2
+      real*8 uilx
+      real*8 uil
+      real*8 vi1
+      real*8 vi2
+      real*8 vilx
+      real*8 vil
+      real*8  peb,pwb,pebt,pwbt,pnb,pss,pnbt,psbt
+c                                                              
+      common/bdycod/ ueb(ix,kx,0:jxp+1), uwb(ix,kx,0:jxp+1),
+     &              uebt(ix,kx,0:jxp+1),uwbt(ix,kx,0:jxp+1),
+     &               veb(ix,kx,0:jxp+1), vwb(ix,kx,0:jxp+1),
+     &              vebt(ix,kx,0:jxp+1),vwbt(ix,kx,0:jxp+1),
+     &               teb(ix,kx,0:jxp+1), twb(ix,kx,0:jxp+1),
+     &              tebt(ix,kx,0:jxp+1),twbt(ix,kx,0:jxp+1),
+     &               qeb(ix,kx,0:jxp+1), qwb(ix,kx,0:jxp+1),
+     &              qebt(ix,kx,0:jxp+1),qwbt(ix,kx,0:jxp+1),
+     &          uj1(ix,kx), uj2(ix,kx), ujlx(ix,kx), ujl(ix,kx),
+     &          vj1(ix,kx), vj2(ix,kx), vjlx(ix,kx), vjl(ix,kx),
+     &               unb(nspgd,kx,0:jxp+1), usb(nspgd,kx,0:jxp+1),
+     &              unbt(nspgd,kx,0:jxp+1),usbt(nspgd,kx,0:jxp+1),
+     &               vnb(nspgd,kx,0:jxp+1), vsb(nspgd,kx,0:jxp+1),
+     &              vnbt(nspgd,kx,0:jxp+1),vsbt(nspgd,kx,0:jxp+1),
+     &               tnb(nspgx,kx,0:jxp+1), tsb(nspgx,kx,0:jxp+1),
+     &              tnbt(nspgx,kx,0:jxp+1),tsbt(nspgx,kx,0:jxp+1),
+     &               qnb(nspgx,kx,0:jxp+1), qsb(nspgx,kx,0:jxp+1),
+     &              qnbt(nspgx,kx,0:jxp+1),qsbt(nspgx,kx,0:jxp+1),
+     &               ui1(kx,0:jxp+1), ui2(kx,0:jxp+1),
+     &              uilx(kx,0:jxp+1), uil(kx,0:jxp+1),
+     &               vi1(kx,0:jxp+1), vi2(kx,0:jxp+1),
+     &              vilx(kx,0:jxp+1), vil(kx,0:jxp+1),
+     &               peb(ix,0:jxp+1),  pwb(ix,0:jxp+1),
+     &              pebt(ix,0:jxp+1), pwbt(ix,0:jxp+1),
+     &               pnb(nspgx,0:jxp+1), pss(nspgx,0:jxp+1),
+     &              pnbt(nspgx,0:jxp+1),psbt(nspgx,0:jxp+1)
+C
+      REAL*8  UB0,VB0,QB0,TB0,PS0,TS0,UB1,VB1,QB1,TB1,PS1,TS1
+      REAL*8  SO0,SO1
+      COMMON /BCVARS/ UB0(IX,KX,JXP),VB0(IX,KX,JXP)
+     &               ,QB0(IX,KX,JXP),TB0(IX,KX,JXP)
+     &               ,PS0(IX,0:JXP+1)  ,TS0(IX,JXP)
+     &               ,UB1(IX,KX,JXP),VB1(IX,KX,JXP)
+     &               ,QB1(IX,KX,JXP),TB1(IX,KX,JXP)
+     &               ,PS1(IX,0:JXP+1)  ,TS1(IX,JXP)
+     &               ,SO0(IX,KX,JXP),SO1(IX,KX,JXP)
+c
+c-----------------------------------------------------------------------

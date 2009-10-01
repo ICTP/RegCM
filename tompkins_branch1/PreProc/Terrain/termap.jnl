@@ -1,0 +1,241 @@
+can mode verify
+cancel data/all
+
+! choose variable(s) to plot: 1=topo; 2=landuse; 3=landuse and topo
+let myvar=$1%3%
+! Put labels on the plot:  1=yes; 0=no
+let iflabel=$2%1%
+! Location of DOMAIN.INFO file
+define symbol DOMAIN $3%../../Input/DOMAIN.INFO%
+
+
+if `myvar eq 1` then
+  define symbol psfile TER
+elif `myvar eq 2` then
+  define symbol psfile LU
+elif `myvar eq 3` then
+  define symbol psfile LU_TER
+else
+  say "variable does not exist"
+  stop
+endif
+
+
+sp ln -sf ($DOMAIN) DOMAIN
+define symbol filnam DOMAIN
+
+DEFINE AXIS/X=1:1:1 xax1
+DEFINE GRID/X=xax1 gr_out1D
+!SUN FILE/VAR=v1,v2,v3,v4,v5/skip=0/GRID=gr_out1D/format=stream/type=i4,i4,r4,r4,r4 ($filnam)
+FILE/VAR=v1,v2,v3,v4,v5/swap/skip=0/GRID=gr_out1D/format=stream/type=i4,i4,i4,r4,r4 ($filnam)
+!list v1, v2, v3, v4, v5
+
+let nx=`v2`
+let ny=`v1`
+let nx1=1
+let ny1=1
+let nx2=`nx`
+let ny2=`ny`
+let dsm=`v4`.
+let clat=`v5`
+!SUN FILE/VAR=v6,v7,v8,v9/skip=5/GRID=gr_out1D/format=stream/type=r4,r4,r4,i4 ($filnam)
+FILE/VAR=v6,v7,v8,v9,v10/swap/skip=5/GRID=gr_out1D/format=stream/type=r4,r4,r4,r4,i4 ($filnam)
+let clon=`v6`
+let platt=`v7`
+let plonn=`v8`
+let iproj=`v10/100000000`
+!list v6, v7, v8, v9, v10
+
+if `iproj eq 12.793` then     ! Lambert Conformal Projection
+  let phitr = 30          ! True Latitude
+  go mp_lcc 1 1 nx ny dsm clat clon phitr
+  define symbol aproj Lambert
+elif `iproj eq 80` then   ! Polar Stereographic
+  Polar Stereographic projection not yet coded up in ferret
+elif `iproj eq 13.809 or iproj eq 13.138` then   ! Rotated Mercator
+  if `iproj eq 13.138` then
+    let platt = 0
+  endif
+  go mp_rotmer nx1 ny1 nx2 ny2 dsm clat clon platt plonn
+  define symbol aproj Mercator
+elif `iproj eq 69` then   ! Equal Area Azimuthal
+  Equal Area Azimuthal projection not yet coded up in ferret
+endif
+
+let vtop=1.00; let vbot=0.0; let vrgt=0.95; let vlft=0.0
+define view/x=`vlft`:`vrgt`/y=`vbot`:`vtop` vfull
+
+DEFINE AXIS/X=1:`nx`:1 xax
+DEFINE AXIS/Y=1:`ny`:1 yax
+DEFINE GRID/X=xax/Y=yax gr_out2D
+
+!SUN FILE/VAR="head ht htsd lu xlat xlon dlat dlon xmap dmap coriol"/GRID=gr_out2D/format=stream ($filnam)
+FILE/swap/VAR="head ht htsd lu xlat xlon dlat dlon xmap dmap coriol"/GRID=gr_out2D/format=stream ($filnam)
+
+let ocnmsk    = if lu gt 13.5 and lu le 15.5 then 1
+let lndmsk    = if ocnmsk gt 0 then 1/0 else 1
+
+let crop      = if lu gt  0.5 and lu le  1.5 then 1
+let sgrass    = if lu gt  1.5 and lu le  2.5 then 1
+let egneedle  = if lu gt  2.5 and lu le  3.5 then 1
+let decneedle = if lu gt  3.5 and lu le  4.5 then 1
+let decbroad  = if lu gt  4.5 and lu le  5.5 then 1
+let egbroad   = if lu gt  5.5 and lu le  6.5 then 1
+let tgrass    = if lu gt  6.5 and lu le  7.5 then 1
+let desert    = if lu gt  7.5 and lu le  8.5 then 1
+let tundra    = if lu gt  8.5 and lu le  9.5 then 1
+let irrcrop   = if lu gt  9.5 and lu le 10.5 then 1
+let sdesert   = if lu gt 10.5 and lu le 11.5 then 1
+let glacier   = if lu gt 11.5 and lu le 12.5 then 1
+let marsh     = if lu gt 12.5 and lu le 13.5 then 1
+let lake      = if lu gt 13.5 and lu le 14.5 then 1
+let ocean     = if lu gt 14.5 and lu le 15.5 then 1
+let egshrub   = if lu gt 15.5 and lu le 16.5 then 1
+let decshrub  = if lu gt 16.5 and lu le 17.5 then 1
+let mixforest = if lu gt 17.5 and lu le 18.5 then 1
+let intforest = if lu gt 18.5 and lu le 19.5 then 1
+let lndocnmix = if lu gt 19.5 and lu le 20.5 then 1
+
+let mp_x = my_new_lon
+let mp_y = my_new_lat
+
+! let xmin=`($ppl$xorg)`*1.1+`($ppl$xlen)`
+! let xmax=`xmin`+`($ppl$xlen)`/35
+! let ymin=`($ppl$yorg)`
+! let ymax=`($ppl$yorg)`+`($ppl$ylen)`
+
+let dx=my_new_lon[i=@max,j=@max]-my_new_lon[i=@min,j=@min]
+let dy=my_new_lat[i=@max,j=@max]-my_new_lat[i=@min,j=@min]
+let xintmin=int(dx/5)-mod(int(dx/5),5)
+let yintmin=int(dy/5)-mod(int(dy/5),5)
+let yint=if `yintmin` lt 5 then 5 else `yintmin`
+let xint=if `xintmin` lt 5 then 5 else `xintmin`
+let xint=yint
+let xmin=int(my_new_lon[i=@min,j=@min]/`xint`)*`xint`-`xint`
+let xmax=int(my_new_lon[i=@max,j=@max]/`xint`)*`xint`+`xint`
+let ymin=int(my_new_lat[i=@min,j=@min]/`yint`)*`yint`-`yint`
+let ymax=int(my_new_lat[i=@max,j=@max]/`yint`)*`yint`+`yint`
+
+go mp_aspect
+set window/aspect=`y_over_x*(vtop-vbot)/(vrgt-vlft)` 1
+
+ppl tics 0,0,0,0
+ppl axlsze 0,0
+ppl color 3 50 50 50
+
+set grid lu
+set mode metafile:f.plt
+if `myvar eq 1` then
+  let pvar=ht*lndmsk
+  let vmin=pvar[i=@min,j=@min]
+  let vmax=pvar[i=@max,j=@max]
+  let nlev=50
+  set view vfull
+  shade/nokey/nolabel/pal=blue_light ocnmsk, x_page, y_page
+  shade/over/nolabel/nokey/lev=`nlev`/pal=terrestrial_jp pvar, x_page, y_page
+  go mp_land_proj 1 " " 3 3
+  let mp_x = my_new_lon
+  let mp_y = my_new_lat
+  go mp_graticule_jp `xmin` `xmax` `xint` `ymin` `ymax` `yint` 3
+  let xmax=`2*($ppl$xorg)+($ppl$xlen)`; let ymax=`2*($ppl$yorg)+($ppl$ylen)`
+  let xpl=`($ppl$xorg)`; let xpr=`($ppl$xlen)`+`($ppl$xorg)`
+  let ypb=`($ppl$yorg)`; let ypt=`($ppl$ylen)`+`($ppl$yorg)`
+  let xp1=`xpr/xmax*(vrgt-vlft)`+0.03; let xp2=xp1+0.02
+  let yp1=`ypb/ymax*(vtop-vbot)`; let yp2=`ypt/ymax*(vtop-vbot)`
+  go boxbar xp1,xp2,yp1,yp2,($lev_min),($lev_max),($lev_del),2,0.14,v,terrestrial_jp
+  set view vfull
+  if `iflabel gt 0` then
+    lab/nou `0.5*($ppl$xlen)` `1.05*($ppl$ylen)` 0 0 0.22 @ACGTOPO30 Topography (m) & Vegetation
+  endif
+elif `myvar ge 2` then
+  set view vfull
+  shade/nokey/nolabel/pal=red_dark     crop,      x_page, y_page
+  shade/over /nolabel/pal=orange_dark  irrcrop,   x_page, y_page
+  shade/over /nolabel/pal=yellow       sgrass,    x_page, y_page
+  shade/over /nolabel/pal=yellow_dark  tgrass,    x_page, y_page
+  shade/over /nolabel/pal=green        egneedle,  x_page, y_page
+  shade/over /nolabel/pal=green_light  decneedle, x_page, y_page
+  shade/over /nolabel/pal=green_medium decbroad,  x_page, y_page
+  shade/over /nolabel/pal=green_dark   egbroad,   x_page, y_page
+  shade/over /nolabel/pal=orange       mixforest, x_page, y_page
+  shade/over /nolabel/pal=green_yellow intforest, x_page, y_page
+  shade/over /nolabel/pal=brown        egshrub,   x_page, y_page
+  shade/over /nolabel/pal=red_light    decshrub,  x_page, y_page
+  shade/over /nolabel/pal=pink         sdesert,   x_page, y_page
+  shade/over /nolabel/pal=tan          desert,    x_page, y_page
+  shade/over /nolabel/pal=brown_dark   marsh,     x_page, y_page
+  shade/over /nolabel/pal=grey         tundra,    x_page, y_page
+  shade/over /nolabel/pal=white        glacier,   x_page, y_page
+! shade/over /nolabel/pal=blue_dark    lndocnmix, x_page, y_page
+  shade/over /nolabel/pal=blue_medium  lake,      x_page, y_page
+  shade/over /nolabel/pal=blue_light   ocean,     x_page, y_page
+  if `myvar eq 3` then
+    contour/over/nolabel ht, x_page, y_page
+    if `iflabel gt 0` then
+      lab/nou `0.5*($ppl$xlen)` `1.05*($ppl$ylen)` 0 0 0.22 @ACGTOPO30 Topography (m) & GLCC Vegetation
+    endif
+  else
+    if `iflabel gt 0` then
+      lab/nou `0.5*($ppl$xlen)` `1.05*($ppl$ylen)` 0 0 0.22 @ACGLCC Vegetation
+    endif
+  endif
+  go mp_land_proj 1 " " 3 3
+  let mp_x = my_new_lon
+  let mp_y = my_new_lat
+  go mp_graticule_jp `xmin` `xmax` `xint` `ymin` `ymax` `yint` 3
+  let xmax=`2*($ppl$xorg)+($ppl$xlen)`; let ymax=`2*($ppl$yorg)+($ppl$ylen)`
+  let xpl=`($ppl$xorg)`; let xpr=`($ppl$xlen)`+`($ppl$xorg)`
+  let ypb=`($ppl$yorg)`; let ypt=`($ppl$ylen)`+`($ppl$yorg)`
+  let xp1=xpr/xmax*(vrgt-vlft)+0.03; let xp2=xp1+0.02
+  let dccmax=`($ppl$ylen)`/ymax*(vtop-vbot); let nveg=19; let dcc=dccmax/nveg
+  let yorg=ypb/ymax*(vtop-vbot)
+  let yp1=yorg; let yp2=yp1+dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,red_dark,"Crop"
+  let yp1=yorg+dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,orange_dark,"Irrigated","Crop"
+  let yp1=yorg+2*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,yellow,"Short","Grass"
+  let yp1=yorg+3*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,yellow_dark,"Tall","Grass"
+  let yp1=yorg+4*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,green,"Evergreen","Needleleaf"
+  let yp1=yorg+5*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,green_light,"Deciduous","Needleleaf"
+  let yp1=yorg+6*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,green_medium,"Deciduous","Broadleaf"
+  let yp1=yorg+7*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,green_dark,"Evergreen","Broadleaf"
+  let yp1=yorg+8*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,orange,"Mixed","Forest"
+  let yp1=yorg+9*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,green_yellow,"Disturbed","Forest"
+  let yp1=yorg+10*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,brown,"Evergreen","Shrub"
+  let yp1=yorg+11*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,red_light,"Deciduous","Shrub"
+  let yp1=yorg+12*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,pink,"Semi-","Desert"
+  let yp1=yorg+13*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,tan,"Desert"
+  let yp1=yorg+14*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,brown_dark,"Marsh/","Bog"
+  let yp1=yorg+15*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,grey,"Tundra"
+  let yp1=yorg+16*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,white,"Glacier","Ice Cap"
+  let yp1=yorg+17*dcc
+! go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,blue_dark,"Ocean/","Land Mix"
+! let yp1=yorg+18*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,blue_medium,"Inland/","Water"
+  let yp1=yorg+18*dcc
+  go boxbar xp1,xp2,yp1,yp2,0,10,10,1,0.14,v,blue_light,"Ocean"
+endif
+
+set view vfull
+if `iflabel gt 0` then
+  lab/nou `0.5*($ppl$xlen)` `-0.1*($ppl$ylen)` 0 0 0.18 @ACNX=`nx` NY=`ny` ds=`dsm/1000`km CLAT=`clat` CLON=`clon` ($aproj)
+endif
+
+!frame/file=($psfile).gif
+can mode metafile
+sp Fprint -R -p portrait f.plt -o ($psfile).ps -l cps

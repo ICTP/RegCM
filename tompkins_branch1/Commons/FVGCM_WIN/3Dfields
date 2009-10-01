@@ -1,0 +1,18 @@
+75 variables
+
+(wz    18   0 geop-height)
+
+zs    0    0 surface height
+slp   0    0 sea-level pressure
+ps    0    0 surface pressure
+ua    18   0 u (m/s)
+va    18   0 v (m/s)
+ta    18   0 temperature (K)
+
+(epv   18   0 Ertel Potential vorticity)
+
+q     18   0 water vapor
+tg     0   0 ground temperature
+precp  0   0 instant precp rate at output time
+
+(omega 18   0 pressure vertical velocity)
