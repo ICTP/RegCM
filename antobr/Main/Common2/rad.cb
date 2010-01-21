@@ -1,7 +1,0 @@
-      real*8  heatrt
-      real*8  o3prof
-      real*8  cldfra
-      real*8  cldlwc
-
-      common/radiation/heatrt(ilx,kx,jxp),o3prof(ilx,kxp1,jxp), 
-     2                 cldfra(ilx,kx),cldlwc(ilx,kx)
