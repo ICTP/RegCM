@@ -1,0 +1,91 @@
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+C
+C    This file is part of RegCM model.
+C
+C    RegCM model is free software: you can redistribute it and/or modify
+C    it under the terms of the GNU General Public License as published by
+C    the Free Software Foundation, either version 3 of the License, or
+C    (at your option) any later version.
+C
+C    RegCM model is distributed in the hope that it will be useful,
+C    but WITHOUT ANY WARRANTY; without even the implied warranty of
+C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C    GNU General Public License for more details.
+C
+C    You should have received a copy of the GNU General Public License
+C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+C
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+c----------------------------------------------------------------------
+      integer kxout
+      integer jxsex
+      integer kt
+      integer kclo
+      integer kcmd
+      integer kchi
+      integer ispgd
+      integer ispgx
+      integer julday
+      integer mdate0
+      integer mdate
+      integer moutdate
+      integer k700
+      integer ncld
+      integer julian
+      integer ntimax
+      common/iparam3/  kxout, jxsex, kt,kclo,kcmd,kchi,ispgd,ispgx,
+     5                 julday,mdate0,mdate,k700,ncld,julian,ntimax
+     5                ,moutdate
+
+      real(kind=8)  deltmx
+      real(kind=8)  r
+      real(kind=8)  cp
+      real(kind=8)  rovcp
+      real(kind=8)  g
+      real(kind=8)  rovg
+      real(kind=8)  karman
+      real(kind=8)  rhos
+      real(kind=8)  cd
+      real(kind=8)  cdsea
+      real(kind=8)  ch
+      real(kind=8)  chsea
+      real(kind=8)  ptop
+      real(kind=8)  ptop4
+      real(kind=8)  gmt
+      real(kind=8)  degrad
+      real(kind=8)  declin
+      real(kind=8)  dectim
+      real(kind=8)  dpd
+      real(kind=8)  eomeg
+      real(kind=8)  solcon
+      real(kind=8)  stbolt
+      real(kind=8)  alpha
+      real(kind=8)  beta
+      real(kind=8)  gnu
+      real(kind=8)  gnuhf
+      real(kind=8)  omu
+      real(kind=8)  omuhf
+      real(kind=8)  wgtd
+      real(kind=8)  wgtx
+      real(kind=8)  sigma
+      real(kind=8)  dsigma
+      real(kind=8)  a
+      real(kind=8)  twt
+      real(kind=8)  qcon
+      real(kind=8)  anudg
+      real(kind=8)  tauht
+      real(kind=8)  akht1
+      real(kind=8)  akht2
+      real(kind=8)  thrlh1
+      real(kind=8)  thrlh2
+      common/param3/ deltmx,     r,    cp, rovcp,     g,  rovg,   
+     &               karman,  rhos,    cd, cdsea,    ch, chsea,  ptop,  
+     &                ptop4,   gmt,degrad,declin,dectim,   dpd,   
+     &                eomeg,solcon,stbolt, alpha,  beta,   gnu, gnuhf,   
+     &                  omu, omuhf,  wgtd(nspgd),  wgtx(nspgx),
+     &                sigma(kxp1),dsigma(kx),     a(kx),  
+     &                  twt(kx,2),  qcon(kx),  anudg(kx),
+     &                tauht, akht1, akht2,thrlh1,thrlh2  
+c                                                                       
+c----------------------------------------------------------------------

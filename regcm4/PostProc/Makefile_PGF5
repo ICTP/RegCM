@@ -1,0 +1,24 @@
+#LINUX
+FC = pgf90 -byteswapio -Ktrap=fp
+FFLAGS = -L../Commons/env/liblinux -lnetcdf -I../Commons/env/include
+
+LD = $(FC)
+
+SRC = postproc.f netcdf.f
+
+OBJ = postproc.o netcdf.o
+
+all: postproc
+
+postproc: $(OBJ)
+	$(LD) -o $@ $(OBJ) $(FFLAGS)
+
+netcdf.f: ../Commons/env/netcdf.f
+	      ln -sf ../Commons/env/netcdf.f $@
+
+clean:
+	rm -f *.o postproc
+# --------------------------------------------------------------------
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+postproc.o: postproc.param postproc.f 

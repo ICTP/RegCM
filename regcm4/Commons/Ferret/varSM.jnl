@@ -1,0 +1,70 @@
+CANCEL MODE VERIFY
+
+cancel data/all
+cancel region/all
+cancel variable/all
+cancel symbol/all
+
+! CHOOSE YEAR
+let yrmo=$1
+
+! CHOOSE CONVECTION; 1=AS, 2=FC; 3=KUO
+define symbol cs $2
+
+! CHOOSE SOIL MOISTURE; 0=CTL; 1=CLM; 2=00; 3=25; 4=50; 5=75; 6=100
+define symbol sm1 $3
+
+! CHOOSE SOIL MOISTURE INTERACTION; 1=INTERACTIVE; 2=FIXED; 3=EVOLVE
+let intfix=$4
+
+! CHOOSE VARIABLE: 1=preca; 2=rc; 3=rn; 4=swi; 5=swn; 6=lwn; 7=rnet; 8=ta
+!                ; 9=qa, 10=msea; 11=rha; 12=zpbl; 13=sh; 14=lh; 15=shlh
+!                ; 16=clwp; 17=olr; 18=alb; 19=mse/zpbl; 20=mse14-mse12
+!                ; 21=rs; 22=smfu; 23=smfr; 24=smft; 25=aa0; 26=aa1; 27=xaa0
+!                ; 28=xmb; 29=pwav; 30=pwev; 31=cfrac; 32=stab; 33=uvh850
+!                ; 34=uvh725; 35=uvh500, 36=uvq850; 37=uvq725; 38=uvq500
+!                ; 39=u850; 40=u725; 41=u500; 42=v850; 43=v725; 44=v500
+!                ; 45=uvt850; 46=uvt725; 47=uvt500; 48=uvt.95; 49=uvt.95
+!                ; 50=ps
+let v1=$5
+
+! COLOR?: 0=Greyscale; 1=Color
+let col=$6
+
+
+define symbol maindir /home/RAID-D4/jpal/MonthSims/
+let csize=0.16
+
+IF `intfix eq 1` THEN
+  define symbol intfix1 I
+  define symbol intfix2 INT
+  define symbol intfix3 INTERACTIVE
+ELIF `intfix eq 2` THEN
+  define symbol intfix1 F
+  define symbol intfix2 FIX
+  define symbol intfix3 FIXED
+ELIF `intfix eq 3` THEN
+  define symbol intfix1 E
+  define symbol intfix2 EVOLVE
+  define symbol intfix3 EVOLVE
+ENDIF
+
+define symbol smlab ($sm1)
+define symbol datelab `yrmo`
+define symbol varlab ($datelab)($intfix1)($smlab)($cs)
+go vardef
+go varlevs
+go head
+go colordef
+
+let/d=2 mppt=ppt[l=1]*0.0+1.0
+
+use "/($maindir)/($inf)($intfix1)($sm1)($cs)`yrmo`($ftyp).NC"
+
+if  `v1 eq 32` then go stab
+
+set region/i=`14+ioff`:`107+ioff`/j=`14+joff`:`67+joff`
+
+let var2d=vplot
+if `vecplot eq 1` then (let uvect=u_on_p; let vvect=v_on_p)
+go vplotter

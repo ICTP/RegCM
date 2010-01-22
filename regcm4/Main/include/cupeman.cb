@@ -1,0 +1,40 @@
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+C
+C    This file is part of RegCM model.
+C
+C    RegCM model is free software: you can redistribute it and/or modify
+C    it under the terms of the GNU General Public License as published by
+C    the Free Software Foundation, either version 3 of the License, or
+C    (at your option) any later version.
+C
+C    RegCM model is distributed in the hope that it will be useful,
+C    but WITHOUT ANY WARRANTY; without even the implied warranty of
+C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C    GNU General Public License for more details.
+C
+C    You should have received a copy of the GNU General Public License
+C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+C
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+      real(kind=8) minsig
+      real(kind=8) elcrit
+      real(kind=8) tlcrit
+      real(kind=8) entp
+      real(kind=8) sigd
+      real(kind=8) sigs
+      real(kind=8) omtrain
+      real(kind=8) omtsnow
+      real(kind=8) coeffr
+      real(kind=8) coeffs
+      real(kind=8) cu
+      real(kind=8) betae
+      real(kind=8) dtmax
+      real(kind=8) alphae
+      real(kind=8) damp
+
+      common /cupemanparam/ minsig, elcrit, tlcrit, entp
+     &     , sigd, sigs, omtrain, omtsnow, coeffr, coeffs, cu
+     &     , betae, dtmax, alphae, damp
+      integer minorig
+      common /intcupeman/ minorig

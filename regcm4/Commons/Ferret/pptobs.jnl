@@ -1,0 +1,125 @@
+can mode verify
+cancel data/all
+cancel symbol/all
+cancel var/all
+set window/aspect=1.4
+
+! sp ln -s ../Commons/fort.10
+
+DEFINE AXIS/X=1:1:1 xax1
+DEFINE GRID/X=xax1 gr_out1D
+!SUN FILE/VAR=v1,v2,v3,v4,v5/skip=0/GRID=gr_out1D/format=stream/type=i4,i4,r4,r4,r4 "fort.10"
+FILE/VAR=v1,v2,v3,v4,v5/swap/skip=0/GRID=gr_out1D/format=stream/type=i4,i4,i4,r4,r4 "fort.10"
+! list v1, v2, v3, v4, v5
+
+let nx=`v2-2`
+let ny=`v1-2`
+let nx1=1
+let ny1=1
+let nx2=`nx`
+let ny2=`ny`
+let dsm=`v4`.
+let clat=`v5`
+!SUN FILE/VAR=v6,v7,v8,v9/skip=5/GRID=gr_out1D/format=stream/type=r4,r4,r4,i4 "fort.10"
+FILE/VAR=v6,v7,v8,v9,v10/swap/skip=5/GRID=gr_out1D/format=stream/type=r4,r4,r4,r4,i4 "fort.10"
+let clon=`v6`
+let platt=`v7`
+let plonn=`v8`
+let iproj=`v10/100000000`
+! list v6, v7, v8, v9, v10
+
+
+
+if `iproj eq 12.793` then     ! Lambert Conformal Projection
+  let phitr = 30          ! True Latitude
+  go "../Commons/Ferret/mp_lcc.jnl" nx2 ny2 dsm clat clon phitr
+  define symbol aproj Lambert
+elif `iproj eq 80` then   ! Polar Stereographic
+  Polar Stereographic projection not yet coded up in ferret
+elif `iproj eq 13.809` then   ! Rotated Mercator
+  go "../Commons/Ferret/mp_rotmer" nx1 ny1 nx2 ny2 dsm clat clon platt plonn
+  define symbol aproj Mercator
+endif
+let mp_x = my_new_lon
+let mp_y = my_new_lat
+
+can data 1
+use "CRU9711_9802.NC"
+
+define view/xlim=0.00,0.56/ylim=0.56,1.00 v11
+define view/xlim=0.44,1.00/ylim=0.56,1.00 v12
+define view/xlim=0.00,0.56/ylim=0.28,0.72 v21
+define view/xlim=0.44,1.00/ylim=0.28,0.72 v22
+define view/xlim=0.00,0.56/ylim=0.00,0.44 v31
+define view/xlim=0.44,1.00/ylim=0.00,0.44 v32
+
+let os=(x_page[i=`nx`,j=`ny`]-x_page[i=1,j=1])*0.025
+let xlo=x_page[i=1,j=1]-os*2.9
+let xhi=x_page[i=`nx`,j=`ny`]+os*3.25
+let ylo=y_page[i=1,j=1]+os*0.1
+let yhi=y_page[i=`nx`,j=`ny`]-os*.1
+
+can view
+set mode metafile:f.plt
+
+set view full
+plot/noaxis/nolabel/i=1:5/hlimits=-10:-5:1 i
+! sp rm pwd.jnl
+! sp echo 'lab/nou '`0.5*($ppl$xlen)` `1.15*($ppl$ylen)`' 0 0 0.18 @AC'$PWD > pwd.jnl
+! go pwd
+
+lab/nou `0.5*($ppl$xlen)` `1.1*($ppl$ylen)` 0 0 0.22 @ACCRU Precipitation (mm/day)
+
+
+set view v11
+let cmax=16
+let cint=1
+let cmin=0
+! define symbol slev `cmin`,`cmax`,`2*cint`
+! define symbol clev `cmin`,`cmax`,`cint`
+! define symbol slev "(0)(0.5)(1)(2)(4)(7)(11)(16)(99)"
+! define symbol clev "(0.5)(1)(2)(4)(7)(11)(16)(99)"
+define symbol slev "(0)(0.5)(1)(2)(4)(7)(11)(16)(22)(29)(99)"
+define symbol clev "(0.5)(1)(2)(4)(7)(11)(16)(22)(29)(99)"
+define symbol ipal "../Commons/Ferret/jpal"
+let vplt=pre[d=1,l=1]
+fill/noaxis/nokey/nolabel/pal="($ipal)"/lev="($slev)" vplt, x_page, y_page
+contour/over/nolabel/lev="($clev)" vplt, x_page, y_page
+go "../Commons/Ferret/map.jnl" 2 nx1 ny1 nx2 ny2
+lab/nou `0.85*($ppl$xlen)` `0.03*($ppl$ylen)` 0 0 0.20 @AC9711
+
+set view v12
+let vplt=pre[d=1,l=2]
+fill/noaxis/nokey/nolabel/pal="($ipal)"/lev="($slev)" vplt, x_page, y_page
+contour/over/nolabel/lev="($clev)" vplt, x_page, y_page
+go "../Commons/Ferret/map.jnl" 2 nx1 ny1 nx2 ny2
+lab/nou `0.83*($ppl$xlen)` `0.03*($ppl$ylen)` 0 0 0.20 @C007@AC9712
+
+
+set view v21
+let vplt=pre[d=1,l=3]
+fill/noaxis/nokey/nolabel/pal="($ipal)"/lev="($slev)" vplt, x_page, y_page
+contour/over/nolabel/lev="($clev)" vplt, x_page, y_page
+go "../Commons/Ferret/map.jnl" 2 nx1 ny1 nx2 ny2
+lab/nou `0.83*($ppl$xlen)` `0.03*($ppl$ylen)` 0 0 0.20 @C007@AC9801
+
+
+set view v22
+let vplt=pre[d=1,l=4]
+fill/noaxis/nokey/nolabel/pal="($ipal)"/lev="($slev)" vplt, x_page, y_page
+contour/over/nolabel/lev="($clev)" vplt, x_page, y_page
+go "../Commons/Ferret/map.jnl" 2 nx1 ny1 nx2 ny2
+lab/nou `0.83*($ppl$xlen)` `0.03*($ppl$ylen)` 0 0 0.20 @C007@AC9802
+
+
+set view v31
+let vplt=pre[d=1,l=1:4@sum]/4
+fill/noaxis/nolabel/pal="($ipal)"/lev="($slev)" vplt, x_page, y_page
+contour/over/nolabel/lev="($clev)" vplt, x_page, y_page
+go "../Commons/Ferret/map.jnl" 2 nx1 ny1 nx2 ny2
+lab/nou `0.83*($ppl$xlen)` `0.03*($ppl$ylen)` 0 0 0.20 @C007@ACAVERAGE
+
+
+
+can mode metafile
+sp Fprint -o f.ps f.plt

@@ -1,0 +1,28 @@
+let mp_central_meridian = $1
+let mp_standard_parallel = $2
+
+let Pi = atan(1.)*4
+let deg2rad=atan(1.)/45.            ! CONVERT DEGREES TO RADIANS
+let pi4=0.25*pi
+
+let mp_x = x
+let mp_y = y
+
+let mp_R = 1
+let mp_k0 = 1
+let mp_lambda0 = mp_central_meridian * deg2rad
+let mp_lambda = mp_x * deg2rad
+let mp_phi = mp_y * deg2rad
+let mp_phi0 = mp_standard_parallel * deg2rad
+let mp_phi1 = 30.*deg2rad
+let mp_phi2 = 60.*deg2rad
+let grdfac=ln(cos(mp_phi1)/cos(mp_phi2))/ln(tan(pi4+0.5*mp_phi2)/tan(pi4+0.5*mp_phi1))
+
+let F=cos(mp_phi1)/tan(pi4+0.5*mp_phi1)^grdfac/grdfac
+let rho=F/tan(pi4+0.5*mp_phi)^grdfac
+let rho0=F/tan(pi4+0.5*mp_phi0)^grdfac
+let x_page=rho*sin(grdfac*(mp_lambda-mp_lambda0))
+let y_page=rho0-rho*cos(grdfac*(mp_lambda-mp_lambda0))
+
+let mp_mask = 1
+

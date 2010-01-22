@@ -1,0 +1,90 @@
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+C
+C    This file is part of RegCM model.
+C
+C    RegCM model is free software: you can redistribute it and/or modify
+C    it under the terms of the GNU General Public License as published by
+C    the Free Software Foundation, either version 3 of the License, or
+C    (at your option) any later version.
+C
+C    RegCM model is distributed in the hope that it will be useful,
+C    but WITHOUT ANY WARRANTY; without even the implied warranty of
+C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C    GNU General Public License for more details.
+C
+C    You should have received a copy of the GNU General Public License
+C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+C
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+c
+c $Id: comlun.h,v 1.1.1.1 1995/02/09 23:26:42 ccm2 Exp $
+c $Author: ccm2 $
+c
+C
+C Logical unit numbers and related variables
+C
+      integer
+     $     pnrg1,             ! maximum number of primary 
+C                             !  regeneration files
+     $     pnrg2,             ! maximum number of secondary 
+C                             !  regeneration files
+     $     pnrg3              ! maximum number of secondary 
+
+      parameter (pnrg1 = 5)
+      parameter (pnrg2 = 5)
+      parameter (pnrg3 = 5)
+C
+      common/comlun/nsds    ,nrg     ,nrg1(pnrg1)      ,nrg2(pnrg2),
+     $              nrg3(pnrg3,ptapes)        ,nra1    ,nrb1    ,
+     $              ninit   ,nbndti  ,nozone  ,nsst    ,nabem   ,
+     $              msplit,lutag(99)
+      common/comlun/rg1lat(pnrg1+1)  ,rg1siz(pnrg1)    ,rg1buf  ,nnrg1,
+     $              rg2lat(pnrg2+1)  ,rg2siz(pnrg2)    ,rg2buf  ,nnrg2,
+     $              rg3lat(pnrg3+1,ptapes)    ,rg3siz(pnrg3,ptapes)   ,
+     $              rg3buf(ptapes)   ,nnrg3(ptapes)    ,mxszrg  ,
+     $              nrefrq  ,rgnht(ptapes)    ,rg3num  ,mresfq
+      common/comlunc/rg1ext(pnrg1)   ,rg2ext(pnrg2)    ,
+     $               rg3ext(pnrg3,ptapes)
+C
+      integer nsds,     ! restart dataset unit
+     $        nrg,      ! master regeneration dataset unit
+     $        nrg1,     ! primary regeneration dataset units
+     $        nrg2,     ! secondary regeneration dataset units
+     $        nrg3,     ! hbuf regeneration dataset units
+     $        nra1,     ! a work file
+     $        nrb1,     ! b work file
+     $        ninit,    ! initial dataset unit
+     $        nbndti,   ! time-invariant boundary dataset
+     $        nozone,   ! ozone dataset
+     $        nsst,     ! sst dataset
+     $        nabem,    ! absorptivity/emissivity work file
+     $        msplit    ! communication between LINEMS1 and LINEMS2
+C
+      logical
+     $     lutag        ! list of flags marking logical units in use
+      integer
+     $     rg1lat,      ! latitude list for primary regen datasets
+     $     rg1siz,      ! file sizes for preallocation
+     $     rg1buf,      ! buffer length for assign
+     $     nnrg1,       ! number of primary regen files written
+     $     rg2lat,      ! lat list for secondary regen datasets
+     $     rg2siz,      ! file size for preallocation
+     $     rg2buf,      ! buffer length for assign
+     $     nnrg2,       ! number of secondary regen files written
+     $     rg3lat,      ! latitude list for hbuf regen datasets
+     $     rg3siz,      ! file sizes for preallocation
+     $     rg3buf,      ! buffer length for assign
+     $     nnrg3,       ! number of hbuf regen files written
+     $     mxszrg,      ! max size of a regen file (megabytes)
+     $     nrefrq,      ! frequency of regeneration file writes
+     $     mresfq,      ! frequency of mnthly avg regen file writes
+     $     rg3num       ! number of temporary secondary regen files
+      logical
+     $     rgnht        ! set true if regeneration file for a h-tape exists
+      character*2
+     $     rg1ext,      ! file extension for primary regen files
+     $     rg2ext       ! file extension for secondary regen files
+      character*5
+     $     rg3ext       ! file extension for secondary regen files
+C

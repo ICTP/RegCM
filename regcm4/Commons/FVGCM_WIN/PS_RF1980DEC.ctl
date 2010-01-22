@@ -1,0 +1,13 @@
+DSET  ^PS_RF1980DEC
+options big_endian
+TITLE  dycore32
+UNDEF  1.e25
+XDEF   91 LINEAR    -41.000000     1.250000
+YDEF   58 LINEAR     14.000000     1.000000
+ZDEF    18 LEVELS     5.423    14.742    35.369    66.163   100.564   140.534
+                    191.294   253.551   327.260   411.363   503.544   600.248
+	            696.796   787.702   867.161   929.649   970.555   992.556
+TDEF  124 LINEAR  06Z01DEC1980  06hr
+VARS  1
+ps    0    0 surface pressure (Pa.)
+ENDVARS

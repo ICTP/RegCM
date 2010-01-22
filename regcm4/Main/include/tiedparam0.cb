@@ -1,0 +1,45 @@
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+C
+C    This file is part of RegCM model.
+C
+C    RegCM model is free software: you can redistribute it and/or modify
+C    it under the terms of the GNU General Public License as published by
+C    the Free Software Foundation, either version 3 of the License, or
+C    (at your option) any later version.
+C
+C    RegCM model is distributed in the hope that it will be useful,
+C    but WITHOUT ANY WARRANTY; without even the implied warranty of
+C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C    GNU General Public License for more details.
+C
+C    You should have received a copy of the GNU General Public License
+C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+C
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+! ----------------------------------------------------------------
+!
+! module *mo_cumulus_flux* - parameters for cumulus massflux scheme
+!
+! ----------------------------------------------------------------
+
+      real(kind=8)  :: entrpen   !    entrainment rate for penetrative convection
+      real(kind=8)  :: entrscv   !    entrainment rate for shallow convection
+      real(kind=8)  :: entrmid   !    entrainment rate for midlevel convection
+      real(kind=8)  :: entrdd    !    entrainment rate for cumulus downdrafts
+      real(kind=8)  :: cmfctop   !    relat. cloud massflux at level above nonbuoyanc
+      real(kind=8)  :: cmfcmax   !    maximum massflux value allowed for
+      real(kind=8)  :: cmfcmin   !    minimum massflux value (for safety)
+      real(kind=8)  :: cmfdeps   !    fractional massflux for downdrafts at lfs
+      real(kind=8)  :: rhcdd     !    relative saturation in downdrafts
+      real(kind=8)  :: cprcon    !    coefficients for determining conversion
+                           !    from cloud water to rain
+      LOGICAL :: lmfpen    !    true if penetrative convection is switched on
+      LOGICAL :: lmfscv    !    true if shallow     convection is switched on
+      LOGICAL :: lmfmid    !    true if midlevel    convection is switched on
+      LOGICAL :: lmfdd     !    true if cumulus downdraft      is switched on
+      LOGICAL :: lmfdudv   !    true if cumulus friction       is switched on
+      LOGICAL :: lamip2
+      COMMON /tiedparam0/ entrpen,entrscv,entrmid,entrdd,cmfctop,
+     &                    cmfcmax,cmfcmin,cmfdeps,rhcdd,cprcon,
+     &                    lmfpen,lmfscv,lmfmid,lmfdd,lmfdudv,lamip2

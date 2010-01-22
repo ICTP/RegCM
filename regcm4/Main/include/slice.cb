@@ -1,0 +1,45 @@
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+C
+C    This file is part of RegCM model.
+C
+C    RegCM model is free software: you can redistribute it and/or modify
+C    it under the terms of the GNU General Public License as published by
+C    the Free Software Foundation, either version 3 of the License, or
+C    (at your option) any later version.
+C
+C    RegCM model is distributed in the hope that it will be useful,
+C    but WITHOUT ANY WARRANTY; without even the implied warranty of
+C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C    GNU General Public License for more details.
+C
+C    You should have received a copy of the GNU General Public License
+C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+C
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+c----------------------------------------------------------------------
+
+      real(kind=8) qvb3d, tb3d, ubx3d, vbx3d, rhob3d, qcb3d, rhb3d
+     &     , qsb3d, pb3d, ubd3d, vbd3d, chib3d
+                                                                    
+#ifdef MPP1
+
+      common/cbslice/ qvb3d(ix,kx,-1:jxp+2),  tb3d(ix,kx,-1:jxp+2)
+     &              , ubx3d(ix,kx,jxp), vbx3d(ix,kx,jxp)
+     &              , ubd3d(ix,kx,-1:jxp+2), vbd3d(ix,kx,-1:jxp+2)
+     &              ,rhob3d(ix,kx,jxp), qcb3d(ix,kx,-1:jxp+2)
+     &              , rhb3d(ix,kx,jxp), qsb3d(ix,kx,jxp)
+     &              ,  pb3d(ix,kx,jxp),chib3d(ix,kx,-1:jxp+2,ntr)
+
+#else
+
+      common/cbslice/ qvb3d(ix,kx,jx),  tb3d(ix,kx,jx)
+     &              , ubx3d(ix,kx,jx), vbx3d(ix,kx,jx)
+     &              , ubd3d(ix,kx,jx), vbd3d(ix,kx,jx)
+     &              ,rhob3d(ix,kx,jx), qcb3d(ix,kx,jx)
+     &              , rhb3d(ix,kx,jx), qsb3d(ix,kx,jx)
+     &              ,  pb3d(ix,kx,jx),chib3d(ix,kx,jx,ntr)
+
+#endif
+
+c-----------------------------------------------------------------------

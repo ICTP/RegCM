@@ -1,0 +1,91 @@
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+C
+C    This file is part of RegCM model.
+C
+C    RegCM model is free software: you can redistribute it and/or modify
+C    it under the terms of the GNU General Public License as published by
+C    the Free Software Foundation, either version 3 of the License, or
+C    (at your option) any later version.
+C
+C    RegCM model is distributed in the hope that it will be useful,
+C    but WITHOUT ANY WARRANTY; without even the implied warranty of
+C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C    GNU General Public License for more details.
+C
+C    You should have received a copy of the GNU General Public License
+C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+C
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#ifdef MPP1
+
+c soil parameters
+      integer mode
+      integer nats,nsoil
+
+      parameter(nsoil=152)
+      parameter(nats = 12) 
+      parameter(mode=3)
+
+c soil variables defined in initialisation 
+      real(kind=8)  dustsotex          
+      real(kind=8)  SREL2D
+      real(kind=8)  dp
+      real(kind=8)  sandrow2,clayrow2,sand2row2,clay2row2,silt2row2
+  
+      common/dust/dustsotex(ix,jxp),SREL2D(ix,jxp,nsoil),  dp(nsoil),
+     &        sandrow2(ix,jxp),clayrow2(ix,jxp),sand2row2(ix,nats,jxp),
+     &        clay2row2(ix,nats,jxp),silt2row2(ix,nats,jxp)
+c          
+c THE EFFECTS OF SOIL MOISTURE ON THRESHOLD FRICTION VELOCITY
+c          parameter(vk=0.4)
+
+      integer ust
+      integer jSOILM
+      integer jfs
+
+      parameter(jSOILM= 1) ! 0 for SHAO, Y. (2001)
+                           ! 1 for FECAN, F.(1999)
+
+      parameter(jfs = 0 )  ! 1 for Mrticorena (1997)
+                           ! 0 for Raupach (1993)
+
+      parameter(ust = 1 )  ! 0 for Shao and Lu (2001)
+                           ! 1 for IVERSEN AND WHITE (1982)
+
+#else
+
+c soil parameters
+      integer mode
+      integer nats,nsoil
+
+      parameter(nsoil=152)
+      parameter(nats = 12) 
+      parameter(mode=3)
+
+c soil variables defined in initialisation 
+      real(kind=8)  dustsotex          
+      real(kind=8)  SREL2D
+      real(kind=8)  dp
+      real(kind=8)  sandrow2,clayrow2,sand2row2,clay2row2,silt2row2
+  
+      common/dust/dustsotex(ix,jx),SREL2D(ix,jx,nsoil),   dp(nsoil),
+     &          sandrow2(ix,jx),clayrow2(ix,jx),sand2row2(ix,nats,jx),
+     &          clay2row2(ix,nats,jx),silt2row2(ix,nats,jx)
+c          
+c THE EFFECTS OF SOIL MOISTURE ON THRESHOLD FRICTION VELOCITY
+c          parameter(vk=0.4)
+
+      integer ust
+      integer jSOILM
+      integer jfs
+
+      parameter(jSOILM= 1) ! 0 for SHAO, Y. (2001)
+                           ! 1 for FECAN, F.(1999)
+
+      parameter(jfs = 0 )  ! 1 for Mrticorena (1997)
+                           ! 0 for Raupach (1993)
+
+      parameter(ust = 1 )  ! 0 for Shao and Lu (2001)
+                           ! 1 for IVERSEN AND WHITE (1982)
+#endif

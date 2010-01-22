@@ -1,0 +1,69 @@
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c main program parameters 
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+ccc Set Domain Dimensions
+c     integer ix        ! numbers of points from south to north
+c     integer jx        ! numbers of points from west  to east
+c     integer kx        ! numbers of points from TOA   to surface
+c     include 'regcm.param'
+
+c     integer mjx       ! numbers of points from west  to east
+c     include 'regcm.param2'
+
+ccc Set Buffer Zone Depth
+      integer nspgx     ! (nspgx-1) represents the number of
+c                       ! cross-point slices on the boundary affected by
+c                       ! sponge or relaxation boundary conditions. (=6)
+
+      integer nspgd     ! (nspgd-1) represents the number of
+c                       ! dot-point slices on the boundary affected by
+c                       ! sponge or relaxation boundary conditions. (=6)
+
+c     parameter (nspgx=12,nspgd=12) ! # of slices in boundary conditions
+      parameter (nspgx=12,nspgd=12) ! # of slices in boundary conditions
+
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      integer ilx
+      parameter(ilx=ix-1)
+      integer ilxm
+      parameter(ilxm=ix-2)
+
+c     integer jlx
+c     parameter(jlx=jx-1)
+c     integer jlxm
+c     parameter(jlxm=jx-2)
+c
+      integer kxm
+      integer kxp1
+      integer kxp2
+      parameter (kxm=kx-1,kxp1=kx+1,kxp2=kx+2)
+c
+      integer nspgv     ! dimension of the equivalence arrays.
+c                       !  (= (nspgd+nspgx)*8+8 )
+
+      integer nspgp     ! dimension of the equivalence arrays for
+c                       ! boundary values and the pressure tendency.
+c                       !  (= nspgx*4)
+      parameter (nspgv=(nspgd+nspgx)*8+8,nspgp=nspgx*4)               
+
+      integer nsplit
+      parameter( nsplit = 2)           ! # of split exp. modes
+      integer lkpts
+      parameter( lkpts = 10)           !# of lake points for lake model
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c bats parameters
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      integer nbmax
+      integer np1
+      parameter (nbmax=ix-1,np1=2) 
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+Cchem2
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c tracer parameter
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      integer ntr                      ! tracer number
+      parameter( ntr = 1)
+      integer nbin                     ! bins number ( dust)
+      parameter(nbin = 1)
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+Cchem2_

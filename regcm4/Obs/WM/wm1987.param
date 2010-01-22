@@ -1,0 +1,44 @@
+c ** PGI compile: pgf77 WM2RCM.f -L../../Commons/env/liblinux -lnetcdf
+c ** IFC compile: ifc -tpp7 -O3 -cm -w -w90 -w95 WM2RCM.f -L../../Commons/env/liblinux -lnetcdf -o wm
+
+C ** idatewm0 = First year-month of the WM dataset (YYYYMM)
+C ** idatewm1 = First year-month desired (YYYYMM)
+C ** idatewm2 = Last year-month desired (YYYYMM)
+      integer idatewm0, idatewm1, idatewm2
+      parameter(idatewm0=196001)
+      parameter(idatewm1=198701)
+      parameter(idatewm2=198712)
+
+C ** ORIGINAL WILLMOTT-MATSUURA GRID
+C ** nfld  = number of WM fields
+C ** nlon  = number of longitudes
+C ** nlat  = number of latitudes
+C ** dlon  = Resolution in the x-direction
+C ** dlat  = Resolution in the y-direction
+C ** glon1 = Longitude position of the western most point
+C ** glat1 = Latitude position of the southern most point
+      integer nfld, ifld, nlon, nlat
+      real glon1, glat1, dlat, dlon
+      PARAMETER (nfld=2)
+      PARAMETER (NLON=720, NLAT=360, dlat=0.5, dlon=0.5 )
+      PARAMETER (GLON1=-179.75, GLAT1=-89.75)
+
+c NAME OF THE WM FILES ON THE RegCM GRID.
+      character outfile(nfld)*50
+      DATA  (outfile(ifld),ifld=1,nfld)
+     &   /'PREC1987.nc'
+     &   ,'TEMP1987.nc'/
+
+c NAME OF THE GLOBAL INPUT WM FILES
+      character infile(nfld)*50
+      DATA  (infile(ifld),ifld=1,nfld)
+     &   /'/home/RAID2-D1/WMData/WMPREC.CDF'
+     &   ,'/home/RAID2-D1/WMData/WMTEMP.CDF'/
+
+c NAME OF THE WM VARIABLES
+      character vnam(nfld)*10
+      DATA  (vnam(ifld),ifld=1,nfld)
+     &   /'PREC'
+     &   ,'TEMP'/
+ 
+

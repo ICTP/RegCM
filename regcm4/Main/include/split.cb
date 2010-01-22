@@ -1,0 +1,160 @@
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+C
+C    This file is part of RegCM model.
+C
+C    RegCM model is free software: you can redistribute it and/or modify
+C    it under the terms of the GNU General Public License as published by
+C    the Free Software Foundation, either version 3 of the License, or
+C    (at your option) any later version.
+C
+C    RegCM model is distributed in the hope that it will be useful,
+C    but WITHOUT ANY WARRANTY; without even the implied warranty of
+C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C    GNU General Public License for more details.
+C
+C    You should have received a copy of the GNU General Public License
+C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+C
+C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#ifdef MPP1
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      integer m
+      real(kind=8)  am
+      real(kind=8)  an
+      real(kind=8)  dstor
+      real(kind=8)  hstor
+      common /dpass/ m(nsplit)
+     a             , am(kx,nsplit), an(nsplit)
+     b             , dstor(ix,0:jxp+1,nsplit), hstor(ix,0:jxp+1,nsplit)
+c
+      real(kind=8)  hydros
+      real(kind=8)  hydror
+      real(kind=8)  hydroc
+      real(kind=8)  tau
+      real(kind=8)  zmatx
+      real(kind=8)  zmatxr
+      real(kind=8)  varpa1
+      real(kind=8)  varpa2
+      real(kind=8)  sigmah
+      real(kind=8)  dsigma
+      real(kind=8)  tbarh
+      real(kind=8)  hbar
+      real(kind=8)  cpfac
+      real(kind=8)  hweigh
+      real(kind=8)  r
+      real(kind=8)  ps
+      real(kind=8)  pt
+      real(kind=8)  pd
+      real(kind=8)  alpha1
+      real(kind=8)  alpha2
+      common /cvert/ hydros(kx,kx), hydror(kx,kx), hydroc(kx,kxp1)
+     1             , tau(kx,kx), zmatx(kx,kx), zmatxr(kx,kx)
+     2             , varpa1(kx,kxp1), varpa2(kxp1,kxp1), sigmah(kxp1)
+     3             , dsigma(kx), tbarh(kx), hbar(kx), cpfac(kx)
+     4             , hweigh(kx), r, ps, pt, pd, alpha1, alpha2
+c
+      real(kind=8)  e1
+      real(kind=8)  e2
+      real(kind=8)  e3
+      real(kind=8)  d1
+      real(kind=8)  d2
+      real(kind=8)  a
+      real(kind=8)  a1
+      real(kind=8)  a2
+      real(kind=8)  a3
+      real(kind=8)  a4
+      real(kind=8)  s1
+      real(kind=8)  s2
+      real(kind=8)  x1
+      real(kind=8)  w1
+      real(kind=8)  w2
+      integer iw2
+      real(kind=8)  g1
+      real(kind=8)  g2
+      real(kind=8)  g3
+      real(kind=8)  w3
+      real(kind=8)  thetah
+      real(kind=8)  tbarf
+      real(kind=8)  thetaf
+      real(kind=8)  tweigh
+      common /cdiag/ e1(kx,kx),e2(kx,kx),e3(kx,kx),d1(kx,kx),d2(kx,kx)
+     1             ,  a(kx,kx),a1(kx,kx),a2(kx,kx),a3(kx,kx),a4(kx,kx)
+     2             , s1(kx,kx),s2(kx,kx),x1(kx,kx),w1(kx,kx),w2(kx,kx)
+     2             ,iw2(kx)
+     3             , g1(kx,kx), g2(kx,kx), g3(kx,kx), w3(kxp1,kx)
+     4             , thetah(kx),tbarf(kxp1),thetaf(kxp1),tweigh(kx)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc      
+
+#else
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      integer m
+      real(kind=8)  am
+      real(kind=8)  an
+      real(kind=8)  dstor
+      real(kind=8)  hstor
+      common /dpass/ m(nsplit)
+     a             , am(kx,nsplit), an(nsplit)
+     b             , dstor(ix,jx,nsplit), hstor(ix,jx,nsplit)
+c
+      real(kind=8)  hydros
+      real(kind=8)  hydror
+      real(kind=8)  hydroc
+      real(kind=8)  tau
+      real(kind=8)  zmatx
+      real(kind=8)  zmatxr
+      real(kind=8)  varpa1
+      real(kind=8)  varpa2
+      real(kind=8)  sigmah
+      real(kind=8)  dsigma
+      real(kind=8)  tbarh
+      real(kind=8)  hbar
+      real(kind=8)  cpfac
+      real(kind=8)  hweigh
+      real(kind=8)  r
+      real(kind=8)  ps
+      real(kind=8)  pt
+      real(kind=8)  pd
+      real(kind=8)  alpha1
+      real(kind=8)  alpha2
+      common /cvert/ hydros(kx,kx), hydror(kx,kx), hydroc(kx,kxp1)
+     1             , tau(kx,kx), zmatx(kx,kx), zmatxr(kx,kx)
+     2             , varpa1(kx,kxp1), varpa2(kxp1,kxp1), sigmah(kxp1)
+     3             , dsigma(kx), tbarh(kx), hbar(kx), cpfac(kx)
+     4             , hweigh(kx), r, ps, pt, pd, alpha1, alpha2
+c
+      real(kind=8)  e1
+      real(kind=8)  e2
+      real(kind=8)  e3
+      real(kind=8)  d1
+      real(kind=8)  d2
+      real(kind=8)  a
+      real(kind=8)  a1
+      real(kind=8)  a2
+      real(kind=8)  a3
+      real(kind=8)  a4
+      real(kind=8)  s1
+      real(kind=8)  s2
+      real(kind=8)  x1
+      real(kind=8)  w1
+      real(kind=8)  w2
+      integer iw2
+      real(kind=8)  g1
+      real(kind=8)  g2
+      real(kind=8)  g3
+      real(kind=8)  w3
+      real(kind=8)  thetah
+      real(kind=8)  tbarf
+      real(kind=8)  thetaf
+      real(kind=8)  tweigh
+      common /cdiag/ e1(kx,kx),e2(kx,kx),e3(kx,kx),d1(kx,kx),d2(kx,kx)
+     1             ,  a(kx,kx),a1(kx,kx),a2(kx,kx),a3(kx,kx),a4(kx,kx)
+     2             , s1(kx,kx),s2(kx,kx),x1(kx,kx),w1(kx,kx),w2(kx,kx)
+     2             ,iw2(kx)
+     3             , g1(kx,kx), g2(kx,kx), g3(kx,kx), w3(kxp1,kx)
+     4             , thetah(kx),tbarf(kxp1),thetaf(kxp1),tweigh(kx)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc      
+
+#endif

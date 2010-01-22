@@ -1,0 +1,547 @@
+! CHOOSE VARIABLE: 1=rt; 2=rc; 3=rnc; 4=swi; 5=swn; 6=lwn; 7=rnet; 8=tk14
+!                ; 9=qd14, 10=mse14; 11=rha; 12=zpbl; 13=sh; 14=lh; 15=shlh
+!                ; 16=clwp; 17=olr; 18=alb; 19=mse/zpbl; 20=mse14-mse12
+!                ; 21=rs; 22=smfu; 23=smfr; 24=smft; 25=aa0; 26=aa1; 27=xaa0
+!                ; 28=xmb; 29=pwav; 30=pwev; 31=cfrac; 32=stab; 33=uvh850
+!                ; 34=uvh725; 35=uvh500, 36=uvq850; 37=uvq725; 38=uvq500
+!                ; 39=u850; 40=u725; 41=u500; 42=v850; 43=v725; 44=v500
+!                ; 45=uvt850; 46=uvt725; 47=uvt500; 48=uvt895; 49=uvq895
+!                ; 50=ps; 51=w; 52=gflux; 53=v895; 54=uvmse895; 55=uvmse850
+!                ; 56=ustd; 57=vstd; 58=wstd
+
+let inv=1
+let cspace=4.0
+let vecplot=0
+let pal_center=0
+
+if  `vp eq 1` then
+  define symbol title Total Precipitation
+  define symbol outfil PPT($varlab)
+  define symbol inf SRF
+  let infil = 1
+  let cspace=0.75
+  define symbol ipal "../Commons/Ferret/jpal"
+  let vv=rt
+  define symbol slev "(0)(0.5)(1)(2)(4)(7)(11)(16)(22)(29)(99)"
+  define symbol clev "(0.5)(1)(2)(4)(7)(11)(16)(22)(29)(99)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-99)(-8,8,1)(99)"
+  define symbol clevd "(-99)(-8,8,1)(99)"
+elif  `vp eq 2` then
+  define symbol title Convective Precipitation
+  define symbol outfil PPT($varlab)
+  define symbol inf SRF
+  let infil = 1
+  let cspace=0.75
+  define symbol ipal "../Commons/Ferret/jpal"
+  let vv=rc
+  define symbol slev "(0)(0.5)(1)(2)(4)(7)(11)(16)(22)(29)(99)"
+  define symbol clev "(0.5)(1)(2)(4)(7)(11)(16)(22)(29)(99)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-99)(-8,8,1)(99)"
+  define symbol clevd "(-99)(-8,8,1)(99)"
+elif  `vp eq 3` then
+  define symbol title Non-Convective Precipitation
+  define symbol outfil PPT($varlab)
+  define symbol inf SRF
+  let infil = 1
+  let cspace=0.75
+  let vv=rt-rc
+  define symbol ipal "../Commons/Ferret/jpal"
+  define symbol slev "(0)(0.5)(1)(2)(4)(7)(11)(16)(22)(29)(99)"
+  define symbol clev "(0.5)(1)(2)(4)(7)(11)(16)(22)(29)(99)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-99)(-8,8,1)(99)"
+  define symbol clevd "(-99)(-8,8,1)(99)"
+elif  `vp eq 4` then
+  define symbol title Incident Surface Shortwave
+  define symbol inf SRF
+  let infil = 1
+  let cspace=0.75
+  define symbol ipal "rainbow"
+  let vv=swi
+  define symbol slev "(0)(100,400,50)(1000)"
+  define symbol clev "(0)(100,400,50)(1000)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-250)(-100,100,10)(250)"
+  define symbol clevd "(-250)(-100,100,10)(250)"
+elif  `vp eq 5` then
+  define symbol title Net Surface Shortwave
+  define symbol inf SRF
+  let infil = 1
+  let cspace=0.75
+  define symbol ipal "rainbow"
+  let vv=swn
+  define symbol slev "(0)(100,400,50)(1000)"
+  define symbol clev "(0)(100,400,50)(1000)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-250)(-100,100,10)(250)"
+  define symbol clevd "(-250)(-100,100,10)(250)"
+elif  `vp eq 6` then
+  define symbol title Net Surface Longwave
+  define symbol inf SRF
+  let infil = 2
+  let vv=-1*lwn
+  define symbol slev "(-500)(-200,0,20)"
+  define symbol clev "(-500)(-200,0,20)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-250)(-50,50,5)(250)"
+  define symbol clevd "(-250)(-50,50,5)(250)"
+elif  `vp eq 7` then
+  define symbol title Net Surface Allwave
+  define symbol inf SRF
+  let infil = 2
+  let vv=swn-lwn
+  define symbol slev "(0)(100,300,20)(500)"
+  define symbol clev "(0)(100,300,20)(500)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-250)(-50,50,5)(250)"
+  define symbol clevd "(-250)(-50,50,5)(250)"
+elif  `vp eq 8` then
+  define symbol title Surface Termperature
+  define symbol inf SRF
+  let infil = 2
+  let vv=ta-273.15
+  define symbol slev "(-100)(0,30,4)(50)"
+  define symbol clev "(-100)(0,30,4)(50)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-25)(-10,10,2)(25)"
+  define symbol clevd "(-25)(-10,10,2)(25)"
+elif  `vp eq 9` then
+  define symbol title Surface Mixing Ratio
+  define symbol inf SRF
+  let infil = 2
+  let vv=qa*1000.
+  define symbol slev "(0,20,2)(30)"
+  define symbol clev "(0,20,2)(30)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-10)(-5,5,1)(10)"
+  define symbol clevd "(-10)(-5,5,1)(10)"
+elif  `vp eq 10` then
+  define symbol title Surface Moist Static Energy
+  define symbol inf SRF
+  let infil = 2
+  let vv=msea
+  define symbol slev "(250000)(300000,350000,10000)(400000)"
+  define symbol clev "(250000)(300000,350000,10000)(400000)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-25000)(-10000,10000,2000)(25000)"
+  define symbol clevd "(-25000)(-10000,10000,2000)(25000)"
+elif  `vp eq 11` then
+  define symbol title Surface Relative Humidity
+  define symbol inf SRF
+  let infil = 2
+  let vv=rha
+  define symbol slev "(0,1.1,0.1)"
+  define symbol clev "(0,1.1,0.1)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-1)(-0.5,0.5,0.1)(1)"
+  define symbol clevd "(-1)(-0.5,0.5,0.1)(1)"
+elif  `vp eq 12` then
+  define symbol title PBL Height
+  define symbol inf SRF
+  let infil = 2
+  let vv=zpbl
+  define symbol slev "(0,2500,250)"
+  define symbol clev "(0,2500,250)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-1000)(-700,700,100)(1000)"
+  define symbol clevd "(-1000)(-700,700,100)(1000)"
+elif  `vp eq 13` then
+  define symbol title Sensible Heat Flux
+  define symbol inf SRF
+  let infil = 2
+  let vv=sh
+  define symbol slev "(0,200,25)"
+  define symbol clev "(0,200,25)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-1000)(-700,700,100)(1000)"
+  define symbol clevd "(-1000)(-700,700,100)(1000)"
+elif  `vp eq 14` then
+  define symbol title Latent Heat Flux
+  define symbol inf SRF
+  let infil = 2
+  let vv=lh
+  define symbol slev "(0,200,25)"
+  define symbol clev "(0,200,25)"
+  define symbol ipald "light_centered"
+  define symbol slevd "(-1000)(-700,700,100)(1000)"
+  define symbol clevd "(-1000)(-700,700,100)(1000)"
+elif  `vp eq 15` then
+  define symbol title Total Heat Flux
+  define symbol outfil SHLH($varlab)
+  let infil = 2
+  let vvp=sh+et*29.5
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 16` then
+  define symbol title Cloud Water Path
+  define symbol outfil CLWP($varlab)
+  let infil = 3
+  let f1=y1+dy*2
+  let vv=clwp[k=@sum,i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 17` then
+  define symbol title TOA Outgoing Longwave
+  define symbol outfil OLR($varlab)
+  let infil = 3
+  let vv=firtp[i=@sbx:3,j=@sbx:3]
+elif  `vp eq 18` then
+  define symbol title TOA Albedo
+  define symbol outfil ALB($varlab)
+  let infil = 3
+  let vvp=(solin-sabtp)/solin
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 19` then
+  define symbol title MSEA per unit ZPBL
+  define symbol outfil MSEAoZPBL($varlab)
+  let infil = 2
+  let vvp=msea/zpbl
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 20` then
+  define symbol title Moist Static Energy Difference (14-12)
+  define symbol outfil MSE14_12($varlab)
+  let infil = 1
+  let vvp=(mse[k=14]-mse[k=12])/1000
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 21` then
+  define symbol title Stomatal Resistance
+  define symbol outfil RS($varlab)
+  let infil = 2
+  let vv=rs[l=@min,i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+  define symbol ftyp DIUR
+elif  `vp eq 22` then
+  define symbol title Surface Soil Saturation
+  define symbol outfil SMFS($varlab)
+  let infil = 2
+  let vvp=soilu/(xmopor[d=1]*depuv[d=1])*100
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 23` then
+  define symbol title Root Soil Saturation
+  define symbol outfil SMFR($varlab)
+  let infil = 2
+  let vvp=soilr/(xmopor[d=1,l=1]*deprv[d=1,l=1])*100
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mwater[d=1,l=1]
+elif  `vp eq 24` then
+  define symbol title Total Soil Saturation
+  define symbol outfil SMFT($varlab)
+  let infil = 2
+  let vvp=soilt/(xmopor[d=1]*deptv[d=1])*100
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 25` then
+  define symbol title Available Buoyant Energy (aa0)
+  define symbol outfil AA0($varlab)
+  let infil = 4
+  let vv=aa0[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 26` then
+  define symbol title Available Buoyant Energy (aa1)
+  define symbol outfil AA1($varlab)
+  let infil = 4
+  let vv=aa1[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 27` then
+  define symbol title ABE rate of Change (xaa0)
+  define symbol outfil XAA0($varlab)
+  let infil = 4
+  let vv=xmb[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 28` then
+  define symbol title Updraft Mass Flux (xmb)
+  define symbol outfil XMB($varlab)
+  let infil = 4
+  let vv=xmb[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 29` then
+  define symbol title Updraft Condensate
+  define symbol outfil PWAV($varlab)
+  let infil = 4
+  let vv=pwav[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 30` then
+  define symbol title Downdraft Evaporate
+  define symbol outfil PWEV($varlab)
+  let infil = 4
+  let vv=-1*pwev[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 31` then
+  define symbol title Convective Fraction
+  define symbol outfil CFRAC($varlab)
+  let infil = 1
+  let vvp=rc/(rn+rc)*100
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 32` then
+  define symbol title Showalter Index
+  define symbol outfil STAB($varlab)
+  let infil = 1
+elif  `vp eq 33` then
+  define symbol title Winds & Heights at 850 MB
+  define symbol outfil UVH850($varlab)
+  let infil = 1
+  let inv=0
+  let vecplot=1
+  let play=850
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let h_on_p = ZAXREPLACE(HGT[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = h_on_p[i=@sbx:3,j=@sbx:3]
+elif  `vp eq 34` then
+  define symbol title Winds & Heights at 725 MB
+  define symbol outfil UVH725($varlab)
+  let infil = 1
+  let inv=0
+  let vecplot=1
+  let play=725
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let h_on_p = ZAXREPLACE(HGT[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = h_on_p[i=@sbx:3,j=@sbx:3]
+elif  `vp eq 35` then
+  define symbol title Winds & Heights at 500 MB
+  define symbol outfil UVH500($varlab)
+  let infil = 1
+  let inv=0
+  let vecplot=1
+  let play=500
+  let vlen=20
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let h_on_p = ZAXREPLACE(HGT[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = h_on_p[i=@sbx:3,j=@sbx:3]
+elif  `vp eq 36` then
+  define symbol title Winds & Mixing Ratio at 850 MB
+  define symbol outfil UVQ850($varlab)
+  let infil = 1
+  let vecplot=1
+  let play=850
+  let vlen=10
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let q_on_p = ZAXREPLACE(QD[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = q_on_p[i=@sbx:3,j=@sbx:3]*1000
+elif  `vp eq 37` then
+  define symbol title Winds & Mixing Ratio at 725 MB
+  define symbol outfil UVQ725($varlab)
+  let infil = 1
+  let vecplot=1
+  let play=725
+  let vlen=10
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let q_on_p = ZAXREPLACE(QD[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = q_on_p[i=@sbx:3,j=@sbx:3]*1000
+elif  `vp eq 38` then
+  define symbol title Winds & Mixing Ratio at 500 MB
+  define symbol outfil UVQ500($varlab)
+  let infil = 1
+  let vecplot=1
+  let play=500
+  let vlen=20
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let q_on_p = ZAXREPLACE(QD[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = q_on_p[i=@sbx:3,j=@sbx:3]*1000
+elif  `vp eq 39` then
+  define symbol title U-Winds at 850 MB
+  define symbol outfil U850($varlab)
+  let infil = 1
+  let play=850
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = u_on_p[i=@sbx:3,j=@sbx:3]
+elif  `vp eq 40` then
+  define symbol title U-Winds at 725 MB
+  define symbol outfil U725($varlab)
+  let infil = 1
+  let play=725
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = u_on_p[i=@sbx:3,j=@sbx:3]
+  let pal_center=1
+elif  `vp eq 41` then
+  define symbol title U-Winds at 500 MB
+  define symbol outfil U500($varlab)
+  let infil = 1
+  let play=500
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = u_on_p[i=@sbx:3,j=@sbx:3]
+  let pal_center=1
+elif  `vp eq 42` then
+  define symbol title V-Winds at 850 MB
+  define symbol outfil V850($varlab)
+  let infil = 1
+  let play=850
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = v_on_p[i=@sbx:3,j=@sbx:3]
+  let pal_center=1
+elif  `vp eq 43` then
+  define symbol title V-Winds at 725 MB
+  define symbol outfil V725($varlab)
+  let infil = 1
+  let play=725
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = v_on_p[i=@sbx:3,j=@sbx:3]
+  let pal_center=1
+elif  `vp eq 44` then
+  define symbol title V-Winds at 500 MB
+  define symbol outfil V500($varlab)
+  let infil = 1
+  let play=500
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = v_on_p[i=@sbx:3,j=@sbx:3]
+  let pal_center=1
+elif  `vp eq 45` then
+  define symbol title Winds & Temperature at 850 MB
+  define symbol outfil UVT850($varlab)
+  let inv=1
+  let infil = 1
+  let vecplot=1
+  let play=850
+  let vlen=10
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let t_on_p = ZAXREPLACE(TK[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = t_on_p[i=@sbx:3,j=@sbx:3]-273.15
+elif  `vp eq 46` then
+  define symbol title Winds & Temperature at 725 MB
+  define symbol outfil UVT725($varlab)
+  let inv=1
+  let infil = 1
+  let vecplot=1
+  let play=725
+  let vlen=10
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let t_on_p = ZAXREPLACE(TK[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = t_on_p[i=@sbx:3,j=@sbx:3]-273.15
+elif  `vp eq 47` then
+  define symbol title Winds & Temperature at 500 MB
+  define symbol outfil UVT500($varlab)
+  let inv=1
+  let infil = 1
+  let vecplot=1
+  let play=500
+  let vlen=20
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let t_on_p = ZAXREPLACE(TK[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = t_on_p[i=@sbx:3,j=@sbx:3]-273.15
+elif  `vp eq 48` then
+  define symbol title Winds & Temperature at Sigma 0.895
+  define symbol outfil UVT895($varlab)
+  let infil = 1
+  let vecplot=1
+  let klev=11
+  let u_on_p = U[k=`klev`]
+  let v_on_p = V[k=`klev`]
+  let tk_on_p = TK[k=`klev`]-273.15
+  let vv = tk_on_p[i=@sbx:3,j=@sbx:3]
+elif  `vp eq 49` then
+  define symbol title Winds & Height at Sigma 0.895
+  define symbol outfil UVQ895($varlab)
+  let infil = 1
+  let vecplot=1
+  let klev=11
+  let u_on_p = U[k=`klev`]
+  let v_on_p = V[k=`klev`]
+  let qd_on_p = QD[k=`klev`]*1000.
+  let vv = qd_on_p[i=@sbx:3,j=@sbx:3]
+elif  `vp eq 50` then
+  define symbol title Surface Pressure
+  define symbol outfil PS($varlab)
+  let infil = 2
+  let vv = ps[i=@sbx:3,j=@sbx:3]/100
+elif  `vp eq 51` then
+  define symbol title Vertical Velocity at Sigma 0.51
+  define symbol outfil W($varlab)
+  let infil = 1
+  let pal_center=1
+  let vv = w[i=@sbx:3,j=@sbx:3,k=11]*1000000
+  let cspace=0.75
+elif  `vp eq 52` then
+  define symbol title Ground Heat Flux
+  define symbol outfil GFLUX($varlab)
+  let infil = 2
+  let vvp=swn-lwn-(sh+et*29.5)
+  let vv=vvp[i=@sbx:3,j=@sbx:3]*mask[d=1,l=1]
+elif  `vp eq 53` then
+  define symbol title V-Winds at Sigma 0.895
+  define symbol outfil V895($varlab)
+  let infil = 1
+  let klay=11
+  let vv = V[k=`klay`,i=@sbx:3,j=@sbx:3]
+  let pal_center=1
+elif  `vp eq 54` then
+  define symbol title Winds & MSE at Sigma 0.895
+  define symbol outfil UVMSE895($varlab)
+  let infil = 1
+  let vecplot=1
+  let klev=11
+  let u_on_p = U[k=`klev`]
+  let v_on_p = V[k=`klev`]
+  let qd_on_p = MSE[k=`klev`]/1000.
+  let vv = qd_on_p[i=@sbx:3,j=@sbx:3]
+elif  `vp eq 55` then
+  define symbol title Winds & MSE at 850mb
+  define symbol outfil UVMSE850($varlab)
+  let infil = 1
+  let vecplot=1
+  let play=850
+  let vlen=20
+  let Pk=Tk*0.0+Z*(Ps-50)+50
+  define axis/Z=1000:50:25/unit=millibars/depth plev
+  let u_on_p = ZAXREPLACE(U[k=1:14],Pk[k=1:14],z[z=`play`])
+  let v_on_p = ZAXREPLACE(V[k=1:14],Pk[k=1:14],z[z=`play`])
+  let mse_on_p = ZAXREPLACE(MSE[k=1:14],Pk[k=1:14],z[z=`play`])
+  let vv = mse_on_p[i=@sbx:3,j=@sbx:3]/1000.
+elif  `vp eq 56` then
+  define symbol title Stdev U-Winds
+  define symbol outfil USTD($varlab)
+  define symbol ftyp DAY
+  let infil = 1
+  let vavgsqr=u[l=@ave]^2
+  let vsqr=u^2
+  let stdev=(vsqr[l=@ave]-vavgsqr)^0.5
+  let vv = stdev[i=@sbx:3,j=@sbx:3,k=@ave]
+elif  `vp eq 57` then
+  define symbol title Stdev V-Winds
+  define symbol outfil VSTD($varlab)
+  define symbol ftyp DAY
+  let infil = 1
+  let vavgsqr=v[l=@ave]^2
+  let vsqr=v^2
+  let stdev=(vsqr[l=@ave]-vavgsqr)^0.5
+  let vv = stdev[i=@sbx:3,j=@sbx:3,k=@ave]
+elif  `vp eq 58` then
+  define symbol title Stdev W-Winds
+  define symbol outfil WSTD($varlab)
+  define symbol ftyp DAY
+  let infil = 1
+  let vavgsqr=w[l=@ave]^2
+  let vsqr=w^2
+  let stdev=(vsqr[l=@ave]-vavgsqr)^0.5
+  let vv = stdev[i=@sbx:3,j=@sbx:3,k=@ave]*1000
+endif
+
+let my_var=vv[d=`mskfil+1`]*mask[d=1,l=1]
+let my_var_diff=(vv[d=`mskfil+1`]-vv[d=`mskfil+2`])*mask[l=1,d=1]
