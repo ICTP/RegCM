@@ -317,18 +317,18 @@ c
       include 'regcm.param'
 #endif
       include 'parame'
-      include 'Commons/date.cb'
-      include 'Commons/iunits.cb'
-      include 'Commons/param1.cb'
-      include 'Commons/param2.cb'
-      include 'Commons/param3.cb'
+#     include "include/date.cb"
+#     include "include/iunits.cb"
+#     include "include/param1.cb"
+#     include "include/param2.cb"
+#     include "include/param3.cb"
 #ifdef MPP1
-      include 'Common2/io.cb'
+#     include "include/io.cb"
       include 'mpiregcm.h'
       INTEGER ierr
       real(kind=4)  xlat_s_io(mjx*NSG,ix*NSG),xlon_s_io(mjx*NSG,ix*NSG)
 #else
-      include 'Commons/main.cb'
+#     include "include/main.cb"
       real(kind=4)  xlat_s(jx*NSG,ix*NSG),xlon_s(jx*NSG,ix*NSG)
 #endif
       real(kind=4)  clat,clon,dxsp,ptsp,plat,plon
@@ -608,18 +608,17 @@ c
       include 'regcm.param'
 #endif
       include 'parame'
-      include 'Commons/date.cb'
-      include 'Commons/param1.cb'
-      include 'Commons/param2.cb'
-      include 'Commons/param3.cb'
+#     include "include/date.cb"
+#     include "include/param1.cb"
+#     include "include/param2.cb"
+#     include "include/param3.cb"
+#     include "include/trachem.cb"
 #ifdef MPP1
-      include 'Common2/trachem.cb'
-      include 'Common2/io.cb'
+#     include "include/io.cb"
       include 'mpiregcm.h'
       INTEGER ierr
 #else
-      include 'Commons/trachem.cb'
-      include 'Commons/main.cb'
+#     include "include/main.cb"
 #endif
       real(kind=4)  clat,clon,dxsp,ptsp,plat,plon
       character proj*6
@@ -905,13 +904,13 @@ c
       include 'regcm.param'
 #endif
       include 'parame'
-      include 'Commons/param2.cb'
+#     include "include/param2.cb"
 #ifdef MPP1
-      include 'Common2/io.cb'
+#     include "include/io.cb"
       include 'mpiregcm.h'
       INTEGER ierr
 #else
-      include 'Commons/main.cb'
+#     include "include/main.cb"
 #endif
       real(kind=4)  clat,clon,dxsp,ptsp,plat,plon
       character proj*6
@@ -1125,16 +1124,16 @@ c
       include 'regcm.param'
 #endif
       include 'parame'
-      include 'Commons/date.cb'
-      include 'Commons/param1.cb'
-      include 'Commons/param2.cb'
-      include 'Commons/param3.cb'
+#     include "include/date.cb"
+#     include "include/param1.cb"
+#     include "include/param2.cb"
+#     include "include/param3.cb"
 #ifdef MPP1
-      include 'Common2/io.cb'
+#     include "include/io.cb"
       include 'mpiregcm.h'
       INTEGER ierr
 #else
-      include 'Commons/main.cb'
+#     include "include/main.cb"
 #endif
       real(kind=4)  clat,clon,dxsp,ptsp,plat,plon
       character proj*6
@@ -1401,16 +1400,16 @@ c
       include 'regcm.param'
 #endif
       include 'parame'
-      include 'Commons/date.cb'
-      include 'Commons/param1.cb'
-      include 'Commons/param2.cb'
-      include 'Commons/param3.cb'
+#     include "include/date.cb"
+#     include "include/param1.cb"
+#     include "include/param2.cb"
+#     include "include/param3.cb"
 #ifdef MPP1
-      include 'Common2/io.cb'
+#     include "include/io.cb"
       include 'mpiregcm.h'
       INTEGER ierr
 #else
-      include 'Commons/main.cb'
+#     include "include/main.cb"
 #endif
       real(kind=4)  clat,clon,dxsp,ptsp,plat,plon
       character proj*6

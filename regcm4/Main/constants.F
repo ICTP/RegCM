@@ -25,7 +25,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 ! ----------------------------------------------------------------
 
-      include 'Commons/tied_constants.cb'
+      include 'include/tied_constants.cb'
 
 ! Description:
 ! Preset constants in mo_constants.

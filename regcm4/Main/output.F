@@ -65,7 +65,7 @@ c**********************
       common /dpass/ m(nsplit)
      a             , am(kx,nsplit), an(nsplit)
      b             , dstor(ix,0:jxp+1,nsplit), hstor(ix,0:jxp+1,nsplit)
-      include 'Commons/parrad.cb'
+#     include "include/parrad.cb"
       real(kind=8)  absnxt,              ! Nearest layer absorptivities
      $     abstot,              ! Non-adjacent layer absorptivites
      $     emstot               ! Total emissivity

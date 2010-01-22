@@ -355,16 +355,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/main.cb"
+#     include "include/bdycod.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/main.cb'
-      include 'Common2/bdycod.cb'
       integer jwb,jeb
-#else
-      include 'Commons/main.cb'
-      include 'Commons/bdycod.cb'
 #endif
-      include 'Commons/param3.cb'
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,ii,k,jj,jsls,ibeg,iend
@@ -661,16 +658,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/main.cb"
+#     include "include/bdycod.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/main.cb'
-      include 'Common2/bdycod.cb'
       integer jwb,jeb
-#else
-      include 'Commons/main.cb'
-      include 'Commons/bdycod.cb'
 #endif
-      include 'Commons/param3.cb'
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,ii,k,jj,jsls,ibeg,iend
@@ -967,16 +961,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/main.cb"
+#     include "include/bdycod.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/main.cb'
-      include 'Common2/bdycod.cb'
       integer jew
-#else
-      include 'Commons/main.cb'
-      include 'Commons/bdycod.cb'
 #endif
-      include 'Commons/param3.cb'
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,ii,k,jj,jsls,ibeg,iend
@@ -1266,16 +1257,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/bdycod.cb"
+#     include "include/main.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/bdycod.cb'
-      include 'Common2/main.cb'
       integer jew
-#else
-      include 'Commons/main.cb'
-      include 'Commons/bdycod.cb'
 #endif
-      include 'Commons/param3.cb'
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,ii,k,jj,jsls,ibeg,iend

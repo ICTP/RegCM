@@ -158,12 +158,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/bdycod.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/bdycod.cb'
       integer jwb,jeb
-#else
-      include 'Commons/bdycod.cb'
 #endif
 c
       real(kind=8)  ften(ix,kx),   wg(ip)
@@ -276,12 +274,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/bdycod.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/bdycod.cb'
       integer jwb,jeb
-#else
-      include 'Commons/bdycod.cb'
 #endif
 c
       real(kind=8)  ften(ix,kx),   wg(ip)
@@ -394,12 +390,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/bdycod.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/bdycod.cb'
       integer jew
-#else
-      include 'Commons/bdycod.cb'
 #endif
 c
       real(kind=8)  ften(ix,kx),   wg(ip)
@@ -505,12 +499,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/bdycod.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/bdycod.cb'
       integer jew
-#else
-      include 'Commons/bdycod.cb'
 #endif
 c
       real(kind=8)  ften(ix,kx),   wg(ip)

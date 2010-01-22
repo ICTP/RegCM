@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c---------------------------------------------------------------------
       integer npts
       common/batcnt/ npts
 
@@ -28,16 +27,16 @@ c---------------------------------------------------------------------
       real(kind=8)  taf1d   ! Temperature os the air within foliage
       real(kind=8)  tlef1d  ! Temperature of foliage
       real(kind=8)  delt1d  ! Temperature difference between above-canopy
-c                       air and foliage air
+c                             air and foliage air
       real(kind=8)  qg1d    ! Specific humidity at soil surface
       real(kind=8)  qs1d    ! Specific humidity above canopy
-      real(kind=8)  delq1d  ! Specific humidity difference between above-canopy
-c                       air and foliage air
+      real(kind=8)  delq1d  ! Specific humidity difference between
+c                             above-canopy air and foliage air
       real(kind=8)  tsw1d   ! Total soil water
       real(kind=8)  rsw1d   ! Root zone soil water
       real(kind=8)  ssw1d   ! Water in upper soil
       real(kind=8)  gwet1d  ! Soil wetness factor - ratio of evaporation to
-c                       potential rate
+c                             potential rate
       real(kind=8)  rno1d   ! Total runoff
       real(kind=8)  rnos1d  ! Surface runoff
       real(kind=8)  scv1d   ! Snow cover, water equivalent
@@ -51,7 +50,7 @@ c                       potential rate
       real(kind=8)  sice1d  ! Thickness of sea ice
       real(kind=8)  pbp1d   ! Accumulated carbon uptake
       real(kind=8)  resp1d  ! Accumulated carbon uptake of soil and vegetation
-c                       minus carbon loss by respiration
+c                             minus carbon loss by respiration
       real(kind=8)  ircp1d  ! Intercepted precipitation rate
       real(kind=8)  ldew1d  ! Depth of water on foliage
       real(kind=8)  flw1d   ! Net infrared energy flux at surface
@@ -92,7 +91,7 @@ c                       minus carbon loss by respiration
       real(kind=8)  czen
       real(kind=8)  bfc
       real(kind=8)  bsw     ! Soil diffusivity parameter
-c                       (=B in Clapp & Hornberger, 1978)
+c                             (=B in Clapp & Hornberger, 1978)
       real(kind=8)  porsl   ! Soil porosity ratio
       real(kind=8)  xkmx    ! Maximum soil hydraulic conductivity (mm/s)
       real(kind=8)  evmx0   ! Maximum evaporation at saturation (mm/s)
@@ -102,7 +101,7 @@ c                       (=B in Clapp & Hornberger, 1978)
       real(kind=8)  relfc
       real(kind=8)  texrat
       real(kind=8)  wiltr   ! Fractional soil moisture at which permanent
-c                       wilting occurs
+c                             wilting occurs
       common/batvar/vegt(NNSG,nbmax),fdry(NNSG,nbmax),fwet(NNSG,nbmax)
      & , sola(nbmax)   , rnet(NNSG,nbmax), vpdd(nbmax)   ,difrat
      & ,   wt(NNSG,nbmax), czen(nbmax)   ,  bfc(NNSG,nbmax)
@@ -135,13 +134,14 @@ c             c(125)=2.51040e6, ! latent heat (J/kg)
 c             c(127)=0.3336e6
 c             c(126)=c(125)+c(127)
 
-      real(kind=8)  crough  ! Proportionality factor (to the ocean) for drag
-c                       coefficient over vegetation
+      real(kind=8)  crough  ! Proportionality factor (to the ocean) for
+c                             drag coefficient over vegetation
       real(kind=8)  depuv
       real(kind=8)  deprv
       real(kind=8)  deptv
       real(kind=8)  displa
-      real(kind=8)  fc      ! Light sensitivity factor for crops and grasses (m2/W)
+      real(kind=8)  fc      ! Light sensitivity factor for crops and
+c                             grasses (m2/W)
       real(kind=8)  freza
       real(kind=8)  frezu
       real(kind=8)  rsmin
@@ -149,7 +149,8 @@ c                       coefficient over vegetation
       real(kind=8)  sai
       real(kind=8)  rough   ! Aerodynamic roughness length (m)
       real(kind=8)  xla
-      real(kind=8)  seasf   ! Difference between VEGC and fractional cover at 269K
+      real(kind=8)  seasf   ! Difference between VEGC and fractional
+c                             cover at 269K
       real(kind=8)  sqrtdi
       real(kind=8)  vegc    ! Maximum fractional cover of vegetation
       integer iexsol
@@ -163,20 +164,22 @@ c                       coefficient over vegetation
       real(kind=8)  xmofc
       real(kind=8)  albvgl
       real(kind=8)  albvgs
-      real(kind=8)  ch2o    ! 4.186e6,   Specific heat of water (J/m3/K)
+      real(kind=8)  ch2o    ! 4.186e6, Specific heat of water (J/m3/K)
       real(kind=8)  cice    ! 0.45*ch2o, Specific heat of ice (J/m3/K)
       real(kind=8)  cwi     ! 1./0.45
       real(kind=8)  csnw    ! 0.49*ch2o, specific heat for snow after
-c                       multiplied by snow density
-      real(kind=8)  csoilc  ! 4.e-3, drag coefficient for soil under canopy
+c                             multiplied by snow density
+      real(kind=8)  csoilc  ! 4.e-3, drag coefficient for soil under
+c                             canopy
       real(kind=8)  cws     ! 1./0.49
-      real(kind=8)  dewmx   ! 0.1, maximum allowed dew(mm)
-c                       Maximum allowed depth of water on leaves (mm)
+      real(kind=8)  dewmx   ! 0.1, maximum allowed depth of water on
+c                             leaves (mm)
       real(kind=8)  dewmxi  ! 1.0/dewmx
-      real(kind=8)  drain   ! 4.e-4, drainage out of 10m layer bottom (mm/s)
-c                       Hydraulic conductivity at bottom of total (10m)
-c                       soil layer
-c             drain is set fairly large to prevent swamping the soil
+      real(kind=8)  drain   ! 4.e-4, drainage out of 10m layer bottom
+c                             (mm/s) Hydraulic conductivity at bottom
+c                             of total (10m) soil layer
+c                             drain is set fairly large to prevent swamping
+c                             the soil
       integer ihis
       integer mhis
       integer lat
@@ -185,8 +188,8 @@ c             drain is set fairly large to prevent swamping the soil
       real(kind=8)  rmax0   ! 2.e4, Maximum stomatal resistance (s/m)
       real(kind=8)  tau1    ! 8.64e4, length of days in seconds
       real(kind=8)  trsmx0  ! 2.e-4,  (kg/m2/s)
-c                       Maximum rate of transpiration with saturated soil,
-c                       100% vegetation, optimum temperature
+c                             Maximum rate of transpiration with saturated
+c                             soil, 100% vegetation, optimum temperature
       real(kind=8)  zlnd    ! 0.01,   roughness length for bare soil
       real(kind=8)  zoce    ! 0.0004, roughness length for ocean
       real(kind=8)  zsno    ! 0.0004, roughness length for snow
@@ -204,7 +207,8 @@ c                       100% vegetation, optimum temperature
  
       real(kind=8)  aarea
       real(kind=8)  clead
-      real(kind=8)  cdrn    ! Surface drag coefficient for neutral stability
+      real(kind=8)  cdrn    ! Surface drag coefficient for neutral
+c                             stability
       real(kind=8)  cdr     ! Surface drag coefficient
       real(kind=8)  cdrx    ! Surface drag coefficient for ice with leads
       real(kind=8)  cf      ! Heat transfer coefficient from leaves
@@ -212,8 +216,8 @@ c                       100% vegetation, optimum temperature
       real(kind=8)  cgrnds
       real(kind=8)  cgrndl
       real(kind=8)  densi   ! Ratio of snow density to fresh snow density
-      real(kind=8)  efpr    ! Maximum evapotranspiration sustainable by the
-c                       leaves, given the soil moisture (mm/s)
+      real(kind=8)  efpr    ! Maximum evapotranspiration sustainable by
+c                             the leaves, given the soil moisture (mm/s)
       real(kind=8)  eg
       real(kind=8)  ems     ! Atmospheric emissivity
       real(kind=8)  etr     ! Transpiration rate (mm/s)
@@ -225,30 +229,35 @@ c                       leaves, given the soil moisture (mm/s)
       real(kind=8)  flnet
       real(kind=8)  flneto
       real(kind=8)  htvp    ! Latent heat of vaporization of water (J/kg)
-C                                  (or sublimation)
+C                             (or sublimation)
       integer imelt
-      integer lveg    ! Vegetation type
+      integer lveg          ! Vegetation type
       real(kind=8)  pw
       real(kind=8)  ps
       real(kind=8)  qice
       real(kind=8)  ribd
       real(kind=8)  qsatl
-      real(kind=8)  rlai    ! Inverse of sum of leaf area index and stem area index
+      real(kind=8)  rlai    ! Inverse of sum of leaf area index and stem
+c                             area index
       real(kind=8)  rhosw   ! Density od snow relative to water
       real(kind=8)  sm      ! Rate of snowmelt
       real(kind=8)  rpp
       real(kind=8)  sdrop   ! Snow falling off vegetation
       real(kind=8)  scrat
       real(kind=8)  scvk
-      real(kind=8)  seasb   ! Difference between VEGC and fractional cover at 269K
+      real(kind=8)  seasb   ! Difference between VEGC and fractional cover
+c                             at 269K
       real(kind=8)  sigf    ! Fractional vegetation cover
       real(kind=8)  tm      ! A reference temperature =TS-2.2 (K)
       real(kind=8)  uaf     ! Velocity of air within foliage (m/s)
       real(kind=8)  vspda   ! Wind speed above canopy (m/s)
-      real(kind=8)  watr    ! Ratio of root zone soil moisture to maximum allowence.
-      real(kind=8)  watu    ! Ratio of upper soil moisture to maximum allowence.
+      real(kind=8)  watr    ! Ratio of root zone soil moisture to maximum
+c                             allowence.
+      real(kind=8)  watu    ! Ratio of upper soil moisture to maximum
+c                             allowence.
       real(kind=8)  wata    ! Average of WATR and WATU
-      real(kind=8)  watt    ! Ratio od total soil moisture to maximum allowence.
+      real(kind=8)  watt    ! Ratio od total soil moisture to maximum
+c                             allowence.
       real(kind=8)  wta
       real(kind=8)  xlai    ! Leaf area index
       real(kind=8)  xlsai
@@ -301,4 +310,4 @@ C                                  (or sublimation)
      &            ,wtgq0(NNSG,nbmax),wtlq0(NNSG,nbmax),wtglq(NNSG,nbmax)
      &            ,wtaq0(NNSG,nbmax),wtgaq(NNSG,nbmax), wtg2(NNSG,nbmax)
      &            ,  cn1(NNSG,nbmax),   df(NNSG,nbmax)
-c-----------------------------------------------------------------------
+C

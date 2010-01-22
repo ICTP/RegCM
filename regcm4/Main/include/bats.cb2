@@ -17,9 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-#ifdef MPP1
-c ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       real(kind=8)  sabveg
       real(kind=8)  solis
       real(kind=8)  solvs
@@ -37,11 +34,6 @@ c ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       real(kind=8)  albvsd
       real(kind=8)  albvld
       real(kind=8)  emiss1d
-      common /bat1d/ sabveg(ilx),  solis(ilx),  solvd(ilx),  solvs(ilx)
-     &             , fracd(ilx),  coszrs(ix)
-     1             , albdir(ilx), albdif(ilx),  albvs(ilx),  albvl(ilx)
-     2             , aldirs(ilx), aldirl(ilx), aldifs(ilx), aldifl(ilx)
-     3             , albvsd(ilx), albvld(ilx), emiss1d(ilx)
 
       real(kind=8)  taf2d
       real(kind=8)  tlef2d
@@ -90,7 +82,66 @@ cChem
       real(kind=8)  sfracb2d
       real(kind=8)  sfracs2d
       real(kind=8)  svegfrac2d
-cChem_
+cChem
+      real(kind=8)  ht1
+      real(kind=8)  satbrt1
+      real(kind=8)  veg2d1
+
+      real(kind=4)  u10m_o
+      real(kind=4)  v10m_o
+      real(kind=4)  drag_o
+      real(kind=4)  tg_o
+      real(kind=4)  tlef_o
+      real(kind=4)  t2m_o
+      real(kind=4)  q2m_o
+      real(kind=4)  ssw_o
+      real(kind=4)  rsw_o
+      real(kind=4)  tpr_o
+      real(kind=4)  evpa_o
+      real(kind=4)  rnos_o
+      real(kind=4)  scv_o
+      real(kind=4)  sena_o
+      real(kind=4)  flwa_o
+      real(kind=4)  fswa_o
+      real(kind=4)  flwd_o
+      real(kind=4)  sina_o
+      real(kind=4)  prcv_o
+      real(kind=4)  ps_o
+      real(kind=4)  zpbl_o
+      real(kind=4)  tgmx_o
+      real(kind=4)  tgmn_o
+      real(kind=4)  t2mx_o
+      real(kind=4)  t2mn_o
+      real(kind=4)  w10x_o
+      real(kind=4)  psmn_o
+
+      real(kind=4)  u10m_s
+      real(kind=4)  v10m_s
+      real(kind=4)  drag_s
+      real(kind=4)  tg_s
+      real(kind=4)  tlef_s
+      real(kind=4)  t2m_s
+      real(kind=4)  q2m_s
+      real(kind=4)  ssw_s
+      real(kind=4)  rsw_s
+      real(kind=4)  tpr_s
+      real(kind=4)  prcv_s
+      real(kind=4)  evpa_s
+      real(kind=4)  rnos_s
+      real(kind=4)  scv_s
+      real(kind=4)  sena_s
+      real(kind=4)  ps_s
+
+      integer nrcbat,nrcsub
+      COMMON /BATUNIT/ nrcbat,nrcsub
+
+#ifdef MPP1
+
+      common /bat1d/ sabveg(ilx),  solis(ilx),  solvd(ilx),  solvs(ilx)
+     &             , fracd(ilx),  coszrs(ix)
+     1             , albdir(ilx), albdif(ilx),  albvs(ilx),  albvl(ilx)
+     2             , aldirs(ilx), aldirl(ilx), aldifs(ilx), aldifl(ilx)
+     3             , albvsd(ilx), albvld(ilx), emiss1d(ilx)
 
       common /bat2d/  pptnc(ilx,jxp)
      &             ,   pptc(ilx,jxp), prca2d(ilx,jxp),prnca2d(ilx,jxp) 
@@ -100,13 +151,10 @@ cChem_
      &             ,  fsw2d(ilx,jxp), sabv2d(ilx,jxp)
      i             , svga2d(ilx,jxp), sina2d(ilx,jxp), sinc2d(ilx,jxp)
      i             ,solvd2d(ilx,jxp),solvs2d(ilx,jxp)
-cChem
      &             ,ssw2da(ilx,jxp),sdelqk2d(ilx,jxp),sdeltk2d(ilx,jxp)
      &             ,sfracv2d(ilx,jxp),  sfracb2d(ilx,jxp)
      &             ,sfracs2d(ilx,jxp),svegfrac2d(ilx,jxp)
-      real(kind=8)  ht1
-      real(kind=8)  satbrt1
-      real(kind=8)  veg2d1
+
       common /bat2d1/
      &     ht1(NNSG,ix,jxp) ,satbrt1(NNSG,ix,jxp)  ,veg2d1(NNSG,ilx,jxp)
      & , taf2d(NNSG,ilx,jxp), tlef2d(NNSG,ilx,jxp)
@@ -118,37 +166,6 @@ cChem
      & , sag2d(NNSG,ilx,jxp), sice2d(NNSG,ilx,jxp),  dew2d(NNSG,ilx,jxp)
      & ,ircp2d(NNSG,ilx,jxp), ocld2d(NNSG,ilx,jxp),emiss2d(NNSG,ilx,jxp)
       
-c-----------------------------------------------------------------------
-      integer nrcbat,nrcsub
-      COMMON /BATUNIT/ nrcbat,nrcsub
-
-      real(kind=4)  u10m_o
-      real(kind=4)  v10m_o
-      real(kind=4)  drag_o
-      real(kind=4)  tg_o
-      real(kind=4)  tlef_o
-      real(kind=4)  t2m_o
-      real(kind=4)  q2m_o
-      real(kind=4)  ssw_o
-      real(kind=4)  rsw_o
-      real(kind=4)  tpr_o
-      real(kind=4)  evpa_o
-      real(kind=4)  rnos_o
-      real(kind=4)  scv_o
-      real(kind=4)  sena_o
-      real(kind=4)  flwa_o
-      real(kind=4)  fswa_o
-      real(kind=4)  flwd_o
-      real(kind=4)  sina_o
-      real(kind=4)  prcv_o
-      real(kind=4)  ps_o
-      real(kind=4)  zpbl_o
-      real(kind=4)  tgmx_o
-      real(kind=4)  tgmn_o
-      real(kind=4)  t2mx_o
-      real(kind=4)  t2mn_o
-      real(kind=4)  w10x_o
-      real(kind=4)  psmn_o
       COMMON /BATOUT/
      &  u10m_o(jxp,ix-2),v10m_o(jxp,ix-2),drag_o(jxp,ix-2)
      & ,  tg_o(jxp,ix-2),tlef_o(jxp,ix-2), t2m_o(jxp,ix-2)
@@ -160,22 +177,6 @@ c-----------------------------------------------------------------------
      & ,tgmx_o(jxp,ix-2),tgmn_o(jxp,ix-2),t2mx_o(jxp,ix-2)
      & ,t2mn_o(jxp,ix-2),w10x_o(jxp,ix-2),psmn_o(jxp,ix-2)
 
-      real(kind=4)  u10m_s
-      real(kind=4)  v10m_s
-      real(kind=4)  drag_s
-      real(kind=4)  tg_s
-      real(kind=4)  tlef_s
-      real(kind=4)  t2m_s
-      real(kind=4)  q2m_s
-      real(kind=4)  ssw_s
-      real(kind=4)  rsw_s
-      real(kind=4)  tpr_s
-      real(kind=4)  prcv_s
-      real(kind=4)  evpa_s
-      real(kind=4)  rnos_s
-      real(kind=4)  scv_s
-      real(kind=4)  sena_s
-      real(kind=4)  ps_s
       COMMON /SUBOUT/
      & u10m_s(NNSG,jxp,ix-2),v10m_s(NNSG,jxp,ix-2),drag_s(NNSG,jxp,ix-2)
      &,  tg_s(NNSG,jxp,ix-2),tlef_s(NNSG,jxp,ix-2), t2m_s(NNSG,jxp,ix-2)
@@ -186,79 +187,11 @@ c-----------------------------------------------------------------------
 
 #else
 
-c ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-      real(kind=8)  sabveg
-      real(kind=8)  solis
-      real(kind=8)  solvs
-      real(kind=8)  solvd
-      real(kind=8)  fracd
-      real(kind=8)  coszrs  ! cosine of solar zenith angle
-      real(kind=8)  albdir
-      real(kind=8)  albdif
-      real(kind=8)  albvs
-      real(kind=8)  albvl
-      real(kind=8)  aldirs
-      real(kind=8)  aldirl
-      real(kind=8)  aldifs
-      real(kind=8)  aldifl
-      real(kind=8)  albvsd
-      real(kind=8)  albvld
-      real(kind=8)  emiss1d
       common /bat1d/ sabveg(ilx),  solis(ilx),  solvd(ilx),  solvs(ilx)
      &             , fracd(ilx),  coszrs(ix)
      1             , albdir(ilx), albdif(ilx),  albvs(ilx),  albvl(ilx)
      2             , aldirs(ilx), aldirl(ilx), aldifs(ilx), aldifl(ilx)
      3             , albvsd(ilx), albvld(ilx), emiss1d(ilx)
-
-      real(kind=8)  taf2d
-      real(kind=8)  tlef2d
-      real(kind=8)  pptnc
-      real(kind=8)  pptc
-      real(kind=8)  ssw2d
-      real(kind=8)  evpa2d  ! accumulated evaporation    (mm)
-      real(kind=8)  sena2d  ! accumulated sensible heat  (w*s/m**2)
-      real(kind=8)  prca2d  ! accumulated convective precipitation  (mm/d)
-      real(kind=8)  prnca2d ! accumulated non-convective precipitation  (mm/d)
-      real(kind=8)  flwa2d  ! accumulated net ir (w*s/m**2)
-      real(kind=8)  flwda2d ! downward ir (w*s/m**2)
-      real(kind=8)  fswa2d  ! accumulated net absorbed solar (w*s/m**2)
-      real(kind=8)  rnos2d  ! accumulated surface runoff (mm)
-      real(kind=8)  sol2d
-      real(kind=8)  srw2d
-      real(kind=8)  tg2d
-      real(kind=8)  tgb2d
-      real(kind=8)  swt2d
-      real(kind=8)  rno2d   ! accumulated infiltration below root zone (mm)
-      real(kind=8)  scv2d
-      real(kind=8)  gwet2d
-      real(kind=8)  veg2d
-      real(kind=8)  sag2d
-      real(kind=8)  sice2d
-      real(kind=8)  dew2d
-      real(kind=8)  ircp2d
-      real(kind=8)  emiss2d ! Emissivity of surface
-      real(kind=8)  flw2d
-      real(kind=8)  flwd2d
-      real(kind=8)  fsw2d
-      real(kind=8)  sabv2d
-      real(kind=8)  text2d
-      real(kind=8)  col2d
-      real(kind=8)  ocld2d
-      real(kind=8)  svga2d  ! accumulated absorbed solar by veg (w*s/m**2)
-      real(kind=8)  sina2d  ! accumulated net incident solar (w*s/m**2)
-      real(kind=8)  sinc2d
-      real(kind=8)  solvs2d
-      real(kind=8)  solvd2d
-      
-cChem
-      real(kind=8)  ssw2da
-      real(kind=8)  sdeltk2d
-      real(kind=8)  sdelqk2d
-      real(kind=8)  sfracv2d
-      real(kind=8)  sfracb2d
-      real(kind=8)  sfracs2d
-      real(kind=8)  svegfrac2d
-cChem_
 
       common /bat2d/  pptnc(ilx,jlx)
      &             ,   pptc(ilx,jlx), prca2d(ilx,jlx),prnca2d(ilx,jlx) 
@@ -268,13 +201,10 @@ cChem_
      &             ,  fsw2d(ilx,jlx), sabv2d(ilx,jlx)
      i             , svga2d(ilx,jlx), sina2d(ilx,jlx), sinc2d(ilx,jlx)
      i             ,solvd2d(ilx,jlx),solvs2d(ilx,jlx)
-cChem
      &             ,ssw2da(ilx,jlx),sdelqk2d(ilx,jlx),sdeltk2d(ilx,jlx)
      &             ,sfracv2d(ilx,jlx),  sfracb2d(ilx,jlx)
      &             ,sfracs2d(ilx,jlx),svegfrac2d(ilx,jlx)
-      real(kind=8)  ht1
-      real(kind=8)  satbrt1
-      real(kind=8)  veg2d1
+
       common /bat2d1/
      &     ht1(NNSG,ix,jx)  ,satbrt1(NNSG,ix,jx)   ,veg2d1(NNSG,ilx,jlx)
      & , taf2d(NNSG,ilx,jlx), tlef2d(NNSG,ilx,jlx)
@@ -286,37 +216,6 @@ cChem
      & , sag2d(NNSG,ilx,jlx), sice2d(NNSG,ilx,jlx),  dew2d(NNSG,ilx,jlx)
      & ,ircp2d(NNSG,ilx,jlx), ocld2d(NNSG,ilx,jlx),emiss2d(NNSG,ilx,jlx)
       
-c-----------------------------------------------------------------------
-      integer nrcbat,nrcsub
-      COMMON /BATUNIT/ nrcbat,nrcsub
-
-      real(kind=4)  u10m_o
-      real(kind=4)  v10m_o
-      real(kind=4)  drag_o
-      real(kind=4)  tg_o
-      real(kind=4)  tlef_o
-      real(kind=4)  t2m_o
-      real(kind=4)  q2m_o
-      real(kind=4)  ssw_o
-      real(kind=4)  rsw_o
-      real(kind=4)  tpr_o
-      real(kind=4)  evpa_o
-      real(kind=4)  rnos_o
-      real(kind=4)  scv_o
-      real(kind=4)  sena_o
-      real(kind=4)  flwa_o
-      real(kind=4)  fswa_o
-      real(kind=4)  flwd_o
-      real(kind=4)  sina_o
-      real(kind=4)  prcv_o
-      real(kind=4)  ps_o
-      real(kind=4)  zpbl_o
-      real(kind=4)  tgmx_o
-      real(kind=4)  tgmn_o
-      real(kind=4)  t2mx_o
-      real(kind=4)  t2mn_o
-      real(kind=4)  w10x_o
-      real(kind=4)  psmn_o
       COMMON /BATOUT/
      &  u10m_o(jx-2,ix-2),v10m_o(jx-2,ix-2),drag_o(jx-2,ix-2)
      & ,  tg_o(jx-2,ix-2),tlef_o(jx-2,ix-2), t2m_o(jx-2,ix-2)
@@ -328,22 +227,6 @@ c-----------------------------------------------------------------------
      & ,tgmx_o(jx-2,ix-2),tgmn_o(jx-2,ix-2),t2mx_o(jx-2,ix-2)
      & ,t2mn_o(jx-2,ix-2),w10x_o(jx-2,ix-2),psmn_o(jx-2,ix-2)
 
-      real(kind=4)  u10m_s
-      real(kind=4)  v10m_s
-      real(kind=4)  drag_s
-      real(kind=4)  tg_s
-      real(kind=4)  tlef_s
-      real(kind=4)  t2m_s
-      real(kind=4)  q2m_s
-      real(kind=4)  ssw_s
-      real(kind=4)  rsw_s
-      real(kind=4)  tpr_s
-      real(kind=4)  prcv_s
-      real(kind=4)  evpa_s
-      real(kind=4)  rnos_s
-      real(kind=4)  scv_s
-      real(kind=4)  sena_s
-      real(kind=4)  ps_s
       COMMON /SUBOUT/
      & u10m_s(NNSG,jx-2,ix-2),v10m_s(NNSG,jx-2,ix-2)
      &,drag_s(NNSG,jx-2,ix-2),  tg_s(NNSG,jx-2,ix-2)

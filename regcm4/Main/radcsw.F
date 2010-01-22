@@ -123,7 +123,7 @@ C------------------------------Commons----------------------------------
 c
 C Radiation constants
 C
-      include 'Commons/crdcon.cb'
+#     include "include/crdcon.cb"
 C
 C Input arguments
 C

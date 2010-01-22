@@ -167,13 +167,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/slice.cb"
+#     include "include/main.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/slice.cb'
-      include 'Common2/main.cb'
-#else
-      include 'Commons/slice.cb'
-      include 'Commons/main.cb'
 #endif
       real(kind=8)  ften(ix,kx),xkc(ix,kx)
       real(kind=8)  c203

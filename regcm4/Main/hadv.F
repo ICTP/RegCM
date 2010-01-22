@@ -199,16 +199,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/cvaria.cb"
+#     include "include/main.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/cvaria.cb'
-      include 'Common2/main.cb'
-#else
-      include 'Commons/cvaria.cb'
-      include 'Commons/main.cb'
 #endif
-      include 'Commons/param1.cb'
-      include 'Commons/param3.cb'
+#     include "include/param1.cb"
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -350,16 +347,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/cvaria.cb"
+#     include "include/main.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/cvaria.cb'
-      include 'Common2/main.cb'
-#else
-      include 'Commons/cvaria.cb'
-      include 'Commons/main.cb'
 #endif
-      include 'Commons/param1.cb'
-      include 'Commons/param3.cb'
+#     include "include/param1.cb"
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -501,16 +495,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/cvaria.cb"
+#     include "include/main.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/cvaria.cb'
-      include 'Common2/main.cb'
-#else
-      include 'Commons/cvaria.cb'
-      include 'Commons/main.cb'
 #endif
-      include 'Commons/param1.cb'
-      include 'Commons/param3.cb'
+#     include "include/param1.cb"
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -652,16 +643,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/cvaria.cb"
+#     include "include/main.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/cvaria.cb'
-      include 'Common2/main.cb'
-#else
-      include 'Commons/cvaria.cb'
-      include 'Commons/main.cb'
 #endif
-      include 'Commons/param1.cb'
-      include 'Commons/param3.cb'
+#     include "include/param1.cb"
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -803,16 +791,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       include 'regcm.param'
 #endif
       include 'parame'
+#     include "include/cvaria.cb"
+#     include "include/main.cb"
 #ifdef MPP1
       include 'mpiregcm.h'
-      include 'Common2/cvaria.cb'
-      include 'Common2/main.cb'
-#else
-      include 'Commons/cvaria.cb'
-      include 'Commons/main.cb'
 #endif
-      include 'Commons/param1.cb'
-      include 'Commons/param3.cb'
+#     include "include/param1.cb"
+#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1

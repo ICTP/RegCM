@@ -17,20 +17,19 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      integer ii, jj                 ! coefficiant index
-      integer ncoefs                 ! number of coefficiants
+      integer ii, jj                 ! coefficient index
+      integer ncoefs                 ! number of coefficients
       parameter (ncoefs=5)
       integer nspi
       parameter (nspi=19)
 
 
 C   MODIF 16/09/2005 IBRAH Internal mixing
+
       real(kind=4)  dextmix(4,19,11,11,11,11)
       real(kind=4)  dssamix(4,19,11,11,11,11)
       real(kind=4)  dgmix  (4,19,11,11,11,11)
       common/opt/dextmix,dssamix,dgmix
-
-
 
       real(kind=8)  kscoef(nspi,ncoefs), ! specific extinction (m2/g)
      $        wscoef(nspi,ncoefs), ! single partical albedo
@@ -264,7 +263,6 @@ c DUST OP data base for external mixing : maximum of 4 bin for the
 c momeent , determined from Zender et al. 
 
       data ((ksdust(ii,jj),jj=1,4),ii=1,nspi)/
-
      $ 1.8801,      0.76017,      0.36681,      0.16933,
      $ 2.0254,      0.78378,      0.36845,      0.17002,
      $ 1.9547,      0.76389,      0.37119,      0.17032,
@@ -326,3 +324,4 @@ c momeent , determined from Zender et al.
      $ 0.26761,      0.56045,      0.68897,      0.68174,
      $ 0.26761,      0.56045,      0.68897,      0.68174,
      $ 0.26761,      0.56045,      0.68897,      0.68174/
+C

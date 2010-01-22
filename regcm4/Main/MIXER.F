@@ -17,50 +17,53 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-*****************BEGIN SUBROUTINE MIXER*********************
-*              SIMULATES CONVECTIVE MIXING                 *
-************************************************************
       SUBROUTINE MIXER ( kmin, surf, dz, T, dnsty, depmax, depth )
+c
+c Simulates convective mixing
+c
       implicit none
-      integer kmin
-      real(kind=8)  surf,dz
-      INTEGER depmax, depth
-      real(kind=8)  T(depmax,2), dnsty(depmax)
-      integer k,m,k2
-      real(kind=8)  avet,avev,vol,tav,tdiff
 
-      do 10 k=kmin,depth-1
+c     Arguments
+      integer kmin, depmax, depth
+      real(kind=8)  T(depmax,2), dnsty(depmax)
+      real(kind=8)  surf, dz
+
+c     Local variables
+      real(kind=8)  avet,avev,vol,tav,tdiff
+      integer k,m,k2
+
+      do k = kmin,depth-1
         avet=0.0
         avev=0.0
 
-      if (dnsty(k).gt.dnsty(k+1)) then
+        if (dnsty(k).gt.dnsty(k+1)) then
 
-        do 20 m = kmin, k+1
-           if (m .eq. 1) then
+          do m = kmin, k+1
+            if (m .eq. 1) then
               vol = surf
-           else
+            else
               vol = dz
-           endif
-           avet=avet+T(m,2)*vol
-           avev=avev+vol
-   20   continue
+            endif
+            avet=avet+T(m,2)*vol
+            avev=avev+vol
+          end do
 
-        Tav=avet/avev
-        do 30 k2 = kmin, k+1
-           T(k2,2)=Tav
-           dnsty(k2)=1000.0*(1.0-1.9549E-05*(dabs((T(k2,2)+273.15)
-     +              -277.0))**1.68)
-   30   continue
-      endif
+          Tav=avet/avev
+          do k2 = kmin, k+1
+            T(k2,2)=Tav
+            dnsty(k2)=1000.0*(1.0-1.9549E-05*(dabs((T(k2,2)+273.15)
+     +               -277.0))**1.68)
+          end do
+        endif
 
-   10 continue
+      end do ! K loop 
 
-      tdiff = 0.
-      do 40 k = kmin, depth
+      tdiff = 0.0
+      do k = kmin, depth
         tdiff = tdiff + t(k,2) - t(k,1)
-        if(k.eq.1) tdiff = tdiff * surf
-        T(k,1)=T(k,2)
-   40 continue
+        if (k.eq.1) tdiff = tdiff * surf
+        T(k,1) = T(k,2)
+      end do
 
       return
-      end
+      end subroutine MIXER

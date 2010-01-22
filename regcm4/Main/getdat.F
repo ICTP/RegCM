@@ -82,11 +82,11 @@ c
       real(kind=8)  h2ommr(plond,plev)
 c
 cKN   added above
-      include 'Commons/comtim.cb'
-      include 'Commons/crdalb.cb'
-      include 'Commons/crdsrf.cb'
-      include 'Commons/crdcon.cb'
-      include 'Commons/date.cb'
+#     include "include/comtim.cb"
+#     include "include/crdalb.cb"
+#     include "include/crdsrf.cb"
+#     include "include/crdcon.cb"
+#     include "include/date.cb"
 C
 c----------------------------------------------------------------------
 c

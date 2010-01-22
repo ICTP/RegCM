@@ -168,11 +168,7 @@ c  put back the dust flux on the right grid
       include 'regcm.param'
 #endif
       include 'parame'
-#ifdef MPP1
-      include 'Common2/dust.cb'
-#else
-      include 'Commons/dust.cb'
-#endif
+#     include "include/dust.cb"
 
       integer IL1, IL2, ILG
       integer I, LUC
