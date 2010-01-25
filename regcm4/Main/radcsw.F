@@ -92,7 +92,7 @@ C------------------------------Parameters-------------------------------
       include 'parame'
 #     include "include/parrad.cb"
 #     include "include/param2.cb"
-#     include "include/bats.cb2"  ! for coszrs
+#     include "include/bats.cb2"
 #     include "include/bats.cb"
 #     include "include/tracer.cb"
 #     include "include/aeroppt.cb"

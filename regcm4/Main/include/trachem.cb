@@ -17,9 +17,8 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c                                                                  c
 c     Molecular weight ratios w.r.t. air, and                      c
 c     production and loss rates of tracers for use in rxn.f        c
 c                                                                  c
@@ -34,97 +33,68 @@ c
       integer ichremlsc,ichremcvc,ichdrdepo,ichcumtra,
      &        ichsursrc
       integer icumtop,icumbot,icumdwd
-       
+
+      real(kind=8)  remrat,remlsc,remcvc,remdrd,rxsg,rxsaq1,rxsaq2,rembc
+      real(kind=8)  cemtrac,cemtr
+
+cbxq  real(kind=8)  ohconc,h2o2conc,o3conc
+
+      integer iso2,iso4,ibchl,ibchb,iochl,iochb,idust
+      integer mixtype
+      common/ioxydant/iso2,iso4,ibchl,ibchb,iochl,iochb,idust(nbin) 
+     &               ,mixtype
+
+      character*5 chtrname
+      common/chachem/ chtrname(ntr)
+
+      real(kind=8)  chtrsol, chtrdpv, chtrsize,dustbsiz
+      common/chtrprop/ chtrsol(ntr),chtrdpv(ntr,2),     
+     &                 chtrsize(nbin,2),dustbsiz(nbin,2) 
+
+      real(kind=8) mflx
+      real(kind=8) aerext, aerssa, aerasp,aertarf,aersrrf
+
+#ifdef MPP1
+
       common/iemovalt/ icumtop(ix,jxp),icumbot(ix,jxp),icumdwd(ix,jxp),
      &                 ichremlsc,ichremcvc,ichdrdepo,ichcumtra,
      &                 ichsursrc
 
 
-      real(kind=8)  remrat,remlsc,remcvc,remdrd,rxsg,rxsaq1,rxsaq2,rembc
-      real(kind=8)  cemtrac,cemtr
       common/removalt/ remrat(ix,kx),remlsc(ix,kx,jxp,ntr)
      &                ,remcvc(ix,kx,jxp,ntr),remdrd(ix,jxp,ntr)
      &                ,rxsg(ix,kx,jxp,ntr),rxsaq1(ix,kx,jxp,ntr)
      &                ,rxsaq2(ix,kx,jxp,ntr),rembc(ix,kx)
      &                ,cemtrac(ix,jxp,ntr),cemtr(ix,jxp,ntr)
 
-cbxq  real(kind=8)  ohconc,h2o2conc,o3conc
 cbxq  common/oxidant/ohconc(ix-1,jxp,kx),h2o2conc(ix-1,jxp,kx)
 cbxq &              ,o3conc(ix-1,jxp,kx)
 
-      integer iso2,iso4,ibchl,ibchb,iochl,iochb,idust
-      integer mixtype
-      common/ioxydant/iso2,iso4,ibchl,ibchb,iochl,iochb,idust(nbin) 
-     &               ,mixtype
-
-      character*5 chtrname
-      common/chachem/ chtrname(ntr)
-      real(kind=8)  chtrsol, chtrdpv, chtrsize,dustbsiz
-      common/chtrprop/ chtrsol(ntr),chtrdpv(ntr,2),     
-     &                 chtrsize(nbin,2),dustbsiz(nbin,2) 
-     
-      real(kind=8) mflx
       common/massflx/ mflx(ix,2)
 
-      real(kind=8) aerext, aerssa, aerasp,aertarf,aersrrf
       common/outaer/ aerext(ix-1,kx,jxp), aerssa(ix-1,kx,jxp),
      &               aerasp(ix-1,kx,jxp),aertarf(ix-1,jxp),
      &               aersrrf(ix-1,jxp)
-Cchem_
 
 #else
 
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     Molecular weight ratios w.r.t. air, and                      c
-c     production and loss rates of tracers for use in rxn.f        c
-c                                                                  c
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c      mwchi, mwair: molecular weights of tracer species and air
-c
-c      p1 = first-order loss rates for tracers in min^-1
-c
-c      q1 = production rate of tracer in ppm/min
-c
-
-      integer ichremlsc,ichremcvc,ichdrdepo,ichcumtra,
-     &        ichsursrc
-      integer icumtop,icumbot,icumdwd
-       
       common/iemovalt/ icumtop(ix,jx),icumbot(ix,jx),icumdwd(ix,jx),
      &                 ichremlsc,ichremcvc,ichdrdepo,ichcumtra,
      &                 ichsursrc
 
-
-      real(kind=8)  remrat,remlsc,remcvc,remdrd,rxsg,rxsaq1,rxsaq2,rembc
-      real(kind=8)  cemtrac,cemtr
       common/removalt/ remrat(ix,kx),remlsc(ix,kx,jx,ntr)
      &                ,remcvc(ix,kx,jx,ntr),remdrd(ix,jx,ntr)
      &                ,rxsg(ix,kx,jx,ntr),rxsaq1(ix,kx,jx,ntr)
      &                ,rxsaq2(ix,kx,jx,ntr),rembc(ix,kx)
      &                ,cemtrac(ix,jx,ntr),cemtr(ix,jx,ntr)
 
-cbxq  real(kind=8)  ohconc,h2o2conc,o3conc
 cbxq  common/oxidant/ohconc(ix-1,jx-1,kx),h2o2conc(ix-1,jx-1,kx)
 cbxq &              ,o3conc(ix-1,jx-1,kx)
 
-      integer iso2,iso4,ibchl,ibchb,iochl,iochb,idust
-      integer mixtype
-      common/ioxydant/iso2,iso4,ibchl,ibchb,iochl,iochb,idust(nbin) 
-     &               ,mixtype
-
-      character*5 chtrname
-      common/chachem/ chtrname(ntr)
-      real(kind=8)  chtrsol, chtrdpv, chtrsize,dustbsiz
-      common/chtrprop/ chtrsol(ntr),chtrdpv(ntr,2),     
-     &                 chtrsize(nbin,2),dustbsiz(nbin,2) 
-     
-      real(kind=8) mflx
       common/massflx/ mflx(ix,2)
 
-      real(kind=8) aerext, aerssa, aerasp,aertarf,aersrrf
       common/outaer/ aerext(ix-1,kx,jx-1), aerssa(ix-1,kx,jx-1),
      &               aerasp(ix-1,kx,jx-1),aertarf(ix-1,jx-1),
      &               aersrrf(ix-1,jx-1)
-Cchem_
 
 #endif

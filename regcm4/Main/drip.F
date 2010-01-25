@@ -17,9 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine drip
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
 c  excess leaf water is put into rain or snow;
 c  leaf water is reset to its maximum value.
@@ -35,30 +33,30 @@ c
 
       integer n,np
 
-      do 90 np=np1,npts
-      do n=1,NNSG
-       if (ldoc1d(n,np).gt.0.5) then
-        if (sigf(n,np).gt.0.001) then
+      do np = np1, npts
+        do n = 1, NNSG
+          if (ldoc1d(n,np).gt.0.5) then
+            if (sigf(n,np).gt.0.001) then
 c  ***********         xrun = leaf drip ; sdrop = snow drop off foliage
-         etrrun(n,np) = 0.
-         xrun(n,np) = ldew1d(n,np) - dewmx*vegt(n,np)
-         sdrop(n,np) = 0.
+              etrrun(n,np) = 0.
+              xrun(n,np) = ldew1d(n,np) - dewmx*vegt(n,np)
+              sdrop(n,np) = 0.
 
 c  ***********         test on maximum value of dew
-         if(xrun(n,np).gt.0.) then
-          etrrun(n,np) = xrun(n,np)
-          ldew1d(n,np) = dewmx*vegt(n,np)
-         endif
+              if (xrun(n,np).gt.0.) then
+                etrrun(n,np) = xrun(n,np)
+                ldew1d(n,np) = dewmx*vegt(n,np)
+              end if
 
 c  ***********         below freezing excess leaf water falls as snow
-         if( (xrun(n,np).gt.0.) .and. (tm(n,np) .lt. c(67)) ) then
-          etrrun(n,np) = 0.
-          sdrop(n,np) = xrun(n,np)
-         endif
-        endif
-       endif
-      enddo
-90    continue
+              if ( (xrun(n,np).gt.0.) .and. (tm(n,np) .lt. c(67)) ) then
+                etrrun(n,np) = 0.
+                sdrop(n,np) = xrun(n,np)
+              end if
+            end if
+          end if
+        end do
+      end do
 
       return
-      end
+      end subroutine drip

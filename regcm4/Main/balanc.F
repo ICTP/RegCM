@@ -15,8 +15,7 @@ C
 C    You should have received a copy of the GNU General Public License
 C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
-C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
+C:::::::::::::::::::::::::: subroutine balanc::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine balanc(nm,n,a,low,igh,scale)
 c
@@ -184,4 +183,4 @@ c
   280 low = k
       igh = l
       return
-      end
+      end subroutine balanc

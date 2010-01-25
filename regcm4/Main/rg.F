@@ -87,4 +87,4 @@ c     .......... find both eigenvalues and eigenvectors ..........
       if (ierr .ne. 0) go to 50
       call  balbak(nm,n,is1,is2,fv1,n,z)
    50 return
-      end
+      end subroutine rg

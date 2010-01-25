@@ -18,69 +18,68 @@ C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine zenith(dec,alat,fjd,rsun,coszrs,frac,imax)
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-c
-c ** used by radiation package in ccm to coszrs  *****not yet used
-c                 here but could be called from albedo
-c
-c     this routine computes the zenith angle at each of 'imax'
-c     equally-spaced longitudes at latitude 'alat', for a diurnally
-c     varying sun.
-c
-c     input:  dec    - declination of sun in radians. computed in
-c                      'solar'.
-c             alat   - latitude in radians.
-c             fjd    - fractional julian date in days.  the code conven-
-c                      tion (see 'compjd') is that fjd=0 at noon  at
-c                      greenwich meridian (1200 gmt), so the hour angle
-c                      at longitude 'lon' is ha=lon+twopi*fjd.
-c             rsun   - distance to sun, normalized to the mean distance.
-c                      computed in 'solar'.
-c             imax   - number of equally spaced longitude values.
-c                      it is assumed that i=1 and i=imax+1 are both
-c                      at the greenwich meridian (lon=0).
-c     output: coszrs - cos(z)/ where 'z' is the zenith angle at
-c                      longitude 'i', latitude 'alat', and time 'fjd'.
-c                           cos(z)=sin(alat)*sin(dec)+
-c                                  cos(alat)*cos(dec)*cos(ha)
-c                      it is assumed that the
-c                      annual mean solar constant is used elsewhere
-c                      in determining the solar flux.
-c                      the 1/r**2 decrease of the solar flux appears
-c                      in subroutine radiatn as eccf
-c             frac   - not used in diurnal mode: set to 1.  in the
-c                      average insolation mode, 'frac' is the daylight
-c                      fraction at the point (see 'zenith'); to lowest
-c                      order it should be independent of longitude.
-c
-c     ***************
-c
+C
+C ** used by radiation package in ccm to coszrs  *****not yet used
+C                 here but could be called from albedo
+C
+C     this routine computes the zenith angle at each of 'imax'
+C     equally-spaced longitudes at latitude 'alat', for a diurnally
+C     varying sun.
+C
+C     input:  dec    - declination of sun in radians. computed in
+C                      'solar'.
+C             alat   - latitude in radians.
+C             fjd    - fractional julian date in days.  the code conven-
+C                      tion (see 'compjd') is that fjd=0 at noon  at
+C                      greenwich meridian (1200 gmt), so the hour angle
+C                      at longitude 'lon' is ha=lon+twopi*fjd.
+C             rsun   - distance to sun, normalized to the mean distance.
+C                      computed in 'solar'.
+C             imax   - number of equally spaced longitude values.
+C                      it is assumed that i=1 and i=imax+1 are both
+C                      at the greenwich meridian (lon=0).
+C     output: coszrs - cos(z)/ where 'z' is the zenith angle at
+C                      longitude 'i', latitude 'alat', and time 'fjd'.
+C                           cos(z)=sin(alat)*sin(dec)+
+C                                  cos(alat)*cos(dec)*cos(ha)
+C                      it is assumed that the
+C                      annual mean solar constant is used elsewhere
+C                      in determining the solar flux.
+C                      the 1/r**2 decrease of the solar flux appears
+C                      in subroutine radiatn as eccf
+C             frac   - not used in diurnal mode: set to 1.  in the
+C                      average insolation mode, 'frac' is the daylight
+C                      fraction at the point (see 'zenith'); to lowest
+C                      order it should be independent of longitude.
+C
+C     ***************
+C
       implicit none
       real(kind=8)  dec,alat,fjd,rsun
       integer imax
       real(kind=8)  coszrs(imax),frac(imax)
-c
+C
       real(kind=8)  twopi
       data twopi /6.283185308/
       real(kind=8)  ss,cc,rs,eccf,dlon,tpifjd,ha,cosz
       integer i
-c
-c***********************************************************************
-c
-      ss=dsin(alat)*dsin(dec)
-      cc=dcos(alat)*dcos(dec)
-      rs=1./rsun**2
-      eccf=rs
-      rs=1.0
-      dlon=twopi/imax
-      tpifjd=twopi*fjd
-      do 20 i=1,imax
-         frac(i)=1.
-         ha=(i-1)*dlon+tpifjd
-c       -if cosz is negative, the sun is below the horizon.
-         cosz=dmax1(0.d0,ss+cc*dcos(ha))
-         coszrs(i)=cosz
-20    continue
+C
+C***********************************************************************
+C
+      ss = dsin(alat)*dsin(dec)
+      cc = dcos(alat)*dcos(dec)
+      rs = 1.0 / rsun**2
+      eccf = rs
+      rs = 1.0
+      dlon = twopi/imax
+      tpifjd = twopi*fjd
+      do i = 1, imax
+        frac(i) = 1.0
+        ha = (i-1)*dlon+tpifjd
+C       if cosz is negative, the sun is below the horizon.
+        cosz = dmax1(0.d0,ss+cc*dcos(ha))
+        coszrs(i) = cosz
+      end do
 
       return
-      end
+      end subroutine zenith

@@ -17,9 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-
-c----------------------------------------------------------------------   
       real(kind=8)  rv
       real(kind=8)  xlv
       real(kind=8)  ep1
@@ -88,7 +85,11 @@ c----------------------------------------------------------------------
       real(kind=8)  skbmax
 !      real(kind=8)  skbmax2d
       real(kind=8)  cbmf2d
-c
+
+      integer kbmax,kbmax2d,icon
+
+#ifdef MPP1
+
       common/pmoist/     rv,   xlv,   ep1,   ep2,xlvocp,  svp1,  svp2,
      1                 svp3,  conf,  qcth, qck10,   avt,   bvt,  trel,
      2                 g4pb,g3pb,g5pb,n0r,   ppi,   vtc,  prac, prec1,  
@@ -114,83 +115,11 @@ c
      &               ,htmax2d(ix,jxp),htmax
      &               ,dtauc2d(ix,jxp),dtauc
      &               ,cbmf2d(ix,jxp)
-      integer kbmax,kbmax2d,icon
+
       common/pmoistint/kbmax2d(ix,jxp), kbmax,icon(jxp)
-c                                                                   
-c----------------------------------------------------------------------
 
 #else
 
-c----------------------------------------------------------------------   
-      real(kind=8)  rv
-      real(kind=8)  xlv
-      real(kind=8)  ep1
-      real(kind=8)  ep2
-      real(kind=8)  xlvocp
-      real(kind=8)  svp1
-      real(kind=8)  svp2
-      real(kind=8)  svp3
-      real(kind=8)  conf
-      real(kind=8)  qcth
-      real(kind=8)  avt
-      real(kind=8)  bvt
-      real(kind=8)  trel
-      real(kind=8)  g4pb
-      real(kind=8)  g3pb
-      real(kind=8)  g5pb
-      real(kind=8)  n0r
-      real(kind=8)  ppi
-      real(kind=8)  vtc
-      real(kind=8)  prac
-      real(kind=8)  prec1
-      real(kind=8)  prec2
-      real(kind=8)  qdcrit
-      real(kind=8)  twght
-      real(kind=8)  qwght
-      real(kind=8)  vqflx
-      real(kind=8)  rsheat
-      real(kind=8)  rswat
-      real(kind=8)  qck10
-      real(kind=8)  rh0land,rh0oce,rhmax,cevap,caccr
-      real(kind=8)  fcmax,qck1land,qck1oce,gulland,guloce
-      real(kind=8)  tc0
-      real(kind=8)  fcc
-      real(kind=8)  qck1
-      real(kind=8)  cgul
-      real(kind=8)  rh0
-      real(kind=8)  cllwcv
-      real(kind=8)  clfrcv
-      real(kind=8)  clfrcvmax
-      real(kind=8)  shrmin2d
-      real(kind=8)  shrmin
-      real(kind=8)  shrmax2d
-      real(kind=8)  shrmax
-      real(kind=8)  edtmin2d
-      real(kind=8)  edtmin
-      real(kind=8)  edtmax2d
-      real(kind=8)  edtmax
-      real(kind=8)  edtmino2d
-      real(kind=8)  edtmino
-      real(kind=8)  edtmaxo2d
-      real(kind=8)  edtmaxo
-      real(kind=8)  edtminx2d
-      real(kind=8)  edtminx
-      real(kind=8)  edtmaxx2d
-      real(kind=8)  edtmaxx
-      real(kind=8)  pbcmax2d
-      real(kind=8)  pbcmax
-      real(kind=8)  mincld2d
-      real(kind=8)  mincld
-      real(kind=8)  htmin2d
-      real(kind=8)  htmin
-      real(kind=8)  htmax2d
-      real(kind=8)  htmax
-      real(kind=8)  dtauc2d
-      real(kind=8)  dtauc
-      real(kind=8)  skbmax
-!      real(kind=8)  skbmax2d
-      real(kind=8)  cbmf2d
-c
       common/pmoist/     rv,   xlv,   ep1,   ep2,xlvocp,  svp1,  svp2,
      1                 svp3,  conf,  qcth, qck10,   avt,   bvt,  trel,
      2                 g4pb,g3pb,g5pb,n0r,   ppi,   vtc,  prac, prec1,  
@@ -216,9 +145,7 @@ c
      &               ,htmax2d(ix,jx),htmax
      &               ,dtauc2d(ix,jx),dtauc
      &               ,cbmf2d(ix,jx)
-      integer kbmax,kbmax2d,icon
+
       common/pmoistint/kbmax2d(ix,jx), kbmax,icon(jx)
-c                                                                   
-c----------------------------------------------------------------------
 
 #endif

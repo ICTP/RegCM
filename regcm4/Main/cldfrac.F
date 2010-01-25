@@ -64,7 +64,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/pmoist.cb"
 #     include "include/rad.cb"
 #     include "include/slice.cb"
-#     include "include/bats.cb2"  ! so you have the land mask
+#     include "include/bats.cb2"
 
       integer i,k
       real(kind=8)  exlwc

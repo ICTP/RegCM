@@ -17,26 +17,23 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine whenflt(n,array,inc,target,index,nval)
-c
-c $Id: whenflt.F,v 1.1.1.1 1995/02/09 23:26:17 ccm2 Exp $
-c $Author: ccm2 $
-c
+      subroutine whenflt(n, array, inc, rtarg, indx, nval)
+
       implicit none
-      integer n,inc,nval
-      integer index(*)
-      real(kind=8)  array(*),target
-      integer ina,i
+      integer n, inc, nval
+      integer indx(*)
+      real(kind=8)  array(*), rtarg
+      integer ina, i
 c
-      ina=1
-      nval=0
-      if(inc .lt. 0) ina=(-inc)*(n-1)+1
-      do 100 i=1,n
-          if(array(ina) .lt. target) then
-          nval=nval+1
-          index(nval)=i
-          end if
-          ina=ina+inc
- 100    continue
+      ina  = 1
+      nval = 0
+      if (inc .lt. 0) ina = (-inc)*(n-1)+1
+      do i = 1, n
+        if (array(ina) .lt. rtarg) then
+          nval = nval+1
+          indx(nval) = i
+        end if
+        ina = ina + inc
+      end do
       return
-      end
+      end subroutine whenflt

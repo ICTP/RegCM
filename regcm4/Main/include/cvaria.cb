@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-c----------------------------------------------------------------------
       real(kind=8)  psc
       real(kind=8)  uc
       real(kind=8)  vc
@@ -48,7 +46,11 @@ c----------------------------------------------------------------------
       real(kind=8)  difuv
       real(kind=8)  omega
       real(kind=8)  qvcs
-c                                                                   
+
+      real(kind=8)  chi, chiten, chic
+
+#ifdef MPP1
+
       common/cvaria/ psc(ix,jxp), uc(ix,kx,jxp), vc(ix,kx,jxp),
      &            tc(ix,kx,jxp),qvc(ix,kx,jxp),qcc(ix,kx,jxp),
      &             u(ix,kx,0:jxp+1),  v(ix,kx,0:jxp+1),
@@ -63,46 +65,11 @@ c
      &         difft(ix,kx,jxp),diffq(ix,kx,jxp),difuu(ix,kx,jxp),
      &         difuv(ix,kx,jxp),omega(ix,kx,jxp), qvcs(ix,kx)
 
-Cchem2
-      real(kind=8)  chi, chiten, chic
       common/tracer/ chic(ix,kx,jxp,ntr),chi(ix,kx,0:jxp+1,ntr)
      &              ,chiten(ix,kx,jxp,ntr)
-Cchem2_
 
-c-----------------------------------------------------------------------                                                              
 #else
 
-c----------------------------------------------------------------------
-      real(kind=8)  psc
-      real(kind=8)  uc
-      real(kind=8)  vc
-      real(kind=8)  tc
-      real(kind=8)  qvc
-      real(kind=8)  qcc
-      real(kind=8)  u
-      real(kind=8)  v
-      real(kind=8)  t
-      real(kind=8)  qv
-      real(kind=8)  qc
-      real(kind=8)  qdot
-      real(kind=8)  pdota
-      real(kind=8)  pten
-      real(kind=8)  uten
-      real(kind=8)  vten
-      real(kind=8)  tten
-      real(kind=8)  qvten
-      real(kind=8)  qcten
-      real(kind=8)  psd
-      real(kind=8)  td
-      real(kind=8)  phi
-      real(kind=8)  xkc
-      real(kind=8)  difft
-      real(kind=8)  diffq
-      real(kind=8)  difuu
-      real(kind=8)  difuv
-      real(kind=8)  omega
-      real(kind=8)  qvcs
-c                                                                   
       common/cvaria/ psc(ix,jx), uc(ix,kx,jx), vc(ix,kx,jx),
      &            tc(ix,kx,jx),qvc(ix,kx,jx),qcc(ix,kx,jx),
      &             u(ix,kx,jx),  v(ix,kx,jx),    t(ix,kx,jx),
@@ -114,11 +81,7 @@ c
      &         difft(ix,kx,jx),diffq(ix,kx,jx),difuu(ix,kx,jx),
      &         difuv(ix,kx,jx),omega(ix,kx,jx), qvcs(ix,kx)
 
-Cchem2
-      real(kind=8)  chi, chiten, chic
       common/tracer/ chic(ix,kx,jx,ntr),chi(ix,kx,jx,ntr)
      &              ,chiten(ix,kx,jx,ntr)
-Cchem2_
 
-c-----------------------------------------------------------------------                                                              
 #endif

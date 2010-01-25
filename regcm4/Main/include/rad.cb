@@ -17,22 +17,17 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-
       real(kind=8)  heatrt
       real(kind=8)  o3prof
       real(kind=8)  cldfra
       real(kind=8)  cldlwc
+
+#ifdef MPP1
 
       common/radiation/heatrt(ilx,kx,jxp),o3prof(ilx,kxp1,jxp), 
      2                 cldfra(ilx,kx),cldlwc(ilx,kx)
 
 #else
-
-      real(kind=8)  heatrt
-      real(kind=8)  o3prof
-      real(kind=8)  cldfra
-      real(kind=8)  cldlwc
 
       common/radiation/heatrt(ilx,kx,jlx),o3prof(ilx,kxp1,jlx), 
      2                 cldfra(ilx,kx),cldlwc(ilx,kx)

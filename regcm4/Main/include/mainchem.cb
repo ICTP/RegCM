@@ -17,13 +17,8 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-
-c----------------------------------------------------------------------
-Cchem2
       real(kind=8)  chia, chib, chemsrc, srclp2
-      common/trac/ chia(ix,kx,-1:jxp+2,ntr),chib(ix,kx,-1:jxp+2,ntr)
-     &            ,chemsrc(ix,jxp,12,ntr),srclp2(ix,jxp,ntr)
+
 CC    real(kind=8)  tchifx
 CC    real(kind=8)  tchify
 CC    real(kind=8)  tchidx
@@ -34,37 +29,31 @@ CC    real(kind=8)  tchidy
       real(kind=8)  ddsfc
       real(kind=8)  wxsg
       real(kind=8)  wxaq
+
+#ifdef MPP1
+
+      common/trac/ chia(ix,kx,-1:jxp+2,ntr),chib(ix,kx,-1:jxp+2,ntr)
+     &            ,chemsrc(ix,jxp,12,ntr),srclp2(ix,jxp,ntr)
+
 CC    common/tracflux/ tchifx(ix,jxp,kx,ntr),tchify(ix,jxp,kx,ntr)
 CC   &     , tchidx(ix,jxp,kx,ntr),tchidy(ix,jxp,kx,ntr),
+
       common/tracflux/
      &       dtrace(ix,jxp,ntr)
      &     , wdlsc(ix,jxp,ntr),wdcvc(ix,jxp,ntr),ddsfc(ix,jxp,ntr)
      &     , wxsg(ix,jxp,ntr),wxaq(ix,jxp,ntr)
-Cchem2_
-c----------------------------------------------------------------------
 
 #else
 
-Cchem2
-      real(kind=8)  chia, chib, chemsrc, srclp2
       common/trac/ chia(ix,kx,jx,ntr),chib(ix,kx,jx,ntr),
      &             chemsrc(ix,jx,12,ntr),srclp2(ix,jx,ntr)
-CC    real(kind=8)  tchifx
-CC    real(kind=8)  tchify
-CC    real(kind=8)  tchidx
-CC    real(kind=8)  tchidy
-      real(kind=8)  dtrace
-      real(kind=8)  wdlsc
-      real(kind=8)  wdcvc
-      real(kind=8)  ddsfc
-      real(kind=8)  wxsg
-      real(kind=8)  wxaq
+
 CC    common/tracflux/ tchifx(ix,jx,kx,ntr),tchify(ix,jx,kx,ntr)
 CC   &     , tchidx(ix,jx,kx,ntr),tchidy(ix,jx,kx,ntr),
+
       common/tracflux/
      &       dtrace(ix,jx,ntr)
      &     , wdlsc(ix,jx,ntr),wdcvc(ix,jx,ntr),ddsfc(ix,jx,ntr)
      &     , wxsg(ix,jx,ntr),wxaq(ix,jx,ntr)
-Cchem2_
 
 #endif

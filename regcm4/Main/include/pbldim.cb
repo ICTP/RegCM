@@ -17,36 +17,23 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-
-c----------------------------------------------------------------------
       real(kind=8)  thx3d
       real(kind=8)  thvx
       real(kind=8)  dzq
       real(kind=8)  za
       real(kind=8)  zq
       real(kind=8)  rhox2d
-c
+
+#ifdef MPP1
+
       common/pbldim/thx3d(ix,kx,jxp), thvx(ix,kx,jxp),
      &              dzq(ix,kx,jxp),za(ix,kx,jxp),zq(ix,kxp1),
      &             rhox2d(ix,jxp)
 
-c----------------------------------------------------------------------
-
 #else
 
-c----------------------------------------------------------------------
-      real(kind=8)  thx3d
-      real(kind=8)  thvx
-      real(kind=8)  dzq
-      real(kind=8)  za
-      real(kind=8)  zq
-      real(kind=8)  rhox2d
-c
       common/pbldim/thx3d(ix,kx,jx), thvx(ix,kx,jx),
      &              dzq(ix,kx,jx),za(ix,kx,jx),zq(ix,kxp1),
      &             rhox2d(ix,jx)
-
-c----------------------------------------------------------------------
 
 #endif

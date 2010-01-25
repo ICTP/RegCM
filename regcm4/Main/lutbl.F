@@ -1,158 +1,166 @@
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
-C    This file is part of RegCM model.
+C    this file is part of regcm model.
 C
-C    RegCM model is free software: you can redistribute it and/or modify
-C    it under the terms of the GNU General Public License as published by
-C    the Free Software Foundation, either version 3 of the License, or
+C    regcm model is free software: you can redistribute it and/or modify
+C    it under the terms of the gnu general public license as published by
+C    the free software foundation, either version 3 of the license, or
 C    (at your option) any later version.
 C
-C    RegCM model is distributed in the hope that it will be useful,
-C    but WITHOUT ANY WARRANTY; without even the implied warranty of
-C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C    GNU General Public License for more details.
+C    regcm model is distributed in the hope that it will be useful,
+C    but without any warranty; without even the implied warranty of
+C    merchantability or fitness for a particular purpose.  see the
+C    gnu general public license for more details.
 C
-C    You should have received a copy of the GNU General Public License
-C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+C    you should have received a copy of the gnu general public license
+C    along with regcm model.  if not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE LUTBL(PTOP)
+      subroutine lutbl(ptop)
 C
-C&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+      implicit none
+
+      real(kind=8)  ptop
+      real(kind=8)  a2,a3,a4
+      integer itb,jtb
+      parameter(itb=100,jtb=150,a2=17.2693882e0,a3=273.16e0,a4=35.86e0)
+      real(kind=8)  pq0,eps
+      parameter(pq0=379.90516e0,eps=2.e-12)
+      real(kind=8)  eliwv,cp,r,rovcp
+      parameter(eliwv=2.72e6,cp=1004.e0,r=287.04,rovcp=r/cp)
 C
-      IMPLICIT NONE
-      real(kind=8)  PTOP
-      INTEGER ITB,JTB
-      real(kind=8)  A2,A3,A4
-      PARAMETER(ITB=100,JTB=150,A2=17.2693882E0,A3=273.16E0,A4=35.86E0)
-      real(kind=8)  PQ0,EPS
-      PARAMETER(PQ0=379.90516E0,EPS=2.E-12)
-      real(kind=8)  ELIWV,CP,R,ROVCP
-      PARAMETER(ELIWV=2.72E6,CP=1004.E0,R=287.04,ROVCP=R/CP)
+      real(kind=8)  pl,thl,rdq,rdth,rdp,rdthe,qs0,sqs,the0,sthe,ptbl
+      real(kind=8)  ttbl
+      common /tbls/ pl,thl,rdq,rdth,rdp,rdthe,qs0(jtb),sqs(jtb),
+     1             the0(jtb),sthe(jtb),ptbl(itb,jtb),ttbl(jtb,itb)
+      real(kind=8)  qsold(jtb),pold(jtb),qsnew(jtb),y2p(jtb),pnew(jtb)
+      real(kind=8)  told(jtb),theold(jtb),thenew(jtb),y2t(jtb),tnew(jtb)
+      real(kind=8)  app(jtb),aqp(jtb),apt(jtb),aqt(jtb)
+      real(kind=8)  thh,ph,dth,dp,th,p,ape,qs0k,sqsk,dqs,qs,the0k,sthek
+      real(kind=8)  dthe,pt
+      integer kthm,kpm,kthm1,kpm1,kth,kp
 C
-      real(kind=8)  PL,THL,RDQ,RDTH,RDP,RDTHE,QS0,SQS,THE0,STHE,PTBL
-      real(kind=8)  TTBL
-      COMMON /TBLS/ PL,THL,RDQ,RDTH,RDP,RDTHE,QS0(JTB),SQS(JTB),
-     1             THE0(JTB),STHE(JTB),PTBL(ITB,JTB),TTBL(JTB,ITB)
-      real(kind=8)  QSOLD(JTB),POLD(JTB),QSNEW(JTB),Y2P(JTB),PNEW(JTB)
-      real(kind=8)  TOLD(JTB),THEOLD(JTB),THENEW(JTB),Y2T(JTB),TNEW(JTB)
-      real(kind=8)  APP(JTB),AQP(JTB),APT(JTB),AQT(JTB)
-      INTEGER KTHM,KPM,KTHM1,KPM1,KTH,KP
-      real(kind=8)  THH,PH,DTH,DP,TH,P,APE,QS0K,SQSK,DQS,QS,THE0K,STHEK
-      real(kind=8)  DTHE,PT
+C--------------coarse look-up table for saturation point----------------
 C
-C--------------COARSE LOOK-UP TABLE FOR SATURATION POINT----------------
+      pt = ptop*1000.
+! ptop in pascal
+
+      kthm  = jtb
+      kpm   = itb
+      kthm1 = kthm-1
+      kpm1  = kpm-1
 C
-      PT=PTOP*1000.
-! PTOP IN PASCAL
-      KTHM=JTB
-      KPM=ITB
-      KTHM1=KTHM-1
-      KPM1=KPM-1
+      thl = 210.
+      thh = 385.
+      pl  = pt
+      ph  = 105000.
 C
-      THL=210.
-      THH=385.
-      PL=PT
-      PH=105000.
+      dth = (thh-thl)/dble(kthm-1)
+      dp  = (ph-pl)/dble(kpm-1)
 C
-      DTH=(THH-THL)/dble(KTHM-1)
-      DP=(PH-PL)/dble(KPM-1)
+      rdth = 1.0/dth
+      rdp  = 1.0/dp
+      rdq  = kpm-1
 C
-      RDTH=1./DTH
-      RDP=1./DP
-      RDQ=KPM-1
-C
-      TH=THL-DTH
+      th   = thl-dth
+
 C-----------------------------------------------------------------------
-      DO 500 KTH=1,KTHM
-        TH=TH+DTH
-        P=PL-DP
-        DO 510 KP=1,KPM
-          P=P+DP
-          APE=(100000./P)**(ROVCP)
-          QSOLD(KP)=PQ0/P*EXP(A2*(TH-A3*APE)/(TH-A4*APE))
-          POLD(KP)=P
-  510   CONTINUE
+
+      do kth = 1, kthm
+        th = th+dth
+        p  = pl-dp
+        do kp = 1, kpm
+          p         = p+dp
+          ape       = (100000./p)**(rovcp)
+          qsold(kp) = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
+          pold(kp)  = p
+        end do
 C
-        QS0K=QSOLD(1)
-        SQSK=QSOLD(KPM)-QSOLD(1)
-        QSOLD(1)=0.
-        QSOLD(KPM)=1.
+        qs0k       = qsold(1)
+        sqsk       = qsold(kpm)-qsold(1)
+        qsold(1)   = 0.0
+        qsold(kpm) = 1.0
 C
-        DO 520 KP=2,KPM1
-          QSOLD(KP)=(QSOLD(KP)-QS0K)/SQSK
-CWWWWWWWWWWWWWW FIX DUE TO CYBER HALF PREC. LIMITATION WWWWWWWWWWWWWWWWW
-          IF((QSOLD(KP)-QSOLD(KP-1)).LT.EPS)QSOLD(KP)=QSOLD(KP-1)+EPS
-CMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-  520   CONTINUE
+        do kp = 2, kpm1
+          qsold(kp) = (qsold(kp)-qs0k)/sqsk
+Cwwwwwwwwwwwwww fix due to cyber half prec. limitation wwwwwwwwwwwwwwwww
+          if ((qsold(kp)-qsold(kp-1)).lt.eps) qsold(kp)=qsold(kp-1)+eps
+Cmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+        end do
 C
-        QS0(KTH)=QS0K
-        SQS(KTH)=SQSK
+        qs0(kth) = qs0k
+        sqs(kth) = sqsk
 C-----------------------------------------------------------------------
-        QSNEW(1)=0.
-        QSNEW(KPM)=1.
-        DQS=1./dble(KPM-1)
+        qsnew(1)   = 0.0
+        qsnew(kpm) = 1.0
+        dqs        = 1.0/dble(kpm-1)
 C
-        DO 530 KP=2,KPM1
-  530   QSNEW(KP)=QSNEW(KP-1)+DQS
+        do kp = 2, kpm1
+          qsnew(kp)=qsnew(kp-1)+dqs
+        end do
 C
-        Y2P(1)=0.
-        Y2P(KPM)=0.
+        y2p(1)   = 0.0
+        y2p(kpm) = 0.0
 C
-        CALL SPLINE(KPM,QSOLD,POLD,Y2P,KPM,QSNEW,PNEW,APP,AQP)
+        call spline(kpm,qsold,pold,y2p,kpm,qsnew,pnew,app,aqp)
 C
-        DO 540 KP=1,KPM
-  540   PTBL(KP,KTH)=PNEW(KP)
+        do kp = 1, kpm
+          ptbl(kp,kth) = pnew(kp)
+        end do
 C-----------------------------------------------------------------------
-  500 CONTINUE
-C--------------COARSE LOOK-UP TABLE FOR T(P) FROM CONSTANT THE----------
-      P=PL-DP
-      DO 550 KP=1,KPM
-        P=P+DP
-        TH=THL-DTH
-        DO 560 KTH=1,KTHM
-          TH=TH+DTH
-          APE=(100000./P)**(ROVCP)
-          QS=PQ0/P*EXP(A2*(TH-A3*APE)/(TH-A4*APE))
-          TOLD(KTH)=TH/APE
-          THEOLD(KTH)=TH*EXP(ELIWV*QS/(CP*TOLD(KTH)))
-  560   CONTINUE
-C
-        THE0K=THEOLD(1)
-        STHEK=THEOLD(KTHM)-THEOLD(1)
-        THEOLD(1)=0.
-        THEOLD(KTHM)=1.
-C
-        DO 570 KTH=2,KTHM1
-          THEOLD(KTH)=(THEOLD(KTH)-THE0K)/STHEK
-CWWWWWWWWWWWWWW FIX DUE TO CYBER HALF PREC. LIMITATION WWWWWWWWWWWWWWWWW
-          IF((THEOLD(KTH)-THEOLD(KTH-1)).LT.EPS)THEOLD(KTH)=
-     +      THEOLD(KTH-1)+EPS
-CMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-  570   CONTINUE
-C
-        THE0(KP)=THE0K
-        STHE(KP)=STHEK
+      end do
 C-----------------------------------------------------------------------
-        THENEW(1)=0.
-        THENEW(KTHM)=1.
-        DTHE=1./dble(KTHM-1)
-        RDTHE=1./DTHE
+
+C--------------coarse look-up table for t(p) from constant the----------
+      p = pl-dp
+      do kp = 1, kpm
+        p  = p+dp
+        th = thl-dth
+        do kth=1,kthm
+          th          = th+dth
+          ape         = (100000./p)**(rovcp)
+          qs          = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
+          told(kth)   = th/ape
+          theold(kth) = th*exp(eliwv*qs/(cp*told(kth)))
+        end do
 C
-        DO 580 KTH=2,KTHM1
-  580   THENEW(KTH)=THENEW(KTH-1)+DTHE
+        the0k        = theold(1)
+        sthek        = theold(kthm)-theold(1)
+        theold(1)    = 0.0
+        theold(kthm) = 1.0
 C
-        Y2T(1)=0.
-        Y2T(KTHM)=0.
+        do kth = 2, kthm1
+          theold(kth) = (theold(kth)-the0k)/sthek
+Cwwwwwwwwwwwwww fix due to cyber half prec. limitation wwwwwwwwwwwwwwwww
+          if ((theold(kth)-theold(kth-1)).lt.eps) theold(kth) =
+     +      theold(kth-1)+eps
+Cmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+        end do 
 C
-        CALL SPLINE(KTHM,THEOLD,TOLD,Y2T,KTHM,THENEW,TNEW,APT,AQT)
-C
-        DO 590 KTH=1,KTHM
-          TTBL(KTH,KP)=TNEW(KTH)
-  590   CONTINUE
+        the0(kp) = the0k
+        sthe(kp) = sthek
 C-----------------------------------------------------------------------
-  550 CONTINUE
+        thenew(1)    = 0.0
+        thenew(kthm) = 1.0
+        dthe         = 1.0/dble(kthm-1)
+        rdthe        = 1.0/dthe
 C
-      RETURN
-      END
+        do kth = 2, kthm1
+          thenew(kth) = thenew(kth-1)+dthe
+        end do
+C
+        y2t(1)    = 0.0
+        y2t(kthm) = 0.0
+C
+        call spline(kthm,theold,told,y2t,kthm,thenew,tnew,apt,aqt)
+C
+        do kth = 1, kthm
+          ttbl(kth,kp) = tnew(kth)
+        end do
+C-----------------------------------------------------------------------
+      end do
+C-----------------------------------------------------------------------
+C
+      return
+      end subroutine lutbl

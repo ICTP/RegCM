@@ -17,9 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffu_U(ften,xkc,c203,j,ind)
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
 c     this subroutine computes the diffusion term for decoupled       c
 c     variable on constant sigma surface.                             c
