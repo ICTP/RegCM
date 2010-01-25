@@ -64,12 +64,8 @@ c
 c  ** note: water and soil parameters are in mm
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/bats.cb"
       integer iemiss
 
@@ -116,7 +112,7 @@ c*   and root (called by lftemp): watu=upper, watr=root, watt=total
         watt(n,np) = dmin1(watt(n,np),1.d0)
         watr(n,np) = dmax1(watr(n,np),1.d-4)
         watu(n,np) = dmax1(watu(n,np),1.d-4)
-       endif
+       end if
 
       enddo
 90    continue
@@ -162,8 +158,8 @@ cl                 needed as factors of sigf(=0) in subr water (uaf) and
 cl                 subr drag (tlef1d(n,np) carried over to next tstep).
             tlef1d(n,np) = ts1d(n,np)
             uaf(n,np) = vspda(n,np)
-        endif
-       endif
+        end if
+       end if
       enddo
 91    continue
 
@@ -177,8 +173,8 @@ c=======================================================================
 cl       4.1  add precipitation to leaf water
             ldew1d(n,np) = ldew1d(n,np)+c(4)*sigf(n,np)*prcp1d(n,np)
             ldew1d(n,np) = dmax1( ldew1d(n,np), 0.d0 )
-        endif
-       endif
+        end if
+       end if
       enddo
 92    continue
 c
@@ -211,7 +207,7 @@ cl            set snow cover to zero in case it was previously sea ice
        if (ldoc1d(n,np).lt.0.5) then
          scv1d(n,np) = 0.
          sag1d(n,np) = 0.
-       endif
+       end if
       enddo
 93    continue
 
@@ -238,7 +234,7 @@ cl       6.3  latent and heat fluxes over ocean, plus a dummy taf
 c               evaporation is in kg/m**2/s
          evpr1d(n,np) = fact*delq1d(n,np)
          sent1d(n,np) = fact*c(58)*delt1d(n,np)
-       endif
+       end if
        if (sigf(n,np).lt.0.001) taf1d(n,np) = tg1d(n,np)
 
 cl       6.2  parameters for temperature difference at anemometer level

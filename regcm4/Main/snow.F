@@ -39,12 +39,7 @@ C           age3: accumulation  of other particles, soot, etc., which
 C                      is small in southern hemisphere
 C
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       real(kind=8)  sold(NNSG,nbmax)

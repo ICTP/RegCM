@@ -35,7 +35,7 @@ c
         if(array(i,k).lt.x)then
          x=array(i,k)
          kt(i)=k
-        endif
+        end if
 100    continue
 200   continue
 c

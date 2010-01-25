@@ -20,12 +20,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine radtap
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/parrad.cb"
@@ -38,7 +33,7 @@ c
       integer nrad2d,nrad3d
       parameter(nrad2d=21,nrad3d=5)
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       real(kind=4)  frad2d_io(mjx-2,ix-2,nrad2d)
       real(kind=4)  frad3d_io(mjx-2,ix-2,kx,nrad3d)
       COMMON /OUTRADio/ frad2d_io,frad3d_io

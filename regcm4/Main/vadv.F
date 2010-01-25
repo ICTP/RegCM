@@ -43,19 +43,14 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 
 #     include "include/main.cb"
 #     include "include/cvaria.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 c
       real(kind=8)  ften(ix,kx),fa(ix,kx),fg(ix,kx)
@@ -94,7 +89,7 @@ c,.....k = kx
         ften(i,kx)=ften(i,kx)+qdot(i,kx,j)*fg(i,kx)/dsigma(kx)
 45     continue
 c
-      elseif(ind.eq.2)then
+      else if(ind.eq.2)then
 c
 c-----vertical advection term for qv:
 c.....interpolate qv to full sigma levels:
@@ -126,7 +121,7 @@ c,.....k = kx
         ften(i,kx)=ften(i,kx)+qdot(i,kx,j)*fg(i,kx)/dsigma(kx)
 100    continue
 c
-      elseif(ind.eq.3)then
+      else if(ind.eq.3)then
 c
 c-----vertical advection terms for qc and qr:
 c
@@ -136,7 +131,7 @@ c......k = 1
          f2=fa(i,1)
         else
          f2=fa(i,2)
-        endif
+        end if
         ften(i,1)=ften(i,1)-qdot(i,2,j)*f2/dsigma(1)
 120    continue
 c......k = 2,kxm
@@ -146,12 +141,12 @@ c......k = 2,kxm
          f2=fa(i,k)
         else
          f2=fa(i,k+1)
-        endif
+        end if
         if(qdot(i,k,j).ge.0.)then
          f1=fa(i,k-1)
         else
          f1=fa(i,k)
-        endif
+        end if
         ften(i,k)=ften(i,k)-(qdot(i,k+1,j)*f2-
      1            qdot(i,k,j)*f1)/dsigma(k)
 130    continue
@@ -161,11 +156,11 @@ c......k = kx
          f1=fa(i,kxm)
         else
          f1=fa(i,kx)
-        endif
+        end if
         ften(i,kx)=ften(i,kx)+qdot(i,kx,j)*f1/dsigma(kx)
 140    continue
 c
-      elseif(ind.eq.4)then
+      else if(ind.eq.4)then
 c
 c-----vertical advection terms for u and v:
 c.....interpolate ua or va to full sigma levels:
@@ -199,7 +194,7 @@ c......k = kx
 c
 
 
-      elseif(ind.eq.5)then
+      else if(ind.eq.5)then
        
         do 210  k=2,kx
         do 210  i=2,ilxm
@@ -221,7 +216,7 @@ c,.....k = kx
         ften(i,kx)=ften(i,kx)+qdot(i,kx,j)*fg(i,kx)/dsigma(kx)
 240    continue
 
-      endif
+      end if
 c
       return
       end

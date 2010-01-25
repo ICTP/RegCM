@@ -336,7 +336,7 @@ C
           VM=0.0
           DO K=1,NTRA
             TRATM(K)=0.0
-          END DO
+          end do
           DO 15 J=I,JN
             AHM=AHM+(CPD*(1.-Q(J))+Q(J)*CPV)*T(J)*(PH(J)-PH(J+1))
             RM=RM+Q(J)*(PH(J)-PH(J+1))
@@ -344,7 +344,7 @@ C
             VM=VM+V(J)*(PH(J)-PH(J+1))
             DO K=1,NTRA
               TRATM(K)=TRATM(K)+TRA(J,K)*(PH(J)-PH(J+1))
-            END DO
+            end do
    15     CONTINUE
           DPHINV=1./(PH(I)-PH(JN+1))
           RM=RM*DPHINV
@@ -352,7 +352,7 @@ C
           VM=VM*DPHINV
           DO K=1,NTRA
             TRATM(K)=TRATM(K)*DPHINV
-          END DO
+          end do
           A2=0.0
           DO 20 J=I,JN
             Q(J)=RM
@@ -360,7 +360,7 @@ C
             V(J)=VM
             DO K=1,NTRA
               TRA(J,K)=TRATM(K)
-            END DO
+            end do
             RDCP=(RD*(1.-Q(J))+Q(J)*RV)/(CPD*(1.-Q(J))+Q(J)*CPV)  
             X=(0.001*P(J))**RDCP
             TOLD(J)=T(J)
@@ -379,7 +379,7 @@ C
      1       (TH(JN)*(1.+Q(JN)*EPSI-Q(JN))))THEN
             JN=JN+1
             GOTO 12
-          END IF
+          end if
           IF(I.EQ.1)JC=JN 
    30   CONTINUE
 C
@@ -399,11 +399,11 @@ cRCM          PRECIP=PRECIP+24.*3600.*1.0E5*(PH(J)-PH(J+1))*  ! mm/d
               T(J)=TNEW
               Q(J)=QNEW
               QS(J)=QNEW
-            END IF     
+            end if     
    38     CONTINUE  
-        END IF
+        end if
 C
-      END IF
+      end if
 C
 C  *** CALCULATE ARRAYS OF GEOPOTENTIAL, HEAT CAPACITY AND STATIC ENERGY
 C  
@@ -430,7 +430,7 @@ C
         IF(I.GE.MINORIG.AND.HM(I).LT.AHMIN.AND.HM(I).LT.HM(I-1))THEN
           AHMIN=HM(I)
           IHMIN=I
-        END IF
+        end if
    40 CONTINUE
       IHMIN=MIN(IHMIN, NL-1)
 C
@@ -442,7 +442,7 @@ C
         IF(HM(I).GT.AHMAX)THEN
           NK=I
           AHMAX=HM(I)
-        END IF
+        end if
    42 CONTINUE
 C
 C  ***  CHECK WHETHER PARCEL LEVEL TEMPERATURE AND SPECIFIC HUMIDITY   ***
@@ -453,7 +453,7 @@ C
         IFLAG=0
         CBMF=0.0
         RETURN
-      END IF
+      end if
 C
 C   ***  CALCULATE LIFTED CONDENSATION LEVEL OF AIR AT PARCEL ORIGIN LEVEL ***
 C   ***       (WITHIN 0.2% OF FORMULA OF BOLTON, MON. WEA. REV.,1980)      ***
@@ -465,7 +465,7 @@ C
         IFLAG=2
         CBMF=0.0
         RETURN
-      END IF
+      end if
 C
 C   ***  CALCULATE FIRST LEVEL ABOVE LCL (=ICB)  ***
 C
@@ -473,13 +473,13 @@ C
       DO 50 I=NK+1,NL
         IF(P(I).LT.PLCL)THEN
           ICB=MIN(ICB,I)
-        END IF
+        end if
    50 CONTINUE
       IF(ICB.GE.(NL-1))THEN
         IFLAG=3
         CBMF=0.0
         RETURN
-      END IF
+      end if
 C
 C   *** FIND TEMPERATURE UP THROUGH ICB AND TEST FOR INSTABILITY           ***
 C
@@ -498,7 +498,7 @@ C
       IF(CBMF.EQ.0.0.AND.TVP(ICB).LE.(TV(ICB)-DTMAX))THEN
         IFLAG=0
         RETURN
-      END IF
+      end if
 C
 C   ***  IF THIS POINT IS REACHED, MOIST CONVECTIVE ADJUSTMENT IS NECESSARY ***
 C
@@ -522,7 +522,7 @@ C
           ELACRIT=ELCRIT
         ELSE
           ELACRIT=ELCRIT*(1.0-TCA/TLCRIT)
-        END IF
+        end if
         ELACRIT=MAX(ELACRIT,0.0D0)
         EPMAX=0.999
         EP(I)=EPMAX*(1.0-ELACRIT/MAX(CLW(I),1.0D-8))
@@ -591,7 +591,7 @@ C
           INB=I+1
           BYP=(TVP(I+1)-TV(I+1))*(PH(I+1)-PH(I+2))/P(I+1)
           CAPEM=CAPE
-        END IF
+        end if
    82 CONTINUE
       INB=MAX(INB,INB1)
       CAPE=CAPEM+BYP
@@ -644,7 +644,7 @@ C   *** If cloud base mass flux is zero, skip rest of calculation  ***
 C
       IF(CBMF.EQ.0.0.AND.CBMFOLD.EQ.0.0)THEN
         RETURN
-      END IF
+      end if
 C
 C   ***   CALCULATE RATES OF MIXING,  M(I)   ***
 C
@@ -685,19 +685,19 @@ C
             SIJ(I,J)=ANUM/DENOM
             ALTEM=SIJ(I,J)*Q(I)+(1.-SIJ(I,J))*QTI-QS(J)
             ALTEM=ALTEM-(BF2-1.)*CWAT
-          END IF
+          end if
           IF(SIJ(I,J).GT.0.0.AND.SIJ(I,J).LT.0.9)THEN
             QENT(I,J)=SIJ(I,J)*Q(I)+(1.-SIJ(I,J))*QTI
             UENT(I,J)=SIJ(I,J)*U(I)+(1.-SIJ(I,J))*U(NK)
             VENT(I,J)=SIJ(I,J)*V(I)+(1.-SIJ(I,J))*V(NK)
             DO K=1,NTRA
               TRAENT(I,J,K)=SIJ(I,J)*TRA(I,K)+(1.-SIJ(I,J))*TRA(NK,K)
-            END DO
+            end do
             ELIJ(I,J)=ALTEM
             ELIJ(I,J)=MAX(0.0D0,ELIJ(I,J))
             MENT(I,J)=M(I)/(1.-SIJ(I,J))
             NENT(I)=NENT(I)+1
-          END IF
+          end if
           SIJ(I,J)=MAX(0.0D0,SIJ(I,J))
           SIJ(I,J)=MIN(1.0D0,SIJ(I,J))
   160   CONTINUE
@@ -712,10 +712,10 @@ C
           VENT(I,I)=V(NK)
           DO J=1,NTRA
             TRAENT(I,I,J)=TRA(NK,J)
-          END DO
+          end do
           ELIJ(I,I)=CLW(I)
           SIJ(I,I)=1.0
-        END IF 
+        end if 
   170 CONTINUE
       SIJ(INB,INB)=1.0
 C
@@ -745,19 +745,19 @@ C
                   SJMAX=MIN(SIJ(I,J+1),SIJ(I,J),SCRIT)
                   SJMIN=MAX(SIJ(I,J-1),SIJ(I,J))
                   SJMIN=MIN(SJMIN,SCRIT)
-                END IF
+                end if
               ELSE
                 SJMAX=MAX(SIJ(I,J+1),SCRIT)
                 SMID=MAX(SIJ(I,J),SCRIT)
                 SJMIN=0.0
                 IF(J.GT.1)SJMIN=SIJ(I,J-1)
                 SJMIN=MAX(SJMIN,SCRIT)
-              END IF
+              end if
               DELP=ABS(SJMAX-SMID)
               DELM=ABS(SJMIN-SMID)
               ASIJ=ASIJ+(DELP+DELM)*(PH(J)-PH(J+1))
               MENT(I,J)=MENT(I,J)*(DELP+DELM)*(PH(J)-PH(J+1))
-            END IF
+            end if
   175     CONTINUE
           ASIJ=MAX(1.0D-21,ASIJ)
           ASIJ=1.0/ASIJ
@@ -776,11 +776,11 @@ C
             VENT(I,I)=V(NK)
             DO J=1,NTRA
               TRAENT(I,I,J)=TRA(NK,J)
-            END DO
+            end do
             ELIJ(I,I)=CLW(I)
             SIJ(I,I)=1.0
-          END IF
-        END IF
+          end if
+        end if
   200 CONTINUE
 C
 C   ***  CHECK WHETHER EP(INB)=0, IF SO, SKIP PRECIPITATING    ***
@@ -805,7 +805,7 @@ C
             AWAT=ELIJ(J,I)-(1.-EP(I))*CLW(I)
             AWAT=MAX(0.0D0,AWAT)
   320       WDTRAIN=WDTRAIN+G*AWAT*MENT(J,I)
-        END IF
+        end if
 C
 C    ***    FIND RAIN WATER AND EVAPORATION USING PROVISIONAL   ***
 C    ***              ESTIMATES OF QP(I)AND QP(I-1)             ***
@@ -821,7 +821,7 @@ c
         IF(T(I).GT.273.0)THEN
           COEFF=COEFFR
           WT(I)=OMTRAIN
-        END IF
+        end if
         QSM=0.5*(Q(I)+QP(I+1))
         AFAC=COEFF*PH(I)*(QS(I)-QSM)/(1.0E4+2.0E3*PH(I)*QS(I))
         AFAC=MAX(AFAC,0.0D0)
@@ -854,7 +854,7 @@ C
         IF(P(I).GT.(0.949*P(1)))THEN
           JTT=MAX(JTT,I)
           MP(I)=MP(JTT)*(P(1)-P(I))/(P(1)-P(JTT))
-        END IF              
+        end if              
   360   CONTINUE
 C
 C    ***       FIND MIXING RATIO OF PRECIPITATING DOWNDRAFT     ***
@@ -864,7 +864,7 @@ C
           QSTM=QS(1)
         ELSE
           QSTM=QS(I-1)
-        END IF
+        end if
         IF(MP(I).GT.MP(I+1))THEN
           RAT=MP(I+1)/MP(I)
           QP(I)=QP(I+1)*RAT+Q(I)*(1.0-RAT)+100.*GINV*
@@ -873,7 +873,7 @@ C
           VP(I)=VP(I+1)*RAT+V(I)*(1.-RAT)
           DO J=1,NTRA
             TRAP(I,J)=TRAP(I+1,J)*RAT+TRAP(I,J)*(1.-RAT)
-          END DO
+          end do
         ELSE
           IF(MP(I+1).GT.0.0)THEN
             QP(I)=(GZ(I+1)-GZ(I)+QP(I+1)*(LV(I+1)+T(I+1)*(
@@ -882,9 +882,9 @@ C
             VP(I)=VP(I+1)
             DO J=1,NTRA
               TRAP(I,J)=TRAP(I+1,J)
-            END DO
-          END IF
-        END IF
+            end do
+          end if
+        end if
         QP(I)=MIN(QP(I),QSTM)
         QP(I)=MAX(QP(I),0.0D0)
   400 CONTINUE
@@ -911,7 +911,7 @@ C
       IF(NK.EQ.1)THEN
         DO 410 K=2,INB
   410     AM=AM+M(K)
-      END IF
+      end if
       IF((2.*G*DPINV*AM).GE.DELTI) IFLAG=4
       FT(1)=FT(1)+G*DPINV*AM*(T(2)-T(1)+(GZ(2)-GZ(1))/CPN(1))
       FT(1)=FT(1)-LVCP(1)*SIGD*EVAP(1)
@@ -923,7 +923,7 @@ C
       DO J=1,NTRA
         FTRA(1,J)=FTRA(1,J)+G*DPINV*(MP(2)*(TRAP(2,J)-TRA(1,J))+
      1    AM*(TRA(2,J)-TRA(1,J)))
-      END DO
+      end do
       AMDE=0.0
       DO 415 J=2,INB
         FQ(1)=FQ(1)+G*DPINV*MENT(J,1)*(QENT(J,1)-Q(1))
@@ -932,7 +932,7 @@ C
         DO K=1,NTRA
           FTRA(1,K)=FTRA(1,K)+G*DPINV*MENT(J,1)*(TRAENT(J,1,K)-
      1     TRA(1,K))
-        END DO
+        end do
   415 CONTINUE
 C
 C   ***  CALCULATE TENDENCIES OF POTENTIAL TEMPERATURE AND MIXING RATIO  ***
@@ -949,7 +949,7 @@ C
         IF(I.GE.NK)THEN
           DO 440 K=I+1,INB+1
   440       AMP1=AMP1+M(K)
-        END IF
+        end if
         DO 450 K=1,I
         DO 450 J=I+1,INB+1
           AMP1=AMP1+MENT(K,J)
@@ -972,7 +972,7 @@ C
         DO K=1,NTRA
           FTRA(I,K)=FTRA(I,K)+G*DPINV*(AMP1*(TRA(I+1,K)-
      1               TRA(I,K))-AD*(TRA(I,K)-TRA(I-1,K)))
-        END DO
+        end do
         DO 480 K=1,I-1
           AWAT=ELIJ(K,I)-(1.-EP(I))*CLW(I)
           AWAT=MAX(AWAT,0.0D0)
@@ -982,7 +982,7 @@ C
           DO J=1,NTRA
             FTRA(I,J)=FTRA(I,J)+G*DPINV*MENT(K,I)*(TRAENT(K,I,J)-
      1     TRA(I,J))
-          END DO
+          end do
   480   CONTINUE
         DO 490 K=I,INB
           FQ(I)=FQ(I)+G*DPINV*MENT(K,I)*(QENT(K,I)-Q(I))
@@ -991,7 +991,7 @@ C
           DO J=1,NTRA
             FTRA(I,J)=FTRA(I,J)+G*DPINV*MENT(K,I)*(TRAENT(K,I,J)-
      1     TRA(I,J))
-          END DO
+          end do
   490   CONTINUE
         FQ(I)=FQ(I)+SIGD*EVAP(I)+G*(MP(I+1)*
      1    (QP(I+1)-Q(I))-MP(I)*(QP(I)-Q(I-1)))*DPINV
@@ -1002,7 +1002,7 @@ C
         DO J=1,NTRA
           FTRA(I,J)=FTRA(I,J)+G*DPINV*(MP(I+1)*(TRAP(I+1,J)-TRA(I,J))-
      1    MP(I)*(TRAP(I,J)-TRAP(I-1,J)))
-        END DO
+        end do
   500 CONTINUE
 C
 C   *** Adjust tendencies at top of convection layer to reflect  ***
@@ -1029,7 +1029,7 @@ C
         FTRA(INB,K)=FTRA(INB,K)*(1.-FRAC)
         FTRA(INB-1,K)=FTRA(INB-1,K)+FRAC*FTRAOLD*(PH(INB)-PH(INB+1))/
      1    (PH(INB-1)-PH(INB))
-      END DO
+      end do
 C
 C   ***   Very slightly adjust tendencies to force exact   ***
 C   ***     enthalpy, momentum and tracer conservation     ***
@@ -1111,7 +1111,7 @@ C
           TPK(I)=T(NK)-(GZ(I)-GZ(NK))*CPINV
           TVP(I)=TPK(I)*(1.+Q(NK)*EPSI)
   100   CONTINUE
-      END IF
+      end if
 C
 C    ***  FIND LIFTED PARCEL QUANTITIES ABOVE CLOUD BASE    ***
 C
@@ -1120,7 +1120,7 @@ C
       IF(KK.EQ.2)THEN  
         NST=NL
         NSB=ICB+1
-      END IF
+      end if
       DO 300 I=NSB,NST
         TG=T(I)
         QG=QS(I)
@@ -1137,7 +1137,7 @@ C
             ES=6.112*EXP(17.67*TC/DENOM)
           ELSE  
             ES=EXP(23.33086-6111.72784/TG+0.15215*LOG(TG))
-          END IF  
+          end if  
           QG=EPS*ES/(P(I)-ES*(1.-EPS))
   200   CONTINUE
         ALV=LV0-CPVMCL*(T(I)-273.15)

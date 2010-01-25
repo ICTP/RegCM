@@ -21,12 +21,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       implicit none
 
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -58,7 +53,7 @@ c **********            radiation can be called in tend (not vecbats).
          veg1d(n,np)=0.
         else
          veg1d(n,np)=vegc(lveg(n,np))-seasf(lveg(n,np))*sfac
-        endif
+        end if
         ts1d(n,np)=thx3d(np,kx,j)-6.5e-3/g*(ht1(n,np,j)-ht(np,j))
         scv1d(n,np)=scv2d(n,np,j)
         sag1d(n,np)=sag2d(n,np,j)

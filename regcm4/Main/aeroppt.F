@@ -23,12 +23,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       implicit none
 
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/parrad.cb"
 #     include "include/param2.cb"
 #     include "include/aeroppt.cb"
@@ -165,7 +161,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
                   uaer(i,k,itr)=0.
                   if (rh(i,k).lt.0.0.or.rh(i,k).gt.1.0) then
                     print*,i,k,rh(i,k),'  RH WARNING !!!!!'
-                  endif
+                  end if
 
                   if (chtrname(itr) .eq. 'DUST') then
                     uaer(i,k,itr) = aermmr(i,k,itr)*path
@@ -437,7 +433,7 @@ C clear sky final effective optical properties
               ftota_mix_cs(i,ns)  = faer(i,1) * waer(i,1) * tauaer(i,1)
             end do ! end i loop
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-          endif
+          end if
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         end if
 

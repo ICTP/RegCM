@@ -26,12 +26,7 @@ c     in dataflow analyses.                                           c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -190,7 +185,7 @@ c
             fout(j,i) = 0.
           else
             fout(j,i) = 2.
-          endif
+          end if
         enddo
       enddo
       write(20,rec=11) fout

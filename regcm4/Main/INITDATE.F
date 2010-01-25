@@ -20,15 +20,10 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       SUBROUTINE INITDATE
       IMPLICIT NONE
 C
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
 #endif
       INTEGER MDATEZ
@@ -51,7 +46,7 @@ C
               IF(MOD(NYEAR,4)  .EQ.0) NDAY=NDAY+1
               IF(MOD(NYEAR,100).EQ.0) NDAY=NDAY-1
               IF(MOD(NYEAR,400).EQ.0) NDAY=NDAY+1
-            ENDIF
+            end if
             NBASE = MBASE
             DO I=1,NDAY
               NBASE = NBASE+100
@@ -65,11 +60,11 @@ C
                   MDATEZ(NREC)=NBASE+12
                 ELSE
                   MDATEZ(NREC)=NBASE+18
-                ENDIF
-              ENDDO
-            ENDDO
-          ENDDO
-        ENDDO
+                end if
+              end do
+            end do
+          end do
+        end do
       ELSE IF(IBDYFRQ.EQ.3) THEN
         NREC=0
         DO NYEAR=1948,2046
@@ -86,7 +81,7 @@ C
               IF(MOD(NYEAR,4)  .EQ.0) NDAY=NDAY+1
               IF(MOD(NYEAR,100).EQ.0) NDAY=NDAY-1
               IF(MOD(NYEAR,400).EQ.0) NDAY=NDAY+1
-            ENDIF
+            end if
             NBASE = MBASE
             DO I=1,NDAY
               NBASE = NBASE+100
@@ -108,11 +103,11 @@ C
                   MDATEZ(NREC)=NBASE+18
                 ELSE
                   MDATEZ(NREC)=NBASE+21
-                ENDIF
-              ENDDO
-            ENDDO
-          ENDDO
-        ENDDO
+                end if
+              end do
+            end do
+          end do
+        end do
       ELSE IF(IBDYFRQ.EQ.12) THEN
         NREC=0
         DO NYEAR=1948,2145
@@ -129,7 +124,7 @@ C
               IF(MOD(NYEAR,4)  .EQ.0) NDAY=NDAY+1
               IF(MOD(NYEAR,100).EQ.0) NDAY=NDAY-1
               IF(MOD(NYEAR,400).EQ.0) NDAY=NDAY+1
-            ENDIF
+            end if
             NBASE = MBASE
             DO I=1,NDAY
               NBASE = NBASE+100
@@ -139,11 +134,11 @@ C
                   MDATEZ(NREC)=NBASE
                 ELSE IF(M.EQ.2) THEN
                   MDATEZ(NREC)=NBASE+12
-                ENDIF
-              ENDDO
-            ENDDO
-          ENDDO
-        ENDDO
+                end if
+              end do
+            end do
+          end do
+        end do
       ELSE
 #ifdef MPP1
         if (myid .eq. 0) then
@@ -153,12 +148,12 @@ C
         WRITE(*,*) 'and we use IBDYFRQ = 6 as the default'
 #ifdef MPP1
         WRITE(*,*) 'STOP in INITDATE.f'
-        endif
+        end if
         call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
         STOP
 #endif
-      ENDIF
+      end if
 #ifdef MPP1
       if (myid .eq. 0) WRITE(*,*) 'NREC = ',NREC
 #else

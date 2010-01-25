@@ -37,8 +37,7 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer iexec
-      include 'regcm.param'
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -94,7 +93,7 @@ c......for jcx = 1:
          scrx2(k,1)=va(1,k,jcx)/psa(1,jcx)
          scrx2(k,ix)=va(ix,k,jcx)/psa(ilx,jcx)
 60      continue
-       elseif (jcx .eq. jx) then
+       else if (jcx .eq. jx) then
 c......for jcx = jx:
         do 80 i=2,ilx
         do 80 k=1,kx
@@ -125,9 +124,9 @@ c......interior slice:
          scrx2(k,1)=va(1,k,jcx)/psab1
          scrx2(k,ix)=va(ix,k,jcx)/psab2
 30      continue
-       endif
+       end if
 c
-      elseif(iexec.gt.1)then
+      else if(iexec.gt.1)then
 c
 c.....subsequent calls:
 c
@@ -138,7 +137,7 @@ c......for jcx = 1:
          scrx1(k,i)=uj1(i,k)
          scrx2(k,i)=vj1(i,k)
 140     continue
-       elseif (jcx .eq. jx) then
+       else if (jcx .eq. jx) then
 c......for jcx = jx:
         do 160 i=1,ix
         do 160 k=1,kx
@@ -160,9 +159,9 @@ c......interior slice:
          scrx2(k,1)=vi1(k,jcx)
          scrx2(k,ix)=vil(k,jcx)
 120     continue
-       endif
+       end if
 c
-      endif      !end iexec test
+      end if      !end iexec test
 c
       write(c40nam,180)jcx
 180   format('  u  cross-section at j = ',i3,8x)
@@ -224,7 +223,7 @@ c
        call mapsmp(f,fr,ix,jx,1,ix,5,1,jx,5,0.d0,1,c40nam,xth)
        c40nam='    map scale factor at dot points     '
        call mapsmp(msfd,msfdr,ix,jx,1,ix,5,1,jx,5,0.d0,1,c40nam,xth)
-      endif
+      end if
 c
 c....surface pressure
 c
@@ -270,7 +269,7 @@ c
        hscr2(ix,1)=va(ix,kout,1)/psa(ilx,1)
        hscr2(ix,jx)=va(ix,kout,jx)/psa(ilx,jlx)
 c
-      elseif(iexec.gt.1)then
+      else if(iexec.gt.1)then
 c
        do 470 i=1,ix
         hscr1(i,1)=uj1(i,kout)
@@ -285,7 +284,7 @@ c
         hscr2(ix,j)=vil(kout,j)
 480    continue
 c
-      endif      !end 2nd iexec test
+      end if      !end 2nd iexec test
 
       write(c40nam,500)kout
 500   format('  u   at k = ',i3,24x)
@@ -317,7 +316,7 @@ c     v8 svp formula
            satvp=svp1*dexp(svp2*(hscr1(i,j)-273.15)/(hscr1(i,j)-svp3))
         else
            satvp=.611*dexp(22.514-6.15e3/hscr1(i,j))
-        endif
+        end if
 
        qvs=ep2*satvp/(pres-satvp)
        hscr2(i,j)=(qva(i,kout,j)/psa(i,j))/qvs
@@ -345,7 +344,7 @@ c
        c40nam =' ground temperature (c)    '
        call mapsmp(tga,tgar,ix,jx,1,ilx,ixn,1,jlx,jxn,const,1,
      1             c40nam,xth)
-      endif
+      end if
 c
 c.....precipitation:
 c

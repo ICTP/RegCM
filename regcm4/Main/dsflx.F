@@ -33,12 +33,7 @@ C  **********************************************************
 
       implicit none
 
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/dust.cb"
 
       integer IL1,IL2,ILG,jloop
@@ -162,12 +157,7 @@ c  put back the dust flux on the right grid
 
       implicit none
 
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/dust.cb"
 
       integer IL1, IL2, ILG
@@ -241,15 +231,15 @@ c***************************************************************
            IF(SOILW(I) .lt. 0.0) THEN
             WRITE(6,*)'HC, RC =', SOILW(I), ' LESS THAN ZERO'
             STOP
-          ELSEIF(SOILW(I) .lt. 0.03 ) THEN
+          else if(SOILW(I) .lt. 0.03 ) THEN
             hc(i) = EXP(22.7*SOILW(I))
-          ELSEIF(SOILW(I) .ge. 0.03 ) THEN
+          else if(SOILW(I) .ge. 0.03 ) THEN
             hc(i) = EXP(95.3 * SOILW(I) - 2.029)
           ELSE
              hc(i) = 1.0   
-          END IF
+          end if
 
-       elseif(jSOILM .EQ. 1) THEN   
+       else if(jSOILM .EQ. 1) THEN   
 
           cly1 = clayrow(i)
           cly2 = cly1 * cly1
@@ -260,36 +250,36 @@ c***************************************************************
 c          print*,'-----------',WPRIM(I),CLAYROW(I)
 c          if (isoiltex(i).eq.1) then
 c            WPRIM(i) = 1.
-c          endif
+c          end if
 
 c          if ((isoiltex(i).eq.2).or.(isoiltex(i).eq.3)) then
 c            WPRIM(i) = 1.84
-c          endif
+c          end if
 
 c          if ((isoiltex(i).eq.4).or.(isoiltex(i).eq.5)
 c     &                          .or.(isoiltex(i).eq.6)) then
 c            WPRIM(i) = 2.5
-c          endif
+c          end if
 
 c          if (isoiltex(i).eq.7) then
 c            WPRIM(i) = 3.5
-c          endif
+c          end if
 
 c          if ((isoiltex(i).eq.8).or.(isoiltex(i).eq.9)) then
 c            WPRIM(i) = 6.8
-c          endif
+c          end if
 
 c          if (isoiltex(i).eq.10) then
 c            WPRIM(i) = 10.
-c          endif
+c          end if
 
 c          if (isoiltex(i).eq.11) then
 c            WPRIM(i) = 10.5
-c          endif
+c          end if
 
 c          if (isoiltex(i).eq.12) then
 c            WPRIM(i) = 11.5
-c          endif
+c          end if
 
           tempd    = dmax1(0.00001d0, soilw(i)*100.0 - wprim(i))
 
@@ -297,10 +287,10 @@ c          endif
             hc(i) = SQRT(1.0+ 1.21* tempd**0.68)
           ELSE
             hc(i) = 1.0
-          END IF
+          end if
 
 c          print*,'HC= ', i,hc(i),hc1(i)
-       END IF
+       end if
 
 c   *****************************************************************
 c   * Total correction factor for both hc and rc                 **** 
@@ -438,7 +428,7 @@ C
         CVMGT=VAL1
       ELSE
         CVMGT=VAL2
-      ENDIF
+      end if
 C
       RETURN
       END
@@ -569,7 +559,7 @@ c              EC=(PI/3.)*1.E-1*RHOP*(DP(j)**3.0)*(USTAR(k,i)**2.0)
      &                  ((D2*1.E-04)**3.)
               FSOIL3(k)=FSOIL3(k)+1.E-2*P3*(DEC/E3)*(PI/6.)*RHOP*
      &                  ((D3*1.E-04)**3.)
-            END IF
+            end if
           end if
         end do
       end do
@@ -597,7 +587,7 @@ c              EC=(PI/3.)*1.E-1*RHOP*(DP(j)**3.0)*(USTAR(k,i)**2.0)
         TOTV1=TOTV1+FRAC1(N)
         TOTV2=TOTV2+FRAC2(N)
         TOTV3=TOTV3+FRAC3(N)
-      END DO
+      end do
    
       DO N=1,ISIZE
         FRAC1(N)=FRAC1(N)/TOTV1
@@ -606,7 +596,7 @@ c              EC=(PI/3.)*1.E-1*RHOP*(DP(j)**3.0)*(USTAR(k,i)**2.0)
         IF (FRAC1(N) .LT. 1.E-9)  FRAC1(N)=0.0
         IF (FRAC2(N) .LT. 1.E-9)  FRAC2(N)=0.0
         IF (FRAC3(N) .LT. 1.E-9)  FRAC3(N)=0.0
-      END DO
+      end do
 
       DO 842 N = 1,ISIZE
       DO 842 I=IL1,IL2

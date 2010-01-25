@@ -44,12 +44,7 @@ c     documented in ncar tech note, dickinson et al., 1986
 c     improved stomatal shading, dickinson, nov 88.
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 #     include "include/bats.cb2"
 
@@ -95,9 +90,9 @@ c **********            zenith angle set in zenitm
           fsold(n,np) =     fracd(np) *solis(np)*fc(lveg(n,np))
           fsol0(n,np) = (1.-fracd(np))*solis(np)*fc(lveg(n,np))
           rmini(n,np) = rsmin(lveg(n,np))/rmax0
-         endif
-        endif
-       endif
+         end if
+        end if
+       end if
       enddo
 91    continue
 
@@ -118,9 +113,9 @@ c **********            zenith angle set in zenitm
      1     (1.+rad(il)+radd(il))
 2         continue
           radf(n,np) = ilmax / radfi
-         endif
-        endif
-       endif
+         end if
+        end if
+       end if
       enddo
 92    continue
 
@@ -135,9 +130,9 @@ c **********            zenith angle set in zenitm
           rs(n,np) = dmin1( rs(n,np), rmax0 )
          else
           rs(n,np) = rmax0
-         endif
-        endif
-       endif
+         end if
+        end if
+       end if
       enddo
 93    continue
       return

@@ -137,12 +137,7 @@ c
 cKN   added below
 c
 C------------------------------Parameters-------------------------------
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/parrad.cb"
 #     include "include/param1.cb"
 #     include "include/param2.cb"

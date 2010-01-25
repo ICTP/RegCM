@@ -37,6 +37,6 @@ c
          call lshfch(chrv,lnchrv,1,1)
          nlshf = nlshf+1
          if (nlshf.ne.lnchrv) go to 10
-      endif
+      end if
       return
       end

@@ -25,12 +25,7 @@ c     this subroutine reads in the initial and boundary conditions.   c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/parrad.cb"
 #     include "include/param1.cb"
 #ifdef DIAG
@@ -56,7 +51,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 Cchem2
 Cchem2_
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  psdot(ix,jxp)
@@ -234,7 +229,7 @@ C_sgi 101  format('fort.',I2)
 #endif
       mmrec = 0
 #ifdef MPP1
-      endif
+      end if
 #endif
 c
       if (.not.ifrest) then
@@ -307,7 +302,7 @@ CC          tchidy(i,j,k,itr) = 0.
             remdrd(i,j,itr) = 0.
             wdlsc(i,j,ntr) = 0.
  616     continue
-       endif
+       end if
 Cchem2_
 c------set the variables related to blackadar pbl equal to 0 initially.
 c
@@ -321,7 +316,7 @@ c
          hfx(i,j) = 0.
          qfx(i,j) = 0.
 30      continue
-       endif
+       end if
 c
        if(icup.eq.1) then
        do 44 k=1,kx
@@ -334,7 +329,7 @@ c
         rsheat(i,k,j)=0.
         rswat(i,k,j)=0.
 44     continue
-       endif
+       end if
 c
 c------read in the initial conditions for large domain:
 c      the initial conditions are the output from PREPROC/ICBC.
@@ -369,14 +364,14 @@ c
                 mmrec=mmrec+kx*5+2
              else
                 mmrec=mmrec+kx*5+2+13
-             endif
+             end if
           else
              if(LSMTYP.ne.'USGS') then
                 mmrec=mmrec+kx*4+2
              else
                 mmrec=mmrec+kx*4+2+13
-             endif
-          endif
+             end if
+          end if
           print*,'Searching for proper date: ',ndate1,MDATEZ(NNNCHK+1)
           print*,ndate0,MDATEZ(NNNCHK)
           go to 111
@@ -521,7 +516,7 @@ C
             enddo
 #endif
           end do
-        endif
+        end if
         if(LSMTYP.eq.'USGS') mmrec=mmrec+13
 #ifdef MPP1
           do j=1,mjx
@@ -546,8 +541,8 @@ C
                 enddo
               enddo
             enddo
-          endif
-        endif            ! endif myid=0
+          end if
+        end if            ! end if myid=0
         call MPI_BCAST(ndate0,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
         call MPI_BCAST(nxxx,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
         call MPI_BCAST(nyyy,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -580,7 +575,7 @@ C
                 SO0(i,k,j) = sav0s(i,k,j)
               enddo
             enddo
-          endif
+          end if
         enddo
 #endif
 c
@@ -621,10 +616,10 @@ c
 #endif
         psdot(i,1)=0.5*(PS0(i,1)+PS0(i-1,1))
 #ifdef MPP1
-        endif
+        end if
         if (myid .eq. nproc-1) then
           psdot(i,jendl)=0.5*(PS0(i,jendx)+PS0(i-1,jendx))
-        endif
+        end if
 #else
         psdot(i,jx)=0.5*(PS0(i,jlx)+PS0(i-1,jlx))
 #endif
@@ -645,11 +640,11 @@ c
       psdot(1,1)=PS0(1,1)
       psdot(ix,1)=PS0(ilx,1)
 #ifdef MPP1
-      endif
+      end if
       if (myid .eq. nproc-1) then
         psdot(1,jendl)=PS0(1,jendx)
         psdot(ix,jendl)=PS0(ilx,jendx)
-      endif
+      end if
 #else
       psdot(1,jx)=PS0(1,jlx)
       psdot(ix,jx)=PS0(ilx,jlx)
@@ -694,7 +689,7 @@ C Couple pressure u,v,t,q
 #endif
         end if
 #ifdef MPP1
-        endif
+        end if
 #endif
         mdate=ndate0
 c Initialize variables and convert to double precision
@@ -751,7 +746,7 @@ c Initialize variables and convert to double precision
               enddo
             enddo
           enddo
-       endif
+       end if
 c
 #ifdef MPP1
        do 129 j = 1,jendx
@@ -791,7 +786,7 @@ c
            svegfrac2d(i,j) = 0.0
          enddo
          enddo
-       endif
+       end if
 #ifdef DIAG
 C=======================================================================
 c
@@ -813,7 +808,7 @@ c
           tdini=tdini+tttmp*dsigma(k)
         enddo
         tdini=tdini*dx*dx*1000./g
-      endif
+      end if
       call MPI_BCAST(tdini,1,MPI_DOUBLE_PRECISION,
      &                     0,MPI_COMM_WORLD,ierr)
 #else
@@ -847,7 +842,7 @@ c
           tvmass=tvmass+tttmp*dsigma(k)
         enddo
         tvmass=tvmass*dx*dx*1000./g
-      endif
+      end if
       call MPI_BCAST(tvmass,1,MPI_DOUBLE_PRECISION,
      &                      0,MPI_COMM_WORLD,ierr)
 #else
@@ -879,7 +874,7 @@ c
           tcmass=tcmass+tttmp*dsigma(k)
         enddo
         tcmass=tcmass*dx*dx*1000./g
-      endif
+      end if
       call MPI_BCAST(tcmass,1,MPI_DOUBLE_PRECISION,
      &                      0,MPI_COMM_WORLD,ierr)
 #else
@@ -903,7 +898,7 @@ C=======================================================================
   150  format(' *** initial total air = ',e12.5,' kg, total water = ',
      1       e12.5,' kg in large domain.')
 #ifdef MPP1
-       endif
+       end if
 #endif
 #endif
 c
@@ -929,7 +924,7 @@ c        chia(i,k,j,itr)=psa(i,j)*1.e-11
 c        chib(i,k,j,itr)=psb(i,j)*1.e-11
 135    continue
 
-      endif
+      end if
 Cchem2_
 c
 c------set rainc and rainnc equal to 0. initially
@@ -974,7 +969,7 @@ c
           read(iutrs) UB0_IO,VB0_IO,QB0_IO,TB0_IO,PS0_IO,TS0_IO,SO0_IO
        else
           read(iutrs) UB0_IO,VB0_IO,QB0_IO,TB0_IO,PS0_IO,TS0_IO
-       endif
+       end if
        read(iutrs) ua_io
        read(iutrs) ub_io
        read(iutrs) va_io
@@ -994,7 +989,7 @@ c
          read(iutrs) TBASE_io,CLDEFI_io
        else if(icup.eq.4) then
          read(iutrs) cbmf2d_io
-       endif
+       end if
        read(iutrs) hfx_io,qfx_io,snowc_io,uvdrag_io
 #ifdef DIAG
        read(iutrs) tdini,tdadv,tqini,tqadv,tqeva,tqrai
@@ -1035,13 +1030,13 @@ c cumul ad, dif, emis terms ( scalar)
         read(iutrs) tchitb
         read(iutrs) tchie        
 #endif
-       endif
+       end if
 #else
        if(EHSO4) then
           read(iutrs) UB0,VB0,QB0,TB0,PS0,TS0,SO0
        else
           read(iutrs) UB0,VB0,QB0,TB0,PS0,TS0
-       endif
+       end if
        read(iutrs) ua
        read(iutrs) ub
        read(iutrs) va
@@ -1061,7 +1056,7 @@ c cumul ad, dif, emis terms ( scalar)
          read(iutrs) TBASE,CLDEFI
        else if(icup.eq.4) then
          read(iutrs) cbmf2d
-       endif
+       end if
        read(iutrs) hfx,qfx,snowc,uvdrag
 #ifdef DIAG
        read(iutrs) tdini,tdadv,tqini,tqadv,tqeva,tqrai
@@ -1102,7 +1097,7 @@ c cumul ad, dif, emis terms ( scalar)
         read(iutrs) tchitb
         read(iutrs) tchie        
 #endif
-       endif
+       end if
 Cchem2_
 #endif
        
@@ -1123,7 +1118,7 @@ c------lake model
      &            , eta, (tlake(j),j=1,depth)
         enddo
         rewind(iin)
-       endif
+       end if
 c
        print *,'ozone profiles restart'
        do 34 k=1,kx+1
@@ -1142,7 +1137,7 @@ c
        if (ldatez.ne.idate1) then
           write(*,*) 'INIT: ldatez, idate1=', ldatez, idate1
           go to 580
-       endif
+       end if
 #ifdef MPP1
         do j=1,mjx
           do i=1,ix
@@ -1181,9 +1176,9 @@ c
                   sav_0s(i,k,j) = SO0_io(i,k,j)
                 enddo
               enddo
-            endif
+            end if
           enddo
-       endif
+       end if
        call MPI_SCATTER(inisrf_0(1,1,1),ix*(NNSG*2+7)*jxp,
      &       MPI_DOUBLE_PRECISION,inisrf0(1,1,1),ix*(NNSG*2+7)*jxp,
      &       MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -1232,7 +1227,7 @@ c
                SO0(i,k,j) = sav0s(i,k,j)
              enddo
            enddo
-         endif
+         end if
        enddo
        if (myid .eq. 0) then
           do j=1,mjx
@@ -1249,7 +1244,7 @@ c
               sav_0(i,kx*4+2 ,j) = psb_io(i,j)
             enddo
           enddo
-       endif
+       end if
        call MPI_SCATTER(
      &          sav_0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
      &           sav0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
@@ -1283,7 +1278,7 @@ c
               sav_0(i,kx*4+2 ,j) = tgb_io(i,j)
             enddo
           enddo
-       endif
+       end if
        call MPI_SCATTER(
      &          sav_0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
      &           sav0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
@@ -1323,7 +1318,7 @@ c
               enddo
             enddo
           enddo
-       endif
+       end if
        call MPI_SCATTER(
      &          sav_0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
      &           sav0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
@@ -1369,7 +1364,7 @@ c
               enddo
             enddo
           enddo
-       endif
+       end if
        allrec = kx+5+NNSG
        call MPI_SCATTER(
      &          sav_0a(1,1,1),ix*allrec*jxp,MPI_DOUBLE_PRECISION,
@@ -1399,7 +1394,7 @@ c
          call MPI_SCATTER(zpbl_io(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                       zpbl(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                                      0,MPI_COMM_WORLD,ierr)
-       endif
+       end if
        if(icup.eq.1) then
          if (myid .eq. 0) then
            do j=1,mjx
@@ -1410,7 +1405,7 @@ c
                enddo
              enddo
            enddo
-         endif
+         end if
          call MPI_SCATTER(
      &            sav_0c(1,1,1),ix*kx*2*jxp,MPI_DOUBLE_PRECISION,
      &             sav0c(1,1,1),ix*kx*2*jxp,MPI_DOUBLE_PRECISION,
@@ -1435,7 +1430,7 @@ c
                sav_0b(i,kx+1,j) = CLDEFI_IO(i,j)
              enddo
            enddo
-         endif
+         end if
          call MPI_SCATTER(
      &            sav_0b(1,1,1),ix*(kx+1)*jxp,MPI_DOUBLE_PRECISION,
      &             sav0b(1,1,1),ix*(kx+1)*jxp,MPI_DOUBLE_PRECISION,
@@ -1454,7 +1449,7 @@ c
          call MPI_SCATTER(cbmf2d_io(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                       cbmf2d(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                                        0,MPI_COMM_WORLD,ierr)
-       endif
+       end if
        if (myid .eq. 0) then
           do j=1,mjx-1
             do l=1,4
@@ -1484,7 +1479,7 @@ c
             enddo
           enddo
           allrec = allrec+kx+1
-       endif
+       end if
        allrec = kx*4+(kx+1)*(kx+2)
        call MPI_SCATTER(
      &          sav_1(1,1,1),ilx*allrec*jxp,MPI_DOUBLE_PRECISION,
@@ -1534,7 +1529,7 @@ c
              sav_2(i,NNSG*4+4 ,j) =   flw2d_io(i,j)
            enddo
          enddo
-       endif
+       end if
        allrec = NNSG*4+4
        call MPI_SCATTER(
      &          sav_2(1,1,1),ilx*allrec*jxp,MPI_DOUBLE_PRECISION,
@@ -1573,7 +1568,7 @@ c
              sav_2(i,NNSG*4+4 ,j) =  sinc2d_io(i,j)
            enddo
          enddo
-       endif
+       end if
        allrec = NNSG*4+4
        call MPI_SCATTER(
      &          sav_2(1,1,1),ilx*allrec*jxp,MPI_DOUBLE_PRECISION,
@@ -1612,7 +1607,7 @@ c
              sav_2(i,NNSG*4+4 ,j) = prnca2d_io(i,j)
            enddo
          enddo
-       endif
+       end if
        allrec = NNSG*4+4
        call MPI_SCATTER(
      &          sav_2(1,1,1),ilx*allrec*jxp,MPI_DOUBLE_PRECISION,
@@ -1649,7 +1644,7 @@ c
              sav_2a(i,NNSG*5+1 ,j) =   veg2d_io(i,j)
            enddo
          enddo
-       endif
+       end if
        allrec = NNSG*5+1
        call MPI_SCATTER(
      &          sav_2a(1,1,1),ilx*allrec*jxp,MPI_DOUBLE_PRECISION,
@@ -1692,7 +1687,7 @@ c
              enddo
            enddo
            allrec = allrec+ntr
-         endif
+         end if
          allrec = ntr*(kx*4+1)
          call MPI_SCATTER(
      &            sav_4(1,1,1),ix*allrec*jxp,MPI_DOUBLE_PRECISION,
@@ -1730,7 +1725,7 @@ c
                sav_4a(i,7,j) = svegfrac2d_io(i,j)
              enddo
            enddo
-         endif
+         end if
          call MPI_SCATTER(
      &          sav_4a(1,1,1),ilx*7*jxp,MPI_DOUBLE_PRECISION,
      &           sav4a(1,1,1),ilx*7*jxp,MPI_DOUBLE_PRECISION,
@@ -1746,7 +1741,7 @@ c
              svegfrac2d(i,j) = sav4a(i,7,j)
            enddo
          enddo
-       endif
+       end if
 #endif
        dt = dt2
 #ifdef MPP1
@@ -1777,7 +1772,7 @@ c
      &                  0,MPI_COMM_WORLD,ierr)
          call MPI_BCAST(tchie,ntr,MPI_DOUBLE_PRECISION,
      &                  0,MPI_COMM_WORLD,ierr)
-       endif
+       end if
 #endif
 c------lake model
        if(lakemod.eq.1)then
@@ -1788,7 +1783,7 @@ c------lake model
         call MPI_BCAST(eta,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
          call MPI_BCAST(tlake,depth,MPI_DOUBLE_PRECISION
      &                 ,0,MPI_COMM_WORLD,ierr)
-       endif
+       end if
         call MPI_SENDRECV(ht(1,jxp),ix,MPI_DOUBLE_PRECISION,ieast,1,
      &                    ht(1,0),ix,MPI_DOUBLE_PRECISION,iwest,1,
      &                    MPI_COMM_WORLD,status,ierr)
@@ -1810,7 +1805,7 @@ c------lake model
 #endif
 c
 c-----end of initial/restart if test
-      endif
+      end if
 ! Move from param.F to fix the reatart problem found by
 !      Zhang DongFeng
       if(ipptls.eq.1) then
@@ -1831,7 +1826,7 @@ c-----end of initial/restart if test
           end if
         end do
         end do
-      endif
+      end if
 Cchem2
       if(ichem.eq.1) then
         iso2 = 0
@@ -1853,7 +1848,7 @@ Cchem2
             idust(ibin) = itr 
           end if      
         end do
-      endif
+      end if
 Cchem2_
 c ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c ****** initialize and define constants for vector bats
@@ -1879,12 +1874,12 @@ c ****** initialize and define constants for vector bats
                emiss2d(n,i,j) = 0.97d0
             else
                emiss2d(n,i,j) = 0.99d0-(albvgs(ist)+albvgl(ist))*0.1d0
-            endif
+            end if
 !           emiss2d(n,i,j) = 1.0d0
          enddo
          enddo
          enddo
-      endif
+      end if
 c ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
 c-----read in the boundary conditions for large domain:
@@ -1909,12 +1904,12 @@ c-----calculating topographical correction to diffusion coefficient
          jm1h=max0(j-1,2)
        else
          jm1h=j-1
-       endif
+       end if
        if (myid .eq. nproc-1) then
          jp1h=min0(j+1,jxp-2)
        else
          jp1h=j+1
-       endif
+       end if
 #else
       do 635 j=2,jx-2
        jm1h=max0(j-1,2)
@@ -1940,7 +1935,7 @@ c
 #endif
       write(*,*) 'dectim = ',dectim
 #ifdef MPP1
-      endif
+      end if
 #endif
 c
       return

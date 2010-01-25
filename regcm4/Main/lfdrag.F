@@ -25,12 +25,7 @@ c     recalculate stability dependent drag coefficient for vegetation,
 c     given the neutral drag coefficient.
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       real(kind=8)  a,b
@@ -57,12 +52,12 @@ c
          else
           u2 = c(90)
           ribd(n,np) = us1d(np)**2 + vs1d(np)**2 + u2**2
-         endif
+         end if
          vspda(n,np) = dsqrt(ribd(n,np))
          if (vspda(n,np).lt.1.) then
           vspda(n,np)=1.
           ribd(n,np)=1.
-         endif
+         end if
          zatild=(z1(n,np)-displa(lveg(n,np)))*sigf(n,np)
      &                              +z1(n,np)*(1.-sigf(n,np))
          rib1(n,np) = c(54)*zatild / (ribd(n,np)*ts1d(n,np))
@@ -78,15 +73,15 @@ c
           cdrd(n,np)= cdr(n,np)*ribi*11.5*rib1(n,np)*wtl0(n,np)
      &                         *sigf(n,np)
           cdrmin(n,np) = dmax1(0.25*cdrn(n,np),6.d-4)
-         endif
+         end if
          if( (rib(n,np).ge.0.) ) then
            if( (cdr(n,np).lt.cdrmin(n,np)) ) then
              cdr(n,np)  = cdrmin(n,np)
              cdrd(n,np) = 0.
-           endif
-         endif
-        endif
-       endif
+           end if
+         end if
+        end if
+       end if
       enddo
 90    continue
 

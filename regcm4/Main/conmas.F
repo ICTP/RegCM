@@ -28,15 +28,10 @@ c     ---the unit used in all the calculation is "kg".                c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
 #     include "include/io.cb"
 #endif
@@ -78,7 +73,7 @@ c
           tdrym=tdrym+tttmp*dsigma(k)
         enddo
         tdrym=tdrym*dx*dx*1000./g
-      endif
+      end if
       call MPI_BCAST(tdrym,1,MPI_DOUBLE_PRECISION,
      &                     0,MPI_COMM_WORLD,ierr)
 #else
@@ -112,7 +107,7 @@ c
           tvmass=tvmass+tttmp*dsigma(k)
         enddo
         tvmass=tvmass*dx*dx*1000./g
-      endif
+      end if
       call MPI_BCAST(tvmass,1,MPI_DOUBLE_PRECISION,
      &                      0,MPI_COMM_WORLD,ierr)
 #else
@@ -144,7 +139,7 @@ c
           tcmass=tcmass+tttmp*dsigma(k)
         enddo
         tcmass=tcmass*dx*dx*1000./g
-      endif
+      end if
       call MPI_BCAST(tcmass,1,MPI_DOUBLE_PRECISION,
      &                      0,MPI_COMM_WORLD,ierr)
 #else
@@ -188,7 +183,7 @@ c
         enddo
         enddo
         tqrai=tcrai+tncrai
-      endif
+      end if
       call MPI_BCAST(tqrai,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
       tcrai = 0.
@@ -233,7 +228,7 @@ c
   48    format('   evaporation from ground = ',e12.5,' kg.')
       end if
 #ifdef MPP1
-      endif
+      end if
 #endif
 
       return

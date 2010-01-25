@@ -67,12 +67,7 @@ c     change of latent heat fluxes small enough, or if
 c     maximum iteration reached (itmax).
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 #     include "include/bats.cb2"
 
@@ -115,10 +110,10 @@ c                    (1st guess at vapor pressure deficit)
             sgtg3 = emiss_1d(n,np)*(c(83)*tg1d(n,np)**3)
          else
             sgtg3 = c(83)*tg1d(n,np)**3
-         endif
+         end if
          flneto(n,np) = 4.0*sgtg3 * (tlef1d(n,np)-tg1d(n,np))
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
       call stomat
@@ -175,8 +170,8 @@ cl            2.3  recalculate saturation vapor pressure
           eg(n,np) = c(74) * dexp( a(n,np)*(tlef1d(n,np)-c(67))
      a       / (tlef1d(n,np)-b(n,np)) )
           qsatl(n,np) = qsatl(n,np) * eg(n,np)/eg1
-         endif
-        endif
+         end if
+        end if
        enddo
 91     continue
 
@@ -200,7 +195,7 @@ cas      if(efpot(n,np).ge.0.) then     !if 0 rpp could have floating pt
          else
           etr(n,np) = 0.
           rpp(n,np) = 1.
-         endif
+         end if
 
          if((efpot(n,np).ge.0.) .and. (etr(n,np).ge.etrc(n,np)))then
 c* transpiration demand exceeds supply, stomat adjust demand
@@ -212,13 +207,13 @@ c* recalculate stomatl resistance and rpp
           rpp(n,np) = rppdry + fwet(n,np)
           rpp(n,np) = dmin1( rpp(n,np),
      a            (etr(n,np)+ldew1d(n,np)/c(4))/efpot(n,np)-epss )
-         endif
+         end if
 
          rppq(n,np) = c(125) * rpp(n,np)
          efe(n,np) = rppq(n,np)* efpot(n,np)
          if (efe(n,np)*efeb .lt. 0.0) efe(n,np) = 0.1*efe(n,np)
-         endif
-        endif
+         end if
+        end if
        enddo
 92     continue
 c=======================================================================
@@ -246,7 +241,7 @@ cl            1.2  radiative forcing for leaf temperature calculation
              sgtg3 = emiss_1d(n,np)*(c(83)*tg1d(n,np)**3)
           else
              sgtg3 = c(83)*tg1d(n,np)**3
-          endif
+          end if
           sf1 = sigf(n,np) * ( sabveg(np)-flw1d(np)
      a         - (1.-sigf(n,np))*flneto(n,np)+4.0*sgtg3*tg1d(n,np) )
           sf2 = 4.*sigf(n,np)*sgtg3 + df(n,np)*wtga(n,np) + dcd(n,np)
@@ -266,8 +261,8 @@ cl                 on vapor pressure deficit
           qcan = wtlq0(n,np)*qsatl(n,np) + qg1d(n,np)*wtgq0(n,np)
      a                           + qs1d(n,np)*wtaq0(n,np)
           vpdc(n,np) = (1.-rpp(n,np)) * (qsatl(n,np)-qcan)*1.e3/c(75)
-         endif
-        endif
+         end if
+        end if
        enddo
 93     continue
 
@@ -302,7 +297,7 @@ cl            5.1  canopy properties
             sgtg3 = emiss_1d(n,np)*(c(83)*tg1d(n,np)**3)
          else
             sgtg3 = c(83)*tg1d(n,np)**3
-         endif
+         end if
          flnet(n,np) = sgtg3 * (tlef1d(n,np)-tg1d(n,np))*4.0
          xxkb = dmin1( rough(lveg(n,np)), 1.d0 )
          vakb = (1.-sigf(n,np))*vspda(n,np)
@@ -341,8 +336,8 @@ cl            5.5  fluxes from canopy and soil to overlying air
          sent1d(n,np)=c(58)*rhs1d(n,np)*(-wta(n,np)*delt1d(n,np)+fbare)
          evpr1d(n,np)=rhs1d(n,np)
      &               *(-wta(n,np)*delq1d(n,np)+rgr(n,np)*qbare)
-        endif
-       endif
+        end if
+       end if
       enddo
 94    continue
 

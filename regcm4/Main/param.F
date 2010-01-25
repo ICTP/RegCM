@@ -25,12 +25,7 @@ c     this subroutine defines various model parameters.               c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -49,7 +44,7 @@ Cchem2
 Cchem2_
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  inisrf0(ix,NNSG*3+8,jxp),inisrf_0(ix,NNSG*3+8,mjx)
@@ -404,20 +399,20 @@ c
         if(ipptls.eq.1) then
           read(2,subexparam)
           print*,'SUBEXPARAM READ IN'
-        endif
+        end if
         if(icup.eq.2) then
           read(2,grellparam)
           print*,'GRELLPARAM READ IN'
         else if(icup.eq.4) then
           read(2,emanparam)
           print*,'EMANPARAM READ IN'
-        endif
+        end if
         if(ichem.eq.1) then
           read(2,chemparam)
           print*,'CHEMPARAM READ IN'
-        endif
+        end if
         close(2)
-      endif
+      end if
 #else
       read (*,restartparam)
       print*,'RESTARTPARAM READ IN'
@@ -430,18 +425,18 @@ c
       if(ipptls.eq.1) then
         read (*,subexparam)
         print*,'SUBEXPARAM READ IN'
-      endif
+      end if
       if(icup.eq.2) then
         read (*,grellparam)
         print*,'GRELLPARAM READ IN'
       else if(icup.eq.4) then
         read (*,emanparam)
         print*,'EMANPARAM READ IN'
-      endif
+      end if
       if(ichem.eq.1) then
         read (*,chemparam)
         print*,'CHEMPARAM READ IN'
-      endif
+      end if
 #endif
 #ifdef MPP1
       call MPI_BCAST(ifrest,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
@@ -516,7 +511,7 @@ c
      &                                    0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(caccr,1,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
-      endif
+      end if
 
       if(icup.eq.2) then
       call MPI_BCAST(shrmin,1,MPI_DOUBLE_PRECISION,
@@ -548,7 +543,7 @@ c
       call MPI_BCAST(dtauc,1,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
 
-      elseif(icup.eq.4) then
+      else if(icup.eq.4) then
       call MPI_BCAST(minsig,1,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(elcrit,1,MPI_DOUBLE_PRECISION,
@@ -579,7 +574,7 @@ c
      &                                    0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(damp,1,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
-      endif
+      end if
 
       if(ichem.eq.1) then
       call MPI_BCAST(ichremlsc,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -596,7 +591,7 @@ c
      &                                    0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(dustbsiz,nbin*2,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
-      endif
+      end if
       
 #endif
       if(ichem.eq.0) ifchem=.false.
@@ -607,7 +602,7 @@ cas
            print*,'INCONSISTENT TIMESTEPS SPECIFIED'
            print*,'RADFRQ=',radfrq,'DT=',dt
            print*,'stop Radiation Timestep (param.f)'
-         endif
+         end if
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
          print*,'INCONSISTENT TIMESTEPS SPECIFIED'
@@ -621,7 +616,7 @@ cas
            print*,'INCONSISTENT TIMESTEPS SPECIFIED'
            print*,'ABATM=',abatm,'DT=',dt
            print*,'stop Surface Timestep (param.f)'
-         endif
+         end if
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
          print*,'INCONSISTENT TIMESTEPS SPECIFIED'
@@ -635,7 +630,7 @@ cas
            print*,'INCONSISTENT TIMESTEPS SPECIFIED'
            print*,'BATFRQ=',batfrq,'ABATM=',abatm
            print*,'stop Surface/Radiation Timestep (param.f)'
-         endif
+         end if
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
          print*,'INCONSISTENT TIMESTEPS SPECIFIED'
@@ -649,7 +644,7 @@ cas
            print*,'INCONSISTENT TIMESTEPS SPECIFIED'
            print*,'ABEMH=',abemh,'DT=',dt
            print*,'stop Abs-Ems Timestep (param.f)'
-         endif
+         end if
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
          print*,'INCONSISTENT TIMESTEPS SPECIFIED'
@@ -663,7 +658,7 @@ cas
            print*,'INCONSISTENT TIMESTEPS SPECIFIED'
            print*,'ABEMH=',abemh,'RADFRQ=',radfrq
            print*,'stop Longwave/shortwave Radiation Timestep (param.f)'
-         endif
+         end if
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
          print*,'INCONSISTENT TIMESTEPS SPECIFIED'
@@ -757,7 +752,7 @@ c
         open(iutin1,file='fort.11',form='unformatted',status='old'
      &             ,access='direct',recl=ix*jx*NNSG*ibyte)
 #endif
-      endif
+      end if
 #ifdef MPP1
       open(iutin,file=finm,form='unformatted',status='old'
      &     ,access='direct',recl=ix*mjx*ibyte)
@@ -797,7 +792,7 @@ c
         sigma(k) = dble(sp1d(k))
       enddo
 #ifdef MPP1
-      endif
+      end if
       call MPI_BCAST(clat,1,MPI_REAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(plon,1,MPI_REAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(ptop,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -813,7 +808,7 @@ Crst-fix
 #endif
       print *,'***** mdate = ',mdate0
 #ifdef MPP1
-      endif
+      end if
 #endif
       myear = mdate0/1000000
       nyear = IDATE1/1000000
@@ -936,7 +931,7 @@ c
 
       print *, ' '
 #ifdef MPP1
-      endif
+      end if
 #endif
 c
       if (.not.ifrest) then
@@ -1005,7 +1000,7 @@ c
           enddo
           enddo
 #endif
-        endif
+        end if
 
         print*,'HTSD'
 #ifdef MPP1
@@ -1085,7 +1080,7 @@ c
            enddo
            enddo
 #endif
-        endif
+        end if
         print*,'XLAT'
 #ifdef MPP1
         read(iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
@@ -1197,7 +1192,7 @@ c
           print*,'  Check ibyte in regcm.param: ibyte = ',ibyte
           stop 'EOF (param.f)'
 #endif
-        endif
+        end if
 #ifdef MPP1
         do j=1,mjx
           do i=1,ix
@@ -1223,7 +1218,7 @@ c
           ht_io(i,j)=ht_io(i,j)*g
         enddo
         enddo
-        endif                 ! endif (myid.eq.0) 
+        end if                 ! end if (myid.eq.0) 
             
         call MPI_SCATTER(inisrf_0(1,1,1),ix*(NNSG*3+8)*jxp,
      &       MPI_DOUBLE_PRECISION,inisrf0(1,1,1),ix*(NNSG*3+8)*jxp,
@@ -1291,7 +1286,7 @@ c------invert mapscale factors:
         print*,' '
 
 #ifdef MPP1
-        endif
+        end if
         call MPI_SENDRECV(ht(1,jxp),ix,MPI_DOUBLE_PRECISION,ieast,1,
      &                    ht(1,0),ix,MPI_DOUBLE_PRECISION,iwest,1,
      &                    MPI_COMM_WORLD,status,ierr)
@@ -1323,7 +1318,7 @@ c
       do k=1,kx
         if (a(k).lt.0.4) then
           anudg(k) = 3.
-        elseif (a(k).lt.0.8) then
+        else if (a(k).lt.0.8) then
           anudg(k) = 2.
         else
           anudg(k) = 1.
@@ -1402,7 +1397,7 @@ c
        if(delsig.le.0.) then
          kt = k
          goto 111
-       endif
+       end if
       enddo
 111   continue
 #ifdef MPP1
@@ -1411,7 +1406,7 @@ c
       print *, ' Index of highest allowed pbl:  kt = ', kt
       print *,' '
 #ifdef MPP1
-      endif
+      end if
 #endif
 c
       if(ipptls.eq.1) then
@@ -1432,9 +1427,9 @@ c
         print*,'Raindrop Evaporation Rate',cevap
         print*,'Raindrop Accretion Rate',caccr
 #ifdef MPP1
-        endif 
+        end if 
 #endif
-      endif
+      end if
 
 #ifdef MPP1
       if (myid .eq. 0) print*,' '
@@ -1450,9 +1445,9 @@ c
         print*,'***** Anthes-Kuo Convection *****'
         print*,'*********************************'
 #ifdef MPP1
-        endif
+        end if
 #endif
-      elseif (icup.eq.2) then
+      else if (icup.eq.2) then
         kbmax = kx
         do k=1,kx-1
           if (a(k).le.skbmax) kbmax=kx-k
@@ -1477,13 +1472,13 @@ c
         print*,'   Min Heating:',htmin
         if (igcc.eq.1) then
           print*,'   Arakawa-Schubert (1974) Closure Assumption   *****'
-        elseif (igcc.eq.2) then
+        else if (igcc.eq.2) then
           print*,'   Fritsch-Chappell (1980) Closure Assumption   *****'
           print*,'     ABE removal timescale: dtauc=',dtauc
         end if
         print*,'*******************************************************'
 #ifdef MPP1
-        endif
+        end if
         do j=1,jendx
 #else
         do j=1,jlx
@@ -1505,7 +1500,7 @@ c
           dtauc2d(i,j)   = dtauc*60.
         end do
         end do
-      elseif (icup.eq.3) then
+      else if (icup.eq.3) then
 #ifdef MPP1
         if (myid .eq. 0) then
 #endif
@@ -1515,12 +1510,12 @@ c
         print*,' the following stop statement in param.f'
 #ifdef MPP1
         print*,' STOP (SUBROUTINE PARAM):  BETTS-MILLER NOT WORKING'
-        endif
+        end if
         call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
         stop 'STOP (SUBROUTINE PARAM):  BETTS-MILLER NOT WORKING'
 #endif
-      elseif (icup.eq.4) then
+      else if (icup.eq.4) then
         cllwcv    = 0.5e-4 ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
         minorig = kx
@@ -1550,7 +1545,7 @@ c
         print*,' '
         print*,' '
 #ifdef MPP1
-        endif
+        end if
 #endif
       end if
 
@@ -1574,7 +1569,7 @@ C Convective Cloud Cover
       print*,'     after resolution scaling: ',clfrcv
       print*,'   Convective Cloud Water: ',cllwcv
 #ifdef MPP1
-        endif
+        end if
 #endif
 
       pi = 4.*datan(1.d0)
@@ -1647,7 +1642,7 @@ c.....for cross point variables:
        do k=5,nspgx
          wgtx(k)=1.
        enddo
-      endif
+      end if
 c
 c-----specify the coefficients for nudging boundary conditions:
 c
@@ -1655,7 +1650,7 @@ c.....for large domain:
       if (iboudy .eq. 1. or. iboudy.eq.5) then
        fnudge = 0.1/dt2
        gnudge = (dxsq/dt)/50.
-      endif
+      end if
       if (icup.eq.3) CALL LUTBL(PTOP)
 c
 c-----print out the parameters specified in the model.
@@ -1696,7 +1691,7 @@ c
       print 1290,xkhz
       print 1300,xkhmax
 #ifdef MPP1
-      endif
+      end if
 #endif
 1040  format(/'   frictionless and insulated for the lower boundary.')
 1070  format('     the surface energy budget is used to calculate the gr

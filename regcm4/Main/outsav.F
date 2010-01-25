@@ -28,12 +28,7 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer iutl
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/parrad.cb"
 #     include "include/param1.cb"
 #ifdef DIAG
@@ -99,7 +94,7 @@ c
          write(iutl) UB0_IO,VB0_IO,QB0_IO,TB0_IO,PS0_IO,TS0_IO,SO0_IO
       else
          write(iutl) UB0_IO,VB0_IO,QB0_IO,TB0_IO,PS0_IO,TS0_IO
-      endif
+      end if
       write(iutl) ua_io
       write(iutl) ub_io
       write(iutl) va_io
@@ -115,11 +110,11 @@ c
       write(iutl) tga_io,tgb_io,rainc_io,rainnc_io
       if(icup.eq.1) then
          write(iutl) rsheat_io,  rswat_io
-      elseif(icup.eq.3) then
+      else if(icup.eq.3) then
          write(iutl) TBASE_io,CLDEFI_io
-      elseif(icup.eq.4) then
+      else if(icup.eq.4) then
          write(iutl) cbmf2d_io
-      endif
+      end if
       write(iutl) hfx_io,qfx_io,snowc_io,uvdrag_io
 #ifdef DIAG
       write(iutl) tdini,tdadv,tqini,tqadv,tqeva,tqrai
@@ -156,13 +151,13 @@ c
         write(iutl) tchitb
         write(iutl) tchie
 #endif
-      endif
+      end if
 #else
       if(EHSO4) then
          write(iutl) UB0,VB0,QB0,TB0,PS0,TS0,SO0
       else
          write(iutl) UB0,VB0,QB0,TB0,PS0,TS0
-      endif
+      end if
       write(iutl) ua
       write(iutl) ub
       write(iutl) va
@@ -178,11 +173,11 @@ c
       write(iutl) tga,tgb,rainc,rainnc
       if(icup.eq.1) then
          write(iutl) rsheat,  rswat
-      elseif(icup.eq.3) then
+      else if(icup.eq.3) then
          write(iutl) TBASE,CLDEFI
-      elseif(icup.eq.4) then
+      else if(icup.eq.4) then
          write(iutl) cbmf2d
-      endif
+      end if
       write(iutl) hfx,qfx,snowc,uvdrag
 #ifdef DIAG
       write(iutl) tdini,tdadv,tqini,tqadv,tqeva,tqrai
@@ -224,7 +219,7 @@ c cumul ad, dif, emis terms ( scalar)
         write(iutl) tchitb
         write(iutl) tchie
 #endif
-      endif
+      end if
 Cchem2_
 #endif
 
@@ -242,7 +237,7 @@ c       print *,' in outsav ilake jlake = ',ilake,jlake
      a             , eta, (tlake(j),j=1,depth)
        enddo
        rewind(iin)
-      endif
+      end if
 c
 #ifdef MPP1
       write(iutl) dstor_io

@@ -137,12 +137,7 @@ c=======================================================================
 
       implicit none
       integer jslc
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -152,7 +147,7 @@ c=======================================================================
 #     include "include/main.cb"
 #     include "include/bats.cb2"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 
       real(kind=8)  rs
@@ -176,7 +171,7 @@ c          of variable time step
          fc1=c(4)*rategb*0.5
          rm=1.-fc1
          rp=1.+fc1
-      endif
+      end if
 
       call interf(1,jslc)
 
@@ -191,8 +186,8 @@ c ******    call hostetler lake model hourly at lake points
         if( (jyear.eq.jyear0.and.ktau.eq.0) .or.
      &       mod(ktau+1,klake).eq.0 ) then
           call lakedrv(jslc)
-        endif
-      endif
+        end if
+      end if
 
 c ****************************************************************
 

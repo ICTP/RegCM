@@ -52,12 +52,7 @@ c         sg = solar flux absorbed by bare ground
 c     skd,ska= diurnal and annual thermal diffusivities
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 #     include "include/bats.cb2"
 
@@ -110,7 +105,7 @@ cl            specific heat only o.49 that of water
         else
          skd(n,np) = fsk(swtrtd(n,np))*texrat(n,np)
          rscsd(n,np)=fsc(swtrtd(n,np))
-        endif
+        end if
         swtrta(n,np) = watr(n,np) * porsl(n,np)
         if (tgb1d(n,np) .lt. c(67)) then
          froze2 = 0.85*dmin1(1.d0,.25*(c(67)-tgb1d(n,np)))
@@ -119,7 +114,7 @@ cl            specific heat only o.49 that of water
         else
          ska(n,np) = fsk(swtrta(n,np))*texrat(n,np)
          rscsa(n,np)=fsc(swtrta(n,np))
-        endif
+        end if
 
 cl       1.2  correct for snow cover, if significant
         depdiu(n,np) = dsqrt(2.*skd(n,np)/xnu)
@@ -134,14 +129,14 @@ cl       1.2  correct for snow cover, if significant
          bcoef(n,np) = dtime * (wtds*bcoefs + (1.-wtds)*bcoefd)
          depdiu(n,np) = wtds*dsqrt(2.*sks(n,np)/xnu)
      &                + (1.-wtds)*depdiu(n,np)
-        endif
+        end if
         depann(n,np) = dsqrt(2.*ska(n,np)/xnua)
         if(scv1d(n,np).gt.20.) then
          wtax = dexp(-2.*scrat(n,np)/depann(n,np))
          wtas = (1.-wtax)*scvk(n,np)
          depann(n,np)= wtas*dsqrt(2.*sks(n,np)/xnua)
      &               + (1.-wtas)*depann(n,np)
-        endif
+        end if
         deprat(n,np) = depann(n,np)/depdiu(n,np)
 
 c=======================================================================
@@ -156,13 +151,13 @@ cl       2.1  add freezing thermal inertia
          depu = depuv(lveg(n,np))*1.e-3
          cc(n,np) = 1.+dmax1(ssw1d(n,np)-frezu(lveg(n,np)),0.d0)
      a          * fct1(depu*rscsd(n,np))
-        endif
+        end if
         if((tgb1d(n,np).lt.c(67)).and.(tgb1d(n,np).gt.(c(67)-4.))
      &     .and.(sice1d(n,np).le.1.e-22))then
          depr = deprv(lveg(n,np))*1.e-3
          fct2(n,np) =  dmax1(rsw1d(n,np)-freza(lveg(n,np)),0.d0)
      &            * fct1(depr*rscsa(n,np))
-        endif
+        end if
 
 cl       2.2  large thermal inertial for permanent ice cap
         if (lveg(n,np).eq.12) fct2(n,np) = 1.e3*fct2(n,np)
@@ -182,8 +177,8 @@ cl       2.4  add in snowmelt (melt enough snow to reach freezing temp)
 c **********              snow melt always between 0 and total snow
          sm(n,np) = dmax1( 0.d0, dmin1(sm(n,np),scv1d(n,np)*2.*c(7)) )
          bb(n,np) = bb(n,np) - bcoef(n,np)*c(127)*sm(n,np)
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
 
@@ -223,8 +218,8 @@ cl       3.6  update subsoil temperature
          c4t = dtimea*deprat(n,np)
          tgb1d(n,np) = ( (1.-c3t+fct2(n,np))*tgb1d(n,np)
      &                  + c4t*tg1d(n,np)) / (1.+c3t+fct2(n,np))
-        endif
-       endif
+        end if
+       end if
       enddo
 91    continue
 

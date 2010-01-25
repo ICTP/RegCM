@@ -21,19 +21,14 @@ c----------------------------------------------------------------------
       subroutine o3data
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/main.cb"
 #     include "include/rad.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 
       real(kind=8)  prlevh,ppwrkh,o3wrk,ppwrk,o3sum,ppsum,o3win,ppwin
@@ -90,22 +85,22 @@ c
            pb1=0.
           else
            pb1=prlevh(k)-ppwrkh(jj)
-          endif
+          end if
           if((-(prlevh(k)-ppwrkh(jj+1))).ge.0.)then
            pb2=0.
           else
            pb2=prlevh(k)-ppwrkh(jj+1)
-          endif
+          end if
           if((-(prlevh(k+1)-ppwrkh(jj))).ge.0.)then
            pt1=0.
           else
            pt1=prlevh(k+1)-ppwrkh(jj)
-          endif
+          end if
           if((-(prlevh(k+1)-ppwrkh(jj+1))).ge.0.)then
            pt2=0.
           else
            pt2=prlevh(k+1)-ppwrkh(jj+1)
-          endif
+          end if
           o3prof(i,k,j)=o3prof(i,k,j)+(pb2-pb1-pt2+pt1)*o3wrk(jj)
 25       continue
          o3prof(i,k,j)=o3prof(i,k,j)/(prlevh(k)-prlevh(k+1))

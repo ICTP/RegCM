@@ -50,12 +50,8 @@ C-----------------------------------------------------------------------
 c
 c------------------------------Parameters-------------------------------
 c
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+
+#     include "parameter.inc"
 
 #     include "include/parrad.cb"
 #     include "include/param2.cb"
@@ -158,7 +154,7 @@ C
      $          (pint(i,plevrp)-pint(i,plevrp-mxaerl)))
           else
             aermmb(i,k) = 0.0
-          endif
+          end if
 
 c         if(ichem .eq. 1 .and. idirect .eq. 1) then 
           if (ichem .eq. 1 ) then 
@@ -180,8 +176,8 @@ C               aermmr(i,k,itr) = aermmb(i,k) + aermm(i,k,j)
 C               aermmr(i,k,itr)= 0.0d0
                 aermmr(i,k,itr) = aermmb(i,k)
               end do
-            endif
-          endif
+            end if
+          end if
         enddo
       enddo
 C       

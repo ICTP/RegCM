@@ -42,12 +42,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer iexec
       real(kind=8)  xt
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -60,7 +56,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/date.cb"
 
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 
       integer i,j,k
@@ -85,10 +81,10 @@ c
 #endif
         psb(i,1) = psa(i,1)
 #ifdef MPP1
-        endif
+        end if
         if (myid .eq. nproc-1) then
           psb(i,jendx) = psa(i,jendx)
-        endif
+        end if
 #else
         psb(i,jlx) = psa(i,jlx)
 #endif
@@ -112,11 +108,11 @@ c
          ub(i,k,1)=ua(i,k,1)/msfd(i,1)
          vb(i,k,1)=va(i,k,1)/msfd(i,1)
 #ifdef MPP1
-         endif
+         end if
          if (myid .eq. nproc-1) then
            ub(i,k,jendl)=ua(i,k,jendl)/msfd(i,jendl)
            vb(i,k,jendl)=va(i,k,jendl)/msfd(i,jendl)
-         endif
+         end if
 #else
          ub(i,k,jx)=ua(i,k,jx)/msfd(i,jx)
          vb(i,k,jx)=va(i,k,jx)/msfd(i,jx)
@@ -142,10 +138,10 @@ c
 #endif
          tb(i,k,1)=ta(i,k,1)
 #ifdef MPP1
-         endif
+         end if
          if (myid .eq. nproc-1) then
            tb(i,k,jendx)=ta(i,k,jendx)
-         endif
+         end if
 #else
          tb(i,k,jlx)=ta(i,k,jlx)
 #endif
@@ -168,10 +164,10 @@ c
 #endif
          qvb(i,k,1)=qva(i,k,1)
 #ifdef MPP1
-         endif
+         end if
          if (myid .eq. nproc-1) then
            qvb(i,k,jendx)=qva(i,k,jendx)
-         endif
+         end if
 #else
          qvb(i,k,jlx)=qva(i,k,jlx)
 #endif
@@ -197,10 +193,10 @@ c-----for p*chi (tracers)
 #endif
           chib(i,k,1,itr)=chia(i,k,1,itr)
 #ifdef MPP1
-          endif
+          end if
           if (myid .eq. nproc-1) then
             chib(i,k,jendx,itr)=chia(i,k,jendx,itr)
-          endif
+          end if
 #else
           chib(i,k,jlx,itr)=chia(i,k,jlx,itr)
 #endif
@@ -213,7 +209,7 @@ c-----for p*chi (tracers)
          chib(1,k,j,itr)=chia(1,k,j,itr)
          chib(ilx,k,j,itr)=chia(ilx,k,j,itr)
 85      continue
-       endif
+       end if
 Cchem2_
 c
 c-----for p*qc:
@@ -225,10 +221,10 @@ c
 #endif
          qcb(i,k,1)=qca(i,k,1)
 #ifdef MPP1
-         endif
+         end if
          if (myid .eq. nproc-1) then
            qcb(i,k,jendx)=qca(i,k,jendx)
-         endif
+         end if
 #else
          qcb(i,k,jlx)=qca(i,k,jlx)
 #endif
@@ -242,7 +238,7 @@ c
         qcb(ilx,k,j)=qca(ilx,k,j)
 100    continue
 c
-      endif      !end if(iexec.ne.1) test
+      end if      !end if(iexec.ne.1) test
 c**********************************************************************
 c*****compute the boundary values for xxa variables:
 c
@@ -264,10 +260,10 @@ c.....fixed boundary conditions:
 #endif
         psa(i,1)=pwb(i,1)
 #ifdef MPP1
-        endif
+        end if
         if (myid .eq. nproc-1) then
           psa(i,jendx)=peb(i,1)
-        endif
+        end if
 #else
         psa(i,jlx)=peb(i,1)
 #endif
@@ -289,11 +285,11 @@ c
          ua(i,k,1)=uwb(i,k,1)
          va(i,k,1)=vwb(i,k,1)
 #ifdef MPP1
-         endif
+         end if
          if (myid .eq. nproc-1) then
            ua(i,k,jendl)=ueb(i,k,1)
            va(i,k,jendl)=veb(i,k,1)
-         endif
+         end if
 #else
          ua(i,k,jx)=ueb(i,k,1)
          va(i,k,jx)=veb(i,k,1)
@@ -309,7 +305,7 @@ c
         va(1,k,j)=vsb(1,k,j)
         va(ix,k,j)=vnb(1,k,j)
 270    continue
-      endif
+      end if
 c
 c.....time-dependent boundary conditions:
 c
@@ -319,10 +315,10 @@ c
 #endif
        psa(i,1)=pwb(i,1)+dtb*pwbt(i,1)
 #ifdef MPP1
-       endif
+       end if
        if (myid .eq. nproc-1 ) then
          psa(i,jendx)=peb(i,1)+dtb*pebt(i,1)
-       endif
+       end if
 #else
        psa(i,jlx)=peb(i,1)+dtb*pebt(i,1)
 #endif
@@ -344,11 +340,11 @@ c
         ua(i,k,1)=uwb(i,k,1)+dtb*uwbt(i,k,1)
         va(i,k,1)=vwb(i,k,1)+dtb*vwbt(i,k,1)
 #ifdef MPP1
-        endif
+        end if
         if (myid .eq. nproc-1) then
           ua(i,k,jendl)=ueb(i,k,1)+dtb*uebt(i,k,1)
           va(i,k,jendl)=veb(i,k,1)+dtb*vebt(i,k,1)
-        endif
+        end if
 #else
         ua(i,k,jx)=ueb(i,k,1)+dtb*uebt(i,k,1)
         va(i,k,jx)=veb(i,k,1)+dtb*vebt(i,k,1)
@@ -383,10 +379,10 @@ c.....fixed boundary conditions:
 #endif
          ta(i,k,1)=twb(i,k,1)
 #ifdef MPP1
-         endif
+         end if
          if (myid .eq. nproc-1) then
            ta(i,k,jendx)=teb(i,k,1)
-         endif
+         end if
 #else
          ta(i,k,jlx)=teb(i,k,1)
 #endif
@@ -406,10 +402,10 @@ c.....fixed boundary conditions:
 #endif
          qva(i,k,1)=qwb(i,k,1)
 #ifdef MPP1
-         endif
+         end if
          if (myid .eq. nproc-1) then
            qva(i,k,jendx)=qeb(i,k,1)
-         endif
+         end if
 #else
          qva(i,k,jlx)=qeb(i,k,1)
 #endif
@@ -422,7 +418,7 @@ c.....fixed boundary conditions:
         qva(1,k,j)=qsb(1,k,j)
         qva(ilx,k,j)=qnb(1,k,j)
 410    continue
-      endif
+      end if
 c
 c.....time-dependent boundary conditions:
 c
@@ -433,10 +429,10 @@ c
 #endif
         ta(i,k,1)=twb(i,k,1)+dtb*twbt(i,k,1)
 #ifdef MPP1
-        endif
+        end if
         if (myid.eq. nproc-1) then
           ta(i,k,jendx)=teb(i,k,1)+dtb*tebt(i,k,1)
-        endif
+        end if
 #else
         ta(i,k,jlx)=teb(i,k,1)+dtb*tebt(i,k,1)
 #endif
@@ -456,10 +452,10 @@ c
 #endif
         qva(i,k,1)=qwb(i,k,1)+dtb*qwbt(i,k,1)
 #ifdef MPP1
-        endif
+        end if
         if (myid.eq. nproc-1) then
           qva(i,k,jendx)=qeb(i,k,1)+dtb*qebt(i,k,1)
-        endif
+        end if
 #else
         qva(i,k,jlx)=qeb(i,k,1)+dtb*qebt(i,k,1)
 #endif
@@ -492,11 +488,11 @@ c
           qvx=qvx1
          else
           qvx=qvx2
-         endif
+         end if
          qva(i,k,1)=qvx*psa(i,1)
 450     continue
 #ifdef MPP1
-        endif
+        end if
 #endif
 c
 c.....east boundary:
@@ -517,7 +513,7 @@ c
           qvx=qvx1
          else
           qvx=qvx2
-         endif
+         end if
 #ifdef MPP1
          qva(i,k,jendx)=qvx*psa(i,jendx)
 #else
@@ -525,7 +521,7 @@ c
 #endif
 460     continue
 #ifdef MPP1
-        endif
+        end if
 #endif
 c
 c.....south boundary:
@@ -542,7 +538,7 @@ c
           qvx=qvx1
          else
           qvx=qvx2
-         endif
+         end if
          qva(1,k,j) = qvx*psa(1,j)
 470     continue
 c
@@ -560,12 +556,12 @@ c
           qvx=qvx1
          else
           qvx=qvx2
-         endif
+         end if
          qva(ilx,k,j)=qvx*psa(ilx,j)
 480     continue
 c
 490    continue
-      endif      !end if(iboudy.eq.3.or.4) test
+      end if      !end if(iboudy.eq.3.or.4) test
 c
 c-----set boundary values for p*qc and p*qr:
 c     *** note ***
@@ -592,11 +588,11 @@ c
          qcx=0.
         else
          qcx=qcx2
-        endif
+        end if
         qca(i,k,1)=qcx*psa(i,1)
 690    continue
 #ifdef MPP1
-        endif
+        end if
 #endif
 c
 c.....east boundary:
@@ -615,7 +611,7 @@ c
          qcx=0.
         else
          qcx=qcx2
-        endif
+        end if
 #ifdef MPP1
         qca(i,k,jendx)=qcx*psa(i,jendx)
 #else
@@ -623,7 +619,7 @@ c
 #endif
 700    continue
 #ifdef MPP1
-        endif
+        end if
 #endif
 c
 c.....south boundary:
@@ -639,7 +635,7 @@ c
          qcx=0.
         else
          qcx=qcx2
-        endif
+        end if
         qca(1,k,j) = qcx*psa(1,j)
 710    continue
 c
@@ -656,7 +652,7 @@ c
          qcx=0.
         else
          qcx=qcx2
-        endif
+        end if
         qca(ilx,k,j)=qcx*psa(ilx,j)
 720    continue
 c
@@ -684,11 +680,11 @@ c
           chix=chix1
          else
           chix=chix2
-         endif
+         end if
          chia(i,k,1,itr)=chix*psa(i,1)
 493     continue
 #ifdef MPP1
-         endif
+         end if
 #endif
 c
 c.....east boundary:
@@ -709,7 +705,7 @@ c
           chix=chix1
          else
           chix=chix2
-         endif
+         end if
 #ifdef MPP1
          chia(i,k,jendx,itr)=chix*psa(i,jendx)
 #else
@@ -717,7 +713,7 @@ c
 #endif
 495     continue
 #ifdef MPP1
-         endif
+         end if
 #endif
 c
 c.....south boundary:
@@ -734,7 +730,7 @@ c
           chix=chix1
          else
           chix=chix2
-         endif
+         end if
          chia(1,k,j,itr) = chix*psa(1,j)
 497     continue
 c
@@ -752,12 +748,12 @@ c
           chix=chix1
          else
           chix=chix2
-         endif
+         end if
          chia(ilx,k,j,itr)=chix*psa(ilx,j)
 499     continue
 500     continue
 Cchem2_
-      endif
+      end if
 c
       return
       end

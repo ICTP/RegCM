@@ -41,7 +41,7 @@ c
       if (.not.lstab) then
          numerr=numerr+1
          print 2
-      endif
+      end if
     2 format('0 indication that tbarh statically unstable')
 c
       return

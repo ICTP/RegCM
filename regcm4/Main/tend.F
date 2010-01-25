@@ -43,14 +43,9 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer iexec
+#     include "parameter.inc"
 #ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-#ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
 #endif
 #     include "include/param1.cb"
@@ -135,7 +130,7 @@ c     if (iexec .eq. 1) then
        iexec = 2
       else
        iexec = 2
-      endif
+      end if
 c
 c----------------------------------------------------------------------
 c*****for large domain, subroutine tend just needed to go through once.
@@ -185,10 +180,10 @@ c..............inflow/outflow dependence:
               if(u(i,k,j).lt.0.) then
                 v(i,k,j)=vj2(i,k)
                 u(i,k,j)=uj2(i,k)
-              endif
+              end if
             enddo
             enddo
-          endif
+          end if
 #ifdef MPP1
         else if(myid .eq. 0 .and. j.eq.2) then
 #else
@@ -207,14 +202,14 @@ c.................south boundary:
               if(v(1,k,j).lt.0.) then
                 v(1,k,j)=v(2,k,j)
                 u(1,k,j)=u(2,k,j)
-              endif
+              end if
 c.................north boundary:
               if(v(ix,k,j).ge.0.)then
                 v(ix,k,j)=v(ix-1,k,j)
                 u(ix,k,j)=u(ix-1,k,j)
-              endif
+              end if
             enddo
-          endif
+          end if
 #ifdef MPP1
         else if(myid .eq. nproc-1 .and. j.eq.jendl-1) then
 #else
@@ -233,14 +228,14 @@ c.................south boundary:
               if(v(1,k,j).lt.0.) then
                 v(1,k,j)=v(2,k,j)
                 u(1,k,j)=u(2,k,j)
-              endif
+              end if
 c.................north boundary:
               if(v(ix,k,j).ge.0.)then
                 v(ix,k,j)=v(ix-1,k,j)
                 u(ix,k,j)=u(ix-1,k,j)
-              endif
+              end if
             enddo
-          endif
+          end if
 #ifdef MPP1
         else if(myid .eq. nproc-1 .and. j.eq.jendl) then
 #else
@@ -263,10 +258,10 @@ c..............inflow/outflow dependence:
               if(u(i,k,j).ge.0.) then
                 v(i,k,j)=vjlx(i,k)
                 u(i,k,j)=ujlx(i,k)
-              endif
+              end if
             enddo
             enddo
-          endif
+          end if
         else
 c
 c-----interior slice:
@@ -303,15 +298,15 @@ c.................south boundary:
               if(v(1,k,j).lt.0.)then
                 v(1,k,j)=v(2,k,j)
                 u(1,k,j)=u(2,k,j)
-              endif
+              end if
 c.................north boundary:
               if(v(ix,k,j).ge.0.)then
                 v(ix,k,j)=v(ix-1,k,j)
                 u(ix,k,j)=u(ix-1,k,j)
-              endif
+              end if
             enddo
-          endif
-        endif
+          end if
+        end if
       enddo
 c
 #ifdef MPP1
@@ -345,7 +340,7 @@ c
        enddo
        enddo
        enddo
-      endif
+      end if
 Cchem2_
 c
 C=======================================================================
@@ -377,8 +372,8 @@ C=======================================================================
             enddo
             enddo
           enddo
-        endif
-      endif
+        end if
+      end if
       numrec = kx*11+1
       if(ichem.eq.1) numrec = kx*(ntr+11)+1
       call MPI_SENDRECV(var1snd(1,1),ix*numrec,MPI_DOUBLE_PRECISION,
@@ -411,8 +406,8 @@ C=======================================================================
             enddo
             enddo
           enddo
-        endif
-      endif
+        end if
+      end if
 C
       if(myid.ne.0) then
         do i=1,ix
@@ -441,8 +436,8 @@ C
             enddo
             enddo
           enddo
-        endif
-      endif
+        end if
+      end if
       numrec = kx*11+1
       if(ichem.eq.1) numrec = kx*(ntr+11)+1
       call MPI_SENDRECV(var1snd(1,1),ix*numrec,MPI_DOUBLE_PRECISION,
@@ -475,8 +470,8 @@ C
             enddo
             enddo
           enddo
-        endif
-      endif
+        end if
+      end if
 #endif
 C=======================================================================
 c
@@ -500,10 +495,10 @@ c
 #endif
         pdotb(i,1)=0.5*(psb(i,1)+psb(i-1,1))
 #ifdef MPP1
-      endif
+      end if
       if (myid .eq. nproc-1) then
         pdotb(i,jendl)=0.5*(psb(i,jendx)+psb(i-1,jendx))
-      endif
+      end if
 #else
         pdotb(i,jx)=0.5*(psb(i,jlx)+psb(i-1,jlx))
 #endif
@@ -528,11 +523,11 @@ c
       pdotb(1,1)=psb(1,1)
       pdotb(ix,1)=psb(ilx,1)
 #ifdef MPP1
-      endif
+      end if
       if (myid .eq. nproc-1) then
         pdotb(1,jendl)=psb(1,jendx)
         pdotb(ix,jendl)=psb(ilx,jendx)
-      endif
+      end if
 #else
       pdotb(1,jx)=psb(1,jlx)
       pdotb(ix,jx)=psb(ilx,jlx)
@@ -564,8 +559,8 @@ C=======================================================================
             enddo
             enddo
           enddo
-        endif
-      endif
+        end if
+      end if
       numrec = kx*5*2
       if(ichem.eq.1) numrec = kx*(ntr+5)*2
       call MPI_SENDRECV(var2snd(1,1),ix*numrec,MPI_DOUBLE_PRECISION,
@@ -595,8 +590,8 @@ C=======================================================================
             enddo
             enddo
           enddo
-        endif
-      endif
+        end if
+      end if
 C
       if(myid.ne.0) then
         do k=1,kx
@@ -622,8 +617,8 @@ C
             enddo
             enddo
           enddo
-        endif
-      endif
+        end if
+      end if
       numrec = kx*5*2
       if(ichem.eq.1) numrec = kx*(ntr+5)*2
       call MPI_SENDRECV(var2snd(1,1),ix*numrec,MPI_DOUBLE_PRECISION,
@@ -653,8 +648,8 @@ C
             enddo
             enddo
           enddo
-        endif
-      endif
+        end if
+      end if
 #endif
 c
 c**********************************************************************
@@ -705,7 +700,7 @@ c
          qdot(i,k,j)=qdot(i,k-1,j)-(pten(i,j)+divl(i,k-1)/
      1            (dx2*msfx(i,j)*msfx(i,j)))*dsigma(k-1)/psa(i,j)
 280     continue
-       endif
+       end if
  1070 continue
 #ifdef MPP1
       call MPI_SENDRECV(qdot(1,1,jxp),ix*kxp1,MPI_DOUBLE_PRECISION,
@@ -740,7 +735,7 @@ c
      3          v(i+1,k,j)+v(i+1,k,j+1)+v(i,k,j+1))*(psa(i+1,j)-
      4          psa(i-1,j)))/(dx8*msfx(i,j)))
 310     continue
-       endif
+       end if
  1071 continue
 #ifdef MPP1
       if(nspgx.ge.jxp) then
@@ -780,7 +775,7 @@ c
         else
           peb(i,jxp+1) = bdyewrcv(i,1)
           pebt(i,jxp+1)= bdyewrcv(i,3)
-        endif
+        end if
         pwb(i,0) = bdyewrcv(i,2)
         pwbt(i,0)= bdyewrcv(i,4)
       enddo
@@ -796,7 +791,7 @@ c
           tebt(i,k,jxp+1)= bdyewrcv(i,4+kx*2 +k)
           qeb(i,k,jxp+1) = bdyewrcv(i,4+kx*4 +k)
           qebt(i,k,jxp+1)= bdyewrcv(i,4+kx*6 +k)
-        endif
+        end if
         ueb(i,k,jxp+1) = bdyewrcv(i,4+kx*8 +k)
         uebt(i,k,jxp+1)= bdyewrcv(i,4+kx*10+k)
         veb(i,k,jxp+1) = bdyewrcv(i,4+kx*12+k)
@@ -818,7 +813,7 @@ c
         else
           bdyewsnd(i,1) = peb(i,jxp)
           bdyewsnd(i,3) = pebt(i,jxp)
-        endif
+        end if
         bdyewsnd(i,2) = pwb(i,1)
         bdyewsnd(i,4) = pwbt(i,1)
       enddo
@@ -834,7 +829,7 @@ c
           bdyewsnd(i,4+kx*2+k) = tebt(i,k,jxp)
           bdyewsnd(i,4+kx*4+k) = qeb(i,k,jxp)
           bdyewsnd(i,4+kx*6+k) = qebt(i,k,jxp)
-        endif
+        end if
         bdyewsnd(i,4+kx*8 +k) = ueb(i,k,jxp)
         bdyewsnd(i,4+kx*10+k) = uebt(i,k,jxp)
         bdyewsnd(i,4+kx*12+k) = veb(i,k,jxp)
@@ -878,7 +873,7 @@ c
         vwbt(i,k,jxp+1) = bdyewrcv(i,4+kx*15+k)
       enddo 
       enddo 
-      endif
+      end if
 C
       if(myid.ne.nproc-1) then
       do i=1,nspgx
@@ -907,7 +902,7 @@ C
         bdynssnd(i,4+kx*15+k) = vsbt(i,k,jxp)
       enddo
       enddo
-      endif
+      end if
       call MPI_SENDRECV(
      &          bdynssnd(1,1),nspgx*(kx*16+4),MPI_DOUBLE_PRECISION,
      &  ieast,1,bdynsrcv(1,1),nspgx*(kx*16+4),MPI_DOUBLE_PRECISION,
@@ -939,7 +934,7 @@ C
         vsbt(i,k,0)= bdynsrcv(i,4+kx*15+k)
       enddo
       enddo
-      endif
+      end if
 C
       if(myid.ne.0) then
       do i=1,nspgx
@@ -968,7 +963,7 @@ C
         bdynssnd(i,4+kx*15+k) = vsbt(i,k,1)
       enddo
       enddo
-      endif
+      end if
       call MPI_SENDRECV(
      &          bdynssnd(1,1),nspgx*(kx*16+4),MPI_DOUBLE_PRECISION,
      &  iwest,2,bdynsrcv(1,1),nspgx*(kx*16+4),MPI_DOUBLE_PRECISION,
@@ -1000,7 +995,7 @@ C
         vsbt(i,k,jxp+1)= bdynsrcv(i,4+kx*15+k)
       enddo
       enddo
-      endif
+      end if
       do 1072 j=jbegin,jendx
        if (.not.(myid .eq. nproc-1 .and.j .eq. jendx) ) then
 #else
@@ -1020,8 +1015,8 @@ c....apply the nudging boundary conditions:
      &   xtm1=-dtmin
          call nudge_P(ispgx,fnudge,gnudge,xtm1,pten(1,j)
      &              ,c203,j,iboudy)
-        endif
-       endif      !end if(j.ne.jlx) test
+        end if
+       end if      !end if(j.ne.jlx) test
  1072 continue
 #ifdef MPP1
       do 1073 j=1,jendx
@@ -1060,7 +1055,7 @@ c
         psc(ilx,j)=psb(ilx,j)+dt*pnbt(1,j)
         psd(1,j)=psa(1,j)
         psd(ilx,j)=psa(ilx,j)
-       endif
+       end if
  1073 continue
 #ifdef MPP1
       call MPI_SENDRECV(psd(1,jxp),ix,MPI_DOUBLE_PRECISION,ieast,1,
@@ -1096,9 +1091,9 @@ c
             pt2tot=pt2tot+dabs((ps_4(i,2,j)+ps_4(i,3,j)-2.*ps_4(i,4,j))
      1                        /(0.25*dt*dt))
           enddo
-        endif
+        end if
       enddo
-      endif
+      end if
       call MPI_BCAST(iptn,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(ptntot,1,MPI_DOUBLE_PRECISION,0,
      &                        MPI_COMM_WORLD,ierr)
@@ -1114,9 +1109,9 @@ c
           pt2tot=pt2tot+dabs((psc(i,j)+psb(i,j)-2.*psa(i,j))
      1           /(0.25*dt*dt))
 400      continue
-        endif
+        end if
 c
-       endif      !end if(j.ne.jlx) test
+       end if      !end if(j.ne.jlx) test
  1074 continue
 #endif
 #ifdef MPP1
@@ -1205,16 +1200,16 @@ c
 
        if (icup.eq.1)then
          call cupara(j)
-       elseif(icup.eq.2)then
+       else if(icup.eq.2)then
          call cuparan(tten(1,1,j),qvten(1,1,j),j)
-       elseif(icup.eq.3) then
+       else if(icup.eq.3) then
          write(*,*) 'ICTP RegCM team thinks the Betts-Miller code'
      &            , ' is not ready for Regional Climate Run yet.'
          Stop 'at Betts-Miller option in tend.f'
          call bmpara(tten(1,1,j),qvten(1,1,j),j)
-       elseif(icup.eq.4) then
+       else if(icup.eq.4) then
          call cupemandrv(j)
-       endif
+       end if
 
        if(ipptls.eq.1) then
          call hadvQC(qcten(1,1,j),dx4,j,1)
@@ -1236,7 +1231,7 @@ c     qvten computation, do not use diffq for other purpose.
 
          call diffutQV(diffq(1,1,j),xkc(1,1,j),c203,j)
          call diffutQC(qcten(1,1,j),xkc(1,1,j),c203,j)
-       endif
+       end if
 c
 Cchem2 compute the tracers tendencies
        if(ichem .eq. 1) then 
@@ -1245,7 +1240,7 @@ Cchem2 compute the tracers tendencies
        end if 
 Cchem2_
 c
-      endif             !end if(j.ne.jlx) test
+      end if             !end if(j.ne.jlx) test
 c----------------------------------------------------------------------
 c*****compute the pbl fluxes:
 c     the diffusion and pbl tendencies of t and qv are stored in
@@ -1263,19 +1258,19 @@ c ****** calculate solar zenith angle
      &              .or. mod(ktau+1,ntrad).eq.0) then
         call zenitm(coszrs,ix,j)
         call slice(j)
-      endif
+      end if
 
 c ****** calculate albedo
       if( (jyear.eq.jyear0.and.ktau.eq.0) .or.
      &            mod(ktau+1,ntrad).eq.0 ) then
         call albedov(j,iemiss)
-      endif
+      end if
 
 c ****** call ccm3 radiative transfer package
       if( (jyear.eq.jyear0.and.ktau.eq.0) .or. 
      &            mod(ktau+1,ntrad).eq.0 ) then
         call colmod3(j)
-      endif
+      end if
 
 c ****** call vector bats for surface physics calculations
       if( (jyear.eq.jyear0.and.ktau.eq.0) .or. 
@@ -1288,13 +1283,13 @@ c ****** call vector bats for surface physics calculations
         end if
 c ****** accumulate quantities for energy and moisture budgets
         call interf(2,j)
-      endif
+      end if
 
  1079 continue
       if(icup.eq.1) then
         dto2=dt/2
         call htdiff(dto2,dxsq,akht1)
-      endif
+      end if
 c     call medium resolution pbl
       if (ibltyp.eq.1) then
         call holtbl
@@ -1359,7 +1354,7 @@ c
          do 560 i=2,ilxm
           qvten(i,k,j)=qvten(i,k,j)+diffq(i,k,j)
 560      continue
-        endif
+        end if
 c
 c..tq.apply the nudging boundary conditions:
 c
@@ -1371,7 +1366,7 @@ c
      &             ,c203,j,iboudy)
          call nudgeQV(ispgx,fnudge,gnudge,xtm1,qvten(1,1,j)
      &             ,c203,j,iboudy)
-        endif
+        end if
 c
 c..tq.forecast t, qv, and qc at tau+1:
 c
@@ -1399,9 +1394,9 @@ c
         do 600 i=2,ilxm
          chic(i,k,j,itr)=chib(i,k,j,itr)+dt*chiten(i,k,j,itr)
 600     continue
-        endif
+        end if
 Cchem2_         
-       endif        !end if(j.ne.jlx),else test
+       end if        !end if(j.ne.jlx),else test
  1081 continue
 #ifdef MPP1
       do 1082 j=1,jendx
@@ -1417,17 +1412,17 @@ Cchem2_
           ttld(i,k,j)=td(i,k,j)-psa(i,j)*t00pg
      &                          *((a(k)*psa(i,j)+ptop)/p00pg)**pgfaa1
 70       continue
-        elseif(ipgf.eq.0)then
+        else if(ipgf.eq.0)then
          do 71 k=1,kx
          do 71 i=1,ilx
           td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
 71       continue
-        endif
+        end if
 c
 #ifdef MPP1
-       elseif (myid.eq.nproc-1 .and. j.eq. jendx) then
+       else if (myid.eq.nproc-1 .and. j.eq. jendx) then
 #else
-       elseif (j .eq. jlx) then
+       else if (j .eq. jlx) then
 #endif
 c
 c-----set td and psd at j=jlx equal to ta and psa:
@@ -1439,12 +1434,12 @@ c
           ttld(i,k,j)=td(i,k,j)-psa(i,j)*t00pg*((a(k)*psa(i,j)+
      1       ptop)/p00pg)**pgfaa1
 720      continue
-        elseif(ipgf.eq.0)then
+        else if(ipgf.eq.0)then
          do 721 k=1,kx
          do 721 i=1,ilx
           td(i,k,j)=ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
 721      continue
-        endif
+        end if
 c
        else
 c
@@ -1470,7 +1465,7 @@ c
      1      psa(ilx,j)+ptop)/p00pg)**pgfaa1
 670      continue
 c
-        elseif(ipgf.eq.0)then
+        else if(ipgf.eq.0)then
 c
          do 661 k=1,kx
          do 661 i=2,ilxm
@@ -1484,9 +1479,9 @@ c
           td(ilx,k,j)=ta(ilx,k,j)*(1.+ep1*(qv(ilx,k,j)))
 671      continue
 c
-        endif  ! ipgf if block
+        end if  ! ipgf if block
 
-       endif        !end if(j.ne.jlx),else test
+       end if        !end if(j.ne.jlx),else test
  1082 continue
 c----------------------------------------------------------------------
 c**uv*compute the u and v tendencies:
@@ -1554,7 +1549,7 @@ c
      1    *a(k)+ptop)- dlog(0.5*(psd(i-1,j-1)+psd(i-1,j))*a(k)+ptop))
      1    /(dx*msfd(i,j))
 860     continue
-       elseif(ipgf.eq.0)then
+       else if(ipgf.eq.0)then
         do 861 k=1,kx
         do 861 i=2,ilx
          psasum=psd(i,j)+psd(i-1,j)+psd(i,j-1)+psd(i-1,j-1)
@@ -1571,7 +1566,7 @@ c
      1    *a(k)+ptop)- dlog(0.5*(psd(i-1,j-1)+psd(i-1,j))*a(k)+ptop))
      1    /(dx*msfd(i,j))
 861     continue
-       endif
+       end if
 1086  continue
 #ifdef MPP1
       do 1087 j=1,jendx
@@ -1603,7 +1598,7 @@ c
      a        *dlog((a(lev)+ptop/psd(i,j))/(a(lev+1)+ptop/psd(i,j)))
   890   continue
 
-       elseif(ipgf.eq.0)then
+       else if(ipgf.eq.0)then
 
         do 871 i=1,ilx
          tv = (td(i,kx,j)/psd(i,j))
@@ -1623,7 +1618,7 @@ c
      a        *dlog((a(lev)+ptop/psd(i,j))/(a(lev+1)+ptop/psd(i,j)))
   891   continue
 
-       endif  ! ipgf if block
+       end if  ! ipgf if block
 1087  continue
 #ifdef MPP1
        call MPI_SENDRECV(phi(1,1,jxp),ix*kx,MPI_DOUBLE_PRECISION,
@@ -1666,7 +1661,7 @@ c
        if (iboudy .eq. 4) then
         call sponge_U(ispgd,wgtd,uten(1,1,j),j)
         call sponge_V(ispgd,wgtd,vten(1,1,j),j)
-       endif
+       end if
 c
 c..uv.apply the nudging boundary conditions:
 c
@@ -1675,7 +1670,7 @@ c
      &              ,c203,j,iboudy)
         call nudge_V(ispgd,fnudge,gnudge,xtm1,vten(1,1,j)
      &            ,c203,j,iboudy)
-       endif
+       end if
 c
 c..uv.add the diffusion and pbl tendencies to uten and vten:
 c
@@ -1748,7 +1743,7 @@ Cchem2
           chias=chic(i,k,j,itr)
           chia(i,k,j,itr)=dmax1(chias,0.d0)
 1045     continue
-         endif         
+         end if         
 Cchem2_
 1060    continue
         do i=2,ilxm
@@ -1768,7 +1763,7 @@ Cchem2_
               enddo
             enddo
           enddo
-       endif
+       end if
 c
 c----------------------------------------------------------------------
 c-----increment elapsed forecast time:
@@ -1787,15 +1782,15 @@ c
             lhour = mod(ldatez,100)
          else
             ldatez = ldatez + IBDYFRQ
-         endif
+         end if
          NNNNNN = NNNNNN + 1
          xtime  = 0.0
          if(mod(ldatez,1000000).eq.10100.and.xtime.lt.0.0001) then
            jyear=ldatez/1000000
            ktau = 0
            ntime= 0
-         endif
-      endif
+         end if
+      end if
       if (.not.(jyear.eq.jyear0.and.ktau.eq.0)) dt=dt2
 c
 c-----compute the amounts advected through the lateral boundaries:
@@ -1825,7 +1820,7 @@ Cchem2_
       if(ichem.eq.1 .and. ichcumtra .eq. 1) then
 c       do cumulus transport of tracers      
         call cumtran
-      endif
+      end if
  
 Cchem2_
 
@@ -1872,9 +1867,9 @@ c
      a       ' :  1st, 2nd time deriv of ps = ',
      a       2e12.5,',  no. of points w/convection = ',i7)
 #ifdef MPP1
-       endif
+       end if
 #endif
-      endif
+      end if
 c
 c----------------------------------------------------------------------
 c
@@ -1889,7 +1884,7 @@ c
 #else
        write(*,*) ' dectim = ',dectim
 #endif
-      endif
+      end if
 c
       return
       end

@@ -133,18 +133,15 @@ c           CCM3.6.6 code introduced by Xunqiang Bi, 2000             c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/date.cb"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
+
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 c     real(kind=8)  starttime,endtime
       integer NCPU
       integer ierr
@@ -167,7 +164,7 @@ c**********************************************************************
         write(*,*) 'The number of CPU is not well set'
         write(*,*) 'NCPU = ', NCPU, '    nproc =',nproc
         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-      endif
+      end if
       print *,"process",myid,"of",nproc
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 c     starttime= MPI_WTIME()
@@ -175,22 +172,22 @@ c     starttime= MPI_WTIME()
         iwest=myid-1
       else
         iwest=MPI_PROC_NULL
-      endif
+      end if
       if (myid .lt. nproc-1) then
         ieast=myid+1
       else
         ieast=MPI_PROC_NULL
-      endif
+      end if
       if(jxp.lt.2) then
         write(*,*) 'The number of jxp must be greater than 1'
         write(*,*) 'jxp = ', jxp, '   mjx = ',mjx
         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-      endif
+      end if
       if(jxp*nproc .ne. mjx) then
         print *, 'mjx should be divided by nproc'
         print *, 'mjx = ',mjx, '   nproc = ',nproc
         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-      endif
+      end if
       jbegin = 1
       jendl = jxp
       jendx = jxp
@@ -199,7 +196,7 @@ c     starttime= MPI_WTIME()
       if (myid .eq. nproc-1) then
         jendx = jxp-1
         jendm = jxp-2
-      endif
+      end if
 #endif
 c
 c-----set up parameters:
@@ -235,7 +232,7 @@ c-----read in boundary conditions:
 c
       if (NNNNNN .gt. NNBASE) then
        call bdyin
-      endif
+      end if
 c
 c.....refined start:
 c
@@ -251,11 +248,11 @@ c
      1          ' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,
      2          ' ktau = ',i7,' in year ',i4)
 #ifdef MPP1
-         endif
+         end if
 #endif
-        endif
-       endif
-      endif
+        end if
+       end if
+      end if
 c
       call tend(iexec)
 c
@@ -275,7 +272,7 @@ c     print*,nnnnnn,nnnend
 60    format(//' ***** restart file for next run is written at time
      1= ',f10.2,' minutes, ktau = ',i7,' in year ',i4)
 #ifdef MPP1
-      endif
+      end if
 #endif
 c
 c-----set length of next run (auto-restart option)
@@ -290,7 +287,7 @@ c     xchar = 't'
       call for_next
 
 #ifdef MPP1
-      endif
+      end if
 c     endtime = MPI_WTIME()
 c     print *,"The Program took  ",endtime-starttime," secondes"
       call MPI_FINALIZE(ierr)

@@ -40,7 +40,7 @@ c
       if ((wh(k,2).eq.0.).and.(wh(k,1).gt.hmax)) then
          hmax=wh(k,1)
          kmax=k
-      endif
+      end if
     2 continue
 c
       hbar(l)=hmax

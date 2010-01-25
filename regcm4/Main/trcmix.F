@@ -33,12 +33,7 @@ c $Author: ccm2 $
 c
       implicit none
 c
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/parrad.cb"
 #     include "include/tracer.cb"
 C

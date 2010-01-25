@@ -40,14 +40,9 @@ c  ***********************************************************
 
       implicit none
 
+#     include "parameter.inc"
 #ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-#ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/trachem.cb"
 #     include "include/dust.cb"
@@ -204,19 +199,19 @@ cremember for the moment one texture type per grid cell !
                   XN = RHOP*(2.0/3.0)*(DP(NS)/2.0)
                   DELDP = 0.0460517018598807  ! DP(2)-DP(1) SS(nsoil)
                   SS(NS) = SS(NS)+(XM*DELDP/XN)
-                END DO
+                end do
                   STOTAL=STOTAL+SS(NS)
-                END DO
+                end do
 
                 DO NS=1,NSOIL
                   IF (STOTAL .GT. 0.0) THEN
                     SREL(I,NS,NT)=SS(NS)/STOTAL !srel(ix,nsoil,nats)
-                  END IF
-                END DO
-              END IF
-            END DO                    ! soil types
-          END IF
-        END DO
+                  end if
+                end do
+              end if
+            end do                    ! soil types
+          end if
+        end do
          
         do i=2,ilxm
           itex  =   nint( dustsotex(i,j)) 

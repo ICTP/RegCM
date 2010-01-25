@@ -40,15 +40,10 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
 c
@@ -73,7 +68,7 @@ c
         jeb=jsls
       else
         jeb=jsls+1
-      endif
+      end if
       if(jeb.gt.jxp) jeb=mod(jeb,jxp)
       if(jeb.eq.0) jeb=jxp
 #endif
@@ -88,7 +83,7 @@ c.......north boundary:
         ften(ii)=wg(i)*ften(ii)+(1.-wg(i))*pnbt(i,j)
 10     continue
 c
-      elseif(jsls.le.ip)then
+      else if(jsls.le.ip)then
        ibeg = 2
        iend = ilx-1
        if (jsls .gt. 2) then
@@ -101,7 +96,7 @@ c........north boundary:
 30      continue
         ibeg = jsls
         iend = ix-jsls
-       endif
+       end if
 c
        if (jj .gt. ip) then
 c------west-boundary slice:
@@ -113,7 +108,7 @@ c------west-boundary slice:
          ften(i)=wg(jsls)*ften(i)+(1.-wg(jsls))*pwbt(i,jsls)
 #endif
 50      continue
-       elseif(jj.le.ip)then
+       else if(jj.le.ip)then
 c------east-boundary slice:
         do 70 i=ibeg,iend
 #ifdef MPP1
@@ -123,9 +118,9 @@ c------east-boundary slice:
          ften(i)=wg(jsls)*ften(i)+(1.-wg(jsls))*pebt(i,jsls)
 #endif
 70      continue
-       endif
+       end if
 c
-      endif
+      end if
       return
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -152,15 +147,10 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
 c
@@ -185,7 +175,7 @@ c
         jeb=jsls
       else
         jeb=jsls+1
-      endif
+      end if
       if(jeb.gt.jxp) jeb=mod(jeb,jxp)
       if(jeb.eq.0) jeb=jxp
 #endif
@@ -201,7 +191,7 @@ c.......north boundary:
         ften(ii,k)=wg(i)*ften(ii,k)+(1.-wg(i))*tnbt(i,k,j)
 10     continue
 c
-      elseif(jsls.le.ip)then
+      else if(jsls.le.ip)then
        ibeg = 2
        iend = ilx-1
        if (jsls .gt. 2) then
@@ -215,7 +205,7 @@ c........north boundary:
 30      continue
         ibeg = jsls
         iend = ix-jsls
-       endif
+       end if
 c
        if (jj .gt. ip) then
 c------west-boundary slice:
@@ -228,7 +218,7 @@ c------west-boundary slice:
          ften(i,k)=wg(jsls)*ften(i,k)+(1.-wg(jsls))*twbt(i,k,jsls)
 #endif
 50      continue
-       elseif(jj.le.ip)then
+       else if(jj.le.ip)then
 c------east-boundary slice:
         do 70 k=1,kx
         do 70 i=ibeg,iend
@@ -239,9 +229,9 @@ c------east-boundary slice:
          ften(i,k)=wg(jsls)*ften(i,k)+(1.-wg(jsls))*tebt(i,k,jsls)
 #endif
 70      continue
-       endif
+       end if
 c
-      endif
+      end if
       return
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -268,15 +258,10 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
 c
@@ -301,7 +286,7 @@ c
         jeb=jsls
       else
         jeb=jsls+1
-      endif
+      end if
       if(jeb.gt.jxp) jeb=mod(jeb,jxp)
       if(jeb.eq.0) jeb=jxp
 #endif
@@ -317,7 +302,7 @@ c.......north boundary:
         ften(ii,k)=wg(i)*ften(ii,k)+(1.-wg(i))*qnbt(i,k,j)
 10     continue
 c
-      elseif(jsls.le.ip)then
+      else if(jsls.le.ip)then
        ibeg = 2
        iend = ilx-1
        if (jsls .gt. 2) then
@@ -331,7 +316,7 @@ c........north boundary:
 30      continue
         ibeg = jsls
         iend = ix-jsls
-       endif
+       end if
 c
        if (jj .gt. ip) then
 c------west-boundary slice:
@@ -344,7 +329,7 @@ c------west-boundary slice:
          ften(i,k)=wg(jsls)*ften(i,k)+(1.-wg(jsls))*qwbt(i,k,jsls)
 #endif
 50      continue
-       elseif(jj.le.ip)then
+       else if(jj.le.ip)then
 c------east-boundary slice:
         do 70 k=1,kx
         do 70 i=ibeg,iend
@@ -355,9 +340,9 @@ c------east-boundary slice:
          ften(i,k)=wg(jsls)*ften(i,k)+(1.-wg(jsls))*qebt(i,k,jsls)
 #endif
 70      continue
-       endif
+       end if
 c
-      endif
+      end if
       return
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -384,15 +369,10 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jew
 #endif
 c
@@ -426,7 +406,7 @@ c.......north boundary:
         ften(ii,k)=wg(i)*ften(ii,k)+(1.-wg(i))*unbt(i,k,j)
 10     continue
 c
-      elseif(jsls.le.ip)then
+      else if(jsls.le.ip)then
        ibeg = 2
        iend = ix-1
        if (jsls .gt. 2) then
@@ -440,7 +420,7 @@ c........north boundary:
 30      continue
         ibeg = jsls
         iend = ix-jsls+1
-       endif
+       end if
 c
        if (jj .gt. ip) then
 c------west-boundary slice:
@@ -453,7 +433,7 @@ c------west-boundary slice:
          ften(i,k)=wg(jsls)*ften(i,k)+(1.-wg(jsls))*uwbt(i,k,jsls)
 #endif
 50      continue
-       elseif(jj.le.ip)then
+       else if(jj.le.ip)then
 c------east-boundary slice:
         do 70 k=1,kx
         do 70 i=ibeg,iend
@@ -464,9 +444,9 @@ c------east-boundary slice:
          ften(i,k)=wg(jsls)*ften(i,k)+(1.-wg(jsls))*uebt(i,k,jsls)
 #endif
 70      continue
-       endif
+       end if
 c
-      endif
+      end if
       return
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -493,15 +473,10 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jew
 #endif
 c
@@ -535,7 +510,7 @@ c.......north boundary:
         ften(ii,k)=wg(i)*ften(ii,k)+(1.-wg(i))*vnbt(i,k,j)
 10     continue
 c
-      elseif(jsls.le.ip)then
+      else if(jsls.le.ip)then
        ibeg = 2
        iend = ix-1
        if (jsls .gt. 2) then
@@ -549,7 +524,7 @@ c........north boundary:
 30      continue
         ibeg = jsls
         iend = ix-jsls+1
-       endif
+       end if
 c
        if (jj .gt. ip) then
 c------west-boundary slice:
@@ -562,7 +537,7 @@ c------west-boundary slice:
          ften(i,k)=wg(jsls)*ften(i,k)+(1.-wg(jsls))*vwbt(i,k,jsls)
 #endif
 50      continue
-       elseif(jj.le.ip)then
+       else if(jj.le.ip)then
 c------east-boundary slice:
         do 70 k=1,kx
         do 70 i=ibeg,iend
@@ -573,8 +548,8 @@ c------east-boundary slice:
          ften(i,k)=wg(jsls)*ften(i,k)+(1.-wg(jsls))*vebt(i,k,jsls)
 #endif
 70      continue
-       endif
+       end if
 c
-      endif
+      end if
       return
       end

@@ -127,7 +127,7 @@ c subbbin
 
       DO N=1,ISIZE
         AVESIZE(N) = (AEROSIZE(1,N)+AEROSIZE(2,N))/2.0
-      END DO
+      end do
 
       DELT=1200.0
       ADT2=2.0*DELT
@@ -176,9 +176,9 @@ c    PDEPVSUB(I,L,N) ' sellting dep. velocity = '
 C  ********************************************************
 
              PDEPVSUB(I,L,N) =TAUREL(I,L,N)*G
-           END DO
-         END DO
-      END DO
+           end do
+         end do
+      end do
 c======================================================================
 
 c======================================================================
@@ -277,7 +277,7 @@ C     **************************************************************
             ELSE
               PSIU = -4.7*ZDL
               PSIT = PSIU
-            ENDIF
+            end if
             Z0WATER = 0.000002 *WW**2.5
 C
             USTAR(I,J)= KRM*WW/(DLOG(Z10/Z0WATER) - PSIU)
@@ -318,7 +318,7 @@ C
             ELSE
               FM = 1./((1. + 4.7*RIB)**2)
               FH = FM
-            ENDIF
+            end if
 C
             USTARSQ = ASQ*WW**2*FM
             UTSTAR = ASQ*WW*DTEMP*FH/0.74
@@ -326,7 +326,7 @@ C
             THSTAR = UTSTAR/USTAR(I,J)
 C
             MOL = TBAR*USTARSQ/(0.4*9.8*THSTAR)
-          ENDIF
+          end if
 
           KUI=1.0/(KRM*USTAR(I,J))
 
@@ -343,11 +343,11 @@ C         Z=0.36788*(DELZ)+ZR
           ELSE
             RA(I,J)=KUI*0.74*(DLOG(Z/ZZ0(I))-
      &                         2.0*DLOG((1+SQRT(1-9.*ZL))*0.5))
-          ENDIF
+          end if
           RA(I,J)=DMAX1(RA(I,J),0.99D0)
           RA(I,J)=DMIN1(RA(I,J),999.9D0)
-        END DO
-      END DO 
+        end do
+      end do 
 c======================================================================
 
 c======================================================================
@@ -418,11 +418,11 @@ c               EIM=(ST/(ST+AEST(K)))**2
                 EIN = 0.0
 c               IF (ARYE(K) .GT. 0.0001) THEN
 c                  EIN = (1000.0*2.0*AVESIZE(N)/ARYE(K))**1.5
-c               END IF
+c               end if
 
                 IF (ARYE(KCOV) .GT. 0.0001) THEN
                   EIN = (1000.0*2.0*AVESIZE(N)/ARYE(KCOV))**1.5
-                END IF
+                end if
 
                 EIN = DMIN1(EIN,0.5D0)
 
@@ -453,7 +453,7 @@ C               RS= 1.0/USTAR(I,K)/(EB+EIM+EIN)/R1
                 RS(I,K,N) = 1.0/3.0/USTAR(I,K)/(EB+EIM+EIN)/R1
  200          CONTINUE                                    
  400        CONTINUE
-          END IF
+          end if
  666    CONTINUE
  555  CONTINUE
 c======================================================================
@@ -473,7 +473,7 @@ c modify the surface layer
 13        CONTINUE
 12      CONTINUE      
 
-      END DO  ! end NSIZE loop
+      end do  ! end NSIZE loop
 
 c average deposition velocities on bin 
       do k = 1,nbin
@@ -500,7 +500,7 @@ c average deposition velocities on bin
             PDEPV(i,lev,k) = PDEPV(i,lev,k) / tot
           enddo
           enddo
-        endif
+        end if
       end do
 
       return

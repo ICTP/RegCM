@@ -104,7 +104,7 @@ C     initial values of u* and convective velocity
         um=max(u,0.1d0)
       else
         um=sqrt(u*u+wc*wc)
-      endif
+      end if
 
 C     loop to obtain initial and good ustar and zo
       do i = 1, 5
@@ -119,7 +119,7 @@ C     loop to obtain initial and good ustar and zo
       else                      !unstable
         zeta=rb*dlog(hu/zo)
         zeta = dmax1(-100.d0,dmin1(zeta,-1.d-6))
-      endif
+      end if
       obu=hu/zeta
 
 C     main iterations (2-10 iterations would be fine)
@@ -139,7 +139,7 @@ C     wind
         else                   !  1 < zeta, phi=5+zeta
           ustar=ak*um/(dlog(obu/zo)+5.-5.*zo/obu+
      $           (5.*dlog(zeta)+zeta-1.))
-        endif
+        end if
 C     temperature
         zeta=ht/obu
         zetat=0.465
@@ -154,7 +154,7 @@ C     temperature
         else                   !  1 < zeta, phi=5+zeta
           tstar=ak*dth/(dlog(obu/zot)+5.-5.*zot/obu+
      $           (5.*dlog(zeta)+zeta-1.))
-        endif
+        end if
 C     humidity
         zeta=hq/obu
         zetat=0.465
@@ -169,7 +169,7 @@ C     humidity
         else                   !  1 < zeta, phi=5+zeta
           qstar=ak*dqh/(dlog(obu/zoq)+5.-5.*zoq/obu+
      $           (5.*dlog(zeta)+zeta-1.))
-        endif
+        end if
         thvstar=tstar*(1.+0.61*q)+0.61*th*qstar
 C
         zeta=ak*grav*thvstar*hu/(ustar**2*thv)
@@ -180,7 +180,7 @@ C
           wc=zbeta*(-grav*ustar*thvstar*zi/thv)**0.333
           um=sqrt(u*u+wc*wc)
           zeta = dmax1(-100.d0,min(zeta,-1.d-6))
-        endif
+        end if
         obu=hu/zeta
       enddo
 C
@@ -198,7 +198,7 @@ C     10-meter wind (without w_* part)
      $      psi(1,hu/obu)))
       else
         u10=u+(ustar/ak)*(dlog(z10/hu)+5.*zeta-5.*hu/obu)
-      endif
+      end if
       return
       end subroutine zengocn
 
@@ -219,7 +219,7 @@ C stability function for rb < 0
      $      dlog((1.+chik*chik)*0.5)-2.*atan(chik)+2.*atan(1.)
       else
         psi = 2.*dlog((1.+chik*chik)*0.5)
-      endif
+      end if
       return
       end function psi
 

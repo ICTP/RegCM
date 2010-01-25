@@ -84,7 +84,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ELSE
           tlucua(it) = c2es*EXP(MERGE(c3les,  c3ies,  lo)*(tt-tmelt)
      &             *  (1./(tt-MERGE(c4les,  c4ies,  lo))))
-        END IF
+        end if
         tlucub(it)  =          MERGE(c5alvcp,c5alscp,lo)
      &            *  (1./(tt-MERGE(c4les,  c4ies,  lo)))**2
         tlucuc(it)  =          MERGE(alvdcp, alsdcp, lo)
@@ -92,6 +92,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         tlucuaw(it) = c2es*EXP(c3les*(tt-tmelt)*(1./(tt-c4les)))
 
         tt = tt + 0.001
-      END DO
+      end do
 
       END SUBROUTINE set_lookup_tables

@@ -42,12 +42,7 @@ c
       implicit none
 C-----------------------------------------------------------------------
 c
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 c
 #     include "include/parrad.cb"
 c

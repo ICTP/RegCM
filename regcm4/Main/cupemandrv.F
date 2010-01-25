@@ -24,12 +24,7 @@ c **** Driver for Emanuel Convection Scheme ****
 c **********************************************
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -126,7 +121,7 @@ c **** Precipitation
             rainc(i,j) = rainc(i,j) + fppt*uconv ! mm
             pptc(i,j) = pptc(i,j) + fppt*aprdiv  ! mm/s
             iconj=iconj+1
-          endif
+          end if
 
         end if
 

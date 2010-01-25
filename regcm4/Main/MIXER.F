@@ -43,7 +43,7 @@ c     Local variables
               vol = surf
             else
               vol = dz
-            endif
+            end if
             avet=avet+T(m,2)*vol
             avev=avev+vol
           end do
@@ -54,7 +54,7 @@ c     Local variables
             dnsty(k2)=1000.0*(1.0-1.9549E-05*(dabs((T(k2,2)+273.15)
      +               -277.0))**1.68)
           end do
-        endif
+        end if
 
       end do ! K loop 
 

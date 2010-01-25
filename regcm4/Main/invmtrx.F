@@ -20,7 +20,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine invmtrx(a, na, v, nv, n, d, ip, ier, work)
       implicit none
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
 #endif
       integer na, nv, n, ier, info, ip(n)
@@ -41,7 +41,7 @@ c
 #else
         stop
 #endif
-      endif
+      end if
 c
       do 10 j=1,n
       do 10 i=1,n
@@ -56,7 +56,7 @@ c
 #else
         stop
 #endif
-      endif
+      end if
       job = 11
       call sgedi(v,n,n,ip,d,work,job)
       ier = info

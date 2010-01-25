@@ -21,15 +21,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine htdiff(dto2,dxsq,akht1)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/pmoist.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
 #endif
@@ -65,12 +60,12 @@ c
             jm1=max0(j-1,2)
           else
             jm1=j-1
-          endif
+          end if
           if (myid .eq. nproc-1) then
             jp1=min0(j+1,jxp-2)
           else
             jp1=j+1
-          endif
+          end if
 #else
         do j=2,jx-2
           jm1=max0(j-1,2)
@@ -109,12 +104,12 @@ c
             jm1=max0(j-1,2)
           else
             jm1=j-1
-          endif
+          end if
           if (myid .eq. nproc-1) then
             jp1=min0(j+1,jxp-2)
           else
             jp1=j+1
-          endif
+          end if
 #else
         do j=2,jx-2
           jm1=max0(j-1,2)

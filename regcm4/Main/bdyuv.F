@@ -37,12 +37,8 @@ c     dtb    : elapsed time from the initial boundary values.         c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 #     include "include/bdycod.cb"
@@ -50,7 +46,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/main.cb"
 
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  var1snd(kx,8),var1rcv(kx,8)
@@ -92,10 +88,10 @@ c
 #endif
         pdota(i,1)=0.5*(psa(i,1)+psa(i-1,1))
 #ifdef MPP1
-      endif
+      end if
       if (myid .eq. nproc-1) then
         pdota(i,jendl)=0.5*(psa(i,jendx)+psa(i-1,jendx))
-      endif
+      end if
 #else
         pdota(i,jx)=0.5*(psa(i,jlx)+psa(i-1,jlx))
 #endif
@@ -120,11 +116,11 @@ c
       pdota(1,1)=psa(1,1)
       pdota(ix,1)=psa(ilx,1)
 #ifdef MPP1
-      endif
+      end if
       if (myid .eq. nproc-1) then
         pdota(1,jendl)=psa(1,jendx)
         pdota(ix,jendl)=psa(ilx,jendx)
-      endif
+      end if
 #else
       pdota(1,jx)=psa(1,jlx)
       pdota(ix,jx)=psa(ilx,jlx)
@@ -144,11 +140,11 @@ c
         uj2(i,k)=ua(i,k,2)/pdota(i,2)
         vj2(i,k)=va(i,k,2)/pdota(i,2)
 #ifdef MPP1
-        endif
+        end if
         if (myid .eq. nproc-1 ) then
           ujlx(i,k)=ua(i,k,jendx)/pdota(i,jendx)
           vjlx(i,k)=va(i,k,jendx)/pdota(i,jendx)
-        endif
+        end if
 #else
         ujlx(i,k)=ua(i,k,jlx)/pdota(i,jlx)
         vjlx(i,k)=va(i,k,jlx)/pdota(i,jlx)
@@ -188,11 +184,11 @@ c
          uj1(i,k)=uwb(i,k,1)/pdota(i,1)
          vj1(i,k)=vwb(i,k,1)/pdota(i,1)
 #ifdef MPP1
-         endif
+         end if
          if (myid .eq. nproc-1) then
            ujl(i,k)=ueb(i,k,1)/pdota(i,jendl)
            vjl(i,k)=veb(i,k,1)/pdota(i,jendl)
-         endif
+         end if
 #else
          ujl(i,k)=ueb(i,k,1)/pdota(i,jx)
          vjl(i,k)=veb(i,k,1)/pdota(i,jx)
@@ -214,7 +210,7 @@ c
 60     continue
        go to 110
 c
-      endif
+      end if
 c
 c-----time-dependent boundary conditions:
 c
@@ -229,11 +225,11 @@ c
         uj1(i,k)=(uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
         vj1(i,k)=(vwb(i,k,1)+dtb*vwbt(i,k,1))/pdota(i,1)
 #ifdef MPP1
-        endif
+        end if
         if (myid .eq. nproc-1) then
           ujl(i,k)=(ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jendl)
           vjl(i,k)=(veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jendl)
-        endif
+        end if
 #else
         ujl(i,k)=(ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jx)
         vjl(i,k)=(veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jx)
@@ -271,7 +267,7 @@ c
        vi2(k,1) = vj1(2,k)
        vilx(k,1) = vj1(ilx,k)
 #ifdef MPP1
-       endif
+       end if
        if (myid .eq. nproc-1) then
        ujlx(1,k) = ui1(k,jendx)
        ujlx(ix,k) = uil(k,jendx)
@@ -281,7 +277,7 @@ c
        vjlx(ix,k) = vil(k,jendx)
        vi2(k,jendl) = vjl(2,k)
        vilx(k,jendl) = vjl(ilx,k)
-       endif
+       end if
 #else
        ujlx(1,k) = ui1(k,jlx)
        ujlx(ix,k) = uil(k,jlx)
@@ -305,7 +301,7 @@ c
           var1snd(k,7) = uil(k,jxp)
           var1snd(k,8) = vil(k,jxp)
         enddo
-      endif
+      end if
       call MPI_SENDRECV(var1snd(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          ieast,1,var1rcv(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          iwest,1,MPI_COMM_WORLD,status,ierr)
@@ -320,7 +316,7 @@ c
            uil(k,0) = var1rcv(k,7)
            vil(k,0) = var1rcv(k,8)
         enddo
-      endif
+      end if
 C
       if(myid.ne.0) then
         do k=1,kx
@@ -333,7 +329,7 @@ C
           var1snd(k,7) = uil(k,1)
           var1snd(k,8) = vil(k,1)
         enddo
-      endif
+      end if
       call MPI_SENDRECV(var1snd(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          iwest,2,var1rcv(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          ieast,2,MPI_COMM_WORLD,status,ierr)
@@ -348,7 +344,7 @@ C
            uil(k,jxp+1) = var1rcv(k,7)
            vil(k,jxp+1) = var1rcv(k,8)
         enddo
-      endif
+      end if
 #endif
 c
       return

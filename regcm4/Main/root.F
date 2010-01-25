@@ -45,12 +45,7 @@ C     efpr = the relative contribution of upper soil layer to
 C     evapotranspiration - need soil moist. budget (subrout water)
 C
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       real(kind=8)  etrc

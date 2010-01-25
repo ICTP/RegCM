@@ -31,12 +31,7 @@ c        the total mass.                                              c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -44,7 +39,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/pmoist.cb"
 #     include "include/bats.cb2"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #     include "include/io.cb"
       real(kind=8)  psa(ix,jxp),psb(ix,jxp)
       real(kind=8)  ta(ix,kx,jxp), tb(ix,kx,jxp)
@@ -81,7 +76,7 @@ c     v8 svp formula
            e1=svp1*dexp(svp2*(tta-273.15)/(tta-svp3))
         else
            e1=.611*dexp(22.514-6.15e3/tta)
-        endif
+        end if
         es1=ep2*e1/(psx-e1)
         dqv=qvavg-es1*conf
         r1=1./(1.+xlv*xlv*es1/(rv*cp*tavg*tavg))
@@ -96,7 +91,7 @@ c
          scr(i,k)=scr(i,k)
         else
          scr(i,k)=-qcavg
-        endif
+        end if
         qcas=qca(i,k,j)+scr(i,k)*psa(i,j)
         qcbs=qcb(i,k,j)+scr(i,k)*psb(i,j)
         qca(i,k,j)=dmax1(qcas,0.d0)

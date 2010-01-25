@@ -22,12 +22,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c ******    write bats fields to unit iutbat
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/iunits.cb"
@@ -59,7 +54,7 @@ c ****** check if at desired output time for bats variables
 #else
           write(iutbat,rec=nrcbat)((fbat(j,i,n),j=1,jx-2),i=1,ix-2)
 #endif
-        elseif (iotyp.eq.2) then
+        else if (iotyp.eq.2) then
 #ifdef MPP1
           write(iutbat) ((fbat_io(j,i,n),j=1,mjx-2),i=1,ix-2)
 #else

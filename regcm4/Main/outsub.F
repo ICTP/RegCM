@@ -22,12 +22,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c ******    write bats fields to unit iutsub
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -67,7 +62,7 @@ c ****** check if at desired output time for bats variables
           call reorder(fsub_io(1,1,1,n),v2b,mjx-2,ix-2,NSG)      
           write(iutsub) v2b
         enddo
-      endif
+      end if
 #else
       if (iotyp.eq.1) then
         nrcsub=nrcsub+1
@@ -118,7 +113,7 @@ c ****** check if at desired output time for bats variables
         nrcsub=nrcsub+1
         call reorder(ps_s,v2b,jx-2,ix-2,NSG)
         write(iutsub,rec=nrcsub) v2b
-      elseif (iotyp.eq.2) then
+      else if (iotyp.eq.2) then
         write(iutsub) idatex
         call reorder(u10m_s,v2b,jx-2,ix-2,NSG)
         write(iutsub) v2b

@@ -25,12 +25,7 @@ c     dimensional and non-dimensional sensible heat conductances
 c               for canopy and soil flux calculations
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
       real(kind=8)  a,b
       common/ab/ a(NNSG,nbmax), b(NNSG,nbmax)
@@ -64,8 +59,8 @@ c
          wtgl(n,np) = wtl0(n,np) +  wtg0(n,np)
          wta0(n,np) = 1. - wtgl(n,np)
          wtga(n,np) = wta0(n,np) + wtg0(n,np)
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
 c

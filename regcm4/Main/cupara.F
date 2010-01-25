@@ -31,12 +31,7 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -48,7 +43,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/bats.cb2"
 #     include "include/trachem.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 
 c
@@ -98,7 +93,7 @@ c  before do 100 put
          icumtop(i,j) = 0
          icumbot(i,j) = 0
       enddo
-      endif
+      end if
 Cchem2__
 c
 c-----compute the moisture convergence in a column:
@@ -135,7 +130,7 @@ c
          tmax = ttp
          qmax = q
          pmax = psg
-        endif
+        end if
 210    continue
 c
 c--2--compute lcl, get the sigma and p of lcl
@@ -216,7 +211,7 @@ c
      &          '  & will be set to closest standard.')
         if (kbase .lt. 5) kbase = 5
         if (ktop .gt. kbase-3) ktop = kbase-3
-       endif
+       end if
 c
 c.....convection exist, compute convective flux of water vapor and
 c     latent heating
@@ -251,7 +246,7 @@ c
        if (sum .le. 0.0) then
         c301=0.0
         sum=1.0
-       endif
+       end if
        do 50 k=ktop,kx
         qwght(k)=qwght(k)/sum
 50     continue
@@ -276,7 +271,7 @@ c
          cldlwc(i,k)=cllwcv
          cldfra(i,k)=1.-(1.-clfrcv)**akclth
 65      continue
-       endif
+       end if
 c.....the unit for rainfall is mm.
        prainx=(1.-c301)*sca*dtmin*60000./g
        rainc(i,j)=rainc(i,j)+prainx
@@ -290,7 +285,7 @@ Cchem2
 c  before go to 100 put
          icumtop(i,j) = ktop
          icumbot(i,j) = kbaseb
-       endif
+       end if
 Cchem2_
 
        go to 100
@@ -304,7 +299,7 @@ c
          tmp3(i,k)=0.0
         else
          tmp3(i,k)=qva(i,k,j)*(qva(i,k-1,j)/qva(i,k,j))**qcon(k)
-        endif
+        end if
 80     continue
        qvten(i,1,j)=qvten(i,1,j)-qdot(i,2,j)*tmp3(i,2)/dsigma(1)
        do 90 k=2,kxm

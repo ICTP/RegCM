@@ -21,12 +21,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       implicit none
 
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -39,7 +34,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/bats.cb2"
 #     include "include/bats.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 
       integer i, j, k, n, kk, idx, idxp1, jdx, jdxp1
@@ -59,7 +54,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
           do n=1,ntr
             chib3d(i,k,j,n) = chib(i,k,j,n)/psb(i,j)
           enddo
-        endif
+        end if
       end do
       end do
       end do
@@ -155,7 +150,7 @@ c-----Calculate the relative humidity and air density
      &                         /(tb3d(i,k,j)-svp3))
           else
             satvp=.611*1.e3*dexp(22.514-6.15e3/tb3d(i,k,j))
-          endif
+          end if
           qsb3d(i,k,j)=ep2*satvp/(pres-satvp)
           rh=0.
           if (qsb3d(i,k,j).gt.0.) rh=qvb3d(i,k,j)/qsb3d(i,k,j)

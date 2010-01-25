@@ -42,7 +42,7 @@ c****                  in accordance with iflg.
 c
       implicit none
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
 #endif
       integer lchar,ioff,iflg
@@ -61,7 +61,7 @@ c
 c
       if (iflg.eq.0) then
        ifill = iblnk
-      elseif (iflg.eq.1) then
+      else if (iflg.eq.1) then
        ifill = null
       else
        write(*,*) ' iflg in lshfch out of range'
@@ -71,7 +71,7 @@ c
 #else
        stop
 #endif
-      endif
+      end if
 c
       do 20 i=ipc,lchar
        ichar(i:i) = char(ifill)

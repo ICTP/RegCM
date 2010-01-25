@@ -29,14 +29,9 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j
+#     include "parameter.inc"
 #ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-#ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/param1.cb"
 #     include "include/param2.cb"
@@ -112,7 +107,7 @@ c
         do k=icumtop(i,j),kx
           fracum(i,k)= cldfra(i,k) - fracloud(i,k)         
         end do
-       endif
+       end if
       end do
 
 
@@ -291,15 +286,15 @@ c and accounted for in the term  wetrem(iso4)
                 wetrem(iso4) =
      &             (fracloud(i,k)*chtrsol(iso4)*chib(i,k,j,iso4)-rxs11)
      &                       * (dexp(-remrat(i,k)*dt) - 1.)
-              endif
-            endif
+              end if
+            end if
 
 c Below cloud scavenging only for SO2
 
             if(rembc(i,k).gt.0.) then
               wetrem(iso2) = fracloud(i,k)*chtrsol(iso2)*concmin(i,k)
      &                     *(dexp(-rembc(i,k)*dt) - 1.)
-            endif
+            end if
 
 c Tendancies large scale cloud 
             chiten(i,k,j,iso2)=chiten(i,k,j,iso2)
@@ -353,10 +348,10 @@ c chemical aquesous conversion diagnostic
                 rxsaq2(i,k,j,iso4) = rxsaq2(i,k,j,iso4) - rxs21/2.
 
   290         continue
-            endif
+            end if
   300     continue
 
-        END IF ! end of SOX chemistry
+        end if ! end of SOX chemistry
 
 c---------------------------------------
 c Other than sulfate CARBON AEROSOL, DUST  
@@ -404,7 +399,7 @@ c         remcum = 1.e-3
           end do
         end if 
 
-        END IF ! end wet removal DUST, CARBON
+        end if ! end wet removal DUST, CARBON
 
 c Conversion from hydrophobic to hydrophilic: Carbonaceopus species
 c time constant ( 1.15 day cooke et al.,1999)       
@@ -521,7 +516,7 @@ c saturation mixing ratio at 10m
      &                         /(temp10(i)-svp3))
             else
               satvp=.611*1.e3*dexp(22.514-6.15e3/temp10(i))
-            endif
+            end if
             pres10 = psurf(i) - 98
             qsat10  =ep2*satvp/(pres10-satvp)
 
@@ -577,7 +572,7 @@ c aborbed solar radiation ( for stb criteria)
 
          
           gfcall2 = .false.
-        END IF ! end dust flux and deposition calculated for bins
+        end if ! end dust flux and deposition calculated for bins
 c just calculated for the first case of itr = DUST (save time man)
 
         IF ( chtrname (itr) .eq. 'DUST') then 
@@ -622,7 +617,7 @@ c dignoctic for dry deposition
             remdrd(i,j,itr)=remdrd(i,j,itr) - settend(i,kx)* dt/2.
           end do 
 
-        END IF !( end calculation of dust tendancies)      
+        end if !( end calculation of dust tendancies)      
 
 CCCCC Source tendenciesCCCC
      

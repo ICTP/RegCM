@@ -30,12 +30,9 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 #ifdef MPP1
-      include 'regcm.param2'
-      include 'mpiregcm.h'
-#else
-      include 'regcm.param'
+#     include "mpiregcm.inc"
 #endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/diagnosis.cb"
 #     include "include/param2.cb"
@@ -70,14 +67,14 @@ c
      &             /(msfx(i,jendx)*msfx(i,jendx))
       enddo
       enddo
-      endif
+      end if
       if (myid .eq.0) then
       do k=1,kx
       do i=1,ilx
          workb(i,k)=(ua(i+1,k,1)+ua(i,k,1))/(msfx(i,1)*msfx(i,1))
       enddo
       enddo
-      endif
+      end if
       call MPI_BCAST(worka,ilx*kx,MPI_DOUBLE_PRECISION,nproc-1
      &              ,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(workb,ilx*kx,MPI_DOUBLE_PRECISION,0
@@ -118,7 +115,7 @@ c
      &  -(va01_g(k,j+1)+va01_g(k,j))/(msfx_io(1,j)*msfx_io(1,j)))/g
         enddo
         enddo
-      endif
+      end if
       call MPI_BCAST(tdadv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
       do k=1,kx
@@ -144,7 +141,7 @@ c
      &             /(msfx(i,jendx)*msfx(i,jendx))
       enddo
       enddo
-      endif
+      end if
       if (myid .eq.0) then
       do k=1,kx
       do i=1,ilx
@@ -152,7 +149,7 @@ c
      &             /(msfx(i,1)*msfx(i,1))
       enddo
       enddo
-      endif
+      end if
       call MPI_BCAST(worka,ilx*kx,MPI_DOUBLE_PRECISION,nproc-1
      &              ,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(workb,ilx*kx,MPI_DOUBLE_PRECISION,0
@@ -205,7 +202,7 @@ c
      &      (qva01_g(k,j)/psa01_g(j))/(msfx_io(1,j)*msfx_io(1,j))  )/g
         enddo
         enddo
-      endif
+      end if
       call MPI_BCAST(tqadv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
       do k=1,kx
@@ -231,7 +228,7 @@ c
      &             /(msfx(i,jendx)*msfx(i,jendx))
       enddo
       enddo
-      endif
+      end if
       if (myid .eq.0) then
       do k=1,kx
       do i=1,ilx
@@ -239,7 +236,7 @@ c
      &             /(msfx(i,1)*msfx(i,1))
       enddo
       enddo
-      endif
+      end if
       call MPI_BCAST(worka,ilx*kx,MPI_DOUBLE_PRECISION,nproc-1
      &              ,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(workb,ilx*kx,MPI_DOUBLE_PRECISION,0
@@ -284,7 +281,7 @@ c
      &      (qca01_g(k,j)/psa01_g(j))/(msfx_io(1,j)*msfx_io(1,j))  )/g
         enddo
         enddo
-      endif
+      end if
       call MPI_BCAST(tqadv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
       do k=1,kx

@@ -28,12 +28,8 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
  
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -78,7 +74,7 @@ c 3 d fields
          if (iotyp.eq.1) then
            nrcchem=nrcchem+1
            write(iutchem,rec=nrcchem) fchem
-         elseif (iotyp.eq.2) then
+         else if (iotyp.eq.2) then
            write(iutchem) fchem
          end if
        enddo
@@ -100,7 +96,7 @@ c optical properties of the tracer mixing (independant of ntr)
          if (iotyp.eq.1) then
            nrcchem=nrcchem+1
            write(iutchem,rec=nrcchem) fchem
-         elseif (iotyp.eq.2) then
+         else if (iotyp.eq.2) then
            write(iutchem) fchem
          end if
        enddo
@@ -119,7 +115,7 @@ c optical properties of the tracer mixing (independant of ntr)
          if (iotyp.eq.1) then
            nrcchem=nrcchem+1
            write(iutchem,rec=nrcchem) fchem
-         elseif (iotyp.eq.2) then
+         else if (iotyp.eq.2) then
            write(iutchem) fchem
          end if
        enddo
@@ -138,7 +134,7 @@ c optical properties of the tracer mixing (independant of ntr)
          if (iotyp.eq.1) then
            nrcchem=nrcchem+1
            write(iutchem,rec=nrcchem) fchem
-         elseif (iotyp.eq.2) then
+         else if (iotyp.eq.2) then
            write(iutchem) fchem
          end if
        enddo
@@ -160,7 +156,7 @@ c     -------
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if
 c     -------
@@ -187,7 +183,7 @@ c        mpd = 1.
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if
 c    --------
@@ -204,7 +200,7 @@ c    --------
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if 
 c   -------------
@@ -221,7 +217,7 @@ c   -------------
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if
 c----------------------
@@ -238,7 +234,7 @@ c----------------------
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if 
 c----------------------
@@ -255,7 +251,7 @@ c----------------------
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if 
 c----------------------
@@ -272,7 +268,7 @@ c----------------------
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if
 
@@ -287,7 +283,7 @@ c       enddo
 c       if (iotyp.eq.1) then
 c        nrcchem=nrcchem+1
 c        write(iutchem,rec=nrcchem) fchem
-c       elseif (iotyp.eq.2) then
+c       else if (iotyp.eq.2) then
 c        write(iutchem) fchem
 c       end if
 c ------------------
@@ -353,7 +349,7 @@ c----total aerosol TOA radiative forcing ( independant of the number of tracer)
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if
 
@@ -371,7 +367,7 @@ c----total aerosol TOA radiative forcing ( independant of the number of tracer)
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
-       elseif (iotyp.eq.2) then
+       else if (iotyp.eq.2) then
         write(iutchem) fchem
        end if
 

@@ -48,7 +48,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       real(kind=8)  tga
       real(kind=8)  tgb
       real(kind=8)  satbrt
-      real(kind=8)  rainp
       real(kind=8)  snowc
       real(kind=8)  hgfact
       real(kind=8)  zpbl
@@ -56,6 +55,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #ifdef MPP1
                                                                         
+      real(kind=8)  rainp
+
       common/mainCM/ ua(ix,kx,-1:jxp+2), ub(ix,kx,-1:jxp+2), 
      &               va(ix,kx,-1:jxp+2), vb(ix,kx,-1:jxp+2),
      &               ta(ix,kx,-1:jxp+2), tb(ix,kx,-1:jxp+2),
@@ -72,6 +73,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      &            tgb(ix,jxp),satbrt(ix,jxp+1),
      &          rainp(ix,-1:jxp+2),  snowc(NNSG,ix,jxp),
      &         hgfact(ix,jxp),htsd(ix,jxp), zpbl(ix,jxp),tgbb(ix,jxp)
+
 
       real(kind=8)  uvdrag
       common/uvdrg/ uvdrag(ix,0:jxp)

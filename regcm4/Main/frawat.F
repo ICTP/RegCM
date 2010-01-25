@@ -34,12 +34,7 @@ c              ** keep fwet le 1.0 **
 c  dewmxi = inverse of max allowed dew depth on leaf in mm
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
       integer n,np
 
@@ -51,10 +46,10 @@ c
          if(ldew1d(n,np).gt.0.) then
           fwet(n,np) = ((dewmxi/vegt(n,np))*ldew1d(n,np))**.666666666666
           fwet(n,np) = dmin1(fwet(n,np),1.d0)
-         endif
+         end if
          fdry(n,np) = (1.-fwet(n,np))*xlai(n,np) / xlsai(n,np)
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
 

@@ -24,12 +24,7 @@ c
       implicit none
       real(kind=8)  ptop
       integer kv1
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/iunits.cb"
@@ -38,7 +33,7 @@ c
 #     include "include/split.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  uuu,vvv
@@ -202,7 +197,7 @@ c
               sav_6(k,8,j) =  vil_io(k,j)
             enddo
           enddo
-       endif
+       end if
        call MPI_SCATTER(sav_0d(1,1,1),ix*nsplit*2*jxp,
      &          MPI_DOUBLE_PRECISION,sav0d(1,1,1),ix*nsplit*2*jxp,
      &          MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -256,7 +251,7 @@ c
           var1snd(k,7) = uil(k,jxp)
           var1snd(k,8) = vil(k,jxp)
         enddo
-      endif
+      end if
       call MPI_SENDRECV(var1snd(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          ieast,1,var1rcv(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          iwest,1,MPI_COMM_WORLD,status,ierr)
@@ -271,7 +266,7 @@ c
            uil(k,0) = var1rcv(k,7)
            vil(k,0) = var1rcv(k,8)
         enddo
-      endif
+      end if
       if(myid.ne.0) then
         do k=1,kx
           var1snd(k,1) = ui1(k,1)
@@ -283,7 +278,7 @@ c
           var1snd(k,7) = uil(k,1)
           var1snd(k,8) = vil(k,1)
         enddo
-      endif
+      end if
       call MPI_SENDRECV(var1snd(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          iwest,2,var1rcv(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          ieast,2,MPI_COMM_WORLD,status,ierr)
@@ -298,7 +293,7 @@ c
            uil(k,jxp+1) = var1rcv(k,7)
            vil(k,jxp+1) = var1rcv(k,8)
         enddo
-      endif
+      end if
 #else
        read(iutrs) dstor
        read(iutrs) hstor
@@ -398,7 +393,7 @@ c******* geopotential manipulations
           enddo
         enddo
       enddo
-      ENDIF
+      end if
 c
       return
       end

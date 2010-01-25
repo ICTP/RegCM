@@ -52,7 +52,7 @@ CCC  +      *(x-air)-kd)-1/khat*(qpen1+tf-x)
 
       if ((ta .le. 0.0) .and. (hii .gt. 0.0)) then
         hs = hs+precip*10. / 1000.   ! convert precip(mm) to depth(m)
-      endif
+      end if
 
       T0=T(1,1)
       tf =  0.0
@@ -79,7 +79,7 @@ CCC  +      *(x-air)-kd)-1/khat*(qpen1+tf-x)
         f0=f1
         f1=f(t1)
         goto 100
-      endif
+      end if
 
       t0=t2
       if (t0 .ge. tf) then
@@ -89,23 +89,23 @@ CCC  +      *(x-air)-kd)-1/khat*(qpen1+tf-x)
      +       theta*(tf-ta)-kd)-1/khat*(t0-tf+qpen)) / (rhos*li)
           if (ds .gt. 0.0) then
             ds=0.0
-          endif
+          end if
           hs=hs+ds
           if (hs .lt. 0) then
             hs=0.0
             t(1,1) = ( hii*t0 + (surf-hii)*t(2,1) ) / surf
-          endif
-        endif
+          end if
+        end if
         if ((hs .eq. 0.) .and. (hii .gt. 0.0)) then
           di= sec*((-ld+0.97*delta*t4(tf)+psi*(eomb(tf)-ea)+
      +       theta*(tf-ta)-kd)-1/khat*(t0-tf+qpen)) / (rhoi*li)
           if (di .gt. 0) then
             di=0.0
-          endif
+          end if
           hi=hi+di
-        endif
+        end if
 
-      elseif (t0 .lt. tf) then
+      else if (t0 .lt. tf) then
 
         q0=-ld+0.97*delta*t4(t0)+psi*(eomb(t0)-ea)+theta*(t0-ta)-kd
         qpen=kd*0.7*(1.0-dexp(-(lams1*hs+lami1*hi)))+
@@ -114,7 +114,7 @@ CCC  +      *(x-air)-kd)-1/khat*(qpen1+tf-x)
 
         hi=hi+di
 
-      endif
+      end if
 
       if (hi .le. 0.01) then
         hi=0.01
@@ -124,7 +124,7 @@ CCC  +      *(x-air)-kd)-1/khat*(qpen1+tf-x)
       else
         hii = hi
         t(1,1) = t0
-      endif
+      end if
 
       return
       end

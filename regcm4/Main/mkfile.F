@@ -20,12 +20,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine mkfile
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -303,7 +298,7 @@ c **** Write out postprocessing information
         inquire(file='../PostProc',exist=there)
         if(.not.there) then
           isystm=system('mkdir ../PostProc')
-        endif
+        end if
         filnam1 = '../PostProc/postproc.param'
         filnam2 = '../PostProc/postproc.param.bak'
         inquire(file=filnam1,exist=there)

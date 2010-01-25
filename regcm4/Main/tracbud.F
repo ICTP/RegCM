@@ -21,12 +21,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 c
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #ifdef DIAG
 #     include "include/diagnosis.cb"
@@ -39,7 +34,7 @@ c
 #     include "include/date.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #ifdef DIAG
       real(kind=8)  tttmp
@@ -208,7 +203,7 @@ c       emissions
         end do
         tchie(itr)= tchie(itr) + tttmp
       enddo
-      endif
+      end if
       call MPI_BCAST(ttrace(1,1),ntr,MPI_DOUBLE_PRECISION,
      &                             0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(tremlsc(1,1),ntr,MPI_DOUBLE_PRECISION,
@@ -375,7 +370,7 @@ c18     format('error trac',I1,':',e12.5,' % ')
        
        end if
 #ifdef MPP1
-       endif
+       end if
 #endif
 #endif
 

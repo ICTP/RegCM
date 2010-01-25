@@ -26,12 +26,7 @@ c     in dataflow analyses.                                           c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -92,7 +87,7 @@ c ******  write one time of data to mm4 output file.
          if (iotyp.eq.1) then
            nrcout=nrcout+1
            write(iutdat,rec=nrcout) fout
-         elseif (iotyp.eq.2) then
+         else if (iotyp.eq.2) then
            write(iutdat) fout
          end if
       enddo
@@ -124,7 +119,7 @@ c ******  write one time of data to mm4 output file.
          if (iotyp.eq.1) then
            nrcout=nrcout+1
            write(iutdat,rec=nrcout) fout
-         elseif (iotyp.eq.2) then
+         else if (iotyp.eq.2) then
            write(iutdat) fout
          end if
       enddo
@@ -142,7 +137,7 @@ c ******  write one time of data to mm4 output file.
         if (iotyp.eq.1) then
           nrcout=nrcout+1
           write(iutdat,rec=nrcout) fout
-        elseif (iotyp.eq.2) then
+        else if (iotyp.eq.2) then
           write(iutdat) fout
         end if
       enddo
@@ -160,7 +155,7 @@ c ******  write one time of data to mm4 output file.
         if (iotyp.eq.1) then
           nrcout=nrcout+1
           write(iutdat,rec=nrcout) fout
-        elseif (iotyp.eq.2) then
+        else if (iotyp.eq.2) then
           write(iutdat) fout
         end if
       enddo
@@ -178,7 +173,7 @@ c ******  write one time of data to mm4 output file.
         if (iotyp.eq.1) then
           nrcout=nrcout+1
           write(iutdat,rec=nrcout) fout
-        elseif (iotyp.eq.2) then
+        else if (iotyp.eq.2) then
           write(iutdat) fout
         end if
       enddo
@@ -196,7 +191,7 @@ c ******  write one time of data to mm4 output file.
         if (iotyp.eq.1) then
           nrcout=nrcout+1
           write(iutdat,rec=nrcout) fout
-        elseif (iotyp.eq.2) then
+        else if (iotyp.eq.2) then
           write(iutdat) fout
         end if
       enddo
@@ -213,7 +208,7 @@ c ******  write one time of data to mm4 output file.
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
-      elseif (iotyp.eq.2) then
+      else if (iotyp.eq.2) then
         write(iutdat) fout
       end if
       mmpd = 24./tapfrq
@@ -230,7 +225,7 @@ c ******  write one time of data to mm4 output file.
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
-      elseif (iotyp.eq.2) then
+      else if (iotyp.eq.2) then
         write(iutdat) fout
       end if
 
@@ -259,7 +254,7 @@ c                  3.  accum infiltration (30)
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
-      elseif (iotyp.eq.2) then
+      else if (iotyp.eq.2) then
         write(iutdat) fout
       end if
 
@@ -272,7 +267,7 @@ c                  3.  accum infiltration (30)
             if (ocld2d_io(n,i+1,j+1).ge.0.5) then
               fout(j,i) = fout(j,i)+swt2d_io(n,i+1,j+1)
               nn=nn+1
-            endif
+            end if
           enddo
 #else
         do j=1,jx-2
@@ -282,20 +277,20 @@ c                  3.  accum infiltration (30)
             if (ocld2d(n,i+1,j+1).ge.0.5) then
               fout(j,i) = fout(j,i)+swt2d(n,i+1,j+1)
               nn=nn+1
-            endif
+            end if
           enddo
 #endif
           if(nn.ge.max0(NNSG/2,1)) then
             fout(j,i) = fout(j,i)/float(nn)
           else
             fout(j,i) = -1.e34
-          endif
+          end if
         enddo 
       enddo 
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
-      elseif (iotyp.eq.2) then
+      else if (iotyp.eq.2) then
         write(iutdat) fout
       end if
 
@@ -308,7 +303,7 @@ c                  3.  accum infiltration (30)
             if (ocld2d_io(n,i+1,j+1).ge.0.5) then
               fout(j,i) = fout(j,i)+rno2d_io(n,i+1,j+1)
               nn=nn+1
-            endif
+            end if
           enddo
 #else
         do j=1,jx-2
@@ -318,20 +313,20 @@ c                  3.  accum infiltration (30)
             if (ocld2d(n,i+1,j+1).ge.0.5) then
               fout(j,i) = fout(j,i)+rno2d(n,i+1,j+1)
               nn=nn+1
-            endif
+            end if
           enddo
 #endif
           if(nn.ge.max0(NNSG/2,1)) then
             fout(j,i) = fout(j,i)/float(nn)
           else
             fout(j,i) = -1.e34
-          endif
+          end if
         enddo 
       enddo 
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
-      elseif (iotyp.eq.2) then
+      else if (iotyp.eq.2) then
         write(iutdat) fout
       end if
 

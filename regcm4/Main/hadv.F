@@ -45,14 +45,9 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
       real(kind=8)  dxx
+#     include "parameter.inc"
 #ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-#ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
@@ -78,7 +73,7 @@ c
      4          t(i,k,j)))/(dxx*msfx(i,j)*msfx(i,j))
 20     continue
 c
-      elseif(ind.eq.2)then
+      else if(ind.eq.2)then
 c
 c   implement a "relaxed" upstream scheme
 c
@@ -97,29 +92,29 @@ c
          fx2=fact1*t(i,k,j)+fact2*t(i,k,j+1)
         else
          fx2=fact1*t(i,k,j+1)+fact2*t(i,k,j)
-        endif
+        end if
         if(uavg1.ge.0.)then
          fx1=fact1*t(i,k,j-1)+fact2*t(i,k,j)
         else
          fx1=fact1*t(i,k,j)+fact2*t(i,k,j-1)
-        endif
+        end if
         vavg2=0.5*(va(i+1,k,j+1)+va(i+1,k,j))
         vavg1=0.5*(va(i,k,j+1)+va(i,k,j))
         if(vavg2.ge.0.)then
          fy2=fact1*t(i,k,j)+fact2*t(i+1,k,j)
         else
          fy2=fact1*t(i+1,k,j)+fact2*t(i,k,j)
-        endif
+        end if
         if(vavg1.ge.0.)then
          fy1=fact1*t(i-1,k,j)+fact2*t(i,k,j)
         else
          fy1=fact1*t(i,k,j)+fact2*t(i-1,k,j)
-        endif
+        end if
         ften(i,k)=ften(i,k)-(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)/
      1          (dxx*msfx(i,j)*msfx(i,j))
 40     continue
 c
-      elseif(ind.eq.3)then
+      else if(ind.eq.3)then
 c
 c-----for u and v:
 c
@@ -129,10 +124,10 @@ c
 #ifdef MPP1
        if (myid .eq. 0 ) then
          jdxm1=max0(jdxm1,2)
-       endif
+       end if
        if (myid .eq. nproc-1) then
          jdxp1=min0(jdxp1,jendl-1)
-       endif
+       end if
 #else
        jdxp1=min0(jdxp1,jlx)
        jdxm1=max0(jdxm1,2)
@@ -161,7 +156,7 @@ c
      &          vcmonc)/(dxx*msfx(i,j)*msfx(i,j))
 60     continue
 c
-      endif
+      end if
 c
       return
       end
@@ -193,16 +188,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
       real(kind=8)  dxx
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
@@ -226,7 +216,7 @@ c
      4          u(i,k,j)))/(dxx*msfd(i,j)*msfd(i,j))
 20     continue
 c
-      elseif(ind.eq.2)then
+      else if(ind.eq.2)then
 c
 c   implement a "relaxed" upstream scheme
 c
@@ -245,29 +235,29 @@ c
          fx2=fact1*u(i,k,j)+fact2*u(i,k,j+1)
         else
          fx2=fact1*u(i,k,j+1)+fact2*u(i,k,j)
-        endif
+        end if
         if(uavg1.ge.0.)then
          fx1=fact1*u(i,k,j-1)+fact2*u(i,k,j)
         else
          fx1=fact1*u(i,k,j)+fact2*u(i,k,j-1)
-        endif
+        end if
         vavg2=0.5*(va(i+1,k,j+1)+va(i+1,k,j))
         vavg1=0.5*(va(i,k,j+1)+va(i,k,j))
         if(vavg2.ge.0.)then
          fy2=fact1*u(i,k,j)+fact2*u(i+1,k,j)
         else
          fy2=fact1*u(i+1,k,j)+fact2*u(i,k,j)
-        endif
+        end if
         if(vavg1.ge.0.)then
          fy1=fact1*u(i-1,k,j)+fact2*u(i,k,j)
         else
          fy1=fact1*u(i,k,j)+fact2*u(i-1,k,j)
-        endif
+        end if
         ften(i,k)=ften(i,k)-(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)/
      1          (dxx*msfd(i,j)*msfd(i,j))
 40     continue
 c
-      elseif(ind.eq.3)then
+      else if(ind.eq.3)then
 c
 c-----for u and v:
 c
@@ -277,10 +267,10 @@ c
 #ifdef MPP1
        if (myid .eq. 0 ) then
          jdxm1=max0(jdxm1,2)
-       endif
+       end if
        if (myid .eq. nproc-1) then
          jdxp1=min0(jdxp1,jendl-1)
-       endif
+       end if
 #else
        jdxp1=min0(jdxp1,jlx)
        jdxm1=max0(jdxm1,2)
@@ -309,7 +299,7 @@ c
      &          vcmonc)/(dxx*msfd(i,j)*msfd(i,j))
 60     continue
 c
-      endif
+      end if
 c
       return
       end
@@ -341,16 +331,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
       real(kind=8)  dxx
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
@@ -374,7 +359,7 @@ c
      4          v(i,k,j)))/(dxx*msfd(i,j)*msfd(i,j))
 20     continue
 c
-      elseif(ind.eq.2)then
+      else if(ind.eq.2)then
 c
 c   implement a "relaxed" upstream scheme
 c
@@ -393,29 +378,29 @@ c
          fx2=fact1*v(i,k,j)+fact2*v(i,k,j+1)
         else
          fx2=fact1*v(i,k,j+1)+fact2*v(i,k,j)
-        endif
+        end if
         if(uavg1.ge.0.)then
          fx1=fact1*v(i,k,j-1)+fact2*v(i,k,j)
         else
          fx1=fact1*v(i,k,j)+fact2*v(i,k,j-1)
-        endif
+        end if
         vavg2=0.5*(va(i+1,k,j+1)+va(i+1,k,j))
         vavg1=0.5*(va(i,k,j+1)+va(i,k,j))
         if(vavg2.ge.0.)then
          fy2=fact1*v(i,k,j)+fact2*v(i+1,k,j)
         else
          fy2=fact1*v(i+1,k,j)+fact2*v(i,k,j)
-        endif
+        end if
         if(vavg1.ge.0.)then
          fy1=fact1*v(i-1,k,j)+fact2*v(i,k,j)
         else
          fy1=fact1*v(i,k,j)+fact2*v(i-1,k,j)
-        endif
+        end if
         ften(i,k)=ften(i,k)-(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)/
      1          (dxx*msfd(i,j)*msfd(i,j))
 40     continue
 c
-      elseif(ind.eq.3)then
+      else if(ind.eq.3)then
 c
 c-----for u and v:
 c
@@ -425,10 +410,10 @@ c
 #ifdef MPP1
        if (myid .eq. 0 ) then
          jdxm1=max0(jdxm1,2)
-       endif
+       end if
        if (myid .eq. nproc-1) then
          jdxp1=min0(jdxp1,jendl-1)
-       endif
+       end if
 #else
        jdxp1=min0(jdxp1,jlx)
        jdxm1=max0(jdxm1,2)
@@ -457,7 +442,7 @@ c
      &          vcmonc)/(dxx*msfd(i,j)*msfd(i,j))
 60     continue
 c
-      endif
+      end if
 c
       return
       end
@@ -489,16 +474,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
       real(kind=8)  dxx
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
@@ -522,7 +502,7 @@ c
      4          qv(i,k,j)))/(dxx*msfx(i,j)*msfx(i,j))
 20     continue
 c
-      elseif(ind.eq.2)then
+      else if(ind.eq.2)then
 c
 c   implement a "relaxed" upstream scheme
 c
@@ -541,29 +521,29 @@ c
          fx2=fact1*qv(i,k,j)+fact2*qv(i,k,j+1)
         else
          fx2=fact1*qv(i,k,j+1)+fact2*qv(i,k,j)
-        endif
+        end if
         if(uavg1.ge.0.)then
          fx1=fact1*qv(i,k,j-1)+fact2*qv(i,k,j)
         else
          fx1=fact1*qv(i,k,j)+fact2*qv(i,k,j-1)
-        endif
+        end if
         vavg2=0.5*(va(i+1,k,j+1)+va(i+1,k,j))
         vavg1=0.5*(va(i,k,j+1)+va(i,k,j))
         if(vavg2.ge.0.)then
          fy2=fact1*qv(i,k,j)+fact2*qv(i+1,k,j)
         else
          fy2=fact1*qv(i+1,k,j)+fact2*qv(i,k,j)
-        endif
+        end if
         if(vavg1.ge.0.)then
          fy1=fact1*qv(i-1,k,j)+fact2*qv(i,k,j)
         else
          fy1=fact1*qv(i,k,j)+fact2*qv(i-1,k,j)
-        endif
+        end if
         ften(i,k)=ften(i,k)-(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)/
      1          (dxx*msfx(i,j)*msfx(i,j))
 40     continue
 c
-      elseif(ind.eq.3)then
+      else if(ind.eq.3)then
 c
 c-----for u and v:
 c
@@ -573,10 +553,10 @@ c
 #ifdef MPP1
        if (myid .eq. 0 ) then
          jdxm1=max0(jdxm1,2)
-       endif
+       end if
        if (myid .eq. nproc-1) then
          jdxp1=min0(jdxp1,jendl-1)
-       endif
+       end if
 #else
        jdxp1=min0(jdxp1,jlx)
        jdxm1=max0(jdxm1,2)
@@ -605,7 +585,7 @@ c
      &          vcmonc)/(dxx*msfx(i,j)*msfx(i,j))
 60     continue
 c
-      endif
+      end if
 c
       return
       end
@@ -637,16 +617,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
       real(kind=8)  dxx
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
@@ -670,7 +645,7 @@ c
      4          qc(i,k,j)))/(dxx*msfx(i,j)*msfx(i,j))
 20     continue
 c
-      elseif(ind.eq.2)then
+      else if(ind.eq.2)then
 c
 c   implement a "relaxed" upstream scheme
 c
@@ -689,29 +664,29 @@ c
          fx2=fact1*qc(i,k,j)+fact2*qc(i,k,j+1)
         else
          fx2=fact1*qc(i,k,j+1)+fact2*qc(i,k,j)
-        endif
+        end if
         if(uavg1.ge.0.)then
          fx1=fact1*qc(i,k,j-1)+fact2*qc(i,k,j)
         else
          fx1=fact1*qc(i,k,j)+fact2*qc(i,k,j-1)
-        endif
+        end if
         vavg2=0.5*(va(i+1,k,j+1)+va(i+1,k,j))
         vavg1=0.5*(va(i,k,j+1)+va(i,k,j))
         if(vavg2.ge.0.)then
          fy2=fact1*qc(i,k,j)+fact2*qc(i+1,k,j)
         else
          fy2=fact1*qc(i+1,k,j)+fact2*qc(i,k,j)
-        endif
+        end if
         if(vavg1.ge.0.)then
          fy1=fact1*qc(i-1,k,j)+fact2*qc(i,k,j)
         else
          fy1=fact1*qc(i,k,j)+fact2*qc(i-1,k,j)
-        endif
+        end if
         ften(i,k)=ften(i,k)-(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)/
      1          (dxx*msfx(i,j)*msfx(i,j))
 40     continue
 c
-      elseif(ind.eq.3)then
+      else if(ind.eq.3)then
 c
 c-----for u and v:
 c
@@ -721,10 +696,10 @@ c
 #ifdef MPP1
        if (myid .eq. 0 ) then
          jdxm1=max0(jdxm1,2)
-       endif
+       end if
        if (myid .eq. nproc-1) then
          jdxp1=min0(jdxp1,jendl-1)
-       endif
+       end if
 #else
        jdxp1=min0(jdxp1,jlx)
        jdxm1=max0(jdxm1,2)
@@ -753,7 +728,7 @@ c
      &          vcmonc)/(dxx*msfx(i,j)*msfx(i,j))
 60     continue
 c
-      endif
+      end if
 c
       return
       end
@@ -785,16 +760,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer n,j,ind
       real(kind=8)  dxx
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
@@ -819,7 +789,7 @@ c
      &        /(dxx*msfx(i,j)*msfx(i,j))
 20     continue
 c
-      elseif(ind.eq.2)then
+      else if(ind.eq.2)then
 c
 c   implement a "relaxed" upstream scheme
 c
@@ -838,29 +808,29 @@ c
          fx2=fact1*chi(i,k,j,n)+fact2*chi(i,k,j+1,n)
         else
          fx2=fact1*chi(i,k,j+1,n)+fact2*chi(i,k,j,n)
-        endif
+        end if
         if(uavg1.ge.0.)then
          fx1=fact1*chi(i,k,j-1,n)+fact2*chi(i,k,j,n)
         else
          fx1=fact1*chi(i,k,j,n)+fact2*chi(i,k,j-1,n)
-        endif
+        end if
         vavg2=0.5*(va(i+1,k,j+1)+va(i+1,k,j))
         vavg1=0.5*(va(i,k,j+1)+va(i,k,j))
         if(vavg2.ge.0.)then
          fy2=fact1*chi(i,k,j,n)+fact2*chi(i+1,k,j,n)
         else
          fy2=fact1*chi(i+1,k,j,n)+fact2*chi(i,k,j,n)
-        endif
+        end if
         if(vavg1.ge.0.)then
          fy1=fact1*chi(i-1,k,j,n)+fact2*chi(i,k,j,n)
         else
          fy1=fact1*chi(i,k,j,n)+fact2*chi(i-1,k,j,n)
-        endif
+        end if
         ften(i,k)=ften(i,k)-(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)/
      1          (dxx*msfx(i,j)*msfx(i,j))
 40     continue
 c
-      elseif(ind.eq.3)then
+      else if(ind.eq.3)then
 c
 c-----for u and v:
 c
@@ -870,10 +840,10 @@ c
 #ifdef MPP1
        if (myid .eq. 0 ) then
          jdxm1=max0(jdxm1,2)
-       endif
+       end if
        if (myid .eq. nproc-1) then
          jdxp1=min0(jdxp1,jendl-1)
-       endif
+       end if
 #else
        jdxp1=min0(jdxp1,jlx)
        jdxm1=max0(jdxm1,2)
@@ -903,7 +873,7 @@ c
      &           /(dxx*msfx(i,j)*msfx(i,j))
 60     continue
 c
-      endif
+      end if
 c
       return
       end

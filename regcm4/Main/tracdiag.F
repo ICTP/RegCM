@@ -20,12 +20,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine tracdiag(xkc)
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/diagnosis.cb"
 #     include "include/param3.cb"
@@ -34,7 +29,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
       real(kind=8)  xkc(ix,kx,jxp)
       real(kind=8)  vailx(kx,jxp),vailx_g(kx,mjx),va02(kx,jxp)
@@ -90,8 +85,8 @@ c   inflow/outflow
      &          (msfx(i,jendm)*msfx(i,jendm))+fact2*
      &          chia(i,k,jendx,n)/psa(i,jendx)/
      &          (msfx(i,jendx)*msfx(i,jendx)))
-          endif
-          endif
+          end if
+          end if
 #else
           uavg2=0.5*(ua(i+1,k,jx-1)+ua(i,k,jx-1))
           if(uavg2.lt.0.) then
@@ -104,7 +99,7 @@ c   inflow/outflow
      1          (msfx(i,jlx-1)*msfx(i,jlx-1))+fact2*
      2          chia(i,k,jx-1,n)/psa(i,jx-1)/
      3          (msfx(i,jx-1)*msfx(i,jx-1)))
-          endif
+          end if
 #endif
 
 #ifdef MPP1
@@ -121,9 +116,9 @@ c   inflow/outflow
      1          (msfx(i,1+1)*msfx(i,1+1))+fact2*
      2          chia(i,k,1,n)/psa(i,1)/
      3          (msfx(i,1)*msfx(i,1)))
-          endif
+          end if
 #ifdef MPP1
-          endif
+          end if
 #endif
 
         enddo
@@ -212,7 +207,7 @@ chy inflow/outflow
      1          (msfx_io(ix-2,j)*msfx_io(ix-2,j))+fact2*
      2          chiailx_g(k,n,j)/psailx_g(j)/
      3          (msfx_io(ilx,j)*msfx_io(ilx,j)))
-          endif
+          end if
 
           vavg1=0.5*(va02_g(k,j+1)+va02_g(k,j))
           if(vavg1.gt.0.) then
@@ -225,7 +220,7 @@ chy inflow/outflow
      1          (msfx_io(2,j)*msfx_io(2,j))+fact2*
      2          chia01_g(k,n,j)/psa01_g(j)/
      3          (msfx_io(1,j)*msfx_io(1,j)))
-          endif
+          end if
 
           tchiad(n)=tchiad(n)+dtmin*6.e4*dsigma(k)*dx*
      1          (fx2-fx1)/g
@@ -247,7 +242,7 @@ chy inflow/outflow
      1          (msfx(ilx-1,j)*msfx(ilx-1,j))+fact2*
      2          chia(ix-1,k,j,n)/psa(ix-1,j)/
      3          (msfx(ix-1,j)*msfx(ix-1,j)))
-          endif
+          end if
 
           vavg1=0.5*(va(1+1,k,j+1)+va(1+1,k,j))
           if(vavg1.gt.0.) then
@@ -260,7 +255,7 @@ chy inflow/outflow
      1          (msfx(1+1,j)*msfx(1+1,j))+fact2*
      2          chia(1,k,j,n)/psa(1,j)/
      3          (msfx(1,j)*msfx(1,j)))
-          endif
+          end if
 
           tchiad(n)=tchiad(n)+dtmin*6.e4*dsigma(k)*dx*
      1          (fx2-fx1)/g
@@ -270,7 +265,7 @@ chy inflow/outflow
 #endif
 44    continue
 #ifdef MPP1
-      endif
+      end if
       call MPI_BCAST(tchiad,ntr,MPI_DOUBLE_PRECISION,
      &                        0,MPI_COMM_WORLD,ierr)
 #endif
@@ -298,7 +293,7 @@ CC           fx2=-uavg2*(fact1*chia(i,k,j,n)/psa(i,j)/
 CC     1          (msfx(i,j)*msfx(i,j))+fact2*
 CC     2          chia(i,k,j+1,n)/psa(i,j+1)/
 CC     3          (msfx(i,j+1)*msfx(i,j+1)))
-CC          endif
+CC          end if
 CC
 CC          if(uavg1.gt.0.) then
 CC           fx1=-uavg1*(fact1*chia(i,k,j-1,n)/psa(i,j-1)/
@@ -310,7 +305,7 @@ CC           fx1=-uavg1*(fact1*chia(i,k,j,n)/psa(i,j)/
 CC     1          (msfx(i,j)*msfx(i,j))+fact2*
 CC     2          chia(i,k,j-1,n)/psa(i,j-1)/
 CC     3          (msfx(i,j-1)*msfx(i,j-1)))
-CC          endif
+CC          end if
 CC
 CC          tchifx(i,j,k,n)=tchifx(i,j,k,n)+dtmin*6.e4*dsigma(k)*dx*
 CC     1                   (fx2-fx1)/g
@@ -329,7 +324,7 @@ CC           fx2=-vavg2*(fact1*chia(i,k,j,n)/psa(i,j)/
 CC     1          (msfx(i,j)*msfx(i,j))+fact2*
 CC     2          chia(i+1,k,j,n)/psa(i+1,j)/
 CC     3          (msfx(i+1,j)*msfx(i+1,j)))
-CC          endif
+CC          end if
 CC
 CC          if(vavg1.gt.0.) then
 CC           fx1=-vavg1*(fact1*chia(i-1,k,j,n)/psa(i-1,j)/
@@ -341,7 +336,7 @@ CC           fx1=-vavg1*(fact1*chia(i,k,j,n)/psa(i,j)/
 CC     1          (msfx(i,j)*msfx(i,j))+fact2*
 CC     2          chia(i-1,k,j,n)/psa(i-1,j)/
 CC     3          (msfx(i-1,j)*msfx(i-1,j)))
-CC          endif
+CC          end if
 CC
 CC          tchify(i,j,k,n)=tchify(i,j,k,n)+dtmin*6.e4*dsigma(k)*dx*
 CC     1                   (fx2-fx1)/g
@@ -401,7 +396,7 @@ CC
 CC         chidy=-xkc(i,k,j)*
 CC     1    (chiyp2+chiym2- 4.*(chiyp1+chiym1) + 6.*chi00)*psa(i,j)
 CC
-CC        endif
+CC        end if
 CC
 CC        tchidx(i,j,k,n)=tchidx(i,j,k,n)+dtmin*6.e4*dsigma(k)
 CC     1                  *chidx/g
@@ -421,7 +416,7 @@ c
           worka(i,k,n)=xkc(i,k,jendm)*psa(i,jendm)*
      &          (chia(i,k,jendm,n)/psa(i,jendm)-
      &           chia(i,k,jendx,n)/psa(i,jendx))
-          endif
+          end if
 #else
           worka(i,k,n)=xkc(i,k,jlx-1)*psa(i,jlx-1)*
      1          (chia(i,k,jlx-1,n)/psa(i,jlx-1)-
@@ -433,7 +428,7 @@ c
           workb(i,k,n)=xkc(i,k,2)*psa(i,2)*
      1          (chia(i,k,2,n)/psa(i,2)-chia(i,k,1,n)/psa(i,1))
 #ifdef MPP1
-          endif
+          end if
 #endif
         enddo
         enddo
@@ -479,7 +474,7 @@ c..... diffusion through north-south boundaries:
 #endif
 1300  continue
 #ifdef MPP1
-      endif
+      end if
       call MPI_BCAST(tchitb,ntr,MPI_DOUBLE_PRECISION,
      &                        0,MPI_COMM_WORLD,ierr)
 #endif

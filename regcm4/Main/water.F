@@ -48,12 +48,7 @@ C     veg type 13 and 14 are water covered (lake, swamp, rice paddy);
 C          negative runoff keeps this land saturated.
 C
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       real(kind=8)  rsur(NNSG,nbmax),   rnof(NNSG,nbmax)
@@ -81,7 +76,7 @@ C           1.1  reduce infiltration for frozen ground
          xkmxr(n,np) = xkmx(n,np)
         else
          xkmxr(n,np) = 0.
-        endif
+        end if
 
 C           1.11 permafrost or ice sheet
         if (lveg(n,np).eq.9 .or. lveg(n,np).eq.12) then
@@ -90,7 +85,7 @@ C           1.11 permafrost or ice sheet
         else
          xkmx1(n,np)=xkmx(n,np)
          xkmx2(n,np)=drain
-        endif
+        end if
 C           1.2  diffusive fluxes
         evmxr = evmx0(n,np)*xkmxr(n,np) / xkmx(n,np)
         evmxt = evmx0(n,np)*xkmx1(n,np) / xkmx(n,np)
@@ -111,11 +106,11 @@ C              1.32 bog or water
          rsubst(n,np) = 0.0
          rsubss(n,np) = 0.0
          rsubsr(n,np) = 0.0
-        endif
+        end if
 C           1.4  fluxes through internal surfaces
         wflux1(n,np) = wflux1(n,np)-rsubss(n,np)
         wflux2(n,np) = wflux2(n,np)-rsubsr(n,np)
-       endif
+       end if
       enddo
 90    continue
 
@@ -135,7 +130,7 @@ C           2.11 increase surface runoff over frozen ground
          rsur(n,np) = dmin1(1.d0,wata(n,np)**1)*dmax1(0.d0,gwatr(n,np))
         else
          rsur(n,np) = dmin1(1.d0,wata(n,np)**4)*dmax1(0.d0,gwatr(n,np) )
-        endif
+        end if
 C           2.12 irrigate cropland
         if (lveg(n,np).eq.10.and.watr(n,np).lt.relfc(n,np))
      &  rsur(n,np)=rsur(n,np)+(rsw1d(n,np)-relfc(n,np)*gwmx1(n,np))/c(4)
@@ -157,7 +152,7 @@ C           3.2  update root zone
      &             +c(4)*(gwatr(n,np)-etr(n,np)-rsur(n,np)+wflux2(n,np))
 C           3.3  update total water
         tsw1d(n,np)=tsw1d(n,np)+c(4)*(gwatr(n,np)-etr(n,np)-rnof(n,np))
-       endif
+       end if
       enddo
 91    continue
 
@@ -179,7 +174,7 @@ C           4.3  excess total water assumed to go to subsurface runoff
          delwat=tsw1d(n,np)-gwmx2(n,np)
          tsw1d(n,np)=gwmx2(n,np)
          rsubst(n,np)=rsubst(n,np)+delwat/c(4)
-        endif
+        end if
 C           4.4  check for negative water in top layer
         if(ssw1d(n,np).le.1.e-2) ssw1d(n,np)=1.e-2
 C=======================================================================
@@ -198,7 +193,7 @@ C*  update total runoff
         rnof(n,np) = 0.
         rno1d(n,np)  = 0.
         rnos1d(n,np) = 0.
-       endif
+       end if
       enddo
 92    continue
 
@@ -222,7 +217,7 @@ C=======================================================================
             evmax = dmax1(est0,0.d0)
             gwet1d(n,np) = dmin1(1.d0,evmax/dmax1(1.d-14,rap))
             gwet1d(n,np) = scvk(n,np) + gwet1d(n,np)*(1.0-scvk(n,np))
-          endif
+          end if
         end do
       end do
 

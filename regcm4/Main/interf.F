@@ -29,12 +29,7 @@ c  innex = 2 ,   bats --> mm42d
 c
       implicit none
       integer innex,j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -45,7 +40,7 @@ c
 #     include "include/slice.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/bats.cb"
 
@@ -136,7 +131,7 @@ c
             veg1d(n,i)=0.
            else
             veg1d(n,i)=vegc(lveg(n,i))-seasf(lveg(n,i))*sfac
-           endif
+           end if
            emiss_1d(n,i) = emiss2d(n,i,j)
          enddo
 
@@ -206,7 +201,7 @@ Cchem2_
      &                           +    veg1d(n,i) *tlef1d(n,i)**4)**0.25
            else
              tgbb(i,j) = tgbb(i,j)+tg1d(n,i)
-           endif
+           end if
            if(ocld2d(n,i,j).lt.0.5) then
               ssw1d(n,i)=-1.e34
               rsw1d(n,i)=-1.e34
@@ -214,7 +209,7 @@ Cchem2_
               rno1d(n,i)=-1.e34
              rnos1d(n,i)=-1.e34
               scv1d(n,i)=-1.e34
-           endif
+           end if
          enddo
          uvdrag(i,j) = uvdrag(i,j)/float(NNSG)
          hfx(i,j)  = hfx(i,j)/float(NNSG)
@@ -253,14 +248,14 @@ Cchem2_
               rnos2d(n,i,j)=rnos2d(n,i,j)+rnos1d(n,i)/tau1*c(4)
            else
               rnos2d(n,i,j)=-1.e34
-           endif
+           end if
            if(rno2d(n,i,j).gt.-1.e10.and.rnos1d(n,i).gt.-1.e10
      &                              .and. rno1d(n,i).gt.-1.e10) then
               rno2d(n,i,j)=rno2d(n,i,j)
      &                    +(rno1d(n,i)-rnos1d(n,i))/tau1*c(4)
            else
               rno2d(n,i,j)=-1.e34
-           endif
+           end if
          enddo
 
 c
@@ -305,8 +300,8 @@ c
                u10m1d(n,i)= us1d(i)*(1.-factuv)
                v10m1d(n,i)= vs1d(i)*(1.-factuv)
                t2m_1d(n,i)=ts1d(n,i)-delt1d(n,i)*fact
-             endif
-           endif
+             end if
+           end if
            tg_s(n,j,i-1)  =  tg1d(n,i)
            u10m_s(n,j,i-1)=u10m1d(n,i)
            v10m_s(n,j,i-1)=v10m1d(n,i)
@@ -358,8 +353,8 @@ c
                u10m1d(n,i)= us1d(i)*(1.-factuv)
                v10m1d(n,i)= vs1d(i)*(1.-factuv)
                t2m_1d(n,i)=ts1d(n,i)-delt1d(n,i)*fact
-             endif
-           endif
+             end if
+           end if
            tg_s(n,j-1,i-1)  =  tg1d(n,i)
            u10m_s(n,j-1,i-1)=u10m1d(n,i)
            v10m_s(n,j-1,i-1)=v10m1d(n,i)
@@ -419,8 +414,8 @@ c
                if(iocnflx.eq.1) then
                  fact  = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
                  q2m_1d(n,i)=qs1d(n,i)-delq1d(n,i)*fact
-               endif
-             endif
+               end if
+             end if
              q2m_s(n,j,i-1) =q2m_1d(n,i)
              drag_s(n,j,i-1)=drag1d(n,i)
              evpa_s(n,j,i-1)=evpa2d(n,i,j)*mmpd
@@ -472,7 +467,7 @@ c
                rsw_s(n,j,i-1) =-1.e34
                rnos_s(n,j,i-1)=-1.e34
                scv_s(n,j,i-1) =-1.e34
-             endif
+             end if
            enddo
            if(nnn.ge.max0(NNSG/2,1)) then
              tlef_o(j,i-1)= tlef_o(j,i-1)/float(nnn)
@@ -506,8 +501,8 @@ c
                if(iocnflx.eq.1) then
                  fact  = dlog(z1(n,i)/2. )/dlog(z1(n,i)/zoce)
                  q2m_1d(n,i)=qs1d(n,i)-delq1d(n,i)*fact
-               endif
-             endif
+               end if
+             end if
              q2m_s(n,j-1,i-1) =q2m_1d(n,i)
              drag_s(n,j-1,i-1)=drag1d(n,i)
              evpa_s(n,j-1,i-1)=evpa2d(n,i,j)*mmpd
@@ -559,7 +554,7 @@ c
                rsw_s(n,j-1,i-1) =-1.e34
                rnos_s(n,j-1,i-1)=-1.e34
                scv_s(n,j-1,i-1) =-1.e34
-             endif
+             end if
            enddo
            if(nnn.ge.max0(NNSG/2,1)) then
              tlef_o(j-1,i-1)= tlef_o(j-1,i-1)/float(nnn)
@@ -592,6 +587,6 @@ c ******    reset accumulation arrays to zero
          end do
        end if
 c
-      endif               !end innex test
+      end if               !end innex test
       return
       end

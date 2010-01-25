@@ -35,7 +35,7 @@ c----------------------------------------------------------------------
          if (chrstg(lenchr:lenchr).eq.' '.or.
      1       chrstg(lenchr:lenchr).eq.char(0)) then
             if (lenchr.gt.0) go to 10
-         endif
-      endif
+         end if
+      end if
       return
       end

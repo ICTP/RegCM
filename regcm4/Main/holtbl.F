@@ -24,14 +24,9 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       implicit none
       integer j
+#     include "parameter.inc"
 #ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-#ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       INTEGER ierr
 #endif
 #     include "include/param1.cb"
@@ -119,7 +114,7 @@ c
             tqeva=tqeva+qfx_io(i,j)*dx*dx*dtmin*60.
           enddo
         enddo
-      endif
+      end if
       call MPI_BCAST(tqeva,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
       do j=2,jx-2
@@ -214,7 +209,7 @@ c
         kzm(i,k)=kzo
        else
         kzm(i,k)=kzo+dsqrt(ss)*(rc(i,k)-ri)*szkm/rc(i,k)
-       endif
+       end if
        kzm(i,k)=dmin1(kzm(i,k),kzmax)
 170   continue
 c
@@ -248,7 +243,7 @@ c compute friction velocity
 #ifdef MPP1
        if (myid .eq. nproc-1) then
          jdx = min0(jdx,jendx)
-       endif
+       end if
 #else
        jdx = min0(jdx,jlx)
 #endif
@@ -256,7 +251,7 @@ c compute friction velocity
 #ifdef MPP1
        if (myid.eq.0) then
          jdxm1 = max0(jdxm1,2)
-       endif
+       end if
 #else
        jdxm1 = max0(jdxm1,2)
 #endif
@@ -296,16 +291,16 @@ c----   first approximation for obhukov length
         if (oblen.ge.za(i,kx,j)) then
          th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(karman*ustr(i,j))
      &            *(dlog(za(i,kx,j)/10.)+5./oblen*(za(i,kx,j)-10.))
-        elseif (oblen.lt.za(i,kx,j).and.oblen.gt.10.) then
+        else if (oblen.lt.za(i,kx,j).and.oblen.gt.10.) then
          th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(karman*ustr(i,j))*
      &   (dlog(oblen/10.)+5./oblen*(oblen-10.)
      &                   +6*dlog(za(i,kx,j)/oblen))
-        elseif (oblen.le.10.) then
+        else if (oblen.le.10.) then
          th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(karman*ustr(i,j))*
      &   6*dlog(za(i,kx,j)/10.)
-        endif
+        end if
         th10(i,j)=dmax1(th10(i,j),tgb(i,j))
-       endif
+       end if
 cgtb   th10(i,j) = dmin1(th10(i,j),tgb(i,j))  ! gtb add to minimize obklen
 
 c       compute obukhov length
@@ -331,7 +326,7 @@ c
           enddo
           enddo
 #ifdef MPP1
-        endif
+        end if
 #endif
       enddo
 #ifdef MPP1
@@ -419,7 +414,7 @@ c    calculate coefficients at dot points for u and v wind
      &                     +akxx2(idx,k,j)  +akxx2(idxm1,k,j))
        enddo
        enddo
-      endif
+      end if
 c
 c *************************************************************************
 c
@@ -480,7 +475,7 @@ c
 #ifdef MPP1
        if (myid.eq.nproc-1) then
          jdx = min0(jdx,jendx)
-       endif
+       end if
 #else
        jdx = min0(jdx,jlx)
 #endif
@@ -488,7 +483,7 @@ c
 #ifdef MPP1
        if (myid .eq. 0) then
          jdxm1 = max0(jdxm1,2)
-       endif
+       end if
 #else
        jdxm1 = max0(jdxm1,2)
 #endif
@@ -803,7 +798,7 @@ c
          vdep(i,itr) = chtrdpv(itr,2)
         else
          vdep(i,itr) = chtrdpv(itr,1)
-        endif
+        end if
 c provisoire test de la routine chdrydep pour les dust
 
          if ( chtrname(itr) .eq. 'DUST' ) then
@@ -877,7 +872,7 @@ c     1  chix(i,k))/dt *psb(i,j)
 
 502   continue
 500   continue
-      endif
+      end if
 Cchem2_
 
  1080 continue

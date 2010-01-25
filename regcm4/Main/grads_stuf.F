@@ -19,19 +19,14 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine GRADSBAT(CTLNAME)
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/date.cb"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
 #else
 #     include "include/main.cb"
@@ -72,7 +67,7 @@ c
       else if(ibintyp.eq.2) then
          write(31,40)
   40     format('options little_endian')
-      endif
+      end if
       if(iotyp.eq.2) write(31,'(a)') 'options sequential'
       write(31,50)
   50  format('undef -1.e34')
@@ -127,8 +122,8 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
 #endif
-                  endif
-               endif
+                  end if
+               end if
             else
 #ifdef MPP1
                if(xlong_io(i,j).lt.0.0) then
@@ -159,9 +154,9 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
 #endif
-                  endif
-               endif
-            endif
+                  end if
+               end if
+            end if
          enddo
          enddo
          rlatinc=dxsp*0.001/111./2.
@@ -175,7 +170,7 @@ c
          centerj=(jx-2)/2.
 #endif
          centeri=(ix-2)/2.
-      endif
+      end if
       if(iotyp.eq.1) then
       if(proj.eq.'LAMCON') then        ! Lambert projection
 #ifdef MPP1
@@ -190,8 +185,8 @@ c
  110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
-      elseif(proj.eq.'POLSTR') then    !
-      elseif(proj.eq.'NORMER') then
+      else if(proj.eq.'POLSTR') then    !
+      else if(proj.eq.'NORMER') then
 #ifdef MPP1
          write(31,200)  mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
 #else
@@ -206,7 +201,7 @@ c
          write(31,220) (xlat(i,2),i=2,ix-1)
 #endif
  220  format(10f7.2)
-      elseif(proj.eq.'ROTMER') then
+      else if(proj.eq.'ROTMER') then
          write(*,*) 'Note that rotated Mercartor (ROTMER)'
      &             ,' projections are not supported by GrADS.'
          write(*,*) '  Although not exact, the eta.u projection'
@@ -228,7 +223,7 @@ c
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #endif
          stop
-      endif
+      end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
          write(31,200) mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
@@ -237,7 +232,7 @@ c
          write(31,200) jx-2,xlong(2,2),xlong(2,3)-xlong(2,2)
          write(31,201) ix-2,xlat(2,2),xlat(3,2)-xlat(2,2)
 #endif
-      endif
+      end if
  201  format('ydef ',I3,' linear ',f9.4,' ',f9.4)
       write(31,300) (1013.25-ptop*10.)*a(kx)+ptop*10.
  300  format('zdef 1',' levels ',f7.2)
@@ -250,13 +245,13 @@ c
          CALL FINDDATE(mnend,myear*1000000+1010100)
       else
          CALL FINDDATE(mnend,myear*1000000+month*10000+10100)
-      endif
+      end if
       CALL FINDDATE(jbend,IDATE2)
       if(ldatez.EQ.IDATE0) then
          number=(ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)+1
       else
          number=(ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)
-      endif
+      end if
       ifrq=batfrq+0.00001
       if(ldatez.EQ.IDATE0) then
          write(31,400)number,nhour     ,cday(nday),cmonth(month)
@@ -264,7 +259,7 @@ c
       else
          write(31,400)number,nhour+ifrq,cday(nday),cmonth(month)
      &               ,myear,ifrq
-      endif
+      end if
  400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
       if(iotyp.eq.2)  write(31,'(a)') 'theader 4'
       write(31,500) 21+6
@@ -278,7 +273,7 @@ c
       else
         write(31,600) 'u10m    ','westerly  wind at 10m (m/s)          '
         write(31,600) 'v10m    ','southerly wind at 10m (m/s)          '
-      endif
+      end if
       write(31,600) 'uvdrag  ','surface drag stress                  '
       write(31,600) 'tg      ','ground temperature (degree)          '
       write(31,600) 'tlef    ','temperature of foliage               '
@@ -311,12 +306,7 @@ c
       end
       subroutine GRADSSUB(CTLNAME)
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/date.cb"
 #     include "include/iunits.cb"
 #     include "include/param1.cb"
@@ -324,7 +314,7 @@ c
 #     include "include/param3.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       INTEGER ierr
       real(kind=4)  xlat_s_io(mjx*NSG,ix*NSG),xlon_s_io(mjx*NSG,ix*NSG)
 #else
@@ -366,7 +356,7 @@ c
       else if(ibintyp.eq.2) then
          write(31,40)
   40     format('options little_endian')
-      endif
+      end if
       if(iotyp.eq.2) write(31,'(a)') 'options sequential'
       write(31,50)
   50  format('undef -1.e34')
@@ -421,8 +411,8 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
 #endif
-                  endif
-               endif
+                  end if
+               end if
             else
 #ifdef MPP1
                if(xlong_io(i,j).lt.0.0) then
@@ -453,9 +443,9 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
 #endif
-                  endif
-               endif
-            endif
+                  end if
+               end if
+            end if
          enddo
          enddo
          rlatinc=dxsp*0.001/111./2.
@@ -469,7 +459,7 @@ c
          centerj=(jx-2)/2.
 #endif
          centeri=(ix-2)/2.
-      endif
+      end if
       if(iotyp.eq.1) then
       if(proj.eq.'LAMCON') then        ! Lambert projection
 #ifdef MPP1
@@ -484,8 +474,8 @@ c
  110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
-      elseif(proj.eq.'POLSTR') then    !
-      elseif(proj.eq.'NORMER') then
+      else if(proj.eq.'POLSTR') then    !
+      else if(proj.eq.'NORMER') then
 #ifdef MPP1
          read(iutin1,rec=5) xlat_s_io
          read(iutin1,rec=6) xlon_s_io
@@ -506,7 +496,7 @@ c
          write(31,220) (xlat_s(NSG+1,i),i=NSG+1,(ix-1)*NSG)
 #endif
  220  format(10f7.2)
-      elseif(proj.eq.'ROTMER') then
+      else if(proj.eq.'ROTMER') then
          write(*,*) 'Note that rotated Mercartor (ROTMER)'
      &             ,' projections are not supported by GrADS.'
          write(*,*) '  Although not exact, the eta.u projection'
@@ -528,7 +518,7 @@ c
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #endif
          stop
-      endif
+      end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
          write(31,200) (mjx-2)*NSG,xlong_io(2,2),
@@ -539,7 +529,7 @@ c
          write(31,200) (jx-2)*NSG,xlong(2,2),(xlong(2,3)-xlong(2,2))/NSG
          write(31,201) (ix-2)*NSG,xlat(2,2),(xlat(3,2)-xlat(2,2))/NSG
 #endif
-      endif
+      end if
  201  format('ydef ',I3,' linear ',f9.4,' ',f9.4)
       write(31,300) 1,(1013.25-ptop*10.)*a(kx)+ptop*10.
  300  format('zdef ',I2,' levels ',30f7.2)
@@ -552,13 +542,13 @@ c
          CALL FINDDATE(mnend,myear*1000000+1010100)
       else
          CALL FINDDATE(mnend,myear*1000000+month*10000+10100)
-      endif
+      end if
       CALL FINDDATE(jbend,IDATE2)
       if(ldatez.EQ.IDATE0) then
          number=(ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)+1
       else
          number=(ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)
-      endif
+      end if
       ifrq=batfrq+0.00001
       if(ldatez.EQ.IDATE0) then
          write(31,400)number,nhour     ,cday(nday),cmonth(month)
@@ -566,7 +556,7 @@ c
       else
          write(31,400)number,nhour+ifrq,cday(nday),cmonth(month)
      &               ,myear,ifrq
-      endif
+      end if
  400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
       if(iotyp.eq.2)  write(31,'(a)') 'theader 4'
       write(31,500) 16
@@ -580,7 +570,7 @@ c
       else
         write(31,600) 'u10m    ','westerly  wind at 10m (m/s)          '
         write(31,600) 'v10m    ','southerly wind at 10m (m/s)          '
-      endif
+      end if
       write(31,600) 'uvdrag  ','surface drag stress                  '
       write(31,600) 'tg      ','ground temperature (degree)          '
       write(31,600) 'tlef    ','temperature of foliage               '
@@ -602,12 +592,7 @@ c
       end
       subroutine GRADSCHEM(CTLNAME)
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/date.cb"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
@@ -615,7 +600,7 @@ c
 #     include "include/trachem.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       INTEGER ierr
 #else
 #     include "include/main.cb"
@@ -652,10 +637,10 @@ c
       if(ibintyp.eq.1) then
          write(31,30)
   30     format('options big_endian')
-      elseif(ibintyp.eq.2) then
+      else if(ibintyp.eq.2) then
          write(31,40)
   40     format('options little_endian')
-      endif
+      end if
       if(iotyp.eq.2) write(31,'(a)') 'options sequential'
       write(31,50)
   50  format('undef -1.e34')
@@ -710,8 +695,8 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
 #endif
-                  endif
-               endif
+                  end if
+               end if
             else
 #ifdef MPP1
                if(xlong_io(i,j).lt.0.0) then
@@ -742,9 +727,9 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
 #endif
-                  endif
-               endif
-            endif
+                  end if
+               end if
+            end if
          enddo
          enddo
          rlatinc=dxsp*0.001/111./2.
@@ -758,7 +743,7 @@ c
          centerj=(jx-2)/2.
 #endif
          centeri=(ix-2)/2.
-      endif
+      end if
       if(iotyp.eq.1) then
       if(proj.eq.'LAMCON') then        ! Lambert projection
 #ifdef MPP1
@@ -773,8 +758,8 @@ c
  110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
-      elseif(proj.eq.'POLSTR') then    !
-      elseif(proj.eq.'NORMER') then
+      else if(proj.eq.'POLSTR') then    !
+      else if(proj.eq.'NORMER') then
 #ifdef MPP1
          write(31,200)  mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
 #else
@@ -789,7 +774,7 @@ c
          write(31,220) (xlat(i,2),i=2,ix-1)
 #endif
  220  format(10f7.2)
-      elseif(proj.eq.'ROTMER') then
+      else if(proj.eq.'ROTMER') then
          write(*,*) 'Note that rotated Mercartor (ROTMER)'
      &             ,' projections are not supported by GrADS.'
          write(*,*) '  Although not exact, the eta.u projection'
@@ -811,7 +796,7 @@ c
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #endif
          stop
-      endif
+      end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
          write(31,200) mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
@@ -820,7 +805,7 @@ c
          write(31,200) jx-2,xlong(2,2),xlong(2,3)-xlong(2,2)
          write(31,201) ix-2,xlat(2,2),xlat(3,2)-xlat(2,2)
 #endif
-      endif
+      end if
  201  format('ydef ',I3,' linear ',f9.4,' ',f9.4)
       write(31,300) kx,((1013.25-ptop*10.)*a(k)+ptop*10.,k=kx,1,-1)
  300  format('zdef ',I2,' levels ',30f7.2)
@@ -833,13 +818,13 @@ c
          CALL FINDDATE(mnend,myear*1000000+1010100)
       else
          CALL FINDDATE(mnend,myear*1000000+month*10000+10100)
-      endif
+      end if
       CALL FINDDATE(jbend,IDATE2)
       if(ldatez.EQ.IDATE0) then
          number=(ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)+1
       else
          number=(ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)
-      endif
+      end if
       ifrq=chemfrq+0.00001
       if(ldatez.EQ.IDATE0) then
          write(31,400)number,nhour     ,cday(nday),cmonth(month)
@@ -847,7 +832,7 @@ c
       else
          write(31,400)number,nhour+ifrq,cday(nday),cmonth(month)
      &               ,myear,ifrq
-      endif
+      end if
  400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
       if(iotyp.eq.2)  write(31,'(a)') 'theader 4'
       write(31,500) ntr +3 + 7*ntr +2
@@ -863,7 +848,7 @@ c
          write(31,650) 'trac',itr,kx, 'tracer mix. rat  (Kg/Kg)'
        else
          write(31,651) 'trac',itr,kx, 'tracer mix. rat  (Kg/Kg)'
-       endif
+       end if
       end do  
       write(31,650) 'aext',8,kx, 'aer mix. ext. coef      '
       write(31,650) 'assa',8,kx, 'aer mix. sin. scat. alb '
@@ -886,7 +871,7 @@ c
           write(31,656) 'xgasc_tr',itr,'chem gas conv. (mg/m2/d)'
           write(31,656) 'xaquc_tr',itr,'chem aqu conv. (mg/m2/d)'
           write(31,656) 'emiss_tr',itr,'surf emission  (mg/m2/d)'
-        endif
+        end if
       end do 
       write(31,600) 'acstoarf',' TOArad forcing av.(W/m2)'
       write(31,600) 'acstsrrf',' SRFrad forcing av.(W/m2)'
@@ -898,16 +883,11 @@ c
       end
       subroutine GRADSCTL(CTLNAME)
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param2.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       INTEGER ierr
 #else
 #     include "include/main.cb"
@@ -935,10 +915,10 @@ c
       if(ibintyp.eq.1) then
          write(31,30)
   30     format('options big_endian')
-      elseif(ibintyp.eq.2) then
+      else if(ibintyp.eq.2) then
          write(31,40)
   40     format('options little_endian')
-      endif
+      end if
       write(31,50)
   50  format('undef -1.e34')
       if(proj.eq.'LAMCON'.or.proj.eq.'ROTMER') then
@@ -992,8 +972,8 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
 #endif
-                  endif
-               endif
+                  end if
+               end if
             else
 #ifdef MPP1
                if(xlong_io(i,j).lt.0.0) then
@@ -1024,9 +1004,9 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
 #endif
-                  endif
-               endif
-            endif
+                  end if
+               end if
+            end if
          enddo
          enddo
          rlatinc=dxsp*0.001/111./2.
@@ -1040,7 +1020,7 @@ c
          centerj=(jx-2)/2.
 #endif
          centeri=(ix-2)/2.
-      endif
+      end if
       if(proj.eq.'LAMCON') then        ! Lambert projection
 #ifdef MPP1
          write(31,100) mjx-2,ix-2,clat,clon,centerj,centeri,
@@ -1054,8 +1034,8 @@ c
  110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
-      elseif(proj.eq.'POLSTR') then    !
-      elseif(proj.eq.'NORMER') then
+      else if(proj.eq.'POLSTR') then    !
+      else if(proj.eq.'NORMER') then
 #ifdef MPP1
          write(31,200)  mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
 #else
@@ -1070,7 +1050,7 @@ c
          write(31,220) (xlat(i,2),i=2,ix-1)
 #endif
  220  format(10f7.2)
-      elseif(proj.eq.'ROTMER') then
+      else if(proj.eq.'ROTMER') then
          write(*,*) 'Note that rotated Mercartor (ROTMER)'
      &             ,' projections are not supported by GrADS.'
          write(*,*) '  Although not exact, the eta.u projection'
@@ -1092,7 +1072,7 @@ c
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #endif
          stop
-      endif
+      end if
       write(31,300) 1,1000.
  300  format('zdef ',I1,' levels ',f7.2)
       write(31,400) 1
@@ -1118,19 +1098,14 @@ c
       end
       subroutine GRADSOUT(CTLNAME)
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/date.cb"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       INTEGER ierr
 #else
 #     include "include/main.cb"
@@ -1167,10 +1142,10 @@ c
       if(ibintyp.eq.1) then
          write(31,30)
   30     format('options big_endian')
-      elseif(ibintyp.eq.2) then
+      else if(ibintyp.eq.2) then
          write(31,40)
   40     format('options little_endian')
-      endif
+      end if
       if(iotyp.eq.2) write(31,'(a)') 'options sequential'
       write(31,50)
   50  format('undef -1.e34')
@@ -1225,8 +1200,8 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
 #endif
-                  endif
-               endif
+                  end if
+               end if
             else
 #ifdef MPP1
                if(xlong_io(i,j).lt.0.0) then
@@ -1257,9 +1232,9 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
 #endif
-                  endif
-               endif
-            endif
+                  end if
+               end if
+            end if
          enddo
          enddo
          rlatinc=dxsp*0.001/111./2.
@@ -1273,7 +1248,7 @@ c
          centerj=(jx-2)/2.
 #endif
          centeri=(ix-2)/2.
-      endif
+      end if
       if(iotyp.eq.1) then
       if(proj.eq.'LAMCON') then        ! Lambert projection
 #ifdef MPP1
@@ -1288,8 +1263,8 @@ c
  110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
-      elseif(proj.eq.'POLSTR') then    !
-      elseif(proj.eq.'NORMER') then
+      else if(proj.eq.'POLSTR') then    !
+      else if(proj.eq.'NORMER') then
 #ifdef MPP1
          write(31,200)  mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
 #else
@@ -1304,7 +1279,7 @@ c
          write(31,220) (xlat(i,2),i=2,ix-1)
 #endif
  220  format(10f7.2)
-      elseif(proj.eq.'ROTMER') then
+      else if(proj.eq.'ROTMER') then
          write(*,*) 'Note that rotated Mercartor (ROTMER)'
      &             ,' projections are not supported by GrADS.'
          write(*,*) '  Although not exact, the eta.u projection'
@@ -1326,7 +1301,7 @@ c
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #endif
          stop
-      endif
+      end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
          write(31,200) mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
@@ -1335,7 +1310,7 @@ c
          write(31,200) jx-2,xlong(2,2),xlong(2,3)-xlong(2,2)
          write(31,201) ix-2,xlat(2,2),xlat(3,2)-xlat(2,2)
 #endif
-      endif
+      end if
  201  format('ydef ',I3,' linear ',f9.4,' ',f9.4)
       write(31,300) kx,((1013.25-ptop*10.)*a(k)+ptop*10.,k=kx,1,-1)
  300  format('zdef ',I2,' levels ',30f7.2)
@@ -1348,13 +1323,13 @@ c
          CALL FINDDATE(mnend,myear*1000000+1010100)
       else
          CALL FINDDATE(mnend,myear*1000000+month*10000+10100)
-      endif
+      end if
       CALL FINDDATE(jbend,IDATE2)
       if(ldatez.EQ.IDATE0) then
          number=(ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)+1
       else
          number=(ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)
-      endif
+      end if
       ifrq=tapfrq+0.00001
       if(ldatez.EQ.IDATE0) then
          write(31,400)number,nhour     ,cday(nday),cmonth(month)
@@ -1362,7 +1337,7 @@ c
       else
          write(31,400)number,nhour+ifrq,cday(nday),cmonth(month)
      &               ,myear,ifrq
-      endif
+      end if
  400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
       if(iotyp.eq.2) write(31,'(a)') 'theader 4'
       write(31,500) 10+1
@@ -1377,7 +1352,7 @@ c
       else
          write(31,650) 'u       ',kx,'westerly wind (m/s)        '
          write(31,650) 'v       ',kx,'southerly wind (m/s)       '
-      endif
+      end if
       write(31,650) 'w       ',kx,'omega (hPa/s)   p-velocity '
       write(31,650) 't       ',kx,'air temperature (degree)   '
       write(31,650) 'qv      ',kx,'water vapor mixing ratio   '
@@ -1394,19 +1369,14 @@ c
       end
       subroutine GRADSRAD(CTLNAME)
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/date.cb"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       INTEGER ierr
 #else
 #     include "include/main.cb"
@@ -1446,7 +1416,7 @@ c
       else if (ibintyp.eq.2) then
          write(31,40)
   40     format('options little_endian')
-      endif
+      end if
       if(iotyp.eq.2) write(31,'(a)') 'options sequential'
       write(31,50)
   50  format('undef -1.34')
@@ -1501,8 +1471,8 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
 #endif
-                  endif
-               endif
+                  end if
+               end if
             else
 #ifdef MPP1
                if(xlong_io(i,j).lt.0.0) then
@@ -1533,9 +1503,9 @@ c
                      alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
                      alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
 #endif
-                  endif
-               endif
-            endif
+                  end if
+               end if
+            end if
          enddo
          enddo
          rlatinc=dxsp*0.001/111./2.
@@ -1549,7 +1519,7 @@ c
          centerj=(jx-2)/2.
 #endif
          centeri=(ix-2)/2.
-      endif
+      end if
       if(iotyp.eq.1) then
       if(proj.eq.'LAMCON') then        ! Lambert projection
 #ifdef MPP1
@@ -1564,8 +1534,8 @@ c
  110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
-      elseif(proj.eq.'POLSTR') then    !
-      elseif(proj.eq.'NORMER') then
+      else if(proj.eq.'POLSTR') then    !
+      else if(proj.eq.'NORMER') then
 #ifdef MPP1
          write(31,200)  mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
 #else
@@ -1580,7 +1550,7 @@ c
          write(31,220) (xlat(i,2),i=2,ix-1)
 #endif
  220  format(10f7.2)
-      elseif(proj.eq.'ROTMER') then
+      else if(proj.eq.'ROTMER') then
          write(*,*) 'Note that rotated Mercartor (ROTMER)'
      &             ,' projections are not supported by GrADS.'
          write(*,*) '  Although not exact, the eta.u projection'
@@ -1602,7 +1572,7 @@ c
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #endif
          stop
-      endif
+      end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
          write(31,200) mjx-2,xlong_io(2,2),xlong_io(2,3)-xlong_io(2,2)
@@ -1611,7 +1581,7 @@ c
          write(31,200) jx-2,xlong(2,2),xlong(2,3)-xlong(2,2)
          write(31,201) ix-2,xlat(2,2),xlat(3,2)-xlat(2,2)
 #endif
-      endif
+      end if
  201  format('ydef ',I3,' linear ',f9.4,' ',f9.4)
       write(31,300) kx,((1013.25-ptop*10.)*a(k)+ptop*10.,k=kx,1,-1)
  300  format('zdef ',I2,' levels ',30f7.2)
@@ -1624,13 +1594,13 @@ c
          CALL FINDDATE(mnend,myear*1000000+1010100)
       else
          CALL FINDDATE(mnend,myear*1000000+month*10000+10100)
-      endif
+      end if
       CALL FINDDATE(jbend,IDATE2)
       if(ldatez.EQ.IDATE0) then
          number=(ibdyfrq/radisp+0.00001)*(min0(jbend,mnend)-nbase)+1
       else
          number=(ibdyfrq/radisp+0.00001)*(min0(jbend,mnend)-nbase)
-      endif
+      end if
       ifrq=radisp+0.00001
       if(ldatez.EQ.IDATE0) then
          write(31,400)number,nhour     ,cday(nday),cmonth(month)
@@ -1638,7 +1608,7 @@ c
       else
          write(31,400)number,nhour+ifrq,cday(nday),cmonth(month)
      &               ,myear,ifrq
-      endif
+      end if
  400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
       if(iotyp.eq.2) write(31,'(a)') 'theader 4'
       write(31,500) 13

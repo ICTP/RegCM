@@ -50,14 +50,9 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 c
       integer j
+#     include "parameter.inc"
 #ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-#ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/slice.cb"
 #     include "include/main.cb"
@@ -105,7 +100,7 @@ c......second-order scheme for north and south boundaries:
      &          tb3d(i+1,k,j)+tb3d(i-1,k,j) - 4.*tb3d(i,k,j))*psb(i,j)
    70  continue
 c
-      endif
+      end if
 c
       return
       end
@@ -142,16 +137,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 c
       integer j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/slice.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 c
       real(kind=8)  ften(ix,kx),xkc(ix,kx)
@@ -201,7 +191,7 @@ c......second-order scheme for north and south boundaries:
      &       qvb3d(i+1,k,j)+qvb3d(i-1,k,j) - 4.*qvb3d(i,k,j))*psb(i,j)
    70  continue
 c
-      endif
+      end if
 c
       return
       end
@@ -238,16 +228,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 c
       integer j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/slice.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 c
       real(kind=8)  ften(ix,kx),xkc(ix,kx)
@@ -297,7 +282,7 @@ c......second-order scheme for north and south boundaries:
      &       qcb3d(i+1,k,j)+qcb3d(i-1,k,j) - 4.*qcb3d(i,k,j))*psb(i,j)
    70  continue
 c
-      endif
+      end if
 c
       return
       end
@@ -334,16 +319,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 c
       integer j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/slice.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 c
       real(kind=8)  ften(ix,kx),xkc(ix,kx)
@@ -397,7 +377,7 @@ c......second-order scheme for north and south boundaries:
      &  - 4.*chib3d(i,k,j,n))*psb(i,j)
    70  continue
 c
-      endif
+      end if
 c
       return
       end

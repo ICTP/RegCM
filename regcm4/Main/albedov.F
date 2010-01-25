@@ -46,12 +46,7 @@ C  (depuv/10.0)= the ratio of upper soil layer to total
 C                root depth; used to compute "wet" for soil albedo
 C     solour        =  soil albedo for different coloured soils
 C
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 
 #     include "include/param1.cb"
 #     include "include/param3.cb"

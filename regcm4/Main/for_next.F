@@ -19,12 +19,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine for_next
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -48,7 +43,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          write(99,101) 'ifrest  = .true. '
       else
          write(99,101) 'ifrest  = .false.'
-      endif
+      end if
       write(99,102) 'idate0  = ',idate0
       write(99,102) 'idate1  = ',idate1
       write(99,102) 'idate2  = ',idate2
@@ -68,36 +63,36 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         write(99,101) 'ifsave  = .true. '
       else
         write(99,101) 'ifsave  = .false.'
-      endif
+      end if
       write(99,104) 'savfrq  = ',savfrq
       if (iftape) then
         write(99,101) 'iftape  = .true. '
       else
         write(99,101) 'iftape  = .false.'
-      endif
+      end if
       write(99,104) 'tapfrq  = ',tapfrq
       if (ifrad) then
         write(99,101) 'ifrad   = .true. '
       else
         write(99,101) 'ifrad   = .false.'
-      endif
+      end if
       write(99,104) 'radisp  = ',radisp
       if (ifbat) then
         write(99,101) 'ifbat   = .true. '
       else
         write(99,101) 'ifbat   = .false.'
-      endif
+      end if
       if (ifsub) then
         write(99,101) 'ifsub   = .true. '
       else
         write(99,101) 'ifsub   = .false.'
-      endif
+      end if
       write(99,104) 'batfrq  = ',batfrq
       if (ifprt) then
         write(99,101) 'ifprt   = .true. '
       else
         write(99,101) 'ifprt   = .false.'
-      endif
+      end if
       write(99,104) 'prtfrq  = ',prtfrq
       write(99,105) 'kxout   = ',kxout
       write(99,105) 'jxsex   = ',jxsex
@@ -107,7 +102,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         write(99,101) 'ifchem  = .true. '
       else
         write(99,101) 'ifchem  = .false.'
-      endif
+      end if
       write(99,104) 'chemfrq = ',chemfrq
       write(99,200) '/'
 
@@ -192,7 +187,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         else
           write(chname(nc+1:nc+8),113) chtrname(itr)
           nc=nc+8
-        endif
+        end if
       enddo
       write(99,109) 'chtrname  = ',chname(1:nc)
       write(99,114) 'chtrsol   = ',chtrsol

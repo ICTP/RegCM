@@ -43,12 +43,7 @@ c     resistances for co2 are larger than those for h2o due to
 c                    difference in molecular weight
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 #     include "include/bats.cb2"
 
@@ -71,8 +66,8 @@ c
      a         * carbon( solis(np)*rlai(n,np), tlef1d(n,np), rt
      b                 , tg1d(n,np), xlai(n,np), xlsai(n,np) )
          pbp1d(n,np) = pbp1d(n,np) + cari(n,np)*c(4)
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
 
@@ -85,8 +80,8 @@ c
      a           *dmin1(1.d0,ssw1d(n,np)/(0.6*gwmx0(n,np)))
          resp1d(n,np) = resp1d(n,np) + (cari(n,np)-resps)*c(4)
          if (resp1d(n,np).lt.0.0) resp1d(n,np) = 0.
-        endif
-       endif
+        end if
+       end if
       enddo
 91    continue
       return

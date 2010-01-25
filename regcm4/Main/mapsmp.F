@@ -116,12 +116,12 @@ c
         if(fldmax .ge. fldu) then
          fldmax=fldmax/10.
          iexp=iexp-1
-        elseif(fldmax .lt. fldl) then
+        else if(fldmax .lt. fldl) then
          fldmax=fldmax*10.
          iexp=iexp+1
         else
          goto 60
-        endif
+        end if
 50     continue
 60     do 70 i=ia,ib,iny
        do 70 j=ja,jb,jnx
@@ -165,7 +165,7 @@ c110    format(1x,i2,1x,i2)
        write(n,170) c40nam,fldmax,time
 170    format(/'   all of the values of ',a40,' are equal to ',e15.5,5x,
      1       'at time = ',f10.3)
-      endif      !end if(fldmax.ne.fldmin)test
+      end if      !end if(fldmax.ne.fldmin)test
 c
 c
       return

@@ -32,12 +32,8 @@ c                 conditions are needed.                              c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/iunits.cb"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
@@ -50,7 +46,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       integer nxwb,nxeb,ndwb,ndeb,nkk
@@ -105,7 +101,7 @@ c
              enddo
            enddo
          enddo
-      endif
+      end if
       mmrec=mmrec+1
       read(iutbc,rec=mmrec,iostat=ierr1) ndate1
       if (ierr1.ne.0) then
@@ -127,7 +123,7 @@ C_sgi 101    format('fort.',I2)
         if (iutbc.gt.999) then
            write(*,*) 'BDY UNIT MAX EXCEEDED (bdyin.f)'
            call MPI_ABORT(MPI_COMM_WORLD,ierr)
-        endif
+        end if
 #else
         if (iutbc.gt.999) stop 'BDY UNIT MAX EXCEEDED (bdyin.f)'
 #endif
@@ -142,16 +138,16 @@ C_sgi 101    format('fort.',I2)
                   mmrec=mmrec+kx*5+2
                else
                   mmrec=mmrec+kx*5+2+13
-               endif
+               end if
             else
                if(LSMTYP.ne.'USGS') then
                   mmrec=mmrec+kx*4+2
                else
                   mmrec=mmrec+kx*4+2+13
-               endif
-            endif
+               end if
+            end if
             go to 222
-         ENDIF
+         end if
       else if (ndate1.gt.MDATEZ(NNNCHK+1)) then
          print*,'DATE IN BC FILE EXCEEDED DATE IN RegCM'
          print*,ndate1,MDATEZ(NNNCHK+1),NNNCHK+1
@@ -161,7 +157,7 @@ C_sgi 101    format('fort.',I2)
 #else
          stop 'ICBC date (bdyin.f)'
 #endif
-      END IF
+      end if
 #ifdef MPP1
 c     print*,'UB1'
       do k=kx,1,-1
@@ -230,7 +226,7 @@ c        print*,'SO1'
            enddo
            enddo
          end do
-      endif
+      end if
 #else
 c     print*,'UB1'
       do k=kx,1,-1
@@ -299,7 +295,7 @@ c     print*,'SO1'
            enddo
            enddo
          end do
-      endif
+      end if
 #endif
       if(LSMTYP.eq.'USGS') mmrec=mmrec+13
 #ifdef MPP1
@@ -325,8 +321,8 @@ c     print*,'SO1'
                enddo
              enddo
            enddo
-        endif
-      endif
+        end if
+      end if
       call MPI_BCAST(ndate1,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       call MPI_SCATTER(
      &         sav_0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
@@ -358,7 +354,7 @@ c     print*,'SO1'
              enddo
            enddo
          enddo
-      endif
+      end if
 #endif
 c Convert surface pressure to pstar
 #ifdef MPP1
@@ -397,10 +393,10 @@ c
 #endif
         psdot(i,1)=0.5*(PS1(i,1)+PS1(i-1,1))
 #ifdef MPP1
-        endif
+        end if
         if (myid .eq. nproc-1) then
           psdot(i,jendl)=0.5*(PS1(i,jendx)+PS1(i-1,jendx))
-        endif
+        end if
 #else
         psdot(i,jx)=0.5*(PS1(i,jlx)+PS1(i-1,jlx))
 #endif
@@ -421,11 +417,11 @@ c
       psdot(1,1)=PS1(1,1)
       psdot(ix,1)=PS1(ilx,1)
 #ifdef MPP1
-      endif
+      end if
       if (myid .eq. nproc-1) then
         psdot(1,jendl)=PS1(1,jendx)
         psdot(ix,jendl)=PS1(ilx,jendx)
-      endif
+      end if
 #else
       psdot(1,jx)=PS1(1,jlx)
       psdot(ix,jx)=PS1(ilx,jlx)
@@ -467,13 +463,13 @@ c
             nxwb=jxp
          else
             nxwb=nspgx-nkk*jxp
-         endif
-      endif
+         end if
+      end if
       if(nxwb+myid*jxp.gt.nspgx) then
          nxwb=0
       else if(nxwb+myid*jxp.lt.nspgx) then
          nxwb=jxp
-      endif
+      end if
 c
       if(nspgx.le.jxp-1) then
          nxeb=nspgx
@@ -483,13 +479,13 @@ c
             nxeb=jxp
          else
             nxeb=(nspgx-jxp+1)-nkk*jxp
-         endif
-      endif
+         end if
+      end if
       if(mjx-1-(myid*jxp+jxp-nxeb).gt.nspgx) then
          nxeb=0
       else if(mjx-1-(myid*jxp+jxp-nxeb).lt.nspgx) then
          nxeb=MIN(jendx,jxp)
-      endif
+      end if
       do nn=1,nxwb
 #else
       do nn=1,nspgx
@@ -536,13 +532,13 @@ c
             ndwb=jxp
          else
             ndwb=nspgd-nkk*jxp
-         endif
-      endif
+         end if
+      end if
       if(ndwb+myid*jxp.gt.nspgd) then
          ndwb=0
       else if(ndwb+myid*jxp.lt.nspgd) then
          ndwb=jxp
-      endif
+      end if
 c
       if(nspgd.le.jendl) then
          ndeb=nspgd
@@ -552,13 +548,13 @@ c
             ndeb=jxp
          else
             ndeb=nspgd-nkk*jxp
-         endif
-      endif
+         end if
+      end if
       if(mjx-(myid*jxp+jxp-ndeb).gt.nspgd) then
          ndeb=0
       else if(mjx-(myid*jxp+jxp-ndeb).lt.nspgd) then
          ndeb=jxp
-      endif
+      end if
       do nn=1,ndwb
 #else
       do nn=1,nspgd
@@ -664,7 +660,7 @@ c
 #endif
       print*,'BCs are ready from ',ndate0,'  to ',ndate1
 #ifdef MPP1
-      endif
+      end if
 #endif
       idatex = ndate0
       ndate0=ndate1
@@ -713,7 +709,7 @@ c
             enddo
           enddo
         enddo
-      endif
+      end if
 CbxqOCT2001_
 
       NNBASE= NNNNNN 
@@ -744,8 +740,8 @@ c         do n=1,NNSG
 c           ocld2d(n,i,j)=0.
 c           sice2d(n,i,j)=0.
 c         enddo
-c       endif
-       endif
+c       end if
+       end if
 50    continue
 
       return

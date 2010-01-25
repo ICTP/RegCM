@@ -19,12 +19,9 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine chsrfem
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+
+#     include "parameter.inc"
+
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -37,7 +34,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #ifdef MPP1
 #     include "include/io.cb"
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
       real(kind=8)  src0(ix,12,ntr,jxp),src_0(ix,12,ntr,mjx)
       COMMON /tmpSRC/ src0,src_0
@@ -60,11 +57,11 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if(AERCTL(1:4).eq.'DUST') then
           rd_tex = .true.
           goto 1000
-        endif
+        end if
       enddo
  1000 continue
 #ifdef MPP1
-      endif
+      end if
 #endif
 #ifdef MPP1
       call MPI_BCAST(rd_tex,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
@@ -93,7 +90,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     enddo
                     enddo
                   enddo
-               endif
+               end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
                     read(iutchsrc,rec=3+m) ((toto(i,j),j=1,mjx),i=1,ix)
@@ -104,7 +101,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     enddo
                     enddo
                   enddo
-               endif
+               end if
             else if(AERCTL(1:2).eq.'BC') then
                if(AERTYP(4:4).eq.'1') then
                   read(iutchsrc,rec=2) ((toto(i,j),j=1,mjx),i=1,ix)
@@ -123,7 +120,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     enddo
                     enddo
                   enddo
-               endif
+               end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
                     read(iutchsrc,rec=15+m) ((toto(i,j),j=1,mjx),i=1,ix)
@@ -134,7 +131,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     enddo
                     enddo
                   enddo
-               endif
+               end if
             else if(AERCTL(1:2).eq.'OC') then
                if(AERTYP(4:4).eq.'1') then
                   read(iutchsrc,rec=3) ((toto(i,j),j=1,mjx),i=1,ix)
@@ -153,7 +150,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     enddo
                     enddo
                   enddo
-               endif
+               end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
                     read(iutchsrc,rec=27+m) ((toto(i,j),j=1,mjx),i=1,ix)
@@ -164,9 +161,9 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     enddo
                     enddo
                   enddo
-               endif
-            endif
-         endif
+               end if
+            end if
+         end if
       enddo
       do j=1,mjx
         do itr=1,ntr
@@ -177,7 +174,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
           enddo
         enddo
       enddo
-      endif
+      end if
 c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 #else
       do itr=1, ntr
@@ -204,7 +201,7 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     enddo
                     enddo
                   enddo
-               endif
+               end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
                     read(iutchsrc,rec=3+m) ((toto(i,j),j=1,jx),i=1,ix)
@@ -214,7 +211,7 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     enddo
                     enddo
                   enddo
-               endif
+               end if
             else if(AERCTL(1:2).eq.'BC') then
                if(AERTYP(4:4).eq.'1') then
                   read(iutchsrc,rec=2) ((toto(i,j),j=1,jx),i=1,ix)
@@ -233,7 +230,7 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     enddo
                     enddo
                   enddo
-               endif
+               end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
                     read(iutchsrc,rec=15+m) ((toto(i,j),j=1,jx),i=1,ix)
@@ -243,7 +240,7 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     enddo
                     enddo
                   enddo
-               endif
+               end if
             else if(AERCTL(1:2).eq.'OC') then
                if(AERTYP(4:4).eq.'1') then
                   read(iutchsrc,rec=3) ((toto(i,j),j=1,jx),i=1,ix)
@@ -262,7 +259,7 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     enddo
                     enddo
                   enddo
-               endif
+               end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
                     read(iutchsrc,rec=27+m) ((toto(i,j),j=1,jx),i=1,ix)
@@ -272,9 +269,9 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     enddo
                     enddo
                   enddo
-               endif
-            endif
-         endif
+               end if
+            end if
+         end if
       enddo
 #endif
 #ifdef MPP1
@@ -300,15 +297,15 @@ c modification dust : read the soil texture type
             read(iutin,rec=14) ((toto(i,j),j=1,mjx),i=1,ix)
          else if(LSMTYP.eq.'USGS') then
             read(iutin,rec=43) ((toto(i,j),j=1,mjx),i=1,ix)
-         endif
+         end if
          close(iutin)
          do j=1,mjx
          do i=1,ix
            dustsotex_io(i,j) = dble(toto(i,j))
          enddo
          enddo
-      endif
-      endif
+      end if
+      end if
 c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       call MPI_SCATTER(dustsotex_io(1,1),ix*jxp,MPI_DOUBLE_PRECISION
      &                   ,dustsotex(1,1),ix*jxp,MPI_DOUBLE_PRECISION
@@ -319,18 +316,18 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             read(iutin,rec=14) ((toto(i,j),j=1,jx),i=1,ix)
          else if(LSMTYP.eq.'USGS') then
             read(iutin,rec=43) ((toto(i,j),j=1,jx),i=1,ix)
-         endif
+         end if
          close(iutin)
          do j=1,jx
          do i=1,ix
            dustsotex(i,j) = dble(toto(i,j))
          enddo
          enddo
-      endif
+      end if
 #endif
       if(rd_tex) then
          call inidust
-      endif
+      end if
 
 c    sulfates sources
       do m=1,12
@@ -348,12 +345,12 @@ c    BC
             if(ibchb.gt.0 .and. ibchl.gt.0) then
                chemsrc(i,j,m,ibchl) = 0.2 * chemsrc(i,j,m,ibchb)
                chemsrc(i,j,m,ibchb) = 0.8 * chemsrc(i,j,m,ibchb)
-            endif
+            end if
 c    OC
             if(iochb.gt.0 .and. iochl.gt.0) then
                chemsrc(i,j,m,iochl) = 0.5 * chemsrc(i,j,m,iochb)
                chemsrc(i,j,m,iochb) = 0.5 * chemsrc(i,j,m,iochb)
-            endif
+            end if
          enddo
          enddo
       enddo
@@ -373,7 +370,7 @@ c    OPtical properties / internal mixing
 #else
             stop
 #endif
-         endif
+         end if
          open(iutopt,file='optdat.bin',form='unformatted'
      &              ,recl=4*19*11*11*11*11*IBYTE,access='direct')
          read(iutopt,rec=1) ((((((dextmix(i,j,k,l,m,n)
@@ -384,7 +381,7 @@ c    OPtical properties / internal mixing
      &              ,i=1,4),j=1,19),k=1,11),l=1,11),m=1,11),n=1,11)
          close(iutopt)
 #ifdef MPP1
-      endif
+      end if
          call MPI_BCAST(dextmix,4*19*11*11*11*11,MPI_REAL,0
      &       ,MPI_COMM_WORLD,ierr)
          call MPI_BCAST(dssamix,4*19*11*11*11*11,MPI_REAL,0
@@ -408,23 +405,23 @@ c       Check !
      &          (dextmix(i,j,k,l,m,n) .gt. 20.)) then
                print*,'problem in dextmix ', dextmix(i,j,k,l,m,n)
                stop
-            endif
+            end if
     
             if ((dssamix(i,j,k,l,m,n) .lt. 0.) .or.  
      &          (dssamix(i,j,k,l,m,n) .gt. 1.)) then
                print*,'problem in dextmix ', dssamix(i,j,k,l,m,n)
                stop
-            endif
+            end if
      
             if ((dgmix(i,j,k,l,m,n) .lt. 0.) .or.  
      &          (dgmix(i,j,k,l,m,n) .gt. 1.)) then
                print*,'problem in dextmix ', dgmix(i,j,k,l,m,n)
                stop
-            endif
+            end if
      
          end do
          end do
-         endif
+         end if
 
          end do
          end do

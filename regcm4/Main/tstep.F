@@ -28,12 +28,7 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       real(kind=8)  extime,dtinc,deltmx
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 
       integer idtmax
@@ -45,13 +40,13 @@ c
        tscale=5.*dt
        deltmn=0.1*dt
        deltmx=dt
-      endif
+      end if
       if (idtmax .eq. 1) then
        dt=deltmx*(1.-dexp(-extime/tscale))+deltmn
        dtinc=dt
        dtmin=dt/60.
        idtmax=2
-      endif
+      end if
       dt2=2.*dt
       if (.not.(jyear.eq.jyear0.and.ktau.eq.0)) dt=dt2
 c

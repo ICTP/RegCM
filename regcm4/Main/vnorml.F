@@ -37,7 +37,7 @@ c
       if (a.gt.zmax) then
          zmax=a
          kmax=k
-      endif
+      end if
       v=(s(k+1)-s(k))*a*a + v
     1 continue
 c

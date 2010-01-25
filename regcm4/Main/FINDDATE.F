@@ -20,7 +20,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       SUBROUTINE FINDDATE(NPOS,IDATE)
       IMPLICIT NONE
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
 #endif
       INTEGER         MDATEZ
@@ -35,7 +35,7 @@ C
       IF(MDATEZ(I).EQ.IDATE) THEN
          NPOS=I
          GO TO 200
-      ENDIF
+      end if
       IF(I.GT.289276) GOTO 100
       GO TO 10
  100  CONTINUE
@@ -44,7 +44,7 @@ C
 #endif
       WRITE(*,*) 'ERROR IN FINDDATE',NPOS,IDATE
 #ifdef MPP1
-      endif
+      end if
       call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
       STOP

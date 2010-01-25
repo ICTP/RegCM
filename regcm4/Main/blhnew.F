@@ -56,12 +56,9 @@ c                    zpbl     boundary layer height
 c
       implicit none
       integer j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+
+#     include "parameter.inc"
+
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -70,7 +67,7 @@ c
 #     include "include/pbldim.cb"
 
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 
       real(kind=8)  kzo
@@ -165,14 +162,14 @@ c ******   bl height lies between this level and the last
 c ******   use linear interp. of rich. no. to height of ri=ricr
         zpbl(i,j) = za(i,k,j) + (za(i,k2,j) - za(i,k,j)) *
      1          ( (ricr-ri(i,k))/(ri(i,k2)-ri(i,k)) )
-       endif
+       end if
 200   continue
 
       do 300 i=2,ilx
        if (ri(i,kt).lt.ricr) then
 c ******   set bl top to highest allowable model layer
         zpbl(i,j) = za(i,kt,j)
-       endif
+       end if
 300   continue
 
 c ******   recompute richardson no. at lowest model level
@@ -185,7 +182,7 @@ c ******   thermal temperature excess
         therm(i) = (xhfx(i,j)+0.61*thx3d(i,kx,j)*xqfx(i,j))*fak/wsc
         vvl = ubx3d(i,kx,j)*ubx3d(i,kx,j) + vbx3d(i,kx,j)*vbx3d(i,kx,j)
         ri(i,kx) = -g * therm(i) * za(i,kx,j) / (th10(i,j)*vvl)
-       endif
+       end if
 400   continue
 
 c ******   recompute richardson no. at other model levels
@@ -197,7 +194,7 @@ c ******   recompute richardson no. at other model levels
         ttkl = tkv - tlv
         vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
         ri(i,k) = g * ttkl * za(i,k,j) / (th10(i,j) * vv)
-       endif
+       end if
 420   continue
 
 c ******   improve estimate of bl height under convective conditions
@@ -211,8 +208,8 @@ c ******   bl height lies between this level and the last
 c ******   use linear interp. of rich. no. to height of ri=ricr
          zpbl(i,j) = za(i,k,j) + (za(i,k2,j) - za(i,k,j)) *
      1           ( (ricr-ri(i,k))/(ri(i,k2)-ri(i,k)) )
-        endif
-       endif
+        end if
+       end if
 500   continue
 
       do 600 i=2,ilx
@@ -220,8 +217,8 @@ c ******   use linear interp. of rich. no. to height of ri=ricr
         if (ri(i,kt).lt.ricr) then
 c ******   set bl top to highest allowable model layer
          zpbl(i,j) = za(i,kt,j)
-        endif
-       endif
+        end if
+       end if
 600   continue
 
 c ******   limit bl height to be at least mech. mixing depth
@@ -268,7 +265,7 @@ Cchem_
 Cchem
          zzhnew2= 0.
 Cchem_
-        endif
+        end if
         fak1 = ustr(i,j) * zpbl(i,j) * karman
         if (hfxv(i,j).le.0.) then
 c** stable and neutral conditions
@@ -289,7 +286,7 @@ cxexp5          pblk1 = karman * ustr(i,j) / (betas+zl) * zzhnew
 Cchem
           if(ichem.eq.1) pblk2 = fak1*zh*zzhnew2/(betas+zl)
 Cchem_
-         endif
+         end if
 c** compute eddy diffusivities
          kvm(i,k,j) = dmax1(pblk,kzo)
          kvh(i,k,j) = kvm(i,k,j)
@@ -332,7 +329,7 @@ Cchem_
           pr = ((1.-betam*zl)**onet)/dsqrt(1.-betah*zl)
           cgh(i,k,j) = 0.0
           cgq(i,k) = 0.0
-         endif
+         end if
 
 c** compute eddy diffusivities
          kvm(i,k,j) = dmax1(pblk,kzo)
@@ -343,8 +340,8 @@ Cchem
          if(ichem .eq.1) kvc(i,k,j) = dmax1(pblk2,kzo)
 Cchem_
 
-        endif
-       endif
+        end if
+       end if
 900   continue
 910   continue
  1079 continue

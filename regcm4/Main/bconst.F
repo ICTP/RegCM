@@ -23,12 +23,8 @@ c::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       implicit none
 
 c     ***   defines constants for boundary subroutine
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/bats.cb"
 
       pi=3.141592

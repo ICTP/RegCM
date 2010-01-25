@@ -26,12 +26,7 @@ c
       integer istart,iend,jslc
       real(kind=8)  dtime
 c
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/pmoist.cb"
@@ -214,14 +209,14 @@ c
         if(k22(i).ge.kbmax2d(i,jslc))then
          aa0(i)=-1.
          go to 36
-        endif
+        end if
         hkb(i)=he(i,k22(i))
         qkb(i)=q(i,k22(i))
         hkbo(i)=heo(i,k22(i))
         qkbo(i)=qo(i,k22(i))
         qck(i)=qkb(i)
         qcko(i)=qkbo(i)
-       endif
+       end if
 36    continue
 c
 c--- decide for convective cloud base
@@ -243,7 +238,7 @@ c----------------------------------
         if(kbcon(i).gt.kbmax2d(i,jslc))then
          aa0(i)=-1.
          go to 27
-        endif
+        end if
  32     continue
         dh=.5*hes(i,kbcon(i))+.5*hes(i,kbcon(i)+1)
         if(hkb(i).lt.dh)go to 31
@@ -260,7 +255,7 @@ cictp
         if(kbcono.gt.kbmax2d(i,jslc))then
          aa0(i)=-1.
          go to 27
-        endif
+        end if
 cictp_
         dh=.5*heso(i,kbcono)+.5*heso(i,kbcono+1)
         if(hkbo(i).lt.dh)go to 331
@@ -272,7 +267,7 @@ cas uncommenting the following lines for experiment 2/5/95
          if(k22(i).ge.kbmax2d(i,jslc))then
           aa0(i)=-1.
           go to 27
-         endif
+         end if
          hkb(i)=he(i,k22(i))
          qkb(i)=q(i,k22(i))
          hkbo(i)=heo(i,k22(i))
@@ -280,9 +275,9 @@ cas uncommenting the following lines for experiment 2/5/95
          qck(i)=qkb(i)
          qcko(i)=qkbo(i)
          go to 3777
-        endif
+        end if
 cas
-       endif
+       end if
 27    continue
 
 c
@@ -301,19 +296,19 @@ c
         if(jmin(i).le.3)then
          aa0(i)=-1.
          go to 37
-        endif
+        end if
         if(kds(i).ge.kx)kds(i)=kx-1
         if(kds(i).le.kbcon(i))kds(i)=kbcon(i)
         dby(i,kx)=hkb(i)-hes(i,kx)
         dbyo(i,kx)=hkbo(i)-heso(i,kx)
-       endif
+       end if
 37    continue
       do 35 k=1,kx-1
       do 35 i=istart,iend
        if(aa0(i).ne.-1.)then
         dby(i,k)=hkb(i)-.5*(hes(i,k)+hes(i,k+1))
         dbyo(i,k)=hkbo(i)-.5*(heso(i,k)+heso(i,k+1))
-       endif
+       end if
 35    continue
       do 42 i=istart,iend
        if(aa0(i).ne.-1.)then
@@ -322,14 +317,14 @@ c
          if(dby(i,kk).ge.0.)then
           ktop(i)=kk+1
           go to 41
-         endif
+         end if
 40      continue
         aa0(i)=-1.
         go to 42
 41      continue
         if(ktop(i).gt.kx)ktop(i)=kx
         if(p(i,kbcon(i))-p(i,ktop(i)).lt.mincld2d(i,jslc))aa0(i)=-1.
-       endif
+       end if
 42    continue
 c
    
@@ -365,9 +360,9 @@ c
           aa1(i)=aa1(i)+dz2*(9.81/(1004.*(.5*
      1       (tn(i,k)+tn(i,k-1)))))*dbyo(i,k-1)/
      1       (1.+.5*gammo+.5*gammo0)
-         endif
-        endif
-       endif
+         end if
+        end if
+       end if
 55    continue
 c
 c
@@ -387,7 +382,7 @@ c
         qco(i,k)=qeso(i,k)
         pwo(i,k)=(qrcho-qeso(i,k))
         pwavo(i)=pwavo(i)+pwo(i,k)
-       endif
+       end if
 50    continue
 c
 c------- downdraft calculations
@@ -400,7 +395,7 @@ c
        if(aa0(i).ne.-1.)then
         vshear(i)=vshear(i)+dabs((vsp(i,kk+1)-vsp(i,kk))
      1             /(z(i,kk+1)-z(i,kk)))
-       endif
+       end if
 62    continue
       do 72 i=istart,iend
        if(aa0(i).ne.-1.)then
@@ -422,7 +417,7 @@ c
         qcdo(i)=.5*(qo(i,jmin(i))+qo(i,jmin(i)+1))
         bu(i)=0.
         buo(i)=0.
-       endif
+       end if
 72    continue
       do 95 k=1,kx-1
       do 95 i=istart,iend
@@ -450,8 +445,8 @@ c
          pwdo(i,kk)=dkk(i,kk)*(qcdo(i)-qrcdo(i,kk))
          qcdo(i)=qrcdo(i,kk)
          pwevo(i)=pwevo(i)+pwdo(i,kk)
-        endif
-       endif
+        end if
+       end if
 95    continue
 c
       do 96 i=istart,iend
@@ -464,7 +459,7 @@ c
         edto(i)=-edto(i)*pwavo(i)/pwevo(i)
         if(edto(i).gt.edtmaxo2d(i,jslc))edto(i)=edtmaxo2d(i,jslc)
         if(edto(i).lt.edtmino2d(i,jslc))edto(i)=edtmino2d(i,jslc)
-       endif
+       end if
 96    continue
 c
 c--- what would the change be?
@@ -484,8 +479,8 @@ c
         xt(i,k)=(mbdt/1004.)*(dellah(i,k)-2.5e06*dellaq(i,k))+t(i,k)
         if(xq(i,k).le.0.)then
          xq(i,k)=1.e-08
-        endif
-       endif
+        end if
+       end if
 98    continue
 c
       do 100 k=1,kx-1
@@ -525,8 +520,8 @@ c
         xt(i,k)=(mbdt/1004.)*(dellah(i,k)-2.5e06*dellaq(i,k))+t(i,k)
         if(xq(i,k).le.0.)then
          xq(i,k)=1.e-08
-        endif
-       endif
+        end if
+       end if
 100   continue
 c
 c------- cloud top
@@ -546,11 +541,11 @@ c
         xt(i,k)=(mbdt/1004.)*(dellah(i,k)-2.5e06*dellaq(i,k))+t(i,k)
         if(xq(i,k).le.0.)then
          xq(i,k)=1.e-08
-        endif
+        end if
         xhkb(i)=dellah(i,kbcon(i))*mbdt+hkb(i)
         xqkb(i)=dellaq(i,kbcon(i))*mbdt+qkb(i)
         if(xqkb(i).le.0.)xqkb(i)=1.e-08
-       endif
+       end if
 102   continue
 c
 c--- environmental conditions, first heights
@@ -565,7 +560,7 @@ c
         if(xqes(i,k).le.1.e-08)xqes(i,k)=1.e-08
         if(xq(i,k).gt.xqes(i,k))xq(i,k)=xqes(i,k)
         xtv(i,k)=xt(i,k)+.608*xq(i,k)*xt(i,k)
-       endif
+       end if
 115   continue
 c bug fix
        do k=1,kx-1
@@ -578,7 +573,7 @@ c
        if(aa0(i).ne.-1.)then
         xz(i,1)=z1(i)-(dlog(p(i,1))-dlog(psur(i)))*287.*xtv(i,1)
      1          /9.81
-       endif
+       end if
 116   continue
       do 120 k=2,kx
       do 120 i=istart,iend
@@ -586,7 +581,7 @@ c
         tvbar=.5*xtv(i,k)+.5*xtv(i,k-1)
         xz(i,k)=xz(i,k-1)-(dlog(p(i,k))-dlog(p(i,k-1)))*287.*tvbar
      1          /9.81
-       endif
+       end if
 120   continue
 c
 c--- moist static energy
@@ -596,7 +591,7 @@ c
        if(aa0(i).ne.-1.)then
         xhes(i,k)=9.81*xz(i,k)+1004.*xt(i,k)+2.5e06*xqes(i,k)
         if(xhe(i,k).ge.xhes(i,k))xhe(i,k)=xhes(i,k)
-       endif
+       end if
 130   continue
 c
 c
@@ -606,7 +601,7 @@ c
        if(aa0(i).ne.-1.)then
         xqck(i)=xqkb(i)
         xdby(i,kx)=xhkb(i)-xhes(i,kx)
-       endif
+       end if
 132   continue
 c
 c------- moisture and cloud work functions
@@ -628,7 +623,7 @@ c
         xaa0(i)=xaa0(i)+dz1*(9.81/(1004.*(.5*
      1          (xt(i,k)+xt(i,k-1)))))*xdby(i,k-1)/
      1       (1.+.5*gamma+.5*gamma0)
-       endif
+       end if
 140   continue
       do 142 i=istart,iend
        if(aa0(i).ge.0.)then
@@ -644,7 +639,7 @@ c
         xqcd(i)=.5*(xq(i,jmin(i))+xq(i,jmin(i)+1))
         xpwev(i)=0.
         bu(i)=0.
-       endif
+       end if
 142   continue
 c
 c------- downdraft calculations
@@ -667,19 +662,19 @@ c
          xpwd(i,kk)=dkk(i,kk)*(xqcd(i)-xqrcd(i,kk))
          xqcd(i)=xqrcd(i,kk)
          xpwev(i)=xpwev(i)+xpwd(i,kk)
-        endif
-       endif
+        end if
+       end if
 160   continue
       do 162 i=istart,iend
        if(aa0(i).ge.0.)then
         if(bu(i).ge.0.)then
          aa0(i)=-1.
          go to 162
-        endif
+        end if
         if(xpwev(i).ne.0.)edtx(i)=-edtx(i)*xpwav(i)/xpwev(i)
         if(edtx(i).gt.edtmaxx2d(i,jslc))edtx(i)=edtmaxx2d(i,jslc)
         if(edtx(i).lt.edtminx2d(i,jslc))edtx(i)=edtminx2d(i,jslc)
-       endif
+       end if
 162   continue
 c
 c
@@ -725,8 +720,8 @@ c
          dh=.5*(xhes(i,kk)+xhes(i,kk+1))
          dz=(xz(i,kk)-xz(i,kk+1))*dkk(i,kk)
          xaa0(i)=xaa0(i)+edtx(i)*dz*(g/(cp*dt))*((dhh-dh)/(1.+dg))
-        endif
-       endif
+        end if
+       end if
 171   continue
 c
 c--- large scale forcing
@@ -735,13 +730,13 @@ c
        if(aa0(i).ge.0.)then
         if (igcc.eq.1) then
           f= (aa1(i)-aa0(i))/dtime     ! Arakawa-Schubert closure
-        elseif (igcc.eq.2) then
+        else if (igcc.eq.2) then
           f=aa0(i)/dtauc2d(i,jslc)       ! Fritsch-Chappell closure
         end if
         xk=(xaa0(i)-aa0(i))/mbdt
         xmb(i)=-f/xk
         if(f.le.0.or.xk.ge.0.)xmb(i)=0.
-       endif
+       end if
 175   continue
 Cchem2
       mflx(i,1) = xmb(i)
@@ -764,8 +759,8 @@ c
            outq(i,k)=outq(i,k)+dellaq(i,k)*xmb(i)
            pre(i)=pre(i)+(pw(i,k)+edt(i)*pwd(i,k))*xmb(i)
          end if
-        endif
-       endif
+        end if
+       end if
 180   continue
 c
 c    calculate cloud fraction and water content
@@ -796,8 +791,8 @@ Cchem2 define convection  base and top for tracers
           end if
          end if
 Cchem2_  
-        endif
-       endif
+        end if
+       end if
 
 205   continue
 

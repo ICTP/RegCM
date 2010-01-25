@@ -28,16 +28,11 @@ c  matrices used by the initialization software used with mm4.
 c
 c----------------------------------------------------------------------
 c
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/split.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
 #endif
 c
@@ -101,7 +96,7 @@ c
       if (lstand) print 700
       if (.not.lstand) print 701
 #ifdef MPP1
-      endif
+      end if
 #endif
 c
       lsigma=.false.
@@ -115,19 +110,19 @@ c
 #else
          print 2,k,sigmaf(k+1),sigmaf(k)
 #endif
-      endif
+      end if
     1 continue
       if (lsigma) then
 #ifdef MPP1
          if (myid .eq. 0) then
          write(*,*) 'sigma values in list vmode inappropriate'
-         endif
+         end if
          call MPI_ABORT(MPI_COMM_WORLD,ierr)
 #else
          write(*,*) 'sigma values in list vmode inappropriate'
          stop
 #endif
-      endif
+      end if
     2 format('0 for k=',i3,' sigmaf(k+1)=',f9.6,' .le. sigmaf(k)=',f9.6)
 c
 c  compute sigmah (sigma at half levels) and delta sigma
@@ -300,16 +295,10 @@ c  test hydroc and hydros matrices (if correct, w1(k,1)=w1(k,2))
 c
       if (lhydro) then
          numerr=numerr+1
-#ifdef MPP1
-         if (myid .eq. 0) then
-#endif
          print 315
          call vprntv(w1(1,1),kx,'test1   ')
          call vprntv(w1(1,2),kx,'test2   ')
-#ifdef MPP1
-         endif
-#endif
-      endif
+      end if
   315 format('0 problem with linearization of hydostatic equation')
 c
 c - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -402,9 +391,6 @@ c - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 c
 c       output desired arrays
 c
-#ifdef MPP1
-      if (myid .eq. 0) then
-#endif
       call vprntv(sigmaf ,nk1,'sigmaf  ')
       call vprntv(tbarh  ,kx ,'t mean  ')
       call vprntv(ps     ,  1,'ps mean ')
@@ -430,9 +416,6 @@ c  printout if desired
       call vprntm(zmatxr, kx, kx ,'zmatxr  ')
       call vprntm(varpa1, kx, nk1,'varpa1  ')
       call vprntm(varpa2,nk1, nk1,'varpa2  ')
-#ifdef MPP1
-      endif
-#endif
 c
       return
   700 format('0 linearization about standard atmosphere (lstand=.t.)')

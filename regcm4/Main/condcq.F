@@ -28,12 +28,7 @@ c
 c     latent fluxes differ from sensible due to stomatal resistance
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       real(kind=8)  a,b
@@ -63,8 +58,8 @@ c
          wtglq(n,np) = wtgq0(n,np) + wtlq0(n,np)
          wtaq0(n,np) = 1. - wtglq(n,np)
          wtgaq(n,np) = wtaq0(n,np) + wtgq0(n,np)
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
 

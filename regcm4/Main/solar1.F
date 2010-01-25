@@ -28,16 +28,11 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       real(kind=8)  xtime
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param3.cb"
 #     include "include/date.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
       real(kind=8)  pie,dayspy,calday,theta,delta,decdeg
 c----------------------------------------------------------------------

@@ -49,12 +49,8 @@ C     ******************************************************************
 C *** WARNING: THIS SUBROUTINE WILL NOT WORK IF kx.LT.12;
 C
       IMPLICIT NONE
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
+
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -250,7 +246,7 @@ c  before do 100 put
          icumtop(i,j) = 0
          icumbot(i,j) = 0
       enddo
-      endif
+      end if
 Cchem2_
       ICOND=0
       ICONSS=0
@@ -266,7 +262,7 @@ C... SM IS SURFACE MASK: =1 WATER; =0 LAND
           SM(I)=0.
         ELSE
           SM(I)=1.
-        ENDIF
+        end if
    90 CONTINUE
       IF(jyear.eq.jyear0.and.ktau.eq.0)THEN
         DO 100 I=2,ILXM
@@ -278,7 +274,7 @@ C103     FORMAT(//,'SHALLOW CONVECTION OCCURS WHEN CLOUD DEPTH IS',
 C     1      ' .GE. ',F5.0,' M. AND .LT. ',F5.0,' M.')
 C104     FORMAT(//,'DEEP CONVECTION OCCURS WHEN CLOUD DEPTH IS .GE. ',
 C     1      F5.0,' KM.')
-      ENDIF
+      end if
 C...LB IS CURRENTLY SET TO kx-1
       LB=kx-1
 CVVVVVVVVVVVVV DIAGNOSTICS VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
@@ -362,7 +358,7 @@ C--------------CHECK FOR MAXIMUM BUOYANCY-------------------------------
             PSP(I)=H10E5*(TTHBT(I)/TLCL)**CPORNG
             THBT(I)=TTHBT(I)
             THESP(I)=TTHES(I)
-          ENDIF
+          end if
 C-----------------------------------------------------------------------
   150   CONTINUE
   140 CONTINUE
@@ -388,7 +384,7 @@ C*** CLOUD BOTTOM IS AT THE SURFACE SO RECALCULATE CLOUD BOTTOM
             IF(P(I).LT.PSFCK-PONE)LBOT(I)=K
   245     CONTINUE
           PBOT(I)=(A(LBOT(I))*PSB(I,J)+PTOP)*1000.
-        ENDIF
+        end if
   250 CONTINUE
 C--------------CLOUD TOP COMPUTATION------------------------------------
       DO 260 I=2,ILXM
@@ -408,7 +404,7 @@ C--------------BUOYANCY CHECK-------------------------------------------
           IF(L.LE.LBOT(I))THEN
             IF(THESP(I).GT.THS(I))IFBUOY(I)=1
             IF(THESP(I).GT.THS(I)-1.5.AND.IFBUOY(I).EQ.1)LTOP(I)=L+1
-          ENDIF
+          end if
   350   CONTINUE
 C------------------------------------------------
   270 CONTINUE
@@ -428,7 +424,7 @@ C           IF(KF(I).EQ.1)GOTO 370
           DSP0(I)=(EFI-EFIMN)*SLOP0S+DSP0SS
           DSPT(I)=(EFI-EFIMN)*SLOPTS+DSPTSS
   370   CONTINUE
-      ELSEIF(.NOT.UNIL)THEN
+      else if(.NOT.UNIL)THEN
         DO 371 I=2,ILXM
 C           IF(KF(I).EQ.1)GOTO 371
           EFI=CLDEFI(I,J)
@@ -445,7 +441,7 @@ C           IF(KF(I).EQ.1)GOTO 371
           DSPB(I)=((EFI-EFIMN)*SLOPBL+DSPBSL)
           DSP0(I)=((EFI-EFIMN)*SLOP0L+DSP0SL)
   375   DSPT(I)=((EFI-EFIMN)*SLOPTL+DSPTSL)
-      ENDIF
+      end if
 CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 C--------------EXTENDING SEA STRUCTURES INLAND ALONG COASTLINE----------
 C      IF(NROW.GT.0.AND..NOT.UNIS.AND..NOT.UNIL)    THEN
@@ -475,7 +471,7 @@ C      DSP0  (I)=DSP0  (I)*SMK+WF2(I)*RSMK
 C      DSPT  (I)=DSPT  (I)*SMK+WF3(I)*RSMK
 C 372  CLDEFI(I)=CLDEFI(I)*SMK+WF4(I)*RSMK
 C-----------------------------------------------------------------------
-C      ENDIF
+C      end if
 C--------------INITIALIZE CHANGES OF T AND Q DUE TO CONVECTION----------
       DO 360 K=1,kx
         DO 360 I=2,ILXM
@@ -498,7 +494,7 @@ C      IF(LTOP(I).GT.LBOT(I) .OR. KF(I).EQ.1)  THEN
         IF(LTOP(I).GT.LBOT(I))THEN
           LTOP(I)=LBOT(I)
           PRTOP(I)=PBOT(I)
-        ENDIF
+        end if
 C     IF(HBM2(I).LT.0.90       )    LTOP(I)=LBOT(I)
         CLDHGT(I)=Z0(I,LTOP(I))-Z0(I,LBOT(I))
 C  CLOUD IS LESS THAN 90 MB DEEP OR LESS THAN 3 SIGMA LAYERS DEEP
@@ -510,7 +506,7 @@ C  CLOUD HAS TO BE AT LEAST 290 MB DEEP
 C     IF(PRTOP(I).LT.PBOT(I)-PSH)THEN
           KHDEEP=KHDEEP+1
           KDEEP(KHDEEP)=I
-        ENDIF
+        end if
   380 CONTINUE
 C************* HORIZONTAL LOOP FOR DEEP CONVECTION *********************
 C***********************************************************************
@@ -590,10 +586,10 @@ C--------------SATURATION PRESSURE DIFFERENCE---------------------------
               DSP=((PK0-PK(L))*DSPTK+(PK(L)-PKT)*DSP0K)/(PK0-PKT)
             ELSE
               DSP=((PKB-PK(L))*DSP0K+(PK(L)-PK0)*DSPBK)/(PKB-PK0)
-            ENDIF
+            end if
           ELSE
             DSP=DSPC
-          ENDIF
+          end if
 C--------------HUMIDITY PROFILE-----------------------------------------
           IF(PK(L).GT.PQM)THEN
 ! PRESSURE MUST BE BELOW 200 MB
@@ -604,7 +600,7 @@ C--------------HUMIDITY PROFILE-----------------------------------------
      +               EXP(A2*(THSK(L)-A3*APESK(L))/(THSK(L)-A4*APESK(L)))
           ELSE
             QREFK(L)=Q(I,L)
-          ENDIF
+          end if
   460   CONTINUE
         DO 470 L=LTPK,LB
   470   THEVRF(L)=TREFK(L)*APEK(L)*(QREFK(L)*D608+H1)
@@ -630,7 +626,7 @@ C--------------ABOVE LQM CORRECT TEMPERATURE ONLY-----------------------
             DO 500 L=LCOR,LQM
   500       TREFK(L)=TREFK(L)+HCORR*RCP
             LCOR=LQM+1
-          ENDIF
+          end if
 C--------------BELOW LQM CORRECT BOTH TEMPERATURE AND MOISTURE----------
           DO 510 L=LCOR,LB
             TSKL=TREFK(L)*APEK(L)/APESK(L)
@@ -667,7 +663,7 @@ C 532   IF(DENTPY.LT.EPSNTP.OR.PRECK.LE.D00)THEN
             CLDEFI(I,J)=EFIMN
           ELSE
             CLDEFI(I,J)=EFIMN*SM(I)+STEFI*(H1-SM(I))
-          ENDIF
+          end if
           ZTOP=Z0(I,LBOT(I))+ZSH-0.000001
 C         PRTOP(I)=PBOT(I)-PSH    ! PTOP IS NOW PBOT - 290.
           DO 535 L=1,LB
@@ -681,7 +677,7 @@ C------------CLOUD MUST BE AT LEAST 2 LAYERS THICK---------------------
           CLDHGT(I)=Z0(I,LTOP(I))-Z0(I,LBOT(I))
           NSWAP=NSWAP+1
           GOTO 400
-        ENDIF
+        end if
 C--------------... DEEP CONVECTION OTHERWISE----------------------------
         ICOND=ICOND+1
 C***  KEEP THE LAND VALUE OF EFI EQUAL TO 1 UNTIL PRECIP SURPASSES
@@ -693,14 +689,14 @@ CVVVVV UNIFIED OR SEPARATE LAND/SEA CONV. VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
         IF(OCT90)THEN
           IF(UNIS)THEN
             EFI=CLDEFI(I,J)*FCP+EFI*FCC1
-          ELSEIF(.NOT.UNIL)THEN
+          else if(.NOT.UNIL)THEN
             EFI=(CLDEFI(I,J)*FCP+EFI*FCC1)*SM(I)+H1-SM(I)
           ELSE
             EFI=H1
-          ENDIF
+          end if
         ELSE
           EFI=CLDEFI(I,J)*FCP+EFI*FCC1
-        ENDIF
+        end if
 CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         IF(EFI.GT.H1)EFI=H1
         IF(EFI.LT.EFIMN)EFI=EFIMN
@@ -745,7 +741,7 @@ C     IF(PTPK.LT.PBTK-PSH)THEN    ! PSH=290 MB NDEEP=NDEEP+1
           NTOPD(LTPK)=NTOPD(LTPK)+1
           NBOTD(LB)=NBOTD(LB)+1
           IF(NDEPTH.GT.0)NDPTHD(NDEPTH)=NDPTHD(NDEPTH)+1
-        ENDIF
+        end if
   570 CONTINUE
       NNEG=KHDEEP-NDEEP
 C      PRINT *,'NO. OF SWAPPED POINTS, FINAL DEEP: ',NSWAP,NDEEP
@@ -763,7 +759,7 @@ C     IF(PRTOP(I).GT.PBOT(I)-PNO.OR.LTOP(I).GT.LBOT(I)-2)GO TO 560
 C     IF(PRTOP(I).GE.PBOT(I)-PSH)THEN  ! 90 MB < CLD DEPTH < 290 MB
           KHSHAL=KHSHAL+1
           KSHAL(KHSHAL)=I
-        ENDIF
+        end if
   560 CONTINUE
 C************* HORIZONTAL LOOP FOR SHALLOW CONVECTION ******************
 C***********************************************************************
@@ -814,8 +810,8 @@ C
                 KDP(KK)=K-1
               ELSE
                 KDP(KK)=K
-              ENDIF
-            ENDIF
+              end if
+            end if
   105     CONTINUE
           KDP(KK)=MAX(1,KDP(KK))
 C         PRINT *,'KK, KDP =',KK,KDP(KK)
@@ -842,7 +838,7 @@ C--------------HIGHEST LEVEL ALLOWED IS LEVEL JUST BELOW PSHU-----------
   615     CONTINUE
           LTPK=LSHU
           PTPK=PK(LTPK)
-        ENDIF
+        end if
         LTP1=LTPK+1
         LTP2=LTPK+2
 C--------------NO SHALLOW CONVECTION IN UNSTABLE ENVIRONMENT------------
@@ -850,7 +846,7 @@ C             DO 541 L=LTP2,LBTK
 C         IF(THVMOD(L).GT.THVMOD(L-1))    THEN
 C             LTOP(K)=LBOT(K)
 C             GO TO 600
-C         ENDIF
+C         end if
 C541      CONTINUE
 C-----------------------------------------------------------------------
         DO 540 L=LTPK,LBTK
@@ -860,7 +856,7 @@ C     *   AICE*EXP((BICE*TK(L)-CICE1)/(TK(L)-DICE)),L.GE.ML(I))
             ES=ALIQ*EXP((BLIQ*TK(L)-CLIQ)/(TK(L)-DLIQ))
           ELSE
             ES=AICE*EXP((BICE*TK(L)-CICE1)/(TK(L)-DICE))
-          ENDIF
+          end if
           QSATK(L)=0.622*ES/(PK(L)-ES)
 C          QSATK(L)=PQ0/PK(L)*EXP(A2*(TK(L)-A3)/(TK(L)-A4))
 CVVVVVVVVVVVV CHOOSE THE PRESSURE FUNCTION VVVVVVVVVVVVVVVVVVVVVVVVVVVVV
@@ -877,13 +873,13 @@ C       PRINT *,'CLDHGT =',CLDHGT(I)
           RHL=QK(L)/QSATK(L)
 C           IF(KDP(L).LT.LTPK.OR.KDP(L).GT.LBTK)THEN
 C             QSATK(L)=PQ0/PK(L)*EXP(A2*(TK(L)-A3)/(TK(L)-A4))
-C           ENDIF
+C           end if
           RHH=QK(KDP(L))/QSATK(KDP(L))
           IF(RHH+RHF.LT.RHL)LTSH=L
 C           IF(RHH+RHF.LT.RHL)THEN
 C             RHDMX=DMAX1(RHL-RHH,RHDMX)
 C             IF(RHDMX.EQ.RHL-RHH)LTSH=KDP(L)
-C           ENDIF
+C           end if
 C       PRINT *,'IN DO 545; L, RHL, KDP, RHH =',
 C     *          L,RHL,KDP(L),RHH
   545   CONTINUE
@@ -904,7 +900,7 @@ C         IF(PRTOP(I).GT.PBOT(I)-PNO.OR.LTOP(I).GT.LBOT(I)-2)THEN
           PRTOP(I)=PBOT(I)
 C          PRINT *,'CLDHGT(I).LT.ZN0 .OR. LTOP.GT.LBOT-2...'
           GOTO 600
-        ENDIF
+        end if
 C--------------SCALING POTENTIAL TEMPERATURE & TABLE INDEX AT TOP-------
 CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
         THTPK=T(I,LTP1)*APE(I,LTP1)
@@ -1001,7 +997,7 @@ C           PRINT *,'DST.GT.0...'
         ELSE
 CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
           DSTQ=DST*EPSDN
-        ENDIF
+        end if
 C--------------CHECK FOR ISOTHERMAL ATMOSPHERE--------------------------
         DEN=POTSUM-PSUM
 CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
@@ -1014,14 +1010,14 @@ C          PRINT *,'-DEN/PSUM .LT. 0.00005'
 CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 C--------------SLOPE OF THE REFERENCE HUMIDITY PROFILE------------------
           DQREF=(QOTSUM-DSTQ-QSUM)/DEN
-        ENDIF
+        end if
 C--------------HUMIDITY DOESN`T INCREASE WITH HEIGHT--------------------
         IF(DQREF.LT.0.0)THEN
           LTOP(I)=LBOT(I)
           PRTOP(I)=PBOT(I)
 C      PRINT *,'DQREF.LT.0....'
           GOTO 600
-        ENDIF
+        end if
 C--------------HUMIDITY AT THE CLOUD TOP--------------------------------
         QRFTP=QSUM-DQREF*PSUM
 C--------------HUMIDITY PROFILE-----------------------------------------
@@ -1035,7 +1031,7 @@ C--------------SUPERSATURATION NOT ALLOWED------------------------------
             PRTOP(I)=PBOT(I)
 C      PRINT *,'QNEW.GT.QSATK(L)*STRESH...'
             GOTO 600
-          ENDIF
+          end if
 CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 C-----------------------------------------------------------------------
           THVREF(L)=TREFK(L)*APEK(L)*(QRFKL*D608+H1)
@@ -1052,7 +1048,7 @@ C       PRINT *,'L, THVREF, THVREF(L-1), A, A(L-1) =',
 C     * L,THVREF(L),THVREF(L-1),A(L),A(L-1)
 C       IF(J.EQ.12.AND. I.EQ.59)STOP 'TREF'
             GOTO 600
-          ENDIF
+          end if
   650   CONTINUE
 CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -1061,7 +1057,7 @@ CVVVVVVVVVVVVV DIAGNOSTICS VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
           NDSTP=NDSTP+1
         ELSE
           NDSTN=NDSTN+1
-        ENDIF
+        end if
         DENTPY=D00
         DO 660 L=LTP1,LBTK
   660   DENTPY=((TREFK(L)-TK(L))*CP+(QREFK(L)-QK(L))*ELWV)/(TK(L)+
@@ -1104,7 +1100,7 @@ C     IF(PTPK.GE.PBTK-PSH)THEN
           NBOTS(LBTK)=NBOTS(LBTK)+1
           NDEPTH=LBTK-LTPK
           IF(NDEPTH.GT.0)NDPTHS(NDEPTH)=NDPTHS(NDEPTH)+1
-        ENDIF
+        end if
 c
 c  find cloud fractional cover and liquid water content
 c
@@ -1116,13 +1112,13 @@ c
              cldlwc(i,k)=cllwcv
              cldfra(i,k)=1.-(1.-clfrcv)**akclth
           enddo
-        endif
+        end if
 Cchem2
         if(ichem.eq.1) then
 c  before go to 100 put
           icumtop(i,j) = LTPK
           icumbot(i,j) = kbaseb
-        endif
+        end if
 Cchem2_
   680 CONTINUE
 C     PRINT *,'AT J =',J,', FINAL NO. SHALLOW CONV POINTS =',NSHAL
@@ -1132,8 +1128,8 @@ C-----------------------------------------------------------------------
       DO I=2,ILXM
          TTEN(I,K)=TTEN(I,K)+TMOD(I,K)*PSB(I,J)
          QTEN(I,K)=QTEN(I,K)+QMOD(I,K)*PSB(I,J)
-      ENDDO
-      ENDDO
+      end do
+      end do
       ICON(J)=ICOND
       RETURN
       END

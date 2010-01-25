@@ -27,7 +27,7 @@ c
       if (ier.ne.0) then
          numerr=numerr+1
          print 1,aname,ier
-      endif
+      end if
     1 format('0 error in determination of ',a8,' using library routine
      a   ier=',i4)
 c

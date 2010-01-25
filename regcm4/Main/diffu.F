@@ -48,14 +48,9 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
+#     include "parameter.inc"
 #ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-#ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/slice.cb"
 #     include "include/main.cb"
@@ -85,7 +80,7 @@ c......second-order scheme for east or west boundary:
      &        (ubd3d(i,k,j+1)/msfd(i,j+1)+ubd3d(i,k,j-1)/msfd(i,j-1)
      &        +ubd3d(i+1,k,j)/msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j)
      &     -4.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
-        endif
+        end if
 20     continue
 c
       else
@@ -105,7 +100,7 @@ c.....fourth-order scheme for interior:
      &   - 4.*(ubd3d(i,k,j+1)/msfd(i,j+1)+ubd3d(i,k,j-1)/msfd(i,j-1)
      &        +ubd3d(i+1,k,j)/msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j))
      &   + 12.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
-        endif
+        end if
 50     continue
 c......second-order scheme for north and south boundaries:
        do 60 i=2,ilx,ilx-2
@@ -119,10 +114,10 @@ c......second-order scheme for north and south boundaries:
      &        (ubd3d(i,k,j+1)/msfd(i,j+1)+ubd3d(i,k,j-1)/msfd(i,j-1)
      &        +ubd3d(i+1,k,j)/msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j)
      &     -4.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
-        endif
+        end if
 60     continue
 c
-      endif
+      end if
 c
       return
       end
@@ -159,16 +154,11 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/slice.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
       real(kind=8)  ften(ix,kx),xkc(ix,kx)
       real(kind=8)  c203
@@ -195,7 +185,7 @@ c......second-order scheme for east or west boundary:
      &        (vbd3d(i,k,j+1)/msfd(i,j+1)+vbd3d(i,k,j-1)/msfd(i,j-1)
      &        +vbd3d(i+1,k,j)/msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j)
      &     -4.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
-        endif
+        end if
 20     continue
 c
       else
@@ -215,7 +205,7 @@ c.....fourth-order scheme for interior:
      &   - 4.*(vbd3d(i,k,j+1)/msfd(i,j+1)+vbd3d(i,k,j-1)/msfd(i,j-1)
      &        +vbd3d(i+1,k,j)/msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j))
      &   + 12.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
-        endif
+        end if
 50     continue
 c......second-order scheme for north and south boundaries:
        do 60 i=2,ilx,ilx-2
@@ -229,10 +219,10 @@ c......second-order scheme for north and south boundaries:
      &        (vbd3d(i,k,j+1)/msfd(i,j+1)+vbd3d(i,k,j-1)/msfd(i,j-1)
      &        +vbd3d(i+1,k,j)/msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j)
      &     -4.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
-        endif
+        end if
 60     continue
 c
-      endif
+      end if
 c
       return
       end

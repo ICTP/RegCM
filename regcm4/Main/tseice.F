@@ -32,12 +32,7 @@ c         sea-ice mask could be reset in here with "imelt" - but not
 c                  done at present
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       integer n,np
@@ -64,7 +59,7 @@ c ******                cice = specific heat of sea-ice per unit volume
      1         (scv1d(n,np)+1.4*rhosw3*sice1d(n,np))
 c ******                include snow heat capacity
          rsd1=0.5*(wss*rss+wtt*rsd1)
-        endif
+        end if
         tgb1d(n,np)=-2.0+c(67)
 c ******                subsurface heat flux through ice
         fss = 7.e -4*(tgb1d(n,np) -tg1d(n,np))
@@ -75,7 +70,7 @@ c ******                set sea ice parameter for melting and return
         if(sice1d(n,np).le.0.0) then
          imelt(n,np) = 1
          goto 90
-        endif
+        end if
 c ******                assume lead ocean temp is -1.8c
 c ******                flux of heat and moisture through leads
 c ******                sat. mixing ratio at t=-1.8c is 3.3e-3
@@ -120,14 +115,14 @@ c ******                set sea ice parameter for melting and return
          if(sice1d(n,np).le.0.0) then
           imelt(n,np) = 1
           goto 90
-         endif
+         end if
         else
 c  **********             snow or ice with no snow melting
          tg=tg1d(n,np)+bb
          if(tg.ge.c(67))  tg1d(n,np)=c(67)
          if(tg.lt.c(67)) tg1d(n,np)=tg
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
 

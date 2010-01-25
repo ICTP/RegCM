@@ -25,12 +25,7 @@ c   as a function of location(jlon,jlat)
 c
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       integer n,np,itex
@@ -80,7 +75,7 @@ c **********            lveg is set in subr. interf
 c **********            force irrigated crop to be at field capacity
         relfc(n,np) = xmofc(itex)
 
-       endif
+       end if
 
       enddo
 90    continue

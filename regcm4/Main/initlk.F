@@ -21,12 +21,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       implicit none
       integer ix1,jx1
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 
 c ******  lkpts = number of lake points desired
 
@@ -68,11 +63,11 @@ c initialize data for lake model
 c ******     Initially set eta to mean values
        if(depth.lt.50) then
         eta = .7
-       elseif (depth .gt. 100) then
+       else if (depth .gt. 100) then
         eta = .3
        else
           eta = .5
-       endif
+       end if
 
 c ******     Initially set lake points isothermal at 6.0 C (June)
        do 10 j=1,depth

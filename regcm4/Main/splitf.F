@@ -24,19 +24,14 @@ c** integrate in time and add correction terms appropriately
 c
       implicit none
       real(kind=8)  gnuhf
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/main.cb"
 #     include "include/cvaria.cb"
 #     include "include/pbldim.cb"
 #     include "include/split.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  uu,vv
@@ -105,10 +100,10 @@ c
 #endif
         psdot(i,1)=0.5*(psa(i,1)+psa(i-1,1))
 #ifdef MPP1
-        endif
+        end if
         if (myid .eq. nproc-1) then
           psdot(i,jendl)=0.5*(psa(i,jendx)+psa(i-1,jendx))
-        endif
+        end if
 #else
         psdot(i,jx)=0.5*(psa(i,jlx)+psa(i-1,jlx))
 #endif
@@ -133,7 +128,7 @@ c
       if (myid .eq. nproc-1) then
         psdot(1,jendl)=psa(1,jendx)
         psdot(ix,jendl)=psa(ilx,jendx)
-      endif
+      end if
 #else
       psdot(1,jx)=psa(1,jlx)
       psdot(ix,jx)=psa(ilx,jlx)

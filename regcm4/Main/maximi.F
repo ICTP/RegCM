@@ -36,7 +36,7 @@ c
         if(xar.ge.x) then
          x=xar
          max(i)=k
-        endif
+        end if
 100    continue
 200   continue
 c

@@ -50,12 +50,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       implicit none
       integer j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -88,7 +83,7 @@ c--------------------------------------------------------------------
         else                                  ! partial cloud cover
           fcc(i,k,j) = 1.-sqrt(1.-(rhb3d(i,k,j)-rh0adj)/(rhmax-rh0adj))
           fcc(i,k,j) = dmin1(dmax1(fcc(i,k,j),0.01D0),0.99D0)
-        endif                        !  rh0 threshold
+        end if                        !  rh0 threshold
       end do
       end do
 

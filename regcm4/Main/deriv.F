@@ -31,12 +31,7 @@ c     dependences on leaf temperature are omitted, as convergence
 c     rate is not affected.
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       real(kind=8)  a,b
@@ -66,8 +61,8 @@ c
      b             + (1.- wtga(n,np))*hfl    *xkb
          dcd(n,np) = dmax1(dcd(n,np),0.d0)
          dcd(n,np) = dmin1(dcd(n,np),500.d0)
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
 

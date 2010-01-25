@@ -84,12 +84,7 @@ c
       implicit none
 CEES
 C------------------------------Parameters-------------------------------
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/parrad.cb"
 #     include "include/param2.cb"
 #     include "include/bats.cb2"
@@ -770,7 +765,7 @@ c options for aerosol: no climatic feedback if idirect .eq. 1
             wkaer(i,k,4) = 0.
           enddo
           enddo
-        END IF
+        end if
             
         call radded(coszrs   ,trayoslp,pflx   ,abh2o(ns),abo3(ns),
      $              abco2(ns),abo2(ns),uh2o   ,uo3      ,uco2    ,
@@ -905,7 +900,7 @@ C -trapuv_
               solis(i)=solflx(i)*0.001*fluxdn(i,plevp)
             enddo
           enddo
-        endif
+        end if
 CEES apr 20
 
 CFAB
@@ -997,7 +992,7 @@ c     &    maxval(fluxup(:,0)* solflx(:)*1.E-3)
 C
 C End of clear sky calculation with O aerosol OP
 C
-        END IF
+        end if
 C
 C Following code is the diagnostic clear sky computation:
 C
@@ -1089,7 +1084,7 @@ c test
           end do
         end do
 cTEST      
-      END IF
+      end if
 C
 C Compute solar heating rate (k/s)
 C

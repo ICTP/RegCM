@@ -55,16 +55,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j,iboudy
       real(kind=8)  fcoef,gcoef,xt,c203
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bdycod.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
 #     include "include/param3.cb"
@@ -97,7 +92,7 @@ c
         jeb=jsls
       else
         jeb=jsls+1
-      endif
+      end if
       if(jeb.gt.jxp) jeb=mod(jeb,jxp)
       if(jeb.eq.0) jeb=jxp
 #endif
@@ -130,7 +125,7 @@ c........north boundary:
      &           -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 10      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ilx-1
@@ -158,7 +153,7 @@ c.........north boundary:
 30       continue
          ibeg = jsls
          iend = ilx-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -181,7 +176,7 @@ c-------west-boundary slice:
           pten(i)=pten(i)+fcx*fls0
      &                   -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 50       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          fcx=fcoef*xfun(jsls)
          gcx=gcoef*xfun(jsls)
@@ -202,10 +197,10 @@ c-------east-boundary slice:
           pten(i)=pten(i)+fcx*fls0
      &                   -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 70       continue
-        endif
-       endif
+        end if
+       end if
 c
-      elseif(iboudy.eq.5)then
+      else if(iboudy.eq.5)then
 
 c----------use exponential method
 
@@ -233,7 +228,7 @@ c........north boundary:
      &                    -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 75      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ilx-1
@@ -261,7 +256,7 @@ c.........north boundary:
 85       continue
          ibeg = jsls
          iend = ilx-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -284,7 +279,7 @@ c-------west-boundary slice:
           pten(i)=pten(i)+fcx*fls0
      &                   -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 95       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          fcx=fcoef*xfune(jsls,kx)
          gcx=gcoef*xfune(jsls,kx)
@@ -305,10 +300,10 @@ c-------east-boundary slice:
           pten(i)=pten(i)+fcx*fls0
      &                   -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 105      continue
-        endif
-       endif
+        end if
+       end if
 c
-      endif
+      end if
       return
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -349,16 +344,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j,iboudy
       real(kind=8)  fcoef,gcoef,xt,c203
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/main.cb"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
 #     include "include/param3.cb"
@@ -391,7 +381,7 @@ c
         jeb=jsls
       else
         jeb=jsls+1
-      endif
+      end if
       if(jeb.gt.jxp) jeb=mod(jeb,jxp)
       if(jeb.eq.0) jeb=jxp
 #endif
@@ -426,7 +416,7 @@ c........north boundary:
      &                        -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 10      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ilx-1
@@ -455,7 +445,7 @@ c.........north boundary:
 30       continue
          ibeg = jsls
          iend = ilx-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -479,7 +469,7 @@ c-------west-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 50       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          fcx=fcoef*xfun(jsls)
          gcx=gcoef*xfun(jsls)
@@ -501,10 +491,10 @@ c-------east-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 70       continue
-        endif
-       endif
+        end if
+       end if
 c
-      elseif(iboudy.eq.5)then
+      else if(iboudy.eq.5)then
 
 c----------use exponential method
 
@@ -533,7 +523,7 @@ c........north boundary:
      &                        -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 75      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ilx-1
@@ -562,7 +552,7 @@ c.........north boundary:
 85       continue
          ibeg = jsls
          iend = ilx-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -586,7 +576,7 @@ c-------west-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 95       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          do 105 k=1,kx
           fcx=fcoef*xfune(jsls,k)
@@ -608,10 +598,10 @@ c-------east-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 105      continue
-        endif
-       endif
+        end if
+       end if
 c
-      endif
+      end if
       return
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -652,16 +642,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j,iboudy
       real(kind=8)  fcoef,gcoef,xt,c203
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/main.cb"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
 #     include "include/param3.cb"
@@ -694,7 +679,7 @@ c
         jeb=jsls
       else
         jeb=jsls+1
-      endif
+      end if
       if(jeb.gt.jxp) jeb=mod(jeb,jxp)
       if(jeb.eq.0) jeb=jxp
 #endif
@@ -729,7 +714,7 @@ c........north boundary:
      &                        -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 10      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ilx-1
@@ -758,7 +743,7 @@ c.........north boundary:
 30       continue
          ibeg = jsls
          iend = ilx-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -782,7 +767,7 @@ c-------west-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 50       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          fcx=fcoef*xfun(jsls)
          gcx=gcoef*xfun(jsls)
@@ -804,10 +789,10 @@ c-------east-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 70       continue
-        endif
-       endif
+        end if
+       end if
 c
-      elseif(iboudy.eq.5)then
+      else if(iboudy.eq.5)then
 
 c----------use exponential method
 
@@ -836,7 +821,7 @@ c........north boundary:
      &                        -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 75      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ilx-1
@@ -865,7 +850,7 @@ c.........north boundary:
 85       continue
          ibeg = jsls
          iend = ilx-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -889,7 +874,7 @@ c-------west-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 95       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          do 105 k=1,kx
           fcx=fcoef*xfune(jsls,k)
@@ -911,10 +896,10 @@ c-------east-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 105      continue
-        endif
-       endif
+        end if
+       end if
 c
-      endif
+      end if
       return
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -955,16 +940,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j,iboudy
       real(kind=8)  fcoef,gcoef,xt,c203
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/main.cb"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jew
 #endif
 #     include "include/param3.cb"
@@ -1025,7 +1005,7 @@ c........north boundary:
      &                        -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 10      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ix-1
@@ -1054,7 +1034,7 @@ c.........north boundary:
 30       continue
          ibeg = jsls
          iend = ix-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -1078,7 +1058,7 @@ c-------west-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 50       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          fcx=fcoef*xfun(jsls)
          gcx=gcoef*xfun(jsls)
@@ -1100,10 +1080,10 @@ c-------east-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 70       continue
-        endif
-       endif
+        end if
+       end if
 c
-      elseif(iboudy.eq.5)then
+      else if(iboudy.eq.5)then
 
 c----------use exponential method
 
@@ -1132,7 +1112,7 @@ c........north boundary:
      &                        -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 75      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ix-1
@@ -1161,7 +1141,7 @@ c.........north boundary:
 85       continue
          ibeg = jsls
          iend = ix-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -1185,7 +1165,7 @@ c-------west-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 95       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          do 105 k=1,kx
           fcx=fcoef*xfune(jsls,k)
@@ -1207,10 +1187,10 @@ c-------east-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 105      continue
-        endif
-       endif
+        end if
+       end if
 c
-      endif
+      end if
       return
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1251,16 +1231,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer ip,j,iboudy
       real(kind=8)  fcoef,gcoef,xt,c203
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bdycod.cb"
 #     include "include/main.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer jew
 #endif
 #     include "include/param3.cb"
@@ -1321,7 +1296,7 @@ c........north boundary:
      &                        -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 10      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ix-1
@@ -1350,7 +1325,7 @@ c.........north boundary:
 30       continue
          ibeg = jsls
          iend = ix-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -1374,7 +1349,7 @@ c-------west-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 50       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          fcx=fcoef*xfun(jsls)
          gcx=gcoef*xfun(jsls)
@@ -1396,10 +1371,10 @@ c-------east-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 70       continue
-        endif
-       endif
+        end if
+       end if
 c
-      elseif(iboudy.eq.5)then
+      else if(iboudy.eq.5)then
 
 c----------use exponential method
 
@@ -1428,7 +1403,7 @@ c........north boundary:
      &                        -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 75      continue
 c
-       elseif(jsls.le.ip)then
+       else if(jsls.le.ip)then
 c------east or west boundary slices:
         ibeg = 2
         iend = ix-1
@@ -1457,7 +1432,7 @@ c.........north boundary:
 85       continue
          ibeg = jsls
          iend = ix-jsls+1
-        endif
+        end if
 c
         if (jj .gt. ip) then
 c-------west-boundary slice:
@@ -1481,7 +1456,7 @@ c-------west-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 95       continue
-        elseif(jj.le.ip)then
+        else if(jj.le.ip)then
 c-------east-boundary slice:
          do 105 k=1,kx
           fcx=fcoef*xfune(jsls,k)
@@ -1503,9 +1478,9 @@ c-------east-boundary slice:
           ften(i,k)=ften(i,k)+fcx*fls0
      &                       -gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 105      continue
-        endif
-       endif
+        end if
+       end if
 c
-      endif
+      end if
       return
       end

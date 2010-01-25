@@ -23,12 +23,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       implicit none
       integer j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -112,7 +107,7 @@ c
         kk=kx-k+1
         tten(i,kk)=psb(i,j)*outt(i,k)+tten(i,kk)
         qten(i,kk)=psb(i,j)*outq(i,k)+qten(i,kk)
-       endif
+       end if
 300   continue
 c
 c--- rain in cm.
@@ -130,7 +125,7 @@ c.....................precipitation rate for bats (mm/s)
         prainx=pret(i)*calc*dt
         pptc(i,j)=pptc(i,j)+prainx/(dtmin*60.)/aprdiv
 c.......................................................
-       endif
+       end if
 50    continue
       icon(j)=iconj
 c

@@ -38,13 +38,8 @@ c
 c
 C------------------------------Parameters-------------------------------
 c
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-c
+#     include "parameter.inc"
+
 #     include "include/parrad.cb"
 #     include "include/param2.cb"
 C
@@ -94,7 +89,7 @@ c     Effective liquid radius over land
 c
               rliq = 5.0 +
      $               5.0*dmin1(1.d0,dmax1(0.d0,(263.16-t(i,k))*0.05))
-            endif
+            end if
 c
             rel(i,k) = rliq
 cfil
@@ -124,7 +119,7 @@ c if colder than -10 degrees C but warmer than -30 C mixed phase
 c
              if(t(i,k).le.263.16.and.t(i,k).ge.243.16) then
                    fice(i,k) =(263.16-t(i,k)) / 20.0
-             endif
+             end if
 c
 c if colder than -30 degrees C then ice phase
 c

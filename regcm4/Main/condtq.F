@@ -39,12 +39,7 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -86,7 +81,7 @@ c   2a. Calculate the saturation mixing ratio and relative humidity
           satvp=svp1*1.e3*dexp(svp2*(tmp3(i,k)-273.15)/(tmp3(i,k)-svp3))
         else
           satvp=.611*1.e3*dexp(22.514-6.15e3/tmp3(i,k))
-        endif
+        end if
         qvs=dmax1(ep2*satvp/(pres-satvp),1.d-30)
         rhc=dmax1(qvcs(i,k)/qvs,1.d-30)
 

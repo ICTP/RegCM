@@ -95,9 +95,9 @@ c ******    Convective mixer
         call ice(sw,ld,taC,u2,ea,hs,hi,hice,evap,t,depth,prec)
         if (freeze.eq.0) then
           t(1,1)=t(1,2)
-        endif
+        end if
 
-      endif
+      end if
 
       write(iout) ilake, jlake, depth, freeze, hi, hice, hsnow, eta
      &          , (t(j,1),j=1,depth)
@@ -117,7 +117,7 @@ c ******    Convective mixer
          iout = 83 - iout
          rewind(iin)
          rewind(iout)
-      endif
+      end if
 
       return
       end

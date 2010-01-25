@@ -23,12 +23,7 @@ c  excess leaf water is put into rain or snow;
 c  leaf water is reset to its maximum value.
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       integer n,np

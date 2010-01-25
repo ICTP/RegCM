@@ -57,12 +57,7 @@ c
       integer jslc
 c
 C------------------------------Parameters-------------------------------
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/parrad.cb"
 #     include "include/param1.cb"
 c
@@ -273,7 +268,7 @@ C
      $               bn2o0   ,bn2o1   ,bch4    ,abplnk1 ,abplnk2 ,
      $               jslc  )
 
-      endif
+      end if
 C
 C Find the lowest and highest level cloud for each grid point
 C Note: Vertical indexing here proceeds from bottom to top
@@ -384,7 +379,7 @@ C
             fsul(i,plevp) = emiss1d(i)*(stebol*(ts(i)**4))
          else
             fsul(i,plevp) = stebol*(ts(i)**4)
-         endif
+         end if
       end do
 C
 C Downward clear sky fluxes store intermediate quantities in down flux

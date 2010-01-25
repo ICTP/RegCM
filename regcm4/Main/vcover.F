@@ -24,12 +24,7 @@ c     provides leaf and stem area parameters;
 c     depends on climate through subsoil temperatures.
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       integer n,np
@@ -40,8 +35,8 @@ c     depends on climate through subsoil temperatures.
         if (sigf(n,np).gt.0.001) then
          seasb(n,np)=dmax1(0.d0
      &                    ,1.-0.0016*dmax1(298.-tgb1d(n,np),0.d0)**2)
-        endif
-       endif
+        end if
+       end if
       enddo
 90    continue
 
@@ -55,8 +50,8 @@ c     depends on climate through subsoil temperatures.
          rlai(n,np)  = xlai(n,np) + sai(lveg(n,np))
          xlsai(n,np) = xlai(n,np) + sai(lveg(n,np))
          vegt(n,np)  = sigf(n,np) * xlsai(n,np)
-        endif
-       endif
+        end if
+       end if
       enddo
 91    continue
 c

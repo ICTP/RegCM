@@ -19,12 +19,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       SUBROUTINE LAKEDRV(jslc)
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/iunits.cb"
 #     include "include/bats.cb"
@@ -62,9 +57,9 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
             ldoc1d(n,ilake) = 2.
             sice1d(n,ilake) = aveice    !  units of ice = mm
             scv1d(n,ilake)  = snow    !  units of snow = mm h2o
-          endif
+          end if
 
-        endif
+        end if
       enddo
 7     continue
 

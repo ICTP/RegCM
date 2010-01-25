@@ -27,12 +27,7 @@ c
 c     ***   units are si
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/iunits.cb"
@@ -40,7 +35,7 @@ c
 #     include "include/main.cb"
 #     include "include/bats.cb2"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 c
 c----------------------------------------------------------------------
@@ -76,7 +71,7 @@ cMM4   if(ist.le.13)then
 cMM4    ist=ist
 cMM4   else
 cMM4    ist=7
-cMM4   endif
+cMM4   end if
 cMM4   veg2d(ill,jll)=vgtran(ist)
 ceros  note:  when using bats dataset comment line above
        veg2d(ill,jll)=satbrt(ill,jll)
@@ -104,7 +99,7 @@ c ******  initialize hostetler lake model
 #else
        call initlk(veg2d1, (ix-1)*NSG, (jx-1)*NSG)
 #endif
-      endif
+      end if
 
 #ifdef MPP1
       do 20 jll =1,jendx
@@ -117,13 +112,13 @@ c ******  initialize hostetler lake model
         ocld2d(k,ill,jll)=0.
        else
         ocld2d(k,ill,jll)=1.
-       endif
+       end if
        nlveg=nint(veg2d1(k,ill,jll))
        if(nlveg.eq.0)then
         nlveg=15
        else
         nlveg=nlveg
-       endif
+       end if
 csol   itex=int(text2d(k,ill,jll))
        itex=iexsol(nlveg)
        tg2d(k,ill,jll)=tgb(ill,jll)
@@ -148,7 +143,7 @@ c ******  initialize soil moisture in the 3 layers
        rno2d(k,ill,jll)=0.
        if(sice2d(k,ill,jll).gt.0.)then
         ocld2d(k,ill,jll)=2.
-       endif
+       end if
        ircp2d(k,ill,jll)=0.
 20    continue
 

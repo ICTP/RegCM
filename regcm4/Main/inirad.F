@@ -21,17 +21,12 @@ c-----------------------------------------------------------------------
       subroutine inirad
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 #     include "include/rad.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 
       integer i,j,k
@@ -67,9 +62,9 @@ c
 34     continue
 1212   format (1x,7e12.4)
 #ifdef MPP1
-        endif
+        end if
 #endif
-      endif
+      end if
 
       return
       end

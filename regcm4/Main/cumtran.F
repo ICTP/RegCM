@@ -21,17 +21,12 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 cqhy15/07/99 subroutine cumtran(il,jl,kx,ntr,dsigma,icumtop,chia,chib)
       subroutine cumtran
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/trachem.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
 #ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
 #endif
 #     include "include/param3.cb"
 
@@ -66,7 +61,7 @@ cqhy
          chia(i,k,j,n)=chia(i,k,j,n)*(1.-cumfrc)+cumfrc*chiabar/deltas
          chib(i,k,j,n)=chib(i,k,j,n)*(1.-cumfrc)+cumfrc*chibbar/deltas
   95     continue
-      endif
+      end if
   100 continue
       return
       end

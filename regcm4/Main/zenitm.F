@@ -27,12 +27,7 @@ C   in the initialization procedure of RegCM
 C
       implicit none
 
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 #     include "include/main.cb"

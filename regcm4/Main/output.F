@@ -26,14 +26,9 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer iexec
+#     include "parameter.inc"
 #ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
-#ifdef MPP1
-      include 'mpiregcm.h'
+#     include "mpiregcm.inc"
       integer ierr
       integer idum
 #endif
@@ -184,9 +179,9 @@ c----------------------------------------------------------------------
         nrcout=0
         call mkfile
 
-      endif
+      end if
 #ifdef MPP1
-      endif
+      end if
 #endif
 
       if(jyear.eq.jyear0.and.ktau.eq.0) then
@@ -224,7 +219,7 @@ c----------------------------------------------------------------------
           call outtap0
           call gradsctl('OUT_HEAD.CTL')
 #ifdef MPP1
-        endif
+        end if
 #endif
       end if
 
@@ -299,7 +294,7 @@ c
 #endif
           call outtap
 #ifdef MPP1
-          endif
+          end if
           do j=1,jendx
           do i=1,ilx
             do n=1,NNSG
@@ -310,8 +305,8 @@ c
           enddo
           enddo
 #endif
-        endif
-      endif
+        end if
+      end if
 
 
 c   Call surface output
@@ -341,7 +336,7 @@ c   Call surface output
 #endif
           call outsrf
 #ifdef MPP1
-          endif
+          end if
           do i=1,ix-2
           do j=1,jxp
             tgmx_o(j,i) = -1.e30
@@ -390,7 +385,7 @@ c   Call surface output
 #endif
           if(ifsub.and.NSG.gt.1) call outsub
 #ifdef MPP1
-          endif
+          end if
 #endif
         end if
       end if
@@ -442,7 +437,7 @@ c   Call radiation output
 #endif
           call radtap
 #ifdef MPP1
-          endif
+          end if
 #endif
         end if
       end if
@@ -545,7 +540,7 @@ c   Call chem output
 #endif
          call chemtap
 #ifdef MPP1
-         endif
+         end if
          do n=1,ntr
          do j=1,jendl
          do k=1,kx
@@ -624,7 +619,7 @@ c
                 TS0_io(i,j) =    sav_0(i,kx*4+2 ,j)
               enddo
             enddo
-          endif
+          end if
           if(EHSO4) then
              do j=1,jendl
                do k=1,kx
@@ -645,8 +640,8 @@ c
                    enddo
                  enddo
                enddo
-             endif
-          endif
+             end if
+          end if
           do j=1,jendl
             do k=1,kx
               do i=1,ix
@@ -681,7 +676,7 @@ c
                 psb_io(i,j) =    sav_0(i,kx*4+2 ,j)
               enddo
             enddo
-          endif
+          end if
           do j=1,jendl
             do k=1,kx
               do i=1,ix
@@ -716,7 +711,7 @@ c
                 tgb_io(i,j) =    sav_0(i,kx*4+2 ,j)
               enddo
             enddo
-          endif
+          end if
           do j=1,jendl
             do k=1,kx
               do i=1,ix
@@ -763,7 +758,7 @@ c
                 enddo
               enddo
             enddo
-          endif
+          end if
           do j=1,jendl
             do i=1,ix
               sav0a(i,1 ,j) =    hfx(i,j)
@@ -810,12 +805,12 @@ c
                 enddo
               enddo
             enddo
-          endif
+          end if
           if(iocnflx.eq.2) then
             call MPI_GATHER( zpbl(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                    zpbl_io(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                                        0,MPI_COMM_WORLD,ierr)
-          endif
+          end if
           if(icup.eq.1) then
             do j=1,jendl
               do k=1,kx
@@ -839,7 +834,7 @@ c
                   enddo
                 enddo
               enddo
-            endif
+            end if
           else if(icup.eq.3) then
             do j=1,jendl
               do k=1,kx
@@ -867,12 +862,12 @@ c
                   CLDEFI_IO(i,j) = sav_0b(i,kx+1,j)
                 enddo
               enddo
-            endif
+            end if
           else if(icup.eq.4) then
             call MPI_GATHER( cbmf2d(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                    cbmf2d_io(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                                        0,MPI_COMM_WORLD,ierr)
-          endif
+          end if
           do j=1,jendx
             do l=1,4
               do k=1,kx
@@ -933,7 +928,7 @@ c
                 enddo
               enddo
             enddo
-          endif
+          end if
           do j=1,jendx
             do n=1,NNSG
               do i=1,ilx
@@ -972,7 +967,7 @@ c
                 flw2d_io(i,j)   = sav_2(i,NNSG*4+4 ,j)
               enddo
             enddo
-          endif
+          end if
           do j=1,jendx
             do n=1,NNSG
               do i=1,ilx
@@ -1011,7 +1006,7 @@ c
                 sinc2d_io(i,j) = sav_2(i,NNSG*4+4 ,j)
               enddo
             enddo
-          endif
+          end if
           do j=1,jendx
             do n=1,NNSG
               do i=1,ilx
@@ -1050,7 +1045,7 @@ c
                 prnca2d_io(i,j) = sav_2(i,NNSG*4+4 ,j)
               enddo
             enddo
-          endif
+          end if
           do j=1,jendx
             do n=1,NNSG
               do i=1,ilx
@@ -1085,7 +1080,7 @@ c
                 veg2d_io(i,j) = sav_2a(i,NNSG*5+1 ,j)
               enddo
             enddo
-          endif
+          end if
             
           if(ichem.eq.1) then
             do j=1,jendl
@@ -1134,7 +1129,7 @@ c
                   enddo
                 enddo
               enddo
-            endif
+            end if
             do j=1,jendx
               do i=1,ilx
                 sav4a(i,1,j) = ssw2da(i,j)
@@ -1162,8 +1157,8 @@ c
                   svegfrac2d_io(i,j) = sav_4a(i,7,j)
                 enddo
               enddo
-            endif
-          endif
+            end if
+          end if
           do j=1,jendl
             do n=1,nsplit
               do i=1,ix
@@ -1184,7 +1179,7 @@ c
                 enddo
               enddo
             enddo
-          endif
+          end if
           do j=1,jendl
             do k=1,kx
               sav6(k,1,j) = ui1(k,j)
@@ -1213,7 +1208,7 @@ c
               vil_io(k,j) = sav_6(k,8,j)
             enddo
             enddo
-          endif
+          end if
           call MPI_BCAST(ujlx(1,1),ix*kx,MPI_DOUBLE_PRECISION,
      &                           nproc-1,MPI_COMM_WORLD,ierr)
           call MPI_BCAST(ujl(1,1),ix*kx,MPI_DOUBLE_PRECISION,
@@ -1236,9 +1231,9 @@ c
           print *,'restart written date = ',ldatez+xtime/1440.
           close(iutsav)
 #ifdef MPP1
-          endif
+          end if
 #endif
-        elseif (mod(ntime,nsavfrq).eq.0 .and.
+        else if (mod(ntime,nsavfrq).eq.0 .and.
      &          (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) then
 #ifdef MPP1
           if(myid.eq.0) then
@@ -1259,13 +1254,13 @@ c
               isystm=system(rmsav)
               print*,rmsav
             end if
-          endif
+          end if
           oldsav = tmpfil
 #ifdef MPP1
-          endif
+          end if
 #endif
-        endif
-      endif
+        end if
+      end if
 c
 c-----printer output:
 c
@@ -1281,8 +1276,8 @@ c
 #else
           call outprt(iexec)
 #endif
-        endif
-      endif
+        end if
+      end if
 
       if (lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0
      &    .and. (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))
@@ -1290,7 +1285,7 @@ c
         call mkfile
       end if
 #ifdef MPP1
-      endif
+      end if
 #endif
 
       return

@@ -27,12 +27,7 @@ c           uses tetens formula (1930) (ref. riegel,1974,jam,p606
 c                                                 equation 1)
 c
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       real(kind=8)  a,b

@@ -29,12 +29,7 @@ C     ****             underlying surface
 C     ****  b.  modifies cdrn as fn of bulk rich. no. of surface layer
 
       implicit none
-#ifdef MPP1
-      include 'regcm.param2'
-#else
-      include 'regcm.param'
-#endif
-      include 'parame'
+#     include "parameter.inc"
 #     include "include/bats.cb"
 
       real(kind=8)  rib(NNSG,nbmax),ribl(NNSG,nbmax),ribn(NNSG,nbmax)
