@@ -1,0 +1,26 @@
+Minimal regression test  suite for REGCM code
+Each subdirectory contains a full regression test that can be run with both regcm4 and regcm3 versions
+ 
+Directory tree:
+ /regression_tests 
+         clean.sh : script to clean and prepare the environment to execute the benchmarks. 
+                    it should be executed in the RUN directory of each benchmark 
+         regcm_compile.sh : script to compile regcm code using appropriate regcm.param/param2 files
+                    it should be executed in the main directory of each benchmarks (for regcm3 code) 
+ /regression_tests/NAME_OF_the_BENCHMARK 
+         regcm.param  : parameter file for serial regcm3 compilation 
+ 	 regcm2.param : parameter file for parallel regcm3 compilation
+         parameter.inc : parameter fiel for Regcm4 compilation 
+         domain.param :  to produce the Input file from scratch 
+         README: information about the benchmarks 
+	 Run: directory where to Run the code
+              it contains two input files for regcm:
+			regcm.in-one-day regcm.in-one-month and symbolic links to input data file contained
+              in input directory.  
+         Input: directory where to place input files (DOMAIN and ICBC and all the rest) 
+         Results: directory containing standard output results to compare with  
+
+Please note: Input files, due to their sizes, are separately stored on Regcm gforge web page as tar.gz file.
+             once downloaded please just execute 
+	     tar -xvzf benchmarks_input.tgz 
+             and all the files will be placed in the right directories 

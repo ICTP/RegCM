@@ -1,0 +1,27 @@
+!! regcm.param for Regcm benchmarks
+!! 
+!!  domain 208x192x18  
+!!
+!!
+      INTEGER IX
+      INTEGER JX
+      INTEGER KX
+      INTEGER NSG
+      INTEGER NNSG
+      INTEGER IBYTE
+      CHARACTER*5 DATTYP
+      LOGICAL     EHSO4 
+      CHARACTER*4 LSMTYP
+      CHARACTER*7 AERTYP
+      integer jlx,jlxm
+      parameter(IX     =   208)
+      parameter(JX     =   192)
+      parameter(KX     =    18)
+      parameter(NSG    =     1)
+      parameter(NNSG   =     1)
+      parameter(IBYTE  =     4)
+      parameter(DATTYP='ERA40')
+      parameter(EHSO4 =.false.)
+      parameter(LSMTYP='BATS')
+      parameter(AERTYP='AER00D0')
+      parameter(jlx=jx-1,jlxm=jx-2)

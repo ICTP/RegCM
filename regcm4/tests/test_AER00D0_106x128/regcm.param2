@@ -1,0 +1,31 @@
+!! parameter file for Regcm Benchmarks
+!! European Domain  ( from BI )
+!! 106x128:
+!! 
+ 
+      INTEGER IX
+      INTEGER NPROC
+      INTEGER MJX
+      INTEGER KX
+      INTEGER NSG
+      INTEGER NNSG
+      INTEGER IBYTE
+      INTEGER JXP
+      CHARACTER*5 DATTYP
+      LOGICAL     EHSO4 
+      CHARACTER*4 LSMTYP
+      CHARACTER*7 AERTYP
+      integer jxbb
+      parameter(IX     =   106)
+      parameter(NPROC  =    PARAMNPROC)
+      parameter(MJX    =   128)
+      parameter(JXP    = MJX/NPROC)
+      parameter(KX     =    18)
+      parameter(NSG    =     1)
+      parameter(NNSG   =     1)
+      parameter(IBYTE  =     1)
+      parameter(DATTYP='ERAIN')
+      parameter(EHSO4 =.false.)
+      parameter(LSMTYP='BATS')
+      parameter(AERTYP='AER00D0')
+      parameter(jxbb=mjx-1)
