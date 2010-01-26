@@ -1,0 +1,247 @@
+ process           0 of           2
+ RESTARTPARAM READ IN
+ TIMEPARAM READ IN
+ OUTPARAM READ IN
+ PHYSICSPARAM READ IN
+ SUBEXPARAM READ IN
+ GRELLPARAM READ IN
+ CHEMPARAM READ IN
+  dtau =    50.0000000000000        100.000000000000     
+ process           1 of           2
+ NREC =       289276
+ IDATE1, IDATE2, dtmin, ktaur =   1990010100  1990010200   3.33333333333333     
+           0
+ READING HEADER FILE
+ DIMS          52          48          18
+ DOMAIN   100000.0       50.00000       13.00000       50.00000    
+   13.00000      0.7155668    
+ PROJLAMCON
+ SIGMA  0.0000000E+00  5.0000001E-02  0.1000000      0.1600000    
+  0.2300000      0.3100000      0.3900000      0.4700000      0.5500000    
+  0.6300000      0.7100000      0.7800000      0.8400000      0.8900000    
+  0.9300000      0.9600000      0.9800000      0.9900000       1.000000    
+ PTOP   5.000000    
+ OUTPUT           1           1
+ ***** mdate =   1990010100
+  input/output parameters 
+  ifsave =  T  savfrq =    48.0000000000000       iftape =  T  tapfrq = 
+   6.00000000000000       ifprt  =  F  prtfrq =    12.0000000000000      
+  kxout  =            6  jxsex  =           40  radisp = 
+   6.00000000000000       batfrq =    3.00000000000000       nslice = 
+         120  ifchem =  T  chemfrq =   6.00000000000000     
+  
+  physical parameterizations 
+  iboudy =            5  icup =            2  igcc =           2  ipptls = 
+           1  iocnflx =            2  ipgf =            0 iemiss =            1 
+  lakemod =            0  ichem =           1
+  
+  model parameters 
+  radfrq =    30.0000000000000       abatm =    600.000000000000       abemh = 
+   18.0000000000000       dt =    200.000000000000     
+  
+  ncld =            1
+  
+ HT
+ HTSD
+ SATBRT
+ XLAT
+ XLONG
+ MSFX
+ MSFD
+ F
+ SNOWC
+  
+ ***************************************************
+ ***************************************************
+ **** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****
+ ****     Map Projection: LAMCON                ****
+ ****     IX=          52  JX=          48  KX=          18              ****
+ ****     PTOP=   5.000000      DX=   100000.0            ****
+ ****     CLAT=    50.00000      CLON=   13.00000         ****
+ ***************************************************
+  
+  Index of highest allowed pbl:  kt =           10
+  
+ AUTO-CONVERSION RATE:  LAND=  2.500000000000000E-004 
+                       OCEAN=  2.500000000000000E-004
+ RELATIVE HUMIDITY THRESHOLDS:  LAND=  0.800000011920929      
+                               OCEAN=  0.899999976158142     
+ GULTEPE FACTORS:  LAND=  0.400000005960464                       OCEAN=
+  0.400000005960464     
+ MAXIMUM CLOUD COVER FOR RADIATION:   0.800000011920929     
+ MAXIMUM RELATIVE HUMIDITY:    1.00999999046326     
+ rh0 temperature threshold:    238.000000000000     
+ Raindrop Evaporation Rate  1.000000000000000E-003
+ Raindrop Accretion Rate   3.00000000000000     
+  
+ *******************************************************
+  Grell Convection:
+    Max Shear:  0.500000000000000     
+    Min Shear:  0.250000000000000     
+    Max PPT eff:   1.00000000000000     
+    Min PPT eff:  0.250000000000000     
+    Max PPT eff(o):   1.00000000000000     
+    Min PPT eff(o):  0.000000000000000E+000
+    Max PPT eff(x):   1.00000000000000     
+    Min PPT eff(x):  0.250000000000000     
+    Max PBC (pbcmax):   150.000000000000     
+    Min Cloud Depth:   150.000000000000     
+    Max Cloud Base:          12  0.400000005960464     
+    Max Heating:   500.000000000000     
+    Min Heating:  -250.000000000000     
+    Fritsch-Chappell (1980) Closure Assumption   *****
+      ABE removal timescale: dtauc=   30.0000000000000     
+ *******************************************************
+  
+ CONVECTIVE CLOUD FRACTION/WATER
+    Maximum Convective Cloud Cover
+      before resolution scaling:   0.250000000000000     
+    Maximum Convective Cloud Cover
+      after resolution scaling:   0.250000000000000     
+    Convective Cloud Water:   3.000000142492354E-004
+     the surface energy budget is used to calculate the ground temperature.   julday =   1   gmt =  0.0
+          the radiation is computed every    9 time steps.
+
+   relaxation boudnary conditions (exponential method) are used. fnudge =     0.25000E-03  gnudge =     0.10000E+07
+0 k    sigma(k)     a(k)     dsigma(k)    twt(k,1)     twt(k,2)     qcon(k)
+
+  1     0.0000     0.0250     0.0500       0.0000       0.0000       0.0000
+  2     0.0500     0.0750     0.0500       0.5000       0.5000       0.5000
+  3     0.1000     0.1300     0.0600       0.4545       0.5455       0.5455
+  4     0.1600     0.1950     0.0700       0.4615       0.5385       0.5385
+  5     0.2300     0.2700     0.0800       0.4667       0.5333       0.5333
+  6     0.3100     0.3500     0.0800       0.5000       0.5000       0.5000
+  7     0.3900     0.4300     0.0800       0.5000       0.5000       0.5000
+  8     0.4700     0.5100     0.0800       0.5000       0.5000       0.5000
+  9     0.5500     0.5900     0.0800       0.5000       0.5000       0.5000
+ 10     0.6300     0.6700     0.0800       0.5000       0.5000       0.5000
+ 11     0.7100     0.7450     0.0700       0.5333       0.4667       0.4667
+ 12     0.7800     0.8100     0.0600       0.5385       0.4615       0.4615
+ 13     0.8400     0.8650     0.0500       0.5455       0.4545       0.4545
+ 14     0.8900     0.9100     0.0400       0.5556       0.4444       0.4444
+ 15     0.9300     0.9450     0.0300       0.5714       0.4286       0.4286
+ 16     0.9600     0.9700     0.0200       0.6000       0.4000       0.4000
+ 17     0.9800     0.9850     0.0100       0.6667       0.3333       0.3333
+ 18     0.9900     0.9950     0.0100       0.5000       0.5000       0.5000
+ 19     1.0000
+
+
+ maximum time =    1.000 days.
+ time step =  200.00 seconds
+ dx = 100000. meters
+ grid points (x,y) = ( 48, 52)
+ number of levels = 18
+ constant hor. diff. coef. =  0.75000E+05 m*m/s
+ maximum  hor. diff. coef. =  0.78125E+06 m*m/s
+ READING INITAL CONDITIONS  1990010100
+ U
+ V
+ TA
+ QV
+ PS
+ TS
+           *** solar declination angle = -22.98 degrees.
+ ozone profiles
+   0.4963E-07
+   0.4963E-07
+   0.4963E-07
+   0.4963E-07
+   0.5213E-07
+   0.5267E-07
+   0.5555E-07
+   0.5828E-07
+   0.6499E-07
+   0.7506E-07
+   0.9023E-07
+   0.1166E-06
+   0.1565E-06
+   0.2477E-06
+   0.4500E-06
+   0.8418E-06
+   0.1458E-05
+   0.3244E-05
+   0.0000E+00
+ dectim =    1440.00000000000     
+0 vertical mode problem completed for kx= 18     0 errors detected   (should be 0)
+ BCs are ready from   1990010100   to   1990010106
+ dt, dtau =    200.000000000000        50.0000000000000     
+   100.000000000000     
+0 linearization about standard atmosphere (lstand=.t.)
+0sigmaf      0.00      5.000E-02  0.100      0.160      0.230      0.310      0.390      0.470      0.550      0.630      0.710    
+           0.780      0.840      0.890      0.930      0.960      0.980      0.990       1.00    
+0t mean      218.       218.       218.       218.       229.       239.       248.       255.       262.       268.       273.    
+            277.       280.       283.       285.       286.       287.       287.    
+0ps mean     100.    
+0 vertical mode problem completed for kx= 18     0 errors detected   (should be 0)
+ m, fac =            4   44.4444444444444     
+ m, fac =            2   80.0000000000000     
+           1 SO2  
+           2 SO4  
+           3 BC_HB
+           4 BC_HL
+           5 OC_HB
+           6 OC_HL
+           7 DUST 
+           8 DUST 
+           9 DUST 
+          10 DUST 
+ Writing output files in direct access format
+mkdir: cannot create directory `output/': File exists
+  
+ ******* OPENING NEW OUTPUT FILES:  1990010100
+ OPENING NEW OUT FILE: output/ATM.1990010100
+ OPENING NEW BAT FILE: output/SRF.1990010100
+ OPENING NEW RAD FILE: output/RAD.1990010100
+ OPENING NEW CHEM FILE: output/CHE.1990010100
+mkdir: cannot create directory `../PostProc': File exists
+ OUT-history written date =    1990010100.00000     
+ BATS variables written at   1990010100   3.33333333333333     
+ Writing rad fields at ktau =            1  1990010100
+ Chem variables written   1990010100
+     at day =    0.1134, ktau =         50 :  1st, 2nd time deriv of ps =  0.21867E-04 0.63264E-07,  no. of points w/convection =      29
+ BATS variables written at   1990010103   180.000000000000     
+     at day =    0.2292, ktau =        100 :  1st, 2nd time deriv of ps =  0.13456E-04 0.27615E-07,  no. of points w/convection =      24
+           *** solar declination angle = -22.96 degrees.
+  dectim =    2880.00000000000     
+ OUT-history written date =    1990010106.00000     
+ BATS variables written at   1990010106  0.000000000000000E+000
+ Writing rad fields at ktau =          108  1990010106
+ Chem variables written   1990010106
+ BCs are ready from   1990010106   to   1990010112
+     at day =    0.3449, ktau =        150 :  1st, 2nd time deriv of ps =  0.14641E-04 0.26672E-07,  no. of points w/convection =      23
+ BATS variables written at   1990010109   180.000000000000     
+     at day =    0.4606, ktau =        200 :  1st, 2nd time deriv of ps =  0.10108E-04 0.19197E-07,  no. of points w/convection =      24
+           *** solar declination angle = -22.94 degrees.
+  dectim =    4320.00000000000     
+ OUT-history written date =    1990010112.00000     
+ BATS variables written at   1990010112  0.000000000000000E+000
+ Writing rad fields at ktau =          216  1990010112
+ Chem variables written   1990010112
+ BCs are ready from   1990010112   to   1990010118
+     at day =    0.5764, ktau =        250 :  1st, 2nd time deriv of ps =  0.87176E-05 0.15962E-07,  no. of points w/convection =      23
+ BATS variables written at   1990010115   180.000000000000     
+     at day =    0.6921, ktau =        300 :  1st, 2nd time deriv of ps =  0.84692E-05 0.16643E-07,  no. of points w/convection =      34
+           *** solar declination angle = -22.91 degrees.
+  dectim =    5760.00000000000     
+ OUT-history written date =    1990010118.00000     
+ BATS variables written at   1990010118  0.000000000000000E+000
+ Writing rad fields at ktau =          324  1990010118
+ Chem variables written   1990010118
+ BCs are ready from   1990010118   to   1990010200
+     at day =    0.8079, ktau =        350 :  1st, 2nd time deriv of ps =  0.90991E-05 0.20034E-07,  no. of points w/convection =      30
+ BATS variables written at   1990010121   180.000000000000     
+     at day =    0.9236, ktau =        400 :  1st, 2nd time deriv of ps =  0.71645E-05 0.17298E-07,  no. of points w/convection =      27
+           *** solar declination angle = -22.89 degrees.
+  dectim =    7200.00000000000     
+ OUT-history written date =    1990010200.00000     
+ BATS variables written at   1990010200  0.000000000000000E+000
+ Writing rad fields at ktau =          432  1990010200
+ Chem variables written   1990010200
+ OPENING NEW SAV FILE: SAV.1990010200
+ restart written date =    1990010200.00000     
+
+
+ ***** restart file for next run is written at time=       0.00 minutes, ktau =     432 in year 1990
+  *** new max DATE will be   1990020100
+99999
+99999
