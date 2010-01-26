@@ -16,12 +16,14 @@ C    You should have received a copy of the GNU General Public License
 C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
+C
+C This is for test AER11D1_048x052
+C
 C Domain dimension parameters
 
       INTEGER IX
       INTEGER ILX, ILXM
-      parameter(IX     =   106)
+      parameter(IX     =   52)
       parameter(ILX    =  ix-1)
       parameter(ILXM   =  ix-2)
 
@@ -36,12 +38,12 @@ C Domain dimension parameters
 #endif
 
 #ifdef MPP1
-      parameter(NPROC  =    16)
-      parameter(MJX    =   128)
+      parameter(NPROC  =    2)
+      parameter(MJX    =   48)
       parameter(JXP    = MJX/NPROC)
       parameter(JXBB   = mjx-1)
 #else
-      parameter(JX     =   128)
+      parameter(JX     =   48)
       parameter(JLX    =  jx-1)
       parameter(JLXM   =  jx-2)
 #endif
@@ -68,10 +70,10 @@ C Domain dimension parameters
       parameter(AERTYP='AER00D0')
 
       INTEGER IBYTE
-      parameter(IBYTE  =     1)
+      parameter(IBYTE  =     4)
 
       INTEGER debug_level
-      parameter(debug_level=1)
+      parameter(debug_level = 1)
 
 C
 C Set Buffer Zone Depth
@@ -110,8 +112,8 @@ C Bats parameters
 C Tracer parameter
 
       integer ntr                      ! tracer number
-      parameter( ntr = 1)
+      parameter( ntr = 10)
       integer nbin                     ! bins number ( dust)
-      parameter(nbin = 1)
+      parameter(nbin = 4)
 
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

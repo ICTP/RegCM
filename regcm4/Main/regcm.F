@@ -197,7 +197,12 @@ c     starttime= MPI_WTIME()
         jendx = jxp-1
         jendm = jxp-2
       end if
+#else  
+      integer :: myid 
+      myid = 1
 #endif
+c! 
+      call header(myid)
 c
 c-----set up parameters:
 c

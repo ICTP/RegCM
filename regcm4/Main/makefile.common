@@ -33,8 +33,10 @@ zengocndrv.F zengocn.F zenith.F zenitm.F
 
 OBJS = $(SRCS:.F=.o)
 
-regcm:	regcm.F $(OBJS)
-	$(FC) $(CPPFLAGS) $(FFLAGS) -o $@ $< $(OBJS) $(LIBS)
+SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
+
+regcm:	regcm.o $(OBJS)
+	$(FC) $(CPPFLAGS) $(FFLAGS) -o $@ $< $(OBJS) header.o  $(LIBS)
 
 clean:
 	rm -f $(OBJS) regcm
@@ -45,8 +47,11 @@ clean:
 BLOCKDATA001.o: BLOCKDATA001.F
 	$(FC) -c $(CPPFLAGS) -D$(SCENARIO) $(FFLAGS) $(INCLUDE_DIR) -c $<
 
-# Dependencies
+header.o: header.F90
+	$(FC) -c $(CPPFLAGS) $(SVNDEF) $(FFLAGS) $(INCLUDE_DIR) -c $<	
 
+# Dependencies
+regcm: header.o
 aermix.o: aermix.F parameter.inc include/parrad.cb include/param2.cb \
  include/crdcon.cb include/slice.cb include/trachem.cb include/main.cb \
  include/mainchem.cb
