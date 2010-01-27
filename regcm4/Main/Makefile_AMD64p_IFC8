@@ -2,6 +2,7 @@
 
 FFLAGS = -fpe3 -tpp7 -cm -w -w90 -w95 -convert big_endian 
 FC = mpif90
+F90 = mpif90
 LD = $(FC) -L/usr/lib64/ -lmpichf90
 LIBS = -Vaxlib
 

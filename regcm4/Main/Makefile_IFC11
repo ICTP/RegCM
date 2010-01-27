@@ -2,6 +2,7 @@
 
 FFLAGS = -O0  -w -w90 -w95 -convert big_endian 
 FC = mpif90
+F90 = mpif90
 LD =$(FC)
 LIBS = -Vaxlib
 

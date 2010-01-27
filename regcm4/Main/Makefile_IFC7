@@ -3,6 +3,7 @@
 
 FFLAGS = -tpp7 -O2 -cm -w -w90 -w95
 FC = ifc
+F90 = ifc
 LD = $(FC)
 LIBS = -Vaxlib
 

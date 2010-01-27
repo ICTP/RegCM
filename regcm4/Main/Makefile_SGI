@@ -4,6 +4,7 @@ FFLAGS = -64 -g -trapuv
 #FFLAGS = -O2
 # DEBUG -- FFLAGS = -g -trapuv
 FC = f90
+F90 = f90
 LD = $(FC)
 
 include makefile.common

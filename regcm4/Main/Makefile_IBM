@@ -3,6 +3,7 @@
 FFLAGS = -g
 #FFLAGS = -g -fns -ftrap=common
 FC = xlf_r
+F90 = xlf_r
 LD = $(FC)
 
 include makefile.common

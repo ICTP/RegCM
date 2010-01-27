@@ -5,6 +5,7 @@ CPPFLAGS= -P -traditional
 FFLAGS =  -O0 -fno-underscoring -g -fbounds-check -ffpe-trap=zero -fconvert=big-endian -Wall -pedantic
 
 FC = gfortran
+F90 = gfortran
 LD =$(FC)
 
 include makefile.common

@@ -17,7 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
-      subroutine zenith(dec,alat,fjd,rsun,coszrs,frac,imax)
+      subroutine zenith(dec,alat,fjd,coszrs,frac,imax)
 C
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
@@ -35,8 +35,6 @@ C             fjd    - fractional julian date in days.  the code conven-
 C                      tion (see 'compjd') is that fjd=0 at noon  at
 C                      greenwich meridian (1200 gmt), so the hour angle
 C                      at longitude 'lon' is ha=lon+twopi*fjd.
-C             rsun   - distance to sun, normalized to the mean distance.
-C                      computed in 'solar'.
 C             imax   - number of equally spaced longitude values.
 C                      it is assumed that i=1 and i=imax+1 are both
 C                      at the greenwich meridian (lon=0).
@@ -58,21 +56,19 @@ C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
       implicit none
 C
-      real(kind=8) dec , alat , fjd , rsun
+      real(kind=8) dec , alat , fjd
       integer imax
       real(kind=8) coszrs(imax) , frac(imax)
 C
       real(kind=8) twopi
       data twopi/6.283185308/
-      real(kind=8) ss , cc , rs , dlon , tpifjd , ha , cosz
+      real(kind=8) ss , cc , dlon , tpifjd , ha , cosz
       integer i
 C
 C***********************************************************************
 C
       ss = dsin(alat)*dsin(dec)
       cc = dcos(alat)*dcos(dec)
-      rs = 1.0/rsun**2
-      rs = 1.0
       dlon = twopi/imax
       tpifjd = twopi*fjd
       do i = 1 , imax

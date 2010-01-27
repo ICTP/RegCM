@@ -2,6 +2,7 @@
 
 FFLAGS = -convert big_endian
 FC = f90
+F90 = f90
 LD = $(FC)
 
 include makefile.common

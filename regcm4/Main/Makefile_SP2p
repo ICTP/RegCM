@@ -4,6 +4,7 @@ SHELL = /bin/sh
 
 #FC =            mpif77
 FC =           mpxlf
+F90 =          mpxlf90
 LDFLAGS =   -qmaxmem=-1  -bmaxdata:0x80000000 -bmaxstack:0x40000000
 LIBDIR = -L $(HOME)
 LIBS =
