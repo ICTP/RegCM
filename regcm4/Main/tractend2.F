@@ -29,24 +29,16 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j
 #     include "parameter.inc"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/param1.cb"
-#     include "include/param2.cb"
 #     include "include/param3.cb"
-
-#     include "include/iunits.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
-#     include "include/bdycod.cb"
 #     include "include/cvaria.cb"
 #     include "include/trachem.cb"
 #     include "include/pbldim.cb"
 #     include "include/bats2.cb"
 #     include "include/rad.cb"
 #     include "include/pmoist.cb"
-#     include "include/slice.cb"
 #     include "include/dust.cb"
 #     include "include/bats.cb"
 #     include "include/date.cb"
