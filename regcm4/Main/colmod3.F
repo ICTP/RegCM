@@ -143,7 +143,7 @@ C------------------------------Parameters-------------------------------
 #     include "include/param2.cb"
 #     include "include/iunits.cb"
 #     include "include/bats.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 c
 C------------------------------Commons----------------------------------
 #     include "include/comtim.cb"
@@ -349,7 +349,7 @@ cKN      call albocean(lat     ,ioro    ,sndpth  ,coszrs  ,asdir   ,
 cKN     $     aldir   ,asdif   ,aldif   )
 c
 c     NB:
-c     albedos are copied from common block /bat1d/ in 'bats.cb2',
+c     albedos are copied from common block /bat1d/ in 'bats2.cb',
 c     because variable names for albedos are somewhat different
 c
       do i=1,plon

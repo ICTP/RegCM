@@ -23,7 +23,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/param1.cb"
 #     include "include/iunits.cb"
 #     include "include/bats.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/date.cb"
 
       real(kind=8)  dayl,tl,vl,zl,ql,fsw,flw,prec,hsen

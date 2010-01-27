@@ -40,7 +40,7 @@ c
 #     include "include/param2.cb"
 #     include "include/parrad.cb"
 #     include "include/bats.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/rad.cb"
 #     include "include/date.cb"
 

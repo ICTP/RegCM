@@ -36,7 +36,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/param3.cb"
 #     include "include/iunits.cb"
 #     include "include/pmoist.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #ifdef MPP1
 #     include "mpiregcm.inc"
 #     include "include/io.cb"

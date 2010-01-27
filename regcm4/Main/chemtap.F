@@ -35,7 +35,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/iunits.cb"
 #     include "include/date.cb"
 #     include "include/cvaria.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/trachem.cb"
 
 #ifdef MPP1

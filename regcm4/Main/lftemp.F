@@ -68,7 +68,7 @@ c
       implicit none
 #     include "parameter.inc"
 #     include "include/bats.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 
       integer iemiss
 

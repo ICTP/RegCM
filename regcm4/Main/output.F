@@ -37,7 +37,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/iunits.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #ifdef MPP1
 #     include "include/bdycod.cb"
 #     include "include/pmoist.cb"

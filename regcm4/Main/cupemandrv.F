@@ -33,7 +33,7 @@ c **********************************************
 #     include "include/cvaria.cb"
 #     include "include/slice.cb"
 #     include "include/rad.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 
       integer ntra, nl, i, j, k, kk, iconj
       parameter (ntra=0,nl=kx-1)

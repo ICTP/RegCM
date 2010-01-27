@@ -26,7 +26,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/param3.cb"
 #     include "include/iunits.cb"
 #     include "include/date.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/trachem.cb"
 
       character itype*3, filatm*14, filsrf*14, filsub*14, filrad*14

@@ -54,7 +54,7 @@ c
       implicit none
 #     include "parameter.inc"
 #     include "include/bats.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 
       real(kind=8)  hs(NNSG,nbmax),bb(NNSG,nbmax),cc(NNSG,nbmax)
       real(kind=8)  fct2(NNSG,nbmax),bcoef(NNSG,nbmax)

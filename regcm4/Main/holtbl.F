@@ -39,7 +39,7 @@ c
 #     include "include/pbldim.cb"
 #     include "include/cvaria.cb"
 #     include "include/pmoist.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/slice.cb"
 #     include "include/trachem.cb"
 #ifdef MPP1

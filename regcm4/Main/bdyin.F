@@ -39,7 +39,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/param3.cb"
 #     include "include/main.cb"
 #     include "include/bdycod.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/trachem.cb"
 #     include "include/date.cb"
 

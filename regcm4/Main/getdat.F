@@ -68,7 +68,7 @@ c
 #     include "include/pmoist.cb"
 #     include "include/main.cb"
 #     include "include/rad.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/slice.cb"
 c
       real(kind=8)  deltaz(ilx,kx)

@@ -43,7 +43,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/cvaria.cb"
 #     include "include/trachem.cb"
 #     include "include/pbldim.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/rad.cb"
 #     include "include/pmoist.cb"
 #     include "include/slice.cb"

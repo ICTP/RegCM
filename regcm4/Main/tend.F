@@ -59,7 +59,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/pbldim.cb"
 #     include "include/pmoist.cb"
 #     include "include/rad.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/trachem.cb"
 #     include "include/slice.cb"
 #     include "include/date.cb"

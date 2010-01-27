@@ -37,7 +37,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/main.cb"
       real(kind=4)  fout(jx-2,ix-2)
 #endif
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/cvaria.cb"
 #     include "include/date.cb"
       real(kind=4)  sp1d(kxp1),dto,dtb,dtr,dtc

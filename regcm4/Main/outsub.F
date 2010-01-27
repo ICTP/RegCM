@@ -36,7 +36,7 @@ c ******    write bats fields to unit iutsub
       real(kind=4)  fsub_io(NNSG,mjx-2,ix-2,numsub)
       COMMON /SUBOUTio/ fsub_io
 #else
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #endif
 #     include "include/main.cb"
 

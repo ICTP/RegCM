@@ -87,7 +87,7 @@ C------------------------------Parameters-------------------------------
 #     include "parameter.inc"
 #     include "include/parrad.cb"
 #     include "include/param2.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/bats.cb"
 #     include "include/tracer.cb"
 #     include "include/aeroppt.cb"

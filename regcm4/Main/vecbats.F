@@ -145,7 +145,7 @@ c=======================================================================
 #     include "include/bats.cb"
 #     include "include/date.cb"
 #     include "include/main.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #ifdef MPP1
 #     include "mpiregcm.inc"
 #endif

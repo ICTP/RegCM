@@ -44,7 +44,7 @@ c
       implicit none
 #     include "parameter.inc"
 #     include "include/bats.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 
       real(kind=8)  rs
       real(kind=8)  ra

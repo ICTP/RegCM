@@ -31,7 +31,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/param3.cb"
 #     include "include/iunits.cb"
 #     include "include/cvaria.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #ifdef MPP1
 #     include "include/io.cb"
       real(kind=8)  out1(mjx,ix)

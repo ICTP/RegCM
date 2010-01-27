@@ -38,7 +38,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/main.cb"
 #     include "include/cvaria.cb"
 #     include "include/pmoist.cb"

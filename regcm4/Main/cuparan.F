@@ -29,7 +29,7 @@ c
 #     include "include/iunits.cb"
 #     include "include/pmoist.cb"
 #     include "include/rad.cb"
-#     include "include/bats.cb2"
+#     include "include/bats2.cb"
 #     include "include/main.cb"
 
       real(kind=8)  tten(ix,kx),qten(ix,kx)
