@@ -32,9 +32,6 @@ c
 #     include "include/param1.cb"
 #     include "include/split.cb"
 #     include "include/message.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 c
 c   the following are user set parameters:
 c
@@ -90,14 +87,16 @@ c
 c  read sigmaf (sigma at full (integral) index levels; kx+1 values as
 c  in the mm4.   check that values are ordered properly.
 c
-#ifdef MPP1
-      if (myid .eq. 0) then
-#endif
-      if (lstand) print 700
-      if (.not.lstand) print 701
-#ifdef MPP1
+      if (lstand) then
+        write (aline, *) 
+     &    '0 linearization about standard atmosphere (lstand=.t.)'
+        call say
+      else
+        write (aline, *) 
+     &    '0 linearization about horizontal mean of data ',
+     a    '(lstand=.f.)')
+        call say
       end if
-#endif
 c
       lsigma=.false.
       if (sigmaf(1)  .ne.0.) lsigma=.true.
@@ -408,9 +407,6 @@ c  printout if desired
       call vprntm(varpa2,nk1, nk1,'varpa2  ')
 c
       return
-  700 format('0 linearization about standard atmosphere (lstand=.t.)')
-  701 format('0 linearization about horizontal mean of data ',
-     a'(lstand=.f.)')
   702 format('0 vertical mode problem completed for kx=',i3,5x
      a,i1,' errors detected   (should be 0)')
   703 format('0alpha1 =',1p,1e16.5,'       alpha2 =',1p,1e16.5)
