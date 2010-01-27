@@ -17,8 +17,8 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE inicon
-      IMPLICIT NONE
+      subroutine inicon
+      implicit none
 ! ----------------------------------------------------------------
 !
 ! module *mo_constants* basic universal constants  and derived constants.
@@ -77,5 +77,5 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       alvdcp  = alv/cpd
       alsdcp  = als/cpd
 
-      RETURN
-      END SUBROUTINE inicon
+      return
+      end subroutine inicon

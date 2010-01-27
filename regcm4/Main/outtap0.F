@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine outtap0
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -82,8 +81,8 @@ c
         do j=1,jx-2
           fout(j,i) =  ht(i+1,j+1)/g
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=2) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -93,8 +92,8 @@ c
         do j=1,jx-2
           fout(j,i) =  htsd(i+1,j+1)
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=3) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -104,8 +103,8 @@ c
         do j=1,jx-2
           fout(j,i) =  veg2d(i+1,j+1)
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=4) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -115,8 +114,8 @@ c
         do j=1,jx-2
           fout(j,i) =  satbrt(i+1,j+1)
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=5) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -126,8 +125,8 @@ c
         do j=1,jx-2
           fout(j,i) =  xlat(i+1,j+1)
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=6) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -137,8 +136,8 @@ c
         do j=1,jx-2
           fout(j,i) =  xlong(i+1,j+1)
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=7) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -148,8 +147,8 @@ c
         do j=1,jx-2
           fout(j,i) =  1./msfx(i+1,j+1)
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=8) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -159,8 +158,8 @@ c
         do j=1,jx-2
           fout(j,i) =  1./msfd(i+1,j+1)
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=9) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -170,8 +169,8 @@ c
         do j=1,jx-2
           fout(j,i) =  f(i+1,j+1)
 #endif
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=10) fout
       do i=1,ix-2
 #ifdef MPP1
@@ -186,11 +185,11 @@ c
           else
             fout(j,i) = 2.
           end if
-        enddo
-      enddo
+        end do
+      end do
       write(20,rec=11) fout
 
       close(20)
 c
       return
-      end
+      end subroutine outtap0

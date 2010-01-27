@@ -251,4 +251,4 @@ c     .......... set error -- all eigenvalues have not
 c                converged after 30*n iterations ..........
  1000 ierr = en
  1001 return
-      end
+      end subroutine hqr

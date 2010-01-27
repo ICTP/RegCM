@@ -181,8 +181,8 @@ c
             frad3d(jslc-1,i-1,k,4)=   qrs(i,k)
             frad3d(jslc-1,i-1,k,5)=   qrl(i,k)
 #endif
-          enddo
-          enddo
+          end do
+          end do
 
           do i=2,ix-1
 #ifdef MPP1
@@ -230,8 +230,8 @@ c
             frad2d(jslc-1,i-1,20) =   solis(i)  ! skip
             frad2d(jslc-1,i-1,21) =  sabveg(i)  ! skip
 #endif
-          enddo
+          end do
         end if
       end if
       return
-      end
+      end subroutine radout

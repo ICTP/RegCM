@@ -40,4 +40,4 @@ c
     1 continue
 c
       return
-      end
+      end subroutine vtlaps

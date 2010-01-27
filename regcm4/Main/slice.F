@@ -57,8 +57,8 @@ c **********            radiation can be called in tend (not vecbats).
         ts1d(n,np)=thx3d(np,kx,j)-6.5e-3/g*(ht1(n,np,j)-ht(np,j))
         scv1d(n,np)=scv2d(n,np,j)
         sag1d(n,np)=sag2d(n,np,j)
-      enddo
+      end do
       end do
 
       return
-      end
+      end subroutine slice

@@ -55,13 +55,13 @@ c ****** check if at desired output time for bats variables
           nrcsub=nrcsub+1
           call reorder(fsub_io(1,1,1,n),v2b,mjx-2,ix-2,NSG)      
           write(iutsub,rec=nrcsub) v2b
-        enddo
+        end do
       else
         write(iutsub) idatex
         do n=1,numsub
           call reorder(fsub_io(1,1,1,n),v2b,mjx-2,ix-2,NSG)      
           write(iutsub) v2b
-        enddo
+        end do
       end if
 #else
       if (iotyp.eq.1) then
@@ -151,4 +151,4 @@ c ****** check if at desired output time for bats variables
 #endif
 
       return
-      end
+      end subroutine outsub

@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine outsav(iutl)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -235,7 +234,7 @@ c       print *,' in outsav ilake jlake = ',ilake,jlake
 
         write(iutl) ilake, jlake, depth, freeze, hi, hii, hs
      a             , eta, (tlake(j),j=1,depth)
-       enddo
+       end do
        rewind(iin)
       end if
 c
@@ -255,4 +254,4 @@ c
       write(iutl) vi1,vi2,vilx,vil
 #endif
       return
-      end
+      end subroutine outsav

@@ -122,15 +122,15 @@ C set above top value
             waer(i,itr)     = 0.0
             gaer(i,itr)     = 0.0
             faer(i,itr)     = 0.0
-          enddo
-        enddo
+          end do
+        end do
 
         do i = 1, plond
           tauxar_mix_cs(i, ns) = 0.0
           tauasc_mix_cs(i, ns) = 0.0
           gtota_mix_cs(i, ns)  = 0.0
           ftota_mix_cs(i, ns)  = 0.0
-        enddo
+        end do
 
         do k = 0,plev
           do i = 1, plond
@@ -365,8 +365,8 @@ C
                   end if   
 
                   if (i1+i2+i3+i4 .eq. 15) then
-                    print*, 'On ne doit jamais arriver ici !!!'
-                    STOP
+                    call fatal(__FILE__,__LINE__,
+     &                 'WRONG COMBINATION. SHOULD NEVER HAPPEN')
                   end if   
 
                   if (i1+i2+i3+i4 .ne. 14 ) then
@@ -389,7 +389,8 @@ C
      $                                /aervtot(i,k)
                     print*,'DUST %',nint(10*(aermmr(i,k,idust(1))/
      $                              rhodust)/aervtot(i,k))
-                    stop
+                    call fatal(__FILE__,__LINE__,
+     &                 'SOMETHING WRONG ON SPECIES ABUNDANCE')
                   end if
                   tauxar_mix(i,k,ns) = dextmix(1,ns,i4,i2,i3,i1)*
      $                                 aermtot(i,k)*path* 1e5

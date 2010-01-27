@@ -31,9 +31,9 @@ c
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/split.cb"
+#     include "include/message.cb"
 #ifdef MPP1
 #     include "mpiregcm.inc"
-      integer ierr
 #endif
 c
 c   the following are user set parameters:
@@ -105,23 +105,13 @@ c
       do 1 k=1,kx
       if (sigmaf(k+1).le.sigmaf(k)) then
          lsigma=.true.
-#ifdef MPP1
-         if(myid .eq. 0) print 2,k,sigmaf(k+1),sigmaf(k)
-#else
-         print 2,k,sigmaf(k+1),sigmaf(k)
-#endif
+         write (aline, 2) k,sigmaf(k+1),sigmaf(k)
+         call say
       end if
     1 continue
       if (lsigma) then
-#ifdef MPP1
-         if (myid .eq. 0) then
-         write(*,*) 'sigma values in list vmode inappropriate'
-         end if
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-         write(*,*) 'sigma values in list vmode inappropriate'
-         stop
-#endif
+         call fatal(__FILE__,__LINE__,
+     &              'sigma values in list vmode inappropriate')
       end if
     2 format('0 for k=',i3,' sigmaf(k+1)=',f9.6,' .le. sigmaf(k)=',f9.6)
 c
@@ -424,4 +414,5 @@ c
   702 format('0 vertical mode problem completed for kx=',i3,5x
      a,i1,' errors detected   (should be 0)')
   703 format('0alpha1 =',1p,1e16.5,'       alpha2 =',1p,1e16.5)
-      end
+
+      end subroutine vmodes

@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
       subroutine hqr2(nm,n,low,igh,h,wr,wi,z,ierr)
 c
       implicit none
@@ -473,4 +472,4 @@ c     .......... set error -- all eigenvalues have not
 c                converged after 30*n iterations ..........
  1000 ierr = en
  1001 return
-      end
+      end subroutine hqr2

@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine init
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -44,6 +43,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/bats.cb2"
 #     include "include/rad.cb"
 #     include "include/trachem.cb"
+#     include "include/message.cb"
 #ifdef MPP1
 #     include "include/io.cb"
 #endif
@@ -126,8 +126,8 @@ c----------------------------------------------------------------------
         pwb(i,j)=0.0
         pebt(i,j)=0.0
         pwbt(i,j)=0.0
-      enddo
-      enddo
+      end do
+      end do
       do j=1,jxp
       do k=1,kx
       do i=1,ix
@@ -139,9 +139,9 @@ c----------------------------------------------------------------------
         qwb(i,k,j)=0.0
         qebt(i,k,j)=0.0
         qwbt(i,k,j)=0.0
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
       do j=1,jxp
       do k=1,kx
       do i=1,ix
@@ -153,17 +153,17 @@ c----------------------------------------------------------------------
         vwb(i,k,j)=0.0
         vebt(i,k,j)=0.0
         vwbt(i,k,j)=0.0
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
       do j=1,jxp
       do i=1,nspgx
         pnb(i,j)=0.0
         pss(i,j)=0.0
         pnbt(i,j)=0.0
         psbt(i,j)=0.0
-      enddo
-      enddo
+      end do
+      end do
       do j=1,jxp
       do k=1,kx
       do i=1,nspgx
@@ -175,9 +175,9 @@ c----------------------------------------------------------------------
         qsb(i,k,j)=0.0
         qnbt(i,k,j)=0.0
         qsbt(i,k,j)=0.0
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
       do j=1,jxp
       do k=1,kx
       do i=1,nspgd
@@ -189,9 +189,9 @@ c----------------------------------------------------------------------
         vsb(i,k,j)=0.0
         vnbt(i,k,j)=0.0
         vsbt(i,k,j)=0.0
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
       do i=1,ix-2
       do j=1,jxp
         tgmx_o(j,i) = -1.e30
@@ -200,8 +200,8 @@ c----------------------------------------------------------------------
         t2mn_o(j,i) =  1.e30
         w10x_o(j,i) = -1.e30
         psmn_o(j,i) =  1.e30
-      enddo
-      enddo
+      end do
+      end do
 #else
       do i=1,ix-2
       do j=1,jx-2
@@ -211,8 +211,8 @@ c----------------------------------------------------------------------
         t2mn_o(j,i) =  1.e30
         w10x_o(j,i) = -1.e30
         psmn_o(j,i) =  1.e30
-      enddo
-      enddo
+      end do
+      end do
 #endif
 #ifdef MPP1
       if (myid .eq. 0) then
@@ -342,18 +342,18 @@ c
         read(iutbc,rec=mmrec) ndate0,nxxx,nyyy,kzzz
 #ifdef MPP1
         if (nyyy.ne.ix .or. nxxx.ne.mjx .or. kzzz.ne.kx) then
-          print*,'IMPROPER DIMENSION SPECIFICATION'
-          print*,'SET IN regcm.param: IX=',ix,' JX=',jxp, ' KX=',kx
-          print*,'SET IN ICBC: NY=',nyyy,' NX=',nxxx,' NZ=',kzzz
-          print*,'stop subroutine init'
-          call MPI_ABORT(MPI_COMM_WORLD,ierr)
+          write (aline,*) 
+     &      'SET IN regcm.param: IX=',ix,' JX=',jxp, ' KX=',kx
 #else
         if (nyyy.ne.ix .or. nxxx.ne.jx .or. kzzz.ne.kx) then
-          print*,'IMPROPER DIMENSION SPECIFICATION'
-          print*,'SET IN regcm.param: IX=',ix,' JX=',jx, ' KX=',kx
-          print*,'SET IN ICBC: NY=',nyyy,' NX=',nxxx,' NZ=',kzzz
-          stop 'subroutine init'
+          write (aline,*) 
+     &      'SET IN regcm.param: IX=',ix,' JX=',jx, ' KX=',kx
 #endif
+          call say
+          write (aline, *)
+     &       'SET IN ICBC: NY=',nyyy,' NX=',nxxx,' NZ=',kzzz
+          call fatal(__FILE__,__LINE__,
+     &               'IMPROPER DIMENSION SPECIFICATION')
         end if
         print*,'READING INITAL CONDITIONS',ndate0
         if (ndate0.lt.MDATEZ(NNNCHK)) then
@@ -376,14 +376,10 @@ c
           print*,ndate0,MDATEZ(NNNCHK)
           go to 111
         else if (ndate0.gt.MDATEZ(NNNCHK)) then
-          print*,'DATE IN ICBC FILE EXCEEDED DATE IN RegCM'
-          print*,ndate0,MDATEZ(NNNCHK)
-#ifdef MPP1
-          print*,'stop at ICBC date (init.f)'
-          call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-          stop 'ICBC date (init.f)'
-#endif
+          write (aline, *) ndate0,MDATEZ(NNNCHK)
+          call say
+          call fatal(__FILE__,__LINE__,
+     &        'DATE IN ICBC FILE EXCEEDED DATE IN RegCM')
         end if
 C
         PRINT*,'U'
@@ -394,15 +390,15 @@ C
           do j=1,mjx
           do i=1,ix
             ub0_io(i,k,j)=dble(io2d(i,j))
-          enddo
-          enddo
+          end do
+          end do
 #else
           read(iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
           do j=1,jx
           do i=1,ix
             ub0(i,k,j)=dble(io2d(i,j))
-          enddo
-          enddo
+          end do
+          end do
 #endif
         end do
         PRINT*,'V'
@@ -413,15 +409,15 @@ C
           do j=1,mjx
           do i=1,ix
             vb0_io(i,k,j)=dble(io2d(i,j))
-          enddo
-          enddo
+          end do
+          end do
 #else
           read(iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
           do j=1,jx
           do i=1,ix
             vb0(i,k,j)=dble(io2d(i,j))
-          enddo
-          enddo
+          end do
+          end do
 #endif
         end do
         PRINT*,'TA'
@@ -432,15 +428,15 @@ C
           do j=1,mjx
           do i=1,ix
             tb0_io(i,k,j)=dble(io2d(i,j))
-          enddo
-          enddo
+          end do
+          end do
 #else
           read(iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
           do j=1,jx
           do i=1,ix
             tb0(i,k,j)=dble(io2d(i,j))
-          enddo
-          enddo
+          end do
+          end do
 #endif
         end do
         PRINT*,'QV'
@@ -451,15 +447,15 @@ C
           do j=1,mjx
           do i=1,ix
             qb0_io(i,k,j)=dble(io2d(i,j))
-          enddo
-          enddo
+          end do
+          end do
 #else
           read(iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
           do j=1,jx
           do i=1,ix
             qb0(i,k,j)=dble(io2d(i,j))
-          enddo
-          enddo
+          end do
+          end do
 #endif
         end do
         PRINT*,'PS'
@@ -469,15 +465,15 @@ C
         do j=1,mjx
         do i=1,ix
           ps0_io(i,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           ps0(i,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
         PRINT*,'TS'
         mmrec=mmrec+1
@@ -486,15 +482,15 @@ C
         do j=1,mjx
         do i=1,ix
           ts0_io(i,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           ts0(i,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
         if(EHSO4) then
           PRINT*,'SO0'
@@ -505,15 +501,15 @@ C
             do j=1,mjx
             do i=1,ix
               so0_io(i,k,j)=dble(io2d(i,j))
-            enddo
-            enddo
+            end do
+            end do
 #else
             read(iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
             do j=1,jx
             do i=1,ix
               so0(i,k,j)=dble(io2d(i,j))
-            enddo
-            enddo
+            end do
+            end do
 #endif
           end do
         end if
@@ -526,21 +522,21 @@ C
                 sav_0(i,kx   +k,j) = VB0_io(i,k,j)
                 sav_0(i,kx*2 +k,j) = QB0_io(i,k,j)
                 sav_0(i,kx*3 +k,j) = TB0_io(i,k,j)
-              enddo
-            enddo
+              end do
+            end do
             do i=1,ix
               sav_0(i,kx*4+1 ,j) = PS0_io(i,j)
               sav_0(i,kx*4+2 ,j) = TS0_io(i,j)
-            enddo
-          enddo
+            end do
+          end do
           if(EHSO4) then
             do j=1,mjx
               do k=1,kx
                 do i=1,ix
                   sav_0s(i,k,j) = SO0_io(i,k,j)
-                enddo
-              enddo
-            enddo
+                end do
+              end do
+            end do
           end if
         end if            ! end if myid=0
         call MPI_BCAST(ndate0,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -563,20 +559,20 @@ C
               VB0(i,k,j) = sav0(i,kx   +k,j)
               QB0(i,k,j) = sav0(i,kx*2 +k,j)
               TB0(i,k,j) = sav0(i,kx*3 +k,j)
-            enddo
-          enddo
+            end do
+          end do
           do i=1,ix
             PS0(i,j) = sav0(i,kx*4+1 ,j)
             TS0(i,j) = sav0(i,kx*4+2 ,j)
-          enddo
+          end do
           if(EHSO4) then
             do k=1,kx
               do i=1,ix
                 SO0(i,k,j) = sav0s(i,k,j)
-              enddo
-            enddo
+              end do
+            end do
           end if
-        enddo
+        end do
 #endif
 c
 c Convert surface pressure to pstar
@@ -607,8 +603,8 @@ c
 #endif
         do i=2,ilx
           psdot(i,j)=0.25*(PS0(i,j)+PS0(i-1,j)+PS0(i,j-1)+PS0(i-1,j-1))
-        enddo
-      enddo
+        end do
+      end do
 c
       do i=2,ilx
 #ifdef MPP1
@@ -623,7 +619,7 @@ c
 #else
         psdot(i,jx)=0.5*(PS0(i,jlx)+PS0(i-1,jlx))
 #endif
-      enddo
+      end do
 c
 #ifdef MPP1
       do j=jbegin,jendx
@@ -632,7 +628,7 @@ c
 #endif
         psdot(1,j)=0.5*(PS0(1,j)+PS0(1,j-1))
         psdot(ix,j)=0.5*(PS0(ilx,j)+PS0(ilx,j-1))
-      enddo
+      end do
 c
 #ifdef MPP1
       if (myid .eq. 0) then
@@ -677,16 +673,14 @@ C Couple pressure u,v,t,q
         if (ibdyhr1.eq.0) ibdyhr1 = 24
         ibdydiff = ibdyhr1-ibdyhr0
         if (ibdydiff.ne.ibdyfrq) then
-          print*,'BOUNDARY CONDITION FREQUENCY INCOMPATIBILITY'
-          print*,'  ndate0=',ndate0,'ndate1=',ndate1
-          print*,'  ibdyfrq=',ibdyfrq,'ibdydiff=',ibdydiff
-          print*,'  ibdyhr0=',ibdyhr0,'ibdyhr1=',ibdyhr1
-#ifdef MPP1
-          print*,'stop bdyfrq'
-          call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-          stop 'bdyfrq'
-#endif
+          write(aline, *) '  ndate0=',ndate0,'ndate1=',ndate1
+          call say
+          write(aline, *) '  ibdyfrq=',ibdyfrq,'ibdydiff=',ibdydiff
+          call say
+          write(aline, *) '  ibdyhr0=',ibdyhr0,'ibdyhr1=',ibdyhr1
+          call say
+          call fatal(__FILE__,__LINE__,
+     &        'BOUNDARY CONDITION FREQUENCY INCOMPATIBILITY')
         end if
 #ifdef MPP1
         end if
@@ -708,9 +702,9 @@ c Initialize variables and convert to double precision
            qvb(i,k,j) = qb0(i,k,j)
            ta(i,k,j)  = tb0(i,k,j)
            tb(i,k,j)  = tb0(i,k,j)
-        enddo
-        enddo
-        enddo
+        end do
+        end do
+        end do
 #ifdef MPP1
         do j=1,jendl
 #else
@@ -721,8 +715,8 @@ c Initialize variables and convert to double precision
            psb(i,j) = ps0(i,j)
            tga(i,j) = ts0(i,j)
            tgb(i,j) = ts0(i,j)
-        enddo
-        enddo
+        end do
+        end do
         do k=1,kx
 #ifdef MPP1
         do j=1,jendl
@@ -731,9 +725,9 @@ c Initialize variables and convert to double precision
 #endif
         do i=1,ix
            TBASE(i,k,j)=TS00+TLP*DLOG((psa(i,j)*a(k)+ptop)/100.)
-        enddo
-        enddo
-        enddo
+        end do
+        end do
+        end do
        if(EHSO4) then
           do k=1,kx
 #ifdef MPP1
@@ -743,9 +737,9 @@ c Initialize variables and convert to double precision
 #endif
               do i=1,ix
                  so4(i,k,j) = SO0(i,k,j)
-              enddo
-            enddo
-          enddo
+              end do
+            end do
+          end do
        end if
 c
 #ifdef MPP1
@@ -767,9 +761,9 @@ c
        do i=1,ilx
        do k=1,NNSG
         snowc(k,i,j)=0.
-       enddo
-       enddo
-       enddo
+       end do
+       end do
+       end do
        if(ichem.eq.1) then
 #ifdef MPP1
          do j=1,jendx
@@ -784,8 +778,8 @@ c
            sfracb2d(i,j) = 0.5
            sfracs2d(i,j) = 0.0
            svegfrac2d(i,j) = 0.0
-         enddo
-         enddo
+         end do
+         end do
        end if
 #ifdef DIAG
 C=======================================================================
@@ -803,10 +797,10 @@ c
           do j=1,mjx-1
             do i=1,ix-1
               tttmp=tttmp+psa_io(i,j)
-            enddo
-          enddo
+            end do
+          end do
           tdini=tdini+tttmp*dsigma(k)
-        enddo
+        end do
         tdini=tdini*dx*dx*1000./g
       end if
       call MPI_BCAST(tdini,1,MPI_DOUBLE_PRECISION,
@@ -817,10 +811,10 @@ c
         do j=1,jx-1
           do i=1,ix-1
             tttmp=tttmp+psa(i,j)
-          enddo
-        enddo
+          end do
+        end do
         tdini=tdini+tttmp*dsigma(k)
-      enddo
+      end do
       tdini=tdini*dx*dx*1000./g
 #endif
 c
@@ -837,10 +831,10 @@ c
           do j=1,mjx-1
             do i=1,ix-1
               tttmp=tttmp+qva_io(i,k,j)
-            enddo
-          enddo
+            end do
+          end do
           tvmass=tvmass+tttmp*dsigma(k)
-        enddo
+        end do
         tvmass=tvmass*dx*dx*1000./g
       end if
       call MPI_BCAST(tvmass,1,MPI_DOUBLE_PRECISION,
@@ -851,10 +845,10 @@ c
         do j=1,jx-1
           do i=1,ix-1
             tttmp=tttmp+qva(i,k,j)
-          enddo
-        enddo
+          end do
+        end do
         tvmass=tvmass+tttmp*dsigma(k)
-      enddo
+      end do
       tvmass=tvmass*dx*dx*1000./g
 #endif
 c
@@ -869,10 +863,10 @@ c
           do j=1,mjx-1
             do i=1,ix-1
               tttmp=tttmp+qca_io(i,k,j)
-            enddo
-          enddo
+            end do
+          end do
           tcmass=tcmass+tttmp*dsigma(k)
-        enddo
+        end do
         tcmass=tcmass*dx*dx*1000./g
       end if
       call MPI_BCAST(tcmass,1,MPI_DOUBLE_PRECISION,
@@ -883,10 +877,10 @@ c
         do j=1,jx-1
           do i=1,ix-1
             tttmp=tttmp+qca(i,k,j)
-          enddo
-        enddo
+          end do
+        end do
         tcmass=tcmass+tttmp*dsigma(k)
-      enddo
+      end do
       tcmass=tcmass*dx*dx*1000./g
 #endif
       tqini=tvmass+tcmass
@@ -1116,7 +1110,7 @@ c------lake model
          print *, 'reading restart file at i, j = ', ilake, jlake
          write (iin) ilake, jlake, depth, freeze, hi, hii, hs
      &            , eta, (tlake(j),j=1,depth)
-        enddo
+        end do
         rewind(iin)
        end if
 c
@@ -1148,14 +1142,14 @@ c
             inisrf_0(i,5,j) = msfx_io(i,j)
             inisrf_0(i,6,j) = msfd_io(i,j)
             inisrf_0(i,7,j) = f_io(i,j)
-          enddo
+          end do
           do n=1,NNSG
             do i=1,ix
               inisrf_0(i,7+n     ,j) = ht1_io(n,i,j)
               inisrf_0(i,7+NNSG+n  ,j) = satbrt1_io(n,i,j)
-            enddo
-          enddo
-        enddo
+            end do
+          end do
+        end do
             
           do j=1,mjx
             do k=1,kx
@@ -1164,20 +1158,20 @@ c
                 sav_0(i,kx   +k,j) = VB0_io(i,k,j)
                 sav_0(i,kx*2 +k,j) = QB0_io(i,k,j)
                 sav_0(i,kx*3 +k,j) = TB0_io(i,k,j)
-              enddo
-            enddo
+              end do
+            end do
             do i=1,ix
               sav_0(i,kx*4+1 ,j) = PS0_io(i,j)
               sav_0(i,kx*4+2 ,j) = TS0_io(i,j)
-            enddo
+            end do
             if(EHSO4) then
               do  k=1,kx
                 do i=1,ix
                   sav_0s(i,k,j) = SO0_io(i,k,j)
-                enddo
-              enddo
+                end do
+              end do
             end if
-          enddo
+          end do
        end if
        call MPI_SCATTER(inisrf_0(1,1,1),ix*(NNSG*2+7)*jxp,
      &       MPI_DOUBLE_PRECISION,inisrf0(1,1,1),ix*(NNSG*2+7)*jxp,
@@ -1191,14 +1185,14 @@ c
            msfx(i,j)   = inisrf0(i,5,j)
            msfd(i,j)   = inisrf0(i,6,j)
            f(i,j)      = inisrf0(i,7,j)
-         enddo
+         end do
          do n=1,NNSG
            do i=1,ix
              ht1(n,i,j)     = inisrf0(i,7+n     ,j)
              satbrt1(n,i,j) = inisrf0(i,7+NNSG+n  ,j)
-           enddo
-         enddo
-       enddo
+           end do
+         end do
+       end do
        call MPI_SCATTER(
      &          sav_0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
      &           sav0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
@@ -1215,20 +1209,20 @@ c
              VB0(i,k,j) = sav0(i,kx  +k,j)
              QB0(i,k,j) = sav0(i,kx*2+k,j)
              TB0(i,k,j) = sav0(i,kx*3+k,j)
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ix
            PS0(i,j) = sav0(i,kx*4+1 ,j)
            TS0(i,j) = sav0(i,kx*4+2 ,j)
-         enddo
+         end do
          if(EHSO4) then
            do k=1,kx
              do i=1,ix
                SO0(i,k,j) = sav0s(i,k,j)
-             enddo
-           enddo
+             end do
+           end do
          end if
-       enddo
+       end do
        if (myid .eq. 0) then
           do j=1,mjx
             do k=1,kx
@@ -1237,13 +1231,13 @@ c
                 sav_0(i,kx   +k,j) = ub_io(i,k,j)
                 sav_0(i,kx*2 +k,j) = va_io(i,k,j)
                 sav_0(i,kx*3 +k,j) = vb_io(i,k,j)
-              enddo
-            enddo
+              end do
+            end do
             do i=1,ix
               sav_0(i,kx*4+1 ,j) = psa_io(i,j)
               sav_0(i,kx*4+2 ,j) = psb_io(i,j)
-            enddo
-          enddo
+            end do
+          end do
        end if
        call MPI_SCATTER(
      &          sav_0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
@@ -1256,13 +1250,13 @@ c
              ub(i,k,j) = sav0(i,kx  +k,j)
              va(i,k,j) = sav0(i,kx*2+k,j)
              vb(i,k,j) = sav0(i,kx*3+k,j)
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ix
            psa(i,j) = sav0(i,kx*4+1 ,j)
            psb(i,j) = sav0(i,kx*4+2 ,j)
-         enddo
-       enddo
+         end do
+       end do
        if (myid .eq. 0) then
           do j=1,mjx
             do k=1,kx
@@ -1271,13 +1265,13 @@ c
                 sav_0(i,kx   +k,j) = tb_io(i,k,j)
                 sav_0(i,kx*2 +k,j) =qva_io(i,k,j)
                 sav_0(i,kx*3 +k,j) =qvb_io(i,k,j)
-              enddo
-            enddo
+              end do
+            end do
             do i=1,ix
               sav_0(i,kx*4+1 ,j) = tga_io(i,j)
               sav_0(i,kx*4+2 ,j) = tgb_io(i,j)
-            enddo
-          enddo
+            end do
+          end do
        end if
        call MPI_SCATTER(
      &          sav_0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
@@ -1290,13 +1284,13 @@ c
              tb(i,k,j) = sav0(i,kx  +k,j)
             qva(i,k,j) = sav0(i,kx*2+k,j)
             qvb(i,k,j) = sav0(i,kx*3+k,j)
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ix
            tga(i,j) = sav0(i,kx*4+1 ,j)
            tgb(i,j) = sav0(i,kx*4+2 ,j)
-         enddo
-       enddo
+         end do
+       end do
        if (myid .eq. 0) then
           do j=1,mjx
             do k=1,kx
@@ -1304,20 +1298,20 @@ c
                 sav_0(i,      k,j) =qca_io(i,k,j)
                 sav_0(i,kx   +k,j) =qcb_io(i,k,j)
                 sav_0(i,kx*2 +k,j) =fcc_io(i,k,j)
-              enddo
-            enddo
+              end do
+            end do
             do i=1,ix
               sav_0(i,kx*4+1 ,j) = rainc_io(i,j)
               sav_0(i,kx*4+2 ,j) = rainnc_io(i,j)
-            enddo
-          enddo
+            end do
+          end do
           do j=1,mjx-1
             do k=1,kx
               do i=1,ilx
                 sav_0(i,kx*3+k,j) =heatrt_io(i,k,j)
-              enddo
-            enddo
-          enddo
+              end do
+            end do
+          end do
        end if
        call MPI_SCATTER(
      &          sav_0(1,1,1),ix*(kx*4+2)*jxp,MPI_DOUBLE_PRECISION,
@@ -1329,20 +1323,20 @@ c
             qca(i,k,j) = sav0(i,     k,j)
             qcb(i,k,j) = sav0(i,kx  +k,j)
             fcc(i,k,j) = sav0(i,kx*2+k,j)
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ix
            rainc(i,j) = sav0(i,kx*4+1 ,j)
            rainnc(i,j) = sav0(i,kx*4+2 ,j)
-         enddo
-       enddo
+         end do
+       end do
        do j=1,jendx
          do k=1,kx
            do i=1,ilx
              heatrt(i,k,j) = sav0(i,kx*3+k,j)
-           enddo
-         enddo
-       enddo
+           end do
+         end do
+       end do
        if (myid .eq. 0) then
           do j=1,mjx
             do i=1,ix
@@ -1350,20 +1344,20 @@ c
               sav_0a(i,2,j) = qfx_io(i,j)
               sav_0a(i,3,j) = uvdrag_io(i,j)
               sav_0a(i,4,j) = tgbb_io(i,j)
-            enddo
+            end do
             do n=1,NNSG
               do i=1,ix
                 sav_0a(i,4+n,j) = snowc_io(n,i,j)
-              enddo
-            enddo
-          enddo
+              end do
+            end do
+          end do
           do j=1,mjx-1
             do k=1,kx+1
               do i=1,ilx
                 sav_0a(i,NNSG+4 +k,j) = o3prof_io(i,k,j)
-              enddo
-            enddo
-          enddo
+              end do
+            end do
+          end do
        end if
        allrec = kx+5+NNSG
        call MPI_SCATTER(
@@ -1376,20 +1370,20 @@ c
            qfx(i,j)    = sav0a(i,2 ,j)
            uvdrag(i,j) = sav0a(i,3 ,j)
            tgbb(i,j)   = sav0a(i,4 ,j)
-         enddo
+         end do
          do n=1,NNSG
            do i=1,ix
              snowc(n,i,j) = sav0a(i,4+n,j)
-           enddo
-         enddo
-       enddo
+           end do
+         end do
+       end do
        do j=1,jendx
          do k=1,kx+1
            do i=1,ilx
              o3prof(i,k,j) = sav0a(i,NNSG+4 +k,j)
-           enddo
-         enddo
-       enddo
+           end do
+         end do
+       end do
        if(iocnflx.eq.2) then
          call MPI_SCATTER(zpbl_io(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                       zpbl(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
@@ -1402,9 +1396,9 @@ c
                do i=1,ix
                  sav_0c(i,   k,j) = rsheat_io(i,k,j)
                  sav_0c(i,kx+k,j) =  rswat_io(i,k,j)
-               enddo
-             enddo
-           enddo
+               end do
+             end do
+           end do
          end if
          call MPI_SCATTER(
      &            sav_0c(1,1,1),ix*kx*2*jxp,MPI_DOUBLE_PRECISION,
@@ -1415,21 +1409,21 @@ c
              do i=1,ix
                rsheat(i,k,j) = sav0c(i,   k,j)
                 rswat(i,k,j) = sav0c(i,kx+k,j)
-             enddo
-           enddo
-         enddo
+             end do
+           end do
+         end do
        else if(icup.eq.3) then
          if (myid .eq. 0) then
            do j=1,mjx
              do k=1,kx
                do i=1,ix
                  sav_0b(i,   k,j) = TBASE_IO(i,k,j)
-               enddo
-             enddo
+               end do
+             end do
              do i=1,ix
                sav_0b(i,kx+1,j) = CLDEFI_IO(i,j)
-             enddo
-           enddo
+             end do
+           end do
          end if
          call MPI_SCATTER(
      &            sav_0b(1,1,1),ix*(kx+1)*jxp,MPI_DOUBLE_PRECISION,
@@ -1439,12 +1433,12 @@ c
            do k=1,kx
              do i=1,ix
                TBASE(i,k,j) = sav0b(i,   k,j)
-             enddo
-           enddo
+             end do
+           end do
            do i=1,ix
              CLDEFI(i,j) = sav0b(i,kx+1,j)
-           enddo
-         enddo
+           end do
+         end do
        else if(icup.eq.4) then
          call MPI_SCATTER(cbmf2d_io(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
      &                       cbmf2d(1,1),ix*jxp,MPI_DOUBLE_PRECISION,
@@ -1456,28 +1450,28 @@ c
               do k=1,kx
                 do i=1,ilx
                   sav_1(i,(l-1)*kx+k,j)=absnxt_io(i,k,l,j)
-                enddo
-              enddo
-            enddo
-          enddo
+                end do
+              end do
+            end do
+          end do
           allrec = kx*4
           do j=1,mjx-1
             do l=1,kx+1
               do k=1,kx+1
                 do i=1,ilx
                   sav_1(i,allrec+(l-1)*(kx+1)+k,j)=abstot_io(i,k,l,j)
-                enddo
-              enddo
-            enddo
-          enddo
+                end do
+              end do
+            end do
+          end do
           allrec = allrec+(kx+1)*(kx+1)
           do j=1,mjx-1
             do k=1,kx+1
               do i=1,ilx
                 sav_1(i,allrec+k,j)=emstot_io(i,k,j)
-              enddo
-            enddo
-          enddo
+              end do
+            end do
+          end do
           allrec = allrec+kx+1
        end if
        allrec = kx*4+(kx+1)*(kx+2)
@@ -1490,28 +1484,28 @@ c
            do k=1,kx
              do i=1,ilx
                absnxt(i,k,l,j)=sav1(i,(l-1)*kx+k,j)
-             enddo
-           enddo
-         enddo
-       enddo
+             end do
+           end do
+         end do
+       end do
        allrec = kx*4
        do j=1,jendx
          do l=1,kx+1
            do k=1,kx+1
              do i=1,ilx
                abstot(i,k,l,j)=sav1(i,allrec+(l-1)*(kx+1)+k,j)
-             enddo
-           enddo
-         enddo
-       enddo
+             end do
+           end do
+         end do
+       end do
        allrec = allrec+(kx+1)*(kx+1)
        do j=1,jendx
          do k=1,kx+1
            do i=1,ilx
              emstot(i,k,j)=sav1(i,allrec+k,j)
-           enddo
-         enddo
-       enddo
+           end do
+         end do
+       end do
        if (myid .eq. 0) then
          do j=1,mjx-1
            do n=1,NNSG
@@ -1520,15 +1514,15 @@ c
                sav_2(i,NNSG  +n,j) = tlef2d_io(n,i,j)
                sav_2(i,NNSG*2+n,j) =  ssw2d_io(n,i,j)
                sav_2(i,NNSG*3+n,j) =  srw2d_io(n,i,j)
-             enddo
-           enddo
+             end do
+           end do
            do i=1,ilx
              sav_2(i,NNSG*4+1 ,j) =   sol2d_io(i,j)
              sav_2(i,NNSG*4+2 ,j) = solvd2d_io(i,j)
              sav_2(i,NNSG*4+3 ,j) = solvs2d_io(i,j)
              sav_2(i,NNSG*4+4 ,j) =   flw2d_io(i,j)
-           enddo
-         enddo
+           end do
+         end do
        end if
        allrec = NNSG*4+4
        call MPI_SCATTER(
@@ -1542,15 +1536,15 @@ c
              tlef2d(n,i,j) = sav2(i,NNSG  +n,j)
               ssw2d(n,i,j) = sav2(i,NNSG*2+n,j)
               srw2d(n,i,j) = sav2(i,NNSG*3+n,j)
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ilx
              sol2d(i,j) = sav2(i,NNSG*4+1 ,j)
            solvd2d(i,j) = sav2(i,NNSG*4+2 ,j)
            solvs2d(i,j) = sav2(i,NNSG*4+3 ,j)
              flw2d(i,j) = sav2(i,NNSG*4+4 ,j)
-         enddo
-       enddo
+         end do
+       end do
        if (myid .eq. 0) then
          do j=1,mjx-1
            do n=1,NNSG
@@ -1559,15 +1553,15 @@ c
                sav_2(i,NNSG  +n,j) =  swt2d_io(n,i,j)
                sav_2(i,NNSG*2+n,j) =  scv2d_io(n,i,j)
                sav_2(i,NNSG*3+n,j) = gwet2d_io(n,i,j)
-             enddo
-           enddo
+             end do
+           end do
            do i=1,ilx
              sav_2(i,NNSG*4+1 ,j) =  flwd2d_io(i,j)
              sav_2(i,NNSG*4+2 ,j) =   fsw2d_io(i,j)
              sav_2(i,NNSG*4+3 ,j) =  sabv2d_io(i,j)
              sav_2(i,NNSG*4+4 ,j) =  sinc2d_io(i,j)
-           enddo
-         enddo
+           end do
+         end do
        end if
        allrec = NNSG*4+4
        call MPI_SCATTER(
@@ -1581,15 +1575,15 @@ c
               swt2d(n,i,j) = sav2(i,NNSG  +n,j)
               scv2d(n,i,j) = sav2(i,NNSG*2+n,j)
              gwet2d(n,i,j) = sav2(i,NNSG*3+n,j)
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ilx
             flwd2d(i,j) = sav2(i,NNSG*4+1 ,j)
              fsw2d(i,j) = sav2(i,NNSG*4+2 ,j)
             sabv2d(i,j) = sav2(i,NNSG*4+3 ,j)
             sinc2d(i,j) = sav2(i,NNSG*4+4 ,j)
-         enddo
-       enddo
+         end do
+       end do
        if (myid .eq. 0) then
          do j=1,mjx-1
            do n=1,NNSG
@@ -1598,15 +1592,15 @@ c
                sav_2(i,NNSG  +n,j) =  sag2d_io(n,i,j)
                sav_2(i,NNSG*2+n,j) = sice2d_io(n,i,j)
                sav_2(i,NNSG*3+n,j) =  dew2d_io(n,i,j)
-             enddo
-           enddo
+             end do
+           end do
            do i=1,ilx
              sav_2(i,NNSG*4+1 ,j) =   pptnc_io(i,j)
              sav_2(i,NNSG*4+2 ,j) =    pptc_io(i,j)
              sav_2(i,NNSG*4+3 ,j) =  prca2d_io(i,j)
              sav_2(i,NNSG*4+4 ,j) = prnca2d_io(i,j)
-           enddo
-         enddo
+           end do
+         end do
        end if
        allrec = NNSG*4+4
        call MPI_SCATTER(
@@ -1620,15 +1614,15 @@ c
               sag2d(n,i,j) = sav2(i,NNSG  +n,j)
              sice2d(n,i,j) = sav2(i,NNSG*2+n,j)
               dew2d(n,i,j) = sav2(i,NNSG*3+n,j)
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ilx
              pptnc(i,j) = sav2(i,NNSG*4+1 ,j)
               pptc(i,j) = sav2(i,NNSG*4+2 ,j)
             prca2d(i,j) = sav2(i,NNSG*4+3 ,j)
            prnca2d(i,j) = sav2(i,NNSG*4+4 ,j)
-         enddo
-       enddo
+         end do
+       end do
        if (myid .eq. 0) then
          do j=1,mjx-1
            do n=1,NNSG
@@ -1638,12 +1632,12 @@ c
                sav_2a(i,NNSG*2+n,j) =  col2d_io(n,i,j)
                sav_2a(i,NNSG*3+n,j) = ocld2d_io(n,i,j)
                sav_2a(i,NNSG*4+n,j) =   tg2d_io(n,i,j)
-             enddo
-           enddo
+             end do
+           end do
            do i=1,ilx
              sav_2a(i,NNSG*5+1 ,j) =   veg2d_io(i,j)
-           enddo
-         enddo
+           end do
+         end do
        end if
        allrec = NNSG*5+1
        call MPI_SCATTER(
@@ -1658,12 +1652,12 @@ c
               col2d(n,i,j) = sav2a(i,NNSG*2+n,j)
              ocld2d(n,i,j) = sav2a(i,NNSG*3+n,j)
                tg2d(n,i,j) = sav2a(i,NNSG*4+n,j)
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ilx
              veg2d(i,j) = sav2a(i,NNSG*5+1 ,j)
-         enddo
-       enddo
+         end do
+       end do
        if(ichem.eq.1) then
          if (myid .eq. 0) then
            do j=1,mjx
@@ -1674,18 +1668,18 @@ c
                    sav_4(i,ntr*kx+  (n-1)*kx+k,j)=  chib_io(i,k,j,n)
                    sav_4(i,ntr*kx*2+(n-1)*kx+k,j)=remlsc_io(i,k,j,n)
                    sav_4(i,ntr*kx*3+(n-1)*kx+k,j)=remcvc_io(i,k,j,n)
-                 enddo
-               enddo
-             enddo
-           enddo
+                 end do
+               end do
+             end do
+           end do
            allrec = 4*ntr*kx
            do j=1,mjx
              do n=1,ntr
                do i=1,ix
                  sav_4(i,allrec+n,j)=remdrd_io(i,j,n)
-               enddo
-             enddo
-           enddo
+               end do
+             end do
+           end do
            allrec = allrec+ntr
          end if
          allrec = ntr*(kx*4+1)
@@ -1701,18 +1695,18 @@ c
                    chib(i,k,j,n)=sav4(i,ntr*kx+  (n-1)*kx+k,j)
                  remlsc(i,k,j,n)=sav4(i,ntr*kx*2+(n-1)*kx+k,j)
                  remcvc(i,k,j,n)=sav4(i,ntr*kx*3+(n-1)*kx+k,j)
-               enddo
-             enddo
-           enddo
-         enddo
+               end do
+             end do
+           end do
+         end do
          allrec = 4*ntr*kx
          do j=1,jendl
            do n=1,ntr
              do i=1,ix
                remdrd(i,j,n)=sav4(i,allrec+n,j)
-             enddo
-           enddo
-         enddo
+             end do
+           end do
+         end do
          if(myid.eq.0) then
            do j=1,mjx-1
              do i=1,ilx
@@ -1723,8 +1717,8 @@ c
                sav_4a(i,5,j) = sfracb2d_io(i,j)
                sav_4a(i,6,j) = sfracs2d_io(i,j)
                sav_4a(i,7,j) = svegfrac2d_io(i,j)
-             enddo
-           enddo
+             end do
+           end do
          end if
          call MPI_SCATTER(
      &          sav_4a(1,1,1),ilx*7*jxp,MPI_DOUBLE_PRECISION,
@@ -1739,8 +1733,8 @@ c
              sfracb2d(i,j)   = sav4a(i,5,j)
              sfracs2d(i,j)   = sav4a(i,6,j)
              svegfrac2d(i,j) = sav4a(i,7,j)
-           enddo
-         enddo
+           end do
+         end do
        end if
 #endif
        dt = dt2
@@ -1876,9 +1870,9 @@ c ****** initialize and define constants for vector bats
                emiss2d(n,i,j) = 0.99d0-(albvgs(ist)+albvgl(ist))*0.1d0
             end if
 !           emiss2d(n,i,j) = 1.0d0
-         enddo
-         enddo
-         enddo
+         end do
+         end do
+         end do
       end if
 c ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
@@ -1939,4 +1933,4 @@ c
 #endif
 c
       return
-      end
+      end subroutine init

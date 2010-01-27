@@ -17,6 +17,8 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      subroutine colmod3(jslc)
+C
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c-----------------------------NOTICE------------------------------------
 c
@@ -72,8 +74,6 @@ c other tortious claim that arises out of or in connection with the
 c access, use or performance of this software.
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine colmod3(jslc)
 c
 c     ccm3 column radiation model (crm)
 c     Jeffrey Kiehl, Bruce Briegleb, and Charlie Zender
@@ -292,7 +292,7 @@ c
          else
            ii0=ii0+1
          end if
-        enddo
+        end do
         if(ii0.ge.ii1.and.ii0.ge.ii2) ioro(i)=0
         if(ii1.gt.ii0.and.ii1.ge.ii2) ioro(i)=1
         if(ii2.gt.ii0.and.ii2.gt.ii1) ioro(i)=2
@@ -428,4 +428,4 @@ c
 cKN   added above
 c
       return
-      end
+      end subroutine colmod3

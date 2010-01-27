@@ -24,7 +24,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       integer dum
       dum = iexec
       return
-      end
+      end subroutine outprt
 #else
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine outprt(iexec)
@@ -363,5 +363,5 @@ c
      1            c40nam,xth)
 c
       return
-      end
+      end subroutine outprt
 #endif

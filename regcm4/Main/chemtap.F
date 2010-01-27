@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine chemtap
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -69,16 +68,16 @@ c 3 d fields
          do j=1,jx-2
             fchem(j,i) = chia(i+1,k,j+1,itr)/psa(i+1,j+1)
 #endif
-         enddo
-         enddo
+         end do
+         end do
          if (iotyp.eq.1) then
            nrcchem=nrcchem+1
            write(iutchem,rec=nrcchem) fchem
          else if (iotyp.eq.2) then
            write(iutchem) fchem
          end if
-       enddo
-      enddo
+       end do
+      end do
 
 c optical properties of the tracer mixing (independant of ntr)     
 
@@ -91,15 +90,15 @@ c optical properties of the tracer mixing (independant of ntr)
          do j=1,jx-2
             fchem(j,i) = aerext(i+1,k,j+1)
 #endif
-         enddo
-         enddo
+         end do
+         end do
          if (iotyp.eq.1) then
            nrcchem=nrcchem+1
            write(iutchem,rec=nrcchem) fchem
          else if (iotyp.eq.2) then
            write(iutchem) fchem
          end if
-       enddo
+       end do
 
        do k=kx,1,-1
          do i=1,ix-2 
@@ -110,15 +109,15 @@ c optical properties of the tracer mixing (independant of ntr)
          do j=1,jx-2
             fchem(j,i) = aerssa(i+1,k,j+1)
 #endif
-         enddo
-         enddo
+         end do
+         end do
          if (iotyp.eq.1) then
            nrcchem=nrcchem+1
            write(iutchem,rec=nrcchem) fchem
          else if (iotyp.eq.2) then
            write(iutchem) fchem
          end if
-       enddo
+       end do
 
        do k=kx,1,-1
          do i=1,ix-2 
@@ -129,15 +128,15 @@ c optical properties of the tracer mixing (independant of ntr)
          do j=1,jx-2
             fchem(j,i) = aerasp(i+1,k,j+1)
 #endif
-         enddo
-         enddo
+         end do
+         end do
          if (iotyp.eq.1) then
            nrcchem=nrcchem+1
            write(iutchem,rec=nrcchem) fchem
          else if (iotyp.eq.2) then
            write(iutchem) fchem
          end if
-       enddo
+       end do
 
 c 2d fields
 c instantaneous colum burden
@@ -151,8 +150,8 @@ c     -------
        do j=1,jx-2
          fchem(j,i) = dtrace(i+1,j+1,itr)
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -178,8 +177,8 @@ c        mpd = 1.
        do j=1,jx-2
          fchem(j,i) = wdlsc(i+1,j+1,itr)*mpd
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -195,8 +194,8 @@ c    --------
        do j=1,jx-2
          fchem(j,i) = wdcvc(i+1,j+1,itr)*mpd
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -212,8 +211,8 @@ c   -------------
        do j=1,jx-2
          fchem(j,i) = ddsfc(i+1,j+1,itr)*mpd
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -229,8 +228,8 @@ c----------------------
        do j=1,jx-2
          fchem(j,i) = wxsg(i+1,j+1,itr)*mpd
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -246,8 +245,8 @@ c----------------------
        do j=1,jx-2
          fchem(j,i) = wxaq(i+1,j+1,itr)*mpd
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -263,8 +262,8 @@ c----------------------
        do j=1,jx-2
          fchem(j,i) = cemtrac(i+1,j+1,itr)*mpd
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -278,8 +277,8 @@ c       do i=1,ix-2
 c       do j=1,jx-2
 c         fchem(j,i) = chemsrc(i+1,j+1,lmonth,itr) * 1.e9
 c        unit = microg/m2.s                   
-c       enddo
-c       enddo
+c       end do
+c       end do
 c       if (iotyp.eq.1) then
 c        nrcchem=nrcchem+1
 c        write(iutchem,rec=nrcchem) fchem
@@ -332,7 +331,7 @@ c reinitialisation for avraged dposition rates ( a modifier)
        end do
 #endif
 
-      enddo 
+      end do 
 
 c----total aerosol TOA radiative forcing ( independant of the number of tracer) 
         
@@ -344,8 +343,8 @@ c----total aerosol TOA radiative forcing ( independant of the number of tracer)
        do j=1,jx-2
          fchem(j,i) = aertarf(i+1,j+1)                   
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -362,8 +361,8 @@ c----total aerosol TOA radiative forcing ( independant of the number of tracer)
        do j=1,jx-2
          fchem(j,i) = aersrrf(i+1,j+1)                   
 #endif
-       enddo
-       enddo
+       end do
+       end do
        if (iotyp.eq.1) then
         nrcchem=nrcchem+1
         write(iutchem,rec=nrcchem) fchem
@@ -377,17 +376,17 @@ c    reset rad diag to 0 ( averaged between output time stepsin aerout)
        do i=1,ix-1
          aertarf_io(i,j)=0.
          aersrrf_io(i,j)=0.
-       enddo
-       enddo
+       end do
+       end do
 #else
        do j=1,jx-1
        do i=1,ix-1
          aertarf(i,j)=0.
          aersrrf(i,j)=0.
-       enddo
-       enddo
+       end do
+       end do
 #endif
       print*,'Chem variables written ',idatex
 
       return
-      end
+      end subroutine chemtap

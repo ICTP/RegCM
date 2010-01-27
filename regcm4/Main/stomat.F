@@ -93,7 +93,7 @@ c **********            zenith angle set in zenitm
          end if
         end if
        end if
-      enddo
+      end do
 91    continue
 
       do 92 np=np1,npts
@@ -116,7 +116,7 @@ c **********            zenith angle set in zenitm
          end if
         end if
        end if
-      enddo
+      end do
 92    continue
 
       do 93 np=np1,npts
@@ -133,7 +133,7 @@ c **********            zenith angle set in zenitm
          end if
         end if
        end if
-      enddo
+      end do
 93    continue
       return
-      end
+      end subroutine stomat

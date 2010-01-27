@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
        subroutine mapsmp(fld,fldr,iyy,jxx,ia,ib,iny,ja,jb,jnx,const,
      1                  ichos,c40nam,time)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -85,8 +84,8 @@ c
       do i=1,iyy
       do j=1,jxx
         fldr(j,i) = fld(i,j)
-      enddo
-      enddo
+      end do
+      end do
 c
       n=6
       k1=ksigt+2
@@ -169,4 +168,4 @@ c110    format(1x,i2,1x,i2)
 c
 c
       return
-      end
+      end subroutine mapsmp

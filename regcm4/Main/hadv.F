@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine hadv_T(ften,dxx,j,ind)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -159,7 +158,7 @@ c
       end if
 c
       return
-      end
+      end subroutine hadv_T
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine hadv_U(ften,dxx,j,ind)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -302,7 +301,7 @@ c
       end if
 c
       return
-      end
+      end subroutine hadv_U
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine hadv_V(ften,dxx,j,ind)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -445,7 +444,7 @@ c
       end if
 c
       return
-      end
+      end subroutine hadv_V
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine hadvQV(ften,dxx,j,ind)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -588,7 +587,7 @@ c
       end if
 c
       return
-      end
+      end subroutine hadvQV
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine hadvQC(ften,dxx,j,ind)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -731,7 +730,7 @@ c
       end if
 c
       return
-      end
+      end subroutine hadvQC
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine hadvCH(ften,dxx,n,j,ind)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -876,4 +875,4 @@ c
       end if
 c
       return
-      end
+      end subroutine hadvCH

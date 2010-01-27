@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
       subroutine balbak(nm,n,low,igh,scale,m,z)
 c
       implicit none
@@ -93,4 +92,4 @@ c
   140 continue
 c
   200 return
-      end
+      end subroutine balbak

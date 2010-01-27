@@ -59,4 +59,4 @@ c
         sx(i + 4) = sa*sx(i + 4)
    50 continue
       return
-      end
+      end subroutine sscal

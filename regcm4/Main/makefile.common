@@ -3,20 +3,20 @@ all:: regcm
 SRCS = \
 aermix.F aeroppt.F aerout.F albedov.F balanc.F balbak.F bconst.F \
 bdyin.F bdyuv.F \
-bdyval.F blhnew.F BLOCKDATA001.F bmpara.F bndry.F \
+bdyval.F blhnew.F blockdata001.F bmpara.F bndry.F \
 carbon.F cdiv.F chdrydep.F chemtap.F chrsetc.F chsrfem.F \
 cldefr.F cldems.F cldfrac.F co2.F colmod3.F conadv.F condch.F \
 condcq.F condtq.F conmas.F constants.F convect_tables.F \
 cumtran.F cupara.F cuparan.F cupemandrv.F cupeman.F cup.F \
 depth.F deriv.F diffu.F diffut.F \
-dragdn.F drag.F drip.F dsflx.F EDDY.F elmhes.F eltran.F \
-eomb.F FINDDATE.F for_next.F frawat.F getdat.F grads_stuf.F \
+dragdn.F drag.F drip.F dsflx.F eddy.F elmhes.F eltran.F \
+eomb.F finddate.F for_next.F frawat.F getdat.F grads_stuf.F \
 hadv.F holtbl.F \
-hqr2.F hqr.F htdiff.F ice.F inirad.F initb.F INITDATE.F init.F \
+hqr2.F hqr.F htdiff.F ice.F inirad.F initb.F initdate.F init.F \
 inidust.F initlk.F interf.F intmax.F invmtrx.F isamax.F isrchfgt.F \
 isrchfle.F lakedrv.F lake.F lenchr.F lfdrag.F lftemp.F \
 ljchrn.F lshfch.F lutbl.F mapsmp.F maximi.F message.F minimi.F \
-MIXER.F mkfile.F \
+mixer.F mkfile.F \
 nconvp.F nudge.F o3data.F outprt.F output.F \
 outsav.F outsrf.F outsub.F outtap0.F outtap.F param.F pcp.F \
 radabs.F radclr.F radclw.F radcsw.F radctl.F radded.F radems.F \
@@ -24,7 +24,7 @@ radini.F radinp.F radout.F radoz2.F radtap.F radtpl.F reorder.F \
 resetr.F rg.F root.F satur.F saxpy.F sgedi.F sgefa.F slice.F slice3d.F \
 snow.F soilbc.F solar1.F spinit.F spline.F splitf.F \
 sponge.F spstep.F sscal.F sswap.F stomat.F \
-TEMP.F tend.F tgrund.F tpfc.F tracbud.F tracdiag.F \
+temp.F tend.F tgrund.F tpfc.F tracbud.F tracdiag.F \
 tractend2.F trcab.F trcabn.F trcems.F trcmix.F trcplk.F trcpth.F \
 tseice.F tstep.F vadv.F vcheke.F vcheki.F vchekt.F \
 vcover.F vecbats.F vmodes.F vmultm.F vnorml.F vorder.F \
@@ -44,13 +44,14 @@ clean:
 .F.o:
 	$(FC) -c $(CPPFLAGS) $(FFLAGS) -c $<
 
-BLOCKDATA001.o: BLOCKDATA001.F
+blockdata001.o: blockdata001.F
 	$(FC) -c $(CPPFLAGS) -D$(SCENARIO) $(FFLAGS) $(INCLUDE_DIR) -c $<
 
 header.o: header.F90
 	$(FC) -c $(CPPFLAGS) $(SVNDEF) $(FFLAGS) $(INCLUDE_DIR) -c $<	
 
 # Dependencies
+
 regcm: header.o
 aermix.o: aermix.F parameter.inc include/parrad.cb include/param2.cb \
  include/crdcon.cb include/slice.cb include/trachem.cb include/main.cb \
@@ -77,7 +78,7 @@ bdyval.o: bdyval.F parameter.inc include/param1.cb include/param2.cb \
 blhnew.o: blhnew.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/main.cb include/slice.cb include/pbldim.cb \
  mpiregcm.inc
-BLOCKDATA001.o: BLOCKDATA001.F parameter.inc include/parrad.cb \
+blockdata001.o: blockdata001.F parameter.inc include/parrad.cb \
  include/tracer0.cb include/bats.cb include/comhst.cb include/comlun.cb \
  include/compbl.cb include/crdcae.cb
 bmpara.o: bmpara.F parameter.inc include/param1.cb include/param2.cb \
@@ -93,8 +94,8 @@ chemtap.o: chemtap.F parameter.inc include/param1.cb include/param2.cb \
 chrsetc.o: chrsetc.F
 chsrfem.o: chsrfem.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/main.cb include/mainchem.cb include/trachem.cb \
- include/dust.cb include/iunits.cb include/aeroppt.cb include/io.cb \
- mpiregcm.inc
+ include/dust.cb include/iunits.cb include/aeroppt.cb include/message.cb \
+ include/io.cb mpiregcm.inc
 cldefr.o: cldefr.F parameter.inc include/parrad.cb include/param2.cb
 cldems.o: cldems.F parameter.inc include/parrad.cb
 cldfrac.o: cldfrac.F parameter.inc include/param1.cb include/param2.cb \
@@ -142,12 +143,12 @@ diffut.o: diffut.F parameter.inc mpiregcm.inc include/slice.cb \
 dragdn.o: dragdn.F parameter.inc include/bats.cb
 drag.o: drag.F parameter.inc include/bats.cb
 drip.o: drip.F parameter.inc include/bats.cb
-dsflx.o: dsflx.F parameter.inc include/dust.cb
-EDDY.o: EDDY.F
+dsflx.o: dsflx.F parameter.inc include/dust.cb include/message.cb
+eddy.o: eddy.F
 elmhes.o: elmhes.F
 eltran.o: eltran.F
 eomb.o: eomb.F
-FINDDATE.o: FINDDATE.F mpiregcm.inc
+finddate.o: finddate.F mpiregcm.inc include/message.cb
 for_next.o: for_next.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/date.cb include/cupeman.cb include/pmoist.cb \
  include/trachem.cb
@@ -158,7 +159,7 @@ getdat.o: getdat.F parameter.inc include/parrad.cb include/param1.cb \
  include/crdalb.cb include/crdsrf.cb include/crdcon.cb include/date.cb
 grads_stuf.o: grads_stuf.F parameter.inc include/date.cb \
  include/param1.cb include/param2.cb include/param3.cb include/io.cb \
- mpiregcm.inc include/iunits.cb include/trachem.cb
+ include/iunits.cb include/trachem.cb
 hadv.o: hadv.F parameter.inc mpiregcm.inc include/cvaria.cb \
  include/main.cb include/param1.cb include/param3.cb
 holtbl.o: holtbl.F parameter.inc mpiregcm.inc include/param1.cb \
@@ -177,20 +178,20 @@ inirad.o: inirad.F parameter.inc include/param1.cb include/param3.cb \
 initb.o: initb.F parameter.inc include/param1.cb include/param2.cb \
  include/iunits.cb include/bats.cb include/main.cb include/bats.cb2 \
  mpiregcm.inc
-INITDATE.o: INITDATE.F parameter.inc include/param1.cb mpiregcm.inc
+initdate.o: initdate.F parameter.inc include/param1.cb include/message.cb
 init.o: init.F parameter.inc include/parrad.cb include/param1.cb \
  include/diagnosis.cb include/param2.cb include/param3.cb \
  include/iunits.cb include/bats.cb include/pmoist.cb include/main.cb \
  include/mainchem.cb include/bdycod.cb include/cvaria.cb include/bats.cb2 \
- include/rad.cb include/trachem.cb include/io.cb include/date.cb \
- mpiregcm.inc
+ include/rad.cb include/trachem.cb include/message.cb include/io.cb \
+ include/date.cb mpiregcm.inc
 initlk.o: initlk.F parameter.inc
 interf.o: interf.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/main.cb include/cvaria.cb include/pbldim.cb \
  include/bats.cb2 include/slice.cb include/io.cb mpiregcm.inc \
  include/bats.cb
 intmax.o: intmax.F
-invmtrx.o: invmtrx.F mpiregcm.inc
+invmtrx.o: invmtrx.F include/message.cb
 isamax.o: isamax.F
 isrchfgt.o: isrchfgt.F
 isrchfle.o: isrchfle.F
@@ -201,13 +202,13 @@ lenchr.o: lenchr.F
 lfdrag.o: lfdrag.F parameter.inc include/bats.cb
 lftemp.o: lftemp.F parameter.inc include/bats.cb include/bats.cb2
 ljchrn.o: ljchrn.F
-lshfch.o: lshfch.F mpiregcm.inc
+lshfch.o: lshfch.F include/message.cb
 lutbl.o: lutbl.F
 mapsmp.o: mapsmp.F
 maximi.o: maximi.F
-message.o: message.F parameter.inc mpiregcm.inc
+message.o: message.F parameter.inc include/message.cb mpiregcm.inc
 minimi.o: minimi.F
-MIXER.o: MIXER.F
+mixer.o: mixer.F
 mkfile.o: mkfile.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/iunits.cb include/date.cb include/bats.cb2 \
  include/trachem.cb
@@ -223,7 +224,7 @@ output.o: output.F parameter.inc mpiregcm.inc include/param1.cb \
  include/param2.cb include/param3.cb include/iunits.cb include/main.cb \
  include/mainchem.cb include/bats.cb2 include/bdycod.cb include/pmoist.cb \
  include/rad.cb include/trachem.cb include/cvaria.cb include/io.cb \
- include/date.cb include/parrad.cb
+ include/date.cb include/message.cb include/parrad.cb
 outsav.o: outsav.F parameter.inc include/parrad.cb include/param1.cb \
  include/diagnosis.cb include/param2.cb include/param3.cb \
  include/iunits.cb include/pmoist.cb include/main.cb include/mainchem.cb \
@@ -243,7 +244,7 @@ param.o: param.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/iunits.cb include/pmoist.cb include/bats.cb2 \
  include/main.cb include/bdycod.cb include/trachem.cb include/cupeman.cb \
  include/date.cb include/tiedparam0.cb include/tied_constants.cb \
- include/culookup.cb include/io.cb mpiregcm.inc
+ include/culookup.cb include/message.cb include/io.cb mpiregcm.inc
 pcp.o: pcp.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/bats.cb2 include/main.cb include/cvaria.cb \
  include/pmoist.cb include/rad.cb include/slice.cb include/trachem.cb
@@ -264,7 +265,7 @@ radems.o: radems.F parameter.inc include/parrad.cb include/crdcae.cb \
  include/crdcon.cb
 radini.o: radini.F parameter.inc include/parrad.cb include/comozp.cb \
  include/crdcae.cb include/crdcon.cb include/tracer0.cb include/tracer.cb \
- include/date.cb
+ include/date.cb include/message.cb
 radinp.o: radinp.F parameter.inc include/parrad.cb include/comtim.cb \
  include/crdcon.cb
 radout.o: radout.F parameter.inc include/param1.cb include/param2.cb \
@@ -276,7 +277,7 @@ radtap.o: radtap.F parameter.inc include/param1.cb include/param2.cb \
  include/date.cb include/iunits.cb mpiregcm.inc
 radtpl.o: radtpl.F parameter.inc include/parrad.cb include/crdcon.cb
 regcm.o: regcm.F parameter.inc include/date.cb include/param1.cb \
- include/param2.cb include/param3.cb mpiregcm.inc
+ include/param2.cb include/param3.cb include/message.cb mpiregcm.inc
 reorder.o: reorder.F
 resetr.o: resetr.F
 rg.o: rg.F
@@ -307,12 +308,12 @@ spstep.o: spstep.F parameter.inc include/main.cb mpiregcm.inc
 sscal.o: sscal.F
 sswap.o: sswap.F
 stomat.o: stomat.F parameter.inc include/bats.cb include/bats.cb2
-TEMP.o: TEMP.F
+temp.o: temp.F
 tend.o: tend.F parameter.inc mpiregcm.inc include/param1.cb \
  include/param2.cb include/param3.cb include/iunits.cb include/main.cb \
  include/mainchem.cb include/bdycod.cb include/cvaria.cb \
  include/pbldim.cb include/pmoist.cb include/rad.cb include/bats.cb2 \
- include/trachem.cb include/slice.cb include/date.cb
+ include/trachem.cb include/slice.cb include/date.cb include/message.cb
 tgrund.o: tgrund.F parameter.inc include/bats.cb include/bats.cb2
 tpfc.o: tpfc.F
 tracbud.o: tracbud.F parameter.inc include/param1.cb include/diagnosis.cb \
@@ -346,7 +347,7 @@ vecbats.o: vecbats.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/iunits.cb include/bats.cb include/date.cb \
  include/main.cb include/bats.cb2 mpiregcm.inc
 vmodes.o: vmodes.F parameter.inc include/param1.cb include/split.cb \
- mpiregcm.inc
+ include/message.cb mpiregcm.inc
 vmultm.o: vmultm.F
 vnorml.o: vnorml.F
 vorder.o: vorder.F

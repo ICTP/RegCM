@@ -17,10 +17,10 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      function eomb(x)
 *****************************FUNCTION EOMB******************************
 *          COMPUTES AIR VAPOR PRESSURE AS A FUNCTION OF TEMP (in mb)   *
 ************************************************************************
-      function eomb(x)
       implicit none
       real(kind=8)  eomb,x
       real(kind=8)  tr1
@@ -29,4 +29,4 @@ c
       eomb=1013.25*dexp(13.3185*tr1-1.976*tr1**2-0.6445*tr1**3
      &   -0.1299*tr1**4)
       return
-      end
+      end function eomb

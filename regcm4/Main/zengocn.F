@@ -110,7 +110,7 @@ C     loop to obtain initial and good ustar and zo
       do i = 1, 5
         zo=0.013*ustar*ustar/grav+0.11*visa/ustar
         ustar=ak*um/dlog(hu/zo)
-      enddo
+      end do
 
       rb=grav*hu*dthv/(thv*um*um)
       if (rb.ge.0.) then         ! neutral or stable
@@ -182,7 +182,7 @@ C
           zeta = dmax1(-100.d0,min(zeta,-1.d-6))
         end if
         obu=hu/zeta
-      enddo
+      end do
 C
 C--------------------------------------------------------------
       tau=rho*ustar*ustar*u/um

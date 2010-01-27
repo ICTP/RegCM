@@ -121,9 +121,9 @@ c   inflow/outflow
           end if
 #endif
 
-        enddo
-        enddo
-      enddo
+        end do
+        end do
+      end do
 #ifdef MPP1
       call MPI_BCAST(worka,ilx*kx*ntr,MPI_DOUBLE_PRECISION,nproc-1
      &              ,MPI_COMM_WORLD,ierr)
@@ -138,13 +138,13 @@ c   inflow/outflow
             chiailx1(k,n,j)= chia(ix-2,k,j,n)
             chia01(k,n,j)  = chia(1   ,k,j,n)
             chia02(k,n,j)  = chia(2   ,k,j,n)
-          enddo
-        enddo
+          end do
+        end do
         psailx(j)  = psa(ilx ,j)
         psailx1(j) = psa(ix-2,j)
         psa01(j)  = psa(1   ,j)
         psa02(j)  = psa(2   ,j)
-      enddo
+      end do
       call MPI_GATHER(vailx(1,1),kx*jxp,MPI_DOUBLE_PRECISION,
      &              vailx_g(1,1),kx*jxp,MPI_DOUBLE_PRECISION,
      &                                0,MPI_COMM_WORLD,ierr)
@@ -225,8 +225,8 @@ chy inflow/outflow
           tchiad(n)=tchiad(n)+dtmin*6.e4*dsigma(k)*dx*
      1          (fx2-fx1)/g
 
-        enddo
-        enddo
+        end do
+        end do
 #else
         do k=1,kx
         do j=1+1,jlx-1
@@ -260,8 +260,8 @@ chy inflow/outflow
           tchiad(n)=tchiad(n)+dtmin*6.e4*dsigma(k)*dx*
      1          (fx2-fx1)/g
 
-        enddo
-        enddo
+        end do
+        end do
 #endif
 44    continue
 #ifdef MPP1
@@ -430,9 +430,9 @@ c
 #ifdef MPP1
           end if
 #endif
-        enddo
-        enddo
-      enddo
+        end do
+        end do
+      end do
 #ifdef MPP1
       call MPI_BCAST(worka,ilx*kx*ntr,MPI_DOUBLE_PRECISION,nproc-1
      &              ,MPI_COMM_WORLD,ierr)
@@ -443,8 +443,8 @@ c
         do i=1+1,ilx-1
           tchitb(n)=tchitb(n)-dtmin*6.e4*dsigma(k)
      &                             *(workb(i,k,n)+worka(i,k,n))/g
-        enddo
-        enddo
+        end do
+        end do
      
 c..... diffusion through north-south boundaries:
 
@@ -458,8 +458,8 @@ c..... diffusion through north-south boundaries:
      &          (chia02_g(k,n,j)/psa02_g(j)-
      &           chia01_g(k,n,j)/psa01_g(j))
           tchitb(n)=tchitb(n)-dtmin*6.e4*dsigma(k)*(chid2+chid1)/g
-        enddo
-        enddo
+        end do
+        end do
 #else
         do k=1,kx
         do j=1+1,jlx-1
@@ -469,8 +469,8 @@ c..... diffusion through north-south boundaries:
           chid2=xkc(2,k,j)*psa(2,j)*
      1          (chia(2,k,j,n)/psa(2,j)-chia(1,k,j,n)/psa(1,j))
           tchitb(n)=tchitb(n)-dtmin*6.e4*dsigma(k)*(chid2+chid1)/g
-        enddo
-        enddo
+        end do
+        end do
 #endif
 1300  continue
 #ifdef MPP1
@@ -479,4 +479,4 @@ c..... diffusion through north-south boundaries:
      &                        0,MPI_COMM_WORLD,ierr)
 #endif
       return
-      end
+      end subroutine tracdiag

@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
       subroutine cldems(clwp, fice, rei, emis)
 C-----------------------------------------------------------------------
 C
@@ -74,4 +72,4 @@ C
       end do
 C
       return
-      end
+      end subroutine cldems

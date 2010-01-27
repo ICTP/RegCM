@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine bconst
 c::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       implicit none
@@ -97,4 +96,4 @@ c     ****    vonkar = von karman constant
 c     ****    csoilc = drag coefficient for soil under canopy
       csoilc = 4.e-3
       return
-      end
+      end subroutine bconst

@@ -225,4 +225,4 @@ c total trace gas emissivity
      $                + eco21 + eco22
       end do
       return
-      end
+      end subroutine trcems

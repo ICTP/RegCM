@@ -17,113 +17,113 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-C&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-      SUBROUTINE SPLINE(NOLD,XOLD,YOLD,Y2,NNEW,XNEW,YNEW,P,Q)
-      IMPLICIT NONE
-      INTEGER NOLD,NNEW
+      subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew,p,q)
+
+      implicit none
 C     ******************************************************************
 C     *                                                                *
-C     *  THIS IS A ONE-DIMENSIONAL CUBIC SPLINE FITTING ROUTINE        *
-C     *  PROGRAMED FOR A SMALL SCALAR MACHINE.                         *
+C     *  this is a one-dimensional cubic spline fitting routine        *
+C     *  programed for a small scalar machine.                         *
 C     *                                                                *
-C     *  PROGRAMER\ Z. JANJIC, YUGOSLAV FED. HYDROMET. INST., BEOGRAD  *
+C     *  programer\ z. janjic, yugoslav fed. hydromet. inst., beograd  *
 C     *                                                                *
-C     *  NOLD - NUMBER OF GIVEN VALUES OF THE FUNCTION.  MUST BE GE 3. *
-C     *  XOLD - LOCATIONS OF THE POINTS AT WHICH THE VALUES OF THE     *
-C     *         FUNCTION ARE GIVEN.  MUST BE IN ASCENDING ORDER.       *
-C     *  YOLD - THE GIVEN VALUES OF THE FUNCTION AT THE POINTS XOLD.   *
-C     *  Y2   - THE SECOND DERIVATIVES AT THE POINTS XOLD.  IF NATURAL *
-C     *         SPLINE IS FITTED Y2(1)=0. AND Y2(NOLD)=0. MUST BE      *
-C     *         SPECIFIED.                                             *
-C     *  NNEW - NUMBER OF VALUES OF THE FUNCTION TO BE CALCULATED.     *
-C     *  XNEW - LOCATIONS OF THE POINTS AT WHICH THE VALUES OF THE     *
-C     *         FUNCTION ARE CALCULATED.  XNEW(K) MUST BE GE XOLD(1)   *
-C     *         AND LE XOLD(NOLD).                                     *
-C     *  YNEW - THE VALUES OF THE FUNCTION TO BE CALCULATED.           *
-C     *  P, Q - AUXILIARY VECTORS OF THE LENGTH NOLD-2.                *
+C     *  nold - number of given values of the function.  must be ge 3. *
+C     *  xold - locations of the points at which the values of the     *
+C     *         function are given.  must be in ascending order.       *
+C     *  yold - the given values of the function at the points xold.   *
+C     *  y2   - the second derivatives at the points xold.  if natural *
+C     *         spline is fitted y2(1)=0. and y2(nold)=0. must be      *
+C     *         specified.                                             *
+C     *  nnew - number of values of the function to be calculated.     *
+C     *  xnew - locations of the points at which the values of the     *
+C     *         function are calculated.  xnew(k) must be ge xold(1)   *
+C     *         and le xold(nold).                                     *
+C     *  ynew - the values of the function to be calculated.           *
+C     *  p, q - auxiliary vectors of the length nold-2.                *
 C     *                                                                *
 C     ******************************************************************
-      INTEGER JTB
-      PARAMETER (JTB=150)
-      real(kind=8)  XOLD(JTB),YOLD(JTB),Y2(JTB),P(JTB),Q(JTB),XNEW(JTB)
-     &       ,YNEW(JTB)
-      INTEGER NOLDM1,K,K1,K2,KOLD
-      real(kind=8)  DXL,DXR,DYDXL,DYDXR,RTDXC
-      real(kind=8)  DXC,DEN,XK,Y2K,Y2KP1,DX,RDX,AK,BK,CK,X,XSQ
+      integer nold,nnew
+      integer jtb
+      parameter (jtb=150)
+      real(kind=8)  xold(jtb),yold(jtb),y2(jtb),p(jtb),q(jtb),xnew(jtb)
+     &       ,ynew(jtb)
+      integer noldm1,k,k1,k2,kold
+      real(kind=8)  dxl,dxr,dydxl,dydxr,rtdxc
+      real(kind=8)  dxc,den,xk,y2k,y2kp1,dx,rdx,ak,bk,ck,x,xsq
 C-----------------------------------------------------------------------
-      NOLDM1=NOLD-1
+      noldm1=nold-1
 C
-      DXL=XOLD(2)-XOLD(1)
-      DXR=XOLD(3)-XOLD(2)
-      DYDXL=(YOLD(2)-YOLD(1))/DXL
-      DYDXR=(YOLD(3)-YOLD(2))/DXR
-      RTDXC=.5/(DXL+DXR)
+      dxl=xold(2)-xold(1)
+      dxr=xold(3)-xold(2)
+      dydxl=(yold(2)-yold(1))/dxl
+      dydxr=(yold(3)-yold(2))/dxr
+      rtdxc=.5/(dxl+dxr)
 C
-      P(1)=RTDXC*(6.*(DYDXR-DYDXL)-DXL*Y2(1))
-      Q(1)=-RTDXC*DXR
+      p(1)=rtdxc*(6.*(dydxr-dydxl)-dxl*y2(1))
+      q(1)=-rtdxc*dxr
 C
-      IF(NOLD.EQ.3)GOTO 700
+      if(nold.eq.3)goto 700
 C-----------------------------------------------------------------------
-      K=3
+      k=3
 C
-  100 DXL=DXR
-      DYDXL=DYDXR
-      DXR=XOLD(K+1)-XOLD(K)
-      DYDXR=(YOLD(K+1)-YOLD(K))/DXR
-      DXC=DXL+DXR
-      DEN=1./(DXL*Q(K-2)+DXC+DXC)
+  100 dxl=dxr
+      dydxl=dydxr
+      dxr=xold(k+1)-xold(k)
+      dydxr=(yold(k+1)-yold(k))/dxr
+      dxc=dxl+dxr
+      den=1./(dxl*q(k-2)+dxc+dxc)
 C
-      P(K-1)=DEN*(6.*(DYDXR-DYDXL)-DXL*P(K-2))
-      Q(K-1)=-DEN*DXR
+      p(k-1)=den*(6.*(dydxr-dydxl)-dxl*p(k-2))
+      q(k-1)=-den*dxr
 C
-      K=K+1
-      IF(K.LT.NOLD)GOTO 100
+      k=k+1
+      if(k.lt.nold)goto 100
 C-----------------------------------------------------------------------
-  700 K=NOLDM1
+  700 k=noldm1
 C
-  200 Y2(K)=P(K-1)+Q(K-1)*Y2(K+1)
+  200 y2(k)=p(k-1)+q(k-1)*y2(k+1)
 C
-      K=K-1
-      IF(K.GT.1)GOTO 200
+      k=k-1
+      if(k.gt.1)goto 200
 C-----------------------------------------------------------------------
-      K1=1
+      k1=1
 C
-  300 XK=XNEW(K1)
+  300 xk=xnew(k1)
 C
-      DO 400 K2=2,NOLD
-        IF(XOLD(K2).LE.XK)GOTO 400
-        KOLD=K2-1
-        GOTO 450
-  400 CONTINUE
-      YNEW(K1)=YOLD(NOLD)
-      GOTO 600
+      do 400 k2=2,nold
+        if(xold(k2).le.xk)goto 400
+        kold=k2-1
+        goto 450
+  400 continue
+      ynew(k1)=yold(nold)
+      goto 600
 C
-  450 IF(K1.EQ.1)GOTO 500
-      IF(K.EQ.KOLD)GOTO 550
+  450 if(k1.eq.1)goto 500
+      if(k.eq.kold)goto 550
 C
-  500 K=KOLD
+  500 k=kold
 C
-      Y2K=Y2(K)
-      Y2KP1=Y2(K+1)
-      DX=XOLD(K+1)-XOLD(K)
-      RDX=1./DX
+      y2k=y2(k)
+      y2kp1=y2(k+1)
+      dx=xold(k+1)-xold(k)
+      rdx=1./dx
 C
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-C     WRITE(6,5000) K,Y2K,Y2KP1,DX,RDX,YOLD(K),YOLD(K+1)
-C5000 FORMAT(' K=',I4,' Y2K=',E12.4,' Y2KP1=',E12.4,' DX=',E12.4,' RDX='
-C    2,E12.4,' YOK=',E12.4,' YOP1=',E12.4)
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-      AK=.1666667*RDX*(Y2KP1-Y2K)
-      BK=.5*Y2K
-      CK=RDX*(YOLD(K+1)-YOLD(K))-.1666667*DX*(Y2KP1+Y2K+Y2K)
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+C     write(6,5000) k,y2k,y2kp1,dx,rdx,yold(k),yold(k+1)
+C5000 format(' k=',i4,' y2k=',e12.4,' y2kp1=',e12.4,' dx=',e12.4,' rdx='
+C    2,e12.4,' yok=',e12.4,' yop1=',e12.4)
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      ak=.1666667*rdx*(y2kp1-y2k)
+      bk=.5*y2k
+      ck=rdx*(yold(k+1)-yold(k))-.1666667*dx*(y2kp1+y2k+y2k)
 C
-  550 X=XK-XOLD(K)
-      XSQ=X*X
+  550 x=xk-xold(k)
+      xsq=x*x
 C
-      YNEW(K1)=AK*XSQ*X+BK*XSQ+CK*X+YOLD(K)
+      ynew(k1)=ak*xsq*x+bk*xsq+ck*x+yold(k)
 C
-  600 K1=K1+1
-      IF(K1.LE.NNEW)GOTO 300
+  600 k1=k1+1
+      if(k1.le.nnew)goto 300
 C-----------------------------------------------------------------------
-      RETURN
-      END
+      return
+      end subroutine spline

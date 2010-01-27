@@ -92,7 +92,7 @@ c-----tracers (unit = kg):
 c     sum ls and conv contribution
        wxaq(i,j,itr) = wxaq(i,j,itr)
      &               + (rxsaq1(i,k,j,itr)+rxsaq2(i,k,j,itr))*dsigma(k)
-      enddo
+      end do
       ddsfc(i,j,itr)=ddsfc(i,j,itr)+remdrd(i,j,itr)*dsigma(kx)
 c Source cumulated diag(care the unit are alredy .m-2)
       cemtrac(i,j,itr)=cemtr(i,j,itr)
@@ -126,8 +126,8 @@ c Source cumulated diag(care the unit are alredy .m-2)
       call MPI_GATHER(chemsrc(1,1,l,itr),ix*jxp,MPI_DOUBLE_PRECISION,
      &             chemsrc_io(1,1,l,itr),ix*jxp,MPI_DOUBLE_PRECISION,
      &                                       0,MPI_COMM_WORLD,ierr)
-      enddo
-      enddo
+      end do
+      end do
       if(myid.eq.0) then
       do itr=1,ntr
         do k=1,kx
@@ -135,46 +135,46 @@ c Source cumulated diag(care the unit are alredy .m-2)
           do j=1+1,mjx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+chia_io(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           ttrace(itr,1)=ttrace(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,mjx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+remlsc_io(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           tremlsc(itr,1)=tremlsc(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,mjx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+remcvc_io(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           tremcvc(itr,1)=tremcvc(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,mjx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+rxsg_io(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           trxsg(itr,1)=trxsg(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,mjx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+rxsaq1_io(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           trxsaq1(itr,1)=trxsaq1(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,mjx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+rxsaq2_io(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           trxsaq2(itr,1)=trxsaq2(itr,1)+tttmp*dsigma(k)
-        enddo
-      enddo
+        end do
+      end do
 
       do itr=1,ntr
         ttrace(itr,1)=ttrace(itr,1)*dx*dx
@@ -183,7 +183,7 @@ c Source cumulated diag(care the unit are alredy .m-2)
         trxsg(itr,1)=trxsg(itr,1)*dx*dx
         trxsaq1(itr,1)=trxsaq1(itr,1)*dx*dx
         trxsaq2(itr,1)=trxsaq2(itr,1)*dx*dx
-      enddo
+      end do
 
       do itr=1,ntr
         tttmp= 0.
@@ -202,7 +202,7 @@ c       emissions
         end do
         end do
         tchie(itr)= tchie(itr) + tttmp
-      enddo
+      end do
       end if
       call MPI_BCAST(ttrace(1,1),ntr,MPI_DOUBLE_PRECISION,
      &                             0,MPI_COMM_WORLD,ierr)
@@ -227,46 +227,46 @@ c       emissions
           do j=1+1,jx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+chia(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           ttrace(itr,1)=ttrace(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,jx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+remlsc(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           tremlsc(itr,1)=tremlsc(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,jx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+remcvc(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           tremcvc(itr,1)=tremcvc(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,jx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+rxsg(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           trxsg(itr,1)=trxsg(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,jx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+rxsaq1(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           trxsaq1(itr,1)=trxsaq1(itr,1)+tttmp*dsigma(k)
           tttmp= 0.
           do j=1+1,jx-1-1
           do i=1+1,ix-1-1
             tttmp=tttmp+rxsaq2(i,k,j,itr)
-          enddo
-          enddo
+          end do
+          end do
           trxsaq2(itr,1)=trxsaq2(itr,1)+tttmp*dsigma(k)
-        enddo
-      enddo
+        end do
+      end do
 
       do itr=1,ntr
         ttrace(itr,1)=ttrace(itr,1)*dx*dx
@@ -275,7 +275,7 @@ c       emissions
         trxsg(itr,1)=trxsg(itr,1)*dx*dx
         trxsaq1(itr,1)=trxsaq1(itr,1)*dx*dx
         trxsaq2(itr,1)=trxsaq2(itr,1)*dx*dx
-      enddo
+      end do
 
       do itr=1,ntr
         tttmp= 0.
@@ -294,7 +294,7 @@ c       emissions
         end do
         end do
         tchie(itr)= tchie(itr) + tttmp
-      enddo
+      end do
 #endif
 #endif
 

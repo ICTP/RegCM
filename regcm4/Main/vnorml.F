@@ -47,4 +47,4 @@ c
     3 continue
 c
       return
-      end
+      end subroutine vnorml

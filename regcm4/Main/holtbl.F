@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine holtbl
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -112,16 +110,16 @@ c
         do j=2,mjx-2
           do i=2,ilxm
             tqeva=tqeva+qfx_io(i,j)*dx*dx*dtmin*60.
-          enddo
-        enddo
+          end do
+        end do
       end if
       call MPI_BCAST(tqeva,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
       do j=2,jx-2
         do i=2,ilxm
           tqeva=tqeva+qfx(i,j)*dx*dx*dtmin*60.
-        enddo
-      enddo
+        end do
+      end do
 #endif
 #endif
 c----------------------------------------------------------------------
@@ -323,26 +321,26 @@ c
           do i=2,ilx
         if(k.gt.1) akxx1(i,k,j)=rhohf(i,k-1,j)*kvm(i,k,j)/dza(i,k-1,j)
         akxx2(i,k,j)=g/(psb(i,j)*1000.)/dsigma(k)
-          enddo
-          enddo
+          end do
+          end do
 #ifdef MPP1
         end if
 #endif
-      enddo
+      end do
 #ifdef MPP1
       ii=0
       do k=1,kx
       do i=2,ilx
         ii=ii+1
         wksend(ii) = akxx1(i,k,jxp)
-      enddo
-      enddo
+      end do
+      end do
       do k=1,kx
       do i=2,ilx
         ii=ii+1
         wksend(ii) = akxx2(i,k,jxp)
-      enddo
-      enddo
+      end do
+      end do
       call MPI_SENDRECV(wksend(1),(ix-2)*kx*2,MPI_DOUBLE_PRECISION,
      &          ieast,1,wkrecv(1),(ix-2)*kx*2,MPI_DOUBLE_PRECISION,
      &          iwest,1,MPI_COMM_WORLD,status,ierr)
@@ -351,14 +349,14 @@ c
       do i=2,ilx
         ii=ii+1
         akxx1(i,k,0) = wkrecv(ii)
-      enddo
-      enddo
+      end do
+      end do
       do k=1,kx
       do i=2,ilx
         ii=ii+1
         akxx2(i,k,0) = wkrecv(ii)
-      enddo
-      enddo
+      end do
+      end do
 #endif
 
 #ifdef MPP1
@@ -382,8 +380,8 @@ c    calculate coefficients at dot points for u and v wind
         idxm1 = max0(idxm1,2)
         if (k.gt.1) betak(i,k)=0.5*(akxx1(idx,k,j)+akxx1(idxm1,k,j))
         alphak(i,k)=0.5*(akxx2(idx,k,j)+akxx2(idxm1,k,j))
-       enddo
-       enddo
+       end do
+       end do
 #ifdef MPP1
       else if(myid.eq.nproc-1 .and. j.eq.jendx) then
 #else
@@ -398,8 +396,8 @@ c    calculate coefficients at dot points for u and v wind
         if (k.gt.1) betak(i,k)=0.5*(akxx1(idx,k,j-1)
      &                             +akxx1(idxm1,k,j-1))
         alphak(i,k)=0.5*(akxx2(idx,k,j-1)+akxx2(idxm1,k,j-1))
-       enddo
-       enddo
+       end do
+       end do
       else
        do k=1,kx
        do i=2,ilx
@@ -412,8 +410,8 @@ c    calculate coefficients at dot points for u and v wind
      &                    +akxx1(idx,k,j)  +akxx1(idxm1,k,j))
         alphak(i,k)=0.25*(akxx2(idx,k,j-1)+akxx2(idxm1,k,j-1)
      &                     +akxx2(idx,k,j)  +akxx2(idxm1,k,j))
-       enddo
-       enddo
+       end do
+       end do
       end if
 c
 c *************************************************************************
@@ -737,7 +735,7 @@ c
 Ctrapuv
       do i=2,ilx
         ttnp(i,1) =0.0d0
-      enddo
+      end do
 Ctrapuv_
       do 380 k=2,kx
       do 380 i=2,ilx
@@ -878,4 +876,4 @@ Cchem2_
  1080 continue
 c
       return
-      end
+      end subroutine holtbl

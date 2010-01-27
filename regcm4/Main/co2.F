@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine co2
 c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
@@ -68,7 +67,7 @@ c
          pbp1d(n,np) = pbp1d(n,np) + cari(n,np)*c(4)
         end if
        end if
-      enddo
+      end do
 90    continue
 
       do 91 np=np1,npts
@@ -82,7 +81,7 @@ c
          if (resp1d(n,np).lt.0.0) resp1d(n,np) = 0.
         end if
        end if
-      enddo
+      end do
 91    continue
       return
-      end
+      end subroutine co2

@@ -139,6 +139,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
+#     include "include/message.cb"
 
 #ifdef MPP1
 #     include "mpiregcm.inc"
@@ -160,10 +161,12 @@ c**********************************************************************
       call MPI_INIT(ierr)
       call MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
       call MPI_COMM_SIZE(MPI_COMM_WORLD,NCPU,ierr)
-      if(NCPU.ne.nproc) then
-        write(*,*) 'The number of CPU is not well set'
-        write(*,*) 'NCPU = ', NCPU, '    nproc =',nproc
-        call MPI_ABORT(MPI_COMM_WORLD,ierr)
+      if (NCPU.ne.nproc) then
+        write(aline,*) 'The number of CPU is not well set'
+        call say
+        write(aline,*) 'NCPU = ', NCPU, '    nproc =',nproc
+        call say
+        call fatal(__FILE__,__LINE__,'CPU Count mismatch')
       end if
       print *,"process",myid,"of",nproc
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -178,15 +181,20 @@ c     starttime= MPI_WTIME()
       else
         ieast=MPI_PROC_NULL
       end if
-      if(jxp.lt.2) then
-        write(*,*) 'The number of jxp must be greater than 1'
-        write(*,*) 'jxp = ', jxp, '   mjx = ',mjx
-        call MPI_ABORT(MPI_COMM_WORLD,ierr)
+      if (jxp.lt.2) then
+        write(aline,*) 'The number of jxp must be greater than 1'
+        call say
+        write(aline,*) 'jxp = ', jxp, '   mjx = ',mjx
+        call say
+        call fatal(__FILE__,__LINE__,'Domain too small')
       end if
-      if(jxp*nproc .ne. mjx) then
-        print *, 'mjx should be divided by nproc'
-        print *, 'mjx = ',mjx, '   nproc = ',nproc
-        call MPI_ABORT(MPI_COMM_WORLD,ierr)
+      if (jxp*nproc .ne. mjx) then
+        write(aline,*) 'mjx should be divided by nproc'
+        call say
+        write(aline,*) 'mjx = ',mjx, '   nproc = ',nproc
+        call say
+        call fatal(__FILE__,__LINE__,'Domain dimension not multiple of'
+     &             //' processor number')
       end if
       jbegin = 1
       jendl = jxp
@@ -246,7 +254,7 @@ c
         if ((jyear.eq.jyear0.and.ktau.eq.0) .or. dtinc.ne.deltmx) then
          call tstep(extime,dtinc,deltmx)
 #ifdef MPP1
-         if(myid .eq. 0) then
+         if (myid .eq. 0) then
 #endif
          print 30, extime,dtinc,dt,dt2,dtmin,ktau,jyear
 30       format(6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,
@@ -269,7 +277,7 @@ c
 c
       extime=extime+dtinc
 c     print*,nnnnnn,nnnend
-      if(NNNNNN.lt.NNNEND) goto 10
+      if (NNNNNN.lt.NNNEND) goto 10
 #ifdef MPP1
       if (myid .eq. 0) then
 #endif
@@ -298,4 +306,4 @@ c     print *,"The Program took  ",endtime-starttime," secondes"
       call MPI_FINALIZE(ierr)
 #endif
       stop 99999
-      end
+      end program regcm

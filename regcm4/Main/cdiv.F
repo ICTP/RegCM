@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
       subroutine cdiv(ar,ai,br,bi,cr,ci)
       implicit none
       real(kind=8)  ar,ai,br,bi,cr,ci
@@ -34,4 +33,4 @@ c
       cr = (ars*brs + ais*bis)/s
       ci = (ais*brs - ars*bis)/s
       return
-      end
+      end subroutine cdiv

@@ -37,7 +37,7 @@ c     depends on climate through subsoil temperatures.
      &                    ,1.-0.0016*dmax1(298.-tgb1d(n,np),0.d0)**2)
         end if
        end if
-      enddo
+      end do
 90    continue
 
       do 91 np=np1,npts
@@ -52,8 +52,8 @@ c     depends on climate through subsoil temperatures.
          vegt(n,np)  = sigf(n,np) * xlsai(n,np)
         end if
        end if
-      enddo
+      end do
 91    continue
 c
       return
-      end
+      end subroutine vcover

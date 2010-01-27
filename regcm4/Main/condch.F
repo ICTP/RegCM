@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine condch
 c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
@@ -61,8 +60,8 @@ c
          wtga(n,np) = wta0(n,np) + wtg0(n,np)
         end if
        end if
-      enddo
+      end do
 90    continue
 c
       return
-      end
+      end subroutine condch

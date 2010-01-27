@@ -48,4 +48,4 @@ c
       do 40 k=1,nk
    40 a1(k,l)=a2(k,l)*c
       return
-      end
+      end subroutine vmultm

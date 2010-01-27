@@ -146,4 +146,4 @@ c
   140    continue
   150 continue
       return
-      end
+      end subroutine sgedi

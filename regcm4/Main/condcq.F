@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine condcq
 c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
@@ -60,8 +58,8 @@ c
          wtgaq(n,np) = wtaq0(n,np) + wtgq0(n,np)
         end if
        end if
-      enddo
+      end do
 90    continue
 
       return
-      end
+      end subroutine condcq

@@ -161,4 +161,4 @@ C ccm3.6.6
       end do
 C
       return
-      end
+      end subroutine radtpl

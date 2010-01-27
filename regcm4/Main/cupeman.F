@@ -17,154 +17,154 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      subroutine cupeman
+     *    (t,   q,    qs,     u,    v,      tra,    p,    ph,
+     *     nd,  na,   nl,   ntra,   delt, iflag,  ft,     fq,   fu,
+     *     fv,  ftra, precip, wd,   tprime, qprime, cbmf, icb, inb )
+c
 ***************************************************************************
-*****                       SUBROUTINE CUPEMAN (formerly CONVECT)     *****
-*****                          VERSION 4.3c                           *****
-*****                          20 May, 2002                           *****
-*****                          Kerry Emanuel                          *****
+*****                       subroutine cupeman (formerly convect)     *****
+*****                          version 4.3c                           *****
+*****                          20 may, 2002                           *****
+*****                          kerry emanuel                          *****
 ***************************************************************************
-C
-      SUBROUTINE CUPEMAN
-     *    (T,   Q,    QS,     U,    V,      TRA,    P,    PH,
-     *     ND,  NA,   NL,   NTRA,   DELT, IFLAG,  FT,     FQ,   FU,
-     *     FV,  FTRA, PRECIP, WD,   TPRIME, QPRIME, CBMF, ICB, INB )
-C
-C-----------------------------------------------------------------------------
-C    *** On input:      ***
-C
-C     T:   Array of absolute temperature (K) of dimension ND, with first
-C           index corresponding to lowest model level. Note that this array
-C           will be altered by the subroutine if dry convective adjustment
-C           occurs and if IPBL is not equal to 0.
-C
-C     Q:   Array of specific humidity (gm/gm) of dimension ND, with first
-C            index corresponding to lowest model level. Must be defined
-C            at same grid levels as T. Note that this array will be altered
-C            if dry convective adjustment occurs and if IPBL is not equal to 0.
-C
-C     QS:  Array of saturation specific humidity of dimension ND, with first
-C            index corresponding to lowest model level. Must be defined
-C            at same grid levels as T. Note that this array will be altered
-C            if dry convective adjustment occurs and if IPBL is not equal to 0.
-C
-C     U:   Array of zonal wind velocity (m/s) of dimension ND, witth first
-C            index corresponding with the lowest model level. Defined at
-C            same levels as T. Note that this array will be altered if
-C            dry convective adjustment occurs and if IPBL is not equal to 0.
-C
-C     V:   Same as U but for meridional velocity.
-C
-C     TRA: Array of passive tracer mixing ratio, of dimensions (ND,NTRA),
-C            where NTRA is the number of different tracers. If no
-C            convective tracer transport is needed, define a dummy
-C            input array of dimension (ND,1). Tracers are defined at
-C            same vertical levels as T. Note that this array will be altered
-C            if dry convective adjustment occurs and if IPBL is not equal to 0.
-C
-C     P:   Array of pressure (mb) of dimension ND, with first
-C            index corresponding to lowest model level. Must be defined
-C            at same grid levels as T.
-C
-C     PH:  Array of pressure (mb) of dimension ND+1, with first index
-C            corresponding to lowest level. These pressures are defined at
-C            levels intermediate between those of P, T, Q and QS. The first
-C            value of PH should be greater than (i.e. at a lower level than)
-C            the first value of the array P.
-C
-C     ND:  The dimension of the arrays T,Q,QS,P,PH,FT and FQ
-C
-C     NL:  The maximum number of levels to which convection can
-C            penetrate, plus 1.
-C            NL MUST be less than or equal to ND-1.
-C
-C     NTRA:The number of different tracers. If no tracer transport
-C            is needed, set this equal to 1. (On most compilers, setting
-C            NTRA to 0 will bypass tracer calculation, saving some CPU.)  
-C
-C     DELT: The model time step (sec) between calls to CONVECT
-C
-C----------------------------------------------------------------------------
-C    ***   On Output:         ***
-C
-C     IFLAG: An output integer whose value denotes the following:
-C
-C                VALUE                        INTERPRETATION
-C                -----                        --------------
-C                  0               No moist convection; atmosphere is not
-C                                  unstable, or surface temperature is less
-C                                  than 250 K or surface specific humidity
-C                                  is non-positive.
-C
-C                  1               Moist convection occurs.
-C
-C                  2               No moist convection: lifted condensation
-C                                  level is above the 200 mb level.
-C
-C                  3               No moist convection: cloud base is higher
-C                                  then the level NL-1.
-C
-C                  4               Moist convection occurs, but a CFL condition
-C                                  on the subsidence warming is violated. This
-C                                  does not cause the scheme to terminate.
-C
-C     FT:   Array of temperature tendency (K/s) of dimension ND, defined at same
-C             grid levels as T, Q, QS and P.
-C
-C     FQ:   Array of specific humidity tendencies ((gm/gm)/s) of dimension ND,
-C             defined at same grid levels as T, Q, QS and P.
-C
-C     FU:   Array of forcing of zonal velocity (m/s^2) of dimension ND,
-C             defined at same grid levels as T.
-C
-C     FV:   Same as FU, but for forcing of meridional velocity.
-C
-C     FTRA: Array of forcing of tracer content, in tracer mixing ratio per
-C             second, defined at same levels as T. Dimensioned (ND,NTRA).
-C
-C     PRECIP: Scalar convective precipitation rate (mm/s).
-C
-C     WD:    A convective downdraft velocity scale. For use in surface
-C             flux parameterizations. See convect.ps file for details.
-C
-C     TPRIME: A convective downdraft temperature perturbation scale (K).
-C              For use in surface flux parameterizations. See convect.ps
-C              file for details.
-C
-C     QPRIME: A convective downdraft specific humidity
-C              perturbation scale (gm/gm).
-C              For use in surface flux parameterizations. See convect.ps
-C              file for details.
-C
-C     CBMF:   The cloud base mass flux ((kg/m**2)/s). THIS SCALAR VALUE MUST
-C              BE STORED BY THE CALLING PROGRAM AND RETURNED TO CONVECT AT
-C              ITS NEXT CALL. That is, the value of CBMF must be "remembered"
-C              by the calling program between calls to CONVECT.
-C
-C------------------------------------------------------------------------------
-C
-C    ***  THE PARAMETER NA SHOULD IN GENERAL BE GREATER THAN   ***
-C    ***                OR EQUAL TO  ND + 1                    ***
-C
-C------------------------------------------------------------------------------
-C Modifications for RegCM:
-C   1. Units for precipitation were change from mm/day to mm/s
-C   2. The thermodynamic constants were made consistent with those
-C      of RegCM.
-C   3. Dependence of latent heat of vaporization on tempertature
-C      removed because it is neglected in RegCM. This is done by
-C      setting cpv equal to cl and setting lv0 to the RegCM value.
-C   4. Added cloud base (ICB) and cloud top (INB) to the output to
-C      compute the cloud fraction and cloud liquid water content.
-C   5. Each variable is now explicitly declared.  That is, the
-C      "implicit none" option was added.
-C   6. The value minorig is increased because the thickness of the
-C      lowest layer(s) is(are) too small. If the thickness is too
-C      small for the given timestep, the mass of the layer is likely
-C      to be evacuated.
-C   7. A maximum value to the cloud base mass flux has been added.
-C
+c
+c-----------------------------------------------------------------------------
+c    *** on input:      ***
+c
+c     t:   array of absolute temperature (k) of dimension nd, with first
+c           index corresponding to lowest model level. note that this array
+c           will be altered by the subroutine if dry convective adjustment
+c           occurs and if ipbl is not equal to 0.
+c
+c     q:   array of specific humidity (gm/gm) of dimension nd, with first
+c            index corresponding to lowest model level. must be defined
+c            at same grid levels as t. note that this array will be altered
+c            if dry convective adjustment occurs and if ipbl is not equal to 0.
+c
+c     qs:  array of saturation specific humidity of dimension nd, with first
+c            index corresponding to lowest model level. must be defined
+c            at same grid levels as t. note that this array will be altered
+c            if dry convective adjustment occurs and if ipbl is not equal to 0.
+c
+c     u:   array of zonal wind velocity (m/s) of dimension nd, witth first
+c            index corresponding with the lowest model level. defined at
+c            same levels as t. note that this array will be altered if
+c            dry convective adjustment occurs and if ipbl is not equal to 0.
+c
+c     v:   same as u but for meridional velocity.
+c
+c     tra: array of passive tracer mixing ratio, of dimensions (nd,ntra),
+c            where ntra is the number of different tracers. if no
+c            convective tracer transport is needed, define a dummy
+c            input array of dimension (nd,1). tracers are defined at
+c            same vertical levels as t. note that this array will be altered
+c            if dry convective adjustment occurs and if ipbl is not equal to 0.
+c
+c     p:   array of pressure (mb) of dimension nd, with first
+c            index corresponding to lowest model level. must be defined
+c            at same grid levels as t.
+c
+c     ph:  array of pressure (mb) of dimension nd+1, with first index
+c            corresponding to lowest level. these pressures are defined at
+c            levels intermediate between those of p, t, q and qs. the first
+c            value of ph should be greater than (i.e. at a lower level than)
+c            the first value of the array p.
+c
+c     nd:  the dimension of the arrays t,q,qs,p,ph,ft and fq
+c
+c     nl:  the maximum number of levels to which convection can
+c            penetrate, plus 1.
+c            nl must be less than or equal to nd-1.
+c
+c     ntra:the number of different tracers. if no tracer transport
+c            is needed, set this equal to 1. (on most compilers, setting
+c            ntra to 0 will bypass tracer calculation, saving some cpu.)  
+c
+c     delt: the model time step (sec) between calls to convect
+c
+c----------------------------------------------------------------------------
+c    ***   on output:         ***
+c
+c     iflag: an output integer whose value denotes the following:
+c
+c                value                        interpretation
+c                -----                        --------------
+c                  0               no moist convection; atmosphere is not
+c                                  unstable, or surface temperature is less
+c                                  than 250 k or surface specific humidity
+c                                  is non-positive.
+c
+c                  1               moist convection occurs.
+c
+c                  2               no moist convection: lifted condensation
+c                                  level is above the 200 mb level.
+c
+c                  3               no moist convection: cloud base is higher
+c                                  then the level nl-1.
+c
+c                  4               moist convection occurs, but a cfl condition
+c                                  on the subsidence warming is violated. this
+c                                  does not cause the scheme to terminate.
+c
+c     ft:   array of temperature tendency (k/s) of dimension nd, defined at same
+c             grid levels as t, q, qs and p.
+c
+c     fq:   array of specific humidity tendencies ((gm/gm)/s) of dimension nd,
+c             defined at same grid levels as t, q, qs and p.
+c
+c     fu:   array of forcing of zonal velocity (m/s^2) of dimension nd,
+c             defined at same grid levels as t.
+c
+c     fv:   same as fu, but for forcing of meridional velocity.
+c
+c     ftra: array of forcing of tracer content, in tracer mixing ratio per
+c             second, defined at same levels as t. dimensioned (nd,ntra).
+c
+c     precip: scalar convective precipitation rate (mm/s).
+c
+c     wd:    a convective downdraft velocity scale. for use in surface
+c             flux parameterizations. see convect.ps file for details.
+c
+c     tprime: a convective downdraft temperature perturbation scale (k).
+c              for use in surface flux parameterizations. see convect.ps
+c              file for details.
+c
+c     qprime: a convective downdraft specific humidity
+c              perturbation scale (gm/gm).
+c              for use in surface flux parameterizations. see convect.ps
+c              file for details.
+c
+c     cbmf:   the cloud base mass flux ((kg/m**2)/s). this scalar value must
+c              be stored by the calling program and returned to convect at
+c              its next call. that is, the value of cbmf must be "remembered"
+c              by the calling program between calls to convect.
+c
+c------------------------------------------------------------------------------
+c
+c    ***  the parameter na should in general be greater than   ***
+c    ***                or equal to  nd + 1                    ***
+c
+c------------------------------------------------------------------------------
+c modifications for regcm:
+c   1. units for precipitation were change from mm/day to mm/s
+c   2. the thermodynamic constants were made consistent with those
+c      of regcm.
+c   3. dependence of latent heat of vaporization on tempertature
+c      removed because it is neglected in regcm. this is done by
+c      setting cpv equal to cl and setting lv0 to the regcm value.
+c   4. added cloud base (icb) and cloud top (inb) to the output to
+c      compute the cloud fraction and cloud liquid water content.
+c   5. each variable is now explicitly declared.  that is, the
+c      "implicit none" option was added.
+c   6. the value minorig is increased because the thickness of the
+c      lowest layer(s) is(are) too small. if the thickness is too
+c      small for the given timestep, the mass of the layer is likely
+c      to be evacuated.
+c   7. a maximum value to the cloud base mass flux has been added.
+c
 
-C ****  RegCM add-ins to declare every variable explicitly **** c
+c ****  regcm add-ins to declare every variable explicitly **** c
       implicit none
 
 #     include "include/cupeman.cb"
@@ -186,966 +186,966 @@ C ****  RegCM add-ins to declare every variable explicitly **** c
      &      , ents, epmax, cwat, stemp, uav, vav, traav, cpd
      &      , cpv, cl, rv, g, rd
 c     real(kind=8) cbmfmax
-C ****  End RegCM add-ins to declare every variable explicitly **** c
+c ****  end regcm add-ins to declare every variable explicitly **** c
 
-c     PARAMETER (NA=48)           
-C
-      INTEGER NENT(NA)
-c     real(kind=8)  T(ND),Q(ND),QS(ND),U(ND),V(ND),TRA(ND,NTRA),P(ND),PH(ND)
-      real(kind=8)  T(ND),Q(ND),QS(ND),U(ND),V(ND),TRA(ND,1)
-      real(kind=8)  P(ND),PH(ND)
-c     real(kind=8)  FT(ND),FQ(ND),FU(ND),FV(ND),FTRA(ND,NTRA)
-      real(kind=8)  FT(ND),FQ(ND),FU(ND),FV(ND),FTRA(ND,1)   
-      real(kind=8)  UENT(NA,NA),VENT(NA,NA),TRAENT(NA,NA,NTRA),TRATM(NA)
-      real(kind=8)  UP(NA),VP(NA),TRAP(NA,NTRA)
-      real(kind=8)  M(NA),MP(NA),MENT(NA,NA),QENT(NA,NA),ELIJ(NA,NA)
-      real(kind=8)  SIJ(NA,NA),TVP(NA),TV(NA),WATER(NA)
-      real(kind=8)  QP(NA),EP(NA),TH(NA),WT(NA),EVAP(NA),CLW(NA)
-      real(kind=8)  SIGP(NA),TP(NA),TOLD(NA),CPN(NA)
-      real(kind=8)  LV(NA),LVCP(NA),LV0,H(NA),HP(NA),GZ(NA),HM(NA)
-C
-C -----------------------------------------------------------------------
-C
-C   ***                     Specify Switches                         ***
-C
-C   ***   IPBL: Set to zero to bypass dry adiabatic adjustment       ***
-C   ***    Any other value results in dry adiabatic adjustment       ***
-C   ***     (Zero value recommended for use in models with           ***
-C   ***                   boundary layer schemes)                    ***
-C
-C   ***   MINORIG: Lowest level from which convection may originate  ***
-C   ***     (Should be first model level at which T is defined       ***
-C   ***      for models using bulk PBL schemes; otherwise, it should ***
-C   ***      be the first model level at which T is defined above    ***
-C   ***                      the surface layer)                      ***
-C
-        IPBL=0
-CRCM    MINORIG=2
-C
-C------------------------------------------------------------------------------
-C
-C   ***                    SPECIFY PARAMETERS                        ***
-C
-C   *** ELCRIT IS THE AUTOCONVERSION THERSHOLD WATER CONTENT (gm/gm) ***
-C   ***  TLCRIT IS CRITICAL TEMPERATURE BELOW WHICH THE AUTO-        ***
-C   ***       CONVERSION THRESHOLD IS ASSUMED TO BE ZERO             ***
-C   ***     (THE AUTOCONVERSION THRESHOLD VARIES LINEARLY            ***
-C   ***               BETWEEN 0 C AND TLCRIT)                        ***
-C   ***   ENTP IS THE COEFFICIENT OF MIXING IN THE ENTRAINMENT       ***
-C   ***                       FORMULATION                            ***
-C   ***  SIGD IS THE FRACTIONAL AREA COVERED BY UNSATURATED DNDRAFT  ***
-C   ***  SIGS IS THE FRACTION OF PRECIPITATION FALLING OUTSIDE       ***
-C   ***                        OF CLOUD                              ***
-C   ***        OMTRAIN IS THE ASSUMED FALL SPEED (P/s) OF RAIN       ***
-C   ***     OMTSNOW IS THE ASSUMED FALL SPEED (P/s) OF SNOW          ***
-C   ***  COEFFR IS A COEFFICIENT GOVERNING THE RATE OF EVAPORATION   ***
-C   ***                          OF RAIN                             ***
-C   ***  COEFFS IS A COEFFICIENT GOVERNING THE RATE OF EVAPORATION   ***
-C   ***                          OF SNOW                             ***
-C   ***     CU IS THE COEFFICIENT GOVERNING CONVECTIVE MOMENTUM      ***
-C   ***                         TRANSPORT                            ***
-C   ***    DTMAX IS THE MAXIMUM NEGATIVE TEMPERATURE PERTURBATION    ***
-C   ***        A LIFTED PARCEL IS ALLOWED TO HAVE BELOW ITS LFC      ***
-C   ***    ALPHAE AND DAMP ARE PARAMETERS THAT CONTROL THE RATE OF   ***
-C   ***                 APPROACH TO QUASI-EQUILIBRIUM                ***
-C   ***   (THEIR STANDARD VALUES ARE  0.20 AND 0.1, RESPECTIVELY)    ***
-C   ***                   (DAMP MUST BE LESS THAN 1)                 ***
-C
-CRCM ADDIN
-C The following parameters in now in param.f
-c       ELCRIT=.0011
-c       TLCRIT=-55.0
-c       ENTP=1.5
-c       SIGD=0.05
-c       SIGS=0.12
-c       OMTRAIN=50.0
-c       OMTSNOW=5.5 
-c       COEFFR=1.0
-c       COEFFS=0.8
-c       CU=0.7
-c       BETAE=10.0
-c       DTMAX=0.9
-c       ALPHAE=0.2
-c       DAMP=0.1
-CRCM END ADDIN
-C
-C   ***        ASSIGN VALUES OF THERMODYNAMIC CONSTANTS,        ***
-C   ***            GRAVITY, AND LIQUID WATER DENSITY.           ***
-C   ***             THESE SHOULD BE CONSISTENT WITH             ***
-C   ***              THOSE USED IN CALLING PROGRAM              ***
-C   ***     NOTE: THESE ARE ALSO SPECIFIED IN SUBROUTINE TLIFT  ***
-C
-cRCM  CPD=1005.7
-      CPD=1004.
-      CPV=1870.0
-cRCM  CPV=CPD
-      CL=2500.0
-      RV=461.5
-      RD=287.04
-      LV0=2.501E6
-cRCM  G=9.8
-      G=9.805
-      ROWL=1000.0
-C
-      CPVMCL=CL-CPV 
-      EPS=RD/RV
-      EPSI=1./EPS
-      GINV=1.0/G
-      DELTI=1.0/DELT
-C
-C           ***  INITIALIZE OUTPUT ARRAYS AND PARAMETERS  ***
-C
-      DO 5 I=1,ND
-        FT(I)=0.0
-        FQ(I)=0.0
-        FU(I)=0.0
-        FV(I)=0.0
-        DO 4 J=1,NTRA
-          FTRA(I,J)=0.0
-    4   CONTINUE
-    5 CONTINUE
-      DO 7 I=1,NL+1
-        RDCP=(RD*(1.-Q(I))+Q(I)*RV)/(CPD*(1.-Q(I))+Q(I)*CPV)
-        TH(I)=T(I)*(1000.0/P(I))**RDCP
-    7 CONTINUE
-      PRECIP=0.0
-      WD=0.0
-      TPRIME=0.0
-      QPRIME=0.0
-      IFLAG=0
-C
-      IF(IPBL.NE.0)THEN
-C
-C     ***            PERFORM DRY ADIABATIC ADJUSTMENT            ***
-C
-        JC=0
-        DO 30 I=NL-1,1,-1
-          JN=0
-          SUM=TH(I)*(1.+Q(I)*EPSI-Q(I))
-          DO 10 J=I+1,NL
-            SUM=SUM+TH(J)*(1.+Q(J)*EPSI-Q(J))
-            THBAR=SUM/FLOAT(J+1-I)
-            IF((TH(J)*(1.+Q(J)*EPSI-Q(J))).LT.THBAR)JN=J
-   10     CONTINUE
-          IF(I.EQ.1)JN=MAX(JN,2)
-          IF(JN.EQ.0)GOTO 30
-   12     CONTINUE
-          AHM=0.0
-          RM=0.0
-          UM=0.0
-          VM=0.0
-          DO K=1,NTRA
-            TRATM(K)=0.0
+c     parameter (na=48)           
+c
+      integer nent(na)
+c     real(kind=8)  t(nd),q(nd),qs(nd),u(nd),v(nd),tra(nd,ntra),p(nd),ph(nd)
+      real(kind=8)  t(nd),q(nd),qs(nd),u(nd),v(nd),tra(nd,1)
+      real(kind=8)  p(nd),ph(nd)
+c     real(kind=8)  ft(nd),fq(nd),fu(nd),fv(nd),ftra(nd,ntra)
+      real(kind=8)  ft(nd),fq(nd),fu(nd),fv(nd),ftra(nd,1)   
+      real(kind=8)  uent(na,na),vent(na,na),traent(na,na,ntra),tratm(na)
+      real(kind=8)  up(na),vp(na),trap(na,ntra)
+      real(kind=8)  m(na),mp(na),ment(na,na),qent(na,na),elij(na,na)
+      real(kind=8)  sij(na,na),tvp(na),tv(na),water(na)
+      real(kind=8)  qp(na),ep(na),th(na),wt(na),evap(na),clw(na)
+      real(kind=8)  sigp(na),tp(na),told(na),cpn(na)
+      real(kind=8)  lv(na),lvcp(na),lv0,h(na),hp(na),gz(na),hm(na)
+c
+c -----------------------------------------------------------------------
+c
+c   ***                     specify switches                         ***
+c
+c   ***   ipbl: set to zero to bypass dry adiabatic adjustment       ***
+c   ***    any other value results in dry adiabatic adjustment       ***
+c   ***     (zero value recommended for use in models with           ***
+c   ***                   boundary layer schemes)                    ***
+c
+c   ***   minorig: lowest level from which convection may originate  ***
+c   ***     (should be first model level at which t is defined       ***
+c   ***      for models using bulk pbl schemes; otherwise, it should ***
+c   ***      be the first model level at which t is defined above    ***
+c   ***                      the surface layer)                      ***
+c
+        ipbl=0
+crcm    minorig=2
+c
+c------------------------------------------------------------------------------
+c
+c   ***                    specify parameters                        ***
+c
+c   *** elcrit is the autoconversion thershold water content (gm/gm) ***
+c   ***  tlcrit is critical temperature below which the auto-        ***
+c   ***       conversion threshold is assumed to be zero             ***
+c   ***     (the autoconversion threshold varies linearly            ***
+c   ***               between 0 c and tlcrit)                        ***
+c   ***   entp is the coefficient of mixing in the entrainment       ***
+c   ***                       formulation                            ***
+c   ***  sigd is the fractional area covered by unsaturated dndraft  ***
+c   ***  sigs is the fraction of precipitation falling outside       ***
+c   ***                        of cloud                              ***
+c   ***        omtrain is the assumed fall speed (p/s) of rain       ***
+c   ***     omtsnow is the assumed fall speed (p/s) of snow          ***
+c   ***  coeffr is a coefficient governing the rate of evaporation   ***
+c   ***                          of rain                             ***
+c   ***  coeffs is a coefficient governing the rate of evaporation   ***
+c   ***                          of snow                             ***
+c   ***     cu is the coefficient governing convective momentum      ***
+c   ***                         transport                            ***
+c   ***    dtmax is the maximum negative temperature perturbation    ***
+c   ***        a lifted parcel is allowed to have below its lfc      ***
+c   ***    alphae and damp are parameters that control the rate of   ***
+c   ***                 approach to quasi-equilibrium                ***
+c   ***   (their standard values are  0.20 and 0.1, respectively)    ***
+c   ***                   (damp must be less than 1)                 ***
+c
+crcm addin
+c the following parameters in now in param.f
+c       elcrit=.0011
+c       tlcrit=-55.0
+c       entp=1.5
+c       sigd=0.05
+c       sigs=0.12
+c       omtrain=50.0
+c       omtsnow=5.5 
+c       coeffr=1.0
+c       coeffs=0.8
+c       cu=0.7
+c       betae=10.0
+c       dtmax=0.9
+c       alphae=0.2
+c       damp=0.1
+crcm end addin
+c
+c   ***        assign values of thermodynamic constants,        ***
+c   ***            gravity, and liquid water density.           ***
+c   ***             these should be consistent with             ***
+c   ***              those used in calling program              ***
+c   ***     note: these are also specified in subroutine tlift  ***
+c
+crcm  cpd=1005.7
+      cpd=1004.
+      cpv=1870.0
+crcm  cpv=cpd
+      cl=2500.0
+      rv=461.5
+      rd=287.04
+      lv0=2.501e6
+crcm  g=9.8
+      g=9.805
+      rowl=1000.0
+c
+      cpvmcl=cl-cpv 
+      eps=rd/rv
+      epsi=1./eps
+      ginv=1.0/g
+      delti=1.0/delt
+c
+c           ***  initialize output arrays and parameters  ***
+c
+      do 5 i=1,nd
+        ft(i)=0.0
+        fq(i)=0.0
+        fu(i)=0.0
+        fv(i)=0.0
+        do 4 j=1,ntra
+          ftra(i,j)=0.0
+    4   continue
+    5 continue
+      do 7 i=1,nl+1
+        rdcp=(rd*(1.-q(i))+q(i)*rv)/(cpd*(1.-q(i))+q(i)*cpv)
+        th(i)=t(i)*(1000.0/p(i))**rdcp
+    7 continue
+      precip=0.0
+      wd=0.0
+      tprime=0.0
+      qprime=0.0
+      iflag=0
+c
+      if (ipbl.ne.0) then
+c
+c     ***            perform dry adiabatic adjustment            ***
+c
+        jc=0
+        do 30 i=nl-1,1,-1
+          jn=0
+          sum=th(i)*(1.+q(i)*epsi-q(i))
+          do 10 j=i+1,nl
+            sum=sum+th(j)*(1.+q(j)*epsi-q(j))
+            thbar=sum/float(j+1-i)
+            if ((th(j)*(1.+q(j)*epsi-q(j))).lt.thbar)jn=j
+   10     continue
+          if (i.eq.1)jn=max(jn,2)
+          if (jn.eq.0)goto 30
+   12     continue
+          ahm=0.0
+          rm=0.0
+          um=0.0
+          vm=0.0
+          do k=1,ntra
+            tratm(k)=0.0
           end do
-          DO 15 J=I,JN
-            AHM=AHM+(CPD*(1.-Q(J))+Q(J)*CPV)*T(J)*(PH(J)-PH(J+1))
-            RM=RM+Q(J)*(PH(J)-PH(J+1))
-            UM=UM+U(J)*(PH(J)-PH(J+1))
-            VM=VM+V(J)*(PH(J)-PH(J+1))
-            DO K=1,NTRA
-              TRATM(K)=TRATM(K)+TRA(J,K)*(PH(J)-PH(J+1))
+          do 15 j=i,jn
+            ahm=ahm+(cpd*(1.-q(j))+q(j)*cpv)*t(j)*(ph(j)-ph(j+1))
+            rm=rm+q(j)*(ph(j)-ph(j+1))
+            um=um+u(j)*(ph(j)-ph(j+1))
+            vm=vm+v(j)*(ph(j)-ph(j+1))
+            do k=1,ntra
+              tratm(k)=tratm(k)+tra(j,k)*(ph(j)-ph(j+1))
             end do
-   15     CONTINUE
-          DPHINV=1./(PH(I)-PH(JN+1))
-          RM=RM*DPHINV
-          UM=UM*DPHINV
-          VM=VM*DPHINV
-          DO K=1,NTRA
-            TRATM(K)=TRATM(K)*DPHINV
+   15     continue
+          dphinv=1./(ph(i)-ph(jn+1))
+          rm=rm*dphinv
+          um=um*dphinv
+          vm=vm*dphinv
+          do k=1,ntra
+            tratm(k)=tratm(k)*dphinv
           end do
-          A2=0.0
-          DO 20 J=I,JN
-            Q(J)=RM
-            U(J)=UM
-            V(J)=VM
-            DO K=1,NTRA
-              TRA(J,K)=TRATM(K)
+          a2=0.0
+          do 20 j=i,jn
+            q(j)=rm
+            u(j)=um
+            v(j)=vm
+            do k=1,ntra
+              tra(j,k)=tratm(k)
             end do
-            RDCP=(RD*(1.-Q(J))+Q(J)*RV)/(CPD*(1.-Q(J))+Q(J)*CPV)  
-            X=(0.001*P(J))**RDCP
-            TOLD(J)=T(J)
-            T(J)=X
-            A2=A2+(CPD*(1.-Q(J))+Q(J)*CPV)*X*(PH(J)-PH(J+1))
-   20     CONTINUE
-          DO 25 J=I,JN
-            TH(J)=AHM/A2
-            T(J)=T(J)*TH(J)
-            TC=TOLD(J)-273.15
-            ALV=LV0-CPVMCL*TC
-            QS(J)=QS(J)+QS(J)*(1.+QS(J)*(EPSI-1.))*ALV*(T(J)-
-     1      TOLD(J))/(RV*TOLD(J)*TOLD(J))
-   25     CONTINUE
-          IF((TH(JN+1)*(1.+Q(JN+1)*EPSI-Q(JN+1))).LT.
-     1       (TH(JN)*(1.+Q(JN)*EPSI-Q(JN))))THEN
-            JN=JN+1
-            GOTO 12
+            rdcp=(rd*(1.-q(j))+q(j)*rv)/(cpd*(1.-q(j))+q(j)*cpv)  
+            x=(0.001*p(j))**rdcp
+            told(j)=t(j)
+            t(j)=x
+            a2=a2+(cpd*(1.-q(j))+q(j)*cpv)*x*(ph(j)-ph(j+1))
+   20     continue
+          do 25 j=i,jn
+            th(j)=ahm/a2
+            t(j)=t(j)*th(j)
+            tc=told(j)-273.15
+            alv=lv0-cpvmcl*tc
+            qs(j)=qs(j)+qs(j)*(1.+qs(j)*(epsi-1.))*alv*(t(j)-
+     1      told(j))/(rv*told(j)*told(j))
+   25     continue
+          if (((th(jn+1)*(1.+q(jn+1)*epsi-q(jn+1))).lt.
+     1       (th(jn)*(1.+q(jn)*epsi-q(jn))))) then
+            jn=jn+1
+            goto 12
           end if
-          IF(I.EQ.1)JC=JN 
-   30   CONTINUE
-C
-C   ***   Remove any supersaturation that results from adjustment ***
-C
-        IF(JC.GT.1)THEN
-          DO 38 J=1,JC
-            IF(QS(J).LT.Q(J))THEN 
-              ALV=LV0-CPVMCL*(T(J)-273.15)  
-              TNEW=T(J)+ALV*(Q(J)-QS(J))/(CPD*(1.-Q(J))+
-     1         CL*Q(J)+QS(J)*(CPV-CL+ALV*ALV/(RV*T(J)*T(J))))
-              ALVNEW=LV0-CPVMCL*(TNEW-273.15)
-              QNEW=(ALV*Q(J)-(TNEW-T(J))*(CPD*(1.-Q(J))+CL*Q(J)))/ALVNEW
-cRCM          PRECIP=PRECIP+24.*3600.*1.0E5*(PH(J)-PH(J+1))*  ! mm/d
-              PRECIP=PRECIP+1.0E5*(PH(J)-PH(J+1))*            ! mm/s
-     1         (Q(J)-QNEW)/(G*DELT*ROWL)
-              T(J)=TNEW
-              Q(J)=QNEW
-              QS(J)=QNEW
+          if (i.eq.1)jc=jn 
+   30   continue
+c
+c   ***   remove any supersaturation that results from adjustment ***
+c
+        if (jc.gt.1) then
+          do 38 j=1,jc
+            if (qs(j).lt.q(j)) then 
+              alv=lv0-cpvmcl*(t(j)-273.15)  
+              tnew=t(j)+alv*(q(j)-qs(j))/(cpd*(1.-q(j))+
+     1         cl*q(j)+qs(j)*(cpv-cl+alv*alv/(rv*t(j)*t(j))))
+              alvnew=lv0-cpvmcl*(tnew-273.15)
+              qnew=(alv*q(j)-(tnew-t(j))*(cpd*(1.-q(j))+cl*q(j)))/alvnew
+crcm          precip=precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
+              precip=precip+1.0e5*(ph(j)-ph(j+1))*            ! mm/s
+     1         (q(j)-qnew)/(g*delt*rowl)
+              t(j)=tnew
+              q(j)=qnew
+              qs(j)=qnew
             end if     
-   38     CONTINUE  
+   38     continue  
         end if
-C
+c
       end if
-C
-C  *** CALCULATE ARRAYS OF GEOPOTENTIAL, HEAT CAPACITY AND STATIC ENERGY
-C  
-      GZ(1)=0.0
-      CPN(1)=CPD*(1.-Q(1))+Q(1)*CPV
-      H(1)=T(1)*CPN(1)
-      LV(1)=LV0-CPVMCL*(T(1)-273.15)
-      HM(1)=LV(1)*Q(1)
-      TV(1)=T(1)*(1.+Q(1)*EPSI-Q(1))
-      AHMIN=1.0E12
-      IHMIN=NL
-      DO 40 I=2,NL+1
-        TVX=T(I)*(1.+Q(I)*EPSI-Q(I))
-        TVY=T(I-1)*(1.+Q(I-1)*EPSI-Q(I-1))
-        GZ(I)=GZ(I-1)+0.5*RD*(TVX+TVY)*(P(I-1)-P(I))/PH(I)
-        CPN(I)=CPD*(1.-Q(I))+CPV*Q(I)
-        H(I)=T(I)*CPN(I)+GZ(I)
-        LV(I)=LV0-CPVMCL*(T(I)-273.15)
-        HM(I)=(CPD*(1.-Q(I))+CL*Q(I))*(T(I)-T(1))+LV(I)*Q(I)+GZ(I)
-        TV(I)=T(I)*(1.+Q(I)*EPSI-Q(I))
-C
-C  ***  Find level of minimum moist static energy    ***
-C
-        IF(I.GE.MINORIG.AND.HM(I).LT.AHMIN.AND.HM(I).LT.HM(I-1))THEN
-          AHMIN=HM(I)
-          IHMIN=I
+c
+c  *** calculate arrays of geopotential, heat capacity and static energy
+c  
+      gz(1)=0.0
+      cpn(1)=cpd*(1.-q(1))+q(1)*cpv
+      h(1)=t(1)*cpn(1)
+      lv(1)=lv0-cpvmcl*(t(1)-273.15)
+      hm(1)=lv(1)*q(1)
+      tv(1)=t(1)*(1.+q(1)*epsi-q(1))
+      ahmin=1.0e12
+      ihmin=nl
+      do 40 i=2,nl+1
+        tvx=t(i)*(1.+q(i)*epsi-q(i))
+        tvy=t(i-1)*(1.+q(i-1)*epsi-q(i-1))
+        gz(i)=gz(i-1)+0.5*rd*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
+        cpn(i)=cpd*(1.-q(i))+cpv*q(i)
+        h(i)=t(i)*cpn(i)+gz(i)
+        lv(i)=lv0-cpvmcl*(t(i)-273.15)
+        hm(i)=(cpd*(1.-q(i))+cl*q(i))*(t(i)-t(1))+lv(i)*q(i)+gz(i)
+        tv(i)=t(i)*(1.+q(i)*epsi-q(i))
+c
+c  ***  find level of minimum moist static energy    ***
+c
+        if (i.ge.minorig.and.hm(i).lt.ahmin.and.hm(i).lt.hm(i-1)) then
+          ahmin=hm(i)
+          ihmin=i
         end if
-   40 CONTINUE
-      IHMIN=MIN(IHMIN, NL-1)
-C
-C  ***     Find that model level below the level of minimum moist       ***
-C  ***  static energy that has the maximum value of moist static energy ***
-C
-      AHMAX=0.0
-      DO 42 I=MINORIG,IHMIN
-        IF(HM(I).GT.AHMAX)THEN
-          NK=I
-          AHMAX=HM(I)
+   40 continue
+      ihmin=min(ihmin, nl-1)
+c
+c  ***     find that model level below the level of minimum moist       ***
+c  ***  static energy that has the maximum value of moist static energy ***
+c
+      ahmax=0.0
+      do 42 i=minorig,ihmin
+        if (hm(i).gt.ahmax) then
+          nk=i
+          ahmax=hm(i)
         end if
-   42 CONTINUE
-C
-C  ***  CHECK WHETHER PARCEL LEVEL TEMPERATURE AND SPECIFIC HUMIDITY   ***
-C  ***                          ARE REASONABLE                         ***
-C  ***      Skip convection if HM increases monotonically upward       ***
-C
-      IF(T(NK).LT.250.0.OR.Q(NK).LE.0.0.OR.IHMIN.EQ.(NL-1))THEN
-        IFLAG=0
-        CBMF=0.0
-        RETURN
+   42 continue
+c
+c  ***  check whether parcel level temperature and specific humidity   ***
+c  ***                          are reasonable                         ***
+c  ***      skip convection if hm increases monotonically upward       ***
+c
+      if (t(nk).lt.250.0.or.q(nk).le.0.0.or.ihmin.eq.(nl-1)) then
+        iflag=0
+        cbmf=0.0
+        return
       end if
-C
-C   ***  CALCULATE LIFTED CONDENSATION LEVEL OF AIR AT PARCEL ORIGIN LEVEL ***
-C   ***       (WITHIN 0.2% OF FORMULA OF BOLTON, MON. WEA. REV.,1980)      ***
-C
-      RH=Q(NK)/QS(NK)
-      CHI=T(NK)/(1669.0-122.0*RH-T(NK))
-      PLCL=P(NK)*(RH**CHI)
-      IF(PLCL.LT.200.0.OR.PLCL.GE.2000.0)THEN
-        IFLAG=2
-        CBMF=0.0
-        RETURN
+c
+c   ***  calculate lifted condensation level of air at parcel origin level ***
+c   ***       (within 0.2% of formula of bolton, mon. wea. rev.,1980)      ***
+c
+      rh=q(nk)/qs(nk)
+      chi=t(nk)/(1669.0-122.0*rh-t(nk))
+      plcl=p(nk)*(rh**chi)
+      if (plcl.lt.200.0.or.plcl.ge.2000.0) then
+        iflag=2
+        cbmf=0.0
+        return
       end if
-C
-C   ***  CALCULATE FIRST LEVEL ABOVE LCL (=ICB)  ***
-C
-      ICB=NL-1
-      DO 50 I=NK+1,NL
-        IF(P(I).LT.PLCL)THEN
-          ICB=MIN(ICB,I)
+c
+c   ***  calculate first level above lcl (=icb)  ***
+c
+      icb=nl-1
+      do 50 i=nk+1,nl
+        if (p(i).lt.plcl) then
+          icb=min(icb,i)
         end if
-   50 CONTINUE
-      IF(ICB.GE.(NL-1))THEN
-        IFLAG=3
-        CBMF=0.0
-        RETURN
+   50 continue
+      if (icb.ge.(nl-1)) then
+        iflag=3
+        cbmf=0.0
+        return
       end if
-C
-C   *** FIND TEMPERATURE UP THROUGH ICB AND TEST FOR INSTABILITY           ***
-C
-C   *** SUBROUTINE TLIFT CALCULATES PART OF THE LIFTED PARCEL VIRTUAL      ***
-C   ***  TEMPERATURE, THE ACTUAL TEMPERATURE AND THE ADIABATIC             ***
-C   ***                   LIQUID WATER CONTENT                             ***
-C
-      CALL TLIFT(P,T,Q,QS,GZ,ICB,NK,TVP,TP,CLW,ND,NL,1)
-      DO 54 I=NK,ICB
-        TVP(I)=TVP(I)-TP(I)*Q(NK)
-   54 CONTINUE
-C
-C   ***  If there was no convection at last time step and parcel    ***
-C   ***       is stable at ICB then skip rest of calculation        ***
-C
-      IF(CBMF.EQ.0.0.AND.TVP(ICB).LE.(TV(ICB)-DTMAX))THEN
-        IFLAG=0
-        RETURN
+c
+c   *** find temperature up through icb and test for instability           ***
+c
+c   *** subroutine tlift calculates part of the lifted parcel virtual      ***
+c   ***  temperature, the actual temperature and the adiabatic             ***
+c   ***                   liquid water content                             ***
+c
+      call tlift(p,t,q,qs,gz,icb,nk,tvp,tp,clw,nd,nl,1)
+      do 54 i=nk,icb
+        tvp(i)=tvp(i)-tp(i)*q(nk)
+   54 continue
+c
+c   ***  if there was no convection at last time step and parcel    ***
+c   ***       is stable at icb then skip rest of calculation        ***
+c
+      if (cbmf.eq.0.0.and.tvp(icb).le.(tv(icb)-dtmax)) then
+        iflag=0
+        return
       end if
-C
-C   ***  IF THIS POINT IS REACHED, MOIST CONVECTIVE ADJUSTMENT IS NECESSARY ***
-C
-      IF(IFLAG.NE.4)IFLAG=1
-C
-C   ***  FIND THE REST OF THE LIFTED PARCEL TEMPERATURES          ***
-C
-      CALL TLIFT(P,T,Q,QS,GZ,ICB,NK,TVP,TP,CLW,ND,NL,2)
-C
-C   ***  SET THE PRECIPITATION EFFICIENCIES AND THE FRACTION OF   ***
-C   ***          PRECIPITATION FALLING OUTSIDE OF CLOUD           ***
-C   ***      THESE MAY BE FUNCTIONS OF TP(I), P(I) AND CLW(I)     ***
-C                 
-      DO 57 I=1,NK
-        EP(I)=0.0
-        SIGP(I)=SIGS
-   57 CONTINUE
-      DO 60 I=NK+1,NL
-        TCA=TP(I)-273.15
-        IF(TCA.GE.0.0)THEN
-          ELACRIT=ELCRIT
-        ELSE
-          ELACRIT=ELCRIT*(1.0-TCA/TLCRIT)
+c
+c   ***  if this point is reached, moist convective adjustment is necessary ***
+c
+      if (iflag.ne.4)iflag=1
+c
+c   ***  find the rest of the lifted parcel temperatures          ***
+c
+      call tlift(p,t,q,qs,gz,icb,nk,tvp,tp,clw,nd,nl,2)
+c
+c   ***  set the precipitation efficiencies and the fraction of   ***
+c   ***          precipitation falling outside of cloud           ***
+c   ***      these may be functions of tp(i), p(i) and clw(i)     ***
+c                 
+      do 57 i=1,nk
+        ep(i)=0.0
+        sigp(i)=sigs
+   57 continue
+      do 60 i=nk+1,nl
+        tca=tp(i)-273.15
+        if (tca.ge.0.0) then
+          elacrit=elcrit
+        else
+          elacrit=elcrit*(1.0-tca/tlcrit)
         end if
-        ELACRIT=MAX(ELACRIT,0.0D0)
-        EPMAX=0.999
-        EP(I)=EPMAX*(1.0-ELACRIT/MAX(CLW(I),1.0D-8))
-        EP(I)=MAX(EP(I),0.0D0)
-        EP(I)=MIN(EP(I),EPMAX)
-        SIGP(I)=SIGS
-   60 CONTINUE
-C
-C   ***       CALCULATE VIRTUAL TEMPERATURE AND LIFTED PARCEL     ***
-C   ***                    VIRTUAL TEMPERATURE                    ***
-C
-      DO 64 I=ICB+1,NL
-        TVP(I)=TVP(I)-TP(I)*Q(NK)
-   64 CONTINUE
-      TVP(NL+1)=TVP(NL)-(GZ(NL+1)-GZ(NL))/CPD
-C
-C   ***        NOW INITIALIZE VARIOUS ARRAYS USED IN THE COMPUTATIONS       ***
-C
-      DO 70 I=1,NL+1
-        HP(I)=H(I)
-        NENT(I)=0
-        WATER(I)=0.0
-        EVAP(I)=0.0
-        WT(I)=OMTSNOW
-        MP(I)=0.0
-        M(I)=0.0
-        LVCP(I)=LV(I)/CPN(I)
-        DO 70 J=1,NL+1
-          QENT(I,J)=Q(J)
-          ELIJ(I,J)=0.0
-          MENT(I,J)=0.0
-          SIJ(I,J)=0.0
-          UENT(I,J)=U(J)
-          VENT(I,J)=V(J)
-          DO 70 K=1,NTRA
-            TRAENT(I,J,K)=TRA(J,K)
-   70 CONTINUE
-      QP(1)=Q(1)
-      UP(1)=U(1)
-      VP(1)=V(1)
-      DO 71 I=1,NTRA
-        TRAP(1,I)=TRA(1,I)
-   71 CONTINUE
-      DO 72 I=2,NL+1
-        QP(I)=Q(I-1)
-        UP(I)=U(I-1)
-        VP(I)=V(I-1)
-        DO 72 J=1,NTRA
-          TRAP(I,J)=TRA(I-1,J)
-   72 CONTINUE
-C
-C  ***  FIND THE FIRST MODEL LEVEL (INB1) ABOVE THE PARCEL'S      ***
-C  ***          HIGHEST LEVEL OF NEUTRAL BUOYANCY                 ***
-C  ***     AND THE HIGHEST LEVEL OF POSITIVE CAPE (INB)           ***
-C
-      CAPE=0.0
-      CAPEM=0.0
-      INB=ICB+1
-      INB1=INB
-      BYP=0.0
-      DO 82 I=ICB+1,NL-1
-        BY=(TVP(I)-TV(I))*(PH(I)-PH(I+1))/P(I)
-        CAPE=CAPE+BY
-        IF(BY.GE.0.0)INB1=I+1
-        IF(CAPE.GT.0.0)THEN
-          INB=I+1
-          BYP=(TVP(I+1)-TV(I+1))*(PH(I+1)-PH(I+2))/P(I+1)
-          CAPEM=CAPE
+        elacrit=max(elacrit,0.0d0)
+        epmax=0.999
+        ep(i)=epmax*(1.0-elacrit/max(clw(i),1.0d-8))
+        ep(i)=max(ep(i),0.0d0)
+        ep(i)=min(ep(i),epmax)
+        sigp(i)=sigs
+   60 continue
+c
+c   ***       calculate virtual temperature and lifted parcel     ***
+c   ***                    virtual temperature                    ***
+c
+      do 64 i=icb+1,nl
+        tvp(i)=tvp(i)-tp(i)*q(nk)
+   64 continue
+      tvp(nl+1)=tvp(nl)-(gz(nl+1)-gz(nl))/cpd
+c
+c   ***        now initialize various arrays used in the computations       ***
+c
+      do 70 i=1,nl+1
+        hp(i)=h(i)
+        nent(i)=0
+        water(i)=0.0
+        evap(i)=0.0
+        wt(i)=omtsnow
+        mp(i)=0.0
+        m(i)=0.0
+        lvcp(i)=lv(i)/cpn(i)
+        do 70 j=1,nl+1
+          qent(i,j)=q(j)
+          elij(i,j)=0.0
+          ment(i,j)=0.0
+          sij(i,j)=0.0
+          uent(i,j)=u(j)
+          vent(i,j)=v(j)
+          do 70 k=1,ntra
+            traent(i,j,k)=tra(j,k)
+   70 continue
+      qp(1)=q(1)
+      up(1)=u(1)
+      vp(1)=v(1)
+      do 71 i=1,ntra
+        trap(1,i)=tra(1,i)
+   71 continue
+      do 72 i=2,nl+1
+        qp(i)=q(i-1)
+        up(i)=u(i-1)
+        vp(i)=v(i-1)
+        do 72 j=1,ntra
+          trap(i,j)=tra(i-1,j)
+   72 continue
+c
+c  ***  find the first model level (inb1) above the parcel's      ***
+c  ***          highest level of neutral buoyancy                 ***
+c  ***     and the highest level of positive cape (inb)           ***
+c
+      cape=0.0
+      capem=0.0
+      inb=icb+1
+      inb1=inb
+      byp=0.0
+      do 82 i=icb+1,nl-1
+        by=(tvp(i)-tv(i))*(ph(i)-ph(i+1))/p(i)
+        cape=cape+by
+        if (by.ge.0.0)inb1=i+1
+        if (cape.gt.0.0) then
+          inb=i+1
+          byp=(tvp(i+1)-tv(i+1))*(ph(i+1)-ph(i+2))/p(i+1)
+          capem=cape
         end if
-   82 CONTINUE
-      INB=MAX(INB,INB1)
-      CAPE=CAPEM+BYP
-      DEFRAC=CAPEM-CAPE
-      DEFRAC=MAX(DEFRAC,0.001D0)
-      FRAC=-CAPE/DEFRAC
-      FRAC=MIN(FRAC,1.0D0)
-      FRAC=MAX(FRAC,0.0D0)
-C
-C   ***   CALCULATE LIQUID WATER STATIC ENERGY OF LIFTED PARCEL   ***
-C
-      DO 95 I=ICB,INB
-        HP(I)=H(NK)+(LV(I)+(CPD-CPV)*T(I))*EP(I)*CLW(I)
-   95 CONTINUE                  
-C
-C   ***  CALCULATE CLOUD BASE MASS FLUX AND RATES OF MIXING, M(I),  ***
-c   ***                   AT EACH MODEL LEVEL                       ***
-C
-      DBOSUM=0.0
-C   
-C   ***     INTERPOLATE DIFFERENCE BETWEEN LIFTED PARCEL AND      ***
-C   ***  ENVIRONMENTAL TEMPERATURES TO LIFTED CONDENSATION LEVEL  ***
-C
-      TVPPLCL=TVP(ICB-1)-RD*TVP(ICB-1)*(P(ICB-1)-PLCL)/
-     1    (CPN(ICB-1)*P(ICB-1))
-      TVAPLCL=TV(ICB)+(TVP(ICB)-TVP(ICB+1))*(PLCL-P(ICB))/
-     1    (P(ICB)-P(ICB+1))
-      DTPBL=0.0
-      DO 96 I=NK,ICB-1
-        DTPBL=DTPBL+(TVP(I)-TV(I))*(PH(I)-PH(I+1))
-   96 CONTINUE
-      DTPBL=DTPBL/(PH(NK)-PH(ICB))
-      DTMIN=TVPPLCL-TVAPLCL+DTMAX+DTPBL
-      DTMA=DTMIN
-C
-C   ***  ADJUST CLOUD BASE MASS FLUX   ***
-C
-      CBMFOLD=CBMF
-      DELT0=300.0
-      DAMPS=DAMP*DELT/DELT0 
-      CBMF=(1.-DAMPS)*CBMF+0.1*ALPHAE*DTMA 
-      CBMF=MAX(CBMF,0.0D0)
-CRCM ADDIN
+   82 continue
+      inb=max(inb,inb1)
+      cape=capem+byp
+      defrac=capem-cape
+      defrac=max(defrac,0.001d0)
+      frac=-cape/defrac
+      frac=min(frac,1.0d0)
+      frac=max(frac,0.0d0)
+c
+c   ***   calculate liquid water static energy of lifted parcel   ***
+c
+      do 95 i=icb,inb
+        hp(i)=h(nk)+(lv(i)+(cpd-cpv)*t(i))*ep(i)*clw(i)
+   95 continue                  
+c
+c   ***  calculate cloud base mass flux and rates of mixing, m(i),  ***
+c   ***                   at each model level                       ***
+c
+      dbosum=0.0
+c   
+c   ***     interpolate difference between lifted parcel and      ***
+c   ***  environmental temperatures to lifted condensation level  ***
+c
+      tvpplcl=tvp(icb-1)-rd*tvp(icb-1)*(p(icb-1)-plcl)/
+     1    (cpn(icb-1)*p(icb-1))
+      tvaplcl=tv(icb)+(tvp(icb)-tvp(icb+1))*(plcl-p(icb))/
+     1    (p(icb)-p(icb+1))
+      dtpbl=0.0
+      do 96 i=nk,icb-1
+        dtpbl=dtpbl+(tvp(i)-tv(i))*(ph(i)-ph(i+1))
+   96 continue
+      dtpbl=dtpbl/(ph(nk)-ph(icb))
+      dtmin=tvpplcl-tvaplcl+dtmax+dtpbl
+      dtma=dtmin
+c
+c   ***  adjust cloud base mass flux   ***
+c
+      cbmfold=cbmf
+      delt0=300.0
+      damps=damp*delt/delt0 
+      cbmf=(1.-damps)*cbmf+0.1*alphae*dtma 
+      cbmf=max(cbmf,0.0d0)
+crcm addin
 c     cbmfmax = delti*ginv*(ph(minorig)-ph(minorig+1))/(0.01*2.)
 c     cbmfmax = delti*ginv*(ph(1)-ph(2))/(0.01*2.)
-c     CBMF=MIN(CBMF,0.75*cbmfmax)
-CRCM END ADDIN
-C
-C   *** If cloud base mass flux is zero, skip rest of calculation  ***
-C
-      IF(CBMF.EQ.0.0.AND.CBMFOLD.EQ.0.0)THEN
-        RETURN
+c     cbmf=min(cbmf,0.75*cbmfmax)
+crcm end addin
+c
+c   *** if cloud base mass flux is zero, skip rest of calculation  ***
+c
+      if (cbmf.eq.0.0.and.cbmfold.eq.0.0) then
+        return
       end if
-C
-C   ***   CALCULATE RATES OF MIXING,  M(I)   ***
-C
-      M(ICB)=0.0
-      DO 103 I=ICB+1,INB
-        K=MIN(I,INB1)
-        DBO=ABS(TV(K)-TVP(K))+ENTP*0.02*(PH(K)-PH(K+1))
-        DBOSUM=DBOSUM+DBO
-        M(I)=CBMF*DBO
-  103 CONTINUE
-      DO 110 I=ICB+1,INB
-        M(I)=M(I)/DBOSUM  
-  110 CONTINUE     
-C
-C   ***  CALCULATE ENTRAINED AIR MASS FLUX (MENT), TOTAL WATER MIXING  ***
-C   ***     RATIO (QENT), TOTAL CONDENSED WATER (ELIJ), AND MIXING     ***
-C   ***                        FRACTION (SIJ)                          ***
-C
-      DO 170 I=ICB+1,INB
-        QTI=Q(NK)-EP(I)*CLW(I)
-        DO 160 J=ICB,INB
-          BF2=1.+LV(J)*LV(J)*QS(J)/(RV*T(J)*T(J)*CPD)
-          ANUM=H(J)-HP(I)+(CPV-CPD)*T(J)*(QTI-Q(J))
-          DENOM=H(I)-HP(I)+(CPD-CPV)*(Q(I)-QTI)*T(J)
-          DEI=DENOM
-          IF(ABS(DEI).LT.0.01)DEI=0.01
-          SIJ(I,J)=ANUM/DEI
-          SIJ(I,I)=1.0
-          ALTEM=SIJ(I,J)*Q(I)+(1.-SIJ(I,J))*QTI-QS(J)
-          ALTEM=ALTEM/BF2
-          CWAT=CLW(J)*(1.-EP(J))
-          STEMP=SIJ(I,J)
-          IF((STEMP.LT.0.0.OR.STEMP.GT.1.0.OR.ALTEM.GT.CWAT).AND.
-     &        J.GT.I)THEN
-            ANUM=ANUM-LV(J)*(QTI-QS(J)-CWAT*BF2)
-            DENOM=DENOM+LV(J)*(Q(I)-QTI)
-            IF(ABS(DENOM).LT.0.01)DENOM=0.01
-            SIJ(I,J)=ANUM/DENOM
-            ALTEM=SIJ(I,J)*Q(I)+(1.-SIJ(I,J))*QTI-QS(J)
-            ALTEM=ALTEM-(BF2-1.)*CWAT
+c
+c   ***   calculate rates of mixing,  m(i)   ***
+c
+      m(icb)=0.0
+      do 103 i=icb+1,inb
+        k=min(i,inb1)
+        dbo=abs(tv(k)-tvp(k))+entp*0.02*(ph(k)-ph(k+1))
+        dbosum=dbosum+dbo
+        m(i)=cbmf*dbo
+  103 continue
+      do 110 i=icb+1,inb
+        m(i)=m(i)/dbosum  
+  110 continue     
+c
+c   ***  calculate entrained air mass flux (ment), total water mixing  ***
+c   ***     ratio (qent), total condensed water (elij), and mixing     ***
+c   ***                        fraction (sij)                          ***
+c
+      do 170 i=icb+1,inb
+        qti=q(nk)-ep(i)*clw(i)
+        do 160 j=icb,inb
+          bf2=1.+lv(j)*lv(j)*qs(j)/(rv*t(j)*t(j)*cpd)
+          anum=h(j)-hp(i)+(cpv-cpd)*t(j)*(qti-q(j))
+          denom=h(i)-hp(i)+(cpd-cpv)*(q(i)-qti)*t(j)
+          dei=denom
+          if (abs(dei).lt.0.01)dei=0.01
+          sij(i,j)=anum/dei
+          sij(i,i)=1.0
+          altem=sij(i,j)*q(i)+(1.-sij(i,j))*qti-qs(j)
+          altem=altem/bf2
+          cwat=clw(j)*(1.-ep(j))
+          stemp=sij(i,j)
+          if ((stemp.lt.0.0.or.stemp.gt.1.0.or.altem.gt.cwat).and.
+     &        j.gt.i) then
+            anum=anum-lv(j)*(qti-qs(j)-cwat*bf2)
+            denom=denom+lv(j)*(q(i)-qti)
+            if (abs(denom).lt.0.01)denom=0.01
+            sij(i,j)=anum/denom
+            altem=sij(i,j)*q(i)+(1.-sij(i,j))*qti-qs(j)
+            altem=altem-(bf2-1.)*cwat
           end if
-          IF(SIJ(I,J).GT.0.0.AND.SIJ(I,J).LT.0.9)THEN
-            QENT(I,J)=SIJ(I,J)*Q(I)+(1.-SIJ(I,J))*QTI
-            UENT(I,J)=SIJ(I,J)*U(I)+(1.-SIJ(I,J))*U(NK)
-            VENT(I,J)=SIJ(I,J)*V(I)+(1.-SIJ(I,J))*V(NK)
-            DO K=1,NTRA
-              TRAENT(I,J,K)=SIJ(I,J)*TRA(I,K)+(1.-SIJ(I,J))*TRA(NK,K)
+          if (sij(i,j).gt.0.0.and.sij(i,j).lt.0.9) then
+            qent(i,j)=sij(i,j)*q(i)+(1.-sij(i,j))*qti
+            uent(i,j)=sij(i,j)*u(i)+(1.-sij(i,j))*u(nk)
+            vent(i,j)=sij(i,j)*v(i)+(1.-sij(i,j))*v(nk)
+            do k=1,ntra
+              traent(i,j,k)=sij(i,j)*tra(i,k)+(1.-sij(i,j))*tra(nk,k)
             end do
-            ELIJ(I,J)=ALTEM
-            ELIJ(I,J)=MAX(0.0D0,ELIJ(I,J))
-            MENT(I,J)=M(I)/(1.-SIJ(I,J))
-            NENT(I)=NENT(I)+1
+            elij(i,j)=altem
+            elij(i,j)=max(0.0d0,elij(i,j))
+            ment(i,j)=m(i)/(1.-sij(i,j))
+            nent(i)=nent(i)+1
           end if
-          SIJ(I,J)=MAX(0.0D0,SIJ(I,J))
-          SIJ(I,J)=MIN(1.0D0,SIJ(I,J))
-  160   CONTINUE
-C
-C   ***   IF NO AIR CAN ENTRAIN AT LEVEL I ASSUME THAT UPDRAFT DETRAINS  ***
-C   ***   AT THAT LEVEL AND CALCULATE DETRAINED AIR FLUX AND PROPERTIES  ***
-C
-        IF(NENT(I).EQ.0)THEN
-          MENT(I,I)=M(I)
-          QENT(I,I)=Q(NK)-EP(I)*CLW(I)
-          UENT(I,I)=U(NK)
-          VENT(I,I)=V(NK)
-          DO J=1,NTRA
-            TRAENT(I,I,J)=TRA(NK,J)
+          sij(i,j)=max(0.0d0,sij(i,j))
+          sij(i,j)=min(1.0d0,sij(i,j))
+  160   continue
+c
+c   ***   if no air can entrain at level i assume that updraft detrains  ***
+c   ***   at that level and calculate detrained air flux and properties  ***
+c
+        if (nent(i).eq.0) then
+          ment(i,i)=m(i)
+          qent(i,i)=q(nk)-ep(i)*clw(i)
+          uent(i,i)=u(nk)
+          vent(i,i)=v(nk)
+          do j=1,ntra
+            traent(i,i,j)=tra(nk,j)
           end do
-          ELIJ(I,I)=CLW(I)
-          SIJ(I,I)=1.0
+          elij(i,i)=clw(i)
+          sij(i,i)=1.0
         end if 
-  170 CONTINUE
-      SIJ(INB,INB)=1.0
-C
-C   ***  NORMALIZE ENTRAINED AIR MASS FLUXES TO REPRESENT EQUAL  ***
-C   ***              PROBABILITIES OF MIXING                     ***
-C
-      DO 200 I=ICB+1,INB
-        IF(NENT(I).NE.0)THEN
-          QP1=Q(NK)-EP(I)*CLW(I)
-          ANUM=H(I)-HP(I)-LV(I)*(QP1-QS(I))
-          DENOM=H(I)-HP(I)+LV(I)*(Q(I)-QP1)
-          IF(ABS(DENOM).LT.0.01)DENOM=0.01
-          SCRIT=ANUM/DENOM
-          ALT=QP1-QS(I)+SCRIT*(Q(I)-QP1)
-          IF(ALT.LT.0.0)SCRIT=1.0
-          SCRIT=MAX(SCRIT,0.0D0)
-          ASIJ=0.0
-          SMIN=1.0
-          DO 175 J=ICB,INB
-            IF(SIJ(I,J).GT.0.0.AND.SIJ(I,J).LT.0.9)THEN
-              IF(J.GT.I)THEN
-                SMID=MIN(SIJ(I,J),SCRIT)
-                SJMAX=SMID
-                SJMIN=SMID
-                IF(SMID.LT.SMIN.AND.SIJ(I,J+1).LT.SMID)THEN
-                  SMIN=SMID
-                  SJMAX=MIN(SIJ(I,J+1),SIJ(I,J),SCRIT)
-                  SJMIN=MAX(SIJ(I,J-1),SIJ(I,J))
-                  SJMIN=MIN(SJMIN,SCRIT)
+  170 continue
+      sij(inb,inb)=1.0
+c
+c   ***  normalize entrained air mass fluxes to represent equal  ***
+c   ***              probabilities of mixing                     ***
+c
+      do 200 i=icb+1,inb
+        if (nent(i).ne.0) then
+          qp1=q(nk)-ep(i)*clw(i)
+          anum=h(i)-hp(i)-lv(i)*(qp1-qs(i))
+          denom=h(i)-hp(i)+lv(i)*(q(i)-qp1)
+          if (abs(denom).lt.0.01)denom=0.01
+          scrit=anum/denom
+          alt=qp1-qs(i)+scrit*(q(i)-qp1)
+          if (alt.lt.0.0)scrit=1.0
+          scrit=max(scrit,0.0d0)
+          asij=0.0
+          smin=1.0
+          do 175 j=icb,inb
+            if (sij(i,j).gt.0.0.and.sij(i,j).lt.0.9) then
+              if (j.gt.i) then
+                smid=min(sij(i,j),scrit)
+                sjmax=smid
+                sjmin=smid
+                if (smid.lt.smin.and.sij(i,j+1).lt.smid) then
+                  smin=smid
+                  sjmax=min(sij(i,j+1),sij(i,j),scrit)
+                  sjmin=max(sij(i,j-1),sij(i,j))
+                  sjmin=min(sjmin,scrit)
                 end if
-              ELSE
-                SJMAX=MAX(SIJ(I,J+1),SCRIT)
-                SMID=MAX(SIJ(I,J),SCRIT)
-                SJMIN=0.0
-                IF(J.GT.1)SJMIN=SIJ(I,J-1)
-                SJMIN=MAX(SJMIN,SCRIT)
+              else
+                sjmax=max(sij(i,j+1),scrit)
+                smid=max(sij(i,j),scrit)
+                sjmin=0.0
+                if (j.gt.1)sjmin=sij(i,j-1)
+                sjmin=max(sjmin,scrit)
               end if
-              DELP=ABS(SJMAX-SMID)
-              DELM=ABS(SJMIN-SMID)
-              ASIJ=ASIJ+(DELP+DELM)*(PH(J)-PH(J+1))
-              MENT(I,J)=MENT(I,J)*(DELP+DELM)*(PH(J)-PH(J+1))
+              delp=abs(sjmax-smid)
+              delm=abs(sjmin-smid)
+              asij=asij+(delp+delm)*(ph(j)-ph(j+1))
+              ment(i,j)=ment(i,j)*(delp+delm)*(ph(j)-ph(j+1))
             end if
-  175     CONTINUE
-          ASIJ=MAX(1.0D-21,ASIJ)
-          ASIJ=1.0/ASIJ
-          DO 180 J=ICB,INB
-            MENT(I,J)=MENT(I,J)*ASIJ
-  180     CONTINUE
-          BSUM=0.0
-          DO 190 J=ICB,INB
-            BSUM=BSUM+MENT(I,J)
-  190     CONTINUE
-          IF(BSUM.LT.1.0E-18)THEN
-            NENT(I)=0
-            MENT(I,I)=M(I)
-            QENT(I,I)=Q(NK)-EP(I)*CLW(I)
-            UENT(I,I)=U(NK)
-            VENT(I,I)=V(NK)
-            DO J=1,NTRA
-              TRAENT(I,I,J)=TRA(NK,J)
+  175     continue
+          asij=max(1.0d-21,asij)
+          asij=1.0/asij
+          do 180 j=icb,inb
+            ment(i,j)=ment(i,j)*asij
+  180     continue
+          bsum=0.0
+          do 190 j=icb,inb
+            bsum=bsum+ment(i,j)
+  190     continue
+          if (bsum.lt.1.0e-18) then
+            nent(i)=0
+            ment(i,i)=m(i)
+            qent(i,i)=q(nk)-ep(i)*clw(i)
+            uent(i,i)=u(nk)
+            vent(i,i)=v(nk)
+            do j=1,ntra
+              traent(i,i,j)=tra(nk,j)
             end do
-            ELIJ(I,I)=CLW(I)
-            SIJ(I,I)=1.0
+            elij(i,i)=clw(i)
+            sij(i,i)=1.0
           end if
         end if
-  200 CONTINUE
-C
-C   ***  CHECK WHETHER EP(INB)=0, IF SO, SKIP PRECIPITATING    ***
-C   ***             DOWNDRAFT CALCULATION                      ***
-C
-      IF(EP(INB).LT.0.0001)GOTO 405
-C
-C   ***  INTEGRATE LIQUID WATER EQUATION TO FIND CONDENSED WATER   ***
-C   ***                AND CONDENSED WATER FLUX                    ***
-C
-      JTT=2
-C
-C    ***                    BEGIN DOWNDRAFT LOOP                    ***
-C
-      DO 400 I=INB,1,-1
-C
-C    ***              CALCULATE DETRAINED PRECIPITATION             ***
-C
-        WDTRAIN=G*EP(I)*M(I)*CLW(I)
-        IF(I.GT.1)THEN
-          DO 320 J=1,I-1
-            AWAT=ELIJ(J,I)-(1.-EP(I))*CLW(I)
-            AWAT=MAX(0.0D0,AWAT)
-  320       WDTRAIN=WDTRAIN+G*AWAT*MENT(J,I)
-        end if
-C
-C    ***    FIND RAIN WATER AND EVAPORATION USING PROVISIONAL   ***
-C    ***              ESTIMATES OF QP(I)AND QP(I-1)             ***
-C     
+  200 continue
 c
-c  ***  Value of terminal velocity and coefficient of evaporation for snow   ***
+c   ***  check whether ep(inb)=0, if so, skip precipitating    ***
+c   ***             downdraft calculation                      ***
+c
+      if (ep(inb).lt.0.0001)goto 405
+c
+c   ***  integrate liquid water equation to find condensed water   ***
+c   ***                and condensed water flux                    ***
+c
+      jtt=2
+c
+c    ***                    begin downdraft loop                    ***
+c
+      do 400 i=inb,1,-1
+c
+c    ***              calculate detrained precipitation             ***
+c
+        wdtrain=g*ep(i)*m(i)*clw(i)
+        if (i.gt.1) then
+          do 320 j=1,i-1
+            awat=elij(j,i)-(1.-ep(i))*clw(i)
+            awat=max(0.0d0,awat)
+  320       wdtrain=wdtrain+g*awat*ment(j,i)
+        end if
+c
+c    ***    find rain water and evaporation using provisional   ***
+c    ***              estimates of qp(i)and qp(i-1)             ***
+c     
+c
+c  ***  value of terminal velocity and coefficient of evaporation for snow   ***
 c 
-        COEFF=COEFFS
-        WT(I)=OMTSNOW
+        coeff=coeffs
+        wt(i)=omtsnow
 c      
-c  ***  Value of terminal velocity and coefficient of evaporation for rain   ***
+c  ***  value of terminal velocity and coefficient of evaporation for rain   ***
 c
-        IF(T(I).GT.273.0)THEN
-          COEFF=COEFFR
-          WT(I)=OMTRAIN
+        if (t(i).gt.273.0) then
+          coeff=coeffr
+          wt(i)=omtrain
         end if
-        QSM=0.5*(Q(I)+QP(I+1))
-        AFAC=COEFF*PH(I)*(QS(I)-QSM)/(1.0E4+2.0E3*PH(I)*QS(I))
-        AFAC=MAX(AFAC,0.0D0)
-        SIGT=SIGP(I)
-        SIGT=MAX(0.0D0,SIGT)
-        SIGT=MIN(1.0D0,SIGT)
-        B6=100.*(PH(I)-PH(I+1))*SIGT*AFAC/WT(I)
-        C6=(WATER(I+1)*WT(I+1)+WDTRAIN/SIGD)/WT(I)
-        REVAP=0.5*(-B6+SQRT(B6*B6+4.*C6))
-        EVAP(I)=SIGT*AFAC*REVAP
-        WATER(I)=REVAP*REVAP
-C
-C    ***  CALCULATE PRECIPITATING DOWNDRAFT MASS FLUX UNDER     ***
-C    ***              HYDROSTATIC APPROXIMATION                 ***
-C   
-        IF(I.EQ.1)GOTO 360
-        DHDP=(H(I)-H(I-1))/(P(I-1)-P(I))
-        DHDP=MAX(DHDP,10.0D0)
-        MP(I)=100.*GINV*LV(I)*SIGD*EVAP(I)/DHDP
-        MP(I)=MAX(MP(I),0.0D0)
-C
-C   ***   ADD SMALL AMOUNT OF INERTIA TO DOWNDRAFT              ***
-C
-        FAC=20.0/(PH(I-1)-PH(I))
-        MP(I)=(FAC*MP(I+1)+MP(I))/(1.+FAC)
-C   
-C    ***      FORCE MP TO DECREASE LINEARLY TO ZERO                 ***
-C    ***      BETWEEN ABOUT 950 MB AND THE SURFACE                  ***
-C
-        IF(P(I).GT.(0.949*P(1)))THEN
-          JTT=MAX(JTT,I)
-          MP(I)=MP(JTT)*(P(1)-P(I))/(P(1)-P(JTT))
+        qsm=0.5*(q(i)+qp(i+1))
+        afac=coeff*ph(i)*(qs(i)-qsm)/(1.0e4+2.0e3*ph(i)*qs(i))
+        afac=max(afac,0.0d0)
+        sigt=sigp(i)
+        sigt=max(0.0d0,sigt)
+        sigt=min(1.0d0,sigt)
+        b6=100.*(ph(i)-ph(i+1))*sigt*afac/wt(i)
+        c6=(water(i+1)*wt(i+1)+wdtrain/sigd)/wt(i)
+        revap=0.5*(-b6+sqrt(b6*b6+4.*c6))
+        evap(i)=sigt*afac*revap
+        water(i)=revap*revap
+c
+c    ***  calculate precipitating downdraft mass flux under     ***
+c    ***              hydrostatic approximation                 ***
+c   
+        if (i.eq.1)goto 360
+        dhdp=(h(i)-h(i-1))/(p(i-1)-p(i))
+        dhdp=max(dhdp,10.0d0)
+        mp(i)=100.*ginv*lv(i)*sigd*evap(i)/dhdp
+        mp(i)=max(mp(i),0.0d0)
+c
+c   ***   add small amount of inertia to downdraft              ***
+c
+        fac=20.0/(ph(i-1)-ph(i))
+        mp(i)=(fac*mp(i+1)+mp(i))/(1.+fac)
+c   
+c    ***      force mp to decrease linearly to zero                 ***
+c    ***      between about 950 mb and the surface                  ***
+c
+        if (p(i).gt.(0.949*p(1))) then
+          jtt=max(jtt,i)
+          mp(i)=mp(jtt)*(p(1)-p(i))/(p(1)-p(jtt))
         end if              
-  360   CONTINUE
-C
-C    ***       FIND MIXING RATIO OF PRECIPITATING DOWNDRAFT     ***
-C
-        IF(I.EQ.INB)GOTO 400
-        IF(I.EQ.1)THEN
-          QSTM=QS(1)
-        ELSE
-          QSTM=QS(I-1)
+  360   continue
+c
+c    ***       find mixing ratio of precipitating downdraft     ***
+c
+        if (i.eq.inb)goto 400
+        if (i.eq.1) then
+          qstm=qs(1)
+        else
+          qstm=qs(i-1)
         end if
-        IF(MP(I).GT.MP(I+1))THEN
-          RAT=MP(I+1)/MP(I)
-          QP(I)=QP(I+1)*RAT+Q(I)*(1.0-RAT)+100.*GINV*
-     1       SIGD*(PH(I)-PH(I+1))*(EVAP(I)/MP(I))
-          UP(I)=UP(I+1)*RAT+U(I)*(1.-RAT)
-          VP(I)=VP(I+1)*RAT+V(I)*(1.-RAT)
-          DO J=1,NTRA
-            TRAP(I,J)=TRAP(I+1,J)*RAT+TRAP(I,J)*(1.-RAT)
+        if (mp(i).gt.mp(i+1)) then
+          rat=mp(i+1)/mp(i)
+          qp(i)=qp(i+1)*rat+q(i)*(1.0-rat)+100.*ginv*
+     1       sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
+          up(i)=up(i+1)*rat+u(i)*(1.-rat)
+          vp(i)=vp(i+1)*rat+v(i)*(1.-rat)
+          do j=1,ntra
+            trap(i,j)=trap(i+1,j)*rat+trap(i,j)*(1.-rat)
           end do
-        ELSE
-          IF(MP(I+1).GT.0.0)THEN
-            QP(I)=(GZ(I+1)-GZ(I)+QP(I+1)*(LV(I+1)+T(I+1)*(
-     1        CL-CPD))+CPD*(T(I+1)-T(I)))/(LV(I)+T(I)*(CL-CPD))
-            UP(I)=UP(I+1)
-            VP(I)=VP(I+1)
-            DO J=1,NTRA
-              TRAP(I,J)=TRAP(I+1,J)
+        else
+          if (mp(i+1).gt.0.0) then
+            qp(i)=(gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(i+1)*(
+     1        cl-cpd))+cpd*(t(i+1)-t(i)))/(lv(i)+t(i)*(cl-cpd))
+            up(i)=up(i+1)
+            vp(i)=vp(i+1)
+            do j=1,ntra
+              trap(i,j)=trap(i+1,j)
             end do
           end if
         end if
-        QP(I)=MIN(QP(I),QSTM)
-        QP(I)=MAX(QP(I),0.0D0)
-  400 CONTINUE
-C
-C   ***  CALCULATE SURFACE PRECIPITATION IN MM/S     ***
-C
-cRCM  PRECIP=PRECIP+WT(1)*SIGD*WATER(1)*3600.*24000./(ROWL*G)  ! mm/d
-      PRECIP=PRECIP+WT(1)*SIGD*WATER(1)*1000./(ROWL*G)  ! mm/s
-C
-  405 CONTINUE
-C
-C   ***  CALCULATE DOWNDRAFT VELOCITY SCALE AND SURFACE TEMPERATURE AND  ***
-c   ***                    WATER VAPOR FLUCTUATIONS                      ***
-C
-      WD=BETAE*ABS(MP(ICB))*0.01*RD*T(ICB)/(SIGD*P(ICB))
-      QPRIME=0.5*(QP(1)-Q(1))
-      TPRIME=LV0*QPRIME/CPD
-C
-C   ***  CALCULATE TENDENCIES OF LOWEST LEVEL POTENTIAL TEMPERATURE  ***
-C   ***                      AND MIXING RATIO                        ***
-C
-      DPINV=0.01/(PH(1)-PH(2))
-      AM=0.0
-      IF(NK.EQ.1)THEN
-        DO 410 K=2,INB
-  410     AM=AM+M(K)
+        qp(i)=min(qp(i),qstm)
+        qp(i)=max(qp(i),0.0d0)
+  400 continue
+c
+c   ***  calculate surface precipitation in mm/s     ***
+c
+crcm  precip=precip+wt(1)*sigd*water(1)*3600.*24000./(rowl*g)  ! mm/d
+      precip=precip+wt(1)*sigd*water(1)*1000./(rowl*g)  ! mm/s
+c
+  405 continue
+c
+c   ***  calculate downdraft velocity scale and surface temperature and  ***
+c   ***                    water vapor fluctuations                      ***
+c
+      wd=betae*abs(mp(icb))*0.01*rd*t(icb)/(sigd*p(icb))
+      qprime=0.5*(qp(1)-q(1))
+      tprime=lv0*qprime/cpd
+c
+c   ***  calculate tendencies of lowest level potential temperature  ***
+c   ***                      and mixing ratio                        ***
+c
+      dpinv=0.01/(ph(1)-ph(2))
+      am=0.0
+      if (nk.eq.1) then
+        do 410 k=2,inb
+  410     am=am+m(k)
       end if
-      IF((2.*G*DPINV*AM).GE.DELTI) IFLAG=4
-      FT(1)=FT(1)+G*DPINV*AM*(T(2)-T(1)+(GZ(2)-GZ(1))/CPN(1))
-      FT(1)=FT(1)-LVCP(1)*SIGD*EVAP(1)
-      FT(1)=FT(1)+SIGD*WT(2)*(CL-CPD)*WATER(2)*(T(2)-T(1))*DPINV/CPN(1)
-      FQ(1)=FQ(1)+G*MP(2)*(QP(2)-Q(1))*DPINV+SIGD*EVAP(1)
-      FQ(1)=FQ(1)+G*AM*(Q(2)-Q(1))*DPINV
-      FU(1)=FU(1)+G*DPINV*(MP(2)*(UP(2)-U(1))+AM*(U(2)-U(1)))
-      FV(1)=FV(1)+G*DPINV*(MP(2)*(VP(2)-V(1))+AM*(V(2)-V(1)))
-      DO J=1,NTRA
-        FTRA(1,J)=FTRA(1,J)+G*DPINV*(MP(2)*(TRAP(2,J)-TRA(1,J))+
-     1    AM*(TRA(2,J)-TRA(1,J)))
+      if ((2.*g*dpinv*am).ge.delti) iflag=4
+      ft(1)=ft(1)+g*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
+      ft(1)=ft(1)-lvcp(1)*sigd*evap(1)
+      ft(1)=ft(1)+sigd*wt(2)*(cl-cpd)*water(2)*(t(2)-t(1))*dpinv/cpn(1)
+      fq(1)=fq(1)+g*mp(2)*(qp(2)-q(1))*dpinv+sigd*evap(1)
+      fq(1)=fq(1)+g*am*(q(2)-q(1))*dpinv
+      fu(1)=fu(1)+g*dpinv*(mp(2)*(up(2)-u(1))+am*(u(2)-u(1)))
+      fv(1)=fv(1)+g*dpinv*(mp(2)*(vp(2)-v(1))+am*(v(2)-v(1)))
+      do j=1,ntra
+        ftra(1,j)=ftra(1,j)+g*dpinv*(mp(2)*(trap(2,j)-tra(1,j))+
+     1    am*(tra(2,j)-tra(1,j)))
       end do
-      AMDE=0.0
-      DO 415 J=2,INB
-        FQ(1)=FQ(1)+G*DPINV*MENT(J,1)*(QENT(J,1)-Q(1))
-        FU(1)=FU(1)+G*DPINV*MENT(J,1)*(UENT(J,1)-U(1))
-        FV(1)=FV(1)+G*DPINV*MENT(J,1)*(VENT(J,1)-V(1))
-        DO K=1,NTRA
-          FTRA(1,K)=FTRA(1,K)+G*DPINV*MENT(J,1)*(TRAENT(J,1,K)-
-     1     TRA(1,K))
+      amde=0.0
+      do 415 j=2,inb
+        fq(1)=fq(1)+g*dpinv*ment(j,1)*(qent(j,1)-q(1))
+        fu(1)=fu(1)+g*dpinv*ment(j,1)*(uent(j,1)-u(1))
+        fv(1)=fv(1)+g*dpinv*ment(j,1)*(vent(j,1)-v(1))
+        do k=1,ntra
+          ftra(1,k)=ftra(1,k)+g*dpinv*ment(j,1)*(traent(j,1,k)-
+     1     tra(1,k))
         end do
-  415 CONTINUE
-C
-C   ***  CALCULATE TENDENCIES OF POTENTIAL TEMPERATURE AND MIXING RATIO  ***
-C   ***               AT LEVELS ABOVE THE LOWEST LEVEL                   ***
-C
-C   ***  FIRST FIND THE NET SATURATED UPDRAFT AND DOWNDRAFT MASS FLUXES  ***
-C   ***                      THROUGH EACH LEVEL                          ***
-C
-      DO 500 I=2,INB
-        DPINV=0.01/(PH(I)-PH(I+1))
-        CPINV=1.0/CPN(I)
-        AMP1=0.0
-        AD=0.0
-        IF(I.GE.NK)THEN
-          DO 440 K=I+1,INB+1
-  440       AMP1=AMP1+M(K)
+  415 continue
+c
+c   ***  calculate tendencies of potential temperature and mixing ratio  ***
+c   ***               at levels above the lowest level                   ***
+c
+c   ***  first find the net saturated updraft and downdraft mass fluxes  ***
+c   ***                      through each level                          ***
+c
+      do 500 i=2,inb
+        dpinv=0.01/(ph(i)-ph(i+1))
+        cpinv=1.0/cpn(i)
+        amp1=0.0
+        ad=0.0
+        if (i.ge.nk) then
+          do 440 k=i+1,inb+1
+  440       amp1=amp1+m(k)
         end if
-        DO 450 K=1,I
-        DO 450 J=I+1,INB+1
-          AMP1=AMP1+MENT(K,J)
-  450   CONTINUE
-        IF((2.*G*DPINV*AMP1).GE.DELTI) IFLAG=4
-        DO 470 K=1,I-1
-        DO 470 J=I,INB
-          AD=AD+MENT(J,K)
-  470   CONTINUE
-        FT(I)=FT(I)+G*DPINV*(AMP1*(T(I+1)-T(I)+(GZ(I+1)-GZ(I))*
-     1   CPINV)-AD*(T(I)-T(I-1)+(GZ(I)-GZ(I-1))*CPINV))
-     2   -SIGD*LVCP(I)*EVAP(I)
-        FT(I)=FT(I)+G*DPINV*MENT(I,I)*(HP(I)-H(I)+
-     1    T(I)*(CPV-CPD)*(Q(I)-QENT(I,I)))*CPINV
-        FT(I)=FT(I)+SIGD*WT(I+1)*(CL-CPD)*WATER(I+1)*
-     1    (T(I+1)-T(I))*DPINV*CPINV
-        FQ(I)=FQ(I)+G*DPINV*(AMP1*(Q(I+1)-Q(I))-AD*(Q(I)-Q(I-1)))
-        FU(I)=FU(I)+G*DPINV*(AMP1*(U(I+1)-U(I))-AD*(U(I)-U(I-1)))
-        FV(I)=FV(I)+G*DPINV*(AMP1*(V(I+1)-V(I))-AD*(V(I)-V(I-1)))
-        DO K=1,NTRA
-          FTRA(I,K)=FTRA(I,K)+G*DPINV*(AMP1*(TRA(I+1,K)-
-     1               TRA(I,K))-AD*(TRA(I,K)-TRA(I-1,K)))
+        do 450 k=1,i
+        do 450 j=i+1,inb+1
+          amp1=amp1+ment(k,j)
+  450   continue
+        if ((2.*g*dpinv*amp1).ge.delti) iflag=4
+        do 470 k=1,i-1
+        do 470 j=i,inb
+          ad=ad+ment(j,k)
+  470   continue
+        ft(i)=ft(i)+g*dpinv*(amp1*(t(i+1)-t(i)+(gz(i+1)-gz(i))*
+     1   cpinv)-ad*(t(i)-t(i-1)+(gz(i)-gz(i-1))*cpinv))
+     2   -sigd*lvcp(i)*evap(i)
+        ft(i)=ft(i)+g*dpinv*ment(i,i)*(hp(i)-h(i)+
+     1    t(i)*(cpv-cpd)*(q(i)-qent(i,i)))*cpinv
+        ft(i)=ft(i)+sigd*wt(i+1)*(cl-cpd)*water(i+1)*
+     1    (t(i+1)-t(i))*dpinv*cpinv
+        fq(i)=fq(i)+g*dpinv*(amp1*(q(i+1)-q(i))-ad*(q(i)-q(i-1)))
+        fu(i)=fu(i)+g*dpinv*(amp1*(u(i+1)-u(i))-ad*(u(i)-u(i-1)))
+        fv(i)=fv(i)+g*dpinv*(amp1*(v(i+1)-v(i))-ad*(v(i)-v(i-1)))
+        do k=1,ntra
+          ftra(i,k)=ftra(i,k)+g*dpinv*(amp1*(tra(i+1,k)-
+     1               tra(i,k))-ad*(tra(i,k)-tra(i-1,k)))
         end do
-        DO 480 K=1,I-1
-          AWAT=ELIJ(K,I)-(1.-EP(I))*CLW(I)
-          AWAT=MAX(AWAT,0.0D0)
-          FQ(I)=FQ(I)+G*DPINV*MENT(K,I)*(QENT(K,I)-AWAT-Q(I))
-          FU(I)=FU(I)+G*DPINV*MENT(K,I)*(UENT(K,I)-U(I))
-          FV(I)=FV(I)+G*DPINV*MENT(K,I)*(VENT(K,I)-V(I))
-          DO J=1,NTRA
-            FTRA(I,J)=FTRA(I,J)+G*DPINV*MENT(K,I)*(TRAENT(K,I,J)-
-     1     TRA(I,J))
+        do 480 k=1,i-1
+          awat=elij(k,i)-(1.-ep(i))*clw(i)
+          awat=max(awat,0.0d0)
+          fq(i)=fq(i)+g*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
+          fu(i)=fu(i)+g*dpinv*ment(k,i)*(uent(k,i)-u(i))
+          fv(i)=fv(i)+g*dpinv*ment(k,i)*(vent(k,i)-v(i))
+          do j=1,ntra
+            ftra(i,j)=ftra(i,j)+g*dpinv*ment(k,i)*(traent(k,i,j)-
+     1     tra(i,j))
           end do
-  480   CONTINUE
-        DO 490 K=I,INB
-          FQ(I)=FQ(I)+G*DPINV*MENT(K,I)*(QENT(K,I)-Q(I))
-          FU(I)=FU(I)+G*DPINV*MENT(K,I)*(UENT(K,I)-U(I))
-          FV(I)=FV(I)+G*DPINV*MENT(K,I)*(VENT(K,I)-V(I))
-          DO J=1,NTRA
-            FTRA(I,J)=FTRA(I,J)+G*DPINV*MENT(K,I)*(TRAENT(K,I,J)-
-     1     TRA(I,J))
+  480   continue
+        do 490 k=i,inb
+          fq(i)=fq(i)+g*dpinv*ment(k,i)*(qent(k,i)-q(i))
+          fu(i)=fu(i)+g*dpinv*ment(k,i)*(uent(k,i)-u(i))
+          fv(i)=fv(i)+g*dpinv*ment(k,i)*(vent(k,i)-v(i))
+          do j=1,ntra
+            ftra(i,j)=ftra(i,j)+g*dpinv*ment(k,i)*(traent(k,i,j)-
+     1     tra(i,j))
           end do
-  490   CONTINUE
-        FQ(I)=FQ(I)+SIGD*EVAP(I)+G*(MP(I+1)*
-     1    (QP(I+1)-Q(I))-MP(I)*(QP(I)-Q(I-1)))*DPINV
-        FU(I)=FU(I)+G*(MP(I+1)*(UP(I+1)-U(I))-MP(I)*
-     1    (UP(I)-U(I-1)))*DPINV
-        FV(I)=FV(I)+G*(MP(I+1)*(VP(I+1)-V(I))-MP(I)*
-     1    (VP(I)-V(I-1)))*DPINV
-        DO J=1,NTRA
-          FTRA(I,J)=FTRA(I,J)+G*DPINV*(MP(I+1)*(TRAP(I+1,J)-TRA(I,J))-
-     1    MP(I)*(TRAP(I,J)-TRAP(I-1,J)))
+  490   continue
+        fq(i)=fq(i)+sigd*evap(i)+g*(mp(i+1)*
+     1    (qp(i+1)-q(i))-mp(i)*(qp(i)-q(i-1)))*dpinv
+        fu(i)=fu(i)+g*(mp(i+1)*(up(i+1)-u(i))-mp(i)*
+     1    (up(i)-u(i-1)))*dpinv
+        fv(i)=fv(i)+g*(mp(i+1)*(vp(i+1)-v(i))-mp(i)*
+     1    (vp(i)-v(i-1)))*dpinv
+        do j=1,ntra
+          ftra(i,j)=ftra(i,j)+g*dpinv*(mp(i+1)*(trap(i+1,j)-tra(i,j))-
+     1    mp(i)*(trap(i,j)-trap(i-1,j)))
         end do
-  500 CONTINUE
-C
-C   *** Adjust tendencies at top of convection layer to reflect  ***
-C   ***       actual position of the level zero CAPE             ***
-C
-      FQOLD=FQ(INB)
-      FQ(INB)=FQ(INB)*(1.-FRAC)
-      FQ(INB-1)=FQ(INB-1)+FRAC*FQOLD*((PH(INB)-PH(INB+1))/
-     1   (PH(INB-1)-PH(INB)))*LV(INB)/LV(INB-1)
-      FTOLD=FT(INB)
-      FT(INB)=FT(INB)*(1.-FRAC)
-      FT(INB-1)=FT(INB-1)+FRAC*FTOLD*((PH(INB)-PH(INB+1))/
-     1   (PH(INB-1)-PH(INB)))*CPN(INB)/CPN(INB-1)
-      FUOLD=FU(INB)
-      FU(INB)=FU(INB)*(1.-FRAC)
-      FU(INB-1)=FU(INB-1)+FRAC*FUOLD*((PH(INB)-PH(INB+1))/
-     1   (PH(INB-1)-PH(INB)))
-      FVOLD=FV(INB)
-      FV(INB)=FV(INB)*(1.-FRAC)
-      FV(INB-1)=FV(INB-1)+FRAC*FVOLD*((PH(INB)-PH(INB+1))/
-     1   (PH(INB-1)-PH(INB)))
-      DO K=1,NTRA
-        FTRAOLD=FTRA(INB,K)
-        FTRA(INB,K)=FTRA(INB,K)*(1.-FRAC)
-        FTRA(INB-1,K)=FTRA(INB-1,K)+FRAC*FTRAOLD*(PH(INB)-PH(INB+1))/
-     1    (PH(INB-1)-PH(INB))
+  500 continue
+c
+c   *** adjust tendencies at top of convection layer to reflect  ***
+c   ***       actual position of the level zero cape             ***
+c
+      fqold=fq(inb)
+      fq(inb)=fq(inb)*(1.-frac)
+      fq(inb-1)=fq(inb-1)+frac*fqold*((ph(inb)-ph(inb+1))/
+     1   (ph(inb-1)-ph(inb)))*lv(inb)/lv(inb-1)
+      ftold=ft(inb)
+      ft(inb)=ft(inb)*(1.-frac)
+      ft(inb-1)=ft(inb-1)+frac*ftold*((ph(inb)-ph(inb+1))/
+     1   (ph(inb-1)-ph(inb)))*cpn(inb)/cpn(inb-1)
+      fuold=fu(inb)
+      fu(inb)=fu(inb)*(1.-frac)
+      fu(inb-1)=fu(inb-1)+frac*fuold*((ph(inb)-ph(inb+1))/
+     1   (ph(inb-1)-ph(inb)))
+      fvold=fv(inb)
+      fv(inb)=fv(inb)*(1.-frac)
+      fv(inb-1)=fv(inb-1)+frac*fvold*((ph(inb)-ph(inb+1))/
+     1   (ph(inb-1)-ph(inb)))
+      do k=1,ntra
+        ftraold=ftra(inb,k)
+        ftra(inb,k)=ftra(inb,k)*(1.-frac)
+        ftra(inb-1,k)=ftra(inb-1,k)+frac*ftraold*(ph(inb)-ph(inb+1))/
+     1    (ph(inb-1)-ph(inb))
       end do
-C
-C   ***   Very slightly adjust tendencies to force exact   ***
-C   ***     enthalpy, momentum and tracer conservation     ***
-C
-      ENTS=0.0
-      UAV=0.0
-      VAV=0.0
-      DO 680 I=1,INB
-        ENTS=ENTS+(CPN(I)*FT(I)+LV(I)*FQ(I))*(PH(I)-PH(I+1))
-        UAV=UAV+FU(I)*(PH(I)-PH(I+1))
-        VAV=VAV+FV(I)*(PH(I)-PH(I+1))
-  680 CONTINUE
-      ENTS=ENTS/(PH(1)-PH(INB+1))
-      UAV=UAV/(PH(1)-PH(INB+1))
-      VAV=VAV/(PH(1)-PH(INB+1))
-      DO 640 I=1,INB
-        FT(I)=FT(I)-ENTS/CPN(I)
-        FU(I)=(1.-CU)*(FU(I)-UAV)
-        FV(I)=(1.-CU)*(FV(I)-VAV)
-  640 CONTINUE
-      DO 700 K=1,NTRA
-        TRAAV=0.0
-        DO 690 I=1,INB
-          TRAAV=TRAAV+FTRA(I,K)*(PH(I)-PH(I+1))
-  690   CONTINUE
-        TRAAV=TRAAV/(PH(1)-PH(INB+1))
-        DO 695 I=1,INB
-          FTRA(I,K)=FTRA(I,K)-TRAAV
-  695   CONTINUE
-  700 CONTINUE
-C
-C   ***           RETURN           ***
-C
-      RETURN
-      END
-C
-C ---------------------------------------------------------------------------
-C
-      SUBROUTINE TLIFT(P,T,Q,QS,GZ,ICB,NK,TVP,TPK,CLW,ND,NL,KK)
-C ****  RegCM add-ins to declare every variable explicitly **** c
+c
+c   ***   very slightly adjust tendencies to force exact   ***
+c   ***     enthalpy, momentum and tracer conservation     ***
+c
+      ents=0.0
+      uav=0.0
+      vav=0.0
+      do 680 i=1,inb
+        ents=ents+(cpn(i)*ft(i)+lv(i)*fq(i))*(ph(i)-ph(i+1))
+        uav=uav+fu(i)*(ph(i)-ph(i+1))
+        vav=vav+fv(i)*(ph(i)-ph(i+1))
+  680 continue
+      ents=ents/(ph(1)-ph(inb+1))
+      uav=uav/(ph(1)-ph(inb+1))
+      vav=vav/(ph(1)-ph(inb+1))
+      do 640 i=1,inb
+        ft(i)=ft(i)-ents/cpn(i)
+        fu(i)=(1.-cu)*(fu(i)-uav)
+        fv(i)=(1.-cu)*(fv(i)-vav)
+  640 continue
+      do 700 k=1,ntra
+        traav=0.0
+        do 690 i=1,inb
+          traav=traav+ftra(i,k)*(ph(i)-ph(i+1))
+  690   continue
+        traav=traav/(ph(1)-ph(inb+1))
+        do 695 i=1,inb
+          ftra(i,k)=ftra(i,k)-traav
+  695   continue
+  700 continue
+c
+c   ***           return           ***
+c
+      return
+      end subroutine cupeman
+c
+c ---------------------------------------------------------------------------
+c
+      subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
+c ****  regcm add-ins to declare every variable explicitly **** c
       implicit none
       integer i, j, nst, nsb, icb, nk, nd, nl, kk
       real(kind=8)  cpd, cpv, cl, rv, rd, cpvmcl, eps, epsi, ah0, cpp
      &       , cpinv, tg, qg, alv, s, ahg, tc, denom, es, rg
-C ****  End of RegCM add-ins to declare every variable explicitly **** c
-      real(kind=8)  GZ(ND),TPK(ND),CLW(ND),P(ND)
-      real(kind=8)  T(ND),Q(ND),QS(ND),TVP(ND),LV0
-C
-C   ***   ASSIGN VALUES OF THERMODYNAMIC CONSTANTS     ***
-C
-cRCM  CPD=1005.7
-      CPD=1004.
-      CPV=1870.0
-cRCM  CPV=CPD
-      CL=2500.0
-      RV=461.5
-      RD=287.04
-      LV0=2.501E6
-C
-      CPVMCL=CL-CPV
-      EPS=RD/RV
-      EPSI=1./EPS
-C
-C   ***  CALCULATE CERTAIN PARCEL QUANTITIES, INCLUDING STATIC ENERGY   ***
-C
-      AH0=(CPD*(1.-Q(NK))+CL*Q(NK))*T(NK)+Q(NK)*(LV0-CPVMCL*(
-     1   T(NK)-273.15))+GZ(NK)
-      CPP=CPD*(1.-Q(NK))+Q(NK)*CPV
-      CPINV=1./CPP
-C
-      IF(KK.EQ.1)THEN
-C
-C   ***   CALCULATE LIFTED PARCEL QUANTITIES BELOW CLOUD BASE   ***
-C
-        DO 50 I=1,ICB-1
-          CLW(I)=0.0
-   50   CONTINUE
-        DO 100 I=NK,ICB-1
-          TPK(I)=T(NK)-(GZ(I)-GZ(NK))*CPINV
-          TVP(I)=TPK(I)*(1.+Q(NK)*EPSI)
-  100   CONTINUE
+c ****  end of regcm add-ins to declare every variable explicitly **** c
+      real(kind=8)  gz(nd),tpk(nd),clw(nd),p(nd)
+      real(kind=8)  t(nd),q(nd),qs(nd),tvp(nd),lv0
+c
+c   ***   assign values of thermodynamic constants     ***
+c
+crcm  cpd=1005.7
+      cpd=1004.
+      cpv=1870.0
+crcm  cpv=cpd
+      cl=2500.0
+      rv=461.5
+      rd=287.04
+      lv0=2.501e6
+c
+      cpvmcl=cl-cpv
+      eps=rd/rv
+      epsi=1./eps
+c
+c   ***  calculate certain parcel quantities, including static energy   ***
+c
+      ah0=(cpd*(1.-q(nk))+cl*q(nk))*t(nk)+q(nk)*(lv0-cpvmcl*(
+     1   t(nk)-273.15))+gz(nk)
+      cpp=cpd*(1.-q(nk))+q(nk)*cpv
+      cpinv=1./cpp
+c
+      if (kk.eq.1) then
+c
+c   ***   calculate lifted parcel quantities below cloud base   ***
+c
+        do 50 i=1,icb-1
+          clw(i)=0.0
+   50   continue
+        do 100 i=nk,icb-1
+          tpk(i)=t(nk)-(gz(i)-gz(nk))*cpinv
+          tvp(i)=tpk(i)*(1.+q(nk)*epsi)
+  100   continue
       end if
-C
-C    ***  FIND LIFTED PARCEL QUANTITIES ABOVE CLOUD BASE    ***
-C
-      NST=ICB
-      NSB=ICB
-      IF(KK.EQ.2)THEN  
-        NST=NL
-        NSB=ICB+1
+c
+c    ***  find lifted parcel quantities above cloud base    ***
+c
+      nst=icb
+      nsb=icb
+      if (kk.eq.2) then  
+        nst=nl
+        nsb=icb+1
       end if
-      DO 300 I=NSB,NST
-        TG=T(I)
-        QG=QS(I)
-        ALV=LV0-CPVMCL*(T(I)-273.15)
-        DO 200 J=1,2
-          S=CPD+ALV*ALV*QG/(RV*T(I)*T(I))
-          S=1./S
-          AHG=CPD*TG+(CL-CPD)*Q(NK)*T(I)+ALV*QG+GZ(I)
-          TG=TG+S*(AH0-AHG)
-          TG=MAX(TG,35.0D0)
-          TC=TG-273.15
-          DENOM=243.5+TC
-          IF(TC.GE.0.0)THEN  
-            ES=6.112*EXP(17.67*TC/DENOM)
-          ELSE  
-            ES=EXP(23.33086-6111.72784/TG+0.15215*LOG(TG))
+      do 300 i=nsb,nst
+        tg=t(i)
+        qg=qs(i)
+        alv=lv0-cpvmcl*(t(i)-273.15)
+        do 200 j=1,2
+          s=cpd+alv*alv*qg/(rv*t(i)*t(i))
+          s=1./s
+          ahg=cpd*tg+(cl-cpd)*q(nk)*t(i)+alv*qg+gz(i)
+          tg=tg+s*(ah0-ahg)
+          tg=max(tg,35.0d0)
+          tc=tg-273.15
+          denom=243.5+tc
+          if (tc.ge.0.0) then  
+            es=6.112*exp(17.67*tc/denom)
+          else  
+            es=exp(23.33086-6111.72784/tg+0.15215*log(tg))
           end if  
-          QG=EPS*ES/(P(I)-ES*(1.-EPS))
-  200   CONTINUE
-        ALV=LV0-CPVMCL*(T(I)-273.15)
-        TPK(I)=(AH0-(CL-CPD)*Q(NK)*T(I)-GZ(I)-ALV*QG)/CPD
-        CLW(I)=Q(NK)-QG
-        CLW(I)=MAX(0.0D0,CLW(I))
-        RG=QG/(1.-Q(NK))
-        TVP(I)=TPK(I)*(1.+RG*EPSI)
-  300 CONTINUE
-      RETURN
-      END
+          qg=eps*es/(p(i)-es*(1.-eps))
+  200   continue
+        alv=lv0-cpvmcl*(t(i)-273.15)
+        tpk(i)=(ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)/cpd
+        clw(i)=q(nk)-qg
+        clw(i)=max(0.0d0,clw(i))
+        rg=qg/(1.-q(nk))
+        tvp(i)=tpk(i)*(1.+rg*epsi)
+  300 continue
+      return
+      end subroutine tlift

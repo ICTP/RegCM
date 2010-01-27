@@ -63,6 +63,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/trachem.cb"
 #     include "include/slice.cb"
 #     include "include/date.cb"
+#     include "include/message.cb"
 
 #ifdef MPP1
       real(kind=8)  aermm
@@ -171,8 +172,8 @@ c-----------west boundary:
           do i=1,ix
             u(i,k,j)=uj1(i,k)
             v(i,k,j)=vj1(i,k)
-          enddo
-          enddo
+          end do
+          end do
           if(iboudy.eq.3.or.iboudy.eq.4) then
 c..............inflow/outflow dependence:
             do k=1,kx
@@ -181,8 +182,8 @@ c..............inflow/outflow dependence:
                 v(i,k,j)=vj2(i,k)
                 u(i,k,j)=uj2(i,k)
               end if
-            enddo
-            enddo
+            end do
+            end do
           end if
 #ifdef MPP1
         else if(myid .eq. 0 .and. j.eq.2) then
@@ -193,8 +194,8 @@ c..............inflow/outflow dependence:
           do i=1,ix
             u(i,k,j)=uj2(i,k)
             v(i,k,j)=vj2(i,k)
-          enddo
-          enddo
+          end do
+          end do
           if(iboudy.eq.3.or.iboudy.eq.4) then
 c..............inflow/outflow dependence:
             do k=1,kx
@@ -208,7 +209,7 @@ c.................north boundary:
                 v(ix,k,j)=v(ix-1,k,j)
                 u(ix,k,j)=u(ix-1,k,j)
               end if
-            enddo
+            end do
           end if
 #ifdef MPP1
         else if(myid .eq. nproc-1 .and. j.eq.jendl-1) then
@@ -219,8 +220,8 @@ c.................north boundary:
           do i=1,ix
             u(i,k,j) = ujlx(i,k)
             v(i,k,j) = vjlx(i,k)
-          enddo
-          enddo
+          end do
+          end do
           if(iboudy.eq.3.or.iboudy.eq.4) then
 c..............inflow/outflow dependence:
             do k=1,kx
@@ -234,7 +235,7 @@ c.................north boundary:
                 v(ix,k,j)=v(ix-1,k,j)
                 u(ix,k,j)=u(ix-1,k,j)
               end if
-            enddo
+            end do
           end if
 #ifdef MPP1
         else if(myid .eq. nproc-1 .and. j.eq.jendl) then
@@ -249,8 +250,8 @@ c
           do i=1,ix
             u(i,k,j)=ujl(i,k)
             v(i,k,j)=vjl(i,k)
-          enddo
-          enddo
+          end do
+          end do
           if(iboudy.eq.3.or.iboudy.eq.4) then
 c..............inflow/outflow dependence:
             do k=1,kx
@@ -259,8 +260,8 @@ c..............inflow/outflow dependence:
                 v(i,k,j)=vjlx(i,k)
                 u(i,k,j)=ujlx(i,k)
               end if
-            enddo
-            enddo
+            end do
+            end do
           end if
         else
 c
@@ -273,8 +274,8 @@ c
             xmsf=msfd(i,j)
             u(i,k,j)=ua(i,k,j)/(psabar*xmsf)
             v(i,k,j)=va(i,k,j)/(psabar*xmsf)
-          enddo
-          enddo
+          end do
+          end do
 c
 c-----------north/south boundary points:
 c...........no inflow/outflow dependence:
@@ -290,7 +291,7 @@ c..............for i=1 and i=ix:
             u(ix,k,j)=uil(k,j)
             v(1,k,j)=vi1(k,j)
             v(ix,k,j)=vil(k,j)
-          enddo
+          end do
           if(iboudy.eq.3.or.iboudy.eq.4) then
 c..............inflow/outflow dependence:
             do k=1,kx
@@ -304,10 +305,10 @@ c.................north boundary:
                 v(ix,k,j)=v(ix-1,k,j)
                 u(ix,k,j)=u(ix-1,k,j)
               end if
-            enddo
+            end do
           end if
         end if
-      enddo
+      end do
 c
 #ifdef MPP1
       do j=1,jendx
@@ -319,9 +320,9 @@ c
         t(i,k,j)=ta(i,k,j)/psa(i,j)
         qv(i,k,j)=qva(i,k,j)/psa(i,j)
         qc(i,k,j)=qca(i,k,j)/psa(i,j)
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 Cchem2
       if(ichem.eq.1) then
 c
@@ -336,10 +337,10 @@ c
        do k=1,kx
        do i=1,ilx
          chi(i,k,j,n)=chia(i,k,j,n)/psa(i,j)
-       enddo
-       enddo
-       enddo
-       enddo
+       end do
+       end do
+       end do
+       end do
       end if
 Cchem2_
 c
@@ -348,7 +349,7 @@ C=======================================================================
       if(myid.ne.nproc-1) then
         do i=1,ix
           var1snd(i,1) = psb(i,jxp)
-        enddo
+        end do
         do k=1,kx
         do i=1,ix
           var1snd(i,1      +k) = tb(i,k,jxp)
@@ -362,16 +363,16 @@ C=======================================================================
           var1snd(i,1+kx*8 +k) = qc(i,k,jxp)
           var1snd(i,1+kx*9 +k) = ua(i,k,jxp)
           var1snd(i,1+kx*10+k) = va(i,k,jxp)
-        enddo
-        enddo
+        end do
+        end do
         if(ichem.eq.1) then
           do n=1,ntr
             do k=1,kx
             do i=1,ix
               var1snd(i,kx*11+1+(n-1)*kx+k) = chi(i,k,jxp,n)
-            enddo
-            enddo
-          enddo
+            end do
+            end do
+          end do
         end if
       end if
       numrec = kx*11+1
@@ -382,7 +383,7 @@ C=======================================================================
       if(myid.ne.0) then
         do i=1,ix
           psb(i,0) = var1rcv(i,1)
-        enddo
+        end do
         do k=1,kx
         do i=1,ix
            tb(i,k,0) = var1rcv(i,1      +k)
@@ -396,23 +397,23 @@ C=======================================================================
            qc(i,k,0) = var1rcv(i,1+kx*8 +k)
            ua(i,k,0) = var1rcv(i,1+kx*9 +k)
            va(i,k,0) = var1rcv(i,1+kx*10+k)
-        enddo
-        enddo
+        end do
+        end do
         if(ichem.eq.1) then
           do n=1,ntr
             do k=1,kx
             do i=1,ix
               chi(i,k,0,n) = var1rcv(i,kx*11+1+(n-1)*kx+k)
-            enddo
-            enddo
-          enddo
+            end do
+            end do
+          end do
         end if
       end if
 C
       if(myid.ne.0) then
         do i=1,ix
           var1snd(i,1) = psb(i,1)
-        enddo
+        end do
         do k=1,kx
         do i=1,ix
           var1snd(i,1      +k) = tb(i,k,1)
@@ -426,16 +427,16 @@ C
           var1snd(i,1+kx*8 +k) = qc(i,k,1)
           var1snd(i,1+kx*9 +k) = ua(i,k,1)
           var1snd(i,1+kx*10+k) = va(i,k,1)
-        enddo
-        enddo
+        end do
+        end do
         if(ichem.eq.1) then
           do n=1,ntr
             do k=1,kx
             do i=1,ix
               var1snd(i,kx*11+1+(n-1)*kx+k) = chi(i,k,1,n)
-            enddo
-            enddo
-          enddo
+            end do
+            end do
+          end do
         end if
       end if
       numrec = kx*11+1
@@ -446,7 +447,7 @@ C
       if(myid.ne.nproc-1) then
         do i=1,ix
           psb(i,jxp+1) = var1rcv(i,1)
-        enddo
+        end do
         do k=1,kx
         do i=1,ix
            tb(i,k,jxp+1) = var1rcv(i,1      +k)
@@ -460,16 +461,16 @@ C
            qc(i,k,jxp+1) = var1rcv(i,1+kx*8 +k)
            ua(i,k,jxp+1) = var1rcv(i,1+kx*9 +k)
            va(i,k,jxp+1) = var1rcv(i,1+kx*10+k)
-        enddo
-        enddo
+        end do
+        end do
         if(ichem.eq.1) then
           do n=1,ntr
             do k=1,kx
             do i=1,ix
               chi(i,k,jxp+1,n) = var1rcv(i,kx*11+1+(n-1)*kx+k)
-            enddo
-            enddo
-          enddo
+            end do
+            end do
+          end do
         end if
       end if
 #endif
@@ -484,8 +485,8 @@ c
 #endif
         do i=2,ilx
           pdotb(i,j)=0.25*(psb(i,j)+psb(i-1,j)+psb(i,j-1)+psb(i-1,j-1))
-        enddo
-      enddo
+        end do
+      end do
 c
 c-----east and west boundaries:
 c
@@ -502,7 +503,7 @@ c
 #else
         pdotb(i,jx)=0.5*(psb(i,jlx)+psb(i-1,jlx))
 #endif
-      enddo
+      end do
 c
 c-----north and south boundaries:
 c
@@ -513,7 +514,7 @@ c
 #endif
         pdotb(1,j)=0.5*(psb(1,j)+psb(1,j-1))
         pdotb(ix,j)=0.5*(psb(ilx,j)+psb(ilx,j-1))
-      enddo
+      end do
 c
 c-----corner points:
 c
@@ -548,17 +549,17 @@ C=======================================================================
           var2snd(i,kx*7 +k) = qvb3d(i,k,jxp)
           var2snd(i,kx*8 +k) = qcb3d(i,k,jxp-1)
           var2snd(i,kx*9 +k) = qcb3d(i,k,jxp)
-        enddo
-        enddo
+        end do
+        end do
         if(ichem.eq.1) then
           do n=1,ntr
             do k=1,kx
             do i=1,ix
               var2snd(i,kx*10+(n-1)*2*kx   +k) = chib3d(i,k,jxp-1,n)
               var2snd(i,kx*10+(n-1)*2*kx+kx+k) = chib3d(i,k,jxp  ,n)
-            enddo
-            enddo
-          enddo
+            end do
+            end do
+          end do
         end if
       end if
       numrec = kx*5*2
@@ -579,17 +580,17 @@ C=======================================================================
           qvb3d(i,k,0) = var2rcv(i,kx*7+k)
           qcb3d(i,k,-1)= var2rcv(i,kx*8+k)
           qcb3d(i,k,0) = var2rcv(i,kx*9+k)
-        enddo
-        enddo
+        end do
+        end do
         if(ichem.eq.1) then
           do n=1,ntr
             do k=1,kx
             do i=1,ix
               chib3d(i,k,-1,n) = var2rcv(i,kx*10+(n-1)*2*kx   +k)
               chib3d(i,k,0 ,n) = var2rcv(i,kx*10+(n-1)*2*kx+kx+k)
-            enddo
-            enddo
-          enddo
+            end do
+            end do
+          end do
         end if
       end if
 C
@@ -606,17 +607,17 @@ C
           var2snd(i,kx*7+k) = qvb3d(i,k,2)
           var2snd(i,kx*8+k) = qcb3d(i,k,1)
           var2snd(i,kx*9+k) = qcb3d(i,k,2)
-        enddo
-        enddo
+        end do
+        end do
         if(ichem.eq.1) then
           do n=1,ntr
             do k=1,kx
             do i=1,ix
               var2snd(i,kx*10+(n-1)*2*kx   +k) = chib3d(i,k,1,n)
               var2snd(i,kx*10+(n-1)*2*kx+kx+k) = chib3d(i,k,2,n)
-            enddo
-            enddo
-          enddo
+            end do
+            end do
+          end do
         end if
       end if
       numrec = kx*5*2
@@ -637,17 +638,17 @@ C
           qvb3d(i,k,jxp+2)= var2rcv(i,kx*7+k)
           qcb3d(i,k,jxp+1)= var2rcv(i,kx*8+k)
           qcb3d(i,k,jxp+2)= var2rcv(i,kx*9+k)
-        enddo
-        enddo
+        end do
+        end do
         if(ichem.eq.1) then
           do n=1,ntr
             do k=1,kx
             do i=1,ix
               chib3d(i,k,jxp+1,n) = var2rcv(i,kx*10+(n-1)*2*kx   +k)
               chib3d(i,k,jxp+2,n) = var2rcv(i,kx*10+(n-1)*2*kx+kx+k)
-            enddo
-            enddo
-          enddo
+            end do
+            end do
+          end do
         end if
       end if
 #endif
@@ -671,8 +672,8 @@ c
         do k=1,kxp1
         do i=1,ilx
          qdot(i,k,j) = 0.
-        enddo
-        enddo
+        end do
+        end do
        else
 c
 c----------------------------------------------------------------------
@@ -724,8 +725,8 @@ c
         do k=1,kx
         do i=1,ilx
          omega(i,k,j) = 0.
-        enddo
-        enddo
+        end do
+        end do
        else
         do 310 k=1,kx
         do 310 i=2,ilxm
@@ -744,7 +745,7 @@ c
         bdyewsnd(i,2) = pwb(i,jxp)
         bdyewsnd(i,3) = pebt(i,1)
         bdyewsnd(i,4) = pwbt(i,jxp)
-      enddo
+      end do
       do k=1,kx
       do i=1,ix
         bdyewsnd(i,4      +k) = teb(i,k,1)
@@ -763,8 +764,8 @@ c
         bdyewsnd(i,4+kx*13+k) = vwb(i,k,jxp)
         bdyewsnd(i,4+kx*14+k) = vebt(i,k,1)
         bdyewsnd(i,4+kx*15+k) = vwbt(i,k,jxp)
-      enddo
-      enddo
+      end do
+      end do
       call MPI_SENDRECV(bdyewsnd(1,1),ix*(kx*16+4),MPI_DOUBLE_PRECISION,
      &          ieast,1,bdyewrcv(1,1),ix*(kx*16+4),MPI_DOUBLE_PRECISION,
      &          iwest,1,MPI_COMM_WORLD,status,ierr)
@@ -778,7 +779,7 @@ c
         end if
         pwb(i,0) = bdyewrcv(i,2)
         pwbt(i,0)= bdyewrcv(i,4)
-      enddo
+      end do
       do k=1,kx
       do i=1,ix
         if(myid.eq.nproc-1) then
@@ -804,8 +805,8 @@ c
         uwbt(i,k,0)= bdyewrcv(i,4+kx*11+k)
         vwb(i,k,0) = bdyewrcv(i,4+kx*13+k)
         vwbt(i,k,0)= bdyewrcv(i,4+kx*15+k)
-      enddo
-      enddo
+      end do
+      end do
       do i=1,ix
         if(myid.eq.nproc-1) then
           bdyewsnd(i,1) = peb(i,jendx)
@@ -816,7 +817,7 @@ c
         end if
         bdyewsnd(i,2) = pwb(i,1)
         bdyewsnd(i,4) = pwbt(i,1)
-      enddo
+      end do
       do k=1,kx
       do i=1,ix
         if(myid.eq.nproc-1) then
@@ -842,8 +843,8 @@ c
         bdyewsnd(i,4+kx*11+k) = uwbt(i,k,1)
         bdyewsnd(i,4+kx*13+k) = vwb(i,k,1)
         bdyewsnd(i,4+kx*15+k) = vwbt(i,k,1)
-      enddo 
-      enddo 
+      end do 
+      end do 
       call MPI_SENDRECV(bdyewsnd(1,1),ix*(kx*16+4),MPI_DOUBLE_PRECISION,
      &          iwest,2,bdyewrcv(1,1),ix*(kx*16+4),MPI_DOUBLE_PRECISION,
      &          ieast,2,MPI_COMM_WORLD,status,ierr)
@@ -852,7 +853,7 @@ c
         pebt(i,0) = bdyewrcv(i,3)
         pwb(i,jxp+1) = bdyewrcv(i,2)
         pwbt(i,jxp+1) = bdyewrcv(i,4)
-      enddo
+      end do
       do k=1,kx
       do i=1,ix
         teb(i,k,0)      = bdyewrcv(i,4      +k)
@@ -871,8 +872,8 @@ c
         vwb(i,k,jxp+1)  = bdyewrcv(i,4+kx*13+k)
         vebt(i,k,0)     = bdyewrcv(i,4+kx*14+k)
         vwbt(i,k,jxp+1) = bdyewrcv(i,4+kx*15+k)
-      enddo 
-      enddo 
+      end do 
+      end do 
       end if
 C
       if(myid.ne.nproc-1) then
@@ -881,7 +882,7 @@ C
         bdynssnd(i,2) = pnbt(i,jxp)
         bdynssnd(i,3) = pss(i,jxp)
         bdynssnd(i,4) = psbt(i,jxp)
-      enddo
+      end do
       do k=1,kx
       do i=1,nspgx
         bdynssnd(i,4      +k) = tnb(i,k,jxp)
@@ -900,8 +901,8 @@ C
         bdynssnd(i,4+kx*13+k) = vnbt(i,k,jxp)
         bdynssnd(i,4+kx*14+k) = vsb(i,k,jxp)
         bdynssnd(i,4+kx*15+k) = vsbt(i,k,jxp)
-      enddo
-      enddo
+      end do
+      end do
       end if
       call MPI_SENDRECV(
      &          bdynssnd(1,1),nspgx*(kx*16+4),MPI_DOUBLE_PRECISION,
@@ -913,7 +914,7 @@ C
         pnbt(i,0)= bdynsrcv(i,2)
         pss(i,0) = bdynsrcv(i,3)
         psbt(i,0)= bdynsrcv(i,4)
-      enddo
+      end do
       do k=1,kx
       do i=1,nspgx
         tnb(i,k,0) = bdynsrcv(i,4      +k)
@@ -932,8 +933,8 @@ C
         vnbt(i,k,0)= bdynsrcv(i,4+kx*13+k)
         vsb(i,k,0) = bdynsrcv(i,4+kx*14+k)
         vsbt(i,k,0)= bdynsrcv(i,4+kx*15+k)
-      enddo
-      enddo
+      end do
+      end do
       end if
 C
       if(myid.ne.0) then
@@ -942,7 +943,7 @@ C
         bdynssnd(i,2) = pnbt(i,1)
         bdynssnd(i,3) = pss(i,1)
         bdynssnd(i,4) = psbt(i,1)
-      enddo
+      end do
       do k=1,kx
       do i=1,nspgx
         bdynssnd(i,4      +k) = tnb(i,k,1)
@@ -961,8 +962,8 @@ C
         bdynssnd(i,4+kx*13+k) = vnbt(i,k,1)
         bdynssnd(i,4+kx*14+k) = vsb(i,k,1)
         bdynssnd(i,4+kx*15+k) = vsbt(i,k,1)
-      enddo
-      enddo
+      end do
+      end do
       end if
       call MPI_SENDRECV(
      &          bdynssnd(1,1),nspgx*(kx*16+4),MPI_DOUBLE_PRECISION,
@@ -974,7 +975,7 @@ C
         pnbt(i,jxp+1)= bdynsrcv(i,2)
         pss(i,jxp+1) = bdynsrcv(i,3)
         psbt(i,jxp+1)= bdynsrcv(i,4)
-      enddo
+      end do
       do k=1,kx
       do i=1,nspgx
         tnb(i,k,jxp+1) = bdynsrcv(i,4      +k)
@@ -993,8 +994,8 @@ C
         vnbt(i,k,jxp+1)= bdynsrcv(i,4+kx*13+k)
         vsb(i,k,jxp+1) = bdynsrcv(i,4+kx*14+k)
         vsbt(i,k,jxp+1)= bdynsrcv(i,4+kx*15+k)
-      enddo
-      enddo
+      end do
+      end do
       end if
       do 1072 j=jbegin,jendx
        if (.not.(myid .eq. nproc-1 .and.j .eq. jendx) ) then
@@ -1028,7 +1029,7 @@ c....apply the nudging boundary conditions:
         do i=1,ilx
          psc(i,j)=psb(i,j) + dt*pwbt(i,j)
          psd(i,j)=psa(i,j)
-        enddo
+        end do
 #ifdef MPP1
        else if (myid.eq.nproc-1 .and. j.eq.jendx ) then
 #else
@@ -1036,7 +1037,7 @@ c....apply the nudging boundary conditions:
 #endif
         do i=1,ilx
          psd(i,j)=psa(i,j)
-        enddo
+        end do
        else
 c
 c..p..forecast pressure:
@@ -1072,8 +1073,8 @@ c
           ps4(i,2,j) = psc(i,j)
           ps4(i,3,j) = psb(i,j)
           ps4(i,4,j) = psa(i,j)
-        enddo
-      enddo
+        end do
+      end do
       call MPI_GATHER(ps4(1,1,1),ix*4*jxp,MPI_DOUBLE_PRECISION,
      &               ps_4(1,1,1),ix*4*jxp,MPI_DOUBLE_PRECISION,
      &                                  0,MPI_COMM_WORLD,ierr)
@@ -1090,9 +1091,9 @@ c
             ptntot=ptntot+dabs(ps_4(i,1,j))
             pt2tot=pt2tot+dabs((ps_4(i,2,j)+ps_4(i,3,j)-2.*ps_4(i,4,j))
      1                        /(0.25*dt*dt))
-          enddo
+          end do
         end if
-      enddo
+      end do
       end if
       call MPI_BCAST(iptn,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(ptntot,1,MPI_DOUBLE_PRECISION,0,
@@ -1203,9 +1204,11 @@ c
        else if(icup.eq.2)then
          call cuparan(tten(1,1,j),qvten(1,1,j),j)
        else if(icup.eq.3) then
-         write(*,*) 'ICTP RegCM team thinks the Betts-Miller code'
-     &            , ' is not ready for Regional Climate Run yet.'
-         Stop 'at Betts-Miller option in tend.f'
+         write(aline,*) 'ICTP RegCM team thinks the Betts-Miller code',
+     &              ' is not ready for Regional Climate Run yet.'
+         call say
+         call fatal(__FILE__,__LINE__,
+     &        'BETTS MILLER CUMULUS OPTION NOT ALLOWED')
          call bmpara(tten(1,1,j),qvten(1,1,j),j)
        else if(icup.eq.4) then
          call cupemandrv(j)
@@ -1708,7 +1711,7 @@ c
          ua(i,k,j)=uc(i,k,j)
          va(i,k,j)=vc(i,k,j)
 1020    continue
-      enddo
+      end do
 #ifdef MPP1
       do j=jbegin,jendm
 #else
@@ -1749,8 +1752,8 @@ Cchem2_
         do i=2,ilxm
          psb(i,j)=omuhf*psa(i,j)+gnuhf*(psb(i,j)+psc(i,j))
          psa(i,j)=psc(i,j)
-        enddo
-       enddo
+        end do
+       end do
        if(EHSO4) then
           do k=1,kx
 #ifdef MPP1
@@ -1760,9 +1763,9 @@ Cchem2_
 #endif
               do i=1,ilx
                  aermm(i,k,j) = so4(i,k,j)
-              enddo
-            enddo
-          enddo
+              end do
+            end do
+          end do
        end if
 c
 c----------------------------------------------------------------------
@@ -1887,4 +1890,4 @@ c
       end if
 c
       return
-      end
+      end subroutine tend

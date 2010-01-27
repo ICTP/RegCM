@@ -120,7 +120,7 @@ c
       end if
 c
       return
-      end
+      end subroutine diffu_U
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffu_V(ften,xkc,c203,j,ind)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -225,4 +225,4 @@ c
       end if
 c
       return
-      end
+      end subroutine diffu_V

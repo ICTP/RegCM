@@ -53,7 +53,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if(ichem.eq.1) then
           do n=1,ntr
             chib3d(i,k,j,n) = chib(i,k,j,n)/psb(i,j)
-          enddo
+          end do
         end if
       end do
       end do
@@ -80,7 +80,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      &                    +vb(idx,k,jdxp1)+vb(idxp1,k,jdxp1))/psb(i,j)
        end do
        end do
-      enddo
+      end do
 
 #ifdef MPP1
       do j=1,jendl
@@ -91,9 +91,9 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
        do i=1,ix
         ubd3d(i,k,j)=ub(i,k,j)/pdotb(i,j)
         vbd3d(i,k,j)=vb(i,k,j)/pdotb(i,j)
-       enddo
-       enddo
-      enddo
+       end do
+       end do
+      end do
 
 #ifdef MPP1
       do j=jbegin,jendx
@@ -118,29 +118,29 @@ c-----compute the height at full (za) and half (zq) sigma levels:
 #endif
         do i=2,ilx
           zq(i,kxp1) = 0.
-        enddo
+        end do
         do kk=1,kx
           k=kxp1-kk
           do i=2,ilx
             cell=ptop/psb(i,j)
             zq(i,k)=rovg*tb3d(i,k,j)*dlog((sigma(k+1)+cell)
      &                                  /(sigma(k)+cell))+zq(i,k+1)
-          enddo
-        enddo
+          end do
+        end do
 c
         do k=1,kx
           do i=2,ilx
             za(i,k,j)=0.5*(zq(i,k)+zq(i,k+1))
             dzq(i,k,j)=zq(i,k)-zq(i,k+1)
-          enddo
-        enddo
+          end do
+        end do
 
 c-----Calculate the relative humidity and air density
         do i=2,ilx
           psrf=(psb(i,j)+ptop)*1000.
           tv=tb3d(i,kx,j)
           rhox2d(i,j)=psrf/(r*tv)
-        enddo
+        end do
         do k=1,kx
         do i=2,ilxm
           pres=(a(k)*psb(i,j)+ptop)*1000.
@@ -155,9 +155,9 @@ c-----Calculate the relative humidity and air density
           rh=0.
           if (qsb3d(i,k,j).gt.0.) rh=qvb3d(i,k,j)/qsb3d(i,k,j)
           rhb3d(i,k,j) = rh
-        enddo
-        enddo
-      enddo
+        end do
+        end do
+      end do
 
       return
-      end
+      end subroutine slice3d

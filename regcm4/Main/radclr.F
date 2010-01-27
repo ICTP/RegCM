@@ -168,8 +168,8 @@ c      print*,'dans radclr', maxval(tottrn)
       do k=0,plevp
       do i=1,plond
          tottrn(i,k)=0.
-      enddo
-      enddo
+      end do
+      end do
 C
 C Compute total direct beam transmission, total transmission, and
 C reflectivity for diffuse radiation (from below) for all layers
@@ -334,4 +334,4 @@ C
       end do
 C
       return
-      end
+      end subroutine radclr

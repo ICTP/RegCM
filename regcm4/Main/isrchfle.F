@@ -17,14 +17,14 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      integer function isrchfle(n, array, inc, target)
+      integer function isrchfle(n, array, inc, rtarg)
       implicit none
 c
 c $Id: isrchfle.F,v 1.1.1.1 1995/02/09 23:26:15 ccm2 Exp $
 c $Author: ccm2 $
 c
       integer n,inc
-      real(kind=8)  array(*),target
+      real(kind=8)  array(*),rtarg
       integer i
       integer ind
 c
@@ -34,7 +34,7 @@ c
       end if
       ind = 1
       do i=1,n
-         if (array(ind).le.target) then
+         if (array(ind).le.rtarg) then
             isrchfle = i
             return
          else
@@ -43,4 +43,4 @@ c
       end do
       isrchfle = n + 1
       return
-      end
+      end function isrchfle

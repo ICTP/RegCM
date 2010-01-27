@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine pcp(j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -75,8 +74,8 @@ Cchem2
       do k=1,kx
       do i=1,ix
         remrat(i,k) = 0.0
-      enddo
-      enddo
+      end do
+      end do
 Cchem2_
       do i=2,ilxm
 
@@ -136,7 +135,7 @@ c     1ai. Compute the cloud water tendency [kg/kg/s*cb]
           pptsum(i) = 0.0                                    ![kg/m2/s][avg]
         end if
 
-      enddo
+      end do
 
 C ****  LAYER TWO TO KL ****
 c   1b. Perform computations for the 2nd layer to the surface
@@ -251,7 +250,7 @@ c--------------------------------------------------------------------
                 rembc(i,k) = rembc(i,k)         ! mm/hr
      &                     + remrat(i,kk)*qcb3d(i,kk,j)*psb(i,j)
      &                     * dsigma(kk)*uch
-              enddo
+              end do
               rembc(i,k)=6.5*1.e-5*rembc(i,k)**.68     ! s^-1
             end if
 34        continue
@@ -273,4 +272,4 @@ c--------------------------------------------------------------------
  60   continue
 
       return
-      end
+      end subroutine pcp

@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine bdyin
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -89,7 +88,7 @@ c
       if (myid .eq. 0) then
 #endif
  222  continue
-      if(EHSO4) then
+      if (EHSO4) then
          do k=1,kx
 #ifdef MPP1
            do j=1,jendl
@@ -98,9 +97,9 @@ c
 #endif
              do i=1,ix
                 so4(i,k,j) = SO0(i,k,j)
-             enddo
-           enddo
-         enddo
+             end do
+           end do
+         end do
       end if
       mmrec=mmrec+1
       read(iutbc,rec=mmrec,iostat=ierr1) ndate1
@@ -119,28 +118,23 @@ C_sgi 101    format('fort.',I2)
 #endif
         mmrec = 0
         print*,'CHANGING BDY UNIT NUMBER:  iutbc=',iutbc
-#ifdef MPP1
         if (iutbc.gt.999) then
-           write(*,*) 'BDY UNIT MAX EXCEEDED (bdyin.f)'
-           call MPI_ABORT(MPI_COMM_WORLD,ierr)
+           call fatal(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
         end if
-#else
-        if (iutbc.gt.999) stop 'BDY UNIT MAX EXCEEDED (bdyin.f)'
-#endif
         go to 222
       end if
-      IF(ndate1.lt.MDATEZ(NNNCHK+1)) then
-         IF(ndate1.lt.MDATEZ(NNNCHK+1)) then
+      if (ndate1.lt.MDATEZ(NNNCHK+1)) then
+         if (ndate1.lt.MDATEZ(NNNCHK+1)) then
             print*,'Searching for proper date: ',ndate1,MDATEZ(NNNCHK+1)
             print*,'read in datasets at :',ndate0
-            if(EHSO4) then
-               if(LSMTYP.ne.'USGS') then
+            if (EHSO4) then
+               if (LSMTYP.ne.'USGS') then
                   mmrec=mmrec+kx*5+2
                else
                   mmrec=mmrec+kx*5+2+13
                end if
             else
-               if(LSMTYP.ne.'USGS') then
+               if (LSMTYP.ne.'USGS') then
                   mmrec=mmrec+kx*4+2
                else
                   mmrec=mmrec+kx*4+2+13
@@ -151,12 +145,7 @@ C_sgi 101    format('fort.',I2)
       else if (ndate1.gt.MDATEZ(NNNCHK+1)) then
          print*,'DATE IN BC FILE EXCEEDED DATE IN RegCM'
          print*,ndate1,MDATEZ(NNNCHK+1),NNNCHK+1
-#ifdef MPP1
-         write(*,*) 'ICBC date (bdyin.f)'
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-         stop 'ICBC date (bdyin.f)'
-#endif
+         call fatal(__FILE__,__LINE__,'ICBC date')
       end if
 #ifdef MPP1
 c     print*,'UB1'
@@ -166,8 +155,8 @@ c     print*,'UB1'
         do j=1,mjx
         do i=1,ix
           ub1_io(i,k,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
       end do
 c     print*,'VB1'
       do k=kx,1,-1
@@ -176,8 +165,8 @@ c     print*,'VB1'
         do j=1,mjx
         do i=1,ix
           vb1_io(i,k,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
       end do
 c     print*,'TB1'
       do k=kx,1,-1
@@ -186,8 +175,8 @@ c     print*,'TB1'
         do j=1,mjx
         do i=1,ix
           tb1_io(i,k,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
       end do
 c     print*,'QB1'
       do k=kx,1,-1
@@ -196,8 +185,8 @@ c     print*,'QB1'
         do j=1,mjx
         do i=1,ix
           qb1_io(i,k,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
       end do
 c     print*,'PS1'
       mmrec=mmrec+1
@@ -205,17 +194,17 @@ c     print*,'PS1'
       do j=1,mjx
       do i=1,ix
         ps1_io(i,j)=dble(io2d(i,j))
-      enddo
-      enddo
+      end do
+      end do
 c     print*,'TS1'
       mmrec=mmrec+1
       read(iutbc,rec=mmrec) ((io2d(i,j),j=1,mjx),i=1,ix)
       do j=1,mjx
       do i=1,ix
         ts1_io(i,j)=dble(io2d(i,j))
-      enddo
-      enddo
-      if(EHSO4) then
+      end do
+      end do
+      if (EHSO4) then
 c        print*,'SO1'
          do k=kx,1,-1
            mmrec=mmrec+1
@@ -223,8 +212,8 @@ c        print*,'SO1'
            do j=1,mjx
            do i=1,ix
              so1_io(i,k,j)=dble(io2d(i,j))
-           enddo
-           enddo
+           end do
+           end do
          end do
       end if
 #else
@@ -235,8 +224,8 @@ c     print*,'UB1'
         do j=1,jx
         do i=1,ix
           ub1(i,k,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
       end do
 c     print*,'VB1'
       do k=kx,1,-1
@@ -245,8 +234,8 @@ c     print*,'VB1'
         do j=1,jx
         do i=1,ix
           vb1(i,k,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
       end do
 c     print*,'TB1'
       do k=kx,1,-1
@@ -255,8 +244,8 @@ c     print*,'TB1'
         do j=1,jx
         do i=1,ix
           tb1(i,k,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
       end do
 c     print*,'QB1'
       do k=kx,1,-1
@@ -265,8 +254,8 @@ c     print*,'QB1'
         do j=1,jx
         do i=1,ix
           qb1(i,k,j)=dble(io2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
       end do
 c     print*,'PS1'
       mmrec=mmrec+1
@@ -274,17 +263,17 @@ c     print*,'PS1'
       do j=1,jx
       do i=1,ix
         ps1(i,j)=dble(io2d(i,j))
-      enddo
-      enddo
+      end do
+      end do
 c     print*,'TS1'
       mmrec=mmrec+1
       read(iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
       do j=1,jx
       do i=1,ix
         ts1(i,j)=dble(io2d(i,j))
-      enddo
-      enddo
-      if(EHSO4) then
+      end do
+      end do
+      if (EHSO4) then
 c     print*,'SO1'
          do k=kx,1,-1
            mmrec=mmrec+1
@@ -292,12 +281,12 @@ c     print*,'SO1'
            do j=1,jx
            do i=1,ix
              so1(i,k,j)=dble(io2d(i,j))
-           enddo
-           enddo
+           end do
+           end do
          end do
       end if
 #endif
-      if(LSMTYP.eq.'USGS') mmrec=mmrec+13
+      if (LSMTYP.eq.'USGS') mmrec=mmrec+13
 #ifdef MPP1
         do j=1,mjx
           do k=1,kx
@@ -306,21 +295,21 @@ c     print*,'SO1'
               sav_0(i,kx   +k,j) = VB1_io(i,k,j)
               sav_0(i,kx*2 +k,j) = QB1_io(i,k,j)
               sav_0(i,kx*3 +k,j) = TB1_io(i,k,j)
-            enddo
-          enddo
+            end do
+          end do
           do i=1,ix
             sav_0(i,kx*4+1 ,j) = PS1_io(i,j)
             sav_0(i,kx*4+2 ,j) = TS1_io(i,j)
-          enddo
-        enddo
-        if(EHSO4) then
+          end do
+        end do
+        if (EHSO4) then
            do j=1,mjx
              do k=1,kx
                do i=1,ix
                  sav_0s(i,      k,j) = SO1_io(i,k,j)
-               enddo
-             enddo
-           enddo
+               end do
+             end do
+           end do
         end if
       end if
       call MPI_BCAST(ndate1,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -335,14 +324,14 @@ c     print*,'SO1'
             VB1(i,k,j) = sav0(i,kx   +k,j)
             QB1(i,k,j) = sav0(i,kx*2 +k,j)
             TB1(i,k,j) = sav0(i,kx*3 +k,j)
-          enddo
-        enddo
+          end do
+        end do
         do i=1,ix
           PS1(i,j) = sav0(i,kx*4+1 ,j)
           TS1(i,j) = sav0(i,kx*4+2 ,j)
-        enddo
-      enddo
-      if(EHSO4) then
+        end do
+      end do
+      if (EHSO4) then
          call MPI_SCATTER(
      &         sav_0s(1,1,1),ix*kx*jxp,MPI_DOUBLE_PRECISION,
      &          sav0s(1,1,1),ix*kx*jxp,MPI_DOUBLE_PRECISION,
@@ -351,9 +340,9 @@ c     print*,'SO1'
            do k=1,kx
              do i=1,ix
                SO1(i,k,j) = sav0s(i,      k,j)
-             enddo
-           enddo
-         enddo
+             end do
+           end do
+         end do
       end if
 #endif
 c Convert surface pressure to pstar
@@ -384,8 +373,8 @@ c
 #endif
         do i=2,ilx
           psdot(i,j)=0.25*(PS1(i,j)+PS1(i-1,j)+PS1(i,j-1)+PS1(i-1,j-1))
-        enddo
-      enddo
+        end do
+      end do
 c
       do i=2,ilx
 #ifdef MPP1
@@ -400,7 +389,7 @@ c
 #else
         psdot(i,jx)=0.5*(PS1(i,jlx)+PS1(i-1,jlx))
 #endif
-      enddo
+      end do
 c
 #ifdef MPP1
       do j=jbegin,jendx
@@ -409,7 +398,7 @@ c
 #endif
         psdot(1,j)=0.5*(PS1(1,j)+PS1(1,j-1))
         psdot(ix,j)=0.5*(PS1(ilx,j)+PS1(ilx,j-1))
-      enddo
+      end do
 c
 #ifdef MPP1
       if (myid .eq. 0) then
@@ -455,35 +444,35 @@ c-----compute boundary conditions for p*:
 c
 
 #ifdef MPP1
-      if(nspgx.le.jxp) then
+      if (nspgx.le.jxp) then
          nxwb=nspgx
       else
          nkk=nspgx/jxp
-         if(nspgx.eq.nkk*jxp) then
+         if (nspgx.eq.nkk*jxp) then
             nxwb=jxp
          else
             nxwb=nspgx-nkk*jxp
          end if
       end if
-      if(nxwb+myid*jxp.gt.nspgx) then
+      if (nxwb+myid*jxp.gt.nspgx) then
          nxwb=0
-      else if(nxwb+myid*jxp.lt.nspgx) then
+      else if (nxwb+myid*jxp.lt.nspgx) then
          nxwb=jxp
       end if
 c
-      if(nspgx.le.jxp-1) then
+      if (nspgx.le.jxp-1) then
          nxeb=nspgx
       else
          nkk=(nspgx-jxp+1)/jxp
-         if((nspgx-jxp+1).eq.nkk*jxp) then
+         if ((nspgx-jxp+1).eq.nkk*jxp) then
             nxeb=jxp
          else
             nxeb=(nspgx-jxp+1)-nkk*jxp
          end if
       end if
-      if(mjx-1-(myid*jxp+jxp-nxeb).gt.nspgx) then
+      if (mjx-1-(myid*jxp+jxp-nxeb).gt.nspgx) then
          nxeb=0
-      else if(mjx-1-(myid*jxp+jxp-nxeb).lt.nspgx) then
+      else if (mjx-1-(myid*jxp+jxp-nxeb).lt.nspgx) then
          nxeb=MIN(jendx,jxp)
       end if
       do nn=1,nxwb
@@ -493,8 +482,8 @@ c
          do i=1,ilx 
             pwb(i,nn)=PS0(i,nn)
             pwbt(i,nn)=(PS1(i,nn )-PS0(i,nn ))/dtbdys
-         enddo
-      enddo
+         end do
+      end do
 #ifdef MPP1
       do nn=1,nxeb
          nnb=MIN(jendx,jxp)-nn+1
@@ -505,8 +494,8 @@ c
          do i=1,ilx 
             peb(i,nn)=PS0(i,nnb)
             pebt(i,nn)=(PS1(i,nnb)-PS0(i,nnb))/dtbdys
-         enddo
-      enddo
+         end do
+      end do
       do nn=1,nspgx
          nnb=ilx-nn+1
 #ifdef MPP1
@@ -518,41 +507,41 @@ c
             pss(nn,j)=PS0(nn ,j)
             pnbt(nn,j)=(PS1(nnb,j)-PS0(nnb,j))/dtbdys
             psbt(nn,j)=(PS1(nn ,j)-PS0(nn ,j))/dtbdys
-         enddo
-      enddo
+         end do
+      end do
 c
 c-----compute boundary conditions for p*u and p*v:
 c
 #ifdef MPP1
-      if(nspgd.le.jxp) then
+      if (nspgd.le.jxp) then
          ndwb=nspgd
       else
          nkk=nspgd/jxp
-         if(nspgd.eq.nkk*jxp) then
+         if (nspgd.eq.nkk*jxp) then
             ndwb=jxp
          else
             ndwb=nspgd-nkk*jxp
          end if
       end if
-      if(ndwb+myid*jxp.gt.nspgd) then
+      if (ndwb+myid*jxp.gt.nspgd) then
          ndwb=0
-      else if(ndwb+myid*jxp.lt.nspgd) then
+      else if (ndwb+myid*jxp.lt.nspgd) then
          ndwb=jxp
       end if
 c
-      if(nspgd.le.jendl) then
+      if (nspgd.le.jendl) then
          ndeb=nspgd
       else
          nkk=nspgd/jxp
-         if(nspgd.eq.nkk*jxp) then
+         if (nspgd.eq.nkk*jxp) then
             ndeb=jxp
          else
             ndeb=nspgd-nkk*jxp
          end if
       end if
-      if(mjx-(myid*jxp+jxp-ndeb).gt.nspgd) then
+      if (mjx-(myid*jxp+jxp-ndeb).gt.nspgd) then
          ndeb=0
-      else if(mjx-(myid*jxp+jxp-ndeb).lt.nspgd) then
+      else if (mjx-(myid*jxp+jxp-ndeb).lt.nspgd) then
          ndeb=jxp
       end if
       do nn=1,ndwb
@@ -565,9 +554,9 @@ c
             vwb(i,k,nn)=VB0(i,k,nn)
             uwbt(i,k,nn)=(UB1(i,k,nn)-UB0(i,k,nn))/dtbdys
             vwbt(i,k,nn)=(VB1(i,k,nn)-VB0(i,k,nn))/dtbdys
-         enddo
-         enddo
-      enddo
+         end do
+         end do
+      end do
 #ifdef MPP1
       do nn=1,ndeb
         nnb=MIN(jendl,jxp)-nn+1
@@ -581,9 +570,9 @@ c
             veb(i,k,nn)=VB0(i,k,nnb)
             uebt(i,k,nn)=(UB1(i,k,nnb)-UB0(i,k,nnb))/dtbdys
             vebt(i,k,nn)=(VB1(i,k,nnb)-VB0(i,k,nnb))/dtbdys
-         enddo
-         enddo
-      enddo
+         end do
+         end do
+      end do
       do nn=1,nspgd
          nnb=ix-nn+1
          do k=1,kx
@@ -600,9 +589,9 @@ c
             usbt(nn,k,j)=(UB1(nn ,k,j)-UB0(nn ,k,j))/dtbdys
             vnbt(nn,k,j)=(VB1(nnb,k,j)-VB0(nnb,k,j))/dtbdys
             vsbt(nn,k,j)=(VB1(nn ,k,j)-VB0(nn ,k,j))/dtbdys
-         enddo
-         enddo
-      enddo
+         end do
+         end do
+      end do
 c
 c-----compute boundary conditions for p*t and p*qv:
 c
@@ -617,9 +606,9 @@ c
             qwb(i,k,nn)=QB0(i,k,nn)
             twbt(i,k,nn)=(TB1(i,k,nn)-TB0(i,k,nn))/dtbdys
             qwbt(i,k,nn)=(QB1(i,k,nn)-QB0(i,k,nn))/dtbdys
-         enddo
-         enddo
-      enddo
+         end do
+         end do
+      end do
 #ifdef MPP1
       do nn=1,nxeb
         nnb=MIN(jendx,jxp)-nn+1
@@ -633,9 +622,9 @@ c
             qeb(i,k,nn)=QB0(i,k,nnb)
             tebt(i,k,nn)=(TB1(i,k,nnb)-TB0(i,k,nnb))/dtbdys
             qebt(i,k,nn)=(QB1(i,k,nnb)-QB0(i,k,nnb))/dtbdys
-         enddo
-         enddo
-      enddo
+         end do
+         end do
+      end do
       do nn=1,nspgx
          nnb=ilx-nn+1
          do k=1,kx
@@ -652,9 +641,9 @@ c
             tsbt(nn,k,j)=(TB1(nn ,k,j)-TB0(nn ,k,j))/dtbdys
             qnbt(nn,k,j)=(QB1(nnb,k,j)-QB0(nnb,k,j))/dtbdys
             qsbt(nn,k,j)=(QB1(nn ,k,j)-QB0(nn ,k,j))/dtbdys
-         enddo
-         enddo
-      enddo
+         end do
+         end do
+      end do
 #ifdef MPP1
       if (myid .eq. 0) then
 #endif
@@ -671,8 +660,8 @@ c
 #endif
       do i=1,ilx
          tdum(i,j) = TS1(i,j)
-      enddo
-      enddo
+      end do
+      end do
       do k=1,kx
 #ifdef MPP1
       do j=1,jendl
@@ -684,9 +673,9 @@ c
          VB0(i,k,j) = VB1(i,k,j)
          QB0(i,k,j) = QB1(i,k,j)
          TB0(i,k,j) = TB1(i,k,j)
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 #ifdef MPP1
       do j=1,jendl
 #else
@@ -695,9 +684,9 @@ c
       do i=1,ix
          PS0(i,j) = PS1(i,j)
          TS0(i,j) = TS1(i,j)
-      enddo
-      enddo
-      if(EHSO4) then
+      end do
+      end do
+      if (EHSO4) then
         do k=1,kx
 #ifdef MPP1
           do j=1,jendl
@@ -706,9 +695,9 @@ c
 #endif
             do i=1,ix
                SO0(i,k,j) = SO1(i,k,j)
-            enddo
-          enddo
-        enddo
+            end do
+          end do
+        end do
       end if
 CbxqOCT2001_
 
@@ -725,24 +714,24 @@ c-----------------------------------------------------------------------
       do 50 j = 1,jx-1
 #endif
       do 50 i = 1,ix-1
-       if(veg2d(i,j).le.0.00001)then
+       if (veg2d(i,j).le.0.00001)then
         tga(i,j) = tdum(i,j)
         tgb(i,j) = tdum(i,j)
-Celguindi if(tdum(i,j).le.271.35) then
-c       if(tdum(i,j).le.271.38) then
+Celguindi if (tdum(i,j).le.271.35) then
+c       if (tdum(i,j).le.271.38) then
 c         print *,'Setting ocld2d to ice at i=',i,' j=',j,' t=',tdum(i,j)
 c         do n=1,NNSG
 c           ocld2d(n,i,j)=2.
 c           sice2d(n,i,j)=1000.
-c         enddo
+c         end do
 c       else
 c         do n=1,NNSG
 c           ocld2d(n,i,j)=0.
 c           sice2d(n,i,j)=0.
-c         enddo
+c         end do
 c       end if
        end if
 50    continue
 
       return
-      end
+      end subroutine bdyin

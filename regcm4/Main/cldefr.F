@@ -17,9 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
       subroutine cldefr(ioro, t, rel, rei, fice, ps, pmid)
 C-----------------------------------------------------------------------
 C
@@ -134,4 +131,4 @@ c
       end do
 C
       return
-      end
+      end subroutine cldefr

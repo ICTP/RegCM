@@ -45,4 +45,4 @@ c
     2 format('0 indication that tbarh statically unstable')
 c
       return
-      end
+      end subroutine vchekt

@@ -49,4 +49,4 @@ c
      a10x,i3,' depths are nonpositive valued',10x,i3,' are not real')
 c
       return
-      end
+      end subroutine vcheke

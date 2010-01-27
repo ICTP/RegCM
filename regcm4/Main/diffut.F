@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffut_T(ften,xkc,c203,j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -103,7 +102,7 @@ c
       end if
 c
       return
-      end
+      end subroutine diffut_T
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffutQV(ften,xkc,c203,j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -194,7 +193,7 @@ c
       end if
 c
       return
-      end
+      end subroutine diffutQV
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffutQC(ften,xkc,c203,j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -285,7 +284,7 @@ c
       end if
 c
       return
-      end
+      end subroutine diffutQC
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffutCH(ften,xkc,c203,n,j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -380,4 +379,4 @@ c
       end if
 c
       return
-      end
+      end subroutine diffutCH

@@ -17,14 +17,14 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      integer function isrchfgt(n, array, inc, target)
+      integer function isrchfgt(n, array, inc, rtarg)
       implicit none
 c
 c $Id: isrchfgt.F,v 1.1.1.1 1995/02/09 23:26:15 ccm2 Exp $
 c $Author: ccm2 $
 c
       integer n,inc
-      real(kind=8)  array(*),target
+      real(kind=8)  array(*),rtarg
       integer i,ind
 c
       if (n.le.0) then
@@ -33,7 +33,7 @@ c
       end if
       ind = 1
       do i=1,n
-         if (array(ind).gt.target) then
+         if (array(ind).gt.rtarg) then
             isrchfgt = i
             return
          else
@@ -42,4 +42,4 @@ c
       end do
       isrchfgt = n + 1
       return
-      end
+      end function isrchfgt

@@ -17,38 +17,38 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE BMPARA(TTEN,QTEN,J)
+      subroutine bmpara(tten, qten, j)
 C
-C    *** MODIFIED BY JACK KAIN OF PENN STATE TO REPLACE THE LOOK-UP TABL
-C        BY CALCULATIONS.
+C    *** modified by jack kain of penn state to replace the look-up tabl
+C        by calculations.
 C
 C     ******************************************************************
 C     *                                                                *
-C     *  CONVECTIVE ADJUSTMENT FOR DEEP OR SHALLOW CONVECTION          *
+C     *  convective adjustment for deep or shallow convection          *
 C     *                                                                *
-C     *  REFERENCES:                                                   *
+C     *  references:                                                   *
 C     *                                                                *
-C     *  BETTS, A.K., 1986:  A NEW CONVECTIVE ADJUSTMENT SCHEME.       *
-C     *    PART I: OBSERVATIONAL AND THEORETICAL BASIS.  QUART. J. R.  *
-C     *    MET. SOC., 112, 677-691.                                    *
+C     *  betts, a.k., 1986:  a new convective adjustment scheme.       *
+C     *    part i: observational and theoretical basis.  quart. j. r.  *
+C     *    met. soc., 112, 677-691.                                    *
 C     *                                                                *
-C     *  BETTS, A.K., AND M.J. MILLER, 1986:  A NEW CONVECTIVE         *
-C     *    ADJUSTMENT SCHEME.  PART II: SINGLE COLUMN TESTS USING      *
-C     *    GATE WAVE, BOMEX, ATEX AND ARCTIC AIR MASS DATA SETS.       *
-C     *    QUART. J. R. MET. SOC., 112, 693-709.                       *
+C     *  betts, a.k., and m.j. miller, 1986:  a new convective         *
+C     *    adjustment scheme.  part ii: single column tests using      *
+C     *    gate wave, bomex, atex and arctic air mass data sets.       *
+C     *    quart. j. r. met. soc., 112, 693-709.                       *
 C     *                                                                *
-C     *  N.B.  PART OF THE CODE IS SCALAR.  IN GLOBAL MODELS           *
-C     *  CONVECTION OCCURS IN LESS THAN 30/100 POINTS.  WITH           *
-C     *  SIMULATANEOUS VECTOR PROCESSING FOR BOTH DEEP AND SHALLOW     *
-C     *  CONVECTION, THERE WOULD BE A LOT OF REDUNDANT VECTOR          *
-C     *  COMPUTATIONS.  IF VECTOR PROCESSING IS 10 TIMES FASTER        *
-C     *  THAN SCALAR, ONE MIGHT HOPE THAT THE CPU TIME WILL BE ABOUT   *
-C     *  THE SAME FOR BOTH SCALAR AND VECTOR CODE.                     *
+C     *  n.b.  part of the code is scalar.  in global models           *
+C     *  convection occurs in less than 30/100 points.  with           *
+C     *  simulataneous vector processing for both deep and shallow     *
+C     *  convection, there would be a lot of redundant vector          *
+C     *  computations.  if vector processing is 10 times faster        *
+C     *  than scalar, one might hope that the cpu time will be about   *
+C     *  the same for both scalar and vector code.                     *
 C     *                                                                *
 C     ******************************************************************
-C *** WARNING: THIS SUBROUTINE WILL NOT WORK IF kx.LT.12;
+C *** warning: this subroutine will not work if kx.lt.12;
 C
-      IMPLICIT NONE
+      implicit none
 #     include "parameter.inc"
 
 #     include "include/param1.cb"
@@ -61,1075 +61,1140 @@ C
 #     include "include/bats.cb2"
 #     include "include/trachem.cb"
 
-      INTEGER J
-      real(kind=8)  ALIQ,BLIQ,CLIQ,DLIQ,AICE,BICE,CICE1,DICE,XLS0,XLS1
-      COMMON/VAPPRS/ALIQ,BLIQ,CLIQ,DLIQ,AICE,BICE,CICE1,DICE,XLS0,XLS1
-      LOGICAL UNIS,UNIL,OCT90
-      real(kind=8)  LBLEV
-      real(kind=8)  H1,H1D5,H2D5,H3000,H10E5,D00,D125,D50,D608
-      real(kind=8)  DM2859,ELWV,ELIVW,ROW,EPSQ,A2,A3,A4,T0,T1,PQ0,STRESH
-      real(kind=8)  STABS,STABD,STABFC,DTTOP,RHF,PMN,EPSUP,EPSDN,EPSTH
-      real(kind=8)  PBM,PQM,PNO,PONE,PSH,PFRZ,PSHU,ZNO,ZSH,FSS,EFIMN
-      real(kind=8)  EFMNT,FCC1,FCP,DSPBFL,DSP0FL,DSPTFL,FSL,DSPBFS
-      real(kind=8)  DSP0FS
-      real(kind=8)  DSPTFS,DSPBSL,DSP0SL,DSPTSL,DSPBSS,DSP0SS,DSPTSS
-      real(kind=8)  EPSNTP,EFIFC,AVGEFI,DSPC,EPSP,STEFI,SLOPBL,SLOP0L
-      real(kind=8)  SLOPTL,SLOPBS,SLOP0S,SLOPTS,SLOPE,A23M4L,D273,CPORNG
-      real(kind=8)  ELOCP,CPRLG,RCP
-      INTEGER LIST,LA,KSMUD,NROW,ITB,JTB,LP1,LM1,LSCRCH,L1,L2,L3,L4
-      PARAMETER
-     & (H1=1.E0,H1D5=1.5E0,H2D5=2.5E0,H3000=3000.E0,H10E5=100000.E0
-     &, D00=0.E0,D125=.125E0,D50=.5E0,D608=.608E0
-     &, DM2859=-287.04/1004.E0
-     &, ELWV=2.50E6,ELIVW=2.72E6,ROW=1.E3,EPSQ=2.E-12
-     &, A2=17.2693882E0,A3=273.16E0,A4=35.86E0
-     &, T0=273.16E0,T1=274.16E0,PQ0=379.90516E0,STRESH=1.10E0
-     &, STABS=1.0E0,STABD=.90E0,STABFC=1.00E0,DTTOP=1.0E0,LIST=3
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-     &, RHF=0.20,PMN=6500.,EPSUP=1.00,EPSDN=1.05,EPSTH=6.0  !RH DROP 10%
-C     &, RHF=0.20,PMN=6500.,EPSUP=1.00,EPSDN=1.05,EPSTH=6.0
-     &, PBM=30000.,PQM=20000.,PNO=9000.,PONE=2500.,PSH=29000.
-     &, PFRZ=15000.,PSHU=45000.,ZNO=750.,ZSH=3999.,LBLEV=.98
-C    &, RHF=0.20,EPSUP=1.00,EPSDN=1.05,EPSTH=0.3
-C    &, RHF=0.20,EPSUP=0.93,EPSDN=1.00,EPSTH=0.3
-C    &, RHF=0.20,EPSUP=1.00,EPSDN=1.00,EPSTH=0.3
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      integer j
+      real(kind=8)  aliq,bliq,cliq,dliq,aice,bice,cice1,dice,xls0,xls1
+      common/vapprs/aliq,bliq,cliq,dliq,aice,bice,cice1,dice,xls0,xls1
+      logical unis,unil,oct90
+      real(kind=8)  lblev
+      real(kind=8)  h1,h1d5,h2d5,h3000,h10e5,d00,d125,d50,d608
+      real(kind=8)  dm2859,elwv,elivw,row,epsq,a2,a3,a4,t0,t1,pq0,stresh
+      real(kind=8)  stabs,stabd,stabfc,dttop,rhf,pmn,epsup,epsdn,epsth
+      real(kind=8)  pbm,pqm,pno,pone,psh,pfrz,pshu,zno,zsh,fss,efimn
+      real(kind=8)  efmnt,fcc1,fcp,dspbfl,dsp0fl,dsptfl,fsl,dspbfs
+      real(kind=8)  dsp0fs
+      real(kind=8)  dsptfs,dspbsl,dsp0sl,dsptsl,dspbss,dsp0ss,dsptss
+      real(kind=8)  epsntp,efifc,avgefi,dspc,epsp,stefi,slopbl,slop0l
+      real(kind=8)  sloptl,slopbs,slop0s,slopts,slope,a23m4l,d273,cporng
+      real(kind=8)  elocp,cprlg,rcp
+      integer list,la,ksmud,nrow,itb,jtb,lp1,lm1,lscrch,l1,l2,l3,l4
 C
-C    AUGUST `91: SCHEME HAVING THE OPTION OF USING DIFFERENT FAST AND
-C    SLOW PROFILES FOR SEA AND FOR LAND POINTS; AND ALSO THE "SEA" AND
-C    THE "LAND" SCHEME EVERYWHERE.  OVER LAND PROFILES DEPART FROM THE
-C    FAST (DRY) PROFILES ONLY FOR PRECIPITATION/TIME STEP .GT.
-C    A PRESCRIBED VALUE (CURRENTLY, IN THE VERSION #3 DONE WEDNESDAY
-C    18 SEPTEMBER, 1/4 INCH/24 H).  USE OF VARIOUS SWITCHES AS FOLLOWS.
+C Very long parameter list. Stay with us.
 C
-C       THE "OLD" ("HARD", =ZAVISA OCT.1990) LAND SCHEME WITH FIXED
-C       LAND PROFILES IS RUN BY
-C       * SETTING OCT90=.TRUE. IN THE FIRST EXECUTABLE LINE FOLLOWING
-C            THESE COMMENTS (THIS REACTIVATES EFI=H1 OVER LAND IF
-C            .NOT.UNIS, AND CLDEFI(K)=EFIMN AS THE LEFTOVER CLDEFI
-C            VALUE AT SWAP POINTS);
-C       * DEFINING FAST LAND PROFILES SAME AS FAST SEA PROFILES (OR BY
-C            CHOOSING ANOTHER SET OF LAND PROFILES ZAVISA USED AT
-C            EARLIER TIME);
-C       * SETTING FSL=1.; AND
-C       * DEFINING STEFI (STARTING EFI) EQUAL TO AVGEFI.
-C            (THE LAST THREE POINTS ARE HANDLED BY SWITCHING AROUND THE
-C            "CFM" COMMENTS AT TWO PLACES)
+      parameter (
+     &  h1      = 1.e0,
+     &  h1d5    = 1.5e0,
+     &  h2d5    = 2.5e0,
+     &  h3000   = 3000.e0,
+     &  h10e5   = 100000.e0,
+     &  d00     = 0.e0,
+     &  d125    = 0.125e0,
+     &  d50     = 0.5e0,
+     &  d608    = 0.608e0,
+     &  dm2859  = -287.04/1004.e0,
+     &  elwv    = 2.50e6,
+     &  elivw   = 2.72e6,
+     &  row     = 1.e3,
+     &  epsq    = 2.e-12,
+     &  a2      = 17.2693882e0,
+     &  a3      = 273.16e0,
+     &  a4      = 35.86e0,
+     &  t0      = 273.16e0,
+     &  t1      = 274.16e0,
+     &  pq0     = 379.90516e0,
+     &  stresh  = 1.10e0,
+     &  stabs   = 1.0e0,
+     &  stabd   = 0.90e0,
+     &  stabfc  = 1.00e0,
+     &  dttop   = 1.0e0,
+     &  list    = 3,
+C RH drop 10%
+     &  rhf     = 0.20,
+     &  pmn     = 6500.0,
+     &  epsup   = 1.00, ! 0.93
+     &  epsdn   = 1.05, ! 1.00
+     &  epsth   = 6.0,  ! rh drop 10%
+     &  pbm     = 30000.0,
+     &  pqm     = 20000.0,
+     &  pno     = 9000.0,
+     &  pone    = 2500.0,
+     &  psh     = 29000.0,
+     &  pfrz    = 15000.0,
+     &  pshu    = 45000.0,
+     &  zno     = 750.0,
+     &  zsh     = 3999.0,
+     &  lblev   = 0.98,
 C
-C       THE "OLD,OLD" (APPR. ORIGINAL BETTS) SCHEME IS RUN BY
-C       * SPECIFYING UNIL=.TRUE.;
-C       * SETTING FSL=1.;
-C       * SETTING OCT90=.TRUE.
-C            (WITH THESE SETTINGS FAST LAND PROFILES ONLY ARE USED).
-C                                                                     FM
-     &, UNIS=.FALSE.,UNIL=.TRUE.,OCT90=.TRUE.
-     &,   FSS=.60E0,EFIMN=.20E0,EFMNT=.70E0,FCC1=.50,FCP=H1-FCC1
+C    august `91: scheme having the option of using different fast and
+C    slow profiles for sea and for land points; and also the "sea" and
+C    the "land" scheme everywhere.  over land profiles depart from the
+C    fast (dry) profiles only for precipitation/time step .gt.
+C    a prescribed value (currently, in the version #3 done wednesday
+C    18 september, 1/4 inch/24 h).  use of various switches as follows.
 C
-C         IN THIS VERSION 3.5, OVER LAND AND FOR THE FAST PROFILES, DSPB
-C         IS PRESCRIBED TO BE 25 PERCENT DRIER THAN THE FAST SEA VALUE
-C         (IN ROUGH AGREEMENT WITH BINDER, QJ, IN PRESS) WHILE DSP0 AND
-C         DSPT ARE EACH 20 PERCENT DRIER THAN THE CORRESPONDING FAST
-C         SEA VALUES.                WITH FSL=.875 THIS MAKES THE
-C         AVERAGE OF THE FAST AND THE SLOW LAND PROFILES SOMEWHAT DRIER
-C         THAN THE OCT90 FIXED LAND PROFILES.                         FM
+C       the "old" ("hard", =zavisa oct.1990) land scheme with fixed
+C       land profiles is run by
+C       * setting oct90=.true. in the first executable line following
+C            these comments (this reactivates efi=h1 over land if
+C            .not.unis, and cldefi(k)=efimn as the leftover cldefi
+C            value at swap points);
+C       * defining fast land profiles same as fast sea profiles (or by
+C            choosing another set of land profiles zavisa used at
+C            earlier time);
+C       * setting fsl=1.; and
+C       * defining stefi (starting efi) equal to avgefi.
+C            (the last three points are handled by switching around the
+C            "cfm" comments at two places)
 C
-C    &, DSPBFL=-4843.75E0,DSP0FL=-7050.00E0,DSPTFL=-2250.0E0,FSL=.900E0
-C***   ACTIVATE THE FOLLOWING LINE IF OCT90=.TRUE. (AND COMMENT OUT THE
-C***   PRECEDING LINE):
-     &, DSPBFL=-3875.E0,DSP0FL=-5875.E0,DSPTFL=-1875.E0,FSL=1.0E0
-     &, DSPBFS=-3875.E0,DSP0FS=-5875.E0,DSPTFS=-1875.E0
-     &, DSPBSL=DSPBFL*FSL,DSP0SL=DSP0FL*FSL,DSPTSL=DSPTFL*FSL
-     &, DSPBSS=DSPBFS*FSS,DSP0SS=DSP0FS*FSS,DSPTSS=DSPTFS*FSS
-C*** NEW CONVECTION SCHEME WITH CROSSING DSP PROFILES ******************
-C+-  &, UNIS=.FALSE.,EFIMN=.71E0,EFMNT=.71,FCC1=0.5,FCP=H1-FCC1
-C+-  &, DSPBL=-3875.E0,DSP0L=-5875.E0,DSPTL=-1875.E0
-C+-  &, DSPBS=-2875.E0,DSP0S=-5125.E0,DSPTS=-4875.E0
-C+-  &, DSPBF=-4375.E0,DSP0F=-4375.E0,DSPTF=-1000.E0
-C*** BETTS CONVECTION SCHEME *******************************************
-C    &, UNIS=.FALSE.,EFIMN=.9999E0,EFMNT=.9999E0,FCC1=.50,FCP=H1-FCC1
-C    &, DSPBL=-3875.E0,DSP0L=-5875.E0,DSPTL=-1875.E0
-C    &, DSPBF=-3875.E0,DSP0F=-5875.E0,DSPTF=-1875.E0
-C    &, DSPBS=-3875.E0,DSP0S=-5875.E0,DSPTS=-1875.E0
+C       the "old,old" (appr. original betts) scheme is run by
+C       * specifying unil=.true.;
+C       * setting fsl=1.;
+C       * setting oct90=.true.
+C            (with these settings fast land profiles only are used).
+C
+     &  unis    = .false.,
+     &  unil    = .true.,
+     &  oct90   = .true.,
+     &  fss     = 0.60e0,
+     &  efimn   = 0.20e0,
+     &  efmnt   = 0.70e0,
+     &  fcc1    = 0.50,
+     &  fcp     = h1-fcc1,
+C
+C   In this version 3.5, over land and for the fast profiles, dspb
+C   is prescribed to be 25 percent drier than the fast sea value
+C   (in rough agreement with binder, qj, in press) while dsp0 and
+C   dspt are each 20 percent drier than the corresponding fast
+C   sea values. With fsl=.875 this makes the average of the fast
+C   and the slow land profiles somewhat drier than the oct90 fixed
+C   land profiles.
+C
+C   Values for oct90 = .false. are commented in next lines
+C
+     &  dspbfl  = -3875.e0, ! -4843.75e0
+     &  dsp0fl  = -5875.e0, ! -7050.00e0
+     &  dsptfl  = -1875.e0, ! -2250.0e0
+     &  fsl     = 1.0e0,    ! .900e0
+     &  dspbfs  = -3875.e0,
+     &  dsp0fs  = -5875.e0,
+     &  dsptfs  = -1875.e0,
+     &  dspbsl  = dspbfl*fsl,
+     &  dsp0sl  = dsp0fl*fsl,
+     &  dsptsl  = dsptfl*fsl,
+     &  dspbss  = dspbfs*fss,
+     &  dsp0ss  = dsp0fs*fss,
+     &  dsptss  = dsptfs*fss,
+C*** new convection scheme with crossing dsp profiles ******************
+C+-  &, unis=.false.,efimn=.71e0,efmnt=.71,fcc1=0.5,fcp=h1-fcc1
+C+-  &, dspbl=-3875.e0,dsp0l=-5875.e0,dsptl=-1875.e0
+C+-  &, dspbs=-2875.e0,dsp0s=-5125.e0,dspts=-4875.e0
+C+-  &, dspbf=-4375.e0,dsp0f=-4375.e0,dsptf=-1000.e0
+C*** betts convection scheme *******************************************
+C    &, unis=.false.,efimn=.9999e0,efmnt=.9999e0,fcc1=.50,fcp=h1-fcc1
+C    &, dspbl=-3875.e0,dsp0l=-5875.e0,dsptl=-1875.e0
+C    &, dspbf=-3875.e0,dsp0f=-5875.e0,dsptf=-1875.e0
+C    &, dspbs=-3875.e0,dsp0s=-5875.e0,dspts=-1875.e0
 C***********************************************************************
-     &, EPSNTP=.0010E0,EFIFC=5.0E0
-     &, AVGEFI=(EFIMN+1.E0)*.5E0,DSPC=-3000.E0,EPSP=1.E-7
-C    &, STEFI=1.E0
-C*** ACTIVATE THE FOLLOWING LINE AND COMMENT OUT THE PRECEDING LINE IF
-C*** OCT90=.TRUE.
-     &, STEFI=AVGEFI
-     &, SLOPBL=(DSPBFL-DSPBSL)/(H1-EFIMN)
-     &, SLOP0L=(DSP0FL-DSP0SL)/(H1-EFIMN)
-     &, SLOPTL=(DSPTFL-DSPTSL)/(H1-EFIMN)
-     &, SLOPBS=(DSPBFS-DSPBSS)/(H1-EFIMN)
-     &, SLOP0S=(DSP0FS-DSP0SS)/(H1-EFIMN)
-     &, SLOPTS=(DSPTFS-DSPTSS)/(H1-EFIMN)
-     &, SLOPE=(H1   -EFMNT)/(H1-EFIMN))
-                             P A R A M E T E R
-     & (A23M4L=A2*(A3-A4)*ELWV
-     *, D273=1./T0,CPORNG=1./DM2859
-     &, ELOCP=ELWV/1004.,CPRLG=1004./(ROW*9.81*ELWV),RCP=H1/1004.)
-                             P A R A M E T E R
-CVVVVVVVVVV INSTABILITY FOR TOO LARGE LSH VVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-     & (LA=13,KSMUD=0,NROW= 0,ITB=100,JTB=150)
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-                             P A R A M E T E R
-     &( LP1=KX+1,LM1=KX-1
-     &, LSCRCH=4*KX+1+LA +1
-     &, L1=LA+1,L2=LA+KX+1,L3=LA+2*KX+1,L4=LA+3*KX+1)
-C----------------------------------------------------------------------
-      real(kind=8)  PL,THL,RDQ,RDTH,RDP,RDTHE,QS0,SQS
-      real(kind=8)  THE0,STHE,PTBL,TTBL
-      COMMON /TBLS/ PL,THL,RDQ,RDTH,RDP,RDTHE,QS0(JTB),SQS(JTB),
-     & THE0(JTB),STHE(JTB),PTBL(ITB,JTB),TTBL(JTB,ITB)
-C----------------------------------------------------------------------
-      real(kind=8)  TTEN(IX,KX),QTEN(IX,KX)
-      INTEGER KDP(KX)
-      real(kind=8)  SM(IX)
+     &  epsntp  = 0.0010e0,
+     &  efifc   = 5.0e0,
+     &  avgefi  = (efimn+1.e0)*.5e0,
+     &  dspc    = -3000.e0,
+     &  epsp    = 1.e-7,
+C    &  stefi   = 1.e0,
+C*** activate the following line and comment out the preceding line if
+C*** oct90=.true.
+     &  stefi   = avgefi,
+     &  slopbl  = (dspbfl-dspbsl)/(h1-efimn),
+     &  slop0l  = (dsp0fl-dsp0sl)/(h1-efimn),
+     &  sloptl  = (dsptfl-dsptsl)/(h1-efimn),
+     &  slopbs  = (dspbfs-dspbss)/(h1-efimn),
+     &  slop0s  = (dsp0fs-dsp0ss)/(h1-efimn),
+     &  slopts  = (dsptfs-dsptss)/(h1-efimn),
+     &  slope   = (h1   -efmnt)/(h1-efimn)
+     &          )
+      parameter ( 
+     &  a23m4l = a2*(a3-a4)*elwv,
+     &  d273   = 1./t0,
+     &  cporng = 1./dm2859,
+     &  elocp  = elwv/1004.,
+     &  cprlg  = 1004./(row*9.81*elwv),
+     &  rcp    = h1/1004.
+     &          )
 C
-      real(kind=8)  T(IX,KX), Q(IX,KX) ,  Z0(IX,KX)
-     &       ,DZQ(KX), CLDHGT(IX), PDP(KX)
+C  Instability for too large lsh
+C
+      parameter (
+     &  la    = 13,
+     &  ksmud = 0,
+     &  nrow  = 0,
+     &  itb   = 100,
+     &  jtb   = 150
+     &          )
+      parameter (
+     &  lp1    = kx+1,
+     &  lm1    = kx-1,
+     &  lscrch = 4*kx+1+la+1,
+     &  l1     = la+1,
+     &  l2     = la+kx+1,
+     &  l3     = la+2*kx+1,
+     &  l4     = la+3*kx+1
+     &          )
+C----------------------------------------------------------------------
+      real(kind=8)  pl,thl,rdq,rdth,rdp,rdthe,qs0,sqs
+      real(kind=8)  the0,sthe,ptbl,ttbl
+      common /tbls/ pl,thl,rdq,rdth,rdp,rdthe,qs0(jtb),sqs(jtb),
+     & the0(jtb),sthe(jtb),ptbl(itb,jtb),ttbl(jtb,itb)
+C----------------------------------------------------------------------
+      real(kind=8)  tten(ix,kx),qten(ix,kx)
+      integer kdp(kx)
+      real(kind=8)  sm(ix)
+C
+      real(kind=8)  t(ix,kx), q(ix,kx) ,  z0(ix,kx)
+     &       ,dzq(kx), cldhgt(ix), pdp(kx)
 C-----------------------------------------------------------------------
       real(kind=8)
-     & TREFK (KX),QREFK (KX),PK    (KX),APEK  (KX),TK    (KX)
-     &,THSK  (KX),PSK   (KX),APESK (KX),QK    (KX),THERK (KX)
-     &,THVREF(KX),THEVRF(KX),THVMOD(KX),DIFT  (KX),DIFQ  (KX)
-     &,QSATK (KX),FPK   (KX)
-      INTEGER
-     & NTOPD (KX),NBOTD (KX),NTOPS (KX),NBOTS (KX)
-     &,NDPTHD(KX),NDPTHS(KX)
+     & trefk (kx),qrefk (kx),pk    (kx),apek  (kx),tk    (kx)
+     &,thsk  (kx),psk   (kx),apesk (kx),qk    (kx),therk (kx)
+     &,thvref(kx),thevrf(kx),thvmod(kx),dift  (kx),difq  (kx)
+     &,qsatk (kx),fpk   (kx)
+      integer
+     & ntopd (kx),nbotd (kx),ntops (kx),nbots (kx)
+     &,ndpthd(kx),ndpths(kx)
 C
-      INTEGER 
-     & LTOP  (IX),LBOT  (IX),KSHAL (IX),KDEEP (IX)
-     &,IP300 (IX),IFBUOY(IX),KF(IX),ML(IX)
+      integer 
+     & ltop  (ix),lbot  (ix),kshal (ix),kdeep (ix)
+     &,ip300 (ix),ifbuoy(ix),kf(ix),ml(ix)
       real(kind=8)
-     & PRTOP (IX),PBOT  (IX)
-     &,TTHBT (IX)
-     &,TTHES (IX)
-     &,PSP   (IX),THBT  (IX),THESP (IX)
-     &,P     (IX)
-     &,DSPB  (IX),DSP0  (IX),DSPT  (IX)
-     &,APE   (IX,KX)
-     &,TREF  (IX,KX),TMOD  (IX,KX),QMOD  (IX,KX),THS(IX)
-      real(kind=8)  TAUK,CTHRS,CELL,TV0,PDIFF,PKL,PSFCK,EE,TDPT,TLCL
-      real(kind=8)  AK,ES,QS,EFI,DENTPY,AVRGT,PRECK,DSPBK,DSP0K,DSPTK
-      real(kind=8)  TKL,QKL,APEKL,PKB,PKT,PK0,STABDL,RDP0T,DTHEM,DSP
-      real(kind=8)  SUMDE,SUMDP,HCORR,TSKL,DHDT,THSKL,DIFTL,DIFQL
-      real(kind=8)  AVRGTL,ZTOP,PTHRS,DRHEAT,FEFI,PTPK,PBTK,THVMKL
-      real(kind=8)  PFLAG,PDIFFK,RHDMX,RHL,RHH,THTPK,DPMIX,SMIX,DPKTS
-      real(kind=8)  THIVI,SUMMM,SUMMD,SUMDT,RDPSUM,TCORR,TRFKL,PSUM
-      real(kind=8)  QSUM,POTSUM,QOTSUM,OTSUM,DST,FPTK,DPKL,RTBAR
-      real(kind=8)  ROTSUM,DSTQ,DEN,DQREF,QRFTP,QRFKL,QNEW,DTDETA
-      INTEGER I,LB,K,KB,IVI,L,KHDEEP,NSWAP,N,LTPK,LBTK,LTP1,LBM1
-      INTEGER L0,L0M1,ITER,LCOR,LQM,NDEPTH,NNEG,KHSHAL,NDSTN
-      INTEGER NDSTP,KK,LTSH,LSHU,LTP2,NSHAL,NEGDS,NDEEP
-      INTEGER ICOND,ICONSS
-      real(kind=8)  PPPK
+     & prtop (ix),pbot  (ix)
+     &,tthbt (ix)
+     &,tthes (ix)
+     &,psp   (ix),thbt  (ix),thesp (ix)
+     &,p     (ix)
+     &,dspb  (ix),dsp0  (ix),dspt  (ix)
+     &,ape   (ix,kx)
+     &,tref  (ix,kx),tmod  (ix,kx),qqmod  (ix,kx),ths(ix)
+      real(kind=8)  tauk,cthrs,cell,tv0,pdiff,pkl,psfck,ee,tdpt,tlcl
+      real(kind=8)  ak,es,qs,efi,dentpy,avrgt,preck,dspbk,dsp0k,dsptk
+      real(kind=8)  tkl,qkl,apekl,pkb,pkt,pk0,stabdl,rdp0t,dthem,dsp
+      real(kind=8)  sumde,sumdp,hcorr,tskl,dhdt,thskl,diftl,difql
+      real(kind=8)  avrgtl,ztop,pthrs,drheat,fefi,ptpk,pbtk,thvmkl
+      real(kind=8)  pflag,pdiffk,rhdmx,rhl,rhh,thtpk,dpmix,smix,dpkts
+      real(kind=8)  thivi,summm,summd,sumdt,rdpsum,tcorr,trfkl,psum
+      real(kind=8)  qsum,potsum,qotsum,otsum,dst,fptk,dpkl,rtbar
+      real(kind=8)  rotsum,dstq,den,dqref,qrftp,qrfkl,qnew,dtdeta
+      integer i,lb,k,kb,ivi,l,khdeep,nswap,n,ltpk,lbtk,ltp1,lbm1
+      integer l0,l0m1,iter,lcor,lqm,ndepth,nneg,khshal,ndstn
+      integer ndstp,kk,ltsh,lshu,ltp2,nshal,negds,ndeep
+      integer icond,iconss
+      real(kind=8)  pppk
       integer kbaseb,kclth
       real(kind=8)  prainx,aprdiv,akclth
-      real(kind=8)  QU,TPFC
-      EXTERNAL TPFC
+      real(kind=8)  qu,tpfc
+      external tpfc
 C-----------------------------------------------------------------------
       do k=1,kx
       do i=1,ilx
        cldlwc(i,k)=0.
        cldfra(i,k)=0.
-      enddo
-      enddo
+      end do
+      end do
 Cchem2
       if(ichem.eq.1) then
-c
-c     icumtop = top level of cumulus clouds
-c     icumbot = bottom level of cumulus clouds
-c           (calculated in cupara and stored for tractend)
-c  before do 100 put
+C
+C     icumtop = top level of cumulus clouds
+C     icumbot = bottom level of cumulus clouds
+C           (calculated in cupara and stored for tractend)
+C  before do 100 put
       do i=2,ilxm
          icumtop(i,j) = 0
          icumbot(i,j) = 0
-      enddo
+      end do
       end if
 Cchem2_
-      ICOND=0
-      ICONSS=0
-C     WRITE(3,12345)
-C12345 FORMAT(' ---> ENTER BMPARA')
-      TAUK=DT2/TREL
-      CTHRS=(0.006350/86400.)*DT2/CPRLG
+      icond=0
+      iconss=0
+C     write(3,12345)
+C12345 format(' ---> enter bmpara')
+      tauk=dt2/trel
+      cthrs=(0.006350/86400.)*dt2/cprlg
 C-----------------------------------------------------------------------
 C
-C... SM IS SURFACE MASK: =1 WATER; =0 LAND
-      DO 90 I=2,ILXM
-        IF(veg2d(I,J).GE.0.002)THEN
-          SM(I)=0.
-        ELSE
-          SM(I)=1.
+C... sm is surface mask: =1 water; =0 land
+      do 90 i=2,ilxm
+        if(veg2d(i,j).ge.0.002)then
+          sm(i)=0.
+        else
+          sm(i)=1.
         end if
-   90 CONTINUE
-      IF(jyear.eq.jyear0.and.ktau.eq.0)THEN
-        DO 100 I=2,ILXM
-          CLDEFI(I,J)=AVGEFI*SM(I)+STEFI*(H1-SM(I))
-  100   CONTINUE
-C       PRINT 103,ZNO,ZSH
-C       PRINT 104,ZSH
-C103     FORMAT(//,'SHALLOW CONVECTION OCCURS WHEN CLOUD DEPTH IS',
-C     1      ' .GE. ',F5.0,' M. AND .LT. ',F5.0,' M.')
-C104     FORMAT(//,'DEEP CONVECTION OCCURS WHEN CLOUD DEPTH IS .GE. ',
-C     1      F5.0,' KM.')
+   90 continue
+      if(jyear.eq.jyear0.and.ktau.eq.0)then
+        do 100 i=2,ilxm
+          cldefi(i,j)=avgefi*sm(i)+stefi*(h1-sm(i))
+  100   continue
+C       print 103,zno,zsh
+C       print 104,zsh
+C103     format(//,'shallow convection occurs when cloud depth is',
+C     1      ' .ge. ',f5.0,' m. and .lt. ',f5.0,' m.')
+C104     format(//,'deep convection occurs when cloud depth is .ge. ',
+C     1      f5.0,' km.')
       end if
-C...LB IS CURRENTLY SET TO kx-1
-      LB=kx-1
-CVVVVVVVVVVVVV DIAGNOSTICS VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-      DO 110 K=1,kx
-        NTOPD(K)=0
-        NBOTD(K)=0
-        NTOPS(K)=0
-        NBOTS(K)=0
-        NDPTHS(K)=0
-        NDPTHD(K)=0
-  110 CONTINUE
-CAAAAAAAAAAAAA DIAGNOSTICS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-C--------------PREPARATIONS---------------------------------------------
-C...FIND MELTING LEVEL...
-      DO 115 I=2,ILXM
-  115 ML(I)=KXP1
-      DO 120 I=2,ILXM
-C        IF(KF(I).EQ.1)GOTO 120
-        DO 121 K=1,kx
-          T(I,K)=TB(I,K,J)/PSB(I,J)
-          IF(T(I,K).GT.T0.AND.ML(I).EQ.KXP1)ML(I)=K
-          Q(I,K)=QVB(I,K,J)/PSB(I,J)
-          PPPK=(A(K)*PSB(I,J)+PTOP)*1000.
-          APE(I,K)=(PPPK/H10E5)**DM2859
-  121   CONTINUE
-        LBOT(I)=kx
-        THESP(I)=D00
-        THBT(I)=D00
-        PSP(I)=9.5E4
-C      PDSL (K)=RES(K)*PD(K)
-        TREF(I,1)=T(I,1)
-C...IFBUOY = 0 MEANS NO POSITIVE BUOYANCY; IFBUOY(I) MEANS YES...
-C...IP300 IS THE HIGHEST MODEL LEVEL IN THE LOWEST 300 MB...
-        IFBUOY(I)=0
-        IP300(I)=0
-        KF(I)=0
-C...ACTIVATE THIS STATEMENT TO RUN ONLY SHALLOW BETTS-MILLER WITH KF AND
-C...AK DEEP CONVECTION...
-C      KF(I)=CVMGT(1,0,(ICPS.EQ.2.AND.NCA(I,J).GT.0) .OR.
-C     *                (ICPS.EQ.1.AND.NAK(I,J).GT.0))
-        CELL=PTOP/PSB(I,J)
-        DO 378 K=1,KX
-          TV0=T(I,K)*(1.+D608*Q(I,K))
-          DZQ(K)=R/G*TBASE(I,K,J)*
-     +           DLOG((SIGMA(K+1)+CELL)/(SIGMA(K)+CELL))
-C        DZQ(K)=(R/G)*TV0*DLOG((SIGMA(K+1)+CELL)/(SIGMA(K)+CELL))
-  378   CONTINUE
-        Z0(I,KX)=0.5*DZQ(KX)
-        DO 379 K=KX-1,1,-1
-          Z0(I,K)=Z0(I,K+1)+0.5*(DZQ(K)+DZQ(K+1))
-  379   CONTINUE
-  120 CONTINUE
-C--------------PADDING SPECIFIC HUMIDITY IF TOO SMALL-------------------
-      DO 130 K=1,kx
-        DO 130 I=2,ILXM
-C        IF(KF(I).EQ.1)GOTO 130
-          IF(Q(I,K).LT.EPSQ)Q(I,K)=EPSQ
-          PDIFF=(1.-A(K))*PSB(I,J)
-          IF(PDIFF.LT.30..AND.IP300(I).EQ.0)IP300(I)=K
-  130   CONTINUE
-C--------------SEARCH FOR MAXIMUM BUOYANCY LEVEL------------------------
-      DO 140 KB=1,kx
-C       PRINT *,'I, J, KB, Z0, PBL =',
-C     *I,J,KB,Z0(I,KB),PBL(I,J)
-C--------------TRIAL MAXIMUM BUOYANCY LEVEL VARIABLES-------------------
-        DO 150 I=2,ILXM
-C           IF(Z0(I,KB).GT.PBL(I,J)+10.)GOTO 150
-C           IF(KF(I).EQ.1)GOTO 150
-          PKL=(A(KB)*PSB(I,J)+PTOP)*1000.
-          PSFCK=(A(kx)*PSB(I,J)+PTOP)*1000.
-          IF(PKL.LT.PSFCK-PBM)GOTO 150
-          TTHBT(I)=T(I,KB)*APE(I,KB)
-          EE=PKL*Q(I,KB)/(0.622+Q(I,KB))
-          TDPT=1./(D273-RV/ELWV*DLOG(EE/611.))
-          TDPT=DMIN1(TDPT,T(I,KB))
-          TLCL=TDPT-(.212+1.571E-3*(TDPT-T0)-4.36E-4*(T(I,KB)-T0))*(
-     +         T(I,KB)-TDPT)
-          TTHES(I)=TTHBT(I)*EXP(ELOCP*Q(I,KB)/TLCL)
-C--------------CHECK FOR MAXIMUM BUOYANCY-------------------------------
-          IF(TTHES(I).GT.THESP(I))THEN
-            PSP(I)=H10E5*(TTHBT(I)/TLCL)**CPORNG
-            THBT(I)=TTHBT(I)
-            THESP(I)=TTHES(I)
+C...lb is currently set to kx-1
+      lb=kx-1
+Cvvvvvvvvvvvvv diagnostics vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+      do 110 k=1,kx
+        ntopd(k)=0
+        nbotd(k)=0
+        ntops(k)=0
+        nbots(k)=0
+        ndpths(k)=0
+        ndpthd(k)=0
+  110 continue
+Caaaaaaaaaaaaa diagnostics aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+C--------------preparations---------------------------------------------
+C...find melting level...
+      do 115 i=2,ilxm
+  115 ml(i)=kxp1
+      do 120 i=2,ilxm
+C        if(kf(i).eq.1)goto 120
+        do 121 k=1,kx
+          t(i,k)=tb(i,k,j)/psb(i,j)
+          if(t(i,k).gt.t0.and.ml(i).eq.kxp1)ml(i)=k
+          q(i,k)=qvb(i,k,j)/psb(i,j)
+          pppk=(a(k)*psb(i,j)+ptop)*1000.
+          ape(i,k)=(pppk/h10e5)**dm2859
+  121   continue
+        lbot(i)=kx
+        thesp(i)=d00
+        thbt(i)=d00
+        psp(i)=9.5e4
+C      pdsl (k)=res(k)*pd(k)
+        tref(i,1)=t(i,1)
+C...ifbuoy = 0 means no positive buoyancy; ifbuoy(i) means yes...
+C...ip300 is the highest model level in the lowest 300 mb...
+        ifbuoy(i)=0
+        ip300(i)=0
+        kf(i)=0
+C...activate this statement to run only shallow betts-miller with kf and
+C...ak deep convection...
+C      kf(i)=cvmgt(1,0,(icps.eq.2.and.nca(i,j).gt.0) .or.
+C     *                (icps.eq.1.and.nak(i,j).gt.0))
+        cell=ptop/psb(i,j)
+        do 378 k=1,kx
+          tv0=t(i,k)*(1.+d608*q(i,k))
+          dzq(k)=r/g*tbase(i,k,j)*
+     +           dlog((sigma(k+1)+cell)/(sigma(k)+cell))
+C        dzq(k)=(r/g)*tv0*dlog((sigma(k+1)+cell)/(sigma(k)+cell))
+  378   continue
+        z0(i,kx)=0.5*dzq(kx)
+        do 379 k=kx-1,1,-1
+          z0(i,k)=z0(i,k+1)+0.5*(dzq(k)+dzq(k+1))
+  379   continue
+  120 continue
+C--------------padding specific humidity if too small-------------------
+      do 130 k=1,kx
+        do 130 i=2,ilxm
+C        if(kf(i).eq.1)goto 130
+          if(q(i,k).lt.epsq)q(i,k)=epsq
+          pdiff=(1.-a(k))*psb(i,j)
+          if(pdiff.lt.30..and.ip300(i).eq.0)ip300(i)=k
+  130   continue
+C--------------search for maximum buoyancy level------------------------
+      do 140 kb=1,kx
+C       print *,'i, j, kb, z0, pbl =',
+C     *i,j,kb,z0(i,kb),pbl(i,j)
+C--------------trial maximum buoyancy level variables-------------------
+        do 150 i=2,ilxm
+C           if(z0(i,kb).gt.pbl(i,j)+10.)goto 150
+C           if(kf(i).eq.1)goto 150
+          pkl=(a(kb)*psb(i,j)+ptop)*1000.
+          psfck=(a(kx)*psb(i,j)+ptop)*1000.
+          if(pkl.lt.psfck-pbm)goto 150
+          tthbt(i)=t(i,kb)*ape(i,kb)
+          ee=pkl*q(i,kb)/(0.622+q(i,kb))
+          tdpt=1./(d273-rv/elwv*dlog(ee/611.))
+          tdpt=dmin1(tdpt,t(i,kb))
+          tlcl=tdpt-(.212+1.571e-3*(tdpt-t0)-4.36e-4*(t(i,kb)-t0))*(
+     +         t(i,kb)-tdpt)
+          tthes(i)=tthbt(i)*exp(elocp*q(i,kb)/tlcl)
+C--------------check for maximum buoyancy-------------------------------
+          if(tthes(i).gt.thesp(i))then
+            psp(i)=h10e5*(tthbt(i)/tlcl)**cporng
+            thbt(i)=tthbt(i)
+            thesp(i)=tthes(i)
           end if
 C-----------------------------------------------------------------------
-  150   CONTINUE
-  140 CONTINUE
-C---------CHOOSE CLOUD BASE AS MODEL LEVEL JUST BELOW PSP--------------
-      DO 240 K=1,LM1
-        AK=A(K)
-        DO 240 I=2,ILXM
-C          IF(KF(I).EQ.1)GOTO 240
-          P(I)=(AK*PSB(I,J)+PTOP)*1000.
-C CLOUD BOTTOM CANNOT BE ABOVE 200 MB
-          IF(P(I).LT.PSP(I).AND.P(I).GE.PQM)LBOT(I)=K+1
-  240   CONTINUE
-C*** WARNING: LBOT MUST NOT BE GT kx-1 IN SHALLOW CONVECTION
-C*** MAKE SURE THE CLOUD BASE IS AT LEAST 25 MB ABOVE THE SURFACE
-      DO 250 I=2,ILXM
-C       IF(KF(I).EQ.1)GOTO 250
-        PBOT(I)=(A(LBOT(I))*PSB(I,J)+PTOP)*1000.
-        PSFCK=(A(kx)*PSB(I,J)+PTOP)*1000.
-        IF(PBOT(I).GE.PSFCK-PONE.OR.LBOT(I).GE.kx)THEN
-C*** CLOUD BOTTOM IS AT THE SURFACE SO RECALCULATE CLOUD BOTTOM
-          DO 245 K=1,LM1
-            P(I)=(A(kx)*PSB(I,J)+PTOP)*1000.
-            IF(P(I).LT.PSFCK-PONE)LBOT(I)=K
-  245     CONTINUE
-          PBOT(I)=(A(LBOT(I))*PSB(I,J)+PTOP)*1000.
+  150   continue
+  140 continue
+C---------choose cloud base as model level just below psp--------------
+      do 240 k=1,lm1
+        ak=a(k)
+        do 240 i=2,ilxm
+C          if(kf(i).eq.1)goto 240
+          p(i)=(ak*psb(i,j)+ptop)*1000.
+C cloud bottom cannot be above 200 mb
+          if(p(i).lt.psp(i).and.p(i).ge.pqm)lbot(i)=k+1
+  240   continue
+C*** warning: lbot must not be gt kx-1 in shallow convection
+C*** make sure the cloud base is at least 25 mb above the surface
+      do 250 i=2,ilxm
+C       if(kf(i).eq.1)goto 250
+        pbot(i)=(a(lbot(i))*psb(i,j)+ptop)*1000.
+        psfck=(a(kx)*psb(i,j)+ptop)*1000.
+        if(pbot(i).ge.psfck-pone.or.lbot(i).ge.kx)then
+C*** cloud bottom is at the surface so recalculate cloud bottom
+          do 245 k=1,lm1
+            p(i)=(a(kx)*psb(i,j)+ptop)*1000.
+            if(p(i).lt.psfck-pone)lbot(i)=k
+  245     continue
+          pbot(i)=(a(lbot(i))*psb(i,j)+ptop)*1000.
         end if
-  250 CONTINUE
-C--------------CLOUD TOP COMPUTATION------------------------------------
-      DO 260 I=2,ILXM
-        PRTOP(I)=PBOT(I)
-  260 LTOP(I)=LBOT(I)
-      DO 270 IVI=1,kx
-        L=LP1-IVI
-C--------------FIND ENVIRONMENTAL SATURATION EQUIV POT TEMP...
-        DO 280 I=2,ILXM
-          P(I)=(A(L)*PSB(I,J)+PTOP)*1000.
-          ES=ALIQ*EXP((BLIQ*T(I,L)-CLIQ)/(T(I,L)-DLIQ))
-          QS=0.622*ES/(P(I)-ES)
-          THS(I)=T(I,L)*APE(I,L)*EXP(ELOCP*QS/T(I,L))
-  280   CONTINUE
-C--------------BUOYANCY CHECK-------------------------------------------
-        DO 350 I=2,ILXM
-          IF(L.LE.LBOT(I))THEN
-            IF(THESP(I).GT.THS(I))IFBUOY(I)=1
-            IF(THESP(I).GT.THS(I)-1.5.AND.IFBUOY(I).EQ.1)LTOP(I)=L+1
+  250 continue
+C--------------cloud top computation------------------------------------
+      do 260 i=2,ilxm
+        prtop(i)=pbot(i)
+  260 ltop(i)=lbot(i)
+      do 270 ivi=1,kx
+        l=lp1-ivi
+C--------------find environmental saturation equiv pot temp...
+        do 280 i=2,ilxm
+          p(i)=(a(l)*psb(i,j)+ptop)*1000.
+          es=aliq*exp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
+          qs=0.622*es/(p(i)-es)
+          ths(i)=t(i,l)*ape(i,l)*exp(elocp*qs/t(i,l))
+  280   continue
+C--------------buoyancy check-------------------------------------------
+        do 350 i=2,ilxm
+          if(l.le.lbot(i))then
+            if(thesp(i).gt.ths(i))ifbuoy(i)=1
+            if(thesp(i).gt.ths(i)-1.5.and.ifbuoy(i).eq.1)ltop(i)=l+1
           end if
-  350   CONTINUE
+  350   continue
 C------------------------------------------------
-  270 CONTINUE
-C--------------CLOUD TOP PRESSURE---------------------------------------
-      DO 275 I=2,ILXM
-C        IF(KF(I).EQ.1) GOTO 275
-        PRTOP(I)=(A(LTOP(I))*PSB(I,J)+PTOP)*1000.
-  275 CONTINUE
+  270 continue
+C--------------cloud top pressure---------------------------------------
+      do 275 i=2,ilxm
+C        if(kf(i).eq.1) goto 275
+        prtop(i)=(a(ltop(i))*psb(i,j)+ptop)*1000.
+  275 continue
 C-----------------------------------------------------------------------
-C--------------DEFINE AND SMOOTH DSPS AND CLDEFI------------------------
-CVVVVV UNIFIED OR SEPARATE LAND/SEA CONV VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-      IF(UNIS)THEN
-        DO 370 I=2,ILXM
-C           IF(KF(I).EQ.1)GOTO 370
-          EFI=CLDEFI(I,J)
-          DSPB(I)=(EFI-EFIMN)*SLOPBS+DSPBSS
-          DSP0(I)=(EFI-EFIMN)*SLOP0S+DSP0SS
-          DSPT(I)=(EFI-EFIMN)*SLOPTS+DSPTSS
-  370   CONTINUE
-      else if(.NOT.UNIL)THEN
-        DO 371 I=2,ILXM
-C           IF(KF(I).EQ.1)GOTO 371
-          EFI=CLDEFI(I,J)
-          DSPB(I)=((EFI-EFIMN)*SLOPBS+DSPBSS)*SM(I)+((EFI-EFIMN)*SLOPBL+
-     +            DSPBSL)*(H1-SM(I))
-          DSP0(I)=((EFI-EFIMN)*SLOP0S+DSP0SS)*SM(I)+((EFI-EFIMN)*SLOP0L+
-     +            DSP0SL)*(H1-SM(I))
-          DSPT(I)=((EFI-EFIMN)*SLOPTS+DSPTSS)*SM(I)+((EFI-EFIMN)*SLOPTL+
-     +            DSPTSL)*(H1-SM(I))
-  371   CONTINUE
-      ELSE
-        DO 375 I=2,ILXM
-          EFI=CLDEFI(I,J)
-          DSPB(I)=((EFI-EFIMN)*SLOPBL+DSPBSL)
-          DSP0(I)=((EFI-EFIMN)*SLOP0L+DSP0SL)
-  375   DSPT(I)=((EFI-EFIMN)*SLOPTL+DSPTSL)
+C--------------define and smooth dsps and cldefi------------------------
+Cvvvvv unified or separate land/sea conv vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+      if(unis)then
+        do 370 i=2,ilxm
+C           if(kf(i).eq.1)goto 370
+          efi=cldefi(i,j)
+          dspb(i)=(efi-efimn)*slopbs+dspbss
+          dsp0(i)=(efi-efimn)*slop0s+dsp0ss
+          dspt(i)=(efi-efimn)*slopts+dsptss
+  370   continue
+      else if(.not.unil)then
+        do 371 i=2,ilxm
+C           if(kf(i).eq.1)goto 371
+          efi=cldefi(i,j)
+          dspb(i)=((efi-efimn)*slopbs+dspbss)*sm(i)+((efi-efimn)*slopbl+
+     +            dspbsl)*(h1-sm(i))
+          dsp0(i)=((efi-efimn)*slop0s+dsp0ss)*sm(i)+((efi-efimn)*slop0l+
+     +            dsp0sl)*(h1-sm(i))
+          dspt(i)=((efi-efimn)*slopts+dsptss)*sm(i)+((efi-efimn)*sloptl+
+     +            dsptsl)*(h1-sm(i))
+  371   continue
+      else
+        do 375 i=2,ilxm
+          efi=cldefi(i,j)
+          dspb(i)=((efi-efimn)*slopbl+dspbsl)
+          dsp0(i)=((efi-efimn)*slop0l+dsp0sl)
+  375   dspt(i)=((efi-efimn)*sloptl+dsptsl)
       end if
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-C--------------EXTENDING SEA STRUCTURES INLAND ALONG COASTLINE----------
-C      IF(NROW.GT.0.AND..NOT.UNIS.AND..NOT.UNIL)    THEN
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+C--------------extending sea structures inland along coastline----------
+C      if(nrow.gt.0.and..not.unis.and..not.unil)    then
 C-----------------------------------------------------------------------
-C          DO 373 I=2,ILXM
-C      WF1(I)=0.
-C      WF2(I)=0.
-C      WF3(I)=0.
-C 373  WF4(I)=0.
+C          do 373 i=2,ilxm
+C      wf1(i)=0.
+C      wf2(i)=0.
+C      wf3(i)=0.
+C 373  wf4(i)=0.
 C-----------------------------------------------------------------------
-C      KROW=NROW
-C                             DO 372 KOUNT=1,KROW
-C          DO 374 I=2,ILXM
-C      WF1(I)=(DSPB  (I+KSW)+DSPB  (I+KSE)
-C     2       +DSPB  (I+KNW)+DSPB  (I+KNE)+DSPB  (I)*4.0)*HBM2(I)*0.125
-C      WF2(I)=(DSP0  (I+KSW)+DSP0  (I+KSE)
-C     2       +DSP0  (I+KNW)+DSP0  (I+KNE)+DSP0  (I)*4.0)*HBM2(I)*0.125
-C      WF3(I)=(DSPT  (I+KSW)+DSPT  (I+KSE)
-C     2       +DSPT  (I+KNW)+DSPT  (I+KNE)+DSPT  (I)*4.0)*HBM2(I)*0.125
-C 374  WF4(I)=(CLDEFI(I+KSW)+CLDEFI(I+KSE)
-C     2       +CLDEFI(I+KNW)+CLDEFI(I+KNE)+CLDEFI(I)*4.0)*HBM2(I)*0.125
-C          DO 372 I=2,ILXM
-C      SMK =SM(I,J)
-C      RSMK=1.0-SMK
-C      DSPB  (I)=DSPB  (I)*SMK+WF1(I)*RSMK
-C      DSP0  (I)=DSP0  (I)*SMK+WF2(I)*RSMK
-C      DSPT  (I)=DSPT  (I)*SMK+WF3(I)*RSMK
-C 372  CLDEFI(I)=CLDEFI(I)*SMK+WF4(I)*RSMK
+C      krow=nrow
+C                             do 372 kount=1,krow
+C          do 374 i=2,ilxm
+C      wf1(i)=(dspb  (i+ksw)+dspb  (i+kse)
+C     2       +dspb  (i+knw)+dspb  (i+kne)+dspb  (i)*4.0)*hbm2(i)*0.125
+C      wf2(i)=(dsp0  (i+ksw)+dsp0  (i+kse)
+C     2       +dsp0  (i+knw)+dsp0  (i+kne)+dsp0  (i)*4.0)*hbm2(i)*0.125
+C      wf3(i)=(dspt  (i+ksw)+dspt  (i+kse)
+C     2       +dspt  (i+knw)+dspt  (i+kne)+dspt  (i)*4.0)*hbm2(i)*0.125
+C 374  wf4(i)=(cldefi(i+ksw)+cldefi(i+kse)
+C     2       +cldefi(i+knw)+cldefi(i+kne)+cldefi(i)*4.0)*hbm2(i)*0.125
+C          do 372 i=2,ilxm
+C      smk =sm(i,j)
+C      rsmk=1.0-smk
+C      dspb  (i)=dspb  (i)*smk+wf1(i)*rsmk
+C      dsp0  (i)=dsp0  (i)*smk+wf2(i)*rsmk
+C      dspt  (i)=dspt  (i)*smk+wf3(i)*rsmk
+C 372  cldefi(i)=cldefi(i)*smk+wf4(i)*rsmk
 C-----------------------------------------------------------------------
 C      end if
-C--------------INITIALIZE CHANGES OF T AND Q DUE TO CONVECTION----------
-      DO 360 K=1,kx
-        DO 360 I=2,ILXM
-          TMOD(I,K)=D00
-  360   QMOD(I,K)=D00
-C--------------CLEAN UP AND GATHER DEEP CONVECTION POINTS---------------
-      KHDEEP=0
-      NSWAP=0
-      DO 380 I=2,ILXM
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-C     LLMH=LMH(K)
-C     UBAR=(U(K+KHS,LLMH)+U(K-1  ,LLMH)+U(K    ,LLMH)+U(K+KHN,LLMH))*.25
-C     VBAR=(V(K+KHS,LLMH)+V(K-1  ,LLMH)+V(K    ,LLMH)+V(K+KHN,LLMH))*.25
-C     VCNV=SQRT(UBAR*UBAR+VBAR*VBAR)
-C     IF(VCNV.LT.8.            )    LTOP(K)=LBOT(K)-LSH
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-C...ACTIVATE THIS STATEMENT TO RUN ONLY SHALLOW BETTS-MILLER WITH KF AND
-C...AK DEEP CONVECTION...
-C      IF(LTOP(I).GT.LBOT(I) .OR. KF(I).EQ.1)  THEN
-        IF(LTOP(I).GT.LBOT(I))THEN
-          LTOP(I)=LBOT(I)
-          PRTOP(I)=PBOT(I)
+C--------------initialize changes of t and q due to convection----------
+      do 360 k=1,kx
+        do 360 i=2,ilxm
+          tmod(i,k)=d00
+  360   qqmod(i,k)=d00
+C--------------clean up and gather deep convection points---------------
+      khdeep=0
+      nswap=0
+      do 380 i=2,ilxm
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+C     llmh=lmh(k)
+C     ubar=(u(k+khs,llmh)+u(k-1  ,llmh)+u(k    ,llmh)+u(k+khn,llmh))*.25
+C     vbar=(v(k+khs,llmh)+v(k-1  ,llmh)+v(k    ,llmh)+v(k+khn,llmh))*.25
+C     vcnv=sqrt(ubar*ubar+vbar*vbar)
+C     if(vcnv.lt.8.            )    ltop(k)=lbot(k)-lsh
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+C...activate this statement to run only shallow betts-miller with kf and
+C...ak deep convection...
+C      if(ltop(i).gt.lbot(i) .or. kf(i).eq.1)  then
+        if(ltop(i).gt.lbot(i))then
+          ltop(i)=lbot(i)
+          prtop(i)=pbot(i)
         end if
-C     IF(HBM2(I).LT.0.90       )    LTOP(I)=LBOT(I)
-        CLDHGT(I)=Z0(I,LTOP(I))-Z0(I,LBOT(I))
-C  CLOUD IS LESS THAN 90 MB DEEP OR LESS THAN 3 SIGMA LAYERS DEEP
-C     IF(PRTOP(I).GT.PBOT(I)-PNO.OR.LTOP(I).GT.LBOT(I)-2)
-C     IF(CLDHGT(I).LT.ZNO.OR.LTOP(I).GT.LBOT(I)-2)
-        IF(CLDHGT(I).LT.ZNO)CLDEFI(I,J)=AVGEFI*SM(I)+STEFI*(H1-SM(I))
-C  CLOUD HAS TO BE AT LEAST 290 MB DEEP
-        IF(CLDHGT(I).GE.ZSH)THEN
-C     IF(PRTOP(I).LT.PBOT(I)-PSH)THEN
-          KHDEEP=KHDEEP+1
-          KDEEP(KHDEEP)=I
+C     if(hbm2(i).lt.0.90       )    ltop(i)=lbot(i)
+        cldhgt(i)=z0(i,ltop(i))-z0(i,lbot(i))
+C  cloud is less than 90 mb deep or less than 3 sigma layers deep
+C     if(prtop(i).gt.pbot(i)-pno.or.ltop(i).gt.lbot(i)-2)
+C     if(cldhgt(i).lt.zno.or.ltop(i).gt.lbot(i)-2)
+        if(cldhgt(i).lt.zno)cldefi(i,j)=avgefi*sm(i)+stefi*(h1-sm(i))
+C  cloud has to be at least 290 mb deep
+        if(cldhgt(i).ge.zsh)then
+C     if(prtop(i).lt.pbot(i)-psh)then
+          khdeep=khdeep+1
+          kdeep(khdeep)=i
         end if
-  380 CONTINUE
-C************* HORIZONTAL LOOP FOR DEEP CONVECTION *********************
+  380 continue
+C************* horizontal loop for deep convection *********************
 C***********************************************************************
-C     PRINT*,'NUMBER OF DEEP CONVECTIVE POINTS=',KHDEEP
-      DO 400 N=1,KHDEEP
-        I=KDEEP(N)
-        DENTPY=D00
-        AVRGT=D00
-        PRECK=D00
-C      IF(ICPS.EQ.2 .OR. ICPS.EQ.1)GOTO 532
-        LTPK=LTOP(I)
-        LBTK=LBOT(I)
-CDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCD
-CDCDCDCDCDCDC  DEEP CONVECTION   DCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCD
-CDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCD
-C     LB   =kx-1
-        EFI=CLDEFI(I,J)
-        DSPBK=DSPB(I)
-        DSP0K=DSP0(I)
-        DSPTK=DSPT(I)
-C--------------INITIALIZE VARIABLES IN THE CONVECTIVE COLUMN------------
-        DO 410 K=1,kx
-          DIFT(K)=D00
-          DIFQ(K)=D00
-          TKL=T(I,K)
-          TK(K)=TKL
-          TREFK(K)=TKL
-          QKL=Q(I,K)
-          QK(K)=QKL
-          QREFK(K)=QKL
-          PKL=(A(K)*PSB(I,J)+PTOP)*1000.
+C     print*,'number of deep convective points=',khdeep
+      do 400 n=1,khdeep
+        i=kdeep(n)
+        dentpy=d00
+        avrgt=d00
+        preck=d00
+C      if(icps.eq.2 .or. icps.eq.1)goto 532
+        ltpk=ltop(i)
+        lbtk=lbot(i)
+Cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+Cdcdcdcdcdcdc  deep convection   dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+Cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+C     lb   =kx-1
+        efi=cldefi(i,j)
+        dspbk=dspb(i)
+        dsp0k=dsp0(i)
+        dsptk=dspt(i)
+C--------------initialize variables in the convective column------------
+        do 410 k=1,kx
+          dift(k)=d00
+          difq(k)=d00
+          tkl=t(i,k)
+          tk(k)=tkl
+          trefk(k)=tkl
+          qkl=q(i,k)
+          qk(k)=qkl
+          qrefk(k)=qkl
+          pkl=(a(k)*psb(i,j)+ptop)*1000.
 ***************
-          TREF(I,K)=TPFC(PKL,THESP(I),T(I,K),D273,ELWV,QU,APE(I,K))
+          tref(i,k)=tpfc(pkl,thesp(i),t(i,k),d273,elwv,qu,ape(i,k))
 ****************
-          PK(K)=PKL
-          PSK(K)=PKL
-          APEKL=APE(I,K)
-          APEK(K)=APEKL
-          THERK(K)=TREF(I,K)*APEKL
-  410   THVMOD(K)=(QKL*D608+H1)*TKL*APEKL
-C     PRINT *, 'LB,PK(K) = ', LB,PK
-C--------------DEEP CONVECTION REFERENCE TEMPERATURE PROFILE------------
-        LTP1=LTPK+1
-        LBM1=LB-1
-        PKB=PK(LB)
-        PKT=PK(LTPK)
-C--------------TEMPERATURE REFERENCE PROFILE BELOW FREEZING LEVEL-------
-        L0=LB
-        PK0=PK(LB)
-        DO 420 L=LTPK,LBM1
-          IVI=LTPK+LBM1-L
-          IF(TREFK(IVI+1).LE.T1)GOTO 430
-          STABDL=STABD
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-C         IF(IVI.EQ.LBM1.AND.SM(I).GT.D00) STABDL=STABD*STABFC
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-          TREFK(IVI)=((THERK(IVI)-THERK(IVI+1))*STABDL+TREFK(IVI+1)*
-     +               APEK(IVI+1))/APEK(IVI)
-          L0=IVI
-          PK0=PK(L0)
-  420   CONTINUE
-C--------------FREEZING LEVEL AT OR ABOVE THE CLOUD TOP-----------------
-        L0M1=L0-1
-        GOTO 440
-C--------------TEMPERATURE REFERENCE PROFILE ABOVE FREEZING LEVEL-------
-  430   L0M1=L0-1
-        RDP0T=H1/(PK0-PKT)
-        DTHEM=THERK(L0)-TREFK(L0)*APEK(L0)
-        DO 450 L=LTPK,L0M1
-  450   TREFK(L)=(THERK(L)-(PK(L)-PKT)*DTHEM*RDP0T)/APEK(L)
-C--------------DEEP CONVECTION REFERENCE HUMIDITY PROFILE---------------
-  440   DO 460 L=LTPK,LB
-C--------------SATURATION PRESSURE DIFFERENCE---------------------------
-          IF(PKB-PK0.GE.PFRZ)THEN
-! P(kx-1) -P(FRZ) .GE. 150 MB)
-            IF(L.LT.L0)THEN
-              DSP=((PK0-PK(L))*DSPTK+(PK(L)-PKT)*DSP0K)/(PK0-PKT)
-            ELSE
-              DSP=((PKB-PK(L))*DSP0K+(PK(L)-PK0)*DSPBK)/(PKB-PK0)
+          pk(k)=pkl
+          psk(k)=pkl
+          apekl=ape(i,k)
+          apek(k)=apekl
+          therk(k)=tref(i,k)*apekl
+  410   thvmod(k)=(qkl*d608+h1)*tkl*apekl
+C     print *, 'lb,pk(k) = ', lb,pk
+C--------------deep convection reference temperature profile------------
+        ltp1=ltpk+1
+        lbm1=lb-1
+        pkb=pk(lb)
+        pkt=pk(ltpk)
+C--------------temperature reference profile below freezing level-------
+        l0=lb
+        pk0=pk(lb)
+        do 420 l=ltpk,lbm1
+          ivi=ltpk+lbm1-l
+          if(trefk(ivi+1).le.t1)goto 430
+          stabdl=stabd
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+C         if(ivi.eq.lbm1.and.sm(i).gt.d00) stabdl=stabd*stabfc
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          trefk(ivi)=((therk(ivi)-therk(ivi+1))*stabdl+trefk(ivi+1)*
+     +               apek(ivi+1))/apek(ivi)
+          l0=ivi
+          pk0=pk(l0)
+  420   continue
+C--------------freezing level at or above the cloud top-----------------
+        l0m1=l0-1
+        goto 440
+C--------------temperature reference profile above freezing level-------
+  430   l0m1=l0-1
+        rdp0t=h1/(pk0-pkt)
+        dthem=therk(l0)-trefk(l0)*apek(l0)
+        do 450 l=ltpk,l0m1
+  450   trefk(l)=(therk(l)-(pk(l)-pkt)*dthem*rdp0t)/apek(l)
+C--------------deep convection reference humidity profile---------------
+  440   do 460 l=ltpk,lb
+C--------------saturation pressure difference---------------------------
+          if(pkb-pk0.ge.pfrz)then
+! p(kx-1) -p(frz) .ge. 150 mb)
+            if(l.lt.l0)then
+              dsp=((pk0-pk(l))*dsptk+(pk(l)-pkt)*dsp0k)/(pk0-pkt)
+            else
+              dsp=((pkb-pk(l))*dsp0k+(pk(l)-pk0)*dspbk)/(pkb-pk0)
             end if
-          ELSE
-            DSP=DSPC
+          else
+            dsp=dspc
           end if
-C--------------HUMIDITY PROFILE-----------------------------------------
-          IF(PK(L).GT.PQM)THEN
-! PRESSURE MUST BE BELOW 200 MB
-            PSK(L)=PK(L)+DSP
-            APESK(L)=(PSK(L)/H10E5)**DM2859
-            THSK(L)=TREFK(L)*APEK(L)
-            QREFK(L)=PQ0/PSK(L)*
-     +               EXP(A2*(THSK(L)-A3*APESK(L))/(THSK(L)-A4*APESK(L)))
-          ELSE
-            QREFK(L)=Q(I,L)
+C--------------humidity profile-----------------------------------------
+          if(pk(l).gt.pqm)then
+! pressure must be below 200 mb
+            psk(l)=pk(l)+dsp
+            apesk(l)=(psk(l)/h10e5)**dm2859
+            thsk(l)=trefk(l)*apek(l)
+            qrefk(l)=pq0/psk(l)*
+     +               exp(a2*(thsk(l)-a3*apesk(l))/(thsk(l)-a4*apesk(l)))
+          else
+            qrefk(l)=q(i,l)
           end if
-  460   CONTINUE
-        DO 470 L=LTPK,LB
-  470   THEVRF(L)=TREFK(L)*APEK(L)*(QREFK(L)*D608+H1)
-C--------------ENTHALPY CONSERVATION INTEGRAL--------------------------
-        DO 480 ITER=1,2
+  460   continue
+        do 470 l=ltpk,lb
+  470   thevrf(l)=trefk(l)*apek(l)*(qrefk(l)*d608+h1)
+C--------------enthalpy conservation integral--------------------------
+        do 480 iter=1,2
 C-----------------------------------------------------------------------
-          SUMDE=D00
-          SUMDP=D00
-          DO 490 L=LTPK,LB
-            SUMDE=((TK(L)-TREFK(L))*CP+(QK(L)-QREFK(L))*ELWV)*DSIGMA(L)+
-     +            SUMDE
-  490     SUMDP=SUMDP+DSIGMA(L)
-          HCORR=SUMDE/(SUMDP-DSIGMA(LTPK))
-          LCOR=LTPK+1
-C--------------FIND LQM-------------------------------------------------
-          DO 495 L=1,LB
-            IF(PK(L).LE.PQM)LQM=L
-  495     CONTINUE
-C      PRINT 4950, LCOR,LQM
-C4950  FORMAT(1X,' === LCOR,LQM = ',2I6)
-C--------------ABOVE LQM CORRECT TEMPERATURE ONLY-----------------------
-          IF(LCOR.LE.LQM)THEN
-            DO 500 L=LCOR,LQM
-  500       TREFK(L)=TREFK(L)+HCORR*RCP
-            LCOR=LQM+1
+          sumde=d00
+          sumdp=d00
+          do 490 l=ltpk,lb
+            sumde=((tk(l)-trefk(l))*cp+(qk(l)-qrefk(l))*elwv)*dsigma(l)+
+     +            sumde
+  490     sumdp=sumdp+dsigma(l)
+          hcorr=sumde/(sumdp-dsigma(ltpk))
+          lcor=ltpk+1
+C--------------find lqm-------------------------------------------------
+          do 495 l=1,lb
+            if(pk(l).le.pqm)lqm=l
+  495     continue
+C      print 4950, lcor,lqm
+C4950  format(1x,' === lcor,lqm = ',2i6)
+C--------------above lqm correct temperature only-----------------------
+          if(lcor.le.lqm)then
+            do 500 l=lcor,lqm
+  500       trefk(l)=trefk(l)+hcorr*rcp
+            lcor=lqm+1
           end if
-C--------------BELOW LQM CORRECT BOTH TEMPERATURE AND MOISTURE----------
-          DO 510 L=LCOR,LB
-            TSKL=TREFK(L)*APEK(L)/APESK(L)
-            DHDT=QREFK(L)*A23M4L/(TSKL-A4)**2+CP
-            TREFK(L)=HCORR/DHDT+TREFK(L)
-            THSKL=TREFK(L)*APEK(L)
-            QREFK(L)=PQ0/PSK(L)*
-     +               EXP(A2*(THSKL-A3*APESK(L))/(THSKL-A4*APESK(L)))
-  510     CONTINUE
+C--------------below lqm correct both temperature and moisture----------
+          do 510 l=lcor,lb
+            tskl=trefk(l)*apek(l)/apesk(l)
+            dhdt=qrefk(l)*a23m4l/(tskl-a4)**2+cp
+            trefk(l)=hcorr/dhdt+trefk(l)
+            thskl=trefk(l)*apek(l)
+            qrefk(l)=pq0/psk(l)*
+     +               exp(a2*(thskl-a3*apesk(l))/(thskl-a4*apesk(l)))
+  510     continue
 C-----------------------------------------------------------------------
-  480   CONTINUE
-CVVVVVVVVVVVVV DIAGNOSTICS VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        DO 520 L=1,kx
-  520   THVREF(L)=TREFK(L)*APEK(L)*(QREFK(L)*D608+H1)
-C--------------HEATING, MOISTENING, PRECIPITATION-----------------------
-        DO 530 L=LTPK,LB
-          TKL=TK(L)
-          DIFTL=(TREFK(L)-TKL)*TAUK
-          DIFQL=(QREFK(L)-QK(L))*TAUK
-          AVRGTL=(TKL+TKL+DIFTL)
-          DENTPY=(DIFTL*CP+DIFQL*ELWV)*DSIGMA(L)/AVRGTL+DENTPY
-          AVRGT=AVRGTL*DSIGMA(L)+AVRGT
-          PRECK=DSIGMA(L)*DIFTL+PRECK
-          DIFT(L)=DIFTL
-  530   DIFQ(L)=DIFQL
-        DENTPY=DENTPY+DENTPY
-        AVRGT=AVRGT/(SUMDP+SUMDP)
-C-------------SWAP IF ENTROPY AND/OR PRECIP .LE. 0 ...------------------
-C 532   IF(DENTPY.LT.EPSNTP .OR. PRECK.LE.D00 .OR.
-C     *   ICPS.EQ.2)    THEN
-C 532   IF(DENTPY.LT.EPSNTP.OR.PRECK.LE.D00)THEN
-        IF(DENTPY.LT.EPSNTP.OR.PRECK.LE.D00)THEN
-          IF(OCT90)THEN
-            CLDEFI(I,J)=EFIMN
-          ELSE
-            CLDEFI(I,J)=EFIMN*SM(I)+STEFI*(H1-SM(I))
+  480   continue
+Cvvvvvvvvvvvvv diagnostics vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        do 520 l=1,kx
+  520   thvref(l)=trefk(l)*apek(l)*(qrefk(l)*d608+h1)
+C--------------heating, moistening, precipitation-----------------------
+        do 530 l=ltpk,lb
+          tkl=tk(l)
+          diftl=(trefk(l)-tkl)*tauk
+          difql=(qrefk(l)-qk(l))*tauk
+          avrgtl=(tkl+tkl+diftl)
+          dentpy=(diftl*cp+difql*elwv)*dsigma(l)/avrgtl+dentpy
+          avrgt=avrgtl*dsigma(l)+avrgt
+          preck=dsigma(l)*diftl+preck
+          dift(l)=diftl
+  530   difq(l)=difql
+        dentpy=dentpy+dentpy
+        avrgt=avrgt/(sumdp+sumdp)
+C-------------swap if entropy and/or precip .le. 0 ...------------------
+C 532   if(dentpy.lt.epsntp .or. preck.le.d00 .or.
+C     *   icps.eq.2)    then
+C 532   if(dentpy.lt.epsntp.or.preck.le.d00)then
+        if(dentpy.lt.epsntp.or.preck.le.d00)then
+          if(oct90)then
+            cldefi(i,j)=efimn
+          else
+            cldefi(i,j)=efimn*sm(i)+stefi*(h1-sm(i))
           end if
-          ZTOP=Z0(I,LBOT(I))+ZSH-0.000001
-C         PRTOP(I)=PBOT(I)-PSH    ! PTOP IS NOW PBOT - 290.
-          DO 535 L=1,LB
-            IF(Z0(I,L).GE.ZTOP)LTOP(I)=L+1
-C           IF(PK(L).LE.PRTOP(I)) LTOP(I)=L+1
-  535     CONTINUE
-          PRTOP(I)=PK(LTOP(I))
-C------------CLOUD MUST BE AT LEAST 2 LAYERS THICK---------------------
-          IF(LBOT(I)-LTOP(I).LT.2)LTOP(I)=LBOT(I)-2
-          PRTOP(I)=PK(LTOP(I))
-          CLDHGT(I)=Z0(I,LTOP(I))-Z0(I,LBOT(I))
-          NSWAP=NSWAP+1
-          GOTO 400
+          ztop=z0(i,lbot(i))+zsh-0.000001
+C         prtop(i)=pbot(i)-psh    ! ptop is now pbot - 290.
+          do 535 l=1,lb
+            if(z0(i,l).ge.ztop)ltop(i)=l+1
+C           if(pk(l).le.prtop(i)) ltop(i)=l+1
+  535     continue
+          prtop(i)=pk(ltop(i))
+C------------cloud must be at least 2 layers thick---------------------
+          if(lbot(i)-ltop(i).lt.2)ltop(i)=lbot(i)-2
+          prtop(i)=pk(ltop(i))
+          cldhgt(i)=z0(i,ltop(i))-z0(i,lbot(i))
+          nswap=nswap+1
+          goto 400
         end if
-C--------------... DEEP CONVECTION OTHERWISE----------------------------
-        ICOND=ICOND+1
-C***  KEEP THE LAND VALUE OF EFI EQUAL TO 1 UNTIL PRECIP SURPASSES
-C***  A THRESHOLD VALUE, CURRENTLY SET TO 0.25 INCHES PER 24 HRS
-        PTHRS=CTHRS/PSB(I,J)
-        DRHEAT=(PRECK*SM(I)+DMAX1(EPSP,PRECK-PTHRS)*(H1-SM(I)))*CP/AVRGT
-        EFI=EFIFC*DENTPY/DRHEAT
-CVVVVV UNIFIED OR SEPARATE LAND/SEA CONV. VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        IF(OCT90)THEN
-          IF(UNIS)THEN
-            EFI=CLDEFI(I,J)*FCP+EFI*FCC1
-          else if(.NOT.UNIL)THEN
-            EFI=(CLDEFI(I,J)*FCP+EFI*FCC1)*SM(I)+H1-SM(I)
-          ELSE
-            EFI=H1
+C--------------... deep convection otherwise----------------------------
+        icond=icond+1
+C***  keep the land value of efi equal to 1 until precip surpasses
+C***  a threshold value, currently set to 0.25 inches per 24 hrs
+        pthrs=cthrs/psb(i,j)
+        drheat=(preck*sm(i)+dmax1(epsp,preck-pthrs)*(h1-sm(i)))*cp/avrgt
+        efi=efifc*dentpy/drheat
+Cvvvvv unified or separate land/sea conv. vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        if(oct90)then
+          if(unis)then
+            efi=cldefi(i,j)*fcp+efi*fcc1
+          else if(.not.unil)then
+            efi=(cldefi(i,j)*fcp+efi*fcc1)*sm(i)+h1-sm(i)
+          else
+            efi=h1
           end if
-        ELSE
-          EFI=CLDEFI(I,J)*FCP+EFI*FCC1
+        else
+          efi=cldefi(i,j)*fcp+efi*fcc1
         end if
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        IF(EFI.GT.H1)EFI=H1
-        IF(EFI.LT.EFIMN)EFI=EFIMN
-        CLDEFI(I,J)=EFI
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        FEFI=EFMNT+SLOPE*(EFI-EFIMN)
-C     FEFI=DMAX1(EFI,EFMNT)
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        PRECK=PRECK*FEFI
-C--------------UPDATE PRECIPITATION, TEMPERATURE & MOISTURE-------------
-C         PREC  (I,J)=PSB(I,J)*PRECK*CPRLG+PREC  (I,J)
-C CORRECT RAINC SO THAT THERE IS NO DOUBLE COUNTING OF PRECIPITATION (GK
-C         RAINC(I,J)=((PSB(I,J)*1000.*PRECK*CPRLG)*100.)+RAINC(I,J)
-        prainx=0.5*((PSB(I,J)*1000.*PRECK*CPRLG)*100.)
-        RAINC(I,J)=prainx+RAINC(I,J)
-c.....................precipitation rate for bats (mm/s)
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        if(efi.gt.h1)efi=h1
+        if(efi.lt.efimn)efi=efimn
+        cldefi(i,j)=efi
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        fefi=efmnt+slope*(efi-efimn)
+C     fefi=dmax1(efi,efmnt)
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        preck=preck*fefi
+C--------------update precipitation, temperature & moisture-------------
+C         prec  (i,j)=psb(i,j)*preck*cprlg+prec  (i,j)
+C correct rainc so that there is no double counting of precipitation (gk
+C         rainc(i,j)=((psb(i,j)*1000.*preck*cprlg)*100.)+rainc(i,j)
+        prainx=0.5*((psb(i,j)*1000.*preck*cprlg)*100.)
+        rainc(i,j)=prainx+rainc(i,j)
+C.....................precipitation rate for bats (mm/s)
         aprdiv=dble(nbatst)
         if (jyear.eq.jyear0.and.ktau.eq.0) aprdiv=1.
         pptc(i,j)=pptc(i,j)+prainx/(dtmin*60.)/aprdiv
-        DO 550 L=LTPK,LB
-          TMOD(I,L)=DIFT(L)*FEFI/DT2
-  550   QMOD(I,L)=DIFQ(L)*FEFI/DT2
-C      PRINT *, 'AFTER DO 550; ICOND = ', ICOND
-CDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCD
-CDCDCDCDCDCDC  END OF DEEP CONVECTION  DCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCD
-CDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCD
+        do 550 l=ltpk,lb
+          tmod(i,l)=dift(l)*fefi/dt2
+  550   qqmod(i,l)=difq(l)*fefi/dt2
+C      print *, 'after do 550; icond = ', icond
+Cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+Cdcdcdcdcdcdc  end of deep convection  dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+Cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
 C-----------------------------------------------------------------------
-  400 CONTINUE
-C     PRINT *, 'AFTER LOOP 400'
-CVVVVVVVVVVVVV DIAGNOSTICS VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-      NDEEP=0
-      DO 570 I=2,ILXM
-        LTPK=LTOP(I)
-        LBTK=LBOT(I)
-        PTPK=PRTOP(I)
-        PBTK=PBOT(I)
-C     LB  =kx-1
-        IF(CLDHGT(I).GE.ZSH)THEN
-C     IF(PTPK.LT.PBTK-PSH)THEN    ! PSH=290 MB NDEEP=NDEEP+1
-          NDEEP=NDEEP+1
-          NDEPTH=LB-LTPK
-          NTOPD(LTPK)=NTOPD(LTPK)+1
-          NBOTD(LB)=NBOTD(LB)+1
-          IF(NDEPTH.GT.0)NDPTHD(NDEPTH)=NDPTHD(NDEPTH)+1
+  400 continue
+C     print *, 'after loop 400'
+Cvvvvvvvvvvvvv diagnostics vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+      ndeep=0
+      do 570 i=2,ilxm
+        ltpk=ltop(i)
+        lbtk=lbot(i)
+        ptpk=prtop(i)
+        pbtk=pbot(i)
+C     lb  =kx-1
+        if(cldhgt(i).ge.zsh)then
+C     if(ptpk.lt.pbtk-psh)then    ! psh=290 mb ndeep=ndeep+1
+          ndeep=ndeep+1
+          ndepth=lb-ltpk
+          ntopd(ltpk)=ntopd(ltpk)+1
+          nbotd(lb)=nbotd(lb)+1
+          if(ndepth.gt.0)ndpthd(ndepth)=ndpthd(ndepth)+1
         end if
-  570 CONTINUE
-      NNEG=KHDEEP-NDEEP
-C      PRINT *,'NO. OF SWAPPED POINTS, FINAL DEEP: ',NSWAP,NDEEP
-CAAAAAAAAAAAAA DIAGNOSTICS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-C--------------GATHER SHALLOW CONVECTION POINTS-------------------------
-      KHSHAL=0
-      NDSTN=0
-      NDSTP=0
-      DO 560 I=2,ILXM
-C  IF CLOUD DEPTH < 90 OR < 2 SIGMA LAYERS NO SHALLOW CONVECTION
-        IF(CLDHGT(I).LT.ZNO.OR.LTOP(I).GT.LBOT(I)-2)GOTO 560
-C     IF(CLDHGT(I).LT.ZNO)GO TO 560
-C     IF(PRTOP(I).GT.PBOT(I)-PNO.OR.LTOP(I).GT.LBOT(I)-2)GO TO 560
-        IF(CLDHGT(I).LT.ZSH)THEN
-C     IF(PRTOP(I).GE.PBOT(I)-PSH)THEN  ! 90 MB < CLD DEPTH < 290 MB
-          KHSHAL=KHSHAL+1
-          KSHAL(KHSHAL)=I
+  570 continue
+      nneg=khdeep-ndeep
+C      print *,'no. of swapped points, final deep: ',nswap,ndeep
+Caaaaaaaaaaaaa diagnostics aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+C--------------gather shallow convection points-------------------------
+      khshal=0
+      ndstn=0
+      ndstp=0
+      do 560 i=2,ilxm
+C  if cloud depth < 90 or < 2 sigma layers no shallow convection
+        if(cldhgt(i).lt.zno.or.ltop(i).gt.lbot(i)-2)goto 560
+C     if(cldhgt(i).lt.zno)go to 560
+C     if(prtop(i).gt.pbot(i)-pno.or.ltop(i).gt.lbot(i)-2)go to 560
+        if(cldhgt(i).lt.zsh)then
+C     if(prtop(i).ge.pbot(i)-psh)then  ! 90 mb < cld depth < 290 mb
+          khshal=khshal+1
+          kshal(khshal)=i
         end if
-  560 CONTINUE
-C************* HORIZONTAL LOOP FOR SHALLOW CONVECTION ******************
+  560 continue
+C************* horizontal loop for shallow convection ******************
 C***********************************************************************
-C      PRINT*,'AT J =',J,' NUMBER OF SHALLOW CONVECTIVE POINTS=',
-C     *KHSHAL
-CSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCS
-CSCSCSCSCSCSC  SHALLOW CONVECTION  CSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSC
-CSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCS
+C      print*,'at j =',j,' number of shallow convective points=',
+C     *khshal
+Cscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+Cscscscscscsc  shallow convection  cscscscscscscscscscscscscscscscscscsc
+Cscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
 C-----------------------------------------------------------------------
-      DO 600 N=1,KHSHAL
-        I=KSHAL(N)
-C         PZ0= (PSB(I,J)+PTOP)*1000.       ! NOT USED!
-        DO 610 K=1,kx
-          TKL=T(I,K)
-          TK(K)=TKL
-          TREFK(K)=TKL
-          QKL=Q(I,K)
-          QK(K)=QKL
-          QREFK(K)=QKL
-          QSATK(K)=QKL
-          PKL=(A(K)*PSB(I,J)+PTOP)*1000.
-          PK(K)=PKL
-          APEKL=APE(I,K)
-CVVVVVVVVVVVV CHOOSE THE PRESSURE FUNCTION VVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-C         FPK  (L) =DLOG(PKL)
-C         FPK  (L) =PKL
-C         FPK  (L) =-1./PKL
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-          APEK(K)=APEKL
-          THVMKL=TKL*APEKL*(QKL*D608+H1)
-          THVMOD(K)=THVMKL
-          THVREF(K)=THVMKL
-C... FOR KDP CALCULATION
-          PDP(K)=PK(K)-PMN
-  610   CONTINUE
+      do 600 n=1,khshal
+        i=kshal(n)
+C         pz0= (psb(i,j)+ptop)*1000.       ! not used!
+        do 610 k=1,kx
+          tkl=t(i,k)
+          tk(k)=tkl
+          trefk(k)=tkl
+          qkl=q(i,k)
+          qk(k)=qkl
+          qrefk(k)=qkl
+          qsatk(k)=qkl
+          pkl=(a(k)*psb(i,j)+ptop)*1000.
+          pk(k)=pkl
+          apekl=ape(i,k)
+Cvvvvvvvvvvvv choose the pressure function vvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+C         fpk  (l) =dlog(pkl)
+C         fpk  (l) =pkl
+C         fpk  (l) =-1./pkl
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          apek(k)=apekl
+          thvmkl=tkl*apekl*(qkl*d608+h1)
+          thvmod(k)=thvmkl
+          thvref(k)=thvmkl
+C... for kdp calculation
+          pdp(k)=pk(k)-pmn
+  610   continue
 C
-C...FIND KDP...KDP(K) IS THE MODEL LEVEL CLOSEST TO 65 MB (PMN) ABOVE K;
-C...THIS IS THE DEPTH OVER WHICH RELATIVE HUMIDITY DROP IS MEASURED TO
-C...ESTIMATE SHALLOW CLOUD TOP... SEE DO 545...
+C...find kdp...kdp(k) is the model level closest to 65 mb (pmn) above k;
+C...this is the depth over which relative humidity drop is measured to
+C...estimate shallow cloud top... see do 545...
 C
-        DO 106 KK=kx,1,-1
-          PFLAG=ABS(PK(kx)-PDP(KK))
-          DO 105 K=kx-1,1,-1
-            PDIFFK=ABS(PK(K)-PDP(KK))
-            IF(PDIFFK.LT.PFLAG)THEN
-              PFLAG=PDIFFK
-              IF(KK.EQ.K)THEN
-                KDP(KK)=K-1
-              ELSE
-                KDP(KK)=K
+        do 106 kk=kx,1,-1
+          pflag=abs(pk(kx)-pdp(kk))
+          do 105 k=kx-1,1,-1
+            pdiffk=abs(pk(k)-pdp(kk))
+            if(pdiffk.lt.pflag)then
+              pflag=pdiffk
+              if(kk.eq.k)then
+                kdp(kk)=k-1
+              else
+                kdp(kk)=k
               end if
             end if
-  105     CONTINUE
-          KDP(KK)=MAX(1,KDP(KK))
-C         PRINT *,'KK, KDP =',KK,KDP(KK)
-  106   CONTINUE
-C       IF(KK.LT.1)STOP 'KK'
-C--------------SEARCH FOR SHALLOW CLOUD TOP-----------------------------
-        LBTK=LBOT(I)
-        LTSH=LBTK
-        LBM1=LBTK-1
-        PBTK=PK(LBTK)
-        ZTOP=Z0(I,LBOT(I))+ZSH-0.000001
-C         PTPK=PBTK-PSH
-C--------------CLOUD TOP IS LEVEL JUST ABOVE PBTK-PSH ------------------
-        DO 612 L=1,kx
-C              IF (PK(L).LE.PTPK) LTPK=L-1
-C              IF (PK(L).LE.PTPK) LTPK=L
-          IF(Z0(I,L).GE.ZTOP)LTPK=L
-  612   CONTINUE
-        PTPK=PK(LTPK)
-C--------------HIGHEST LEVEL ALLOWED IS LEVEL JUST BELOW PSHU-----------
-        IF(PTPK.LE.PSHU)THEN
-          DO 615 L=1,kx
-            IF(PK(L).LE.PSHU)LSHU=L+1
-  615     CONTINUE
-          LTPK=LSHU
-          PTPK=PK(LTPK)
+  105     continue
+          kdp(kk)=max(1,kdp(kk))
+C         print *,'kk, kdp =',kk,kdp(kk)
+  106   continue
+C       if (kk.lt.1)
+C    &     call fatal(__FILE__,__LINE__, 'KK NOT CONVERGED')
+C--------------search for shallow cloud top-----------------------------
+        lbtk=lbot(i)
+        ltsh=lbtk
+        lbm1=lbtk-1
+        pbtk=pk(lbtk)
+        ztop=z0(i,lbot(i))+zsh-0.000001
+C         ptpk=pbtk-psh
+C--------------cloud top is level just above pbtk-psh ------------------
+        do 612 l=1,kx
+C              if (pk(l).le.ptpk) ltpk=l-1
+C              if (pk(l).le.ptpk) ltpk=l
+          if(z0(i,l).ge.ztop)ltpk=l
+  612   continue
+        ptpk=pk(ltpk)
+C--------------highest level allowed is level just below pshu-----------
+        if(ptpk.le.pshu)then
+          do 615 l=1,kx
+            if(pk(l).le.pshu)lshu=l+1
+  615     continue
+          ltpk=lshu
+          ptpk=pk(ltpk)
         end if
-        LTP1=LTPK+1
-        LTP2=LTPK+2
-C--------------NO SHALLOW CONVECTION IN UNSTABLE ENVIRONMENT------------
-C             DO 541 L=LTP2,LBTK
-C         IF(THVMOD(L).GT.THVMOD(L-1))    THEN
-C             LTOP(K)=LBOT(K)
-C             GO TO 600
+        ltp1=ltpk+1
+        ltp2=ltpk+2
+C--------------no shallow convection in unstable environment------------
+C             do 541 l=ltp2,lbtk
+C         if(thvmod(l).gt.thvmod(l-1))    then
+C             ltop(k)=lbot(k)
+C             go to 600
 C         end if
-C541      CONTINUE
+C541      continue
 C-----------------------------------------------------------------------
-        DO 540 L=LTPK,LBTK
-C          ES=CVMGT(ALIQ*EXP((BLIQ*TK(L)-CLIQ)/(TK(L)-DLIQ)),
-C     *   AICE*EXP((BICE*TK(L)-CICE1)/(TK(L)-DICE)),L.GE.ML(I))
-          IF(L.GE.ML(I))THEN
-            ES=ALIQ*EXP((BLIQ*TK(L)-CLIQ)/(TK(L)-DLIQ))
-          ELSE
-            ES=AICE*EXP((BICE*TK(L)-CICE1)/(TK(L)-DICE))
+        do 540 l=ltpk,lbtk
+C          es=cvmgt(aliq*exp((bliq*tk(l)-cliq)/(tk(l)-dliq)),
+C     *   aice*exp((bice*tk(l)-cice1)/(tk(l)-dice)),l.ge.ml(i))
+          if(l.ge.ml(i))then
+            es=aliq*exp((bliq*tk(l)-cliq)/(tk(l)-dliq))
+          else
+            es=aice*exp((bice*tk(l)-cice1)/(tk(l)-dice))
           end if
-          QSATK(L)=0.622*ES/(PK(L)-ES)
-C          QSATK(L)=PQ0/PK(L)*EXP(A2*(TK(L)-A3)/(TK(L)-A4))
-CVVVVVVVVVVVV CHOOSE THE PRESSURE FUNCTION VVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-C         FPK  (L)=QSATK(L)
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-  540   CONTINUE
+          qsatk(l)=0.622*es/(pk(l)-es)
+C          qsatk(l)=pq0/pk(l)*exp(a2*(tk(l)-a3)/(tk(l)-a4))
+Cvvvvvvvvvvvv choose the pressure function vvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+C         fpk  (l)=qsatk(l)
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  540   continue
 C-----------------------------------------------------------------------
-C         RHH=QK(LTPK)/QSATK(LTPK)
-C       PRINT *,'BEFORE DO 545; I, J, LBOT, LTOP =',I,J,
-C     *LBOT(I),LTOP(I)
-C       PRINT *,'CLDHGT =',CLDHGT(I)
-        RHDMX=RHF
-        DO 545 L=LTP1,LBM1
-          RHL=QK(L)/QSATK(L)
-C           IF(KDP(L).LT.LTPK.OR.KDP(L).GT.LBTK)THEN
-C             QSATK(L)=PQ0/PK(L)*EXP(A2*(TK(L)-A3)/(TK(L)-A4))
+C         rhh=qk(ltpk)/qsatk(ltpk)
+C       print *,'before do 545; i, j, lbot, ltop =',i,j,
+C     *lbot(i),ltop(i)
+C       print *,'cldhgt =',cldhgt(i)
+        rhdmx=rhf
+        do 545 l=ltp1,lbm1
+          rhl=qk(l)/qsatk(l)
+C           if(kdp(l).lt.ltpk.or.kdp(l).gt.lbtk)then
+C             qsatk(l)=pq0/pk(l)*exp(a2*(tk(l)-a3)/(tk(l)-a4))
 C           end if
-          RHH=QK(KDP(L))/QSATK(KDP(L))
-          IF(RHH+RHF.LT.RHL)LTSH=L
-C           IF(RHH+RHF.LT.RHL)THEN
-C             RHDMX=DMAX1(RHL-RHH,RHDMX)
-C             IF(RHDMX.EQ.RHL-RHH)LTSH=KDP(L)
+          rhh=qk(kdp(l))/qsatk(kdp(l))
+          if(rhh+rhf.lt.rhl)ltsh=l
+C           if(rhh+rhf.lt.rhl)then
+C             rhdmx=dmax1(rhl-rhh,rhdmx)
+C             if(rhdmx.eq.rhl-rhh)ltsh=kdp(l)
 C           end if
-C       PRINT *,'IN DO 545; L, RHL, KDP, RHH =',
-C     *          L,RHL,KDP(L),RHH
-  545   CONTINUE
+C       print *,'in do 545; l, rhl, kdp, rhh =',
+C     *          l,rhl,kdp(l),rhh
+  545   continue
 C
-        LTOP(I)=LTSH
-        PRTOP(I)=PK(LTSH)
-        LTP1=LTSH
-        LTPK=LTSH-1
-        CLDHGT(I)=Z0(I,LTOP(I))-Z0(I,LBOT(I))
-C       PRINT *,'AFTER DO 545; LTOP, CLDHGT =',LTOP(I),CLDHGT(I)
-C       IF(J.GT.2)STOP 'CLDHGT'
+        ltop(i)=ltsh
+        prtop(i)=pk(ltsh)
+        ltp1=ltsh
+        ltpk=ltsh-1
+        cldhgt(i)=z0(i,ltop(i))-z0(i,lbot(i))
+C       print *,'after do 545; ltop, cldhgt =',ltop(i),cldhgt(i)
+C       if(j.gt.2)
+C    &     call fatal(__FILE__,__LINE__, 'KK NOT CONVERGED')
 C-----------------------------------------------------------------------
-C  IF CLOUD IS NOT AT LEAST 90 MB OR 3 SIGMA LAYERS DEEP, THEN NO CLOUD
-        IF(CLDHGT(I).LT.ZNO.OR.LTOP(I).GT.LBOT(I)-2)THEN
-C         IF(CLDHGT(I).LT.ZNO)THEN
-C         IF(PRTOP(I).GT.PBOT(I)-PNO.OR.LTOP(I).GT.LBOT(I)-2)THEN
-          LTOP(I)=LBOT(I)
-          PRTOP(I)=PBOT(I)
-C          PRINT *,'CLDHGT(I).LT.ZN0 .OR. LTOP.GT.LBOT-2...'
-          GOTO 600
+C  if cloud is not at least 90 mb or 3 sigma layers deep, then no cloud
+        if(cldhgt(i).lt.zno.or.ltop(i).gt.lbot(i)-2)then
+C         if(cldhgt(i).lt.zno)then
+C         if(prtop(i).gt.pbot(i)-pno.or.ltop(i).gt.lbot(i)-2)then
+          ltop(i)=lbot(i)
+          prtop(i)=pbot(i)
+C          print *,'cldhgt(i).lt.zn0 .or. ltop.gt.lbot-2...'
+          goto 600
         end if
-C--------------SCALING POTENTIAL TEMPERATURE & TABLE INDEX AT TOP-------
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        THTPK=T(I,LTP1)*APE(I,LTP1)
-C        THTPK=T(I,LTPK)*APE(I,LTPK)
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        PKL=(A(LTP1)*PSB(I,J)+PTOP)*1000.
-        EE=PKL*Q(I,LTP1)/(0.622+Q(I,LTP1))
-        TDPT=1./(D273-RV/ELWV*DLOG(EE/611.))
-        TDPT=DMIN1(TDPT,T(I,LTP1))
-        TLCL=TDPT-(.212+1.571E-3*(TDPT-T0)-4.36E-4*(T(I,LTP1)-T0))*(
-     +       T(I,LTP1)-TDPT)
-        PTPK=H10E5*(THTPK/TLCL)**CPORNG
-C         PRINT *,'T, TDPT, TLCL, P, PLCL =',T(I,LTP1),TDPT,TLCL,PKL,PTPK
-        DPMIX=PTPK-PSP(I)
-        IF(ABS(DPMIX).LT.H3000)DPMIX=-H3000
-C--------------TEMPERATURE PROPFILE SLOPE-------------------------------
-        SMIX=(THTPK-THBT(I))/DPMIX*STABS
-C        PRINT *,'THTPK, THBT, DPMIX, SMIX  =',
-C     *          THTPK,THBT(I),DPMIX,SMIX
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        DO 620 L=LTP1,LBTK
-          IVI=LTP1+LBTK-L
-C         LBM1=LBTK-1
-C         TREFK(LBTK)=THVMOD(LBTK+1)/((QK(LBTK)*D608+1.)*APEK(LBTK))
-C             DO 620 L=LTP1,LBM1
-C             IVI=LTP1+LBM1-L
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-          TREFK(IVI)=((PK(IVI)-PK(IVI+1))*SMIX+TREFK(IVI+1)*APEK(IVI+1))
-     +               /APEK(IVI)
-          DPKTS=(PK(IVI)-PK(IVI+1))*SMIX
-          THIVI=TREFK(IVI+1)*APEK(IVI+1)
-          SUMMM=DPKTS+THIVI
-          SUMMD=SUMMM/APEK(IVI)
-C       PRINT *,'DPKTS, THIVIP1, SUM, SUMD =',DPKTS,THIVI,SUMMM,SUMMD
-C       PRINT *,'IVI, PK, PK(IVI+1), TREFK(IVI+1), TREF(IVI) =',
-C     * IVI,PK(IVI),PK(IVI+1),TREFK(IVI+1),TREF(IVI)
-C      PRINT *,'APEK(IVI+1), APEK(IVI) =',
-C     *        APEK(IVI+1),APEK(IVI)
-  620   CONTINUE
-C--------------TEMPERATURE REFERENCE PROFILE CORRECTION-----------------
-        SUMDT=D00
-        SUMDP=D00
-        DO 630 L=LTP1,LBTK
-          SUMDT=(TK(L)-TREFK(L))*DSIGMA(L)+SUMDT
-          SUMDP=SUMDP+DSIGMA(L)
-  630   CONTINUE
+C--------------scaling potential temperature & table index at top-------
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        thtpk=t(i,ltp1)*ape(i,ltp1)
+C        thtpk=t(i,ltpk)*ape(i,ltpk)
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        pkl=(a(ltp1)*psb(i,j)+ptop)*1000.
+        ee=pkl*q(i,ltp1)/(0.622+q(i,ltp1))
+        tdpt=1./(d273-rv/elwv*dlog(ee/611.))
+        tdpt=dmin1(tdpt,t(i,ltp1))
+        tlcl=tdpt-(.212+1.571e-3*(tdpt-t0)-4.36e-4*(t(i,ltp1)-t0))*(
+     +       t(i,ltp1)-tdpt)
+        ptpk=h10e5*(thtpk/tlcl)**cporng
+C         print *,'t, tdpt, tlcl, p, plcl =',t(i,ltp1),tdpt,tlcl,pkl,ptpk
+        dpmix=ptpk-psp(i)
+        if(abs(dpmix).lt.h3000)dpmix=-h3000
+C--------------temperature propfile slope-------------------------------
+        smix=(thtpk-thbt(i))/dpmix*stabs
+C        print *,'thtpk, thbt, dpmix, smix  =',
+C     *          thtpk,thbt(i),dpmix,smix
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        do 620 l=ltp1,lbtk
+          ivi=ltp1+lbtk-l
+C         lbm1=lbtk-1
+C         trefk(lbtk)=thvmod(lbtk+1)/((qk(lbtk)*d608+1.)*apek(lbtk))
+C             do 620 l=ltp1,lbm1
+C             ivi=ltp1+lbm1-l
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          trefk(ivi)=((pk(ivi)-pk(ivi+1))*smix+trefk(ivi+1)*apek(ivi+1))
+     +               /apek(ivi)
+          dpkts=(pk(ivi)-pk(ivi+1))*smix
+          thivi=trefk(ivi+1)*apek(ivi+1)
+          summm=dpkts+thivi
+          summd=summm/apek(ivi)
+C       print *,'dpkts, thivip1, sum, sumd =',dpkts,thivi,summm,summd
+C       print *,'ivi, pk, pk(ivi+1), trefk(ivi+1), tref(ivi) =',
+C     * ivi,pk(ivi),pk(ivi+1),trefk(ivi+1),tref(ivi)
+C      print *,'apek(ivi+1), apek(ivi) =',
+C     *        apek(ivi+1),apek(ivi)
+  620   continue
+C--------------temperature reference profile correction-----------------
+        sumdt=d00
+        sumdp=d00
+        do 630 l=ltp1,lbtk
+          sumdt=(tk(l)-trefk(l))*dsigma(l)+sumdt
+          sumdp=sumdp+dsigma(l)
+  630   continue
 C
-        RDPSUM=1./SUMDP
-        FPK(LBTK)=TREFK(LBTK)
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        TCORR=SUMDT*RDPSUM
-        DO 640 L=LTP1,LBTK
-C         TCORR=SUMDT/(SUMDP-DSIGMA(LBTK))
-C             DO 640 L=LTP1,LBM1
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-          TRFKL=TREFK(L)+TCORR
-          TREFK(L)=TRFKL
-          FPK(L)=TRFKL
-  640   CONTINUE
-C--------------HUMIDITY PROFILE EQUATIONS-------------------------------
-        PSUM=0.0
-        QSUM=0.0
-        POTSUM=0.0
-        QOTSUM=0.0
-        OTSUM=0.0
-        DST=0.0
-        FPTK=FPK(LTP1)
-        DO 642 L=LTP1,LBTK
-          DPKL=FPK(L)-FPTK
-          PSUM=DPKL*DSIGMA(L)+PSUM
-          QSUM=QK(L)*DSIGMA(L)+QSUM
-          RTBAR=2./(TREFK(L)+TK(L))
-          OTSUM=DSIGMA(L)*RTBAR+OTSUM
-          POTSUM=DPKL*RTBAR*DSIGMA(L)+POTSUM
-          QOTSUM=QK(L)*RTBAR*DSIGMA(L)+QOTSUM
-          DST=(TREFK(L)-TK(L))*RTBAR*DSIGMA(L)+DST
-  642   CONTINUE
+        rdpsum=1./sumdp
+        fpk(lbtk)=trefk(lbtk)
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        tcorr=sumdt*rdpsum
+        do 640 l=ltp1,lbtk
+C         tcorr=sumdt/(sumdp-dsigma(lbtk))
+C             do 640 l=ltp1,lbm1
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          trfkl=trefk(l)+tcorr
+          trefk(l)=trfkl
+          fpk(l)=trfkl
+  640   continue
+C--------------humidity profile equations-------------------------------
+        psum=0.0
+        qsum=0.0
+        potsum=0.0
+        qotsum=0.0
+        otsum=0.0
+        dst=0.0
+        fptk=fpk(ltp1)
+        do 642 l=ltp1,lbtk
+          dpkl=fpk(l)-fptk
+          psum=dpkl*dsigma(l)+psum
+          qsum=qk(l)*dsigma(l)+qsum
+          rtbar=2./(trefk(l)+tk(l))
+          otsum=dsigma(l)*rtbar+otsum
+          potsum=dpkl*rtbar*dsigma(l)+potsum
+          qotsum=qk(l)*rtbar*dsigma(l)+qotsum
+          dst=(trefk(l)-tk(l))*rtbar*dsigma(l)+dst
+  642   continue
 C
-        PSUM=PSUM*RDPSUM
-        QSUM=QSUM*RDPSUM
-        ROTSUM=1./OTSUM
-        POTSUM=POTSUM*ROTSUM
-        QOTSUM=QOTSUM*ROTSUM
-        DST=DST*ROTSUM*CP/ELWV
-C--------------ENSURE POSITIVE ENTROPY CHANGE---------------------------
-        IF(DST.GT.0.)THEN
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-C             DSTQ=DST*EPSUP
-          PRTOP(I)=PBOT(I)
-          LTOP(I)=LBOT(I)
-          NDSTP=NDSTP+1
-C           PRINT *,'DST.GT.0...'
-          GOTO 600
-        ELSE
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-          DSTQ=DST*EPSDN
+        psum=psum*rdpsum
+        qsum=qsum*rdpsum
+        rotsum=1./otsum
+        potsum=potsum*rotsum
+        qotsum=qotsum*rotsum
+        dst=dst*rotsum*cp/elwv
+C--------------ensure positive entropy change---------------------------
+        if(dst.gt.0.)then
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+C             dstq=dst*epsup
+          prtop(i)=pbot(i)
+          ltop(i)=lbot(i)
+          ndstp=ndstp+1
+C           print *,'dst.gt.0...'
+          goto 600
+        else
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          dstq=dst*epsdn
         end if
-C--------------CHECK FOR ISOTHERMAL ATMOSPHERE--------------------------
-        DEN=POTSUM-PSUM
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        IF(-DEN/PSUM.LT.0.00005)THEN
-          LTOP(I)=LBOT(I)
-          PRTOP(I)=PBOT(I)
-C          PRINT *,'-DEN/PSUM .LT. 0.00005'
-          GOTO 600
-        ELSE
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-C--------------SLOPE OF THE REFERENCE HUMIDITY PROFILE------------------
-          DQREF=(QOTSUM-DSTQ-QSUM)/DEN
+C--------------check for isothermal atmosphere--------------------------
+        den=potsum-psum
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        if(-den/psum.lt.0.00005)then
+          ltop(i)=lbot(i)
+          prtop(i)=pbot(i)
+C          print *,'-den/psum .lt. 0.00005'
+          goto 600
+        else
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+C--------------slope of the reference humidity profile------------------
+          dqref=(qotsum-dstq-qsum)/den
         end if
-C--------------HUMIDITY DOESN`T INCREASE WITH HEIGHT--------------------
-        IF(DQREF.LT.0.0)THEN
-          LTOP(I)=LBOT(I)
-          PRTOP(I)=PBOT(I)
-C      PRINT *,'DQREF.LT.0....'
-          GOTO 600
+C--------------humidity doesn`t increase with height--------------------
+        if(dqref.lt.0.0)then
+          ltop(i)=lbot(i)
+          prtop(i)=pbot(i)
+C      print *,'dqref.lt.0....'
+          goto 600
         end if
-C--------------HUMIDITY AT THE CLOUD TOP--------------------------------
-        QRFTP=QSUM-DQREF*PSUM
-C--------------HUMIDITY PROFILE-----------------------------------------
-        DO 644 L=LTP1,LBTK
-          QRFKL=(FPK(L)-FPTK)*DQREF+QRFTP
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-C--------------SUPERSATURATION NOT ALLOWED------------------------------
-          QNEW=(QRFKL-QK(L))*TAUK+QK(L)
-          IF(QNEW.GT.QSATK(L)*STRESH)THEN
-            LTOP(I)=LBOT(I)
-            PRTOP(I)=PBOT(I)
-C      PRINT *,'QNEW.GT.QSATK(L)*STRESH...'
-            GOTO 600
+C--------------humidity at the cloud top--------------------------------
+        qrftp=qsum-dqref*psum
+C--------------humidity profile-----------------------------------------
+        do 644 l=ltp1,lbtk
+          qrfkl=(fpk(l)-fptk)*dqref+qrftp
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+C--------------supersaturation not allowed------------------------------
+          qnew=(qrfkl-qk(l))*tauk+qk(l)
+          if(qnew.gt.qsatk(l)*stresh)then
+            ltop(i)=lbot(i)
+            prtop(i)=pbot(i)
+C      print *,'qnew.gt.qsatk(l)*stresh...'
+            goto 600
           end if
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 C-----------------------------------------------------------------------
-          THVREF(L)=TREFK(L)*APEK(L)*(QRFKL*D608+H1)
-          QREFK(L)=QRFKL
-  644   CONTINUE
-C--------------ELIMINATE IMPOSSIBLE SLOPES (BETTS, DTHETA/DQ)-----------
-        DO 650 L=LTP1,LBTK
-          DTDETA=(THVREF(L-1)-THVREF(L))/(A(L)-A(L-1))
-          IF(DTDETA.LT.EPSTH)THEN
-            LTOP(I)=LBOT(I)
-            PRTOP(I)=PBOT(I)
-C       PRINT *,'DTDEAT.LT.EPSTH...'
-C       PRINT *,'L, THVREF, THVREF(L-1), A, A(L-1) =',
-C     * L,THVREF(L),THVREF(L-1),A(L),A(L-1)
-C       IF(J.EQ.12.AND. I.EQ.59)STOP 'TREF'
-            GOTO 600
+          thvref(l)=trefk(l)*apek(l)*(qrfkl*d608+h1)
+          qrefk(l)=qrfkl
+  644   continue
+C--------------eliminate impossible slopes (betts, dtheta/dq)-----------
+        do 650 l=ltp1,lbtk
+          dtdeta=(thvref(l-1)-thvref(l))/(a(l)-a(l-1))
+          if(dtdeta.lt.epsth)then
+            ltop(i)=lbot(i)
+            prtop(i)=pbot(i)
+C       print *,'dtdeat.lt.epsth...'
+C       print *,'l, thvref, thvref(l-1), a, a(l-1) =',
+C     * l,thvref(l),thvref(l-1),a(l),a(l-1)
+C       if(j.eq.12.and. i.eq.59)
+C    &     call fatal(__FILE__,__LINE__, 'T NOT CONVERGED')
+            goto 600
           end if
-  650   CONTINUE
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-CVVVVVVVVVVVVV DIAGNOSTICS VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        IF(DST.GT.0.)THEN
-          NDSTP=NDSTP+1
-        ELSE
-          NDSTN=NDSTN+1
+  650   continue
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+Cvvvvvvvvvvvvv diagnostics vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        if(dst.gt.0.)then
+          ndstp=ndstp+1
+        else
+          ndstn=ndstn+1
         end if
-        DENTPY=D00
-        DO 660 L=LTP1,LBTK
-  660   DENTPY=((TREFK(L)-TK(L))*CP+(QREFK(L)-QK(L))*ELWV)/(TK(L)+
-     +         TREFK(L))*DSIGMA(L)+DENTPY
-CAAAAAAAAAAAAA DIAGNOSTICS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-CVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-C--------------RELAXATION TOWARDS REFERENCE PROFILES--------------------
-        ICONSS=ICONSS+1
-        DO 670 L=LTP1,LBTK
-          TMOD(I,L)=(TREFK(L)-TK(L))/TREL
-          QMOD(I,L)=(QREFK(L)-QK(L))/TREL
-c         TMOD(I,L)=(TREFK(L)-TK(L))/DT2
-c         QMOD(I,L)=(QREFK(L)-QK(L))/DT2
-  670   CONTINUE
-C       PRINT *,'AFTER DO 670; ICONSS =',ICONSS
-CSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCS
-CSCSCSCSCSCSC  END OF SHALLOW CONVECTION   SCSCSCSCSCSCSCSCSCSCSCSCSCSCS
-CSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCSCS
+        dentpy=d00
+        do 660 l=ltp1,lbtk
+  660   dentpy=((trefk(l)-tk(l))*cp+(qrefk(l)-qk(l))*elwv)/(tk(l)+
+     +         trefk(l))*dsigma(l)+dentpy
+Caaaaaaaaaaaaa diagnostics aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+Cvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+C--------------relaxation towards reference profiles--------------------
+        iconss=iconss+1
+        do 670 l=ltp1,lbtk
+          tmod(i,l)=(trefk(l)-tk(l))/trel
+          qqmod(i,l)=(qrefk(l)-qk(l))/trel
+C         tmod(i,l)=(trefk(l)-tk(l))/dt2
+C         qqmod(i,l)=(qrefk(l)-qk(l))/dt2
+  670   continue
+C       print *,'after do 670; iconss =',iconss
+Cscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+Cscscscscscsc  end of shallow convection   scscscscscscscscscscscscscscs
+Cscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
 C-----------------------------------------------------------------------
-  600 CONTINUE
-C     PRINT *, 'AFTER LOOP 600'
-CVVVVVVVVVVVVV DIAGNOSTICS VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-      NSHAL=0
-      DO 680 I=2,ILXM
-        LTPK=LTOP(I)
-        LBTK=LBOT(I)
-        PTPK=PRTOP(I)
-        PBTK=PBOT(I)
-C NO SHALLOW CONVECTION IF CLOUD IS NOT AT LEAST 90 MB OR 3 SIGMA
-C LAYERS DEEP
-C     IF(CLDHGT(I).LT.ZNO.OR.LTOP(I).GT.LBOT(I)-2)GO TO 680
-        IF(CLDHGT(I).LT.ZNO)GOTO 680
-C     IF(PRTOP(I).GT.PBOT(I)-PNO.OR.LTOP(I).GT.LBOT(I)-2)GOTO 680
-C SHALLOW CONVECTION IF CLOUD IS .LE. 290 MB
-        IF(CLDHGT(I).LT.ZSH)THEN
-C     IF(PTPK.GE.PBTK-PSH)THEN
-          NSHAL=NSHAL+1
-          NTOPS(LTPK)=NTOPS(LTPK)+1
-          NBOTS(LBTK)=NBOTS(LBTK)+1
-          NDEPTH=LBTK-LTPK
-          IF(NDEPTH.GT.0)NDPTHS(NDEPTH)=NDPTHS(NDEPTH)+1
+  600 continue
+C     print *, 'after loop 600'
+Cvvvvvvvvvvvvv diagnostics vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+      nshal=0
+      do 680 i=2,ilxm
+        ltpk=ltop(i)
+        lbtk=lbot(i)
+        ptpk=prtop(i)
+        pbtk=pbot(i)
+C no shallow convection if cloud is not at least 90 mb or 3 sigma
+C layers deep
+C     if(cldhgt(i).lt.zno.or.ltop(i).gt.lbot(i)-2)go to 680
+        if(cldhgt(i).lt.zno)goto 680
+C     if(prtop(i).gt.pbot(i)-pno.or.ltop(i).gt.lbot(i)-2)goto 680
+C shallow convection if cloud is .le. 290 mb
+        if(cldhgt(i).lt.zsh)then
+C     if(ptpk.ge.pbtk-psh)then
+          nshal=nshal+1
+          ntops(ltpk)=ntops(ltpk)+1
+          nbots(lbtk)=nbots(lbtk)+1
+          ndepth=lbtk-ltpk
+          if(ndepth.gt.0)ndpths(ndepth)=ndpths(ndepth)+1
         end if
-c
-c  find cloud fractional cover and liquid water content
-c
-        kbaseb=min0(LBTK,kx-2)
-        if(LTPK.le.kbaseb) then
-          kclth = kbaseb-LTPK+1
+C
+C  find cloud fractional cover and liquid water content
+C
+        kbaseb=min0(lbtk,kx-2)
+        if(ltpk.le.kbaseb) then
+          kclth = kbaseb-ltpk+1
           akclth= 1./dble(kclth)
-          do k=LTPK,kbaseb
+          do k=ltpk,kbaseb
              cldlwc(i,k)=cllwcv
              cldfra(i,k)=1.-(1.-clfrcv)**akclth
-          enddo
+          end do
         end if
 Cchem2
         if(ichem.eq.1) then
-c  before go to 100 put
-          icumtop(i,j) = LTPK
+C  before go to 100 put
+          icumtop(i,j) = ltpk
           icumbot(i,j) = kbaseb
         end if
 Cchem2_
-  680 CONTINUE
-C     PRINT *,'AT J =',J,', FINAL NO. SHALLOW CONV POINTS =',NSHAL
-      NEGDS=KHSHAL-NSHAL
+  680 continue
+C     print *,'at j =',j,', final no. shallow conv points =',nshal
+      negds=khshal-nshal
 C-----------------------------------------------------------------------
-      DO K=1,KX
-      DO I=2,ILXM
-         TTEN(I,K)=TTEN(I,K)+TMOD(I,K)*PSB(I,J)
-         QTEN(I,K)=QTEN(I,K)+QMOD(I,K)*PSB(I,J)
+      do k=1,kx
+      do i=2,ilxm
+         tten(i,k)=tten(i,k)+tmod(i,k)*psb(i,j)
+         qten(i,k)=qten(i,k)+qqmod(i,k)*psb(i,j)
       end do
       end do
-      ICON(J)=ICOND
-      RETURN
-      END
+      icon(j)=icond
+      return
+      end subroutine bmpara

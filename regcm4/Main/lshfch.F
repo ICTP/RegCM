@@ -17,65 +17,56 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine lshfch(ichar,lchar,ioff,iflg)
+      subroutine lshfch(ixchar,lchar,ioff,iflg)
 c
-c****     this routine shifts the characters in ichar ioff characters
-c****     to the left.  the right side off ichar is either blank
-c****     or null filled depending on iflg.  for example, if ichar
+c****     this routine shifts the characters in ixchar ioff characters
+c****     to the left.  the right side off ixchar is either blank
+c****     or cnull filled depending on iflg.  for example, if ixchar
 c****     is to start with the 3rd character instead of the 1st ioff
-c****     would be set to 2 shifting ichar to the left.
+c****     would be set to 2 shifting ixchar to the left.
 c
 c****     on input-
-c****         ichar  - character input data. (character)
-c****         lchar  - number of characters in ichar. (integer)
+c****         ixchar  - character input data. (character)
+c****         lchar  - number of characters in ixchar. (integer)
 c****         ioff   - number of characters ioff is to be offset to
 c****                  left. (integer)
 c****         iflg   - flag specifying type of fill to be used for
-c****                  the ioff rightmost characters in ichar.  if
+c****                  the ioff rightmost characters in ixchar.  if
 c****                      0 - blank fill is used
-c****                      1 - null fill is used
+c****                      1 - cnull fill is used
 c
 c****     on output-
-c****         ichar  - ichar is retured shifted ioff characters to the
+c****         ixchar  - ixchar is retured shifted ioff characters to the
 c****                  left with the ioff rightmost characters filled
 c****                  in accordance with iflg.
 c
       implicit none
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      integer ierr
-#endif
+#     include "include/message.cb"
       integer lchar,ioff,iflg
-      character*(*) ichar
+      character*(*) ixchar
       character*1 temp
-      integer iblnk,null,ipc,i,ifill
+      integer iblnk,cnull,ipc,i,ifill
       data iblnk /32/
-      data null  /0/
+      data cnull  /0/
 c
       ipc = 1
       do 10 i=ioff+1,lchar
-       temp = ichar(i:i)
-       ichar(ipc:ipc) = temp
+       temp = ixchar(i:i)
+       ixchar(ipc:ipc) = temp
        ipc=ipc+1
 10    continue
 c
       if (iflg.eq.0) then
        ifill = iblnk
       else if (iflg.eq.1) then
-       ifill = null
+       ifill = cnull
       else
-       write(*,*) ' iflg in lshfch out of range'
-#ifdef MPP1
-       write(*,*) ' stop in subroutine lshfch'
-       call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-       stop
-#endif
+        call fatal(__FILE__,__LINE__, 'iflg out of range')
       end if
 c
       do 20 i=ipc,lchar
-       ichar(i:i) = char(ifill)
+       ixchar(i:i) = char(ifill)
 20    continue
 
       return
-      end
+      end subroutine lshfch

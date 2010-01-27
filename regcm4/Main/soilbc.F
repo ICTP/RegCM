@@ -77,8 +77,8 @@ c **********            force irrigated crop to be at field capacity
 
        end if
 
-      enddo
+      end do
 90    continue
 
       return
-      end
+      end subroutine soilbc

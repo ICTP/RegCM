@@ -17,9 +17,9 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      subroutine cumtran
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 cqhy15/07/99 subroutine cumtran(il,jl,kx,ntr,dsigma,icumtop,chia,chib)
-      subroutine cumtran
       implicit none
 #     include "parameter.inc"
 #     include "include/trachem.cb"
@@ -64,4 +64,4 @@ cqhy
       end if
   100 continue
       return
-      end
+      end subroutine cumtran

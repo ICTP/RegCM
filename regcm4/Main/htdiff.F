@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine htdiff(dto2,dxsq,akht1)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
@@ -44,8 +43,8 @@ c
 #endif
           do i=1,ix
             wr(i,j)=rsheat(i,k,j)
-          enddo
-        enddo
+          end do
+        end do
 #ifdef MPP1
         call MPI_SENDRECV(wr(1,jxp),ix,MPI_DOUBLE_PRECISION,ieast,1,
      &                    wr(1,0),ix,MPI_DOUBLE_PRECISION,iwest,1,
@@ -76,9 +75,9 @@ c
             ip1=min0(i+1,ix-2)
             rsheat(i,k,j)=rsheat(i,k,j)+akht1*dto2/dxsq*
      &         (wr(im1,j)+wr(ip1,j)+wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
-          enddo
-        enddo
-      enddo
+          end do
+        end do
+      end do
 c
       do k=1,kx
 #ifdef MPP1
@@ -88,8 +87,8 @@ c
 #endif
           do i=1,ix
             wr(i,j)=rswat(i,k,j)
-          enddo
-        enddo
+          end do
+        end do
 #ifdef MPP1
         call MPI_SENDRECV(wr(1,jxp),ix,MPI_DOUBLE_PRECISION,ieast,1,
      &                    wr(1,0),ix,MPI_DOUBLE_PRECISION,iwest,1,
@@ -120,8 +119,8 @@ c
             ip1=min0(i+1,ix-2)
             rswat(i,k,j)=rswat(i,k,j)+akht1*dto2/dxsq*
      &         (wr(im1,j)+wr(ip1,j)+wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
-          enddo
-        enddo
-      enddo
+          end do
+        end do
+      end do
       return
-      end
+      end subroutine htdiff

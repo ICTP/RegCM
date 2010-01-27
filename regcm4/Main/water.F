@@ -111,7 +111,7 @@ C           1.4  fluxes through internal surfaces
         wflux1(n,np) = wflux1(n,np)-rsubss(n,np)
         wflux2(n,np) = wflux2(n,np)-rsubsr(n,np)
        end if
-      enddo
+      end do
 90    continue
 
 C           1.5  net flux at air interface
@@ -153,7 +153,7 @@ C           3.2  update root zone
 C           3.3  update total water
         tsw1d(n,np)=tsw1d(n,np)+c(4)*(gwatr(n,np)-etr(n,np)-rnof(n,np))
        end if
-      enddo
+      end do
 91    continue
 
       do 92 np=np1,npts
@@ -194,7 +194,7 @@ C*  update total runoff
         rno1d(n,np)  = 0.
         rnos1d(n,np) = 0.
        end if
-      enddo
+      end do
 92    continue
 
 C=======================================================================

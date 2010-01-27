@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine bdyuv(ib,dtb)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -77,8 +76,8 @@ c
 #endif
         do i=2,ilx
           pdota(i,j)=0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1))
-        enddo
-      enddo
+        end do
+      end do
 c
 c-----east and west boundaries:
 c
@@ -95,7 +94,7 @@ c
 #else
         pdota(i,jx)=0.5*(psa(i,jlx)+psa(i-1,jlx))
 #endif
-      enddo
+      end do
 c
 c-----north and south boundaries:
 c
@@ -106,7 +105,7 @@ c
 #endif
         pdota(1,j)=0.5*(psa(1,j)+psa(1,j-1))
         pdota(ix,j)=0.5*(psa(ilx,j)+psa(ilx,j-1))
-      enddo
+      end do
 c
 c-----corner points:
 c
@@ -300,7 +299,7 @@ c
           var1snd(k,6) =vilx(k,jxp)
           var1snd(k,7) = uil(k,jxp)
           var1snd(k,8) = vil(k,jxp)
-        enddo
+        end do
       end if
       call MPI_SENDRECV(var1snd(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          ieast,1,var1rcv(1,1),kx*8,MPI_DOUBLE_PRECISION,
@@ -315,7 +314,7 @@ c
           vilx(k,0) = var1rcv(k,6)
            uil(k,0) = var1rcv(k,7)
            vil(k,0) = var1rcv(k,8)
-        enddo
+        end do
       end if
 C
       if(myid.ne.0) then
@@ -328,7 +327,7 @@ C
           var1snd(k,6) =vilx(k,1)
           var1snd(k,7) = uil(k,1)
           var1snd(k,8) = vil(k,1)
-        enddo
+        end do
       end if
       call MPI_SENDRECV(var1snd(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          iwest,2,var1rcv(1,1),kx*8,MPI_DOUBLE_PRECISION,
@@ -343,9 +342,9 @@ C
           vilx(k,jxp+1) = var1rcv(k,6)
            uil(k,jxp+1) = var1rcv(k,7)
            vil(k,jxp+1) = var1rcv(k,8)
-        enddo
+        end do
       end if
 #endif
 c
       return
-      end
+      end subroutine bdyuv

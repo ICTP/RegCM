@@ -205,7 +205,7 @@ Cchem2_
             idatepp = iyr(n)*1000000 + imo(n)*10000 + 100
           end if
           idate1d(n) = idatepp
-        enddo
+        end do
         if(nmo.le.1) then
            nmo=1
            idate1d(2) = idate0
@@ -385,4 +385,4 @@ c **** Write out postprocessing information
       end if
 
       return
-      end
+      end subroutine mkfile

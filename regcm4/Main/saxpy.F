@@ -65,4 +65,4 @@ c
         sy(i + 3) = sy(i + 3) + sa*sx(i + 3)
    50 continue
       return
-      end
+      end subroutine saxpy

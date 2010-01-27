@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine conmas
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -68,10 +67,10 @@ c
           do j=1,mjx-1
             do i=1,ix-1
               tttmp=tttmp+psa_io(i,j)
-            enddo
-          enddo
+            end do
+          end do
           tdrym=tdrym+tttmp*dsigma(k)
-        enddo
+        end do
         tdrym=tdrym*dx*dx*1000./g
       end if
       call MPI_BCAST(tdrym,1,MPI_DOUBLE_PRECISION,
@@ -82,10 +81,10 @@ c
         do j=1,jx-1
           do i=1,ix-1
             tttmp=tttmp+psa(i,j)
-          enddo
-        enddo
+          end do
+        end do
         tdrym=tdrym+tttmp*dsigma(k)
-      enddo
+      end do
       tdrym=tdrym*dx*dx*1000./g
 #endif
 c
@@ -102,10 +101,10 @@ c
           do j=1,mjx-1
             do i=1,ix-1
               tttmp=tttmp+qva_io(i,k,j)
-            enddo
-          enddo
+            end do
+          end do
           tvmass=tvmass+tttmp*dsigma(k)
-        enddo
+        end do
         tvmass=tvmass*dx*dx*1000./g
       end if
       call MPI_BCAST(tvmass,1,MPI_DOUBLE_PRECISION,
@@ -116,10 +115,10 @@ c
         do j=1,jx-1
           do i=1,ix-1
             tttmp=tttmp+qva(i,k,j)
-          enddo
-        enddo
+          end do
+        end do
         tvmass=tvmass+tttmp*dsigma(k)
-      enddo
+      end do
       tvmass=tvmass*dx*dx*1000./g
 #endif
 c
@@ -134,10 +133,10 @@ c
           do j=1,mjx-1
             do i=1,ix-1
               tttmp=tttmp+qca_io(i,k,j)
-            enddo
-          enddo
+            end do
+          end do
           tcmass=tcmass+tttmp*dsigma(k)
-        enddo
+        end do
         tcmass=tcmass*dx*dx*1000./g
       end if
       call MPI_BCAST(tcmass,1,MPI_DOUBLE_PRECISION,
@@ -148,10 +147,10 @@ c
         do j=1,jx-1
           do i=1,ix-1
             tttmp=tttmp+qca(i,k,j)
-          enddo
-        enddo
+          end do
+        end do
         tcmass=tcmass+tttmp*dsigma(k)
-      enddo
+      end do
       tcmass=tcmass*dx*dx*1000./g
 #endif
       tqmass=tvmass+tcmass
@@ -180,8 +179,8 @@ c
         do i=1,ilx
          tcrai =tcrai + rainc_io(i,j)*dxsq
          tncrai=tncrai+rainnc_io(i,j)*dxsq
-        enddo
-        enddo
+        end do
+        end do
         tqrai=tcrai+tncrai
       end if
       call MPI_BCAST(tqrai,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -192,8 +191,8 @@ c
       do i=1,ilx
        tcrai=tcrai+rainc(i,j)*dxsq
        tncrai=tncrai+rainnc(i,j)*dxsq
-      enddo
-      enddo
+      end do
+      end do
       tqrai=tcrai+tncrai
 #endif
 c
@@ -232,4 +231,4 @@ c
 #endif
 
       return
-      end
+      end subroutine conmas

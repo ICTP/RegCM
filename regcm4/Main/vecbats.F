@@ -192,4 +192,4 @@ c ******    call hostetler lake model hourly at lake points
 c ****************************************************************
 
       return
-      end
+      end subroutine vecbats

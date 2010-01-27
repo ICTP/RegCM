@@ -73,4 +73,4 @@ c
         sy(i + 2) = stemp
    50 continue
       return
-      end
+      end subroutine sswap

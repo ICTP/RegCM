@@ -81,4 +81,4 @@ c
 10    format(11x,'*** solar declination angle = ',f6.2,' degrees.')
 c
       return
-      end
+      end subroutine solar1

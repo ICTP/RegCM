@@ -67,10 +67,10 @@ c
       do i=1,ix
         deld(i,j,n,l) = 0.
         delh(i,j,n,l) = 0.
-      enddo
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
+      end do
 c
 c** compute pressure on dot grid
 C=======================================================================
@@ -91,8 +91,8 @@ c
 #endif
         do i=2,ilx
           psdot(i,j)=0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1))
-        enddo
-      enddo
+        end do
+      end do
 c
       do i=2,ilx
 #ifdef MPP1
@@ -107,7 +107,7 @@ c
 #else
         psdot(i,jx)=0.5*(psa(i,jlx)+psa(i-1,jlx))
 #endif
-      enddo
+      end do
 c
 #ifdef MPP1
       do j=jbegin,jendx
@@ -116,7 +116,7 @@ c
 #endif
         psdot(1,j)=0.5*(psa(1,j)+psa(1,j-1))
         psdot(ix,j)=0.5*(psa(ilx,j)+psa(ilx,j-1))
-      enddo
+      end do
 c
 #ifdef MPP1
       if (myid .eq. 0) then
@@ -146,9 +146,9 @@ c** get deld(0), delh(0) from storage
       do i=1,ix
         deld(i,j,n,1) = dstor(i,j,n)
         delh(i,j,n,1) = hstor(i,j,n)
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 c
 C=======================================================================
 c******* divergence manipulations (f)
@@ -161,9 +161,9 @@ c******* divergence manipulations (f)
           do i=1,ix
             uuu(i,k,j) = ua(i,k,j) * msfd(i,j)
             vvv(i,k,j) = va(i,k,j) * msfd(i,j)
-          enddo
-        enddo
-      enddo
+          end do
+        end do
+      end do
 #ifdef MPP1
       call MPI_SENDRECV(uuu(1,1,1),    ix*kx,MPI_DOUBLE_PRECISION,
      &          iwest,2,uuu(1,1,jxp+1),ix*kx,MPI_DOUBLE_PRECISION,
@@ -180,8 +180,8 @@ c******* divergence manipulations (f)
 #endif
           do i=1,ix
             deld(i,j,l,3) = 0.
-          enddo
-        enddo
+          end do
+        end do
         do k=1,kx
 #ifdef MPP1
           do j=1,jendx
@@ -194,10 +194,10 @@ c******* divergence manipulations (f)
      &      ( -uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)+uuu(i,k,j+1)
      &        +vvv(i+1,k,j)+vvv(i+1,k,j+1)-vvv(i,k,j)-vvv(i,k,j+1) )
      &     / fac
-            enddo
-          enddo
-        enddo
-      enddo
+            end do
+          end do
+        end do
+      end do
 c
 C=======================================================================
       
@@ -209,9 +209,9 @@ C=======================================================================
 #endif
       do i=1,ix
          deld(i,j,n,3) = deld(i,j,n,3) - deld(i,j,n,1)
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 c
 C=======================================================================
 c******* divergence manipulations (0)
@@ -224,9 +224,9 @@ c******* divergence manipulations (0)
           do i=1,ix
             uuu(i,k,j) = ub(i,k,j) * msfd(i,j)
             vvv(i,k,j) = vb(i,k,j) * msfd(i,j)
-          enddo
-        enddo
-      enddo
+          end do
+        end do
+      end do
 #ifdef MPP1
       call MPI_SENDRECV(uuu(1,1,1),    ix*kx,MPI_DOUBLE_PRECISION,
      &          iwest,2,uuu(1,1,jxp+1),ix*kx,MPI_DOUBLE_PRECISION,
@@ -243,8 +243,8 @@ c******* divergence manipulations (0)
 #endif
           do i=1,ix
             deld(i,j,l,2) = 0.
-          enddo
-        enddo
+          end do
+        end do
         do k=1,kx
 #ifdef MPP1
           do j=1,jendx
@@ -257,10 +257,10 @@ c******* divergence manipulations (0)
      &      ( -uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)+uuu(i,k,j+1)
      &        +vvv(i+1,k,j)+vvv(i+1,k,j+1)-vvv(i,k,j)-vvv(i,k,j+1) )
      &     / fac
-            enddo
-          enddo
-        enddo
-      enddo
+            end do
+          end do
+        end do
+      end do
 c
 C=======================================================================
       do n=1,nsplit
@@ -271,9 +271,9 @@ C=======================================================================
 #endif
       do i=1,ix
          deld(i,j,n,1) = deld(i,j,n,1) - deld(i,j,n,2)
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 c
 C=======================================================================
 c******* geopotential manipulations (f)
@@ -288,8 +288,8 @@ c******* geopotential manipulations (f)
           do i=1,ilx
             eps = eps1 * (psa(i,j)-pd)
             delh(i,j,l,3) = pdlog + eps
-          enddo
-        enddo
+          end do
+        end do
         do k=1,kx
         pdlog = varpa1(l,k) * dlog( sigmah(k) * pd + pt )
         eps1  = varpa1(l,k) * sigmah(k) / ( sigmah(k) * pd + pt )
@@ -302,10 +302,10 @@ c******* geopotential manipulations (f)
             eps = eps1 * (psa(i,j)-pd)
             delh(i,j,l,3)=delh(i,j,l,3)
      &                   +pdlog+tau(l,k)*ta(i,k,j)/psa(i,j) + eps
-          enddo
-        enddo
-        enddo
-      enddo
+          end do
+        end do
+        end do
+      end do
 C=======================================================================
 
       do n=1,nsplit
@@ -316,9 +316,9 @@ C=======================================================================
 #endif
       do i=1,ix
          delh(i,j,n,3) = delh(i,j,n,3) - delh(i,j,n,1)
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 c
 C=======================================================================
 c******* geopotential manipulations (0)
@@ -333,8 +333,8 @@ c******* geopotential manipulations (0)
           do i=1,ilx
             eps = eps1 * (psb(i,j)-pd)
             delh(i,j,l,2) = pdlog + eps
-          enddo
-        enddo
+          end do
+        end do
         do k=1,kx
         pdlog = varpa1(l,k) * dlog( sigmah(k) * pd + pt )
         eps1  = varpa1(l,k) * sigmah(k) / ( sigmah(k) * pd + pt )
@@ -347,10 +347,10 @@ c******* geopotential manipulations (0)
             eps = eps1 * (psb(i,j)-pd)
             delh(i,j,l,2)=delh(i,j,l,2)
      &                   +pdlog+tau(l,k)*tb(i,k,j)/psb(i,j) + eps
-          enddo
-        enddo
-        enddo
-      enddo
+          end do
+        end do
+        end do
+      end do
 C=======================================================================
       do n=1,nsplit
 #ifdef MPP1
@@ -360,9 +360,9 @@ C=======================================================================
 #endif
       do i=1,ix
          delh(i,j,n,1) = delh(i,j,n,1) - delh(i,j,n,2)
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 c
 c** put deld(0), delh(0) into storage
       do n=1,nsplit
@@ -374,9 +374,9 @@ c** put deld(0), delh(0) into storage
       do i=1,ix
         dstor(i,j,n) = deld(i,j,n,2)
         hstor(i,j,n) = delh(i,j,n,2)
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 c
 c******* split explicit time integration
       call spstep( hbar, dx2, dtau, m)
@@ -393,9 +393,9 @@ C=======================================================================
           do i=2,ilxm
             psa(i,j) = psa(i,j) - an(l) * ddsum(i,j,l)
             psb(i,j) = psb(i,j) - gnuan * ddsum(i,j,l)
-          enddo
-        enddo
-      enddo
+          end do
+        end do
+      end do
       do l=1,nsplit
         do k=1,kx
           gnuam = gnuhf * am(k,l)
@@ -407,10 +407,10 @@ C=======================================================================
             do i=2,ilxm
               ta(i,k,j) = ta(i,k,j) + am(k,l) * ddsum(i,j,l)
               tb(i,k,j) = tb(i,k,j) + gnuam   * ddsum(i,j,l)
-            enddo
-          enddo
-        enddo
-      enddo
+            end do
+          end do
+        end do
+      end do
 C=======================================================================
 #ifdef MPP1
       ii=0
@@ -418,8 +418,8 @@ C=======================================================================
       do i=1,ix
         ii=ii+1
         wksend(ii)=dhsum(i,jxp,l)
-      enddo
-      enddo
+      end do
+      end do
       call MPI_SENDRECV(wksend(1),ix*nsplit,MPI_DOUBLE_PRECISION,
      &          ieast,1,wkrecv(1),ix*nsplit,MPI_DOUBLE_PRECISION,
      &          iwest,1,MPI_COMM_WORLD,status,ierr)
@@ -428,8 +428,8 @@ C=======================================================================
       do i=1,ix
         ii=ii+1
         dhsum(i,0,l)=wkrecv(ii)
-      enddo
-      enddo
+      end do
+      end do
 #endif
       do l=1,nsplit
         do k=1,kx
@@ -450,12 +450,12 @@ c
               va(i,k,j) = va(i,k,j) - zmatx(k,l) * y
               ub(i,k,j) = ub(i,k,j) - gnuzm * x
               vb(i,k,j) = vb(i,k,j) - gnuzm * y
-            enddo
-          enddo
-        enddo
-      enddo
+            end do
+          end do
+        end do
+      end do
 c
 C=======================================================================
 c
       return
-      end
+      end subroutine splitf

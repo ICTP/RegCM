@@ -747,24 +747,24 @@ C delta-Eddington solution reflectivities and transmissivities
 C for each layer, starting from the top and working downwards:
 
 c options for aerosol: no climatic feedback if idirect .eq. 1 
-        IF (idirect .eq. 2) then 
+        if (idirect .eq. 2) then 
           do k=0,plev
           do i=1,plond
             wkaer(i,k,1) = tauxar_mix(i,k,ns)
             wkaer(i,k,2) = tauasc_mix(i,k,ns)
             wkaer(i,k,3) = gtota_mix(i,k,ns)
             wkaer(i,k,4) = ftota_mix(i,k,ns)
-          enddo
-          enddo
-        ELSE IF (idirect .eq.1) then
+          end do
+          end do
+        else if (idirect .eq.1) then
           do k=0,plev
           do i=1,plond
             wkaer(i,k,1) = 0.
             wkaer(i,k,2) = 0.
             wkaer(i,k,3) = 0.
             wkaer(i,k,4) = 0.
-          enddo
-          enddo
+          end do
+          end do
         end if
             
         call radded(coszrs   ,trayoslp,pflx   ,abh2o(ns),abo3(ns),
@@ -891,15 +891,15 @@ c    solis is incident visible solar radiation
 C -trapuv
 C        do i=1,plond
 C         solis(i)=solflx(i)*0.001*fluxdn(i,plevp)
-C        enddo
+C        end do
 C -trapuv_
           do n=1,nloop
             do i=is(n),ie(n)
               solvs(i)=exptdn(i,plevp)*solflx(i)*0.001
               solvd(i)=(fluxdn(i,plevp)-exptdn(i,plevp))*solflx(i)*0.001
               solis(i)=solflx(i)*0.001*fluxdn(i,plevp)
-            enddo
-          enddo
+            end do
+          end do
         end if
 CEES apr 20
 
@@ -908,14 +908,14 @@ C CLEAR SKY CALCULATION PLUS AUTOMATCI CALCULATEION OF AEROSOL FORCING
 c RAD CLR is called 2 times , one with O aerosol OP , and one with actual 
 c aerosol. DIFFERENCE  in net TOA SW for the two case is saved as one more variable 
 c in the rad file. The outputed TOASW ( fsntc, clrst) is accounting for aerosol. 
-        IF ( idirect .ge. 1 ) then 
+        if ( idirect .ge. 1 ) then 
 
           do i=1,plond
             zero(i,1) =0.
             zero(i,2) =0.
             zero(i,3) =0.
             zero(i,4) =0.
-          enddo
+          end do
 
 C Following code is the diagnostic clear sky computation:
 C
@@ -1075,7 +1075,7 @@ C
   100 continue                  ! End of spectral interval loop
 
 C FAB calculation of TOA aerosol radiative forcing 
-      IF (idirect .ge. 1) then
+      if (idirect .ge. 1) then
         do n=1,nloop
           do i=is(n),ie(n)
 c test
@@ -1104,4 +1104,4 @@ c
       end do
 C
       return
-      end
+      end subroutine radcsw

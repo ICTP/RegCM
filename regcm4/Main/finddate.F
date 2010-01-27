@@ -17,37 +17,31 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE FINDDATE(NPOS,IDATE)
-      IMPLICIT NONE
+      subroutine finddate(npos,idate)
+      implicit none
 #ifdef MPP1
 #     include "mpiregcm.inc"
-      integer ierr
+#     include "include/message.cb"
 #endif
-      INTEGER         MDATEZ
-      COMMON /DATENUM/MDATEZ(289276)
-C
-      INTEGER NPOS,IDATE
-      INTEGER I
-C
-      I=0
- 10   CONTINUE
-      I=I+1
-      IF(MDATEZ(I).EQ.IDATE) THEN
-         NPOS=I
-         GO TO 200
+      integer         mdatez
+      common /datenum/mdatez(289276)
+c
+      integer npos,idate
+      integer i
+c
+      i=0
+ 10   continue
+      i=i+1
+      if (mdatez(i).eq.idate) then
+         npos=i
+         go to 200
       end if
-      IF(I.GT.289276) GOTO 100
-      GO TO 10
- 100  CONTINUE
-#ifdef MPP1
-      if (myid .eq. 0) then
-#endif
-      WRITE(*,*) 'ERROR IN FINDDATE',NPOS,IDATE
-#ifdef MPP1
-      end if
-      call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-      STOP
-#endif
- 200  RETURN
-      END
+      if (i.gt.289276) goto 100
+      go to 10
+ 100  continue
+      
+      write(aline, *) 'error in finddate : ', npos, idate
+      call say
+      call fatal(__FILE__,__LINE__,'Date not found')
+ 200  return
+      end subroutine finddate

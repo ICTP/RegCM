@@ -17,7 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE set_lookup_tables
+      subroutine set_lookup_tables
 
 !-----------------------------------------------------------------------
 ! *mo_convect_tables* - tables for convective adjustment code
@@ -31,21 +31,21 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 ! When replacing the table lookups the following code has been used:
 !
-!   tlucua :  c2es*EXP(MERGE(c3les,c3ies,lo)*(tt-tmelt) &
-!           /      (tt-MERGE(c4les,c4ies,lo)))
+!   tlucua :  c2es*exp(merge(c3les,c3ies,lo)*(tt-tmelt) &
+!           /      (tt-merge(c4les,c4ies,lo)))
 !
-!   tlucub :  MERGE(c5alvcp,c5alscp,lo) / (tt-MERGE(c4les,c4ies,lo))**2
+!   tlucub :  merge(c5alvcp,c5alscp,lo) / (tt-merge(c4les,c4ies,lo))**2
 !
-!   tlucuc :  MERGE(alvdcp, alsdcp, lo)
+!   tlucuc :  merge(alvdcp, alsdcp, lo)
 !
-!   tlucuaw:  c2es*EXP(c3les*(tt-tmelt)*(1./(tt-c4les)))
+!   tlucuaw:  c2es*exp(c3les*(tt-tmelt)*(1./(tt-c4les)))
 !
 !   with:     lo = tt > tmelt
 !
 ! compile with option -DNOLOOKUP in order to replace lookup tables
 !-----------------------------------------------------------------------
 
-      IMPLICIT NONE
+      implicit none
 #     include "include/culookup.cb"
 #     include "include/tiedparam0.cb"
 #     include "include/tied_constants.cb"
@@ -55,43 +55,43 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !      called from 'setphys'
 !----------------------------
 
-      real(kind=8), PARAMETER :: clavm1 = -6096.9385
-      real(kind=8), PARAMETER :: clavm2 =    21.2409642
-      real(kind=8), PARAMETER :: clavm3 =    -2.711193
-      real(kind=8), PARAMETER :: clavm4 =     1.673952
-      real(kind=8), PARAMETER :: clavm5 =     2.433502
+      real(kind=8), parameter :: clavm1 = -6096.9385
+      real(kind=8), parameter :: clavm2 =    21.2409642
+      real(kind=8), parameter :: clavm3 =    -2.711193
+      real(kind=8), parameter :: clavm4 =     1.673952
+      real(kind=8), parameter :: clavm5 =     2.433502
 
-      real(kind=8), PARAMETER :: ciavm1 = -6024.5282
-      real(kind=8), PARAMETER :: ciavm2 =    29.32707
-      real(kind=8), PARAMETER :: ciavm3 =     1.0613868
-      real(kind=8), PARAMETER :: ciavm4 =    -1.3198825
-      real(kind=8), PARAMETER :: ciavm5 =    -0.49382577
+      real(kind=8), parameter :: ciavm1 = -6024.5282
+      real(kind=8), parameter :: ciavm2 =    29.32707
+      real(kind=8), parameter :: ciavm3 =     1.0613868
+      real(kind=8), parameter :: ciavm4 =    -1.3198825
+      real(kind=8), parameter :: ciavm5 =    -0.49382577
 
       real(kind=8)  :: tt
-      INTEGER :: it  
-      LOGICAL :: lo
+      integer :: it  
+      logical :: lo
     
       tt = jptlucu1 * 0.001
-      DO it = jptlucu1, jptlucu2
+      do it = jptlucu1, jptlucu2
         lo = tt > tmelt
       
-        IF (lamip2) THEN
-          tlucua(it) = EXP((MERGE(clavm1, ciavm1, lo)/tt
-     &                  + MERGE(clavm2, ciavm2, lo)
-     &                  + MERGE(clavm3, ciavm3, lo)*tt/100.
-     &                  + MERGE(clavm4, ciavm4, lo)*tt*tt/1.e5
-     &                  + MERGE(clavm5, ciavm5, lo)*LOG(tt)))*rdti/rvti
-        ELSE
-          tlucua(it) = c2es*EXP(MERGE(c3les,  c3ies,  lo)*(tt-tmelt)
-     &             *  (1./(tt-MERGE(c4les,  c4ies,  lo))))
+        if (lamip2) then
+          tlucua(it) = exp((merge(clavm1, ciavm1, lo)/tt
+     &                  + merge(clavm2, ciavm2, lo)
+     &                  + merge(clavm3, ciavm3, lo)*tt/100.
+     &                  + merge(clavm4, ciavm4, lo)*tt*tt/1.e5
+     &                  + merge(clavm5, ciavm5, lo)*log(tt)))*rdti/rvti
+        else
+          tlucua(it) = c2es*exp(merge(c3les,  c3ies,  lo)*(tt-tmelt)
+     &             *  (1./(tt-merge(c4les,  c4ies,  lo))))
         end if
-        tlucub(it)  =          MERGE(c5alvcp,c5alscp,lo)
-     &            *  (1./(tt-MERGE(c4les,  c4ies,  lo)))**2
-        tlucuc(it)  =          MERGE(alvdcp, alsdcp, lo)
+        tlucub(it)  =          merge(c5alvcp,c5alscp,lo)
+     &            *  (1./(tt-merge(c4les,  c4ies,  lo)))**2
+        tlucuc(it)  =          merge(alvdcp, alsdcp, lo)
 
-        tlucuaw(it) = c2es*EXP(c3les*(tt-tmelt)*(1./(tt-c4les)))
+        tlucuaw(it) = c2es*exp(c3les*(tt-tmelt)*(1./(tt-c4les)))
 
         tt = tt + 0.001
       end do
 
-      END SUBROUTINE set_lookup_tables
+      end subroutine set_lookup_tables

@@ -17,7 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE MIXER ( kmin, surf, dz, T, dnsty, depmax, depth )
+      subroutine mixer ( kmin, surf, dz, T, dnsty, depmax, depth )
 c
 c Simulates convective mixing
 c
@@ -66,4 +66,4 @@ c     Local variables
       end do
 
       return
-      end subroutine MIXER
+      end subroutine mixer

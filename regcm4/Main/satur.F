@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine satur( qsat, t, p )
 c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c     ****  calculates saturation vapor pressure (eg)
@@ -51,8 +50,8 @@ c
        eg(n,np)   = c(74) * dexp( a(n,np)*(t(n,np)-c(67)) 
      &                                   /(t(n,np)-b(n,np)) )
        qsat(n,np) = c(75)*eg(n,np) / (p(n,np)-c(76)*eg(n,np))
-      enddo
+      end do
 90    continue
 
       return
-      end
+      end subroutine satur

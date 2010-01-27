@@ -17,7 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine GRADSBAT(CTLNAME)
+      subroutine gradsbat(ctlname)
       implicit none
 #     include "parameter.inc"
 #     include "include/date.cb"
@@ -26,8 +26,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/param3.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
-      integer ierr
 #else
 #     include "include/main.cb"
 #endif
@@ -83,7 +81,7 @@ c
             if(xlat(1 ,j).lt.alatmin)alatmin=xlat(1 ,j)
             if(xlat(ix,j).gt.alatmax)alatmax=xlat(ix,j)
 #endif
-         enddo
+         end do
          alonmin= 999999.
          alonmax=-999999.
          do i=1,ix
@@ -157,8 +155,8 @@ c
                   end if
                end if
             end if
-         enddo
-         enddo
+         end do
+         end do
          rlatinc=dxsp*0.001/111./2.
          rloninc=dxsp*0.001/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
@@ -218,11 +216,7 @@ c
          write(31,110) nx+2,alonmin-rloninc,rloninc
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
       else
-         write(*,*) 'Are you sure your map projection is right ?'
-#ifdef MPP1
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#endif
-         stop
+        call fatal(__FILE__,__LINE__, 'INVALID MAP PROJECTION')
       end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
@@ -303,8 +297,10 @@ c
  700  format('endvars')
       close(31)
       return
-      end
-      subroutine GRADSSUB(CTLNAME)
+      end subroutine gradsbat
+C
+C
+      subroutine gradssub(ctlname)
       implicit none
 #     include "parameter.inc"
 #     include "include/date.cb"
@@ -314,8 +310,6 @@ c
 #     include "include/param3.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
-      INTEGER ierr
       real(kind=4)  xlat_s_io(mjx*NSG,ix*NSG),xlon_s_io(mjx*NSG,ix*NSG)
 #else
 #     include "include/main.cb"
@@ -372,7 +366,7 @@ c
             if(xlat(1 ,j).lt.alatmin)alatmin=xlat(1 ,j)
             if(xlat(ix,j).gt.alatmax)alatmax=xlat(ix,j)
 #endif
-         enddo
+         end do
          alonmin= 999999.
          alonmax=-999999.
          do i=1,ix
@@ -446,8 +440,8 @@ c
                   end if
                end if
             end if
-         enddo
-         enddo
+         end do
+         end do
          rlatinc=dxsp*0.001/111./2.
          rloninc=dxsp*0.001/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
@@ -513,11 +507,7 @@ c
          write(31,110) nx+2,alonmin-rloninc,rloninc
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
       else
-         write(*,*) 'Are you sure your map projection is right ?'
-#ifdef MPP1
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#endif
-         stop
+        call fatal(__FILE__,__LINE__, 'INVALID MAP PROJECTION')
       end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
@@ -589,8 +579,11 @@ c
  700  format('endvars')
       close(31)
       return
-      end
-      subroutine GRADSCHEM(CTLNAME)
+      end subroutine gradssub
+C
+C
+C
+      subroutine gradschem(ctlname)
       implicit none
 #     include "parameter.inc"
 #     include "include/date.cb"
@@ -600,8 +593,6 @@ c
 #     include "include/trachem.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
-      INTEGER ierr
 #else
 #     include "include/main.cb"
 #endif
@@ -656,7 +647,7 @@ c
             if(xlat(1 ,j).lt.alatmin)alatmin=xlat(1 ,j)
             if(xlat(ix,j).gt.alatmax)alatmax=xlat(ix,j)
 #endif
-         enddo
+         end do
          alonmin= 999999.
          alonmax=-999999.
          do i=1,ix
@@ -730,8 +721,8 @@ c
                   end if
                end if
             end if
-         enddo
-         enddo
+         end do
+         end do
          rlatinc=dxsp*0.001/111./2.
          rloninc=dxsp*0.001/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
@@ -791,11 +782,7 @@ c
          write(31,110) nx+2,alonmin-rloninc,rloninc
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
       else
-         write(*,*) 'Are you sure your map projection is right ?'
-#ifdef MPP1
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#endif
-         stop
+        call fatal(__FILE__,__LINE__, 'INVALID MAP PROJECTION')
       end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
@@ -880,15 +867,16 @@ c
  700  format('endvars')
       close(31)
       return
-      end
-      subroutine GRADSCTL(CTLNAME)
+      end subroutine gradschem
+C
+C
+C
+      subroutine gradsctl(ctlname)
       implicit none
 #     include "parameter.inc"
 #     include "include/param2.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
-      INTEGER ierr
 #else
 #     include "include/main.cb"
 #endif
@@ -933,7 +921,7 @@ c
             if(xlat(1 ,j).lt.alatmin)alatmin=xlat(1 ,j)
             if(xlat(ix,j).gt.alatmax)alatmax=xlat(ix,j)
 #endif
-         enddo
+         end do
          alonmin= 999999.
          alonmax=-999999.
          do i=1,ix
@@ -1007,8 +995,8 @@ c
                   end if
                end if
             end if
-         enddo
-         enddo
+         end do
+         end do
          rlatinc=dxsp*0.001/111./2.
          rloninc=dxsp*0.001/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
@@ -1067,11 +1055,7 @@ c
          write(31,110) nx+2,alonmin-rloninc,rloninc
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
       else
-         write(*,*) 'Are you sure your map projection is right ?'
-#ifdef MPP1
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#endif
-         stop
+        call fatal(__FILE__,__LINE__, 'INVALID MAP PROJECTION')
       end if
       write(31,300) 1,1000.
  300  format('zdef ',I1,' levels ',f7.2)
@@ -1095,8 +1079,11 @@ c
  700  format('endvars')
       close(31)
       return
-      end
-      subroutine GRADSOUT(CTLNAME)
+      end subroutine gradsctl
+C
+C
+C
+      subroutine gradsout(ctlname)
       implicit none
 #     include "parameter.inc"
 #     include "include/date.cb"
@@ -1105,8 +1092,6 @@ c
 #     include "include/param3.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
-      INTEGER ierr
 #else
 #     include "include/main.cb"
 #endif
@@ -1161,7 +1146,7 @@ c
             if(xlat(1 ,j).lt.alatmin)alatmin=xlat(1 ,j)
             if(xlat(ix,j).gt.alatmax)alatmax=xlat(ix,j)
 #endif
-         enddo
+         end do
          alonmin= 999999.
          alonmax=-999999.
          do i=1,ix
@@ -1235,8 +1220,8 @@ c
                   end if
                end if
             end if
-         enddo
-         enddo
+         end do
+         end do
          rlatinc=dxsp*0.001/111./2.
          rloninc=dxsp*0.001/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
@@ -1296,11 +1281,7 @@ c
          write(31,110) nx+2,alonmin-rloninc,rloninc
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
       else
-         write(*,*) 'Are you sure your map projection is right ?'
-#ifdef MPP1
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#endif
-         stop
+        call fatal(__FILE__,__LINE__, 'INVALID MAP PROJECTION')
       end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
@@ -1366,8 +1347,11 @@ c
  700  format('endvars')
       close(31)
       return
-      end
-      subroutine GRADSRAD(CTLNAME)
+      end subroutine gradsout
+C
+C
+C
+      subroutine gradsrad(ctlname)
       implicit none
 #     include "parameter.inc"
 #     include "include/date.cb"
@@ -1376,8 +1360,6 @@ c
 #     include "include/param3.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
-      INTEGER ierr
 #else
 #     include "include/main.cb"
 #endif
@@ -1432,7 +1414,7 @@ c
             if(xlat(1 ,j).lt.alatmin)alatmin=xlat(1 ,j)
             if(xlat(ix,j).gt.alatmax)alatmax=xlat(ix,j)
 #endif
-         enddo
+         end do
          alonmin= 999999.
          alonmax=-999999.
          do i=1,ix
@@ -1506,8 +1488,8 @@ c
                   end if
                end if
             end if
-         enddo
-         enddo
+         end do
+         end do
          rlatinc=dxsp*0.001/111./2.
          rloninc=dxsp*0.001/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
@@ -1567,11 +1549,7 @@ c
          write(31,110) nx+2,alonmin-rloninc,rloninc
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
       else
-         write(*,*) 'Are you sure your map projection is right ?'
-#ifdef MPP1
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#endif
-         stop
+        call fatal(__FILE__,__LINE__, 'INVALID MAP PROJECTION')
       end if
       else if(iotyp.eq.2) then
 #ifdef MPP1
@@ -1632,4 +1610,4 @@ c
  700  format('endvars')
       close(31)
       return
-      end
+      end subroutine gradsrad

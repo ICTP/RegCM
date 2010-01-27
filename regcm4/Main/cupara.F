@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine cupara(j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -92,7 +91,7 @@ c  before do 100 put
       do i=2,ilxm
          icumtop(i,j) = 0
          icumbot(i,j) = 0
-      enddo
+      end do
       end if
 Cchem2__
 c
@@ -326,4 +325,4 @@ C     1        ' k= ',i5,' ttconv =',e15.7)
 105   continue
 c
       return
-      end
+      end subroutine cupara

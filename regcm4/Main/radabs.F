@@ -886,4 +886,4 @@ C
   500 continue                  !  end of nearest layer level loop
 C
       return
-      end
+      end subroutine radabs

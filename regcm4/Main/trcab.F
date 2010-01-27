@@ -250,4 +250,4 @@ c total trace gas absorptivity
      $            +  aco21 + aco22
       end do
       return
-      end
+      end subroutine trcab

@@ -121,4 +121,4 @@ c
       ipvt(n) = n
       if (a(n,n) .eq. 0.0e0) info = n
       return
-      end
+      end subroutine sgefa

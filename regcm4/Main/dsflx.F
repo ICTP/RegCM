@@ -17,118 +17,118 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c  **********************************************************
-c  *  Dust Emission Scheme                             ******
-c  *                                                   ******
-c  * This scheme based on Marticorena and Bergametti,  ******
-c  * 1995; Gong et al.,(2003); Alfaro et al.,(1997)    ******
-c  *                                                   ******
-c  * The Modification coded by:                        ******
-c  * Ashraf S. Zakey                                   ******
-C  **********************************************************
+      subroutine sfflux(ilg,il1,il2,jloop,luc,ivegcov,
+     &                  vegfrac, isoiltex, ustarnd, z0,
+     &                  soilw, surfwd, roarow, trsize, rsfrow)
 
-      subroutine SFFLUX(ilg,il1,il2,jloop,luc,ivegcov,
-     &                  vegfrac, isoiltex, ustarnd, Z0,
-     &                  soilw, surfwd, roarow, trsize, RSFROW)
+c  **********************************************************
+c  *  dust emission scheme                             ******
+c  *                                                   ******
+c  * this scheme based on marticorena and bergametti,  ******
+c  * 1995; gong et al.,(2003); alfaro et al.,(1997)    ******
+c  *                                                   ******
+c  * the modification coded by:                        ******
+c  * ashraf s. zakey                                   ******
+c  **********************************************************
 
       implicit none
 
 #     include "parameter.inc"
 #     include "include/dust.cb"
 
-      integer IL1,IL2,ILG,jloop
-      integer N, NS
-      integer LUC
-      integer I,ieff, ieffmax
+      integer il1,il2,ilg,jloop
+      integer n, ns
+      integer luc
+      integer i,ieff, ieffmax
 c  
-      real(kind=8)  RSFROW(ILG,nbin)
-      real(kind=8)  SOILW(ILG),ustarnd(ilg)
-      real(kind=8)  SURFWD(ILG),Z0(ILG) 
+      real(kind=8)  rsfrow(ilg,nbin)
+      real(kind=8)  soilw(ilg),ustarnd(ilg)
+      real(kind=8)  surfwd(ilg),z0(ilg) 
       integer ivegcov(ilg),isoiltex(ilg) 
       real(kind=8)  vegfrac(ilg)
-      real(kind=8)  ROAROW(ilg),SFLT(ilg)       
+      real(kind=8)  roarow(ilg),sflt(ilg)       
       real(kind=8)  trsize(nbin,2)
 
 c
 c        effective work array  ( maybe think about allocatbale array)
 
-      real(kind=8)  XRSFROW(ILG,nbin)
-      real(kind=8)  XSOILW(ILG)
-      real(kind=8)  XSURFWD(ILG) , XZ0(ILG)
-      real(kind=8)  Xvegfrac(ilg), XFLAND(ilg,20)
-      real(kind=8)  XROAROW(ilg),XSFLT(ilg)       
-      real(kind=8)  XSREL2D(ilg,nsoil,nats)
-      real(kind=8)  Xustarnd(ilg) 
-      real(kind=8) XSANDROW(ilg),  XCLAYROW(ilg)
-      real(kind=8) XSAND2ROW(ilg,nats), XCLAY2ROW(ilg,nats)
+      real(kind=8)  xrsfrow(ilg,nbin)
+      real(kind=8)  xsoilw(ilg)
+      real(kind=8)  xsurfwd(ilg) , xz0(ilg)
+      real(kind=8)  xvegfrac(ilg), xfland(ilg,20)
+      real(kind=8)  xroarow(ilg),xsflt(ilg)       
+      real(kind=8)  xsrel2d(ilg,nsoil,nats)
+      real(kind=8)  xustarnd(ilg) 
+      real(kind=8) xsandrow(ilg),  xclayrow(ilg)
+      real(kind=8) xsand2row(ilg,nats), xclay2row(ilg,nats)
 
-      integer Xivegcov(ilg), Xisoiltex(ilg), XIRB(ilg)
+      integer xivegcov(ilg), xisoiltex(ilg), xirb(ilg)
 
-      RSFROW = 0.0
+      rsfrow = 0.0
 
 c  effective emitter cell ( depending on ivegcov) 
-      Xivegcov = 0.
-      Xvegfrac = 0. 
-      Xisoiltex= 0. 
-      XSOILW   = 0.
-      XSURFWD  = 0.
-      XZ0      = 0.
-      XCLAYROW = 0.
-      XSANDROW = 0.
-      XIRB = 0
-      Xustarnd = 0. 
-      XSFLT = 0.
-      XROAROW =0.
-      XSREL2D =0.
-      XCLAY2ROW =0.
-      XSAND2ROW =0.
-      XFLAND =0.0
-      XRSFROW =0.
+      xivegcov = 0.
+      xvegfrac = 0. 
+      xisoiltex= 0. 
+      xsoilw   = 0.
+      xsurfwd  = 0.
+      xz0      = 0.
+      xclayrow = 0.
+      xsandrow = 0.
+      xirb = 0
+      xustarnd = 0. 
+      xsflt = 0.
+      xroarow =0.
+      xsrel2d =0.
+      xclay2row =0.
+      xsand2row =0.
+      xfland =0.0
+      xrsfrow =0.
 
       ieff = 0  
       ieffmax=0
       do i=il1, il2
-        if((ivegcov(i) .eq.8 .or.  ivegcov(i) .eq.11) .and.
+        if ((ivegcov(i) .eq.8 .or.  ivegcov(i) .eq.11) .and.
      &     (isoiltex(i).gt.0 .and. isoiltex(i).le.12) )then
           ieff = ieff + 1 
-          Xivegcov(ieff) =  ivegcov(i)
-          Xvegfrac(ieff) =  vegfrac(i) 
-          Xisoiltex(ieff) = isoiltex(i) 
-          XSOILW(ieff)  =  SOILW(i)
-          XSURFWD(ieff) = SURFWD(i)
-          XZ0(ieff)    = Z0(i)
-          XROAROW(ieff) = ROAROW(i)
-          Xustarnd(ieff)   =  ustarnd(i)
+          xivegcov(ieff) =  ivegcov(i)
+          xvegfrac(ieff) =  vegfrac(i) 
+          xisoiltex(ieff) = isoiltex(i) 
+          xsoilw(ieff)  =  soilw(i)
+          xsurfwd(ieff) = surfwd(i)
+          xz0(ieff)    = z0(i)
+          xroarow(ieff) = roarow(i)
+          xustarnd(ieff)   =  ustarnd(i)
 
 c soil parameters
 c ok if one texture per grid cell
-c (remember SREL2D,4 =1 because of memory problem for big domains)
+c (remember srel2d,4 =1 because of memory problem for big domains)
           do ns=1,nsoil
-            XSREL2D(ieff,ns,Xisoiltex(ieff) )=SREL2D(i,jloop,ns)
-          enddo
+            xsrel2d(ieff,ns,xisoiltex(ieff) )=srel2d(i,jloop,ns)
+          end do
 
-          XSANDROW(ieff)=SANDROW2(i,jloop) 
-          XCLAYROW(ieff)=CLAYROW2(i,jloop) 
+          xsandrow(ieff)=sandrow2(i,jloop) 
+          xclayrow(ieff)=clayrow2(i,jloop) 
           do n=1,nats
-            XSAND2ROW(ieff,n)=SAND2ROW2(i,n,jloop)
-            XCLAY2ROW(ieff,n)=CLAY2ROW2(i,n,jloop)
-          enddo
+            xsand2row(ieff,n)=sand2row2(i,n,jloop)
+            xclay2row(ieff,n)=clay2row2(i,n,jloop)
+          end do
 c  trivial !
-          XIRB(ieff) = 1
+          xirb(ieff) = 1
           do n=1,20
-            XFLAND(ieff,n)  = 1
-          enddo
+            xfland(ieff,n)  = 1
+          end do
         end if
       end do 
 
       ieffmax = ieff 
 
-      if(ieffmax .gt. 0 ) then 
+      if (ieffmax .gt. 0 ) then 
         call dust_module(1,ieffmax,ilg, trsize,
-     $                   XSOILW, XVEGFRAC,XSURFWD, XFLAND,
-     $                   XCLAYROW,XSAND2ROW,
-     $                   XROAROW, XZ0, XSREL2D,
-     $                   XRSFROW,LUC)
+     $                   xsoilw, xvegfrac,xsurfwd, xfland,
+     $                   xclayrow,xsand2row,
+     $                   xroarow, xz0, xsrel2d,
+     $                   xrsfrow,luc)
       end if
 
 c  put back the dust flux on the right grid
@@ -136,58 +136,59 @@ c  put back the dust flux on the right grid
       ieff = 0         
              
       do i=il1, il2
-         if((ivegcov(i) .eq.8 .or.  ivegcov(i) .eq.11) .and.
+         if ((ivegcov(i) .eq.8 .or.  ivegcov(i) .eq.11) .and.
      &      (isoiltex(i).gt.0 .and. isoiltex(i).le.12) )then
           ieff = ieff + 1
-          SFLT(i)  = XSFLT(ieff)  
+          sflt(i)  = xsflt(ieff)  
           do n=1,nbin
-            RSFROW(i,n) =  XRSFROW(ieff,n)  
-          enddo
+            rsfrow(i,n) =  xrsfrow(ieff,n)  
+          end do
         end if
       end do 
 
       return
-      end
+      end subroutine sfflux
 
-      subroutine dust_module(IL1,IL2,ILG,trsize,
-     $                       SOILW, VEGFRAC, SURFWD, FLAND,
-     &                       CLAYROW,SAND2ROW,
-     $                       ROAROW,Z0,SREL,
-     $                       RSFROW,LUC)
+      subroutine dust_module(il1,il2,ilg,trsize,
+     $                       soilw, vegfrac, surfwd, fland,
+     &                       clayrow,sand2row,
+     $                       roarow,z0,srel,
+     $                       rsfrow,luc)
 
       implicit none
 
 #     include "parameter.inc"
 #     include "include/dust.cb"
+#     include "include/message.cb"
 
-      integer IL1, IL2, ILG
-      integer I, LUC
+      integer il1, il2, ilg
+      integer i, luc
       real(kind=8)  fland(ilg,20), soilw(ilg)
       real(kind=8)  clayrow(ilg)
-      real(kind=8)  SAND2ROW(ilg,nats)
+      real(kind=8)  sand2row(ilg,nats)
       real(kind=8)  roarow(ilg), surfwd(ilg)
-      real(kind=8)  vegfrac(ilg),Z0(ilg)
+      real(kind=8)  vegfrac(ilg),z0(ilg)
 
       real(kind=8)  ustar(ilg,nats),utheff(ilg,nsoil)
       real(kind=8)  uth
       real(kind=8)  srl(ilg), rc(ilg), alamda(ilg)
       real(kind=8)  srel(ilg,nsoil,nats)
-      real(kind=8)  UMIN, RHOP, HC(ilg)
-      real(kind=8)  USTARNS, UTMIN, vk
+      real(kind=8)  umin, rhop, hc(ilg)
+      real(kind=8)  ustarns, utmin, vk
       real(kind=8)  xz, br,ym
-      real(kind=8)  sigr,xc,z0s,X
+      real(kind=8)  sigr,xc,z0s,x
       real(kind=8)  trsize(nbin,2)
-      real(kind=8)  RSFROW(ILG,nbin)
+      real(kind=8)  rsfrow(ilg,nbin)
       real(kind=8)  wprim(ilg)
 
-      real(kind=8)  TEMPD
+      real(kind=8)  tempd
       real(kind=8)  cly1,cly2
       real(kind=8)  arc1,arc2
 
-      data UMIN/15./,rhop/2500.000/, vk/0.4/
+      data umin/15./,rhop/2500.000/, vk/0.4/
 
       data xz/0.25/, br/202.0/, ym/0.16/, sigr/1.45/
-      data z0s/3.E-3/, X/10./
+      data z0s/3.e-3/, x/10./
 
       do i = il1,il2
 
@@ -197,28 +198,28 @@ c  put back the dust flux on the right grid
        if (jfs .eq. 0) then
 
 c   *****************************************************************
-c   * Raupach et al. (1993)                                      ****
+c   * raupach et al. (1993)                                      ****
 c   *****************************************************************               
 
        xc=1.0/(sigr*ym)     
 
-       if(vegfrac(i) .lt. 1.0) then
+       if (vegfrac(i) .lt. 1.0) then
          alamda(i)= xz*(log(1.0 - vegfrac(i)))*(-1.0)
          arc1= sigr*ym*alamda(i)
          arc2= br*ym*alamda(i)
 
-       if(arc1 .le. 1.0 .and. arc2 .le. 1.0 ) then
+       if (arc1 .le. 1.0 .and. arc2 .le. 1.0 ) then
 
          rc(i)= (sqrt(1.0 - arc1)*sqrt(1.0 + arc2))
 
        end if
        end if
      
-       else if(jfs .eq. 1) then
+       else if (jfs .eq. 1) then
 
        rc(i) = 1 -
-     &       (dlog (0.5E-2/z0s)/
-     &       (dlog( 0.35*(X/z0s)**0.8) )  )
+     &       (dlog (0.5e-2/z0s)/
+     &       (dlog( 0.35*(x/z0s)**0.8) )  )
 
       end if
 
@@ -226,20 +227,21 @@ c *************************************************************
 c threshold velocity correction for soil humidity hc
 c***************************************************************
 
-       if (jSOILM .EQ. 0) THEN
+       if (jsoilm .eq. 0) then
 
-           IF(SOILW(I) .lt. 0.0) THEN
-            WRITE(6,*)'HC, RC =', SOILW(I), ' LESS THAN ZERO'
-            STOP
-          else if(SOILW(I) .lt. 0.03 ) THEN
-            hc(i) = EXP(22.7*SOILW(I))
-          else if(SOILW(I) .ge. 0.03 ) THEN
-            hc(i) = EXP(95.3 * SOILW(I) - 2.029)
-          ELSE
+           if (soilw(i) .lt. 0.0) then
+            write(aline, *) 'hc, rc =', soilw(i), ' less than zero'
+            call say
+            call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
+          else if (soilw(i) .lt. 0.03 ) then
+            hc(i) = exp(22.7*soilw(i))
+          else if (soilw(i) .ge. 0.03 ) then
+            hc(i) = exp(95.3 * soilw(i) - 2.029)
+          else
              hc(i) = 1.0   
           end if
 
-       else if(jSOILM .EQ. 1) THEN   
+       else if (jsoilm .eq. 1) then   
 
           cly1 = clayrow(i)
           cly2 = cly1 * cly1
@@ -247,62 +249,62 @@ c***************************************************************
 
           wprim(i) = 0.0014* cly2 + 0.17 * cly1
 
-c          print*,'-----------',WPRIM(I),CLAYROW(I)
+c          print*,'-----------',wprim(i),clayrow(i)
 c          if (isoiltex(i).eq.1) then
-c            WPRIM(i) = 1.
+c            wprim(i) = 1.
 c          end if
 
 c          if ((isoiltex(i).eq.2).or.(isoiltex(i).eq.3)) then
-c            WPRIM(i) = 1.84
+c            wprim(i) = 1.84
 c          end if
 
 c          if ((isoiltex(i).eq.4).or.(isoiltex(i).eq.5)
 c     &                          .or.(isoiltex(i).eq.6)) then
-c            WPRIM(i) = 2.5
+c            wprim(i) = 2.5
 c          end if
 
 c          if (isoiltex(i).eq.7) then
-c            WPRIM(i) = 3.5
+c            wprim(i) = 3.5
 c          end if
 
 c          if ((isoiltex(i).eq.8).or.(isoiltex(i).eq.9)) then
-c            WPRIM(i) = 6.8
+c            wprim(i) = 6.8
 c          end if
 
 c          if (isoiltex(i).eq.10) then
-c            WPRIM(i) = 10.
+c            wprim(i) = 10.
 c          end if
 
 c          if (isoiltex(i).eq.11) then
-c            WPRIM(i) = 10.5
+c            wprim(i) = 10.5
 c          end if
 
 c          if (isoiltex(i).eq.12) then
-c            WPRIM(i) = 11.5
+c            wprim(i) = 11.5
 c          end if
 
           tempd    = dmax1(0.00001d0, soilw(i)*100.0 - wprim(i))
 
-          IF (SOILW(i) .lt. WPRIM(i)) THEN
-            hc(i) = SQRT(1.0+ 1.21* tempd**0.68)
-          ELSE
+          if (soilw(i) .lt. wprim(i)) then
+            hc(i) = sqrt(1.0+ 1.21* tempd**0.68)
+          else
             hc(i) = 1.0
           end if
 
-c          print*,'HC= ', i,hc(i),hc1(i)
+c          print*,'hc= ', i,hc(i),hc1(i)
        end if
 
 c   *****************************************************************
-c   * Total correction factor for both hc and rc                 **** 
+c   * total correction factor for both hc and rc                 **** 
 c   *****************************************************************
 
          rc(i) = rc(i)/ hc(i)
     
 c *******************************************************************
-c *     COMPUTATION OF THE WIND FRICTION VELOCITY               *****
-c *     ACCOUNTING FOR THE INCREASE OF THE ROUGHNESS LENGTH     *****
-c *     DUE TO THE SALTATION LAYER (GILLETTE ETAL. JGR 103,     *****
-c *     NO. D6, P6203-6209, 1998                                *****
+c *     computation of the wind friction velocity               *****
+c *     accounting for the increase of the roughness length     *****
+c *     due to the saltation layer (gillette etal. jgr 103,     *****
+c *     no. d6, p6203-6209, 1998                                *****
 c *******************************************************************
 
       ustarns=(vk*100.*surfwd(i))/(log(1000./srl(i)))
@@ -310,9 +312,9 @@ c     ustarns = ustarnd(i)*100 ! cm.s-1
       utmin=(umin/(100.*vk*rc(i)))*log(1000./srl(i))
 
 c *******************************************************************
-c *     VK=0.4: KARMAN CONSTANT, AND 1000 CM =10 M:             *****
-c *     THE HEIGHT OF WIND DEFINED LEVEL. UMIN: 21 CM/S:        *****
-c *    THE MINIMAL THRESHOLD WIND FRICTION VELOCITY.            *****
+c *     vk=0.4: karman constant, and 1000 cm =10 m:             *****
+c *     the height of wind defined level. umin: 21 cm/s:        *****
+c *    the minimal threshold wind friction velocity.            *****
 c *******************************************************************
 
           if (surfwd(i) .ge. utmin) then
@@ -326,117 +328,117 @@ c *******************************************************************
 
       call uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop,dp)
 
-      call emission(ilg, il1, il2, luc, RHOP, nsoil,nbin,
+      call emission(ilg, il1, il2, luc, rhop, nsoil,nbin,
      %              nats, fland, uth, roarow,dp, rc,utheff,
-     %              ustar, srel,RSFROW,trsize,
+     %              ustar, srel,rsfrow,trsize,
      %              sand2row, vegfrac)
 
       return
-      end
+      end subroutine dust_module
 
       subroutine uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,
      %                    rhop,dp)
 
-      integer IL1, IL2, ILG
-      integer I, J
-      integer NSOIL, UST
+      integer il1, il2, ilg
+      integer i, j
+      integer nsoil, ust
       real(kind=8)  roarow(ilg), dp(nsoil)
       real(kind=8)  utheff(ilg,nsoil)
-      real(kind=8)  RHOP,  ustart0, USTART01
+      real(kind=8)  rhop,  ustart0, ustart01
 
       do i= 1, nsoil
       do j= il1,il2
-        if(ust .eq. 0) then
+        if (ust .eq. 0) then
           utheff(j,i)= ustart0(rhop,dp(i),roarow(j))
         end if
-        if(ust .eq. 1) then
-          utheff(j,i)=USTART01(rhop,dp(i),ROAROW(j))
+        if (ust .eq. 1) then
+          utheff(j,i)=ustart01(rhop,dp(i),roarow(j))
         end if
       end do
       end do
 
       return
-      end     
+      end subroutine uthefft
 
-      real(kind=8) FUNCTION USTART01(rhop,DUM,rhair)
+      real(kind=8) function ustart01(rhop,dum,rhair)
 
 c   *****************************************************************
-c   * CALCULATE OF USTAR01(D) USING IVERSEN AND WHITE (1982)     ****
-c   * FOR SMOTH SURFACE:                                         ****
-c   * CODED BY :                                                 ****
-c   * ASHRAF S. ZAKEY, 2003                                      **** 
-c   * DUM    : PARTICLE DIAMETER [UM]                            ****
-c   * USTAR0 : THRESHOLD FRICATION VELOCITY [M/S]                ****
+c   * calculate of ustar01(d) using iversen and white (1982)     ****
+c   * for smoth surface:                                         ****
+c   * coded by :                                                 ****
+c   * ashraf s. zakey, 2003                                      **** 
+c   * dum    : particle diameter [um]                            ****
+c   * ustar0 : threshold frication velocity [m/s]                ****
 c   *****************************************************************
 
-      real(kind=8) DM, DUM
+      real(kind=8) dm, dum
       real(kind=8) a1,a2,a3,c1,c2,c3,c4,c5
-      PARAMETER(A1=0.2, A2=0.129, A3=0.12)
-      PARAMETER(C1=0.006, C2=1.928, C3=0.0858)
-      PARAMETER(C4=-0.0617,C5=2.5)
+      parameter(a1=0.2, a2=0.129, a3=0.12)
+      parameter(c1=0.006, c2=1.928, c3=0.0858)
+      parameter(c4=-0.0617,c5=2.5)
       real(kind=8)  y1,y2,y3,rhop,rhair,g
-      PARAMETER(Y1=1331.647, Y2=1.561228, Y3=0.38194)
+      parameter(y1=1331.647, y2=1.561228, y3=0.38194)
       parameter(g=9.806160)
-      real(kind=8)  REP, TERM1,TERM2
-      real(kind=8)  TERM, cvmgt
+      real(kind=8)  rep, term1,term2
+      real(kind=8)  term, cvmgt
 
-      DM = DUM  !* 1.0E-4      ! cm
-      REP = Y1 * (DM**Y2) + Y3
-      TERM1 = SQRT(1.0 + (C1/(RHOP*G*0.1*(DM**C5))))
-      term2 = sqrt(rhop*g*100.0*DM/rhair)        
+      dm = dum  !* 1.0e-4      ! cm
+      rep = y1 * (dm**y2) + y3
+      term1 = sqrt(1.0 + (c1/(rhop*g*0.1*(dm**c5))))
+      term2 = sqrt(rhop*g*100.0*dm/rhair)        
       term= term1*term2
-      USTART01= cvmgt(a2*term*(1.0-c3*exp(c4*(rep-10.0))),
-     %                a2*term/sqrt(C2 * (REP**0.092)-1.0),
+      ustart01= cvmgt(a2*term*(1.0-c3*exp(c4*(rep-10.0))),
+     %                a2*term/sqrt(c2 * (rep**0.092)-1.0),
      %                rep .gt. 10.0)
 
       return
-      END     
+      end function ustart01
 
 
-      real(kind=8) FUNCTION USTART0(rhop,DUM,rhoa)
+      real(kind=8) function ustart0(rhop,dum,rhoa)
 
 c   *****************************************************************
 c   *                                                            **** 
-c   * MODIFIED BY A.S.ZAKEY, NOV.2003                            ****
-c   * Y. Shao, 13 June 2000                                      ****
-c   * Calculate ustar0(d) using Shao and Lu (2000) for uncovered ****
+c   * modified by a.s.zakey, nov.2003                            ****
+c   * y. shao, 13 june 2000                                      ****
+c   * calculate ustar0(d) using shao and lu (2000) for uncovered ****
 c   * dry surface                                                ****
 c   * dum:    particle diameter                   [um]           ****
 c   * ustar0: threshold friction velocity       [cm/s]           **** 
 c   *****************************************************************
-      real(kind=8)  DM, DUM,gamma 
-      PARAMETER(GAMMA=3.0E-4)      ! a constant
+      real(kind=8)  dm, dum,gamma 
+      parameter(gamma=3.0e-4)      ! a constant
       real(kind=8) pi,g,f,rhoa,rhop,sigma
-      PARAMETER(pi = 3.1415927)
-      PARAMETER(g  = 9.81)     ! gravity parameter    [m s^-2]
-      PARAMETER(F  = 0.0123)
+      parameter(pi = 3.1415927)
+      parameter(g  = 9.81)     ! gravity parameter    [m s^-2]
+      parameter(f  = 0.0123)
 
       sigma = rhop/rhoa
-      DM = DUM*1.0E-2    !* 1.0E-6 
-      USTART0 = F* (SIGMA * G * DM + GAMMA/ (RHOA*DM)) 
-      USTART0 = SQRT(USTART0 )
-      USTART0 = USTART0 * 100.0  
+      dm = dum*1.0e-2    !* 1.0e-6 
+      ustart0 = f* (sigma * g * dm + gamma/ (rhoa*dm)) 
+      ustart0 = sqrt(ustart0 )
+      ustart0 = ustart0 * 100.0  
       return 
-      END 
+      end function ustart0
 
-      real(kind=8) FUNCTION CVMGT(VAL1, VAL2, COND)
-C
-      LOGICAL COND
-      real(kind=8) VAL1, VAL2
-C
-      IF(COND) THEN
-        CVMGT=VAL1
-      ELSE
-        CVMGT=VAL2
+      real(kind=8) function cvmgt(val1, val2, cond)
+c
+      logical cond
+      real(kind=8) val1, val2
+c
+      if (cond) then
+        cvmgt=val1
+      else
+        cvmgt=val2
       end if
-C
-      RETURN
-      END
+c
+      return
+      end function cvmgt
 
 c ======================================================================
-      subroutine emission(ilg, il1, il2, luc, RHOP, nsoil,nbin,
+      subroutine emission(ilg, il1, il2, luc, rhop, nsoil,nbin,
      %                    nats, fland, uth, roarow,dp, rc,utheff,
-     %                    ustar, srel,RSFROW,trsize,
+     %                    ustar, srel,rsfrow,trsize,
      %                    sand2row, vegfrac) 
 
       implicit none
@@ -446,68 +448,68 @@ c ======================================================================
       integer nsoil, nats, nbin
       integer i, j, k
       integer n
-      parameter(ISIZE=12)
+      parameter(isize=12)
       real(kind=8)  srel(ilg,nsoil,nats)
       real(kind=8)  fsoil(ilg),fsoil1(ilg),fsoil2(ilg),fsoil3(ilg)
       real(kind=8)  ustar(ilg,nats),sand2row(ilg,nats)
       real(kind=8)  fland(ilg,luc),utheff(ilg,nsoil)
       real(kind=8)  roarow(ilg),rc(ilg)
-      real(kind=8)  frac1(ISIZE),frac2(ISIZE),frac3(ISIZE)
-      real(kind=8)  AEROSIZE (2,ISIZE)
+      real(kind=8)  frac1(isize),frac2(isize),frac3(isize)
+      real(kind=8)  aerosize (2,isize)
       real(kind=8)  dp(nsoil)
-      real(kind=8)  RSFROWSUB(ilg, ISIZE)
-      real(kind=8)  RSFROW(ilg, nbin)
+      real(kind=8)  rsfrowsub(ilg, isize)
+      real(kind=8)  rsfrow(ilg, nbin)
       real(kind=8)  trsize(nbin,2)
-      real(kind=8)  CONST, BETA
+      real(kind=8)  const, beta
       real(kind=8)  e1, e2, e3
-      real(kind=8)  FDP1,FDP2,DEC,EC
-      real(kind=8)  uth,P1,P2,P3
+      real(kind=8)  fdp1,fdp2,dec,ec
+      real(kind=8)  uth,p1,p2,p3
       real(kind=8)  d1, d2, d3
-      real(kind=8)  pi, g, RWI
-      real(kind=8)  ALOGDI
-      real(kind=8)  AMEAN1, AMEAN2, AMEAN3
-      real(kind=8)  RHOP,TOTV1,TOTV2,TOTV3
-      real(kind=8)  SIGMA1, SIGMA2, SIGMA3
-      real(kind=8)  ASIGMA1, ASIGMA2, ASIGMA3
+      real(kind=8)  pi, g, rwi
+      real(kind=8)  alogdi
+      real(kind=8)  amean1, amean2, amean3
+      real(kind=8)  rhop,totv1,totv2,totv3
+      real(kind=8)  sigma1, sigma2, sigma3
+      real(kind=8)  asigma1, asigma2, asigma3
       real(kind=8)  vegfrac(ilg)
-      real(kind=8)  Aeffect,Beffect
+      real(kind=8)  aeffect,beffect
       real(kind=8)  f 
 
-      data  CONST/2.3/, BETA/16300./
+      data  const/2.3/, beta/16300./
       data  pi/3.1415926535897/, g/9.806160/
-c Alfaro 's values 
+c alfaro 's values 
       data  e1/3.61/, e2/3.52/, e3/3.46/
       data  d1/1.5/, d2/6.7/, d3/14.2/
-      data SIGMA1/1.7/,SIGMA2/1.6/,SIGMA3/1.5/
+      data sigma1/1.7/,sigma2/1.6/,sigma3/1.5/
 
-c  EMISSIONS  Bins (sub-bins)       
-      data AEROSIZE/ 1.0E-08, 2.0E-08,
-     &         2.0E-08, 4.0E-08,
-     &         4.0E-08, 8.0E-08,
-     &         8.0E-08, 1.6E-07,
-     &         1.6E-07, 3.2E-07,
-     &         3.2E-07, 6.4E-07,
-     &         6.4E-07, 1.28E-06,
-     &         1.28E-06, 2.56E-06,
-     &         2.56E-06,5.12E-06,
-     &         5.12E-06,10.4E-06,
-     &         10.24E-06,20.48E-06,
-     &         20.48E-06,40.6E-06/ 
+c  emissions  bins (sub-bins)       
+      data aerosize/ 1.0e-08, 2.0e-08,
+     &         2.0e-08, 4.0e-08,
+     &         4.0e-08, 8.0e-08,
+     &         8.0e-08, 1.6e-07,
+     &         1.6e-07, 3.2e-07,
+     &         3.2e-07, 6.4e-07,
+     &         6.4e-07, 1.28e-06,
+     &         1.28e-06, 2.56e-06,
+     &         2.56e-06,5.12e-06,
+     &         5.12e-06,10.4e-06,
+     &         10.24e-06,20.48e-06,
+     &         20.48e-06,40.6e-06/ 
 
-c      CALL PUTZERO(FSOIL1,ILG)
-c      CALL PUTZERO(FSOIL2,ILG)
-c      CALL PUTZERO(FSOIL3,ILG)
+c      call putzero(fsoil1,ilg)
+c      call putzero(fsoil2,ilg)
+c      call putzero(fsoil3,ilg)
 
-       FSOIL (:) =0.
-       FSOIL1(:) =0.
-       FSOIL2(:) =0.
-       FSOIL3(:) =0.
+       fsoil (:) =0.
+       fsoil1(:) =0.
+       fsoil2(:) =0.
+       fsoil3(:) =0.
 
 
 
-c15    format(3(F12.4,1x))
+c15    format(3(f12.4,1x))
       do i=1,nats
-      do j=1, NSOIL
+      do j=1, nsoil
         do k=il1,il2
 
           if (rc(k) .gt. 0.0 .and. ustar(k,i) .ne. 0.) then
@@ -515,106 +517,106 @@ c15    format(3(F12.4,1x))
                   
             if (uth .le. 1.0) then
 
-              FDP1=USTAR(k,i)**3*(1.0-uth*uth)
-              FDP2=(1.0+uth)*CONST*(1.E-5)*roarow(k)/g
+              fdp1=ustar(k,i)**3*(1.0-uth*uth)
+              fdp2=(1.0+uth)*const*(1.e-5)*roarow(k)/g
 
-              if(FDP2 .le. 0.0) FDP2=0.
+              if (fdp2 .le. 0.0) fdp2=0.
 
               f = 0.0d0
-              Aeffect = (1-f) * (1-vegfrac(k))
-              Beffect = 0.01 * fland(k,i) * sand2row(k,i)
+              aeffect = (1-f) * (1-vegfrac(k))
+              beffect = 0.01 * fland(k,i) * sand2row(k,i)
 
-              FSOIL(K)=srel(k,j,i)*FDP1*FDP2*aeffect*beffect
+              fsoil(k)=srel(k,j,i)*fdp1*fdp2*aeffect*beffect
 
-c              FSOIL(K)=srel(k,j,i)*FDP1*FDP2*(1-f)*(1-vegfrac(k))
+c              fsoil(k)=srel(k,j,i)*fdp1*fdp2*(1-f)*(1-vegfrac(k))
 
-!     SIZE-DISTRIBUTED KINETIC ENERGY FLUX
-              DEC=FSOIL(k)*BETA
-!     INDIVIDUAL KINETIC ENERGY FOR AN AGGREGATE OF SIZE DP ( g cm2 s-2)
-! cf Alfaro (DP) is in cm              
-c              EC=(PI/3.)*1.E-1*RHOP*(DP(j)**3.0)*(USTAR(k,i)**2.0)
-              EC= (PI/12)*RHOP*1E-3*(DP(j)**3.0)*(20*USTAR(k,i))**2.0
+!     size-distributed kinetic energy flux
+              dec=fsoil(k)*beta
+!     individual kinetic energy for an aggregate of size dp ( g cm2 s-2)
+! cf alfaro (dp) is in cm              
+c              ec=(pi/3.)*1.e-1*rhop*(dp(j)**3.0)*(ustar(k,i)**2.0)
+              ec= (pi/12)*rhop*1e-3*(dp(j)**3.0)*(20*ustar(k,i))**2.0
                         
-              if (EC .gt.E1) then 
-                P1=(EC-E1)/(EC-E3)
-                P2=(1-P1)*(EC-E2)/(EC-E3)
-                P3=1-P1-P2
-              else if ( EC .gt. E2 .and. EC .le. E1) then
-                P1 =0.
-                P2=(EC-E2)/(EC-E3)
-                P3 = 1-P2
-              else if (  EC .gt. E3 .and. EC .le. E2)then 
-                P1=0.
-                P2=0.
-                P3=1.
-              else if( EC .le. E3) then 
-                P1 =0.
-                P2 =0.
-                P3 =0.
+              if (ec .gt.e1) then 
+                p1=(ec-e1)/(ec-e3)
+                p2=(1-p1)*(ec-e2)/(ec-e3)
+                p3=1-p1-p2
+              else if ( ec .gt. e2 .and. ec .le. e1) then
+                p1 =0.
+                p2=(ec-e2)/(ec-e3)
+                p3 = 1-p2
+              else if (  ec .gt. e3 .and. ec .le. e2)then 
+                p1=0.
+                p2=0.
+                p3=1.
+              else if ( ec .le. e3) then 
+                p1 =0.
+                p2 =0.
+                p3 =0.
               end if   
 
-              FSOIL1(k)=FSOIL1(k)+1.E-2*P1*(DEC/E1)*(PI/6.)*RHOP*
-     &                  ((D1*1.E-04)**3.)
-              FSOIL2(k)=FSOIL2(k)+1.E-2*P2*(DEC/E2)*(PI/6.)*RHOP*
-     &                  ((D2*1.E-04)**3.)
-              FSOIL3(k)=FSOIL3(k)+1.E-2*P3*(DEC/E3)*(PI/6.)*RHOP*
-     &                  ((D3*1.E-04)**3.)
+              fsoil1(k)=fsoil1(k)+1.e-2*p1*(dec/e1)*(pi/6.)*rhop*
+     &                  ((d1*1.e-04)**3.)
+              fsoil2(k)=fsoil2(k)+1.e-2*p2*(dec/e2)*(pi/6.)*rhop*
+     &                  ((d2*1.e-04)**3.)
+              fsoil3(k)=fsoil3(k)+1.e-2*p3*(dec/e3)*(pi/6.)*rhop*
+     &                  ((d3*1.e-04)**3.)
             end if
           end if
         end do
       end do
       end do
 
-      TOTV1=0.0
-      TOTV2=0.0
-      TOTV3=0.0
+      totv1=0.0
+      totv2=0.0
+      totv3=0.0
 
-      DO N=1,ISIZE
-        RWI = (AEROSIZE(1,N)+AEROSIZE(2,N))/2.0*1.E6
-        ALOGDI = LOG10(RWI)
-        AMEAN1=LOG10(D1)
-        AMEAN2=LOG10(D2)
-        AMEAN3=LOG10(D3)
+      do n=1,isize
+        rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.e6
+        alogdi = log10(rwi)
+        amean1=log10(d1)
+        amean2=log10(d2)
+        amean3=log10(d3)
 
-        ASIGMA1 = LOG10(SIGMA1)
-        ASIGMA2 = LOG10(SIGMA2) 
-        ASIGMA3 = LOG10(SIGMA3)
+        asigma1 = log10(sigma1)
+        asigma2 = log10(sigma2) 
+        asigma3 = log10(sigma3)
 
-        FRAC1(N) = EXP (-(ALOGDI - AMEAN1)**2./ (2*ASIGMA1**2))
-        FRAC2(N) = EXP (-(ALOGDI - AMEAN2)**2./ (2*ASIGMA2**2))
-        FRAC3(N) = EXP (-(ALOGDI - AMEAN3)**2./ (2*ASIGMA3**2))
+        frac1(n) = exp (-(alogdi - amean1)**2./ (2*asigma1**2))
+        frac2(n) = exp (-(alogdi - amean2)**2./ (2*asigma2**2))
+        frac3(n) = exp (-(alogdi - amean3)**2./ (2*asigma3**2))
 
-        TOTV1=TOTV1+FRAC1(N)
-        TOTV2=TOTV2+FRAC2(N)
-        TOTV3=TOTV3+FRAC3(N)
+        totv1=totv1+frac1(n)
+        totv2=totv2+frac2(n)
+        totv3=totv3+frac3(n)
       end do
    
-      DO N=1,ISIZE
-        FRAC1(N)=FRAC1(N)/TOTV1
-        FRAC2(N)=FRAC2(N)/TOTV2
-        FRAC3(N)=FRAC3(N)/TOTV3
-        IF (FRAC1(N) .LT. 1.E-9)  FRAC1(N)=0.0
-        IF (FRAC2(N) .LT. 1.E-9)  FRAC2(N)=0.0
-        IF (FRAC3(N) .LT. 1.E-9)  FRAC3(N)=0.0
+      do n=1,isize
+        frac1(n)=frac1(n)/totv1
+        frac2(n)=frac2(n)/totv2
+        frac3(n)=frac3(n)/totv3
+        if (frac1(n) .lt. 1.e-9)  frac1(n)=0.0
+        if (frac2(n) .lt. 1.e-9)  frac2(n)=0.0
+        if (frac3(n) .lt. 1.e-9)  frac3(n)=0.0
       end do
 
-      DO 842 N = 1,ISIZE
-      DO 842 I=IL1,IL2
+      do 842 n = 1,isize
+      do 842 i=il1,il2
 
-c Discretisation of the modal emission in ISIZE emission sub bin         
-        RSFROWSUB(I,N) = FSOIL1(I) *FRAC1(N) + FSOIL2(I)*FRAC2(N)
-     &                 + FSOIL3(I) *FRAC3(N)
+c discretisation of the modal emission in isize emission sub bin         
+        rsfrowsub(i,n) = fsoil1(i) *frac1(n) + fsoil2(i)*frac2(n)
+     &                 + fsoil3(i) *frac3(n)
         
 
 
 c and in tranport bins (nbin)
-        RWI = (AEROSIZE(1,N)+AEROSIZE(2,N))/2.0*1.E6
+        rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.e6
         do k = 1,nbin
-          if ( RWI .ge.trsize(k,1) .and. RWI .lt. trsize(k,2)) then
-            RSFROW(I,k) = RSFROW (I,k) +  RSFROWSUB(I,N)
+          if ( rwi .ge.trsize(k,1) .and. rwi .lt. trsize(k,2)) then
+            rsfrow(i,k) = rsfrow (i,k) +  rsfrowsub(i,n)
           end if 
         end do
-842   CONTINUE
+842   continue
 
-      RETURN
-      END
+      return
+      end subroutine emission

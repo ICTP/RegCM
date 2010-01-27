@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine cup(qcrit,t,q,z1,tn,qo,po,pre,
      1  p,outtem,outq,dtime,psur,vsp,istart,iend,kdet,jslc)
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -128,7 +127,7 @@ c
        edt(i)=0.
        edto(i)=0.
        edtx(i)=0.
-      enddo
+      end do
       do 7 i=istart,iend
 c      hkb(i)=0.
 c      qkb(i)=0.
@@ -566,8 +565,8 @@ c bug fix
        do k=1,kx-1
        do i=istart,iend
         if(aa0(i).ne.-1)xqrcd(i,k)=.5*(xqes(i,k)+xqes(i,k+1))
-       enddo
-       enddo
+       end do
+       end do
 c
       do 116 i=istart,iend
        if(aa0(i).ne.-1.)then
@@ -797,4 +796,4 @@ Cchem2_
 205   continue
 
       return
-      end
+      end subroutine cup

@@ -17,7 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE LAKEDRV(jslc)
+      subroutine lakedrv(jslc)
       implicit none
 #     include "parameter.inc"
 #     include "include/param1.cb"
@@ -60,9 +60,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
           end if
 
         end if
-      enddo
+      end do
 7     continue
 
       return
-      end
-
+      end subroutine lakedrv

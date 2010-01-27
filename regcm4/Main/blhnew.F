@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine blhnew
 c
 c ------------------------------------------------------------
@@ -139,7 +137,7 @@ c ****note: kt, max no. of pbl levels, calculated in param
 c ******   compute richardson number
       do i=2,ilx
         therm(i) = 0.0
-      enddo
+      end do
 
       do 50 k=kx,kt,-1
       do 50 i=2,ilx
@@ -347,4 +345,4 @@ Cchem_
  1079 continue
 
       return
-      end
+      end subroutine blhnew

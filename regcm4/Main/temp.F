@@ -17,7 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE TEMP(dt,surf,dz,t,sw,lnet,qe,qh,dnsty,de
+      subroutine temp(dt,surf,dz,t,sw,lnet,qe,qh,dnsty,de
      a               ,eta,depmax,depth)
 ******************BEGIN SUBROUTINE TEMP********************
 *             COMPUTES TEMPERATURE PROFILE                *
@@ -74,4 +74,4 @@ csb       print *, 'TEMP: Total temp change = ', tdiff
 
 
       return
-      end
+      end subroutine temp

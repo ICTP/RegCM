@@ -179,7 +179,7 @@ c **********              snow melt always between 0 and total snow
          bb(n,np) = bb(n,np) - bcoef(n,np)*c(127)*sm(n,np)
         end if
        end if
-      enddo
+      end do
 90    continue
 
 c=======================================================================
@@ -220,8 +220,8 @@ cl       3.6  update subsoil temperature
      &                  + c4t*tg1d(n,np)) / (1.+c3t+fct2(n,np))
         end if
        end if
-      enddo
+      end do
 91    continue
 
       return
-      end
+      end subroutine tgrund

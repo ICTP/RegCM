@@ -17,32 +17,34 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      FUNCTION TPFC(PRESS,THETAE,TGS,D273,RL,QS,PI)
-      IMPLICIT NONE
-      real(kind=8)  PRESS,THETAE,TGS,D273,RL,QS,PI,TPFC
-      real(kind=8)  RL461,RL1004,RP,ES,FO,T1,TGUESS,F1,DT
-C
-C...ITERATIVELY EXTRACT TEMPERATURE FROM EQUIVALENT POTENTIAL
-C...TEMPERATURE.
-C
-      RL461=RL/461.5
-      RL1004=RL/1004.
-      RP=THETAE/PI
-      ES=611.*DEXP(RL461*(D273-1./TGS))
-      QS=.622*ES/(PRESS-ES)
-      FO=TGS*DEXP(RL1004*QS/TGS)-RP
-      T1=TGS-.5*FO
-      TGUESS=TGS
-   10 ES=611.*DEXP(RL461*(D273-1./T1))
-      QS=.622*ES/(PRESS-ES)
-      F1=T1*EXP(RL1004*QS/T1)-RP
-      IF(ABS(F1).LT..1)GOTO 20
-      DT=F1*(T1-TGUESS)/(F1-FO)
-      TGUESS=T1
-      FO=F1
-      T1=T1-DT
-      GOTO 10
-C
-   20 TPFC=T1
-      RETURN
-      END
+      function tpfc(press,thetae,tgs,d273,rl,qs,pi)
+
+      implicit none
+
+      real(kind=8)  press,thetae,tgs,d273,rl,qs,pi,tpfc
+      real(kind=8)  rl461,rl1004,rp,es,fo,t1,tguess,f1,dt
+c
+c...iteratively extract temperature from equivalent potential
+c...temperature.
+c
+      rl461  = rl/461.5
+      rl1004 = rl/1004.
+      rp     = thetae/pi
+      es     = 611.*dexp(rl461*(d273-1./tgs))
+      qs     = 0.622*es/(press-es)
+      fo     = tgs*dexp(rl1004*qs/tgs)-rp
+      t1     = tgs-0.5*fo
+      tguess = tgs
+   10 es     = 611.*dexp(rl461*(d273-1./t1))
+      qs     = 0.622*es/(press-es)
+      f1     = t1*exp(rl1004*qs/t1)-rp
+      if (abs(f1).lt..1) goto 20
+      dt     = f1*(t1-tguess)/(f1-fo)
+      tguess = t1
+      fo     = f1
+      t1     = t1-dt
+      goto 10
+c
+   20 tpfc = t1
+      return
+      end function tpfc

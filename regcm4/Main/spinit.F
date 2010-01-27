@@ -73,9 +73,9 @@ c** zero new arrays
       do i=1,ix
         dstor(i,j,ns) = 0.
         hstor(i,j,ns) = 0.
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 c
 c** compute m.
       do 10 ns=1,nsplit
@@ -93,7 +93,7 @@ c** compute pt, ps and tbarh for use in vmodes.
       ps = 0.
       do k=1,kx
         tbarh(k) = 0.
-      enddo
+      end do
       pt = ptop
 #ifdef MPP1
       ijlx = ilx * jendx
@@ -124,8 +124,8 @@ c** subract a4 from a for use in computing am.
       do l=1,kx
       do k=1,kx
         a(k,l) = a(k,l) - a4(k,l)
-      enddo
-      enddo
+      end do
+      end do
 c
 c** compute am and an.
       do 50 n=1,nsplit
@@ -168,7 +168,7 @@ c** multiply am, an and zmatx by factor.
        am(k,l)    = am(k,l)    * fac
 100   continue
 c
-      IF ( ifrest ) THEN
+      if ( ifrest ) then
 #ifdef MPP1
        if (myid .eq. 0) then
          read(iutrs) dstor_io
@@ -182,9 +182,9 @@ c
              do i=1,ix
                sav_0d(i,n       ,j) =  dstor_io(i,j,n)
                sav_0d(i,n+nsplit,j) =  hstor_io(i,j,n)
-             enddo
-           enddo
-         enddo
+             end do
+           end do
+         end do
           do j=1,mjx
             do k=1,kx
               sav_6(k,1,j) =  ui1_io(k,j)
@@ -195,8 +195,8 @@ c
               sav_6(k,6,j) =  vi2_io(k,j)
               sav_6(k,7,j) = vilx_io(k,j)
               sav_6(k,8,j) =  vil_io(k,j)
-            enddo
-          enddo
+            end do
+          end do
        end if
        call MPI_SCATTER(sav_0d(1,1,1),ix*nsplit*2*jxp,
      &          MPI_DOUBLE_PRECISION,sav0d(1,1,1),ix*nsplit*2*jxp,
@@ -206,9 +206,9 @@ c
            do i=1,ix
              dstor(i,j,n) =  sav0d(i,n       ,j)
              hstor(i,j,n) =  sav0d(i,n+nsplit,j)
-           enddo
-         enddo
-       enddo
+           end do
+         end do
+       end do
        call MPI_SCATTER(sav_6(1,1,1),kx*8*jxp,MPI_DOUBLE_PRECISION,
      &                   sav6(1,1,1),kx*8*jxp,MPI_DOUBLE_PRECISION,
      &                                       0,MPI_COMM_WORLD,ierr)
@@ -222,8 +222,8 @@ c
            vi2(k,j) = sav6(k,6,j)
            vilx(k,j)= sav6(k,7,j)
            vil(k,j) = sav6(k,8,j)
-         enddo
-       enddo
+         end do
+       end do
        call MPI_BCAST(uj1,ix*kx,MPI_DOUBLE_PRECISION,
      &                        0,MPI_COMM_WORLD,ierr)
        call MPI_BCAST(uj2,ix*kx,MPI_DOUBLE_PRECISION,
@@ -250,7 +250,7 @@ c
           var1snd(k,6) =vilx(k,jxp)
           var1snd(k,7) = uil(k,jxp)
           var1snd(k,8) = vil(k,jxp)
-        enddo
+        end do
       end if
       call MPI_SENDRECV(var1snd(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          ieast,1,var1rcv(1,1),kx*8,MPI_DOUBLE_PRECISION,
@@ -265,7 +265,7 @@ c
           vilx(k,0) = var1rcv(k,6)
            uil(k,0) = var1rcv(k,7)
            vil(k,0) = var1rcv(k,8)
-        enddo
+        end do
       end if
       if(myid.ne.0) then
         do k=1,kx
@@ -277,7 +277,7 @@ c
           var1snd(k,6) =vilx(k,1)
           var1snd(k,7) = uil(k,1)
           var1snd(k,8) = vil(k,1)
-        enddo
+        end do
       end if
       call MPI_SENDRECV(var1snd(1,1),kx*8,MPI_DOUBLE_PRECISION,
      &          iwest,2,var1rcv(1,1),kx*8,MPI_DOUBLE_PRECISION,
@@ -292,7 +292,7 @@ c
           vilx(k,jxp+1) = var1rcv(k,6)
            uil(k,jxp+1) = var1rcv(k,7)
            vil(k,jxp+1) = var1rcv(k,8)
-        enddo
+        end do
       end if
 #else
        read(iutrs) dstor
@@ -320,9 +320,9 @@ c
           do i=1,ix
             uuu(i,k,j) = ub(i,k,j) * msfd(i,j)
             vvv(i,k,j) = vb(i,k,j) * msfd(i,j)
-          enddo
-        enddo
-      enddo
+          end do
+        end do
+      end do
 #ifdef MPP1
       call MPI_SENDRECV(uuu(1,1,1),    ix*kx,MPI_DOUBLE_PRECISION,
      &          iwest,2,uuu(1,1,jxp+1),ix*kx,MPI_DOUBLE_PRECISION,
@@ -340,9 +340,9 @@ c
 #endif
           do i=1,ix
             dstor(i,j,l) = 0.
-          enddo
-        enddo
-      enddo
+          end do
+        end do
+      end do
       do l=1,nsplit
         do k=1,kx
 #ifdef MPP1
@@ -356,10 +356,10 @@ c
      a    ( -uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)+uuu(i,k,j+1)
      a      +vvv(i+1,k,j)+vvv(i+1,k,j+1)-vvv(i,k,j)-vvv(i,k,j+1) )
      a     / fac
-            enddo
-          enddo
-        enddo
-      enddo
+            end do
+          end do
+        end do
+      end do
 c
 C=======================================================================
 c
@@ -375,8 +375,8 @@ c******* geopotential manipulations
           do i=1,ilx
             eps = eps1 * (psb(i,j)-pd)
             hstor(i,j,l) = pdlog + eps
-          enddo
-        enddo
+          end do
+        end do
         do k=1,kx
           pdlog=varpa1(l,k) * dlog( sigmah(k) * pd + pt )
           eps1 =varpa1(l,k) * sigmah(k) / ( sigmah(k) * pd + pt )
@@ -389,11 +389,11 @@ c******* geopotential manipulations
               eps = eps1 * (psb(i,j)-pd)
               hstor(i,j,l)=hstor(i,j,l)
      &                    +pdlog+tau(l,k)*tb(i,k,j)/psb(i,j) + eps
-            enddo
-          enddo
-        enddo
-      enddo
+            end do
+          end do
+        end do
+      end do
       end if
 c
       return
-      end
+      end subroutine spinit

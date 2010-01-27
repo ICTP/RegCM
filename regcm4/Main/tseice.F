@@ -123,8 +123,8 @@ c  **********             snow or ice with no snow melting
          if(tg.lt.c(67)) tg1d(n,np)=tg
         end if
        end if
-      enddo
+      end do
 90    continue
 
       return
-      end
+      end subroutine tseice

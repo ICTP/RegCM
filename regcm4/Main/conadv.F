@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine conadv
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -65,15 +63,15 @@ c
       do i=1,ilx
          worka(i,k)=(ua(i+1,k,jendl)+ua(i,k,jendl))
      &             /(msfx(i,jendx)*msfx(i,jendx))
-      enddo
-      enddo
+      end do
+      end do
       end if
       if (myid .eq.0) then
       do k=1,kx
       do i=1,ilx
          workb(i,k)=(ua(i+1,k,1)+ua(i,k,1))/(msfx(i,1)*msfx(i,1))
-      enddo
-      enddo
+      end do
+      end do
       end if
       call MPI_BCAST(worka,ilx*kx,MPI_DOUBLE_PRECISION,nproc-1
      &              ,MPI_COMM_WORLD,ierr)
@@ -84,8 +82,8 @@ c
       do i=1,ilx
          worka(i,k)=(ua(i+1,k,jx)+ua(i,k,jx))/(msfx(i,jlx)*msfx(i,jlx))
          workb(i,k)=(ua(i+1,k,1)+ua(i,k,1))/(msfx(i,1)*msfx(i,1))
-      enddo
-      enddo
+      end do
+      end do
 #endif
       do 10 k=1,kx
       do 10 i=1,ilx
@@ -99,8 +97,8 @@ c
         do k=1,kx
           vaix(k,j)=va(ix,k,j)
           va01(k,j)=va(1 ,k,j)
-        enddo
-      enddo
+        end do
+      end do
       call MPI_GATHER(vaix(1,1),kx*jxp,MPI_DOUBLE_PRECISION,
      &              vaix_g(1,1),kx*jxp,MPI_DOUBLE_PRECISION,
      &                               0,MPI_COMM_WORLD,ierr)
@@ -113,8 +111,8 @@ c
          tdadv=tdadv-dtmin*3.e4*dsigma(k)*dx*
      &  ((vaix_g(k,j+1)+vaix_g(k,j))/(msfx_io(ilx,j)*msfx_io(ilx,j))
      &  -(va01_g(k,j+1)+va01_g(k,j))/(msfx_io(1,j)*msfx_io(1,j)))/g
-        enddo
-        enddo
+        end do
+        end do
       end if
       call MPI_BCAST(tdadv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
@@ -123,8 +121,8 @@ c
        tdadv=tdadv-dtmin*3.e4*dsigma(k)*dx*((va(ix,k,j+1)+va(ix,k,j))/
      1            (msfx(ilx,j)*msfx(ilx,j))-(va(1,k,j+1)+va(1,k,j))/
      2            (msfx(1,j)*msfx(1,j)))/g
-      enddo
-      enddo
+      end do
+      end do
 #endif
 c
 c----------------------------------------------------------------------
@@ -139,16 +137,16 @@ c
          worka(i,k)=(ua(i+1,k,jendl)+ua(i,k,jendl))
      &             *(qva(i,k,jendx)/psa(i,jendx))
      &             /(msfx(i,jendx)*msfx(i,jendx))
-      enddo
-      enddo
+      end do
+      end do
       end if
       if (myid .eq.0) then
       do k=1,kx
       do i=1,ilx
          workb(i,k)=(ua(i+1,k,1)+ua(i,k,1))*(qva(i,k,1)/psa(i,1))
      &             /(msfx(i,1)*msfx(i,1))
-      enddo
-      enddo
+      end do
+      end do
       end if
       call MPI_BCAST(worka,ilx*kx,MPI_DOUBLE_PRECISION,nproc-1
      &              ,MPI_COMM_WORLD,ierr)
@@ -161,8 +159,8 @@ c
      &             /(msfx(i,jlx)*msfx(i,jlx))
          workb(i,k)=(ua(i+1,k,1)+ua(i,k,1))*(qva(i,k,1)/psa(i,1))
      &             /(msfx(i,1)*msfx(i,1))
-      enddo
-      enddo
+      end do
+      end do
 #endif
       do 30 k=1,kx
       do 30 i=1,ilx
@@ -176,10 +174,10 @@ c
         do k=1,kx
           qvailx(k,j)=qva(ilx,k,j)
           qva01(k,j) =qva(1  ,k,j)
-        enddo
+        end do
         psailx(j)=psa(ilx,j)
         psa01(j)=psa(1,j)
-      enddo
+      end do
       call MPI_GATHER(qvailx(1,1),kx*jxp,MPI_DOUBLE_PRECISION,
      &              qvailx_g(1,1),kx*jxp,MPI_DOUBLE_PRECISION,
      &                                0,MPI_COMM_WORLD,ierr)
@@ -200,8 +198,8 @@ c
      &      (qvailx_g(k,j)/psailx_g(j))/(msfx_io(ilx,j)*msfx_io(ilx,j))
      &    -   (va01_g(k,j+1)+va01_g(k,j))*
      &      (qva01_g(k,j)/psa01_g(j))/(msfx_io(1,j)*msfx_io(1,j))  )/g
-        enddo
-        enddo
+        end do
+        end do
       end if
       call MPI_BCAST(tqadv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
@@ -211,8 +209,8 @@ c
      1            (qva(ilx,k,j)/psa(ilx,j))/(msfx(ilx,j)*msfx(ilx,j))-
      2            (va(1,k,j+1)+va(1,k,j))*(qva(1,k,j)/psa(1,j))/
      3            (msfx(1,j)*msfx(1,j)))/g
-      enddo
-      enddo
+      end do
+      end do
 #endif
 c
 c-----advection of cloud water and rainwater through lateral boundaries:
@@ -226,16 +224,16 @@ c
          worka(i,k)=(ua(i+1,k,jendl)+ua(i,k,jendl))
      &             *(qca(i,k,jendx)/psa(i,jendx))
      &             /(msfx(i,jendx)*msfx(i,jendx))
-      enddo
-      enddo
+      end do
+      end do
       end if
       if (myid .eq.0) then
       do k=1,kx
       do i=1,ilx
          workb(i,k)=(ua(i+1,k,1)+ua(i,k,1))*(qca(i,k,1)/psa(i,1))
      &             /(msfx(i,1)*msfx(i,1))
-      enddo
-      enddo
+      end do
+      end do
       end if
       call MPI_BCAST(worka,ilx*kx,MPI_DOUBLE_PRECISION,nproc-1
      &              ,MPI_COMM_WORLD,ierr)
@@ -248,8 +246,8 @@ c
      &             /(msfx(i,jlx)*msfx(i,jlx))
          workb(i,k)=(ua(i+1,k,1)+ua(i,k,1))*(qca(i,k,1)/psa(i,1))
      &             /(msfx(i,1)*msfx(i,1))
-      enddo
-      enddo
+      end do
+      end do
 #endif
       do 50 k=1,kx
       do 50 i=1,ilx
@@ -263,8 +261,8 @@ c
         do k=1,kx
           qcailx(k,j)=qca(ilx,k,j)
           qca01(k,j) =qca(1  ,k,j)
-        enddo
-      enddo
+        end do
+      end do
       call MPI_GATHER(qcailx(1,1),kx*jxp,MPI_DOUBLE_PRECISION,
      &              qcailx_g(1,1),kx*jxp,MPI_DOUBLE_PRECISION,
      &                                0,MPI_COMM_WORLD,ierr)
@@ -279,8 +277,8 @@ c
      &      (qcailx_g(k,j)/psailx_g(j))/(msfx_io(ilx,j)*msfx_io(ilx,j))
      &    -   (va01_g(k,j+1)+va01_g(k,j))*
      &      (qca01_g(k,j)/psa01_g(j))/(msfx_io(1,j)*msfx_io(1,j))  )/g
-        enddo
-        enddo
+        end do
+        end do
       end if
       call MPI_BCAST(tqadv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 #else
@@ -290,9 +288,9 @@ c
      1            (qca(ilx,k,j)/psa(ilx,j))/(msfx(ilx,j)*msfx(ilx,j))-
      2            (va(1,k,j+1)+va(1,k,j))*(qca(1,k,j)/psa(1,j))/
      3            (msfx(1,j)*msfx(1,j)))/g
-      enddo
-      enddo
+      end do
+      end do
 #endif
 c
       return
-      end
+      end subroutine conadv

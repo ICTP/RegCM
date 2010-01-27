@@ -53,8 +53,8 @@ C      Visible cas ns=8
           aerssa(i-1,k,jslc-1) = tauasc_mix(i,k,8)
           aerasp(i-1,k,jslc-1) =  gtota_mix(i,k,8) 
 #endif
-        enddo
-      enddo
+        end do
+      end do
 C
 C CARE :Average the radiative forcing between chem output time steps (in
 C hour) according to radfrq (in min), aertarf is reset to 0 at each chem
@@ -72,7 +72,7 @@ C
         aertarf(i-1,jslc-1) = aertarf(i-1,jslc-1)+aeradfo(i)*1.e-3/ntim
         aersrrf(i-1,jslc-1) = aersrrf(i-1,jslc-1)+aeradfos(i)*1.e-3/ntim
 #endif
-      enddo   
+      end do   
 
       return
       end subroutine aerout

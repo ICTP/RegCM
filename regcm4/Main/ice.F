@@ -17,11 +17,12 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      subroutine ice(kd,ld,ta,u2,ea,hs,hi,hii,evap,t,depth, precip)
+      implicit none
+
 *****************************SUBROUINE ICE*****************************
 *                         SIMULATES LAKE ICE                           *
 ************************************************************************
-      subroutine ice(kd,ld,ta,u2,ea,hs,hi,hii,evap,t,depth, precip)
-      implicit none
 
       real(kind=8)  ta,u2,ea,hs,hi,hii,evap,precip
       integer depth
@@ -127,4 +128,4 @@ CCC  +      *(x-air)-kd)-1/khat*(qpen1+tf-x)
       end if
 
       return
-      end
+      end subroutine ice

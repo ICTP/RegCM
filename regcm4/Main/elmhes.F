@@ -17,13 +17,13 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine elmhes(nm,n,low,igh,a,int)
+      subroutine elmhes(nm,n,low,igh,a,iaint)
       implicit none
 c
       integer i,j,m,n,la,nm,igh,kp1,low,mm1,mp1
       real(kind=8)  a(nm,n)
       real(kind=8)  x,y
-      integer int(igh)
+      integer iaint(igh)
 c
 c     this subroutine is a translation of the algol procedure elmhes,
 c     num. math. 12, 349-368(1968) by martin and wilkinson.
@@ -54,7 +54,7 @@ c        a contains the hessenberg matrix.  the multipliers
 c          which were used in the reduction are stored in the
 c          remaining triangle under the hessenberg matrix.
 c
-c        int contains information on the rows and columns
+c        iaint contains information on the rows and columns
 c          interchanged in the reduction.
 c          only elements low through igh are used.
 c
@@ -80,7 +80,7 @@ c
             i = j
   100    continue
 c
-         int(m) = i
+         iaint(m) = i
          if (i .eq. m) go to 130
 c     .......... interchange rows and columns of a ..........
          do 110 j = mm1, n
@@ -115,4 +115,4 @@ c
   180 continue
 c
   200 return
-      end
+      end subroutine elmhes

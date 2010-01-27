@@ -122,7 +122,7 @@ c------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine sponge_P
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine sponge_T(ip,wg,ften,j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -233,7 +233,7 @@ c------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine sponge_T
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine spongeQV(ip,wg,ften,j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -344,7 +344,7 @@ c------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine spongeQV
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine sponge_U(ip,wg,ften,j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -448,7 +448,7 @@ c------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine sponge_U
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine sponge_V(ip,wg,ften,j)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -552,4 +552,4 @@ c------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine sponge_V

@@ -20,21 +20,21 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine inidust
 
 c  ***********************************************************
-c  * Description of 12- soil categories                  *****
+c  * description of 12- soil categories                  *****
 c  *                                                     *****
-c  * I         cat                     sizing            *****
+c  * i         cat                     sizing            *****
 c  * ------------------------------------------------    *****
-c  * 1         Sand                   coarse             *****
-c  * 2         Lomay Sand             coarse             *****
-c  * 3         Sand Lomay             coarse-medium      *****
-c  * 4         Silt Loma              medium-fine        *****
-c  * 5         Silt                   medium             *****
-c  * 6         Loam                   fine               *****
-c  * 7         Sandy Clay Loam        coarse-medium-fine *****
-c  * 8         Silty Clay Loam        medium             *****
-c  * 9         Clay Loam              medium-fine        *****
-c  * 10        Sandy Clay             coarse-fine        *****
-c  * 11        Silty Clay             medium-fine        *****
+c  * 1         sand                   coarse             *****
+c  * 2         lomay sand             coarse             *****
+c  * 3         sand lomay             coarse-medium      *****
+c  * 4         silt loma              medium-fine        *****
+c  * 5         silt                   medium             *****
+c  * 6         loam                   fine               *****
+c  * 7         sandy clay loam        coarse-medium-fine *****
+c  * 8         silty clay loam        medium             *****
+c  * 9         clay loam              medium-fine        *****
+c  * 10        sandy clay             coarse-fine        *****
+c  * 11        silty clay             medium-fine        *****
 c  * 12        clay                   fine               *****
 c  ***********************************************************
 
@@ -50,25 +50,25 @@ c  ***********************************************************
 
       integer i,j,t,itex,n,ns,nm,nt
       
-      real(kind=8)  SREL(ix,nsoil,nats)
+      real(kind=8)  srel(ix,nsoil,nats)
       real(kind=8)  deldp
 
-      real(kind=8)  BCLY(nats),BSND(nats),BSLT(nats)
+      real(kind=8)  bcly(nats),bsnd(nats),bslt(nats)
 
       real(kind=8)  rhop
 
-      data    BCLY/0.00,0.10,0.10,0.15,0.15,0.15,
+      data    bcly/0.00,0.10,0.10,0.15,0.15,0.15,
      &             0.20,0.20,0.30,0.35,0.40,0.50/
-      data    BSND/0.90,0.60,0.60,0.50,0.45,0.35,
+      data    bsnd/0.90,0.60,0.60,0.50,0.45,0.35,
      &             0.30,0.30,0.20,0.65,0.60,0.50/
-      data    BSLT/0.10,0.30,0.30,0.35,0.40,0.50,
+      data    bslt/0.10,0.30,0.30,0.35,0.40,0.50,
      &             0.50,0.50,0.50,0.00,0.00,0.00/
              
       data    rhop/2650.000/
       real(kind=8)  pi, eps
       data    pi/3.1415926535897/,eps/1.0e-7/
       real(kind=8)  mmd(3,12),sigma(3,12),pcent(3,12)
-      DATA    MMD/1000.0,   100.0,   10.0,
+      data    mmd/1000.0,   100.0,   10.0,
      &             690.0,   100.0,   10.0,
      &             520.0,   100.0,    5.0,
      &             520.0,   100.0,    5.0,
@@ -81,7 +81,7 @@ c  ***********************************************************
      &             100.0,    10.0,    0.5,
      &             100.0,    10.0,    0.5/
 
-      DATA    SIGMA/1.6, 1.7, 1.8,
+      data    sigma/1.6, 1.7, 1.8,
      &              1.6, 1.7, 1.8,
      &              1.6, 1.7, 1.8,
      &              1.6, 1.7, 1.8,
@@ -94,7 +94,7 @@ c  ***********************************************************
      &              1.8, 1.8, 1.8,
      &              1.8, 1.8, 1.8/
 
-      DATA    PCENT/0.90, 0.10, 0.00,
+      data    pcent/0.90, 0.10, 0.00,
      &              0.60, 0.30, 0.10,
      &              0.60, 0.30, 0.10,
      &              0.50, 0.35, 0.15,
@@ -118,9 +118,9 @@ c  ***********************************************************
         clay2row2(i,n,j) = 0. 
         sand2row2(i,n,j) = 0.
         silt2row2(i,n,j) = 0.
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
       do n=1,nsoil
 #ifdef MPP1
       do j=1,jendl
@@ -128,24 +128,24 @@ c  ***********************************************************
       do j=1,jx
 #endif
       do i=1,ix
-        SREL2D(i,j,n) =0.
-      enddo
-      enddo
-      enddo
+        srel2d(i,j,n) =0.
+      end do
+      end do
+      end do
 #ifdef MPP1
       do j=jbegin,jendm
 #else
       do j=2,jlxm
 #endif
-      DO i= 2, ilxm
+      do i= 2, ilxm
         itex = nint( dustsotex(i,j)) 
         if (itex .ne. 0 .and. itex .le. 12) then 
 
 cremember for the moment one texture type per grid cell !
 
-          clay2row2(i,itex,j) = BCLY(itex) * 100.0 
-          sand2row2(i,itex,j) = BSND(itex) * 100.0
-          silt2row2(i,itex,j) = BSLT(itex) * 100.0
+          clay2row2(i,itex,j) = bcly(itex) * 100.0 
+          sand2row2(i,itex,j) = bsnd(itex) * 100.0
+          silt2row2(i,itex,j) = bslt(itex) * 100.0
 
         end if   
 
@@ -160,7 +160,7 @@ cremember for the moment one texture type per grid cell !
       dp(1)=0.0001    !cm
       do ns=2,nsoil
         dp(ns)=dp(ns-1) * exp(0.0460517018598807)
-        DELDP  =dp(ns) - dp(ns-1)
+        deldp  =dp(ns) - dp(ns-1)
       end do
 
 #ifdef MPP1
@@ -172,40 +172,40 @@ cremember for the moment one texture type per grid cell !
         do n=1,nats
         do ns=1,nsoil
         do i=1,ix
-          SREL(i,ns,n) = 0.  
-        enddo
-        enddo
-        enddo
+          srel(i,ns,n) = 0.  
+        end do
+        end do
+        end do
         do i=2,ilxm
-          IF (sandrow2(i,j).gt.0.0 .OR. clayrow2(i,j).gt.0.0) then
-            DO NT=1, NATS                     !SOIL TYPES
-              do NS=1,NSOIL
-                SS(NS) = 0.0
-              enddo
-              STOTAL = 0.0
+          if (sandrow2(i,j).gt.0.0 .or. clayrow2(i,j).gt.0.0) then
+            do nt=1, nats                     !soil types
+              do ns=1,nsoil
+                ss(ns) = 0.0
+              end do
+              stotal = 0.0
 
-              IF(sand2row2(I,NT,j).GT.0.) THEN
-                DO NS=1, NSOIL             !SOIL SIZE SEGREGATOIN NO
-                DO NM=1, MODE            !SOIL MODE = 3
-                  if((PCENT(NM,NT) .gt. eps ) .and.
-     %              (SIGMA(NM,NT) .ne. 0.0)) then
-                    XK = PCENT(NM,NT)/(SQRT(2.0*PI)*LOG(SIGMA(NM,NT)))
-                    XL = ((LOG(DP(NS))-LOG(MMD(NM,NT)*1.E-4))**2)/
-     1                           (2.0*(LOG(SIGMA(NM,NT)))**2)
-                    XM = XK*EXP(-XL)
+              if (sand2row2(i,nt,j).gt.0.) then
+                do ns=1, nsoil             !soil size segregatoin no
+                do nm=1, mode            !soil mode = 3
+                  if ((pcent(nm,nt) .gt. eps ) .and.
+     %              (sigma(nm,nt) .ne. 0.0)) then
+                    xk = pcent(nm,nt)/(sqrt(2.0*pi)*log(sigma(nm,nt)))
+                    xl = ((log(dp(ns))-log(mmd(nm,nt)*1.e-4))**2)/
+     1                           (2.0*(log(sigma(nm,nt)))**2)
+                    xm = xk*exp(-xl)
                   else
                     xm = 0.0
                   end if
-                  XN = RHOP*(2.0/3.0)*(DP(NS)/2.0)
-                  DELDP = 0.0460517018598807  ! DP(2)-DP(1) SS(nsoil)
-                  SS(NS) = SS(NS)+(XM*DELDP/XN)
+                  xn = rhop*(2.0/3.0)*(dp(ns)/2.0)
+                  deldp = 0.0460517018598807  ! dp(2)-dp(1) ss(nsoil)
+                  ss(ns) = ss(ns)+(xm*deldp/xn)
                 end do
-                  STOTAL=STOTAL+SS(NS)
+                  stotal=stotal+ss(ns)
                 end do
 
-                DO NS=1,NSOIL
-                  IF (STOTAL .GT. 0.0) THEN
-                    SREL(I,NS,NT)=SS(NS)/STOTAL !srel(ix,nsoil,nats)
+                do ns=1,nsoil
+                  if (stotal .gt. 0.0) then
+                    srel(i,ns,nt)=ss(ns)/stotal !srel(ix,nsoil,nats)
                   end if
                 end do
               end if
@@ -217,8 +217,8 @@ cremember for the moment one texture type per grid cell !
           itex  =   nint( dustsotex(i,j)) 
           if (itex .ge. 1 .and. itex .le. nats) then
             do ns=1,nsoil
-              SREL2D(i,j,ns) = SREL(i,ns,itex)  
-            enddo
+              srel2d(i,j,ns) = srel(i,ns,itex)  
+            end do
           end if
         end do
             

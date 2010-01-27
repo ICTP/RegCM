@@ -17,30 +17,29 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine chrsetc(ichar,len,isetch)
+      subroutine chrsetc(iichar,ilen,isetch)
       implicit none
-      integer len
+      integer ilen
 c
-c****     this routine sets to the first len characters in ichar
+c****     this routine sets to the first ilen characters in iichar
 c****     to the character variable specified by isetch
 c
 c****     on input-
-c****         len    - number of characters to be set in ichar (integer)
-c****         isetch - character to which each character in ichar will
+c****         ilen    - number of characters to be set in iichar (integer)
+c****         isetch - character to which each character in iichar will
 c****                  be set equal to if input is character. (char)
 c
 c****     on output-
-c****         ichar  - len charcters in ichar is set to the character
+c****         iichar  - ilen charcters in iichar is set to the character
 c****                  specified by either isetch.  (character)
 c
-      character*(*) ichar
+      character*(*) iichar
       character*1 isetch
       integer i
 c
-      do 20 i=1,len
-       ichar(i:i) = isetch
+      do 20 i=1,ilen
+       iichar(i:i) = isetch
 20    continue
 
       return
-      end
+      end subroutine chrsetc

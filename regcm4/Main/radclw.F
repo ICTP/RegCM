@@ -231,7 +231,7 @@ C
 c do emissivity and absorptivity calculations
 c only if abs/ems computation
 c
-      IF((jyear.eq.jyear0.and.ktau.eq.0) .or.
+      if ((jyear.eq.jyear0.and.ktau.eq.0) .or.
      &   (mod(ktau+1,ifrabe).eq.0) ) then
 
 C
@@ -589,4 +589,4 @@ C
       end do
 C
       return
-      end
+      end subroutine radclw

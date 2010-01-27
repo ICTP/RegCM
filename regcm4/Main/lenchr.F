@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer function lenchr(chrstg)
 c----------------------------------------------------------------------
 c
@@ -38,4 +37,4 @@ c----------------------------------------------------------------------
          end if
       end if
       return
-      end
+      end function lenchr

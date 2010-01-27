@@ -17,9 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-cccccccccccccccccccccc lake model routines cccccccccccccccccccccccccc
-
       subroutine lake( iutlak, day, dt, ta, ua, za, q
      a         , sw, lnet, hsen, hlat, ts, evap, prec, hice, hsnow)
 
@@ -29,6 +26,7 @@ cccccccccccccccccccccc lake model routines cccccccccccccccccccccccccc
       real(kind=8)  sw,lnet,ld,lu,kv
       integer depth, freeze
 
+cccccccccccccccccccccc lake model routines cccccccccccccccccccccccccc
 C***        delta: Stephan-Boltzmann const
 C***        cp:    heat capacity
 C***        Le:    latent heat of evaporation
@@ -64,7 +62,7 @@ C******    depth: 1-m slices of lake depth
      a       eta, (t(j,1),j=1,depth)
       do k=1,depth
         t(k,2) = t(k,1)
-      enddo
+      end do
 
       taC= ta - 273.15
       tK=273.15+t(1,1)
@@ -120,4 +118,4 @@ c ******    Convective mixer
       end if
 
       return
-      end
+      end subroutine lake

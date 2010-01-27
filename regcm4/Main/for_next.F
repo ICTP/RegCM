@@ -188,7 +188,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
           write(chname(nc+1:nc+8),113) chtrname(itr)
           nc=nc+8
         end if
-      enddo
+      end do
       write(99,109) 'chtrname  = ',chname(1:nc)
       write(99,114) 'chtrsol   = ',chtrsol
       write(99,116) 'chtrdpv   = ',chtrdpv
@@ -217,4 +217,4 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  114  format(1x,A12,10(F5.2,','))
  116  format(1x,A12,20(F7.5,','))
       return
-      end
+      end subroutine for_next

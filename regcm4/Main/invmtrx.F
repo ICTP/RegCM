@@ -19,10 +19,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine invmtrx(a, na, v, nv, n, d, ip, ier, work)
       implicit none
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      integer ierr
-#endif
+#     include "include/message.cb"
       integer na, nv, n, ier, info, ip(n)
       real(kind=8)  a(n,n), v(n,n), work(n), d(2)
       integer i,j,job
@@ -34,13 +31,7 @@ c uses subroutines sgefa/sgedi from library linpack
 c see dick valent, (SCD, consulting) if problems
 c
       if (n .ne. na .or. n .ne. nv) then
-        print*, ' stop in valent invmtx: equate n, na, nv'
-#ifdef MPP1
-        print*, ' stop in subroutine invmtrx'
-        call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-        stop
-#endif
+        call fatal(__FILE__,__LINE__, 'valent invmtx: equate n, na, nv')
       end if
 c
       do 10 j=1,n
@@ -49,16 +40,12 @@ c
    10 continue
       call sgefa(v,n,n,ip,info)
       if (info .ne. 0) then
-        print*, ' stop in valent invmtx: sgefa info=',info
-#ifdef MPP1
-        print*, ' stop in subroutine invmtrx'
-        call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-        stop
-#endif
+        write (aline, *) 'sgefa info = ', info
+        call say
+        call fatal(__FILE__,__LINE__, 'sgefa error')
       end if
       job = 11
       call sgedi(v,n,n,ip,d,work,job)
       ier = info
       return
-      end
+      end subroutine invmtrx

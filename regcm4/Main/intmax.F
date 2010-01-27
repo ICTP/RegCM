@@ -37,4 +37,4 @@ c
          end if
       end do
       return
-      end
+      end function intmax

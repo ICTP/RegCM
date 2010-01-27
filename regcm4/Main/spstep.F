@@ -58,9 +58,9 @@ c
       do i=1,ix
         ddsum(i,j,n) = 0.
         dhsum(i,j,n) = 0.
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 c
       do 100 ns=1,nsplit
 c
@@ -110,8 +110,8 @@ c
      &                  - delh(i,j-1,ns,n0) - delh(i-1,j-1,ns,n0) )/fac
           work(i,j,2) = ( delh(i  ,j,ns,n0) + delh(i  ,j-1,ns,n0)
      &                  - delh(i-1,j,ns,n0) - delh(i-1,j-1,ns,n0) )/fac
-        enddo
-      enddo
+        end do
+      end do
 c
 C=======================================================================
        do nw=1,2
@@ -123,9 +123,9 @@ C=======================================================================
            do i=2,ilx
 c                            work: 2,ilx on dot grid
              work(i,j,nw) = work(i,j,nw) * psdot(i,j)
-           enddo
-         enddo
-       enddo
+           end do
+         end do
+       end do
 C=======================================================================
 c
 c** compute divergence z from u and v
@@ -140,21 +140,21 @@ c
         do i=2,ilx
           uu(i,j) = work(i,j,1) * msfd(i,j)
           vv(i,j) = work(i,j,2) * msfd(i,j)
-        enddo
-      enddo
+        end do
+      end do
 c
 #ifdef MPP1
       do i=1,ix
         wksend(i)   =uu(i,1)
         wksend(i+ix)=vv(i,1)
-      enddo
+      end do
       call MPI_SENDRECV(wksend(1),2*ix,MPI_DOUBLE_PRECISION,iwest,2,
      &                  wkrecv(1),2*ix,MPI_DOUBLE_PRECISION,ieast,2,
      &                  MPI_COMM_WORLD,status,ierr)
       do i=1,ix
         uu(i,jxp+1) = wkrecv(i)
         vv(i,jxp+1) = wkrecv(i+ix)
-      enddo
+      end do
 #endif
 c
 #ifdef MPP1
@@ -166,8 +166,8 @@ c
           fac = dx2 * msfx(i,j) * msfx(i,j)
           work(i,j,3) = ( -uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)
      &            +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1) ) / fac
-        enddo
-      enddo
+        end do
+      end do
 c
 C=======================================================================
 c
@@ -183,8 +183,8 @@ c                            work3: 2,ilxm on cross grid
            delh(i,j,ns,n1) = delh(i,j,ns,n0)
      a           - dtau(ns) * hbar(ns) * deld(i,j,ns,n0) / psa(i,j)
      b           + delh(i,j,ns,3) / m2
-         enddo
-       enddo
+         end do
+       end do
 
 c** not in madala(1987)
        fac = ( m(ns) - 1. ) / m(ns)
@@ -200,7 +200,7 @@ c** not in madala(1987)
 #else
          delh(i,jlx,ns,n1) = delh(i,jlx,ns,n0) * fac
 #endif
-       enddo
+       end do
 #ifdef MPP1
        do j=1,jendx
 #else
@@ -208,7 +208,7 @@ c** not in madala(1987)
 #endif
          delh(  1,j,ns,n1) = delh(  1,j,ns,n0) * fac
          delh(ilx,j,ns,n1) = delh(ilx,j,ns,n0) * fac
-       enddo
+       end do
 c
 #ifdef MPP1
        do j=1,jendx
@@ -218,8 +218,8 @@ c
          do i=1,ilx
            ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n1)
            dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n1)
-         enddo
-       enddo
+         end do
+       end do
 c
 c** subsequent steps, use leapfrog scheme
        do 50 n=2,m2
@@ -243,8 +243,8 @@ c
      &                  - delh(i,j-1,ns,n1) - delh(i-1,j-1,ns,n1) )/fac
           work(i,j,2) = ( delh(i  ,j,ns,n1) + delh(i  ,j-1,ns,n1)
      &                  - delh(i-1,j,ns,n1) - delh(i-1,j-1,ns,n1) )/fac
-        enddo
-      enddo
+        end do
+      end do
 C=======================================================================
 c
         do nw=1,2
@@ -255,9 +255,9 @@ c
 #endif
             do i=2,ilx
               work(i,j,nw) = work(i,j,nw) * psdot(i,j)
-            enddo
-          enddo
-        enddo
+            end do
+          end do
+        end do
 C=======================================================================
 c
 c** compute divergence z from u and v
@@ -272,21 +272,21 @@ c
         do i=2,ilx
           uu(i,j) = work(i,j,1) * msfd(i,j)
           vv(i,j) = work(i,j,2) * msfd(i,j)
-        enddo
-      enddo
+        end do
+      end do
 c
 #ifdef MPP1
       do i=1,ix
         wksend(i)   =uu(i,1)
         wksend(i+ix)=vv(i,1)
-      enddo
+      end do
       call MPI_SENDRECV(wksend(1),2*ix,MPI_DOUBLE_PRECISION,iwest,2,
      &                  wkrecv(1),2*ix,MPI_DOUBLE_PRECISION,ieast,2,
      &                  MPI_COMM_WORLD,status,ierr)
       do i=1,ix
         uu(i,jxp+1) = wkrecv(i)
         vv(i,jxp+1) = wkrecv(i+ix)
-      enddo
+      end do
 #endif
 c
 #ifdef MPP1
@@ -298,8 +298,8 @@ c
           fac = dx2 * msfx(i,j) * msfx(i,j)
           work(i,j,3) = ( -uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)
      &            +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1) ) / fac
-        enddo
-      enddo
+        end do
+      end do
 c
 C=======================================================================
 c
@@ -314,8 +314,8 @@ c
             delh(i,j,ns,n2) = delh(i,j,ns,n0)
      a        - dtau2 * hbar(ns) * deld(i,j,ns,n1) / psa(i,j)
      b        + delh(i,j,ns,3) / m(ns)
-          enddo
-        enddo
+          end do
+        end do
 c
 c** not in madala(1987)
         do i=2,ilxm
@@ -331,7 +331,7 @@ c** not in madala(1987)
 #else
           delh(i,jlx,ns,n2)=2.*delh(i,jlx,ns,n1)-delh(i,jlx,ns,n0)
 #endif
-        enddo
+        end do
 #ifdef MPP1
         do j=1,jendx
 #else
@@ -339,7 +339,7 @@ c** not in madala(1987)
 #endif
           delh(1,j,ns,n2)=2.*delh(1,j,ns,n1)-delh(1,j,ns,n0)
           delh(ilx,j,ns,n2)=2.*delh(ilx,j,ns,n1)-delh(ilx,j,ns,n0)
-        enddo
+        end do
 c
 #ifdef MPP1
         do j=1,jendx
@@ -349,8 +349,8 @@ c
           do i=1,ilx
             ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n2)
             dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n2)
-          enddo
-        enddo
+          end do
+        end do
 c
         n0 = n1
         n1 = n2
@@ -360,4 +360,4 @@ c
 100   continue
 c
       return
-      end
+      end subroutine spstep

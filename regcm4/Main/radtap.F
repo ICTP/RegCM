@@ -72,9 +72,9 @@ c
               write(iutrad,rec=nrcrad)
      &                     ((frad3d(j,i,k,n),j=1,jx-2),i=1,ix-2)
 #endif
-           enddo
+           end do
           end if
-        enddo
+        end do
         do n=1,nrad2d
           if (n.lt.10) then ! skip everything from alb (10 to 21)
             nrcrad=nrcrad+1
@@ -86,7 +86,7 @@ c
      &                   ((frad2d(j,i,n),j=1,jx-2),i=1,ix-2)
 #endif
           end if
-        enddo
+        end do
       else if (iotyp.eq.2) then
         write(iutrad) idatex
         do n=1,nrad3d
@@ -112,4 +112,4 @@ c
       end if
 
       return
-      end
+      end subroutine radtap

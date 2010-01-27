@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c-----------------------------------------------------------------------
       subroutine inirad
 
       implicit none
@@ -67,4 +66,4 @@ c
       end if
 
       return
-      end
+      end subroutine inirad

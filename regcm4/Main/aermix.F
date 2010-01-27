@@ -178,8 +178,8 @@ C               aermmr(i,k,itr)= 0.0d0
               end do
             end if
           end if
-        enddo
-      enddo
+        end do
+      end do
 C       
       return
       end subroutine aermix

@@ -51,6 +51,7 @@ C_IPCC
 #     include "include/tracer.cb"
 #     include "include/date.cb"
 CIPCC_
+#     include "include/message.cb"
 C
 C------------------------------Arguments--------------------------------
 C
@@ -101,9 +102,10 @@ c     co2mmr = 1.51913 * co2vmr
         cfc110 = cgas(5,lyear)*1.e-12*4.69548
         cfc120 = cgas(6,lyear)*1.e-12*4.14307
       else
-        print*,'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)'
-        print*,'  Simulation date:  ',lyear
-        stop 'SUBROUTINE RADINI'
+        write(aline, *) '  Simulation date:  ',lyear
+        call say
+        call fatal(__FILE__,__LINE__,
+     &         'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
       end if
 c     print*,'IN RADINI (TOP)'
 c     print*,'  co2vmr= ',co2vmr
@@ -183,4 +185,4 @@ C
       cplol = v0/(amd*goz*p0)*0.5*100.0
 C
       return
-      end
+      end subroutine radini

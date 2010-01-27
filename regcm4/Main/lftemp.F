@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine lftemp(iemiss)
 c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
@@ -114,7 +113,7 @@ c                    (1st guess at vapor pressure deficit)
          flneto(n,np) = 4.0*sgtg3 * (tlef1d(n,np)-tg1d(n,np))
         end if
        end if
-      enddo
+      end do
 90    continue
       call stomat
 c
@@ -172,7 +171,7 @@ cl            2.3  recalculate saturation vapor pressure
           qsatl(n,np) = qsatl(n,np) * eg(n,np)/eg1
          end if
         end if
-       enddo
+       end do
 91     continue
 
 cl            2.4  canopy evapotranspiration
@@ -214,7 +213,7 @@ c* recalculate stomatl resistance and rpp
          if (efe(n,np)*efeb .lt. 0.0) efe(n,np) = 0.1*efe(n,np)
          end if
         end if
-       enddo
+       end do
 92     continue
 c=======================================================================
 cl            3.   solve for leaf temperature
@@ -263,7 +262,7 @@ cl                 on vapor pressure deficit
           vpdc(n,np) = (1.-rpp(n,np)) * (qsatl(n,np)-qcan)*1.e3/c(75)
          end if
         end if
-       enddo
+       end do
 93     continue
 
        call stomat
@@ -338,8 +337,8 @@ cl            5.5  fluxes from canopy and soil to overlying air
      &               *(-wta(n,np)*delq1d(n,np)+rgr(n,np)*qbare)
         end if
        end if
-      enddo
+      end do
 94    continue
 
       return
-      end
+      end subroutine lftemp

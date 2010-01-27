@@ -61,7 +61,7 @@ c ****** check if at desired output time for bats variables
           write(iutbat) ((fbat(j,i,n),j=1,jx-2),i=1,ix-2)
 #endif
         end if
-      enddo
+      end do
 
       return
-      end
+      end subroutine outsrf

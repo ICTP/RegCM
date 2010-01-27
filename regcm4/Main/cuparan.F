@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine cuparan(tten,qten,j)
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -130,4 +129,4 @@ c.......................................................
       icon(j)=iconj
 c
       return
-      end
+      end subroutine cuparan

@@ -32,4 +32,4 @@ c
      a   ier=',i4)
 c
       return
-      end
+      end subroutine vcheki

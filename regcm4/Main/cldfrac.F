@@ -102,4 +102,4 @@ c units:  = kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
       end do
 
       return
-      end
+      end subroutine cldfrac

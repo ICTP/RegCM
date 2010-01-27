@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine initb
 c::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c     ***  provides constant initial fields to boundary subroutine
@@ -88,9 +87,9 @@ ceros  note:  when using bats dataset comment line above
          veg2d1(k,ill,jll)=satbrt1(k,ill,jll)
          if(satbrt1(k,ill,jll).gt.13.9.and.satbrt1(k,ill,jll).lt.15.1)
      &       veg2d1(k,ill,jll) = 0.
-      enddo
-      enddo
-      enddo
+      end do
+      end do
+      end do
 
 c ******  initialize hostetler lake model
       if (lakemod.eq.1) then
@@ -166,4 +165,4 @@ c ******  initialize soil moisture in the 3 layers
 30    continue
 
       return
-      end
+      end subroutine initb

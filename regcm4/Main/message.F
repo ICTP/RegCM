@@ -20,56 +20,69 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       logical function active( level )
         implicit none
 #       include "parameter.inc"
-#ifdef MPP1
-#       include "mpiregcm.inc"
-#endif
+#       include "include/message.cb"
         integer , intent(in) :: level
         active = ( level .le. debug_level )
         return
       end function active
 
-      subroutine say( str )
+      subroutine say
         implicit none
 #       include "parameter.inc"
+#       include "include/message.cb"
 #ifdef MPP1
 #       include "mpiregcm.inc"
-#endif
-        character*(*) str
-#ifdef MPP1
-        if ( myid .eq. 0 ) print*, trim(str)
+        if ( myid .eq. 0 ) print*, trim(aline)
 #else
-        print*, trim(str)
+        print*, trim(aline)
 #endif
       end subroutine say
 
-      subroutine warning( str )
+      subroutine warning
         implicit none
 #       include "parameter.inc"
+#       include "include/message.cb"
 #ifdef MPP1
 #       include "mpiregcm.inc"
-#endif
-        character*(*) str
-#ifdef MPP1
-        print*, ' Processor ', myid,' : ',trim(str)
+        print*, ' Processor ', myid,' : ',trim(aline)
 #else
-        print*, trim(str)
+        print*, trim(aline)
 #endif
       end subroutine warning
 
-      subroutine frmt_say( frmt, str )
+      subroutine fatal( filename, line, str )
         implicit none
 #       include "parameter.inc"
+#       include "include/message.cb"
 #ifdef MPP1
 #       include "mpiregcm.inc"
 #endif
-        character*(*) frmt
+        character*(*) filename
         character*(*) str
+        integer , intent (in) :: line
+        character(len=8) :: cline
 #ifdef MPP1
-        if ( myid .eq. 0 ) print trim(frmt), trim(str)
-#else
-        print trim(frmt), trim(str)
+        INTEGER ierr
 #endif
-      end subroutine frmt_say
+
+        write(cline,'(i6)') line
+        write(aline, *) '-------------- FATAL CALLED ---------------'
+        call say
+        if ( line > 0 ) then
+          write(aline, *) 'Fatal in file: '//filename//
+     &                    ' at line: '//TRIM(cline)
+          call say
+        endif
+        write(aline, *) str
+        CALL say
+        write(aline, *) '-------------------------------------------'
+        CALL say
+#ifdef MPP1
+        CALL mpi_abort(MPI_COMM_WORLD,1,ierr)
+#else
+        CALL abort
+#endif
+      end subroutine fatal
 
       subroutine vprntv( a, n, nam )
         implicit none
@@ -116,46 +129,3 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
    11   format(1x,i3,5x,1p,11g11.3,1x,/,9x,1p,11g11.3)
       return
       end subroutine vprntm
-
-      subroutine debug( level, str )
-        implicit none
-#       include "parameter.inc"
-#ifdef MPP1
-#       include "mpiregcm.inc"
-#endif
-        integer, intent(in) :: level
-        character*(*) str
-        logical active
-        if (active(level)) call say(str)
-        return
-      end subroutine debug
-
-      subroutine fatal( filename, line, str )
-        implicit none
-#       include "parameter.inc"
-#ifdef MPP1
-#       include "mpiregcm.inc"
-#endif
-        character*(*) filename
-        character*(*) str
-        integer , intent (in) :: line
-        character(len=256) :: message
-#ifdef MPP1
-        INTEGER ierr
-#endif
-
-        write(message,'(i6)') line
-        CALL say( '-------------- FATAL CALLED ---------------' )
-        if ( line > 0 ) then
-          CALL say( 'Fatal in file:  '//filename//
-     &               ' at line:  '//TRIM(message) )
-        endif
-        CALL say( str )
-        CALL say( '-------------------------------------------' )
-        
-#ifdef MPP1
-        CALL mpi_abort(MPI_COMM_WORLD,1,ierr)
-#else
-        CALL abort
-#endif
-      end subroutine fatal

@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
       subroutine getdat(jslc,h2ommr,
      &     clat,
      &     cld,
@@ -317,4 +315,4 @@ c     o3mmr(i,k) = vmmr*o3vmr(i,k)
       end do
 c
       return
-      end
+      end subroutine getdat

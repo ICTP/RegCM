@@ -95,4 +95,4 @@ c
   140 continue
 c
   200 return
-      end
+      end subroutine eltran

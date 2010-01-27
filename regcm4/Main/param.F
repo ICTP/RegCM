@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine param
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -40,6 +39,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/tiedparam0.cb"
 #     include "include/tied_constants.cb"
 #     include "include/culookup.cb"
+#     include "include/message.cb"
 Cchem2
 Cchem2_
 #ifdef MPP1
@@ -386,7 +386,7 @@ c---------------------------------------------------------------------
 c-----read in namelist variables:
 c
 #ifdef MPP1
-      if(myid .eq. 0) then
+      if (myid .eq. 0) then
         open (2,file='regcm.in',status='old')
         read(2,restartparam)
         print*,'RESTARTPARAM READ IN'
@@ -396,18 +396,18 @@ c
         print*,'OUTPARAM READ IN'
         read(2,physicsparam)
         print*,'PHYSICSPARAM READ IN'
-        if(ipptls.eq.1) then
+        if (ipptls.eq.1) then
           read(2,subexparam)
           print*,'SUBEXPARAM READ IN'
         end if
-        if(icup.eq.2) then
+        if (icup.eq.2) then
           read(2,grellparam)
           print*,'GRELLPARAM READ IN'
-        else if(icup.eq.4) then
+        else if (icup.eq.4) then
           read(2,emanparam)
           print*,'EMANPARAM READ IN'
         end if
-        if(ichem.eq.1) then
+        if (ichem.eq.1) then
           read(2,chemparam)
           print*,'CHEMPARAM READ IN'
         end if
@@ -422,18 +422,18 @@ c
       print*,'OUTPARAM READ IN'
       read (*,physicsparam)
       print*,'PHYSICSPARAM READ IN'
-      if(ipptls.eq.1) then
+      if (ipptls.eq.1) then
         read (*,subexparam)
         print*,'SUBEXPARAM READ IN'
       end if
-      if(icup.eq.2) then
+      if (icup.eq.2) then
         read (*,grellparam)
         print*,'GRELLPARAM READ IN'
-      else if(icup.eq.4) then
+      else if (icup.eq.4) then
         read (*,emanparam)
         print*,'EMANPARAM READ IN'
       end if
-      if(ichem.eq.1) then
+      if (ichem.eq.1) then
         read (*,chemparam)
         print*,'CHEMPARAM READ IN'
       end if
@@ -487,7 +487,7 @@ c
       call MPI_BCAST(lakemod,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(ichem,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
-      if(ipptls.eq.1) then
+      if (ipptls.eq.1) then
       call MPI_BCAST(ncld,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(fcmax,1,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
@@ -513,7 +513,7 @@ c
      &                                    0,MPI_COMM_WORLD,ierr)
       end if
 
-      if(icup.eq.2) then
+      if (icup.eq.2) then
       call MPI_BCAST(shrmin,1,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(shrmax,1,MPI_DOUBLE_PRECISION,
@@ -543,7 +543,7 @@ c
       call MPI_BCAST(dtauc,1,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
 
-      else if(icup.eq.4) then
+      else if (icup.eq.4) then
       call MPI_BCAST(minsig,1,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(elcrit,1,MPI_DOUBLE_PRECISION,
@@ -576,7 +576,7 @@ c
      &                                    0,MPI_COMM_WORLD,ierr)
       end if
 
-      if(ichem.eq.1) then
+      if (ichem.eq.1) then
       call MPI_BCAST(ichremlsc,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(ichremcvc,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(ichdrdepo,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -584,7 +584,7 @@ c
       call MPI_BCAST(idirect,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       do n=1,ntr
       call MPI_BCAST(chtrname(n),5,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-      enddo
+      end do
       call MPI_BCAST(chtrsol,ntr,MPI_DOUBLE_PRECISION,
      &                                    0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(chtrdpv,ntr*2,MPI_DOUBLE_PRECISION,
@@ -594,77 +594,37 @@ c
       end if
       
 #endif
-      if(ichem.eq.0) ifchem=.false.
+      if (ichem.eq.0) ifchem=.false.
 cas
       if (mod(anint(radfrq*60.),anint(dt)).ne.0) then
-#ifdef MPP1
-         if(myid .eq. 0) then
-           print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-           print*,'RADFRQ=',radfrq,'DT=',dt
-           print*,'stop Radiation Timestep (param.f)'
-         end if
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-         print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-         print*,'RADFRQ=',radfrq,'DT=',dt
-         stop 'Radiation Timestep (param.f)'
-#endif
+        write(aline, *) 'RADFRQ=',radfrq,'DT=',dt
+        call say
+        call fatal(__FILE__,__LINE__,
+     &      'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
       end if
       if (mod(anint(abatm),anint(dt)).ne.0) then
-#ifdef MPP1
-         if(myid .eq. 0) then
-           print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-           print*,'ABATM=',abatm,'DT=',dt
-           print*,'stop Surface Timestep (param.f)'
-         end if
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-         print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-         print*,'ABATM=',abatm,'DT=',dt
-         stop 'Surface Timestep (param.f)'
-#endif
+        write(aline, *) 'ABATM=',abatm,'DT=',dt
+        call say
+        call fatal(__FILE__,__LINE__,
+     &      'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
       end if
       if (mod(anint(batfrq*3600.),anint(abatm)).ne.0) then
-#ifdef MPP1
-         if(myid .eq. 0) then
-           print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-           print*,'BATFRQ=',batfrq,'ABATM=',abatm
-           print*,'stop Surface/Radiation Timestep (param.f)'
-         end if
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-         print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-         print*,'BATFRQ=',batfrq,'ABATM=',abatm
-         stop 'Surface/Radiation Timestep (param.f)'
-#endif
+        write(aline, *) 'BATFRQ=',batfrq,'ABATM=',abatm
+        call say
+        call fatal(__FILE__,__LINE__,
+     &      'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
       end if
       if (mod(anint(abemh*3600.),anint(dt)).ne.0) then
-#ifdef MPP1
-         if(myid .eq. 0) then
-           print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-           print*,'ABEMH=',abemh,'DT=',dt
-           print*,'stop Abs-Ems Timestep (param.f)'
-         end if
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-         print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-         print*,'ABEMH=',abemh,'DT=',dt
-         stop 'Abs-Ems Timestep (param.f)'
-#endif
+        write(aline, *) 'ABEMH=',abemh,'DT=',dt
+        call say
+        call fatal(__FILE__,__LINE__,
+     &      'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
       end if
       if (mod(anint(abemh*60.),anint(radfrq)).ne.0) then
-#ifdef MPP1
-         if(myid .eq. 0) then
-           print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-           print*,'ABEMH=',abemh,'RADFRQ=',radfrq
-           print*,'stop Longwave/shortwave Radiation Timestep (param.f)'
-         end if
-         call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-         print*,'INCONSISTENT TIMESTEPS SPECIFIED'
-         print*,'ABEMH=',abemh,'RADFRQ=',radfrq
-         stop 'Longwave/shortwave Radiation Timestep (param.f)'
-#endif
+        write(aline, *) 'ABEMH=',abemh,'RADFRQ=',radfrq
+        call fatal(__FILE__,__LINE__,
+     &      'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'
+     &      //' TIMESTEPS SPECIFIED')
       end if
 
 c-----reset the options/calculate variables using namelist info:
@@ -681,7 +641,7 @@ c
       dtsplit(1) = dt/4.
       do ns=1,nsplit
          dtau(ns)=dtsplit(ns)
-      enddo
+      end do
 #ifdef MPP1
       if (myid.eq.0) print *,' dtau = ', dtau
 #else
@@ -744,7 +704,7 @@ c
       print*,'READING HEADER FILE'
       write(finm,101) iutin
 101   format('fort.',I2)
-      if(NSG.gt.1) THEN
+      if (NSG.gt.1) then
 #ifdef MPP1
         open(iutin1,file='fort.11',form='unformatted',status='old'
      &             ,access='direct',recl=ix*mjx*NNSG*ibyte)
@@ -773,24 +733,25 @@ c
       dx = dxsp
 #ifdef MPP1
       if (nyy.ne.ix .or. nxx.ne.mjx .or. kzz.ne.kx) then
-        print*,'IMPROPER DIMENSION SPECIFICATION (SUBROUTINE PARAM)'
-        print*,'  SET IN regcm.param:  IX=',ix,' JX=',mjx, ' KX=',kx
-        print*,'  SET IN TERRAIN: NYY=',nyy,' NXX=',nxx,' NZZ=',kzz
-        print*,'  Also check ibyte in regcm.param: ibyte = ',ibyte
-        print*,'stop dimensions (param.f)'
-        call MPI_ABORT(MPI_COMM_WORLD,ierr)
+        write(aline,*) 
+     &   '  SET IN regcm.param:  IX=',ix,' JX=',mjx, ' KX=',kx
+        call say
 #else
       if (nyy.ne.ix .or. nxx.ne.jx .or. kzz.ne.kx) then
-        print*,'IMPROPER DIMENSION SPECIFICATION (SUBROUTINE PARAM)'
-        print*,'  SET IN regcm.param:  IX=',ix,' JX=',jx, ' KX=',kx
-        print*,'  SET IN TERRAIN: NYY=',nyy,' NXX=',nxx,' NZZ=',kzz
-        print*,'  Also check ibyte in regcm.param: ibyte = ',ibyte
-        stop 'dimensions (param.f)'
+        write(aline,*) 
+     &   '  SET IN regcm.param:  IX=',ix,' JX=',jx, ' KX=',kx
+        call say
 #endif
+        write (aline, *)
+     &   '  SET IN TERRAIN: NYY=',nyy,' NXX=',nxx,' NZZ=',kzz
+        call say
+        write(aline, *)
+     &   '  Also check ibyte in regcm.param: ibyte = ',ibyte
+        call fatal(__FILE__,__LINE__,'IMPROPER DIMENSION SPECIFICATION')
       end if
       do k=1,kxp1
         sigma(k) = dble(sp1d(k))
-      enddo
+      end do
 #ifdef MPP1
       end if
       call MPI_BCAST(clat,1,MPI_REAL,0,MPI_COMM_WORLD,ierr)
@@ -804,7 +765,7 @@ c
 Crst-fix
       mdate0 = IDATE0
 #ifdef MPP1
-      if(myid.eq.0) then
+      if (myid.eq.0) then
 #endif
       print *,'***** mdate = ',mdate0
 #ifdef MPP1
@@ -822,7 +783,7 @@ Crst-fix_
 c
 c.....find the year is a leap year or not (assume the initial data
 c     is within this century.):
-      if(myear.lt.100) myear = 1900+myear
+      if (myear.lt.100) myear = 1900+myear
       my1 = mod(myear,4)
       my2 = mod(myear,100)
       my3 = mod(myear,400)
@@ -944,61 +905,61 @@ c
         do j=1,mjx
         do i=1,ix
           ht_io(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           ht(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
-        if(NSG.gt.1) THEN
+        if (NSG.gt.1) then
 #ifdef MPP1
           read(iutin1,rec=2,iostat=ierr1)((sp2d1(i,j),j=1,mjx*NSG)
      &                                               ,i=1,ix*NSG)
           do j=1,mjx*NSG
           do i=1,ix*NSG
             jj=mod(j,NSG)
-            if(jj.eq.0) jj=NSG
+            if (jj.eq.0) jj=NSG
             ii=mod(i,NSG)
-            if(ii.eq.0) ii=NSG
+            if (ii.eq.0) ii=NSG
             k=(jj-1)*NSG+ii
             jj=(j+NSG-1)/NSG
             ii=(i+NSG-1)/NSG
             ht1_io(k,ii,jj)=sp2d1(i,j)*g
-          enddo
-          enddo
+          end do
+          end do
 #else
           read(iutin1,rec=2,iostat=ierr1)((sp2d1(i,j),j=1,jx*NSG)
      &                                               ,i=1,ix*NSG)
           do j=1,jx*NSG
           do i=1,ix*NSG
             jj=mod(j,NSG)
-            if(jj.eq.0) jj=NSG
+            if (jj.eq.0) jj=NSG
             ii=mod(i,NSG)
-            if(ii.eq.0) ii=NSG
+            if (ii.eq.0) ii=NSG
             k=(jj-1)*NSG+ii
             jj=(j+NSG-1)/NSG
             ii=(i+NSG-1)/NSG
             ht1(k,ii,jj)=sp2d1(i,j)*g
-          enddo
-          enddo
+          end do
+          end do
 #endif
         else
 #ifdef MPP1
           do j=1,mjx
           do i=1,ix
             ht1_io(1,i,j)=sp2d(i,j)*g
-          enddo
-          enddo
+          end do
+          end do
 #else
           do j=1,jx
           do i=1,ix
             ht1(1,i,j)=sp2d(i,j)*g
-          enddo
-          enddo
+          end do
+          end do
 #endif
         end if
 
@@ -1008,15 +969,15 @@ c
         do j=1,mjx
         do i=1,ix
           htsd_io(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           htsd(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
         print*,'SATBRT'
 #ifdef MPP1
@@ -1024,61 +985,61 @@ c
         do j=1,mjx
         do i=1,ix
           satbrt_io(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           satbrt(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
-        IF(NSG.gt.1) then
+        if (NSG.gt.1) then
 #ifdef MPP1
            read(iutin1,rec=4,iostat=ierr1)((sp2d1(i,j),j=1,mjx*NSG)
      &                                                ,i=1,ix*NSG)
            do j=1,mjx*NSG
            do i=1,ix*NSG
               jj=mod(j,NSG)
-              if(jj.eq.0) jj=NSG
+              if (jj.eq.0) jj=NSG
               ii=mod(i,NSG)
-              if(ii.eq.0) ii=NSG
+              if (ii.eq.0) ii=NSG
               k=(jj-1)*NSG+ii
               jj=(j+NSG-1)/NSG
               ii=(i+NSG-1)/NSG
               satbrt1_io(k,ii,jj)=sp2d1(i,j)
-           enddo
-           enddo
+           end do
+           end do
 #else
            read(iutin1,rec=4,iostat=ierr1)((sp2d1(i,j),j=1,jx*NSG)
      &                                                ,i=1,ix*NSG)
            do j=1,jx*NSG
            do i=1,ix*NSG
               jj=mod(j,NSG)
-              if(jj.eq.0) jj=NSG
+              if (jj.eq.0) jj=NSG
               ii=mod(i,NSG)
-              if(ii.eq.0) ii=NSG
+              if (ii.eq.0) ii=NSG
               k=(jj-1)*NSG+ii
               jj=(j+NSG-1)/NSG
               ii=(i+NSG-1)/NSG
               satbrt1(k,ii,jj)=sp2d1(i,j)
-           enddo
-           enddo
+           end do
+           end do
 #endif
         else
 #ifdef MPP1
            do j=1,mjx
            do i=1,ix
               satbrt1_io(1,i,j)=satbrt_io(i,j)
-           enddo
-           enddo
+           end do
+           end do
 #else
            do j=1,jx
            do i=1,ix
               satbrt1(1,i,j)=satbrt(i,j)
-           enddo
-           enddo
+           end do
+           end do
 #endif
         end if
         print*,'XLAT'
@@ -1087,15 +1048,15 @@ c
         do j=1,mjx
         do i=1,ix
           xlat_io(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           xlat(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
         print*,'XLONG'
 #ifdef MPP1
@@ -1103,15 +1064,15 @@ c
         do j=1,mjx
         do i=1,ix
           xlong_io(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           xlong(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
         print*,'MSFX'
 #ifdef MPP1
@@ -1119,15 +1080,15 @@ c
         do j=1,mjx
         do i=1,ix
           msfx_io(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           msfx(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
         print*,'MSFD'
 #ifdef MPP1
@@ -1135,15 +1096,15 @@ c
         do j=1,mjx
         do i=1,ix
           msfd_io(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           msfd(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
         print*,'F'
 #ifdef MPP1
@@ -1151,15 +1112,15 @@ c
         do j=1,mjx
         do i=1,ix
           f_io(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #else
         read(iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
           f(i,j)=dble(sp2d(i,j))
-        enddo
-        enddo
+        end do
+        end do
 #endif
         print*,'SNOWC'
 #ifdef MPP1
@@ -1168,30 +1129,23 @@ c
         do i=1,ix
         do n=1,NNSG
           snowc_io(n,i,j) = dble(sp2d(i,j))
-        enddo
-        enddo
-        enddo
+        end do
+        end do
+        end do
 #else
         read(iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
         do j=1,jx
         do i=1,ix
         do n=1,NNSG
           snowc(n,i,j) = dble(sp2d(i,j))
-        enddo
-        enddo
-        enddo
+        end do
+        end do
+        end do
 #endif
         if (ierr1.ne.0) then
-#ifdef MPP1
-          print*,'END OF FILE REACHED (SUBROUTINE PARAM)'
-          print*,'  Check ibyte in regcm.param: ibyte = ',ibyte
-          print*,'stop EOF (param.f)'
-          call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-          print*,'END OF FILE REACHED (SUBROUTINE PARAM)'
-          print*,'  Check ibyte in regcm.param: ibyte = ',ibyte
-          stop 'EOF (param.f)'
-#endif
+          write(aline, *)
+     &       '  Check ibyte in parameter.inc: ibyte = ',ibyte
+          call fatal(__FILE__,__LINE__,'REACHED EOF')
         end if
 #ifdef MPP1
         do j=1,mjx
@@ -1204,20 +1158,20 @@ c
             inisrf_0(i,6,j) = msfx_io(i,j)
             inisrf_0(i,7,j) = msfd_io(i,j)
             inisrf_0(i,8,j) = f_io(i,j)
-          enddo
+          end do
           do n=1,NNSG
             do i=1,ix
               inisrf_0(i,8+n       ,j) = ht1_io(n,i,j)
               inisrf_0(i,8+NNSG+n  ,j) = satbrt1_io(n,i,j)
               inisrf_0(i,8+NNSG*2+n,j) = snowc_io(n,i,j)
-            enddo
-          enddo
-        enddo
+            end do
+          end do
+        end do
         do j=1,mjx
         do i=1,ix
           ht_io(i,j)=ht_io(i,j)*g
-        enddo
-        enddo
+        end do
+        end do
         end if                 ! end if (myid.eq.0) 
             
         call MPI_SCATTER(inisrf_0(1,1,1),ix*(NNSG*3+8)*jxp,
@@ -1233,15 +1187,15 @@ c
             msfx(i,j)   = inisrf0(i,6,j)
             msfd(i,j)   = inisrf0(i,7,j)
             f(i,j)      = inisrf0(i,8,j)
-          enddo
+          end do
           do n=1,NNSG
             do i=1,ix
               ht1(n,i,j)     = inisrf0(i,8+n       ,j)
               satbrt1(n,i,j) = inisrf0(i,8+NNSG+n  ,j)
               snowc(n,i,j)   = inisrf0(i,8+NNSG*2+n,j)
-            enddo
-          enddo
-        enddo
+            end do
+          end do
+        end do
 #endif
 c------invert mapscale factors:
 #ifdef MPP1
@@ -1264,7 +1218,7 @@ c------invert mapscale factors:
         end do
         end do
 #ifdef MPP1
-        if(myid .eq. 0) then
+        if (myid .eq. 0) then
 #endif
         print*,' '
         print*,'***************************************************'
@@ -1394,14 +1348,14 @@ c
       kt = 1
       do k = kx,1,-1
        delsig = a(k)-sigtbl
-       if(delsig.le.0.) then
+       if (delsig.le.0.) then
          kt = k
          goto 111
        end if
-      enddo
+      end do
 111   continue
 #ifdef MPP1
-      if(myid.eq.0) then
+      if (myid.eq.0) then
 #endif
       print *, ' Index of highest allowed pbl:  kt = ', kt
       print *,' '
@@ -1409,9 +1363,9 @@ c
       end if
 #endif
 c
-      if(ipptls.eq.1) then
+      if (ipptls.eq.1) then
 #ifdef MPP1
-        if(myid .eq. 0) then
+        if (myid .eq. 0) then
 #endif
         print*,'AUTO-CONVERSION RATE:  LAND=',qck1land
      &        ,'                      OCEAN=',qck1oce
@@ -1501,20 +1455,11 @@ c
         end do
         end do
       else if (icup.eq.3) then
-#ifdef MPP1
-        if (myid .eq. 0) then
-#endif
-        print*,' '
-        print*,' The Betts-Miller Convection scheme is not properly'
-        print*,' implemented.  If want to work with it, comment out'
-        print*,' the following stop statement in param.f'
-#ifdef MPP1
-        print*,' STOP (SUBROUTINE PARAM):  BETTS-MILLER NOT WORKING'
-        end if
-        call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-        stop 'STOP (SUBROUTINE PARAM):  BETTS-MILLER NOT WORKING'
-#endif
+        write(aline,*)
+     &    ' The Betts-Miller Convection scheme is not',
+     &    ' properly implemented'
+        call say
+        call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
       else if (icup.eq.4) then
         cllwcv    = 0.5e-4 ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
@@ -1600,10 +1545,12 @@ c
       chibot = 450.
       ptmb = 10.*ptop
       pz = a(1)*(1000.-ptmb)+ptmb
-      if (pz .gt. chibot) stop 160
+      if (pz .gt. chibot)
+     &  call fatal(__FILE__,__LINE__, 'VERTICAL INTERPOLATION ERROR')
       do 160 k=1,kx
       pk = a(k)*(1000.-ptmb)+ptmb
-      if (pk .gt. chibot) go to 160
+      if (pk .gt. chibot)
+     &  call fatal(__FILE__,__LINE__, 'VERTICAL INTERPOLATION ERROR')
       kchi = k
 160   continue
 
@@ -1633,7 +1580,7 @@ c.....for dot point variables:
        wgtd(5) = 0.95
        do k=4,nspgx
          wgtd(k)=1.
-       enddo
+       end do
 c.....for cross point variables:
        wgtx(1) = 0.
        wgtx(2) = 0.4
@@ -1641,7 +1588,7 @@ c.....for cross point variables:
        wgtx(4) = 0.9
        do k=5,nspgx
          wgtx(k)=1.
-       enddo
+       end do
       end if
 c
 c-----specify the coefficients for nudging boundary conditions:
@@ -1720,4 +1667,4 @@ C     1ff.')
 1300  format(' maximum  hor. diff. coef. = ',e12.5,' m*m/s')
 c
       return
-      end
+      end subroutine param

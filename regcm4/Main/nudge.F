@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine nudge_P(ip,fcoef,gcoef,xt,pten,c203,j,iboudy)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -305,7 +304,7 @@ c-------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine nudge_P
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine nudge_T(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -603,7 +602,7 @@ c-------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine nudge_T
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine nudgeQV(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -901,7 +900,7 @@ c-------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine nudgeQV
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine nudge_U(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1192,7 +1191,7 @@ c-------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine nudge_U
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine nudge_V(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1483,4 +1482,4 @@ c-------east-boundary slice:
 c
       end if
       return
-      end
+      end subroutine nudge_V

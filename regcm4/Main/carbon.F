@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       function carbon(vf,t,rm,tg,xlai,xlsai)
       implicit none
       real(kind=8)  carbon,vf,t,rm,tg,xlai,xlsai
@@ -102,4 +101,4 @@ c     **** respiration outside leaves
 c     ***   nighttime maintenance respiration only
       carbon=-0.36e-8*((1.+alphtl)*0.877*rt+betatl*(r(tg)-0.123*rt))
 
-      end
+      end function carbon

@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-c::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine interf(innex,j)
 c ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
@@ -133,16 +131,16 @@ c
             veg1d(n,i)=vegc(lveg(n,i))-seasf(lveg(n,i))*sfac
            end if
            emiss_1d(n,i) = emiss2d(n,i,j)
-         enddo
+         end do
 
          rh0=0.0d0
          do n=1,NNSG
            rh0=rh0+(qs1d(n,i)-qs1d0(n,i))
-         enddo
+         end do
          rh0=rh0/NNSG
          do n=1,NNSG
            qs1d(n,i)=dmax1(qs1d(n,i)-rh0,0.0d0)
-         enddo
+         end do
 
          us1d(i)=ubx3d(i,kx,j)
          vs1d(i)=vbx3d(i,kx,j)
@@ -157,7 +155,7 @@ c
            fracd(i)=0.2
          end if
          czen(i)= dmax1( coszrs(i), 0.d0 )
-       enddo
+       end do
        npts = nbmax
 
       else if (innex.eq.2) then
@@ -210,7 +208,7 @@ Cchem2_
              rnos1d(n,i)=-1.e34
               scv1d(n,i)=-1.e34
            end if
-         enddo
+         end do
          uvdrag(i,j) = uvdrag(i,j)/float(NNSG)
          hfx(i,j)  = hfx(i,j)/float(NNSG)
          qfx(i,j)  = qfx(i,j)/float(NNSG)
@@ -256,7 +254,7 @@ Cchem2_
            else
               rno2d(n,i,j)=-1.e34
            end if
-         enddo
+         end do
 
 c
 c  quantities stored on 2d surface array for bats use only
@@ -270,7 +268,7 @@ c
          sina2d(i,j)=sina2d(i,j)+c(4)*sinc2d(i,j)
          pptnc(i,j)=0.
          pptc(i,j)=0.
-       enddo
+       end do
        do i=np1,nbmax
 #ifdef MPP1
          u10m_o(j,i-1)=0.0
@@ -311,7 +309,7 @@ c
            v10m_o(j,i-1)= v10m_o(j,i-1)+v10m1d(n,i)
            t2m_o(j,i-1) = t2m_o(j,i-1)+t2m_1d(n,i)
            tg_o(j,i-1)  = tg_o(j,i-1)+tg1d(n,i)
-         enddo
+         end do
          u10m_o(j,i-1)= u10m_o(j,i-1)/float(NNSG)
          v10m_o(j,i-1)= v10m_o(j,i-1)/float(NNSG)
          t2m_o(j,i-1) = t2m_o(j,i-1)/float(NNSG)
@@ -364,7 +362,7 @@ c
            v10m_o(j-1,i-1)= v10m_o(j-1,i-1)+v10m1d(n,i)
            t2m_o(j-1,i-1) = t2m_o(j-1,i-1)+t2m_1d(n,i)
            tg_o(j-1,i-1)  = tg_o(j-1,i-1)+tg1d(n,i)
-         enddo
+         end do
          u10m_o(j-1,i-1)= u10m_o(j-1,i-1)/float(NNSG)
          v10m_o(j-1,i-1)= v10m_o(j-1,i-1)/float(NNSG)
          t2m_o(j-1,i-1) = t2m_o(j-1,i-1)/float(NNSG)
@@ -379,7 +377,7 @@ c
          real_4 = (psb(i,j)+ptop)*10.
          psmn_o(j-1,i-1)=amin1(psmn_o(j-1,i-1),real_4)
 #endif
-       enddo
+       end do
 
        if (mod(ntime+nint(dtmin*60.),kbats).eq.0
      &     .or. (jyear.eq.jyearr.and.ktau.eq.ktaur)) then
@@ -428,7 +426,7 @@ c
              drag_o(j,i-1)= drag_o(j,i-1)+drag1d(n,i)
              evpa_o(j,i-1)=evpa_o(j,i-1)+evpa2d(n,i,j)
              sena_o(j,i-1)=sena_o(j,i-1)+sena2d(n,i,j)
-           enddo
+           end do
            tpr_o(j,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
            q2m_o(j,i-1) = q2m_o(j,i-1)/float(NNSG)
            drag_o(j,i-1)= drag_o(j,i-1)/float(NNSG)
@@ -468,7 +466,7 @@ c
                rnos_s(n,j,i-1)=-1.e34
                scv_s(n,j,i-1) =-1.e34
              end if
-           enddo
+           end do
            if(nnn.ge.max0(NNSG/2,1)) then
              tlef_o(j,i-1)= tlef_o(j,i-1)/float(nnn)
              ssw_o(j,i-1) = ssw_o(j,i-1) /float(nnn)
@@ -515,7 +513,7 @@ c
              drag_o(j-1,i-1)= drag_o(j-1,i-1)+drag1d(n,i)
              evpa_o(j-1,i-1)=evpa_o(j-1,i-1)+evpa2d(n,i,j)
              sena_o(j-1,i-1)=sena_o(j-1,i-1)+sena2d(n,i,j)
-           enddo
+           end do
            tpr_o(j-1,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
            q2m_o(j-1,i-1) = q2m_o(j-1,i-1)/float(NNSG)
            drag_o(j-1,i-1)= drag_o(j-1,i-1)/float(NNSG)
@@ -555,7 +553,7 @@ c
                rnos_s(n,j-1,i-1)=-1.e34
                scv_s(n,j-1,i-1) =-1.e34
              end if
-           enddo
+           end do
            if(nnn.ge.max0(NNSG/2,1)) then
              tlef_o(j-1,i-1)= tlef_o(j-1,i-1)/float(nnn)
              ssw_o(j-1,i-1) = ssw_o(j-1,i-1) /float(nnn)
@@ -576,7 +574,7 @@ c ******    reset accumulation arrays to zero
              evpa2d(n,i,j) = 0.
              rnos2d(n,i,j) = 0.
              sena2d(n,i,j) = 0.
-           enddo
+           end do
            prnca2d(i,j)= 0.
            prca2d(i,j) = 0.
            flwa2d(i,j) = 0.
@@ -589,4 +587,4 @@ c ******    reset accumulation arrays to zero
 c
       end if               !end innex test
       return
-      end
+      end subroutine interf

@@ -169,4 +169,4 @@ c-----------------------------------------------------------------------
          end do
        end do
        return
-       end
+       end subroutine trcpth

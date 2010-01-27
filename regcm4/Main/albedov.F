@@ -276,7 +276,7 @@ C
           aldirl_s(n)=(1.-veg1d(n,np))*albgl +veg1d(n,np)*albl
           aldifs_s(n)=(1.-veg1d(n,np))*albgsd+veg1d(n,np)*albsd
           aldifl_s(n)=(1.-veg1d(n,np))*albgld+veg1d(n,np)*albld
-        enddo
+        end do
         albvs(np)  = albvs_s(1)
         albvl(np)  = albvl_s(1)
         aldirs(np) = aldirs_s(1)
@@ -292,7 +292,7 @@ C
           aldifs(np) = aldifs(np)+aldifs_s(n)
           aldifl(np) = aldifl(np)+aldifl_s(n)
           if (iemiss.eq.1) emiss1d(np) = emiss1d(np)+emiss2d(n,np,j)
-        enddo
+        end do
         albvs(np)  = albvs(np)/dble(NNSG)
         albvl(np)  = albvl(np)/dble(NNSG)
         aldirs(np) = aldirs(np)/dble(NNSG)

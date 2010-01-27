@@ -305,4 +305,4 @@ C
       end if
 
       return
-      end
+      end subroutine radctl

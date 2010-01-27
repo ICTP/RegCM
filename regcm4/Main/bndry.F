@@ -17,8 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine bndry(iemiss)
 c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c
@@ -114,7 +112,7 @@ c*   and root (called by lftemp): watu=upper, watr=root, watt=total
         watu(n,np) = dmax1(watu(n,np),1.d-4)
        end if
 
-      enddo
+      end do
 90    continue
 
 c=======================================================================
@@ -160,7 +158,7 @@ cl                 subr drag (tlef1d(n,np) carried over to next tstep).
             uaf(n,np) = vspda(n,np)
         end if
        end if
-      enddo
+      end do
 91    continue
 
       do 92 np = np1,npts
@@ -175,7 +173,7 @@ cl       4.1  add precipitation to leaf water
             ldew1d(n,np) = dmax1( ldew1d(n,np), 0.d0 )
         end if
        end if
-      enddo
+      end do
 92    continue
 c
 cl       4.2  distribute excess leaf water to soil
@@ -208,7 +206,7 @@ cl            set snow cover to zero in case it was previously sea ice
          scv1d(n,np) = 0.
          sag1d(n,np) = 0.
        end if
-      enddo
+      end do
 93    continue
 
 c=======================================================================
@@ -248,8 +246,8 @@ cl            with bucket models; usually 1 or less, except where
 cl            saturated (then around 2)
 ccc    rh2ox(i) = (watr-wiltr)/(relfc-wiltr)
 
-      enddo
+      end do
 94    continue
 
       return
-      end
+      end subroutine bndry

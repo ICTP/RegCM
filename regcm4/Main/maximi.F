@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
        subroutine maximi(array,ix,kx,ks,ke,max,istart,iend)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -41,4 +40,4 @@ c
 200   continue
 c
       return
-      end
+      end subroutine maximi

@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine tractend2(j)
 c
 c     This subroutine computes the tendencies for tracer transport and
@@ -196,7 +195,7 @@ c SOURCE AND SINKS TERMS ( dependant on the nature of tracers)
 c*******************************************
 c begining of tracer loop 
 c*******************************************
-      DO 99 itr = 1,ntr
+      do 99 itr = 1,ntr
 c****************************
 c       print*,'gfcall', itr, gfcall
 
@@ -204,7 +203,7 @@ c
 c---------------------------------------------
 c SOX CHEMSITRY / IN-CLOUD PROCESS 
 c--------------------------------------------
-        IF(gfcall .and. ( chtrname(itr).eq.'SO2' .and. iso4.gt.0))then
+        if (gfcall .and. ( chtrname(itr).eq.'SO2' .and. iso4.gt.0))then
           gfcall = .false. 
 
 c
@@ -259,8 +258,8 @@ cbxq        h2o2mol = 1.e-6 * h2o2conc(i,j,k)
 c concmin(i,k)=dmin1(h2o2mol,chimol)*64./28.9*psb(i,j)  ! cb*kg/kg
 c do tests, suppose h2o2 always enough
             concmin(i,k) = chimol * 64./28.9*psb(i,j)       ! cb*kg/kg
-          enddo
-          enddo
+          end do
+          end do
  
 c Large scale clouds     
 
@@ -356,7 +355,7 @@ c chemical aquesous conversion diagnostic
 c---------------------------------------
 c Other than sulfate CARBON AEROSOL, DUST  
 c----------------------------------------
-        IF (chtrname(itr) .eq.'BC_HB' .or.  chtrname(itr) .eq. 'BC_HL'
+        if (chtrname(itr) .eq.'BC_HB' .or.  chtrname(itr) .eq. 'BC_HL'
      & .or. chtrname(itr) .eq.'OC_HB' .or.  chtrname(itr) .eq. 'OC_HL'
      & .or. chtrname(itr) .eq.'DUST') then
 
@@ -410,7 +409,7 @@ c time constant ( 1.15 day cooke et al.,1999)
 c         agct = 2.30 *86400
 Cbxq      do itr=1,ntr
 Cbxq        agingtend(itr) = 0.
-Cbxq      enddo
+Cbxq      end do
 
           do k=1,kx  
           do i=2,ilxm
@@ -431,7 +430,7 @@ Cbxq      enddo
 c         agct = 2.30 *86400
 Cbxq      do itr=1,ntr
 Cbxq        agingtend(itr) = 0.
-Cbxq      enddo
+Cbxq      end do
  
           do k=1,kx  
           do i=2,ilxm
@@ -462,7 +461,7 @@ c 1 wind at 10 m
 
 c define the bin size   
 
-        IF ( chtrname(itr) .eq.'DUST' .and. gfcall2 ) then
+        if ( chtrname(itr) .eq.'DUST' .and. gfcall2 ) then
                         
           do i= 2,ilxm
             ivegcov(i) = nint(veg2d(i,j))
@@ -575,7 +574,7 @@ c aborbed solar radiation ( for stb criteria)
         end if ! end dust flux and deposition calculated for bins
 c just calculated for the first case of itr = DUST (save time man)
 
-        IF ( chtrname (itr) .eq. 'DUST') then 
+        if ( chtrname (itr) .eq. 'DUST') then 
 c define the corresponding index between itr and DUST bins 
 c (can be different if we use DUST + other particles) 
  
@@ -639,4 +638,4 @@ c******************
 99    continue    
 c*******************
       return
-      end
+      end subroutine tractend2

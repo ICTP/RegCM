@@ -17,7 +17,6 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine outtap
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
@@ -68,8 +67,8 @@ c ******  write one time of data to mm4 output file.
            do j=1,jx
              out1(j,i) = ua(i,k,j)
 #endif
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ix-2
 #ifdef MPP1
            do j=1,mjx-2
@@ -82,15 +81,15 @@ c ******  write one time of data to mm4 output file.
      &                        +out1(j+1,i+2)+out1(j+2,i+2))
      &                        /psa(i+1,j+1)
 #endif
-           enddo
-         enddo 
+           end do
+         end do 
          if (iotyp.eq.1) then
            nrcout=nrcout+1
            write(iutdat,rec=nrcout) fout
          else if (iotyp.eq.2) then
            write(iutdat) fout
          end if
-      enddo
+      end do
       do k=kx,1,-1
          do i=1,ix
 #ifdef MPP1
@@ -100,8 +99,8 @@ c ******  write one time of data to mm4 output file.
            do j=1,jx
              out1(j,i) = va(i,k,j)
 #endif
-           enddo
-         enddo
+           end do
+         end do
          do i=1,ix-2
 #ifdef MPP1
            do j=1,mjx-2
@@ -114,15 +113,15 @@ c ******  write one time of data to mm4 output file.
      &                        +out1(j+1,i+2)+out1(j+2,i+2))
      &                       /psa(i+1,j+1)
 #endif
-           enddo
-         enddo
+           end do
+         end do
          if (iotyp.eq.1) then
            nrcout=nrcout+1
            write(iutdat,rec=nrcout) fout
          else if (iotyp.eq.2) then
            write(iutdat) fout
          end if
-      enddo
+      end do
       do k=kx,1,-1
         do i=1,ix-2 
 #ifdef MPP1
@@ -132,15 +131,15 @@ c ******  write one time of data to mm4 output file.
           do j=1,jx-2
             fout(j,i) = omega(i+1,k,j+1)
 #endif
-          enddo
-        enddo
+          end do
+        end do
         if (iotyp.eq.1) then
           nrcout=nrcout+1
           write(iutdat,rec=nrcout) fout
         else if (iotyp.eq.2) then
           write(iutdat) fout
         end if
-      enddo
+      end do
       do k=kx,1,-1
         do i=1,ix-2 
 #ifdef MPP1
@@ -150,15 +149,15 @@ c ******  write one time of data to mm4 output file.
           do j=1,jx-2
             fout(j,i) = ta(i+1,k,j+1)/psa(i+1,j+1)
 #endif
-          enddo
-        enddo
+          end do
+        end do
         if (iotyp.eq.1) then
           nrcout=nrcout+1
           write(iutdat,rec=nrcout) fout
         else if (iotyp.eq.2) then
           write(iutdat) fout
         end if
-      enddo
+      end do
       do k=kx,1,-1
         do i=1,ix-2 
 #ifdef MPP1
@@ -168,15 +167,15 @@ c ******  write one time of data to mm4 output file.
           do j=1,jx-2
             fout(j,i) = qva(i+1,k,j+1)/psa(i+1,j+1)
 #endif
-          enddo
-        enddo
+          end do
+        end do
         if (iotyp.eq.1) then
           nrcout=nrcout+1
           write(iutdat,rec=nrcout) fout
         else if (iotyp.eq.2) then
           write(iutdat) fout
         end if
-      enddo
+      end do
       do k=kx,1,-1
         do i=1,ix-2 
 #ifdef MPP1
@@ -186,15 +185,15 @@ c ******  write one time of data to mm4 output file.
           do j=1,jx-2
             fout(j,i) = qca(i+1,k,j+1)/psa(i+1,j+1)
 #endif
-          enddo
-        enddo
+          end do
+        end do
         if (iotyp.eq.1) then
           nrcout=nrcout+1
           write(iutdat,rec=nrcout) fout
         else if (iotyp.eq.2) then
           write(iutdat) fout
         end if
-      enddo
+      end do
       do i=1,ix-2 
 #ifdef MPP1
         do j=1,mjx-2
@@ -203,8 +202,8 @@ c ******  write one time of data to mm4 output file.
         do j=1,jx-2
           fout(j,i) = (psa(i+1,j+1)+ptop)*10.
 #endif
-        enddo
-      enddo
+        end do
+      end do
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
@@ -220,8 +219,8 @@ c ******  write one time of data to mm4 output file.
         do j=1,jx-2
           fout(j,i) = (rainc(i+1,j+1)+rainnc(i+1,j+1))*mmpd
 #endif
-        enddo 
-      enddo 
+        end do 
+      end do 
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
@@ -239,18 +238,18 @@ c                  3.  accum infiltration (30)
           fout(j,i) = tgb2d_io(1,i+1,j+1)
           do n=2,NNSG
             fout(j,i) = fout(j,i) + tgb2d_io(n,i+1,j+1)
-          enddo
+          end do
           fout(j,i) = fout(j,i)/float(NNSG)
 #else
         do j=1,jx-2
           fout(j,i) = tgb2d(1,i+1,j+1)
           do n=2,NNSG
             fout(j,i) = fout(j,i) + tgb2d(n,i+1,j+1)
-          enddo
+          end do
           fout(j,i) = fout(j,i)/float(NNSG)
 #endif
-        enddo 
-      enddo 
+        end do 
+      end do 
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
@@ -268,7 +267,7 @@ c                  3.  accum infiltration (30)
               fout(j,i) = fout(j,i)+swt2d_io(n,i+1,j+1)
               nn=nn+1
             end if
-          enddo
+          end do
 #else
         do j=1,jx-2
           fout(j,i) = 0.0
@@ -278,15 +277,15 @@ c                  3.  accum infiltration (30)
               fout(j,i) = fout(j,i)+swt2d(n,i+1,j+1)
               nn=nn+1
             end if
-          enddo
+          end do
 #endif
           if(nn.ge.max0(NNSG/2,1)) then
             fout(j,i) = fout(j,i)/float(nn)
           else
             fout(j,i) = -1.e34
           end if
-        enddo 
-      enddo 
+        end do 
+      end do 
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
@@ -304,7 +303,7 @@ c                  3.  accum infiltration (30)
               fout(j,i) = fout(j,i)+rno2d_io(n,i+1,j+1)
               nn=nn+1
             end if
-          enddo
+          end do
 #else
         do j=1,jx-2
           fout(j,i) = 0.0
@@ -314,15 +313,15 @@ c                  3.  accum infiltration (30)
               fout(j,i) = fout(j,i)+rno2d(n,i+1,j+1)
               nn=nn+1
             end if
-          enddo
+          end do
 #endif
           if(nn.ge.max0(NNSG/2,1)) then
             fout(j,i) = fout(j,i)/float(nn)
           else
             fout(j,i) = -1.e34
           end if
-        enddo 
-      enddo 
+        end do 
+      end do 
       if (iotyp.eq.1) then
         nrcout=nrcout+1
         write(iutdat,rec=nrcout) fout
@@ -337,21 +336,21 @@ c     changes for accum infiltration
         do j=1,mjx-1
           do n=1,NNSG
             rno2d_io(n,i,j) = 0.
-          enddo
+          end do
           rainc_io(i,j) = 0.
           rainnc_io(i,j) = 0.
 #else
         do j=1,jx-1
           do n=1,NNSG
             rno2d(n,i,j) = 0.
-          enddo
+          end do
           rainc(i,j) = 0.
           rainnc(i,j) = 0.
 #endif
-        enddo
-      enddo
+        end do
+      end do
 
       print *,'OUT-history written date = ',ldatez+xtime/1440.
 
       return
-      end
+      end subroutine outtap

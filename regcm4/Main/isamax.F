@@ -55,4 +55,4 @@ c
          smax = dabs(sx(i))
    30 continue
       return
-      end
+      end function isamax

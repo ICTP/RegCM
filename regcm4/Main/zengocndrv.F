@@ -17,7 +17,7 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      SUBROUTINE ZENGOCNDRV(j)
+      subroutine zengocndrv(j)
 
       implicit none
 #     include "parameter.inc"
@@ -82,8 +82,8 @@ c Back out Drag Coefficient
             tgb2d(n,i,j)= tgb(i,j)
           end if
         end if
-      enddo
+      end do
       end do
 
       return
-      end
+      end subroutine zengocndrv

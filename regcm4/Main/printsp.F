@@ -18,13 +18,13 @@ C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine printsp( array, ix, jx, kx, iinc, jinc, kref, name)
+      subroutine printsp( array, ix, jx, kx, iinc, jinc, kref, aname)
 c
       implicit none
       integer ix,jx,kx,iinc,jinc,kref
       real(kind=8)  array(ix,jx,kx)
       character*18 cform
-      character*08 name
+      character*08 aname
       integer i,j,ineg,inum,jnum,jcheck
 c
       ineg = - iinc
@@ -37,8 +37,8 @@ c
       write(cform,5) jnum
 5     format('(1x,i2,2x,',i2,'g11.3)')
 c
-      print *,'  field = ', name
+      print *,'  field = ', aname
       write(6,cform)(i,(array(i,j,kref),j=1,jx-1,jinc),i=ix-1,1,ineg)
 c
       return
-      end
+      end subroutine printsp

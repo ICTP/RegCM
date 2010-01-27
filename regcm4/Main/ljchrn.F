@@ -19,24 +19,24 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine ljchrn(chrv,nlshf)
 c
-c****     routine left justifies a character variable null filling on
+c****     routine left justifies a character variable cnull filling on
 c****     the right.  chrv is the character variable.  nlshf tells
 c****     how many characters the variable was shifted left
 c
       implicit none
       integer nlshf,lnchrv
       character *(*) chrv
-      character *1 blank,null
+      character *1 blank,cnull
       data blank /' '/
 c
-      null = char(0)
+      cnull = char(0)
       lnchrv = len(chrv)
       nlshf = 0
 10    continue
-      if (chrv(1:1).eq.blank.or.chrv(1:1).eq.null) then
+      if (chrv(1:1).eq.blank.or.chrv(1:1).eq.cnull) then
          call lshfch(chrv,lnchrv,1,1)
          nlshf = nlshf+1
          if (nlshf.ne.lnchrv) go to 10
       end if
       return
-      end
+      end subroutine ljchrn

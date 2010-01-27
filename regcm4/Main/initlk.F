@@ -84,4 +84,4 @@ c ******     Initially set lake points isothermal at 6.0 C (June)
       rewind(iin)
 
       return
-      end
+      end subroutine initlk

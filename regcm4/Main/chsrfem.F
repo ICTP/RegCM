@@ -31,6 +31,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/dust.cb"
 #     include "include/iunits.cb"
 #     include "include/aeroppt.cb"
+#     include "include/message.cb"
 
 #ifdef MPP1
 #     include "include/io.cb"
@@ -58,7 +59,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
           rd_tex = .true.
           goto 1000
         end if
-      enddo
+      end do
  1000 continue
 #ifdef MPP1
       end if
@@ -79,17 +80,17 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     do j=1,mjx
                     do i=1,ix
                       chemsrc_io(i,j,m,itr) = toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                else
                  do m=1,12
                    do j=1,mjx
                    do i=1,ix
                       chemsrc_io(i,j,m,itr) = 0.0d0
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
@@ -98,9 +99,9 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     do i=1,ix
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)
      &                                       +toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
             else if(AERCTL(1:2).eq.'BC') then
                if(AERTYP(4:4).eq.'1') then
@@ -109,17 +110,17 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     do j=1,mjx
                     do i=1,ix
                       chemsrc_io(i,j,m,itr) = toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                else
                  do m=1,12
                    do j=1,mjx
                    do i=1,ix
                       chemsrc_io(i,j,m,itr) = 0.0d0
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
@@ -128,9 +129,9 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     do i=1,ix
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)
      &                                       +toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
             else if(AERCTL(1:2).eq.'OC') then
                if(AERTYP(4:4).eq.'1') then
@@ -139,17 +140,17 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     do j=1,mjx
                     do i=1,ix
                       chemsrc_io(i,j,m,itr) = toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                else
                  do m=1,12
                    do j=1,mjx
                    do i=1,ix
                       chemsrc_io(i,j,m,itr) = 0.0d0
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
@@ -158,22 +159,22 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                     do i=1,ix
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)
      &                                       +toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
             end if
          end if
-      enddo
+      end do
       do j=1,mjx
         do itr=1,ntr
           do m=1,12
             do i=1,ix
               src_0(i,m,itr,j)=chemsrc_io(i,j,m,itr)
-            enddo
-          enddo
-        enddo
-      enddo
+            end do
+          end do
+        end do
+      end do
       end if
 c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 #else
@@ -190,17 +191,17 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     do j=1,jx
                     do i=1,ix
                       chemsrc(i,j,m,itr) = toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                else
                  do m=1,12
                    do j=1,jx
                    do i=1,ix
                       chemsrc(i,j,m,itr) = 0.0d0
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
@@ -208,9 +209,9 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     do j=1,jx
                     do i=1,ix
                       chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr)+toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
             else if(AERCTL(1:2).eq.'BC') then
                if(AERTYP(4:4).eq.'1') then
@@ -219,17 +220,17 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     do j=1,jx
                     do i=1,ix
                       chemsrc(i,j,m,itr) = toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                else
                  do m=1,12
                    do j=1,jx
                    do i=1,ix
                       chemsrc(i,j,m,itr) = 0.0d0
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
@@ -237,9 +238,9 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     do j=1,jx
                     do i=1,ix
                       chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr)+toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
             else if(AERCTL(1:2).eq.'OC') then
                if(AERTYP(4:4).eq.'1') then
@@ -248,17 +249,17 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     do j=1,jx
                     do i=1,ix
                       chemsrc(i,j,m,itr) = toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                else
                  do m=1,12
                    do j=1,jx
                    do i=1,ix
                       chemsrc(i,j,m,itr) = 0.0d0
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
                if(AERTYP(5:5).eq.'1') then
                   do m=1,12
@@ -266,13 +267,13 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
                     do j=1,jx
                     do i=1,ix
                       chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr)+toto(i,j)
-                    enddo
-                    enddo
-                  enddo
+                    end do
+                    end do
+                  end do
                end if
             end if
          end if
-      enddo
+      end do
 #endif
 #ifdef MPP1
       call MPI_SCATTER(src_0(1,1,1,1),ix*12*ntr*jxp,MPI_DOUBLE_PRECISION
@@ -283,10 +284,10 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
           do m=1,12
             do i=1,ix
               chemsrc(i,j,m,itr)=src0(i,m,itr,j)
-            enddo
-          enddo
-        enddo
-      enddo
+            end do
+          end do
+        end do
+      end do
 #endif
 
 c modification dust : read the soil texture type
@@ -302,8 +303,8 @@ c modification dust : read the soil texture type
          do j=1,mjx
          do i=1,ix
            dustsotex_io(i,j) = dble(toto(i,j))
-         enddo
-         enddo
+         end do
+         end do
       end if
       end if
 c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -321,8 +322,8 @@ c     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          do j=1,jx
          do i=1,ix
            dustsotex(i,j) = dble(toto(i,j))
-         enddo
-         enddo
+         end do
+         end do
       end if
 #endif
       if(rd_tex) then
@@ -351,9 +352,9 @@ c    OC
                chemsrc(i,j,m,iochl) = 0.5 * chemsrc(i,j,m,iochb)
                chemsrc(i,j,m,iochb) = 0.5 * chemsrc(i,j,m,iochb)
             end if
-         enddo
-         enddo
-      enddo
+         end do
+         end do
+      end do
 
 c    OPtical properties / internal mixing
       if(mixtype.eq.2) then
@@ -364,12 +365,7 @@ c    OPtical properties / internal mixing
          if(.not.there) then
             write(*,*) 'For mixtype=2, optdat.bin is required'
             write(*,*) 'ln -s ../Main/Commons/optdat.bin optdat.bin'
-#ifdef MPP1
-            write(*,*) 'stop in chsrfem.f'
-            call MPI_ABORT(MPI_COMM_WORLD,ierr)
-#else
-            stop
-#endif
+            call fatal(__FILE__,__LINE__,'optdat.bin is required')
          end if
          open(iutopt,file='optdat.bin',form='unformatted'
      &              ,recl=4*19*11*11*11*11*IBYTE,access='direct')
@@ -403,20 +399,26 @@ c       Check !
 
             if ((dextmix(i,j,k,l,m,n) .lt. 0.) .or.  
      &          (dextmix(i,j,k,l,m,n) .gt. 20.)) then
-               print*,'problem in dextmix ', dextmix(i,j,k,l,m,n)
-               stop
+               write (aline, *) 
+     &           'problem in dextmix ', dextmix(i,j,k,l,m,n)
+               call say
+               call fatal(__FILE__,__LINE__, 'DETMIX ERROR')
             end if
     
             if ((dssamix(i,j,k,l,m,n) .lt. 0.) .or.  
      &          (dssamix(i,j,k,l,m,n) .gt. 1.)) then
-               print*,'problem in dextmix ', dssamix(i,j,k,l,m,n)
-               stop
+               write (aline, *) 
+     &           'problem in dssamix ', dssamix(i,j,k,l,m,n)
+               call say
+               call fatal(__FILE__,__LINE__, 'DSSAMIX ERROR')
             end if
      
             if ((dgmix(i,j,k,l,m,n) .lt. 0.) .or.  
      &          (dgmix(i,j,k,l,m,n) .gt. 1.)) then
-               print*,'problem in dextmix ', dgmix(i,j,k,l,m,n)
-               stop
+               write (aline, *) 
+     &           'problem in dgmix ', dgmix(i,j,k,l,m,n)
+               call say
+               call fatal(__FILE__,__LINE__, 'DGMIX ERROR')
             end if
      
          end do
@@ -435,4 +437,4 @@ c       Check !
 #endif
       end if
       return
-      end
+      end subroutine chsrfem
