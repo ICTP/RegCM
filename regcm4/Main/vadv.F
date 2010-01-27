@@ -44,14 +44,9 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
 #     include "parameter.inc"
-#     include "include/param1.cb"
 #     include "include/param3.cb"
-
 #     include "include/main.cb"
 #     include "include/cvaria.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 c
       real(kind=8)  ften(ix,kx),fa(ix,kx),fg(ix,kx)
 c
