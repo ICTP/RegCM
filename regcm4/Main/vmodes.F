@@ -94,7 +94,7 @@ c
       else
         write (aline, *) 
      &    '0 linearization about horizontal mean of data ',
-     a    '(lstand=.f.)')
+     a    '(lstand=.f.)'
         call say
       end if
 c
