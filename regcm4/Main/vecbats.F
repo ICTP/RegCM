@@ -154,8 +154,6 @@ c=======================================================================
       real(kind=8)  ra
       common /ictp01/ rs(nbmax), ra(nbmax)
 c---------------------------------------------------------------------
-      real(kind=8)  rategb,fc1,rm,rp
-
 c ** note: constants related to the time step are defined here instead
 c          of at initialization to allow for the possibility
 c          of variable time step
@@ -167,10 +165,6 @@ c          of variable time step
          c(4) = dtbat
          c(6) = dtbat * 2.
          c(7) = 1./c(6)
-         rategb=0.2/tau1
-         fc1=c(4)*rategb*0.5
-         rm=1.-fc1
-         rp=1.+fc1
       end if
 
       call interf(1,jslc)
