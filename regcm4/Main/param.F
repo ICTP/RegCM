@@ -1549,8 +1549,7 @@ c
      &  call fatal(__FILE__,__LINE__, 'VERTICAL INTERPOLATION ERROR')
       do 160 k=1,kx
       pk = a(k)*(1000.-ptmb)+ptmb
-      if (pk .gt. chibot)
-     &  call fatal(__FILE__,__LINE__, 'VERTICAL INTERPOLATION ERROR')
+      if (pk .gt. chibot) go to 160
       kchi = k
 160   continue
 
