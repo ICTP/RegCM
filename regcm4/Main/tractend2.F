@@ -42,6 +42,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/dust.cb"
 #     include "include/bats.cb"
 #     include "include/date.cb"
+#     include "include/message.cb"
 c
       real(kind=8)  wetrem(ntr), wetrem_cvc(ntr)
       real(kind=8)  agingtend(ntr)
@@ -57,10 +58,11 @@ cbxq  real(kind=8)  h2o2mol
       real(kind=8)  cutend_up(ix,kx), cutend_dwd(ix,kx), wk(ix,kx)
       real(kind=8)  soilw(ix), wid10(ix),temp10(ix),rh10(ix),tsurf(ix)
       real(kind=8)  psurf(ix),srad(ix),vegfrac(ix),zeff(ix)
-      real(kind=8)  ustar(ix)
+c     real(kind=8)  ustar(ix)
       real(kind=8)  facv,facb,facs,fact, u10, v10
       real(kind=8)  satvp,shu10,pres10,qsat10 
-      real(kind=8)  PDEPV(ix,kx,nbin), ttb(ix,kx),zza(ix,kx)
+      real(kind=8)  PDEPV(ix,kx,nbin), ttb(ix,kx)
+c     real(kind=8)  zza(ix,kx)
       real(kind=8)  settend(ix,kx)
       integer ivegcov(ix), soilt(ix)
       integer i,k,itr,kb,kdwd, ibin
@@ -152,7 +154,10 @@ c     &               (wk(i,kb)-wk(i,kt))/(sigma(kb)-sigma(kt))
 c transport linked to updraft 
 c betwwen kt et kdwd , the tendancy is averaged (mixing)
 
-            if (kdwd .lt. kt) print*,'PBLEME !'
+            if (kdwd .lt. kt) then
+              write (aline, *)  'Problem in tractend2 !'
+              call say
+            end if
             do k=kt, kdwd
               cutend_up(i,k) =  mflx(i,1) * g * 1.e-3*
      &               wk(i,kb)/(sigma(kdwd) - sigma(kt))
@@ -461,7 +466,7 @@ c define the bin size
   
             do k=1,kx
               ttb(i,k) = tb(i,k,j)/ psb(i,j)
-              zza(i,k) = za(i,k,j) 
+c             zza(i,k) = za(i,k,j) 
             end do 
 
 c        calculate 10 M input for wind erosion and dry deposition
@@ -516,11 +521,11 @@ c relative humidity at 10m
             if (qsat10.gt.0.) rh10 (i) = shu10/qsat10
 c
 c friction velocity ( not used fo the moment)
-
-            ustar(i) = sqrt ( uvdrag(i,j)                 * 
-     &              sqrt ( (ub(i,kx,j)/psb(i,j) )**2 + 
-     &                     (vb(i,kx,j)/psb(i,j) )**2 ) /
-     &                rho(i,kx)                          )
+c
+c           ustar(i) = sqrt ( uvdrag(i,j)                 * 
+c    &              sqrt ( (ub(i,kx,j)/psb(i,j) )**2 + 
+c    &                     (vb(i,kx,j)/psb(i,j) )**2 ) /
+c    &                rho(i,kx)                          )
 
 c soil wetness
             soilw(i) = ssw2da(i,j) /(xmopor(iexsol(nint(satbrt(i,j))))
