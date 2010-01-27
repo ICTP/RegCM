@@ -63,7 +63,7 @@ c
       real(kind=8)  skd(NNSG,nbmax),swtrtd(NNSG,nbmax),rscsd(NNSG,nbmax)
       real(kind=8)  sks(NNSG,nbmax),depann(NNSG,nbmax)
       real(kind=8)  depdiu(NNSG,nbmax)
-      real(kind=8)  xnu,xnua,dtime,dtimea,dt2,cu,xkperi,t3,frozen
+      real(kind=8)  xnu,xnua,dtime,dtimea,dt2,xkperi,t3,frozen
       real(kind=8)  froze2,wtd,rscss,bcoefs,wtds,bcoefd,wtax,wtas
       real(kind=8)  depu,depr,cder,tbef,tg,tinc,c31,c41,c3t,c4t
       integer n,np
@@ -82,7 +82,6 @@ c=======================================================================
       dtime = c(4)*xnu
       dtimea = c(4)*xnua
       dt2 = 0.5*dtime
-      cu=0.
       xkperi=1.4e-6
 
 cl       3.4  permafrost temperature
