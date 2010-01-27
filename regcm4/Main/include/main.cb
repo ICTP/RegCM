@@ -53,6 +53,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       real(kind=8)  zpbl
       real(kind=8)  tgbb
 
+      real(kind=8)  uvdrag
+
 #ifdef MPP1
                                                                         
       real(kind=8)  rainp
@@ -75,7 +77,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      &         hgfact(ix,jxp),htsd(ix,jxp), zpbl(ix,jxp),tgbb(ix,jxp)
 
 
-      real(kind=8)  uvdrag
       common/uvdrg/ uvdrag(ix,0:jxp)
 
 #else
@@ -95,7 +96,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      &         hgfact(ix,jx),  htsd(ix,jx),  zpbl(ix,jx),
      &           tgbb(ix,jx)
 c                                                                      
-      real(kind=8)  uvdrag
       common/uvdrg/ uvdrag(ix,jx)
 
 #endif

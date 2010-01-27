@@ -16,8 +16,10 @@ C    You should have received a copy of the GNU General Public License
 C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-      subroutine zenitm(coszrs, ivmx, jslc)
+C
+      subroutine zenitm(coszrs,ivmx,jslc)
+C
+C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
 C   this subroutine calculates the cosine of the solar zenith angle
 C   for all longitude points of the mm42d domain. it needs as inputs
@@ -25,31 +27,34 @@ C   the longitude and latitude of the points, the initial date of the
 C   simulation and the gmt. all these quantities are specified
 C   in the initialization procedure of RegCM
 C
+C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+C
       implicit none
-
+C
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 #     include "include/main.cb"
 #     include "include/date.cb"
- 
-      integer ivmx, jslc
-      real(kind=8)  coszrs(ix)
-
+C
+      integer ivmx , jslc
+      real(kind=8) coszrs(ix)
+C
       integer ill
-      real(kind=8)  xt24,tlocap,omega,xxlat
-
-      xt24 = dmod(lhour*60.+xtime,1440.d0)
-      do ill = 1,ivmx
+      real(kind=8) xt24 , tlocap , omega , xxlat
+C
+C***********************************************************************
+C
+      xt24 = dmod(lhour*60.+xtime,1440.D0)
+      do ill = 1 , ivmx
         tlocap = xt24/60. + xlong(ill,jslc)/15.
-        tlocap = dmod(tlocap+24., 24.d0)
-        omega  = 15.*(tlocap-12.)*degrad
-        xxlat  = xlat(ill,jslc)*degrad
+        tlocap = dmod(tlocap+24.,24.D0)
+        omega = 15.*(tlocap-12.)*degrad
+        xxlat = xlat(ill,jslc)*degrad
 C       coszrs = cosine of solar zenith angle
-        coszrs(ill)=dsin(declin)*dsin(xxlat) +
-     $             dcos(declin)*dcos(xxlat)*dcos(omega)
-        coszrs(ill) = dmax1(0.d0,coszrs(ill))
+        coszrs(ill) = dsin(declin)*dsin(xxlat) + dcos(declin)
+     &                *dcos(xxlat)*dcos(omega)
+        coszrs(ill) = dmax1(0.D0,coszrs(ill))
       end do
-
-      return
+C
       end subroutine zenitm

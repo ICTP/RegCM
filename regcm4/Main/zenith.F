@@ -16,8 +16,10 @@ C    You should have received a copy of the GNU General Public License
 C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
+C
       subroutine zenith(dec,alat,fjd,rsun,coszrs,frac,imax)
+C
+C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
 C ** used by radiation package in ccm to coszrs  *****not yet used
 C                 here but could be called from albedo
@@ -52,34 +54,33 @@ C                      average insolation mode, 'frac' is the daylight
 C                      fraction at the point (see 'zenith'); to lowest
 C                      order it should be independent of longitude.
 C
-C     ***************
+C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 C
       implicit none
-      real(kind=8)  dec,alat,fjd,rsun
-      integer imax
-      real(kind=8)  coszrs(imax),frac(imax)
 C
-      real(kind=8)  twopi
-      data twopi /6.283185308/
-      real(kind=8)  ss,cc,rs,eccf,dlon,tpifjd,ha,cosz
+      real(kind=8) dec , alat , fjd , rsun
+      integer imax
+      real(kind=8) coszrs(imax) , frac(imax)
+C
+      real(kind=8) twopi
+      data twopi/6.283185308/
+      real(kind=8) ss , cc , rs , dlon , tpifjd , ha , cosz
       integer i
 C
 C***********************************************************************
 C
       ss = dsin(alat)*dsin(dec)
       cc = dcos(alat)*dcos(dec)
-      rs = 1.0 / rsun**2
-      eccf = rs
+      rs = 1.0/rsun**2
       rs = 1.0
       dlon = twopi/imax
       tpifjd = twopi*fjd
-      do i = 1, imax
+      do i = 1 , imax
         frac(i) = 1.0
-        ha = (i-1)*dlon+tpifjd
+        ha = (i-1)*dlon + tpifjd
 C       if cosz is negative, the sun is below the horizon.
-        cosz = dmax1(0.d0,ss+cc*dcos(ha))
+        cosz = dmax1(0.D0,ss+cc*dcos(ha))
         coszrs(i) = cosz
       end do
-
-      return
+C
       end subroutine zenith

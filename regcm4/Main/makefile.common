@@ -359,7 +359,7 @@ whenflt.o: whenflt.F
 whenne.o: whenne.F
 zengocndrv.o: zengocndrv.F parameter.inc include/param1.cb \
  include/param2.cb include/param3.cb include/main.cb include/pbldim.cb \
- include/pmoist.cb include/slice.cb include/rad.cb include/bats.cb2 \
+ include/pmoist.cb include/slice.cb include/bats.cb2 \
  include/bats.cb
 zengocn.o: zengocn.F
 zenith.o: zenith.F
