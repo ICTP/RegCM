@@ -4,6 +4,7 @@ SHELL = /bin/sh
 
 #FC =            mpif77
 FC =           mpxlf
+F90=    mpxlf90
 LDFLAGS =   -qmaxmem=-1
 LIBDIR = -L $(HOME)
 LIBS =
@@ -11,6 +12,8 @@ CMD =     regcm
 PROFLIB =       -lprof
 #FFLAGS =        -qarch=pwr4 -O3 -qintlog  -qstrict -qmaxmem=-1  -bmaxdata:0x80000000 -bmaxstack:0x40000000 -qzerosize
 #FFLAGS =  -g -c -bnoquiet -qarch=pwr5 -O4 -qintlog  -qstrict -qmaxmem=-1  -bmaxdata:0x80000000 -bmaxstack:0x40000000 -qzerosize -qextname 
-FFLAGS =  -g -c -bnoquiet -O4 -qintlog  -qstrict -qmaxmem=-1 -qzerosize -qextname
+FFLAGS =  -g  -bnoquiet -O4 -qintlog  -qstrict -qmaxmem=-1 -qzerosize -qextname
+
+CPPFLAGS= -DIBM 
 
 include makefile.common

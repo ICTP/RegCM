@@ -47,8 +47,11 @@ clean:
 blockdata001.o: blockdata001.F
 	$(FC) -c $(CPPFLAGS) -D$(SCENARIO) $(FFLAGS) $(INCLUDE_DIR) -c $<
 
-header.o: header.F90
-	$(FC) -c $(CPPFLAGS) $(SVNDEF) $(FFLAGS) $(INCLUDE_DIR) -c $<	
+header.f90: header.F90
+	cpp  $(CPPFLAGS) $(SVNDEF) $< >$@    
+
+header.o: header.f90
+	$(F90)   $(FFLAGS) $(INCLUDE_DIR) -c $<	
 
 # Dependencies
 

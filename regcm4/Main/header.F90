@@ -27,14 +27,18 @@ SUBROUTINE header(myid)
      WRITE (nrite,"(/,2x,'This is RegCM version 4 ')")
      WRITE (nrite,100)  SVN_REV, __DATE__ , __TIME__   
 100  FORMAT(2x,' SVN Revision: ',A,' compiled at: date : ',A,'  time: ',A,/)
+#ifndef IBM
      Ihost = GETHOSTNAME(hostname,30)
-     Idir=GETCWD(directory)
      CALL GETLOG(user)
+#else
+     hostname='ibm platform '
+     user= 'Unknown'
+#endif 
+     Idir=GETCWD(directory)
      CALL FDATE(date)
 
      WRITE(nrite,*) ": this run start at    : ",date
      len=len_strim(user)
-
      WRITE(nrite,*) ": it is submitted by   : ",user(1:len)
      len=len_strim(hostname)
      WRITE(nrite,*) ": it is running on     : ",hostname(1:len-1)
