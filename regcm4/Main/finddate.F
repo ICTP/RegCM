@@ -21,8 +21,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       implicit none
 #ifdef MPP1
 #     include "mpiregcm.inc"
-#     include "include/message.cb"
 #endif
+#     include "include/message.cb"
       integer         mdatez
       common /datenum/mdatez(289276)
 c
