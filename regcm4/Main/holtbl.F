@@ -23,10 +23,6 @@ c
       implicit none
       integer j
 #     include "parameter.inc"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      INTEGER ierr
-#endif
 #     include "include/param1.cb"
 #ifdef DIAG
 #     include "include/diagnosis.cb"
@@ -43,7 +39,9 @@ c
 #     include "include/slice.cb"
 #     include "include/trachem.cb"
 #ifdef MPP1
+      include 'mpif.h'
 #     include "include/io.cb"
+      INTEGER ierr
       common/kuv/ akxx1(ix-1,kx,0:jxp+1),akxx2(ix-1,kx,0:jxp+1)
 #else
       common/kuv/ akxx1(ix-1,kx,jx-1), akxx2(ix-1,kx,jx-1)

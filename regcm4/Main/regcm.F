@@ -142,8 +142,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/message.cb"
 
 #ifdef MPP1
-#     include "mpiregcm.inc"
 c     real(kind=8)  starttime,endtime
+      include 'mpif.h'
       integer NCPU
       integer ierr
 #endif

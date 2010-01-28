@@ -44,10 +44,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer iexec
 #     include "parameter.inc"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      integer ierr
-#endif
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -66,6 +62,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/message.cb"
 
 #ifdef MPP1
+      include 'mpif.h'
+      integer ierr
       real(kind=8)  aermm
       common /aerm/ aermm(ix-1,kx,jxp)
 #else

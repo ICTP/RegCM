@@ -45,9 +45,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer j,ind
       real(kind=8)  dxx
 #     include "parameter.inc"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
 #     include "include/param1.cb"
@@ -190,9 +187,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 c
@@ -333,9 +327,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 c
@@ -476,9 +467,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 c
@@ -619,9 +607,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 c
@@ -762,9 +747,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 c

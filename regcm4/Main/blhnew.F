@@ -64,10 +64,6 @@ c
 #     include "include/slice.cb"
 #     include "include/pbldim.cb"
 
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
-
       real(kind=8)  kzo
       data    kzo/1./
 c

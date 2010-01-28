@@ -43,7 +43,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/bdycod.cb"
 #ifdef MPP1
-#     include "mpiregcm.inc"
+      include 'mpif.h'
       integer jwb,jeb
 #endif
 c
@@ -149,11 +149,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer ip,j
 #     include "parameter.inc"
 #     include "include/bdycod.cb"
+c
 #ifdef MPP1
-#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
-c
       real(kind=8)  ften(ix,kx),   wg(ip)
       integer i,ii,jj,k,jsls,ibeg,iend
 c
@@ -260,11 +259,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer ip,j
 #     include "parameter.inc"
 #     include "include/bdycod.cb"
+c
 #ifdef MPP1
-#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
-c
       real(kind=8)  ften(ix,kx),   wg(ip)
       integer i,ii,jj,k,jsls,ibeg,iend
 c
@@ -371,11 +369,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer ip,j
 #     include "parameter.inc"
 #     include "include/bdycod.cb"
+c
 #ifdef MPP1
-#     include "mpiregcm.inc"
       integer jew
 #endif
-c
       real(kind=8)  ften(ix,kx),   wg(ip)
       integer i,ii,jj,k,jsls,ibeg,iend
 c
@@ -475,11 +472,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer ip,j
 #     include "parameter.inc"
 #     include "include/bdycod.cb"
+c
 #ifdef MPP1
-#     include "mpiregcm.inc"
       integer jew
 #endif
-c
       real(kind=8)  ften(ix,kx),   wg(ip)
       integer i,ii,jj,k,jsls,ibeg,iend
 c

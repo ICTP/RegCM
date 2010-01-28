@@ -29,16 +29,16 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 #     include "parameter.inc"
 #     include "include/main.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      integer ierr
-#     include "include/io.cb"
-#endif
 #     include "include/param1.cb"
 #     include "include/diagnosis.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/date.cb"
+#ifdef MPP1
+      include 'mpif.h'
+#     include "include/io.cb"
+      integer ierr
+#endif
 c
       real(kind=8)  error1,error2,tttmp,tdrym,tqmass,tvmass,tcmass
       real(kind=8)  tcrai,tncrai,xh

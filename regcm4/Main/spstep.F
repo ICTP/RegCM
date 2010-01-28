@@ -24,7 +24,7 @@ c
 #     include "parameter.inc"
 #     include "include/main.cb"
 #ifdef MPP1
-#     include "mpiregcm.inc"
+      include 'mpif.h'
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  ddsum(ix,jxp,nsplit), dhsum(ix,0:jxp,nsplit)

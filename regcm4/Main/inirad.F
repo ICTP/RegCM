@@ -24,9 +24,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/param1.cb"
 #     include "include/param3.cb"
 #     include "include/rad.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 
       integer i,j,k
 c

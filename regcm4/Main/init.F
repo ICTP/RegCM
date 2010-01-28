@@ -27,10 +27,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/parrad.cb"
 #     include "include/param1.cb"
-#ifdef DIAG
-#     include "include/diagnosis.cb"
-      real(kind=8)  tvmass,tcmass,tttmp
-#endif
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/iunits.cb"
@@ -45,13 +41,17 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/trachem.cb"
 #     include "include/message.cb"
 #ifdef MPP1
+      include 'mpif.h'
 #     include "include/io.cb"
+#endif
+#ifdef DIAG
+#     include "include/diagnosis.cb"
+      real(kind=8)  tvmass,tcmass,tttmp
 #endif
 #     include "include/date.cb"
 Cchem2
 Cchem2_
 #ifdef MPP1
-#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  psdot(ix,jxp)

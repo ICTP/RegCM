@@ -27,9 +27,6 @@ c     ---the unit from advection is converted to "kg".                c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/diagnosis.cb"
@@ -38,6 +35,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/main.cb"
 
 #ifdef MPP1
+      include 'mpif.h'
 #     include "include/io.cb"
       integer ierr
       real(kind=8)  vaix(kx,jxp),vaix_g(kx,mjx)

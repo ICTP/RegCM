@@ -41,9 +41,6 @@ c  ***********************************************************
       implicit none
 
 #     include "parameter.inc"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/trachem.cb"
 #     include "include/dust.cb"
 #     include "include/param1.cb"

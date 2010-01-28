@@ -19,9 +19,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine finddate(npos,idate)
       implicit none
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/message.cb"
       integer         mdatez
       common /datenum/mdatez(289276)

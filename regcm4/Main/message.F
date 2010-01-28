@@ -31,7 +31,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #       include "parameter.inc"
 #       include "include/message.cb"
 #ifdef MPP1
-#       include "mpiregcm.inc"
         if ( myid .eq. 0 ) print*, trim(aline)
 #else
         print*, trim(aline)
@@ -43,7 +42,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #       include "parameter.inc"
 #       include "include/message.cb"
 #ifdef MPP1
-#       include "mpiregcm.inc"
         print*, ' Processor ', myid,' : ',trim(aline)
 #else
         print*, trim(aline)
@@ -55,15 +53,13 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #       include "parameter.inc"
 #       include "include/message.cb"
 #ifdef MPP1
-#       include "mpiregcm.inc"
+        include 'mpif.h'
+        INTEGER ierr
 #endif
         character*(*) filename
         character*(*) str
         integer , intent (in) :: line
         character(len=8) :: cline
-#ifdef MPP1
-        INTEGER ierr
-#endif
 
         write(cline,'(i6)') line
         write(aline, *) '-------------- FATAL CALLED ---------------'
@@ -87,9 +83,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine vprntv( a, n, nam )
         implicit none
 #       include "parameter.inc"
-#ifdef MPP1
-#       include "mpiregcm.inc"
-#endif
+
         integer, intent(in) :: n
         character(len=8), intent(in) :: nam
         real(kind=8), dimension(n), intent(in) :: a
@@ -105,9 +99,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       subroutine vprntm( a, n1, n2, nam )
         implicit none
 #       include "parameter.inc"
-#ifdef MPP1
-#       include "mpiregcm.inc"
-#endif
+
         integer, intent(in) :: n1, n2
         character(len=8), intent(in) :: nam
         real(kind=8), dimension(n1,n2), intent(in) :: a

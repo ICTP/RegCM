@@ -57,11 +57,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/bdycod.cb"
 #     include "include/main.cb"
+#     include "include/param3.cb"
+c
 #ifdef MPP1
-#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
-#     include "include/param3.cb"
 c
       real(kind=8)  pten(ix)
       integer i,ii,jj,jsls,ibeg,iend
@@ -346,11 +346,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/main.cb"
 #     include "include/bdycod.cb"
+#     include "include/param3.cb"
 #ifdef MPP1
-#     include "mpiregcm.inc"
       integer jwb,jeb
 #endif
-#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,ii,k,jj,jsls,ibeg,iend
@@ -644,12 +643,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/main.cb"
 #     include "include/bdycod.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      integer jwb,jeb
-#endif
 #     include "include/param3.cb"
 c
+#ifdef MPP1
+      integer jwb,jeb
+#endif
       real(kind=8)  ften(ix,kx)
       integer i,ii,k,jj,jsls,ibeg,iend
       real(kind=8)  dtb,fcx,gcx,fls0,fls1,fls2,fls3,fls4
@@ -942,12 +940,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/main.cb"
 #     include "include/bdycod.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      integer jew
-#endif
 #     include "include/param3.cb"
 c
+#ifdef MPP1
+      integer jew
+#endif
       real(kind=8)  ften(ix,kx)
       integer i,ii,k,jj,jsls,ibeg,iend
       real(kind=8)  dtb,fcx,gcx,fls0,fls1,fls2,fls3,fls4
@@ -1233,12 +1230,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/bdycod.cb"
 #     include "include/main.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      integer jew
-#endif
 #     include "include/param3.cb"
 c
+#ifdef MPP1
+      integer jew
+#endif
       real(kind=8)  ften(ix,kx)
       integer i,ii,k,jj,jsls,ibeg,iend
       real(kind=8)  dtb,fcx,gcx,fls0,fls1,fls2,fls3,fls4

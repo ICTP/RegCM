@@ -54,10 +54,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/cvaria.cb"
 #     include "include/date.cb"
 
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
-
       integer i,j,k
       real(kind=8)  dtb,qvx1,qvx2,uavg,qvx,vavg,qcx2,qcx
 Cchem2

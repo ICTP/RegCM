@@ -47,7 +47,6 @@ c
       integer nrad2d,nrad3d
       parameter(nrad2d=21,nrad3d=5)
 #ifdef MPP1
-#     include "mpiregcm.inc"
       real(kind=4)  frad2d(jxp,ix-2,nrad2d),frad3d(jxp,ix-2,kx,nrad3d)
 #else
       real(kind=4)  frad2d(jx-2,ix-2,nrad2d),frad3d(jx-2,ix-2,kx,nrad3d)

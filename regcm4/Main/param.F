@@ -40,11 +40,9 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/tied_constants.cb"
 #     include "include/culookup.cb"
 #     include "include/message.cb"
-Cchem2
-Cchem2_
 #ifdef MPP1
+      include 'mpif.h'
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  inisrf0(ix,NNSG*3+8,jxp),inisrf_0(ix,NNSG*3+8,mjx)

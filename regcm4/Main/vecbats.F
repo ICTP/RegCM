@@ -146,9 +146,6 @@ c=======================================================================
 #     include "include/date.cb"
 #     include "include/main.cb"
 #     include "include/bats2.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 
       real(kind=8)  rs
       real(kind=8)  ra

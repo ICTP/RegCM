@@ -34,12 +34,14 @@ c
 #     include "include/date.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
 #endif
 #ifdef DIAG
-      real(kind=8)  tttmp
+#ifdef MPP1
+      include 'mpif.h'
       integer ierr
       integer l
+#endif
+      real(kind=8)  tttmp
 #endif
 c
       integer i,j,k,itr

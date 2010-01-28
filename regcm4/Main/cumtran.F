@@ -25,9 +25,6 @@ cqhy15/07/99 subroutine cumtran(il,jl,kx,ntr,dsigma,icumtop,chia,chib)
 #     include "include/trachem.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/param3.cb"
 
       real(kind=8)  cumfrc,deltas,chiabar,chibbar

@@ -23,7 +23,6 @@ c::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c     *** assigns constants that appear in common blocks
 c     ***
 #     include "parameter.inc"
-
 #     include "include/parrad.cb"
 C------------------------------Commons----------------------------------
 C_IPCC

@@ -117,3 +117,10 @@ C Tracer parameter
       parameter(nbin = 4)
 
 C:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#ifdef MPP1
+      integer myid,iwest,ieast
+      integer jbegin,jendl,jendx,jendm
+      common/mpi/ myid,iwest,ieast
+      common/jbegin/jbegin,jendl,jendx,jendm
+#endif

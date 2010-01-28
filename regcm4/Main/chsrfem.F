@@ -34,8 +34,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/message.cb"
 
 #ifdef MPP1
+      include 'mpif.h'
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
       integer ierr
       real(kind=8)  src0(ix,12,ntr,jxp),src_0(ix,12,ntr,mjx)
       COMMON /tmpSRC/ src0,src_0

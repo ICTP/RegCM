@@ -26,11 +26,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer iexec
 #     include "parameter.inc"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-      integer ierr
-      integer idum
-#endif
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
@@ -38,7 +33,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
 #     include "include/bats2.cb"
+#     include "include/date.cb"
+#     include "include/message.cb"
 #ifdef MPP1
+      include 'mpif.h'
+#     include "include/parrad.cb"
 #     include "include/bdycod.cb"
 #     include "include/pmoist.cb"
 #     include "include/rad.cb"
@@ -46,12 +45,12 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/cvaria.cb"
 #     include "include/io.cb"
 #endif
-#     include "include/date.cb"
-#     include "include/message.cb"
 c**********************
       integer nrcout
       COMMON /GENREC/ nrcout
 #ifdef MPP1
+      integer ierr
+      integer idum
       integer m,n
       real(kind=8)  am
       real(kind=8)  an
@@ -60,7 +59,6 @@ c**********************
       common /dpass/ m(nsplit)
      a             , am(kx,nsplit), an(nsplit)
      b             , dstor(ix,0:jxp+1,nsplit), hstor(ix,0:jxp+1,nsplit)
-#     include "include/parrad.cb"
       real(kind=8)  absnxt,              ! Nearest layer absorptivities
      $     abstot,              ! Non-adjacent layer absorptivites
      $     emstot               ! Total emissivity

@@ -49,9 +49,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
       integer j,ind
 #     include "parameter.inc"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 #     include "include/slice.cb"
 #     include "include/main.cb"
 
@@ -157,9 +154,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/slice.cb"
 #     include "include/main.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
       real(kind=8)  ften(ix,kx),xkc(ix,kx)
       real(kind=8)  c203
       integer i,k

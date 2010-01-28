@@ -38,7 +38,6 @@ c
 #     include "include/slice.cb"
 #ifdef MPP1
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
 #endif
 #     include "include/bats.cb"
 

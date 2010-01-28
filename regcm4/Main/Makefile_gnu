@@ -1,11 +1,11 @@
 #  gfortran/gcc.4.3  and openmpi 1.3.3
 
 SCENARIO = A1B
-CPPFLAGS= -P -traditional 
+CPPFLAGS= -P -traditional -DDIAG
 FFLAGS =  -O0 -fno-underscoring -g -fbounds-check -ffpe-trap=zero -fconvert=big-endian -Wall -pedantic
 
-FC = gfortran
-F90 = gfortran
+FC = mpif90
+F90 = mpif90
 LD =$(FC)
 
 include makefile.common

@@ -27,9 +27,6 @@ c
 #     include "include/param3.cb"
 #     include "include/main.cb"
 #     include "include/rad.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 
       real(kind=8)  prlevh,ppwrkh,o3wrk,ppwrk,o3sum,ppsum,o3win,ppwin
       real(kind=8)  o3ann ,ppann

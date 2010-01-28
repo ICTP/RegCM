@@ -33,9 +33,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/slice.cb"
 #     include "include/bats2.cb"
 #     include "include/bats.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 
       integer i, j, k, n, kk, idx, idxp1, jdx, jdxp1
       real(kind=8)  pl, thcon, psrf, tv, cell

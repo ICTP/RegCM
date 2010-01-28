@@ -44,8 +44,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/date.cb"
 
 #ifdef MPP1
+      include 'mpif.h'
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       integer nxwb,nxeb,ndwb,ndeb,nkk

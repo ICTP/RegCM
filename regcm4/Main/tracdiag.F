@@ -28,8 +28,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "include/mainchem.cb"
 
 #ifdef MPP1
+      include 'mpif.h'
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
       integer ierr
       real(kind=8)  xkc(ix,kx,jxp)
       real(kind=8)  vailx(kx,jxp),vailx_g(kx,mjx),va02(kx,jxp)

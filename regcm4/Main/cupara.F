@@ -41,10 +41,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/rad.cb"
 #     include "include/bats2.cb"
 #     include "include/trachem.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
-
 c
       real(kind=8)  seqt(kx),tmp3(ix,kx)
 c

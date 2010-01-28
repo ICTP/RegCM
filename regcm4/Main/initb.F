@@ -33,9 +33,6 @@ c
 #     include "include/bats.cb"
 #     include "include/main.cb"
 #     include "include/bats2.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
 c
 c----------------------------------------------------------------------
 c     slmo   : surface moisture availability in fraction of one.

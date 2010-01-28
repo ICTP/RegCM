@@ -32,8 +32,8 @@ c
 #     include "include/main.cb"
 #     include "include/split.cb"
 #ifdef MPP1
+      include 'mpif.h'
 #     include "include/io.cb"
-#     include "mpiregcm.inc"
       integer status(MPI_STATUS_SIZE)
       integer ierr
       real(kind=8)  uuu,vvv

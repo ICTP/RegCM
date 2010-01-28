@@ -38,7 +38,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/pmoist.cb"
 #     include "include/bats2.cb"
 #ifdef MPP1
-#     include "mpiregcm.inc"
 #     include "include/io.cb"
       real(kind=8)  psa(ix,jxp),psb(ix,jxp)
       real(kind=8)  ta(ix,kx,jxp), tb(ix,kx,jxp)

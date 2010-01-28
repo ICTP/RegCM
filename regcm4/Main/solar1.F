@@ -31,9 +31,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/param3.cb"
 #     include "include/date.cb"
-#ifdef MPP1
-#     include "mpiregcm.inc"
-#endif
+C
       real(kind=8)  pie,dayspy,calday,theta,delta,decdeg
 c----------------------------------------------------------------------
 c
