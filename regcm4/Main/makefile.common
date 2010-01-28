@@ -1,29 +1,29 @@
 all:: regcm
 
 SRCS = \
-aermix.F aeroppt.F aerout.F albedov.F balanc.F balbak.F bconst.F \
+aermix.F aeroppt.F aerout.F albedov.F bconst.F \
 bdyin.F bdyuv.F \
 bdyval.F blhnew.F blockdata001.F bmpara.F bndry.F \
-carbon.F cdiv.F chdrydep.F chemtap.F chrsetc.F chsrfem.F \
+carbon.F chdrydep.F chemtap.F chrsetc.F chsrfem.F \
 cldefr.F cldems.F cldfrac.F co2.F colmod3.F conadv.F condch.F \
 condcq.F condtq.F conmas.F constants.F convect_tables.F \
 cumtran.F cupara.F cuparan.F cupemandrv.F cupeman.F cup.F \
 depth.F deriv.F diffu.F diffut.F \
-dragdn.F drag.F drip.F dsflx.F eddy.F elmhes.F eltran.F \
+dragdn.F drag.F drip.F dsflx.F eddy.F \
 eomb.F finddate.F for_next.F frawat.F getdat.F grads_stuf.F \
 hadv.F holtbl.F \
-hqr2.F hqr.F htdiff.F ice.F inirad.F initb.F initdate.F init.F \
-inidust.F initlk.F interf.F intmax.F invmtrx.F isamax.F isrchfgt.F \
+htdiff.F ice.F inirad.F initb.F initdate.F init.F \
+inidust.F initlk.F interf.F intmax.F isrchfgt.F \
 isrchfle.F lakedrv.F lake.F lenchr.F lfdrag.F lftemp.F \
 ljchrn.F lshfch.F lutbl.F mapsmp.F maximi.F message.F minimi.F \
-mixer.F mkfile.F \
+mixer.F mkfile.F netlib.F \
 nconvp.F nudge.F o3data.F outprt.F output.F \
 outsav.F outsrf.F outsub.F outtap0.F outtap.F param.F pcp.F \
 radabs.F radclr.F radclw.F radcsw.F radctl.F radded.F radems.F \
 radini.F radinp.F radout.F radoz2.F radtap.F radtpl.F reorder.F \
-resetr.F rg.F root.F satur.F saxpy.F sgedi.F sgefa.F slice.F slice3d.F \
+resetr.F root.F satur.F slice.F slice3d.F \
 snow.F soilbc.F solar1.F spinit.F spline.F splitf.F \
-sponge.F spstep.F sscal.F sswap.F stomat.F \
+sponge.F spstep.F stomat.F \
 temp.F tend.F tgrund.F tpfc.F tracbud.F tracdiag.F \
 tractend2.F trcab.F trcabn.F trcems.F trcmix.F trcplk.F trcpth.F \
 tseice.F tstep.F vadv.F vcheke.F vcheki.F vchekt.F \
@@ -61,8 +61,6 @@ aerout.o: aerout.F parameter.inc include/param1.cb include/param2.cb \
  include/date.cb include/trachem.cb include/aeroppt.cb include/parrad.cb
 albedov.o: albedov.F parameter.inc include/param1.cb include/param3.cb \
  include/main.cb include/cvaria.cb include/bats2.cb include/bats.cb
-balanc.o: balanc.F
-balbak.o: balbak.F
 bconst.o: bconst.F parameter.inc include/bats.cb
 bdyin.o: bdyin.F parameter.inc include/iunits.cb include/param1.cb \
  include/param2.cb include/param3.cb include/main.cb include/bdycod.cb \
@@ -82,7 +80,6 @@ bmpara.o: bmpara.F parameter.inc include/param1.cb include/param2.cb \
  include/bats2.cb include/trachem.cb
 bndry.o: bndry.F parameter.inc include/bats.cb
 carbon.o: carbon.F
-cdiv.o: cdiv.F
 chdrydep.o: chdrydep.F
 chemtap.o: chemtap.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/iunits.cb include/date.cb include/cvaria.cb \
@@ -137,8 +134,6 @@ drag.o: drag.F parameter.inc include/bats.cb
 drip.o: drip.F parameter.inc include/bats.cb
 dsflx.o: dsflx.F parameter.inc include/dust.cb include/message.cb
 eddy.o: eddy.F
-elmhes.o: elmhes.F
-eltran.o: eltran.F
 eomb.o: eomb.F
 finddate.o: finddate.F include/message.cb
 for_next.o: for_next.F parameter.inc include/param1.cb include/param2.cb \
@@ -159,8 +154,6 @@ holtbl.o: holtbl.F parameter.inc include/param1.cb include/diagnosis.cb \
  include/mainchem.cb include/pbldim.cb include/cvaria.cb \
  include/pmoist.cb include/bats2.cb include/slice.cb include/trachem.cb \
  include/io.cb
-hqr2.o: hqr2.F
-hqr.o: hqr.F
 htdiff.o: htdiff.F parameter.inc include/pmoist.cb
 ice.o: ice.F
 inidust.o: inidust.F parameter.inc include/trachem.cb include/dust.cb \
@@ -181,8 +174,7 @@ interf.o: interf.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/main.cb include/cvaria.cb include/pbldim.cb \
  include/bats2.cb include/slice.cb include/io.cb include/bats.cb
 intmax.o: intmax.F
-invmtrx.o: invmtrx.F include/message.cb
-isamax.o: isamax.F
+netlib.o: netlib.F include/message.cb
 isrchfgt.o: isrchfgt.F
 isrchfle.o: isrchfle.F
 lakedrv.o: lakedrv.F parameter.inc include/param1.cb include/iunits.cb \
@@ -282,12 +274,8 @@ regcm.o: regcm.F header.o parameter.inc include/date.cb include/param1.cb \
  include/param2.cb include/param3.cb include/message.cb
 reorder.o: reorder.F
 resetr.o: resetr.F
-rg.o: rg.F
 root.o: root.F parameter.inc include/bats.cb
 satur.o: satur.F parameter.inc include/bats.cb
-saxpy.o: saxpy.F
-sgedi.o: sgedi.F
-sgefa.o: sgefa.F
 slice3d.o: slice3d.F parameter.inc include/param1.cb include/param2.cb \
  include/param3.cb include/main.cb include/mainchem.cb include/cvaria.cb \
  include/pbldim.cb include/pmoist.cb include/slice.cb include/bats2.cb \
@@ -306,8 +294,6 @@ splitf.o: splitf.F parameter.inc include/param1.cb include/main.cb \
  include/cvaria.cb include/pbldim.cb include/split.cb
 sponge.o: sponge.F parameter.inc include/bdycod.cb
 spstep.o: spstep.F parameter.inc include/main.cb
-sscal.o: sscal.F
-sswap.o: sswap.F
 stomat.o: stomat.F parameter.inc include/bats.cb include/bats2.cb
 temp.o: temp.F
 tend.o: tend.F parameter.inc include/param1.cb include/param2.cb \
