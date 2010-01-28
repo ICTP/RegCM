@@ -14,7 +14,7 @@ eomb.F finddate.F for_next.F frawat.F getdat.F grads_stuf.F \
 hadv.F holtbl.F \
 htdiff.F ice.F inirad.F initb.F initdate.F init.F \
 inidust.F initlk.F interf.F intmax.F isrchfgt.F \
-isrchfle.F lakedrv.F lake.F lenchr.F lfdrag.F lftemp.F \
+isrchfle.F invmtrx.F lakedrv.F lake.F lenchr.F lfdrag.F lftemp.F \
 ljchrn.F lshfch.F lutbl.F mapsmp.F maximi.F message.F minimi.F \
 mixer.F mkfile.F netlib.F \
 nconvp.F nudge.F o3data.F outprt.F output.F \
@@ -177,6 +177,7 @@ intmax.o: intmax.F
 netlib.o: netlib.F include/message.cb
 isrchfgt.o: isrchfgt.F
 isrchfle.o: isrchfle.F
+isrchfle.o: invmtrx.F
 lakedrv.o: lakedrv.F parameter.inc include/param1.cb include/iunits.cb \
  include/bats.cb include/bats2.cb include/date.cb
 lake.o: lake.F
