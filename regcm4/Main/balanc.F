@@ -17,12 +17,12 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C:::::::::::::::::::::::::: subroutine balanc::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine balanc(nm,n,a,low,igh,scale)
+      subroutine balanc(nm,n,a,low,igh,xscale)
 c
       implicit none
       integer i,j,k,l,m,n,jj,nm,igh,low,iexc
-      real(kind=8)  a(nm,n),scale(n)
-      real(kind=8)  c,f,g,r,s,b2,radix
+      real(kind=8)  a(nm,n),xscale(n)
+      real(kind=8)  c,f,g,r,s,b2,rdx
       logical noconv
 c
 c     this subroutine is a translation of the algol procedure balance,
@@ -51,14 +51,14 @@ c          is equal to zero if
 c           (1) i is greater than j and
 c           (2) j=1,...,low-1 or i=igh+1,...,n.
 c
-c        scale contains information determining the
+c        xscale contains information determining the
 c           permutations and scaling factors used.
 c
 c     suppose that the principal submatrix in rows low through igh
 c     has been balanced, that p(j) denotes the index interchanged
 c     with j during the permutation step, and that the elements
 c     of the diagonal matrix used are denoted by d(i,j).  then
-c        scale(j) = p(j),    for j = 1,...,low-1
+c        xscale(j) = p(j),    for j = 1,...,low-1
 c                 = d(j,j),      j = low,...,igh
 c                 = p(j)         j = igh+1,...,n.
 c     the order in which the interchanges are made is n to igh+1,
@@ -77,15 +77,15 @@ c     this version dated august 1983.
 c
 c     ------------------------------------------------------------------
 c
-      radix = 16.0e0
+      rdx = 16.0e0
 c
-      b2 = radix * radix
+      b2 = rdx * rdx
       k = 1
       l = n
       go to 100
 c     .......... in-line procedure for row and
 c                column exchange ..........
-   20 scale(m) = j
+   20 xscale(m) = j
       if (j .eq. m) go to 50
 c
       do 30 i = 1, l
@@ -137,7 +137,7 @@ c
   170 continue
 c     .......... now balance the submatrix in rows k to l ..........
       do 180 i = k, l
-  180 scale(i) = 1.0e0
+  180 xscale(i) = 1.0e0
 c     .......... iterative loop for norm reduction ..........
   190 noconv = .false.
 c
@@ -152,22 +152,22 @@ c
   200    continue
 c     .......... guard against zero c or r due to underflow ..........
          if (c .eq. 0.0e0 .or. r .eq. 0.0e0) go to 270
-         g = r / radix
+         g = r / rdx
          f = 1.0e0
          s = c + r
   210    if (c .ge. g) go to 220
-         f = f * radix
+         f = f * rdx
          c = c * b2
          go to 210
-  220    g = r * radix
+  220    g = r * rdx
   230    if (c .lt. g) go to 240
-         f = f / radix
+         f = f / rdx
          c = c / b2
          go to 230
 c     .......... now balance ..........
   240    if ((c + r) / f .ge. 0.95e0 * s) go to 270
          g = 1.0e0 / f
-         scale(i) = scale(i) * f
+         xscale(i) = xscale(i) * f
          noconv = .true.
 c
          do 250 j = k, n

@@ -17,12 +17,12 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine eltran(nm,n,low,igh,a,int,z)
+      subroutine eltran(nm,n,low,igh,a,ia,z)
       implicit none
 c
       integer i,j,n,kl,mm,mp,nm,igh,low,mp1
       real(kind=8)  a(nm,igh),z(nm,n)
-      integer int(igh)
+      integer ia(igh)
 c
 c     this subroutine is a translation of the algol procedure elmtrans,
 c     num. math. 16, 181-204(1970) by peters and wilkinson.
@@ -48,7 +48,7 @@ c        a contains the multipliers which were used in the
 c          reduction by  elmhes  in its lower triangle
 c          below the subdiagonal.
 c
-c        int contains information on the rows and columns
+c        ia contains information on the rows and columns
 c          interchanged in the reduction by  elmhes.
 c          only elements low through igh are used.
 c
@@ -83,7 +83,7 @@ c
          do 100 i = mp1, igh
   100    z(i,mp) = a(i,mp-1)
 c
-         i = int(mp)
+         i = ia(mp)
          if (i .eq. mp) go to 140
 c
          do 130 j = mp, igh
