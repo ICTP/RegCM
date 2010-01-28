@@ -47,12 +47,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/iunits.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
 #     include "include/bdycod.cb"
 #     include "include/cvaria.cb"
-#     include "include/pbldim.cb"
 #     include "include/pmoist.cb"
 #     include "include/rad.cb"
 #     include "include/bats2.cb"
@@ -70,18 +68,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       real(kind=8)  aermm
       common /aerm/ aermm(ix-1,kx,jx-1)
 #endif
-      real(kind=8)  ptte(ix,kx),pqte(ix,kx),pvom(ix,kx),pvol(ix,kx),
-     &        pxte(ix,kx),pverp(ix,kx),pqhfl(ix),pxtec(ix,kx),
-     &        papp1(ix,kx),paphp1(ix,kxp1),pgeo(ix,kx),paprc(ix),
-     &        ptopmax(ix),ptopmaxm(ix),cnb(ix),cmfmc(ix,kx),
-     &        zlude(ix,kx),mu2(ix,kx),md2(ix,kx),
-     &        eu2(ix,kx),ed2(ix,kx),zrain(ix)
-      logical ldland(ix),locum(ix)
-      integer ktype(ix)
-      COMMON /cutied/ ptte,pqte,pvom,pvol,pxte,pverp,pqhfl,pxtec,papp1,
-     &                paphp1,pgeo,paprc,ktype,ldland,locum,ptopmax,
-     &                ptopmaxm,cnb,cmfmc,zlude,mu2,md2,eu2,ed2,zrain
-
       INTEGER         MDATEZ
       COMMON /DATENUM/MDATEZ(289276)
 c
