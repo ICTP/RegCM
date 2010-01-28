@@ -147,9 +147,6 @@ c=======================================================================
 #     include "include/main.cb"
 #     include "include/bats2.cb"
 
-      real(kind=8)  rs
-      real(kind=8)  ra
-      common /ictp01/ rs(nbmax), ra(nbmax)
 c---------------------------------------------------------------------
 c ** note: constants related to the time step are defined here instead
 c          of at initialization to allow for the possibility
