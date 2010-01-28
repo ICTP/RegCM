@@ -17,11 +17,11 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine balbak(nm,n,low,igh,scale,m,z)
+      subroutine balbak(nm,n,low,igh,xscale,m,z)
 c
       implicit none
       integer i,j,k,m,n,ii,nm,igh,low
-      real(kind=8)  scale(n),z(nm,m)
+      real(kind=8)  xscale(n),z(nm,m)
       real(kind=8)  s
 c
 c     this subroutine is a translation of the algol procedure balbak,
@@ -42,7 +42,7 @@ c        n is the order of the matrix.
 c
 c        low and igh are integers determined by  balanc.
 c
-c        scale contains information determining the permutations
+c        xscale contains information determining the permutations
 c          and scaling factors used by  balanc.
 c
 c        m is the number of columns of z to be back transformed.
@@ -66,10 +66,10 @@ c
       if (igh .eq. low) go to 120
 c
       do 110 i = low, igh
-         s = scale(i)
+         s = xscale(i)
 c     .......... left hand eigenvectors are back transformed
 c                if the foregoing statement is replaced by
-c                s=1.0e0/scale(i). ..........
+c                s=1.0e0/xscale(i). ..........
          do 100 j = 1, m
   100    z(i,j) = z(i,j) * s
 c
@@ -80,7 +80,7 @@ c               igh+1 step 1 until n do -- ..........
          i = ii
          if (i .ge. low .and. i .le. igh) go to 140
          if (i .lt. low) i = low - ii
-         k = scale(i)
+         k = xscale(i)
          if (k .eq. i) go to 140
 c
          do 130 j = 1, m
