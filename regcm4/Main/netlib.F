@@ -91,41 +91,6 @@ c     .......... find both eigenvalues and eigenvectors ..........
 
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine invmtrx(a, na, v, nv, n, d, ip, ier, work)
-      implicit none
-#     include "include/message.cb"
-      integer na, nv, n, ier, info, ip(n)
-      real(kind=8)  a(n,n), v(n,n), work(n), d(2)
-      integer i,j,job
-c
-c 08/23/91 version 1.0
-c 12/10/92 updated to correct bugs
-c note: different from cray routine invmtx
-c uses subroutines sgefa/sgedi from library linpack
-c see dick valent, (SCD, consulting) if problems
-c
-      if (n .ne. na .or. n .ne. nv) then
-        call fatal(__FILE__,__LINE__, 'valent invmtx: equate n, na, nv')
-      end if
-c
-      do 10 j=1,n
-      do 10 i=1,n
-        v(i,j) = a(i,j)
-   10 continue
-      call sgefa(v,n,n,ip,info)
-      if (info .ne. 0) then
-        write (aline, *) 'sgefa info = ', info
-        call say
-        call fatal(__FILE__,__LINE__, 'sgefa error')
-      end if
-      job = 11
-      call sgedi(v,n,n,ip,d,work,job)
-      ier = info
-      return
-      end subroutine invmtrx
-
-C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
       subroutine  sscal(n,sa,sx,incx)
 c
 c     scales a vector by a constant.
