@@ -55,11 +55,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/rad.cb"
 #     include "include/bats2.cb"
 #     include "include/trachem.cb"
-#     include "include/slice.cb"
 #     include "include/date.cb"
 #     include "include/message.cb"
 
 #ifdef MPP1
+#     include "include/slice.cb"
       include 'mpif.h'
       integer ierr
       real(kind=8)  aermm
