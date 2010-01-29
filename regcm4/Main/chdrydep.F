@@ -74,7 +74,6 @@ c subbbin
       real(kind=8)  wind10(ilg), rh10(ilg)
       real(kind=8)  srad(ilg)
       real(kind=8)  ra(ilg,luc),vegcover(ilg,luc)
-      real(kind=8)  delt, adt2
 !      real(kind=8)  arw
       real(kind=8)  avesize(isize)  
       integer ivegcov(ilg) ,tot
@@ -118,19 +117,16 @@ c subbbin
       real(kind=8)  pdiff(ilg,ilev,isize)
 
       real(kind=8)  ww, mol,ptemp2,tbar,ratioz,logratio,asq,dtemp,vp,es
-      real(kind=8)  wvpm,ustarsq,utstar,thstar,kui,aa,cm,ch,fm,fh,delz
+      real(kind=8)  wvpm,ustarsq,utstar,thstar,kui,aa,cm,ch,fm,fh
       real(kind=8)  rib,vptemp,tsw,qs,tsv,z0water,dthv,cun,zdl
       real(kind=8)  psiu,x,z,zl,y,psit,zz0(ilg)
 
-      real(kind=8)  krm,zr,z10,pmb
-      data    krm/0.4/,zr/1.0/,z10/10.0/,pmb /1000.0/
+      real(kind=8)  krm,z10,pmb
+      data    krm/0.4/,z10/10.0/,pmb /1000.0/
 
       do n=1,isize
         avesize(n) = (aerosize(1,n)+aerosize(2,n))/2.0
       end do
-
-      delt=1200.0
-      adt2=2.0*delt
 
 c======================================================================
 c  ********************************************************
@@ -198,7 +194,6 @@ c     * rh10  - relative humidity of air at 10m.      ****
 c     *           (0.0-1.0)                           ****
 c     * pmb   - sea level pressure (mb)               ****
 c     ****************************************************
-      delz=z10-zr
       do j=1,luc
         do i=il1,il2
           ww = dmax1(wind10(i),1.0d0)
@@ -333,7 +328,6 @@ c
 c     **************************************************************  
 c     * compute the values of  ra                            *******
 c     **************************************************************
-c         z=0.36788*(delz)+zr
  
           z=z10
           zl=z/mol
