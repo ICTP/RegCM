@@ -75,8 +75,6 @@ c
       real(kind=8)  a,b
       common /ab/ a(NNSG,nbmax), b(NNSG,nbmax)
 
-      real(kind=8)  cdrd
-      Common /aba/ cdrd(NNSG,nbmax)
       real(kind=8)  rppq, efe, qsatld, dcd
       real(kind=8)  vpdc
       Common /abb/ vpdc(NNSG,nbmax)
@@ -90,8 +88,8 @@ c
       common /ictp01/ rs(NNSG,nbmax), ra(NNSG,nbmax)
 
       real(kind=8)  efpot(NNSG,nbmax),tbef(NNSG,nbmax), dels(NNSG,nbmax)
-      integer n,np,iter,itmax,itfull,itmin
-      real(kind=8)  sgtg3,del,efeb,delmax,dtmin,dlemin,rppdry,eg1,epss
+      integer n,np,iter,itmax,itfull
+      real(kind=8)  sgtg3,efeb,delmax,rppdry,eg1,epss
       real(kind=8)  dcn,sf1,sf2,qcan,xxkb,vakb,fbare,qbare,qsatdg
 c
 c=======================================================================
@@ -133,7 +131,6 @@ cl            1.5  saturation specific humidity of leaf
 c=======================================================================
 cl            2.   begin iteration for leaf temperature calculation
 c=======================================================================
-      del    = 0.
       iter  = 0
       efeb   = 0.
       delmax = 1.
@@ -141,9 +138,6 @@ c=======================================================================
       itfull = itmax
 c     itmax = 40
 c     itfull = 20
-      itmin  =  2
-      dtmin  = 0.01
-      dlemin = 0.10
 
       do 40 iter=0,itmax
 c
