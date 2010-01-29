@@ -50,16 +50,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       implicit none
       integer j
+
 #     include "parameter.inc"
-#     include "include/param1.cb"
-#     include "include/param2.cb"
-#     include "include/param3.cb"
-#     include "include/main.cb"
-#     include "include/cvaria.cb"
 #     include "include/pmoist.cb"
 #     include "include/rad.cb"
 #     include "include/slice.cb"
-#     include "include/bats2.cb"
 
       integer i,k
       real(kind=8)  exlwc
