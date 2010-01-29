@@ -57,16 +57,15 @@ c
 #     include "include/param2.cb"
 #     include "include/crdcon.cb"
 #     include "include/slice.cb"
-#     include "include/trachem.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
 
 #ifdef MPP1
-      real(kind=8)  aermm
-      common /aerm/ aermm(ix-1, kx, jxp)
+c      real(kind=8)  aermm
+c      common /aerm/ aermm(ix-1, kx, jxp)
 #else
-      real(kind=8)  aermm
-      common /aerm/ aermm(ix-1, kx, jx-1)
+c      real(kind=8)  aermm
+c      common /aerm/ aermm(ix-1, kx, jx-1)
 #endif
 
 C

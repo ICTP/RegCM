@@ -24,9 +24,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #     include "parameter.inc"
 
-#     include "include/param1.cb"
 #     include "include/param2.cb"
-#     include "include/date.cb"
 #     include "include/trachem.cb"
 #     include "include/aeroppt.cb"
 #     include "include/parrad.cb"
