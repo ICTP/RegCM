@@ -39,9 +39,6 @@ c
       real(kind=8)  rppq, efe, qsatld, dcd
       Common/abc/ rppq(NNSG,nbmax), efe(NNSG,nbmax)
      &         ,qsatld(NNSG,nbmax), dcd(NNSG,nbmax)
-      real(kind=8)  rs
-      real(kind=8)  ra
-      common /ictp01/ rs(NNSG,nbmax), ra(NNSG,nbmax)
       integer n,np
       real(kind=8)  dne,xkb,hfl
 
