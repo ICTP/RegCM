@@ -65,20 +65,19 @@ c
       real(kind=8)  dkk(ix,kx)
       integer kdet(ix)
       integer k22(ix),kbcon(ix),kb(ix),jmin(ix),ktop(ix),
-     1        kds(ix),kbhe(ix)
+     1        kds(ix)
       real(kind=8)  f,xk,mbdt
 c
 c----output variables
 c
       real(kind=8)  outtem(ix,kx),outq(ix,kx)
-      integer i,k,ierr,iph,ipho,kk,lpt,kbcono,kclth
+      integer i,k,iph,ipho,kk,lpt,kbcono,kclth
       real(kind=8)  tcrit,xl,cpinv,tfinv,alsixt,c0,e,eo,tvbar,tvbaro
-      real(kind=8)  dh,pbcdif,dz,dz1,gamma,gamma0,qrch,dzo,dz2
+      real(kind=8)  dh,pbcdif,dz,dz1,agamma,gamma0,qrch,dzo,dz2
       real(kind=8)  gammo,gammo0,qrcho,dq,dt,dp,dv1,dv2,dv3
       real(kind=8)  dv1q,dv2q,dv3q,detdo,detdoq,aup,adw
-      real(kind=8)  gamma1,gamma2,dhh,dg,xddd,outtes,akclth
+      real(kind=8)  gamma1,gamma2,dhh,dg,outtes,akclth
 c
-      ierr=0
       tcrit=50.
       xl=2.5e06
       rv=461.9
@@ -146,7 +145,6 @@ c      xqkb(i)=0.
        pwavo(i)=0.
        pwevo(i)=0.
        k22(i)=1
-       kbhe(i)=1
        ktop(i)=1
        kbcon(i)=1
        kb(i)=1
@@ -336,9 +334,9 @@ c
          if(k.lt.ktop(i))then
           dz=-.5*z(i,k-1)+.5*z(i,k+1)
           dz1=z(i,k)-z(i,k-1)
-          gamma=(xl/cp)*(xl/(rv*(t(i,k)**2)))*qes(i,k)
+          agamma=(xl/cp)*(xl/(rv*(t(i,k)**2)))*qes(i,k)
           gamma0=(xl/cp)*(xl/(rv*(t(i,k-1)**2)))*qes(i,k-1)
-          qrch=qes(i,k)+(1./xl)*(gamma/(1.+gamma))*dby(i,k)
+          qrch=qes(i,k)+(1./xl)*(agamma/(1.+agamma))*dby(i,k)
           qc(i,k)=(qck(i)-qrch)/(1.+c0*dz)+qrch
           pw(i,k)=c0*dz*(qc(i,k)-qrch)
           qck(i)=qc(i,k)
@@ -346,7 +344,7 @@ c
           dz1=z(i,k)-z(i,k-1)
           aa0(i)=aa0(i)+dz1*(9.81/(1004.*(.5*
      *          (t(i,k)+t(i,k-1)))))*dby(i,k-1)/
-     1       (1.+.5*gamma+.5*gamma0)
+     1       (1.+.5*agamma+.5*gamma0)
           dzo=-.5*zo(i,k-1)+.5*zo(i,k+1)
           dz2=zo(i,k)-zo(i,k-1)
           gammo=(xl/cp)*(xl/(rv*(tn(i,k)**2)))*qeso(i,k)
@@ -369,15 +367,15 @@ c
        if(aa0(i).ne.-1.)then
         k=ktop(i)
         dz=-.5*z(i,k-1)+.5*z(i,k)
-        gamma=(xl/cp)*(xl/(rv*(t(i,k)**2)))*qes(i,k)
-        qrch=qes(i,k)+(1./xl)*(gamma/(1.+gamma))*dby(i,k)
+        agamma=(xl/cp)*(xl/(rv*(t(i,k)**2)))*qes(i,k)
+        qrch=qes(i,k)+(1./xl)*(agamma/(1.+agamma))*dby(i,k)
         qc(i,k)=qes(i,k)
         pw(i,k)=(qrch-qes(i,k))
         pwav(i)=pwav(i)+pw(i,k)
 c
         dz=-.5*zo(i,k-1)+.5*zo(i,k)
-        gamma=(xl/cp)*(xl/(rv*(tn(i,k)**2)))*qeso(i,k)
-        qrcho=qeso(i,k)+(1./xl)*(gamma/(1.+gamma))*dbyo(i,k)
+        agamma=(xl/cp)*(xl/(rv*(tn(i,k)**2)))*qeso(i,k)
+        qrcho=qeso(i,k)+(1./xl)*(agamma/(1.+agamma))*dbyo(i,k)
         qco(i,k)=qeso(i,k)
         pwo(i,k)=(qrcho-qeso(i,k))
         pwavo(i)=pwavo(i)+pwo(i,k)
@@ -427,9 +425,9 @@ c
          bu(i)=bu(i)+dz*(hcd(i)-.5*(hes(i,kk)+hes(i,kk+1)))
          dq=(qes(i,kk)+qes(i,kk+1))*.5
          dt=(t(i,kk)+t(i,kk+1))*.5
-         gamma=(xl/cp)*(xl/(rv*(dt**2)))*dq
+         agamma=(xl/cp)*(xl/(rv*(dt**2)))*dq
          dh=hcd(i)-.5*(hes(i,kk)+hes(i,kk+1))
-         qrcd(i,kk)=(dq+(1./xl)*(gamma/(1.+gamma))*dh)
+         qrcd(i,kk)=(dq+(1./xl)*(agamma/(1.+agamma))*dh)
          pwd(i,kk)=dkk(i,kk)*(qcd(i)-qrcd(i,kk))
          qcd(i)=qrcd(i,kk)
          pwev(i)=pwev(i)+pwd(i,kk)
@@ -438,9 +436,9 @@ c
          buo(i)=buo(i)+dz*(hcdo(i)-.5*(heso(i,kk)+heso(i,kk+1)))
          dq=(qeso(i,kk)+qeso(i,kk+1))*.5
          dt=(tn(i,kk)+tn(i,kk+1))*.5
-         gamma=(xl/cp)*(xl/(rv*(dt**2)))*dq
+         agamma=(xl/cp)*(xl/(rv*(dt**2)))*dq
          dh=hcdo(i)-.5*(heso(i,kk)+heso(i,kk+1))
-         qrcdo(i,kk)=(dq+(1./xl)*(gamma/(1.+gamma))*dh)
+         qrcdo(i,kk)=(dq+(1./xl)*(agamma/(1.+agamma))*dh)
          pwdo(i,kk)=dkk(i,kk)*(qcdo(i)-qrcdo(i,kk))
          qcdo(i)=qrcdo(i,kk)
          pwevo(i)=pwevo(i)+pwdo(i,kk)
@@ -612,24 +610,24 @@ c
         if(k.le.kbcon(i).or.k.ge.ktop(i))goto 140
         dz=-.5*xz(i,k-1)+.5*xz(i,k+1)
         dz1=xz(i,k)-xz(i,k-1)
-        gamma=(xl/cp)*(xl/(rv*(xt(i,k)**2)))*xqes(i,k)
+        agamma=(xl/cp)*(xl/(rv*(xt(i,k)**2)))*xqes(i,k)
         gamma0=(xl/cp)*(xl/(rv*(xt(i,k-1)**2)))*xqes(i,k-1)
-        qrch=xqes(i,k)+(1./xl)*(gamma/(1.+gamma))*xdby(i,k)
+        qrch=xqes(i,k)+(1./xl)*(agamma/(1.+agamma))*xdby(i,k)
         xqc(i,k)=(xqck(i)-qrch)/(1.+c0*dz)+qrch
         xpw(i,k)=c0*dz*(xqc(i,k)-qrch)
         xqck(i)=xqc(i,k)
         xpwav(i)=xpwav(i)+xpw(i,k)
         xaa0(i)=xaa0(i)+dz1*(9.81/(1004.*(.5*
      1          (xt(i,k)+xt(i,k-1)))))*xdby(i,k-1)/
-     1       (1.+.5*gamma+.5*gamma0)
+     1       (1.+.5*agamma+.5*gamma0)
        end if
 140   continue
       do 142 i=istart,iend
        if(aa0(i).ge.0.)then
         k=ktop(i)
         dz=-.5*xz(i,k-1)+.5*xz(i,k)
-        gamma=(xl/cp)*(xl/(rv*(xt(i,k)**2)))*xqes(i,k)
-        qrch=xqes(i,k)+(1./xl)*(gamma/(1.+gamma))*xdby(i,k)
+        agamma=(xl/cp)*(xl/(rv*(xt(i,k)**2)))*xqes(i,k)
+        qrch=xqes(i,k)+(1./xl)*(agamma/(1.+agamma))*xdby(i,k)
         xqc(i,k)=xqes(i,k)
         xpw(i,k)=(qrch-xqes(i,k))
         xpwav(i)=xpwav(i)+xpw(i,k)
@@ -655,9 +653,9 @@ c
          bu(i)=bu(i)+dz*(xhcd(i)-.5*(xhes(i,kk)+xhes(i,kk+1)))
          dq=(xqes(i,kk)+xqes(i,kk+1))*.5
          dt=(xt(i,kk)+xt(i,kk+1))*.5
-         gamma=(xl/cp)*(xl/(rv*(dt**2)))*dq
+         agamma=(xl/cp)*(xl/(rv*(dt**2)))*dq
          dh=xhcd(i)-.5*(xhes(i,kk)+xhes(i,kk+1))
-         xqrcd(i,kk)=(dq+(1./xl)*(gamma/(1.+gamma))*dh)
+         xqrcd(i,kk)=(dq+(1./xl)*(agamma/(1.+agamma))*dh)
          xpwd(i,kk)=dkk(i,kk)*(xqcd(i)-xqrcd(i,kk))
          xqcd(i)=xqrcd(i,kk)
          xpwev(i)=xpwev(i)+xpwd(i,kk)
@@ -695,7 +693,6 @@ c
          dg=.5*(gamma1+gamma2)
          dh=.5*(hes(i,kk)+hes(i,kk+1))
          dz=(z(i,kk)-z(i,kk+1))*dkk(i,kk)
-         xddd=dhh-dh
          aa0(i)=aa0(i)+edt(i)*dz*(g/(cp*dt))*((dhh-dh)/(1.+dg))
 c
 c--- modified by larger scale
