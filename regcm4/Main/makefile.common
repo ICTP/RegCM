@@ -39,7 +39,7 @@ regcm:	regcm.o $(OBJS)
 	$(FC) $(CPPFLAGS) $(FFLAGS) -o $@ $< $(OBJS) header.o  $(LIBS)
 
 clean:
-	rm -f $(OBJS) regcm
+	rm -f $(OBJS) regcm.o header.o regcm
 
 .F.o:
 	$(FC) -c $(CPPFLAGS) $(FFLAGS) -c $<
