@@ -18,6 +18,7 @@ C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine condtq(j)
+
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c                                                                     c
 c     this subroutine computes the condensational or evaporational    c
@@ -36,17 +37,15 @@ c        and .8 goes to condensation or evaporation of qc in the      c
 c        cloudy portion).                                             c
 c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
       implicit none
       integer j
 #     include "parameter.inc"
 #     include "include/param1.cb"
-#     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/iunits.cb"
 #     include "include/main.cb"
 #     include "include/cvaria.cb"
 #     include "include/pmoist.cb"
-#     include "include/bats2.cb"
 #     include "include/slice.cb"
 
       real(kind=8)  tmp1(ix,kx),tmp2(ix,kx),tmp3(ix,kx),qccs(ix,kx)

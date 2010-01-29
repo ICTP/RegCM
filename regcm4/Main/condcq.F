@@ -29,8 +29,6 @@ c
 #     include "parameter.inc"
 #     include "include/bats.cb"
 
-      real(kind=8)  a,b
-      common/ab/ a(NNSG,nbmax), b(NNSG,nbmax)
       integer n,np
 c
 c     symbols used for weights are:   wt : weight
