@@ -122,11 +122,6 @@ C
      $     exptdn(plond,0:plevp), ! Solar beam exp down transm from top
      $     tottrn(plond,0:plevp)  ! Total transmission for layers above
 C
-C------------------------------Externals--------------------------------
-C
-c      external  resetr,           ! Resets array elements to zero
-c     $          whenfgt           ! Collect indices greater than conditn
-C
 C---------------------------Local variables-----------------------------
 C
       integer i,            ! Longitude index
@@ -200,8 +195,7 @@ C
 C Initialize all total transmission values to 0, so that nighttime
 C values from previous computations are not used:
 C
-      call resetr(tottrn,plond*plevp,0.d0)
-
+      tottrn = 0.d0
 C
 C Compute total direct beam transmission, total transmission, and
 C reflectivity for diffuse radiation (from below) for all layers above

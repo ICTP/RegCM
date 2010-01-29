@@ -112,9 +112,6 @@ C
      $     rdndif(plond,0:plevp), ! Added dif ref for layers above
      $     tottrn(plond,0:plevp)  ! Total transmission for layers above
 C
-c      external  resetr,     ! Resets array elements to zero
-c     $          whenfgt     ! Collect indices for greater than condition
-C
 C---------------------------Local variables-----------------------------
 C
       integer i,            ! Longitude index
@@ -163,7 +160,7 @@ C
 C Initialize all total transmimission values to 0, so that nighttime
 C values from previous computations are not used:
 C
-      call resetr(tottrn,plond*2,0.d0)
+      tottrn = 0.0
 c      print*,'dans radclr', maxval(tottrn)
       do k=0,plevp
       do i=1,plond
