@@ -22,14 +22,10 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       implicit none
 
 #     include "parameter.inc"
-#     include "include/param1.cb"
-#     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/main.cb"
-#     include "include/cvaria.cb"
 #     include "include/pbldim.cb"
 #     include "include/pmoist.cb"
-#     include "include/slice.cb"
 #     include "include/bats2.cb"
 #     include "include/bats.cb"
 
