@@ -34,7 +34,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/iunits.cb"
 #     include "include/main.cb"
 #     include "include/cvaria.cb"
 #     include "include/pmoist.cb"
@@ -46,21 +45,20 @@ c
 c
 c----------------------------------------------------------------------
 c
-c     crneg  : critical negative area in the sounding
 c     pert   : perturbation temperature
 c     perq   : perturbation mixing ratio
 c     dlt    : temperature difference used to allow over shooting.
 c     cdscld : critical cloud depth in delta sigma.
 c
-      real(kind=8)  crneg,pert,perq
-      data    crneg, pert, perq/1.,1.,1.e-3/
+      real(kind=8)  pert,perq
+      data   pert, perq/1.,1.e-3/
       real(kind=8)  dlt,cdscld
       data    dlt, cdscld/3.0,0.3/
 c
       integer i,k,kbase,kk,ktop,kbaseb,kclth
       real(kind=8)  sca,eqtm,ttp,q,psg,t1,eqt,tmax,qmax,pmax,emax,tdmax
       real(kind=8)  dalr,dplr,zlcl,tlcl,tmean,dlnp,plcl,siglcl,es,qs
-      real(kind=8)  deqt,dsc,ttsum,sum,sumb,arh,psx,pux,e1,rh,xsav,c301
+      real(kind=8)  deqt,dsc,ttsum,suma,sumb,arh,psx,pux,e1,rh,xsav,c301
       real(kind=8)  ttconv,apcnt,eddyf,akclth,prainx,aprdiv,rsht,rswt
 c
       do 2 k=1,kx
@@ -215,7 +213,7 @@ c              deep convection occurs.
 c     c301   : is the 'b' factor in kuo's scheme.
 c
        icon(j)=icon(j)+1
-       sum = 0.
+       suma = 0.
        sumb = 0.
        arh = 0.
        psx=psa(i,j)
@@ -232,18 +230,18 @@ c
         qwght(k)=xsav
         sumb=sumb+qs*dsigma(k)
         arh=arh+rh*qs*dsigma(k)
-        sum=sum+xsav*dsigma(k)
+        suma=suma+xsav*dsigma(k)
 30     continue
        arh=arh/sumb
        c301=2.0*(1.0-arh)
        if (c301 .lt. 0.0) c301=0.0
        if (c301 .gt. 1.0) c301=1.0
-       if (sum .le. 0.0) then
+       if (suma .le. 0.0) then
         c301=0.0
-        sum=1.0
+        suma=1.0
        end if
        do 50 k=ktop,kx
-        qwght(k)=qwght(k)/sum
+        qwght(k)=qwght(k)/suma
 50     continue
        do 60 k=1,kx
         ttconv = xlvocp*(1.0-c301)*twght(k,kbase,ktop)*sca
