@@ -18,7 +18,7 @@ C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine sfflux(ilg,il1,il2,jloop,luc,ivegcov,
-     &                  vegfrac, isoiltex, ustarnd, z0,
+     &                  vegfrac, isoiltex, z0,
      &                  soilw, surfwd, roarow, trsize, rsfrow)
 
 c  **********************************************************
@@ -42,11 +42,11 @@ c  **********************************************************
       integer i,ieff, ieffmax
 c  
       real(kind=8)  rsfrow(ilg,nbin)
-      real(kind=8)  soilw(ilg),ustarnd(ilg)
+      real(kind=8)  soilw(ilg)
       real(kind=8)  surfwd(ilg),z0(ilg) 
       integer ivegcov(ilg),isoiltex(ilg) 
       real(kind=8)  vegfrac(ilg)
-      real(kind=8)  roarow(ilg),sflt(ilg)       
+      real(kind=8)  roarow(ilg)
       real(kind=8)  trsize(nbin,2)
 
 c
@@ -56,31 +56,24 @@ c        effective work array  ( maybe think about allocatbale array)
       real(kind=8)  xsoilw(ilg)
       real(kind=8)  xsurfwd(ilg) , xz0(ilg)
       real(kind=8)  xvegfrac(ilg), xfland(ilg,20)
-      real(kind=8)  xroarow(ilg),xsflt(ilg)       
+      real(kind=8)  xroarow(ilg)
       real(kind=8)  xsrel2d(ilg,nsoil,nats)
-      real(kind=8)  xustarnd(ilg) 
-      real(kind=8) xsandrow(ilg),  xclayrow(ilg)
-      real(kind=8) xsand2row(ilg,nats), xclay2row(ilg,nats)
+      real(kind=8) xclayrow(ilg)
+      real(kind=8) xsand2row(ilg,nats)
 
-      integer xivegcov(ilg), xisoiltex(ilg), xirb(ilg)
+      integer xisoiltex(ilg)
 
       rsfrow = 0.0
 
 c  effective emitter cell ( depending on ivegcov) 
-      xivegcov = 0.
       xvegfrac = 0. 
       xisoiltex= 0. 
       xsoilw   = 0.
       xsurfwd  = 0.
       xz0      = 0.
       xclayrow = 0.
-      xsandrow = 0.
-      xirb = 0
-      xustarnd = 0. 
-      xsflt = 0.
       xroarow =0.
       xsrel2d =0.
-      xclay2row =0.
       xsand2row =0.
       xfland =0.0
       xrsfrow =0.
@@ -91,14 +84,12 @@ c  effective emitter cell ( depending on ivegcov)
         if ((ivegcov(i) .eq.8 .or.  ivegcov(i) .eq.11) .and.
      &     (isoiltex(i).gt.0 .and. isoiltex(i).le.12) )then
           ieff = ieff + 1 
-          xivegcov(ieff) =  ivegcov(i)
           xvegfrac(ieff) =  vegfrac(i) 
           xisoiltex(ieff) = isoiltex(i) 
           xsoilw(ieff)  =  soilw(i)
           xsurfwd(ieff) = surfwd(i)
           xz0(ieff)    = z0(i)
           xroarow(ieff) = roarow(i)
-          xustarnd(ieff)   =  ustarnd(i)
 
 c soil parameters
 c ok if one texture per grid cell
@@ -107,14 +98,10 @@ c (remember srel2d,4 =1 because of memory problem for big domains)
             xsrel2d(ieff,ns,xisoiltex(ieff) )=srel2d(i,jloop,ns)
           end do
 
-          xsandrow(ieff)=sandrow2(i,jloop) 
           xclayrow(ieff)=clayrow2(i,jloop) 
           do n=1,nats
             xsand2row(ieff,n)=sand2row2(i,n,jloop)
-            xclay2row(ieff,n)=clay2row2(i,n,jloop)
           end do
-c  trivial !
-          xirb(ieff) = 1
           do n=1,20
             xfland(ieff,n)  = 1
           end do
@@ -139,7 +126,6 @@ c  put back the dust flux on the right grid
          if ((ivegcov(i) .eq.8 .or.  ivegcov(i) .eq.11) .and.
      &      (isoiltex(i).gt.0 .and. isoiltex(i).le.12) )then
           ieff = ieff + 1
-          sflt(i)  = xsflt(ieff)  
           do n=1,nbin
             rsfrow(i,n) =  xrsfrow(ieff,n)  
           end do
@@ -176,7 +162,7 @@ c  put back the dust flux on the right grid
       real(kind=8)  umin, rhop, hc(ilg)
       real(kind=8)  ustarns, utmin, vk
       real(kind=8)  xz, br,ym
-      real(kind=8)  sigr,xc,z0s,x
+      real(kind=8)  sigr,z0s,x
       real(kind=8)  trsize(nbin,2)
       real(kind=8)  rsfrow(ilg,nbin)
       real(kind=8)  wprim(ilg)
@@ -200,9 +186,6 @@ c  put back the dust flux on the right grid
 c   *****************************************************************
 c   * raupach et al. (1993)                                      ****
 c   *****************************************************************               
-
-       xc=1.0/(sigr*ym)     
-
        if (vegfrac(i) .lt. 1.0) then
          alamda(i)= xz*(log(1.0 - vegfrac(i)))*(-1.0)
          arc1= sigr*ym*alamda(i)
@@ -308,7 +291,6 @@ c *     no. d6, p6203-6209, 1998                                *****
 c *******************************************************************
 
       ustarns=(vk*100.*surfwd(i))/(log(1000./srl(i)))
-c     ustarns = ustarnd(i)*100 ! cm.s-1
       utmin=(umin/(100.*vk*rc(i)))*log(1000./srl(i))
 
 c *******************************************************************
@@ -372,8 +354,8 @@ c   * ustar0 : threshold frication velocity [m/s]                ****
 c   *****************************************************************
 
       real(kind=8) dm, dum
-      real(kind=8) a1,a2,a3,c1,c2,c3,c4,c5
-      parameter(a1=0.2, a2=0.129, a3=0.12)
+      real(kind=8) a2,c1,c2,c3,c4,c5
+      parameter(a2=0.129)
       parameter(c1=0.006, c2=1.928, c3=0.0858)
       parameter(c4=-0.0617,c5=2.5)
       real(kind=8)  y1,y2,y3,rhop,rhair,g
@@ -408,8 +390,7 @@ c   * ustar0: threshold friction velocity       [cm/s]           ****
 c   *****************************************************************
       real(kind=8)  dm, dum,gamma 
       parameter(gamma=3.0e-4)      ! a constant
-      real(kind=8) pi,g,f,rhoa,rhop,sigma
-      parameter(pi = 3.1415927)
+      real(kind=8) g,f,rhoa,rhop,sigma
       parameter(g  = 9.81)     ! gravity parameter    [m s^-2]
       parameter(f  = 0.0123)
 

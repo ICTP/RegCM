@@ -67,7 +67,7 @@ c     real(kind=8)  zza(ix,kx)
       integer ivegcov(ix), soilt(ix)
       integer i,k,itr,kb,kdwd, ibin
       logical gfcall, gfcall2,gfcall3,gfcall4 
-      real(kind=8)  RSFROW(ix,nbin),smask(ix)     
+      real(kind=8)  RSFROW(ix,nbin)
 c
 c clmin = non-precipitating cloud conversion threshold, clmin=0.01g/m3
       clmin = 0.01
@@ -558,7 +558,7 @@ c aborbed solar radiation ( for stb criteria)
           end do
 
           call SFFLUX( ix, 2, ilxm,j,20,ivegcov(1),vegfrac(1),  
-     &              soilt(1),smask(1),zeff,soilw(1), wid10(1),rho(1,kx),
+     &              soilt(1),zeff,soilw(1), wid10(1),rho(1,kx),
      &              dustbsiz,RSFROW )
 
           call chdrydep( ix, 2,ilxm,kx,1,nbin,
