@@ -63,21 +63,15 @@ c
 cKN   added below
 c
 #     include "include/param1.cb"
-#     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/pmoist.cb"
 #     include "include/main.cb"
 #     include "include/rad.cb"
-#     include "include/bats2.cb"
-#     include "include/slice.cb"
 c
       real(kind=8)  deltaz(ilx,kx)
       real(kind=8)  h2ommr(plond,plev)
 c
 cKN   added above
 #     include "include/comtim.cb"
-#     include "include/crdalb.cb"
-#     include "include/crdsrf.cb"
 #     include "include/crdcon.cb"
 #     include "include/date.cb"
 C
@@ -125,7 +119,7 @@ c
 c
 cKN   adopted from regcm2 above
 c
-      real(kind=8)  gravx,cpairx,epsilox,stebolx,rx
+      real(kind=8)  gravx,rx
       integer n,nll,kj,ncldm1
       real(kind=8)  ccvtem,clwtem
 c-----------------------------------------------------------------------
@@ -138,9 +132,6 @@ c
 c set fundamental constants (mks):
 c
       gravx   =   9.80616
-      cpairx  =   1.00464e3
-      epsilox =   0.622
-      stebolx =   5.67e-8
       rx=287.
 c
 c begin read of data:
