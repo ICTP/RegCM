@@ -41,7 +41,6 @@ c****                  left with the ioff rightmost characters filled
 c****                  in accordance with iflg.
 c
       implicit none
-#     include "include/message.cb"
       integer lchar,ioff,iflg
       character*(*) ixchar
       character*1 temp
