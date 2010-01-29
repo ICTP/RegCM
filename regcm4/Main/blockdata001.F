@@ -29,7 +29,6 @@ C_IPCC
 #     include "include/tracer0.cb"
 CIPCC_
 #     include "include/bats.cb"
-#     include "include/comhst.cb"
 #     include "include/comlun.cb"
 #     include "include/compbl.cb"
 #     include "include/crdcae.cb"

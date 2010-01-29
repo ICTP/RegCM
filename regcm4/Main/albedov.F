@@ -47,11 +47,6 @@ C                root depth; used to compute "wet" for soil albedo
 C     solour        =  soil albedo for different coloured soils
 C
 #     include "parameter.inc"
-
-#     include "include/param1.cb"
-#     include "include/param3.cb"
-#     include "include/main.cb"
-#     include "include/cvaria.cb"
 #     include "include/bats2.cb"
 #     include "include/bats.cb"
 
