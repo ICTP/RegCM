@@ -61,7 +61,7 @@ C
 #     include "include/bats2.cb"
 #     include "include/trachem.cb"
 
-      integer j
+      integer j,lp1,lm1
       real(kind=8)  aliq,bliq,cliq,dliq,aice,bice,cice1,dice,xls0,xls1
       common/vapprs/aliq,bliq,cliq,dliq,aice,bice,cice1,dice,xls0,xls1
       logical unis,unil,oct90
@@ -75,7 +75,6 @@ C
       real(kind=8)  epsntp,efifc,avgefi,dspc,epsp,stefi,slopbl,slop0l
       real(kind=8)  sloptl,slopbs,slop0s,slopts,slope,a23m4l,d273,cporng
       real(kind=8)  elocp,cprlg,rcp
-c     integer la,itb,jtb,lp1,lm1
 c     integer nrow,itb,jtb
 C     real(kind=8)  epsup,pno,psh,stabfc
 C

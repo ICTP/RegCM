@@ -7,14 +7,22 @@
 !!c  
 !!************************************************************
 !!<
+#ifdef INTEL
+  include 'ifport.f90'
+#endif
+
 SUBROUTINE header(myid)
+
+!#ifdef INTEL
+!  USE IFPORT
+!#endif
   IMPLICIT NONE 
   !! local variables:
   INTEGER len,len_strim
   INTEGER ihost,idir
   INTEGER gethostname 
   INTEGER getcwd
-  CHARACTER (len=24) :: date='?'
+  CHARACTER (len=24) :: data='?'
   CHARACTER (len=32) :: hostname='?' 
   CHARACTER (len=30) :: user='?' 
   CHARACTER (len=100) :: directory='?'
@@ -26,18 +34,28 @@ SUBROUTINE header(myid)
 !     OPEN ( 20,file='OUTPUT')
      WRITE (nrite,"(/,2x,'This is RegCM version 4 ')")
      WRITE (nrite,100)  SVN_REV, __DATE__ , __TIME__   
-100  FORMAT(2x,' SVN Revision: ',A,' compiled at: date : ',A,'  time: ',A,/)
-#ifndef IBM
-     Ihost = GETHOSTNAME(hostname,30)
-     CALL GETLOG(user)
-#else
+100  FORMAT(2x,' SVN Revision: ',A,' compiled at: data : ',A,'  time: ',A,/)
+
+#ifdef INTEL
+     Ihost = gethostname(hostname,30)
+     call getlog_(user)
+#elif defined IBM
      hostname='ibm platform '
      user= 'Unknown'
+#else
+     Ihost = gethostname(hostname,30)
+     call getlog(user)
 #endif 
-     Idir=GETCWD(directory)
-     CALL FDATE(date)
 
-     WRITE(nrite,*) ": this run start at    : ",date
+     Idir=GETCWD(directory)
+
+#ifdef INTEL
+     CALL FDATE_(data)
+#else
+     CALL FDATE(data)
+#endif
+
+     WRITE(nrite,*) ": this run start at    : ",data
      len=len_strim(user)
      WRITE(nrite,*) ": it is submitted by   : ",user(1:len)
      len=len_strim(hostname)
