@@ -77,7 +77,7 @@ c
       character c40nam*40,ifmt1*24,ifmt2*24
       integer ksigt
       data ksigt/5/
-      integer i,j,k1,k2,k3,k4,n,n1,jx,iy,jn,jn1,j1,jl,jt,jtn
+      integer i,j,k1,k2,k3,k4,n,n1,iy,jn,jn1,j1,jl,jt,jtn
       integer j2n,j2,iexp,jj,it,ir,i1,i2,j3
       real(kind=8)  fldmax,fldmin,fldu,fldl
 c
@@ -125,7 +125,6 @@ c
 60     do 70 i=ia,ib,iny
        do 70 j=ja,jb,jnx
 70      fldr(j,i)=fldr(j,i)*10.**iexp
-       jx=jb-ja+1
        iy=ib-ia+1
        jn=k2*jnx
        jn1=jn-1
