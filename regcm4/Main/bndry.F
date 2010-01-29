@@ -70,9 +70,6 @@ c
       real(kind=8)  a,b
       common/ab/ a(NNSG,nbmax), b(NNSG,nbmax)
 
-      real(kind=8)  rs
-      real(kind=8)  ra
-      common /ictp01/ rs(NNSG,nbmax), ra(NNSG,nbmax)
       integer n,np
       real(kind=8)  qsatd,rai,fact
 
