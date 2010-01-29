@@ -32,7 +32,7 @@ Ccc   parameter(dm=5.148e-04,       ! value used in prev simulations
       integer depth
       real(kind=8)  T(depth,2), de(depth), dnsty(depth)
       real(kind=8)  demax,rimax,ws,po,dpdz,z,rad,ri
-      integer k,kmax
+      integer k
 
       demax = .5*dz**2 / dt
       demax = .99 * demax
@@ -68,13 +68,10 @@ C******     compute eddy diffusion profile
           de(k) = demax
         end if
         if (dabs(Ri) .gt. Rimax) then
-          kmax  = k
           Rimax = dabs(Ri)
         end if
       end do
       de(depth) = 0.0
-
-Csb   print *, 'kmax, Rimax = ', kmax, Rimax
 
       return
       end subroutine eddy
