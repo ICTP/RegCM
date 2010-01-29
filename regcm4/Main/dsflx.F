@@ -388,15 +388,15 @@ c   * dry surface                                                ****
 c   * dum:    particle diameter                   [um]           ****
 c   * ustar0: threshold friction velocity       [cm/s]           **** 
 c   *****************************************************************
-      real(kind=8)  dm, dum,gamma 
-      parameter(gamma=3.0e-4)      ! a constant
+      real(kind=8)  dm, dum,agamma 
+      parameter(agamma=3.0e-4)      ! a constant
       real(kind=8) g,f,rhoa,rhop,sigma
       parameter(g  = 9.81)     ! gravity parameter    [m s^-2]
       parameter(f  = 0.0123)
 
       sigma = rhop/rhoa
       dm = dum*1.0e-2    !* 1.0e-6 
-      ustart0 = f* (sigma * g * dm + gamma/ (rhoa*dm)) 
+      ustart0 = f* (sigma * g * dm + agamma/ (rhoa*dm)) 
       ustart0 = sqrt(ustart0 )
       ustart0 = ustart0 * 100.0  
       return 
