@@ -38,7 +38,6 @@ c
 #     include "parameter.inc"
 
 #     include "include/parrad.cb"
-#     include "include/param2.cb"
 C
 C------------------------------Arguments--------------------------------
 C
@@ -65,11 +64,9 @@ C---------------------------Local workspace-----------------------------
 C
       integer i,k               ! longitude, level indices
       real(kind=8)  rliq                 ! temporary liquid drop size
-      real(kind=8)  pi                   ! pi
 C
 C-----------------------------------------------------------------------
 C
-      pi = 4. * datan(1.d0)
       do k=1,plev
          do i=1,plon
 c
