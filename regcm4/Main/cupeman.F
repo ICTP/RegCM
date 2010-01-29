@@ -172,7 +172,7 @@ c ****  regcm add-ins to declare every variable explicitly **** c
       integer na, nd, ntra, ipbl, i, j, k, nl, iflag, jc, jn
      &      , ihmin, nk, icb, inb, inb1, jtt
       real(kind=8)  rowl, cpvmcl, eps, epsi, ginv, delti, delt, rdcp
-     &      , precip, wd, tprime, qprime, sum, thbar, ahm, rm
+     &      , precip, wd, tprime, qprime, asum, thbar, ahm, rm
      &      , um, vm, dphinv, a2, x, tc, alv, tnew, alvnew
      &      , qnew, ahmin, tvx, tvy, ahmax, cbmf, rh, chi
      &      , plcl, tca, elacrit, cape, capem, by, byp, defrac
@@ -181,7 +181,7 @@ c ****  regcm add-ins to declare every variable explicitly **** c
      &      , denom, dei, altem, qp1, scrit, alt, asij, smin
      &      , smid, sjmax, sjmin, delp, delm, bsum, wdtrain
      &      , awat, coeff, qsm, afac, sigt, b6, c6, revap
-     &      , dhdp, fac, qstm, rat, dpinv, am, amde, cpinv
+     &      , dhdp, fac, qstm, rat, dpinv, am, cpinv
      &      , amp1, ad, fqold, ftold, fuold, fvold, ftraold
      &      , ents, epmax, cwat, stemp, uav, vav, traav, cpd
      &      , cpv, cl, rv, g, rd
@@ -321,10 +321,10 @@ c
         jc=0
         do 30 i=nl-1,1,-1
           jn=0
-          sum=th(i)*(1.+q(i)*epsi-q(i))
+          asum=th(i)*(1.+q(i)*epsi-q(i))
           do 10 j=i+1,nl
-            sum=sum+th(j)*(1.+q(j)*epsi-q(j))
-            thbar=sum/float(j+1-i)
+            asum=asum+th(j)*(1.+q(j)*epsi-q(j))
+            thbar=asum/float(j+1-i)
             if ((th(j)*(1.+q(j)*epsi-q(j))).lt.thbar)jn=j
    10     continue
           if (i.eq.1)jn=max(jn,2)
@@ -924,7 +924,6 @@ c
         ftra(1,j)=ftra(1,j)+g*dpinv*(mp(2)*(trap(2,j)-tra(1,j))+
      1    am*(tra(2,j)-tra(1,j)))
       end do
-      amde=0.0
       do 415 j=2,inb
         fq(1)=fq(1)+g*dpinv*ment(j,1)*(qent(j,1)-q(1))
         fu(1)=fu(1)+g*dpinv*ment(j,1)*(uent(j,1)-u(1))
