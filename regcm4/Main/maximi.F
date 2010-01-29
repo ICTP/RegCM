@@ -17,24 +17,24 @@ C    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 C
 C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-       subroutine maximi(array,ix,kx,ks,ke,max,istart,iend)
+       subroutine maximi(array,ix,kx,ks,ke,imax,istart,iend)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       implicit none
       integer ix,kx,ks,ke,istart,iend
       real(kind=8)  array(ix,kx)
-      integer max(ix)
+      integer imax(ix)
       integer i,k
       real(kind=8)  x,xar
 
       do 200 i=istart,iend
-       max(i)=ks
+       imax(i)=ks
        x=array(i,ks)
        do 100 k=ks,ke
         xar=array(i,k)
         if(xar.ge.x) then
          x=xar
-         max(i)=k
+         imax(i)=k
         end if
 100    continue
 200   continue
