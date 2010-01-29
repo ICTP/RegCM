@@ -65,34 +65,30 @@ C
       real(kind=8)  aliq,bliq,cliq,dliq,aice,bice,cice1,dice,xls0,xls1
       common/vapprs/aliq,bliq,cliq,dliq,aice,bice,cice1,dice,xls0,xls1
       logical unis,unil,oct90
-      real(kind=8)  lblev
-      real(kind=8)  h1,h1d5,h2d5,h3000,h10e5,d00,d125,d50,d608
-      real(kind=8)  dm2859,elwv,elivw,row,epsq,a2,a3,a4,t0,t1,pq0,stresh
-      real(kind=8)  stabs,stabd,stabfc,dttop,rhf,pmn,epsup,epsdn,epsth
-      real(kind=8)  pbm,pqm,pno,pone,psh,pfrz,pshu,zno,zsh,fss,efimn
+      real(kind=8)  h1,h3000,h10e5,d00,d608
+      real(kind=8)  dm2859,elwv,row,epsq,a2,a3,a4,t0,t1,pq0,stresh
+      real(kind=8)  stabs,stabd,rhf,pmn,epsdn,epsth
+      real(kind=8)  pbm,pqm,pone,pfrz,pshu,zno,zsh,fss,efimn
       real(kind=8)  efmnt,fcc1,fcp,dspbfl,dsp0fl,dsptfl,fsl,dspbfs
       real(kind=8)  dsp0fs
       real(kind=8)  dsptfs,dspbsl,dsp0sl,dsptsl,dspbss,dsp0ss,dsptss
       real(kind=8)  epsntp,efifc,avgefi,dspc,epsp,stefi,slopbl,slop0l
       real(kind=8)  sloptl,slopbs,slop0s,slopts,slope,a23m4l,d273,cporng
       real(kind=8)  elocp,cprlg,rcp
-      integer list,la,ksmud,nrow,itb,jtb,lp1,lm1,lscrch,l1,l2,l3,l4
+c     integer la,itb,jtb,lp1,lm1
+c     integer nrow,itb,jtb
+C     real(kind=8)  epsup,pno,psh,stabfc
 C
 C Very long parameter list. Stay with us.
 C
       parameter (
      &  h1      = 1.e0,
-     &  h1d5    = 1.5e0,
-     &  h2d5    = 2.5e0,
      &  h3000   = 3000.e0,
      &  h10e5   = 100000.e0,
      &  d00     = 0.e0,
-     &  d125    = 0.125e0,
-     &  d50     = 0.5e0,
      &  d608    = 0.608e0,
      &  dm2859  = -287.04/1004.e0,
      &  elwv    = 2.50e6,
-     &  elivw   = 2.72e6,
      &  row     = 1.e3,
      &  epsq    = 2.e-12,
      &  a2      = 17.2693882e0,
@@ -104,25 +100,22 @@ C
      &  stresh  = 1.10e0,
      &  stabs   = 1.0e0,
      &  stabd   = 0.90e0,
-     &  stabfc  = 1.00e0,
-     &  dttop   = 1.0e0,
-     &  list    = 3,
+c    &  stabfc  = 1.00e0,
 C RH drop 10%
      &  rhf     = 0.20,
      &  pmn     = 6500.0,
-     &  epsup   = 1.00, ! 0.93
+c    &  epsup   = 1.00, ! 0.93
      &  epsdn   = 1.05, ! 1.00
      &  epsth   = 6.0,  ! rh drop 10%
      &  pbm     = 30000.0,
      &  pqm     = 20000.0,
-     &  pno     = 9000.0,
+c    &  pno     = 9000.0,
      &  pone    = 2500.0,
-     &  psh     = 29000.0,
+c    &  psh     = 29000.0,
      &  pfrz    = 15000.0,
      &  pshu    = 45000.0,
      &  zno     = 750.0,
      &  zsh     = 3999.0,
-     &  lblev   = 0.98,
 C
 C    august `91: scheme having the option of using different fast and
 C    slow profiles for sea and for land points; and also the "sea" and
@@ -222,27 +215,21 @@ C*** oct90=.true.
 C
 C  Instability for too large lsh
 C
-      parameter (
-     &  la    = 13,
-     &  ksmud = 0,
-     &  nrow  = 0,
-     &  itb   = 100,
-     &  jtb   = 150
-     &          )
+c     parameter (
+c    &  la    = 13,
+c    &  nrow  = 0,
+c    &  itb   = 100,
+c    &  jtb   = 150
+c    &          )
       parameter (
      &  lp1    = kx+1,
-     &  lm1    = kx-1,
-     &  lscrch = 4*kx+1+la+1,
-     &  l1     = la+1,
-     &  l2     = la+kx+1,
-     &  l3     = la+2*kx+1,
-     &  l4     = la+3*kx+1
+     &  lm1    = kx-1
      &          )
 C----------------------------------------------------------------------
-      real(kind=8)  pl,thl,rdq,rdth,rdp,rdthe,qs0,sqs
-      real(kind=8)  the0,sthe,ptbl,ttbl
-      common /tbls/ pl,thl,rdq,rdth,rdp,rdthe,qs0(jtb),sqs(jtb),
-     & the0(jtb),sthe(jtb),ptbl(itb,jtb),ttbl(jtb,itb)
+c     real(kind=8)  pl,thl,rdq,rdth,rdp,rdthe,qs0,sqs
+c     real(kind=8)  the0,sthe,ptbl,ttbl
+c     common /tbls/ pl,thl,rdq,rdth,rdp,rdthe,qs0(jtb),sqs(jtb),
+c    & the0(jtb),sthe(jtb),ptbl(itb,jtb),ttbl(jtb,itb)
 C----------------------------------------------------------------------
       real(kind=8)  tten(ix,kx),qten(ix,kx)
       integer kdp(kx)
@@ -254,15 +241,17 @@ C-----------------------------------------------------------------------
       real(kind=8)
      & trefk (kx),qrefk (kx),pk    (kx),apek  (kx),tk    (kx)
      &,thsk  (kx),psk   (kx),apesk (kx),qk    (kx),therk (kx)
-     &,thvref(kx),thevrf(kx),thvmod(kx),dift  (kx),difq  (kx)
+     &,thvref(kx),dift  (kx),difq  (kx)
      &,qsatk (kx),fpk   (kx)
       integer
      & ntopd (kx),nbotd (kx),ntops (kx),nbots (kx)
      &,ndpthd(kx),ndpths(kx)
 C
+c     real(kind8) thevrf(kx),thvmod(ix)
+c     integer kf(ix)
       integer 
      & ltop  (ix),lbot  (ix),kshal (ix),kdeep (ix)
-     &,ip300 (ix),ifbuoy(ix),kf(ix),ml(ix)
+     &,ip300 (ix),ifbuoy(ix),ml(ix)
       real(kind=8)
      & prtop (ix),pbot  (ix)
      &,tthbt (ix)
@@ -272,19 +261,21 @@ C
      &,dspb  (ix),dsp0  (ix),dspt  (ix)
      &,ape   (ix,kx)
      &,tref  (ix,kx),tmod  (ix,kx),qqmod  (ix,kx),ths(ix)
-      real(kind=8)  tauk,cthrs,cell,tv0,pdiff,pkl,psfck,ee,tdpt,tlcl
+      real(kind=8)  tauk,cthrs,cell,pdiff,pkl,psfck,ee,tdpt,tlcl
       real(kind=8)  ak,es,qs,efi,dentpy,avrgt,preck,dspbk,dsp0k,dsptk
       real(kind=8)  tkl,qkl,apekl,pkb,pkt,pk0,stabdl,rdp0t,dthem,dsp
       real(kind=8)  sumde,sumdp,hcorr,tskl,dhdt,thskl,diftl,difql
-      real(kind=8)  avrgtl,ztop,pthrs,drheat,fefi,ptpk,pbtk,thvmkl
-      real(kind=8)  pflag,pdiffk,rhdmx,rhl,rhh,thtpk,dpmix,smix,dpkts
-      real(kind=8)  thivi,summm,summd,sumdt,rdpsum,tcorr,trfkl,psum
+      real(kind=8)  avrgtl,ztop,pthrs,drheat,fefi,ptpk,thvmkl
+      real(kind=8)  pflag,pdiffk,rhl,rhh,thtpk,dpmix,smix
+      real(kind=8)  sumdt,rdpsum,tcorr,trfkl,psum
       real(kind=8)  qsum,potsum,qotsum,otsum,dst,fptk,dpkl,rtbar
       real(kind=8)  rotsum,dstq,den,dqref,qrftp,qrfkl,qnew,dtdeta
       integer i,lb,k,kb,ivi,l,khdeep,nswap,n,ltpk,lbtk,ltp1,lbm1
-      integer l0,l0m1,iter,lcor,lqm,ndepth,nneg,khshal,ndstn
-      integer ndstp,kk,ltsh,lshu,ltp2,nshal,negds,ndeep
+      integer l0,l0m1,iter,lcor,lqm,ndepth,khshal,ndstn
+      integer ndstp,kk,ltsh,lshu,nshal,ndeep
       integer icond,iconss
+c     integer ltp2,negds
+c     real(kind=8)  pbtk,rhdmx,summm,summd,tv0,dpkts,thivi
       real(kind=8)  pppk
       integer kbaseb,kclth
       real(kind=8)  prainx,aprdiv,akclth
@@ -372,14 +363,14 @@ C...ifbuoy = 0 means no positive buoyancy; ifbuoy(i) means yes...
 C...ip300 is the highest model level in the lowest 300 mb...
         ifbuoy(i)=0
         ip300(i)=0
-        kf(i)=0
+c       kf(i)=0
 C...activate this statement to run only shallow betts-miller with kf and
 C...ak deep convection...
 C      kf(i)=cvmgt(1,0,(icps.eq.2.and.nca(i,j).gt.0) .or.
 C     *                (icps.eq.1.and.nak(i,j).gt.0))
         cell=ptop/psb(i,j)
         do 378 k=1,kx
-          tv0=t(i,k)*(1.+d608*q(i,k))
+c         tv0=t(i,k)*(1.+d608*q(i,k))
           dzq(k)=r/g*tbase(i,k,j)*
      +           dlog((sigma(k+1)+cell)/(sigma(k)+cell))
 C        dzq(k)=(r/g)*tv0*dlog((sigma(k+1)+cell)/(sigma(k)+cell))
@@ -608,7 +599,8 @@ C--------------initialize variables in the convective column------------
           apekl=ape(i,k)
           apek(k)=apekl
           therk(k)=tref(i,k)*apekl
-  410   thvmod(k)=(qkl*d608+h1)*tkl*apekl
+c         thvmod(k)=(qkl*d608+h1)*tkl*apekl
+  410    continue
 C     print *, 'lb,pk(k) = ', lb,pk
 C--------------deep convection reference temperature profile------------
         ltp1=ltpk+1
@@ -664,8 +656,8 @@ C--------------humidity profile-----------------------------------------
             qrefk(l)=q(i,l)
           end if
   460   continue
-        do 470 l=ltpk,lb
-  470   thevrf(l)=trefk(l)*apek(l)*(qrefk(l)*d608+h1)
+c       do 470 l=ltpk,lb
+c 470   thevrf(l)=trefk(l)*apek(l)*(qrefk(l)*d608+h1)
 C--------------enthalpy conservation integral--------------------------
         do 480 iter=1,2
 C-----------------------------------------------------------------------
@@ -794,7 +786,7 @@ Cvvvvvvvvvvvvv diagnostics vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         ltpk=ltop(i)
         lbtk=lbot(i)
         ptpk=prtop(i)
-        pbtk=pbot(i)
+c       pbtk=pbot(i)
 C     lb  =kx-1
         if(cldhgt(i).ge.zsh)then
 C     if(ptpk.lt.pbtk-psh)then    ! psh=290 mb ndeep=ndeep+1
@@ -805,7 +797,6 @@ C     if(ptpk.lt.pbtk-psh)then    ! psh=290 mb ndeep=ndeep+1
           if(ndepth.gt.0)ndpthd(ndepth)=ndpthd(ndepth)+1
         end if
   570 continue
-      nneg=khdeep-ndeep
 C      print *,'no. of swapped points, final deep: ',nswap,ndeep
 Caaaaaaaaaaaaa diagnostics aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 C--------------gather shallow convection points-------------------------
@@ -852,7 +843,7 @@ C         fpk  (l) =-1./pkl
 Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
           apek(k)=apekl
           thvmkl=tkl*apekl*(qkl*d608+h1)
-          thvmod(k)=thvmkl
+c         thvmod(k)=thvmkl
           thvref(k)=thvmkl
 C... for kdp calculation
           pdp(k)=pk(k)-pmn
@@ -884,7 +875,7 @@ C--------------search for shallow cloud top-----------------------------
         lbtk=lbot(i)
         ltsh=lbtk
         lbm1=lbtk-1
-        pbtk=pk(lbtk)
+c       pbtk=pk(lbtk)
         ztop=z0(i,lbot(i))+zsh-0.000001
 C         ptpk=pbtk-psh
 C--------------cloud top is level just above pbtk-psh ------------------
@@ -903,7 +894,7 @@ C--------------highest level allowed is level just below pshu-----------
           ptpk=pk(ltpk)
         end if
         ltp1=ltpk+1
-        ltp2=ltpk+2
+c       ltp2=ltpk+2
 C--------------no shallow convection in unstable environment------------
 C             do 541 l=ltp2,lbtk
 C         if(thvmod(l).gt.thvmod(l-1))    then
@@ -931,7 +922,7 @@ C         rhh=qk(ltpk)/qsatk(ltpk)
 C       print *,'before do 545; i, j, lbot, ltop =',i,j,
 C     *lbot(i),ltop(i)
 C       print *,'cldhgt =',cldhgt(i)
-        rhdmx=rhf
+c       rhdmx=rhf
         do 545 l=ltp1,lbm1
           rhl=qk(l)/qsatk(l)
 C           if(kdp(l).lt.ltpk.or.kdp(l).gt.lbtk)then
@@ -994,10 +985,10 @@ C             ivi=ltp1+lbm1-l
 Caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
           trefk(ivi)=((pk(ivi)-pk(ivi+1))*smix+trefk(ivi+1)*apek(ivi+1))
      +               /apek(ivi)
-          dpkts=(pk(ivi)-pk(ivi+1))*smix
-          thivi=trefk(ivi+1)*apek(ivi+1)
-          summm=dpkts+thivi
-          summd=summm/apek(ivi)
+c         dpkts=(pk(ivi)-pk(ivi+1))*smix
+c         thivi=trefk(ivi+1)*apek(ivi+1)
+c         summm=dpkts+thivi
+c         summd=summm/apek(ivi)
 C       print *,'dpkts, thivip1, sum, sumd =',dpkts,thivi,summm,summd
 C       print *,'ivi, pk, pk(ivi+1), trefk(ivi+1), tref(ivi) =',
 C     * ivi,pk(ivi),pk(ivi+1),trefk(ivi+1),tref(ivi)
@@ -1151,7 +1142,7 @@ Cvvvvvvvvvvvvv diagnostics vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         ltpk=ltop(i)
         lbtk=lbot(i)
         ptpk=prtop(i)
-        pbtk=pbot(i)
+c       pbtk=pbot(i)
 C no shallow convection if cloud is not at least 90 mb or 3 sigma
 C layers deep
 C     if(cldhgt(i).lt.zno.or.ltop(i).gt.lbot(i)-2)go to 680
@@ -1187,7 +1178,7 @@ C  before go to 100 put
 Cchem2_
   680 continue
 C     print *,'at j =',j,', final no. shallow conv points =',nshal
-      negds=khshal-nshal
+c     negds=khshal-nshal
 C-----------------------------------------------------------------------
       do k=1,kx
       do i=2,ilxm
