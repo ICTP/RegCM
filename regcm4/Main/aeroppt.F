@@ -37,7 +37,7 @@ C
 C     Interface pressure, relative humidity
       real(kind=8)  pint(plond, plevp)
       real(kind=8)  rh(plond, plevr)
-      real(kind=8)  prop(4), frac(4)
+      real(kind=8)  prop(4)
 C
 C  Output arguments (radiative properties required by radded)
 C
@@ -319,10 +319,6 @@ C indexes in the internal mixing table
                   prop(2)=(aermmr(i,k,ibchl) / rhobc) / aervtot(i,k)
                   prop(3)=(aermmr(i,k,iochl) / rhooc) / aervtot(i,k)
                   prop(4)=(aermmr(i,k,idust(1)) /rhodust) /aervtot(i,k)
-                  frac(1)=fraction(prop(1))
-                  frac(2)=fraction(prop(2))
-                  frac(3)=fraction(prop(3))
-                  frac(4)=fraction(prop(4))
 C FIND THE GREATEST FRACTIONAL PART
 
                   if (iso4 .ne. 0) then
