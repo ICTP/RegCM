@@ -21,7 +21,7 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       implicit none
       real(kind=8)  carbon,vf,t,rm,tg,xlai,xlsai
       real(kind=8)  p,rt,alphtl,betatl,cco2,cco2i,xk,b,xkb,al,gt
-      real(kind=8)  pm,res,wp,wd,w,ac,bc,ab,ccold
+      real(kind=8)  pm,wp,wd,w,ac,bc,ab,ccold
       integer it
 c:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c     ***  a model for whole leaf photosynthesis based on that derived
@@ -73,7 +73,6 @@ c     ****    quantum yield(mm/e)
 c     ****  maximum photosynthesis
       pm=    e(xl,al,pml*gt)
 c    ******   iterate
-      res=rt
 
       do 4 it=1,30
 c      ****  photorespiration
