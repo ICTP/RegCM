@@ -139,9 +139,6 @@ c
 C------------------------------Parameters-------------------------------
 #     include "parameter.inc"
 #     include "include/parrad.cb"
-#     include "include/param1.cb"
-#     include "include/param2.cb"
-#     include "include/iunits.cb"
 #     include "include/bats.cb"
 #     include "include/bats2.cb"
 c

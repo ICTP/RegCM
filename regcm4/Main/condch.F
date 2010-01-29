@@ -26,10 +26,8 @@ c
       implicit none
 #     include "parameter.inc"
 #     include "include/bats.cb"
-      real(kind=8)  a,b
-      common/ab/ a(NNSG,nbmax), b(NNSG,nbmax)
       integer n,np
-
+c
 c     csoilc = constant drag coefficient for soil under canopy;
 c                    prescribed in subroutine bconst.
 c
