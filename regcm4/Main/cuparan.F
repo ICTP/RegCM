@@ -24,9 +24,7 @@ c
       integer j
 #     include "parameter.inc"
 #     include "include/param1.cb"
-#     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/iunits.cb"
 #     include "include/pmoist.cb"
 #     include "include/rad.cb"
 #     include "include/bats2.cb"
@@ -36,14 +34,12 @@ c
 c
 c--- dimensions needed for little driver routine
 c
-      real(kind=8)  usk(ix,kx),vsk(ix,kx)
-      common /savetmp/usk,vsk
       real(kind=8)  t(ix,kx),q(ix,kx),p(ix,kx),po(ix,kx),vsp(ix,kx)
      &       ,tn(ix,kx),qo(ix,kx),outt(ix,kx),outq(ix,kx),pret(ix)
      &       ,psur(ix),ter11(ix),qcrit(ix)
       integer kdet(ix)
       integer i,k,icut,kk,istart,iend,iconj
-      real(kind=8)  dtime,pkdcut,c0,us,vs,pkk,calc,aprdiv,prainx
+      real(kind=8)  dtime,pkdcut,us,vs,pkk,calc,aprdiv,prainx
 c
 c   zero out radiative clouds
 c
@@ -56,7 +52,6 @@ c
       icut=0
       dtime=dt
       pkdcut=75.
-      c0=0.002
       istart=2+icut
       iend=ilxm-icut
 c
