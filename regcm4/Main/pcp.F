@@ -49,7 +49,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       integer i,k
       real(kind=8)  thog,dpovg,qcincld,pptnew,qcleft
       real(kind=8)  pptacc,rhcs,rdevap,uconv,aprdiv,i1000
-      real(kind=8)  es,tk,tcel,q,qs,rh,fc,p,rho,qcw
+      real(kind=8)  es,tk,tcel,q,qs,rh,afc,p,rho,qcw
       real(kind=8)  pptmax ! maximum precipation rate (total cloud water/dt)
       real(kind=8)  pptkm1 ! precipation accumulated from above
 Cchem2
@@ -78,9 +78,9 @@ Cchem2
 Cchem2_
       do i=2,ilxm
 
-        fc = fcc(i,1,j)                                      ![frac][avg]
+        afc = fcc(i,1,j)                                      ![frac][avg]
 
-        if (fc.gt.0.01) then ! if there is a cloud
+        if (afc.gt.0.01) then ! if there is a cloud
 c     1aa. Compute temperature and humidities with the adjustments
 c          due to convection.
 c         q = qvb3d(i,1,j) + qcuten(i,1)*dt                  ![kg/kg][avg]
@@ -92,7 +92,7 @@ c         tk = tb3d(i,1,j) + tcuten(i,1)*dt                  ![k][avg]
           rho=p/(r*tk)                                       ![kg/m3][avg]
           qcw = qcb3d(i,1,j)                                 ![kg/kg][avg]
 c     1ab. Calculate the in cloud mixing ratio [kg/kg]
-          qcincld = qcw/fc                                   ![kg/kg][cld]
+          qcincld = qcw/afc                                   ![kg/kg][cld]
 c     1ac. Compute the maximum precipation rate
 c          (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = qcw/dt                                    ![kg/kg/s][avg]
@@ -104,7 +104,7 @@ c            and Isaac equation is for mean cloud water while qcth is the
 c            theshhold for auto-conversion.
           qcth = cgul(i,j)*(10.**(-0.489+0.0134*tcel))*i1000 ![kg/kg][cld]
 c     1ae. Compute the gridcell average autoconversion [kg/k g/s]
-          pptnew = qck1(i,j)*(qcincld-qcth)*fc               ![kg/kg/s][avg]
+          pptnew = qck1(i,j)*(qcincld-qcth)*afc               ![kg/kg/s][avg]
           pptnew = dmin1(dmax1(pptnew,0.0d0),pptmax)         ![kg/kg/s][avg]
           if (pptnew.gt.0.0) then  ! New precipitation
 c     1af. Compute the cloud removal rate (for chemistry) [1/s]
@@ -117,7 +117,7 @@ c          only half of the precipitation is assumed to accrete.
 c       1aga. Compute the amount of water remaining in the cloud [kg/kg]
             qcleft = qcw-pptnew*dt                           ![kg/kg][avg]
 c       1agb. Add 1/2 of the new precipitation can accrete.
-            pptkm1 = 0.5*pptnew/fc*rho*dt                    ![kg/m3][cld]
+            pptkm1 = 0.5*pptnew/afc*rho*dt                    ![kg/m3][cld]
 c       1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
             pptacc = caccr*qcleft*pptkm1                     ![kg/kg/s][avg]
 c       1agd. Update the precipitation accounting for the accretion [kg/kg/s]
@@ -151,7 +151,7 @@ c       tk = tb3d(i,k,j) ! + tcuten(i,k)*dt                  ![k][avg]
         p = pb3d(i,k,j)*1000.                                ![Pa][avg]
         rho=p/(r*tk)                                         ![kg/m3][avg]
         qcw = qcb3d(i,k,j)                                   ![kg/kg][avg]
-        fc = fcc(i,k,j)                                      ![frac][avg]
+        afc = fcc(i,k,j)                                      ![frac][avg]
         if (tcel.gt.0.0) then
           es=svp1*1000.*dexp(svp2*tcel/(tk-svp3))            ![Pa][avg]
         else
@@ -170,12 +170,12 @@ c          the gridcell.
 c          - It is assumed that raindrops do not evaporate in clouds
 c            and the rainfall from above is evenly distributed in
 c            gridcell (i.e. the gridcell average precipitation is used).
-        if (pptsum(i).gt.0.0 .and. fc.lt.0.99) then
+        if (pptsum(i).gt.0.0 .and. afc.lt.0.99) then
 c       2bca. Compute the clear sky relative humidity
-          rhcs = (rh-fc*rhmax)/(1.0-fc)                      ![frac][clr]
+          rhcs = (rh-afc*rhmax)/(1.0-afc)                      ![frac][clr]
           rhcs = dmax1(dmin1(rhcs,rhmax),0.0d0)              ![frac][clr]
 c       2bcb. Raindrop evaporation [kg/kg/s]
-          rdevap = cevap*(rhmax-rhcs)*sqrt(pptsum(i))*(1.-fc)![kg/kg/s][avg]
+          rdevap = cevap*(rhmax-rhcs)*sqrt(pptsum(i))*(1.-afc)![kg/kg/s][avg]
           rdevap = dmin1((qs-q)/dt,rdevap)                   ![kg/kg/s][avg]
           rdevap = dmin1(dmax1(rdevap,0.0d0),pptkm1)         ![kg/kg/s][avg]
 c       2bcc. Update the precipitation accounting for the raindrop
@@ -190,16 +190,16 @@ c       2bcf. Compute the temperature tendency [K/s*cb]
         end if
 
 c     1bd. Compute the autoconversion and accretion [kg/kg/s]
-        if (fc.gt.0.01) then ! if there is a cloud
+        if (afc.gt.0.01) then ! if there is a cloud
 c       1bda. Calculate the in cloud mixing ratio [kg/kg]
-          qcincld = qcw/fc                                   ![kg/kg][cld]
+          qcincld = qcw/afc                                   ![kg/kg][cld]
 c       1bdb. Compute the maximum precipation rate
 c             (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = qcw/dt                                    ![kg/kg/s][cld]
 c       1bdc. Implement the Gultepe & Isaac formula for qcth.
           qcth = cgul(i,j)*(10.**(-0.489+0.0134*tcel))*i1000 ![kg/kg][cld]
 c       1bdd. Compute the gridcell average autoconversion [kg/kg/s]
-          pptnew = qck1(i,j)*(qcincld-qcth)*fc               ![kg/kg/s][avg]
+          pptnew = qck1(i,j)*(qcincld-qcth)*afc               ![kg/kg/s][avg]
           pptnew = dmin1(dmax1(pptnew,0.0d0),pptmax)         ![kg/kg/s][avg]
 c     1be. Compute the cloud removal rate (for chemistry) [1/s]
 Cchem2
@@ -214,7 +214,7 @@ c       1bfa. Compute the amount of water remaining in the cloud [kg/kg]
             qcleft = dmax1(qcw-pptnew*dt,0.d0)               ![kg/kg][avg]
 c       1bfb. Add 1/2 of the new precipitation to the accumulated
 c             precipitation [kg/m3]
-            pptkm1 = (pptkm1+0.5*pptnew/fc)*rho*dt           ![kg/m3][cld]
+            pptkm1 = (pptkm1+0.5*pptnew/afc)*rho*dt           ![kg/m3][cld]
 c       1bfc. accretion [kg/kg/s]
             pptacc = caccr*qcleft*pptkm1                     ![kg/kg/s][avg]
 c       1bfd. Update the precipitation accounting for the accretion [kg/kg/s]
