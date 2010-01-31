@@ -119,7 +119,7 @@ C
      $        nn,           ! Index of longitude loops (max=nloop)
      $        ii,           ! Longitude index
      $        nval,         ! Number of long values satisfying criteria
-     $        index(plond)  ! Array of longitude indices
+     $        indx(plond)  ! Array of longitude indices
 C
       real(kind=8)  taugab(plond),   ! Total column gas absorption optical depth
      $     tauray(plond),   ! Column rayleigh optical depth
@@ -245,11 +245,11 @@ C
 C Compute next layer delta-Eddington solution only if total transmission
 C of radiation to the interface just above the layer exceeds trmin.
 C
-         call whenfgt(plon,tottrn(1,k),1,trmin,index,nval)
+         call whenfgt(plon,tottrn(1,k),1,trmin,indx,nval)
          if(nval.gt.0) then
 CCDIR$ IVDEP
             do 100 ii=1,nval
-               i=index(ii)
+               i=indx(ii)
 C
 C Remember, no ozone absorption in this layer:
 C
