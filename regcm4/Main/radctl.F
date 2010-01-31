@@ -85,15 +85,9 @@ c
 #     include "include/parrad.cb"
 
 C------------------------------Commons----------------------------------
-#     include "include/comctl.cb"
-#     include "include/comhst.cb"
 #     include "include/comtim.cb"
 #     include "include/aeroppt.cb"
 C-----------------------------------------------------------------------
-C
-      real(kind=8)  aermmr        ! Radiation level aerosol mass mixing ratio
-      common/aermr/ aermmr(plond,plevr)
-C------------------------------Arguments--------------------------------
 C
 C Input arguments
 C
