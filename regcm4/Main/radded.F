@@ -154,8 +154,8 @@ C
 C Statement functions and other local variables
 C
       real(kind=8)  alpha,           ! Term in direct reflect and transmissivity
-     $     gamma,           ! Term in direct reflect and transmissivity
-     $     el,              ! Term in alpha,gamma,n,u
+     $     xgamm,           ! Term in direct reflect and transmissivity
+     $     el,              ! Term in alpha,xgamm,n,u
      $     taus,            ! Scaled extinction optical depth
      $     omgs,            ! Scaled single particle scattering albedo
      $     asys,            ! Scaled asymmetry parameter
@@ -174,7 +174,7 @@ C
 C Intermediate terms for delta-eddington solution
 C
       real(kind=8)  alp,             ! Temporary for alpha
-     $     gam,             ! Temporary for gamma
+     $     gam,             ! Temporary for xgamm
      $     ue,              ! Temporary for u
      $     arg,             ! Exponential argument
      $     extins,          ! Extinction
@@ -182,7 +182,7 @@ C
      $     apg              ! Alp + gam
 C
       alpha(w,uu,g,e) = .75*w*uu*((1. + g*(1-w))/(1. - e*e*uu*uu))
-      gamma(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu + 1.)/(1.-e*e*uu*uu))
+      xgamm(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu + 1.)/(1.-e*e*uu*uu))
       el(w,g)         = dsqrt(3.*(1-w)*(1. - w*g))
       taus(w,f,t)     = (1. - w*f)*t
       omgs(w,f)       = (1. - f)*w/(1. - w*f)
@@ -231,7 +231,7 @@ C
             gs   = asys(gtot,ftot)
             lm   = el(ws,gs)
             alp  = alpha(ws,coszrs(i),gs,lm)
-            gam  = gamma(ws,coszrs(i),gs,lm)
+            gam  = xgamm(ws,coszrs(i),gs,lm)
             ue   = u(ws,gs,lm)
 C
 C Limit argument of exponential to 25, in case lm*ts very large:
@@ -346,7 +346,7 @@ C
                gs   = asys(gtot,ftot)
                lm   = el(ws,gs)
                alp  = alpha(ws,coszrs(i),gs,lm)
-               gam  = gamma(ws,coszrs(i),gs,lm)
+               gam  = xgamm(ws,coszrs(i),gs,lm)
                ue   = u(ws,gs,lm)
 C
 C Limit argument of exponential to 25, in case lm very large:
