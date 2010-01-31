@@ -1,0 +1,453 @@
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of RegCM model.
+!
+!    RegCM model is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    RegCM model is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ 
+      subroutine vmodes(lstand,sigmaf,kv1)
+!
+      use regcm_param
+      use param1
+      use split
+      use message
+      implicit none
+!
+! PARAMETER definitions
+!
+      integer , parameter :: nk1 = kx + 1
+      real(8) , parameter :: rgas = 287. , xkappa = .287
+!
+! Dummy arguments
+!
+      integer :: kv1
+      logical :: lstand
+      real(8) , dimension(kv1) :: sigmaf
+      intent (in) kv1 , lstand
+!
+! Local variables
+!
+      real(8) , dimension(2) :: det
+      integer :: i , ier , j , k , k1 , l , mm , numerr
+      logical :: lhydro , lprint , lsigma
+      real(8) :: ps2 , rm1 , x
+      real(8) , dimension(kx) :: work
+!
+!  this subroutine determines the vertical modes of the psu/ncar meso-
+!  scale model designated mm4.  it also computes associated transform
+!  matrices used by the initialization software used with mm4.
+!
+!----------------------------------------------------------------------
+!
+!
+!   the following are user set parameters:
+!
+! ix,jx  = dimension of horizontal grid (later called ni,nj).
+!          as in mm4, ix is for n-s direction, jx for w-e direction.
+! kx     = number of model data levels
+! dt     = time step used to generate tendencies (later called delt)
+! dx     = grid spacing at center in meters (later called delx).
+! clat   = latitude of central point, used to determine coriolis param.
+! ptop   = model top in units of cb (later called pt).
+!
+!
+!     programmed by ronald m. errico at ncar,  dec 1984.
+!     revised by ronald errico and gary bates, nov 1987.
+!     revised by ronald errico,                mar 1988.
+!     for further info see: ncar tech note by errico and bates, 1988.
+!
+!  iunit is the output unit number for file of eigenvectors, etc.
+!  lstand = .true. if standard atmosphere t to be used (ignore input
+!            tbarh and ps in that case).  otherwise, ps and tbarh must
+!            be defined on input.  note that in either case, pt must
+!            also be defined on input (common block named cvert).
+!
+!
+!  rgas and xkappa are atmospheric values for r and kappa.
+!
+      data lprint/.false./  ! true if all matrices to be printed
+!
+      numerr = 0
+      lprint = .false.
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!                            s  t  a  r  t
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!       set arrays describing vertical structure
+!
+!  set reference pressures
+      if ( lstand ) ps = 100.
+                            ! standard ps in cb; otherwise ps set in tav
+      pd = ps - pt
+      r = rgas
+!
+!  read sigmaf (sigma at full (integral) index levels; kx+1 values as
+!  in the mm4.   check that values are ordered properly.
+!
+      if ( lstand ) then
+        write (aline,*)                                                 &
+               &'0 linearization about standard atmosphere (lstand=.t.)'
+        call say
+      else
+        write (aline,*) '0 linearization about horizontal mean of data '&
+                      & , '(lstand=.f.)'
+        call say
+      end if
+!
+      lsigma = .false.
+      if ( sigmaf(1).ne.0. ) lsigma = .true.
+      if ( sigmaf(nk1).ne.1. ) lsigma = .true.
+      do k = 1 , kx
+        if ( sigmaf(k+1).le.sigmaf(k) ) then
+          lsigma = .true.
+          write (aline,99001) k , sigmaf(k+1) , sigmaf(k)
+99001     format ('0 for k=',i3,' sigmaf(k+1)=',f9.6,' .le. sigmaf(k)=',&
+                & f9.6)
+          call say
+        end if
+      end do
+      if ( lsigma ) call fatal(__FILE__,__LINE__,                       &
+                             &'sigma values in list vmode inappropriate'&
+                            & )
+!
+!  compute sigmah (sigma at half levels) and delta sigma
+      do k = 1 , kx
+        sigmah(k) = 0.5*(sigmaf(k)+sigmaf(k+1))
+        dsigma(k) = sigmaf(k+1) - sigmaf(k)
+      end do
+      sigmah(nk1) = 1.0
+!
+!  set tbarh (temperature at half (data) levels: indexed k + 1/2)
+      if ( lstand ) call vtlaps(tbarh,sigmah,r,pt,pd,kx)
+      call vchekt(tbarh,sigmah,sigmaf,xkappa,pt,pd,kx,numerr)
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!      determine thermodynamic matrix
+!
+!  compute thetah
+      do k = 1 , kx
+        thetah(k) = tbarh(k)*((sigmah(k)+pt/pd)**(-xkappa))
+      end do
+!
+!  compute tbarf and thetaf
+      do k = 2 , kx
+        k1 = k - 1
+        tbarf(k) = tbarh(k1)*(sigmah(k)-sigmaf(k))                      &
+                 & /(sigmah(k)-sigmah(k1)) + tbarh(k)                   &
+                 & *(sigmaf(k)-sigmah(k1))/(sigmah(k)-sigmah(k1))
+      end do
+      tbarf(1) = 0.
+      tbarf(nk1) = 0.
+!
+      do k = 1 , nk1
+        thetaf(k) = tbarf(k)*((sigmaf(k)+pt/pd)**(-xkappa))
+      end do
+!
+!  define matrices for determination of thermodynamic matrix
+      do l = 1 , kx
+        do k = 1 , kx
+          if ( l.gt.k ) e2(k,l) = 0.
+          if ( l.le.k ) e2(k,l) = 1.
+          e1(k,l) = 1.
+        end do
+      end do
+!
+      do l = 1 , kx
+        do k = 1 , kx
+          a3(k,l) = 0.
+          d1(k,l) = 0.
+          d2(k,l) = 0.
+          s1(k,l) = 0.
+          s2(k,l) = 0.
+          x1(k,l) = 0.
+        end do
+      end do
+      do k = 1 , kx
+        a3(k,k) = -tbarh(k)
+        d1(k,k) = sigmaf(k+1) - sigmaf(k)
+        d2(k,k) = xkappa*tbarh(k)/(sigmah(k)+pt/pd)
+        s1(k,k) = sigmaf(k)
+        s2(k,k) = sigmah(k)
+        x1(k,k) = 1.
+      end do
+!
+      do k = 1 , kx
+        do l = 1 , kx
+          e3(k,l) = 0.
+          g1(k,l) = 0.
+        end do
+        e3(k,k) = 1.
+        if ( k.gt.1 ) g1(k,k) = tbarf(k)
+        if ( k.lt.kx ) g1(k,k+1) = -tbarf(k+1)
+        if ( k.lt.kx ) e3(k,k+1) = 1.
+      end do
+!
+!  compute g2 (i.e., the transform from divg. to sigma dot)
+      call vsubtm(w1,e2,x1,kx)
+      call vmultm(w2,w1,d1,kx)
+      call vmultm(g2,e1,d1,kx)
+      call vmultm(w1,s1,g2,kx)
+      call vsubtm(g2,w1,w2,kx)
+!
+!  compute a1
+      do k = 1 , kx
+        do l = 1 , kx
+          w2(k,l) = 0.
+        end do
+        w2(k,k) = 1./d1(k,k)
+      end do
+      call vmultm(w1,g1,g2,kx)
+      call vmultm(a1,w2,w1,kx)
+!
+!  compute a2
+      call vmultm(w1,e1,d1,kx)
+      call vmultm(a2,s2,w1,kx)
+      call vmultm(w2,e3,g2,kx)
+      call vmultc(w2,w2,kx,0.5D0)
+      call vsubtm(w1,w2,a2,kx)
+      call vmultm(a2,d2,w1,kx)
+!
+!  compute a4
+      call vmultm(w1,e1,d1,kx)
+      call vmultm(a4,a3,w1,kx)
+      call vmultc(a4,a4,kx,-1.D0)
+!
+!  compute a
+      call vaddms(a,a1,a2,kx)
+      call vaddms(a,a,a3,kx)
+      call vaddms(a,a,a4,kx)
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!       determine matrices for linearized determination of geopotential
+!
+!  compute delta log p
+      do k = 2 , kx
+        w1(k,1) = dlog((sigmah(k)+pt/pd)/(sigmah(k-1)+pt/pd))
+      end do
+!
+!  compute matrix which multiples t vector
+      do l = 1 , kx
+        do k = 1 , kx
+          hydros(k,l) = 0.
+        end do
+      end do
+!
+      do k = 1 , kx - 1
+        do l = k , kx - 1
+          hydros(k,l) = hydros(k,l) + w1(l+1,1)*dsigma(l)               &
+                      & /(dsigma(l+1)+dsigma(l))
+          hydros(k,l+1) = hydros(k,l+1) + w1(l+1,1)*dsigma(l+1)         &
+                        & /(dsigma(l+1)+dsigma(l))
+        end do
+      end do
+!
+      do k = 1 , kx
+        hydros(k,kx) = hydros(k,kx)                                     &
+                     & + dlog((1.+pt/pd)/(sigmah(kx)+pt/pd))
+      end do
+!
+!  compute matirx which multiplies log(sigma*p+pt) vector
+      do l = 1 , nk1
+        do k = 1 , kx
+          hydroc(k,l) = 0.
+        end do
+      end do
+!
+      tweigh(1) = 0.
+      do l = 2 , kx
+        tweigh(l) = (tbarh(l)*dsigma(l)+tbarh(l-1)*dsigma(l-1))         &
+                  & /(dsigma(l)+dsigma(l-1))
+      end do
+!
+      do l = 2 , kx - 1
+        do k = 1 , l - 1
+          hydroc(k,l) = tweigh(l) - tweigh(l+1)
+        end do
+      end do
+!
+      do l = 1 , kx - 1
+        hydroc(l,l) = tbarh(l) - tweigh(l+1)
+      end do
+!
+      do k = 1 , kx - 1
+        hydroc(k,kx) = tweigh(kx) - tbarh(kx)
+      end do
+!
+      do k = 1 , kx
+        hydroc(k,nk1) = tbarh(kx)
+      end do
+!
+!  test hydroc and hydros matrices (if correct, w1(k,1)=w1(k,2))
+      lhydro = .false.
+      do k = 1 , kx
+        w1(k,1) = 0.
+        do l = 1 , kx
+          w1(k,1) = w1(k,1) + hydros(k,l)*tbarh(l)
+        end do
+        w1(k,2) = -tbarh(k)*dlog(sigmah(k)*pd+pt)
+        do l = 1 , nk1
+          w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+pt)
+        end do
+        x = dabs(w1(k,1)-w1(k,2))/(dabs(w1(k,1))+dabs(w1(k,2)))
+        if ( x.gt.1.E-8 ) lhydro = .true.
+      end do
+!
+      if ( lhydro ) then
+        numerr = numerr + 1
+        print 99002
+99002   format ('0 problem with linearization of hydostatic equation')
+        call vprntv(w1(1,1),kx,'test1   ')
+        call vprntv(w1(1,2),kx,'test2   ')
+      end if
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!       determine tau matrix
+!
+      do l = 1 , kx
+        do k = 1 , nk1
+          w3(k,l) = dsigma(l)/(1.+pt/(pd*sigmah(k)))
+        end do
+      end do
+!
+      do l = 1 , kx
+        do k = 1 , kx
+          w2(k,l) = 0.
+          do mm = 1 , nk1
+            w2(k,l) = w2(k,l) + hydroc(k,mm)*w3(mm,l)
+          end do
+        end do
+      end do
+!
+      call vmultm(w1,hydros,a,kx)
+      call vsubtm(tau,w1,w2,kx)
+      rm1 = -1.*r
+      call vmultc(tau,tau,kx,rm1)
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!       determine other matrices and vectors
+!
+!  compute eigenvalues and vectors for tau (rg calls eispack routines)
+      call vmultc(w1,tau,kx,1.D0) ! copy tau since rg destroys input
+      call rg(kx,w1,hbar,w2,1,zmatx,ier)
+      call vcheki(ier,numerr,'zmatx   ')
+      call vcheke(hbar,w2,kx,numerr,'tau     ')
+      call vorder(zmatx,hbar,w1,w2,kx)
+      call vnorml(zmatx,sigmaf,kx,nk1)
+!
+!  compute inverse of zmatx
+      call invmtrx(zmatx,kx,zmatxr,kx,kx,det,iw2,ier,work)
+      call vcheki(ier,numerr,'zmatxr  ')
+!
+!  compute inverse of hydros
+      call invmtrx(hydros,kx,hydror,kx,kx,det,iw2,ier,work)
+      call vcheki(ier,numerr,'hydror  ')
+!
+!  compute cpfac
+      call invmtrx(tau,kx,w1,kx,kx,det,iw2,ier,work)
+      call vcheki(ier,numerr,'taur    ')
+!
+      do k = 1 , kx
+        cpfac(k) = 0.
+        do l = 1 , kx
+          cpfac(k) = cpfac(k) + (sigmaf(l+1)-sigmaf(l))*w1(l,k)
+        end do
+      end do
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!       determine arrays needed for daley's variational scheme
+!             for determination of surface pressure changes
+!
+      do i = 1 , kx      ! weight of t for different levels
+        hweigh(i) = 0.
+      end do
+      hweigh(kx) = 1.    ! only lowest sigma level t considered
+!
+      do j = 1 , kx
+        do i = 1 , kx    ! compute b(-1t) w/tbar**2 b(-1)
+          w1(i,j) = 0.
+          do k = 1 , kx
+            w1(i,j) = hydror(k,i)*hydror(k,j)*hweigh(k)/(tbarh(k)**2)   &
+                    & + w1(i,j)
+          end do
+        end do
+      end do
+!
+      ps2 = ps*ps
+      do j = 1 , nk1
+        do i = 1 , kx
+          varpa1(i,j) = 0.
+          do k = 1 , kx
+            varpa1(i,j) = varpa1(i,j) + w1(i,k)*hydroc(k,j)*ps2
+          end do
+        end do
+      end do
+!
+      do j = 1 , nk1
+        do i = 1 , nk1
+          varpa2(i,j) = 0.
+          do k = 1 , kx
+            varpa2(i,j) = varpa2(i,j) + hydroc(k,i)*varpa1(k,j)
+          end do
+        end do
+      end do
+!
+      alpha1 = hydros(kx,kx)*tbarh(kx)/ps
+      alpha2 = hweigh(kx)
+!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!       output desired arrays
+!
+      call vprntv(sigmaf,nk1,'sigmaf  ')
+      call vprntv(tbarh,kx,'t mean  ')
+      call vprntv(ps,1,'ps mean ')
+      print 99003 , kx , numerr
+99003 format ('0 vertical mode problem completed for kx=',i3,5x,i1,     &
+             &' errors detected   (should be 0)')
+!
+!  printout if desired
+      if ( .not.lprint ) then
+        return
+      end if
+      call vprntv(cpfac,kx,'cpfac   ')
+      call vprntv(dsigma,kx,'dsigma  ')
+      call vprntv(hbar,kx,'hbar    ')
+      call vprntv(sigmah,nk1,'sigmah  ')
+      call vprntv(tbarf,nk1,'tbarf   ')
+      call vprntv(thetah,kx,'thetah  ')
+      call vprntv(thetaf,nk1,'thetaf  ')
+      call vprntv(hweigh,kx,'hweigh  ')
+      print 99004 , alpha1 , alpha2
+99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
+      call vprntm(a,kx,kx,'a       ')
+      call vprntm(hydros,kx,kx,'hydros  ')
+      call vprntm(hydror,kx,kx,'hydror  ')
+      call vprntm(hydroc,kx,nk1,'hydroc  ')
+      call vprntm(tau,kx,kx,'tau     ')
+      call vprntm(zmatx,kx,kx,'zmatx   ')
+      call vprntm(zmatxr,kx,kx,'zmatxr  ')
+      call vprntm(varpa1,kx,nk1,'varpa1  ')
+      call vprntm(varpa2,nk1,nk1,'varpa2  ')
+!
+      return
+ 
+      end subroutine vmodes
