@@ -139,7 +139,7 @@ C
 C Statement functions for delta-Eddington solution; for detailed
 C explanation of individual terms, see the routine 'radded'.
 C
-      real(kind=8)  alpha,gamma,el,taus,omgs,asys,u,n,lm,ne
+      real(kind=8)  alpha,xgamma,el,taus,omgs,asys,u,n,lm,ne
       real(kind=8)  w,uu,g,e,f,t,et
 C
 C Intermediate terms for delta-Eddington solution
@@ -147,7 +147,7 @@ C
       real(kind=8)  alp,gam,ue,arg,extins,amg,apg
 C
       alpha(w,uu,g,e) = .75*w*uu*((1. + g*(1-w))/(1. - e*e*uu*uu))
-      gamma(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu + 1.)/(1.-e*e*uu*uu))
+      xgamma(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu + 1.)/(1.-e*e*uu*uu))
       el(w,g)         = dsqrt(3.*(1-w)*(1. - w*g))
       taus(w,f,t)     = (1. - w*f)*t
       omgs(w,f)       = (1. - f)*w/(1. - w*f)
@@ -275,7 +275,7 @@ C
                gs        = asys(gtot,ftot)
                lm        = el(ws,gs)
                alp       = alpha(ws,coszrs(i),gs,lm)
-               gam       = gamma(ws,coszrs(i),gs,lm)
+               gam       = xgamma(ws,coszrs(i),gs,lm)
                ue        = u(ws,gs,lm)
 C
 C Limit argument of exponential to 25, in case lm very large:
