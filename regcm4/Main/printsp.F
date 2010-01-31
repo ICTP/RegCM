@@ -25,10 +25,9 @@ c
       real(kind=8)  array(ix,jx,kx)
       character*18 cform
       character*08 aname
-      integer i,j,ineg,inum,jnum,jcheck
+      integer i,j,ineg,jnum,jcheck
 c
       ineg = - iinc
-      inum = (ix-2) / iinc + 1
       jnum = (jx-2) / jinc + 1
 c
       jcheck = 11 * jnum
