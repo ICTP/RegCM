@@ -129,7 +129,7 @@ C
      $        nn,           ! Index of longitude loops (max=nloop)
      $        ii,           ! Longitude index
      $        nval,         ! Number of long values satisfying criteria
-     $        index(plond)  ! Array of longitude indices
+     $        indx(plond)  ! Array of longitude indices
 C
       real(kind=8)  taugab(plond),   ! Layer total gas absorption optical depth
      $     tauray(plond),   ! Layer rayleigh optical depth
@@ -315,11 +315,11 @@ C
 C Compute next layer delta-eddington solution only if total transmission
 C of radiation to the interface just above the layer exceeds trmin.
 C
-         call whenfgt(plon,tottrn(1,k),1,trmin,index,nval)
+         call whenfgt(plon,tottrn(1,k),1,trmin,indx,nval)
          if(nval.gt.0) then
 CCDIR$ IVDEP
             do 300 ii=1,nval
-               i=index(ii)
+               i=indx(ii)
 C
                tauray(i) = trayoslp*(pflx(i,k+1)-pflx(i,k))
                taugab(i) = abh2o*uh2o(i,k) + abo3*uo3(i,k) +
