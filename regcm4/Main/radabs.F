@@ -310,8 +310,8 @@ C     real(kind=8)  trab5(plond)   ! 9.6 micrometer band
       real(kind=8)  trab6(plond)   ! H2o  1000 - 1200 cm-1
 C     real(kind=8)  trab7(plond)   ! H2o  1200 - 2200 cm-1
 C
-      real(kind=8)  bndfct, ! Band absorptance parameter for co2
-     $     absbnd  ! Proportional to co2 band absorptance
+c     real(kind=8)  bndfct ! Band absorptance parameter for co2
+      real(kind=8)  absbnd ! Proportional to co2 band absorptance
 C
       real(kind=8)  dbvtit(plond,plevp),      ! Intrfc drvtv plnck fnctn for o3
      $     dbvtly(plond,plev)        ! Level drvtv plnck fnctn for o3
@@ -346,7 +346,7 @@ C
       r2sslp  = 1./(2.*sslp)
       r2st(1) = 1./(2.*st(1))
       r2st(2) = 1./(2.*st(2))
-      bndfct  = 2.0*22.18d0/(dsqrt(196.d0)*300.)
+c     bndfct  = 2.0*22.18d0/(dsqrt(196.d0)*300.)
 C
 C Non-adjacent layer absorptivity:
 C
