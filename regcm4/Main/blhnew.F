@@ -57,7 +57,6 @@ c
 
 #     include "parameter.inc"
 
-#     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/main.cb"
@@ -94,7 +93,9 @@ c      real(kind=8)  th10(ix),     hfxv(ix),  obklen(ix),   ustr(ix)
 c
 c --- input/ouput variables
 c      real(kind=8)  therm(ix)
-       real(kind=8)  ri(ix,kx),cgq(ix,kx),therm(ix)
+       real(kind=8)  ri(ix,kx)
+c                    cgq(ix,kx)
+       real(kind=8)  therm(ix)
 cc
 c --- output variables
 c      real(kind=8)  cgh(ix,kx), cgq(ix,kx)
@@ -290,7 +291,7 @@ Cchem
 Cchem_
 c** compute counter-gradient term
          cgh(i,k,j) = 0.0
-         cgq(i,k) = 0.0
+c        cgq(i,k) = 0.0
         else
 c** unstable conditions
 
@@ -311,7 +312,7 @@ Cchem_
           therm2 = fak/(zpbl(i,j)*wsc)
           cgh(i,k,j) = hfxv(i,j)*therm2
 c         cgq(i,k) = xqfx(i,j)*therm2
-          cgq(i,k) = 0.0
+C         cgq(i,k) = 0.0
          else
 c** igroup = 3
           pblk = fak1*zh*zzh*(1.-betam*zl)**onet
@@ -322,7 +323,7 @@ Cchem
 Cchem_
           pr = ((1.-betam*zl)**onet)/dsqrt(1.-betah*zl)
           cgh(i,k,j) = 0.0
-          cgq(i,k) = 0.0
+c         cgq(i,k) = 0.0
          end if
 
 c** compute eddy diffusivities
