@@ -22,8 +22,6 @@ c----------------------------------------------------------------------
 c
       implicit none
 #     include "parameter.inc"
-#     include "include/param1.cb"
-#     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/main.cb"
 #     include "include/rad.cb"
@@ -34,7 +32,7 @@ c
      & o3wrk(31),ppwrk(31),o3sum(31),ppsum(31),o3win(31),ppwin(31),
      & o3ann(31),ppann(31)
 c
-      integer i,j,k,klevm1,klevp1,klevp2,kj,jj
+      integer i,j,k,klevp1,kj,jj
       real(kind=8)  pb1,pb2,pt1,pt2
 c
       do 501 k=1,31
@@ -56,9 +54,7 @@ c
 c
 c   calculate half pressure levels for model and data levels
 c
-      klevm1=kx-1
       klevp1=kx+1
-      klevp2=kx+2
 c
 #ifdef MPP1
       do 101 j=1,jendx
