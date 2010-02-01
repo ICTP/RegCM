@@ -23,7 +23,6 @@ cqhy15/07/99 subroutine cumtran(il,jl,kx,ntr,dsigma,icumtop,chia,chib)
       implicit none
 #     include "parameter.inc"
 #     include "include/trachem.cb"
-#     include "include/main.cb"
 #     include "include/mainchem.cb"
 #     include "include/param3.cb"
 
