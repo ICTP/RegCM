@@ -211,7 +211,7 @@ C Local variables for CO2:
 C
       real(kind=8)  co2ems(plond,plevp), ! Co2 emissivity
      $     co2plk(plond),       ! Used to compute co2 emissivity
-     $     sum(plond),          ! Used to calculate path temperature
+     $     xsum(plond),         ! Used to calculate path temperature
      $     t1i,                 ! Co2 hot band temperature factor
      $     sqti,                ! Sqrt of temperature
      $     pi,                  ! Pressure used in co2 mean line width
@@ -272,8 +272,8 @@ C     real(kind=8)     trem3(plond)         ! Co2   500 -  800 cm-1
 C     real(kind=8)     trem5(plond)         ! O3     9.6 micro-meter band
       real(kind=8)  trem6(plond)         ! H2o  1000 - 1200 cm-1
 C     real(kind=8)     trem7(plond)         ! H2o  1200 - 2200 cm-1
-      real(kind=8)  bndfct,              ! Band absorptance parameter for co2
-     $     absbnd               ! Proportional to co2 band absorptance
+c     real(kind=8)  bndfct ! Band absorptance parameter for co2
+      real(kind=8)  absbnd               ! Proportional to co2 band absorptance
       real(kind=8)  tco2(plond),         ! co2 overlap factor
      $     th2o(plond),         ! h2o overlap factor
      $     to3(plond)           ! o3 overlap factor
@@ -307,20 +307,20 @@ C
          ex        = dexp(960.d0/tplnke(i))
          co2plk(i) = 5.d8/((tplnke(i)**4)*(ex - 1.))
          co2t(i,1) = tplnke(i)
-         sum(i)    = co2t(i,1)*pnm(i,1)
+         xsum(i)    = co2t(i,1)*pnm(i,1)
       end do
       k = 1
       do k1=plevp,2,-1
          k = k + 1
          do i=1,plon
-            sum(i)         = sum(i) + tlayr(i,k)*(pnm(i,k)-pnm(i,k-1))
+            xsum(i)         = xsum(i) + tlayr(i,k)*(pnm(i,k)-pnm(i,k-1))
             ex             = dexp(960./tlayr(i,k1))
             tlayr5         = tlayr(i,k1)*tlayr4(i,k1)
             co2eml(i,k1-1) = 1.2e11*ex/(tlayr5*(ex - 1.)**2)
-            co2t(i,k)      = sum(i)/pnm(i,k)
+            co2t(i,k)      = xsum(i)/pnm(i,k)
          end do
       end do
-      bndfct = 2.d0*22.18/(dsqrt(196.d0)*300.)
+C     bndfct = 2.d0*22.18/(dsqrt(196.d0)*300.)
 C
 C Initialize planck function derivative for O3
 C
