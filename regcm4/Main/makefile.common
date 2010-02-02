@@ -21,7 +21,7 @@ nconvp.F nudge.F o3data.F outprt.F output.F \
 outsav.F outsrf.F outsub.F outtap0.F outtap.F param.F pcp.F \
 radabs.F radclr.F radclw.F radcsw.F radctl.F radded.F radems.F \
 radini.F radinp.F radout.F radoz2.F radtap.F radtpl.F reorder.F \
-resetr.F root.F satur.F slice.F slice3d.F \
+root.F satur.F slice.F slice3d.F \
 snow.F soilbc.F solar1.F spinit.F spline.F splitf.F \
 sponge.F spstep.F stomat.F \
 temp.F tend.F tgrund.F tpfc.F tracbud.F tracdiag.F \
@@ -274,7 +274,6 @@ radtpl.o: radtpl.F parameter.inc include/parrad.cb include/crdcon.cb
 regcm.o: regcm.F header.o parameter.inc include/date.cb include/param1.cb \
  include/param2.cb include/param3.cb include/message.cb
 reorder.o: reorder.F
-resetr.o: resetr.F
 root.o: root.F parameter.inc include/bats.cb
 satur.o: satur.F parameter.inc include/bats.cb
 slice3d.o: slice3d.F parameter.inc include/param1.cb include/param2.cb \
