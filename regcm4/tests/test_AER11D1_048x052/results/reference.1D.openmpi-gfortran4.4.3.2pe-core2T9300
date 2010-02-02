@@ -1,5 +1,14 @@
  process           0 of           2
  process           1 of           2
+
+  This is RegCM version 4 
+   SVN Revision: 156 compiled at: data : Feb  2 2010  time: 08:55:24
+
+ : this run start at    : Tue Feb  2 08:58:39 2010
+ : it is submitted by   : graziano
+ : it is running on     : portatile
+ : in directory         : /home/graziano/regcm_test/RegCM_48x52/Run
+                       
  RESTARTPARAM READ IN
  TIMEPARAM READ IN
  OUTPARAM READ IN
@@ -8,7 +17,7 @@
  GRELLPARAM READ IN
  CHEMPARAM READ IN
   dtau =    50.000000000000000        100.00000000000000     
- NREC =       289276
+  nrec =       289276
  IDATE1, IDATE2, dtmin, ktaur =   1990010100  1990010200   3.3333333333333335                0
  READING HEADER FILE
  DIMS          52          48          18
@@ -149,8 +158,7 @@
  dectim =    1440.0000000000000     
  BCs are ready from   1990010100   to   1990010106
  dt, dtau =    200.00000000000000        50.000000000000000        100.00000000000000     
-0 linearization about standard atmosphere (lstand=.t.)
-0 vertical mode problem completed for kx= 18     0 errors detected   (should be 0)
+  0 linearization about standard atmosphere (lstand=.t.)
 0sigmaf      0.00      5.000E-02  0.100      0.160      0.230      0.310      0.390      0.470      0.550      0.630      0.710    
            0.780      0.840      0.890      0.930      0.960      0.980      0.990       1.00    
 0t mean      218.       218.       218.       218.       229.       239.       248.       255.       262.       268.       273.    
@@ -159,6 +167,7 @@
 0 vertical mode problem completed for kx= 18     0 errors detected   (should be 0)
  m, fac =            4   44.444444444444443     
  m, fac =            2   80.000000000000000     
+0 vertical mode problem completed for kx= 18     0 errors detected   (should be 0)
            1 SO2  
            2 SO4  
            3 BC_HB
