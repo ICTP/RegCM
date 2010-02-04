@@ -959,7 +959,7 @@
       integer JX_O,IY_O,KZ_O
       character a80*80, filout*(*)
       integer isystm,system
-      external system
+!      external system
 !
       open(23,file='../ICBC/icbc.param')
       write(23,'(a)') '      INTEGER JX'
@@ -3953,7 +3953,7 @@
       real*8  lnd8(iter,jter)
       real*8  bint
       integer isystm,system
-      external bint,system
+      external bint
 !
       flag    = .true.
       lrec    = 0

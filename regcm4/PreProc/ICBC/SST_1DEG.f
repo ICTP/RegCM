@@ -40,7 +40,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       logical there
       integer ludom, lund(25), lumax, k
       integer isystm,system
-      external system
+!      external system
 
       IF(SSTTYP.EQ.'GISST') THEN
          if(IDATE1.LT.1947121512.or.IDATE2.GT.2002091512) THEN
@@ -392,7 +392,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real    centerj,centeri,GRDFAC
       integer ny,nx,kz
       integer isystm,system
-      external system
+!      external system
 C
       READ(10,rec=1,iostat=ierr) IYY,JXX,kz,DSINM,CLAT,CLON,PLAT,PLON
      &                          ,GRDFAC,iproj,(SIGMAF(K),K=1,KZ+1),PTOP
@@ -548,7 +548,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real    centerj,centeri,GRDFAC
       integer ny,nx,kz
       integer isystm,system
-      external system
+!      external system
 C
       READ(10,rec=1,iostat=ierr) IYY,JXX,kz,DSINM,CLAT,CLON,PLAT,PLON
      &                          ,GRDFAC,iproj,(SIGMAF(K),K=1,KZ+1),PTOP
@@ -728,7 +728,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine SST_MN(IDATE,IDATE0)
       implicit none
       INTEGER IDATE,IDATE0
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
 c
 c This is the latitude, longitude dimension of the grid to be read.
 c This corresponds to the lat and lon dimension variables in the netCDF file.
@@ -804,7 +804,7 @@ c
       subroutine SST_WK(IDATE,IDATE0,KKK)
       implicit none
       INTEGER IDATE,IDATE0,KKK
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
 c
 c This is the latitude, longitude dimension of the grid to be read.
 c This corresponds to the lat and lon dimension variables in the netCDF file.

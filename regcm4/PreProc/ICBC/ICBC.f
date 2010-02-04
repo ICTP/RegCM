@@ -95,7 +95,7 @@
       character a50*50, inrcm*25, inrcm2*25, a120*120, a8*8, a7*7
       logical there
       integer isystm,system
-      external system
+!      external system
 !
       CALL INITDATE
       CALL FINDDATE(NSTART,IDATE1)
@@ -1474,7 +1474,7 @@
       COMMON /WRK_SO4s/ncid, status
       REAL    PRCM,PMPI,PMPJ
       INTEGER L,K0
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
       INTEGER NOUTREC
       COMMON /OUTCOUNT/NOUTREC
  
@@ -6574,7 +6574,7 @@
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       INTEGER K
       integer isystm,system
-      external system
+!      external system
 !
       inquire(file=FINAME//'.CTL',exist=there)
       if(there) isystm=system('/bin/rm '//FINAME//'.CTL')
@@ -6777,7 +6777,7 @@
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       INTEGER K
       integer isystm,system
-      external system
+!      external system
 !
       inquire(file=FINAME//'.CTL',exist=there)
       if(there) isystm=system('/bin/rm '//FINAME//'.CTL')
@@ -8476,7 +8476,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine cdc6hour(DATTYP,IDATE,IDATE0)
       implicit none
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
       CHARACTER*5 DATTYP
       INTEGER IDATE,IDATE0
 !
@@ -8688,7 +8688,7 @@
       end
       subroutine cdc6hour2(DATTYP,IDATE,IDATE0)
       implicit none
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
       CHARACTER*5 DATTYP
       INTEGER IDATE,IDATE0
 !
@@ -8984,7 +8984,7 @@
 !-----------------------------------------------------------------------
       subroutine era6hour(DATTYP,LSMTYP,IDATE,IDATE0)
       implicit none
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
       CHARACTER*5 DATTYP
       CHARACTER*4 LSMTYP
       INTEGER IDATE,IDATE0
@@ -9402,7 +9402,7 @@
       end
       subroutine EIN756HOUR(DATTYP,IDATE,IDATE0)
       implicit none
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
       CHARACTER*5 DATTYP
       INTEGER IDATE,IDATE0
 !
@@ -9744,7 +9744,7 @@
       end
       subroutine EIN156HOUR(DATTYP,IDATE,IDATE0)
       implicit none
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
       CHARACTER*5 DATTYP
       INTEGER IDATE,IDATE0
 !
@@ -10086,7 +10086,7 @@
       end
       subroutine EIN256HOUR(DATTYP,IDATE,IDATE0)
       implicit none
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
       CHARACTER*5 DATTYP
       INTEGER IDATE,IDATE0
 !

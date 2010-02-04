@@ -28,7 +28,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       INTEGER NREC
       logical there
       integer isystm,system
-      external system
+!      external system
 
       inquire(file='../DATA/AERGLOB/AEROSOL.dat',exist=there)
       if(.not.there) then
@@ -179,7 +179,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real    centerj,centeri,GRDFAC
       integer ny,nx,kz
       integer isystm,system
-      external system
+!      external system
 C
       READ(10,rec=1,iostat=ierr) IYY,JXX,kz,DSINM,CLAT,CLON,PLAT,PLON
      &                          ,GRDFAC,iproj,(SIGMAF(K),K=1,KZ+1),PTOP

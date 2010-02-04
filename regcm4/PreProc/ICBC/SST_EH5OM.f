@@ -40,7 +40,7 @@
       COMMON /ALLSST/ ivar,offset,scale,it_base
       integer it
       integer isystm,system
-      external system
+!      external system
 
       IF(SSTTYP.EQ.'EH5RF') THEN
         there=.false.
@@ -479,7 +479,7 @@
       real    centerj,centeri,GRDFAC
       integer ny,nx,kz
       integer isystm,system
-      external system
+!      external system
 !
       READ(10,rec=1) IYY,JXX,kz,DSINM,CLAT,CLON,PLAT,PLON,GRDFAC,iproj
      &              ,(SIGMAF(K),K=1,KZ+1),PTOP,igrads,ibigend

@@ -38,7 +38,7 @@
       logical there
       integer it
       integer isystm,system
-      external system
+!      external system
 
       IF(SSTTYP.EQ.'ERSST') THEN
         there=.false.
@@ -242,7 +242,7 @@
       real    centerj,centeri,GRDFAC
       integer ny,nx,kz
       integer isystm,system
-      external system
+!      external system
 !
       READ(10,rec=1) IYY,JXX,kz,DSINM,CLAT,CLON,PLAT,PLON,GRDFAC,iproj
      &              ,(SIGMAF(K),K=1,KZ+1),PTOP,igrads,ibigend
@@ -495,7 +495,7 @@
       subroutine SST_ERAIN(IT,IT0)
       implicit none
       INTEGER IT,IT0
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
 !
 ! This is the latitude, longitude dimension of the grid to be read.
 ! This corresponds to the lat and lon dimension variables in the netCDF file.
@@ -564,7 +564,7 @@
       subroutine SKT_ERAIN(IT,IT0)
       implicit none
       INTEGER IT,IT0
-      include '../../Commons/env/include/netcdf.inc'
+      include 'netcdf.inc'
 !
 ! This is the latitude, longitude dimension of the grid to be read.
 ! This corresponds to the lat and lon dimension variables in the netCDF file.

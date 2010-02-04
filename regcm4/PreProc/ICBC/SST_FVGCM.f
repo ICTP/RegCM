@@ -33,7 +33,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       COMMON /ALLSST/ temp(192,145)
       integer it
       integer isystm,system
-      external system
+!      external system
 
       IF(SSTTYP.EQ.'FV_RF') THEN
          inquire(file='../DATA/SST/Sst_1959_1991ref.dat',exist=there)
@@ -295,7 +295,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real    centerj,centeri,GRDFAC
       integer ny,nx,kz
       integer isystm,system
-      external system
+!      external system
 C
       READ(10,rec=1) IYY,JXX,kz,DSINM,CLAT,CLON,PLAT,PLON,GRDFAC,iproj
      &              ,(SIGMAF(K),K=1,KZ+1),PTOP,igrads,ibigend

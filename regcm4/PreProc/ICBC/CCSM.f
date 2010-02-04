@@ -109,7 +109,7 @@
       subroutine CAM85(idate,idate0,xlon,xlat,glon,glat,jx,iy
      &     ,i0,i1,j0,j1)							
       implicit	none										
-      include 	'../../Commons/env/include/netcdf.inc'					
+      include 	'netcdf.inc'					
       integer 	idate,idate0									
       
       integer	ilon,jlat,klev
@@ -435,7 +435,7 @@
       subroutine CAM42(idate,idate0,xlon,xlat,glon,glat,jx,iy
      &     ,i0,i1,j0,j1)
       implicit	none
-      include 	'../../Commons/env/include/netcdf.inc'
+      include 	'netcdf.inc'
       integer 	idate,idate0
       
       integer	ilon,jlat,klev
@@ -758,7 +758,7 @@
       implicit  none
       integer   idate
       include   'icbc.param'
-      include   '../../Commons/env/include/netcdf.inc'
+      include   'netcdf.inc'
       integer   ilon,jlat,klev
       parameter (ilon=128)
       parameter (jlat=64)
@@ -980,7 +980,7 @@
       implicit  none
       integer   idate
       include   'icbc.param'
-      include   '../../Commons/env/include/netcdf.inc'
+      include   'netcdf.inc'
       integer   ilon,jlat,klev
       parameter (ilon=256)
       parameter (jlat=128)
@@ -1551,7 +1551,7 @@
 !     Error Handler for NETCDF Calls					
       subroutine HANDLE_ERR(STATUS)
       implicit none
-      include 	'../../Commons/env/include/netcdf.inc'
+      include 	'netcdf.inc'
       integer	status
       if (status.ne.nf_noerr) then
          print*, nf_strerror(status)

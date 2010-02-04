@@ -1,0 +1,15 @@
+# This file contains variables to be included in all other Makefiles
+
+# libraries and data
+NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
+NETCDFINC = -I$(NETCDF_INC)
+REGCM_DATA_DIR = ./Input/DATA
+INTELINC = -I/opt/intel/fce/10.1.018/include
+
+# general compile options
+CPPFLAGS = -DDIAG -DINTEL
+USCORING = -assume nounderscore
+FFLAGS =  -O0 -convert big_endian -assume byterecl
+FC = ifort
+F90 = ifort
+LD =$(FC)
