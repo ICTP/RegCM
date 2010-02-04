@@ -4,6 +4,7 @@
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
 NETCDFINC = -I$(NETCDF_INC)
 REGCM_DATA_DIR = ./Input/DATA
+REGCM_BASE_DIR = myregcmdir
 
 # general compile options
 CPPFLAGS = -DDIAG
