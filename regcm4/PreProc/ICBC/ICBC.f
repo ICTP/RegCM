@@ -1446,19 +1446,19 @@
       COMMON /SZwindow/lon0,lon1,lat0,lat1,i0,i1,j0
       integer numx,numy,ii,i2,j2,I,J,K
       REAL    temp(192,96)
-      real*8  scale,offset
-      integer*2 itmp(192,96)
+      real(kind=8)  scale,offset
+      integer(kind=2) itmp(192,96)
       logical there
 
       integer mlev
       parameter (mlev=31)
       REAL    hyai,hybi,hyam,hybm
-      integer*4 start,count
-      REAL*4  PSO4_0
+      integer(kind=4) start,count
+      real(kind=4)  PSO4_0
       COMMON /GLOBALEH2/hyai(mlev+1),hybi(mlev+1),hyam(mlev),hybm(mlev),
      &                  PSO4_0(ilon,jlat),start(10),count(10)
 
-      real*4  sulfate
+      real(kind=4)  sulfate
       COMMON /INPUTSO4/sulfate(ilon,jlat,mlev,12)
       REAL    sulfate1,sulfate2,sulfate3,sulfate4
       REAL    PSO4_2(ilon,jlat),PSO4_3(JX,IY)
@@ -1470,7 +1470,7 @@
       character*44 fnso4_A1B
       character*42 fnso4_A2
       character*42 fnso4_B1
-      integer*4 ncid, status
+      integer(kind=4) ncid, status
       COMMON /WRK_SO4s/ncid, status
       REAL    PRCM,PMPI,PMPJ
       INTEGER L,K0
@@ -2559,8 +2559,8 @@
       integer mlev
       parameter (mlev=31)
       REAL    hyai,hybi,hyam,hybm
-      integer*4 start,count
-      REAL*4  PSO4_0
+      integer(kind=4) start,count
+      real(kind=4)  PSO4_0
       COMMON /GLOBALEH2/hyai(mlev+1),hybi(mlev+1),hyam(mlev),hybm(mlev),
      &                  PSO4_0(ilon,jlat),start(10),count(10)
       logical there
@@ -3911,8 +3911,8 @@
       COMMON /SZwindow/lon0,lon1,lat0,lat1,i0,i1,j0
       integer numx,numy,ii,i2,j2,I,J,K
       REAL    temp(360,181)
-      real*8  scale,offset
-      integer*2 itmp(360,181)
+      real(kind=8)  scale,offset
+      integer(kind=2) itmp(360,181)
       logical there
  
 !
@@ -4970,8 +4970,8 @@
       COMMON /SZwindow/lon0,lon1,lat0,lat1,i0,i1,j0
       integer numx,numy,ii,i2,j2
       REAL    temp(288,181)
-      real*8  scale,offset
-      integer*2 itmp(288,181)
+      real(kind=8)  scale,offset
+      integer(kind=2) itmp(288,181)
 !
       INTEGER I,J,K
       INTEGER NYRP,NMOP
@@ -6553,8 +6553,8 @@
      &            'jul','aug','sep','oct','nov','dec'/
       integer nyear,month,nday,nhour
       integer i,j
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(kind=4)  centerj,centeri
       integer ny,nx
 !
       CHARACTER*6 LGTYPE
@@ -6756,8 +6756,8 @@
      &            'jul','aug','sep','oct','nov','dec'/
       integer nyear,month,nday,nhour
       integer i,j
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(kind=4)  centerj,centeri
       integer ny,nx
 !
       CHARACTER*6 LGTYPE
@@ -8493,9 +8493,9 @@
 ! will be used to hold the packed integers.
 !
 !    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat,klev)
+      integer(kind=2) work(ilon,jlat,klev)
 !bxq
-      real*4  Tvar,Hvar,RHvar,Uvar,Vvar,Wvar,PSvar
+      real(kind=4)  Tvar,Hvar,RHvar,Uvar,Vvar,Wvar,PSvar
       common /CDCvars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,        RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,         Vvar(ilon,jlat,klev), Wvar(ilon,jlat,klev)
@@ -8509,9 +8509,9 @@
       integer inet7,start,count
       integer status
       COMMON /NNOPEN/ inet7(7),start(10),count(10)
-      real*8  xscl,xoff
+      real(kind=8)  xscl,xoff
       COMMON /EPATCH/ xscl(7),xoff(7)
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       integer kkrec,nlev,it,m,inet,ilev,i,j,k
       logical there
 !
@@ -8706,12 +8706,12 @@
 !
 !    DATA ARRAY AND WORK ARRAY
       include 'icbcWIN.param'
-      integer*2 work(III,JJJ,klev+1)
+      integer(kind=2) work(III,JJJ,klev+1)
       real    lon0,lon1,lat0,lat1
       INTEGER i0,i1,j0
       COMMON /SZwindow/lon0,lon1,lat0,lat1,i0,i1,j0
 !bxq
-      real*4  Tvar,Hvar,RHvar,Uvar,Vvar,Wvar,PSvar
+      real(kind=4)  Tvar,Hvar,RHvar,Uvar,Vvar,Wvar,PSvar
       common /CDCvars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,        RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,         Vvar(ilon,jlat,klev), Wvar(ilon,jlat,klev)
@@ -8725,9 +8725,9 @@
       integer inet7,start,count
       integer status
       COMMON /NNOPEN/ inet7(7),start(10),count(10)
-      real*8  xscl,xoff
+      real(kind=8)  xscl,xoff
       COMMON /EPATCH/ xscl(7),xoff(7)
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       integer kkrec,nlev,it,m,inet,ilev,i,j,k
       logical there
       integer ii,jj
@@ -9002,9 +9002,10 @@
 ! the unpacked data.
 !
 !    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat,klev),work2D(ilon,jlat)
+      integer(kind=2) work(ilon,jlat,klev),work2D(ilon,jlat)
 !bxq
-      real*4  Tvar,Hvar,RHvar,Uvar,Vvar,Wvar,Qsoil,TSIce,TSoil,SNOWh
+      real(kind=4)  Tvar,Hvar,RHvar,Uvar,Vvar,Wvar,Qsoil,TSIce,TSoil,
+     & SNOWh
       common /ERAvars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,        RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,         Vvar(ilon,jlat,klev), Wvar(ilon,jlat,klev)
@@ -9024,10 +9025,10 @@
       integer status
       COMMON /ECOPEN/ inet6(6,4),isnet3(3,4,4),isnow(4)
      &               ,start(10),count(10)
-      real*8  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
+      real(kind=8)  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
       COMMON /EPATCH/ xscl(6,4),xoff(6,4),xscl_s(3,4,4),xoff_s(3,4,4)
      &               ,xscl_sn(4),xoff_sn(4)
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       integer k4,l4,kkrec,it,i,j,k,inet
       logical there
 !
@@ -9419,10 +9420,10 @@
 ! the unpacked data.
 !
 !    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat,37)
+      integer(kind=2) work(ilon,jlat,37)
       COMMON /AAA/ work
 !bxq
-      real*4  Tvar,Hvar,RHvar,Uvar,Vvar
+      real(kind=4)  Tvar,Hvar,RHvar,Uvar,Vvar
       common /EIN75vars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,        RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,         Vvar(ilon,jlat,klev)
@@ -9435,9 +9436,9 @@
       integer inet6,isnet3,isnow,start,count
       integer status
       COMMON /ECINOPEN/ inet6(5,4),start(10),count(10)
-      real*8  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
+      real(kind=8)  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
       COMMON /EINPATCH/ xscl(5,4),xoff(5,4)
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       integer k4,l4,kkrec,it,i,j,k,inet
       logical there
 !
@@ -9761,10 +9762,10 @@
 ! the unpacked data.
 !
 !    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat,37)
+      integer(kind=2) work(ilon,jlat,37)
       COMMON /AAA/ work
 !bxq
-      real*4  Tvar,Hvar,RHvar,Uvar,Vvar
+      real(kind=4)  Tvar,Hvar,RHvar,Uvar,Vvar
       common /EIN15vars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,        RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,         Vvar(ilon,jlat,klev)
@@ -9777,9 +9778,9 @@
       integer inet6,isnet3,isnow,start,count
       integer status
       COMMON /ECINOPEN/ inet6(5,4),start(10),count(10)
-      real*8  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
+      real(kind=8)  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
       COMMON /EINPATCH/ xscl(5,4),xoff(5,4)
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       integer k4,l4,kkrec,it,i,j,k,inet
       logical there
 !
@@ -10103,10 +10104,10 @@
 ! the unpacked data.
 !
 !    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat,37)
+      integer(kind=2) work(ilon,jlat,37)
       COMMON /AAA/ work
 !bxq
-      real*4  Tvar,Hvar,RHvar,Uvar,Vvar
+      real(kind=4)  Tvar,Hvar,RHvar,Uvar,Vvar
       common /EIN25vars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,        RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,         Vvar(ilon,jlat,klev)
@@ -10119,9 +10120,9 @@
       integer inet6,isnet3,isnow,start,count
       integer status
       COMMON /ECINOPEN/ inet6(5,4),start(10),count(10)
-      real*8  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
+      real(kind=8)  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
       COMMON /EINPATCH/ xscl(5,4),xoff(5,4)
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       integer k4,l4,kkrec,it,i,j,k,inet
       logical there
 !

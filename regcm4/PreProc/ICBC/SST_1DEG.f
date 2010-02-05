@@ -739,7 +739,7 @@ c
       integer inet,start,count
       integer status
       COMMON /ECOPEN/ inet,start(10),count(10),status
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       COMMON /EPATCH/ xscale,xadd
 
 c
@@ -748,9 +748,9 @@ c will be used to hold the packed integers. The array 'sst' will contain
 c the unpacked data.
 c
 C    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat)
+      integer(kind=2) work(ilon,jlat)
 Cbxq
-      real*4  sst
+      real(kind=4)  sst
       common /CDCvars/ sst(ilon,jlat)
 Cbxq_
       character*35 pathaddname
@@ -815,7 +815,7 @@ c
       integer inet,start,count
       integer status
       COMMON /ECOPEN/ inet,start(10),count(10),status
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       COMMON /EPATCH/ xscale,xadd
 
 c
@@ -824,9 +824,9 @@ c will be used to hold the packed integers. The array 'sst' will contain
 c the unpacked data.
 c
 C    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat)
+      integer(kind=2) work(ilon,jlat)
 Cbxq
-      real*4  sst
+      real(kind=4)  sst
       common /CDCvars/ sst(ilon,jlat)
 Cbxq_
       character*38 pathaddname

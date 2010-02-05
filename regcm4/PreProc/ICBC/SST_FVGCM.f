@@ -29,7 +29,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       INTEGER NREC,MREC,idateo,idatef
       logical there
       integer ludom, lund(20), lumax, k
-      real*4  temp
+      real(kind=4)  temp
       COMMON /ALLSST/ temp(192,145)
       integer it
       integer isystm,system

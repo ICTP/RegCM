@@ -19,7 +19,7 @@
       PARAMETER (MLON=240,NLAT=121)
  
       REAL    LONI(MLON), LATI(NLAT)
-      REAL*4  SST2
+      real(kind=4)  SST2
       common /ERAvars/ sst2(mlon,nlat)
       INTEGER IDATE,IDATE0
       COMMON /DATE/IDATE,IDATE0
@@ -506,7 +506,7 @@
       integer inet,start,count
       integer status
       COMMON /ECOPEN/ inet,start(10),count(10),status
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       COMMON /EPATCH/ xscale,xadd
 
 !
@@ -515,9 +515,9 @@
 ! the unpacked data.
 !
 !    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat)
+      integer(kind=2) work(ilon,jlat)
 !bxq
-      real*4  sst
+      real(kind=4)  sst
       common /ERAvars/ sst(ilon,jlat)
 !bxq_
       character*33 pathaddname
@@ -575,7 +575,7 @@
       integer inet,start,count
       integer status
       COMMON /ECOPEN/ inet,start(10),count(10),status
-      real*8  xscale,xadd
+      real(kind=8)  xscale,xadd
       COMMON /EPATCH/ xscale,xadd
 
 !
@@ -584,9 +584,9 @@
 ! the unpacked data.
 !
 !    DATA ARRAY AND WORK ARRAY
-      integer*2 work(ilon,jlat)
+      integer(kind=2) work(ilon,jlat)
 !bxq
-      real*4  sst
+      real(kind=4)  sst
       common /ERAvars/ sst(ilon,jlat)
 !bxq_
       character*35 pathaddname

@@ -34,8 +34,8 @@
       INTEGER NHOUR,NDAY,NMO,NYEAR,I,J
       INTEGER NREC,MREC,idateo,idatef
       logical there
-      integer*2 ivar(192,96)
-      real*8  offset,scale
+      integer(kind=2) ivar(192,96)
+      real(kind=8)  offset,scale
       integer it_base
       COMMON /ALLSST/ ivar,offset,scale,it_base
       integer it
