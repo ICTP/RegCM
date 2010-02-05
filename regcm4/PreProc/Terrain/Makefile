@@ -13,7 +13,7 @@ all: terrain
 	$(FC) -c $(FFLAGS) $*.f
 
 terrain: $(OBJ)
-	$(LD) -o $@ $(OBJ) $(NETCDFLIB)
+	$(LD) -o $@ $(OBJ)
 
 clean:
 	rm -f *.o terrain

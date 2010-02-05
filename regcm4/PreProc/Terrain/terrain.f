@@ -53,41 +53,42 @@
       integer iter,jter,iblk
       parameter(iter=2400,jter=2400,iblk=2880000)
       integer nobs
-      real*4  xobs(iblk),yobs(iblk)
+      real(kind=4)  xobs(iblk),yobs(iblk)
       common /block0/ xobs,yobs,nobs
-      real*4  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),clay(iblk,2)
+      real(kind=4)  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),
+     & clay(iblk,2)
       common /block/ ht,htsd,ht2,sand,clay
-      real*8  lnd8(iter,jter)
+      real(kind=8)  lnd8(iter,jter)
       common /block8/lnd8
 !--------------------------------------------------------------------
-      real*4  xlat(iy,jx),xlon(iy,jx),xmap(iy,jx),coriol(iy,jx)
-      real*4  dlat(iy,jx),dlon(iy,jx),dmap(iy,jx)
-      real*4  htsdgrid(iy,jx)
-      real*4  htgrid(iy,jx),lndout(iy,jx),texout(iy,jx)
-      real*4  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
-      real*4  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
+      real(kind=4)  xlat(iy,jx),xlon(iy,jx),xmap(iy,jx),coriol(iy,jx)
+      real(kind=4)  dlat(iy,jx),dlon(iy,jx),dmap(iy,jx)
+      real(kind=4)  htsdgrid(iy,jx)
+      real(kind=4)  htgrid(iy,jx),lndout(iy,jx),texout(iy,jx)
+      real(kind=4)  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
+      real(kind=4)  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
       character*1 ch(iy,jx)
-      real*4  snowam(iy,jx),mask(iy,jx)
+      real(kind=4)  snowam(iy,jx),mask(iy,jx)
       integer lnduse(iy,jx),intext(iy,jx)
       common /maps/ xlat,xlon,xmap,coriol,dlat,dlon,dmap
      &     , htgrid,htsdgrid,sanda,sandb,claya,clayb
      &     , frac_lnd,frac_tex,snowam,mask,lndout,texout
      &     , lnduse,intext
-      real*4  sigma(kz+1)
+      real(kind=4)  sigma(kz+1)
       common /verts/ sigma
 !--------------------------------------------------------------------
-      real*4  xlat_s(iy*nsg,jx*nsg),xlon_s(iy*nsg,jx*nsg)
-      real*4  dlat_s(iy*nsg,jx*nsg),dlon_s(iy*nsg,jx*nsg)
-      real*4  xmap_s(iy*nsg,jx*nsg),dmap_s(iy*nsg,jx*nsg)
-      real*4  coriol_s(iy*nsg,jx*nsg)
-      real*4  htsdgrid_s(iy*nsg,jx*nsg),htgrid_s(iy*nsg,jx*nsg)
-      real*4  lndout_s(iy*nsg,jx*nsg),texout_s(iy*nsg,jx*nsg)
-      real*4  sanda_s(iy*nsg,jx*nsg),sandb_s(iy*nsg,jx*nsg)
-      real*4  claya_s(iy*nsg,jx*nsg),clayb_s(iy*nsg,jx*nsg)
-      real*4  frac_lnd_s(iy*nsg,jx*nsg,nveg)
-      real*4  frac_tex_s(iy*nsg,jx*nsg,ntex)
+      real(kind=4)  xlat_s(iy*nsg,jx*nsg),xlon_s(iy*nsg,jx*nsg)
+      real(kind=4)  dlat_s(iy*nsg,jx*nsg),dlon_s(iy*nsg,jx*nsg)
+      real(kind=4)  xmap_s(iy*nsg,jx*nsg),dmap_s(iy*nsg,jx*nsg)
+      real(kind=4)  coriol_s(iy*nsg,jx*nsg)
+      real(kind=4)  htsdgrid_s(iy*nsg,jx*nsg),htgrid_s(iy*nsg,jx*nsg)
+      real(kind=4)  lndout_s(iy*nsg,jx*nsg),texout_s(iy*nsg,jx*nsg)
+      real(kind=4)  sanda_s(iy*nsg,jx*nsg),sandb_s(iy*nsg,jx*nsg)
+      real(kind=4)  claya_s(iy*nsg,jx*nsg),clayb_s(iy*nsg,jx*nsg)
+      real(kind=4)  frac_lnd_s(iy*nsg,jx*nsg,nveg)
+      real(kind=4)  frac_tex_s(iy*nsg,jx*nsg,ntex)
       character*1 ch_s(iy*nsg,jx*nsg)
-      real*4  snowam_s(iy*nsg,jx*nsg),mask_s(iy*nsg,jx*nsg)
+      real(kind=4)  snowam_s(iy*nsg,jx*nsg),mask_s(iy*nsg,jx*nsg)
       integer lnduse_s(iy*nsg,jx*nsg),intext_s(iy*nsg,jx*nsg)
       common /maps_s/ xlat_s,xlon_s,xmap_s,coriol_s,dlat_s,dlon_s,dmap_s
      &     , htgrid_s,htsdgrid_s,sanda_s,sandb_s,claya_s,clayb_s
@@ -96,28 +97,28 @@
 !--------------------------------------------------------------------
       integer nunitc,nunitc_s
       common /icontr/nunitc,nunitc_s
-      real*4  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
+      real(kind=4)  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
       common/aa/xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
-      real*4  dsinm,rin,xn,xnc
+      real(kind=4)  dsinm,rin,xn,xnc
       common /const/ dsinm,rin,xn,xnc
       integer nnc
       common /const_int/ nnc
 
-      real*4  hscr1(iy,jx),land(iy,jx,2),itex(iy,jx,2)
-      real*4  hscr1_s(iy*nsg,jx*nsg)
-      real*4  land_s(iy*nsg,jx*nsg,2),itex_s(iy*nsg,jx*nsg,2)
+      real(kind=4)  hscr1(iy,jx),land(iy,jx,2),itex(iy,jx,2)
+      real(kind=4)  hscr1_s(iy*nsg,jx*nsg)
+      real(kind=4)  land_s(iy*nsg,jx*nsg,2),itex_s(iy*nsg,jx*nsg,2)
       logical ibndry
-      real*4  dxcen,dycen
-      real*4  corc(iy,jx),sumc(iy,jx)
-      real*4  wtmaxc(iy,jx),htsavc(iy,jx)
+      real(kind=4)  dxcen,dycen
+      real(kind=4)  corc(iy,jx),sumc(iy,jx)
+      real(kind=4)  wtmaxc(iy,jx),htsavc(iy,jx)
       integer nsc(iy,jx)
-      real*4  corc_s(iy*nsg,jx*nsg),sumc_s(iy*nsg,jx*nsg)
-      real*4  wtmaxc_s(iy*nsg,jx*nsg),htsavc_s(iy*nsg,jx*nsg)
+      real(kind=4)  corc_s(iy*nsg,jx*nsg),sumc_s(iy*nsg,jx*nsg)
+      real(kind=4)  wtmaxc_s(iy*nsg,jx*nsg),htsavc_s(iy*nsg,jx*nsg)
       integer nsc_s(iy*nsg,jx*nsg)
       character*50 filout_s ! Terrain Output filename subgrid
       character*50 filctl_s ! Grads control filename for subgrid output
       character*10 CHAR_LND,CHAR_TEX
-      real*4  clong
+      real(kind=4)  clong
       common /addstack/dxcen,dycen
       common /addstack2/hscr1,land,itex,hscr1_s,land_s,itex_s
      &       , corc,sumc,wtmaxc,htsavc,corc_s,sumc_s,wtmaxc_s,htsavc_s
@@ -566,26 +567,26 @@
       integer iter,jter,iblk
       parameter(iter=2400,jter=2400,iblk=2880000)
       integer nobs
-      real*4  xobs(iblk),yobs(iblk)
+      real(kind=4)  xobs(iblk),yobs(iblk)
       common /block0/ xobs,yobs,nobs
       integer nsta
-      real*4  asta(nsta)
+      real(kind=4)  asta(nsta)
       integer iy,jx,ntype
-      real*4  dxcen,dycen
+      real(kind=4)  dxcen,dycen
       common /addstack/ dxcen,dycen
-      real*4  a2(iy,jx),htsav(iy,jx),cor(iy,jx),
+      real(kind=4)  a2(iy,jx),htsav(iy,jx),cor(iy,jx),
      &        sum(iy,jx),wtmax(iy,jx)
       integer ns(iy,jx)
 !
-      real*4  dsinm,rin,xn,xnc
+      real(kind=4)  dsinm,rin,xn,xnc
       common /const/ dsinm,rin,xn,xnc
       integer nnc
       common /const_int/ nnc
 !
-      real*4  deltas,xcntr,ycntr,dy,dx,ris,ris2
+      real(kind=4)  deltas,xcntr,ycntr,dy,dx,ris,ris2
       integer i,j,kk,ie,je,nscan,nskip
-      real*4  dxobs,dyobs,rjobs,riobs,ymaxi,ymini,xmaxj,xminj
-      real*4  x,y,rx,ry,rsq,wt
+      real(kind=4)  dxobs,dyobs,rjobs,riobs,ymaxi,ymini,xmaxj,xminj
+      real(kind=4)  x,y,rx,ry,rsq,wt
       integer maxi,mini,maxj,minj
 !
 !     objective analysis to fill a grid based on observations
@@ -661,7 +662,7 @@
          rsq = rx**2+ry**2
          if (rsq.ge.ris2) goto 70
          wt   = (ris-rsq)/(ris+rsq)
-   60    continue
+!   60    continue
 !
 !-----save max. weighting factor and terrain height to check if grid
 !-----point should be treated as a land or sea point.
@@ -691,8 +692,8 @@
 !Sara_
          endif
    90 continue
-   26 format(' no observations are within rin=',f7.2,
-     & ' grid lengths of i=',i3,' j=',i3)
+!   26 format(' no observations are within rin=',f7.2,
+!     & ' grid lengths of i=',i3,' j=',i3)
 
 !-----may want to smooth final field a2 here
       return
@@ -705,38 +706,39 @@
       integer iter,jter,iblk
       parameter(iter=2400,jter=2400,iblk=2880000)
       integer nobs
-      real*4  xobs(iblk),yobs(iblk)
+      real(kind=4)  xobs(iblk),yobs(iblk)
       common /block0/ xobs,yobs,nobs
-      real*4  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),clay(iblk,2)
+      real(kind=4)  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),
+     & clay(iblk,2)
       common /block/ ht,htsd,ht2,sand,clay
-      real*4  xlat(iy,jx),xlon(iy,jx),xmap(iy,jx),coriol(iy,jx)
-      real*4  dlat(iy,jx),dlon(iy,jx),dmap(iy,jx)
-      real*4  htsdgrid(iy,jx)
-      real*4  htgrid(iy,jx),lndout(iy,jx),texout(iy,jx)
-      real*4  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
-      real*4  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
-      character*1 ch(iy,jx)
-      real*4  snowam(iy,jx),mask(iy,jx)
+      real(kind=4)  xlat(iy,jx),xlon(iy,jx),xmap(iy,jx),coriol(iy,jx)
+      real(kind=4)  dlat(iy,jx),dlon(iy,jx),dmap(iy,jx)
+      real(kind=4)  htsdgrid(iy,jx)
+      real(kind=4)  htgrid(iy,jx),lndout(iy,jx),texout(iy,jx)
+      real(kind=4)  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
+      real(kind=4)  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
+!      character*1 ch(iy,jx)
+      real(kind=4)  snowam(iy,jx),mask(iy,jx)
       integer lnduse(iy,jx),intext(iy,jx)
       common /maps/ xlat,xlon,xmap,coriol,dlat,dlon,dmap
      &     , htgrid,htsdgrid,sanda,sandb,claya,clayb
      &     , frac_lnd,frac_tex,snowam,mask,lndout,texout
      &     , lnduse,intext
-      real*4  dsinm,rin,xn,xnc
+      real(kind=4)  dsinm,rin,xn,xnc
       common /const/ dsinm,rin,xn,xnc
       integer nnc
       common /const_int/ nnc
-      real*4  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
+      real(kind=4)  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
       common/aa/xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
 !
       logical flag
       integer i,j,ii,iindex,jindex
-      real*4  dsgrid
-      real*8  xx,yy
-      real*8  bint
+      real(kind=4)  dsgrid
+      real(kind=8)  xx,yy
+      real(kind=8)  bint
       external bint
-      real*8  xin1(iter,jter), xin2(iter,jter)
-      real*8  h1, h2, v21
+      real(kind=8)  xin1(iter,jter), xin2(iter,jter)
+      real(kind=8)  h1, h2, v21
 !
       do i = 1,iter
       do j = 1,jter
@@ -795,41 +797,43 @@
       integer iter,jter,iblk
       parameter(iter=2400,jter=2400,iblk=2880000)
       integer nobs
-      real*4  xobs(iblk),yobs(iblk)
+      real(kind=4)  xobs(iblk),yobs(iblk)
       common /block0/ xobs,yobs,nobs
-      real*4  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),clay(iblk,2)
+      real(kind=4)  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),
+     & clay(iblk,2)
       common /block/ ht,htsd,ht2,sand,clay
-      real*4  xlat(iy*nsg,jx*nsg),xlon(iy*nsg,jx*nsg)
-      real*4  dlat(iy*nsg,jx*nsg),dlon(iy*nsg,jx*nsg)
-      real*4  xmap(iy*nsg,jx*nsg),dmap(iy*nsg,jx*nsg)
-      real*4  coriol(iy*nsg,jx*nsg)
-      real*4  htsdgrid(iy*nsg,jx*nsg),htgrid(iy*nsg,jx*nsg)
-      real*4  lndout(iy*nsg,jx*nsg),texout(iy*nsg,jx*nsg)
-      real*4  sanda(iy*nsg,jx*nsg),sandb(iy*nsg,jx*nsg)
-      real*4  claya(iy*nsg,jx*nsg),clayb(iy*nsg,jx*nsg)
-      real*4  frac_lnd(iy*nsg,jx*nsg,nveg),frac_tex(iy*nsg,jx*nsg,ntex)
-      character*1 ch(iy*nsg,jx*nsg)
-      real*4  snowam(iy*nsg,jx*nsg),mask(iy*nsg,jx*nsg)
+      real(kind=4)  xlat(iy*nsg,jx*nsg),xlon(iy*nsg,jx*nsg)
+      real(kind=4)  dlat(iy*nsg,jx*nsg),dlon(iy*nsg,jx*nsg)
+      real(kind=4)  xmap(iy*nsg,jx*nsg),dmap(iy*nsg,jx*nsg)
+      real(kind=4)  coriol(iy*nsg,jx*nsg)
+      real(kind=4)  htsdgrid(iy*nsg,jx*nsg),htgrid(iy*nsg,jx*nsg)
+      real(kind=4)  lndout(iy*nsg,jx*nsg),texout(iy*nsg,jx*nsg)
+      real(kind=4)  sanda(iy*nsg,jx*nsg),sandb(iy*nsg,jx*nsg)
+      real(kind=4)  claya(iy*nsg,jx*nsg),clayb(iy*nsg,jx*nsg)
+      real(kind=4)  frac_lnd(iy*nsg,jx*nsg,nveg),frac_tex(iy*nsg,jx*nsg,
+     & ntex)
+!      character*1 ch(iy*nsg,jx*nsg)
+      real(kind=4)  snowam(iy*nsg,jx*nsg),mask(iy*nsg,jx*nsg)
       integer lnduse(iy*nsg,jx*nsg),intext(iy*nsg,jx*nsg)
       common /maps_s/ xlat,xlon,xmap,coriol,dlat,dlon,dmap
      &     , htgrid,htsdgrid,sanda,sandb,claya,clayb
      &     , frac_lnd,frac_tex,snowam,mask,lndout,texout
      &     , lnduse,intext
-      real*4  dsinm,rin,xn,xnc
+      real(kind=4)  dsinm,rin,xn,xnc
       common /const/ dsinm,rin,xn,xnc
       integer nnc
       common /const_int/ nnc
-      real*4  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
+      real(kind=4)  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
       common/aa/xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
 !
       logical flag
       integer i,j,ii,iindex,jindex
-      real*4  dsgrid
-      real*8  xx,yy
-      real*8  bint
+      real(kind=4)  dsgrid
+      real(kind=8)  xx,yy
+      real(kind=8)  bint
       external bint
-      real*8  xin1(iter,jter), xin2(iter,jter)
-      real*8  h1, h2, v21
+      real(kind=8)  xin1(iter,jter), xin2(iter,jter)
+      real(kind=8)  h1, h2, v21
 !
       do i = 1,iter
       do j = 1,jter
@@ -888,13 +892,13 @@
 !-----bilinear interpolation among four grid values
 !
       integer iii,jjj
-      real*8  xx,yy
-      real*8  list(iii,jjj),stl(4,4)
+      real(kind=8)  xx,yy
+      real(kind=8)  list(iii,jjj),stl(4,4)
       logical flag
       integer i,j,k,kk,l,n,ll,knear,lnear
-      real*8  x,y,a,b,c,d,e,f,g,h
-      real*8  bint
-      real*8  oned
+      real(kind=8)  x,y,a,b,c,d,e,f,g,h
+      real(kind=8)  bint
+      real(kind=8)  oned
       external oned
 !
       bint = 0.0
@@ -957,8 +961,9 @@
       CHARACTER*4 LSMTYP
       CHARACTER*7 AERTYP
       integer JX_O,IY_O,KZ_O
-      character a80*80, filout*(*)
-      integer isystm,system
+!      character a80*80, 
+      character filout*(*)
+!      integer isystm,system
 !      external system
 !
       open(23,file='../ICBC/icbc.param')
@@ -1252,8 +1257,8 @@
       implicit none
       logical FUDGE
       integer iy,jx
-      real*4  htgrid(iy,jx)
-      real*4  lndout(iy,jx)
+      real(kind=4)  htgrid(iy,jx)
+      real(kind=4)  lndout(iy,jx)
       character*1 ch(iy,jx)
       CHARACTER*4 LSMTYP
       CHARACTER*10 CHAR_LND
@@ -1525,8 +1530,8 @@
       implicit none
       logical FUDGE
       integer iy,jx
-      real*4  htgrid(iy,jx)
-      real*4  texout(iy,jx)
+      real(kind=4)  htgrid(iy,jx)
+      real(kind=4)  texout(iy,jx)
       character*1 ch(iy,jx)
       character*10 CHAR_TEX
       integer i,j
@@ -1645,10 +1650,10 @@
       CHARACTER*4 LSMTYP
       integer imx, jmx, i, j
       integer lnduse(imx,jmx)
-      real*4  htgrid(imx,jmx)
-      real*4  xlat(imx,jmx),xlon(imx,jmx)
+      real(kind=4)  htgrid(imx,jmx)
+      real(kind=4)  xlat(imx,jmx),xlon(imx,jmx)
 
-      real*4  zerie,zhuron,zontar,zsup,zmich,xx,yy
+      real(kind=4)  zerie,zhuron,zontar,zsup,zmich,xx,yy
       parameter (zerie=174.,zhuron=177.,zontar=75.,zsup=183.,zmich=177.)
 
 ! ****  ADJUST GREAT LAKE ELEVATION **** C
@@ -1694,7 +1699,7 @@
       SUBROUTINE LAMBRT(XLON,XLAT,SMAP,CORIOL,IY,JX,CLON,CLAT,DS,IDOT
      &                 ,XN,TRUELATL,TRUELATH)
       implicit none
-      REAL*4 CLAT,CLON,DS
+      real(kind=4) CLAT,CLON,DS
 !           CLAT IS THE CENTRAL LATITUDE OF THE COARSE DOMAIN.
 !           CLON IS THE CENTRAL LONGITUDE OF THE COARSE DOMAIN.
       INTEGER IY,JX
@@ -1708,7 +1713,7 @@
 !
 !---------------------------------------------------------------------
 !
-      REAL*4 AA,XN,PSI1,PI,TRUELATL,TRUELATH,TRUELAT1,TRUELAT2
+      real(kind=4) AA,XN,PSI1,PI,TRUELATL,TRUELATH,TRUELAT1,TRUELAT2
 !
 !           XN IS CONE FACTOR FOR THE PROJECTION (FROM PROGRAM TERRAIN).
 !           PSI1 IS THE COLATITUDE OF TRUELAT 1, IN RADIANS.
@@ -1716,12 +1721,12 @@
 !
 !---------------------------------------------------------------------
 !
-      REAL*4  CORIOL(IY,JX),SMAP(IY,JX)
-      REAL*4  XLAT(IY,JX),XLON(IY,JX)
+      real(kind=4)  CORIOL(IY,JX),SMAP(IY,JX)
+      real(kind=4)  XLAT(IY,JX),XLON(IY,JX)
       INTEGER IDOT
-      REAL*4  POLE,d2r,OMEGA2
-      REAL*4  CNTRJ,CNTRI,PSX,CELL,CELL2,R,XCNTR,YCNTR
-      REAL*4  X,Y,FLP,FLPP,CELL1,PSIX,SIGN
+      real(kind=4)  POLE,d2r,OMEGA2
+      real(kind=4)  CNTRJ,CNTRI,PSX,CELL,CELL2,R,XCNTR,YCNTR
+      real(kind=4)  X,Y,FLP,FLPP,CELL1,PSIX,SIGN
       INTEGER I,J
 
       AA=6.371229E6
@@ -1819,11 +1824,11 @@
 !  EQUAL TO IMX IF YOU ARE NOT USING THE EXPANDED GRID. SAME FOR J.     
 
       INTEGER IY,JX,IDOT
-      REAL*4  XLAT(IY,JX),XLON(IY,JX), CORIOL(IY,JX),XMAP(IY,JX)
-      REAL*4  CLON,CLAT,POLLON,POLLAT,DS
+      real(kind=4)  XLAT(IY,JX),XLON(IY,JX), CORIOL(IY,JX),XMAP(IY,JX)
+      real(kind=4)  CLON,CLAT,POLLON,POLLAT,DS
 !
-      REAL*4  XOMEGA,d2r,r2d,A,CNTRJ,CNTRI,DDEG,XOFF,YOFF
-      REAL*4  XR,YR,X,Y,FAI,XOMEGA2
+      real(kind=4)  XOMEGA,d2r,r2d,A,CNTRJ,CNTRI,DDEG,XOFF,YOFF
+      real(kind=4)  XR,YR,X,Y,FAI,XOMEGA2
       INTEGER I,J
 !
       XOMEGA = 7.2722E-5                       ! ANG. ROT OF EARTH IN S**-1
@@ -1867,20 +1872,20 @@
      A                 , CLON, CLAT, DELX, idot )
       implicit none
       INTEGER IY,JX
-      REAL*4  CLON,CLAT,DELX
+      real(kind=4)  CLON,CLAT,DELX
 
-      REAL*4  XLON(IY,JX), XLAT(IY,JX)
-      REAL*4  XMAP(IY,JX), CORIOL(IY,JX)
-      REAL*4  XN,PSI1,PI
+      real(kind=4)  XLON(IY,JX), XLAT(IY,JX)
+      real(kind=4)  XMAP(IY,JX), CORIOL(IY,JX)
+      real(kind=4)  XN,PSI1,PI
 !
 !         XN IS CONE FACTOR FOR THE PROJECTION (FROM PROGRAM TERRAIN).
 !         PSI1 IS THE COLATITUDE OF TRUELAT 1, IN RADIANS.
 !         PI IS PI.
 !
 !---------------------------------------------------------------------
-      REAL*4  AA,POLE,d2r
-      REAL*4  CNTRJ,CNTRI,PSX,CELL,CELL2,R,XCNTR,YCNTR
-      REAL*4  X,Y,FLP,FLPP,CELL1,PSIX,xomega,xomeg2
+      real(kind=4)  AA,POLE,d2r
+      real(kind=4)  CNTRJ,CNTRI,PSX,CELL,CELL2,R,XCNTR,YCNTR
+      real(kind=4)  X,Y,FLP,FLPP,CELL1,PSIX,xomega,xomeg2
       INTEGER II1,JJ1,I,J,idot
 
 !  COMPUTE LATS, LONS, AND MAP-SCALE FACTORS FOR
@@ -1967,14 +1972,14 @@
      A                 , CLON, CLAT, DELX, IDOT )
       implicit none
       INTEGER IY,JX,IDOT
-      REAL*4  CLON,CLAT,DELX
+      real(kind=4)  CLON,CLAT,DELX
 
-      REAL*4  XLON(IY,JX), XLAT(IY,JX), CORIOL(IY,JX)
-      REAL*4  XMAP(IY,JX)
-      REAL*4  PI
-      REAL*4  AA,POLE,d2r
-      REAL*4  CNTRJ,CNTRI,CELL,XCNTR,YCNTR,C2,PHICTR
-      REAL*4  PHI1,X,Y,DEGLAT,XOMEGA,XOMEGA2
+      real(kind=4)  XLON(IY,JX), XLAT(IY,JX), CORIOL(IY,JX)
+      real(kind=4)  XMAP(IY,JX)
+      real(kind=4)  PI
+      real(kind=4)  AA,POLE,d2r
+      real(kind=4)  CNTRJ,CNTRI,CELL,XCNTR,YCNTR,C2,PHICTR
+      real(kind=4)  PHI1,X,Y,DEGLAT,XOMEGA,XOMEGA2
       INTEGER II1,JJ1,I,J
 
 !  COMPUTE LATS, LONS, AND MAP-SCALE FACTORS FOR
@@ -2038,9 +2043,9 @@
 !     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
 !
       INTEGER IY,JX,ntypec
-      REAL*4  CLON,XLON(IY,JX),XLAT(IY,JX)
+      real(kind=4)  CLON,XLON(IY,JX),XLAT(IY,JX)
 !
-      real*4  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
+      real(kind=4)  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
       common/aa/xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
       integer i,j
 !
@@ -2100,7 +2105,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE nrot2rot(LAM,PHI,POLLON,POLLAT,LAMS,PHIS)
       implicit none
-      REAL*4  POLLON,POLLAT
+      real(kind=4)  POLLON,POLLAT
 ! -----------------------------------------------------------------------------
 ! Purpose:
 !     Adaption of the DWD-Functions to convert real geographical coordinates
@@ -2116,14 +2121,14 @@
 
 
 ! decalration of input/output vars:
-      REAL*4  LAM,PHI,LAMS,PHIS,PLAM,PPHI
+      real(kind=4)  LAM,PHI,LAMS,PHIS,PLAM,PPHI
  
 ! decalration of internal vars:
-      real*4  zlam,zphi
-      real*4  zarg,zarg1,zarg2
+      real(kind=4)  zlam,zphi
+      real(kind=4)  zarg,zarg1,zarg2
 
-      real*4  r2d , d2r
-      real*4  ZSINPOL,ZCOSPOL,ZLAMPOL
+      real(kind=4)  r2d , d2r
+      real(kind=4)  ZSINPOL,ZCOSPOL,ZLAMPOL
 
       r2d = 45./atan(1.)
       d2r = atan(1.)/45.
@@ -2169,8 +2174,8 @@
 
       function oned(x,a,b,c,d)
       implicit none
-      real*8  x,a,b,c,d
-      real*8  oned
+      real(kind=8)  x,a,b,c,d
+      real(kind=8)  oned
 !
       oned = 0.
       if (x.eq.0.) oned = b
@@ -2194,29 +2199,29 @@
      &          ,AERTYP,texout,frac_tex,ntex)
       implicit none
       integer nunitc,iy,jx,nsg,kz,igrads,ibigend,ibyte,ngrid,nveg,ntex
-      real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
-      real*4  truelatL,truelatH
+      real(kind=4)  dsinm,clat,clon,plat,plon,GRDFAC,ptop
+      real(kind=4)  truelatL,truelatH
       character*6 iproj
       character*50 filout
       character*5 DATTYP
-      real*4  htgrid(iy,jx),htsdgrid(iy,jx)
-      real*4  lndout(iy,jx),texout(iy,jx)
-      real*4  htgrid_s(iy*nsg,jx*nsg),htgrid_a
-      real*4  lndout_s(iy*nsg,jx*nsg)
+      real(kind=4)  htgrid(iy,jx),htsdgrid(iy,jx)
+      real(kind=4)  lndout(iy,jx),texout(iy,jx)
+      real(kind=4)  htgrid_s(iy*nsg,jx*nsg),htgrid_a
+      real(kind=4)  lndout_s(iy*nsg,jx*nsg)
       character*4 LSMTYP
       character*7 AERTYP
-      real*4  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
-      real*4  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
-      real*4  xlat(iy,jx),xlon(iy,jx),xmap(iy,jx)
-      real*4  dlat(iy,jx),dlon(iy,jx),dmap(iy,jx)
-      real*4  coriol(iy,jx),snowam(iy,jx),sigma(kz+1),mask(iy,jx)
+      real(kind=4)  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
+      real(kind=4)  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
+      real(kind=4)  xlat(iy,jx),xlon(iy,jx),xmap(iy,jx)
+      real(kind=4)  dlat(iy,jx),dlon(iy,jx),dmap(iy,jx)
+      real(kind=4)  coriol(iy,jx),snowam(iy,jx),sigma(kz+1),mask(iy,jx)
       integer i,j,i0,j0,m,n,k0,kk,lnd(25)
-      real*4  htave
+      real(kind=4)  htave
       character*25 fsubname
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(kind=4)  centerj,centeri
       integer ny,nx,k
-      real*4  lon0,lon1,lat0,lat1
+      real(kind=4)  lon0,lon1,lat0,lat1
       integer III,JJJ
       logical there
 !
@@ -2650,29 +2655,30 @@
      &          ,AERTYP,texout,frac_tex,ntex)
       implicit none
       integer nunitc,iy,jx,nsg,kz,igrads,ibigend,ibyte,ngrid,nveg,ntex
-      real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
-      real*4  truelatL,truelatH
+      real(kind=4)  dsinm,clat,clon,plat,plon,GRDFAC,ptop
+      real(kind=4)  truelatL,truelatH
       character*6 iproj
       character*50 filout
       character*5 DATTYP
-      real*4  htgrid(iy,jx),htsdgrid(iy,jx)
-      real*4  lndout(iy,jx),texout(iy,jx)
-      real*4  htgrid_s(iy*nsg,jx*nsg),htgrid_a
-      real*4  lndout_s(iy*nsg,jx*nsg)
+      real(kind=4)  htgrid(iy,jx),htsdgrid(iy,jx)
+      real(kind=4)  lndout(iy,jx),texout(iy,jx)
+      real(kind=4)  htgrid_s(iy*nsg,jx*nsg),htgrid_a
+      real(kind=4)  lndout_s(iy*nsg,jx*nsg)
       character*4 LSMTYP
       character*7 AERTYP
-      real*4  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
-      real*4  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
-      real*4  xlat(iy,jx),xlon(iy,jx),xmap(iy,jx)
-      real*4  dlat(iy,jx),dlon(iy,jx),dmap(iy,jx)
-      real*4  coriol(iy,jx),snowam(iy,jx),sigma(kz+1),mask(iy,jx)
-      integer i,j,i0,j0,m,n,k0,kk,lnd(25)
-      real*4  htave
+      real(kind=4)  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
+      real(kind=4)  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
+      real(kind=4)  xlat(iy,jx),xlon(iy,jx),xmap(iy,jx)
+      real(kind=4)  dlat(iy,jx),dlon(iy,jx),dmap(iy,jx)
+      real(kind=4)  coriol(iy,jx),snowam(iy,jx),sigma(kz+1),mask(iy,jx)
+      integer i,j,i0,j0,m,n
+!      ,k0,kk,lnd(25)
+      real(kind=4)  htave
       character*25 fsubname
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(kind=4)  centerj,centeri
       integer ny,nx,k
-      real*4  lon0,lon1,lat0,lat1
+      real(kind=4)  lon0,lon1,lat0,lat1
       integer III,JJJ
       logical there
 !
@@ -3107,35 +3113,36 @@
       integer iter,jter,iblk
       parameter(iter=2400,jter=2400,iblk=2880000)
       integer nobs
-      real*4  xobs(iblk),yobs(iblk)
+      real(kind=4)  xobs(iblk),yobs(iblk)
       common /block0/ xobs,yobs,nobs
-      real*4  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),clay(iblk,2)
+      real(kind=4)  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),
+     & clay(iblk,2)
       common /block/ ht,htsd,ht2,sand,clay
 !
       integer ltype,lrec
-      real*4  stores
+      real(kind=4)  stores
       common/a/ stores(50),ltype
-      real*4  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
+      real(kind=4)  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
       common/aa/xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
-      real*4  dsinm,rin,xn,xnc
+      real(kind=4)  dsinm,rin,xn,xnc
       common /const/ dsinm,rin,xn,xnc
       integer nnc
       common /const_int/ nnc
 !
       integer ilat1, ilat2
-      integer iflag, ierr
+!      integer iflag, ierr
       character filelev*36, filcat*36, filusgs*11, filsand*7, filclay*7
       character filtext*10
 
-      integer*2 isand(nxmax,2)
-      integer*2 iclay(nxmax,2)
-      integer*2 iusgs(nxmax,nveg)
+      integer(kind=2) isand(nxmax,2)
+      integer(kind=2) iclay(nxmax,2)
+      integer(kind=2) iusgs(nxmax,nveg)
       character*1 ch_tex(nxmax,ntex)
       character*1 ch_cat(nxmax,nveg)
       character*2 ch_topo(nxmax),char_2,ch_htsd(nxmax)
 
 !
-      real*4  center,rlat,rlon
+      real(kind=4)  center,rlat,rlon
       integer irec,irect,j,k
       integer ihmax,jhmax
       logical there
@@ -3396,34 +3403,35 @@
       integer iter,jter,iblk
       parameter(iter=2400,jter=2400,iblk=2880000)
       integer nobs
-      real*4  xobs(iblk),yobs(iblk)
+      real(kind=4)  xobs(iblk),yobs(iblk)
       common /block0/ xobs,yobs,nobs
-      real*4  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),clay(iblk,2)
+      real(kind=4)  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),
+     & clay(iblk,2)
       common /block/ ht,htsd,ht2,sand,clay
 !
       integer ltype,lrec
-      real*4  stores
+      real(kind=4)  stores
       common/a/ stores(50),ltype
-      real*4  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
+      real(kind=4)  xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
       common/aa/xminlat,xminlon,xmaxlat,xmaxlon,grdltmn,grdlnmn
-      real*4  dsinm,rin,xn,xnc
+      real(kind=4)  dsinm,rin,xn,xnc
       common /const/ dsinm,rin,xn,xnc
       integer nnc
       common /const_int/ nnc
 !
       integer ilat1, ilat2
-      integer iflag, ierr
+!      integer iflag, ierr
       character filelev*36, filcat*36, filusgs*11, filsand*7, filclay*7
       character filtext*10
 
-      integer*2 isand(nxmax,2)
-      integer*2 iclay(nxmax,2)
-      integer*2 iusgs(nxmax,nveg)
+      integer(kind=2) isand(nxmax,2)
+      integer(kind=2) iclay(nxmax,2)
+      integer(kind=2) iusgs(nxmax,nveg)
       character*1 ch_tex(nxmax,ntex)
       character*1 ch_cat(nxmax,nveg)
       character*2 ch_topo(nxmax),char_2,ch_htsd(nxmax)
 !
-      real*4  center,rlat,rlon
+      real(kind=4)  center,rlat,rlon
       integer irec,irect,j,k
       integer ihmax,jhmax
       logical there
@@ -3691,14 +3699,14 @@
 !     09/96   D.LUETHI (ETHZ)
  
 ! declaration of arguments:
-      REAL*4  LAMS,PHIS,PPHI,PLAM,PHI,LAM,POLLON,POLLAT
+      real(kind=4)  LAMS,PHIS,PPHI,PLAM,PHI,LAM,POLLON,POLLAT
  
 ! declaration of internal vars:
-      real*4  zarg1,zarg2
-      real*4  zphis,zlams,arg
+      real(kind=4)  zarg1,zarg2
+      real(kind=4)  zphis,zlams,arg
  
-      real*4  r2d,d2r
-      real*4  ZSINPOL,ZCOSPOL,ZLAMPOL
+      real(kind=4)  r2d,d2r
+      real(kind=4)  ZSINPOL,ZCOSPOL,ZLAMPOL
 
       r2d = 45./atan(1.)
       d2r = atan(1.)/45.
@@ -3746,9 +3754,9 @@
       implicit none
       integer nunit,iy,jx,ntypec,nveg,igrads,ibyte
       character iproj*6, filout*50, filctl*50
-      real*4  ds,clat,clon
+      real(kind=4)  ds,clat,clon
 !
-      real*4  dsinm,rin,xn,xnc
+      real(kind=4)  dsinm,rin,xn,xnc
       common /const/ dsinm,rin,xn,xnc
       integer nnc
       common /const_int/ nnc
@@ -3789,7 +3797,7 @@
 !              2DX WAVES FROM THE FIELDS htgrid
 !
       integer iy,jx
-      real*4  htgrid(iy,jx),hscr1(iy,jx)
+      real(kind=4)  htgrid(iy,jx),hscr1(iy,jx)
       integer i,j
 !
       do j=1,jx
@@ -3822,11 +3830,11 @@
 !                 wavelength components
 !
       integer is1,is2,npass,iflg
-      real*4  slab(is1,is2),xnu(2)
+      real(kind=4)  slab(is1,is2),xnu(2)
       character point*5
 !
       integer icross,ie,je,iem,jem,i,j,k,kp
-      real*4  asv,aplus,cell
+      real(kind=4)  asv,aplus,cell
 !
       icross=0
       if(point.eq.'cross') icross=1
@@ -3868,7 +3876,7 @@
       endif
       asv=cell
     2 continue
-   40 continue
+!   40 continue
    50 continue
       return
       end
@@ -3882,7 +3890,7 @@
       integer nocean
       parameter (nocean=20000)
       integer ii(nocean), jj(nocean)
-      real*4  slab1(is1,is2)
+      real(kind=4)  slab1(is1,is2)
       character point*5
       integer i,j,n,k
       integer n1,npass,iflg
@@ -3933,25 +3941,26 @@
 !  otherwise the program will abort.
 !
       integer iy,jx,iter,jter,nveg,ntex,nrec
-      real*4  grdltmn,grdlnmn,h2opct
+      real(kind=4)  grdltmn,grdlnmn,h2opct
       CHARACTER*4 LSMTYP
       CHARACTER*7 AERTYP
-      real*4  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
-      real*4  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
+      real(kind=4)  sanda(iy,jx),sandb(iy,jx),claya(iy,jx),clayb(iy,jx)
+      real(kind=4)  frac_lnd(iy,jx,nveg),frac_tex(iy,jx,ntex)
 !-----------------------------------------------------------------------
-      real*4  stores
+      real(kind=4)  stores
       integer ltype
       common/a/ stores(50),ltype
-      real*4  xlat(iy,jx),xlon(iy,jx)
+      real(kind=4)  xlat(iy,jx),xlon(iy,jx)
       integer lnduse(iy,jx),intext(iy,jx)
-      real*4  lndout(iy,jx),land(iy,jx,2),itex(iy,jx,2),texout(iy,jx)
+      real(kind=4)  lndout(iy,jx),land(iy,jx,2),itex(iy,jx,2),
+     & texout(iy,jx)
       logical flag
       integer i,j,k
       integer ii,jj,ilev,iindex,jindex,lrec,incr,lengdo,nbase
-      real*4  dsgrid
-      real*8  xx,yy
-      real*8  lnd8(iter,jter)
-      real*8  bint
+      real(kind=4)  dsgrid
+      real(kind=8)  xx,yy
+      real(kind=8)  lnd8(iter,jter)
+      real(kind=8)  bint
       integer isystm,system
       external bint
 !
@@ -4101,25 +4110,26 @@
       implicit none
       integer iy,jx
       character*6 iproj
-      real*4  clat,clon,plat,plon,truelatL,truelatH
+      real(kind=4)  clat,clon,plat,plon,truelatL,truelatH
 !
       integer iter,jter,iblk
       parameter(iter=2400,jter=2400,iblk=2880000)
       integer nobs
-      real*4  xobs(iblk),yobs(iblk)
+      real(kind=4)  xobs(iblk),yobs(iblk)
       common /block0/ xobs,yobs,nobs
-      real*4  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),clay(iblk,2)
+      real(kind=4)  ht(iblk),htsd(iblk),ht2(iblk),sand(iblk,2),
+     & clay(iblk,2)
       common /block/ ht,htsd,ht2,sand,clay
 
-      real*4  dsinm,rin,xn,xnc
+      real(kind=4)  dsinm,rin,xn,xnc
       common /const/ dsinm,rin,xn,xnc
       integer nnc
       common /const_int/ nnc
 !
       integer ilen,ie,je
-      real*4  r2d,d2r,c1,psi1,pole,a,psx,cell,cell2,r,xcntr,ycntr
-      real*4  cntrj,cntri,pi,xrot,phix,xlonx,flpp
-      real*4  flp,xnr,ynr,xr,yr,phi1,phir,c2,phic
+      real(kind=4)  r2d,d2r,c1,psi1,pole,a,psx,cell,cell2,r,xcntr,ycntr
+      real(kind=4)  cntrj,cntri,pi,xrot,phix,xlonx,flpp
+      real(kind=4)  flp,xnr,ynr,xr,yr,phi1,phir,c2,phic
       integer ii,im
 !
 !
