@@ -1,0 +1,16 @@
+Short install instructions for RegCM v4
+
+ -- copy the appropriate Makefile.inc.$ to Makefile.inc 
+ -- edit the options if needed
+ -- define a domain.param and put it in the RegCM base directory
+ -- then type
+    -- make terrain
+    -- ./PreProc/Terrain/terrain
+    -- make icbc
+    -- make regcm
+    -- make postproc
+
+ -- you will be ready to run SST/ICBC for initial and boundary conditions 
+    and then run RegCM
+
+ -- make clean will clean all

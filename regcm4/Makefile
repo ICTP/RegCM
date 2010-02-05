@@ -14,7 +14,9 @@ else
   ENSFLAG="--ensembles=$(NENSEMBLES)"
 endif
 
-all: terrain icbc regcm
+#all: terrain icbc regcm
+printall:
+	@echo 'Type make terrain -> run terrain -> make icbc -> make regcm'
 
 terrain:
 	#link the Data directory to /.../PreProc/DATA
