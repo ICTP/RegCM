@@ -33,8 +33,10 @@
 ! Local variables
 !
       real(8) :: dtinc , extime
-      integer :: ierr , iexec , iexecn , ncpu
-#ifndef MPP1
+      integer :: iexec , iexecn
+#ifdef MPP1
+      integer :: ierr , ncpu
+#else
       integer :: myid
 #endif
 !

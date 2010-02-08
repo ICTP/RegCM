@@ -68,7 +68,9 @@
 ! Local variables
 !
       character(8) :: cline
+#ifdef MPP1
       integer :: ierr
+#endif
 !
       write (cline,'(i6)') line
       write (aline,*) '-------------- FATAL CALLED ---------------'

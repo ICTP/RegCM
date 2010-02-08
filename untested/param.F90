@@ -52,12 +52,13 @@
       real(8) , dimension(nsplit) :: dtsplit
       character(7) :: finm
       real(4) :: grdfac
-      integer :: i , ibigend , ierr , ierr1 , igrads , ii , j , jj , k ,&
+      integer :: i , ibigend , ierr1 , igrads , ii , j , jj , k ,       &
                & kbase , ktop , kzz , m , mdate1 , mday , mmon , my1 ,  &
                & my2 , my3 , myear , n , ns , nxx , nyy
       integer , dimension(12) :: mmd
       real(4) , dimension(kxp1) :: sp1d
 #ifdef MPP1
+      integer :: ierr
       integer , dimension(mpi_status_size) :: status
       real(4) , dimension(ix,mjx) :: sp2d
       real(4) , dimension(ix*nsg,mjx*nsg) :: sp2d1
@@ -1449,6 +1450,7 @@
         end if
         write (aline, *) '*********************************'
         call say
+#ifdef MPP1
         do j = 1 , jendx
           do i = 1 , ilx
             shrmax2d(i,j) = shrmax
@@ -1467,6 +1469,26 @@
             dtauc2d(i,j) = dtauc*60.
           end do
         end do
+#else
+        do j = 1 , jlx
+          do i = 1 , ilx
+            shrmax2d(i,j) = shrmax
+            shrmin2d(i,j) = shrmin
+            edtmax2d(i,j) = edtmax
+            edtmin2d(i,j) = edtmin
+            edtmaxo2d(i,j) = edtmaxo
+            edtmino2d(i,j) = edtmino
+            edtmaxx2d(i,j) = edtmaxx
+            edtminx2d(i,j) = edtminx
+            pbcmax2d(i,j) = pbcmax
+            mincld2d(i,j) = mincld
+            kbmax2d(i,j) = kbmax
+            htmax2d(i,j) = htmax
+            htmin2d(i,j) = htmin
+            dtauc2d(i,j) = dtauc*60.
+          end do
+        end do
+#endif
       else if ( icup.eq.3 ) then
         write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
                        &' properly implemented'

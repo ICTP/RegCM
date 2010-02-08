@@ -34,10 +34,11 @@
 ! Local variables
 !
       character(5) :: aerctl
-      integer :: i , ierr , itr , j , k , l , m , n
+      integer :: i , itr , j , k , l , m , n
       logical :: rd_tex , there
 #ifdef MPP1
       real(4) , dimension(ix,mjx) :: toto
+      integer :: ierr
 #else
       real(4) , dimension(ix,jx) :: toto
 #endif
