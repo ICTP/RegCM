@@ -14,5 +14,9 @@
 ! COMMON /LDATA/
 !
       integer :: iin , iout , lcount , numpts
+!
+! COMMON /GENREC/
+!
+      integer :: nrcout
 
       end module iunits
