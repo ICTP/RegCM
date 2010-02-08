@@ -26,20 +26,16 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 #     include "parameter.inc"
-#     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/iunits.cb"
 #ifdef MPP1
 #     include "include/io.cb"
       real(kind=4)  fout(mjx-2,ix-2)
 #else
 #     include "include/main.cb"
+#     include "include/bats2.cb"
       real(kind=4)  fout(jx-2,ix-2)
 #endif
-#     include "include/bats2.cb"
-#     include "include/cvaria.cb"
-#     include "include/date.cb"
       real(kind=4)  sp1d(kxp1),dto,dtb,dtr,dtc
       real(kind=4)  clat,clon,dxsp,ptsp,plat,plon
       character proj*6

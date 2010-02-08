@@ -35,7 +35,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
 #     include "include/bdycod.cb"
-#     include "include/cvaria.cb"
 #     include "include/bats2.cb"
 #     include "include/rad.cb"
 #     include "include/trachem.cb"

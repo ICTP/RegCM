@@ -23,10 +23,6 @@ c
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
-#     include "include/parrad.cb"
-#     include "include/bats.cb"
-#     include "include/bats2.cb"
-#     include "include/rad.cb"
 #     include "include/date.cb"
 #     include "include/iunits.cb"
 

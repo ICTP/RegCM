@@ -31,14 +31,9 @@ c                                                                     c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 #     include "parameter.inc"
-#     include "include/param1.cb"
-#     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/iunits.cb"
 #     include "include/pmoist.cb"
-#     include "include/bats2.cb"
 #ifdef MPP1
-#     include "include/io.cb"
       real(kind=8)  psa(ix,jxp),psb(ix,jxp)
       real(kind=8)  ta(ix,kx,jxp), tb(ix,kx,jxp)
       real(kind=8)  qva(ix,kx,jxp),qvb(ix,kx,jxp)

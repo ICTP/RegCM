@@ -22,7 +22,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       implicit none
 #     include "parameter.inc"
 #     include "include/param1.cb"
-#     include "include/param3.cb"
 #     include "include/rad.cb"
 
       integer i,j,k
