@@ -590,7 +590,6 @@ C
 #     include "include/param1.cb"
 #     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/trachem.cb"
 #ifdef MPP1
 #     include "include/io.cb"
 #else

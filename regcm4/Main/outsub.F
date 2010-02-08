@@ -25,7 +25,6 @@ c ******    write bats fields to unit iutsub
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
-#     include "include/param3.cb"
 #     include "include/iunits.cb"
 #     include "include/date.cb"
 #ifdef MPP1
@@ -38,7 +37,6 @@ c ******    write bats fields to unit iutsub
 #else
 #     include "include/bats2.cb"
 #endif
-#     include "include/main.cb"
 
 #ifdef MPP1
       real(kind=4) v2b((mjx-2)*NSG,(ix-2)*NSG)

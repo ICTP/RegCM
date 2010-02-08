@@ -32,13 +32,9 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "include/pmoist.cb"
 #     include "include/bats2.cb"
 #     include "include/main.cb"
-#     include "include/bdycod.cb"
 #     include "include/trachem.cb"
 #     include "include/cupeman.cb"
 #     include "include/date.cb"
-#     include "include/tiedparam0.cb"
-#     include "include/tied_constants.cb"
-#     include "include/culookup.cb"
 #     include "include/message.cb"
 #ifdef MPP1
       include 'mpif.h'
@@ -103,7 +99,7 @@ Cchem2_
 c
       integer ns,mdate1,myear,mmon,mday,my1,my2,my3
       integer m,k,kbase,ktop
-      real(kind=8)  eqoft,bb,cc,ssum,xx,xtop,xbot,vqmax
+      real(kind=8)  bb,cc,ssum,xx,xtop,xbot,vqmax
       real(kind=8)  yy,wk,qk,wkp1,qkp1,sigtbl,delsig,pi,chibot
       real(kind=8)  ptmb,pz,pk,sig700,daymax
 
@@ -810,7 +806,6 @@ c
       degrad = 0.0174533
       eomeg = 7.292e-5
       dpd = 360./365.25   !0.986301  (degrees/day)
-      eqoft = 0.
       solcon = 1.3956e3
       stbolt = 5.76383e-8
       r = 287.

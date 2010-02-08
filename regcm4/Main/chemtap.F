@@ -29,13 +29,9 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
 #     include "parameter.inc"
 
-#     include "include/param1.cb"
 #     include "include/param2.cb"
-#     include "include/param3.cb"
 #     include "include/iunits.cb"
 #     include "include/date.cb"
-#     include "include/cvaria.cb"
-#     include "include/bats2.cb"
 #     include "include/trachem.cb"
 
 #ifdef MPP1
@@ -51,9 +47,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       COMMON /CHEREC/ nrcchem
       COMMON /CHEOUT/ fchem
       integer i,j,k,itr
-      real(kind=8)  xh, mpd
+      real(kind=8)  mpd
 
-      xh=xtime/60.
       if (iotyp.eq.2) write (iutchem) idatex
 
 c 3 d fields
