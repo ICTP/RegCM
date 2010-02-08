@@ -35,16 +35,16 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #endif
 #     include "include/param2.cb"
 #     include "include/param3.cb"
-#     include "include/iunits.cb"
+#     include "include/bdycod.cb"
+#ifdef MPP1
+#     include "include/io.cb"
+#else
 #     include "include/pmoist.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
 #     include "include/bats2.cb"
 #     include "include/rad.cb"
-#     include "include/bdycod.cb"
 #     include "include/trachem.cb"
-#ifdef MPP1
-#     include "include/io.cb"
 #endif
 #     include "include/date.cb"
 

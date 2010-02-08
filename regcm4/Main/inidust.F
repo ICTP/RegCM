@@ -41,9 +41,7 @@ c  ***********************************************************
       implicit none
 
 #     include "parameter.inc"
-#     include "include/trachem.cb"
 #     include "include/dust.cb"
-#     include "include/param1.cb"
 
       integer i,j,t,itex,n,ns,nm,nt
       
