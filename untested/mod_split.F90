@@ -35,4 +35,11 @@
 #endif
       integer , dimension(nsplit) :: m
 
+#ifdef MPP1
+!
+! COMMON /SPLITIO/
+!
+      real(8) , dimension(ix,mjx,nsplit) :: dstor_io , hstor_io
+#endif
+
       end module split

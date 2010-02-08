@@ -31,7 +31,6 @@
       use date
 #ifdef MPP1
       use mpi
-      use io
 #endif
       implicit none
 !

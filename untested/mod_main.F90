@@ -33,4 +33,29 @@
       real(8) , dimension(ix,jx) :: uvdrag
 #endif
 
+#ifdef MPP1
+!
+! COMMON /MAINCMIO/
+!
+      real(8) , dimension(ix,kx,mjx,ntr) :: chia_io , chib_io
+      real(8) , dimension(ix,mjx) :: cldefi_io , f_io , hfx_io ,        &
+                                   & htsd_io , ht_io , msfd_io ,        &
+                                   & msfx_io , psa_io , psb_io ,        &
+                                   & qfx_io , rainc_io , rainnc_io ,    &
+                                   & satbrt_io , tga_io , tgbb_io ,     &
+                                   & tgb_io , uvdrag_io , xlat_io ,     &
+                                   & xlong_io , zpbl_io
+      real(8) , dimension(ix,kx,mjx) :: omega_io , qca_io , qcb_io ,    &
+                                      & qva_io , qvb_io , ta_io ,       &
+                                      & tbase_io , tb_io , ua_io ,      &
+                                      & ub_io , va_io , vb_io
+      real(8) , dimension(nnsg,ix,mjx) :: snowc_io
+!
+! COMMON /TMPSRF/
+!
+      real(8) , dimension(ix,nnsg*3+8,jxp) :: inisrf0
+      real(8) , dimension(ix,nnsg*3+8,mjx) :: inisrf_0
+!
+#endif
+
       end module main

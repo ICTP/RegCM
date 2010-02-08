@@ -18,6 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine vecbats(jslc)
+
 !=======================================================================
 !l  based on: bats version 1e          copyright 18 august 1989
 !=======================================================================
@@ -147,7 +148,8 @@
 !
 ! Dummy arguments
 !
-      integer :: jslc
+      integer, intent(in) :: jslc
+
 !---------------------------------------------------------------------
 ! ** note: constants related to the time step are defined here instead
 !          of at initialization to allow for the possibility

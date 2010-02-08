@@ -19,7 +19,6 @@
  
       subroutine tracdiag(xkc)
  
-      use mpi
       use regcm_param
       use param1
       use param3
@@ -27,7 +26,7 @@
       use main
       use mainchem
 #ifdef MPP1
-      use io
+      use mpi
 #endif
       implicit none
 !

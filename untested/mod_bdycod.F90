@@ -50,4 +50,21 @@
            & vnb , vnbt , vsb , vsbt
 #endif
 
+#ifdef MPP1
+!
+! COMMON /BCVARSIO/
+!
+      real(8) , dimension(ix,mjx) :: ps0_io , ps1_io , ts0_io , ts1_io
+      real(8) , dimension(ix,kx,mjx) :: qb0_io , qb1_io , so0_io ,      &
+                                      & so1_io , tb0_io , tb1_io ,      &
+                                      & ub0_io , ub1_io , vb0_io ,      &
+                                      & vb1_io
+!
+! COMMON /BDYCODIO/
+!
+      real(8) , dimension(kx,mjx) :: ui1_io , ui2_io , uilx_io ,        &
+                                   & uil_io , vi1_io , vi2_io ,         &
+                                   & vilx_io , vil_io
+#endif
+
       end module bdycod

@@ -1,0 +1,404 @@
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of RegCM model.
+!
+!    RegCM model is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    RegCM model is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ 
+#ifdef MPP1
+      subroutine outprt(iexec)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: iexec
+      intent (in) iexec
+!
+! Local variables
+!
+      integer dum
+!
+      dum = iexec
+      return
+      end subroutine outprt
+
+#else
+
+      subroutine outprt(iexec)
+
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!                                                                     c
+!     this subroutine creates the printer output for a quick check.   c
+!     the complete analysis is handled by other program "dataflow"    c
+!     later.                                                          c
+!                                                                     c
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+      use regcm_param
+      use param1
+      use param2
+      use param3
+      use main
+      use bdycod
+      use pmoist
+      use date
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: iexec
+      intent (in) iexec
+!
+! Local variables
+!
+      character(40) :: c40nam
+      real(8) :: const , pres , psab1 , psab2 , psabar , qvs , satvp ,  &
+               & xth
+      real(8) , dimension(jx,ix) :: fr , hscr1r , hscr2r , msfdr ,      &
+                                  & psar , raincr , rainncr , tgar ,    &
+                                  & xlatr , xlongr
+      real(8) , dimension(ix,jx) :: hscr1 , hscr2
+      integer :: i , ixn , j , jcx , jxn , k , kout , kxn
+      real(8) , dimension(kx,ix) :: scrx1 , scrx2
+      real(8) , dimension(ix,kx) :: scrx1r , scrx2r
+!
+      data ixn , jxn , kxn/2 , 2 , 1/
+!
+!----------------------------------------------------------------------
+!
+      xth = xtime/60.
+      jcx = jxsex
+      kout = kxout
+      print 99001 , ldatez + xtime/1440. , ktau , jyear
+!
+!-----north-south cross sections:
+!
+!.....u and v:
+!
+      if ( iexec.eq.1 ) then
+!
+!.....first time :
+!
+        if ( jcx.eq.1 ) then
+!......for jcx = 1:
+          do i = 2 , ilx
+            do k = 1 , kx
+              psabar = 0.5*(psa(i,jcx)+psa(i-1,jcx))
+              scrx1(k,i) = ua(i,k,jcx)/psabar
+              scrx2(k,i) = va(i,k,jcx)/psabar
+            end do
+          end do
+          do k = 1 , kx
+            scrx1(k,1) = ua(1,k,jcx)/psa(1,jcx)
+            scrx1(k,ix) = ua(ix,k,jcx)/psa(ilx,jcx)
+            scrx2(k,1) = va(1,k,jcx)/psa(1,jcx)
+            scrx2(k,ix) = va(ix,k,jcx)/psa(ilx,jcx)
+          end do
+        else if ( jcx.eq.jx ) then
+!......for jcx = jx:
+          do i = 2 , ilx
+            do k = 1 , kx
+              psabar = 0.5*(psa(i,jlx)+psa(i-1,jlx))
+              scrx1(k,i) = ua(i,k,jcx)/psabar
+              scrx2(k,i) = va(i,k,jcx)/psabar
+            end do
+          end do
+          do k = 1 , kx
+            scrx1(k,1) = ua(1,k,jcx)/psa(1,jlx)
+            scrx1(k,ix) = ua(ix,k,jcx)/psa(ilx,jlx)
+            scrx2(k,1) = va(1,k,jcx)/psa(1,jlx)
+            scrx2(k,ix) = va(ix,k,jcx)/psa(ilx,jlx)
+          end do
+        else
+!......interior slice:
+          do i = 2 , ilx
+            do k = 1 , kx
+              psabar = 0.25*(psa(i,jcx)+psa(i,jcx-1)+psa(i-1,jcx)       &
+                     & +psa(i-1,jcx-1))
+              scrx1(k,i) = ua(i,k,jcx)/psabar
+              scrx2(k,i) = va(i,k,jcx)/psabar
+            end do
+          end do
+          do k = 1 , kx
+            psab1 = 0.5*(psa(1,jcx-1)+psa(1,jcx))
+            psab2 = 0.5*(psa(ilx,jcx-1)+psa(ilx,jcx))
+            scrx1(k,1) = ua(1,k,jcx)/psab1
+            scrx1(k,ix) = ua(ix,k,jcx)/psab2
+            scrx2(k,1) = va(1,k,jcx)/psab1
+            scrx2(k,ix) = va(ix,k,jcx)/psab2
+          end do
+        end if
+!
+      else if ( iexec.gt.1 ) then
+!
+!.....subsequent calls:
+!
+        if ( jcx.eq.1 ) then
+!......for jcx = 1:
+          do i = 1 , ix
+            do k = 1 , kx
+              scrx1(k,i) = uj1(i,k)
+              scrx2(k,i) = vj1(i,k)
+            end do
+          end do
+        else if ( jcx.eq.jx ) then
+!......for jcx = jx:
+          do i = 1 , ix
+            do k = 1 , kx
+              scrx1(k,i) = ujl(i,k)
+              scrx2(k,i) = vjl(i,k)
+            end do
+          end do
+        else
+!......interior slice:
+          do i = 2 , ilx
+            do k = 1 , kx
+              psabar = 0.25*(psa(i,jcx)+psa(i,jcx-1)+psa(i-1,jcx)       &
+                     & +psa(i-1,jcx-1))
+              scrx1(k,i) = ua(i,k,jcx)/psabar
+              scrx2(k,i) = va(i,k,jcx)/psabar
+            end do
+          end do
+          do k = 1 , kx
+            scrx1(k,1) = ui1(k,jcx)
+            scrx1(k,ix) = uil(k,jcx)
+            scrx2(k,1) = vi1(k,jcx)
+            scrx2(k,ix) = vil(k,jcx)
+          end do
+        end if
+!
+      else        !end iexec test
+      end if
+!
+      write (c40nam,99002) jcx
+      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ix,ixn,0.D0,-1,c40nam,  &
+                & xth)
+      write (c40nam,99003) jcx
+      call mapsmp(scrx2,scrx2r,kx,ix,1,kx,kxn,1,ix,ixn,0.D0,-1,c40nam,  &
+                & xth)
+!
+!.....t:
+!
+      do i = 1 , ilx
+        do k = 1 , kx
+          scrx1(k,i) = ta(i,k,jcx)/psa(i,jcx)
+        end do
+      end do
+      write (c40nam,99004) jcx
+      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ilx,ixn,273.16D0,-1,    &
+                & c40nam,xth)
+!
+!.....qv:
+!
+      do i = 1 , ilx
+        do k = 1 , kx
+          scrx1(k,i) = qva(i,k,jcx)/psa(i,jcx)
+        end do
+      end do
+ 
+      write (c40nam,99005) jcx
+      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ilx,ixn,0.D0,-1,c40nam, &
+                & xth)
+!
+!....qc and qr:
+!
+      do i = 1 , ilx
+        do k = 1 , kx
+          scrx1(k,i) = qca(i,k,jcx)/psa(i,jcx)
+        end do
+      end do
+      write (c40nam,99006) jcx
+      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ilx,ixn,0.D0,-1,c40nam, &
+                & xth)
+!
+!-----horizontal slices:
+!
+      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+        c40nam = '       latitude at cross points        '
+        call mapsmp(xlat,xlatr,ix,jx,1,ilx,5,1,jlx,5,0.D0,1,c40nam,xth)
+        c40nam = '       longitude at cross points       '
+        call mapsmp(xlong,xlongr,ix,jx,1,ilx,5,1,jlx,5,0.D0,1,c40nam,   &
+                  & xth)
+        do j = 1 , jlx
+          do i = 1 , ilx
+            hscr1(i,j) = ht(i,j)/g
+          end do
+        end do
+        c40nam = '     terrain height at cross points     '
+        call mapsmp(hscr1,hscr1r,ix,jx,1,ilx,5,1,jlx,5,0.D0,1,c40nam,   &
+                  & xth)
+        c40nam = '    coriolis parameter at dot points    '
+        call mapsmp(f,fr,ix,jx,1,ix,5,1,jx,5,0.D0,1,c40nam,xth)
+        c40nam = '    map scale factor at dot points     '
+        call mapsmp(msfd,msfdr,ix,jx,1,ix,5,1,jx,5,0.D0,1,c40nam,xth)
+      end if
+!
+!....surface pressure
+!
+      const = -ptop
+      c40nam = '         surface pressure (cb)         '
+      call mapsmp(psa,psar,ix,jx,1,ilx,ixn,1,jlx,jxn,const,1,c40nam,xth)
+!
+!.....u and v:
+!
+      do j = 2 , jlx
+        do i = 2 , ilx
+          psabar = 0.25*(psa(i,j)+psa(i,j-1)+psa(i-1,j)+psa(i-1,j-1))
+          hscr1(i,j) = ua(i,kout,j)/psabar
+          hscr2(i,j) = va(i,kout,j)/psabar
+        end do
+      end do
+!
+      if ( iexec.eq.1 ) then
+!
+!.....first time:
+!
+        do i = 2 , ilx
+          psab1 = 0.5*(psa(i,1)+psa(i-1,1))
+          psab2 = 0.5*(psa(i,jlx)+psa(i-1,jlx))
+          hscr1(i,1) = ua(i,kout,1)/psab1
+          hscr1(i,jx) = ua(i,kout,jx)/psab2
+          hscr2(i,1) = va(i,kout,1)/psab1
+          hscr2(i,jx) = va(i,kout,jx)/psab2
+        end do
+        do j = 2 , jlx
+          psab1 = 0.5*(psa(1,j)+psa(1,j-1))
+          psab2 = 0.5*(psa(ilx,j)+psa(ilx,j-1))
+          hscr1(1,j) = ua(1,kout,j)/psab1
+          hscr1(ix,j) = ua(ix,kout,j)/psab2
+          hscr2(1,j) = va(1,kout,j)/psab1
+          hscr2(ix,j) = va(ix,kout,j)/psab2
+        end do
+        hscr1(1,1) = ua(1,kout,1)/psa(1,1)
+        hscr1(1,jx) = ua(1,kout,jx)/psa(1,jlx)
+        hscr1(ix,1) = ua(ix,kout,1)/psa(ilx,1)
+        hscr1(ix,jx) = ua(ix,kout,jx)/psa(ilx,jlx)
+        hscr2(1,1) = va(1,kout,1)/psa(1,1)
+        hscr2(1,jx) = va(1,kout,jx)/psa(1,jlx)
+        hscr2(ix,1) = va(ix,kout,1)/psa(ilx,1)
+        hscr2(ix,jx) = va(ix,kout,jx)/psa(ilx,jlx)
+!
+      else if ( iexec.gt.1 ) then
+!
+        do i = 1 , ix
+          hscr1(i,1) = uj1(i,kout)
+          hscr1(i,jx) = ujl(i,kout)
+          hscr2(i,1) = vj1(i,kout)
+          hscr2(i,jx) = vjl(i,kout)
+        end do
+        do j = 2 , jlx
+          hscr1(1,j) = ui1(kout,j)
+          hscr1(ix,j) = uil(kout,j)
+          hscr2(1,j) = vi1(kout,j)
+          hscr2(ix,j) = vil(kout,j)
+        end do
+!
+      else        !end 2nd iexec test
+      end if
+ 
+      write (c40nam,99007) kout
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ix,ixn,1,jx,jxn,0.D0,1,c40nam,   &
+                & xth)
+      write (c40nam,99008) kout
+      call mapsmp(hscr2,hscr2r,ix,jx,1,ix,ixn,1,jx,jxn,0.D0,1,c40nam,   &
+                & xth)
+!
+!.....t:
+!
+      do j = 1 , jlx
+        do i = 1 , ilx
+          hscr1(i,j) = ta(i,kout,j)/psa(i,j)
+        end do
+      end do
+      write (c40nam,99009) kout
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ilx,ixn,1,jlx,jxn,273.16D0,1,    &
+                & c40nam,xth)
+!
+!.....relative humidity:
+!
+      do j = 1 , jlx
+        do i = 1 , ilx
+          pres = a(kout)*psa(i,j) + ptop
+          if ( hscr1(i,j).gt.273.15 ) then
+!           v8 svp formula
+            satvp = svp1*dexp(svp2*(hscr1(i,j)-273.15)/(hscr1(i,j)-svp3)&
+                  & )
+          else
+            satvp = .611*dexp(22.514-6.15E3/hscr1(i,j))
+          end if
+ 
+          qvs = ep2*satvp/(pres-satvp)
+          hscr2(i,j) = (qva(i,kout,j)/psa(i,j))/qvs
+        end do
+      end do
+      write (c40nam,99010) kout
+      call mapsmp(hscr2,hscr2r,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,c40nam, &
+                & xth)
+!
+!.....qc and qr:
+!
+      do j = 1 , jlx
+        do i = 1 , ilx
+          hscr1(i,j) = qca(i,kout,j)/psa(i,j)
+        end do
+      end do
+      write (c40nam,99011) kout
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,c40nam, &
+                & xth)
+!
+!.....surface temperature:
+!
+      if ( ibltyp.ne.0 ) then
+        const = 273.15
+        c40nam = ' ground temperature (c)    '
+        call mapsmp(tga,tgar,ix,jx,1,ilx,ixn,1,jlx,jxn,const,1,c40nam,  &
+                  & xth)
+      end if
+!
+!.....precipitation:
+!
+      c40nam = '   convective rainfall (mm)          '
+      call mapsmp(rainc,raincr,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,c40nam, &
+                & xth)
+      c40nam = '  nonconvective rainfall (mm)      '
+      call mapsmp(rainnc,rainncr,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,      &
+                & c40nam,xth)
+      do j = 1 , jlx
+        do i = 1 , ilx
+          hscr1(i,j) = rainc(i,j) + rainnc(i,j)
+        end do
+      end do
+      c40nam = '  total rainfall (mm)        '
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,c40nam, &
+                & xth)
+99001 format (///1x,'--------------------------------------------------'&
+            & ,/1x,'*****',4x,'large domain at t = ',f17.5,             &
+             &' minutes, ktau = ',i7,' in year=',i4,3x,'*****'/1x,      &
+         &'------------------------------------------------------------'&
+        & ///)
+99002 format ('  u  cross-section at j = ',i3,8x)
+99003 format ('  v  cross-section at j = ',i3,8x)
+99004 format ('  t  cross-section at j = ',i3,8x)
+99005 format ('  qv  cross-section at j = ',i3,7x)
+99006 format ('  qc  cross-section at j = ',i3,7x)
+99007 format ('  u   at k = ',i3,24x)
+99008 format ('  v   at k = ',i3,24x)
+99009 format ('  t (c)  at k = ',i3,21x)
+99010 format ('  relative humidity at k = ',i3,10x)
+99011 format ('  qc  at k = ',i3,24x)
+!
+      end subroutine outprt
+
+#endif
