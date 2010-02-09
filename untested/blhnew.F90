@@ -64,7 +64,7 @@
 ! Local variables
 !
       real(8) :: betah , betam , betas , binh , binm , ccon , fak ,     &
-               & fak1 , fak2 , fht , fmt , kzo , onet , pblk , pblk1 ,  &
+               & fak1 , fak2 , fht , xfmt , kzo , onet , pblk , pblk1 , &
                & pblk2 , pfcor , phpblm , pink , pr , ricr , sffrac ,   &
                & therm2 , tkv , tlv , ttkl , vv , vvl , wsc , z , zh ,  &
                & zl , zm , zp , zzh , zzhnew , zzhnew2
@@ -139,8 +139,8 @@
         do i = 2 , ilx
           if ( hfxv(i,j).gt.0. ) then
 !           ******   estimate of convective velocity scale
-            fmt = (1.0-(binm*zpbl(i,j)/obklen(i,j)))**onet
-            wsc = ustr(i,j)*fmt
+            xfmt = (1.0-(binm*zpbl(i,j)/obklen(i,j)))**onet
+            wsc = ustr(i,j)*xfmt
 !           ******   thermal temperature excess
             therm(i) = (xhfx(i,j)+0.61*thx3d(i,kx,j)*xqfx(i,j))*fak/wsc
             vvl = ubx3d(i,kx,j)*ubx3d(i,kx,j) + vbx3d(i,kx,j)           &
@@ -269,10 +269,10 @@
 !**             compute counter gradient term
                 if ( zh.ge.sffrac ) then
 !**               igroup = 2
-                  fmt = (1.-binm*zpbl(i,j)/obklen(i,j))**onet
+                  xfmt = (1.-binm*zpbl(i,j)/obklen(i,j))**onet
                   fht = dsqrt(1.-binh*zpbl(i,j)/obklen(i,j))
-                  wsc = ustr(i,j)*fmt
-                  pr = (fmt/fht) + ccon
+                  wsc = ustr(i,j)*xfmt
+                  pr = (xfmt/fht) + ccon
                   fak2 = wsc*zpbl(i,j)*karman
                   pblk = fak2*zh*zzh
 !xexp5            pblk1 = karman * wsc * zzhnew

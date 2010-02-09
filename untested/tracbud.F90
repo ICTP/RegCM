@@ -26,6 +26,7 @@
 #ifdef DIAG
       use diagnosis
 #endif
+      use main
       use mainchem
       use trachem
       use date
