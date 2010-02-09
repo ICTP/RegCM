@@ -12,6 +12,8 @@
       real(8) , dimension(ix,kx+1,mjx) :: sav_0b
       real(8) , dimension(ix,kx*2,mjx) :: sav_0c
       real(8) , dimension(ix,kx,mjx) :: sav_0s
+      real(8) , dimension(ix,nsplit*2,jxp) :: sav0d
+      real(8) , dimension(ix,nsplit*2,mjx) :: sav_0d
       real(8) , dimension(ilx,kx*4+(kx+1)*(kx+2),jxp) :: sav1
       real(8) , dimension(ilx,kx*4+(kx+1)*(kx+2),mjx) :: sav_1
       real(8) , dimension(ilx,nnsg*4+4,jxp) :: sav2
@@ -22,5 +24,7 @@
       real(8) , dimension(ilx,7,jxp) :: sav4a
       real(8) , dimension(ix,ntr*(kx*4+1),mjx) :: sav_4
       real(8) , dimension(ilx,7,mjx) :: sav_4a
+      real(8) , dimension(kx,8,jxp) :: sav6
+      real(8) , dimension(kx,8,mjx) :: sav_6
 #endif
       end module tmpsav

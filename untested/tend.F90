@@ -88,7 +88,7 @@
       real(8) , dimension(ix,4,jxp) :: ps4
       real(8) , dimension(ix,4,mjx) :: ps_4 
       real(8) , dimension(ix,kx*(ntr+5)*2) :: var2rcv , var2snd
-      real(8) , dimension(ix,kx*(ntr+11)+1) :: var1rcv , var1snd
+      real(8) , dimension(ix,kx*(ntr+11)+1) :: tvar1rcv , tvar1snd
 #else
       real(8) , dimension(ix,kx,jx) :: ttld
 #endif
@@ -329,28 +329,28 @@
 #ifdef MPP1
       if ( myid.ne.nproc-1 ) then
         do i = 1 , ix
-          var1snd(i,1) = psb(i,jxp)
+          tvar1snd(i,1) = psb(i,jxp)
         end do
         do k = 1 , kx
           do i = 1 , ix
-            var1snd(i,1+k) = tb(i,k,jxp)
-            var1snd(i,1+kx+k) = qvb(i,k,jxp)
-            var1snd(i,1+kx*2+k) = ub(i,k,jxp)
-            var1snd(i,1+kx*3+k) = vb(i,k,jxp)
-            var1snd(i,1+kx*4+k) = u(i,k,jxp)
-            var1snd(i,1+kx*5+k) = v(i,k,jxp)
-            var1snd(i,1+kx*6+k) = t(i,k,jxp)
-            var1snd(i,1+kx*7+k) = qv(i,k,jxp)
-            var1snd(i,1+kx*8+k) = qc(i,k,jxp)
-            var1snd(i,1+kx*9+k) = ua(i,k,jxp)
-            var1snd(i,1+kx*10+k) = va(i,k,jxp)
+            tvar1snd(i,1+k) = tb(i,k,jxp)
+            tvar1snd(i,1+kx+k) = qvb(i,k,jxp)
+            tvar1snd(i,1+kx*2+k) = ub(i,k,jxp)
+            tvar1snd(i,1+kx*3+k) = vb(i,k,jxp)
+            tvar1snd(i,1+kx*4+k) = u(i,k,jxp)
+            tvar1snd(i,1+kx*5+k) = v(i,k,jxp)
+            tvar1snd(i,1+kx*6+k) = t(i,k,jxp)
+            tvar1snd(i,1+kx*7+k) = qv(i,k,jxp)
+            tvar1snd(i,1+kx*8+k) = qc(i,k,jxp)
+            tvar1snd(i,1+kx*9+k) = ua(i,k,jxp)
+            tvar1snd(i,1+kx*10+k) = va(i,k,jxp)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
             do k = 1 , kx
               do i = 1 , ix
-                var1snd(i,kx*11+1+(n-1)*kx+k) = chi(i,k,jxp,n)
+                tvar1snd(i,kx*11+1+(n-1)*kx+k) = chi(i,k,jxp,n)
               end do
             end do
           end do
@@ -358,34 +358,34 @@
       end if
       numrec = kx*11 + 1
       if ( ichem.eq.1 ) numrec = kx*(ntr+11) + 1
-      call mpi_sendrecv(var1snd(1,1),ix*numrec,mpi_double_precision,    &
-                      & ieast,1,var1rcv(1,1),ix*numrec,                 &
+      call mpi_sendrecv(tvar1snd(1,1),ix*numrec,mpi_double_precision,   &
+                      & ieast,1,tvar1rcv(1,1),ix*numrec,                &
                       & mpi_double_precision,iwest,1,mpi_comm_world,    &
                       & status,ierr)
       if ( myid.ne.0 ) then
         do i = 1 , ix
-          psb(i,0) = var1rcv(i,1)
+          psb(i,0) = tvar1rcv(i,1)
         end do
         do k = 1 , kx
           do i = 1 , ix
-            tb(i,k,0) = var1rcv(i,1+k)
-            qvb(i,k,0) = var1rcv(i,1+kx+k)
-            ub(i,k,0) = var1rcv(i,1+kx*2+k)
-            vb(i,k,0) = var1rcv(i,1+kx*3+k)
-            u(i,k,0) = var1rcv(i,1+kx*4+k)
-            v(i,k,0) = var1rcv(i,1+kx*5+k)
-            t(i,k,0) = var1rcv(i,1+kx*6+k)
-            qv(i,k,0) = var1rcv(i,1+kx*7+k)
-            qc(i,k,0) = var1rcv(i,1+kx*8+k)
-            ua(i,k,0) = var1rcv(i,1+kx*9+k)
-            va(i,k,0) = var1rcv(i,1+kx*10+k)
+            tb(i,k,0) = tvar1rcv(i,1+k)
+            qvb(i,k,0) = tvar1rcv(i,1+kx+k)
+            ub(i,k,0) = tvar1rcv(i,1+kx*2+k)
+            vb(i,k,0) = tvar1rcv(i,1+kx*3+k)
+            u(i,k,0) = tvar1rcv(i,1+kx*4+k)
+            v(i,k,0) = tvar1rcv(i,1+kx*5+k)
+            t(i,k,0) = tvar1rcv(i,1+kx*6+k)
+            qv(i,k,0) = tvar1rcv(i,1+kx*7+k)
+            qc(i,k,0) = tvar1rcv(i,1+kx*8+k)
+            ua(i,k,0) = tvar1rcv(i,1+kx*9+k)
+            va(i,k,0) = tvar1rcv(i,1+kx*10+k)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
             do k = 1 , kx
               do i = 1 , ix
-                chi(i,k,0,n) = var1rcv(i,kx*11+1+(n-1)*kx+k)
+                chi(i,k,0,n) = tvar1rcv(i,kx*11+1+(n-1)*kx+k)
               end do
             end do
           end do
@@ -394,28 +394,28 @@
 !
       if ( myid.ne.0 ) then
         do i = 1 , ix
-          var1snd(i,1) = psb(i,1)
+          tvar1snd(i,1) = psb(i,1)
         end do
         do k = 1 , kx
           do i = 1 , ix
-            var1snd(i,1+k) = tb(i,k,1)
-            var1snd(i,1+kx+k) = qvb(i,k,1)
-            var1snd(i,1+kx*2+k) = ub(i,k,1)
-            var1snd(i,1+kx*3+k) = vb(i,k,1)
-            var1snd(i,1+kx*4+k) = u(i,k,1)
-            var1snd(i,1+kx*5+k) = v(i,k,1)
-            var1snd(i,1+kx*6+k) = t(i,k,1)
-            var1snd(i,1+kx*7+k) = qv(i,k,1)
-            var1snd(i,1+kx*8+k) = qc(i,k,1)
-            var1snd(i,1+kx*9+k) = ua(i,k,1)
-            var1snd(i,1+kx*10+k) = va(i,k,1)
+            tvar1snd(i,1+k) = tb(i,k,1)
+            tvar1snd(i,1+kx+k) = qvb(i,k,1)
+            tvar1snd(i,1+kx*2+k) = ub(i,k,1)
+            tvar1snd(i,1+kx*3+k) = vb(i,k,1)
+            tvar1snd(i,1+kx*4+k) = u(i,k,1)
+            tvar1snd(i,1+kx*5+k) = v(i,k,1)
+            tvar1snd(i,1+kx*6+k) = t(i,k,1)
+            tvar1snd(i,1+kx*7+k) = qv(i,k,1)
+            tvar1snd(i,1+kx*8+k) = qc(i,k,1)
+            tvar1snd(i,1+kx*9+k) = ua(i,k,1)
+            tvar1snd(i,1+kx*10+k) = va(i,k,1)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
             do k = 1 , kx
               do i = 1 , ix
-                var1snd(i,kx*11+1+(n-1)*kx+k) = chi(i,k,1,n)
+                tvar1snd(i,kx*11+1+(n-1)*kx+k) = chi(i,k,1,n)
               end do
             end do
           end do
@@ -423,34 +423,34 @@
       end if
       numrec = kx*11 + 1
       if ( ichem.eq.1 ) numrec = kx*(ntr+11) + 1
-      call mpi_sendrecv(var1snd(1,1),ix*numrec,mpi_double_precision,    &
-                      & iwest,2,var1rcv(1,1),ix*numrec,                 &
+      call mpi_sendrecv(tvar1snd(1,1),ix*numrec,mpi_double_precision,   &
+                      & iwest,2,tvar1rcv(1,1),ix*numrec,                &
                       & mpi_double_precision,ieast,2,mpi_comm_world,    &
                       & status,ierr)
       if ( myid.ne.nproc-1 ) then
         do i = 1 , ix
-          psb(i,jxp+1) = var1rcv(i,1)
+          psb(i,jxp+1) = tvar1rcv(i,1)
         end do
         do k = 1 , kx
           do i = 1 , ix
-            tb(i,k,jxp+1) = var1rcv(i,1+k)
-            qvb(i,k,jxp+1) = var1rcv(i,1+kx+k)
-            ub(i,k,jxp+1) = var1rcv(i,1+kx*2+k)
-            vb(i,k,jxp+1) = var1rcv(i,1+kx*3+k)
-            u(i,k,jxp+1) = var1rcv(i,1+kx*4+k)
-            v(i,k,jxp+1) = var1rcv(i,1+kx*5+k)
-            t(i,k,jxp+1) = var1rcv(i,1+kx*6+k)
-            qv(i,k,jxp+1) = var1rcv(i,1+kx*7+k)
-            qc(i,k,jxp+1) = var1rcv(i,1+kx*8+k)
-            ua(i,k,jxp+1) = var1rcv(i,1+kx*9+k)
-            va(i,k,jxp+1) = var1rcv(i,1+kx*10+k)
+            tb(i,k,jxp+1) = tvar1rcv(i,1+k)
+            qvb(i,k,jxp+1) = tvar1rcv(i,1+kx+k)
+            ub(i,k,jxp+1) = tvar1rcv(i,1+kx*2+k)
+            vb(i,k,jxp+1) = tvar1rcv(i,1+kx*3+k)
+            u(i,k,jxp+1) = tvar1rcv(i,1+kx*4+k)
+            v(i,k,jxp+1) = tvar1rcv(i,1+kx*5+k)
+            t(i,k,jxp+1) = tvar1rcv(i,1+kx*6+k)
+            qv(i,k,jxp+1) = tvar1rcv(i,1+kx*7+k)
+            qc(i,k,jxp+1) = tvar1rcv(i,1+kx*8+k)
+            ua(i,k,jxp+1) = tvar1rcv(i,1+kx*9+k)
+            va(i,k,jxp+1) = tvar1rcv(i,1+kx*10+k)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
             do k = 1 , kx
               do i = 1 , ix
-                chi(i,k,jxp+1,n) = var1rcv(i,kx*11+1+(n-1)*kx+k)
+                chi(i,k,jxp+1,n) = tvar1rcv(i,kx*11+1+(n-1)*kx+k)
               end do
             end do
           end do

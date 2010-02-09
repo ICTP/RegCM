@@ -56,6 +56,10 @@
       real(8) , dimension(ix,nnsg*3+8,jxp) :: inisrf0
       real(8) , dimension(ix,nnsg*3+8,mjx) :: inisrf_0
 !
+! COMMON /TMP_var1/
+!
+      real(8) , dimension(kx,8) :: var1snd , var1rcv
+!
 #endif
 
       end module main

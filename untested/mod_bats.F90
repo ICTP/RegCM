@@ -181,6 +181,8 @@
 !
       integer , parameter :: numsub = 16
       real(4) , dimension(nnsg,mjx-2,ix-2,numsub) :: fsub_io
+      real(kind=4)  fsub(NNSG,jxp,ix-2,numsub)
+      equivalence (fsub(1,1,1,1),u10m_s(1,1,1))
 
 #endif
 
