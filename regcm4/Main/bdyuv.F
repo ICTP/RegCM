@@ -38,8 +38,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       implicit none
 #     include "parameter.inc"
 
-#     include "include/param1.cb"
-#     include "include/param3.cb"
 #     include "include/bdycod.cb"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"

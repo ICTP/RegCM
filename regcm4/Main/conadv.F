@@ -30,7 +30,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/diagnosis.cb"
-#     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/main.cb"
 

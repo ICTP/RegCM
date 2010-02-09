@@ -45,13 +45,9 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
 #     include "include/param1.cb"
 #     include "include/param2.cb"
-#     include "include/param3.cb"
-#     include "include/iunits.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
 #     include "include/bdycod.cb"
-#     include "include/trachem.cb"
-#     include "include/cvaria.cb"
 #     include "include/date.cb"
 
       integer i,j,k

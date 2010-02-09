@@ -47,8 +47,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#     include "include/param1.cb"
-#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -187,8 +185,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#     include "include/param1.cb"
-#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -327,8 +323,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#     include "include/param1.cb"
-#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -467,8 +461,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#     include "include/param1.cb"
-#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -607,8 +599,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#     include "include/param1.cb"
-#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1
@@ -747,8 +737,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/cvaria.cb"
 #     include "include/main.cb"
-#     include "include/param1.cb"
-#     include "include/param3.cb"
 c
       real(kind=8)  ften(ix,kx)
       integer i,k,jdx,jdxp1,jdxm1,idx,idxp1,idxm1

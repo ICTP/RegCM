@@ -23,17 +23,15 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
-#     include "include/param3.cb"
 #     include "include/iunits.cb"
 #     include "include/date.cb"
 #     include "include/bats2.cb"
-#     include "include/trachem.cb"
 
       character itype*3, filatm*14, filsrf*14, filsub*14, filrad*14
      &        , fillak*14, filchem *14           
      &        , a78*78, a16*16, a22*22, a1*1, a2*2, a120*120
      &        , filnam1*40, filnam2*40
-      integer n,nmo,nline,nfmax,idatepp,iym1,iym2
+      integer n,nmo,nfmax,idatepp,iym1,iym2
       parameter (nfmax=999)
       integer iyr(nfmax),imo(nfmax),idate1d(nfmax)
       real(kind=4)  dto,dtb,dtr,dtc
@@ -308,7 +306,6 @@ c **** Write out postprocessing information
         end if
         OPEN(99,FILE=filnam1,FORM='FORMATTED'
      &      ,STATUS='unknown')
-        nline = 0
         dto = tapfrq
         dtb = batfrq
         dtr = radisp

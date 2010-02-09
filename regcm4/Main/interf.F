@@ -32,13 +32,9 @@ c
 #     include "include/param2.cb"
 #     include "include/param3.cb"
 #     include "include/main.cb"
-#     include "include/cvaria.cb"
 #     include "include/pbldim.cb"
 #     include "include/bats2.cb"
 #     include "include/slice.cb"
-#ifdef MPP1
-#     include "include/io.cb"
-#endif
 #     include "include/bats.cb"
 
       real(kind=8)  p1d0    ! Surface pressure

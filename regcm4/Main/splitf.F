@@ -27,8 +27,6 @@ c
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/main.cb"
-#     include "include/cvaria.cb"
-#     include "include/pbldim.cb"
 #     include "include/split.cb"
 #ifdef MPP1
       include 'mpif.h'

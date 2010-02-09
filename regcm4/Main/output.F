@@ -28,7 +28,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 #     include "parameter.inc"
 #     include "include/param1.cb"
 #     include "include/param2.cb"
-#     include "include/param3.cb"
 #     include "include/iunits.cb"
 #     include "include/main.cb"
 #     include "include/mainchem.cb"
@@ -130,13 +129,7 @@ c**********************
       COMMON /OUTRAD/ frad2d,frad3d
 #endif
       integer i,j
-      integer nrcrad
-      COMMON /RADREC/ nrcrad
 c
-Cchem2
-      integer nrcchem
-      COMMON /CHEREC/ nrcchem
-Cchem2_
       character itype*3, newfil*14, tmpfil*17, rmsav*70
       logical there
 c
