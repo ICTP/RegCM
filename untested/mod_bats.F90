@@ -185,5 +185,9 @@
       equivalence (fsub(1,1,1,1),u10m_s(1,1,1))
 
 #endif
+!
+! COMMON /BATS1D0/
+!
+      real(8) , dimension(nnsg,nbmax) :: p1d0 , qs1d0 , ts1d0
 
       end module bats
