@@ -26,7 +26,10 @@
       use param2
       use iunits
       use date
-      use bats
+      use mod_bats
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Local variables

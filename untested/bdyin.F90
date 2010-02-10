@@ -38,7 +38,7 @@
       use param3
       use main
       use bdycod
-      use bats
+      use mod_bats , only : veg2d
       use date
       use tmpsav
 #ifdef MPP1

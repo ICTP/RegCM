@@ -141,7 +141,7 @@
       use param2
       use param3
       use iunits
-      use bats
+      use mod_bats
       use date
       use main
       implicit none

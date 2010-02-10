@@ -30,7 +30,7 @@
       use iunits
       use main
       use mainchem
-      use bats
+      use mod_bats
       use date
       use message
       use parrad
@@ -45,6 +45,7 @@
       use split
 #ifdef MPP1
       use mpi
+      use mod_mppio
 #endif
       implicit none
 !
@@ -225,6 +226,8 @@
  
 !     Call surface output
       if ( ifbat ) then
+        call fillbat
+        call fillsub
         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then

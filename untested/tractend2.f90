@@ -34,7 +34,7 @@
       use cvaria
       use trachem
       use pbldim
-      use bats
+      use mod_bats
       use rad
       use pmoist
       use dust

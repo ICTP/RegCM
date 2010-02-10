@@ -37,7 +37,7 @@
       use param1
       use param2
       use param3
-      use bats
+      use mod_bats
       use main
       use cvaria
       use pmoist

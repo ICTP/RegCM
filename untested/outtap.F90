@@ -33,8 +33,11 @@
       use iunits
       use main
       use date
-      use bats
+      use mod_bats
       use cvaria
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Local variables

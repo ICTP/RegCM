@@ -31,7 +31,7 @@
       use cvaria
       use slice
       use rad
-      use bats
+      use mod_bats , only : pptc
       implicit none
 !
 ! PARAMETER definitions

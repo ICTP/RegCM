@@ -1,4 +1,4 @@
-      module bats
+      module mod_bats
 
       use regcm_param
 
@@ -147,43 +147,16 @@
 !
 ! COMMON BATOUTio
 !
-      integer , parameter :: numbat = 21 + 6
 #ifdef MPP1
-      real(kind=4) , dimension(mjx-2,ix-2,numbat) :: fbat_io
       real(kind=4) , dimension(jxp,ix-2,numbat) :: fbat
 #else
       real(kind=4) , dimension(jx-2,ix-2,numbat) :: fbat
 #endif
 
 #ifdef MPP1
-!
-! COMMON /BAT2D1IO/
-!
-      real(8) , dimension(nnsg,ilx,jxbb) :: col2d_io , dew2d_io ,       &
-           & evpa2d_io , gwet2d_io , ircp2d_io , ocld2d_io , rno2d_io , &
-           & rnos2d_io , sag2d_io , scv2d_io , sena2d_io , sice2d_io ,  &
-           & srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
-           & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io
-      real(8) , dimension(nnsg,ix,mjx) :: ht1_io , satbrt1_io
-!
-! COMMON /BAT2DIO/
-!
-      real(8) , dimension(ilx,jxbb) :: flw2d_io , flwd2d_io , fsw2d_io ,&
-                                     & sabv2d_io , sdelqk2d_io ,        &
-                                     & sdeltk2d_io , sfracb2d_io ,      &
-                                     & sfracs2d_io , sfracv2d_io ,      &
-                                     & sinc2d_io , sol2d_io ,           &
-                                     & solvd2d_io , solvs2d_io ,        &
-                                     & ssw2da_io , svegfrac2d_io ,      &
-                                     & veg2d_io
-!
-! COMMON /SUBOUTIO/
-!
-      integer , parameter :: numsub = 16
-      real(4) , dimension(nnsg,mjx-2,ix-2,numsub) :: fsub_io
-      real(kind=4)  fsub(NNSG,jxp,ix-2,numsub)
-      equivalence (fsub(1,1,1,1),u10m_s(1,1,1))
-
+      real(kind=4) , dimension(NNSG,jxp,ix-2,numsub) :: fsub
+#else
+      real(kind=4) , dimension(NNSG,jx-2,ix-2,numsub) :: fsub
 #endif
 !
 ! COMMON /BATS1D0/
@@ -293,4 +266,56 @@
          & .28 , .34 , .6 , .18 , 2*.2 , .23 , .28 , .23 , 2*.18/
 !     Dec. 15, 2008_
 
-      end module bats
+      contains
+        subroutine fillbat
+          implicit none
+          fbat(:,:,1)  = u10m_o(:,:)
+          fbat(:,:,2)  = v10m_o(:,:)
+          fbat(:,:,3)  = drag_o(:,:)
+          fbat(:,:,4)  = tg_o(:,:)
+          fbat(:,:,5)  = tlef_o(:,:)
+          fbat(:,:,6)  = t2m_o(:,:)
+          fbat(:,:,7)  = q2m_o(:,:)
+          fbat(:,:,8)  = ssw_o(:,:)
+          fbat(:,:,9)  = rsw_o(:,:)
+          fbat(:,:,10) = tpr_o(:,:)
+          fbat(:,:,11) = evpa_o(:,:)
+          fbat(:,:,12) = rnos_o(:,:)
+          fbat(:,:,13) = scv_o(:,:)
+          fbat(:,:,14) = sena_o(:,:)
+          fbat(:,:,15) = flwa_o(:,:)
+          fbat(:,:,16) = fswa_o(:,:)
+          fbat(:,:,17) = flwd_o(:,:)
+          fbat(:,:,18) = sina_o(:,:)
+          fbat(:,:,19) = prcv_o(:,:)
+          fbat(:,:,20) = ps_o(:,:)
+          fbat(:,:,21) = zpbl_o(:,:)
+          fbat(:,:,22) = tgmx_o(:,:)
+          fbat(:,:,23) = tgmn_o(:,:)
+          fbat(:,:,24) = t2mx_o(:,:)
+          fbat(:,:,25) = t2mn_o(:,:)
+          fbat(:,:,26) = w10x_o(:,:)
+          fbat(:,:,27) = psmn_o(:,:)
+        end subroutine fillbat
+
+        subroutine fillsub
+        implicit none
+          fsub(:,:,:,1)  = u10m_s(:,:,:)
+          fsub(:,:,:,2)  = v10m_s(:,:,:)
+          fsub(:,:,:,3)  = drag_s(:,:,:)
+          fsub(:,:,:,4)  = tg_s(:,:,:)
+          fsub(:,:,:,5)  = tlef_s(:,:,:)
+          fsub(:,:,:,6)  = t2m_s(:,:,:)
+          fsub(:,:,:,7)  = q2m_s(:,:,:)
+          fsub(:,:,:,8)  = ssw_s(:,:,:)
+          fsub(:,:,:,9)  = rsw_s(:,:,:)
+          fsub(:,:,:,10) = tpr_s(:,:,:)
+          fsub(:,:,:,11) = prcv_s(:,:,:)
+          fsub(:,:,:,12) = evpa_s(:,:,:)
+          fsub(:,:,:,13) = rnos_s(:,:,:)
+          fsub(:,:,:,14) = scv_s(:,:,:)
+          fsub(:,:,:,15) = sena_s(:,:,:)
+          fsub(:,:,:,16) = ps_s(:,:,:)
+        end subroutine fillsub
+
+      end module mod_bats

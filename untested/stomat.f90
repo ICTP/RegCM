@@ -45,7 +45,7 @@
 !     improved stomatal shading, dickinson, nov 88.
 !
       use regcm_param
-      use bats
+      use mod_bats
       use ictp01
       implicit none
 !

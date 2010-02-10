@@ -31,7 +31,7 @@
       use param3
       use iunits
       use pmoist
-      use bats
+      use mod_bats
       use main
       use trachem
       use convect
@@ -40,6 +40,7 @@
       use grads
 #ifdef MPP1
       use mpi
+      use mod_mppio
 #endif
       implicit none
 !

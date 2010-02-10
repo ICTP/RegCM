@@ -23,7 +23,8 @@
 !  leaf water is reset to its maximum value.
 !
       use regcm_param
-      use bats
+      use mod_bats , only : etrrun , ldew1d , vegt , sdrop , xrun ,     &
+                    & dewmx , npts , ldoc1d , sigf , c , tm
       implicit none
 !
 ! Local variables

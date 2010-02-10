@@ -20,7 +20,11 @@
       subroutine albedov(j,iemiss)
  
       use regcm_param
-      use bats
+      use mod_bats , only : npts , albvs , albvl , aldirs , aldirl ,    &
+                  & aldifs , aldifl , czen , sice1d , emiss1d , coszrs ,&
+                  & ldoc1d , tgb1d , lveg , c , scv1d , sag1d , wt ,    &
+                  & scvk , veg1d , emiss2d , albvgs , albvgl , kolsol , &
+                  & depuv , ts1d , ssw1d
       implicit none
 !
 ! Dummy arguments

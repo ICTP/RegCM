@@ -23,7 +23,7 @@
       use param3
       use main
       use pbldim
-      use bats
+      use mod_bats
       implicit none
 !
 ! Dummy arguments

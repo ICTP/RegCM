@@ -107,4 +107,7 @@
 
       integer , dimension(289276) :: mdatez
 
+      integer , parameter :: numbat = 21 + 6
+      integer , parameter :: numsub = 16
+
       end module regcm_param

@@ -24,7 +24,7 @@
       use param2
       use iunits
       use date
-      use bats
+      use mod_bats
       use mainchem
       use outrad
       implicit none

@@ -24,10 +24,14 @@
       use regcm_param
       use parrad
       use param2
-      use aerosol
+      use mod_aerosol , only : nspi , ksdust , wsdust , gsdust ,        &
+                       & kscoef , wscoef , gscoef , ksoc_hl , wsoc_hl , &
+                       & gsoc_hl , ksbc_hl , wsbc_hl , gsbc_hl ,        &
+                       & ksoc_hb , wsoc_hb, gsoc_hb, ksbc_hb , wsbc_hb ,&
+                       & gsbc_hb , dextmix , dssamix , dgmix , ksbase , &
+                       & wsbase , gsbase , aermmr
       use trachem
       use crdcon
-      use aerm
       use message
       implicit none
 !

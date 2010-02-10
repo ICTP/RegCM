@@ -55,7 +55,7 @@
       use main
       use pmoist
       use rad
-      use bats
+      use mod_bats , only : pptc , veg2d
       use bmparam
       use trachem
       implicit none

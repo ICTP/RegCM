@@ -34,7 +34,8 @@
 !  dewmxi = inverse of max allowed dew depth on leaf in mm
 !
       use regcm_param
-      use bats
+      use mod_bats , only : npts , ldoc1d , sigf , ldew1d , fwet ,      &
+                   & xlsai , fdry , dewmxi , vegt , xlai
       implicit none
 !
 ! Local variables

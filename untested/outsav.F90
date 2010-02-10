@@ -34,7 +34,7 @@
       use param3
       use main
       use bdycod
-      use bats
+      use mod_bats
       use date
       use iunits
       use radbuf
@@ -43,6 +43,9 @@
       use trachem
       use split
       use rad
+#ifdef MPP1
+      use mod_mppio
+#endif
 #ifdef DIAG
       use diagnosis
 #endif

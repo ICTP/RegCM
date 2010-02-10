@@ -45,7 +45,7 @@
 !     evapotranspiration - need soil moist. budget (subrout water)
 !
       use regcm_param
-      use bats
+      use mod_bats
       use ictp01
       implicit none
 !

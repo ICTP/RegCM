@@ -21,7 +21,7 @@
       use regcm_param
       use param1
       use iunits
-      use bats
+      use mod_bats
       use date
       implicit none
 !

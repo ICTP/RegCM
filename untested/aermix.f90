@@ -53,7 +53,7 @@
       use slice
       use main
       use mainchem
-      use aerm
+      use mod_aerosol , only : aermmb , aermmr
       implicit none
 !
 ! Dummy arguments

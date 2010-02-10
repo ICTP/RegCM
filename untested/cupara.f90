@@ -37,7 +37,7 @@
       use cvaria
       use pmoist
       use rad
-      use bats
+      use mod_bats , only : pptc
       use trachem
       implicit none
 !

@@ -31,7 +31,7 @@
       use param2
       use param3
       use iunits
-      use bats
+      use mod_bats
       use pmoist
       use main
       use mainchem
@@ -47,6 +47,7 @@
 #endif
 #ifdef MPP1
       use mpi
+      use mod_mppio
 #endif
       implicit none
 !

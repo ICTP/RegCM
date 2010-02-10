@@ -61,7 +61,7 @@
       use regcm_param
       use parrad
       use comtim
-      use aerosol
+      use mod_aerosol , only : nspi
       implicit none
 !
 !     Input arguments

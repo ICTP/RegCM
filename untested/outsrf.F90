@@ -26,7 +26,10 @@
       use param2
       use date
       use iunits
-      use bats
+      use mod_bats
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Local variables
@@ -35,6 +38,7 @@
 !
 !     ****** check if at desired output time for bats variables
       write (*,*) 'BATS variables written at ' , idatex , xtime
+      call fillbat
       if ( iotyp.eq.2 ) write (iutbat) idatex
       do n = 1 , numbat
         if ( iotyp.eq.1 ) then

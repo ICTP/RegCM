@@ -67,7 +67,7 @@
 !     maximum iteration reached (itmax).
 !
       use regcm_param
-      use bats
+      use mod_bats
       use ictp01
       implicit none
 !

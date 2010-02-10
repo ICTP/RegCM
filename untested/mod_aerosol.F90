@@ -1,12 +1,17 @@
-      module aerosol
+      module mod_aerosol
+
+      use regcm_param
+      use parrad
+
+      implicit none
 
 !     MODIF 16/09/2005 IBRAH Internal mixing
 
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: ncoefs = 5
       integer , parameter :: nspi = 19
+      integer , parameter :: ncoefs = 5
 !
 ! number of coefficients
 ! kscoef  - specific extinction (m2/g)
@@ -19,7 +24,7 @@
 ! wsdust  - single partical albedo dust
 ! gsdust  - asymmetry parameter dust
 !
-      integer :: ii , jj ! coefficient index
+      integer , private :: ii , jj ! coefficient index
 !
       real(8) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl ,         &
                                  & gsoc_hb , gsoc_hl , ksbase ,         &
@@ -29,7 +34,30 @@
       real(8) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
       real(8) , dimension(nspi,4) :: gsdust , ksdust , wsdust
       real(4) , dimension(4,19,11,11,11,11) :: dextmix , dgmix , dssamix
+
 !
+!     Aerosol mass mixing ratio
+!
+#ifdef MPP1
+      real(8) , dimension(ix-1,kx,jxp) :: aermm
+#else
+      real(8) , dimension(ix-1,kx,jx-1) :: aermm
+#endif
+
+!
+!     Background aerosol mass mixing ratio
+!
+      real(8) , dimension(plon,plevr) :: aermmb
+
+!
+!     Radiation level aerosol mass mixing ratio
+!
+      real(8) , dimension(plond,plevr,ntr) :: aermmr
+
+!------------------------------------------------------------------------------
+!                  DATA SECTION
+!------------------------------------------------------------------------------
+
       data ksbase/5.206 , 5.206 , 5.206 , 5.206 , 5.206 , 5.206 ,       &
          & 5.206 , 3.203 , 3.203 , 1.302 , 5.992E-01 , 2.948E-01 ,      &
          & 1.475E-01 , 7.387E-02 , 1.683E-01 , 2.655E-01 , 5.770E-02 ,  &
@@ -234,4 +262,4 @@
           & 0.26761 , 0.56045 , 0.68897 , 0.68174 , 0.26761 , 0.56045 , &
           & 0.68897 , 0.68174/
 !
-      end module aerosol
+      end module mod_aerosol

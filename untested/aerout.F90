@@ -23,7 +23,7 @@
       use regcm_param
       use param2
       use trachem
-      use aerosol
+      use mod_aerosol , only : nspi
       use parrad
       implicit none
 !

@@ -30,7 +30,7 @@
       use pbldim
       use cvaria
       use pmoist
-      use bats
+      use mod_bats , only : veg2d
       use slice
       use trachem
 #ifdef MPP1

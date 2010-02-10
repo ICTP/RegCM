@@ -29,7 +29,7 @@
 !
       use regcm_param
       use ictp01
-      use bats
+      use mod_bats
       implicit none
 !
 ! Dummy arguments

@@ -20,7 +20,9 @@
       subroutine bconst
 
       use regcm_param
-      use bats
+      use mod_bats , only : c , ch2o , cice , csnw , csoilc , cwi ,     &
+                    & cws , dewmx , dewmxi , drain , pi , rmax0 , tau1 ,&
+                    & trsmx0 , vonkar , zlnd , zoce , zsno
       implicit none
 !     ***   defines constants for boundary subroutine
  

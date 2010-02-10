@@ -29,7 +29,10 @@
 !     ****  b.  modifies cdrn as fn of bulk rich. no. of surface layer
  
       use regcm_param
-      use bats
+      use mod_bats , only : ribd , us1d , vs1d , vspda , cdrn , cdrx ,  &
+                     & c , cdr , aarea , z1 , clead , npts , zoce ,     &
+                     & vonkar , lveg , sigf , displa , ts1d , ldoc1d ,  &
+                     & tg1d , taf1d
       implicit none
 !
 ! Local variables

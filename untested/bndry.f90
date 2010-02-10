@@ -63,7 +63,14 @@
 !  ** note: water and soil parameters are in mm
 !
       use regcm_param
-      use bats
+      use mod_bats , only : c , htvp , sdrop , etrrun , flnet , fevpg , &
+                  & fseng , vegt , efpr , etr , ts1d , ssw1d , tm ,     &
+                  & watu , watr , watt , gwmx0 , gwmx1 , gwmx2 ,        &
+                  & cgrnds , cgrndl , cgrnd , tg1d , delq1d , delt1d ,  &
+                  & evpr1d , sent1d , tlef1d , uaf , vspda , ldew1d ,   &
+                  & scv1d , sag1d , gwet1d , drag1d , rhs1d , npts ,    &
+                  & taf1d , p1d , ldoc1d , lveg , rsw1d , tsw1d , qg1d ,&
+                  & sigf , cdrx , qs1d , prcp1d
       use ictp01
       implicit none
 !

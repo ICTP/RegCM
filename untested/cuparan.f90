@@ -26,7 +26,7 @@
       use param3
       use pmoist
       use rad
-      use bats
+      use mod_bats , only : pptc
       use main
       implicit none
 !

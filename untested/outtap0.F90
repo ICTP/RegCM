@@ -30,8 +30,11 @@
       use param2
       use param3
       use main
-      use bats
+      use mod_bats
       use grads
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Local variables

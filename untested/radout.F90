@@ -33,7 +33,7 @@
       use param1
       use param2
       use parrad
-      use bats
+      use mod_bats
       use rad
       use outrad
       implicit none

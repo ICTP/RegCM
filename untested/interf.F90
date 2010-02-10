@@ -33,7 +33,7 @@
       use main
       use pbldim
       use slice
-      use bats
+      use mod_bats
       implicit none
 !
 ! Dummy arguments

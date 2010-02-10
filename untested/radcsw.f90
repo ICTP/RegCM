@@ -79,9 +79,9 @@
       use regcm_param
       use parrad
       use param2
-      use bats
+      use mod_bats
       use tracer
-      use aerosol
+      use mod_aerosol , only : nspi
       use crdcon
       implicit none
 !

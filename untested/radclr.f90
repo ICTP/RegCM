@@ -45,7 +45,6 @@
 !
       use regcm_param
       use parrad
-      use aerm
       implicit none
 !
 !     Minimum total transmission below which no layer computation are

@@ -34,7 +34,9 @@
 !
  
       use regcm_param
-      use bats
+      use mod_bats , only : npts , rhosw , densi , scrat , wt , rough , &
+                    & veg1d , sigf , scvk , ldoc1d , sag1d , scv1d ,    &
+                    & lveg
       implicit none
 !
 ! Local variables

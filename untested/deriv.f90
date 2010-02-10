@@ -30,7 +30,9 @@
 !     rate is not affected.
 !
       use regcm_param
-      use bats
+      use mod_bats , only : npts , ldoc1d , sigf , tlef1d , c , cdr ,   &
+                    & ts1d , wtga , qsatl , wta0 , wtgaq , tg1d , cn1 , &
+                    & wtg0 , df
       use ictp01
       implicit none
 !

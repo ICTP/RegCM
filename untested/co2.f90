@@ -43,7 +43,9 @@
 !                    difference in molecular weight
 !
       use regcm_param
-      use bats
+      use mod_bats , only : npts , pbp1d , resp1d , ldoc1d , sigf ,     &
+                   & rlai , gwmx0, solis , tlef1d , ssw1d , tg1d ,      &
+                   & xlai , xlsai , fdry , c
       use ictp01
       implicit none
 !

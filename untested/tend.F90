@@ -53,11 +53,11 @@
       use cvaria
       use pmoist
       use rad
-      use bats
+      use mod_bats
       use trachem
       use date
       use message
-      use aerm
+      use mod_aerosol , only : aermm
 #ifdef MPP1
       use slice
       use mpi

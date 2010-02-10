@@ -24,7 +24,7 @@
       use trachem
       use dust
       use iunits
-      use aerosol
+      use mod_aerosol , only : dgmix , dssamix , dextmix
       use message
 #ifdef MPP1
       use mpi
