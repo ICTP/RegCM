@@ -129,12 +129,12 @@
 !     output file is also a text (ascii) file.
 !
 !
-      use regcm_param
-      use parrad
+      use mod_regcm_param
+      use mod_parrad
       use mod_bats , only : emiss1d , lat , ps , sice1d , aldirs ,      &
                     & aldifs , aldirl , aldifl , ldoc1d
-      use comtim
-      use comctl
+      use mod_comtim
+      use mod_comctl
       implicit none
 !
 ! Dummy arguments

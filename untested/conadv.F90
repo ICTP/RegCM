@@ -28,11 +28,11 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use param1
-      use param3
-      use diagnosis
-      use main
+      use mod_regcm_param
+      use mod_param1
+      use mod_param3
+      use mod_diagnosis
+      use mod_main
 #ifdef MPP1
       use mpi
 #endif

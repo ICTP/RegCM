@@ -24,7 +24,7 @@
 !  **** determines fraction of foliage covered by water fwet, and
 !  **** the fraction of foliage that is dry transpiring leaf fdry.
 !  note: their defns differ - fwet is the fraction of all veg surfaces
-!  which are wet because stems can evaporate, fdry is the fraction
+!  which are wet because mod_stems can evaporate, fdry is the fraction
 !  of lai which is dry because only leaves can transpire
 !
 !  ldew1d(np) is in kg/m**2/s
@@ -33,7 +33,7 @@
 !              ** keep fwet le 1.0 **
 !  dewmxi = inverse of max allowed dew depth on leaf in mm
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats , only : npts , ldoc1d , sigf , ldew1d , fwet ,      &
                    & xlsai , fdry , dewmxi , vegt , xlai
       implicit none

@@ -19,7 +19,7 @@
  
       subroutine tseice
 
-      use regcm_param
+      use mod_regcm_param
       use mod_bats
       implicit none
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

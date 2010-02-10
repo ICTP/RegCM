@@ -37,7 +37,7 @@
 !           age3: accumulation  of other particles, soot, etc., which
 !                      is small in southern hemisphere
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats
       implicit none
 !

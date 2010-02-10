@@ -21,18 +21,18 @@
                        & ftota_mix,tauxar_mix_cs,tauasc_mix_cs,         &
                        & gtota_mix_cs,ftota_mix_cs)
  
-      use regcm_param
-      use parrad
-      use param2
+      use mod_regcm_param
+      use mod_parrad
+      use mod_param2
       use mod_aerosol , only : nspi , ksdust , wsdust , gsdust ,        &
                        & kscoef , wscoef , gscoef , ksoc_hl , wsoc_hl , &
                        & gsoc_hl , ksbc_hl , wsbc_hl , gsbc_hl ,        &
                        & ksoc_hb , wsoc_hb, gsoc_hb, ksbc_hb , wsbc_hb ,&
                        & gsbc_hb , dextmix , dssamix , dgmix , ksbase , &
                        & wsbase , gsbase , aermmr
-      use trachem
-      use crdcon
-      use message
+      use mod_trachem
+      use mod_crdcon
+      use mod_message
       implicit none
 !
 ! PARAMETER definitions

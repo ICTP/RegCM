@@ -29,13 +29,13 @@
 ! compute the total radiative heat flux at the surface for
 ! the surface temperature computation
 !
-      use regcm_param
-      use param1
-      use param2
-      use parrad
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_parrad
       use mod_bats
-      use rad
-      use outrad
+      use mod_rad
+      use mod_outrad
       implicit none
 !
 !     input/output arguments

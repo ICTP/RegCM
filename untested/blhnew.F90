@@ -52,13 +52,13 @@
 !                    kvq     eddy diffusivity for moisture
 !                    zpbl     boundary layer height
 !
-      use regcm_param
-      use param2
-      use param3
-      use main
-      use slice
-      use pbldim
-      use blh_tmp
+      use mod_regcm_param
+      use mod_param2
+      use mod_param3
+      use mod_main
+      use mod_slice
+      use mod_pbldim
+      use mod_blh_tmp
       implicit none
 !
 ! Local variables

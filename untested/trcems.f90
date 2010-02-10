@@ -22,9 +22,9 @@
                       & uco222,uco223,uptype,w,s2c,up2,emplnk,th2o,tco2,&
                       & to3,emstrc)
 !
-      use regcm_param
-      use parrad
-      use crdcon
+      use mod_regcm_param
+      use mod_parrad
+      use mod_crdcon
       implicit none
 !
 !----------------------------------------------------------------------

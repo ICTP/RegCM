@@ -1,4 +1,4 @@
-      module regcm_param
+      module mod_regcm_param
       implicit none
 !
 ! PARAMETER definitions
@@ -110,4 +110,4 @@
       integer , parameter :: numbat = 21 + 6
       integer , parameter :: numsub = 16
 
-      end module regcm_param
+      end module mod_regcm_param

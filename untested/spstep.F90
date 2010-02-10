@@ -19,9 +19,9 @@
  
       subroutine spstep(hbar,dx2,dtau,m)
 !
-      use regcm_param
-      use main
-      use bxq
+      use mod_regcm_param
+      use mod_main
+      use mod_bxq
 #ifdef MPP1
       use mpi
 #endif

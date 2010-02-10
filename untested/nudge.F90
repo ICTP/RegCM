@@ -53,10 +53,10 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use bdycod
-      use main
-      use param3
+      use mod_regcm_param
+      use mod_bdycod
+      use mod_main
+      use mod_param3
       implicit none
 !
 ! Dummy arguments
@@ -358,10 +358,10 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use main
-      use bdycod
-      use param3
+      use mod_regcm_param
+      use mod_main
+      use mod_bdycod
+      use mod_param3
       implicit none
 !
 ! Dummy arguments
@@ -708,10 +708,10 @@
 !              5 = exponential                                        c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use main
-      use bdycod
-      use param3
+      use mod_regcm_param
+      use mod_main
+      use mod_bdycod
+      use mod_param3
       implicit none
 !
 ! Dummy arguments
@@ -1059,10 +1059,10 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use main
-      use bdycod
-      use param3
+      use mod_regcm_param
+      use mod_main
+      use mod_bdycod
+      use mod_param3
       implicit none
 !
 ! Dummy arguments
@@ -1403,10 +1403,10 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use bdycod
-      use main
-      use param3
+      use mod_regcm_param
+      use mod_bdycod
+      use mod_main
+      use mod_param3
       implicit none
 !
 ! Dummy arguments

@@ -18,8 +18,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine finddate(npos,idate)
-      use regcm_param
-      use message
+      use mod_regcm_param
+      use mod_message
       implicit none
 !
 ! Dummy arguments

@@ -33,16 +33,16 @@
 !     See Pal et al. 2000 JGR-Atmos for more information.             c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use param1
-      use param2
-      use param3
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
       use mod_bats
-      use main
-      use cvaria
-      use pmoist
-      use slice
-      use trachem
+      use mod_main
+      use mod_cvaria
+      use mod_pmoist
+      use mod_slice
+      use mod_trachem
       implicit none
 !
 ! Dummy arguments

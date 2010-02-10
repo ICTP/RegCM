@@ -18,14 +18,14 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine for_next
-      use regcm_param
-      use param1
-      use param2
-      use param3
-      use date
-      use convect
-      use pmoist
-      use trachem
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_date
+      use mod_convect
+      use mod_pmoist
+      use mod_trachem
       implicit none
 !
 ! Local variables

@@ -19,12 +19,12 @@
  
       program regcm
 !
-      use regcm_param
-      use date
-      use param1
-      use param2
-      use param3
-      use message
+      use mod_regcm_param
+      use mod_date
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_message
 #ifdef MPP1
       use mpi
 #endif

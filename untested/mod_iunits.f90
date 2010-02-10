@@ -1,4 +1,4 @@
-      module iunits
+      module mod_iunits
       implicit none
 !
 ! COMMON /FILES/
@@ -19,4 +19,4 @@
 !
       integer :: nrcout
 
-      end module iunits
+      end module mod_iunits

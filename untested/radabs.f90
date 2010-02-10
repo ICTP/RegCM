@@ -74,11 +74,11 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
-      use crdcae
-      use crdcon
-      use radbuf
+      use mod_regcm_param
+      use mod_parrad
+      use mod_crdcae
+      use mod_crdcon
+      use mod_radbuf
       implicit none
 !
 !------------------------------Arguments--------------------------------

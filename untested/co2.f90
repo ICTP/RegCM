@@ -42,11 +42,11 @@
 !     resistances for co2 are larger than those for h2o due to
 !                    difference in molecular weight
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats , only : npts , pbp1d , resp1d , ldoc1d , sigf ,     &
                    & rlai , gwmx0, solis , tlef1d , ssw1d , tg1d ,      &
                    & xlai , xlsai , fdry , c
-      use ictp01
+      use mod_ictp01
       implicit none
 !
 ! Local variables

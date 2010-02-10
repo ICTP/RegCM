@@ -21,15 +21,15 @@
 !
 !** compute vertical modes.
 !
-      use regcm_param
-      use param1
-      use param2
-      use iunits
-      use bdycod
-      use main
-      use split
-      use bxq
-      use tmpsav
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_iunits
+      use mod_bdycod
+      use mod_main
+      use mod_split
+      use mod_bxq
+      use mod_tmpsav
 #ifdef MPP1
       use mpi
 #endif

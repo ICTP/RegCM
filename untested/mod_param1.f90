@@ -1,6 +1,6 @@
-      module param1
+      module mod_param1
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -18,4 +18,4 @@
                & dtbat , dtlake , dtmin , dx , dx16 , dx2 , dx4 , dx8 , &
                & dxsq , fnudge , gnudge , xkhmax , xkhz , xtime
       real(8) , dimension(nsplit) :: dtau
-      end module param1
+      end module mod_param1

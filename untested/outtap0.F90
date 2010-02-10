@@ -26,12 +26,12 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use param2
-      use param3
-      use main
+      use mod_regcm_param
+      use mod_param2
+      use mod_param3
+      use mod_main
       use mod_bats
-      use grads
+      use mod_grads
 #ifdef MPP1
       use mod_mppio
 #endif

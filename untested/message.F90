@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       function active(level)
-      use regcm_param
+      use mod_regcm_param
       implicit none
 !
 ! Dummy arguments
@@ -31,8 +31,8 @@
       end function active
  
       subroutine say
-      use regcm_param
-      use message
+      use mod_regcm_param
+      use mod_message
       implicit none
 #ifdef MPP1
       if ( myid.eq.0 ) print * , trim(aline)
@@ -42,8 +42,8 @@
       end subroutine say
  
       subroutine warning
-      use regcm_param
-      use message
+      use mod_regcm_param
+      use mod_message
       implicit none
 #ifdef MPP1
       print * , ' Processor ' , myid , ' : ' , trim(aline)
@@ -53,7 +53,7 @@
       end subroutine warning
  
       subroutine fatal(filename,line,str)
-      use message
+      use mod_message
 #ifdef MPP1
       use mpi
 #endif
@@ -92,7 +92,7 @@
       end subroutine fatal
  
       subroutine vprntv(a,n,nam)
-      use regcm_param
+      use mod_regcm_param
       implicit none
 !
 ! Dummy arguments
@@ -111,7 +111,7 @@
       end subroutine vprntv
  
       subroutine vprntm(a,n1,n2,nam)
-      use regcm_param
+      use mod_regcm_param
       implicit none
 !
 ! Dummy arguments

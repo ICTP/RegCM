@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
-      use message
+      use mod_message
       implicit none
       integer na , nv , n , ier , info , ip(n)
       real(kind=8) a(n,n) , v(n,n) , work(n) , d(2)

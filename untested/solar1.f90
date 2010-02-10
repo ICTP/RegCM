@@ -27,9 +27,9 @@
 !     xtime  : forecast time in minutes.                              c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use message
-      use param3
-      use date
+      use mod_message
+      use mod_param3
+      use mod_date
       implicit none
 !
 ! Dummy arguments

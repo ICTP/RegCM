@@ -1,4 +1,4 @@
-      module culookup
+      module mod_culookup
       implicit none
 !
 ! PARAMETER definitions
@@ -10,4 +10,4 @@
       logical :: lookupoverflow
       real(8) , dimension(jptlucu1:jptlucu2) :: tlucua , tlucuaw ,      &
            & tlucub , tlucuc
-      end module culookup
+      end module mod_culookup

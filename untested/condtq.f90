@@ -38,13 +38,13 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
-      use regcm_param
-      use param1
-      use param3
-      use main
-      use cvaria
-      use pmoist
-      use slice
+      use mod_regcm_param
+      use mod_param1
+      use mod_param3
+      use mod_main
+      use mod_cvaria
+      use mod_pmoist
+      use mod_slice
       implicit none
 !
 ! Dummy arguments

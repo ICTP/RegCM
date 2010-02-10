@@ -1,6 +1,6 @@
-      module pbldim
+      module mod_pbldim
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -15,4 +15,4 @@
       real(8) , dimension(ix,jx) :: rhox2d
       real(8) , dimension(ix,kxp1) :: zq
 #endif
-      end module pbldim
+      end module mod_pbldim

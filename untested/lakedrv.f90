@@ -18,11 +18,11 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine lakedrv(jslc)
-      use regcm_param
-      use param1
-      use iunits
+      use mod_regcm_param
+      use mod_param1
+      use mod_iunits
       use mod_bats
-      use date
+      use mod_date
       implicit none
 !
 ! Dummy arguments

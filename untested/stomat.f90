@@ -44,9 +44,9 @@
 !     documented in ncar tech note, dickinson et al., 1986
 !     improved stomatal shading, dickinson, nov 88.
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats
-      use ictp01
+      use mod_ictp01
       implicit none
 !
 ! Local variables
@@ -73,7 +73,7 @@
       g = 0.5
       difzen = 2.0
       ilmax = 4
-!*    delete fracd here to put in diffuse radiation from ccm
+!*    delete fracd here to put in diffuse mod_radiation from ccm
 !cc   fracd = difrat         !  from shuttleworth mods #2
  
       do np = np1 , npts

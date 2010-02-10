@@ -18,13 +18,13 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine gradsbat(ctlname)
-      use regcm_param
-      use date
-      use param1
-      use param2
-      use param3
-      use grads
-      use main
+      use mod_regcm_param
+      use mod_date
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_grads
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -315,14 +315,14 @@
       end subroutine gradsbat
 !
       subroutine gradssub(ctlname)
-      use regcm_param
-      use date
-      use param1
-      use param2
-      use param3
-      use grads
-      use iunits
-      use main
+      use mod_regcm_param
+      use mod_date
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_grads
+      use mod_iunits
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -601,13 +601,13 @@
       end subroutine gradssub
 !
       subroutine gradschem(ctlname)
-      use regcm_param
-      use date
-      use param1
-      use param2
-      use param3
-      use grads
-      use main
+      use mod_regcm_param
+      use mod_date
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_grads
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -874,11 +874,11 @@
       end subroutine gradschem
 !
       subroutine gradsctl(ctlname)
-      use regcm_param
-      use date
-      use param2
-      use grads
-      use main
+      use mod_regcm_param
+      use mod_date
+      use mod_param2
+      use mod_grads
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -1037,7 +1037,7 @@
       write (31,99016) 'ht      ' , 'surface elevation          '
       write (31,99016) 'htsd    ' , 'surface elevation std dev  '
       write (31,99016) 'veg2d   ' , 'vegetation type in BATS    '
-      write (31,99016) 'landuse ' , 'surface landuse type       '
+      write (31,99016) 'landuse ' , 'surface landuse mod_type       '
       write (31,99016) 'xlat    ' , 'latitude  of cross points  '
       write (31,99016) 'xlong   ' , 'longitude of cross points  '
       write (31,99016) 'xmap    ' , 'map factors of cross points'
@@ -1066,13 +1066,13 @@
       end subroutine gradsctl
 !
       subroutine gradsout(ctlname)
-      use regcm_param
-      use date
-      use param1
-      use param2
-      use param3
-      use grads
-      use main
+      use mod_regcm_param
+      use mod_date
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_grads
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -1317,13 +1317,13 @@
       end subroutine gradsout
 !
       subroutine gradsrad(ctlname)
-      use regcm_param
-      use date
-      use param1
-      use param2
-      use param3
-      use grads
-      use main
+      use mod_regcm_param
+      use mod_date
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_grads
+      use mod_main
       implicit none
 !
 ! Dummy arguments

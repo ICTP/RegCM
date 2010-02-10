@@ -19,8 +19,8 @@
  
       subroutine htdiff(dto2,dxsq,akht1)
 
-      use regcm_param
-      use pmoist
+      use mod_regcm_param
+      use mod_pmoist
 #ifdef MPP1
       use mpi
 #endif

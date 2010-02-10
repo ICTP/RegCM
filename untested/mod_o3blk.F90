@@ -1,5 +1,5 @@
-      module o3blk
-      use regcm_param
+      module mod_o3blk
+      use mod_regcm_param
       implicit none
       real(8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
                                & ppsum , ppwin , ppwrk
@@ -34,4 +34,4 @@
          & 30.907 , 26.362 , 16.423 , 7.583 , 3.620 , 1.807 , 0.938 ,   &
          & 0.469/
 
-      end module o3blk
+      end module mod_o3blk

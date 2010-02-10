@@ -1,6 +1,6 @@
-      module bxq
+      module mod_bxq
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 #ifdef MPP1
@@ -39,4 +39,4 @@
       real(8) , dimension(ix,kx,jx) :: uuu , vvv
 #endif
 
-      end module bxq
+      end module mod_bxq

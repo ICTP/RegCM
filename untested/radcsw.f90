@@ -76,13 +76,13 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
-      use param2
+      use mod_regcm_param
+      use mod_parrad
+      use mod_param2
       use mod_bats
-      use tracer
+      use mod_tracer
       use mod_aerosol , only : nspi
-      use crdcon
+      use mod_crdcon
       implicit none
 !
 ! PARAMETER definitions
@@ -112,8 +112,8 @@
 ! eccf    - Eccentricity factor (1./earth-sun dist ** 2)
 ! asdir   - 0.2-0.7 micro-meter srfc alb to direct rad
 ! aldir   - 0.7-5.0 micro-meter srfc alb to direct rad
-! asdif   - 0.2-0.7 micro-meter srfc alb to diffuse rad
-! aldif   - 0.7-5.0 micro-meter srfc alb to diffuse rad
+! asdif   - 0.2-0.7 micro-meter srfc alb to diffuse mod_rad
+! aldif   - 0.7-5.0 micro-meter srfc alb to diffuse mod_rad
 !
 !     Output arguments
 !
@@ -126,8 +126,8 @@
 ! fsntc    - Clear sky total column absorbed solar flx
 ! sols     - Direct solar rad incident on surface (< 0.7)
 ! soll     - Direct solar rad incident on surface (>= 0.7)
-! solsd    - Diffuse solar rad incident on surface (< 0.7)
-! solld    - Diffuse solar rad incident on surface (>= 0.7)
+! solsd    - Diffuse mod_solar rad incident on surface (< 0.7)
+! solld    - Diffuse mod_solar rad incident on surface (>= 0.7)
 ! fsnirt   - Near-IR flux absorbed at toa
 ! fsnrtc   - Clear sky near-IR flux absorbed at toa
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
@@ -286,9 +286,9 @@
 !     extra layer on top:
 !
 ! rdir     - Layer reflectivity to direct rad
-! rdif     - Layer reflectivity to diffuse rad
+! rdif     - Layer reflectivity to diffuse mod_rad
 ! tdir     - Layer transmission to direct rad
-! tdif     - Layer transmission to diffuse rad
+! tdif     - Layer transmission to diffuse mod_rad
 ! explay   - Solar beam exp transmission for layer
 ! flxdiv   - Flux divergence for layer
 !
@@ -744,7 +744,7 @@
                   & wkaer(1,0,3),wkaer(1,0,4),nloop,is,ie,rdir,rdif,    &
                   & tdir,tdif,explay,exptdn,rdndif,tottrn)
 !
-!       Compute reflectivity to direct and diffuse radiation for layers
+!       Compute reflectivity to direct and diffuse mod_radiation for layers
 !       below by adding succesive layers starting from the surface and
 !       working upwards:
 !
@@ -891,7 +891,7 @@
 !
 !         Compute delta-Eddington solution reflectivities and
 !         transmissivities for the entire column; note, for
-!         convenience, we use the same reflectivity and transmissivity
+!         convenience, we use mod_the same reflectivity and transmissivity
 !         arrays as for the full calculation above, where 0 for layer
 !         quantities refers to the entire atmospheric column, and where
 !         0 for interface quantities refers to top of atmos- phere,
@@ -903,7 +903,7 @@
  
  
 !
-!         Compute reflectivity to direct and diffuse radiation for
+!         Compute reflectivity to direct and diffuse mod_radiation for
 !         entire column; 0,1 on layer quantities refers to two
 !         effective layers overlying surface; 0 on interface quantities
 !         refers to top of column; 2 on interface quantities refers to
@@ -969,7 +969,7 @@
 !
 !       Compute delta-Eddington solution reflectivities and
 !       transmissivities for the entire column; note, for convenience,
-!       we use the same reflectivity and transmissivity arrays as for
+!       we use mod_the same reflectivity and transmissivity arrays as for
 !       the full calculation above, where 0 for layer quantities refers
 !       to the entire atmospheric column, and where 0 for interface
 !       quantities refers to top of atmos- phere, while 1 refers to the
@@ -981,7 +981,7 @@
                   & explay,exptdn,rdndif,tottrn)
  
 !
-!       Compute reflectivity to direct and diffuse radiation for entire
+!       Compute reflectivity to direct and diffuse mod_radiation for entire
 !       column; 0,1 on layer quantities refers to two effective layers
 !       overlying surface; 0 on interface quantities refers to top of
 !       column; 2 on interface quantities refers to the surface:

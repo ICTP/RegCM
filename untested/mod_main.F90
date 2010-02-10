@@ -1,6 +1,6 @@
-      module main
+      module mod_main
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -62,4 +62,4 @@
 !
 #endif
 
-      end module main
+      end module mod_main

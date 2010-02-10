@@ -19,17 +19,17 @@
  
       subroutine tracbud
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use param1
-      use param2
-      use param3
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
 #ifdef DIAG
-      use diagnosis
+      use mod_diagnosis
 #endif
-      use main
-      use mainchem
-      use trachem
-      use date
+      use mod_main
+      use mod_mainchem
+      use mod_trachem
+      use mod_date
 #ifdef MPP1
       use mpi
 #endif

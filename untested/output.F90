@@ -24,25 +24,25 @@
 !     this subroutine handles all of the output                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use param1
-      use param2
-      use iunits
-      use main
-      use mainchem
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_iunits
+      use mod_main
+      use mod_mainchem
       use mod_bats
-      use date
-      use message
-      use parrad
-      use bdycod
-      use pmoist
-      use rad
-      use trachem
-      use cvaria
-      use outrad
-      use tmpsav
-      use radbuf
-      use split
+      use mod_date
+      use mod_message
+      use mod_parrad
+      use mod_bdycod
+      use mod_pmoist
+      use mod_rad
+      use mod_trachem
+      use mod_cvaria
+      use mod_outrad
+      use mod_tmpsav
+      use mod_radbuf
+      use mod_split
 #ifdef MPP1
       use mpi
       use mod_mppio

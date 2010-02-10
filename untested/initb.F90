@@ -26,8 +26,8 @@
 !
 !     ***   units are si
 !
-      use regcm_param
-      use param2
+      use mod_regcm_param
+      use mod_param2
       use mod_bats , only : pptnc , pptc , veg2d , veg2d1 , ocld2d ,    &
                   & tg2d , tgb2d , taf2d , tlef2d , swt2d , srw2d ,     &
                   & ssw2d , dew2d , sag2d , scv2d , sice2d , gwet2d ,   &
@@ -35,7 +35,7 @@
                   & fsw2d , flw2d , sabv2d , sol2d , fswa2d , flwa2d ,  &
                   & prca2d , prnca2d , svga2d , sina2d , satbrt1 ,      &
                   & iexsol , xmopor , deptv , deprv , depuv
-      use main
+      use mod_main
       implicit none
 ! 
 ! Local variables

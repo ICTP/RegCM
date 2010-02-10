@@ -27,8 +27,8 @@
 !                                                 equation 1)
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      use regcm_param
-      use ictp01
+      use mod_regcm_param
+      use mod_ictp01
       use mod_bats
       implicit none
 !

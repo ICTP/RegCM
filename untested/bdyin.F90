@@ -32,15 +32,15 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use iunits
-      use param1
-      use param3
-      use main
-      use bdycod
+      use mod_regcm_param
+      use mod_iunits
+      use mod_param1
+      use mod_param3
+      use mod_main
+      use mod_bdycod
       use mod_bats , only : veg2d
-      use date
-      use tmpsav
+      use mod_date
+      use mod_tmpsav
 #ifdef MPP1
       use mpi
 #endif

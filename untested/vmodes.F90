@@ -19,10 +19,10 @@
  
       subroutine vmodes(lstand,sigmaf,kv1)
 !
-      use regcm_param
-      use param1
-      use split
-      use message
+      use mod_regcm_param
+      use mod_param1
+      use mod_split
+      use mod_message
       implicit none
 !
 ! PARAMETER definitions

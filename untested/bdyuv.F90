@@ -37,10 +37,10 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use bdycod
-      use cvaria
-      use main
+      use mod_regcm_param
+      use mod_bdycod
+      use mod_cvaria
+      use mod_main
 #ifdef MPP1
       use mpi
 #endif

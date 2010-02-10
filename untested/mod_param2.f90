@@ -1,4 +1,4 @@
-      module param2
+      module mod_param2
       implicit none
 !
 ! COMMON /IPARAM2/
@@ -18,4 +18,4 @@
       real(8) :: batfrq , bdytim , chemfrq , prtfrq , prttim , radfrq , &
                & radisp , savfrq , savtim , tapfrq , taptim , tbdybe
       integer :: nprtfrq , nsavfrq , ntapfrq
-      end module param2
+      end module mod_param2

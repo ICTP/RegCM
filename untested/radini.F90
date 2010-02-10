@@ -32,15 +32,15 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
-      use comozp
-      use crdcae
-      use crdcon
-      use tracer0
-      use tracer
-      use date
-      use message
+      use mod_regcm_param
+      use mod_parrad
+      use mod_comozp
+      use mod_crdcae
+      use mod_crdcon
+      use mod_tracer0
+      use mod_tracer
+      use mod_date
+      use mod_message
       implicit none
 !
 !------------------------------Arguments--------------------------------

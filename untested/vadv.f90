@@ -41,10 +41,10 @@
 !           4 : for u and v.                                          c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use param3
-      use main
-      use cvaria
+      use mod_regcm_param
+      use mod_param3
+      use mod_main
+      use mod_cvaria
       implicit none
 !
 ! Dummy arguments

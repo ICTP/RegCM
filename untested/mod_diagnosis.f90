@@ -1,6 +1,6 @@
-      module diagnosis
+      module mod_diagnosis
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -13,4 +13,4 @@
       real(8) , dimension(ntr) :: tchiad , tchie , tchitb
       real(8) , dimension(ntr,2) :: tremcvc , tremdrd , tremlsc ,       &
                                   & trxsaq1 , trxsaq2 , trxsg , ttrace
-      end module diagnosis
+      end module mod_diagnosis

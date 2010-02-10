@@ -19,9 +19,9 @@
  
       subroutine trcmix(pmid,clat,coslat,n2o,ch4,cfc11,cfc12)
 !
-      use regcm_param
-      use parrad
-      use tracer
+      use mod_regcm_param
+      use mod_parrad
+      use mod_tracer
       implicit none
 !
 !-----------------------------------------------------------------------

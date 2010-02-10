@@ -1,6 +1,6 @@
-      module mainchem
+      module mod_mainchem
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -46,4 +46,4 @@
       real(4) , dimension(jx-2,ix-2) :: fchem
 #endif
 
-      end module mainchem
+      end module mod_mainchem

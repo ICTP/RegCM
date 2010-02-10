@@ -1,6 +1,6 @@
       module mod_bats
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -175,7 +175,7 @@
          & 0.06 , 0.1 , 0.01 , 0.03 , 2*0.0004 , 2*0.1 , 0.8 , 2*0.3/
 !     ******      displacement height (meter)
 !     ******      if great parts of veg. are covered by snow, use
-!     displa=0 ******      because then the new displa-theory is not
+!     displa=0 ******      because mod_then the new displa-theory is not
 !     valid
       data displa/0. , 0. , 9. , 9. , 0. , 18. , 14*0./
 !     ******      min stomatl resistance (s/m)

@@ -43,23 +43,23 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      use regcm_param
-      use param1
-      use param2
-      use param3
-      use main
-      use mainchem
-      use bdycod
-      use cvaria
-      use pmoist
-      use rad
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_main
+      use mod_mainchem
+      use mod_bdycod
+      use mod_cvaria
+      use mod_pmoist
+      use mod_rad
       use mod_bats
-      use trachem
-      use date
-      use message
+      use mod_trachem
+      use mod_date
+      use mod_message
       use mod_aerosol , only : aermm
 #ifdef MPP1
-      use slice
+      use mod_slice
       use mpi
 #endif
       implicit none

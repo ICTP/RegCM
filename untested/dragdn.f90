@@ -34,7 +34,7 @@
 !     cdv = neutral drag coeff over vegetation
 !     cdrn = neutral drag coeff for momentum avgd over grid point
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats , only : npts , lveg , z1d , z1 , z1log , cdrn ,     &
                    & sigf , vonkar , zoce , zsno , zlnd , sice1d ,      &
                    & ldoc1d , veg1d , scvk , rough , wt , displa

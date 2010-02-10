@@ -33,9 +33,9 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
-      use comozp
+      use mod_regcm_param
+      use mod_parrad
+      use mod_comozp
       implicit none
 !
 !------------------------------Input arguments--------------------------

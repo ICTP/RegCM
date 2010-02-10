@@ -23,14 +23,14 @@
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
  
-      use regcm_param
-      use param1
-      use param3
-      use main
-      use pmoist
-      use cvaria
-      use slice
-      use rad
+      use mod_regcm_param
+      use mod_param1
+      use mod_param3
+      use mod_main
+      use mod_pmoist
+      use mod_cvaria
+      use mod_slice
+      use mod_rad
       use mod_bats , only : pptc
       implicit none
 !

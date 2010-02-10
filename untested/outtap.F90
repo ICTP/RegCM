@@ -26,15 +26,15 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use param1
-      use param2
-      use param3
-      use iunits
-      use main
-      use date
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_iunits
+      use mod_main
+      use mod_date
       use mod_bats
-      use cvaria
+      use mod_cvaria
 #ifdef MPP1
       use mod_mppio
 #endif

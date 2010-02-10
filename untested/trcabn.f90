@@ -22,9 +22,9 @@
                       & winpl,pinpl,tco2,th2o,to3,uptype,dw,s2c,up2,    &
                       & pnew,abstrc,uinpl)
 !
-      use regcm_param
-      use parrad
-      use crdcon
+      use mod_regcm_param
+      use mod_parrad
+      use mod_crdcon
       implicit none
 !
 !----------------------------------------------------------------------

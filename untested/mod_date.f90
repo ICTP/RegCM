@@ -1,4 +1,4 @@
-      module date
+      module mod_date
       implicit none
 !
 ! COMMON /CTLTIME/
@@ -21,4 +21,4 @@
 ! COMMON /UNIFY/
 !
       integer :: idate0 , idate1 , idate2 , idatee , idates , idatex
-      end module date
+      end module mod_date

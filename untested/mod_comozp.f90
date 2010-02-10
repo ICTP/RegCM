@@ -1,6 +1,6 @@
-      module comozp
+      module mod_comozp
 
-      use parrad
+      use mod_parrad
 
       implicit none
 !
@@ -18,4 +18,4 @@
 ! COMMON /IOZNCT/
 !
       integer :: koz , nyroz
-      end module comozp
+      end module mod_comozp

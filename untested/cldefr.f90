@@ -28,8 +28,8 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
+      use mod_regcm_param
+      use mod_parrad
       implicit none
 !
 !------------------------------Arguments--------------------------------

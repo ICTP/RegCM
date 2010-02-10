@@ -45,12 +45,12 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
-      use param1
-      use param2
-      use crdcon
-      use radbuf
+      use mod_regcm_param
+      use mod_parrad
+      use mod_param1
+      use mod_param2
+      use mod_crdcon
+      use mod_radbuf
       implicit none
 !
 ! PARAMETER definitions

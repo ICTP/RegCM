@@ -46,13 +46,13 @@
 !
 !-----------------------------------------------------------------------
  
-      use regcm_param
-      use parrad
-      use param2
-      use crdcon
-      use slice
-      use main
-      use mainchem
+      use mod_regcm_param
+      use mod_parrad
+      use mod_param2
+      use mod_crdcon
+      use mod_slice
+      use mod_main
+      use mod_mainchem
       use mod_aerosol , only : aermmb , aermmr
       implicit none
 !

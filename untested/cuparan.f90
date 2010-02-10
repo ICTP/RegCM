@@ -21,13 +21,13 @@
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      use regcm_param
-      use param1
-      use param3
-      use pmoist
-      use rad
+      use mod_regcm_param
+      use mod_param1
+      use mod_param3
+      use mod_pmoist
+      use mod_rad
       use mod_bats , only : pptc
-      use main
+      use mod_main
       implicit none
 !
 ! Dummy arguments

@@ -31,15 +31,15 @@
 ! also, from the cloud input (fraction and liquid water path), the
 ! cloud longwave emissivity must be computed; this is done here
 !
-      use regcm_param
-      use parrad
-      use param1
-      use param3
-      use main
-      use rad
-      use comtim
-      use date
-      use crdcon
+      use mod_regcm_param
+      use mod_parrad
+      use mod_param1
+      use mod_param3
+      use mod_main
+      use mod_rad
+      use mod_comtim
+      use mod_date
+      use mod_crdcon
       implicit none
 !
 ! Dummy arguments

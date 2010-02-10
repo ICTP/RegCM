@@ -1,6 +1,6 @@
-      module rad
+      module mod_rad
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -24,4 +24,4 @@
       real(8) , dimension(ilx,kxp1,mjx-1) :: o3prof_io
 #endif
 
-      end module rad
+      end module mod_rad

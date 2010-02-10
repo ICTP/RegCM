@@ -1,6 +1,6 @@
-      module split
+      module mod_split
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -42,4 +42,4 @@
       real(8) , dimension(ix,mjx,nsplit) :: dstor_io , hstor_io
 #endif
 
-      end module split
+      end module mod_split

@@ -21,10 +21,10 @@
                       & un2o0,un2o1,uch4,uco211,uco212,uco213,uco221,   &
                       & uco222,uco223,bn2o0,bn2o1,bch4,uptype)
 !
-      use regcm_param
-      use parrad
-      use crdcon
-      use tracer
+      use mod_regcm_param
+      use mod_parrad
+      use mod_crdcon
+      use mod_tracer
       implicit none
 !
 !----------------------------------------------------------------------

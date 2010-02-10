@@ -1,6 +1,6 @@
-      module pmoist
+      module mod_pmoist
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -52,4 +52,4 @@
       real(8) , dimension(ix,kx,mjx) :: fcc_io , rsheat_io , rswat_io
 #endif
 
-      end module pmoist
+      end module mod_pmoist

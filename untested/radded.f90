@@ -45,8 +45,8 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
+      use mod_regcm_param
+      use mod_parrad
       implicit none
 !
 ! PARAMETER definitions
@@ -95,9 +95,9 @@
 !     layer above top of model:
 !
 ! rdir     - Layer reflectivity to direct rad
-! rdif     - Layer refflectivity to diffuse rad
+! rdif     - Layer refflectivity to diffuse mod_rad
 ! tdir     - Layer transmission to direct rad
-! tdif     - Layer transmission to diffuse rad
+! tdif     - Layer transmission to diffuse mod_rad
 ! explay   - Solar beam exp transm for layer
 !
 !     (Note that the following variables are defined on interfaces,
@@ -215,7 +215,7 @@
       tottrn = 0.D0
 !
 !     Compute total direct beam transmission, total transmission, and
-!     reflectivity for diffuse radiation (from below) for all layers
+!     reflectivity for diffuse mod_radiation (from below) for all layers
 !     above each interface by starting from the top and adding layers
 !     down:
 !     For the extra layer above model top:
@@ -307,7 +307,7 @@
             explay(i,k) = 0.0
 !
 !           Calculates the solar beam transmission, total transmission,
-!           and reflectivity for diffuse radiation from below at the
+!           and reflectivity for diffuse mod_radiation from below at the
 !           top of the current layer:
 !
             exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
@@ -391,7 +391,7 @@
       end do
 !
 !     Compute total direct beam transmission, total transmission, and
-!     reflectivity for diffuse radiation (from below) for all layers
+!     reflectivity for diffuse mod_radiation (from below) for all layers
 !     above the surface:
 !
       k = plevp

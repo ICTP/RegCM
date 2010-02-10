@@ -40,13 +40,13 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use param1
-      use param2
-      use main
-      use mainchem
-      use bdycod
-      use date
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_main
+      use mod_mainchem
+      use mod_bdycod
+      use mod_date
       implicit none
 !
 ! Dummy arguments

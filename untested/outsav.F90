@@ -27,27 +27,27 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use parrad
-      use param1
-      use param2
-      use param3
-      use main
-      use bdycod
+      use mod_regcm_param
+      use mod_parrad
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_main
+      use mod_bdycod
       use mod_bats
-      use date
-      use iunits
-      use radbuf
-      use pmoist
-      use mainchem
-      use trachem
-      use split
-      use rad
+      use mod_date
+      use mod_iunits
+      use mod_radbuf
+      use mod_pmoist
+      use mod_mainchem
+      use mod_trachem
+      use mod_split
+      use mod_rad
 #ifdef MPP1
       use mod_mppio
 #endif
 #ifdef DIAG
-      use diagnosis
+      use mod_diagnosis
 #endif
       implicit none
 !

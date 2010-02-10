@@ -19,10 +19,10 @@
  
       subroutine cumtran
 
-      use regcm_param
-      use trachem
-      use mainchem
-      use param3
+      use mod_regcm_param
+      use mod_trachem
+      use mod_mainchem
+      use mod_param3
       implicit none
 !
 ! Local variables

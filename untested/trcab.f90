@@ -22,9 +22,9 @@
                      & bch4,to3co2,pnm,dw,pnew,s2c,uptype,dplh2o,       &
                      & abplnk1,tco2,th2o,to3,abstrc)
 !
-      use regcm_param
-      use parrad
-      use crdcon
+      use mod_regcm_param
+      use mod_parrad
+      use mod_crdcon
       implicit none
 !
 !----------------------------------------------------------------------

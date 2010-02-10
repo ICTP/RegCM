@@ -21,25 +21,25 @@
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      use regcm_param
-      use param1
-      use param2
-      use param3
-      use main
-      use mainchem
-      use pbldim
-      use cvaria
-      use pmoist
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_main
+      use mod_mainchem
+      use mod_pbldim
+      use mod_cvaria
+      use mod_pmoist
       use mod_bats , only : veg2d
-      use slice
-      use trachem
+      use mod_slice
+      use mod_trachem
 #ifdef MPP1
       use mpi
 #endif
 #ifdef DIAG
-      use diagnosis
+      use mod_diagnosis
 #endif
-      use blh_tmp
+      use mod_blh_tmp
       implicit none
 !
 ! Local variables
@@ -97,7 +97,7 @@
 
 !----------------------------------------------------------------------
 !-----some of the storage spaces for high-resolution pbl
-!     are use to store the variables in this subroutine.
+!     are use mod_to store the variables in this subroutine.
 !     difft(i,k,j)   : temperature tendency (tten)
 !     diffq(i,k,j)   : water vapor tendency (qvten)
 !

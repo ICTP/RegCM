@@ -46,14 +46,14 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use param1
-      use param2
-      use param3
-      use main
-      use bdycod
-      use pmoist
-      use date
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_main
+      use mod_bdycod
+      use mod_pmoist
+      use mod_date
       implicit none
 !
 ! Dummy arguments

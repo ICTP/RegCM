@@ -48,9 +48,9 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use slice
-      use main
+      use mod_regcm_param
+      use mod_slice
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -143,9 +143,9 @@
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use slice
-      use main
+      use mod_regcm_param
+      use mod_slice
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -242,9 +242,9 @@
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use slice
-      use main
+      use mod_regcm_param
+      use mod_slice
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -341,9 +341,9 @@
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use slice
-      use main
+      use mod_regcm_param
+      use mod_slice
+      use mod_main
       implicit none
 !
 ! Dummy arguments

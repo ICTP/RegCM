@@ -27,14 +27,14 @@
 !     ---the unit used in all the calculation is "kg".                c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use main
-      use param1
-      use diagnosis
-      use param2
-      use param3
-      use date
-      use main
+      use mod_regcm_param
+      use mod_main
+      use mod_param1
+      use mod_diagnosis
+      use mod_param2
+      use mod_param3
+      use mod_date
+      use mod_main
 #ifdef MPP1
       use mpi
 #endif

@@ -1,6 +1,6 @@
-      module cvaria
+      module mod_cvaria
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -36,4 +36,4 @@
 #else
       real(8) , dimension(ix,kx,jx,ntr) :: chi , chic , chiten
 #endif
-      end module cvaria
+      end module mod_cvaria

@@ -136,14 +136,14 @@
 !                            in mm/s.
 !=======================================================================
  
-      use regcm_param
-      use param1
-      use param2
-      use param3
-      use iunits
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_iunits
       use mod_bats
-      use date
-      use main
+      use mod_date
+      use mod_main
       implicit none
 !
 ! Dummy arguments

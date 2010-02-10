@@ -104,7 +104,7 @@
 !
 !                  4               moist convection occurs, but a cfl condition
 !                                  on the subsidence warming is violated. this
-!                                  does not cause the scheme to terminate.
+!                                  does not cause mod_the scheme to terminate.
 !
 !     ft:   array of temperature tendency (k/s) of dimension nd, defined at same
 !             grid levels as t, q, qs and p.
@@ -156,13 +156,13 @@
 !      compute the cloud fraction and cloud liquid water content.
 !   5. each variable is now explicitly declared.  that is, the
 !      "implicit none" option was added.
-!   6. the value minorig is increased because the thickness of the
+!   6. the value minorig is increased because mod_the thickness of the
 !      lowest layer(s) is(are) too small. if the thickness is too
 !      small for the given timestep, the mass of the layer is likely
 !      to be evacuated.
 !   7. a maximum value to the cloud base mass flux has been added.
 !
-      use convect
+      use mod_convect
       implicit none
 !
 !

@@ -46,9 +46,9 @@
 !         = 0 : ubd3d is "not"   multiplied by msfd                   c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use slice
-      use main
+      use mod_regcm_param
+      use mod_slice
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -167,9 +167,9 @@
 !         = 0 : vbd3d is "not"   multiplied by msfd                   c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use slice
-      use main
+      use mod_regcm_param
+      use mod_slice
+      use mod_main
       implicit none
 !
 ! Dummy arguments

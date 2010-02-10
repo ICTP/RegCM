@@ -19,9 +19,9 @@
  
       subroutine trcplk(tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
 !
-      use regcm_param
-      use parrad
-      use crdcon
+      use mod_regcm_param
+      use mod_parrad
+      use mod_crdcon
       implicit none
 !
 !----------------------------------------------------------------------

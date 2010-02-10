@@ -58,9 +58,9 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
-      use comtim
+      use mod_regcm_param
+      use mod_parrad
+      use mod_comtim
       use mod_aerosol , only : nspi
       implicit none
 !

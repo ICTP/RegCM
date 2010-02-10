@@ -26,20 +26,20 @@
 !     j:             index of j slice in current computation
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use param1
-      use param3
-      use main
-      use mainchem
-      use cvaria
-      use trachem
-      use pbldim
+      use mod_regcm_param
+      use mod_param1
+      use mod_param3
+      use mod_main
+      use mod_mainchem
+      use mod_cvaria
+      use mod_trachem
+      use mod_pbldim
       use mod_bats
-      use rad
-      use pmoist
-      use dust
-      use date
-      use message
+      use mod_rad
+      use mod_pmoist
+      use mod_dust
+      use mod_date
+      use mod_message
       implicit none
 !
 ! Dummy arguments

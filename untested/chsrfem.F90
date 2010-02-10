@@ -19,13 +19,13 @@
  
       subroutine chsrfem
 
-      use regcm_param
-      use mainchem
-      use trachem
-      use dust
-      use iunits
+      use mod_regcm_param
+      use mod_mainchem
+      use mod_trachem
+      use mod_dust
+      use mod_iunits
       use mod_aerosol , only : dgmix , dssamix , dextmix
-      use message
+      use mod_message
 #ifdef MPP1
       use mpi
 #endif

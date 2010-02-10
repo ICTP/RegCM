@@ -1,6 +1,6 @@
-      module ictp01
+      module mod_ictp01
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
       real(8) , dimension(nnsg,nbmax) :: a , b
@@ -10,4 +10,4 @@
       real(8) , dimension(nnsg,nbmax) :: rppq , efe , qsatld , dcd
       real(8) , dimension(nnsg,nbmax) :: etrc
 
-      end module ictp01
+      end module mod_ictp01

@@ -31,9 +31,9 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
-      use crdcon
+      use mod_regcm_param
+      use mod_parrad
+      use mod_crdcon
       implicit none
 !
 !     Input arguments

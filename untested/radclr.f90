@@ -43,8 +43,8 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
+      use mod_regcm_param
+      use mod_parrad
       implicit none
 !
 !     Minimum total transmission below which no layer computation are
@@ -86,9 +86,9 @@
 !     layer 0 to refer to the entire atmospheric column:
 !
 ! rdir     - Layer reflectivity to direct rad
-! rdif     - Layer refflectivity to diffuse rad
+! rdif     - Layer refflectivity to diffuse mod_rad
 ! tdir     - Layer transmission to direct rad
-! tdif     - Layer transmission to diffuse rad
+! tdif     - Layer transmission to diffuse mod_rad
 ! explay   - Solar beam exp transmn for layer
 !
 !     Note that the following variables are defined on interfaces, with
@@ -183,12 +183,12 @@
       end do
 !
 !     Compute total direct beam transmission, total transmission, and
-!     reflectivity for diffuse radiation (from below) for all layers
+!     reflectivity for diffuse mod_radiation (from below) for all layers
 !     above each interface by starting from the top and adding layers
 !     down:
 !
 !     The top layer is assumed to be a purely absorbing ozone layer, and
-!     that the mean diffusivity for diffuse transmission is 1.66:
+!     that the mean diffusivity for diffuse mod_transmission is 1.66:
 !
       do nn = 1 , nloop
         do i = is(nn) , ie(nn)
@@ -201,7 +201,7 @@
           explay(i,0) = dexp(-arg)
           tdir(i,0) = explay(i,0)
 !
-!         Same limit for diffuse transmission:
+!         Same limit for diffuse mod_transmission:
 !
           arg = dmin1(1.66*taugab(i),25.D0)
           tdif(i,0) = dexp(-arg)
@@ -241,7 +241,7 @@
             explay(i,k) = 0.0
 !
 !           Calculates the solar beam transmission, total transmission,
-!           and reflectivity for diffuse radiation from below at the
+!           and reflectivity for diffuse mod_radiation from below at the
 !           top of the current layer:
 !
             exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
@@ -320,7 +320,7 @@
       end do
 !
 !     Compute total direct beam transmission, total transmission, and
-!     reflectivity for diffuse radiation (from below) for both layers
+!     reflectivity for diffuse mod_radiation (from below) for both layers
 !     above the surface:
 !
       k = 2

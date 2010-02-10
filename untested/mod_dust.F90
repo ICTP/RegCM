@@ -1,6 +1,6 @@
-      module dust
+      module mod_dust
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -24,4 +24,4 @@
 #endif
       real(8) , dimension(nsoil) :: dp
 
-      end module dust
+      end module mod_dust

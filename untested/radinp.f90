@@ -37,10 +37,10 @@
 !
 !-----------------------------------------------------------------------
 !
-      use regcm_param
-      use parrad
-      use comtim
-      use crdcon
+      use mod_regcm_param
+      use mod_parrad
+      use mod_comtim
+      use mod_crdcon
       implicit none
 !
 ! Dummy arguments

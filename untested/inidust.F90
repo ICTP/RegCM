@@ -38,8 +38,8 @@
 !  * 12        clay                   fine               *****
 !  ***********************************************************
  
-      use regcm_param
-      use dust
+      use mod_regcm_param
+      use mod_dust
       implicit none
 !
 ! Local variables

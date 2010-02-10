@@ -19,8 +19,8 @@
  
       subroutine tstep(extime,dtinc,deltmx)
 
-      use regcm_param
-      use param1
+      use mod_regcm_param
+      use mod_param1
       implicit none
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

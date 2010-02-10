@@ -50,7 +50,7 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats
       implicit none
 !
@@ -254,7 +254,7 @@
       end do
 !
 !=======================================================================
-!     7.   calculate potential evaporation and use to determine
+!     7.   calculate potential evaporation and use mod_to determine
 !     wetness factor, allowing for snow being saturated
 !=======================================================================
 !

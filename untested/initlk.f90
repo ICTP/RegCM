@@ -19,8 +19,8 @@
  
       subroutine initlk(veg2d,ix1,jx1)
  
-      use regcm_param
-      use lake
+      use mod_regcm_param
+      use mod_lake
       implicit none
 !
 ! Dummy arguments

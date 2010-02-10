@@ -19,9 +19,9 @@
  
       subroutine inirad
  
-      use regcm_param
-      use param1
-      use rad
+      use mod_regcm_param
+      use mod_param1
+      use mod_rad
       implicit none
 !
 ! Local variables

@@ -1,5 +1,5 @@
-      module outrad
-      use regcm_param
+      module mod_outrad
+      use mod_regcm_param
       implicit none
 
       integer , parameter :: nrad2d = 21 , nrad3d = 5
@@ -14,4 +14,4 @@
       real(4) , dimension(jx-2,ix-2,kx,nrad3d) :: frad3d
 #endif
 
-      end module outrad
+      end module mod_outrad

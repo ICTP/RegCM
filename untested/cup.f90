@@ -22,12 +22,12 @@
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      use regcm_param
-      use param2
-      use param3
-      use pmoist
-      use rad
-      use trachem
+      use mod_regcm_param
+      use mod_param2
+      use mod_param3
+      use mod_pmoist
+      use mod_rad
+      use mod_trachem
       implicit none
 !
 ! Dummy arguments

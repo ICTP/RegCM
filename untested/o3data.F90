@@ -20,11 +20,11 @@
 !----------------------------------------------------------------------
       subroutine o3data
 !
-      use regcm_param
-      use param3
-      use main
-      use rad
-      use o3blk
+      use mod_regcm_param
+      use mod_param3
+      use mod_main
+      use mod_rad
+      use mod_o3blk
       implicit none
 !
 ! Local variables

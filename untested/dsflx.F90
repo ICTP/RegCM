@@ -30,8 +30,8 @@
 !  * ashraf s. zakey                                   ******
 !  **********************************************************
  
-      use regcm_param
-      use dust
+      use mod_regcm_param
+      use mod_dust
       implicit none
 !
 ! Dummy arguments
@@ -127,9 +127,9 @@
                            & fland,clayrow,sand2row,roarow,z0,srel,     &
                            & rsfrow,luc)
  
-      use regcm_param
-      use dust
-      use message
+      use mod_regcm_param
+      use mod_dust
+      use mod_message
       implicit none
 !
 ! Dummy arguments

@@ -26,13 +26,13 @@
 !  innex = 1 ,   mm42d --> bats
 !  innex = 2 ,   bats --> mm42d
 !
-      use regcm_param
-      use param1
-      use param2
-      use param3
-      use main
-      use pbldim
-      use slice
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_main
+      use mod_pbldim
+      use mod_slice
       use mod_bats
       implicit none
 !

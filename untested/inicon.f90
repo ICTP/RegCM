@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine inicon
-      use constants
+      use mod_constants
       implicit none
 
 !     Preset constants in mo_constants.

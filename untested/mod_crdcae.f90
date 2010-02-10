@@ -1,4 +1,4 @@
-      module crdcae
+      module mod_crdcae
       implicit none
 !
 ! COMMON /CRDCAE/
@@ -75,4 +75,4 @@
       data b1/0.29927771523756E-01 , 0.21737073577293E-01/
       data b2/ - 0.86322071248593E-04 , -0.78543550629536E-04/
 
-      end module crdcae
+      end module mod_crdcae

@@ -19,13 +19,13 @@
  
       subroutine radtap
 !
-      use regcm_param
-      use param1
-      use param2
-      use date
-      use iunits
-      use outrad
-      use radbuf
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_date
+      use mod_iunits
+      use mod_outrad
+      use mod_radbuf
       implicit none
 !
 ! Local variables

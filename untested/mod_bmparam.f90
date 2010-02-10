@@ -1,4 +1,4 @@
-      module bmparam
+      module mod_bmparam
       implicit none
       integer , parameter :: itb = 100 , jtb = 150
       real(8) :: pl , rdp , rdq , rdth , rdthe , thl
@@ -12,4 +12,4 @@
       data aice , bice , cice1 , dice/613.2 , 22.452 , 6133.0 , 0.61/
       data xls0 , xls1/2.905E6 , 259.532/
 
-      end module bmparam
+      end module mod_bmparam

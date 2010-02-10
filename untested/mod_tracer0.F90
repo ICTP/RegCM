@@ -1,4 +1,4 @@
-      module tracer0
+      module mod_tracer0
       implicit none
 !
 ! COMMON /TRACER0/
@@ -686,4 +686,4 @@
           & 363.20 , 50.509 , 249.02/         ! B2 SCENARIO
 #endif
 
-      end module tracer0
+      end module mod_tracer0

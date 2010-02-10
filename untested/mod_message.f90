@@ -1,8 +1,8 @@
-      module message
+      module mod_message
       implicit none
 !
 ! COMMON /REGCMPRINT/
 !
       character(512) :: aline
 
-      end module message
+      end module mod_message

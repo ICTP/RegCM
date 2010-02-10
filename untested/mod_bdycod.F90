@@ -1,6 +1,6 @@
-      module bdycod
+      module mod_bdycod
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -67,4 +67,4 @@
                                    & vilx_io , vil_io
 #endif
 
-      end module bdycod
+      end module mod_bdycod

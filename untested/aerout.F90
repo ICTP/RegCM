@@ -20,11 +20,11 @@
       subroutine aerout(jslc,tauxar_mix,tauasc_mix,gtota_mix,aeradfo,   &
                       & aeradfos)
  
-      use regcm_param
-      use param2
-      use trachem
+      use mod_regcm_param
+      use mod_param2
+      use mod_trachem
       use mod_aerosol , only : nspi
-      use parrad
+      use mod_parrad
       implicit none
 !
 ! Dummy arguments

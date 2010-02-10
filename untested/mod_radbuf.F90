@@ -1,5 +1,5 @@
-      module radbuf
-      use parrad
+      module mod_radbuf
+      use mod_parrad
       implicit none
       ! absnxt  - Nearest layer absorptivities
       ! abstot  - Non-adjacent layer absorptivites
@@ -16,5 +16,5 @@
       real(8) , dimension(plond,plevp,plevp,jlx) :: abstot
       real(8) , dimension(plond,plevp,jlx) :: emstot
 #endif
-      end module radbuf
+      end module mod_radbuf
 

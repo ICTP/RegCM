@@ -25,25 +25,33 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use parrad
-      use param1
-      use param2
-      use param3
-      use iunits
-      use mod_bats
-      use pmoist
-      use main
-      use mainchem
-      use bdycod
-      use rad
-      use trachem
-      use message
-      use date
-      use radbuf
-      use tmpsav
+      use mod_regcm_param
+      use mod_parrad
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_iunits
+      use mod_bats , only : ssw2da , sdeltk2d , sdelqk2d , sfracv2d ,   &
+                   & sfracb2d , sfracs2d , svegfrac2d , ht1 , satbrt1 , &
+                   & taf2d , tlef2d , ssw2d , srw2d , sol2d , solvd2d , &
+                   & solvs2d , flw2d , tgb2d , swt2d , scv2d , gwet2d , &
+                   & flwd2d , fsw2d, sabv2d , sinc2d , veg2d1 , sag2d , &
+                   & sice2d , dew2d , pptnc , pptc , prca2d , prnca2d , &
+                   & ircp2d , text2d , col2d , ocld2d , tg2d , veg2d ,  &
+                   & emiss2d , psmn_o , t2mn_o , t2mx_o , tgmn_o ,      &
+                   & tgmx_o , w10x_o , albvgl , albvgs
+      use mod_pmoist
+      use mod_main
+      use mod_mainchem
+      use mod_bdycod
+      use mod_rad
+      use mod_trachem
+      use mod_message
+      use mod_date
+      use mod_radbuf
+      use mod_tmpsav
 #ifdef DIAG
-      use diagnosis
+      use mod_diagnosis
 #endif
 #ifdef MPP1
       use mpi

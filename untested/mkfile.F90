@@ -19,14 +19,14 @@
  
       subroutine mkfile
  
-      use regcm_param
-      use param1
-      use param2
-      use iunits
-      use date
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_iunits
+      use mod_date
       use mod_bats
-      use mainchem
-      use outrad
+      use mod_mainchem
+      use mod_outrad
       implicit none
 !
 ! PARAMETER definitions

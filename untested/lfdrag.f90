@@ -24,9 +24,9 @@
 !     recalculate stability dependent drag coefficient for vegetation,
 !     given the neutral drag coefficient.
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats
-      use ictp01
+      use mod_ictp01
       implicit none
 !
 ! Local variables

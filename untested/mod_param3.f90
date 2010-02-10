@@ -1,6 +1,6 @@
-      module param3
+      module mod_param3
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -22,4 +22,4 @@
       real(8) , dimension(kx,2) :: twt
       real(8) , dimension(nspgd) :: wgtd
       real(8) , dimension(nspgx) :: wgtx
-      end module param3
+      end module mod_param3

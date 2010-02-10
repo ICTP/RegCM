@@ -1,6 +1,6 @@
-      module parrad
+      module mod_parrad
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -56,4 +56,4 @@
       integer , parameter :: ptvsleni = ptslenis + 3*ptvsfld
       integer , parameter :: ptvslenc = ptslencs + 2*ptvsfld
 
-      end module parrad
+      end module mod_parrad

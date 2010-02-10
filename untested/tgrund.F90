@@ -51,7 +51,7 @@
 !         sg = solar flux absorbed by bare ground
 !     skd,ska= diurnal and annual thermal diffusivities
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats
       implicit none
 !

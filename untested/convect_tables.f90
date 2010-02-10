@@ -45,9 +45,9 @@
 ! compile with option -DNOLOOKUP in order to replace lookup tables
 !-----------------------------------------------------------------------
  
-      use culookup
-      use tiedparam0
-      use constants
+      use mod_culookup
+      use mod_tiedparam0
+      use mod_constants
       implicit none
 !
 ! PARAMETER definitions

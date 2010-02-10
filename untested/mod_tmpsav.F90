@@ -1,5 +1,5 @@
-      module tmpsav
-      use regcm_param
+      module mod_tmpsav
+      use mod_regcm_param
       implicit none
 #ifdef MPP1
       real(8) , dimension(ix,kx*4+2,jxp) :: sav0
@@ -27,4 +27,4 @@
       real(8) , dimension(kx,8,jxp) :: sav6
       real(8) , dimension(kx,8,mjx) :: sav_6
 #endif
-      end module tmpsav
+      end module mod_tmpsav

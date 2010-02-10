@@ -1,5 +1,5 @@
-      module blh_tmp
-      use regcm_param
+      module mod_blh_tmp
+      use mod_regcm_param
       implicit none
 #ifdef MPP1
       real(8) , dimension(ix,kx,jxp) :: cgh , kvc , kvh , kvm , kvq
@@ -10,4 +10,4 @@
       real(8) , dimension(ix,jx) :: hfxv , obklen , th10 , ustr ,      &
                                    & xhfx , xqfx
 #endif
-      end module blh_tmp
+      end module mod_blh_tmp

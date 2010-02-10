@@ -1,6 +1,6 @@
-      module slice
+      module mod_slice
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -19,4 +19,4 @@
                                      & ubx3d , vbd3d , vbx3d
 #endif
 
-      end module slice
+      end module mod_slice

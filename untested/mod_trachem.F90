@@ -1,6 +1,6 @@
-      module trachem
+      module mod_trachem
 
-      use regcm_param
+      use mod_regcm_param
 
       implicit none
 !
@@ -76,4 +76,4 @@
       real(8) , dimension(ix,mjx,ntr) :: remdrd_io
 #endif
 
-      end module trachem
+      end module mod_trachem

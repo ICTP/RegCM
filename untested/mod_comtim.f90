@@ -1,4 +1,4 @@
-      module comtim
+      module mod_comtim
       implicit none
 !
 ! COMMON /COMTIM/
@@ -8,4 +8,4 @@
       integer :: mbdate , mbsec , mcdate , mcsec , mdbase , mdcur ,     &
                & msbase , mscur , nelapse , nestep , nnbdat , nnbsec ,  &
                & nndbas , nnsbas , nrstrt , nstep , nstepr , nstop
-      end module comtim
+      end module mod_comtim

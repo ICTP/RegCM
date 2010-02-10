@@ -43,9 +43,9 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use cvaria
-      use main
+      use mod_regcm_param
+      use mod_cvaria
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -200,9 +200,9 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use cvaria
-      use main
+      use mod_regcm_param
+      use mod_cvaria
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -357,9 +357,9 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use cvaria
-      use main
+      use mod_regcm_param
+      use mod_cvaria
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -514,9 +514,9 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use cvaria
-      use main
+      use mod_regcm_param
+      use mod_cvaria
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -671,9 +671,9 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use cvaria
-      use main
+      use mod_regcm_param
+      use mod_cvaria
+      use mod_main
       implicit none
 !
 ! Dummy arguments
@@ -828,9 +828,9 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use cvaria
-      use main
+      use mod_regcm_param
+      use mod_cvaria
+      use mod_main
       implicit none
 !
 ! Dummy arguments

@@ -39,8 +39,8 @@
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use bdycod
+      use mod_regcm_param
+      use mod_bdycod
       implicit none
 !
 ! Dummy arguments
@@ -158,8 +158,8 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use bdycod
+      use mod_regcm_param
+      use mod_bdycod
       implicit none
 !
 ! Dummy arguments
@@ -287,8 +287,8 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use bdycod
+      use mod_regcm_param
+      use mod_bdycod
       implicit none
 !
 ! Dummy arguments
@@ -415,8 +415,8 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use bdycod
+      use mod_regcm_param
+      use mod_bdycod
       implicit none
 !
 ! Dummy arguments
@@ -537,8 +537,8 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use bdycod
+      use mod_regcm_param
+      use mod_bdycod
       implicit none
 !
 ! Dummy arguments

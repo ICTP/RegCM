@@ -20,7 +20,7 @@
       subroutine lake(iutlak,day,dt,ta,ua,za,q,sw,lnet,hsen,hlat,ts,    &
                     & evap,prec,hice,hsnow)
  
-      use lake
+      use mod_lake
       implicit none
 !
 ! PARAMETER definitions

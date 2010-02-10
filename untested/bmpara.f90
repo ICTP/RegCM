@@ -48,16 +48,16 @@
 !*****************************************************************
 ! *** warning: this subroutine will not work if kx.lt.12;
 !
-      use regcm_param
-      use param1
-      use param2
-      use param3
-      use main
-      use pmoist
-      use rad
+      use mod_regcm_param
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_main
+      use mod_pmoist
+      use mod_rad
       use mod_bats , only : pptc , veg2d
-      use bmparam
-      use trachem
+      use mod_bmparam
+      use mod_trachem
       implicit none
 !
 ! PARAMETER definitions

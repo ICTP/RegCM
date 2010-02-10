@@ -18,9 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine initdate
-      use regcm_param
-      use param1
-      use message
+      use mod_regcm_param
+      use mod_param1
+      use mod_message
       implicit none
 !
 ! Local variables

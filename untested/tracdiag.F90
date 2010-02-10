@@ -19,12 +19,12 @@
  
       subroutine tracdiag(xkc)
  
-      use regcm_param
-      use param1
-      use param3
-      use diagnosis
-      use main
-      use mainchem
+      use mod_regcm_param
+      use mod_param1
+      use mod_param3
+      use mod_diagnosis
+      use mod_main
+      use mod_mainchem
 #ifdef MPP1
       use mpi
 #endif

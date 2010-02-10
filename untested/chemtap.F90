@@ -27,13 +27,13 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use regcm_param
-      use param2
-      use iunits
-      use date
-      use main
-      use mainchem
-      use trachem
+      use mod_regcm_param
+      use mod_param2
+      use mod_iunits
+      use mod_date
+      use mod_main
+      use mod_mainchem
+      use mod_trachem
       implicit none
 !
 ! Local variables

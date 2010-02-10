@@ -1,4 +1,4 @@
-      module convect
+      module mod_convect
       implicit none
 !
 ! COMMON /CUPEMANPARAM/
@@ -10,4 +10,4 @@
 ! COMMON /INTCUPEMAN/
 !
       integer :: minorig
-      end module convect
+      end module mod_convect

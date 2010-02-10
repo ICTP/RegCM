@@ -4853,7 +4853,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !    The parameters QY, QTY, B, RSD, and AB are not referenced
 !    if their computation is not requested and in this case
 !    can be replaced by dummy variables in the calling program.
-!    To save storage, the user may in some cases use the same
+!    To save storage, the user may in some cases use mod_the same
 !    array for different parameters in the calling sequence.  A
 !    frequently occuring example is when one wishes to compute
 !    any of B, RSD, or AB and does not need Y or QTY.  In this

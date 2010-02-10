@@ -19,7 +19,7 @@
  
       subroutine lutbl(ptop)
 !
-      use bmparam
+      use mod_bmparam
       implicit none
 !
 ! PARAMETER definitions

@@ -30,9 +30,9 @@
 !        the total mass.                                              c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use regcm_param
-      use param3
-      use pmoist
+      use mod_regcm_param
+      use mod_param3
+      use mod_pmoist
       implicit none
 !
 ! Dummy arguments

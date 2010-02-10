@@ -66,9 +66,9 @@
 !     change of latent heat fluxes small enough, or if
 !     maximum iteration reached (itmax).
 !
-      use regcm_param
+      use mod_regcm_param
       use mod_bats
-      use ictp01
+      use mod_ictp01
       implicit none
 !
 ! Dummy arguments
