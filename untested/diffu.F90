@@ -36,10 +36,10 @@
 !                                                                     c
 !     j       : j'th slice of variable ubd3d                          c
 !                                                                     c
-!     iend    : = ilxm for cross-point variables                      c
-!               = ilx  for dot-point   variables                      c
+!     iend    : = ixm2 for cross-point variables                      c
+!               = ixm1  for dot-point   variables                      c
 !                                                                     c
-!     jend    : = jlxm for cross-point variables                      c
+!     jend    : = jxm2 for cross-point variables                      c
 !               = jlx  for dot-point   variables                      c
 !                                                                     c
 !     ind = 1 : ubd3d is already multiplied by map scale factor (msfd)c
@@ -69,12 +69,12 @@
       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
          & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
 #else
-      if (j.eq.2 .or. j.eq.jlx) then
+      if (j.eq.2 .or. j.eq.jxm1) then
 #endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(ubd3d(i,k,j+1)+ubd3d(i,k,j-1)          &
@@ -94,7 +94,7 @@
 !
 !.....fourth-order scheme for interior:
         do k = 1 , kx
-          do i = 3 , ilx - 1
+          do i = 3 , ixm1 - 1
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) - xkc(i,k)                          &
                         & *c203*(ubd3d(i,k,j+2)+ubd3d(i,k,j-2)          &
@@ -115,7 +115,7 @@
           end do
         end do
 !......second-order scheme for north and south boundaries:
-        do i = 2 , ilx , ilx - 2
+        do i = 2 , ixm1 , ixm1 - 2
           do k = 1 , kx
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
@@ -157,10 +157,10 @@
 !                                                                     c
 !     j       : j'th slice of variable vbd3d                          c
 !                                                                     c
-!     iend    : = ilxm for cross-point variables                      c
-!               = ilx  for dot-point   variables                      c
+!     iend    : = ixm2 for cross-point variables                      c
+!               = ixm1  for dot-point   variables                      c
 !                                                                     c
-!     jend    : = jlxm for cross-point variables                      c
+!     jend    : = jxm2 for cross-point variables                      c
 !               = jlx  for dot-point   variables                      c
 !                                                                     c
 !     ind = 1 : vbd3d is already multiplied by map scale factor (msfd)c
@@ -190,12 +190,12 @@
       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
          & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
 #else
-      if (j.eq.2 .or. j.eq.jlx) then
+      if (j.eq.2 .or. j.eq.jxm1) then
 #endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(vbd3d(i,k,j+1)+vbd3d(i,k,j-1)          &
@@ -215,7 +215,7 @@
 !
 !.....fourth-order scheme for interior:
         do k = 1 , kx
-          do i = 3 , ilx - 1
+          do i = 3 , ixm1 - 1
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) - xkc(i,k)                          &
                         & *c203*(vbd3d(i,k,j+2)+vbd3d(i,k,j-2)          &
@@ -236,7 +236,7 @@
           end do
         end do
 !......second-order scheme for north and south boundaries:
-        do i = 2 , ilx , ilx - 2
+        do i = 2 , ixm1 , ixm1 - 2
           do k = 1 , kx
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &

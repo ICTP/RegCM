@@ -62,7 +62,7 @@
 !
 ! COMMON /BAT1D/
 !
-      real(8) , dimension(ilx) :: albdif , albdir , albvl , albvld ,    &
+      real(8) , dimension(ixm1) :: albdif , albdir , albvl , albvld ,   &
                                 & albvs , albvsd , aldifl , aldifs ,    &
                                 & aldirl , aldirs , emiss1d , fracd ,   &
                                 & sabveg , solis , solvd , solvs
@@ -71,7 +71,7 @@
 ! COMMON /BAT2D/
 !
 #ifdef MPP1
-      real(8) , dimension(ilx,jxp) :: flw2d , flwa2d , flwd2d ,         &
+      real(8) , dimension(ixm1,jxp) :: flw2d , flwa2d , flwd2d ,         &
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
                                     & sabv2d , sdelqk2d , sdeltk2d ,    &
@@ -80,7 +80,7 @@
                                     & solvd2d , solvs2d , ssw2da ,      &
                                     & svegfrac2d , svga2d , veg2d
 #else
-      real(8) , dimension(ilx,jlx) :: flw2d , flwa2d , flwd2d ,         &
+      real(8) , dimension(ixm1,jxm1) :: flw2d , flwa2d , flwd2d ,         &
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
                                     & sabv2d , sdelqk2d , sdeltk2d ,    &
@@ -93,13 +93,13 @@
 ! COMMON /BAT2D1/
 !
 #ifdef MPP1
-      real(8) , dimension(nnsg,ilx,jxp) :: col2d , dew2d , emiss2d ,    &
+      real(8) , dimension(nnsg,ixm1,jxp) :: col2d , dew2d , emiss2d ,   &
            & evpa2d , gwet2d , ircp2d , ocld2d , rno2d , rnos2d ,       &
            & sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d ,  &
            & taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
       real(8) , dimension(nnsg,ix,jxp) :: ht1 , satbrt1
 #else
-      real(8) , dimension(nnsg,ilx,jlx) :: col2d , dew2d , emiss2d ,    &
+      real(8) , dimension(nnsg,ixm1,jxm1) :: col2d , dew2d , emiss2d ,   &
            & evpa2d , gwet2d , ircp2d , ocld2d , rno2d , rnos2d ,       &
            & sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d ,  &
            & taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
@@ -109,7 +109,7 @@
 ! COMMON /BATOUT/
 !
 #ifdef MPP1
-      real(4) , dimension(jxp,ix-2) :: drag_o , evpa_o , flwa_o ,       &
+      real(4) , dimension(jxp,ixm2) :: drag_o , evpa_o , flwa_o ,       &
                                      & flwd_o , fswa_o , prcv_o ,       &
                                      & psmn_o , ps_o , q2m_o , rnos_o , &
                                      & rsw_o , scv_o , sena_o , sina_o ,&
@@ -118,7 +118,7 @@
                                      & tpr_o , u10m_o , v10m_o ,        &
                                      & w10x_o , zpbl_o
 #else
-      real(4) , dimension(jx-2,ix-2) :: drag_o , evpa_o , flwa_o ,      &
+      real(4) , dimension(jxm2,ixm2) :: drag_o , evpa_o , flwa_o ,      &
                                       & flwd_o , fswa_o , prcv_o ,      &
                                       & psmn_o , ps_o , q2m_o , rnos_o ,&
                                       & rsw_o , scv_o , sena_o ,        &
@@ -136,11 +136,11 @@
 ! COMMON /SUBOUT/
 !
 #ifdef MPP1
-      real(4) , dimension(nnsg,jxp,ix-2) :: drag_s , evpa_s , prcv_s ,  &
+      real(4) , dimension(nnsg,jxp,ixm2) :: drag_s , evpa_s , prcv_s ,  &
            & ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
            & t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
 #else
-      real(4) , dimension(nnsg,jx-2,ix-2) :: drag_s , evpa_s , prcv_s , &
+      real(4) , dimension(nnsg,jxm2,ixm2) :: drag_s , evpa_s , prcv_s , &
            & ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
            & t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
 #endif
@@ -148,15 +148,15 @@
 ! COMMON BATOUTio
 !
 #ifdef MPP1
-      real(kind=4) , dimension(jxp,ix-2,numbat) :: fbat
+      real(kind=4) , dimension(jxp,ixm2,numbat) :: fbat
 #else
-      real(kind=4) , dimension(jx-2,ix-2,numbat) :: fbat
+      real(kind=4) , dimension(jxm2,ixm2,numbat) :: fbat
 #endif
 
 #ifdef MPP1
-      real(kind=4) , dimension(NNSG,jxp,ix-2,numsub) :: fsub
+      real(kind=4) , dimension(NNSG,jxp,ixm2,numsub) :: fsub
 #else
-      real(kind=4) , dimension(NNSG,jx-2,ix-2,numsub) :: fsub
+      real(kind=4) , dimension(NNSG,jxm2,ixm2,numsub) :: fsub
 #endif
 !
 ! COMMON /BATS1D0/

@@ -68,8 +68,8 @@
       if ( myid.eq.0 ) then
         do k = 1 , kx
           tttmp = 0.
-          do j = 1 , mjx - 1
-            do i = 1 , ix - 1
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               tttmp = tttmp + psa_io(i,j)
             end do
           end do
@@ -82,7 +82,7 @@
       do k = 1 , kx
         tttmp = 0.
         do j = 1 , jx - 1
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             tttmp = tttmp + psa(i,j)
           end do
         end do
@@ -101,8 +101,8 @@
       if ( myid.eq.0 ) then
         do k = 1 , kx
           tttmp = 0.
-          do j = 1 , mjx - 1
-            do i = 1 , ix - 1
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               tttmp = tttmp + qva_io(i,k,j)
             end do
           end do
@@ -116,7 +116,7 @@
       do k = 1 , kx
         tttmp = 0.
         do j = 1 , jx - 1
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             tttmp = tttmp + qva(i,k,j)
           end do
         end do
@@ -134,8 +134,8 @@
       if ( myid.eq.0 ) then
         do k = 1 , kx
           tttmp = 0.
-          do j = 1 , mjx - 1
-            do i = 1 , ix - 1
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               tttmp = tttmp + qca_io(i,k,j)
             end do
           end do
@@ -149,7 +149,7 @@
       do k = 1 , kx
         tttmp = 0.
         do j = 1 , jx - 1
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             tttmp = tttmp + qca(i,k,j)
           end do
         end do
@@ -181,8 +181,8 @@
       if ( myid.eq.0 ) then
         tcrai = 0.
         tncrai = 0.
-        do j = 1 , mjx - 1
-          do i = 1 , ilx
+        do j = 1 , jxm1
+          do i = 1 , ixm1
             tcrai = tcrai + rainc_io(i,j)*dxsq
             tncrai = tncrai + rainnc_io(i,j)*dxsq
           end do
@@ -193,8 +193,8 @@
 #else
       tcrai = 0.
       tncrai = 0.
-      do j = 1 , jlx
-        do i = 1 , ilx
+      do j = 1 , jxm1
+        do i = 1 , ixm1
           tcrai = tcrai + rainc(i,j)*dxsq
           tncrai = tncrai + rainnc(i,j)*dxsq
         end do

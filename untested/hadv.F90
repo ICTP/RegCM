@@ -70,7 +70,7 @@
 !-----for t and qv:
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(t(i,k,j+1)      &
                       & +t(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
@@ -94,7 +94,7 @@
 !       up-wind values of qc and qr are used.
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -136,15 +136,15 @@
         if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
         if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
 #else
-        jdxp1 = min0(jdxp1,jlx)
+        jdxp1 = min0(jdxp1,jxm1)
         jdxm1 = max0(jdxm1,2)
 #endif
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ilx)
+            idxp1 = min0(idxp1,ixm1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -227,7 +227,7 @@
 !-----for t and qv:
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(u(i,k,j+1)      &
                       & +u(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
@@ -251,7 +251,7 @@
 !       up-wind values of qc and qr are used.
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -293,15 +293,15 @@
         if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
         if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
 #else
-        jdxp1 = min0(jdxp1,jlx)
+        jdxp1 = min0(jdxp1,jxm1)
         jdxm1 = max0(jdxm1,2)
 #endif
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ilx)
+            idxp1 = min0(idxp1,ixm1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -384,7 +384,7 @@
 !-----for t and qv:
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(v(i,k,j+1)      &
                       & +v(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
@@ -408,7 +408,7 @@
 !       up-wind values of qc and qr are used.
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -450,15 +450,15 @@
         if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
         if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
 #else
-        jdxp1 = min0(jdxp1,jlx)
+        jdxp1 = min0(jdxp1,jxm1)
         jdxm1 = max0(jdxm1,2)
 #endif
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ilx)
+            idxp1 = min0(idxp1,ixm1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -541,7 +541,7 @@
 !-----for t and qv:
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qv(i,k,j+1)     &
                       & +qv(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
@@ -565,7 +565,7 @@
 !       up-wind values of qc and qr are used.
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -607,15 +607,15 @@
         if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
         if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
 #else
-        jdxp1 = min0(jdxp1,jlx)
+        jdxp1 = min0(jdxp1,jxm1)
         jdxm1 = max0(jdxm1,2)
 #endif
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ilx)
+            idxp1 = min0(idxp1,ixm1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -698,7 +698,7 @@
 !-----for t and qv:
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qc(i,k,j+1)     &
                       & +qc(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
@@ -722,7 +722,7 @@
 !       up-wind values of qc and qr are used.
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -764,15 +764,15 @@
         if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
         if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
 #else
-        jdxp1 = min0(jdxp1,jlx)
+        jdxp1 = min0(jdxp1,jxm1)
         jdxm1 = max0(jdxm1,2)
 #endif
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ilx)
+            idxp1 = min0(idxp1,ixm1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -855,7 +855,7 @@
 !-----for t and qv:
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(chi(i,k,j+1,n)  &
                       & +chi(i,k,j,n))-(ua(i+1,k,j)+ua(i,k,j))          &
@@ -880,7 +880,7 @@
 !       up-wind values of qc and qr are used.
 !
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -922,15 +922,15 @@
         if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
         if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
 #else
-        jdxp1 = min0(jdxp1,jlx)
+        jdxp1 = min0(jdxp1,jxm1)
         jdxm1 = max0(jdxm1,2)
 #endif
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ilx)
+            idxp1 = min0(idxp1,ixm1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &

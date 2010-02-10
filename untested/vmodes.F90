@@ -27,7 +27,7 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: nk1 = kx + 1
+      integer , parameter :: nk1 = kxp1
       real(8) , parameter :: rgas = 287. , xkappa = .287
 !
 ! Dummy arguments
@@ -95,7 +95,7 @@
       pd = ps - pt
       r = rgas
 !
-!  read sigmaf (sigma at full (integral) index levels; kx+1 values as
+!  read sigmaf (sigma at full (integral) index levels; kxp1 values as
 !  in the mm4.   check that values are ordered properly.
 !
       if ( lstand ) then

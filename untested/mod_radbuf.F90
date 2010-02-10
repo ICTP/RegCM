@@ -5,16 +5,16 @@
       ! abstot  - Non-adjacent layer absorptivites
       ! emstot  - Total emissivity
 #ifdef MPP1
-      real(8) , dimension(ix - 1,kx,4,jxp) :: absnxt
-      real(8) , dimension(ix - 1,kx + 1,kx + 1,jxp) :: abstot
-      real(8) , dimension(ix - 1,kx + 1,jxp) :: emstot
-      real(8) , dimension(ix - 1,kx,4,mjx-1) :: absnxt_io
-      real(8) , dimension(ix - 1,kx + 1,kx + 1,mjx-1) :: abstot_io
-      real(8) , dimension(ix - 1,kx + 1,mjx-1) :: emstot_io
+      real(8) , dimension(ixm1,kx,4,jxp) :: absnxt
+      real(8) , dimension(ixm1,kxp1,kx + 1,jxp) :: abstot
+      real(8) , dimension(ixm1,kxp1,jxp) :: emstot
+      real(8) , dimension(ixm1,kx,4,jxm1) :: absnxt_io
+      real(8) , dimension(ixm1,kxp1,kx + 1,jxm1) :: abstot_io
+      real(8) , dimension(ixm1,kxp1,jxm1) :: emstot_io
 #else
-      real(8) , dimension(ix - 1,kx,4,jlx) :: absnxt
-      real(8) , dimension(ix - 1,kx + 1,kx + 1,jlx) :: abstot
-      real(8) , dimension(ix - 1,kx + 1,jlx) :: emstot
+      real(8) , dimension(ixm1,kx,4,jxm1) :: absnxt
+      real(8) , dimension(ixm1,kxp1,kx + 1,jxm1) :: abstot
+      real(8) , dimension(ixm1,kxp1,jxm1) :: emstot
 #endif
       end module mod_radbuf
 

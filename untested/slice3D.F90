@@ -37,10 +37,10 @@
 #ifdef MPP1
       do j = 1 , jendx
 #else
-      do j = 1 , jlx
+      do j = 1 , jxm1
 #endif
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             tb3d(i,k,j) = tb(i,k,j)/psb(i,j)
             qvb3d(i,k,j) = qvb(i,k,j)/psb(i,j)
             qcb3d(i,k,j) = qcb(i,k,j)/psb(i,j)
@@ -60,14 +60,14 @@
         jdxp1 = j + 1
         if ( myid.eq.nproc-1 ) jdxp1 = min0(j+1,jendx)
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
         jdx = max0(j,2)
-        jdxp1 = min0(j+1,jlx)
+        jdxp1 = min0(j+1,jxm1)
 #endif
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             idx = max0(i,2)
-            idxp1 = min0(i+1,ilx)
+            idxp1 = min0(i+1,ixm1)
             ubx3d(i,k,j) = 0.25*(ub(idx,k,jdx)+ub(idxp1,k,jdx)+ub(idx,k,&
                          & jdxp1)+ub(idxp1,k,jdxp1))/psb(i,j)
             vbx3d(i,k,j) = 0.25*(vb(idx,k,jdx)+vb(idxp1,k,jdx)+vb(idx,k,&
@@ -92,10 +92,10 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             pl = a(k)*psb(i,j) + ptop
             thcon = ((psb(i,j)+ptop)/pl)**rovcp
             pb3d(i,k,j) = pl
@@ -108,14 +108,14 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
-        do i = 2 , ilx
+        do i = 2 , ixm1
           zq(i,kxp1) = 0.
         end do
         do kk = 1 , kx
           k = kxp1 - kk
-          do i = 2 , ilx
+          do i = 2 , ixm1
             cell = ptop/psb(i,j)
             zq(i,k) = rovg*tb3d(i,k,j)                                  &
                     & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))          &
@@ -124,20 +124,20 @@
         end do
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             za(i,k,j) = 0.5*(zq(i,k)+zq(i,k+1))
             dzq(i,k,j) = zq(i,k) - zq(i,k+1)
           end do
         end do
  
 !-----Calculate the relative humidity and air density
-        do i = 2 , ilx
+        do i = 2 , ixm1
           psrf = (psb(i,j)+ptop)*1000.
           tv = tb3d(i,kx,j)
           rhox2d(i,j) = psrf/(r*tv)
         end do
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             pres = (a(k)*psb(i,j)+ptop)*1000.
             rhob3d(i,k,j) = pres/(r*tb3d(i,k,j)) !air density
             if ( tb3d(i,k,j).gt.273.15 ) then

@@ -48,8 +48,8 @@
 !
 ! COMMON /PMOISTIO/
 !
-      real(8) , dimension(ix,mjx) :: cbmf2d_io
-      real(8) , dimension(ix,kx,mjx) :: fcc_io , rsheat_io , rswat_io
+      real(8) , dimension(ix,jx) :: cbmf2d_io
+      real(8) , dimension(ix,kx,jx) :: fcc_io , rsheat_io , rswat_io
 #endif
 
       end module mod_pmoist

@@ -58,7 +58,7 @@
       aprdiv = 1.0/float(nbatst)
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
       iconj = 0
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         do k = 1 , kx
           kk = kxp1 - k
           cldlwc(i,k) = 0.          ! Zero out cloud water content
@@ -87,7 +87,7 @@
 !       iflag=1: Moist convection occurs.
 !       iflag=2: No moist convection: lifted condensation level above
 !       200 mb. iflag=3: No moist convection: cloud base higher than
-!       level kx-2. iflag=4: Moist convection occurs, but CFL condition
+!       level kxm2. iflag=4: Moist convection occurs, but CFL condition
 !       on the subsidence warming is violated. (Does not terminate
 !       scheme.)
         if ( iflag.eq.1 .or. iflag.eq.4 ) then

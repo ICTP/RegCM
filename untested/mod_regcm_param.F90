@@ -8,6 +8,9 @@
 
       integer , parameter :: ix = 52
 
+! Point in Y (latitude) direction
+
+      integer , parameter :: jx = 48
 
 #ifdef MPP1
 
@@ -17,13 +20,7 @@
 
 ! Point in Y (latitude) direction
 
-      integer , parameter :: mjx = 48
-
-#else
-
-! Point in Y (latitude) direction
-
-      integer , parameter :: jx = 48
+      integer , parameter :: jxp = jx/nproc
 
 #endif
 
@@ -81,18 +78,16 @@
 !    calculated from above
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      integer , parameter :: ilx = ix - 1
-      integer , parameter :: ilxm = ix - 2
+      integer , parameter :: ixm1 = ix - 1
+      integer , parameter :: ixm2 = ix - 2
+      integer , parameter :: ixm3 = ix - 3
 
-#ifdef MPP1
-      integer , parameter :: jxp = mjx/nproc
-      integer , parameter :: jxbb = mjx - 1
-#else
-      integer , parameter :: jlx = jx - 1
-      integer , parameter :: jlxm = jx - 2
-#endif
+      integer , parameter :: jxp1 = jx + 1
+      integer , parameter :: jxm1 = jx - 1
+      integer , parameter :: jxm2 = jx - 2
 
-      integer , parameter :: kxm = kx - 1
+      integer , parameter :: kxm1 = kx - 1
+      integer , parameter :: kxm2 = kx - 2
       integer , parameter :: kxp1 = kx + 1
       integer , parameter :: kxp2 = kx + 2
       integer , parameter :: kxp3 = kx + 3

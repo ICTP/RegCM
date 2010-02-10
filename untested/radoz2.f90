@@ -50,8 +50,8 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(ix - 1,kx) :: o3vmr
-      real(8) , dimension(ix - 1,kx + 1) :: pint , plol , plos
+      real(8) , dimension(ixm1,kx) :: o3vmr
+      real(8) , dimension(ixm1,kxp1) :: pint , plol , plos
       intent (in) o3vmr , pint
       intent (inout) plol , plos
 !
@@ -71,12 +71,12 @@
 !
 !     Bug fix, 24 May 1996:  the 0.5 and 0.25 factors removed.
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         plos(i,1) = 0.1*cplos*o3vmr(i,1)*pint(i,1)
         plol(i,1) = 0.01*cplol*o3vmr(i,1)*pint(i,1)*pint(i,1)
       end do
-      do k = 2 , kx + 1
-        do i = 1 , ix - 1
+      do k = 2 , kxp1
+        do i = 1 , ixm1
           plos(i,k) = plos(i,k-1) + 0.1*cplos*o3vmr(i,k-1)              &
                     & *(pint(i,k)-pint(i,k-1))
           plol(i,k) = plol(i,k-1) + 0.01*cplol*o3vmr(i,k-1)             &

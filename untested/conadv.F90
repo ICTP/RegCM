@@ -43,14 +43,14 @@
 #ifdef MPP1
       integer :: ierr
       real(8) , dimension(jxp) :: psa01 , psailx
-      real(8) , dimension(mjx) :: psa01_g , psailx_g
+      real(8) , dimension(jx) :: psa01_g , psailx_g
       real(8) , dimension(kx,jxp) :: qca01 , qcailx , qva01 , qvailx ,  &
                                    & va01 , vaix
-      real(8) , dimension(kx,mjx) :: qca01_g , qcailx_g , qva01_g ,     &
+      real(8) , dimension(kx,jx) :: qca01_g , qcailx_g , qva01_g ,     &
                                    & qvailx_g , va01_g , vaix_g
-      real(8) , dimension(ilx,kx) :: worka , workb
+      real(8) , dimension(ixm1,kx) :: worka , workb
 #else
-      real(8) , dimension(ilx,kx) :: worka , workb
+      real(8) , dimension(ixm1,kx) :: worka , workb
 #endif
       integer :: i ,  j , k
 !
@@ -62,7 +62,7 @@
 #ifdef MPP1
       if ( myid.eq.nproc-1 ) then
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             worka(i,k) = (ua(i+1,k,jendl)+ua(i,k,jendl))                &
                        & /(msfx(i,jendx)*msfx(i,jendx))
           end do
@@ -70,26 +70,26 @@
       end if
       if ( myid.eq.0 ) then
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))/(msfx(i,1)*msfx(i,1))
           end do
         end do
       end if
-      call mpi_bcast(worka,ilx*kx,mpi_double_precision,nproc-1,         &
+      call mpi_bcast(worka,ixm1*kx,mpi_double_precision,nproc-1,        &
                    & mpi_comm_world,ierr)
-      call mpi_bcast(workb,ilx*kx,mpi_double_precision,0,mpi_comm_world,&
-                   & ierr)
+      call mpi_bcast(workb,ixm1*kx,mpi_double_precision,0,              &
+                   & mpi_comm_world,ierr)
 #else
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           worka(i,k) = (ua(i+1,k,jx)+ua(i,k,jx))                        &
-                     & /(msfx(i,jlx)*msfx(i,jlx))
+                     & /(msfx(i,jxm1)*msfx(i,jxm1))
           workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))/(msfx(i,1)*msfx(i,1))
         end do
       end do
 #endif
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           tdadv = tdadv - dtmin*3.E4*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))/g
         end do
@@ -110,10 +110,10 @@
                     & kx*jxp,mpi_double_precision,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kx
-          do j = 1 , mjx - 1
+          do j = 1 , jxm1
             tdadv = tdadv - dtmin*3.E4*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
-                  & /(msfx_io(ilx,j)*msfx_io(ilx,j))                    &
+                  & /(msfx_io(ixm1,j)*msfx_io(ixm1,j))                    &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & /(msfx_io(1,j)*msfx_io(1,j)))/g
           end do
@@ -122,10 +122,10 @@
       call mpi_bcast(tdadv,1,mpi_double_precision,0,mpi_comm_world,ierr)
 #else
       do k = 1 , kx
-        do j = 1 , jlx
+        do j = 1 , jxm1
           tdadv = tdadv - dtmin*3.E4*dsigma(k)                          &
                 & *dx*((va(ix,k,j+1)+va(ix,k,j))                        &
-                & /(msfx(ilx,j)*msfx(ilx,j))-(va(1,k,j+1)+va(1,k,j))    &
+                & /(msfx(ixm1,j)*msfx(ixm1,j))-(va(1,k,j+1)+va(1,k,j))    &
                 & /(msfx(1,j)*msfx(1,j)))/g
         end do
       end do
@@ -139,7 +139,7 @@
 #ifdef MPP1
       if ( myid.eq.nproc-1 ) then
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             worka(i,k) = (ua(i+1,k,jendl)+ua(i,k,jendl))                &
                        & *(qva(i,k,jendx)/psa(i,jendx))                 &
                        & /(msfx(i,jendx)*msfx(i,jendx))
@@ -148,29 +148,29 @@
       end if
       if ( myid.eq.0 ) then
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))*(qva(i,k,1)/psa(i,1))  &
                        & /(msfx(i,1)*msfx(i,1))
           end do
         end do
       end if
-      call mpi_bcast(worka,ilx*kx,mpi_double_precision,nproc-1,         &
+      call mpi_bcast(worka,ixm1*kx,mpi_double_precision,nproc-1,        &
                    & mpi_comm_world,ierr)
-      call mpi_bcast(workb,ilx*kx,mpi_double_precision,0,mpi_comm_world,&
-                   & ierr)
+      call mpi_bcast(workb,ixm1*kx,mpi_double_precision,0,              &
+                   & mpi_comm_world,ierr)
 #else
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           worka(i,k) = (ua(i+1,k,jx)+ua(i,k,jx))                        &
-                     & *(qva(i,k,jlx)/psa(i,jlx))                       &
-                     & /(msfx(i,jlx)*msfx(i,jlx))
+                     & *(qva(i,k,jxm1)/psa(i,jxm1))                       &
+                     & /(msfx(i,jxm1)*msfx(i,jxm1))
           workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))*(qva(i,k,1)/psa(i,1))    &
                      & /(msfx(i,1)*msfx(i,1))
         end do
       end do
 #endif
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))/g
         end do
@@ -181,10 +181,10 @@
 #ifdef MPP1
       do j = 1 , jendl
         do k = 1 , kx
-          qvailx(k,j) = qva(ilx,k,j)
+          qvailx(k,j) = qva(ixm1,k,j)
           qva01(k,j) = qva(1,k,j)
         end do
-        psailx(j) = psa(ilx,j)
+        psailx(j) = psa(ixm1,j)
         psa01(j) = psa(1,j)
       end do
       call mpi_gather(qvailx(1,1),kx*jxp,mpi_double_precision,          &
@@ -199,11 +199,11 @@
                     & mpi_double_precision,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kx
-          do j = 1 , mjx - 1
+          do j = 1 , jxm1
             tqadv = tqadv - dtmin*3.E4*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & *(qvailx_g(k,j)/psailx_g(j))                        &
-                  & /(msfx_io(ilx,j)*msfx_io(ilx,j))                    &
+                  & /(msfx_io(ixm1,j)*msfx_io(ixm1,j))                    &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & *(qva01_g(k,j)/psa01_g(j))                          &
                   & /(msfx_io(1,j)*msfx_io(1,j)))/g
@@ -213,10 +213,10 @@
       call mpi_bcast(tqadv,1,mpi_double_precision,0,mpi_comm_world,ierr)
 #else
       do k = 1 , kx
-        do j = 1 , jlx
+        do j = 1 , jxm1
           tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
                 & *dx*((va(ix,k,j+1)+va(ix,k,j))                        &
-                & *(qva(ilx,k,j)/psa(ilx,j))/(msfx(ilx,j)*msfx(ilx,j))  &
+                & *(qva(ixm1,k,j)/psa(ixm1,j))/(msfx(ixm1,j)*msfx(ixm1,j))  &
                 & -(va(1,k,j+1)+va(1,k,j))*(qva(1,k,j)/psa(1,j))        &
                 & /(msfx(1,j)*msfx(1,j)))/g
         end do
@@ -230,7 +230,7 @@
 #ifdef MPP1
       if ( myid.eq.nproc-1 ) then
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             worka(i,k) = (ua(i+1,k,jendl)+ua(i,k,jendl))                &
                        & *(qca(i,k,jendx)/psa(i,jendx))                 &
                        & /(msfx(i,jendx)*msfx(i,jendx))
@@ -239,29 +239,29 @@
       end if
       if ( myid.eq.0 ) then
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))*(qca(i,k,1)/psa(i,1))  &
                        & /(msfx(i,1)*msfx(i,1))
           end do
         end do
       end if
-      call mpi_bcast(worka,ilx*kx,mpi_double_precision,nproc-1,         &
+      call mpi_bcast(worka,ixm1*kx,mpi_double_precision,nproc-1,        &
                    & mpi_comm_world,ierr)
-      call mpi_bcast(workb,ilx*kx,mpi_double_precision,0,mpi_comm_world,&
-                   & ierr)
+      call mpi_bcast(workb,ixm1*kx,mpi_double_precision,0,              &
+                   & mpi_comm_world,ierr)
 #else
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           worka(i,k) = (ua(i+1,k,jx)+ua(i,k,jx))                        &
-                     & *(qca(i,k,jlx)/psa(i,jlx))                       &
-                     & /(msfx(i,jlx)*msfx(i,jlx))
+                     & *(qca(i,k,jxm1)/psa(i,jxm1))                       &
+                     & /(msfx(i,jxm1)*msfx(i,jxm1))
           workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))*(qca(i,k,1)/psa(i,1))    &
                      & /(msfx(i,1)*msfx(i,1))
         end do
       end do
 #endif
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))/g
         end do
@@ -272,7 +272,7 @@
 #ifdef MPP1
       do j = 1 , jendl
         do k = 1 , kx
-          qcailx(k,j) = qca(ilx,k,j)
+          qcailx(k,j) = qca(ixm1,k,j)
           qca01(k,j) = qca(1,k,j)
         end do
       end do
@@ -284,11 +284,11 @@
                     & mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kx
-          do j = 1 , mjx - 1
+          do j = 1 , jxm1
             tqadv = tqadv - dtmin*3.E4*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & *(qcailx_g(k,j)/psailx_g(j))                        &
-                  & /(msfx_io(ilx,j)*msfx_io(ilx,j))                    &
+                  & /(msfx_io(ixm1,j)*msfx_io(ixm1,j))                    &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & *(qca01_g(k,j)/psa01_g(j))                          &
                   & /(msfx_io(1,j)*msfx_io(1,j)))/g
@@ -298,10 +298,10 @@
       call mpi_bcast(tqadv,1,mpi_double_precision,0,mpi_comm_world,ierr)
 #else
       do k = 1 , kx
-        do j = 1 , jlx
+        do j = 1 , jxm1
           tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
                 & *dx*((va(ix,k,j+1)+va(ix,k,j))                        &
-                & *(qca(ilx,k,j)/psa(ilx,j))/(msfx(ilx,j)*msfx(ilx,j))  &
+                & *(qca(ixm1,k,j)/psa(ixm1,j))/(msfx(ixm1,j)*msfx(ixm1,j))  &
                 & -(va(1,k,j+1)+va(1,k,j))*(qca(1,k,j)/psa(1,j))        &
                 & /(msfx(1,j)*msfx(1,j)))/g
         end do

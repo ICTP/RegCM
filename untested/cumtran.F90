@@ -41,7 +41,7 @@
 #else
         do j = 2 , jx - 1
 #endif
-          do i = 2 , ix - 1
+          do i = 2 , ixm1
             if ( icumtop(i,j).gt.0 ) then
               deltas = 0.
               chiabar = 0.

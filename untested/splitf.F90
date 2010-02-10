@@ -73,64 +73,64 @@
 !
 !     this routine determines p(.) from p(x) by a 4-point interpolation.
 !     on the x-grid, a p(x) point outside the grid domain is assumed to
-!     satisfy p(0,j)=p(1,j); p(ix,j)=p(ix-1,j); and similarly for the
+!     satisfy p(0,j)=p(1,j); p(ix,j)=p(ixm1,j); and similarly for the
 !     i's.
 #ifdef MPP1
       call mpi_sendrecv(psa(1,jxp),ix,mpi_double_precision,ieast,1,     &
                       & psa(1,0),ix,mpi_double_precision,iwest,1,       &
                       & mpi_comm_world,status,ierr)
       do j = jbegin , jendx
-        do i = 2 , ilx
+        do i = 2 , ixm1
           psdot(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
                      & )
         end do
       end do
 #else
-      do j = 2 , jlx
-        do i = 2 , ilx
+      do j = 2 , jxm1
+        do i = 2 , ixm1
           psdot(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
                      & )
         end do
       end do
 #endif
 !
-      do i = 2 , ilx
+      do i = 2 , ixm1
 #ifdef MPP1
         if ( myid.eq.0 ) psdot(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
         if ( myid.eq.nproc-1 ) psdot(i,jendl)                           &
            & = 0.5*(psa(i,jendx)+psa(i-1,jendx))
 #else
         psdot(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
-        psdot(i,jx) = 0.5*(psa(i,jlx)+psa(i-1,jlx))
+        psdot(i,jx) = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
 #endif
       end do
 !
 #ifdef MPP1
       do j = jbegin , jendx
         psdot(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
-        psdot(ix,j) = 0.5*(psa(ilx,j)+psa(ilx,j-1))
+        psdot(ix,j) = 0.5*(psa(ixm1,j)+psa(ixm1,j-1))
       end do
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
         psdot(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
-        psdot(ix,j) = 0.5*(psa(ilx,j)+psa(ilx,j-1))
+        psdot(ix,j) = 0.5*(psa(ixm1,j)+psa(ixm1,j-1))
       end do
 #endif
 !
 #ifdef MPP1
       if ( myid.eq.0 ) then
         psdot(1,1) = psa(1,1)
-        psdot(ix,1) = psa(ilx,1)
+        psdot(ix,1) = psa(ixm1,1)
       end if
       if ( myid.eq.nproc-1 ) then
         psdot(1,jendl) = psa(1,jendx)
-        psdot(ix,jendl) = psa(ilx,jendx)
+        psdot(ix,jendl) = psa(ixm1,jendx)
       end if
 #else
       psdot(1,1) = psa(1,1)
-      psdot(ix,1) = psa(ilx,1)
-      psdot(1,jx) = psa(1,jlx)
-      psdot(ix,jx) = psa(ilx,jlx)
+      psdot(ix,1) = psa(ixm1,1)
+      psdot(1,jx) = psa(1,jxm1)
+      psdot(ix,jx) = psa(ixm1,jxm1)
 #endif
 !
 !=======================================================================
@@ -198,7 +198,7 @@
         do k = 1 , kx
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               fac = dx2*msfx(i,j)*msfx(i,j)
               deld(i,j,l,3) = deld(i,j,l,3) + zmatxr(l,k)               &
                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j) &
@@ -207,8 +207,8 @@
             end do
           end do
 #else
-          do j = 1 , jlx
-            do i = 1 , ilx
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               fac = dx2*msfx(i,j)*msfx(i,j)
               deld(i,j,l,3) = deld(i,j,l,3) + zmatxr(l,k)               &
                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j) &
@@ -282,7 +282,7 @@
         do k = 1 , kx
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               fac = dx2*msfx(i,j)*msfx(i,j)
               deld(i,j,l,2) = deld(i,j,l,2) + zmatxr(l,k)               &
                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j) &
@@ -291,8 +291,8 @@
             end do
           end do
 #else
-          do j = 1 , jlx
-            do i = 1 , ilx
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               fac = dx2*msfx(i,j)*msfx(i,j)
               deld(i,j,l,2) = deld(i,j,l,2) + zmatxr(l,k)               &
                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j) &
@@ -328,14 +328,14 @@
         eps1 = varpa1(l,kxp1)*sigmah(kxp1)/(sigmah(kxp1)*pd+pt)
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             eps = eps1*(psa(i,j)-pd)
             delh(i,j,l,3) = pdlog + eps
           end do
         end do
 #else
-        do j = 1 , jlx
-          do i = 1 , ilx
+        do j = 1 , jxm1
+          do i = 1 , ixm1
             eps = eps1*(psa(i,j)-pd)
             delh(i,j,l,3) = pdlog + eps
           end do
@@ -346,15 +346,15 @@
           eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+pt)
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               eps = eps1*(psa(i,j)-pd)
               delh(i,j,l,3) = delh(i,j,l,3) + pdlog + tau(l,k)*ta(i,k,j)&
                             & /psa(i,j) + eps
             end do
           end do
 #else
-          do j = 1 , jlx
-            do i = 1 , ilx
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               eps = eps1*(psa(i,j)-pd)
               delh(i,j,l,3) = delh(i,j,l,3) + pdlog + tau(l,k)*ta(i,k,j)&
                             & /psa(i,j) + eps
@@ -388,14 +388,14 @@
         eps1 = varpa1(l,kxp1)*sigmah(kxp1)/(sigmah(kxp1)*pd+pt)
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             eps = eps1*(psb(i,j)-pd)
             delh(i,j,l,2) = pdlog + eps
           end do
         end do
 #else
-        do j = 1 , jlx
-          do i = 1 , ilx
+        do j = 1 , jxm1
+          do i = 1 , ixm1
             eps = eps1*(psb(i,j)-pd)
             delh(i,j,l,2) = pdlog + eps
           end do
@@ -406,15 +406,15 @@
           eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+pt)
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               eps = eps1*(psb(i,j)-pd)
               delh(i,j,l,2) = delh(i,j,l,2) + pdlog + tau(l,k)*tb(i,k,j)&
                             & /psb(i,j) + eps
             end do
           end do
 #else
-          do j = 1 , jlx
-            do i = 1 , ilx
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               eps = eps1*(psb(i,j)-pd)
               delh(i,j,l,2) = delh(i,j,l,2) + pdlog + tau(l,k)*tb(i,k,j)&
                             & /psb(i,j) + eps
@@ -468,14 +468,14 @@
         gnuan = gnuhf*an(l)
 #ifdef MPP1
         do j = jbegin , jendm
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             psa(i,j) = psa(i,j) - an(l)*ddsum(i,j,l)
             psb(i,j) = psb(i,j) - gnuan*ddsum(i,j,l)
           end do
         end do
 #else
-        do j = 2 , jlxm
-          do i = 2 , ilxm
+        do j = 2 , jxm2
+          do i = 2 , ixm2
             psa(i,j) = psa(i,j) - an(l)*ddsum(i,j,l)
             psb(i,j) = psb(i,j) - gnuan*ddsum(i,j,l)
           end do
@@ -487,14 +487,14 @@
           gnuam = gnuhf*am(k,l)
 #ifdef MPP1
           do j = jbegin , jendm
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               ta(i,k,j) = ta(i,k,j) + am(k,l)*ddsum(i,j,l)
               tb(i,k,j) = tb(i,k,j) + gnuam*ddsum(i,j,l)
             end do
           end do
 #else
-          do j = 2 , jlxm
-            do i = 2 , ilxm
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               ta(i,k,j) = ta(i,k,j) + am(k,l)*ddsum(i,j,l)
               tb(i,k,j) = tb(i,k,j) + gnuam*ddsum(i,j,l)
             end do
@@ -527,7 +527,7 @@
           gnuzm = gnuhf*zmatx(k,l)
 #ifdef MPP1
           do j = jbegin , jendx
-            do i = 2 , ilx
+            do i = 2 , ixm1
               fac = psdot(i,j)/(dx2*msfd(i,j))
               x = fac*(dhsum(i,j,l)+dhsum(i-1,j,l)-dhsum(i,j-1,l)       &
                 & -dhsum(i-1,j-1,l))
@@ -541,8 +541,8 @@
             end do
           end do
 #else
-          do j = 2 , jlx
-            do i = 2 , ilx
+          do j = 2 , jxm1
+            do i = 2 , ixm1
               fac = psdot(i,j)/(dx2*msfd(i,j))
               x = fac*(dhsum(i,j,l)+dhsum(i-1,j,l)-dhsum(i,j-1,l)       &
                 & -dhsum(i-1,j-1,l))

@@ -75,14 +75,14 @@
 !
 #ifdef MPP1
       do j = jbegin , jendx
-        do i = 2 , ilx
+        do i = 2 , ixm1
           pdota(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
                      & )
         end do
       end do
 #else
-      do j = 2 , jlx
-        do i = 2 , ilx
+      do j = 2 , jxm1
+        do i = 2 , ixm1
           pdota(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
                      & )
         end do
@@ -91,14 +91,14 @@
 !
 !-----east and west boundaries:
 !
-      do i = 2 , ilx
+      do i = 2 , ixm1
 #ifdef MPP1
         if ( myid.eq.0 ) pdota(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
         if ( myid.eq.nproc-1 ) pdota(i,jendl)                           &
            & = 0.5*(psa(i,jendx)+psa(i-1,jendx))
 #else
         pdota(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
-        pdota(i,jx) = 0.5*(psa(i,jlx)+psa(i-1,jlx))
+        pdota(i,jx) = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
 #endif
       end do
 !
@@ -107,12 +107,12 @@
 #ifdef MPP1
       do j = jbegin , jendx
         pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
-        pdota(ix,j) = 0.5*(psa(ilx,j)+psa(ilx,j-1))
+        pdota(ix,j) = 0.5*(psa(ixm1,j)+psa(ixm1,j-1))
       end do
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
         pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
-        pdota(ix,j) = 0.5*(psa(ilx,j)+psa(ilx,j-1))
+        pdota(ix,j) = 0.5*(psa(ixm1,j)+psa(ixm1,j-1))
       end do
 #endif
 !
@@ -121,17 +121,17 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
         pdota(1,1) = psa(1,1)
-        pdota(ix,1) = psa(ilx,1)
+        pdota(ix,1) = psa(ixm1,1)
       end if
       if ( myid.eq.nproc-1 ) then
         pdota(1,jendl) = psa(1,jendx)
-        pdota(ix,jendl) = psa(ilx,jendx)
+        pdota(ix,jendl) = psa(ixm1,jendx)
       end if
 #else
       pdota(1,1) = psa(1,1)
-      pdota(ix,1) = psa(ilx,1)
-      pdota(1,jx) = psa(1,jlx)
-      pdota(ix,jx) = psa(ilx,jlx)
+      pdota(ix,1) = psa(ixm1,1)
+      pdota(1,jx) = psa(1,jxm1)
+      pdota(ix,jx) = psa(ixm1,jxm1)
 #endif
 !=======================================================================
 !
@@ -141,7 +141,7 @@
 !
 !.....for j = 2 and j = jlx :
 !
-        do i = 2 , ilx
+        do i = 2 , ixm1
 #ifdef MPP1
           if ( myid.eq.0 ) then
             uj2(i,k) = ua(i,k,2)/pdota(i,2)
@@ -154,26 +154,26 @@
 #else
           uj2(i,k) = ua(i,k,2)/pdota(i,2)
           vj2(i,k) = va(i,k,2)/pdota(i,2)
-          ujlx(i,k) = ua(i,k,jlx)/pdota(i,jlx)
-          vjlx(i,k) = va(i,k,jlx)/pdota(i,jlx)
+          ujlx(i,k) = ua(i,k,jxm1)/pdota(i,jxm1)
+          vjlx(i,k) = va(i,k,jxm1)/pdota(i,jxm1)
 #endif
         end do
 !
-!.....for i = 2 and i = ilx :
+!.....for i = 2 and i = ixm1 :
 !
 #ifdef MPP1
         do j = jbegin , jendx
           ui2(k,j) = ua(2,k,j)/pdota(2,j)
           vi2(k,j) = va(2,k,j)/pdota(2,j)
-          uilx(k,j) = ua(ilx,k,j)/pdota(ilx,j)
-          vilx(k,j) = va(ilx,k,j)/pdota(ilx,j)
+          uilx(k,j) = ua(ixm1,k,j)/pdota(ixm1,j)
+          vilx(k,j) = va(ixm1,k,j)/pdota(ixm1,j)
         end do
 #else
-        do j = 2 , jlx
+        do j = 2 , jxm1
           ui2(k,j) = ua(2,k,j)/pdota(2,j)
           vi2(k,j) = va(2,k,j)/pdota(2,j)
-          uilx(k,j) = ua(ilx,k,j)/pdota(ilx,j)
-          vilx(k,j) = va(ilx,k,j)/pdota(ilx,j)
+          uilx(k,j) = ua(ixm1,k,j)/pdota(ixm1,j)
+          vilx(k,j) = va(ixm1,k,j)/pdota(ixm1,j)
         end do
 #endif
 !
@@ -284,21 +284,21 @@
           uj2(1,k) = ui1(k,2)
           uj2(ix,k) = uil(k,2)
           ui2(k,1) = uj1(2,k)
-          uilx(k,1) = uj1(ilx,k)
+          uilx(k,1) = uj1(ixm1,k)
           vj2(1,k) = vi1(k,2)
           vj2(ix,k) = vil(k,2)
           vi2(k,1) = vj1(2,k)
-          vilx(k,1) = vj1(ilx,k)
+          vilx(k,1) = vj1(ixm1,k)
         end if
         if ( myid.eq.nproc-1 ) then
           ujlx(1,k) = ui1(k,jendx)
           ujlx(ix,k) = uil(k,jendx)
           ui2(k,jendl) = ujl(2,k)
-          uilx(k,jendl) = ujl(ilx,k)
+          uilx(k,jendl) = ujl(ixm1,k)
           vjlx(1,k) = vi1(k,jendx)
           vjlx(ix,k) = vil(k,jendx)
           vi2(k,jendl) = vjl(2,k)
-          vilx(k,jendl) = vjl(ilx,k)
+          vilx(k,jendl) = vjl(ixm1,k)
         end if
       end do
       if ( myid.ne.nproc-1 ) then
@@ -361,19 +361,19 @@
         uj2(1,k) = ui1(k,2)
         uj2(ix,k) = uil(k,2)
         ui2(k,1) = uj1(2,k)
-        uilx(k,1) = uj1(ilx,k)
+        uilx(k,1) = uj1(ixm1,k)
         vj2(1,k) = vi1(k,2)
         vj2(ix,k) = vil(k,2)
         vi2(k,1) = vj1(2,k)
-        vilx(k,1) = vj1(ilx,k)
-        ujlx(1,k) = ui1(k,jlx)
-        ujlx(ix,k) = uil(k,jlx)
+        vilx(k,1) = vj1(ixm1,k)
+        ujlx(1,k) = ui1(k,jxm1)
+        ujlx(ix,k) = uil(k,jxm1)
         ui2(k,jx) = ujl(2,k)
-        uilx(k,jx) = ujl(ilx,k)
-        vjlx(1,k) = vi1(k,jlx)
-        vjlx(ix,k) = vil(k,jlx)
+        uilx(k,jx) = ujl(ixm1,k)
+        vjlx(1,k) = vi1(k,jxm1)
+        vjlx(ix,k) = vil(k,jxm1)
         vi2(k,jx) = vjl(2,k)
-        vilx(k,jx) = vjl(ilx,k)
+        vilx(k,jx) = vjl(ixm1,k)
       end do
 #endif
 !

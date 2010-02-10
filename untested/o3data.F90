@@ -51,14 +51,14 @@
 !
 !     calculate half pressure levels for model and data levels
 !
-      klevp1 = kx + 1
+      klevp1 = kxp1
 !
 #ifdef MPP1
       do j = 1 , jendx
 #else
-      do j = 1 , jlx
+      do j = 1 , jxm1
 #endif
-        do i = 1 , ilx
+        do i = 1 , ixm1
           do k = klevp1 , 1 , -1
             kj = klevp1 - k + 1
             prlevh(kj) = (sigma(k)*psb(i,j)+ptop)*10.

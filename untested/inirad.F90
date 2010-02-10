@@ -34,14 +34,14 @@
         do k = 1 , kx
 #ifdef MPP1
           do j = 1 , jendl
-            do i = 1 , ix - 1
+            do i = 1 , ixm1
               heatrt(i,k,j) = 0.
               o3prof(i,k,j) = 0.
             end do
           end do
 #else
           do j = 1 , jx - 1
-            do i = 1 , ix - 1
+            do i = 1 , ixm1
               heatrt(i,k,j) = 0.
               o3prof(i,k,j) = 0.
             end do
@@ -50,13 +50,13 @@
         end do
 #ifdef MPP1
         do j = 1 , jendl
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             o3prof(i,kxp1,j) = 0.
           end do
         end do
 #else
         do j = 1 , jx - 1
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             o3prof(i,kxp1,j) = 0.
           end do
         end do
@@ -65,13 +65,13 @@
 #ifdef MPP1
         if ( myid.eq.0 ) then
           print * , 'ozone profiles'
-          do k = 1 , kx + 1
+          do k = 1 , kxp1
             write (6,99001) o3prof(3,k,3)
           end do
         end if
 #else
         print * , 'ozone profiles'
-        do k = 1 , kx + 1
+        do k = 1 , kxp1
           write (6,99001) o3prof(3,k,3)
         end do
 #endif

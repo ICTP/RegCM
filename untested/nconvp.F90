@@ -62,7 +62,7 @@
       do j = 1 , jx - 1
 #endif
         do k = 1 , kx
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             tavg = 0.5*(ta(i,k,j)/psa(i,j)+tb(i,k,j)/psb(i,j))
             tpavg = 0.5*(ta(i,k,j)+tb(i,k,j))
             qvavg = 0.5*(qva(i,k,j)/psa(i,j)+qvb(i,k,j)/psb(i,j))
@@ -83,7 +83,7 @@
         end do
 !
         do k = 1 , kx
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             qcavg = dmin1(qca(i,k,j)/psa(i,j),qcb(i,k,j)/psb(i,j))
             exces = qcavg + scr(i,k)
             if ( exces.ge.0. ) then
@@ -99,7 +99,7 @@
         end do
 !
         do k = 1 , kx
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             qvas = qva(i,k,j) - scr(i,k)*psa(i,j)
             qvbs = qvb(i,k,j) - scr(i,k)*psb(i,j)
             qva(i,k,j) = dmax1(qvas,1.D-99)
@@ -115,7 +115,7 @@
         if ( .not.((myid.eq.0 .and. j.eq.1) .or. (myid.eq.nproc-1 .and. &
            & j.eq.jxp-1)) ) then
 #else
-        if ( j.ne.1 .and. j.ne.jx-1 ) then
+        if ( j.ne.1 .and. j.ne.jxm1 ) then
 #endif
 !
           do k = 1 , kx
@@ -127,6 +127,6 @@
           end do
         end if
 !
-      end do     !end j=1,jx-1 loop
+      end do     !end j=1,jxm1 loop
 !
       end subroutine nconvp

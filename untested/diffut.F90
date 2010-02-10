@@ -40,10 +40,10 @@
 !                                                                     c
 !     j      : j'th slice of variable tb3d                            c
 !                                                                     c
-!     iend   : = ilxm for cross-point vaeiables                       c
-!              = ilx  for dot-point   variables                       c
+!     iend   : = ixm2 for cross-point vaeiables                       c
+!              = ixm1  for dot-point   variables                       c
 !                                                                     c
-!     jend   : = jlxm for cross-point variables                       c
+!     jend   : = jxm2 for cross-point variables                       c
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -72,12 +72,12 @@
       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
          & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
 #else
-      if ( j.eq.2 .or. j.eq.jlxm ) then
+      if ( j.eq.2 .or. j.eq.jxm2 ) then
 #endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k) + xkc(i,k)                            &
                       & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)&
                       & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
@@ -88,7 +88,7 @@
 !
 !......fourth-order scheme for interior:
         do k = 1 , kx
-          do i = 3 , ilxm - 1
+          do i = 3 , ixm3
             ften(i,k) = ften(i,k) - xkc(i,k)                            &
                       & *c203*(tb3d(i,k,j+2)+tb3d(i,k,j-2)+tb3d(i+2,k,j)&
                       & +tb3d(i-2,k,j)                                  &
@@ -103,7 +103,7 @@
                     & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
                     & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
         end do
-        i = ilxm
+        i = ixm2
         do k = 1 , kx
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
@@ -136,10 +136,10 @@
 !                                                                     c
 !     j      : j'th slice of variable qvb3d                           c
 !                                                                     c
-!     iend   : = ilxm for cross-point vaeiables                       c
-!              = ilx  for dot-point   variables                       c
+!     iend   : = ixm2 for cross-point vaeiables                       c
+!              = ixm1  for dot-point   variables                       c
 !                                                                     c
-!     jend   : = jlxm for cross-point variables                       c
+!     jend   : = jxm2 for cross-point variables                       c
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -167,12 +167,12 @@
       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
          & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
 #else
-      if ( j.eq.2 .or. j.eq.jlxm ) then
+      if ( j.eq.2 .or. j.eq.jxm2 ) then
 #endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k) + xkc(i,k)                            &
                       & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)            &
                       & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j)) &
@@ -184,7 +184,7 @@
 !
 !......fourth-order scheme for interior:
         do k = 1 , kx
-          do i = 3 , ilxm - 1
+          do i = 3 , ixm3
             ften(i,k) = ften(i,k) - xkc(i,k)                            &
                       & *c203*(qvb3d(i,k,j+2)+qvb3d(i,k,j-2)            &
                       & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
@@ -201,7 +201,7 @@
                     & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
                     & *psb(i,j)
         end do
-        i = ilxm
+        i = ixm2
         do k = 1 , kx
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
@@ -235,10 +235,10 @@
 !                                                                     c
 !     j      : j'th slice of variable qcb3d                           c
 !                                                                     c
-!     iend   : = ilxm for cross-point vaeiables                       c
-!              = ilx  for dot-point   variables                       c
+!     iend   : = ixm2 for cross-point vaeiables                       c
+!              = ixm1  for dot-point   variables                       c
 !                                                                     c
-!     jend   : = jlxm for cross-point variables                       c
+!     jend   : = jxm2 for cross-point variables                       c
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -266,12 +266,12 @@
       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
          & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
 #else
-      if ( j.eq.2 .or. j.eq.jlxm ) then
+      if ( j.eq.2 .or. j.eq.jxm2 ) then
 #endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k) + xkc(i,k)                            &
                       & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)            &
                       & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j)) &
@@ -283,7 +283,7 @@
 !
 !......fourth-order scheme for interior:
         do k = 1 , kx
-          do i = 3 , ilxm - 1
+          do i = 3 , ixm3
             ften(i,k) = ften(i,k) - xkc(i,k)                            &
                       & *c203*(qcb3d(i,k,j+2)+qcb3d(i,k,j-2)            &
                       & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
@@ -300,7 +300,7 @@
                     & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
                     & *psb(i,j)
         end do
-        i = ilxm
+        i = ixm2
         do k = 1 , kx
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
@@ -334,10 +334,10 @@
 !                                                                     c
 !     j      : j'th slice of variable chib3d                          c
 !                                                                     c
-!     iend   : = ilxm for cross-point vaeiables                       c
-!              = ilx  for dot-point   variables                       c
+!     iend   : = ixm2 for cross-point vaeiables                       c
+!              = ixm1  for dot-point   variables                       c
 !                                                                     c
-!     jend   : = jlxm for cross-point variables                       c
+!     jend   : = jxm2 for cross-point variables                       c
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -365,12 +365,12 @@
       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
          & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
 #else
-      if ( j.eq.2 .or. j.eq.jlxm ) then
+      if ( j.eq.2 .or. j.eq.jxm2 ) then
 #endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             ften(i,k) = ften(i,k) + xkc(i,k)                            &
                       & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)      &
                       & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)            &
@@ -382,7 +382,7 @@
 !
 !......fourth-order scheme for interior:
         do k = 1 , kx
-          do i = 3 , ilxm - 1
+          do i = 3 , ixm3
             ften(i,k) = ften(i,k) - xkc(i,k)                            &
                       & *c203*(chib3d(i,k,j+2,n)+chib3d(i,k,j-2,n)      &
                       & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
@@ -399,7 +399,7 @@
                     & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
                     & -4.*chib3d(i,k,j,n))*psb(i,j)
         end do
-        i = ilxm
+        i = ixm2
         do k = 1 , kx
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &

@@ -43,19 +43,19 @@
       integer :: i , j , k
       real(4) , dimension(kxp1) :: sp1d
 #ifdef MPP1
-      real(4) , dimension(mjx-2,ix-2) :: fout
+      real(4) , dimension(jxm2,ixm2) :: fout
 #else
-      real(4) , dimension(jx-2,ix-2) :: fout
+      real(4) , dimension(jxm2,ixm2) :: fout
 #endif
 !
 !-----output large-domain variables:
 !
 #ifdef MPP1
-      open (20,file='output/OUT_HEAD',form='unformatted',recl=(ix-2)    &
-          & *(mjx-2)*ibyte,access='direct')
+      open (20,file='output/OUT_HEAD',form='unformatted',recl=(ixm2)    &
+          & *(jxm2)*ibyte,access='direct')
 #else
-      open (20,file='output/OUT_HEAD',form='unformatted',recl=(ix-2)    &
-          & *(jx-2)*ibyte,access='direct')
+      open (20,file='output/OUT_HEAD',form='unformatted',recl=(ixm2)    &
+          & *(jxm2)*ibyte,access='direct')
 #endif
       do k = 1 , kxp1
         sp1d(k) = sigma(kxp1-k+1)
@@ -66,7 +66,7 @@
       dtc = chemfrq
 #ifdef MPP1
       write (20,rec=1) mdate0 , ibltyp , icup , ipptls , iboudy , ix ,  &
-                     & mjx , kx , sp1d , dxsp , ptsp , clat , clon ,    &
+                     & jx , kx , sp1d , dxsp , ptsp , clat , clon ,     &
                      & plat , plon , proj , dto , dtb , dtr , dtc ,     &
                      & iotyp
 #else
@@ -78,7 +78,7 @@
 
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = ht_io(i+1,j+1)/g
         end do
 #else
@@ -90,7 +90,7 @@
       write (20,rec=2) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = htsd_io(i+1,j+1)
         end do
 #else
@@ -102,7 +102,7 @@
       write (20,rec=3) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = veg2d_io(i+1,j+1)
         end do
 #else
@@ -114,7 +114,7 @@
       write (20,rec=4) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = satbrt_io(i+1,j+1)
         end do
 #else
@@ -126,7 +126,7 @@
       write (20,rec=5) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = xlat_io(i+1,j+1)
         end do
 #else
@@ -138,7 +138,7 @@
       write (20,rec=6) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = xlong_io(i+1,j+1)
         end do
 #else
@@ -150,7 +150,7 @@
       write (20,rec=7) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = 1./msfx_io(i+1,j+1)
         end do
 #else
@@ -162,7 +162,7 @@
       write (20,rec=8) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = 1./msfd_io(i+1,j+1)
         end do
 #else
@@ -174,7 +174,7 @@
       write (20,rec=9) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = f_io(i+1,j+1)
         end do
 #else
@@ -186,7 +186,7 @@
       write (20,rec=10) fout
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           if ( satbrt_io(i+1,j+1).gt.13.5 .and. satbrt_io(i+1,j+1)      &
              & .lt.15.5 ) then
             fout(j,i) = 0.

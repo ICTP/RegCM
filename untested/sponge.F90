@@ -34,7 +34,7 @@
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -62,7 +62,7 @@
 !
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx - jsls
+      jj = jx - jsls
       if ( jj.le.ip ) jsls = jj
       jwb = jsls
       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
@@ -92,7 +92,7 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ilx - 1
+        iend = ixm1 - 1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
             ii = ix - i
@@ -152,7 +152,7 @@
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -181,7 +181,7 @@
 !
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx - jsls
+      jj = jx - jsls
       if ( jj.le.ip ) jsls = jj
       jwb = jsls
       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
@@ -213,7 +213,7 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ilx - 1
+        iend = ixm1 - 1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
             ii = ix - i
@@ -281,7 +281,7 @@
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -310,7 +310,7 @@
 !
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx - jsls
+      jj = jx - jsls
       if ( jj.le.ip ) jsls = jj
       jwb = jsls
       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
@@ -342,7 +342,7 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ilx - 1
+        iend = ixm1 - 1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
             ii = ix - i
@@ -409,7 +409,7 @@
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -439,14 +439,14 @@
 !
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx + 1 - jsls
+      jj = jxp1 - jsls
       if ( jj.le.ip ) jsls = jj
       jew = jsls
       if ( jew.gt.jxp ) jew = mod(jsls,jxp)
       if ( jew.eq.0 ) jew = jxp
 #else
       jsls = j
-      jj = jx + 1 - jsls
+      jj = jxp1 - jsls
       if ( jj.le.ip ) jsls = jj
 #endif
 !
@@ -464,7 +464,7 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ix - 1
+        iend = ixm1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
             ii = ix - i + 1
@@ -531,7 +531,7 @@
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -560,14 +560,14 @@
 !
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx + 1 - jsls
+      jj = jxp1 - jsls
       if ( jj.le.ip ) jsls = jj
       jew = jsls
       if ( jew.gt.jxp ) jew = mod(jsls,jxp)
       if ( jew.eq.0 ) jew = jxp
 #else
       jsls = j
-      jj = jx + 1 - jsls
+      jj = jxp1 - jsls
       if ( jj.le.ip ) jsls = jj
 #endif
 !
@@ -585,7 +585,7 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ix - 1
+        iend = ixm1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
             ii = ix - i + 1

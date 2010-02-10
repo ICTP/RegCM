@@ -82,7 +82,7 @@
         end do
       end do
 !chem2_
-      do i = 2 , ilxm
+      do i = 2 , ixm2
  
         afc = fcc(i,1,j)                                      ![frac][avg]
  
@@ -150,7 +150,7 @@
 !     ****  LAYER TWO TO KL ****
 !     1b. Perform computations for the 2nd layer to the surface
       do k = 2 , kx
-        do i = 2 , ilxm
+        do i = 2 , ixm2
  
 !         1ba. Compute temperature and humidities with the adjustments
 !         due to convection.
@@ -259,7 +259,7 @@
 !--------------------------------------------------------------------
       if ( ichem.eq.1 ) then
         uch = 1000./g*3600.
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           rembc(i,1) = 0.
           do k = 2 , kx
             rembc(i,k) = 0.
@@ -284,7 +284,7 @@
       uconv = 60.*dtmin
       aprdiv = 1./dble(nbatst)
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         rainnc(i,j) = rainnc(i,j) + pptsum(i)*uconv
         pptnc(i,j) = pptnc(i,j) + pptsum(i)*aprdiv
       end do

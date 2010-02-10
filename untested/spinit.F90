@@ -99,16 +99,16 @@
       end do
       pt = ptop
 #ifdef MPP1
-      ijlx = ilx*jendx
+      ijlx = ixm1*jendx
       do j = 1 , jendx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           ps = ps + psa(i,j)/ijlx
         end do
       end do
 #else
-      ijlx = ilx*jlx
-      do j = 1 , jlx
-        do i = 1 , ilx
+      ijlx = ixm1*jxm1
+      do j = 1 , jxm1
+        do i = 1 , ixm1
           ps = ps + psa(i,j)/ijlx
         end do
       end do
@@ -116,13 +116,13 @@
       do k = 1 , kx
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
           end do
         end do
 #else
-        do j = 1 , jlx
-          do i = 1 , ilx
+        do j = 1 , jxm1
+          do i = 1 , ixm1
             tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
           end do
         end do
@@ -194,7 +194,7 @@
           read (iutrs) ui1_io , ui2_io , uilx_io , uil_io
           read (iutrs) vj1 , vj2 , vjlx , vjl
           read (iutrs) vi1_io , vi2_io , vilx_io , vil_io
-          do j = 1 , mjx
+          do j = 1 , jx
             do n = 1 , nsplit
               do i = 1 , ix
                 sav_0d(i,n,j) = dstor_io(i,j,n)
@@ -202,7 +202,7 @@
               end do
             end do
           end do
-          do j = 1 , mjx
+          do j = 1 , jx
             do k = 1 , kx
               sav_6(k,1,j) = ui1_io(k,j)
               sav_6(k,2,j) = ui2_io(k,j)
@@ -374,7 +374,7 @@
           do k = 1 , kx
 #ifdef MPP1
             do j = 1 , jendx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 fac = dx2*msfx(i,j)*msfx(i,j)
                 dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k)               &
                              & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)&
@@ -383,8 +383,8 @@
               end do
             end do
 #else
-            do j = 1 , jlx
-              do i = 1 , ilx
+            do j = 1 , jxm1
+              do i = 1 , ixm1
                 fac = dx2*msfx(i,j)*msfx(i,j)
                 dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k)               &
                              & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)&
@@ -404,14 +404,14 @@
           eps1 = varpa1(l,kxp1)*sigmah(kxp1)/(sigmah(kxp1)*pd+pt)
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               eps = eps1*(psb(i,j)-pd)
               hstor(i,j,l) = pdlog + eps
             end do
           end do
 #else
-          do j = 1 , jlx
-            do i = 1 , ilx
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               eps = eps1*(psb(i,j)-pd)
               hstor(i,j,l) = pdlog + eps
             end do
@@ -422,15 +422,15 @@
             eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+pt)
 #ifdef MPP1
             do j = 1 , jendx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 eps = eps1*(psb(i,j)-pd)
                 hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&
                              & /psb(i,j) + eps
               end do
             end do
 #else
-            do j = 1 , jlx
-              do i = 1 , ilx
+            do j = 1 , jxm1
+              do i = 1 , ixm1
                 eps = eps1*(psb(i,j)-pd)
                 hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&
                              & /psb(i,j) + eps

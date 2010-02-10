@@ -62,7 +62,7 @@
 !
 #ifdef MPP1
       do jll = 1 , jendx
-        do ill = 1 , ix - 1
+        do ill = 1 , ixm1
           pptnc(ill,jll) = 0.
           pptc(ill,jll) = 0.
 !MM4      ist=nint(satbrt(ill,jll))
@@ -79,7 +79,7 @@
         end do
       end do
       do jll = 1 , jendx
-        do ill = 1 , ix - 1
+        do ill = 1 , ixm1
           do k = 1 , nnsg
             veg2d1(k,ill,jll) = satbrt1(k,ill,jll)
             if ( satbrt1(k,ill,jll).gt.13.9 .and. satbrt1(k,ill,jll)    &
@@ -89,7 +89,7 @@
       end do
 #else
       do jll = 1 , jx - 1
-        do ill = 1 , ix - 1
+        do ill = 1 , ixm1
           pptnc(ill,jll) = 0.
           pptc(ill,jll) = 0.
 !MM4      ist=nint(satbrt(ill,jll))
@@ -106,7 +106,7 @@
         end do
       end do
       do jll = 1 , jx - 1
-        do ill = 1 , ix - 1
+        do ill = 1 , ixm1
           do k = 1 , nnsg
             veg2d1(k,ill,jll) = satbrt1(k,ill,jll)
             if ( satbrt1(k,ill,jll).gt.13.9 .and. satbrt1(k,ill,jll)    &
@@ -118,9 +118,9 @@
  
 !     ******  initialize hostetler lake model
 #ifdef MPP1
-      if ( lakemod.eq.1 ) call initlk(veg2d1,(ix-1)*nsg,jxp*nsg)
+      if ( lakemod.eq.1 ) call initlk(veg2d1,(ixm1)*nsg,jxp*nsg)
       do jll = 1 , jendx
-        do ill = 1 , ix - 1
+        do ill = 1 , ixm1
           do k = 1 , nnsg
             if ( veg2d1(k,ill,jll).lt.0.5 ) then
               ocld2d(k,ill,jll) = 0.
@@ -161,10 +161,10 @@
         end do
       end do
 #else
-      if ( lakemod.eq.1 ) call initlk(veg2d1,(ix-1)*nsg,(jx-1)*nsg)
+      if ( lakemod.eq.1 ) call initlk(veg2d1,(ixm1)*nsg,(jxm1)*nsg)
 
       do jll = 1 , jx - 1
-        do ill = 1 , ix - 1
+        do ill = 1 , ixm1
           do k = 1 , nnsg
             if ( veg2d1(k,ill,jll).lt.0.5 ) then
               ocld2d(k,ill,jll) = 0.
@@ -208,7 +208,7 @@
  
 #ifdef MPP1
       do jll = 1 , jendx
-        do ill = 1 , ix - 1
+        do ill = 1 , ixm1
           fsw2d(ill,jll) = 0.
           flw2d(ill,jll) = 0.
           sabv2d(ill,jll) = 0.
@@ -223,7 +223,7 @@
       end do
 #else
       do jll = 1 , jx - 1
-        do ill = 1 , ix - 1
+        do ill = 1 , ixm1
           fsw2d(ill,jll) = 0.
           flw2d(ill,jll) = 0.
           sabv2d(ill,jll) = 0.

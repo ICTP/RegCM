@@ -801,9 +801,9 @@
 !chem2      define convection  base and top for tracers
             if ( ichem.eq.1 ) then
               if ( ktop(i).gt.1 .and. k22(i).ge.1 ) then
-                icumtop(i,jslc) = kx + 1 - ktop(i)
-                icumbot(i,jslc) = kx + 1 - k22(i)
-                icumdwd(i,jslc) = kx + 1 - jmin(i)
+                icumtop(i,jslc) = kxp1 - ktop(i)
+                icumbot(i,jslc) = kxp1 - k22(i)
+                icumdwd(i,jslc) = kxp1 - jmin(i)
               end if
             end if
 !chem2_

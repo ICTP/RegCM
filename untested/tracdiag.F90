@@ -43,22 +43,22 @@
 !
 #ifdef MPP1
       integer :: ierr
-      real(8) , dimension(kx,ntr,jxp) :: chia01 , chia02 , chiailx ,    &
-           & chiailx1
-      real(8) , dimension(kx,ntr,mjx) :: chia01_g , chia02_g ,          &
-           & chiailx1_g , chiailx_g
-      real(8) , dimension(jxp) :: psa01 , psa02 , psailx , psailx1
-      real(8) , dimension(mjx) :: psa01_g , psa02_g , psailx1_g ,       &
-                                & psailx_g
-      real(8) , dimension(kx,jxp) :: va02 , vailx , xkc02 , xkcilx1
-      real(8) , dimension(kx,mjx) :: va02_g , vailx_g , xkc02_g ,       &
-                                   & xkcilx1_g
+      real(8) , dimension(kx,ntr,jxp) :: chia01 , chia02 , chiaill ,    &
+           & chiaill1
+      real(8) , dimension(kx,ntr,jx) :: chia01_g , chia02_g ,          &
+           & chiaill1_g , chiaill_g
+      real(8) , dimension(jxp) :: psa01 , psa02 , psaill , psaill1
+      real(8) , dimension(jx) :: psa01_g , psa02_g , psaill1_g ,       &
+                                & psaill_g
+      real(8) , dimension(kx,jxp) :: va02 , vaill , xkc02 , xkcill1
+      real(8) , dimension(kx,jx) :: va02_g , vaill_g , xkc02_g ,       &
+                                   & xkcill1_g
       real(8) :: chid1 , chid2
 #endif
       real(8) :: fact1 , fact2 , fx1 , fx2 , uavg1 , uavg2 , vavg1 ,    &
            &  vavg2
       integer :: i , j , k , n
-      real(8) , dimension(ilx,kx,ntr) :: worka , workb
+      real(8) , dimension(ixm1,kx,ntr) :: worka , workb
 !
 !     real(kind=8)  chixp1,chixm1,chiyp1,chiym1,chi00,chidx,chidy
 !     real(kind=8)  chixp2,chixm2,chiyp2,chiym2
@@ -82,7 +82,7 @@
 #ifdef MPP1
       do n = 1 , ntr
         do k = 1 , kx
-          do i = 1 + 1 , ilx - 1
+          do i = 2 , ixm2
             if ( myid.eq.nproc-1 ) then
               uavg2 = 0.5*(ua(i+1,k,jendx)+ua(i,k,jendx))
               if ( uavg2.lt.0. ) then
@@ -114,23 +114,23 @@
           end do
         end do
       end do
-      call mpi_bcast(worka,ilx*kx*ntr,mpi_double_precision,nproc-1,     &
+      call mpi_bcast(worka,ixm1*kx*ntr,mpi_double_precision,nproc-1,    &
                    & mpi_comm_world,ierr)
 #else
       do n = 1 , ntr
         do k = 1 , kx
-          do i = 1 + 1 , ilx - 1
-            uavg2 = 0.5*(ua(i+1,k,jx-1)+ua(i,k,jx-1))
+          do i = 2 , ixm2
+            uavg2 = 0.5*(ua(i+1,k,jxm1)+ua(i,k,jxm1))
             if ( uavg2.lt.0. ) then
-              worka(i,k,n) = -uavg2*(fact1*chia(i,k,jx-1,n)/psa(i,jx-1) &
-                           & /(msfx(i,jx-1)*msfx(i,jx-1))               &
-                           & +fact2*chia(i,k,jlx-1,n)/psa(i,jlx-1)      &
-                           & /(msfx(i,jlx-1)*msfx(i,jlx-1)))
+              worka(i,k,n) = -uavg2*(fact1*chia(i,k,jxm1,n)/psa(i,jxm1) &
+                           & /(msfx(i,jxm1)*msfx(i,jxm1))               &
+                           & +fact2*chia(i,k,jxm2,n)/psa(i,jxm2)      &
+                           & /(msfx(i,jxm2)*msfx(i,jxm2)))
             else
-              worka(i,k,n) = -uavg2*(fact1*chia(i,k,jlx-1,n)/psa(i,jlx-1&
-                           & )/(msfx(i,jlx-1)*msfx(i,jlx-1))            &
-                           & +fact2*chia(i,k,jx-1,n)/psa(i,jx-1)        &
-                           & /(msfx(i,jx-1)*msfx(i,jx-1)))
+              worka(i,k,n) = -uavg2*(fact1*chia(i,k,jxm2,n)/psa(i,jxm2&
+                           & )/(msfx(i,jxm2)*msfx(i,jxm2))            &
+                           & +fact2*chia(i,k,jxm1,n)/psa(i,jxm1)        &
+                           & /(msfx(i,jxm1)*msfx(i,jxm1)))
             end if
  
             uavg1 = 0.5*(ua(i+1,k,1+1)+ua(i,k,1+1))
@@ -152,38 +152,38 @@
 #ifdef MPP1
       do j = 1 , jendl
         do k = 1 , kx
-          vailx(k,j) = va(ilx,k,j)
+          vaill(k,j) = va(ixm1,k,j)
           va02(k,j) = va(2,k,j)
-          xkcilx1(k,j) = xkc(ix-2,k,j)
+          xkcill1(k,j) = xkc(ixm2,k,j)
           xkc02(k,j) = xkc(2,k,j)
           do n = 1 , ntr
-            chiailx(k,n,j) = chia(ilx,k,j,n)
-            chiailx1(k,n,j) = chia(ix-2,k,j,n)
+            chiaill(k,n,j) = chia(ixm1,k,j,n)
+            chiaill1(k,n,j) = chia(ixm2,k,j,n)
             chia01(k,n,j) = chia(1,k,j,n)
             chia02(k,n,j) = chia(2,k,j,n)
           end do
         end do
-        psailx(j) = psa(ilx,j)
-        psailx1(j) = psa(ix-2,j)
+        psaill(j) = psa(ixm1,j)
+        psaill1(j) = psa(ixm2,j)
         psa01(j) = psa(1,j)
         psa02(j) = psa(2,j)
       end do
-      call mpi_gather(vailx(1,1),kx*jxp,mpi_double_precision,           &
-                    & vailx_g(1,1),kx*jxp,mpi_double_precision,0,       &
+      call mpi_gather(vaill(1,1),kx*jxp,mpi_double_precision,           &
+                    & vaill_g(1,1),kx*jxp,mpi_double_precision,0,       &
                     & mpi_comm_world,ierr)
       call mpi_gather(va02(1,1),kx*jxp,mpi_double_precision,va02_g(1,1),&
                     & kx*jxp,mpi_double_precision,0,mpi_comm_world,ierr)
-      call mpi_gather(xkcilx1(1,1),kx*jxp,mpi_double_precision,         &
-                    & xkcilx1_g(1,1),kx*jxp,mpi_double_precision,0,     &
+      call mpi_gather(xkcill1(1,1),kx*jxp,mpi_double_precision,         &
+                    & xkcill1_g(1,1),kx*jxp,mpi_double_precision,0,     &
                     & mpi_comm_world,ierr)
       call mpi_gather(xkc02(1,1),kx*jxp,mpi_double_precision,           &
                     & xkc02_g(1,1),kx*jxp,mpi_double_precision,0,       &
                     & mpi_comm_world,ierr)
-      call mpi_gather(chiailx(1,1,1),kx*ntr*jxp,mpi_double_precision,   &
-                    & chiailx_g(1,1,1),kx*ntr*jxp,mpi_double_precision, &
+      call mpi_gather(chiaill(1,1,1),kx*ntr*jxp,mpi_double_precision,   &
+                    & chiaill_g(1,1,1),kx*ntr*jxp,mpi_double_precision, &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chiailx1(1,1,1),kx*ntr*jxp,mpi_double_precision,  &
-                    & chiailx1_g(1,1,1),kx*ntr*jxp,mpi_double_precision,&
+      call mpi_gather(chiaill1(1,1,1),kx*ntr*jxp,mpi_double_precision,  &
+                    & chiaill1_g(1,1,1),kx*ntr*jxp,mpi_double_precision,&
                     & 0,mpi_comm_world,ierr)
       call mpi_gather(chia01(1,1,1),kx*ntr*jxp,mpi_double_precision,    &
                     & chia01_g(1,1,1),kx*ntr*jxp,mpi_double_precision,0,&
@@ -191,9 +191,9 @@
       call mpi_gather(chia02(1,1,1),kx*ntr*jxp,mpi_double_precision,    &
                     & chia02_g(1,1,1),kx*ntr*jxp,mpi_double_precision,0,&
                     & mpi_comm_world,ierr)
-      call mpi_gather(psailx(1),jxp,mpi_double_precision,psailx_g(1),   &
+      call mpi_gather(psaill(1),jxp,mpi_double_precision,psaill_g(1),   &
                     & jxp,mpi_double_precision,0,mpi_comm_world,ierr)
-      call mpi_gather(psailx1(1),jxp,mpi_double_precision,psailx1_g(1), &
+      call mpi_gather(psaill1(1),jxp,mpi_double_precision,psaill1_g(1), &
                     & jxp,mpi_double_precision,0,mpi_comm_world,ierr)
       call mpi_gather(psa01(1),jxp,mpi_double_precision,psa01_g(1),jxp, &
                     & mpi_double_precision,0,mpi_comm_world,ierr)
@@ -202,7 +202,7 @@
       if ( myid.eq.0 ) then
         do n = 1 , ntr
           do k = 1 , kx
-            do i = 1 + 1 , ilx - 1
+            do i = 2 , ixm2
               tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)              &
                         & *dx*(worka(i,k,n)-workb(i,k,n))/g
             end do
@@ -211,19 +211,19 @@
 !.....advection through north-south boundaries:
 !
           do k = 1 , kx
-            do j = 1 + 1 , mjx - 2
+            do j = 2 , jxm2
 !hy           inflow/outflow
-              vavg2 = 0.5*(vailx_g(k,j+1)+vailx_g(k,j))
+              vavg2 = 0.5*(vaill_g(k,j+1)+vaill_g(k,j))
               if ( vavg2.lt.0. ) then
-                fx2 = -vavg2*(fact1*chiailx_g(k,n,j)/psailx_g(j)        &
-                    & /(msfx_io(ilx,j)*msfx_io(ilx,j))                  &
-                    & +fact2*chiailx1_g(k,n,j)/psailx1_g(j)             &
-                    & /(msfx_io(ix-2,j)*msfx_io(ix-2,j)))
+                fx2 = -vavg2*(fact1*chiaill_g(k,n,j)/psaill_g(j)        &
+                    & /(msfx_io(ixm1,j)*msfx_io(ixm1,j))                  &
+                    & +fact2*chiaill1_g(k,n,j)/psaill1_g(j)             &
+                    & /(msfx_io(ixm2,j)*msfx_io(ixm2,j)))
               else
-                fx2 = -vavg2*(fact1*chiailx1_g(k,n,j)/psailx1_g(j)      &
-                    & /(msfx_io(ix-2,j)*msfx_io(ix-2,j))                &
-                    & +fact2*chiailx_g(k,n,j)/psailx_g(j)               &
-                    & /(msfx_io(ilx,j)*msfx_io(ilx,j)))
+                fx2 = -vavg2*(fact1*chiaill1_g(k,n,j)/psaill1_g(j)      &
+                    & /(msfx_io(ixm2,j)*msfx_io(ixm2,j))                &
+                    & +fact2*chiaill_g(k,n,j)/psaill_g(j)               &
+                    & /(msfx_io(ixm1,j)*msfx_io(ixm1,j)))
               end if
  
               vavg1 = 0.5*(va02_g(k,j+1)+va02_g(k,j))
@@ -247,7 +247,7 @@
 #else
       do n = 1 , ntr
         do k = 1 , kx
-          do i = 1 + 1 , ilx - 1
+          do i = 2 , ixm2
             tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)                &
                       & *dx*(worka(i,k,n)-workb(i,k,n))/g
           end do
@@ -258,18 +258,18 @@
 !
       do n = 1 , ntr
         do k = 1 , kx
-          do j = 1 + 1 , jlx - 1
+          do j = 2 , jxm2
 !hy         inflow/outflow
-            vavg2 = 0.5*(va(ix-1,k,j+1)+va(ix-1,k,j))
+            vavg2 = 0.5*(va(ixm1,k,j+1)+va(ixm1,k,j))
             if ( vavg2.lt.0. ) then
-              fx2 = -vavg2*(fact1*chia(ix-1,k,j,n)/psa(ix-1,j)          &
-                  & /(msfx(ix-1,j)*msfx(ix-1,j))+fact2*chia(ilx-1,k,j,n)&
-                  & /psa(ilx-1,j)/(msfx(ilx-1,j)*msfx(ilx-1,j)))
+              fx2 = -vavg2*(fact1*chia(ixm1,k,j,n)/psa(ixm1,j)          &
+                  & /(msfx(ixm1,j)*msfx(ixm1,j))+fact2*chia(ixm2,k,j,n)&
+                  & /psa(ixm2,j)/(msfx(ixm2,j)*msfx(ixm2,j)))
             else
-              fx2 = -vavg2*(fact1*chia(ilx-1,k,j,n)/psa(ilx-1,j)        &
-                  & /(msfx(ilx-1,j)*msfx(ilx-1,j))                      &
-                  & +fact2*chia(ix-1,k,j,n)/psa(ix-1,j)                 &
-                  & /(msfx(ix-1,j)*msfx(ix-1,j)))
+              fx2 = -vavg2*(fact1*chia(ixm2,k,j,n)/psa(ixm2,j)        &
+                  & /(msfx(ixm2,j)*msfx(ixm2,j))                      &
+                  & +fact2*chia(ixm1,k,j,n)/psa(ixm1,j)                 &
+                  & /(msfx(ixm1,j)*msfx(ixm1,j)))
             end if
  
             vavg1 = 0.5*(va(1+1,k,j+1)+va(1+1,k,j))
@@ -296,7 +296,7 @@
 #ifdef MPP1
       do n = 1 , ntr
         do k = 1 , kx
-          do i = 1 + 1 , ilx - 1
+          do i = 2 , ixm2
             if ( myid.eq.nproc-1 ) worka(i,k,n) = xkc(i,k,jendm)        &
                & *psa(i,jendm)                                          &
                & *(chia(i,k,jendm,n)/psa(i,jendm)-chia(i,k,jendx,n)     &
@@ -306,15 +306,15 @@
           end do
         end do
       end do
-      call mpi_bcast(worka,ilx*kx*ntr,mpi_double_precision,nproc-1,     &
+      call mpi_bcast(worka,ixm1*kx*ntr,mpi_double_precision,nproc-1,    &
                    & mpi_comm_world,ierr)
 #else
       do n = 1 , ntr
         do k = 1 , kx
-          do i = 1 + 1 , ilx - 1
-            worka(i,k,n) = xkc(i,k,jlx-1)*psa(i,jlx-1)                  &
-                         & *(chia(i,k,jlx-1,n)/psa(i,jlx-1)             &
-                         & -chia(i,k,jlx,n)/psa(i,jlx))
+          do i = 2 , ixm2
+            worka(i,k,n) = xkc(i,k,jxm2)*psa(i,jxm2)                  &
+                         & *(chia(i,k,jxm2,n)/psa(i,jxm2)             &
+                         & -chia(i,k,jxm1,n)/psa(i,jxm1))
             workb(i,k,n) = xkc(i,k,2)*psa(i,2)                          &
                          & *(chia(i,k,2,n)/psa(i,2)-chia(i,k,1,n)       &
                          & /psa(i,1))
@@ -327,7 +327,7 @@
       if ( myid.eq.0 ) then
         do n = 1 , ntr
           do k = 1 , kx
-            do i = 1 + 1 , ilx - 1
+            do i = 2 , ixm2
               tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)              &
                         & *(workb(i,k,n)+worka(i,k,n))/g
             end do
@@ -336,10 +336,10 @@
 !.....  diffusion through north-south boundaries:
  
           do k = 1 , kx
-            do j = 1 + 1 , mjx - 2
-              chid1 = xkcilx1_g(k,j)*psailx1_g(j)                       &
-                    & *(chiailx1_g(k,n,j)/psailx1_g(j)-chiailx_g(k,n,j) &
-                    & /psailx_g(j))
+            do j = 2 , jxm2
+              chid1 = xkcill1_g(k,j)*psaill1_g(j)                       &
+                    & *(chiaill1_g(k,n,j)/psaill1_g(j)-chiaill_g(k,n,j) &
+                    & /psaill_g(j))
               chid2 = xkc02_g(k,j)*psa02_g(j)                           &
                     & *(chia02_g(k,n,j)/psa02_g(j)-chia01_g(k,n,j)      &
                     & /psa01_g(j))
@@ -354,7 +354,7 @@
 #else
       do n = 1 , ntr
         do k = 1 , kx
-          do i = 1 + 1 , ilx - 1
+          do i = 2 , ixm2
             tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)                &
                       & *(workb(i,k,n)+worka(i,k,n))/g
           end do

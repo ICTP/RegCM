@@ -45,7 +45,7 @@
 !     c203  : = 1./(dx*dx), defined in 'param'.                       c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !     iboudy : type of boundary condition relaxation, 1=linear        c
@@ -86,7 +86,7 @@
       dtb = xt*60.
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx - jsls
+      jj = jx - jsls
       if ( jj.le.ip ) jsls = jj
       jwb = jsls
       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
@@ -113,7 +113,7 @@
         if ( jsls.gt.ip ) then
 !------interior j slices:
           do i = 2 , ip
-            ii = ilx - i + 1
+            ii = ixm1 - i + 1
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
@@ -137,10 +137,10 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ilx - 1
+          iend = ixm1 - 1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
-              ii = ilx - i + 1
+              ii = ixm1 - i + 1
               fcx = fcoef*xfun(i)
               gcx = gcoef*xfun(i)
 !........south boundary:
@@ -161,7 +161,7 @@
                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
             ibeg = jsls
-            iend = ilx - jsls + 1
+            iend = ixm1 - jsls + 1
           end if
 !
           if ( jj.gt.ip ) then
@@ -218,7 +218,7 @@
         if ( jsls.gt.ip ) then
 !------interior j slices:
           do i = 2 , ip
-            ii = ilx - i + 1
+            ii = ixm1 - i + 1
             fcx = fcoef*xfune(i,kx)
             gcx = gcoef*xfune(i,kx)
 !........south boundary:
@@ -242,10 +242,10 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ilx - 1
+          iend = ixm1 - 1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
-              ii = ilx - i + 1
+              ii = ixm1 - i + 1
               fcx = fcoef*xfune(i,kx)
               gcx = gcoef*xfune(i,kx)
 !.........south boundary:
@@ -266,7 +266,7 @@
                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
             ibeg = jsls
-            iend = ilx - jsls + 1
+            iend = ixm1 - jsls + 1
           end if
 !
           if ( jj.gt.ip ) then
@@ -350,7 +350,7 @@
 !     c203  : = 1./(dx*dx), defined in 'param'.                       c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !     iboudy : type of boundary condition relaxation, 1=linear        c
@@ -389,7 +389,7 @@
       dtb = xt*60.
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx - jsls
+      jj = jx - jsls
       if ( jj.le.ip ) jsls = jj
       jwb = jsls
       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
@@ -416,7 +416,7 @@
         if ( jsls.gt.ip ) then
 !------interior j slices:
           do i = 2 , ip
-            ii = ilx - i + 1
+            ii = ixm1 - i + 1
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
             do k = 1 , kx
@@ -442,10 +442,10 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ilx - 1
+          iend = ixm1 - 1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
-              ii = ilx - i + 1
+              ii = ixm1 - i + 1
               fcx = fcoef*xfun(i)
               gcx = gcoef*xfun(i)
               do k = 1 , kx
@@ -468,7 +468,7 @@
               end do
             end do
             ibeg = jsls
-            iend = ilx - jsls + 1
+            iend = ixm1 - jsls + 1
           end if
 !
           if ( jj.gt.ip ) then
@@ -545,7 +545,7 @@
         if ( jsls.gt.ip ) then
 !------interior j slices:
           do i = 2 , ip
-            ii = ilx - i + 1
+            ii = ixm1 - i + 1
             do k = 1 , kx
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
@@ -571,10 +571,10 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ilx - 1
+          iend = ixm1 - 1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
-              ii = ilx - i + 1
+              ii = ixm1 - i + 1
               do k = 1 , kx
                 fcx = fcoef*xfune(i,k)
                 gcx = gcoef*xfune(i,k)
@@ -597,7 +597,7 @@
               end do
             end do
             ibeg = jsls
-            iend = ilx - jsls + 1
+            iend = ixm1 - jsls + 1
           end if
 !
           if ( jj.gt.ip ) then
@@ -701,7 +701,7 @@
 !     c203  : = 1./(dx*dx), defined in 'param'.                       c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !     iboudy : type of boundary condition relaxation, 1=linear        c
@@ -739,7 +739,7 @@
       dtb = xt*60.
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx - jsls
+      jj = jx - jsls
       if ( jj.le.ip ) jsls = jj
       jwb = jsls
       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
@@ -766,7 +766,7 @@
         if ( jsls.gt.ip ) then
 !------interior j slices:
           do i = 2 , ip
-            ii = ilx - i + 1
+            ii = ixm1 - i + 1
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
             do k = 1 , kx
@@ -792,10 +792,10 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ilx - 1
+          iend = ixm1 - 1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
-              ii = ilx - i + 1
+              ii = ixm1 - i + 1
               fcx = fcoef*xfun(i)
               gcx = gcoef*xfun(i)
               do k = 1 , kx
@@ -818,7 +818,7 @@
               end do
             end do
             ibeg = jsls
-            iend = ilx - jsls + 1
+            iend = ixm1 - jsls + 1
           end if
 !
           if ( jj.gt.ip ) then
@@ -895,7 +895,7 @@
         if ( jsls.gt.ip ) then
 !------interior j slices:
           do i = 2 , ip
-            ii = ilx - i + 1
+            ii = ixm1 - i + 1
             do k = 1 , kx
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
@@ -921,10 +921,10 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ilx - 1
+          iend = ixm1 - 1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
-              ii = ilx - i + 1
+              ii = ixm1 - i + 1
               do k = 1 , kx
                 fcx = fcoef*xfune(i,k)
                 gcx = gcoef*xfune(i,k)
@@ -947,7 +947,7 @@
               end do
             end do
             ibeg = jsls
-            iend = ilx - jsls + 1
+            iend = ixm1 - jsls + 1
           end if
 !
           if ( jj.gt.ip ) then
@@ -1051,7 +1051,7 @@
 !     c203  : = 1./(dx*dx), defined in 'param'.                       c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !     iboudy : type of boundary condition relaxation, 1=linear        c
@@ -1090,14 +1090,14 @@
       dtb = xt*60.
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx + 1 - jsls
+      jj = jxp1 - jsls
       if ( jj.le.ip ) jsls = jj
       jew = jsls
       if ( jew.gt.jxp ) jew = mod(jsls,jxp)
       if ( jew.eq.0 ) jew = jxp
 #else
       jsls = j
-      jj = jx + 1 - jsls
+      jj = jxp1 - jsls
       if ( jj.le.ip ) jsls = jj
 #endif
 !
@@ -1136,7 +1136,7 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ix - 1
+          iend = ixm1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
               ii = ix - i + 1
@@ -1265,7 +1265,7 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ix - 1
+          iend = ixm1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
               ii = ix - i + 1
@@ -1395,7 +1395,7 @@
 !     c203  : = 1./(dx*dx), defined in 'param'.                       c
 !                                                                     c
 !     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ix-1, je = jx-1 for cross-point variables.                 c
+!     ie = ixm1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !     iboudy : type of boundary condition relaxation, 1=linear        c
@@ -1434,14 +1434,14 @@
       dtb = xt*60.
 #ifdef MPP1
       jsls = j + myid*jxp
-      jj = mjx + 1 - jsls
+      jj = jxp1 - jsls
       if ( jj.le.ip ) jsls = jj
       jew = jsls
       if ( jew.gt.jxp ) jew = mod(jsls,jxp)
       if ( jew.eq.0 ) jew = jxp
 #else
       jsls = j
-      jj = jx + 1 - jsls
+      jj = jxp1 - jsls
       if ( jj.le.ip ) jsls = jj
 #endif
 !
@@ -1480,7 +1480,7 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ix - 1
+          iend = ixm1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
               ii = ix - i + 1
@@ -1609,7 +1609,7 @@
         else if ( jsls.le.ip ) then
 !------east or west boundary slices:
           ibeg = 2
-          iend = ix - 1
+          iend = ixm1
           if ( jsls.gt.2 ) then
             do i = 2 , jsls - 1
               ii = ix - i + 1

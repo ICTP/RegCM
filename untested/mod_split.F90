@@ -39,7 +39,7 @@
 !
 ! COMMON /SPLITIO/
 !
-      real(8) , dimension(ix,mjx,nsplit) :: dstor_io , hstor_io
+      real(8) , dimension(ix,jx,nsplit) :: dstor_io , hstor_io
 #endif
 
       end module mod_split

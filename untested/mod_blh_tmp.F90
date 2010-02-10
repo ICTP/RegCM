@@ -6,7 +6,7 @@
       real(8) , dimension(ix,jxp) :: hfxv , obklen , th10 , ustr ,      &
                                    & xhfx , xqfx
 #else
-      real(8) , dimension(ix,kx,jlx) :: cgh , kvc , kvh , kvm , kvq
+      real(8) , dimension(ix,kx,jxm1) :: cgh , kvc , kvh , kvm , kvq
       real(8) , dimension(ix,jx) :: hfxv , obklen , th10 , ustr ,      &
                                    & xhfx , xqfx
 #endif

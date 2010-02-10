@@ -43,10 +43,10 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(14,ix - 1,kx + 1) :: abplnk1 , abplnk2
-      real(8) , dimension(14,ix - 1) :: emplnk
-      real(8) , dimension(ix - 1,kx + 1) :: tint , tlayr
-      real(8) , dimension(ix - 1) :: tplnke
+      real(8) , dimension(14,ixm1,kxp1) :: abplnk1 , abplnk2
+      real(8) , dimension(14,ixm1) :: emplnk
+      real(8) , dimension(ixm1,kxp1) :: tint , tlayr
+      real(8) , dimension(ixm1) :: tplnke
       intent (in) tint , tlayr , tplnke
       intent (out) abplnk1 , abplnk2 , emplnk
 !
@@ -75,7 +75,7 @@
 !     Calculate emissivity Planck factor
 !
       do wvl = 1 , 14
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           emplnk(wvl,i) = f1(wvl)                                       &
                         & /(tplnke(i)**4.0*(dexp(f3(wvl)/tplnke(i))-1.0)&
                         & )
@@ -85,8 +85,8 @@
 !     Calculate absorptivity Planck factor for tint and tlayr temperatures
 !
       do wvl = 1 , 14
-        do k = 1 , kx + 1
-          do i = 1 , ix - 1
+        do k = 1 , kxp1
+          do i = 1 , ixm1
 !           non-nearlest layer function
             abplnk1(wvl,i,k) = (f2(wvl)*dexp(f3(wvl)/tint(i,k)))        &
                              & /(tint(i,k)                              &

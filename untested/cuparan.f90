@@ -54,7 +54,7 @@
       dtime = dt
       pkdcut = 75.
       istart = 2 + icut
-      iend = ilxm - icut
+      iend = ixm2 - icut
 !
 !---  prepare input, erase output
 !
@@ -65,7 +65,7 @@
       end do
 
       do k = 1 , kx
-        do i = 2 + icut , ilxm - icut
+        do i = 2 + icut , ixm2 - icut
           kk = kx - k + 1
           us = ua(i,kk,j)/psb(i,j)
           vs = va(i,kk,j)/psb(i,j)

@@ -43,10 +43,10 @@
 ! Local variables
 !
 #ifdef MPP1
-      real(4) , dimension(mjx-2,ix-2) :: fout
-      real(8) , dimension(mjx,ix) :: out1
+      real(4) , dimension(jxm2,ixm2) :: fout
+      real(8) , dimension(jx,ix) :: out1
 #else
-      real(4) , dimension(jx-2,ix-2) :: fout
+      real(4) , dimension(jxm2,ixm2) :: fout
       real(8) , dimension(jx,ix) :: out1
 #endif
       integer :: i , j , k , n , nn
@@ -65,7 +65,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix
 #ifdef MPP1
-          do j = 1 , mjx
+          do j = 1 , jx
             out1(j,i) = ua_io(i,k,j)
           end do
 #else
@@ -76,7 +76,7 @@
         end do
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fout(j,i) = 0.25*(out1(j+1,i+1)+out1(j+2,i+1)+out1(j+1,i+2) &
                       & +out1(j+2,i+2))/psa_io(i+1,j+1)
           end do
@@ -98,7 +98,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix
 #ifdef MPP1
-          do j = 1 , mjx
+          do j = 1 , jx
             out1(j,i) = va_io(i,k,j)
           end do
 #else
@@ -109,7 +109,7 @@
         end do
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fout(j,i) = 0.25*(out1(j+1,i+1)+out1(j+2,i+1)+out1(j+1,i+2) &
                       & +out1(j+2,i+2))/psa_io(i+1,j+1)
           end do
@@ -131,7 +131,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fout(j,i) = omega_io(i+1,k,j+1)
           end do
 #else
@@ -151,7 +151,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fout(j,i) = ta_io(i+1,k,j+1)/psa_io(i+1,j+1)
           end do
 #else
@@ -171,7 +171,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fout(j,i) = qva_io(i+1,k,j+1)/psa_io(i+1,j+1)
           end do
 #else
@@ -191,7 +191,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fout(j,i) = qca_io(i+1,k,j+1)/psa_io(i+1,j+1)
           end do
 #else
@@ -210,7 +210,7 @@
       end do
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = (psa_io(i+1,j+1)+ptop)*10.
         end do
 #else
@@ -229,7 +229,7 @@
       mmpd = 24./tapfrq
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = (rainc_io(i+1,j+1)+rainnc_io(i+1,j+1))*mmpd
         end do
 #else
@@ -252,7 +252,7 @@
 !     3.  accum infiltration (30)
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = tgb2d_io(1,i+1,j+1)
           do n = 2 , nnsg
             fout(j,i) = fout(j,i) + tgb2d_io(n,i+1,j+1)
@@ -279,7 +279,7 @@
  
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = 0.0
           nn = 0
           do n = 1 , nnsg
@@ -322,7 +322,7 @@
  
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fout(j,i) = 0.0
           nn = 0
           do n = 1 , nnsg
@@ -365,9 +365,9 @@
  
 !     changes for accum infiltration
  
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
 #ifdef MPP1
-        do j = 1 , mjx - 1
+        do j = 1 , jxm1
           do n = 1 , nnsg
             rno2d_io(n,i,j) = 0.
           end do

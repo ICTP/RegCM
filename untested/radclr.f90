@@ -104,13 +104,13 @@
 !
       real(8) :: abco2 , abh2o , abo2 , abo3 , trayoslp
       integer :: nloop
-      real(8) , dimension(ix - 1) :: coszrs , ftota_mix_css ,            &
+      real(8) , dimension(ixm1) :: coszrs , ftota_mix_css ,            &
                                   & gtota_mix_css , tauasc_mix_css ,    &
                                   & tauxar_mix_css , utco2 , uth2o ,    &
                                   & uto2 , uto3
-      real(8) , dimension(ix - 1,0:kx) :: explay , rdif , rdir , tdif ,&
+      real(8) , dimension(ixm1,0:kx) :: explay , rdif , rdir , tdif ,&
            & tdir
-      real(8) , dimension(ix - 1,0:kx + 1) :: exptdn , pflx , rdndif ,    &
+      real(8) , dimension(ixm1,0:kxp1) :: exptdn , pflx , rdndif ,    &
            & tottrn
       integer , dimension(2) :: ie , is
       intent (in) abco2 , abh2o , abo2 , abo3 , coszrs , ftota_mix_css ,&
@@ -156,8 +156,8 @@
                & tautot , tdnmexp , ts , ue , uu , w , ws , wtot
       real(8) :: alpha , asys , el , xgamma , n , omgs , taus , u
       integer :: i , ii , k , nn , nval
-      integer , dimension(ix - 1) :: indx
-      real(8) , dimension(ix - 1) :: taugab , tauray
+      integer , dimension(ixm1) :: indx
+      real(8) , dimension(ixm1) :: taugab , tauray
 !
       alpha(w,uu,g,e) = .75*w*uu*((1.+g*(1-w))/(1.-e*e*uu*uu))
       xgamma(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu+1.)/(1.-e*e*uu*uu))
@@ -175,8 +175,8 @@
 !
       tottrn = 0.0
 !     print*,'dans radclr', maxval(tottrn)
-      do k = 0 , kx + 1
-        do i = 1 , ix - 1
+      do k = 0 , kxp1
+        do i = 1 , ixm1
           tottrn(i,k) = 0.
         end do
       end do
@@ -258,7 +258,7 @@
 !       Compute next layer delta-Eddington solution only if total
 !       transmission of radiation to the interface just above the layer
 !       exceeds trmin.
-        call whenfgt(ix - 1,tottrn(1,k),1,trmin,indx,nval)
+        call whenfgt(ixm1,tottrn(1,k),1,trmin,indx,nval)
         if ( nval.gt.0 ) then
 !CDIR$    IVDEP
           do ii = 1 , nval
@@ -266,7 +266,7 @@
 !
 !           Remember, no ozone absorption in this layer:
 !
-            tauray(i) = trayoslp*pflx(i,kx + 1)
+            tauray(i) = trayoslp*pflx(i,kxp1)
             taugab(i) = abh2o*uth2o(i) + abco2*utco2(i) + abo2*uto2(i)
 !
             tautot = tauray(i) + taugab(i) + tauxar_mix_css(i)

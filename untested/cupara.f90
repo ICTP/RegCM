@@ -70,13 +70,13 @@
 !
 !
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           cldlwc(i,k) = 0.
           cldfra(i,k) = 0.
         end do
       end do
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           qvten(i,k,j) = 0.
         end do
       end do
@@ -92,7 +92,7 @@
 !       icumbot = bottom level of cumulus clouds
 !       (calculated in cupara and stored for tractend)
 !       before do 100 put
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           icumtop(i,j) = 0
           icumbot(i,j) = 0
         end do
@@ -103,7 +103,7 @@
 !     at this stage, qvten(i,k,j) only includes horizontal advection.
 !     sca: is the amount of total moisture convergence
 !
-      do i = 2 , ilxm
+      do i = 2 , ixm2
 !
         sca = 0.0
         do k = 1 , kx
@@ -261,7 +261,7 @@
 !
 !             find cloud fractional cover and liquid water content
 !
-              kbaseb = min0(kbase,kx-2)
+              kbaseb = min0(kbase,kxm2)
               if ( ktop.le.kbaseb ) then
                 kclth = kbaseb - ktop + 1
                 akclth = 1./dble(kclth)
@@ -302,7 +302,7 @@
           end if
         end do
         qvten(i,1,j) = qvten(i,1,j) - qdot(i,2,j)*tmp3(i,2)/dsigma(1)
-        do k = 2 , kxm
+        do k = 2 , kxm1
           qvten(i,k,j) = qvten(i,k,j)                                   &
                        & - (qdot(i,k+1,j)*tmp3(i,k+1)-qdot(i,k,j)       &
                        & *tmp3(i,k))/dsigma(k)
@@ -310,10 +310,10 @@
         qvten(i,kx,j) = qvten(i,kx,j) + qdot(i,kx,j)*tmp3(i,kx)         &
                       & /dsigma(kx)
 !
-      end do           !end i=2,ilxm loop
+      end do           !end i=2,ixm2 loop
 !
       do k = 1 , kx
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           rsheat(i,k,j) = dmax1(rsheat(i,k,j),0.D0)
           rswat(i,k,j) = dmax1(rswat(i,k,j),0.D0)
           rsht = rsheat(i,k,j)/tauht

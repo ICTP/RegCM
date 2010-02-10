@@ -102,7 +102,7 @@
 !     (Note that the following variables are defined on interfaces,
 !     with the index k referring to the top interface of the kth layer:
 !     exptdn,rdndif,tottrn; for example, tottrn(k=5) refers to the total
-!     transmission to the top interface of the 5th layer; kx + 1 refers
+!     transmission to the top interface of the 5th layer; kxp1 refers
 !     to the earth surface)
 !
 ! rdndif   - Added dif ref for layers above
@@ -114,12 +114,12 @@
 !
       real(8) :: abco2 , abh2o , abo2 , abo3 , trayoslp
       integer :: nloop
-      real(8) , dimension(ix - 1) :: coszrs
-      real(8) , dimension(ix - 1,0:kx) :: explay , fci , fcl ,         &
+      real(8) , dimension(ixm1) :: coszrs
+      real(8) , dimension(ixm1,0:kx) :: explay , fci , fcl ,         &
            & ftota_mixs , gci , gcl , gtota_mixs , rdif , rdir ,        &
            & tauasc_mixs , tauxar_mixs , tauxci , tauxcl , tdif , tdir ,&
            & uco2 , uh2o , uo2 , uo3 , wci , wcl
-      real(8) , dimension(ix - 1,0:kx + 1) :: exptdn , pflx , rdndif ,    &
+      real(8) , dimension(ixm1,0:kxp1) :: exptdn , pflx , rdndif ,    &
            & tottrn
       integer , dimension(2) :: ie , is
       intent (in) abco2 , abh2o , abo2 , abo3 , coszrs , fci , fcl ,    &
@@ -194,8 +194,8 @@
                & wt , wtau , wtot
       real(8) :: alpha , asys , el , xgamm , n , omgs , taus , u
       integer :: i , ii , k , nn , nval
-      integer , dimension(ix - 1) :: indx
-      real(8) , dimension(ix - 1) :: taugab , tauray
+      integer , dimension(ixm1) :: indx
+      real(8) , dimension(ixm1) :: taugab , tauray
 !
       alpha(w,uu,g,e) = .75*w*uu*((1.+g*(1-w))/(1.-e*e*uu*uu))
       xgamm(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu+1.)/(1.-e*e*uu*uu))
@@ -327,7 +327,7 @@
 !       Compute next layer delta-eddington solution only if total
 !       transmission of radiation to the interface just above the layer
 !       exceeds trmin.
-        call whenfgt(ix - 1,tottrn(1,k),1,trmin,indx,nval)
+        call whenfgt(ixm1,tottrn(1,k),1,trmin,indx,nval)
         if ( nval.gt.0 ) then
 !CDIR$    IVDEP
           do ii = 1 , nval
@@ -393,7 +393,7 @@
 !     reflectivity for diffuse mod_radiation (from below) for all layers
 !     above the surface:
 !
-      k = kx + 1
+      k = kxp1
       do nn = 1 , nloop
         do i = is(nn) , ie(nn)
           exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)

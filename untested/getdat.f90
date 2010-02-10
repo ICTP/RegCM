@@ -44,9 +44,9 @@
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(ix - 1) :: clat , coslat , loctim , ps , ts
-      real(8) , dimension(ix - 1,kx + 1) :: cld , pilnm1 , pintm1
-      real(8) , dimension(ix - 1,kx) :: clwp , h2ommr , o3mmr , o3vmr ,&
+      real(8) , dimension(ixm1) :: clat , coslat , loctim , ps , ts
+      real(8) , dimension(ixm1,kxp1) :: cld , pilnm1 , pintm1
+      real(8) , dimension(ixm1,kx) :: clwp , h2ommr , o3mmr , o3vmr ,&
            & pmidm1 , pmlnm1 , qm1 , tm1
       intent (in) jslc
       intent (out) clwp , coslat , loctim , o3vmr , pilnm1 , pmlnm1 ,   &
@@ -57,9 +57,9 @@
 ! Local variables
 !
       real(8) :: amd , amo , ccvtem , clwtem , gravx , rx , vmmr
-      real(8) , dimension(ilx,kx) :: deltaz
+      real(8) , dimension(ixm1,kx) :: deltaz
       integer :: i , k , kj , n , ncldm1 , nll
-      real(8) , dimension(ix - 1) :: rlat
+      real(8) , dimension(ixm1) :: rlat
 !
 !     output arguments
 !
@@ -96,7 +96,7 @@
 !-----
 !-----surface pressure and scaled pressure, from which level pressures
 !-----are computed
-      do n = 1 , ix - 1
+      do n = 1 , ixm1
         ps(n) = (psb(n,jslc)+ptop)*10.
         do nll = 1 , kx
           pmidm1(n,nll) = (psb(n,jslc)*a(nll)+ptop)*10.
@@ -107,7 +107,7 @@
 !.......... convert pressures from mb to pascals and define
 !.......... interface pressures:
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         ps(i) = ps(i)*100.
         do k = 1 , kx
 !
@@ -116,8 +116,8 @@
 !
         end do
       end do
-      do k = 1 , kx + 1
-        do i = 1 , ix - 1
+      do k = 1 , kxp1
+        do i = 1 , ixm1
           pintm1(i,k) = (psb(i,jslc)*sigma(k)+ptop)*1000.
           pilnm1(i,k) = dlog(pintm1(i,k))
         end do
@@ -127,7 +127,7 @@
 !-----air temperatures
 !-----
       do nll = 1 , kx
-        do n = 1 , ix - 1
+        do n = 1 , ixm1
           tm1(n,nll) = tb(n,nll,jslc)/psb(n,jslc)
         end do
       end do
@@ -138,7 +138,7 @@
 !-----h2o mass mixing ratio
 !-----
       do nll = 1 , kx
-        do n = 1 , ix - 1
+        do n = 1 , ixm1
           h2ommr(n,nll) = dmax1(1.D-7,qvb(n,nll,jslc)/psb(n,jslc))
           qm1(n,nll) = h2ommr(n,nll)
         end do
@@ -147,8 +147,8 @@
 !-----o3 mass mixing ratio
 !-----
       do nll = 1 , kx
-        do n = 1 , ix - 1
-          kj = kx + 1 - nll
+        do n = 1 , ixm1
+          kj = kxp1 - nll
           o3mmr(n,nll) = o3prof(n,kj,jslc)
         end do
       end do
@@ -157,7 +157,7 @@
 !-----
 !qc   = gary's mods for clouds/radiation tie-in to exmois
       do nll = 1 , kx
-        do n = 1 , ix - 1
+        do n = 1 , ixm1
  
           ccvtem = 0.   !cqc mod
 !KN       cldfrc(n,nll)=dmax1(cldfra(n,nll)*0.9999999,ccvtem)
@@ -190,7 +190,7 @@
  
 !     only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
 !     do 89 nll=1,kx
-!     do 89 n=1,ix - 1
+!     do 89 n=1,ixm1
 !     if (pintm1(n,nll+1) .lt. 40000. ) then
 !     cld(n,nll)=dmin1(cld(n,nll),0.25d0)
 !
@@ -202,7 +202,7 @@
  
 !
 !     set cloud fractional cover at top model level = 0
-      do n = 1 , ix - 1
+      do n = 1 , ixm1
         cld(n,1) = 0.
         clwp(n,1) = 0.
         cld(n,2) = 0.       !yhuang, 8/97 two-level
@@ -213,7 +213,7 @@
 !
       ncldm1 = ncld - 1
       do nll = kx - ncldm1 , kx
-        do n = 1 , ix - 1
+        do n = 1 , ixm1
 !KN       cldfrc(n,nll)=0.
           cld(n,nll) = 0.
           clwp(n,nll) = 0.
@@ -223,7 +223,7 @@
 !-----
 !-----ground temperature
 !-----
-      do n = 1 , ix - 1
+      do n = 1 , ixm1
 !       tg(n)=tgb(n,jlsc)
 !       when using bats calculate an equivalent ground (skin)
 !       temperature by averaging over vegetated and non-vegetated areas
@@ -235,17 +235,17 @@
 !
 !     cloud cover at surface interface always zero
 !
-      do i = 1 , ix - 1
-!KN     effcld(i,kx + 1) = 0.
-!KN     cldfrc(i,kx + 1) = 0.
-        cld(i,kx + 1) = 0.
+      do i = 1 , ixm1
+!KN     effcld(i,kxp1) = 0.
+!KN     cldfrc(i,kxp1) = 0.
+        cld(i,kxp1) = 0.
       end do
 !
 !KN   adopted from regcm2 above
 !
 !----------------------------------------------------------------------
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
 !
         do k = 1 , kx
           if ( cld(i,k).gt.0.999 ) cld(i,k) = .999
@@ -266,7 +266,7 @@
 !
       vmmr = amo/amd
       do k = 1 , kx
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
 !         o3mmr(i,k) = vmmr*o3vmr(i,k)
           o3vmr(i,k) = o3mmr(i,k)/vmmr
         end do

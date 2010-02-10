@@ -101,7 +101,7 @@
                            & cporng = 1./dm2859 , elocp = elwv/1004. ,  &
                            & cprlg = 1004./(row*9.81*elwv) ,            &
                            & rcp = h1/1004.
-      integer , parameter :: lp1 = kx + 1 , lm1 = kx - 1
+      integer , parameter :: lp1 = kxp1 , lm1 = kx - 1
 !
 ! Dummy arguments
 !
@@ -145,7 +145,7 @@
 !-----------------------------------------------------------------------
 
       do k = 1 , kx
-        do i = 1 , ilx
+        do i = 1 , ixm1
           cldlwc(i,k) = 0.
           cldfra(i,k) = 0.
         end do
@@ -156,7 +156,7 @@
 !       icumbot = bottom level of cumulus clouds
 !       (calculated in cupara and stored for tractend)
 !       before do 100 put
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           icumtop(i,j) = 0
           icumbot(i,j) = 0
         end do
@@ -168,7 +168,7 @@
 !-----------------------------------------------------------------------
 !
 !...  xsm is surface mask: =1 water; =0 land
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         if ( veg2d(i,j).ge.0.002 ) then
           xsm(i) = 0.
         else
@@ -176,7 +176,7 @@
         end if
       end do
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           cldefi(i,j) = avgefi*xsm(i) + stefi*(h1-xsm(i))
         end do
       end if
@@ -191,10 +191,10 @@
         ndpthd(k) = 0
       end do
 !...find melting level...
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         ml(i) = kxp1
       end do
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         do k = 1 , kx
           t(i,k) = tb(i,k,j)/psb(i,j)
           if ( t(i,k).gt.t0 .and. ml(i).eq.kxp1 ) ml(i) = k
@@ -223,7 +223,7 @@
       end do
 !--------------padding specific humidity if too small-------------------
       do k = 1 , kx
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           if ( q(i,k).lt.epsq ) q(i,k) = epsq
           pdiff = (1.-a(k))*psb(i,j)
           if ( pdiff.lt.30. .and. ip300(i).eq.0 ) ip300(i) = k
@@ -231,7 +231,7 @@
       end do
 !--------------search for maximum buoyancy level------------------------
       do kb = 1 , kx
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           pkl = (a(kb)*psb(i,j)+ptop)*1000.
           psfck = (a(kx)*psb(i,j)+ptop)*1000.
           if ( pkl.ge.psfck-pbm ) then
@@ -255,7 +255,7 @@
 !---------choose cloud base as model level just below psp--------------
       do k = 1 , lm1
         ak = a(k)
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           p(i) = (ak*psb(i,j)+ptop)*1000.
 !         cloud bottom cannot be above 200 mb
           if ( p(i).lt.psp(i) .and. p(i).ge.pqm ) lbot(i) = k + 1
@@ -263,7 +263,7 @@
       end do
 !***  warning: lbot must not be gt kx-1 in shallow convection
 !***  make sure the cloud base is at least 25 mb above the surface
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         pbot(i) = (a(lbot(i))*psb(i,j)+ptop)*1000.
         psfck = (a(kx)*psb(i,j)+ptop)*1000.
         if ( pbot(i).ge.psfck-pone .or. lbot(i).ge.kx ) then
@@ -276,21 +276,21 @@
         end if
       end do
 !--------------cloud top computation------------------------------------
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         prtop(i) = pbot(i)
         ltop(i) = lbot(i)
       end do
       do ivi = 1 , kx
         l = lp1 - ivi
 !--------------find environmental saturation equiv pot temp...
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           p(i) = (a(l)*psb(i,j)+ptop)*1000.
           es = aliq*exp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
           qs = 0.622*es/(p(i)-es)
           ths(i) = t(i,l)*ape(i,l)*exp(elocp*qs/t(i,l))
         end do
 !--------------buoyancy check-------------------------------------------
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           if ( l.le.lbot(i) ) then
             if ( thesp(i).gt.ths(i) ) ifbuoy(i) = 1
             if ( thesp(i).gt.ths(i)-1.5 .and. ifbuoy(i).eq.1 ) ltop(i)  &
@@ -300,21 +300,21 @@
 !------------------------------------------------
       end do
 !--------------cloud top pressure---------------------------------------
-      do i = 2 , ilxm
+      do i = 2 , ixm2
 !       if(kf(i).eq.1) goto 275
         prtop(i) = (a(ltop(i))*psb(i,j)+ptop)*1000.
       end do
 !-----------------------------------------------------------------------
 !--------------define and smooth dsps and cldefi------------------------
       if ( unis ) then
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           efi = cldefi(i,j)
           dspb(i) = (efi-efimn)*slopbs + dspbss
           dsp0(i) = (efi-efimn)*slop0s + dsp0ss
           dspt(i) = (efi-efimn)*slopts + dsptss
         end do
       else if ( .not.unil ) then
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           efi = cldefi(i,j)
           dspb(i) = ((efi-efimn)*slopbs+dspbss)*xsm(i)                  &
                   & + ((efi-efimn)*slopbl+dspbsl)*(h1-xsm(i))
@@ -324,7 +324,7 @@
                   & + ((efi-efimn)*sloptl+dsptsl)*(h1-xsm(i))
         end do
       else
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           efi = cldefi(i,j)
           dspb(i) = ((efi-efimn)*slopbl+dspbsl)
           dsp0(i) = ((efi-efimn)*slop0l+dsp0sl)
@@ -333,7 +333,7 @@
       end if
 !--------------initialize changes of t and q due to convection----------
       do k = 1 , kx
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           tmod(i,k) = d00
           qqmod(i,k) = d00
         end do
@@ -341,7 +341,7 @@
 !--------------clean up and gather deep convection points---------------
       khdeep = 0
       nswap = 0
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         if ( ltop(i).gt.lbot(i) ) then
           ltop(i) = lbot(i)
           prtop(i) = pbot(i)
@@ -556,7 +556,7 @@
 !-----------------------------------------------------------------------
       end do
       ndeep = 0
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         ltpk = ltop(i)
         lbtk = lbot(i)
         ptpk = prtop(i)
@@ -572,7 +572,7 @@
       khshal = 0
       ndstn = 0
       ndstp = 0
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         if ( cldhgt(i).ge.zno .and. ltop(i).le.lbot(i)-2 ) then
           if ( cldhgt(i).lt.zsh ) then
             khshal = khshal + 1
@@ -802,7 +802,7 @@
       end do
  100  continue
       nshal = 0
-      do i = 2 , ilxm
+      do i = 2 , ixm2
         ltpk = ltop(i)
         lbtk = lbot(i)
         ptpk = prtop(i)
@@ -817,7 +817,7 @@
             if ( ndepth.gt.0 ) ndpths(ndepth) = ndpths(ndepth) + 1
           end if
 !         find cloud fractional cover and liquid water content
-          kbaseb = min0(lbtk,kx-2)
+          kbaseb = min0(lbtk,kxm2)
           if ( ltpk.le.kbaseb ) then
             kclth = kbaseb - ltpk + 1
             akclth = 1./dble(kclth)
@@ -834,7 +834,7 @@
       end do
 !-----------------------------------------------------------------------
       do k = 1 , kx
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           tten(i,k) = tten(i,k) + tmod(i,k)*psb(i,j)
           qten(i,k) = qten(i,k) + qqmod(i,k)*psb(i,j)
         end do

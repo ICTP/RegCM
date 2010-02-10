@@ -64,17 +64,17 @@
 #ifdef MPP1
       integer :: allrec , idum , ierr , l , k , n
       real(8) , dimension(ix,kx*6+3+nnsg*4,jxp) :: atm0
-      real(8) , dimension(ix,kx*6+3+nnsg*4,mjx) :: atm_0
-      real(4) , dimension(ix-2,numbat,jxp) :: bat0
-      real(4) , dimension(ix-2,numbat,mjx) :: bat_0
+      real(8) , dimension(ix,kx*6+3+nnsg*4,jx) :: atm_0
+      real(4) , dimension(ixm2,numbat,jxp) :: bat0
+      real(4) , dimension(ixm2,numbat,jx) :: bat_0
       real(8) , dimension(ix,3,jxp) :: out0
-      real(8) , dimension(ix,3,mjx) :: out_0
-      real(4) , dimension(ix-2,nrad3d*kx+nrad2d,jxp) :: rad0
-      real(4) , dimension(ix-2,nrad3d*kx+nrad2d,mjx) :: rad_0
-      real(4) , dimension(ix-2,nnsg,numsub,jxp) :: sub0
-      real(8) , dimension(ix-2,nnsg,numsub,mjx) :: sub_0
+      real(8) , dimension(ix,3,jx) :: out_0
+      real(4) , dimension(ixm2,nrad3d*kx+nrad2d,jxp) :: rad0
+      real(4) , dimension(ixm2,nrad3d*kx+nrad2d,jx) :: rad_0
+      real(4) , dimension(ixm2,nnsg,numsub,jxp) :: sub0
+      real(8) , dimension(ixm2,nnsg,numsub,jx) :: sub_0
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jxp) :: chem0
-      real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,mjx) :: chem_0
+      real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jx) :: chem_0
 #endif
 !
 !----------------------------------------------------------------------
@@ -110,7 +110,7 @@
 !       among    ht,htsd,veg2d,satbrt,xlat,xlong,msfx,msfd,f
 !       we just need gather                      msfx,msfd
         do j = 1 , jendl
-          do i = 1 , ilx
+          do i = 1 , ixm1
             out0(i,1,j) = veg2d(i,j)
           end do
         end do
@@ -124,12 +124,12 @@
                       & out_0(1,1,1),ix*3*jxp,mpi_double_precision,0,   &
                       & mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
-          do j = 1 , mjx - 1
-            do i = 1 , ilx
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               veg2d_io(i,j) = out_0(i,1,j)
             end do
           end do
-          do j = 1 , mjx
+          do j = 1 , jx
             do i = 1 , ix
               msfx_io(i,j) = out_0(i,2,j)
               msfd_io(i,j) = out_0(i,3,j)
@@ -168,7 +168,7 @@
           end do
           do j = 1 , jendx
             do n = 1 , nnsg
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 atm0(i,3+kx*6+n,j) = ocld2d(n,i,j)
                 atm0(i,3+kx*6+n+nnsg,j) = tgb2d(n,i,j)
                 atm0(i,3+kx*6+n+nnsg*2,j) = swt2d(n,i,j)
@@ -181,7 +181,7 @@
                         & ix*(kx*6+3+nnsg*4)*jxp,mpi_double_precision,0,&
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do k = 1 , kx
                 do i = 1 , ix
                   ua_io(i,k,j) = atm_0(i,k,j)
@@ -198,9 +198,9 @@
                 rainnc_io(i,j) = atm_0(i,3+kx*6,j)
               end do
             end do
-            do j = 1 , mjx - 1
+            do j = 1 , jxm1
               do n = 1 , nnsg
-                do i = 1 , ilx
+                do i = 1 , ixm1
                   ocld2d_io(n,i,j) = atm_0(i,3+kx*6+n,j)
                   tgb2d_io(n,i,j) = atm_0(i,3+kx*6+n+nnsg,j)
                   swt2d_io(n,i,j) = atm_0(i,3+kx*6+n+nnsg*2,j)
@@ -211,7 +211,7 @@
             call outtap
           end if
           do j = 1 , jendx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               do n = 1 , nnsg
                 rno2d(n,i,j) = 0.
               end do
@@ -237,13 +237,13 @@
               end do
             end do
           end do
-          call mpi_gather(bat0(1,1,1),(ix-2)*numbat*jxp,mpi_real,       &
-                        & bat_0(1,1,1),(ix-2)*numbat*jxp,mpi_real,0,    &
+          call mpi_gather(bat0(1,1,1),(ixm2)*numbat*jxp,mpi_real,       &
+                        & bat_0(1,1,1),(ixm2)*numbat*jxp,mpi_real,0,    &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do l = 1 , numbat
               do i = 1 , ix - 2
-                do j = 1 , mjx - 2
+                do j = 1 , jxm2
                   fbat_io(j,i,l) = bat_0(i,l,j+1)
                 end do
               end do
@@ -269,12 +269,12 @@
               end do
             end do
           end do
-          call mpi_gather(sub0(1,1,1,1),(ix-2)*nnsg*numsub*jxp,mpi_real,&
-                        & sub_0(1,1,1,1),(ix-2)*nnsg*numsub*jxp,        &
+          call mpi_gather(sub0(1,1,1,1),(ixm2)*nnsg*numsub*jxp,mpi_real,&
+                        & sub_0(1,1,1,1),(ixm2)*nnsg*numsub*jxp,        &
                         & mpi_real,0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do l = 1 , numsub
-              do j = 1 , mjx - 2
+              do j = 1 , jxm2
                 do n = 1 , nnsg
                   do i = 1 , ix - 2
                     fsub_io(n,j,i,l) = sub_0(i,n,l,j+1)
@@ -310,13 +310,13 @@
               end do
             end do
           end do
-          call mpi_gather(rad0(1,1,1),(ix-2)*(nrad3d*kx+nrad2d)*jxp,    &
-                        & mpi_real,rad_0(1,1,1),(ix-2)                  &
+          call mpi_gather(rad0(1,1,1),(ixm2)*(nrad3d*kx+nrad2d)*jxp,    &
+                        & mpi_real,rad_0(1,1,1),(ixm2)                  &
                         & *(nrad3d*kx+nrad2d)*jxp,mpi_real,0,           &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do n = 1 , nrad2d
-              do j = 1 , mjx - 2
+              do j = 1 , jxm2
                 do i = 1 , ix - 2
                   frad2d_io(j,i,n) = rad_0(i,n,j+1)
                 end do
@@ -324,7 +324,7 @@
             end do
             do n = 1 , nrad3d
               do k = 1 , kx
-                do j = 1 , mjx - 2
+                do j = 1 , jxm2
                   do i = 1 , ix - 2
                     frad3d_io(j,i,k,n) = rad_0(i,nrad2d+(n-1)*kx+k,j+1)
                   end do
@@ -353,7 +353,7 @@
           end do
           do j = 1 , jendx
             do k = 1 , kx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 chem0(i,ntr*kx+k,j) = aerext(i,k,j)
                 chem0(i,ntr*kx+kx+k,j) = aerssa(i,k,j)
                 chem0(i,ntr*kx+kx*2+k,j) = aerasp(i,k,j)
@@ -374,7 +374,7 @@
             end do
           end do
           do j = 1 , jendx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               chem0(i,(ntr+3)*kx+ntr*7+1,j) = aertarf(i,j)
               chem0(i,(ntr+3)*kx+ntr*7+2,j) = aersrrf(i,j)
             end do
@@ -389,7 +389,7 @@
                         & ix*((ntr+3)*kx+ntr*7+3)*jxp,                  &
                         & mpi_double_precision,0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do n = 1 , ntr
                 do k = 1 , kx
                   do i = 1 , ix
@@ -398,16 +398,16 @@
                 end do
               end do
             end do
-            do j = 1 , mjx - 1
+            do j = 1 , jxm1
               do k = 1 , kx
-                do i = 1 , ilx
+                do i = 1 , ixm1
                   aerext_io(i,k,j) = chem_0(i,ntr*kx+k,j+1)
                   aerssa_io(i,k,j) = chem_0(i,ntr*kx+kx+k,j+1)
                   aerasp_io(i,k,j) = chem_0(i,ntr*kx+kx*2+k,j+1)
                 end do
               end do
             end do
-            do j = 1 , mjx
+            do j = 1 , jx
               do n = 1 , ntr
                 do i = 1 , ix
                   dtrace_io(i,j,n) = chem_0(i,(ntr+3)*kx+n,j)
@@ -420,13 +420,13 @@
                 end do
               end do
             end do
-            do j = 1 , mjx - 1
-              do i = 1 , ilx
+            do j = 1 , jxm1
+              do i = 1 , ixm1
                 aertarf_io(i,j) = chem_0(i,(ntr+3)*kx+ntr*7+1,j+1)
                 aersrrf_io(i,j) = chem_0(i,(ntr+3)*kx+ntr*7+2,j+1)
               end do
             end do
-            do j = 1 , mjx
+            do j = 1 , jx
               do i = 1 , ix
                 psa_io(i,j) = chem_0(i,(ntr+3)*kx+ntr*7+3,j)
               end do
@@ -461,7 +461,7 @@
             end do
           end do
           do j = 1 , jendl
-            do i = 1 , ilx
+            do i = 1 , ixm1
               aertarf(i,j) = 0.
               aersrrf(i,j) = 0.
             end do
@@ -495,7 +495,7 @@
                         & ix*allrec*jxp,mpi_double_precision,0,         &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do k = 1 , kx
                 do i = 1 , ix
                   ub0_io(i,k,j) = sav_0(i,k,j)
@@ -522,7 +522,7 @@
                           & sav_0s(1,1,1),ix*kx*jxp,                    &
                           & mpi_double_precision,0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
-              do j = 1 , mjx
+              do j = 1 , jx
                 do k = 1 , kx
                   do i = 1 , ix
                     so0_io(i,k,j) = sav_0s(i,k,j)
@@ -551,7 +551,7 @@
                         & ix*allrec*jxp,mpi_double_precision,0,         &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do k = 1 , kx
                 do i = 1 , ix
                   ua_io(i,k,j) = sav_0(i,k,j)
@@ -586,7 +586,7 @@
                         & ix*allrec*jxp,mpi_double_precision,0,         &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do k = 1 , kx
                 do i = 1 , ix
                   ta_io(i,k,j) = sav_0(i,k,j)
@@ -616,7 +616,7 @@
           end do
           do j = 1 , jendx
             do k = 1 , kx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 sav0(i,kx*3+k,j) = heatrt(i,k,j)
               end do
             end do
@@ -627,7 +627,7 @@
                         & ix*allrec*jxp,mpi_double_precision,0,         &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do k = 1 , kx
                 do i = 1 , ix
                   qca_io(i,k,j) = sav_0(i,k,j)
@@ -640,9 +640,9 @@
                 rainnc_io(i,j) = sav_0(i,kx*4+2,j)
               end do
             end do
-            do j = 1 , mjx - 1
+            do j = 1 , jxm1
               do k = 1 , kx
-                do i = 1 , ilx
+                do i = 1 , ixm1
                   heatrt_io(i,k,j) = sav_0(i,kx*3+k,j)
                 end do
               end do
@@ -662,8 +662,8 @@
             end do
           end do
           do j = 1 , jendx
-            do k = 1 , kx + 1
-              do i = 1 , ilx
+            do k = 1 , kxp1
+              do i = 1 , ixm1
                 sav0a(i,nnsg+4+k,j) = o3prof(i,k,j)
               end do
             end do
@@ -674,7 +674,7 @@
                         & ix*allrec*jxp,mpi_double_precision,0,         &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do i = 1 , ix
                 hfx_io(i,j) = sav_0a(i,1,j)
                 qfx_io(i,j) = sav_0a(i,2,j)
@@ -687,9 +687,9 @@
                 end do
               end do
             end do
-            do j = 1 , mjx - 1
-              do k = 1 , kx + 1
-                do i = 1 , ilx
+            do j = 1 , jxm1
+              do k = 1 , kxp1
+                do i = 1 , ixm1
                   o3prof_io(i,k,j) = sav_0a(i,4+nnsg+k,j)
                 end do
               end do
@@ -714,7 +714,7 @@
                           & ix*allrec*jxp,mpi_double_precision,0,       &
                           & mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
-              do j = 1 , mjx
+              do j = 1 , jx
                 do k = 1 , kx
                   do i = 1 , ix
                     rsheat_io(i,k,j) = sav_0c(i,k,j)
@@ -731,23 +731,23 @@
                 end do
               end do
               do i = 1 , ix
-                sav0b(i,kx+1,j) = cldefi(i,j)
+                sav0b(i,kxp1,j) = cldefi(i,j)
               end do
             end do
-            allrec = kx + 1
+            allrec = kxp1
             call mpi_gather(sav0b(1,1,1),ix*allrec*jxp,                 &
                           & mpi_double_precision,sav_0b(1,1,1),         &
                           & ix*allrec*jxp,mpi_double_precision,0,       &
                           & mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
-              do j = 1 , mjx
+              do j = 1 , jx
                 do k = 1 , kx
                   do i = 1 , ix
                     tbase_io(i,k,j) = sav_0b(i,k,j)
                   end do
                 end do
                 do i = 1 , ix
-                  cldefi_io(i,j) = sav_0b(i,kx+1,j)
+                  cldefi_io(i,j) = sav_0b(i,kxp1,j)
                 end do
               end do
             end if
@@ -760,7 +760,7 @@
           do j = 1 , jendx
             do l = 1 , 4
               do k = 1 , kx
-                do i = 1 , ilx
+                do i = 1 , ixm1
                   sav1(i,(l-1)*kx+k,j) = absnxt(i,k,l,j)
                 end do
               end do
@@ -768,52 +768,52 @@
           end do
           allrec = kx*4
           do j = 1 , jendx
-            do l = 1 , kx + 1
-              do k = 1 , kx + 1
-                do i = 1 , ilx
-                  sav1(i,allrec+(l-1)*(kx+1)+k,j) = abstot(i,k,l,j)
+            do l = 1 , kxp1
+              do k = 1 , kxp1
+                do i = 1 , ixm1
+                  sav1(i,allrec+(l-1)*(kxp1)+k,j) = abstot(i,k,l,j)
                 end do
               end do
             end do
           end do
-          allrec = allrec + (kx+1)*(kx+1)
+          allrec = allrec + (kxp1)*(kx+1)
           do j = 1 , jendx
-            do k = 1 , kx + 1
-              do i = 1 , ilx
+            do k = 1 , kxp1
+              do i = 1 , ixm1
                 sav1(i,allrec+k,j) = emstot(i,k,j)
               end do
             end do
           end do
-          allrec = allrec + kx + 1
-          call mpi_gather(sav1(1,1,1),ilx*allrec*jxp,                   &
+          allrec = allrec + kxp1
+          call mpi_gather(sav1(1,1,1),ixm1*allrec*jxp,                  &
                         & mpi_double_precision,sav_1(1,1,1),            &
-                        & ilx*allrec*jxp,mpi_double_precision,0,        &
+                        & ixm1*allrec*jxp,mpi_double_precision,0,       &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx - 1
+            do j = 1 , jxm1
               do l = 1 , 4
                 do k = 1 , kx
-                  do i = 1 , ilx
+                  do i = 1 , ixm1
                     absnxt_io(i,k,l,j) = sav_1(i,(l-1)*kx+k,j)
                   end do
                 end do
               end do
             end do
             allrec = kx*4
-            do j = 1 , mjx - 1
-              do l = 1 , kx + 1
-                do k = 1 , kx + 1
-                  do i = 1 , ilx
+            do j = 1 , jxm1
+              do l = 1 , kxp1
+                do k = 1 , kxp1
+                  do i = 1 , ixm1
                     abstot_io(i,k,l,j)                                  &
-                    & = sav_1(i,allrec+(l-1)*(kx+1)+k,j)
+                    & = sav_1(i,allrec+(l-1)*(kxp1)+k,j)
                   end do
                 end do
               end do
             end do
-            allrec = allrec + (kx+1)*(kx+1)
-            do j = 1 , mjx - 1
-              do k = 1 , kx + 1
-                do i = 1 , ilx
+            allrec = allrec + (kxp1)*(kx+1)
+            do j = 1 , jxm1
+              do k = 1 , kxp1
+                do i = 1 , ixm1
                   emstot_io(i,k,j) = sav_1(i,allrec+k,j)
                 end do
               end do
@@ -821,14 +821,14 @@
           end if
           do j = 1 , jendx
             do n = 1 , nnsg
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 sav2(i,n,j) = taf2d(n,i,j)
                 sav2(i,nnsg+n,j) = tlef2d(n,i,j)
                 sav2(i,nnsg*2+n,j) = ssw2d(n,i,j)
                 sav2(i,nnsg*3+n,j) = srw2d(n,i,j)
               end do
             end do
-            do i = 1 , ilx
+            do i = 1 , ixm1
               sav2(i,nnsg*4+1,j) = sol2d(i,j)
               sav2(i,nnsg*4+2,j) = solvd2d(i,j)
               sav2(i,nnsg*4+3,j) = solvs2d(i,j)
@@ -836,21 +836,21 @@
             end do
           end do
           allrec = nnsg*4 + 4
-          call mpi_gather(sav2(1,1,1),ilx*allrec*jxp,                   &
+          call mpi_gather(sav2(1,1,1),ixm1*allrec*jxp,                  &
                         & mpi_double_precision,sav_2(1,1,1),            &
-                        & ilx*allrec*jxp,mpi_double_precision,0,        &
+                        & ixm1*allrec*jxp,mpi_double_precision,0,       &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx - 1
+            do j = 1 , jxm1
               do n = 1 , nnsg
-                do i = 1 , ilx
+                do i = 1 , ixm1
                   taf2d_io(n,i,j) = sav_2(i,n,j)
                   tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
                   ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
                   srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
                 end do
               end do
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 sol2d_io(i,j) = sav_2(i,nnsg*4+1,j)
                 solvd2d_io(i,j) = sav_2(i,nnsg*4+2,j)
                 solvs2d_io(i,j) = sav_2(i,nnsg*4+3,j)
@@ -860,14 +860,14 @@
           end if
           do j = 1 , jendx
             do n = 1 , nnsg
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 sav2(i,n,j) = tgb2d(n,i,j)
                 sav2(i,nnsg+n,j) = swt2d(n,i,j)
                 sav2(i,nnsg*2+n,j) = scv2d(n,i,j)
                 sav2(i,nnsg*3+n,j) = gwet2d(n,i,j)
               end do
             end do
-            do i = 1 , ilx
+            do i = 1 , ixm1
               sav2(i,nnsg*4+1,j) = flwd2d(i,j)
               sav2(i,nnsg*4+2,j) = fsw2d(i,j)
               sav2(i,nnsg*4+3,j) = sabv2d(i,j)
@@ -875,21 +875,21 @@
             end do
           end do
           allrec = nnsg*4 + 4
-          call mpi_gather(sav2(1,1,1),ilx*allrec*jxp,                   &
+          call mpi_gather(sav2(1,1,1),ixm1*allrec*jxp,                  &
                         & mpi_double_precision,sav_2(1,1,1),            &
-                        & ilx*allrec*jxp,mpi_double_precision,0,        &
+                        & ixm1*allrec*jxp,mpi_double_precision,0,       &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx - 1
+            do j = 1 , jxm1
               do n = 1 , nnsg
-                do i = 1 , ilx
+                do i = 1 , ixm1
                   tgb2d_io(n,i,j) = sav_2(i,n,j)
                   swt2d_io(n,i,j) = sav_2(i,nnsg+n,j)
                   scv2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
                   gwet2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
                 end do
               end do
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 flwd2d_io(i,j) = sav_2(i,nnsg*4+1,j)
                 fsw2d_io(i,j) = sav_2(i,nnsg*4+2,j)
                 sabv2d_io(i,j) = sav_2(i,nnsg*4+3,j)
@@ -899,14 +899,14 @@
           end if
           do j = 1 , jendx
             do n = 1 , nnsg
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 sav2(i,n,j) = veg2d1(n,i,j)
                 sav2(i,nnsg+n,j) = sag2d(n,i,j)
                 sav2(i,nnsg*2+n,j) = sice2d(n,i,j)
                 sav2(i,nnsg*3+n,j) = dew2d(n,i,j)
               end do
             end do
-            do i = 1 , ilx
+            do i = 1 , ixm1
               sav2(i,nnsg*4+1,j) = pptnc(i,j)
               sav2(i,nnsg*4+2,j) = pptc(i,j)
               sav2(i,nnsg*4+3,j) = prca2d(i,j)
@@ -914,21 +914,21 @@
             end do
           end do
           allrec = nnsg*4 + 4
-          call mpi_gather(sav2(1,1,1),ilx*allrec*jxp,                   &
+          call mpi_gather(sav2(1,1,1),ixm1*allrec*jxp,                  &
                         & mpi_double_precision,sav_2(1,1,1),            &
-                        & ilx*allrec*jxp,mpi_double_precision,0,        &
+                        & ixm1*allrec*jxp,mpi_double_precision,0,       &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx - 1
+            do j = 1 , jxm1
               do n = 1 , nnsg
-                do i = 1 , ilx
+                do i = 1 , ixm1
                   veg2d1_io(n,i,j) = sav_2(i,n,j)
                   sag2d_io(n,i,j) = sav_2(i,nnsg+n,j)
                   sice2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
                   dew2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
                 end do
               end do
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 pptnc_io(i,j) = sav_2(i,nnsg*4+1,j)
                 pptc_io(i,j) = sav_2(i,nnsg*4+2,j)
                 prca2d_io(i,j) = sav_2(i,nnsg*4+3,j)
@@ -938,7 +938,7 @@
           end if
           do j = 1 , jendx
             do n = 1 , nnsg
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 sav2a(i,n,j) = ircp2d(n,i,j)
                 sav2a(i,nnsg+n,j) = text2d(n,i,j)
                 sav2a(i,nnsg*2+n,j) = col2d(n,i,j)
@@ -946,19 +946,19 @@
                 sav2a(i,nnsg*4+n,j) = tg2d(n,i,j)
               end do
             end do
-            do i = 1 , ilx
+            do i = 1 , ixm1
               sav2a(i,nnsg*5+1,j) = veg2d(i,j)
             end do
           end do
           allrec = nnsg*5 + 1
-          call mpi_gather(sav2a(1,1,1),ilx*allrec*jxp,                  &
+          call mpi_gather(sav2a(1,1,1),ixm1*allrec*jxp,                 &
                         & mpi_double_precision,sav_2a(1,1,1),           &
-                        & ilx*allrec*jxp,mpi_double_precision,0,        &
+                        & ixm1*allrec*jxp,mpi_double_precision,0,       &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx - 1
+            do j = 1 , jxm1
               do n = 1 , nnsg
-                do i = 1 , ilx
+                do i = 1 , ixm1
                   ircp2d_io(n,i,j) = sav_2a(i,n,j)
                   text2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
                   col2d_io(n,i,j) = sav_2a(i,nnsg*2+n,j)
@@ -966,7 +966,7 @@
                   tg2d_io(n,i,j) = sav_2a(i,nnsg*4+n,j)
                 end do
               end do
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 veg2d_io(i,j) = sav_2a(i,nnsg*5+1,j)
               end do
             end do
@@ -999,7 +999,7 @@
                           & ix*allrec*jxp,mpi_double_precision,0,       &
                           & mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
-              do j = 1 , mjx
+              do j = 1 , jx
                 do n = 1 , ntr
                   do k = 1 , kx
                     do i = 1 , ix
@@ -1014,7 +1014,7 @@
                 end do
               end do
               allrec = 4*ntr*kx
-              do j = 1 , mjx
+              do j = 1 , jx
                 do n = 1 , ntr
                   do i = 1 , ix
                     remdrd_io(i,j,n) = sav_4(i,allrec+n,j)
@@ -1023,7 +1023,7 @@
               end do
             end if
             do j = 1 , jendx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 sav4a(i,1,j) = ssw2da(i,j)
                 sav4a(i,2,j) = sdeltk2d(i,j)
                 sav4a(i,3,j) = sdelqk2d(i,j)
@@ -1033,12 +1033,13 @@
                 sav4a(i,7,j) = svegfrac2d(i,j)
               end do
             end do
-            call mpi_gather(sav4a(1,1,1),ilx*7*jxp,mpi_double_precision,&
-                          & sav_4a(1,1,1),ilx*7*jxp,                    &
+            call mpi_gather(sav4a(1,1,1),ixm1*7*jxp,                    &
+                          & mpi_double_precision,                       &
+                          & sav_4a(1,1,1),ixm1*7*jxp,                   &
                           & mpi_double_precision,0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
-              do j = 1 , mjx - 1
-                do i = 1 , ilx
+              do j = 1 , jxm1
+                do i = 1 , ixm1
                   ssw2da_io(i,j) = sav_4a(i,1,j)
                   sdeltk2d_io(i,j) = sav_4a(i,2,j)
                   sdelqk2d_io(i,j) = sav_4a(i,3,j)
@@ -1063,7 +1064,7 @@
                         & ix*nsplit*2*jxp,mpi_double_precision,0,       &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do n = 1 , nsplit
                 do i = 1 , ix
                   dstor_io(i,j,n) = sav_0d(i,n,j)
@@ -1088,7 +1089,7 @@
                         & sav_6(1,1,1),kx*8*jxp,mpi_double_precision,0, &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
-            do j = 1 , mjx
+            do j = 1 , jx
               do k = 1 , kx
                 ui1_io(k,j) = sav_6(k,1,j)
                 ui2_io(k,j) = sav_6(k,2,j)

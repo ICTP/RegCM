@@ -93,7 +93,7 @@
 !
         if ( jcx.eq.1 ) then
 !......for jcx = 1:
-          do i = 2 , ilx
+          do i = 2 , ixm1
             do k = 1 , kx
               psabar = 0.5*(psa(i,jcx)+psa(i-1,jcx))
               scrx1(k,i) = ua(i,k,jcx)/psabar
@@ -102,28 +102,28 @@
           end do
           do k = 1 , kx
             scrx1(k,1) = ua(1,k,jcx)/psa(1,jcx)
-            scrx1(k,ix) = ua(ix,k,jcx)/psa(ilx,jcx)
+            scrx1(k,ix) = ua(ix,k,jcx)/psa(ixm1,jcx)
             scrx2(k,1) = va(1,k,jcx)/psa(1,jcx)
-            scrx2(k,ix) = va(ix,k,jcx)/psa(ilx,jcx)
+            scrx2(k,ix) = va(ix,k,jcx)/psa(ixm1,jcx)
           end do
         else if ( jcx.eq.jx ) then
 !......for jcx = jx:
-          do i = 2 , ilx
+          do i = 2 , ixm1
             do k = 1 , kx
-              psabar = 0.5*(psa(i,jlx)+psa(i-1,jlx))
+              psabar = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
               scrx1(k,i) = ua(i,k,jcx)/psabar
               scrx2(k,i) = va(i,k,jcx)/psabar
             end do
           end do
           do k = 1 , kx
-            scrx1(k,1) = ua(1,k,jcx)/psa(1,jlx)
-            scrx1(k,ix) = ua(ix,k,jcx)/psa(ilx,jlx)
-            scrx2(k,1) = va(1,k,jcx)/psa(1,jlx)
-            scrx2(k,ix) = va(ix,k,jcx)/psa(ilx,jlx)
+            scrx1(k,1) = ua(1,k,jcx)/psa(1,jxm1)
+            scrx1(k,ix) = ua(ix,k,jcx)/psa(ixm1,jxm1)
+            scrx2(k,1) = va(1,k,jcx)/psa(1,jxm1)
+            scrx2(k,ix) = va(ix,k,jcx)/psa(ixm1,jxm1)
           end do
         else
 !......interior slice:
-          do i = 2 , ilx
+          do i = 2 , ixm1
             do k = 1 , kx
               psabar = 0.25*(psa(i,jcx)+psa(i,jcx-1)+psa(i-1,jcx)       &
                      & +psa(i-1,jcx-1))
@@ -133,7 +133,7 @@
           end do
           do k = 1 , kx
             psab1 = 0.5*(psa(1,jcx-1)+psa(1,jcx))
-            psab2 = 0.5*(psa(ilx,jcx-1)+psa(ilx,jcx))
+            psab2 = 0.5*(psa(ixm1,jcx-1)+psa(ixm1,jcx))
             scrx1(k,1) = ua(1,k,jcx)/psab1
             scrx1(k,ix) = ua(ix,k,jcx)/psab2
             scrx2(k,1) = va(1,k,jcx)/psab1
@@ -163,7 +163,7 @@
           end do
         else
 !......interior slice:
-          do i = 2 , ilx
+          do i = 2 , ixm1
             do k = 1 , kx
               psabar = 0.25*(psa(i,jcx)+psa(i,jcx-1)+psa(i-1,jcx)       &
                      & +psa(i-1,jcx-1))
@@ -191,53 +191,53 @@
 !
 !.....t:
 !
-      do i = 1 , ilx
+      do i = 1 , ixm1
         do k = 1 , kx
           scrx1(k,i) = ta(i,k,jcx)/psa(i,jcx)
         end do
       end do
       write (c40nam,99004) jcx
-      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ilx,ixn,273.16D0,-1,    &
+      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ixm1,ixn,273.16D0,-1,   &
                 & c40nam,xth)
 !
 !.....qv:
 !
-      do i = 1 , ilx
+      do i = 1 , ixm1
         do k = 1 , kx
           scrx1(k,i) = qva(i,k,jcx)/psa(i,jcx)
         end do
       end do
  
       write (c40nam,99005) jcx
-      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ilx,ixn,0.D0,-1,c40nam, &
+      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ixm1,ixn,0.D0,-1,c40nam,&
                 & xth)
 !
 !....qc and qr:
 !
-      do i = 1 , ilx
+      do i = 1 , ixm1
         do k = 1 , kx
           scrx1(k,i) = qca(i,k,jcx)/psa(i,jcx)
         end do
       end do
       write (c40nam,99006) jcx
-      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ilx,ixn,0.D0,-1,c40nam, &
+      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ixm1,ixn,0.D0,-1,c40nam,&
                 & xth)
 !
 !-----horizontal slices:
 !
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
         c40nam = '       latitude at cross points        '
-        call mapsmp(xlat,xlatr,ix,jx,1,ilx,5,1,jlx,5,0.D0,1,c40nam,xth)
+        call mapsmp(xlat,xlatr,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam,xth)
         c40nam = '       longitude at cross points       '
-        call mapsmp(xlong,xlongr,ix,jx,1,ilx,5,1,jlx,5,0.D0,1,c40nam,   &
+        call mapsmp(xlong,xlongr,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam,  &
                   & xth)
-        do j = 1 , jlx
-          do i = 1 , ilx
+        do j = 1 , jxm1
+          do i = 1 , ixm1
             hscr1(i,j) = ht(i,j)/g
           end do
         end do
         c40nam = '     terrain height at cross points     '
-        call mapsmp(hscr1,hscr1r,ix,jx,1,ilx,5,1,jlx,5,0.D0,1,c40nam,   &
+        call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam,  &
                   & xth)
         c40nam = '    coriolis parameter at dot points    '
         call mapsmp(f,fr,ix,jx,1,ix,5,1,jx,5,0.D0,1,c40nam,xth)
@@ -249,12 +249,13 @@
 !
       const = -ptop
       c40nam = '         surface pressure (cb)         '
-      call mapsmp(psa,psar,ix,jx,1,ilx,ixn,1,jlx,jxn,const,1,c40nam,xth)
+      call mapsmp(psa,psar,ix,jx,1,ixm1,ixn,1,jxm1,jxn,const,1,c40nam,   &
+                  & xth)
 !
 !.....u and v:
 !
-      do j = 2 , jlx
-        do i = 2 , ilx
+      do j = 2 , jxm1
+        do i = 2 , ixm1
           psabar = 0.25*(psa(i,j)+psa(i,j-1)+psa(i-1,j)+psa(i-1,j-1))
           hscr1(i,j) = ua(i,kout,j)/psabar
           hscr2(i,j) = va(i,kout,j)/psabar
@@ -265,30 +266,30 @@
 !
 !.....first time:
 !
-        do i = 2 , ilx
+        do i = 2 , ixm1
           psab1 = 0.5*(psa(i,1)+psa(i-1,1))
-          psab2 = 0.5*(psa(i,jlx)+psa(i-1,jlx))
+          psab2 = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
           hscr1(i,1) = ua(i,kout,1)/psab1
           hscr1(i,jx) = ua(i,kout,jx)/psab2
           hscr2(i,1) = va(i,kout,1)/psab1
           hscr2(i,jx) = va(i,kout,jx)/psab2
         end do
-        do j = 2 , jlx
+        do j = 2 , jxm1
           psab1 = 0.5*(psa(1,j)+psa(1,j-1))
-          psab2 = 0.5*(psa(ilx,j)+psa(ilx,j-1))
+          psab2 = 0.5*(psa(ixm1,j)+psa(ixm1,j-1))
           hscr1(1,j) = ua(1,kout,j)/psab1
           hscr1(ix,j) = ua(ix,kout,j)/psab2
           hscr2(1,j) = va(1,kout,j)/psab1
           hscr2(ix,j) = va(ix,kout,j)/psab2
         end do
         hscr1(1,1) = ua(1,kout,1)/psa(1,1)
-        hscr1(1,jx) = ua(1,kout,jx)/psa(1,jlx)
-        hscr1(ix,1) = ua(ix,kout,1)/psa(ilx,1)
-        hscr1(ix,jx) = ua(ix,kout,jx)/psa(ilx,jlx)
+        hscr1(1,jx) = ua(1,kout,jx)/psa(1,jxm1)
+        hscr1(ix,1) = ua(ix,kout,1)/psa(ixm1,1)
+        hscr1(ix,jx) = ua(ix,kout,jx)/psa(ixm1,jxm1)
         hscr2(1,1) = va(1,kout,1)/psa(1,1)
-        hscr2(1,jx) = va(1,kout,jx)/psa(1,jlx)
-        hscr2(ix,1) = va(ix,kout,1)/psa(ilx,1)
-        hscr2(ix,jx) = va(ix,kout,jx)/psa(ilx,jlx)
+        hscr2(1,jx) = va(1,kout,jx)/psa(1,jxm1)
+        hscr2(ix,1) = va(ix,kout,1)/psa(ixm1,1)
+        hscr2(ix,jx) = va(ix,kout,jx)/psa(ixm1,jxm1)
 !
       else if ( iexec.gt.1 ) then
 !
@@ -298,7 +299,7 @@
           hscr2(i,1) = vj1(i,kout)
           hscr2(i,jx) = vjl(i,kout)
         end do
-        do j = 2 , jlx
+        do j = 2 , jxm1
           hscr1(1,j) = ui1(kout,j)
           hscr1(ix,j) = uil(kout,j)
           hscr2(1,j) = vi1(kout,j)
@@ -317,19 +318,19 @@
 !
 !.....t:
 !
-      do j = 1 , jlx
-        do i = 1 , ilx
+      do j = 1 , jxm1
+        do i = 1 , ixm1
           hscr1(i,j) = ta(i,kout,j)/psa(i,j)
         end do
       end do
       write (c40nam,99009) kout
-      call mapsmp(hscr1,hscr1r,ix,jx,1,ilx,ixn,1,jlx,jxn,273.16D0,1,    &
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,273.16D0,1,   &
                 & c40nam,xth)
 !
 !.....relative humidity:
 !
-      do j = 1 , jlx
-        do i = 1 , ilx
+      do j = 1 , jxm1
+        do i = 1 , ixm1
           pres = a(kout)*psa(i,j) + ptop
           if ( hscr1(i,j).gt.273.15 ) then
 !           v8 svp formula
@@ -344,18 +345,18 @@
         end do
       end do
       write (c40nam,99010) kout
-      call mapsmp(hscr2,hscr2r,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,c40nam, &
+      call mapsmp(hscr2,hscr2r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,c40nam,&
                 & xth)
 !
 !.....qc and qr:
 !
-      do j = 1 , jlx
-        do i = 1 , ilx
+      do j = 1 , jxm1
+        do i = 1 , ixm1
           hscr1(i,j) = qca(i,kout,j)/psa(i,j)
         end do
       end do
       write (c40nam,99011) kout
-      call mapsmp(hscr1,hscr1r,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,c40nam, &
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,c40nam,&
                 & xth)
 !
 !.....surface temperature:
@@ -363,25 +364,25 @@
       if ( ibltyp.ne.0 ) then
         const = 273.15
         c40nam = ' ground temperature (c)    '
-        call mapsmp(tga,tgar,ix,jx,1,ilx,ixn,1,jlx,jxn,const,1,c40nam,  &
+        call mapsmp(tga,tgar,ix,jx,1,ixm1,ixn,1,jxm1,jxn,const,1,c40nam, &
                   & xth)
       end if
 !
 !.....precipitation:
 !
       c40nam = '   convective rainfall (mm)          '
-      call mapsmp(rainc,raincr,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,c40nam, &
+      call mapsmp(rainc,raincr,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,c40nam,&
                 & xth)
       c40nam = '  nonconvective rainfall (mm)      '
-      call mapsmp(rainnc,rainncr,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,      &
+      call mapsmp(rainnc,rainncr,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,     &
                 & c40nam,xth)
-      do j = 1 , jlx
-        do i = 1 , ilx
+      do j = 1 , jxm1
+        do i = 1 , ixm1
           hscr1(i,j) = rainc(i,j) + rainnc(i,j)
         end do
       end do
       c40nam = '  total rainfall (mm)        '
-      call mapsmp(hscr1,hscr1r,ix,jx,1,ilx,ixn,1,jlx,jxn,0.D0,1,c40nam, &
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,c40nam,&
                 & xth)
 99001 format (///1x,'--------------------------------------------------'&
             & ,/1x,'*****',4x,'large domain at t = ',f17.5,             &

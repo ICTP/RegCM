@@ -59,11 +59,11 @@
         if ( iotyp.eq.1 ) then
 #ifdef MPP1
           open (iutdat,file='output/'//filatm,status='unknown',         &
-               &form='unformatted',recl=(ix-2)*(mjx-2)*ibyte,           &
+               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,           &
                &access='direct')
 #else
           open (iutdat,file='output/'//filatm,status='unknown',         &
-               &form='unformatted',recl=(ix-2)*(jx-2)*ibyte,            &
+               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
                &access='direct')
 #endif
           nrcout = 0
@@ -83,11 +83,11 @@
         if ( iotyp.eq.1 ) then
 #ifdef MPP1
           open (iutbat,file='output/'//filsrf,status='unknown',         &
-               &form='unformatted',recl=(ix-2)*(mjx-2)*ibyte,           &
+               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,           &
                &access='direct')
 #else
           open (iutbat,file='output/'//filsrf,status='unknown',         &
-               &form='unformatted',recl=(ix-2)*(jx-2)*ibyte,            &
+               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
                &access='direct')
 #endif
           nrcbat = 0
@@ -107,11 +107,11 @@
         if ( iotyp.eq.1 ) then
 #ifdef MPP1
           open (iutsub,file='output/'//filsub,status='unknown',         &
-               &form='unformatted',recl=(ix-2)*(mjx-2)*nnsg*ibyte,      &
+               &form='unformatted',recl=(ixm2)*(jxm2)*nnsg*ibyte,      &
                &access='direct')
 #else
           open (iutsub,file='output/'//filsub,status='unknown',         &
-               &form='unformatted',recl=(ix-2)*(jx-2)*nnsg*ibyte,       &
+               &form='unformatted',recl=(ixm2)*(jxm2)*nnsg*ibyte,       &
                &access='direct')
 #endif
           nrcsub = 0
@@ -131,11 +131,11 @@
         if ( iotyp.eq.1 ) then
 #ifdef MPP1
           open (iutrad,file='output/'//filrad,status='unknown',         &
-               &form='unformatted',recl=(ix-2)*(mjx-2)*ibyte,           &
+               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,           &
                &access='direct')
 #else
           open (iutrad,file='output/'//filrad,status='unknown',         &
-               &form='unformatted',recl=(ix-2)*(jx-2)*ibyte,            &
+               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
                &access='direct')
 #endif
           nrcrad = 0
@@ -157,11 +157,11 @@
           if ( iotyp.eq.1 ) then
 #ifdef MPP1
             open (iutchem,file='output/'//filchem,status='unknown',     &
-                 &form='unformatted',recl=(ix-2)*(mjx-2)*ibyte,         &
+                 &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,         &
                  &access='direct')
 #else
             open (iutchem,file='output/'//filchem,status='unknown',     &
-                 &form='unformatted',recl=(ix-2)*(jx-2)*ibyte,          &
+                 &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,          &
                  &access='direct')
 #endif
             nrcchem = 0
@@ -327,11 +327,7 @@
         write (99,99008) a78
         write (a78,99009) ix
         write (99,99008) a78
-#ifdef MPP1
-        write (a78,99010) mjx
-#else
         write (a78,99010) jx
-#endif
         write (99,99008) a78
         write (a78,99011) kx
         write (99,99008) a78

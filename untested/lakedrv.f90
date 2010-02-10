@@ -36,7 +36,7 @@
                & ql , snow , tgl , tl , vl , zl
       integer :: ilake , n
 !
-      do ilake = 1 , ix - 1
+      do ilake = 1 , ixm1
         do n = 1 , nnsg
           if ( veg2d1(n,ilake,jslc).eq.14. ) then
             dayl = (nnnnnn-nstrt0)/4. + (xtime+dtmin)/1440.

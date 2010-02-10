@@ -86,7 +86,7 @@
       real(8) , dimension(ix,kx*16+4) :: bdyewrcv , bdyewsnd
       real(8) , dimension(nspgx,kx*16+4) :: bdynsrcv , bdynssnd
       real(8) , dimension(ix,4,jxp) :: ps4
-      real(8) , dimension(ix,4,mjx) :: ps_4 
+      real(8) , dimension(ix,4,jx) :: ps_4 
       real(8) , dimension(ix,kx*(ntr+5)*2) :: var2rcv , var2snd
       real(8) , dimension(ix,kx*(ntr+11)+1) :: tvar1rcv , tvar1snd
 #else
@@ -186,15 +186,15 @@
               end if
 !.................north boundary:
               if ( v(ix,k,j).ge.0. ) then
-                v(ix,k,j) = v(ix-1,k,j)
-                u(ix,k,j) = u(ix-1,k,j)
+                v(ix,k,j) = v(ixm1,k,j)
+                u(ix,k,j) = u(ixm1,k,j)
               end if
             end do
           end if
 #ifdef MPP1
         else if ( myid.eq.nproc-1 .and. j.eq.jendl-1 ) then
 #else
-        else if ( j.eq.jx-1 ) then
+        else if ( j.eq.jxm1 ) then
 #endif
           do k = 1 , kx
             do i = 1 , ix
@@ -212,8 +212,8 @@
               end if
 !.................north boundary:
               if ( v(ix,k,j).ge.0. ) then
-                v(ix,k,j) = v(ix-1,k,j)
-                u(ix,k,j) = u(ix-1,k,j)
+                v(ix,k,j) = v(ixm1,k,j)
+                u(ix,k,j) = u(ixm1,k,j)
               end if
             end do
           end if
@@ -262,11 +262,11 @@
 !...........no inflow/outflow dependence:
 !
           do k = 1 , kx
-!..............for i=2 and i=ix-1:
+!..............for i=2 and i=ixm1:
             u(2,k,j) = ui2(k,j)
-            u(ix-1,k,j) = uilx(k,j)
+            u(ixm1,k,j) = uilx(k,j)
             v(2,k,j) = vi2(k,j)
-            v(ix-1,k,j) = vilx(k,j)
+            v(ixm1,k,j) = vilx(k,j)
 !..............for i=1 and i=ix:
             u(1,k,j) = ui1(k,j)
             u(ix,k,j) = uil(k,j)
@@ -283,8 +283,8 @@
               end if
 !.................north boundary:
               if ( v(ix,k,j).ge.0. ) then
-                v(ix,k,j) = v(ix-1,k,j)
-                u(ix,k,j) = u(ix-1,k,j)
+                v(ix,k,j) = v(ixm1,k,j)
+                u(ix,k,j) = u(ixm1,k,j)
               end if
             end do
           end if
@@ -294,10 +294,10 @@
 #ifdef MPP1
       do j = 1 , jendx
 #else
-      do j = 1 , jlx
+      do j = 1 , jxm1
 #endif
         do k = 1 , kx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             t(i,k,j) = ta(i,k,j)/psa(i,j)
             qv(i,k,j) = qva(i,k,j)/psa(i,j)
             qc(i,k,j) = qca(i,k,j)/psa(i,j)
@@ -313,10 +313,10 @@
 #ifdef MPP1
           do j = 1 , jendx
 #else
-          do j = 1 , jlx
+          do j = 1 , jxm1
 #endif
             do k = 1 , kx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 chi(i,k,j,n) = chia(i,k,j,n)/psa(i,j)
               end do
             end do
@@ -464,9 +464,9 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
-        do i = 2 , ilx
+        do i = 2 , ixm1
           pdotb(i,j) = 0.25*(psb(i,j)+psb(i-1,j)+psb(i,j-1)+psb(i-1,j-1)&
                      & )
         end do
@@ -474,14 +474,14 @@
 !
 !-----east and west boundaries:
 !
-      do i = 2 , ilx
+      do i = 2 , ixm1
 #ifdef MPP1
         if ( myid.eq.0 ) pdotb(i,1) = 0.5*(psb(i,1)+psb(i-1,1))
         if ( myid.eq.nproc-1 ) pdotb(i,jendl)                           &
            & = 0.5*(psb(i,jendx)+psb(i-1,jendx))
 #else
         pdotb(i,1) = 0.5*(psb(i,1)+psb(i-1,1))
-        pdotb(i,jx) = 0.5*(psb(i,jlx)+psb(i-1,jlx))
+        pdotb(i,jx) = 0.5*(psb(i,jxm1)+psb(i-1,jxm1))
 #endif
       end do
 !
@@ -490,10 +490,10 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
         pdotb(1,j) = 0.5*(psb(1,j)+psb(1,j-1))
-        pdotb(ix,j) = 0.5*(psb(ilx,j)+psb(ilx,j-1))
+        pdotb(ix,j) = 0.5*(psb(ixm1,j)+psb(ixm1,j-1))
       end do
 !
 !-----corner points:
@@ -501,17 +501,17 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
         pdotb(1,1) = psb(1,1)
-        pdotb(ix,1) = psb(ilx,1)
+        pdotb(ix,1) = psb(ixm1,1)
       end if
       if ( myid.eq.nproc-1 ) then
         pdotb(1,jendl) = psb(1,jendx)
-        pdotb(ix,jendl) = psb(ilx,jendx)
+        pdotb(ix,jendl) = psb(ixm1,jendx)
       end if
 #else
       pdotb(1,1) = psb(1,1)
-      pdotb(ix,1) = psb(ilx,1)
-      pdotb(1,jx) = psb(1,jlx)
-      pdotb(ix,jx) = psb(ilx,jlx)
+      pdotb(ix,1) = psb(ixm1,1)
+      pdotb(1,jx) = psb(1,jxm1)
+      pdotb(ix,jx) = psb(ixm1,jxm1)
 #endif
 !
 !=======================================================================
@@ -646,7 +646,7 @@
 #ifdef MPP1
       do j = 1 , jendx
 #else
-      do j = 1 , jlx
+      do j = 1 , jxm1
 #endif
 !
         icon(j) = 0
@@ -654,10 +654,10 @@
         if ( (myid.eq.0 .and. j.eq.1) .or.                              &
            & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
 #else
-        if ( j.eq.1 .or. j.eq.jlx ) then
+        if ( j.eq.1 .or. j.eq.jxm1 ) then
 #endif
           do k = 1 , kxp1
-            do i = 1 , ilx
+            do i = 1 , ixm1
               qdot(i,k,j) = 0.
             end do
           end do
@@ -666,11 +666,11 @@
 !----------------------------------------------------------------------
 !**p**compute the pressure tendency:
 !
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             pten(i,j) = 0.
           end do
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               divl(i,k) = (ua(i+1,k,j+1)+ua(i,k,j+1)-ua(i+1,k,j)        &
                         & -ua(i,k,j))                                   &
                         & + (va(i+1,k,j+1)+va(i+1,k,j)-va(i,k,j+1)      &
@@ -683,12 +683,12 @@
 !..p..compute vertical sigma-velocity (qdot):
 !
           do k = 1 , kxp1
-            do i = 1 , ilx
+            do i = 1 , ixm1
               qdot(i,k,j) = 0.
             end do
           end do
           do k = 2 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               qdot(i,k,j) = qdot(i,k-1,j)                               &
                           & - (pten(i,j)+divl(i,k-1)/(dx2*msfx(i,j)     &
                           & *msfx(i,j)))*dsigma(k-1)/psa(i,j)
@@ -713,17 +713,17 @@
         if ( (myid.eq.0 .and. j.eq.1) .or.                              &
            & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
 #else
-      do j = 1 , jlx
-        if ( j.eq.1 .or. j.eq.jlx ) then
+      do j = 1 , jxm1
+        if ( j.eq.1 .or. j.eq.jxm1 ) then
 #endif
           do k = 1 , kx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               omega(i,k,j) = 0.
             end do
           end do
         else
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               omega(i,k,j) = 0.5*psa(i,j)*(qdot(i,k+1,j)+qdot(i,k,j))   &
                            & + a(k)                                     &
                            & *(pten(i,j)+((u(i,k,j)+u(i+1,k,j)+u(i+1,k, &
@@ -1002,8 +1002,8 @@
       do j = jbegin , jendx
         if ( myid.ne.nproc-1 .or. j.ne.jendx ) then
 #else
-      do j = 2 , jlx
-        if ( j.ne.jlx ) then
+      do j = 2 , jxm1
+        if ( j.ne.jxm1 ) then
 #endif
 !EES      omega change: I broke up the write onto two lines
 !         and commented out the if statment
@@ -1020,45 +1020,45 @@
                        & iboudy)
           else
           end if
-        end if     !end if(j.ne.jlx) test
+        end if     !end if(j.ne.jxm1) test
       end do
 #ifdef MPP1
       do j = 1 , jendx
         if ( myid.eq.0 .and. j.eq.1 ) then
 #else
-      do j = 1 , jlx
+      do j = 1 , jxm1
         if ( j.eq.1 ) then
 #endif
-          do i = 1 , ilx
+          do i = 1 , ixm1
             psc(i,j) = psb(i,j) + dt*pwbt(i,j)
             psd(i,j) = psa(i,j)
           end do
 #ifdef MPP1
         else if ( myid.eq.nproc-1 .and. j.eq.jendx ) then
 #else
-        else if ( j.eq.jlx ) then
+        else if ( j.eq.jxm1 ) then
 #endif
-          do i = 1 , ilx
+          do i = 1 , ixm1
             psd(i,j) = psa(i,j)
           end do
         else
 !
 !..p..forecast pressure:
 !
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             psc(i,j) = psb(i,j) + pten(i,j)*dt
           end do
 !
 !..p..weighted p* (psd)
 !
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             psd(i,j) = psa(i,j)
           end do
 !
           psc(1,j) = psb(1,j) + dt*psbt(1,j)
-          psc(ilx,j) = psb(ilx,j) + dt*pnbt(1,j)
+          psc(ixm1,j) = psb(ixm1,j) + dt*pnbt(1,j)
           psd(1,j) = psa(1,j)
-          psd(ilx,j) = psa(ilx,j)
+          psd(ixm1,j) = psa(ixm1,j)
         end if
       end do
 #ifdef MPP1
@@ -1087,9 +1087,9 @@
       pt2tot = 0.
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        do j = 2 , mjx - 2
+        do j = 2 , jxm2
           if ( jyear.ne.jyear0 .or. ktau.ne.0 ) then
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               iptn = iptn + 1
               ptntot = ptntot + dabs(ps_4(i,1,j))
               pt2tot = pt2tot +                                         &
@@ -1105,10 +1105,10 @@
       call mpi_bcast(pt2tot,1,mpi_double_precision,0,mpi_comm_world,    &
                    & ierr)
 #else
-      do j = 2 , jlx
-        if ( j.ne.jlx ) then
+      do j = 2 , jxm1
+        if ( j.ne.jxm1 ) then
           if ( jyear.ne.jyear0 .or. ktau.ne.0 ) then
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               iptn = iptn + 1
               ptntot = ptntot + dabs(pten(i,j))
               pt2tot = pt2tot + dabs((psc(i,j)+psb(i,j)-2.*psa(i,j))    &
@@ -1122,7 +1122,7 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
 
 !
@@ -1131,7 +1131,7 @@
 !       for dot-point variables.
  
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             dudx = ub(i,k,j+1) + ub(i+1,k,j+1) - ub(i,k,j) - ub(i+1,k,j)
             dvdx = vb(i,k,j+1) + vb(i+1,k,j+1) - vb(i,k,j) - vb(i+1,k,j)
             dudy = ub(i+1,k,j) + ub(i+1,k,j+1) - ub(i,k,j) - ub(i,k,j+1)
@@ -1150,15 +1150,15 @@
       do j = jbegin , jendx
         if ( myid.ne.nproc-1 .or. j.ne.jendx ) then
 #else
-      do j = 2 , jlx
-        if ( j.ne.jlx ) then
+      do j = 2 , jxm1
+        if ( j.ne.jxm1 ) then
 #endif
 !
 !---------------------------------------------------------------------
 !**t**compute the temperature tendency:
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               tten(i,k,j) = 0.
               qvten(i,k,j) = 0.
               qcten(i,k,j) = 0.
@@ -1178,7 +1178,7 @@
 !..t..compute the adiabatic term:
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               rovcpm = r/(cp*(1.+0.8*(qv(i,k,j))))
               tv = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
               tten(i,k,j) = tten(i,k,j) + (omega(i,k,j)*rovcpm*tv)      &
@@ -1189,7 +1189,7 @@
 !..t..compute the diffusion term for t and store in difft:
 !
           do k = 1 , kx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               difft(i,k,j) = 0.
               diffq(i,k,j) = 0.
             end do
@@ -1237,7 +1237,7 @@
  
 !           need also to set diffq to 0 here before calling diffut
             do k = 1 , kx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 diffq(i,k,j) = 0.
               end do
             end do
@@ -1258,14 +1258,14 @@
           end if
 !chem2_
 !
-        end if           !end if(j.ne.jlx) test
+        end if           !end if(j.ne.jxm1) test
 !----------------------------------------------------------------------
 !*****compute the pbl fluxes:
 !       the diffusion and pbl tendencies of t and qv are stored in
 !       difft and diffq.
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             uten(i,k,j) = 0.
             vten(i,k,j) = 0.
           end do
@@ -1310,12 +1310,12 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
 !       add ccm radiative transfer package-calculated heating rates to
 !       temperature tendency
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             tten(i,k,j) = tten(i,k,j) + psb(i,j)*heatrt(i,k,j)
                                                        !heating rate in deg/sec
           end do
@@ -1324,7 +1324,7 @@
 #ifdef MPP1
         if ( myid.ne.nproc-1 .or. j.ne.jendx ) then
 #else
-        if ( j.ne.jlx ) then
+        if ( j.ne.jxm1 ) then
 #endif
 !
 !..tq.add horizontal diffusion and pbl tendencies for t and qv to tten
@@ -1332,13 +1332,13 @@
 !         "condtq".
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               tten(i,k,j) = tten(i,k,j) + difft(i,k,j)
             end do
           end do
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               qvten(i,k,j) = qvten(i,k,j) + diffq(i,k,j)
             end do
           end do
@@ -1353,24 +1353,24 @@
 !
           if ( iboudy.eq.4 ) then
             do k = 1 , kx
-              do i = 2 , ilxm
+              do i = 2 , ixm2
                 tten(i,k,j) = tten(i,k,j) - difft(i,k,j)
               end do
             end do
             call sponge_t(ispgx,wgtx,tten(1,1,j),j)
             do k = 1 , kx
-              do i = 2 , ilxm
+              do i = 2 , ixm2
                 tten(i,k,j) = tten(i,k,j) + difft(i,k,j)
               end do
             end do
             do k = 1 , kx
-              do i = 2 , ilxm
+              do i = 2 , ixm2
                 qvten(i,k,j) = qvten(i,k,j) - diffq(i,k,j)
               end do
             end do
             call spongeqv(ispgx,wgtx,qvten(1,1,j),j)
             do k = 1 , kx
-              do i = 2 , ilxm
+              do i = 2 , ixm2
                 qvten(i,k,j) = qvten(i,k,j) + diffq(i,k,j)
               end do
             end do
@@ -1391,19 +1391,19 @@
 !..tq.forecast t, qv, and qc at tau+1:
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               qvc(i,k,j) = qvb(i,k,j) + dt*qvten(i,k,j)
             end do
           end do
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               qcc(i,k,j) = qcb(i,k,j) + dt*qcten(i,k,j)
             end do
           end do
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               tc(i,k,j) = tb(i,k,j) + dt*tten(i,k,j)
             end do
           end do
@@ -1414,7 +1414,7 @@
 !
             do itr = 1 , ntr
               do k = 1 , kx
-                do i = 2 , ilxm
+                do i = 2 , ixm2
                   chic(i,k,j,itr) = chib(i,k,j,itr)                     &
                                   & + dt*chiten(i,k,j,itr)
                 end do
@@ -1422,19 +1422,19 @@
             end do
           end if
 !chem2_
-        end if       !end if(j.ne.jlx),else test
+        end if       !end if(j.ne.jxm1),else test
       end do
 !
 #ifdef MPP1
       do j = 1 , jendx
         if ( myid.eq.0 .and. j.eq.1 ) then
 #else
-      do j = 1 , jlx
+      do j = 1 , jxm1
         if ( j.eq.1 ) then
 #endif
           if ( ipgf.eq.1 ) then
             do k = 1 , kx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
                 ttld(i,k,j) = td(i,k,j) - psa(i,j)                      &
                             & *t00pg*((a(k)*psa(i,j)+ptop)/p00pg)       &
@@ -1443,7 +1443,7 @@
             end do
           else if ( ipgf.eq.0 ) then
             do k = 1 , kx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
               end do
             end do
@@ -1453,14 +1453,14 @@
 #ifdef MPP1
         else if ( myid.eq.nproc-1 .and. j.eq.jendx ) then
 #else
-        else if ( j.eq.jlx ) then
+        else if ( j.eq.jxm1 ) then
 #endif
 !
 !-----set td and psd at j=jlx equal to ta and psa:
 !
           if ( ipgf.eq.1 ) then
             do k = 1 , kx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
                 ttld(i,k,j) = td(i,k,j) - psa(i,j)                      &
                             & *t00pg*((a(k)*psa(i,j)+ptop)/p00pg)       &
@@ -1469,7 +1469,7 @@
             end do
           else if ( ipgf.eq.0 ) then
             do k = 1 , kx
-              do i = 1 , ilx
+              do i = 1 , ixm1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
               end do
             end do
@@ -1482,7 +1482,7 @@
         else if ( ipgf.eq.1 ) then
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               tvc = tc(i,k,j)*(1.+ep1*(qvc(i,k,j))/psc(i,j))
               tva = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
               tvb = tb(i,k,j)*(1.+ep1*(qvb(i,k,j))/psb(i,j))
@@ -1495,16 +1495,16 @@
             td(1,k,j) = ta(1,k,j)*(1.+ep1*(qv(1,k,j)))
             ttld(1,k,j) = td(1,k,j) - psa(1,j)                          &
                         & *t00pg*((a(k)*psa(1,j)+ptop)/p00pg)**pgfaa1
-            td(ilx,k,j) = ta(ilx,k,j)*(1.+ep1*(qv(ilx,k,j)))
-            ttld(ilx,k,j) = td(ilx,k,j) - psa(ilx,j)                    &
-                          & *t00pg*((a(k)*psa(ilx,j)+ptop)/p00pg)       &
+            td(ixm1,k,j) = ta(ixm1,k,j)*(1.+ep1*(qv(ixm1,k,j)))
+            ttld(ixm1,k,j) = td(ixm1,k,j) - psa(ixm1,j)                    &
+                          & *t00pg*((a(k)*psa(ixm1,j)+ptop)/p00pg)       &
                           & **pgfaa1
           end do
 !
         else if ( ipgf.eq.0 ) then
 !
           do k = 1 , kx
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               tvc = tc(i,k,j)*(1.+ep1*(qvc(i,k,j))/psc(i,j))
               tva = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
               tvb = tb(i,k,j)*(1.+ep1*(qvb(i,k,j))/psb(i,j))
@@ -1513,10 +1513,10 @@
           end do
           do k = 1 , kx
             td(1,k,j) = ta(1,k,j)*(1.+ep1*(qv(1,k,j)))
-            td(ilx,k,j) = ta(ilx,k,j)*(1.+ep1*(qv(ilx,k,j)))
+            td(ixm1,k,j) = ta(ixm1,k,j)*(1.+ep1*(qv(ixm1,k,j)))
           end do
  
-        else         !end if(j.ne.jlx),else test
+        else         !end if(j.ne.jxm1),else test
         end if
 !
       end do
@@ -1525,14 +1525,14 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
 !
 !..uv.compute the diffusion terms:
 !       put diffusion and pbl tendencies of u and v in difuu and difuv.
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             difuu(i,k,j) = uten(i,k,j)
             difuv(i,k,j) = vten(i,k,j)
           end do
@@ -1544,7 +1544,7 @@
 !..uv.compute the horizontal advection terms for u and v:
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             uten(i,k,j) = 0.
             vten(i,k,j) = 0.
           end do
@@ -1556,7 +1556,7 @@
 !..uv.compute coriolis terms:
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             uten(i,k,j) = uten(i,k,j) + f(i,j)*va(i,k,j)/msfd(i,j)
             vten(i,k,j) = vten(i,k,j) - f(i,j)*ua(i,k,j)/msfd(i,j)
           end do
@@ -1566,14 +1566,14 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
 !
 !..uv.compute pressure gradient terms:
 !
         if ( ipgf.eq.1 ) then
           do k = 1 , kx
-            do i = 2 , ilx
+            do i = 2 , ixm1
               psasum = psd(i,j) + psd(i-1,j) + psd(i,j-1) + psd(i-1,j-1)
               sigpsa = psasum
               tv1 = t(i-1,k,j-1)*(1.+ep1*(qv(i-1,k,j-1)))
@@ -1597,7 +1597,7 @@
           end do
         else if ( ipgf.eq.0 ) then
           do k = 1 , kx
-            do i = 2 , ilx
+            do i = 2 , ixm1
               psasum = psd(i,j) + psd(i-1,j) + psd(i,j-1) + psd(i-1,j-1)
               sigpsa = psasum
               tv1 = t(i-1,k,j-1)*(1.+ep1*(qv(i-1,k,j-1)))
@@ -1624,14 +1624,14 @@
 #ifdef MPP1
       do j = 1 , jendx
 #else
-      do j = 1 , jlx
+      do j = 1 , jxm1
 #endif
 !
 !..uv.compute geopotential height at half-k levels, cross points:
 !
         if ( ipgf.eq.1 ) then
  
-          do i = 1 , ilx
+          do i = 1 , ixm1
             tv = (ttld(i,kx,j)/psd(i,j))/(1.+qc(i,kx,j)/(1.+qv(i,kx,j)))
             phi(i,kx,j) = ht(i,j)                                       &
                         & + r*t00pg/pgfaa1*((psd(i,j)+ptop)/p00pg)      &
@@ -1641,9 +1641,9 @@
                         & ptop/psd(i,j)))
           end do
  
-          do k = 1 , kxm
+          do k = 1 , kxm1
             lev = kx - k
-            do i = 1 , ilx
+            do i = 1 , ixm1
               tvavg = ((ttld(i,lev,j)*dsigma(lev)+ttld(i,lev+1,j)*dsigma&
                     & (lev+1))/(psd(i,j)*(dsigma(lev)+dsigma(lev+1))))  &
                     & /(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
@@ -1655,16 +1655,16 @@
  
         else if ( ipgf.eq.0 ) then
  
-          do i = 1 , ilx
+          do i = 1 , ixm1
             tv = (td(i,kx,j)/psd(i,j))/(1.+qc(i,kx,j)/(1.+qv(i,kx,j)))
             phi(i,kx,j) = ht(i,j)                                       &
                         & - r*tv*dlog((a(kx)+ptop/psd(i,j))/(1.+ptop/psd&
                         & (i,j)))
           end do
  
-          do k = 1 , kxm
+          do k = 1 , kxm1
             lev = kx - k
-            do i = 1 , ilx
+            do i = 1 , ixm1
               tvavg = ((td(i,lev,j)*dsigma(lev)+td(i,lev+1,j)*dsigma(lev&
                     & +1))/(psd(i,j)*(dsigma(lev)+dsigma(lev+1))))      &
                     & /(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
@@ -1683,13 +1683,13 @@
                       & mpi_comm_world,status,ierr)
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
 !
 !..uv.compute the geopotential gradient terms:
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             uten(i,k,j) = uten(i,k,j)                                   &
                         & - (psd(i-1,j-1)+psd(i,j-1)+psd(i-1,j)+psd(i,j)&
                         & )                                             &
@@ -1707,7 +1707,7 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
 !
 !..uv.compute teh vertical advection terms:
@@ -1734,7 +1734,7 @@
 !..uv.add the diffusion and pbl tendencies to uten and vten:
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             uten(i,k,j) = uten(i,k,j) + difuu(i,k,j)
             vten(i,k,j) = vten(i,k,j) + difuv(i,k,j)
           end do
@@ -1743,7 +1743,7 @@
 !..uv.forecast p*u and p*v at tau+1:
 !
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             uc(i,k,j) = ub(i,k,j) + dt*uten(i,k,j)
             vc(i,k,j) = vb(i,k,j) + dt*vten(i,k,j)
           end do
@@ -1760,10 +1760,10 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
-      do j = 2 , jlx
+      do j = 2 , jxm1
 #endif
         do k = 1 , kx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             ub(i,k,j) = omuhf*ua(i,k,j)/msfd(i,j)                       &
                       & + gnuhf*(ub(i,k,j)+uc(i,k,j))
             vb(i,k,j) = omuhf*va(i,k,j)/msfd(i,j)                       &
@@ -1777,31 +1777,31 @@
 #ifdef MPP1
       do j = jbegin , jendm
 #else
-      do j = 2 , jlxm
+      do j = 2 , jxm2
 #endif
         do k = 1 , kx
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             tb(i,k,j) = omuhf*ta(i,k,j) + gnuhf*(tb(i,k,j)+tc(i,k,j))
             ta(i,k,j) = tc(i,k,j)
           end do
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             qvbs = omuhf*qva(i,k,j) + gnuhf*(qvb(i,k,j)+qvc(i,k,j))
             qvas = qvc(i,k,j)
             qvb(i,k,j) = dmax1(qvbs,1.D-99)
             qva(i,k,j) = dmax1(qvas,1.D-99)
           end do
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             qcbs = omu*qca(i,k,j) + gnu*(qcb(i,k,j)+qcc(i,k,j))
             qcb(i,k,j) = dmax1(qcbs,0.D0)
           end do
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             qcas = qcc(i,k,j)
             qca(i,k,j) = dmax1(qcas,0.D0)
           end do
 !chem2
           if ( ichem.eq.1 ) then
             do itr = 1 , ntr
-              do i = 2 , ilxm
+              do i = 2 , ixm2
                 chibs = omu*chia(i,k,j,itr)                             &
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
                 chib(i,k,j,itr) = dmax1(chibs,0.D0)
@@ -1812,7 +1812,7 @@
           end if
 !chem2_
         end do
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           psb(i,j) = omuhf*psa(i,j) + gnuhf*(psb(i,j)+psc(i,j))
           psa(i,j) = psc(i,j)
         end do
@@ -1822,9 +1822,9 @@
 #ifdef MPP1
           do j = 1 , jendx
 #else
-          do j = 1 , jlx
+          do j = 1 , jxm1
 #endif
-            do i = 1 , ilx
+            do i = 1 , ixm1
               aermm(i,k,j) = so4(i,k,j)
             end do
           end do
@@ -1903,7 +1903,7 @@
         icons_mpi = 0
         do j = jbegin , jendm
 #else
-        do j = 2 , jlxm
+        do j = 2 , jxm2
 #endif
           icons = icons + icon(j)
         end do

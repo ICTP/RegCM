@@ -100,17 +100,17 @@
 !
       real(8) :: eccf
       integer :: jslc
-      real(8) , dimension(ix - 1) :: alb , albc , albl , albld , albs ,  &
+      real(8) , dimension(ixm1) :: alb , albc , albl , albld , albs ,  &
                                   & albsd , clat , coslat , emiss1d ,   &
                                   & flns , flnsc , flnt , flntc ,       &
                                   & flwds , fsds , fsnirt , fsnirtsq ,  &
                                   & fsnrtc , fsns , fsnsc , fsnt ,      &
                                   & fsntc , solin , soll , solld ,      &
                                   & sols , solsd , ts
-      real(8) , dimension(ix - 1,kx + 1) :: cld , effcld , piln , pint
-      real(8) , dimension(ix - 1,kx) :: clwp , fice , h2ommr , pmid ,  &
+      real(8) , dimension(ixm1,kxp1) :: cld , effcld , piln , pint
+      real(8) , dimension(ixm1,kx) :: clwp , fice , h2ommr , pmid ,  &
            & pmln , qrl , qrs , rei , rel , t
-      real(8) , dimension(ix - 1,kx) :: o3vmr
+      real(8) , dimension(ixm1,kx) :: o3vmr
       intent (out) alb , albc
       intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    & fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
@@ -147,15 +147,15 @@
 !
 ! Local variables
 !
-      real(8) , dimension(ix - 1) :: aeradfo , aeradfos
-      real(8) , dimension(ix - 1,kx) :: cfc11 , cfc12 , ch4 , n2o
-      real(8) , dimension(ix - 1,0:kx,nspi) :: ftota_mix , gtota_mix , &
+      real(8) , dimension(ixm1) :: aeradfo , aeradfos
+      real(8) , dimension(ixm1,kx) :: cfc11 , cfc12 , ch4 , n2o
+      real(8) , dimension(ixm1,0:kx,nspi) :: ftota_mix , gtota_mix , &
            & tauasc_mix , tauxar_mix
-      real(8) , dimension(ix - 1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
+      real(8) , dimension(ixm1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
            & tauasc_mix_cs , tauxar_mix_cs
       integer :: i
-      real(8) , dimension(ix - 1,kx) :: o3mmr , pbr , rh
-      real(8) , dimension(ix - 1,kx + 1) :: plco2 , plh2o , pnm , tclrsf
+      real(8) , dimension(ixm1,kx) :: o3mmr , pbr , rh
+      real(8) , dimension(ixm1,kxp1) :: plco2 , plh2o , pnm , tclrsf
 !
 !     Instead of interpolating the o3vmr from the time-interpolated
 !     values, we pass compute o3vmr in getdat() and pass it directly
@@ -196,7 +196,7 @@
  
 !       Convert units of shortwave fields needed by rest of model from
 !       CGS to MKS
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           solin(i) = solin(i)*1.E-3
           fsnt(i) = fsnt(i)*1.E-3
           fsns(i) = fsns(i)*1.E-3
@@ -211,7 +211,7 @@
 !
 !       Calculate/outfld albedo and clear sky albedo
 !
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           if ( solin(i).gt.0. ) then
             alb(i) = (solin(i)-fsnt(i))/solin(i)
           else
@@ -219,7 +219,7 @@
           end if
         end do
 !
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           if ( solin(i).gt.0. ) then
             albc(i) = (solin(i)-fsntc(i))/solin(i)
           else
@@ -242,7 +242,7 @@
 !
 !       Convert units of longwave fields needed by rest of model from
 !       CGS to MKS
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           flnt(i) = flnt(i)*1.E-3
           flns(i) = flns(i)*1.E-3
           flntc(i) = flntc(i)*1.E-3

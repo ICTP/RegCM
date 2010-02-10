@@ -49,7 +49,7 @@
         do k = kx , 1 , -1
           do i = 1 , ix - 2
 #ifdef MPP1
-            do j = 1 , mjx - 2
+            do j = 1 , jxm2
               fchem(j,i) = chia_io(i+1,k,j+1,itr)/psa_io(i+1,j+1)
             end do
 #else
@@ -73,7 +73,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = aerext_io(i+1,k,j+1)
           end do
 #else
@@ -94,7 +94,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = aerssa_io(i+1,k,j+1)
           end do
 #else
@@ -115,7 +115,7 @@
       do k = kx , 1 , -1
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = aerasp_io(i+1,k,j+1)
           end do
 #else
@@ -139,7 +139,7 @@
 !       -------
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = dtrace_io(i+1,j+1,itr)
           end do
 #else
@@ -169,7 +169,7 @@
  
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = wdlsc_io(i+1,j+1,itr)*mpd
           end do
 #else
@@ -188,7 +188,7 @@
 !       --------
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = wdcvc_io(i+1,j+1,itr)*mpd
           end do
 #else
@@ -207,7 +207,7 @@
 !       -------------
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = ddsfc_io(i+1,j+1,itr)*mpd
           end do
 #else
@@ -226,7 +226,7 @@
 !----------------------
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = wxsg_io(i+1,j+1,itr)*mpd
           end do
 #else
@@ -245,7 +245,7 @@
 !----------------------
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = wxaq_io(i+1,j+1,itr)*mpd
           end do
 #else
@@ -264,7 +264,7 @@
 !----------------------
         do i = 1 , ix - 2
 #ifdef MPP1
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             fchem(j,i) = cemtrac_io(i+1,j+1,itr)*mpd
           end do
 #else
@@ -283,8 +283,8 @@
  
 !       IF YOU WANT THE INSTANTANEOUS EMISSION IN THE SOURCE
  
-!       do i=1,ix-2
-!       do j=1,jx-2
+!       do i=1,ixm2
+!       do j=1,jxm2
 !       fchem(j,i) = chemsrc(i+1,j+1,lmonth,itr) * 1.e9
 !       unit = microg/m2.s
 !       end do
@@ -299,7 +299,7 @@
 !       reinitialisation for avraged dposition rates ( a modifier)
 #ifdef MPP1
         do i = 1 , ix - 2
-          do j = 1 , mjx - 2
+          do j = 1 , jxm2
             do k = 1 , kx
               remlsc_io(i,k,j,itr) = 0.
               remcvc_io(i,k,j,itr) = 0.
@@ -345,7 +345,7 @@
  
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fchem(j,i) = aertarf_io(i+1,j+1)
         end do
 #else
@@ -365,7 +365,7 @@
  
       do i = 1 , ix - 2
 #ifdef MPP1
-        do j = 1 , mjx - 2
+        do j = 1 , jxm2
           fchem(j,i) = aersrrf_io(i+1,j+1)
         end do
 #else
@@ -384,15 +384,15 @@
  
 !     reset rad diag to 0 ( averaged between output time stepsin aerout)
 #ifdef MPP1
-      do j = 1 , mjx - 1
-        do i = 1 , ix - 1
+      do j = 1 , jxm1
+        do i = 1 , ixm1
           aertarf_io(i,j) = 0.
           aersrrf_io(i,j) = 0.
         end do
       end do
 #else
       do j = 1 , jx - 1
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           aertarf(i,j) = 0.
           aersrrf(i,j) = 0.
         end do

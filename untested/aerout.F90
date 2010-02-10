@@ -29,8 +29,8 @@
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(ix - 1) :: aeradfo , aeradfos
-      real(8) , dimension(ix - 1,0:kx,nspi) :: gtota_mix , tauasc_mix ,&
+      real(8) , dimension(ixm1) :: aeradfo , aeradfos
+      real(8) , dimension(ixm1,0:kx,nspi) :: gtota_mix , tauasc_mix ,&
            & tauxar_mix
       intent (in) aeradfo , aeradfos , gtota_mix , jslc , tauasc_mix ,  &
                 & tauxar_mix
@@ -40,7 +40,7 @@
       integer :: i , k , ntim
 ! 
       do k = 1 , kx
-        do i = 2 , ix - 1
+        do i = 2 , ixm1
 #ifdef MPP1
           aerext(i-1,k,jslc) = tauxar_mix(i,k,8)
           aerssa(i-1,k,jslc) = tauasc_mix(i,k,8)
@@ -61,7 +61,7 @@
 !
 !     aersol radative forcing (care cgs to mks after radiation scheme !)
 !
-      do i = 2 , ix - 1
+      do i = 2 , ixm1
 #ifdef MPP1
         aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)*1.E-3/ntim
         aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)*1.E-3/ntim

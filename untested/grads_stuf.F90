@@ -65,7 +65,7 @@
         alatmin = 999999.
         alatmax = -999999.
 #ifdef MPP1
-        do j = 1 , mjx
+        do j = 1 , jx
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
         end do
@@ -79,7 +79,7 @@
         alonmax = -999999.
         do i = 1 , ix
 #ifdef MPP1
-          do j = 1 , mjx
+          do j = 1 , jx
 #else
           do j = 1 , jx
 #endif
@@ -140,16 +140,16 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
 #ifdef MPP1
-        centerj = (mjx-2)/2.
+        centerj = (jxm2)/2.
 #else
-        centerj = (jx-2)/2.
+        centerj = (jxm2)/2.
 #endif
-        centeri = (ix-2)/2.
+        centeri = (ixm2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef MPP1
-          write (31,99006) mjx - 2 , ix - 2 , clat , clon , centerj ,   &
+          write (31,99006) jxm2 , ix - 2 , clat , clon , centerj ,   &
                          & centeri , truelatl , truelath , clon , dxsp ,&
                          & dxsp
 #else
@@ -163,14 +163,14 @@
                                         !
         else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-          write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)      &
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)      &
                          & - xlong_io(2,2)
           write (31,99010) ix - 2
-          write (31,99011) (xlat_io(i,2),i=2,ix-1)
+          write (31,99011) (xlat_io(i,2),i=2,ixm1)
 #else
           write (31,99009) jx - 2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) ix - 2
-          write (31,99011) (xlat(i,2),i=2,ix-1)
+          write (31,99011) (xlat(i,2),i=2,ixm1)
 #endif
         else if ( proj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -179,7 +179,7 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef MPP1
-          write (31,99012) mjx - 2 , ix - 2 , plon , plat ,             &
+          write (31,99012) jxm2 , ix - 2 , plon , plat ,             &
                          & dxsp/111000. , dxsp/111000.*.95238
 #else
           write (31,99012) jx - 2 , ix - 2 , plon , plat ,              &
@@ -192,7 +192,7 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
                        & - xlong_io(2,2)
         write (31,99013) ix - 2 , xlat_io(2,2) , xlat_io(3,2)           &
                        & - xlat_io(2,2)
@@ -339,7 +339,7 @@
                & nbase , nday , nhour , number , nx , ny
       logical :: there
 #ifdef MPP1
-      real(4) , dimension(mjx*nsg,ix*nsg) :: xlat_s_io , xlon_s_io
+      real(4) , dimension(jx*nsg,ix*nsg) :: xlat_s_io , xlon_s_io
 #else
       real(4) , dimension(jx*nsg,ix*nsg) :: xlat_s , xlon_s
 #endif
@@ -368,7 +368,7 @@
         alatmin = 999999.
         alatmax = -999999.
 #ifdef MPP1
-        do j = 1 , mjx
+        do j = 1 , jx
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
         end do
@@ -382,7 +382,7 @@
         alonmax = -999999.
         do i = 1 , ix
 #ifdef MPP1
-          do j = 1 , mjx
+          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -441,20 +441,20 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
 #ifdef MPP1
-        centerj = (mjx-2)/2.
+        centerj = (jxm2)/2.
 #else
-        centerj = (jx-2)/2.
+        centerj = (jxm2)/2.
 #endif
-        centeri = (ix-2)/2.
+        centeri = (ixm2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef MPP1
-          write (31,99006) (mjx-2)*nsg , (ix-2)*nsg , clat , clon ,     &
+          write (31,99006) (jxm2)*nsg , (ixm2)*nsg , clat , clon ,     &
                          & centerj*nsg , centeri*nsg , truelatl ,       &
                          & truelath , clon , dxsp/nsg , dxsp/nsg
 #else
-          write (31,99006) (jx-2)*nsg , (ix-2)*nsg , clat , clon ,      &
+          write (31,99006) (jxm2)*nsg , (ixm2)*nsg , clat , clon ,      &
                          & centerj*nsg , centeri*nsg , truelatl ,       &
                          & truelath , clon , dxsp/nsg , dxsp/nsg
 #endif
@@ -466,17 +466,17 @@
 #ifdef MPP1
           read (iutin1,rec=5) xlat_s_io
           read (iutin1,rec=6) xlon_s_io
-          write (31,99009) (mjx-2)*nsg , xlon_s_io(nsg,nsg) ,           &
+          write (31,99009) (jxm2)*nsg , xlon_s_io(nsg,nsg) ,           &
                          & xlon_s_io(nsg+1,nsg) - xlon_s_io(nsg,nsg)
-          write (31,99010) (ix-2)*nsg
-          write (31,99011) (xlat_s_io(nsg+1,i),i=nsg+1,(ix-1)*nsg)
+          write (31,99010) (ixm2)*nsg
+          write (31,99011) (xlat_s_io(nsg+1,i),i=nsg+1,(ixm1)*nsg)
 #else
           read (iutin1,rec=5) xlat_s
           read (iutin1,rec=6) xlon_s
-          write (31,99009) (jx-2)*nsg , xlon_s(nsg,nsg) ,               &
+          write (31,99009) (jxm2)*nsg , xlon_s(nsg,nsg) ,               &
                          & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
-          write (31,99010) (ix-2)*nsg
-          write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,(ix-1)*nsg)
+          write (31,99010) (ixm2)*nsg
+          write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,(ixm1)*nsg)
 #endif
         else if ( proj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -485,12 +485,12 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef MPP1
-          write (31,99012) (mjx-2)*nsg , (ix-2)*nsg , plon , plat ,     &
+          write (31,99012) (jxm2)*nsg , (ixm2)*nsg , plon , plat ,     &
                          & dxsp/111000./nsg , dxsp/111000.*.95238/nsg
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
 #else
-          write (31,99012) (jx-2)*nsg , (ix-2)*nsg , plon , plat ,      &
+          write (31,99012) (jxm2)*nsg , (ixm2)*nsg , plon , plat ,      &
                          & dxsp/111000./nsg , dxsp/111000.*.95238/nsg
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
@@ -500,9 +500,9 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) (mjx-2)*nsg , xlong_io(2,2) ,                  &
+        write (31,99009) (jxm2)*nsg , xlong_io(2,2) ,                  &
                        & (xlong_io(2,3)-xlong_io(2,2))/nsg
-        write (31,99013) (ix-2)*nsg , xlat_io(2,2) ,                    &
+        write (31,99013) (ixm2)*nsg , xlat_io(2,2) ,                    &
                        & (xlat_io(3,2)-xlat_io(2,2))/nsg
 #else
         write (31,99009) jx - 2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
@@ -648,7 +648,7 @@
         alatmin = 999999.
         alatmax = -999999.
 #ifdef MPP1
-        do j = 1 , mjx
+        do j = 1 , jx
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
         end do
@@ -662,7 +662,7 @@
         alonmax = -999999.
         do i = 1 , ix
 #ifdef MPP1
-          do j = 1 , mjx
+          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -722,16 +722,16 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
 #ifdef MPP1
-        centerj = (mjx-2)/2.
+        centerj = (jxm2)/2.
 #else
-        centerj = (jx-2)/2.
+        centerj = (jxm2)/2.
 #endif
-        centeri = (ix-2)/2.
+        centeri = (ixm2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef MPP1
-          write (31,99006) mjx - 2 , ix - 2 , clat , clon , centerj ,   &
+          write (31,99006) jxm2 , ix - 2 , clat , clon , centerj ,   &
                          & centeri , truelatl , truelath , clon , dxsp ,&
                          & dxsp
 #else
@@ -745,14 +745,14 @@
                                         !
         else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-          write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)      &
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)      &
                          & - xlong_io(2,2)
           write (31,99010) ix - 2
-          write (31,99011) (xlat_io(i,2),i=2,ix-1)
+          write (31,99011) (xlat_io(i,2),i=2,ixm1)
 #else
           write (31,99009) jx - 2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) ix - 2
-          write (31,99011) (xlat(i,2),i=2,ix-1)
+          write (31,99011) (xlat(i,2),i=2,ixm1)
 #endif
         else if ( proj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -761,7 +761,7 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef MPP1
-          write (31,99012) mjx - 2 , ix - 2 , plon , plat ,             &
+          write (31,99012) jxm2 , ix - 2 , plon , plat ,             &
                          & dxsp/111000. , dxsp/111000.*.95238
 #else
           write (31,99012) jx - 2 , ix - 2 , plon , plat ,              &
@@ -774,7 +774,7 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
                        & - xlong_io(2,2)
         write (31,99013) ix - 2 , xlat_io(2,2) , xlat_io(3,2)           &
                        & - xlat_io(2,2)
@@ -908,7 +908,7 @@
         alatmin = 999999.
         alatmax = -999999.
 #ifdef MPP1
-        do j = 1 , mjx
+        do j = 1 , jx
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
         end do
@@ -922,7 +922,7 @@
         alonmax = -999999.
         do i = 1 , ix
 #ifdef MPP1
-          do j = 1 , mjx
+          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -981,15 +981,15 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
 #ifdef MPP1
-        centerj = (mjx-2)/2.
+        centerj = (jxm2)/2.
 #else
-        centerj = (jx-2)/2.
+        centerj = (jxm2)/2.
 #endif
-        centeri = (ix-2)/2.
+        centeri = (ixm2)/2.
       end if
       if ( proj.eq.'LAMCON' ) then     ! Lambert projection
 #ifdef MPP1
-        write (31,99006) mjx - 2 , ix - 2 , clat , clon , centerj ,     &
+        write (31,99006) jxm2 , ix - 2 , clat , clon , centerj ,     &
                        & centeri , truelatl , truelath , clon , dxsp ,  &
                        & dxsp
 #else
@@ -1002,14 +1002,14 @@
       else if ( proj.eq.'POLSTR' ) then !
       else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-        write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
                        & - xlong_io(2,2)
         write (31,99010) ix - 2
-        write (31,99011) (xlat_io(i,2),i=2,ix-1)
+        write (31,99011) (xlat_io(i,2),i=2,ixm1)
 #else
         write (31,99009) jx - 2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99010) ix - 2
-        write (31,99011) (xlat(i,2),i=2,ix-1)
+        write (31,99011) (xlat(i,2),i=2,ixm1)
 #endif
       else if ( proj.eq.'ROTMER' ) then
         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
@@ -1018,7 +1018,7 @@
                    &' in GrADS is somewhat similar.'
         write (*,*) ' FERRET, however, does support this projection.'
 #ifdef MPP1
-        write (31,99012) mjx - 2 , ix - 2 , plon , plat , dxsp/111000. ,&
+        write (31,99012) jxm2 , ix - 2 , plon , plat , dxsp/111000. ,&
                        & dxsp/111000.*.95238
 #else
        write (31,99012) jx - 2 , ix - 2 , plon , plat , dxsp/111000. , &
@@ -1113,7 +1113,7 @@
         alatmin = 999999.
         alatmax = -999999.
 #ifdef MPP1
-        do j = 1 , mjx
+        do j = 1 , jx
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
         end do
@@ -1127,7 +1127,7 @@
         alonmax = -999999.
         do i = 1 , ix
 #ifdef MPP1
-          do j = 1 , mjx
+          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -1186,16 +1186,16 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
 #ifdef MPP1
-        centerj = (mjx-2)/2.
+        centerj = (jxm2)/2.
 #else
-        centerj = (jx-2)/2.
+        centerj = (jxm2)/2.
 #endif
-        centeri = (ix-2)/2.
+        centeri = (ixm2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef MPP1
-          write (31,99006) mjx - 2 , ix - 2 , clat , clon , centerj ,   &
+          write (31,99006) jxm2 , ix - 2 , clat , clon , centerj ,   &
                          & centeri , truelatl , truelath , clon , dxsp ,&
                          & dxsp
 #else
@@ -1209,14 +1209,14 @@
                                         !
         else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-          write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)      &
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)      &
                          & - xlong_io(2,2)
           write (31,99010) ix - 2
-          write (31,99011) (xlat_io(i,2),i=2,ix-1)
+          write (31,99011) (xlat_io(i,2),i=2,ixm1)
 #else
           write (31,99009) jx - 2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) ix - 2
-          write (31,99011) (xlat(i,2),i=2,ix-1)
+          write (31,99011) (xlat(i,2),i=2,ixm1)
 #endif
         else if ( proj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -1225,7 +1225,7 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef MPP1
-          write (31,99012) mjx - 2 , ix - 2 , plon , plat ,             &
+          write (31,99012) jxm2 , ix - 2 , plon , plat ,             &
                          & dxsp/111000. , dxsp/111000.*.95238
 #else
           write (31,99012) jx - 2 , ix - 2 , plon , plat ,              &
@@ -1238,7 +1238,7 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
                        & - xlong_io(2,2)
         write (31,99013) ix - 2 , xlat_io(2,2) , xlat_io(3,2)           &
                        & - xlat_io(2,2)
@@ -1364,7 +1364,7 @@
         alatmin = 999999.
         alatmax = -999999.
 #ifdef MPP1
-        do j = 1 , mjx
+        do j = 1 , jx
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
         end do
@@ -1378,7 +1378,7 @@
         alonmax = -999999.
         do i = 1 , ix
 #ifdef MPP1
-          do j = 1 , mjx
+          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -1437,16 +1437,16 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
 #ifdef MPP1
-        centerj = (mjx-2)/2.
+        centerj = (jxm2)/2.
 #else
-        centerj = (jx-2)/2.
+        centerj = (jxm2)/2.
 #endif
-        centeri = (ix-2)/2.
+        centeri = (ixm2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef MPP1
-          write (31,99006) mjx - 2 , ix - 2 , clat , clon , centerj ,   &
+          write (31,99006) jxm2 , ix - 2 , clat , clon , centerj ,   &
                          & centeri , truelatl , truelath , clon , dxsp ,&
                          & dxsp
 #else
@@ -1460,14 +1460,14 @@
                                         !
         else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-          write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)      &
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)      &
                          & - xlong_io(2,2)
           write (31,99010) ix - 2
-          write (31,99011) (xlat_io(i,2),i=2,ix-1)
+          write (31,99011) (xlat_io(i,2),i=2,ixm1)
 #else
           write (31,99009) jx - 2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) ix - 2
-          write (31,99011) (xlat(i,2),i=2,ix-1)
+          write (31,99011) (xlat(i,2),i=2,ixm1)
 #endif
         else if ( proj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -1476,7 +1476,7 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef MPP1
-          write (31,99012) mjx - 2 , ix - 2 , plon , plat ,             &
+          write (31,99012) jxm2 , ix - 2 , plon , plat ,             &
                          & dxsp/111000. , dxsp/111000.*.95238
 #else
           write (31,99012) jx - 2 , ix - 2 , plon , plat ,              &
@@ -1489,7 +1489,7 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) mjx - 2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
                        & - xlong_io(2,2)
         write (31,99013) ix - 2 , xlat_io(2,2) , xlat_io(3,2)           &
                        & - xlat_io(2,2)

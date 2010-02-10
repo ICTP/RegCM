@@ -61,8 +61,8 @@
 #ifdef MPP1
       integer :: ierr
       integer , dimension(mpi_status_size) :: status
-      real(4) , dimension(ix,mjx) :: sp2d
-      real(4) , dimension(ix*nsg,mjx*nsg) :: sp2d1
+      real(4) , dimension(ix,jx) :: sp2d
+      real(4) , dimension(ix*nsg,jx*nsg) :: sp2d1
 #else
       real(4) , dimension(ix,jx) :: sp2d
       real(4) , dimension(ix*nsg,jx*nsg) :: sp2d1
@@ -689,9 +689,9 @@
         write (finm,99001) iutin
         if ( nsg.gt.1 ) open (iutin1,file='fort.11',form='unformatted', &
                             & status='old',access='direct',             &
-                            & recl=ix*mjx*nnsg*ibyte)
+                            & recl=ix*jx*nnsg*ibyte)
         open (iutin,file=finm,form='unformatted',status='old',          &
-             &access='direct',recl=ix*mjx*ibyte)
+             &access='direct',recl=ix*jx*ibyte)
         read (iutin,rec=1,iostat=ierr1) nyy , nxx , kzz , dxsp , clat , &
                                       & clon , plat , plon , grdfac ,   &
                                       & proj , sp1d , ptsp , igrads ,   &
@@ -704,9 +704,9 @@
         print * , 'OUTPUT' , igrads , ibigend
         ptop = ptsp
         dx = dxsp
-        if ( nyy.ne.ix .or. nxx.ne.mjx .or. kzz.ne.kx ) then
+        if ( nyy.ne.ix .or. nxx.ne.jx .or. kzz.ne.kx ) then
           write (aline,*) '  SET IN regcm.param:  IX=' , ix , ' JX=' ,  &
-                        & mjx , ' KX=' , kx
+                        & jx , ' KX=' , kx
           call say
           write (aline,*) '  SET IN TERRAIN: NYY=' , nyy , ' NXX=' ,    &
                         & nxx , ' NZZ=' , kzz
@@ -896,16 +896,16 @@
       if ( .not.ifrest ) then
         if ( myid.eq.0 ) then
           print * , 'HT'
-          read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               ht_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           if ( nsg.gt.1 ) then
             read (iutin1,rec=2,iostat=ierr1)                            &
-                & ((sp2d1(i,j),j=1,mjx*nsg),i=1,ix*nsg)
-            do j = 1 , mjx*nsg
+                & ((sp2d1(i,j),j=1,jx*nsg),i=1,ix*nsg)
+            do j = 1 , jx*nsg
               do i = 1 , ix*nsg
                 jj = mod(j,nsg)
                 if ( jj.eq.0 ) jj = nsg
@@ -918,7 +918,7 @@
               end do
             end do
           else
-            do j = 1 , mjx
+            do j = 1 , jx
               do i = 1 , ix
                 ht1_io(1,i,j) = sp2d(i,j)*g
               end do
@@ -926,23 +926,23 @@
           end if
  
           print * , 'HTSD'
-          read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               htsd_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'SATBRT'
-          read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               satbrt_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           if ( nsg.gt.1 ) then
             read (iutin1,rec=4,iostat=ierr1)                            &
-                & ((sp2d1(i,j),j=1,mjx*nsg),i=1,ix*nsg)
-            do j = 1 , mjx*nsg
+                & ((sp2d1(i,j),j=1,jx*nsg),i=1,ix*nsg)
+            do j = 1 , jx*nsg
               do i = 1 , ix*nsg
                 jj = mod(j,nsg)
                 if ( jj.eq.0 ) jj = nsg
@@ -955,50 +955,50 @@
               end do
             end do
           else
-            do j = 1 , mjx
+            do j = 1 , jx
               do i = 1 , ix
                 satbrt1_io(1,i,j) = satbrt_io(i,j)
               end do
             end do
           end if
           print * , 'XLAT'
-          read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               xlat_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'XLONG'
-          read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               xlong_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'MSFX'
-          read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               msfx_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'MSFD'
-          read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               msfd_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'F'
-          read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               f_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'SNOWC'
-          read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,mjx),i=1,ix)
-          do j = 1 , mjx
+          read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          do j = 1 , jx
             do i = 1 , ix
               do n = 1 , nnsg
                 snowc_io(n,i,j) = dble(sp2d(i,j))
@@ -1010,7 +1010,7 @@
                           & ibyte
             call fatal(__FILE__,__LINE__,'REACHED EOF')
           end if
-          do j = 1 , mjx
+          do j = 1 , jx
             do i = 1 , ix
               inisrf_0(i,1,j) = ht_io(i,j)
               inisrf_0(i,2,j) = htsd_io(i,j)
@@ -1029,7 +1029,7 @@
               end do
             end do
           end do
-          do j = 1 , mjx
+          do j = 1 , jx
             do i = 1 , ix
               ht_io(i,j) = ht_io(i,j)*g
             end do
@@ -1081,7 +1081,7 @@
                &'**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
           print * , '****     Map Projection: ' , proj ,                &
                &'                ****'
-          print * , '****     IX=' , ix , ' JX=' , mjx , ' KX=' , kx ,  &
+          print * , '****     IX=' , ix , ' JX=' , jx , ' KX=' , kx ,  &
                &'             ****'
           print * , '****     PTOP=' , ptsp , ' DX=' , dxsp ,           &
                &'       ****'
@@ -1454,7 +1454,7 @@
         call say
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             shrmax2d(i,j) = shrmax
             shrmin2d(i,j) = shrmin
             edtmax2d(i,j) = edtmax
@@ -1472,8 +1472,8 @@
           end do
         end do
 #else
-        do j = 1 , jlx
-          do i = 1 , ilx
+        do j = 1 , jxm1
+          do i = 1 , ixm1
             shrmax2d(i,j) = shrmax
             shrmin2d(i,j) = shrmin
             edtmax2d(i,j) = edtmax
@@ -1691,7 +1691,7 @@
         print 99013 , daymax
         print 99014 , dt
         print 99015 , dx
-        print 99016 , mjx , ix
+        print 99016 , jx , ix
         print 99017 , kx
         print 99018 , xkhz
         print 99019 , xkhmax

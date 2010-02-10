@@ -80,15 +80,15 @@
 !
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ilx
+          do i = 1 , ixm1
 !           deld, delh: 1,ilx on cross grid
             ddsum(i,j,ns) = deld(i,j,ns,n0)
             dhsum(i,j,ns) = delh(i,j,ns,n0)
           end do
         end do
 #else
-        do j = 1 , jlx
-          do i = 1 , ilx
+        do j = 1 , jxm1
+          do i = 1 , ixm1
 !           deld, delh: 1,ilx on cross grid
             ddsum(i,j,ns) = deld(i,j,ns,n0)
             dhsum(i,j,ns) = delh(i,j,ns,n0)
@@ -107,7 +107,7 @@
                         & mpi_double_precision,iwest,1,mpi_comm_world,  &
                         & status,ierr)
         do j = jbegin , jendx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             fac = dx2*msfx(i,j)
             work(i,j,1) = (delh(i,j,ns,n0)+delh(i-1,j,ns,n0)-delh(i,j-1,&
                         & ns,n0)-delh(i-1,j-1,ns,n0))/fac
@@ -116,8 +116,8 @@
           end do
         end do
 #else
-        do j = 2 , jlx
-          do i = 2 , ilx
+        do j = 2 , jxm1
+          do i = 2 , ixm1
             fac = dx2*msfx(i,j)
             work(i,j,1) = (delh(i,j,ns,n0)+delh(i-1,j,ns,n0)-delh(i,j-1,&
                         & ns,n0)-delh(i-1,j-1,ns,n0))/fac
@@ -131,14 +131,14 @@
         do nw = 1 , 2
 #ifdef MPP1
           do j = jbegin , jendx
-            do i = 2 , ilx
+            do i = 2 , ixm1
 !             work: 2,ilx on dot grid
               work(i,j,nw) = work(i,j,nw)*psdot(i,j)
             end do
           end do
 #else
-          do j = 2 , jlx
-            do i = 2 , ilx
+          do j = 2 , jxm1
+            do i = 2 , ixm1
 !             work: 2,ilx on dot grid
               work(i,j,nw) = work(i,j,nw)*psdot(i,j)
             end do
@@ -153,14 +153,14 @@
 !
 #ifdef MPP1
         do j = jbegin , jendx
-          do i = 2 , ilx
+          do i = 2 , ixm1
             uu(i,j) = work(i,j,1)*msfd(i,j)
             vv(i,j) = work(i,j,2)*msfd(i,j)
           end do
         end do
 #else
-        do j = 2 , jlx
-          do i = 2 , ilx
+        do j = 2 , jxm1
+          do i = 2 , ixm1
             uu(i,j) = work(i,j,1)*msfd(i,j)
             vv(i,j) = work(i,j,2)*msfd(i,j)
           end do
@@ -181,15 +181,15 @@
         end do
 !
         do j = jbegin , jendm
-          do i = 2 , ilxm
+          do i = 2 , ixm2
             fac = dx2*msfx(i,j)*msfx(i,j)
             work(i,j,3) = (-uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)     &
                         & +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1))/fac
           end do
         end do
 #else
-        do j = 2 , jlxm
-          do i = 2 , ilxm
+        do j = 2 , jxm2
+          do i = 2 , ixm2
             fac = dx2*msfx(i,j)*msfx(i,j)
             work(i,j,3) = (-uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)     &
                         & +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1))/fac
@@ -201,8 +201,8 @@
 !
 #ifdef MPP1
         do j = jbegin , jendm
-          do i = 2 , ilxm
-!           work3: 2,ilxm on cross grid
+          do i = 2 , ixm2
+!           work3: 2,ixm2 on cross grid
             deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
                             & + deld(i,j,ns,3)/m2
             delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hbar(ns)       &
@@ -211,9 +211,9 @@
           end do
         end do
 #else
-        do j = 2 , jlxm
-          do i = 2 , ilxm
-!           work3: 2,ilxm on cross grid
+        do j = 2 , jxm2
+          do i = 2 , ixm2
+!           work3: 2,ixm2 on cross grid
             deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
                             & + deld(i,j,ns,3)/m2
             delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hbar(ns)       &
@@ -225,38 +225,38 @@
  
 !**     not in madala(1987)
         fac = (m(ns)-1.)/m(ns)
-        do i = 2 , ilxm
+        do i = 2 , ixm2
 #ifdef MPP1
           if ( myid.eq.0 ) delh(i,1,ns,n1) = delh(i,1,ns,n0)*fac
           if ( myid.eq.nproc-1 ) delh(i,jendx,ns,n1)                    &
              & = delh(i,jendx,ns,n0)*fac
 #else
           delh(i,1,ns,n1) = delh(i,1,ns,n0)*fac
-          delh(i,jlx,ns,n1) = delh(i,jlx,ns,n0)*fac
+          delh(i,jxm1,ns,n1) = delh(i,jxm1,ns,n0)*fac
 #endif
         end do
 #ifdef MPP1
         do j = 1 , jendx
           delh(1,j,ns,n1) = delh(1,j,ns,n0)*fac
-          delh(ilx,j,ns,n1) = delh(ilx,j,ns,n0)*fac
+          delh(ixm1,j,ns,n1) = delh(ixm1,j,ns,n0)*fac
         end do
 #else
-        do j = 1 , jlx
+        do j = 1 , jxm1
           delh(1,j,ns,n1) = delh(1,j,ns,n0)*fac
-          delh(ilx,j,ns,n1) = delh(ilx,j,ns,n0)*fac
+          delh(ixm1,j,ns,n1) = delh(ixm1,j,ns,n0)*fac
         end do
 #endif
 !
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ilx
+          do i = 1 , ixm1
             ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n1)
             dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n1)
           end do
         end do
 #else
-        do j = 1 , jlx
-          do i = 1 , ilx
+        do j = 1 , jxm1
+          do i = 1 , ixm1
             ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n1)
             dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n1)
           end do
@@ -275,7 +275,7 @@
                           & mpi_double_precision,iwest,1,mpi_comm_world,&
                           & status,ierr)
           do j = jbegin , jendx
-            do i = 2 , ilx
+            do i = 2 , ixm1
               fac = dx2*msfx(i,j)
               work(i,j,1) = (delh(i,j,ns,n1)+delh(i-1,j,ns,n1)-delh(i,j-&
                           & 1,ns,n1)-delh(i-1,j-1,ns,n1))/fac
@@ -284,8 +284,8 @@
             end do
           end do
 #else
-          do j = 2 , jlx
-            do i = 2 , ilx
+          do j = 2 , jxm1
+            do i = 2 , ixm1
               fac = dx2*msfx(i,j)
               work(i,j,1) = (delh(i,j,ns,n1)+delh(i-1,j,ns,n1)-delh(i,j-&
                           & 1,ns,n1)-delh(i-1,j-1,ns,n1))/fac
@@ -299,13 +299,13 @@
           do nw = 1 , 2
 #ifdef MPP1
             do j = jbegin , jendx
-              do i = 2 , ilx
+              do i = 2 , ixm1
                 work(i,j,nw) = work(i,j,nw)*psdot(i,j)
               end do
             end do
 #else
-            do j = 2 , jlx
-              do i = 2 , ilx
+            do j = 2 , jxm1
+              do i = 2 , ixm1
                 work(i,j,nw) = work(i,j,nw)*psdot(i,j)
               end do
             end do
@@ -319,14 +319,14 @@
 !
 #ifdef MPP1
           do j = jbegin , jendx
-            do i = 2 , ilx
+            do i = 2 , ixm1
               uu(i,j) = work(i,j,1)*msfd(i,j)
               vv(i,j) = work(i,j,2)*msfd(i,j)
             end do
           end do
 #else
-          do j = 2 , jlx
-            do i = 2 , ilx
+          do j = 2 , jxm1
+            do i = 2 , ixm1
               uu(i,j) = work(i,j,1)*msfd(i,j)
               vv(i,j) = work(i,j,2)*msfd(i,j)
             end do
@@ -347,7 +347,7 @@
           end do
 !
           do j = jbegin , jendm
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               fac = dx2*msfx(i,j)*msfx(i,j)
               work(i,j,3) = (-uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)   &
                           & +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1))   &
@@ -355,8 +355,8 @@
             end do
           end do
 #else
-          do j = 2 , jlxm
-            do i = 2 , ilxm
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               fac = dx2*msfx(i,j)*msfx(i,j)
               work(i,j,3) = (-uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)   &
                           & +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1))   &
@@ -369,7 +369,7 @@
 !
 #ifdef MPP1
           do j = jbegin , jendm
-            do i = 2 , ilxm
+            do i = 2 , ixm2
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                               & + deld(i,j,ns,3)/m(ns)
               delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hbar(ns)        &
@@ -378,8 +378,8 @@
             end do
           end do
 #else
-          do j = 2 , jlxm
-            do i = 2 , ilxm
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                               & + deld(i,j,ns,3)/m(ns)
               delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hbar(ns)        &
@@ -390,7 +390,7 @@
 #endif
 !
 !**       not in madala(1987)
-          do i = 2 , ilxm
+          do i = 2 , ixm2
 #ifdef MPP1
             if ( myid.eq.0 ) delh(i,1,ns,n2) = 2.*delh(i,1,ns,n1)       &
                & - delh(i,1,ns,n0)
@@ -398,31 +398,31 @@
                & = 2.*delh(i,jendx,ns,n1) - delh(i,jendx,ns,n0)
 #else
             delh(i,1,ns,n2) = 2.*delh(i,1,ns,n1) - delh(i,1,ns,n0)
-            delh(i,jlx,ns,n2) = 2.*delh(i,jlx,ns,n1) - delh(i,jlx,ns,n0)
+            delh(i,jxm1,ns,n2) = 2.*delh(i,jxm1,ns,n1) - delh(i,jxm1,ns,n0)
 #endif
           end do
 #ifdef MPP1
           do j = 1 , jendx
             delh(1,j,ns,n2) = 2.*delh(1,j,ns,n1) - delh(1,j,ns,n0)
-            delh(ilx,j,ns,n2) = 2.*delh(ilx,j,ns,n1) - delh(ilx,j,ns,n0)
+            delh(ixm1,j,ns,n2) = 2.*delh(ixm1,j,ns,n1) - delh(ixm1,j,ns,n0)
           end do
 #else
-          do j = 1 , jlx
+          do j = 1 , jxm1
             delh(1,j,ns,n2) = 2.*delh(1,j,ns,n1) - delh(1,j,ns,n0)
-            delh(ilx,j,ns,n2) = 2.*delh(ilx,j,ns,n1) - delh(ilx,j,ns,n0)
+            delh(ixm1,j,ns,n2) = 2.*delh(ixm1,j,ns,n1) - delh(ixm1,j,ns,n0)
           end do
 #endif
 !
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , ilx
+            do i = 1 , ixm1
               ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n2)
               dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n2)
             end do
           end do
 #else
-          do j = 1 , jlx
-            do i = 1 , ilx
+          do j = 1 , jxm1
+            do i = 1 , ixm1
               ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n2)
               dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n2)
             end do

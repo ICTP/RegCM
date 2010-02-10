@@ -36,11 +36,11 @@
 ! COMMON /OUTAER/
 !
 #ifdef MPP1
-      real(8) , dimension(ix-1,kx,jxp) :: aerasp , aerext , aerssa
-      real(8) , dimension(ix-1,jxp) :: aersrrf , aertarf
+      real(8) , dimension(ixm1,kx,jxp) :: aerasp , aerext , aerssa
+      real(8) , dimension(ixm1,jxp) :: aersrrf , aertarf
 #else
-      real(8) , dimension(ix-1,kx,jx-1) :: aerasp , aerext , aerssa
-      real(8) , dimension(ix-1,jx-1) :: aersrrf , aertarf
+      real(8) , dimension(ixm1,kx,jxm1) :: aerasp , aerext , aerssa
+      real(8) , dimension(ixm1,jxm1) :: aersrrf , aertarf
 #endif
 !
 ! COMMON /REMOVALT/
@@ -61,19 +61,19 @@
 !
 ! COMMON /TRACEIO/
 !
-      real(8) , dimension(ix-1,kx,mjx-1) :: aerasp_io , aerext_io ,     &
+      real(8) , dimension(ixm1,kx,jxm1) :: aerasp_io , aerext_io ,     &
            & aerssa_io
-      real(8) , dimension(ix-1,mjx-1) :: aersrrf_io , aertarf_io
-      real(8) , dimension(ix,mjx,ntr) :: cemtrac_io , cemtr_io ,        &
+      real(8) , dimension(ixm1,jxm1) :: aersrrf_io , aertarf_io
+      real(8) , dimension(ix,jx,ntr) :: cemtrac_io , cemtr_io ,        &
            & wxaq_io , wxsg_io
-      real(8) , dimension(ix,mjx) :: dustsotex_io
-      real(8) , dimension(ix,kx,mjx,ntr) :: rxsaq1_io , rxsaq2_io ,     &
+      real(8) , dimension(ix,jx) :: dustsotex_io
+      real(8) , dimension(ix,kx,jx,ntr) :: rxsaq1_io , rxsaq2_io ,     &
            & rxsg_io
 !
 ! COMMON /TRACHEMIO/
 !
-      real(8) , dimension(ix,kx,mjx,ntr) :: remcvc_io , remlsc_io
-      real(8) , dimension(ix,mjx,ntr) :: remdrd_io
+      real(8) , dimension(ix,kx,jx,ntr) :: remcvc_io , remlsc_io
+      real(8) , dimension(ix,jx,ntr) :: remdrd_io
 #endif
 
       end module mod_trachem

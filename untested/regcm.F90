@@ -183,14 +183,14 @@
       if ( jxp.lt.2 ) then
         write (aline,*) 'The number of jxp must be greater than 1'
         call say
-        write (aline,*) 'jxp = ' , jxp , '   mjx = ' , mjx
+        write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
         call say
         call fatal(__FILE__,__LINE__,'Domain too small')
       end if
-      if ( jxp*nproc.ne.mjx ) then
-        write (aline,*) 'mjx should be divided by nproc'
+      if ( jxp*nproc.ne.jx ) then
+        write (aline,*) 'jx should be divided by nproc'
         call say
-        write (aline,*) 'mjx = ' , mjx , '   nproc = ' , nproc
+        write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
         call say
         call fatal(__FILE__,__LINE__,                                   &
                  & 'Domain dimension not multiple of'//                 &

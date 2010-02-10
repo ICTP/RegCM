@@ -90,11 +90,11 @@
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(ix - 1,kx) :: cfc11 , cfc12 , ch4 , n2o ,    &
+      real(8) , dimension(ixm1,kx) :: cfc11 , cfc12 , ch4 , n2o ,    &
            & o3vmr , pmid , pmln , qnm , qrl , tnm
-      real(8) , dimension(ix - 1,kxp1) :: cld , piln , pint , plco2 ,   &
+      real(8) , dimension(ixm1,kxp1) :: cld , piln , pint , plco2 ,   &
            & plh2o , tclrsf
-      real(8) , dimension(ix - 1) :: emiss1d , flns , flnsc , flnt ,     &
+      real(8) , dimension(ixm1) :: emiss1d , flns , flnsc , flnt ,     &
                                   & flntc , flwds , ts
       intent (in) cld , emiss1d
       intent (out) flns , flnsc , flnt , flntc , flwds , qrl
@@ -169,31 +169,31 @@
 !
 ! Local variables
 !
-      real(8) , dimension(14,ix - 1,kxp1) :: abplnk1 , abplnk2
-      real(8) , dimension(ix - 1) :: absbt , bk1 , bk2 , delt , delt1 ,  &
+      real(8) , dimension(14,ixm1,kxp1) :: abplnk1 , abplnk2
+      real(8) , dimension(ixm1) :: absbt , bk1 , bk2 , delt , delt1 ,  &
                                   & tmp , tplnke
-      real(8) , dimension(ix - 1,kxp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
+      real(8) , dimension(ixm1,kxp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
            & co2t , fdl , fsdl , fsul , ful , h2otr , plol , plos ,     &
            & rtclrsf , s2c , s2t , tint , tint4 , tlayr , tlayr4 ,      &
            & tplnka , ucfc11 , ucfc12 , uch4 , uco211 , uco212 ,        &
            & uco213 , uco221 , uco222 , uco223 , un2o0 , un2o1 ,        &
            & uptype , w
-      real(8) , dimension(ix - 1,kx) :: co2eml , fclb4 , fclt4
-      logical , dimension(ix - 1) :: done , start
+      real(8) , dimension(ixm1,kx) :: co2eml , fclb4 , fclt4
+      logical , dimension(ixm1) :: done , start
       real(8) :: gocp , tmp1
       integer :: i , ii , k , k1 , k2 , k3 , khighest , km , km1 , km2 ,&
                & km3 , km4 , nptsc
-      integer , dimension(ix - 1) :: indx , khiv , khivm , klov
-      real(8) , dimension(ix - 1,kxp1,kxp1) :: s
+      integer , dimension(ixm1) :: indx , khiv , khivm , klov
+      real(8) , dimension(ixm1,kxp1,kxp1) :: s
 !
       integer , external :: intmax
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         rtclrsf(i,1) = 1.0/tclrsf(i,1)
       end do
 !
       do k = 1 , kx
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           fclb4(i,k) = 0.
           fclt4(i,k) = 0.
           tclrsf(i,k+1) = tclrsf(i,k)*(1.-cld(i,k+1))
@@ -246,20 +246,20 @@
 !     Find the lowest and highest level cloud for each grid point
 !     Note: Vertical indexing here proceeds from bottom to top
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         klov(i) = 0
         done(i) = .false.
       end do
       do k = 1 , kx
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           if ( .not.done(i) .and. cld(i,kxp2-k).gt.0.0 ) then
             done(i) = .true.
             klov(i) = k
           end if
         end do
       end do
-      call whenne(ix - 1,klov,1,0,indx,nptsc)
-      do i = 1 , ix - 1
+      call whenne(ixm1,klov,1,0,indx,nptsc)
+      do i = 1 , ixm1
         khiv(i) = klov(i)
         done(i) = .false.
       end do
@@ -272,7 +272,7 @@
           end if
         end do
       end do
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         khivm(i) = khiv(i) - 1
       end do
 !
@@ -295,7 +295,7 @@
 !     delt=t**4 in layer above current sigma level km.
 !     delt1=t**4 in layer below current sigma level km.
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         delt(i) = tint4(i,kx) - tlayr4(i,kxp1)
         delt1(i) = tlayr4(i,kxp1) - tint4(i,kxp1)
         s(i,kxp1,kxp1) = stebol*(delt1(i)*absnxt(i,kx,1,jslc)       &
@@ -304,7 +304,7 @@
                         & *absnxt(i,kx,3,jslc))
       end do
       do k = 1 , kx - 1
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           bk2(i) = (abstot(i,k,kx,jslc)+abstot(i,k,kxp1,jslc))*0.5
           bk1(i) = bk2(i)
           s(i,k,kxp1) = stebol*(bk2(i)*delt(i)+bk1(i)*delt1(i))
@@ -314,28 +314,28 @@
 !     All k, km>1
 !
       do km = kx , 2 , -1
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           delt(i) = tint4(i,km-1) - tlayr4(i,km)
           delt1(i) = tlayr4(i,km) - tint4(i,km)
         end do
         do k = kxp1 , 1 , -1
           if ( k.eq.km ) then
-            do i = 1 , ix - 1
+            do i = 1 , ixm1
               bk2(i) = absnxt(i,km-1,4,jslc)
               bk1(i) = absnxt(i,km-1,1,jslc)
             end do
           else if ( k.eq.km-1 ) then
-            do i = 1 , ix - 1
+            do i = 1 , ixm1
               bk2(i) = absnxt(i,km-1,2,jslc)
               bk1(i) = absnxt(i,km-1,3,jslc)
             end do
           else
-            do i = 1 , ix - 1
+            do i = 1 , ixm1
               bk2(i) = (abstot(i,k,km-1,jslc)+abstot(i,k,km,jslc))*0.5
               bk1(i) = bk2(i)
             end do
           end if
-          do i = 1 , ix - 1
+          do i = 1 , ixm1
             s(i,k,km) = s(i,k,km+1)                                     &
                       & + stebol*(bk2(i)*delt(i)+bk1(i)*delt1(i))
           end do
@@ -344,7 +344,7 @@
 !
 !     Computation of clear sky fluxes always set first level of fsul
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         if ( iemiss.eq.1 ) then
           fsul(i,kxp1) = emiss1d(i)*(stebol*(ts(i)**4))
         else
@@ -355,7 +355,7 @@
 !     Downward clear sky fluxes store intermediate quantities in down
 !     flux Initialize fluxes to clear sky values.
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         tmp(i) = fsul(i,kxp1) - stebol*tint4(i,kxp1)
         fsul(i,1) = fsul(i,kxp1) - abstot(i,1,kxp1,jslc)*tmp(i)       &
                   & + s(i,1,2)
@@ -367,7 +367,7 @@
 !     fsdl(i,kxp1) assumes isothermal layer
 !
       do k = 2 , kx
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           fsul(i,k) = fsul(i,kxp1) - abstot(i,k,kxp1,jslc)*tmp(i)     &
                     & + s(i,k,k+1)
           ful(i,k) = fsul(i,k)
@@ -380,7 +380,7 @@
 !     Store the downward emission from level 1 = total gas emission *
 !     sigma t**4.  fsdl does not yet include all terms
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
         ful(i,kxp1) = fsul(i,kxp1)
         absbt(i) = stebol*(tplnke(i)**4)*emstot(i,kxp1,jslc)
         fsdl(i,kxp1) = absbt(i) - s(i,kxp1,2)
@@ -393,7 +393,7 @@
 !     those locations where there are clouds (total cloud fraction <=
 !     1.e-3 treated as clear)
 !
-      call whenflt(ix - 1,tclrsf(1,kxp1),1,0.999D0,indx,nptsc)
+      call whenflt(ixm1,tclrsf(1,kxp1),1,0.999D0,indx,nptsc)
 !
 !     Compute downflux at level 1 for cloudy sky
 !
@@ -410,7 +410,7 @@
 !     Flux emitted by other layers
 !     Note: Vertical indexing here proceeds from bottom to top
 !
-      khighest = khiv(intmax(ix - 1,khiv,1))
+      khighest = khiv(intmax(ixm1,khiv,1))
       do km = 3 , khighest
         km1 = kxp1 - km
         km2 = kxp2 - km
@@ -454,7 +454,7 @@
       do k = 1 , kxp1
         k2 = kxp2 - k
         k3 = kxp3 - k
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           start(i) = .false.
         end do
         do ii = 1 , nptsc
@@ -514,7 +514,7 @@
 !
 !     All longitudes: store history tape quantities
 !
-      do i = 1 , ix - 1
+      do i = 1 , ixm1
 !
 !       Downward longwave flux
 !
@@ -538,7 +538,7 @@
 !
       gocp = gravit/cpair
       do k = 1 , kx
-        do i = 1 , ix - 1
+        do i = 1 , ixm1
           qrl(i,k) = (ful(i,k)-fdl(i,k)-ful(i,k+1)+fdl(i,k+1))          &
                    & *gocp/((pint(i,k)-pint(i,k+1)))
         end do

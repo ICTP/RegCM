@@ -68,7 +68,7 @@
           end if
           do i = 2 , ix - 2
             im1 = max0(i-1,2)
-            ip1 = min0(i+1,ix-2)
+            ip1 = min0(i+1,ixm2)
             rsheat(i,k,j) = rsheat(i,k,j)                               &
                           & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
                           & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
@@ -84,10 +84,10 @@
         end do
         do j = 2 , jx - 2
           jm1 = max0(j-1,2)
-          jp1 = min0(j+1,jx-2)
+          jp1 = min0(j+1,jxm2)
           do i = 2 , ix - 2
             im1 = max0(i-1,2)
-            ip1 = min0(i+1,ix-2)
+            ip1 = min0(i+1,ixm2)
             rsheat(i,k,j) = rsheat(i,k,j)                               &
                           & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
                           & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
@@ -122,7 +122,7 @@
           end if
           do i = 2 , ix - 2
             im1 = max0(i-1,2)
-            ip1 = min0(i+1,ix-2)
+            ip1 = min0(i+1,ixm2)
             rswat(i,k,j) = rswat(i,k,j)                                 &
                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
                          & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
@@ -138,10 +138,10 @@
         end do
         do j = 2 , jx - 2
           jm1 = max0(j-1,2)
-          jp1 = min0(j+1,jx-2)
+          jp1 = min0(j+1,jxm2)
           do i = 2 , ix - 2
             im1 = max0(i-1,2)
-            ip1 = min0(i+1,ix-2)
+            ip1 = min0(i+1,ixm2)
             rswat(i,k,j) = rswat(i,k,j)                                 &
                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
                          & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))

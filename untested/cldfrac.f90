@@ -67,7 +67,7 @@
 !     1.  Determine large-scale cloud fraction
 !--------------------------------------------------------------------
       do k = 1 , kx         ! Adjusted relative humidity threshold
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           if ( tb3d(i,k,j).gt.tc0 ) then
             rh0adj = rh0(i,j)
           else ! high cloud (less subgrid variability)
@@ -92,7 +92,7 @@
 !     to be passed into radiation.
 !--------------------------------------------------------------------
       do k = 1 , kx
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           exlwc = qcb3d(i,k,j)*rhob3d(i,k,j)*1.E03
                                                   ! Cloud Water Volume
 !         units:  = kg gq / kg dry air * kg dry air / m3 * 1000 = g qc

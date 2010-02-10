@@ -84,7 +84,7 @@
 
 #ifdef MPP1
       do j = jbegin , jendm
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           itex = nint(dustsotex(i,j))
           if ( itex.ne.0 .and. itex.le.12 ) then
 !           remember for the moment one texture type per grid cell !
@@ -99,8 +99,8 @@
         end do
       end do
 #else
-      do j = 2 , jlxm
-        do i = 2 , ilxm
+      do j = 2 , jxm2
+        do i = 2 , ixm2
           itex = nint(dustsotex(i,j))
           if ( itex.ne.0 .and. itex.le.12 ) then
 !           remember for the moment one texture type per grid cell !
@@ -131,7 +131,7 @@
             end do
           end do
         end do
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           if ( sandrow2(i,j).gt.0.0 .or. clayrow2(i,j).gt.0.0 ) then
             do nt = 1 , nats                  !soil types
               do ns = 1 , nsoil
@@ -165,7 +165,7 @@
             end do                    ! soil types
           end if
         end do
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           itex = nint(dustsotex(i,j))
           if ( itex.ge.1 .and. itex.le.nats ) then
             do ns = 1 , nsoil
@@ -175,7 +175,7 @@
         end do
       end do
 #else 
-      do j = 2 , jlxm
+      do j = 2 , jxm2
         do n = 1 , nats
           do ns = 1 , nsoil
             do i = 1 , ix
@@ -183,7 +183,7 @@
             end do
           end do
         end do
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           if ( sandrow2(i,j).gt.0.0 .or. clayrow2(i,j).gt.0.0 ) then
             do nt = 1 , nats                  !soil types
               do ns = 1 , nsoil
@@ -217,7 +217,7 @@
             end do                    ! soil types
           end if
         end do
-        do i = 2 , ilxm
+        do i = 2 , ixm2
           itex = nint(dustsotex(i,j))
           if ( itex.ge.1 .and. itex.le.nats ) then
             do ns = 1 , nsoil
