@@ -32,7 +32,7 @@
       COMMON /EH5OM/ NSTART,NNNEND
 !
       INTEGER NHOUR,NDAY,NMO,NYEAR,I,J
-      INTEGER NREC,MREC,idateo,idatef
+      INTEGER MREC
       logical there
       integer(kind=2) ivar(192,96)
       real(kind=8)  offset,scale
@@ -367,8 +367,8 @@
       ENDDO
  
       STOP 99999
- 4810 PRINT *,'ERROR OPENING GISST FILE'
-      STOP '4810 IN PROGRAM RDSST'
+! 4810 PRINT *,'ERROR OPENING GISST FILE'
+!      STOP '4810 IN PROGRAM RDSST'
  4830 PRINT *,'ERROR OPENING DOMAIN HEADER FILE'
       STOP '4830 IN PROGRAM RDSST'
       END

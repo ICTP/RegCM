@@ -26,7 +26,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       REAL    TRUELATL,TRUELATH
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       INTEGER NDAY,NMO,NYEAR,I,J
-      INTEGER NREC,MREC,idateo,idatef
+      INTEGER MREC,idateo,idatef
       logical there
       integer ludom, lund(20), lumax, k
       real(kind=4)  temp
@@ -187,8 +187,8 @@ C ******           WRITE OUT SST DATA ON MM4 GRID
       write(10,rec=4) ((lu(I,J),J=1,JX),I=1,IY)
  
       STOP 99999
- 4810 PRINT *,'ERROR OPENING GISST FILE'
-      STOP '4810 IN PROGRAM RDSST'
+! 4810 PRINT *,'ERROR OPENING GISST FILE'
+!      STOP '4810 IN PROGRAM RDSST'
  4830 PRINT *,'ERROR OPENING DOMAIN HEADER FILE'
       STOP '4830 IN PROGRAM RDSST'
       END
