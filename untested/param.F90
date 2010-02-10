@@ -48,7 +48,7 @@
       real(8) :: afracl , afracs , bb , cc , chibot , daymax , delsig , &
                & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
-               & wkp1 , xbot , xtop , xx , yy
+               & wkp1 , xbot , xtop , xx , yy , xpi
       real(8) , dimension(nsplit) :: dtsplit
       character(7) :: finm
       real(4) :: grdfac
@@ -72,6 +72,7 @@
 !-----vqrang is the range limit on vqflx.
 !.....qdcrit is the precipitation threshold for moisture convergence.
 !
+      data xpi/3.1415926535897/
       data vqrang/5.0E-4/
       data (mmd(i),i=1,12)/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , &
           & 31 , 30 , 31/
@@ -1588,11 +1589,11 @@
       g3pb = g4pb/(3.+bvt)
       g5pb = 1.8273
       n0r = 8.E6
-      ppi = 1./(pi*n0r)
+      ppi = 1./(xpi*n0r)
       vtc = avt*g4pb/6.
-      prac = pi*n0r*avt*g3pb*0.25
-      prec1 = 2.*pi*n0r*0.78
-      prec2 = 2.*pi*n0r*0.32*avt**0.5*g5pb
+      prac = xpi*n0r*avt*g3pb*0.25
+      prec1 = 2.*xpi*n0r*0.78
+      prec2 = 2.*xpi*n0r*0.32*avt**0.5*g5pb
 !
 !-----compute the vertical interpolation coefficients for t and qv.
 !

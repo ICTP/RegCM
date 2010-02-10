@@ -4795,7 +4795,7 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
               tt = 1.0D+00 - ( abs ( a(l,j) ) / qraux(j) )**2
               tt = max ( tt, 0.0D+00 )
               t = tt
-              tt = 1.0D+00 + 0.05E+00 * tt * ( qraux(j) / work(j) )**2
+              tt = 1.0D+00 + 0.05D+00 * tt * ( qraux(j) / work(j) )**2
 
               if ( tt /= 1.0D+00 ) then
                 qraux(j) = qraux(j) * sqrt ( t )
@@ -6028,7 +6028,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !
 !  ALPHA is used in choosing pivot block size.
 !
-  alpha = ( 1.0D+00 + sqrt ( 17.0E+00 ) ) / 8.0E+00
+  alpha = ( 1.0D+00 + sqrt ( 17.0D+00 ) ) / 8.0D+00
 
   info = 0
 !
@@ -7157,7 +7157,7 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
 !  ALPHA is used in choosing pivot block size.
 !
-  alpha = ( 1.0D+00 + sqrt ( 17.0E+00 ) ) / 8.0E+00
+  alpha = ( 1.0D+00 + sqrt ( 17.0D+00 ) ) / 8.0D+00
 
   info = 0
 !
@@ -8047,7 +8047,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
         emm1 = e(m-1) / scale
         sl = s(l) / scale
         el = e(l) / scale
-        b = ( ( smm1 + sm ) * ( smm1 - sm ) + emm1**2 ) / 2.0E+00
+        b = ( ( smm1 + sm ) * ( smm1 - sm ) + emm1**2 ) / 2.0D+00
         c = ( sm * emm1 )**2
         shift = 0.0D+00
 

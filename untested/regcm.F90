@@ -294,9 +294,9 @@
 
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
              &' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
-            & i7,' in year ',i4)
-99002 format (//                                                        &
-           &' ***** restart file for next run is written at time     = '&
-          & ,f10.2,' minutes, ktau = ',i7,' in year ',i4)
+             &i7,' in year ',i4)
+99002 format (                                                          &
+          &' ***** restart file for next run is written at time     = ',&
+          &f10.2,' minutes, ktau = ',i7,' in year ',i4)
 
       end program regcm

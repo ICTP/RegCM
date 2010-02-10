@@ -334,7 +334,7 @@
       real(8) , dimension(plond,0:plev,4) :: wkaer
       real(8) , dimension(plond,4) :: zero
 !
-      real(8) , external :: isrchfgt , isrchfle
+      integer, external :: isrchfgt , isrchfle
 !
       data abarl/2.817E-02 , 2.682E-02 , 2.264E-02 , 1.281E-02/
       data bbarl/1.305 , 1.346 , 1.454 , 1.641/

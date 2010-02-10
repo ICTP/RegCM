@@ -3,6 +3,6 @@
 !
 ! COMMON /REGCMPRINT/
 !
-      character(80) :: aline
+      character(512) :: aline
 
       end module message

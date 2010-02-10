@@ -47,12 +47,8 @@
 !
 !     zero out radiative clouds
 !
-      do k = 1 , kx
-        do i = 1 , ilx
-          cldlwc(i,k) = 0.
-          cldfra(i,k) = 0.
-        end do
-      end do
+      cldlwc = 0.0
+      cldfra = 0.0
  
       icut = 0
       dtime = dt
@@ -67,6 +63,7 @@
         qcrit(i) = 0.
         pret(i) = 0.
       end do
+
       do k = 1 , kx
         do i = 2 + icut , ilxm - icut
           kk = kx - k + 1

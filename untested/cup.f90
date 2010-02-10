@@ -199,7 +199,7 @@
         if ( aa0(i).ge.0. ) then
           if ( k22(i).ge.kbmax2d(i,jslc) ) then
             aa0(i) = -1.
-            cycle
+            go to 100
           end if
           hkb(i) = he(i,k22(i))
           qkb(i) = q(i,k22(i))
@@ -208,6 +208,7 @@
           qck(i) = qkb(i)
           qcko(i) = qkbo(i)
         end if
+        100 continue
       end do
 !
 !---  decide for convective cloud base
@@ -219,62 +220,61 @@
 !           dkk(i,kk)=.75*dkk(i,kk+1)
             dkk(i,k) = 1. - dble(kk)/dble(kdet(i))
           end do
- 20       continue
+ 120      continue
           kb(i) = k22(i)
 !----------------------------------
           kbcon(i) = kb(i)
-          do
-            dh = .5*hes(i,kbcon(i)) + .5*hes(i,kbcon(i)+1)
-            if ( hkb(i).lt.dh ) then
-              kbcon(i) = kbcon(i) + 1
-              if ( kbcon(i).gt.kbmax2d(i,jslc) ) then
-                aa0(i) = -1.
-                exit
-              end if
-            else
-!
-!---          after large-scale forcing is applied, possible lid should
-!---          be removed!!!
-!
-              kbcono = kb(i)
-              do
-!ictp
-                if ( kbcono.gt.kbmax2d(i,jslc) ) then
-                  aa0(i) = -1.
-                  go to 100
-                end if
-!ictp_
-                dh = .5*heso(i,kbcono) + .5*heso(i,kbcono+1)
-                if ( hkbo(i).lt.dh ) then
-                  kbcono = kbcono + 1
-                else
-                  pbcdif = -p(i,kbcono) + p(i,kb(i))
-!----------------------------- below was commented out
-!as               uncommenting the following lines for experiment 2/5/95
-                  if ( pbcdif.gt.pbcmax2d(i,jslc) ) then
-                                            !this is where typo was (pbdcdif)
-                    k22(i) = k22(i) + 1
-                    if ( k22(i).ge.kbmax2d(i,jslc) ) then
-                      aa0(i) = -1.
-                      go to 100
-                    end if
-                    hkb(i) = he(i,k22(i))
-                    qkb(i) = q(i,k22(i))
-                    hkbo(i) = heo(i,k22(i))
-                    qkbo(i) = qo(i,k22(i))
-                    qck(i) = qkb(i)
-                    qcko(i) = qkbo(i)
-                    go to 20
-                  end if
-                  go to 100
-                end if
-              end do
+ 140      continue
+          dh = .5*hes(i,kbcon(i)) + .5*hes(i,kbcon(i)+1)
+          if ( hkb(i).lt.dh ) then
+            kbcon(i) = kbcon(i) + 1
+            if ( kbcon(i).gt.kbmax2d(i,jslc) ) then
+              aa0(i) = -1.
+              go to 200
             end if
-          end do
+            go to 140
+          else
+!
+!---        after large-scale forcing is applied, possible lid should be
+!---        removed!!!
+!
+            kbcono = kb(i)
+!ictp
+ 150        continue
+            if ( kbcono.gt.kbmax2d(i,jslc) ) then
+              aa0(i) = -1.
+              go to 200
+            end if
+!ictp_
+            dh = .5*heso(i,kbcono) + .5*heso(i,kbcono+1)
+            if ( hkbo(i).lt.dh ) then
+              kbcono = kbcono + 1
+              go to 150
+            else
+              pbcdif = -p(i,kbcono) + p(i,kb(i))
+!----------------------------- below was commented out
+!as           uncommenting the following lines for experiment 2/5/95
+              if ( pbcdif.gt.pbcmax2d(i,jslc) ) then
+                                            !this is where typo was (pbdcdif)
+                k22(i) = k22(i) + 1
+                if ( k22(i).ge.kbmax2d(i,jslc) ) then
+                  aa0(i) = -1.
+                  go to 200
+                end if
+                hkb(i) = he(i,k22(i))
+                qkb(i) = q(i,k22(i))
+                hkbo(i) = heo(i,k22(i))
+                qkbo(i) = qo(i,k22(i))
+                qck(i) = qkb(i)
+                qcko(i) = qkbo(i)
+                go to 120
+              end if
+            end if
+          end if
 !as
         end if
+ 200    continue
       end do
- 100  continue
  
 !
 !---  downdraft originating level
@@ -291,13 +291,14 @@
         if ( aa0(i).ge.0 ) then
           if ( jmin(i).le.3 ) then
             aa0(i) = -1.
-            cycle
+            go to 300
           end if
           if ( kds(i).ge.kx ) kds(i) = kx - 1
           if ( kds(i).le.kbcon(i) ) kds(i) = kbcon(i)
           dby(i,kx) = hkb(i) - hes(i,kx)
           dbyo(i,kx) = hkbo(i) - heso(i,kx)
         end if
+ 300    continue
       end do
       do k = 1 , kx - 1
         do i = istart , iend
@@ -313,16 +314,18 @@
             kk = kx - k + 1
             if ( dby(i,kk).ge.0. ) then
               ktop(i) = kk + 1
-              if ( ktop(i).gt.kx ) ktop(i) = kx
-              if ( p(i,kbcon(i))-p(i,ktop(i)).lt.mincld2d(i,jslc) )     &
-                 & aa0(i) = -1.
-              go to 200
+              go to 320
             end if
           end do
           aa0(i) = -1.
+          go to 400
+ 320      continue
+          if ( ktop(i).gt.kx ) ktop(i) = kx
+          if ( p(i,kbcon(i))-p(i,ktop(i)).lt.mincld2d(i,jslc) ) aa0(i)  &
+             & = -1.
         end if
+ 400    continue
       end do
- 200  continue
 !
  
 !------- moisture and cloud work functions
@@ -675,7 +678,7 @@
         if ( aa0(i).ge.0. ) then
           if ( bu(i).ge.0. ) then
             aa0(i) = -1.
-            cycle
+            go to 500
           end if
           if ( xpwev(i).ne.0. ) edtx(i) = -edtx(i)*xpwav(i)/xpwev(i)
           if ( edtx(i).gt.edtmaxx2d(i,jslc) ) edtx(i)                   &
@@ -683,6 +686,7 @@
           if ( edtx(i).lt.edtminx2d(i,jslc) ) edtx(i)                   &
              & = edtminx2d(i,jslc)
         end if
+ 500    continue
       end do
 !
 !
@@ -807,5 +811,4 @@
         end if
  
       end do
- 
       end subroutine cup
