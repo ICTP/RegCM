@@ -66,7 +66,7 @@
           else
             jp1 = j + 1
           end if
-          do i = 2 , ix - 2
+          do i = 2 , ixm2
             im1 = max0(i-1,2)
             ip1 = min0(i+1,ixm2)
             rsheat(i,k,j) = rsheat(i,k,j)                               &
@@ -82,10 +82,10 @@
             wr(i,j) = rsheat(i,k,j)
           end do
         end do
-        do j = 2 , jx - 2
+        do j = 2 , jxm2
           jm1 = max0(j-1,2)
           jp1 = min0(j+1,jxm2)
-          do i = 2 , ix - 2
+          do i = 2 , ixm2
             im1 = max0(i-1,2)
             ip1 = min0(i+1,ixm2)
             rsheat(i,k,j) = rsheat(i,k,j)                               &
@@ -120,7 +120,7 @@
           else
             jp1 = j + 1
           end if
-          do i = 2 , ix - 2
+          do i = 2 , ixm2
             im1 = max0(i-1,2)
             ip1 = min0(i+1,ixm2)
             rswat(i,k,j) = rswat(i,k,j)                                 &
@@ -136,10 +136,10 @@
             wr(i,j) = rswat(i,k,j)
           end do
         end do
-        do j = 2 , jx - 2
+        do j = 2 , jxm2
           jm1 = max0(j-1,2)
           jp1 = min0(j+1,jxm2)
-          do i = 2 , ix - 2
+          do i = 2 , ixm2
             im1 = max0(i-1,2)
             ip1 = min0(i+1,ixm2)
             rswat(i,k,j) = rswat(i,k,j)                                 &

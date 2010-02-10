@@ -119,7 +119,7 @@
 #endif
 !
           do k = 1 , kx
-            do i = 2 , ix - 2
+            do i = 2 , ixm2
               ex = 1.
               ta(i,k,j) = ta(i,k,j) + xlvocp*scr(i,k)*psa(i,j)*ex
               tb(i,k,j) = tb(i,k,j) + xlvocp*scr(i,k)*psb(i,j)*ex

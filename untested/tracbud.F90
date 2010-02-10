@@ -147,42 +147,42 @@
           do k = 1 , kx
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ix - 2
+              do i = 2 , ixm2
                 tttmp = tttmp + chia_io(i,k,j,itr)
               end do
             end do
             ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ix - 2
+              do i = 2 , ixm2
                 tttmp = tttmp + remlsc_io(i,k,j,itr)
               end do
             end do
             tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ix - 2
+              do i = 2 , ixm2
                 tttmp = tttmp + remcvc_io(i,k,j,itr)
               end do
             end do
             tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ix - 2
+              do i = 2 , ixm2
                 tttmp = tttmp + rxsg_io(i,k,j,itr)
               end do
             end do
             trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ix - 2
+              do i = 2 , ixm2
                 tttmp = tttmp + rxsaq1_io(i,k,j,itr)
               end do
             end do
             trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ix - 2
+              do i = 2 , ixm2
                 tttmp = tttmp + rxsaq2_io(i,k,j,itr)
               end do
             end do
@@ -202,7 +202,7 @@
         do itr = 1 , ntr
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ix - 2
+            do i = 2 , ixm2
               tttmp = tttmp + remdrd_io(i,j,itr)
             end do
           end do
@@ -211,7 +211,7 @@
 !         emissions
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ix - 2
+            do i = 2 , ixm2
               tttmp = tttmp + chemsrc_io(i,j,lmonth,itr)*dtmin*60.*dx*dx
             end do
           end do
@@ -238,43 +238,43 @@
       do itr = 1 , ntr
         do k = 1 , kx
           tttmp = 0.
-          do j = 2 , jx - 2
-            do i = 2 , ix - 2
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               tttmp = tttmp + chia(i,k,j,itr)
             end do
           end do
           ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
-          do j = 2 , jx - 2
-            do i = 2 , ix - 2
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               tttmp = tttmp + remlsc(i,k,j,itr)
             end do
           end do
           tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
-          do j = 2 , jx - 2
-            do i = 2 , ix - 2
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               tttmp = tttmp + remcvc(i,k,j,itr)
             end do
           end do
           tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
-          do j = 2 , jx - 2
-            do i = 2 , ix - 2
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               tttmp = tttmp + rxsg(i,k,j,itr)
             end do
           end do
           trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
-          do j = 2 , jx - 2
-            do i = 2 , ix - 2
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               tttmp = tttmp + rxsaq1(i,k,j,itr)
             end do
           end do
           trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
-          do j = 2 , jx - 2
-            do i = 2 , ix - 2
+          do j = 2 , jxm2
+            do i = 2 , ixm2
               tttmp = tttmp + rxsaq2(i,k,j,itr)
             end do
           end do
@@ -293,8 +293,8 @@
 
       do itr = 1 , ntr
         tttmp = 0.
-        do j = 2 , jx - 2
-          do i = 2 , ix - 2
+        do j = 2 , jxm2
+          do i = 2 , ixm2
             tttmp = tttmp + remdrd(i,j,itr)
           end do
         end do
@@ -302,8 +302,8 @@
 
 !       emissions
         tttmp = 0.
-        do j = 2 , jx - 2
-          do i = 2 , ix - 2
+        do j = 2 , jxm2
+          do i = 2 , ixm2
             tttmp = tttmp + chemsrc(i,j,lmonth,itr)*dtmin*60.*dx*dx
           end do
         end do

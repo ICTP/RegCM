@@ -232,7 +232,7 @@
            & then
           do j = 1 , jendx
             do l = 1 , numbat
-              do i = 1 , ix - 2
+              do i = 1 , ixm2
                 bat0(i,l,j) = fbat(j,i,l)
               end do
             end do
@@ -242,7 +242,7 @@
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do l = 1 , numbat
-              do i = 1 , ix - 2
+              do i = 1 , ixm2
                 do j = 1 , jxm2
                   fbat_io(j,i,l) = bat_0(i,l,j+1)
                 end do
@@ -250,7 +250,7 @@
             end do
             call outsrf
           end if
-          do i = 1 , ix - 2
+          do i = 1 , ixm2
             do j = 1 , jxp
               tgmx_o(j,i) = -1.E30
               t2mx_o(j,i) = -1.E30
@@ -263,7 +263,7 @@
           do j = 1 , jendx
             do l = 1 , numsub
               do n = 1 , nnsg
-                do i = 1 , ix - 2
+                do i = 1 , ixm2
                   sub0(i,n,l,j) = fsub(n,j,i,l)
                 end do
               end do
@@ -276,7 +276,7 @@
             do l = 1 , numsub
               do j = 1 , jxm2
                 do n = 1 , nnsg
-                  do i = 1 , ix - 2
+                  do i = 1 , ixm2
                     fsub_io(n,j,i,l) = sub_0(i,n,l,j+1)
                   end do
                 end do
@@ -296,7 +296,7 @@
 !         frad2d, frad3d
           do n = 1 , nrad2d
             do j = 1 , jxp
-              do i = 1 , ix - 2
+              do i = 1 , ixm2
                 rad0(i,n,j) = frad2d(j,i,n)
               end do
             end do
@@ -304,7 +304,7 @@
           do n = 1 , nrad3d
             do k = 1 , kx
               do j = 1 , jxp
-                do i = 1 , ix - 2
+                do i = 1 , ixm2
                   rad0(i,nrad2d+(n-1)*kx+k,j) = frad3d(j,i,k,n)
                 end do
               end do
@@ -317,7 +317,7 @@
           if ( myid.eq.0 ) then
             do n = 1 , nrad2d
               do j = 1 , jxm2
-                do i = 1 , ix - 2
+                do i = 1 , ixm2
                   frad2d_io(j,i,n) = rad_0(i,n,j+1)
                 end do
               end do
@@ -325,7 +325,7 @@
             do n = 1 , nrad3d
               do k = 1 , kx
                 do j = 1 , jxm2
-                  do i = 1 , ix - 2
+                  do i = 1 , ixm2
                     frad3d_io(j,i,k,n) = rad_0(i,nrad2d+(n-1)*kx+k,j+1)
                   end do
                 end do
@@ -1203,8 +1203,8 @@
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
           call outsrf
-          do i = 1 , ix - 2
-            do j = 1 , jx - 2
+          do i = 1 , ixm2
+            do j = 1 , jxm2
               tgmx_o(j,i) = -1.E30
               t2mx_o(j,i) = -1.E30
               tgmn_o(j,i) = 1.E30

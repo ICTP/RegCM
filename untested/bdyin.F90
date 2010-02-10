@@ -51,13 +51,12 @@
       real(8) :: dtbdys
       character(8) :: finm
       integer :: i , ierr1 , j , k , nn , nnb
+      real(4) , dimension(ix,jx) :: io2d
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
       integer , dimension(mpi_status_size) :: status
-      real(4) , dimension(ix,jx) :: io2d
       real(8) , dimension(ix,jxp) :: psdot , tdum
 #else
-      real(4) , dimension(ix,jx) :: io2d
       real(8) , dimension(ix,jx) :: psdot , tdum
 #endif
 !

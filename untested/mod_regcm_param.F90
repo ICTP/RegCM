@@ -12,6 +12,10 @@
 
       integer , parameter :: jx = 48
 
+! Point in vertical
+
+      integer , parameter :: kx = 18
+
 #ifdef MPP1
 
 ! Number of processor used
@@ -23,10 +27,6 @@
       integer , parameter :: jxp = jx/nproc
 
 #endif
-
-! Point in vertical
-
-      integer , parameter :: kx = 18
 
 ! Sub grid decomposition
 

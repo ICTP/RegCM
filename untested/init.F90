@@ -1970,7 +1970,7 @@
         else
           jp1h = j + 1
         end if
-        do i = 2 , ix - 2
+        do i = 2 , ixm2
           im1h = max0(i-1,2)
           ip1h = min0(i+1,ixm2)
           hg1 = dabs((ht(i,j)-ht(im1h,j))/dx)
@@ -1987,10 +1987,10 @@
           hgfact(i,j) = 1.
         end do
       end do
-      do j = 2 , jx - 2
+      do j = 2 , jxm2
         jm1h = max0(j-1,2)
         jp1h = min0(j+1,jxm2)
-        do i = 2 , ix - 2
+        do i = 2 , ixm2
           im1h = max0(i-1,2)
           ip1h = min0(i+1,ixm2)
           hg1 = dabs((ht(i,j)-ht(im1h,j))/dx)

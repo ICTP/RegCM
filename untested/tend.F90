@@ -249,7 +249,7 @@
 !-----interior points:
 !
           do k = 1 , kx
-            do i = 3 , ix - 2
+            do i = 3 , ixm2
               psabar = 0.25*(psa(i,j)+psa(i,j-1)+psa(i-1,j)+psa(i-1,j-1)&
                      & )
               xmsf = msfd(i,j)

@@ -74,14 +74,14 @@
           end do
 #endif
         end do
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fout(j,i) = 0.25*(out1(j+1,i+1)+out1(j+2,i+1)+out1(j+1,i+2) &
                       & +out1(j+2,i+2))/psa_io(i+1,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fout(j,i) = 0.25*(out1(j+1,i+1)+out1(j+2,i+1)+out1(j+1,i+2) &
                       & +out1(j+2,i+2))/psa(i+1,j+1)
           end do
@@ -107,14 +107,14 @@
           end do
 #endif
         end do
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fout(j,i) = 0.25*(out1(j+1,i+1)+out1(j+2,i+1)+out1(j+1,i+2) &
                       & +out1(j+2,i+2))/psa_io(i+1,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fout(j,i) = 0.25*(out1(j+1,i+1)+out1(j+2,i+1)+out1(j+1,i+2) &
                       & +out1(j+2,i+2))/psa(i+1,j+1)
           end do
@@ -129,13 +129,13 @@
         end if
       end do
       do k = kx , 1 , -1
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fout(j,i) = omega_io(i+1,k,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fout(j,i) = omega(i+1,k,j+1)
           end do
 #endif
@@ -149,13 +149,13 @@
         end if
       end do
       do k = kx , 1 , -1
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fout(j,i) = ta_io(i+1,k,j+1)/psa_io(i+1,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fout(j,i) = ta(i+1,k,j+1)/psa(i+1,j+1)
           end do
 #endif
@@ -169,13 +169,13 @@
         end if
       end do
       do k = kx , 1 , -1
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fout(j,i) = qva_io(i+1,k,j+1)/psa_io(i+1,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fout(j,i) = qva(i+1,k,j+1)/psa(i+1,j+1)
           end do
 #endif
@@ -189,13 +189,13 @@
         end if
       end do
       do k = kx , 1 , -1
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fout(j,i) = qca_io(i+1,k,j+1)/psa_io(i+1,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fout(j,i) = qca(i+1,k,j+1)/psa(i+1,j+1)
           end do
 #endif
@@ -208,13 +208,13 @@
         else
         end if
       end do
-      do i = 1 , ix - 2
+      do i = 1 , ixm2
 #ifdef MPP1
         do j = 1 , jxm2
           fout(j,i) = (psa_io(i+1,j+1)+ptop)*10.
         end do
 #else
-        do j = 1 , jx - 2
+        do j = 1 , jxm2
           fout(j,i) = (psa(i+1,j+1)+ptop)*10.
         end do
 #endif
@@ -227,13 +227,13 @@
       else
       end if
       mmpd = 24./tapfrq
-      do i = 1 , ix - 2
+      do i = 1 , ixm2
 #ifdef MPP1
         do j = 1 , jxm2
           fout(j,i) = (rainc_io(i+1,j+1)+rainnc_io(i+1,j+1))*mmpd
         end do
 #else
-        do j = 1 , jx - 2
+        do j = 1 , jxm2
           fout(j,i) = (rainc(i+1,j+1)+rainnc(i+1,j+1))*mmpd
         end do
 #endif
@@ -250,7 +250,7 @@
 !     1.  temp of lower soil layer (17)
 !     2.  total soil water in mm h2o (13)
 !     3.  accum infiltration (30)
-      do i = 1 , ix - 2
+      do i = 1 , ixm2
 #ifdef MPP1
         do j = 1 , jxm2
           fout(j,i) = tgb2d_io(1,i+1,j+1)
@@ -260,7 +260,7 @@
           fout(j,i) = fout(j,i)/float(nnsg)
         end do
 #else
-        do j = 1 , jx - 2
+        do j = 1 , jxm2
           fout(j,i) = tgb2d(1,i+1,j+1)
           do n = 2 , nnsg
             fout(j,i) = fout(j,i) + tgb2d(n,i+1,j+1)
@@ -277,7 +277,7 @@
       else
       end if
  
-      do i = 1 , ix - 2
+      do i = 1 , ixm2
 #ifdef MPP1
         do j = 1 , jxm2
           fout(j,i) = 0.0
@@ -295,7 +295,7 @@
           end if
         end do
 #else
-        do j = 1 , jx - 2
+        do j = 1 , jxm2
           fout(j,i) = 0.0
           nn = 0
           do n = 1 , nnsg
@@ -320,7 +320,7 @@
       else
       end if
  
-      do i = 1 , ix - 2
+      do i = 1 , ixm2
 #ifdef MPP1
         do j = 1 , jxm2
           fout(j,i) = 0.0
@@ -338,7 +338,7 @@
           end if
         end do
 #else
-        do j = 1 , jx - 2
+        do j = 1 , jxm2
           fout(j,i) = 0.0
           nn = 0
           do n = 1 , nnsg

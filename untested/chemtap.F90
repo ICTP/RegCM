@@ -47,13 +47,13 @@
  
       do itr = 1 , ntr
         do k = kx , 1 , -1
-          do i = 1 , ix - 2
+          do i = 1 , ixm2
 #ifdef MPP1
             do j = 1 , jxm2
               fchem(j,i) = chia_io(i+1,k,j+1,itr)/psa_io(i+1,j+1)
             end do
 #else
-            do j = 1 , jx - 2
+            do j = 1 , jxm2
               fchem(j,i) = chia(i+1,k,j+1,itr)/psa(i+1,j+1)
             end do
 #endif
@@ -71,13 +71,13 @@
 !     optical properties of the tracer mixing (independant of ntr)
  
       do k = kx , 1 , -1
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = aerext_io(i+1,k,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = aerext(i+1,k,j+1)
           end do
 #endif
@@ -92,13 +92,13 @@
       end do
  
       do k = kx , 1 , -1
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = aerssa_io(i+1,k,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = aerssa(i+1,k,j+1)
           end do
 #endif
@@ -113,13 +113,13 @@
       end do
  
       do k = kx , 1 , -1
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = aerasp_io(i+1,k,j+1)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = aerasp(i+1,k,j+1)
           end do
 #endif
@@ -137,13 +137,13 @@
 !     instantaneous colum burden
       do itr = 1 , ntr
 !       -------
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = dtrace_io(i+1,j+1,itr)
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = dtrace(i+1,j+1,itr)
           end do
 #endif
@@ -167,13 +167,13 @@
 !       CARE here CUMUL
 !       mpd = 1.
  
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = wdlsc_io(i+1,j+1,itr)*mpd
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = wdlsc(i+1,j+1,itr)*mpd
           end do
 #endif
@@ -186,13 +186,13 @@
         else
         end if
 !       --------
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = wdcvc_io(i+1,j+1,itr)*mpd
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = wdcvc(i+1,j+1,itr)*mpd
           end do
 #endif
@@ -205,13 +205,13 @@
         else
         end if
 !       -------------
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = ddsfc_io(i+1,j+1,itr)*mpd
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = ddsfc(i+1,j+1,itr)*mpd
           end do
 #endif
@@ -224,13 +224,13 @@
         else
         end if
 !----------------------
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = wxsg_io(i+1,j+1,itr)*mpd
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = wxsg(i+1,j+1,itr)*mpd
           end do
 #endif
@@ -243,13 +243,13 @@
         else
         end if
 !----------------------
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = wxaq_io(i+1,j+1,itr)*mpd
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = wxaq(i+1,j+1,itr)*mpd
           end do
 #endif
@@ -262,13 +262,13 @@
         else
         end if
 !----------------------
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
 #ifdef MPP1
           do j = 1 , jxm2
             fchem(j,i) = cemtrac_io(i+1,j+1,itr)*mpd
           end do
 #else
-          do j = 1 , jx - 2
+          do j = 1 , jxm2
             fchem(j,i) = cemtrac(i+1,j+1,itr)*mpd
           end do
 #endif
@@ -298,7 +298,7 @@
 !       ------------------
 !       reinitialisation for avraged dposition rates ( a modifier)
 #ifdef MPP1
-        do i = 1 , ix - 2
+        do i = 1 , ixm2
           do j = 1 , jxm2
             do k = 1 , kx
               remlsc_io(i,k,j,itr) = 0.
@@ -319,8 +319,8 @@
         end do
       end do
 #else
-        do i = 1 , ix - 2
-          do j = 1 , jx - 2
+        do i = 1 , ixm2
+          do j = 1 , jxm2
             do k = 1 , kx
               remlsc(i,k,j,itr) = 0.
               remcvc(i,k,j,itr) = 0.
@@ -343,13 +343,13 @@
  
 !----total aerosol TOA radiative forcing ( independant of the number of tracer)
  
-      do i = 1 , ix - 2
+      do i = 1 , ixm2
 #ifdef MPP1
         do j = 1 , jxm2
           fchem(j,i) = aertarf_io(i+1,j+1)
         end do
 #else
-        do j = 1 , jx - 2
+        do j = 1 , jxm2
           fchem(j,i) = aertarf(i+1,j+1)
         end do
 #endif
@@ -363,13 +363,13 @@
       end if
  
  
-      do i = 1 , ix - 2
+      do i = 1 , ixm2
 #ifdef MPP1
         do j = 1 , jxm2
           fchem(j,i) = aersrrf_io(i+1,j+1)
         end do
 #else
-        do j = 1 , jx - 2
+        do j = 1 , jxm2
           fchem(j,i) = aersrrf(i+1,j+1)
         end do
 #endif

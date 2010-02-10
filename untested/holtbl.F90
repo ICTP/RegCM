@@ -87,7 +87,7 @@
       end if
       call mpi_bcast(tqeva,1,mpi_double_precision,0,mpi_comm_world,ierr)
 #else
-      do j = 2 , jx - 2
+      do j = 2 , jxm2
         do i = 2 , ixm2
           tqeva = tqeva + qfx(i,j)*dx*dx*dtmin*60.
         end do
