@@ -23,7 +23,6 @@
                       & to3,emstrc)
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_crdcon
       implicit none
 !
@@ -69,12 +68,12 @@
 ! Dummy arguments
 !
       integer :: k
-      real(8) , dimension(plond,plevp) :: bch4 , bn2o0 , bn2o1 , co2t , &
+      real(8) , dimension(ix - 1,kx + 1) :: bch4 , bn2o0 , bn2o1 , co2t , &
            & emstrc , pnm , s2c , ucfc11 , ucfc12 , uch4 , uco211 ,     &
            & uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,       &
            & un2o1 , uptype , w
-      real(8) , dimension(14,plond) :: emplnk
-      real(8) , dimension(plond) :: tco2 , th2o , to3 , up2
+      real(8) , dimension(14,ix - 1) :: emplnk
+      real(8) , dimension(ix - 1) :: tco2 , th2o , to3 , up2
       intent (in) bch4 , bn2o0 , bn2o1 , co2t , emplnk , k , pnm , s2c ,&
                 & tco2 , th2o , to3 , ucfc11 , ucfc12 , uch4 , uco211 , &
                 & uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,  &
@@ -141,8 +140,8 @@
                & u02 , u03 , u11 , u12 , w1
       real(8) :: func
       integer :: i , l
-      real(8) , dimension(plond) :: sqti , tt
-      real(8) , dimension(plond,6) :: tw
+      real(8) , dimension(ix - 1) :: sqti , tt
+      real(8) , dimension(ix - 1,6) :: tw
 !
       data g1/0.0468556D0 , 0.0397454D0 , 0.0407664D0 , 0.0304380D0 ,   &
          & 0.0540398D0 , 0.0321962D0/
@@ -162,14 +161,14 @@
          & -1.0115D-4 , -8.8061D-5/
       func(u,b) = u/dsqrt(4.0+u*(1.0+1.0/b))
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         sqti(i) = dsqrt(co2t(i,k))
 !       Transmission for h2o
         tt(i) = dabs(co2t(i,k)-250.0)
       end do
 !
       do l = 1 , 6
-        do i = 1 , plon
+        do i = 1 , ix - 1
           psi1 = dexp(abp(l)*tt(i)+bbp(l)*tt(i)*tt(i))
           phi1 = dexp(ab(l)*tt(i)+bb(l)*tt(i)*tt(i))
           p1 = pnm(i,k)*(psi1/phi1)/sslp
@@ -179,7 +178,7 @@
         end do
       end do
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
 !       transmission due to cfc bands
         tcfc3 = dexp(-175.005*ucfc11(i,k))
         tcfc4 = dexp(-1202.18*ucfc11(i,k))

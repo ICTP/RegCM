@@ -24,14 +24,13 @@
       use mod_param2
       use mod_trachem
       use mod_aerosol , only : nspi
-      use mod_parrad
       implicit none
 !
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(plond) :: aeradfo , aeradfos
-      real(8) , dimension(plond,0:plev,nspi) :: gtota_mix , tauasc_mix ,&
+      real(8) , dimension(ix - 1) :: aeradfo , aeradfos
+      real(8) , dimension(ix - 1,0:kx,nspi) :: gtota_mix , tauasc_mix ,&
            & tauxar_mix
       intent (in) aeradfo , aeradfos , gtota_mix , jslc , tauasc_mix ,  &
                 & tauxar_mix

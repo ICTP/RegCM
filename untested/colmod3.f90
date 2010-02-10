@@ -130,7 +130,6 @@
 !
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_bats , only : emiss1d , lat , ps , sice1d , aldirs ,      &
                     & aldifs , aldirl , aldifl , ldoc1d
       use mod_comtim
@@ -143,20 +142,20 @@
 !
 ! Local variables
 !
-      real(8) , dimension(plond) :: alb , albc , aldif , aldir , asdif ,&
+      real(8) , dimension(ix - 1) :: alb , albc , aldif , aldir , asdif ,&
                                   & asdir , clat , coslat , flns ,      &
                                   & flnsc , flnt , flntc , flwds ,      &
                                   & fsds , fsnirt , fsnirtsq , fsnrtc , &
                                   & fsns , fsnsc , fsnt , fsntc ,       &
                                   & loctim , solin , soll , solld ,     &
                                   & sols , solsd , srfrad , ts
-      real(8) , dimension(plond,plevp) :: cld , effcld , pilnm1 , pintm1
-      real(8) , dimension(plond,plev) :: clwp , emis , fice , h2ommr ,  &
+      real(8) , dimension(ix - 1,kx + 1) :: cld , effcld , pilnm1 , pintm1
+      real(8) , dimension(ix - 1,kx) :: clwp , emis , fice , h2ommr ,  &
            & o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei ,  &
            & rel , tm1
       real(8) :: cpairx , eccf , epsilox , gravx , stebolx
       integer :: i , ii0 , ii1 , ii2 , k , n
-      integer , dimension(plond) :: ioro
+      integer , dimension(ix - 1) :: ioro
 !
 !KN   added below
 !
@@ -168,10 +167,10 @@
 ! fractional cloud cover
 ! cloud liquid water path
 !
-!     NB: o3mmr and o3vmr should be dimensioned (plond,plevr) if a
+!     NB: o3mmr and o3vmr should be dimensioned (ix - 1,kx) if a
 !     different size radiation grid is used. Clashes between prgrid.h
 !     and ptrrgrid.h (they both define plngbuf) prevent us from
-!     dimensioning anything by plevr in this top level crm() routine.
+!     dimensioning anything by kx in this top level crm() routine.
 !
 ! cosine latitude
 ! water vapor mass mixing ratio
@@ -274,7 +273,7 @@
 !
 !     NB: orography types are specified in the following
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         ii0 = 0
         ii1 = 0
         ii2 = 0
@@ -326,7 +325,7 @@
 !     albedos are copied from module bats2,
 !     because variable names for albedos are somewhat different
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         asdir(i) = aldirs(i)
         asdif(i) = aldifs(i)
         aldir(i) = aldirl(i)
@@ -345,17 +344,17 @@
 !
 !     Effective cloud cover
 !
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           effcld(i,k) = cld(i,k)*emis(i,k)
         end do
       end do
 !
 !     Cloud cover at surface interface always zero (for safety's sake)
 !
-      do i = 1 , plon
-        effcld(i,plevp) = 0.
-        cld(i,plevp) = 0.
+      do i = 1 , ix - 1
+        effcld(i,kx + 1) = 0.
+        cld(i,kx + 1) = 0.
       end do
 !
 !     Main radiation driving routine.

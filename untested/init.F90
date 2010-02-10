@@ -26,7 +26,6 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_regcm_param
-      use mod_parrad
       use mod_param1
       use mod_param2
       use mod_param3

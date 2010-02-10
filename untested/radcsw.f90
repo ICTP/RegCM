@@ -77,7 +77,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_param2
       use mod_bats
       use mod_tracer
@@ -136,17 +135,17 @@
 ! Dummy arguments
 !
       real(8) :: eccf
-      real(8) , dimension(plond) :: aeradfo , aeradfos , aldif , aldir ,&
+      real(8) , dimension(ix - 1) :: aeradfo , aeradfos , aldif , aldir ,&
                                   & asdif , asdir , fsds , fsnirt ,     &
                                   & fsnirtsq , fsnrtc , fsns , fsnsc ,  &
                                   & fsnt , fsntc , solin , soll ,       &
                                   & solld , sols , solsd
-      real(8) , dimension(plond,plevp) :: cld , pint
-      real(8) , dimension(plond,plev) :: clwp , fice , h2ommr , o3mmr , &
+      real(8) , dimension(ix - 1,kx + 1) :: cld , pint
+      real(8) , dimension(ix - 1,kx) :: clwp , fice , h2ommr , o3mmr , &
            & qrs , rei , rel
-      real(8) , dimension(plond,0:plev,nspi) :: ftota_mix , gtota_mix , &
+      real(8) , dimension(ix - 1,0:kx,nspi) :: ftota_mix , gtota_mix , &
            & tauasc_mix , tauxar_mix
-      real(8) , dimension(plond,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
+      real(8) , dimension(ix - 1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
            & tauasc_mix_cs , tauxar_mix_cs
       intent (in) aldif , aldir , asdif , asdir , cld , clwp , eccf ,   &
                 & fice , ftota_mix , gtota_mix , h2ommr , o3mmr , pint ,&
@@ -282,7 +281,7 @@
 ! utco2    - Total column  absorber amount of co2
 ! uto2     - Total column  absorber amount of  o2
 !
-!     These arrays are defined for plev model layers; 0 refers to the
+!     These arrays are defined for kx model layers; 0 refers to the
 !     extra layer on top:
 !
 ! rdir     - Layer reflectivity to direct rad
@@ -293,7 +292,7 @@
 ! flxdiv   - Flux divergence for layer
 !
 !     These arrays are defined at model interfaces; 0 is the top of the
-!     extra layer above the model top; plevp is the earth surface:
+!     extra layer above the model top; kx + 1 is the earth surface:
 !
 ! rupdir   - Ref to dir rad for layers below
 ! rupdif   - Ref to dif rad for layers below
@@ -321,18 +320,18 @@
       real(8) , dimension(nspint) :: abco2 , abh2o , abo2 , abo3 ,      &
                                    & frcsol , nirwgt , pco2 , ph2o ,    &
                                    & po2 , raytau , wavmax , wavmin
-      real(8) , dimension(plond,0:plev) :: explay , fci , fcl , flxdiv ,&
+      real(8) , dimension(ix - 1,0:kx) :: explay , fci , fcl , flxdiv ,&
            & gci , gcl , rdif , rdir , tauxci , tauxcl , tdif , tdir ,  &
            & totfld , uco2 , uh2o , uo2 , uo3 , wci , wcl
-      real(8) , dimension(plond,0:plevp) :: exptdn , fluxdn , fluxup ,  &
+      real(8) , dimension(ix - 1,0:kx + 1) :: exptdn , fluxdn , fluxup ,  &
            & fswdn , fswup , pflx , rdndif , rupdif , rupdir , tottrn
       integer :: i , indxsl , k , n , nloop , ns
       integer , dimension(2) :: ie , is
-      real(8) , dimension(plond) :: sfltot , solflx , utco2 , uth2o ,   &
+      real(8) , dimension(ix - 1) :: sfltot , solflx , utco2 , uth2o ,   &
                                   & uto2 , uto3 , x0fsnrtc , x0fsnsc ,  &
                                   & x0fsntc , zenfac
-      real(8) , dimension(plond,0:plev,4) :: wkaer
-      real(8) , dimension(plond,4) :: zero
+      real(8) , dimension(ix - 1,0:kx,4) :: wkaer
+      real(8) , dimension(ix - 1,4) :: zero
 !
       integer, external :: isrchfgt , isrchfle
 !
@@ -410,7 +409,7 @@
 !
 !     Initialize output fields:
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         fsds(i) = 0.0
         fsnirt(i) = 0.0
         fsnrtc(i) = 0.0
@@ -435,13 +434,13 @@
         x0fsnsc(i) = 0.0
         x0fsnrtc(i) = 0.0
       end do
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           qrs(i,k) = 0.0
         end do
       end do
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           pdel = pint(i,k+1) - pint(i,k)
           path = pdel/gravit
         end do
@@ -450,21 +449,21 @@
 !     Compute starting, ending daytime loop indices:
 !
       nloop = 0
-      is(1) = isrchfgt(plon,coszrs,1,0.D0)
+      is(1) = isrchfgt(ix - 1,coszrs,1,0.D0)
 !
 !     If night everywhere, return:
 !
-      if ( is(1).gt.plon ) return
-      ie(1) = isrchfle(plon-is(1),coszrs(is(1)+1),1,0.D0) + is(1) - 1
+      if ( is(1).gt.ix - 1 ) return
+      ie(1) = isrchfle(ix - 1-is(1),coszrs(is(1)+1),1,0.D0) + is(1) - 1
       nloop = 1
 !
 !     Possibly 2 daytime loops needed:
 !
-      if ( ie(1).ne.plon ) then
-        is(2) = isrchfgt(plon-ie(1),coszrs(ie(1)+1),1,0.D0) + ie(1)
-        if ( is(2).le.plon ) then
+      if ( ie(1).ne.ix - 1 ) then
+        is(2) = isrchfgt(ix - 1-ie(1),coszrs(ie(1)+1),1,0.D0) + ie(1)
+        if ( is(2).le.ix - 1 ) then
           nloop = 2
-          ie(2) = plon
+          ie(2) = ix - 1
         end if
       end if
 !
@@ -476,7 +475,7 @@
           pflx(i,0) = 0.
         end do
       end do
-      do k = 1 , plevp
+      do k = 1 , kx + 1
         do n = 1 , nloop
           do i = is(n) , ie(n)
             pflx(i,k) = pint(i,k)
@@ -508,7 +507,7 @@
       end do
 !
       tmp2 = delta/gravit
-      do k = 1 , plev
+      do k = 1 , kx
         do n = 1 , nloop
           do i = is(n) , ie(n)
             pdel = pflx(i,k+1) - pflx(i,k)
@@ -537,7 +536,7 @@
           uto2(i) = 0.0
         end do
       end do
-      do k = 1 , plev
+      do k = 1 , kx
         do n = 1 , nloop
           do i = is(n) , ie(n)
             uth2o(i) = uth2o(i) + uh2o(i,k)
@@ -550,17 +549,17 @@
 !
 !     Initialize spectrally integrated totals:
 !
-      do k = 0 , plev
-        do i = 1 , plon
+      do k = 0 , kx
+        do i = 1 , ix - 1
           totfld(i,k) = 0.0
           fswup(i,k) = 0.0
           fswdn(i,k) = 0.0
         end do
       end do
-      do i = 1 , plon
+      do i = 1 , ix - 1
         sfltot(i) = 0.0
-        fswup(i,plevp) = 0.0
-        fswdn(i,plevp) = 0.0
+        fswup(i,kx + 1) = 0.0
+        fswdn(i,kx + 1) = 0.0
       end do
 !
 !     Set cloud properties for top (0) layer; so long as tauxcl is zero,
@@ -624,7 +623,7 @@
         ebarii = ebari(indxsl)
         fbarii = fbari(indxsl)
 !
-        do k = 1 , plev
+        do k = 1 , kx
           do n = 1 , nloop
             do i = is(n) , ie(n)
 !
@@ -718,8 +717,8 @@
  
 !       options for aerosol: no climatic feedback if idirect .eq. 1
         if ( idirect.eq.2 ) then
-          do k = 0 , plev
-            do i = 1 , plond
+          do k = 0 , kx
+            do i = 1 , ix - 1
               wkaer(i,k,1) = tauxar_mix(i,k,ns)
               wkaer(i,k,2) = tauasc_mix(i,k,ns)
               wkaer(i,k,3) = gtota_mix(i,k,ns)
@@ -727,8 +726,8 @@
             end do
           end do
         else if ( idirect.eq.1 ) then
-          do k = 0 , plev
-            do i = 1 , plond
+          do k = 0 , kx
+            do i = 1 , ix - 1
               wkaer(i,k,1) = 0.
               wkaer(i,k,2) = 0.
               wkaer(i,k,3) = 0.
@@ -750,11 +749,11 @@
 !
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            rupdir(i,plevp) = albdir(i)
-            rupdif(i,plevp) = albdif(i)
+            rupdir(i,kx + 1) = albdir(i)
+            rupdif(i,kx + 1) = albdif(i)
           end do
         end do
-        do k = plev , 0 , -1
+        do k = kx , 0 , -1
           do n = 1 , nloop
             do i = is(n) , ie(n)
               rdenom = 1./(1.-rdif(i,k)*rupdif(i,k+1))
@@ -770,7 +769,7 @@
 !       Compute up and down fluxes for each interface, using the added
 !       atmospheric layer properties at each interface:
 !
-        do k = 0 , plevp
+        do k = 0 , kx + 1
           do n = 1 , nloop
             do i = is(n) , ie(n)
               rdenom = 1./(1.-rdndif(i,k)*rupdif(i,k))
@@ -786,7 +785,7 @@
 !       Compute flux divergence in each layer using the interface up
 !       and down fluxes:
 !
-        do k = 0 , plev
+        do k = 0 , kx
           do n = 1 , nloop
             do i = is(n) , ie(n)
               flxdiv(i,k) = (fluxdn(i,k)-fluxdn(i,k+1))                 &
@@ -809,7 +808,7 @@
             fsnt(i) = fsnt(i) + solflx(i)*(fluxdn(i,1)-fluxup(i,1))
  
             fsns(i) = fsns(i) + solflx(i)                               &
-                    & *(fluxdn(i,plevp)-fluxup(i,plevp))
+                    & *(fluxdn(i,kx + 1)-fluxup(i,kx + 1))
  
             sfltot(i) = sfltot(i) + solflx(i)
             fswup(i,0) = fswup(i,0) + solflx(i)*fluxup(i,0)
@@ -818,23 +817,23 @@
 !           Down spectral fluxes need to be in mks; thus the .001
 !           conversion factors
             if ( wavmid.lt.0.7 ) then
-              sols(i) = sols(i) + exptdn(i,plevp)*solflx(i)*0.001
-              solsd(i) = solsd(i) + (fluxdn(i,plevp)-exptdn(i,plevp))   &
+              sols(i) = sols(i) + exptdn(i,kx + 1)*solflx(i)*0.001
+              solsd(i) = solsd(i) + (fluxdn(i,kx + 1)-exptdn(i,kx + 1))   &
                        & *solflx(i)*0.001
 !KN           added below
               sabveg(i) = sabveg(i)                                     &
-                        & + (solflx(i)*(fluxdn(i,plevp)-fluxup(i,plevp))&
+                        & + (solflx(i)*(fluxdn(i,kx + 1)-fluxup(i,kx + 1))&
                         & )*(1.-albvs(i))/(1.-albdir(i))*0.001
 !KN           added above
             else
-              soll(i) = soll(i) + exptdn(i,plevp)*solflx(i)*0.001
-              solld(i) = solld(i) + (fluxdn(i,plevp)-exptdn(i,plevp))   &
+              soll(i) = soll(i) + exptdn(i,kx + 1)*solflx(i)*0.001
+              solld(i) = solld(i) + (fluxdn(i,kx + 1)-exptdn(i,kx + 1))   &
                        & *solflx(i)*0.001
               fsnirtsq(i) = fsnirtsq(i) + solflx(i)                     &
                           & *(fluxdn(i,0)-fluxup(i,0))
 !KN           added below
               sabveg(i) = sabveg(i)                                     &
-                        & + (solflx(i)*(fluxdn(i,plevp)-fluxup(i,plevp))&
+                        & + (solflx(i)*(fluxdn(i,kx + 1)-fluxup(i,kx + 1))&
                         & )*(1.-albvl(i))/(1.-albdir(i))*0.001
 !KN           added above
             end if
@@ -844,7 +843,7 @@
 !
           end do
         end do
-        do k = 0 , plev
+        do k = 0 , kx
           do n = 1 , nloop
             do i = is(n) , ie(n)
               totfld(i,k) = totfld(i,k) + solflx(i)*flxdiv(i,k)
@@ -857,16 +856,16 @@
 !       solis is incident visible solar radiation
         if ( ns.eq.8 ) then
 !         -trapuv
-!         do i=1,plond
-!         solis(i)=solflx(i)*0.001*fluxdn(i,plevp)
+!         do i=1,ix - 1
+!         solis(i)=solflx(i)*0.001*fluxdn(i,kx + 1)
 !         end do
 !         -trapuv_
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              solvs(i) = exptdn(i,plevp)*solflx(i)*0.001
-              solvd(i) = (fluxdn(i,plevp)-exptdn(i,plevp))*solflx(i)    &
+              solvs(i) = exptdn(i,kx + 1)*solflx(i)*0.001
+              solvd(i) = (fluxdn(i,kx + 1)-exptdn(i,kx + 1))*solflx(i)    &
                        & *0.001
-              solis(i) = solflx(i)*0.001*fluxdn(i,plevp)
+              solis(i) = solflx(i)*0.001*fluxdn(i,kx + 1)
             end do
           end do
         end if
@@ -880,7 +879,7 @@
 !       outputed TOASW ( fsntc, clrst) is accounting for aerosol.
         if ( idirect.ge.1 ) then
  
-          do i = 1 , plond
+          do i = 1 , ix - 1
             zero(i,1) = 0.
             zero(i,2) = 0.
             zero(i,3) = 0.
@@ -1058,7 +1057,7 @@
 !     Compute solar heating rate (k/s)
 !
       gocp = gravit/cpair
-      do k = 1 , plev
+      do k = 1 , kx
         do n = 1 , nloop
           do i = is(n) , ie(n)
             qrs(i,k) = -gocp*totfld(i,k)/(pint(i,k)-pint(i,k+1))
@@ -1068,8 +1067,8 @@
 !
 !     Set the downwelling flux at the surface
 !
-      do i = 1 , plon
-        fsds(i) = fswdn(i,plevp)
+      do i = 1 , ix - 1
+        fsds(i) = fswdn(i,kx + 1)
       end do
 !
       end subroutine radcsw

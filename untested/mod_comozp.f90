@@ -1,6 +1,5 @@
       module mod_comozp
 
-      use mod_parrad
 
       implicit none
 !
@@ -11,8 +10,8 @@
 ! COMMON /COMOZP/
 !
       real(8) :: cplol , cplos , ldoyoz , ndoyoz
-      real(8) , dimension(plat,pnoz) :: ozmix
-      real(8) , dimension(pozlon,pnoz,plat,2) :: ozmixm
+      real(8) , dimension(1,pnoz) :: ozmix
+      real(8) , dimension(pozlon,pnoz,1,2) :: ozmixm
       real(8) , dimension(pnoz) :: pin
 !
 ! COMMON /IOZNCT/

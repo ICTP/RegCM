@@ -20,7 +20,6 @@
       subroutine trcmix(pmid,clat,coslat,n2o,ch4,cfc11,cfc12)
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_tracer
       implicit none
 !
@@ -49,9 +48,9 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(plond,plev) :: cfc11 , cfc12 , ch4 , n2o ,    &
+      real(8) , dimension(ix - 1,kx) :: cfc11 , cfc12 , ch4 , n2o ,    &
            & pmid
-      real(8) , dimension(plond) :: clat , coslat
+      real(8) , dimension(ix - 1) :: clat , coslat
       intent (in) clat , coslat , pmid
       intent (out) cfc11 , cfc12 , ch4 , n2o
 !
@@ -69,9 +68,9 @@
 !
       real(8) :: dlat , pratio , xcfc11 , xcfc12 , xch4 , xn2o
       integer :: i , k
-      real(8) , dimension(plond) :: ptrop
+      real(8) , dimension(ix - 1) :: ptrop
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
 !       set stratospheric scale height factor for gases
         dlat = dabs(57.2958*clat(i))
         if ( dlat.le.45.0 ) then
@@ -91,8 +90,8 @@
 !
       end do
 !
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           if ( pmid(i,k).ge.ptrop(i) ) then
             ch4(i,k) = ch40
             n2o(i,k) = n2o0

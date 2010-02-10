@@ -47,7 +47,6 @@
 !-----------------------------------------------------------------------
  
       use mod_regcm_param
-      use mod_parrad
       use mod_param2
       use mod_crdcon
       use mod_slice
@@ -60,9 +59,9 @@
 !
       integer :: j
 !     Radiation level interface pressures (dynes/cm2)
-      real(8) , dimension(plond,plevrp) :: pint
+      real(8) , dimension(ix - 1,kx + 1) :: pint
 !     Radiation level relative humidity (fraction)
-      real(8) , dimension(plon,plevr) :: rh
+      real(8) , dimension(ix - 1,kx) :: rh
       intent (in) j , pint
       intent (out) rh
 !
@@ -95,8 +94,8 @@
 !
 !     Set relative humidity and factor; then aerosol amount:
 !
-      do k = 1 , plevr
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
  
 !added    July 13, 2000: needed for aerosols in radiation
           rh(i,k) = dmin1(rhb3d(i,k,j),0.99D0)
@@ -110,10 +109,10 @@
 !         in the column, converting units where appropriate
 !         for the moment no more used
 !
-          if ( k.ge.plevrp-mxaerl ) then
+          if ( k.ge.kx + 1 - mxaerl ) then
             aermmb(i,k) = gravit*tauvis/(1.E4*kaervs*rhfac*(1.-omgvis*  &
                         & gvis*gvis)                                    &
-                        & *(pint(i,plevrp)-pint(i,plevrp-mxaerl)))
+                        & *(pint(i,kx + 1)-pint(i,kx + 1 - mxaerl)))
           else
             aermmb(i,k) = 0.0
           end if

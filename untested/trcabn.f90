@@ -23,7 +23,6 @@
                       & pnew,abstrc,uinpl)
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_crdcon
       implicit none
 !
@@ -69,11 +68,11 @@
 ! Dummy arguments
 !
       integer :: k2 , kn
-      real(8) , dimension(plond) :: abstrc , dw , pnew , tco2 , th2o ,  &
+      real(8) , dimension(ix - 1) :: abstrc , dw , pnew , tco2 , th2o ,  &
                                   & to3 , up2
-      real(8) , dimension(14,plond,4) :: bplnk
-      real(8) , dimension(plond,4) :: pinpl , tbar , uinpl , winpl
-      real(8) , dimension(plond,plevp) :: s2c , ucfc11 , ucfc12 , uch4 ,&
+      real(8) , dimension(14,ix - 1,4) :: bplnk
+      real(8) , dimension(ix - 1,4) :: pinpl , tbar , uinpl , winpl
+      real(8) , dimension(ix - 1,kx + 1) :: s2c , ucfc11 , ucfc12 , uch4 ,&
            & uco211 , uco212 , uco213 , uco221 , uco222 , uco223 ,      &
            & un2o0 , un2o1 , uptype
       intent (in) bplnk , dw , k2 , kn , pinpl , pnew , s2c , tbar ,    &
@@ -151,10 +150,10 @@
                & du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
                & phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
                & tch4 , tlw , u , w1
-      real(8) , dimension(plond) :: ds2c , duptyp , rsqti , sqti , tt
+      real(8) , dimension(ix - 1) :: ds2c , duptyp , rsqti , sqti , tt
       real(8) :: func
       integer :: i , l
-      real(8) , dimension(plond,6) :: tw
+      real(8) , dimension(ix - 1,6) :: tw
       data g1/0.0468556 , 0.0397454 , 0.0407664 , 0.0304380 ,           &
          & 0.0540398 , 0.0321962/
       data g2/14.4832 , 4.30242 , 5.23523 , 3.25342 , 0.698935 ,        &
@@ -173,7 +172,7 @@
 !------------------------------------------------------------------
       func(u,b) = u/dsqrt(4.0+u*(1.0+1.0/b))
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         sqti(i) = dsqrt(tbar(i,kn))
         rsqti(i) = 1./sqti(i)
 !       h2o transmission
@@ -183,7 +182,7 @@
       end do
 !
       do l = 1 , 6
-        do i = 1 , plon
+        do i = 1 , ix - 1
           psi1 = dexp(abp(l)*tt(i)+bbp(l)*tt(i)*tt(i))
           phi1 = dexp(ab(l)*tt(i)+bb(l)*tt(i)*tt(i))
           p1 = pnew(i)*(psi1/phi1)/sslp
@@ -193,7 +192,7 @@
         end do
       end do
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
 !
         du1 = dabs(ucfc11(i,k2+1)-ucfc11(i,k2))*winpl(i,kn)
         du2 = dabs(ucfc12(i,k2+1)-ucfc12(i,k2))*winpl(i,kn)

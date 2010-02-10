@@ -33,7 +33,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_comozp
       use mod_crdcae
       use mod_crdcon

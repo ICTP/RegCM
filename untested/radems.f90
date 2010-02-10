@@ -59,7 +59,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_crdcae
       use mod_crdcon
       use mod_radbuf
@@ -115,14 +114,14 @@
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(14,plond,plevp) :: abplnk1 , abplnk2
-      real(8) , dimension(plond,plevp) :: bch4 , bn2o0 , bn2o1 , co2em ,&
+      real(8) , dimension(14,ix - 1,kx + 1) :: abplnk1 , abplnk2
+      real(8) , dimension(ix - 1,kx + 1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
            & co2t , h2otr , plco2 , plh2o , plol , plos , pnm , s2c ,   &
            & s2t , tint , tint4 , tlayr , tlayr4 , ucfc11 , ucfc12 ,    &
            & uch4 , uco211 , uco212 , uco213 , uco221 , uco222 ,        &
            & uco223 , un2o0 , un2o1 , uptype , w
-      real(8) , dimension(plond,plev) :: co2eml
-      real(8) , dimension(plond) :: tplnke
+      real(8) , dimension(ix - 1,kx) :: co2eml
+      real(8) , dimension(ix - 1) :: tplnke
       intent (in) jslc , plco2 , plh2o , plol , plos , s2t , tint4 ,    &
                 & tlayr4
       intent (out) co2em , co2eml
@@ -262,7 +261,7 @@
 !
 ! Local variables
 !
-      real(8) , dimension(plond) :: a , co2plk , corfac , dbvtt , dtp , &
+      real(8) , dimension(ix - 1) :: a , co2plk , corfac , dbvtt , dtp , &
                                   & dtx , dty , dtz , k21 , k22 , pnew ,&
                                   & rsum , tco2 , th2o , to3 , tpathe , &
                                   & tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , &
@@ -277,14 +276,14 @@
                & tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
                & tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , ux , vx ,&
                & wco2
-      real(8) , dimension(plond,plevp) :: co2ems , emstrc , h2oems ,    &
+      real(8) , dimension(ix - 1,kx + 1) :: co2ems , emstrc , h2oems ,    &
            & o3ems , troco2
       real(8) :: dbvt , fo3
-      real(8) , dimension(plond,4) :: emis , term1 , term2 , term3 ,    &
+      real(8) , dimension(ix - 1,4) :: emis , term1 , term2 , term3 ,    &
                                     & term4 , term5
-      real(8) , dimension(14,plond) :: emplnk
+      real(8) , dimension(14,ix - 1) :: emplnk
       integer :: i , iband , k , k1
-      real(8) , dimension(plond,2) :: term6 , term7 , term8 , term9 ,   &
+      real(8) , dimension(ix - 1,2) :: term6 , term7 , term8 , term9 ,   &
                                     & trline
 !
 !---------------------------Statement functions-------------------------
@@ -311,16 +310,16 @@
 !
 !     Planck function for co2
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         ex = dexp(960.D0/tplnke(i))
         co2plk(i) = 5.D8/((tplnke(i)**4)*(ex-1.))
         co2t(i,1) = tplnke(i)
         xsum(i) = co2t(i,1)*pnm(i,1)
       end do
       k = 1
-      do k1 = plevp , 2 , -1
+      do k1 = kx + 1 , 2 , -1
         k = k + 1
-        do i = 1 , plon
+        do i = 1 , ix - 1
           xsum(i) = xsum(i) + tlayr(i,k)*(pnm(i,k)-pnm(i,k-1))
           ex = dexp(960./tlayr(i,k1))
           tlayr5 = tlayr(i,k1)*tlayr4(i,k1)
@@ -332,7 +331,7 @@
 !
 !     Initialize planck function derivative for O3
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         dbvtt(i) = dbvt(tplnke(i))
       end do
 !
@@ -342,7 +341,7 @@
 !
 !     Interface loop
 !
-      do k1 = 1 , plevp
+      do k1 = 1 , kx + 1
 !
 !       H2O emissivity
 !
@@ -353,7 +352,7 @@
 !
 !       For the p type continuum
 !
-        do i = 1 , plon
+        do i = 1 , ix - 1
           uc(i) = s2c(i,k1) + 2.E-3*plh2o(i,k1)
           u(i) = plh2o(i,k1)
           pnew(i) = u(i)/w(i,k1)
@@ -364,14 +363,14 @@
                  & /(1.+15.*s2c(i,k1))
           tpathe(i) = s2t(i,k1)/plh2o(i,k1)
         end do
-        do i = 1 , plon
+        do i = 1 , ix - 1
           dtx(i) = tplnke(i) - 250.
           dty(i) = tpathe(i) - 250.
           dtz(i) = dtx(i) - 50.
           dtp(i) = dty(i) - 50.
         end do
         do iband = 1 , 3 , 2
-          do i = 1 , plon
+          do i = 1 , ix - 1
             term1(i,iband) = coefe(1,iband) + coefe(2,iband)*dtx(i)     &
                            & *(1.+c1(iband)*dtx(i))
             term2(i,iband) = coefb(1,iband) + coefb(2,iband)*dtx(i)     &
@@ -389,7 +388,7 @@
 !
 !       emis(i,1)     0 -  800 cm-1   rotation band
 !
-        do i = 1 , plon
+        do i = 1 , ix - 1
           a11 = .37 - 3.33E-5*dtz(i) + 3.33E-6*dtz(i)*dtz(i)
           a31 = 1.07 - 1.00E-3*dtp(i) + 1.475E-5*dtp(i)*dtp(i)
           a21 = 1.3870 + 3.80E-3*dtz(i) - 7.8E-6*dtz(i)*dtz(i)
@@ -422,7 +421,7 @@
 !       Line transmission in 800-1000 and 1000-1200 cm-1 intervals
 !
         do k = 1 , 2
-          do i = 1 , plon
+          do i = 1 , ix - 1
             phi = a1(k)*(dty(i)+15.) + a2(k)*(dty(i)+15.)**2
             psi = b1(k)*(dty(i)+15.) + b2(k)*(dty(i)+15.)**2
             phi = dexp(phi)
@@ -438,7 +437,7 @@
             trline(i,k) = dexp(-g4)
           end do
         end do
-        do i = 1 , plon
+        do i = 1 , ix - 1
           term7(i,1) = coefj(1,1) + coefj(2,1)*dty(i)*(1.+c16*dty(i))
           term8(i,1) = coefk(1,1) + coefk(2,1)*dty(i)*(1.+c17*dty(i))
           term7(i,2) = coefj(1,2) + coefj(2,2)*dty(i)*(1.+c26*dty(i))
@@ -447,7 +446,7 @@
 !
 !       emis(i,3)   800 - 1200 cm-1   window
 !
-        do i = 1 , plon
+        do i = 1 , ix - 1
           term6(i,1) = coeff(1,1) + coeff(2,1)*dtx(i)                   &
                      & *(1.+c8*dtx(i)*(1.+c10*dtx(i)                    &
                      & *(1.+c12*dtx(i)*(1.+c14*dtx(i)))))
@@ -482,7 +481,7 @@
 !
 !       CO2 emissivity for 15 micron band system
 !
-        do i = 1 , plon
+        do i = 1 , ix - 1
           t1i = dexp(-480./co2t(i,k1))
           sqti = dsqrt(co2t(i,k1))
           rsqti = 1./sqti
@@ -529,7 +528,7 @@
 !
 !       O3 emissivity
 !
-        do i = 1 , plon
+        do i = 1 , ix - 1
           h2otr(i,k1) = dexp(-12.*s2c(i,k1))
           te = (co2t(i,k1)/293.)**.7
           u1 = 18.29*plos(i,k1)/te
@@ -554,7 +553,7 @@
 !
 !       Total emissivity:
 !
-        do i = 1 , plon
+        do i = 1 , ix - 1
           emstot(i,k1,jslc) = h2oems(i,k1) + co2ems(i,k1) + o3ems(i,k1) &
                             & + emstrc(i,k1)
         end do

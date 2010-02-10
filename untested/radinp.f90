@@ -38,7 +38,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_comtim
       use mod_crdcon
       implicit none
@@ -46,9 +45,9 @@
 ! Dummy arguments
 !
       real(8) :: eccf
-      real(8) , dimension(plond,plevp) :: cld , pint , pintrd , plco2 , &
+      real(8) , dimension(ix - 1,kx + 1) :: cld , pint , pintrd , plco2 , &
            & plh2o , tclrsf
-      real(8) , dimension(plond,plev) :: h2ommr , o3mmr , o3vmr , pmid ,&
+      real(8) , dimension(ix - 1,kx) :: h2ommr , o3mmr , o3vmr , pmid ,&
            & pmidrd
       intent (in) cld , h2ommr , o3vmr , pint , pmid
       intent (out) eccf , o3mmr , plco2 , pmidrd
@@ -114,27 +113,27 @@
 !
 !     Convert pressure from pascals to dynes/cm2
 !
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           pmidrd(i,k) = pmid(i,k)*10.0
           pintrd(i,k) = pint(i,k)*10.0
         end do
       end do
-      do i = 1 , plon
-        pintrd(i,plevp) = pint(i,plevp)*10.0
+      do i = 1 , ix - 1
+        pintrd(i,kx + 1) = pint(i,kx + 1)*10.0
       end do
 !
 !     Compute path quantities used in the longwave radiation:
 !
       vmmr = amco2/amd
       cpwpl = vmmr*0.5/(gravit*p0)
-      do i = 1 , plon
+      do i = 1 , ix - 1
         plh2o(i,1) = rgsslp*h2ommr(i,1)*pintrd(i,1)*pintrd(i,1)
         plco2(i,1) = co2vmr*cpwpl*pintrd(i,1)*pintrd(i,1)
         tclrsf(i,1) = 1.
       end do
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           plh2o(i,k+1) = plh2o(i,k)                                     &
                        & + rgsslp*(pintrd(i,k+1)**2-pintrd(i,k)**2)     &
                        & *h2ommr(i,k)
@@ -146,8 +145,8 @@
 !     Convert ozone volume mixing ratio to mass mixing ratio:
 !
       vmmr = amo/amd
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           o3mmr(i,k) = vmmr*o3vmr(i,k)
         end do
       end do

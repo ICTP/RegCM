@@ -1,7 +1,6 @@
       module mod_aerosol
 
       use mod_regcm_param
-      use mod_parrad
 
       implicit none
 
@@ -47,12 +46,12 @@
 !
 !     Background aerosol mass mixing ratio
 !
-      real(8) , dimension(plon,plevr) :: aermmb
+      real(8) , dimension(ix - 1,kx) :: aermmb
 
 !
 !     Radiation level aerosol mass mixing ratio
 !
-      real(8) , dimension(plond,plevr,ntr) :: aermmr
+      real(8) , dimension(ix - 1,kx,ntr) :: aermmr
 
 !------------------------------------------------------------------------------
 !                  DATA SECTION

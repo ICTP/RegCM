@@ -33,7 +33,6 @@
       use mod_bats
       use mod_date
       use mod_message
-      use mod_parrad
       use mod_bdycod
       use mod_pmoist
       use mod_rad

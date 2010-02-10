@@ -22,7 +22,6 @@
                       & uco222,uco223,bn2o0,bn2o1,bch4,uptype)
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_crdcon
       use mod_tracer
       implicit none
@@ -68,10 +67,10 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(plond,plevp) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
+      real(8) , dimension(ix - 1,kx + 1) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
            & ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,        &
            & uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
-      real(8) , dimension(plond,plev) :: cfc11 , cfc12 , ch4 , n2o ,    &
+      real(8) , dimension(ix - 1,kx) :: cfc11 , cfc12 , ch4 , n2o ,    &
            & qnm , tnm
       intent (in) cfc11 , cfc12 , ch4 , n2o , pnm , qnm , tnm
       intent (inout) bch4 , bn2o0 , bn2o1 , ucfc11 , ucfc12 , uch4 ,    &
@@ -90,9 +89,9 @@
 ! pbar   - mean pressure
 ! dpnm   - difference in pressure
 !
-      real(8) , dimension(plond) :: alpha1 , alpha2 , dpnm , pbar ,     &
+      real(8) , dimension(ix - 1) :: alpha1 , alpha2 , dpnm , pbar ,     &
                                   & rsqrt , rt
-      real(8) , dimension(plond,1) :: co2fac
+      real(8) , dimension(ix - 1,1) :: co2fac
       real(8) :: diff
       integer :: i , k
       data diff/1.66/           ! diffusivity factor
@@ -100,7 +99,7 @@
 !-----------------------------------------------------------------------
 !     Calculate path lengths for the trace gases
 !-----------------------------------------------------------------------
-      do i = 1 , plon
+      do i = 1 , ix - 1
         ucfc11(i,1) = 1.8*cfc11(i,1)*pnm(i,1)*rga
         ucfc12(i,1) = 1.8*cfc12(i,1)*pnm(i,1)*rga
         un2o0(i,1) = diff*1.02346E5*n2o(i,1)*pnm(i,1)                   &
@@ -131,8 +130,8 @@
                     & **2.0*dexp(1800.0*(1.0/tnm(i,1)-1.0/296.0))       &
                     & *rga/sslp
       end do
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           rt(i) = 1./tnm(i,k)
           rsqrt(i) = dsqrt(rt(i))
           pbar(i) = 0.5*(pnm(i,k+1)+pnm(i,k))/sslp

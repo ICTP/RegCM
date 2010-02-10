@@ -22,7 +22,6 @@
                        & gtota_mix_cs,ftota_mix_cs)
  
       use mod_regcm_param
-      use mod_parrad
       use mod_param2
       use mod_aerosol , only : nspi , ksdust , wsdust , gsdust ,        &
                        & kscoef , wscoef , gscoef , ksoc_hl , wsoc_hl , &
@@ -43,13 +42,13 @@
 ! Dummy arguments
 !
 !     Aerosol extinction optical depth
-      real(8) , dimension(plond,0:plev,nspi) :: ftota_mix , gtota_mix , &
+      real(8) , dimension(ix - 1,0:kx,nspi) :: ftota_mix , gtota_mix , &
            & tauasc_mix , tauxar_mix
-      real(8) , dimension(plond,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
+      real(8) , dimension(ix - 1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
            & tauasc_mix_cs , tauxar_mix_cs
 !     Interface pressure, relative humidity
-      real(8) , dimension(plond,plevp) :: pint
-      real(8) , dimension(plond,plevr) :: rh
+      real(8) , dimension(ix - 1,kx + 1) :: pint
+      real(8) , dimension(ix - 1,kx) :: rh
       intent (in) pint , rh
       intent (inout) ftota_mix , ftota_mix_cs , gtota_mix ,             &
                    & gtota_mix_cs , tauasc_mix , tauasc_mix_cs ,        &
@@ -57,10 +56,10 @@
 !
 ! Local variables
 !
-      real(8) , dimension(plond,plevr) :: aermtot , aervtot
-      real(8) , dimension(plond,0:plev,ntr) :: fa , ga , tauxar , uaer ,&
+      real(8) , dimension(ix - 1,kx) :: aermtot , aervtot
+      real(8) , dimension(ix - 1,0:kx,ntr) :: fa , ga , tauxar , uaer ,&
            & wa
-      real(8) , dimension(plond,ntr) :: faer , gaer , tauaer , utaer ,  &
+      real(8) , dimension(ix - 1,ntr) :: faer , gaer , tauaer , utaer ,  &
                                       & waer
       real(8) , dimension(4) :: frac , prop
       integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k , ns
@@ -76,8 +75,8 @@
 ! faer          - Aerosol forward scattered fraction
 !
 ! Visible band
-!     real(kind=8)  aertau(plond,ntr)
-!     real(kind=8)  aerprf(plond,0:plev,ntr)
+!     real(kind=8)  aertau(ix - 1,ntr)
+!     real(kind=8)  aerprf(ix - 1,0:kx,ntr)
 !     real(kind=8)  tauprf
 
 !trapuv
@@ -91,7 +90,7 @@
       do ns = 1 , nspi
 !---------------
         do itr = 1 , ntr
-          do i = 1 , plond
+          do i = 1 , ix - 1
 !           set above top value
             uaer(i,0,itr) = 0.0
             tauxar(i,0,itr) = 0.0
@@ -106,15 +105,15 @@
           end do
         end do
  
-        do i = 1 , plond
+        do i = 1 , ix - 1
           tauxar_mix_cs(i,ns) = 0.0
           tauasc_mix_cs(i,ns) = 0.0
           gtota_mix_cs(i,ns) = 0.0
           ftota_mix_cs(i,ns) = 0.0
         end do
  
-        do k = 0 , plev
-          do i = 1 , plond
+        do k = 0 , kx
+          do i = 1 , ix - 1
             tauxar_mix(i,k,ns) = 0.0
             tauasc_mix(i,k,ns) = 0.0
             gtota_mix(i,k,ns) = 0.0
@@ -134,8 +133,8 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
           if ( mixtype.eq.1 ) then
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-            do k = 1 , plev
-              do i = 1 , plond
+            do k = 1 , kx
+              do i = 1 , ix - 1
                 path = (pint(i,k+1)-pint(i,k))/gravit
                 ibin = 0
                 do itr = 1 , ntr
@@ -210,9 +209,9 @@
               end do
             end do
 !           optical properties for the clear sky diagnostic
-            do i = 1 , plond
+            do i = 1 , ix - 1
               do itr = 1 , ntr
-                do k = 1 , plev
+                do k = 1 , kx
                   utaer(i,itr) = utaer(i,itr) + uaer(i,k,itr)
                   tauaer(i,itr) = tauaer(i,itr) + tauxar(i,k,itr)
                   waer(i,itr) = waer(i,itr) + wa(i,k,itr)*uaer(i,k,itr)
@@ -229,10 +228,10 @@
 !           Calculate the EXTERNAL Mixing of aerosols
 !           melange externe
 !
-            do i = 1 , plond
+            do i = 1 , ix - 1
               do itr = 1 , ntr
 !               only for climatic feedback allowed
-                do k = 0 , plev
+                do k = 0 , kx
                   tauxar_mix(i,k,ns) = tauxar_mix(i,k,ns)               &
                                      & + tauxar(i,k,itr)
                   tauasc_mix(i,k,ns) = tauasc_mix(i,k,ns)               &
@@ -263,8 +262,8 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
           else if ( mixtype.eq.2 ) then
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-            do i = 1 , plond
-              do k = 1 , plev
+            do i = 1 , ix - 1
+              do k = 1 , kx
                 path = (pint(i,k+1)-pint(i,k))/gravit
                 if ( rh(i,k).lt.0.0 .or. rh(i,k).gt.1.0 ) print * , i , &
                    & k , rh(i,k) , '  RH WARNING !!!!!'

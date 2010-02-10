@@ -29,7 +29,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_parrad
       implicit none
 !
 !------------------------------Arguments--------------------------------
@@ -56,9 +55,9 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(plond,plev) :: fice , pmid , rei , rel , t
-      integer , dimension(plond) :: ioro
-      real(8) , dimension(plond) :: ps
+      real(8) , dimension(ix - 1,kx) :: fice , pmid , rei , rel , t
+      integer , dimension(ix - 1) :: ioro
+      real(8) , dimension(ix - 1) :: ps
       intent (in) ioro , pmid , ps , t
       intent (out) fice , rei , rel
 !
@@ -75,8 +74,8 @@
       real(8) :: picemn , pirnge , pnrml , reimax , rirnge , rliq ,     &
                & weight
 !
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
 !
 !         Define liquid drop size
 !

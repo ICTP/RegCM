@@ -32,7 +32,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_parrad
       use mod_crdcon
       implicit none
 !
@@ -61,10 +60,10 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(plond,plevp) :: piln , plh2o , pnm , s2c ,    &
+      real(8) , dimension(ix - 1,kx + 1) :: piln , plh2o , pnm , s2c ,    &
            & s2t , tint , tint4 , tlayr , tlayr4 , tplnka , w
-      real(8) , dimension(plond,plev) :: pmln , qnm , tnm
-      real(8) , dimension(plond) :: tplnke , ts
+      real(8) , dimension(ix - 1,kx) :: pmln , qnm , tnm
+      real(8) , dimension(ix - 1) :: tplnke , ts
       intent (in) piln , plh2o , pmln , pnm , qnm , tnm , ts
       intent (out) tint4 , tplnke
       intent (inout) s2c , s2t , tint , tlayr , tlayr4 , tplnka , w
@@ -96,9 +95,9 @@
 !     Tint is lower interface temperature
 !     (not available for bottom layer, so use ground temperature)
 !
-      do i = 1 , plon
-        tint(i,plevp) = ts(i)
-        tint4(i,plevp) = tint(i,plevp)**4
+      do i = 1 , ix - 1
+        tint(i,kx + 1) = ts(i)
+        tint4(i,kx + 1) = tint(i,kx + 1)**4
         tplnka(i,1) = tnm(i,1)
         tint(i,1) = tplnka(i,1)
         tlayr4(i,1) = tplnka(i,1)**4
@@ -108,8 +107,8 @@
 !     Intermediate level temperatures are computed using temperature
 !     at the full level below less dy*delta t,between the full level
 !
-      do k = 2 , plev
-        do i = 1 , plon
+      do k = 2 , kx
+        do i = 1 , ix - 1
           dy = (piln(i,k)-pmln(i,k))/(pmln(i,k-1)-pmln(i,k))
           tint(i,k) = tnm(i,k) - dy*(tnm(i,k)-tnm(i,k-1))
           tint4(i,k) = tint(i,k)**4
@@ -121,8 +120,8 @@
 !     the intermediate level temperatures.  Note that tplnka is not
 !     equal to the full level temperatures.
 !
-      do k = 2 , plevp
-        do i = 1 , plon
+      do k = 2 , kx + 1
+        do i = 1 , ix - 1
           tlayr(i,k) = tnm(i,k-1)
           tlayr4(i,k) = tlayr(i,k)**4
           tplnka(i,k) = .5*(tint(i,k)+tint(i,k-1))
@@ -132,14 +131,14 @@
 !     Calculate tplank for emissivity calculation.
 !     Assume isothermal tplnke i.e. all levels=ttop.
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         tplnke(i) = tplnka(i,1)
         tlayr(i,1) = tint(i,1)
       end do
 !
 !     Now compute h2o path fields:
 !
-      do i = 1 , plon
+      do i = 1 , ix - 1
         s2t(i,1) = plh2o(i,1)*tnm(i,1)
 !       ccm3.2
 !       w(i,1)   = (plh2o(i,1)*2.) / pnm(i,1)
@@ -150,8 +149,8 @@
         rtnm = 1./tnm(i,1)
         s2c(i,1) = plh2o(i,1)*exp(1800.*(rtnm-r296))*qnm(i,1)*repsil
       end do
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           dpnm = pnm(i,k+1) - pnm(i,k)
           dpnmsq = pnm(i,k+1)**2 - pnm(i,k)**2
           rtnm = 1./tnm(i,k)

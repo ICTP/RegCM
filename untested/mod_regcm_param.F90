@@ -95,6 +95,8 @@
       integer , parameter :: kxm = kx - 1
       integer , parameter :: kxp1 = kx + 1
       integer , parameter :: kxp2 = kx + 2
+      integer , parameter :: kxp3 = kx + 3
+      integer , parameter :: kxp4 = kx + 4
 
       integer , parameter :: nspgv = (nspgd+nspgx)*8 + 8
       integer , parameter :: nspgp = nspgx*4

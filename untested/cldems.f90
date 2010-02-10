@@ -32,7 +32,6 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_parrad
       implicit none
 !
 ! PARAMETER definitions
@@ -56,7 +55,7 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(plond,plev) :: clwp , emis , fice , rei
+      real(8) , dimension(ix - 1,kx) :: clwp , emis , fice , rei
       intent (in) clwp , fice , rei
       intent (out) emis
 !
@@ -73,8 +72,8 @@
       integer :: i , k
       real(8) :: kabs , kabsi
 !
-      do k = 1 , plev
-        do i = 1 , plon
+      do k = 1 , kx
+        do i = 1 , ix - 1
           kabsi = 0.005 + 1./rei(i,k)
           kabs = kabsl*(1.-fice(i,k)) + kabsi*fice(i,k)
           emis(i,k) = 1. - dexp(-1.66*kabs*clwp(i,k))
