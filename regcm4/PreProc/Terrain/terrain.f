@@ -147,7 +147,7 @@
           write(filout_s,1012) filout(1:18),nsg,filout(19:23)
           write(filctl_s,1014) filctl(1:18),nsg,filctl(19:22)
         endif
-        call setup(nunitc_s,iy*nsg,jx*nsg,ntypec_s,nveg,iproj,ds/nsg
+        call setup(nunitc_s,iy*nsg,jx*nsg,ntypec_s,iproj,ds/nsg
      &     , clat,clong,igrads,ibyte,filout_s,filctl_s)
         if (iproj.eq.'LAMCON') then
           CALL LAMBRT(XLON_S,XLAT_S,XMAP_S,CORIOL_S,iy*nsg,jx*nsg
@@ -190,14 +190,14 @@
         if (ifanal) then
 !       convert xobs and yobs from LON and LAT to x and y in mesh
           CALL XYOBSLL(iy*nsg,jx*nsg,iproj,clat,clong,plat,plon
-     &                ,truelatL,truelatH)
+     &                ,truelatH)
           print*, 'after calling XYOBSLL, for subgrid'
 !
 !       create the terrain height fields
           call anal2(htsdgrid_s,ht2,nobs,iy*nsg,jx*nsg
-     &        ,ntypec_s,corc_s,sumc_s,nsc_s,wtmaxc_s,htsavc_s)
+     &        ,corc_s,sumc_s,nsc_s,wtmaxc_s,htsavc_s)
           call anal2(htgrid_s,ht,nobs,iy*nsg,jx*nsg
-     &        ,ntypec_s,corc_s,sumc_s,nsc_s,wtmaxc_s,htsavc_s)
+     &        ,corc_s,sumc_s,nsc_s,wtmaxc_s,htsavc_s)
           print*, 'after calling ANAL2, for subgrid'
           do j=1,jx*nsg
           do i=1,iy*nsg
@@ -351,7 +351,7 @@
       dycen = 0.0
 !
 !     set up the parameters and constants
-      call setup(nunitc,iy,jx,ntypec,nveg,iproj,ds,clat,clong,igrads
+      call setup(nunitc,iy,jx,ntypec,iproj,ds,clat,clong,igrads
      &   , ibyte,filout,filctl)
       print*, 'after calling SETUP'
 !
@@ -399,14 +399,14 @@
       if (ifanal) then
 !     convert xobs and yobs from LON and LAT to x and y in mesh
         CALL XYOBSLL(iy,jx,iproj,clat,clong,plat,plon
-     &              ,truelatL,truelatH)
+     &              ,truelatH)
         print*, 'after calling XYOBSLL'
  
 !     create the terrain height fields
         call anal2(htsdgrid,ht2,nobs,iy,jx,
-     &             ntypec,corc,sumc,nsc,wtmaxc,htsavc)
+     &             corc,sumc,nsc,wtmaxc,htsavc)
         call anal2(htgrid,ht,nobs,iy,jx,
-     &             ntypec,corc,sumc,nsc,wtmaxc,htsavc)
+     &             corc,sumc,nsc,wtmaxc,htsavc)
         print*, 'after calling ANAL2'
         do j=1,jx
         do i=1,iy
@@ -552,8 +552,8 @@
       print*, 'after calling OUTPUT'
 
 !     prepare domain and time parameters for ICBC step
-      CALL FORICBC(iy,jx,kz,nsg,IDATE1,IDATE2,igrads,ibigend,ibyte
-     &            ,DATTYP,SSTTYP,EHSO4,LSMTYP,AERTYP,filout)
+      CALL FORICBC(iy,jx,kz,nsg,IDATE1,IDATE2,ibyte
+     &            ,DATTYP,SSTTYP,EHSO4,LSMTYP,AERTYP)
 
 !     prepare domain parameters for RegCM step
       CALL FORMAIN(iy,jx,kz,nsg,ibyte,DATTYP,EHSO4,LSMTYP,AERTYP,NPROC)
@@ -561,7 +561,7 @@
       stop 9999
       end
 !
-      subroutine anal2(a2,asta,nsta,iy,jx,ntype,cor,sum,ns,wtmax,htsav)
+      subroutine anal2(a2,asta,nsta,iy,jx,cor,sum,ns,wtmax,htsav)
       implicit none
 !
       integer iter,jter,iblk
@@ -571,7 +571,7 @@
       common /block0/ xobs,yobs,nobs
       integer nsta
       real(kind=4)  asta(nsta)
-      integer iy,jx,ntype
+      integer iy,jx
       real(kind=4)  dxcen,dycen
       common /addstack/ dxcen,dycen
       real(kind=4)  a2(iy,jx),htsav(iy,jx),cor(iy,jx),
@@ -952,17 +952,17 @@
       return
       end
 
-      subroutine foricbc(iy,jx,kz,nsg,IDATE1,IDATE2,igrads,ibigend
-     &            ,ibyte,DATTYP,SSTTYP,EHSO4,LSMTYP,AERTYP,filout)
+      subroutine foricbc(iy,jx,kz,nsg,IDATE1,IDATE2,
+     &            ibyte,DATTYP,SSTTYP,EHSO4,LSMTYP,AERTYP)
       implicit none
-      integer iy,jx,kz,nsg,IDATE1,IDATE2,igrads,ibigend,ibyte
+      integer iy,jx,kz,nsg,IDATE1,IDATE2,ibyte
       CHARACTER*5 DATTYP, SSTTYP
       LOGICAL     EHSO4
       CHARACTER*4 LSMTYP
       CHARACTER*7 AERTYP
       integer JX_O,IY_O,KZ_O
 !      character a80*80, 
-      character filout*(*)
+!      character filout*(*)
 !      integer isystm,system
 !      external system
 !
@@ -3749,10 +3749,10 @@
 
       END
 !
-      subroutine setup(nunit,iy,jx,ntypec,nveg,iproj,ds,clat,clon
+      subroutine setup(nunit,iy,jx,ntypec,iproj,ds,clat,clon
      &         , igrads,ibyte,filout,filctl)
       implicit none
-      integer nunit,iy,jx,ntypec,nveg,igrads,ibyte
+      integer nunit,iy,jx,ntypec,igrads,ibyte
       character iproj*6, filout*50, filctl*50
       real(kind=4)  ds,clat,clon
 !
@@ -4106,11 +4106,11 @@
       end
 
       SUBROUTINE XYOBSLL(iy,jx,iproj,clat,clon,plat,plon
-     &                  ,truelatL,truelatH)
+     &                  ,truelatH)
       implicit none
       integer iy,jx
       character*6 iproj
-      real(kind=4)  clat,clon,plat,plon,truelatL,truelatH
+      real(kind=4)  clat,clon,plat,plon,truelatH
 !
       integer iter,jter,iblk
       parameter(iter=2400,jter=2400,iblk=2880000)
