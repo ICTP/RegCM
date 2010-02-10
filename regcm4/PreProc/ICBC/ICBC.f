@@ -3139,7 +3139,7 @@
 !  X X X X X X X    END OF USER DEFINED PARAMETERS    X X X X X X X X X
 !  X X X X X X X                                      X X X X X X X X X
 !
-      REAL    Tvar,Hvar,RHvar,Uvar,Vvar
+      REAL    Tvar,Hvar,RHvar,Uvar,Vvar!,Wvar,Qsoil,TSIce,TSoil,SNOWh
       common /EIN75vars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,          RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,           Vvar(ilon,jlat,klev)
@@ -3152,7 +3152,7 @@
      &                    ,SIGMAR(klev)
 !
 ! A7     DIMENSION VARIABLES FOR RCM HORIZONTAL GRID (P-LEVELS)
-      REAL    U3,V3,H3,Q3,T3
+      REAL    U3,V3,H3,Q3,T3!,QS3,TI3,TS3,SNOW
       COMMON /EIN75VAR3/ U3(JX,IY,klev),V3(JX,IY,klev)
      &       ,           T3(JX,IY,klev),H3(JX,IY,klev),Q3(JX,IY,klev)
       REAL    B3(JX,IY,klev*3)
@@ -3374,7 +3374,7 @@
 !  X X X X X X X    END OF USER DEFINED PARAMETERS    X X X X X X X X X
 !  X X X X X X X                                      X X X X X X X X X
 !
-      REAL    Tvar,Hvar,RHvar,Uvar,Vvar
+      REAL    Tvar,Hvar,RHvar,Uvar,Vvar!,Wvar,Qsoil,TSIce,TSoil,SNOWh
       common /EIN15vars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,          RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,           Vvar(ilon,jlat,klev)
@@ -3387,7 +3387,7 @@
      &                    ,SIGMAR(klev)
 !
 ! A7     DIMENSION VARIABLES FOR RCM HORIZONTAL GRID (P-LEVELS)
-      REAL    U3,V3,H3,Q3,T3
+      REAL    U3,V3,H3,Q3,T3!,QS3,TI3,TS3,SNOW
       COMMON /EIN15VAR3/ U3(JX,IY,klev),V3(JX,IY,klev)
      &       ,           T3(JX,IY,klev),H3(JX,IY,klev),Q3(JX,IY,klev)
       REAL    B3(JX,IY,klev*3)
@@ -3611,7 +3611,7 @@
 !  X X X X X X X    END OF USER DEFINED PARAMETERS    X X X X X X X X X
 !  X X X X X X X                                      X X X X X X X X X
 !
-      REAL    Tvar,Hvar,RHvar,Uvar,Vvar
+      REAL    Tvar,Hvar,RHvar,Uvar,Vvar!,Wvar,Qsoil,TSIce,TSoil,SNOWh
       common /EIN25vars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,          RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,           Vvar(ilon,jlat,klev)
@@ -3819,7 +3819,7 @@
       SUBROUTINE GETGFS11(IDATE)
       IMPLICIT NONE
       INTEGER IDATE
-      INTEGER NYEAR,MONTH,NDAY,NHOUR,NREC
+      INTEGER NYEAR,MONTH,NDAY,NHOUR,NREC!,MREC
 !
 ! A      SET PARAMETERS
 !
@@ -5421,11 +5421,10 @@
 !  X X X X X X X    END OF USER DEFINED PARAMETERS    X X X X X X X X X
 !  X X X X X X X                                      X X X X X X X X X
 !
-      REAL    Tvar,Hvar,RHvar,Uvar,Vvar,Wvar,PSvar
+      REAL    Tvar,Hvar,RHvar,Uvar,Vvar,Wvar
       common /CDCvars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,        RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,         Vvar(ilon,jlat,klev), Wvar(ilon,jlat,klev)
-     &       ,        PSvar(ilon,jlat)
       REAL    B2(ilon,jlat,klev*3)
       EQUIVALENCE (B2(1,1,1),Tvar(1,1,1))
       REAL    D2(ilon,jlat,klev*2)
@@ -5595,11 +5594,10 @@
 !  X X X X X X X    END OF USER DEFINED PARAMETERS    X X X X X X X X X
 !  X X X X X X X                                      X X X X X X X X X
 !
-      REAL    Tvar,Hvar,RHvar,Uvar,Vvar,Wvar,PSvar
+      REAL    Tvar,Hvar,RHvar,Uvar,Vvar,Wvar
       common /CDCvars/ Tvar(ilon,jlat,klev), Hvar(ilon,jlat,klev)
      &       ,        RHvar(ilon,jlat,klev), Uvar(ilon,jlat,klev)
      &       ,         Vvar(ilon,jlat,klev), Wvar(ilon,jlat,klev)
-     &       ,        PSvar(ilon,jlat)
       REAL    B2(ilon,jlat,klev*3)
       EQUIVALENCE (B2(1,1,1),Tvar(1,1,1))
       REAL    D2(ilon,jlat,klev*2)
@@ -5669,7 +5667,7 @@
 !
 ! D      BEGIN LOOP OVER NTIMES
 !
-      CALL CDC6HOUR2(IDATE,IDATE1)
+      CALL CDC6HOUR2(DATTYP,IDATE,IDATE1)
       WRITE(*,*) 'READ IN fields at DATE:',IDATE
 !
 ! HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
@@ -6184,7 +6182,7 @@
       CALL HYDROST(H4,T4,TOPOGM,PS4,PTOP,SIGMAF,SIGMA2,DSIGMA,JX,IY,KZ)
 !
 ! G      WRITE AN INITIAL FILE FOR THE RegCM
-      CALL WRITEF2(U4,V4,T4,Q4,PS4,TS4,PTOP,JX,IY,KZ,IDATE)
+      CALL WRITEF2(U4,V4,T4,Q4,C4,PS4,TS4,PTOP,JX,IY,KZ,IDATE)
 !
       RETURN
       END
@@ -7422,7 +7420,7 @@
       REAL    TP(NI,NJ,NLEV1), ZP(NI,NJ,NLEV1), SCCM(NLEV1)
  
       INTEGER I,J,K
-      INTEGER KT,KB
+      INTEGER KR,KT,KB
  
 !  INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
 !        TOPOGRAPHY.  THE MEAN TEMPERATURE IN THE LAYER BETWEEN
@@ -7627,7 +7625,7 @@
      A,       FRCM(NI,NJ,KRCM), FCCM(NI,NJ,KCCM)
       REAL    PT
  
-      INTEGER I,J,K,N,K1,K1P
+      INTEGER I,J,K,KR,N,K1,K1P
       REAL    DP1,PT1,SC,RC,RC1
 
 !  INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE HUMIDITY.
@@ -7686,7 +7684,7 @@
      &       ,FRCM(NI,NJ,KRCM), FCCM(NI,NJ,KCCM)
       REAL    PT
  
-      INTEGER I,J,K,N,K1,K1P
+      INTEGER I,J,K,KR,N,K1,K1P
       REAL    DP1,PT1,SC,RC,RC1,A1
 
 !  INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE HUMIDITY.
@@ -7747,7 +7745,7 @@
       REAL    FSCCM(NI,NJ),FCCM(NI,NJ,KCCM),PSRCCM(NI,NJ)
       REAL    SCCM(KCCM)
  
-      INTEGER I,J,K,K1,K1P
+      INTEGER I,J,K,KR,K1,K1P
       REAL    SC,A1,RC,RC1
  
 !** INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION IS
@@ -7955,7 +7953,7 @@
 !     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
  
 ! ******           READ IN RCM MONTHLY SST DATASET
-!   15 READ(60,END=998) NDAY,NMO,NYEAR,((SST2(I,J),J=1,IY),I=1,JX)
+   15 READ(60,END=998) NDAY,NMO,NYEAR,((SST2(I,J),J=1,IY),I=1,JX)
 !     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
  
       DO 20 I=1,JX
@@ -7983,7 +7981,7 @@
       REAL    XLANDU(JX,IY)
       REAL    TSCCM(JX,IY), TOPOGM(JX,IY)
       REAL    SST1(JX,IY)
-      INTEGER NHOUR,NDAY,NMO,NYEAR
+      INTEGER LON,LAT,NHOUR,NDAY,NMO,NYEAR
       INTEGER         MHOUR,MDAY,MMO,MYEAR
       INTEGER I,J
 !
@@ -8319,12 +8317,12 @@
 !
 !  X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !
-      SUBROUTINE WRITEF2(U,V,T,Q,PX,TS,PTOP,NI,NJ,NK,IDATE)
+      SUBROUTINE WRITEF2(U,V,T,Q,C,PX,TS,PTOP,NI,NJ,NK,IDATE)
       IMPLICIT NONE
       INTEGER IDATE
       INTEGER NI,NJ,NK
       REAL    U(NI,NJ,NK),V(NI,NJ,NK),T(NI,NJ,NK),Q(NI,NJ,NK)
-     &       ,PX(NI,NJ), TS(NI,NJ)
+     &       ,C(NI,NJ,NK) ,PX(NI,NJ), TS(NI,NJ)
       REAL    PTOP
       INTEGER NOUTREC
       COMMON /OUTCOUNT/ NOUTREC
@@ -8688,10 +8686,10 @@
 ! 
       return
       end
-      subroutine cdc6hour2(IDATE,IDATE0)
+      subroutine cdc6hour2(DATTYP,IDATE,IDATE0)
       implicit none
       include 'netcdf.inc'
-!      CHARACTER*5 DATTYP
+      CHARACTER*5 DATTYP
       INTEGER IDATE,IDATE0
 !
 ! This is the latitude, longitude dimension of the grid to be read.
@@ -8730,7 +8728,7 @@
       real(kind=8)  xscl,xoff
       COMMON /EPATCH/ xscl(7),xoff(7)
       real(kind=8)  xscale,xadd
-      integer kkrec,nlev,it,m,inet,ilev,i,j
+      integer kkrec,nlev,it,m,inet,ilev,i,j,k
       logical there
       integer ii,jj
 !
@@ -9435,13 +9433,13 @@
       character*1  varname(5)
       data varname/'t','z','r','u','v'/
       INTEGER NYEAR,MONTH,NDAY,NHOUR
-      integer inet6,start,count
+      integer inet6,isnet3,isnow,start,count
       integer status
       COMMON /ECINOPEN/ inet6(5,4),start(10),count(10)
-      real(kind=8)  xscl,xoff
+      real(kind=8)  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
       COMMON /EINPATCH/ xscl(5,4),xoff(5,4)
       real(kind=8)  xscale,xadd
-      integer k4,kkrec,it,i,j,k,inet
+      integer k4,l4,kkrec,it,i,j,k,inet
       logical there
 !
 ! Below in the ncopen call is the file name of the netCDF file.
@@ -9777,13 +9775,13 @@
       character*1  varname(5)
       data varname/'t','z','r','u','v'/
       INTEGER NYEAR,MONTH,NDAY,NHOUR
-      integer inet6,start,count
+      integer inet6,isnet3,isnow,start,count
       integer status
       COMMON /ECINOPEN/ inet6(5,4),start(10),count(10)
-      real(kind=8)  xscl,xoff
+      real(kind=8)  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
       COMMON /EINPATCH/ xscl(5,4),xoff(5,4)
       real(kind=8)  xscale,xadd
-      integer k4,kkrec,it,i,j,k,inet
+      integer k4,l4,kkrec,it,i,j,k,inet
       logical there
 !
 ! Below in the ncopen call is the file name of the netCDF file.
@@ -10119,13 +10117,13 @@
       character*1  varname(5)
       data varname/'t','z','r','u','v'/
       INTEGER NYEAR,MONTH,NDAY,NHOUR
-      integer inet6,start,count
+      integer inet6,isnet3,isnow,start,count
       integer status
       COMMON /ECINOPEN/ inet6(5,4),start(10),count(10)
-      real(kind=8)  xscl,xoff
+      real(kind=8)  xscl,xoff,xscl_s,xoff_s,xscl_sn,xoff_sn
       COMMON /EINPATCH/ xscl(5,4),xoff(5,4)
       real(kind=8)  xscale,xadd
-      integer k4,kkrec,it,i,j,k,inet
+      integer k4,l4,kkrec,it,i,j,k,inet
       logical there
 !
 ! Below in the ncopen call is the file name of the netCDF file.
