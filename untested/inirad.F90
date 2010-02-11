@@ -40,7 +40,7 @@
             end do
           end do
 #else
-          do j = 1 , jx - 1
+          do j = 1 , jxm1
             do i = 1 , ixm1
               heatrt(i,k,j) = 0.
               o3prof(i,k,j) = 0.
@@ -55,7 +55,7 @@
           end do
         end do
 #else
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
           do i = 1 , ixm1
             o3prof(i,kxp1,j) = 0.
           end do

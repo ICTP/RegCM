@@ -42,21 +42,12 @@
       real(4) :: dtb , dtc , dto , dtr
       integer :: i , j , k
       real(4) , dimension(kxp1) :: sp1d
-#ifdef MPP1
       real(4) , dimension(jxm2,ixm2) :: fout
-#else
-      real(4) , dimension(jxm2,ixm2) :: fout
-#endif
 !
 !-----output large-domain variables:
 !
-#ifdef MPP1
       open (20,file='output/OUT_HEAD',form='unformatted',recl=(ixm2)    &
           & *(jxm2)*ibyte,access='direct')
-#else
-      open (20,file='output/OUT_HEAD',form='unformatted',recl=(ixm2)    &
-          & *(jxm2)*ibyte,access='direct')
-#endif
       do k = 1 , kxp1
         sp1d(k) = sigma(kxp1-k+1)
       end do
@@ -64,64 +55,49 @@
       dtb = batfrq
       dtr = radisp
       dtc = chemfrq
-#ifdef MPP1
       write (20,rec=1) mdate0 , ibltyp , icup , ipptls , iboudy , ix ,  &
                      & jx , kx , sp1d , dxsp , ptsp , clat , clon ,     &
                      & plat , plon , proj , dto , dtb , dtr , dtc ,     &
                      & iotyp
-#else
-      write (20,rec=1) mdate0 , ibltyp , icup , ipptls , iboudy , ix ,  &
-                     & jx , kx , sp1d , dxsp , ptsp , clat , clon ,     &
-                     & plat , plon , proj , dto , dtb , dtr , dtc ,     &
-                     & iotyp
-#endif
 
       do i = 1 , ixm2
+        do j = 1 , jxm2
 #ifdef MPP1
-        do j = 1 , jxm2
           fout(j,i) = ht_io(i+1,j+1)/g
-        end do
 #else
-        do j = 1 , jxm2
           fout(j,i) = ht(i+1,j+1)/g
-        end do
 #endif
+        end do
       end do
       write (20,rec=2) fout
       do i = 1 , ixm2
+        do j = 1 , jxm2
 #ifdef MPP1
-        do j = 1 , jxm2
           fout(j,i) = htsd_io(i+1,j+1)
-        end do
 #else
-        do j = 1 , jxm2
           fout(j,i) = htsd(i+1,j+1)
-        end do
 #endif
+        end do
       end do
       write (20,rec=3) fout
       do i = 1 , ixm2
+        do j = 1 , jxm2
 #ifdef MPP1
-        do j = 1 , jxm2
           fout(j,i) = veg2d_io(i+1,j+1)
-        end do
 #else
-        do j = 1 , jxm2
           fout(j,i) = veg2d(i+1,j+1)
-        end do
 #endif
+        end do
       end do
       write (20,rec=4) fout
       do i = 1 , ixm2
+        do j = 1 , jxm2
 #ifdef MPP1
-        do j = 1 , jxm2
           fout(j,i) = satbrt_io(i+1,j+1)
-        end do
 #else
-        do j = 1 , jxm2
           fout(j,i) = satbrt(i+1,j+1)
-        end do
 #endif
+        end do
       end do
       write (20,rec=5) fout
       do i = 1 , ixm2
@@ -137,73 +113,63 @@
       end do
       write (20,rec=6) fout
       do i = 1 , ixm2
+        do j = 1 , jxm2
 #ifdef MPP1
-        do j = 1 , jxm2
           fout(j,i) = xlong_io(i+1,j+1)
-        end do
 #else
-        do j = 1 , jxm2
           fout(j,i) = xlong(i+1,j+1)
-        end do
 #endif
+        end do
       end do
       write (20,rec=7) fout
       do i = 1 , ixm2
+        do j = 1 , jxm2
 #ifdef MPP1
-        do j = 1 , jxm2
           fout(j,i) = 1./msfx_io(i+1,j+1)
-        end do
 #else
-        do j = 1 , jxm2
           fout(j,i) = 1./msfx(i+1,j+1)
-        end do
 #endif
+        end do
       end do
       write (20,rec=8) fout
       do i = 1 , ixm2
+        do j = 1 , jxm2
 #ifdef MPP1
-        do j = 1 , jxm2
           fout(j,i) = 1./msfd_io(i+1,j+1)
-        end do
 #else
-        do j = 1 , jxm2
           fout(j,i) = 1./msfd(i+1,j+1)
-        end do
 #endif
+        end do
       end do
       write (20,rec=9) fout
       do i = 1 , ixm2
+        do j = 1 , jxm2
 #ifdef MPP1
-        do j = 1 , jxm2
           fout(j,i) = f_io(i+1,j+1)
-        end do
 #else
-        do j = 1 , jxm2
           fout(j,i) = f(i+1,j+1)
-        end do
 #endif
+        end do
       end do
       write (20,rec=10) fout
       do i = 1 , ixm2
-#ifdef MPP1
         do j = 1 , jxm2
+#ifdef MPP1
           if ( satbrt_io(i+1,j+1).gt.13.5 .and. satbrt_io(i+1,j+1)      &
              & .lt.15.5 ) then
             fout(j,i) = 0.
           else
             fout(j,i) = 2.
           end if
-        end do
 #else
-        do j = 1 , jxm2
           if ( satbrt(i+1,j+1).gt.13.5 .and. satbrt(i+1,j+1).lt.15.5 )  &
              & then
             fout(j,i) = 0.
           else
             fout(j,i) = 2.
           end if
-        end do
 #endif
+        end do
       end do
       write (20,rec=11) fout
  

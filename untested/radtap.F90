@@ -26,6 +26,9 @@
       use mod_iunits
       use mod_outrad
       use mod_radbuf
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Local variables

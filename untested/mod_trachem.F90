@@ -57,23 +57,4 @@
            & rxsaq2 , rxsg
 #endif
 
-#ifdef MPP1
-!
-! COMMON /TRACEIO/
-!
-      real(8) , dimension(ixm1,kx,jxm1) :: aerasp_io , aerext_io ,     &
-           & aerssa_io
-      real(8) , dimension(ixm1,jxm1) :: aersrrf_io , aertarf_io
-      real(8) , dimension(ix,jx,ntr) :: cemtrac_io , cemtr_io ,        &
-           & wxaq_io , wxsg_io
-      real(8) , dimension(ix,jx) :: dustsotex_io
-      real(8) , dimension(ix,kx,jx,ntr) :: rxsaq1_io , rxsaq2_io ,     &
-           & rxsg_io
-!
-! COMMON /TRACHEMIO/
-!
-      real(8) , dimension(ix,kx,jx,ntr) :: remcvc_io , remlsc_io
-      real(8) , dimension(ix,jx,ntr) :: remdrd_io
-#endif
-
       end module mod_trachem

@@ -58,14 +58,11 @@
                & my2 , my3 , myear , n , ns , nxx , nyy
       integer , dimension(12) :: mmd
       real(4) , dimension(kxp1) :: sp1d
+      real(4) , dimension(ix,jx) :: sp2d
+      real(4) , dimension(ix*nsg,jx*nsg) :: sp2d1
 #ifdef MPP1
       integer :: ierr
       integer , dimension(mpi_status_size) :: status
-      real(4) , dimension(ix,jx) :: sp2d
-      real(4) , dimension(ix*nsg,jx*nsg) :: sp2d1
-#else
-      real(4) , dimension(ix,jx) :: sp2d
-      real(4) , dimension(ix*nsg,jx*nsg) :: sp2d1
 #endif
 !
 !

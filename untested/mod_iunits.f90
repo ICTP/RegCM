@@ -16,7 +16,11 @@
       integer :: iin , iout , lcount , numpts
 !
 ! COMMON /GENREC/
-!
+
       integer :: nrcout
+      integer :: nrcbat
+      integer :: nrcsub
+      integer :: nrcchem
+      integer :: nrcrad
 
       end module mod_iunits

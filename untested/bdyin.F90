@@ -42,6 +42,7 @@
       use mod_date
       use mod_tmpsav
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #endif
       implicit none
@@ -857,7 +858,7 @@
 !-----------------------------------------------------------------------
         if ( ldatez.ge.ndate1 ) go to 100
  
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
           do i = 1 , ixm1
             if ( veg2d(i,j).le.0.00001 ) then
               tga(i,j) = tdum(i,j)

@@ -26,6 +26,7 @@
       use mod_main
       use mod_mainchem
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #endif
       implicit none

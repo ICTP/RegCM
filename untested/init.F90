@@ -71,13 +71,12 @@
                & tlp , ts00
 !_sgi character*7 finm
       character(8) :: finm
+      real(4) , dimension(ix,jx) :: io2d
 #ifdef MPP1
       integer , dimension(mpi_status_size) :: status
-      real(4) , dimension(ix,jx) :: io2d
       real(8) , dimension(ix,jxp) :: psdot
       integer :: allrec , ierr , l
 #else
-      real(4) , dimension(ix,jx) :: io2d
       real(8) , dimension(ix,jx) :: psdot
 #endif
       real(8) , dimension(400) :: tlake
@@ -852,7 +851,7 @@
         tdini = 0.
         do k = 1 , kx
           tttmp = 0.
-          do j = 1 , jx - 1
+          do j = 1 , jxm1
             do i = 1 , ixm1
               tttmp = tttmp + psa(i,j)
             end do
@@ -866,7 +865,7 @@
         tvmass = 0.
         do k = 1 , kx
           tttmp = 0.
-          do j = 1 , jx - 1
+          do j = 1 , jxm1
             do i = 1 , ixm1
               tttmp = tttmp + qva(i,k,j)
             end do
@@ -878,7 +877,7 @@
         tcmass = 0.
         do k = 1 , kx
           tttmp = 0.
-          do j = 1 , jx - 1
+          do j = 1 , jxm1
             do i = 1 , ixm1
               tttmp = tttmp + qca(i,k,j)
             end do
@@ -1921,7 +1920,7 @@
           end do
         end do
 #else
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
           do i = 1 , ixm1
             do n = 1 , nnsg
               ist = nint(veg2d1(n,i,j))

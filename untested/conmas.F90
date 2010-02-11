@@ -36,6 +36,7 @@
       use mod_date
       use mod_main
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #endif
       implicit none
@@ -81,7 +82,7 @@
 #else
       do k = 1 , kx
         tttmp = 0.
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
           do i = 1 , ixm1
             tttmp = tttmp + psa(i,j)
           end do
@@ -115,7 +116,7 @@
 #else
       do k = 1 , kx
         tttmp = 0.
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
           do i = 1 , ixm1
             tttmp = tttmp + qva(i,k,j)
           end do
@@ -148,7 +149,7 @@
 #else
       do k = 1 , kx
         tttmp = 0.
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
           do i = 1 , ixm1
             tttmp = tttmp + qca(i,k,j)
           end do

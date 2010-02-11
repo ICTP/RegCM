@@ -34,6 +34,7 @@
       use mod_slice
       use mod_trachem
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #endif
 #ifdef DIAG

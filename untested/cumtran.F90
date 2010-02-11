@@ -39,7 +39,7 @@
 #ifdef MPP1
         do j = jbegin , jendx
 #else
-        do j = 2 , jx - 1
+        do j = 2 , jxm1
 #endif
           do i = 2 , ixm1
             if ( icumtop(i,j).gt.0 ) then

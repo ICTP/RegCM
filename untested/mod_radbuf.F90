@@ -8,9 +8,6 @@
       real(8) , dimension(ixm1,kx,4,jxp) :: absnxt
       real(8) , dimension(ixm1,kxp1,kx + 1,jxp) :: abstot
       real(8) , dimension(ixm1,kxp1,jxp) :: emstot
-      real(8) , dimension(ixm1,kx,4,jxm1) :: absnxt_io
-      real(8) , dimension(ixm1,kxp1,kx + 1,jxm1) :: abstot_io
-      real(8) , dimension(ixm1,kxp1,jxm1) :: emstot_io
 #else
       real(8) , dimension(ixm1,kx,4,jxm1) :: absnxt
       real(8) , dimension(ixm1,kxp1,kx + 1,jxm1) :: abstot

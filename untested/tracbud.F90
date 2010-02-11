@@ -31,6 +31,7 @@
       use mod_trachem
       use mod_date
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #endif
       implicit none
@@ -65,7 +66,7 @@
 #ifdef MPP1
         do j = 1 , jendx
 #else
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
 #endif
           do i = 1 , ixm1
             dtrace(i,j,itr) = 0.0
@@ -84,7 +85,7 @@
 #ifdef MPP1
         do j = 1 , jendx
 #else
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
 #endif
           do i = 1 , ixm1
             do k = 1 , kx
@@ -326,7 +327,7 @@
 #ifdef MPP1
         do j = 1 , jendx
 #else
-        do j = 1 , jx - 1
+        do j = 1 , jxm1
 #endif
           do i = 1 , ixm1
             dtrace(i,j,itr) = 1.E6*dtrace(i,j,itr)*1000./g

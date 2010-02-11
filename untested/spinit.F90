@@ -31,6 +31,7 @@
       use mod_bxq
       use mod_tmpsav
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #endif
       implicit none
@@ -62,23 +63,9 @@
 !     ******specified in namelist as array dtsplit
 !
 !**   zero new arrays
-      do ns = 1 , nsplit
-#ifdef MPP1
-        do j = 1 , jxp
-          do i = 1 , ix
-            dstor(i,j,ns) = 0.
-            hstor(i,j,ns) = 0.
-          end do
-        end do
-#else
-        do j = 1 , jx
-          do i = 1 , ix
-            dstor(i,j,ns) = 0.
-            hstor(i,j,ns) = 0.
-          end do
-        end do
-#endif
-      end do
+
+      dstor = 0.0
+      hstor = 0.0
 !
 !**   compute m.
       do ns = 1 , nsplit

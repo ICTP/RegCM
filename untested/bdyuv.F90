@@ -42,6 +42,7 @@
       use mod_cvaria
       use mod_main
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #endif
       implicit none

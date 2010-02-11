@@ -57,15 +57,9 @@
         itype = 'ATM'
         write (filatm,99001) itype , idatex
         if ( iotyp.eq.1 ) then
-#ifdef MPP1
-          open (iutdat,file='output/'//filatm,status='unknown',         &
-               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,           &
-               &access='direct')
-#else
           open (iutdat,file='output/'//filatm,status='unknown',         &
                &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
                &access='direct')
-#endif
           nrcout = 0
         else if ( iotyp.eq.2 ) then
           open (iutdat,file='output/'//filatm,status='unknown',         &
@@ -81,15 +75,9 @@
         itype = 'SRF'
         write (filsrf,99001) itype , idatex
         if ( iotyp.eq.1 ) then
-#ifdef MPP1
-          open (iutbat,file='output/'//filsrf,status='unknown',         &
-               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,           &
-               &access='direct')
-#else
           open (iutbat,file='output/'//filsrf,status='unknown',         &
                &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
                &access='direct')
-#endif
           nrcbat = 0
         else if ( iotyp.eq.2 ) then
           open (iutbat,file='output/'//filsrf,status='unknown',         &
@@ -105,15 +93,9 @@
         itype = 'SUB'
         write (filsub,99001) itype , idatex
         if ( iotyp.eq.1 ) then
-#ifdef MPP1
-          open (iutsub,file='output/'//filsub,status='unknown',         &
-               &form='unformatted',recl=(ixm2)*(jxm2)*nnsg*ibyte,      &
-               &access='direct')
-#else
           open (iutsub,file='output/'//filsub,status='unknown',         &
                &form='unformatted',recl=(ixm2)*(jxm2)*nnsg*ibyte,       &
                &access='direct')
-#endif
           nrcsub = 0
         else if ( iotyp.eq.2 ) then
           open (iutsub,file='output/'//filsub,status='unknown',         &
@@ -129,15 +111,9 @@
         itype = 'RAD'
         write (filrad,99001) itype , idatex
         if ( iotyp.eq.1 ) then
-#ifdef MPP1
-          open (iutrad,file='output/'//filrad,status='unknown',         &
-               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,           &
-               &access='direct')
-#else
           open (iutrad,file='output/'//filrad,status='unknown',         &
                &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
                &access='direct')
-#endif
           nrcrad = 0
         else if ( iotyp.eq.2 ) then
           open (iutrad,file='output/'//filrad,status='unknown',         &
@@ -155,15 +131,9 @@
           itype = 'CHE'
           write (filchem,99001) itype , idatex
           if ( iotyp.eq.1 ) then
-#ifdef MPP1
-            open (iutchem,file='output/'//filchem,status='unknown',     &
-                 &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,         &
-                 &access='direct')
-#else
             open (iutchem,file='output/'//filchem,status='unknown',     &
                  &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,          &
                  &access='direct')
-#endif
             nrcchem = 0
           else if ( iotyp.eq.2 ) then
             open (iutchem,file='output/'//filchem,status='unknown',     &

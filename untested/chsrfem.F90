@@ -28,6 +28,7 @@
       use mod_message
 #ifdef MPP1
       use mpi
+      use mod_mppio
 #endif
       implicit none
 !
@@ -36,11 +37,9 @@
       character(5) :: aerctl
       integer :: i , itr , j , k , l , m , n
       logical :: rd_tex , there
+      real(4) , dimension(ix,jx) :: toto
 #ifdef MPP1
-      real(4) , dimension(ix,jx) :: toto
       integer :: ierr
-#else
-      real(4) , dimension(ix,jx) :: toto
 #endif
 !
       rd_tex = .false.

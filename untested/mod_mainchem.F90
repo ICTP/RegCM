@@ -26,24 +26,11 @@
                                       & wxaq , wxsg
 #endif
 
-#ifdef MPP1
-!
-! COMMON /IO/
-!
-      real(8) , dimension(ix,jx,12,ntr) :: chemsrc_io
-      real(8) , dimension(ix,jx,ntr) :: ddsfc_io , dtrace_io ,         &
-           & wdcvc_io , wdlsc_io
-      real(8) , dimension(ixm1,jxm1) :: pptc_io , pptnc_io , prca2d_io , &
-                                     & prnca2d_io
-#endif
-
-      integer :: nrcchem
-#ifdef MPP1
       real(4) , dimension(jxm2,ixm2) :: fchem
+
+#ifdef MPP1
       real(8) , dimension(ix,12,ntr,jxp) :: src0
       real(8) , dimension(ix,12,ntr,jx) :: src_0
-#else
-      real(4) , dimension(jxm2,ixm2) :: fchem
 #endif
 
       end module mod_mainchem

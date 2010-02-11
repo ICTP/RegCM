@@ -59,7 +59,7 @@
 #ifdef MPP1
       do j = 1 , jxp
 #else
-      do j = 1 , jx - 1
+      do j = 1 , jxm1
 #endif
         do k = 1 , kx
           do i = 1 , ixm1

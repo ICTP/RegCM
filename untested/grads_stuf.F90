@@ -25,6 +25,9 @@
       use mod_param3
       use mod_grads
       use mod_main
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Dummy arguments
@@ -64,17 +67,15 @@
       if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
-#ifdef MPP1
         do j = 1 , jx
+#ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
-        end do
 #else
-        do j = 1 , jx
           if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
           if ( xlat(ix,j).gt.alatmax ) alatmax = xlat(ix,j)
-        end do
 #endif
+        end do
         alonmin = 999999.
         alonmax = -999999.
         do i = 1 , ix
@@ -304,6 +305,9 @@
       use mod_grads
       use mod_iunits
       use mod_main
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Dummy arguments
@@ -348,22 +352,20 @@
       if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
-#ifdef MPP1
         do j = 1 , jx
+#ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
-        end do
 #else
-        do j = 1 , jx
           if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
           if ( xlat(ix,j).gt.alatmax ) alatmax = xlat(ix,j)
-        end do
 #endif
+        end do
         alonmin = 999999.
         alonmax = -999999.
         do i = 1 , ix
-#ifdef MPP1
           do j = 1 , jx
+#ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -387,9 +389,7 @@
               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
             end if
-          end do
 #else
-          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
@@ -413,8 +413,8 @@
               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
             end if
-          end do
 #endif
+          end do
         end do
         rlatinc = dxsp*0.001/111./2.
         rloninc = dxsp*0.001/111./2.
@@ -572,6 +572,9 @@
       use mod_param3
       use mod_grads
       use mod_main
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Dummy arguments
@@ -611,22 +614,20 @@
       if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
-#ifdef MPP1
         do j = 1 , jx
+#ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
-        end do
 #else
-        do j = 1 , jx
           if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
           if ( xlat(ix,j).gt.alatmax ) alatmax = xlat(ix,j)
-        end do
 #endif
+        end do
         alonmin = 999999.
         alonmax = -999999.
         do i = 1 , ix
-#ifdef MPP1
           do j = 1 , jx
+#ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -650,9 +651,7 @@
               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
             end if
-          end do
 #else
-          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
@@ -677,8 +676,8 @@
               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
             end if
-          end do
 #endif
+          end do
         end do
         rlatinc = dxsp*0.001/111./2.
         rloninc = dxsp*0.001/111./2.
@@ -828,6 +827,9 @@
       use mod_param2
       use mod_grads
       use mod_main
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Dummy arguments
@@ -856,22 +858,20 @@
       if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
-#ifdef MPP1
         do j = 1 , jx
+#ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
-        end do
 #else
-        do j = 1 , jx
           if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
           if ( xlat(ix,j).gt.alatmax ) alatmax = xlat(ix,j)
-        end do
 #endif
+        end do
         alonmin = 999999.
         alonmax = -999999.
         do i = 1 , ix
-#ifdef MPP1
           do j = 1 , jx
+#ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -895,9 +895,7 @@
               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
             end if
-          end do
 #else
-          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
@@ -921,8 +919,8 @@
               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
             end if
-          end do
 #endif
+          end do
         end do
         rlatinc = dxsp*0.001/111./2.
         rloninc = dxsp*0.001/111./2.
@@ -1007,6 +1005,9 @@
       use mod_param3
       use mod_grads
       use mod_main
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Dummy arguments
@@ -1046,22 +1047,20 @@
       if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
-#ifdef MPP1
         do j = 1 , jx
+#ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
-        end do
 #else
-        do j = 1 , jx
           if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
           if ( xlat(ix,j).gt.alatmax ) alatmax = xlat(ix,j)
-        end do
 #endif
+        end do
         alonmin = 999999.
         alonmax = -999999.
         do i = 1 , ix
-#ifdef MPP1
           do j = 1 , jx
+#ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -1085,9 +1084,7 @@
               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
             end if
-          end do
 #else
-          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
@@ -1111,8 +1108,8 @@
               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
             end if
-          end do
 #endif
+          end do
         end do
         rlatinc = dxsp*0.001/111./2.
         rloninc = dxsp*0.001/111./2.
@@ -1243,6 +1240,9 @@
       use mod_param3
       use mod_grads
       use mod_main
+#ifdef MPP1
+      use mod_mppio
+#endif
       implicit none
 !
 ! Dummy arguments
@@ -1282,22 +1282,20 @@
       if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
-#ifdef MPP1
         do j = 1 , jx
+#ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
           if ( xlat_io(ix,j).gt.alatmax ) alatmax = xlat_io(ix,j)
-        end do
 #else
-        do j = 1 , jx
           if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
           if ( xlat(ix,j).gt.alatmax ) alatmax = xlat(ix,j)
-        end do
 #endif
+        end do
         alonmin = 999999.
         alonmax = -999999.
         do i = 1 , ix
-#ifdef MPP1
           do j = 1 , jx
+#ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
@@ -1321,9 +1319,7 @@
               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
             end if
-          end do
 #else
-          do j = 1 , jx
             if ( clon.ge.0.0 ) then
               if ( xlong(i,j).ge.0.0 ) then
                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
@@ -1347,8 +1343,8 @@
               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
             end if
-          end do
 #endif
+          end do
         end do
         rlatinc = dxsp*0.001/111./2.
         rloninc = dxsp*0.001/111./2.

@@ -129,10 +129,6 @@
                                       & zpbl_o
 #endif
 !
-! COMMON /BATUNIT/
-!
-      integer :: nrcbat , nrcsub
-!
 ! COMMON /SUBOUT/
 !
 #ifdef MPP1

@@ -34,6 +34,7 @@
       use mod_diagnosis
       use mod_main
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #endif
       implicit none
@@ -48,10 +49,8 @@
                                    & va01 , vaix
       real(8) , dimension(kx,jx) :: qca01_g , qcailx_g , qva01_g ,     &
                                    & qvailx_g , va01_g , vaix_g
-      real(8) , dimension(ixm1,kx) :: worka , workb
-#else
-      real(8) , dimension(ixm1,kx) :: worka , workb
 #endif
+      real(8) , dimension(ixm1,kx) :: worka , workb
       integer :: i ,  j , k
 !
 !----------------------------------------------------------------------
