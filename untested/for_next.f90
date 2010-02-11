@@ -32,6 +32,7 @@
 !
       character(80) :: chname
       integer :: isystm , itr , nc
+      integer, external :: system
 !
       isystm = system('/bin/mv -f regcm.in regcm0.in')
       if ( isystm.ne.0 ) then

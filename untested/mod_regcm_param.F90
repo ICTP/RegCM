@@ -25,11 +25,11 @@
 
 ! Point in X (longitude) direction
 
-      integer , parameter :: ix = 52
+      integer , parameter :: ix = 106
 
 ! Point in Y (latitude) direction
 
-      integer , parameter :: jx = 48
+      integer , parameter :: jx = 128
 
 ! Point in vertical
 
@@ -39,7 +39,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 2
+      integer , parameter :: nproc = 8
 
 ! Point in Y (latitude) direction
 

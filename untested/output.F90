@@ -76,6 +76,7 @@
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jxp) :: chem0
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jx) :: chem_0
 #endif
+      integer, external :: system
 !
 !----------------------------------------------------------------------
 !

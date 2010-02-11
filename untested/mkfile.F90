@@ -49,6 +49,7 @@
       integer :: idatepp , isystm , iym1 , iym2 , n , nmo
       character(3) :: itype
       logical :: there
+      integer, external :: system
 !
       print * , ' '
       print * , '******* OPENING NEW OUTPUT FILES:' , idatex

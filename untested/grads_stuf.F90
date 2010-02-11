@@ -24,6 +24,9 @@
       use mod_param2
       use mod_param3
       use mod_grads
+!#ifdef INTEL
+!  include 'ifport.f90'
+!#endif
       use mod_main
 #ifdef MPP1
       use mod_mppio
@@ -43,6 +46,7 @@
       integer :: i , ifrq , isystm , j , jbend , mnend , month , myear ,&
                & nbase , nday , nhour , number , nx , ny
       logical :: there
+      integer, external :: system
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -328,6 +332,7 @@
 #else
       real(4) , dimension(jx*nsg,ix*nsg) :: xlat_s , xlon_s
 #endif
+      integer, external :: system
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -590,6 +595,7 @@
       integer :: i , ifrq , isystm , itr , j , jbend , k , mnend ,      &
                & month , myear , nbase , nday , nhour , number , nx , ny
       logical :: there
+      integer, external :: system
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -842,6 +848,7 @@
                & centerj , rlatinc , rloninc
       integer :: i , isystm , j , nx , ny
       logical :: there
+      integer, external :: system
 !
       inquire (file='output/'//ctlname,exist=there)
       if ( there ) isystm = system('/bin/rm output/'//ctlname)
@@ -1023,6 +1030,7 @@
       integer :: i , ifrq , isystm , j , jbend , k , mnend , month ,    &
                & myear , nbase , nday , nhour , number , nx , ny
       logical :: there
+      integer, external :: system
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -1258,6 +1266,7 @@
       integer :: i , ifrq , isystm , j , jbend , k , mnend , month ,    &
                & myear , nbase , nday , nhour , number , nx , ny
       logical :: there
+      integer, external :: system
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
