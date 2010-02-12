@@ -51,9 +51,9 @@ then
 fi
 
 ln -sf $namelist regcm.in
-idate0=`cat regcm.in | grep idate0 | awk 'BEGIN{FS="="}{print $2}'`
-idate1=`cat regcm.in | grep idate1 | awk 'BEGIN{FS="="}{print $2}'`
-idate2=`cat regcm.in | grep idate2 | awk 'BEGIN{FS="="}{print $2}'`
+idate0=`cat regcm.in | grep idate0 | cut -d "=" -f 2 | cut -d "," -f 1`
+idate1=`cat regcm.in | grep idate1 | cut -d "=" -f 2 | cut -d "," -f 1`
+idate2=`cat regcm.in | grep idate2 | cut -d "=" -f 2 | cut -d "," -f 1`
 
 # Check I/O directories
 
@@ -114,8 +114,8 @@ echo "Simulation completed on `date` for $USER on `hostname`"
 echo "Swapping new input namelist file in place for new run start."
 if [ -f regcm.in.new ]
 then
-  mv regcm.in regcm.in.$idate0
-  mv regcm.in.new regcm.in
+  cp -f regcm.in regcm.in.$idate0
+  mv -f regcm.in.new regcm.in
 fi
 
 exit 0
