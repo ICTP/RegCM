@@ -40,15 +40,17 @@ echo "This is Regional Climatic Model job launcher."
 
 echo "Performing basic environment checks."
 
-if [ ! -f $1 ]
+namelist=$1
+
+if [ ! -f $namelist ]
 then
-  echo "Namelist file $1 not found."
+  echo "Namelist file $namelist not found."
   echo "Error. Input namelist file is not present in this directory."
   echo "Please read documentation on how to write it."
   exit 1
 fi
 
-ln -sf $1 regcm.in
+ln -sf $namelist regcm.in
 idate0=`cat regcm.in | grep idate0 | awk 'BEGIN{FS="="}{print $2}'`
 idate1=`cat regcm.in | grep idate1 | awk 'BEGIN{FS="="}{print $2}'`
 idate2=`cat regcm.in | grep idate2 | awk 'BEGIN{FS="="}{print $2}'`
@@ -94,8 +96,14 @@ else
  command="$PWD/regcm < regcm.in"
 fi 
 
-$command
-if [ $? -ne 0 ]
+mstdout=`basename $namelist .in`.out
+echo "Model running, output file is $mstdout"
+echo "Check run progress using:"
+echo "                          tail -f $mstdout"
+$command > $mstdout 2>&1
+result=`cat $mstdout | grep "STOP 99999"`
+
+if [ -z "$result" ]
 then
   echo "Model error. Check it before trying to run again."
   exit 1
