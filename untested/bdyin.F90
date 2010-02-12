@@ -55,7 +55,6 @@
       real(4) , dimension(ix,jx) :: io2d
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
-      integer , dimension(mpi_status_size) :: status
       real(8) , dimension(ix,jxp) :: psdot , tdum
 #else
       real(8) , dimension(ix,jx) :: psdot , tdum
@@ -258,7 +257,7 @@
 !       and similarly for the i's.
         call mpi_sendrecv(ps1(1,jxp),ix,mpi_double_precision,ieast,1,   &
                         & ps1(1,0),ix,mpi_double_precision,iwest,1,     &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendx
           do i = 2 , ixm1
             psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j)+ps1(i,j-1)+ps1(i-1,j-&

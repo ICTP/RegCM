@@ -62,7 +62,6 @@
       real(4) , dimension(ix*nsg,jx*nsg) :: sp2d1
 #ifdef MPP1
       integer :: ierr
-      integer , dimension(mpi_status_size) :: status
 #endif
 !
 !
@@ -1093,22 +1092,22 @@
         end if
         call mpi_sendrecv(ht(1,jxp),ix,mpi_double_precision,ieast,1,    &
                         & ht(1,0),ix,mpi_double_precision,iwest,1,      &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(ht(1,1),ix,mpi_double_precision,iwest,2,      &
                         & ht(1,jxp+1),ix,mpi_double_precision,ieast,2,  &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(msfx(1,jxp-1),ix*2,mpi_double_precision,ieast,&
                         & 1,msfx(1,-1),ix*2,mpi_double_precision,iwest, &
-                        & 1,mpi_comm_world,status,ierr)
+                        & 1,mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(msfx(1,1),ix*2,mpi_double_precision,iwest,2,  &
                         & msfx(1,jxp+1),ix*2,mpi_double_precision,ieast,&
-                        & 2,mpi_comm_world,status,ierr)
+                        & 2,mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(msfd(1,jxp-1),ix*2,mpi_double_precision,ieast,&
                         & 1,msfd(1,-1),ix*2,mpi_double_precision,iwest, &
-                        & 1,mpi_comm_world,status,ierr)
+                        & 1,mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(msfd(1,1),ix*2,mpi_double_precision,iwest,2,  &
                         & msfd(1,jxp+1),ix*2,mpi_double_precision,ieast,&
-                        & 2,mpi_comm_world,status,ierr)
+                        & 2,mpi_comm_world,mpi_status_ignore,ierr)
       end if
 #else
       if ( .not.ifrest ) then

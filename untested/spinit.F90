@@ -49,7 +49,6 @@
       integer :: i , ijlx , j , k , l , n , ns
       logical :: lstand
 #ifdef MPP1
-      integer , dimension(mpi_status_size) :: status
       integer :: ierr
 #endif
 !
@@ -259,7 +258,7 @@
         end if
         call mpi_sendrecv(var1snd(1,1),kx*8,mpi_double_precision,ieast, &
                         & 1,var1rcv(1,1),kx*8,mpi_double_precision,     &
-                        & iwest,1,mpi_comm_world,status,ierr)
+                        & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
         if ( myid.ne.0 ) then
           do k = 1 , kx
             ui1(k,0) = var1rcv(k,1)
@@ -286,7 +285,7 @@
         end if
         call mpi_sendrecv(var1snd(1,1),kx*8,mpi_double_precision,iwest, &
                         & 2,var1rcv(1,1),kx*8,mpi_double_precision,     &
-                        & ieast,2,mpi_comm_world,status,ierr)
+                        & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
         if ( myid.ne.nproc-1 ) then
           do k = 1 , kx
             ui1(k,jxp+1) = var1rcv(k,1)
@@ -336,10 +335,10 @@
 #ifdef MPP1
         call mpi_sendrecv(uuu(1,1,1),ix*kx,mpi_double_precision,iwest,2,&
                         & uuu(1,1,jxp+1),ix*kx,mpi_double_precision,    &
-                        & ieast,2,mpi_comm_world,status,ierr)
+                        & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(vvv(1,1,1),ix*kx,mpi_double_precision,iwest,2,&
                         & vvv(1,1,jxp+1),ix*kx,mpi_double_precision,    &
-                        & ieast,2,mpi_comm_world,status,ierr)
+                        & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
         do l = 1 , nsplit

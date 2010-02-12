@@ -57,7 +57,6 @@
       real(8) , dimension(ixm1,ntr) :: vdep
 #ifdef MPP1
       integer :: ierr , ii
-      integer , dimension(mpi_status_size) :: status
       real(8) , dimension(ixm1,kx,jxp) :: auxx , avxx , dza , qcx
       real(8) , dimension(ixm1,kx,0:jxp+1) :: akxx1 , akxx2
       real(8) , dimension(2*(ixm2)*kx) :: wkrecv , wksend
@@ -113,10 +112,10 @@
 #ifdef MPP1
       call mpi_sendrecv(psb(1,jxp),ix,mpi_double_precision,ieast,1,     &
                       & psb(1,0),ix,mpi_double_precision,iwest,1,       &
-                      & mpi_comm_world,status,ierr)
+                      & mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(uvdrag(1,jxp),ix,mpi_double_precision,ieast,1,  &
                       & uvdrag(1,0),ix,mpi_double_precision,iwest,1,    &
-                      & mpi_comm_world,status,ierr)
+                      & mpi_comm_world,mpi_status_ignore,ierr)
       do j = jbegin , jendx
         do k = 1 , kx
           do i = 2 , ixm1
@@ -323,7 +322,7 @@
       call mpi_sendrecv(wksend(1),(ixm2)*kx*2,mpi_double_precision,     &
                       & ieast,1,wkrecv(1),(ixm2)*kx*2,                  &
                       & mpi_double_precision,iwest,1,mpi_comm_world,    &
-                      & status,ierr)
+                      & mpi_status_ignore,ierr)
       ii = 0
       do k = 1 , kx
         do i = 2 , ixm1

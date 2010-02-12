@@ -35,7 +35,6 @@
 !
       integer :: i , im1 , ip1 , j , jm1 , jp1 , k
 #ifdef MPP1
-      integer , dimension(mpi_status_size) :: status
       integer :: ierr
       real(8) , dimension(ix,0:jxp+1) :: wr
 #else
@@ -51,10 +50,10 @@
         end do
         call mpi_sendrecv(wr(1,jxp),ix,mpi_double_precision,ieast,1,    &
                         & wr(1,0),ix,mpi_double_precision,iwest,1,      &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(wr(1,1),ix,mpi_double_precision,iwest,2,      &
                         & wr(1,jxp+1),ix,mpi_double_precision,ieast,2,  &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendm
           if ( myid.eq.0 ) then
             jm1 = max0(j-1,2)
@@ -105,10 +104,10 @@
         end do
         call mpi_sendrecv(wr(1,jxp),ix,mpi_double_precision,ieast,1,    &
                         & wr(1,0),ix,mpi_double_precision,iwest,1,      &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(wr(1,1),ix,mpi_double_precision,iwest,2,      &
                         & wr(1,jxp+1),ix,mpi_double_precision,ieast,2,  &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendm
           if ( myid.eq.0 ) then
             jm1 = max0(j-1,2)

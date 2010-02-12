@@ -40,7 +40,6 @@
       integer :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
 #ifdef MPP1
       integer :: ierr
-      integer , dimension(mpi_status_size) :: status
       real(8) , dimension(ix*2) :: wkrecv , wksend
 #endif
 !
@@ -105,7 +104,7 @@
         call mpi_sendrecv(delh(1,jxp,ns,n0),ix,mpi_double_precision,    &
                         & ieast,1,delh(1,0,ns,n0),ix,                   &
                         & mpi_double_precision,iwest,1,mpi_comm_world,  &
-                        & status,ierr)
+                        & mpi_status_ignore,ierr)
         do j = jbegin , jendx
           do i = 2 , ixm1
             fac = dx2*msfx(i,j)
@@ -174,7 +173,7 @@
         end do
         call mpi_sendrecv(wksend(1),2*ix,mpi_double_precision,iwest,2,  &
                         & wkrecv(1),2*ix,mpi_double_precision,ieast,2,  &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         do i = 1 , ix
           uu(i,jxp+1) = wkrecv(i)
           vv(i,jxp+1) = wkrecv(i+ix)
@@ -273,7 +272,7 @@
           call mpi_sendrecv(delh(1,jxp,ns,n1),ix,mpi_double_precision,  &
                           & ieast,1,delh(1,0,ns,n1),ix,                 &
                           & mpi_double_precision,iwest,1,mpi_comm_world,&
-                          & status,ierr)
+                          & mpi_status_ignore,ierr)
           do j = jbegin , jendx
             do i = 2 , ixm1
               fac = dx2*msfx(i,j)
@@ -340,7 +339,7 @@
           end do
           call mpi_sendrecv(wksend(1),2*ix,mpi_double_precision,iwest,2,&
                           & wkrecv(1),2*ix,mpi_double_precision,ieast,2,&
-                          & mpi_comm_world,status,ierr)
+                          & mpi_comm_world,mpi_status_ignore,ierr)
           do i = 1 , ix
             uu(i,jxp+1) = wkrecv(i)
             vv(i,jxp+1) = wkrecv(i+ix)

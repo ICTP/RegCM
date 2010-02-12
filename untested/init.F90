@@ -73,7 +73,6 @@
       character(8) :: finm
       real(4) , dimension(ix,jx) :: io2d
 #ifdef MPP1
-      integer , dimension(mpi_status_size) :: status
       real(8) , dimension(ix,jxp) :: psdot
       integer :: allrec , ierr , l
 #else
@@ -392,7 +391,7 @@
 !         and similarly for the i's.
           call mpi_sendrecv(ps0(1,jxp),ix,mpi_double_precision,ieast,1, &
                           & ps0(1,0),ix,mpi_double_precision,iwest,1,   &
-                          & mpi_comm_world,status,ierr)
+                          & mpi_comm_world,mpi_status_ignore,ierr)
           do j = jbegin , jendx
             do i = 2 , ixm1
               psdot(i,j) = 0.25*(ps0(i,j)+ps0(i-1,j)+ps0(i,j-1)+ps0(i-1,&
@@ -1703,22 +1702,22 @@
         end if
         call mpi_sendrecv(ht(1,jxp),ix,mpi_double_precision,ieast,1,    &
                         & ht(1,0),ix,mpi_double_precision,iwest,1,      &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(ht(1,1),ix,mpi_double_precision,iwest,2,      &
                         & ht(1,jxp+1),ix,mpi_double_precision,ieast,2,  &
-                        & mpi_comm_world,status,ierr)
+                        & mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(msfx(1,jxp-1),ix*2,mpi_double_precision,ieast,&
                         & 1,msfx(1,-1),ix*2,mpi_double_precision,iwest, &
-                        & 1,mpi_comm_world,status,ierr)
+                        & 1,mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(msfx(1,1),ix*2,mpi_double_precision,iwest,2,  &
                         & msfx(1,jxp+1),ix*2,mpi_double_precision,ieast,&
-                        & 2,mpi_comm_world,status,ierr)
+                        & 2,mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(msfd(1,jxp-1),ix*2,mpi_double_precision,ieast,&
                         & 1,msfd(1,-1),ix*2,mpi_double_precision,iwest, &
-                        & 1,mpi_comm_world,status,ierr)
+                        & 1,mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(msfd(1,1),ix*2,mpi_double_precision,iwest,2,  &
                         & msfd(1,jxp+1),ix*2,mpi_double_precision,ieast,&
-                        & 2,mpi_comm_world,status,ierr)
+                        & 2,mpi_comm_world,mpi_status_ignore,ierr)
 #else
         do
 !-----when ifrest=.true., read in the data saved from previous run

@@ -58,7 +58,6 @@
       integer :: i , j , k
 #ifdef MPP1
       integer :: ierr
-      integer , dimension(mpi_status_size) :: status
 #endif
 !
 #ifdef MPP1
@@ -68,7 +67,7 @@
 !=======================================================================
       call mpi_sendrecv(psa(1,jxp),ix,mpi_double_precision,ieast,1,     &
                       & psa(1,0),ix,mpi_double_precision,iwest,1,       &
-                      & mpi_comm_world,status,ierr)
+                      & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !=======================================================================
 !
@@ -316,7 +315,7 @@
       end if
       call mpi_sendrecv(var1snd(1,1),kx*8,mpi_double_precision,ieast,1, &
                       & var1rcv(1,1),kx*8,mpi_double_precision,iwest,1, &
-                      & mpi_comm_world,status,ierr)
+                      & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
         do k = 1 , kx
           ui1(k,0) = var1rcv(k,1)
@@ -344,7 +343,7 @@
       end if
       call mpi_sendrecv(var1snd(1,1),kx*8,mpi_double_precision,iwest,2, &
                       & var1rcv(1,1),kx*8,mpi_double_precision,ieast,2, &
-                      & mpi_comm_world,status,ierr)
+                      & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
         do k = 1 , kx
           ui1(k,jxp+1) = var1rcv(k,1)
