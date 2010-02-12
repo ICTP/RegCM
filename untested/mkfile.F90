@@ -36,7 +36,6 @@
 ! Local variables
 !
       character(1) :: a1
-      character(120) :: a120
       character(16) :: a16
       character(2) :: a2
       character(22) :: a22
@@ -44,12 +43,10 @@
       real(4) :: dtb , dtc , dto , dtr
       character(14) :: filatm , filchem , fillak , filrad , filsrf ,    &
                      & filsub
-      character(40) :: filnam1 , filnam2
+      character(40) :: filnam
       integer , dimension(nfmax) :: idate1d , imo , iyr
-      integer :: idatepp , isystm , iym1 , iym2 , n , nmo
+      integer :: idatepp , iym1 , iym2 , n , nmo
       character(3) :: itype
-      logical :: there
-      integer, external :: system
 !
       print * , ' '
       print * , '******* OPENING NEW OUTPUT FILES:' , idatex
@@ -156,9 +153,6 @@
       end if
  
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
-        inquire (file='postproc.in',exist=there)
-        if ( there ) isystm = system(                                   &
-                             &'/bin/mv -f postproc.in postproc.in.bak')
         nmo = (idate2/1000000-idate0/1000000)                           &
             & *12 + (idate2/10000-(idate2/1000000)*100)                 &
             & - (idate0/10000-(idate0/1000000)*100)
@@ -258,16 +252,8 @@
         close (98)
         close (99)
  
-        inquire (file='../PostProc',exist=there)
-        if ( .not.there ) isystm = system('mkdir ../PostProc')
-        filnam1 = '../PostProc/postproc.param'
-        filnam2 = '../PostProc/postproc.param.bak'
-        inquire (file=filnam1,exist=there)
-        if ( there ) then
-          a120 = '/bin/mv -f '//filnam1//' '//filnam2
-          isystm = system(a120)
-        end if
-        open (99,file=filnam1,form='FORMATTED',status='unknown')
+        filnam = '../PostProc/postproc.param'
+        open (99,file=filnam,form='FORMATTED',status='unknown')
         dto = tapfrq
         dtb = batfrq
         dtr = radisp

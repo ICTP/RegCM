@@ -55,11 +55,10 @@
 !
 ! Local variables
 !
-      integer :: i , isystm , j
+      integer :: i , iresult , j
+      logical :: there
       character(3) :: itype
       character(14) :: newfil
-      character(70) :: rmsav
-      logical :: there
       character(17) :: tmpfil
 #ifdef MPP1
       integer :: allrec , idum , ierr , l , k , n
@@ -76,7 +75,6 @@
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jxp) :: chem0
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jx) :: chem_0
 #endif
-      integer, external :: system
 !
 !----------------------------------------------------------------------
 !
@@ -98,8 +96,6 @@
             call say
             call fatal(__FILE__,__LINE__,'Output format does not exist')
           end if
-          inquire (file='output',exist=there)
-          if ( .not.there ) isystm = system('mkdir output/')
           nrcout = 0
           call mkfile
  
@@ -1115,9 +1111,7 @@
             close (iutsav)
             itype = 'SAV'
             write (newfil,99001) itype , idatex
-            inquire (file='output/'//newfil,exist=there)
-            if ( there ) isystm = system('/bin/rm -f output/'//newfil)
-            open (iutsav,file='output/'//newfil,status='unknown',       &
+            open (iutsav,file='output/'//newfil,status='replace',       &
                  &form='unformatted')
             print * , 'OPENING NEW SAV FILE: ' , newfil
             call outsav(iutsav)
@@ -1139,9 +1133,7 @@
             if ( oldsav(1:3).eq.'SAV' ) then
               inquire (file=oldsav,exist=there)
               if ( there ) then
-                write (rmsav,99003) oldsav
-                isystm = system(rmsav)
-                print * , rmsav
+                call unlink(oldsav, iresult)
               end if
             end if
             oldsav = tmpfil
@@ -1165,7 +1157,9 @@
            & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.         &
            & nnnnnn.ne.nnnend ) call mkfile
       end if
+
 #else
+
       if ( jyear.eq.jyearr .and. ktau.eq.ktaur ) then
         if ( iotyp.eq.1 ) then
           print * , 'Writing output files in direct access format'
@@ -1176,11 +1170,8 @@
           call say
           call fatal(__FILE__,__LINE__,'Output format does not exist')
         end if
-        inquire (file='output',exist=there)
-        if ( .not.there ) isystm = system('mkdir output/')
         nrcout = 0
         call mkfile
- 
       end if
  
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
@@ -1242,9 +1233,7 @@
           close (iutsav)
           itype = 'SAV'
           write (newfil,99001) itype , idatex
-          inquire (file='output/'//newfil,exist=there)
-          if ( there ) isystm = system('/bin/rm -f output/'//newfil)
-          open (iutsav,file='output/'//newfil,status='unknown',         &
+          open (iutsav,file='output/'//newfil,status='replace',         &
                &form='unformatted')
           print * , 'OPENING NEW SAV FILE: ' , newfil
           call outsav(iutsav)
@@ -1263,9 +1252,7 @@
           if ( oldsav(1:3).eq.'SAV' ) then
             inquire (file=oldsav,exist=there)
             if ( there ) then
-              write (rmsav,99003) oldsav
-              isystm = system(rmsav)
-              print * , rmsav
+              call unlink(oldsav, iresult)
             end if
           end if
           oldsav = tmpfil
@@ -1287,6 +1274,5 @@
 
 99001 format (a3,'.',i10)
 99002 format (a3,'TMP.',i10)
-99003 format ('/bin/rm -f ',a50)
  
       end subroutine output

@@ -31,14 +31,9 @@
 ! Local variables
 !
       character(80) :: chname
-      integer :: isystm , itr , nc
-      integer, external :: system
+      integer :: itr , nc
 !
-      isystm = system('/bin/mv -f regcm.in regcm0.in')
-      if ( isystm.ne.0 ) then
-        print * , 'System call failed'
-      end if
-      open (99,file='regcm.in',form='FORMATTED',status='unknown')
+      open (99,file='regcm.in.new',form='FORMATTED',status='unknown')
  
       write (99,99002) '&restartparam'
       ifrest = .true.

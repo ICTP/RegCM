@@ -43,10 +43,8 @@
                & centerj , rlatinc , rloninc
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: i , ifrq , isystm , j , jbend , mnend , month , myear ,&
-               & nbase , nday , nhour , number , nx , ny
-      logical :: there
-      integer, external :: system
+      integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
+               & nday , nhour , nnumb , nx , ny
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -55,9 +53,7 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      inquire (file='output/'//ctlname,exist=there)
-      if ( there ) isystm = system('/bin/rm output/'//ctlname)
-      open (31,file='output/'//ctlname,status='new')
+      open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibintyp.eq.1 ) then
@@ -201,16 +197,16 @@
       end if
       call finddate(jbend,idate2)
       if ( ldatez.eq.idate0 ) then
-        number = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
+        nnumb = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
       else
-        number = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)
+        nnumb = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)
       end if
       ifrq = batfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) number , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
                        & myear , ifrq
       else
-        write (31,99015) number , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -324,15 +320,13 @@
                & centerj , rlatinc , rloninc
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: i , ifrq , isystm , j , jbend , mnend , month , myear ,&
-               & nbase , nday , nhour , number , nx , ny
-      logical :: there
+      integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
+               & nday , nhour , nnumb , nx , ny
 #ifdef MPP1
       real(4) , dimension(jx*nsg,ix*nsg) :: xlat_s_io , xlon_s_io
 #else
       real(4) , dimension(jx*nsg,ix*nsg) :: xlat_s , xlon_s
 #endif
-      integer, external :: system
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -341,9 +335,7 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      inquire (file='output/'//ctlname,exist=there)
-      if ( there ) isystm = system('/bin/rm output/'//ctlname)
-      open (31,file='output/'//ctlname,status='new')
+      open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibintyp.eq.1 ) then
@@ -492,16 +484,16 @@
       end if
       call finddate(jbend,idate2)
       if ( ldatez.eq.idate0 ) then
-        number = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
+        nnumb = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
       else
-        number = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)
+        nnumb = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)
       end if
       ifrq = batfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) number , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
                        & myear , ifrq
       else
-        write (31,99015) number , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -592,10 +584,8 @@
                & centerj , rlatinc , rloninc
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: i , ifrq , isystm , itr , j , jbend , k , mnend ,      &
-               & month , myear , nbase , nday , nhour , number , nx , ny
-      logical :: there
-      integer, external :: system
+      integer :: i , ifrq , itr , j , jbend , k , mnend , month ,       &
+               & myear , nbase , nday , nhour , nnumb , nx , ny
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -604,9 +594,7 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      inquire (file='output/'//ctlname,exist=there)
-      if ( there ) isystm = system('/bin/rm output/'//ctlname)
-      open (31,file='output/'//ctlname,status='new')
+      open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibintyp.eq.1 ) then
@@ -751,16 +739,16 @@
       end if
       call finddate(jbend,idate2)
       if ( ldatez.eq.idate0 ) then
-        number = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
+        nnumb = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
       else
-        number = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)
+        nnumb = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)
       end if
       ifrq = chemfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) number , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
                        & myear , ifrq
       else
-        write (31,99015) number , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -846,13 +834,9 @@
 !
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
                & centerj , rlatinc , rloninc
-      integer :: i , isystm , j , nx , ny
-      logical :: there
-      integer, external :: system
+      integer :: i , j , nx , ny
 !
-      inquire (file='output/'//ctlname,exist=there)
-      if ( there ) isystm = system('/bin/rm output/'//ctlname)
-      open (31,file='output/'//ctlname,status='new')
+      open (31,file='output/'//ctlname,status='replace')
       write (31,99001)
       write (31,99002)
       if ( ibintyp.eq.1 ) then
@@ -1027,10 +1011,8 @@
                & centerj , rlatinc , rloninc
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: i , ifrq , isystm , j , jbend , k , mnend , month ,    &
-               & myear , nbase , nday , nhour , number , nx , ny
-      logical :: there
-      integer, external :: system
+      integer :: i , ifrq , j , jbend , k , mnend , month , myear ,     &
+               & nbase , nday , nhour , nnumb , nx , ny
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -1039,9 +1021,7 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      inquire (file='output/'//ctlname,exist=there)
-      if ( there ) isystm = system('/bin/rm output/'//ctlname)
-      open (31,file='output/'//ctlname,status='new')
+      open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibintyp.eq.1 ) then
@@ -1185,16 +1165,16 @@
       end if
       call finddate(jbend,idate2)
       if ( ldatez.eq.idate0 ) then
-        number = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
+        nnumb = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
       else
-        number = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)
+        nnumb = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)
       end if
       ifrq = tapfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) number , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
                        & myear , ifrq
       else
-        write (31,99015) number , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -1263,10 +1243,8 @@
                & centerj , rlatinc , rloninc
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: i , ifrq , isystm , j , jbend , k , mnend , month ,    &
-               & myear , nbase , nday , nhour , number , nx , ny
-      logical :: there
-      integer, external :: system
+      integer :: i , ifrq , j , jbend , k , mnend , month , myear ,     &
+               & nbase , nday , nhour , nnumb , nx , ny
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -1275,9 +1253,7 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      inquire (file='output/'//ctlname,exist=there)
-      if ( there ) isystm = system('/bin/rm output/'//ctlname)
-      open (31,file='output/'//ctlname,status='new')
+      open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibintyp.eq.1 ) then
@@ -1421,16 +1397,16 @@
       end if
       call finddate(jbend,idate2)
       if ( ldatez.eq.idate0 ) then
-        number = (ibdyfrq/radisp+0.00001)*(min0(jbend,mnend)-nbase) + 1
+        nnumb = (ibdyfrq/radisp+0.00001)*(min0(jbend,mnend)-nbase) + 1
       else
-        number = (ibdyfrq/radisp+0.00001)*(min0(jbend,mnend)-nbase)
+        nnumb = (ibdyfrq/radisp+0.00001)*(min0(jbend,mnend)-nbase)
       end if
       ifrq = radisp + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) number , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
                        & myear , ifrq
       else
-        write (31,99015) number , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
