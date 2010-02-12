@@ -10,8 +10,8 @@ cccc dtrad = radfrq = radiation output interval (hrs)
 cccc DIRECT ACCESS BINARY SPECIFICATION                                       
 cccc ibyte = 4 for PGI, IFC; 1 for SUN, SGI, DEC, IBM                         
       integer nxf,nyf,nz,nxs,nys                                              
-      parameter (nyf =  34)                                                   
-      parameter (nxf =  51)                                                   
+      parameter (nyf =  52)                                                   
+      parameter (nxf =  48)                                                   
       parameter (nz  =  18)                                                   
       parameter (nxs =   1)                                                   
       parameter (nys =   1)                                                   

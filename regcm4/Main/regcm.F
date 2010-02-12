@@ -154,8 +154,6 @@ c
       real(kind=8)  extime,dtinc
       integer iexec,iexecn
 c
-      integer system
-      external system
 c**********************************************************************
 #ifdef MPP1
       call MPI_INIT(ierr)

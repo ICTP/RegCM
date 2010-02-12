@@ -29,13 +29,11 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       character itype*3, filatm*14, filsrf*14, filsub*14, filrad*14
      &        , fillak*14, filchem *14           
-     &        , a78*78, a16*16, a22*22, a1*1, a2*2, a120*120
-     &        , filnam1*40, filnam2*40
+     &        , a78*78, a16*16, a22*22, a1*1, a2*2, filnam*40
       integer n,nmo,nfmax,idatepp,iym1,iym2
       parameter (nfmax=999)
       integer iyr(nfmax),imo(nfmax),idate1d(nfmax)
       real(kind=4)  dto,dtb,dtr,dtc
-      logical there
 
       integer nrcout
       COMMON /GENREC/ nrcout
@@ -46,8 +44,6 @@ Cchem2
       integer nrcchem
       COMMON /CHEREC/ nrcchem
 Cchem2_ 
-      integer isystm,system
-      external system
 
       print*,' '
       print*,'******* OPENING NEW OUTPUT FILES:',idatex
@@ -181,10 +177,6 @@ Cchem2_
  199  format(a3,'.',i10)
 
       if (jyear.eq.jyear0.and.ktau.eq.0) then
-        inquire(file='postproc.in',exist=there)
-        if (there) then
-          isystm=system('/bin/mv -f postproc.in postproc.in.bak')
-        end if
         nmo = (idate2/1000000-idate0/1000000)*12
      &      + (idate2/10000-(idate2/1000000)*100)
      &      - (idate0/10000-(idate0/1000000)*100)
@@ -293,19 +285,8 @@ c **** Write out postprocessing information
         close(98)
         close(99)
 
-        inquire(file='../PostProc',exist=there)
-        if(.not.there) then
-          isystm=system('mkdir ../PostProc')
-        end if
-        filnam1 = '../PostProc/postproc.param'
-        filnam2 = '../PostProc/postproc.param.bak'
-        inquire(file=filnam1,exist=there)
-        if (there) then
-          a120 = '/bin/mv -f '//filnam1//' '//filnam2
-          isystm=system(a120)
-        end if
-        OPEN(99,FILE=filnam1,FORM='FORMATTED'
-     &      ,STATUS='unknown')
+        filnam = '../PostProc/postproc.param'
+        OPEN(99,FILE=filnam,FORM='FORMATTED',STATUS='unknown')
         dto = tapfrq
         dtb = batfrq
         dtr = radisp

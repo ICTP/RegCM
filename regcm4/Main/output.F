@@ -130,11 +130,10 @@ c**********************
 #endif
       integer i,j
 c
-      character itype*3, newfil*14, tmpfil*17, rmsav*70
+      character itype*3, newfil*14, tmpfil*17
       logical there
 c
-      integer isystm,system
-      external system
+      integer iresult
 c----------------------------------------------------------------------
 
       if (.not.(jyear.eq.jyear0.and.ktau.eq.0)) then
@@ -157,10 +156,6 @@ c----------------------------------------------------------------------
           call say
           call fatal(__FILE__,__LINE__, 'Output format does not exist')
         end if
-        inquire(file='output',exist=there)
-        if (.not.there) then
-          isystm=system('mkdir output/')
-        end if 
  199    format(a3,'.',i10)
         nrcout=0
         call mkfile
@@ -1208,9 +1203,7 @@ c
           close(iutsav)
           itype = 'SAV'
           write(newfil,199) itype,idatex
-          inquire(file='output/'//newfil,exist=there)
-          if(there) isystm=system('/bin/rm -f output/'//newfil)
-          open(iutsav,file='output/'//newfil,status='unknown'
+          open(iutsav,file='output/'//newfil,status='replace'
      &               ,form='unformatted')
           print*,'OPENING NEW SAV FILE: ',newfil
           call outsav(iutsav)
@@ -1235,10 +1228,7 @@ c
           if(oldsav(1:3).eq.'SAV') then
             inquire(file=oldsav,exist=there)
             if (there) then
-              write(rmsav,197) oldsav
- 197          format('/bin/rm -f ',a50)
-              isystm=system(rmsav)
-              print*,rmsav
+              call unlink(oldsav, iresult)
             end if
           end if
           oldsav = tmpfil

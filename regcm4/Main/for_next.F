@@ -31,11 +31,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       integer itr,nc
 
       character*80 chname
-      integer isystm,system
-      external system
 
-      isystm=system('/bin/mv -f regcm.in regcm0.in')
-      OPEN(99,FILE='regcm.in',FORM='FORMATTED',STATUS='unknown')
+      OPEN(99,FILE='regcm.in.new',FORM='FORMATTED',STATUS='unknown')
 
       write(99,201) '&restartparam'
       ifrest = .true.

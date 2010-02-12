@@ -36,7 +36,6 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       real(kind=4)  TRUELATL,TRUELATH
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       character*18 CTLNAME
-      logical there
       integer i,j,ny,nx
       real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real(kind=4)  centerj,centeri
@@ -49,12 +48,8 @@ C::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       character*3 cmonth(12)
       data cmonth/'jan','feb','mar','apr','may','jun',
      &            'jul','aug','sep','oct','nov','dec'/
-      integer isystm,system
-      external system
 c
-      inquire(file='output/'//CTLNAME,exist=there)
-      if(there) isystm=system('/bin/rm output/'//CTLNAME)
-      open(31,file='output/'//CTLNAME,status='new')
+      open(31,file='output/'//CTLNAME,status='replace')
       write(31,10) CTLNAME(1:14)
   10  format('dset ^',A14)
       write(31,20)
@@ -321,7 +316,6 @@ C
       real(kind=4)  TRUELATL,TRUELATH
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       character*18 CTLNAME
-      logical there
       integer i,j,ny,nx
       real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real(kind=4)  centerj,centeri
@@ -334,12 +328,8 @@ C
       character*3 cmonth(12)
       data cmonth/'jan','feb','mar','apr','may','jun',
      &            'jul','aug','sep','oct','nov','dec'/
-      integer isystm,system
-      external system
 c
-      inquire(file='output/'//CTLNAME,exist=there)
-      if(there) isystm=system('/bin/rm output/'//CTLNAME)
-      open(31,file='output/'//CTLNAME,status='new')
+      open(31,file='output/'//CTLNAME,status='replace')
       write(31,10) CTLNAME(1:14)
   10  format('dset ^',A14)
       write(31,20)
@@ -601,7 +591,6 @@ C
       real(kind=4)  TRUELATL,TRUELATH
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       character*18 CTLNAME
-      logical there
       integer i,j,itr,ny,nx
       real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real(kind=4)  centerj,centeri
@@ -614,12 +603,8 @@ C
       character*3 cmonth(12)
       data cmonth/'jan','feb','mar','apr','may','jun',
      &            'jul','aug','sep','oct','nov','dec'/
-      integer isystm,system
-      external system
 c
-      inquire(file='output/'//CTLNAME,exist=there)
-      if(there) isystm=system('/bin/rm output/'//CTLNAME)
-      open(31,file='output/'//CTLNAME,status='new')
+      open(31,file='output/'//CTLNAME,status='replace')
       write(31,10) CTLNAME(1:14)
   10  format('dset ^',A14)
       write(31,20)
@@ -885,16 +870,11 @@ C
       real(kind=4)  TRUELATL,TRUELATH
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       character*12 CTLNAME
-      logical there
       integer i,j,ny,nx
       real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real(kind=4)  centerj,centeri
-      integer isystm,system
-      external system
 c
-      inquire(file='output/'//CTLNAME,exist=there)
-      if(there) isystm=system('/bin/rm output/'//CTLNAME)
-      open(31,file='output/'//CTLNAME,status='new')
+      open(31,file='output/'//CTLNAME,status='replace')
       write(31,10)
   10  format('dset ^OUT_HEAD')
       write(31,20)
@@ -1100,7 +1080,6 @@ C
       real(kind=4)  TRUELATL,TRUELATH
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       character*18 CTLNAME
-      logical there
       integer i,j,ny,nx
       real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real(kind=4)  centerj,centeri
@@ -1113,12 +1092,8 @@ C
       character*3 cmonth(12)
       data cmonth/'jan','feb','mar','apr','may','jun',
      &            'jul','aug','sep','oct','nov','dec'/
-      integer isystm,system
-      external system
 c
-      inquire(file='output/'//CTLNAME,exist=there)
-      if(there) isystm=system('/bin/rm output/'//CTLNAME)
-      open(31,file='output/'//CTLNAME,status='new')
+      open(31,file='output/'//CTLNAME,status='replace')
       write(31,10) CTLNAME(1:14)
   10  format('dset ^',A14)
       write(31,20)
@@ -1368,7 +1343,6 @@ C
       real(kind=4)  TRUELATL,TRUELATH
       COMMON /SAVEPAR/ TRUELATL,TRUELATH
       character*18 CTLNAME
-      logical there
       integer i,j,ny,nx
       real(kind=4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real(kind=4)  centerj,centeri
@@ -1381,12 +1355,8 @@ C
       character*3 cmonth(12)
       data cmonth/'jan','feb','mar','apr','may','jun',
      &            'jul','aug','sep','oct','nov','dec'/
-      integer isystm,system
-      external system
 c
-      inquire(file='output/'//CTLNAME,exist=there)
-      if(there) isystm=system('/bin/rm output/'//CTLNAME)
-      open(31,file='output/'//CTLNAME,status='new')
+      open(31,file='output/'//CTLNAME,status='replace')
       write(31,10) CTLNAME(1:14)
   10  format('dset ^',A14)
       write(31,20)
