@@ -114,7 +114,7 @@ echo "Simulation completed on `date` for $USER on `hostname`"
 echo "Swapping new input namelist file in place for new run start."
 if [ -f regcm.in.new ]
 then
-  cp -f regcm.in regcm.in.$idate0
+  mv -f regcm.in regcm.in.old
   mv -f regcm.in.new regcm.in
 fi
 
