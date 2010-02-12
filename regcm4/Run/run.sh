@@ -78,8 +78,6 @@ then
   mv -f postproc.param postproc.param.bak
 fi
 
-echo "Starting simulation on `date` for $USER on `hostname`"
-
 echo "Linking Model executable here."
 ln -sf ../Main/regcm .
 
@@ -96,10 +94,15 @@ else
  command="$PWD/regcm < regcm.in"
 fi 
 
+echo "Starting simulation on `date` for $USER on `hostname`"
+
 mstdout=`basename $namelist .in`.out
-echo "Model running, output file is $mstdout"
-echo "Check run progress using:"
+echo "About to run model, output file is : $mstdout"
+echo "Check run progress using :"
+echo
 echo "                          tail -f $mstdout"
+echo
+echo
 $command > $mstdout 2>&1
 result=`cat $mstdout | grep "STOP 99999"`
 
@@ -118,4 +121,5 @@ then
   mv -f regcm.in.new regcm.in
 fi
 
+echo "All done."
 exit 0
