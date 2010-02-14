@@ -23,13 +23,14 @@
       use mod_param1
       use mod_param2
       use mod_param3
-#ifdef DIAG
-      use mod_diagnosis
-#endif
       use mod_main
       use mod_mainchem
       use mod_trachem
       use mod_date
+      use mod_constants , only : rgti
+#ifdef DIAG
+      use mod_diagnosis
+#endif
 #ifdef MPP1
       use mod_mppio
       use mpi
@@ -307,13 +308,13 @@
  
       do itr = 1 , ntr
 #ifdef DIAG
-        ttrace(itr,1) = ttrace(itr,1)*1000./g
-        tremlsc(itr,1) = tremlsc(itr,1)*1000./g
-        tremcvc(itr,1) = tremcvc(itr,1)*1000./g
-        tremdrd(itr,1) = tremdrd(itr,1)*1000./g
-        trxsg(itr,1) = trxsg(itr,1)*1000./g
-        trxsaq1(itr,1) = trxsaq1(itr,1)*1000./g
-        trxsaq2(itr,1) = trxsaq2(itr,1)*1000./g
+        ttrace(itr,1) = ttrace(itr,1)*1000.*rgti
+        tremlsc(itr,1) = tremlsc(itr,1)*1000.*rgti
+        tremcvc(itr,1) = tremcvc(itr,1)*1000.*rgti
+        tremdrd(itr,1) = tremdrd(itr,1)*1000.*rgti
+        trxsg(itr,1) = trxsg(itr,1)*1000.*rgti
+        trxsaq1(itr,1) = trxsaq1(itr,1)*1000.*rgti
+        trxsaq2(itr,1) = trxsaq2(itr,1)*1000.*rgti
 #endif
 !
 #ifdef MPP1
@@ -322,13 +323,13 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , ixm1
-            dtrace(i,j,itr) = 1.E6*dtrace(i,j,itr)*1000./g
+            dtrace(i,j,itr) = 1.E6*dtrace(i,j,itr)*1000.*rgti
                                                         ! unit: mg/m2
-            wdlsc(i,j,itr) = 1.E6*wdlsc(i,j,itr)*1000./g
-            wdcvc(i,j,itr) = 1.E6*wdcvc(i,j,itr)*1000./g
-            ddsfc(i,j,itr) = 1.E6*ddsfc(i,j,itr)*1000./g
-            wxsg(i,j,itr) = 1.E6*wxsg(i,j,itr)*1000./g
-            wxaq(i,j,itr) = 1.E6*wxaq(i,j,itr)*1000./g
+            wdlsc(i,j,itr) = 1.E6*wdlsc(i,j,itr)*1000.*rgti
+            wdcvc(i,j,itr) = 1.E6*wdcvc(i,j,itr)*1000.*rgti
+            ddsfc(i,j,itr) = 1.E6*ddsfc(i,j,itr)*1000.*rgti
+            wxsg(i,j,itr) = 1.E6*wxsg(i,j,itr)*1000.*rgti
+            wxaq(i,j,itr) = 1.E6*wxaq(i,j,itr)*1000.*rgti
 !           emtrac isbuilt from chsurfem so just need the 1e6*dt/2
 !           factor to to pass im mg/m2
             cemtrac(i,j,itr) = 1.E6*cemtrac(i,j,itr)

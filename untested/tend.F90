@@ -58,6 +58,8 @@
       use mod_date
       use mod_message
       use mod_aerosol , only : aermm
+      use mod_constants , only : rgti , rgas , cpd , ep1 , gnu , omu ,  &
+                              & gnuhf , omuhf , alpha , beta
 #ifdef MPP1
       use mod_slice
       use mpi
@@ -97,7 +99,7 @@
       t00pg = 287.
       p00pg = 101.325
       alam = 6.5E-3
-      pgfaa1 = alam*r/g
+      pgfaa1 = alam*rgas*rgti
 !
 !----------------------------------------------------------------------
 !-----fill up the boundary slices:
@@ -1176,7 +1178,7 @@
 !
           do k = 1 , kx
             do i = 2 , ixm2
-              rovcpm = r/(cp*(1.+0.8*(qv(i,k,j))))
+              rovcpm = rgas/(cpd*(1.+0.8*(qv(i,k,j))))
               tv = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
               tten(i,k,j) = tten(i,k,j) + (omega(i,k,j)*rovcpm*tv)      &
                           & /(ptop/psa(i,j)+a(k))
@@ -1579,7 +1581,7 @@
               tv4 = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
               rtbar = tv1 + tv2 + tv3 + tv4 -                           &
                     & 4.*t00pg*((a(k)*psasum/4.+ptop)/p00pg)**pgfaa1
-              rtbar = r*rtbar*sigpsa/16.
+              rtbar = rgas*rtbar*sigpsa/16.
               uten(i,k,j) = uten(i,k,j)                                 &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
                           & +ptop)                                      &
@@ -1601,7 +1603,7 @@
               tv2 = t(i,k,j-1)*(1.+ep1*(qv(i,k,j-1)))
               tv3 = t(i-1,k,j)*(1.+ep1*(qv(i-1,k,j)))
               tv4 = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              rtbar = r*(tv1+tv2+tv3+tv4)*sigpsa/16.
+              rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.
               uten(i,k,j) = uten(i,k,j)                                 &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
                           & +ptop)                                      &
@@ -1631,10 +1633,10 @@
           do i = 1 , ixm1
             tv = (ttld(i,kx,j)/psd(i,j))/(1.+qc(i,kx,j)/(1.+qv(i,kx,j)))
             phi(i,kx,j) = ht(i,j)                                       &
-                        & + r*t00pg/pgfaa1*((psd(i,j)+ptop)/p00pg)      &
+                        & + rgas*t00pg/pgfaa1*((psd(i,j)+ptop)/p00pg)   &
                         & **pgfaa1
             phi(i,kx,j) = phi(i,kx,j)                                   &
-                        & - r*tv*dlog((a(kx)+ptop/psd(i,j))/(1.+        &
+                        & - rgas*tv*dlog((a(kx)+ptop/psd(i,j))/(1.+     &
                         & ptop/psd(i,j)))
           end do
  
@@ -1645,7 +1647,7 @@
                     & (lev+1))/(psd(i,j)*(dsigma(lev)+dsigma(lev+1))))  &
                     & /(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j)                             &
-                           & - r*tvavg*dlog((a(lev)+ptop/psd(i,j))      &
+                           & - rgas*tvavg*dlog((a(lev)+ptop/psd(i,j))   &
                            & /(a(lev+1)+ptop/psd(i,j)))
             end do
           end do
@@ -1655,8 +1657,8 @@
           do i = 1 , ixm1
             tv = (td(i,kx,j)/psd(i,j))/(1.+qc(i,kx,j)/(1.+qv(i,kx,j)))
             phi(i,kx,j) = ht(i,j)                                       &
-                        & - r*tv*dlog((a(kx)+ptop/psd(i,j))/(1.+ptop/psd&
-                        & (i,j)))
+                        & - rgas*tv*dlog((a(kx)+ptop/psd(i,j))/         &
+                        & (1.+ptop/psd(i,j)))
           end do
  
           do k = 1 , kxm1
@@ -1666,7 +1668,7 @@
                     & +1))/(psd(i,j)*(dsigma(lev)+dsigma(lev+1))))      &
                     & /(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j)                             &
-                           & - r*tvavg*dlog((a(lev)+ptop/psd(i,j))      &
+                           & - rgas*tvavg*dlog((a(lev)+ptop/psd(i,j))   &
                            & /(a(lev+1)+ptop/psd(i,j)))
             end do
           end do

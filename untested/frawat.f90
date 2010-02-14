@@ -35,7 +35,8 @@
 !
       use mod_regcm_param
       use mod_bats , only : npts , ldoc1d , sigf , ldew1d , fwet ,      &
-                   & xlsai , fdry , dewmxi , vegt , xlai
+                   & xlsai , fdry , vegt , xlai
+      use mod_constants , only : dewmxi
       implicit none
 !
 ! Local variables

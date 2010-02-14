@@ -63,7 +63,8 @@
 !  ** note: water and soil parameters are in mm
 !
       use mod_regcm_param
-      use mod_bats , only : c , htvp , sdrop , etrrun , flnet , fevpg , &
+      use mod_param1 , only : dtbat
+      use mod_bats , only : htvp , sdrop , etrrun , flnet , fevpg ,     &
                   & fseng , vegt , efpr , etr , ts1d , ssw1d , tm ,     &
                   & watu , watr , watt , gwmx0 , gwmx1 , gwmx2 ,        &
                   & cgrnds , cgrndl , cgrnd , tg1d , delq1d , delt1d ,  &
@@ -71,6 +72,7 @@
                   & scv1d , sag1d , gwet1d , drag1d , rhs1d , npts ,    &
                   & taf1d , p1d , ldoc1d , lveg , rsw1d , tsw1d , qg1d ,&
                   & sigf , cdrx , qs1d , prcp1d
+      use mod_constants , only : tmelt , wlhv , wlhs , cpd
       use mod_ictp01
       implicit none
 !
@@ -90,9 +92,9 @@
       do np = np1 , npts
         do n = 1 , nnsg
  
-          htvp(n,np) = c(125)
-          if ( (tg1d(n,np).lt.c(67) .and. ldoc1d(n,np).gt.0.5) .or.     &
-             & scv1d(n,np).gt.0. ) htvp(n,np) = c(126)
+          htvp(n,np) = wlhv
+          if ( (tg1d(n,np).lt.tmelt .and. ldoc1d(n,np).gt.0.5) .or.     &
+             & scv1d(n,np).gt.0. ) htvp(n,np) = wlhs
           sdrop(n,np) = 0.
           etrrun(n,np) = 0.
           flnet(n,np) = 0.
@@ -141,10 +143,10 @@
         do n = 1 , nnsg
           if ( ldoc1d(n,np).gt.0.5 ) then
             if ( sigf(n,np).le.0.001 .and. ldoc1d(n,np).lt.1.5 ) then
-              qsatd = qg1d(n,np)*gwet1d(n,np)*a(n,np)*(c(67)-b(n,np))   &
+              qsatd = qg1d(n,np)*gwet1d(n,np)*a(n,np)*(tmelt-b(n,np))   &
                     & *(1./(tg1d(n,np)-b(n,np)))**2
               rai = cdrx(n,np)*vspda(n,np)*rhs1d(n,np)
-              cgrnds(n,np) = rai*c(58)
+              cgrnds(n,np) = rai*cpd
               cgrndl(n,np) = rai*qsatd
               cgrnd(n,np) = cgrnds(n,np) + cgrndl(n,np)*htvp(n,np)
  
@@ -177,7 +179,7 @@
 !l            4.   vegetation
 !=======================================================================
 !l            4.1  add precipitation to leaf water
-              ldew1d(n,np) = ldew1d(n,np) + c(4)*sigf(n,np)*prcp1d(n,np)
+              ldew1d(n,np) = ldew1d(n,np)+dtbat*sigf(n,np)*prcp1d(n,np)
               ldew1d(n,np) = dmax1(ldew1d(n,np),0.D0)
             end if
           end if
@@ -239,7 +241,7 @@
             delt1d(n,np) = ts1d(n,np) - tg1d(n,np)
 !           evaporation is in kg/m**2/s
             evpr1d(n,np) = fact*delq1d(n,np)
-            sent1d(n,np) = fact*c(58)*delt1d(n,np)
+            sent1d(n,np) = fact*cpd*delt1d(n,np)
           end if
           if ( sigf(n,np).lt.0.001 ) taf1d(n,np) = tg1d(n,np)
  
@@ -247,7 +249,7 @@
 !cc       zdelt(i) = zdelt(i)*delt1d(n,np)
  
 !l        6.4  evaporative flux, accounting for sublimation
-!cc       evprr(i) = c(125)*(evpr1d(n,np)-fevpg) + htvp(n,np)*fevpg
+!cc       evprr(i) = wlhv*(evpr1d(n,np)-fevpg) + htvp(n,np)*fevpg
  
 !l        6.5  nondimensional equivalent bucket capacity for comparisons
 !l        with bucket models; usually 1 or less, except where

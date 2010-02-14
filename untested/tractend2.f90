@@ -40,6 +40,8 @@
       use mod_dust
       use mod_date
       use mod_message
+      use mod_constants , only : gti , zlnd , zoce , zsno , ep2 , svp1 ,&
+                               & svp2 , svp3
       implicit none
 !
 ! Dummy arguments
@@ -164,17 +166,17 @@
               call say
             end if
             do k = kt , kdwd
-              cutend_up(i,k) = mflx(i,1)*g*1.E-3*wk(i,kb)               &
+              cutend_up(i,k) = mflx(i,1)*gti*1.E-3*wk(i,kb)             &
                              & /(sigma(kdwd)-sigma(kt))
             end do
  
-            cutend_up(i,kb) = -mflx(i,1)*g*1.E-3*wk(i,kb)/(dsigma(kb))
+            cutend_up(i,kb) = -mflx(i,1)*gti*1.E-3*wk(i,kb)/(dsigma(kb))
 !           transport linked to downdraft
  
-            cutend_dwd(i,kdwd) = -mflx(i,2)*g*1.E-3*wk(i,kdwd)          &
+            cutend_dwd(i,kdwd) = -mflx(i,2)*gti*1.E-3*wk(i,kdwd)        &
                                & /(dsigma(kdwd))
  
-            cutend_dwd(i,kx) = +mflx(i,2)*g*1.E-3*wk(i,kdwd)            &
+            cutend_dwd(i,kx) = +mflx(i,2)*gti*1.E-3*wk(i,kdwd)          &
                              & /(dsigma(kx))
  
             do k = kt , kx
@@ -603,7 +605,7 @@
           do i = 2 , ixm2
             chemsrc(i,j,lmonth,itr) = rsfrow(i,ibin)
             chiten(i,kx,j,itr) = chiten(i,kx,j,itr) + rsfrow(i,ibin)    &
-                               & *g/(dsigma(kx)*1.E3)
+                               & *gti/(dsigma(kx)*1.E3)
 !           diagnostique source
             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
                            & *dt/2.
@@ -626,11 +628,11 @@
             do k = 2 , kx - 1
                         ! do not apply to the first level
               settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,ibin)-wk(i,k)*pdepv(&
-                           & i,k,ibin))*g*1.E-3/dsigma(k)
+                           & i,k,ibin))*gti*1.E-3/dsigma(k)
               chiten(i,k,j,itr) = chiten(i,k,j,itr) - settend(i,k)
             end do
 !
-            settend(i,kx) = -(wk(i,kx)*pdepv(i,kx,ibin)*g*1.E-3)        &
+            settend(i,kx) = -(wk(i,kx)*pdepv(i,kx,ibin)*gti*1.E-3)      &
                           & /dsigma(kx)
             chiten(i,kx,j,itr) = chiten(i,kx,j,itr) + settend(i,kx)
  
@@ -646,13 +648,13 @@
           if ( chtrname(itr).ne.'DUST' ) then
             chiten(i,kx,j,itr) = chiten(i,kx,j,itr)                     &
                                & + chemsrc(i,j,lmonth,itr)              &
-                               & *g*0.7/(dsigma(kx)*1.E3)
+                               & *gti*0.7/(dsigma(kx)*1.E3)
             chiten(i,kx-1,j,itr) = chiten(i,kx-1,j,itr)                 &
                                  & + chemsrc(i,j,lmonth,itr)            &
-                                 & *g*0.15/(dsigma(kx-1)*1.E3)
+                                 & *gti*0.15/(dsigma(kx-1)*1.E3)
             chiten(i,kxm2,j,itr) = chiten(i,kx-2,j,itr)                 &
                                  & + chemsrc(i,j,lmonth,itr)            &
-                                 & *g*0.15/(dsigma(kxm2)*1.E3)
+                                 & *gti*0.15/(dsigma(kxm2)*1.E3)
 !           diagnostic for source, cumul
             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
                            & *dt/2.

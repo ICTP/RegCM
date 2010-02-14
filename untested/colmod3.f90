@@ -134,6 +134,7 @@
                     & aldifs , aldirl , aldifl , ldoc1d
       use mod_comtim
       use mod_comctl
+      use mod_constants , only : gti , sigm , ep2 , cpd
       implicit none
 !
 ! Dummy arguments
@@ -153,7 +154,7 @@
       real(8) , dimension(ixm1,kx) :: clwp , emis , fice , h2ommr ,  &
            & o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei ,  &
            & rel , tm1
-      real(8) :: cpairx , eccf , epsilox , gravx , stebolx
+      real(8) :: eccf
       integer :: i , ii0 , ii1 , ii2 , k , n
       integer , dimension(ixm1) :: ioro
 !
@@ -256,20 +257,13 @@
       iradlw = 1
       iradae = 1
 !
-!     Set parameters required for call to radini():
-!
-      gravx = 9.80616
-      cpairx = 1.00464E3
-      epsilox = 0.622
-      stebolx = 5.67E-8
-!
 !     Given these four constants in MKS, radini() will define their CGS
 !     equivalents, as well as setting many radiation parameters stored
 !     in common blocks. radini() must be called before getdat(), because
 !     the co2 mixing ratio set (by the user) in getdat() should
 !     overwrite the default CCM3 co2 mixing ratio set by radini().
 !
-      call radini(gravx,cpairx,epsilox,stebolx)
+      call radini(gti,cpd,ep2,sigm)
 !
 !     NB: orography types are specified in the following
 !

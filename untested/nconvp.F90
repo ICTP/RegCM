@@ -33,6 +33,8 @@
       use mod_regcm_param
       use mod_param3
       use mod_pmoist
+      use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
+                             & svp2 , svp3
       implicit none
 !
 ! Dummy arguments
@@ -77,7 +79,7 @@
             end if
             es1 = ep2*e1/(psx-e1)
             dqv = qvavg - es1*conf
-            r1 = 1./(1.+xlv*xlv*es1/(rv*cp*tavg*tavg))
+            r1 = 1./(1.+wlhv*wlhv*es1/(rv*cpd*tavg*tavg))
             scr(i,k) = r1*dqv
           end do
         end do
@@ -121,8 +123,8 @@
           do k = 1 , kx
             do i = 2 , ixm2
               ex = 1.
-              ta(i,k,j) = ta(i,k,j) + xlvocp*scr(i,k)*psa(i,j)*ex
-              tb(i,k,j) = tb(i,k,j) + xlvocp*scr(i,k)*psb(i,j)*ex
+              ta(i,k,j) = ta(i,k,j) + wlhvocp*scr(i,k)*psa(i,j)*ex
+              tb(i,k,j) = tb(i,k,j) + wlhvocp*scr(i,k)*psb(i,j)*ex
             end do
           end do
         end if

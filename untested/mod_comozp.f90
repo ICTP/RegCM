@@ -24,7 +24,8 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: pnoz = 100 , pozlon = 1
+      integer , parameter :: pnoz = 100
+      integer , parameter :: pozlon = 1
 !
 ! COMMON /COMOZP/
 !

@@ -37,4 +37,5 @@
       real(8) :: batfrq , bdytim , chemfrq , prtfrq , prttim , radfrq , &
                & radisp , savfrq , savtim , tapfrq , taptim , tbdybe
       integer :: nprtfrq , nsavfrq , ntapfrq
+
       end module mod_param2

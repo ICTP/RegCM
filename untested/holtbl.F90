@@ -33,6 +33,7 @@
       use mod_bats , only : veg2d
       use mod_slice
       use mod_trachem
+      use mod_constants , only : gti , vonkar , cpd , rcpd , ep1
 #ifdef MPP1
       use mod_mppio
       use mpi
@@ -156,12 +157,12 @@
             dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
             xps = (a(k)*psb(i,j)+ptop)*1000.
             ps2 = (a(k+1)*psb(i,j)+ptop)*1000.
-            rhohf(i,k,j) = (ps2-xps)/(g*dza(i,k,j))
+            rhohf(i,k,j) = (ps2-xps)/(gti*dza(i,k,j))
           end do
         end do
 !
         do i = 2 , ixm1
-          govrth(i) = g/thx3d(i,kx,j)
+          govrth(i) = gti/thx3d(i,kx,j)
         end do
 !
 ! *********************************************************************
@@ -238,7 +239,7 @@
                     & /rhox2d(i,j))
  
 !         convert surface fluxes to kinematic units
-          xhfx(i,j) = hfx(i,j)/(cp*rhox2d(i,j))
+          xhfx(i,j) = hfx(i,j)/(cpd*rhox2d(i,j))
           xqfx(i,j) = qfx(i,j)/rhox2d(i,j)
 !         compute virtual heat flux at surface
           hfxv(i,j) = xhfx(i,j) + 0.61*thx3d(i,kx,j)*xqfx(i,j)
@@ -253,7 +254,7 @@
         do i = 2 , ixm1
           sh10 = qvb3d(i,kx,j)/(qvb3d(i,kx,j)+1)
 !         th10(i,j) = ((thx3d(i,kx,j)+tgb(i,j))/2.0)*(1.0+0.61*sh10)
-!         th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(karman*ustr(i,j))
+!         th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(vonkar*ustr(i,j))
 !         1            *dlog(za(i,kx,j)/10.)
  
 !         "virtual" potential temperature
@@ -265,17 +266,17 @@
 !           approximation for obhukov length
             oblen = -0.5*(thx3d(i,kx,j)+tgb(i,j))*(1.0+0.61*sh10)       &
                   & *ustr(i,j)                                          &
-                  & **3/(g*karman*(hfxv(i,j)+dsign(1.D-10,hfxv(i,j))))
+                  & **3/(gti*vonkar*(hfxv(i,j)+dsign(1.D-10,hfxv(i,j))))
             if ( oblen.ge.za(i,kx,j) ) then
-              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(karman*ustr(i,j))   &
+              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                         & *(dlog(za(i,kx,j)/10.)                        &
                         & +5./oblen*(za(i,kx,j)-10.))
             else if ( oblen.lt.za(i,kx,j) .and. oblen.gt.10. ) then
-              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(karman*ustr(i,j))   &
+              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                         & *(dlog(oblen/10.)+5./oblen*(oblen-10.)        &
                         & +6*dlog(za(i,kx,j)/oblen))
             else if ( oblen.le.10. ) then
-              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(karman*ustr(i,j))   &
+              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                         & *6*dlog(za(i,kx,j)/10.)
             else
             end if
@@ -285,8 +286,8 @@
  
 !         obklen compute obukhov length
           obklen(i,j) = -th10(i,j)*ustr(i,j)                            &
-                      & **3/(g*karman*(hfxv(i,j)+dsign(1.D-10,hfxv(i,j))&
-                      & ))
+                      & **3/(gti*vonkar*(hfxv(i,j)+dsign(1.D-10,        &
+                      & hfxv(i,j))))
         end do
 !
 !       compute diffusivities and counter gradient terms
@@ -301,7 +302,7 @@
             do i = 2 , ixm1
               if ( k.gt.1 ) akxx1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)    &
                  & /dza(i,k-1,j)
-              akxx2(i,k,j) = g/(psb(i,j)*1000.)/dsigma(k)
+              akxx2(i,k,j) = gti/(psb(i,j)*1000.)/dsigma(k)
             end do
           end do
         end if
@@ -523,7 +524,7 @@
           do i = 2 , ixm1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = g/(psb(i,j)*1000.)/dsigma(k)
+            alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
           end do
         end do
  
@@ -560,7 +561,7 @@
         do i = 2 , ixm1
           coefe(i,kx) = 0.
           coeff1(i,kx) = (thx3d(i,kx,j)+dt*alphak(i,kx)*hfx(i,j)        &
-                       & /cp+coef3(i,kx)*coeff1(i,kx-1))                &
+                       & *rcpd+coef3(i,kx)*coeff1(i,kx-1))              &
                        & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
         end do
  
@@ -600,7 +601,7 @@
           do i = 2 , ixm1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = g/(psb(i,j)*1000.)/dsigma(k)
+            alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
           end do
         end do
  
@@ -673,7 +674,7 @@
           do i = 2 , ixm1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = g/(psb(i,j)*1000.)/dsigma(k)
+            alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
           end do
         end do
  
@@ -753,21 +754,21 @@
         do k = 2 , kx
           do i = 2 , ixm1
             sf = tb(i,k,j)/(psb(i,j)*thx3d(i,k,j))
-            ttnp(i,k) = sf*cp*rhohf(i,k-1,j)*kvh(i,k,j)*cgh(i,k,j)
+            ttnp(i,k) = sf*cpd*rhohf(i,k-1,j)*kvh(i,k,j)*cgh(i,k,j)
           end do
         end do
 !
 !-----compute the tendencies:
 !
         do i = 2 , ixm1
-          difft(i,kx,j) = difft(i,kx,j) - g*ttnp(i,kx)                  &
-                        & /(1000.*cp*dsigma(kx))
+          difft(i,kx,j) = difft(i,kx,j) - gti*ttnp(i,kx)                &
+                        & /(1000.*cpd*dsigma(kx))
         end do
 !
         do k = 1 , kxm1
           do i = 2 , ixm1
-            difft(i,k,j) = difft(i,k,j) + g*(ttnp(i,k+1)-ttnp(i,k))     &
-                         & /(1000.*cp*dsigma(k))
+            difft(i,k,j) = difft(i,k,j) + gti*(ttnp(i,k+1)-ttnp(i,k))   &
+                         & /(1000.*cpd*dsigma(k))
           end do
         end do
  
@@ -785,7 +786,7 @@
             do i = 2 , ixm1
               if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvc(i,k,j)      &
                  & /dza(i,k-1,j)
-              alphak(i,k) = g/(psb(i,j)*1000.)/dsigma(k)
+              alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
             end do
           end do
  
@@ -889,7 +890,7 @@
  
               if ( chtrname(itr).ne.'DUST' ) remdrd(i,j,itr)            &
                  & = remdrd(i,j,itr) + chix(i,kx)*vdep(i,itr)*psb(i,j)  &
-                 & *dt/2.*rhox2d(i,j)*g/(psb(i,j)*1000.*dsigma(kx))
+                 & *dt/2.*rhox2d(i,j)*gti/(psb(i,j)*1000.*dsigma(kx))
  
             end do
           end do

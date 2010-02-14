@@ -47,6 +47,7 @@
       use mod_regcm_param
       use mod_bats
       use mod_ictp01
+      use mod_constants , only : rmax0
       implicit none
 !
 ! Local variables

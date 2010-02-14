@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine splitf(gnuhf)
+      subroutine splitf
 !
 !** compute deld, delh
 !** integrate in time and add correction terms appropriately
@@ -27,15 +27,11 @@
       use mod_main
       use mod_split
       use mod_bxq
+      use mod_constants , only : gnuhf
 #ifdef MPP1
       use mpi
 #endif
       implicit none
-!
-! Dummy arguments
-!
-      real(8) :: gnuhf
-      intent (in) gnuhf
 !
 ! Local variables
 !

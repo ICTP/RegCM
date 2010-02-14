@@ -27,6 +27,8 @@
       use mod_pbldim
       use mod_pmoist
       use mod_slice
+      use mod_constants , only : rgas , rovcp , rovg , ep2 , svp1 ,     &
+                               & svp2 , svp3
       implicit none
 !
 ! Local variables
@@ -134,12 +136,12 @@
         do i = 2 , ixm1
           psrf = (psb(i,j)+ptop)*1000.
           tv = tb3d(i,kx,j)
-          rhox2d(i,j) = psrf/(r*tv)
+          rhox2d(i,j) = psrf/(rgas*tv)
         end do
         do k = 1 , kx
           do i = 2 , ixm2
             pres = (a(k)*psb(i,j)+ptop)*1000.
-            rhob3d(i,k,j) = pres/(r*tb3d(i,k,j)) !air density
+            rhob3d(i,k,j) = pres/(rgas*tb3d(i,k,j)) !air density
             if ( tb3d(i,k,j).gt.273.15 ) then
               satvp = svp1*1.E3*dexp(svp2*(tb3d(i,k,j)-273.15)          &
                     & /(tb3d(i,k,j)-svp3))

@@ -21,6 +21,7 @@
                     & evap,prec,hice,hsnow)
  
       use mod_lake
+      use mod_constants , only : ep2
       implicit none
 !
 ! PARAMETER definitions
@@ -76,7 +77,7 @@
       qh = hsen
  
 !     convert mixing ratio to air vapor pressure
-      ea = q*88.0/(0.622+0.378*q)
+      ea = q*88.0/(ep2+0.378*q)
  
 !     ******    Check if conditions exist for lake ice
       tcutoff = -0.001

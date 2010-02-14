@@ -45,6 +45,8 @@
       use mod_cvaria
       use mod_pmoist
       use mod_slice
+      use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
+                               & svp2 , svp3
       implicit none
 !
 ! Dummy arguments
@@ -95,7 +97,7 @@
           qvs = dmax1(ep2*satvp/(pres-satvp),1.D-30)
           rhc = dmax1(qvcs(i,k)/qvs,1.D-30)
  
-          r1 = 1./(1.+xlv*xlv*qvs/(rv*cp*tmp3(i,k)*tmp3(i,k)))
+          r1 = 1./(1.+wlhv*wlhv*qvs/(rv*cpd*tmp3(i,k)*tmp3(i,k)))
  
 !         2b. Compute the relative humidity threshold at ktau+1
           if ( tmp3(i,k).gt.tc0 ) then
@@ -137,7 +139,7 @@
         do i = 2 , ixm2
           qvten(i,k,j) = qvten(i,k,j) - psc(i,j)*tmp2(i,k)
           qcten(i,k,j) = qcten(i,k,j) + psc(i,j)*tmp2(i,k)
-          tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2(i,k)*xlvocp
+          tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2(i,k)*wlhvocp
         end do
       end do
  

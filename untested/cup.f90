@@ -28,6 +28,8 @@
       use mod_pmoist
       use mod_rad
       use mod_trachem
+      use mod_constants , only : gti , rgti , cpd , tmelt , wlhv ,      &
+                               & rwat , rcpd , wlhvocp
       implicit none
 !
 ! Dummy arguments
@@ -50,12 +52,12 @@
                                & qck , qcko , qkb , qkbo , vshear ,     &
                                & xaa0 , xhcd , xhkb , xmb , xpwav ,     &
                                & xpwev , xqcd , xqck , xqkb
-      real(8) :: adw , akclth , alsixt , aup , c0 , cpinv , detdo ,     &
+      real(8) :: adw , akclth , alsixt , aup , c0 , detdo ,             &
                & detdoq , dg , dh , dhh , dp , dq , dt , dv1 , dv1q ,   &
                & dv2 , dv2q , dv3 , dv3q , dz , dz1 , dz2 , dzo , e ,   &
                & eo , f , agamma , gamma0 , gamma1 , gamma2 , gammo ,   &
                & gammo0 , mbdt , outtes , pbcdif , qrch , qrcho ,       &
-               & tcrit , tfinv , tvbar , tvbaro , xk , xl
+               & tcrit , tfinv , tvbar , tvbaro , xk
       real(8) , dimension(2) :: ae , be , ht
       real(8) , dimension(ix,kx) :: dby , dbyo , dellah , dellaq ,      &
                                   & dellat , dkk , he , heo , hes ,     &
@@ -68,14 +70,11 @@
       integer , dimension(ix) :: jmin , k22 , kb , kbcon , kds , ktop
 !
       tcrit = 50.
-      xl = 2.5E06
-      rv = 461.9
  
-      cpinv = 1./cp
-      tfinv = 1./273.
+      tfinv = 1./tmelt
       alsixt = dlog(610.71D0)
-      ht(1) = xl*cpinv
-      ht(2) = 2.834E6*cpinv
+      ht(1) = wlhvocp
+      ht(2) = 2.834E6*rcpd
       be(1) = .622*ht(1)*3.50
       ae(1) = be(1)*tfinv + alsixt
       be(2) = .622*ht(2)*3.50
@@ -145,18 +144,18 @@
 !       edtx(i)=0.
         xmb(i) = 0.
         vshear(i) = 0.
-        z(i,1) = z1(i) - (dlog(p(i,1))-dlog(psur(i)))*287.*tv(i,1)/9.81
+        z(i,1) = z1(i) - (dlog(p(i,1))-dlog(psur(i)))*287.*tv(i,1)*rgti
         zo(i,1) = z1(i) - (dlog(po(i,1))-dlog(psur(i)))*287.*tvo(i,1)   &
-                & /9.81
+                & *rgti
       end do
       do k = 2 , kx
         do i = istart , iend
           tvbar = .5*tv(i,k) + .5*tv(i,k-1)
           z(i,k) = z(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))             &
-                 & *287.*tvbar/9.81
+                 & *287.*tvbar*rgti
           tvbaro = .5*tvo(i,k) + .5*tvo(i,k-1)
           zo(i,k) = zo(i,k-1) - (dlog(po(i,k))-dlog(po(i,k-1)))         &
-                  & *287.*tvbaro/9.81
+                  & *287.*tvbaro*rgti
         end do
       end do
 !
@@ -178,11 +177,11 @@
           dellah(i,k) = 0.
           dellaq(i,k) = 0.
           dellat(i,k) = 0.
-          he(i,k) = 9.81*z(i,k) + 1004.*t(i,k) + 2.5E06*q(i,k)
-          hes(i,k) = 9.81*z(i,k) + 1004.*t(i,k) + 2.5E06*qes(i,k)
+          he(i,k) = gti*z(i,k) + cpd*t(i,k) + 2.5E06*q(i,k)
+          hes(i,k) = gti*z(i,k) + cpd*t(i,k) + 2.5E06*qes(i,k)
           if ( he(i,k).ge.hes(i,k) ) he(i,k) = hes(i,k)
-          heo(i,k) = 9.81*zo(i,k) + 1004.*tn(i,k) + 2.5E06*qo(i,k)
-          heso(i,k) = 9.81*zo(i,k) + 1004.*tn(i,k) + 2.5E06*qeso(i,k)
+          heo(i,k) = gti*zo(i,k) + cpd*tn(i,k) + 2.5E06*qo(i,k)
+          heso(i,k) = gti*zo(i,k) + cpd*tn(i,k) + 2.5E06*qeso(i,k)
           if ( heo(i,k).ge.heso(i,k) ) heo(i,k) = heso(i,k)
           xt(i,k) = t(i,k)
           xq(i,k) = q(i,k)
@@ -337,28 +336,32 @@
               if ( k.lt.ktop(i) ) then
                 dz = -.5*z(i,k-1) + .5*z(i,k+1)
                 dz1 = z(i,k) - z(i,k-1)
-                agamma = (xl/cp)*(xl/(rv*(t(i,k)**2)))*qes(i,k)
-                gamma0 = (xl/cp)*(xl/(rv*(t(i,k-1)**2)))*qes(i,k-1)
-                qrch = qes(i,k) + (1./xl)*(agamma/(1.+agamma))*dby(i,k)
+                agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**2)))*qes(i,k)
+                gamma0 = (wlhvocp)*(wlhv/(rwat*(t(i,k-1)**2)))*         &
+                        & qes(i,k-1)
+                qrch = qes(i,k) + (1./wlhv)*(agamma/(1.+agamma))*       &
+                        & dby(i,k)
                 qc(i,k) = (qck(i)-qrch)/(1.+c0*dz) + qrch
                 pw(i,k) = c0*dz*(qc(i,k)-qrch)
                 qck(i) = qc(i,k)
                 pwav(i) = pwav(i) + pw(i,k)
                 dz1 = z(i,k) - z(i,k-1)
                 aa0(i) = aa0(i)                                         &
-                       & + dz1*(9.81/(1004.*(.5*(t(i,k)+t(i,k-1)))))    &
+                       & + dz1*(gti/(cpd*(.5*(t(i,k)+t(i,k-1)))))       &
                        & *dby(i,k-1)/(1.+.5*agamma+.5*gamma0)
                 dzo = -.5*zo(i,k-1) + .5*zo(i,k+1)
                 dz2 = zo(i,k) - zo(i,k-1)
-                gammo = (xl/cp)*(xl/(rv*(tn(i,k)**2)))*qeso(i,k)
-                gammo0 = (xl/cp)*(xl/(rv*(tn(i,k-1)**2)))*qeso(i,k-1)
-                qrcho = qeso(i,k) + (1./xl)*(gammo/(1.+gammo))*dbyo(i,k)
+                gammo = (wlhvocp)*(wlhv/(rwat*(tn(i,k)**2)))*qeso(i,k)
+                gammo0 = (wlhvocp)*(wlhv/(rwat*(tn(i,k-1)**2)))*        &
+                       & qeso(i,k-1)
+                qrcho = qeso(i,k) + (1./wlhv)*(gammo/(1.+gammo))*       &
+                       & dbyo(i,k)
                 qco(i,k) = (qcko(i)-qrcho)/(1.+c0*dzo) + qrcho
                 pwo(i,k) = c0*dzo*(qco(i,k)-qrcho)
                 qcko(i) = qco(i,k)
                 pwavo(i) = pwavo(i) + pwo(i,k)
                 aa1(i) = aa1(i)                                         &
-                       & + dz2*(9.81/(1004.*(.5*(tn(i,k)+tn(i,k-1)))))  &
+                       & + dz2*(gti/(cpd*(.5*(tn(i,k)+tn(i,k-1)))))     &
                        & *dbyo(i,k-1)/(1.+.5*gammo+.5*gammo0)
               end if
             end if
@@ -371,15 +374,15 @@
         if ( aa0(i).ne.-1. ) then
           k = ktop(i)
           dz = -.5*z(i,k-1) + .5*z(i,k)
-          agamma = (xl/cp)*(xl/(rv*(t(i,k)**2)))*qes(i,k)
-          qrch = qes(i,k) + (1./xl)*(agamma/(1.+agamma))*dby(i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**2)))*qes(i,k)
+          qrch = qes(i,k) + (1./wlhv)*(agamma/(1.+agamma))*dby(i,k)
           qc(i,k) = qes(i,k)
           pw(i,k) = (qrch-qes(i,k))
           pwav(i) = pwav(i) + pw(i,k)
 !
           dz = -.5*zo(i,k-1) + .5*zo(i,k)
-          agamma = (xl/cp)*(xl/(rv*(tn(i,k)**2)))*qeso(i,k)
-          qrcho = qeso(i,k) + (1./xl)*(agamma/(1.+agamma))*dbyo(i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(tn(i,k)**2)))*qeso(i,k)
+          qrcho = qeso(i,k) + (1./wlhv)*(agamma/(1.+agamma))*dbyo(i,k)
           qco(i,k) = qeso(i,k)
           pwo(i,k) = (qrcho-qeso(i,k))
           pwavo(i) = pwavo(i) + pwo(i,k)
@@ -428,9 +431,9 @@
               bu(i) = bu(i) + dz*(hcd(i)-.5*(hes(i,kk)+hes(i,kk+1)))
               dq = (qes(i,kk)+qes(i,kk+1))*.5
               dt = (t(i,kk)+t(i,kk+1))*.5
-              agamma = (xl/cp)*(xl/(rv*(dt**2)))*dq
+              agamma = (wlhvocp)*(wlhv/(rwat*(dt**2)))*dq
               dh = hcd(i) - .5*(hes(i,kk)+hes(i,kk+1))
-              qrcd(i,kk) = (dq+(1./xl)*(agamma/(1.+agamma))*dh)
+              qrcd(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
               pwd(i,kk) = dkk(i,kk)*(qcd(i)-qrcd(i,kk))
               qcd(i) = qrcd(i,kk)
               pwev(i) = pwev(i) + pwd(i,kk)
@@ -440,9 +443,9 @@
                      & )
               dq = (qeso(i,kk)+qeso(i,kk+1))*.5
               dt = (tn(i,kk)+tn(i,kk+1))*.5
-              agamma = (xl/cp)*(xl/(rv*(dt**2)))*dq
+              agamma = (wlhvocp)*(wlhv/(rwat*(dt**2)))*dq
               dh = hcdo(i) - .5*(heso(i,kk)+heso(i,kk+1))
-              qrcdo(i,kk) = (dq+(1./xl)*(agamma/(1.+agamma))*dh)
+              qrcdo(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
               pwdo(i,kk) = dkk(i,kk)*(qcdo(i)-qrcdo(i,kk))
               qcdo(i) = qrcdo(i,kk)
               pwevo(i) = pwevo(i) + pwdo(i,kk)
@@ -475,15 +478,14 @@
           dp = 50.*(psur(i)-p(i,2))
           dellah(i,1) = edt(i)                                          &
                       & *(dkk(i,1)*hcd(i)-dkk(i,1)*.5*(he(i,1)+he(i,2)))&
-                      & *g/dp
+                      & *gti/dp
           dellaq(i,1) = edt(i)                                          &
                       & *(dkk(i,1)*qrcd(i,1)-dkk(i,1)*.5*(q(i,1)+q(i,2))&
-                      & )*g/dp
+                      & )*gti/dp
           xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
           xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-          dellat(i,k) = (1./1004.)*(dellah(i,k)-2.5E06*dellaq(i,k))
-          xt(i,k) = (mbdt/1004.)*(dellah(i,k)-2.5E06*dellaq(i,k))       &
-                  & + t(i,k)
+          dellat(i,k) = rcpd*(dellah(i,k)-2.5E06*dellaq(i,k))
+          xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-2.5E06*dellaq(i,k))+t(i,k)
           if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
         end if
       end do
@@ -514,14 +516,14 @@
               if ( k.gt.jmin(i) ) adw = 0.
               dp = +50.*(p(i,k-1)-p(i,k+1))
               dellah(i,k) = ((aup-adw*edt(i))*(dv1-dv2)+(aup-adw*edt(i))&
-                          & *(dv2-dv3))*g/dp + adw*edt(i)*detdo*g/dp
+                          & *(dv2-dv3))*gti/dp + adw*edt(i)*detdo*gti/dp
               dellaq(i,k) = ((aup-adw*edt(i))*(dv1q-dv2q)+(aup-adw*edt(i&
-                          & ))*(dv2q-dv3q))*g/dp + adw*edt(i)           &
-                          & *detdoq*g/dp
+                          & ))*(dv2q-dv3q))*gti/dp + adw*edt(i)         &
+                          & *detdoq*gti/dp
               xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
               xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-              dellat(i,k) = (1./1004.)*(dellah(i,k)-2.5E06*dellaq(i,k))
-              xt(i,k) = (mbdt/1004.)*(dellah(i,k)-2.5E06*dellaq(i,k))   &
+              dellat(i,k) = rcpd*(dellah(i,k)-2.5E06*dellaq(i,k))
+              xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-2.5E06*dellaq(i,k))    &
                       & + t(i,k)
               if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
             end if
@@ -536,14 +538,14 @@
           lpt = ktop(i)
           dp = 100.*(p(i,lpt-1)-p(i,lpt))
           dv1 = .5*(he(i,lpt)+he(i,lpt-1))
-          dellah(i,lpt) = (hkb(i)-dv1)*g/dp
+          dellah(i,lpt) = (hkb(i)-dv1)*gti/dp
           dv1 = .5*(q(i,lpt)+q(i,lpt-1))
-          dellaq(i,lpt) = (qes(i,lpt)-dv1)*g/dp
+          dellaq(i,lpt) = (qes(i,lpt)-dv1)*gti/dp
           k = lpt
           xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
           xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-          dellat(i,k) = (1./1004.)*(dellah(i,k)-2.5E06*dellaq(i,k))
-          xt(i,k) = (mbdt/1004.)*(dellah(i,k)-2.5E06*dellaq(i,k))       &
+          dellat(i,k) = rcpd*(dellah(i,k)-2.5E06*dellaq(i,k))
+          xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-2.5E06*dellaq(i,k))        &
                   & + t(i,k)
           if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
           xhkb(i) = dellah(i,kbcon(i))*mbdt + hkb(i)
@@ -577,14 +579,14 @@
       do i = istart , iend
         if ( aa0(i).ne.-1. ) xz(i,1) = z1(i)                            &
                                      & - (dlog(p(i,1))-dlog(psur(i)))   &
-                                     & *287.*xtv(i,1)/9.81
+                                     & *287.*xtv(i,1)*rgti
       end do
       do k = 2 , kx
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             tvbar = .5*xtv(i,k) + .5*xtv(i,k-1)
             xz(i,k) = xz(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))         &
-                    & *287.*tvbar/9.81
+                    & *287.*tvbar*rgti
           end if
         end do
       end do
@@ -594,7 +596,7 @@
       do k = 1 , kx
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
-            xhes(i,k) = 9.81*xz(i,k) + 1004.*xt(i,k) + 2.5E06*xqes(i,k)
+            xhes(i,k) = gti*xz(i,k) + cpd*xt(i,k) + 2.5E06*xqes(i,k)
             if ( xhe(i,k).ge.xhes(i,k) ) xhe(i,k) = xhes(i,k)
           end if
         end do
@@ -619,15 +621,17 @@
             if ( k.gt.kbcon(i) .and. k.lt.ktop(i) ) then
               dz = -.5*xz(i,k-1) + .5*xz(i,k+1)
               dz1 = xz(i,k) - xz(i,k-1)
-              agamma = (xl/cp)*(xl/(rv*(xt(i,k)**2)))*xqes(i,k)
-              gamma0 = (xl/cp)*(xl/(rv*(xt(i,k-1)**2)))*xqes(i,k-1)
-              qrch = xqes(i,k) + (1./xl)*(agamma/(1.+agamma))*xdby(i,k)
+              agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**2)))*xqes(i,k)
+              gamma0 = (wlhvocp)*(wlhv/(rwat*(xt(i,k-1)**2)))*          &
+                      & xqes(i,k-1)
+              qrch = xqes(i,k) + (1./wlhv)*(agamma/(1.+agamma))*        &
+                      & xdby(i,k)
               xqc(i,k) = (xqck(i)-qrch)/(1.+c0*dz) + qrch
               xpw(i,k) = c0*dz*(xqc(i,k)-qrch)
               xqck(i) = xqc(i,k)
               xpwav(i) = xpwav(i) + xpw(i,k)
               xaa0(i) = xaa0(i)                                         &
-                      & + dz1*(9.81/(1004.*(.5*(xt(i,k)+xt(i,k-1)))))   &
+                      & + dz1*(gti/(cpd*(.5*(xt(i,k)+xt(i,k-1)))))      &
                       & *xdby(i,k-1)/(1.+.5*agamma+.5*gamma0)
             end if
           end if
@@ -637,8 +641,8 @@
         if ( aa0(i).ge.0. ) then
           k = ktop(i)
           dz = -.5*xz(i,k-1) + .5*xz(i,k)
-          agamma = (xl/cp)*(xl/(rv*(xt(i,k)**2)))*xqes(i,k)
-          qrch = xqes(i,k) + (1./xl)*(agamma/(1.+agamma))*xdby(i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**2)))*xqes(i,k)
+          qrch = xqes(i,k) + (1./wlhv)*(agamma/(1.+agamma))*xdby(i,k)
           xqc(i,k) = xqes(i,k)
           xpw(i,k) = (qrch-xqes(i,k))
           xpwav(i) = xpwav(i) + xpw(i,k)
@@ -664,9 +668,9 @@
               bu(i) = bu(i) + dz*(xhcd(i)-.5*(xhes(i,kk)+xhes(i,kk+1)))
               dq = (xqes(i,kk)+xqes(i,kk+1))*.5
               dt = (xt(i,kk)+xt(i,kk+1))*.5
-              agamma = (xl/cp)*(xl/(rv*(dt**2)))*dq
+              agamma = (wlhvocp)*(wlhv/(rwat*(dt**2)))*dq
               dh = xhcd(i) - .5*(xhes(i,kk)+xhes(i,kk+1))
-              xqrcd(i,kk) = (dq+(1./xl)*(agamma/(1.+agamma))*dh)
+              xqrcd(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
               xpwd(i,kk) = dkk(i,kk)*(xqcd(i)-xqrcd(i,kk))
               xqcd(i) = xqrcd(i,kk)
               xpwev(i) = xpwev(i) + xpwd(i,kk)
@@ -701,37 +705,41 @@
 !
 !---          original
 !
-              gamma1 = (xl/cp)*(xl/(rv*(t(i,kk)**2)))*qes(i,kk)
-              gamma2 = (xl/cp)*(xl/(rv*(t(i,kk+1)**2)))*qes(i,kk+1)
+              gamma1 = (wlhvocp)*(wlhv/(rwat*(t(i,kk)**2)))*qes(i,kk)
+              gamma2 = (wlhvocp)*(wlhv/(rwat*(t(i,kk+1)**2)))*          &
+                     & qes(i,kk+1)
               dhh = hcd(i)
               dt = .5*(t(i,kk)+t(i,kk+1))
               dg = .5*(gamma1+gamma2)
               dh = .5*(hes(i,kk)+hes(i,kk+1))
               dz = (z(i,kk)-z(i,kk+1))*dkk(i,kk)
-              aa0(i) = aa0(i) + edt(i)*dz*(g/(cp*dt))*((dhh-dh)/(1.+dg))
+              aa0(i) = aa0(i) + edt(i)*dz*(gti/(cpd*dt))*((dhh-dh)/     &
+                     & (1.+dg))
 !
 !---          modified by larger scale
 !
-              gamma1 = (xl/cp)*(xl/(rv*(tn(i,kk)**2)))*qeso(i,kk)
-              gamma2 = (xl/cp)*(xl/(rv*(tn(i,kk+1)**2)))*qeso(i,kk+1)
+              gamma1 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk)**2)))*qeso(i,kk)
+              gamma2 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk+1)**2)))*         &
+                      & qeso(i,kk+1)
               dhh = hcdo(i)
               dt = .5*(tn(i,kk)+tn(i,kk+1))
               dg = .5*(gamma1+gamma2)
               dh = .5*(heso(i,kk)+heso(i,kk+1))
               dz = (zo(i,kk)-zo(i,kk+1))*dkk(i,kk)
-              aa1(i) = aa1(i) + edto(i)*dz*(g/(cp*dt))                  &
+              aa1(i) = aa1(i) + edto(i)*dz*(gti/(cpd*dt))               &
                      & *((dhh-dh)/(1.+dg))
 !
 !---          modified by cloud
 !
-              gamma1 = (xl/cp)*(xl/(rv*(xt(i,kk)**2)))*xqes(i,kk)
-              gamma2 = (xl/cp)*(xl/(rv*(xt(i,kk+1)**2)))*xqes(i,kk+1)
+              gamma1 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk)**2)))*xqes(i,kk)
+              gamma2 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk+1)**2)))*         &
+                     & xqes(i,kk+1)
               dhh = xhcd(i)
               dt = .5*(xt(i,kk)+xt(i,kk+1))
               dg = .5*(gamma1+gamma2)
               dh = .5*(xhes(i,kk)+xhes(i,kk+1))
               dz = (xz(i,kk)-xz(i,kk+1))*dkk(i,kk)
-              xaa0(i) = xaa0(i) + edtx(i)*dz*(g/(cp*dt))                &
+              xaa0(i) = xaa0(i) + edtx(i)*dz*(gti/(cpd*dt))             &
                       & *((dhh-dh)/(1.+dg))
             end if
           end if

@@ -33,6 +33,7 @@
       use mod_param3
       use mod_diagnosis
       use mod_main
+      use mod_constants , only : rgti
 #ifdef MPP1
       use mod_mppio
       use mpi
@@ -90,7 +91,7 @@
       do k = 1 , kx
         do i = 1 , ixm1
           tdadv = tdadv - dtmin*3.E4*dsigma(k)                          &
-                & *dx*(worka(i,k)-workb(i,k))/g
+                & *dx*(worka(i,k)-workb(i,k))*rgti
         end do
       end do
 !
@@ -114,7 +115,7 @@
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & /(msfx_io(ixm1,j)*msfx_io(ixm1,j))                  &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
-                  & /(msfx_io(1,j)*msfx_io(1,j)))/g
+                  & /(msfx_io(1,j)*msfx_io(1,j)))*rgti
           end do
         end do
       end if
@@ -125,7 +126,7 @@
           tdadv = tdadv - dtmin*3.E4*dsigma(k)                          &
                 & *dx*((va(ix,k,j+1)+va(ix,k,j))                        &
                 & /(msfx(ixm1,j)*msfx(ixm1,j))-(va(1,k,j+1)+va(1,k,j))  &
-                & /(msfx(1,j)*msfx(1,j)))/g
+                & /(msfx(1,j)*msfx(1,j)))*rgti
         end do
       end do
 #endif
@@ -171,7 +172,7 @@
       do k = 1 , kx
         do i = 1 , ixm1
           tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
-                & *dx*(worka(i,k)-workb(i,k))/g
+                & *dx*(worka(i,k)-workb(i,k))*rgti
         end do
       end do
 !
@@ -205,7 +206,7 @@
                   & /(msfx_io(ixm1,j)*msfx_io(ixm1,j))                  &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & *(qva01_g(k,j)/psa01_g(j))                          &
-                  & /(msfx_io(1,j)*msfx_io(1,j)))/g
+                  & /(msfx_io(1,j)*msfx_io(1,j)))*rgti
           end do
         end do
       end if
@@ -217,7 +218,7 @@
                 & *dx*((va(ix,k,j+1)+va(ix,k,j))                        &
                 & *(qva(ixm1,k,j)/psa(ixm1,j))/(msfx(ixm1,j)            &
                 & *msfx(ixm1,j))-(va(1,k,j+1)+va(1,k,j))                &
-                & *(qva(1,k,j)/psa(1,j))/(msfx(1,j)*msfx(1,j)))/g
+                & *(qva(1,k,j)/psa(1,j))/(msfx(1,j)*msfx(1,j)))*rgti
         end do
       end do
 #endif
@@ -262,7 +263,7 @@
       do k = 1 , kx
         do i = 1 , ixm1
           tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
-                & *dx*(worka(i,k)-workb(i,k))/g
+                & *dx*(worka(i,k)-workb(i,k))*rgti
         end do
       end do
 !
@@ -290,7 +291,7 @@
                   & /(msfx_io(ixm1,j)*msfx_io(ixm1,j))                  &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & *(qca01_g(k,j)/psa01_g(j))                          &
-                  & /(msfx_io(1,j)*msfx_io(1,j)))/g
+                  & /(msfx_io(1,j)*msfx_io(1,j)))*rgti
           end do
         end do
       end if

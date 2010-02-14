@@ -19,6 +19,7 @@
  
       function tpfc(press,thetae,tgs,d273,rl,qs,pi)
  
+      use mod_constants , only : rcpd , ep2 , rwat
       implicit none
 !
 ! Dummy arguments
@@ -30,22 +31,22 @@
 !
 ! Local variables
 !
-      real(8) :: dt , es , f1 , fo , rl1004 , rl461 , rp , t1 , tguess
+      real(8) :: dt , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
 !
 !...iteratively extract temperature from equivalent potential
 !...temperature.
 !
-      rl461 = rl/461.5
-      rl1004 = rl/1004.
+      rlorw = rl/rwat
+      rlocpd = rl*rcpd
       rp = thetae/pi
-      es = 611.*dexp(rl461*(d273-1./tgs))
-      qs = 0.622*es/(press-es)
-      fo = tgs*dexp(rl1004*qs/tgs) - rp
+      es = 611.*dexp(rlorw*(d273-1./tgs))
+      qs = ep2*es/(press-es)
+      fo = tgs*dexp(rlocpd*qs/tgs) - rp
       t1 = tgs - 0.5*fo
       tguess = tgs
- 100  es = 611.*dexp(rl461*(d273-1./t1))
-      qs = 0.622*es/(press-es)
-      f1 = t1*exp(rl1004*qs/t1) - rp
+ 100  es = 611.*dexp(rlorw*(d273-1./t1))
+      qs = ep2*es/(press-es)
+      f1 = t1*exp(rlocpd*qs/t1) - rp
       if ( abs(f1).lt..1 ) then
 !
         tpfc = t1

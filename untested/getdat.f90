@@ -39,6 +39,7 @@
       use mod_comtim
       use mod_date
       use mod_crdcon
+      use mod_constants , only : gti
       implicit none
 !
 ! Dummy arguments
@@ -56,7 +57,7 @@
 !
 ! Local variables
 !
-      real(8) :: amd , amo , ccvtem , clwtem , gravx , rx , vmmr
+      real(8) :: amd , amo , ccvtem , clwtem , rx , vmmr
       real(8) , dimension(ixm1,kx) :: deltaz
       integer :: i , k , kj , n , ncldm1 , nll
       real(8) , dimension(ixm1) :: rlat
@@ -89,7 +90,6 @@
 !
 !     set fundamental constants (mks):
 !
-      gravx = 9.80616
       rx = 287.
 !
 !     begin read of data:
@@ -181,7 +181,7 @@
           clwtem = cldlwc(n,nll)
                                !cqc mod
           deltaz(n,nll) = rx*tm1(n,nll)*(pintm1(n,nll+1)-pintm1(n,nll)) &
-                        & /(gravx*pmidm1(n,nll))
+                        & /(gti*pmidm1(n,nll))
           clwp(n,nll) = clwtem*deltaz(n,nll)
 !KN       if (cldfrc(n,nll).eq.0.) clwp(n,nll)=0.
           if ( cld(n,nll).eq.0. ) clwp(n,nll) = 0.

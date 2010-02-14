@@ -54,6 +54,7 @@
 !                                                         *****
 !**************************************************************
 
+      use mod_constants , only : ep2 , gti , rgti , vonkar , mathpi
       implicit none
 !
 ! PARAMETER definitions
@@ -80,7 +81,7 @@
       real(8) :: a1 , a2 , a3 , aa , aa1 , aa2 , aa3 , amfp , amob ,    &
                & asq , boltzk , c1 , c2 , c3 , c4 , ch , cm , cun ,     &
                & dtemp , dthv , eb , eim , ein , es , fh , fm , frx1 ,  &
-               & g , krm , kui , logratio , mol , pi , pmb , pre ,      &
+               & krm , kui , logratio , mol , pmb , pre ,               &
                & prii , priiv , psit , psiu , ptemp2 , qs , r1 ,        &
                & ratioz , rhop , rib , st , tbar , thstar , tsv , tsw , &
                & ustarsq , utstar , vp , vptemp , wvpm , ww , x , y ,   &
@@ -105,8 +106,8 @@
       data a1/145.8/ , a2/1.5/ , a3/110.4/
       data c1/6.54E-8/ , c2/1.818E-5/ , c3/1.013E5/ , c4/293.15/
       data aa1/1.257/ , aa2/0.4/ , aa3/1.1/
-      data g/9.806160/ , boltzk/1.3806044E-23/
-      data rhop/2650.0/ , pi/3.14159265/
+      data boltzk/1.3806044E-23/
+      data rhop/2650.0/
  
       data aest/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,     &
          & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
@@ -148,7 +149,7 @@
 !           ********************************************************
  
             amfp = c1*(amu(i,l)/c2)*(c3/pre)*(throw(i,l)/c4)**(1./2.)
-            prii = 2./9.*g/amu(i,l)
+            prii = 2./9.*gti/amu(i,l)
             priiv = prii*(rhop-roarow(i,l))
  
 !           ********************************************************
@@ -158,7 +159,7 @@
  
             cfac(i,l,n) = 1. + amfp/avesize(n)                          &
                         & *(aa1+aa2*exp(-aa3*avesize(n)/amfp))
-            taurel(i,l,n) = dmax1(priiv*avesize(n)**2*cfac(i,l,n)/g,    &
+            taurel(i,l,n) = dmax1(priiv*avesize(n)**2*cfac(i,l,n)*rgti, &
                           & 0.D0)
  
 !           ********************************************************
@@ -166,7 +167,7 @@
 !           pdepvsub(i,l,n) ' sellting dep. velocity = '
 !           ********************************************************
  
-            pdepvsub(i,l,n) = taurel(i,l,n)*g
+            pdepvsub(i,l,n) = taurel(i,l,n)*gti
           end do
         end do
       end do
@@ -218,7 +219,7 @@
 ! **************************************************************
             es = 6.108*exp(17.27*(temp2(i)-273.16)/(temp2(i)-35.86))
             vp = rh10(i)*es
-            wvpm = 0.622*vp/(pmb-vp)
+            wvpm = ep2*vp/(pmb-vp)
             vptemp = ptemp2*(1.0+0.61*wvpm)
  
 ! **************************************************************
@@ -233,7 +234,7 @@
 ! **************************************************************
             tsw = sutemp(i)
             vp = 6.108*exp(17.27*(tsw-273.16)/(tsw-35.86))
-            qs = 0.622*vp/(pmb-vp)
+            qs = ep2*vp/(pmb-vp)
             tsv = tsw*(1.+0.61*qs)
             z0water = 1.0E-4
 ! **************************************************************
@@ -265,7 +266,7 @@
 ! **************************************************************
               x = (1.0-15.0*zdl)**0.25
               psiu = 2.*dlog(0.5*(1.0+x)) + dlog(0.5*(1.0+x*x))         &
-                   & - 2.0*atan(x) + 0.5*pi
+                   & - 2.0*atan(x) + 0.5*mathpi
  
 ! **************************************************************
 !             *                       pot temp                        
@@ -293,7 +294,7 @@
 !           ****
  
 ! **************************************************************
-            rib = g*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2)
+            rib = gti*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2)
  
 ! ***************************************************************
 !           * ensure that conditions over land are never stable when 
@@ -326,7 +327,7 @@
             ustar(i,j) = sqrt(ustarsq)
             thstar = utstar/ustar(i,j)
 !
-            mol = tbar*ustarsq/(0.4*9.8*thstar)
+            mol = tbar*ustarsq/(vonkar*gti*thstar)
           end if
  
           kui = 1.0/(krm*ustar(i,j))
@@ -379,7 +380,7 @@
             frx1 = 1.0
             rhsize(i,l,n) = avesize(n)*frx1
             anu(i) = amu(i,l)/roarow(i,l)
-            amob = 6.*pi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
+            amob = 6.*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
             pdiff(i,l,n) = boltzk*throw(i,l)/amob
             schm(i) = anu(i)/pdiff(i,l,n)
  

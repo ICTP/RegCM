@@ -80,17 +80,17 @@
       real(8) :: gvis , kaervs , omgvis , rhfac , tauvis
       integer :: i , itr , k , mxaerl
 !
-      data kaervs/5.3012/         ! multiplication factor for kaer
-      data omgvis/0.999999/
-      data gvis/0.694889/
-      data rhfac/1.6718/          ! EES added for efficiency
+      data kaervs/5.3012D0/         ! multiplication factor for kaer
+      data omgvis/0.999999D0/
+      data gvis/0.694889D0/
+      data rhfac/1.6718D0/          ! EES added for efficiency
 !
 !--------------------------------------------------------------------------
 !
       mxaerl = 4
 !
-!fil  tauvis = .01
-      tauvis = .04
+!fil  tauvis = 0.01D0
+      tauvis = 0.04D0
 !
 !     Set relative humidity and factor; then aerosol amount:
 !
@@ -110,11 +110,11 @@
 !         for the moment no more used
 !
           if ( k.ge.kxp1 - mxaerl ) then
-            aermmb(i,k) = gravit*tauvis/(1.E4*kaervs*rhfac*(1.-omgvis*  &
+            aermmb(i,k) = gravit*tauvis/(1.0D4*kaervs*rhfac*(1.-omgvis* &
                         & gvis*gvis)                                    &
                         & *(pint(i,kxp1)-pint(i,kx + 1 - mxaerl)))
           else
-            aermmb(i,k) = 0.0
+            aermmb(i,k) = 0.0D0
           end if
  
 !         if(ichem .eq. 1 .and. idirect .eq. 1) then
@@ -133,7 +133,7 @@
             end do
           else
             do itr = 1 , ntr
-!             aermmr(i,k,itr)= 0.0d0
+!             aermmr(i,k,itr)= 0.0D0
               aermmr(i,k,itr) = aermmb(i,k)
             end do
           end if

@@ -30,9 +30,10 @@
 !     rate is not affected.
 !
       use mod_regcm_param
-      use mod_bats , only : npts , ldoc1d , sigf , tlef1d , c , cdr ,   &
+      use mod_bats , only : npts , ldoc1d , sigf , tlef1d , df , cdr ,  &
                     & ts1d , wtga , qsatl , wta0 , wtgaq , tg1d , cn1 , &
-                    & wtg0 , df
+                    & wtg0
+      use mod_constants , only : tmelt
       use mod_ictp01
       implicit none
 !
@@ -46,7 +47,7 @@
           if ( ldoc1d(n,np).gt.0.5 ) then
             if ( sigf(n,np).gt.0.001 ) then
               dne = 1./(tlef1d(n,np)-b(n,np))
-              qsatld(n,np) = qsatl(n,np)*a(n,np)*(c(67)-b(n,np))*dne**2
+              qsatld(n,np) = qsatl(n,np)*a(n,np)*(tmelt-b(n,np))*dne**2
               xkb = cdrd(n,np)/cdr(n,np)
               hfl = df(n,np)                                            &
                   & *(wtga(n,np)*tlef1d(n,np)-wtg0(n,np)*tg1d(n,np)     &

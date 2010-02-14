@@ -20,7 +20,10 @@
       subroutine tseice
 
       use mod_regcm_param
+      use mod_param1 , only : dtbat
       use mod_bats
+      use mod_constants , only : ch2o , cice , csnw , tmelt , stdp ,    &
+                               & wlhf , wlhs , cpd
       implicit none
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ! 
@@ -65,11 +68,11 @@
 ! ******                include snow heat capacity
               rsd1 = 0.5*(wss*rss+wtt*rsd1)
             end if
-            tgb1d(n,np) = -2.0 + c(67)
+            tgb1d(n,np) = -2.0 + tmelt
 ! ******                subsurface heat flux through ice
             fss = 7.E-4*(tgb1d(n,np)-tg1d(n,np))                        &
                 & *ch2o*rhosw3/(scv1d(n,np)+1.4*rhosw3*sice1d(n,np))
-            sice1d(n,np) = sice1d(n,np) + fss*c(4)/c(127)*1.087
+            sice1d(n,np) = sice1d(n,np) + fss*dtbat/wlhf*1.087
  
 ! ******                set sea ice parameter for melting and return
             if ( sice1d(n,np).le.0.0 ) then
@@ -79,7 +82,7 @@
 ! ******                assume lead ocean temp is -1.8c
 ! ******                flux of heat and moisture through leads
 ! ******                sat. mixing ratio at t=-1.8c is 3.3e-3
-            qice(n,np) = 3.3E-3*c(81)/p1d(n,np)
+            qice(n,np) = 3.3E-3*stdp/p1d(n,np)
 !
 !  determine effective surface fluxes over ice, allowing for leads;
 !  aarea(n,np) is set in subroutine drag.
@@ -88,38 +91,37 @@
             qgrnd = ((1.-aarea(n,np))*cdr(n,np)*qg1d(n,np)+aarea(n,np)  &
                   & *clead(n,np)*qice(n,np))/cdrx(n,np)
             tgrnd = ((1.-aarea(n,np))*cdr(n,np)*tg1d(n,np)+aarea(n,np)  &
-                  & *clead(n,np)*(c(67)-1.8))/cdrx(n,np)
+                  & *clead(n,np)*(tmelt-1.8))/cdrx(n,np)
             fact = -rhs1d(n,np)*cdrx(n,np)*vspda(n,np)
             delq1d(n,np) = (qs1d(n,np)-qgrnd)*gwet1d(n,np)
             delt1d(n,np) = ts1d(n,np) - tgrnd
 ! ******           output fluxes, averaged over leads and ice
             evpr1d(n,np) = fact*delq1d(n,np)
-            sent1d(n,np) = fact*c(58)*delt1d(n,np)
+            sent1d(n,np) = fact*cpd*delt1d(n,np)
             hrl = rhs1d(n,np)*vspda(n,np)*clead(n,np)                   &
                 & *(qice(n,np)-qs1d(n,np))
             hsl = rhs1d(n,np)*vspda(n,np)*clead(n,np)                   &
-                & *(c(67)-1.8-ts1d(n,np))*c(58)
+                & *(tmelt-1.8-ts1d(n,np))*cpd
 ! ******           get fluxes over ice for sublimation (subrout snow)
 ! ******              and melt (below) calculation
             fseng(n,np) = (sent1d(n,np)-aarea(n,np)*hsl)                &
                         & /(1.-aarea(n,np))
             fevpg(n,np) = (evpr1d(n,np)-aarea(n,np)*hrl)                &
                         & /(1.-aarea(n,np))
-            hs = fsw1d(np) - flw1d(np) - fseng(n,np) - c(126)           &
-               & *fevpg(n,np)
-            bb = c(4)*(hs+fss)/rsd1
+            hs = fsw1d(np) - flw1d(np) - fseng(n,np) - wlhs*fevpg(n,np)
+            bb = dtbat*(hs+fss)/rsd1
 ! ******           snow melt
             sm(n,np) = 0.
-            if ( tg1d(n,np).ge.c(67) ) sm(n,np) = (hs+fss)/c(127)
+            if ( tg1d(n,np).ge.tmelt ) sm(n,np) = (hs+fss)/wlhf
             if ( sm(n,np).le.0. ) sm(n,np) = 0.
-            smc4 = sm(n,np)*c(4)
+            smc4 = sm(n,np)*dtbat
             if ( scv1d(n,np).lt.smc4 ) then
 ! ******                all snow removed, melt ice
-              smt = (scv1d(n,np)/c(4))
+              smt = (scv1d(n,np)/dtbat)
 ! ******                rho(h2o)/rho(ice) = 1.087
-              sice1d(n,np) = sice1d(n,np) + c(4)*(smt-sm(n,np))*1.087
+              sice1d(n,np) = sice1d(n,np) + dtbat*(smt-sm(n,np))*1.087
               sm(n,np) = smt
-              tg1d(n,np) = c(67)
+              tg1d(n,np) = tmelt
 ! ******                set sea ice parameter for melting and return
               if ( sice1d(n,np).le.0.0 ) then
                 imelt(n,np) = 1
@@ -128,8 +130,8 @@
             else
 !  **********             snow or ice with no snow melting
               tg = tg1d(n,np) + bb
-              if ( tg.ge.c(67) ) tg1d(n,np) = c(67)
-              if ( tg.lt.c(67) ) tg1d(n,np) = tg
+              if ( tg.ge.tmelt ) tg1d(n,np) = tmelt
+              if ( tg.lt.tmelt ) tg1d(n,np) = tg
             end if
           end if
         end do

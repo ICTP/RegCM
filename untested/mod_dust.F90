@@ -25,8 +25,12 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: nsoil = 152 , nats = 12 , mode = 3 ,       &
-                           & jsoilm = 1 , jfs = 0 , ust = 1
+      integer , parameter :: nsoil = 152
+      integer , parameter :: nats = 12
+      integer , parameter :: mode = 3
+      integer , parameter :: jsoilm = 1
+      integer , parameter :: jfs = 0
+      integer , parameter :: ust = 1
 !
 ! COMMON /DUST/
 !

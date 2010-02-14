@@ -30,6 +30,8 @@
       use mod_regcm_param
       use mod_ictp01
       use mod_bats
+      use mod_constants , only : tmelt , c1es , c4ies , c4les , c3ies , &
+                   &             c3les , ep2
       implicit none
 !
 ! Dummy arguments
@@ -44,16 +46,16 @@
 ! 
       do np = np1 , npts
         do n = 1 , nnsg
-          if ( t(n,np).le.c(67) ) then
-            a(n,np) = c(70)
-            b(n,np) = c(71)
+          if ( t(n,np).le.tmelt ) then
+            a(n,np) = c3ies
+            b(n,np) = c4ies
           else
-            a(n,np) = c(72)
-            b(n,np) = c(73)
+            a(n,np) = c3les
+            b(n,np) = c4les
           end if
-          eg(n,np) = c(74)                                              &
-                   & *dexp(a(n,np)*(t(n,np)-c(67))/(t(n,np)-b(n,np)))
-          qsat(n,np) = c(75)*eg(n,np)/(p(n,np)-c(76)*eg(n,np))
+          eg(n,np) = c1es                                               &
+                   & *dexp(a(n,np)*(t(n,np)-tmelt)/(t(n,np)-b(n,np)))
+          qsat(n,np) = ep2*eg(n,np)/(p(n,np)-0.378D0*eg(n,np))
         end do
       end do
  

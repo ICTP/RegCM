@@ -59,6 +59,7 @@
       use mod_slice
       use mod_pbldim
       use mod_blh_tmp
+      use mod_constants , only : gti , vonkar
       implicit none
 !
 ! Local variables
@@ -91,7 +92,7 @@
 !     exponent : one third
       onet = 1./3.
 !     set constants
-      ccon = fak*sffrac*karman
+      ccon = fak*sffrac*vonkar
       binm = betam*sffrac
       binh = betah*sffrac
 #ifdef MPP1
@@ -109,7 +110,8 @@
         do k = kx , kt , -1
           do i = 2 , ixm1
             vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
-            ri(i,k) = g*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/(th10(i,j)*vv)
+            ri(i,k) = gti*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/            &
+                    & (th10(i,j)*vv)
           end do
         end do
  
@@ -145,7 +147,7 @@
             therm(i) = (xhfx(i,j)+0.61*thx3d(i,kx,j)*xqfx(i,j))*fak/wsc
             vvl = ubx3d(i,kx,j)*ubx3d(i,kx,j) + vbx3d(i,kx,j)           &
                 & *vbx3d(i,kx,j)
-            ri(i,kx) = -g*therm(i)*za(i,kx,j)/(th10(i,j)*vvl)
+            ri(i,kx) = -gti*therm(i)*za(i,kx,j)/(th10(i,j)*vvl)
           end if
         end do
  
@@ -158,7 +160,7 @@
                   & *(1.0+0.61*(qvb3d(i,k,j)/(qvb3d(i,k,j)+1)))
               ttkl = tkv - tlv
               vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
-              ri(i,k) = g*ttkl*za(i,k,j)/(th10(i,j)*vv)
+              ri(i,k) = gti*ttkl*za(i,k,j)/(th10(i,j)*vv)
             end if
           end do
         end do
@@ -230,7 +232,7 @@
                 zzhnew2 = 0.
 !chem_
               end if
-              fak1 = ustr(i,j)*zpbl(i,j)*karman
+              fak1 = ustr(i,j)*zpbl(i,j)*vonkar
               if ( hfxv(i,j).le.0. ) then
 !**             stable and neutral conditions
 !**             igroup = 1
@@ -239,7 +241,7 @@
 !               conditions
                 if ( zl.le.1. ) then
                   pblk = fak1*zh*zzh/(1.+betas*zl)
-!xexp5            pblk1 = karman * ustr(i,j) / (1.+betas*zl) * zzhnew
+!xexp5            pblk1 = vonkar * ustr(i,j) / (1.+betas*zl) * zzhnew
                   pblk1 = fak1*zh*zzhnew/(1.+betas*zl)
 !chem
                   if ( ichem.eq.1 )                                     &
@@ -247,7 +249,7 @@
 !chem_
                 else
                   pblk = fak1*zh*zzh/(betas+zl)
-!xexp5            pblk1 = karman * ustr(i,j) / (betas+zl) * zzhnew
+!xexp5            pblk1 = vonkar * ustr(i,j) / (betas+zl) * zzhnew
                   pblk1 = fak1*zh*zzhnew/(betas+zl)
 !chem
                   if ( ichem.eq.1 ) pblk2 = fak1*zh*zzhnew2/(betas+zl)
@@ -273,9 +275,9 @@
                   fht = dsqrt(1.-binh*zpbl(i,j)/obklen(i,j))
                   wsc = ustr(i,j)*xfmt
                   pr = (xfmt/fht) + ccon
-                  fak2 = wsc*zpbl(i,j)*karman
+                  fak2 = wsc*zpbl(i,j)*vonkar
                   pblk = fak2*zh*zzh
-!xexp5            pblk1 = karman * wsc * zzhnew
+!xexp5            pblk1 = vonkar * wsc * zzhnew
                   pblk1 = fak2*zh*zzhnew
 !chem
                   if ( ichem.eq.1 ) pblk2 = fak2*zh*zzhnew2
@@ -287,7 +289,7 @@
                 else
 !**               igroup = 3
                   pblk = fak1*zh*zzh*(1.-betam*zl)**onet
-!xexp5            pblk1 = karman * ustr(i,j) * zzhnew *
+!xexp5            pblk1 = vonkar * ustr(i,j) * zzhnew *
 !                 (1.-betam*zl)**onet
                   pblk1 = fak1*zh*zzhnew*(1.-betam*zl)**onet
 !chem

@@ -258,7 +258,7 @@
 !
         call tend(iexec)
 !
-        call splitf(gnuhf)
+        call splitf
 !
 !-----output:
 !

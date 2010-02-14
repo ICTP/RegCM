@@ -30,9 +30,9 @@
  
       use mod_regcm_param
       use mod_bats , only : ribd , us1d , vs1d , vspda , cdrn , cdrx ,  &
-                     & c , cdr , aarea , z1 , clead , npts , zoce ,     &
-                     & vonkar , lveg , sigf , displa , ts1d , ldoc1d ,  &
-                     & tg1d , taf1d
+                     & cdr , aarea , z1 , clead , npts , lveg , tg1d ,  &
+                     & sigf , displa , ts1d , ldoc1d ,  taf1d
+      use mod_constants , only : gti , zoce , vonkar , wtur
       implicit none
 !
 ! Local variables
@@ -58,9 +58,8 @@
           else
             zatild = z1(n,np)
           end if
-          ribn(n,np) = zatild*c(54)                                     &
-                     & *(ts1d(n,np)-sigf(n,np)*taf1d(n,np)-(1.-         &
-                     & sigf(n,np))*tg1d(n,np))/ts1d(n,np)
+          ribn(n,np) = zatild*gti*(ts1d(n,np)-sigf(n,np)*taf1d(n,np)-   &
+                     & (1.-sigf(n,np))*tg1d(n,np))/ts1d(n,np)
 !=======================================================================
 !         2.1  compute the bulk richardson number;
 !         first get avg winds to use for ri number by summing the
@@ -69,10 +68,10 @@
           if ( ribn(n,np).le.0. ) then
             dthdz = (1.-sigf(n,np))*tg1d(n,np) + sigf(n,np)*taf1d(n,np) &
                   & - ts1d(n,np)
-            u1 = c(90) + 2.*dsqrt(dthdz)
+            u1 = wtur + 2.*dsqrt(dthdz)
             ribd(n,np) = us1d(np)**2 + vs1d(np)**2 + u1**2
           else
-            u2 = c(90)
+            u2 = wtur
             ribd(n,np) = us1d(np)**2 + vs1d(np)**2 + u2**2
           end if
           vspda(n,np) = dsqrt(ribd(n,np))
@@ -125,7 +124,7 @@
             cdrn(n,np) = (vonkar/dlog(z1(n,np)/zoce))**2
  
 !           4.5  drag coefficient over leads
-            ribl(n,np) = (1.-271.5/ts1d(n,np))*z1(n,np)*c(54)/ribd(n,np)
+            ribl(n,np) = (1.-271.5/ts1d(n,np))*z1(n,np)*gti/ribd(n,np)
             if ( ribl(n,np).ge.0 ) then
               clead(n,np) = cdrn(n,np)/(1.+11.5*ribl(n,np))
             else

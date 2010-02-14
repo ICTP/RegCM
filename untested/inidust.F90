@@ -39,13 +39,14 @@
 !  ***********************************************************
  
       use mod_regcm_param
+      use mod_constants , only : twopi
       use mod_dust
       implicit none
 !
 ! Local variables
 !
       real(8) , dimension(nats) :: bcly , bslt , bsnd
-      real(8) :: deldp , eps , pi , rhop , stotal , xk , xl , xm , xn
+      real(8) :: deldp , eps , rhop , stotal , xk , xl , xm , xn
       integer :: i , itex , j , n , nm , ns , nt , t
       real(8) , dimension(3,12) :: mmd , pcent , sigma
       real(8) , dimension(ix,nsoil,nats) :: srel
@@ -59,7 +60,7 @@
          & 0.50 , 0.00 , 0.00 , 0.00/
  
       data rhop/2650.000/
-      data pi/3.1415926535897/ , eps/1.0E-7/
+      data eps/1.0E-7/
       data mmd/1000.0 , 100.0 , 10.0 , 690.0 , 100.0 , 10.0 , 520.0 ,   &
          & 100.0 , 5.0 , 520.0 , 100.0 , 5.0 , 520.0 , 75.0 , 2.5 ,     &
          & 520.0 , 75.0 , 2.5 , 210.0 , 75.0 , 2.5 , 210.0 , 50.0 ,     &
@@ -143,7 +144,7 @@
                   do nm = 1 , mode       !soil mode = 3
                     if ( (pcent(nm,nt).gt.eps) .and.                    &
                        & (sigma(nm,nt).ne.0.0) ) then
-                      xk = pcent(nm,nt)/(sqrt(2.0*pi)*log(sigma(nm,nt)))
+                      xk = pcent(nm,nt)/(sqrt(twopi)*log(sigma(nm,nt)))
                       xl = ((log(dp(ns))-log(mmd(nm,nt)*1.E-4))**2)     &
                          & /(2.0*(log(sigma(nm,nt)))**2)
                       xm = xk*exp(-xl)
@@ -195,7 +196,7 @@
                   do nm = 1 , mode       !soil mode = 3
                     if ( (pcent(nm,nt).gt.eps) .and.                    &
                        & (sigma(nm,nt).ne.0.0) ) then
-                      xk = pcent(nm,nt)/(sqrt(2.0*pi)*log(sigma(nm,nt)))
+                      xk = pcent(nm,nt)/(sqrt(twopi)*log(sigma(nm,nt)))
                       xl = ((log(dp(ns))-log(mmd(nm,nt)*1.E-4))**2)     &
                          & /(2.0*(log(sigma(nm,nt)))**2)
                       xm = xk*exp(-xl)

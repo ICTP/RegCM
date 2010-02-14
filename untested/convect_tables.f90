@@ -77,7 +77,7 @@
           tlucua(it) = exp((merge(clavm1,ciavm1,lo)/tt+merge(clavm2,    &
                      & ciavm2,lo)+merge(clavm3,ciavm3,lo)               &
                      & *tt/100.+merge(clavm4,ciavm4,lo)*tt*tt/1.E5+     &
-                     & merge(clavm5,ciavm5,lo)*log(tt)))*rdti/rvti
+                     & merge(clavm5,ciavm5,lo)*log(tt)))*rgas/rwat
         else
           tlucua(it) = c2es*exp(merge(c3les,c3ies,lo)*(tt-tmelt)        &
                      & *(1./(tt-merge(c4les,c4ies,lo))))

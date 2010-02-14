@@ -27,4 +27,5 @@
       integer :: mbdate , mbsec , mcdate , mcsec , mdbase , mdcur ,     &
                & msbase , mscur , nelapse , nestep , nnbdat , nnbsec ,  &
                & nndbas , nnsbas , nrstrt , nstep , nstepr , nstop
+
       end module mod_comtim

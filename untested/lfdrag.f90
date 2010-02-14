@@ -27,6 +27,7 @@
       use mod_regcm_param
       use mod_bats
       use mod_ictp01
+      use mod_constants , only : gti , wtur
       implicit none
 !
 ! Local variables
@@ -46,10 +47,10 @@
               if ( dlstaf(n,np).le.0 ) then
                 dthdz = (1.-sigf(n,np))*tg1d(n,np) + sigf(n,np)         &
                       & *tkb - ts1d(n,np)
-                u1 = c(90) + 2.*dsqrt(dthdz)
+                u1 = wtur + 2.*dsqrt(dthdz)
                 ribd(n,np) = us1d(np)**2 + vs1d(np)**2 + u1**2
               else
-                u2 = c(90)
+                u2 = wtur
                 ribd(n,np) = us1d(np)**2 + vs1d(np)**2 + u2**2
               end if
               vspda(n,np) = dsqrt(ribd(n,np))
@@ -59,7 +60,7 @@
               end if
               zatild = (z1(n,np)-displa(lveg(n,np)))*sigf(n,np)         &
                      & + z1(n,np)*(1.-sigf(n,np))
-              rib1(n,np) = c(54)*zatild/(ribd(n,np)*ts1d(n,np))
+              rib1(n,np) = gti*zatild/(ribd(n,np)*ts1d(n,np))
               rib(n,np) = rib1(n,np)*dlstaf(n,np)
               if ( rib(n,np).lt.0. ) then
                 cdr(n,np) = cdrn(n,np)                                  &

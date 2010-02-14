@@ -18,6 +18,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine ice(kd,ld,ta,u2,ea,hs,hi,hii,evap,t,depth,precip)
+
+      use mod_constants , only : ep2
       implicit none
 !
 ! PARAMETER definitions
@@ -68,7 +70,7 @@
  
       khat = (ki*hs+ks*hi)/(ki*ks)
       theta = cp*rho*cd*u2
-      psi = le*rho*cd*u2*0.622/atm
+      psi = le*rho*cd*u2*ep2/atm
       evap = 100.*psi*(eomb(t0)-ea)/(le*rho)
       qpen = kd*0.7*((1.0-dexp(-lams1*hs))/(ks*lams1)+(dexp(-lams1*hs)) &
            & *(1.0-dexp(-lami1*hi))/(ki*lami1))                         &

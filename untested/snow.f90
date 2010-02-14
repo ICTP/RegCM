@@ -38,7 +38,9 @@
 !                      is small in southern hemisphere
 !
       use mod_regcm_param
+      use mod_param1 , only : dtbat
       use mod_bats
+      use mod_constants , only : tmelt
       implicit none
 !
 ! Local variables
@@ -64,7 +66,7 @@
             evapw(n,np) = (1.-scvk(n,np))*evapw(n,np)
 !
 !           ******                tm  is temperature of precipitation
-            if ( tm(n,np).ge.c(67) ) then
+            if ( tm(n,np).ge.tmelt ) then
               pw(n,np) = prcp1d(n,np)*(1.-sigf(n,np))
               ps(n,np) = 0.0
             else
@@ -83,7 +85,7 @@
         do n = 1 , nnsg
           if ( ldoc1d(n,np).gt.0.5 ) then
             sold(n,np) = scv1d(n,np)
-            scv1d(n,np) = scv1d(n,np) + c(4)                            &
+            scv1d(n,np) = scv1d(n,np) + dtbat                           &
                         & *(ps(n,np)-evaps(n,np)-sm(n,np)) + sdrop(n,np)
             scv1d(n,np) = dmax1(scv1d(n,np),0.D0)
             sag1d(n,np) = dmax1(sag1d(n,np),0.D0)
@@ -94,12 +96,12 @@
 !           10 mm snow restores surface to that of new snow.
 !=======================================================================
             if ( scv1d(n,np).gt.0. ) then
-              arg = 5.E3*(1./c(67)-1./tg1d(n,np))
+              arg = 5.E3*(1./tmelt-1./tg1d(n,np))
               age1 = dexp(arg)
               arg2 = dmin1(0.D0,10.*arg)
               age2 = dexp(arg2)
               tage = age1 + age2 + age3
-              dela0 = 1.E-6*c(4)
+              dela0 = 1.E-6*dtbat
               dela = dela0*tage
               dels = 0.1*dmax1(0.D0,scv1d(n,np)-sold(n,np))
               sge = (sag1d(n,np)+dela)*(1.0-dels)

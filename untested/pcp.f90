@@ -43,6 +43,8 @@
       use mod_pmoist
       use mod_slice
       use mod_trachem
+      use mod_constants , only : rgti , rgas , ep2 , wlhvocp , svp1 ,   &
+                               & svp2 , svp3
       implicit none
 !
 ! Dummy arguments
@@ -73,7 +75,7 @@
  
  
 !     1a. Perform computations for the top layer (layer 1)
-      thog = 1000./g       ! precipation accumulated from above
+      thog = 1000.*rgti       ! precipation accumulated from above
       i1000 = 1./1000.
 !chem2
       do k = 1 , kx
@@ -97,7 +99,7 @@
           tk = tb3d(i,1,j)                                   ![k][avg]
           tcel = tk - 273.15                                 ![C][avg]
           p = pb3d(i,1,j)*1000.                              ![Pa][avg]
-          rho = p/(r*tk)                                     ![kg/m3][avg]
+          rho = p/(rgas*tk)                                  ![kg/m3][avg]
           qcw = qcb3d(i,1,j)                                 ![kg/kg][avg]
 !         1ab. Calculate the in cloud mixing ratio [kg/kg]
           qcincld = qcw/afc                                  ![kg/kg][cld]
@@ -161,7 +163,7 @@
           tk = tb3d(i,k,j)                                   ![k][avg]
           tcel = tk - 273.15                                 ![C][avg]
           p = pb3d(i,k,j)*1000.                              ![Pa][avg]
-          rho = p/(r*tk)                                     ![kg/m3][avg]
+          rho = p/(rgas*tk)                                  ![kg/m3][avg]
           qcw = qcb3d(i,k,j)                                 ![kg/kg][avg]
           afc = fcc(i,k,j)                                   ![frac][avg]
           if ( tcel.gt.0.0 ) then
@@ -197,7 +199,7 @@
 !           2bcf. Compute the water vapor tendency [kg/kg/s*cb]
             qvten(i,k,j) = qvten(i,k,j) + rdevap*psb(i,j)    ![kg/kg/s*cb][avg]
 !           2bcf. Compute the temperature tendency [K/s*cb]
-            tten(i,k,j) = tten(i,k,j) - xlvocp*rdevap*psb(i,j)
+            tten(i,k,j) = tten(i,k,j) - wlhvocp*rdevap*psb(i,j)
                                                              ![k/s*cb][avg]
           else
               ! no precipitation from above
@@ -258,7 +260,7 @@
 !     - Levin & Schwatz
 !--------------------------------------------------------------------
       if ( ichem.eq.1 ) then
-        uch = 1000./g*3600.
+        uch = 1000.*rgti*3600.
         do i = 2 , ixm2
           rembc(i,1) = 0.
           do k = 2 , kx

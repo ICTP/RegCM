@@ -40,4 +40,5 @@
 ! COMMON /UNIFY/
 !
       integer :: idate0 , idate1 , idate2 , idatee , idates , idatex
+
       end module mod_date

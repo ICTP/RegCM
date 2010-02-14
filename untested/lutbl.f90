@@ -20,14 +20,15 @@
       subroutine lutbl(ptop)
 !
       use mod_bmparam
+      use mod_constants , only : cpd , rgas , rovcp
       implicit none
 !
 ! PARAMETER definitions
 !
       real(8) , parameter :: a2 = 17.2693882E0 , a3 = 273.16E0 ,        &
                            & a4 = 35.86E0 , pq0 = 379.90516E0 ,         &
-                           & eps = 2.E-12 , eliwv = 2.72E6 ,            &
-                           & cp = 1004.E0 , r = 287.04 , rovcp = r/cp
+                           & eps = 2.E-12 , eliwv = 2.72E6
+
 !
 ! Dummy arguments
 !
@@ -126,7 +127,7 @@
           ape = (100000./p)**(rovcp)
           qs = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
           told(kth) = th/ape
-          theold(kth) = th*exp(eliwv*qs/(cp*told(kth)))
+          theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
         end do
 !
         the0k = theold(1)

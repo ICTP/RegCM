@@ -32,6 +32,7 @@
       use mod_main
       use mod_bats
       use mod_grads
+      use mod_constants , only : rgti
 #ifdef MPP1
       use mod_mppio
 #endif
@@ -63,9 +64,9 @@
       do i = 1 , ixm2
         do j = 1 , jxm2
 #ifdef MPP1
-          fout(j,i) = ht_io(i+1,j+1)/g
+          fout(j,i) = ht_io(i+1,j+1)*rgti
 #else
-          fout(j,i) = ht(i+1,j+1)/g
+          fout(j,i) = ht(i+1,j+1)*rgti
 #endif
         end do
       end do

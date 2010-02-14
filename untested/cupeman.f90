@@ -151,7 +151,7 @@
 !      of regcm.
 !   3. dependence of latent heat of vaporization on tempertature
 !      removed because it is neglected in regcm. this is done by
-!      setting cpv equal to cl and setting lv0 to the regcm value.
+!      setting cpv equal to cl and setting wlhv to the regcm value.
 !   4. added cloud base (icb) and cloud top (inb) to the output to
 !      compute the cloud fraction and cloud liquid water content.
 !   5. each variable is now explicitly declared.  that is, the
@@ -163,6 +163,8 @@
 !   7. a maximum value to the cloud base mass flux has been added.
 !
       use mod_convect
+      use mod_constants , only : gti , rgti , cpd , rcpd , cpv , rgas , &
+                               & rwat , wlhv
       implicit none
 !
 !
@@ -183,14 +185,14 @@
       real(8) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
                & alv , alvnew , am , amp1 , anum , asij , asum , awat , &
                & b6 , bf2 , bsum , by , byp , c6 , cape , capem ,       &
-               & cbmfold , chi , cl , coeff , cpd , cpinv , cpv ,       &
+               & cbmfold , chi , cl , coeff , cpinv ,                   &
                & cpvmcl , cwat , damps , dbo , dbosum , defrac , dei ,  &
                & delm , delp , delt0 , delti , denom , dhdp , dphinv ,  &
                & dpinv , dtma , dtmin , dtpbl , elacrit , ents , epmax ,&
                & eps , epsi , fac , fqold , frac , ftold , ftraold ,    &
-               & fuold , fvold , g , ginv , lv0 , plcl , qnew , qp1 ,   &
-               & qsm , qstm , qti , rat , rd , rdcp , revap , rh , rm , &
-               & rowl , rv , scrit , sigt
+               & fuold , fvold , plcl , qnew , qp1 ,                    &
+               & qsm , qstm , qti , rat , rdcp , revap , rh , rm ,      &
+               & rowl , scrit , sigt
       real(8) , dimension(na) :: clw , cpn , ep , evap , gz , h , hm ,  &
                                & hp , lv , lvcp , m , mp , qp , sigp ,  &
                                & th , told , tp , tratm , tv , tvp ,    &
@@ -228,22 +230,12 @@
 !     ***              those used in calling program              ***
 !     ***     note: these are also specified in subroutine tlift  ***
 !
-!rcm  cpd=1005.7
-      cpd = 1004.
-      cpv = 1870.0
-!rcm  cpv=cpd
       cl = 2500.0
-      rv = 461.5
-      rd = 287.04
-      lv0 = 2.501E6
-!rcm  g=9.8
-      g = 9.805
       rowl = 1000.0
 !
       cpvmcl = cl - cpv
-      eps = rd/rv
+      eps = rgas/rwat
       epsi = 1./eps
-      ginv = 1.0/g
       delti = 1.0/delt
 !
 !     ***  initialize output arrays and parameters  ***
@@ -258,7 +250,7 @@
         end do
       end do
       do i = 1 , nl + 1
-        rdcp = (rd*(1.-q(i))+q(i)*rv)/(cpd*(1.-q(i))+q(i)*cpv)
+        rdcp = (rgas*(1.-q(i))+q(i)*rwat)/(cpd*(1.-q(i))+q(i)*cpv)
         th(i) = t(i)*(1000.0/p(i))**rdcp
       end do
       precip = 0.0
@@ -315,7 +307,8 @@
                 do k = 1 , ntra
                   tra(j,k) = tratm(k)
                 end do
-                rdcp = (rd*(1.-q(j))+q(j)*rv)/(cpd*(1.-q(j))+q(j)*cpv)
+                rdcp = (rgas*(1.-q(j))+q(j)*rwat)/                      &
+                     & (cpd*(1.-q(j))+q(j)*cpv)
                 x = (0.001*p(j))**rdcp
                 told(j) = t(j)
                 t(j) = x
@@ -325,9 +318,9 @@
                 th(j) = ahm/a2
                 t(j) = t(j)*th(j)
                 tc = told(j) - 273.15
-                alv = lv0 - cpvmcl*tc
+                alv = wlhv - cpvmcl*tc
                 qs(j) = qs(j) + qs(j)*(1.+qs(j)*(epsi-1.))              &
-                      & *alv*(t(j)-told(j))/(rv*told(j)*told(j))
+                      & *alv*(t(j)-told(j))/(rwat*told(j)*told(j))
               end do
               if ( ((th(jn+1)*(1.+q(jn+1)*epsi-q(jn+1))).lt.(th(jn)*(1.+&
                  & q(jn)*epsi-q(jn)))) ) then
@@ -345,16 +338,16 @@
         if ( jc.gt.1 ) then
           do j = 1 , jc
             if ( qs(j).lt.q(j) ) then
-              alv = lv0 - cpvmcl*(t(j)-273.15)
+              alv = wlhv - cpvmcl*(t(j)-273.15)
               tnew = t(j) + alv*(q(j)-qs(j))                            &
                    & /(cpd*(1.-q(j))+cl*q(j)+qs(j)                      &
-                   & *(cpv-cl+alv*alv/(rv*t(j)*t(j))))
-              alvnew = lv0 - cpvmcl*(tnew-273.15)
+                   & *(cpv-cl+alv*alv/(rwat*t(j)*t(j))))
+              alvnew = wlhv - cpvmcl*(tnew-273.15)
               qnew = (alv*q(j)-(tnew-t(j))*(cpd*(1.-q(j))+cl*q(j)))     &
                    & /alvnew
 !rcm          precip=precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
-              precip = precip + 1.0E5*(ph(j)-ph(j+1))*(q(j)-qnew)       &
-                     & /(g*delt*rowl)                         ! mm/s
+              precip = precip + 1.0E5*(ph(j)-ph(j+1))*(q(j)-qnew)*rgti  &
+                     & /(delt*rowl)                         ! mm/s
               t(j) = tnew
               q(j) = qnew
               qs(j) = qnew
@@ -369,7 +362,7 @@
       gz(1) = 0.0
       cpn(1) = cpd*(1.-q(1)) + q(1)*cpv
       h(1) = t(1)*cpn(1)
-      lv(1) = lv0 - cpvmcl*(t(1)-273.15)
+      lv(1) = wlhv - cpvmcl*(t(1)-273.15)
       hm(1) = lv(1)*q(1)
       tv(1) = t(1)*(1.+q(1)*epsi-q(1))
       ahmin = 1.0E12
@@ -377,10 +370,10 @@
       do i = 2 , nl + 1
         tvx = t(i)*(1.+q(i)*epsi-q(i))
         tvy = t(i-1)*(1.+q(i-1)*epsi-q(i-1))
-        gz(i) = gz(i-1) + 0.5*rd*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
+        gz(i) = gz(i-1) + 0.5*rgas*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
         cpn(i) = cpd*(1.-q(i)) + cpv*q(i)
         h(i) = t(i)*cpn(i) + gz(i)
-        lv(i) = lv0 - cpvmcl*(t(i)-273.15)
+        lv(i) = wlhv - cpvmcl*(t(i)-273.15)
         hm(i) = (cpd*(1.-q(i))+cl*q(i))*(t(i)-t(1)) + lv(i)*q(i) + gz(i)
         tv(i) = t(i)*(1.+q(i)*epsi-q(i))
 !
@@ -495,7 +488,7 @@
       do i = icb + 1 , nl
         tvp(i) = tvp(i) - tp(i)*q(nk)
       end do
-      tvp(nl+1) = tvp(nl) - (gz(nl+1)-gz(nl))/cpd
+      tvp(nl+1) = tvp(nl) - (gz(nl+1)-gz(nl))*rcpd
 !
 !     ***        now initialize various arrays used in the computations
 !     ***
@@ -576,7 +569,7 @@
 !     ***     interpolate difference between lifted parcel and      ***
 !     ***  environmental temperatures to lifted condensation level  ***
 !
-      tvpplcl = tvp(icb-1) - rd*tvp(icb-1)*(p(icb-1)-plcl)              &
+      tvpplcl = tvp(icb-1) - rgas*tvp(icb-1)*(p(icb-1)-plcl)            &
               & /(cpn(icb-1)*p(icb-1))
       tvaplcl = tv(icb) + (tvp(icb)-tvp(icb+1))*(plcl-p(icb))           &
               & /(p(icb)-p(icb+1))
@@ -596,8 +589,8 @@
       cbmf = (1.-damps)*cbmf + 0.1*alphae*dtma
       cbmf = max(cbmf,0.0D0)
 !rcm  addin
-!     cbmfmax = delti*ginv*(ph(minorig)-ph(minorig+1))/(0.01*2.)
-!     cbmfmax = delti*ginv*(ph(1)-ph(2))/(0.01*2.)
+!     cbmfmax = delti*rgti*(ph(minorig)-ph(minorig+1))/(0.01*2.)
+!     cbmfmax = delti*rgti*(ph(1)-ph(2))/(0.01*2.)
 !     cbmf=min(cbmf,0.75*cbmfmax)
 !rcm  end addin
 !
@@ -625,7 +618,7 @@
       do i = icb + 1 , inb
         qti = q(nk) - ep(i)*clw(i)
         do j = icb , inb
-          bf2 = 1. + lv(j)*lv(j)*qs(j)/(rv*t(j)*t(j)*cpd)
+          bf2 = 1. + lv(j)*lv(j)*qs(j)/(rwat*t(j)*t(j)*cpd)
           anum = h(j) - hp(i) + (cpv-cpd)*t(j)*(qti-q(j))
           denom = h(i) - hp(i) + (cpd-cpv)*(q(i)-qti)*t(j)
           dei = denom
@@ -759,12 +752,12 @@
 !
 !         ***              calculate detrained precipitation           
 !         ***
-          wdtrain = g*ep(i)*m(i)*clw(i)
+          wdtrain = gti*ep(i)*m(i)*clw(i)
           if ( i.gt.1 ) then
             do j = 1 , i - 1
               awat = elij(j,i) - (1.-ep(i))*clw(i)
               awat = max(0.0D0,awat)
-              wdtrain = wdtrain + g*awat*ment(j,i)
+              wdtrain = wdtrain + gti*awat*ment(j,i)
             end do
           end if
 !
@@ -801,7 +794,7 @@
           if ( i.ne.1 ) then
             dhdp = (h(i)-h(i-1))/(p(i-1)-p(i))
             dhdp = max(dhdp,10.0D0)
-            mp(i) = 100.*ginv*lv(i)*sigd*evap(i)/dhdp
+            mp(i) = 100.*rgti*lv(i)*sigd*evap(i)/dhdp
             mp(i) = max(mp(i),0.0D0)
 !
 !           ***   add small amount of inertia to downdraft             
@@ -829,7 +822,7 @@
             if ( mp(i).gt.mp(i+1) ) then
               rat = mp(i+1)/mp(i)
               qp(i) = qp(i+1)*rat + q(i)*(1.0-rat)                      &
-                    & + 100.*ginv*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
+                    & + 100.*rgti*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
               up(i) = up(i+1)*rat + u(i)*(1.-rat)
               vp(i) = vp(i+1)*rat + v(i)*(1.-rat)
               do j = 1 , ntra
@@ -853,7 +846,7 @@
 !       ***  calculate surface precipitation in mm/s     ***
 !
 !rcm    precip=precip+wt(1)*sigd*water(1)*3600.*24000./(rowl*g)  ! mm/d
-        precip = precip + wt(1)*sigd*water(1)*1000./(rowl*g)
+        precip = precip + wt(1)*sigd*water(1)*1000./(rowl*gti)
                                                         ! mm/s
       end if
 !
@@ -861,9 +854,9 @@
 !     ***  calculate downdraft velocity scale and surface temperature
 !     and  *** ***                    water vapor fluctuations         
 !     ***
-      wd = betae*abs(mp(icb))*0.01*rd*t(icb)/(sigd*p(icb))
+      wd = betae*abs(mp(icb))*0.01*rgas*t(icb)/(sigd*p(icb))
       qprime = 0.5*(qp(1)-q(1))
-      tprime = lv0*qprime/cpd
+      tprime = wlhv*qprime*rcpd
 !
 !     ***  calculate tendencies of lowest level potential temperature 
 !     *** ***                      and mixing ratio                    
@@ -875,26 +868,26 @@
           am = am + m(k)
         end do
       end if
-      if ( (2.*g*dpinv*am).ge.delti ) iflag = 4
-      ft(1) = ft(1) + g*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
+      if ( (2.*gti*dpinv*am).ge.delti ) iflag = 4
+      ft(1) = ft(1) + gti*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
       ft(1) = ft(1) - lvcp(1)*sigd*evap(1)
       ft(1) = ft(1) + sigd*wt(2)*(cl-cpd)*water(2)*(t(2)-t(1))          &
             & *dpinv/cpn(1)
-      fq(1) = fq(1) + g*mp(2)*(qp(2)-q(1))*dpinv + sigd*evap(1)
-      fq(1) = fq(1) + g*am*(q(2)-q(1))*dpinv
-      fu(1) = fu(1) + g*dpinv*(mp(2)*(up(2)-u(1))+am*(u(2)-u(1)))
-      fv(1) = fv(1) + g*dpinv*(mp(2)*(vp(2)-v(1))+am*(v(2)-v(1)))
+      fq(1) = fq(1) + gti*mp(2)*(qp(2)-q(1))*dpinv + sigd*evap(1)
+      fq(1) = fq(1) + gti*am*(q(2)-q(1))*dpinv
+      fu(1) = fu(1) + gti*dpinv*(mp(2)*(up(2)-u(1))+am*(u(2)-u(1)))
+      fv(1) = fv(1) + gti*dpinv*(mp(2)*(vp(2)-v(1))+am*(v(2)-v(1)))
       do j = 1 , ntra
         ftra(1,j) = ftra(1,j)                                           &
-                  & + g*dpinv*(mp(2)*(trap(2,j)-tra(1,j))+am*(tra(2,j)  &
+                  & + gti*dpinv*(mp(2)*(trap(2,j)-tra(1,j))+am*(tra(2,j)&
                   & -tra(1,j)))
       end do
       do j = 2 , inb
-        fq(1) = fq(1) + g*dpinv*ment(j,1)*(qent(j,1)-q(1))
-        fu(1) = fu(1) + g*dpinv*ment(j,1)*(uent(j,1)-u(1))
-        fv(1) = fv(1) + g*dpinv*ment(j,1)*(vent(j,1)-v(1))
+        fq(1) = fq(1) + gti*dpinv*ment(j,1)*(qent(j,1)-q(1))
+        fu(1) = fu(1) + gti*dpinv*ment(j,1)*(uent(j,1)-u(1))
+        fv(1) = fv(1) + gti*dpinv*ment(j,1)*(vent(j,1)-v(1))
         do k = 1 , ntra
-          ftra(1,k) = ftra(1,k) + g*dpinv*ment(j,1)                     &
+          ftra(1,k) = ftra(1,k) + gti*dpinv*ment(j,1)                   &
                     & *(traent(j,1,k)-tra(1,k))
         end do
       end do
@@ -920,57 +913,57 @@
             amp1 = amp1 + ment(k,j)
           end do
         end do
-        if ( (2.*g*dpinv*amp1).ge.delti ) iflag = 4
+        if ( (2.*gti*dpinv*amp1).ge.delti ) iflag = 4
         do k = 1 , i - 1
           do j = i , inb
             ad = ad + ment(j,k)
           end do
         end do
         ft(i) = ft(i)                                                   &
-              & + g*dpinv*(amp1*(t(i+1)-t(i)+(gz(i+1)-gz(i))*cpinv)     &
+              & + gti*dpinv*(amp1*(t(i+1)-t(i)+(gz(i+1)-gz(i))*cpinv)   &
               & -ad*(t(i)-t(i-1)+(gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i) &
               & *evap(i)
-        ft(i) = ft(i) + g*dpinv*ment(i,i)                               &
+        ft(i) = ft(i) + gti*dpinv*ment(i,i)                             &
               & *(hp(i)-h(i)+t(i)*(cpv-cpd)*(q(i)-qent(i,i)))*cpinv
         ft(i) = ft(i) + sigd*wt(i+1)*(cl-cpd)*water(i+1)*(t(i+1)-t(i))  &
               & *dpinv*cpinv
-        fq(i) = fq(i) + g*dpinv*(amp1*(q(i+1)-q(i))-ad*(q(i)-q(i-1)))
-        fu(i) = fu(i) + g*dpinv*(amp1*(u(i+1)-u(i))-ad*(u(i)-u(i-1)))
-        fv(i) = fv(i) + g*dpinv*(amp1*(v(i+1)-v(i))-ad*(v(i)-v(i-1)))
+        fq(i) = fq(i) + gti*dpinv*(amp1*(q(i+1)-q(i))-ad*(q(i)-q(i-1)))
+        fu(i) = fu(i) + gti*dpinv*(amp1*(u(i+1)-u(i))-ad*(u(i)-u(i-1)))
+        fv(i) = fv(i) + gti*dpinv*(amp1*(v(i+1)-v(i))-ad*(v(i)-v(i-1)))
         do k = 1 , ntra
           ftra(i,k) = ftra(i,k)                                         &
-                    & + g*dpinv*(amp1*(tra(i+1,k)-tra(i,k))-ad*(tra(i,k)&
-                    & -tra(i-1,k)))
+                    & + gti*dpinv*(amp1*(tra(i+1,k)-tra(i,k))-ad*       &
+                    & (tra(i,k)-tra(i-1,k)))
         end do
         do k = 1 , i - 1
           awat = elij(k,i) - (1.-ep(i))*clw(i)
           awat = max(awat,0.0D0)
-          fq(i) = fq(i) + g*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
-          fu(i) = fu(i) + g*dpinv*ment(k,i)*(uent(k,i)-u(i))
-          fv(i) = fv(i) + g*dpinv*ment(k,i)*(vent(k,i)-v(i))
+          fq(i) = fq(i) + gti*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
+          fu(i) = fu(i) + gti*dpinv*ment(k,i)*(uent(k,i)-u(i))
+          fv(i) = fv(i) + gti*dpinv*ment(k,i)*(vent(k,i)-v(i))
           do j = 1 , ntra
-            ftra(i,j) = ftra(i,j) + g*dpinv*ment(k,i)                   &
+            ftra(i,j) = ftra(i,j) + gti*dpinv*ment(k,i)                 &
                       & *(traent(k,i,j)-tra(i,j))
           end do
         end do
         do k = i , inb
-          fq(i) = fq(i) + g*dpinv*ment(k,i)*(qent(k,i)-q(i))
-          fu(i) = fu(i) + g*dpinv*ment(k,i)*(uent(k,i)-u(i))
-          fv(i) = fv(i) + g*dpinv*ment(k,i)*(vent(k,i)-v(i))
+          fq(i) = fq(i) + gti*dpinv*ment(k,i)*(qent(k,i)-q(i))
+          fu(i) = fu(i) + gti*dpinv*ment(k,i)*(uent(k,i)-u(i))
+          fv(i) = fv(i) + gti*dpinv*ment(k,i)*(vent(k,i)-v(i))
           do j = 1 , ntra
-            ftra(i,j) = ftra(i,j) + g*dpinv*ment(k,i)                   &
+            ftra(i,j) = ftra(i,j) + gti*dpinv*ment(k,i)                 &
                       & *(traent(k,i,j)-tra(i,j))
           end do
         end do
-        fq(i) = fq(i) + sigd*evap(i)                                    &
-              & + g*(mp(i+1)*(qp(i+1)-q(i))-mp(i)*(qp(i)-q(i-1)))*dpinv
-        fu(i) = fu(i) + g*(mp(i+1)*(up(i+1)-u(i))-mp(i)*(up(i)-u(i-1))) &
-              & *dpinv
-        fv(i) = fv(i) + g*(mp(i+1)*(vp(i+1)-v(i))-mp(i)*(vp(i)-v(i-1))) &
-              & *dpinv
+        fq(i) = fq(i) + sigd*evap(i)+ gti*(mp(i+1)                      &
+              & *(qp(i+1)-q(i))-mp(i)*(qp(i)-q(i-1)))*dpinv
+        fu(i) = fu(i) + gti*(mp(i+1)*(up(i+1)-u(i))-mp(i)*              &
+              & (up(i)-u(i-1)))*dpinv
+        fv(i) = fv(i) + gti*(mp(i+1)*(vp(i+1)-v(i))-mp(i)*              &
+              & (vp(i)-v(i-1)))*dpinv
         do j = 1 , ntra
           ftra(i,j) = ftra(i,j)                                         &
-                    & + g*dpinv*(mp(i+1)*(trap(i+1,j)-tra(i,j))-mp(i)   &
+                    & + gti*dpinv*(mp(i+1)*(trap(i+1,j)-tra(i,j))-mp(i) &
                     & *(trap(i,j)-trap(i-1,j)))
         end do
       end do
@@ -1040,6 +1033,8 @@
 ! ---------------------------------------------------------------------------
 !
       subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
+      use mod_constants , only : rgas , rwat , cpd , cpv , rcpd ,       &
+                               & wlhv
       implicit none
 !
 ! Dummy arguments
@@ -1052,30 +1047,23 @@
 !
 ! Local variables
 !
-      real(8) :: ah0 , ahg , alv , cl , cpd , cpinv , cpp , cpv ,       &
-               & cpvmcl , denom , eps , epsi , es , lv0 , qg , rd , rg ,&
-               & rv , s , tc , tg
+      real(8) :: ah0 , ahg , alv , cl , cpinv , cpp ,                   &
+               & cpvmcl , denom , eps , epsi , es , qg , rg ,           &
+               & s , tc , tg
       integer :: i , j , nsb , nst
 !
 !     ***   assign values of thermodynamic constants     ***
 !
-!rcm  cpd=1005.7
-      cpd = 1004.
-      cpv = 1870.0
-!rcm  cpv=cpd
       cl = 2500.0
-      rv = 461.5
-      rd = 287.04
-      lv0 = 2.501E6
 !
       cpvmcl = cl - cpv
-      eps = rd/rv
+      eps = rgas/rwat
       epsi = 1./eps
 !
 !     ***  calculate certain parcel quantities, including static energy
 !     ***
       ah0 = (cpd*(1.-q(nk))+cl*q(nk))*t(nk) + q(nk)                     &
-          & *(lv0-cpvmcl*(t(nk)-273.15)) + gz(nk)
+          & *(wlhv-cpvmcl*(t(nk)-273.15)) + gz(nk)
       cpp = cpd*(1.-q(nk)) + q(nk)*cpv
       cpinv = 1./cpp
 !
@@ -1103,9 +1091,9 @@
       do i = nsb , nst
         tg = t(i)
         qg = qs(i)
-        alv = lv0 - cpvmcl*(t(i)-273.15)
+        alv = wlhv - cpvmcl*(t(i)-273.15)
         do j = 1 , 2
-          s = cpd + alv*alv*qg/(rv*t(i)*t(i))
+          s = cpd + alv*alv*qg/(rwat*t(i)*t(i))
           s = 1./s
           ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
           tg = tg + s*(ah0-ahg)
@@ -1119,8 +1107,8 @@
           end if
           qg = eps*es/(p(i)-es*(1.-eps))
         end do
-        alv = lv0 - cpvmcl*(t(i)-273.15)
-        tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)/cpd
+        alv = wlhv - cpvmcl*(t(i)-273.15)
+        tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
         clw(i) = q(nk) - qg
         clw(i) = max(0.0D0,clw(i))
         rg = qg/(1.-q(nk))

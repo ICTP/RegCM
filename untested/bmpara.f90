@@ -58,6 +58,8 @@
       use mod_bats , only : pptc , veg2d
       use mod_bmparam
       use mod_trachem
+      use mod_constants , only : rgas , gti , rovg , cpd , rcpd , ep2 , &
+                               & trel
       implicit none
 !
 ! PARAMETER definitions
@@ -99,8 +101,7 @@
                            & /(h1-efimn) , slope = (h1-efmnt)/(h1-efimn)&
                            & , a23m4l = a2*(a3-a4)*elwv , d273 = 1./t0 ,&
                            & cporng = 1./dm2859 , elocp = elwv/1004. ,  &
-                           & cprlg = 1004./(row*9.81*elwv) ,            &
-                           & rcp = h1/1004.
+                           & cprlg = cpd/(row*gti*elwv)
       integer , parameter :: lp1 = kxp1 , lm1 = kx - 1
 !
 ! Dummy arguments
@@ -213,7 +214,7 @@
         ip300(i) = 0
         cell = ptop/psb(i,j)
         do k = 1 , kx
-          dzq(k) = r/g*tbase(i,k,j)                                     &
+          dzq(k) = rovg*tbase(i,k,j)                                    &
                  & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))
         end do
         z0(i,kx) = 0.5*dzq(kx)
@@ -236,7 +237,7 @@
           psfck = (a(kx)*psb(i,j)+ptop)*1000.
           if ( pkl.ge.psfck-pbm ) then
             tthbt(i) = t(i,kb)*ape(i,kb)
-            ee = pkl*q(i,kb)/(0.622+q(i,kb))
+            ee = pkl*q(i,kb)/(ep2+q(i,kb))
             tdpt = 1./(d273-rv/elwv*dlog(ee/611.))
             tdpt = dmin1(tdpt,t(i,kb))
             tlcl = tdpt - (.212+1.571E-3*(tdpt-t0)-4.36E-4*(t(i,kb)-t0))&
@@ -286,7 +287,7 @@
         do i = 2 , ixm2
           p(i) = (a(l)*psb(i,j)+ptop)*1000.
           es = aliq*exp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
-          qs = 0.622*es/(p(i)-es)
+          qs = ep2*es/(p(i)-es)
           ths(i) = t(i,l)*ape(i,l)*exp(elocp*qs/t(i,l))
         end do
 !--------------buoyancy check-------------------------------------------
@@ -450,7 +451,7 @@
           sumde = d00
           sumdp = d00
           do l = ltpk , lb
-            sumde = ((tk(l)-trefk(l))*cp+(qk(l)-qrefk(l))*elwv)         &
+            sumde = ((tk(l)-trefk(l))*cpd+(qk(l)-qrefk(l))*elwv)        &
                   & *dsigma(l) + sumde
             sumdp = sumdp + dsigma(l)
           end do
@@ -463,14 +464,14 @@
 !--------------above lqm correct temperature only-----------------------
           if ( lcor.le.lqm ) then
             do l = lcor , lqm
-              trefk(l) = trefk(l) + hcorr*rcp
+              trefk(l) = trefk(l) + hcorr*rcpd
             end do
             lcor = lqm + 1
           end if
 !--------------below lqm correct both temperature and moisture----------
           do l = lcor , lb
             tskl = trefk(l)*apek(l)/apesk(l)
-            dhdt = qrefk(l)*a23m4l/(tskl-a4)**2 + cp
+            dhdt = qrefk(l)*a23m4l/(tskl-a4)**2 + cpd
             trefk(l) = hcorr/dhdt + trefk(l)
             thskl = trefk(l)*apek(l)
             qrefk(l) = pq0/psk(l)                                       &
@@ -487,7 +488,7 @@
           diftl = (trefk(l)-tkl)*tauk
           difql = (qrefk(l)-qk(l))*tauk
           avrgtl = (tkl+tkl+diftl)
-          dentpy = (diftl*cp+difql*elwv)*dsigma(l)/avrgtl + dentpy
+          dentpy = (diftl*cpd+difql*elwv)*dsigma(l)/avrgtl + dentpy
           avrgt = avrgtl*dsigma(l) + avrgt
           preck = dsigma(l)*diftl + preck
           dift(l) = diftl
@@ -519,7 +520,7 @@
 !***    a threshold value, currently set to 0.25 inches per 24 hrs
         pthrs = cthrs/psb(i,j)
         drheat = (preck*xsm(i)+dmax1(epsp,preck-pthrs)*(h1-xsm(i)))     &
-               & *cp/avrgt
+               & *cpd/avrgt
         efi = efifc*dentpy/drheat
 !vvvvv  unified or separate land/sea conv.
         if ( .not.(oct90) ) then
@@ -649,7 +650,7 @@
           else
             es = aice*exp((bice*tk(l)-cice1)/(tk(l)-dice))
           end if
-          qsatk(l) = 0.622*es/(pk(l)-es)
+          qsatk(l) = ep2*es/(pk(l)-es)
         end do
 !-----------------------------------------------------------------------
         do l = ltp1 , lbm1
@@ -673,7 +674,7 @@
 !--------------scaling potential temperature & table index at top-------
         thtpk = t(i,ltp1)*ape(i,ltp1)
         pkl = (a(ltp1)*psb(i,j)+ptop)*1000.
-        ee = pkl*q(i,ltp1)/(0.622+q(i,ltp1))
+        ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
         tdpt = 1./(d273-rv/elwv*dlog(ee/611.))
         tdpt = dmin1(tdpt,t(i,ltp1))
         tlcl = tdpt - (.212+1.571E-3*(tdpt-t0)-4.36E-4*(t(i,ltp1)-t0))  &
@@ -728,7 +729,7 @@
         rotsum = 1./otsum
         potsum = potsum*rotsum
         qotsum = qotsum*rotsum
-        dst = dst*rotsum*cp/elwv
+        dst = dst*rotsum*cpd/elwv
 !--------------ensure positive entropy change---------------------------
         if ( dst.gt.0. ) then
           prtop(i) = pbot(i)
@@ -786,7 +787,7 @@
         end if
         dentpy = d00
         do l = ltp1 , lbtk
-          dentpy = ((trefk(l)-tk(l))*cp+(qrefk(l)-qk(l))*elwv)          &
+          dentpy = ((trefk(l)-tk(l))*cpd+(qrefk(l)-qk(l))*elwv)         &
                  & /(tk(l)+trefk(l))*dsigma(l) + dentpy
         end do
 !--------------relaxation towards reference profiles--------------------

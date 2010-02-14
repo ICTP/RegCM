@@ -24,6 +24,7 @@
       use mod_main
       use mod_pbldim
       use mod_bats
+      use mod_constants , only : rgti
       implicit none
 !
 ! Dummy arguments
@@ -55,7 +56,7 @@
           else
             veg1d(n,np) = vegc(lveg(n,np)) - seasf(lveg(n,np))*sfac
           end if
-          ts1d(n,np) = thx3d(np,kx,j) - 6.5E-3/g*(ht1(n,np,j)-ht(np,j))
+          ts1d(n,np) = thx3d(np,kx,j)-6.5E-3*rgti*(ht1(n,np,j)-ht(np,j))
           scv1d(n,np) = scv2d(n,np,j)
           sag1d(n,np) = sag2d(n,np,j)
         end do

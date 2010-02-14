@@ -38,6 +38,8 @@
       use mod_date
       use mod_message
       use mod_grads
+      use mod_constants , only : mathpi , gti , rgti , rgas , vonkar ,  &
+                               & cpd , tauht
 #ifdef MPP1
       use mpi
       use mod_mppio
@@ -49,7 +51,7 @@
       real(8) :: afracl , afracs , bb , cc , chibot , daymax , delsig , &
                & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
-               & wkp1 , xbot , xtop , xx , yy , xpi
+               & wkp1 , xbot , xtop , xx , yy
       real(8) , dimension(nsplit) :: dtsplit
       character(7) :: finm
       real(4) :: grdfac
@@ -69,7 +71,6 @@
 !-----vqrang is the range limit on vqflx.
 !.....qdcrit is the precipitation threshold for moisture convergence.
 !
-      data xpi/3.1415926535897/
       data vqrang/5.0E-4/
       data (mmd(i),i=1,12)/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , &
           & 31 , 30 , 31/
@@ -741,66 +742,20 @@
 !     qcth   : threshold for the onset of autoconversion.
 !     qck1oce  : constant autoconversion rate for ocean.
 !     qck1land : constant autoconversion rate for land.
-!     xlv    : latent heat of condensation at 0 c in j/kg.
-!     ep1    : constant used in computing virture temperature.
-!     ep2    : constant used in computing saturation mixing ratio.
-!     svp1, svp2, svp3 : constants used in computing saturation
-!     vapor pressure.
-!     avt, bvt : constants used in computing terminal velocity of
-!     raindrops.
 !     all the other constants are used to compute the cloud
 !     microphysical parameterization (ref. orville & kopp, 1977 jas).
 !
-      degrad = 0.0174533
-      eomeg = 7.292E-5
-      dpd = 360./365.25   !0.986301  (degrees/day)
-      solcon = 1.3956E3
-      stbolt = 5.76383E-8
-      r = 287.
-      cp = 1004.
-      rovcp = r/cp
-      g = 9.8
-      rovg = r/g
-      karman = 0.4
-      rhos = 1.16
       ptop4 = 4.*ptop
-      cd = 0.002
-      cdsea = 0.0015
-      ch = 0.002
-      chsea = 0.0015
-      alpha = 0.             ! =.2495 in brown-campana; =0. in split explicit
-      beta = 1. - 2.*alpha
-      gnu = 0.10             !  default = 0.1
-      omu = 1. - 2.*gnu
-      gnuhf = 0.5*gnu
-      omuhf = 1. - 2.*gnuhf
       dx2 = 2.*dx
       dx4 = 4.*dx
       dx8 = 8.*dx
       dx16 = 16.*dx
       dxsq = dx*dx
-      c200 = karman*karman*dx/(4.*(100.-ptop))
+      c200 = vonkar*vonkar*dx/(4.*(100.-ptop))
       c201 = (100.-ptop)/dxsq
       c203 = 1./dxsq
       xkhz = 1.5E-3*dxsq/dt
       xkhmax = dxsq/(64.*dt)
-      rv = 461.5
-      xlv = 2.5E6
-      ep1 = 0.608
-      ep2 = 0.622
-      xlvocp = xlv/cp
-!ex5  ---------------------------------
-!ex5  svp1 = 0.611
-!ex5  svp2 = 19.84659
-!ex5  svp3 = 5418.12
-      svp1 = 0.6112
-      svp2 = 17.67
-      svp3 = 29.65
-!ex5  ---------------------------------
- 
-      thrlh1 = 0.0002
-      thrlh2 = 0.0003
-      tauht = 7200.
       akht1 = dxsq/tauht
       akht2 = dxsq/tauht
 !
@@ -861,13 +816,13 @@
                 k = (jj-1)*nsg + ii
                 jj = (j+nsg-1)/nsg
                 ii = (i+nsg-1)/nsg
-                ht1_io(k,ii,jj) = sp2d1(i,j)*g
+                ht1_io(k,ii,jj) = sp2d1(i,j)*gti
               end do
             end do
           else
             do j = 1 , jx
               do i = 1 , ix
-                ht1_io(1,i,j) = sp2d(i,j)*g
+                ht1_io(1,i,j) = sp2d(i,j)*gti
               end do
             end do
           end if
@@ -978,7 +933,7 @@
           end do
           do j = 1 , jx
             do i = 1 , ix
-              ht_io(i,j) = ht_io(i,j)*g
+              ht_io(i,j) = ht_io(i,j)*gti
             end do
           end do
         end if                 ! end if (myid.eq.0)
@@ -1015,7 +970,7 @@
         do j = 1 , jendl
           do i = 1 , ix
             msfx(i,j) = 1./msfx(i,j)
-            ht(i,j) = ht(i,j)*g
+            ht(i,j) = ht(i,j)*gti
           end do
         end do
         if ( myid.eq.0 ) then
@@ -1529,19 +1484,6 @@
       call say
       write (aline, *) '   Convective Cloud Water: ' , cllwcv
       call say
- 
-      avt = 841.99667
-      bvt = 0.8
-      trel = 3000.
-      g4pb = 17.837825
-      g3pb = g4pb/(3.+bvt)
-      g5pb = 1.8273
-      n0r = 8.E6
-      ppi = 1./(xpi*n0r)
-      vtc = avt*g4pb/6.
-      prac = xpi*n0r*avt*g3pb*0.25
-      prec1 = 2.*xpi*n0r*0.78
-      prec2 = 2.*xpi*n0r*0.32*avt**0.5*g5pb
 !
 !-----compute the vertical interpolation coefficients for t and qv.
 !

@@ -25,14 +25,12 @@
 !
 ! COMMON /PMOIST/
 !
-      real(8) :: avt , bvt , caccr , cevap , clfrcv , clfrcvmax ,       &
-               & cllwcv , conf , dtauc , edtmax , edtmaxo , edtmaxx ,   &
-               & edtmin , edtmino , edtminx , ep1 , ep2 , fcmax , g3pb ,&
-               & g4pb , g5pb , gulland , guloce , htmax , htmin ,       &
-               & mincld , n0r , pbcmax , ppi , prac , prec1 , prec2 ,   &
-               & qck10 , qck1land , qck1oce , qcth , qdcrit , rh0land , &
-               & rh0oce , rhmax , rv , shrmax , shrmin , skbmax , svp1 ,&
-               & svp2 , svp3 , tc0 , trel , vtc , xlv , xlvocp
+      real(8) :: caccr , cevap , clfrcv , clfrcvmax , cllwcv , conf ,   &
+               & dtauc , edtmax , edtmaxo , edtmaxx , edtmin , edtmino ,&
+               & edtminx , fcmax , gulland , guloce , htmax , htmin ,   &
+               & mincld , pbcmax , qck10 , qck1land , qck1oce , qcth ,  &
+               & qdcrit , rh0land , rh0oce , rhmax , rv , shrmax ,      &
+               & shrmin , skbmax , tc0 
 #ifdef MPP1
       real(8) , dimension(ix,jxp) :: cbmf2d , cgul , dtauc2d ,          &
                                    & edtmax2d , edtmaxo2d , edtmaxx2d , &

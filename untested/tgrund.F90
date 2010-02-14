@@ -38,10 +38,10 @@
 !     are correspondingly changed.
 !
 !       tau1 = seconds in a day
-!     c(125) = latent heat of vaporization of water
-!     c(126) = latent heat of sublimation of water
-!     c(127) = latent heat of freezing of water
-!       htvp = c(125); or = c(126) if snow or tg<zero
+!       wlhv = latent heat of vaporization of water
+!       wlhs = latent heat of sublimation of water
+!       wlhf = latent heat of freezing of water
+!       htvp =  wlhv or = wlhs if snow or tg<zero
 !     depsnw = depth of snow
 !     dtime  = nondimensional diurnal time step
 !     dtimea = nondimensional annual time step
@@ -53,6 +53,9 @@
 !
       use mod_regcm_param
       use mod_bats
+      use mod_param1 , only : dtbat
+      use mod_constants , only : mathpi , csnw , cws , tau1 , tmelt ,   &
+                               & wlhf
       implicit none
 !
 ! Local variables
@@ -65,20 +68,24 @@
                & t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds , x , &
                & xkperi , xnu , xnua
       real(8) :: fct1 , fsc , fsk
+      real(8) :: dtbat2 , rdtbat2
       integer :: n , np
  
       fsk(x) = (2.9E-7*x+4.E-9)/(((1.-0.6*x)*x+0.09)*(0.23+x))
       fsc(x) = (0.23+x)*4.186E6
-      fct1(x) = c(127)*0.25*1.414/x
+      fct1(x) = wlhf*0.25*1.414/x
  
+      dtbat2 = dtbat*2.
+      rdtbat2 = 1./dtbat2
+
 !=======================================================================
 !l    1.   define thermal conductivity, heat capacity,
 !l    and other force restore parameters
 !=======================================================================
-      xnu = 2.*pi/tau1
+      xnu = 2.*mathpi/tau1
       xnua = xnu/365.
-      dtime = c(4)*xnu
-      dtimea = c(4)*xnua
+      dtime = dtbat*xnu
+      dtimea = dtbat*xnua
       dt2 = 0.5*dtime
       xkperi = 1.4E-6
  
@@ -95,8 +102,8 @@
 !l          specific heat only o.49 that of water
  
             swtrtd(n,np) = watu(n,np)*porsl(n,np)
-            if ( tg1d(n,np).lt.c(67) ) then
-              frozen = 0.85*dmin1(1.D0,.25*(c(67)-tg1d(n,np)))
+            if ( tg1d(n,np).lt.tmelt ) then
+              frozen = 0.85*dmin1(1.D0,.25*(tmelt-tg1d(n,np)))
               skd(n,np) = xkperi
               rscsd(n,np) = fsc(swtrtd(n,np)*(1.-0.51*frozen))
             else
@@ -104,8 +111,8 @@
               rscsd(n,np) = fsc(swtrtd(n,np))
             end if
             swtrta(n,np) = watr(n,np)*porsl(n,np)
-            if ( tgb1d(n,np).lt.c(67) ) then
-              froze2 = 0.85*dmin1(1.D0,.25*(c(67)-tgb1d(n,np)))
+            if ( tgb1d(n,np).lt.tmelt ) then
+              froze2 = 0.85*dmin1(1.D0,.25*(tmelt-tgb1d(n,np)))
               ska(n,np) = xkperi
               rscsa(n,np) = fsc(swtrta(n,np)*(1.-0.51*froze2))
             else
@@ -143,14 +150,14 @@
             fct2(n,np) = 0.
 !
 !l          2.1  add freezing thermal inertia
-            if ( (tg1d(n,np).lt.c(67)) .and. (tg1d(n,np).gt.(c(67)-4.)) &
+            if ( (tg1d(n,np).lt.tmelt) .and. (tg1d(n,np).gt.(tmelt-4.)) &
                & .and. (sice1d(n,np).le.1.E-22) ) then
               depu = depuv(lveg(n,np))*1.E-3
               cc(n,np) = 1. + dmax1(ssw1d(n,np)-frezu(lveg(n,np)),0.D0) &
                        & *fct1(depu*rscsd(n,np))
             end if
-            if ( (tgb1d(n,np).lt.c(67)) .and.                           &
-               & (tgb1d(n,np).gt.(c(67)-4.)) .and.                      &
+            if ( (tgb1d(n,np).lt.tmelt) .and.                           &
+               & (tgb1d(n,np).gt.(tmelt-4.)) .and.                      &
                & (sice1d(n,np).le.1.E-22) ) then
               depr = deprv(lveg(n,np))*1.E-3
               fct2(n,np) = dmax1(rsw1d(n,np)-freza(lveg(n,np)),0.D0)    &
@@ -172,12 +179,13 @@
             sm(n,np) = 0.0
             if ( scv1d(n,np).gt.0.0 ) then
               cder = bcoef(n,np)*cgrnd(n,np)
-              sm(n,np) = (bb(n,np)+(cc(n,np)-dt2+cder)*tg1d(n,np)-c(67) &
-                       & *(cc(n,np)+dt2+cder))/(bcoef(n,np)*c(127))
+              sm(n,np) = (bb(n,np)+(cc(n,np)-dt2+cder)*tg1d(n,np)-tmelt &
+                       & *(cc(n,np)+dt2+cder))/(bcoef(n,np)*wlhf)
 !             **********              snow melt always between 0 and
 !             total snow
-              sm(n,np) = dmax1(0.D0,dmin1(sm(n,np),scv1d(n,np)*2.*c(7)))
-              bb(n,np) = bb(n,np) - bcoef(n,np)*c(127)*sm(n,np)
+              sm(n,np) = dmax1(0.D0,dmin1(sm(n,np),scv1d(n,np)*2.*      &
+                       & rdtbat2))
+              bb(n,np) = bb(n,np) - bcoef(n,np)*wlhf*sm(n,np)
             end if
           end if
         end do

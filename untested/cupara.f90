@@ -39,6 +39,8 @@
       use mod_rad
       use mod_bats , only : pptc
       use mod_trachem
+      use mod_constants , only : rgas , gti , rgti , rovcp , rcpd ,     &
+                               & ep2 , wlhv , wlhvocp , tauht
       implicit none
 !
 ! Dummy arguments
@@ -127,7 +129,7 @@
             q = qva(i,k,j)/psa(i,j) + perq
             psg = psa(i,j)*a(k) + ptop
             t1 = ttp*(100./psg)**rovcp
-            eqt = t1*dexp(xlvocp*q/ttp)
+            eqt = t1*dexp(wlhvocp*q/ttp)
             if ( eqt.gt.eqtm ) then
               eqtm = eqt
               tmax = ttp
@@ -140,12 +142,12 @@
 !
           emax = qmax*pmax/(ep2+qmax)
           tdmax = 5418.12/(19.84659-dlog(emax/.611))
-          dalr = g/cp
-          dplr = (g*tdmax*tdmax)/(ep2*xlv*tmax)
+          dalr = gti*rcpd
+          dplr = (gti*tdmax*tdmax)/(ep2*wlhv*tmax)
           zlcl = (tmax-tdmax)/(dalr-dplr)
           tlcl = tmax - dalr*zlcl
           tmean = 0.5*(tmax+tlcl)
-          dlnp = (g*zlcl)/(r*tmean)
+          dlnp = (gti*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
           siglcl = (plcl-ptop)/psa(i,j)
 !
@@ -166,7 +168,7 @@
             es = .611*dexp(19.84659-5418.12/ttp)
             qs = ep2*es/(psg-es)
             t1 = ttp*(100./psg)**rovcp
-            seqt(k) = t1*dexp(xlvocp*qs/ttp)
+            seqt(k) = t1*dexp(wlhvocp*qs/ttp)
           end do
 !
 !--4--when seqt = eqt + dt, cloud top is reached.
@@ -248,7 +250,7 @@
                 qwght(k) = qwght(k)/suma
               end do
               do k = 1 , kx
-                ttconv = xlvocp*(1.0-c301)*twght(k,kbase,ktop)*sca
+                ttconv = wlhvocp*(1.0-c301)*twght(k,kbase,ktop)*sca
                 rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dt/2.
 !x              if (ttconv*2. .gt. 0.01) write(18,1234) i,j,k,ttconv*2.
 !1234           format(1x,'cupara, i=',i4,' j=',i4,' k=',i4,'
@@ -271,7 +273,7 @@
                 end do
               end if
 !.....the     unit for rainfall is mm.
-              prainx = (1.-c301)*sca*dtmin*60000./g
+              prainx = (1.-c301)*sca*dtmin*60000.*rgti
               rainc(i,j) = rainc(i,j) + prainx
 !             instantaneous precipitation rate for use in bats (mm/s)
               aprdiv = dble(nbatst)

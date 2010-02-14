@@ -34,6 +34,7 @@
       use mod_pbldim
       use mod_slice
       use mod_bats
+      use mod_constants , only : tau1 , zlnd , zoce , zsno , rgti , rgas
       implicit none
 !
 ! Dummy arguments
@@ -87,7 +88,7 @@
             rh0 = dmax1(qs1d0(n,i)/(.622*satvp/(p1d0(n,i)*0.01-satvp)), &
                 & 0.D0)
  
-            ts1d(n,i) = ts1d0(n,i) - 6.5E-3/g*(ht1(n,i,j)-ht(i,j))
+            ts1d(n,i) = ts1d0(n,i) - 6.5E-3*rgti*(ht1(n,i,j)-ht(i,j))
             p1d(n,i) = p1d0(n,i)*(ts1d(n,i)/ts1d0(n,i))
  
             hl = 597.3 - .566*(ts1d(n,i)-273.16)
@@ -95,7 +96,7 @@
             qs1d(n,i) = dmax1(rh0*.622*satvp/(p1d(n,i)*0.01-satvp),0.D0)
  
             tg1d(n,i) = tg2d(n,i,j)
-            rhs1d(n,i) = p1d(n,i)/(r*ts1d(n,i))
+            rhs1d(n,i) = p1d(n,i)/(rgas*ts1d(n,i))
             prcp1d(n,i) = pptnc(i,j) + pptc(i,j)
 !
 !           quantities stored on 2d surface array for bats use only
@@ -235,18 +236,18 @@
             gwet2d(n,i,j) = gwet1d(n,i)
             ocld2d(n,i,j) = ldoc1d(n,i)
             ircp2d(n,i,j) = ircp1d(n,i)
-            evpa2d(n,i,j) = evpa2d(n,i,j) + c(4)*evpr1d(n,i)
-            sena2d(n,i,j) = sena2d(n,i,j) + c(4)*sent1d(n,i)
+            evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*evpr1d(n,i)
+            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sent1d(n,i)
             if ( rnos2d(n,i,j).gt.-1.E10 .and. rnos1d(n,i).gt.-1.E10 )  &
                & then
-              rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)/tau1*c(4)
+              rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)/tau1*dtbat
             else
               rnos2d(n,i,j) = -1.E34
             end if
             if ( rno2d(n,i,j).gt.-1.E10 .and. rnos1d(n,i)               &
                & .gt.-1.E10 .and. rno1d(n,i).gt.-1.E10 ) then
               rno2d(n,i,j) = rno2d(n,i,j) + (rno1d(n,i)-rnos1d(n,i))    &
-                           & /tau1*c(4)
+                           & /tau1*dtbat
             else
               rno2d(n,i,j) = -1.E34
             end if
@@ -255,13 +256,13 @@
 !
 !         quantities stored on 2d surface array for bats use only
 !
-          prca2d(i,j) = prca2d(i,j) + c(4)*pptc(i,j)
-          prnca2d(i,j) = prnca2d(i,j) + c(4)*pptnc(i,j)
-          flwa2d(i,j) = flwa2d(i,j) + c(4)*flw1d(i)
+          prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
+          prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
+          flwa2d(i,j) = flwa2d(i,j) + dtbat*flw1d(i)
           flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
-          fswa2d(i,j) = fswa2d(i,j) + c(4)*fsw1d(i)
-          svga2d(i,j) = svga2d(i,j) + c(4)*sabveg(i)
-          sina2d(i,j) = sina2d(i,j) + c(4)*sinc2d(i,j)
+          fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw1d(i)
+          svga2d(i,j) = svga2d(i,j) + dtbat*sabveg(i)
+          sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
           pptnc(i,j) = 0.
           pptc(i,j) = 0.
         end do

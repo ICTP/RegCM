@@ -28,6 +28,7 @@
       use mod_pmoist
       use mod_slice
       use mod_bats
+      use mod_constants , only : wlhv
 
       implicit none
 
@@ -53,12 +54,12 @@
             z995 = za(i,kx,j)
             zi = zpbl(i,j)
             psurf = (psb(i,j)+ptop)*10.
-            call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,karman, &
-                       & g,r,cp,uv10,tau,lh,sh,dth,dqh,ustar,zo)
+            call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,        &
+                       & uv10,tau,lh,sh,dth,dqh,ustar,zo)
             tg1d(n,i) = tgb(i,j)
             tgb1d(n,i) = tgb(i,j)
             sent1d(n,i) = sh
-            evpr1d(n,i) = lh/xlv
+            evpr1d(n,i) = lh/wlhv
 !           Back out Drag Coefficient
             drag1d(n,i) = ustar**2*rhox2d(i,j)/uv995
             facttq = dlog(z995/2.)/dlog(z995/zo)

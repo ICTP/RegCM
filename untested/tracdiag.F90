@@ -25,6 +25,7 @@
       use mod_diagnosis
       use mod_main
       use mod_mainchem
+      use mod_constants , only : rgti
 #ifdef MPP1
       use mod_mppio
       use mpi
@@ -205,7 +206,7 @@
           do k = 1 , kx
             do i = 2 , ixm2
               tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)              &
-                        & *dx*(worka(i,k,n)-workb(i,k,n))/g
+                        & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
             end do
           end do
 !.....
@@ -238,7 +239,7 @@
                     & /psa01_g(j)/(msfx_io(1,j)*msfx_io(1,j)))
               end if
               tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)*dx*(fx2-fx1) &
-                        & /g
+                        & *rgti
             end do
           end do
         end do
@@ -329,7 +330,7 @@
           do k = 1 , kx
             do i = 2 , ixm2
               tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)              &
-                        & *(workb(i,k,n)+worka(i,k,n))/g
+                        & *(workb(i,k,n)+worka(i,k,n))*rgti
             end do
           end do
  
@@ -344,7 +345,7 @@
                     & *(chia02_g(k,n,j)/psa02_g(j)-chia01_g(k,n,j)      &
                     & /psa01_g(j))
               tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)*(chid2+chid1)&
-                        & /g
+                        & *rgti
             end do
           end do
         end do
@@ -355,7 +356,7 @@
         do k = 1 , kx
           do i = 2 , ixm2
             tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)                &
-                      & *(workb(i,k,n)+worka(i,k,n))/g
+                      & *(workb(i,k,n)+worka(i,k,n))*rgti
           end do
         end do
       end do

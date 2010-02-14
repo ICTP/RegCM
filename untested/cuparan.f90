@@ -28,6 +28,7 @@
       use mod_rad
       use mod_bats , only : pptc
       use mod_main
+      use mod_constants , only : rgti
       implicit none
 !
 ! Dummy arguments
@@ -88,7 +89,7 @@
           pkk = psur(i) - po(i,k)
           if ( pkk.le.pkdcut ) kdet(i) = kdet(i) + 1
           outq(i,k) = 0.
-          ter11(i) = ht(i,j)/9.81
+          ter11(i) = ht(i,j)*rgti
           if ( ter11(i).le.0. ) ter11(i) = 1.E-05
           qcrit(i) = qcrit(i) + qten(i,kk)
         end do

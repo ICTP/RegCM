@@ -35,6 +35,7 @@
       use mod_param3
       use mod_date
       use mod_main
+      use mod_constants , only : rgti
 #ifdef MPP1
       use mod_mppio
       use mpi
@@ -76,7 +77,7 @@
           end do
           tdrym = tdrym + tttmp*dsigma(k)
         end do
-        tdrym = tdrym*dx*dx*1000./g
+        tdrym = tdrym*dx*dx*1000.*rgti
       end if
       call mpi_bcast(tdrym,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
@@ -109,7 +110,7 @@
           end do
           tvmass = tvmass + tttmp*dsigma(k)
         end do
-        tvmass = tvmass*dx*dx*1000./g
+        tvmass = tvmass*dx*dx*1000.*rgti
       end if
       call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,               &
                    & ierr)
@@ -142,7 +143,7 @@
           end do
           tcmass = tcmass + tttmp*dsigma(k)
         end do
-        tcmass = tcmass*dx*dx*1000./g
+        tcmass = tcmass*dx*dx*1000.*rgti
       end if
       call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,               &
                    & ierr)

@@ -49,6 +49,7 @@
       use mod_date
       use mod_radbuf
       use mod_tmpsav
+      use mod_constants , only : rgti
 #ifdef DIAG
       use mod_diagnosis
 #endif
@@ -795,10 +796,9 @@
             end do
             tdini = tdini + tttmp*dsigma(k)
           end do
-          tdini = tdini*dx*dx*1000./g
+          tdini = tdini*dx*dx*1000.*rgti
         end if
-        call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,              &
-                     & ierr)
+        call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
 !
 !-----water substance (unit = kg):
 !
@@ -816,10 +816,9 @@
             end do
             tvmass = tvmass + tttmp*dsigma(k)
           end do
-          tvmass = tvmass*dx*dx*1000./g
+          tvmass = tvmass*dx*dx*1000.*rgti
         end if
-        call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,             &
-                     & ierr)
+        call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
 !
         tcmass = 0.
         call mpi_gather(qca(1,1,1),ix*kx*jxp,mpi_real8,                 &
@@ -835,10 +834,9 @@
             end do
             tcmass = tcmass + tttmp*dsigma(k)
           end do
-          tcmass = tcmass*dx*dx*1000./g
+          tcmass = tcmass*dx*dx*1000.*rgti
         end if
-        call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,             &
-                     & ierr)
+        call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
         tqini = tvmass + tcmass
 !=======================================================================
         if ( myid.eq.0 ) print 99002 , tdini , tqini
@@ -1894,7 +1892,6 @@
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ****** initialize and define constants for vector bats
  
-      call bconst
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) call initb
       if ( iemiss.eq.1 ) then
 #ifdef MPP1
@@ -1975,7 +1972,7 @@
           hg2 = dabs((ht(i,j)-ht(ip1h,j))/dx)
           hg3 = dabs((ht(i,j)-ht(i,jm1h))/dx)
           hg4 = dabs((ht(i,j)-ht(i,jp1h))/dx)
-          hgmax = dmax1(hg1,hg2,hg3,hg4)/9.8
+          hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
           hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
         end do
       end do
@@ -1995,7 +1992,7 @@
           hg2 = dabs((ht(i,j)-ht(ip1h,j))/dx)
           hg3 = dabs((ht(i,j)-ht(i,jm1h))/dx)
           hg4 = dabs((ht(i,j)-ht(i,jp1h))/dx)
-          hgmax = dmax1(hg1,hg2,hg3,hg4)/9.8
+          hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
           hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
         end do
       end do

@@ -30,6 +30,7 @@
       use mod_message
       use mod_param3
       use mod_date
+      use mod_constants , only : mathpi , degrad
       implicit none
 !
 ! Dummy arguments
@@ -39,7 +40,7 @@
 !
 ! Local variables
 !
-      real(8) :: calday , dayspy , decdeg , delta , pie , theta
+      real(8) :: calday , dayspy , decdeg , delta , theta
 !
 !----------------------------------------------------------------------
 !
@@ -60,11 +61,10 @@
 !KN   added below
 !KN   to take the earth's orbital eccentricity into consideration
 !
-      pie = 3.141592
 !     dayspy = 365.
       dayspy = 365.24
       calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
-      theta = 2.*pie*calday/dayspy
+      theta = 2.*mathpi*calday/dayspy
 !
 !     Solar declination in radians:
 !

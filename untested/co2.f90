@@ -23,7 +23,7 @@
 !
 !     model for plant carbon uptake and dead carbon decomposition
 !
-!            c(4) = number of seconds in half-hour
+!            dtbat = surface output interval
 !            cari = rate of carbon uptake by plants
 !       pbp1d(n,np) = accumulated primary biomass
 !      resp1d(n,np) = carbon in soil and in veg (kg c / m**2 / sec)
@@ -43,9 +43,10 @@
 !                    difference in molecular weight
 !
       use mod_regcm_param
+      use mod_param1 , only : dtbat
       use mod_bats , only : npts , pbp1d , resp1d , ldoc1d , sigf ,     &
                    & rlai , gwmx0, solis , tlef1d , ssw1d , tg1d ,      &
-                   & xlai , xlsai , fdry , c
+                   & xlai , xlsai , fdry
       use mod_ictp01
       implicit none
 !
@@ -67,7 +68,7 @@
               cari(n,np) = sigf(n,np)*xlsai(n,np)*fdry(n,np)            &
                          & *carbon(solis(np)*rlai(n,np),tlef1d(n,np),rt,&
                          & tg1d(n,np),xlai(n,np),xlsai(n,np))
-              pbp1d(n,np) = pbp1d(n,np) + cari(n,np)*c(4)
+              pbp1d(n,np) = pbp1d(n,np) + cari(n,np)*dtbat
             end if
           end if
         end do
@@ -80,7 +81,7 @@
               if ( pbp1d(n,np).lt.0 ) pbp1d(n,np) = 0.
               resps = 0.7E-7*resp1d(n,np)*dexp(0.1*(tg1d(n,np)-300.))   &
                     & *dmin1(1.D0,ssw1d(n,np)/(0.6*gwmx0(n,np)))
-              resp1d(n,np) = resp1d(n,np) + (cari(n,np)-resps)*c(4)
+              resp1d(n,np) = resp1d(n,np) + (cari(n,np)-resps)*dtbat
               if ( resp1d(n,np).lt.0.0 ) resp1d(n,np) = 0.
             end if
           end if

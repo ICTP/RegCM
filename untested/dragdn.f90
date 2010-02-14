@@ -36,8 +36,9 @@
 !
       use mod_regcm_param
       use mod_bats , only : npts , lveg , z1d , z1 , z1log , cdrn ,     &
-                   & sigf , vonkar , zoce , zsno , zlnd , sice1d ,      &
-                   & ldoc1d , veg1d , scvk , rough , wt , displa
+                   & sigf , sice1d , ldoc1d , veg1d , scvk , rough ,    &
+                   & wt , displa
+      use mod_constants , only : zlnd , zoce , zsno , vonkar
       implicit none
 !
 ! Local variables

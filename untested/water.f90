@@ -51,7 +51,9 @@
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
       use mod_regcm_param
+      use mod_param1 , only : dtbat
       use mod_bats
+      use mod_constants , only : drain , tau1 , csoilc , tmelt
       implicit none
 !
 ! Local variables
@@ -76,7 +78,7 @@
 !
 !           1.1  reduce infiltration for frozen ground
 !
-            if ( tgb1d(n,np).gt.c(67) ) then
+            if ( tgb1d(n,np).gt.tmelt ) then
               xkmxr(n,np) = xkmx(n,np)
             else
               xkmxr(n,np) = 0.
@@ -136,7 +138,7 @@
         do n = 1 , nnsg
           if ( ldoc1d(n,np).gt.0.5 .and. ldoc1d(n,np).lt.1.5 ) then
             gwatr(n,np) = pw(n,np) - evapw(n,np) + sm(n,np)             &
-                        & + etrrun(n,np)/c(4)
+                        & + etrrun(n,np)/dtbat
 !
 !=======================================================================
 !           2.   define runoff terms
@@ -148,7 +150,7 @@
 !
 !           2.11 increase surface runoff over frozen ground
 !
-            if ( tg1d(n,np).lt.c(67) ) then
+            if ( tg1d(n,np).lt.tmelt ) then
               rsur(n,np) = dmin1(1.D0,wata(n,np)**1)                    &
                          & *dmax1(0.D0,gwatr(n,np))
             else
@@ -161,14 +163,14 @@
             if ( lveg(n,np).eq.10 .and. watr(n,np).lt.relfc(n,np) )     &
                & rsur(n,np) = rsur(n,np)                                &
                             & + (rsw1d(n,np)-relfc(n,np)*gwmx1(n,np))   &
-                            & /c(4)
+                            & /dtbat
 !
 !           2.13 saturate swamp or rice paddy
 !
             if ( (lveg(n,np).ge.13) .and. (lveg(n,np).lt.16) )          &
                & rsur(n,np) = rsur(n,np)                                &
                             & + dmin1(0.D0,(rsw1d(n,np)-gwmx1(n,np))    &
-                            & /c(4))
+                            & /dtbat)
 !
 !           2.2  total runoff
 !
@@ -181,20 +183,21 @@
 !           3.1  update top layer with implicit treatment
 !           of flux from below
 !
-            ssw1d(n,np) = ssw1d(n,np) + c(4)                            &
+            ssw1d(n,np) = ssw1d(n,np) + dtbat                           &
                         & *(gwatr(n,np)-efpr(n,np)*etr(n,np)-rsur(n,np) &
                         & +wflux1(n,np))
-            ssw1d(n,np) = ssw1d(n,np)/(1.+wfluxc(n,np)*c(4)/gwmx0(n,np))
+            ssw1d(n,np) = ssw1d(n,np)/(1.+wfluxc(n,np)*dtbat/           &
+                        & gwmx0(n,np))
 !
 !           3.2  update root zone
 !
-            rsw1d(n,np) = rsw1d(n,np) + c(4)                            &
+            rsw1d(n,np) = rsw1d(n,np) + dtbat                           &
                         & *(gwatr(n,np)-etr(n,np)-rsur(n,np)            &
                         & +wflux2(n,np))
 !
 !           3.3  update total water
 !
-            tsw1d(n,np) = tsw1d(n,np) + c(4)                            &
+            tsw1d(n,np) = tsw1d(n,np) + dtbat                           &
                         & *(gwatr(n,np)-etr(n,np)-rnof(n,np))
           end if
         end do
@@ -222,7 +225,7 @@
             if ( tsw1d(n,np).gt.gwmx2(n,np) ) then
               delwat = tsw1d(n,np) - gwmx2(n,np)
               tsw1d(n,np) = gwmx2(n,np)
-              rsubst(n,np) = rsubst(n,np) + delwat/c(4)
+              rsubst(n,np) = rsubst(n,np) + delwat/dtbat
             end if
 !
 !           4.4  check for negative water in top layer
@@ -233,8 +236,8 @@
 !           5.   accumulate leaf interception
 !=======================================================================
 !
-            ircp1d(n,np) = ircp1d(n,np) + sigf(n,np)*(c(4)*prcp1d(n,np))&
-                         & - (sdrop(n,np)+etrrun(n,np))
+            ircp1d(n,np) = ircp1d(n,np) + sigf(n,np)*(dtbat*            &
+                         & prcp1d(n,np)) - (sdrop(n,np)+etrrun(n,np))
 !
 !=======================================================================
 !           6.   evaluate runoff (incremented in ccm)

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine zengocn(u,ts,t,q,hgt,zi,ps,qs,ak,grav,rgas,cpa,u10,tau,&
+      subroutine zengocn(u,ts,t,q,hgt,zi,ps,qs,u10,tau,                 &
                        & alh,ash,dth,dqh,ustar,zo)
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -61,12 +61,13 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
+      use mod_constants , only : gti , rgti , rgas , rovcp , vonkar ,   &
+                                 cpd
       implicit none
 !
 ! Dummy arguments
 !
-      real(kind=8) , intent (in) :: ak , cpa , hgt , q , rgas , t , u , &
-               & zi , ts , ps , grav
+      real(kind=8) , intent (in) :: hgt , q , t , u , zi , ts , ps
       real(kind=8) , intent (out) :: alh , ash , tau , u10
       real(kind=8) , intent (inout) :: dqh , dth , qs , ustar , zo
 !
@@ -90,7 +91,7 @@
       ht = hgt
       hq = hgt
 !
-      th = (t+tok)*(1000./ps)**(rgas/cpa)
+      th = (t+tok)*(1000./ps)**rovcp
       ! potential T
       dth = t + 0.0098*ht - ts
       qs = qsat(ts,ps)*0.98
@@ -123,11 +124,11 @@
 !     loop to obtain initial and good ustar and zo
 !
       do i = 1 , 5
-        zo = 0.013*ustar*ustar/grav + 0.11*visa/ustar
-        ustar = ak*um/dlog(hu/zo)
+        zo = 0.013*ustar*ustar*rgti + 0.11*visa/ustar
+        ustar = vonkar*um/dlog(hu/zo)
       end do
 !
-      rb = grav*hu*dthv/(thv*um*um)
+      rb = gti*hu*dthv/(thv*um*um)
       if ( rb.ge.0. ) then       ! neutral or stable
         zeta = rb*dlog(hu/zo)/(1.-5.*dmin1(rb,0.19D0))
         zeta = dmin1(2.D0,dmax1(zeta,1.D-6))
@@ -140,7 +141,7 @@
 !     main iterations (2-10 iterations would be fine)
 !
       do i = 1 , 10
-        call rough(zo,zot,zoq,ustar,visa,grav)
+        call rough(zo,zot,zoq,ustar,visa,gti)
 !
 !       wind
 !
@@ -148,16 +149,16 @@
         zetam = 1.574
         if ( zeta.lt.-zetam ) then
                                  ! zeta < -1
-          ustar = ak*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+psi(1,zo/obu)&
-                & +1.14*((-zeta)**0.333-(zetam)**0.333))
+          ustar = vonkar*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+         &
+                & psi(1,zo/obu)+1.14*((-zeta)**0.333-(zetam)**0.333))
         else if ( zeta.lt.0. ) then
                                   ! -1 <= zeta < 0
-          ustar = ak*um/(dlog(hu/zo)-psi(1,zeta)+psi(1,zo/obu))
+          ustar = vonkar*um/(dlog(hu/zo)-psi(1,zeta)+psi(1,zo/obu))
         else if ( zeta.le.1. ) then
                                   !  0 <= zeta <= 1
-          ustar = ak*um/(dlog(hu/zo)+5.*zeta-5.*zo/obu)
+          ustar = vonkar*um/(dlog(hu/zo)+5.*zeta-5.*zo/obu)
         else                   !  1 < zeta, phi=5+zeta
-          ustar = ak*um/(dlog(obu/zo)+5.-5.*zo/obu+                     &
+          ustar = vonkar*um/(dlog(obu/zo)+5.-5.*zo/obu+                 &
                 & (5.*dlog(zeta)+zeta-1.))
         end if
 !
@@ -167,17 +168,17 @@
         zetat = 0.465
         if ( zeta.lt.-zetat ) then
                                  ! zeta < -1
-          tstar = ak*dth/(dlog(-zetat*obu/zot)-psi(2,-zetat)            &
+          tstar = vonkar*dth/(dlog(-zetat*obu/zot)-psi(2,-zetat)        &
                 & +psi(2,zot/obu)                                       &
                 & +0.8*((zetat)**(-0.333)-(-zeta)**(-0.333)))
         else if ( zeta.lt.0. ) then
                                   ! -1 <= zeta < 0
-          tstar = ak*dth/(dlog(ht/zot)-psi(2,zeta)+psi(2,zot/obu))
+          tstar = vonkar*dth/(dlog(ht/zot)-psi(2,zeta)+psi(2,zot/obu))
         else if ( zeta.le.1. ) then
                                   !  0 <= ztea <= 1
-          tstar = ak*dth/(dlog(ht/zot)+5.*zeta-5.*zot/obu)
+          tstar = vonkar*dth/(dlog(ht/zot)+5.*zeta-5.*zot/obu)
         else                   !  1 < zeta, phi=5+zeta
-          tstar = ak*dth/(dlog(obu/zot)+5.-5.*zot/obu+                  &
+          tstar = vonkar*dth/(dlog(obu/zot)+5.-5.*zot/obu+              &
                 & (5.*dlog(zeta)+zeta-1.))
         end if
 !
@@ -187,27 +188,27 @@
         zetat = 0.465
         if ( zeta.lt.-zetat ) then
                                  ! zeta < -1
-          qstar = ak*dqh/(dlog(-zetat*obu/zoq)-psi(2,-zetat)            &
+          qstar = vonkar*dqh/(dlog(-zetat*obu/zoq)-psi(2,-zetat)        &
                 & +psi(2,zoq/obu)                                       &
                 & +0.8*((zetat)**(-0.333)-(-zeta)**(-0.333)))
         else if ( zeta.lt.0. ) then
                                   ! -1 <= zeta < 0
-          qstar = ak*dqh/(dlog(hq/zoq)-psi(2,zeta)+psi(2,zoq/obu))
+          qstar = vonkar*dqh/(dlog(hq/zoq)-psi(2,zeta)+psi(2,zoq/obu))
         else if ( zeta.le.1. ) then
                                   !  0 <= ztea <= 1
-          qstar = ak*dqh/(dlog(hq/zoq)+5.*zeta-5.*zoq/obu)
+          qstar = vonkar*dqh/(dlog(hq/zoq)+5.*zeta-5.*zoq/obu)
         else                   !  1 < zeta, phi=5+zeta
-          qstar = ak*dqh/(dlog(obu/zoq)+5.-5.*zoq/obu+                  &
+          qstar = vonkar*dqh/(dlog(obu/zoq)+5.-5.*zoq/obu+              &
                 & (5.*dlog(zeta)+zeta-1.))
         end if
         thvstar = tstar*(1.+0.61*q) + 0.61*th*qstar
 !
-        zeta = ak*grav*thvstar*hu/(ustar**2*thv)
+        zeta = vonkar*gti*thvstar*hu/(ustar**2*thv)
         if ( zeta.ge.0 ) then   !neutral or stable
           um = max(u,0.1D0)
           zeta = dmin1(2.D0,max(zeta,1.D-6))
         else                   !unstable
-          wc = zbeta*(-grav*ustar*thvstar*zi/thv)**0.333
+          wc = zbeta*(-gti*ustar*thvstar*zi/thv)**0.333
           um = sqrt(u*u+wc*wc)
           zeta = dmax1(-100.D0,min(zeta,-1.D-6))
         end if
@@ -218,7 +219,7 @@
 !
       tau = rho*ustar*ustar*u/um
       alh = -rho*xlv*qstar*ustar
-      ash = -rho*cpa*tstar*ustar
+      ash = -rho*cpd*tstar*ustar
 !
 !     x and y components of tau:
 !     taux=rho*ustar*ustar*u_x/um
@@ -227,9 +228,10 @@
 !
       zeta = z10/obu
       if ( zeta.lt.0. ) then
-        u10 = u + (ustar/ak)*(dlog(z10/hu)-(psi(1,zeta)-psi(1,hu/obu)))
+        u10 = u + (ustar/vonkar)*(dlog(z10/hu)-(psi(1,zeta)-            &
+              & psi(1,hu/obu)))
       else
-        u10 = u + (ustar/ak)*(dlog(z10/hu)+5.*zeta-5.*hu/obu)
+        u10 = u + (ustar/vonkar)*(dlog(z10/hu)+5.*zeta-5.*hu/obu)
       end if
       end subroutine zengocn
 !

@@ -325,6 +325,7 @@
       end subroutine uthefft
 ! 
       function ustart01(rhop,dum,rhair)
+      use mod_constants , only : gti
       implicit none
 !
 ! PARAMETER definitions
@@ -332,7 +333,7 @@
       real(8) , parameter :: a2 = 0.129 , c1 = 0.006 , c2 = 1.928 ,     &
                            & c3 = 0.0858 , c4 = -0.0617 , c5 = 2.5 ,    &
                            & y1 = 1331.647 , y2 = 1.561228 ,            &
-                           & y3 = 0.38194 , g = 9.806160
+                           & y3 = 0.38194
 !
 ! Dummy arguments
 !
@@ -356,8 +357,8 @@
  
       dm = dum  !* 1.0e-4      ! cm
       rep = y1*(dm**y2) + y3
-      term1 = sqrt(1.0+(c1/(rhop*g*0.1*(dm**c5))))
-      term2 = sqrt(rhop*g*100.0*dm/rhair)
+      term1 = sqrt(1.0+(c1/(rhop*gti*0.1*(dm**c5))))
+      term2 = sqrt(rhop*gti*100.0*dm/rhair)
       term = term1*term2
       ustart01 = cvmgt(a2*term*(1.0-c3*exp(c4*(rep-10.0))),             &
                & a2*term/sqrt(c2*(rep**0.092)-1.0),rep.gt.10.0)
@@ -365,11 +366,12 @@
       end function ustart01
 ! 
       function ustart0(rhop,dum,rhoa)
+      use mod_constants , only : gti
       implicit none
 !
 ! PARAMETER definitions
 !
-      real(8) , parameter :: agamma = 3.0E-4 , g = 9.81 , f = 0.0123
+      real(8) , parameter :: agamma = 3.0E-4 , f = 0.0123
 !
 ! Dummy arguments
 !
@@ -394,7 +396,7 @@
  
       sigma = rhop/rhoa        ! gravity parameter    [m s^-2]
       dm = dum*1.0E-2    !* 1.0e-6
-      ustart0 = f*(sigma*g*dm+agamma/(rhoa*dm))
+      ustart0 = f*(sigma*gti*dm+agamma/(rhoa*dm))
       ustart0 = sqrt(ustart0)
       ustart0 = ustart0*100.0
       end function ustart0
@@ -421,6 +423,7 @@
                         & uth,roarow,dp,rc,utheff,ustar,srel,rsfrow,    &
                         & trsize,sand2row,vegfrac)
  
+      use mod_constants , only : rgti , mathpi
       implicit none
 !
 ! PARAMETER definitions
@@ -448,9 +451,9 @@
 !
       real(8) :: aeffect , alogdi , amean1 , amean2 , amean3 , asigma1 ,&
                & asigma2 , asigma3 , beffect , beta , const , d1 , d2 , &
-               & d3 , dec , e1 , e2 , e3 , ec , f , fdp1 , fdp2 , g ,   &
-               & p1 , p2 , p3 , pi , rwi , sigma1 , sigma2 , sigma3 ,   &
-               & totv1 , totv2 , totv3
+               & d3 , dec , e1 , e2 , e3 , ec , f , fdp1 , fdp2 , p1 ,  &
+               & p2 , p3 , rwi , sigma1 , sigma2 , sigma3 , totv1 ,     &
+               & totv2 , totv3
       real(8) , dimension(2,isize) :: aerosize
       real(8) , dimension(isize) :: frac1 , frac2 , frac3
       real(8) , dimension(ilg) :: fsoil , fsoil1 , fsoil2 , fsoil3
@@ -458,7 +461,6 @@
       real(8) , dimension(ilg,isize) :: rsfrowsub
 !
       data const/2.3/ , beta/16300./
-      data pi/3.1415926535897/ , g/9.806160/
 !     alfaro 's values
       data e1/3.61/ , e2/3.52/ , e3/3.46/
       data d1/1.5/ , d2/6.7/ , d3/14.2/
@@ -486,7 +488,7 @@
               if ( uth.le.1.0 ) then
  
                 fdp1 = ustar(k,i)**3*(1.0-uth*uth)
-                fdp2 = (1.0+uth)*const*(1.E-5)*roarow(k)/g
+                fdp2 = (1.0+uth)*const*(1.E-5)*roarow(k)*rgti
  
                 if ( fdp2.le.0.0 ) fdp2 = 0.
  
@@ -503,7 +505,8 @@
 !               individual kinetic energy for an aggregate of size dp (
 !               g cm2 s-2) cf alfaro (dp) is in cm
 !               ec=(pi/3.)*1.e-1*rhop*(dp(j)**3.0)*(ustar(k,i)**2.0)
-                ec = (pi/12)*rhop*1E-3*(dp(j)**3.0)*(20*ustar(k,i))**2.0
+                ec = (mathpi/12)*rhop*1E-3*(dp(j)**3.0)*                &
+                    & (20*ustar(k,i))**2.0
  
                 if ( ec.gt.e1 ) then
                   p1 = (ec-e1)/(ec-e3)
@@ -524,11 +527,11 @@
                 else
                 end if
  
-                fsoil1(k) = fsoil1(k) + 1.E-2*p1*(dec/e1)*(pi/6.)       &
+                fsoil1(k) = fsoil1(k) + 1.E-2*p1*(dec/e1)*(mathpi/6.)   &
                           & *rhop*((d1*1.E-04)**3.)
-                fsoil2(k) = fsoil2(k) + 1.E-2*p2*(dec/e2)*(pi/6.)       &
+                fsoil2(k) = fsoil2(k) + 1.E-2*p2*(dec/e2)*(mathpi/6.)   &
                           & *rhop*((d2*1.E-04)**3.)
-                fsoil3(k) = fsoil3(k) + 1.E-2*p3*(dec/e3)*(pi/6.)       &
+                fsoil3(k) = fsoil3(k) + 1.E-2*p3*(dec/e3)*(mathpi/6.)   &
                           & *rhop*((d3*1.E-04)**3.)
               end if
             end if

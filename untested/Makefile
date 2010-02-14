@@ -23,7 +23,7 @@ aermix.o          cup.o         isrchfgt.o  radclw.o    tractend2.o  \
 aeroppt.o         depth.o       isrchfle.o  radcsw.o    trcab.o      \
 aerout.o          deriv.o       lakedrv.o   radctl.o    trcabn.o     \
 albedov.o         diffu.o       lake.o      radded.o    trcems.o     \
-bconst.o          diffut.o      lenchr.o    radems.o    trcmix.o     \
+radclr.o          diffut.o      lenchr.o    radems.o    trcmix.o     \
 bdyin.o           dragdn.o      lfdrag.o    radini.o    trcplk.o     \
 bdyuv.o           drag.o        lftemp.o    radinp.o    trcpth.o     \
 bdyval.o          drip.o        linpack.o   radout.o    tseaice.o    \
@@ -41,7 +41,7 @@ cldfrac.o         header.o      nudge.o     soilbc.o    vorder.o     \
 co2.o             holtbl.o      o3data.o    solar1.o    vtlaps.o     \
 colmod3.o         htdiff.o      outprt.o    spinit.o    water.o      \
 conadv.o          ice.o         output.o    spline.o    wheneq.o     \
-condch.o          inicon.o      outsav.o    splitf.o    whenfgt.o    \
+condch.o          tracdiag.o    outsav.o    splitf.o    whenfgt.o    \
 condcq.o          inidust.o     outsrf.o    sponge.o    whenflt.o    \
 condtq.o          inirad.o      outsub.o    spstep.o    whenne.o     \
 conmas.o          initb.o       outtap0.o   stomat.o    zengocndrv.o \
@@ -49,8 +49,7 @@ convect_tables.o  initdate.o    outtap.o    temp.o      zengocn.o    \
 cumtran.o         init.o        param.o     tend.o      zenith.o     \
 cupara.o          initlk.o      pcp.o       tgrund.o    zenitm.o     \
 cuparan.o         interf.o      printsp.o   tpfc.o      cupemandrv.o \
-intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o    \
-radclr.o          tracdiag.o
+intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
 
 regcm: $(MODOBJS) $(OBJS)
 	$(FC) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
@@ -114,21 +113,21 @@ aeroppt.o: aeroppt.F90 mod_aerosol.o mod_crdcon.o mod_message.o \
            mod_param2.o mod_regcm_param.o mod_trachem.o
 aerout.o: aerout.F90 mod_aerosol.o mod_param2.o mod_regcm_param.o \
           mod_trachem.o
-albedov.o: albedov.f90 mod_bats.o mod_regcm_param.o
-bconst.o: bconst.f90 mod_bats.o mod_regcm_param.o
+albedov.o: albedov.f90 mod_constants.o mod_bats.o mod_regcm_param.o
 bdyin.o: bdyin.F90 mod_bats.o mod_bdycod.o mod_date.o mod_iunits.o mod_main.o \
          mod_param1.o mod_param3.o mod_regcm_param.o mod_tmpsav.o
 bdyuv.o: bdyuv.F90 mod_bdycod.o mod_cvaria.o mod_main.o mod_regcm_param.o
 bdyval.o: bdyval.F90 mod_bdycod.o mod_date.o mod_main.o mod_mainchem.o \
           mod_param1.o mod_param2.o mod_regcm_param.o
-blhnew.o: blhnew.F90 mod_blh_tmp.o mod_main.o mod_param2.o mod_param3.o \
-          mod_pbldim.o mod_regcm_param.o mod_slice.o
-bmpara.o: bmpara.f90 mod_bats.o mod_bmparam.o mod_main.o mod_param1.o \
-          mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o mod_regcm_param.o \
-          mod_trachem.o
-bndry.o: bndry.f90 mod_bats.o mod_ictp01.o mod_regcm_param.o
+blhnew.o: blhnew.F90 mod_blh_tmp.o mod_constants.o mod_main.o mod_param2.o \
+          mod_param3.o mod_pbldim.o mod_regcm_param.o mod_slice.o
+bmpara.o: bmpara.f90 mod_bats.o mod_bmparam.o mod_constants.o mod_main.o \
+          mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
+          mod_regcm_param.o mod_trachem.o
+bndry.o: bndry.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_param1.o \
+         mod_regcm_param.o
 carbon.o: carbon.f90
-chdrydep.o: chdrydep.f90
+chdrydep.o: chdrydep.f90 mod_constants.o
 chemtap.o: chemtap.F90 mod_date.o mod_iunits.o mod_main.o mod_mainchem.o \
            mod_param2.o mod_regcm_param.o mod_trachem.o
 chrsetc.o: chrsetc.f90
@@ -137,84 +136,86 @@ chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
 cldefr.o: cldefr.f90 mod_regcm_param.o
 cldems.o: cldems.f90 mod_regcm_param.o
 cldfrac.o: cldfrac.f90 mod_pmoist.o mod_rad.o mod_regcm_param.o mod_slice.o
-co2.o: co2.f90 mod_bats.o mod_ictp01.o mod_regcm_param.o
-colmod3.o: colmod3.f90 mod_bats.o mod_comctl.o mod_comtim.o mod_regcm_param.o
-conadv.o: conadv.F90 mod_diagnosis.o mod_main.o mod_param1.o mod_param3.o \
-          mod_regcm_param.o
-condch.o: condch.f90 mod_bats.o mod_regcm_param.o
+co2.o: co2.f90 mod_bats.o mod_ictp01.o mod_param1.o mod_regcm_param.o
+colmod3.o: colmod3.f90 mod_constants.o mod_bats.o mod_comctl.o mod_comtim.o \
+           mod_regcm_param.o
+conadv.o: conadv.F90 mod_constants.o mod_diagnosis.o mod_main.o mod_param1.o \
+          mod_param3.o mod_regcm_param.o
+condch.o: condch.f90 mod_constants.o mod_bats.o mod_regcm_param.o
 condcq.o: condcq.f90 mod_bats.o mod_regcm_param.o
-condtq.o: condtq.f90 mod_cvaria.o mod_main.o mod_param1.o mod_param3.o \
-          mod_pmoist.o mod_regcm_param.o mod_slice.o
-conmas.o: conmas.F90 mod_date.o mod_diagnosis.o mod_main.o mod_param1.o \
-          mod_param2.o mod_param3.o mod_regcm_param.o
+condtq.o: condtq.f90 mod_constants.o mod_cvaria.o mod_main.o mod_param1.o \
+          mod_param3.o mod_pmoist.o mod_regcm_param.o mod_slice.o
+conmas.o: conmas.F90 mod_constants.o mod_date.o mod_diagnosis.o mod_main.o \
+          mod_param1.o mod_param2.o mod_param3.o mod_regcm_param.o
 convect_tables.o: convect_tables.f90 mod_constants.o mod_culookup.o \
                   mod_tiedparam0.o
 cumtran.o: cumtran.F90 mod_mainchem.o mod_param3.o mod_regcm_param.o \
            mod_trachem.o
 cup.o: cup.f90 mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
        mod_regcm_param.o mod_trachem.o
-cupara.o: cupara.f90 mod_bats.o mod_cvaria.o mod_main.o mod_param1.o \
-          mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o mod_regcm_param.o \
-          mod_trachem.o
-cuparan.o: cuparan.f90 mod_bats.o mod_main.o mod_param1.o mod_param3.o \
-           mod_pmoist.o mod_rad.o mod_regcm_param.o
+cupara.o: cupara.f90 mod_bats.o mod_constants.o mod_cvaria.o mod_main.o \
+          mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
+          mod_regcm_param.o mod_trachem.o
+cuparan.o: cuparan.f90 mod_bats.o mod_constants.o mod_main.o mod_param1.o \
+           mod_param3.o mod_pmoist.o mod_rad.o mod_regcm_param.o
 cupeman.o: cupeman.f90 mod_convect.o
 cupemandrv.o: cupemandrv.f90 mod_bats.o mod_cvaria.o mod_main.o mod_param1.o \
               mod_param3.o mod_pmoist.o mod_rad.o mod_regcm_param.o mod_slice.o
 depth.o: depth.f90 mod_bats.o mod_regcm_param.o
-deriv.o: deriv.f90 mod_bats.o mod_ictp01.o mod_regcm_param.o
+deriv.o: deriv.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
 diffu.o: diffu.F90 mod_main.o mod_regcm_param.o mod_slice.o
 diffut.o: diffut.F90 mod_main.o mod_regcm_param.o mod_slice.o
-drag.o: drag.f90 mod_bats.o mod_regcm_param.o
-dragdn.o: dragdn.f90 mod_bats.o mod_regcm_param.o
-drip.o: drip.f90 mod_bats.o mod_regcm_param.o
-dsflx.o: dsflx.F90 mod_dust.o mod_message.o mod_regcm_param.o
-eddy.o: eddy.f90
+drag.o: drag.f90 mod_constants.o mod_bats.o mod_regcm_param.o
+dragdn.o: dragdn.f90 mod_constants.o mod_bats.o mod_regcm_param.o
+drip.o: drip.f90 mod_constants.o mod_bats.o mod_regcm_param.o
+dsflx.o: dsflx.F90 mod_constants.o mod_dust.o mod_message.o mod_regcm_param.o
+eddy.o: eddy.f90 mod_constants.o
 eispack.o: eispack.f90
 eomb.o: eomb.f90
 finddate.o: finddate.F90 mod_message.o mod_regcm_param.o
 for_next.o: for_next.f90 mod_convect.o mod_date.o mod_param1.o mod_param2.o \
             mod_param3.o mod_pmoist.o mod_regcm_param.o mod_trachem.o
-frawat.o: frawat.f90 mod_bats.o mod_regcm_param.o
-getdat.o: getdat.f90 mod_comtim.o mod_crdcon.o mod_date.o mod_main.o \
-          mod_param1.o mod_param3.o mod_rad.o mod_regcm_param.o
+frawat.o: frawat.f90 mod_constants.o mod_bats.o mod_regcm_param.o
+getdat.o: getdat.f90 mod_comtim.o mod_constants.o mod_crdcon.o mod_date.o \
+          mod_main.o mod_param1.o mod_param3.o mod_rad.o mod_regcm_param.o
 grads_stuf.o: grads_stuf.F90 mod_date.o mod_grads.o mod_iunits.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_regcm_param.o
 hadv.o: hadv.F90 mod_cvaria.o mod_main.o mod_regcm_param.o
 header.o: header.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
-holtbl.o: holtbl.F90 mod_bats.o mod_blh_tmp.o mod_cvaria.o mod_diagnosis.o \
-          mod_main.o mod_mainchem.o mod_param1.o mod_param2.o mod_param3.o \
-          mod_pbldim.o mod_pmoist.o mod_regcm_param.o mod_slice.o mod_trachem.o
+holtbl.o: holtbl.F90 mod_bats.o mod_blh_tmp.o mod_constants.o mod_cvaria.o \
+          mod_diagnosis.o mod_main.o mod_mainchem.o mod_param1.o mod_param2.o \
+          mod_param3.o mod_pbldim.o mod_pmoist.o mod_regcm_param.o mod_slice.o \
+          mod_trachem.o
 htdiff.o: htdiff.F90 mod_pmoist.o mod_regcm_param.o
-ice.o: ice.f90
+ice.o: ice.f90 mod_constants.o
 ifport.o: ifport.f90
-inicon.o: inicon.f90 mod_constants.o
-inidust.o: inidust.F90 mod_dust.o mod_regcm_param.o
+inidust.o: inidust.F90 mod_constants.o mod_dust.o mod_regcm_param.o
 inirad.o: inirad.F90 mod_param1.o mod_rad.o mod_regcm_param.o
-init.o: init.F90 mod_bats.o mod_bdycod.o mod_date.o mod_diagnosis.o \
-        mod_iunits.o mod_main.o mod_mainchem.o mod_message.o mod_param1.o \
-        mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
+init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
+        mod_diagnosis.o mod_iunits.o mod_main.o mod_mainchem.o mod_message.o \
+        mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
         mod_radbuf.o mod_regcm_param.o mod_tmpsav.o mod_trachem.o
 initb.o: initb.F90 mod_bats.o mod_main.o mod_param2.o mod_regcm_param.o
 initdate.o: initdate.F90 mod_message.o mod_param1.o mod_regcm_param.o
 initlk.o: initlk.f90 mod_lake.o mod_regcm_param.o
-interf.o: interf.F90 mod_bats.o mod_main.o mod_param1.o mod_param2.o \
-          mod_param3.o mod_pbldim.o mod_regcm_param.o mod_slice.o
+interf.o: interf.F90 mod_constants.o mod_bats.o mod_main.o mod_param1.o \
+          mod_param2.o mod_param3.o mod_pbldim.o mod_regcm_param.o mod_slice.o
 intmax.o: intmax.f90
 invmtrx.o: invmtrx.F90 mod_message.o
 isrchfgt.o: isrchfgt.f90
 isrchfle.o: isrchfle.f90
-lake.o: lake.f90 mod_lake.o
+lake.o: lake.f90 mod_constants.o mod_lake.o
 lakedrv.o: lakedrv.f90 mod_bats.o mod_date.o mod_iunits.o mod_param1.o \
            mod_regcm_param.o
 lenchr.o: lenchr.f90
-lfdrag.o: lfdrag.f90 mod_bats.o mod_ictp01.o mod_regcm_param.o
-lftemp.o: lftemp.f90 mod_bats.o mod_ictp01.o mod_regcm_param.o
+lfdrag.o: lfdrag.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
+lftemp.o: lftemp.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_param1.o \
+          mod_regcm_param.o
 linpack.o: linpack.f90
 ljchrn.o: ljchrn.f90
 lshfch.o: lshfch.F90
-lutbl.o: lutbl.f90 mod_bmparam.o
+lutbl.o: lutbl.f90 mod_constants.o mod_bmparam.o
 mapsmp.o: mapsmp.f90
 maximi.o: maximi.f90
 message.o: message.F90 mod_message.o mod_regcm_param.o
@@ -222,7 +223,7 @@ minimi.o: minimi.f90
 mixer.o: mixer.f90
 mkfile.o: mkfile.F90 mod_bats.o mod_date.o mod_iunits.o mod_mainchem.o \
           mod_outrad.o mod_param1.o mod_param2.o mod_regcm_param.o
-nconvp.o: nconvp.F90 mod_param3.o mod_pmoist.o mod_regcm_param.o
+nconvp.o: nconvp.F90 mod_constants.o mod_param3.o mod_pmoist.o mod_regcm_param.o
 nudge.o: nudge.F90 mod_bdycod.o mod_main.o mod_param3.o mod_regcm_param.o
 o3data.o: o3data.F90 mod_main.o mod_o3blk.o mod_param3.o mod_rad.o \
           mod_regcm_param.o
@@ -242,13 +243,14 @@ outsub.o: outsub.F90 mod_bats.o mod_date.o mod_iunits.o mod_param1.o \
           mod_param2.o mod_regcm_param.o
 outtap.o: outtap.F90 mod_bats.o mod_cvaria.o mod_date.o mod_iunits.o \
           mod_main.o mod_param1.o mod_param2.o mod_param3.o mod_regcm_param.o
-outtap0.o: outtap0.F90 mod_bats.o mod_grads.o mod_main.o mod_param2.o \
-           mod_param3.o mod_regcm_param.o
-param.o: param.F90 mod_bats.o mod_convect.o mod_date.o mod_grads.o \
-         mod_iunits.o mod_main.o mod_message.o mod_param1.o mod_param2.o \
-         mod_param3.o mod_pmoist.o mod_regcm_param.o mod_trachem.o
-pcp.o: pcp.f90 mod_bats.o mod_cvaria.o mod_main.o mod_param1.o mod_param2.o \
-       mod_param3.o mod_pmoist.o mod_regcm_param.o mod_slice.o mod_trachem.o
+outtap0.o: outtap0.F90 mod_constants.o mod_bats.o mod_grads.o mod_main.o \
+           mod_param2.o mod_param3.o mod_regcm_param.o
+param.o: param.F90 mod_constants.o mod_bats.o mod_convect.o mod_date.o \
+         mod_grads.o mod_iunits.o mod_main.o mod_message.o mod_param1.o \
+         mod_param2.o mod_param3.o mod_pmoist.o mod_regcm_param.o mod_trachem.o
+pcp.o: pcp.f90 mod_bats.o mod_constants.o mod_cvaria.o mod_main.o mod_param1.o \
+       mod_param2.o mod_param3.o mod_pmoist.o mod_regcm_param.o mod_slice.o \
+       mod_trachem.o
 printsp.o: printsp.f90
 radabs.o: radabs.f90 mod_crdcae.o mod_crdcon.o mod_radbuf.o \
           mod_regcm_param.o
@@ -272,17 +274,17 @@ radtap.o: radtap.F90 mod_date.o mod_iunits.o mod_outrad.o mod_param1.o \
           mod_param2.o mod_radbuf.o mod_regcm_param.o
 radtpl.o: radtpl.f90 mod_crdcon.o mod_regcm_param.o
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
-         mod_param3.o mod_regcm_param.o
+         mod_regcm_param.o
 reorder.o: reorder.f90
-root.o: root.f90 mod_bats.o mod_ictp01.o mod_regcm_param.o
-satur.o: satur.f90 mod_bats.o mod_ictp01.o mod_regcm_param.o
-slice1D.o: slice1D.f90 mod_bats.o mod_main.o mod_param3.o mod_pbldim.o \
-           mod_regcm_param.o
-slice3D.o: slice3D.F90 mod_main.o mod_mainchem.o mod_param2.o mod_param3.o \
-           mod_pbldim.o mod_pmoist.o mod_regcm_param.o mod_slice.o
-snow.o: snow.f90 mod_bats.o mod_regcm_param.o
+root.o: root.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
+satur.o: satur.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
+slice1D.o: slice1D.f90 mod_bats.o mod_constants.o mod_main.o mod_param3.o \
+           mod_pbldim.o mod_regcm_param.o
+slice3D.o: slice3D.F90 mod_main.o mod_constants.o mod_mainchem.o mod_param2.o \
+           mod_param3.o mod_pbldim.o mod_pmoist.o mod_regcm_param.o mod_slice.o
+snow.o: snow.f90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
 soilbc.o: soilbc.f90 mod_bats.o mod_regcm_param.o
-solar1.o: solar1.f90 mod_date.o mod_message.o mod_param3.o
+solar1.o: solar1.f90 mod_constants.o mod_date.o mod_message.o mod_param3.o
 spinit.o: spinit.F90 mod_bdycod.o mod_bxq.o mod_iunits.o mod_main.o \
           mod_param1.o mod_param2.o mod_regcm_param.o mod_split.o mod_tmpsav.o
 spline.o: spline.f90
@@ -290,29 +292,30 @@ splitf.o: splitf.F90 mod_bxq.o mod_main.o mod_param1.o mod_regcm_param.o \
           mod_split.o
 sponge.o: sponge.F90 mod_bdycod.o mod_regcm_param.o
 spstep.o: spstep.F90 mod_bxq.o mod_main.o mod_regcm_param.o
-stomat.o: stomat.f90 mod_bats.o mod_ictp01.o mod_regcm_param.o
+stomat.o: stomat.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
 temp.o: temp.f90
-tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
-        mod_main.o mod_mainchem.o mod_message.o mod_param1.o mod_param2.o \
-        mod_param3.o mod_pmoist.o mod_rad.o mod_regcm_param.o mod_slice.o \
-        mod_trachem.o
-tgrund.o: tgrund.F90 mod_bats.o mod_regcm_param.o
-tpfc.o: tpfc.f90
-tracbud.o: tracbud.F90 mod_date.o mod_diagnosis.o mod_main.o mod_mainchem.o \
-           mod_param1.o mod_param2.o mod_param3.o mod_regcm_param.o \
-           mod_trachem.o
-tracdiag.o: tracdiag.F90 mod_diagnosis.o mod_main.o mod_mainchem.o \
-            mod_param1.o mod_param3.o mod_regcm_param.o
-tractend2.o: tractend2.f90 mod_bats.o mod_cvaria.o mod_date.o mod_dust.o \
-             mod_main.o mod_mainchem.o mod_message.o mod_param1.o mod_param3.o \
-             mod_pbldim.o mod_pmoist.o mod_rad.o mod_regcm_param.o mod_trachem.o
+tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
+        mod_cvaria.o mod_date.o mod_main.o mod_mainchem.o mod_message.o \
+        mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
+        mod_regcm_param.o mod_slice.o mod_trachem.o
+tgrund.o: tgrund.F90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
+tpfc.o: tpfc.f90 mod_constants.o
+tracbud.o: tracbud.F90 mod_constants.o mod_date.o mod_diagnosis.o mod_main.o \
+           mod_mainchem.o mod_param1.o mod_param2.o mod_param3.o \
+           mod_regcm_param.o mod_trachem.o
+tracdiag.o: tracdiag.F90 mod_constants.o mod_diagnosis.o mod_main.o \
+            mod_mainchem.o mod_param1.o mod_param3.o mod_regcm_param.o
+tractend2.o: tractend2.f90 mod_constants.o mod_bats.o mod_cvaria.o mod_date.o \
+             mod_dust.o mod_main.o mod_mainchem.o mod_message.o mod_param1.o \
+             mod_param3.o mod_pbldim.o mod_pmoist.o mod_rad.o \
+             mod_regcm_param.o mod_trachem.o
 trcab.o: trcab.f90 mod_crdcon.o mod_regcm_param.o
 trcabn.o: trcabn.f90 mod_crdcon.o mod_regcm_param.o
 trcems.o: trcems.f90 mod_crdcon.o mod_regcm_param.o
 trcmix.o: trcmix.f90 mod_regcm_param.o mod_tracer.o
 trcplk.o: trcplk.f90 mod_crdcon.o mod_regcm_param.o
 trcpth.o: trcpth.f90 mod_crdcon.o mod_regcm_param.o
-tseaice.o: tseaice.f90 mod_bats.o mod_regcm_param.o
+tseaice.o: tseaice.f90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
 tstep.o: tstep.f90 mod_param1.o mod_regcm_param.o
 vadv.o: vadv.f90 mod_cvaria.o mod_main.o mod_param3.o mod_regcm_param.o
 vcheke.o: vcheke.f90
@@ -325,16 +328,16 @@ vmodes.o: vmodes.F90 mod_message.o mod_param1.o mod_regcm_param.o mod_split.o
 vmultm.o: vmultm.f90
 vnorml.o: vnorml.f90
 vorder.o: vorder.f90
-vtlaps.o: vtlaps.f90
-water.o: water.f90 mod_bats.o mod_regcm_param.o
+vtlaps.o: vtlaps.f90 mod_constants.o
+water.o: water.f90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
 wheneq.o: wheneq.f90
 whenfgt.o: whenfgt.f90
 whenflt.o: whenflt.f90
 whenne.o: whenne.f90
-zengocn.o: zengocn.f90
-zengocndrv.o: zengocndrv.f90 mod_bats.o mod_main.o mod_param1.o mod_param2.o \
-              mod_param3.o mod_pbldim.o mod_pmoist.o mod_regcm_param.o \
-              mod_slice.o
+zengocn.o: zengocn.f90 mod_constants.o
+zengocndrv.o: zengocndrv.f90 mod_bats.o mod_constants.o mod_main.o \
+              mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o \
+              mod_pmoist.o mod_regcm_param.o mod_slice.o
 zenith.o: zenith.f90
-zenitm.o: zenitm.f90 mod_date.o mod_main.o mod_param1.o mod_param3.o \
-          mod_regcm_param.o
+zenitm.o: zenitm.f90 mod_constants.o mod_date.o mod_main.o mod_param1.o \
+          mod_param3.o mod_regcm_param.o

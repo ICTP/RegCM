@@ -151,19 +151,7 @@
       integer, intent(in) :: jslc
 
 !---------------------------------------------------------------------
-! ** note: constants related to the time step are defined here instead
-!          of at initialization to allow for the possibility
-!          of variable time step
-#ifdef MPP1
-      if ( jslc.le.jbegin ) then
-#else
-      if ( jslc.le.2 ) then
-#endif
-        c(4) = dtbat
-        c(6) = dtbat*2.
-        c(7) = 1./c(6)
-      end if
- 
+
       call interf(1,jslc)
  
 ! ****** calculate surface fluxes and hydrology budgets

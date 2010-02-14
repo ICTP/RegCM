@@ -21,6 +21,7 @@
  
 ! Computes density, eddy diffusivity and variable time step
  
+      use mod_constants , only : gti
       implicit none
 !
 ! PARAMETER definitions
@@ -64,7 +65,7 @@
  
       do k = 1 , depth - 1
         dpdz = (dnsty(k+1)-dnsty(k))/dz   ! gtb removed /2.0
-        n2 = dpdz/dnsty(k)*9.8            ! gtb removed minus
+        n2 = dpdz/dnsty(k)*gti            ! gtb removed minus
         z = surf + dble(k-1)              ! gtb: k was k-1
         rad = 1. + 40.*n2*(kv*z*dexp(ks*z)/ws)**2
         if ( rad.lt.0 ) rad = 0.0
