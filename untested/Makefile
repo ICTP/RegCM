@@ -2,7 +2,6 @@ include ../regcm4/Makefile.inc
 
 SCENARIO = A1B
 
-SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
 
 all:: regcm
 
@@ -54,13 +53,13 @@ intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o    \
 radclr.o          tracdiag.o
 
 regcm: $(MODOBJS) $(OBJS)
-	$(FC) $(FFLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
+	$(FC) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
 
 %.o: %.F90
-	$(FC) -c $(CPPFLAGS) $(FFLAGS) $(USCORING) -c $<
+	$(FC) -c $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
 
 %.o: %.f90
-	$(FC) -c $(FFLAGS) $(USCORING) -c $<
+	$(FC) -c $(F90FLAGS) $(USCORING) -c $<
 
 clean:
 	rm -f *.mod *.o regcm
@@ -106,7 +105,7 @@ mod_split.o: mod_split.F90 mod_regcm_param.o
 mod_tiedparam0.o: mod_tiedparam0.f90
 mod_tmpsav.o: mod_tmpsav.F90 mod_regcm_param.o
 mod_tracer0.o: mod_tracer0.F90
-	$(FC) -c $(CPPFLAGS) -D$(SCENARIO) $(FFLAGS) $(USCORING) -c $<
+	$(FC) -c $(CPPFLAGS) -D$(SCENARIO) $(F90FLAGS) $(USCORING) -c $<
 mod_tracer.o: mod_tracer.f90
 mod_trachem.o: mod_trachem.F90 mod_regcm_param.o
 aermix.o: aermix.f90 mod_aerosol.o mod_crdcon.o mod_main.o mod_mainchem.o \
@@ -183,7 +182,7 @@ grads_stuf.o: grads_stuf.F90 mod_date.o mod_grads.o mod_iunits.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_regcm_param.o
 hadv.o: hadv.F90 mod_cvaria.o mod_main.o mod_regcm_param.o
 header.o: header.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(FFLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 holtbl.o: holtbl.F90 mod_bats.o mod_blh_tmp.o mod_cvaria.o mod_diagnosis.o \
           mod_main.o mod_mainchem.o mod_param1.o mod_param2.o mod_param3.o \
           mod_pbldim.o mod_pmoist.o mod_regcm_param.o mod_slice.o mod_trachem.o
