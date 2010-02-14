@@ -62,20 +62,20 @@ then
   mkdir output
 fi
 
-if [ ! -d ../Postproc ]
+if [ ! -d ../PostProc ]
 then
-  mkdir ../Postproc
+  mkdir ../PostProc
 fi
 
 # Check if a postproc namelist and param already exist and backup it
 
-if [ -f ../Postproc/postproc.in ]
+if [ -f ../PostProc/postproc.in ]
 then
-  mv -f postproc.in postproc.in.bak
+  mv -f ../PostProc/postproc.in ../PostProc/postproc.in.bak
 fi
-if [ -f ../Postproc/postproc.param ]
+if [ -f ../PostProc/postproc.param ]
 then
-  mv -f postproc.param postproc.param.bak
+  mv -f ../PostProc/postproc.param ../PostProc/postproc.param.bak
 fi
 
 echo "Linking Model executable here."
