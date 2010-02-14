@@ -91,7 +91,7 @@
               else
                 pt2 = prlevh(k+1) - ppwrkh(jj+1)
               end if
-              o3prof(i,k,j) = o3prof(i,k,j) + (pb2-pb1-pt2+pt1)       &
+              o3prof(i,k,j) = o3prof(i,k,j) + (pb2-pb1-pt2+pt1)         &
                             & *o3wrk(jj)
             end do
             o3prof(i,k,j) = o3prof(i,k,j)/(prlevh(k)-prlevh(k+1))

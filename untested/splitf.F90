@@ -75,8 +75,8 @@
 !     satisfy p(0,j)=p(1,j); p(ix,j)=p(ixm1,j); and similarly for the
 !     i's.
 #ifdef MPP1
-      call mpi_sendrecv(psa(1,jxp),ix,mpi_double_precision,ieast,1,     &
-                      & psa(1,0),ix,mpi_double_precision,iwest,1,       &
+      call mpi_sendrecv(psa(1,jxp),ix,mpi_real8,ieast,1,                &
+                      & psa(1,0),ix,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       do j = jbegin , jendx
         do i = 2 , ixm1
@@ -173,11 +173,11 @@
 #endif
       end do
 #ifdef MPP1
-      call mpi_sendrecv(uuu(1,1,1),ix*kx,mpi_double_precision,iwest,2,  &
-                      & uuu(1,1,jxp+1),ix*kx,mpi_double_precision,ieast,&
+      call mpi_sendrecv(uuu(1,1,1),ix*kx,mpi_real8,iwest,2,             &
+                      & uuu(1,1,jxp+1),ix*kx,mpi_real8,ieast,           &
                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(vvv(1,1,1),ix*kx,mpi_double_precision,iwest,2,  &
-                      & vvv(1,1,jxp+1),ix*kx,mpi_double_precision,ieast,&
+      call mpi_sendrecv(vvv(1,1,1),ix*kx,mpi_real8,iwest,2,             &
+                      & vvv(1,1,jxp+1),ix*kx,mpi_real8,ieast,           &
                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
 #endif
       do l = 1 , nsplit
@@ -257,11 +257,11 @@
 #endif
       end do
 #ifdef MPP1
-      call mpi_sendrecv(uuu(1,1,1),ix*kx,mpi_double_precision,iwest,2,  &
-                      & uuu(1,1,jxp+1),ix*kx,mpi_double_precision,ieast,&
+      call mpi_sendrecv(uuu(1,1,1),ix*kx,mpi_real8,iwest,2,             &
+                      & uuu(1,1,jxp+1),ix*kx,mpi_real8,ieast,           &
                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(vvv(1,1,1),ix*kx,mpi_double_precision,iwest,2,  &
-                      & vvv(1,1,jxp+1),ix*kx,mpi_double_precision,ieast,&
+      call mpi_sendrecv(vvv(1,1,1),ix*kx,mpi_real8,iwest,2,             &
+                      & vvv(1,1,jxp+1),ix*kx,mpi_real8,ieast,           &
                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
 #endif
       do l = 1 , nsplit
@@ -510,8 +510,8 @@
           wksend(ii) = dhsum(i,jxp,l)
         end do
       end do
-      call mpi_sendrecv(wksend(1),ix*nsplit,mpi_double_precision,ieast, &
-                      & 1,wkrecv(1),ix*nsplit,mpi_double_precision,     &
+      call mpi_sendrecv(wksend(1),ix*nsplit,mpi_real8,ieast,            &
+                      & 1,wkrecv(1),ix*nsplit,mpi_real8,                &
                       & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
       ii = 0
       do l = 1 , nsplit

@@ -42,9 +42,9 @@
 ! Dummy arguments
 !
 !     Aerosol extinction optical depth
-      real(8) , dimension(ixm1,0:kx,nspi) :: ftota_mix , gtota_mix , &
+      real(8) , dimension(ixm1,0:kx,nspi) :: ftota_mix , gtota_mix ,    &
            & tauasc_mix , tauxar_mix
-      real(8) , dimension(ixm1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
+      real(8) , dimension(ixm1,nspi) :: ftota_mix_cs , gtota_mix_cs ,   &
            & tauasc_mix_cs , tauxar_mix_cs
 !     Interface pressure, relative humidity
       real(8) , dimension(ixm1,kxp1) :: pint
@@ -57,9 +57,9 @@
 ! Local variables
 !
       real(8) , dimension(ixm1,kx) :: aermtot , aervtot
-      real(8) , dimension(ixm1,0:kx,ntr) :: fa , ga , tauxar , uaer ,&
+      real(8) , dimension(ixm1,0:kx,ntr) :: fa , ga , tauxar , uaer ,   &
            & wa
-      real(8) , dimension(ixm1,ntr) :: faer , gaer , tauaer , utaer ,  &
+      real(8) , dimension(ixm1,ntr) :: faer , gaer , tauaer , utaer ,   &
                                       & waer
       real(8) , dimension(4) :: frac , prop
       integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k , ns

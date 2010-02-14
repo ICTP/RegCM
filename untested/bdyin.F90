@@ -214,8 +214,8 @@
         end if
         call mpi_bcast(ndate1,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_scatter(sav_0(1,1,1),ix*(kx*4+2)*jxp,                  &
-                       & mpi_double_precision,sav0(1,1,1),ix*(kx*4+2)   &
-                       & *jxp,mpi_double_precision,0,mpi_comm_world,    &
+                       & mpi_real8,sav0(1,1,1),ix*(kx*4+2)              &
+                       & *jxp,mpi_real8,0,mpi_comm_world,               &
                        & ierr)
         do j = 1 , jendl
           do k = 1 , kx
@@ -232,8 +232,8 @@
           end do
         end do
         if ( ehso4 ) then
-          call mpi_scatter(sav_0s(1,1,1),ix*kx*jxp,mpi_double_precision,&
-                         & sav0s(1,1,1),ix*kx*jxp,mpi_double_precision, &
+          call mpi_scatter(sav_0s(1,1,1),ix*kx*jxp,mpi_real8,           &
+                         & sav0s(1,1,1),ix*kx*jxp,mpi_real8,            &
                          & 0,mpi_comm_world,ierr)
           do j = 1 , jendl
             do k = 1 , kx
@@ -255,8 +255,8 @@
 !       interpolation. on the x-grid, a p(x) point outside the grid
 !       domain is assumed to satisfy p(0,j)=p(1,j); p(ix,j)=p(ixm1,j);
 !       and similarly for the i's.
-        call mpi_sendrecv(ps1(1,jxp),ix,mpi_double_precision,ieast,1,   &
-                        & ps1(1,0),ix,mpi_double_precision,iwest,1,     &
+        call mpi_sendrecv(ps1(1,jxp),ix,mpi_real8,ieast,1,              &
+                        & ps1(1,0),ix,mpi_real8,iwest,1,                &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendx
           do i = 2 , ixm1

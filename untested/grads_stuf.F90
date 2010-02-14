@@ -141,7 +141,7 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
-          write (31,99006) jxm2 , ixm2 , clat , clon , centerj ,    &
+          write (31,99006) jxm2 , ixm2 , clat , clon , centerj ,        &
                          & centeri , truelatl , truelath , clon , dxsp ,&
                          & dxsp
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
@@ -150,7 +150,7 @@
                                         !
         else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)      &
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
           write (31,99010) ixm2
           write (31,99011) (xlat_io(i,2),i=2,ixm1)
@@ -165,7 +165,7 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99012) jxm2 , ixm2 , plon , plat ,              &
+          write (31,99012) jxm2 , ixm2 , plon , plat ,                  &
                          & dxsp/111000. , dxsp/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
@@ -174,9 +174,9 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
-        write (31,99013) ixm2 , xlat_io(2,2) , xlat_io(3,2)           &
+        write (31,99013) ixm2 , xlat_io(2,2) , xlat_io(3,2)             &
                        & - xlat_io(2,2)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
@@ -203,10 +203,10 @@
       end if
       ifrq = batfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -434,7 +434,7 @@
 #ifdef MPP1
           read (iutin1,rec=5) xlat_s_io
           read (iutin1,rec=6) xlon_s_io
-          write (31,99009) (jxm2)*nsg , xlon_s_io(nsg,nsg) ,           &
+          write (31,99009) (jxm2)*nsg , xlon_s_io(nsg,nsg) ,            &
                          & xlon_s_io(nsg+1,nsg) - xlon_s_io(nsg,nsg)
           write (31,99010) (ixm2)*nsg
           write (31,99011) (xlat_s_io(nsg+1,i),i=nsg+1,(ixm1)*nsg)
@@ -461,7 +461,7 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) (jxm2)*nsg , xlong_io(2,2) ,                  &
+        write (31,99009) (jxm2)*nsg , xlong_io(2,2) ,                   &
                        & (xlong_io(2,3)-xlong_io(2,2))/nsg
         write (31,99013) (ixm2)*nsg , xlat_io(2,2) ,                    &
                        & (xlat_io(3,2)-xlat_io(2,2))/nsg
@@ -490,10 +490,10 @@
       end if
       ifrq = batfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -692,7 +692,7 @@
                                         !
         else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)      &
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
           write (31,99010) ixm2
           write (31,99011) (xlat_io(i,2),i=2,ixm1)
@@ -707,7 +707,7 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99012) jxm2 , ixm2 , plon , plat ,              &
+          write (31,99012) jxm2 , ixm2 , plon , plat ,                  &
                          & dxsp/111000. , dxsp/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
@@ -716,9 +716,9 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
-        write (31,99013) ixm2 , xlat_io(2,2) , xlat_io(3,2)           &
+        write (31,99013) ixm2 , xlat_io(2,2) , xlat_io(3,2)             &
                        & - xlat_io(2,2)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
@@ -745,10 +745,10 @@
       end if
       ifrq = chemfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -922,7 +922,7 @@
         centeri = (ixm2)/2.
       end if
       if ( proj.eq.'LAMCON' ) then     ! Lambert projection
-        write (31,99006) jxm2 , ixm2 , clat , clon , centerj ,      &
+        write (31,99006) jxm2 , ixm2 , clat , clon , centerj ,          &
                        & centeri , truelatl , truelath , clon , dxsp ,  &
                        & dxsp
         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
@@ -930,7 +930,7 @@
       else if ( proj.eq.'POLSTR' ) then !
       else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
         write (31,99010) ixm2
         write (31,99011) (xlat_io(i,2),i=2,ixm1)
@@ -945,7 +945,7 @@
         write (*,*) '  Although not exact, the eta.u projection' ,      &
                    &' in GrADS is somewhat similar.'
         write (*,*) ' FERRET, however, does support this projection.'
-       write (31,99012) jxm2 , ixm2 , plon , plat , dxsp/111000. , &
+       write (31,99012) jxm2 , ixm2 , plon , plat , dxsp/111000. ,      &
                        & dxsp/111000.*.95238
         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
@@ -1109,7 +1109,7 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
-          write (31,99006) jxm2 , ixm2 , clat , clon , centerj ,    &
+          write (31,99006) jxm2 , ixm2 , clat , clon , centerj ,        &
                          & centeri , truelatl , truelath , clon , dxsp ,&
                          & dxsp
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
@@ -1118,7 +1118,7 @@
                                         !
         else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)      &
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
           write (31,99010) ixm2
           write (31,99011) (xlat_io(i,2),i=2,ixm1)
@@ -1133,7 +1133,7 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99012) jxm2 , ixm2 , plon , plat ,              &
+          write (31,99012) jxm2 , ixm2 , plon , plat ,                  &
                          & dxsp/111000. , dxsp/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
@@ -1142,9 +1142,9 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
-        write (31,99013) ixm2 , xlat_io(2,2) , xlat_io(3,2)           &
+        write (31,99013) ixm2 , xlat_io(2,2) , xlat_io(3,2)             &
                        & - xlat_io(2,2)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
@@ -1171,10 +1171,10 @@
       end if
       ifrq = tapfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -1341,7 +1341,7 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
-          write (31,99006) jxm2 , ixm2 , clat , clon , centerj ,    &
+          write (31,99006) jxm2 , ixm2 , clat , clon , centerj ,        &
                          & centeri , truelatl , truelath , clon , dxsp ,&
                          & dxsp
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
@@ -1350,7 +1350,7 @@
                                         !
         else if ( proj.eq.'NORMER' ) then
 #ifdef MPP1
-          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)      &
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
           write (31,99010) ixm2
           write (31,99011) (xlat_io(i,2),i=2,ixm1)
@@ -1365,7 +1365,7 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99012) jxm2 , ixm2 , plon , plat ,              &
+          write (31,99012) jxm2 , ixm2 , plon , plat ,                  &
                          & dxsp/111000. , dxsp/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
@@ -1374,9 +1374,9 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)        &
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
-        write (31,99013) ixm2 , xlat_io(2,2) , xlat_io(3,2)           &
+        write (31,99013) ixm2 , xlat_io(2,2) , xlat_io(3,2)             &
                        & - xlat_io(2,2)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
@@ -1403,10 +1403,10 @@
       end if
       ifrq = radisp + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,  &
+        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,           &
+        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'

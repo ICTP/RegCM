@@ -30,7 +30,7 @@
 !
       integer :: jslc
       real(8) , dimension(ixm1) :: aeradfo , aeradfos
-      real(8) , dimension(ixm1,0:kx,nspi) :: gtota_mix , tauasc_mix ,&
+      real(8) , dimension(ixm1,0:kx,nspi) :: gtota_mix , tauasc_mix ,   &
            & tauxar_mix
       intent (in) aeradfo , aeradfos , gtota_mix , jslc , tauasc_mix ,  &
                 & tauxar_mix

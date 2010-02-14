@@ -48,7 +48,7 @@
             do k = kx , 1 , -1
               nrcrad = nrcrad + 1
 #ifdef MPP1
-              write (iutrad,rec=nrcrad) ((frad3d_io(j,i,k,n),j=1,jxm2),&
+              write (iutrad,rec=nrcrad) ((frad3d_io(j,i,k,n),j=1,jxm2), &
                                       & i=1,ixm2)
 #else
               write (iutrad,rec=nrcrad) ((frad3d(j,i,k,n),j=1,jxm2),i=1,&
@@ -62,7 +62,7 @@
                             ! skip everything from alb (10 to 21)
             nrcrad = nrcrad + 1
 #ifdef MPP1
-            write (iutrad,rec=nrcrad) ((frad2d_io(j,i,n),j=1,jxm2),i=1,&
+            write (iutrad,rec=nrcrad) ((frad2d_io(j,i,n),j=1,jxm2),i=1, &
                                     & ixm2)
 #else
             write (iutrad,rec=nrcrad) ((frad2d(j,i,n),j=1,jxm2),i=1,ixm2&

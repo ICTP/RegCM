@@ -65,8 +65,8 @@
 !-----compute the p* at dot points:
 !
 !=======================================================================
-      call mpi_sendrecv(psa(1,jxp),ix,mpi_double_precision,ieast,1,     &
-                      & psa(1,0),ix,mpi_double_precision,iwest,1,       &
+      call mpi_sendrecv(psa(1,jxp),ix,mpi_real8,ieast,1,                &
+                      & psa(1,0),ix,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !=======================================================================
@@ -313,8 +313,8 @@
           var1snd(k,8) = vil(k,jxp)
         end do
       end if
-      call mpi_sendrecv(var1snd(1,1),kx*8,mpi_double_precision,ieast,1, &
-                      & var1rcv(1,1),kx*8,mpi_double_precision,iwest,1, &
+      call mpi_sendrecv(var1snd(1,1),kx*8,mpi_real8,ieast,1,            &
+                      & var1rcv(1,1),kx*8,mpi_real8,iwest,1,            &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
         do k = 1 , kx
@@ -341,8 +341,8 @@
           var1snd(k,8) = vil(k,1)
         end do
       end if
-      call mpi_sendrecv(var1snd(1,1),kx*8,mpi_double_precision,iwest,2, &
-                      & var1rcv(1,1),kx*8,mpi_double_precision,ieast,2, &
+      call mpi_sendrecv(var1snd(1,1),kx*8,mpi_real8,iwest,2,            &
+                      & var1rcv(1,1),kx*8,mpi_real8,ieast,2,            &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
         do k = 1 , kx

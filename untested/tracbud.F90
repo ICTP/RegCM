@@ -111,35 +111,35 @@
 #ifdef DIAG
 #ifdef MPP1
       do itr = 1 , ntr
-        call mpi_gather(chia(1,1,1,itr),ix*kx*jxp,mpi_double_precision, &
+        call mpi_gather(chia(1,1,1,itr),ix*kx*jxp,mpi_real8,            &
                       & chia_io(1,1,1,itr),ix*kx*jxp,                   &
-                      & mpi_double_precision,0,mpi_comm_world,ierr)
+                      & mpi_real8,0,mpi_comm_world,ierr)
         call mpi_gather(remlsc(1,1,1,itr),ix*kx*jxp,                    &
-                      & mpi_double_precision,remlsc_io(1,1,1,itr),      &
-                      & ix*kx*jxp,mpi_double_precision,0,mpi_comm_world,&
+                      & mpi_real8,remlsc_io(1,1,1,itr),                 &
+                      & ix*kx*jxp,mpi_real8,0,mpi_comm_world,           &
                       & ierr)
         call mpi_gather(remcvc(1,1,1,itr),ix*kx*jxp,                    &
-                      & mpi_double_precision,remcvc_io(1,1,1,itr),      &
-                      & ix*kx*jxp,mpi_double_precision,0,mpi_comm_world,&
+                      & mpi_real8,remcvc_io(1,1,1,itr),                 &
+                      & ix*kx*jxp,mpi_real8,0,mpi_comm_world,           &
                       & ierr)
-        call mpi_gather(rxsg(1,1,1,itr),ix*kx*jxp,mpi_double_precision, &
+        call mpi_gather(rxsg(1,1,1,itr),ix*kx*jxp,mpi_real8,            &
                       & rxsg_io(1,1,1,itr),ix*kx*jxp,                   &
-                      & mpi_double_precision,0,mpi_comm_world,ierr)
+                      & mpi_real8,0,mpi_comm_world,ierr)
         call mpi_gather(rxsaq1(1,1,1,itr),ix*kx*jxp,                    &
-                      & mpi_double_precision,rxsaq1_io(1,1,1,itr),      &
-                      & ix*kx*jxp,mpi_double_precision,0,mpi_comm_world,&
+                      & mpi_real8,rxsaq1_io(1,1,1,itr),                 &
+                      & ix*kx*jxp,mpi_real8,0,mpi_comm_world,           &
                       & ierr)
         call mpi_gather(rxsaq2(1,1,1,itr),ix*kx*jxp,                    &
-                      & mpi_double_precision,rxsaq2_io(1,1,1,itr),      &
-                      & ix*kx*jxp,mpi_double_precision,0,mpi_comm_world,&
+                      & mpi_real8,rxsaq2_io(1,1,1,itr),                 &
+                      & ix*kx*jxp,mpi_real8,0,mpi_comm_world,           &
                       & ierr)
-        call mpi_gather(remdrd(1,1,itr),ix*jxp,mpi_double_precision,    &
-                      & remdrd_io(1,1,itr),ix*jxp,mpi_double_precision, &
+        call mpi_gather(remdrd(1,1,itr),ix*jxp,mpi_real8,               &
+                      & remdrd_io(1,1,itr),ix*jxp,mpi_real8,            &
                       & 0,mpi_comm_world,ierr)
         do l = 1 , 12
           call mpi_gather(chemsrc(1,1,l,itr),ix*jxp,                    &
-                        & mpi_double_precision,chemsrc_io(1,1,l,itr),   &
-                        & ix*jxp,mpi_double_precision,0,mpi_comm_world, &
+                        & mpi_real8,chemsrc_io(1,1,l,itr),              &
+                        & ix*jxp,mpi_real8,0,mpi_comm_world,            &
                         & ierr)
         end do
       end do
@@ -219,22 +219,14 @@
           tchie(itr) = tchie(itr) + tttmp
         end do
       end if
-      call mpi_bcast(ttrace(1,1),ntr,mpi_double_precision,0,            &
-                   & mpi_comm_world,ierr)
-      call mpi_bcast(tremlsc(1,1),ntr,mpi_double_precision,0,           &
-                   & mpi_comm_world,ierr)
-      call mpi_bcast(tremcvc(1,1),ntr,mpi_double_precision,0,           &
-                   & mpi_comm_world,ierr)
-      call mpi_bcast(trxsg(1,1),ntr,mpi_double_precision,0,             &
-                   & mpi_comm_world,ierr)
-      call mpi_bcast(trxsaq1(1,1),ntr,mpi_double_precision,0,           &
-                   & mpi_comm_world,ierr)
-      call mpi_bcast(trxsaq2(1,1),ntr,mpi_double_precision,0,           &
-                   & mpi_comm_world,ierr)
-      call mpi_bcast(tremdrd(1,1),ntr,mpi_double_precision,0,           &
-                   & mpi_comm_world,ierr)
-      call mpi_bcast(tchie(1),ntr,mpi_double_precision,0,mpi_comm_world,&
-                   & ierr)
+      call mpi_bcast(ttrace(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(tremlsc(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(tremcvc(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(trxsg(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(trxsaq1(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(trxsaq2(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(tremdrd(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(tchie(1),ntr,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do itr = 1 , ntr
         do k = 1 , kx

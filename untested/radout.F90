@@ -71,7 +71,7 @@
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(ixm1) :: alb , albc , clrls , clrlt , clrss ,&
+      real(8) , dimension(ixm1) :: alb , albc , clrls , clrlt , clrss , &
                                   & clrst , firtp , frla , frsa , fsds ,&
                                   & fsnirt , fsnirtsq , fsnrtc , sabtp ,&
                                   & slwd , solin , soll , solld , sols ,&

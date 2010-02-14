@@ -101,9 +101,9 @@
 !**     compute gradient of delh;  output = (work1,work2)
 !
 #ifdef MPP1
-        call mpi_sendrecv(delh(1,jxp,ns,n0),ix,mpi_double_precision,    &
+        call mpi_sendrecv(delh(1,jxp,ns,n0),ix,mpi_real8,               &
                         & ieast,1,delh(1,0,ns,n0),ix,                   &
-                        & mpi_double_precision,iwest,1,mpi_comm_world,  &
+                        & mpi_real8,iwest,1,mpi_comm_world,             &
                         & mpi_status_ignore,ierr)
         do j = jbegin , jendx
           do i = 2 , ixm1
@@ -171,8 +171,8 @@
           wksend(i) = uu(i,1)
           wksend(i+ix) = vv(i,1)
         end do
-        call mpi_sendrecv(wksend(1),2*ix,mpi_double_precision,iwest,2,  &
-                        & wkrecv(1),2*ix,mpi_double_precision,ieast,2,  &
+        call mpi_sendrecv(wksend(1),2*ix,mpi_real8,iwest,2,             &
+                        & wkrecv(1),2*ix,mpi_real8,ieast,2,             &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do i = 1 , ix
           uu(i,jxp+1) = wkrecv(i)
@@ -269,9 +269,9 @@
 !**       compute gradient of delh;  output = (work1,work2)
 !
 #ifdef MPP1
-          call mpi_sendrecv(delh(1,jxp,ns,n1),ix,mpi_double_precision,  &
+          call mpi_sendrecv(delh(1,jxp,ns,n1),ix,mpi_real8,             &
                           & ieast,1,delh(1,0,ns,n1),ix,                 &
-                          & mpi_double_precision,iwest,1,mpi_comm_world,&
+                          & mpi_real8,iwest,1,mpi_comm_world,           &
                           & mpi_status_ignore,ierr)
           do j = jbegin , jendx
             do i = 2 , ixm1
@@ -337,8 +337,8 @@
             wksend(i) = uu(i,1)
             wksend(i+ix) = vv(i,1)
           end do
-          call mpi_sendrecv(wksend(1),2*ix,mpi_double_precision,iwest,2,&
-                          & wkrecv(1),2*ix,mpi_double_precision,ieast,2,&
+          call mpi_sendrecv(wksend(1),2*ix,mpi_real8,iwest,2,           &
+                          & wkrecv(1),2*ix,mpi_real8,ieast,2,           &
                           & mpi_comm_world,mpi_status_ignore,ierr)
           do i = 1 , ix
             uu(i,jxp+1) = wkrecv(i)

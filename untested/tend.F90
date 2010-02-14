@@ -128,11 +128,11 @@
         end do
       end do
 #ifdef MPP1
-      call mpi_sendrecv(psa(1,jxp),ix,mpi_double_precision,ieast,1,     &
-                      & psa(1,0),ix,mpi_double_precision,iwest,1,       &
+      call mpi_sendrecv(psa(1,jxp),ix,mpi_real8,ieast,1,                &
+                      & psa(1,0),ix,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(psa(1,1),ix,mpi_double_precision,iwest,2,       &
-                      & psa(1,jxp+1),ix,mpi_double_precision,ieast,2,   &
+      call mpi_sendrecv(psa(1,1),ix,mpi_real8,iwest,2,                  &
+                      & psa(1,jxp+1),ix,mpi_real8,ieast,2,              &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
@@ -357,9 +357,9 @@
       end if
       numrec = kx*11 + 1
       if ( ichem.eq.1 ) numrec = kx*(ntr+11) + 1
-      call mpi_sendrecv(tvar1snd(1,1),ix*numrec,mpi_double_precision,   &
+      call mpi_sendrecv(tvar1snd(1,1),ix*numrec,mpi_real8,              &
                       & ieast,1,tvar1rcv(1,1),ix*numrec,                &
-                      & mpi_double_precision,iwest,1,mpi_comm_world,    &
+                      & mpi_real8,iwest,1,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
         do i = 1 , ix
@@ -422,9 +422,9 @@
       end if
       numrec = kx*11 + 1
       if ( ichem.eq.1 ) numrec = kx*(ntr+11) + 1
-      call mpi_sendrecv(tvar1snd(1,1),ix*numrec,mpi_double_precision,   &
+      call mpi_sendrecv(tvar1snd(1,1),ix*numrec,mpi_real8,              &
                       & iwest,2,tvar1rcv(1,1),ix*numrec,                &
-                      & mpi_double_precision,ieast,2,mpi_comm_world,    &
+                      & mpi_real8,ieast,2,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
         do i = 1 , ix
@@ -548,9 +548,9 @@
       end if
       numrec = kx*5*2
       if ( ichem.eq.1 ) numrec = kx*(ntr+5)*2
-      call mpi_sendrecv(var2snd(1,1),ix*numrec,mpi_double_precision,    &
+      call mpi_sendrecv(var2snd(1,1),ix*numrec,mpi_real8,               &
                       & ieast,1,var2rcv(1,1),ix*numrec,                 &
-                      & mpi_double_precision,iwest,1,mpi_comm_world,    &
+                      & mpi_real8,iwest,1,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
         do k = 1 , kx
@@ -607,9 +607,9 @@
       end if
       numrec = kx*5*2
       if ( ichem.eq.1 ) numrec = kx*(ntr+5)*2
-      call mpi_sendrecv(var2snd(1,1),ix*numrec,mpi_double_precision,    &
+      call mpi_sendrecv(var2snd(1,1),ix*numrec,mpi_real8,               &
                       & iwest,2,var2rcv(1,1),ix*numrec,                 &
-                      & mpi_double_precision,ieast,2,mpi_comm_world,    &
+                      & mpi_real8,ieast,2,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
         do k = 1 , kx
@@ -696,12 +696,12 @@
         end if
       end do
 #ifdef MPP1
-      call mpi_sendrecv(qdot(1,1,jxp),ix*kxp1,mpi_double_precision,     &
+      call mpi_sendrecv(qdot(1,1,jxp),ix*kxp1,mpi_real8,                &
                       & ieast,1,qdot(1,1,0),ix*kxp1,                    &
-                      & mpi_double_precision,iwest,1,mpi_comm_world,    &
+                      & mpi_real8,iwest,1,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
-      call mpi_sendrecv(qdot(1,1,1),ix*kxp1,mpi_double_precision,iwest, &
-                      & 2,qdot(1,1,jxp+1),ix*kxp1,mpi_double_precision, &
+      call mpi_sendrecv(qdot(1,1,1),ix*kxp1,mpi_real8,iwest,            &
+                      & 2,qdot(1,1,jxp+1),ix*kxp1,mpi_real8,            &
                       & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
@@ -763,8 +763,8 @@
           end do
         end do
         call mpi_sendrecv(bdyewsnd(1,1),ix*(kx*16+4),                   &
-                        & mpi_double_precision,ieast,1,bdyewrcv(1,1),   &
-                        & ix*(kx*16+4),mpi_double_precision,iwest,1,    &
+                        & mpi_real8,ieast,1,bdyewrcv(1,1),              &
+                        & ix*(kx*16+4),mpi_real8,iwest,1,               &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do i = 1 , ix
           if ( myid.eq.nproc-1 ) then
@@ -843,8 +843,8 @@
           end do
         end do
         call mpi_sendrecv(bdyewsnd(1,1),ix*(kx*16+4),                   &
-                        & mpi_double_precision,iwest,2,bdyewrcv(1,1),   &
-                        & ix*(kx*16+4),mpi_double_precision,ieast,2,    &
+                        & mpi_real8,iwest,2,bdyewrcv(1,1),              &
+                        & ix*(kx*16+4),mpi_real8,ieast,2,               &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do i = 1 , ix
           peb(i,0) = bdyewrcv(i,1)
@@ -903,8 +903,8 @@
         end do
       end if
       call mpi_sendrecv(bdynssnd(1,1),nspgx*(kx*16+4),                  &
-                      & mpi_double_precision,ieast,1,bdynsrcv(1,1),     &
-                      & nspgx*(kx*16+4),mpi_double_precision,iwest,1,   &
+                      & mpi_real8,ieast,1,bdynsrcv(1,1),                &
+                      & nspgx*(kx*16+4),mpi_real8,iwest,1,              &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
         do i = 1 , nspgx
@@ -964,8 +964,8 @@
         end do
       end if
       call mpi_sendrecv(bdynssnd(1,1),nspgx*(kx*16+4),                  &
-                      & mpi_double_precision,iwest,2,bdynsrcv(1,1),     &
-                      & nspgx*(kx*16+4),mpi_double_precision,ieast,2,   &
+                      & mpi_real8,iwest,2,bdynsrcv(1,1),                &
+                      & nspgx*(kx*16+4),mpi_real8,ieast,2,              &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
         do i = 1 , nspgx
@@ -1061,8 +1061,8 @@
         end if
       end do
 #ifdef MPP1
-      call mpi_sendrecv(psd(1,jxp),ix,mpi_double_precision,ieast,1,     &
-                      & psd(1,0),ix,mpi_double_precision,iwest,1,       &
+      call mpi_sendrecv(psd(1,jxp),ix,mpi_real8,ieast,1,                &
+                      & psd(1,0),ix,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
@@ -1077,8 +1077,8 @@
           ps4(i,4,j) = psa(i,j)
         end do
       end do
-      call mpi_gather(ps4(1,1,1),ix*4*jxp,mpi_double_precision,         &
-                    & ps_4(1,1,1),ix*4*jxp,mpi_double_precision,0,      &
+      call mpi_gather(ps4(1,1,1),ix*4*jxp,mpi_real8,                    &
+                    & ps_4(1,1,1),ix*4*jxp,mpi_real8,0,                 &
                     & mpi_comm_world,ierr)
 #endif
       iptn = 0
@@ -1099,10 +1099,8 @@
         end do
       end if
       call mpi_bcast(iptn,1,mpi_integer,0,mpi_comm_world,ierr)
-      call mpi_bcast(ptntot,1,mpi_double_precision,0,mpi_comm_world,    &
-                   & ierr)
-      call mpi_bcast(pt2tot,1,mpi_double_precision,0,mpi_comm_world,    &
-                   & ierr)
+      call mpi_bcast(ptntot,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(pt2tot,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do j = 2 , jxm1
         if ( j.ne.jxm1 ) then
@@ -1495,8 +1493,8 @@
             ttld(1,k,j) = td(1,k,j) - psa(1,j)                          &
                         & *t00pg*((a(k)*psa(1,j)+ptop)/p00pg)**pgfaa1
             td(ixm1,k,j) = ta(ixm1,k,j)*(1.+ep1*(qv(ixm1,k,j)))
-            ttld(ixm1,k,j) = td(ixm1,k,j) - psa(ixm1,j)                    &
-                          & *t00pg*((a(k)*psa(ixm1,j)+ptop)/p00pg)       &
+            ttld(ixm1,k,j) = td(ixm1,k,j) - psa(ixm1,j)                 &
+                          & *t00pg*((a(k)*psa(ixm1,j)+ptop)/p00pg)      &
                           & **pgfaa1
           end do
 !
@@ -1677,8 +1675,8 @@
         end if
       end do
 #ifdef MPP1
-      call mpi_sendrecv(phi(1,1,jxp),ix*kx,mpi_double_precision,ieast,1,&
-                      & phi(1,1,0),ix*kx,mpi_double_precision,iwest,1,  &
+      call mpi_sendrecv(phi(1,1,jxp),ix*kx,mpi_real8,ieast,1,           &
+                      & phi(1,1,0),ix*kx,mpi_real8,iwest,1,             &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       do j = jbegin , jendx
 #else

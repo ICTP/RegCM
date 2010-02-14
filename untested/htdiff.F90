@@ -48,11 +48,11 @@
             wr(i,j) = rsheat(i,k,j)
           end do
         end do
-        call mpi_sendrecv(wr(1,jxp),ix,mpi_double_precision,ieast,1,    &
-                        & wr(1,0),ix,mpi_double_precision,iwest,1,      &
+        call mpi_sendrecv(wr(1,jxp),ix,mpi_real8,ieast,1,               &
+                        & wr(1,0),ix,mpi_real8,iwest,1,                 &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(wr(1,1),ix,mpi_double_precision,iwest,2,      &
-                        & wr(1,jxp+1),ix,mpi_double_precision,ieast,2,  &
+        call mpi_sendrecv(wr(1,1),ix,mpi_real8,iwest,2,                 &
+                        & wr(1,jxp+1),ix,mpi_real8,ieast,2,             &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendm
           if ( myid.eq.0 ) then
@@ -102,11 +102,11 @@
             wr(i,j) = rswat(i,k,j)
           end do
         end do
-        call mpi_sendrecv(wr(1,jxp),ix,mpi_double_precision,ieast,1,    &
-                        & wr(1,0),ix,mpi_double_precision,iwest,1,      &
+        call mpi_sendrecv(wr(1,jxp),ix,mpi_real8,ieast,1,               &
+                        & wr(1,0),ix,mpi_real8,iwest,1,                 &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(wr(1,1),ix,mpi_double_precision,iwest,2,      &
-                        & wr(1,jxp+1),ix,mpi_double_precision,ieast,2,  &
+        call mpi_sendrecv(wr(1,1),ix,mpi_real8,iwest,2,                 &
+                        & wr(1,jxp+1),ix,mpi_real8,ieast,2,             &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendm
           if ( myid.eq.0 ) then

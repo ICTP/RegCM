@@ -99,7 +99,7 @@
                                    & satbrt_io , tga_io , tgbb_io ,     &
                                    & tgb_io , uvdrag_io , xlat_io ,     &
                                    & xlong_io , zpbl_io
-      real(8) , dimension(ix,kx,jx) :: omega_io , qca_io , qcb_io ,    &
+      real(8) , dimension(ix,kx,jx) :: omega_io , qca_io , qcb_io ,     &
                                       & qva_io , qvb_io , ta_io ,       &
                                       & tbase_io , tb_io , ua_io ,      &
                                       & ub_io , va_io , vb_io

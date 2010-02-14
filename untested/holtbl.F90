@@ -76,8 +76,8 @@
 !
 #ifdef DIAG
 #ifdef MPP1
-      call mpi_gather(qfx(1,1),ix*jxp,mpi_double_precision,qfx_io(1,1), &
-                    & ix*jxp,mpi_double_precision,0,mpi_comm_world,ierr)
+      call mpi_gather(qfx(1,1),ix*jxp,mpi_real8,qfx_io(1,1),            &
+                    & ix*jxp,mpi_real8,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do j = 2 , jxm2
           do i = 2 , ixm2
@@ -85,7 +85,7 @@
           end do
         end do
       end if
-      call mpi_bcast(tqeva,1,mpi_double_precision,0,mpi_comm_world,ierr)
+      call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do j = 2 , jxm2
         do i = 2 , ixm2
@@ -110,11 +110,11 @@
 !     tendencies.
 !
 #ifdef MPP1
-      call mpi_sendrecv(psb(1,jxp),ix,mpi_double_precision,ieast,1,     &
-                      & psb(1,0),ix,mpi_double_precision,iwest,1,       &
+      call mpi_sendrecv(psb(1,jxp),ix,mpi_real8,ieast,1,                &
+                      & psb(1,0),ix,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(uvdrag(1,jxp),ix,mpi_double_precision,ieast,1,  &
-                      & uvdrag(1,0),ix,mpi_double_precision,iwest,1,    &
+      call mpi_sendrecv(uvdrag(1,jxp),ix,mpi_real8,ieast,1,             &
+                      & uvdrag(1,0),ix,mpi_real8,iwest,1,               &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       do j = jbegin , jendx
         do k = 1 , kx
@@ -319,9 +319,9 @@
           wksend(ii) = akxx2(i,k,jxp)
         end do
       end do
-      call mpi_sendrecv(wksend(1),(ixm2)*kx*2,mpi_double_precision,     &
+      call mpi_sendrecv(wksend(1),(ixm2)*kx*2,mpi_real8,                &
                       & ieast,1,wkrecv(1),(ixm2)*kx*2,                  &
-                      & mpi_double_precision,iwest,1,mpi_comm_world,    &
+                      & mpi_real8,iwest,1,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       ii = 0
       do k = 1 , kx

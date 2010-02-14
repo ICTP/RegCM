@@ -26,7 +26,7 @@
                                    & xhfx , xqfx
 #else
       real(8) , dimension(ix,kx,jxm1) :: cgh , kvc , kvh , kvm , kvq
-      real(8) , dimension(ix,jx) :: hfxv , obklen , th10 , ustr ,      &
+      real(8) , dimension(ix,jx) :: hfxv , obklen , th10 , ustr ,       &
                                    & xhfx , xqfx
 #endif
       end module mod_blh_tmp

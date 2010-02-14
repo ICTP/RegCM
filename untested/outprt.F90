@@ -227,9 +227,10 @@
 !
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
         c40nam = '       latitude at cross points        '
-        call mapsmp(xlat,xlatr,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam,xth)
+        call mapsmp(xlat,xlatr,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam,   &
+                    & xth)
         c40nam = '       longitude at cross points       '
-        call mapsmp(xlong,xlongr,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam,  &
+        call mapsmp(xlong,xlongr,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam, &
                   & xth)
         do j = 1 , jxm1
           do i = 1 , ixm1
@@ -237,7 +238,7 @@
           end do
         end do
         c40nam = '     terrain height at cross points     '
-        call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam,  &
+        call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,5,1,jxm1,5,0.D0,1,c40nam, &
                   & xth)
         c40nam = '    coriolis parameter at dot points    '
         call mapsmp(f,fr,ix,jx,1,ix,5,1,jx,5,0.D0,1,c40nam,xth)
@@ -249,7 +250,7 @@
 !
       const = -ptop
       c40nam = '         surface pressure (cb)         '
-      call mapsmp(psa,psar,ix,jx,1,ixm1,ixn,1,jxm1,jxn,const,1,c40nam,   &
+      call mapsmp(psa,psar,ix,jx,1,ixm1,ixn,1,jxm1,jxn,const,1,c40nam,  &
                   & xth)
 !
 !.....u and v:
@@ -324,7 +325,7 @@
         end do
       end do
       write (c40nam,99009) kout
-      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,273.16D0,1,   &
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,273.16D0,1,  &
                 & c40nam,xth)
 !
 !.....relative humidity:
@@ -345,8 +346,8 @@
         end do
       end do
       write (c40nam,99010) kout
-      call mapsmp(hscr2,hscr2r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,c40nam,&
-                & xth)
+      call mapsmp(hscr2,hscr2r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,      &
+                & c40nam,xth)
 !
 !.....qc and qr:
 !
@@ -356,25 +357,25 @@
         end do
       end do
       write (c40nam,99011) kout
-      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,c40nam,&
-                & xth)
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,      &
+                & c40nam,xth)
 !
 !.....surface temperature:
 !
       if ( ibltyp.ne.0 ) then
         const = 273.15
         c40nam = ' ground temperature (c)    '
-        call mapsmp(tga,tgar,ix,jx,1,ixm1,ixn,1,jxm1,jxn,const,1,c40nam, &
+        call mapsmp(tga,tgar,ix,jx,1,ixm1,ixn,1,jxm1,jxn,const,1,c40nam,&
                   & xth)
       end if
 !
 !.....precipitation:
 !
       c40nam = '   convective rainfall (mm)          '
-      call mapsmp(rainc,raincr,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,c40nam,&
-                & xth)
+      call mapsmp(rainc,raincr,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,      &
+                  & c40nam,xth)
       c40nam = '  nonconvective rainfall (mm)      '
-      call mapsmp(rainnc,rainncr,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,     &
+      call mapsmp(rainnc,rainncr,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,    &
                 & c40nam,xth)
       do j = 1 , jxm1
         do i = 1 , ixm1
@@ -382,8 +383,8 @@
         end do
       end do
       c40nam = '  total rainfall (mm)        '
-      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,c40nam,&
-                & xth)
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,0.D0,1,      &
+                  & c40nam,xth)
 99001 format (///1x,'--------------------------------------------------'&
             & ,/1x,'*****',4x,'large domain at t = ',f17.5,             &
              &' minutes, ktau = ',i7,' in year=',i4,3x,'*****'/1x,      &

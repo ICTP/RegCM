@@ -178,8 +178,8 @@
       end if
 !     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       call mpi_scatter(src_0(1,1,1,1),ix*12*ntr*jxp,                    &
-                     & mpi_double_precision,src0(1,1,1,1),ix*12*ntr*jxp,&
-                     & mpi_double_precision,0,mpi_comm_world,ierr)
+                     & mpi_real8,src0(1,1,1,1),ix*12*ntr*jxp,           &
+                     & mpi_real8,0,mpi_comm_world,ierr)
       do j = 1 , jendl
         do itr = 1 , ntr
           do m = 1 , 12
@@ -309,8 +309,8 @@
         end if
       end if
 !     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      call mpi_scatter(dustsotex_io(1,1),ix*jxp,mpi_double_precision,   &
-                     & dustsotex(1,1),ix*jxp,mpi_double_precision,0,    &
+      call mpi_scatter(dustsotex_io(1,1),ix*jxp,mpi_real8,              &
+                     & dustsotex(1,1),ix*jxp,mpi_real8,0,               &
                      & mpi_comm_world,ierr)
 #else
       if ( rd_tex ) then

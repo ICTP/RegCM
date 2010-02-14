@@ -406,36 +406,29 @@
       call mpi_bcast(idate2,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(nslice,1,mpi_integer,0,mpi_comm_world,ierr)
  
-      call mpi_bcast(radfrq,1,mpi_double_precision,0,mpi_comm_world,    &
-                   & ierr)
-      call mpi_bcast(abemh,1,mpi_double_precision,0,mpi_comm_world,ierr)
-      call mpi_bcast(abatm,1,mpi_double_precision,0,mpi_comm_world,ierr)
-      call mpi_bcast(dt,1,mpi_double_precision,0,mpi_comm_world,ierr)
+      call mpi_bcast(radfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(abemh,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(abatm,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(dt,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ibdyfrq,1,mpi_integer,0,mpi_comm_world,ierr)
  
       call mpi_bcast(ifsave,1,mpi_logical,0,mpi_comm_world,ierr)
-      call mpi_bcast(savfrq,1,mpi_double_precision,0,mpi_comm_world,    &
-                   & ierr)
+      call mpi_bcast(savfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(iftape,1,mpi_logical,0,mpi_comm_world,ierr)
-      call mpi_bcast(tapfrq,1,mpi_double_precision,0,mpi_comm_world,    &
-                   & ierr)
+      call mpi_bcast(tapfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ifrad,1,mpi_logical,0,mpi_comm_world,ierr)
-      call mpi_bcast(radisp,1,mpi_double_precision,0,mpi_comm_world,    &
-                   & ierr)
+      call mpi_bcast(radisp,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ifbat,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(ifsub,1,mpi_logical,0,mpi_comm_world,ierr)
-      call mpi_bcast(batfrq,1,mpi_double_precision,0,mpi_comm_world,    &
-                   & ierr)
+      call mpi_bcast(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ifprt,1,mpi_logical,0,mpi_comm_world,ierr)
-      call mpi_bcast(prtfrq,1,mpi_double_precision,0,mpi_comm_world,    &
-                   & ierr)
+      call mpi_bcast(prtfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(kxout,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(jxsex,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(iotyp,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ibintyp,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
-      call mpi_bcast(chemfrq,1,mpi_double_precision,0,mpi_comm_world,   &
-                   & ierr)
+      call mpi_bcast(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
  
       call mpi_bcast(iboudy,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ibltyp,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -450,89 +443,51 @@
  
       if ( ipptls.eq.1 ) then
         call mpi_bcast(ncld,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(fcmax,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
-        call mpi_bcast(qck1land,1,mpi_double_precision,0,mpi_comm_world,&
-                     & ierr)
-        call mpi_bcast(qck1oce,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(gulland,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(guloce,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(rhmax,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
-        call mpi_bcast(rh0oce,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(rh0land,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(tc0,1,mpi_double_precision,0,mpi_comm_world,ierr)
-        call mpi_bcast(cevap,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
-        call mpi_bcast(caccr,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
+        call mpi_bcast(fcmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(qck1land,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(qck1oce,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(gulland,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(guloce,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(rhmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(rh0oce,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(rh0land,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tc0,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(cevap,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(caccr,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
       if ( icup.eq.2 ) then
-        call mpi_bcast(shrmin,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(shrmax,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(edtmin,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(edtmax,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(edtmino,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(edtmaxo,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(edtminx,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(edtmaxx,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(pbcmax,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(mincld,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(htmin,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
-        call mpi_bcast(htmax,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
-        call mpi_bcast(skbmax,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(dtauc,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
+        call mpi_bcast(shrmin,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(shrmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmin,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmino,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmaxo,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtminx,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmaxx,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(pbcmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(mincld,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(htmin,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(htmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(skbmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(dtauc,1,mpi_real8,0,mpi_comm_world,ierr)
  
       else if ( icup.eq.4 ) then
-        call mpi_bcast(minsig,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(elcrit,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(tlcrit,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(entp,1,mpi_double_precision,0,mpi_comm_world,    &
-                     & ierr)
-        call mpi_bcast(sigd,1,mpi_double_precision,0,mpi_comm_world,    &
-                     & ierr)
-        call mpi_bcast(sigs,1,mpi_double_precision,0,mpi_comm_world,    &
-                     & ierr)
-        call mpi_bcast(omtrain,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(omtsnow,1,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(coeffr,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(coeffs,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(cu,1,mpi_double_precision,0,mpi_comm_world,ierr)
-        call mpi_bcast(betae,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
-        call mpi_bcast(dtmax,1,mpi_double_precision,0,mpi_comm_world,   &
-                     & ierr)
-        call mpi_bcast(alphae,1,mpi_double_precision,0,mpi_comm_world,  &
-                     & ierr)
-        call mpi_bcast(damp,1,mpi_double_precision,0,mpi_comm_world,    &
-                     & ierr)
+        call mpi_bcast(minsig,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(elcrit,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tlcrit,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(entp,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(sigd,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(sigs,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(omtrain,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(omtsnow,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(coeffr,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(coeffs,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(cu,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(betae,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(dtmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(alphae,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(damp,1,mpi_real8,0,mpi_comm_world,ierr)
       else
       end if
  
@@ -546,12 +501,9 @@
           call mpi_bcast(chtrname(n),5,mpi_character,0,mpi_comm_world,  &
                        & ierr)
         end do
-        call mpi_bcast(chtrsol,ntr,mpi_double_precision,0,              &
-                     & mpi_comm_world,ierr)
-        call mpi_bcast(chtrdpv,ntr*2,mpi_double_precision,0,            &
-                     & mpi_comm_world,ierr)
-        call mpi_bcast(dustbsiz,nbin*2,mpi_double_precision,0,          &
-                     & mpi_comm_world,ierr)
+        call mpi_bcast(chtrsol,ntr,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
       end if
 #else
       read (*,restartparam)
@@ -718,10 +670,9 @@
       end if
       call mpi_bcast(clat,1,mpi_real,0,mpi_comm_world,ierr)
       call mpi_bcast(plon,1,mpi_real,0,mpi_comm_world,ierr)
-      call mpi_bcast(ptop,1,mpi_double_precision,0,mpi_comm_world,ierr)
-      call mpi_bcast(dx,1,mpi_double_precision,0,mpi_comm_world,ierr)
-      call mpi_bcast(sigma,kxp1,mpi_double_precision,0,mpi_comm_world,  &
-                   & ierr)
+      call mpi_bcast(ptop,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(dx,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(sigma,kxp1,mpi_real8,0,mpi_comm_world,ierr)
 #else
       print * , 'READING HEADER FILE'
       write (finm,99001) iutin
@@ -1033,8 +984,8 @@
         end if                 ! end if (myid.eq.0)
  
         call mpi_scatter(inisrf_0(1,1,1),ix*(nnsg*3+8)*jxp,             &
-                       & mpi_double_precision,inisrf0(1,1,1),           &
-                       & ix*(nnsg*3+8)*jxp,mpi_double_precision,0,      &
+                       & mpi_real8,inisrf0(1,1,1),                      &
+                       & ix*(nnsg*3+8)*jxp,mpi_real8,0,                 &
                        & mpi_comm_world,ierr)
         do j = 1 , jxp
           do i = 1 , ix
@@ -1077,7 +1028,7 @@
                &'**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
           print * , '****     Map Projection: ' , proj ,                &
                &'                ****'
-          print * , '****     IX=' , ix , ' JX=' , jx , ' KX=' , kx ,  &
+          print * , '****     IX=' , ix , ' JX=' , jx , ' KX=' , kx ,   &
                &'             ****'
           print * , '****     PTOP=' , ptsp , ' DX=' , dxsp ,           &
                &'       ****'
@@ -1090,23 +1041,23 @@
           print * , ' '
  
         end if
-        call mpi_sendrecv(ht(1,jxp),ix,mpi_double_precision,ieast,1,    &
-                        & ht(1,0),ix,mpi_double_precision,iwest,1,      &
+        call mpi_sendrecv(ht(1,jxp),ix,mpi_real8,ieast,1,               &
+                        & ht(1,0),ix,mpi_real8,iwest,1,                 &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(ht(1,1),ix,mpi_double_precision,iwest,2,      &
-                        & ht(1,jxp+1),ix,mpi_double_precision,ieast,2,  &
+        call mpi_sendrecv(ht(1,1),ix,mpi_real8,iwest,2,                 &
+                        & ht(1,jxp+1),ix,mpi_real8,ieast,2,             &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfx(1,jxp-1),ix*2,mpi_double_precision,ieast,&
-                        & 1,msfx(1,-1),ix*2,mpi_double_precision,iwest, &
+        call mpi_sendrecv(msfx(1,jxp-1),ix*2,mpi_real8,ieast,           &
+                        & 1,msfx(1,-1),ix*2,mpi_real8,iwest,            &
                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfx(1,1),ix*2,mpi_double_precision,iwest,2,  &
-                        & msfx(1,jxp+1),ix*2,mpi_double_precision,ieast,&
+        call mpi_sendrecv(msfx(1,1),ix*2,mpi_real8,iwest,2,             &
+                        & msfx(1,jxp+1),ix*2,mpi_real8,ieast,           &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfd(1,jxp-1),ix*2,mpi_double_precision,ieast,&
-                        & 1,msfd(1,-1),ix*2,mpi_double_precision,iwest, &
+        call mpi_sendrecv(msfd(1,jxp-1),ix*2,mpi_real8,ieast,           &
+                        & 1,msfd(1,-1),ix*2,mpi_real8,iwest,            &
                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfd(1,1),ix*2,mpi_double_precision,iwest,2,  &
-                        & msfd(1,jxp+1),ix*2,mpi_double_precision,ieast,&
+        call mpi_sendrecv(msfd(1,1),ix*2,mpi_real8,iwest,2,             &
+                        & msfd(1,jxp+1),ix*2,mpi_real8,ieast,           &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
       end if
 #else

@@ -202,8 +202,8 @@
           end do
         end if
         call mpi_scatter(sav_0d(1,1,1),ix*nsplit*2*jxp,                 &
-                       & mpi_double_precision,sav0d(1,1,1),             &
-                       & ix*nsplit*2*jxp,mpi_double_precision,0,        &
+                       & mpi_real8,sav0d(1,1,1),                        &
+                       & ix*nsplit*2*jxp,mpi_real8,0,                   &
                        & mpi_comm_world,ierr)
         do j = 1 , jendl
           do n = 1 , nsplit
@@ -213,8 +213,8 @@
             end do
           end do
         end do
-        call mpi_scatter(sav_6(1,1,1),kx*8*jxp,mpi_double_precision,    &
-                       & sav6(1,1,1),kx*8*jxp,mpi_double_precision,0,   &
+        call mpi_scatter(sav_6(1,1,1),kx*8*jxp,mpi_real8,               &
+                       & sav6(1,1,1),kx*8*jxp,mpi_real8,0,              &
                        & mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kx
@@ -228,22 +228,14 @@
             vil(k,j) = sav6(k,8,j)
           end do
         end do
-        call mpi_bcast(uj1,ix*kx,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(uj2,ix*kx,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(vj1,ix*kx,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(vj2,ix*kx,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(ujlx,ix*kx,mpi_double_precision,0,mpi_comm_world,&
-                     & ierr)
-        call mpi_bcast(ujl,ix*kx,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
-        call mpi_bcast(vjlx,ix*kx,mpi_double_precision,0,mpi_comm_world,&
-                     & ierr)
-        call mpi_bcast(vjl,ix*kx,mpi_double_precision,0,mpi_comm_world, &
-                     & ierr)
+        call mpi_bcast(uj1,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(uj2,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vj1,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vj2,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(ujlx,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(ujl,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vjlx,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vjl,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
         if ( myid.ne.nproc-1 ) then
           do k = 1 , kx
             var1snd(k,1) = ui1(k,jxp)
@@ -256,8 +248,8 @@
             var1snd(k,8) = vil(k,jxp)
           end do
         end if
-        call mpi_sendrecv(var1snd(1,1),kx*8,mpi_double_precision,ieast, &
-                        & 1,var1rcv(1,1),kx*8,mpi_double_precision,     &
+        call mpi_sendrecv(var1snd(1,1),kx*8,mpi_real8,ieast,            &
+                        & 1,var1rcv(1,1),kx*8,mpi_real8,                &
                         & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
         if ( myid.ne.0 ) then
           do k = 1 , kx
@@ -283,8 +275,8 @@
             var1snd(k,8) = vil(k,1)
           end do
         end if
-        call mpi_sendrecv(var1snd(1,1),kx*8,mpi_double_precision,iwest, &
-                        & 2,var1rcv(1,1),kx*8,mpi_double_precision,     &
+        call mpi_sendrecv(var1snd(1,1),kx*8,mpi_real8,iwest,            &
+                        & 2,var1rcv(1,1),kx*8,mpi_real8,                &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
         if ( myid.ne.nproc-1 ) then
           do k = 1 , kx
@@ -333,11 +325,11 @@
 #endif
         end do
 #ifdef MPP1
-        call mpi_sendrecv(uuu(1,1,1),ix*kx,mpi_double_precision,iwest,2,&
-                        & uuu(1,1,jxp+1),ix*kx,mpi_double_precision,    &
+        call mpi_sendrecv(uuu(1,1,1),ix*kx,mpi_real8,iwest,2,           &
+                        & uuu(1,1,jxp+1),ix*kx,mpi_real8,               &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(vvv(1,1,1),ix*kx,mpi_double_precision,iwest,2,&
-                        & vvv(1,1,jxp+1),ix*kx,mpi_double_precision,    &
+        call mpi_sendrecv(vvv(1,1,1),ix*kx,mpi_real8,iwest,2,           &
+                        & vvv(1,1,jxp+1),ix*kx,mpi_real8,               &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
