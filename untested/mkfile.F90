@@ -253,7 +253,7 @@
         close (99)
  
         filnam = '../PostProc/postproc.param'
-        open (99,file=filnam,form='FORMATTED',status='unknown')
+        open (99,file=filnam,form='FORMATTED',status='replace')
         dto = tapfrq
         dtb = batfrq
         dtr = radisp
