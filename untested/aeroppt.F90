@@ -32,12 +32,8 @@
       use mod_trachem
       use mod_crdcon
       use mod_message
+      use mod_constants , only : rhoso4 , rhobc, rhooc, rhodust
       implicit none
-!
-! PARAMETER definitions
-!
-      real(8) , parameter :: rhoso4 = 1.76 , rhobc = 1. , rhooc = 1. ,  &
-                           & rhodust = 2.5
 !
 ! Dummy arguments
 !
@@ -149,14 +145,14 @@
                     ibin = ibin + 1
                     if ( ibin.gt.4 ) print * , 'DUST OP PBLEME !!!!'
  
-                    tauxar(i,k,itr) = 1.E5*uaer(i,k,itr)*ksdust(ns,ibin)
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksdust(ns,ibin)
                     wa(i,k,itr) = wsdust(ns,ibin)
                     ga(i,k,itr) = gsdust(ns,ibin)
                     fa(i,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
  
                   else if ( chtrname(itr).eq.'SO4' ) then
                     uaer(i,k,itr) = aermmr(i,k,itr)*path
-                    tauxar(i,k,itr) = 1.E5*uaer(i,k,itr)*ksbase(ns)     &
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbase(ns)     &
                                     & *exp(kscoef(ns,1)+kscoef(ns,2)    &
                                     & /(rh(i,k)+kscoef(ns,3))           &
                                     & +kscoef(ns,4)                     &
@@ -177,7 +173,7 @@
                   else if ( chtrname(itr).eq.'OC_HL' ) then
                     uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                   Humidity effect !
-                    tauxar(i,k,itr) = 1.E5*uaer(i,k,itr)*ksoc_hl(ns)    &
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hl(ns)    &
                                     & *(1-rh(i,k))**(-0.2)
                     wa(i,k,itr) = wsoc_hl(ns)
                     ga(i,k,itr) = gsoc_hl(ns)
@@ -185,21 +181,21 @@
                   else if ( chtrname(itr).eq.'BC_HL' ) then
                     uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                   Humidity effect !
-                    tauxar(i,k,itr) = 1.E5*uaer(i,k,itr)*ksbc_hl(ns)    &
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hl(ns)    &
                                     & *(1-rh(i,k))**(-0.25)
                     wa(i,k,itr) = wsbc_hl(ns)
                     ga(i,k,itr) = gsbc_hl(ns)
                     fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
                   else if ( chtrname(itr).eq.'OC_HB' ) then
                     uaer(i,k,itr) = aermmr(i,k,itr)*path
-                    tauxar(i,k,itr) = 1.E5*uaer(i,k,itr)*ksoc_hb(ns)
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hb(ns)
                     wa(i,k,itr) = wsoc_hb(ns)
                     ga(i,k,itr) = gsoc_hb(ns)
                     fa(i,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
                   else if ( chtrname(itr).eq.'BC_HB' ) then
                     uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                   Absorbing aerosols (soot type)
-                    tauxar(i,k,itr) = 1.E5*uaer(i,k,itr)*ksbc_hb(ns)
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hb(ns)
                     wa(i,k,itr) = wsbc_hb(ns)
                     ga(i,k,itr) = gsbc_hb(ns)
                     fa(i,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
@@ -218,7 +214,7 @@
                   gaer(i,itr) = gaer(i,itr) + ga(i,k,itr)*uaer(i,k,itr)
                   faer(i,itr) = faer(i,itr) + fa(i,k,itr)*uaer(i,k,itr)
                 end do
-                if ( utaer(i,itr).le.1.E-10 ) utaer(i,itr) = 1.E-10
+                if ( utaer(i,itr).le.1.D-10 ) utaer(i,itr) = 1.D-10
                 waer(i,itr) = waer(i,itr)/utaer(i,itr)
                 gaer(i,itr) = gaer(i,itr)/utaer(i,itr)
                 faer(i,itr) = faer(i,itr)/utaer(i,itr)
@@ -295,7 +291,7 @@
  
 !               minimum quantity of total aerosol
  
-                if ( aermtot(i,k).gt.1.E-14 ) then
+                if ( aermtot(i,k).gt.1.D-14 ) then
 !                 indexes in the internal mixing table
                   prop(1) = (aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)
                   prop(2) = (aermmr(i,k,ibchl)/rhobc)/aervtot(i,k)
@@ -375,7 +371,7 @@
                               &'SOMETHING WRONG ON SPECIES ABUNDANCE')
                   end if
                   tauxar_mix(i,k,ns) = dextmix(1,ns,i4,i2,i3,i1)        &
-                                     & *aermtot(i,k)*path*1E5
+                                     & *aermtot(i,k)*path*1D5
                   tauasc_mix(i,k,ns) = dssamix(1,ns,i4,i2,i3,i1)        &
                                      & *tauxar_mix(i,k,ns)
                   gtota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)           &
@@ -390,7 +386,7 @@
                   utaer(i,1) = utaer(i,1) + aermtot(i,k)*path
  
                   tauaer(i,1) = tauaer(i,1) + dextmix(1,ns,i4,i2,i3,i1) &
-                              & *aermtot(i,k)*path*1E5
+                              & *aermtot(i,k)*path*1D5
                   waer(i,1) = waer(i,1) + dssamix(1,ns,i4,i2,i3,i1)     &
                             & *aermtot(i,k)*path
                   gaer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1)       &
@@ -401,7 +397,7 @@
                 end if ! end minimum concentration conditions
               end do ! end k loop
  
-              if ( utaer(i,1).gt.1.E-12 ) then
+              if ( utaer(i,1).gt.1.D-12 ) then
                 waer(i,1) = waer(i,1)/utaer(i,1)
                 gaer(i,1) = gaer(i,1)/utaer(i,1)
                 faer(i,1) = faer(i,1)/utaer(i,1)

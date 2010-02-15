@@ -46,7 +46,7 @@
       use mod_pmoist
       use mod_slice
       use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
-                               & svp2 , svp3
+                               & svp2 , svp3 , tmelt
       implicit none
 !
 ! Dummy arguments
@@ -88,8 +88,8 @@
 !         2a. Calculate the saturation mixing ratio and relative
 !         humidity
           pres = (a(k)*psc(i,j)+ptop)*1000.
-          if ( tmp3(i,k).gt.273.15 ) then
-            satvp = svp1*1.E3*dexp(svp2*(tmp3(i,k)-273.15)              &
+          if ( tmp3(i,k).gt.tmelt ) then
+            satvp = svp1*1.E3*dexp(svp2*(tmp3(i,k)-tmelt)               &
                   & /(tmp3(i,k)-svp3))
           else
             satvp = .611*1.E3*dexp(22.514-6.15E3/tmp3(i,k))

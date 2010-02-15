@@ -28,7 +28,7 @@
       use mod_pmoist
       use mod_slice
       use mod_bats
-      use mod_constants , only : wlhv
+      use mod_constants , only : wlhv , tmelt
 
       implicit none
 
@@ -48,8 +48,8 @@
         do n = 1 , nnsg
           if ( ocld2d(n,i,j).lt.0.5 ) then
             uv995 = sqrt(ubx3d(i,kx,j)**2+vbx3d(i,kx,j)**2)
-            tsurf = tgb(i,j) - 273.16
-            t995 = tb3d(i,kx,j) - 273.16
+            tsurf = tgb(i,j) - tmelt
+            t995 = tb3d(i,kx,j) - tmelt
             q995 = qvb3d(i,kx,j)/(1.+qvb3d(i,kx,j))
             z995 = za(i,kx,j)
             zi = zpbl(i,j)
@@ -65,7 +65,7 @@
             facttq = dlog(z995/2.)/dlog(z995/zo)
             u10m1d(n,i) = ubx3d(i,kx,j)*uv10/uv995
             v10m1d(n,i) = vbx3d(i,kx,j)*uv10/uv995
-            t2m_1d(n,i) = t995 + 273.15 - dth*facttq
+            t2m_1d(n,i) = t995 + tmelt - dth*facttq
 !
             if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or.             &
                & (jyear.eq.jyearr .and. ktau.eq.ktaur) ) then

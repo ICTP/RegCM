@@ -20,21 +20,24 @@
       function eomb(x)
 
 !****************************FUNCTION EOMB******************************
-!          COMPUTES AIR VAPOR PRESSURE AS A FUNCTION OF TEMP (in mb)   *
+!          COMPUTES AIR VAPOR PRESSURE AS A FUNCTION OF TEMP (in K)    *
 !***********************************************************************
+
+      use mod_constants , only : stdpmb , tboil , tmelt
       implicit none
 !
 ! Dummy arguments
 !
       real(8) :: x
-      real(8) :: eomb
       intent (in) x
+      real(8) :: eomb
 !
 ! Local variables
 !
       real(8) :: tr1
 !
-      tr1 = 1.0 - (373.15/(x+273.15))
-      eomb = 1013.25*dexp(13.3185*tr1-1.976*tr1**2-0.6445*tr1**3-       &
+      tr1 = 1.0 - (tboil/(x+tmelt))
+      eomb = stdpmb*dexp(13.3185*tr1-1.976*tr1**2-0.6445*tr1**3-       &
            & 0.1299*tr1**4)
+
       end function eomb

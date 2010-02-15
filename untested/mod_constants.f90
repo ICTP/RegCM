@@ -30,15 +30,21 @@
       real(8) , parameter :: rcpd = 1.D0/cpd
       ! Specific heat at constant volume for dry air
       real(8) , parameter :: cpv = 1869.46D0
+      ! Specific heat of water (salt)
+      real(8) , parameter :: cpw = 4179.98D0
 
       ! Gas constant for dry air in Joules/kg/K
       real(8) , parameter :: rgas = 287.04D0
       ! Gas constant for water vapor in Joules/kg/K
       real(8) , parameter :: rwat = 461.90D0
+      ! Ratio of mean molecular weight of water (18.016 g/mole)
+      ! to that of dry air (28.966 g/mole)
+      real(8) , parameter :: rwwd = 0.62197D0
 
       real(8) , parameter :: rovcp = rgas*rcpd
       real(8) , parameter :: rovg  = rgas/gti
-      
+
+      ! Various utility terms used in calculations
       real(8) , parameter :: vtmpc1 = rwat/rgas - 1.0D0
       real(8) , parameter :: vtmpc2 = cpv*rcpd - 1.0D0
       real(8) , parameter :: rhoh2o = 1000.0D0
@@ -46,9 +52,10 @@
       real(8) , parameter :: als = 2.8345D6
       real(8) , parameter :: alf = als - alv
       real(8) , parameter :: tmelt = 273.16D0
+      real(8) , parameter :: tboil = 373.16D0
       real(8) , parameter :: c1es = 610.78D0
       real(8) , parameter :: c2es = c1es*rgas/rwat
-      real(8) , parameter :: c3les = 17.269D0
+      real(8) , parameter :: c3les = 17.2693882D0
       real(8) , parameter :: c3ies = 21.875D0
       real(8) , parameter :: c4les = 35.86D0
       real(8) , parameter :: c4ies = 7.66D0
@@ -58,9 +65,14 @@
       real(8) , parameter :: c5alscp = c5ies*als*rcpd
       real(8) , parameter :: alvdcp = alv*rcpd
       real(8) , parameter :: alsdcp = als*rcpd
+      real(8) , parameter :: pq0 = 379.90516D0
+      ! value used for the latent heat term in the exponent fori
+      ! calculating equivalent potential temperature
+      real(8) , parameter :: eliwv = 2.72D6
 
       ! Standard atmosphere
       real(8) , parameter :: stdp = 1.013250D5
+      real(8) , parameter :: stdpmb = 1013.250D5
       real(8) , parameter :: stdt = 288.15D0
       real(8) , parameter :: lrate = 0.0065D0
  
@@ -157,5 +169,23 @@
 
       ! Cumulous parameters
       real(8) , parameter :: tauht = 7200.0D0
+
+      ! Aerosol densities
+      real(8) , parameter :: rhoso4 = 1.76D0
+      real(8) , parameter :: rhobc = 1.D0
+      real(8) , parameter :: rhooc = 1.D0
+      real(8) , parameter :: rhodust = 2.5D0
+
+      ! Constants used in Betts Miller
+      real(8) , parameter :: aliq = 613.3D0
+      real(8) , parameter :: bliq = 17.502D0
+      real(8) , parameter :: cliq = 4780.8D0
+      real(8) , parameter :: dliq = 32.19D0
+      real(8) , parameter :: aice = 613.2D0
+      real(8) , parameter :: bice = 22.452D0
+      real(8) , parameter :: cice1 = 6133.0D0
+      real(8) , parameter :: dice = 0.61D0
+      real(8) , parameter :: xls0 = 2.905D6
+      real(8) , parameter :: xls1 = 259.532D0
 
       end module mod_constants

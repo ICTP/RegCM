@@ -44,7 +44,7 @@
       use mod_slice
       use mod_trachem
       use mod_constants , only : rgti , rgas , ep2 , wlhvocp , svp1 ,   &
-                               & svp2 , svp3
+                               & svp2 , svp3 , tmelt
       implicit none
 !
 ! Dummy arguments
@@ -97,7 +97,7 @@
 !         ![k][avg]
           q = qvb3d(i,1,j)                                   ![kg/kg][avg]
           tk = tb3d(i,1,j)                                   ![k][avg]
-          tcel = tk - 273.15                                 ![C][avg]
+          tcel = tk - tmelt                                  ![C][avg]
           p = pb3d(i,1,j)*1000.                              ![Pa][avg]
           rho = p/(rgas*tk)                                  ![kg/m3][avg]
           qcw = qcb3d(i,1,j)                                 ![kg/kg][avg]
@@ -161,7 +161,7 @@
 !         ![k][avg]
           q = qvb3d(i,k,j)                                   ![kg/kg][avg]
           tk = tb3d(i,k,j)                                   ![k][avg]
-          tcel = tk - 273.15                                 ![C][avg]
+          tcel = tk - tmelt                                  ![C][avg]
           p = pb3d(i,k,j)*1000.                              ![Pa][avg]
           rho = p/(rgas*tk)                                  ![kg/m3][avg]
           qcw = qcb3d(i,k,j)                                 ![kg/kg][avg]

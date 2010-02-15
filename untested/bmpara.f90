@@ -59,19 +59,20 @@
       use mod_bmparam
       use mod_trachem
       use mod_constants , only : rgas , gti , rovg , cpd , rcpd , ep2 , &
-                               & trel
+                               & trel , tmelt , wlhv , c4les , c3les ,  &
+                               & pq0 , aliq , bliq , cliq , dliq ,      &
+                               & aice , bice , cice1 , dice , xls0 ,    &
+                               & xls1
       implicit none
 !
 ! PARAMETER definitions
 !
       real(8) , parameter :: h1 = 1.E0 , h3000 = 3000.E0 ,              &
                            & h10e5 = 100000.E0 , d00 = 0.E0 ,           &
-                           & d608 = 0.608E0 , dm2859 = -287.04/1004.E0 ,&
-                           & elwv = 2.50E6 , row = 1.E3 ,               &
-                           & epsq = 2.E-12 , a2 = 17.2693882E0 ,        &
-                           & a3 = 273.16E0 , a4 = 35.86E0 ,             &
-                           & t0 = 273.16E0 , t1 = 274.16E0 ,            &
-                           & pq0 = 379.90516E0 , stresh = 1.10E0 ,      &
+                           & d608 = 0.608E0 , dm2859 = -rgas/cpd ,      &
+                           & epsq = 2.E-12 , row = 1.E3 ,               &
+                           & t1 = tmelt+1.D0, d273 = 1./tmelt ,         &
+                           & stresh = 1.10E0 ,                          &
                            & stabs = 1.0E0 , stabd = 0.90E0 ,           &
                            & rhf = 0.20 , pmn = 6500.0 , epsdn = 1.05 , &
                            & epsth = 6.0 , pbm = 30000.0 ,              &
@@ -99,9 +100,9 @@
                            & /(h1-efimn) , slop0s = (dsp0fs-dsp0ss)     &
                            & /(h1-efimn) , slopts = (dsptfs-dsptss)     &
                            & /(h1-efimn) , slope = (h1-efmnt)/(h1-efimn)&
-                           & , a23m4l = a2*(a3-a4)*elwv , d273 = 1./t0 ,&
-                           & cporng = 1./dm2859 , elocp = elwv/1004. ,  &
-                           & cprlg = cpd/(row*gti*elwv)
+                           & , a23m4l = c3les*(tmelt-c4les)*wlhv ,      &
+                           & cporng = 1./dm2859 , elocp = wlhv/cpd ,    &
+                           & cprlg = cpd/(row*gti*wlhv)
       integer , parameter :: lp1 = kxp1 , lm1 = kx - 1
 !
 ! Dummy arguments
@@ -198,7 +199,7 @@
       do i = 2 , ixm2
         do k = 1 , kx
           t(i,k) = tb(i,k,j)/psb(i,j)
-          if ( t(i,k).gt.t0 .and. ml(i).eq.kxp1 ) ml(i) = k
+          if ( t(i,k).gt.tmelt .and. ml(i).eq.kxp1 ) ml(i) = k
           q(i,k) = qvb(i,k,j)/psb(i,j)
           pppk = (a(k)*psb(i,j)+ptop)*1000.
           ape(i,k) = (pppk/h10e5)**dm2859
@@ -238,10 +239,10 @@
           if ( pkl.ge.psfck-pbm ) then
             tthbt(i) = t(i,kb)*ape(i,kb)
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
-            tdpt = 1./(d273-rv/elwv*dlog(ee/611.))
+            tdpt = 1./(d273-rv/wlhv*dlog(ee/611.))
             tdpt = dmin1(tdpt,t(i,kb))
-            tlcl = tdpt - (.212+1.571E-3*(tdpt-t0)-4.36E-4*(t(i,kb)-t0))&
-                 & *(t(i,kb)-tdpt)
+            tlcl = tdpt - (.212+1.571E-3*(tdpt-tmelt)-4.36E-4*(t(i,kb)- &
+                 & tmelt))*(t(i,kb)-tdpt)
             tthes(i) = tthbt(i)*exp(elocp*q(i,kb)/tlcl)
 !--------------check for maximum buoyancy-------------------------------
             if ( tthes(i).gt.thesp(i) ) then
@@ -384,7 +385,7 @@
           qrefk(k) = qkl
           pkl = (a(k)*psb(i,j)+ptop)*1000.
 !**************
-          tref(i,k) = tpfc(pkl,thesp(i),t(i,k),d273,elwv,qu,ape(i,k))
+          tref(i,k) = tpfc(pkl,thesp(i),t(i,k),d273,wlhv,qu,ape(i,k))
 !***************
           pk(k) = pkl
           psk(k) = pkl
@@ -439,8 +440,8 @@
             apesk(l) = (psk(l)/h10e5)**dm2859
             thsk(l) = trefk(l)*apek(l)
             qrefk(l) = pq0/psk(l)                                       &
-                     & *exp(a2*(thsk(l)-a3*apesk(l))/(thsk(l)-a4*apesk  &
-                     & (l)))
+                     & *exp(c3les*(thsk(l)-tmelt*apesk(l))/(thsk(l)-    &
+                     & c4les*apesk(l)))
           else
             qrefk(l) = q(i,l)
           end if
@@ -451,7 +452,7 @@
           sumde = d00
           sumdp = d00
           do l = ltpk , lb
-            sumde = ((tk(l)-trefk(l))*cpd+(qk(l)-qrefk(l))*elwv)        &
+            sumde = ((tk(l)-trefk(l))*cpd+(qk(l)-qrefk(l))*wlhv)        &
                   & *dsigma(l) + sumde
             sumdp = sumdp + dsigma(l)
           end do
@@ -471,11 +472,12 @@
 !--------------below lqm correct both temperature and moisture----------
           do l = lcor , lb
             tskl = trefk(l)*apek(l)/apesk(l)
-            dhdt = qrefk(l)*a23m4l/(tskl-a4)**2 + cpd
+            dhdt = qrefk(l)*a23m4l/(tskl-c4les)**2 + cpd
             trefk(l) = hcorr/dhdt + trefk(l)
             thskl = trefk(l)*apek(l)
             qrefk(l) = pq0/psk(l)                                       &
-                     & *exp(a2*(thskl-a3*apesk(l))/(thskl-a4*apesk(l)))
+                     & *exp(c3les*(thskl-tmelt*apesk(l))/               &
+                     & (thskl-c4les*apesk(l)))
           end do
 !-----------------------------------------------------------------------
         end do
@@ -488,7 +490,7 @@
           diftl = (trefk(l)-tkl)*tauk
           difql = (qrefk(l)-qk(l))*tauk
           avrgtl = (tkl+tkl+diftl)
-          dentpy = (diftl*cpd+difql*elwv)*dsigma(l)/avrgtl + dentpy
+          dentpy = (diftl*cpd+difql*wlhv)*dsigma(l)/avrgtl + dentpy
           avrgt = avrgtl*dsigma(l) + avrgt
           preck = dsigma(l)*diftl + preck
           dift(l) = diftl
@@ -675,10 +677,10 @@
         thtpk = t(i,ltp1)*ape(i,ltp1)
         pkl = (a(ltp1)*psb(i,j)+ptop)*1000.
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
-        tdpt = 1./(d273-rv/elwv*dlog(ee/611.))
+        tdpt = 1./(d273-rv/wlhv*dlog(ee/611.))
         tdpt = dmin1(tdpt,t(i,ltp1))
-        tlcl = tdpt - (.212+1.571E-3*(tdpt-t0)-4.36E-4*(t(i,ltp1)-t0))  &
-             & *(t(i,ltp1)-tdpt)
+        tlcl = tdpt - (.212+1.571E-3*(tdpt-tmelt)-4.36E-4*              &
+             & (t(i,ltp1)-tmelt))*(t(i,ltp1)-tdpt)
         ptpk = h10e5*(thtpk/tlcl)**cporng
         dpmix = ptpk - psp(i)
         if ( abs(dpmix).lt.h3000 ) dpmix = -h3000
@@ -729,7 +731,7 @@
         rotsum = 1./otsum
         potsum = potsum*rotsum
         qotsum = qotsum*rotsum
-        dst = dst*rotsum*cpd/elwv
+        dst = dst*rotsum*cpd/wlhv
 !--------------ensure positive entropy change---------------------------
         if ( dst.gt.0. ) then
           prtop(i) = pbot(i)
@@ -787,7 +789,7 @@
         end if
         dentpy = d00
         do l = ltp1 , lbtk
-          dentpy = ((trefk(l)-tk(l))*cpd+(qrefk(l)-qk(l))*elwv)         &
+          dentpy = ((trefk(l)-tk(l))*cpd+(qrefk(l)-qk(l))*wlhv)         &
                  & /(tk(l)+trefk(l))*dsigma(l) + dentpy
         end do
 !--------------relaxation towards reference profiles--------------------

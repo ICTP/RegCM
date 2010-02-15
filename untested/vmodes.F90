@@ -23,12 +23,12 @@
       use mod_param1
       use mod_split
       use mod_message
+      use mod_constants , only : rgas , rovcp
       implicit none
 !
 ! PARAMETER definitions
 !
       integer , parameter :: nk1 = kxp1
-      real(8) , parameter :: rgas = 287. , xkappa = .287
 !
 ! Dummy arguments
 !
@@ -73,9 +73,6 @@
 !            tbarh and ps in that case).  otherwise, ps and tbarh must
 !            be defined on input.  note that in either case, pt must
 !            also be defined on input (common block named cvert).
-!
-!
-!  rgas and xkappa are atmospheric values for r and kappa.
 !
       data lprint/.false./  ! true if all matrices to be printed
 !
@@ -133,7 +130,7 @@
 !
 !  set tbarh (temperature at half (data) levels: indexed k + 1/2)
       if ( lstand ) call vtlaps(tbarh,sigmah,r,pt,pd,kx)
-      call vchekt(tbarh,sigmah,sigmaf,xkappa,pt,pd,kx,numerr)
+      call vchekt(tbarh,sigmah,sigmaf,rovcp,pt,pd,kx,numerr)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
@@ -141,7 +138,7 @@
 !
 !  compute thetah
       do k = 1 , kx
-        thetah(k) = tbarh(k)*((sigmah(k)+pt/pd)**(-xkappa))
+        thetah(k) = tbarh(k)*((sigmah(k)+pt/pd)**(-rovcp))
       end do
 !
 !  compute tbarf and thetaf
@@ -155,7 +152,7 @@
       tbarf(nk1) = 0.
 !
       do k = 1 , nk1
-        thetaf(k) = tbarf(k)*((sigmaf(k)+pt/pd)**(-xkappa))
+        thetaf(k) = tbarf(k)*((sigmaf(k)+pt/pd)**(-rovcp))
       end do
 !
 !  define matrices for determination of thermodynamic matrix
@@ -180,7 +177,7 @@
       do k = 1 , kx
         a3(k,k) = -tbarh(k)
         d1(k,k) = sigmaf(k+1) - sigmaf(k)
-        d2(k,k) = xkappa*tbarh(k)/(sigmah(k)+pt/pd)
+        d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+pt/pd)
         s1(k,k) = sigmaf(k)
         s2(k,k) = sigmah(k)
         x1(k,k) = 1.

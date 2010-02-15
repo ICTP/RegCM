@@ -22,11 +22,8 @@
 !*****************BEGIN SUBROUTINE TEMP********************
 !             COMPUTES TEMPERATURE PROFILE                *
 !**********************************************************
+      use mod_constants , only : tmelt , cpw
       implicit none
-!
-! PARAMETER definitions
-!
-      real(8) , parameter :: cp = 4179.98
 !
 ! Dummy arguments
 !
@@ -51,22 +48,22 @@
       end do
  
       k = 1
-      t1 = sw*(1.-dexp(-eta*surf))/(surf*dnsty(k)*cp) + (lnet+qe+qh)    &
-         & /(surf*dnsty(k)*cp)
+      t1 = sw*(1.-dexp(-eta*surf))/(surf*dnsty(k)*cpw) + (lnet+qe+qh)   &
+         & /(surf*dnsty(k)*cpw)
       t2 = -de(k)*(t(k,1)-t(k+1,1))/surf
       t(k,2) = t(k,2) + (t1+t2)*dt
  
       do k = 2 , depth - 1
         top = (surf+(k-2)*dz)
         bot = (surf+(k-1)*dz)
-        t1 = sw*(dexp(-eta*top)-dexp(-eta*bot))/(dz*dnsty(k)*cp)
+        t1 = sw*(dexp(-eta*top)-dexp(-eta*bot))/(dz*dnsty(k)*cpw)
         t2 = (de(k-1)*(t(k-1,1)-t(k,1))-de(k)*(t(k,1)-t(k+1,1)))/dz
         t(k,2) = t(k,2) + (t1+t2)*dt
       end do
  
       k = depth
       top = (surf+(k-2)*dz)
-      t1 = sw*dexp(-eta*top)/(dz*dnsty(k)*cp)
+      t1 = sw*dexp(-eta*top)/(dz*dnsty(k)*cpw)
       t2 = de(k-1)*(t(depth-1,1)-t(depth,1))/dz
       t(k,2) = t(k,2) + (t1+t2)*dt
  
@@ -75,9 +72,10 @@
         tdiff = tdiff + t(k,2) - t(k,1)
         if ( k.eq.1 ) tdiff = tdiff*surf
         t(k,1) = t(k,2)
-        dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,2)+273.15)-277.0)) &
+        dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,2)+tmelt)-277.0))  &
                  & **1.68)
       end do
+
 !sb   print *, 'TEMP: Total temp change = ', tdiff
  
       end subroutine temp

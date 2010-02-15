@@ -41,7 +41,7 @@
       use mod_date
       use mod_message
       use mod_constants , only : gti , zlnd , zoce , zsno , ep2 , svp1 ,&
-                               & svp2 , svp3
+                               & svp2 , svp3 , tmelt
       implicit none
 !
 ! Dummy arguments
@@ -531,8 +531,8 @@
             shu10 = shu10/(1-shu10)
  
 !           saturation mixing ratio at 10m
-            if ( temp10(i).gt.273.15 ) then
-              satvp = svp1*1.E3*dexp(svp2*(temp10(i)-273.15)            &
+            if ( temp10(i).gt.tmelt ) then
+              satvp = svp1*1.E3*dexp(svp2*(temp10(i)-tmelt)             &
                     & /(temp10(i)-svp3))
             else
               satvp = .611*1.E3*dexp(22.514-6.15E3/temp10(i))

@@ -28,16 +28,5 @@
       real(8) , dimension(itb,jtb) :: ptbl
       real(8) , dimension(jtb) :: qs0 , sqs , sthe , the0
       real(8) , dimension(jtb,itb) :: ttbl
-!
-      real(8) , parameter :: aliq = 613.3D0
-      real(8) , parameter :: bliq = 17.502D0
-      real(8) , parameter :: cliq = 4780.8D0
-      real(8) , parameter :: dliq = 32.19D0
-      real(8) , parameter :: aice = 613.2D0
-      real(8) , parameter :: bice = 22.452D0
-      real(8) , parameter :: cice1 = 6133.0D0
-      real(8) , parameter :: dice = 0.61D0
-      real(8) , parameter :: xls0 = 2.905D6
-      real(8) , parameter :: xls1 = 259.532D0
 
       end module mod_bmparam

@@ -109,8 +109,8 @@ mod_tracer.o: mod_tracer.f90
 mod_trachem.o: mod_trachem.F90 mod_regcm_param.o
 aermix.o: aermix.f90 mod_aerosol.o mod_crdcon.o mod_main.o mod_mainchem.o \
           mod_param2.o mod_regcm_param.o mod_slice.o
-aeroppt.o: aeroppt.F90 mod_aerosol.o mod_crdcon.o mod_message.o \
-           mod_param2.o mod_regcm_param.o mod_trachem.o
+aeroppt.o: aeroppt.F90 mod_aerosol.o mod_constants.o mod_crdcon.o \
+           mod_message.o mod_param2.o mod_regcm_param.o mod_trachem.o
 aerout.o: aerout.F90 mod_aerosol.o mod_param2.o mod_regcm_param.o \
           mod_trachem.o
 albedov.o: albedov.f90 mod_constants.o mod_bats.o mod_regcm_param.o
@@ -171,7 +171,7 @@ drip.o: drip.f90 mod_constants.o mod_bats.o mod_regcm_param.o
 dsflx.o: dsflx.F90 mod_constants.o mod_dust.o mod_message.o mod_regcm_param.o
 eddy.o: eddy.f90 mod_constants.o
 eispack.o: eispack.f90
-eomb.o: eomb.f90
+eomb.o: eomb.f90 mod_constants.o
 finddate.o: finddate.F90 mod_message.o mod_regcm_param.o
 for_next.o: for_next.f90 mod_convect.o mod_date.o mod_param1.o mod_param2.o \
             mod_param3.o mod_pmoist.o mod_regcm_param.o mod_trachem.o
@@ -220,15 +220,15 @@ mapsmp.o: mapsmp.f90
 maximi.o: maximi.f90
 message.o: message.F90 mod_message.o mod_regcm_param.o
 minimi.o: minimi.f90
-mixer.o: mixer.f90
+mixer.o: mixer.f90 mod_constants.o
 mkfile.o: mkfile.F90 mod_bats.o mod_date.o mod_iunits.o mod_mainchem.o \
           mod_outrad.o mod_param1.o mod_param2.o mod_regcm_param.o
 nconvp.o: nconvp.F90 mod_constants.o mod_param3.o mod_pmoist.o mod_regcm_param.o
 nudge.o: nudge.F90 mod_bdycod.o mod_main.o mod_param3.o mod_regcm_param.o
 o3data.o: o3data.F90 mod_main.o mod_o3blk.o mod_param3.o mod_rad.o \
           mod_regcm_param.o
-outprt.o: outprt.F90 mod_bdycod.o mod_date.o mod_main.o mod_param1.o \
-          mod_param2.o mod_param3.o mod_pmoist.o mod_regcm_param.o
+outprt.o: outprt.F90 mod_bdycod.o mod_constants.o mod_date.o mod_main.o \
+          mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_regcm_param.o
 output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_iunits.o mod_main.o mod_mainchem.o mod_message.o mod_outrad.o \
           mod_param1.o mod_param2.o mod_pmoist.o mod_rad.o \
@@ -293,7 +293,7 @@ splitf.o: splitf.F90 mod_bxq.o mod_main.o mod_param1.o mod_regcm_param.o \
 sponge.o: sponge.F90 mod_bdycod.o mod_regcm_param.o
 spstep.o: spstep.F90 mod_bxq.o mod_main.o mod_regcm_param.o
 stomat.o: stomat.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
-temp.o: temp.f90
+temp.o: temp.f90 mod_constants.o
 tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
         mod_cvaria.o mod_date.o mod_main.o mod_mainchem.o mod_message.o \
         mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \

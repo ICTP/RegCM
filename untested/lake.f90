@@ -21,7 +21,7 @@
                     & evap,prec,hice,hsnow)
  
       use mod_lake
-      use mod_constants , only : ep2
+      use mod_constants , only : ep2 , tmelt
       implicit none
 !
 ! PARAMETER definitions
@@ -69,8 +69,8 @@
         t(k,2) = t(k,1)
       end do
  
-      tac = ta - 273.15
-      tk = 273.15 + t(1,1)
+      tac = ta - tmelt
+      tk = tmelt + t(1,1)
       lu = -0.97*delta*tk**4
       ld = lnet - lu
       qe = hlat*le
@@ -107,7 +107,7 @@
       write (iutlak) day , ilake , jlake , depth , evap , hi , hice ,   &
                    & hsnow , (t(j,1),j=1,depth)
  
-      ts = t(1,1) + 273.15
+      ts = t(1,1) + tmelt
       evap = evap/3600.          !  convert evap from mm/hr to mm/sec
       hice = hice*1000.          !  convert ice  from m to mm
       hsnow = hsnow*100.         !  convert snow from m depth to mm h20

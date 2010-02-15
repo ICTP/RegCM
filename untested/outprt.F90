@@ -19,6 +19,7 @@
  
 #ifdef MPP1
       subroutine outprt(iexec)
+
       implicit none
 !
 ! Dummy arguments
@@ -54,6 +55,7 @@
       use mod_bdycod
       use mod_pmoist
       use mod_date
+      use mod_constants , only : tmelt
       implicit none
 !
 ! Dummy arguments
@@ -197,7 +199,7 @@
         end do
       end do
       write (c40nam,99004) jcx
-      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ixm1,ixn,273.16D0,-1,   &
+      call mapsmp(scrx1,scrx1r,kx,ix,1,kx,kxn,1,ixm1,ixn,tmelt,-1,      &
                 & c40nam,xth)
 !
 !.....qv:
@@ -325,7 +327,7 @@
         end do
       end do
       write (c40nam,99009) kout
-      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,273.16D0,1,  &
+      call mapsmp(hscr1,hscr1r,ix,jx,1,ixm1,ixn,1,jxm1,jxn,tmelt,1,     &
                 & c40nam,xth)
 !
 !.....relative humidity:
@@ -333,10 +335,9 @@
       do j = 1 , jxm1
         do i = 1 , ixm1
           pres = a(kout)*psa(i,j) + ptop
-          if ( hscr1(i,j).gt.273.15 ) then
+          if ( hscr1(i,j).gt.tmelt ) then
 !           v8 svp formula
-            satvp = svp1*dexp(svp2*(hscr1(i,j)-273.15)/(hscr1(i,j)-svp3)&
-                  & )
+            satvp = svp1*dexp(svp2*(hscr1(i,j)-tmelt)/(hscr1(i,j)-svp3))
           else
             satvp = .611*dexp(22.514-6.15E3/hscr1(i,j))
           end if
@@ -363,7 +364,7 @@
 !.....surface temperature:
 !
       if ( ibltyp.ne.0 ) then
-        const = 273.15
+        const = tmelt
         c40nam = ' ground temperature (c)    '
         call mapsmp(tga,tgar,ix,jx,1,ixm1,ixn,1,jxm1,jxn,const,1,c40nam,&
                   & xth)

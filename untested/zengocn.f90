@@ -62,7 +62,7 @@
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
       use mod_constants , only : gti , rgti , rgas , rovcp , vonkar ,   &
-                                 cpd
+                                 cpd , rwwd , tmelt
       implicit none
 !
 ! Dummy arguments
@@ -74,16 +74,14 @@
 ! Local variables
 !
       real(kind=8) :: dthv , hq , ht , hu , obu , pr , qstar , rb ,     &
-               & rho , th , thv , thvstar , tok , tstar , um , visa ,   &
-               & wc , xlv , z10 , zbeta , zeta , zetam , zetat , zoq ,  &
-               & zot
+               & rho , th , thv , thvstar , tstar , um , visa , zot ,   &
+               & wc , xlv , z10 , zbeta , zeta , zetam , zetat , zoq
       real(kind=8), external :: psi, qsat
       integer :: i
 !
 !***********************************************************************
 !
       zbeta = 1.   ! -  (in computing W_*)
-      tok = 273.16 ! Celsius to Kelvin
       pr = 0.71    ! =nu/thermal diffusivity (the Prandtl number)
       z10 = 10.    ! m  (reference height)
 !
@@ -91,17 +89,17 @@
       ht = hgt
       hq = hgt
 !
-      th = (t+tok)*(1000./ps)**rovcp
+      th = (t+tmelt)*(1000./ps)**rovcp
       ! potential T
       dth = t + 0.0098*ht - ts
       qs = qsat(ts,ps)*0.98
-      qs = .62197*qs/(ps-0.378*qs)
+      qs = rwwd*qs/(ps-0.378*qs)
       ! in kg/kg
       dqh = q - qs
       thv = th*(1.+0.61*q)
       ! virtual potential T
       dthv = dth*(1.+0.61*q) + 0.61*th*dqh
-      rho = ps*100./(rgas*(ts+tok)*(1.+0.61*qs))
+      rho = ps*100./(rgas*(ts+tmelt)*(1.+0.61*qs))
       ! density
       xlv = (2.501-0.00237*ts)*1.E+6
       ! J/kg

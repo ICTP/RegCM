@@ -20,14 +20,13 @@
       subroutine lutbl(ptop)
 !
       use mod_bmparam
-      use mod_constants , only : cpd , rgas , rovcp
+      use mod_constants , only : cpd , rgas , rovcp , tmelt , c3les ,   &
+                               & c4les , eliwv , pq0
       implicit none
 !
 ! PARAMETER definitions
 !
-      real(8) , parameter :: a2 = 17.2693882E0 , a3 = 273.16E0 ,        &
-                           & a4 = 35.86E0 , pq0 = 379.90516E0 ,         &
-                           & eps = 2.E-12 , eliwv = 2.72E6
+      real(8) , parameter :: eps = 2.D-12 ! little number
 
 !
 ! Dummy arguments
@@ -46,7 +45,7 @@
 !
 !--------------coarse look-up table for saturation point----------------
 !
-      pt = ptop*1000.
+      pt = ptop*1000.0D0
 !     ptop in pascal
  
       kthm = jtb
@@ -54,16 +53,16 @@
       kthm1 = kthm - 1
       kpm1 = kpm - 1
 !
-      thl = 210.
-      thh = 385.
+      thl = 210.0D0
+      thh = 385.0D0
       pl = pt
-      ph = 105000.
+      ph = 105000.0D0
 !
       dth = (thh-thl)/dble(kthm-1)
       dp = (ph-pl)/dble(kpm-1)
 !
-      rdth = 1.0/dth
-      rdp = 1.0/dp
+      rdth = 1.0D0/dth
+      rdp = 1.0D0/dp
       rdq = kpm - 1
 !
       th = thl - dth
@@ -75,15 +74,15 @@
         p = pl - dp
         do kp = 1 , kpm
           p = p + dp
-          ape = (100000./p)**(rovcp)
-          qsold(kp) = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
+          ape = (100000.D0/p)**(rovcp)
+          qsold(kp) = pq0/p*exp(c3les*(th-tmelt*ape)/(th-c4les*ape))
           pold(kp) = p
         end do
 !
         qs0k = qsold(1)
         sqsk = qsold(kpm) - qsold(1)
-        qsold(1) = 0.0
-        qsold(kpm) = 1.0
+        qsold(1) = 0.0D0
+        qsold(kpm) = 1.0D0
 !
         do kp = 2 , kpm1
           qsold(kp) = (qsold(kp)-qs0k)/sqsk
@@ -97,16 +96,16 @@
         qs0(kth) = qs0k
         sqs(kth) = sqsk
 !-----------------------------------------------------------------------
-        qsnew(1) = 0.0
-        qsnew(kpm) = 1.0
-        dqs = 1.0/dble(kpm-1)
+        qsnew(1) = 0.0D0
+        qsnew(kpm) = 1.0D0
+        dqs = 1.0D0/dble(kpm-1)
 !
         do kp = 2 , kpm1
           qsnew(kp) = qsnew(kp-1) + dqs
         end do
 !
-        y2p(1) = 0.0
-        y2p(kpm) = 0.0
+        y2p(1) = 0.0D0
+        y2p(kpm) = 0.0D0
 !
         call spline(kpm,qsold,pold,y2p,kpm,qsnew,pnew)
 !
@@ -124,16 +123,16 @@
         th = thl - dth
         do kth = 1 , kthm
           th = th + dth
-          ape = (100000./p)**(rovcp)
-          qs = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
+          ape = (100000.D0/p)**(rovcp)
+          qs = pq0/p*exp(c3les*(th-tmelt*ape)/(th-c4les*ape))
           told(kth) = th/ape
           theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
         end do
 !
         the0k = theold(1)
         sthek = theold(kthm) - theold(1)
-        theold(1) = 0.0
-        theold(kthm) = 1.0
+        theold(1) = 0.0D0
+        theold(kthm) = 1.0D0
 !
         do kth = 2 , kthm1
           theold(kth) = (theold(kth)-the0k)/sthek
@@ -146,17 +145,17 @@
         the0(kp) = the0k
         sthe(kp) = sthek
 !-----------------------------------------------------------------------
-        thenew(1) = 0.0
-        thenew(kthm) = 1.0
-        dthe = 1.0/dble(kthm-1)
-        rdthe = 1.0/dthe
+        thenew(1) = 0.0D0
+        thenew(kthm) = 1.0D0
+        dthe = 1.0D0/dble(kthm-1)
+        rdthe = 1.0D0/dthe
 !
         do kth = 2 , kthm1
           thenew(kth) = thenew(kth-1) + dthe
         end do
 !
-        y2t(1) = 0.0
-        y2t(kthm) = 0.0
+        y2t(1) = 0.0D0
+        y2t(kthm) = 0.0D0
 !
         call spline(kthm,theold,told,y2t,kthm,thenew,tnew)
 !
