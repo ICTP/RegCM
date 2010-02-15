@@ -47,7 +47,7 @@
       use mod_param1
       use mod_param2
       use mod_param3 , only : dsigma , a , wgtx , wgtd , ptop , ispgx , &
-                     & ispgd , akht1 , dectim
+                   & ispgd , akht1
       use mod_main
       use mod_mainchem
       use mod_bdycod
@@ -56,11 +56,12 @@
       use mod_rad
       use mod_bats
       use mod_trachem
-      use mod_date
+      use mod_date , only : dectim , nnnnnn , nstrt0 , lyear , lmonth , &
+                   & lday , lhour , ldatez , idate0 , idate1
       use mod_message
       use mod_aerosol , only : aermm
       use mod_constants , only : rgti , rgas , cpd , ep1 , gnu , omu ,  &
-                              & gnuhf , omuhf , alpha , beta
+                   & gnuhf , omuhf , alpha , beta
 #ifdef MPP1
       use mod_slice
       use mpi

@@ -29,17 +29,19 @@
       use mod_param1
       use mod_param2
       use mod_param3 , only : wgtx , sigma , dsigma , a , anudg , twt , &
-                   & qcon , wgtd , akht1 , akht2 , kt , mdate0 , ncld , &
-                   & ntimax , kxout , ntimax , ptop , ptop4 , kchi ,    &
-                   & k700 , jxsex , julday , ispgx , ispgd , gmt ,      &
-                   & deltmx , dectim
+                   & qcon , wgtd , akht1 , akht2 , kt , kxout , ncld ,  &
+                   & ptop , ptop4 , kchi , k700 , jxsex , ispgx , ispgd
       use mod_iunits
       use mod_pmoist
       use mod_bats
       use mod_main
       use mod_trachem
       use mod_convect
-      use mod_date
+      use mod_date , only : mdate0 , ntimax , julday , gmt , deltmx ,   &
+                   & dectim , nnnnnn , nstart , idate0 , idate1 ,       &
+                   & idate2 , nstrt0 , nyear , nnnend , nmonth ,        &
+                   & ndate0 , nnnchk , lyear , lmonth , lday , lhour ,  &
+                   & ldatez , idatex
       use mod_message
       use mod_grads
       use mod_constants , only : mathpi , gti , rgti , rgas , vonkar ,  &

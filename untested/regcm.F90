@@ -20,10 +20,11 @@
       program regcm
 !
       use mod_regcm_param
-      use mod_date
+      use mod_date , only : deltmx , idate1 , idate2 , nnbase ,         &
+                     & nnnend , nnnnnn
       use mod_param1
       use mod_param2
-      use mod_param3 , only : ptop , deltmx , sigma
+      use mod_param3 , only : ptop , sigma
       use mod_message
 #ifdef MPP1
       use mpi

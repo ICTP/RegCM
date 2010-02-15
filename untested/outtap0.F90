@@ -28,10 +28,11 @@
 
       use mod_regcm_param
       use mod_param2
-      use mod_param3 , only : mdate0 , sigma
+      use mod_param3 , only : sigma
       use mod_main
       use mod_bats
       use mod_grads
+      use mod_date , only : mdate0
       use mod_constants , only : rgti
 #ifdef MPP1
       use mod_mppio

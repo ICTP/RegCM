@@ -28,8 +28,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_message
-      use mod_param3 , only : declin , julday , gmt
-      use mod_date
+      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0
       use mod_constants , only : mathpi , degrad
       implicit none
 !

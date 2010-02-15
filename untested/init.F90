@@ -28,8 +28,7 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
-      use mod_param3 , only : a , dsigma , ptop , dectim , mdate ,      &
-                   & mdate0
+      use mod_param3 , only : a , dsigma , ptop
       use mod_iunits
       use mod_bats , only : ssw2da , sdeltk2d , sdelqk2d , sfracv2d ,   &
                    & sfracb2d , sfracs2d , svegfrac2d , ht1 , satbrt1 , &
@@ -47,7 +46,9 @@
       use mod_rad
       use mod_trachem
       use mod_message
-      use mod_date
+      use mod_date , only : dectim , mdate , mdate0 , mmrec , ldatez ,  &
+                   & idate1 , lyear , lmonth , lday , lhour , ndate0 ,  &
+                   & ndate1 , nnnchk
       use mod_radbuf
       use mod_tmpsav
       use mod_constants , only : rgti

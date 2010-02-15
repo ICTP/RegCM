@@ -236,16 +236,16 @@ output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_radbuf.o mod_regcm_param.o mod_split.o mod_tmpsav.o mod_trachem.o
 outsav.o: outsav.F90 mod_bats.o mod_bdycod.o mod_date.o mod_diagnosis.o \
           mod_iunits.o mod_main.o mod_mainchem.o mod_param1.o mod_param2.o \
-          mod_param3.o mod_pmoist.o mod_rad.o mod_radbuf.o \
-          mod_regcm_param.o mod_split.o mod_trachem.o
+          mod_pmoist.o mod_rad.o mod_radbuf.o mod_regcm_param.o mod_split.o \
+          mod_trachem.o
 outsrf.o: outsrf.F90 mod_bats.o mod_date.o mod_iunits.o mod_param1.o \
           mod_param2.o mod_regcm_param.o
 outsub.o: outsub.F90 mod_bats.o mod_date.o mod_iunits.o mod_param1.o \
           mod_param2.o mod_regcm_param.o
 outtap.o: outtap.F90 mod_bats.o mod_cvaria.o mod_date.o mod_iunits.o \
           mod_main.o mod_param1.o mod_param2.o mod_param3.o mod_regcm_param.o
-outtap0.o: outtap0.F90 mod_constants.o mod_bats.o mod_grads.o mod_main.o \
-           mod_param2.o mod_param3.o mod_regcm_param.o
+outtap0.o: outtap0.F90 mod_constants.o mod_bats.o mod_date.o mod_grads.o \
+           mod_main.o mod_param2.o mod_param3.o mod_regcm_param.o
 param.o: param.F90 mod_constants.o mod_bats.o mod_convect.o mod_date.o \
          mod_grads.o mod_iunits.o mod_main.o mod_message.o mod_param1.o \
          mod_param2.o mod_param3.o mod_pmoist.o mod_regcm_param.o mod_trachem.o
@@ -285,7 +285,7 @@ slice3D.o: slice3D.F90 mod_main.o mod_constants.o mod_mainchem.o mod_param2.o \
            mod_param3.o mod_pbldim.o mod_pmoist.o mod_regcm_param.o mod_slice.o
 snow.o: snow.f90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
 soilbc.o: soilbc.f90 mod_bats.o mod_regcm_param.o
-solar1.o: solar1.f90 mod_constants.o mod_date.o mod_message.o mod_param3.o
+solar1.o: solar1.f90 mod_constants.o mod_date.o mod_message.o
 spinit.o: spinit.F90 mod_bdycod.o mod_bxq.o mod_iunits.o mod_main.o \
           mod_param1.o mod_param2.o mod_regcm_param.o mod_split.o mod_tmpsav.o
 spline.o: spline.f90
@@ -341,4 +341,4 @@ zengocndrv.o: zengocndrv.f90 mod_bats.o mod_constants.o mod_main.o \
               mod_pmoist.o mod_regcm_param.o mod_slice.o
 zenith.o: zenith.f90
 zenitm.o: zenitm.f90 mod_constants.o mod_date.o mod_main.o mod_param1.o \
-          mod_param3.o mod_regcm_param.o
+          mod_regcm_param.o
