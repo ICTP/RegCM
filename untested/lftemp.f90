@@ -120,7 +120,7 @@
       call root
  
 !l    1.5  saturation specific humidity of leaf
-      call satur(qsatl,tlef1d,p1d,npts)
+      call satur(qsatl,tlef1d,p1d)
  
 !=======================================================================
 !l    2.   begin iteration for leaf temperature calculation
