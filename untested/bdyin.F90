@@ -35,11 +35,12 @@
       use mod_regcm_param
       use mod_iunits
       use mod_param1
-      use mod_param3
+      use mod_param3 , only : mdate , ptop
       use mod_main
       use mod_bdycod
       use mod_bats , only : veg2d
-      use mod_date
+      use mod_date , only : idatex , ldatez , mmrec , ndate0 , ndate1 , &
+                   & nmonth , nnbase , nnnnnn , nyear , nnnchk
       use mod_tmpsav
 #ifdef MPP1
       use mod_mppio

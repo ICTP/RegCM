@@ -28,7 +28,11 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
-      use mod_param3
+      use mod_param3 , only : wgtx , sigma , dsigma , a , anudg , twt , &
+                   & qcon , wgtd , akht1 , akht2 , kt , mdate0 , ncld , &
+                   & ntimax , kxout , ntimax , ptop , ptop4 , kchi ,    &
+                   & k700 , jxsex , julday , ispgx , ispgd , gmt ,      &
+                   & deltmx , dectim
       use mod_iunits
       use mod_pmoist
       use mod_bats

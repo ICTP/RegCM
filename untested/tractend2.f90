@@ -28,7 +28,7 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_regcm_param
       use mod_param1
-      use mod_param3
+      use mod_param3 , only : dsigma , twt , ptop , kt , a , sigma
       use mod_main
       use mod_mainchem
       use mod_cvaria

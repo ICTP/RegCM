@@ -22,7 +22,7 @@
       use mod_date
       use mod_param1
       use mod_param2
-      use mod_param3
+      use mod_param3 , only : ptop , a
       use mod_grads
 !#ifdef INTEL
 !  include 'ifport.f90'

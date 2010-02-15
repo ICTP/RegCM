@@ -51,7 +51,7 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
-      use mod_param3
+      use mod_param3 , only : ptop , sigma , a , dsigma
       use mod_main
       use mod_pmoist
       use mod_rad

@@ -46,7 +46,8 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
-      use mod_param3
+      use mod_param3 , only : dsigma , a , wgtx , wgtd , ptop , ispgx , &
+                     & ispgd , akht1 , dectim
       use mod_main
       use mod_mainchem
       use mod_bdycod

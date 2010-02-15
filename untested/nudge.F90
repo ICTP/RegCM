@@ -56,7 +56,7 @@
       use mod_regcm_param
       use mod_bdycod
       use mod_main
-      use mod_param3
+      use mod_param3 , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -361,7 +361,7 @@
       use mod_regcm_param
       use mod_main
       use mod_bdycod
-      use mod_param3
+      use mod_param3 , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -711,7 +711,7 @@
       use mod_regcm_param
       use mod_main
       use mod_bdycod
-      use mod_param3
+      use mod_param3 , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -1062,7 +1062,7 @@
       use mod_regcm_param
       use mod_main
       use mod_bdycod
-      use mod_param3
+      use mod_param3 , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -1406,7 +1406,7 @@
       use mod_regcm_param
       use mod_bdycod
       use mod_main
-      use mod_param3
+      use mod_param3 , only : anudg
       implicit none
 !
 ! Dummy arguments

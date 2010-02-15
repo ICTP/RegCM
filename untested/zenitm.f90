@@ -31,7 +31,7 @@
 !
       use mod_regcm_param
       use mod_param1
-      use mod_param3
+      use mod_param3 , only : declin
       use mod_main
       use mod_date
       use mod_constants , only : degrad

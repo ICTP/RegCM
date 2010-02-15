@@ -139,7 +139,6 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
-      use mod_param3
       use mod_iunits
       use mod_bats
       use mod_date

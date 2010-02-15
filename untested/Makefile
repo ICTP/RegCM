@@ -1,7 +1,8 @@
 include ../regcm4/Makefile.inc
 
 SCENARIO = A1B
-
+#SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
+#F90FLAGS += -fconvert=big-endian $(SVNDEF) -DMPP1 -DDIAG
 
 all:: regcm
 
@@ -151,8 +152,8 @@ convect_tables.o: convect_tables.f90 mod_constants.o mod_culookup.o \
                   mod_tiedparam0.o
 cumtran.o: cumtran.F90 mod_mainchem.o mod_param3.o mod_regcm_param.o \
            mod_trachem.o
-cup.o: cup.f90 mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
-       mod_regcm_param.o mod_trachem.o
+cup.o: cup.f90 mod_param2.o mod_pmoist.o mod_rad.o mod_regcm_param.o \
+       mod_trachem.o
 cupara.o: cupara.f90 mod_bats.o mod_constants.o mod_cvaria.o mod_main.o \
           mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
           mod_regcm_param.o mod_trachem.o
@@ -228,7 +229,7 @@ nudge.o: nudge.F90 mod_bdycod.o mod_main.o mod_param3.o mod_regcm_param.o
 o3data.o: o3data.F90 mod_main.o mod_o3blk.o mod_param3.o mod_rad.o \
           mod_regcm_param.o
 outprt.o: outprt.F90 mod_bdycod.o mod_constants.o mod_date.o mod_main.o \
-          mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_regcm_param.o
+          mod_param1.o mod_param2.o mod_pmoist.o mod_regcm_param.o
 output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_iunits.o mod_main.o mod_mainchem.o mod_message.o mod_outrad.o \
           mod_param1.o mod_param2.o mod_pmoist.o mod_rad.o \
@@ -278,8 +279,8 @@ regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
 reorder.o: reorder.f90
 root.o: root.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
 satur.o: satur.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
-slice1D.o: slice1D.f90 mod_bats.o mod_constants.o mod_main.o mod_param3.o \
-           mod_pbldim.o mod_regcm_param.o
+slice1D.o: slice1D.f90 mod_bats.o mod_constants.o mod_main.o mod_pbldim.o \
+           mod_regcm_param.o
 slice3D.o: slice3D.F90 mod_main.o mod_constants.o mod_mainchem.o mod_param2.o \
            mod_param3.o mod_pbldim.o mod_pmoist.o mod_regcm_param.o mod_slice.o
 snow.o: snow.f90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
@@ -323,7 +324,7 @@ vcheki.o: vcheki.f90
 vchekt.o: vchekt.f90
 vcover.o: vcover.f90 mod_bats.o mod_regcm_param.o
 vecbats.o: vecbats.F90 mod_bats.o mod_date.o mod_iunits.o mod_main.o \
-           mod_param1.o mod_param2.o mod_param3.o mod_regcm_param.o
+           mod_param1.o mod_param2.o mod_regcm_param.o
 vmodes.o: vmodes.F90 mod_message.o mod_param1.o mod_regcm_param.o mod_split.o
 vmultm.o: vmultm.f90
 vnorml.o: vnorml.f90

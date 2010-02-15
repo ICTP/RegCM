@@ -21,7 +21,7 @@
       subroutine o3data
 !
       use mod_regcm_param
-      use mod_param3
+      use mod_param3 , only : ptop , sigma
       use mod_main
       use mod_rad
       use mod_o3blk

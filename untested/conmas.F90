@@ -32,7 +32,7 @@
       use mod_param1
       use mod_diagnosis
       use mod_param2
-      use mod_param3
+      use mod_param3 , only : dsigma
       use mod_date
       use mod_main
       use mod_constants , only : rgti

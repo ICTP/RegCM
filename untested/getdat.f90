@@ -33,7 +33,7 @@
 !
       use mod_regcm_param
       use mod_param1
-      use mod_param3
+      use mod_param3 , only : gmt , julday, ncld , ptop , a , sigma
       use mod_main
       use mod_rad
       use mod_comtim

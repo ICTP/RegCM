@@ -28,7 +28,8 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
-      use mod_param3
+      use mod_param3 , only : a , dsigma , ptop , dectim , mdate ,      &
+                   & mdate0
       use mod_iunits
       use mod_bats , only : ssw2da , sdeltk2d , sdelqk2d , sfracv2d ,   &
                    & sfracb2d , sfracs2d , svegfrac2d , ht1 , satbrt1 , &
