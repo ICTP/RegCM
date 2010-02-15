@@ -22,7 +22,7 @@
 !** compute vertical modes.
 !
       use mod_regcm_param
-      use mod_param1
+      use mod_param1 , only : dt , dtau , dx2
       use mod_param2
       use mod_iunits
       use mod_bdycod
@@ -30,6 +30,7 @@
       use mod_split
       use mod_bxq
       use mod_tmpsav
+      use mod_date , only : jyear , jyear0 , ktau
 #ifdef MPP1
       use mod_mppio
       use mpi

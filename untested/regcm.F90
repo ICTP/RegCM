@@ -21,9 +21,9 @@
 !
       use mod_regcm_param
       use mod_date , only : deltmx , idate1 , idate2 , nnbase ,         &
-                     & nnnend , nnnnnn
-      use mod_param1
-      use mod_param2
+                     & nnnend , nnnnnn , jyear , jyear0 , ktau , xtime
+      use mod_param1 , only : nslice , dt , dt2 , dtmin
+      use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : ptop , sigma
       use mod_message
 #ifdef MPP1

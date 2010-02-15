@@ -28,13 +28,12 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_regcm_param
-      use mod_param1
       use mod_param2
       use mod_main
       use mod_bdycod
       use mod_bats
       use mod_date , only : mdate0 , lyear , lmonth , lday , lhour ,    &
-                   & ldatez
+                   & ldatez , ntime , ktau , xtime
       use mod_iunits
       use mod_radbuf
       use mod_pmoist

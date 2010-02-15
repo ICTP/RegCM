@@ -41,7 +41,8 @@
                    & dectim , nnnnnn , nstart , idate0 , idate1 ,       &
                    & idate2 , nstrt0 , nyear , nnnend , nmonth ,        &
                    & ndate0 , nnnchk , lyear , lmonth , lday , lhour ,  &
-                   & ldatez , idatex
+                   & ldatez , idatex , jyear , jyear0 , jyearr , ntime ,&
+                   & ktau , ktaur , xtime
       use mod_message
       use mod_grads
       use mod_constants , only : mathpi , gti , rgti , rgas , vonkar ,  &

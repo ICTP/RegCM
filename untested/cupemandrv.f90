@@ -24,7 +24,7 @@
 ! **********************************************
  
       use mod_regcm_param
-      use mod_param1
+      use mod_param1 , only : dt , nbatst
       use mod_param3 , only : ptop , sigma
       use mod_main
       use mod_pmoist
@@ -32,6 +32,7 @@
       use mod_slice
       use mod_rad
       use mod_bats , only : pptc
+      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 !
 ! PARAMETER definitions

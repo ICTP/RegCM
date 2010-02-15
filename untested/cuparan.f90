@@ -22,13 +22,14 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
       use mod_regcm_param
-      use mod_param1
+      use mod_param1 , only : dt , dtmin , nbatst
       use mod_param3 , only : ptop , a
       use mod_pmoist
       use mod_rad
       use mod_bats , only : pptc
       use mod_main
       use mod_constants , only : rgti
+      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 !
 ! Dummy arguments

@@ -26,8 +26,9 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_regcm_param
-      use mod_param1
-      use mod_param2
+      use mod_param1 , only : dt , dt2 , dx , ibdyfrq
+      use mod_param2 , only : ibltyp , ichem , icup , iemiss , ifrest , &
+                   & iocnflx , ipptls , lakemod , icnt
       use mod_param3 , only : a , dsigma , ptop
       use mod_iunits
       use mod_bats , only : ssw2da , sdeltk2d , sdelqk2d , sfracv2d ,   &
@@ -48,7 +49,8 @@
       use mod_message
       use mod_date , only : dectim , mdate , mdate0 , mmrec , ldatez ,  &
                    & idate1 , lyear , lmonth , lday , lhour , ndate0 ,  &
-                   & ndate1 , nnnchk
+                   & ndate1 , nnnchk , jyear , jyear0, jyearr, ntime ,  &
+                   & ktau , ktaur , xtime
       use mod_radbuf
       use mod_tmpsav
       use mod_constants , only : rgti

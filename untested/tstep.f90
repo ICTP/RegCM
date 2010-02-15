@@ -20,7 +20,8 @@
       subroutine tstep(extime,dtinc,deltmx)
 
       use mod_regcm_param
-      use mod_param1
+      use mod_param1 , only : dt , dt2 , dtmin
+      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

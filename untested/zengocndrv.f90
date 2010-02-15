@@ -20,14 +20,15 @@
       subroutine zengocndrv(j)
 !
       use mod_regcm_param
-      use mod_param1
-      use mod_param2
+      use mod_param1 , only : dtmin
+      use mod_param2 , only : kbats
       use mod_param3 , only : ptop
       use mod_main
       use mod_pbldim
       use mod_pmoist
       use mod_slice
       use mod_bats
+      use mod_date , only : jyear , jyearr , ntime , ktau , ktaur
       use mod_constants , only : wlhv , tmelt
 
       implicit none

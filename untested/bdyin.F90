@@ -40,7 +40,8 @@
       use mod_bdycod
       use mod_bats , only : veg2d
       use mod_date , only : idatex , ldatez , mmrec , ndate0 , ndate1 , &
-                   & nmonth , nnbase , nnnnnn , nyear , nnnchk , mdate
+                   & nmonth , nnbase , nnnnnn , nyear , nnnchk , mdate ,&
+                   & xtime
       use mod_tmpsav
 #ifdef MPP1
       use mod_mppio

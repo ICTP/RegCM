@@ -30,7 +30,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_regcm_param
-      use mod_param1
+      use mod_param1 , only : dt , dtmin , dx4 , nbatst
       use mod_param2
       use mod_param3 , only : dsigma , a , qcon , ptop , k700
       use mod_main
@@ -41,6 +41,7 @@
       use mod_trachem
       use mod_constants , only : rgas , gti , rgti , rovcp , rcpd ,     &
                                & ep2 , wlhv , wlhvocp , tauht
+      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 !
 ! Dummy arguments

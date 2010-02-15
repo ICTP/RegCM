@@ -20,18 +20,20 @@
       module mod_date
       implicit none
  
-      integer :: ldatez , lday , lhour , lmonth , lyear , nnbase ,      &
-               & nnnnnn
- 
-      integer :: nnnchk , nnnend , nstart , nstrt0
- 
+      integer :: ntimax
+      integer :: nnnnnn , nnnchk , nnnend , nstart , nstrt0 , nnbase
+      integer :: ldatez , lyear , lmonth , lday , lhour
+      integer :: jyear , jyear0 , jyearr , ntime
+
+      integer :: mdate , mdate0 , moutdate
       integer :: nmonth , nyear
- 
+
       integer :: mmrec , ndate0 , ndate1
- 
       integer :: idate0 , idate1 , idate2 , idatee , idates , idatex
- 
-      integer :: julday , julian , mdate , mdate0 , moutdate , ntimax
+
+      integer :: julday , julian
       real(8) :: declin , dectim , deltmx , gmt
+      real(8) :: xtime
+      integer :: ktau , ktaur
 
       end module mod_date

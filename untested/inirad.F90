@@ -20,8 +20,8 @@
       subroutine inirad
  
       use mod_regcm_param
-      use mod_param1
-      use mod_rad
+      use mod_rad , only : o3prof , heatrt
+      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 !
 ! Local variables

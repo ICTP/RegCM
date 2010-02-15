@@ -49,9 +49,10 @@
 ! *** warning: this subroutine will not work if kx.lt.12;
 !
       use mod_regcm_param
-      use mod_param1
+      use mod_param1 , only : nbatst , dt2 , dtmin
       use mod_param2
       use mod_param3 , only : ptop , sigma , a , dsigma
+      use mod_date , only : jyear , jyear0 , ktau
       use mod_main
       use mod_pmoist
       use mod_rad

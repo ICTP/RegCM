@@ -34,7 +34,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_regcm_param
-      use mod_param1
+      use mod_param1 , only : dt , dtmin , nbatst
       use mod_param2
       use mod_param3 , only : dsigma
       use mod_bats
@@ -43,6 +43,7 @@
       use mod_pmoist
       use mod_slice
       use mod_trachem
+      use mod_date , only : jyear , jyear0 , ktau
       use mod_constants , only : rgti , rgas , ep2 , wlhvocp , svp1 ,   &
                                & svp2 , svp3 , tmelt
       implicit none

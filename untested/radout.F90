@@ -30,11 +30,12 @@
 ! the surface temperature computation
 !
       use mod_regcm_param
-      use mod_param1
-      use mod_param2
+      use mod_param1 , only : dtmin
+      use mod_param2 , only : ifrad , nradisp
       use mod_bats
       use mod_rad
       use mod_outrad
+      use mod_date , only : jyear , jyearr , ntime , ktau , ktaur
       implicit none
 !
 !     input/output arguments

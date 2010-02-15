@@ -27,7 +27,7 @@
 !  innex = 2 ,   bats --> mm42d
 !
       use mod_regcm_param
-      use mod_param1
+      use mod_param1 , only : dtbat , dtmin
       use mod_param2
       use mod_param3 , only : ptop
       use mod_main
@@ -35,7 +35,9 @@
       use mod_slice
       use mod_bats
       use mod_constants , only : tau1 , zlnd , zoce , zsno , rgti ,     &
-                               & rgas , tmelt
+                 & rgas , tmelt
+      use mod_date , only : jyear , jyear0 , jyearr , ntime , ktau ,    &
+                 & ktaur
       implicit none
 !
 ! Dummy arguments

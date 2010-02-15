@@ -37,7 +37,7 @@
       use mod_main
       use mod_rad
       use mod_comtim
-      use mod_date , only : gmt , julday , nnnnnn , nstrt0
+      use mod_date , only : gmt , julday , nnnnnn , nstrt0 , xtime
       use mod_crdcon
       use mod_constants , only : gti
       implicit none

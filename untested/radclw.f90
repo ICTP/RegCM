@@ -46,10 +46,11 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_param1
-      use mod_param2
+      use mod_param1 , only : ifrabe
+      use mod_param2 , only : iemiss
       use mod_crdcon
       use mod_radbuf
+      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 !
 !     Input arguments

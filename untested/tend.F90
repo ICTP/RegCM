@@ -57,7 +57,8 @@
       use mod_bats
       use mod_trachem
       use mod_date , only : dectim , nnnnnn , nstrt0 , lyear , lmonth , &
-                   & lday , lhour , ldatez , idate0 , idate1
+                   & lday , lhour , ldatez , idate0 , idate1 , jyear ,  &
+                   & jyear0 , ntime , ktau , xtime
       use mod_message
       use mod_aerosol , only : aermm
       use mod_constants , only : rgti , rgas , cpd , ep1 , gnu , omu ,  &
