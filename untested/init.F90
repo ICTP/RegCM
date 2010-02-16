@@ -859,7 +859,7 @@
           end do
           tdini = tdini + tttmp*dsigma(k)
         end do
-        tdini = tdini*dx*dx*1000./g
+        tdini = tdini*dx*dx*1000./rgti
 !
 !-----water substance (unit = kg):
 !
@@ -873,7 +873,7 @@
           end do
           tvmass = tvmass + tttmp*dsigma(k)
         end do
-        tvmass = tvmass*dx*dx*1000./g
+        tvmass = tvmass*dx*dx*1000./rgti
 !
         tcmass = 0.
         do k = 1 , kx
@@ -885,7 +885,7 @@
           end do
           tcmass = tcmass + tttmp*dsigma(k)
         end do
-        tcmass = tcmass*dx*dx*1000./g
+        tcmass = tcmass*dx*dx*1000./rgti
         tqini = tvmass + tcmass
 !=======================================================================
         print 99002 , tdini , tqini

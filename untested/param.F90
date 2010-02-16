@@ -1043,13 +1043,13 @@
               k = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              ht1(k,ii,jj) = sp2d1(i,j)*g
+              ht1(k,ii,jj) = sp2d1(i,j)*gti
             end do
           end do
         else
           do j = 1 , jx
             do i = 1 , ix
-              ht1(1,i,j) = sp2d(i,j)*g
+              ht1(1,i,j) = sp2d(i,j)*gti
             end do
           end do
         end if
@@ -1148,7 +1148,7 @@
         do j = 1 , jx
           do i = 1 , ix
             msfx(i,j) = 1./msfx(i,j)
-            ht(i,j) = ht(i,j)*g
+            ht(i,j) = ht(i,j)*gti
           end do
         end do
         print * , ' '

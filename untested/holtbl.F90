@@ -343,7 +343,7 @@
           do i = 2 , ixm1
             if ( k.gt.1 ) akxx1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)      &
                & /dza(i,k-1,j)
-            akxx2(i,k,j) = g/(psb(i,j)*1000.)/dsigma(k)
+            akxx2(i,k,j) = gti/(psb(i,j)*1000.)/dsigma(k)
           end do
         end do
       end do

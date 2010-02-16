@@ -90,7 +90,7 @@
         end do
         tdrym = tdrym + tttmp*dsigma(k)
       end do
-      tdrym = tdrym*dx*dx*1000./g
+      tdrym = tdrym*dx*dx*1000./rgti
 #endif
 !
 !-----water substance (unit = kg):
@@ -124,7 +124,7 @@
         end do
         tvmass = tvmass + tttmp*dsigma(k)
       end do
-      tvmass = tvmass*dx*dx*1000./g
+      tvmass = tvmass*dx*dx*1000./rgti
 #endif
 !
       tcmass = 0.
@@ -157,7 +157,7 @@
         end do
         tcmass = tcmass + tttmp*dsigma(k)
       end do
-      tcmass = tcmass*dx*dx*1000./g
+      tcmass = tcmass*dx*dx*1000./rgti
 #endif
 
       tqmass = tvmass + tcmass

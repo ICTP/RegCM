@@ -50,11 +50,12 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
+      use mod_param3 , only : jxsex,kxout,ptop,a
       use mod_main
       use mod_bdycod
       use mod_pmoist
       use mod_date
-      use mod_constants , only : tmelt
+      use mod_constants , only : tmelt,ep2,svp1,svp2,svp3,gti
       implicit none
 !
 ! Dummy arguments
@@ -235,7 +236,7 @@
                   & xth)
         do j = 1 , jxm1
           do i = 1 , ixm1
-            hscr1(i,j) = ht(i,j)/g
+            hscr1(i,j) = ht(i,j)/gti
           end do
         end do
         c40nam = '     terrain height at cross points     '
