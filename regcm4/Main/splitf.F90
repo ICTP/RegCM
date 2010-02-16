@@ -29,7 +29,11 @@
       use mod_bxq
       use mod_constants , only : gnuhf
 #ifdef MPP1
+#ifndef IBM
       use mpi
+#else
+      include 'mpif.h'
+#endif
 #endif
       implicit none
 !

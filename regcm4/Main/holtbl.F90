@@ -34,14 +34,18 @@
       use mod_slice
       use mod_trachem
       use mod_constants , only : gti , vonkar , cpd , rcpd , ep1
-#ifdef MPP1
-      use mod_mppio
-      use mpi
-#endif
 #ifdef DIAG
       use mod_diagnosis
 #endif
       use mod_blh_tmp
+#ifdef MPP1
+      use mod_mppio
+#ifndef IBM
+      use mpi
+#else 
+      include 'mpif.h'
+#endif 
+#endif
       implicit none
 !
 ! Local variables

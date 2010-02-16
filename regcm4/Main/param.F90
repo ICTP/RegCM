@@ -48,8 +48,12 @@
       use mod_constants , only : mathpi , gti , rgti , rgas , vonkar ,  &
                                & cpd , tauht
 #ifdef MPP1
-      use mpi
       use mod_mppio
+#ifndef IBM
+      use mpi
+#else 
+      include 'mpif.h'
+#endif 
 #endif
       implicit none
 !

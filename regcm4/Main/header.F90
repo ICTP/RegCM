@@ -39,21 +39,19 @@ SUBROUTINE header(myid)
 #ifdef INTEL
      Ihost = gethostname(hostname,30)
      call getlog_(user)
+     CALL FDATE_(data)
 #elif defined IBM
      hostname='ibm platform '
      user= 'Unknown'
+     call fdate_(data)
 #else
      Ihost = gethostname(hostname,30)
      call getlog(user)
+     CALL fdate(data)
 #endif 
 
      Idir=GETCWD(directory)
 
-#ifdef INTEL
-     CALL FDATE_(data)
-#else
-     CALL FDATE(data)
-#endif
 
      WRITE(nrite,*) ": this run start at    : ",data
      len=len_strim(user)

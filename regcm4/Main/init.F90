@@ -58,8 +58,12 @@
       use mod_diagnosis
 #endif
 #ifdef MPP1
-      use mpi
       use mod_mppio
+#ifndef IBM
+      use mpi
+#else
+      include 'mpif.h'
+#endif
 #endif
       implicit none
 !

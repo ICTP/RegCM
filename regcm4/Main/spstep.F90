@@ -23,7 +23,11 @@
       use mod_main
       use mod_bxq
 #ifdef MPP1
+#ifndef IBM
       use mpi
+#else
+      include 'mpif.h'
+#endif
 #endif
       implicit none
 !

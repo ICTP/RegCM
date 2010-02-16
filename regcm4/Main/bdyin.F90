@@ -45,7 +45,11 @@
       use mod_tmpsav
 #ifdef MPP1
       use mod_mppio
+#ifndef IBM
       use mpi
+#else
+      include 'mpif.h'
+#endif
 #endif
       implicit none
 !

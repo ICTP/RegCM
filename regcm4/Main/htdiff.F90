@@ -22,7 +22,12 @@
       use mod_regcm_param
       use mod_pmoist
 #ifdef MPP1
+      use mod_mppio
+#ifndef IBM
       use mpi
+#else 
+      include 'mpif.h'
+#endif 
 #endif
       implicit none
 !

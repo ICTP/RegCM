@@ -36,7 +36,11 @@
       use mod_constants , only : rgti
 #ifdef MPP1
       use mod_mppio
+#ifndef IBM
       use mpi
+#else 
+      include 'mpif.h'
+#endif 
 #endif
       implicit none
 !

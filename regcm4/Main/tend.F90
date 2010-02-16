@@ -65,7 +65,11 @@
                    & gnuhf , omuhf , alpha , beta
 #ifdef MPP1
       use mod_slice
+#ifndef IBM
       use mpi
+#else
+      include 'mpif.h'
+#endif
 #endif
       implicit none
 !
