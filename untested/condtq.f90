@@ -97,7 +97,7 @@
           qvs = dmax1(ep2*satvp/(pres-satvp),1.D-30)
           rhc = dmax1(qvcs(i,k)/qvs,1.D-30)
 
-	  write(*,*) wlhv,qvs,rv,cpd,tmp3(i,k) 
+!	  write(*,*) wlhv,qvs,rv,cpd,tmp3(i,k) 
  
           r1 = 1./(1.+wlhv*wlhv*qvs/(rv*cpd*tmp3(i,k)*tmp3(i,k)))
  

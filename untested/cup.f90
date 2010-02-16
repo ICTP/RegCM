@@ -69,6 +69,7 @@
       integer , dimension(ix) :: jmin , k22 , kb , kbcon , kds , ktop
 !
       tcrit = 50.
+      rv=461.9
  
       tfinv = 1./tmelt
       alsixt = dlog(610.71D0)

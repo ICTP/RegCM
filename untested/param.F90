@@ -765,6 +765,7 @@
       xkhmax = dxsq/(64.*dt)
       akht1 = dxsq/tauht
       akht2 = dxsq/tauht
+      rv = 461.5
 !
       conf = 1.
  

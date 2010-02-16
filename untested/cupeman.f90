@@ -162,6 +162,7 @@
 !      to be evacuated.
 !   7. a maximum value to the cloud base mass flux has been added.
 !
+      use mod_pmoist , only : rv
       use mod_convect
       use mod_constants , only : gti , rgti , cpd , rcpd , cpv , rgas , &
                                & rwat , wlhv , tmelt
@@ -232,6 +233,7 @@
 !
       cl = 2500.0
       rowl = 1000.0
+      rv = 461.5
 !
       cpvmcl = cl - cpv
       eps = rgas/rwat
@@ -1033,6 +1035,8 @@
 ! ---------------------------------------------------------------------------
 !
       subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
+
+      use mod_pmoist , only : rv
       use mod_constants , only : rgas , rwat , cpd , cpv , rcpd ,       &
                                & wlhv , tmelt
       implicit none
@@ -1055,6 +1059,7 @@
 !     ***   assign values of thermodynamic constants     ***
 !
       cl = 2500.0
+      rv = 461.5
 !
       cpvmcl = cl - cpv
       eps = rgas/rwat
