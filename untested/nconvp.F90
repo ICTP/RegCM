@@ -34,7 +34,7 @@
       use mod_param3 , only : ptop , a
       use mod_pmoist
       use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
-                             & svp2 , svp3 , tmelt
+                             & svp2 , svp3 , tmelt , rwat
       implicit none
 !
 ! Dummy arguments
@@ -79,7 +79,7 @@
             end if
             es1 = ep2*e1/(psx-e1)
             dqv = qvavg - es1*conf
-            r1 = 1./(1.+wlhv*wlhv*es1/(rv*cpd*tavg*tavg))
+            r1 = 1./(1.+wlhv*wlhv*es1/(rwat*cpd*tavg*tavg))
             scr(i,k) = r1*dqv
           end do
         end do

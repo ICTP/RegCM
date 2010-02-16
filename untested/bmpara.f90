@@ -63,7 +63,7 @@
                                & trel , tmelt , wlhv , c4les , c3les ,  &
                                & pq0 , aliq , bliq , cliq , dliq ,      &
                                & aice , bice , cice1 , dice , xls0 ,    &
-                               & xls1
+                               & xls1 , rwat
       implicit none
 !
 ! PARAMETER definitions
@@ -240,7 +240,7 @@
           if ( pkl.ge.psfck-pbm ) then
             tthbt(i) = t(i,kb)*ape(i,kb)
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
-            tdpt = 1./(d273-rv/wlhv*dlog(ee/611.))
+            tdpt = 1./(d273-rwat/wlhv*dlog(ee/611.))
             tdpt = dmin1(tdpt,t(i,kb))
             tlcl = tdpt - (.212+1.571E-3*(tdpt-tmelt)-4.36E-4*(t(i,kb)- &
                  & tmelt))*(t(i,kb)-tdpt)
@@ -678,7 +678,7 @@
         thtpk = t(i,ltp1)*ape(i,ltp1)
         pkl = (a(ltp1)*psb(i,j)+ptop)*1000.
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
-        tdpt = 1./(d273-rv/wlhv*dlog(ee/611.))
+        tdpt = 1./(d273-rwat/wlhv*dlog(ee/611.))
         tdpt = dmin1(tdpt,t(i,ltp1))
         tlcl = tdpt - (.212+1.571E-3*(tdpt-tmelt)-4.36E-4*              &
              & (t(i,ltp1)-tmelt))*(t(i,ltp1)-tdpt)

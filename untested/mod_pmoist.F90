@@ -29,8 +29,8 @@
                & dtauc , edtmax , edtmaxo , edtmaxx , edtmin , edtmino ,&
                & edtminx , fcmax , gulland , guloce , htmax , htmin ,   &
                & mincld , pbcmax , qck10 , qck1land , qck1oce , qcth ,  &
-               & qdcrit , rh0land , rh0oce , rhmax , rv , shrmax ,      &
-               & shrmin , skbmax , tc0 
+               & qdcrit , rh0land , rh0oce , rhmax , shrmax , tc0 ,     &
+               & shrmin , skbmax
 #ifdef MPP1
       real(8) , dimension(ix,jxp) :: cbmf2d , cgul , dtauc2d ,          &
                                    & edtmax2d , edtmaxo2d , edtmaxx2d , &
