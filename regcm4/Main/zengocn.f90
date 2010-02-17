@@ -62,7 +62,7 @@
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
       use mod_constants , only : gti , rgti , rgas , rovcp , vonkar ,   &
-                                 cpd , rwwd , tmelt
+                                 cpd , ep2 , tmelt
       implicit none
 !
 ! Dummy arguments
@@ -93,7 +93,7 @@
       ! potential T
       dth = t + 0.0098*ht - ts
       qs = qsat(ts,ps)*0.98
-      qs = rwwd*qs/(ps-0.378*qs)
+      qs = ep2*qs/(ps-0.378*qs)
       ! in kg/kg
       dqh = q - qs
       thv = th*(1.+0.61*q)

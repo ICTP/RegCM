@@ -37,9 +37,6 @@
       real(8) , parameter :: rgas = 287.04D0
       ! Gas constant for water vapor in Joules/kg/K
       real(8) , parameter :: rwat = 461.90D0
-      ! Ratio of mean molecular weight of water (18.016 g/mole)
-      ! to that of dry air (28.966 g/mole)
-      real(8) , parameter :: rwwd = 0.62197D0
 
       real(8) , parameter :: rovcp = rgas*rcpd
       real(8) , parameter :: rovg  = rgas/gti
@@ -113,8 +110,10 @@
 
       ! Length of day in seconds
       real(8) , parameter :: tau1 = 8.64D4
+      ! Days per year
+      real(8) , parameter :: dayspy = 365.24
       ! Degrees per day
-      real(8) , parameter :: dpd = 360.0/365.25
+      real(8) , parameter :: dpd = 360.0/dayspy
       ! Angular velocity of rotation of Earth
       real(8) , parameter :: eomeg = 7.292D-5
       ! Solar Constant in W/m**2
@@ -136,7 +135,9 @@
       ! Constant used in computing virture temperature.
       real(8) , parameter :: ep1 = 0.608D0
       ! Constant used in computing saturation mixing ratio.
-      real(8) , parameter :: ep2 = 0.622D0
+      ! Ratio of mean molecular weight of water (18.016 g/mole)
+      ! to that of dry air (28.966 g/mole)
+      real(8) , parameter :: ep2 = 0.62197D0
       ! Constants used in computing saturation vapor pressure.
       real(8) , parameter :: svp1 = 0.6112D0
       real(8) , parameter :: svp2 = 17.67D0
@@ -187,5 +188,19 @@
       real(8) , parameter :: dice = 0.61D0
       real(8) , parameter :: xls0 = 2.905D6
       real(8) , parameter :: xls1 = 259.532D0
+
+      ! GTS system constants
+      real(8) , parameter :: gtigts = gti*100.0D0
+      real(8) , parameter :: rga = 1.0D0/gtigts
+      real(8) , parameter :: cpdgts = cpd*1.0D4
+      real(8) , parameter :: gocp = gtigts/cpdgts
+      real(8) , parameter :: sslp = stdp*10.0D0
+      real(8) , parameter :: rsslp = 1.0D0/sslp
+      real(8) , parameter :: stebol = sigm*1.0D3
+      real(8) , parameter :: rgsslp = 0.5/(gtigts*sslp)
+
+      ! Radiation constants
+      real(8) , parameter :: dpfco2 = 5.0D-3
+      real(8) , parameter :: dpfo3 = 2.5D-3
 
       end module mod_constants

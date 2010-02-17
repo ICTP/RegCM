@@ -39,7 +39,8 @@
 !
       use mod_regcm_param
       use mod_comtim
-      use mod_crdcon
+      use mod_constants , only : gtigts , mathpi , dayspy , rgsslp
+      use mod_crdcae , only : co2vmr
       implicit none
 !
 ! Dummy arguments
@@ -107,7 +108,7 @@
 !
 !     Compute eccentricity factor (sun-earth distance factor)
 !
-      theta = 2.*pie*calday/dayspy
+      theta = 2.*mathpi*calday/dayspy
       eccf = 1.000110 + .034221*dcos(theta) + .001280*dsin(theta)       &
            & + .000719*dcos(2.*theta) + .000077*dsin(2.*theta)
 !
@@ -126,7 +127,7 @@
 !     Compute path quantities used in the longwave radiation:
 !
       vmmr = amco2/amd
-      cpwpl = vmmr*0.5/(gravit*p0)
+      cpwpl = vmmr*0.5/(gtigts*p0)
       do i = 1 , ixm1
         plh2o(i,1) = rgsslp*h2ommr(i,1)*pintrd(i,1)*pintrd(i,1)
         plco2(i,1) = co2vmr*cpwpl*pintrd(i,1)*pintrd(i,1)

@@ -20,7 +20,6 @@
       subroutine trcplk(tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
 !
       use mod_regcm_param
-      use mod_crdcon
       implicit none
 !
 !----------------------------------------------------------------------

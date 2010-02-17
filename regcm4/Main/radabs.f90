@@ -76,7 +76,7 @@
 !
       use mod_regcm_param
       use mod_crdcae
-      use mod_crdcon
+      use mod_constants , only : rga , sslp , dpfco2 , dpfo3
       use mod_radbuf
       implicit none
 !

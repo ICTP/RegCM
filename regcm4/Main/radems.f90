@@ -60,7 +60,7 @@
 !
       use mod_regcm_param
       use mod_crdcae
-      use mod_crdcon
+      use mod_constants , only : rsslp , rga , dpfco2 , dpfo3
       use mod_radbuf
       implicit none
 !
@@ -261,7 +261,7 @@
 !
 ! Local variables
 !
-      real(8) , dimension(ixm1) :: a , co2plk , corfac , dbvtt , dtp , &
+      real(8) , dimension(ixm1) :: a , co2plk , corfac , dbvtt , dtp ,  &
                                   & dtx , dty , dtz , k21 , k22 , pnew ,&
                                   & rsum , tco2 , th2o , to3 , tpathe , &
                                   & tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , &
@@ -272,7 +272,7 @@
                & g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
                & phi , pi , posqt , psi , r250 , r300 , r80257 ,        &
                & rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
-               & rsslp , sqti , sqwp , t , t1co2 , t1i , t1t4 , t2t5 ,  &
+               & sqti , sqwp , t , t1co2 , t1i , t1t4 , t2t5 ,          &
                & tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
                & tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , ux , vx ,&
                & wco2
@@ -306,7 +306,6 @@
 !
       r250 = 1.D0/250.D0
       r300 = 1.D0/300.D0
-      rsslp = 1.D0/sslp
 !
 !     Planck function for co2
 !

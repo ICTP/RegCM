@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine aermix(pint,rh,j)
+      subroutine aermix(pint , rh , j , istart , iend , nx , nk , ntrac)
  
 !-----------------------------------------------------------------------
 ! Set global mean tropospheric aerosol
@@ -46,23 +46,23 @@
 !
 !-----------------------------------------------------------------------
  
-      use mod_regcm_param
-      use mod_param2
-      use mod_crdcon
+      use mod_param2 , only : ichem
       use mod_slice
       use mod_main
       use mod_mainchem
       use mod_aerosol , only : aermmb , aermmr
+      use mod_constants , only : gtigts
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: j
+      integer :: j , istart , iend , nx , nk , ntrac
 !     Radiation level interface pressures (dynes/cm2)
-      real(8) , dimension(ixm1,kxp1) :: pint
+      real(8) , dimension(nx,nk+1) :: pint
 !     Radiation level relative humidity (fraction)
-      real(8) , dimension(ixm1,kx) :: rh
-      intent (in) j , pint
+      real(8) , dimension(nx,nk) :: rh
+!
+      intent (in) j , pint , istart , iend , nk , ntrac
       intent (out) rh
 !
 !---------------------------Local variables-----------------------------
@@ -94,8 +94,8 @@
 !
 !     Set relative humidity and factor; then aerosol amount:
 !
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , nk
+        do i = istart , iend
  
 !added    July 13, 2000: needed for aerosols in radiation
           rh(i,k) = dmin1(rhb3d(i,k,j),0.99D0)
@@ -109,8 +109,8 @@
 !         in the column, converting units where appropriate
 !         for the moment no more used
 !
-          if ( k.ge.kxp1 - mxaerl ) then
-            aermmb(i,k) = gravit*tauvis/(1.0D4*kaervs*rhfac*(1.-omgvis* &
+          if ( k.ge.nk + 1 - mxaerl ) then
+            aermmb(i,k) = gtigts*tauvis/(1.0D4*kaervs*rhfac*(1.-omgvis* &
                         & gvis*gvis)                                    &
                         & *(pint(i,kxp1)-pint(i,kx + 1 - mxaerl)))
           else
@@ -119,20 +119,20 @@
  
 !         if(ichem .eq. 1 .and. idirect .eq. 1) then
           if ( ichem.eq.1 ) then
-            do itr = 1 , ntr
+            do itr = 1 , ntrac
 !             aermmr(i,k,itr)= dmax1( chia(i,k,j,itr)/psa(i,j)
 !             $                               ,aermmb(i,k) )
               aermmr(i,k,itr) = chia(i,k,j,itr)/psa(i,j)
             end do
           else if ( ehso4 ) then
-            do itr = 1 , ntr
+            do itr = 1 , ntrac
 !             aermmr(i,k,itr) = aermmb(i,k) + aermm(i,k,j)
 !Dec.11       aermmr(i,k,itr) = aermm(i,k,j)
               aermmr(i,k,itr) = 0.0D0
 !Dec.11_
             end do
           else
-            do itr = 1 , ntr
+            do itr = 1 , ntrac
 !             aermmr(i,k,itr)= 0.0D0
               aermmr(i,k,itr) = aermmb(i,k)
             end do

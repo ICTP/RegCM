@@ -257,13 +257,12 @@
       iradlw = 1
       iradae = 1
 !
-!     Given these four constants in MKS, radini() will define their CGS
-!     equivalents, as well as setting many radiation parameters stored
-!     in common blocks. radini() must be called before getdat(), because
+!     radini sets many radiation parameters
+!     radini() must be called before getdat(), because
 !     the co2 mixing ratio set (by the user) in getdat() should
 !     overwrite the default CCM3 co2 mixing ratio set by radini().
 !
-      call radini(gti,cpd,ep2,sigm)
+      call radini
 !
 !     NB: orography types are specified in the following
 !

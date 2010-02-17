@@ -26,6 +26,7 @@
                & c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,  &
                & c28 , c29 , c30 , c31 , c8 , c9 , cfa1 , fc1 , fwc1 ,  &
                & fwc2 , fwcoef
+      real(8) :: co2vmr
       real(8) , dimension(3,4) :: coefa , coefc , coefe
       real(8) , dimension(4,4) :: coefb , coefd
       real(8) , dimension(6,2) :: coeff , coefi

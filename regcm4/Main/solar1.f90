@@ -29,7 +29,7 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_message
       use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0
-      use mod_constants , only : mathpi , degrad
+      use mod_constants , only : mathpi , degrad , dayspy
       implicit none
 !
 ! Dummy arguments
@@ -39,7 +39,7 @@
 !
 ! Local variables
 !
-      real(8) :: calday , dayspy , decdeg , delta , theta
+      real(8) :: calday , decdeg , delta , theta
 !
 !----------------------------------------------------------------------
 !
@@ -60,8 +60,6 @@
 !KN   added below
 !KN   to take the earth's orbital eccentricity into consideration
 !
-!     dayspy = 365.
-      dayspy = 365.24
       calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
       theta = 2.*mathpi*calday/dayspy
 !

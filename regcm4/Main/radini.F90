@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine radini(gravx,cpairx,epsilox,stebolx)
+      subroutine radini
 
 !-----------------------------------------------------------------------
 !
@@ -35,26 +35,12 @@
       use mod_regcm_param
       use mod_comozp
       use mod_crdcae
-      use mod_crdcon
       use mod_tracer0
       use mod_tracer
       use mod_date
       use mod_message
+      use mod_constants , only : gti , gtigts , cpd , stebol , sslp
       implicit none
-!
-!------------------------------Arguments--------------------------------
-!
-!     Input arguments
-!
-! gravx   - Acceleration of gravity (MKS)
-! cpairx  - Specific heat of dry air (MKS)
-! epsilox - Ratio of mol. wght of H2O to dry air
-! stebolx - Stefan-Boltzmann's constant (MKS)
-!
-! Dummy arguments
-!
-      real(8) :: cpairx , epsilox , gravx , stebolx
-      intent (in) cpairx , epsilox , gravx , stebolx
 !
 !---------------------------Local variables-----------------------------
 !
@@ -62,23 +48,15 @@
 ! v0     - Volume of a gas at stp (m**3/kmol)
 ! p0     - Standard pressure (pascals)
 ! amd    - Effective molecular weight of dry air (kg/kmol)
-! goz    - Acceleration of gravity (m/s**2)
 !
 ! Local variables
 !
-      real(8) :: amd , goz , p0 , v0
+      real(8) :: amd , p0 , v0
       integer :: iband
 !
 !     Set general radiation consts; convert to cgs units where
 !     appropriate:
 !
-      gravit = 100.*gravx
-      rga = 1./gravit
-      cpair = 1.E4*cpairx
-      epsilo = epsilox
-      sslp = 1.013250E6
-      stebol = 1.E3*stebolx
-      rgsslp = 0.5/(gravit*sslp)
 !IPCC
 !1991-1995
 !     co2vmr  =  3.55e-4
@@ -113,13 +91,6 @@
 !     print*,'  n2o0  = ',n2o0
 !     print*,'  cfc110= ',cfc110
 !     print*,'  cfc120= ',cfc120
-!IPCC_
-!IPCC_
- 
-      dpfo3 = 2.5E-3
-      dpfco2 = 5.0E-3
-      dayspy = 365.
-      pie = 4.*datan(1.D0)
 !
 !     Coefficients for h2o emissivity and absorptivity.
 !
@@ -175,12 +146,11 @@
       v0 = 22.4136          ! Volume of a gas at stp (m**3/kmol)
       p0 = 0.1*sslp         ! Standard pressure (pascals)
       amd = 28.9644         ! Molecular weight of dry air (kg/kmol)
-      goz = gravx           ! Acceleration of gravity (m/s**2)
 !
 !     Constants for ozone path integrals (multiplication by 100 for unit
 !     conversion to cgs from mks):
 !
-      cplos = v0/(amd*goz)*100.0
-      cplol = v0/(amd*goz*p0)*0.5*100.0
+      cplos = v0/(amd*gti)*100.0
+      cplol = v0/(amd*gti*p0)*0.5*100.0
 !
       end subroutine radini

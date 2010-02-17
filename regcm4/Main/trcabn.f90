@@ -23,7 +23,7 @@
                       & pnew,abstrc,uinpl)
 !
       use mod_regcm_param
-      use mod_crdcon
+      use mod_constants , only : sslp
       implicit none
 !
 !----------------------------------------------------------------------

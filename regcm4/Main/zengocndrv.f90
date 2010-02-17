@@ -17,17 +17,17 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine zengocndrv(j)
+      subroutine zengocndrv(j , k , ng , istart , iend)
 !
-      use mod_regcm_param
+      use mod_interfaces
       use mod_param1 , only : dtmin
       use mod_param2 , only : kbats
       use mod_param3 , only : ptop
-      use mod_main
-      use mod_pbldim
-      use mod_pmoist
-      use mod_slice
-      use mod_bats
+      use mod_main , only : tgb , psb , zpbl
+      use mod_pbldim , only : rhox2d , za
+      use mod_slice , only : tb3d , ubx3d , vbx3d , qvb3d
+      use mod_bats , only : tgb1d , ocld2d , tgb2d , tg1d , sent1d ,    &
+                   & evpr1d , drag1d , u10m1d , v10m1d , t2m_1d , q2m_1d
       use mod_date , only : jyear , jyearr , ntime , ktau , ktaur
       use mod_constants , only : wlhv , tmelt
 
@@ -36,7 +36,7 @@
 !
 ! Dummy arguments
 !
-      integer , intent (in) :: j
+      integer , intent (in) :: j , ng , istart , iend , k
 !
 ! Local variables
 !
@@ -45,14 +45,14 @@
                & zo
       integer :: i , n
 !
-      do i = 2 , ixm1
-        do n = 1 , nnsg
+      do i = istart , iend
+        do n = 1 , ng
           if ( ocld2d(n,i,j).lt.0.5 ) then
-            uv995 = sqrt(ubx3d(i,kx,j)**2+vbx3d(i,kx,j)**2)
+            uv995 = sqrt(ubx3d(i,k,j)**2+vbx3d(i,k,j)**2)
             tsurf = tgb(i,j) - tmelt
-            t995 = tb3d(i,kx,j) - tmelt
-            q995 = qvb3d(i,kx,j)/(1.+qvb3d(i,kx,j))
-            z995 = za(i,kx,j)
+            t995 = tb3d(i,k,j) - tmelt
+            q995 = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
+            z995 = za(i,k,j)
             zi = zpbl(i,j)
             psurf = (psb(i,j)+ptop)*10.
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,        &
@@ -64,8 +64,8 @@
 !           Back out Drag Coefficient
             drag1d(n,i) = ustar**2*rhox2d(i,j)/uv995
             facttq = dlog(z995/2.)/dlog(z995/zo)
-            u10m1d(n,i) = ubx3d(i,kx,j)*uv10/uv995
-            v10m1d(n,i) = vbx3d(i,kx,j)*uv10/uv995
+            u10m1d(n,i) = ubx3d(i,k,j)*uv10/uv995
+            v10m1d(n,i) = vbx3d(i,k,j)*uv10/uv995
             t2m_1d(n,i) = t995 + tmelt - dth*facttq
 !
             if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or.             &

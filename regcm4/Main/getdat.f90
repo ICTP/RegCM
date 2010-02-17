@@ -38,8 +38,7 @@
       use mod_rad
       use mod_comtim
       use mod_date , only : gmt , julday , nnnnnn , nstrt0 , xtime
-      use mod_crdcon
-      use mod_constants , only : gti
+      use mod_constants , only : gti , degrad
       implicit none
 !
 ! Dummy arguments
@@ -257,7 +256,7 @@
 !KN     added above
 !
         loctim(i) = (calday-aint(calday))*24.
-        clat(i) = rlat(i)*(pie/180.)
+        clat(i) = rlat(i)*degrad
         coslat(i) = dcos(clat(i))
 !
       end do

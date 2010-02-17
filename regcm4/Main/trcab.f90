@@ -23,7 +23,7 @@
                      & abplnk1,tco2,th2o,to3,abstrc)
 !
       use mod_regcm_param
-      use mod_crdcon
+      use mod_constants , only : sslp
       implicit none
 !
 !----------------------------------------------------------------------

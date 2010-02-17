@@ -30,9 +30,8 @@
                        & gsbc_hb , dextmix , dssamix , dgmix , ksbase , &
                        & wsbase , gsbase , aermmr
       use mod_trachem
-      use mod_crdcon
       use mod_message
-      use mod_constants , only : rhoso4 , rhobc, rhooc, rhodust
+      use mod_constants , only : rhoso4 , rhobc, rhooc, rhodust , gtigts
       implicit none
 !
 ! Dummy arguments
@@ -131,7 +130,7 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             do k = 1 , kx
               do i = 1 , ixm1
-                path = (pint(i,k+1)-pint(i,k))/gravit
+                path = (pint(i,k+1)-pint(i,k))/gtigts
                 ibin = 0
                 do itr = 1 , ntr
                   uaer(i,k,itr) = 0.
@@ -260,7 +259,7 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             do i = 1 , ixm1
               do k = 1 , kx
-                path = (pint(i,k+1)-pint(i,k))/gravit
+                path = (pint(i,k+1)-pint(i,k))/gtigts
                 if ( rh(i,k).lt.0.0 .or. rh(i,k).gt.1.0 ) print * , i , &
                    & k , rh(i,k) , '  RH WARNING !!!!!'
  

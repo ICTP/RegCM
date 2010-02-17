@@ -59,6 +59,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
+      use mod_interfaces
       use mod_comtim
       use mod_aerosol , only : nspi
       implicit none
@@ -172,23 +173,18 @@
 !
 !       Specify aerosol mass mixing ratio
 !
-        call aermix(pnm,rh,jslc)
+        call aermix(pnm,rh,jslc,1,ixm1,ixm1,kx,ntr)
  
         call aeroppt(rh,pint,tauxar_mix,tauasc_mix,gtota_mix,ftota_mix, &
                    & tauxar_mix_cs,tauasc_mix_cs,gtota_mix_cs,          &
                    & ftota_mix_cs)
- 
 !
- 
- 
- 
         call radcsw(pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,albs,   &
                   & albsd,albl,albld,solin,qrs,fsns,fsnt,fsds,fsnsc,    &
                   & fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq, &
                   & tauxar_mix,tauasc_mix,gtota_mix,ftota_mix,          &
                   & tauxar_mix_cs,tauasc_mix_cs,gtota_mix_cs,           &
                   & ftota_mix_cs,aeradfo,aeradfos)
- 
  
         call aerout(jslc,tauxar_mix,tauasc_mix,gtota_mix,aeradfo,       &
                   & aeradfos)

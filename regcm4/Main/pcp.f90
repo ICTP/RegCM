@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine pcp(j)
+      subroutine pcp(j , istart , iend , nk)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -33,16 +33,17 @@
 !     See Pal et al. 2000 JGR-Atmos for more information.             c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+
       use mod_param1 , only : dt , dtmin , nbatst
-      use mod_param2
+      use mod_param2 , only : ichem
       use mod_param3 , only : dsigma
-      use mod_bats
-      use mod_main
-      use mod_cvaria
-      use mod_pmoist
-      use mod_slice
-      use mod_trachem
+      use mod_bats , only : pptnc
+      use mod_main , only : psb , rainnc
+      use mod_cvaria , only : qcten , qvten , tten
+      use mod_pmoist , only : cgul , fcc , rhmax , qcth , qck1 , cevap ,&
+                            & caccr
+      use mod_slice , only : qcb3d , pb3d , tb3d , qvb3d
+      use mod_trachem , only : remrat , rembc
       use mod_date , only : jyear , jyear0 , ktau
       use mod_constants , only : rgti , rgas , ep2 , wlhvocp , svp1 ,   &
                                & svp2 , svp3 , tmelt
@@ -50,8 +51,7 @@
 !
 ! Dummy arguments
 !
-      integer :: j
-      intent (in) j
+      integer , intent(in) :: j , istart , iend , nk
 !
 ! Local variables
 !
@@ -60,7 +60,7 @@
                & qs , rdevap , rh , rhcs , rho , tcel , thog , tk ,     &
                & uch , uconv
       integer :: i , k , kk
-      real(8) , dimension(ix) :: pptsum
+      real(8) , dimension(istart:iend) :: pptsum
 !
  
 ! Precip sum beginning from top
@@ -78,19 +78,14 @@
 !     1a. Perform computations for the top layer (layer 1)
       thog = 1000.*rgti       ! precipation accumulated from above
       i1000 = 1./1000.
-!chem2
-      do k = 1 , kx
-        do i = 1 , ix
-          remrat(i,k) = 0.0
-        end do
-      end do
-!chem2_
-      do i = 2 , ixm2
+
+      remrat(istart:iend,nk) = 0.0
+
+      do i = istart , iend
  
         afc = fcc(i,1,j)                                      ![frac][avg]
  
-        if ( afc.gt.0.01 ) then
-                             ! if there is a cloud
+        if ( afc.gt.0.01 ) then ! if there is a cloud
 !         1aa. Compute temperature and humidities with the adjustments
 !         due to convection.
 !         q = qvb3d(i,1,j) + qcuten(i,1)*dt                 
@@ -152,8 +147,8 @@
  
 !     ****  LAYER TWO TO KL ****
 !     1b. Perform computations for the 2nd layer to the surface
-      do k = 2 , kx
-        do i = 2 , ixm2
+      do k = 2 , nk
+        do i = istart , iend
  
 !         1ba. Compute temperature and humidities with the adjustments
 !         due to convection.
@@ -262,9 +257,9 @@
 !--------------------------------------------------------------------
       if ( ichem.eq.1 ) then
         uch = 1000.*rgti*3600.
-        do i = 2 , ixm2
+        do i = istart , iend
           rembc(i,1) = 0.
-          do k = 2 , kx
+          do k = 2 , nk
             rembc(i,k) = 0.
             if ( remrat(i,k).gt.0. ) then
               do kk = 1 , k - 1
@@ -287,7 +282,7 @@
       uconv = 60.*dtmin
       aprdiv = 1./dble(nbatst)
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
-      do i = 2 , ixm2
+      do i = istart , iend
         rainnc(i,j) = rainnc(i,j) + pptsum(i)*uconv
         pptnc(i,j) = pptnc(i,j) + pptsum(i)*aprdiv
       end do

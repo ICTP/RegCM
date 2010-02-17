@@ -32,7 +32,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
-      use mod_crdcon
+      use mod_constants , only : ep2 , rga , sslp , rgsslp
       implicit none
 !
 !     Input arguments
@@ -87,7 +87,7 @@
       integer :: i , k
 !
       r296 = 1./296.D0
-      repsil = 1./epsilo
+      repsil = 1./ep2
 !
 !     Set the top and bottom intermediate level temperatures,
 !     top level planck temperature and top layer temp**4.

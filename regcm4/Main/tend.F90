@@ -43,6 +43,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
+      use mod_interfaces
       use mod_regcm_param
       use mod_param1
       use mod_param2
@@ -1238,7 +1239,7 @@
 !           call hadvQC(qcten(1,1,j),dx,j,2)
 !fix        call vadv(qcten(1,1,j),qca(1,1,j),j,3)
             call vadv(qcten(1,1,j),qca(1,1,j),j,5)
-            call pcp(j)
+            call pcp(j , 2 , ixm2 , kx)
             call cldfrac(j)
  
 !           need also to set diffq to 0 here before calling diffut
@@ -1299,7 +1300,7 @@
           dtbat = dt/2.*nbatst
           if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
           call vecbats(j)
-          if ( iocnflx.eq.2 ) call zengocndrv(j)
+          if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , ixm1 , kx)
                                       ! Zeng ocean flux model
 !         ****** accumulate quantities for energy and moisture budgets
           call interf(2,j)

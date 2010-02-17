@@ -48,9 +48,9 @@
       use mod_regcm_param
       use mod_param1 , only : ifrabe
       use mod_param2 , only : iemiss
-      use mod_crdcon
       use mod_radbuf
       use mod_date , only : jyear , jyear0 , ktau
+      use mod_constants , only : gocp , stebol
       implicit none
 !
 !     Input arguments
@@ -143,7 +143,6 @@
 ! tlayr   - Level temperature
 ! tlayr4  - Level temperature**4
 ! rtclrsf - 1./tclrsf(i,k)
-! gocp    - gravit/cpair
 ! klov    - Cloud lowest level index
 ! khiv    - Cloud highest level index
 ! khivm   - khiv(i) - 1
@@ -181,7 +180,7 @@
            & uptype , w
       real(8) , dimension(ixm1,kx) :: co2eml , fclb4 , fclt4
       logical , dimension(ixm1) :: done , start
-      real(8) :: gocp , tmp1
+      real(8) :: tmp1
       integer :: i , ii , k , k1 , k2 , k3 , khighest , km , km1 , km2 ,&
                & km3 , km4 , ixm1c
       integer , dimension(ixm1) :: indx , khiv , khivm , klov
@@ -537,7 +536,6 @@
 !
 !     Computation of longwave heating (k per sec)
 !
-      gocp = gravit/cpair
       do k = 1 , kx
         do i = 1 , ixm1
           qrl(i,k) = (ful(i,k)-fdl(i,k)-ful(i,k+1)+fdl(i,k+1))          &

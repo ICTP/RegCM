@@ -22,7 +22,7 @@
                       & uco222,uco223,bn2o0,bn2o1,bch4,uptype)
 !
       use mod_regcm_param
-      use mod_crdcon
+      use mod_constants , only : rga , sslp
       use mod_tracer
       implicit none
 !

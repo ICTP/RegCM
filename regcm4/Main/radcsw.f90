@@ -81,7 +81,7 @@
       use mod_bats
       use mod_tracer
       use mod_aerosol , only : nspi
-      use mod_crdcon
+      use mod_constants , only : gocp , gtigts , sslp , rga
       implicit none
 !
 ! PARAMETER definitions
@@ -264,7 +264,6 @@
 ! tmp3i    - Temporary constant array
 ! rdenom   - Multiple scattering term
 ! psf      - Frac of solar flux in spect interval
-! gocp     - Gravity/cp
 !
 !     Layer absorber amounts; note that 0 refers to the extra layer
 !     added above the top model layer
@@ -313,7 +312,7 @@
                               & fbari , fbarl
       real(8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli ,  &
                & dbarii , dbarli , delta , ebarii , ebarli , fbarii ,   &
-               & fbarli , gocp , h2ostr , o2mmr , path , pdel , psf ,   &
+               & fbarli , h2ostr , o2mmr , path , pdel , psf ,          &
                & pthco2 , pthh2o , ptho2 , ptho3 , ptop , rdenom ,      &
                & sqrco2 , tmp1 , tmp1i , tmp1l , tmp2 , tmp2i , tmp2l , &
                & tmp3i , tmp3l , trayoslp , wavmid , wgtint
@@ -442,7 +441,7 @@
       do k = 1 , kx
         do i = 1 , ixm1
           pdel = pint(i,k+1) - pint(i,k)
-          path = pdel/gravit
+          path = pdel/gtigts
         end do
       end do
 !
@@ -486,16 +485,16 @@
 !     Compute optical paths:
 !     CO2, use old scheme(as constant)
 !
-      tmp1 = 0.5/(gravit*sslp)
+      tmp1 = 0.5/(gtigts*sslp)
 !     co2mmr = co2vmr*(mmwco2/mmwair)
  
       sqrco2 = sqrt(co2mmr)
       do n = 1 , nloop
         do i = is(n) , ie(n)
           ptop = pflx(i,1)
-          ptho2 = o2mmr*ptop/gravit
-          ptho3 = o3mmr(i,1)*ptop/gravit
-          pthco2 = sqrco2*(ptop/gravit)
+          ptho2 = o2mmr*ptop/gtigts
+          ptho3 = o3mmr(i,1)*ptop/gtigts
+          pthco2 = sqrco2*(ptop/gtigts)
           h2ostr = sqrt(1./h2ommr(i,1))
           zenfac(i) = sqrt(coszrs(i))
           pthh2o = ptop**2*tmp1 + (ptop*rga)*(h2ostr*zenfac(i)*delta)
@@ -506,12 +505,12 @@
         end do
       end do
 !
-      tmp2 = delta/gravit
+      tmp2 = delta/gtigts
       do k = 1 , kx
         do n = 1 , nloop
           do i = is(n) , ie(n)
             pdel = pflx(i,k+1) - pflx(i,k)
-            path = pdel/gravit
+            path = pdel/gtigts
             ptho2 = o2mmr*path
             ptho3 = o3mmr(i,k)*path
             pthco2 = sqrco2*path
@@ -1056,7 +1055,6 @@
 !
 !     Compute solar heating rate (k/s)
 !
-      gocp = gravit/cpair
       do k = 1 , kx
         do n = 1 , nloop
           do i = is(n) , ie(n)
