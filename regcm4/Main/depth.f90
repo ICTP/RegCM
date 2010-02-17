@@ -34,30 +34,29 @@
 !
  
       use mod_regcm_param
-      use mod_bats , only : npts , rhosw , densi , scrat , wt , rough , &
-                    & veg1d , sigf , scvk , ldoc1d , sag1d , scv1d ,    &
-                    & lveg
+      use mod_bats , only : lveg , rhosw , densi , scrat , wt , rough , &
+                    & veg1d , sigf , scvk , ldoc1d , sag1d , scv1d
       implicit none
 !
 ! Local variables
 !
       real(8) :: age
-      integer :: n , np
+      integer :: n , i
 ! 
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            age = (1.-1./(1.+sag1d(n,np)))
-            rhosw(n,np) = .10*(1.+3.*age)
-            densi(n,np) = .01/(1.+3.*age)
-            scrat(n,np) = scv1d(n,np)*densi(n,np)
-            wt(n,np) = 1.0
-            if ( lveg(n,np).gt.0 ) then
-              wt(n,np) = 0.1*scrat(n,np)/rough(lveg(n,np))
-              wt(n,np) = wt(n,np)/(1.+wt(n,np))
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            age = (1.-1./(1.+sag1d(n,i)))
+            rhosw(n,i) = .10*(1.+3.*age)
+            densi(n,i) = .01/(1.+3.*age)
+            scrat(n,i) = scv1d(n,i)*densi(n,i)
+            wt(n,i) = 1.0
+            if ( lveg(n,i).gt.0 ) then
+              wt(n,i) = 0.1*scrat(n,i)/rough(lveg(n,i))
+              wt(n,i) = wt(n,i)/(1.+wt(n,i))
             end if
-            sigf(n,np) = (1.-wt(n,np))*veg1d(n,np)
-            scvk(n,np) = scrat(n,np)/(0.1+scrat(n,np))
+            sigf(n,i) = (1.-wt(n,i))*veg1d(n,i)
+            scvk(n,i) = scrat(n,i)/(0.1+scrat(n,i))
           end if
         end do
       end do

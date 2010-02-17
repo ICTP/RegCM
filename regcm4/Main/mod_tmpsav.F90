@@ -48,4 +48,6 @@
       real(8) , dimension(kx,8,jx) :: sav_6
 #endif
 
+!---------- DATA init section--------------------------------------------
+
       end module mod_tmpsav

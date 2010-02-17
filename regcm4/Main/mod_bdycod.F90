@@ -23,8 +23,6 @@
 
       implicit none
 !
-! COMMON /BCVARS/
-!
 #ifdef MPP1
       real(8) , dimension(ix,0:jxp+1) :: ps0 , ps1
       real(8) , dimension(ix,kx,jxp) :: qb0 , qb1 , so0 , so1 , tb0 ,   &
@@ -35,8 +33,6 @@
       real(8) , dimension(ix,kx,jx) :: qb0 , qb1 , so0 , so1 , tb0 ,    &
                                      & tb1 , ub0 , ub1 , vb0 , vb1
 #endif
-!
-! COMMON /BDYCOD/
 !
 #ifdef MPP1
       real(8) , dimension(ix,0:jxp+1) :: peb , pebt , pwb , pwbt

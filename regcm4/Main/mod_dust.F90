@@ -32,8 +32,6 @@
       integer , parameter :: jfs = 0
       integer , parameter :: ust = 1
 !
-! COMMON /DUST/
-!
 #ifdef MPP1
       real(8) , dimension(ix,nats,jxp) :: clay2row2 , sand2row2 ,       &
            & silt2row2

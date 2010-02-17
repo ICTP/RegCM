@@ -27,14 +27,14 @@
 !     latent fluxes differ from sensible due to stomatal resistance
 !
       use mod_regcm_param
-      use mod_bats , only : npts , gwet1d , wtlq , wtlh , rpp , sigf ,  &
+      use mod_bats , only : wtlq , gwet1d , wtlq , wtlh , rpp , sigf ,  &
                    & ldoc1d , wtgaq , wtaq0 , wtglq , wtlq0 , wtgq0 ,   &
-                   & wtsqi , wtgq , wtlq , rgr , wtg , wta
+                   & wtsqi , wtgq , rgr , wtg , wta
       implicit none
 !
 ! Local variables
 !
-      integer :: n , np
+      integer :: n , i
 !
 !     symbols used for weights are:   wt : weight
 !     a : air
@@ -46,19 +46,19 @@
 !     0 : normalized (sums to one)
 !     g : ground
 !
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              rgr(n,np) = gwet1d(n,np)
-              wtlq(n,np) = wtlh(n,np)*rpp(n,np)
-              wtgq(n,np) = wtg(n,np)*rgr(n,np)
-              wtsqi(n,np) = 1./(wta(n,np)+wtlq(n,np)+wtgq(n,np))
-              wtgq0(n,np) = wtgq(n,np)*wtsqi(n,np)
-              wtlq0(n,np) = wtlq(n,np)*wtsqi(n,np)
-              wtglq(n,np) = wtgq0(n,np) + wtlq0(n,np)
-              wtaq0(n,np) = 1. - wtglq(n,np)
-              wtgaq(n,np) = wtaq0(n,np) + wtgq0(n,np)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              rgr(n,i) = gwet1d(n,i)
+              wtlq(n,i) = wtlh(n,i)*rpp(n,i)
+              wtgq(n,i) = wtg(n,i)*rgr(n,i)
+              wtsqi(n,i) = 1./(wta(n,i)+wtlq(n,i)+wtgq(n,i))
+              wtgq0(n,i) = wtgq(n,i)*wtsqi(n,i)
+              wtlq0(n,i) = wtlq(n,i)*wtsqi(n,i)
+              wtglq(n,i) = wtgq0(n,i) + wtlq0(n,i)
+              wtaq0(n,i) = 1. - wtglq(n,i)
+              wtgaq(n,i) = wtaq0(n,i) + wtgq0(n,i)
             end if
           end if
         end do

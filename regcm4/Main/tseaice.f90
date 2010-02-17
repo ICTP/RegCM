@@ -45,93 +45,90 @@
       real(8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
                & rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss ,  &
                & wtt
-      integer :: n , np
+      integer :: n , i
 !
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
  
-          if ( lveg(n,np).eq.14 ) exit   ! lake model handles this case
+          if ( lveg(n,i).eq.14 ) exit   ! lake model handles this case
  
-          if ( ldoc1d(n,np).gt.1.5 ) then
+          if ( ldoc1d(n,i).gt.1.5 ) then
  
 ! ******                rhosw = density of snow relative to water
-            rhosw3 = rhosw(n,np)**3
-            imelt(n,np) = 0
+            rhosw3 = rhosw(n,i)**3
+            imelt(n,i) = 0
 ! ******                cice = specific heat of sea-ice per unit volume
-            rsd1 = cice*sice1d(n,np)/1000.0
-            if ( scv1d(n,np).gt.0.0 ) then
-              rss = csnw*scv1d(n,np)/1000.0
-              ratsi = scv1d(n,np)/(1.4*rhosw3*sice1d(n,np))
+            rsd1 = cice*sice1d(n,i)/1000.0
+            if ( scv1d(n,i).gt.0.0 ) then
+              rss = csnw*scv1d(n,i)/1000.0
+              ratsi = scv1d(n,i)/(1.4*rhosw3*sice1d(n,i))
               wtt = 1./(1.+ratsi)
-              wss = (scv1d(n,np)+2.8*rhosw3*sice1d(n,np))               &
-                  & /(scv1d(n,np)+1.4*rhosw3*sice1d(n,np))
+              wss = (scv1d(n,i)+2.8*rhosw3*sice1d(n,i))                 &
+                  & /(scv1d(n,i)+1.4*rhosw3*sice1d(n,i))
 ! ******                include snow heat capacity
               rsd1 = 0.5*(wss*rss+wtt*rsd1)
             end if
-            tgb1d(n,np) = -2.0 + tmelt
+            tgb1d(n,i) = -2.0 + tmelt
 ! ******                subsurface heat flux through ice
-            fss = 7.E-4*(tgb1d(n,np)-tg1d(n,np))                        &
-                & *ch2o*rhosw3/(scv1d(n,np)+1.4*rhosw3*sice1d(n,np))
-            sice1d(n,np) = sice1d(n,np) + fss*dtbat/wlhf*1.087
+            fss = 7.E-4*(tgb1d(n,i)-tg1d(n,i))                          &
+                & *ch2o*rhosw3/(scv1d(n,i)+1.4*rhosw3*sice1d(n,i))
+            sice1d(n,i) = sice1d(n,i) + fss*dtbat/wlhf*1.087
  
 ! ******                set sea ice parameter for melting and return
-            if ( sice1d(n,np).le.0.0 ) then
-              imelt(n,np) = 1
+            if ( sice1d(n,i).le.0.0 ) then
+              imelt(n,i) = 1
               exit
             end if
 ! ******                assume lead ocean temp is -1.8c
 ! ******                flux of heat and moisture through leads
 ! ******                sat. mixing ratio at t=-1.8c is 3.3e-3
-            qice(n,np) = 3.3E-3*stdp/p1d(n,np)
+            qice(n,i) = 3.3E-3*stdp/p1d(n,i)
 !
 !  determine effective surface fluxes over ice, allowing for leads;
-!  aarea(n,np) is set in subroutine drag.
+!  aarea(n,i) is set in subroutine drag.
 !
-            tlef1d(n,np) = ts1d(n,np)
-            qgrnd = ((1.-aarea(n,np))*cdr(n,np)*qg1d(n,np)+aarea(n,np)  &
-                  & *clead(n,np)*qice(n,np))/cdrx(n,np)
-            tgrnd = ((1.-aarea(n,np))*cdr(n,np)*tg1d(n,np)+aarea(n,np)  &
-                  & *clead(n,np)*(tmelt-1.8))/cdrx(n,np)
-            fact = -rhs1d(n,np)*cdrx(n,np)*vspda(n,np)
-            delq1d(n,np) = (qs1d(n,np)-qgrnd)*gwet1d(n,np)
-            delt1d(n,np) = ts1d(n,np) - tgrnd
+            tlef1d(n,i) = ts1d(n,i)
+            qgrnd = ((1.-aarea(n,i))*cdr(n,i)*qg1d(n,i)+aarea(n,i)      &
+                  & *clead(n,i)*qice(n,i))/cdrx(n,i)
+            tgrnd = ((1.-aarea(n,i))*cdr(n,i)*tg1d(n,i)+aarea(n,i)      &
+                  & *clead(n,i)*(tmelt-1.8))/cdrx(n,i)
+            fact = -rhs1d(n,i)*cdrx(n,i)*vspda(n,i)
+            delq1d(n,i) = (qs1d(n,i)-qgrnd)*gwet1d(n,i)
+            delt1d(n,i) = ts1d(n,i) - tgrnd
 ! ******           output fluxes, averaged over leads and ice
-            evpr1d(n,np) = fact*delq1d(n,np)
-            sent1d(n,np) = fact*cpd*delt1d(n,np)
-            hrl = rhs1d(n,np)*vspda(n,np)*clead(n,np)                   &
-                & *(qice(n,np)-qs1d(n,np))
-            hsl = rhs1d(n,np)*vspda(n,np)*clead(n,np)                   &
-                & *(tmelt-1.8-ts1d(n,np))*cpd
+            evpr1d(n,i) = fact*delq1d(n,i)
+            sent1d(n,i) = fact*cpd*delt1d(n,i)
+            hrl = rhs1d(n,i)*vspda(n,i)*clead(n,i)*(qice(n,i)-qs1d(n,i))
+            hsl = rhs1d(n,i)*vspda(n,i)*clead(n,i)                      &
+                & *(tmelt-1.8-ts1d(n,i))*cpd
 ! ******           get fluxes over ice for sublimation (subrout snow)
 ! ******              and melt (below) calculation
-            fseng(n,np) = (sent1d(n,np)-aarea(n,np)*hsl)                &
-                        & /(1.-aarea(n,np))
-            fevpg(n,np) = (evpr1d(n,np)-aarea(n,np)*hrl)                &
-                        & /(1.-aarea(n,np))
-            hs = fsw1d(np) - flw1d(np) - fseng(n,np) - wlhs*fevpg(n,np)
+            fseng(n,i) = (sent1d(n,i)-aarea(n,i)*hsl)/(1.-aarea(n,i))
+            fevpg(n,i) = (evpr1d(n,i)-aarea(n,i)*hrl)/(1.-aarea(n,i))
+            hs = fsw1d(i) - flw1d(i) - fseng(n,i) - wlhs*fevpg(n,i)
             bb = dtbat*(hs+fss)/rsd1
 ! ******           snow melt
-            sm(n,np) = 0.
-            if ( tg1d(n,np).ge.tmelt ) sm(n,np) = (hs+fss)/wlhf
-            if ( sm(n,np).le.0. ) sm(n,np) = 0.
-            smc4 = sm(n,np)*dtbat
-            if ( scv1d(n,np).lt.smc4 ) then
+            sm(n,i) = 0.
+            if ( tg1d(n,i).ge.tmelt ) sm(n,i) = (hs+fss)/wlhf
+            if ( sm(n,i).le.0. ) sm(n,i) = 0.
+            smc4 = sm(n,i)*dtbat
+            if ( scv1d(n,i).lt.smc4 ) then
 ! ******                all snow removed, melt ice
-              smt = (scv1d(n,np)/dtbat)
+              smt = (scv1d(n,i)/dtbat)
 ! ******                rho(h2o)/rho(ice) = 1.087
-              sice1d(n,np) = sice1d(n,np) + dtbat*(smt-sm(n,np))*1.087
-              sm(n,np) = smt
-              tg1d(n,np) = tmelt
+              sice1d(n,i) = sice1d(n,i) + dtbat*(smt-sm(n,i))*1.087
+              sm(n,i) = smt
+              tg1d(n,i) = tmelt
 ! ******                set sea ice parameter for melting and return
-              if ( sice1d(n,np).le.0.0 ) then
-                imelt(n,np) = 1
+              if ( sice1d(n,i).le.0.0 ) then
+                imelt(n,i) = 1
                 exit
               end if
             else
 !  **********             snow or ice with no snow melting
-              tg = tg1d(n,np) + bb
-              if ( tg.ge.tmelt ) tg1d(n,np) = tmelt
-              if ( tg.lt.tmelt ) tg1d(n,np) = tg
+              tg = tg1d(n,i) + bb
+              if ( tg.ge.tmelt ) tg1d(n,i) = tmelt
+              if ( tg.lt.tmelt ) tg1d(n,i) = tg
             end if
           end if
         end do

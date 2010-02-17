@@ -25,15 +25,15 @@
 !               for canopy and soil flux calculations
 !
       use mod_regcm_param
-      use mod_bats , only : npts , vspda , cdr , lveg , sigf , uaf ,    &
+      use mod_bats , only : vegt , vspda , cdr , lveg , sigf , uaf ,    &
                     & cf , wta , wtlh , wtg , wtshi , wtl0 , wtg0 ,     &
-                    & wtgl , wta0 , wtga , ldoc1d , sqrtdi , vegt
+                    & wtgl , wta0 , wtga , ldoc1d , sqrtdi
       use mod_constants , only : csoilc
       implicit none
 !
 ! Local variables
 !
-      integer :: n , np
+      integer :: n , i
 !
 !     csoilc = constant drag coefficient for soil under canopy;
 !     prescribed in subroutine bconst.
@@ -48,21 +48,21 @@
 !     0 : normalized (sums to one)
 !     g : ground
 !
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              uaf(n,np) = vspda(n,np)*dsqrt(cdr(n,np))
-              cf(n,np) = 0.01*sqrtdi(lveg(n,np))/dsqrt(uaf(n,np))
-              wta(n,np) = sigf(n,np)*cdr(n,np)*vspda(n,np)
-              wtlh(n,np) = cf(n,np)*uaf(n,np)*vegt(n,np)
-              wtg(n,np) = csoilc*uaf(n,np)*sigf(n,np)
-              wtshi(n,np) = 1./(wta(n,np)+wtlh(n,np)+wtg(n,np))
-              wtl0(n,np) = wtlh(n,np)*wtshi(n,np)
-              wtg0(n,np) = wtg(n,np)*wtshi(n,np)
-              wtgl(n,np) = wtl0(n,np) + wtg0(n,np)
-              wta0(n,np) = 1. - wtgl(n,np)
-              wtga(n,np) = wta0(n,np) + wtg0(n,np)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              uaf(n,i) = vspda(n,i)*dsqrt(cdr(n,i))
+              cf(n,i) = 0.01*sqrtdi(lveg(n,i))/dsqrt(uaf(n,i))
+              wta(n,i) = sigf(n,i)*cdr(n,i)*vspda(n,i)
+              wtlh(n,i) = cf(n,i)*uaf(n,i)*vegt(n,i)
+              wtg(n,i) = csoilc*uaf(n,i)*sigf(n,i)
+              wtshi(n,i) = 1./(wta(n,i)+wtlh(n,i)+wtg(n,i))
+              wtl0(n,i) = wtlh(n,i)*wtshi(n,i)
+              wtg0(n,i) = wtg(n,i)*wtshi(n,i)
+              wtgl(n,i) = wtl0(n,i) + wtg0(n,i)
+              wta0(n,i) = 1. - wtgl(n,i)
+              wtga(n,i) = wta0(n,i) + wtg0(n,i)
             end if
           end if
         end do

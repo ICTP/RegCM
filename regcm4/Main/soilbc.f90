@@ -31,7 +31,7 @@
 ! Local variables
 !
       real(8) :: ck , dmax , dmin , dmnor , phi0 , tweak1
-      integer :: itex , n , np
+      integer :: itex , n , i
 !
 !     ================================================================
 !     new soils data as a fn of texture make porosity, soil suction,
@@ -45,39 +45,38 @@
 !     ===============================================================
 !
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
  
-          if ( lveg(n,np).ne.0 ) then
+          if ( lveg(n,i).ne.0 ) then
  
 !           **********            lveg is set in subr. interf
-            freza(lveg(n,np)) = 0.15*deprv(lveg(n,np))
-            frezu(lveg(n,np)) = 0.15*depuv(lveg(n,np))
-            itex = iexsol(lveg(n,np))
-            texrat(n,np) = skrat(itex)
-            porsl(n,np) = xmopor(itex)
-            xkmx(n,np) = xmohyd(itex)
-            bsw(n,np) = bee(itex)
-            bfc(n,np) = 5.8 - bsw(n,np)                                 &
-                      & *(0.8+0.12*(bsw(n,np)-4.)*dlog10(1.E2*xkmx(n,np)&
-                      & ))
+            freza(lveg(n,i)) = 0.15*deprv(lveg(n,i))
+            frezu(lveg(n,i)) = 0.15*depuv(lveg(n,i))
+            itex = iexsol(lveg(n,i))
+            texrat(n,i) = skrat(itex)
+            porsl(n,i) = xmopor(itex)
+            xkmx(n,i) = xmohyd(itex)
+            bsw(n,i) = bee(itex)
+            bfc(n,i) = 5.8 - bsw(n,i)*(0.8+0.12*(bsw(n,i)-4.)*          &
+                      & dlog10(1.E2*xkmx(n,i)))
  
             phi0 = xmosuc(itex)
-            dmax = bsw(n,np)*phi0*xkmx(n,np)/porsl(n,np)
+            dmax = bsw(n,i)*phi0*xkmx(n,i)/porsl(n,i)
             dmin = 1.E-3
             dmnor = 1550.*dmin/dmax
-            tweak1 = (bsw(n,np)*(bsw(n,np)-6.)+10.3)                    &
-                   & /(bsw(n,np)*bsw(n,np)+40.*bsw(n,np))
+            tweak1 = (bsw(n,i)*(bsw(n,i)-6.)+10.3)                      &
+                   & /(bsw(n,i)*bsw(n,i)+40.*bsw(n,i))
             ck = (1.+dmnor)*tweak1*0.23/0.02356
-            evmx0(n,np) = 1.02*dmax*ck/dsqrt(depuv(lveg(n,np))*deprv(   &
-                        & lveg(n,np)))
-            gwmx0(n,np) = depuv(lveg(n,np))*porsl(n,np)
-            gwmx1(n,np) = deprv(lveg(n,np))*porsl(n,np)
-            gwmx2(n,np) = deptv(lveg(n,np))*porsl(n,np)
-            wiltr(n,np) = xmowil(itex)
+            evmx0(n,i) = 1.02*dmax*ck/dsqrt(depuv(lveg(n,i))*           &
+                        & deprv(lveg(n,i)))
+            gwmx0(n,i) = depuv(lveg(n,i))*porsl(n,i)
+            gwmx1(n,i) = deprv(lveg(n,i))*porsl(n,i)
+            gwmx2(n,i) = deptv(lveg(n,i))*porsl(n,i)
+            wiltr(n,i) = xmowil(itex)
 !           **********            force irrigated crop to be at field
 !           capacity
-            relfc(n,np) = xmofc(itex)
+            relfc(n,i) = xmofc(itex)
  
           end if
  

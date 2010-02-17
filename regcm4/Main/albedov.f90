@@ -20,11 +20,11 @@
       subroutine albedov(j,iemiss)
  
       use mod_regcm_param
-      use mod_bats , only : npts , albvs , albvl , aldirs , aldirl ,    &
+      use mod_bats , only : albvs , albvl , aldirs , aldirl , ssw1d ,   &
                   & aldifs , aldifl , czen , sice1d , emiss1d , coszrs ,&
                   & ldoc1d , tgb1d , lveg , ts1d , scv1d , sag1d , wt , &
                   & scvk , veg1d , emiss2d , albvgs , albvgl , kolsol , &
-                  & depuv , ssw1d
+                  & depuv
       use mod_constants , only : tmelt
       implicit none
 !
@@ -43,22 +43,22 @@
       real(8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  & aldifs_s , aldirl_s , aldirs_s
       real(8) :: fseas
-      integer :: kolour , n , np
+      integer :: kolour , n , i
       real(8) , dimension(8) :: solour
 !
 !     Albedo calculates fragmented albedos (direct and diffuse) in
 !     wavelength regions split at 0.7um.
 !
 !     CM hands albedos to radiation package which computes
-!     fsw1d(np) = net solar absorbed over full grid square
-!     sabveg(np) = vegetation absorbed (full solar spectrum)
-!     solis(np) = shortwave  solar incident
+!     fsw1d(i) = net solar absorbed over full grid square
+!     sabveg(i) = vegetation absorbed (full solar spectrum)
+!     solis(i) = shortwave  solar incident
 !
 !     Here these are calculated at the end of albedo - they use only
 !     direct albedos for now
 !
 !     in both versions :  lftemp uses sabveg
-!     tgrund uses sabveg & fsw1d(np) to get
+!     tgrund uses sabveg & fsw1d(i) to get
 !     ground absorbed solar
 !     photosynthesis uses solis - see subrouts
 !     stomat and co2 (carbon)
@@ -95,8 +95,6 @@
 !     In depth, wt is frac of grid square covered by snow;
 !     depends on average snow depth, vegetation, etc.
 !
-      npts = nbmax
- 
       call depth
  
 !     1.2 set pointers
@@ -107,9 +105,9 @@
 !     1.3  set default vegetation and albedo
 !     do loop 50 in ccm not used here )
  
-      do np = np1 , npts
-        czen(np) = dmax1(coszrs(np),0.D0)
-        czeta = czen(np)
+      do i = 2 , ixm1
+        czen(i) = dmax1(coszrs(i),0.D0)
+        czeta = czen(i)
         do n = 1 , nnsg
           albgs = 0.0D0
           albgl = 0.0D0
@@ -127,10 +125,10 @@
 !         2.   get albedo over land
 !================================================================
 !         can't use pointer "nalbk" here because not set - use nldock
-!         instead tgb1d(np) used instead of tbelow
+!         instead tgb1d(i) used instead of tbelow
 !
-          if ( ldoc1d(n,np).gt.0.1D0 .and. sice1d(n,np).eq.0.D0 ) then
-            sfac = 1.D0 - fseas(tgb1d(n,np))
+          if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
+            sfac = 1.D0 - fseas(tgb1d(n,i))
  
 !           **********  ccm tests here on land mask for veg and soils
  
@@ -139,21 +137,21 @@
 !c          moisture too the following card inactivated (commented out)
 !c          (pat, 27 oct 86)
  
-!           veg1d(np)=vegc(lveg(np))-seasf(lveg(np))*sfac
-            albs = albvgs(lveg(n,np))
-            albl = albvgl(lveg(n,np))
+!           veg1d(i)=vegc(lveg(i))-seasf(lveg(i))*sfac
+            albs = albvgs(lveg(n,i))
+            albl = albvgl(lveg(n,i))
  
 !----------------------------------------------------------------------
-            if ( (lveg(n,np).lt.12) .or. (lveg(n,np).gt.15) ) then
+            if ( (lveg(n,i).lt.12) .or. (lveg(n,i).gt.15) ) then
  
 !             2.1  bare soil albedos
 !             (soil albedo depends on moisture)
-              kolour = kolsol(lveg(n,np))
-              wet = ssw1d(n,np)/depuv(lveg(n,np))
+              kolour = kolsol(lveg(n,i))
+              wet = ssw1d(n,i)/depuv(lveg(n,i))
               alwet = dmax1((11.D0-40.D0*wet),0.D0)*0.01D0
               alwet = dmin1(alwet,solour(kolour))
               albg = solour(kolour) + alwet
-!             if((lveg(n,np).eq.8)) albg=0.40      !Laura, cambiato il
+!             if((lveg(n,i).eq.8)) albg=0.40      !Laura, cambiato il
 !             DESERTO
               albgs = albg
               albgl = 2.D0*albg
@@ -164,14 +162,14 @@
               albsd = albs
               albld = albl
  
-!             Dec. 15   albzn=0.85+1./(1.+10.*czen(np))
+!             Dec. 15   albzn=0.85+1./(1.+10.*czen(i))
 !             Dec. 12, 2008
               albzn = 1.0D0
 !             Dec. 15, 2008
  
 !             **********            leafless hardwood canopy: no or
 !             inverse zen dep
-              if ( lveg(n,np).eq.5 .and. sfac.lt.0.1 ) albzn = 1.
+              if ( lveg(n,i).eq.5 .and. sfac.lt.0.1 ) albzn = 1.
 !             **********            multiply by zenith angle correction
               albs = albs*albzn
               albl = albl*albzn
@@ -181,7 +179,7 @@
               albvs_s(n) = albs
               albvl_s(n) = albl
  
-            else if ( lveg(n,np).eq.12 ) then
+            else if ( lveg(n,i).eq.12 ) then
  
 !             2.2   permanent ice sheet
               albgs = 0.8D0
@@ -198,14 +196,14 @@
               albgld = albg
             end if
  
-          else if ( sice1d(n,np).gt.0.D0 ) then
+          else if ( sice1d(n,i).gt.0.D0 ) then
 !====================================================================
 !           3.  get albedo over sea ice
 !====================================================================
 !           **********          albedo depends on wave-length and ts.
 !           the ts **********          dependence accounts for melt
 !           water puddles.
-            tdiffs = ts1d(n,np) - tmelt
+            tdiffs = ts1d(n,i) - tmelt
             tdiff = dmax1(tdiffs,0.D0)
             tdiffs = dmin1(tdiff,20.D0)
             albgl = sical1 - 1.1E-2*tdiffs
@@ -218,7 +216,7 @@
 ! ===================================================================
 !         4.  correct for snow cover
 ! ===================================================================
-          if ( scv1d(n,np).gt.0.0D0 ) then
+          if ( scv1d(n,i).gt.0.0D0 ) then
 !           **********            snow albedo depends on  snow-age,
 !           zenith angle, **********            and thickness of snow
  
@@ -229,7 +227,7 @@
 !           visible rad snow albedo **********              due to age
             cons = 0.2D0
             conn = 0.5D0
-            age = (1.D0-1.D0/(1.D0+sag1d(n,np)))
+            age = (1.D0-1.D0/(1.D0+sag1d(n,i)))
 !           **********            sl helps control albedo zenith
 !           dependence
             sl = 2.0D0
@@ -241,7 +239,7 @@
             dfalbs = snal0*(1.D0-cons*age)
 !           **********            czf corrects albedo of new snow for
 !           solar zenith
-            cf1 = ((1.D0+sli)/(1.D0+sl2*czen(np))-sli)
+            cf1 = ((1.D0+sli)/(1.D0+sl2*czen(i))-sli)
             cff = dmax1(cf1,0.D0)
             czf = 0.4D0*cff*(1.D0-dfalbs)
             dralbs = dfalbs + czf
@@ -249,28 +247,28 @@
             czf = 0.4D0*cff*(1.D0-dfalbl)
             dralbl = dfalbl + czf
  
-            if ( veg1d(n,np).gt.0.001D0 ) then
+            if ( veg1d(n,i).gt.0.001D0 ) then
 !             **********            effective albedo over vegetation
 !             with snow
-              albl = (1.D0-wt(n,np))*albl + dralbl*wt(n,np)
-              albld = (1.D0-wt(n,np))*albld + dfalbl*wt(n,np)
-              albs = (1.D0-wt(n,np))*albs + dralbs*wt(n,np)
-              albsd = (1.D0-wt(n,np))*albsd + dfalbs*wt(n,np)
+              albl = (1.D0-wt(n,i))*albl + dralbl*wt(n,i)
+              albld = (1.D0-wt(n,i))*albld + dfalbl*wt(n,i)
+              albs = (1.D0-wt(n,i))*albs + dralbs*wt(n,i)
+              albsd = (1.D0-wt(n,i))*albsd + dfalbs*wt(n,i)
             end if
  
 !----------------------------------------------------------------------
 !           4.1  compute albedo for snow on bare ground
 !----------------------------------------------------------------------
-            albgs = (1.D0-scvk(n,np))*albgs + dralbs*scvk(n,np)
-            albgl = (1.D0-scvk(n,np))*albgl + dralbl*scvk(n,np)
-            albgsd = (1.D0-scvk(n,np))*albgsd + dfalbs*scvk(n,np)
-            albgld = (1.D0-scvk(n,np))*albgld + dfalbl*scvk(n,np)
+            albgs = (1.D0-scvk(n,i))*albgs + dralbs*scvk(n,i)
+            albgl = (1.D0-scvk(n,i))*albgl + dralbl*scvk(n,i)
+            albgsd = (1.D0-scvk(n,i))*albgsd + dfalbs*scvk(n,i)
+            albgld = (1.D0-scvk(n,i))*albgld + dfalbl*scvk(n,i)
           end if
  
 !=====================================================================
 !         5.  albedo over open ocean
 !=====================================================================
-          if ( ldoc1d(n,np).eq.0.D0 ) then
+          if ( ldoc1d(n,i).eq.0.D0 ) then
 !           *********   ocean albedo depends on zenith angle
             if ( czeta.ge.0.0D0 ) then
 !             **********   albedo independent of wavelength
@@ -285,36 +283,36 @@
 !
 !         ***************not part of albedo in the ccm ****************
 !
-          aldirs_s(n) = (1.D0-veg1d(n,np))*albgs + veg1d(n,np)*albs
-          aldirl_s(n) = (1.D0-veg1d(n,np))*albgl + veg1d(n,np)*albl
-          aldifs_s(n) = (1.D0-veg1d(n,np))*albgsd + veg1d(n,np)*albsd
-          aldifl_s(n) = (1.D0-veg1d(n,np))*albgld + veg1d(n,np)*albld
+          aldirs_s(n) = (1.D0-veg1d(n,i))*albgs + veg1d(n,i)*albs
+          aldirl_s(n) = (1.D0-veg1d(n,i))*albgl + veg1d(n,i)*albl
+          aldifs_s(n) = (1.D0-veg1d(n,i))*albgsd + veg1d(n,i)*albsd
+          aldifl_s(n) = (1.D0-veg1d(n,i))*albgld + veg1d(n,i)*albld
         end do
-        albvs(np) = albvs_s(1)
-        albvl(np) = albvl_s(1)
-        aldirs(np) = aldirs_s(1)
-        aldirl(np) = aldirl_s(1)
-        aldifs(np) = aldifs_s(1)
-        aldifl(np) = aldifl_s(1)
-        if ( iemiss.eq.1 ) emiss1d(np) = emiss2d(1,np,j)
+        albvs(i) = albvs_s(1)
+        albvl(i) = albvl_s(1)
+        aldirs(i) = aldirs_s(1)
+        aldirl(i) = aldirl_s(1)
+        aldifs(i) = aldifs_s(1)
+        aldifl(i) = aldifl_s(1)
+        if ( iemiss.eq.1 ) emiss1d(i) = emiss2d(1,i,j)
         do n = 2 , nnsg
-          albvs(np) = albvs(np) + albvs_s(n)
-          albvl(np) = albvl(np) + albvl_s(n)
-          aldirs(np) = aldirs(np) + aldirs_s(n)
-          aldirl(np) = aldirl(np) + aldirl_s(n)
-          aldifs(np) = aldifs(np) + aldifs_s(n)
-          aldifl(np) = aldifl(np) + aldifl_s(n)
-          if ( iemiss.eq.1 ) emiss1d(np) = emiss1d(np) + emiss2d(n,np,j)
+          albvs(i) = albvs(i) + albvs_s(n)
+          albvl(i) = albvl(i) + albvl_s(n)
+          aldirs(i) = aldirs(i) + aldirs_s(n)
+          aldirl(i) = aldirl(i) + aldirl_s(n)
+          aldifs(i) = aldifs(i) + aldifs_s(n)
+          aldifl(i) = aldifl(i) + aldifl_s(n)
+          if ( iemiss.eq.1 ) emiss1d(i) = emiss1d(i) + emiss2d(n,i,j)
         end do
-        albvs(np) = albvs(np)/dble(nnsg)
-        albvl(np) = albvl(np)/dble(nnsg)
-        aldirs(np) = aldirs(np)/dble(nnsg)
-        aldirl(np) = aldirl(np)/dble(nnsg)
-        aldifs(np) = aldifs(np)/dble(nnsg)
-        aldifl(np) = aldifl(np)/dble(nnsg)
-        if ( iemiss.eq.1 ) emiss1d(np) = emiss1d(np)/dble(nnsg)
+        albvs(i) = albvs(i)/dble(nnsg)
+        albvl(i) = albvl(i)/dble(nnsg)
+        aldirs(i) = aldirs(i)/dble(nnsg)
+        aldirl(i) = aldirl(i)/dble(nnsg)
+        aldifs(i) = aldifs(i)/dble(nnsg)
+        aldifl(i) = aldifl(i)/dble(nnsg)
+        if ( iemiss.eq.1 ) emiss1d(i) = emiss1d(i)/dble(nnsg)
  
-!       ******   fsw1d(np),sabveg(np),solis(np) computed in colrad
+!       ******   fsw1d(i),sabveg(i),solis(i) computed in colrad
  
       end do
  

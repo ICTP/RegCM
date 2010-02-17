@@ -22,11 +22,11 @@
       use mod_regcm_param
 
       implicit none
-      real(8) , dimension(nnsg,nbmax) :: a , b
-      real(8) , dimension(nnsg,nbmax) :: ra , rs
-      real(8) , dimension(nnsg,nbmax) :: cdrd
-      real(8) , dimension(nnsg,nbmax) :: vpdc
-      real(8) , dimension(nnsg,nbmax) :: rppq , efe , qsatld , dcd
-      real(8) , dimension(nnsg,nbmax) :: etrc
+      real(8) , dimension(nnsg,ixm1) :: a , b
+      real(8) , dimension(nnsg,ixm1) :: ra , rs
+      real(8) , dimension(nnsg,ixm1) :: cdrd
+      real(8) , dimension(nnsg,ixm1) :: vpdc
+      real(8) , dimension(nnsg,ixm1) :: rppq , efe , qsatld , dcd
+      real(8) , dimension(nnsg,ixm1) :: etrc
 
       end module mod_ictp01

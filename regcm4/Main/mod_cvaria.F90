@@ -23,8 +23,6 @@
 
       implicit none
 !
-! COMMON /CVARIA/
-!
 #ifdef MPP1
       real(8) , dimension(ix,kx,jxp) :: diffq , difft , difuu , difuv , &
                                       & omega , qcc , qcten , qvc ,     &
@@ -47,12 +45,11 @@
       real(8) , dimension(ix,kx) :: qvcs
 #endif
 !
-! COMMON /TRACER/
-!
 #ifdef MPP1
       real(8) , dimension(ix,kx,0:jxp+1,ntr) :: chi
       real(8) , dimension(ix,kx,jxp,ntr) :: chic , chiten
 #else
       real(8) , dimension(ix,kx,jx,ntr) :: chi , chic , chiten
 #endif
+
       end module mod_cvaria

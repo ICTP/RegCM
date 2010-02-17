@@ -28,10 +28,9 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: nspi = 19
-      integer , parameter :: ncoefs = 5
+      integer , parameter :: nspi = 19   ! Spectral index
+      integer , parameter :: ncoefs = 5  ! Number of coefficients
 !
-! number of coefficients
 ! kscoef  - specific extinction (m2/g)
 ! wscoef  - single partical albedo
 ! gscoef  - asymmetry parameter

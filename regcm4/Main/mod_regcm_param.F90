@@ -39,7 +39,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 8
+      integer , parameter :: nproc = 2
 
 ! Point in Y (latitude) direction
 
@@ -77,8 +77,6 @@
 
 ! BATS parameters
 
-      integer , parameter :: np1 = 2
-
       character(5) , parameter :: dattyp = 'ERAIN'
 
       logical , parameter :: ehso4 = .false.
@@ -114,11 +112,14 @@
 
       integer , parameter :: nspgv = (nspgd+nspgx)*8 + 8
       integer , parameter :: nspgp = nspgx*4
-      integer , parameter :: nbmax = ix - 1
 
 #ifdef MPP1
-      integer :: myid , iwest , ieast
-      integer :: jbegin, jendl, jendx, jendm
+      integer :: myid
+      integer :: iwest , ieast , isouth , inorth
+      integer :: jbegin , ibegin
+      integer :: jendl , iendl
+      integer :: jendx , iendx
+      integer :: jendm , iendm
 #endif
 
       integer , dimension(289276) :: mdatez

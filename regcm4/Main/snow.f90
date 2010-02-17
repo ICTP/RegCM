@@ -47,8 +47,8 @@
 !
       real(8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels ,&
                & sge , tage
-      integer :: n , np
-      real(8) , dimension(nnsg,nbmax) :: sold
+      integer :: n , i
+      real(8) , dimension(nnsg,ixm1) :: sold
 !
       age3 = 0.3
  
@@ -56,23 +56,23 @@
 !     1.   partition soil evaporation and precipitation
 !     between water and snow
 !=======================================================================
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
+          if ( ldoc1d(n,i).gt.0.5 ) then
  
-            evapw(n,np) = fevpg(n,np)
-            evaps(n,np) = scvk(n,np)*evapw(n,np)
-            if ( ldoc1d(n,np).gt.1.5 ) evaps(n,np) = fevpg(n,np)
-            evapw(n,np) = (1.-scvk(n,np))*evapw(n,np)
+            evapw(n,i) = fevpg(n,i)
+            evaps(n,i) = scvk(n,i)*evapw(n,i)
+            if ( ldoc1d(n,i).gt.1.5 ) evaps(n,i) = fevpg(n,i)
+            evapw(n,i) = (1.-scvk(n,i))*evapw(n,i)
 !
 !           ******                tm  is temperature of precipitation
-            if ( tm(n,np).ge.tmelt ) then
-              pw(n,np) = prcp1d(n,np)*(1.-sigf(n,np))
-              ps(n,np) = 0.0
+            if ( tm(n,i).ge.tmelt ) then
+              pw(n,i) = prcp1d(n,i)*(1.-sigf(n,i))
+              ps(n,i) = 0.0
             else
 !             ******                snowing
-              pw(n,np) = 0.0
-              ps(n,np) = prcp1d(n,np)*(1.-sigf(n,np))
+              pw(n,i) = 0.0
+              ps(n,i) = prcp1d(n,i)*(1.-sigf(n,i))
             end if
           end if
         end do
@@ -81,35 +81,35 @@
 !=======================================================================
 !     2.   update snow cover
 !=======================================================================
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            sold(n,np) = scv1d(n,np)
-            scv1d(n,np) = scv1d(n,np) + dtbat                           &
-                        & *(ps(n,np)-evaps(n,np)-sm(n,np)) + sdrop(n,np)
-            scv1d(n,np) = dmax1(scv1d(n,np),0.D0)
-            sag1d(n,np) = dmax1(sag1d(n,np),0.D0)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            sold(n,i) = scv1d(n,i)
+            scv1d(n,i) = scv1d(n,i) + dtbat                             &
+                        & *(ps(n,i)-evaps(n,i)-sm(n,i)) + sdrop(n,i)
+            scv1d(n,i) = dmax1(scv1d(n,i),0.D0)
+            sag1d(n,i) = dmax1(sag1d(n,i),0.D0)
  
 !           ******           snow cover except for antarctica
 !=======================================================================
 !           3.   increment non-dimensional "age" of snow;
 !           10 mm snow restores surface to that of new snow.
 !=======================================================================
-            if ( scv1d(n,np).gt.0. ) then
-              arg = 5.E3*(1./tmelt-1./tg1d(n,np))
+            if ( scv1d(n,i).gt.0. ) then
+              arg = 5.E3*(1./tmelt-1./tg1d(n,i))
               age1 = dexp(arg)
               arg2 = dmin1(0.D0,10.*arg)
               age2 = dexp(arg2)
               tage = age1 + age2 + age3
               dela0 = 1.E-6*dtbat
               dela = dela0*tage
-              dels = 0.1*dmax1(0.D0,scv1d(n,np)-sold(n,np))
-              sge = (sag1d(n,np)+dela)*(1.0-dels)
-              sag1d(n,np) = dmax1(0.D0,sge)
+              dels = 0.1*dmax1(0.D0,scv1d(n,i)-sold(n,i))
+              sge = (sag1d(n,i)+dela)*(1.0-dels)
+              sag1d(n,i) = dmax1(0.D0,sge)
             end if
  
 !           ******           antarctica
-            if ( scv1d(n,np).gt.800. ) sag1d(n,np) = 0.
+            if ( scv1d(n,i).gt.800. ) sag1d(n,i) = 0.
           end if
         end do
       end do

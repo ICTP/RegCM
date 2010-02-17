@@ -23,29 +23,19 @@
 
       implicit none
 !
-! COMMON /BATCNT/
-!
-      integer :: npts
-!
-! COMMON /BATS1D/
-!
-      real(8) , dimension(nnsg,nbmax) :: delq1d , delt1d , drag1d ,     &
+      real(8) , dimension(nnsg,ixm1) :: delq1d , delt1d , drag1d ,     &
            & emiss_1d , evpr1d , gwet1d , ircp1d , ldew1d , ldoc1d ,    &
            & p1d , pbp1d , prcp1d , q2m_1d , qg1d , qs1d , resp1d ,     &
            & rhs1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,  &
            & sice1d , ssw1d , t2m_1d , taf1d , tg1d , tgb1d , tlef1d ,  &
            & ts1d , tsw1d , u10m1d , v10m1d , veg1d , z1d
-      real(8) , dimension(nbmax) :: flw1d , fsw1d , us1d , vs1d
+      real(8) , dimension(ixm1) :: flw1d , fsw1d , us1d , vs1d
 !
-! COMMON /BATVAR/
-!
-      real(8) , dimension(nnsg,nbmax) :: bfc , bsw , evmx0 , fdry ,     &
+      real(8) , dimension(nnsg,ixm1) :: bfc , bsw , evmx0 , fdry ,     &
            & fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc , rnet ,      &
            & texrat , vegt , wiltr , wt , xkmx
-      real(8) , dimension(nbmax) :: czen , sola , vpdd
+      real(8) , dimension(ixm1) :: czen , sola , vpdd
       real(8) :: difrat
-!
-! COMMON /BDCN/
 !
       real(8) , dimension(20) :: albvgl , albvgs , crough , deprv ,     &
                                & deptv , depuv , displa , fc , freza ,  &
@@ -56,34 +46,25 @@
       integer , dimension(20) :: iexsol , kolsol
       integer :: ihis , lat , mhis , ncase
 !
-! COMMON /BDPRM/
-!
-      real(8) , dimension(nnsg,nbmax) :: aarea , cdr , cdrn , cdrx ,    &
+      real(8) , dimension(nnsg,ixm1) :: aarea , cdr , cdrn , cdrx ,    &
            & cf , cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg , &
            & etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,    &
            & fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,     &
            & rlai , rpp , scrat , scvk , sdrop , seasb , sigf , sm ,    &
            & tm , uaf , vspda , wata , watr , watt , watu , wta , xlai ,&
            & xlsai , xrun , z1 , z1log
-      real(8) , dimension(nbmax) :: ems
-      integer , dimension(nnsg,nbmax) :: imelt , lveg
+      real(8) , dimension(ixm1) :: ems
+      integer , dimension(nnsg,ixm1) :: imelt , lveg
 !
-! COMMON /LEAFWT/
-!
-      real(8) , dimension(nnsg,nbmax) :: cn1 , df , rgr , wta0 , wtaq0 ,&
+      real(8) , dimension(nnsg,ixm1) :: cn1 , df , rgr , wta0 , wtaq0 ,&
            & wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq , wtgq ,   &
            & wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi
-
-!
-! COMMON /BAT1D/
 !
       real(8) , dimension(ixm1) :: albdif , albdir , albvl , albvld ,   &
                                 & albvs , albvsd , aldifl , aldifs ,    &
                                 & aldirl , aldirs , emiss1d , fracd ,   &
                                 & sabveg , solis , solvd , solvs
       real(8) , dimension(ix) :: coszrs
-!
-! COMMON /BAT2D/
 !
 #ifdef MPP1
       real(8) , dimension(ixm1,jxp) :: flw2d , flwa2d , flwd2d ,         &
@@ -105,8 +86,6 @@
                                     & svegfrac2d , svga2d , veg2d
 #endif
 !
-! COMMON /BAT2D1/
-!
 #ifdef MPP1
       real(8) , dimension(nnsg,ixm1,jxp) :: col2d , dew2d , emiss2d ,   &
            & evpa2d , gwet2d , ircp2d , ocld2d , rno2d , rnos2d ,       &
@@ -120,8 +99,6 @@
            & taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
       real(8) , dimension(nnsg,ix,jx) :: ht1 , satbrt1
 #endif
-!
-! COMMON /BATOUT/
 !
 #ifdef MPP1
       real(4) , dimension(jxp,ixm2) :: drag_o , evpa_o , flwa_o ,       &
@@ -144,8 +121,6 @@
                                       & zpbl_o
 #endif
 !
-! COMMON /SUBOUT/
-!
 #ifdef MPP1
       real(4) , dimension(nnsg,jxp,ixm2) :: drag_s , evpa_s , prcv_s ,  &
            & ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
@@ -155,8 +130,6 @@
            & ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
            & t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
 #endif
-!
-! COMMON BATOUTio
 !
 #ifdef MPP1
       real(kind=4) , dimension(jxp,ixm2,numbat) :: fbat
@@ -170,9 +143,9 @@
       real(kind=4) , dimension(NNSG,jxm2,ixm2,numsub) :: fsub
 #endif
 !
-! COMMON /BATS1D0/
+      real(8) , dimension(nnsg,ixm1) :: p1d0 , qs1d0 , ts1d0
 !
-      real(8) , dimension(nnsg,nbmax) :: p1d0 , qs1d0 , ts1d0
+!------------------ DATA SECTION ----------------------------------------
 !
 !*    vegc is maximum fractional cover of vegetation
       data vegc /0.85D0 , 0.8D0 , 0.8D0 , 0.8D0 , 0.8D0  , 0.9D0 ,      &
@@ -290,6 +263,7 @@
 !     Dec. 15, 2008_
 
       contains
+
         subroutine fillbat
           implicit none
           fbat(:,:,1)  = u10m_o(:,:)

@@ -23,8 +23,6 @@
 
       implicit none
 !
-! COMMON /PMOIST/
-!
       real(8) :: caccr , cevap , clfrcv , clfrcvmax , cllwcv , conf ,   &
                & dtauc , edtmax , edtmaxo , edtmaxx , edtmin , edtmino ,&
                & edtminx , fcmax , gulland , guloce , htmax , htmin ,   &
@@ -49,8 +47,6 @@
 #endif
       real(8) , dimension(kx) :: qwght
       real(8) , dimension(kx,5:kx,1:kx-3) :: twght , vqflx
-!
-! COMMON /PMOISTINT/
 !
 #ifdef MPP1
       integer , dimension(jxp) :: icon

@@ -23,8 +23,6 @@
 
       implicit none
 !
-! COMMON /MAINCM/
-!
 #ifdef MPP1
       real(8) , dimension(ix,jxp) :: cldefi , f , hfx , hgfact , htsd , &
                                    & qfx , rainc , rainnc , tgb , tgbb ,&

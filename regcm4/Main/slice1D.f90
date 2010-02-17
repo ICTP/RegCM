@@ -34,30 +34,29 @@
 ! Local variables
 !
       real(8) :: amxtem , sfac
-      integer :: n , np
+      integer :: n , i
 ! 
 !     ********* For albedov
 !     **********            This is taken from subroutine interf so that
 !     **********            radiation can be called in tend (not
 !     vecbats).
-      npts = nbmax
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          ldoc1d(n,np) = ocld2d(n,np,j)
-          sice1d(n,np) = sice2d(n,np,j)
-          tgb1d(n,np) = tgb2d(n,np,j)
-          ssw1d(n,np) = ssw2d(n,np,j)
-          lveg(n,np) = nint(veg2d1(n,np,j))
-          amxtem = dmax1(298.-tgb1d(n,np),0.D0)
+          ldoc1d(n,i) = ocld2d(n,i,j)
+          sice1d(n,i) = sice2d(n,i,j)
+          tgb1d(n,i) = tgb2d(n,i,j)
+          ssw1d(n,i) = ssw2d(n,i,j)
+          lveg(n,i) = nint(veg2d1(n,i,j))
+          amxtem = dmax1(298.-tgb1d(n,i),0.D0)
           sfac = 1. - dmax1(0.D0,1.-0.0016*amxtem**2)
-          if ( lveg(n,np).eq.0 ) then
-            veg1d(n,np) = 0.
+          if ( lveg(n,i).eq.0 ) then
+            veg1d(n,i) = 0.
           else
-            veg1d(n,np) = vegc(lveg(n,np)) - seasf(lveg(n,np))*sfac
+            veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
           end if
-          ts1d(n,np) = thx3d(np,kx,j)-6.5E-3*rgti*(ht1(n,np,j)-ht(np,j))
-          scv1d(n,np) = scv2d(n,np,j)
-          sag1d(n,np) = sag2d(n,np,j)
+          ts1d(n,i) = thx3d(i,kx,j)-6.5E-3*rgti*(ht1(n,i,j)-ht(i,j))
+          scv1d(n,i) = scv2d(n,i,j)
+          sag1d(n,i) = sag2d(n,i,j)
         end do
       end do
  

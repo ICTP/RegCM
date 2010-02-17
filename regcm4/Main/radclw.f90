@@ -183,7 +183,7 @@
       logical , dimension(ixm1) :: done , start
       real(8) :: gocp , tmp1
       integer :: i , ii , k , k1 , k2 , k3 , khighest , km , km1 , km2 ,&
-               & km3 , km4 , nptsc
+               & km3 , km4 , ixm1c
       integer , dimension(ixm1) :: indx , khiv , khivm , klov
       real(8) , dimension(ixm1,kxp1,kxp1) :: s
 !
@@ -259,13 +259,13 @@
           end if
         end do
       end do
-      call whenne(ixm1,klov,1,0,indx,nptsc)
+      call whenne(ixm1,klov,1,0,indx,ixm1c)
       do i = 1 , ixm1
         khiv(i) = klov(i)
         done(i) = .false.
       end do
       do k = kx , 1 , -1
-        do ii = 1 , nptsc
+        do ii = 1 , ixm1c
           i = indx(ii)
           if ( .not.done(i) .and. cld(i,kxp2-k).gt.0.0 ) then
             done(i) = .true.
@@ -279,7 +279,7 @@
 !
 !     Note: Vertical indexing here proceeds from bottom to top
 !
-      do ii = 1 , nptsc
+      do ii = 1 , ixm1c
         i = indx(ii)
         do k = klov(i) , khiv(i)
           fclt4(i,kxp1-k) = stebol*tint4(i,kxp2-k)
@@ -394,11 +394,11 @@
 !     those locations where there are clouds (total cloud fraction <=
 !     1.e-3 treated as clear)
 !
-      call whenflt(ixm1,tclrsf(1,kxp1),1,0.999D0,indx,nptsc)
+      call whenflt(ixm1,tclrsf(1,kxp1),1,0.999D0,indx,ixm1c)
 !
 !     Compute downflux at level 1 for cloudy sky
 !
-      do ii = 1 , nptsc
+      do ii = 1 , ixm1c
         i = indx(ii)
 !
 !       First clear sky flux plus flux from cloud at level 1
@@ -416,7 +416,7 @@
         km1 = kxp1 - km
         km2 = kxp2 - km
         km4 = kxp4 - km
-        do ii = 1 , nptsc
+        do ii = 1 , ixm1c
           i = indx(ii)
           if ( km.le.khiv(i) ) then
             tmp1 = cld(i,km2)*tclrsf(i,kx)*rtclrsf(i,km2)
@@ -432,7 +432,7 @@
         k1 = kxp1 - k
         k2 = kxp2 - k
         k3 = kxp3 - k
-        do ii = 1 , nptsc
+        do ii = 1 , ixm1c
           i = indx(ii)
           if ( k.ge.klov(i) .and. k.le.khivm(i) ) ful(i,k2) = fsul(i,k2)&
              & *(tclrsf(i,kxp1)*rtclrsf(i,k1))
@@ -441,7 +441,7 @@
           km1 = kxp1 - km
           km2 = kxp2 - km
           km3 = kxp3 - km
-          do ii = 1 , nptsc
+          do ii = 1 , ixm1c
             i = indx(ii)
 !
             if ( k.le.khivm(i) .and. km.ge.klov(i) .and. km.le.khivm(i) &
@@ -458,7 +458,7 @@
         do i = 1 , ixm1
           start(i) = .false.
         end do
-        do ii = 1 , nptsc
+        do ii = 1 , ixm1c
           i = indx(ii)
           if ( k.ge.khiv(i) ) then
             start(i) = .true.
@@ -470,7 +470,7 @@
           km1 = kxp1 - km
           km2 = kxp2 - km
           km3 = kxp3 - km
-          do ii = 1 , nptsc
+          do ii = 1 , ixm1c
             i = indx(ii)
             if ( start(i) .and. km.ge.klov(i) .and. km.le.khiv(i) )     &
                & ful(i,k2) = ful(i,k2)                                  &
@@ -487,7 +487,7 @@
         k1 = kxp1 - k
         k2 = kxp2 - k
         k3 = kxp3 - k
-        do ii = 1 , nptsc
+        do ii = 1 , ixm1c
           i = indx(ii)
           if ( k.le.khivm(i) ) fdl(i,k2) = 0.
         end do
@@ -495,7 +495,7 @@
           km1 = kxp1 - km
           km2 = kxp2 - km
           km4 = kxp4 - km
-          do ii = 1 , nptsc
+          do ii = 1 , ixm1c
             i = indx(ii)
 !
             if ( k.le.khiv(i) .and. km.ge.max0(k+1,klov(i)) .and.       &
@@ -504,7 +504,7 @@
                & *(fclb4(i,km1)-s(i,k2,km4)+s(i,k2,k3))
           end do
         end do             ! km=k+1,khighest
-        do ii = 1 , nptsc
+        do ii = 1 , ixm1c
           i = indx(ii)
           if ( k.le.khivm(i) ) fdl(i,k2) = fdl(i,k2) + fsdl(i,k2)       &
              & *(tclrsf(i,k1)*rtclrsf(i,kxp1-khiv(i)))

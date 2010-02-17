@@ -53,32 +53,32 @@
 ! Local variables
 !
       real(8) :: bneg , rotf , trsmx , wlttb , wltub , wmli
-      integer :: n , np
+      integer :: n , i
       real(8) , dimension(20) :: rootf
 !
       data rootf/.30 , .80 , .67 , .67 , .50 , .80 , .80 , .90 , .90 ,  &
          & .30 , .80 , 9*.50/
 !
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-!             trsmx = trsmx0*sigf(n,np)*seasb(n,np)
-              trsmx = trsmx0*sigf(n,np)
-              rotf = rootf(lveg(n,np))
-              bneg = -bsw(n,np)
-              wmli = 1./(wiltr(n,np)**bneg-1.)
-              wlttb = (watr(n,np)**bneg-1.)*wmli
-              wltub = (watu(n,np)**bneg-1.)*wmli
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+!             trsmx = trsmx0*sigf(n,i)*seasb(n,i)
+              trsmx = trsmx0*sigf(n,i)
+              rotf = rootf(lveg(n,i))
+              bneg = -bsw(n,i)
+              wmli = 1./(wiltr(n,i)**bneg-1.)
+              wlttb = (watr(n,i)**bneg-1.)*wmli
+              wltub = (watu(n,i)**bneg-1.)*wmli
               wlttb = dmin1(wlttb,1.D0)
               wltub = dmin1(wltub,1.D0)
-              etrc(n,np) = trsmx*(1.-(1.-rotf)*wlttb-rotf*wltub)
-              efpr(n,np) = trsmx*rotf*(1.-wltub)
-              if ( etrc(n,np).lt.1.E-12 ) then
-                etrc(n,np) = 1.E-12
-                efpr(n,np) = 1.0
+              etrc(n,i) = trsmx*(1.-(1.-rotf)*wlttb-rotf*wltub)
+              efpr(n,i) = trsmx*rotf*(1.-wltub)
+              if ( etrc(n,i).lt.1.E-12 ) then
+                etrc(n,i) = 1.E-12
+                efpr(n,i) = 1.0
               else
-                efpr(n,np) = efpr(n,np)/etrc(n,np)
+                efpr(n,i) = efpr(n,i)/etrc(n,i)
               end if
             end if
           end if

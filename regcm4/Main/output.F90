@@ -266,9 +266,9 @@
               end do
             end do
           end do
-          call mpi_gather(sub0(1,1,1,1),(ixm2)*nnsg*numsub*jxp,mpi_real,&
-                        & sub_0(1,1,1,1),(ixm2)*nnsg*numsub*jxp,        &
-                        & mpi_real,0,mpi_comm_world,ierr)
+          call mpi_gather(sub0(1,1,1,1),ixm2*nnsg*numsub*jxp,mpi_real4, &
+                        & sub_0(1,1,1,1),ixm2*nnsg*numsub*jxp,          &
+                        & mpi_real4,0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do l = 1 , numsub
               do j = 1 , jxm2

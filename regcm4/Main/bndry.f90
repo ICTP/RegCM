@@ -69,9 +69,9 @@
                   & watu , watr , watt , gwmx0 , gwmx1 , gwmx2 ,        &
                   & cgrnds , cgrndl , cgrnd , tg1d , delq1d , delt1d ,  &
                   & evpr1d , sent1d , tlef1d , uaf , vspda , ldew1d ,   &
-                  & scv1d , sag1d , gwet1d , drag1d , rhs1d , npts ,    &
+                  & scv1d , sag1d , gwet1d , drag1d , rhs1d , qs1d ,    &
                   & taf1d , p1d , ldoc1d , lveg , rsw1d , tsw1d , qg1d ,&
-                  & sigf , cdrx , qs1d , prcp1d
+                  & sigf , cdrx , prcp1d
       use mod_constants , only : tmelt , wlhv , wlhs , cpd
       use mod_ictp01
       implicit none
@@ -83,43 +83,43 @@
 ! Local variables
 !
       real(8) :: fact , qsatd , rai
-      integer :: n , np
+      integer :: n , i
  
 !=======================================================================
 !l    1.   initialize
 !=======================================================================
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
  
-          htvp(n,np) = wlhv
-          if ( (tg1d(n,np).lt.tmelt .and. ldoc1d(n,np).gt.0.5) .or.     &
-             & scv1d(n,np).gt.0. ) htvp(n,np) = wlhs
-          sdrop(n,np) = 0.
-          etrrun(n,np) = 0.
-          flnet(n,np) = 0.
-          fevpg(n,np) = 0.
-          fseng(n,np) = 0.
-          vegt(n,np) = 0.
-          efpr(n,np) = 0.
-          etr(n,np) = 0.
+          htvp(n,i) = wlhv
+          if ( (tg1d(n,i).lt.tmelt .and. ldoc1d(n,i).gt.0.5) .or.       &
+             & scv1d(n,i).gt.0. ) htvp(n,i) = wlhs
+          sdrop(n,i) = 0.
+          etrrun(n,i) = 0.
+          flnet(n,i) = 0.
+          fevpg(n,i) = 0.
+          fseng(n,i) = 0.
+          vegt(n,i) = 0.
+          efpr(n,i) = 0.
+          etr(n,i) = 0.
 !         **********            switch between rain and snow /tm is
 !         ref. temp set= anemom temp -2.2
-          tm(n,np) = ts1d(n,np) - 2.2
+          tm(n,i) = ts1d(n,i) - 2.2
  
 !*        soil moisture ratio (to max) as used in subrouts tgrund,
 !*        water, and root (called by lftemp): watu=upper, watr=root,
  
 !         watt=total
-          if ( lveg(n,np).ge.1 ) then
-            watu(n,np) = ssw1d(n,np)/gwmx0(n,np)
-            watr(n,np) = rsw1d(n,np)/gwmx1(n,np)
-            watt(n,np) = tsw1d(n,np)/gwmx2(n,np)
-            watu(n,np) = dmin1(watu(n,np),1.D0)
-            watr(n,np) = dmin1(watr(n,np),1.D0)
-            watt(n,np) = dmin1(watt(n,np),1.D0)
-            watr(n,np) = dmax1(watr(n,np),1.D-4)
-            watu(n,np) = dmax1(watu(n,np),1.D-4)
+          if ( lveg(n,i).ge.1 ) then
+            watu(n,i) = ssw1d(n,i)/gwmx0(n,i)
+            watr(n,i) = rsw1d(n,i)/gwmx1(n,i)
+            watt(n,i) = tsw1d(n,i)/gwmx2(n,i)
+            watu(n,i) = dmin1(watu(n,i),1.D0)
+            watr(n,i) = dmin1(watr(n,i),1.D0)
+            watt(n,i) = dmin1(watt(n,i),1.D0)
+            watr(n,i) = dmax1(watr(n,i),1.D-4)
+            watu(n,i) = dmax1(watu(n,i),1.D-4)
           end if
  
         end do
@@ -139,48 +139,48 @@
 !=======================================================================
 !l    3.1  get derivative of fluxes with repect to tg
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).le.0.001 .and. ldoc1d(n,np).lt.1.5 ) then
-              qsatd = qg1d(n,np)*gwet1d(n,np)*a(n,np)*(tmelt-b(n,np))   &
-                    & *(1./(tg1d(n,np)-b(n,np)))**2
-              rai = cdrx(n,np)*vspda(n,np)*rhs1d(n,np)
-              cgrnds(n,np) = rai*cpd
-              cgrndl(n,np) = rai*qsatd
-              cgrnd(n,np) = cgrnds(n,np) + cgrndl(n,np)*htvp(n,np)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).le.0.001 .and. ldoc1d(n,i).lt.1.5 ) then
+              qsatd = qg1d(n,i)*gwet1d(n,i)*a(n,i)*(tmelt-b(n,i))       &
+                    & *(1./(tg1d(n,i)-b(n,i)))**2
+              rai = cdrx(n,i)*vspda(n,i)*rhs1d(n,i)
+              cgrnds(n,i) = rai*cpd
+              cgrndl(n,i) = rai*qsatd
+              cgrnd(n,i) = cgrnds(n,i) + cgrndl(n,i)*htvp(n,i)
  
 !l            3.2  sensible and latent fluxes using soil temperatures
 !l            from previous time step
-              delq1d(n,np) = (qs1d(n,np)-qg1d(n,np))*gwet1d(n,np)
-              delt1d(n,np) = ts1d(n,np) - tg1d(n,np)
-              evpr1d(n,np) = -rai*delq1d(n,np)
-              sent1d(n,np) = -cgrnds(n,np)*delt1d(n,np)
+              delq1d(n,i) = (qs1d(n,i)-qg1d(n,i))*gwet1d(n,i)
+              delt1d(n,i) = ts1d(n,i) - tg1d(n,i)
+              evpr1d(n,i) = -rai*delq1d(n,i)
+              sent1d(n,i) = -cgrnds(n,i)*delt1d(n,i)
  
 !l            3.3  fluxes to subrout tgrund (evap is in kg/m**2/s)
-              fseng(n,np) = sent1d(n,np)
-              fevpg(n,np) = evpr1d(n,np)
+              fseng(n,i) = sent1d(n,i)
+              fevpg(n,i) = evpr1d(n,i)
  
 !l            3.4  equate canopy to air, for temp, wind over bare grnd;
 !l            needed as factors of sigf(=0) in subr water (uaf) and
-!l            subr drag (tlef1d(n,np) carried over to next tstep).
-              tlef1d(n,np) = ts1d(n,np)
-              uaf(n,np) = vspda(n,np)
+!l            subr drag (tlef1d(n,i) carried over to next tstep).
+              tlef1d(n,i) = ts1d(n,i)
+              uaf(n,i) = vspda(n,i)
             end if
           end if
         end do
       end do
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then   !  check each point
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then   !  check each point
 !=======================================================================
 !l            4.   vegetation
 !=======================================================================
 !l            4.1  add precipitation to leaf water
-              ldew1d(n,np) = ldew1d(n,np)+dtbat*sigf(n,np)*prcp1d(n,np)
-              ldew1d(n,np) = dmax1(ldew1d(n,np),0.D0)
+              ldew1d(n,i) = ldew1d(n,i)+dtbat*sigf(n,i)*prcp1d(n,i)
+              ldew1d(n,i) = dmax1(ldew1d(n,i),0.D0)
             end if
           end if
         end do
@@ -210,11 +210,11 @@
 !
 !l    5.3  over ocean
 !l    set snow cover to zero in case it was previously sea ice
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).lt.0.5 ) then
-            scv1d(n,np) = 0.
-            sag1d(n,np) = 0.
+          if ( ldoc1d(n,i).lt.0.5 ) then
+            scv1d(n,i) = 0.
+            sag1d(n,i) = 0.
           end if
         end do
       end do
@@ -223,33 +223,33 @@
 !l    6.   linkage to meteorological model
 !=======================================================================
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
  
-          if ( ldoc1d(n,np).lt.0.5 .or. lveg(n,np).eq.14 .or. lveg(n,np)&
-             & .eq.15 ) gwet1d(n,np) = 1.
+          if ( ldoc1d(n,i).lt.0.5 .or. lveg(n,i).eq.14 .or. lveg(n,i)   &
+             & .eq.15 ) gwet1d(n,i) = 1.
  
 !l        6.1  rate of momentum transfer per velocity
-          drag1d(n,np) = -cdrx(n,np)*vspda(n,np)*rhs1d(n,np)
-          drag1d(n,np) = -drag1d(n,np)        ! for coupling with mm4
+          drag1d(n,i) = -cdrx(n,i)*vspda(n,i)*rhs1d(n,i)
+          drag1d(n,i) = -drag1d(n,i)        ! for coupling with mm4
  
 !l        6.3  latent and heat fluxes over ocean, plus a dummy taf
-          if ( ldoc1d(n,np).lt.0.5 ) then
-            tlef1d(n,np) = ts1d(n,np)
-            fact = -rhs1d(n,np)*cdrx(n,np)*vspda(n,np)
-            delq1d(n,np) = (qs1d(n,np)-qg1d(n,np))*gwet1d(n,np)
-            delt1d(n,np) = ts1d(n,np) - tg1d(n,np)
+          if ( ldoc1d(n,i).lt.0.5 ) then
+            tlef1d(n,i) = ts1d(n,i)
+            fact = -rhs1d(n,i)*cdrx(n,i)*vspda(n,i)
+            delq1d(n,i) = (qs1d(n,i)-qg1d(n,i))*gwet1d(n,i)
+            delt1d(n,i) = ts1d(n,i) - tg1d(n,i)
 !           evaporation is in kg/m**2/s
-            evpr1d(n,np) = fact*delq1d(n,np)
-            sent1d(n,np) = fact*cpd*delt1d(n,np)
+            evpr1d(n,i) = fact*delq1d(n,i)
+            sent1d(n,i) = fact*cpd*delt1d(n,i)
           end if
-          if ( sigf(n,np).lt.0.001 ) taf1d(n,np) = tg1d(n,np)
+          if ( sigf(n,i).lt.0.001 ) taf1d(n,i) = tg1d(n,i)
  
 !l        6.2  parameters for temperature difference at anemometer level
-!cc       zdelt(i) = zdelt(i)*delt1d(n,np)
+!cc       zdelt(i) = zdelt(i)*delt1d(n,i)
  
 !l        6.4  evaporative flux, accounting for sublimation
-!cc       evprr(i) = wlhv*(evpr1d(n,np)-fevpg) + htvp(n,np)*fevpg
+!cc       evprr(i) = wlhv*(evpr1d(n,i)-fevpg) + htvp(n,i)*fevpg
  
 !l        6.5  nondimensional equivalent bucket capacity for comparisons
 !l        with bucket models; usually 1 or less, except where

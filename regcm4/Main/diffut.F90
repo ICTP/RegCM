@@ -40,7 +40,7 @@
 !                                                                     c
 !     j      : j'th slice of variable tb3d                            c
 !                                                                     c
-!     iend   : = ixm2 for cross-point vaeiables                       c
+!     iend   : = ixm2 for cross-point variables                       c
 !              = ixm1  for dot-point   variables                       c
 !                                                                     c
 !     jend   : = jxm2 for cross-point variables                       c
@@ -136,7 +136,7 @@
 !                                                                     c
 !     j      : j'th slice of variable qvb3d                           c
 !                                                                     c
-!     iend   : = ixm2 for cross-point vaeiables                       c
+!     iend   : = ixm2 for cross-point variables                       c
 !              = ixm1  for dot-point   variables                       c
 !                                                                     c
 !     jend   : = jxm2 for cross-point variables                       c
@@ -235,7 +235,7 @@
 !                                                                     c
 !     j      : j'th slice of variable qcb3d                           c
 !                                                                     c
-!     iend   : = ixm2 for cross-point vaeiables                       c
+!     iend   : = ixm2 for cross-point variables                       c
 !              = ixm1  for dot-point   variables                       c
 !                                                                     c
 !     jend   : = jxm2 for cross-point variables                       c
@@ -334,7 +334,7 @@
 !                                                                     c
 !     j      : j'th slice of variable chib3d                          c
 !                                                                     c
-!     iend   : = ixm2 for cross-point vaeiables                       c
+!     iend   : = ixm2 for cross-point variables                       c
 !              = ixm1  for dot-point   variables                       c
 !                                                                     c
 !     jend   : = jxm2 for cross-point variables                       c

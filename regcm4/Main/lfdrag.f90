@@ -32,54 +32,53 @@
 !
 ! Local variables
 !
-      real(8) , dimension(nnsg,nbmax) :: cdrmin , dlstaf , rib , rib1
+      real(8) , dimension(nnsg,ixm1) :: cdrmin , dlstaf , rib , rib1
       real(8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
-      integer :: n , np
+      integer :: n , i
 !
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              tkb = wta0(n,np)*ts1d(n,np) + wtl0(n,np)*tlef1d(n,np)     &
-                  & + wtg0(n,np)*tg1d(n,np)
-              dlstaf(n,np) = ts1d(n,np) - sigf(n,np)                    &
-                           & *tkb - (1.-sigf(n,np))*tg1d(n,np)
-              if ( dlstaf(n,np).le.0 ) then
-                dthdz = (1.-sigf(n,np))*tg1d(n,np) + sigf(n,np)         &
-                      & *tkb - ts1d(n,np)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              tkb = wta0(n,i)*ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)         &
+                  & + wtg0(n,i)*tg1d(n,i)
+              dlstaf(n,i) = ts1d(n,i) - sigf(n,i)                       &
+                           & *tkb - (1.-sigf(n,i))*tg1d(n,i)
+              if ( dlstaf(n,i).le.0 ) then
+                dthdz = (1.-sigf(n,i))*tg1d(n,i) + sigf(n,i)            &
+                      & *tkb - ts1d(n,i)
                 u1 = wtur + 2.*dsqrt(dthdz)
-                ribd(n,np) = us1d(np)**2 + vs1d(np)**2 + u1**2
+                ribd(n,i) = us1d(i)**2 + vs1d(i)**2 + u1**2
               else
                 u2 = wtur
-                ribd(n,np) = us1d(np)**2 + vs1d(np)**2 + u2**2
+                ribd(n,i) = us1d(i)**2 + vs1d(i)**2 + u2**2
               end if
-              vspda(n,np) = dsqrt(ribd(n,np))
-              if ( vspda(n,np).lt.1. ) then
-                vspda(n,np) = 1.
-                ribd(n,np) = 1.
+              vspda(n,i) = dsqrt(ribd(n,i))
+              if ( vspda(n,i).lt.1. ) then
+                vspda(n,i) = 1.
+                ribd(n,i) = 1.
               end if
-              zatild = (z1(n,np)-displa(lveg(n,np)))*sigf(n,np)         &
-                     & + z1(n,np)*(1.-sigf(n,np))
-              rib1(n,np) = gti*zatild/(ribd(n,np)*ts1d(n,np))
-              rib(n,np) = rib1(n,np)*dlstaf(n,np)
-              if ( rib(n,np).lt.0. ) then
-                cdr(n,np) = cdrn(n,np)                                  &
-                          & *(1.+24.5*dsqrt(-cdrn(n,np)*rib(n,np)))
-                sqrtf = dmin1(dsqrt(-cdrn(n,np)/rib(n,np)),             &
-                      & 11.5D0/12.25D0)
-                cdrd(n,np) = cdrn(n,np)*12.25*wtl0(n,np)*rib1(n,np)     &
-                           & *sigf(n,np)*sqrtf
+              zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i)            &
+                     & + z1(n,i)*(1.-sigf(n,i))
+              rib1(n,i) = gti*zatild/(ribd(n,i)*ts1d(n,i))
+              rib(n,i) = rib1(n,i)*dlstaf(n,i)
+              if ( rib(n,i).lt.0. ) then
+                cdr(n,i) = cdrn(n,i)*(1.+24.5*dsqrt(-cdrn(n,i)*         &
+                      & rib(n,i)))
+                sqrtf = dmin1(dsqrt(-cdrn(n,i)/rib(n,i)),11.5D0/12.25D0)
+                cdrd(n,i) = cdrn(n,i)*12.25*wtl0(n,i)*rib1(n,i)         &
+                           & *sigf(n,i)*sqrtf
               else
-                ribi = 1./(1.+11.5*rib(n,np))
-                cdr(n,np) = cdrn(n,np)*ribi
-                cdrd(n,np) = cdr(n,np)*ribi*11.5*rib1(n,np)*wtl0(n,np)  &
-                           & *sigf(n,np)
-                cdrmin(n,np) = dmax1(0.25*cdrn(n,np),6.D-4)
+                ribi = 1./(1.+11.5*rib(n,i))
+                cdr(n,i) = cdrn(n,i)*ribi
+                cdrd(n,i) = cdr(n,i)*ribi*11.5*rib1(n,i)*wtl0(n,i)      &
+                           & *sigf(n,i)
+                cdrmin(n,i) = dmax1(0.25*cdrn(n,i),6.D-4)
               end if
-              if ( (rib(n,np).ge.0.) ) then
-                if ( (cdr(n,np).lt.cdrmin(n,np)) ) then
-                  cdr(n,np) = cdrmin(n,np)
-                  cdrd(n,np) = 0.
+              if ( (rib(n,i).ge.0.) ) then
+                if ( (cdr(n,i).lt.cdrmin(n,i)) ) then
+                  cdr(n,i) = cdrmin(n,i)
+                  cdrd(n,i) = 0.
                 end if
               end if
             end if

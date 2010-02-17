@@ -45,7 +45,7 @@
                & zo
       integer :: i , n
 !
-      do i = np1 , nbmax
+      do i = 2 , ixm1
         do n = 1 , nnsg
           if ( ocld2d(n,i,j).lt.0.5 ) then
             uv995 = sqrt(ubx3d(i,kx,j)**2+vbx3d(i,kx,j)**2)

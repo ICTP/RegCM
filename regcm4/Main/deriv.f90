@@ -30,9 +30,8 @@
 !     rate is not affected.
 !
       use mod_regcm_param
-      use mod_bats , only : npts , ldoc1d , sigf , tlef1d , df , cdr ,  &
-                    & ts1d , wtga , qsatl , wta0 , wtgaq , tg1d , cn1 , &
-                    & wtg0
+      use mod_bats , only : wtg0 , ldoc1d , sigf , tlef1d , df , cdr ,  &
+                    & ts1d , wtga , qsatl , wta0 , wtgaq , tg1d , cn1
       use mod_constants , only : tmelt
       use mod_ictp01
       implicit none
@@ -40,23 +39,22 @@
 ! Local variables
 !
       real(8) :: dne , hfl , xkb
-      integer :: n , np
+      integer :: n , i
 !
-      do np = 1 , npts
+      do i = 1 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              dne = 1./(tlef1d(n,np)-b(n,np))
-              qsatld(n,np) = qsatl(n,np)*a(n,np)*(tmelt-b(n,np))*dne**2
-              xkb = cdrd(n,np)/cdr(n,np)
-              hfl = df(n,np)                                            &
-                  & *(wtga(n,np)*tlef1d(n,np)-wtg0(n,np)*tg1d(n,np)     &
-                  & -wta0(n,np)*ts1d(n,np))
-              dcd(n,np) = cn1(n,np)*rppq(n,np)*wtgaq(n,np)*qsatld(n,np) &
-                        & + (1.-wtgaq(n,np))*efe(n,np)                  &
-                        & *xkb + (1.-wtga(n,np))*hfl*xkb
-              dcd(n,np) = dmax1(dcd(n,np),0.D0)
-              dcd(n,np) = dmin1(dcd(n,np),500.D0)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              dne = 1./(tlef1d(n,i)-b(n,i))
+              qsatld(n,i) = qsatl(n,i)*a(n,i)*(tmelt-b(n,i))*dne**2
+              xkb = cdrd(n,i)/cdr(n,i)
+              hfl = df(n,i)*(wtga(n,i)*tlef1d(n,i)-wtg0(n,i)*tg1d(n,i)  &
+                  & -wta0(n,i)*ts1d(n,i))
+              dcd(n,i) = cn1(n,i)*rppq(n,i)*wtgaq(n,i)*qsatld(n,i)      &
+                        & + (1.-wtgaq(n,i))*efe(n,i)                    &
+                        & *xkb + (1.-wtga(n,i))*hfl*xkb
+              dcd(n,i) = dmax1(dcd(n,i),0.D0)
+              dcd(n,i) = dmin1(dcd(n,i),500.D0)
             end if
           end if
         end do

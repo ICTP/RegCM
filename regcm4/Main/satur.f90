@@ -36,26 +36,25 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(nnsg,nbmax) :: p , qsat , t
+      real(8) , dimension(nnsg,ixm1) :: p , qsat , t
       intent (in) p , t
       intent (out) qsat
 !
 ! Local variables
 !
-      integer :: n , np
-! 
-      do np = np1 , npts
+      integer :: n , i
+!
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( t(n,np).le.tmelt ) then
-            a(n,np) = c3ies
-            b(n,np) = c4ies
+          if ( t(n,i).le.tmelt ) then
+            a(n,i) = c3ies
+            b(n,i) = c4ies
           else
-            a(n,np) = c3les
-            b(n,np) = c4les
+            a(n,i) = c3les
+            b(n,i) = c4les
           end if
-          eg(n,np) = c1es                                               &
-                   & *dexp(a(n,np)*(t(n,np)-tmelt)/(t(n,np)-b(n,np)))
-          qsat(n,np) = ep2*eg(n,np)/(p(n,np)-0.378D0*eg(n,np))
+          eg(n,i) = c1es*dexp(a(n,i)*(t(n,i)-tmelt)/(t(n,i)-b(n,i)))
+          qsat(n,i) = ep2*eg(n,i)/(p(n,i)-0.378D0*eg(n,i))
         end do
       end do
  

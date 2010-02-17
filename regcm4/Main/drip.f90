@@ -24,35 +24,35 @@
 !
       use mod_regcm_param
       use mod_bats , only : etrrun , ldew1d , vegt , sdrop , xrun ,     &
-                    & npts , ldoc1d , sigf , tm
+                    & ldoc1d , sigf , tm
       use mod_constants , only : dewmx , tmelt
       implicit none
 !
 ! Local variables
 !
-      integer :: n , np
+      integer :: n , i
 !
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
 !             ***********         xrun = leaf drip ; sdrop = snow drop
 !             off foliage
-              etrrun(n,np) = 0.
-              xrun(n,np) = ldew1d(n,np) - dewmx*vegt(n,np)
-              sdrop(n,np) = 0.
+              etrrun(n,i) = 0.
+              xrun(n,i) = ldew1d(n,i) - dewmx*vegt(n,i)
+              sdrop(n,i) = 0.
  
 !             ***********         test on maximum value of dew
-              if ( xrun(n,np).gt.0. ) then
-                etrrun(n,np) = xrun(n,np)
-                ldew1d(n,np) = dewmx*vegt(n,np)
+              if ( xrun(n,i).gt.0. ) then
+                etrrun(n,i) = xrun(n,i)
+                ldew1d(n,i) = dewmx*vegt(n,i)
               end if
  
 !             ***********         below freezing excess leaf water
 !             falls as snow
-              if ( (xrun(n,np).gt.0.) .and. (tm(n,np).lt.tmelt) ) then
-                etrrun(n,np) = 0.
-                sdrop(n,np) = xrun(n,np)
+              if ( (xrun(n,i).gt.0.) .and. (tm(n,i).lt.tmelt) ) then
+                etrrun(n,i) = 0.
+                sdrop(n,i) = xrun(n,i)
               end if
             end if
           end if

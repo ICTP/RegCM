@@ -40,7 +40,7 @@
 ! Local variables
 !
       real(8) , dimension(2) :: det
-      integer :: i , ier , j , k , k1 , l , mm , numerr
+      integer :: ier , k , k1 , k2 , l , mm , numerr
       logical :: lhydro , lprint , lsigma
       real(8) :: ps2 , rm1 , x
       real(8) , dimension(kx) :: work
@@ -373,36 +373,36 @@
 !       determine arrays needed for daley's variational scheme
 !             for determination of surface pressure changes
 !
-      do i = 1 , kx      ! weight of t for different levels
-        hweigh(i) = 0.
+      do k = 1 , kx      ! weight of t for different levels
+        hweigh(k) = 0.
       end do
       hweigh(kx) = 1.    ! only lowest sigma level t considered
 !
-      do j = 1 , kx
-        do i = 1 , kx    ! compute b(-1t) w/tbar**2 b(-1)
-          w1(i,j) = 0.
+      do k1 = 1 , kx
+        do k2 = 1 , kx    ! compute b(-1t) w/tbar**2 b(-1)
+          w1(k2,k1) = 0.
           do k = 1 , kx
-            w1(i,j) = hydror(k,i)*hydror(k,j)*hweigh(k)/(tbarh(k)**2)   &
-                    & + w1(i,j)
+            w1(k2,k1) = hydror(k,k2)*hydror(k,k1)*hweigh(k)/            &
+                    & (tbarh(k)**2)+w1(k2,k1)
           end do
         end do
       end do
 !
       ps2 = ps*ps
-      do j = 1 , nk1
-        do i = 1 , kx
-          varpa1(i,j) = 0.
+      do k1 = 1 , nk1
+        do k2 = 1 , kx
+          varpa1(k2,k1) = 0.
           do k = 1 , kx
-            varpa1(i,j) = varpa1(i,j) + w1(i,k)*hydroc(k,j)*ps2
+            varpa1(k2,k1) = varpa1(k2,k1) + w1(k2,k)*hydroc(k,k1)*ps2
           end do
         end do
       end do
 !
-      do j = 1 , nk1
-        do i = 1 , nk1
-          varpa2(i,j) = 0.
+      do k1 = 1 , nk1
+        do k2 = 1 , nk1
+          varpa2(k2,k1) = 0.
           do k = 1 , kx
-            varpa2(i,j) = varpa2(i,j) + hydroc(k,i)*varpa1(k,j)
+            varpa2(k2,k1) = varpa2(k2,k1) + hydroc(k,k2)*varpa1(k,k1)
           end do
         end do
       end do

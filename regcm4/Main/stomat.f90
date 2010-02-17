@@ -25,7 +25,7 @@
 !             under conditions of no moisture stress
 !
 !     standard lai from xla=max & xlai0=min lai (set in bconst)
-!     seasb = fseas(tgb1d(n,np) (set in bndry) is a seasonal
+!     seasb = fseas(tgb1d(n,i) (set in bndry) is a seasonal
 !             factor for reduced winter lai and root water uptake
 !        fc = light sensitivity for crops and grasses and has inverse
 !             radiation units (m**2/watt)
@@ -54,9 +54,9 @@
 !
       real(8) :: difzen , g , radfi , seas , vpdf , x
       real(8) :: fseas
-      real(8) , dimension(nnsg,nbmax) :: fsol0 , fsold , radf , rmini , &
+      real(8) , dimension(nnsg,ixm1) :: fsol0 , fsold , radf , rmini ,  &
            & trup , trupd
-      integer :: il , ilmax , n , np
+      integer :: il , ilmax , n , i
       real(8) , dimension(10) :: rad , radd
 !
 !     ***** seasonal temperature factor
@@ -77,57 +77,57 @@
 !*    delete fracd here to put in diffuse mod_radiation from ccm
 !cc   fracd = difrat         !  from shuttleworth mods #2
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
 !             **********            zenith angle set in zenitm
-              if ( czen(np).gt.0.001 ) then
-                trup(n,np) = dexp(-g*rlai(n,np)/(ilmax*czen(np)))
-                trupd(n,np) = dexp(-difzen*g*rlai(n,np)/(ilmax))
-                fsold(n,np) = fracd(np)*solis(np)*fc(lveg(n,np))
-                fsol0(n,np) = (1.-fracd(np))*solis(np)*fc(lveg(n,np))
-                rmini(n,np) = rsmin(lveg(n,np))/rmax0
+              if ( czen(i).gt.0.001 ) then
+                trup(n,i) = dexp(-g*rlai(n,i)/(ilmax*czen(i)))
+                trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(ilmax))
+                fsold(n,i) = fracd(i)*solis(i)*fc(lveg(n,i))
+                fsol0(n,i) = (1.-fracd(i))*solis(i)*fc(lveg(n,i))
+                rmini(n,i) = rsmin(lveg(n,i))/rmax0
               end if
             end if
           end if
         end do
       end do
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              if ( czen(np).gt.0.001 ) then
-                rad(1) = (1.-trup(n,np))*fsol0(n,np)*ilmax/rlai(n,np)
-                radd(1) = (1.-trupd(n,np))*fsold(n,np)*ilmax/rlai(n,np)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              if ( czen(i).gt.0.001 ) then
+                rad(1) = (1.-trup(n,i))*fsol0(n,i)*ilmax/rlai(n,i)
+                radd(1) = (1.-trupd(n,i))*fsold(n,i)*ilmax/rlai(n,i)
                 do il = 2 , ilmax
-                  rad(il) = trup(n,np)*rad(il-1)
-                  radd(il) = trupd(n,np)*radd(il-1)
+                  rad(il) = trup(n,i)*rad(il-1)
+                  radd(il) = trupd(n,i)*radd(il-1)
                 end do
                 radfi = 0.
                 do il = 1 , ilmax
-                  radfi = radfi + (rad(il)+radd(il)+rmini(n,np))        &
+                  radfi = radfi + (rad(il)+radd(il)+rmini(n,i))         &
                         & /(1.+rad(il)+radd(il))
                 end do
-                radf(n,np) = ilmax/radfi
+                radf(n,i) = ilmax/radfi
               end if
             end if
           end if
         end do
       end do
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              if ( czen(np).gt.0.001 ) then
-                vpdf = 1./dmax1(0.3D0,1.D0-vpdc(n,np)*0.025)
-                seas = 1./(rmini(n,np)+fseas(tlef1d(n,np)))
-                rs(n,np) = rsmin(lveg(n,np))*radf(n,np)*seas*vpdf
-                rs(n,np) = dmin1(rs(n,np),rmax0)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              if ( czen(i).gt.0.001 ) then
+                vpdf = 1./dmax1(0.3D0,1.D0-vpdc(n,i)*0.025)
+                seas = 1./(rmini(n,i)+fseas(tlef1d(n,i)))
+                rs(n,i) = rsmin(lveg(n,i))*radf(n,i)*seas*vpdf
+                rs(n,i) = dmin1(rs(n,i),rmax0)
               else
-                rs(n,np) = rmax0
+                rs(n,i) = rmax0
               end if
             end if
           end if

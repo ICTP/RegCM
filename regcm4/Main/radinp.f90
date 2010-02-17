@@ -45,9 +45,9 @@
 ! Dummy arguments
 !
       real(8) :: eccf
-      real(8) , dimension(ixm1,kxp1) :: cld , pint , pintrd , plco2 , &
+      real(8) , dimension(ixm1,kxp1) :: cld , pint , pintrd , plco2 ,   &
            & plh2o , tclrsf
-      real(8) , dimension(ixm1,kx) :: h2ommr , o3mmr , o3vmr , pmid ,&
+      real(8) , dimension(ixm1,kx) :: h2ommr , o3mmr , o3vmr , pmid ,   &
            & pmidrd
       intent (in) cld , h2ommr , o3vmr , pint , pmid
       intent (out) eccf , o3mmr , plco2 , pmidrd

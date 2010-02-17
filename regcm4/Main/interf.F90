@@ -78,7 +78,7 @@
 !     21.  pbl height
  
       if ( innex.eq.1 ) then
-        do i = np1 , nbmax
+        do i = 2 , ixm1
           do n = 1 , nnsg
             p1d0(n,i) = (psb(i,j)+ptop)*1000.
             z1d(n,i) = za(i,kx,j)
@@ -153,11 +153,10 @@
           end if
           czen(i) = dmax1(coszrs(i),0.D0)
         end do
-        npts = nbmax
  
       else if ( innex.eq.2 ) then
  
-        do i = np1 , nbmax
+        do i = 2 , ixm1
           uvdrag(i,j) = 0.0
           hfx(i,j) = 0.0
           qfx(i,j) = 0.0
@@ -269,7 +268,7 @@
           pptnc(i,j) = 0.
           pptc(i,j) = 0.
         end do
-        do i = np1 , nbmax
+        do i = 2 , ixm1
 #ifdef MPP1
           u10m_o(j,i-1) = 0.0
           v10m_o(j,i-1) = 0.0
@@ -389,7 +388,7 @@
             mmpd = 24./batfrq
             wpm2 = 1./(batfrq*3600.)
           end if
-          do i = np1 , nbmax
+          do i = 2 , ixm1
 #ifdef MPP1
             drag_o(j,i-1) = 0.0
             q2m_o(j,i-1) = 0.0

@@ -55,10 +55,10 @@
 !     ts = air temperature of lowest model layer
 !     uaf = mean wind within canopy
 !
-!     taf1d(n,np) = temperature of air in canopy
-!     delt1d(n,np)= difference between temperature of overlying air
+!     taf1d(n,i) = temperature of air in canopy
+!     delt1d(n,i)= difference between temperature of overlying air
 !                          and that in canopy
-!     delq1d(n,np)= difference between humidity of overlying air
+!     delq1d(n,i)= difference between humidity of overlying air
 !                          and that in canopy
 !
 !     convergence of leaf temperature calculation is declared if
@@ -83,8 +83,8 @@
       real(8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
                & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
                & xxkb
-      real(8) , dimension(nnsg,nbmax) :: dels , efpot , tbef
-      integer :: iter , itfull , itmax , n , np
+      real(8) , dimension(nnsg,ixm1) :: dels , efpot , tbef
+      integer :: iter , itfull , itmax , n , i
 !
 !=======================================================================
 !l    1.   setup information
@@ -92,17 +92,17 @@
 !
 !l    1.1  get stress-free stomatal resistance
 !     (1st guess at vapor pressure deficit)
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              vpdc(n,np) = 10.
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              vpdc(n,i) = 10.
               if ( iemiss.eq.1 ) then
-                sgtg3 = emiss_1d(n,np)*(sigm*tg1d(n,np)**3)
+                sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**3)
               else
-                sgtg3 = sigm*tg1d(n,np)**3
+                sgtg3 = sigm*tg1d(n,i)**3
               end if
-              flneto(n,np) = 4.0*sgtg3*(tlef1d(n,np)-tg1d(n,np))
+              flneto(n,i) = 4.0*sgtg3*(tlef1d(n,i)-tg1d(n,i))
             end if
           end if
         end do
@@ -140,25 +140,24 @@
         call lfdrag
         call condch
  
-        do np = np1 , npts
+        do i = 2 , ixm1
           do n = 1 , nnsg
-            if ( ldoc1d(n,np).gt.0.5 ) then
-              if ( sigf(n,np).gt.0.001 ) then
-                ra(n,np) = 1./(cf(n,np)*uaf(n,np))
-                cn1(n,np) = wtlh(n,np)*rhs1d(n,np)
-                df(n,np) = cn1(n,np)*cpd
+            if ( ldoc1d(n,i).gt.0.5 ) then
+              if ( sigf(n,i).gt.0.001 ) then
+                ra(n,i) = 1./(cf(n,i)*uaf(n,i))
+                cn1(n,i) = wtlh(n,i)*rhs1d(n,i)
+                df(n,i) = cn1(n,i)*cpd
  
 !l              2.2  decrease foliage conductance for stomatal
 !               resistance
-                rppdry = ra(n,np)*fdry(n,np)/(rs(n,np)+ra(n,np))
-                rpp(n,np) = rppdry + fwet(n,np)
+                rppdry = ra(n,i)*fdry(n,i)/(rs(n,i)+ra(n,i))
+                rpp(n,i) = rppdry + fwet(n,i)
  
 !l              2.3  recalculate saturation vapor pressure
-                eg1 = eg(n,np)
-                eg(n,np) = c1es                                         &
-                         & *dexp(a(n,np)*(tlef1d(n,np)-tmelt)/(tlef1d(n,&
-                         & np)-b(n,np)))
-                qsatl(n,np) = qsatl(n,np)*eg(n,np)/eg1
+                eg1 = eg(n,i)
+                eg(n,i) = c1es*dexp(a(n,i)*(tlef1d(n,i)-tmelt)/         &
+                         & (tlef1d(n,i)-b(n,i)))
+                qsatl(n,i) = qsatl(n,i)*eg(n,i)/eg1
               end if
             end if
           end do
@@ -168,43 +167,42 @@
         if ( iter.eq.0 ) call condcq
  
         epss = 1.E-10
-        do np = np1 , npts
+        do i = 2 , ixm1
           do n = 1 , nnsg
-            if ( ldoc1d(n,np).gt.0.5 ) then
-              if ( sigf(n,np).gt.0.001 ) then
-                efpot(n,np) = cn1(n,np)                                 &
-                            & *(wtgaq(n,np)*qsatl(n,np)-wtgq0(n,np)     &
-                            & *qg1d(n,np)-wtaq0(n,np)*qs1d(n,np))
+            if ( ldoc1d(n,i).gt.0.5 ) then
+              if ( sigf(n,i).gt.0.001 ) then
+                efpot(n,i) = cn1(n,i)*(wtgaq(n,i)*qsatl(n,i)-wtgq0(n,i) &
+                            & *qg1d(n,i)-wtaq0(n,i)*qs1d(n,i))
  
-!as             if(efpot(n,np).ge.0.) then     !if 0 rpp could have
+!as             if(efpot(n,i).ge.0.) then     !if 0 rpp could have
 !               floating pt
-                if ( efpot(n,np).gt.0. ) then
-                  etr(n,np) = efpot(n,np)*ra(n,np)*fdry(n,np)           &
-                            & /(rs(n,np)+ra(n,np))
-                  rpp(n,np) = dmin1(rpp(n,np),(etr(n,np)+ldew1d(n,np)/  &
-                            & dtbat)/efpot(n,np)-epss)
+                if ( efpot(n,i).gt.0. ) then
+                  etr(n,i) = efpot(n,i)*ra(n,i)*fdry(n,i)/(rs(n,i)+     &
+                           & ra(n,i))
+                  rpp(n,i) = dmin1(rpp(n,i),(etr(n,i)+ldew1d(n,i)/      &
+                            & dtbat)/efpot(n,i)-epss)
                 else
-                  etr(n,np) = 0.
-                  rpp(n,np) = 1.
+                  etr(n,i) = 0.
+                  rpp(n,i) = 1.
                 end if
  
-                if ( (efpot(n,np).ge.0.) .and. (etr(n,np).ge.etrc(n,np))&
-                   & ) then
+                if ( (efpot(n,i).ge.0.) .and. (etr(n,i).ge.etrc(n,i)))  &
+                   & then
 !*                transpiration demand exceeds supply, stomat adjust
 !                 demand
-                  rppdry = ra(n,np)*fdry(n,np)/(rs(n,np)+ra(n,np))
-                  rppdry = rppdry/(etr(n,np)/etrc(n,np))
-                  etr(n,np) = etrc(n,np)
+                  rppdry = ra(n,i)*fdry(n,i)/(rs(n,i)+ra(n,i))
+                  rppdry = rppdry/(etr(n,i)/etrc(n,i))
+                  etr(n,i) = etrc(n,i)
 !*                recalculate stomatl resistance and rpp
-                  rs(n,np) = ra(n,np)*(fdry(n,np)/rppdry-1.)
-                  rpp(n,np) = rppdry + fwet(n,np)
-                  rpp(n,np) = dmin1(rpp(n,np),(etr(n,np)+ldew1d(n,np)/  &
-                            & dtbat)/efpot(n,np)-epss)
+                  rs(n,i) = ra(n,i)*(fdry(n,i)/rppdry-1.)
+                  rpp(n,i) = rppdry + fwet(n,i)
+                  rpp(n,i) = dmin1(rpp(n,i),(etr(n,i)+ldew1d(n,i)/      &
+                            & dtbat)/efpot(n,i)-epss)
                 end if
  
-                rppq(n,np) = wlhv*rpp(n,np)
-                efe(n,np) = rppq(n,np)*efpot(n,np)
-                if ( efe(n,np)*efeb.lt.0.0 ) efe(n,np) = 0.1*efe(n,np)
+                rppq(n,i) = wlhv*rpp(n,i)
+                efe(n,i) = rppq(n,i)*efpot(n,i)
+                if ( efe(n,i)*efeb.lt.0.0 ) efe(n,i) = 0.1*efe(n,i)
               end if
             end if
           end do
@@ -218,45 +216,43 @@
 !l      3.2  derivatives of energy fluxes with respect to leaf
 !l      temperature for newton-raphson calculation of
 !l      leaf temperature.
-!l      subr.  input: rs,ra,cdrd,rppq,efe.
+!l      subr.  ii: rs,ra,cdrd,rppq,efe.
 !l      subr. output: qsatld,dcd.
         if ( iter.le.itfull ) call deriv
 !
 !l      3.3  compute dcn from dcd, output from subr. deriv
-        do np = np1 , npts
+        do i = 2 , ixm1
           do n = 1 , nnsg
-            if ( ldoc1d(n,np).gt.0.5 ) then
-              if ( sigf(n,np).gt.0.001 ) then
-                dcn = dcd(n,np)*tlef1d(n,np)
+            if ( ldoc1d(n,i).gt.0.5 ) then
+              if ( sigf(n,i).gt.0.001 ) then
+                dcn = dcd(n,i)*tlef1d(n,i)
 !
 !l              1.2  radiative forcing for leaf temperature calculation
                 if ( iemiss.eq.1 ) then
-                  sgtg3 = emiss_1d(n,np)*(sigm*tg1d(n,np)**3)
+                  sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**3)
                 else
-                  sgtg3 = sigm*tg1d(n,np)**3
+                  sgtg3 = sigm*tg1d(n,i)**3
                 end if
-                sf1 = sigf(n,np)                                        &
-                    & *(sabveg(np)-flw1d(np)-(1.-sigf(n,np))*flneto(n,  &
-                    & np)+4.0*sgtg3*tg1d(n,np))
-                sf2 = 4.*sigf(n,np)*sgtg3 + df(n,np)*wtga(n,np)         &
-                    & + dcd(n,np)
+                sf1 = sigf(n,i)*(sabveg(i)-flw1d(i)-(1.-sigf(n,i))*     &
+                    & flneto(n,i)+4.0*sgtg3*tg1d(n,i))
+                sf2 = 4.*sigf(n,i)*sgtg3 + df(n,i)*wtga(n,i) + dcd(n,i)
  
 !l              3.4  iterative leaf temperature calculation
-                tbef(n,np) = tlef1d(n,np)
-                tlef1d(n,np) = (sf1+df(n,np)*(wta0(n,np)*ts1d(n,np)+wtg0&
-                             & (n,np)*tg1d(n,np))-efe(n,np)+dcn)/sf2
+                tbef(n,i) = tlef1d(n,i)
+                tlef1d(n,i) = (sf1+df(n,i)*(wta0(n,i)*ts1d(n,i)+        &
+                       & wtg0(n,i)*tg1d(n,i))-efe(n,i)+dcn)/sf2
 !
 !l              3.5  chk magnitude of change; limit to max allowed value
-                dels(n,np) = tlef1d(n,np) - tbef(n,np)
-                if ( dabs(dels(n,np)).gt.delmax ) tlef1d(n,np)          &
-                   & = tbef(n,np) + delmax*dels(n,np)/dabs(dels(n,np))
+                dels(n,i) = tlef1d(n,i) - tbef(n,i)
+                if ( dabs(dels(n,i)).gt.delmax )                        &
+                  &   tlef1d(n,i) = tbef(n,i) + delmax*dels(n,i)/       &
+                  &   dabs(dels(n,i))
  
 !l              3.6  update dependence of stomatal resistance
 !l              on vapor pressure deficit
-                qcan = wtlq0(n,np)*qsatl(n,np) + qg1d(n,np)*wtgq0(n,np) &
-                     & + qs1d(n,np)*wtaq0(n,np)
-                vpdc(n,np) = (1.-rpp(n,np))*(qsatl(n,np)-qcan)          &
-                           & *1.E3/ep2
+                qcan = wtlq0(n,i)*qsatl(n,i) + qg1d(n,i)*wtgq0(n,i)     &
+                     & + qs1d(n,i)*wtaq0(n,i)
+                vpdc(n,i) = (1.-rpp(n,i))*(qsatl(n,i)-qcan)*1.E3/ep2
               end if
             end if
           end do
@@ -268,15 +264,14 @@
  
       end do
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
 !=======================================================================
 !l            4.   update dew accumulation (kg/m**2/s)
 !=======================================================================
-              ldew1d(n,np) = ldew1d(n,np) + (etr(n,np)-efe(n,np)/wlhv)  &
-                           & *dtbat
+              ldew1d(n,i) = ldew1d(n,i) + (etr(n,i)-efe(n,i)/wlhv)*dtbat
  
 !=======================================================================
 !l            5.   collect parameters needed to evaluate
@@ -284,59 +279,52 @@
 !=======================================================================
  
 !l            5.1  canopy properties
-              taf1d(n,np) = wtg0(n,np)*tg1d(n,np) + wta0(n,np)          &
-                          & *ts1d(n,np) + wtl0(n,np)*tlef1d(n,np)
-              delt1d(n,np) = wtgl(n,np)*ts1d(n,np)                      &
-                           & - (wtl0(n,np)*tlef1d(n,np)+wtg0(n,np)      &
-                           & *tg1d(n,np))
-              delq1d(n,np) = wtglq(n,np)*qs1d(n,np)                     &
-                           & - (wtlq0(n,np)*qsatl(n,np)+wtgq0(n,np)     &
-                           & *qg1d(n,np))
+              taf1d(n,i) = wtg0(n,i)*tg1d(n,i) + wta0(n,i)              &
+                          & *ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)
+              delt1d(n,i) = wtgl(n,i)*ts1d(n,i) - (wtl0(n,i)*           &
+                           & tlef1d(n,i)+wtg0(n,i)*tg1d(n,i))
+              delq1d(n,i) = wtglq(n,i)*qs1d(n,i) - (wtlq0(n,i)*         &
+                           & qsatl(n,i)+wtgq0(n,i)*qg1d(n,i))
               if ( iemiss.eq.1 ) then
-                sgtg3 = emiss_1d(n,np)*(sigm*tg1d(n,np)**3)
+                sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**3)
               else
-                sgtg3 = sigm*tg1d(n,np)**3
+                sgtg3 = sigm*tg1d(n,i)**3
               end if
-              flnet(n,np) = sgtg3*(tlef1d(n,np)-tg1d(n,np))*4.0
-              xxkb = dmin1(rough(lveg(n,np)),1.D0)
-              vakb = (1.-sigf(n,np))*vspda(n,np) + sigf(n,np)           &
-                   & *(xxkb*uaf(n,np)+(1.-xxkb)*vspda(n,np))
-              wtg2(n,np) = (1.-sigf(n,np))*cdr(n,np)*vakb
-              fbare = wtg2(n,np)*(tg1d(n,np)-ts1d(n,np))
-              qbare = wtg2(n,np)*(qg1d(n,np)-qs1d(n,np))
+              flnet(n,i) = sgtg3*(tlef1d(n,i)-tg1d(n,i))*4.0
+              xxkb = dmin1(rough(lveg(n,i)),1.D0)
+              vakb = (1.-sigf(n,i))*vspda(n,i) + sigf(n,i)              &
+                   & *(xxkb*uaf(n,i)+(1.-xxkb)*vspda(n,i))
+              wtg2(n,i) = (1.-sigf(n,i))*cdr(n,i)*vakb
+              fbare = wtg2(n,i)*(tg1d(n,i)-ts1d(n,i))
+              qbare = wtg2(n,i)*(qg1d(n,i)-qs1d(n,i))
  
 !l            5.2  fluxes from soil
-              fseng(n,np) = cpd*rhs1d(n,np)                           &
-                          & *(wtg(n,np)*((wta0(n,np)+wtl0(n,np))        &
-                          & *tg1d(n,np)-wta0(n,np)*ts1d(n,np)-wtl0(n,np)&
-                          & *tlef1d(n,np))+fbare)
-              fevpg(n,np) = rhs1d(n,np)*rgr(n,np)                       &
-                          & *(wtg(n,np)*((wtaq0(n,np)+wtlq0(n,np))      &
-                          & *qg1d(n,np)-wtaq0(n,np)*qs1d(n,np)          &
-                          & -wtlq0(n,np)*qsatl(n,np))+qbare)
+              fseng(n,i) = cpd*rhs1d(n,i)*(wtg(n,i)*((wta0(n,i)+        &
+                          & wtl0(n,i))*tg1d(n,i)-wta0(n,i)*ts1d(n,i)-   &
+                          & wtl0(n,i)*tlef1d(n,i))+fbare)
+              fevpg(n,i) = rhs1d(n,i)*rgr(n,i)*(wtg(n,i)*((wtaq0(n,i)+  &
+                          & wtlq0(n,i))*qg1d(n,i)-wtaq0(n,i)*qs1d(n,i)- &
+                          & wtlq0(n,i)*qsatl(n,i))+qbare)
  
 !l            5.3  deriv of soil energy flux with respect to soil temp
-              qsatdg = qg1d(n,np)*rgr(n,np)*a(n,np)*(tmelt-b(n,np))     &
-                     & *(1./(tg1d(n,np)-b(n,np)))**2
-              cgrnds(n,np) = rhs1d(n,np)*cpd                          &
-                           & *(wtg(n,np)*(wta0(n,np)+wtl0(n,np))        &
-                           & +wtg2(n,np))
-              cgrndl(n,np) = rhs1d(n,np)                                &
-                           & *qsatdg*((wta(n,np)+wtlq(n,np))*wtg(n,np)  &
-                           & *wtsqi(n,np)+wtg2(n,np))
-              cgrnd(n,np) = cgrnds(n,np) + cgrndl(n,np)*htvp(n,np)
+              qsatdg = qg1d(n,i)*rgr(n,i)*a(n,i)*(tmelt-b(n,i))         &
+                     & *(1./(tg1d(n,i)-b(n,i)))**2
+              cgrnds(n,i) = rhs1d(n,i)*cpd*(wtg(n,i)*(wta0(n,i)+        &
+                     & wtl0(n,i))+wtg2(n,i))
+              cgrndl(n,i) = rhs1d(n,i)*qsatdg*((wta(n,i)+wtlq(n,i))*    &
+                     & wtg(n,i)*wtsqi(n,i)+wtg2(n,i))
+              cgrnd(n,i) = cgrnds(n,i) + cgrndl(n,i)*htvp(n,i)
  
 !l            5.4  reinitialize cdrx
 !!!           shuttleworth mods #3 removed here !!!!!!
-              cdrx(n,np) = cdr(n,np)
+              cdrx(n,i) = cdr(n,i)
 !
 !l            5.5  fluxes from canopy and soil to overlying air
-              fbare = wtg2(n,np)*(tg1d(n,np)-ts1d(n,np))
-              qbare = wtg2(n,np)*(qg1d(n,np)-qs1d(n,np))
-              sent1d(n,np) = cpd*rhs1d(n,np)                          &
-                           & *(-wta(n,np)*delt1d(n,np)+fbare)
-              evpr1d(n,np) = rhs1d(n,np)                                &
-                           & *(-wta(n,np)*delq1d(n,np)+rgr(n,np)*qbare)
+              fbare = wtg2(n,i)*(tg1d(n,i)-ts1d(n,i))
+              qbare = wtg2(n,i)*(qg1d(n,i)-qs1d(n,i))
+              sent1d(n,i) = cpd*rhs1d(n,i)*(-wta(n,i)*delt1d(n,i)+fbare)
+              evpr1d(n,i) = rhs1d(n,i)*(-wta(n,i)*delq1d(n,i)+          &
+                     & rgr(n,i)*qbare)
             end if
           end if
         end do

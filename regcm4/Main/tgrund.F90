@@ -60,7 +60,7 @@
 !
 ! Local variables
 !
-      real(8) , dimension(nnsg,nbmax) :: bb , bcoef , cc , depann ,     &
+      real(8) , dimension(nnsg,ixm1) :: bb , bcoef , cc , depann ,      &
            & depdiu , deprat , fct2 , hs , rscsa , rscsd , ska , skd ,  &
            & sks , swtrta , swtrtd
       real(8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
@@ -69,7 +69,7 @@
                & xkperi , xnu , xnua
       real(8) :: fct1 , fsc , fsk
       real(8) :: dtbat2 , rdtbat2
-      integer :: n , np
+      integer :: n , i
  
       fsk(x) = (2.9E-7*x+4.E-9)/(((1.-0.6*x)*x+0.09)*(0.23+x))
       fsc(x) = (0.23+x)*4.186E6
@@ -92,100 +92,100 @@
 !l    3.4  permafrost temperature
       t3 = 271.
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 .and. ldoc1d(n,np).lt.1.5 ) then
+          if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
  
 !l          1.1  frozen ground values using 44 m2/yr for frozen ground
 !l          thermal diffusion coefficient, based on the values of
 !l          50 and 38 quoted by osterkamp; ice contribution to
 !l          specific heat only o.49 that of water
  
-            swtrtd(n,np) = watu(n,np)*porsl(n,np)
-            if ( tg1d(n,np).lt.tmelt ) then
-              frozen = 0.85*dmin1(1.D0,.25*(tmelt-tg1d(n,np)))
-              skd(n,np) = xkperi
-              rscsd(n,np) = fsc(swtrtd(n,np)*(1.-0.51*frozen))
+            swtrtd(n,i) = watu(n,i)*porsl(n,i)
+            if ( tg1d(n,i).lt.tmelt ) then
+              frozen = 0.85*dmin1(1.D0,.25*(tmelt-tg1d(n,i)))
+              skd(n,i) = xkperi
+              rscsd(n,i) = fsc(swtrtd(n,i)*(1.-0.51*frozen))
             else
-              skd(n,np) = fsk(swtrtd(n,np))*texrat(n,np)
-              rscsd(n,np) = fsc(swtrtd(n,np))
+              skd(n,i) = fsk(swtrtd(n,i))*texrat(n,i)
+              rscsd(n,i) = fsc(swtrtd(n,i))
             end if
-            swtrta(n,np) = watr(n,np)*porsl(n,np)
-            if ( tgb1d(n,np).lt.tmelt ) then
-              froze2 = 0.85*dmin1(1.D0,.25*(tmelt-tgb1d(n,np)))
-              ska(n,np) = xkperi
-              rscsa(n,np) = fsc(swtrta(n,np)*(1.-0.51*froze2))
+            swtrta(n,i) = watr(n,i)*porsl(n,i)
+            if ( tgb1d(n,i).lt.tmelt ) then
+              froze2 = 0.85*dmin1(1.D0,.25*(tmelt-tgb1d(n,i)))
+              ska(n,i) = xkperi
+              rscsa(n,i) = fsc(swtrta(n,i)*(1.-0.51*froze2))
             else
-              ska(n,np) = fsk(swtrta(n,np))*texrat(n,np)
-              rscsa(n,np) = fsc(swtrta(n,np))
+              ska(n,i) = fsk(swtrta(n,i))*texrat(n,i)
+              rscsa(n,i) = fsc(swtrta(n,i))
             end if
  
 !l          1.2  correct for snow cover, if significant
-            depdiu(n,np) = dsqrt(2.*skd(n,np)/xnu)
-            bcoef(n,np) = dtime*depdiu(n,np)/(rscsd(n,np)*skd(n,np))
-            if ( scv1d(n,np).gt.1.0 ) then
-              wtd = dexp(-2.*scrat(n,np)/depdiu(n,np))
-              rscss = csnw*rhosw(n,np)
-              sks(n,np) = 7.E-7*cws*rhosw(n,np)
-              bcoefs = dsqrt(2.*sks(n,np)/xnu)/(rscss*sks(n,np))
-              wtds = (1.-wtd)*scvk(n,np)
-              bcoefd = dsqrt(2.*skd(n,np)/xnu)/(rscsd(n,np)*skd(n,np))
-              bcoef(n,np) = dtime*(wtds*bcoefs+(1.-wtds)*bcoefd)
-              depdiu(n,np) = wtds*dsqrt(2.*sks(n,np)/xnu) + (1.-wtds)   &
-                           & *depdiu(n,np)
+            depdiu(n,i) = dsqrt(2.*skd(n,i)/xnu)
+            bcoef(n,i) = dtime*depdiu(n,i)/(rscsd(n,i)*skd(n,i))
+            if ( scv1d(n,i).gt.1.0 ) then
+              wtd = dexp(-2.*scrat(n,i)/depdiu(n,i))
+              rscss = csnw*rhosw(n,i)
+              sks(n,i) = 7.E-7*cws*rhosw(n,i)
+              bcoefs = dsqrt(2.*sks(n,i)/xnu)/(rscss*sks(n,i))
+              wtds = (1.-wtd)*scvk(n,i)
+              bcoefd = dsqrt(2.*skd(n,i)/xnu)/(rscsd(n,i)*skd(n,i))
+              bcoef(n,i) = dtime*(wtds*bcoefs+(1.-wtds)*bcoefd)
+              depdiu(n,i) = wtds*dsqrt(2.*sks(n,i)/xnu) + (1.-wtds)     &
+                           & *depdiu(n,i)
             end if
-            depann(n,np) = dsqrt(2.*ska(n,np)/xnua)
-            if ( scv1d(n,np).gt.20. ) then
-              wtax = dexp(-2.*scrat(n,np)/depann(n,np))
-              wtas = (1.-wtax)*scvk(n,np)
-              depann(n,np) = wtas*dsqrt(2.*sks(n,np)/xnua) + (1.-wtas)  &
-                           & *depann(n,np)
+            depann(n,i) = dsqrt(2.*ska(n,i)/xnua)
+            if ( scv1d(n,i).gt.20. ) then
+              wtax = dexp(-2.*scrat(n,i)/depann(n,i))
+              wtas = (1.-wtax)*scvk(n,i)
+              depann(n,i) = wtas*dsqrt(2.*sks(n,i)/xnua) + (1.-wtas)    &
+                           & *depann(n,i)
             end if
-            deprat(n,np) = depann(n,np)/depdiu(n,np)
+            deprat(n,i) = depann(n,i)/depdiu(n,i)
  
 !=======================================================================
 !l          2.   collect force restore terms
 !=======================================================================
-            cc(n,np) = 1.0
-            fct2(n,np) = 0.
+            cc(n,i) = 1.0
+            fct2(n,i) = 0.
 !
 !l          2.1  add freezing thermal inertia
-            if ( (tg1d(n,np).lt.tmelt) .and. (tg1d(n,np).gt.(tmelt-4.)) &
-               & .and. (sice1d(n,np).le.1.E-22) ) then
-              depu = depuv(lveg(n,np))*1.E-3
-              cc(n,np) = 1. + dmax1(ssw1d(n,np)-frezu(lveg(n,np)),0.D0) &
-                       & *fct1(depu*rscsd(n,np))
+            if ( (tg1d(n,i).lt.tmelt) .and. (tg1d(n,i).gt.(tmelt-4.))   &
+               & .and. (sice1d(n,i).le.1.E-22) ) then
+              depu = depuv(lveg(n,i))*1.E-3
+              cc(n,i) = 1. + dmax1(ssw1d(n,i)-frezu(lveg(n,i)),0.D0)    &
+                       & *fct1(depu*rscsd(n,i))
             end if
-            if ( (tgb1d(n,np).lt.tmelt) .and.                           &
-               & (tgb1d(n,np).gt.(tmelt-4.)) .and.                      &
-               & (sice1d(n,np).le.1.E-22) ) then
-              depr = deprv(lveg(n,np))*1.E-3
-              fct2(n,np) = dmax1(rsw1d(n,np)-freza(lveg(n,np)),0.D0)    &
-                         & *fct1(depr*rscsa(n,np))
+            if ( (tgb1d(n,i).lt.tmelt) .and.                            &
+               & (tgb1d(n,i).gt.(tmelt-4.)) .and.                       &
+               & (sice1d(n,i).le.1.E-22) ) then
+              depr = deprv(lveg(n,i))*1.E-3
+              fct2(n,i) = dmax1(rsw1d(n,i)-freza(lveg(n,i)),0.D0)       &
+                         & *fct1(depr*rscsa(n,i))
             end if
  
 !l          2.2  large thermal inertial for permanent ice cap
-            if ( lveg(n,np).eq.12 ) fct2(n,np) = 1.E3*fct2(n,np)
+            if ( lveg(n,i).eq.12 ) fct2(n,i) = 1.E3*fct2(n,i)
  
 !l          2.3  collect energy flux terms
-            rnet(n,np) = fsw1d(np) - sigf(n,np)*(sabveg(np)-flnet(n,np))&
-                       & - (1.-sigf(n,np))                              &
-                       & *(flw1d(np)-sigf(n,np)*flneto(n,np))
-            hs(n,np) = rnet(n,np) - fseng(n,np) - fevpg(n,np)*htvp(n,np)
-            bb(n,np) = bcoef(n,np)*hs(n,np) + dtime*tgb1d(n,np)
+            rnet(n,i) = fsw1d(i) - sigf(n,i)*(sabveg(i)-flnet(n,i))     &
+                       & - (1.-sigf(n,i))                               &
+                       & *(flw1d(i)-sigf(n,i)*flneto(n,i))
+            hs(n,i) = rnet(n,i) - fseng(n,i) - fevpg(n,i)*htvp(n,i)
+            bb(n,i) = bcoef(n,i)*hs(n,i) + dtime*tgb1d(n,i)
  
 !l          2.4  add in snowmelt (melt enough snow to reach freezing
 !           temp)
-            sm(n,np) = 0.0
-            if ( scv1d(n,np).gt.0.0 ) then
-              cder = bcoef(n,np)*cgrnd(n,np)
-              sm(n,np) = (bb(n,np)+(cc(n,np)-dt2+cder)*tg1d(n,np)-tmelt &
-                       & *(cc(n,np)+dt2+cder))/(bcoef(n,np)*wlhf)
+            sm(n,i) = 0.0
+            if ( scv1d(n,i).gt.0.0 ) then
+              cder = bcoef(n,i)*cgrnd(n,i)
+              sm(n,i) = (bb(n,i)+(cc(n,i)-dt2+cder)*tg1d(n,i)-tmelt     &
+                       & *(cc(n,i)+dt2+cder))/(bcoef(n,i)*wlhf)
 !             **********              snow melt always between 0 and
 !             total snow
-              sm(n,np) = dmax1(0.D0,dmin1(sm(n,np),scv1d(n,np)*2.*      &
+              sm(n,i) = dmax1(0.D0,dmin1(sm(n,i),scv1d(n,i)*2.*         &
                        & rdtbat2))
-              bb(n,np) = bb(n,np) - bcoef(n,np)*wlhf*sm(n,np)
+              bb(n,i) = bb(n,i) - bcoef(n,i)*wlhf*sm(n,i)
             end if
           end if
         end do
@@ -195,38 +195,38 @@
 !l    3.   update soil temperatures
 !=======================================================================
 !l    3.1  update surface soil temperature
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 .and. ldoc1d(n,np).lt.1.5 ) then
-            tbef = tg1d(n,np)
-            cder = bcoef(n,np)*cgrnd(n,np)
-            tg = (bb(n,np)+(cc(n,np)-dt2+cder)*tg1d(n,np))              &
-               & /(cc(n,np)+dt2+cder)
-            tg1d(n,np) = tg
+          if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
+            tbef = tg1d(n,i)
+            cder = bcoef(n,i)*cgrnd(n,i)
+            tg = (bb(n,i)+(cc(n,i)-dt2+cder)*tg1d(n,i))/(cc(n,i)+       &
+                   & dt2+cder)
+            tg1d(n,i) = tg
  
 !l          3.2  put brakes on large temperature excursions
-            tg1d(n,np) = dmin1(tbef+10.,tg1d(n,np))
-            tg1d(n,np) = dmax1(tbef-10.,tg1d(n,np))
+            tg1d(n,i) = dmin1(tbef+10.,tg1d(n,i))
+            tg1d(n,i) = dmax1(tbef-10.,tg1d(n,i))
  
 !l          3.3  correct fluxes to present soil temperature
-            tinc = tg1d(n,np) - tbef
-            sent1d(n,np) = sent1d(n,np) + tinc*cgrnds(n,np)
-            evpr1d(n,np) = evpr1d(n,np) + tinc*cgrndl(n,np)
-            fseng(n,np) = fseng(n,np) + tinc*cgrnds(n,np)
-            fevpg(n,np) = fevpg(n,np) + tinc*cgrndl(n,np)
+            tinc = tg1d(n,i) - tbef
+            sent1d(n,i) = sent1d(n,i) + tinc*cgrnds(n,i)
+            evpr1d(n,i) = evpr1d(n,i) + tinc*cgrndl(n,i)
+            fseng(n,i) = fseng(n,i) + tinc*cgrnds(n,i)
+            fevpg(n,i) = fevpg(n,i) + tinc*cgrndl(n,i)
 !
 !l          3.5  couple to deep temperature in permafrost
 !l          3.6  update subsoil temperature
-            if ( lveg(n,np).eq.9 .or. lveg(n,np).eq.12 ) then
-              c31 = 0.5*dtimea*(1.+deprat(n,np))
-              c41 = dtimea*deprat(n,np)
-              tgb1d(n,np) = ((1.-c31+fct2(n,np))*tgb1d(n,np)+c41*tg1d(n,&
-                          & np)+dtimea*t3)/(1.+c31+fct2(n,np))
+            if ( lveg(n,i).eq.9 .or. lveg(n,i).eq.12 ) then
+              c31 = 0.5*dtimea*(1.+deprat(n,i))
+              c41 = dtimea*deprat(n,i)
+              tgb1d(n,i) = ((1.-c31+fct2(n,i))*tgb1d(n,i)+c41*tg1d(n,i)+&
+                    & dtimea*t3)/(1.+c31+fct2(n,i))
             else
-              c3t = 0.5*dtimea*deprat(n,np)
-              c4t = dtimea*deprat(n,np)
-              tgb1d(n,np) = ((1.-c3t+fct2(n,np))*tgb1d(n,np)+c4t*tg1d(n,&
-                          & np))/(1.+c3t+fct2(n,np))
+              c3t = 0.5*dtimea*deprat(n,i)
+              c4t = dtimea*deprat(n,i)
+              tgb1d(n,i) = ((1.-c3t+fct2(n,i))*tgb1d(n,i)+c4t*tg1d(n,i))&
+                     & /(1.+c3t+fct2(n,i))
             end if
           end if
         end do

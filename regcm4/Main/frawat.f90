@@ -27,33 +27,32 @@
 !  which are wet because mod_stems can evaporate, fdry is the fraction
 !  of lai which is dry because only leaves can transpire
 !
-!  ldew1d(np) is in kg/m**2/s
+!  ldew1d(i) is in kg/m**2/s
 !  fwet   = ratio of dew to max value to 2/3 power
 !           ( 2/3 power comes from deardorff (1978) )
 !              ** keep fwet le 1.0 **
 !  dewmxi = inverse of max allowed dew depth on leaf in mm
 !
       use mod_regcm_param
-      use mod_bats , only : npts , ldoc1d , sigf , ldew1d , fwet ,      &
-                   & xlsai , fdry , vegt , xlai
+      use mod_bats , only : xlai , ldoc1d , sigf , ldew1d , fwet ,      &
+                   & xlsai , fdry , vegt
       use mod_constants , only : dewmxi
       implicit none
 !
 ! Local variables
 !
-      integer :: n , np
+      integer :: n , i
 !
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              fwet(n,np) = 0.
-              if ( ldew1d(n,np).gt.0. ) then
-                fwet(n,np) = ((dewmxi/vegt(n,np))*ldew1d(n,np))         &
-                           & **.666666666666
-                fwet(n,np) = dmin1(fwet(n,np),1.D0)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              fwet(n,i) = 0.
+              if ( ldew1d(n,i).gt.0. ) then
+                fwet(n,i) = ((dewmxi/vegt(n,i))*ldew1d(n,i))**(2.0/3.0)
+                fwet(n,i) = dmin1(fwet(n,i),1.D0)
               end if
-              fdry(n,np) = (1.-fwet(n,np))*xlai(n,np)/xlsai(n,np)
+              fdry(n,i) = (1.-fwet(n,i))*xlai(n,i)/xlsai(n,i)
             end if
           end if
         end do

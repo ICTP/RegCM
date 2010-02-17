@@ -35,49 +35,48 @@
 !     cdrn = neutral drag coeff for momentum avgd over grid point
 !
       use mod_regcm_param
-      use mod_bats , only : npts , lveg , z1d , z1 , z1log , cdrn ,     &
-                   & sigf , sice1d , ldoc1d , veg1d , scvk , rough ,    &
-                   & wt , displa
+      use mod_bats , only : displa , lveg , z1d , z1 , z1log , cdrn ,   &
+                   & sigf , sice1d , ldoc1d , veg1d , scvk , rough , wt
       use mod_constants , only : zlnd , zoce , zsno , vonkar
       implicit none
 !
 ! Local variables
 !
       real(8) :: asigf , cdb , cds , cdv , frab , fras , frav
-      integer :: n , np
+      integer :: n , i
 !
 !     ******           sea ice classified same as desert
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( lveg(n,np).le.0 .and. sice1d(n,np).gt.0. ) lveg(n,np) = 8
+          if ( lveg(n,i).le.0 .and. sice1d(n,i).gt.0. ) lveg(n,i) = 8
         end do
       end do
  
       call depth
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
  
-          z1(n,np) = z1d(n,np)
-          z1log(n,np) = dlog(z1(n,np))
+          z1(n,i) = z1d(n,i)
+          z1log(n,i) = dlog(z1(n,i))
  
-          if ( ldoc1d(n,np).gt.0.5 ) then
+          if ( ldoc1d(n,i).gt.0.5 ) then
  
 !           ******           drag coeff over land
-            frav = sigf(n,np)
-            asigf = veg1d(n,np)
-            fras = asigf*wt(n,np) + (1.-asigf)*scvk(n,np)
-            frab = (1.-asigf)*(1.-scvk(n,np))
-            cdb = (vonkar/dlog(z1(n,np)/zlnd))**2
-            cds = (vonkar/dlog(z1(n,np)/zsno))**2
-            cdv = (vonkar/dlog((z1(n,np)-displa(lveg(n,np)))/rough(lveg(&
-                & n,np))))**2
-            cdrn(n,np) = frav*cdv + frab*cdb + fras*cds
+            frav = sigf(n,i)
+            asigf = veg1d(n,i)
+            fras = asigf*wt(n,i) + (1.-asigf)*scvk(n,i)
+            frab = (1.-asigf)*(1.-scvk(n,i))
+            cdb = (vonkar/dlog(z1(n,i)/zlnd))**2
+            cds = (vonkar/dlog(z1(n,i)/zsno))**2
+            cdv = (vonkar/dlog((z1(n,i)-displa(lveg(n,i)))/             &
+                & rough(lveg(n,i))))**2
+            cdrn(n,i) = frav*cdv + frab*cdb + fras*cds
  
           else
 !           ******           drag coeff over ocean
-            sigf(n,np) = 0.0
-            cdrn(n,np) = (vonkar/dlog(z1(n,np)/zoce))**2
+            sigf(n,i) = 0.0
+            cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**2
           end if
         end do
       end do

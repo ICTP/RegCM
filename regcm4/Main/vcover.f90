@@ -29,27 +29,27 @@
 !
 ! Local variables
 !
-      integer :: n , np
+      integer :: n , i
 !
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) seasb(n,np)                      &
-               & = dmax1(0.D0,1.-0.0016*dmax1(298.-tgb1d(n,np),0.D0)**2)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) seasb(n,i)                        &
+               & = dmax1(0.D0,1.-0.0016*dmax1(298.-tgb1d(n,i),0.D0)**2)
           end if
         end do
       end do
  
-      do np = np1 , npts
+      do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( ldoc1d(n,np).gt.0.5 ) then
-            if ( sigf(n,np).gt.0.001 ) then
-              xlai(n,np) = xla(lveg(n,np))
-              xlai(n,np) = xlai(n,np) + (xlai0(lveg(n,np))-xlai(n,np))  &
-                         & *(1.-seasb(n,np))
-              rlai(n,np) = xlai(n,np) + sai(lveg(n,np))
-              xlsai(n,np) = xlai(n,np) + sai(lveg(n,np))
-              vegt(n,np) = sigf(n,np)*xlsai(n,np)
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              xlai(n,i) = xla(lveg(n,i))
+              xlai(n,i) = xlai(n,i) + (xlai0(lveg(n,i))-xlai(n,i))      &
+                         & *(1.-seasb(n,i))
+              rlai(n,i) = xlai(n,i) + sai(lveg(n,i))
+              xlsai(n,i) = xlai(n,i) + sai(lveg(n,i))
+              vegt(n,i) = sigf(n,i)*xlsai(n,i)
             end if
           end if
         end do

@@ -20,8 +20,6 @@
       module mod_crdcae
       implicit none
 !
-! COMMON /CRDCAD/
-!
       real(8) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
       real(8) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
       real(8) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
@@ -34,7 +32,6 @@
       real(8) , dimension(2,4) :: coefg , coefh
       real(8) , dimension(3,2) :: coefj , coefk
 !
-!     /CRDCAD/
 !     H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
 !
       data coefa/1.01400D+00 , 6.41695D-03 , 2.85787D-05 , 1.01320D+00 ,&

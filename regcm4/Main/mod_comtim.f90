@@ -18,9 +18,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_comtim
+
       implicit none
-!
-! COMMON /COMTIM/
 !
       real(8) :: calday , dtime , twodt
       logical :: doabsems , dolw , dosw
