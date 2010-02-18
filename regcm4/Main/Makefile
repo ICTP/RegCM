@@ -1,8 +1,6 @@
-include ../Makefile.inc
+include ../Makefile.inc.intel
 
 SCENARIO = A1B
-#SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
-#F90FLAGS += -fconvert=big-endian $(SVNDEF) -DMPP1 -DDIAG
 
 all:: regcm
 
@@ -17,7 +15,7 @@ mod_bxq.o        mod_dust.o       mod_param2.o     mod_tracer0.o     \
 mod_comctl.o     mod_param3.o     mod_tracer.o     mod_comozp.o      \
 mod_grads.o      mod_pmoist.o     mod_trachem.o    mod_comtim.o      \
 mod_ictp01.o     mod_constants.o  mod_iunits.o     mod_regcm_param.o \
-mod_pbldim.o     mod_convect.o    mod_lake.o
+mod_pbldim.o     mod_convect.o    mod_lake.o       mod_interfaces.o
 
 OBJS = \
 aermix.o          cup.o         isrchfgt.o  radclw.o    tractend2.o  \
