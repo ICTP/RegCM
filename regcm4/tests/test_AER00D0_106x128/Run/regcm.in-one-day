@@ -1,18 +1,18 @@
- $restartparam
+ &restartparam
  ifrest  = .false. ,
  idate0  = 1989010100,
  idate1  = 1989010100,
  idate2  = 1989010200,
  nslice  =        120,
  /
- $timeparam
+ &timeparam
  radfrq  =    30.,
  abemh   =    18.,
  abatm   =   600.,
  dt      =   150.,
  ibdyfrq =          6,
  /
- $outparam
+ &outparam
  ifsave  = .true. ,
    savfrq  = 48000.,
  iftape  = .true. ,
@@ -31,7 +31,7 @@
  ifchem  = .false.,
    chemfrq =     6.,
  /
- $physicsparam
+ &physicsparam
  iboudy  =          5,
  ibltyp  =          1,
  icup    =          2,
@@ -43,17 +43,17 @@
  lakemod =          0,
  ichem   =          0,
  /
- $subexparam
+ &subexparam
  qck1land=  0.250E-03,
  qck1oce =  0.250E-03,
  cevap   =  0.100E-02,
  caccr   =      3.000,
  /
- $grellparam
+ &grellparam
  /
- $emanparam
+ &emanparam
  /
-  $chemparam
+  &chemparam
  idirect   =    1,
  chtrname  =                                                                    'xxxxxx',
  chtrsol   =  0.00,
