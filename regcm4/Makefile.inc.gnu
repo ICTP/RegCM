@@ -9,7 +9,6 @@ REGCM_BASE_DIR = myregcmdir
 # general compile options
 CPPFLAGS = -DDIAG -DMPP1
 USCORING = -fno-underscoring
-FFLAGS =  -O0 -g -fbounds-check -ffpe-trap=zero -fconvert=big-endian -Wall -pedantic
-FC = mpif90
+F90FLAGS =  -O0 -g -fbounds-check -ffpe-trap=zero -fconvert=big-endian -Wall -pedantic
 F90 = mpif90
 LD =$(FC)
