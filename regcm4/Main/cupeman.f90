@@ -164,7 +164,7 @@
 !
       use mod_convect
       use mod_constants , only : gti , rgti , cpd , rcpd , cpv , rgas , &
-                               & rwat , wlhv , tmelt
+                               & rwat , wlhv , tzero
       implicit none
 !
 !
@@ -317,7 +317,7 @@
               do j = i , jn
                 th(j) = ahm/a2
                 t(j) = t(j)*th(j)
-                tc = told(j) - tmelt
+                tc = told(j) - tzero
                 alv = wlhv - cpvmcl*tc
                 qs(j) = qs(j) + qs(j)*(1.+qs(j)*(epsi-1.))              &
                       & *alv*(t(j)-told(j))/(rwat*told(j)*told(j))
@@ -338,11 +338,11 @@
         if ( jc.gt.1 ) then
           do j = 1 , jc
             if ( qs(j).lt.q(j) ) then
-              alv = wlhv - cpvmcl*(t(j)-tmelt)
+              alv = wlhv - cpvmcl*(t(j)-tzero)
               tnew = t(j) + alv*(q(j)-qs(j))                            &
                    & /(cpd*(1.-q(j))+cl*q(j)+qs(j)                      &
                    & *(cpv-cl+alv*alv/(rwat*t(j)*t(j))))
-              alvnew = wlhv - cpvmcl*(tnew-tmelt)
+              alvnew = wlhv - cpvmcl*(tnew-tzero)
               qnew = (alv*q(j)-(tnew-t(j))*(cpd*(1.-q(j))+cl*q(j)))     &
                    & /alvnew
 !rcm          precip=precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
@@ -362,7 +362,7 @@
       gz(1) = 0.0
       cpn(1) = cpd*(1.-q(1)) + q(1)*cpv
       h(1) = t(1)*cpn(1)
-      lv(1) = wlhv - cpvmcl*(t(1)-tmelt)
+      lv(1) = wlhv - cpvmcl*(t(1)-tzero)
       hm(1) = lv(1)*q(1)
       tv(1) = t(1)*(1.+q(1)*epsi-q(1))
       ahmin = 1.0E12
@@ -373,7 +373,7 @@
         gz(i) = gz(i-1) + 0.5*rgas*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
         cpn(i) = cpd*(1.-q(i)) + cpv*q(i)
         h(i) = t(i)*cpn(i) + gz(i)
-        lv(i) = wlhv - cpvmcl*(t(i)-tmelt)
+        lv(i) = wlhv - cpvmcl*(t(i)-tzero)
         hm(i) = (cpd*(1.-q(i))+cl*q(i))*(t(i)-t(1)) + lv(i)*q(i) + gz(i)
         tv(i) = t(i)*(1.+q(i)*epsi-q(i))
 !
@@ -468,7 +468,7 @@
         sigp(i) = sigs
       end do
       do i = nk + 1 , nl
-        tca = tp(i) - tmelt
+        tca = tp(i) - tzero
         if ( tca.ge.0.0 ) then
           elacrit = elcrit
         else
@@ -772,7 +772,7 @@
 !
 !         ***  value of terminal velocity and coefficient of
 !         evaporation for rain   ***
-          if ( t(i).gt.tmelt) then
+          if ( t(i).gt.tzero) then
             coeff = coeffr
             wt(i) = omtrain
           end if
@@ -1035,7 +1035,7 @@
       subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
 
       use mod_constants , only : rgas , rwat , cpd , cpv , rcpd ,       &
-                               & wlhv , tmelt
+                               & wlhv , tzero
       implicit none
 !
 ! Dummy arguments
@@ -1064,7 +1064,7 @@
 !     ***  calculate certain parcel quantities, including static energy
 !     ***
       ah0 = (cpd*(1.-q(nk))+cl*q(nk))*t(nk) + q(nk)                     &
-          & *(wlhv-cpvmcl*(t(nk)-tmelt)) + gz(nk)
+          & *(wlhv-cpvmcl*(t(nk)-tzero)) + gz(nk)
       cpp = cpd*(1.-q(nk)) + q(nk)*cpv
       cpinv = 1./cpp
 !
@@ -1092,14 +1092,14 @@
       do i = nsb , nst
         tg = t(i)
         qg = qs(i)
-        alv = wlhv - cpvmcl*(t(i)-tmelt)
+        alv = wlhv - cpvmcl*(t(i)-tzero)
         do j = 1 , 2
           s = cpd + alv*alv*qg/(rwat*t(i)*t(i))
           s = 1./s
           ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
           tg = tg + s*(ah0-ahg)
           tg = max(tg,35.0D0)
-          tc = tg - tmelt
+          tc = tg - tzero
           denom = 243.5 + tc
           if ( tc.ge.0.0 ) then
             es = 6.112*exp(17.67*tc/denom)
@@ -1108,7 +1108,7 @@
           end if
           qg = eps*es/(p(i)-es*(1.-eps))
         end do
-        alv = wlhv - cpvmcl*(t(i)-tmelt)
+        alv = wlhv - cpvmcl*(t(i)-tzero)
         tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
         clw(i) = q(nk) - qg
         clw(i) = max(0.0D0,clw(i))

@@ -21,7 +21,7 @@
  
 ! Computes density, eddy diffusivity and variable time step
  
-      use mod_constants , only : gti , tmelt
+      use mod_constants , only : gti , tzero
       implicit none
 !
 ! PARAMETER definitions
@@ -47,7 +47,7 @@
       demax = .99*demax
       rimax = 0.0
       do k = 1 , depth
-        dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,1)+tmelt)-277.0))  &
+        dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,1)+tzero)-277.0))  &
                  & **1.68)
       end do
  

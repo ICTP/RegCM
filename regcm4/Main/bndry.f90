@@ -72,7 +72,7 @@
                   & scv1d , sag1d , gwet1d , drag1d , rhs1d , qs1d ,    &
                   & taf1d , p1d , ldoc1d , lveg , rsw1d , tsw1d , qg1d ,&
                   & sigf , cdrx , prcp1d
-      use mod_constants , only : tmelt , wlhv , wlhs , cpd
+      use mod_constants , only : tzero , wlhv , wlhs , cpd
       use mod_ictp01
       implicit none
 !
@@ -93,7 +93,7 @@
         do n = 1 , nnsg
  
           htvp(n,i) = wlhv
-          if ( (tg1d(n,i).lt.tmelt .and. ldoc1d(n,i).gt.0.5) .or.       &
+          if ( (tg1d(n,i).lt.tzero .and. ldoc1d(n,i).gt.0.5) .or.       &
              & scv1d(n,i).gt.0. ) htvp(n,i) = wlhs
           sdrop(n,i) = 0.
           etrrun(n,i) = 0.
@@ -143,7 +143,7 @@
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).le.0.001 .and. ldoc1d(n,i).lt.1.5 ) then
-              qsatd = qg1d(n,i)*gwet1d(n,i)*a(n,i)*(tmelt-b(n,i))       &
+              qsatd = qg1d(n,i)*gwet1d(n,i)*a(n,i)*(tzero-b(n,i))       &
                     & *(1./(tg1d(n,i)-b(n,i)))**2
               rai = cdrx(n,i)*vspda(n,i)*rhs1d(n,i)
               cgrnds(n,i) = rai*cpd

@@ -20,7 +20,7 @@
       subroutine lutbl(ptop)
 !
       use mod_bmparam
-      use mod_constants , only : cpd , rgas , rovcp , tmelt , c3les ,   &
+      use mod_constants , only : cpd , rgas , rovcp , tzero , c3les ,   &
                                & c4les , eliwv , pq0
       implicit none
 !
@@ -75,7 +75,7 @@
         do kp = 1 , kpm
           p = p + dp
           ape = (100000.D0/p)**(rovcp)
-          qsold(kp) = pq0/p*exp(c3les*(th-tmelt*ape)/(th-c4les*ape))
+          qsold(kp) = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
           pold(kp) = p
         end do
 !
@@ -124,7 +124,7 @@
         do kth = 1 , kthm
           th = th + dth
           ape = (100000.D0/p)**(rovcp)
-          qs = pq0/p*exp(c3les*(th-tmelt*ape)/(th-c4les*ape))
+          qs = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
           told(kth) = th/ape
           theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
         end do

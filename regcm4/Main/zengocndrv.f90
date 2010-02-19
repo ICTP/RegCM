@@ -29,7 +29,7 @@
       use mod_bats , only : tgb1d , ocld2d , tgb2d , tg1d , sent1d ,    &
                    & evpr1d , drag1d , u10m1d , v10m1d , t2m_1d , q2m_1d
       use mod_date , only : jyear , jyearr , ntime , ktau , ktaur
-      use mod_constants , only : wlhv , tmelt
+      use mod_constants , only : wlhv , tzero
 
       implicit none
 
@@ -49,8 +49,8 @@
         do n = 1 , ng
           if ( ocld2d(n,i,j).lt.0.5 ) then
             uv995 = sqrt(ubx3d(i,k,j)**2+vbx3d(i,k,j)**2)
-            tsurf = tgb(i,j) - tmelt
-            t995 = tb3d(i,k,j) - tmelt
+            tsurf = tgb(i,j) - tzero
+            t995 = tb3d(i,k,j) - tzero
             q995 = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
             z995 = za(i,k,j)
             zi = zpbl(i,j)
@@ -66,7 +66,7 @@
             facttq = dlog(z995/2.)/dlog(z995/zo)
             u10m1d(n,i) = ubx3d(i,k,j)*uv10/uv995
             v10m1d(n,i) = vbx3d(i,k,j)*uv10/uv995
-            t2m_1d(n,i) = t995 + tmelt - dth*facttq
+            t2m_1d(n,i) = t995 + tzero - dth*facttq
 !
             if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or.             &
                & (jyear.eq.jyearr .and. ktau.eq.ktaur) ) then

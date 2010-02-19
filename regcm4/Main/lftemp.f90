@@ -70,7 +70,7 @@
       use mod_param1 , only : dtbat
       use mod_bats
       use mod_ictp01
-      use mod_constants , only : tmelt , c1es , sigm , wlhv , cpd , ep2
+      use mod_constants , only : tzero , c1es , sigm , wlhv , cpd , ep2
       implicit none
 !
 ! Dummy arguments
@@ -155,7 +155,7 @@
  
 !l              2.3  recalculate saturation vapor pressure
                 eg1 = eg(n,i)
-                eg(n,i) = c1es*dexp(a(n,i)*(tlef1d(n,i)-tmelt)/         &
+                eg(n,i) = c1es*dexp(a(n,i)*(tlef1d(n,i)-tzero)/         &
                          & (tlef1d(n,i)-b(n,i)))
                 qsatl(n,i) = qsatl(n,i)*eg(n,i)/eg1
               end if
@@ -307,7 +307,7 @@
                           & wtlq0(n,i)*qsatl(n,i))+qbare)
  
 !l            5.3  deriv of soil energy flux with respect to soil temp
-              qsatdg = qg1d(n,i)*rgr(n,i)*a(n,i)*(tmelt-b(n,i))         &
+              qsatdg = qg1d(n,i)*rgr(n,i)*a(n,i)*(tzero-b(n,i))         &
                      & *(1./(tg1d(n,i)-b(n,i)))**2
               cgrnds(n,i) = rhs1d(n,i)*cpd*(wtg(n,i)*(wta0(n,i)+        &
                      & wtl0(n,i))+wtg2(n,i))

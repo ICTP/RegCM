@@ -25,7 +25,7 @@
       use mod_regcm_param
       use mod_bats , only : etrrun , ldew1d , vegt , sdrop , xrun ,     &
                     & ldoc1d , sigf , tm
-      use mod_constants , only : dewmx , tmelt
+      use mod_constants , only : dewmx , tzero
       implicit none
 !
 ! Local variables
@@ -50,7 +50,7 @@
  
 !             ***********         below freezing excess leaf water
 !             falls as snow
-              if ( (xrun(n,i).gt.0.) .and. (tm(n,i).lt.tmelt) ) then
+              if ( (xrun(n,i).gt.0.) .and. (tm(n,i).lt.tzero) ) then
                 etrrun(n,i) = 0.
                 sdrop(n,i) = xrun(n,i)
               end if

@@ -30,7 +30,7 @@
       use mod_regcm_param
       use mod_ictp01
       use mod_bats
-      use mod_constants , only : tmelt , c1es , c4ies , c4les , c3ies , &
+      use mod_constants , only : tzero , c1es , c4ies , c4les , c3ies , &
                    &             c3les , ep2
       implicit none
 !
@@ -46,14 +46,14 @@
 !
       do i = 2 , ixm1
         do n = 1 , nnsg
-          if ( t(n,i).le.tmelt ) then
+          if ( t(n,i).le.tzero ) then
             a(n,i) = c3ies
             b(n,i) = c4ies
           else
             a(n,i) = c3les
             b(n,i) = c4les
           end if
-          eg(n,i) = c1es*dexp(a(n,i)*(t(n,i)-tmelt)/(t(n,i)-b(n,i)))
+          eg(n,i) = c1es*dexp(a(n,i)*(t(n,i)-tzero)/(t(n,i)-b(n,i)))
           qsat(n,i) = ep2*eg(n,i)/(p(n,i)-0.378D0*eg(n,i))
         end do
       end do

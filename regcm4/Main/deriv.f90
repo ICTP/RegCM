@@ -32,7 +32,7 @@
       use mod_regcm_param
       use mod_bats , only : wtg0 , ldoc1d , sigf , tlef1d , df , cdr ,  &
                     & ts1d , wtga , qsatl , wta0 , wtgaq , tg1d , cn1
-      use mod_constants , only : tmelt
+      use mod_constants , only : tzero
       use mod_ictp01
       implicit none
 !
@@ -46,7 +46,7 @@
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then
               dne = 1./(tlef1d(n,i)-b(n,i))
-              qsatld(n,i) = qsatl(n,i)*a(n,i)*(tmelt-b(n,i))*dne**2
+              qsatld(n,i) = qsatl(n,i)*a(n,i)*(tzero-b(n,i))*dne**2
               xkb = cdrd(n,i)/cdr(n,i)
               hfl = df(n,i)*(wtga(n,i)*tlef1d(n,i)-wtg0(n,i)*tg1d(n,i)  &
                   & -wta0(n,i)*ts1d(n,i))

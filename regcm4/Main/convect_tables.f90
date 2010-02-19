@@ -31,16 +31,16 @@
 !
 ! When replacing the table lookups the following code has been used:
 !
-!   tlucua :  c2es*exp(merge(c3les,c3ies,lo)*(tt-tmelt) &
+!   tlucua :  c2es*exp(merge(c3les,c3ies,lo)*(tt-tzero) &
 !           /      (tt-merge(c4les,c4ies,lo)))
 !
 !   tlucub :  merge(c5alvcp,c5alscp,lo) / (tt-merge(c4les,c4ies,lo))**2
 !
 !   tlucuc :  merge(alvdcp, alsdcp, lo)
 !
-!   tlucuaw:  c2es*exp(c3les*(tt-tmelt)*(1./(tt-c4les)))
+!   tlucuaw:  c2es*exp(c3les*(tt-tzero)*(1./(tt-c4les)))
 !
-!   with:     lo = tt > tmelt
+!   with:     lo = tt > tzero
 !
 ! compile with option -DNOLOOKUP in order to replace lookup tables
 !-----------------------------------------------------------------------
@@ -71,7 +71,7 @@
  
       tt = jptlucu1*0.001
       do it = jptlucu1 , jptlucu2
-        lo = tt.gt.tmelt
+        lo = tt.gt.tzero
  
         if ( lamip2 ) then
           tlucua(it) = exp((merge(clavm1,ciavm1,lo)/tt+merge(clavm2,    &
@@ -79,14 +79,14 @@
                      & *tt/100.+merge(clavm4,ciavm4,lo)*tt*tt/1.E5+     &
                      & merge(clavm5,ciavm5,lo)*log(tt)))*rgas/rwat
         else
-          tlucua(it) = c2es*exp(merge(c3les,c3ies,lo)*(tt-tmelt)        &
+          tlucua(it) = c2es*exp(merge(c3les,c3ies,lo)*(tt-tzero)        &
                      & *(1./(tt-merge(c4les,c4ies,lo))))
         end if
         tlucub(it) = merge(c5alvcp,c5alscp,lo)                          &
                    & *(1./(tt-merge(c4les,c4ies,lo)))**2
         tlucuc(it) = merge(alvdcp,alsdcp,lo)
  
-        tlucuaw(it) = c2es*exp(c3les*(tt-tmelt)*(1./(tt-c4les)))
+        tlucuaw(it) = c2es*exp(c3les*(tt-tzero)*(1./(tt-c4les)))
  
         tt = tt + 0.001
       end do

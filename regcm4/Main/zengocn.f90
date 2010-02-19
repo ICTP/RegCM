@@ -62,7 +62,7 @@
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
       use mod_constants , only : gti , rgti , rgas , rovcp , vonkar ,   &
-                                 cpd , ep2 , tmelt
+                                 cpd , ep2 , tzero
       implicit none
 !
 ! Dummy arguments
@@ -89,7 +89,7 @@
       ht = hgt
       hq = hgt
 !
-      th = (t+tmelt)*(1000./ps)**rovcp
+      th = (t+tzero)*(1000./ps)**rovcp
       ! potential T
       dth = t + 0.0098*ht - ts
       qs = qsat(ts,ps)*0.98
@@ -99,7 +99,7 @@
       thv = th*(1.+0.61*q)
       ! virtual potential T
       dthv = dth*(1.+0.61*q) + 0.61*th*dqh
-      rho = ps*100./(rgas*(ts+tmelt)*(1.+0.61*qs))
+      rho = ps*100./(rgas*(ts+tzero)*(1.+0.61*qs))
       ! density
       xlv = (2.501-0.00237*ts)*1.E+6
       ! J/kg

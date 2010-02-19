@@ -22,7 +22,7 @@
       use mod_regcm_param
       use mod_param1 , only : dtbat
       use mod_bats
-      use mod_constants , only : ch2o , cice , csnw , tmelt , stdp ,    &
+      use mod_constants , only : ch2o , cice , csnw , tzero , stdp ,    &
                                & wlhf , wlhs , cpd
       implicit none
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -68,7 +68,7 @@
 ! ******                include snow heat capacity
               rsd1 = 0.5*(wss*rss+wtt*rsd1)
             end if
-            tgb1d(n,i) = -2.0 + tmelt
+            tgb1d(n,i) = -2.0 + tzero
 ! ******                subsurface heat flux through ice
             fss = 7.E-4*(tgb1d(n,i)-tg1d(n,i))                          &
                 & *ch2o*rhosw3/(scv1d(n,i)+1.4*rhosw3*sice1d(n,i))
@@ -91,7 +91,7 @@
             qgrnd = ((1.-aarea(n,i))*cdr(n,i)*qg1d(n,i)+aarea(n,i)      &
                   & *clead(n,i)*qice(n,i))/cdrx(n,i)
             tgrnd = ((1.-aarea(n,i))*cdr(n,i)*tg1d(n,i)+aarea(n,i)      &
-                  & *clead(n,i)*(tmelt-1.8))/cdrx(n,i)
+                  & *clead(n,i)*(tzero-1.8))/cdrx(n,i)
             fact = -rhs1d(n,i)*cdrx(n,i)*vspda(n,i)
             delq1d(n,i) = (qs1d(n,i)-qgrnd)*gwet1d(n,i)
             delt1d(n,i) = ts1d(n,i) - tgrnd
@@ -100,7 +100,7 @@
             sent1d(n,i) = fact*cpd*delt1d(n,i)
             hrl = rhs1d(n,i)*vspda(n,i)*clead(n,i)*(qice(n,i)-qs1d(n,i))
             hsl = rhs1d(n,i)*vspda(n,i)*clead(n,i)                      &
-                & *(tmelt-1.8-ts1d(n,i))*cpd
+                & *(tzero-1.8-ts1d(n,i))*cpd
 ! ******           get fluxes over ice for sublimation (subrout snow)
 ! ******              and melt (below) calculation
             fseng(n,i) = (sent1d(n,i)-aarea(n,i)*hsl)/(1.-aarea(n,i))
@@ -109,7 +109,7 @@
             bb = dtbat*(hs+fss)/rsd1
 ! ******           snow melt
             sm(n,i) = 0.
-            if ( tg1d(n,i).ge.tmelt ) sm(n,i) = (hs+fss)/wlhf
+            if ( tg1d(n,i).ge.tzero ) sm(n,i) = (hs+fss)/wlhf
             if ( sm(n,i).le.0. ) sm(n,i) = 0.
             smc4 = sm(n,i)*dtbat
             if ( scv1d(n,i).lt.smc4 ) then
@@ -118,7 +118,7 @@
 ! ******                rho(h2o)/rho(ice) = 1.087
               sice1d(n,i) = sice1d(n,i) + dtbat*(smt-sm(n,i))*1.087
               sm(n,i) = smt
-              tg1d(n,i) = tmelt
+              tg1d(n,i) = tzero
 ! ******                set sea ice parameter for melting and return
               if ( sice1d(n,i).le.0.0 ) then
                 imelt(n,i) = 1
@@ -127,8 +127,8 @@
             else
 !  **********             snow or ice with no snow melting
               tg = tg1d(n,i) + bb
-              if ( tg.ge.tmelt ) tg1d(n,i) = tmelt
-              if ( tg.lt.tmelt ) tg1d(n,i) = tg
+              if ( tg.ge.tzero ) tg1d(n,i) = tzero
+              if ( tg.lt.tzero ) tg1d(n,i) = tg
             end if
           end if
         end do

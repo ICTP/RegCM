@@ -34,7 +34,7 @@
       use mod_param3 , only : ptop , a
       use mod_pmoist
       use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
-                             & svp2 , svp3 , tmelt , rwat
+                             & svp2 , svp3 , tzero , rwat
       implicit none
 !
 ! Dummy arguments
@@ -71,9 +71,9 @@
             pavg = 0.5*(psa(i,j)+psb(i,j))
             psx = pavg*a(k) + ptop
             tta = tpavg/pavg
-            if ( tta.gt.tmelt ) then
+            if ( tta.gt.tzero ) then
 !             v8 svp formula
-              e1 = svp1*dexp(svp2*(tta-tmelt)/(tta-svp3))
+              e1 = svp1*dexp(svp2*(tta-tzero)/(tta-svp3))
             else
               e1 = .611*dexp(22.514-6.15E3/tta)
             end if

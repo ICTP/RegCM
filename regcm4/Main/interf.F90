@@ -35,7 +35,7 @@
       use mod_slice
       use mod_bats
       use mod_constants , only : tau1 , zlnd , zoce , zsno , rgti ,     &
-                 & rgas , tmelt
+                 & rgas , tzero
       use mod_date , only : jyear , jyear0 , jyearr , ntime , ktau ,    &
                  & ktaur
       implicit none
@@ -86,16 +86,16 @@
             qs1d0(n,i) = qvb3d(i,kx,j)/(1.+qvb3d(i,kx,j))
             qs1d(n,i) = qs1d0(n,i)
  
-            hl = 597.3 - .566*(ts1d0(n,i)-tmelt)
-            satvp = 6.11*dexp(9.045*hl*(1./tmelt-1./ts1d0(n,i)))
+            hl = 597.3 - .566*(ts1d0(n,i)-tzero)
+            satvp = 6.11*dexp(9.045*hl*(1./tzero-1./ts1d0(n,i)))
             rh0 = dmax1(qs1d0(n,i)/(.622*satvp/(p1d0(n,i)*0.01-satvp)), &
                 & 0.D0)
  
             ts1d(n,i) = ts1d0(n,i) - 6.5E-3*rgti*(ht1(n,i,j)-ht(i,j))
             p1d(n,i) = p1d0(n,i)*(ts1d(n,i)/ts1d0(n,i))
  
-            hl = 597.3 - .566*(ts1d(n,i)-tmelt)
-            satvp = 6.11*dexp(9.045*hl*(1./tmelt-1./ts1d(n,i)))
+            hl = 597.3 - .566*(ts1d(n,i)-tzero)
+            satvp = 6.11*dexp(9.045*hl*(1./tzero-1./ts1d(n,i)))
             qs1d(n,i) = dmax1(rh0*.622*satvp/(p1d(n,i)*0.01-satvp),0.D0)
  
             tg1d(n,i) = tg2d(n,i,j)

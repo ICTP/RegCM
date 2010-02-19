@@ -27,7 +27,7 @@
       use mod_pmoist
       use mod_rad
       use mod_trachem
-      use mod_constants , only : gti , rgti , cpd , tmelt , wlhv ,      &
+      use mod_constants , only : gti , rgti , cpd , tzero , wlhv ,      &
                                & rwat , rcpd , wlhvocp
       implicit none
 !
@@ -70,7 +70,7 @@
 !
       tcrit = 50.
  
-      tfinv = 1./tmelt
+      tfinv = 1./tzero
       alsixt = dlog(610.71D0)
       ht(1) = wlhvocp
       ht(2) = 2.834E6*rcpd

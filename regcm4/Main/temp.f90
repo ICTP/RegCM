@@ -22,7 +22,7 @@
 !*****************BEGIN SUBROUTINE TEMP********************
 !             COMPUTES TEMPERATURE PROFILE                *
 !**********************************************************
-      use mod_constants , only : tmelt , cpw
+      use mod_constants , only : tzero , cpw
       implicit none
 !
 ! Dummy arguments
@@ -72,7 +72,7 @@
         tdiff = tdiff + t(k,2) - t(k,1)
         if ( k.eq.1 ) tdiff = tdiff*surf
         t(k,1) = t(k,2)
-        dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,2)+tmelt)-277.0))  &
+        dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,2)+tzero)-277.0))  &
                  & **1.68)
       end do
 

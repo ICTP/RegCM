@@ -25,7 +25,7 @@
                   & ldoc1d , tgb1d , lveg , ts1d , scv1d , sag1d , wt , &
                   & scvk , veg1d , emiss2d , albvgs , albvgl , kolsol , &
                   & depuv
-      use mod_constants , only : tmelt
+      use mod_constants , only : tzero
       implicit none
 !
 ! Dummy arguments
@@ -203,7 +203,7 @@
 !           **********          albedo depends on wave-length and ts.
 !           the ts **********          dependence accounts for melt
 !           water puddles.
-            tdiffs = ts1d(n,i) - tmelt
+            tdiffs = ts1d(n,i) - tzero
             tdiff = dmax1(tdiffs,0.D0)
             tdiffs = dmin1(tdiff,20.D0)
             albgl = sical1 - 1.1E-2*tdiffs

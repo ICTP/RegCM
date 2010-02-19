@@ -40,7 +40,7 @@
       use mod_regcm_param
       use mod_param1 , only : dtbat
       use mod_bats
-      use mod_constants , only : tmelt
+      use mod_constants , only : tzero
       implicit none
 !
 ! Local variables
@@ -66,7 +66,7 @@
             evapw(n,i) = (1.-scvk(n,i))*evapw(n,i)
 !
 !           ******                tm  is temperature of precipitation
-            if ( tm(n,i).ge.tmelt ) then
+            if ( tm(n,i).ge.tzero ) then
               pw(n,i) = prcp1d(n,i)*(1.-sigf(n,i))
               ps(n,i) = 0.0
             else
@@ -96,7 +96,7 @@
 !           10 mm snow restores surface to that of new snow.
 !=======================================================================
             if ( scv1d(n,i).gt.0. ) then
-              arg = 5.E3*(1./tmelt-1./tg1d(n,i))
+              arg = 5.E3*(1./tzero-1./tg1d(n,i))
               age1 = dexp(arg)
               arg2 = dmin1(0.D0,10.*arg)
               age2 = dexp(arg2)

@@ -60,7 +60,7 @@
       use mod_bmparam
       use mod_trachem
       use mod_constants , only : rgas , gti , rovg , cpd , rcpd , ep2 , &
-                               & trel , tmelt , wlhv , c4les , c3les ,  &
+                               & trel , tzero , wlhv , c4les , c3les ,  &
                                & pq0 , aliq , bliq , cliq , dliq ,      &
                                & aice , bice , cice1 , dice , xls0 ,    &
                                & xls1 , rwat
@@ -72,7 +72,7 @@
                            & h10e5 = 100000.E0 , d00 = 0.E0 ,           &
                            & d608 = 0.608E0 , dm2859 = -rgas/cpd ,      &
                            & epsq = 2.E-12 , row = 1.E3 ,               &
-                           & t1 = tmelt+1.D0, d273 = 1./tmelt ,         &
+                           & t1 = tzero+1.D0, d273 = 1./tzero ,         &
                            & stresh = 1.10E0 ,                          &
                            & stabs = 1.0E0 , stabd = 0.90E0 ,           &
                            & rhf = 0.20 , pmn = 6500.0 , epsdn = 1.05 , &
@@ -101,7 +101,7 @@
                            & /(h1-efimn) , slop0s = (dsp0fs-dsp0ss)     &
                            & /(h1-efimn) , slopts = (dsptfs-dsptss)     &
                            & /(h1-efimn) , slope = (h1-efmnt)/(h1-efimn)&
-                           & , a23m4l = c3les*(tmelt-c4les)*wlhv ,      &
+                           & , a23m4l = c3les*(tzero-c4les)*wlhv ,      &
                            & cporng = 1./dm2859 , elocp = wlhv/cpd ,    &
                            & cprlg = cpd/(row*gti*wlhv)
       integer , parameter :: lp1 = kxp1 , lm1 = kx - 1
@@ -200,7 +200,7 @@
       do i = 2 , ixm2
         do k = 1 , kx
           t(i,k) = tb(i,k,j)/psb(i,j)
-          if ( t(i,k).gt.tmelt .and. ml(i).eq.kxp1 ) ml(i) = k
+          if ( t(i,k).gt.tzero .and. ml(i).eq.kxp1 ) ml(i) = k
           q(i,k) = qvb(i,k,j)/psb(i,j)
           pppk = (a(k)*psb(i,j)+ptop)*1000.
           ape(i,k) = (pppk/h10e5)**dm2859
@@ -242,8 +242,8 @@
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
             tdpt = 1./(d273-rwat/wlhv*dlog(ee/611.))
             tdpt = dmin1(tdpt,t(i,kb))
-            tlcl = tdpt - (.212+1.571E-3*(tdpt-tmelt)-4.36E-4*(t(i,kb)- &
-                 & tmelt))*(t(i,kb)-tdpt)
+            tlcl = tdpt - (.212+1.571E-3*(tdpt-tzero)-4.36E-4*(t(i,kb)- &
+                 & tzero))*(t(i,kb)-tdpt)
             tthes(i) = tthbt(i)*exp(elocp*q(i,kb)/tlcl)
 !--------------check for maximum buoyancy-------------------------------
             if ( tthes(i).gt.thesp(i) ) then
@@ -441,7 +441,7 @@
             apesk(l) = (psk(l)/h10e5)**dm2859
             thsk(l) = trefk(l)*apek(l)
             qrefk(l) = pq0/psk(l)                                       &
-                     & *exp(c3les*(thsk(l)-tmelt*apesk(l))/(thsk(l)-    &
+                     & *exp(c3les*(thsk(l)-tzero*apesk(l))/(thsk(l)-    &
                      & c4les*apesk(l)))
           else
             qrefk(l) = q(i,l)
@@ -477,7 +477,7 @@
             trefk(l) = hcorr/dhdt + trefk(l)
             thskl = trefk(l)*apek(l)
             qrefk(l) = pq0/psk(l)                                       &
-                     & *exp(c3les*(thskl-tmelt*apesk(l))/               &
+                     & *exp(c3les*(thskl-tzero*apesk(l))/               &
                      & (thskl-c4les*apesk(l)))
           end do
 !-----------------------------------------------------------------------
@@ -680,8 +680,8 @@
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
         tdpt = 1./(d273-rwat/wlhv*dlog(ee/611.))
         tdpt = dmin1(tdpt,t(i,ltp1))
-        tlcl = tdpt - (.212+1.571E-3*(tdpt-tmelt)-4.36E-4*              &
-             & (t(i,ltp1)-tmelt))*(t(i,ltp1)-tdpt)
+        tlcl = tdpt - (.212+1.571E-3*(tdpt-tzero)-4.36E-4*              &
+             & (t(i,ltp1)-tzero))*(t(i,ltp1)-tdpt)
         ptpk = h10e5*(thtpk/tlcl)**cporng
         dpmix = ptpk - psp(i)
         if ( abs(dpmix).lt.h3000 ) dpmix = -h3000

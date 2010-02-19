@@ -21,7 +21,7 @@
 !
 ! Simulates convective mixing
 !
-      use mod_constants , only : tmelt
+      use mod_constants , only : tzero
       implicit none
 !
 ! Dummy arguments
@@ -57,7 +57,7 @@
           tav = avet/avev
           do k2 = kmin , k + 1
             t(k2,2) = tav
-            dnsty(k2) = 1000.0*(1.0-1.9549E-05*(dabs((t(k2,2)+tmelt)-   &
+            dnsty(k2) = 1000.0*(1.0-1.9549E-05*(dabs((t(k2,2)+tzero)-   &
                       & 277.0))**1.68)
           end do
         end if

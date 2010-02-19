@@ -55,7 +55,7 @@
 !**************************************************************
 
       use mod_constants , only : ep2 , gti , rgti , vonkar , mathpi ,   &
-                               & tmelt
+                               & tzero
       implicit none
 !
 ! PARAMETER definitions
@@ -218,14 +218,14 @@
 !           ***** *  vptemp- virtual potential temperature at z2 (deg.
 !           k)  *****
 ! **************************************************************
-            es = 6.108*exp(17.27*(temp2(i)-tmelt)/(temp2(i)-35.86))
+            es = 6.108*exp(17.27*(temp2(i)-tzero)/(temp2(i)-35.86))
             vp = rh10(i)*es
             wvpm = ep2*vp/(pmb-vp)
             vptemp = ptemp2*(1.0+0.61*wvpm)
  
 ! **************************************************************
 !           *  assume rh10 at water surface is 100%                 
-!           ***** *   vp = es(tsw-tmelt) !sat. vap press at surface   
+!           ***** *   vp = es(tsw-tzero) !sat. vap press at surface   
 !           ***** *   saturated vapour pressure at surface             
 !           ***** *   saturated mixing ratio at surface                
 !           ***** *   tsv - virtual potential temperature at surface   
@@ -234,7 +234,7 @@
  
 ! **************************************************************
             tsw = sutemp(i)
-            vp = 6.108*exp(17.27*(tsw-tmelt)/(tsw-35.86))
+            vp = 6.108*exp(17.27*(tsw-tzero)/(tsw-35.86))
             qs = ep2*vp/(pmb-vp)
             tsv = tsw*(1.+0.61*qs)
             z0water = 1.0E-4

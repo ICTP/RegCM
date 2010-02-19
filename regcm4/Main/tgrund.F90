@@ -54,7 +54,7 @@
       use mod_regcm_param
       use mod_bats
       use mod_param1 , only : dtbat
-      use mod_constants , only : mathpi , csnw , cws , tau1 , tmelt ,   &
+      use mod_constants , only : mathpi , csnw , cws , tau1 , tzero ,   &
                                & wlhf
       implicit none
 !
@@ -102,8 +102,8 @@
 !l          specific heat only o.49 that of water
  
             swtrtd(n,i) = watu(n,i)*porsl(n,i)
-            if ( tg1d(n,i).lt.tmelt ) then
-              frozen = 0.85*dmin1(1.D0,.25*(tmelt-tg1d(n,i)))
+            if ( tg1d(n,i).lt.tzero ) then
+              frozen = 0.85*dmin1(1.D0,.25*(tzero-tg1d(n,i)))
               skd(n,i) = xkperi
               rscsd(n,i) = fsc(swtrtd(n,i)*(1.-0.51*frozen))
             else
@@ -111,8 +111,8 @@
               rscsd(n,i) = fsc(swtrtd(n,i))
             end if
             swtrta(n,i) = watr(n,i)*porsl(n,i)
-            if ( tgb1d(n,i).lt.tmelt ) then
-              froze2 = 0.85*dmin1(1.D0,.25*(tmelt-tgb1d(n,i)))
+            if ( tgb1d(n,i).lt.tzero ) then
+              froze2 = 0.85*dmin1(1.D0,.25*(tzero-tgb1d(n,i)))
               ska(n,i) = xkperi
               rscsa(n,i) = fsc(swtrta(n,i)*(1.-0.51*froze2))
             else
@@ -150,14 +150,14 @@
             fct2(n,i) = 0.
 !
 !l          2.1  add freezing thermal inertia
-            if ( (tg1d(n,i).lt.tmelt) .and. (tg1d(n,i).gt.(tmelt-4.))   &
+            if ( (tg1d(n,i).lt.tzero) .and. (tg1d(n,i).gt.(tzero-4.))   &
                & .and. (sice1d(n,i).le.1.E-22) ) then
               depu = depuv(lveg(n,i))*1.E-3
               cc(n,i) = 1. + dmax1(ssw1d(n,i)-frezu(lveg(n,i)),0.D0)    &
                        & *fct1(depu*rscsd(n,i))
             end if
-            if ( (tgb1d(n,i).lt.tmelt) .and.                            &
-               & (tgb1d(n,i).gt.(tmelt-4.)) .and.                       &
+            if ( (tgb1d(n,i).lt.tzero) .and.                            &
+               & (tgb1d(n,i).gt.(tzero-4.)) .and.                       &
                & (sice1d(n,i).le.1.E-22) ) then
               depr = deprv(lveg(n,i))*1.E-3
               fct2(n,i) = dmax1(rsw1d(n,i)-freza(lveg(n,i)),0.D0)       &
@@ -179,7 +179,7 @@
             sm(n,i) = 0.0
             if ( scv1d(n,i).gt.0.0 ) then
               cder = bcoef(n,i)*cgrnd(n,i)
-              sm(n,i) = (bb(n,i)+(cc(n,i)-dt2+cder)*tg1d(n,i)-tmelt     &
+              sm(n,i) = (bb(n,i)+(cc(n,i)-dt2+cder)*tg1d(n,i)-tzero     &
                        & *(cc(n,i)+dt2+cder))/(bcoef(n,i)*wlhf)
 !             **********              snow melt always between 0 and
 !             total snow

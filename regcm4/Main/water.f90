@@ -53,7 +53,7 @@
       use mod_regcm_param
       use mod_param1 , only : dtbat
       use mod_bats
-      use mod_constants , only : drain , tau1 , csoilc , tmelt
+      use mod_constants , only : drain , tau1 , csoilc , tzero
       implicit none
 !
 ! Local variables
@@ -78,7 +78,7 @@
 !
 !           1.1  reduce infiltration for frozen ground
 !
-            if ( tgb1d(n,i).gt.tmelt ) then
+            if ( tgb1d(n,i).gt.tzero ) then
               xkmxr(n,i) = xkmx(n,i)
             else
               xkmxr(n,i) = 0.
@@ -149,7 +149,7 @@
 !
 !           2.11 increase surface runoff over frozen ground
 !
-            if ( tg1d(n,i).lt.tmelt ) then
+            if ( tg1d(n,i).lt.tzero ) then
               rsur(n,i) = dmin1(1.D0,wata(n,i)**1)*                     &
                          & dmax1(0.D0,gwatr(n,i))
             else

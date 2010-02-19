@@ -19,7 +19,7 @@
  
       subroutine ice(kd,ld,ta,u2,ea,hs,hi,hii,evap,t,depth,precip)
 
-      use mod_constants , only : ep2 , tmelt
+      use mod_constants , only : ep2 , tzero
       implicit none
 !
 ! PARAMETER definitions
@@ -53,7 +53,7 @@
 !     SIMULATES LAKE ICE                           *
 !***********************************************************************
  
-      t4(x) = (x+tmelt)**4
+      t4(x) = (x+tzero)**4
  
 !     ****** g. bates changed air to ta, qpen1 to qpen (4/92)
       f(x) = (-ld+0.97*delta*t4(x)+psi*(eomb(x)-ea)+theta*(x-ta)-kd)    &
