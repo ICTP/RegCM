@@ -1,9 +1,18 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]
+if [ $# -ne 1 ]
 then
-  echo "Need input ctl filename and variable to plot"
+  echo "Need input ctl filename"
   exit 1
 fi
 
-grads -blc "run grads/plotfinal.gs $1 $2"
+ctlfile=$1
+varlist=`cat $ctlfile | awk 'BEGIN{found="0"} \
+                       {if ($1 == "vars") found="1"; \
+                        if ($1 == "endvars") found="0"; \
+                        if (found=="1") print $1}'`
+
+for var in $varlist
+do
+  grads -blc "run grads/plotfinal.gs $ctlfile $var"
+done

@@ -3,7 +3,7 @@ function main(args)
   input  = subwrd(args, 1)
   varp  = subwrd(args, 2)
 
-  outname = input
+  outname = input'_'varp
   caption = 'Plot of last status of var 'varp' from 'input
   titl    = 'Himet - Cetemps'
 
