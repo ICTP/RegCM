@@ -26,8 +26,8 @@
       end interface
 
       interface
-        subroutine zengocndrv(j , k , ng , istart , iend)
-          integer :: j , k , istart , iend , ng
+        subroutine zengocndrv(j , ng , istart , iend , k)
+          integer :: j , ng , istart , iend , k
         end subroutine zengocndrv
       end interface
 

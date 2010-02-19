@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine zengocndrv(j , k , ng , istart , iend)
+      subroutine zengocndrv(j , ng , istart , iend , k)
 !
       use mod_interfaces
       use mod_param1 , only : dtmin

@@ -39,7 +39,7 @@
 !
       use mod_regcm_param
       use mod_comtim
-      use mod_constants , only : gtigts , mathpi , dayspy , rgsslp
+      use mod_constants , only : gtigts , twopi , dayspy , rgsslp
       use mod_crdcae , only : co2vmr
       implicit none
 !
@@ -108,7 +108,7 @@
 !
 !     Compute eccentricity factor (sun-earth distance factor)
 !
-      theta = 2.*mathpi*calday/dayspy
+      theta = twopi*calday/dayspy
       eccf = 1.000110 + .034221*dcos(theta) + .001280*dsin(theta)       &
            & + .000719*dcos(2.*theta) + .000077*dsin(2.*theta)
 !

@@ -79,7 +79,7 @@
       thog = 1000.*rgti       ! precipation accumulated from above
       i1000 = 1./1000.
 
-      remrat(istart:iend,nk) = 0.0
+      remrat(istart:iend,1:nk) = 0.0
 
       do i = istart , iend
  
