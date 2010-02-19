@@ -18,7 +18,7 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-if [ $# -lt 2 ]
+if [ $# -lt 1 ]
 then
   echo "Welcome to job launcher."
   echo "I have not enough informations. Typical usage is:"
