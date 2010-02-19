@@ -1,4 +1,4 @@
-include ../Makefile.inc.intel
+include ../Makefile.inc
 
 SCENARIO = A1B
 #SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
