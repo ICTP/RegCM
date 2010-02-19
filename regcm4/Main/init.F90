@@ -225,7 +225,7 @@
             read (iutbc,rec=mmrec) ndate0 , nxxx , nyyy , kzzz
             if ( nyyy.ne.ix .or. nxxx.ne.jx .or. kzzz.ne.kx ) then
               write (aline,*) 'SET IN regcm.param: IX=' , ix , ' JX=' , &
-                            & jxp , ' KX=' , kx
+                            & jx , ' KX=' , kx
               call say
               write (aline,*) 'SET IN ICBC: NY=' , nyyy , ' NX=' ,      &
                             & nxxx , ' NZ=' , kzzz
@@ -863,7 +863,7 @@
           end do
           tdini = tdini + tttmp*dsigma(k)
         end do
-        tdini = tdini*dx*dx*1000./rgti
+        tdini = tdini*dx*dx*1000.*rgti
 !
 !-----water substance (unit = kg):
 !
@@ -877,7 +877,7 @@
           end do
           tvmass = tvmass + tttmp*dsigma(k)
         end do
-        tvmass = tvmass*dx*dx*1000./rgti
+        tvmass = tvmass*dx*dx*1000.*rgti
 !
         tcmass = 0.
         do k = 1 , kx
@@ -889,7 +889,7 @@
           end do
           tcmass = tcmass + tttmp*dsigma(k)
         end do
-        tcmass = tcmass*dx*dx*1000./rgti
+        tcmass = tcmass*dx*dx*1000.*rgti
         tqini = tvmass + tcmass
 !=======================================================================
         print 99002 , tdini , tqini

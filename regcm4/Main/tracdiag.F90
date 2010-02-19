@@ -250,7 +250,7 @@
         do k = 1 , kx
           do i = 2 , ixm2
             tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)                &
-                      & *dx*(worka(i,k,n)-workb(i,k,n))/rgti
+                      & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
           end do
         end do
       end do
@@ -284,7 +284,8 @@
                   & /psa(1,j)/(msfx(1,j)*msfx(1,j)))
             end if
  
-            tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)*dx*(fx2-fx1)/rgti
+            tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)*dx*            &
+                  & (fx2-fx1)*rgti
  
           end do
         end do

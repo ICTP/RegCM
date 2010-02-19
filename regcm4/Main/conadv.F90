@@ -307,7 +307,7 @@
                 & *dx*((va(ix,k,j+1)+va(ix,k,j))                        &
                 & *(qca(ixm1,k,j)/psa(ixm1,j))/(msfx(ixm1,j)            &
                 & *msfx(ixm1,j))-(va(1,k,j+1)+va(1,k,j))                &
-                & *(qca(1,k,j)/psa(1,j))/(msfx(1,j)*msfx(1,j)))/rgti
+                & *(qca(1,k,j)/psa(1,j))/(msfx(1,j)*msfx(1,j)))*rgti
         end do
       end do
 #endif
