@@ -104,7 +104,7 @@ echo "                          tail -f $mstdout"
 echo
 echo
 eval $command > $mstdout 2>&1
-result=`cat $mstdout | grep "STOP 99999"`
+result=`cat $mstdout | grep "99999$"`
 
 if [ -z "$result" ]
 then
