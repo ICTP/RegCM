@@ -2,7 +2,7 @@
   This is RegCM version 4 
    SVN Revision: 230:232M compiled at: data : Feb 19 2010  time: 17:27:21
 
- : this run start at    : Fri Feb 19 17:31:10 2010
+ : this run start at    : Fri Feb 19 17:58:08 2010
  : it is submitted by   : graziano
  : it is running on     : portatile
  : in directory         : /home/graziano/Software/regcm/branches/regcm4/Run
@@ -133,7 +133,7 @@
  QV
  PS
  TS
- *** initial total air =  0.22165E+20 kg, total water =  0.26656E+17 kg in large domain.
+ *** initial total air =  0.23048E+18 kg, total water =  0.27718E+15 kg in large domain.
             *** solar declination angle = -22.98 degrees.
  ozone profiles
    0.4963E-07
