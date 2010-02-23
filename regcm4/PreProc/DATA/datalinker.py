@@ -23,60 +23,98 @@
 # it performs  some checks on existence of DATA directories
 # improvements: check against a well defined list of directories
 
-# written by S.Cozzini   
+# written by S.Cozzini, improved by A.Messina 
+#
+   
 import os
-import os.path
 import sys
+import shutil
 from optparse import OptionParser
 
+def cleandir(verbose=False):
+    """This function remove all directories in the current directory"""
+    for filename in os.listdir(os.getcwd()):
+        if os.path.isdir(filename):
+            if verbose: sys.stdout.write("Removing directory %s\n" % filename)
+            shutil.rmtree(filename)
+
+def createlinks(dirname, verbose):
+    """Create needed symlinks from directory 'dirname'"""
+    wrong=False
+    if verbose:
+       print "start processing %s " % dirname
+    #check if DATA exists and what it contains.. 
+    if not os.path.isdir(dirname):
+        sys.stderr.write("'%s is not a directory\n" % dirname)
+        raise SystemExit, 1
+    #check content.. 
+    for filename in os.listdir(dirname):
+        absolute_name=os.path.join(dirname,filename)
+        sys.stdout.write("filename to process is %s \n" % absolute_name)
+        if not os.path.isdir(absolute_name):
+            sys.stdout.write("%s is not a  directory: will skip link\n" % filename )
+            continue
+        sys.stdout.write("%s is a directory: try to create link\n" % filename)
+        if os.path.isdir(os.path.join(os.getcwd(),filename)):
+           sys.stdout.write("%s already present, skipping..\n " % filename)
+           wrong=True
+           continue
+        os.mkdir(filename)
+        cmd='ln -sf %s/* %s/.' % (absolute_name, filename)
+        print 'executing', cmd
+        failure=os.system(cmd)
+        if failure:
+           sys.stdout.write("something wrong for %s  \n" % filename )
+           wrong=True
+    # post-opt check
+    if wrong:
+        print ' script completed but something went wrong: please check !'
+    else:
+        print 'successfully created links to DATA directories'
+
+class MyOptions(object):
+    def __init__(self):
+        usage = "usage: %s [-q] [-c|-d directory] " % sys.argv[0]
+        self.parser = OptionParser(usage)
+        self.parser.add_option("-d", "--dir", dest="dirname",
+                      help="specify DATA directory ", metavar="FILE")
+        self.parser.add_option("-q", "--quiet",
+                      action="store_false", dest="verbose", default=True,
+                      help="don't print status messages to stdout")
+        self.parser.add_option("-c", "--clean",
+                      action="store_true", dest="clean", default=False,
+                      help="remove all directories in DATA")
+    
+    def parse(self,args):
+      (self.options, self.args) = self.parser.parse_args(args=args) 
+      self.verbose=self.options.verbose
+      self.clean = self.options.clean
+      self.dirname = self.options.dirname
+
+      #import pdb; pdb.set_trace()
+      if not self.dirname:
+          if not self.clean:
+              print self.parser.format_help()
+              self.parser.error("not enough arguments.")
+      else:
+          if self.clean:
+              print self.parser.format_help()
+              self.parser.error("Only one options among '-c' and '-d' has to be supplied")
 
 def main():
-#print os.getcwd()
-        usage = "usage: %s [-q] -d directory " % sys.argv[0]
-        parser = OptionParser(usage)
-        parser.add_option("-d", "--dir", dest="dirname",
-                  help="specify DATA directory ", metavar="FILE")
-        parser.add_option("-q", "--quiet",
-                  action="store_false", dest="verbose", default=True,
-                  help="don't print status messages to stdout")
+    options = MyOptions()
+    options.parse(sys.argv[1:])
 
-        (options, args) = parser.parse_args()
+    if options.clean:
+        cleandir(options.verbose)
+    elif options.dirname:
+        createlinks(options.dirname, options.verbose) 
+    else:
+        sys.stderr.write("I don't know what to do!!!\n")
+            
+    sys.stdout.write("Completed\n")
+    sys.exit(0)
 
-        if options.dirname == None:
-            print parser.format_help()
-            parser.error("not enough arguments, a directory must be specified")
-        if options.verbose:
-          print "start processing %s " % options.dirname
-        wrong=False
-        data_location=options.dirname
-        #check if DATA exists and what it contains.. 
-	if os.path.isdir(data_location):
-        	#check content.. 
-           	for filename in os.listdir(data_location):
-                    absolute_name=os.path.join(data_location,filename)
-                    sys.stdout.write("filename to process is %s \n" % absolute_name)
-                    if os.path.isdir(absolute_name):
-     	     	        sys.stdout.write("%s is a directory: try to create link\n" % filename)
-			if os.path.isdir(os.path.join(os.getcwd(),filename)):
-			   sys.stdout.write("%s already present, skipping..\n " % filename)
-                           wrong=True
-			   continue
-                        os.mkdir(filename) 
-                        cmd='ln -sf %s/* %s/.' % (absolute_name, filename)
-                        print 'executing', cmd
-                        failure=os.system(cmd)
-			if failure:
-			   sys.stdout.write("something wrong for %s  \n" % filename )
-		           wrong=True
-                    else:
-		        sys.stdout.write("%s is not a  directory: will skip link\n" % filename ) 	
-	else:
-		sys.stderr.write("'%s is not a directory\n" % data_location)
-		raise SystemExit, 1 
-        if wrong:
-	    print ' script completed but something went wrong: please check !' 
-	else: 
-            print 'successfully created links to DATA directories' 
 
 if __name__ == "__main__":
 	main()
