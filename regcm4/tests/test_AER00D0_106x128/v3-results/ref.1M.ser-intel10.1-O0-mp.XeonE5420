@@ -1,0 +1,1412 @@
+ RESTARTPARAM READ IN
+ TIMEPARAM READ IN
+ OUTPARAM READ IN
+ PHYSICSPARAM READ IN
+ SUBEXPARAM READ IN
+ GRELLPARAM READ IN
+  dtau =    37.5000000000000        75.0000000000000     
+ NREC =       289276
+ IDATE1, IDATE2, dtmin, ktaur =   1989010100  1989020100   2.50000000000000     
+           0
+ READING HEADER FILE
+ DIMS         106         128          18
+ DOMAIN   50000.00       49.00000       9.750000       49.00000    
+   9.750000      0.7155671    
+ PROJLAMCON
+ SIGMA  0.0000000E+00  5.0000001E-02  0.1000000      0.1600000    
+  0.2300000      0.3100000      0.3900000      0.4700000      0.5500000    
+  0.6300000      0.7100000      0.7800000      0.8400000      0.8900000    
+  0.9300000      0.9600000      0.9800000      0.9900000       1.000000    
+ PTOP   5.000000    
+ OUTPUT           1           1
+ ***** mdate =   1989010100
+  input/output parameters 
+  ifsave =  T  savfrq =    48000.0000000000       iftape =  T  tapfrq = 
+   6.00000000000000       ifprt  =  F  prtfrq =    12.0000000000000      
+  kxout  =            6  jxsex  =           40  radisp = 
+   6.00000000000000       batfrq =    3.00000000000000       nslice = 
+         120  ifchem =  F  chemfrq =   6.00000000000000     
+  
+  physical parameterizations 
+  iboudy =            5  icup =            2  igcc =           2  ipptls = 
+           1  iocnflx =            2  ipgf =            0 iemiss =            0 
+  lakemod =            0  ichem =           0
+  
+  model parameters 
+  radfrq =    30.0000000000000       abatm =    600.000000000000       abemh = 
+   18.0000000000000       dt =    150.000000000000     
+  
+  ncld =            1
+  
+ HT
+ HTSD
+ SATBRT
+ XLAT
+ XLONG
+ MSFX
+ MSFD
+ F
+ SNOWC
+  
+ ***************************************************
+ ***************************************************
+ **** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****
+ ****     Map Projection: LAMCON                ****
+ ****     IX=         106  JX=         128  KX=          18              ****
+ ****     PTOP=   5.000000      DX=   50000.00            ****
+ ****     CLAT=    49.00000      CLON=   9.750000         ****
+ ***************************************************
+  
+  Index of highest allowed pbl:  kt =           10
+  
+ AUTO-CONVERSION RATE:  LAND=  2.500000000000000E-004 
+                       OCEAN=  2.500000000000000E-004
+ RELATIVE HUMIDITY THRESHOLDS:  LAND=  0.800000011920929      
+                               OCEAN=  0.899999976158142     
+ GULTEPE FACTORS:  LAND=  0.400000005960464                       OCEAN=
+  0.400000005960464     
+ MAXIMUM CLOUD COVER FOR RADIATION:   0.800000011920929     
+ MAXIMUM RELATIVE HUMIDITY:    1.00999999046326     
+ rh0 temperature threshold:    238.000000000000     
+ Raindrop Evaporation Rate  1.000000000000000E-003
+ Raindrop Accretion Rate   3.00000000000000     
+  
+ *******************************************************
+  Grell Convection:
+    Max Shear:  0.500000000000000     
+    Min Shear:  0.250000000000000     
+    Max PPT eff:   1.00000000000000     
+    Min PPT eff:  0.250000000000000     
+    Max PPT eff(o):   1.00000000000000     
+    Min PPT eff(o):  0.000000000000000E+000
+    Max PPT eff(x):   1.00000000000000     
+    Min PPT eff(x):  0.250000000000000     
+    Max PBC (pbcmax):   150.000000000000     
+    Min Cloud Depth:   150.000000000000     
+    Max Cloud Base:          12  0.400000005960464     
+    Max Heating:   500.000000000000     
+    Min Heating:  -250.000000000000     
+    Fritsch-Chappell (1980) Closure Assumption   *****
+      ABE removal timescale: dtauc=   30.0000000000000     
+ *******************************************************
+  
+ CONVECTIVE CLOUD FRACTION/WATER
+    Maximum Convective Cloud Cover
+      before resolution scaling:   0.250000000000000     
+    Maximum Convective Cloud Cover
+      after resolution scaling:   0.250000000000000     
+    Convective Cloud Water:   3.000000142492354E-004
+     the surface energy budget is used to calculate the ground temperature.   julday =   1   gmt =  0.0
+          the radiation is computed every   12 time steps.
+
+   relaxation boudnary conditions (exponential method) are used. fnudge =     0.33333E-03  gnudge =     0.33333E+06
+0 k    sigma(k)     a(k)     dsigma(k)    twt(k,1)     twt(k,2)     qcon(k)
+
+  1     0.0000     0.0250     0.0500       0.0000       0.0000       0.0000
+  2     0.0500     0.0750     0.0500       0.5000       0.5000       0.5000
+  3     0.1000     0.1300     0.0600       0.4545       0.5455       0.5455
+  4     0.1600     0.1950     0.0700       0.4615       0.5385       0.5385
+  5     0.2300     0.2700     0.0800       0.4667       0.5333       0.5333
+  6     0.3100     0.3500     0.0800       0.5000       0.5000       0.5000
+  7     0.3900     0.4300     0.0800       0.5000       0.5000       0.5000
+  8     0.4700     0.5100     0.0800       0.5000       0.5000       0.5000
+  9     0.5500     0.5900     0.0800       0.5000       0.5000       0.5000
+ 10     0.6300     0.6700     0.0800       0.5000       0.5000       0.5000
+ 11     0.7100     0.7450     0.0700       0.5333       0.4667       0.4667
+ 12     0.7800     0.8100     0.0600       0.5385       0.4615       0.4615
+ 13     0.8400     0.8650     0.0500       0.5455       0.4545       0.4545
+ 14     0.8900     0.9100     0.0400       0.5556       0.4444       0.4444
+ 15     0.9300     0.9450     0.0300       0.5714       0.4286       0.4286
+ 16     0.9600     0.9700     0.0200       0.6000       0.4000       0.4000
+ 17     0.9800     0.9850     0.0100       0.6667       0.3333       0.3333
+ 18     0.9900     0.9950     0.0100       0.5000       0.5000       0.5000
+ 19     1.0000
+
+
+ maximum time =   31.000 days.
+ time step =  150.00 seconds
+ dx =  50000. meters
+ grid points (x,y) = (128,106)
+ number of levels = 18
+ constant hor. diff. coef. =  0.25000E+05 m*m/s
+ maximum  hor. diff. coef. =  0.26042E+06 m*m/s
+ READING INITAL CONDITIONS  1989010100
+ U
+ V
+ TA
+ QV
+ PS
+ TS
+           *** solar declination angle = -22.98 degrees.
+ ozone profiles
+   0.4963E-07
+   0.4963E-07
+   0.4963E-07
+   0.4963E-07
+   0.4963E-07
+   0.5217E-07
+   0.5267E-07
+   0.5759E-07
+   0.6258E-07
+   0.7137E-07
+   0.8498E-07
+   0.1061E-06
+   0.1488E-06
+   0.2253E-06
+   0.4128E-06
+   0.7968E-06
+   0.1414E-05
+   0.3179E-05
+   0.0000E+00
+ dectim =    1440.00000000000     
+ BCs are ready from   1989010100   to   1989010106
+ dt, dtau =    150.000000000000        37.5000000000000     
+   75.0000000000000     
+0 linearization about standard atmosphere (lstand=.t.)
+0sigmaf      0.00      5.000E-02  0.100      0.160      0.230      0.310      0.390      0.470      0.550      0.630      0.710    
+           0.780      0.840      0.890      0.930      0.960      0.980      0.990       1.00    
+0t mean      218.       218.       218.       218.       229.       239.       248.       255.       262.       268.       273.    
+            277.       280.       283.       285.       286.       287.       287.    
+0ps mean     100.    
+0 vertical mode problem completed for kx= 18     0 errors detected   (should be 0)
+ m, fac =            4   33.3333333333333     
+ m, fac =            2   60.0000000000000     
+ Writing output files in direct access format
+  
+ ******* OPENING NEW OUTPUT FILES:  1989010100
+ OPENING NEW OUT FILE: output/ATM.1989010100
+ OPENING NEW BAT FILE: output/SRF.1989010100
+ OPENING NEW RAD FILE: output/RAD.1989010100
+ OUT-history written date =    1989010100.00000     
+ BATS variables written at   1989010100   2.50000000000000     
+ Writing rad fields at ktau =            1  1989010100
+     at day =    0.0851, ktau =         50 :  1st, 2nd time deriv of ps =  0.31716E-04 0.84552E-07,  no. of points w/convection =     569
+ BATS variables written at   1989010103   180.000000000000     
+     at day =    0.1719, ktau =        100 :  1st, 2nd time deriv of ps =  0.22990E-04 0.63534E-07,  no. of points w/convection =     512
+           *** solar declination angle = -22.96 degrees.
+  dectim =    2880.00000000000     
+ OUT-history written date =    1989010106.00000     
+ BATS variables written at   1989010106  0.000000000000000E+000
+ Writing rad fields at ktau =          144  1989010106
+ BCs are ready from   1989010106   to   1989010112
+     at day =    0.2587, ktau =        150 :  1st, 2nd time deriv of ps =  0.18418E-04 0.51737E-07,  no. of points w/convection =     460
+     at day =    0.3455, ktau =        200 :  1st, 2nd time deriv of ps =  0.14756E-04 0.46539E-07,  no. of points w/convection =     450
+ BATS variables written at   1989010109   180.000000000000     
+     at day =    0.4323, ktau =        250 :  1st, 2nd time deriv of ps =  0.15544E-04 0.44096E-07,  no. of points w/convection =     414
+           *** solar declination angle = -22.94 degrees.
+  dectim =    4320.00000000000     
+ OUT-history written date =    1989010112.00000     
+ BATS variables written at   1989010112  0.000000000000000E+000
+ Writing rad fields at ktau =          288  1989010112
+ BCs are ready from   1989010112   to   1989010118
+     at day =    0.5191, ktau =        300 :  1st, 2nd time deriv of ps =  0.17383E-04 0.42752E-07,  no. of points w/convection =     373
+     at day =    0.6059, ktau =        350 :  1st, 2nd time deriv of ps =  0.17130E-04 0.39982E-07,  no. of points w/convection =     365
+ BATS variables written at   1989010115   180.000000000000     
+     at day =    0.6927, ktau =        400 :  1st, 2nd time deriv of ps =  0.15980E-04 0.37132E-07,  no. of points w/convection =     402
+           *** solar declination angle = -22.91 degrees.
+  dectim =    5760.00000000000     
+ OUT-history written date =    1989010118.00000     
+ BATS variables written at   1989010118  0.000000000000000E+000
+ Writing rad fields at ktau =          432  1989010118
+ BCs are ready from   1989010118   to   1989010200
+     at day =    0.7795, ktau =        450 :  1st, 2nd time deriv of ps =  0.14411E-04 0.40653E-07,  no. of points w/convection =     459
+     at day =    0.8663, ktau =        500 :  1st, 2nd time deriv of ps =  0.15172E-04 0.41935E-07,  no. of points w/convection =     435
+ BATS variables written at   1989010121   180.000000000000     
+     at day =    0.9531, ktau =        550 :  1st, 2nd time deriv of ps =  0.14636E-04 0.40629E-07,  no. of points w/convection =     476
+           *** solar declination angle = -22.89 degrees.
+  dectim =    7200.00000000000     
+ OUT-history written date =    1989010200.00000     
+ BATS variables written at   1989010200  0.000000000000000E+000
+ Writing rad fields at ktau =          576  1989010200
+ BCs are ready from   1989010200   to   1989010206
+     at day =    1.0399, ktau =        600 :  1st, 2nd time deriv of ps =  0.17322E-04 0.41418E-07,  no. of points w/convection =     474
+ BATS variables written at   1989010203   180.000000000000     
+     at day =    1.1267, ktau =        650 :  1st, 2nd time deriv of ps =  0.17212E-04 0.40213E-07,  no. of points w/convection =     478
+     at day =    1.2135, ktau =        700 :  1st, 2nd time deriv of ps =  0.17766E-04 0.39090E-07,  no. of points w/convection =     417
+           *** solar declination angle = -22.87 degrees.
+  dectim =    8640.00000000000     
+ OUT-history written date =    1989010206.00000     
+ BATS variables written at   1989010206  0.000000000000000E+000
+ Writing rad fields at ktau =          720  1989010206
+ BCs are ready from   1989010206   to   1989010212
+     at day =    1.3003, ktau =        750 :  1st, 2nd time deriv of ps =  0.18097E-04 0.42584E-07,  no. of points w/convection =     494
+ BATS variables written at   1989010209   180.000000000000     
+     at day =    1.3872, ktau =        800 :  1st, 2nd time deriv of ps =  0.16924E-04 0.43894E-07,  no. of points w/convection =     472
+     at day =    1.4740, ktau =        850 :  1st, 2nd time deriv of ps =  0.16813E-04 0.41709E-07,  no. of points w/convection =     514
+           *** solar declination angle = -22.85 degrees.
+  dectim =    10080.0000000000     
+ OUT-history written date =    1989010212.00000     
+ BATS variables written at   1989010212  0.000000000000000E+000
+ Writing rad fields at ktau =          864  1989010212
+ BCs are ready from   1989010212   to   1989010218
+     at day =    1.5608, ktau =        900 :  1st, 2nd time deriv of ps =  0.18807E-04 0.42853E-07,  no. of points w/convection =     514
+ BATS variables written at   1989010215   180.000000000000     
+     at day =    1.6476, ktau =        950 :  1st, 2nd time deriv of ps =  0.19341E-04 0.43804E-07,  no. of points w/convection =     476
+     at day =    1.7344, ktau =       1000 :  1st, 2nd time deriv of ps =  0.18528E-04 0.47221E-07,  no. of points w/convection =     462
+           *** solar declination angle = -22.82 degrees.
+  dectim =    11520.0000000000     
+ OUT-history written date =    1989010218.00000     
+ BATS variables written at   1989010218  0.000000000000000E+000
+ Writing rad fields at ktau =         1008  1989010218
+ BCs are ready from   1989010218   to   1989010300
+     at day =    1.8212, ktau =       1050 :  1st, 2nd time deriv of ps =  0.18803E-04 0.43784E-07,  no. of points w/convection =     405
+ BATS variables written at   1989010221   180.000000000000     
+     at day =    1.9080, ktau =       1100 :  1st, 2nd time deriv of ps =  0.18784E-04 0.43210E-07,  no. of points w/convection =     399
+     at day =    1.9948, ktau =       1150 :  1st, 2nd time deriv of ps =  0.17780E-04 0.42570E-07,  no. of points w/convection =     417
+           *** solar declination angle = -22.80 degrees.
+  dectim =    12960.0000000000     
+ OUT-history written date =    1989010300.00000     
+ BATS variables written at   1989010300  0.000000000000000E+000
+ Writing rad fields at ktau =         1152  1989010300
+ BCs are ready from   1989010300   to   1989010306
+     at day =    2.0816, ktau =       1200 :  1st, 2nd time deriv of ps =  0.17745E-04 0.43642E-07,  no. of points w/convection =     426
+ BATS variables written at   1989010303   180.000000000000     
+     at day =    2.1684, ktau =       1250 :  1st, 2nd time deriv of ps =  0.18485E-04 0.44399E-07,  no. of points w/convection =     409
+           *** solar declination angle = -22.77 degrees.
+  dectim =    14400.0000000000     
+ OUT-history written date =    1989010306.00000     
+ BATS variables written at   1989010306  0.000000000000000E+000
+ Writing rad fields at ktau =         1296  1989010306
+ BCs are ready from   1989010306   to   1989010312
+     at day =    2.2552, ktau =       1300 :  1st, 2nd time deriv of ps =  0.17020E-04 0.49122E-07,  no. of points w/convection =     405
+     at day =    2.3420, ktau =       1350 :  1st, 2nd time deriv of ps =  0.17370E-04 0.47110E-07,  no. of points w/convection =     403
+ BATS variables written at   1989010309   180.000000000000     
+     at day =    2.4288, ktau =       1400 :  1st, 2nd time deriv of ps =  0.16557E-04 0.44632E-07,  no. of points w/convection =     397
+           *** solar declination angle = -22.75 degrees.
+  dectim =    15840.0000000000     
+ OUT-history written date =    1989010312.00000     
+ BATS variables written at   1989010312  0.000000000000000E+000
+ Writing rad fields at ktau =         1440  1989010312
+ BCs are ready from   1989010312   to   1989010318
+     at day =    2.5156, ktau =       1450 :  1st, 2nd time deriv of ps =  0.14883E-04 0.47166E-07,  no. of points w/convection =     339
+     at day =    2.6024, ktau =       1500 :  1st, 2nd time deriv of ps =  0.14644E-04 0.46680E-07,  no. of points w/convection =     315
+ BATS variables written at   1989010315   180.000000000000     
+     at day =    2.6892, ktau =       1550 :  1st, 2nd time deriv of ps =  0.14836E-04 0.43066E-07,  no. of points w/convection =     305
+           *** solar declination angle = -22.72 degrees.
+  dectim =    17280.0000000000     
+ OUT-history written date =    1989010318.00000     
+ BATS variables written at   1989010318  0.000000000000000E+000
+ Writing rad fields at ktau =         1584  1989010318
+ BCs are ready from   1989010318   to   1989010400
+     at day =    2.7760, ktau =       1600 :  1st, 2nd time deriv of ps =  0.16184E-04 0.43185E-07,  no. of points w/convection =     332
+     at day =    2.8628, ktau =       1650 :  1st, 2nd time deriv of ps =  0.17495E-04 0.40172E-07,  no. of points w/convection =     300
+ BATS variables written at   1989010321   180.000000000000     
+     at day =    2.9497, ktau =       1700 :  1st, 2nd time deriv of ps =  0.15984E-04 0.37025E-07,  no. of points w/convection =     297
+           *** solar declination angle = -22.70 degrees.
+  dectim =    18720.0000000000     
+ OUT-history written date =    1989010400.00000     
+ BATS variables written at   1989010400  0.000000000000000E+000
+ Writing rad fields at ktau =         1728  1989010400
+ BCs are ready from   1989010400   to   1989010406
+     at day =    3.0365, ktau =       1750 :  1st, 2nd time deriv of ps =  0.15251E-04 0.36810E-07,  no. of points w/convection =     282
+     at day =    3.1233, ktau =       1800 :  1st, 2nd time deriv of ps =  0.15747E-04 0.39419E-07,  no. of points w/convection =     280
+ BATS variables written at   1989010403   180.000000000000     
+     at day =    3.2101, ktau =       1850 :  1st, 2nd time deriv of ps =  0.15848E-04 0.39834E-07,  no. of points w/convection =     222
+           *** solar declination angle = -22.67 degrees.
+  dectim =    20160.0000000000     
+ OUT-history written date =    1989010406.00000     
+ BATS variables written at   1989010406  0.000000000000000E+000
+ Writing rad fields at ktau =         1872  1989010406
+ BCs are ready from   1989010406   to   1989010412
+     at day =    3.2969, ktau =       1900 :  1st, 2nd time deriv of ps =  0.17268E-04 0.40438E-07,  no. of points w/convection =     203
+ BATS variables written at   1989010409   180.000000000000     
+     at day =    3.3837, ktau =       1950 :  1st, 2nd time deriv of ps =  0.16690E-04 0.39753E-07,  no. of points w/convection =     213
+     at day =    3.4705, ktau =       2000 :  1st, 2nd time deriv of ps =  0.16146E-04 0.39633E-07,  no. of points w/convection =     224
+           *** solar declination angle = -22.64 degrees.
+  dectim =    21600.0000000000     
+ OUT-history written date =    1989010412.00000     
+ BATS variables written at   1989010412  0.000000000000000E+000
+ Writing rad fields at ktau =         2016  1989010412
+ BCs are ready from   1989010412   to   1989010418
+     at day =    3.5573, ktau =       2050 :  1st, 2nd time deriv of ps =  0.16145E-04 0.40283E-07,  no. of points w/convection =     250
+ BATS variables written at   1989010415   180.000000000000     
+     at day =    3.6441, ktau =       2100 :  1st, 2nd time deriv of ps =  0.14728E-04 0.40206E-07,  no. of points w/convection =     271
+     at day =    3.7309, ktau =       2150 :  1st, 2nd time deriv of ps =  0.14189E-04 0.40597E-07,  no. of points w/convection =     294
+           *** solar declination angle = -22.61 degrees.
+  dectim =    23040.0000000000     
+ OUT-history written date =    1989010418.00000     
+ BATS variables written at   1989010418  0.000000000000000E+000
+ Writing rad fields at ktau =         2160  1989010418
+ BCs are ready from   1989010418   to   1989010500
+     at day =    3.8177, ktau =       2200 :  1st, 2nd time deriv of ps =  0.15864E-04 0.39854E-07,  no. of points w/convection =     324
+ BATS variables written at   1989010421   180.000000000000     
+     at day =    3.9045, ktau =       2250 :  1st, 2nd time deriv of ps =  0.14803E-04 0.37942E-07,  no. of points w/convection =     314
+     at day =    3.9913, ktau =       2300 :  1st, 2nd time deriv of ps =  0.14632E-04 0.38241E-07,  no. of points w/convection =     348
+           *** solar declination angle = -22.59 degrees.
+  dectim =    24480.0000000000     
+ OUT-history written date =    1989010500.00000     
+ BATS variables written at   1989010500  0.000000000000000E+000
+ Writing rad fields at ktau =         2304  1989010500
+ BCs are ready from   1989010500   to   1989010506
+     at day =    4.0781, ktau =       2350 :  1st, 2nd time deriv of ps =  0.16649E-04 0.39258E-07,  no. of points w/convection =     332
+ BATS variables written at   1989010503   180.000000000000     
+     at day =    4.1649, ktau =       2400 :  1st, 2nd time deriv of ps =  0.14800E-04 0.35506E-07,  no. of points w/convection =     349
+           *** solar declination angle = -22.56 degrees.
+  dectim =    25920.0000000000     
+ OUT-history written date =    1989010506.00000     
+ BATS variables written at   1989010506  0.000000000000000E+000
+ Writing rad fields at ktau =         2448  1989010506
+ BCs are ready from   1989010506   to   1989010512
+     at day =    4.2517, ktau =       2450 :  1st, 2nd time deriv of ps =  0.15170E-04 0.39687E-07,  no. of points w/convection =     339
+     at day =    4.3385, ktau =       2500 :  1st, 2nd time deriv of ps =  0.16089E-04 0.41454E-07,  no. of points w/convection =     367
+ BATS variables written at   1989010509   180.000000000000     
+     at day =    4.4253, ktau =       2550 :  1st, 2nd time deriv of ps =  0.18025E-04 0.43231E-07,  no. of points w/convection =     380
+           *** solar declination angle = -22.53 degrees.
+  dectim =    27360.0000000000     
+ OUT-history written date =    1989010512.00000     
+ BATS variables written at   1989010512  0.000000000000000E+000
+ Writing rad fields at ktau =         2592  1989010512
+ BCs are ready from   1989010512   to   1989010518
+     at day =    4.5122, ktau =       2600 :  1st, 2nd time deriv of ps =  0.16029E-04 0.42345E-07,  no. of points w/convection =     324
+     at day =    4.5990, ktau =       2650 :  1st, 2nd time deriv of ps =  0.15750E-04 0.35965E-07,  no. of points w/convection =     323
+ BATS variables written at   1989010515   180.000000000000     
+     at day =    4.6858, ktau =       2700 :  1st, 2nd time deriv of ps =  0.15762E-04 0.36894E-07,  no. of points w/convection =     378
+           *** solar declination angle = -22.50 degrees.
+  dectim =    28800.0000000000     
+ OUT-history written date =    1989010518.00000     
+ BATS variables written at   1989010518  0.000000000000000E+000
+ Writing rad fields at ktau =         2736  1989010518
+ BCs are ready from   1989010518   to   1989010600
+     at day =    4.7726, ktau =       2750 :  1st, 2nd time deriv of ps =  0.15479E-04 0.37488E-07,  no. of points w/convection =     404
+     at day =    4.8594, ktau =       2800 :  1st, 2nd time deriv of ps =  0.15862E-04 0.37389E-07,  no. of points w/convection =     413
+ BATS variables written at   1989010521   180.000000000000     
+     at day =    4.9462, ktau =       2850 :  1st, 2nd time deriv of ps =  0.16248E-04 0.37595E-07,  no. of points w/convection =     419
+           *** solar declination angle = -22.47 degrees.
+  dectim =    30240.0000000000     
+ OUT-history written date =    1989010600.00000     
+ BATS variables written at   1989010600  0.000000000000000E+000
+ Writing rad fields at ktau =         2880  1989010600
+ BCs are ready from   1989010600   to   1989010606
+     at day =    5.0330, ktau =       2900 :  1st, 2nd time deriv of ps =  0.16437E-04 0.37204E-07,  no. of points w/convection =     438
+     at day =    5.1198, ktau =       2950 :  1st, 2nd time deriv of ps =  0.15969E-04 0.39898E-07,  no. of points w/convection =     443
+ BATS variables written at   1989010603   180.000000000000     
+     at day =    5.2066, ktau =       3000 :  1st, 2nd time deriv of ps =  0.16633E-04 0.39815E-07,  no. of points w/convection =     434
+           *** solar declination angle = -22.44 degrees.
+  dectim =    31680.0000000000     
+ OUT-history written date =    1989010606.00000     
+ BATS variables written at   1989010606  0.000000000000000E+000
+ Writing rad fields at ktau =         3024  1989010606
+ BCs are ready from   1989010606   to   1989010612
+     at day =    5.2934, ktau =       3050 :  1st, 2nd time deriv of ps =  0.15824E-04 0.40794E-07,  no. of points w/convection =     446
+ BATS variables written at   1989010609   180.000000000000     
+     at day =    5.3802, ktau =       3100 :  1st, 2nd time deriv of ps =  0.16167E-04 0.38119E-07,  no. of points w/convection =     418
+     at day =    5.4670, ktau =       3150 :  1st, 2nd time deriv of ps =  0.16557E-04 0.41959E-07,  no. of points w/convection =     468
+           *** solar declination angle = -22.41 degrees.
+  dectim =    33120.0000000000     
+ OUT-history written date =    1989010612.00000     
+ BATS variables written at   1989010612  0.000000000000000E+000
+ Writing rad fields at ktau =         3168  1989010612
+ BCs are ready from   1989010612   to   1989010618
+     at day =    5.5538, ktau =       3200 :  1st, 2nd time deriv of ps =  0.16546E-04 0.42814E-07,  no. of points w/convection =     490
+ BATS variables written at   1989010615   180.000000000000     
+     at day =    5.6406, ktau =       3250 :  1st, 2nd time deriv of ps =  0.14953E-04 0.41990E-07,  no. of points w/convection =     500
+     at day =    5.7274, ktau =       3300 :  1st, 2nd time deriv of ps =  0.13677E-04 0.43207E-07,  no. of points w/convection =     490
+           *** solar declination angle = -22.38 degrees.
+  dectim =    34560.0000000000     
+ OUT-history written date =    1989010618.00000     
+ BATS variables written at   1989010618  0.000000000000000E+000
+ Writing rad fields at ktau =         3312  1989010618
+ BCs are ready from   1989010618   to   1989010700
+     at day =    5.8142, ktau =       3350 :  1st, 2nd time deriv of ps =  0.14240E-04 0.45237E-07,  no. of points w/convection =     489
+ BATS variables written at   1989010621   180.000000000000     
+     at day =    5.9010, ktau =       3400 :  1st, 2nd time deriv of ps =  0.13449E-04 0.46060E-07,  no. of points w/convection =     503
+     at day =    5.9878, ktau =       3450 :  1st, 2nd time deriv of ps =  0.13829E-04 0.47732E-07,  no. of points w/convection =     485
+           *** solar declination angle = -22.35 degrees.
+  dectim =    36000.0000000000     
+ OUT-history written date =    1989010700.00000     
+ BATS variables written at   1989010700  0.000000000000000E+000
+ Writing rad fields at ktau =         3456  1989010700
+ BCs are ready from   1989010700   to   1989010706
+     at day =    6.0747, ktau =       3500 :  1st, 2nd time deriv of ps =  0.14750E-04 0.45657E-07,  no. of points w/convection =     490
+ BATS variables written at   1989010703   180.000000000000     
+     at day =    6.1615, ktau =       3550 :  1st, 2nd time deriv of ps =  0.16423E-04 0.49521E-07,  no. of points w/convection =     532
+     at day =    6.2483, ktau =       3600 :  1st, 2nd time deriv of ps =  0.14008E-04 0.47713E-07,  no. of points w/convection =     599
+           *** solar declination angle = -22.31 degrees.
+  dectim =    37440.0000000000     
+ OUT-history written date =    1989010706.00000     
+ BATS variables written at   1989010706  0.000000000000000E+000
+ Writing rad fields at ktau =         3600  1989010706
+ BCs are ready from   1989010706   to   1989010712
+     at day =    6.3351, ktau =       3650 :  1st, 2nd time deriv of ps =  0.14224E-04 0.48359E-07,  no. of points w/convection =     643
+ BATS variables written at   1989010709   180.000000000000     
+     at day =    6.4219, ktau =       3700 :  1st, 2nd time deriv of ps =  0.14335E-04 0.50722E-07,  no. of points w/convection =     587
+           *** solar declination angle = -22.28 degrees.
+  dectim =    38880.0000000000     
+ OUT-history written date =    1989010712.00000     
+ BATS variables written at   1989010712  0.000000000000000E+000
+ Writing rad fields at ktau =         3744  1989010712
+ BCs are ready from   1989010712   to   1989010718
+     at day =    6.5087, ktau =       3750 :  1st, 2nd time deriv of ps =  0.14616E-04 0.56479E-07,  no. of points w/convection =     568
+     at day =    6.5955, ktau =       3800 :  1st, 2nd time deriv of ps =  0.13779E-04 0.53602E-07,  no. of points w/convection =     595
+ BATS variables written at   1989010715   180.000000000000     
+     at day =    6.6823, ktau =       3850 :  1st, 2nd time deriv of ps =  0.14285E-04 0.54974E-07,  no. of points w/convection =     605
+           *** solar declination angle = -22.25 degrees.
+  dectim =    40320.0000000000     
+ OUT-history written date =    1989010718.00000     
+ BATS variables written at   1989010718  0.000000000000000E+000
+ Writing rad fields at ktau =         3888  1989010718
+ BCs are ready from   1989010718   to   1989010800
+     at day =    6.7691, ktau =       3900 :  1st, 2nd time deriv of ps =  0.13809E-04 0.52113E-07,  no. of points w/convection =     562
+     at day =    6.8559, ktau =       3950 :  1st, 2nd time deriv of ps =  0.14431E-04 0.55866E-07,  no. of points w/convection =     560
+ BATS variables written at   1989010721   180.000000000000     
+     at day =    6.9427, ktau =       4000 :  1st, 2nd time deriv of ps =  0.13957E-04 0.51254E-07,  no. of points w/convection =     557
+           *** solar declination angle = -22.21 degrees.
+  dectim =    41760.0000000000     
+ OUT-history written date =    1989010800.00000     
+ BATS variables written at   1989010800  0.000000000000000E+000
+ Writing rad fields at ktau =         4032  1989010800
+ BCs are ready from   1989010800   to   1989010806
+     at day =    7.0295, ktau =       4050 :  1st, 2nd time deriv of ps =  0.13962E-04 0.56616E-07,  no. of points w/convection =     577
+     at day =    7.1163, ktau =       4100 :  1st, 2nd time deriv of ps =  0.15340E-04 0.56477E-07,  no. of points w/convection =     584
+ BATS variables written at   1989010803   180.000000000000     
+     at day =    7.2031, ktau =       4150 :  1st, 2nd time deriv of ps =  0.14723E-04 0.51792E-07,  no. of points w/convection =     564
+           *** solar declination angle = -22.18 degrees.
+  dectim =    43200.0000000000     
+ OUT-history written date =    1989010806.00000     
+ BATS variables written at   1989010806  0.000000000000000E+000
+ Writing rad fields at ktau =         4176  1989010806
+ BCs are ready from   1989010806   to   1989010812
+     at day =    7.2899, ktau =       4200 :  1st, 2nd time deriv of ps =  0.15319E-04 0.54741E-07,  no. of points w/convection =     579
+ BATS variables written at   1989010809   180.000000000000     
+     at day =    7.3767, ktau =       4250 :  1st, 2nd time deriv of ps =  0.15647E-04 0.56713E-07,  no. of points w/convection =     576
+     at day =    7.4635, ktau =       4300 :  1st, 2nd time deriv of ps =  0.15035E-04 0.56494E-07,  no. of points w/convection =     531
+           *** solar declination angle = -22.15 degrees.
+  dectim =    44640.0000000000     
+ OUT-history written date =    1989010812.00000     
+ BATS variables written at   1989010812  0.000000000000000E+000
+ Writing rad fields at ktau =         4320  1989010812
+ BCs are ready from   1989010812   to   1989010818
+     at day =    7.5503, ktau =       4350 :  1st, 2nd time deriv of ps =  0.15705E-04 0.57049E-07,  no. of points w/convection =     541
+ BATS variables written at   1989010815   180.000000000000     
+     at day =    7.6372, ktau =       4400 :  1st, 2nd time deriv of ps =  0.16068E-04 0.54116E-07,  no. of points w/convection =     587
+     at day =    7.7240, ktau =       4450 :  1st, 2nd time deriv of ps =  0.15352E-04 0.52875E-07,  no. of points w/convection =     621
+           *** solar declination angle = -22.11 degrees.
+  dectim =    46080.0000000000     
+ OUT-history written date =    1989010818.00000     
+ BATS variables written at   1989010818  0.000000000000000E+000
+ Writing rad fields at ktau =         4464  1989010818
+ BCs are ready from   1989010818   to   1989010900
+     at day =    7.8108, ktau =       4500 :  1st, 2nd time deriv of ps =  0.15282E-04 0.50237E-07,  no. of points w/convection =     646
+ BATS variables written at   1989010821   180.000000000000     
+     at day =    7.8976, ktau =       4550 :  1st, 2nd time deriv of ps =  0.15676E-04 0.48882E-07,  no. of points w/convection =     599
+     at day =    7.9844, ktau =       4600 :  1st, 2nd time deriv of ps =  0.15361E-04 0.51849E-07,  no. of points w/convection =     535
+           *** solar declination angle = -22.08 degrees.
+  dectim =    47520.0000000000     
+ OUT-history written date =    1989010900.00000     
+ BATS variables written at   1989010900  0.000000000000000E+000
+ Writing rad fields at ktau =         4608  1989010900
+ BCs are ready from   1989010900   to   1989010906
+     at day =    8.0712, ktau =       4650 :  1st, 2nd time deriv of ps =  0.15972E-04 0.51069E-07,  no. of points w/convection =     573
+ BATS variables written at   1989010903   180.000000000000     
+     at day =    8.1580, ktau =       4700 :  1st, 2nd time deriv of ps =  0.15365E-04 0.49935E-07,  no. of points w/convection =     541
+     at day =    8.2448, ktau =       4750 :  1st, 2nd time deriv of ps =  0.15446E-04 0.49038E-07,  no. of points w/convection =     531
+           *** solar declination angle = -22.04 degrees.
+  dectim =    48960.0000000000     
+ OUT-history written date =    1989010906.00000     
+ BATS variables written at   1989010906  0.000000000000000E+000
+ Writing rad fields at ktau =         4752  1989010906
+ BCs are ready from   1989010906   to   1989010912
+     at day =    8.3316, ktau =       4800 :  1st, 2nd time deriv of ps =  0.16163E-04 0.46659E-07,  no. of points w/convection =     484
+ BATS variables written at   1989010909   180.000000000000     
+     at day =    8.4184, ktau =       4850 :  1st, 2nd time deriv of ps =  0.15739E-04 0.47812E-07,  no. of points w/convection =     477
+           *** solar declination angle = -22.00 degrees.
+  dectim =    50400.0000000000     
+ OUT-history written date =    1989010912.00000     
+ BATS variables written at   1989010912  0.000000000000000E+000
+ Writing rad fields at ktau =         4896  1989010912
+ BCs are ready from   1989010912   to   1989010918
+     at day =    8.5052, ktau =       4900 :  1st, 2nd time deriv of ps =  0.15483E-04 0.47708E-07,  no. of points w/convection =     453
+     at day =    8.5920, ktau =       4950 :  1st, 2nd time deriv of ps =  0.16307E-04 0.45544E-07,  no. of points w/convection =     484
+ BATS variables written at   1989010915   180.000000000000     
+     at day =    8.6788, ktau =       5000 :  1st, 2nd time deriv of ps =  0.15182E-04 0.43857E-07,  no. of points w/convection =     470
+           *** solar declination angle = -21.97 degrees.
+  dectim =    51840.0000000000     
+ OUT-history written date =    1989010918.00000     
+ BATS variables written at   1989010918  0.000000000000000E+000
+ Writing rad fields at ktau =         5040  1989010918
+ BCs are ready from   1989010918   to   1989011000
+     at day =    8.7656, ktau =       5050 :  1st, 2nd time deriv of ps =  0.15711E-04 0.48744E-07,  no. of points w/convection =     470
+     at day =    8.8524, ktau =       5100 :  1st, 2nd time deriv of ps =  0.15401E-04 0.43306E-07,  no. of points w/convection =     418
+ BATS variables written at   1989010921   180.000000000000     
+     at day =    8.9392, ktau =       5150 :  1st, 2nd time deriv of ps =  0.14492E-04 0.42430E-07,  no. of points w/convection =     390
+           *** solar declination angle = -21.93 degrees.
+  dectim =    53280.0000000000     
+ OUT-history written date =    1989011000.00000     
+ BATS variables written at   1989011000  0.000000000000000E+000
+ Writing rad fields at ktau =         5184  1989011000
+ BCs are ready from   1989011000   to   1989011006
+     at day =    9.0260, ktau =       5200 :  1st, 2nd time deriv of ps =  0.14952E-04 0.42832E-07,  no. of points w/convection =     375
+     at day =    9.1128, ktau =       5250 :  1st, 2nd time deriv of ps =  0.14676E-04 0.41525E-07,  no. of points w/convection =     372
+ BATS variables written at   1989011003   180.000000000000     
+     at day =    9.1997, ktau =       5300 :  1st, 2nd time deriv of ps =  0.14500E-04 0.41685E-07,  no. of points w/convection =     354
+           *** solar declination angle = -21.89 degrees.
+  dectim =    54720.0000000000     
+ OUT-history written date =    1989011006.00000     
+ BATS variables written at   1989011006  0.000000000000000E+000
+ Writing rad fields at ktau =         5328  1989011006
+ BCs are ready from   1989011006   to   1989011012
+     at day =    9.2865, ktau =       5350 :  1st, 2nd time deriv of ps =  0.15649E-04 0.43848E-07,  no. of points w/convection =     355
+     at day =    9.3733, ktau =       5400 :  1st, 2nd time deriv of ps =  0.15620E-04 0.42629E-07,  no. of points w/convection =     355
+ BATS variables written at   1989011009   180.000000000000     
+     at day =    9.4601, ktau =       5450 :  1st, 2nd time deriv of ps =  0.13505E-04 0.43766E-07,  no. of points w/convection =     353
+           *** solar declination angle = -21.85 degrees.
+  dectim =    56160.0000000000     
+ OUT-history written date =    1989011012.00000     
+ BATS variables written at   1989011012  0.000000000000000E+000
+ Writing rad fields at ktau =         5472  1989011012
+ BCs are ready from   1989011012   to   1989011018
+     at day =    9.5469, ktau =       5500 :  1st, 2nd time deriv of ps =  0.16156E-04 0.42471E-07,  no. of points w/convection =     299
+ BATS variables written at   1989011015   180.000000000000     
+     at day =    9.6337, ktau =       5550 :  1st, 2nd time deriv of ps =  0.15864E-04 0.41889E-07,  no. of points w/convection =     306
+     at day =    9.7205, ktau =       5600 :  1st, 2nd time deriv of ps =  0.16107E-04 0.41676E-07,  no. of points w/convection =     279
+           *** solar declination angle = -21.81 degrees.
+  dectim =    57600.0000000000     
+ OUT-history written date =    1989011018.00000     
+ BATS variables written at   1989011018  0.000000000000000E+000
+ Writing rad fields at ktau =         5616  1989011018
+ BCs are ready from   1989011018   to   1989011100
+     at day =    9.8073, ktau =       5650 :  1st, 2nd time deriv of ps =  0.15226E-04 0.42171E-07,  no. of points w/convection =     283
+ BATS variables written at   1989011021   180.000000000000     
+     at day =    9.8941, ktau =       5700 :  1st, 2nd time deriv of ps =  0.15067E-04 0.40655E-07,  no. of points w/convection =     254
+     at day =    9.9809, ktau =       5750 :  1st, 2nd time deriv of ps =  0.14166E-04 0.40716E-07,  no. of points w/convection =     242
+           *** solar declination angle = -21.78 degrees.
+  dectim =    59040.0000000000     
+ OUT-history written date =    1989011100.00000     
+ BATS variables written at   1989011100  0.000000000000000E+000
+ Writing rad fields at ktau =         5760  1989011100
+ BCs are ready from   1989011100   to   1989011106
+     at day =   10.0677, ktau =       5800 :  1st, 2nd time deriv of ps =  0.15091E-04 0.41239E-07,  no. of points w/convection =     293
+ BATS variables written at   1989011103   180.000000000000     
+     at day =   10.1545, ktau =       5850 :  1st, 2nd time deriv of ps =  0.15239E-04 0.45922E-07,  no. of points w/convection =     329
+     at day =   10.2413, ktau =       5900 :  1st, 2nd time deriv of ps =  0.14647E-04 0.47098E-07,  no. of points w/convection =     284
+           *** solar declination angle = -21.74 degrees.
+  dectim =    60480.0000000000     
+ OUT-history written date =    1989011106.00000     
+ BATS variables written at   1989011106  0.000000000000000E+000
+ Writing rad fields at ktau =         5904  1989011106
+ BCs are ready from   1989011106   to   1989011112
+     at day =   10.3281, ktau =       5950 :  1st, 2nd time deriv of ps =  0.15503E-04 0.47902E-07,  no. of points w/convection =     289
+ BATS variables written at   1989011109   180.000000000000     
+     at day =   10.4149, ktau =       6000 :  1st, 2nd time deriv of ps =  0.14854E-04 0.47956E-07,  no. of points w/convection =     338
+           *** solar declination angle = -21.70 degrees.
+  dectim =    61920.0000000000     
+ OUT-history written date =    1989011112.00000     
+ BATS variables written at   1989011112  0.000000000000000E+000
+ Writing rad fields at ktau =         6048  1989011112
+ BCs are ready from   1989011112   to   1989011118
+     at day =   10.5017, ktau =       6050 :  1st, 2nd time deriv of ps =  0.15582E-04 0.49907E-07,  no. of points w/convection =     348
+     at day =   10.5885, ktau =       6100 :  1st, 2nd time deriv of ps =  0.16103E-04 0.49389E-07,  no. of points w/convection =     330
+ BATS variables written at   1989011115   180.000000000000     
+     at day =   10.6753, ktau =       6150 :  1st, 2nd time deriv of ps =  0.15845E-04 0.51985E-07,  no. of points w/convection =     319
+           *** solar declination angle = -21.66 degrees.
+  dectim =    63360.0000000000     
+ OUT-history written date =    1989011118.00000     
+ BATS variables written at   1989011118  0.000000000000000E+000
+ Writing rad fields at ktau =         6192  1989011118
+ BCs are ready from   1989011118   to   1989011200
+     at day =   10.7622, ktau =       6200 :  1st, 2nd time deriv of ps =  0.15202E-04 0.49267E-07,  no. of points w/convection =     307
+     at day =   10.8490, ktau =       6250 :  1st, 2nd time deriv of ps =  0.14594E-04 0.47005E-07,  no. of points w/convection =     313
+ BATS variables written at   1989011121   180.000000000000     
+     at day =   10.9358, ktau =       6300 :  1st, 2nd time deriv of ps =  0.14832E-04 0.46234E-07,  no. of points w/convection =     314
+           *** solar declination angle = -21.62 degrees.
+  dectim =    64800.0000000000     
+ OUT-history written date =    1989011200.00000     
+ BATS variables written at   1989011200  0.000000000000000E+000
+ Writing rad fields at ktau =         6336  1989011200
+ BCs are ready from   1989011200   to   1989011206
+     at day =   11.0226, ktau =       6350 :  1st, 2nd time deriv of ps =  0.15914E-04 0.46346E-07,  no. of points w/convection =     327
+     at day =   11.1094, ktau =       6400 :  1st, 2nd time deriv of ps =  0.16050E-04 0.44103E-07,  no. of points w/convection =     331
+ BATS variables written at   1989011203   180.000000000000     
+     at day =   11.1962, ktau =       6450 :  1st, 2nd time deriv of ps =  0.15315E-04 0.43348E-07,  no. of points w/convection =     309
+           *** solar declination angle = -21.57 degrees.
+  dectim =    66240.0000000000     
+ OUT-history written date =    1989011206.00000     
+ BATS variables written at   1989011206  0.000000000000000E+000
+ Writing rad fields at ktau =         6480  1989011206
+ BCs are ready from   1989011206   to   1989011212
+     at day =   11.2830, ktau =       6500 :  1st, 2nd time deriv of ps =  0.16680E-04 0.46352E-07,  no. of points w/convection =     289
+     at day =   11.3698, ktau =       6550 :  1st, 2nd time deriv of ps =  0.17710E-04 0.43757E-07,  no. of points w/convection =     262
+ BATS variables written at   1989011209   180.000000000000     
+     at day =   11.4566, ktau =       6600 :  1st, 2nd time deriv of ps =  0.17461E-04 0.44981E-07,  no. of points w/convection =     284
+           *** solar declination angle = -21.53 degrees.
+  dectim =    67680.0000000000     
+ OUT-history written date =    1989011212.00000     
+ BATS variables written at   1989011212  0.000000000000000E+000
+ Writing rad fields at ktau =         6624  1989011212
+ BCs are ready from   1989011212   to   1989011218
+     at day =   11.5434, ktau =       6650 :  1st, 2nd time deriv of ps =  0.18302E-04 0.46294E-07,  no. of points w/convection =     265
+ BATS variables written at   1989011215   180.000000000000     
+     at day =   11.6302, ktau =       6700 :  1st, 2nd time deriv of ps =  0.17099E-04 0.44037E-07,  no. of points w/convection =     238
+     at day =   11.7170, ktau =       6750 :  1st, 2nd time deriv of ps =  0.16852E-04 0.40510E-07,  no. of points w/convection =     230
+           *** solar declination angle = -21.49 degrees.
+  dectim =    69120.0000000000     
+ OUT-history written date =    1989011218.00000     
+ BATS variables written at   1989011218  0.000000000000000E+000
+ Writing rad fields at ktau =         6768  1989011218
+ BCs are ready from   1989011218   to   1989011300
+     at day =   11.8038, ktau =       6800 :  1st, 2nd time deriv of ps =  0.16578E-04 0.39889E-07,  no. of points w/convection =     225
+ BATS variables written at   1989011221   180.000000000000     
+     at day =   11.8906, ktau =       6850 :  1st, 2nd time deriv of ps =  0.17498E-04 0.37636E-07,  no. of points w/convection =     242
+     at day =   11.9774, ktau =       6900 :  1st, 2nd time deriv of ps =  0.17858E-04 0.40180E-07,  no. of points w/convection =     245
+           *** solar declination angle = -21.45 degrees.
+  dectim =    70560.0000000000     
+ OUT-history written date =    1989011300.00000     
+ BATS variables written at   1989011300  0.000000000000000E+000
+ Writing rad fields at ktau =         6912  1989011300
+ BCs are ready from   1989011300   to   1989011306
+     at day =   12.0642, ktau =       6950 :  1st, 2nd time deriv of ps =  0.18074E-04 0.39843E-07,  no. of points w/convection =     275
+ BATS variables written at   1989011303   180.000000000000     
+     at day =   12.1510, ktau =       7000 :  1st, 2nd time deriv of ps =  0.17648E-04 0.42611E-07,  no. of points w/convection =     288
+     at day =   12.2378, ktau =       7050 :  1st, 2nd time deriv of ps =  0.17365E-04 0.42108E-07,  no. of points w/convection =     278
+           *** solar declination angle = -21.41 degrees.
+  dectim =    72000.0000000000     
+ OUT-history written date =    1989011306.00000     
+ BATS variables written at   1989011306  0.000000000000000E+000
+ Writing rad fields at ktau =         7056  1989011306
+ BCs are ready from   1989011306   to   1989011312
+     at day =   12.3247, ktau =       7100 :  1st, 2nd time deriv of ps =  0.19020E-04 0.41471E-07,  no. of points w/convection =     335
+ BATS variables written at   1989011309   180.000000000000     
+     at day =   12.4115, ktau =       7150 :  1st, 2nd time deriv of ps =  0.17737E-04 0.42695E-07,  no. of points w/convection =     339
+     at day =   12.4983, ktau =       7200 :  1st, 2nd time deriv of ps =  0.17412E-04 0.42890E-07,  no. of points w/convection =     320
+           *** solar declination angle = -21.36 degrees.
+  dectim =    73440.0000000000     
+ OUT-history written date =    1989011312.00000     
+ BATS variables written at   1989011312  0.000000000000000E+000
+ Writing rad fields at ktau =         7200  1989011312
+ BCs are ready from   1989011312   to   1989011318
+     at day =   12.5851, ktau =       7250 :  1st, 2nd time deriv of ps =  0.17557E-04 0.44653E-07,  no. of points w/convection =     382
+ BATS variables written at   1989011315   180.000000000000     
+     at day =   12.6719, ktau =       7300 :  1st, 2nd time deriv of ps =  0.16431E-04 0.45872E-07,  no. of points w/convection =     356
+           *** solar declination angle = -21.32 degrees.
+  dectim =    74880.0000000000     
+ OUT-history written date =    1989011318.00000     
+ BATS variables written at   1989011318  0.000000000000000E+000
+ Writing rad fields at ktau =         7344  1989011318
+ BCs are ready from   1989011318   to   1989011400
+     at day =   12.7587, ktau =       7350 :  1st, 2nd time deriv of ps =  0.17505E-04 0.47719E-07,  no. of points w/convection =     339
+     at day =   12.8455, ktau =       7400 :  1st, 2nd time deriv of ps =  0.18119E-04 0.48113E-07,  no. of points w/convection =     373
+ BATS variables written at   1989011321   180.000000000000     
+     at day =   12.9323, ktau =       7450 :  1st, 2nd time deriv of ps =  0.17530E-04 0.45745E-07,  no. of points w/convection =     400
+           *** solar declination angle = -21.27 degrees.
+  dectim =    76320.0000000000     
+ OUT-history written date =    1989011400.00000     
+ BATS variables written at   1989011400  0.000000000000000E+000
+ Writing rad fields at ktau =         7488  1989011400
+ BCs are ready from   1989011400   to   1989011406
+     at day =   13.0191, ktau =       7500 :  1st, 2nd time deriv of ps =  0.18395E-04 0.46355E-07,  no. of points w/convection =     386
+     at day =   13.1059, ktau =       7550 :  1st, 2nd time deriv of ps =  0.17411E-04 0.44199E-07,  no. of points w/convection =     400
+ BATS variables written at   1989011403   180.000000000000     
+     at day =   13.1927, ktau =       7600 :  1st, 2nd time deriv of ps =  0.18004E-04 0.45433E-07,  no. of points w/convection =     352
+           *** solar declination angle = -21.23 degrees.
+  dectim =    77760.0000000000     
+ OUT-history written date =    1989011406.00000     
+ BATS variables written at   1989011406  0.000000000000000E+000
+ Writing rad fields at ktau =         7632  1989011406
+ BCs are ready from   1989011406   to   1989011412
+     at day =   13.2795, ktau =       7650 :  1st, 2nd time deriv of ps =  0.18742E-04 0.43026E-07,  no. of points w/convection =     414
+     at day =   13.3663, ktau =       7700 :  1st, 2nd time deriv of ps =  0.19337E-04 0.43010E-07,  no. of points w/convection =     373
+ BATS variables written at   1989011409   180.000000000000     
+     at day =   13.4531, ktau =       7750 :  1st, 2nd time deriv of ps =  0.16647E-04 0.43134E-07,  no. of points w/convection =     348
+           *** solar declination angle = -21.18 degrees.
+  dectim =    79200.0000000000     
+ OUT-history written date =    1989011412.00000     
+ BATS variables written at   1989011412  0.000000000000000E+000
+ Writing rad fields at ktau =         7776  1989011412
+ BCs are ready from   1989011412   to   1989011418
+     at day =   13.5399, ktau =       7800 :  1st, 2nd time deriv of ps =  0.16146E-04 0.41266E-07,  no. of points w/convection =     289
+ BATS variables written at   1989011415   180.000000000000     
+     at day =   13.6267, ktau =       7850 :  1st, 2nd time deriv of ps =  0.15626E-04 0.42695E-07,  no. of points w/convection =     313
+     at day =   13.7135, ktau =       7900 :  1st, 2nd time deriv of ps =  0.14946E-04 0.39993E-07,  no. of points w/convection =     276
+           *** solar declination angle = -21.14 degrees.
+  dectim =    80640.0000000000     
+ OUT-history written date =    1989011418.00000     
+ BATS variables written at   1989011418  0.000000000000000E+000
+ Writing rad fields at ktau =         7920  1989011418
+ BCs are ready from   1989011418   to   1989011500
+     at day =   13.8003, ktau =       7950 :  1st, 2nd time deriv of ps =  0.13960E-04 0.40111E-07,  no. of points w/convection =     263
+ BATS variables written at   1989011421   180.000000000000     
+     at day =   13.8872, ktau =       8000 :  1st, 2nd time deriv of ps =  0.13614E-04 0.38885E-07,  no. of points w/convection =     253
+     at day =   13.9740, ktau =       8050 :  1st, 2nd time deriv of ps =  0.13366E-04 0.40584E-07,  no. of points w/convection =     311
+           *** solar declination angle = -21.09 degrees.
+  dectim =    82080.0000000000     
+ OUT-history written date =    1989011500.00000     
+ BATS variables written at   1989011500  0.000000000000000E+000
+ Writing rad fields at ktau =         8064  1989011500
+ BCs are ready from   1989011500   to   1989011506
+     at day =   14.0608, ktau =       8100 :  1st, 2nd time deriv of ps =  0.14766E-04 0.42283E-07,  no. of points w/convection =     376
+ BATS variables written at   1989011503   180.000000000000     
+     at day =   14.1476, ktau =       8150 :  1st, 2nd time deriv of ps =  0.14251E-04 0.42814E-07,  no. of points w/convection =     379
+     at day =   14.2344, ktau =       8200 :  1st, 2nd time deriv of ps =  0.14672E-04 0.42544E-07,  no. of points w/convection =     410
+           *** solar declination angle = -21.05 degrees.
+  dectim =    83520.0000000000     
+ OUT-history written date =    1989011506.00000     
+ BATS variables written at   1989011506  0.000000000000000E+000
+ Writing rad fields at ktau =         8208  1989011506
+ BCs are ready from   1989011506   to   1989011512
+     at day =   14.3212, ktau =       8250 :  1st, 2nd time deriv of ps =  0.15674E-04 0.43859E-07,  no. of points w/convection =     402
+ BATS variables written at   1989011509   180.000000000000     
+     at day =   14.4080, ktau =       8300 :  1st, 2nd time deriv of ps =  0.15408E-04 0.48216E-07,  no. of points w/convection =     385
+     at day =   14.4948, ktau =       8350 :  1st, 2nd time deriv of ps =  0.14080E-04 0.47382E-07,  no. of points w/convection =     427
+           *** solar declination angle = -21.00 degrees.
+  dectim =    84960.0000000000     
+ OUT-history written date =    1989011512.00000     
+ BATS variables written at   1989011512  0.000000000000000E+000
+ Writing rad fields at ktau =         8352  1989011512
+ BCs are ready from   1989011512   to   1989011518
+     at day =   14.5816, ktau =       8400 :  1st, 2nd time deriv of ps =  0.15940E-04 0.44996E-07,  no. of points w/convection =     410
+ BATS variables written at   1989011515   180.000000000000     
+     at day =   14.6684, ktau =       8450 :  1st, 2nd time deriv of ps =  0.14391E-04 0.45653E-07,  no. of points w/convection =     427
+           *** solar declination angle = -20.95 degrees.
+  dectim =    86400.0000000000     
+ OUT-history written date =    1989011518.00000     
+ BATS variables written at   1989011518  0.000000000000000E+000
+ Writing rad fields at ktau =         8496  1989011518
+ BCs are ready from   1989011518   to   1989011600
+     at day =   14.7552, ktau =       8500 :  1st, 2nd time deriv of ps =  0.14590E-04 0.50014E-07,  no. of points w/convection =     448
+     at day =   14.8420, ktau =       8550 :  1st, 2nd time deriv of ps =  0.14938E-04 0.46642E-07,  no. of points w/convection =     452
+ BATS variables written at   1989011521   180.000000000000     
+     at day =   14.9288, ktau =       8600 :  1st, 2nd time deriv of ps =  0.15052E-04 0.49109E-07,  no. of points w/convection =     549
+           *** solar declination angle = -20.91 degrees.
+  dectim =    87840.0000000000     
+ OUT-history written date =    1989011600.00000     
+ BATS variables written at   1989011600  0.000000000000000E+000
+ Writing rad fields at ktau =         8640  1989011600
+ BCs are ready from   1989011600   to   1989011606
+     at day =   15.0156, ktau =       8650 :  1st, 2nd time deriv of ps =  0.15041E-04 0.46640E-07,  no. of points w/convection =     563
+     at day =   15.1024, ktau =       8700 :  1st, 2nd time deriv of ps =  0.14522E-04 0.46111E-07,  no. of points w/convection =     557
+ BATS variables written at   1989011603   180.000000000000     
+     at day =   15.1892, ktau =       8750 :  1st, 2nd time deriv of ps =  0.14517E-04 0.48568E-07,  no. of points w/convection =     556
+           *** solar declination angle = -20.86 degrees.
+  dectim =    89280.0000000000     
+ OUT-history written date =    1989011606.00000     
+ BATS variables written at   1989011606  0.000000000000000E+000
+ Writing rad fields at ktau =         8784  1989011606
+ BCs are ready from   1989011606   to   1989011612
+     at day =   15.2760, ktau =       8800 :  1st, 2nd time deriv of ps =  0.15359E-04 0.49189E-07,  no. of points w/convection =     509
+     at day =   15.3628, ktau =       8850 :  1st, 2nd time deriv of ps =  0.15333E-04 0.46169E-07,  no. of points w/convection =     517
+ BATS variables written at   1989011609   180.000000000000     
+     at day =   15.4497, ktau =       8900 :  1st, 2nd time deriv of ps =  0.15785E-04 0.46673E-07,  no. of points w/convection =     508
+           *** solar declination angle = -20.81 degrees.
+  dectim =    90720.0000000000     
+ OUT-history written date =    1989011612.00000     
+ BATS variables written at   1989011612  0.000000000000000E+000
+ Writing rad fields at ktau =         8928  1989011612
+ BCs are ready from   1989011612   to   1989011618
+     at day =   15.5365, ktau =       8950 :  1st, 2nd time deriv of ps =  0.14701E-04 0.47199E-07,  no. of points w/convection =     531
+     at day =   15.6233, ktau =       9000 :  1st, 2nd time deriv of ps =  0.14304E-04 0.46634E-07,  no. of points w/convection =     597
+ BATS variables written at   1989011615   180.000000000000     
+     at day =   15.7101, ktau =       9050 :  1st, 2nd time deriv of ps =  0.14055E-04 0.45398E-07,  no. of points w/convection =     644
+           *** solar declination angle = -20.76 degrees.
+  dectim =    92160.0000000000     
+ OUT-history written date =    1989011618.00000     
+ BATS variables written at   1989011618  0.000000000000000E+000
+ Writing rad fields at ktau =         9072  1989011618
+ BCs are ready from   1989011618   to   1989011700
+     at day =   15.7969, ktau =       9100 :  1st, 2nd time deriv of ps =  0.14085E-04 0.43604E-07,  no. of points w/convection =     588
+ BATS variables written at   1989011621   180.000000000000     
+     at day =   15.8837, ktau =       9150 :  1st, 2nd time deriv of ps =  0.13297E-04 0.42589E-07,  no. of points w/convection =     560
+     at day =   15.9705, ktau =       9200 :  1st, 2nd time deriv of ps =  0.12428E-04 0.42843E-07,  no. of points w/convection =     566
+           *** solar declination angle = -20.71 degrees.
+  dectim =    93600.0000000000     
+ OUT-history written date =    1989011700.00000     
+ BATS variables written at   1989011700  0.000000000000000E+000
+ Writing rad fields at ktau =         9216  1989011700
+ BCs are ready from   1989011700   to   1989011706
+     at day =   16.0573, ktau =       9250 :  1st, 2nd time deriv of ps =  0.13219E-04 0.42351E-07,  no. of points w/convection =     578
+ BATS variables written at   1989011703   180.000000000000     
+     at day =   16.1441, ktau =       9300 :  1st, 2nd time deriv of ps =  0.12446E-04 0.41763E-07,  no. of points w/convection =     557
+     at day =   16.2309, ktau =       9350 :  1st, 2nd time deriv of ps =  0.13026E-04 0.42580E-07,  no. of points w/convection =     550
+           *** solar declination angle = -20.66 degrees.
+  dectim =    95040.0000000000     
+ OUT-history written date =    1989011706.00000     
+ BATS variables written at   1989011706  0.000000000000000E+000
+ Writing rad fields at ktau =         9360  1989011706
+ BCs are ready from   1989011706   to   1989011712
+     at day =   16.3177, ktau =       9400 :  1st, 2nd time deriv of ps =  0.13683E-04 0.40034E-07,  no. of points w/convection =     549
+ BATS variables written at   1989011709   180.000000000000     
+     at day =   16.4045, ktau =       9450 :  1st, 2nd time deriv of ps =  0.13764E-04 0.42171E-07,  no. of points w/convection =     530
+     at day =   16.4913, ktau =       9500 :  1st, 2nd time deriv of ps =  0.12297E-04 0.38695E-07,  no. of points w/convection =     485
+           *** solar declination angle = -20.61 degrees.
+  dectim =    96480.0000000000     
+ OUT-history written date =    1989011712.00000     
+ BATS variables written at   1989011712  0.000000000000000E+000
+ Writing rad fields at ktau =         9504  1989011712
+ BCs are ready from   1989011712   to   1989011718
+     at day =   16.5781, ktau =       9550 :  1st, 2nd time deriv of ps =  0.15165E-04 0.41283E-07,  no. of points w/convection =     467
+ BATS variables written at   1989011715   180.000000000000     
+     at day =   16.6649, ktau =       9600 :  1st, 2nd time deriv of ps =  0.13472E-04 0.40794E-07,  no. of points w/convection =     432
+           *** solar declination angle = -20.56 degrees.
+  dectim =    97920.0000000000     
+ OUT-history written date =    1989011718.00000     
+ BATS variables written at   1989011718  0.000000000000000E+000
+ Writing rad fields at ktau =         9648  1989011718
+ BCs are ready from   1989011718   to   1989011800
+     at day =   16.7517, ktau =       9650 :  1st, 2nd time deriv of ps =  0.12761E-04 0.40854E-07,  no. of points w/convection =     417
+     at day =   16.8385, ktau =       9700 :  1st, 2nd time deriv of ps =  0.13071E-04 0.38786E-07,  no. of points w/convection =     512
+ BATS variables written at   1989011721   180.000000000000     
+     at day =   16.9253, ktau =       9750 :  1st, 2nd time deriv of ps =  0.13539E-04 0.38345E-07,  no. of points w/convection =     515
+           *** solar declination angle = -20.51 degrees.
+  dectim =    99360.0000000000     
+ OUT-history written date =    1989011800.00000     
+ BATS variables written at   1989011800  0.000000000000000E+000
+ Writing rad fields at ktau =         9792  1989011800
+ BCs are ready from   1989011800   to   1989011806
+     at day =   17.0122, ktau =       9800 :  1st, 2nd time deriv of ps =  0.12760E-04 0.42636E-07,  no. of points w/convection =     524
+     at day =   17.0990, ktau =       9850 :  1st, 2nd time deriv of ps =  0.13646E-04 0.42030E-07,  no. of points w/convection =     472
+ BATS variables written at   1989011803   180.000000000000     
+     at day =   17.1858, ktau =       9900 :  1st, 2nd time deriv of ps =  0.13961E-04 0.42934E-07,  no. of points w/convection =     496
+           *** solar declination angle = -20.46 degrees.
+  dectim =    100800.000000000     
+ OUT-history written date =    1989011806.00000     
+ BATS variables written at   1989011806  0.000000000000000E+000
+ Writing rad fields at ktau =         9936  1989011806
+ BCs are ready from   1989011806   to   1989011812
+     at day =   17.2726, ktau =       9950 :  1st, 2nd time deriv of ps =  0.13723E-04 0.44832E-07,  no. of points w/convection =     576
+     at day =   17.3594, ktau =      10000 :  1st, 2nd time deriv of ps =  0.14341E-04 0.43343E-07,  no. of points w/convection =     596
+ BATS variables written at   1989011809   180.000000000000     
+     at day =   17.4462, ktau =      10050 :  1st, 2nd time deriv of ps =  0.14014E-04 0.46012E-07,  no. of points w/convection =     621
+           *** solar declination angle = -20.41 degrees.
+  dectim =    102240.000000000     
+ OUT-history written date =    1989011812.00000     
+ BATS variables written at   1989011812  0.000000000000000E+000
+ Writing rad fields at ktau =        10080  1989011812
+ BCs are ready from   1989011812   to   1989011818
+     at day =   17.5330, ktau =      10100 :  1st, 2nd time deriv of ps =  0.13451E-04 0.46162E-07,  no. of points w/convection =     638
+     at day =   17.6198, ktau =      10150 :  1st, 2nd time deriv of ps =  0.13916E-04 0.43607E-07,  no. of points w/convection =     693
+ BATS variables written at   1989011815   180.000000000000     
+     at day =   17.7066, ktau =      10200 :  1st, 2nd time deriv of ps =  0.13574E-04 0.46578E-07,  no. of points w/convection =     668
+           *** solar declination angle = -20.36 degrees.
+  dectim =    103680.000000000     
+ OUT-history written date =    1989011818.00000     
+ BATS variables written at   1989011818  0.000000000000000E+000
+ Writing rad fields at ktau =        10224  1989011818
+ BCs are ready from   1989011818   to   1989011900
+     at day =   17.7934, ktau =      10250 :  1st, 2nd time deriv of ps =  0.13475E-04 0.44893E-07,  no. of points w/convection =     700
+ BATS variables written at   1989011821   180.000000000000     
+     at day =   17.8802, ktau =      10300 :  1st, 2nd time deriv of ps =  0.12541E-04 0.44641E-07,  no. of points w/convection =     721
+     at day =   17.9670, ktau =      10350 :  1st, 2nd time deriv of ps =  0.13594E-04 0.43734E-07,  no. of points w/convection =     751
+           *** solar declination angle = -20.30 degrees.
+  dectim =    105120.000000000     
+ OUT-history written date =    1989011900.00000     
+ BATS variables written at   1989011900  0.000000000000000E+000
+ Writing rad fields at ktau =        10368  1989011900
+ BCs are ready from   1989011900   to   1989011906
+     at day =   18.0538, ktau =      10400 :  1st, 2nd time deriv of ps =  0.12778E-04 0.43572E-07,  no. of points w/convection =     794
+ BATS variables written at   1989011903   180.000000000000     
+     at day =   18.1406, ktau =      10450 :  1st, 2nd time deriv of ps =  0.14449E-04 0.44239E-07,  no. of points w/convection =     824
+     at day =   18.2274, ktau =      10500 :  1st, 2nd time deriv of ps =  0.13261E-04 0.45786E-07,  no. of points w/convection =     826
+           *** solar declination angle = -20.25 degrees.
+  dectim =    106560.000000000     
+ OUT-history written date =    1989011906.00000     
+ BATS variables written at   1989011906  0.000000000000000E+000
+ Writing rad fields at ktau =        10512  1989011906
+ BCs are ready from   1989011906   to   1989011912
+     at day =   18.3142, ktau =      10550 :  1st, 2nd time deriv of ps =  0.15562E-04 0.46047E-07,  no. of points w/convection =     810
+ BATS variables written at   1989011909   180.000000000000     
+     at day =   18.4010, ktau =      10600 :  1st, 2nd time deriv of ps =  0.13530E-04 0.44288E-07,  no. of points w/convection =     785
+     at day =   18.4878, ktau =      10650 :  1st, 2nd time deriv of ps =  0.13864E-04 0.44467E-07,  no. of points w/convection =     750
+           *** solar declination angle = -20.20 degrees.
+  dectim =    108000.000000000     
+ OUT-history written date =    1989011912.00000     
+ BATS variables written at   1989011912  0.000000000000000E+000
+ Writing rad fields at ktau =        10656  1989011912
+ BCs are ready from   1989011912   to   1989011918
+     at day =   18.5747, ktau =      10700 :  1st, 2nd time deriv of ps =  0.12804E-04 0.42930E-07,  no. of points w/convection =     739
+ BATS variables written at   1989011915   180.000000000000     
+     at day =   18.6615, ktau =      10750 :  1st, 2nd time deriv of ps =  0.13191E-04 0.44073E-07,  no. of points w/convection =     687
+     at day =   18.7483, ktau =      10800 :  1st, 2nd time deriv of ps =  0.11649E-04 0.41172E-07,  no. of points w/convection =     665
+           *** solar declination angle = -20.14 degrees.
+  dectim =    109440.000000000     
+ OUT-history written date =    1989011918.00000     
+ BATS variables written at   1989011918  0.000000000000000E+000
+ Writing rad fields at ktau =        10800  1989011918
+ BCs are ready from   1989011918   to   1989012000
+     at day =   18.8351, ktau =      10850 :  1st, 2nd time deriv of ps =  0.12349E-04 0.41143E-07,  no. of points w/convection =     668
+ BATS variables written at   1989011921   180.000000000000     
+     at day =   18.9219, ktau =      10900 :  1st, 2nd time deriv of ps =  0.12643E-04 0.43329E-07,  no. of points w/convection =     564
+           *** solar declination angle = -20.09 degrees.
+  dectim =    110880.000000000     
+ OUT-history written date =    1989012000.00000     
+ BATS variables written at   1989012000  0.000000000000000E+000
+ Writing rad fields at ktau =        10944  1989012000
+ BCs are ready from   1989012000   to   1989012006
+     at day =   19.0087, ktau =      10950 :  1st, 2nd time deriv of ps =  0.11739E-04 0.44461E-07,  no. of points w/convection =     578
+     at day =   19.0955, ktau =      11000 :  1st, 2nd time deriv of ps =  0.12598E-04 0.43035E-07,  no. of points w/convection =     596
+ BATS variables written at   1989012003   180.000000000000     
+     at day =   19.1823, ktau =      11050 :  1st, 2nd time deriv of ps =  0.12264E-04 0.44559E-07,  no. of points w/convection =     630
+           *** solar declination angle = -20.03 degrees.
+  dectim =    112320.000000000     
+ OUT-history written date =    1989012006.00000     
+ BATS variables written at   1989012006  0.000000000000000E+000
+ Writing rad fields at ktau =        11088  1989012006
+ BCs are ready from   1989012006   to   1989012012
+     at day =   19.2691, ktau =      11100 :  1st, 2nd time deriv of ps =  0.13173E-04 0.47091E-07,  no. of points w/convection =     592
+     at day =   19.3559, ktau =      11150 :  1st, 2nd time deriv of ps =  0.14417E-04 0.44547E-07,  no. of points w/convection =     561
+ BATS variables written at   1989012009   180.000000000000     
+     at day =   19.4427, ktau =      11200 :  1st, 2nd time deriv of ps =  0.14691E-04 0.44442E-07,  no. of points w/convection =     516
+           *** solar declination angle = -19.98 degrees.
+  dectim =    113760.000000000     
+ OUT-history written date =    1989012012.00000     
+ BATS variables written at   1989012012  0.000000000000000E+000
+ Writing rad fields at ktau =        11232  1989012012
+ BCs are ready from   1989012012   to   1989012018
+     at day =   19.5295, ktau =      11250 :  1st, 2nd time deriv of ps =  0.13645E-04 0.39714E-07,  no. of points w/convection =     437
+     at day =   19.6163, ktau =      11300 :  1st, 2nd time deriv of ps =  0.14003E-04 0.40464E-07,  no. of points w/convection =     413
+ BATS variables written at   1989012015   180.000000000000     
+     at day =   19.7031, ktau =      11350 :  1st, 2nd time deriv of ps =  0.13435E-04 0.39889E-07,  no. of points w/convection =     344
+           *** solar declination angle = -19.92 degrees.
+  dectim =    115200.000000000     
+ OUT-history written date =    1989012018.00000     
+ BATS variables written at   1989012018  0.000000000000000E+000
+ Writing rad fields at ktau =        11376  1989012018
+ BCs are ready from   1989012018   to   1989012100
+     at day =   19.7899, ktau =      11400 :  1st, 2nd time deriv of ps =  0.14455E-04 0.38529E-07,  no. of points w/convection =     329
+ BATS variables written at   1989012021   180.000000000000     
+     at day =   19.8767, ktau =      11450 :  1st, 2nd time deriv of ps =  0.14710E-04 0.37552E-07,  no. of points w/convection =     353
+     at day =   19.9635, ktau =      11500 :  1st, 2nd time deriv of ps =  0.14862E-04 0.37442E-07,  no. of points w/convection =     357
+           *** solar declination angle = -19.87 degrees.
+  dectim =    116640.000000000     
+ OUT-history written date =    1989012100.00000     
+ BATS variables written at   1989012100  0.000000000000000E+000
+ Writing rad fields at ktau =        11520  1989012100
+ BCs are ready from   1989012100   to   1989012106
+     at day =   20.0503, ktau =      11550 :  1st, 2nd time deriv of ps =  0.15412E-04 0.37914E-07,  no. of points w/convection =     425
+ BATS variables written at   1989012103   180.000000000000     
+     at day =   20.1372, ktau =      11600 :  1st, 2nd time deriv of ps =  0.14398E-04 0.36783E-07,  no. of points w/convection =     459
+     at day =   20.2240, ktau =      11650 :  1st, 2nd time deriv of ps =  0.14778E-04 0.38349E-07,  no. of points w/convection =     444
+           *** solar declination angle = -19.81 degrees.
+  dectim =    118080.000000000     
+ OUT-history written date =    1989012106.00000     
+ BATS variables written at   1989012106  0.000000000000000E+000
+ Writing rad fields at ktau =        11664  1989012106
+ BCs are ready from   1989012106   to   1989012112
+     at day =   20.3108, ktau =      11700 :  1st, 2nd time deriv of ps =  0.15461E-04 0.38607E-07,  no. of points w/convection =     448
+ BATS variables written at   1989012109   180.000000000000     
+     at day =   20.3976, ktau =      11750 :  1st, 2nd time deriv of ps =  0.16362E-04 0.37256E-07,  no. of points w/convection =     459
+     at day =   20.4844, ktau =      11800 :  1st, 2nd time deriv of ps =  0.15867E-04 0.38618E-07,  no. of points w/convection =     463
+           *** solar declination angle = -19.76 degrees.
+  dectim =    119520.000000000     
+ OUT-history written date =    1989012112.00000     
+ BATS variables written at   1989012112  0.000000000000000E+000
+ Writing rad fields at ktau =        11808  1989012112
+ BCs are ready from   1989012112   to   1989012118
+     at day =   20.5712, ktau =      11850 :  1st, 2nd time deriv of ps =  0.17485E-04 0.40868E-07,  no. of points w/convection =     473
+ BATS variables written at   1989012115   180.000000000000     
+     at day =   20.6580, ktau =      11900 :  1st, 2nd time deriv of ps =  0.16561E-04 0.41149E-07,  no. of points w/convection =     453
+     at day =   20.7448, ktau =      11950 :  1st, 2nd time deriv of ps =  0.17703E-04 0.37617E-07,  no. of points w/convection =     431
+           *** solar declination angle = -19.70 degrees.
+  dectim =    120960.000000000     
+ OUT-history written date =    1989012118.00000     
+ BATS variables written at   1989012118  0.000000000000000E+000
+ Writing rad fields at ktau =        11952  1989012118
+ BCs are ready from   1989012118   to   1989012200
+     at day =   20.8316, ktau =      12000 :  1st, 2nd time deriv of ps =  0.16704E-04 0.37415E-07,  no. of points w/convection =     468
+ BATS variables written at   1989012121   180.000000000000     
+     at day =   20.9184, ktau =      12050 :  1st, 2nd time deriv of ps =  0.15247E-04 0.38238E-07,  no. of points w/convection =     599
+           *** solar declination angle = -19.64 degrees.
+  dectim =    122400.000000000     
+ OUT-history written date =    1989012200.00000     
+ BATS variables written at   1989012200  0.000000000000000E+000
+ Writing rad fields at ktau =        12096  1989012200
+ BCs are ready from   1989012200   to   1989012206
+     at day =   21.0052, ktau =      12100 :  1st, 2nd time deriv of ps =  0.17101E-04 0.43262E-07,  no. of points w/convection =     574
+     at day =   21.0920, ktau =      12150 :  1st, 2nd time deriv of ps =  0.17697E-04 0.40043E-07,  no. of points w/convection =     568
+ BATS variables written at   1989012203   180.000000000000     
+     at day =   21.1788, ktau =      12200 :  1st, 2nd time deriv of ps =  0.16788E-04 0.40229E-07,  no. of points w/convection =     608
+           *** solar declination angle = -19.58 degrees.
+  dectim =    123840.000000000     
+ OUT-history written date =    1989012206.00000     
+ BATS variables written at   1989012206  0.000000000000000E+000
+ Writing rad fields at ktau =        12240  1989012206
+ BCs are ready from   1989012206   to   1989012212
+     at day =   21.2656, ktau =      12250 :  1st, 2nd time deriv of ps =  0.16107E-04 0.44016E-07,  no. of points w/convection =     590
+     at day =   21.3524, ktau =      12300 :  1st, 2nd time deriv of ps =  0.16920E-04 0.40519E-07,  no. of points w/convection =     562
+ BATS variables written at   1989012209   180.000000000000     
+     at day =   21.4392, ktau =      12350 :  1st, 2nd time deriv of ps =  0.17102E-04 0.42232E-07,  no. of points w/convection =     555
+           *** solar declination angle = -19.53 degrees.
+  dectim =    125280.000000000     
+ OUT-history written date =    1989012212.00000     
+ BATS variables written at   1989012212  0.000000000000000E+000
+ Writing rad fields at ktau =        12384  1989012212
+ BCs are ready from   1989012212   to   1989012218
+     at day =   21.5260, ktau =      12400 :  1st, 2nd time deriv of ps =  0.17226E-04 0.42975E-07,  no. of points w/convection =     527
+     at day =   21.6128, ktau =      12450 :  1st, 2nd time deriv of ps =  0.17303E-04 0.40595E-07,  no. of points w/convection =     502
+ BATS variables written at   1989012215   180.000000000000     
+     at day =   21.6997, ktau =      12500 :  1st, 2nd time deriv of ps =  0.15369E-04 0.42257E-07,  no. of points w/convection =     495
+           *** solar declination angle = -19.47 degrees.
+  dectim =    126720.000000000     
+ OUT-history written date =    1989012218.00000     
+ BATS variables written at   1989012218  0.000000000000000E+000
+ Writing rad fields at ktau =        12528  1989012218
+ BCs are ready from   1989012218   to   1989012300
+     at day =   21.7865, ktau =      12550 :  1st, 2nd time deriv of ps =  0.14831E-04 0.40853E-07,  no. of points w/convection =     504
+     at day =   21.8733, ktau =      12600 :  1st, 2nd time deriv of ps =  0.14143E-04 0.40476E-07,  no. of points w/convection =     478
+ BATS variables written at   1989012221   180.000000000000     
+     at day =   21.9601, ktau =      12650 :  1st, 2nd time deriv of ps =  0.13365E-04 0.40767E-07,  no. of points w/convection =     486
+           *** solar declination angle = -19.41 degrees.
+  dectim =    128160.000000000     
+ OUT-history written date =    1989012300.00000     
+ BATS variables written at   1989012300  0.000000000000000E+000
+ Writing rad fields at ktau =        12672  1989012300
+ BCs are ready from   1989012300   to   1989012306
+     at day =   22.0469, ktau =      12700 :  1st, 2nd time deriv of ps =  0.14726E-04 0.43344E-07,  no. of points w/convection =     496
+ BATS variables written at   1989012303   180.000000000000     
+     at day =   22.1337, ktau =      12750 :  1st, 2nd time deriv of ps =  0.14572E-04 0.46641E-07,  no. of points w/convection =     494
+     at day =   22.2205, ktau =      12800 :  1st, 2nd time deriv of ps =  0.14752E-04 0.46299E-07,  no. of points w/convection =     492
+           *** solar declination angle = -19.35 degrees.
+  dectim =    129600.000000000     
+ OUT-history written date =    1989012306.00000     
+ BATS variables written at   1989012306  0.000000000000000E+000
+ Writing rad fields at ktau =        12816  1989012306
+ BCs are ready from   1989012306   to   1989012312
+     at day =   22.3073, ktau =      12850 :  1st, 2nd time deriv of ps =  0.15749E-04 0.49242E-07,  no. of points w/convection =     558
+ BATS variables written at   1989012309   180.000000000000     
+     at day =   22.3941, ktau =      12900 :  1st, 2nd time deriv of ps =  0.16374E-04 0.56930E-07,  no. of points w/convection =     650
+     at day =   22.4809, ktau =      12950 :  1st, 2nd time deriv of ps =  0.16233E-04 0.58893E-07,  no. of points w/convection =     638
+           *** solar declination angle = -19.29 degrees.
+  dectim =    131040.000000000     
+ OUT-history written date =    1989012312.00000     
+ BATS variables written at   1989012312  0.000000000000000E+000
+ Writing rad fields at ktau =        12960  1989012312
+ BCs are ready from   1989012312   to   1989012318
+     at day =   22.5677, ktau =      13000 :  1st, 2nd time deriv of ps =  0.17775E-04 0.59083E-07,  no. of points w/convection =     606
+ BATS variables written at   1989012315   180.000000000000     
+     at day =   22.6545, ktau =      13050 :  1st, 2nd time deriv of ps =  0.16431E-04 0.49683E-07,  no. of points w/convection =     617
+     at day =   22.7413, ktau =      13100 :  1st, 2nd time deriv of ps =  0.15059E-04 0.48396E-07,  no. of points w/convection =     615
+           *** solar declination angle = -19.23 degrees.
+  dectim =    132480.000000000     
+ OUT-history written date =    1989012318.00000     
+ BATS variables written at   1989012318  0.000000000000000E+000
+ Writing rad fields at ktau =        13104  1989012318
+ BCs are ready from   1989012318   to   1989012400
+     at day =   22.8281, ktau =      13150 :  1st, 2nd time deriv of ps =  0.15193E-04 0.45824E-07,  no. of points w/convection =     592
+ BATS variables written at   1989012321   180.000000000000     
+     at day =   22.9149, ktau =      13200 :  1st, 2nd time deriv of ps =  0.14874E-04 0.44505E-07,  no. of points w/convection =     543
+           *** solar declination angle = -19.17 degrees.
+  dectim =    133920.000000000     
+ OUT-history written date =    1989012400.00000     
+ BATS variables written at   1989012400  0.000000000000000E+000
+ Writing rad fields at ktau =        13248  1989012400
+ BCs are ready from   1989012400   to   1989012406
+     at day =   23.0017, ktau =      13250 :  1st, 2nd time deriv of ps =  0.14846E-04 0.47792E-07,  no. of points w/convection =     500
+     at day =   23.0885, ktau =      13300 :  1st, 2nd time deriv of ps =  0.14819E-04 0.44991E-07,  no. of points w/convection =     474
+ BATS variables written at   1989012403   180.000000000000     
+     at day =   23.1753, ktau =      13350 :  1st, 2nd time deriv of ps =  0.16215E-04 0.45902E-07,  no. of points w/convection =     543
+           *** solar declination angle = -19.11 degrees.
+  dectim =    135360.000000000     
+ OUT-history written date =    1989012406.00000     
+ BATS variables written at   1989012406  0.000000000000000E+000
+ Writing rad fields at ktau =        13392  1989012406
+ BCs are ready from   1989012406   to   1989012412
+     at day =   23.2622, ktau =      13400 :  1st, 2nd time deriv of ps =  0.15191E-04 0.47364E-07,  no. of points w/convection =     523
+     at day =   23.3490, ktau =      13450 :  1st, 2nd time deriv of ps =  0.16915E-04 0.47579E-07,  no. of points w/convection =     500
+ BATS variables written at   1989012409   180.000000000000     
+     at day =   23.4358, ktau =      13500 :  1st, 2nd time deriv of ps =  0.15339E-04 0.50589E-07,  no. of points w/convection =     498
+           *** solar declination angle = -19.05 degrees.
+  dectim =    136800.000000000     
+ OUT-history written date =    1989012412.00000     
+ BATS variables written at   1989012412  0.000000000000000E+000
+ Writing rad fields at ktau =        13536  1989012412
+ BCs are ready from   1989012412   to   1989012418
+     at day =   23.5226, ktau =      13550 :  1st, 2nd time deriv of ps =  0.15455E-04 0.50523E-07,  no. of points w/convection =     514
+     at day =   23.6094, ktau =      13600 :  1st, 2nd time deriv of ps =  0.15769E-04 0.51758E-07,  no. of points w/convection =     476
+ BATS variables written at   1989012415   180.000000000000     
+     at day =   23.6962, ktau =      13650 :  1st, 2nd time deriv of ps =  0.15949E-04 0.52214E-07,  no. of points w/convection =     467
+           *** solar declination angle = -18.99 degrees.
+  dectim =    138240.000000000     
+ OUT-history written date =    1989012418.00000     
+ BATS variables written at   1989012418  0.000000000000000E+000
+ Writing rad fields at ktau =        13680  1989012418
+ BCs are ready from   1989012418   to   1989012500
+     at day =   23.7830, ktau =      13700 :  1st, 2nd time deriv of ps =  0.15453E-04 0.50609E-07,  no. of points w/convection =     446
+     at day =   23.8698, ktau =      13750 :  1st, 2nd time deriv of ps =  0.15195E-04 0.45890E-07,  no. of points w/convection =     409
+ BATS variables written at   1989012421   180.000000000000     
+     at day =   23.9566, ktau =      13800 :  1st, 2nd time deriv of ps =  0.16082E-04 0.48098E-07,  no. of points w/convection =     407
+           *** solar declination angle = -18.93 degrees.
+  dectim =    139680.000000000     
+ OUT-history written date =    1989012500.00000     
+ BATS variables written at   1989012500  0.000000000000000E+000
+ Writing rad fields at ktau =        13824  1989012500
+ BCs are ready from   1989012500   to   1989012506
+     at day =   24.0434, ktau =      13850 :  1st, 2nd time deriv of ps =  0.14993E-04 0.45724E-07,  no. of points w/convection =     398
+ BATS variables written at   1989012503   180.000000000000     
+     at day =   24.1302, ktau =      13900 :  1st, 2nd time deriv of ps =  0.15850E-04 0.46622E-07,  no. of points w/convection =     390
+     at day =   24.2170, ktau =      13950 :  1st, 2nd time deriv of ps =  0.15106E-04 0.46544E-07,  no. of points w/convection =     354
+           *** solar declination angle = -18.86 degrees.
+  dectim =    141120.000000000     
+ OUT-history written date =    1989012506.00000     
+ BATS variables written at   1989012506  0.000000000000000E+000
+ Writing rad fields at ktau =        13968  1989012506
+ BCs are ready from   1989012506   to   1989012512
+     at day =   24.3038, ktau =      14000 :  1st, 2nd time deriv of ps =  0.16385E-04 0.45895E-07,  no. of points w/convection =     375
+ BATS variables written at   1989012509   180.000000000000     
+     at day =   24.3906, ktau =      14050 :  1st, 2nd time deriv of ps =  0.15586E-04 0.46689E-07,  no. of points w/convection =     388
+     at day =   24.4774, ktau =      14100 :  1st, 2nd time deriv of ps =  0.14987E-04 0.47457E-07,  no. of points w/convection =     366
+           *** solar declination angle = -18.80 degrees.
+  dectim =    142560.000000000     
+ OUT-history written date =    1989012512.00000     
+ BATS variables written at   1989012512  0.000000000000000E+000
+ Writing rad fields at ktau =        14112  1989012512
+ BCs are ready from   1989012512   to   1989012518
+     at day =   24.5642, ktau =      14150 :  1st, 2nd time deriv of ps =  0.15706E-04 0.45378E-07,  no. of points w/convection =     339
+ BATS variables written at   1989012515   180.000000000000     
+     at day =   24.6510, ktau =      14200 :  1st, 2nd time deriv of ps =  0.14671E-04 0.42605E-07,  no. of points w/convection =     306
+     at day =   24.7378, ktau =      14250 :  1st, 2nd time deriv of ps =  0.13437E-04 0.43229E-07,  no. of points w/convection =     309
+           *** solar declination angle = -18.74 degrees.
+  dectim =    144000.000000000     
+ OUT-history written date =    1989012518.00000     
+ BATS variables written at   1989012518  0.000000000000000E+000
+ Writing rad fields at ktau =        14256  1989012518
+ BCs are ready from   1989012518   to   1989012600
+     at day =   24.8247, ktau =      14300 :  1st, 2nd time deriv of ps =  0.14180E-04 0.43182E-07,  no. of points w/convection =     304
+ BATS variables written at   1989012521   180.000000000000     
+     at day =   24.9115, ktau =      14350 :  1st, 2nd time deriv of ps =  0.14629E-04 0.44186E-07,  no. of points w/convection =     301
+     at day =   24.9983, ktau =      14400 :  1st, 2nd time deriv of ps =  0.15075E-04 0.47566E-07,  no. of points w/convection =     333
+           *** solar declination angle = -18.68 degrees.
+  dectim =    145440.000000000     
+ OUT-history written date =    1989012600.00000     
+ BATS variables written at   1989012600  0.000000000000000E+000
+ Writing rad fields at ktau =        14400  1989012600
+ BCs are ready from   1989012600   to   1989012606
+     at day =   25.0851, ktau =      14450 :  1st, 2nd time deriv of ps =  0.14877E-04 0.50151E-07,  no. of points w/convection =     364
+ BATS variables written at   1989012603   180.000000000000     
+     at day =   25.1719, ktau =      14500 :  1st, 2nd time deriv of ps =  0.14047E-04 0.46279E-07,  no. of points w/convection =     332
+           *** solar declination angle = -18.61 degrees.
+  dectim =    146880.000000000     
+ OUT-history written date =    1989012606.00000     
+ BATS variables written at   1989012606  0.000000000000000E+000
+ Writing rad fields at ktau =        14544  1989012606
+ BCs are ready from   1989012606   to   1989012612
+     at day =   25.2587, ktau =      14550 :  1st, 2nd time deriv of ps =  0.13400E-04 0.43819E-07,  no. of points w/convection =     315
+     at day =   25.3455, ktau =      14600 :  1st, 2nd time deriv of ps =  0.14375E-04 0.46800E-07,  no. of points w/convection =     326
+ BATS variables written at   1989012609   180.000000000000     
+     at day =   25.4323, ktau =      14650 :  1st, 2nd time deriv of ps =  0.14723E-04 0.45496E-07,  no. of points w/convection =     274
+           *** solar declination angle = -18.55 degrees.
+  dectim =    148320.000000000     
+ OUT-history written date =    1989012612.00000     
+ BATS variables written at   1989012612  0.000000000000000E+000
+ Writing rad fields at ktau =        14688  1989012612
+ BCs are ready from   1989012612   to   1989012618
+     at day =   25.5191, ktau =      14700 :  1st, 2nd time deriv of ps =  0.14515E-04 0.44504E-07,  no. of points w/convection =     279
+     at day =   25.6059, ktau =      14750 :  1st, 2nd time deriv of ps =  0.13937E-04 0.42909E-07,  no. of points w/convection =     281
+ BATS variables written at   1989012615   180.000000000000     
+     at day =   25.6927, ktau =      14800 :  1st, 2nd time deriv of ps =  0.13544E-04 0.46656E-07,  no. of points w/convection =     275
+           *** solar declination angle = -18.48 degrees.
+  dectim =    149760.000000000     
+ OUT-history written date =    1989012618.00000     
+ BATS variables written at   1989012618  0.000000000000000E+000
+ Writing rad fields at ktau =        14832  1989012618
+ BCs are ready from   1989012618   to   1989012700
+     at day =   25.7795, ktau =      14850 :  1st, 2nd time deriv of ps =  0.14299E-04 0.42979E-07,  no. of points w/convection =     278
+     at day =   25.8663, ktau =      14900 :  1st, 2nd time deriv of ps =  0.14945E-04 0.46298E-07,  no. of points w/convection =     271
+ BATS variables written at   1989012621   180.000000000000     
+     at day =   25.9531, ktau =      14950 :  1st, 2nd time deriv of ps =  0.15121E-04 0.46698E-07,  no. of points w/convection =     276
+           *** solar declination angle = -18.42 degrees.
+  dectim =    151200.000000000     
+ OUT-history written date =    1989012700.00000     
+ BATS variables written at   1989012700  0.000000000000000E+000
+ Writing rad fields at ktau =        14976  1989012700
+ BCs are ready from   1989012700   to   1989012706
+     at day =   26.0399, ktau =      15000 :  1st, 2nd time deriv of ps =  0.15579E-04 0.44939E-07,  no. of points w/convection =     315
+ BATS variables written at   1989012703   180.000000000000     
+     at day =   26.1267, ktau =      15050 :  1st, 2nd time deriv of ps =  0.15658E-04 0.46001E-07,  no. of points w/convection =     329
+     at day =   26.2135, ktau =      15100 :  1st, 2nd time deriv of ps =  0.15316E-04 0.44155E-07,  no. of points w/convection =     305
+           *** solar declination angle = -18.36 degrees.
+  dectim =    152640.000000000     
+ OUT-history written date =    1989012706.00000     
+ BATS variables written at   1989012706  0.000000000000000E+000
+ Writing rad fields at ktau =        15120  1989012706
+ BCs are ready from   1989012706   to   1989012712
+     at day =   26.3003, ktau =      15150 :  1st, 2nd time deriv of ps =  0.17708E-04 0.46927E-07,  no. of points w/convection =     336
+ BATS variables written at   1989012709   180.000000000000     
+     at day =   26.3872, ktau =      15200 :  1st, 2nd time deriv of ps =  0.17676E-04 0.46569E-07,  no. of points w/convection =     348
+     at day =   26.4740, ktau =      15250 :  1st, 2nd time deriv of ps =  0.16503E-04 0.49975E-07,  no. of points w/convection =     379
+           *** solar declination angle = -18.29 degrees.
+  dectim =    154080.000000000     
+ OUT-history written date =    1989012712.00000     
+ BATS variables written at   1989012712  0.000000000000000E+000
+ Writing rad fields at ktau =        15264  1989012712
+ BCs are ready from   1989012712   to   1989012718
+     at day =   26.5608, ktau =      15300 :  1st, 2nd time deriv of ps =  0.17854E-04 0.45307E-07,  no. of points w/convection =     350
+ BATS variables written at   1989012715   180.000000000000     
+     at day =   26.6476, ktau =      15350 :  1st, 2nd time deriv of ps =  0.17704E-04 0.47646E-07,  no. of points w/convection =     377
+     at day =   26.7344, ktau =      15400 :  1st, 2nd time deriv of ps =  0.17328E-04 0.49867E-07,  no. of points w/convection =     424
+           *** solar declination angle = -18.22 degrees.
+  dectim =    155520.000000000     
+ OUT-history written date =    1989012718.00000     
+ BATS variables written at   1989012718  0.000000000000000E+000
+ Writing rad fields at ktau =        15408  1989012718
+ BCs are ready from   1989012718   to   1989012800
+     at day =   26.8212, ktau =      15450 :  1st, 2nd time deriv of ps =  0.18615E-04 0.50493E-07,  no. of points w/convection =     374
+ BATS variables written at   1989012721   180.000000000000     
+     at day =   26.9080, ktau =      15500 :  1st, 2nd time deriv of ps =  0.19049E-04 0.51050E-07,  no. of points w/convection =     368
+     at day =   26.9948, ktau =      15550 :  1st, 2nd time deriv of ps =  0.17157E-04 0.52368E-07,  no. of points w/convection =     401
+           *** solar declination angle = -18.16 degrees.
+  dectim =    156960.000000000     
+ OUT-history written date =    1989012800.00000     
+ BATS variables written at   1989012800  0.000000000000000E+000
+ Writing rad fields at ktau =        15552  1989012800
+ BCs are ready from   1989012800   to   1989012806
+     at day =   27.0816, ktau =      15600 :  1st, 2nd time deriv of ps =  0.17458E-04 0.52015E-07,  no. of points w/convection =     356
+ BATS variables written at   1989012803   180.000000000000     
+     at day =   27.1684, ktau =      15650 :  1st, 2nd time deriv of ps =  0.17109E-04 0.50283E-07,  no. of points w/convection =     374
+           *** solar declination angle = -18.09 degrees.
+  dectim =    158400.000000000     
+ OUT-history written date =    1989012806.00000     
+ BATS variables written at   1989012806  0.000000000000000E+000
+ Writing rad fields at ktau =        15696  1989012806
+ BCs are ready from   1989012806   to   1989012812
+     at day =   27.2552, ktau =      15700 :  1st, 2nd time deriv of ps =  0.16204E-04 0.54331E-07,  no. of points w/convection =     357
+     at day =   27.3420, ktau =      15750 :  1st, 2nd time deriv of ps =  0.18363E-04 0.49762E-07,  no. of points w/convection =     312
+ BATS variables written at   1989012809   180.000000000000     
+     at day =   27.4288, ktau =      15800 :  1st, 2nd time deriv of ps =  0.16472E-04 0.46530E-07,  no. of points w/convection =     310
+           *** solar declination angle = -18.03 degrees.
+  dectim =    159840.000000000     
+ OUT-history written date =    1989012812.00000     
+ BATS variables written at   1989012812  0.000000000000000E+000
+ Writing rad fields at ktau =        15840  1989012812
+ BCs are ready from   1989012812   to   1989012818
+     at day =   27.5156, ktau =      15850 :  1st, 2nd time deriv of ps =  0.16975E-04 0.46478E-07,  no. of points w/convection =     338
+     at day =   27.6024, ktau =      15900 :  1st, 2nd time deriv of ps =  0.16285E-04 0.42582E-07,  no. of points w/convection =     281
+ BATS variables written at   1989012815   180.000000000000     
+     at day =   27.6892, ktau =      15950 :  1st, 2nd time deriv of ps =  0.15591E-04 0.42562E-07,  no. of points w/convection =     288
+           *** solar declination angle = -17.96 degrees.
+  dectim =    161280.000000000     
+ OUT-history written date =    1989012818.00000     
+ BATS variables written at   1989012818  0.000000000000000E+000
+ Writing rad fields at ktau =        15984  1989012818
+ BCs are ready from   1989012818   to   1989012900
+     at day =   27.7760, ktau =      16000 :  1st, 2nd time deriv of ps =  0.16113E-04 0.43218E-07,  no. of points w/convection =     282
+     at day =   27.8628, ktau =      16050 :  1st, 2nd time deriv of ps =  0.14994E-04 0.40588E-07,  no. of points w/convection =     230
+ BATS variables written at   1989012821   180.000000000000     
+     at day =   27.9497, ktau =      16100 :  1st, 2nd time deriv of ps =  0.14519E-04 0.41071E-07,  no. of points w/convection =     239
+           *** solar declination angle = -17.89 degrees.
+  dectim =    162720.000000000     
+ OUT-history written date =    1989012900.00000     
+ BATS variables written at   1989012900  0.000000000000000E+000
+ Writing rad fields at ktau =        16128  1989012900
+ BCs are ready from   1989012900   to   1989012906
+     at day =   28.0365, ktau =      16150 :  1st, 2nd time deriv of ps =  0.14856E-04 0.43320E-07,  no. of points w/convection =     253
+     at day =   28.1233, ktau =      16200 :  1st, 2nd time deriv of ps =  0.14020E-04 0.39516E-07,  no. of points w/convection =     225
+ BATS variables written at   1989012903   180.000000000000     
+     at day =   28.2101, ktau =      16250 :  1st, 2nd time deriv of ps =  0.15185E-04 0.43349E-07,  no. of points w/convection =     274
+           *** solar declination angle = -17.82 degrees.
+  dectim =    164160.000000000     
+ OUT-history written date =    1989012906.00000     
+ BATS variables written at   1989012906  0.000000000000000E+000
+ Writing rad fields at ktau =        16272  1989012906
+ BCs are ready from   1989012906   to   1989012912
+     at day =   28.2969, ktau =      16300 :  1st, 2nd time deriv of ps =  0.14743E-04 0.43487E-07,  no. of points w/convection =     334
+ BATS variables written at   1989012909   180.000000000000     
+     at day =   28.3837, ktau =      16350 :  1st, 2nd time deriv of ps =  0.16076E-04 0.44625E-07,  no. of points w/convection =     378
+     at day =   28.4705, ktau =      16400 :  1st, 2nd time deriv of ps =  0.14023E-04 0.45274E-07,  no. of points w/convection =     351
+           *** solar declination angle = -17.76 degrees.
+  dectim =    165600.000000000     
+ OUT-history written date =    1989012912.00000     
+ BATS variables written at   1989012912  0.000000000000000E+000
+ Writing rad fields at ktau =        16416  1989012912
+ BCs are ready from   1989012912   to   1989012918
+     at day =   28.5573, ktau =      16450 :  1st, 2nd time deriv of ps =  0.15821E-04 0.38977E-07,  no. of points w/convection =     370
+ BATS variables written at   1989012915   180.000000000000     
+     at day =   28.6441, ktau =      16500 :  1st, 2nd time deriv of ps =  0.14253E-04 0.44437E-07,  no. of points w/convection =     364
+     at day =   28.7309, ktau =      16550 :  1st, 2nd time deriv of ps =  0.15042E-04 0.49308E-07,  no. of points w/convection =     363
+           *** solar declination angle = -17.69 degrees.
+  dectim =    167040.000000000     
+ OUT-history written date =    1989012918.00000     
+ BATS variables written at   1989012918  0.000000000000000E+000
+ Writing rad fields at ktau =        16560  1989012918
+ BCs are ready from   1989012918   to   1989013000
+     at day =   28.8177, ktau =      16600 :  1st, 2nd time deriv of ps =  0.14554E-04 0.51229E-07,  no. of points w/convection =     387
+ BATS variables written at   1989012921   180.000000000000     
+     at day =   28.9045, ktau =      16650 :  1st, 2nd time deriv of ps =  0.14713E-04 0.49643E-07,  no. of points w/convection =     398
+     at day =   28.9913, ktau =      16700 :  1st, 2nd time deriv of ps =  0.14787E-04 0.49474E-07,  no. of points w/convection =     395
+           *** solar declination angle = -17.62 degrees.
+  dectim =    168480.000000000     
+ OUT-history written date =    1989013000.00000     
+ BATS variables written at   1989013000  0.000000000000000E+000
+ Writing rad fields at ktau =        16704  1989013000
+ BCs are ready from   1989013000   to   1989013006
+     at day =   29.0781, ktau =      16750 :  1st, 2nd time deriv of ps =  0.15917E-04 0.50409E-07,  no. of points w/convection =     432
+ BATS variables written at   1989013003   180.000000000000     
+     at day =   29.1649, ktau =      16800 :  1st, 2nd time deriv of ps =  0.17039E-04 0.51159E-07,  no. of points w/convection =     409
+           *** solar declination angle = -17.55 degrees.
+  dectim =    169920.000000000     
+ OUT-history written date =    1989013006.00000     
+ BATS variables written at   1989013006  0.000000000000000E+000
+ Writing rad fields at ktau =        16848  1989013006
+ BCs are ready from   1989013006   to   1989013012
+     at day =   29.2517, ktau =      16850 :  1st, 2nd time deriv of ps =  0.16610E-04 0.53688E-07,  no. of points w/convection =     425
+     at day =   29.3385, ktau =      16900 :  1st, 2nd time deriv of ps =  0.19584E-04 0.51134E-07,  no. of points w/convection =     469
+ BATS variables written at   1989013009   180.000000000000     
+     at day =   29.4253, ktau =      16950 :  1st, 2nd time deriv of ps =  0.18216E-04 0.51122E-07,  no. of points w/convection =     458
+           *** solar declination angle = -17.48 degrees.
+  dectim =    171360.000000000     
+ OUT-history written date =    1989013012.00000     
+ BATS variables written at   1989013012  0.000000000000000E+000
+ Writing rad fields at ktau =        16992  1989013012
+ BCs are ready from   1989013012   to   1989013018
+     at day =   29.5122, ktau =      17000 :  1st, 2nd time deriv of ps =  0.19325E-04 0.54001E-07,  no. of points w/convection =     478
+     at day =   29.5990, ktau =      17050 :  1st, 2nd time deriv of ps =  0.19609E-04 0.51655E-07,  no. of points w/convection =     492
+ BATS variables written at   1989013015   180.000000000000     
+     at day =   29.6858, ktau =      17100 :  1st, 2nd time deriv of ps =  0.19989E-04 0.52338E-07,  no. of points w/convection =     490
+           *** solar declination angle = -17.41 degrees.
+  dectim =    172800.000000000     
+ OUT-history written date =    1989013018.00000     
+ BATS variables written at   1989013018  0.000000000000000E+000
+ Writing rad fields at ktau =        17136  1989013018
+ BCs are ready from   1989013018   to   1989013100
+     at day =   29.7726, ktau =      17150 :  1st, 2nd time deriv of ps =  0.18634E-04 0.49650E-07,  no. of points w/convection =     478
+     at day =   29.8594, ktau =      17200 :  1st, 2nd time deriv of ps =  0.19011E-04 0.46767E-07,  no. of points w/convection =     482
+ BATS variables written at   1989013021   180.000000000000     
+     at day =   29.9462, ktau =      17250 :  1st, 2nd time deriv of ps =  0.19077E-04 0.51120E-07,  no. of points w/convection =     462
+           *** solar declination angle = -17.34 degrees.
+  dectim =    174240.000000000     
+ OUT-history written date =    1989013100.00000     
+ BATS variables written at   1989013100  0.000000000000000E+000
+ Writing rad fields at ktau =        17280  1989013100
+ BCs are ready from   1989013100   to   1989013106
+     at day =   30.0330, ktau =      17300 :  1st, 2nd time deriv of ps =  0.19030E-04 0.52482E-07,  no. of points w/convection =     483
+     at day =   30.1198, ktau =      17350 :  1st, 2nd time deriv of ps =  0.18416E-04 0.52992E-07,  no. of points w/convection =     466
+ BATS variables written at   1989013103   180.000000000000     
+     at day =   30.2066, ktau =      17400 :  1st, 2nd time deriv of ps =  0.16921E-04 0.50147E-07,  no. of points w/convection =     470
+           *** solar declination angle = -17.27 degrees.
+  dectim =    175680.000000000     
+ OUT-history written date =    1989013106.00000     
+ BATS variables written at   1989013106  0.000000000000000E+000
+ Writing rad fields at ktau =        17424  1989013106
+ BCs are ready from   1989013106   to   1989013112
+     at day =   30.2934, ktau =      17450 :  1st, 2nd time deriv of ps =  0.21397E-04 0.51151E-07,  no. of points w/convection =     482
+ BATS variables written at   1989013109   180.000000000000     
+     at day =   30.3802, ktau =      17500 :  1st, 2nd time deriv of ps =  0.19270E-04 0.48440E-07,  no. of points w/convection =     492
+     at day =   30.4670, ktau =      17550 :  1st, 2nd time deriv of ps =  0.18980E-04 0.51152E-07,  no. of points w/convection =     491
+           *** solar declination angle = -17.20 degrees.
+  dectim =    177120.000000000     
+ OUT-history written date =    1989013112.00000     
+ BATS variables written at   1989013112  0.000000000000000E+000
+ Writing rad fields at ktau =        17568  1989013112
+ BCs are ready from   1989013112   to   1989013118
+     at day =   30.5538, ktau =      17600 :  1st, 2nd time deriv of ps =  0.17157E-04 0.48704E-07,  no. of points w/convection =     507
+ BATS variables written at   1989013115   180.000000000000     
+     at day =   30.6406, ktau =      17650 :  1st, 2nd time deriv of ps =  0.16769E-04 0.48424E-07,  no. of points w/convection =     474
+     at day =   30.7274, ktau =      17700 :  1st, 2nd time deriv of ps =  0.15964E-04 0.53152E-07,  no. of points w/convection =     477
+           *** solar declination angle = -17.13 degrees.
+  dectim =    178560.000000000     
+ OUT-history written date =    1989013118.00000     
+ BATS variables written at   1989013118  0.000000000000000E+000
+ Writing rad fields at ktau =        17712  1989013118
+ BCs are ready from   1989013118   to   1989020100
+     at day =   30.8142, ktau =      17750 :  1st, 2nd time deriv of ps =  0.18574E-04 0.50862E-07,  no. of points w/convection =     520
+ BATS variables written at   1989013121   180.000000000000     
+     at day =   30.9010, ktau =      17800 :  1st, 2nd time deriv of ps =  0.17473E-04 0.47691E-07,  no. of points w/convection =     499
+     at day =   30.9878, ktau =      17850 :  1st, 2nd time deriv of ps =  0.17086E-04 0.47512E-07,  no. of points w/convection =     478
+           *** solar declination angle = -17.06 degrees.
+  dectim =    180000.000000000     
+ OUT-history written date =    1989020100.00000     
+ BATS variables written at   1989020100  0.000000000000000E+000
+ Writing rad fields at ktau =        17856  1989020100
+ OPENING NEW SAV FILE: SAV.1989020100
+ restart written date =    1989020100.00000     
+
+
+ ***** restart file for next run is written at time=       0.00 minutes, ktau =   17856 in year 1989
+  *** new max DATE will be   1989030300
