@@ -1413,7 +1413,7 @@
           end do
           allrec = allrec + kxp1
         end if
-        allrec = kx*4 + (kxp1)*(kxp2)
+        allrec = kx*4 + (kxp1*kxp2)
         call mpi_scatter(sav_1(1,1,1),ixm1*allrec*jxp,mpi_real8,        &
                        & sav1(1,1,1), ixm1*allrec*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)

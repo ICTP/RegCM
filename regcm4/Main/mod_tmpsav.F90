@@ -34,8 +34,8 @@
       real(8) , dimension(ix,kx,jx) :: sav_0s
       real(8) , dimension(ix,nsplit*2,jxp) :: sav0d
       real(8) , dimension(ix,nsplit*2,jx) :: sav_0d
-      real(8) , dimension(ixm1,kx*4+(kxp1)*(kxp2),jxp) :: sav1
-      real(8) , dimension(ixm1,kx*4+(kxp1)*(kxp2),jx) :: sav_1
+      real(8) , dimension(ixm1,kx*4+(kxp1*kxp2),jxp) :: sav1
+      real(8) , dimension(ixm1,kx*4+(kxp1*kxp2),jx) :: sav_1
       real(8) , dimension(ixm1,nnsg*4+4,jxp) :: sav2
       real(8) , dimension(ixm1,nnsg*5+1,jxp) :: sav2a
       real(8) , dimension(ixm1,nnsg*4+4,jx) :: sav_2

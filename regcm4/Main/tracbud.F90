@@ -116,36 +116,31 @@
 #ifdef DIAG
 #ifdef MPP1
       do itr = 1 , ntr
-        call mpi_gather(chia(1,1,1,itr),ix*kx*jxp,mpi_real8,            &
-                      & chia_io(1,1,1,itr),ix*kx*jxp,                   &
-                      & mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_gather(remlsc(1,1,1,itr),ix*kx*jxp,                    &
-                      & mpi_real8,remlsc_io(1,1,1,itr),                 &
-                      & ix*kx*jxp,mpi_real8,0,mpi_comm_world,           &
-                      & ierr)
-        call mpi_gather(remcvc(1,1,1,itr),ix*kx*jxp,                    &
-                      & mpi_real8,remcvc_io(1,1,1,itr),                 &
-                      & ix*kx*jxp,mpi_real8,0,mpi_comm_world,           &
-                      & ierr)
-        call mpi_gather(rxsg(1,1,1,itr),ix*kx*jxp,mpi_real8,            &
-                      & rxsg_io(1,1,1,itr),ix*kx*jxp,                   &
-                      & mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_gather(rxsaq1(1,1,1,itr),ix*kx*jxp,                    &
-                      & mpi_real8,rxsaq1_io(1,1,1,itr),                 &
-                      & ix*kx*jxp,mpi_real8,0,mpi_comm_world,           &
-                      & ierr)
-        call mpi_gather(rxsaq2(1,1,1,itr),ix*kx*jxp,                    &
-                      & mpi_real8,rxsaq2_io(1,1,1,itr),                 &
-                      & ix*kx*jxp,mpi_real8,0,mpi_comm_world,           &
-                      & ierr)
-        call mpi_gather(remdrd(1,1,itr),ix*jxp,mpi_real8,               &
+        call mpi_gather(chia(1,1,1,itr),   ix*kx*jxp,mpi_real8,         &
+                      & chia_io(1,1,1,itr),ix*kx*jxp,mpi_real8,         &
+                      & 0,mpi_comm_world,ierr)
+        call mpi_gather(remlsc(1,1,1,itr),   ix*kx*jxp,mpi_real8,       &
+                      & remlsc_io(1,1,1,itr),ix*kx*jxp,mpi_real8,       &
+                      & 0,mpi_comm_world,ierr)
+        call mpi_gather(remcvc(1,1,1,itr),   ix*kx*jxp,mpi_real8,       &
+                      & remcvc_io(1,1,1,itr),ix*kx*jxp,mpi_real8,       &
+                      & 0,mpi_comm_world,ierr)
+        call mpi_gather(rxsg(1,1,1,itr),   ix*kx*jxp,mpi_real8,         &
+                      & rxsg_io(1,1,1,itr),ix*kx*jxp,mpi_real8,         &
+                      & 0,mpi_comm_world,ierr)
+        call mpi_gather(rxsaq1(1,1,1,itr),   ix*kx*jxp,mpi_real8,       &
+                      & rxsaq1_io(1,1,1,itr),ix*kx*jxp,mpi_real8,       &
+                      & 0,mpi_comm_world,ierr)
+        call mpi_gather(rxsaq2(1,1,1,itr),   ix*kx*jxp,mpi_real8,       &
+                      & rxsaq2_io(1,1,1,itr),ix*kx*jxp,mpi_real8,       &
+                      & 0,mpi_comm_world,ierr)
+        call mpi_gather(remdrd(1,1,itr),   ix*jxp,mpi_real8,            &
                       & remdrd_io(1,1,itr),ix*jxp,mpi_real8,            &
                       & 0,mpi_comm_world,ierr)
         do l = 1 , 12
-          call mpi_gather(chemsrc(1,1,l,itr),ix*jxp,                    &
-                        & mpi_real8,chemsrc_io(1,1,l,itr),              &
-                        & ix*jxp,mpi_real8,0,mpi_comm_world,            &
-                        & ierr)
+          call mpi_gather(chemsrc(1,1,l,itr),   ix*jxp,mpi_real8,       &
+                        & chemsrc_io(1,1,l,itr),ix*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
         end do
       end do
       if ( myid.eq.0 ) then

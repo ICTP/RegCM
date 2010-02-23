@@ -81,8 +81,9 @@
 !
 #ifdef DIAG
 #ifdef MPP1
-      call mpi_gather(qfx(1,1),ix*jxp,mpi_real8,qfx_io(1,1),            &
-                    & ix*jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(qfx(1,1),   ix*jxp,mpi_real8,                     &
+                    & qfx_io(1,1),ix*jxp,mpi_real8,                     &
+                    & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do j = 2 , jxm2
           do i = 2 , ixm2

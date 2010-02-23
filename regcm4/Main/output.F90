@@ -117,9 +117,9 @@
             out0(i,3,j) = msfd(i,j)
           end do
         end do
-        call mpi_gather(out0(1,1,1),ix*3*jxp,mpi_real8,                 &
-                      & out_0(1,1,1),ix*3*jxp,mpi_real8,0,              &
-                      & mpi_comm_world,ierr)
+        call mpi_gather(out0(1,1,1), ix*3*jxp,mpi_real8,                &
+                      & out_0(1,1,1),ix*3*jxp,mpi_real8,                &
+                      & 0,mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
           do j = 1 , jxm1
             do i = 1 , ixm1
@@ -173,10 +173,9 @@
               end do
             end do
           end do
-          call mpi_gather(atm0(1,1,1),ix*(kx*6+3+nnsg*4)*jxp,           &
-                        & mpi_real8,atm_0(1,1,1),                       &
-                        & ix*(kx*6+3+nnsg*4)*jxp,mpi_real8,0,           &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(atm0(1,1,1), ix*(kx*6+3+nnsg*4)*jxp,mpi_real8,&
+                        & atm_0(1,1,1),ix*(kx*6+3+nnsg*4)*jxp,mpi_real8,&
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do k = 1 , kx
@@ -234,9 +233,9 @@
               end do
             end do
           end do
-          call mpi_gather(bat0(1,1,1),(ixm2)*numbat*jxp,mpi_real,       &
-                        & bat_0(1,1,1),(ixm2)*numbat*jxp,mpi_real,0,    &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(bat0(1,1,1), ixm2*numbat*jxp,mpi_real4,       &
+                        & bat_0(1,1,1),ixm2*numbat*jxp,mpi_real4,       &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do l = 1 , numbat
               do i = 1 , ixm2
@@ -266,9 +265,9 @@
               end do
             end do
           end do
-          call mpi_gather(sub0(1,1,1,1),ixm2*nnsg*numsub*jxp,mpi_real4, &
-                        & sub_0(1,1,1,1),ixm2*nnsg*numsub*jxp,          &
-                        & mpi_real4,0,mpi_comm_world,ierr)
+          call mpi_gather(sub0(1,1,1,1), ixm2*nnsg*numsub*jxp,mpi_real4,&
+                        & sub_0(1,1,1,1),ixm2*nnsg*numsub*jxp,mpi_real4,&
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do l = 1 , numsub
               do j = 1 , jxm2
@@ -307,9 +306,9 @@
               end do
             end do
           end do
-          call mpi_gather(rad0(1,1,1),(ixm2)*(nrad3d*kx+nrad2d)*jxp,    &
-                        & mpi_real,rad_0(1,1,1),(ixm2)                  &
-                        & *(nrad3d*kx+nrad2d)*jxp,mpi_real,0,           &
+          call mpi_gather(rad0(1,1,1),ixm2*(nrad3d*kx+nrad2d)*jxp,      &
+                        & mpi_real4,rad_0(1,1,1),(ixm2)                 &
+                        & *(nrad3d*kx+nrad2d)*jxp,mpi_real4,0,          &
                         & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do n = 1 , nrad2d
@@ -487,10 +486,9 @@
             end do
           end do
           allrec = kx*4 + 2
-          call mpi_gather(sav0(1,1,1),ix*allrec*jxp,                    &
-                        & mpi_real8,sav_0(1,1,1),                       &
-                        & ix*allrec*jxp,mpi_real8,0,                    &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav0(1,1,1), ix*allrec*jxp,mpi_real8,         &
+                        & sav_0(1,1,1),ix*allrec*jxp,mpi_real8,         &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do k = 1 , kx
@@ -515,9 +513,9 @@
                 end do
               end do
             end do
-            call mpi_gather(sav0s(1,1,1),ix*kx*jxp,mpi_real8,           &
-                          & sav_0s(1,1,1),ix*kx*jxp,                    &
-                          & mpi_real8,0,mpi_comm_world,ierr)
+            call mpi_gather(sav0s(1,1,1), ix*kx*jxp,mpi_real8,          &
+                          & sav_0s(1,1,1),ix*kx*jxp,mpi_real8,          &
+                          & 0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
               do j = 1 , jx
                 do k = 1 , kx
@@ -543,10 +541,9 @@
             end do
           end do
           allrec = kx*4 + 2
-          call mpi_gather(sav0(1,1,1),ix*allrec*jxp,                    &
-                        & mpi_real8,sav_0(1,1,1),                       &
-                        & ix*allrec*jxp,mpi_real8,0,                    &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav0(1,1,1), ix*allrec*jxp,mpi_real8,         &
+                        & sav_0(1,1,1),ix*allrec*jxp,mpi_real8,         &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do k = 1 , kx
@@ -578,10 +575,9 @@
             end do
           end do
           allrec = kx*4 + 2
-          call mpi_gather(sav0(1,1,1),ix*allrec*jxp,                    &
-                        & mpi_real8,sav_0(1,1,1),                       &
-                        & ix*allrec*jxp,mpi_real8,0,                    &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav0(1,1,1), ix*allrec*jxp,mpi_real8,         &
+                        & sav_0(1,1,1),ix*allrec*jxp,mpi_real8,         &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do k = 1 , kx
@@ -619,10 +615,9 @@
             end do
           end do
           allrec = kx*4 + 2
-          call mpi_gather(sav0(1,1,1),ix*allrec*jxp,                    &
-                        & mpi_real8,sav_0(1,1,1),                       &
-                        & ix*allrec*jxp,mpi_real8,0,                    &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav0(1,1,1), ix*allrec*jxp,mpi_real8,         &
+                        & sav_0(1,1,1),ix*allrec*jxp,mpi_real8,         &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do k = 1 , kx
@@ -666,10 +661,9 @@
             end do
           end do
           allrec = 5 + nnsg + kx
-          call mpi_gather(sav0a(1,1,1),ix*allrec*jxp,                   &
-                        & mpi_real8,sav_0a(1,1,1),                      &
-                        & ix*allrec*jxp,mpi_real8,0,                    &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav0a(1,1,1), ix*allrec*jxp,mpi_real8,        &
+                        & sav_0a(1,1,1),ix*allrec*jxp,mpi_real8,        &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do i = 1 , ix
@@ -693,9 +687,9 @@
             end do
           end if
           if ( iocnflx.eq.2 )                                           &
-             & call mpi_gather(zpbl(1,1),ix*jxp,mpi_real8,              &
-             & zpbl_io(1,1),ix*jxp,mpi_real8,0,                         &
-             & mpi_comm_world,ierr)
+             & call mpi_gather(zpbl(1,1),   ix*jxp,mpi_real8,           &
+             &                 zpbl_io(1,1),ix*jxp,mpi_real8,           &
+             &                 0,mpi_comm_world,ierr)
           if ( icup.eq.1 ) then
             do j = 1 , jendl
               do k = 1 , kx
@@ -706,10 +700,9 @@
               end do
             end do
             allrec = kx*2
-            call mpi_gather(sav0c(1,1,1),ix*allrec*jxp,                 &
-                          & mpi_real8,sav_0c(1,1,1),                    &
-                          & ix*allrec*jxp,mpi_real8,0,                  &
-                          & mpi_comm_world,ierr)
+            call mpi_gather(sav0c(1,1,1), ix*allrec*jxp,mpi_real8,      &
+                          & sav_0c(1,1,1),ix*allrec*jxp,mpi_real8,      &
+                          & 0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
               do j = 1 , jx
                 do k = 1 , kx
@@ -732,10 +725,9 @@
               end do
             end do
             allrec = kxp1
-            call mpi_gather(sav0b(1,1,1),ix*allrec*jxp,                 &
-                          & mpi_real8,sav_0b(1,1,1),                    &
-                          & ix*allrec*jxp,mpi_real8,0,                  &
-                          & mpi_comm_world,ierr)
+            call mpi_gather(sav0b(1,1,1), ix*allrec*jxp,mpi_real8,      &
+                          & sav_0b(1,1,1),ix*allrec*jxp,mpi_real8,      &
+                          & 0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
               do j = 1 , jx
                 do k = 1 , kx
@@ -749,7 +741,7 @@
               end do
             end if
           else if ( icup.eq.4 ) then
-            call mpi_gather(cbmf2d(1,1),ix*jxp,mpi_real8,               &
+            call mpi_gather(cbmf2d(1,1),   ix*jxp,mpi_real8,            &
                           & cbmf2d_io(1,1),ix*jxp,mpi_real8,            &
                           & 0,mpi_comm_world,ierr)
           else
@@ -781,11 +773,10 @@
               end do
             end do
           end do
-          allrec = allrec + kxp1
-          call mpi_gather(sav1(1,1,1),ixm1*allrec*jxp,                  &
-                        & mpi_real8,sav_1(1,1,1),                       &
-                        & ixm1*allrec*jxp,mpi_real8,0,                  &
-                        & mpi_comm_world,ierr)
+          allrec = kx*4+(kxp1*kxp2)
+          call mpi_gather(sav1(1,1,1), ixm1*allrec*jxp,mpi_real8,       &
+                        & sav_1(1,1,1),ixm1*allrec*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jxm1
               do l = 1 , 4
@@ -833,10 +824,9 @@
             end do
           end do
           allrec = nnsg*4 + 4
-          call mpi_gather(sav2(1,1,1),ixm1*allrec*jxp,                  &
-                        & mpi_real8,sav_2(1,1,1),                       &
-                        & ixm1*allrec*jxp,mpi_real8,0,                  &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav2(1,1,1), ixm1*allrec*jxp,mpi_real8,       &
+                        & sav_2(1,1,1),ixm1*allrec*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jxm1
               do n = 1 , nnsg
@@ -872,10 +862,9 @@
             end do
           end do
           allrec = nnsg*4 + 4
-          call mpi_gather(sav2(1,1,1),ixm1*allrec*jxp,                  &
-                        & mpi_real8,sav_2(1,1,1),                       &
-                        & ixm1*allrec*jxp,mpi_real8,0,                  &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav2(1,1,1), ixm1*allrec*jxp,mpi_real8,       &
+                        & sav_2(1,1,1),ixm1*allrec*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jxm1
               do n = 1 , nnsg
@@ -911,10 +900,9 @@
             end do
           end do
           allrec = nnsg*4 + 4
-          call mpi_gather(sav2(1,1,1),ixm1*allrec*jxp,                  &
-                        & mpi_real8,sav_2(1,1,1),                       &
-                        & ixm1*allrec*jxp,mpi_real8,0,                  &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav2(1,1,1), ixm1*allrec*jxp,mpi_real8,       &
+                        & sav_2(1,1,1),ixm1*allrec*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jxm1
               do n = 1 , nnsg
@@ -948,10 +936,9 @@
             end do
           end do
           allrec = nnsg*5 + 1
-          call mpi_gather(sav2a(1,1,1),ixm1*allrec*jxp,                 &
-                        & mpi_real8,sav_2a(1,1,1),                      &
-                        & ixm1*allrec*jxp,mpi_real8,0,                  &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav2a(1,1,1), ixm1*allrec*jxp,mpi_real8,      &
+                        & sav_2a(1,1,1),ixm1*allrec*jxp,mpi_real8,      &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jxm1
               do n = 1 , nnsg
@@ -990,11 +977,10 @@
                 end do
               end do
             end do
-            allrec = allrec + ntr
-            call mpi_gather(sav4(1,1,1),ix*allrec*jxp,                  &
-                          & mpi_real8,sav_4(1,1,1),                     &
-                          & ix*allrec*jxp,mpi_real8,0,                  &
-                          & mpi_comm_world,ierr)
+            allrec = ntr*(kx*4+1)
+            call mpi_gather(sav4(1,1,1), ix*allrec*jxp,mpi_real8,       &
+                          & sav_4(1,1,1),ix*allrec*jxp,mpi_real8,       &
+                          & 0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
               do j = 1 , jx
                 do n = 1 , ntr
@@ -1030,10 +1016,9 @@
                 sav4a(i,7,j) = svegfrac2d(i,j)
               end do
             end do
-            call mpi_gather(sav4a(1,1,1),ixm1*7*jxp,                    &
-                          & mpi_real8,                                  &
-                          & sav_4a(1,1,1),ixm1*7*jxp,                   &
-                          & mpi_real8,0,mpi_comm_world,ierr)
+            call mpi_gather(sav4a(1,1,1), ixm1*7*jxp,mpi_real8,         &
+                          & sav_4a(1,1,1),ixm1*7*jxp,mpi_real8,         &
+                          & 0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
               do j = 1 , jxm1
                 do i = 1 , ixm1
@@ -1056,10 +1041,9 @@
               end do
             end do
           end do
-          call mpi_gather(sav0d(1,1,1),ix*nsplit*2*jxp,                 &
-                        & mpi_real8,sav_0d(1,1,1),                      &
-                        & ix*nsplit*2*jxp,mpi_real8,0,                  &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav0d(1,1,1), ix*nsplit*2*jxp,mpi_real8,      &
+                        & sav_0d(1,1,1),ix*nsplit*2*jxp,mpi_real8,      &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do n = 1 , nsplit
@@ -1082,9 +1066,9 @@
               sav6(k,8,j) = vil(k,j)
             end do
           end do
-          call mpi_gather(sav6(1,1,1),kx*8*jxp,mpi_real8,               &
-                        & sav_6(1,1,1),kx*8*jxp,mpi_real8,0,            &
-                        & mpi_comm_world,ierr)
+          call mpi_gather(sav6(1,1,1), kx*8*jxp,mpi_real8,              &
+                        & sav_6(1,1,1),kx*8*jxp,mpi_real8,              &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do k = 1 , kx

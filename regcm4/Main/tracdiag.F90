@@ -170,37 +170,38 @@
         psa01(j) = psa(1,j)
         psa02(j) = psa(2,j)
       end do
-      call mpi_gather(vaill(1,1),kx*jxp,mpi_real8,                      &
-                    & vaill_g(1,1),kx*jxp,mpi_real8,0,                  &
-                    & mpi_comm_world,ierr)
-      call mpi_gather(va02(1,1),kx*jxp,mpi_real8,va02_g(1,1),           &
-                    & kx*jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(xkcill1(1,1),kx*jxp,mpi_real8,                    &
-                    & xkcill1_g(1,1),kx*jxp,mpi_real8,0,                &
-                    & mpi_comm_world,ierr)
-      call mpi_gather(xkc02(1,1),kx*jxp,mpi_real8,                      &
-                    & xkc02_g(1,1),kx*jxp,mpi_real8,0,                  &
-                    & mpi_comm_world,ierr)
-      call mpi_gather(chiaill(1,1,1),kx*ntr*jxp,mpi_real8,              &
+      call mpi_gather(vaill(1,1),  kx*jxp,mpi_real8,                    &
+                    & vaill_g(1,1),kx*jxp,mpi_real8,                    &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(va02(1,1),  kx*jxp,mpi_real8,                     &
+                    & va02_g(1,1),kx*jxp,mpi_real8,                     &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(xkcill1(1,1),  kx*jxp,mpi_real8,                  &
+                    & xkcill1_g(1,1),kx*jxp,mpi_real8,                  &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(xkc02(1,1),  kx*jxp,mpi_real8,                    &
+                    & xkc02_g(1,1),kx*jxp,mpi_real8,                    &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(chiaill(1,1,1),  kx*ntr*jxp,mpi_real8,            &
                     & chiaill_g(1,1,1),kx*ntr*jxp,mpi_real8,            &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chiaill1(1,1,1),kx*ntr*jxp,mpi_real8,             &
+      call mpi_gather(chiaill1(1,1,1),  kx*ntr*jxp,mpi_real8,           &
                     & chiaill1_g(1,1,1),kx*ntr*jxp,mpi_real8,           &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chia01(1,1,1),kx*ntr*jxp,mpi_real8,               &
-                    & chia01_g(1,1,1),kx*ntr*jxp,mpi_real8,0,           &
-                    & mpi_comm_world,ierr)
-      call mpi_gather(chia02(1,1,1),kx*ntr*jxp,mpi_real8,               &
-                    & chia02_g(1,1,1),kx*ntr*jxp,mpi_real8,0,           &
-                    & mpi_comm_world,ierr)
-      call mpi_gather(psaill(1),jxp,mpi_real8,psaill_g(1),              &
-                    & jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(psaill1(1),jxp,mpi_real8,psaill1_g(1),            &
-                    & jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(psa01(1),jxp,mpi_real8,psa01_g(1),jxp,            &
-                    & mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(psa02(1),jxp,mpi_real8,psa02_g(1),jxp,            &
-                    & mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(chia01(1,1,1),  kx*ntr*jxp,mpi_real8,             &
+                    & chia01_g(1,1,1),kx*ntr*jxp,mpi_real8,             &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(chia02(1,1,1),  kx*ntr*jxp,mpi_real8,             &
+                    & chia02_g(1,1,1),kx*ntr*jxp,mpi_real8,             &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(psaill(1),  jxp,mpi_real8,                        &
+                    & psaill_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psaill1(1),  jxp,mpi_real8,                       &
+                    & psaill1_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psa01(1),  jxp,mpi_real8,                         &
+                    & psa01_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psa02(1),  jxp,mpi_real8,                         &
+                    & psa02_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do n = 1 , ntr
           do k = 1 , kx

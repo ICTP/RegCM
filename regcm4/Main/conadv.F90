@@ -108,10 +108,12 @@
           va01(k,j) = va(1,k,j)
         end do
       end do
-      call mpi_gather(vaix(1,1),kx*jxp,mpi_real8,vaix_g(1,1),           &
-                    & kx*jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(va01(1,1),kx*jxp,mpi_real8,va01_g(1,1),           &
-                    & kx*jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(vaix(1,1),  kx*jxp,mpi_real8,                     &
+                    & vaix_g(1,1),kx*jxp,mpi_real8,                     &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(va01(1,1),  kx*jxp,mpi_real8,                     &
+                    & va01_g(1,1),kx*jxp,mpi_real8,                     &
+                    & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kx
           do j = 1 , jxm1
@@ -191,16 +193,16 @@
         psailx(j) = psa(ixm1,j)
         psa01(j) = psa(1,j)
       end do
-      call mpi_gather(qvailx(1,1),kx*jxp,mpi_real8,                     &
-                    & qvailx_g(1,1),kx*jxp,mpi_real8,0,                 &
-                    & mpi_comm_world,ierr)
-      call mpi_gather(qva01(1,1),kx*jxp,mpi_real8,                      &
-                    & qva01_g(1,1),kx*jxp,mpi_real8,0,                  &
-                    & mpi_comm_world,ierr)
-      call mpi_gather(psailx(1),jxp,mpi_real8,psailx_g(1),              &
-                    & jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(psa01(1),jxp,mpi_real8,psa01_g(1),jxp,            &
-                    & mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(qvailx(1,1),  kx*jxp,mpi_real8,                   &
+                    & qvailx_g(1,1),kx*jxp,mpi_real8,                   &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(qva01(1,1),  kx*jxp,mpi_real8,                    &
+                    & qva01_g(1,1),kx*jxp,mpi_real8,                    &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(psailx(1),  jxp,mpi_real8,                        &
+                    & psailx_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psa01(1),  jxp,mpi_real8,                         &
+                      psa01_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kx
           do j = 1 , jxm1
@@ -280,12 +282,12 @@
           qca01(k,j) = qca(1,k,j)
         end do
       end do
-      call mpi_gather(qcailx(1,1),kx*jxp,mpi_real8,                     &
-                    & qcailx_g(1,1),kx*jxp,mpi_real8,0,                 &
-                    & mpi_comm_world,ierr)
-      call mpi_gather(qca01(1,1),kx*jxp,mpi_real8,                      &
-                    & qca01_g(1,1),kx*jxp,mpi_real8,0,                  &
-                    & mpi_comm_world,ierr)
+      call mpi_gather(qcailx(1,1),  kx*jxp,mpi_real8,                   &
+                    & qcailx_g(1,1),kx*jxp,mpi_real8,                   &
+                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(qca01(1,1),  kx*jxp,mpi_real8,                    &
+                    & qca01_g(1,1),kx*jxp,mpi_real8,                    &
+                    & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kx
           do j = 1 , jxm1
