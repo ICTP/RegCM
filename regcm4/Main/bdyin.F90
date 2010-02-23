@@ -219,10 +219,9 @@
           end do
         end if
         call mpi_bcast(ndate1,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_scatter(sav_0(1,1,1),ix*(kx*4+2)*jxp,                  &
-                       & mpi_real8,sav0(1,1,1),ix*(kx*4+2)              &
-                       & *jxp,mpi_real8,0,mpi_comm_world,               &
-                       & ierr)
+        call mpi_scatter(sav_0(1,1,1),ix*(kx*4+2)*jxp,mpi_real8,        &
+                       & sav0(1,1,1), ix*(kx*4+2)*jxp,mpi_real8,        &
+                       & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kx
             do i = 1 , ix

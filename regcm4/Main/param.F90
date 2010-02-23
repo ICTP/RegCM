@@ -949,10 +949,9 @@
           end do
         end if                 ! end if (myid.eq.0)
  
-        call mpi_scatter(inisrf_0(1,1,1),ix*(nnsg*3+8)*jxp,             &
-                       & mpi_real8,inisrf0(1,1,1),                      &
-                       & ix*(nnsg*3+8)*jxp,mpi_real8,0,                 &
-                       & mpi_comm_world,ierr)
+        call mpi_scatter(inisrf_0(1,1,1),ix*(nnsg*3+8)*jxp,mpi_real8,   &
+                       & inisrf0(1,1,1), ix*(nnsg*3+8)*jxp,mpi_real8,   &
+                       & 0,mpi_comm_world,ierr)
         do j = 1 , jxp
           do i = 1 , ix
             ht(i,j) = inisrf0(i,1,j)
@@ -972,7 +971,9 @@
             end do
           end do
         end do
+!
 !------invert mapscale factors:
+!
         do j = 1 , jendl
           do i = 1 , ix
             msfd(i,j) = 1./msfd(i,j)

@@ -69,7 +69,7 @@
 
       ! Standard atmosphere ICAO 1993
       real(8) , parameter :: stdp = 1.013250D+05
-      real(8) , parameter :: stdpmb = 1013.250D+05
+      real(8) , parameter :: stdpmb = 1013.250D+00
       real(8) , parameter :: stdt = 288.15D+00
       real(8) , parameter :: lrate = 0.00649D+00 ! K/km from MSL up to 11 km
  
@@ -206,5 +206,11 @@
       ! Radiation constants
       real(8) , parameter :: dpfco2 = 5.0D-03
       real(8) , parameter :: dpfo3 = 2.5D-03
+
+      ! Pressure gradient force calculations (Why not standard atmosphere?)
+      real(8) , parameter :: t00pg = 287.0D+00       ! stdt ?
+      real(8) , parameter :: p00pg = 101.325D+00     ! stdp ?
+      real(8) , parameter :: alam  = 6.5D-03         ! Lapse rate ?
+      real(8) , parameter :: pgfaa1 = alam*rgas*rgti ! Utility constant
 
       end module mod_constants

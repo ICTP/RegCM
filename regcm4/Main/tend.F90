@@ -63,7 +63,8 @@
       use mod_message
       use mod_aerosol , only : aermm
       use mod_constants , only : rgti , rgas , cpd , ep1 , gnu , omu ,  &
-                   & gnuhf , omuhf , alpha , beta
+                   & gnuhf , omuhf , alpha , beta , t00pg , p00pg ,     &
+                   & pgfaa1
 #ifdef MPP1
       use mod_slice
 #ifndef IBM
@@ -81,10 +82,10 @@
 !
 ! Local variables
 !
-      real(8) :: alam , cell , chias , chibs , dto2 , dudx , dudy ,     &
-               & dvdx , dvdy , p00pg , pgfaa1 , psabar , psasum ,       &
+      real(8) :: cell , chias , chibs , dto2 , dudx , dudy ,            &
+               & dvdx , dvdy , psabar , psasum ,                        &
                & pt2bar , pt2tot , ptnbar , ptntot , qcas , qcbs ,      &
-               & qvas , qvbs , rovcpm , rtbar , sigpsa , t00pg , tv ,   &
+               & qvas , qvbs , rovcpm , rtbar , sigpsa , tv ,           &
                & tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,      &
                & xday , xmsf , xtm1
       real(8) , dimension(ix,kx) :: divl
@@ -101,13 +102,6 @@
 #else
       real(8) , dimension(ix,kx,jx) :: ttld
 #endif
-!
-!----for pressure gradient force calculations
-!
-      t00pg = 287.
-      p00pg = 101.325
-      alam = 6.5E-3
-      pgfaa1 = alam*rgas*rgti
 !
 !----------------------------------------------------------------------
 !-----fill up the boundary slices:

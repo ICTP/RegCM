@@ -181,9 +181,9 @@
         end do
       end if
 !     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      call mpi_scatter(src_0(1,1,1,1),ix*12*ntr*jxp,                    &
-                     & mpi_real8,src0(1,1,1,1),ix*12*ntr*jxp,           &
-                     & mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_scatter(src_0(1,1,1,1),ix*12*ntr*jxp,mpi_real8,          &
+                     & src0(1,1,1,1), ix*12*ntr*jxp,mpi_real8,          &
+                     & 0,mpi_comm_world,ierr)
       do j = 1 , jendl
         do itr = 1 , ntr
           do m = 1 , 12
