@@ -61,6 +61,7 @@ def main():
 			   sys.stdout.write("%s already present, skipping..\n " % filename)
                            wrong=True
 			   continue
+                        os.mkdir(filename) 
                         cmd='ln -sf %s/* %s/.' % (absolute_name, filename)
                         print 'executing', cmd
                         failure=os.system(cmd)

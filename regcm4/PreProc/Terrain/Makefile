@@ -1,6 +1,6 @@
-#Makefile for RegCM@  run on PC_LINUX (Intel 64bit CPU)
-#  by using Intel FORTRAN compiler version 8 or 9
-
+# Makefile for RegCM4
+# for Terrain code.
+  
 include ../../Makefile.inc
 
 SRC = terrain.f

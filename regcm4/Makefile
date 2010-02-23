@@ -16,15 +16,25 @@ endif
 
 #all: terrain icbc regcm
 printall:
-	@echo 'Type make terrain -> run terrain -> make icbc -> make regcm'
+	@echo ' this is Makefile for Regcm4 package: supported actions are: '
+	@echo '  --- make data: to create DATA link '
+	@echo '  --- make terrain: to compile terrain' 
+	@echo '  --- make run_terrain: to execute terrain code' 
+	@echo '  --- make icbc: to compile icbc codes'
+	@echo '  ----make run_icbc: to run icbc codes'
+	@echo '  ----make regcm:  to compile regcm code' 
+	@echo '  ' 
+
+data: 
+	#link the Data directory to PreProc/DATA
+	cd $(REGCM_BASE_DIR)/PreProc/DATA && ./datalinker.py -d  $(REGCM_DATA_DIR) 
 
 terrain:
-	#link the Data directory to /.../PreProc/DATA
-	-ln -sf $(REGCM_DATA_DIR) $(REGCM_BASE_DIR)/PreProc/DATA
+
 	#link domain.param to Terrain
 	-ln -sf $(REGCM_BASE_DIR)/domain.param $(REGCM_BASE_DIR)/PreProc/Terrain/domain.param
 	#Move to the Terrain directory and run make there
-	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) all TARGET=$(TARGET)
+	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) 
 
 icbc:
 	#Move to the ICBC directory and run make there
@@ -36,6 +46,7 @@ regcm:
 
 postproc:
 	cd $(REGCM_BASE_DIR)/PostProc && $(MAKE) all TARGET=$(TARGET)
+
 
 $(ICBC_DEPS): terrain	
 
