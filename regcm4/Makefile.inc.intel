@@ -7,7 +7,7 @@
 REGCM_BASE_DIR = `pwd`
 
 # DATA directories: 
-REGCM_DATA_DIR =/lustre/esp/DATAxStefano 
+REGCM_DATA_DIR =/lustre/esp/CORDEX/RCM3DATA 
 
 # netcdf library:
 # please note: regcm4 comes with precompiled netcdf library: 

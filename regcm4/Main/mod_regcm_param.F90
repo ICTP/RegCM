@@ -16,7 +16,8 @@
 !    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
+! this for AQCWA test 
+!
       module mod_regcm_param
       implicit none
 !
@@ -25,7 +26,7 @@
 
 ! Point in X (longitude) direction
 
-      integer , parameter :: ix = 106
+      integer , parameter :: ix = 120
 
 ! Point in Y (latitude) direction
 
@@ -39,7 +40,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 2
+      integer , parameter :: nproc = 32
 
 ! Point in Y (latitude) direction
 
@@ -49,8 +50,8 @@
 
 ! Sub grid decomposition
 
-      integer , parameter :: nsg = 1
-      integer , parameter :: nnsg = 1
+      integer , parameter :: nsg = 5
+      integer , parameter :: nnsg = 25
 
 ! Number of bytes in reclen. Usually 4
 
@@ -77,7 +78,7 @@
 
 ! BATS parameters
 
-      character(5) , parameter :: dattyp = 'ERAIN'
+      character(5) , parameter :: dattyp = 'FNEST'
 
       logical , parameter :: ehso4 = .false.
 

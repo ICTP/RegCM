@@ -1,5 +1,7 @@
 # This file contains variables to be included in all other Makefiles
 
+NETCDF_LIB=.
+
 # libraries and data
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
 NETCDFINC = -I$(NETCDF_INC)
