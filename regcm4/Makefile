@@ -36,9 +36,17 @@ terrain:
 	#Move to the Terrain directory and run make there
 	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) 
 
+run_terrain:
+	# execute the terrain command 
+	cd $(REGCM_BASE_DIR)/PreProc/Terrain && ./terrain >terrain.log 
+
 icbc:
 	#Move to the ICBC directory and run make there
-	cd $(REGCM_BASE_DIR)/PreProc/ICBC && $(MAKE) all TARGET=$(TARGET)
+	cd $(REGCM_BASE_DIR)/PreProc/ICBC && $(MAKE) 
+
+run_icbc:
+	# Run icbc.py script 
+	cd $(REGCM_BASE_DIR)/PreProc/ICBC && ./icbc.py
 
 regcm:
 	# Change to the Main directory and run make there
@@ -58,7 +66,5 @@ clean:
 	cd $(REGCM_BASE_DIR)/Main && $(MAKE) clean
 	cd $(REGCM_BASE_DIR)/PostProc && $(MAKE) clean
 
-#dataclean:
-#	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) dataclean 
-#	cd $(REGCM_BASE_DIR)/PreProc/ICBC && $(MAKE) dataclean
-#	-rm -rf Input.*
+DATAclean:
+	cd $(REGCM_BASE_DIR)/PreProc/DATA && datalink.py -c 
