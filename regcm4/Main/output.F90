@@ -218,8 +218,8 @@
         end if
       end if
  
- 
 !     Call surface output
+ 
       if ( ifbat ) then
         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
@@ -255,15 +255,8 @@
               psmn_o(j,i) = 1.E30
             end do
           end do
-          do n = 1 , nnsg
-          do i = 1 , ixm2
-          do j = 1 , jxp
-            write(44+myid, *) t2m_s(n,j,i)
-          end do
-          end do
-          end do
           call fillsub
-          do j = 1 , jendx
+          do j = 1 , jxp
             do l = 1 , numsub
               do n = 1 , nnsg
                 do i = 1 , ixm2
