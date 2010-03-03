@@ -71,7 +71,7 @@
       real(4) , dimension(ixm2,nrad3d*kx+nrad2d,jxp) :: rad0
       real(4) , dimension(ixm2,nrad3d*kx+nrad2d,jx) :: rad_0
       real(4) , dimension(ixm2,nnsg,numsub,jxp) :: sub0
-      real(8) , dimension(ixm2,nnsg,numsub,jx) :: sub_0
+      real(4) , dimension(ixm2,nnsg,numsub,jx) :: sub_0
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jxp) :: chem0
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jx) :: chem_0
 #endif
