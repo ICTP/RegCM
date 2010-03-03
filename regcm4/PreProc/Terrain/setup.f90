@@ -1,7 +1,6 @@
       subroutine setup(nunit,iy,jx,ntypec,iproj,ds,clat,clon,igrads,    &
                      & ibyte,filout,filctl)
       use mod_const
-      use mod_const_int
       implicit none
 !
 ! Dummy arguments

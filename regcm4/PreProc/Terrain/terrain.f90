@@ -39,7 +39,6 @@
       use mod_addstack2
       use mod_block
       use mod_const
-      use mod_const_int
       use mod_icontr
       use mod_maps
       use mod_maps_s

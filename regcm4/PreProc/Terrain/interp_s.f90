@@ -3,7 +3,7 @@
       use mod_domain
       use mod_aa
       use mod_block
-      use mod_const_int
+      use mod_const
       use mod_maps_s
       implicit none
 !
