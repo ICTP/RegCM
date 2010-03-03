@@ -30,7 +30,7 @@
 
 ! Point in Y (latitude) direction
 
-      integer , parameter :: jx = 108
+      integer , parameter :: jx = 128
 
 ! Point in vertical
 

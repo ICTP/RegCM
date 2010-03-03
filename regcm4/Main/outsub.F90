@@ -35,11 +35,9 @@
 ! Local variables
 !
 #ifdef MPP1
-      integer :: n
-      real(4) , dimension((jxm2)*nsg,(ixm2)*nsg) :: v2b
-#else
-      real(4) , dimension((jxm2)*nsg,(ixm2)*nsg) :: v2b
+      integer :: n , i , j
 #endif
+      real(4) , dimension(jxm2*nsg,ixm2*nsg) :: v2b
 !
 !     ****** check if at desired output time for bats variables
       write (*,*) 'sub_BATS variables written at ' , idatex , xtime
@@ -47,29 +45,34 @@
       if ( iotyp.eq.1 ) then
         do n = 1 , numsub
           nrcsub = nrcsub + 1
-          call reorder(fsub_io(1,1,1,n),v2b,jxm2,ixm2,nsg)
+          v2b = reshape(fsub_io(:,:,:,n), (/jxm2*nsg,ixm2*nsg/))
+          do i = 1 , ixm2*nsg
+            do j = 1 , jxm2*nsg
+              write (444, *) i , j , v2b(j, i)
+            end do
+          end do
           write (iutsub,rec=nrcsub) v2b
         end do
       else
         write (iutsub) idatex
         do n = 1 , numsub
-          call reorder(fsub_io(1,1,1,n),v2b,jxm2,ixm2,nsg)
+          v2b = reshape(fsub_io(:,:,:,n), (/jxm2*nsg,ixm2*nsg/))
           write (iutsub) v2b
         end do
       end if
 #else
       if ( iotyp.eq.1 ) then
         nrcsub = nrcsub + 1
-        call reorder(u10m_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(u10m_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(v10m_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(v10m_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(drag_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(drag_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(tg_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(tg_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
         call reorder(tlef_s,v2b,jxm2,ixm2,nsg)

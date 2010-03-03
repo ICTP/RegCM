@@ -31,19 +31,6 @@
 !
 ! Local variables
 !
-      integer :: i , ii , j , jj , k
-!
-      do j = 1 , jx*nz
-        do i = 1 , ix*nz
-          jj = mod(j,nz)
-          if ( jj.eq.0 ) jj = nz
-          ii = mod(i,nz)
-          if ( ii.eq.0 ) ii = nz
-          k = (jj-1)*nz + ii
-          jj = (j+nz-1)/nz
-          ii = (i+nz-1)/nz
-          fsp(j,i) = fdp(k,jj,ii)
-        end do
-      end do
+      fsp = reshape(fdp, (/jx*nz,ix*nz/))
  
       end subroutine reorder

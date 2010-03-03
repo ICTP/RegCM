@@ -138,9 +138,9 @@
 #endif
 
 #ifdef MPP1
-      real(kind=4) , dimension(NNSG,jxp,ixm2,numsub) :: fsub
+      real(kind=4) , dimension(nnsg,jxp,ixm2,numsub) :: fsub
 #else
-      real(kind=4) , dimension(NNSG,jxm2,ixm2,numsub) :: fsub
+      real(kind=4) , dimension(nnsg,jxm2,ixm2,numsub) :: fsub
 #endif
 !
       real(8) , dimension(nnsg,ixm1) :: p1d0 , qs1d0 , ts1d0
