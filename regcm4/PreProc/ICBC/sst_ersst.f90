@@ -14,8 +14,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       use mod_domain
       use mod_datenum
-      use mod_erasst
       implicit none
+!
+! PARAMETERS
+!
+      integer , parameter :: ilon = 240 , jlat = 121
 !
 ! Local variables
 !
@@ -24,8 +27,10 @@
       real , dimension(ilon) :: loni
       integer :: idate , idate0
       logical :: there
+      integer :: nnnend , nstart
+      real(4) , dimension(ilon,jlat) :: sst
+      real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
 !
- 
       if ( ssttyp=='ERSST' ) then
         there = .false.
         if ( (idate1>=1989010100 .and. idate1<=2009053118) .or.         &
@@ -90,9 +95,9 @@
       do it = nstart , nnnend
         idate = mdate(it)
         if ( ssttyp=='ERSST' ) then
-          call sst_erain(it,nstart)
+          call sst_erain(it,nstart,ilon,jlat,sst)
         else if ( ssttyp=='ERSKT' ) then
-          call skt_erain(it,nstart)
+          call skt_erain(it,nstart,ilon,jlat,sst)
         else
         end if
         nyear = idate/1000000
@@ -273,15 +278,16 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine skt_erain(it,it0)
+      subroutine skt_erain(it,it0,ilon,jlat,sst)
       use netcdf
-      use mod_erasst
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: it , it0
-      intent (in) it , it0
+      integer :: it , it0 , ilon , jlat
+      intent (in) it , it0 , ilon , jlat
+      real(4) , dimension(ilon,jlat) :: sst
+      intent (out) :: sst
 !
 ! Local variables
 !
@@ -290,6 +296,9 @@
       logical :: there
       character(3) :: varname
       integer(2) , dimension(ilon,jlat) :: work
+      integer , dimension(10) :: icount , istart
+      integer :: inet , istatus
+      real(8) :: xadd , xscale
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -343,15 +352,16 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine sst_erain(it,it0)
+      subroutine sst_erain(it,it0,ilon,jlat,sst)
       use netcdf
-      use mod_erasst
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: it , it0
-      intent (in) it , it0
+      integer :: it , it0 , ilon , jlat
+      intent (in) it , it0 , ilon , jlat
+      real(4) , dimension(ilon,jlat) :: sst
+      intent (out) :: sst
 !
 ! Local variables
 !
@@ -360,6 +370,9 @@
       logical :: there
       character(3) :: varname
       integer(2) , dimension(ilon,jlat) :: work
+      integer , dimension(10) :: icount , istart
+      integer :: inet , istatus
+      real(8) :: xadd , xscale
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the

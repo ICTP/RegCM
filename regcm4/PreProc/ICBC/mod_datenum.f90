@@ -2,7 +2,7 @@
 
       implicit none
 
-      integer , dimension(146096) :: mdate
+      integer , dimension(289280) :: mdate
 
       contains
 
