@@ -1201,7 +1201,10 @@
               psmn_o(j,i) = 1.E30
             end do
           end do
-          if ( ifsub .and. nsg.gt.1 ) call outsub
+          if ( ifsub .and. nsg.gt.1 ) then
+            call fillsub
+            call outsub
+          end if
         end if
       end if
  
