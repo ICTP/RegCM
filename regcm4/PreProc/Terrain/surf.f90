@@ -27,8 +27,8 @@
 ! Local variables
 !
       logical :: flag
-      integer :: i , ii , iindex , ilev , isystm , j , jindex , jj , k ,&
-               & lengdo , lrec , nbase
+      integer :: i , ii , iindex , ilev , j , jindex , jj , k , lrec ,  &
+               & lengdo , nbase
       real(4) , dimension(iy,jx,2) :: itex
       real(8) :: xx , yy
       real(8) , external :: bint
@@ -167,7 +167,7 @@
         end if
       end do
       close (48)
-      call unlink('fort.48', isystm)
+      call unlink('fort.48')
 !
       do i = 1 , iy
         do j = 1 , jx
