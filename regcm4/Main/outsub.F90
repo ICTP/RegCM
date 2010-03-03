@@ -43,9 +43,6 @@
       if ( iotyp.eq.1 ) then
         do n = 1 , numsub
           nrcsub = nrcsub + 1
-          if (n == 1) then
-            write(44,*) fsub_io(:,:,:,n)
-          end if
           call reorder(fsub_io(1,1,1,n),v2b,jxm2,ixm2,nsg)
           write (iutsub,rec=nrcsub) v2b
         end do

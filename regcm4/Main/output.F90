@@ -224,6 +224,7 @@
         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
+
           call fillbat
           do j = 1 , jendx
             do l = 1 , numbat
@@ -245,6 +246,7 @@
             end do
             call outsrf
           end if
+
           do i = 1 , ixm2
             do j = 1 , jxp
               tgmx_o(j,i) = -1.E30
@@ -255,31 +257,40 @@
               psmn_o(j,i) = 1.E30
             end do
           end do
-          call fillsub
-          do j = 1 , jxp
-            do l = 1 , numsub
-              do n = 1 , nnsg
-                do i = 1 , ixm2
-                  sub0(i,n,l,j) = fsub(n,j,i,l)
-                end do
-              end do
-            end do
-          end do
-          call mpi_gather(sub0(1,1,1,1), ixm2*nnsg*numsub*jxp,mpi_real4,&
-                        & sub_0(1,1,1,1),ixm2*nnsg*numsub*jxp,mpi_real4,&
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do l = 1 , numsub
-              do j = 1 , jxm2
+
+          if ( ifsub .and. nsg.gt.1 ) then
+
+            call fillsub
+            do j = 1 , jxp
+              do l = 1 , numsub
                 do n = 1 , nnsg
                   do i = 1 , ixm2
-                    fsub_io(n,j,i,l) = sub_0(i,n,l,j+1)
+                    sub0(i,n,l,j) = fsub(n,j,i,l)
                   end do
                 end do
               end do
             end do
-            if ( ifsub .and. nsg.gt.1 ) call outsub
+            call mpi_gather(sub0(1,1,1,1), ixm2*nnsg*numsub*jxp,        &
+                          & mpi_real4,                                  &
+                          & sub_0(1,1,1,1),ixm2*nnsg*numsub*jxp,        &
+                          & mpi_real4,                                  &
+                          & 0,mpi_comm_world,ierr)
+
+            if ( myid.eq.0 ) then
+              do l = 1 , numsub
+                do j = 1 , jxm2
+                  do n = 1 , nnsg
+                    do i = 1 , ixm2
+                      fsub_io(n,j,i,l) = sub_0(i,n,l,j+1)
+                    end do
+                  end do
+                end do
+              end do
+            end if
+
+            call outsub
           end if
+
         end if
       end if
  
