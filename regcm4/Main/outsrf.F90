@@ -38,7 +38,6 @@
 !
 !     ****** check if at desired output time for bats variables
       write (*,*) 'BATS variables written at ' , idatex , xtime
-      call fillbat
       if ( iotyp.eq.2 ) write (iutbat) idatex
       do n = 1 , numbat
         if ( iotyp.eq.1 ) then
@@ -53,6 +52,7 @@
 #ifdef MPP1
           write (iutbat) ((fbat_io(j,i,n),j=1,jxm2),i=1,ixm2)
 #else
+          call fillbat
           write (iutbat) ((fbat(j,i,n),j=1,jxm2),i=1,ixm2)
 #endif
         else

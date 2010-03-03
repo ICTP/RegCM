@@ -221,11 +221,10 @@
  
 !     Call surface output
       if ( ifbat ) then
-        call fillbat
-        call fillsub
         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
+          call fillbat
           do j = 1 , jendx
             do l = 1 , numbat
               do i = 1 , ixm2
@@ -256,6 +255,7 @@
               psmn_o(j,i) = 1.E30
             end do
           end do
+          call fillsub
           do j = 1 , jendx
             do l = 1 , numsub
               do n = 1 , nnsg
