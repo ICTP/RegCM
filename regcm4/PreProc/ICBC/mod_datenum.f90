@@ -198,5 +198,48 @@
         stop
 99999   continue
       end subroutine finddate_eh50
+!
+!-----------------------------------------------------------------------
+!
+      subroutine initdate3
+        implicit none
+!
+!       Local variables
+!
+        integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
+!
+        nrec = 0
+        do nyear = 1948 , 2045
+          mbase = nyear*1000000
+          do mon = 1 , 12
+            mbase = mbase + 10000
+            if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.        &
+               & mon==8 .or. mon==10 .or. mon==12 ) then
+              nday = 31
+            else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
+              nday = 30
+            else
+              nday = 28
+            end if
+            nbase = mbase
+            do i = 1 , nday
+              nbase = nbase + 100
+              do m = 1 , 4
+                nrec = nrec + 1
+                if ( m==1 ) then
+                  mdate(nrec) = nbase
+                else if ( m==2 ) then
+                  mdate(nrec) = nbase + 6
+                else if ( m==3 ) then
+                  mdate(nrec) = nbase + 12
+                else
+                  mdate(nrec) = nbase + 18
+                end if
+              end do
+            end do
+          end do
+        end do
+        write (*,*) 'nrec = ' , nrec
+      end subroutine initdate3
 
       end module mod_datenum
