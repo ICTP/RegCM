@@ -52,7 +52,6 @@
 #ifdef MPP1
           write (iutbat) ((fbat_io(j,i,n),j=1,jxm2),i=1,ixm2)
 #else
-          call fillbat
           write (iutbat) ((fbat(j,i,n),j=1,jxm2),i=1,ixm2)
 #endif
         else

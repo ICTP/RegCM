@@ -1178,6 +1178,7 @@
         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
+          call fillbat
           call outsrf
           do i = 1 , ixm2
             do j = 1 , jxm2
