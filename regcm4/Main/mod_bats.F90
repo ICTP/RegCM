@@ -23,7 +23,7 @@
 
       implicit none
 !
-      real(8) , dimension(nnsg,ixm1) :: delq1d , delt1d , drag1d ,     &
+      real(8) , dimension(nnsg,ixm1) :: delq1d , delt1d , drag1d ,      &
            & emiss_1d , evpr1d , gwet1d , ircp1d , ldew1d , ldoc1d ,    &
            & p1d , pbp1d , prcp1d , q2m_1d , qg1d , qs1d , resp1d ,     &
            & rhs1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,  &
@@ -31,7 +31,7 @@
            & ts1d , tsw1d , u10m1d , v10m1d , veg1d , z1d
       real(8) , dimension(ixm1) :: flw1d , fsw1d , us1d , vs1d
 !
-      real(8) , dimension(nnsg,ixm1) :: bfc , bsw , evmx0 , fdry ,     &
+      real(8) , dimension(nnsg,ixm1) :: bfc , bsw , evmx0 , fdry ,      &
            & fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc , rnet ,      &
            & texrat , vegt , wiltr , wt , xkmx
       real(8) , dimension(ixm1) :: czen , sola , vpdd
@@ -46,7 +46,7 @@
       integer , dimension(20) :: iexsol , kolsol
       integer :: ihis , lat , mhis , ncase
 !
-      real(8) , dimension(nnsg,ixm1) :: aarea , cdr , cdrn , cdrx ,    &
+      real(8) , dimension(nnsg,ixm1) :: aarea , cdr , cdrn , cdrx ,     &
            & cf , cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg , &
            & etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,    &
            & fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,     &
@@ -56,7 +56,7 @@
       real(8) , dimension(ixm1) :: ems
       integer , dimension(nnsg,ixm1) :: imelt , lveg
 !
-      real(8) , dimension(nnsg,ixm1) :: cn1 , df , rgr , wta0 , wtaq0 ,&
+      real(8) , dimension(nnsg,ixm1) :: cn1 , df , rgr , wta0 , wtaq0 , &
            & wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq , wtgq ,   &
            & wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi
 !
@@ -67,7 +67,7 @@
       real(8) , dimension(ix) :: coszrs
 !
 #ifdef MPP1
-      real(8) , dimension(ixm1,jxp) :: flw2d , flwa2d , flwd2d ,         &
+      real(8) , dimension(ixm1,jxp) :: flw2d , flwa2d , flwd2d ,        &
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
                                     & sabv2d , sdelqk2d , sdeltk2d ,    &
@@ -76,7 +76,7 @@
                                     & solvd2d , solvs2d , ssw2da ,      &
                                     & svegfrac2d , svga2d , veg2d
 #else
-      real(8) , dimension(ixm1,jxm1) :: flw2d , flwa2d , flwd2d ,         &
+      real(8) , dimension(ixm1,jxm1) :: flw2d , flwa2d , flwd2d ,       &
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
                                     & sabv2d , sdelqk2d , sdeltk2d ,    &
@@ -93,7 +93,7 @@
            & taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
       real(8) , dimension(nnsg,ix,jxp) :: ht1 , satbrt1
 #else
-      real(8) , dimension(nnsg,ixm1,jxm1) :: col2d , dew2d , emiss2d ,   &
+      real(8) , dimension(nnsg,ixm1,jxm1) :: col2d , dew2d , emiss2d ,  &
            & evpa2d , gwet2d , ircp2d , ocld2d , rno2d , rnos2d ,       &
            & sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d ,  &
            & taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1

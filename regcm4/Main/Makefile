@@ -200,8 +200,8 @@ initb.o: initb.F90 mod_bats.o mod_main.o mod_param2.o mod_regcm_param.o
 initdate.o: initdate.F90 mod_message.o mod_param1.o mod_regcm_param.o
 initlk.o: initlk.f90 mod_lake.o mod_regcm_param.o
 interf.o: interf.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
-          mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o \
-          mod_regcm_param.o mod_slice.o
+          mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_interfaces.o \
+          mod_slice.o
 intmax.o: intmax.f90
 invmtrx.o: invmtrx.F90 mod_message.o
 isrchfgt.o: isrchfgt.f90
@@ -322,8 +322,7 @@ vcheke.o: vcheke.f90
 vcheki.o: vcheki.f90
 vchekt.o: vchekt.f90
 vcover.o: vcover.f90 mod_bats.o mod_regcm_param.o
-vecbats.o: vecbats.F90 mod_bats.o mod_date.o mod_iunits.o mod_main.o \
-           mod_param1.o mod_param2.o mod_regcm_param.o
+vecbats.o: vecbats.F90 mod_date.o mod_param1.o mod_param2.o mod_interfaces.o
 vmodes.o: vmodes.F90 mod_message.o mod_param1.o mod_regcm_param.o mod_split.o
 vmultm.o: vmultm.f90
 vnorml.o: vnorml.f90

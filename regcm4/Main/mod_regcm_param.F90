@@ -30,7 +30,7 @@
 
 ! Point in Y (latitude) direction
 
-      integer , parameter :: jx = 128
+      integer , parameter :: jx = 108
 
 ! Point in vertical
 
@@ -40,7 +40,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 32
+      integer , parameter :: nproc = 2
 
 ! Point in Y (latitude) direction
 
@@ -51,7 +51,6 @@
 ! Sub grid decomposition
 
       integer , parameter :: nsg = 5
-      integer , parameter :: nnsg = 25
 
 ! Number of bytes in reclen. Usually 4
 
@@ -111,6 +110,7 @@
       integer , parameter :: kxp3 = kx + 3
       integer , parameter :: kxp4 = kx + 4
 
+      integer , parameter :: nnsg = nsg*nsg
       integer , parameter :: nspgv = (nspgd+nspgx)*8 + 8
       integer , parameter :: nspgp = nspgx*4
 

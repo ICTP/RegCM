@@ -17,33 +17,61 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine interf(innex,j)
+      subroutine interf(ivers,j,k,istart,iend,ng)
 
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !  this subroutine interfaces mm42d and bats variables
 !
-!  innex = 1 ,   mm42d --> bats
-!  innex = 2 ,   bats --> mm42d
+!  ivers = 1 ,   regcm2d --> bats
+!  ivers = 2 ,   bats --> regcm2d
 !
-      use mod_regcm_param
+      use mod_interfaces
       use mod_param1 , only : dtbat , dtmin
-      use mod_param2
+      use mod_param2 , only : batfrq , iocnflx , kbats
       use mod_param3 , only : ptop
-      use mod_main
-      use mod_pbldim
-      use mod_slice
-      use mod_bats
+      use mod_main , only : psb , hfx , qfx , ht , zpbl , uvdrag ,      &
+                  &         snowc , tgbb , tga , tgb
+      use mod_pbldim , only : thx3d , za
+      use mod_slice , only : ubx3d , vbx3d , qvb3d
+      use mod_bats , only : ldoc1d , ircp1d , lveg , veg1d , emiss_1d , &
+                  &         evpr1d , us1d , vs1d , fsw1d , flw1d ,      &
+                  &         solis , sabveg , fracd , czen , qs1d ,      &
+                  &         sent1d , gwet1d , sice1d , p1d0 , z1d ,     &
+                  &         ts1d0 , qs1d0 , ts1d , p1d , tg1d , rhs1d , &
+                  &         prcp1d , tgb1d , taf1d , tlef1d , tsw1d ,   &
+                  &         rsw1d , ssw1d , ldew1d , sag1d , scv1d ,    &
+                  &         ssw2da , sdeltk2d , sdelqk2d , sfracv2d ,   &
+                  &         sfracb2d , sfracs2d , svegfrac2d , ssw2da , &
+                  &         rno1d , rnos1d , tg2d , tgb2d , taf2d ,     &
+                  &         tlef2d , swt2d , srw2d , ssw2d , dew2d ,    &
+                  &         sag2d , scv2d , sice2d , gwet2d , ocld2d ,  &
+                  &         ircp2d , evpa2d , sena2d , rnos2d , rno2d , &
+                  &         prca2d , prnca2d , flwa2d , flwda2d ,       &
+                  &         fswa2d , svga2d , sina2d , pptnc , pptc ,   &
+                  &         u10m_o , v10m_o , tg_o , t2m_o , u10m1d ,   &
+                  &         v10m1d , t2m_1d , u10m_s , v10m_s , t2m_s , &
+                  &         tgmx_o , tgmn_o , tg_s , t2mx_o , t2mn_o ,  &
+                  &         w10x_o , psmn_o , drag_o , q2m_o , evpa_o , &
+                  &         sena_o , q2m_1d , q2m_s , drag_s , evpa_s , &
+                  &         sena_s , tpr_s , prcv_s , ps_s , tpr_o ,    &
+                  &         flwa_o , fswa_o , flwd_o , sina_o , prcv_o ,&
+                  &         ps_o , zpbl_o , tlef_o , ssw_o , rsw_o ,    &
+                  &         rnos_o , scv_o , rnos_o , scv_o , tlef_s ,  &
+                  &         ssw_s , rsw_s , rnos_s , scv_s , ht1 , z1 , &
+                  &         rough , scvk , sigf , delt1d , drag1d ,     &
+                  &         delq1d , wt , sinc2d , flwd2d , coszrs ,    &
+                  &         solvd2d , sabv2d , solvs2d , sol2d , flw2d ,&
+                  &         fsw2d , emiss2d , seasf , veg2d1 , vegc
       use mod_constants , only : tau1 , zlnd , zoce , zsno , rgti ,     &
-                 & rgas , tzero
+                  &              rgas , tzero
       use mod_date , only : jyear , jyear0 , jyearr , ntime , ktau ,    &
-                 & ktaur
+                  &         ktaur
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: innex , j
-      intent (in) innex , j
+      integer , intent (in) :: ivers , j , k , istart , iend , ng
 !
 ! Local variables
 !
@@ -77,13 +105,14 @@
 !     20.  surface pressure
 !     21.  pbl height
  
-      if ( innex.eq.1 ) then
-        do i = 2 , ixm1
-          do n = 1 , nnsg
+      if ( ivers.eq.1 ) then ! regcm2d --> bats
+
+        do i = istart, iend
+          do n = 1 , ng
             p1d0(n,i) = (psb(i,j)+ptop)*1000.
-            z1d(n,i) = za(i,kx,j)
-            ts1d0(n,i) = thx3d(i,kx,j)
-            qs1d0(n,i) = qvb3d(i,kx,j)/(1.+qvb3d(i,kx,j))
+            z1d(n,i) = za(i,k,j)
+            ts1d0(n,i) = thx3d(i,k,j)
+            qs1d0(n,i) = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
             qs1d(n,i) = qs1d0(n,i)
  
             hl = 597.3 - .566*(ts1d0(n,i)-tzero)
@@ -131,16 +160,16 @@
           end do
  
           rh0 = 0.0D0
-          do n = 1 , nnsg
+          do n = 1 , ng
             rh0 = rh0 + (qs1d(n,i)-qs1d0(n,i))
           end do
-          rh0 = rh0/nnsg
-          do n = 1 , nnsg
+          rh0 = rh0/ng
+          do n = 1 , ng
             qs1d(n,i) = dmax1(qs1d(n,i)-rh0,0.0D0)
           end do
  
-          us1d(i) = ubx3d(i,kx,j)
-          vs1d(i) = vbx3d(i,kx,j)
+          us1d(i) = ubx3d(i,k,j)
+          vs1d(i) = vbx3d(i,k,j)
           fsw1d(i) = fsw2d(i,j)
           flw1d(i) = flw2d(i,j)
           solis(i) = sol2d(i,j)
@@ -154,9 +183,9 @@
           czen(i) = dmax1(coszrs(i),0.D0)
         end do
  
-      else if ( innex.eq.2 ) then
+      else if ( ivers.eq.2 ) then ! bats --> regcm2d
  
-        do i = 2 , ixm1
+        do i = istart, iend
           uvdrag(i,j) = 0.0
           hfx(i,j) = 0.0
           qfx(i,j) = 0.0
@@ -172,7 +201,7 @@
           sfracs2d(i,j) = 0.0
           svegfrac2d(i,j) = 0.0
 !chem2_
-          do n = 1 , nnsg
+          do n = 1 , ng
             uvdrag(i,j) = uvdrag(i,j) + drag1d(n,i)
             hfx(i,j) = hfx(i,j) + sent1d(n,i)
             qfx(i,j) = qfx(i,j) + evpr1d(n,i)
@@ -189,7 +218,6 @@
                           & + (1.-veg1d(n,i))*scvk(n,i)
             svegfrac2d(i,j) = svegfrac2d(i,j) + veg1d(n,i)
 !chem2_
- 
             if ( iocnflx.eq.1 .or.                                      &
                & (iocnflx.eq.2 .and. ocld2d(n,i,j).ge.0.5) ) then
               tgbb(i,j) = tgbb(i,j)                                     &
@@ -207,22 +235,22 @@
               scv1d(n,i) = -1.E34
             end if
           end do
-          uvdrag(i,j) = uvdrag(i,j)/float(nnsg)
-          hfx(i,j) = hfx(i,j)/float(nnsg)
-          qfx(i,j) = qfx(i,j)/float(nnsg)
-          tgb(i,j) = tgb(i,j)/float(nnsg)
-          tga(i,j) = tga(i,j)/float(nnsg)
-          tgbb(i,j) = tgbb(i,j)/float(nnsg)
+          uvdrag(i,j) = uvdrag(i,j)/float(ng)
+          hfx(i,j) = hfx(i,j)/float(ng)
+          qfx(i,j) = qfx(i,j)/float(ng)
+          tgb(i,j) = tgb(i,j)/float(ng)
+          tga(i,j) = tga(i,j)/float(ng)
+          tgbb(i,j) = tgbb(i,j)/float(ng)
 !chem2
-          ssw2da(i,j) = ssw2da(i,j)/float(nnsg)
-          sdeltk2d(i,j) = sdeltk2d(i,j)/float(nnsg)
-          sdelqk2d(i,j) = sdelqk2d(i,j)/float(nnsg)
-          sfracv2d(i,j) = sfracv2d(i,j)/float(nnsg)
-          sfracb2d(i,j) = sfracb2d(i,j)/float(nnsg)
-          sfracs2d(i,j) = sfracs2d(i,j)/float(nnsg)
-          svegfrac2d(i,j) = svegfrac2d(i,j)/float(nnsg)
+          ssw2da(i,j) = ssw2da(i,j)/float(ng)
+          sdeltk2d(i,j) = sdeltk2d(i,j)/float(ng)
+          sdelqk2d(i,j) = sdelqk2d(i,j)/float(ng)
+          sfracv2d(i,j) = sfracv2d(i,j)/float(ng)
+          sfracb2d(i,j) = sfracb2d(i,j)/float(ng)
+          sfracs2d(i,j) = sfracs2d(i,j)/float(ng)
+          svegfrac2d(i,j) = svegfrac2d(i,j)/float(ng)
 !chem2_
-          do n = 1 , nnsg
+          do n = 1 , ng
             snowc(n,i,j) = scv1d(n,i)
             tg2d(n,i,j) = tg1d(n,i)
             tgb2d(n,i,j) = tgb1d(n,i)
@@ -254,7 +282,6 @@
               rno2d(n,i,j) = -1.E34
             end if
           end do
- 
 !
 !         quantities stored on 2d surface array for bats use only
 !
@@ -268,13 +295,14 @@
           pptnc(i,j) = 0.
           pptc(i,j) = 0.
         end do
-        do i = 2 , ixm1
+
+        do i = istart, iend
 #ifdef MPP1
           u10m_o(j,i-1) = 0.0
           v10m_o(j,i-1) = 0.0
           tg_o(j,i-1) = 0.0
           t2m_o(j,i-1) = 0.0
-          do n = 1 , nnsg
+          do n = 1 , ng
             if ( ocld2d(n,i,j).ge.0.5 ) then
               fracv = sigf(n,i)
               fracb = (1.-veg1d(n,i))*(1.-scvk(n,i))
@@ -308,10 +336,10 @@
             t2m_o(j,i-1) = t2m_o(j,i-1) + t2m_1d(n,i)
             tg_o(j,i-1) = tg_o(j,i-1) + tg1d(n,i)
           end do
-          u10m_o(j,i-1) = u10m_o(j,i-1)/float(nnsg)
-          v10m_o(j,i-1) = v10m_o(j,i-1)/float(nnsg)
-          t2m_o(j,i-1) = t2m_o(j,i-1)/float(nnsg)
-          tg_o(j,i-1) = tg_o(j,i-1)/float(nnsg)
+          u10m_o(j,i-1) = u10m_o(j,i-1)/float(ng)
+          v10m_o(j,i-1) = v10m_o(j,i-1)/float(ng)
+          t2m_o(j,i-1) = t2m_o(j,i-1)/float(ng)
+          tg_o(j,i-1) = tg_o(j,i-1)/float(ng)
  
           tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
           tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
@@ -326,7 +354,7 @@
           v10m_o(j-1,i-1) = 0.0
           tg_o(j-1,i-1) = 0.0
           t2m_o(j-1,i-1) = 0.0
-          do n = 1 , nnsg
+          do n = 1 , ng
             if ( ocld2d(n,i,j).ge.0.5 ) then
               fracv = sigf(n,i)
               fracb = (1.-veg1d(n,i))*(1.-scvk(n,i))
@@ -360,10 +388,10 @@
             t2m_o(j-1,i-1) = t2m_o(j-1,i-1) + t2m_1d(n,i)
             tg_o(j-1,i-1) = tg_o(j-1,i-1) + tg1d(n,i)
           end do
-          u10m_o(j-1,i-1) = u10m_o(j-1,i-1)/float(nnsg)
-          v10m_o(j-1,i-1) = v10m_o(j-1,i-1)/float(nnsg)
-          t2m_o(j-1,i-1) = t2m_o(j-1,i-1)/float(nnsg)
-          tg_o(j-1,i-1) = tg_o(j-1,i-1)/float(nnsg)
+          u10m_o(j-1,i-1) = u10m_o(j-1,i-1)/float(ng)
+          v10m_o(j-1,i-1) = v10m_o(j-1,i-1)/float(ng)
+          t2m_o(j-1,i-1) = t2m_o(j-1,i-1)/float(ng)
+          tg_o(j-1,i-1) = tg_o(j-1,i-1)/float(ng)
           tgmx_o(j-1,i-1) = amax1(tgmx_o(j-1,i-1),tg_o(j-1,i-1))
           tgmn_o(j-1,i-1) = amin1(tgmn_o(j-1,i-1),tg_o(j-1,i-1))
           t2mx_o(j-1,i-1) = amax1(t2mx_o(j-1,i-1),t2m_o(j-1,i-1))
@@ -388,13 +416,13 @@
             mmpd = 24./batfrq
             wpm2 = 1./(batfrq*3600.)
           end if
-          do i = 2 , ixm1
+          do i = istart, iend
 #ifdef MPP1
             drag_o(j,i-1) = 0.0
             q2m_o(j,i-1) = 0.0
             evpa_o(j,i-1) = 0.0
             sena_o(j,i-1) = 0.0
-            do n = 1 , nnsg
+            do n = 1 , ng
               if ( ocld2d(n,i,j).ge.0.5 ) then
                 fracv = sigf(n,i)
                 fracb = (1.-veg1d(n,i))*(1.-scvk(n,i))
@@ -423,10 +451,10 @@
               sena_o(j,i-1) = sena_o(j,i-1) + sena2d(n,i,j)
             end do
             tpr_o(j,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
-            q2m_o(j,i-1) = q2m_o(j,i-1)/float(nnsg)
-            drag_o(j,i-1) = drag_o(j,i-1)/float(nnsg)
-            evpa_o(j,i-1) = evpa_o(j,i-1)/float(nnsg)*mmpd
-            sena_o(j,i-1) = sena_o(j,i-1)/float(nnsg)*wpm2
+            q2m_o(j,i-1) = q2m_o(j,i-1)/float(ng)
+            drag_o(j,i-1) = drag_o(j,i-1)/float(ng)
+            evpa_o(j,i-1) = evpa_o(j,i-1)/float(ng)*mmpd
+            sena_o(j,i-1) = sena_o(j,i-1)/float(ng)*wpm2
             flwa_o(j,i-1) = flwa2d(i,j)*wpm2
             fswa_o(j,i-1) = fswa2d(i,j)*wpm2
             flwd_o(j,i-1) = flwda2d(i,j)*wpm2
@@ -441,7 +469,7 @@
             rnos_o(j,i-1) = 0.0
             scv_o(j,i-1) = 0.0
             nnn = 0
-            do n = 1 , nnsg
+            do n = 1 , ng
               if ( ocld2d(n,i,j).ge.0.5 ) then
                 tlef_o(j,i-1) = tlef_o(j,i-1) + tlef1d(n,i)
                 ssw_o(j,i-1) = ssw_o(j,i-1) + ssw1d(n,i)
@@ -462,7 +490,7 @@
                 scv_s(n,j,i-1) = -1.E34
               end if
             end do
-            if ( nnn.ge.max0(nnsg/2,1) ) then
+            if ( nnn.ge.max0(ng/2,1) ) then
               tlef_o(j,i-1) = tlef_o(j,i-1)/float(nnn)
               ssw_o(j,i-1) = ssw_o(j,i-1)/float(nnn)
               rsw_o(j,i-1) = rsw_o(j,i-1)/float(nnn)
@@ -480,7 +508,7 @@
             q2m_o(j-1,i-1) = 0.0
             evpa_o(j-1,i-1) = 0.0
             sena_o(j-1,i-1) = 0.0
-            do n = 1 , nnsg
+            do n = 1 , ng
               if ( ocld2d(n,i,j).ge.0.5 ) then
                 fracv = sigf(n,i)
                 fracb = (1.-veg1d(n,i))*(1.-scvk(n,i))
@@ -509,10 +537,10 @@
               sena_o(j-1,i-1) = sena_o(j-1,i-1) + sena2d(n,i,j)
             end do
             tpr_o(j-1,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
-            q2m_o(j-1,i-1) = q2m_o(j-1,i-1)/float(nnsg)
-            drag_o(j-1,i-1) = drag_o(j-1,i-1)/float(nnsg)
-            evpa_o(j-1,i-1) = evpa_o(j-1,i-1)/float(nnsg)*mmpd
-            sena_o(j-1,i-1) = sena_o(j-1,i-1)/float(nnsg)*wpm2
+            q2m_o(j-1,i-1) = q2m_o(j-1,i-1)/float(ng)
+            drag_o(j-1,i-1) = drag_o(j-1,i-1)/float(ng)
+            evpa_o(j-1,i-1) = evpa_o(j-1,i-1)/float(ng)*mmpd
+            sena_o(j-1,i-1) = sena_o(j-1,i-1)/float(ng)*wpm2
             flwa_o(j-1,i-1) = flwa2d(i,j)*wpm2
             fswa_o(j-1,i-1) = fswa2d(i,j)*wpm2
             flwd_o(j-1,i-1) = flwda2d(i,j)*wpm2
@@ -527,7 +555,7 @@
             rnos_o(j-1,i-1) = 0.0
             scv_o(j-1,i-1) = 0.0
             nnn = 0
-            do n = 1 , nnsg
+            do n = 1 , ng
               if ( ocld2d(n,i,j).ge.0.5 ) then
                 tlef_o(j-1,i-1) = tlef_o(j-1,i-1) + tlef1d(n,i)
                 ssw_o(j-1,i-1) = ssw_o(j-1,i-1) + ssw1d(n,i)
@@ -548,7 +576,7 @@
                 scv_s(n,j-1,i-1) = -1.E34
               end if
             end do
-            if ( nnn.ge.max0(nnsg/2,1) ) then
+            if ( nnn.ge.max0(ng/2,1) ) then
               tlef_o(j-1,i-1) = tlef_o(j-1,i-1)/float(nnn)
               ssw_o(j-1,i-1) = ssw_o(j-1,i-1)/float(nnn)
               rsw_o(j-1,i-1) = rsw_o(j-1,i-1)/float(nnn)
@@ -564,7 +592,7 @@
 #endif
  
 !           ******    reset accumulation arrays to zero
-            do n = 1 , nnsg
+            do n = 1 , ng
               evpa2d(n,i,j) = 0.
               rnos2d(n,i,j) = 0.
               sena2d(n,i,j) = 0.
@@ -579,6 +607,7 @@
           end do
         end if
 !
-      else                 !end innex test
+      else ! end ivers test
       end if
+!
       end subroutine interf

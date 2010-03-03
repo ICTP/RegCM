@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine vecbats(jslc)
+      subroutine vecbats(j,k,istart,iend,ng)
 
 !=======================================================================
 !l  based on: bats version 1e          copyright 18 august 1989
@@ -136,35 +136,35 @@
 !                            in mm/s.
 !=======================================================================
  
-      use mod_regcm_param
-      use mod_param1
-      use mod_param2
-      use mod_iunits
-      use mod_bats
-      use mod_date
-      use mod_main
+      use mod_interfaces
+      use mod_param1 , only : klake
+      use mod_param2 , only : iemiss , lakemod
+      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 !
 ! Dummy arguments
 !
-      integer, intent(in) :: jslc
+      integer, intent(in) :: j , k , istart , iend , ng
 
 !---------------------------------------------------------------------
 
-      call interf(1,jslc)
- 
+      call interf(1 , j , k , istart , iend , ng)
+! 
 ! ****** calculate surface fluxes and hydrology budgets
+!
       call soilbc
       call bndry(iemiss)
  
+!
 ! ****************************************************************
- 
-! ******    call hostetler lake model hourly at lake points
+!
+!     call hostetler lake model hourly at lake points
+!
       if ( lakemod.eq.1 ) then
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,klake)   &
-           & .eq.0 ) call lakedrv(jslc)
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
+           &  mod(ktau+1,klake).eq.0 ) call lakedrv(j)
       end if
- 
+! 
 ! ****************************************************************
- 
+! 
       end subroutine vecbats

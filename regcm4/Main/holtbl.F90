@@ -373,8 +373,8 @@
               idx = min0(idx,ixm2)
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
-              if ( k.gt.1 ) betak(i,k)                                  &
-                 & = 0.5*(akxx1(idx,k,j)+akxx1(idxm1,k,j))
+              if ( k.gt.1 )                                             &
+                 & betak(i,k) = 0.5*(akxx1(idx,k,j)+akxx1(idxm1,k,j))
               alphak(i,k) = 0.5*(akxx2(idx,k,j)+akxx2(idxm1,k,j))
             end do
           end do
@@ -389,8 +389,9 @@
               idx = min0(idx,ixm2)
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
-              if ( k.gt.1 ) betak(i,k)                                  &
-                 & = 0.5*(akxx1(idx,k,j-1)+akxx1(idxm1,k,j-1))
+              if ( k.gt.1 )                                             &
+                 & betak(i,k) = 0.5*(akxx1(idx,k,j-1)+                  &
+                 &                   akxx1(idxm1,k,j-1))
               alphak(i,k) = 0.5*(akxx2(idx,k,j-1)+akxx2(idxm1,k,j-1))
             end do
           end do
@@ -401,11 +402,12 @@
               idx = min0(idx,ixm2)
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
-              if ( k.gt.1 ) betak(i,k)                                  &
-                 & = 0.25*(akxx1(idx,k,j-1)+akxx1(idxm1,k,j-1)          &
-                 & +akxx1(idx,k,j)+akxx1(idxm1,k,j))
-              alphak(i,k) = 0.25*(akxx2(idx,k,j-1)+akxx2(idxm1,k,j-1)   &
-                          & +akxx2(idx,k,j)+akxx2(idxm1,k,j))
+              if ( k.gt.1 )                                             &
+                 & betak(i,k) = 0.25*(akxx1(idx,k,j-1)+                 &
+                 &                    akxx1(idxm1,k,j-1)+               &
+                 &                    akxx1(idx,k,j)+akxx1(idxm1,k,j))
+              alphak(i,k) = 0.25*(akxx2(idx,k,j-1)+akxx2(idxm1,k,j-1)+  &
+                          &       akxx2(idx,k,j)+akxx2(idxm1,k,j))
             end do
           end do
         end if
@@ -482,11 +484,11 @@
           vflxsf = drgdot*avxx(i,kx,j)
  
           coefe(i,kx) = 0.
-          coeff1(i,kx) = (auxx(i,kx,j)-dt*alphak(i,kx)*uflxsf+coef3(i,kx&
-                       & )*coeff1(i,kx-1))                              &
+          coeff1(i,kx) = (auxx(i,kx,j)-dt*alphak(i,kx)*uflxsf+          &
+                          coef3(i,kx)*coeff1(i,kx-1))                   &
                        & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
-          coeff2(i,kx) = (avxx(i,kx,j)-dt*alphak(i,kx)*vflxsf+coef3(i,kx&
-                       & )*coeff2(i,kx-1))                              &
+          coeff2(i,kx) = (avxx(i,kx,j)-dt*alphak(i,kx)*vflxsf+          &
+                       &  coef3(i,kx)*coeff2(i,kx-1))                   &
                        & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
  
         end do

@@ -123,6 +123,11 @@
               call fatal(__FILE__,__LINE__,'ICBC date')
             else
             end if
+            exit
+          end do
+        end if
+
+        if ( myid.eq.0 ) then
 !           print*,'UB1'
             do k = kx , 1 , -1
               mmrec = mmrec + 1
@@ -215,8 +220,6 @@
                 end do
               end do
             end if
-            exit
-          end do
         end if
         call mpi_bcast(ndate1,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_scatter(sav_0(1,1,1),ix*(kx*4+2)*jxp,mpi_real8,        &
@@ -265,15 +268,15 @@
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendx
           do i = 2 , ixm1
-            psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j)+ps1(i,j-1)+ps1(i-1,j-&
-                       & 1))
+            psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
+                       &       ps1(i,j-1)+ps1(i-1,j-1))
           end do
         end do
 !
         do i = 2 , ixm1
           if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
-          if ( myid.eq.nproc-1 ) psdot(i,jendl)                         &
-             & = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
+          if ( myid.eq.nproc-1 )                                        &
+             & psdot(i,jendl) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
         end do
 !
         do j = jbegin , jendx
@@ -545,58 +548,61 @@
         end if
       end do
 #else
- 100  continue
-      dtbdys = ibdyfrq*60.*60.
-      do
-        if ( ehso4 ) then
-          do k = 1 , kx
-            do j = 1 , jx
-              do i = 1 , ix
-                so4(i,k,j) = so0(i,k,j)
+      do      
+        dtbdys = ibdyfrq*60.*60.
+        do
+          if ( ehso4 ) then
+            do k = 1 , kx
+              do j = 1 , jx
+                do i = 1 , ix
+                  so4(i,k,j) = so0(i,k,j)
+                end do
               end do
             end do
-          end do
-        end if
-        mmrec = mmrec + 1
-        read (iutbc,rec=mmrec,iostat=ierr1) ndate1
-        if ( ierr1.ne.0 ) then
-          close (iutbc)
-          iutbc = iutbc + 1
-          write (finm,99001) iutbc
+          end if
+          mmrec = mmrec + 1
+          read (iutbc,rec=mmrec,iostat=ierr1) ndate1
+          if ( ierr1.ne.0 ) then
+            close (iutbc)
+            iutbc = iutbc + 1
+            write (finm,99001) iutbc
 !_sgi     101    format('fort.',I2)
-          open (iutbc,file=finm,form='unformatted',status='old',        &
-               &access='direct',recl=ix*jx*ibyte)
-          mmrec = 0
-          print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
-          if ( iutbc.gt.999 )                                           &
-              & call fatal(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
-          cycle
-        end if
-        if ( ndate1.lt.mdatez(nnnchk+1) ) then
-          if ( ndate1.lt.mdatez(nnnchk+1) ) then
-            print * , 'Searching for proper date: ' , ndate1 ,          &
-                & mdatez(nnnchk+1)
-            print * , 'read in datasets at :' , ndate0
-            if ( ehso4 ) then
-              if ( lsmtyp.ne.'USGS' ) then
-                mmrec = mmrec + kx*5 + 2
-              else
-                mmrec = mmrec + kx*5 + 2 + 13
-              end if
-            else if ( lsmtyp.ne.'USGS' ) then
-              mmrec = mmrec + kx*4 + 2
-            else
-              mmrec = mmrec + kx*4 + 2 + 13
-            end if
+            open (iutbc,file=finm,form='unformatted',status='old',        &
+                 &access='direct',recl=ix*jx*ibyte)
+            mmrec = 0
+            print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
+            if ( iutbc.gt.999 )                                           &
+                & call fatal(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
             cycle
           end if
-        else if ( ndate1.gt.mdatez(nnnchk+1) ) then
-          print * , 'DATE IN BC FILE EXCEEDED DATE IN RegCM'
-          print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
-          call fatal(__FILE__,__LINE__,'ICBC date')
-        else
-        end if
-!       print*,'UB1'
+          if ( ndate1.lt.mdatez(nnnchk+1) ) then
+            if ( ndate1.lt.mdatez(nnnchk+1) ) then
+              print * , 'Searching for proper date: ' , ndate1 ,          &
+                  & mdatez(nnnchk+1)
+              print * , 'read in datasets at :' , ndate0
+              if ( ehso4 ) then
+                if ( lsmtyp.ne.'USGS' ) then
+                  mmrec = mmrec + kx*5 + 2
+                else
+                  mmrec = mmrec + kx*5 + 2 + 13
+                end if
+              else if ( lsmtyp.ne.'USGS' ) then
+                mmrec = mmrec + kx*4 + 2
+              else
+                mmrec = mmrec + kx*4 + 2 + 13
+              end if
+              cycle
+            end if
+          else if ( ndate1.gt.mdatez(nnnchk+1) ) then
+            print * , 'DATE IN BC FILE EXCEEDED DATE IN RegCM'
+            print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
+            call fatal(__FILE__,__LINE__,'ICBC date')
+          else
+          end if
+          exit
+        end do
+
+!     print*,'UB1'
         do k = kx , 1 , -1
           mmrec = mmrec + 1
           read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
@@ -606,7 +612,7 @@
             end do
           end do
         end do
-!       print*,'VB1'
+!     print*,'VB1'
         do k = kx , 1 , -1
           mmrec = mmrec + 1
           read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
@@ -616,7 +622,7 @@
             end do
           end do
         end do
-!       print*,'TB1'
+!     print*,'TB1'
         do k = kx , 1 , -1
           mmrec = mmrec + 1
           read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
@@ -626,7 +632,7 @@
             end do
           end do
         end do
-!       print*,'QB1'
+!     print*,'QB1'
         do k = kx , 1 , -1
           mmrec = mmrec + 1
           read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
@@ -636,7 +642,7 @@
             end do
           end do
         end do
-!       print*,'PS1'
+!     print*,'PS1'
         mmrec = mmrec + 1
         read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
         do j = 1 , jx
@@ -644,7 +650,7 @@
             ps1(i,j) = dble(io2d(i,j))
           end do
         end do
-!       print*,'TS1'
+!     print*,'TS1'
         mmrec = mmrec + 1
         read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
         do j = 1 , jx
@@ -653,7 +659,7 @@
           end do
         end do
         if ( ehso4 ) then
-!         print*,'SO1'
+!       print*,'SO1'
           do k = kx , 1 , -1
             mmrec = mmrec + 1
             read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
@@ -665,7 +671,7 @@
           end do
         end if
         if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
-!       Convert surface pressure to pstar
+!     Convert surface pressure to pstar
         do j = 1 , jx
           do i = 1 , ix
             ps1(i,j) = ps1(i,j) - ptop
@@ -673,14 +679,14 @@
         end do
 !=======================================================================
 !
-!       this routine determines p(.) from p(x) by a 4-point
-!       interpolation. on the x-grid, a p(x) point outside the grid
-!       domain is assumed to satisfy p(0,j)=p(1,j); p(ix,j)=p(ixm1,j);
-!       and similarly for the i's.
+!     this routine determines p(.) from p(x) by a 4-point
+!     interpolation. on the x-grid, a p(x) point outside the grid
+!     domain is assumed to satisfy p(0,j)=p(1,j); p(ix,j)=p(ixm1,j);
+!     and similarly for the i's.
         do j = 2 , jxm1
           do i = 2 , ixm1
-            psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j)+ps1(i,j-1)+ps1(i-1,j-&
-                       & 1))
+            psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
+                       &       ps1(i,j-1)+ps1(i-1,j-1))
           end do
         end do
 !
@@ -700,7 +706,7 @@
         psdot(ix,jx) = ps1(ixm1,jxm1)
 !
 !=======================================================================
-!       Couple pressure u,v,t,q
+!     Couple pressure u,v,t,q
         do k = 1 , kx
           do j = 1 , jx
             do i = 1 , ix
@@ -715,7 +721,7 @@
         mdate = ndate0
         nnnchk = nnnchk + 1
  
-!       print*,'read in datasets at :',ndate1
+!     print*,'read in datasets at :',ndate1
 !
 !-----compute boundary conditions for p*:
 !
@@ -860,30 +866,31 @@
         nmonth = (mdate-nyear*1000000)/10000
  
 !-----------------------------------------------------------------------
-        if ( ldatez.ge.ndate1 ) go to 100
+        if ( ldatez.lt.ndate1 ) then
  
-        do j = 1 , jxm1
-          do i = 1 , ixm1
-            if ( veg2d(i,j).le.0.00001 ) then
-              tga(i,j) = tdum(i,j)
-              tgb(i,j) = tdum(i,j)
-!elguindi     if (tdum(i,j).le.271.35) then
-!             if (tdum(i,j).le.271.38) then
-!             print *,'Setting ocld2d to ice at i=',i,' j=',j,'
-!             t=',tdum(i,j) do n=1,NNSG
-!             ocld2d(n,i,j)=2.
-!             sice2d(n,i,j)=1000.
-!             end do
-!             else
-!             do n=1,NNSG
-!             ocld2d(n,i,j)=0.
-!             sice2d(n,i,j)=0.
-!             end do
-!             end if
-            end if
+          do j = 1 , jxm1
+            do i = 1 , ixm1
+              if ( veg2d(i,j).le.0.00001 ) then
+                tga(i,j) = tdum(i,j)
+                tgb(i,j) = tdum(i,j)
+!elguindi   if (tdum(i,j).le.271.35) then
+!           if (tdum(i,j).le.271.38) then
+!           print *,'Setting ocld2d to ice at i=',i,' j=',j,'
+!           t=',tdum(i,j) do n=1,NNSG
+!           ocld2d(n,i,j)=2.
+!           sice2d(n,i,j)=1000.
+!           end do
+!           else
+!           do n=1,NNSG
+!           ocld2d(n,i,j)=0.
+!           sice2d(n,i,j)=0.
+!           end do
+!           end if
+              end if
+            end do
           end do
-        end do
-        exit
+          exit
+        end if
       end do
 #endif
 

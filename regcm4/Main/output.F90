@@ -1016,8 +1016,8 @@
                 sav4a(i,7,j) = svegfrac2d(i,j)
               end do
             end do
-            call mpi_gather(sav4a(1,1,1), ixm1*7*jxp,mpi_real8,         &
-                          & sav_4a(1,1,1),ixm1*7*jxp,mpi_real8,         &
+            call mpi_gather(sav4a, ixm1*7*jxp,mpi_real8,                &
+                          & sav_4a,ixm1*7*jxp,mpi_real8,                &
                           & 0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
               do j = 1 , jxm1

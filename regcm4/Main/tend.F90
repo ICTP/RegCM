@@ -253,8 +253,8 @@
 !
           do k = 1 , kx
             do i = 3 , ixm2
-              psabar = 0.25*(psa(i,j)+psa(i,j-1)+psa(i-1,j)+psa(i-1,j-1)&
-                     & )
+              psabar = 0.25*(psa(i,j)+psa(i,j-1)+                       &
+                     &       psa(i-1,j)+psa(i-1,j-1))
               xmsf = msfd(i,j)
               u(i,k,j) = ua(i,k,j)/(psabar*xmsf)
               v(i,k,j) = va(i,k,j)/(psabar*xmsf)
@@ -470,8 +470,8 @@
       do j = 2 , jxm1
 #endif
         do i = 2 , ixm1
-          pdotb(i,j) = 0.25*(psb(i,j)+psb(i-1,j)+psb(i,j-1)+psb(i-1,j-1)&
-                     & )
+          pdotb(i,j) = 0.25*(psb(i,j)+psb(i-1,j)+                       &
+                     &       psb(i,j-1)+psb(i-1,j-1))
         end do
       end do
 !
@@ -480,8 +480,8 @@
       do i = 2 , ixm1
 #ifdef MPP1
         if ( myid.eq.0 ) pdotb(i,1) = 0.5*(psb(i,1)+psb(i-1,1))
-        if ( myid.eq.nproc-1 ) pdotb(i,jendl)                           &
-           & = 0.5*(psb(i,jendx)+psb(i-1,jendx))
+        if ( myid.eq.nproc-1 )                                          &
+           & pdotb(i,jendl) = 0.5*(psb(i,jendx)+psb(i-1,jendx))
 #else
         pdotb(i,1) = 0.5*(psb(i,1)+psb(i-1,1))
         pdotb(i,jx) = 0.5*(psb(i,jxm1)+psb(i-1,jxm1))
@@ -727,13 +727,12 @@
         else
           do k = 1 , kx
             do i = 2 , ixm2
-              omega(i,k,j) = 0.5*psa(i,j)*(qdot(i,k+1,j)+qdot(i,k,j))   &
-                           & + a(k)                                     &
-                           & *(pten(i,j)+((u(i,k,j)+u(i+1,k,j)+u(i+1,k, &
-                           & j+1)+u(i,k,j+1))*(psa(i,j+1)-psa(i,j-1))   &
-                           & +(v(i,k,j)+v(i+1,k,j)+v(i+1,k,j+1)         &
-                           & +v(i,k,j+1))*(psa(i+1,j)-psa(i-1,j)))      &
-                           & /(dx8*msfx(i,j)))
+              omega(i,k,j) = 0.5*psa(i,j)*(qdot(i,k+1,j)+qdot(i,k,j))+  &
+                           & a(k)*(pten(i,j)+((u(i,k,j)+u(i+1,k,j)+     &
+                           & u(i+1,k,j+1)+u(i,k,j+1))*(psa(i,j+1)-      &
+                           & psa(i,j-1))+(v(i,k,j)+v(i+1,k,j)+          &
+                           & v(i+1,k,j+1)+v(i,k,j+1))*                  &
+                           & (psa(i+1,j)-psa(i-1,j)))/(dx8*msfx(i,j)))
             end do
           end do
         end if
@@ -1216,9 +1215,8 @@
             call cuparan(tten(1,1,j),qvten(1,1,j),j)
           else if ( icup.eq.3 ) then
             write (aline,*)                                             &
-                         &'ICTP RegCM team thinks the Betts-Miller code'&
-                        & ,                                             &
-                         &' is not ready for Regional Climate Run yet.'
+                & 'ICTP RegCM team thinks the Betts-Miller code',       &
+                & ' is not ready for Regional Climate Run yet.'
             call say
             call fatal(__FILE__,__LINE__,                               &
                       &'BETTS MILLER CUMULUS OPTION NOT ALLOWED')
@@ -1289,15 +1287,15 @@
            & .eq.0 ) call colmod3(j)
  
 !       ****** call vector bats for surface physics calculations
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,nbatst)  &
-           & .eq.0 ) then
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
+           &  mod(ktau+1,nbatst).eq.0 ) then
           dtbat = dt/2.*nbatst
           if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
-          call vecbats(j)
+          call vecbats(j, kx , 2 , ixm1 , nnsg)
+!         Zeng ocean flux model
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , ixm1 , kx)
-                                      ! Zeng ocean flux model
 !         ****** accumulate quantities for energy and moisture budgets
-          call interf(2,j)
+          call interf(2 , j , kx , 2 , ixm1 , nnsg)
         end if
  
       end do
@@ -1317,8 +1315,8 @@
 !       temperature tendency
         do k = 1 , kx
           do i = 2 , ixm2
+            ! heating rate in deg/sec
             tten(i,k,j) = tten(i,k,j) + psb(i,j)*heatrt(i,k,j)
-                                                       !heating rate in deg/sec
           end do
         end do
 !
@@ -1645,9 +1643,9 @@
           do k = 1 , kxm1
             lev = kx - k
             do i = 1 , ixm1
-              tvavg = ((ttld(i,lev,j)*dsigma(lev)+ttld(i,lev+1,j)*dsigma&
-                    & (lev+1))/(psd(i,j)*(dsigma(lev)+dsigma(lev+1))))  &
-                    & /(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
+              tvavg = ((ttld(i,lev,j)*dsigma(lev)+ttld(i,lev+1,j)*      &
+                    & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+            &
+                    & dsigma(lev+1))))/(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j)                             &
                            & - rgas*tvavg*dlog((a(lev)+ptop/psd(i,j))   &
                            & /(a(lev+1)+ptop/psd(i,j)))
@@ -1666,9 +1664,9 @@
           do k = 1 , kxm1
             lev = kx - k
             do i = 1 , ixm1
-              tvavg = ((td(i,lev,j)*dsigma(lev)+td(i,lev+1,j)*dsigma(lev&
-                    & +1))/(psd(i,j)*(dsigma(lev)+dsigma(lev+1))))      &
-                    & /(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
+              tvavg = ((td(i,lev,j)*dsigma(lev)+td(i,lev+1,j)*          &
+                    & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+            &
+                    & dsigma(lev+1))))/(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j)                             &
                            & - rgas*tvavg*dlog((a(lev)+ptop/psd(i,j))   &
                            & /(a(lev+1)+ptop/psd(i,j)))
@@ -1692,15 +1690,13 @@
         do k = 1 , kx
           do i = 2 , ixm1
             uten(i,k,j) = uten(i,k,j)                                   &
-                        & - (psd(i-1,j-1)+psd(i,j-1)+psd(i-1,j)+psd(i,j)&
-                        & )                                             &
-                        & *(phi(i,k,j)+phi(i-1,k,j)-phi(i,k,j-1)-phi(i-1&
-                        & ,k,j-1))/(dx8*msfd(i,j))
+                        & -(psd(i-1,j-1)+psd(i,j-1)+psd(i-1,j)+psd(i,j))&
+                        & *(phi(i,k,j)+phi(i-1,k,j)-phi(i,k,j-1)-       &
+                        & phi(i-1,k,j-1))/(dx8*msfd(i,j))
             vten(i,k,j) = vten(i,k,j)                                   &
-                        & - (psd(i-1,j-1)+psd(i,j-1)+psd(i-1,j)+psd(i,j)&
-                        & )                                             &
-                        & *(phi(i,k,j)+phi(i,k,j-1)-phi(i-1,k,j)-phi(i-1&
-                        & ,k,j-1))/(dx8*msfd(i,j))
+                        & -(psd(i-1,j-1)+psd(i,j-1)+psd(i-1,j)+psd(i,j))&
+                        & *(phi(i,k,j)+phi(i,k,j-1)-phi(i-1,k,j)-       &
+                        & phi(i-1,k,j-1))/(dx8*msfd(i,j))
           end do
         end do
       end do

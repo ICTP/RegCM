@@ -74,8 +74,8 @@
 !     change the variable surface parameters
 !
       integer :: depth , freeze , i , ibdydiff , ibdyhr0 , nxxx , nyyy ,&
-               & ibdyhr1 , ibin , ilake , im1h , ip1h , ist ,           &
-               & itr , j , jlake , jm1h , jp1h , k , kzzz , n 
+               & ibdyhr1 , ibin , ilake , im1h , ip1h , ist , jlake ,   &
+               & itr , j , jm1h , jp1h , k , kzzz , n 
       real(8) :: eta , hg1 , hg2 , hg3 , hg4 , hgmax , hi , hii , hs ,  &
                & tlp , ts00
 !_sgi character*7 finm
@@ -519,8 +519,7 @@
             tga(i,j) = ta(i,kx,j)/psa(i,j)
             tgb(i,j) = tb(i,kx,j)/psb(i,j)
             tgbb(i,j) = tb(i,kx,j)/psb(i,j)
-            zpbl(i,j) = 500.
-                         ! For Zeng Ocean Flux Scheme
+            zpbl(i,j) = 500.  ! For Zeng Ocean Flux Scheme
           end do
         end do
         do j = 1 , jendx
@@ -531,17 +530,13 @@
           end do
         end do
         if ( ichem.eq.1 ) then
-          do j = 1 , jendx
-            do i = 1 , ixm1
-              ssw2da(i,j) = 0.0
-              sdeltk2d(i,j) = 0.0
-              sdelqk2d(i,j) = 0.0
-              sfracv2d(i,j) = 0.5
-              sfracb2d(i,j) = 0.5
-              sfracs2d(i,j) = 0.0
-              svegfrac2d(i,j) = 0.0
-            end do
-          end do
+          ssw2da    = 0.0
+          sdeltk2d  = 0.0
+          sdelqk2d  = 0.0
+          sfracv2d  = 0.5
+          sfracb2d  = 0.5
+          sfracs2d  = 0.0
+          svegfrac2d = 0.0
         end if
 #else
         do
@@ -784,17 +779,13 @@
           end do
         end do
         if ( ichem.eq.1 ) then
-          do j = 1 , jxm1
-            do i = 1 , ixm1
-              ssw2da(i,j) = 0.0
-              sdeltk2d(i,j) = 0.0
-              sdelqk2d(i,j) = 0.0
-              sfracv2d(i,j) = 0.5
-              sfracb2d(i,j) = 0.5
-              sfracs2d(i,j) = 0.0
-              svegfrac2d(i,j) = 0.0
-            end do
-          end do
+          ssw2da = 0.0
+          sdeltk2d = 0.0
+          sdelqk2d = 0.0
+          sfracv2d = 0.5
+          sfracb2d = 0.5
+          sfracs2d = 0.0
+          svegfrac2d = 0.0
         end if
 #endif
 
@@ -1653,8 +1644,8 @@
               end do
             end do
           end if
-          call mpi_scatter(sav_4a(1,1,1),ixm1*7*jxp,mpi_real8,          &
-                         & sav4a(1,1,1), ixm1*7*jxp,mpi_real8,          &
+          call mpi_scatter(sav_4a,ixm1*7*jxp,mpi_real8,                 &
+                         & sav4a, ixm1*7*jxp,mpi_real8,                 &
                          & 0,mpi_comm_world,ierr)
           do j = 1 , jendx
             do i = 1 , ixm1
@@ -1672,8 +1663,7 @@
         call mpi_bcast(jyear0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyear,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(xtime,1,mpi_real8,0,mpi_comm_world,              &
-                       & ierr)
+        call mpi_bcast(xtime,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(ldatez,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(lyear,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(lmonth,1,mpi_integer,0,mpi_comm_world,ierr)
