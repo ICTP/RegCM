@@ -31,7 +31,7 @@ blhnew.o          dsflx.o       ljchrn.o    radoz2.o    tstep.o      \
 bmpara.o          eddy.o        lshfch.o    radtap.o    vadv.o       \
 bndry.o           eispack.o     lutbl.o     radtpl.o    vcheke.o     \
 carbon.o          eomb.o        mapsmp.o    regcm.o     vcheki.o     \
-chdrydep.o        finddate.o    maximi.o    reorder.o   vchekt.o     \
+chdrydep.o        finddate.o    maximi.o    vchekt.o    invmtrx.o    \
 chemtap.o         for_next.o    message.o   root.o      vcover.o     \
 chrsetc.o         frawat.o      minimi.o    satur.o     vecbats.o    \
 chsrfem.o         getdat.o      mixer.o     slice1D.o   vmodes.o     \
@@ -49,7 +49,7 @@ convect_tables.o  initdate.o    outtap.o    temp.o      zengocn.o    \
 cumtran.o         init.o        param.o     tend.o      zenith.o     \
 cupara.o          initlk.o      pcp.o       tgrund.o    zenitm.o     \
 cuparan.o         interf.o      printsp.o   tpfc.o      cupemandrv.o \
-intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
+intmax.o          radabs.o      tracbud.o   cupeman.o
 
 regcm: $(MODOBJS) $(OBJS)
 	$(F90) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
@@ -275,7 +275,6 @@ radtap.o: radtap.F90 mod_date.o mod_iunits.o mod_outrad.o mod_param1.o \
 radtpl.o: radtpl.f90 mod_regcm_param.o mod_constants.o
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
          mod_regcm_param.o
-reorder.o: reorder.f90
 root.o: root.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
 satur.o: satur.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
 slice1D.o: slice1D.f90 mod_bats.o mod_constants.o mod_main.o mod_pbldim.o \

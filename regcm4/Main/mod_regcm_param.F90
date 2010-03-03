@@ -40,7 +40,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 2
+      integer , parameter :: nproc = 16
 
 ! Point in Y (latitude) direction
 

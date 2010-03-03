@@ -64,6 +64,11 @@
       if ( iotyp.eq.1 ) then
         nrcsub = nrcsub + 1
         v2b = reshape(u10m_s, (/jxm2*nsg,ixm2*nsg/))
+        do i = 1 , ixm2*nsg
+          do j = 1 , jxm2*nsg
+            write (444, *) i , j , v2b(j, i)
+          end do
+        end do
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
         v2b = reshape(v10m_s, (/jxm2*nsg,ixm2*nsg/))
@@ -75,74 +80,74 @@
         v2b = reshape(tg_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(tlef_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(tlef_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(t2m_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(t2m_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(q2m_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(q2m_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(ssw_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(ssw_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(rsw_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(rsw_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(tpr_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(tpr_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(evpa_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(evpa_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(rnos_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(rnos_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(scv_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(scv_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(sena_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(sena_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(prcv_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(prcv_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        call reorder(ps_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(ps_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub,rec=nrcsub) v2b
       else if ( iotyp.eq.2 ) then
         write (iutsub) idatex
-        call reorder(u10m_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(u10m_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(v10m_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(v10m_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(drag_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(drag_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(tg_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(tg_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(tlef_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(tlef_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(t2m_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(t2m_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(q2m_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(q2m_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(ssw_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(ssw_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(rsw_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(rsw_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(tpr_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(tpr_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(evpa_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(evpa_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(rnos_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(rnos_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(scv_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(scv_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(sena_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(sena_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(prcv_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(prcv_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
-        call reorder(ps_s,v2b,jxm2,ixm2,nsg)
+        v2b = reshape(ps_s, (/jxm2*nsg,ixm2*nsg/))
         write (iutsub) v2b
       else
       end if
