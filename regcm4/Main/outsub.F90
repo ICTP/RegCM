@@ -35,9 +35,11 @@
 ! Local variables
 !
 #ifdef MPP1
-      integer :: n , i , j
+      integer :: n
+      real(4) , dimension((jxm2)*nsg,(ixm2)*nsg) :: v2b
+#else
+      real(4) , dimension((jxm2)*nsg,(ixm2)*nsg) :: v2b
 #endif
-      real(4) , dimension(jxm2*nsg,ixm2*nsg) :: v2b
 !
 !     ****** check if at desired output time for bats variables
       write (*,*) 'sub_BATS variables written at ' , idatex , xtime
@@ -45,109 +47,99 @@
       if ( iotyp.eq.1 ) then
         do n = 1 , numsub
           nrcsub = nrcsub + 1
-          v2b = reshape(fsub_io(:,:,:,n), (/jxm2*nsg,ixm2*nsg/))
-          do i = 1 , ixm2*nsg
-            do j = 1 , jxm2*nsg
-              write (444, *) i , j , v2b(j, i)
-            end do
-          end do
+          call reorder(fsub_io(1,1,1,n),v2b,jxm2,ixm2,nsg)
           write (iutsub,rec=nrcsub) v2b
         end do
       else
         write (iutsub) idatex
         do n = 1 , numsub
-          v2b = reshape(fsub_io(:,:,:,n), (/jxm2*nsg,ixm2*nsg/))
+          call reorder(fsub_io(1,1,1,n),v2b,jxm2,ixm2,nsg)
           write (iutsub) v2b
         end do
       end if
 #else
       if ( iotyp.eq.1 ) then
         nrcsub = nrcsub + 1
-        v2b = reshape(u10m_s, (/jxm2*nsg,ixm2*nsg/))
-        do i = 1 , ixm2*nsg
-          do j = 1 , jxm2*nsg
-            write (444, *) i , j , v2b(j, i)
-          end do
-        end do
+        call reorder(u10m_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(v10m_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(v10m_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(drag_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(drag_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(tg_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(tg_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(tlef_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(tlef_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(t2m_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(t2m_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(q2m_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(q2m_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(ssw_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(ssw_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(rsw_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(rsw_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(tpr_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(tpr_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(evpa_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(evpa_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(rnos_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(rnos_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(scv_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(scv_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(sena_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(sena_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(prcv_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(prcv_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
         nrcsub = nrcsub + 1
-        v2b = reshape(ps_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(ps_s,v2b,jxm2,ixm2,nsg)
         write (iutsub,rec=nrcsub) v2b
       else if ( iotyp.eq.2 ) then
         write (iutsub) idatex
-        v2b = reshape(u10m_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(u10m_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(v10m_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(v10m_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(drag_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(drag_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(tg_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(tg_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(tlef_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(tlef_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(t2m_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(t2m_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(q2m_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(q2m_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(ssw_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(ssw_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(rsw_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(rsw_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(tpr_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(tpr_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(evpa_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(evpa_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(rnos_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(rnos_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(scv_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(scv_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(sena_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(sena_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(prcv_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(prcv_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
-        v2b = reshape(ps_s, (/jxm2*nsg,ixm2*nsg/))
+        call reorder(ps_s,v2b,jxm2,ixm2,nsg)
         write (iutsub) v2b
       else
       end if
