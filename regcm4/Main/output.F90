@@ -255,6 +255,13 @@
               psmn_o(j,i) = 1.E30
             end do
           end do
+          do n = 1 , nnsg
+          do i = 1 , ixm2
+          do j = 1 , jxp
+            write(44+myid, *) t2m_s(n,j,i)
+          end do
+          end do
+          end do
           call fillsub
           do j = 1 , jendx
             do l = 1 , numsub
