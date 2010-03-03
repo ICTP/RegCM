@@ -1,8 +1,10 @@
       module mod_domain
       implicit none
 !
+! PARAMETER definitions
+!
       character(6) , parameter :: iproj = 'LAMCON'
-      integer , parameter :: iy = 34 , jx = 51 , kz = 18 , nsg = 1
+      integer , parameter :: iy = 34 , jx = 48 , kz = 18 , nsg = 1
       real , parameter :: ds = 60.0 , ptop = 5.0 , clat = 45.39 ,       &
                         & clon = 13.48 , plat = clat , plon = clon ,    &
                         & truelatl = 30. , truelath = 60.
@@ -16,11 +18,11 @@
                            & fudge_tex = .false. , fudge_tex_s = .false.
       character(50) , parameter :: filout = '../../Input/DOMAIN.INFO' , &
                                  & filctl = '../../Input/DOMAIN.CTL'
-      integer , parameter :: idate1 = 1989010100 , idate2 = 1989020100
-      character(5) , parameter :: dattyp = 'ERAIN' , ssttyp = 'ERSST'
+      integer , parameter :: idate1 = 1990060100 , idate2 = 1990070100
+      character(5) , parameter :: dattyp = 'EIN15' , ssttyp = 'OI_WK'
       logical , parameter :: ehso4 = .false.
       character(4) , parameter :: lsmtyp = 'BATS'
       integer , parameter :: nveg = 20
       character(7) , parameter :: aertyp = 'AER00D0'
-      integer , parameter :: ntex = 17 , nproc = 0
+      integer , parameter :: ntex = 17 , nproc = 16
       end module mod_domain
