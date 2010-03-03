@@ -286,9 +286,8 @@
                   end do
                 end do
               end do
+              call outsub
             end if
-
-            call outsub
           end if
 
         end if
