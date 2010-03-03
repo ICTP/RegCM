@@ -34,15 +34,11 @@
 !
 ! Local variables
 !
+      real(4) , dimension(jxm2*nsg,ixm2*nsg) :: v2b
 #ifdef MPP1
       integer :: n
-      real(4) , dimension((jxm2)*nsg,(ixm2)*nsg) :: v2b
-#else
-      real(4) , dimension((jxm2)*nsg,(ixm2)*nsg) :: v2b
 #endif
-!
-!     ****** check if at desired output time for bats variables
-      write (*,*) 'sub_BATS variables written at ' , idatex , xtime
+
 #ifdef MPP1
       if ( iotyp.eq.1 ) then
         do n = 1 , numsub
@@ -144,5 +140,7 @@
       else
       end if
 #endif
- 
+
+      write (*,*) 'sub_BATS variables written at ' , idatex , xtime
+
       end subroutine outsub
