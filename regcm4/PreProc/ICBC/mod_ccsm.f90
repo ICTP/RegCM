@@ -137,11 +137,8 @@
       real , dimension(jlat) :: glat
       real , dimension(ilon) :: glon
       real , dimension(npl) :: pplev , sigma1 , sigmar
-      real :: psref
-      real :: delx , grdfac
-      character(6) :: lgtype
-
       real , dimension(jx,iy) :: b3pd
+      real :: psref
 
       contains
 
