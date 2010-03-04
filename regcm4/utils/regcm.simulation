@@ -7,8 +7,9 @@
 ####
 #! the following  must be given for the model domain settings.
       iproj='LAMCON'       ! Map projection (LAMCON,NORMER,POLSTR,ROTMER)
-      iy=34                ! number of grid points in y direction (i)
       jx=48                ! number of grid points in x direction (j)
+      ix=34                ! number of grid points in y direction (i)
+      iy=34                ! number of grid points in y direction (i)
       kz=18                ! number of vertical levels (14, 18 or 23)
       nsg=1                ! number of subgrids in 1 grid (one direction)
       ds= 60.0             ! grid point separation in km
@@ -37,11 +38,11 @@
 #! The following s can be reset later in RegCM/ICBC/icbc.param
       IDATE1=1990060100   ! First date of simulation
       IDATE2=1990070100   ! Last  date of simulation
-      DATTYP='EIN15'      ! ?????
-      SSTTYP='OI_WK'      ! ?????
+      dattyp='EIN15'      ! ?????
+      ssttyp='OI_WK'      ! ?????
       EHSO4 =.false.      ! ?????
       LSMTYP='BATS'       ! LANDUSE legend (BATS or USGS)
       nveg=20             ! Number of LANDUSE categories
-      AERTYP='AER00D0'    ! AEROSOL TYPE option,
+      aertyp='AER00D0'    ! AEROSOL TYPE option,
       ntex=17             ! Number of SOIL TEXTURE categories
-      NPROC=16            ! Number of CPU used for parallel job. 
+      nproc=16            ! Number of CPU used for parallel job. 

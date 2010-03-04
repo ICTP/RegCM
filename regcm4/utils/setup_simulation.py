@@ -31,34 +31,22 @@ import shutil
 from optparse import OptionParser
 import re
 import fileinput
+import string
 
 
-def replaceAll(file,searchExp,replaceExp):
-        if searchExp in line:
-                line = line.replace(searchExp,replaceExp)
-        sys.stdout.write(line)
 
-def replace_all(text, dic):
-	    for i, j in dic.iteritems():
-	        text = text.replace(i, j)
-	    return text
-
-
-def write_modulef90(parameters,verbose):
-   """This function writes the input"""
-   text_file=open('mod_regcm_param.F90').read()
+def write_modulef90(parameters,filename,verbose):
+   """This function writes filename with new values"""
+   #backup original file
+   shutil.copyfile(filename,filename+".bak")	
+   text_file=open(filename).read()
    for key, value in parameters.iteritems():
        pattern=key + "\s*=\s*\S+"
        valuereplace= key + " = " + value
-       text_file=re.sub(pattern,valuereplace,text_file,re.I)
-   print text_file 
-   
-#        for line in data:
-#          g=re.search(pattern,line,re.I)
-#          if g: 
-#             print line ,valuereplace, pattern
-#   except IOError, error:
-#     print  "mod_regcm_param.f90" ,' is not available (%s)' % error
+       text_file=re.sub(pattern,valuereplace,text_file)
+   if verbose:
+      print text_file 
+   open(filename,'w').write(text_file)
    return 
 
 
@@ -70,8 +58,9 @@ def readinput(filename,verbose, parameters):
      f.close()
      for line in data:
        g=re.search("(\w+)\s*=\s*(\S+)",line)
-       if g: 
-         parameters[g.group(1)] = g.group(2)
+       if g:
+       # keys are variable in the code so let us consider them all lowercase 
+         parameters[string.lower(g.group(1))] = g.group(2)
    except IOError, error:
      print  filename,' is not available (%s)' % error
    return parameters
@@ -121,10 +110,12 @@ def main():
     if options.clean:
         cleandir(options.verbose)
     elif options.filename:
-        readinput(options.filename, options.verbose, parameters) 
-        write_modulef90(parameters,options.verbose)
+        readinput(options.filename, options.verbose, parameters)
 	for key, value in parameters.iteritems():
 		print "%s has value %s" % (key, value)
+        # write F90 modules 
+        write_modulef90(parameters,'mod_regcm_param.F90',options.verbose)
+        write_modulef90(parameters,'mod_domain.f90',options.verbose)
     else:
         sys.stderr.write("I don't know what to do!!!\n")
             
