@@ -112,6 +112,8 @@
       ! drain is set fairly large to prevent swamping the soil
       real(8) , parameter :: drain = 1.D-04
 
+      ! Earth radius
+      real(8) , parameter :: earthrad = 6.371229D+06
       ! Length of day in seconds
       real(8) , parameter :: tau1 = 8.64D+04
       ! Days per year
@@ -119,7 +121,8 @@
       ! Degrees per day
       real(8) , parameter :: dpd = 360.0/dayspy
       ! Angular velocity of rotation of Earth
-      real(8) , parameter :: eomeg = 7.292D-05
+      real(8) , parameter :: eomeg = 7.2921159D-05
+      real(8) , parameter :: eomeg2 = 2.0D0*eomeg
       ! Solar Constant in W/m**2
       real(8) , parameter :: solcon = 1.3956D+03
 
