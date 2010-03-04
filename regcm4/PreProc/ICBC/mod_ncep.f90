@@ -445,6 +445,7 @@
 
       subroutine cdc6hour2(dattyp,idate,idate0)
       use netcdf
+      use mod_szwindow
       implicit none
 !
 ! Dummy arguments
@@ -463,8 +464,6 @@
       character(5) , dimension(7) :: varname
       integer(2) , dimension(iii,jjj,klev+1) :: work
       real(8) :: xadd , xscale
-      integer :: i0 , i1 , j0
-      real :: lat0 , lat1 , lon0 , lon1
       integer , dimension(10) :: icount , istart
       integer , dimension(7) :: inet7 , ivar7
       real(8) , dimension(7) :: xoff , xscl
