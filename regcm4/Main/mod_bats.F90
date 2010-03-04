@@ -132,18 +132,57 @@
 #endif
 !
 #ifdef MPP1
-      real(kind=4) , dimension(jxp,ixm2,numbat) :: fbat
+      real(4) , dimension(jxp,ixm2,numbat) :: fbat
 #else
-      real(kind=4) , dimension(jxm2,ixm2,numbat) :: fbat
+      real(4) , dimension(jxm2,ixm2,numbat) :: fbat
 #endif
 
 #ifdef MPP1
-      real(kind=4) , dimension(nnsg,jxp,ixm2,numsub) :: fsub
+      real(4) , dimension(nnsg,jxp,ixm2,numsub) :: fsub
 #else
-      real(kind=4) , dimension(nnsg,jxm2,ixm2,numsub) :: fsub
+      real(4) , dimension(nnsg,jxm2,ixm2,numsub) :: fsub
 #endif
 !
       real(8) , dimension(nnsg,ixm1) :: p1d0 , qs1d0 , ts1d0
+!
+!clm35
+#ifdef MPP1
+      ! Direct solar rad incident on surface (<0.7)
+      real(8) , dimension(ixm1,jxp):: sols2d
+      ! Direct solar rad incident on surface (>=0.7)
+      real(8) , dimension(ixm1,jxp):: soll2d
+      ! Diffuse solar rad incident on surface (<0.7)
+      real(8) , dimension(ixm1,jxp):: solsd2d
+      ! Diffuse solar rad incident on surface (>=0.7)
+      real(8) , dimension(ixm1,jxp):: solld2d
+      real(8) , dimension(ixm1,jxp):: aldirs2d
+      real(8) , dimension(ixm1,jxp):: aldirl2d
+      real(8) , dimension(ixm1,jxp):: aldifs2d
+      real(8) , dimension(ixm1,jxp):: aldifl2d
+      real(8) , dimension(ixm1,jxp):: coszrs2d
+      real(8) , dimension(ixm1,jxp):: rs2d
+      real(8) , dimension(ixm1,jxp):: ra2d
+      real(8) , dimension(ixm1,jxp):: q2d   ! 2 meter specific humidity
+#else
+      ! Direct solar rad incident on surface (<0.7)
+      real(8) , dimension(ixm1,jxm1):: sols2d
+      ! Direct solar rad incident on surface (>=0.7)
+      real(8) , dimension(ixm1,jxm1):: soll2d
+      ! Diffuse solar rad incident on surface (<0.7)
+      real(8) , dimension(ixm1,jxm1):: solsd2d
+      ! Diffuse solar rad incident on surface (>=0.7)
+      real(8) , dimension(ixm1,jxm1):: solld2d
+      real(8) , dimension(ixm1,jxm1):: aldirs2d
+      real(8) , dimension(ixm1,jxm1):: aldirl2d
+      real(8) , dimension(ixm1,jxm1):: aldifs2d
+      real(8) , dimension(ixm1,jxm1):: aldifl2d
+      real(8) , dimension(ixm1,jxm1):: coszrs2d
+      real(8) , dimension(ixm1,jxm1):: rs2d
+      real(8) , dimension(ixm1,jxm1):: ra2d
+      real(8) , dimension(ixm1,jxm1):: q2d ! 2 meter specific humidity
+#endif
+!clm35
+
 !
 !------------------ DATA SECTION ----------------------------------------
 !

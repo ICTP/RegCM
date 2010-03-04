@@ -118,7 +118,7 @@
       ! Length of day in seconds
       real(8) , parameter :: tau1 = 8.64D+04
       ! Days per year
-      real(8) , parameter :: dayspy = 365.24D+00
+      real(8) , parameter :: dayspy = 365.2422D+00
       ! Degrees per day
       real(8) , parameter :: dpd = 360.0/dayspy
       ! Angular velocity of rotation of Earth
