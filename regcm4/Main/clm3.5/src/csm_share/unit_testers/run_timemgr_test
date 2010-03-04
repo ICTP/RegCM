@@ -1,0 +1,151 @@
+#!/bin/csh
+#
+# Script to run the eshr_timemgr_mod unit test.
+#
+#-----------------------------------------------------------------------
+# NCAR IBM SP: bluesky
+# Usage: env BL_ROOT=<comparision dir> llsubmit run_timemgr_test
+#-----------------------------------------------------------------------
+# @ class            = share
+# @ node             = 1
+# @ tasks_per_node   = 2
+# @ network.MPI      = csss,shared,us
+# @ output           = timemgr.aix.log
+# @ error            = timemgr.aix.err
+# @ node_usage       = shared
+# @ job_type         = parallel
+# Export all Environment variables
+# @ environment = COPY_ALL
+# @ queue
+#
+#-----------------------------------------------------------------------
+# CGD Linux cluster : bangkok
+# Usage: env BL_ROOT=<comparision dir> qsub run_timemgr_test
+#-----------------------------------------------------------------------
+# Name of the queue (CHANGE THIS if needed)
+#PBS -q long
+# Number of nodes (CHANGE THIS if needed)
+#PBS -l nodes=2:ppn=2:ecc
+# output file base name
+#PBS -N timemgr.linux.log
+# Put standard error and standard out in same file
+#PBS -j oe
+# Export all Environment variables
+#PBS -V
+# End of options
+#
+#-----------------------------------------------------------------------
+# NCAR SGI : tempest
+# Usage: env BL_ROOT=<comparision dir> qsub run_timemgr_test
+#-----------------------------------------------------------------------
+#QSUB -q ded_16        # Name of the queue (CHANGE THIS if needed)
+#QSUB -l mpp_p=20      # Maximum number of processes (CHANGE THIS if needed)
+#QSUB -eo              # Put standard error and standard out in same file
+#QSUB -J y             # Put job log in its own file
+#QSUB -x               # Export all Environment variables
+#QSUB                  # End of options
+#
+set echo
+
+# If batch go to work directory
+if ( $?PBS_JOBID )then
+    cd ${PBS_O_WORKDIR}
+endif
+
+if ( $?QSUB_REQID )then
+    cd ${QSUB_WORKDIR}
+endif
+#
+# Baseline comparision test
+#
+\rm timemgr.log.prev.filtered timemgr.log.previous
+set filter="Advance clock"
+if ( $?BL_ROOT )then
+  set root=`pwd`
+  if ( ! -d $BL_ROOT ) exit 3
+  set bldir=$BL_ROOT/models/csm_share/unit_testers
+  if ( ! -d $bldir ) exit 3
+  cd $bldir
+  gmake test_eshr_timemgr
+  test_eshr_timemgr > $root/timemgr.log.previous
+  cat $root/timemgr.log.previous | grep $filter  > $root/timemgr.log.prev.filtered
+  cd $root
+endif
+#
+# Standard tests
+#
+set uname = `uname -s`
+set ESMF_VERS = "ESMF_2_2_2_beta_snapshot_23"
+if ( $uname == "Darwin" )then
+   set ESMF_BLD = "$HOME/$ESMF_VERS"
+   set mpi = "mpirun -np 2"
+else if ( $uname == "AIX" )then
+   set ESMF_BLD = "/fis/cgd/home/erik/$ESMF_VERS"
+   set mpi = "poe"
+else if ( $uname == "IRIX64" )then
+   set ESMF_BLD = "/fis/cgd/home/erik/$ESMF_VERS"
+   set mpi = "mpirun -np 2"
+else if ( $uname == "Linux" )then
+   set ESMF_BLD = "/fs/cgd/data0/$USER/$ESMF_VERS"
+   set mpi = "/usr/local/mpich-1.2.7p1-pgi-pgcc-pghf-6.1-3/bin/mpirun -np 2"
+endif
+foreach opt ( "" "SPMD=TRUE" "ESMF_BLD=$ESMF_BLD" )
+  # Build
+  gmake clean
+  if ( ($uname == "AIX") && ($opt == "ESMF_BLD=$ESMF_BLD") )then
+    set optbld = "$opt SPMD=TRUE"
+  else
+    set optbld = "$opt"
+  endif
+  # Run save output to log file
+  echo "Run with $opt"
+  gmake  $optbld test_eshr_timemgr || exit 1
+  if ( "$opt" == "SPMD=TRUE" )then
+    $mpi test_eshr_timemgr > timemgr.log
+  else
+    test_eshr_timemgr > timemgr.log
+  endif
+  if ( $status != 0 ) then
+     echo "Error -- run status returns error"
+     grep "Testing passed" timemgr.log
+     if ( $status /= 0 ) exit 2
+  endif
+  #
+  # Compare the log file results with previous tests
+  #
+  set dstatus=0
+  # Compare with the baseline test
+  if ( -f timemgr.log.prev.filtered )then
+     cat timemgr.log | grep $filter > timemgr.log.filtered
+     diff -wb timemgr.log.filtered timemgr.log.prev.filtered
+     set dstatus=$status
+  # Compare with one of the different builds
+  else if ( -f timemgr.log.previous )then
+     cat timemgr.log | grep $filter > timemgr.log.filtered
+     diff -wb timemgr.log.filtered timemgr.log.previous.filtered
+     set dstatus=$status
+  endif
+  if ( $dstatus != 0 ) then
+     echo "Error -- log different than previous:"
+     exit 5
+  endif
+  \cp -f timemgr.log.filtered timemgr.log.previous.filtered
+  \rm *.nc
+end
+#
+# Error condition tests
+#
+gmake clean
+gmake test_eshr_timemgr || exit 3
+foreach i ( nl/timemgr.* )
+  \cp -f timemgr.namelist timemgr.namelist.old
+  \cp -f $i timemgr.namelist
+  echo "Run error condition test: if does not fail stop as error..."
+  cat timemgr.namelist > timemgr.log
+  test_eshr_timemgr > timemgr.log && exit 4
+  \cp -f timemgr.namelist.old timemgr.namelist
+  \rm core
+end
+gmake clean
+\rm *.nc timemgr.log* PET*.ESMF_LogFile
+echo "Testing successful\! PASS\!"

@@ -1,0 +1,11 @@
+# No start date
+&timemgr_inparm
+  stop_option     = 'nmonths'
+  stop_n          = 2
+  atm_cpl_dt      = 1200
+  orb_iyear_AD    = 1950
+/
+&ccsm_inparm
+ case_desc              = "this is a no start date case"
+ archive_dir            = "./"
+/

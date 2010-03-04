@@ -1,0 +1,75 @@
+<id>  <run command>
+
+
+sm111 TSM.sh 4p_vodsr_dh t42 48
+er111 TER.sh 4p_vodsr_dh t42 10+38
+br111 TBR.sh 4p_vodsr_dh t42 24+24
+bl111 TBL.sh 4p_vodsr_dh t42 48
+
+cb112 TCB.sh 4p_vodsr_dm
+
+sm112 TSM.sh 4p_vodsr_dm t42 48
+er112 TER.sh 4p_vodsr_dm t42 10+38
+br112 TBR.sh 4p_vodsr_dm t42 24+24
+bl112 TBL.sh 4p_vodsr_dm t42 48
+
+sm113 TSM.sh 4p_vodsr_do t42 48
+er113 TER.sh 4p_vodsr_do t42 10+38
+br113 TBR.sh 4p_vodsr_do t42 24+24
+bl113 TBL.sh 4p_vodsr_do t42 48
+
+sm114 TSM.sh 4p_vodsr_h t42 48
+sm115 TSM.sh 4p_vodsr_m t42 48
+sm116 TSM.sh 4p_vodsr_o t42 48
+
+sm127 TSM.sh 17p_vodsr_dh t42 48
+er127 TER.sh 17p_vodsr_dh t42 10+38
+br127 TBR.sh 17p_vodsr_dh t42 24+24
+bl127 TBL.sh 17p_vodsr_dh t42 48
+
+cb128 TCB.sh 17p_vodsr_dm
+
+sm128 TSM.sh 17p_vodsr_dm t42 48
+er128 TER.sh 17p_vodsr_dm t42 10+38
+br128 TBR.sh 17p_vodsr_dm t42 24+24
+bl128 TBL.sh 17p_vodsr_dm t42 48
+
+sm129 TSM.sh 17p_vodsr_do t42 48
+er129 TER.sh 17p_vodsr_do t42 10+38
+br129 TBR.sh 17p_vodsr_do t42 24+24
+bl129 TBL.sh 17p_vodsr_do t42 48
+
+sm124 TSM.sh 17p_vodsr_h t42 48
+sm125 TSM.sh 17p_vodsr_m t42 48
+sm126 TSM.sh 17p_vodsr_o t42 48
+
+cb132 TCB.sh 4p_vodsr_dm
+
+sm511 TSM.sh _dh t42 48
+er511 TER.sh _dh t42 10+38
+bl511 TBL.sh _dh t42 48
+br511 TBR.sh _dh t42 24+24
+
+sm512 TSM.sh _ds t42 24
+er512 TER.sh _ds t42 12+12
+bl512 TBL.sh _ds t42 24
+br512 TBR.sh _ds t42 24+24
+
+sm513 TSM.sh _h t42 -10
+er513 TER.sh _h t42 -5+-5
+bl513 TBL.sh _h t42 -10
+br513 TBR.sh _h t42 -10+-10
+
+sm514 TSM.sh _m t42 -10
+er514 TER.sh _m t42 -5+-5
+bl514 TBL.sh _m t42 -10
+br514 TBR.sh _m t42 -10+-10
+
+sm671 TSMtools.sh mkgriddata singlept
+
+sm711 TSMtools.sh mksurfdata namelist
+bl711 TBLtools.sh mksurfdata namelist
+
+sm811 TSMtools.sh interpinic runoptions
+
+sm812 TSMtools.sh newcprnc runoptions

@@ -1,0 +1,26 @@
+&stuff
+/
+sdfasdf
+&cam_inparm
+  dtime = 1200
+/
+  restart_monthly = .true.
+&timemgr_inparm
+  stop_option     = 'nmonths'
+  stop_n          = 2
+  atm_cpl_dt      = 1200
+  orb_iyear_AD    = 1950
+  start_ymd       = 1231
+/
+  perpetual_run   = .true.
+  perpetual_ymd   = 1231
+&clm_inparm
+  finidat = 'data'
+/
+&ccsm_inparm
+ case_desc              = "this is the case description title for this case"
+ mss_irt                = 32
+ atm_ideal_phys         = .true.
+ mss_wpass              = "testing"
+ archive_dir            = "./"
+/

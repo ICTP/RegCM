@@ -1,0 +1,179 @@
+
+===============================================================
+
+Tag name:MCT2_3_0_070110
+Originator(s): Rob Jacob
+Date: Wed Jan 10 15:34:46 MST 2007
+One-line Summary: Update to MCT 2.3.0
+
+Purpose of changes: 
+
+Bugs fixed (include MCT bugzilla ID): 33,45-49,52,53
+Describe any changes made to build system:
+Describe any substantial timing or memory changes: 
+Code reviewed by: robj
+List all subroutines eliminated: none
+List all subroutines added and what they do: none
+List all existing files that have been modified, and describe the changes:
+
+mct/m_MatAttrVectMul.F90    -- allow specification of attributes to be multiplied
+mct/m_Router.F90            -- lower memeory neded during Router init
+mct/m_GlobalSegMap.F90      -- init_index now allows processors with no points.
+mpeu/m_inpak90.F90          -- explicitly type all reals
+mpeu/m_dropdead.F90         -- check if MPI is initialized before calling abort
+mpeu/get_zeit.c             -- remove outdated CPP commands.
+
+Summarize any changes to answers: none
+===============================================================
+
+Tag name:MCT2_2_3_061018
+Originator(s): Rob Jacob
+Date: Wed Oct 18 15:44:14 MDT 2006
+One-line Summary: Update to MCT 2.2.3
+
+Purpose of changes: 
+
+Bugs fixed (include bugzilla ID): none
+Describe any changes made to build system:  support XT3 and g95 in MCTs build
+Describe any substantial timing or memory changes: 
+Code reviewed by: robj
+List all subroutines eliminated: none
+List all subroutines added and what they do: none
+List all existing files that have been modified, and describe the changes:
+
+mct/m_Rerranger.F90      -- Include fix from previous tag and add check of value
+			    of sum argument.
+mpi-serial/mpif.*.h      --  Add MPI_SUCCESS        
+mpeu/get_zeits.c         -- workaround for XT3.
+        
+Summarize any changes to answers: none
+===============================================================
+
+Tag name:MCT2_2_2_060930
+Originator(s): Rob Jacob
+Date: Sat Sep 30 08:57:53 MDT 2006
+One-line Summary: Bug fix for XT3
+
+Purpose of changes: 
+
+Bugs fixed (include bugzilla ID): none
+Describe any changes made to build system: 
+Describe any substantial timing or memory changes: 
+Code reviewed by: tcraig, robj
+List all subroutines eliminated: none
+List all subroutines added and what they do: none
+List all existing files that have been modified, and describe the changes:
+
+mct/m_Rerranger.F90      -- use MPI_WAIT instead of MPI_WAITANY when Sum is present.
+                            This fixes non-reproduciability in the r2o mapping seen on
+			    the XT3.
+        
+Summarize any changes to answers: none
+===============================================================
+
+Tag name:MCT2_2_2_060912
+Originator(s): Rob Jacob
+Date: Tue Sep 12 17:23:09 MDT 2006
+One-line Summary: Additional Cray vector changes
+
+Purpose of changes: 
+
+Bugs fixed (include bugzilla ID): none
+Describe any changes made to build system:  lower Cray optimization
+Describe any substantial timing or memory changes: should speed up
+ initialization time for CAM
+Code reviewed by: 
+List all subroutines eliminated: none
+List all subroutines added and what they do:  AV::RCopy,RCopyL,ICopy,ICopyL see
+below for explanation.
+List all existing files that have been modified, and describe the changes:
+
+configure, configure.ac  --  lower Cray optimization
+mct/m_AttrVectMul.F90    --  add Cray compiler directives
+mct/m_Router.F90         --  re-write initialization routine for better
+			       vectorization
+mct/m_AttrVect.F90       --  Move Cray compiler directives and break Copy_
+			     routine in to 4 new subroutines.
+mct/m_GlobalSegMap.F90   --  check errors on allocate in init_index.
+mpeu/m_ioutil.F90        --  clean up ifdef logic
+        
+Summarize any changes to answers: none
+===============================================================
+
+Tag name:MCT2_2_1_060706
+Originator(s): Rob Jacob
+Date: Thu Jul  6 14:17:34 MDT 2006
+One-line Summary: Changes to use new clock tick
+
+Purpose of changes: 
+
+Bugs fixed (include bugzilla ID): none
+Describe any changes made to build system:  none
+Describe any substantial timing or memory changes: none
+Code reviewed by: Erik Kluzek, Brian Eaton
+List all subroutines eliminated: none
+List all subroutines added and what they do:  none
+List all existing files that have been modified, and describe the changes:
+
+mpeu/get_zeits.c --- using updated clock macro files rather than obsolete 
+			version, required on new upgrade to bangkok
+        
+Summarize any changes to answers: none
+
+===============================================================
+===============================================================
+
+Tag name:MCT2_2_1_060424
+Originator(s): Rob Jacob
+Date: Mon Apr 24 23:28:29 CDT 2006
+One-line Summary: import of MCT 2.2.1 with Cray changes.
+
+Purpose of changes: First round of Cray mods
+
+Bugs fixed (include bugzilla ID): none
+
+Describe any changes made to build system: 
+Changed Cray options for MCT build to include vector info
+
+Describe any substantial timing or memory changes: faster on X1
+
+Code reviewed by: none
+
+List all subroutines eliminated: none
+        
+List all subroutines added and what they do: 
+GlobalToLocal::GlobalSegMapToIndexArr_  - convert an array of global index
+values to local values.
+
+List all existing files that have been modified, and describe the changes:
+configure, configure.ac - new Cray compile options (native MCT build)
+mct/m_GlobalToLocal.F90 - use new subroutine in GlobalSegMapToLocalMatrix
+mct/m_Rearranger.F90 - rewrite by Pat Worley.  New send/recv order and
+AlltoAll option.
+mpeu/m_FileResolve.F90 - add CPRCRAY for cross compiling
+mpeu/Makefile - compile C code first, then F90
+mpi-serial/collective.c and mpi.h - support MPI_ALLTOALLV and MPI_ALLTOALL
+        
+Summarize any changes to answers, i.e.,
+- what code configurations:
+- what platforms/compilers:
+- nature of change (roundoff; larger than roundoff but same climate; new
+  climate): 
+none
+
+If bitwise differences were observed, how did you show they were no worse
+than roundoff?
+
+If this tag changes climate describe the run(s) done to evaluate the new
+climate in enough detail that it(they) could be reproduced, i.e.,
+- source tag (all code used must be in the repository):
+- platform/compilers:
+- configure commandline:
+- build-namelist command (or complete namelist):
+- MSS location of output:
+
+MSS location of control simulations used to validate new climate:
+
+URL for AMWG diagnostics output used to validate new climate:
+
+===============================================================

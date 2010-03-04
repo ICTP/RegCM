@@ -1,0 +1,667 @@
+!===============================================================================
+! SVN $Id: cpl_fields_mod.F90.CO2_DMSA 3380 2007-03-06 05:42:19Z robj $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_070321/cpl/cpl_fields_mod.F90.CO2_DMSA $
+!===============================================================================
+!BOP ===========================================================================
+!
+! !MODULE: cpl_fields_mod -- coupler/component  list of exchanged fields
+!
+! !DESCRIPTION:
+!     This module is an important component of the cpl6 Coupler. It contains
+!     the following:
+!     \begin{itemize}
+!     \item Master list of all fields exchanged between the Coupler and the
+!           component models of CCSM.  The fields are listed in a colon-delimited
+!           string, e.g. {\sf ``So\_t:So\_u:So\_v:So\_s:So\_dhdx:So\_dhdy:Fioo\_q''}.
+!           The strings below are broken up into one element per line for clarity.
+!           Each item in the string becomes an attribute in a {\it bundle}.
+!
+!     \item Master list of all reals and integers in the infobuffer.
+!
+!     \item List of components recogized by the Coupler
+!           under the category ``component names''.
+!     \end{itemize}
+!     
+!
+! !REVISION HISTORY:
+!     2005 Mar 24 - R. Jacob  Put comments on same line as string.
+!     2002 Feb 11 - full, realistic list of fields
+!     2001 Apr 13 - T. Craig
+!
+! !INTERFACE: ------------------------------------------------------------------
+
+module cpl_fields_mod
+
+! !USES:
+
+   use shr_string_mod  ! string utilities
+   use mct_mod         ! mct
+   use cpl_kind_mod    ! kinds
+
+   private  ! except
+
+! !PUBLIC TYPES:
+
+  ! none
+
+! !PUBLIC MEMBER FUNCTIONS:
+
+   public :: cpl_fields_getField    ! returns string for nth aVect attribute 
+   public :: cpl_fields_getLongName ! returns netCDF longname and unit strings
+
+! !PUBLIC DATA MEMBER:
+
+   !----------------------------------------------------------------------------
+   ! atm fields: atm->cpl 
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   !
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_a2c_states = &
+         'Sa_z'        &    ! bottom atm level height         DEF
+      //':Sa_u'        &    ! bottom atm level zon wind       DEF
+      //':Sa_v'        &    ! bottom atm level mer wind       DEF
+      //':Sa_tbot'     &    ! bottom atm level temp           DEF
+      //':Sa_ptem'     &    ! bottom atm level pot temp       DEF
+      //':Sa_shum'     &    ! bottom atm level spec hum       DEF
+      //':Sa_dens'     &    ! bottom atm level air den        DEF
+      //':Sa_pbot'     &    ! bottom atm level pressurea      DEF
+      //':Sa_pslv'     &    ! sea level atm pressure          DEF
+      //':Sa_co2prog'  &    ! bottom atm level prognostic co2
+      //':Sa_co2diag'       ! bottom atm level diagnostic co2
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_a2c_fluxes = &
+         'Faxa_lwdn'   &    ! downward lw heat flux           DEF
+      //':Faxa_rainc'  &    ! prec: liquid "convective"       DEF
+      //':Faxa_rainl'  &    ! prec: liquid "large scale"      DEF
+      //':Faxa_snowc'  &    ! prec: frozen "convective"       DEF
+      //':Faxa_snowl'  &    ! prec: frozen "large scale"      DEF
+      //':Faxa_swndr'  &    ! sw: nir direct  downward        DEF
+      //':Faxa_swvdr'  &    ! sw: vis direct  downward        DEF
+      //':Faxa_swndf'  &    ! nir diffuse downward            DEF
+      //':Faxa_swvdf'  &    ! sw: vis diffuse downward        DEF
+      //':Faxa_swnet'       ! sw: net                         DEF
+
+   character(*), parameter,public :: cpl_fields_a2c_fields = &
+      trim(cpl_fields_a2c_states)//":"//trim(cpl_fields_a2c_fluxes)
+
+
+   !----------------------------------------------------------------------------
+   ! atm fields: cpl->atm
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   ! 
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_c2a_states = &
+         'Sx_tref'     &    ! 2m reference temperature        DEF
+      //':Sx_qref'     &    ! 2m reference specific humidity  DEF
+      //':Sx_avsdr'    &    ! albedo, visible, direct         DEF
+      //':Sx_anidr'    &    ! albedo, near-ir, direct         DEF
+      //':Sx_avsdf'    &    ! albedo, visible, diffuse        DEF
+      //':Sx_anidf'    &    ! albedo, near-ir, diffuse        DEF
+      //':Sx_t'        &    ! surface temperature             DEF
+      //':So_t'        &    ! sea surface temperature         DEF
+      //':Sx_snowh'    &    ! surface snow depth              DEF
+      //':Sx_lfrac'    &    ! surface land fraction           DEF
+      //':Sx_ifrac'    &    ! surface ice fraction            DEF
+      //':Sx_ofrac'         ! surface ocn fraction            DEF
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_c2a_fluxes = &
+         'Faxx_taux'   &    ! wind stress, zonal              DEF
+      //':Faxx_tauy'   &    ! wind stress, meridional         DEF
+      //':Faxx_lat'    &    ! latent          heat flux       DEF
+      //':Faxx_sen'    &    ! sensible        heat flux       DEF
+      //':Faxx_lwup'   &    ! upward longwave heat flux       DEF
+      //':Faxx_evap'   &    ! evaporation    water flux       DEF
+      //':Faxx_fco2_lnd' &  ! co2 flux from lnd
+      //':Faxx_fco2_ocn' &  ! co2 flux from ocn
+      //':Faxx_fdms'        ! dms flux
+
+   character(*), parameter,public :: cpl_fields_c2a_fields = &
+      trim(cpl_fields_c2a_states)//":"//trim(cpl_fields_c2a_fluxes)
+
+
+   !----------------------------------------------------------------------------
+   ! ice fields: ice->cpl
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   ! 
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_i2c_states = &
+         'Si_t'        &    ! temperature                     DEF
+      //':Si_tref'     &    ! 2m reference temperature        DEF
+      //':Si_qref'     &    ! 2m reference specific humidity  DEF
+      //':Si_ifrac'    &    ! fractional ice coverage         DEF
+      //':Si_avsdr'    &    ! albedo: visible, direct         DEF
+      //':Si_anidr'    &    ! albedo: near ir, direct         DEF
+      //':Si_avsdf'    &    ! albedo: visible, diffuse        DEF
+      //':Si_anidf'    &    ! albedo: near ir, diffuse        DEF
+      //':index'            ! global data compr index         DEF
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_i2c_fluxes = &
+         'Faii_taux'   &    ! wind stress, zonal              DEF
+      //':Faii_tauy'   &    ! wind stress, meridional         DEF
+      //':Faii_lat'    &    ! latent          heat flux       DEF
+      //':Faii_sen'    &    ! sensible        heat flux       DEF
+      //':Faii_lwup'   &    ! upward longwave heat flux       DEF
+      //':Faii_evap'   &    ! evaporation    water flux       DEF
+      //':Faii_swnet'  &    ! shortwave: net absorbed         DEF
+      //':Fioi_swpen'  &    ! net SW penetrating ice          DEF
+      //':Fioi_melth'  &    ! heat  flux from melting ice     DEF
+      //':Fioi_meltw'  &    ! water flux from melting ice     DEF
+      //':Fioi_salt'   &    ! salt  flux from melting ice     DEF
+      //':Fioi_taux'   &    ! ice/ocn stress, zonal           DEF
+      //':Fioi_tauy'        ! ice/ocn stress, meridional      DEF
+
+   character(*), parameter,public :: cpl_fields_i2c_fields = &
+      trim(cpl_fields_i2c_states)//":"//trim(cpl_fields_i2c_fluxes)
+
+
+   !----------------------------------------------------------------------------
+   ! ice fields: cpl->ice
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   !
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_c2i_states = &
+         'So_t'        &    ! ocn temp                        DEF  
+      //':So_s'        &    ! ocn salinity                    DEF
+      //':So_u'        &    ! ocn u velocity                  DEF
+      //':So_v'        &    ! ocn v velocity                  DEF
+      //':Sa_z'        &    ! atm bottom layer height         DEF
+      //':Sa_u'        &    ! atm u velocity                  DEF
+      //':Sa_v'        &    ! atm v velocity                  DEF
+      //':Sa_ptem'     &    ! atm potential temp              DEF
+      //':Sa_tbot'     &    ! atm bottom temp                 DEF
+      //':Sa_shum'     &    ! atm specfic humidity            DEF
+      //':Sa_dens'     &    ! atm air density                 DEF
+      //':So_dhdx'     &    ! ocn surface slope, zonal        DEF
+      //':So_dhdy'          ! ocn surface slope, merid        DEF
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_c2i_fluxes = &
+         'Fioo_q'      &    ! ocn freeze or melt heat         DEF
+      //':Faxa_swndr'  &    ! atm sw near-ir, direct          DEF
+      //':Faxa_swvdr'  &    ! atm sw visable, direct          DEF
+      //':Faxa_swndf'  &    ! atm sw near-ir, diffuse         DEF
+      //':Faxa_swvdf'  &    ! atm sw visable, diffuse         DEF
+      //':Faxa_lwdn'   &    ! long-wave down                  DEF
+      //':Faxc_rain'   &    ! rain                            DEF
+      //':Faxc_snow'        ! snow                            DEF
+
+   character(*), parameter,public :: cpl_fields_c2i_fields = &
+      trim(cpl_fields_c2i_states)//":"//trim(cpl_fields_c2i_fluxes)
+
+   !----------------------------------------------------------------------------
+   ! lnd fields: lnd->cpl 
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   !
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_l2c_states = &
+         'Sl_t'        &    ! temperature                     DEF
+      //':Sl_tref'     &    ! 2m reference temperature        DEF
+      //':Sl_qref'     &    ! 2m reference specific humidity  DEF
+      //':Sl_avsdr'    &    ! albedo: direct , visible        DEF
+      //':Sl_anidr'    &    ! albedo: direct , near-ir        DEF
+      //':Sl_avsdf'    &    ! albedo: diffuse, visible        DEF
+      //':Sl_anidf'    &    ! albedo: diffuse, near-ir        DEF
+      //':Sl_snowh'         ! snow height                     DEF
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_l2c_fluxes = &
+         'Fall_taux'   &    ! wind stress, zonal              DEF
+      //':Fall_tauy'   &    ! wind stress, meridional         DEF
+      //':Fall_lat'    &    ! latent          heat flux       DEF
+      //':Fall_sen'    &    ! sensible        heat flux       DEF
+      //':Fall_lwup'   &    ! upward longwave heat flux       DEF
+      //':Fall_evap'   &    ! evaporation    water flux       DEF
+      //':Fall_swnet'  &    ! shortwave: net absorbed         DEF
+      //':Fall_nee'         ! co2 flux from lnd
+   character(*), parameter,public :: cpl_fields_l2c_fields = &
+      trim(cpl_fields_l2c_states)//":"//trim(cpl_fields_l2c_fluxes)
+
+   !----------------------------------------------------------------------------
+   ! lnd fields: cpl->lnd
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   !
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_c2l_states = &
+         'Sa_z'        &    ! bottom atm level height         DEF
+      //':Sa_u'        &    ! bottom atm level zon wind       DEF
+      //':Sa_v'        &    ! bottom atm level mer wind       DEF
+      //':Sa_tbot'     &    ! bottom atm level temp           DEF
+      //':Sa_ptem'     &    ! bottom atm level pot temp       DEF
+      //':Sa_shum'     &    ! bottom atm level spec hum       DEF
+      //':Sa_dens'     &    ! bottom atm level air dens       DEF
+      //':Sa_pbot'     &    ! bottom atm level pressure       DEF
+      //':Sa_pslv'     &    ! sea level atm pressure          DEF
+      //':Sa_co2prog'  &    ! atm prognostic co2
+      //':Sa_co2diag'       ! atm diagnostic co2
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_c2l_fluxes = &
+         'Faxa_lwdn'   &    ! downward longwave heat flux     DEF
+      //':Faxa_rainc'  &    ! precip: liquid, convective      DEF
+      //':Faxa_rainl'  &    ! precip: liquid, large-scale     DEF
+      //':Faxa_snowc'  &    ! precip: frozen, convective      DEF
+      //':Faxa_snowl'  &    ! precip: frozen, large-scale     DEF
+      //':Faxa_swndr'  &    ! shortwave: nir direct  down     DEF
+      //':Faxa_swvdr'  &    ! shortwave: vis direct  down     DEF
+      //':Faxa_swndf'  &    ! shortwave: nir diffuse down     DEF
+      //':Faxa_swvdf'       ! shortwave: vis diffuse down     DEF
+
+   character(*), parameter,public :: cpl_fields_c2l_fields = &
+      trim(cpl_fields_c2l_states)//":"//trim(cpl_fields_c2l_fluxes)
+
+   !----------------------------------------------------------------------------
+   ! ocn fields: ocn->cpl
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   !
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_o2c_states = &
+         'So_t'        &    ! temperature                     DEF
+      //':So_u'        &    ! velocity, zonal                 DEF
+      //':So_v'        &    ! velocity, meridional            DEF
+      //':So_s'        &    ! salinity                        DEF
+      //':So_dhdx'     &    ! surface slope, zonal            DEF
+      //':So_dhdy'          ! surface slope, meridional       DEF
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_o2c_fluxes = &
+         'Fioo_q'      &    ! heat of fusion (q>0) melt pot (q<0)  DEF
+      //':Faoo_fco2'   &    ! co2 flux 
+      //':Faoo_fdms'        ! dms flux 
+
+   character(*), parameter,public :: cpl_fields_o2c_fields = &
+      trim(cpl_fields_o2c_states)//":"//trim(cpl_fields_o2c_fluxes)
+
+   !----------------------------------------------------------------------------
+   ! ocn fields: cpl->ocn
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   !
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_c2o_states = &
+         'Si_ifrac'    &    ! state: ice fraction             DEF
+      //':Sa_pslv'     &    ! state: sea level pressure       DEF
+      //':Faoc_duu10n' &    ! state: 10m wind speed squared   DEF
+      //':Sa_co2prog'       ! bottom atm level prognostic co2
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_c2o_fluxes = &
+         'Foxx_taux'   &    ! wind stress: zonal              DEF
+      //':Foxx_tauy'   &    ! wind stress: meridional         DEF
+      //':Foxx_swnet'  &    ! heat flux: shortwave net        DEF
+      //':Foxx_lat'    &    ! heat flux: latent               DEF
+      //':Foxx_sen'    &    ! heat flux: sensible             DEF
+      //':Foxx_lwup'   &    ! heat flux: long-wave up         DEF
+      //':Foxx_lwdn'   &    ! heat flux: long-wave down       DEF
+      //':Foxx_melth'  &    ! heat flux: melt                 DEF
+      //':Foxx_salt'   &    ! salt flux                       DEF
+      //':Foxx_prec'   &    ! water flux: rain+snow           DEF
+      //':Foxx_snow'   &    ! water flux: snow                DEF
+      //':Foxx_rain'   &    ! water flux: rain                DEF
+      //':Foxx_evap'   &    ! water flux: evap                DEF
+      //':Foxx_meltw'  &    ! water flux: melt                DEF
+      //':Forr_roff'        ! water flux: runoff              DEF
+
+   character(*), parameter,public :: cpl_fields_c2o_fields = &
+      trim(cpl_fields_c2o_states)//":"//trim(cpl_fields_c2o_fluxes)
+
+   !----------------------------------------------------------------------------
+   ! run-off field 
+   !----------------------------------------------------------------------------
+   ! DEF = default fields.  CCSM expects at least these fields to be present.
+   ! Remove at your own risk.
+   ! 
+   ! If you add a field, add a name to the string below.  You may also
+   ! document the additional field here. The relevant component must
+   ! also be modified to set or access the new field.
+   !
+   !----------------------------------------------------------------------------
+   ! States
+   character(*), parameter,public :: cpl_fields_r2c_states = &
+         ''
+
+   ! Fluxes
+   character(*), parameter,public :: cpl_fields_r2c_fluxes = &
+         'Forr_roff'        ! runoff to ocean                 DEF
+
+!  character(*), parameter,public :: cpl_fields_r2c_fields = &
+!     trim(cpl_fields_r2c_states)//":"//trim(cpl_fields_r2c_fluxes)
+   character(*), parameter,public :: cpl_fields_r2c_fields = &
+      trim(cpl_fields_r2c_fluxes)
+
+
+   !----------------------------------------------------------------------------
+   ! "info-buffer" index of entries 
+   !----------------------------------------------------------------------------
+
+   integer(IN),parameter,public :: cpl_fields_ibuf_total    = 100 ! size of info-buffer
+
+   integer(IN),parameter,public :: cpl_fields_ibuf_rcode    =   1 ! error code
+   integer(IN),parameter,public :: cpl_fields_ibuf_cdate    =   2 ! current date: yymmdd
+   integer(IN),parameter,public :: cpl_fields_ibuf_sec      =   3 ! elapsed sec on date
+   integer(IN),parameter,public :: cpl_fields_ibuf_ncpl     =   4 ! cpl comm's per day
+   integer(IN),parameter,public :: cpl_fields_ibuf_nfields  =  10
+   integer(IN),parameter,public :: cpl_fields_ibuf_gsize    =  11
+   integer(IN),parameter,public :: cpl_fields_ibuf_lsize    =  12
+   integer(IN),parameter,public :: cpl_fields_ibuf_gisize   =  13
+   integer(IN),parameter,public :: cpl_fields_ibuf_gjsize   =  14
+   integer(IN),parameter,public :: cpl_fields_ibuf_lisize   =  15
+   integer(IN),parameter,public :: cpl_fields_ibuf_ljsize   =  16
+   integer(IN),parameter,public :: cpl_fields_ibuf_stopeod  =  19
+   integer(IN),parameter,public :: cpl_fields_ibuf_stopnow  =  20
+   integer(IN),parameter,public :: cpl_fields_ibuf_resteod  =  21
+   integer(IN),parameter,public :: cpl_fields_ibuf_restnow  =  22
+   integer(IN),parameter,public :: cpl_fields_ibuf_histeod  =  23
+   integer(IN),parameter,public :: cpl_fields_ibuf_histnow  =  24
+   integer(IN),parameter,public :: cpl_fields_ibuf_histavg  =  25
+   integer(IN),parameter,public :: cpl_fields_ibuf_diageod  =  26
+   integer(IN),parameter,public :: cpl_fields_ibuf_diagnow  =  27
+   integer(IN),parameter,public :: cpl_fields_ibuf_infotim  =  28
+   integer(IN),parameter,public :: cpl_fields_ibuf_infobug  =  29
+   integer(IN),parameter,public :: cpl_fields_ibuf_precadj  =  31 ! precip adjustment factor (* 1.0e+6)
+   integer(IN),parameter,public :: cpl_fields_ibuf_ashift   =  32 ! albedo calculation time shift
+   integer(IN),parameter,public :: cpl_fields_ibuf_nbasins  =  33 ! number of active runoff basins
+   integer(IN),parameter,public :: cpl_fields_ibuf_xalbic   =  34 ! request extra albedo solar init msg
+   integer(IN),parameter,public :: cpl_fields_ibuf_dead     =  37 ! non-0 <=> dead model
+   integer(IN),parameter,public :: cpl_fields_ibuf_domain   =  40
+   integer(IN),parameter,public :: cpl_fields_ibuf_userest  =  41 ! non-0 <=> use restart data sent to cpl
+
+   integer(IN),parameter,public :: cpl_fields_rbuf_total    =  50 ! size of real info-buffer
+
+   integer(IN),parameter,public :: cpl_fields_rbuf_spval    =   1 ! the special value
+   integer(IN),parameter,public :: cpl_fields_rbuf_eccen    =  10 ! Earth's eccentricity
+   integer(IN),parameter,public :: cpl_fields_rbuf_obliqr   =  11 ! Earth's Obliquity
+   integer(IN),parameter,public :: cpl_fields_rbuf_lambm0   =  12 ! longitude of perihelion at v-equinox
+   integer(IN),parameter,public :: cpl_fields_rbuf_mvelpp   =  13 ! Earth's Moving vernal equinox of orbit +pi
+
+   !----------------------------------------------------------------------------
+   ! component names
+   !----------------------------------------------------------------------------
+
+   character(32),parameter,public :: cpl_fields_atmname='atm'
+   character(32),parameter,public :: cpl_fields_ocnname='ocn'
+   character(32),parameter,public :: cpl_fields_icename='ice'
+   character(32),parameter,public :: cpl_fields_lndname='lnd'
+   character(32),parameter,public :: cpl_fields_rtmname='roff'
+   character(32),parameter,public :: cpl_fields_cplname='cpl'
+
+
+!EOP
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! THE PARAMETERS BELOW SHOULD NOT NORMALLY BE MODIFIED BY USERS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+   !----------------------------------------------------------------------------
+   ! initial fields, generally a domain description 
+   !----------------------------------------------------------------------------
+
+   integer(IN),parameter,public :: cpl_fields_grid_total  = 8
+
+   character(*),parameter,public :: cpl_fields_grid_fields = &
+      &'lat&
+      &:lon&
+      &:area&
+      &:mask&
+      &:frac&
+      &:aream&
+      &:index&
+      &:pid'
+
+   integer(IN),parameter,public :: cpl_fields_grid_lat    = 1    ! lat from component
+   integer(IN),parameter,public :: cpl_fields_grid_lon    = 2    ! lon from component
+   integer(IN),parameter,public :: cpl_fields_grid_area   = 3    ! area from component
+   integer(IN),parameter,public :: cpl_fields_grid_mask   = 4    ! mask, 0 = inactive cell
+   integer(IN),parameter,public :: cpl_fields_grid_frac   = 5    ! fractional area coverage
+   integer(IN),parameter,public :: cpl_fields_grid_aream  = 6    ! area from mapping file
+   integer(IN),parameter,public :: cpl_fields_grid_index  = 7    ! global index
+   integer(IN),parameter,public :: cpl_fields_grid_pid    = 8    ! proc id number
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+contains
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!===============================================================================
+!BOP ===========================================================================
+!
+! !IROUTINE: cpl_fields_getField
+!
+! !DESCRIPTION:
+!     Returns {\tt nfld} element of the colon-delimited string {\tt cstring}
+!     in the output character string {\tt outfield}.
+!
+! !REVISION HISTORY:
+!     2003-Jan-24  - T. Craig - first version
+!
+! !INTERFACE: ------------------------------------------------------------------
+
+  subroutine cpl_fields_getField(outfield,nfld,cstring)
+
+! !USES:
+
+! !INPUT/OUTPUT PARAMETERS:
+
+   character(*),intent(out) :: outfield   ! output field name
+   integer     ,intent(in ) :: nfld       ! field number
+   character(*),intent(in ) :: cstring    ! colon delimited field string
+
+!EOP
+
+  type(mct_list)   :: mctIstr  ! mct list from input cstring
+  type(mct_string) :: mctOStr  ! mct string for output outfield
+
+!-------------------------------------------------------------------------------
+!
+!-------------------------------------------------------------------------------
+
+  outfield = ' '
+
+  call mct_list_init(mctIstr,cstring)
+  call mct_list_get(mctOStr,nfld,mctIstr)
+  outfield = mct_string_toChar(mctOStr)
+  call mct_list_clean(mctIstr)
+  call mct_string_clean(mctOStr)
+
+end subroutine cpl_fields_getField
+
+!===============================================================================
+!BOP ===========================================================================
+!
+! !MODULE: cpl_fields_getLongName -- get netCDF attributes for a field
+!
+! !DESCRIPTION:
+!    Parse the field name {\tt fldstr} and and return the netCDF attribute 
+!    character string {\tt longname} and unit string {\tt units} corresponding 
+!    to the given field name.
+!
+!    Contructs a lookup table of short and long names.
+!
+!    Example: for input {\tt So\_dhdx}, the {\tt So\_} is removed and the
+!    attribute and units for {\tt dydx} is returned.
+!
+! !REVISION HISTORY:
+!     2003-may-12 - B. Kauffman - initial version
+!
+! !INTERFACE:  -----------------------------------------------------------------
+
+subroutine cpl_fields_getLongName(fldstr,longname,units)
+
+! !USES:
+
+   implicit none
+
+! !INPUT/OUTPUT PARAMETERS:
+
+   character(*),intent(in)   :: fldstr     ! field name
+   character(*),intent(out)  :: longname   ! corresponding longname
+   character(*),intent(out)  :: units      ! corresponding units
+
+!EOP
+
+   !--- local ---
+   integer,parameter    :: nl = 62             ! max number of longnames
+   integer              :: n                   ! generic loop index
+   character(32),save   :: lookup(nl,3)        ! longname lookup table
+   character(32)        :: shortname           ! short name
+   logical, save        :: firstCall = .true.  ! flags initializtion
+
+   !----- formats -----
+   character(*),parameter :: subname = "(cpl_fields_getLongName)"
+   character(*),parameter :: F00 = "('(cpl_fields_getLongName) ',4a)"
+
+!-------------------------------------------------------------------------------
+
+   if (FirstCall) then
+      FirstCall = .false.
+      lookup( :,:) = "undefined"
+      lookup( 1,1) = "area"  ; lookup( 1,2) = "cell area                     " ; lookup( 1,3) = "rad^2   "
+      lookup( 2,1) = "aream" ; lookup( 2,2) = "cell area from map file       " ; lookup( 2,3) = "rad^2   "
+      lookup( 3,1) = "index" ; lookup( 3,2) = "global index                  " ; lookup( 3,3) = "unitless"
+      lookup( 4,1) = "lati"  ; lookup( 4,2) = "latitude                      " ; lookup( 4,3) = "degrees north "
+      lookup( 5,1) = "lon"   ; lookup( 5,2) = "longitude                     " ; lookup( 5,3) = "degrees east  "
+      lookup( 6,1) = "mask"  ; lookup( 6,2) = "domain mask                   " ; lookup( 6,3) = "unitless"
+      lookup( 7,1) = "maska" ; lookup( 7,2) = "domain mask, atm              " ; lookup( 7,3) = "unitless"
+      lookup( 8,1) = "maski" ; lookup( 8,2) = "domain mask, ice              " ; lookup( 8,3) = "unitless"
+      lookup( 9,1) = "maskl" ; lookup( 9,2) = "domain mask, lnd              " ; lookup( 9,3) = "unitless"
+
+      lookup(10,1) = "masko" ; lookup(10,2) = "domain mask, ocn              " ; lookup(10,3) = "unitless"
+      lookup(11,1) = "pid"   ; lookup(11,2) = "process ID                    " ; lookup(11,3) = "unitless"
+      lookup(12,1) = "anidf" ; lookup(12,2) = "albedo, near-infrared, diffuse" ; lookup(12,3) = "unitless"
+      lookup(13,1) = "anidr" ; lookup(13,2) = "albedo, near-infrared, direct " ; lookup(13,3) = "unitless"
+      lookup(14,1) = "avsdf" ; lookup(14,2) = "albedo, visible, diffuse      " ; lookup(14,3) = "unitless"
+      lookup(15,1) = "avsdr" ; lookup(15,2) = "albedo, visible, direct       " ; lookup(15,3) = "unitless"
+      lookup(16,1) = "dens"  ; lookup(16,2) = "density                       " ; lookup(16,3) = "kg/m^3  "
+      lookup(17,1) = "dhdx"  ; lookup(17,2) = "surface slope, zonal          " ; lookup(17,3) = "m/m     "
+      lookup(18,1) = "dhdy"  ; lookup(18,2) = "surface slope, meridional     " ; lookup(18,3) = "m/m     "
+      lookup(19,1) = "duu10n"; lookup(19,2) = "10m neutral wind speed squared" ; lookup(19,3) = "m^2/s^2 "
+
+      lookup(20,1) = "evap"  ; lookup(20,2) = "evaporation                   " ; lookup(20,3) = "kg/s/m^2"
+      lookup(21,1) = "frac"  ; lookup(21,2) = "fraction                      " ; lookup(21,3) = "unitless"
+      lookup(22,1) = "afrac" ; lookup(22,2) = "fraction atm                  " ; lookup(22,3) = "unitless"
+      lookup(23,1) = "ifrac" ; lookup(23,2) = "fraction ice                  " ; lookup(23,3) = "unitless"
+      lookup(24,1) = "lfrac" ; lookup(24,2) = "fraction lnd                  " ; lookup(24,3) = "unitless"
+      lookup(25,1) = "ofrac" ; lookup(25,2) = "fraction ocn                  " ; lookup(25,3) = "unitless"
+      lookup(26,1) = "lwdn"  ; lookup(26,2) = "longwave radiation, downward  " ; lookup(26,3) = "W/m^2   "
+      lookup(27,1) = "lwup"  ; lookup(27,2) = "longwave radiation, upward    " ; lookup(27,3) = "W/m^2   "
+      lookup(28,1) = "melth" ; lookup(28,2) = "melt heat                     " ; lookup(28,3) = "W/m^2   "
+      lookup(29,1) = "meltw" ; lookup(29,2) = "melt water                    " ; lookup(29,3) = "kg/s/m^2"
+
+      lookup(30,1) = "pbot"  ; lookup(30,2) = "pressure, bottom              " ; lookup(30,3) = "Pa      "
+      lookup(31,1) = "prec"  ; lookup(31,2) = "precipitation                 " ; lookup(31,3) = "kg/s/m^2"
+      lookup(32,1) = "pslv"  ; lookup(32,2) = "pressure, sea level           " ; lookup(32,3) = "Pa      "
+      lookup(33,1) = "ptem"  ; lookup(33,2) = "potential temperature         " ; lookup(33,3) = "kelvin  "
+      lookup(34,1) = "q"     ; lookup(34,2) = "q<0 = heat of fusion, &
+                                              &q>0 = melting potential"        ; lookup(34,3) = "W/m^2   "
+      lookup(35,1) = "qref"  ; lookup(35,2) = "humidity, reference           " ; lookup(35,3) = "kg/kg   "
+      lookup(36,1) = "rain"  ; lookup(36,2) = "precipitation, liquid         " ; lookup(36,3) = "kg/s/m^2"
+      lookup(37,1) = "rainc" ; lookup(37,2) = "precip, liquid, convective    " ; lookup(37,3) = "kg/s/m^2"
+      lookup(38,1) = "rainl" ; lookup(38,2) = "precip, liquid, large-scale   " ; lookup(38,3) = "kg/s/m^2"
+      lookup(39,1) = "roff"  ; lookup(39,2) = "water flux: runoff            " ; lookup(39,3) = "kg/s/m^2"
+
+      lookup(40,1) = "salt"  ; lookup(40,2) = "salt flux                     " ; lookup(40,3) = "kg/s/m^2"
+      lookup(41,1) = "s"     ; lookup(41,2) = "salinity                      " ; lookup(41,3) = "g/kg    "
+      lookup(42,1) = "sen"   ; lookup(42,2) = "sensible heat flux            " ; lookup(42,3) = "W/m^2   "
+      lookup(43,1) = "lat"   ; lookup(43,2) = "latent heat flux              " ; lookup(43,3) = "W/m^2   "
+      lookup(44,1) = "shum"  ; lookup(44,2) = "humidity, specific            " ; lookup(44,3) = "kg/kg   "
+      lookup(45,1) = "snow"  ; lookup(45,2) = "precipitation, frozen         " ; lookup(45,3) = "kg/s/m^2"
+      lookup(46,1) = "snowc" ; lookup(46,2) = "precip, frozen, convective    " ; lookup(46,3) = "kg/s/m^2"
+      lookup(47,1) = "snowl" ; lookup(47,2) = "precip, frozen, large-scale   " ; lookup(47,3) = "kg/s/m^2"
+      lookup(48,1) = "swndf" ; lookup(48,2) = "rad, sw, near-infr, diffuse   " ; lookup(48,3) = "W/m^2   "
+      lookup(49,1) = "swndr" ; lookup(49,2) = "rad, sw, near-infr, direct    " ; lookup(49,3) = "W/m^2   "
+
+      lookup(50,1) = "swnet" ; lookup(50,2) = "rad, sw, net                  " ; lookup(50,3) = "W/m^2   "
+      lookup(51,1) = "swpen" ; lookup(51,2) = "rad, sw, penetrating          " ; lookup(51,3) = "W/m^2   "
+      lookup(52,1) = "swvdf" ; lookup(52,2) = "rad, sw, visible, diffuse     " ; lookup(52,3) = "W/m^2   "
+      lookup(53,1) = "swvdr" ; lookup(53,2) = "rad, sw, visible, direct      " ; lookup(53,3) = "W/m^2   "
+      lookup(54,1) = "t"     ; lookup(54,2) = "temperature                   " ; lookup(54,3) = "kelvin  "
+      lookup(55,1) = "taux"  ; lookup(55,2) = "stress, zonal                 " ; lookup(55,3) = "N/m^2   "
+      lookup(56,1) = "tauy"  ; lookup(56,2) = "stress, meridional            " ; lookup(56,3) = "N/m^2   "
+      lookup(57,1) = "tbot"  ; lookup(57,2) = "temperature, bottom           " ; lookup(57,3) = "kelvin  "
+      lookup(58,1) = "tref"  ; lookup(58,2) = "temperature, reference        " ; lookup(58,3) = "kelvin  "
+      lookup(59,1) = "u"     ; lookup(59,2) = "velocity, zonal               " ; lookup(59,3) = "N/m^2   "
+
+      lookup(60,1) = "v"     ; lookup(60,2) = "velocity, meridional          " ; lookup(60,3) = "N/m^2   "
+      lookup(61,1) = "z"     ; lookup(61,2) = "height                        " ; lookup(61,3) = "m       "
+      lookup(62,1) = "snowh" ; lookup(62,2) = "snow depth                    " ; lookup(62,3) = "m       "
+   end if
+
+   !--- find shortname in suffix of field name string ---
+   n = shr_string_lastIndex(fldstr,"_")
+   shortname = ""
+   if (n < len_trim(fldstr)) shortname = fldstr(n+1:len_trim(fldstr))
+   if (len_trim(shortname) < 1) write(6,F00) "WARNING: short name has length 0"
+
+   !--- find/set longname & units corresponding to shortname ---
+   longname = "undefined"
+   units    = "undefined"
+   do n=1,nl
+      if ( trim(shortname) == trim(lookup(n,1)) ) then
+         longname = trim(lookup(n,2))
+         units    = trim(lookup(n,3))
+         exit
+      end if
+   end do
+
+end subroutine cpl_fields_getLongName
+
+!===============================================================================
+
+end module cpl_fields_mod
+

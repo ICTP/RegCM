@@ -16,7 +16,7 @@ mod_bxq.o        mod_dust.o       mod_param2.o     mod_tracer0.o     \
 mod_comctl.o     mod_param3.o     mod_tracer.o     mod_comozp.o      \
 mod_grads.o      mod_pmoist.o     mod_trachem.o    mod_comtim.o      \
 mod_ictp01.o     mod_constants.o  mod_iunits.o     mod_regcm_param.o \
-mod_pbldim.o     mod_lake.o       mod_interfaces.o
+mod_pbldim.o     mod_lake.o       mod_interfaces.o mod_clm.o
 
 OBJS = \
 aermix.o          cup.o         isrchfgt.o  radclw.o    tractend2.o  \
@@ -69,6 +69,7 @@ mod_bdycod.o: mod_bdycod.F90 mod_regcm_param.o
 mod_blh_tmp.o: mod_blh_tmp.F90 mod_regcm_param.o
 mod_bmparam.o: mod_bmparam.f90
 mod_bxq.o: mod_bxq.F90 mod_regcm_param.o
+mod_clm.o: mod_clm.f90
 mod_comctl.o: mod_comctl.f90
 mod_comozp.o: mod_comozp.f90
 mod_comtim.o: mod_comtim.f90

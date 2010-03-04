@@ -1,0 +1,16 @@
+# bad stop option
+&timemgr_inparm
+  stop_option     = 'badoption'
+  stop_n          = 2
+  atm_cpl_dt      = 1200
+  orb_mvelp       = 89.9 
+  orb_eccen       = 0.05
+  orb_obliq       = 70.5
+  start_ymd       = 20061231
+/
+&ccsm_inparm
+ case_desc        = "this is a bad stop option case"
+ aqua_planet      = .true.
+ mss_irt          = 4295
+ archive_dir      = "./"
+/

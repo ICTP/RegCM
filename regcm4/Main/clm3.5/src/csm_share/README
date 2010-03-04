@@ -1,0 +1,42 @@
+!===============================================================================
+! SVN $Id: README 3359 2007-03-02 22:10:06Z kauff $
+! SVN $URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_070321/README $
+!===============================================================================
+
+                  A description of csm_share
+
+This module exists to collect code shared between various CCSM components.
+Excluding this "shared code" module, CCSM components are built using disjoint
+sets of source code.  The use of this shared code is similar to the use of
+object code libraries where each subdirectory of csm_share is equivalant to 
+one library.  While object library routines are accessed by linking to libraries 
+during the load phase, these shared code routines are accessed by including the 
+appropriate source code directory path during the compile phase.
+
+Motivation for this code sharing includes:
+
+- facilitating consistent physics between all models.  For example, uniform 
+  solar-zenith-angle/orbital calculations and uniform physical constants.
+- providing an interface/API between component models and the flux-coupler
+  component in the CCSM framework.
+- avoiding the need for redundant implementations of commonly needed 
+  functionality.  For example netCDF file reading, basic mapping (re-gridding)
+  functionality, and common character string manipulations.
+
+Current subsets ("libraries") of shared code include:
+
+shr - very generic, general-purpose code that is likely to be useful to all 
+      CCSM components.  CCSM components may be explicitly required to use some 
+      parts of this code, for example the physical constants module.
+
+dshr - code intended specifically for, and shared by, data model components
+
+eshr - CCSM's interface to ESMF code and data types.
+      This is for use by proto-type versions of CCSM that are exploring the feasibility
+      of using ESMF as the coupling infrastructure in future versions of CCSM.
+      This should be the only share code that is dependant upon ESMF.
+
+cpl - the ccsm3/cpl6 interface/API code for coupling between component models and
+      the flux coupler component.  CCSM3/cpl6 uses MCT as its coupling infrastructure
+      thus this code is dependant upon MCT.
+

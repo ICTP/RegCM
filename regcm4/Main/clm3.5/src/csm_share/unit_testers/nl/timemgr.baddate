@@ -1,0 +1,14 @@
+# bad date case
+&timemgr_inparm
+  stop_option     = 'monthly'
+  stop_n          = 3
+  atm_cpl_dt      = 400
+  orb_iyear_ad    = 1492
+  start_ymd       = 14921301
+  perpetual_run   = .true.
+/
+&ccsm_inparm
+ case_desc        = "this is a case with bad start date"
+ atm_ideal_phys   = .true.
+ archive_dir      = "./"
+/
