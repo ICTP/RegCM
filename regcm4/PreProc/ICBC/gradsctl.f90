@@ -1,4 +1,4 @@
-      subroutine gradsctlb(finame,idate,inumber)
+      subroutine gradsctl(finame,idate,inumber)
       use mod_domain
       use mod_geo
       implicit none
@@ -113,36 +113,55 @@
       nhour = mod(idate,100)
       write (71,99009) inumber , nhour , cday(nday) , cmonth(month) ,    &
                      & nyear
-      if ( lsmtyp=='USGS' ) then
+      if ( dattyp=='EH5OM' ) then
+        if ( ehso4 ) then
+          if ( lsmtyp=='USGS' ) then
+            write (71,99011) 21
+          else
+            write (71,99010) 8
+          end if
+        else if ( lsmtyp=='USGS' ) then
+          write (71,99011) 20
+        else
+          write (71,99010) 7
+        end if
+      else if ( lsmtyp=='USGS' ) then
         write (71,99011) 20
       else
         write (71,99010) 7
       end if
       write (71,'(a)') 'date 0 99 header information'
-      write (71,99012) 'u   ' , kz , 'westerly wind    '
-      write (71,99012) 'v   ' , kz , 'southerly wind   '
+      if ( lgtype=='LAMCON' ) then       ! Lambert projection
+        write (71,99013) 'u   ' , kz , 'westerly wind    '
+        write (71,99014) 'v   ' , kz , 'southerly wind   '
+      else
+        write (71,99012) 'u   ' , kz , 'westerly wind    '
+        write (71,99012) 'v   ' , kz , 'southerly wind   '
+      end if
       write (71,99012) 't   ' , kz , 'air temperature  '
       write (71,99012) 'q   ' , kz , 'specific moisture'
-      write (71,99013) 'px  ' , 'surface pressure           '
-      write (71,99013) 'ts  ' , 'surface air temperature    '
+      write (71,99015) 'px  ' , 'surface pressure           '
+      write (71,99015) 'ts  ' , 'surface air temperature    '
+      if ( dattyp=='EH5OM' .and. ehso4 ) write (71,99012) 'so4 ' , kz , &
+          &'sulfate amount   '
       if ( lsmtyp=='USGS' ) then
-        write (71,99013) 'qs1 ' , 'soil moisture level 1      '
-        write (71,99013) 'qs2 ' , 'soil moisture level 2      '
-        write (71,99013) 'qs3 ' , 'soil moisture level 3      '
-        write (71,99013) 'qs4 ' , 'soil moisture level 4      '
-        write (71,99013) 'ti1 ' , 'ice  temperature level 1   '
-        write (71,99013) 'ti2 ' , 'ice  temperature level 2   '
-        write (71,99013) 'ti3 ' , 'ice  temperature level 3   '
-        write (71,99013) 'ti4 ' , 'ice  temperature level 4   '
-        write (71,99013) 'ts1 ' , 'soil temperature level 1   '
-        write (71,99013) 'ts2 ' , 'soil temperature level 2   '
-        write (71,99013) 'ts3 ' , 'soil temperature level 3   '
-        write (71,99013) 'ts4 ' , 'soil temperature level 4   '
-        write (71,99013) 'snd ' , 'snow depth (in metre)      '
+        write (71,99015) 'qs1 ' , 'soil moisture level 1      '
+        write (71,99015) 'qs2 ' , 'soil moisture level 2      '
+        write (71,99015) 'qs3 ' , 'soil moisture level 3      '
+        write (71,99015) 'qs4 ' , 'soil moisture level 4      '
+        write (71,99015) 'ti1 ' , 'ice  temperature level 1   '
+        write (71,99015) 'ti2 ' , 'ice  temperature level 2   '
+        write (71,99015) 'ti3 ' , 'ice  temperature level 3   '
+        write (71,99015) 'ti4 ' , 'ice  temperature level 4   '
+        write (71,99015) 'ts1 ' , 'soil temperature level 1   '
+        write (71,99015) 'ts2 ' , 'soil temperature level 2   '
+        write (71,99015) 'ts3 ' , 'soil temperature level 3   '
+        write (71,99015) 'ts4 ' , 'soil temperature level 4   '
+        write (71,99015) 'snd ' , 'snow depth (in metre)      '
       end if
       write (71,'(a)') 'endvars'
       close (71)
-99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
+99001 format ('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
 99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
 99003 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
 99004 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
@@ -154,6 +173,8 @@
 99010 format ('vars ',i1)
 99011 format ('vars ',i2)
 99012 format (a4,i2,' 0 ',a17)
-99013 format (a4,'0 99 ',a26)
+99013 format (a4,i2,' 33,100 ',a17)
+99014 format (a4,i2,' 34,100 ',a17)
+99015 format (a4,'0 99 ',a26)
 !
-      end subroutine gradsctlb
+      end subroutine gradsctl
