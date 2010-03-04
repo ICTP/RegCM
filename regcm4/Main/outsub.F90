@@ -35,9 +35,7 @@
 ! Local variables
 !
       real(4) , dimension(jxm2*nsg,ixm2*nsg) :: v2b
-#ifdef MPP1
       integer :: n
-#endif
 
 #ifdef MPP1
       if ( iotyp.eq.1 ) then
@@ -66,8 +64,6 @@
           call reorder(fsub(1,1,1,n),v2b,jxm2,ixm2,nsg)
           write (iutsub) v2b
         end do
-      end if
-      else
       end if
 #endif
 
