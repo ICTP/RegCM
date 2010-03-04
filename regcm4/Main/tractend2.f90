@@ -41,7 +41,8 @@
       use mod_date
       use mod_message
       use mod_constants , only : gti , zlnd , zoce , zsno , ep2 , svp1 ,&
-                               & svp2 , svp3 , tzero
+                               & svp2 , svp3 , svp4 , svp5 , svp6 ,     &
+                               & tzero
       implicit none
 !
 ! Dummy arguments
@@ -535,7 +536,7 @@
               satvp = svp1*1.E3*dexp(svp2*(temp10(i)-tzero)             &
                     & /(temp10(i)-svp3))
             else
-              satvp = .611*1.E3*dexp(22.514-6.15E3/temp10(i))
+              satvp = svp4*1.E3*dexp(svp5-svp6/temp10(i))
             end if
             pres10 = psurf(i) - 98
             qsat10 = ep2*satvp/(pres10-satvp)

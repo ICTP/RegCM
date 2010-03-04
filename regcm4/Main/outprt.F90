@@ -339,7 +339,7 @@
 !           v8 svp formula
             satvp = svp1*dexp(svp2*(hscr1(i,j)-tzero)/(hscr1(i,j)-svp3))
           else
-            satvp = .611*dexp(22.514-6.15E3/hscr1(i,j))
+            satvp = svp4*dexp(svp5-svp6/hscr1(i,j))
           end if
  
           qvs = ep2*satvp/(pres-satvp)

@@ -34,7 +34,8 @@
       use mod_param3 , only : ptop , a
       use mod_pmoist
       use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
-                             & svp2 , svp3 , tzero , rwat
+                             & svp2 , svp3 , svp4 , svp5 , svp6 ,       &
+                             & tzero , rwat
       implicit none
 !
 ! Dummy arguments
@@ -75,7 +76,7 @@
 !             v8 svp formula
               e1 = svp1*dexp(svp2*(tta-tzero)/(tta-svp3))
             else
-              e1 = .611*dexp(22.514-6.15E3/tta)
+              e1 = svp4*dexp(svp5-svp6/tta)
             end if
             es1 = ep2*e1/(psx-e1)
             dqv = qvavg - es1*conf

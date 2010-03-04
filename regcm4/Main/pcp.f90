@@ -46,7 +46,8 @@
       use mod_trachem , only : remrat , rembc
       use mod_date , only : jyear , jyear0 , ktau
       use mod_constants , only : rgti , rgas , ep2 , wlhvocp , svp1 ,   &
-                               & svp2 , svp3 , tzero
+                               & svp2 , svp3 , svp4 , svp5 , svp6 ,     &
+                               & tzero
       implicit none
 !
 ! Dummy arguments
@@ -165,7 +166,7 @@
           if ( tcel.gt.0.0 ) then
             es = svp1*1000.*dexp(svp2*tcel/(tk-svp3))        ![Pa][avg]
           else
-            es = svp1*1000.*dexp(22.514-6.15E3/tk)           ![Pa][avg]
+            es = svp4*1000.*dexp(svp5-svp6/tk)               ![Pa][avg]
           end if
           qs = ep2*es/(p-es)                                 ![kg/kg][avg]
           rh = dmin1(dmax1(q/qs,0.0D0),rhmax)                ![frac][avg]

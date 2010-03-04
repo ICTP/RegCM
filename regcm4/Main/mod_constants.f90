@@ -41,6 +41,7 @@
       real(8) , parameter :: rcpd = 1.0D+00/cpd
       real(8) , parameter :: rovcp = rgas*rcpd
       real(8) , parameter :: rovg  = rgas/gti
+      real(8) , parameter :: govr  = gti/rgas
       real(8) , parameter :: vtmpc1 = rwat/rgas - 1.0D+00
       real(8) , parameter :: vtmpc2 = cpv*rcpd - 1.0D+00
       real(8) , parameter :: rhoh2o = 1000.0D+00
@@ -149,6 +150,15 @@
       real(8) , parameter :: svp1 = 0.6112D+00
       real(8) , parameter :: svp2 = 17.67D+00
       real(8) , parameter :: svp3 = 29.65D+00
+      real(8) , parameter :: svp4 = 0.611D+00
+      real(8) , parameter :: svp5 = 22.514D+00
+      real(8) , parameter :: svp6 = 6.15D+03
+      ! Constants used in computing evaporation latent heat.
+      real(8) , parameter :: lh0 = 597.3D+00
+      real(8) , parameter :: lh1 = 0.566D+00
+      ! Constants from latent heat and temperature to saturation vapor p.
+      real(8) , parameter :: lsvp1 = 6.11D+00
+      real(8) , parameter :: lsvp2 = 9.045D+00
 
       ! Terminal velocity constants
       real(8) , parameter :: avt = 841.99667D+00

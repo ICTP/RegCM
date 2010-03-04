@@ -46,7 +46,8 @@
       use mod_pmoist
       use mod_slice
       use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
-                               & svp2 , svp3 , tzero , rwat
+                               & svp2 , svp3 , svp4 , svp5 , svp6 ,     &
+                               & tzero , rwat
       implicit none
 !
 ! Dummy arguments
@@ -92,7 +93,7 @@
             satvp = svp1*1.E3*dexp(svp2*(tmp3(i,k)-tzero)               &
                   & /(tmp3(i,k)-svp3))
           else
-            satvp = .611*1.E3*dexp(22.514-6.15E3/tmp3(i,k))
+            satvp = svp4*1.E3*dexp(svp5-svp6/tmp3(i,k))
           end if
           qvs = dmax1(ep2*satvp/(pres-satvp),1.D-30)
           rhc = dmax1(qvcs(i,k)/qvs,1.D-30)

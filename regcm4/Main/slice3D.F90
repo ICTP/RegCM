@@ -28,7 +28,7 @@
       use mod_pmoist
       use mod_slice
       use mod_constants , only : rgas , rovcp , rovg , ep2 , svp1 ,     &
-                               & svp2 , svp3 , tzero
+                               & svp2 , svp3 , svp4, svp5 , svp6 , tzero
       implicit none
 !
 ! Local variables
@@ -146,7 +146,7 @@
               satvp = svp1*1.E3*dexp(svp2*(tb3d(i,k,j)-tzero)           &
                     & /(tb3d(i,k,j)-svp3))
             else
-              satvp = .611*1.E3*dexp(22.514-6.15E3/tb3d(i,k,j))
+              satvp = svp4*1.E3*dexp(svp5-svp6/tb3d(i,k,j))
             end if
             qsb3d(i,k,j) = ep2*satvp/(pres-satvp)
             rh = 0.
