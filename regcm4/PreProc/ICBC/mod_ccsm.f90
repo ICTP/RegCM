@@ -113,23 +113,22 @@
 
       integer , parameter :: klev = 26 , npl = 18
 
+      ! Whole space
+      real , target , dimension(ilon,jlat,npl*3) :: b2
+      real , target , dimension(ilon,jlat,npl*2) :: d2
+      real , target , dimension(jx,iy,klev*3) :: b3
+      real , target , dimension(jx,iy,npl*2) :: d3
+
+      ! Shared by netcdf I/O routines
       integer , dimension(10) :: icount , istart
       integer :: inet1 , ivar1
       integer , dimension(6) :: inet6 , ivar6
 
-      equivalence (b2(1,1,1),tp(1,1,1))
-      equivalence (d2(1,1,1),up(1,1,1))
-      real , dimension(jx,iy,npl*3) :: b3
-      real , dimension(jx,iy) :: b3pd
-      real , dimension(jx,iy,npl*2) :: d3
-      real , dimension(jx,iy,npl) :: h3 , q3 , t3 , u3 , v3
-      equivalence (b3(1,1,1),t3(1,1,1))
-      equivalence (d3(1,1,1),u3(1,1,1))
-      real , dimension(jx,iy,kz) :: h4 , q4 , t4 , u4 , v4
-      real , dimension(jx,iy) :: ps4 , ts4
-      real , dimension(ilon,jlat,npl*3) :: b2
-      real , dimension(ilon,jlat,npl*2) :: d2
-      real , dimension(ilon,jlat,npl) :: hp , qp , tp , up , vp
+      real , pointer :: u3(:,:,:) , v3(:,:,:)
+      real , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+      real , pointer :: up(:,:,:) , vp(:,:,:)
+      real , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
+
       real , dimension(ilon,jlat,klev) :: pp3d
       real , dimension(ilon,jlat,klev) :: hvar , qvar , tvar , uvar ,   &
                                         & vvar
@@ -139,12 +138,6 @@
       real , dimension(ilon) :: glon
       real , dimension(npl) :: pplev , sigma1 , sigmar
       real :: psref
-
-      real , dimension(jx,iy) :: coriol , dlat , dlon , msfx , snowcv , &
-                               & topogm , toposdgm , xlandu , xlat ,    &
-                               & xlon
-      real , dimension(kz) :: dsigma , sigma2
-      real , dimension(kz+1) :: sigmaf
       real :: delx , grdfac
       character(6) :: lgtype
 
@@ -153,6 +146,7 @@
       subroutine get_cam42(idate)
 
         use netcdf
+        use mod_cdcvars
 
         implicit none
 !
@@ -178,6 +172,17 @@
         real , allocatable , dimension(:,:) :: work
 
         data varname/'PHIS'/
+ 
+        u3 => d3(:,:,1:npl)
+        v3 => d3(:,:,npl+1:2*npl)
+        t3 => b3(:,:,1:npl)
+        h3 => b3(:,:,npl+1:2*npl)
+        q3 => b3(:,:,2*npl+1:3*npl)
+        up => d2(1:ilonh,1:jlath,1:npl)
+        vp => d2(1:ilonh,1:jlath,npl+1:2*npl)
+        tp => b2(1:ilonh,1:jlath,1:npl)
+        hp => b2(1:ilonh,1:jlath,npl+1:2*npl)
+        qp => b2(1:ilonh,1:jlath,2*npl+1:3*npl)
  
         call cam42(idate,idate1,xlon,xlat,glat,jx,iy,i0,i1,j0,j1)
 
@@ -754,13 +759,14 @@
 ! 
       subroutine get_cam85(idate)
 
-      use netcdf
+        use netcdf
+        use mod_cdcvars
 
-      implicit none
+        implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate
+        integer :: idate
 !
 ! Local variables
 !
@@ -780,6 +786,17 @@
       real , allocatable , dimension(:,:) :: work
 !
       data varname/'PHIS'/
+ 
+      u3 => d3(:,:,1:npl)
+      v3 => d3(:,:,npl+1:2*npl)
+      t3 => b3(:,:,1:npl)
+      h3 => b3(:,:,npl+1:2*npl)
+      q3 => b3(:,:,2*npl+1:3*npl)
+      up => d2(1:ilon,1:jlat,1:npl)
+      vp => d2(1:ilon,1:jlat,npl+1:2*npl)
+      tp => b2(1:ilon,1:jlat,1:npl)
+      hp => b2(1:ilon,1:jlat,npl+1:2*npl)
+      qp => b2(1:ilon,1:jlat,2*npl+1:3*npl)
  
       call cam85(idate,idate1,xlon,xlat,glat,jx,iy,i0,i1,j0,j1)
       if ( idate==idate1 ) then
