@@ -14,6 +14,7 @@ INTELINC = -I/opt/intel/fce/10.1.018/include
 CPPFLAGS = -DDIAG -DINTEL -DMPP1
 USCORING = -assume nounderscore
 F90FLAGS =   -mp1 -O2 -convert big_endian -assume byterecl 
+LDFLAGS = -i-dynamic
 FC = mpif90
 F90 = mpif90
 LD =$(FC)

@@ -16,8 +16,6 @@ REGCM_DATA_DIR =/lustre/esp/CORDEX/RCM3DATA
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
 NETCDFINC = -I$(NETCDF_INC)
 
-
-
 # general compiler options : these are for intel:
 CPPFLAGS = -DDIAG -DINTEL
 
@@ -33,6 +31,7 @@ FC = ifort
 # F90 compiler 
 F90 = ifort
 # linker 
+LDFLAGS = -i-dynamic
 LD =$(FC)
 
 # do not touch below this line unless you are a developer 

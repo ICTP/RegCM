@@ -52,7 +52,7 @@ cuparan.o         interf.o      printsp.o   tpfc.o      cupemandrv.o \
 intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
 
 regcm: $(MODOBJS) $(OBJS)
-	$(F90) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
+	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
 
 %.o: %.F90
 	$(F90) -c $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<

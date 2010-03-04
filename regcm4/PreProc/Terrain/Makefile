@@ -18,7 +18,7 @@ OBJS =     anal2.o         lndfudge.o       oned.o           smthtr.o     \
            smth121.o       lambrt.o         smther.o         terrain.o
 
 terrain: $(MODOBJS) $(OBJS)
-	$(F90) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
 
 %.o: %.f90
 	$(F90) -c $(F90FLAGS) $(USCORING) -c $<
