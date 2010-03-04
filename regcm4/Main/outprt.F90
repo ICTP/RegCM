@@ -50,12 +50,13 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
-      use mod_param3 , only : jxsex,kxout,ptop,a
+      use mod_param3 , only : jxsex , kxout , ptop , a
       use mod_main
       use mod_bdycod
       use mod_pmoist
       use mod_date
-      use mod_constants , only : tzero,ep2,svp1,svp2,svp3,gti
+      use mod_constants , only : tzero , ep2 , svp1 , svp2 , svp3 ,     &
+                      &          svp4 , svp5 , svp6 , gti
       implicit none
 !
 ! Dummy arguments
