@@ -124,4 +124,224 @@
 !
       end subroutine getncep
 
+      subroutine cdc6hour(dattyp,idate,idate0)
+      use netcdf
+      implicit none
+!
+! Dummy arguments
+!
+      character(5) :: dattyp
+      integer :: idate , idate0
+      intent (in) dattyp , idate , idate0
+!
+! Local variables
+!
+      integer :: i , ilev , inet , it , j , k , kkrec , m , month ,     &
+               & nday , nhour , nlev , nyear , istatus
+      character(21) :: inname
+      character(35) :: pathaddname
+      logical :: there
+      character(5) , dimension(7) :: varname
+      integer(2) , dimension(ilon,jlat,klev) :: work
+      real(8) :: xadd , xscale
+      integer , dimension(10) :: icount , istart
+      integer , dimension(6) :: inet7 , ivar7
+      real(8) , dimension(7) :: xoff , xscl
+!
+!     This is the latitude, longitude dimension of the grid to be read.
+!     This corresponds to the lat and lon dimension variables in the
+!     netCDF file.
+!
+!     The data are packed into short integers (INTEGER*2).  The array
+!     work will be used to hold the packed integers.
+!
+!     DATA ARRAY AND WORK ARRAY
+!bxq
+!bxq_
+      data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
+          &'pres'/
+!
+!     Below in the ncopen call is the file name of the netCDF file.
+!     You may want to add code to read in the file name and the
+!     variable name.
+!     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
+!
+!bxq
+      nyear = idate/1000000
+      month = idate/10000 - nyear*100
+      nday = idate/100 - nyear*10000 - month*100
+      nhour = idate - nyear*1000000 - month*10000 - nday*100
+!fix  do kkrec=1,7
+      do kkrec = 1 , 5
+        if ( dattyp=='NNRP1' ) then
+          if ( kkrec==1 .or. kkrec==2 .or. kkrec==4 .or. kkrec==5 )     &
+             & nlev = klev
+          if ( kkrec==6 ) nlev = 12
+          if ( kkrec==3 ) nlev = 8
+          if ( kkrec==7 ) nlev = 0
+        else if ( dattyp=='NNRP2' ) then
+          if ( kkrec<=6 ) nlev = klev
+          if ( kkrec==7 ) nlev = 0
+        else
+        end if
+        if ( idate==idate0 .or.                                         &
+           & (mod(idate,100000)==10100 .and. mod(idate,1000000)/=110100)&
+           & ) then
+          if ( kkrec==1 ) then
+            write (inname,99001) nyear , 'air.' , nyear
+          else if ( kkrec==2 ) then
+            write (inname,99001) nyear , 'hgt.' , nyear
+          else if ( kkrec==3 ) then
+            write (inname,99002) nyear , 'rhum.' , nyear
+          else if ( kkrec==4 ) then
+            write (inname,99002) nyear , 'uwnd.' , nyear
+          else if ( kkrec==5 ) then
+            write (inname,99002) nyear , 'vwnd.' , nyear
+          else if ( kkrec==6 ) then
+            write (inname,99003) nyear , 'omega.' , nyear
+          else if ( kkrec==7 ) then
+            write (inname,99004) nyear , 'pres.sfc.' , nyear
+          else
+          end if
+ 
+          if ( dattyp=='NNRP1' ) then
+            pathaddname = '../DATA/NNRP1/'//inname
+          else if ( dattyp=='NNRP2' ) then
+            pathaddname = '../DATA/NNRP2/'//inname
+          else
+          end if
+          inquire (file=pathaddname,exist=there)
+          if ( .not.there ) then
+            print * , pathaddname , ' is not available'
+            stop
+          end if
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
+          istatus = nf90_get_att(inet7(kkrec),5,'scale_factor',         &
+                 & xscl(kkrec))
+          istatus = nf90_get_att(inet7(kkrec),5,'add_offset',           &
+                 & xoff(kkrec))
+          write (*,*) inet7(kkrec) , pathaddname , xscl(kkrec) ,        &
+                    & xoff(kkrec)
+        end if
+ 
+        it = (nday-1)*4 + nhour/6 + 1
+        if ( month==2 ) it = it + 31*4
+        if ( month==3 ) it = it + 59*4
+        if ( month==4 ) it = it + 90*4
+        if ( month==5 ) it = it + 120*4
+        if ( month==6 ) it = it + 151*4
+        if ( month==7 ) it = it + 181*4
+        if ( month==8 ) it = it + 212*4
+        if ( month==9 ) it = it + 243*4
+        if ( month==10 ) it = it + 273*4
+        if ( month==11 ) it = it + 304*4
+        if ( month==12 ) it = it + 334*4
+        if ( mod(nyear,4)==0 .and. month>2 ) it = it + 4
+        if ( mod(nyear,100)==0 .and. month>2 ) it = it - 4
+        if ( mod(nyear,400)==0 .and. month>2 ) it = it + 4
+!bxq_
+        do m = 1 , 4
+          istart(m) = 1
+        end do
+        do m = 5 , 10
+          istart(m) = 0
+          icount(m) = 0
+        end do
+        icount(1) = ilon
+        icount(2) = jlat
+        icount(4) = 1460
+        if ( mod(nyear,4)==0 ) icount(4) = 1464
+        if ( mod(nyear,100)==0 ) icount(4) = 1460
+        if ( mod(nyear,400)==0 ) icount(4) = 1464
+        istart(4) = it
+        icount(4) = 1
+        inet = inet7(kkrec)
+        if ( nlev>0 ) then
+          icount(3) = nlev
+          istatus = nf90_get_var(inet,5,work,istart,icount)
+          xscale = xscl(kkrec)
+          xadd = xoff(kkrec)
+          do ilev = 1 , nlev
+            if ( kkrec==1 ) then
+              do j = 1 , jlat
+                do i = 1 , ilon
+                  tvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
+                  & *xscale + xadd
+                end do
+              end do
+            else if ( kkrec==2 ) then
+              do j = 1 , jlat
+                do i = 1 , ilon
+                  hvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
+                  & *xscale + xadd
+                end do
+              end do
+            else if ( kkrec==3 ) then
+              do j = 1 , jlat
+                do i = 1 , ilon
+                  rhvar(i,jlat+1-j,14-ilev)                             &
+                  & = dmin1((work(i,j,ilev)*xscale+xadd)*0.01,1.D0)
+                end do
+              end do
+            else if ( kkrec==4 ) then
+              do j = 1 , jlat
+                do i = 1 , ilon
+                  uvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
+                  & *xscale + xadd
+                end do
+              end do
+            else if ( kkrec==5 ) then
+              do j = 1 , jlat
+                do i = 1 , ilon
+                  vvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
+                  & *xscale + xadd
+                end do
+              end do
+            else if ( kkrec==6 ) then
+              do j = 1 , jlat
+                do i = 1 , ilon
+                  wvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
+                  & *xscale + xadd
+                end do
+              end do
+            else
+            end if
+          end do
+        else if ( nlev==0 ) then
+          icount(3) = 1
+          istatus = nf90_get_var(inet,5,work,istart,icount)
+          if ( kkrec==7 ) then
+            do j = 1 , jlat
+              do i = 1 , ilon
+                psvar(i,jlat+1-j) = work(i,j,1)*xscale + xadd
+              end do
+            end do
+          end if
+        else
+        end if
+        if ( dattyp=='NNRP1' ) then
+!         It's a pity that we have to nudge the values by the following
+!         way
+          do k = 5 , 1 , -1
+            do j = 1 , jlat
+              do i = 1 , ilon
+                rhvar(i,j,k) = rhvar(i,j,k+1)
+              end do
+            end do
+          end do
+ 
+          do j = 1 , jlat
+            do i = 1 , ilon
+              wvar(i,j,1) = 0.0
+            end do
+          end do
+        end if
+      end do
+99001 format (i4,'/',a4,i4,'.nc')
+99002 format (i4,'/',a5,i4,'.nc')
+99003 format (i4,'/',a6,i4,'.nc')
+99004 format (i4,'/',a9,i4,'.nc')
+!
+      end subroutine cdc6hour
+
       end module mod_ncep
