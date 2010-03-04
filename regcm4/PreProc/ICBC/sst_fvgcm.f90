@@ -16,17 +16,17 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: mlon = 192 , nlat = 145
+      integer , parameter :: ilon = 192 , jlat = 145
 !
 ! Local variables
 !
       integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
              &   mrec , nday , nmo , nyear
-      real , dimension(nlat) :: lati
-      real , dimension(mlon) :: loni
+      real , dimension(jlat) :: lati
+      real , dimension(ilon) :: loni
       integer , dimension(20) :: lund
       real(4) , dimension(192,145) :: temp
-      real , dimension(mlon,nlat) :: sst2
+      real , dimension(ilon,jlat) :: sst2
       integer :: idate , idate0
       real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
 
@@ -84,10 +84,10 @@
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
-      do i = 1 , mlon
+      do i = 1 , ilon
         loni(i) = float(i-1)*1.875
       end do
-      do j = 1 , nlat
+      do j = 1 , jlat
         lati(j) = -90. + 1.25*float(j-1)
       end do
  
@@ -107,8 +107,8 @@
           it = (nyear-2069)*12 + nmo
         end if
         read (11,rec=it) temp
-        do j = 1 , nlat
-          do i = 1 , mlon
+        do j = 1 , jlat
+          do i = 1 , ilon
 !           if(temp(I,NLAT+1-J).gt.-9000.0.and.
 !           &         temp(I,NLAT+1-J).lt.10000.0) then
 !           SST2(I,J)=temp(I,NLAT+1-J)
@@ -121,9 +121,9 @@
         end do
  
 !       ******           PRINT OUT DATA AS A CHECK
-        if ( nmo==1 ) call printl(sst2,mlon,nlat)
+        if ( nmo==1 ) call printl(sst2,ilon,jlat)
  
-        call bilinx(sst2,loni,lati,mlon,nlat,sstmm,xlon,xlat,iy,jx,1)
+        call bilinx(sst2,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
         do j = 1 , jx

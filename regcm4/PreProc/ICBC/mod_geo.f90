@@ -10,6 +10,7 @@
       real , dimension(kz) :: dsigma , sigma2
       real , dimension(kz+1) :: sigmaf
       real :: delx , grdfac
+      real :: truelath , truelatl
       character(6) :: lgtype
 
       end module mod_geo

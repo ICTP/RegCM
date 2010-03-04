@@ -18,14 +18,14 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: mlon = 360 , nlat = 180
+      integer , parameter :: ilon = 360 , jlat = 180
 !
 ! Local variables
 !
       integer :: i , j , nrec
-      real , dimension(nlat) :: lati
-      real , dimension(mlon) :: loni
-      real , dimension(mlon,nlat) :: aer2
+      real , dimension(jlat) :: lati
+      real , dimension(ilon) :: loni
+      real , dimension(ilon,jlat) :: aer2
       real , dimension(iy,jx) :: aermm , xlat , xlon
       logical :: there
  
@@ -46,10 +46,10 @@
 !
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR AEROSOL DATA
-      do i = 1 , mlon
+      do i = 1 , ilon
         loni(i) = -179.5 + float(i-1)
       end do
-      do j = 1 , nlat
+      do j = 1 , jlat
         lati(j) = -89.5 + 1.*float(j-1)
       end do
  
@@ -57,7 +57,7 @@
       do nrec = 1 , 39
         read (11,rec=nrec) aer2
  
-        call bilinx(aer2,loni,lati,mlon,nlat,aermm,xlon,xlat,iy,jx,1)
+        call bilinx(aer2,loni,lati,ilon,jlat,aermm,xlon,xlat,iy,jx,1)
  
 !       ******           WRITE OUT AEROSOL DATA ON RegCM GRID
         write (25,rec=nrec) ((aermm(i,j),j=1,jx),i=1,iy)

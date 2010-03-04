@@ -19,20 +19,20 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: mlon = 192 , nlat = 96
+      integer , parameter :: ilon = 192 , jlat = 96
 !
 ! Local variables
 !
       integer :: it_base
       integer(2) , dimension(192,96) :: ivar
       real(8) :: offset , xscale
-      real , dimension(mlon,nlat) :: sst2
+      real , dimension(ilon,jlat) :: sst2
       integer :: idate
       integer :: nnnend , nstart
       real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
-      real , dimension(nlat) :: lati
-      real , dimension(mlon) :: loni
+      real , dimension(jlat) :: lati
+      real , dimension(ilon) :: loni
       logical :: there
 !
       if ( ssttyp=='EH5RF' ) then
@@ -234,10 +234,10 @@
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
-      do i = 1 , mlon
+      do i = 1 , ilon
         loni(i) = float(i-1)*1.875
       end do
-      do j = 1 , nlat
+      do j = 1 , jlat
         lati(j) = -89.0625 + 1.875*float(j-1)
       end do
  
@@ -341,17 +341,17 @@
         nhour = idate - nyear*1000000 - nmo*10000 - nday*100
         read (11,rec=it-it_base) offset , xscale , ivar
         write (*,*) offset , xscale
-        do j = 1 , nlat
-          do i = 1 , mlon
-            sst2(i,j) = ivar(i,nlat+1-j)*xscale + offset
+        do j = 1 , jlat
+          do i = 1 , ilon
+            sst2(i,j) = ivar(i,jlat+1-j)*xscale + offset
             if ( sst2(i,j)<273.16 ) sst2(i,j) = -9999.
           end do
         end do
  
 !       ******           PRINT OUT DATA AS A CHECK
-        if ( nmo==1 ) call printl(sst2,mlon,nlat)
+        if ( nmo==1 ) call printl(sst2,ilon,jlat)
  
-        call bilinx(sst2,loni,lati,mlon,nlat,sstmm,xlon,xlat,iy,jx,1)
+        call bilinx(sst2,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
