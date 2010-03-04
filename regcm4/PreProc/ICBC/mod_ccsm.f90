@@ -141,12 +141,15 @@
       real :: delx , grdfac
       character(6) :: lgtype
 
+      real , dimension(jx,iy) :: b3pd
+
       contains
 
       subroutine get_cam42(idate)
 
         use netcdf
-        use mod_cdcvars
+        use mod_geo
+        use mod_var4
 
         implicit none
 !
@@ -760,7 +763,8 @@
       subroutine get_cam85(idate)
 
         use netcdf
-        use mod_cdcvars
+        use mod_geo
+        use mod_var4
 
         implicit none
 !

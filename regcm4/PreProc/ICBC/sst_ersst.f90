@@ -73,9 +73,9 @@
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
       open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
           & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
-      call initdate
-      call finddate(nstart,idate1)
-      call finddate(nnnend,idate2)
+      call initdate_era
+      call finddate_era(nstart,idate1)
+      call finddate_era(nnnend,idate2)
       write (*,*) nstart , nnnend
       print * , idate1 , nnnend - nstart + 1
       call gridml(xlon,xlat,lu,iy,jx,idate1,nnnend-nstart+1,truelatl,   &
