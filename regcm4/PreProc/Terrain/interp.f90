@@ -19,7 +19,7 @@
 
       subroutine interp
  
-      use mod_domain
+      use mod_param
       use mod_aa
       use mod_block
       use mod_const

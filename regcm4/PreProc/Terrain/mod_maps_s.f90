@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_maps_s
-      use mod_domain , only : iy , jx , nsg , nveg , ntex
+      use mod_param , only : iy , jx , nsg , nveg , ntex
       implicit none
       real(4) , dimension(iy*nsg,jx*nsg) :: claya_s , clayb_s ,         &
            & coriol_s , dlat_s , dlon_s , dmap_s , htgrid_s ,           &

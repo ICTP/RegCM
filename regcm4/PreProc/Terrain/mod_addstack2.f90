@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_addstack2
-      use mod_domain , only : iy , jx , nsg
+      use mod_param , only : iy , jx , nsg
       implicit none
       real(4) :: clong
       real(4) , dimension(iy,jx) :: corc , hscr1 , htsavc , sumc ,      &

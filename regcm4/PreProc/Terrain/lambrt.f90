@@ -33,7 +33,7 @@
 !
 ! Local variables
 !
-      real(4) :: aa , cell , cell1 , cell2 , cntri , cntrj , d2r , flp ,&
+      real(8) :: er , cell , cell1 , cell2 , cntri , cntrj , d2r , flp ,&
                & flpp , omega2 , pi , pole , psi1 , psix , psx , r ,    &
                & xsign , truelat1 , truelat2 , x , xcntr , y , ycntr
       integer :: i , j
@@ -57,23 +57,22 @@
 !
 !---------------------------------------------------------------------
 !
- 
-      aa = 6.371229E6
+      er = 6.371229E6
       if ( clat<0. ) then
         xsign = -1.       ! SOUTH HEMESPHERE
       else
         xsign = 1.        ! NORTH HEMESPHERE
       end if
       pole = xsign*90.0
-      pi = atan(1.)*4.
+      pi = 3.1415926535897932384626433832795029D+00
       d2r = pi/180.
  
       truelat1 = truelath
       truelat2 = truelatl
       if ( abs(truelat1-truelat2)>1.E-1 ) then
-        xn = (alog10(cos(truelat1*d2r))-alog10(cos(truelat2*d2r)))      &
-           & /(alog10(tan((45.0-xsign*truelat1/2.0)*d2r))                &
-           & -alog10(tan((45.0-xsign*truelat2/2.0)*d2r)))
+        xn = (dlog10(cos(truelat1*d2r))-dlog10(cos(truelat2*d2r)))      &
+           & /(dlog10(tan((45.0-xsign*truelat1/2.0)*d2r))                &
+           & -dlog10(tan((45.0-xsign*truelat2/2.0)*d2r)))
       else
         xn = xsign*sin(truelat1*d2r)
       end if
@@ -83,12 +82,12 @@
       if ( clat<0. ) psi1 = -psi1
 !
       psi1 = psi1*d2r
-      omega2 = 1.454441E-4
+      omega2 = 7.2921159D-05*2.0D0
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
 !
       psx = (pole-clat)*d2r
-      cell = aa*sin(psi1)/xn
+      cell = er*sin(psi1)/xn
       write (*,*) 'PSX,PSI1 = ' , psx , psi1
       cell2 = (tan(psx/2.))/(tan(psi1/2.))
       r = cell*(cell2)**xn
@@ -116,7 +115,7 @@
 !         IF (FLPP.LT.-180.0) FLPP = FLPP+360.0
           xlon(i,j) = flpp
           if ( clat<0.0 ) r = -r
-          cell = r*xn/(aa*sin(psi1))
+          cell = r*xn/(er*sin(psi1))
           cell1 = tan(psi1/2.)*cell**(1./xn)
           cell2 = atan(cell1)
           psx = 2.*cell2/d2r

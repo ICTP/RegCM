@@ -52,7 +52,7 @@
 !  terrain will be read from unit 12, landuse from unit 10 or 11,
 !  output variables unit 9.
 !---------------------------------------------------------------------
-      use mod_domain
+      use mod_param
       use mod_aa
       use mod_addstack
       use mod_addstack2

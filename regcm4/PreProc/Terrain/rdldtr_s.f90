@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine rdldtr_s
-      use mod_domain
+      use mod_param
       use mod_a
       use mod_aa
       use mod_block

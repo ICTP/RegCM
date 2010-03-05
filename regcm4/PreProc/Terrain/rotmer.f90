@@ -32,7 +32,7 @@
 !
 ! Local variables
 !
-      real(4) :: a , cntri , cntrj , d2r , ddeg , fai , r2d , x , xoff ,&
+      real(8) :: re, cntri , cntrj , d2r , ddeg , fai , r2d , x , xoff ,&
                & xomega , xomega2 , xr , y , yoff , yr
       integer :: i , j
 !
@@ -48,15 +48,15 @@
 !     EXPANDED GRID. SAME FOR J.
 !
 !
-      xomega = 7.2722E-5                       ! ANG. ROT OF EARTH IN S**-1
-      d2r = atan(1.)/45.                     ! CONVERT DEGREES TO RADIANS
-      r2d = 1./d2r                         ! CONVERT RADIANS TO DEGREES
-      a = 6371229.                             ! RADIUS OF EARTH IN METERS
+      xomega = 7.2921159D-05           ! ANG. ROT OF EARTH IN S**-1
+      d2r = atan(1.)/45.               ! CONVERT DEGREES TO RADIANS
+      r2d = 1./d2r                     ! CONVERT RADIANS TO DEGREES
+      re = 6.371229D+06                ! RADIUS OF EARTH IN METERS
 !-----CENTER OF GRID
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
  
-      ddeg = ds*r2d/a                        ! GRID SPACING IN DEGREES
+      ddeg = ds*r2d/re                 ! GRID SPACING IN DEGREES
       xoff = clon - pollon
       yoff = clat - pollat
 !-----CALCULATE X AND Y POSITIONS OF GRID

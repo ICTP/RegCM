@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_domain
+      module mod_param
       implicit none
 !
 ! PARAMETER definitions
@@ -26,6 +26,10 @@
       integer , parameter :: iy = 34
       integer , parameter :: jx = 48
       integer , parameter :: kz = 18
+      integer , parameter :: iy_o = 1
+      integer , parameter :: jx_o = 1
+      integer , parameter :: kz_o = 14
+      integer , parameter :: np = 15
       integer , parameter :: nsg = 1
       real(4) , parameter :: ds = 60.0
       real(4) , parameter :: ptop = 5.0
@@ -60,4 +64,4 @@
       character(7) , parameter :: aertyp = 'AER00D0'
       integer , parameter :: ntex = 17
       integer , parameter :: nproc = 16
-      end module mod_domain
+      end module mod_param
