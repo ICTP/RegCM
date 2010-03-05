@@ -729,4 +729,50 @@
 !
       end subroutine cdc6hour2
 
+      subroutine headernc
+      implicit none
+!
+! Local variables
+!
+      integer :: i , j , k , kr
+!
+!     X X X X X   SET 1 :PARAMETERS FOR NCEP/NCAR REALALYSIS DATASET X
+!     X X A1
+!
+!     ilon  = NUMBER OF LONGITUDES ON NCEP GRID.
+!     jlat  = NUMBER OF LATITUDES ON NCEP GRID.
+!     klev  = NUMBER OF PRESSURE LEVELS IN NCEP DATASET.
+!
+!
+      sigmar(1) = .07
+      sigmar(2) = .1
+      sigmar(3) = .15
+      sigmar(4) = .2
+      sigmar(5) = .25
+      sigmar(6) = .3
+      sigmar(7) = .4
+      sigmar(8) = .5
+      sigmar(9) = .6
+      sigmar(10) = .7
+      sigmar(11) = .85
+      sigmar(12) = .925
+      sigmar(13) = 1.0
+!
+!     INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
+!
+      do i = 1 , ilon
+        glon(i) = float(i-1)*2.5
+      end do
+      do j = 1 , jlat
+        glat(j) = -90.0 + float(j-1)*2.5
+      end do
+!HH:OVER
+!     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
+!
+      do k = 1 , klev
+        kr = klev - k + 1
+        sigma1(k) = sigmar(kr)
+      end do
+ 
+      end subroutine headernc
       end module mod_ncep
