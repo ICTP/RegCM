@@ -346,11 +346,11 @@
           fsub(:,:,:,8)  = ssw_s(:,:,:)
           fsub(:,:,:,9)  = rsw_s(:,:,:)
           fsub(:,:,:,10) = tpr_s(:,:,:)
-          fsub(:,:,:,11) = prcv_s(:,:,:)
-          fsub(:,:,:,12) = evpa_s(:,:,:)
-          fsub(:,:,:,13) = rnos_s(:,:,:)
-          fsub(:,:,:,14) = scv_s(:,:,:)
-          fsub(:,:,:,15) = sena_s(:,:,:)
+          fsub(:,:,:,11) = evpa_s(:,:,:)
+          fsub(:,:,:,12) = rnos_s(:,:,:)
+          fsub(:,:,:,13) = scv_s(:,:,:)
+          fsub(:,:,:,14) = sena_s(:,:,:)
+          fsub(:,:,:,15) = prcv_s(:,:,:)
           fsub(:,:,:,16) = ps_s(:,:,:)
         end subroutine fillsub
 
