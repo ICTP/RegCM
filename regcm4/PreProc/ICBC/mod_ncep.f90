@@ -1,6 +1,6 @@
       module mod_ncep
 
-      use mod_domain
+      use mod_param
 
       implicit none
 
@@ -29,8 +29,8 @@
       contains
 
       subroutine getncep(idate)
-      use mod_domain
-      use mod_geo
+      use mod_param
+      use mod_grid
       use mod_var4
       implicit none
 !
@@ -347,8 +347,8 @@
       end subroutine cdc6hour
 
       subroutine getncepw(idate)
-      use mod_domain
-      use mod_geo
+      use mod_param
+      use mod_grid
       use mod_var4
       implicit none
 !
@@ -445,7 +445,7 @@
 
       subroutine cdc6hour2(dattyp,idate,idate0)
       use netcdf
-      use mod_szwindow
+      use mod_grid
       implicit none
 !
 ! Dummy arguments

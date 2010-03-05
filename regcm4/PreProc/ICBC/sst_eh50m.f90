@@ -12,7 +12,7 @@
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      use mod_domain
+      use mod_param
       use mod_datenum
 
       implicit none

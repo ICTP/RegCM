@@ -10,7 +10,7 @@
 !          NL= 1 is  90.0; ML= 2 is  88.75 ; => ML=145 is -90.       c
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_domain
+      use mod_param
 
       implicit none
 !

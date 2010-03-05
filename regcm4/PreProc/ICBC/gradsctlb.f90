@@ -1,6 +1,6 @@
       subroutine gradsctlb(finame,idate,inumber)
-      use mod_domain
-      use mod_geo
+      use mod_param
+      use mod_grid
       implicit none
 !
 ! Dummy arguments

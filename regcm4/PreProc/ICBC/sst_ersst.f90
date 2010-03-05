@@ -12,7 +12,7 @@
 !          NL= 1 is  90.0; ML= 2 is  88.5; => ML=121 is -90.         !
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      use mod_domain
+      use mod_param
       use mod_datenum
       implicit none
 !

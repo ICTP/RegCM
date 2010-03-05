@@ -22,7 +22,7 @@
 !     PATH /DATA/SST/
 !
 !******************************************************************************
-      use mod_domain
+      use mod_param
 
       implicit none
 !

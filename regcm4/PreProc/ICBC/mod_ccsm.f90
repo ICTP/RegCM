@@ -102,7 +102,7 @@
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
-      use mod_domain
+      use mod_param
 
       implicit none
 
@@ -145,7 +145,7 @@
       subroutine get_cam42(idate)
 
         use netcdf
-        use mod_geo
+        use mod_grid
         use mod_var4
 
         implicit none
@@ -158,9 +158,9 @@
 !
         real , dimension(npl) :: c1
         real , dimension(kz) :: c2
-        integer :: checklat , checklon , i , i0 , i1 , ii ,             &
-                &  imax , imin , j , j0 , j1 , jj , k , latid ,         &
-                &  latlen , lonid , lonlen , nmop , nyrp , istatus
+        integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
+                & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
+                & istatus
         integer :: iomega
         real , dimension(jx,iy,npl) :: dum1
         real , dimension(jx,iy,npl,2) :: dum2
@@ -184,7 +184,7 @@
         hp => b2(1:ilonh,1:jlath,npl+1:2*npl)
         qp => b2(1:ilonh,1:jlath,2*npl+1:3*npl)
  
-        call cam42(idate,idate1,xlon,xlat,glat,jx,iy,i0,i1,j0,j1)
+        call cam42(idate,idate1,glat)
 
         if ( idate==idate1 ) then
           pathaddname = '../DATA/CAM42/ccsm_ht.nc'
@@ -437,17 +437,16 @@
 !
 !-----------------------------------------------------------------------
 ! 
-      subroutine cam42(idate,idate0,xlon,xlat,glat,jx,iy,i0,i1,j0,j1)
+      subroutine cam42(idate,idate0,glat)
+      use mod_grid
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: i0 , i1 , idate , idate0 , iy , j0 , j1 , jx
+      integer :: idate , idate0
       real , dimension(jlath) :: glat
-      real , dimension(jx,iy) :: xlat , xlon
-      intent (in) glat , idate , idate0 , iy , jx , xlat , xlon
-      intent (inout) i0 , i1 , j0 , j1
+      intent (in) glat , idate , idate0
 !
 ! Local variables
 !
@@ -760,7 +759,7 @@
       subroutine get_cam85(idate)
 
         use netcdf
-        use mod_geo
+        use mod_grid
         use mod_var4
 
         implicit none
@@ -773,9 +772,9 @@
 !
       real , dimension(npl) :: c1
       real , dimension(kz) :: c2
-      integer :: checklat , checklon , i , i0 , i1 , ii , imax ,        &
-               & imin , j , j0 , j1 , jj , k , latid ,  latlen , lonid ,&
-               & lonlen , nmop , nyrp , istatus
+      integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
+               & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
+               & istatus
       integer :: iomega
       real , dimension(jx,iy,npl) :: dum1
       real , dimension(jx,iy,npl,2) :: dum2
@@ -799,7 +798,8 @@
       hp => b2(1:ilon,1:jlat,npl+1:2*npl)
       qp => b2(1:ilon,1:jlat,2*npl+1:3*npl)
  
-      call cam85(idate,idate1,xlon,xlat,glat,jx,iy,i0,i1,j0,j1)
+      call cam85(idate,idate1,glat)
+
       if ( idate==idate1 ) then
         pathaddname = '../DATA/CAM85/ccsm_ht.nc'
         inquire (file=pathaddname,exist=there)
@@ -1055,17 +1055,16 @@
 !
 !-----------------------------------------------------------------------
 ! 
-      subroutine cam85(idate,idate0,xlon,xlat,glat,jx,iy,i0,i1,j0,j1)
+      subroutine cam85(idate,idate0,glat)
       use netcdf
+      use mod_grid
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: i0 , i1 , idate , idate0 , iy , j0 , j1 , jx
+      integer :: idate , idate0
       real , dimension(jlat) :: glat
-      real , dimension(jx,iy) :: xlat , xlon
-      intent (in) glat , idate , idate0 , iy , jx , xlat , xlon
-      intent (inout) i0 , i1 , j0 , j1
+      intent (in) glat , idate , idate0
 !
 ! Local variables
 !
