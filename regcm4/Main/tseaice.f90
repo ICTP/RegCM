@@ -53,6 +53,7 @@
           if ( lveg(n,i).eq.14 ) exit   ! lake model handles this case
  
           if ( ldoc1d(n,i).gt.1.5 ) then
+            if ( sice1d(n,i).lt.1000. ) sice1d(n,i) = 1000.0
  
 ! ******                rhosw = density of snow relative to water
             rhosw3 = rhosw(n,i)**3

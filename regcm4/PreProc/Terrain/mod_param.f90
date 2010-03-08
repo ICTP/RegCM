@@ -52,8 +52,19 @@
       character(50) , parameter :: filctl = '../../Input/DOMAIN.CTL'
       integer , parameter :: idate1 = 1990060100
       integer , parameter :: idate2 = 1990070100
+!
+! One in:
+!        ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
+!        NRP2W,GFS11,FVGCM,FNEST,EH5OM
+!
       character(5) , parameter :: dattyp = 'EIN15'
+
+! One in:
+!        GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,
+!        EH5A2,EH5B1,EHA1B,ERSST,ERSKT
+!
       character(5) , parameter :: ssttyp = 'OI_WK'
+
       logical , parameter :: ehso4 = .false.
       character(4) , parameter :: lsmtyp = 'BATS'
       integer , parameter :: nveg = 20

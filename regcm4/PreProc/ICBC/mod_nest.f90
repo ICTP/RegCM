@@ -57,7 +57,8 @@
       character(14) :: fillin
       integer :: i , idatek , j , k , mn0 , mn1 , nd0 , nd1 , nh0 ,     &
                & nh1 , nmop , ny0 , ny1 , nyrp
-      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za
+      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
+                                 ice2
       real , dimension(jx,iy) :: d1xa , d1xb , d1xc , d1xd , d1xt
       integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
                                   & j1dr , j1ul , j1ur
@@ -364,14 +365,24 @@
       if ( ssttyp=='EH5RF' .or. ssttyp=='EH5A2' .or.                    &
          & ssttyp=='EH5B1' .or. ssttyp=='EHA1B' ) then
         call mksst3(ts4,sst1,topogm,xlandu,jx,iy,idate)
-      else if ( ssttyp/='OI_WK' ) then
+      else if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !       F1    CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
 !       PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
         call julian(idate,nyrp,nmop,wt)
 !
-        call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+        if ( ssttyp=='OI2ST' ) then
+          call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &
+               &      nmop,wt)
+        else
+          call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+        end if
       else
-        call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
+        if ( ssttyp=='OI2WK' ) then
+          call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,    &
+               &       idate/100)
+        else
+          call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
+        end if
       end if
  
 !     F2     DETERMINE P* AND HEIGHT.

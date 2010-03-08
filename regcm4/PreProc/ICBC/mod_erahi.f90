@@ -42,7 +42,8 @@
 !
       character(14) :: finame
       integer :: i , j , k , nmop , nrec , nyrp
-      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za
+      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
+                                 ice2
       real :: slonmax , slonmin , wt , xlonmax , xlonmin
 !
       tp => b2(:,:,1:nlev2)
@@ -170,14 +171,24 @@
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev2)
  
-      if ( ssttyp/='OI_WK' ) then
+      if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !       F1    CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
 !       PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
         call julian(idate,nyrp,nmop,wt)
 !
-        call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+        if ( ssttyp=='OI2ST' ) then
+          call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &
+                &     nmop,wt)
+        else
+          call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+        end if
       else
-        call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
+        if ( ssttyp=='OI2WK' ) then
+          call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,     &
+                &      idate/100)
+        else
+          call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
+        end if
       end if
  
 !     F2     DETERMINE P* AND HEIGHT.

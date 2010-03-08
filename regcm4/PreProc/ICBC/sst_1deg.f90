@@ -15,7 +15,11 @@
 !              ML= 1 is   0.5; ML= 2 is   1.5; => ML=360 is 359.5E   c
 !              NL= 1 is -89.5; NL= 2 is -88.5; => NL=180 is  89.5    c
 !                                                                    c
+! OI2ST        both SST and SeaIce in the original netCDF format.    c
+!                                                                    c
 ! OI_WK        weekly OISST in the original netCDF format.           c
+!                                                                    c
+! OI2WK        weekly OISST and SeaIce in the original netCDF format.c
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
@@ -29,10 +33,10 @@
 !
 ! Local variables
 !
-      real(4) , dimension(ilon,jlat) :: sst
+      real(4) , dimension(ilon,jlat) :: sst , ice
       integer :: idate , idate0 , kend , kstart
       integer , dimension(427+1045) :: wkday
-      real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+      real , dimension(iy,jx) :: lu , sstmm , icemm , xlat , xlon
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
                & nday , nmo , nrec , nyear
       real , dimension(jlat) :: lati
@@ -49,7 +53,8 @@
         open (11,file='../DATA/SST/GISST_194712_200209',                &
              &form='unformatted',recl=360*180*ibyte,access='direct',    &
             & status='old',err=100)
-      else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' ) then
+      else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.               &
+            &   ssttyp=='OI2ST' ) then
         if ( idate1<1981121512 .or. idate2<1981121512 ) then
           print * , 'OISST data required are not available'
           print * , 'IDATE1, IDATE2 = ' , idate1 , idate2
@@ -58,9 +63,15 @@
         inquire (file='../DATA/SST/sst.mnmean.nc',exist=there)
         if ( .not.there ) print * , 'sst.mnmean.nc is not available' ,  &
                                &' under ../DATA/SST/'
-      else if ( ssttyp=='OI_WK' ) then
+        if ( ssttyp=='OI2ST' ) then
+          inquire (file='../DATA/SST/icec.mnmean.nc',exist=there)
+          if ( .not. there )                                            &
+            & print *, 'icec.mnmean.nc is not available' ,              &
+                   &' under ../DATA/SST/'
+        end if
+      else if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) then
         if ( idate1<1981110100 .or. idate2<1981110106 ) then
-          print * , 'OI_WK data required are not available'
+          print * , 'OI_WK (or OI2WK) data required are not available'
           print * , 'IDATE1, IDATE2 = ' , idate1 , idate2
           stop
         end if
@@ -74,6 +85,20 @@
                           &'sst.wkmean.1990-present.nc is not available'&
                          & , ' under ../DATA/SST/'
         call headwk
+        if ( ssttyp=='OI2WK' ) then
+          inquire (file='../DATA/SST/icec.wkmean.1981-1989.nc',         &
+                & exist=there)
+          if ( .not.there ) then
+            print *, 'icec.wkmean.1981-1989.nc is not available',       &
+                &    ' under ../DATA/SST/'
+          end if
+          inquire (file='../DATA/SST/icec.wkmean.1990-present.nc',      &
+                &  exist=there)
+          if ( .not.there ) then
+            print *, 'icec.wkmean.1990-present.nc is not available',    &
+                &    ' under ../DATA/SST/'
+          end if
+        end if
       else
         write (*,*) 'PLEASE SET SSTTYP in domain.param'
         stop
@@ -85,7 +110,7 @@
           & recl=iy*jx*ibyte,access='direct',status='unknown',err=200)
  
 !#####
-      if ( ssttyp/='OI_WK' ) then
+      if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !#####
         idate = idate1/10000
         if ( idate-(idate/100)*100==1 ) then
@@ -104,7 +129,7 @@
         idatef = idate
         print * , idate1 , idate2 , idateo , idatef
         call gridml(xlon,xlat,lu,iy,jx,idateo,idatef,ibyte,truelatl,    &
-                  & truelath)
+                  & truelath,ssttyp)
 !#####
       else
 !#####
@@ -127,12 +152,17 @@
         idatef = wkday(kend)
         print * , idate1 , idate2 , idateo , idatef , kend - kstart + 1
         call gridml2(xlon,xlat,lu,iy,jx,idateo,kend-kstart+1,ibyte,     &
-                   & truelatl,truelath)
+                   & truelatl,truelath,ssttyp)
 !#####
       end if
 !#####
       open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
           & recl=iy*jx*ibyte,access='direct')
+      if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+        open (26,file='RCM_ICE.dat',status='unknown',form='unformatted',&
+          & recl=iy*jx*ibyte,access='direct')
+
+      end if
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -144,7 +174,7 @@
       end do
  
 !#####
-      if ( ssttyp/='OI_WK' ) then
+      if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !#####
 !       ****** OISST SST DATA, 1 Deg data, AVAILABLE FROM 12/1981 TO
 !       PRESENT ****** GISST SST DATA, 1 Deg data, AVAILABLE FROM
@@ -156,9 +186,12 @@
           if ( ssttyp=='GISST' ) then
             nrec = (nyear-1947)*12 + nmo - 11
             read (11,rec=nrec) sst
-          else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' ) then
+          else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.           &
+                    ssttyp=='OI2ST') then
             write (*,*) idate*10000 + 100 , idate0
             call sst_mn(idate*10000+100,idate0,ilon,jlat,sst)
+            if ( ssttyp=='OI2ST' )                                      &
+             &  call ice_mn(idate*10000+100,idate0,ilon,jlat,ice)
           else
           end if
  
@@ -169,6 +202,8 @@
           print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
               & sstmm(1,1)
  
+          if ( ssttyp=='OI2ST' ) call bilinx(ice,loni,lati,ilon,jlat,   &
+              & icemm,xlon,xlat,iy,jx,1)
           do j = 1 , jx
             do i = 1 , iy
               if ( lsmtyp=='BATS' .and. sstmm(i,j)<-5000. .and.         &
@@ -231,12 +266,18 @@
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
           nday = 1
-          write (21) nday , nmo , nyear , sstmm
+          if ( ssttyp/='OI2ST' ) then
+            write (21) nday , nmo , nyear , sstmm
+          else
+            write (21) nday , nmo , nyear , sstmm , icemm
+          end if
           print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
           idate = idate + 1
           if ( nmo==12 ) idate = idate + 88
           mrec = mrec + 1
           write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
+          if ( ssttyp=='OI2ST' )                                        &
+           &    write (26,rec=mrec) ((icemm(i,j),j=1,jx),i=1,iy)
         end do
         write (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
 !#####
@@ -253,7 +294,11 @@
           call bilinx(sst,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
           print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
               & sstmm(1,1)
- 
+          if ( ssttyp=='OI2WK') then
+            call ice_wk(idate*100,idate0,k)
+            call bilinx(ice,loni,lati,ilon,jlat,icemm,xlon,xlat,iy,jx,1)
+          end if 
+
           do j = 1 , jx
             do i = 1 , iy
               if ( sstmm(i,j)>-100. ) then
@@ -288,7 +333,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2,ibyte,truelatl,&
-                      & truelath)
+                      & truelath,ssttyp)
       implicit none
 !
 ! Dummy arguments
@@ -296,7 +341,8 @@
       integer :: ibyte , idate1 , idate2 , iy , jx
       real :: truelath , truelatl
       real , dimension(iy,jx) :: lu , xlat , xlon
-      intent (in) ibyte , idate1 , idate2 , iy , jx
+      character(5) :: ssttyp
+      intent (in) ibyte , idate1 , idate2 , iy , jx , ssttyp
       intent (out) lu
       intent (inout) truelath , truelatl , xlat , xlon
 !
@@ -344,6 +390,17 @@
           write (31,'(a)') 'options little_endian'
         end if
         write (31,'(a)') 'undef -9999.'
+        if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+           open ( 32,file='RCM_ICE.ctl',status='replace')
+           write (32,'(a)') 'dset ^RCM_ICE.dat'
+           write (32,'(a)') 'title SeaIce fields for RegCM domain'
+           if ( ibigend.eq.1 ) then
+             write (32,'(a)') 'options big_endian'
+           else
+             write (32,'(a)') 'options little_endian'
+           end if
+           write (32,'(a)') 'undef -9999.'
+        end if
         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
           alatmin = 999999.
           alatmax = -999999.
@@ -393,11 +450,22 @@
                          & truelatl , truelath , clon , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+            write (32,99001) jx , iy , clat , clon , centerj , centeri ,&
+                           & truelatl , truelath , clon , dsinm , dsinm
+            write (32,99002) nx + 2 , alonmin - rloninc , rloninc
+            write (32,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          end if
         else if ( iproj=='POLSTR' ) then   !
         else if ( iproj=='NORMER' ) then
           write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
           write (31,99005) iy
           write (31,99006) (xlat(i,1),i=1,iy)
+          if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+            write (32,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
+            write (32,99005) iy
+            write (32,99006) (xlat(i,1),i=1,iy)
+          end if 
         else if ( iproj=='ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
@@ -408,6 +476,12 @@
                          & dsinm/111000.*.95238
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+            write (32,99007) jx , iy , plon , plat , dsinm/111000. ,    &
+                           & dsinm/111000.*.95238
+            write (32,99002) nx + 2 , alonmin - rloninc , rloninc
+            write (32,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          end if
         else
           write (*,*) 'Are you sure your map projection is correct ?'
           stop
@@ -418,9 +492,17 @@
                & - (idate1-(idate1/100)*100) + 1
         write (31,99009) period , cmonth(month) , idate1/100
         write (31,99010) 1
-        write (31,99011) 'sst ' , 'surface elevation          '
+        write (31,99011) 'sst ' , 'Sea Surface Temperature    '
         write (31,'(a)') 'endvars'
         close (31)
+        if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+          write (32,99008) 1 , 1000.
+          write (32,99009) period , cmonth(month) , idate1/100
+          write (32,99010) 1
+          write (32,99011) 'ice ' , 'Sea Ice fraction           '
+          write (32,'(a)') 'endvars'
+          close (32)
+        end if
       end if
 99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
 99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
@@ -439,7 +521,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine gridml2(xlon,xlat,lu,iy,jx,idate1,inumber,ibyte,       &
-                       & truelatl,truelath)
+                       & truelatl,truelath,ssttyp)
       implicit none
 !
 ! Dummy arguments
@@ -447,7 +529,8 @@
       integer :: ibyte , idate1 , iy , jx , inumber
       real :: truelath , truelatl
       real , dimension(iy,jx) :: lu , xlat , xlon
-      intent (in) ibyte , idate1 , iy , jx , inumber
+      character(5) :: ssttyp
+      intent (in) ibyte , idate1 , iy , jx , inumber , ssttyp
       intent (out) lu
       intent (inout) truelath , truelatl , xlat , xlon
 !
@@ -500,6 +583,17 @@
           write (31,'(a)') 'options little_endian'
         end if
         write (31,'(a)') 'undef -9999.'
+        if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+           open ( 32,file='RCM_ICE.ctl',status='replace')
+           write (32,'(a)') 'dset ^RCM_ICE.dat'
+           write (32,'(a)') 'title SeaIce fields for RegCM domain'
+           if ( ibigend.eq.1 ) then
+             write (32,'(a)') 'options big_endian'
+           else
+             write (32,'(a)') 'options little_endian'
+           end if
+           write (32,'(a)') 'undef -9999.'
+        end if
         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
           alatmin = 999999.
           alatmax = -999999.
@@ -549,11 +643,22 @@
                          & truelatl , truelath , clon , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+            write (32,99001) jx , iy , clat , clon , centerj , centeri ,&
+                           & truelatl , truelath , clon , dsinm , dsinm
+            write (32,99002) nx + 2 , alonmin - rloninc , rloninc
+            write (32,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          end if
         else if ( iproj=='POLSTR' ) then   !
         else if ( iproj=='NORMER' ) then
           write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
           write (31,99005) iy
           write (31,99006) (xlat(i,1),i=1,iy)
+          if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+            write (32,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
+            write (32,99005) iy
+            write (32,99006) (xlat(i,1),i=1,iy)
+          end if 
         else if ( iproj=='ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
@@ -564,6 +669,12 @@
                          & dsinm/111000.*.95238
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+            write (32,99007) jx , iy , plon , plat , dsinm/111000. ,    &
+                           & dsinm/111000.*.95238
+            write (32,99002) nx + 2 , alonmin - rloninc , rloninc
+            write (32,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          end if
         else
           write (*,*) 'Are you sure your map projection is correct ?'
           stop
@@ -571,12 +682,21 @@
         write (31,99008) 1 , 1000.
         month = idate1/100 - (idate1/10000)*100
         day = mod(idate1,100)
-        write (31,99009) inumber , cday(day) , cmonth(month) ,           &
+        write (31,99009) inumber , cday(day) , cmonth(month) ,          &
                        & idate1/10000
         write (31,99010) 1
         write (31,99011) 'sst ' , 'surface elevation          '
         write (31,'(a)') 'endvars'
         close (31)
+        if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+          write (32,99008) 1 , 1000.
+          write (32,99009) inumber , cday(day) , cmonth(month) ,        &
+                       & idate1/10000
+          write (32,99010) 1
+          write (32,99011) 'ice ' , 'Sea Ice fraction           '
+          write (32,'(a)') 'endvars'
+          close (32)
+        end if
       end if
 99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
 99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
@@ -775,13 +895,103 @@
 !
       do j = 1 , jlat
         do i = 1 , ilon
-          sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+          if ( work(i,j)==32767 ) then
+             sst(i,jlat+1-j) = -9999.
+          else
+             sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+          end if
         end do
       end do
 !
       istatus = nf90_close(inet)
 
       end subroutine sst_mn
+!
+!-----------------------------------------------------------------------
+!
+      subroutine ice_mn(idate,idate0,ilon,jlat,ice)
+      use netcdf
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: idate , idate0 , ilon , jlat
+      intent (in) idate , idate0 , ilon , jlat
+      real(4) , dimension(ilon,jlat) :: ice
+      intent (out) :: ice
+!
+! Local variables
+!
+      integer :: i , it , j , month , n , nday , nhour , nyear
+      integer , dimension(10) :: icount , istart
+      integer :: inet , istatus
+      real(8) :: xadd , xscale
+      character(35) :: pathaddname
+      logical :: there
+      character(5) :: varname
+      integer(2) , dimension(ilon,jlat) :: work
+!
+!
+!     This is the latitude, longitude dimension of the grid to be read.
+!     This corresponds to the lat and lon dimension variables in the
+!     netCDF file.
+!
+!     The data are packed into short integers (INTEGER*2).  The array
+!     work will be used to hold the packed integers. The array 'sst'
+!     will contain the unpacked data.
+!
+!     DATA ARRAY AND WORK ARRAY
+!bxq
+!bxq_
+      data varname/'ice'/
+!
+      if ( idate==idate0 ) then
+        pathaddname = '../DATA/SST/icec.mnmean.nc'
+        inquire (file=pathaddname,exist=there)
+        if ( .not.there ) then
+          write (*,*) pathaddname , ' is not available'
+          stop
+        end if
+        istatus = nf90_open('../DATA/SST/icec.mnmean.nc',               &
+                &           nf90_nowrite,inet)
+        istatus = nf90_get_att(inet,5,'scale_factor',xscale)
+        istatus = nf90_get_att(inet,5,'add_offset',xadd)
+        istart(1) = 1
+        istart(2) = 1
+        icount(1) = 360
+        icount(2) = 180
+        do n = 4 , 10
+          istart(n) = 0
+          icount(n) = 0
+        end do
+      end if
+ 
+!bxq
+      nyear = idate/1000000
+      month = idate/10000 - nyear*100
+      nday = idate/100 - nyear*10000 - month*100
+      nhour = idate - nyear*1000000 - month*10000 - nday*100
+ 
+      it = (nyear-1981)*12 + month - 11
+ 
+      istart(3) = it
+      icount(3) = 1
+      istatus = nf90_get_var(inet,5,work,istart,icount)
+!bxq_
+!
+      do j = 1 , jlat
+        do i = 1 , ilon
+          if ( work(i,j)==32767 ) then
+             ice(i,jlat+1-j) = -9999.
+          else
+             ice(i,jlat+1-j) = work(i,j)*xscale + xadd
+          end if
+        end do
+      end do
+!
+      istatus = nf90_close(inet)
+
+      end subroutine ice_mn
 !
 !-----------------------------------------------------------------------
 !
@@ -877,10 +1087,120 @@
 !bxq_
       do j = 1 , jlat
         do i = 1 , ilon
-          sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+          if ( work(i,j)==32767 ) then
+             sst(i,jlat+1-j) = -9999.
+          else
+             sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+          end if
         end do
       end do
 
       istatus = nf90_close(inet)
  
       end subroutine sst_wk
+!
+!-----------------------------------------------------------------------
+!
+      subroutine ice_wk(idate,idate0,kkk,ilon,jlat,ice)
+      use netcdf
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: idate , idate0 , kkk , ilon , jlat
+      intent (in) idate , idate0 , kkk , ilon , jlat
+      real(4) , dimension(ilon,jlat) :: ice
+      intent (out) :: ice
+!
+! Local variables
+!
+      integer :: i , it , j , month , n , nday , nhour , nyear
+      integer , dimension(10) :: icount , istart
+      integer :: inet , istatus
+      real(8) :: xadd , xscale
+      character(64) :: pathaddname
+      logical :: there
+      character(3) :: varname
+      integer(2) , dimension(ilon,jlat) :: work
+!
+!     This is the latitude, longitude dimension of the grid to be read.
+!     This corresponds to the lat and lon dimension variables in the
+!     netCDF file.
+!
+!     The data are packed into short integers (INTEGER*2).  The array
+!     work will be used to hold the packed integers. The array 'sst'
+!     will contain the unpacked data.
+!
+!     DATA ARRAY AND WORK ARRAY
+!bxq
+!bxq_
+      data varname/'ice'/
+!
+      if ( idate==idate0 ) then
+        if ( idate<1989123100 ) then
+          pathaddname = '../DATA/SST/icec.wkmean.1981-1989.nc'
+        else
+          pathaddname = '../DATA/SST/icec.wkmean.1990-present.nc'
+        end if
+        inquire (file=pathaddname,exist=there)
+        if ( .not.there ) then
+          write (*,*) pathaddname , ' is not available'
+          stop
+        end if
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet)
+        istatus = nf90_get_att(inet,5,'scale_factor',xscale)
+        istatus = nf90_get_att(inet,5,'add_offset',xadd)
+        istart(1) = 1
+        istart(2) = 1
+        icount(1) = 360
+        icount(2) = 180
+        do n = 4 , 10
+          istart(n) = 0
+          icount(n) = 0
+        end do
+      end if
+      if ( idate0<1989123100 .and. idate==1989123100 ) then
+        pathaddname = '../DATA/SST/icec.wkmean.1990-present.nc'
+        inquire (file=pathaddname,exist=there)
+        if ( .not.there ) then
+          write (*,*) pathaddname , ' is not available'
+          stop
+        end if
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet)
+        istatus = nf90_get_att(inet,5,'scale_factor',xscale)
+        istatus = nf90_get_att(inet,5,'add_offset',xadd)
+        istart(1) = 1
+        istart(2) = 1
+        icount(1) = 360
+        icount(2) = 180
+        do n = 4 , 10
+          istart(n) = 0
+          icount(n) = 0
+        end do
+      end if
+!bxq
+      nyear = idate/1000000
+      month = idate/10000 - nyear*100
+      nday = idate/100 - nyear*10000 - month*100
+      nhour = idate - nyear*1000000 - month*10000 - nday*100
+ 
+      it = kkk
+      if ( kkk>427 ) it = kkk - 427
+ 
+      istart(3) = it
+      icount(3) = 1
+      istatus = nf90_get_var(inet,5,work,istart,icount)
+!bxq_
+      do j = 1 , jlat
+        do i = 1 , ilon
+          if ( work(i,j)==32767 ) then
+             ice(i,jlat+1-j) = -9999.
+          else
+             ice(i,jlat+1-j) = work(i,j)*xscale + xadd
+          end if
+        end do
+      end do
+
+      istatus = nf90_close(inet)
+ 
+      end subroutine ice_wk

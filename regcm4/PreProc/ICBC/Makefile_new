@@ -20,8 +20,8 @@ ICBCOBJ = icbc.o bilinx.o cressmcr.o cressmdt.o fexist.o gradsctlb.o \
           gradsctl.o height.o height_o.o htsig.o htsig_o.o humid1.o \
           humid1fv.o humid1_o.o humid2.o humid2fv.o hydrost.o intgtb.o \
           intlin.o intlin_o.o intlog.o intlog_o.o intpsn.o intv1.o \
-          intv2.o intv3.o julian.o mksst2.o mksst3.o mksst.o mxmn3d.o \
-          p1p2.o printl.o top2btm.o uvrot4.o uvrot4nx.o
+          intv2.o intv3.o julian.o mksst2.o mksst2a.o mksst3.o mksst.o \
+          mkssta.o mxmn3d.o p1p2.o printl.o top2btm.o uvrot4.o uvrot4nx.o
 
 aerosol: $(AEROSOLOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(LIB) $(NETCDFLIB)
@@ -102,8 +102,10 @@ intv2.o: intv2.f90 mod_constants.o
 intv3.o: intv3.f90 mod_constants.o
 julian.o: julian.f90
 mksst2.o: mksst2.f90 mod_datewk.o mod_datenum.o
+mksst2a.o: mksst2a.f90
 mksst3.o: mksst3.f90
 mksst.o: mksst.f90
+mkssta.o: mkssta.f90
 mxmn3d.o: mxmn3d.f90
 p1p2.o: p1p2.f90
 printl.o: printl.f90

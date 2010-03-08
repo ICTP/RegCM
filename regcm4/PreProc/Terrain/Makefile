@@ -32,7 +32,7 @@ clean:
 mod_param.o: mod_param.f90
 mod_aa.o: mod_aa.f90
 mod_addstack2.o: mod_addstack2.f90 mod_param.o
-mod_addstack.o: mod_addstack.o
+mod_addstack.o: mod_addstack.f90
 mod_a.o: mod_a.f90
 mod_block.o: mod_block.f90
 mod_const.o: mod_const.f90

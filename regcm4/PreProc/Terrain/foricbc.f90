@@ -107,8 +107,12 @@
       end if
       if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' ) then
         write (23,'(a)') "      parameter(SSTTYP='OISST')"
+      else if ( ssttyp=='OI2ST' ) then
+        write (23,'(a)') "      parameter(SSTTYP='OI2ST')"
       else if ( ssttyp=='OI_WK' ) then
         write (23,'(a)') "      parameter(SSTTYP='OI_WK')"
+      else if ( ssttyp=='OI2WK' ) then
+        write (23,'(a)') "      parameter(SSTTYP='OI2WK')"
       else if ( ssttyp=='GISST' ) then
         write (23,'(a)') "      parameter(SSTTYP='GISST')"
       else if ( ssttyp=='FV_RF' ) then

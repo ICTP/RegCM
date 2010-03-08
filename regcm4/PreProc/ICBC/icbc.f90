@@ -132,7 +132,7 @@
         call headnest
       else
       end if
-      if ( ssttyp=='OI_WK' ) call headwk
+      if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) call headwk
  
       inrcm = '../../Commons/regcm.in'
       inrcm2 = '../../Commons/regcm0.in'
