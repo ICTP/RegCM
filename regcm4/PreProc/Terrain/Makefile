@@ -15,13 +15,15 @@ OBJS =     anal2.o         lndfudge.o       oned.o           smthtr.o     \
            formain.o       rot2nrot.o       texfudge.o       interp.o     \
            mxmnll.o        rotmer.o         xyobsll.o        interp_s.o   \
            normer.o        setup.o          lakeadj.o        nrot2rot.o	  \
-           smth121.o       lambrt.o         smther.o         terrain.o
+           smth121.o       lambrt.o         smther.o         rdldtr_nc.o  \
+           rdldtr_s_nc.o   terrain.o
 
 terrain: $(MODOBJS) $(OBJS)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) \
+               $(LIB) $(NETCDFLIB)
 
 %.o: %.f90
-	$(F90) -c $(F90FLAGS) $(USCORING) -c $<
+	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
 
 clean:
 	rm -f *.mod *.o terrain
@@ -59,7 +61,10 @@ nrot2rot.o: nrot2rot.f90
 oned.o: oned.f90
 output.o: output.f90
 rdldtr.o: rdldtr.f90 mod_param.o mod_a.o mod_aa.o mod_block.o mod_const.o
+rdldtr_nc.o: rdldtr_nc.f90 mod_param.o mod_a.o mod_aa.o mod_block.o mod_const.o
 rdldtr_s.o: rdldtr_s.f90 mod_param.o mod_a.o mod_aa.o mod_block.o mod_const.o
+rdldtr_s_nc.o: rdldtr_s_nc.f90 mod_param.o mod_a.o mod_aa.o mod_block.o \
+               mod_const.o
 rot2nrot.o: rot2nrot.f90
 rotmer.o: rotmer.f90
 setup.o: setup.f90 mod_const.o

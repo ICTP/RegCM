@@ -143,8 +143,14 @@
         print * , 'after calling MXMNLL, for subgrid'
 !
 !       read in the terrain & landuse data
-        call rdldtr_s
-        print * , 'after calling RDLDTR_s, for subgrid'
+        if ( itype_in==1 ) then
+          call rdldtr_s
+          print * , 'after calling RDLDTR_s, for subgrid'
+        else if ( itype_in==2 ) then
+          call rdldtr_s_nc
+          print * , 'after calling RDLDTR_s_nc, for subgrid'
+        else
+        endif
         if ( ifanal ) then
 !         convert xobs and yobs from LON and LAT to x and y in mesh
           call xyobsll(iy*nsg,jx*nsg,iproj,clat,clong,plat,plon,        &
@@ -337,8 +343,14 @@
       print * , 'after calling MXMNLL'
 !
 !     read in the terrain & landuse data
-      call rdldtr
-      print * , 'after calling RDLDTR'
+      if ( itype_in==1 ) then
+        call rdldtr
+        print * , 'after calling RDLDTR'
+      else if (itype_in==2 ) then
+        call rdldtr_nc
+        print * , 'after calling RDLDTR_nc'
+      else
+      endif
  
 !     compute the scaled standard deviation of terrain height.
 !     (must be called before XYOBSLL because xobs/yobs are modified)

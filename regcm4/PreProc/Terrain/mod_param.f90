@@ -41,6 +41,14 @@
       logical , parameter :: ifanal = .true.
       logical , parameter :: smthbdy = .false.
       logical , parameter :: lakadj = .false.
+!
+!     itype_in is I/O format
+!
+!     1 => direct access binary
+!     2 => netcdf
+      integer , parameter :: itype_in  = 1
+!     integer , parameter :: itype_out  = 1
+
       integer , parameter :: igrads = 1
       integer , parameter :: ibigend = 1
       integer , parameter :: ibyte = 4
