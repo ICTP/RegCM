@@ -137,7 +137,7 @@
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev1)
  
-      if ( ssttyp/='OI_WK' .or. ssttyp/='OI2WK') then
+      if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK') then
 !       F1    CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
 !       PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
         call julian(idate,nyrp,nmop,wt)
