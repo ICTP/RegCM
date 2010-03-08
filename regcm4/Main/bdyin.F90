@@ -38,7 +38,7 @@
       use mod_param3 , only : ptop
       use mod_main
       use mod_bdycod
-      use mod_bats , only : veg2d
+      use mod_bats , only : veg2d , ocld2d , sice2d , ocld2d , sice2d
       use mod_date , only : idatex , ldatez , mmrec , ndate0 , ndate1 , &
                    & nmonth , nnbase , nnnnnn , nyear , nnnchk , mdate ,&
                    & xtime
@@ -60,7 +60,7 @@
       integer :: i , ierr1 , j , k , nn , nnb
       real(4) , dimension(ix,jx) :: io2d
 #ifdef MPP1
-      integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
+      integer :: ierr , n , ndeb , ndwb , nkk , nxeb , nxwb
       real(8) , dimension(ix,jxp) :: psdot , tdum
 #else
       real(8) , dimension(ix,jx) :: psdot , tdum

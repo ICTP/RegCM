@@ -128,8 +128,8 @@
 !         instead tgb1d(i) used instead of tbelow
 !
        
-          if ( ldoc1d(n,np).gt.1.5 ) then
-            tdiffs=ts1d(n,np)-tzero
+          if ( ldoc1d(n,i).gt.1.5 ) then
+            tdiffs=ts1d(n,i)-tzero
             tdiff=dmax1(tdiffs,0.d0)
             tdiffs=dmin1(tdiff,20.d0)
             albgl=sical1-1.1e-2*tdiffs
