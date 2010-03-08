@@ -1,18 +1,18 @@
-      subroutine bilinx(in,loni,lati,nloni,nlati,out,lono,lato,iy,jx,   &
+      subroutine bilinx(fin,loni,lati,nloni,nlati,fout,lono,lato,iy,jx, &
                       & nflds)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: iy , jx , nflds , nlati , nloni
-      real , dimension(nloni,nlati,nflds) :: in
+      real , dimension(nloni,nlati,nflds) :: fin
       real , dimension(nlati) :: lati
       real , dimension(iy,jx) :: lato , lono
       real , dimension(nloni) :: loni
-      real , dimension(iy,jx,nflds) :: out
-      intent (in) in , iy , jx , lati , lato , loni , lono , nflds ,    &
+      real , dimension(iy,jx,nflds) :: fout
+      intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
                 & nlati , nloni
-      intent (out) out
+      intent (out) fout
 !
 ! Local variables
 !
@@ -62,28 +62,28 @@
           do l = 1 , nflds
             xsum = 0.0
             bas = 0.0
-            if ( in(ip,jq,l)<-9990.0 .and. in(ipp1,jq,l)<-9990.0 .and.  &
-               & in(ipp1,jqp1,l)<-9990.0 .and. in(ip,jqp1,l)<-9990.0 )  &
+            if ( fin(ip,jq,l)<-9990.0 .and. fin(ipp1,jq,l)<-9990.0 .and.&
+               & fin(ipp1,jqp1,l)<-9990.0 .and. fin(ip,jqp1,l)<-9990.0 )&
                & then
-              out(i,j,l) = -9999.
+              fout(i,j,l) = -9999.
             else
-              if ( in(ip,jq,l)>-9990.0 ) then
-                xsum = xsum + (1.-q)*(1.-p)*in(ip,jq,l)
+              if ( fin(ip,jq,l)>-9990.0 ) then
+                xsum = xsum + (1.-q)*(1.-p)*fin(ip,jq,l)
                 bas = bas + (1.-q)*(1.-p)
               end if
-              if ( in(ipp1,jq,l)>-9990.0 ) then
-                xsum = xsum + (1.-q)*p*in(ipp1,jq,l)
+              if ( fin(ipp1,jq,l)>-9990.0 ) then
+                xsum = xsum + (1.-q)*p*fin(ipp1,jq,l)
                 bas = bas + (1.-q)*p
               end if
-              if ( in(ipp1,jqp1,l)>-9990.0 ) then
-                xsum = xsum + q*p*in(ipp1,jqp1,l)
+              if ( fin(ipp1,jqp1,l)>-9990.0 ) then
+                xsum = xsum + q*p*fin(ipp1,jqp1,l)
                 bas = bas + q*p
               end if
-              if ( in(ip,jqp1,l)>-9990.0 ) then
-                xsum = xsum + q*(1.-p)*in(ip,jqp1,l)
+              if ( fin(ip,jqp1,l)>-9990.0 ) then
+                xsum = xsum + q*(1.-p)*fin(ip,jqp1,l)
                 bas = bas + q*(1.-p)
               end if
-              out(i,j,l) = xsum/bas
+              fout(i,j,l) = xsum/bas
             end if
           end do
         end do

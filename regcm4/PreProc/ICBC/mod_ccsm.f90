@@ -147,7 +147,7 @@
         use netcdf
         use mod_grid
         use mod_var4
-
+        use mod_write
         implicit none
 !
 ! Dummy arguments
@@ -161,10 +161,9 @@
         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
                 & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
                 & istatus
-        integer :: iomega
         real , dimension(jx,iy,npl) :: dum1
         real , dimension(jx,iy,npl,2) :: dum2
-        real :: pp , w , wt
+        real :: wt
         real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za
         character(38) :: pathaddname
         logical :: there
@@ -275,8 +274,8 @@
         call humid1fv(tvar,qvar,pp3d,ilonh,jlath,klev)
         call intlin(qp,qvar,psvar,pp3d,ilonh,jlath,klev,pplev,npl)
  
-        call bilinxcx(b3,b2,xlon,xlat,glon,glat,jx,iy,ilonh,jlath,npl)
-        call bilinxdt(d3,d2,dlon,dlat,glon,glat,jx,iy,ilonh,jlath,npl)
+        call bilinx(b3,b2,xlon,xlat,glon,glat,jx,iy,ilonh,jlath,npl)
+        call bilinx(d3,d2,dlon,dlat,glon,glat,jx,iy,ilonh,jlath,npl)
         call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,             &
                 &   npl,plon,plat,lgtype)
  
@@ -309,7 +308,7 @@
         call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,               &
                &     dsigma,jx,iy,kz)
  
-        call writef(u4,v4,t4,q4,pp,w,ps4,ts4,ptop,jx,iy,kz,idate,iomega)
+        call writef(u4,v4,t4,q4,ps4,ts4,ptop,jx,iy,kz,idate)
 
         deallocate(work)
       end subroutine get_cam42
@@ -439,6 +438,7 @@
 ! 
       subroutine cam42(idate,idate0,glat)
       use mod_grid
+      use mod_write
       use netcdf
       implicit none
 !
@@ -760,6 +760,7 @@
 
         use netcdf
         use mod_grid
+        use mod_write
         use mod_var4
 
         implicit none
@@ -775,10 +776,9 @@
       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
                & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
                & istatus
-      integer :: iomega
       real , dimension(jx,iy,npl) :: dum1
       real , dimension(jx,iy,npl,2) :: dum2
-      real :: pp , w , wt
+      real :: wt
       real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za
       character(38) :: pathaddname
       logical :: there
@@ -888,8 +888,8 @@
       call humid1fv(tvar,qvar,pp3d,ilon,jlat,klev)
       call intlin(qp,qvar,psvar,pp3d,ilon,jlat,klev,pplev,npl)
  
-      call bilinxcx(b3,b2,xlon,xlat,glon,glat,jx,iy,ilon,jlat,npl)
-      call bilinxdt(d3,d2,dlon,dlat,glon,glat,jx,iy,ilon,jlat,npl)
+      call bilinx(b3,b2,xlon,xlat,glon,glat,jx,iy,ilon,jlat,npl)
+      call bilinx(d3,d2,dlon,dlat,glon,glat,jx,iy,ilon,jlat,npl)
       call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,npl,plon,plat, &
                 & lgtype)
  
@@ -919,7 +919,7 @@
  
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
  
-      call writef(u4,v4,t4,q4,pp,w,ps4,ts4,ptop,jx,iy,kz,idate,iomega)
+      call writef(u4,v4,t4,q4,ps4,ts4,ptop,jx,iy,kz,idate)
  
       deallocate(work)
       end subroutine get_cam85
@@ -1058,6 +1058,7 @@
       subroutine cam85(idate,idate0,glat)
       use netcdf
       use mod_grid
+      use mod_write
       implicit none
 !
 ! Dummy arguments

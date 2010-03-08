@@ -32,6 +32,7 @@
       subroutine getera40(idate)
       use mod_grid
       use mod_var4
+      use mod_write
       implicit none
 !
 ! Dummy arguments
@@ -151,7 +152,7 @@
       integer :: i , inet , it , j , k , k4 , kkrec , l4 , month ,      &
                & nday , nhour , nyear , istatus
       character(24) :: inname
-      character(38) :: pathaddname
+      character(64) :: pathaddname
       character(5) , dimension(3,4) :: sarname
       character(2) :: snownm
       logical :: there

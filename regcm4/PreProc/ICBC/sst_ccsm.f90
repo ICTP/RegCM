@@ -37,7 +37,7 @@
       real , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
-               & nday , nmo , nrec , nyear
+               & nday , nmo , nyear
       real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
       integer , dimension(20) :: lund
 !
@@ -306,7 +306,7 @@
       integer :: inet1
       integer, dimension(10) :: istart , icount , istartt , icountt
       integer, dimension(2) :: ivar2
-      integer :: kkrec , it , icode , i , j , k , npos , nrec
+      integer :: it , icode , i , j , npos , nrec
       integer :: latid , lonid , timid
       integer :: latlen , lonlen , timlen
       logical :: there

@@ -76,6 +76,9 @@
       use mod_datenum
       use mod_grid
       use mod_write
+      use mod_ingrid
+      use mod_datewk
+      use mod_ein15
       implicit none
 !
 ! Local variables
@@ -301,8 +304,8 @@
  100  continue
       print * , 'ERROR OPENING SST.RCM FILE'
       stop '4810 IN PROGRAM ICBC'
-99001 format (x,a8,x,'=',4x,a7,',')
-99002 format (x,a8,x,'=',x,i10,',')
+99001 format (1x,a8,1x,'=',4x,a7,',')
+99002 format (1x,a8,1x,'=',1x,i10,',')
 99003 format (a50)
 99004 format (a27,i1,a13)
 99005 format (a27,i2,a13)

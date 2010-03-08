@@ -25,7 +25,7 @@
       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
       real , dimension(jlat) :: lati
       real , dimension(ilon) :: loni
-      integer :: idate , idate0
+      integer :: idate
       logical :: there
       integer :: nnnend , nstart
       real(4) , dimension(ilon,jlat) :: sst

@@ -1,5 +1,6 @@
       subroutine mksst2(tsccm,sst1,sst2,topogm,xlandu,jx,iy,kdate)
       use mod_datewk
+      use mod_datenum
       implicit none
 !
 ! Dummy arguments
@@ -31,9 +32,9 @@
         end if
       end do
       kdate2 = wkday(ks)
-      call finddate(ks1,kdate1*100)
-      call finddate(ks,kdate*100)
-      call finddate(ks2,kdate2*100)
+      call finddate_icbc(ks1,kdate1*100)
+      call finddate_icbc(ks,kdate*100)
+      call finddate_icbc(ks2,kdate2*100)
       wt = float(ks-ks1)/float(ks2-ks1)
  
 !     ******           INITIALIZE SST1, SST2 (NEEDED FOR 82 JAN CASE)

@@ -23,6 +23,7 @@
       subroutine getein25(idate)
       use mod_grid
       use mod_var4
+      use mod_write
       implicit none
 !
 ! Dummy arguments

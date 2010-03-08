@@ -30,6 +30,7 @@
       use mod_param
       use mod_grid
       use mod_var4
+      use mod_write
       implicit none
 !
 ! Dummy arguments
@@ -55,7 +56,7 @@
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-      call cdc6hour(dattyp,idate,idate1)
+      call cdc6hour(idate,idate1)
 
       write (*,*) 'READ IN fields at DATE:' , idate
 !
@@ -123,20 +124,19 @@
 !
       end subroutine getncep
 
-      subroutine cdc6hour(dattyp,idate,idate0)
+      subroutine cdc6hour(idate,idate0)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
-      character(5) :: dattyp
       integer :: idate , idate0
-      intent (in) dattyp , idate , idate0
+      intent (in) idate , idate0
 !
 ! Local variables
 !
-      integer :: i , ilev , inet , it , j , k , kkrec , m , month ,     &
-               & nday , nhour , nlev , nyear , istatus
+      integer :: i , ilev , inet , it , j , kkrec , m , month , nday ,  &
+               & k , nhour , nlev , nyear , istatus
       character(21) :: inname
       character(35) :: pathaddname
       logical :: there
@@ -144,7 +144,7 @@
       integer(2) , dimension(ilon,jlat,klev) :: work
       real(8) :: xadd , xscale
       integer , dimension(10) :: icount , istart
-      integer , dimension(7) :: inet7 , ivar7
+      integer , dimension(7) :: inet7
       real(8) , dimension(7) :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -171,6 +171,7 @@
       nday = idate/100 - nyear*10000 - month*100
       nhour = idate - nyear*1000000 - month*10000 - nday*100
 !fix  do kkrec=1,7
+      nlev = 0
       do kkrec = 1 , 5
         if ( dattyp=='NNRP1' ) then
           if ( kkrec==1 .or. kkrec==2 .or. kkrec==4 .or. kkrec==5 )     &
@@ -348,6 +349,7 @@
       use mod_param
       use mod_grid
       use mod_var4
+      use mod_write
       implicit none
 !
 ! Dummy arguments
@@ -373,7 +375,7 @@
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-      call cdc6hour2(dattyp,idate,idate1)
+      call cdc6hour2(idate,idate1)
 
       write (*,*) 'READ IN fields at DATE:' , idate
 !
@@ -441,20 +443,19 @@
 !
       end subroutine getncepw
 
-      subroutine cdc6hour2(dattyp,idate,idate0)
+      subroutine cdc6hour2(idate,idate0)
       use netcdf
       use mod_grid
       implicit none
 !
 ! Dummy arguments
 !
-      character(5) :: dattyp
       integer :: idate , idate0
       intent (in) idate , idate0
 !
 ! Local variables
 !
-      integer :: i , ii , ilev , inet , it , j , jj , k , kkrec , m ,   &
+      integer :: i , ii , ilev , inet , it , j , jj , kkrec , m ,       &
                & month , nday , nhour , nlev , nyear , istatus
       character(24) :: inname
       character(38) :: pathaddname
@@ -463,7 +464,7 @@
       integer(2) , dimension(iii,jjj,klev+1) :: work
       real(8) :: xadd , xscale
       integer , dimension(10) :: icount , istart
-      integer , dimension(7) :: inet7 , ivar7
+      integer , dimension(7) :: inet7
       real(8) , dimension(7) :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.

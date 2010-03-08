@@ -44,6 +44,7 @@
       use mod_grid
       use mod_var4
       use mod_datenum
+      use mod_write
       implicit none
 !
 ! Dummy arguments
@@ -389,7 +390,7 @@
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G      WRITE AN INITIAL FILE FOR THE RegCM
-      call writef2(u4,v4,t4,q4,c4,ps4,ts4,ptop,jx,iy,kz,idate)
+      call writef2(u4,v4,t4,q4,ps4,ts4,ptop,jx,iy,kz,idate)
 !
  
 99001 format ('ATM.',i10)

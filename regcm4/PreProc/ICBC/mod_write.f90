@@ -49,14 +49,14 @@
 !
       end subroutine writef
 
-      subroutine writef2(u,v,t,q,c,px,ts,ptop,ni,nj,nk,idate)
+      subroutine writef2(u,v,t,q,px,ts,ptop,ni,nj,nk,idate)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate , ni , nj , nk
       real :: ptop
-      real , dimension(ni,nj,nk) :: c , q , t , u , v
+      real , dimension(ni,nj,nk) :: q , t , u , v
       real , dimension(ni,nj) :: px , ts
       intent (in) idate , ni , nj , nk , ptop , px , q , t , ts , u , v
 !
