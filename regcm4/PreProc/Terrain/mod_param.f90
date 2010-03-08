@@ -26,10 +26,6 @@
       integer , parameter :: iy = 34
       integer , parameter :: jx = 48
       integer , parameter :: kz = 18
-      integer , parameter :: iy_o = 1
-      integer , parameter :: jx_o = 1
-      integer , parameter :: kz_o = 14
-      integer , parameter :: np = 15
       integer , parameter :: nsg = 1
       real(4) , parameter :: ds = 60.0
       real(4) , parameter :: ptop = 5.0
