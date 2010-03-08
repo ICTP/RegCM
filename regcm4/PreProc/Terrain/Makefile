@@ -14,7 +14,7 @@ OBJS =     anal2.o         lndfudge.o       oned.o           smthtr.o     \
            mappol.o        rdldtr.o         foricbc.o        rdldtr_s.o   \
            formain.o       rot2nrot.o       texfudge.o       interp.o     \
            mxmnll.o        rotmer.o         xyobsll.o        interp_s.o   \
-           normer.o        setup.o          lakeadj.o        nrot2rot.o	  \
+           normer.o        setup.o          lakeadj.o        nrot2rot.o   \
            smth121.o       lambrt.o         smther.o         rdldtr_nc.o  \
            rdldtr_s_nc.o   terrain.o
 
