@@ -404,6 +404,20 @@
       call writef2(u4,v4,t4,q4,ps4,ts4,ptop,jx,iy,kz,idate)
 !
  
+      deallocate(sigf)
+      deallocate(sig)
+      deallocate(b2)
+      deallocate(d2)
+      deallocate(c)
+      deallocate(q)
+      deallocate(t)
+      deallocate(u)
+      deallocate(v)
+      deallocate(ps)
+      deallocate(xlat_in)
+      deallocate(xlon_in)
+      deallocate(ht_in)
+
 99001 format ('ATM.',i10)
 !
       end subroutine get_nest
