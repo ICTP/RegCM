@@ -35,7 +35,7 @@
 ! ----------------------------------------------------------------------
 !     Purpose:
 !     Adaption of the DWD-Functions to convert real geographical
-!     coordinates (PHI,LAM) into coordinates in the roteted system
+!     coordinates (PHI,LAM) into coordinates in the rotated system
 !     (PHIS,LAMS). The rotated pole is passed trough POLLON and POLLAT.
 !     POLLON and POLLAT give the origin of the new rotated grid. The
 !     first four arguments are input, the second two are output. All

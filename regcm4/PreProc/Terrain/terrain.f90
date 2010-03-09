@@ -88,6 +88,8 @@
 !     equal and >= max(ihmax,jhmax) where ihmax and jhmax are
 !     as calculated above.
 !
+      open (48,status='scratch',form='unformatted')
+
       dxcen = 0.0
       dycen = 0.0
 !

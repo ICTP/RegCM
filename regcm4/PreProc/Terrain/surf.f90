@@ -186,7 +186,6 @@
         end if
       end do
       close (48)
-      call unlink('fort.48')
 !
       do i = 1 , iy
         do j = 1 , jx
