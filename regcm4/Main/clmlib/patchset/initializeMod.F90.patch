@@ -1,5 +1,5 @@
---- orig/initializeMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/initializeMod.F90	2010-03-10 15:04:24.559849572 +0100
+--- orig/initializeMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/initializeMod.F90	2010-03-10 16:30:08.128597725 +0100
 @@ -47,7 +47,7 @@
  ! !IROUTINE: initialize1
  !
@@ -15,7 +15,7 @@
      use surfrdMod , only : surfrd,surfrd_get_grid,surfrd_get_frac,&
 -                           surfrd_get_topo, surfrd_get_latlon
 +                           surfrd_get_topo, surfrd_get_latlon,&
-+		           rcmsurfrd_get_topo, rcmsurfrd_get_frac,&
++                           rcmsurfrd_get_topo, rcmsurfrd_get_frac,&
 +                           rcmsurfrd_get_latlon,rcmsurfrd_get_grid,&
 +                           rcmsurfrd !abt
      use clm_varctl, only : fsurdat, fatmgrid, fatmlndfrc, &
@@ -145,8 +145,8 @@
  #endif
      endif
 -    call surfrd_get_grid(lgdomain, fsurdat)
-+	
-+! abt rcm below	
++
++! abt rcm below
 +!    call surfrd_get_grid(lgdomain, fsurdat)
 +    call rcmsurfrd_get_grid(lgdomain,mksrf_offline_fnavyoro)
 +

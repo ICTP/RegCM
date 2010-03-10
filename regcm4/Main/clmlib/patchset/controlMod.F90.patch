@@ -1,5 +1,5 @@
---- orig/controlMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/controlMod.F90	2010-03-10 15:03:12.618600435 +0100
+--- orig/controlMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/controlMod.F90	2010-03-10 16:29:08.678595457 +0100
 @@ -56,6 +56,37 @@
  !    o fpftcon         = 256 character data file with PFT physiological constants
  !    o frivinp_rtm     = 256 character input data file for rtm

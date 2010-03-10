@@ -1,5 +1,5 @@
---- orig/iniTimeConst.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/iniTimeConst.F90	2010-03-10 15:04:45.591125761 +0100
+--- orig/iniTimeConst.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/iniTimeConst.F90	2010-03-10 16:30:12.748596021 +0100
 @@ -27,7 +27,8 @@
    use clm_varcon  , only : istice, istdlak, istwet, isturb, &
                             zlak, dzlak, zsoi, dzsoi, zisoi, spval, &
@@ -173,12 +173,12 @@
 +     call getfil (mksrf_fmax, locfn, 0)
 +     call check_ret(nf_open(locfn, 0, ncid), subname)
 +  endif
-+
+ 
+-  call ncd_iolocal(ncid, 'SOIL_COLOR', 'read', soic2d, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:2),count(:2))
 +!abt original clm  call ncd_iolocal(ncid, 'FMAX', 'read', gti, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:2),count(:2))
 +  call ncd_iolocal(ncid, 'FMAX', 'read', gti, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:3),count(:3))
 +!   gti(:) = 0.3   ! abt workaround not having FMAX data
- 
--  call ncd_iolocal(ncid, 'SOIL_COLOR', 'read', soic2d, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:2),count(:2))
++
 +  ! Read sand and clay fraction
 +
 +  if(masterproc) then

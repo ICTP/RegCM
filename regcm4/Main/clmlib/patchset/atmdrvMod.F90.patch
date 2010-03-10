@@ -1,5 +1,5 @@
---- orig/atmdrvMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/atmdrvMod.F90	2010-03-10 15:09:12.118611157 +0100
+--- orig/atmdrvMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/atmdrvMod.F90	2010-03-10 16:19:45.598596594 +0100
 @@ -20,15 +20,24 @@
    use spmdMod      , only : masterproc, mpicom, comp_id, MPI_REAL8, MPI_INTEGER, iam
    use clm_mct_mod
@@ -231,7 +231,7 @@
 +       call t_startf('atmdinterp')
 +
 +!abt       call interpa2s
-+	  call interpr2s()
++           call interpr2s()
 +
 +       ! Map data fields to atm model: [datlon] x [datlat] grid ->
 +       ! [numland] vector of land points -> [numpatch] vector of subgrid patches

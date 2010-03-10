@@ -1,5 +1,5 @@
---- orig/accFldsMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/accFldsMod.F90	2010-03-10 15:08:32.883267249 +0100
+--- orig/accFldsMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/accFldsMod.F90	2010-03-10 16:19:07.000000000 +0100
 @@ -30,6 +30,8 @@
  ! !USES:
    use shr_kind_mod, only: r8 => shr_kind_r8

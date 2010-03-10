@@ -1,5 +1,5 @@
---- orig/driver.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/driver.F90	2010-03-10 15:04:00.731764754 +0100
+--- orig/driver.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/driver.F90	2010-03-10 16:29:27.219685091 +0100
 @@ -97,7 +97,8 @@
    use pftdynMod           , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal 
    use clm_varcon          , only : zlnd

@@ -1,5 +1,5 @@
---- orig/mkarbinitMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/mkarbinitMod.F90	2010-03-10 14:44:04.641094542 +0100
+--- orig/mkarbinitMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/mkarbinitMod.F90	2010-03-10 16:30:20.989670289 +0100
 @@ -27,7 +27,13 @@
      use clm_varcon   , only : bdsno, istice, istwet, istsoil, denice, denh2o, spval, sb
      use spmdMod      , only : masterproc

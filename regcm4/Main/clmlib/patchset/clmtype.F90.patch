@@ -1,5 +1,14 @@
---- orig/clmtype.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/clmtype.F90	2010-03-10 14:44:04.561094525 +0100
+--- orig/clmtype.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/clmtype.F90	2010-03-10 16:27:39.088598717 +0100
+@@ -160,7 +160,7 @@
+    real(r8), pointer :: sun_faii(:,:) !fraction sun canopy absorbed indirect from indirect
+    real(r8), pointer :: sha_faid(:,:) !fraction shade canopy absorbed indirect from direct
+    real(r8), pointer :: sha_faii(:,:) !fraction shade canopy absorbed indirect from indirect
+-	! 4/14/05: PET
++! 4/14/05: PET
+    ! Adding isotope code
+    real(r8), pointer :: cisun(:) 		!sunlit intracellular CO2 (Pa)
+    real(r8), pointer :: cisha(:) 		!shaded intracellular CO2 (Pa)
 @@ -551,6 +551,9 @@
  	real(r8), pointer :: sha_alf(:,:)   !shade canopy total absored by leaves (W/m**2)
  	real(r8), pointer :: sun_aperlai(:,:) !sun canopy total absorbed per unit LAI (W/m**2)

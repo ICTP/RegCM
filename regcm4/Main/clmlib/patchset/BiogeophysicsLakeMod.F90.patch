@@ -1,5 +1,5 @@
---- orig/BiogeophysicsLakeMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/BiogeophysicsLakeMod.F90	2010-03-10 14:44:04.541093892 +0100
+--- orig/BiogeophysicsLakeMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/BiogeophysicsLakeMod.F90	2010-03-10 16:19:07.000000000 +0100
 @@ -158,6 +158,9 @@
      real(r8), pointer :: ram1(:)            ! aerodynamical resistance (s/m)
      real(r8), pointer :: errsoi(:)          ! soil/lake energy conservation error (W/m**2)

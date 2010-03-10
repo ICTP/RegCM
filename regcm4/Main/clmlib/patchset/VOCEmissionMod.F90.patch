@@ -1,5 +1,5 @@
---- orig/VOCEmissionMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/VOCEmissionMod.F90	2010-03-10 14:44:04.681093713 +0100
+--- orig/VOCEmissionMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/VOCEmissionMod.F90	2010-03-10 16:32:39.978596192 +0100
 @@ -22,6 +22,9 @@
  !
  ! !PUBLIC MEMBER FUNCTIONS:
@@ -360,7 +360,7 @@
 +                    epsilon(p) = 0.01_r8
               end if
 -          end do
-+              endif			 
++              endif 
  
 -       case (3)
  !dir$ concurrent
@@ -390,7 +390,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 2._r8
 +                 end if
-+               endif	 
++               endif 
  
 -       case (4)
  !dir$ concurrent
@@ -422,7 +422,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 1.5_r8
 +                 end if
-+              endif			 
++              endif 
 +
  !dir$ concurrent
  !cdir nodep
@@ -435,11 +435,13 @@
 -          end do
 +            ! ocimene: (values received from C. Wiedinmyer)
 +            elseif(n.eq.9) then
-+
+ 
+-       case default
 +              ! epsilon: for ocimene
 +              epsilon(p) = 0._r8
  
--       case default
+-          write(6,*)'only nvocs up to index 5 are currently supported'
+-          call endrun()
 +              if(r2cefmap(n) == 1) then
 +                 epsilon(p) = epsilon_ocim(g)
 +              else
@@ -452,10 +454,8 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 1._r8
 +                 end if
-+              endif			 
- 
--          write(6,*)'only nvocs up to index 5 are currently supported'
--          call endrun()
++              endif
++
 +!dir$ concurrent
 +!cdir nodep
  
@@ -480,7 +480,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 0.3_r8
 +                 end if
-+              endif			 
++              endif
  
  !dir$ concurrent
  !cdir nodep
@@ -500,19 +500,12 @@
 -             reciprod = 1._r8 / (R * t_veg(p) * tstd)
 -             ct = exp(ct1 * (t_veg(p) - tstd) * reciprod) / &
 -                  (ct3 + exp(ct2 * (t_veg(p) - tm) * reciprod))
--
--             par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
--             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
--             gamma(p) = cl * ct !gamma = 1 under std temp & light condns
--
--             par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
--             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
--             gamma(p) = gamma(p) + cl * ct !gamma(sun) + gamma(sha)
--          end do
 +              ! epsilon: for other monoterpenes
 +              epsilon(p) = 0._r8
  
--       case (2,3,4,5)
+-             par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+-             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
+-             gamma(p) = cl * ct !gamma = 1 under std temp & light condns
 +              if(r2cefmap(n) == 1) then
 +                 epsilon(p) = epsilon_omtp(g)
 +              else
@@ -525,24 +518,22 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 4.8_r8
 +                 end if
-+              endif			 
++              endif
  
- !dir$ concurrent
- !cdir nodep
--          do fp = 1,num_nolakep
--             p = filter_nolakep(fp)
--             g = pgridcell(p)
- 
--             ! monoterpenes, OVOCs, and ORVOCs (Guenther, 1999 and 1995):
--             gamma(p) = exp(bet * (t_veg(p) - tstd))
+-             par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+-             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
+-             gamma(p) = gamma(p) + cl * ct !gamma(sun) + gamma(sha)
 -          end do
++!dir$ concurrent
++!cdir nodep
+ 
+-       case (2,3,4,5)
 +            ! farnicene: (values received from C. Wiedinmyer)
 +            elseif(n.eq.12) then
 +
 +              ! epsilon: for farnicene
 +              epsilon(p) = 0._r8
- 
--       end select
++
 +              if(r2cefmap(n) == 1) then
 +                 epsilon(p) = epsilon_farn(g)
 +              else
@@ -555,18 +546,21 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 0.5_r8
 +                 end if
-+              endif			 
++              endif
  
  !dir$ concurrent
  !cdir nodep
--       do fp = 1,num_nolakep
--          p = filter_nolakep(fp)
--          g = pgridcell(p)
+-          do fp = 1,num_nolakep
+-             p = filter_nolakep(fp)
+-             g = pgridcell(p)
  
--          ! density: Source density factor [g dry weight foliar mass m-2 ground]
+-             ! monoterpenes, OVOCs, and ORVOCs (Guenther, 1999 and 1995):
+-             gamma(p) = exp(bet * (t_veg(p) - tstd))
+-          end do
 +            ! b-caryophyllene: (values received from C. Wiedinmyer)
 +            elseif(n.eq.13) then
-+
+ 
+-       end select
 +              ! epsilon: for b-caryophyllene
 +              epsilon(p) = 0._r8
 +
@@ -582,17 +576,21 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 0.9_r8
 +                 end if
-+              endif			 
-+
-+!dir$ concurrent
-+!cdir nodep
-+
-+
-+            ! other sesquiterpenes: (values received from C. Wiedinmyer)
-+            elseif(n.eq.14) then
++              endif
+ 
+ !dir$ concurrent
+ !cdir nodep
+-       do fp = 1,num_nolakep
+-          p = filter_nolakep(fp)
+-          g = pgridcell(p)
+ 
+-          ! density: Source density factor [g dry weight foliar mass m-2 ground]
  
 -          if (ivt(p) > 0) then
 -             density = elai(p) / (slarea(p) * 0.5_r8)
++            ! other sesquiterpenes: (values received from C. Wiedinmyer)
++            elseif(n.eq.14) then
++
 +              ! epsilon: for other sesquiterpenes
 +              epsilon(p) = 0._r8
 +
@@ -609,7 +607,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 1.4_r8
            end if
-+              endif			 
++              endif
  
 -          ! calculate the voc flux
 +!dir$ concurrent
@@ -637,7 +635,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 800._r8
 +                 end if
-+              endif			 
++              endif
  
  !dir$ concurrent
  !cdir nodep
@@ -666,7 +664,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 80._r8
 +                 end if
-+              endif			 
++              endif
 +
  !dir$ concurrent
  !cdir nodep
@@ -695,7 +693,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 30._r8
 +                 end if
-+              endif			 
++              endif
 +
  !dir$ concurrent
  !cdir nodep
@@ -721,7 +719,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 70._r8
 +                 end if
-+              endif			 
++              endif
 +
 +!dir$ concurrent
 +!cdir nodep
@@ -745,7 +743,7 @@
 +                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
 +                    epsilon(p) = 80._r8
 +                 end if
-+              endif			 
++              endif
 +
 +!dir$ concurrent
 +!cdir nodep
@@ -761,7 +759,7 @@
 +                 epsilon(p) = epsilon_form(g)
 +              else
 +                 epsilon(p) = 70._r8
-+              endif			 
++              endif
 +
 +            else
 +              write(*,*) "ERROR: voc number exceeds available" ; call endrun()
@@ -992,7 +990,7 @@
 +    real(r8) :: alpha_su      ! empirical coefficient (in the sun)
 +    real(r8) :: Cp_su         ! empirical coefficient (in the sun)
 +    real(r8) :: Eopt          ! empirical coefficient
-+    real(r8) :: Topt          ! empirical coefficient	
++    real(r8) :: Topt          ! empirical coefficient
 +    real(r8) :: t_24,t_240    ! average temp over 24h and 240h
 +    real(r8) :: p_240sh,p_240su         ! average PPFD over 24h and 240h
 +    real(r8) :: p_24su,p_24sh           ! average PPFD over 24h and 240h 
@@ -1004,8 +1002,8 @@
 +    real(r8) :: gamma_pt,gamma_sun,gamma_shade
 +    real(r8) :: gamma_lai,gamma_t,gamma_p
 +    real(r8) :: wilt(nlevsoi),wilt1(nlevsoi),sm_sum(nlevsoi) ! wilting point,wilt point + del_vol and
-+	                                                     ! sum of gamma_sm over all soil levels
-+	
++                                                     ! sum of gamma_sm over all soil levels
++
 +! Constants
 +    real(r8), parameter :: R    = SHR_CONST_RGAS*0.001_r8 ! univ. gas constant [J K-1 mol-1]
 +    real(r8), parameter :: ct1  = 95.0_r8     ! empirical coefficient [J mol-1]
@@ -1044,7 +1042,7 @@
 +    pgridcell  => clm3%g%l%c%p%gridcell
 +    t_veg      => clm3%g%l%c%p%pes%t_veg
 +    fsun       => clm3%g%l%c%p%pps%fsun
-+    rootfr     => clm3%g%l%c%p%pps%rootfr	
++    rootfr     => clm3%g%l%c%p%pps%rootfr
 +    pcolumn    => clm3%g%l%c%p%column
 +    t_sum24    => clm3%g%l%c%p%pva%t_sum24
 +    t_sum240   => clm3%g%l%c%p%pva%t_sum240
@@ -1058,7 +1056,7 @@
 +    alpha_su = 0.0027_r8 
 +    Cp_su    = 1.066_r8  
 +    alpha_sh = 0.0027_r8 
-+    Cp_sh    = 1.066_r8  	  
++    Cp_sh    = 1.066_r8 
 +    Eopt     = 1.9_r8    
 +    Topt     = 312.5_r8   
 +
@@ -1087,14 +1085,14 @@
 +      p_sum24sh(c24,p)    = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
 +      p_sum24su(c24,p)    = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
 +      p_sum240sh(c240,p)  = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
-+      p_sum240su(c240,p)  = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8		
++      p_sum240su(c240,p)  = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
 +    elseif(nstep .ge. n240+n_start) then
 +      t_sum240(c240,p)    = t_veg(p)
 +      t_sum24(c24,p)      = t_veg(p)
 +      p_sum24sh(c24,p)    = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
 +      p_sum24su(c24,p)    = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
 +      p_sum240sh(c240,p)  = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
-+      p_sum240su(c240,p)  = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8		
++      p_sum240su(c240,p)  = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
 +
 +      t_240   = sum(t_sum240(:,p))/real(n240) 
 +      t_24    = sum(t_sum24(:,p))/real(n24)  
@@ -1118,16 +1116,16 @@
 +    counter   = 0
 +    do lev = 1,nlevsoi
 +      wilt(lev)  = 0.5_r8*watsat(c,lev)*(200._r8/sucsat(c,lev))**(-1._r8/bsw(c,lev)) 
-+      wilt1(lev) = del_vol + wilt(lev)	
++      wilt1(lev) = del_vol + wilt(lev)
 +
 +      if(rootfr(p,lev) > 0._r8) then
-+	 counter = counter + 1
++         counter = counter + 1
 +         if(h2osoi_vol(c,lev) > wilt1(lev)) then
-+  	       sm_sum(lev) = 1.0
++            sm_sum(lev) = 1.0
 +         elseif(h2osoi_vol(c,lev).lt.wilt1(lev) .and. h2osoi_vol(c,lev).gt.wilt(lev)) then
-+	       sm_sum(lev) = (h2osoi_vol(c,lev) - wilt(lev))/del_vol
-+	 elseif(h2osoi_vol(c,lev) < wilt(lev)) then
-+	       sm_sum(lev) = 0.0
++            sm_sum(lev) = (h2osoi_vol(c,lev) - wilt(lev))/del_vol
++         elseif(h2osoi_vol(c,lev) < wilt(lev)) then
++            sm_sum(lev) = 0.0
 +         endif
 +      else
 +         sm_sum(lev)   = 0.0
@@ -1147,14 +1145,14 @@
 +    elseif(pmo /= kmo) then
 +      if(monlai(p,1) > monlai(p,2)) then
 +        Fnew = 0.0_r8
-+	Fgro = 0.0_r8
-+	Fold = (monlai(p,1)-monlai(p,2))/monlai(p,1)
++        Fgro = 0.0_r8
++        Fold = (monlai(p,1)-monlai(p,2))/monlai(p,1)
 +        Fmat = 1._r8 - Fold
 +      elseif(monlai(p,1) < monlai(p,2)) then 
 +        Fnew = 1._r8 - (monlai(p,1)/monlai(p,2))
 +        Fmat = monlai(p,1)/monlai(p,2)
 +        Fgro = 1._r8 - Fnew - Fmat
-+	Fold = 0.0_r8
++        Fold = 0.0_r8
 +      endif
 +    endif
 +

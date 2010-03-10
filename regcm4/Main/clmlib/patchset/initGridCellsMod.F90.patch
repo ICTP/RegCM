@@ -1,5 +1,5 @@
---- orig/initGridCellsMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/initGridCellsMod.F90	2010-03-10 14:44:04.631095902 +0100
+--- orig/initGridCellsMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/initGridCellsMod.F90	2010-03-10 16:19:07.000000000 +0100
 @@ -373,6 +373,7 @@
         gptr%nlandunits(curg) = gptr%lunf(curg) - gptr%luni(curg) + 1
      enddo

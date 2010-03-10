@@ -1,5 +1,5 @@
---- orig/histFileMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/histFileMod.F90	2010-03-10 14:44:04.611094011 +0100
+--- orig/histFileMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/histFileMod.F90	2010-03-10 16:29:37.408601048 +0100
 @@ -2010,6 +2010,9 @@
      use clm_varpar   , only : lsmlon, lsmlat, nlevsoi
      use ncdio

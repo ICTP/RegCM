@@ -1,5 +1,5 @@
---- orig/STATICEcosysDynMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/STATICEcosysDynMod.F90	2010-03-10 14:44:04.661094686 +0100
+--- orig/STATICEcosysDynMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/STATICEcosysDynMod.F90	2010-03-10 16:19:07.000000000 +0100
 @@ -245,7 +245,7 @@
  ! Determine if 2 new months of data are to be read.
  !

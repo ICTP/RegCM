@@ -1,5 +1,5 @@
---- orig/decompMod.F90	2010-03-10 15:16:03.000000000 +0100
-+++ patchd/decompMod.F90	2010-03-10 15:03:31.681095702 +0100
+--- orig/decompMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/decompMod.F90	2010-03-10 16:19:07.000000000 +0100
 @@ -13,14 +13,14 @@
    use clm_mct_mod
    use shr_sys_mod , only : shr_sys_flush
