@@ -7,20 +7,18 @@
 !!c  
 !!************************************************************
 !!<
-#ifdef INTEL
-  include 'ifport.f90'
-#endif
+!#ifdef INTEL
+!  include 'ifport.f90'
+!#endif
 
 SUBROUTINE header(myid)
 
-!#ifdef INTEL
-!  USE IFPORT
-!#endif
   IMPLICIT NONE 
   !! local variables:
   INTEGER len,len_strim
   INTEGER ihost,idir
   INTEGER gethostname 
+  INTEGER hostnm
   INTEGER getcwd
   CHARACTER (len=24) :: data='?'
   CHARACTER (len=32) :: hostname='?' 
@@ -37,9 +35,10 @@ SUBROUTINE header(myid)
 100  FORMAT(2x,' SVN Revision: ',A,' compiled at: data : ',A,'  time: ',A,/)
 
 #ifdef INTEL
-     Ihost = gethostname(hostname,30)
-     call getlog_(user)
-     CALL FDATE_(data)
+!     Ihost = gethostname(hostname,30)
+     ihost=hostnm(hostname)
+     call getlog(user)
+     CALL FDATE(data)
 #elif defined IBM
      hostname='ibm platform '
      user= 'Unknown'
