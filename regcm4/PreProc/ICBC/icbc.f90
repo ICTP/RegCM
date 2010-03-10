@@ -112,7 +112,9 @@
       character(25) :: inrcm , inrcm2
       logical :: there
       integer :: nnnend , nstart
+      integer :: system,myid=1
 !
+      call header(myid)
       call initdate_icbc
       call finddate_icbc(nstart,idate1)
       call finddate_icbc(nnnend,idate2)

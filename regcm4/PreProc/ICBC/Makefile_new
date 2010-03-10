@@ -21,7 +21,8 @@ ICBCOBJ = icbc.o bilinx.o cressmcr.o cressmdt.o fexist.o gradsctlb.o \
           humid1fv.o humid1_o.o humid2.o humid2fv.o hydrost.o intgtb.o \
           intlin.o intlin_o.o intlog.o intlog_o.o intpsn.o intv1.o \
           intv2.o intv3.o julian.o mksst2.o mksst2a.o mksst3.o mksst.o \
-          mkssta.o mxmn3d.o p1p2.o printl.o top2btm.o uvrot4.o uvrot4nx.o
+          mkssta.o mxmn3d.o p1p2.o printl.o top2btm.o uvrot4.o uvrot4nx.o \
+          header_ICBC.o
 
 aerosol: $(AEROSOLOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(LIB) $(NETCDFLIB)
@@ -44,6 +45,9 @@ sst_fvgcm: $(SSTFVGCOBJ)
 icbc: $(MODOBJ) $(ICBCOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(MODOBJ) $(ICBCOBJ) \
                $(LIB) $(NETCDFLIB)
+
+header_ICBC.o: header_ICBC.F90
+	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 
 %.o: %.f90
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
