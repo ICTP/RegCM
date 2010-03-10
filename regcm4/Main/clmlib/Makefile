@@ -102,6 +102,8 @@ F90FLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
 clean:
 	rm -f *.mod *.o libclm.a $(PATCHSRC)
 
+patchsrc: $(PATCHSRC)
+
 accFldsMod.F90: patchset/accFldsMod.F90.patch
 	cp -f $(CLMSRC)/src/main/accFldsMod.F90 .
 	patch -p3 -i patchset/accFldsMod.F90.patch
@@ -115,7 +117,7 @@ BalanceCheckMod.F90: patchset/BalanceCheckMod.F90.patch
 	patch -p3 -i patchset/BalanceCheckMod.F90.patch
 
 BareGroundFluxesMod.F90: patchset/BareGroundFluxesMod.F90.patch
-	cp -f $(CLMSRC)src/biogeophys/BareGroundFluxesMod.F90 .
+	cp -f $(CLMSRC)/src/biogeophys/BareGroundFluxesMod.F90 .
 	patch -p3 -i patchset/BareGroundFluxesMod.F90.patch
 
 Biogeophysics2Mod.F90: patchset/Biogeophysics2Mod.F90.patch
@@ -196,7 +198,7 @@ mkarbinitMod.F90: patchset/mkarbinitMod.F90.patch
 
 perf_mod.F90: patchset/perf_mod.F90.patch
 	cp -f $(CLMSRC)/src/utils/timing/perf_mod.F90 .
-	patch -p3 -i patchset/perf_mod.F90.patch
+	patch -p4 -i patchset/perf_mod.F90.patch
 
 restFileMod.F90: patchset/restFileMod.F90.patch
 	cp -f $(CLMSRC)/src/main/restFileMod.F90 .
@@ -204,7 +206,7 @@ restFileMod.F90: patchset/restFileMod.F90.patch
 
 shr_orb_mod.F90: patchset/shr_orb_mod.F90.patch
 	cp -f $(CLMSRC)/src/csm_share/shr/shr_orb_mod.F90 .
-	patch -p3 -i patchset/shr_orb_mod.F90.patch
+	patch -p4 -i patchset/shr_orb_mod.F90.patch
 
 STATICEcosysDynMod.F90: patchset/STATICEcosysDynMod.F90.patch
 	cp -f $(CLMSRC)/src/biogeochem/STATICEcosysDynMod.F90 .
