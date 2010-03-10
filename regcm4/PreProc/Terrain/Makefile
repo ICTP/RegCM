@@ -16,7 +16,7 @@ OBJS =     anal2.o         lndfudge.o       oned.o           smthtr.o     \
            mxmnll.o        rotmer.o         xyobsll.o        interp_s.o   \
            normer.o        setup.o          lakeadj.o        nrot2rot.o   \
            smth121.o       lambrt.o         smther.o         rdldtr_nc.o  \
-           rdldtr_s_nc.o   terrain.o
+           rdldtr_s_nc.o   terrain.o        header_terrain.o
 
 terrain: $(MODOBJS) $(OBJS)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) \
@@ -25,6 +25,9 @@ terrain: $(MODOBJS) $(OBJS)
 %.o: %.f90
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
 
+header_terrain.o: header_terrain.F90
+	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+  
 clean:
 	rm -f *.mod *.o terrain
 

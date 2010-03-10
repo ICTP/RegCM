@@ -58,8 +58,8 @@
       logical , parameter :: fudge_tex_s = .false.
       character(50) , parameter :: filout = '../../Input/DOMAIN.INFO'
       character(50) , parameter :: filctl = '../../Input/DOMAIN.CTL'
-      integer , parameter :: idate1 = 1990060100
-      integer , parameter :: idate2 = 1990070100
+      integer , parameter :: idate1 = 1990010100
+      integer , parameter :: idate2 = 1990120100
 !
 ! One in:
 !        ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,

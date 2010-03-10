@@ -22,13 +22,14 @@
 !
 ! Dummy arguments
 !
-      character(*) :: filnam
+      character(len=*) :: filnam
       intent (inout) filnam
 !
 ! Local variables
 !
       logical :: there
       character(1) :: yesno
+
  100  continue
       inquire (file=filnam,exist=there)
       if ( there ) then
@@ -44,7 +45,8 @@
         else if ( yesno=='n' ) then
           print * , 'ENTER NEW FILE NAME'
           read (*,*) filnam
-          go to 100
+         
+          goto 100
         else if ( yesno=='q' ) then
           stop 999
         else

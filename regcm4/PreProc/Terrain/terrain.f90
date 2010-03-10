@@ -72,6 +72,9 @@
       character(50) :: filctl_s , filout_s
       integer :: i , j , k
       logical :: ibndry
+      integer :: myid=1
+
+      call header(myid)
 !
 !---------------------------------------------------------------------
 !     note: internally set params!!!!!
