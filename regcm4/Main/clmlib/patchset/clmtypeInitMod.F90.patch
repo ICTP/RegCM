@@ -1,5 +1,5 @@
---- clm3.5/src/main/clmtypeInitMod.F90	2007-04-24 23:49:05.000000000 +0200
-+++ clm3.5_regcm/src/main/clmtypeInitMod.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/clmtypeInitMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/clmtypeInitMod.F90	2010-03-10 14:44:04.571093375 +0100
 @@ -16,6 +16,9 @@
    use nanMod
    use clmtype
@@ -242,4 +242,3 @@
      ces%dt_grnd(beg:end) = nan
      ces%t_soisno(beg:end,-nlevsno+1:nlevsoi) = nan
      ces%t_lake(beg:end,1:nlevlak)= nan
-diff -x .svn -Naurb clm3.5/src/main/clm_varctl.F90 clm3.5_regcm/src/main/clm_varctl.F90

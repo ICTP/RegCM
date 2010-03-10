@@ -1,5 +1,5 @@
---- clm3.5/src/main/initGridCellsMod.F90	2007-04-24 23:49:05.000000000 +0200
-+++ clm3.5_regcm/src/main/initGridCellsMod.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/initGridCellsMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/initGridCellsMod.F90	2010-03-10 14:44:04.631095902 +0100
 @@ -373,6 +373,7 @@
         gptr%nlandunits(curg) = gptr%lunf(curg) - gptr%luni(curg) + 1
      enddo
@@ -35,4 +35,3 @@
    end subroutine set_landunit_veg_compete
    
  !------------------------------------------------------------------------
-diff -x .svn -Naurb clm3.5/src/main/initializeMod.F90 clm3.5_regcm/src/main/initializeMod.F90

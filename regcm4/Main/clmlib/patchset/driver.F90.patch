@@ -1,5 +1,5 @@
---- clm3.5/src/main/driver.F90	2007-04-24 23:49:05.000000000 +0200
-+++ clm3.5_regcm/src/main/driver.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/driver.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/driver.F90	2010-03-10 15:04:00.731764754 +0100
 @@ -97,7 +97,8 @@
    use pftdynMod           , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal 
    use clm_varcon          , only : zlnd
@@ -102,21 +102,16 @@
          call SurfaceAlbedo(begg, endg, begc, endc, begp, endp, &
                             caldayp1, declinp1)
          call t_stopf('surfalb')
-@@ -550,6 +559,13 @@
+@@ -547,6 +556,8 @@
+ !
+ ! !INTERFACE:
+ subroutine driver2(caldayp1, declinp1, rstwr)
++  use mod_clm
++  use mod_regcm_param
  !
  ! !ARGUMENTS:
    implicit none
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
-   real(r8),          intent(in) :: caldayp1 ! calendar day for nstep+1
-   real(r8),          intent(in) :: declinp1 ! declination angle for next time step
-   logical, optional, intent(in) :: rstwr    ! true => write restart file this step
-@@ -647,6 +663,8 @@
+@@ -647,6 +658,8 @@
  #if (defined DGVM)
    call t_startf('d2dgvm')
    dtime = get_step_size()
@@ -125,7 +120,7 @@
    call get_curr_date(yrp1, monp1, dayp1, secp1, offset=int(dtime))
    if (monp1==1 .and. dayp1==1 .and. secp1==dtime .and. nstep>0)  then
  
-@@ -685,7 +703,9 @@
+@@ -685,7 +698,9 @@
    ! ============================================================================
    ! Create history and write history tapes if appropriate
    ! ============================================================================
@@ -135,7 +130,7 @@
    call htapes_wrapup()
  
    ! ============================================================================
-@@ -709,18 +729,23 @@
+@@ -709,18 +724,23 @@
       write_restart = do_restwrite()
    end if
       
@@ -169,7 +164,7 @@
  
  end subroutine driver2
  
-@@ -800,7 +825,7 @@
+@@ -800,7 +820,7 @@
       end if
       if (masterproc) then
          tsxyav = tsum / numg
@@ -178,7 +173,7 @@
  #ifndef UNICOSMP
          call shr_sys_flush(6)
  #endif
-@@ -809,7 +834,7 @@
+@@ -809,7 +829,7 @@
    else
  
       if (masterproc) then
@@ -187,21 +182,16 @@
  #ifndef UNICOSMP
          call shr_sys_flush(6)
  #endif
-@@ -890,6 +915,13 @@
+@@ -887,6 +907,8 @@
+ ! !USES:
+     use clm_time_manager, only : get_curr_date, get_prev_date, get_step_size
+     use clm_varctl  , only : hist_crtinic
++    use mod_clm
++    use mod_regcm_param
  !
  ! !ARGUMENTS:
      implicit none
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
- !
- ! !CALLED FROM:
- ! subroutine driver
-@@ -918,6 +950,7 @@
+@@ -918,6 +940,7 @@
      ! Set calendar for current, previous, and next time steps
  
      dtime = get_step_size()
@@ -209,4 +199,3 @@
      call get_curr_date (yr  , mon  , day  , mcsec  )
      call get_prev_date (yrm1, monm1, daym1, mcsecm1)
      call get_curr_date (yrp1, monp1, dayp1, mcsecp1, offset=dtime)
-diff -x .svn -Naurb clm3.5/src/main/histFileMod.F90 clm3.5_regcm/src/main/histFileMod.F90

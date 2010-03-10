@@ -1,5 +1,5 @@
---- clm3.5/src/main/initializeMod.F90	2007-05-02 20:53:49.000000000 +0200
-+++ clm3.5_regcm/src/main/initializeMod.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/initializeMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/initializeMod.F90	2010-03-10 15:04:24.559849572 +0100
 @@ -47,7 +47,7 @@
  ! !IROUTINE: initialize1
  !
@@ -9,7 +9,7 @@
  !
  ! !DESCRIPTION:
  ! Land model initialization.
-@@ -77,13 +77,26 @@
+@@ -77,11 +77,19 @@
      use domainMod , only : latlon_check, latlon_setsame
      use areaMod   , only : map_setgatm
      use surfrdMod , only : surfrd,surfrd_get_grid,surfrd_get_frac,&
@@ -26,19 +26,12 @@
      use controlMod, only : control_init, control_print
      use shr_InputInfo_mod, only : shr_InputInfo_initType
 +    use clm_varsur, only : landmask  !abt rcm
++    use mod_clm
++    use mod_regcm_param
  !
  ! !ARGUMENTS:
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
      type(shr_InputInfo_initType), intent(in), optional :: CCSMInit
- !
- ! !REVISION HISTORY:
-@@ -101,6 +114,8 @@
+@@ -101,6 +109,8 @@
      integer  :: begg_atm, endg_atm    ! proc beg and ending gridcell indices
      type(domain_type) :: lgdomain   ! generic "global" domain for i/o
      type(domain_type) :: agdomain   ! generic "global" domain for i/o
@@ -47,7 +40,7 @@
  !-----------------------------------------------------------------------
  
      ! ------------------------------------------------------------------------
-@@ -137,8 +152,17 @@
+@@ -137,8 +147,17 @@
  #endif
      endif
  
@@ -66,7 +59,7 @@
      if (masterproc) then
         write (6,*) 'amask size/min/max ',size(amask),minval(amask),maxval(amask)
  #ifndef UNICOSMP
-@@ -153,11 +177,15 @@
+@@ -153,11 +172,15 @@
  #endif
      endif
  
@@ -85,7 +78,7 @@
  
      if (llatlon%ni < alatlon%ni .or. llatlon%nj < alatlon%nj) then
         if (masterproc) write(6,*) 'ERROR llatlon size > alatlon size: ', &
-@@ -209,11 +237,15 @@
+@@ -209,11 +232,15 @@
         call map_setgatm_UNITY(gatm,alatlon,amask)
      endif
  #endif
@@ -101,7 +94,7 @@
      !--- Read atm grid -------------------------------------------------------------------
  
      if (masterproc) then
-@@ -222,7 +254,13 @@
+@@ -222,7 +249,13 @@
         call shr_sys_flush(6)
  #endif
      endif
@@ -116,7 +109,7 @@
  
      if (masterproc) then
         write (6,*) 'Attempting to read atm landfrac from fatmlndfrc'
-@@ -230,17 +268,26 @@
+@@ -230,17 +263,26 @@
         call shr_sys_flush(6)
  #endif
      endif
@@ -147,7 +140,7 @@
  
      if (masterproc) then
         write(6,*) 'agdomain status:'
-@@ -265,7 +312,12 @@
+@@ -265,7 +307,12 @@
         call shr_sys_flush(6)
  #endif
      endif
@@ -161,7 +154,7 @@
  
      if (flndtopo /= " ") then
      if (masterproc) then
-@@ -274,7 +326,13 @@
+@@ -274,7 +321,13 @@
         call shr_sys_flush(6)
  #endif
      endif
@@ -176,7 +169,7 @@
      endif
  
      if (masterproc) then
-@@ -288,6 +346,7 @@
+@@ -288,6 +341,7 @@
         call domain_check(ldomain)
      endif
  
@@ -184,7 +177,7 @@
      call domain_clean(lgdomain)
  
      !--- overwrite ldomain if same grids --------------------------------------------
-@@ -297,6 +356,7 @@
+@@ -297,6 +351,7 @@
         call domain_setsame(adomain,ldomain)
      endif
  
@@ -192,7 +185,7 @@
      ! Allocate surface grid dynamic memory (for wtxy and vegxy arrays)
  
      call get_proc_bounds    (begg    , endg)
-@@ -307,10 +367,15 @@
+@@ -307,10 +362,15 @@
         write(6,*)'initialize allocation error'; call endrun()
      endif
  
@@ -210,7 +203,7 @@
  
      call decomp_glcp_init(alatlon%ns,alatlon%ni,alatlon%nj,llatlon%ns,llatlon%ni,llatlon%nj)
  
-@@ -383,6 +448,9 @@
+@@ -383,6 +443,9 @@
      use clm_time_manager, only : get_curr_date, get_nstep, advance_timestep, &
                                   timemgr_init, timemgr_restart_io, timemgr_restart
      use fileutils       , only : getfil
@@ -220,7 +213,7 @@
  !
  ! !ARGUMENTS:
     type(eshr_timeMgr_clockType), optional, intent(IN) :: SyncClock ! Synchronization clock
-@@ -594,11 +662,11 @@
+@@ -594,11 +657,11 @@
      ! ------------------------------------------------------------------------
      ! Start offline run at nstep = 1
      ! ------------------------------------------------------------------------
@@ -237,7 +230,7 @@
      ! ------------------------------------------------------------------------
      ! Initialization of model parameterizations that are needed after
      ! restart file is read in
-@@ -624,7 +692,8 @@
+@@ -624,7 +687,8 @@
      ! restart data read above. Note that routine htapes_build needs time manager 
      ! information, so this call must be made after the restart information has been read.
  
@@ -247,7 +240,7 @@
  
      ! Initialize clmtype variables that are obtained from accumulated fields.
      ! This routine is called in an initial run at nstep=0 for cam and csm mode
-@@ -662,6 +731,12 @@
+@@ -662,6 +726,12 @@
  !$OMP END PARALLEL DO
  #endif
  
@@ -260,4 +253,3 @@
      ! End initialization
  
      if (masterproc) then
-diff -x .svn -Naurb clm3.5/src/main/iniTimeConst.F90 clm3.5_regcm/src/main/iniTimeConst.F90

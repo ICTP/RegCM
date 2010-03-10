@@ -1,5 +1,5 @@
---- clm3.5/src/biogeophys/BiogeophysicsLakeMod.F90	2006-08-10 00:52:03.000000000 +0200
-+++ clm3.5_regcm/src/biogeophys/BiogeophysicsLakeMod.F90	2010-01-22 00:10:32.000000000 +0100
+--- orig/BiogeophysicsLakeMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/BiogeophysicsLakeMod.F90	2010-03-10 14:44:04.541093892 +0100
 @@ -158,6 +158,9 @@
      real(r8), pointer :: ram1(:)            ! aerodynamical resistance (s/m)
      real(r8), pointer :: errsoi(:)          ! soil/lake energy conservation error (W/m**2)
@@ -31,4 +31,3 @@
         ! 2 m height air temperature
         t_ref2m(p) = thm(c) + temp1(p)*dth(p)*(1._r8/temp12m(p) - 1._r8/temp1(p))
  
-diff -x .svn -Naurb clm3.5/src/biogeophys/CanopyFluxesMod.F90 clm3.5_regcm/src/biogeophys/CanopyFluxesMod.F90

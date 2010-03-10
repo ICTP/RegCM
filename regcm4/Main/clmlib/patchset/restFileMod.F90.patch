@@ -1,5 +1,5 @@
---- clm3.5/src/main/restFileMod.F90	2007-04-30 22:20:27.000000000 +0200
-+++ clm3.5_regcm/src/main/restFileMod.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/restFileMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/restFileMod.F90	2010-03-10 14:44:04.651093881 +0100
 @@ -587,6 +587,7 @@
         call opnfil( filename, nio, 'f' )
         
@@ -39,4 +39,3 @@
         ! Define global attributes
         
         str = 'CF-1.0'
-diff -x .svn -Naurb clm3.5/src/main/subgridMod.F90 clm3.5_regcm/src/main/subgridMod.F90

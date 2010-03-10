@@ -1,5 +1,5 @@
---- clm3.5/src/utils/timing/perf_mod.F90	2007-03-28 22:56:30.000000000 +0200
-+++ clm3.5_regcm/src/utils/timing/perf_mod.F90	2010-01-22 00:10:31.000000000 +0100
+--- orig/perf_mod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/perf_mod.F90	2010-03-10 14:44:04.651093881 +0100
 @@ -760,18 +760,20 @@
                            timing_barrier_out=profile_barrier, &
                            perf_single_file_out=profile_single_file )

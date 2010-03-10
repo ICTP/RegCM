@@ -1,5 +1,5 @@
---- clm3.5/src/biogeochem/STATICEcosysDynMod.F90	2007-04-18 17:54:46.000000000 +0200
-+++ clm3.5_regcm/src/biogeochem/STATICEcosysDynMod.F90	2010-01-22 00:10:31.000000000 +0100
+--- orig/STATICEcosysDynMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/STATICEcosysDynMod.F90	2010-03-10 14:44:04.661094686 +0100
 @@ -245,7 +245,7 @@
  ! Determine if 2 new months of data are to be read.
  !
@@ -88,4 +88,3 @@
      deallocate(mlai, msai, mhgtt, mhgtb)
    end subroutine readMonthlyVegetation
  
-diff -x .svn -Naurb clm3.5/src/biogeochem/VOCEmissionMod.F90 clm3.5_regcm/src/biogeochem/VOCEmissionMod.F90

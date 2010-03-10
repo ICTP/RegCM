@@ -1,5 +1,5 @@
---- clm3.5/src/biogeophys/BareGroundFluxesMod.F90	2007-04-26 20:50:19.000000000 +0200
-+++ clm3.5_regcm/src/biogeophys/BareGroundFluxesMod.F90	2010-01-22 00:10:32.000000000 +0100
+--- orig/BareGroundFluxesMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/BareGroundFluxesMod.F90	2010-03-10 14:44:04.531093995 +0100
 @@ -132,6 +132,9 @@
      real(r8), pointer :: fpsn(:)          ! photosynthesis (umol CO2 /m**2 /s)
      real(r8), pointer :: rootr(:,:)       ! effective fraction of roots in each soil layer
@@ -31,4 +31,3 @@
  
         ! 2 m height air temperature
  
-diff -x .svn -Naurb clm3.5/src/biogeophys/Biogeophysics2Mod.F90 clm3.5_regcm/src/biogeophys/Biogeophysics2Mod.F90

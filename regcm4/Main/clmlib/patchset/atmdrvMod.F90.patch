@@ -1,6 +1,6 @@
---- clm3.5/src/main/atmdrvMod.F90	2007-04-24 23:49:05.000000000 +0200
-+++ clm3.5_regcm/src/main/atmdrvMod.F90	2010-01-22 00:10:30.000000000 +0100
-@@ -20,15 +20,29 @@
+--- orig/atmdrvMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/atmdrvMod.F90	2010-03-10 15:09:12.118611157 +0100
+@@ -20,15 +20,24 @@
    use spmdMod      , only : masterproc, mpicom, comp_id, MPI_REAL8, MPI_INTEGER, iam
    use clm_mct_mod
    use decompMod    , only : gsMap_atm_gdc2glo, perm_atm_gdc2glo
@@ -8,18 +8,13 @@
 +  use clm_varpar   , only : lsmlon, lsmlat
 +!c abt rcm
    use perf_mod
++  use mod_clm
++  use mod_regcm_param
  !
  ! !PUBLIC TYPES:
    implicit none
    save
 +! abt below rcm
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
 +!rcm above
  !
  ! !PUBLIC MEMBER FUNCTIONS:
@@ -30,7 +25,7 @@
  !
  ! !REVISION HISTORY:
  ! Created by Gordon Bonan, Sam Levis and Mariana Vertenstein
-@@ -40,6 +54,11 @@
+@@ -40,6 +49,11 @@
    private :: atm_openfile  ! open atmospheric forcing netCDF file
    private :: atm_readdata  ! read atmospheric forcing data
    private :: interpa2s     ! area average fields from atmosphere to surface grid
@@ -42,7 +37,7 @@
  !
  ! PRIVATE TYPES:
    private
-@@ -337,38 +356,615 @@
+@@ -337,38 +351,615 @@
  
         end do
  
@@ -672,7 +667,7 @@
      use decompMod   , only : adecomp
      use areaMod     , only : celledge, cellarea,map_setmapsAR
      use fileutils   , only : getfil
-@@ -397,7 +993,7 @@
+@@ -397,7 +988,7 @@
      integer :: dimid              !netCDF dimension id
      integer :: varid              !netCDF variable id
      integer :: ier                !error status
@@ -681,7 +676,7 @@
      integer :: atmlon,atmlat      !size of alatlon
      real(r8), allocatable :: mask_d(:)   !dummy field: atm grid mask
      real(r8), allocatable :: mask_a(:)   !dummy field: land model grid mask
-@@ -407,6 +1003,14 @@
+@@ -407,6 +998,14 @@
      integer :: ngseg              ! gsmap size
      integer :: root               ! root pe number
      integer,allocatable :: start(:),length(:),pe_loc(:)  ! for gsmap
@@ -696,7 +691,7 @@
  !------------------------------------------------------------------------
  
      atmlon = alatlon%ni
-@@ -419,16 +1023,22 @@
+@@ -419,16 +1018,22 @@
      ! Build [month]-[year] extension for file name to be read
      ! append extension to path name to get full file name
  
@@ -724,7 +719,7 @@
      ! Initialize gsmaps and attr vectors
      ngseg = 1
      root = 0
-@@ -512,7 +1122,12 @@
+@@ -512,7 +1117,12 @@
  
      call latlon_clean(dlatlon)
  
@@ -738,7 +733,7 @@
  
  !------------------------------------------------------------------------
  !BOP
-@@ -962,6 +1577,255 @@
+@@ -962,6 +1572,249 @@
  
    end subroutine atm_readdata
  
@@ -762,18 +757,12 @@
 +    use clm_varcon, only : sb
 +    use fileutils , only : getfil
 +    use ncdio
++!   use mod_clm
++!   use mod_regcm_param
 +!
 +! !ARGUMENTS:
 +    implicit none
 +!
-+! abt rcm below
-+!#ifdef MPP1
-+!    include '../../../regcm.param2'
-+!    include '../../../Common2/clm.cb'
-+!#else
-+!    include '../../../regcm.param'
-+!    include '../../../Commons/clm.cb'
-+!#endif
 +!rcm below
 +!    real(r8),intent(in) :: r2ctb(lsmlon,lsmlat)
 +!    real(r8),intent(in) :: r2cqb(lsmlon,lsmlat)
@@ -994,7 +983,7 @@
  !------------------------------------------------------------------------
  !BOP
  !
-@@ -1011,6 +1875,53 @@
+@@ -1011,6 +1864,53 @@
  
    end subroutine interpa2s
  
@@ -1048,4 +1037,3 @@
  #endif
  
  end module atmdrvMod
-diff -x .svn -Naurb clm3.5/src/main/clm_atmlnd.F90 clm3.5_regcm/src/main/clm_atmlnd.F90

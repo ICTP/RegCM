@@ -1,18 +1,14 @@
---- clm3.5/src/main/decompMod.F90	2007-04-30 22:20:27.000000000 +0200
-+++ clm3.5_regcm/src/main/decompMod.F90	2010-01-22 00:10:30.000000000 +0100
-@@ -16,11 +16,18 @@
+--- orig/decompMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/decompMod.F90	2010-03-10 15:03:31.681095702 +0100
+@@ -13,14 +13,14 @@
+   use clm_mct_mod
+   use shr_sys_mod , only : shr_sys_flush
+   use abortutils  , only : endrun
++  use mod_clm
++  use mod_regcm_param
  !
  ! !PUBLIC TYPES:
    implicit none
-+! abt rcm below
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
-+!rcm above
    integer, public :: clump_pproc ! number of clumps per MPI process
  !
  ! !PUBLIC MEMBER FUNCTIONS:
@@ -21,113 +17,10 @@
    public decomp_atm_init         ! initializes atm grid decomposition
                                   ! into clumps and processors
    public decomp_lnd_init         ! initializes lnd grid decomposition
-@@ -33,679 +40,108 @@
-   public get_proc_bounds_atm     ! beg and end gridcell for atm
-   public get_proc_bounds         ! beg and end gridcell, landunit, column,
-                                  ! pft indices for this processor
--  public get_proc_total          ! total number of gridcells, landunits,
--                                 ! columns and pfts for any processor
--  public get_proc_global         ! total gridcells, landunits, columns, pfts
--                                 ! across all processors
--  save
--!
--! !DESCRIPTION:
--! Module provides a descomposition into a clumped data structure which can
--! be mapped back to atmosphere physics chunks.
--!
--! !REVISION HISTORY:
--! 2002.09.11  Forrest Hoffman  Creation.
--! 2005.11.01  T Craig  Rewrite
--! 2006.06.06  T Craig  Reduce memory, cleanup
--!
--!EOP
--!
--! !PRIVATE TYPES:
--  private
--
--  integer :: nclumps     ! total number of clumps across all processors
--  integer :: numg        ! total number of gridcells on all procs
--  integer :: numl        ! total number of landunits on all procs
--  integer :: numc        ! total number of columns on all procs
--  integer :: nump        ! total number of pfts on all procs
--  integer :: numa        ! total number of atm gridcells on all procs
--  integer, pointer :: acid(:)       ! temporary for setting adecomp/ldecomp
--
--  !---global information on each pe
--  type processor_type
--     integer :: nclumps          ! number of clumps for processor_type iam
--     integer,pointer :: cid(:)   ! clump indices
--     integer :: ncells           ! number of gridcells in proc
--     integer :: nlunits          ! number of landunits in proc
--     integer :: ncols            ! number of columns in proc
--     integer :: npfts            ! number of pfts in proc
--     integer :: begg, endg       ! beginning and ending gridcell index
--     integer :: begl, endl       ! beginning and ending landunit index
--     integer :: begc, endc       ! beginning and ending column index
--     integer :: begp, endp       ! beginning and ending pft index
--     integer :: abegg,aendg      ! beginning and ending atm gridcell index
--  end type processor_type
--  type(processor_type) :: procinfo
--
--  !---global information on each pe
--  type clump_type
--     integer :: owner            ! process id owning clump
--     integer :: ncells           ! number of gridcells in clump
--     integer :: nlunits          ! number of landunits in clump
--     integer :: ncols            ! number of columns in clump
--     integer :: npfts            ! number of pfts in clump
--     integer :: begg, endg       ! beginning and ending gridcell index
--     integer :: begl, endl       ! beginning and ending landunit index
--     integer :: begc, endc       ! beginning and ending column index
--     integer :: begp, endp       ! beginning and ending pft index
--  end type clump_type
--  type(clump_type),  allocatable :: clumps(:)
--
--  !---global information on each pe
--  !--- i,j = 2d global
--  !--- glo = 1d global sn ordered
--  !--- gsn = 1d global sn ordered compressed
--  !--- gdc = 1d global dc ordered compressed
--  type decomp_type
--     integer,pointer :: gsn2gdc(:)    ! 1d gsn to 1d gdc
--     integer,pointer :: gdc2gsn(:)    ! 1d gdc to 1d gsn
--     integer,pointer :: glo2gdc(:)    ! 1d glo to 1d gdc
--     integer,pointer :: gdc2glo(:)    ! 1d gdc to 1d glo
--     integer,pointer :: gdc2i(:)      ! 1d gdc to 2d sn i index
--     integer,pointer :: gdc2j(:)      ! 1d gdc to 2d sn j index
--  end type decomp_type
--  public decomp_type
--  type(decomp_type),public,target :: ldecomp
--  type(decomp_type),public,target :: adecomp
--
--  type(mct_gsMap)  ,public :: gsMap_lnd_gdc2glo
--  integer,pointer  ,public ::  perm_lnd_gdc2glo(:)
--  type(mct_gsMap)  ,public :: gsMap_atm_gdc2glo
--  integer,pointer  ,public ::  perm_atm_gdc2glo(:)
--
--  interface map_dc2sn
--     module procedure map_dc2sn_sl_real
--     module procedure map_dc2sn_sl_int
--     module procedure map_dc2sn_ml1_real
--     module procedure map_dc2sn_ml1_int
--  end interface
--  public map_dc2sn
--
--  interface map_sn2dc
--     module procedure map_sn2dc_sl_real
--     module procedure map_sn2dc_sl_int
--     module procedure map_sn2dc_ml1_real
--     module procedure map_sn2dc_ml1_int
--  end interface
--  public map_sn2dc
--!------------------------------------------------------------------------------
--! 
--! 
--!------------------------------------------------------------------------------
--
--contains
--
--!------------------------------------------------------------------------------
+@@ -136,577 +136,6 @@
+ contains
+ 
+ !------------------------------------------------------------------------------
 -#if (1 == 0)
 -! tcx DO NOT DELETE THIS YET
 -!BOP
@@ -553,26 +446,7 @@
 -    deallocate(aglo2gsn,lglo2gsn)
 -    deallocate(acid,lcid)
 -    deallocate(lncnt,lnoff,lnmap)
-+  public get_proc_total          ! total number of gridcells, landunits,
-+                                 ! columns and pfts for any processor
-+  public get_proc_global         ! total gridcells, landunits, columns, pfts
-+                                 ! across all processors
-+  save
-+!
-+! !DESCRIPTION:
-+! Module provides a descomposition into a clumped data structure which can
-+! be mapped back to atmosphere physics chunks.
-+!
-+! !REVISION HISTORY:
-+! 2002.09.11  Forrest Hoffman  Creation.
-+! 2005.11.01  T Craig  Rewrite
-+! 2006.06.06  T Craig  Reduce memory, cleanup
-+!
-+!EOP
-+!
-+! !PRIVATE TYPES:
-+  private
- 
+-
 -    ! set gsMap_lnd_gdc2glo, perm_lnd_gdc2glo
 -    call get_proc_bounds(beg, end)
 -    allocate(gindex(beg:end))
@@ -587,14 +461,7 @@
 -    call mct_permute(gindex,perm_lnd_gdc2glo,lsize)
 -    call mct_gsMap_init(gsMap_lnd_gdc2glo, gindex, mpicom, comp_id, lsize, gsize )
 -    deallocate(gindex)
-+  integer :: nclumps     ! total number of clumps across all processors
-+  integer :: numg        ! total number of gridcells on all procs
-+  integer :: numl        ! total number of landunits on all procs
-+  integer :: numc        ! total number of columns on all procs
-+  integer :: nump        ! total number of pfts on all procs
-+  integer :: numa        ! total number of atm gridcells on all procs
-+  integer, pointer :: acid(:)       ! temporary for setting adecomp/ldecomp
- 
+-
 -    ! set gsMap_atm_gdc2glo, perm_atm_gdc2glo
 -    call get_proc_bounds_atm(beg, end)
 -    allocate(gindex(beg:end))
@@ -609,37 +476,9 @@
 -    call mct_permute(gindex,perm_atm_gdc2glo,lsize)
 -    call mct_gsMap_init(gsMap_atm_gdc2glo, gindex, mpicom, comp_id, lsize, gsize )
 -    deallocate(gindex)
-+  !---global information on each pe
-+  type processor_type
-+     integer :: nclumps          ! number of clumps for processor_type iam
-+     integer,pointer :: cid(:)   ! clump indices
-+     integer :: ncells           ! number of gridcells in proc
-+     integer :: nlunits          ! number of landunits in proc
-+     integer :: ncols            ! number of columns in proc
-+     integer :: npfts            ! number of pfts in proc
-+     integer :: begg, endg       ! beginning and ending gridcell index
-+     integer :: begl, endl       ! beginning and ending landunit index
-+     integer :: begc, endc       ! beginning and ending column index
-+     integer :: begp, endp       ! beginning and ending pft index
-+     integer :: abegg,aendg      ! beginning and ending atm gridcell index
-+  end type processor_type
-+  type(processor_type) :: procinfo
- 
+-
 -    ! Diagnostic output
-+  !---global information on each pe
-+  type clump_type
-+     integer :: owner            ! process id owning clump
-+     integer :: ncells           ! number of gridcells in clump
-+     integer :: nlunits          ! number of landunits in clump
-+     integer :: ncols            ! number of columns in clump
-+     integer :: npfts            ! number of pfts in clump
-+     integer :: begg, endg       ! beginning and ending gridcell index
-+     integer :: begl, endl       ! beginning and ending landunit index
-+     integer :: begc, endc       ! beginning and ending column index
-+     integer :: begp, endp       ! beginning and ending pft index
-+  end type clump_type
-+  type(clump_type),  allocatable :: clumps(:)
- 
+-
 -    if (masterproc) then
 -       write (6,*)' Atm Grid Characteristics'
 -       write (6,*)'   longitude points          = ',ani
@@ -659,30 +498,10 @@
 -       write (6,*) '  atm gsmap glo num of segs = ',mct_gsMap_ngseg(gsMap_atm_gdc2glo)
 -       write (6,*)
 -    end if
-+  !---global information on each pe
-+  !--- i,j = 2d global
-+  !--- glo = 1d global sn ordered
-+  !--- gsn = 1d global sn ordered compressed
-+  !--- gdc = 1d global dc ordered compressed
-+  type decomp_type
-+     integer,pointer :: gsn2gdc(:)    ! 1d gsn to 1d gdc
-+     integer,pointer :: gdc2gsn(:)    ! 1d gdc to 1d gsn
-+     integer,pointer :: glo2gdc(:)    ! 1d glo to 1d gdc
-+     integer,pointer :: gdc2glo(:)    ! 1d gdc to 1d glo
-+     integer,pointer :: gdc2i(:)      ! 1d gdc to 2d sn i index
-+     integer,pointer :: gdc2j(:)      ! 1d gdc to 2d sn j index
-+  end type decomp_type
-+  public decomp_type
-+  type(decomp_type),public,target :: ldecomp
-+  type(decomp_type),public,target :: adecomp
- 
+-
 -    ! Write out clump and proc info, one pe at a time, 
 -    ! barrier to control pes overwriting each other on stdout
-+  type(mct_gsMap)  ,public :: gsMap_lnd_gdc2glo
-+  integer,pointer  ,public ::  perm_lnd_gdc2glo(:)
-+  type(mct_gsMap)  ,public :: gsMap_atm_gdc2glo
-+  integer,pointer  ,public ::  perm_atm_gdc2glo(:)
- 
+-
 -#ifndef UNICOSMP
 -    call shr_sys_flush(6)
 -#endif
@@ -706,14 +525,7 @@
 -       endif
 -       pid = max(pid,0)
 -       pid = min(pid,npes-1)
-+  interface map_dc2sn
-+     module procedure map_dc2sn_sl_real
-+     module procedure map_dc2sn_sl_int
-+     module procedure map_dc2sn_ml1_real
-+     module procedure map_dc2sn_ml1_int
-+  end interface
-+  public map_dc2sn
- 
+-
 -       if (iam == pid) then
 -          write(6,*)
 -          write(6,*)'proc= ',pid,' beg atmcell = ',procinfo%abegg, &
@@ -736,18 +548,7 @@
 -          write(6,*)'proc= ',pid,' atm ngseg   = ',mct_gsMap_ngseg(gsMap_atm_gdc2glo), &
 -               ' atm nlseg   = ',mct_gsMap_nlseg(gsMap_atm_gdc2glo,iam)
 -          write(6,*)'proc= ',pid,' nclumps = ',procinfo%nclumps
-+  interface map_sn2dc
-+     module procedure map_sn2dc_sl_real
-+     module procedure map_sn2dc_sl_int
-+     module procedure map_sn2dc_ml1_real
-+     module procedure map_sn2dc_ml1_int
-+  end interface
-+  public map_sn2dc
-+!------------------------------------------------------------------------------
-+! 
-+! 
-+!------------------------------------------------------------------------------
- 
+-
 -          clmin = 1
 -          clmax = procinfo%nclumps
 -          if (dbug == 1) then
@@ -787,14 +588,14 @@
 -#ifndef UNICOSMP
 -    call shr_sys_flush(6)
 -#endif
-+contains
- 
+-
 -  end subroutine decomp_init
 -#endif
- !------------------------------------------------------------------------------
+-!------------------------------------------------------------------------------
  !BOP
  !
-@@ -818,6 +254,7 @@
+ ! !IROUTINE: decomp_lnd_init
+@@ -818,6 +247,7 @@
               !--- increment the beg and end indices ---
               if (iam == clumps(cid)%owner) then
                  procinfo%ncells  = procinfo%ncells  + 1
@@ -802,7 +603,7 @@
               endif
  
               if (iam >  clumps(cid)%owner) then
-@@ -828,6 +265,7 @@
+@@ -828,6 +258,7 @@
                  procinfo%endg = procinfo%endg + 1
               endif
            enddo
@@ -810,7 +611,7 @@
            !--- check that atm cell has at least 1 lnd grid cell
            if (cnt < 1) then
               write (6,*) 'decomp_lnd_init(): map overlap error at ',an,cnt
-@@ -983,7 +421,9 @@
+@@ -983,7 +414,9 @@
      integer, allocatable :: allvecl(:,:)  ! temporary vector "local"
      integer, pointer :: lglo2gsn(:)   ! map from glo 2 gsn temporary
      integer :: lnidx
@@ -821,7 +622,7 @@
  ! !CALLED FROM:
  ! subroutine initialize
  !
-@@ -1231,6 +671,7 @@
+@@ -1231,6 +664,7 @@
  
      call shr_sys_flush(6)
      call mpi_barrier(mpicom,ier)
@@ -829,7 +630,7 @@
       npmin = 0
       npmax = npes-1
       npint = 1
-@@ -1251,6 +692,7 @@
+@@ -1251,6 +685,7 @@
         pid = max(pid,0)
         pid = min(pid,npes-1)
  
@@ -837,7 +638,7 @@
         if (iam == pid) then
            write(6,*)
            write(6,*)'proc= ',pid,' beg atmcell = ',procinfo%abegg, &
-@@ -1274,6 +716,7 @@
+@@ -1274,6 +709,7 @@
                 ' atm nlseg   = ',mct_gsMap_nlseg(gsMap_atm_gdc2glo,iam)
            write(6,*)'proc= ',pid,' nclumps = ',procinfo%nclumps
  
@@ -845,7 +646,7 @@
            clmin = 1
            clmax = procinfo%nclumps
            if (dbug == 1) then
-@@ -1308,8 +751,23 @@
+@@ -1308,8 +744,23 @@
  #ifndef UNICOSMP
         call shr_sys_flush(6)
  #endif
@@ -869,7 +670,7 @@
      call shr_sys_flush(6)
  
    end subroutine decomp_glcp_init
-@@ -1330,6 +788,7 @@
+@@ -1330,6 +781,7 @@
  ! !USES:
      use clm_varctl, only : nsegspc
      use domainMod , only : latlon_type
@@ -877,7 +678,7 @@
  !
  ! !ARGUMENTS:
      implicit none
-@@ -1547,6 +1006,18 @@
+@@ -1547,6 +999,18 @@
      enddo
      enddo
  
@@ -896,7 +697,7 @@
      ! Set ldecomp and adecomp data
      ag = 0
      do pid = 0,npes-1
-@@ -1557,6 +1028,11 @@
+@@ -1557,6 +1021,11 @@
            do ai = 1,ani
               an = (aj-1)*ani + ai
               if (acid(an) == cid) then
@@ -908,7 +709,7 @@
                  ag = ag + 1
                  adecomp%gdc2i(ag) = ai
                  adecomp%gdc2j(ag) = aj
-@@ -1608,6 +1084,7 @@
+@@ -1608,6 +1077,7 @@
  
      call shr_sys_flush(6)
      call mpi_barrier(mpicom,ier)
@@ -916,7 +717,7 @@
       npmin = 0
       npmax = npes-1
       npint = 1
-@@ -1639,6 +1116,7 @@
+@@ -1639,6 +1109,7 @@
         end if
         call shr_sys_flush(6)
         call mpi_barrier(mpicom,ier)
@@ -924,4 +725,3 @@
      end do
  #ifndef UNICOSMP
      call shr_sys_flush(6)
-diff -x .svn -Naurb clm3.5/src/main/driver.F90 clm3.5_regcm/src/main/driver.F90

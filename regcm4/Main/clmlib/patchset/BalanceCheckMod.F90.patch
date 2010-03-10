@@ -1,5 +1,5 @@
---- clm3.5/src/biogeophys/BalanceCheckMod.F90	2007-04-26 20:50:19.000000000 +0200
-+++ clm3.5_regcm/src/biogeophys/BalanceCheckMod.F90	2010-01-22 00:10:32.000000000 +0100
+--- orig/BalanceCheckMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/BalanceCheckMod.F90	2010-03-10 14:44:04.521094657 +0100
 @@ -372,7 +372,7 @@
         end if
      end do
@@ -9,4 +9,3 @@
         if (abs(errsoi_col(index)) > .10_r8) then
            write(6,*)'clm model is stopping'
            call endrun()
-diff -x .svn -Naurb clm3.5/src/biogeophys/BareGroundFluxesMod.F90 clm3.5_regcm/src/biogeophys/BareGroundFluxesMod.F90

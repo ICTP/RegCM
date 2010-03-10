@@ -98,17 +98,12 @@ contains
   use spmdMod  
   use ESMF_Mod
   use perf_mod
+  use mod_clm
+  use mod_regcm_param
 
 ! !ARGUMENTS:
     implicit none
 !rcm below
-#ifdef MPP1
-    include '../../../regcm.param2'
-    include '../../../Common2/clm.cb' 
-#else
-    include '../../../regcm.param'
-    include '../../../Commons/clm.cb'
-#endif
 ! eccen, obliqr, lambm0 & mvelpp all passed in
     real(r8), intent(inout) :: eccen    !Earth's orbital eccentricity
     real(r8), intent(inout) :: obliqr   !Earth's obliquity in radians

@@ -1,5 +1,5 @@
---- clm3.5/src/main/mkarbinitMod.F90	2007-04-26 20:50:19.000000000 +0200
-+++ clm3.5_regcm/src/main/mkarbinitMod.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/mkarbinitMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/mkarbinitMod.F90	2010-03-10 14:44:04.641094542 +0100
 @@ -27,7 +27,13 @@
      use clm_varcon   , only : bdsno, istice, istwet, istsoil, denice, denh2o, spval, sb
      use spmdMod      , only : masterproc
@@ -221,4 +221,3 @@
      ! Set snow
  
      do j = -nlevsno+1, 0
-diff -x .svn -Naurb clm3.5/src/main/restFileMod.F90 clm3.5_regcm/src/main/restFileMod.F90

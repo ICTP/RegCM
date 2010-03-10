@@ -1,5 +1,5 @@
---- clm3.5/src/csm_share/shr/shr_orb_mod.F90	2006-08-08 22:04:32.000000000 +0200
-+++ clm3.5_regcm/src/csm_share/shr/shr_orb_mod.F90	2010-01-22 00:10:32.000000000 +0100
+--- orig/shr_orb_mod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/shr_orb_mod.F90	2010-03-10 14:44:04.651093881 +0100
 @@ -8,7 +8,9 @@
     use shr_kind_mod
     use shr_sys_mod
@@ -32,4 +32,3 @@
     lambm = lambm0 + (calday - ve)*2._SHR_KIND_R8*pi/dayspy
     lmm   = lambm  - mvelpp
   
-diff -x .svn -Naurb clm3.5/src/main/accFldsMod.F90 clm3.5_regcm/src/main/accFldsMod.F90

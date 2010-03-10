@@ -1,5 +1,5 @@
---- clm3.5/src/main/clm_comp.F90	2007-04-12 23:21:09.000000000 +0200
-+++ clm3.5_regcm/src/main/clm_comp.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/clm_comp.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/clm_comp.F90	2010-03-10 15:02:32.744648971 +0100
 @@ -28,7 +28,7 @@
  ! !IROUTINE: clm_init0
  !
@@ -36,7 +36,7 @@
  !
  ! !DESCRIPTION:
  ! land model run1 phase
-@@ -175,18 +177,35 @@
+@@ -175,18 +177,30 @@
      use shr_orb_mod     , only : shr_orb_decl
      use clm_varctl      , only : irad 
      use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
@@ -44,17 +44,12 @@
 +!    use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
      use driver          , only : driver1
      use clm_atmlnd      , only : clm_map2gcell
++    use mod_clm
++    use mod_regcm_param
  !
  ! !ARGUMENTS:
 -    real(r8), intent(in) , optional :: nextsw_cday
 -    logical , intent(out), optional :: dosend
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
 +!    real(r8), intent(in) , optional :: nextsw_cday
 +!    logical , intent(out), optional :: dosend
 +!c abt rcm below
@@ -76,7 +71,7 @@
      real(r8) :: caldayp1_clm          ! calendar day for nstep+1 for clm (debug need only)
      real(r8) :: caldayp1              ! calendar day for nstep+1
      real(r8) :: declinp1              ! solar declination angle in radians for nstep+1
-@@ -194,7 +213,7 @@
+@@ -194,7 +208,7 @@
  !
  ! !REVISION HISTORY:
  ! Author: Mariana Vertenstein
@@ -85,7 +80,7 @@
  !EOP
  !---------------------------------------------------------------------------
  
-@@ -202,23 +221,26 @@
+@@ -202,23 +216,26 @@
  
      ! Determine doalb (true when the next time step is a radiation time step) 
  
@@ -126,7 +121,7 @@
  
      ! Determine declination angle for next time step
      
-@@ -246,7 +268,8 @@
+@@ -246,7 +263,8 @@
  ! !IROUTINE: clm_run2
  !
  ! !INTERFACE:
@@ -136,22 +131,17 @@
  !
  ! !DESCRIPTION:
  ! land model run2 phase
-@@ -254,14 +277,31 @@
+@@ -254,14 +272,26 @@
  ! !USES:
      use shr_orb_mod     , only : shr_orb_decl
      use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
 -    use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
 + !   use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
      use driver          , only : driver2
++    use mod_clm
++    use mod_regcm_param
  !
  ! !ARGUMENTS:
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
      logical,optional,intent(in) :: rstwr    ! true => write restart file this step
 +!c abt rcm below
 +  real(r8), intent(in) :: eccen  !Earth's orbital eccentricity
@@ -169,4 +159,3 @@
  !
  !EOP
  !
-diff -x .svn -Naurb clm3.5/src/main/clmtype.F90 clm3.5_regcm/src/main/clmtype.F90

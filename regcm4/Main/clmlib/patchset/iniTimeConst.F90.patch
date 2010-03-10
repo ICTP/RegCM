@@ -1,5 +1,5 @@
---- clm3.5/src/main/iniTimeConst.F90	2007-04-26 20:50:19.000000000 +0200
-+++ clm3.5_regcm/src/main/iniTimeConst.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/iniTimeConst.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/iniTimeConst.F90	2010-03-10 15:04:45.591125761 +0100
 @@ -27,7 +27,8 @@
    use clm_varcon  , only : istice, istdlak, istwet, isturb, &
                             zlak, dzlak, zsoi, dzsoi, zisoi, spval, &
@@ -10,7 +10,7 @@
    use pftvarcon   , only : ncorn, nwheat, noveg, ntree, roota_par, rootb_par,  &
                             smpso, smpsc, fnitr, &
                             z0mr, displar, dleaf, rhol, rhos, taul, taus, xl, &
-@@ -46,9 +47,24 @@
+@@ -46,6 +47,14 @@
    use pftvarcon   , only : pftconrd
    use ncdio
    use spmdMod
@@ -19,23 +19,13 @@
 +  use clm_varvoc
 +  use decompMod  , only : ldecomp
 +  use clm_varsur
++  use mod_clm
++  use mod_regcm_param
 +!abt above
  !
  ! !ARGUMENTS:
    implicit none
-+! abt below rcm
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
-+!rcm above
- !
- ! !CALLED FROM:
- ! subroutine initialize in module initializeMod.
-@@ -102,6 +118,28 @@
+@@ -102,6 +111,28 @@
    real(r8), pointer :: sandfrac(:)
    real(r8), pointer :: clayfrac(:)
  #endif
@@ -64,7 +54,7 @@
  !
  !EOP
  !
-@@ -131,7 +169,7 @@
+@@ -131,7 +162,7 @@
    real(r8),pointer :: clay3d(:,:) ! read in - soil texture: percent clay
    real(r8),pointer :: ndep(:)     ! read in - annual nitrogen deposition rate (gN/m2/yr)
    real(r8),pointer :: gti(:)      ! read in - fmax
@@ -73,7 +63,7 @@
    integer  :: dimid,varid      ! netCDF id's
    integer  :: ret, time_index
    real(r8) :: nlevsoidata(nlevsoi)
-@@ -142,7 +180,11 @@
+@@ -142,7 +173,11 @@
  
    integer :: closelatidx,closelonidx
    real(r8):: closelat,closelon
@@ -86,7 +76,7 @@
  !------------------------------------------------------------------------
  
    if (masterproc) write (6,*) 'Attempting to initialize time invariant variables'
-@@ -152,11 +194,36 @@
+@@ -152,11 +187,36 @@
  
    allocate(soic2d(begg:endg),ndep(begg:endg), gti(begg:endg))
    allocate(sand3d(begg:endg,nlevsoi),clay3d(begg:endg,nlevsoi))
@@ -123,7 +113,7 @@
    ! Assign local pointers to derived subtypes components (column-level)
  
    clandunit       => clm3%g%l%c%landunit
-@@ -198,10 +265,6 @@
+@@ -198,10 +258,6 @@
    clayfrac        => clm3%g%l%c%p%pps%clayfrac
  #endif
  
@@ -134,7 +124,7 @@
  
    ! --------------------------------------------------------------------
    ! Read soil color, sand and clay from surface dataset 
-@@ -209,7 +272,8 @@
+@@ -209,7 +265,8 @@
  
    if (masterproc) then
       write (6,*) 'Attempting to read soil color, sand and clay boundary data .....'
@@ -144,7 +134,7 @@
       call check_ret(nf_open(locfn, 0, ncid), subname)
  
       ! Determine number of soil color classes - if number of soil color classes is not
-@@ -223,7 +287,7 @@
+@@ -223,7 +280,7 @@
          mxsoil_color = 8  
       end if
    endif
@@ -153,7 +143,7 @@
    count(1) = lsmlon
    count(2) = lsmlat
    if (single_column) then
-@@ -233,16 +297,41 @@
+@@ -233,16 +290,41 @@
    else
       start(1) = 1
       start(2) = 1
@@ -198,7 +188,7 @@
  
    allocate(arrayl(begg:endg))
    do n = 1,nlevsoi
-@@ -254,6 +343,185 @@
+@@ -254,6 +336,185 @@
    enddo
    deallocate(arrayl)
  
@@ -384,7 +374,7 @@
    if (masterproc) then
       call check_ret(nf_close(ncid), subname)
       write (6,*) 'Successfully read fmax, soil color, sand and clay boundary data'
-@@ -274,14 +542,26 @@
+@@ -274,14 +535,26 @@
       albdry(1:8,1) = (/0.24_r8,0.22_r8,0.20_r8,0.18_r8,0.16_r8,0.14_r8,0.12_r8,0.10_r8/)
       albdry(1:8,2) = (/0.48_r8,0.44_r8,0.40_r8,0.36_r8,0.32_r8,0.28_r8,0.24_r8,0.20_r8/)
    else if (mxsoil_color == 20) then
@@ -417,7 +407,7 @@
    else
       write(6,*)'maximum color class = ',mxsoil_color,' is not supported'
       call endrun
-@@ -546,6 +826,7 @@
+@@ -546,6 +819,7 @@
              watdry(c,lev) = watsat(c,lev) * (316230._r8/sucsat(c,lev)) ** (-1._r8/bsw(c,lev)) 
              watopt(c,lev) = watsat(c,lev) * (158490._r8/sucsat(c,lev)) ** (-1._r8/bsw(c,lev)) 
           end do
@@ -425,4 +415,3 @@
        endif
  
        ! Define lake or non-lake levels layers
-diff -x .svn -Naurb clm3.5/src/main/mkarbinitMod.F90 clm3.5_regcm/src/main/mkarbinitMod.F90

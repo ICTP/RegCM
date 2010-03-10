@@ -1,5 +1,5 @@
---- clm3.5/src/main/clm_varpar.F90	2006-07-27 02:12:10.000000000 +0200
-+++ clm3.5_regcm/src/main/clm_varpar.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/clm_varpar.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/clm_varpar.F90	2010-03-10 14:44:04.581093971 +0100
 @@ -41,7 +41,8 @@
    integer, parameter :: ndst        =   4   ! number of dust size classes (BGC only)
    integer, parameter :: dst_src_nbr =   3   ! number of size distns in src soil (BGC only)
@@ -21,4 +21,3 @@
    maxpatch_pft   = MAXPATCH_PFT
    npatch_urban   = maxpatch_pft + 1
    npatch_lake    = npatch_urban + 1
-diff -x .svn -Naurb clm3.5/src/main/clm_varsur.F90 clm3.5_regcm/src/main/clm_varsur.F90

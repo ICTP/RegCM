@@ -1,5 +1,5 @@
---- clm3.5/src/main/clm_atmlnd.F90	2007-02-28 06:46:27.000000000 +0100
-+++ clm3.5_regcm/src/main/clm_atmlnd.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/clm_atmlnd.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/clm_atmlnd.F90	2010-03-10 15:09:39.678600423 +0100
 @@ -22,6 +22,7 @@
  !
  ! !PUBLIC TYPES:
@@ -434,7 +434,7 @@
    ! Compute gridcell averages. 
  
    if (present(init)) then
-@@ -874,10 +1224,292 @@
+@@ -874,10 +1224,285 @@
          clm_l2a%t_rad(g) = sqrt(sqrt(clm_l2a%eflx_lwrad_out(g)/sb))
       end do
  
@@ -539,18 +539,11 @@
 +  use domainMod        , only : adomain,ldomain
 +  use clm_varsur
 +  use clm_varpar       , only : lsmlon,lsmlat
-+!abt rcm above
++  use mod_clm
++  use mod_regcm_param
 +!
 +! !ARGUMENTS:
 +  implicit none
-+! abt below rcm
-+#ifdef MPP1
-+    include '../../../regcm.param2'
-+    include '../../../Common2/clm.cb'
-+#else
-+    include '../../../regcm.param'
-+    include '../../../Commons/clm.cb'
-+#endif
 +!rcm above
 +  type(lnd2atm_type), intent(in)  :: clm_l2a
 +!  type(lnd2atm_type), intent(out) :: l2a_dst
@@ -728,4 +721,3 @@
  !------------------------------------------------------------------------
  !------------------------------------------------------------------------
  end module clm_atmlnd
-diff -x .svn -Naurb clm3.5/src/main/clm_comp.F90 clm3.5_regcm/src/main/clm_comp.F90

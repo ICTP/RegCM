@@ -1,5 +1,5 @@
---- clm3.5/src/main/histFldsMod.F90	2007-04-26 20:50:19.000000000 +0200
-+++ clm3.5_regcm/src/main/histFldsMod.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/histFldsMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/histFldsMod.F90	2010-03-10 14:44:04.621095306 +0100
 @@ -322,29 +322,88 @@
  #endif
  
@@ -103,4 +103,3 @@
  #endif
  
      ! Hydrology
-diff -x .svn -Naurb clm3.5/src/main/initGridCellsMod.F90 clm3.5_regcm/src/main/initGridCellsMod.F90

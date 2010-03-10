@@ -1,5 +1,5 @@
---- clm3.5/src/biogeochem/VOCEmissionMod.F90	2007-02-21 22:55:27.000000000 +0100
-+++ clm3.5_regcm/src/biogeochem/VOCEmissionMod.F90	2010-01-22 00:10:31.000000000 +0100
+--- orig/VOCEmissionMod.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/VOCEmissionMod.F90	2010-03-10 14:44:04.681093713 +0100
 @@ -22,6 +22,9 @@
  !
  ! !PUBLIC MEMBER FUNCTIONS:
@@ -435,13 +435,11 @@
 -          end do
 +            ! ocimene: (values received from C. Wiedinmyer)
 +            elseif(n.eq.9) then
- 
--       case default
++
 +              ! epsilon: for ocimene
 +              epsilon(p) = 0._r8
  
--          write(6,*)'only nvocs up to index 5 are currently supported'
--          call endrun()
+-       case default
 +              if(r2cefmap(n) == 1) then
 +                 epsilon(p) = epsilon_ocim(g)
 +              else
@@ -455,7 +453,9 @@
 +                    epsilon(p) = 1._r8
 +                 end if
 +              endif			 
-+
+ 
+-          write(6,*)'only nvocs up to index 5 are currently supported'
+-          call endrun()
 +!dir$ concurrent
 +!cdir nodep
  
@@ -500,12 +500,19 @@
 -             reciprod = 1._r8 / (R * t_veg(p) * tstd)
 -             ct = exp(ct1 * (t_veg(p) - tstd) * reciprod) / &
 -                  (ct3 + exp(ct2 * (t_veg(p) - tm) * reciprod))
-+              ! epsilon: for other monoterpenes
-+              epsilon(p) = 0._r8
- 
+-
 -             par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
 -             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
 -             gamma(p) = cl * ct !gamma = 1 under std temp & light condns
+-
+-             par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+-             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
+-             gamma(p) = gamma(p) + cl * ct !gamma(sun) + gamma(sha)
+-          end do
++              ! epsilon: for other monoterpenes
++              epsilon(p) = 0._r8
+ 
+-       case (2,3,4,5)
 +              if(r2cefmap(n) == 1) then
 +                 epsilon(p) = epsilon_omtp(g)
 +              else
@@ -520,20 +527,22 @@
 +                 end if
 +              endif			 
  
--             par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
--             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
--             gamma(p) = gamma(p) + cl * ct !gamma(sun) + gamma(sha)
--          end do
-+!dir$ concurrent
-+!cdir nodep
+ !dir$ concurrent
+ !cdir nodep
+-          do fp = 1,num_nolakep
+-             p = filter_nolakep(fp)
+-             g = pgridcell(p)
  
--       case (2,3,4,5)
+-             ! monoterpenes, OVOCs, and ORVOCs (Guenther, 1999 and 1995):
+-             gamma(p) = exp(bet * (t_veg(p) - tstd))
+-          end do
 +            ! farnicene: (values received from C. Wiedinmyer)
 +            elseif(n.eq.12) then
 +
 +              ! epsilon: for farnicene
 +              epsilon(p) = 0._r8
-+
+ 
+-       end select
 +              if(r2cefmap(n) == 1) then
 +                 epsilon(p) = epsilon_farn(g)
 +              else
@@ -550,17 +559,14 @@
  
  !dir$ concurrent
  !cdir nodep
--          do fp = 1,num_nolakep
--             p = filter_nolakep(fp)
--             g = pgridcell(p)
+-       do fp = 1,num_nolakep
+-          p = filter_nolakep(fp)
+-          g = pgridcell(p)
  
--             ! monoterpenes, OVOCs, and ORVOCs (Guenther, 1999 and 1995):
--             gamma(p) = exp(bet * (t_veg(p) - tstd))
--          end do
+-          ! density: Source density factor [g dry weight foliar mass m-2 ground]
 +            ! b-caryophyllene: (values received from C. Wiedinmyer)
 +            elseif(n.eq.13) then
- 
--       end select
++
 +              ! epsilon: for b-caryophyllene
 +              epsilon(p) = 0._r8
 +
@@ -577,20 +583,16 @@
 +                    epsilon(p) = 0.9_r8
 +                 end if
 +              endif			 
- 
- !dir$ concurrent
- !cdir nodep
--       do fp = 1,num_nolakep
--          p = filter_nolakep(fp)
--          g = pgridcell(p)
- 
--          ! density: Source density factor [g dry weight foliar mass m-2 ground]
++
++!dir$ concurrent
++!cdir nodep
++
++
++            ! other sesquiterpenes: (values received from C. Wiedinmyer)
++            elseif(n.eq.14) then
  
 -          if (ivt(p) > 0) then
 -             density = elai(p) / (slarea(p) * 0.5_r8)
-+            ! other sesquiterpenes: (values received from C. Wiedinmyer)
-+            elseif(n.eq.14) then
-+
 +              ! epsilon: for other sesquiterpenes
 +              epsilon(p) = 0._r8
 +
@@ -1199,4 +1201,3 @@
  #endif
  
  end module VOCEmissionMod
-diff -x .svn -Naurb clm3.5/src/biogeophys/BalanceCheckMod.F90 clm3.5_regcm/src/biogeophys/BalanceCheckMod.F90

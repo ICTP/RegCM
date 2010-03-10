@@ -1,4 +1,3 @@
-#include <misc.h>
 #include <preproc.h>
 
 module VOCRestMod

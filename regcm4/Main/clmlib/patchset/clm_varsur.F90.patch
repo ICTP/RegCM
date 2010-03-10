@@ -1,5 +1,5 @@
---- clm3.5/src/main/clm_varsur.F90	2007-04-18 17:54:46.000000000 +0200
-+++ clm3.5_regcm/src/main/clm_varsur.F90	2010-01-22 00:10:30.000000000 +0100
+--- orig/clm_varsur.F90	2010-03-10 15:16:03.000000000 +0100
++++ patchd/clm_varsur.F90	2010-03-10 14:44:04.581093971 +0100
 @@ -25,10 +25,46 @@
    integer , allocatable :: vegxy(:,:) ! vegetation type
    real(r8), allocatable,target :: wtxy(:,:)  ! subgrid weights
@@ -48,4 +48,3 @@
  ! 2005-11-01 Moved grid to domainMod, T Craig
  !
  !EOP
-diff -x .svn -Naurb clm3.5/src/main/controlMod.F90 clm3.5_regcm/src/main/controlMod.F90
