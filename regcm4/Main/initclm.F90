@@ -17,7 +17,9 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine init_clmpara(nstep)
+#ifdef MPP1
+#ifdef CLM
+      subroutine initclm(nstep)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -53,6 +55,8 @@
 ! PRECCmms convective precipitation (mm H2O / sec)  optional (replaces PRECT)
 ! PRECLmms large-scale precipitation (mm H2O / sec) optional (replaces PRECT)
  
+      use mod_regcm_param
+!
       use initializeMod
       use shr_orb_mod
       use shr_kind_mod,  only : r8 => shr_kind_r8
@@ -68,6 +72,19 @@
       use clm_comp 
       use clmtype
       use perf_mod
+!
+      use mpi
+      use mod_date
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_clm
+      use mod_bats
+      use mod_mppio
+      use mod_constants
+      use mod_main
+      use mod_pbldim
+      use mod_slice
 ! 
       implicit none
 !
@@ -79,7 +96,7 @@
 ! Local variables
 !
       integer :: ci , cj , i , ii , is , itex , iyear_ad , j , je , jj ,&
-               & js , k , n , ni , nj , nlveg , nt , p
+               & js , k , n , ni , nj , nlveg , nt , p , ierr
       logical :: init_grid , log_print
       real(r8) :: mvelp , obliq
       real(8) , dimension(jxp,ix) :: r2cflwd , r2cpsb , r2cqb ,         &
@@ -136,13 +153,13 @@
 !     Set landmask method
       r2cimask = imask
 !     Set elevation and BATS landuse type (abt added)
-      if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(ix,mjx))
-      if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(ix,mjx))
-      if ( .not.allocated(init_tgb) ) allocate(init_tgb(ix,mjx))
-      if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(mjx,ix))
-      if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(ix,mjx))
+      if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(ix,jx))
+      if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(ix,jx))
+      if ( .not.allocated(init_tgb) ) allocate(init_tgb(ix,jx))
+      if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,ix))
+      if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(ix,jx))
       if ( myid==0 ) then
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             ht_rcm(i,j) = ht_io(i,j)
             satbrt_clm(i,j) = satbrt_io(i,j)
@@ -245,10 +262,10 @@
  
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c
-!c    1. Copy 2d (jxp,ix) arrays to 1d work_in (mjx*ix) array.
+!c    1. Copy 2d (jxp,ix) arrays to 1d work_in (jx*ix) array.
 !c    2. Gather jxp values of each nproc work_in array and fill
-!c    work_out(mjx*ix) array.
-!c    3. Copy 1d work_out array to 2d (mjx,ix) array for passing
+!c    work_out(jx*ix) array.
+!c    3. Copy 1d work_out array to 2d (jx,ix) array for passing
 !c    to clm.
 !c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -266,7 +283,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2ctb_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -284,7 +301,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2cqb_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -302,7 +319,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2czga_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -320,7 +337,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2cpsb_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -338,7 +355,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2cuxb_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -356,7 +373,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2cvxb_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -374,7 +391,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2crnc_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -392,7 +409,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2crnnc_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -410,7 +427,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2csols_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -428,7 +445,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2csoll_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -446,7 +463,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2csolsd_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -464,7 +481,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2csolld_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -482,7 +499,7 @@
                          & jxp*ix,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2cflwd_all(j,i) = work_out(ii)
             ii = ii + 1
@@ -504,7 +521,7 @@
                        & jxp*ix,mpi_double_precision,mpi_comm_world,    &
                        & ierr)
       ii = 1
-      do j = 1 , mjx
+      do j = 1 , jx
         do i = 1 , ix
           r2cxlat_all(j,i) = work_out(ii)
           ii = ii + 1
@@ -522,7 +539,7 @@
                        & jxp*ix,mpi_double_precision,mpi_comm_world,    &
                        & ierr)
       ii = 1
-      do j = 1 , mjx
+      do j = 1 , jx
         do i = 1 , ix
           r2cxlon_all(j,i) = work_out(ii)
           ii = ii + 1
@@ -540,7 +557,7 @@
                        & jxp*ix,mpi_double_precision,mpi_comm_world,    &
                        & ierr)
       ii = 1
-      do j = 1 , mjx
+      do j = 1 , jx
         do i = 1 , ix
           r2cxlatd_all(j,i) = work_out(ii)
           ii = ii + 1
@@ -558,7 +575,7 @@
                        & jxp*ix,mpi_double_precision,mpi_comm_world,    &
                        & ierr)
       ii = 1
-      do j = 1 , mjx
+      do j = 1 , jx
         do i = 1 , ix
           r2cxlond_all(j,i) = work_out(ii)
           ii = ii + 1
@@ -572,7 +589,7 @@
       r2cedgew = r2cxlond_all(1,1)
  
 !     clm vars are (lon x lat), regcm (lat x lon)
-      do j = 1 , mjx
+      do j = 1 , jx
         do i = 1 , ix
           r2cedgen = dmax1(r2cxlatd_all(j,i),r2cedgen)
           r2cedges = dmin1(r2cxlatd_all(j,i),r2cedges)
@@ -590,7 +607,7 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       r2cnstep = ktau
  
-      lsmlon = mjx   !abt changed clm_varpar_init also
+      lsmlon = jx   !abt changed clm_varpar_init also
       lsmlat = ix
  
 !!!!! Program_off initializes MPI,timing,and surface variables
@@ -689,4 +706,7 @@
       if ( allocated(clm2bats_veg) ) deallocate(clm2bats_veg)
       if ( allocated(clm_fracveg) ) deallocate(clm_fracveg)
  
-      end subroutine init_clmpara
+      end subroutine initclm
+
+#endif
+#endif

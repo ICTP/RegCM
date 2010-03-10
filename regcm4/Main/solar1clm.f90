@@ -43,8 +43,12 @@
       use clm_varsur ,  only : numdays
       use shr_kind_mod , only : r8 => shr_kind_r8
 !
-      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0
-      use mod_constants , only : degrad
+      use mod_clm , only : r2ceccen , r2cobliqr , r2clambm0 ,           &
+             &             r2cmvelpp , r2ceccf
+      use mod_message , only : aline
+      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0 ,   &
+             &              idate1
+      use mod_constants , only : degrad , dayspy
 
       implicit none
 !
@@ -73,14 +77,11 @@
       integer :: iyear_ad
       logical :: log_print
 !
-#ifdef MPP1
-      if ( myid==0 ) log_print = .false.
-#else
+      
       log_print = .false.
-#endif
 
       iyear_ad = idate1/1000000
-      numdays = dyperyr
+      numdays = dayspy
  
 !     Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
       call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
@@ -97,11 +98,8 @@
       decdeg = declin/degrad
  
 !     abt rcm below
-#ifdef MPP1
-      if ( myid==0 ) print 99001 , decdeg
-#else
-      print 99001 , decdeg
-#endif
+      write (aline, 99001) decdeg
+      call say
 99001 format (11x,'*** solar declination angle = ',f6.2,' degrees.')
  
       end subroutine solar1_clm

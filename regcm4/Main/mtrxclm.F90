@@ -42,7 +42,7 @@
       use clm_comp        , only : clm_run1, clm_run2
       use shr_kind_mod    , only : r8 => shr_kind_r8
 !
-      use message
+      use mod_message
       use mod_clm
       implicit none
 !
@@ -52,7 +52,7 @@
 !---------------------------------------------------------------------
  
 #ifdef MPP1
-      call interfclm_para(1,nstep)
+      call interfclm(1,nstep)
 #else
       write (*,*) 'CLM not implemented for serial run'
       call fatal(__FILE__,__LINE__, 'CLM not implemented')
@@ -64,7 +64,7 @@
       call clm_run2(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
  
 #ifdef MPP1
-      call interfclm_para(2,nstep)
+      call interfclm(2,nstep)
 #else
       write (*,*) 'CLM not implemented for serial run'
       call fatal(__FILE__,__LINE__, 'CLM not implemented')

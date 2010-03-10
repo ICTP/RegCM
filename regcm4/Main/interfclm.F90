@@ -17,7 +17,9 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine interfclm_para(inout,nstep)
+#ifdef MPP1
+
+      subroutine interfclm(inout,nstep)
 
 !=======================================================================
 !l  built for clm version 3.0
@@ -25,9 +27,21 @@
 ! inout = 1 : regcm -> clm
 ! inout = 2 : clm -> regcm
 !
+      use mod_regcm_param
       use clm_varsur,    only : landmask, landfrac
       use clmtype
       use clm_varsur,    only : c2r_allout,omap_i,omap_j
+      use mpi
+      use mod_clm
+      use mod_date
+      use mod_main
+      use mod_param1
+      use mod_param2
+      use mod_param3
+      use mod_slice
+      use mod_pbldim
+      use mod_bats
+      use mod_constants
       implicit none
 !
 ! Dummy arguments
@@ -48,6 +62,7 @@
       real(4) :: real_4
       real(8) , dimension(jxp*ix*13) :: workin
       real(8) , dimension(jx*ix*13) :: workout
+      integer :: ierr
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     About the dimension ordering:
@@ -107,10 +122,10 @@
  
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c      cc
-!c      1. Copy 2d (jxp,ix) arrays to 1d work_in (mjx*ix) array.      cc
+!c      1. Copy 2d (jxp,ix) arrays to 1d work_in (jx*ix) array.      cc
 !c      2. Gather jxp values of each nproc work_in array and fill     cc
-!c      work_out(mjx*ix) array.                                   cc
-!c      3. Copy 1d work_out array to 2d (mjx,ix) array for passing    cc
+!c      work_out(jx*ix) array.                                   cc
+!c      3. Copy 1d work_out array to 2d (jx,ix) array for passing    cc
 !c      to clm.                                                   cc
 !c      abt updated below 1/09                                        cc
 !c      UPDATE:  copy all r2c vars to one large array; this allows    cc
@@ -143,7 +158,7 @@
         ii = 1
         kk = 1
         counter = 1
-        do j = 1 , mjx
+        do j = 1 , jx
           do i = 1 , ix
             r2ctb_all(j,i) = workout(ii)
             r2cqb_all(j,i) = workout(ii+(jxp*ix))
@@ -172,11 +187,11 @@
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c
-!c 1. Copy the parts of 2d (mjx,ix) clm arrays that contain
-!c     data to 1d work_in (mjx*ix) array.
+!c 1. Copy the parts of 2d (jx,ix) clm arrays that contain
+!c     data to 1d work_in (jx*ix) array.
 !c 2. Gather jxp values of each nproc work_in array and fill
-!c     work_out (mjx*ix) array.
-!c 3. Copy 1d work_out array to 2d (mjx,ix) array for passing
+!c     work_out (jx*ix) array.
+!c 3. Copy 1d work_out array to 2d (jx,ix) array for passing
 !c     to nproc 2d (jxp,ix) arrays.
 !c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -241,7 +256,7 @@
  
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c      cc
-!c      Fill nproc 2d (jxp,ix) arrays from full 2d (mjx,ix) clm data. cc
+!c      Fill nproc 2d (jxp,ix) arrays from full 2d (jx,ix) clm data. cc
 !c      cc
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
@@ -262,10 +277,10 @@
         do j = jbegin , jendx
           jj = (jxp*myid) + j
  
-          call vecclm(j)
+          call interf(1 , j , kx , 2 , ixm1 , nnsg)
           if ( iocnflx==2 ) call zengocndrv(j)
  
-          do i = np1 , nbmax
+          do i = 2 , ixm1
             ci = i
             uvdrag(i,j) = 0.0
             hfx(i,j) = 0.0
@@ -316,7 +331,7 @@
                 evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*qfx(i,j)
                 sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(i,j)
                 rnos2d(n,i,j) = c2rro_sur(jj,ci)*dtbat
-                rno2d(n,i,j) = (c2rro_sub(jj,ci)+c2rro_sur(jj,ci))*c(4)
+                rno2d(n,i,j) = (c2rro_sub(jj,ci)+c2rro_sur(jj,ci))*dtbat
  
                 ssw2da(i,j) = ssw2da(i,j) + ssw2d(n,i,j)
                 sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
@@ -333,13 +348,13 @@
 !
 !             quantities stored on 2d surface array for bats use only
 !
-              prca2d(i,j) = prca2d(i,j) + c(4)*pptc(i,j)
-              prnca2d(i,j) = prnca2d(i,j) + c(4)*pptnc(i,j)
-              flwa2d(i,j) = flwa2d(i,j) + c(4)*flw1d(i)
+              prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
+              prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
+              flwa2d(i,j) = flwa2d(i,j) + dtbat*flw1d(i)
               flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
-              fswa2d(i,j) = fswa2d(i,j) + c(4)*fsw1d(i)
-              svga2d(i,j) = svga2d(i,j) + c(4)*sabveg(i)
-              sina2d(i,j) = sina2d(i,j) + c(4)*sinc2d(i,j)
+              fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw1d(i)
+              svga2d(i,j) = svga2d(i,j) + dtbat*sabveg(i)
+              sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
               pptnc(i,j) = 0.
               pptc(i,j) = 0.
 !chem2
@@ -424,18 +439,18 @@
                 sice2d(n,i,j) = sice1d(n,i)
                 gwet2d(n,i,j) = gwet1d(n,i)
                 ircp2d(n,i,j) = ircp1d(n,i)
-                evpa2d(n,i,j) = evpa2d(n,i,j) + c(4)*evpr1d(n,i)
-                sena2d(n,i,j) = sena2d(n,i,j) + c(4)*sent1d(n,i)
+                evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*evpr1d(n,i)
+                sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sent1d(n,i)
                 if ( rnos2d(n,i,j)>-1.E10 .and. rnos1d(n,i)>-1.E10 )    &
                    & then
-                  rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)/tau1*c(4)
+                  rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)/tau1*dtbat
                 else
                   rnos2d(n,i,j) = -1.E34
                 end if
                 if ( rno2d(n,i,j)>-1.E10 .and. rnos1d(n,i)>-1.E10 .and. &
                    & rno1d(n,i)>-1.E10 ) then
                   rno2d(n,i,j) = rno2d(n,i,j) + (rno1d(n,i)-rnos1d(n,i))&
-                               & /tau1*c(4)
+                               & /tau1*dtbat
                 else
                   rno2d(n,i,j) = -1.E34
                 end if
@@ -443,13 +458,13 @@
 !
 !             quantities stored on 2d surface array for bats use only
 !
-              prca2d(i,j) = prca2d(i,j) + c(4)*pptc(i,j)
-              prnca2d(i,j) = prnca2d(i,j) + c(4)*pptnc(i,j)
-              flwa2d(i,j) = flwa2d(i,j) + c(4)*flw1d(i)
+              prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
+              prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
+              flwa2d(i,j) = flwa2d(i,j) + dtbat*flw1d(i)
               flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
-              fswa2d(i,j) = fswa2d(i,j) + c(4)*fsw1d(i)
-              svga2d(i,j) = svga2d(i,j) + c(4)*sabveg(i)
-              sina2d(i,j) = sina2d(i,j) + c(4)*sinc2d(i,j)
+              fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw1d(i)
+              svga2d(i,j) = svga2d(i,j) + dtbat*sabveg(i)
+              sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
               pptnc(i,j) = 0.
               pptc(i,j) = 0.
  
@@ -562,23 +577,23 @@
                          & *(1-landfrac(jj,ci))
  
  
-                evpa2d(n,i,j) = evpa2d(n,i,j) + c(4)*qfx(i,j)
-                sena2d(n,i,j) = sena2d(n,i,j) + c(4)*hfx(i,j)
-                rnos2d(n,i,j) = c2rro_sur(jj,ci)*c(4)
-                rno2d(n,i,j) = c2rro_sub(jj,ci)*c(4) + c2rro_sur(jj,ci) &
-                             & *c(4)
+                evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*qfx(i,j)
+                sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(i,j)
+                rnos2d(n,i,j) = c2rro_sur(jj,ci)*dtbat
+                rno2d(n,i,j) = c2rro_sub(jj,ci)*dtbat + c2rro_sur(jj,ci)&
+                             & *dtbat
 !abt            above
               end do
 !
 !             quantities stored on 2d surface array for bats use only
 !
-              prca2d(i,j) = prca2d(i,j) + c(4)*pptc(i,j)
-              prnca2d(i,j) = prnca2d(i,j) + c(4)*pptnc(i,j)
-              flwa2d(i,j) = flwa2d(i,j) + c(4)*flw1d(i)
+              prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
+              prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
+              flwa2d(i,j) = flwa2d(i,j) + dtbat*flw1d(i)
               flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
-              fswa2d(i,j) = fswa2d(i,j) + c(4)*fsw1d(i)
-              svga2d(i,j) = svga2d(i,j) + c(4)*sabveg(i)
-              sina2d(i,j) = sina2d(i,j) + c(4)*sinc2d(i,j)
+              fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw1d(i)
+              svga2d(i,j) = svga2d(i,j) + dtbat*sabveg(i)
+              sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
               pptnc(i,j) = 0.
               pptc(i,j) = 0.
  
@@ -589,7 +604,7 @@
  
 !!!!!!!!!!!!!!!! addition from new RegCM !!!!!!!!!!!!!!!!!!!
  
-          do i = np1 , nbmax
+          do i = 2 , ixm1
             ci = i
  
             u10m_o(j,i-1) = 0.0
@@ -654,7 +669,7 @@
               wpm2 = 1./(batfrq*3600.)
             end if
  
-            do i = np1 , nbmax
+            do i = 2 , ixm1
               ci = i
  
               drag_o(j,i-1) = 0.0
@@ -765,4 +780,6 @@
       else          ! end if inout = 2
       end if
  
-      end subroutine interfclm_para
+      end subroutine interfclm
+
+#endif

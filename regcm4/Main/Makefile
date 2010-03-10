@@ -2,6 +2,7 @@ include ../Makefile.inc
 
 SCENARIO = A1B
 SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
+CLMLIB = clmlib
 
 all:: regcm
 
@@ -17,6 +18,11 @@ mod_comctl.o     mod_param3.o     mod_tracer.o     mod_comozp.o      \
 mod_grads.o      mod_pmoist.o     mod_trachem.o    mod_comtim.o      \
 mod_ictp01.o     mod_constants.o  mod_iunits.o     mod_regcm_param.o \
 mod_pbldim.o     mod_lake.o       mod_interfaces.o mod_clm.o
+
+CLMOBJS = \
+initializeMod.o  shr_orb_mod.o    shr_kind_mod.o  clm_varpar.o       \
+clm_varsur.o     atmdrvMod.o      spmdMod.o       program_offMod.o   \
+clm_comp.o       clmtype.o        perf_mod.o
 
 OBJS = \
 aermix.o          cup.o         isrchfgt.o  radclw.o    tractend2.o  \
@@ -49,10 +55,12 @@ convect_tables.o  initdate.o    outtap.o    temp.o      zengocn.o    \
 cumtran.o         init.o        param.o     tend.o      zenith.o     \
 cupara.o          initlk.o      pcp.o       tgrund.o    zenitm.o     \
 cuparan.o         interf.o      printsp.o   tpfc.o      cupemandrv.o \
-intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
+intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o    \
+initclm.o         interfclm.o   mod_clm.o   mtrxclm.o   solar1clm.o
 
 regcm: $(MODOBJS) $(OBJS)
-	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) $(LIB)
+	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) \
+               $(LIB) $(NETCDFLIB) -L$(CLMLIB) -lclm
 
 %.o: %.F90
 	$(F90) -c $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
@@ -340,3 +348,24 @@ zengocndrv.o: zengocndrv.f90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
               mod_interfaces.o
 zenith.o: zenith.f90
 zenitm.o: zenitm.f90 mod_constants.o mod_date.o mod_main.o mod_regcm_param.o
+initclm.o: initclm.F90 $(CLMLIB)/initializeMod.o $(CLMLIB)/shr_orb_mod.o \
+           $(CLMLIB)/shr_kind_mod.o $(CLMLIB)/clm_varpar.o \
+           $(CLMLIB)/clm_varsur.o $(CLMLIB)/atmdrvMod.o $(CLMLIB)/spmdMod.o \
+           $(CLMLIB)/program_offMod.o $(CLMLIB)/clm_comp.o \
+           $(CLMLIB)/clmtype.o $(CLMLIB)/perf_mod.o \
+           mod_constants.o mod_regcm_param.o mod_param1.o \
+           mod_date.o mod_param2.o mod_param3.o mod_clm.o mod_bats.o \
+           mod_mppio.o mod_main.o mod_pbldim.o mod_slice.o
+	$(F90) $(CPPFLAGS) -I$(CLMLIB) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+interfclm.o: interfclm.F90 $(CLMLIB)/clm_varsur.o $(CLMLIB)/clmtype.o \
+             mod_clm.o mod_regcm_param.o mod_date.o mod_main.o mod_param1.o \
+             mod_param2.o mod_param3.o mod_slice.o mod_pbldim.o mod_bats.o \
+             mod_constants.o
+	$(F90) $(CPPFLAGS) -I$(CLMLIB) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+mtrxclm.o: mtrxclm.F90 $(CLMLIB)/atmdrvMod.o $(CLMLIB)/clm_comp.o \
+           $(CLMLIB)/shr_kind_mod.o mod_message.o mod_clm.o
+	$(F90) $(CPPFLAGS) -I$(CLMLIB) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+solar1clm.o: solar1clm.f90 $(CLMLIB)/shr_orb_mod.o $(CLMLIB)/clm_varsur.o \
+             $(CLMLIB)/shr_kind_mod.o mod_clm.o mod_message.o mod_date.o \
+             mod_constants.o
+	$(F90) $(CPPFLAGS) -I$(CLMLIB) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
