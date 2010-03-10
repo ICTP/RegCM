@@ -1,5 +1,7 @@
       module mod_clm
 
+      use mod_regcm_param , only : ix , jx , nproc
+
       implicit none
 
       integer :: r2cdtime      ! timestep in seconds
@@ -42,55 +44,55 @@
 
       logical :: r2cdoalb      ! time for next albedo call
 
-      real(8) :: r2ctb_all   
-      real(8) :: r2cqb_all    
-      real(8) :: r2czga_all   
-      real(8) :: r2cpsb_all   
-      real(8) :: r2cuxb_all   
-      real(8) :: r2cvxb_all   
-      real(8) :: r2crnc_all   
-      real(8) :: r2crnnc_all  
-      real(8) :: r2csols_all  
-      real(8) :: r2csoll_all  
-      real(8) :: r2csolsd_all 
-      real(8) :: r2csolld_all
-      real(8) :: r2cflwd_all
-      real(8) :: r2ccosz_all
-      real(8) :: r2cxlat_all     ! xlat in radians
-      real(8) :: r2cxlon_all     ! xlon in radians
-      real(8) :: r2cxlatd_all    ! xlat in degrees
-      real(8) :: r2cxlond_all    ! xlon in degrees
-      real(8) :: c2rtgb
-      real(8) :: c2rsenht
-      real(8) :: c2rlatht
-      real(8) :: c2ralbdirs
-      real(8) :: c2ralbdirl
-      real(8) :: c2ralbdifs
-      real(8) :: c2ralbdifl
-      real(8) :: c2rtaux
-      real(8) :: c2rtauy
-      real(8) :: c2ruvdrag
-      real(8) :: c2rlsmask
-      real(8) :: c2rtgbb
-      real(8) :: c2rcosz
-      real(8) :: c2rsnowc
-      real(8) :: c2rtest
-      real(8) :: c2r2mt
-      real(8) :: c2r2mq
-      real(8) :: c2rtlef
-      real(8) :: c2ru10
-      real(8) :: c2rsm10cm
-      real(8) :: c2rsm1m
-      real(8) :: c2rsmtot
-      real(8) :: c2rinfl
-      real(8) :: c2rro_sur
-      real(8) :: c2rro_sub
-      real(8) :: c2rfracsno      
-      real(8) :: c2rfvegnosno 
+      real(8) , dimension(jx,ix) :: r2ctb_all   
+      real(8) , dimension(jx,ix) :: r2cqb_all    
+      real(8) , dimension(jx,ix) :: r2czga_all   
+      real(8) , dimension(jx,ix) :: r2cpsb_all   
+      real(8) , dimension(jx,ix) :: r2cuxb_all   
+      real(8) , dimension(jx,ix) :: r2cvxb_all   
+      real(8) , dimension(jx,ix) :: r2crnc_all   
+      real(8) , dimension(jx,ix) :: r2crnnc_all  
+      real(8) , dimension(jx,ix) :: r2csols_all  
+      real(8) , dimension(jx,ix) :: r2csoll_all  
+      real(8) , dimension(jx,ix) :: r2csolsd_all 
+      real(8) , dimension(jx,ix) :: r2csolld_all
+      real(8) , dimension(jx,ix) :: r2cflwd_all
+      real(8) , dimension(jx,ix) :: r2ccosz_all
+      real(8) , dimension(jx,ix) :: r2cxlat_all     ! xlat in radians
+      real(8) , dimension(jx,ix) :: r2cxlon_all     ! xlon in radians
+      real(8) , dimension(jx,ix) :: r2cxlatd_all    ! xlat in degrees
+      real(8) , dimension(jx,ix) :: r2cxlond_all    ! xlon in degrees
+      real(8) , dimension(jx,ix) :: c2rtgb
+      real(8) , dimension(jx,ix) :: c2rsenht
+      real(8) , dimension(jx,ix) :: c2rlatht
+      real(8) , dimension(jx,ix) :: c2ralbdirs
+      real(8) , dimension(jx,ix) :: c2ralbdirl
+      real(8) , dimension(jx,ix) :: c2ralbdifs
+      real(8) , dimension(jx,ix) :: c2ralbdifl
+      real(8) , dimension(jx,ix) :: c2rtaux
+      real(8) , dimension(jx,ix) :: c2rtauy
+      real(8) , dimension(jx,ix) :: c2ruvdrag
+      real(8) , dimension(jx,ix) :: c2rlsmask
+      real(8) , dimension(jx,ix) :: c2rtgbb
+      real(8) , dimension(jx,ix) :: c2rcosz
+      real(8) , dimension(jx,ix) :: c2rsnowc
+      real(8) , dimension(jx,ix) :: c2rtest
+      real(8) , dimension(jx,ix) :: c2r2mt
+      real(8) , dimension(jx,ix) :: c2r2mq
+      real(8) , dimension(jx,ix) :: c2rtlef
+      real(8) , dimension(jx,ix) :: c2ru10
+      real(8) , dimension(jx,ix) :: c2rsm10cm
+      real(8) , dimension(jx,ix) :: c2rsm1m
+      real(8) , dimension(jx,ix) :: c2rsmtot
+      real(8) , dimension(jx,ix) :: c2rinfl
+      real(8) , dimension(jx,ix) :: c2rro_sur
+      real(8) , dimension(jx,ix) :: c2rro_sub
+      real(8) , dimension(jx,ix) :: c2rfracsno      
+      real(8) , dimension(jx,ix) :: c2rfvegnosno 
 
-      integer :: c2rprocmap
-      integer :: c2rngc
-      integer :: c2rdisps
+      integer :: c2rprocmap(jx,ix)
+      integer :: c2rngc(nproc)
+      integer :: c2rdisps(nproc)
       integer :: c2rcnts
 
       end module mod_clm
