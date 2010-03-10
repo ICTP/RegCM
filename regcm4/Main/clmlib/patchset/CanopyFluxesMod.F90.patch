@@ -1,0 +1,52 @@
+--- clm3.5/src/biogeophys/CanopyFluxesMod.F90	2007-04-26 20:50:19.000000000 +0200
++++ clm3.5_regcm/src/biogeophys/CanopyFluxesMod.F90	2010-01-22 00:10:32.000000000 +0100
+@@ -210,6 +210,9 @@
+    real(r8), pointer :: fpsn(:)            ! photosynthesis (umol CO2 /m**2 /s)
+    real(r8), pointer :: rootr(:,:)         ! effective fraction of roots in each soil layer
+    real(r8), pointer :: rresis(:,:)        ! root resistance by layer (0-1)  (nlevsoi)	
++!abt rcm below
++   real(r8), pointer :: uvdrag(:)          ! surface wind drag
++!abt rcm above
+ !
+ !EOP
+ !
+@@ -329,6 +332,7 @@
+    integer  :: index                 ! pft index for error
+    real(r8) :: www                   ! surface soil wetness [-]
+    real(r8) :: rsoil                 ! Sellers (1996) soil evaporation resistance [s/m]
++
+ !------------------------------------------------------------------------------
+ 
+    ! Assign local pointers to derived type members (gridcell-level)
+@@ -390,6 +394,11 @@
+    cisha          => clm3%g%l%c%p%pps%cisha
+    psnsun         => clm3%g%l%c%p%pcf%psnsun
+    psnsha         => clm3%g%l%c%p%pcf%psnsha
++!abt rcm below
++   uvdrag         => clm3%g%l%c%p%pef%uvdrag
++!abt rcm above
++
++
+    ! 4/14/05: PET
+    ! Adding isotope code
+    c13_psnsun     => clm3%g%l%c%p%pc13f%psnsun
+@@ -510,6 +519,7 @@
+    found = .false.
+ !dir$ concurrent
+ !cdir nodep
++
+    do f = 1, fn
+       p = filterp(f)
+       c = pcolumn(p)
+@@ -870,6 +880,10 @@
+       eflx_sh_grnd(p) = cpair*forc_rho(g)*wtg(p)*delt
+       qflx_evap_soi(p) = forc_rho(g)*wtgq(p)*delq(p)
+ 
++!abt rcm below
++      uvdrag(p) = frac_veg_nosno(p)*forc_rho(g)/ram1(p)
++!abt rcm above
++
+       ! 2 m height air temperature
+ 
+       t_ref2m(p) = thm(c) + temp1(p)*dth(p)*(1._r8/temp12m(p) - 1._r8/temp1(p))
+diff -x .svn -Naurb clm3.5/src/biogeophys/SurfaceAlbedoMod.F90 clm3.5_regcm/src/biogeophys/SurfaceAlbedoMod.F90

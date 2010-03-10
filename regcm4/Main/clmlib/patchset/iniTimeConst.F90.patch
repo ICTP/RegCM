@@ -1,0 +1,428 @@
+--- clm3.5/src/main/iniTimeConst.F90	2007-04-26 20:50:19.000000000 +0200
++++ clm3.5_regcm/src/main/iniTimeConst.F90	2010-01-22 00:10:30.000000000 +0100
+@@ -27,7 +27,8 @@
+   use clm_varcon  , only : istice, istdlak, istwet, isturb, &
+                            zlak, dzlak, zsoi, dzsoi, zisoi, spval, &
+                            albsat, albdry
+-  use clm_varctl  , only : nsrest, fsurdat,scmlon,scmlat,single_column
++  use clm_varctl  , only : nsrest, fsurdat,scmlon,scmlat,single_column, &
++                           mksrf_fsoicol,mksrf_fsoitex,mksrf_fmax      !abt
+   use pftvarcon   , only : ncorn, nwheat, noveg, ntree, roota_par, rootb_par,  &
+                            smpso, smpsc, fnitr, &
+                            z0mr, displar, dleaf, rhol, rhos, taul, taus, xl, &
+@@ -46,9 +47,24 @@
+   use pftvarcon   , only : pftconrd
+   use ncdio
+   use spmdMod
++!abt rcm below
++  use domainMod  , only : ldomain
++  use clm_varvoc
++  use decompMod  , only : ldecomp
++  use clm_varsur
++!abt above
+ !
+ ! !ARGUMENTS:
+   implicit none
++! abt below rcm
++#ifdef MPP1
++    include '../../../regcm.param2'
++    include '../../../Common2/clm.cb'
++#else
++    include '../../../regcm.param'
++    include '../../../Commons/clm.cb'
++#endif
++!rcm above
+ !
+ ! !CALLED FROM:
+ ! subroutine initialize in module initializeMod.
+@@ -102,6 +118,28 @@
+   real(r8), pointer :: sandfrac(:)
+   real(r8), pointer :: clayfrac(:)
+ #endif
++!!!abt rcm below
++    real(r8), pointer :: epsilon_iso(:)   ! emission factor map for isoprene
++    real(r8), pointer :: epsilon_apin(:)  ! emission factor map for a-pinene
++    real(r8), pointer :: epsilon_bpin(:)  ! emission factor map for b-pinene
++    real(r8), pointer :: epsilon_mbo(:)   ! emission factor map for methylbutenol
++    real(r8), pointer :: epsilon_myrc(:)  ! emission factor map for myrcene
++    real(r8), pointer :: epsilon_sabi(:)  ! emission factor map for sabinene
++    real(r8), pointer :: epsilon_limo(:)  ! emission factor map for limonene
++    real(r8), pointer :: epsilon_acar(:)  ! emission factor map for a-3carene
++    real(r8), pointer :: epsilon_ocim(:)  ! emission factor map for ocimene
++    real(r8), pointer :: epsilon_omtp(:)  ! emission factor map for other monoterps
++    real(r8), pointer :: epsilon_farn(:)  ! emission factor map for farnicene
++    real(r8), pointer :: epsilon_bcar(:)  ! emission factor map for b-caryophyllene
++    real(r8), pointer :: epsilon_osqt(:)  ! emission factor map for other sesquiterps
++    real(r8), pointer :: epsilon_meoh(:)  ! emission factor map for methanol
++    real(r8), pointer :: epsilon_acto(:)  ! emission factor map for acetone
++    real(r8), pointer :: epsilon_meth(:)  ! emission factor map for methane
++    real(r8), pointer :: epsilon_no(:)    ! emission factor map for no,n2o,nh3
++    real(r8), pointer :: epsilon_acta(:)  ! emission factor map for acetaldehyde etc
++    real(r8), pointer :: epsilon_form(:)  ! emission factor map for formaldehyde formic acid
++    real(r8), pointer :: epsilon_co(:)    ! emission factor map for carbonmoxide
++!!!abt rcm above
+ !
+ !EOP
+ !
+@@ -131,7 +169,7 @@
+   real(r8),pointer :: clay3d(:,:) ! read in - soil texture: percent clay
+   real(r8),pointer :: ndep(:)     ! read in - annual nitrogen deposition rate (gN/m2/yr)
+   real(r8),pointer :: gti(:)      ! read in - fmax
+-  integer  :: start(3),count(3)   ! netcdf start/count arrays
++  integer  :: start(4),count(4)   ! netcdf start/count arrays
+   integer  :: dimid,varid      ! netCDF id's
+   integer  :: ret, time_index
+   real(r8) :: nlevsoidata(nlevsoi)
+@@ -142,7 +180,11 @@
+ 
+   integer :: closelatidx,closelonidx
+   real(r8):: closelat,closelon
+-
++!abt added below
++  integer :: ns,nj,ni,nn,nc
++  integer, pointer :: map_i(:)   ! used for gathering back to regcm
++  integer, pointer :: map_j(:)   ! used for gathering back to regcm
++!abt added above
+ !------------------------------------------------------------------------
+ 
+   if (masterproc) write (6,*) 'Attempting to initialize time invariant variables'
+@@ -152,11 +194,36 @@
+ 
+   allocate(soic2d(begg:endg),ndep(begg:endg), gti(begg:endg))
+   allocate(sand3d(begg:endg,nlevsoi),clay3d(begg:endg,nlevsoi))
++  allocate(map_i(endg-begg+1),map_j(endg-begg+1))
++  allocate(omap_i(numg),omap_j(numg))
+ 
+   ! Assign local pointers to derived subtypes components (landunit-level)
+ 
+   ltype           => clm3%g%l%itype
+ 
++  ! Assign local pointers to derived subtypes components (gridcell-level)  !abt
++
++  epsilon_iso  => clm3%g%gem%epsilon_iso     !abt
++  epsilon_bpin => clm3%g%gem%epsilon_bpin    !abt
++  epsilon_apin => clm3%g%gem%epsilon_apin    !abt
++  epsilon_mbo  => clm3%g%gem%epsilon_mbo     !abt
++  epsilon_sabi => clm3%g%gem%epsilon_sabi    !abt
++  epsilon_limo => clm3%g%gem%epsilon_limo    !abt
++  epsilon_myrc => clm3%g%gem%epsilon_myrc    !abt
++  epsilon_acar => clm3%g%gem%epsilon_acar    !abt
++  epsilon_ocim => clm3%g%gem%epsilon_ocim    !abt
++  epsilon_omtp => clm3%g%gem%epsilon_omtp    !abt
++  epsilon_farn => clm3%g%gem%epsilon_farn    !abt
++  epsilon_bcar => clm3%g%gem%epsilon_bcar    !abt
++  epsilon_osqt => clm3%g%gem%epsilon_osqt    !abt
++  epsilon_meoh => clm3%g%gem%epsilon_meoh    !abt
++  epsilon_acto => clm3%g%gem%epsilon_acto    !abt
++  epsilon_meth => clm3%g%gem%epsilon_meth    !abt
++  epsilon_no   => clm3%g%gem%epsilon_no      !abt
++  epsilon_acta => clm3%g%gem%epsilon_acta    !abt
++  epsilon_form => clm3%g%gem%epsilon_form    !abt
++  epsilon_co   => clm3%g%gem%epsilon_co      !abt
++
+   ! Assign local pointers to derived subtypes components (column-level)
+ 
+   clandunit       => clm3%g%l%c%landunit
+@@ -198,10 +265,6 @@
+   clayfrac        => clm3%g%l%c%p%pps%clayfrac
+ #endif
+ 
+-!  ! Determine necessary subgrid bounds
+-!
+-!  call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+-!  call get_proc_global(numg, numl, numc, nump)
+ 
+   ! --------------------------------------------------------------------
+   ! Read soil color, sand and clay from surface dataset 
+@@ -209,7 +272,8 @@
+ 
+   if (masterproc) then
+      write (6,*) 'Attempting to read soil color, sand and clay boundary data .....'
+-     call getfil (fsurdat, locfn, 0)
++!     call getfil (fsurdat, locfn, 0)
++     call getfil (mksrf_fsoicol, locfn, 0)
+      call check_ret(nf_open(locfn, 0, ncid), subname)
+ 
+      ! Determine number of soil color classes - if number of soil color classes is not
+@@ -223,7 +287,7 @@
+         mxsoil_color = 8  
+      end if
+   endif
+-  call mpi_bcast( mxsoil_color,        1  , MPI_INTEGER, 0, mpicom, ier )
++
+   count(1) = lsmlon
+   count(2) = lsmlat
+   if (single_column) then
+@@ -233,16 +297,41 @@
+   else
+      start(1) = 1
+      start(2) = 1
++     count(1) = lsmlon   !abt added
++     count(2) = lsmlat   !abt added
+   end if
++
++!abt below
+   start(3) = 1
+   count(3) = 1
+ 
++  start(4) = 1
++  count(4) = 1
++!abt above
++
++  ! Read in soil color
++
++!abt original  call ncd_iolocal(ncid, 'SOIL_COLOR', 'read', soic2d, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:2),count(:2))
++  call ncd_iolocal(ncid, 'SOIL_COLOR', 'read', soic2d, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:3),count(:3))
++
++
+   ! Read fmax
+-  call ncd_iolocal(ncid, 'FMAX', 'read', gti, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:2),count(:2))
+ 
+-  ! Read in soil color, sand and clay fraction
++  if(masterproc) then
++     call getfil (mksrf_fmax, locfn, 0)
++     call check_ret(nf_open(locfn, 0, ncid), subname)
++  endif
++
++!abt original clm  call ncd_iolocal(ncid, 'FMAX', 'read', gti, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:2),count(:2))
++  call ncd_iolocal(ncid, 'FMAX', 'read', gti, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:3),count(:3))
++!   gti(:) = 0.3   ! abt workaround not having FMAX data
+ 
+-  call ncd_iolocal(ncid, 'SOIL_COLOR', 'read', soic2d, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo,start(:2),count(:2))
++  ! Read sand and clay fraction
++
++  if(masterproc) then
++     call getfil (mksrf_fsoitex, locfn, 0)
++     call check_ret(nf_open(locfn, 0, ncid), subname)
++  endif
+ 
+   allocate(arrayl(begg:endg))
+   do n = 1,nlevsoi
+@@ -254,6 +343,185 @@
+   enddo
+   deallocate(arrayl)
+ 
++! abt rcm below
++        nn = 0
++        do ns = begg,endg
++
++         ! correct soil color and texture to match landmask
++           if(ldomain%mask(ns) == 0) then
++              sand3d(ns,:) = 0
++              clay3d(ns,:) = 0
++           else
++             if(sand3d(ns,1) <= 0) then
++               do n = 1,nlevsoi
++                  sand3d(ns,n) = 43.
++                  clay3d(ns,n) = 18.
++               enddo
++             endif
++           endif
++
++           if(ldomain%mask(ns) == 1 .and. soic2d(ns) == 0) then
++              soic2d(ns) = 4
++           endif
++           if(ldomain%mask(ns) == 0) soic2d(ns) = 0.
++
++         ! calculate maximum color value
++           if(soic2d(ns) > 8) mxsoil_color = 20 
++
++         ! fmax
++           if(ldomain%mask(ns) == 1 .and. gti(ns) == 0) then
++              gti(ns) = 0.3
++           endif
++           if(ldomain%mask(ns) == 0) gti(ns) = 0.
++
++#if (defined VOC)
++        ! store emission factor map into clmtype structure
++          if(r2cefmap(1).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_iso(ns) = 0._r8
++            epsilon_iso(ns) = ef_iso(ns)
++          endif
++
++          if(r2cefmap(8).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_bpin(ns) = 0._r8
++            epsilon_bpin(ns) = ef_bpin(ns)
++          endif
++
++          if(r2cefmap(7).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_apin(ns) = 0._r8
++            epsilon_apin(ns) = ef_apin(ns)
++          endif
++
++          if(r2cefmap(6).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_mbo(ns) = 0._r8
++            epsilon_mbo(ns) = ef_mbo(ns)
++          endif
++
++          if(r2cefmap(4).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_limo(ns) = 0._r8
++            epsilon_limo(ns) = ef_limo(ns)
++          endif
++
++          if(r2cefmap(3).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_sabi(ns) = 0._r8
++            epsilon_sabi(ns) = ef_sabi(ns)
++          endif
++
++          if(r2cefmap(2).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_myrc(ns) = 0._r8
++            epsilon_myrc(ns) = ef_myrc(ns)
++          endif
++
++          if(r2cefmap(5).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_co(ns) = 0._r8
++            epsilon_co(ns) = ef_co(ns)
++          endif
++
++          if(r2cefmap(10).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_acar(ns) = 0._r8
++            epsilon_acar(ns) = ef_acar(ns)
++          endif
++
++          if(r2cefmap(9).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_ocim(ns) = 0._r8
++            epsilon_ocim(ns) = ef_ocim(ns)
++          endif
++
++          if(r2cefmap(11).eq.1) then 
++            if(ldomain%mask(ns) == 0) ef_omtp(ns) = 0._r8
++            epsilon_omtp(ns) = ef_omtp(ns)
++          endif
++
++          if(r2cefmap(12).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_farn(ns) = 0._r8
++            epsilon_farn(ns) = ef_farn(ns)
++          endif
++ 
++          if(r2cefmap(13).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_bcar(ns) = 0._r8
++            epsilon_bcar(ns) = ef_bcar(ns)
++          endif
++
++          if(r2cefmap(14).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_osqt(ns) = 0._r8
++            epsilon_osqt(ns) = ef_osqt(ns)
++          endif
++
++          if(r2cefmap(15).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_meoh(ns) = 0._r8
++            epsilon_meoh(ns) = ef_meoh(ns)
++          endif
++
++          if(r2cefmap(16).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_acto(ns) = 0._r8
++            epsilon_acto(ns) = ef_acto(ns)
++          endif
++
++          if(r2cefmap(17).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_meth(ns) = 0._r8
++            epsilon_meth(ns) = ef_meth(ns)
++          endif
++
++          if(r2cefmap(18).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_no(ns) = 0._r8
++            epsilon_no(ns) = ef_no(ns)
++          endif
++
++          if(r2cefmap(19).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_acta(ns) = 0._r8
++            epsilon_acta(ns) = ef_acta(ns)
++          endif
++
++          if(r2cefmap(20).eq.1) then 
++           if(ldomain%mask(ns) == 0) ef_form(ns) = 0._r8
++            epsilon_form(ns) = ef_form(ns)
++          endif
++#endif   
++       ! Used to store the i,j for gathering back to regcm
++          nn        = nn + 1
++          map_i(nn) = ldecomp%gdc2i(ns)
++          map_j(nn) = ldecomp%gdc2j(ns)
++
++        enddo  !end of gridcell loop
++
++       ! gather to all processors
++        do nc = 1,npes
++          if(nc.eq.1) then
++            c2rdisps(nc) = 0
++          else
++            c2rdisps(nc) = c2rdisps(nc-1) + c2rngc(nc-1)
++          endif
++        enddo
++        call mpi_allgatherv(map_i(1),nn,MPI_INTEGER,omap_i,c2rngc,c2rdisps, &
++                            MPI_INTEGER,mpicom,ier)
++        call mpi_allgatherv(map_j(1),nn,MPI_INTEGER,omap_j,c2rngc,c2rdisps, &
++                            MPI_INTEGER,mpicom,ier)
++
++        deallocate(map_i,map_j)
++
++
++#if (defined VOC)
++    deallocate(ef_iso,ef_mbo,ef_bpin,ef_apin,ef_myrc,ef_sabi,ef_limo,ef_co)
++    deallocate(ef_ocim,ef_acar,ef_omtp,ef_farn,ef_bcar,ef_osqt,ef_meoh)
++    deallocate(ef_acto,ef_meth,ef_no,ef_acta,ef_form)
++
++  ! Assign values to constants for VOC calculations
++    LDF(1:20)  = (/0.9999_r8,0.05_r8,0.1_r8,0.5_r8,0.5_r8,0.9999_r8,0.1_r8,0.1_r8,0.8_r8,0.05_r8,0.1_r8, &
++                   0.5_r8,0.5_r8,0.5_r8,0.75_r8,0.25_r8,0.75_r8,0.0_r8,0.5_r8,0.5_r8/)
++    beta(1:20) = (/0.09_r8,0.1_r8,0.1_r8,0.1_r8,0.09_r8,0.09_r8,0.1_r8,0.1_r8,0.1_r8,0.1_r8,0.1_r8, &
++                   0.17_r8,0.17_r8,0.17_r8,0.08_r8,0.11_r8,0.05_r8,0.11_r8,0.13_r8,0.09_r8/)
++    Anew(1:20) = (/0.05_r8,2._r8,2._r8,2._r8,1._r8,0.05_r8,2._r8,2._r8,2._r8,2._r8,2._r8,0.4_r8,0.4_r8, &
++                   0.4_r8,3._r8,0.05_r8,0.05_r8,0.05_r8,0.05_r8,0.05_r8/)
++    Aold(1:20) = (/1._r8,1._r8,1._r8,1._r8,1._r8,1._r8,1._r8,1._r8,1._r8,1._r8,1._r8,1._r8,1._r8,1._r8, &
++                   1._r8,1._r8,1._r8,1._r8,1._r8,1._r8/)
++    Agro(1:20) = (/0.6_r8,1.8_r8,1.8_r8,1.8_r8,1._r8,0.6_r8,1.8_r8,1.8_r8,1.8_r8,1.8_r8,1.8_r8,0.6_r8,0.6_r8, &
++                   0.6_r8,2.6_r8,0.6_r8,0.6_r8,0.6_r8,0.6_r8,0.6_r8/)
++    Amat(1:20) = (/1.125_r8,0.95_r8,0.95_r8,0.95_r8,1._r8,1.125_r8,0.95_r8,0.95_r8,0.95_r8,0.95_r8,0.95_r8, &
++                   1.075_r8,1.075_r8,1.075_r8,0.85_r8,1.125_r8,1.125_r8,1.125_r8,1.125_r8,1.125_r8/)
++#endif
++!abt rcm above
++
++  call mpi_bcast( mxsoil_color,        1  , MPI_INTEGER, 0, mpicom, ier )
++
+   if (masterproc) then
+      call check_ret(nf_close(ncid), subname)
+      write (6,*) 'Successfully read fmax, soil color, sand and clay boundary data'
+@@ -274,14 +542,26 @@
+      albdry(1:8,1) = (/0.24_r8,0.22_r8,0.20_r8,0.18_r8,0.16_r8,0.14_r8,0.12_r8,0.10_r8/)
+      albdry(1:8,2) = (/0.48_r8,0.44_r8,0.40_r8,0.36_r8,0.32_r8,0.28_r8,0.24_r8,0.20_r8/)
+   else if (mxsoil_color == 20) then
+-     albsat(1:20,1) = (/0.25_r8,0.23_r8,0.21_r8,0.20_r8,0.19_r8,0.18_r8,0.17_r8,0.16_r8,&
++!abt commented below original
++!     albsat(1:20,1) = (/0.25_r8,0.23_r8,0.21_r8,0.20_r8,0.19_r8,0.18_r8,0.17_r8,0.16_r8,&
++!                        0.15_r8,0.14_r8,0.13_r8,0.12_r8,0.11_r8,0.10_r8,0.09_r8,0.08_r8,0.07_r8,0.06_r8,0.05_r8,0.04_r8/)
++!     albsat(1:20,2) = (/0.50_r8,0.46_r8,0.42_r8,0.40_r8,0.38_r8,0.36_r8,0.34_r8,0.32_r8,&
++!                        0.30_r8,0.28_r8,0.26_r8,0.24_r8,0.22_r8,0.20_r8,0.18_r8,0.16_r8,0.14_r8,0.12_r8,0.10_r8,0.08_r8/)
++!     albdry(1:20,1) = (/0.36_r8,0.34_r8,0.32_r8,0.31_r8,0.30_r8,0.29_r8,0.28_r8,0.27_r8,&
++!                        0.26_r8,0.25_r8,0.24_r8,0.23_r8,0.22_r8,0.20_r8,0.18_r8,0.16_r8,0.14_r8,0.12_r8,0.10_r8,0.08_r8/)
++!     albdry(1:20,2) = (/0.61_r8,0.57_r8,0.53_r8,0.51_r8,0.49_r8,0.48_r8,0.45_r8,0.43_r8,&
++!                        0.41_r8,0.39_r8,0.37_r8,0.35_r8,0.33_r8,0.31_r8,0.29_r8,0.27_r8,0.25_r8,0.23_r8,0.21_r8,0.16_r8/)
++!abt commented above which is original code
++!abt edited below to match Lawerence 2007 paper values
++     albsat(1:20,1) = (/0.26_r8,0.24_r8,0.22_r8,0.20_r8,0.19_r8,0.18_r8,0.17_r8,0.16_r8,&
+                         0.15_r8,0.14_r8,0.13_r8,0.12_r8,0.11_r8,0.10_r8,0.09_r8,0.08_r8,0.07_r8,0.06_r8,0.05_r8,0.04_r8/)
+-     albsat(1:20,2) = (/0.50_r8,0.46_r8,0.42_r8,0.40_r8,0.38_r8,0.36_r8,0.34_r8,0.32_r8,&
++     albsat(1:20,2) = (/0.52_r8,0.48_r8,0.44_r8,0.40_r8,0.38_r8,0.36_r8,0.34_r8,0.32_r8,&
+                         0.30_r8,0.28_r8,0.26_r8,0.24_r8,0.22_r8,0.20_r8,0.18_r8,0.16_r8,0.14_r8,0.12_r8,0.10_r8,0.08_r8/)
+-     albdry(1:20,1) = (/0.36_r8,0.34_r8,0.32_r8,0.31_r8,0.30_r8,0.29_r8,0.28_r8,0.27_r8,&
+-                        0.26_r8,0.25_r8,0.24_r8,0.23_r8,0.22_r8,0.20_r8,0.18_r8,0.16_r8,0.14_r8,0.12_r8,0.10_r8,0.08_r8/)
+-     albdry(1:20,2) = (/0.61_r8,0.57_r8,0.53_r8,0.51_r8,0.49_r8,0.48_r8,0.45_r8,0.43_r8,&
+-                        0.41_r8,0.39_r8,0.37_r8,0.35_r8,0.33_r8,0.31_r8,0.29_r8,0.27_r8,0.25_r8,0.23_r8,0.21_r8,0.16_r8/)
++     albdry(1:20,1) = (/0.37_r8,0.35_r8,0.33_r8,0.31_r8,0.30_r8,0.29_r8,0.28_r8,0.27_r8,&
++                        0.26_r8,0.25_r8,0.24_r8,0.23_r8,0.22_r8,0.21_r8,0.20_r8,0.19_r8,0.18_r8,0.17_r8,0.16_r8,0.15_r8/)
++     albdry(1:20,2) = (/0.63_r8,0.59_r8,0.55_r8,0.51_r8,0.49_r8,0.47_r8,0.45_r8,0.43_r8,&
++                        0.41_r8,0.39_r8,0.37_r8,0.35_r8,0.33_r8,0.31_r8,0.29_r8,0.27_r8,0.25_r8,0.23_r8,0.21_r8,0.19_r8/)
++!abt above
+   else
+      write(6,*)'maximum color class = ',mxsoil_color,' is not supported'
+      call endrun
+@@ -546,6 +826,7 @@
+             watdry(c,lev) = watsat(c,lev) * (316230._r8/sucsat(c,lev)) ** (-1._r8/bsw(c,lev)) 
+             watopt(c,lev) = watsat(c,lev) * (158490._r8/sucsat(c,lev)) ** (-1._r8/bsw(c,lev)) 
+          end do
++
+       endif
+ 
+       ! Define lake or non-lake levels layers
+diff -x .svn -Naurb clm3.5/src/main/mkarbinitMod.F90 clm3.5_regcm/src/main/mkarbinitMod.F90

@@ -1,0 +1,12 @@
+--- clm3.5/src/main/subgridMod.F90	2007-03-13 04:54:05.000000000 +0100
++++ clm3.5_regcm/src/main/subgridMod.F90	2010-01-22 00:10:30.000000000 +0100
+@@ -227,7 +227,7 @@
+     real(r8), optional, intent(out) :: wtglacier  ! weight (relative to gridcell) of glacier landunitof glacier pfts (columns) in glacier landunit
+ !
+ ! !CALLED FROM:
+-! subroutines decomp_init, initGridCells
++! subroutines initGridCells
+ !
+ ! !REVISION HISTORY:
+ ! 2002.09.11  Mariana Vertenstein  Creation.
+diff -x .svn -Naurb clm3.5/src/main/surfrdMod.F90 clm3.5_regcm/src/main/surfrdMod.F90

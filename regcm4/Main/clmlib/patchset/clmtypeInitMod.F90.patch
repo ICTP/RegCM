@@ -1,0 +1,245 @@
+--- clm3.5/src/main/clmtypeInitMod.F90	2007-04-24 23:49:05.000000000 +0200
++++ clm3.5_regcm/src/main/clmtypeInitMod.F90	2010-01-22 00:10:30.000000000 +0100
+@@ -16,6 +16,9 @@
+   use nanMod
+   use clmtype
+   use clm_varpar, only: maxpatch_pft, nlevsno, nlevsoi, numrad, nlevlak, numpft, ndst, nvoc
++!abt added below
++  use clm_varvoc, only: n24,n240
++!abt added above
+ !
+ ! !PUBLIC TYPES:
+   implicit none
+@@ -62,6 +65,10 @@
+   private :: init_landunit_pstate_type
+   private :: init_gridcell_pstate_type
+   private :: init_gridcell_wflux_type
++! abt below
++  private :: init_gridcell_ef_map_type
++  private :: init_voc_accum_type
++! abt above
+ !EOP
+ !----------------------------------------------------
+ 
+@@ -118,6 +125,16 @@
+     call init_landunit_type(begl, endl, clm3%g%l)
+     call init_gridcell_type(begg, endg, clm3%g)
+ 
++#if (defined VOC)
++    ! biogenic emission factors                              !abt
++
++    call init_gridcell_ef_map_type(begg, endg, clm3%g%gem)   !abt
++
++    ! biogenic emission accumulation variables               !abt
++
++    call init_voc_accum_type(begp, endp, clm3%g%l%c%p%pva)   !abt
++#endif
++
+     ! pft ecophysiological constants
+ 
+     call init_pft_ecophys_constants()
+@@ -515,6 +532,131 @@
+ 
+   end subroutine init_water_balance_type
+ 
++
++!!!!!! abt rcm below
++!------------------------------------------------------------------------
++!BOP
++!
++! !IROUTINE: init_gridcell_ef_map_type
++!
++! !INTERFACE:
++  subroutine init_gridcell_ef_map_type(beg, end, gem)
++!
++! !DESCRIPTION:
++! Initialize biogenic emission factor variables
++!
++! !ARGUMENTS:
++    implicit none
++    integer, intent(in) :: beg, end
++    type(gridcell_ef_map_type), intent(inout):: gem
++!
++! !REVISION HISTORY:
++! Created by Mariana Vertenstein
++!
++!EOP
++!------------------------------------------------------------------------
++
++    allocate(gem%epsilon_iso(beg:end))
++    allocate(gem%epsilon_mbo(beg:end))
++    allocate(gem%epsilon_bpin(beg:end))
++    allocate(gem%epsilon_apin(beg:end))
++    allocate(gem%epsilon_myrc(beg:end))
++    allocate(gem%epsilon_sabi(beg:end))
++    allocate(gem%epsilon_limo(beg:end))
++    allocate(gem%epsilon_acar(beg:end))
++    allocate(gem%epsilon_ocim(beg:end))
++    allocate(gem%epsilon_omtp(beg:end))
++    allocate(gem%epsilon_farn(beg:end))
++    allocate(gem%epsilon_bcar(beg:end))
++    allocate(gem%epsilon_osqt(beg:end))
++    allocate(gem%epsilon_meoh(beg:end))
++    allocate(gem%epsilon_acto(beg:end))
++    allocate(gem%epsilon_meth(beg:end))
++    allocate(gem%epsilon_no(beg:end))
++    allocate(gem%epsilon_acta(beg:end))
++    allocate(gem%epsilon_form(beg:end))
++    allocate(gem%epsilon_co(beg:end))
++
++    gem%epsilon_iso(beg:end) = nan
++    gem%epsilon_mbo(beg:end) = nan
++    gem%epsilon_bpin(beg:end) = nan
++    gem%epsilon_apin(beg:end) = nan
++    gem%epsilon_myrc(beg:end) = nan
++    gem%epsilon_sabi(beg:end) = nan
++    gem%epsilon_limo(beg:end) = nan
++    gem%epsilon_acar(beg:end) = nan
++    gem%epsilon_ocim(beg:end) = nan
++    gem%epsilon_omtp(beg:end) = nan
++    gem%epsilon_farn(beg:end) = nan
++    gem%epsilon_bcar(beg:end) = nan
++    gem%epsilon_osqt(beg:end) = nan
++    gem%epsilon_meoh(beg:end) = nan
++    gem%epsilon_acto(beg:end) = nan
++    gem%epsilon_meth(beg:end) = nan
++    gem%epsilon_no(beg:end)   = nan
++    gem%epsilon_acta(beg:end) = nan
++    gem%epsilon_form(beg:end) = nan
++    gem%epsilon_co(beg:end)   = nan
++
++  end subroutine init_gridcell_ef_map_type
++!!!!!! abt rcm above
++
++!!!!!! abt rcm below
++!------------------------------------------------------------------------
++!BOP
++!
++! !IROUTINE: init_voc_accum_type
++!
++! !INTERFACE:
++  subroutine init_voc_accum_type(beg, end, pva)
++!
++! !DESCRIPTION:
++! Initialize biogenic emission factor variables
++!
++! !ARGUMENTS:
++    implicit none
++    integer, intent(in) :: beg, end
++    type(voc_accum_type), intent(inout):: pva
++!
++! !REVISION HISTORY:
++! Created by Mariana Vertenstein
++!
++!EOP
++!------------------------------------------------------------------------
++
++!    allocate(pva%t_sum24(beg:end,n24))
++!    allocate(pva%t_sum240(beg:end,n240))
++!    allocate(pva%p_sum24su(beg:end,n24))
++!    allocate(pva%p_sum240su(beg:end,n240))
++!    allocate(pva%p_sum24sh(beg:end,n24))
++!    allocate(pva%p_sum240sh(beg:end,n240))
++
++!    pva%t_sum24(beg:end,n24)     = nan
++!    pva%t_sum240(beg:end,n240)   = nan 
++!    pva%p_sum24su(beg:end,n24)   = nan
++!    pva%p_sum240su(beg:end,n240) = nan
++!    pva%p_sum24sh(beg:end,n24)   = nan
++!    pva%p_sum240sh(beg:end,n240) = nan
++
++    allocate(pva%t_sum24(n24,beg:end))
++    allocate(pva%t_sum240(n240,beg:end))
++    allocate(pva%p_sum24su(n24,beg:end))
++    allocate(pva%p_sum240su(n240,beg:end))
++    allocate(pva%p_sum24sh(n24,beg:end))
++    allocate(pva%p_sum240sh(n240,beg:end))
++    allocate(pva%monlai(beg:end,2))
++
++    pva%t_sum24(n24,beg:end)     = nan
++    pva%t_sum240(n240,beg:end)   = nan 
++    pva%p_sum24su(n24,beg:end)   = nan
++    pva%p_sum240su(n240,beg:end) = nan
++    pva%p_sum24sh(n24,beg:end)   = nan
++    pva%p_sum240sh(n240,beg:end) = nan
++    pva%monlai(beg:end,2)        = nan
++
++  end subroutine init_voc_accum_type
++!!!!!! abt rcm above
++
+ !------------------------------------------------------------------------
+ !BOP
+ !
+@@ -1538,6 +1680,9 @@
+     allocate(pef%sha_alf(beg:end,1:numrad))
+     allocate(pef%sun_aperlai(beg:end,1:numrad))
+     allocate(pef%sha_aperlai(beg:end,1:numrad))
++!abt rcm below
++    allocate(pef%uvdrag(beg:end))
++!abt rcm below
+ 
+     pef%sabg(beg:end) = nan
+     pef%sabv(beg:end) = nan
+@@ -1586,6 +1731,9 @@
+     pef%sha_alf(beg:end,1:numrad) = nan
+     pef%sun_aperlai(beg:end,1:numrad) = nan
+     pef%sha_aperlai(beg:end,1:numrad) = nan
++!abt rcm below
++    pef%uvdrag(beg:end) = nan
++!abt rcm below
+ 
+   end subroutine init_pft_eflux_type
+ 
+@@ -2172,6 +2320,21 @@
+     allocate(pvf%vocflx_3(beg:end))
+     allocate(pvf%vocflx_4(beg:end))
+     allocate(pvf%vocflx_5(beg:end))
++    allocate(pvf%vocflx_6(beg:end))   !abt added
++    allocate(pvf%vocflx_7(beg:end))   !abt added
++    allocate(pvf%vocflx_8(beg:end))   !abt added
++    allocate(pvf%vocflx_9(beg:end))   !abt added
++    allocate(pvf%vocflx_10(beg:end))   !abt added
++    allocate(pvf%vocflx_11(beg:end))   !abt added
++    allocate(pvf%vocflx_12(beg:end))   !abt added
++    allocate(pvf%vocflx_13(beg:end))   !abt added
++    allocate(pvf%vocflx_14(beg:end))   !abt added
++    allocate(pvf%vocflx_15(beg:end))   !abt added
++    allocate(pvf%vocflx_16(beg:end))   !abt added
++    allocate(pvf%vocflx_17(beg:end))   !abt added
++    allocate(pvf%vocflx_18(beg:end))   !abt added
++    allocate(pvf%vocflx_19(beg:end))   !abt added
++    allocate(pvf%vocflx_20(beg:end))   !abt added
+ 
+     pvf%vocflx_tot(beg:end) = nan
+     pvf%vocflx(beg:end,1:nvoc) = nan
+@@ -2180,6 +2343,21 @@
+     pvf%vocflx_3(beg:end) = nan
+     pvf%vocflx_4(beg:end) = nan
+     pvf%vocflx_5(beg:end) = nan
++    pvf%vocflx_6(beg:end) = nan    !abt added
++    pvf%vocflx_7(beg:end) = nan    !abt added
++    pvf%vocflx_8(beg:end) = nan    !abt added
++    pvf%vocflx_9(beg:end) = nan    !abt added
++    pvf%vocflx_10(beg:end) = nan    !abt added
++    pvf%vocflx_11(beg:end) = nan    !abt added
++    pvf%vocflx_12(beg:end) = nan    !abt added
++    pvf%vocflx_13(beg:end) = nan    !abt added
++    pvf%vocflx_14(beg:end) = nan    !abt added
++    pvf%vocflx_15(beg:end) = nan    !abt added
++    pvf%vocflx_16(beg:end) = nan    !abt added
++    pvf%vocflx_17(beg:end) = nan    !abt added
++    pvf%vocflx_18(beg:end) = nan    !abt added
++    pvf%vocflx_19(beg:end) = nan    !abt added
++    pvf%vocflx_20(beg:end) = nan    !abt added
+ 
+   end subroutine init_pft_vflux_type
+ 
+@@ -2391,6 +2569,7 @@
+     allocate(ces%thm(beg:end))
+ 
+     ces%t_grnd(beg:end) = nan
++!    ces%t_grnd(beg:end) = 0._r8
+     ces%dt_grnd(beg:end) = nan
+     ces%t_soisno(beg:end,-nlevsno+1:nlevsoi) = nan
+     ces%t_lake(beg:end,1:nlevlak)= nan
+diff -x .svn -Naurb clm3.5/src/main/clm_varctl.F90 clm3.5_regcm/src/main/clm_varctl.F90

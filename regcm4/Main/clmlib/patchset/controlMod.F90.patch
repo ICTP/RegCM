@@ -1,0 +1,431 @@
+--- clm3.5/src/main/controlMod.F90	2007-04-24 23:49:05.000000000 +0200
++++ clm3.5_regcm/src/main/controlMod.F90	2010-01-22 00:10:30.000000000 +0100
+@@ -56,6 +56,37 @@
+ !    o fpftcon         = 256 character data file with PFT physiological constants
+ !    o frivinp_rtm     = 256 character input data file for rtm
+ !    o nrevsn          = 256 character restart file name for use with branch run
++! !!!!!!!! abt rcm below
++!    o mksrf_fsoicol   = 256 character soil color file name
++!    o mksrf_furban    = 256 character urban fraction file name
++!    o mksrf_flai      = 256 character leaf area index file name
++!    o mksrf_fsoitex   = 256 character soil texture data file name
++!    o mksrf_fglacier  = 256 character glacier fraction file name
++!    o mksrf_fvegtyp   = 256 character vegetation type file name
++!    o mksrf_flanwat   = 256 character lake and water file name
++!    o mksrf_fisop     = 256 character Isoprene file name
++!    o mksrf_fmbo      = 256 character Methylbutenol file name
++!    o mksrf_fbpin     = 256 character B-pinene file name
++!    o mksrf_fapin     = 256 character A-pinene file name
++!    o mksrf_fmyrc     = 256 character Myrcene file name
++!    o mksrf_flimo     = 256 character Limonene file name
++!    o mksrf_fsabi     = 256 character Sabinene file name
++!    o mksrf_fco       = 256 character Carbonmonoxide file name
++!    o mksrf_fomtp     = 256 character Other Monoterpenes file name
++!    o mksrf_facar     = 256 character A-3carnene file name
++!    o mksrf_fbcar     = 256 character B-Caryophyllene file name
++!    o mksrf_ffarn     = 256 character Farnicene file name
++!    o mksrf_fmeoh     = 256 character Methanol file name
++!    o mksrf_fmeth     = 256 character Methane file name
++!    o mksrf_facto     = 256 character Acetone file name
++!    o mksrf_facta     = 256 character Acetaldehyde/Ethanol file name
++!    o mksrf_fform     = 256 character Formic Acid Acetic Acid and Formaldehyde file name
++!    o mksrf_focim     = 256 character Ocimene file name
++!    o mksrf_fno       = 256 character NO2,N2O,NH3 file name
++!    o mksrf_fosqt     = 256 character Other Sesquiterpenes file name
++!    o mksrf_fmax      = 256 character saturation fraction file name
++!    o mksrf_offline_fnavyoro = 256 character land fraction and oro file name
++! !!!!!!!! abt rcm above
+ !
+ ! === offline forcing data ===
+ !
+@@ -125,9 +156,17 @@
+   use restFileMod  , only : rest_flag
+   use shr_const_mod, only : SHR_CONST_CDAY
+   use abortutils   , only : endrun
++  use clm_varsur   , only : r2coutfrq
+ !
+ ! !PUBLIC TYPES:
+   implicit none
++#ifdef MPP1
++    include '../../../regcm.param2'
++    include '../../../Common2/clm.cb'
++#else
++    include '../../../regcm.param'
++    include '../../../Commons/clm.cb'
++#endif
+   save
+ !
+ ! !PUBLIC MEMBER FUNCTIONS:
+@@ -272,6 +311,22 @@
+          fpftcon, frivinp_rtm,  &
+          fpftdyn, fndepdat, fndepdyn, nrevsn, offline_atmdir 
+ 
++!!!!!!!! abt rcm below
++    namelist /clm_inparm/  &
++         mksrf_fvegtyp, mksrf_fsoicol, mksrf_fsoitex, mksrf_flanwat, &
++         mksrf_fglacier, mksrf_flai,  &
++         mksrf_furban, mksrf_fisop, mksrf_offline_fnavyoro, mksrf_fmax, &  
++         mksrf_fbpin,mksrf_fapin,mksrf_fmbo, &
++         mksrf_flimo,mksrf_fsabi,mksrf_fmyrc, &
++         mksrf_fco,mksrf_focim,mksrf_facar, &
++         mksrf_fbcar,mksrf_ffarn,mksrf_fomtp, &
++         mksrf_fosqt,mksrf_fmeoh,mksrf_facto, &
++         mksrf_facta,mksrf_fno,mksrf_fform, &
++         mksrf_fmeth
++
++!!!!!!! abt rcm above
++
++
+     ! clm history, restart, archive options
+ 
+     namelist /clm_inparm/  &
+@@ -316,8 +371,8 @@
+ 
+     ! control variables
+ 
+-    caseid  = ' '
+-    ctitle  = ' '
++    caseid  = 'clmoutput'
++    ctitle  = 'clmoutput'
+     nsrest  = iundef
+ 
+     ! initial data
+@@ -330,11 +385,44 @@
+     fndepdat    = ' '
+     fndepdyn    = ' '
+     finidat     = ' '
+-    fpftcon     = ' '
++    fpftcon     = '../Input/pft-physiology.c070207'
+     frivinp_rtm = ' '
+     fpftdyn     = ' '
+     nrevsn      = ' '
+ 
++!!!!!!! abt rcm below
++    mksrf_fvegtyp   = '../Input/RCMpft.nc'
++    mksrf_fsoicol   = '../Input/RCMsoicol_clm2.nc'  
++    mksrf_fsoitex   = '../Input/RCMsoitex.10level.nc' 
++    mksrf_flanwat   = '../Input/RCMlanwat.nc'
++    mksrf_fglacier  = '../Input/RCMglacier.nc'
++    mksrf_flai      = '../Input/RCMlai.nc'
++    mksrf_furban    = '../Input/RCMurban.nc'
++    mksrf_fisop     = '../Input/RCMiso.nc'
++    mksrf_fmbo      = '../Input/RCMmbo.nc'
++    mksrf_fbpin     = '../Input/RCMpinb.nc'
++    mksrf_fapin     = '../Input/RCMpina.nc'
++    mksrf_flimo     = '../Input/RCMlimo.nc' 
++    mksrf_fsabi     = '../Input/RCMsabi.nc'    
++    mksrf_fmyrc     = '../Input/RCMmyrc.nc'
++    mksrf_fco       = '../Input/RCMco.nc'
++    mksrf_focim     = '../Input/RCMocim.nc'
++    mksrf_facar     = '../Input/RCMacar.nc'
++    mksrf_fbcar     = '../Input/RCMbcar.nc'
++    mksrf_ffarn     = '../Input/RCMfarn.nc'
++    mksrf_fomtp     = '../Input/RCMomtp.nc'
++    mksrf_fosqt     = '../Input/RCMosqt.nc'
++    mksrf_fmeoh     = '../Input/RCMmeoh.nc'
++    mksrf_facto     = '../Input/RCMacto.nc'
++    mksrf_facta     = '../Input/RCMacta.nc'
++    mksrf_fno       = '../Input/RCMno.nc'
++    mksrf_fform     = '../Input/RCMform.nc'
++    mksrf_fmeth     = '../Input/RCMmeth.nc'
++    mksrf_fmax      = '../Input/RCMfmax.nc'
++    mksrf_offline_fnavyoro   = '../Input/RCMnavyoro_20min.nc' 
++!!!!!!! abt rcm above
++
++
+     ! offline mode
+ 
+     offline_atmdir   = ' '
+@@ -366,7 +454,7 @@
+     ! other namelist variables
+ 
+     irad = -1
+-    wrtdia = .false.
++    wrtdia = .true.
+     csm_doflxave = .true.
+     pertlim = 0._r8
+     single_column=.false.
+@@ -410,20 +498,47 @@
+        ! Read namelist from standard input. 
+        ! ----------------------------------------------------------------------
+ 
+-       if ( len_trim(NLFilename) == 0  )then
+-          call endrun( subname//' error: nlfilename not set' )
++!abt commented out reading the clm namelist
++!       if ( len_trim(NLFilename) == 0  )then
++!          call endrun( subname//' error: nlfilename not set' )
++!       end if
++!       unitn = getavu()
++!       write(6,*) 'Read in clm_inparm namelist from: ', trim(NLFilename)
++!       open( unitn, file=trim(NLFilename), status='old' )
++!       ierr = 1
++!       do while ( ierr /= 0 )
++!          read(unitn, clm_inparm, iostat=ierr)
++!          if (ierr < 0) then
++!             call endrun( subname//' encountered end-of-file on namelist read' )
++!          endif
++!       end do
++!       call relavu( unitn )
++!abt commented out reading the namelist
++
++! abt ------- force RegCM namelist variables ----------
++       nsrest    = r2cnsrest
++       dtime     = r2cdtime
++       start_ymd = r2cstart_ymd
++       start_tod = r2cstart_tod
++       stop_ymd  = r2cstop_ymd
++       stop_tod  = r2cstop_tod
++       calendar  = r2cclndr
++       wrtdia    = r2cwrtdia
++       irad      = r2cirad
++       mss_irt   = r2cmss_irt
++       if(r2coutfrq .gt. 0) then
++         hist_nhtfrq = -r2coutfrq
++       else
++         hist_nhtfrq = r2coutfrq
+        end if
+-       unitn = getavu()
+-       write(6,*) 'Read in clm_inparm namelist from: ', trim(NLFilename)
+-       open( unitn, file=trim(NLFilename), status='old' )
+-       ierr = 1
+-       do while ( ierr /= 0 )
+-          read(unitn, clm_inparm, iostat=ierr)
+-          if (ierr < 0) then
+-             call endrun( subname//' encountered end-of-file on namelist read' )
+-          endif
+-       end do
+-       call relavu( unitn )
++       hist_mfilt = 1
++
++      print *, 'nsrest = ',nsrest,' dtime = ',dtime
++      print *,'start_ymd = ',start_ymd,' start_tod = ',start_tod
++      print *,'stop_ymd = ',stop_ymd,' stop_tod = ',stop_tod
++      print *,'calendar = ',calendar,'wrtdia = ',wrtdia
++      print *,'irad = ',irad
++      print *, 'hist_nhtfrq = ', hist_nhtfrq
+ 
+        ! ----------------------------------------------------------------------
+        ! Consistency checks on input namelist.
+@@ -545,10 +660,45 @@
+        ! Check on offline mode 
+ 
+ #if (defined OFFLINE)
+-       if (offline_atmdir == ' ') then
+-          write(6,*)'error: atmos  input data file must be specified'; call endrun()
++!       if (offline_atmdir == ' ') then
++!          write(6,*)'error: atmos  input data file must be specified'; call endrun()
++!       end if
++#endif
++
++#if (defined OFFLINE)
++
++
++!!!!!!!! abt rcm below
++       if (mksrf_fvegtyp == ' ') then
++          write(6,*)'error: vegtype  input data file must be specified'; call endrun()
++       end if
++       if (mksrf_fsoitex == ' ') then
++          write(6,*)'error: soil texture  input data file must be specified'; call endrun()
++       end if
++       if (mksrf_fsoicol == ' ') then
++          write(6,*)'error: soil color  input data file must be specified'; call endrun()
++       end if
++       if (mksrf_flanwat == ' ') then
++          write(6,*)'error: lake/water  input data file must be specified'; call endrun()
++       end if
++       if (mksrf_fglacier == ' ') then
++          write(6,*)'error: glacier  input data file must be specified'; call endrun()
++       end if
++       if (mksrf_furban == ' ') then
++          write(6,*)'error: urban  input data file must be specified'; call endrun()
++       end if
++       if (mksrf_flai == ' ') then
++          write(6,*)'error: leaf area index  input data file must be specified'; call endrun()
++       end if
++       if (mksrf_fmax == ' ') then
++          write(6,*)'error: fmax  input data file must be specified'; call endrun()
++       end if
++       if (mksrf_offline_fnavyoro == ' ') then
++          write(6,*)'error: navy file  input data file must be specified'; call endrun()
+        end if
+ #endif
++!!!!!!!!! abt rcm above
++
+ 
+        ! Check on ccsm mode 
+ 
+@@ -584,8 +734,10 @@
+        end do
+        
+        if (rpntpath == 'not_specified') then
+-          call shr_sys_getenv('HOME', homedir, ierr)
+-          rpntpath = trim(homedir)//'/lnd.'//trim(caseid)//'.rpointer'
++!abt commented          call shr_sys_getenv('HOME', homedir, ierr)
++!abt commented          rpntpath = trim(homedir)//'/lnd.'//trim(caseid)//'.rpointer'
++!abt use Input folder as default location for clm restart pointer file
++         rpntpath = './lnd.'//trim(caseid)//'.rpointer'
+        endif
+        
+        if (nsrest == 0) nrevsn = ' '
+@@ -699,6 +851,72 @@
+     call mpi_bcast (fndepdat, len(fndepdat), MPI_CHARACTER, 0, mpicom, ier)
+     call mpi_bcast (fndepdyn, len(fndepdyn), MPI_CHARACTER, 0, mpicom, ier)
+     call mpi_bcast (fpftdyn , len(fpftdyn) , MPI_CHARACTER, 0, mpicom, ier)
++
++!!!!!!!! abt rcm below
++    call mpi_bcast (mksrf_offline_fnavyoro , len(mksrf_offline_fnavyoro) , &
++                    MPI_CHARACTER, 0, mpicom, ier)
++    call mpi_bcast (mksrf_fsoitex, len(mksrf_fsoitex), MPI_CHARACTER, &
++                    0, mpicom, ier)
++    call mpi_bcast (mksrf_fsoicol, len(mksrf_fsoicol), MPI_CHARACTER, &
++                    0, mpicom, ier)
++    call mpi_bcast (mksrf_flanwat, len(mksrf_flanwat), MPI_CHARACTER, &
++                    0, mpicom, ier)
++    call mpi_bcast (mksrf_fglacier,len(mksrf_fglacier), MPI_CHARACTER, &
++                    0, mpicom, ier)
++    call mpi_bcast (mksrf_furban, len(mksrf_furban), MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_flai,   len(mksrf_flai)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++#if (defined VOC)
++    call mpi_bcast (mksrf_fisop,   len(mksrf_fisop)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fbpin,   len(mksrf_fbpin)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fapin,   len(mksrf_fapin)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fmbo ,   len(mksrf_fmbo)   , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fmyrc,   len(mksrf_fmyrc)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fsabi,   len(mksrf_fsabi)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_flimo,   len(mksrf_flimo)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fco ,   len(mksrf_fco)   , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_focim,   len(mksrf_focim)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_facar,   len(mksrf_facar)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fomtp,   len(mksrf_fomtp)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_ffarn ,   len(mksrf_ffarn)   , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fbcar,   len(mksrf_fbcar)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fosqt,   len(mksrf_fosqt)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fmeoh,   len(mksrf_fmeoh)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_facto ,   len(mksrf_facto)   , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fmeth,   len(mksrf_fmeth)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fno,   len(mksrf_fno)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_facta,   len(mksrf_facta)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++    call mpi_bcast (mksrf_fform ,   len(mksrf_fform)   , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++#endif
++    call mpi_bcast (mksrf_fvegtyp, len(mksrf_fvegtyp) , MPI_CHARACTER, &
++                    0, mpicom, ier)
++    call mpi_bcast (mksrf_fmax,   len(mksrf_fmax)  , MPI_CHARACTER, 0, &
++                    mpicom, ier)
++!!!!!!! abt rcm above
++
++
++
+ #if (defined RTM)
+     call mpi_bcast (frivinp_rtm, len(frivinp_rtm), MPI_CHARACTER, 0, mpicom, ier)
+ #endif
+@@ -840,6 +1058,87 @@
+     else
+         write(6,*) '   dynamic nitrogen deposition data = ',trim(fndepdyn)
+     endif
++
++!!!!!!!! abt rcm below
++    if (mksrf_fvegtyp == ' ') then
++       write(6,*) '   mksrf_fvegtyp not set'
++    else
++       write(6,*) '   vegetation type data = ',trim(mksrf_fvegtyp)
++    end if
++
++    if (mksrf_fmax == ' ') then
++       write(6,*) '   mksrf_fmax not set'
++    else
++       write(6,*) '   fmax data = ',trim(mksrf_fmax)
++    end if
++
++    if (mksrf_fsoitex == ' ') then
++       write(6,*) '   mksrf_fsoitex not set'
++    else
++       write(6,*) '   soil texture data = ',trim(mksrf_fsoitex)
++    end if
++
++    if (mksrf_fsoicol == ' ') then
++       write(6,*) '   mksrf_fsoicol not set'
++    else
++       write(6,*) '   soil color data = ',trim(mksrf_fsoicol)
++    end if
++
++    if (mksrf_flanwat == ' ') then
++       write(6,*) '   mksrf_flanwat not set'
++    else
++       write(6,*) '   lake/water data = ',trim(mksrf_flanwat)
++    end if
++
++    if (mksrf_fglacier == ' ') then
++       write(6,*) '   mksrf_fglacier not set'
++    else
++       write(6,*) '   glacier data = ',trim(mksrf_fglacier)
++    end if
++
++    if (mksrf_furban == ' ') then
++       write(6,*) '   mksrf_furban not set'
++    else
++       write(6,*) '   urban data = ',trim(mksrf_furban)
++    end if
++
++    if (mksrf_flai == ' ') then
++       write(6,*) '   mksrf_flai not set'
++    else
++       write(6,*) '   LAI data = ',trim(mksrf_flai)
++    end if    
++#if (defined VOC)
++    if (mksrf_fisop == ' ') then
++       write(6,*) '   mksrf_fisop not set'
++    else
++       write(6,*) '   Isoprene data = ',trim(mksrf_fisop)
++    end if    
++    if (mksrf_fmbo == ' ') then
++       write(6,*) '   mksrf_fmbo not set'
++    else
++       write(6,*) '   Methylbutenol data = ',trim(mksrf_fmbo)
++    end if    
++    if (mksrf_fbpin == ' ') then
++       write(6,*) '   mksrf_fbpin not set'
++    else
++       write(6,*) '   B-pinene data = ',trim(mksrf_fbpin)
++    end if    
++    if (mksrf_fapin == ' ') then
++       write(6,*) '   mksrf_fapin not set'
++    else
++       write(6,*) '   A-pinene data = ',trim(mksrf_fapin)
++    end if    
++#endif
++    if (mksrf_offline_fnavyoro == ' ') then
++       write(6,*) '   mksrf_offline_fnavyoro not set'
++    else
++       write(6,*) '   navyoro data = ',trim(mksrf_offline_fnavyoro)
++    end if
++!!!!!!!!!! abt rcm above
++
++
++
++
+     if (nsrest == 0 .and. finidat == ' ') write(6,*) '   initial data created by model'
+     if (nsrest == 0 .and. finidat /= ' ') write(6,*) '   initial data   = ',trim(finidat)
+     if (nsrest /= 0) write(6,*) '   restart data   = ',trim(nrevsn)
+diff -x .svn -Naurb clm3.5/src/main/decompMod.F90 clm3.5_regcm/src/main/decompMod.F90

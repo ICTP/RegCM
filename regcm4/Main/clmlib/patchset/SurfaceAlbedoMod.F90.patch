@@ -1,0 +1,60 @@
+--- clm3.5/src/biogeophys/SurfaceAlbedoMod.F90	2007-04-24 23:49:05.000000000 +0200
++++ clm3.5_regcm/src/biogeophys/SurfaceAlbedoMod.F90	2010-01-22 00:10:32.000000000 +0100
+@@ -61,9 +61,22 @@
+     use clm_varpar      , only : numrad
+     use shr_orb_mod
+     use clm_time_manager, only : get_nstep
++    use decompMod       , only : ldecomp
++!abt added below
++!    use clm_varsur      , only : c2rcosz1d
++!abt added above
+ !
+ ! !ARGUMENTS:
+     implicit none
++!abt added below
++#ifdef MPP1
++    include '../../../regcm.param2'
++    include '../../../Common2/clm.cb'
++#else
++    include '../../../regcm.param'
++    include '../../../Commons/clm.cb'
++#endif
++!abt added above
+     integer , intent(in) :: lbg, ubg ! gridcell bounds
+     integer , intent(in) :: lbc, ubc ! column bounds
+     integer , intent(in) :: lbp, ubp ! pft bounds
+@@ -145,6 +158,11 @@
+     integer  :: num_novegsol               ! number of vegetated pfts where coszen>0
+     integer  :: filter_novegsol(ubp-lbp+1) ! pft filter where vegetated and coszen>0
+     integer  :: num_solar                  ! number of gridcells where coszen>0
++!rcm abt below
++    integer  :: i,j,ns,jy    
++    real(r8),allocatable :: r2cxlat1d(:)
++    real(r8),allocatable :: r2cxlon1d(:)
++!rcm above
+   !-----------------------------------------------------------------------
+ 
+     ! Assign local pointers to derived subtypes components (gridcell-level)
+@@ -194,10 +212,20 @@
+ 
+ !dir$ concurrent
+ !cdir nodep
++!!!!!!!!!! rcm abt below
++
+     do g = lbg, ubg
+-       coszen_gcell(g) = shr_orb_cosz (caldayp1, lat(g), lon(g), declinp1)
++       i = ldecomp%gdc2i(g)
++       j = ldecomp%gdc2j(g)
++!       coszen_gcell(g) = shr_orb_cosz (caldayp1, lat(g), lon(g), declinp1)
++       coszen_gcell(g) = shr_orb_cosz (caldayp1, r2cxlat_all(i,j), r2cxlon_all(i,j), &
++                                       declinp1)
++!       c2rcosz1d(g) = max(0.d0,coszen_gcell(g))
++       c2rcosz(i,j) = max(0.d0,coszen_gcell(g))
+     end do
+ 
++!!!!!!!!!!!!!!!!! rcm above
++
+     ! Save coszen and declination values to  clm3 data structures for
+     ! use in other places in the CN code
+ 
+diff -x .svn -Naurb clm3.5/src/csm_share/shr/shr_orb_mod.F90 clm3.5_regcm/src/csm_share/shr/shr_orb_mod.F90

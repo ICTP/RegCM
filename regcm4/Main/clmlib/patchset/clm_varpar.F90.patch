@@ -1,0 +1,24 @@
+--- clm3.5/src/main/clm_varpar.F90	2006-07-27 02:12:10.000000000 +0200
++++ clm3.5_regcm/src/main/clm_varpar.F90	2010-01-22 00:10:30.000000000 +0100
+@@ -41,7 +41,8 @@
+   integer, parameter :: ndst        =   4   ! number of dust size classes (BGC only)
+   integer, parameter :: dst_src_nbr =   3   ! number of size distns in src soil (BGC only)
+   integer, parameter :: sz_nbr      = 200   ! number of sub-grid bins in large bin of dust size distribution (BGC only)
+-  integer, parameter :: nvoc        =   5   ! number of voc categories (BGC only)
++!original abt  integer, parameter :: nvoc        =   5   ! number of voc categories (BGC only)
++  integer, parameter :: nvoc        =  20   ! number of voc categories (BGC only)
+ 
+ ! Define parameters for RTM river routing model
+ 
+@@ -102,8 +103,8 @@
+ !
+ !------------------------------------------------------------------------------
+ 
+-  lsmlon         = LSMLON
+-  lsmlat         = LSMLAT
++! abt  lsmlon         = LSMLON
++!  lsmlat         = LSMLAT
+   maxpatch_pft   = MAXPATCH_PFT
+   npatch_urban   = maxpatch_pft + 1
+   npatch_lake    = npatch_urban + 1
+diff -x .svn -Naurb clm3.5/src/main/clm_varsur.F90 clm3.5_regcm/src/main/clm_varsur.F90

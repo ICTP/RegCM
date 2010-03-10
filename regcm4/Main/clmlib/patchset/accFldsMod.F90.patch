@@ -1,0 +1,54 @@
+--- clm3.5/src/main/accFldsMod.F90	2006-08-10 00:52:03.000000000 +0200
++++ clm3.5_regcm/src/main/accFldsMod.F90	2010-01-22 00:10:30.000000000 +0100
+@@ -33,6 +33,13 @@
+ !
+ ! !PUBLIC TYPES:
+   implicit none
++#ifdef MPP1
++    include '../../../regcm.param2'
++    include '../../../Common2/clm.cb'
++#else
++    include '../../../regcm.param'
++    include '../../../Commons/clm.cb'
++#endif
+   save
+ !
+ ! !PUBLIC MEMBER FUNCTIONS:
+@@ -80,7 +87,9 @@
+ 
+     ! Hourly average of 2m temperature.
+ 
+-    dtime = get_step_size()
++!    dtime = get_step_size()
++    dtime = r2cdtime
++
+     call init_accum_field(name='TREFAV', units='K', &
+          desc='average over an hour of 2-m temperature', &
+          accum_type='timeavg', accum_period=nint(3600._r8/dtime), &
+@@ -253,8 +262,12 @@
+ 
+     ! Determine calendar information
+ 
+-    dtime = get_step_size()
+-    nstep = get_nstep()
++!abt rcm    dtime = get_step_size()
++!           nstep = get_nstep()
++
++    dtime = r2cdtime
++    nstep = r2cnstep
++
+     call get_curr_date (year, month, day, secs)
+ 
+     ! Don't do any accumulation if nstep is zero
+@@ -494,7 +507,9 @@
+ 
+     ! Determine time step
+ 
+-    nstep = get_nstep()
++!abt rcm    nstep = get_nstep()
++    nstep = r2cdtime
++
+ 
+     ! Initialize 2m ref temperature max and min values
+ 
+diff -x .svn -Naurb clm3.5/src/main/atmdrvMod.F90 clm3.5_regcm/src/main/atmdrvMod.F90

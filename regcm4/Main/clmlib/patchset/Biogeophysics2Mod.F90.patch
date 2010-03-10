@@ -1,0 +1,11 @@
+--- clm3.5/src/biogeophys/Biogeophysics2Mod.F90	2006-12-01 20:41:32.000000000 +0100
++++ clm3.5_regcm/src/biogeophys/Biogeophysics2Mod.F90	2010-01-22 00:10:32.000000000 +0100
+@@ -342,6 +342,7 @@
+        qflx_evap_tot(p) = qflx_evap_veg(p) + qflx_evap_soi(p)
+        eflx_lh_tot(p)= hvap*qflx_evap_veg(p) + htvp(c)*qflx_evap_soi(p)
+ 
++
+        ! Assign ground evaporation to sublimation from soil ice or to dew
+        ! on snow or ground
+ 
+diff -x .svn -Naurb clm3.5/src/biogeophys/BiogeophysicsLakeMod.F90 clm3.5_regcm/src/biogeophys/BiogeophysicsLakeMod.F90
