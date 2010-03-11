@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-USECLM = 1
+USECLM = 0
 
 SCENARIO = A1B
 SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'

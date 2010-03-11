@@ -814,11 +814,18 @@
       call say
       write (aline, *) ' physical parameterizations '
       call say
+#ifdef CLM
       write (aline, *) ' iboudy = ' , iboudy , ' icup = ' , icup ,      &
             & ' igcc =' , igcc , ' ipptls = ' , ipptls , ' iocnflx = ' ,&
             & iocnflx , ' ipgf = ' , ipgf , 'iemiss = ' , iemiss ,      &
             &' lakemod = ' , lakemod , ' ichem =' , ichem , ' imask = ',&
             & imask
+#else
+      write (aline, *) ' iboudy = ' , iboudy , ' icup = ' , icup ,      &
+            & ' igcc =' , igcc , ' ipptls = ' , ipptls , ' iocnflx = ' ,&
+            & iocnflx , ' ipgf = ' , ipgf , 'iemiss = ' , iemiss ,      &
+            &' lakemod = ' , lakemod , ' ichem =' , ichem
+#endif
       call say
       write (aline, *) ' '
       call say
