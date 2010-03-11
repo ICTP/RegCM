@@ -56,7 +56,8 @@ cumtran.o         init.o        param.o     tend.o      zenith.o     \
 cupara.o          initlk.o      pcp.o       tgrund.o    zenitm.o     \
 cuparan.o         interf.o      printsp.o   tpfc.o      cupemandrv.o \
 intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o    \
-initclm.o         interfclm.o   mod_clm.o   mtrxclm.o   solar1clm.o
+initclm.o         interfclm.o   mod_clm.o   mtrxclm.o   solar1clm.o  \
+albedoclm.o
 
 regcm: $(MODOBJS) $(OBJS)
 	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) \
@@ -121,6 +122,7 @@ aeroppt.o: aeroppt.F90 mod_aerosol.o mod_constants.o \
            mod_message.o mod_param2.o mod_regcm_param.o mod_trachem.o
 aerout.o: aerout.F90 mod_aerosol.o mod_param2.o mod_regcm_param.o \
           mod_trachem.o
+albedoclm.o: albedoclm.F90 mod_bats.o mod_regcm_param.o
 albedov.o: albedov.f90 mod_constants.o mod_bats.o mod_regcm_param.o
 bdyin.o: bdyin.F90 mod_bats.o mod_bdycod.o mod_date.o mod_iunits.o mod_main.o \
          mod_param1.o mod_param3.o mod_regcm_param.o mod_tmpsav.o
