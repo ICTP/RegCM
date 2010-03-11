@@ -19,9 +19,11 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #
-# python script to read simulation file and generate all input files
-# needed by all regcm steps 
-# 
+# python script to read domani.param file (regcm v3) and generate all input files
+# needed by all regcm4 steps:
+#  mod_regcm_param
+#  mod_param 
+#  
 # written by S.Cozzini
 #
    
@@ -57,7 +59,7 @@ def readinput(filename,verbose, parameters):
      data = f.readlines()
      f.close()
      for line in data:
-       g=re.search("(\w+)\s*=\s*(\S+)",line)
+       g=re.search("parameter\((\w+)\s*=\s*(\S+)\)",line)
        if g:
        # keys are variable in the code so let us consider them all lowercase 
          parameters[string.lower(g.group(1))] = g.group(2)
@@ -115,7 +117,7 @@ def main():
 		print "%s has value %s" % (key, value)
         # write F90 modules 
         write_modulef90(parameters,'mod_regcm_param.F90',options.verbose)
-        write_modulef90(parameters,'mod_domain.f90',options.verbose)
+        write_modulef90(parameters,'mod_param.f90',options.verbose)
     else:
         sys.stderr.write("I don't know what to do!!!\n")
             

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-
-
+# a simple script to link ICBC files for RegCM simulations
+# 
 import os
 import sys
 from optparse import OptionParser
@@ -76,7 +76,7 @@ def check_and_create_link(suffix, directory, unit):
     namefile=directory+ "ICBC" + suffix 
     if not os.path.isfile(namefile):
        print "%s does not exist" % namefile 
-       sys.exit(1)
+       return
     os.symlink(namefile,"fort."+string)
 	
 
@@ -120,15 +120,15 @@ def main():
     unit=int(options.fortranunit) 
     while (string <= finalstring) :
         suffix=string + "0100"
+        if options.verbose: sys.stdout.write( "processing %s \n" % string )
         check_and_create_link(suffix,options.dirname,unit)
         month= month + 1
         unit=unit + 1 
-        if (month == 12):
+        if (month > 12):
            year=year+1
            month=1 
-	string="%s%02d" % (year, month)
-        
         #define string in the format 0digit
+	string="%s%02d" % (year, month)
     print "done for range",finalyear, finalmonth ,startingyear,startingmonth 
 
 
