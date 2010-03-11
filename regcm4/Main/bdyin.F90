@@ -525,7 +525,12 @@
  
           do j = 1 , jendx
             do i = 1 , ixm1
+#ifdef CLM
+! manuaully setting ocld2d subgrid to 1 (regcm_clm does not support subgridding)
+              if ( ocld2d(1,i,j).le.0.00001 ) then
+#else
               if ( veg2d(i,j).le.0.00001 ) then
+#endif
                 tga(i,j) = tdum(i,j)
                 tgb(i,j) = tdum(i,j)
                 if ( tdum(i,j).le.271.38 ) then

@@ -23,13 +23,16 @@
       integer :: ibintyp , ibltyp , iboudy , ichem , icnt , icup ,      &
                & idirect , iemiss , igcc , iocnflx , iotyp , ipgf ,     &
                & ipptls , kbats , kchem , lakemod , maschk , nradisp ,  &
-               & ntrad , ntsave , nttape , imask
+               & ntrad , ntsave , nttape
 
       logical :: ifbat , ifchem , ifprt , ifrad , ifrest , ifsave ,     &
                & ifsub , iftape , rfstrt
  
       real(8) :: batfrq , bdytim , chemfrq , prtfrq , prttim , radfrq , &
                & radisp , savfrq , savtim , tapfrq , taptim , tbdybe
-      integer :: nprtfrq , nsavfrq , ntapfrq , clmfrq
+      integer :: nprtfrq , nsavfrq , ntapfrq
+#ifdef CLM
+      integer :: clmfrq , imask
+#endif
 
       end module mod_param2

@@ -23,14 +23,14 @@
 
 #ifdef MPP1
       real(8) , dimension(ix,kx*4+2,jxp) :: sav0
-      real(8) , dimension(ix,kx+nnsg+5,jxp) :: sav0a
-      real(8) , dimension(ix,kxp1,jxp) :: sav0b
-      real(8) , dimension(ix,kx*2,jxp) :: sav0c
-      real(8) , dimension(ix,kx,jxp) :: sav0s
       real(8) , dimension(ix,kx*4+2,jx) :: sav_0
+      real(8) , dimension(ix,kx+nnsg+5,jxp) :: sav0a
       real(8) , dimension(ix,kx+nnsg+5,jx) :: sav_0a
+      real(8) , dimension(ix,kxp1,jxp) :: sav0b
       real(8) , dimension(ix,kxp1,jx) :: sav_0b
+      real(8) , dimension(ix,kx*2,jxp) :: sav0c
       real(8) , dimension(ix,kx*2,jx) :: sav_0c
+      real(8) , dimension(ix,kx,jxp) :: sav0s
       real(8) , dimension(ix,kx,jx) :: sav_0s
       real(8) , dimension(ix,nsplit*2,jxp) :: sav0d
       real(8) , dimension(ix,nsplit*2,jx) :: sav_0d
@@ -46,6 +46,11 @@
       real(8) , dimension(ixm1,7,jx) :: sav_4a
       real(8) , dimension(kx,8,jxp) :: sav6
       real(8) , dimension(kx,8,jx) :: sav_6
+#ifdef CLM
+      real(8) , dimension(ixm1,9,jxp) :: sav_clmout
+      real(8) , dimension(ixm1,9,jx) :: sav_clmin
+#endif
+
 #endif
 
 !---------- DATA init section--------------------------------------------

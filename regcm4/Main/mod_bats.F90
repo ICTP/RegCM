@@ -145,8 +145,8 @@
 !
       real(8) , dimension(nnsg,ixm1) :: p1d0 , qs1d0 , ts1d0
 !
-!clm35
 #ifdef MPP1
+#ifdef CLM
       ! Direct solar rad incident on surface (<0.7)
       real(8) , dimension(ixm1,jxp):: sols2d
       ! Direct solar rad incident on surface (>=0.7)
@@ -163,25 +163,8 @@
       real(8) , dimension(ixm1,jxp):: rs2d
       real(8) , dimension(ixm1,jxp):: ra2d
       real(8) , dimension(ixm1,jxp):: q2d   ! 2 meter specific humidity
-#else
-      ! Direct solar rad incident on surface (<0.7)
-      real(8) , dimension(ixm1,jxm1):: sols2d
-      ! Direct solar rad incident on surface (>=0.7)
-      real(8) , dimension(ixm1,jxm1):: soll2d
-      ! Diffuse solar rad incident on surface (<0.7)
-      real(8) , dimension(ixm1,jxm1):: solsd2d
-      ! Diffuse solar rad incident on surface (>=0.7)
-      real(8) , dimension(ixm1,jxm1):: solld2d
-      real(8) , dimension(ixm1,jxm1):: aldirs2d
-      real(8) , dimension(ixm1,jxm1):: aldirl2d
-      real(8) , dimension(ixm1,jxm1):: aldifs2d
-      real(8) , dimension(ixm1,jxm1):: aldifl2d
-      real(8) , dimension(ixm1,jxm1):: coszrs2d
-      real(8) , dimension(ixm1,jxm1):: rs2d
-      real(8) , dimension(ixm1,jxm1):: ra2d
-      real(8) , dimension(ixm1,jxm1):: q2d ! 2 meter specific humidity
 #endif
-!clm35
+#endif
 
 !
 !------------------ DATA SECTION ----------------------------------------

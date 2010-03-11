@@ -56,7 +56,7 @@
       use mod_main
       use mod_pmoist
       use mod_rad
-      use mod_bats , only : pptc , veg2d
+      use mod_bats , only : pptc , veg2d , ocld2d
       use mod_bmparam
       use mod_trachem
       use mod_constants , only : rgas , gti , rovg , cpd , rcpd , ep2 , &
@@ -172,7 +172,11 @@
 !
 !...  xsm is surface mask: =1 water; =0 land
       do i = 2 , ixm2
+#ifdef CLM
+        if ( ocld2d(1,i,j).ge.0.5 ) then
+#else
         if ( veg2d(i,j).ge.0.002 ) then
+#endif
           xsm(i) = 0.
         else
           xsm(i) = 1.

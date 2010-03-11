@@ -102,6 +102,9 @@
         write (99,99006) 'ifchem  = .false.'
       end if
       write (99,99009) 'chemfrq = ' , chemfrq
+#ifdef CLM
+      write (99,99007) 'clmfrq = ' , clmfrq
+#endif
       write (99,99001) '/'
  
       write (99,99002) '&physicsparam'
@@ -115,6 +118,9 @@
       write (99,99007) 'iemiss  = ' , iemiss
       write (99,99007) 'lakemod = ' , lakemod
       write (99,99007) 'ichem   = ' , ichem
+#ifdef CLM
+      write (99,99007) 'imask   = ' , imask
+#endif
       write (99,99001) '/'
  
       write (99,99005) '&subexparam'

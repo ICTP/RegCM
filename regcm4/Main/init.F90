@@ -59,6 +59,13 @@
 #endif
 #ifdef MPP1
       use mod_mppio
+#ifdef CLM
+      use mod_clm
+      use clm_varsur , only : init_tgb , init_grid
+      use mod_bats , only : sols2d , soll2d , solsd2d , solld2d ,       &
+                   &        aldirs2d, aldirl2d , aldifs2d , aldifl2d ,  &
+                   &        coszrs2d
+#endif
 #ifndef IBM
       use mpi
 #else
@@ -219,6 +226,9 @@
 !       the initial conditions are the output from PREPROC/ICBC.
 !
 #ifdef MPP1
+#ifdef CLM
+        if ( .not. allocated(init_tgb) ) allocate(init_tgb(ix,jx))
+#endif
         do
           if ( myid.eq.0 ) then
             mmrec = mmrec + 1
@@ -1036,6 +1046,27 @@
 #endif
             read (iutrs) absnxt_io , abstot_io , emstot_io
             if ( ipptls.eq.1 ) read (iutrs) fcc_io
+#ifdef CLM
+            read (iutrs) sols2d_io
+            read (iutrs) soll2d_io
+            read (iutrs) solsd2d_io
+            read (iutrs) solld2d_io
+            read (iutrs) flwd2d_io
+            read (iutrs) aldirs2d_io
+            read (iutrs) aldirl2d_io
+            read (iutrs) aldifs2d_io
+            read (iutrs) aldifl2d_io
+            read (iutrs) coszrs2d_io
+            read (iutrs) ocld2d_io
+            read (iutrs) heatrt_io
+            read (iutrs) o3prof_io
+            read (iutrs) tgbb_io
+            read (iutrs) flw2d_io
+            read (iutrs) swt2d_io
+            read (iutrs) sinc2d_io
+            read (iutrs) fsw2d_io
+            read (iutrs) taf2d_io
+#else
             read (iutrs) sol2d_io , solvd2d_io , solvs2d_io , flw2d_io ,&
                        & flwd2d_io , fsw2d_io , sabv2d_io , sinc2d_io
             read (iutrs) taf2d_io , tlef2d_io , tgbb_io , ssw2d_io ,    &
@@ -1044,6 +1075,7 @@
                        & sag2d_io , sice2d_io , dew2d_io , ircp2d_io ,  &
                        & text2d_io , col2d_io , ocld2d_io , heatrt_io , &
                        & o3prof_io
+#endif
             read (iutrs) pptnc_io , pptc_io , prca2d_io , prnca2d_io
             if ( iocnflx.eq.2 ) read (iutrs) zpbl_io
 !chem2---
@@ -1700,6 +1732,39 @@
               svegfrac2d(i,j) = sav4a(i,7,j)
             end do
           end do
+#ifdef CLM
+          if ( myid.eq.0 ) then
+            do j = 1 , jxm1
+              do i = 1 , ixm1
+                sav_clmin(i,1,j) = sols2d_io(i,j)
+                sav_clmin(i,2,j) = soll2d_io(i,j)
+                sav_clmin(i,3,j) = solsd2d_io(i,j)
+                sav_clmin(i,4,j) = solld2d_io(i,j)
+                sav_clmin(i,5,j) = aldirs2d_io(i,j)
+                sav_clmin(i,6,j) = aldirl2d_io(i,j)
+                sav_clmin(i,7,j) = aldifs2d_io(i,j)
+                sav_clmin(i,8,j) = aldifl2d_io(i,j)
+                sav_clmin(i,9,j) = coszrs2d_io(i,j)
+              end do
+            end do
+          end if
+          call mpi_scatter(sav_clmin, ixm1*9*jxp,mpi_real8,             &
+                         & sav_clmout,ixm1*9*jxp,mpi_real8,             &
+                         & 0,mpi_comm_world,ierr)
+          do j = 1 , jendx
+            do i = 1 , ixm1
+              sols2d(i,j) = sav_clmout(i,1,j)
+              soll2d(i,j) = sav_clmout(i,2,j)
+              solsd2d(i,j) = sav_clmout(i,3,j)
+              solld2d(i,j) = sav_clmout(i,4,j)
+              aldirs2d(i,j) = sav_clmout(i,5,j)
+              aldirl2d(i,j) = sav_clmout(i,6,j)
+              aldifs2d(i,j) = sav_clmout(i,7,j)
+              aldifl2d(i,j) = sav_clmout(i,8,j)
+              coszrs2d(i,j) = sav_clmout(i,9,j)
+            end do
+          end do
+#endif
         end if
         call mpi_bcast(mdate0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyear0,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -1991,7 +2056,17 @@
 !
 !-----compute the solar declination angle:
 !
+#ifdef CLM
+      call solar1clm(xtime)
+      if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                     &
+         & ( ktau.eq.ktaur ) ) then
+        init_grid = .true.
+      else
+        init_grid = .false.
+      end if
+#else
       call solar1(xtime)
+#endif
       call inirad
 !
 !-----calculating topographical correction to diffusion coefficient

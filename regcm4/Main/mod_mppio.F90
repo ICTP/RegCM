@@ -106,6 +106,13 @@
 
       real(8) , dimension(kx,8) :: var1snd , var1rcv
 
+#ifdef CLM
+      real(8) , dimension(ixm1,jxm1) :: sols2d_io , soll2d_io ,         &
+                   &      solsd2d_io , solld2d_io , aldifl2d_io ,       &
+                   &      aldirs2d_io , aldirl2d_io , aldifs2d_io ,     &
+                   &      coszrs2d_io
+#endif
+
 #endif
 
       end module mod_mppio

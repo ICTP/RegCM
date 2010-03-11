@@ -30,7 +30,7 @@
       use mod_pbldim
       use mod_cvaria
       use mod_pmoist
-      use mod_bats , only : veg2d
+      use mod_bats , only : veg2d , ocld2d
       use mod_slice
       use mod_trachem
       use mod_constants , only : gti , vonkar , cpd , rcpd , ep1
@@ -819,7 +819,11 @@
  
           do itr = 1 , ntr
             do i = 2 , ixm1
+#ifdef CLM
+              if ( ocld2d(1,i,j).le.0.00001 ) then
+#else
               if ( veg2d(i,j).le.0.00001 ) then
+#endif
                 vdep(i,itr) = chtrdpv(itr,2)
               else
                 vdep(i,itr) = chtrdpv(itr,1)

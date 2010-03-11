@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine solar1_clm(xtime)
+      subroutine solar1clm(xtime)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -102,4 +102,4 @@
       call say
 99001 format (11x,'*** solar declination angle = ',f6.2,' degrees.')
  
-      end subroutine solar1_clm
+      end subroutine solar1clm

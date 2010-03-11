@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-USECLM = 0
+USECLM = 1
 
 SCENARIO = A1B
 SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
@@ -114,7 +114,7 @@ mod_mppio.o: mod_mppio.F90 mod_regcm_param.o
 mod_o3blk.o: mod_o3blk.F90 mod_regcm_param.o
 mod_outrad.o: mod_outrad.F90 mod_regcm_param.o
 mod_param1.o: mod_param1.f90 mod_regcm_param.o
-mod_param2.o: mod_param2.f90
+mod_param2.o: mod_param2.F90
 mod_param3.o: mod_param3.f90 mod_regcm_param.o
 mod_regcm_param.o: mod_regcm_param.F90
 mod_pbldim.o: mod_pbldim.F90 mod_regcm_param.o
@@ -144,7 +144,7 @@ bdyval.o: bdyval.F90 mod_bdycod.o mod_date.o mod_main.o mod_mainchem.o \
           mod_param1.o mod_param2.o mod_regcm_param.o
 blhnew.o: blhnew.F90 mod_blh_tmp.o mod_constants.o mod_main.o mod_param2.o \
           mod_param3.o mod_pbldim.o mod_regcm_param.o mod_slice.o
-bmpara.o: bmpara.f90 mod_bats.o mod_bmparam.o mod_constants.o mod_date.o \
+bmpara.o: bmpara.F90 mod_bats.o mod_bmparam.o mod_constants.o mod_date.o \
           mod_main.o mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o \
           mod_rad.o mod_regcm_param.o mod_trachem.o
 bndry.o: bndry.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_param1.o \
@@ -160,7 +160,7 @@ cldefr.o: cldefr.f90 mod_regcm_param.o
 cldems.o: cldems.f90 mod_regcm_param.o
 cldfrac.o: cldfrac.f90 mod_pmoist.o mod_rad.o mod_regcm_param.o mod_slice.o
 co2.o: co2.f90 mod_bats.o mod_ictp01.o mod_param1.o mod_regcm_param.o
-colmod3.o: colmod3.f90 mod_constants.o mod_bats.o mod_comctl.o mod_comtim.o \
+colmod3.o: colmod3.F90 mod_constants.o mod_bats.o mod_comctl.o mod_comtim.o \
            mod_regcm_param.o
 conadv.o: conadv.F90 mod_constants.o mod_diagnosis.o mod_main.o mod_param1.o \
           mod_param3.o mod_regcm_param.o
@@ -197,7 +197,7 @@ eddy.o: eddy.f90 mod_constants.o
 eispack.o: eispack.f90
 eomb.o: eomb.f90 mod_constants.o
 finddate.o: finddate.F90 mod_message.o mod_regcm_param.o
-for_next.o: for_next.f90 mod_convect.o mod_date.o mod_param1.o mod_param2.o \
+for_next.o: for_next.F90 mod_convect.o mod_date.o mod_param1.o mod_param2.o \
             mod_param3.o mod_pmoist.o mod_regcm_param.o mod_trachem.o
 frawat.o: frawat.f90 mod_constants.o mod_bats.o mod_regcm_param.o
 getdat.o: getdat.f90 mod_comtim.o mod_constants.o mod_date.o \
@@ -216,10 +216,19 @@ ice.o: ice.f90 mod_constants.o
 ifport.o: ifport.f90
 inidust.o: inidust.F90 mod_constants.o mod_dust.o mod_regcm_param.o
 inirad.o: inirad.F90 mod_date.o mod_rad.o mod_regcm_param.o
+ifeq ($(USECLM),1)
+init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
+        mod_diagnosis.o mod_iunits.o mod_main.o mod_mainchem.o mod_message.o \
+        mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
+        mod_radbuf.o mod_regcm_param.o mod_tmpsav.o mod_trachem.o \
+        $(CLMPTH)/clm_varsur.o
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+else
 init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
         mod_diagnosis.o mod_iunits.o mod_main.o mod_mainchem.o mod_message.o \
         mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
         mod_radbuf.o mod_regcm_param.o mod_tmpsav.o mod_trachem.o
+endif
 initb.o: initb.F90 mod_bats.o mod_main.o mod_param2.o mod_regcm_param.o
 initdate.o: initdate.F90 mod_message.o mod_param1.o mod_regcm_param.o
 initlk.o: initlk.f90 mod_lake.o mod_regcm_param.o

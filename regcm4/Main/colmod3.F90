@@ -131,7 +131,7 @@
 !
       use mod_regcm_param
       use mod_bats , only : emiss1d , lat , ps , sice1d , aldirs ,      &
-                    & aldifs , aldirl , aldifl , ldoc1d
+                    & aldifs , aldirl , aldifl , ldoc1d , ocld2d
       use mod_comtim
       use mod_comctl
       use mod_constants , only : gti , sigm , ep2 , cpd
@@ -271,7 +271,11 @@
         ii1 = 0
         ii2 = 0
         do n = 1 , nnsg
+#ifdef CLM
+          if ( ocld2d(n,i,jslc).gt.0.1 .and. sice1d(n,i).eq.0.0 ) then
+#else
           if ( ldoc1d(n,i).gt.0.1 .and. sice1d(n,i).eq.0.0 ) then
+#endif
             ii1 = ii1 + 1
           else if ( sice1d(n,i).gt.0.0 ) then
             ii2 = ii2 + 1
