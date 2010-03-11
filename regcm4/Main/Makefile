@@ -311,7 +311,7 @@ radems.o: radems.f90 mod_crdcae.o mod_constants.o mod_radbuf.o \
 radini.o: radini.F90 mod_comozp.o mod_crdcae.o mod_constants.o mod_date.o \
           mod_message.o mod_regcm_param.o mod_tracer.o mod_tracer0.o
 ifeq ($(USECLM),1)
-radinp.o: radinp.F90 mod_comtim.o mod_constants.o mod_regcm_param.o mod_clm
+radinp.o: radinp.F90 mod_comtim.o mod_constants.o mod_regcm_param.o mod_clm.o
 else
 radinp.o: radinp.F90 mod_comtim.o mod_constants.o mod_regcm_param.o
 endif
@@ -400,7 +400,8 @@ zengocn.o: zengocn.f90 mod_constants.o
 ifeq ($(USECLM),1)
 zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_slice.o \
-              mod_interfaces.o
+              mod_interfaces.o $(CLMPTH)/clm_varsur.o
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_slice.o \
@@ -408,7 +409,9 @@ zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
 endif
 zenith.o: zenith.f90
 ifeq ($(USECLM),1)
-zenitm.o: zenitm.F90 mod_regcm_param.o mod_clm.o
+zenitm.o: zenitm.F90 mod_regcm_param.o mod_clm.o $(CLMPTH)/shr_orb_mod.o \
+          $(CLMPTH)/clm_time_manager.o
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 zenitm.o: zenitm.F90 mod_constants.o mod_date.o mod_main.o mod_regcm_param.o
 endif

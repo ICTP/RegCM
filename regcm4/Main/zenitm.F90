@@ -30,7 +30,9 @@
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 #ifdef CLM
-      use mod_regcm_param , only : myid
+      use mod_regcm_param , only : myid , jxp
+      use clm_time_manager , only : get_curr_calday
+      use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl
       use mod_clm
 #else
       use mod_regcm_param
@@ -59,12 +61,12 @@
 !
 #ifdef CLM
       calday1 = get_curr_calday()
-      call shr_orb_decl(calday1,r2ceccen,r2cmvelpp,r2clambm0,
-                     r2cobliqr,declinp1,r2ceccf)
+      call shr_orb_decl(calday1,r2ceccen,r2cmvelpp,r2clambm0,           &
+           &            r2cobliqr,declinp1,r2ceccf)
       jj = (jxp*myid) + jslc
       do ill = 1 , ivmx
         coszrs(ill) = shr_orb_cosz(calday1,r2cxlat_all(jj,ill),         &
-                        &          r2cxlon_all(jj,ill),declinp1)
+            &                      r2cxlon_all(jj,ill),declinp1)
         coszrs(ill) = dmax1(0.d0,coszrs(ill))
       end do
 #else
