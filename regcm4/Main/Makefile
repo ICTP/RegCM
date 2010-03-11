@@ -2,7 +2,7 @@ include ../Makefile.inc
 
 SCENARIO = A1B
 SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
-CLMLIB = clmlib
+CLMLIB = ./clmlib
 
 all:: regcm
 
@@ -61,7 +61,7 @@ albedoclm.o
 
 regcm: $(MODOBJS) $(OBJS)
 	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) \
-               $(LIB) $(NETCDFLIB) -L$(CLMLIB) -lclm
+               $(LIB) -L$(CLMLIB) -lclm $(NETCDFLIB)
 
 %.o: %.F90
 	$(F90) -c $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
