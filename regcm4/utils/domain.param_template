@@ -140,9 +140,9 @@
       parameter(IDATE1=1990010100)  ! First date of simulation
       parameter(IDATE2=1990020100)  ! Last  date of simulation
 !DATTYP: (ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,NRP2W,GFS11,FVGCM,FNEST,EH5OM)
-      parameter(DATTYP='ERA40')
+      parameter(DATTYP='FVGCM')
       ! SSTTYP : (GISST,OISST,OI_WK,FV_RF,FV_A2,FV_B2,EH5RF,EH5A2,EH5B1,EHA1B,ERSST,ERSKT)
-      ???????? parameter(SSTTYP='')
+      ???????? parameter(SSTTYP='FV_A2')
       parameter(EHSO4 =.false.)
       parameter(LSMTYP='BATS')      ! LANDUSE legend (BATS or USGS)
       parameter(nveg=20)            ! Number of LANDUSE categories

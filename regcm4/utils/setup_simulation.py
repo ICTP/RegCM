@@ -48,12 +48,15 @@ def write_modulef90(parameters,filename,verbose):
        text_file=re.sub(pattern,valuereplace,text_file)
    if verbose:
       print text_file 
-   open(filename,'w').write(text_file)
+   f= open(filename,'w')
+   f.write(text_file)
+   f.close() 
    return 
 
 
-def readinput(filename,verbose, parameters):
+def readinput(filename,verbose):
    """This function reads the input file"""
+   parameters={}
    try:
      f = open(filename,'r')
      data = f.readlines()
@@ -74,6 +77,58 @@ def cleandir(verbose=False):
             if verbose: sys.stdout.write("Removing directory %s\n" % filename)
             shutil.rmtree(filename)
 
+
+def write_ICBC(parameters,filename,verbose=False):
+    """This functions writes ICBC script to generate ICBC input files"""
+    
+    
+    fhandler = open(filename,"w")
+    fhandler.write('#!/bin/csh \n')
+    fhandler.write('#cleaning files.. \n')
+    fhandler.write("foreach FILE (RCM_SST.ctl RCM_SST.dat SST.RCM)\n")
+    fhandler.write("if ( -f $FILE ) /bin/rm $FILE\n")
+    fhandler.write("end\n")
+
+    # identify the variable we are interested in..  
+    DATTYP=parameters['dattyp'].strip("'")
+    SSTTYP=parameters['ssttyp'].strip("'")
+    AERTYP=parameters['aertyp'].strip("'")
+ 
+    default="'./SST \n'" 
+    # various conditions to check 
+    if ((DATTYP=='FVGCM') or  (DATTYP == 'FNEST' and (SSTTYP== 'FV_RF' or SSTTYP == 'FV_A2') ) ):
+        default="./SST_FVGCM\n"
+    if ((DATTYP=='EH5OM') or (DATTYP=='FNEST' and (SSTTYP=='EH5RF' or SSTTYP=='EH5A2' or SSTTYP=='EH5B1' or SSTTYP=='EHA1B'))):
+        default="./SST_EH5OM\n"
+    if ((DATTYP=='EIN15' or DATTYP=='ERAIN') and (SSTTYP=='ERSST' or SSTTYP=='ERSKT')):
+        default="./SST_ERSST\n" 
+ 
+    fhandler.write(default) 
+
+    # chemistry enabled ? 
+    if (AERTYP[3:5]!='00'):
+          fhandler.write('./AEROSOL \n') 
+      
+    if (DATTYP=='ERAHI'): 
+          fhandler.writelines('echo: not yet ported ERAHI \nexit \n') 
+
+#         write(23,'(a)') 'cp ../../Commons/tools/srcERAHI/*.f .'
+#         write(23,'(a)') 'make ERAHI_HT'
+#         write(23,'(a)') './ERAHI_HT'
+#         write(23,'(a)') 'make ERAHI_PS'
+#         write(23,'(a)') './ERAHI_PS'
+#         write(23,'(a)') 'make ERAHI_T'
+#         write(23,'(a)') './ERAHI_T'
+#         write(23,'(a)') 'make ERAHI_Q'
+#         write(23,'(a)') './ERAHI_Q'
+#         write(23,'(a)') 'make ERAHI_U'
+#         write(23,'(a)') './ERAHI_U'
+#         write(23,'(a)') 'make ERAHI_V'
+#         write(23,'(a)') './ERAHI_V'
+#      ENDIF
+    
+    fhandler.writelines('./icbc \n') 
+    fhandler.close() 
 
 
 class MyOptions(object):
@@ -112,12 +167,13 @@ def main():
     if options.clean:
         cleandir(options.verbose)
     elif options.filename:
-        readinput(options.filename, options.verbose, parameters)
+        parameters = readinput(options.filename, options.verbose)
 	for key, value in parameters.iteritems():
 		print "%s has value %s" % (key, value)
         # write F90 modules 
         write_modulef90(parameters,'mod_regcm_param.F90',options.verbose)
         write_modulef90(parameters,'mod_param.f90',options.verbose)
+        write_ICBC(parameters,"icbc.x",options.verbose)
     else:
         sys.stderr.write("I don't know what to do!!!\n")
             
