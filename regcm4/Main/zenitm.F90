@@ -29,10 +29,15 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
+#ifdef CLM
+      use mod_regcm_param , only : myid
+      use mod_clm
+#else
       use mod_regcm_param
       use mod_main
       use mod_date , only : declin , lhour , xtime
       use mod_constants , only : degrad
+#endif
       implicit none
 !
 ! Arguments
@@ -43,10 +48,26 @@
 ! Local variables
 !
       integer :: ill
+#ifdef CLM
+      integer :: jj
+      real(kind=8) :: calday1 , declinp1
+#else
       real(kind=8) :: omega , tlocap , xt24 , xxlat
+#endif
 !
 !***********************************************************************
 !
+#ifdef CLM
+      calday1 = get_curr_calday()
+      call shr_orb_decl(calday1,r2ceccen,r2cmvelpp,r2clambm0,
+                     r2cobliqr,declinp1,r2ceccf)
+      jj = (jxp*myid) + jslc
+      do ill = 1 , ivmx
+        coszrs(ill) = shr_orb_cosz(calday1,r2cxlat_all(jj,ill),         &
+                        &          r2cxlon_all(jj,ill),declinp1)
+        coszrs(ill) = dmax1(0.d0,coszrs(ill))
+      end do
+#else
       xt24 = dmod(lhour*60.+xtime,1440.D0)
       do ill = 1 , ivmx
         tlocap = xt24/60. + xlong(ill,jslc)/15.
@@ -58,5 +79,6 @@
                     & *dcos(xxlat)*dcos(omega)
         coszrs(ill) = dmax1(0.D0,coszrs(ill))
       end do
+#endif
 !
       end subroutine zenitm

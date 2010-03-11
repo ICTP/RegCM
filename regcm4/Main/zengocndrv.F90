@@ -31,6 +31,10 @@
       use mod_date , only : jyear , jyearr , ntime , ktau , ktaur
       use mod_constants , only : wlhv , tzero
 
+#ifdef CLM
+      use mod_regcm_param , only : myid , jxp
+      use clm_varsur , only : landmask
+#endif
       implicit none
 
 !
@@ -44,10 +48,20 @@
                & t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi ,&
                & zo
       integer :: i , n
+#ifdef CLM
+      integer :: jj
+#endif
 !
+#ifdef CLM
+      jj = (jxp*myid) + j
+#endif
       do i = istart , iend
         do n = 1 , ng
+#ifdef CLM
+          if ( ocld2d(n,i,j).lt.0.5 .or. landmask(jj,i).eq.3 ) then
+#else
           if ( ocld2d(n,i,j).lt.0.5 ) then
+#endif
             uv995 = sqrt(ubx3d(i,k,j)**2+vbx3d(i,k,j)**2)
             tsurf = tgb(i,j) - tzero
             t995 = tb3d(i,k,j) - tzero

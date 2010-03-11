@@ -67,6 +67,10 @@
                    & pgfaa1
 #ifdef MPP1
       use mod_slice
+#ifdef CLM
+      use mod_clm
+      use clm_varsur , only : init_grid
+#endif
 #ifndef IBM
       use mpi
 #else
@@ -520,6 +524,11 @@
 !=======================================================================
 !
       call slice3d
+#ifdef CLM
+      if ( init_grid ) then
+        call initclm(ktau)
+      end if
+#endif
 !
 !=======================================================================
 !
@@ -1279,8 +1288,23 @@
         end if
  
 !       ****** calculate albedo
+#ifdef CLM
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
+           & .eq.0 ) then
+          do i = 1 , ixm1
+            aldirs(i) = aldirs2d(i,j)
+            aldirl(i) = aldirl2d(i,j)
+            aldifs(i) = aldifs2d(i,j)
+            aldifl(i) = aldifl2d(i,j)
+            albvs(i)  = aldirs2d(i,j)
+            albvl(i)  = aldirl2d(i,j)
+          end do
+          call albedoclm(j)
+        end if
+#else
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
            & .eq.0 ) call albedov(j,iemiss)
+#endif
  
 !       ****** call ccm3 radiative transfer package
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
@@ -1290,15 +1314,36 @@
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
            &  mod(ktau+1,nbatst).eq.0 ) then
           dtbat = dt/2.*nbatst
+#ifndef CLM
           if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
           call vecbats(j, kx , 2 , ixm1 , nnsg)
 !         Zeng ocean flux model
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , ixm1 , kx)
 !         ****** accumulate quantities for energy and moisture budgets
           call interf(2 , j , kx , 2 , ixm1 , nnsg)
+#endif
         end if
  
       end do
+
+#ifdef CLM
+      if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                     &
+         & mod(ktau+1,ntrad).eq.0 ) then
+          r2cdoalb = .true.
+      else
+          r2cdoalb = .false.
+      end if
+      if ( (jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                      &
+         & mod(ktau+1,nbatst).eq.0 ) then
+        if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+          r2cnstep = 0
+        else
+          r2cnstep = (ktau+1)/nbatst
+        end if
+        call mtrxclm(r2cnstep)
+      end if
+#endif
+
       if ( icup.eq.1 ) then
         dto2 = dt/2
         call htdiff(dto2,dxsq,akht1)
@@ -1930,7 +1975,11 @@
 !     24 hours:
 !
       if ( dabs(xtime).lt.0.00001 .and. ldatez.ne.idate1 ) then
+#ifdef CLM
+        call solar1clm(xtime)
+#else
         call solar1(xtime)
+#endif
         dectim = anint(1440.+dectim)
 #ifdef MPP1
         if ( myid.eq.0 ) write (*,*) ' dectim = ' , dectim

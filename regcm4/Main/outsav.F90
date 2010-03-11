@@ -43,6 +43,9 @@
       use mod_rad
 #ifdef MPP1
       use mod_mppio
+#ifdef CLM
+      use mod_clm
+#endif
 #endif
 #ifdef DIAG
       use mod_diagnosis
@@ -100,6 +103,27 @@
 #endif
       write (iutl) absnxt_io , abstot_io , emstot_io
       if ( ipptls.eq.1 ) write (iutl) fcc_io
+#ifdef CLM
+      write(iutl) sols2d_io
+      write(iutl) soll2d_io
+      write(iutl) solsd2d_io
+      write(iutl) solld2d_io
+      write(iutl) flwd2d_io
+      write(iutl) aldirs2d_io
+      write(iutl) aldirl2d_io
+      write(iutl) aldifs2d_io
+      write(iutl) aldifl2d_io
+      write(iutl) coszrs2d_io
+      write(iutl) ocld2d_io
+      write(iutl) heatrt_io
+      write(iutl) o3prof_io
+      write (iutl) tgbb_io
+      write (iutl) flw2d_io
+      write (iutl) swt2d_io
+      write (iutl) sinc2d_io
+      write (iutl) fsw2d_io
+      write (iutl) taf2d_io
+#else
       write (iutl) sol2d_io , solvd2d_io , solvs2d_io , flw2d_io ,      &
                  & flwd2d_io , fsw2d_io , sabv2d_io , sinc2d_io
       write (iutl) taf2d_io , tlef2d_io , tgbb_io , ssw2d_io ,          &
@@ -107,6 +131,7 @@
                  & gwet2d_io , veg2d_io , veg2d1_io , sag2d_io ,        &
                  & sice2d_io , dew2d_io , ircp2d_io , text2d_io ,       &
                  & col2d_io , ocld2d_io , heatrt_io , o3prof_io
+#endif
       write (iutl) pptnc_io , pptc_io , prca2d_io , prnca2d_io
       if ( iocnflx.eq.2 ) write (iutl) zpbl_io
       if ( ichem.eq.1 ) then

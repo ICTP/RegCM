@@ -42,6 +42,7 @@
       use mod_pbldim
       use mod_bats
       use mod_constants
+      use mod_interfaces
       implicit none
 !
 ! Dummy arguments
@@ -278,7 +279,7 @@
           jj = (jxp*myid) + j
  
           call interf(1 , j , kx , 2 , ixm1 , nnsg)
-          if ( iocnflx==2 ) call zengocndrv(j)
+          if ( iocnflx==2 ) call zengocndrv(j, nnsg , 2 , ixm1 , kx)
  
           do i = 2 , ixm1
             ci = i

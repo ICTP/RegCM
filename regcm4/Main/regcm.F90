@@ -28,6 +28,10 @@
       use mod_message , only : aline
 #ifdef MPP1
       use mpi
+#ifdef CLM
+      use perf_mod
+      use spmdMod, only: mpicom
+#endif
 #endif
       implicit none
 !
@@ -289,6 +293,10 @@
 #endif
 !         endtime = MPI_WTIME()
 !         print *,"The Program took  ",endtime-starttime," secondes"
+#ifdef CLM
+          call t_prf('timing_all',mpicom)
+          call t_finalizef()
+#endif
           stop 99999
         end if
       end do

@@ -41,6 +41,9 @@
       use mod_comtim
       use mod_constants , only : gtigts , twopi , dayspy , rgsslp
       use mod_crdcae , only : co2vmr
+#ifdef CLM
+      use mod_clm
+#endif
       implicit none
 !
 ! Dummy arguments
@@ -108,9 +111,13 @@
 !
 !     Compute eccentricity factor (sun-earth distance factor)
 !
+#ifdef CLM
+      eccf  = r2ceccf
+#else
       theta = twopi*calday/dayspy
       eccf = 1.000110 + .034221*dcos(theta) + .001280*dsin(theta)       &
            & + .000719*dcos(2.*theta) + .000077*dsin(2.*theta)
+#endif
 !
 !     Convert pressure from pascals to dynes/cm2
 !

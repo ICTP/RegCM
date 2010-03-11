@@ -97,13 +97,24 @@
       namelist /timeparam/ radfrq , abatm , abemh , dt , ibdyfrq
  
 !chem2
+#ifdef CLM
+      namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
+      & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
+      & batfrq , iotyp , ibintyp , ifchem , chemfrq , clmfrq
+#else
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
       & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
       & batfrq , iotyp , ibintyp , ifchem , chemfrq
+#endif
 !
 !chem2
+#ifdef CLM
+      namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
+      & iemiss , lakemod , ipptls , iocnflx , ichem , imask
+#else
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem
+#endif
 !chem2_
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -258,6 +269,12 @@
 !     maschk : specify the frequency in time steps, the mass-
 !     conservation information will be printed out.
 !
+!     imask : Type of land surface parameterization
+!     1= using DOMAIN.INFO for landmask (same as BATS);
+!     2= using mksrf_navyoro file landfraction for landmask and perform
+!        a weighted average over ocean/land gridcells; for example:
+!        tgb = tgb_ocean*(1 - landfraction) + tgb_land*landfraction
+!
 !----------------------------------------------------------------------
 !-----default values for all the options:
 !     (can be overwritten by namelist input).
@@ -380,6 +397,12 @@
       ichcumtra = 1     ! tracer convective transport
       idirect = 1       ! tracer direct effect
       mixtype = 1
+#ifdef CLM
+!c------CLM Specific
+      clmfrq = 0
+      imask = 2
+#endif
+
 !---------------------------------------------------------------------
 !-----read in namelist variables:
 !
@@ -453,6 +476,11 @@
       call mpi_bcast(lakemod,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ichem,1,mpi_integer,0,mpi_comm_world,ierr)
  
+#ifdef CLM
+      call mpi_bcast(clmfrq,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(imask,1,mpi_integer,0,mpi_comm_world,ierr)
+#endif
+
       if ( ipptls.eq.1 ) then
         call mpi_bcast(ncld,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(fcmax,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -789,7 +817,8 @@
       write (aline, *) ' iboudy = ' , iboudy , ' icup = ' , icup ,      &
             & ' igcc =' , igcc , ' ipptls = ' , ipptls , ' iocnflx = ' ,&
             & iocnflx , ' ipgf = ' , ipgf , 'iemiss = ' , iemiss ,      &
-            &' lakemod = ' , lakemod , ' ichem =' , ichem
+            &' lakemod = ' , lakemod , ' ichem =' , ichem , ' imask = ',&
+            & imask
       call say
       write (aline, *) ' '
       call say

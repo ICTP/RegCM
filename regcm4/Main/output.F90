@@ -45,6 +45,12 @@
 #ifdef MPP1
       use mpi
       use mod_mppio
+#ifdef CLM
+      use restFileMod, only : restFile_write, restFile_write_binary
+      use restFileMod, only : restFile_filename
+      use clm_varctl , only : filer_rest
+      use clm_time_manager, only : get_step_size
+#endif
 #endif
       implicit none
 !
@@ -74,6 +80,9 @@
       real(4) , dimension(ixm2,nnsg,numsub,jx) :: sub_0
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jxp) :: chem0
       real(8) , dimension(ix,ntr*kx+kx*3+ntr*7+3,jx) :: chem_0
+#ifdef CLM
+      real(8) :: dtime
+#endif
 #endif
 !
 !----------------------------------------------------------------------
@@ -257,6 +266,7 @@
               psmn_o(j,i) = 1.E30
             end do
           end do
+
 
           if ( ifsub .and. nsg.gt.1 ) then
 
@@ -855,6 +865,39 @@
               end do
             end do
           end if
+#ifdef CLM
+          do j = 1 , jendx
+            do i = 1 , ixm1
+              sav_clmin(i,1,j) = sols2d(i,j)
+              sav_clmin(i,2,j) = soll2d(i,j)
+              sav_clmin(i,3,j) = solsd2d(i,j)
+              sav_clmin(i,4,j) = solld2d(i,j)
+              sav_clmin(i,5,j) = aldirs2d(i,j)
+              sav_clmin(i,6,j) = aldirl2d(i,j)
+              sav_clmin(i,7,j) = aldifs2d(i,j)
+              sav_clmin(i,8,j) = aldifl2d(i,j)
+              sav_clmin(i,9,j) = coszrs2d(i,j)
+            end do
+          end do
+          call mpi_gather(sav_clmin(1,1,1), ixm1*9*jxp,mpi_real8,       &
+                        & sav_clmout(1,1,1),ixm1*9*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+            do j = 1 , jxm1
+              do i = 1 , ixm1
+                sols2d_io(i,j) = sav_clmout(i,1,j)
+                soll2d_io(i,j) = sav_clmout(i,2,j)
+                solsd2d_io(i,j) = sav_clmout(i,3,j)
+                solld2d_io(i,j) = sav_clmout(i,4,j)
+                aldirs2d_io(i,j) = sav_clmout(i,5,j)
+                aldirl2d_io(i,j) = sav_clmout(i,6,j)
+                aldifs2d_io(i,j) = sav_clmout(i,7,j)
+                aldifl2d_io(i,j) = sav_clmout(i,8,j)
+                coszrs2d_io(i,j) = sav_clmout(i,9,j)
+              end do
+            end do
+          end if
+#endif
           do j = 1 , jendx
             do n = 1 , nnsg
               do i = 1 , ixm1
@@ -1151,6 +1194,25 @@
            & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.         &
            & nnnnnn.ne.nnnend ) call mkfile
       end if
+
+#ifdef CLM
+      if ( ifsave ) then
+        if ( ( ( lday.eq.1 .and. lhour.eq.0 .and.                       &
+           &     dabs(xtime).lt.0.00001 )   .and.                       &
+           &     ldatez.ne.IDATE1 ) .or. nnnnnn.eq.nnnend ) then
+          dtime = get_step_size()
+          filer_rest = restFile_filename(type='netcdf',                 &
+                     &                   offset=-int(dtime))
+          inquire(file=filer_rest,exist=there)
+          if (.not. there) then
+            call restFile_write( filer_rest )
+            filer_rest = restFile_filename(type='binary',               &
+                     &                     offset=-int(dtime))
+            call restFile_write_binary( filer_rest )
+          endif
+        endif
+      endif
+#endif
 
 #else
 

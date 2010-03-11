@@ -23,7 +23,8 @@ mod_pbldim.o     mod_lake.o       mod_interfaces.o
 CLMOBJS = \
 initializeMod.o  shr_orb_mod.o    shr_kind_mod.o  clm_varpar.o       \
 clm_varsur.o     atmdrvMod.o      spmdMod.o       program_offMod.o   \
-clm_comp.o       clmtype.o        perf_mod.o
+clm_comp.o       clmtype.o        perf_mod.o      clm_time_manager.o \
+restFileMod.o
 
 OBJS = \
 aermix.o          cup.o         isrchfgt.o  radclw.o    tractend2.o  \
@@ -91,7 +92,7 @@ mod_bdycod.o: mod_bdycod.F90 mod_regcm_param.o
 mod_blh_tmp.o: mod_blh_tmp.F90 mod_regcm_param.o
 mod_bmparam.o: mod_bmparam.f90
 mod_bxq.o: mod_bxq.F90 mod_regcm_param.o
-mod_clm.o: mod_clm.f90
+mod_clm.o: mod_clm.f90 mod_regcm_param.o
 mod_comctl.o: mod_comctl.f90
 mod_comozp.o: mod_comozp.f90
 mod_comtim.o: mod_comtim.f90
@@ -263,10 +264,20 @@ o3data.o: o3data.F90 mod_main.o mod_o3blk.o mod_param3.o mod_rad.o \
           mod_regcm_param.o
 outprt.o: outprt.F90 mod_bdycod.o mod_constants.o mod_date.o mod_main.o \
           mod_param1.o mod_param2.o mod_pmoist.o mod_regcm_param.o
+ifeq ($(USECLM),1)
+output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
+          mod_iunits.o mod_main.o mod_mainchem.o mod_message.o mod_outrad.o \
+          mod_param1.o mod_param2.o mod_pmoist.o mod_rad.o \
+          mod_radbuf.o mod_regcm_param.o mod_split.o mod_tmpsav.o \
+          mod_trachem.o $(CLMPTH)/clm_varctl.o $(CLMPTH)/restFileMod.o \
+          $(CLMPTH)/clm_time_manager.o
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+else
 output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_iunits.o mod_main.o mod_mainchem.o mod_message.o mod_outrad.o \
           mod_param1.o mod_param2.o mod_pmoist.o mod_rad.o \
           mod_radbuf.o mod_regcm_param.o mod_split.o mod_tmpsav.o mod_trachem.o
+endif
 outsav.o: outsav.F90 mod_bats.o mod_bdycod.o mod_date.o mod_diagnosis.o \
           mod_iunits.o mod_main.o mod_mainchem.o mod_param2.o mod_pmoist.o \
           mod_rad.o mod_radbuf.o mod_regcm_param.o mod_split.o mod_trachem.o
@@ -299,15 +310,25 @@ radems.o: radems.f90 mod_crdcae.o mod_constants.o mod_radbuf.o \
           mod_regcm_param.o
 radini.o: radini.F90 mod_comozp.o mod_crdcae.o mod_constants.o mod_date.o \
           mod_message.o mod_regcm_param.o mod_tracer.o mod_tracer0.o
-radinp.o: radinp.f90 mod_comtim.o mod_constants.o mod_regcm_param.o
+ifeq ($(USECLM),1)
+radinp.o: radinp.F90 mod_comtim.o mod_constants.o mod_regcm_param.o mod_clm
+else
+radinp.o: radinp.F90 mod_comtim.o mod_constants.o mod_regcm_param.o
+endif
 radout.o: radout.F90 mod_bats.o mod_date.o mod_outrad.o mod_param1.o \
           mod_param2.o mod_rad.o mod_regcm_param.o
 radoz2.o: radoz2.f90 mod_comozp.o mod_regcm_param.o
 radtap.o: radtap.F90 mod_date.o mod_iunits.o mod_outrad.o mod_param1.o \
           mod_param2.o mod_radbuf.o mod_regcm_param.o
 radtpl.o: radtpl.f90 mod_regcm_param.o mod_constants.o
+ifeq ($(USECLM),1)
+regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
+         mod_regcm_param.o $(CLMPTH)/perf_mod.o $(CLMPTH)/spmdMod.o
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+else
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
          mod_regcm_param.o
+endif
 reorder.o: reorder.f90
 root.o: root.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
 satur.o: satur.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
@@ -327,10 +348,19 @@ sponge.o: sponge.F90 mod_bdycod.o mod_regcm_param.o
 spstep.o: spstep.F90 mod_bxq.o mod_main.o mod_regcm_param.o
 stomat.o: stomat.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
 temp.o: temp.f90 mod_constants.o
+ifeq ($(USECLM),1)
+tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
+        mod_cvaria.o mod_date.o mod_main.o mod_mainchem.o mod_message.o \
+        mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
+        mod_regcm_param.o mod_slice.o mod_trachem.o mod_interfaces.o mod_clm.o \
+        $(CLMPTH)/clm_varsur.o
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+else
 tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
         mod_cvaria.o mod_date.o mod_main.o mod_mainchem.o mod_message.o \
         mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
         mod_regcm_param.o mod_slice.o mod_trachem.o mod_interfaces.o
+endif
 tgrund.o: tgrund.F90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
 tpfc.o: tpfc.f90 mod_constants.o
 tracbud.o: tracbud.F90 mod_constants.o mod_date.o mod_diagnosis.o mod_main.o \
@@ -367,11 +397,21 @@ whenfgt.o: whenfgt.f90
 whenflt.o: whenflt.f90
 whenne.o: whenne.f90
 zengocn.o: zengocn.f90 mod_constants.o
-zengocndrv.o: zengocndrv.f90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
+ifeq ($(USECLM),1)
+zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_slice.o \
               mod_interfaces.o
+else
+zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
+              mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_slice.o \
+              mod_interfaces.o mod_regcm_param.o
+endif
 zenith.o: zenith.f90
-zenitm.o: zenitm.f90 mod_constants.o mod_date.o mod_main.o mod_regcm_param.o
+ifeq ($(USECLM),1)
+zenitm.o: zenitm.F90 mod_regcm_param.o mod_clm.o
+else
+zenitm.o: zenitm.F90 mod_constants.o mod_date.o mod_main.o mod_regcm_param.o
+endif
 initclm.o: initclm.F90 $(CLMPTH)/initializeMod.o $(CLMPTH)/shr_orb_mod.o \
            $(CLMPTH)/shr_kind_mod.o $(CLMPTH)/clm_varpar.o \
            $(CLMPTH)/clm_varsur.o $(CLMPTH)/atmdrvMod.o $(CLMPTH)/spmdMod.o \
