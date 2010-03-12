@@ -39,7 +39,7 @@
 ! Local variables
 !
       real :: a1 , rc , rc1 , sc
-      integer :: i , j , k , k1 , k1p
+      integer :: i , j , k , k1 , kp1
 !
 !**   INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION
 !     IS LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -62,15 +62,16 @@
           if ( sc>sccm(kccm) ) then
             a1 = rgas2*log(sc/sccm(kccm))
             fsccm(i,j) = fccm(i,j,kccm+1-kccm)*(b1-a1)/(b1+a1)
-            cycle
-          end if
+          else
 !
 !         CONDITION FOR SC .LT. SCCM(KCCM) FOLLOWS
 !
-          k1p = k1 + 1
-          rc = log(sc/sccm(k1))/log(sccm(k1)/sccm(k1p))
-          rc1 = rc + 1.
-          fsccm(i,j) = rc1*fccm(i,j,kccm+1-k1) - rc*fccm(i,j,kccm+1-k1p)
+            kp1 = k1 + 1
+            rc = log(sc/sccm(k1))/log(sccm(k1)/sccm(kp1))
+            rc1 = rc + 1.
+            fsccm(i,j) = rc1 * fccm(i,j,kccm+1-k1) -                    &
+                       & rc  * fccm(i,j,kccm+1-kp1)
+          end if
 !
         end do
       end do

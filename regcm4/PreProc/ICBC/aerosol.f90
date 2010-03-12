@@ -76,7 +76,7 @@
       do nrec = 1 , 39
         read (11,rec=nrec) aer2
  
-        call bilinx(aer2,loni,lati,ilon,jlat,aermm,xlon,xlat,iy,jx,1)
+        call bilinx(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
  
 !       ******           WRITE OUT AEROSOL DATA ON RegCM GRID
         write (25,rec=nrec) ((aermm(i,j),j=1,jx),i=1,iy)
