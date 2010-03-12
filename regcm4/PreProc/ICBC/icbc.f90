@@ -97,7 +97,17 @@
       use mod_write
       use mod_ingrid
       use mod_datewk
+      use mod_ecwcp
+      use mod_eh5om
       use mod_ein15
+      use mod_ein25
+      use mod_ein75
+      use mod_era40
+      use mod_erahi
+      use mod_fvgcm
+      use mod_gfs11
+      use mod_ncep
+      use mod_nest
       implicit none
 !
 ! Local variables
