@@ -26,7 +26,6 @@
       integer :: jx_in , iy_in , kz_in
       real :: ptop_in
       real :: clat_in , clon_in , plat_in , plon_in
-      real :: delx_in , grdfac_in
       real :: truelath_in , truelatl_in
 
       character(6) :: cgtype_in
@@ -53,17 +52,17 @@
           & recl=jx*iy*ibyte,access='direct')
       if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.                    &
          & dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
-        read (10,rec=1,iostat=ierr) iy_in , jx_in , kz_in , delx_in ,   &
+        read (10,rec=1,iostat=ierr) iy_in , jx_in , kz_in , delx ,      &
                                   & clat_in , clon_in , plat_in ,       &
-                                  & plon_in , grdfac_in , cgtype_in ,   &
+                                  & plon_in , grdfac , cgtype_in ,      &
                                   & (sigmaf(k),k=1,kz+1) , ptop_in ,    &
                                   & igrads_in , ibigend_in ,            &
                                   & truelatl_in , truelath_in ,         &
                                   & lon0 , lon1 , lat0 , lat1
       else
-        read (10,rec=1,iostat=ierr) iy_in , jx_in , kz_in , delx_in ,   &
+        read (10,rec=1,iostat=ierr) iy_in , jx_in , kz_in , delx ,      &
                                   & clat_in , clon_in , plat_in ,       &
-                                  & plon_in , grdfac_in , cgtype_in ,   &
+                                  & plon_in , grdfac , cgtype_in ,      &
                                   & (sigmaf(k),k=1,kz+1) , ptop_in ,    &
                                   & igrads_in , ibigend_in ,            &
                                   & truelatl_in , truelath_in
@@ -75,8 +74,8 @@
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
       end if
-      read (10,rec=2,iostat=ierr) zs
-      read (10,rec=3,iostat=ierr) zssd
+      read (10,rec=2,iostat=ierr) topogm
+      read (10,rec=3,iostat=ierr) toposdgm
       read (10,rec=4,iostat=ierr) xlandu
       read (10,rec=5,iostat=ierr) xlat
       read (10,rec=6,iostat=ierr) xlon

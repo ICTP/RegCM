@@ -75,15 +75,15 @@
               k1p = k1 + 1
               rc = (sc-sccm(k1))/(sccm(k1)-sccm(k1p))
               rc1 = rc + 1.
-              frcm(i,j,n) = rc1*fccm(i,j,kccm+1-k1)                     &
-                          & - rc*fccm(i,j,kccm+1-k1p)
+              frcm(i,j,n) = rc1*fccm(i,j,kccm+1-k1) -                   &
+                          & rc *fccm(i,j,kccm+1-k1p)
 !
 !             CONDITION FOR SC .GT. SCCM(KCCM) FOLLOWS
 !
             else
               frcm(i,j,n) = fccm(i,j,1)
-!
             end if
+!
           end do
         end do
       end do

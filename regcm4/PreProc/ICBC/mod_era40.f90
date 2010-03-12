@@ -90,9 +90,9 @@
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-      call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-      call bilinx(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
-      if ( lsmtyp=='USGS' ) call bilinx(s3,s2,xlon,xlat,glon,glat,ilon, &
+      call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+      if ( lsmtyp=='USGS' ) call bilinx2(s3,s2,xlon,xlat,glon,glat,ilon,&
                                       & jlat,jx,iy,4*3+1)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
@@ -499,7 +499,6 @@
           end do
         else
         end if
-        istatus = nf90_close(inet)
       end do
  
       if ( lsmtyp=='USGS' ) then
@@ -563,7 +562,6 @@
               end do
             else
             end if
-            istatus = nf90_close(inet)
           end do
         end do
         inet = isnow(k4)
@@ -575,7 +573,6 @@
             snw(i,jlat+1-j) = work2d(i,j)*xscale + xadd
           end do
         end do
-        istatus = nf90_close(inet)
       end if
 99001 format (i4,'/',a4,i4,'.00.nc')
 99002 format (i4,'/',a4,i4,'.06.nc')

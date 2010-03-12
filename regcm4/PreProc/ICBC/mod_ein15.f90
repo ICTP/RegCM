@@ -34,9 +34,17 @@
       real , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
       real , pointer :: uvar(:,:,:) , vvar(:,:,:)
       real , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+
       real , dimension(jlat) :: glat
       real , dimension(ilon) :: glon
       real , dimension(klev) :: sigma1 , sigmar
+
+      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
+                &                ice1 , ice2
+
+      integer , dimension(5,4) :: inet5
+      integer , dimension(5,4) :: ivar5
+      real(8) , dimension(5,4) :: xoff , xscl
 
       contains
 
@@ -51,31 +59,20 @@
 !
 ! Local variables
 !
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
-                &                ice1 , ice2
       integer :: nmop , nyrp
       real :: wt
 !
-      u3 => d3(:,:,1:klev)
-      v3 => d3(:,:,klev+1:2*klev)
-      t3 => b3(:,:,1:klev)
-      h3 => b3(:,:,klev+1:2*klev)
-      q3 => b3(:,:,2*klev+1:3*klev)
-      uvar => d2(:,:,1:klev)
-      vvar => d2(:,:,klev+1:2*klev)
-      tvar => b2(:,:,1:klev)
-      hvar => b2(:,:,klev+1:2*klev)
-      rhvar => b2(:,:,2*klev+1:3*klev)
 !
-!     D      BEGIN LOOP OVER NTIMES
+!     READ DATA AT IDATE
 !
       call ein156hour(dattyp,idate,idate1)
+
       write (*,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-      call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-      call bilinx(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+      call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
@@ -97,18 +94,15 @@
 !HH:OVER
 !
 !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+!
       call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
  
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call p1p2(b3pd,ps4,jx,iy)
  
-!     CALL HUMID1(T3,Q3,100.,0.0,SIGMA1,JX,IY,klev)
-!
-!     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
-!     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
+!     INTERPOLATION FROM PRESSURE LEVELS
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
- 
-      
+
       if ( ssttyp=='OI_WK' ) then
         call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
       else if ( ssttyp=='OI2WK' ) then
@@ -129,25 +123,25 @@
         end if 
       end if
  
-!     F2  DETERMINE P* AND HEIGHT.
-!
 !     F3  INTERPOLATE U, V, T, AND Q.
+
       call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
       call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
-!
       call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
- 
       call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+! 
       call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-!     G   WRITE AN INITIAL FILE FOR THE RCM
+!     G   WRITE AN INITIAL FILE FOR THE RegCM
       call writef(ptop,idate)
 !
       end subroutine getein15
-
+!
+!-----------------------------------------------------------------------
+!
       subroutine ein156hour(dattyp,idate,idate0)
       use netcdf
       implicit none
@@ -161,15 +155,13 @@
 ! Local variables
 !
       integer :: i , inet , it , j , k , k4 , kkrec , month , nday ,    &
-               & nhour , nyear , istatus
+               & nhour , nyear , istatus , ivar
       character(24) :: inname
       character(38) :: pathaddname
       logical :: there
       character(1) , dimension(5) :: varname
       real(8) :: xadd , xscale
       integer , dimension(10) :: icount , istart
-      integer , dimension(5,4) :: inet6
-      real(8) , dimension(5,4) :: xoff , xscl
       integer(2) , dimension(ilon,jlat,37) :: work
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -271,12 +263,32 @@
               stop
             end if
             istatus = nf90_open(pathaddname,nf90_nowrite,               &
-                   & inet6(kkrec,k4))
-            istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',    &
-                   & xscl(kkrec,k4))
-            istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
-                   & xoff(kkrec,k4))
-            write (*,*) inet6(kkrec,k4) , pathaddname , xscl(kkrec,k4) ,&
+                   & inet5(kkrec,k4))
+            if ( istatus /= nf90_noerr) then
+              write (*,*) 'Error opening ' , trim(pathaddname)
+              stop
+            end if
+            istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec),    &
+                   & ivar5(kkrec,k4))
+            if ( istatus /= nf90_noerr) then
+              write (*,*) 'Error searching var ' , varname(kkrec)
+              stop
+            end if
+            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
+                   & 'scale_factor',xscl(kkrec,k4))
+            if ( istatus /= nf90_noerr) then
+              write (*,*) 'Error attribure scale_factor for var ' ,     &
+                     &     varname(kkrec)
+              stop
+            end if
+            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
+                   & 'add_offset',xoff(kkrec,k4))
+            if ( istatus /= nf90_noerr) then
+              write (*,*) 'Error attribure add_offset for var ' ,     &
+                     &     varname(kkrec)
+              stop
+            end if
+            write (*,*) inet5(kkrec,k4) , pathaddname , xscl(kkrec,k4) ,&
                       & xoff(kkrec,k4)
           end do
         end do
@@ -317,8 +329,14 @@
       icount(4) = 1
 !bxq_
       do kkrec = 1 , 5
-        inet = inet6(kkrec,k4)
-        istatus = nf90_get_var(inet,5,work,istart,icount)
+        inet = inet5(kkrec,k4)
+        ivar = ivar5(kkrec,k4)
+        istatus = nf90_get_var(inet,ivar,work,istart,icount)
+        if (istatus /= nf90_noerr) then
+          write (*,*) 'Error reading variable ' , varname(kkrec) ,      &
+              & ' at ' , istart , ' for ' , icount
+          stop
+        end if
         xscale = xscl(kkrec,k4)
         xadd = xoff(kkrec,k4)
         if ( kkrec==1 ) then
@@ -482,7 +500,6 @@
           end do
         else
         end if
-        istatus = nf90_close(inet)
       end do
 99001 format (i4,'/',a4,i4,'.00.nc')
 99002 format (i4,'/',a4,i4,'.06.nc')
@@ -494,7 +511,9 @@
 99008 format (i4,'/',a5,i4,'.18.nc')
 !
       end subroutine ein156hour
-
+!
+!-----------------------------------------------------------------------
+!
       subroutine headerein15
       implicit none
 !
@@ -542,6 +561,19 @@
         sigma1(k) = sigmar(kr)
       end do
  
+!     Set up pointers
+
+      u3 => d3(:,:,1:klev)
+      v3 => d3(:,:,klev+1:2*klev)
+      t3 => b3(:,:,1:klev)
+      h3 => b3(:,:,klev+1:2*klev)
+      q3 => b3(:,:,2*klev+1:3*klev)
+      uvar => d2(:,:,1:klev)
+      vvar => d2(:,:,klev+1:2*klev)
+      tvar => b2(:,:,1:klev)
+      hvar => b2(:,:,klev+1:2*klev)
+      rhvar => b2(:,:,2*klev+1:3*klev)
+
       end subroutine headerein15
 
       end module mod_ein15

@@ -30,7 +30,7 @@
 ! Local variables
 !
       integer :: i , j , k , kr
-      real , dimension(30) :: work
+      real , dimension(nlev1) :: work
 !
       do i = 1 , nlon1
         do j = 1 , nlat1

@@ -292,8 +292,8 @@
         call humid1fv(tvar,qvar,pp3d,ilonh,jlath,klev)
         call intlin(qp,qvar,psvar,pp3d,ilonh,jlath,klev,pplev,npl)
  
-        call bilinx(b3,b2,xlon,xlat,glon,glat,jx,iy,ilonh,jlath,npl)
-        call bilinx(d3,d2,dlon,dlat,glon,glat,jx,iy,ilonh,jlath,npl)
+        call bilinx2(b3,b2,xlon,xlat,glon,glat,jx,iy,ilonh,jlath,npl)
+        call bilinx2(d3,d2,dlon,dlat,glon,glat,jx,iy,ilonh,jlath,npl)
         call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,             &
                 &   npl,plon,plat,iproj)
  
@@ -905,8 +905,8 @@
       call humid1fv(tvar,qvar,pp3d,ilon,jlat,klev)
       call intlin(qp,qvar,psvar,pp3d,ilon,jlat,klev,pplev,npl)
  
-      call bilinx(b3,b2,xlon,xlat,glon,glat,jx,iy,ilon,jlat,npl)
-      call bilinx(d3,d2,dlon,dlat,glon,glat,jx,iy,ilon,jlat,npl)
+      call bilinx2(b3,b2,xlon,xlat,glon,glat,jx,iy,ilon,jlat,npl)
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,jx,iy,ilon,jlat,npl)
       call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,npl,plon,plat, &
                 & iproj)
  

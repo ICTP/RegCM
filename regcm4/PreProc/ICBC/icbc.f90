@@ -127,6 +127,7 @@
       call initdate_icbc
       call finddate_icbc(nstart,idate1)
       call finddate_icbc(nnnend,idate2)
+
       write (*,*) 'NSTART,NNNEND: ' , nstart , nnnend
       write (*,*) 'IDATE1,IDATE2: ' , idate1 , idate2
  
@@ -137,6 +138,7 @@
       open (60,file='SST.RCM',form='unformatted',status='old',err=100)
  
       call commhead
+
       if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
          & then
         call headernc

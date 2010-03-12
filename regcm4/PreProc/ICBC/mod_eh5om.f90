@@ -564,8 +564,8 @@
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-      call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-      call bilinx(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+      call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
@@ -1128,9 +1128,10 @@
           else
           end if
         end if
-        call bilinx(sulfate3,sulfate2,xlon,xlat,glon,glat,ilon,jlat,jx, &
-                  & iy,mlev)
-        call bilinx(pso4_3,pso4_2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,1)
+        call bilinx2(sulfate3,sulfate2,xlon,xlat,glon,glat,             &
+                  &  ilon,jlat,jx,iy,mlev)
+        call bilinx2(pso4_3,pso4_2,xlon,xlat,glon,glat,                 &
+                  &  ilon,jlat,jx,iy,1)
         do i = 1 , iy
           do j = 1 , jx
             do l = 1 , kz
