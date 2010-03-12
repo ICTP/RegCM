@@ -56,7 +56,7 @@
         write (71,'(a)') 'options little_endian'
       end if
       write (71,'(a)') 'undef -9999.'
-      if ( lgtype=='LAMCON' .or. lgtype=='ROTMER' ) then
+      if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
         do j = 1 , jx
@@ -100,17 +100,17 @@
         centerj = jx/2.
         centeri = iy/2.
       end if
-      if ( lgtype=='LAMCON' ) then       ! Lambert projection
+      if ( iproj=='LAMCON' ) then       ! Lambert projection
         write (71,99001) jx , iy , clat , clon , centerj , centeri ,    &
                        & truelatl , truelath , clon , delx , delx
         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc
-      else if ( lgtype=='POLSTR' ) then  !
-      else if ( lgtype=='NORMER' ) then
+      else if ( iproj=='POLSTR' ) then  !
+      else if ( iproj=='NORMER' ) then
         write (71,99004) jx , xlon(1,1) , xlon(2,1) - xlon(1,1)
         write (71,99005) iy
         write (71,99006) (xlat(1,i),i=1,iy)
-      else if ( lgtype=='ROTMER' ) then
+      else if ( iproj=='ROTMER' ) then
         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
                    &' projections are not supported by GrADS.'
         write (*,*) '  Although not exact, the eta.u projection' ,      &

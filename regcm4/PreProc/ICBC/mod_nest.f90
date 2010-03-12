@@ -50,7 +50,7 @@
       real , allocatable , dimension(:) :: sigf
       real , allocatable , dimension(:) :: sig
 
-      character(6) :: lgtype_in
+      character(6) :: iproj_in
 
       integer :: il , jl , kl , iotyp_in , idate0
 
@@ -340,7 +340,7 @@
       call intlin_o(qp,q,ps,sig,ptop_in,jl,il,kl,plev,np)
       call intlog_o(cp,c,ps,sig,ptop_in,jl,il,kl,plev,np)
       call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in,grdfac,jl,    &
-                  & il,np,plon_in,plat_in,lgtype_in)
+                  & il,np,plon_in,plat_in,iproj_in)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -354,7 +354,7 @@
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
       call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,np,plon,plat,  &
-                & lgtype)
+                & iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
@@ -523,10 +523,10 @@
       read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , il ,   &
                     & jl , kl , (sigf(k),k=kl+1,1,-1) , dxsp ,          &
                     & ptsp , clat_in , clon_in , plat_in , plon_in ,    &
-                    & lgtype_in , dto , dtb , dtr , dtc ,   &
+                    & iproj_in , dto , dtb , dtr , dtc ,   &
                     & iotyp_in , truelat1 , truelat2
       ptop_in = ptsp*10.
-      if ( lgtype_in=='LAMCON' ) then
+      if ( iproj_in=='LAMCON' ) then
         d2r = atan(1.)*4./180.
         if ( clat_in<0. ) then
           xsign = -1.       ! SOUTH HEMESPHERE
@@ -541,9 +541,9 @@
         else
           grdfac = xsign*sin(truelat1*d2r)
         end if
-      else if ( lgtype_in=='POLSTR' ) then
+      else if ( iproj_in=='POLSTR' ) then
         grdfac = 1.0
-      else if ( lgtype_in=='NORMER' ) then
+      else if ( iproj_in=='NORMER' ) then
         grdfac = 0.0
       else
         grdfac = 0.0

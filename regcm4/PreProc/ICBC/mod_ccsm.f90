@@ -296,7 +296,7 @@
         call bilinx(b3,b2,xlon,xlat,glon,glat,jx,iy,ilonh,jlath,npl)
         call bilinx(d3,d2,dlon,dlat,glon,glat,jx,iy,ilonh,jlath,npl)
         call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,             &
-                &   npl,plon,plat,lgtype)
+                &   npl,plon,plat,iproj)
  
         call top2btm(t3,jx,iy,npl)
         call top2btm(q3,jx,iy,npl)
@@ -910,7 +910,7 @@
       call bilinx(b3,b2,xlon,xlat,glon,glat,jx,iy,ilon,jlat,npl)
       call bilinx(d3,d2,dlon,dlat,glon,glat,jx,iy,ilon,jlat,npl)
       call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,npl,plon,plat, &
-                & lgtype)
+                & iproj)
  
       call top2btm(t3,jx,iy,npl)
       call top2btm(q3,jx,iy,npl)
