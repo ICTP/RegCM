@@ -42,7 +42,8 @@
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_param
+      use mod_param , only : iy , jx , ssttyp , lsmtyp , ibyte ,        &
+            &                idate1 , idate2
 
       implicit none
 !
@@ -61,6 +62,7 @@
       real , dimension(jlat) :: lati
       real , dimension(ilon) :: loni
       integer , dimension(25) :: lund
+      real :: truelath , truelatl
       logical :: there
 !
       if ( ssttyp=='GISST' ) then
@@ -103,7 +105,7 @@
         if ( .not.there ) print * ,                                     &
                           &'sst.wkmean.1990-present.nc is not available'&
                          & , ' under ../DATA/SST/'
-        call headwk
+        call headwk(wkday)
         if ( ssttyp=='OI2WK' ) then
           inquire (file='../DATA/SST/icec.wkmean.1981-1989.nc',         &
                 & exist=there)

@@ -41,7 +41,8 @@
 !     PATH /DATA/SST/
 !
 !******************************************************************************
-      use mod_param
+      use mod_param , only : iy , jx , ssttyp , lsmtyp , ibyte ,        &
+            &                idate1 , idate2
 
       implicit none
 !
@@ -59,6 +60,7 @@
                & nday , nmo , nyear
       real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
       integer , dimension(20) :: lund
+      real :: truelath , truelatl
 !
       do i = 1 , ilon
         glon(i) = 0.5 + float(i-1)

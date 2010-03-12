@@ -29,7 +29,8 @@
 !          NL= 1 is  90.0; ML= 2 is  88.75 ; => ML=145 is -90.       c
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_param
+      use mod_param , only : iy , jx , ssttyp , lsmtyp , ibyte ,        &
+            &                idate1 , idate2
 
       implicit none
 !
@@ -45,9 +46,10 @@
       real , dimension(ilon) :: loni
       integer , dimension(20) :: lund
       real(4) , dimension(192,145) :: temp
-      real , dimension(ilon,jlat) :: sst2
+      real , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
       real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+      real :: truelath , truelatl
 
       logical :: there
 !
@@ -132,17 +134,17 @@
 !           &         temp(I,NLAT+1-J).lt.10000.0) then
 !           SST2(I,J)=temp(I,NLAT+1-J)
             if ( temp(i,j)>-9000.0 .and. temp(i,j)<10000.0 ) then
-              sst2(i,j) = temp(i,j)
+              sst(i,j) = temp(i,j)
             else
-              sst2(i,j) = -9999.
+              sst(i,j) = -9999.
             end if
           end do
         end do
  
 !       ******           PRINT OUT DATA AS A CHECK
-        if ( nmo==1 ) call printl(sst2,ilon,jlat)
+        if ( nmo==1 ) call printl(sst,ilon,jlat)
  
-        call bilinx(sst2,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
+        call bilinx(sst,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
         do j = 1 , jx

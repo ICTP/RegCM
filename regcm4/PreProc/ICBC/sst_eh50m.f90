@@ -31,7 +31,9 @@
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      use mod_param
+      use mod_param , only : iy , jx , ssttyp , lsmtyp , ibyte ,        &
+            &                idate1 , idate2
+
       use mod_datenum
 
       implicit none
@@ -52,6 +54,7 @@
       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
       real , dimension(jlat) :: lati
       real , dimension(ilon) :: loni
+      real :: truelath , truelatl
       logical :: there
 !
       if ( ssttyp=='EH5RF' ) then

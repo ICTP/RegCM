@@ -31,7 +31,8 @@
 !          NL= 1 is  90.0; ML= 2 is  88.5; => ML=121 is -90.         !
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      use mod_param
+      use mod_param , only : iy , jx , ssttyp , lsmtyp , ibyte ,        &
+            &                idate1 , idate2
       use mod_datenum
       implicit none
 !
@@ -49,6 +50,7 @@
       integer :: nnnend , nstart
       real(4) , dimension(ilon,jlat) :: sst
       real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+      real :: truelath , truelatl
 !
       if ( ssttyp=='ERSST' ) then
         there = .false.
