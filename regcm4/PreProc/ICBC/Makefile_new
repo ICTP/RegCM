@@ -5,12 +5,14 @@ include ../../Makefile.inc
 
 all: aerosol sst_1deg sst_ccsm sst_eh50m sst_ersst sst_fvgcm icbc
 
-AEROSOLOBJ = aerosol.o mod_param.o bilinx.o
-SST1DEGOBJ = sst_1deg.o bilinx.o printl.o
-SSTCCSMOBJ = sst_ccsm.o bilinx.o printl.o
-SSTEH50OBJ = sst_ccsm.o bilinx.o printl.o
-SSTERAOBJ = sst_ersst.o bilinx.o printl.o mod_datenum.o
-SSTFVGCOBJ = sst_fvgcm.o bilinx.o printl.o mod_datenum.o
+AEROSOLOBJ = aerosol.o mod_param.o bilinx.o mod_param.o
+SST1DEGOBJ = sst_1deg.o bilinx.o printl.o mod_param.o
+SSTCCSMOBJ = sst_ccsm.o bilinx.o printl.o mod_param.o
+SSTEH50OBJ = sst_ccsm.o bilinx.o printl.o mod_param.o
+SSTERAOBJ = sst_ersst.o bilinx.o printl.o mod_datenum.o mod_param.o
+SSTFVGCOBJ = sst_fvgcm.o bilinx.o printl.o mod_datenum.o mod_param.o
+
+SHRMOD = mod_param.o mod_constants.o
 
 MODOBJ = mod_ccsm.o mod_datenum.o mod_datewk.o mod_ecwcp.o mod_eh5om.o \
          mod_ein15.o mod_ein25.o mod_ein75.o mod_era40.o mod_erahi.o \
@@ -26,28 +28,35 @@ ICBCOBJ = icbc.o bilinx.o cressmcr.o cressmdt.o fexist.o gradsctlb.o \
 
 F90FLAGS += -traceback
 
-aerosol: $(AEROSOLOBJ)
+aerosol: $(SHRMOD) $(AEROSOLOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(LIB) $(NETCDFLIB)
 
-sst_1deg: $(SST1DEGOBJ)
+sst_1deg: $(SHRMOD) $(SST1DEGOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SST1DEGOBJ) $(LIB) $(NETCDFLIB)
 
-sst_ccsm: $(SSTCCSMOBJ)
+sst_ccsm: $(SHRMOD) $(SSTCCSMOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTCCSMOBJ) $(LIB) $(NETCDFLIB)
 
-sst_eh50m: $(SSTEH50OBJ)
+sst_eh50m: $(SHRMOD) $(SSTEH50OBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTEH50OBJ) $(LIB) $(NETCDFLIB)
 
-sst_ersst: $(SSTERAOBJ)
+sst_ersst: $(SHRMOD) $(SSTERAOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTERAOBJ) $(LIB) $(NETCDFLIB)
 
-sst_fvgcm: $(SSTFVGCOBJ)
+sst_fvgcm: $(SHRMOD) $(SSTFVGCOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTFVGCOBJ) $(LIB) $(NETCDFLIB)
 
-icbc: $(MODOBJ) $(ICBCOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(MODOBJ) $(ICBCOBJ) \
+icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMOD) $(MODOBJ) $(ICBCOBJ) \
                $(LIB) $(NETCDFLIB)
 
+mod_param.o: ../Terrain/mod_param.f90
+	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+            $(USCORING) -c -o $@ $<
+
+mod_constants.o: ../../Main/mod_constants.f90
+	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+            $(USCORING) -c -o $@ $<
 header_ICBC.o: header_ICBC.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 
