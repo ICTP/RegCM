@@ -52,6 +52,7 @@
       do i = 1 , ni
         do j = 1 , nj
           sc = (psrccm(i,j)+ptop)/100.
+          k1 = 0
           do k = 1 , kccm - 1
             if ( sc<=sccm(k+1) .and. sc>=sccm(k) ) k1 = k
           end do

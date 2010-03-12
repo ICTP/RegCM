@@ -17,7 +17,7 @@ SHRMOD = mod_param.o mod_constants.o
 MODOBJ = mod_ccsm.o mod_datenum.o mod_datewk.o mod_ecwcp.o mod_eh5om.o \
          mod_ein15.o mod_ein25.o mod_ein75.o mod_era40.o mod_erahi.o \
          mod_fvgcm.o mod_gfs11.o mod_grid.o mod_ingrid.o mod_mxncom.o \
-         mod_ncep.o mod_nest.o mod_var4.o mod_write.o
+         mod_ncep.o mod_nest.o mod_write.o
 ICBCOBJ = icbc.o bilinx.o cressmcr.o cressmdt.o fexist.o gradsctlb.o \
           gradsctl.o height.o height_o.o htsig.o htsig_o.o humid1.o \
           humid1fv.o humid1_o.o humid2.o humid2fv.o hydrost.o intgtb.o \
@@ -70,26 +70,25 @@ clean:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_ccsm.o: mod_ccsm.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
+mod_ccsm.o: mod_ccsm.f90 mod_param.o mod_grid.o mod_write.o
 mod_datenum.o: mod_datenum.f90
 mod_datewk.o: mod_datewk.f90
-mod_ecwcp.o: mod_ecwcp.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
-mod_eh5om.o: mod_eh5om.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
-mod_ein15.o: mod_ein15.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
-mod_ein25.o: mod_ein25.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
-mod_ein75.o: mod_ein75.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
-mod_era40.o: mod_era40.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
-mod_erahi.o: mod_erahi.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
-mod_fvgcm.o: mod_fvgcm.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
-mod_gfs11.o: mod_gfs11.f90 mod_param.o mod_grid.o mod_var4.o mod_write.o
+mod_ecwcp.o: mod_ecwcp.f90 mod_param.o mod_grid.o mod_write.o
+mod_eh5om.o: mod_eh5om.f90 mod_param.o mod_grid.o mod_write.o
+mod_ein15.o: mod_ein15.f90 mod_param.o mod_grid.o mod_write.o
+mod_ein25.o: mod_ein25.f90 mod_param.o mod_grid.o mod_write.o
+mod_ein75.o: mod_ein75.f90 mod_param.o mod_grid.o mod_write.o
+mod_era40.o: mod_era40.f90 mod_param.o mod_grid.o mod_write.o
+mod_erahi.o: mod_erahi.f90 mod_param.o mod_grid.o mod_write.o
+mod_fvgcm.o: mod_fvgcm.f90 mod_param.o mod_grid.o mod_write.o
+mod_gfs11.o: mod_gfs11.f90 mod_param.o mod_grid.o mod_write.o
 mod_grid.o: mod_grid.f90 mod_param.o
 mod_ingrid.o: mod_ingrid.f90 mod_param.o mod_grid.o
 mod_mxncom.o: mod_mxncom.f90
-mod_ncep.o: mod_ncep.f90 mod_param.o mod_grid.o mod_var4.o
-mod_nest.o: mod_nest.f90 mod_param.o mod_grid.o mod_var4.o mod_datenum.o \
+mod_ncep.o: mod_ncep.f90 mod_param.o mod_grid.o mod_write.o
+mod_nest.o: mod_nest.f90 mod_param.o mod_grid.o mod_write.o mod_datenum.o \
             mod_mxncom.o
-mod_var4.o: mod_var4.f90 mod_param.o
-mod_write.o: mod_write.f90
+mod_write.o: mod_param.o mod_write.f90
 bilinx.o: bilinx.f90
 cressmcr.o: mod_mxncom.o
 cressmdt.o: mod_mxncom.o

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine bilinx(fin,loni,lati,nloni,nlati,fout,lono,lato,iy,jx, &
+      subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx, &
                       & nflds)
       implicit none
 !

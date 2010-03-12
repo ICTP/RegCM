@@ -34,7 +34,6 @@
       real , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
       real , pointer :: uvar(:,:,:) , vvar(:,:,:)
       real , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
-      integer(2) , dimension(ilon,jlat,37) :: work
       real , dimension(jlat) :: glat
       real , dimension(ilon) :: glon
       real , dimension(klev) :: sigma1 , sigmar
@@ -43,7 +42,6 @@
 
       subroutine getein15(idate)
       use mod_grid
-      use mod_var4
       use mod_write
       implicit none
 !
@@ -146,7 +144,7 @@
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
-      call writef(u4,v4,t4,q4,ps4,ts4,ptop,jx,iy,kz,idate)
+      call writef(ptop,idate)
 !
       end subroutine getein15
 
@@ -172,6 +170,7 @@
       integer , dimension(10) :: icount , istart
       integer , dimension(5,4) :: inet6
       real(8) , dimension(5,4) :: xoff , xscl
+      integer(2) , dimension(ilon,jlat,37) :: work
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the

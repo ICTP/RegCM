@@ -94,7 +94,6 @@
       use mod_param
       use mod_datenum
       use mod_grid
-      use mod_write
       use mod_ingrid
       use mod_datewk
       use mod_ecwcp
@@ -295,7 +294,6 @@
           write (a50,99008) finame(4:) , ifile
           write (99,99003) a50
           imonold = imon
-          noutrec = 0
           ifile = ifile + 1
         end if
         if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then

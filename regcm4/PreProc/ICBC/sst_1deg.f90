@@ -219,12 +219,12 @@
 !         ******           PRINT OUT DATA AS A CHECK
           if ( nmo==1 ) call printl(sst,ilon,jlat)
  
-          call bilinx(sst,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
+          call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
               & sstmm(1,1)
  
-          if ( ssttyp=='OI2ST' ) call bilinx(ice,loni,lati,ilon,jlat,   &
-              & icemm,xlon,xlat,iy,jx,1)
+          if ( ssttyp=='OI2ST' ) call bilinx(ice,icemm,xlon,xlat,       &
+              & loni,lati,ilon,jlat,iy,jx,1)
           do j = 1 , jx
             do i = 1 , iy
               if ( lsmtyp=='BATS' .and. sstmm(i,j)<-5000. .and.         &
@@ -312,12 +312,12 @@
           write (*,*) idate*100 , idate0 , k
           call sst_wk(idate*100,idate0,k,ilon,jlat,sst)
  
-          call bilinx(sst,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
+          call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
               & sstmm(1,1)
           if ( ssttyp=='OI2WK') then
             call ice_wk(idate*100,idate0,k)
-            call bilinx(ice,loni,lati,ilon,jlat,icemm,xlon,xlat,iy,jx,1)
+            call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           end if 
 
           do j = 1 , jx

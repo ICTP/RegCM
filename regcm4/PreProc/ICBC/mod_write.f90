@@ -19,22 +19,27 @@
 
       module mod_write
 
+      use mod_param , only : jx , iy , kz
+
       implicit none
 
       integer :: noutrec
 
+      real , dimension(jx,iy) :: ps4 , ts4
+      real , dimension(jx,iy,kz) :: c4 , h4 , q4 , t4 , u4 , v4
+
+      data noutrec /0/
+
       contains
 
-      subroutine writef(u,v,t,q,px,ts,ptop,ni,nj,nk,idate)
+      subroutine writef(ptop,idate)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate , ni , nj , nk
+      integer :: idate
       real :: ptop
-      real , dimension(ni,nj) :: px , ts
-      real , dimension(ni,nj,nk) :: q , t , u , v
-      intent (in) idate , ni , nj , nk , ptop , px , q , t , ts , u , v
+      intent (in) idate , ptop
 !
 ! Local variables
 !
@@ -44,40 +49,38 @@
 !
 !     PRINT *,'WRITING OUTPUT:  IDATE= ',IDATE
       noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , ni , nj , nk
-      do k = nk , 1 , -1
+      write (64,rec=noutrec) idate , jx , iy , kz
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((u(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((v(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((t(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((q(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,iy)
       end do
       noutrec = noutrec + 1
-      write (64,rec=noutrec) ((px(i,j)+ptop,i=1,ni),j=1,nj)
+      write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jx),j=1,iy)
       noutrec = noutrec + 1
-      write (64,rec=noutrec) ts
+      write (64,rec=noutrec) ts4
 !
       end subroutine writef
 
-      subroutine writef2(u,v,t,q,px,ts,ptop,ni,nj,nk,idate)
+      subroutine writef2(ptop,idate)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate , ni , nj , nk
+      integer :: idate
       real :: ptop
-      real , dimension(ni,nj,nk) :: q , t , u , v
-      real , dimension(ni,nj) :: px , ts
-      intent (in) idate , ni , nj , nk , ptop , px , q , t , ts , u , v
+      intent (in) idate , ptop
 !
 ! Local variables
 !
@@ -87,44 +90,41 @@
 !
 !     PRINT *,'WRITING OUTPUT:  IDATE= ',IDATE
       noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , ni , nj , nk
-      do k = nk , 1 , -1
+      write (64,rec=noutrec) idate , jx , iy , kz
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((u(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((v(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((t(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((q(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,iy)
       end do
       noutrec = noutrec + 1
-      write (64,rec=noutrec) ((px(i,j)+ptop,i=1,ni),j=1,nj)
+      write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jx),j=1,iy)
       noutrec = noutrec + 1
-      write (64,rec=noutrec) ts
+      write (64,rec=noutrec) ts4
 !
       end subroutine writef2
 
-      subroutine writefs(u,v,t,q,px,ts,qs3,ti3,ts3,snow,ptop,ni,nj,nk,  &
-                       & idate,lsmtyp)
+      subroutine writefs(qs3,ti3,ts3,snow,ptop,idate,lsmtyp)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate , ni , nj , nk
+      integer :: idate
       character(4) :: lsmtyp
       real :: ptop
-      real , dimension(ni,nj) :: px , snow , ts
-      real , dimension(ni,nj,nk) :: q , t , u , v
-      real , dimension(ni,nj,4) :: qs3 , ti3 , ts3
-      intent (in) idate , lsmtyp , ni , nj , nk , ptop , px , q , qs3 , &
-                & snow , t , ti3 , ts , ts3 , u , v
+      real , dimension(jx,iy,4) :: qs3 , ti3 , ts3
+      real , dimension(jx,iy) :: snow
+      intent (in) idate , lsmtyp , ptop , snow , ti3 , ts3 , qs3
 !
 ! Local variables
 !
@@ -133,43 +133,43 @@
 !     THIS ROUTINE WRITES OUT AN INPUT FILE FOR THE RCM
 !
       noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , ni , nj , nk
-      do k = nk , 1 , -1
+      write (64,rec=noutrec) idate , jx , iy , kz
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((u(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((v(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((t(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = nk , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((q(i,j,k),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,iy)
       end do
       noutrec = noutrec + 1
-      write (64,rec=noutrec) ((px(i,j)+ptop,i=1,ni),j=1,nj)
+      write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jx),j=1,iy)
       noutrec = noutrec + 1
-      write (64,rec=noutrec) ts
+      write (64,rec=noutrec) ts4
  
       if ( lsmtyp=='USGS' ) then
         do k = 1 , 4
           noutrec = noutrec + 1
-          write (64,rec=noutrec) ((qs3(i,j,k),i=1,ni),j=1,nj)
+          write (64,rec=noutrec) ((qs3(i,j,k),i=1,jx),j=1,iy)
         end do
         do k = 1 , 4
           noutrec = noutrec + 1
-          write (64,rec=noutrec) ((ti3(i,j,k),i=1,ni),j=1,nj)
+          write (64,rec=noutrec) ((ti3(i,j,k),i=1,jx),j=1,iy)
         end do
         do k = 1 , 4
           noutrec = noutrec + 1
-          write (64,rec=noutrec) ((ts3(i,j,k),i=1,ni),j=1,nj)
+          write (64,rec=noutrec) ((ts3(i,j,k),i=1,jx),j=1,iy)
         end do
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((snow(i,j),i=1,ni),j=1,nj)
+        write (64,rec=noutrec) ((snow(i,j),i=1,jx),j=1,iy)
       end if
 !
       end subroutine writefs

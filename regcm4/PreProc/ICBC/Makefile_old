@@ -21,7 +21,7 @@ OBJ2 = ICBC.o
 all: SST SST_FVGCM SST_EH5OM SST_ERSST ICBC
 
 .f.o:
-	$(FC) -c $(FFLAGS) $(NETCDFINC) $*.f
+	$(FC) -c $(F90FLAGS) $(NETCDFINC) $*.f
 
 SST: $(OBJ1a)
 	$(LD) -o $@ $(OBJ1a) $(NETCDFLIB)

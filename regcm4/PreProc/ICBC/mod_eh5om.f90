@@ -58,7 +58,6 @@
       use netcdf
       use mod_grid
       use mod_write
-      use mod_var4
       implicit none
 !
 ! Dummy arguments
@@ -617,7 +616,7 @@
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
-      call writef(u4,v4,t4,q4,ps4,ts4,ptop,jx,iy,kz,idate)
+      call writef(ptop,idate)
       if ( ehso4 ) then
         if ( ssttyp=='EH5RF' ) then
           fnso4_rf = '../DATA/EH5OM/SO4/RF/T63L31_skg_'//               &

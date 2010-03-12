@@ -47,7 +47,7 @@
       integer :: it_base
       integer(2) , dimension(192,96) :: ivar
       real(8) :: offset , xscale
-      real , dimension(ilon,jlat) :: sst2
+      real , dimension(ilon,jlat) :: sst
       integer :: idate
       integer :: nnnend , nstart
       real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
@@ -365,15 +365,15 @@
         write (*,*) offset , xscale
         do j = 1 , jlat
           do i = 1 , ilon
-            sst2(i,j) = ivar(i,jlat+1-j)*xscale + offset
-            if ( sst2(i,j)<273.16 ) sst2(i,j) = -9999.
+            sst(i,j) = ivar(i,jlat+1-j)*xscale + offset
+            if ( sst(i,j)<273.16 ) sst(i,j) = -9999.
           end do
         end do
  
 !       ******           PRINT OUT DATA AS A CHECK
-        if ( nmo==1 ) call printl(sst2,ilon,jlat)
+        if ( nmo==1 ) call printl(sst,ilon,jlat)
  
-        call bilinx(sst2,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
+        call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID

@@ -129,7 +129,7 @@
 !       ******           PRINT OUT DATA AS A CHECK
         if ( nmo==1 ) call printl(sst,ilon,jlat)
  
-        call bilinx(sst,loni,lati,ilon,jlat,sstmm,xlon,xlat,iy,jx,1)
+        call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
