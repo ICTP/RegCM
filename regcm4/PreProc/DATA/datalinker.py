@@ -34,7 +34,7 @@ from optparse import OptionParser
 def cleandir(verbose=False):
     """This function remove all directories in the current directory"""
     for filename in os.listdir(os.getcwd()):
-        if os.path.isdir(filename):
+        if os.path.isdir(filename) and filename != ".svn":
             if verbose: sys.stdout.write("Removing directory %s\n" % filename)
             shutil.rmtree(filename)
 
