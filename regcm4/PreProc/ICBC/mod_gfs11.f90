@@ -21,6 +21,8 @@
       use mod_param
       implicit none
 
+      private
+
       integer , parameter :: klev = 26 , jlat = 181 , ilon = 360
 
       real , target , dimension(ilon,jlat,klev*3) :: b2
@@ -37,6 +39,8 @@
       real , dimension(ilon) :: glon
       real , dimension(klev) :: sigma1 , sigmar
 
+      public :: getgfs11 , headergfs
+
       contains
 
       subroutine getgfs11(idate)
@@ -44,20 +48,12 @@
       use mod_write
       implicit none
 !
-! PARAMETER definitions
-!
-      real , parameter :: ptop = 5.0 , clat = 50.00 , clon = 13.00 ,    &
-                        & plat = clat , plon = clon
-      integer , parameter :: igrads = 1 , ibigend = 1
-!
 ! Dummy arguments
 !
       integer :: idate
 !
 ! Local variables
 !
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
-                    &            ice1 , ice2
       character(3) , dimension(12) :: chmon
       character(17) :: finm
       integer :: i , i2 , ii , j , j2 , k , month , nday , nhour ,      &
@@ -75,17 +71,6 @@
           &'2006' , '2007' , '2008'/
       data chmon/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' , 'JUL' ,&
           &'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
-!
-      u3 => d3(:,:,1:klev)
-      v3 => d3(:,:,klev+1:2*klev)
-      t3 => b3(:,:,1:klev)
-      h3 => b3(:,:,klev+1:2*klev)
-      q3 => b3(:,:,2*klev+1:3*klev)
-      uvar => d2(:,:,1:klev)
-      vvar => d2(:,:,klev+1:2*klev)
-      tvar => b2(:,:,1:klev)
-      hvar => b2(:,:,klev+1:2*klev)
-      rhvar => b2(:,:,2*klev+1:3*klev)
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
@@ -396,6 +381,19 @@
         sigma1(k) = sigmar(kr)
       end do
  
+!     Set up pointers
+
+      u3 => d3(:,:,1:klev)
+      v3 => d3(:,:,klev+1:2*klev)
+      t3 => b3(:,:,1:klev)
+      h3 => b3(:,:,klev+1:2*klev)
+      q3 => b3(:,:,2*klev+1:3*klev)
+      uvar => d2(:,:,1:klev)
+      vvar => d2(:,:,klev+1:2*klev)
+      tvar => b2(:,:,1:klev)
+      hvar => b2(:,:,klev+1:2*klev)
+      rhvar => b2(:,:,2*klev+1:3*klev)
+!
       end subroutine headergfs
 
       end module mod_gfs11

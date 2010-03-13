@@ -23,6 +23,8 @@
 
       implicit none
 
+      private
+
       integer , parameter :: iii = 1 , jjj = 1
       integer , parameter :: klev = 13 , jlat = 73 , ilon = 144
 
@@ -43,6 +45,7 @@
       real , pointer :: uvar(:,:,:) , vvar(:,:,:)
       real , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
+      public :: getncep , headernc
       contains
 
       subroutine getncep(idate)
@@ -57,21 +60,9 @@
 !
 ! Local variables
 !
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
-              &                  ice1 , ice2
       integer :: nmop , nyrp
       real :: wt
 
-      u3 => d3(:,:,1:klev)
-      v3 => d3(:,:,klev+1:2*klev)
-      t3 => b3(:,:,1:klev)
-      h3 => b3(:,:,klev+1:2*klev)
-      q3 => b3(:,:,2*klev+1:3*klev)
-      uvar => d2(:,:,1:klev)
-      vvar => d2(:,:,klev+1:2*klev)
-      tvar => b2(:,:,1:klev)
-      hvar => b2(:,:,klev+1:2*klev)
-      rhvar => b2(:,:,2*klev+1:3*klev)
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
@@ -385,8 +376,6 @@
 !
 ! Local variables
 !
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
-                                 ice1 , ice2
       integer :: nmop , nyrp
       real :: wt
 
@@ -810,5 +799,19 @@
         sigma1(k) = sigmar(kr)
       end do
  
+!     Set up pointers
+
+      u3 => d3(:,:,1:klev)
+      v3 => d3(:,:,klev+1:2*klev)
+      t3 => b3(:,:,1:klev)
+      h3 => b3(:,:,klev+1:2*klev)
+      q3 => b3(:,:,2*klev+1:3*klev)
+      uvar => d2(:,:,1:klev)
+      vvar => d2(:,:,klev+1:2*klev)
+      tvar => b2(:,:,1:klev)
+      hvar => b2(:,:,klev+1:2*klev)
+      rhvar => b2(:,:,2*klev+1:3*klev)
+
       end subroutine headernc
+
       end module mod_ncep

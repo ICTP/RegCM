@@ -22,6 +22,8 @@
 
       implicit none
 
+      private
+
       integer , parameter :: np = 15
 
       integer :: nrec
@@ -56,6 +58,8 @@
 
       real :: clat_in , clon_in , plat_in , plon_in , ptop_in
 
+      public :: get_nest , headnest
+
       contains
 
       subroutine get_nest(idate,ncr)
@@ -75,8 +79,6 @@
       character(14) :: fillin
       integer :: i , idatek , j , k , mn0 , mn1 , nd0 , nd1 , nh0 ,     &
                & nh1 , nmop , ny0 , ny1 , nyrp
-      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
-                                 ice2
       real , dimension(jx,iy) :: d1xa , d1xb , d1xc , d1xd , d1xt
       integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
                                   & j1dr , j1ul , j1ur
@@ -90,18 +92,6 @@
         write (*,*) 'Called get_nest before headnest !'
         stop
       end if
-      tp => b2(:,:,1:np)
-      qp => b2(:,:,np+1:2*np)
-      cp => b2(:,:,2*np+1:3*np)
-      hp => b2(:,:,3*np+1:4*np)
-      up => d2(:,:,1:np)
-      vp => d2(:,:,np+1:2*np)
-      t3 => b3(:,:,1:np)
-      q3 => b3(:,:,np+1:2*np)
-      c3 => b3(:,:,2*np+1:3*np)
-      h3 => b3(:,:,3*np+1:4*np)
-      u3 => d3(:,:,1:np)
-      v3 => d3(:,:,np+1:2*np)
 !
       if ( idate==idate0 ) then
         write (fillin,99001) idate
@@ -558,7 +548,22 @@
       imxmn = 0
       lcross = 0
       ldot = 0
+
+!     Set up pointers
  
+      tp => b2(:,:,1:np)
+      qp => b2(:,:,np+1:2*np)
+      cp => b2(:,:,2*np+1:3*np)
+      hp => b2(:,:,3*np+1:4*np)
+      up => d2(:,:,1:np)
+      vp => d2(:,:,np+1:2*np)
+      t3 => b3(:,:,1:np)
+      q3 => b3(:,:,np+1:2*np)
+      c3 => b3(:,:,2*np+1:3*np)
+      h3 => b3(:,:,3*np+1:4*np)
+      u3 => d3(:,:,1:np)
+      v3 => d3(:,:,np+1:2*np)
+
       end subroutine headnest
 
       end module mod_nest

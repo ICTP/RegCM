@@ -23,6 +23,8 @@
 
       implicit none
 
+      private
+
       integer , parameter :: klev = 23 , jlat = 121 , ilon = 240
 
       real , target , dimension(ilon,jlat,klev*3) :: b2
@@ -39,12 +41,11 @@
       real , dimension(ilon) :: glon
       real , dimension(klev) :: sigma1 , sigmar
 
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
-                &                ice1 , ice2
-
       integer , dimension(5,4) :: inet5
       integer , dimension(5,4) :: ivar5
       real(8) , dimension(5,4) :: xoff , xscl
+
+      public :: getein15 , headerein15
 
       contains
 

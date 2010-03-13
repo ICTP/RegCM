@@ -22,6 +22,8 @@
 
       implicit none
 
+      private
+
       integer , parameter :: klev = 23 , jlat = 241 , ilon = 480
 
       real , target , dimension(ilon,jlat,klev*3) :: b2
@@ -38,6 +40,8 @@
       real , dimension(ilon) :: glon
       real , dimension(klev) :: sigma1 , sigmar
 
+      public :: getein75 , headerein75
+
       contains
 
       subroutine getein75(idate)
@@ -51,21 +55,8 @@
 !
 ! Local variables
 !
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
-                 &               ice1 , ice2
       integer :: nmop , nyrp
       real :: wt
-!
-      u3 => d3(:,:,1:klev)
-      v3 => d3(:,:,klev+1:2*klev)
-      t3 => b3(:,:,1:klev)
-      h3 => b3(:,:,klev+1:2*klev)
-      q3 => b3(:,:,2*klev+1:3*klev)
-      uvar => d2(:,:,1:klev)
-      vvar => d2(:,:,klev+1:2*klev)
-      tvar => b2(:,:,1:klev)
-      hvar => b2(:,:,klev+1:2*klev)
-      rhvar => b2(:,:,2*klev+1:3*klev)
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
@@ -539,6 +530,19 @@
         sigma1(k) = sigmar(kr)
       end do
  
+!     Set up pointers
+
+      u3 => d3(:,:,1:klev)
+      v3 => d3(:,:,klev+1:2*klev)
+      t3 => b3(:,:,1:klev)
+      h3 => b3(:,:,klev+1:2*klev)
+      q3 => b3(:,:,2*klev+1:3*klev)
+      uvar => d2(:,:,1:klev)
+      vvar => d2(:,:,klev+1:2*klev)
+      tvar => b2(:,:,1:klev)
+      hvar => b2(:,:,klev+1:2*klev)
+      rhvar => b2(:,:,2*klev+1:3*klev)
+
       end subroutine headerein75
 
       end module mod_ein75

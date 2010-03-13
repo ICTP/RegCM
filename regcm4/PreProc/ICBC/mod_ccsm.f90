@@ -125,6 +125,8 @@
 
       implicit none
 
+      private
+
       ! CAM58
       integer , parameter :: ilon = 256 , jlat = 128
       ! CAM42
@@ -156,8 +158,12 @@
       real , dimension(jlat) :: glat
       real , dimension(ilon) :: glon
       real , dimension(npl) :: pplev , sigma1 , sigmar
-      real , dimension(jx,iy) :: b3pd
-      real :: psref
+
+      real , dimension(jx,iy,npl) :: dum1
+      real , dimension(jx,iy,npl,2) :: dum2
+
+      public :: get_cam42 , head_cam42
+      public :: get_cam85 , head_cam85
 
       contains
 
@@ -179,27 +185,13 @@
         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
                 & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
                 & istatus
-        real , dimension(jx,iy,npl) :: dum1
-        real , dimension(jx,iy,npl,2) :: dum2
         real :: wt
-        real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za
         character(38) :: pathaddname
         logical :: there
         character(4) :: varname
         real , allocatable , dimension(:,:) :: work
 
         data varname/'PHIS'/
- 
-        u3 => d3(:,:,1:npl)
-        v3 => d3(:,:,npl+1:2*npl)
-        t3 => b3(:,:,1:npl)
-        h3 => b3(:,:,npl+1:2*npl)
-        q3 => b3(:,:,2*npl+1:3*npl)
-        up => d2(1:ilonh,1:jlath,1:npl)
-        vp => d2(1:ilonh,1:jlath,npl+1:2*npl)
-        tp => b2(1:ilonh,1:jlath,1:npl)
-        hp => b2(1:ilonh,1:jlath,npl+1:2*npl)
-        qp => b2(1:ilonh,1:jlath,2*npl+1:3*npl)
  
         call cam42(idate,idate1,glat)
 
@@ -390,7 +382,6 @@
           kr = npl - k + 1
           sigma1(k) = sigmar(kr)
         end do
-        psref = 1000.
  
 !       Ak is acatually Ak*Po
  
@@ -450,6 +441,19 @@
         bk(26) = 0.9851122
         bk(27) = 1.
  
+!       Set up pointers
+ 
+        u3 => d3(:,:,1:npl)
+        v3 => d3(:,:,npl+1:2*npl)
+        t3 => b3(:,:,1:npl)
+        h3 => b3(:,:,npl+1:2*npl)
+        q3 => b3(:,:,2*npl+1:3*npl)
+        up => d2(1:ilonh,1:jlath,1:npl)
+        vp => d2(1:ilonh,1:jlath,npl+1:2*npl)
+        tp => b2(1:ilonh,1:jlath,1:npl)
+        hp => b2(1:ilonh,1:jlath,npl+1:2*npl)
+        qp => b2(1:ilonh,1:jlath,2*npl+1:3*npl)
+
       end subroutine head_cam42
 !
 !-----------------------------------------------------------------------
@@ -793,27 +797,13 @@
       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
                & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
                & istatus
-      real , dimension(jx,iy,npl) :: dum1
-      real , dimension(jx,iy,npl,2) :: dum2
       real :: wt
-      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za
       character(38) :: pathaddname
       logical :: there
       character(4) :: varname
       real , allocatable , dimension(:,:) :: work
 !
       data varname/'PHIS'/
- 
-      u3 => d3(:,:,1:npl)
-      v3 => d3(:,:,npl+1:2*npl)
-      t3 => b3(:,:,1:npl)
-      h3 => b3(:,:,npl+1:2*npl)
-      q3 => b3(:,:,2*npl+1:3*npl)
-      up => d2(1:ilon,1:jlat,1:npl)
-      vp => d2(1:ilon,1:jlat,npl+1:2*npl)
-      tp => b2(1:ilon,1:jlat,1:npl)
-      hp => b2(1:ilon,1:jlat,npl+1:2*npl)
-      qp => b2(1:ilon,1:jlat,2*npl+1:3*npl)
  
       call cam85(idate,idate1,glat)
 
@@ -1008,7 +998,6 @@
         kr = npl - k + 1
         sigma1(k) = sigmar(kr)
       end do
-      psref = 1000.
  
 !     Ak is acatually Ak*Po
  
@@ -1067,6 +1056,19 @@
       bk(25) = 0.9534761
       bk(26) = 0.9851122
       bk(27) = 1.
+ 
+!     Set up pointers
+
+      u3 => d3(:,:,1:npl)
+      v3 => d3(:,:,npl+1:2*npl)
+      t3 => b3(:,:,1:npl)
+      h3 => b3(:,:,npl+1:2*npl)
+      q3 => b3(:,:,2*npl+1:3*npl)
+      up => d2(1:ilon,1:jlat,1:npl)
+      vp => d2(1:ilon,1:jlat,npl+1:2*npl)
+      tp => b2(1:ilon,1:jlat,1:npl)
+      hp => b2(1:ilon,1:jlat,npl+1:2*npl)
+      qp => b2(1:ilon,1:jlat,2*npl+1:3*npl)
  
       end subroutine head_cam85
 !

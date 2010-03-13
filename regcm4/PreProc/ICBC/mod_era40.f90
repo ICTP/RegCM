@@ -22,6 +22,8 @@
 
       implicit none
 
+      private
+
       integer , parameter :: klev = 23 , jlat = 73 , ilon = 144
 
       real , target , dimension(ilon,jlat,klev*3) :: b2
@@ -46,6 +48,8 @@
       real , dimension(ilon) :: glon
       real , dimension(klev) :: sigma1 , sigmar
 
+      public :: getera40 , headerera
+
       contains
 
       subroutine getera40(idate)
@@ -59,29 +63,8 @@
 !
 ! Local variables
 !
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
-                          &      ice1 , ice2
       integer :: nmop , nyrp
       real :: wt
-!
-      u3 => d3(:,:,1:klev)
-      v3 => d3(:,:,klev+1:2*klev)
-      t3 => b3(:,:,1:klev)
-      h3 => b3(:,:,klev+1:2*klev)
-      q3 => b3(:,:,2*klev+1:3*klev)
-      qs3 => s3(:,:,1:4)
-      ti3 => s3(:,:,5:8)
-      ts3 => s3(:,:,9:12)
-      snow => s3(:,:,13)
-      uvar => d2(:,:,1:klev)
-      vvar => d2(:,:,klev+1:2*klev)
-      tvar => b2(:,:,1:klev)
-      hvar => b2(:,:,klev+1:2*klev)
-      rhvar => b2(:,:,2*klev+1:3*klev)
-      qsoil => s2(:,:,1:4)
-      tsice => s2(:,:,5:8)
-      tsoil => s2(:,:,9:12)
-      snw => s2(:,:,13)
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
@@ -648,6 +631,27 @@
         sigma1(k) = sigmar(kr)
       end do
  
+!     Set up pointers
+
+      u3 => d3(:,:,1:klev)
+      v3 => d3(:,:,klev+1:2*klev)
+      t3 => b3(:,:,1:klev)
+      h3 => b3(:,:,klev+1:2*klev)
+      q3 => b3(:,:,2*klev+1:3*klev)
+      qs3 => s3(:,:,1:4)
+      ti3 => s3(:,:,5:8)
+      ts3 => s3(:,:,9:12)
+      snow => s3(:,:,13)
+      uvar => d2(:,:,1:klev)
+      vvar => d2(:,:,klev+1:2*klev)
+      tvar => b2(:,:,1:klev)
+      hvar => b2(:,:,klev+1:2*klev)
+      rhvar => b2(:,:,2*klev+1:3*klev)
+      qsoil => s2(:,:,1:4)
+      tsice => s2(:,:,5:8)
+      tsoil => s2(:,:,9:12)
+      snw => s2(:,:,13)
+
       end subroutine headerera
 
       end module mod_era40

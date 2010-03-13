@@ -21,6 +21,8 @@
       use mod_param
       implicit none
 
+      private
+
       integer , parameter :: nlev2 = 18 , nlat2 = 181 , nlon2 = 288
 
       real , dimension(nlev2+1) :: ak , bk
@@ -47,6 +49,8 @@
       real , pointer , dimension(:,:,:) :: t3 , q3 , h3
       real , pointer , dimension(:,:,:) :: u3 , v3
 
+      public :: getfvgcm , headerfv
+
       contains
 
       subroutine getfvgcm(idate)
@@ -67,13 +71,10 @@
                & nhour , nmop , nrec , numx , numy , nyear , nyrp
       integer(2) , dimension(288,181) :: itmp
       real(8) :: offset , xscale
-      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
-               &                 ice2
       real , dimension(288,181) :: temp
       logical :: there
       real :: wt
       character(4) , dimension(30) :: yr_a2 , yr_rf
-!
 !
       data fn_rf/'FV_RF'/ , fn_a2/'FV_A2'/
       data pn_rf/'PS_RF'/ , pn_a2/'PS_A2'/
@@ -90,21 +91,6 @@
       data chmon/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' , 'JUL' ,&
           &'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
 !
-      ps2 => bb(:,:,1)
-      t2 => bb(:,:,2:nlev2+1)
-      q2 => bb(:,:,nlev2+2:2*nlev2+1)
-      u2 => bb(:,:,2*nlev2+2:3*nlev2+1)
-      v2 => bb(:,:,3*nlev2+2:4*nlev2+1)
-      tp => b2(:,:,1:nlev2)
-      qp => b2(:,:,nlev2+1:2*nlev2)
-      hp => b2(:,:,2*nlev2+1:3*nlev2)
-      up => d2(:,:,1:nlev2)
-      vp => d2(:,:,nlev2+1:2*nlev2)
-      t3 => b3(:,:,1:nlev2)
-      q3 => b3(:,:,nlev2+1:2*nlev2)
-      h3 => b3(:,:,2*nlev2+1:3*nlev2)
-      u3 => d3(:,:,1:nlev2)
-      v3 => d3(:,:,nlev2+1:2*nlev2)
 !
       if ( idate==idate1 ) then
         numx = nint((lon1-lon0)/1.25) + 1
@@ -487,6 +473,24 @@
       bk(18) = 0.9851222
       bk(19) = 1.0
  
+!     Set up pointers
+
+      ps2 => bb(:,:,1)
+      t2 => bb(:,:,2:nlev2+1)
+      q2 => bb(:,:,nlev2+2:2*nlev2+1)
+      u2 => bb(:,:,2*nlev2+2:3*nlev2+1)
+      v2 => bb(:,:,3*nlev2+2:4*nlev2+1)
+      tp => b2(:,:,1:nlev2)
+      qp => b2(:,:,nlev2+1:2*nlev2)
+      hp => b2(:,:,2*nlev2+1:3*nlev2)
+      up => d2(:,:,1:nlev2)
+      vp => d2(:,:,nlev2+1:2*nlev2)
+      t3 => b3(:,:,1:nlev2)
+      q3 => b3(:,:,nlev2+1:2*nlev2)
+      h3 => b3(:,:,2*nlev2+1:3*nlev2)
+      u3 => d3(:,:,1:nlev2)
+      v3 => d3(:,:,nlev2+1:2*nlev2)
+
       end subroutine headerfv
 
       end module mod_fvgcm

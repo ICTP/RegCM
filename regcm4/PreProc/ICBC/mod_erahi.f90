@@ -21,6 +21,8 @@
       use mod_param
       implicit none
 
+      private
+
       integer , parameter :: nlevs = 60 , nlats = 160 , nlons = 320 ,   &
                            & nlev2 = 18
 
@@ -45,6 +47,8 @@
       real , pointer , dimension(:,:,:) :: t3 , q3 , h3
       real , pointer , dimension(:,:,:) :: u3 , v3
 
+      public :: geterahi , headerehi
+
       contains
 
       subroutine geterahi(idate)
@@ -60,20 +64,7 @@
 !
       character(14) :: finame
       integer :: i , j , k , nmop , nrec , nyrp
-      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
-                                 ice2
       real :: slonmax , slonmin , wt , xlonmax , xlonmin
-!
-      tp => b2(:,:,1:nlev2)
-      qp => b2(:,:,nlev2+1:2*nlev2)
-      hp => b2(:,:,2*nlev2+1:3*nlev2)
-      up => d2(:,:,1:nlev2)
-      vp => d2(:,:,nlev2+1:2*nlev2)
-      t3 => b3(:,:,1:nlev2)
-      q3 => b3(:,:,nlev2+1:2*nlev2)
-      h3 => b3(:,:,2*nlev2+1:3*nlev2)
-      u3 => d3(:,:,1:nlev2)
-      v3 => d3(:,:,nlev2+1:2*nlev2)
 !
       if ( idate==idate1 ) then
                   !,lrec
@@ -557,6 +548,19 @@
       bk(60) = 0.99763012
       bk(61) = 1.00000000
  
+!     Set up pointers
+
+      tp => b2(:,:,1:nlev2)
+      qp => b2(:,:,nlev2+1:2*nlev2)
+      hp => b2(:,:,2*nlev2+1:3*nlev2)
+      up => d2(:,:,1:nlev2)
+      vp => d2(:,:,nlev2+1:2*nlev2)
+      t3 => b3(:,:,1:nlev2)
+      q3 => b3(:,:,nlev2+1:2*nlev2)
+      h3 => b3(:,:,2*nlev2+1:3*nlev2)
+      u3 => d3(:,:,1:nlev2)
+      v3 => d3(:,:,nlev2+1:2*nlev2)
+
       end subroutine headerehi
 
       end module mod_erahi

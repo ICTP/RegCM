@@ -21,6 +21,8 @@
       use mod_param
       implicit none
 
+      private
+
       integer , parameter :: klev = 17 , jlat = 96 , ilon = 192
       integer , parameter :: mlev = 31
 
@@ -52,6 +54,8 @@
 
       integer(4) , dimension(10) :: icount , istart
 
+      public :: geteh5om , headermpi
+
       contains
 
       subroutine geteh5om(idate)
@@ -66,7 +70,6 @@
 !
 ! Local variables
 !
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , tlayer , za
       character(3) , dimension(12) :: chmon
       character(21) :: finm , psnm
       character(44) :: fnso4_a1b
@@ -112,17 +115,6 @@
          & '2097' , '2098' , '2099' , '2100'/
       data chmon/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' , 'JUL' ,&
           &'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
-!
-      u3 => d3(:,:,1:klev)
-      v3 => d3(:,:,klev+1:2*klev)
-      t3 => b3(:,:,1:klev)
-      h3 => b3(:,:,klev+1:2*klev)
-      q3 => b3(:,:,2*klev+1:3*klev)
-      uvar => d2(:,:,1:klev)
-      vvar => d2(:,:,klev+1:2*klev)
-      tvar => b2(:,:,1:klev)
-      hvar => b2(:,:,klev+1:2*klev)
-      rhvar => b2(:,:,2*klev+1:3*klev)
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
@@ -1472,6 +1464,19 @@
         close (30)
       end if
  
+!     Set up pointers
+
+      u3 => d3(:,:,1:klev)
+      v3 => d3(:,:,klev+1:2*klev)
+      t3 => b3(:,:,1:klev)
+      h3 => b3(:,:,klev+1:2*klev)
+      q3 => b3(:,:,2*klev+1:3*klev)
+      uvar => d2(:,:,1:klev)
+      vvar => d2(:,:,klev+1:2*klev)
+      tvar => b2(:,:,1:klev)
+      hvar => b2(:,:,klev+1:2*klev)
+      rhvar => b2(:,:,2*klev+1:3*klev)
+
       end subroutine headermpi
 
       end module mod_eh5om

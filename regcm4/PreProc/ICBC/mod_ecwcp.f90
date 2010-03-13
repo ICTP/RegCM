@@ -21,25 +21,27 @@
       use mod_param
       implicit none
 
-      integer , parameter :: nlev1 = 15 , nlat1 = 64 , nlon1 = 128
+      private
 
-      real , dimension(nlat1) :: hlat
-      real , dimension(nlon1) :: hlon
+      integer , parameter :: nlev1 = 15 , jlat = 64 , ilon = 128
+
+      real , dimension(jlat) :: hlat
+      real , dimension(ilon) :: hlon
       real , dimension(nlev1) :: sigma1 , sigmar
 
-      real , dimension(nlon1,nlat1,nlev1) :: w1
-      real , dimension(jx,iy) :: b3pd
-      real , dimension(jx,iy,nlev1) :: w3
+      real , dimension(ilon,jlat,nlev1) :: w1
 
-      real , target , dimension(nlon1,nlat1,nlev1*3) :: b2
-      real , target , dimension(nlon1,nlat1,nlev1*2) :: d2
+      real , target , dimension(ilon,jlat,nlev1*3) :: b2
+      real , target , dimension(ilon,jlat,nlev1*2) :: d2
       real , target , dimension(jx,iy,nlev1*3) :: b3
       real , target , dimension(jx,iy,nlev1*2) :: d3
 
-      real , pointer , dimension(:,:,:) :: t1 , q1 , z1
+      real , pointer , dimension(:,:,:) :: t1 , q1 , h1
       real , pointer , dimension(:,:,:) :: u1 , v1
       real , pointer , dimension(:,:,:) :: t3 , q3 , h3
       real , pointer , dimension(:,:,:) :: u3 , v3
+
+      public :: getecwcp , headerec
 
       contains
 
@@ -57,11 +59,8 @@
       character(12) , dimension(12,5) :: finm
       integer :: i , j , k , month , nday , nhour , nmop , nrec ,       &
                & nyear , nyrp
-      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
-               & ice2
       logical :: there
       real :: wt
-!
 !
       data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,      &
           &'ECT421993APR' , 'ECT421993MAY' , 'ECT421993JUN' ,           &
@@ -97,32 +96,32 @@
         stop
       end if
       open (63,file='../DATA/ECWCRP/'//finm(month,nyear-1992),          &
-           &form='unformatted',recl=nlon1*nlat1*ibyte,access='direct')
+           &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
       nrec = ((nday-1)*4+nhour/6)*(nlev1*6+1)
       nrec = nrec + 1
       do k = 1 , nlev1
         nrec = nrec + 1
-        read (63,rec=nrec) ((z1(i,j,k),i=1,nlon1),j=1,nlat1)
+        read (63,rec=nrec) ((h1(i,j,k),i=1,ilon),j=1,jlat)
       end do
       do k = 1 , nlev1
         nrec = nrec + 1
-        read (63,rec=nrec) ((t1(i,j,k),i=1,nlon1),j=1,nlat1)
+        read (63,rec=nrec) ((t1(i,j,k),i=1,ilon),j=1,jlat)
       end do
       do k = 1 , nlev1
         nrec = nrec + 1
-        read (63,rec=nrec) ((u1(i,j,k),i=1,nlon1),j=1,nlat1)
+        read (63,rec=nrec) ((u1(i,j,k),i=1,ilon),j=1,jlat)
       end do
       do k = 1 , nlev1
         nrec = nrec + 1
-        read (63,rec=nrec) ((v1(i,j,k),i=1,nlon1),j=1,nlat1)
+        read (63,rec=nrec) ((v1(i,j,k),i=1,ilon),j=1,jlat)
       end do
       do k = 1 , nlev1
         nrec = nrec + 1
-        read (63,rec=nrec) ((w1(i,j,k),i=1,nlon1),j=1,nlat1)
+        read (63,rec=nrec) ((w1(i,j,k),i=1,ilon),j=1,jlat)
       end do
       do k = 1 , nlev1
         nrec = nrec + 1
-        read (63,rec=nrec) ((q1(i,j,k),i=1,nlon1),j=1,nlat1)
+        read (63,rec=nrec) ((q1(i,j,k),i=1,ilon),j=1,jlat)
       end do
       write (*,*) 'READ IN fields at DATE:' , idate , ' from ' ,        &
                 & finm(month,nyear-1992)
@@ -130,8 +129,8 @@
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-      call bilinx2(b3,b2,xlon,xlat,hlon,hlat,nlon1,nlat1,jx,iy,nlev1*3)
-      call bilinx2(d3,d2,dlon,dlat,hlon,hlat,nlon1,nlat1,jx,iy,nlev1*2)
+      call bilinx2(b3,b2,xlon,xlat,hlon,hlat,ilon,jlat,jx,iy,nlev1*3)
+      call bilinx2(d3,d2,dlon,dlat,hlon,hlat,ilon,jlat,jx,iy,nlev1*2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
@@ -264,7 +263,7 @@
       hlat(62) = 82.3129
       hlat(63) = 85.0965
       hlat(64) = 87.8638
-      do i = 1 , nlon1
+      do i = 1 , ilon
         hlon(i) = float(i-1)*2.8125
       end do
 !
@@ -293,7 +292,20 @@
         kr = nlev1 - k + 1
         sigma1(k) = sigmar(kr)
       end do
-!
+
+!       Set up pointers
+
+      u3 => d3(:,:,1:nlev1)
+      v3 => d3(:,:,nlev1+1:2*nlev1)
+      t3 => b3(:,:,1:nlev1)
+      h3 => b3(:,:,nlev1+1:2*nlev1)
+      q3 => b3(:,:,2*nlev1+1:3*nlev1)
+      u1 => d2(:,:,1:nlev1)
+      v1 => d2(:,:,nlev1+1:2*nlev1)
+      t1 => b2(:,:,1:nlev1)
+      h1 => b2(:,:,nlev1+1:2*nlev1)
+      q1 => b2(:,:,2*nlev1+1:3*nlev1)
+
       end subroutine headerec
 
       end module mod_ecwcp

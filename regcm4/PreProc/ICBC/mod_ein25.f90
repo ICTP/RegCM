@@ -21,6 +21,8 @@
       use mod_param
       implicit none
 
+      private
+
       integer , parameter :: klev = 23 , jlat = 73 , ilon = 144
 
       real , target , dimension(ilon,jlat,klev*3) :: b2
@@ -37,6 +39,11 @@
       real , dimension(ilon) :: glon
       real , dimension(klev) :: sigma1 , sigmar
 
+      integer , dimension(5,4) :: inet6
+      real(8) , dimension(5,4) :: xoff , xscl
+
+      public :: getein25 , headerein25
+
       contains
 
       subroutine getein25(idate)
@@ -50,21 +57,8 @@
 !
 ! Local variables
 !
-      real , dimension(jx,iy) :: b3pd , pa , sst1 , sst2 , tlayer , za ,&
-                                 ice1 , ice2
       integer :: nmop , nyrp
       real :: wt
-!
-      u3 => d3(:,:,1:klev)
-      v3 => d3(:,:,klev+1:2*klev)
-      t3 => b3(:,:,1:klev)
-      h3 => b3(:,:,klev+1:2*klev)
-      q3 => b3(:,:,2*klev+1:3*klev)
-      uvar => d2(:,:,1:klev)
-      vvar => d2(:,:,klev+1:2*klev)
-      tvar => b2(:,:,1:klev)
-      hvar => b2(:,:,klev+1:2*klev)
-      rhvar => b2(:,:,2*klev+1:3*klev)
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
@@ -163,8 +157,6 @@
       character(1) , dimension(5) :: varname
       real(8) :: xadd , xscale
       integer , dimension(10) :: icount , istart
-      integer , dimension(5,4) :: inet6
-      real(8) , dimension(5,4) :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -535,6 +527,19 @@
         sigma1(k) = sigmar(kr)
       end do
  
+!     Set up pointers
+
+      u3 => d3(:,:,1:klev)
+      v3 => d3(:,:,klev+1:2*klev)
+      t3 => b3(:,:,1:klev)
+      h3 => b3(:,:,klev+1:2*klev)
+      q3 => b3(:,:,2*klev+1:3*klev)
+      uvar => d2(:,:,1:klev)
+      vvar => d2(:,:,klev+1:2*klev)
+      tvar => b2(:,:,1:klev)
+      hvar => b2(:,:,klev+1:2*klev)
+      rhvar => b2(:,:,2*klev+1:3*klev)
+!
       end subroutine headerein25
 
       end module mod_ein25
