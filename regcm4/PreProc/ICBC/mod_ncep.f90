@@ -45,7 +45,8 @@
       real , pointer :: uvar(:,:,:) , vvar(:,:,:)
       real , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-      public :: getncep , headernc
+      public :: getncep , getncepw , headernc
+
       contains
 
       subroutine getncep(idate)
@@ -379,16 +380,6 @@
       integer :: nmop , nyrp
       real :: wt
 
-      u3 => d3(:,:,1:klev)
-      v3 => d3(:,:,klev+1:2*klev)
-      t3 => b3(:,:,1:klev)
-      h3 => b3(:,:,klev+1:2*klev)
-      q3 => b3(:,:,2*klev+1:3*klev)
-      uvar => d2(:,:,1:klev)
-      vvar => d2(:,:,klev+1:2*klev)
-      tvar => b2(:,:,1:klev)
-      hvar => b2(:,:,klev+1:2*klev)
-      rhvar => b2(:,:,2*klev+1:3*klev)
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
