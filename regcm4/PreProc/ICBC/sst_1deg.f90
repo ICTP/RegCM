@@ -72,7 +72,7 @@
           stop
         end if
         open (11,file='../DATA/SST/GISST_194712_200209',                &
-             &form='unformatted',recl=360*180*ibyte,access='direct',    &
+             &form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
             & status='old',err=100)
       else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.               &
             &   ssttyp=='OI2ST' ) then
@@ -893,8 +893,8 @@
         istatus = nf90_get_att(inet,5,'add_offset',xadd)
         istart(1) = 1
         istart(2) = 1
-        icount(1) = 360
-        icount(2) = 180
+        icount(1) = ilon
+        icount(2) = jlat
         do n = 4 , 10
           istart(n) = 0
           icount(n) = 0
@@ -979,8 +979,8 @@
         istatus = nf90_get_att(inet,5,'add_offset',xadd)
         istart(1) = 1
         istart(2) = 1
-        icount(1) = 360
-        icount(2) = 180
+        icount(1) = ilon
+        icount(2) = jlat
         do n = 4 , 10
           istart(n) = 0
           icount(n) = 0
@@ -1067,8 +1067,8 @@
         istatus = nf90_get_att(inet,5,'add_offset',xadd)
         istart(1) = 1
         istart(2) = 1
-        icount(1) = 360
-        icount(2) = 180
+        icount(1) = ilon
+        icount(2) = jlat
         do n = 4 , 10
           istart(n) = 0
           icount(n) = 0
@@ -1086,8 +1086,8 @@
         istatus = nf90_get_att(inet,5,'add_offset',xadd)
         istart(1) = 1
         istart(2) = 1
-        icount(1) = 360
-        icount(2) = 180
+        icount(1) = ilon
+        icount(2) = jlat
         do n = 4 , 10
           istart(n) = 0
           icount(n) = 0
@@ -1173,8 +1173,8 @@
         istatus = nf90_get_att(inet,5,'add_offset',xadd)
         istart(1) = 1
         istart(2) = 1
-        icount(1) = 360
-        icount(2) = 180
+        icount(1) = ilon
+        icount(2) = jlat
         do n = 4 , 10
           istart(n) = 0
           icount(n) = 0
@@ -1192,8 +1192,8 @@
         istatus = nf90_get_att(inet,5,'add_offset',xadd)
         istart(1) = 1
         istart(2) = 1
-        icount(1) = 360
-        icount(2) = 180
+        icount(1) = ilon
+        icount(2) = jlat
         do n = 4 , 10
           istart(n) = 0
           icount(n) = 0
