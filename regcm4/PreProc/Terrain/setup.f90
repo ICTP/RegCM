@@ -30,6 +30,7 @@
       character(6) :: iproj
       intent (in) clat , clon , ds , ibyte , igrads , iproj , ix , jx , &
                 & ntypec , nunit
+      intent (inout) :: filctl , filout
 !
       rin = 1.5          ! 1.5 rad of influence-coarse mesh
  

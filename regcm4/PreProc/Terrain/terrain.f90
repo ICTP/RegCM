@@ -69,7 +69,7 @@
       character(1) , dimension(ix,jx) :: ch
       character(10) :: char_lnd , char_tex
       character(1) , dimension(ix*nsg,jx*nsg) :: ch_s
-      character(256) :: filctl_s , filout_s
+      character(256) :: ctlfile , datafile
       integer :: i , j , k
       logical :: ibndry
       integer :: myid=1
@@ -103,14 +103,14 @@
       if ( nsg>1 ) then
         nunitc_s = 19
         if ( nsg<10 ) then
-          write (filout_s,99001) filout(1:18) , nsg , filout(19:23)
-          write (filctl_s,99003) filctl(1:18) , nsg , filctl(19:22)
+          write (datafile,99001) filout(1:18) , nsg , filout(19:23)
+          write (ctlfile,99003) filctl(1:18) , nsg , filctl(19:22)
         else
-          write (filout_s,99002) filout(1:18) , nsg , filout(19:23)
-          write (filctl_s,99004) filctl(1:18) , nsg , filctl(19:22)
+          write (datafile,99002) filout(1:18) , nsg , filout(19:23)
+          write (ctlfile,99004) filctl(1:18) , nsg , filctl(19:22)
         end if
         call setup(nunitc_s,ix*nsg,jx*nsg,ntypec_s,iproj,ds/nsg,clat,   &
-                 & clong,igrads,ibyte,filout_s,filctl_s)
+                 & clong,igrads,ibyte,datafile,ctlfile)
         if ( iproj=='LAMCON' ) then
           call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,ix*nsg,jx*nsg,clong,&
                     & clat,dsinm,0,xn,truelatl,truelath)
@@ -302,7 +302,7 @@
                   & dlat_s,dlon_s,xmap_s,dattyp,dmap_s,coriol_s,        &
                   & snowam_s,igrads,ibigend,kz,sigma,mask_s,ptop,       &
                   & htgrid_s,lndout_s,ibyte,nsg,truelatl,truelath,xn,   &
-                  & filout_s,lsmtyp,sanda_s,sandb_s,claya_s,clayb_s,    &
+                  & datafile,lsmtyp,sanda_s,sandb_s,claya_s,clayb_s,    &
                   & frac_lnd_s,nveg,aertyp,texout_s,frac_tex_s,ntex)
         print * , 'after calling OUTPUT, for subgrid'
       end if
@@ -311,8 +311,10 @@
       dycen = 0.0
 !
 !     set up the parameters and constants
+      datafile = filout
+      ctlfile = filctl
       call setup(nunitc,ix,jx,ntypec,iproj,ds,clat,clong,igrads,ibyte,  &
-               & filout,filctl)
+               & datafile,ctlfile)
       print * , 'after calling SETUP'
 !
 !-----calling the map projection subroutine

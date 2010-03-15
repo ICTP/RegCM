@@ -22,7 +22,7 @@
 !
 ! Dummy arguments
 !
-      character(250) :: filnam
+      character(256) :: filnam
       intent (inout) filnam
 !
 ! Local variables
@@ -37,7 +37,7 @@
         print * , ' '
         print * , ' '
         print * , '**************************************************'
-        print * , 'FILE ALREADY EXISTS:  ' , filnam
+        print * , 'FILE ALREADY EXISTS:  ' , trim(filnam)
         print * , 'Do you want to overwrite the existing file? [y/n/q]'
         read (*,*) yesno
         if ( yesno=='y' ) then
@@ -45,7 +45,6 @@
         else if ( yesno=='n' ) then
           print * , 'ENTER NEW FILE NAME'
           read (*,*) filnam
-         
           goto 100
         else if ( yesno=='q' ) then
           stop 999
