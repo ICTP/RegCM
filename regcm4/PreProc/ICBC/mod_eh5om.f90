@@ -119,7 +119,7 @@
 !     D      BEGIN LOOP OVER NTIMES
 !
       nyear = idate/1000000
-                         !, SST2(JX,IY)
+                         !, SST2(JX,IX)
       month = idate/10000 - nyear*100
       nday = idate/100 - (idate/10000)*100
       nhour = mod(idate,100)

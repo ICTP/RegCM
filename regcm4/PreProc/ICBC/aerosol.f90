@@ -110,7 +110,7 @@
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , ierr , igrads , iyy , j , jxx ,          &
+      integer :: i , ibigend , ierr , igrads , ixx , j , jxx ,          &
                & k , kz , month , nx , ny , period
       character(6) :: iproj
       real , dimension(30) :: sigmaf
@@ -118,14 +118,14 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
+      read (10,rec=1,iostat=ierr) ixx , jxx , kz , dsinm , clat , clon ,&
                                 & plat , plon , grdfac , iproj ,        &
                                 & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
                                 & ibigend , truelatl , truelath
-      if ( iyy/=ix .or. jxx/=jx ) then
+      if ( ixx/=ix .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'
         print * , '  icbc.param: ' , ix , jx
-        print * , '  DOMAIN.INFO: ' , iyy , jxx
+        print * , '  DOMAIN.INFO: ' , ixx , jxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
       end if

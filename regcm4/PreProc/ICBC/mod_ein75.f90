@@ -93,7 +93,7 @@
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,ix)
       call p1p2(b3pd,ps4,jx,ix)
  
-!     CALL HUMID1(T3,Q3,100.,0.0,SIGMA1,JX,IY,klev)
+!     CALL HUMID1(T3,Q3,100.,0.0,SIGMA1,JX,IX,klev)
 !
 !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
