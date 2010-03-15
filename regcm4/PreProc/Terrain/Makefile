@@ -20,6 +20,8 @@ OBJS =     anal2.o         lndfudge.o       oned.o           smthtr.o     \
            smth121.o       lambrt.o         smther.o         rdldtr_nc.o  \
            rdldtr_s_nc.o   terrain.o        header_terrain.o
 
+F90FLAGS += -traceback
+
 terrain: $(MODOBJS) $(OBJS)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(MODOBJS) $(OBJS) \
                $(LIB) $(NETCDFLIB)

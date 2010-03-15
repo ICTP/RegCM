@@ -44,7 +44,8 @@
           return
         else if ( yesno=='n' ) then
           print * , 'ENTER NEW FILE NAME'
-          read (*,*) filnam
+          read (*,'(a)') filnam
+          print * , 'USING ', trim(filnam)
           goto 100
         else if ( yesno=='q' ) then
           stop 999
