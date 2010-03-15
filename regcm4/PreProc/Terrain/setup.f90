@@ -25,7 +25,7 @@
 ! Dummy arguments
 !
       real(4) :: clat , clon , ds
-      character(50) :: filctl , filout
+      character(256) :: filctl , filout
       integer :: ibyte , igrads , ix , jx , ntypec , nunit
       character(6) :: iproj
       intent (in) clat , clon , ds , ibyte , igrads , iproj , ix , jx , &

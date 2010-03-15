@@ -22,7 +22,7 @@
 !
 ! Dummy arguments
 !
-      character(len=*) :: filnam
+      character(250) :: filnam
       intent (inout) filnam
 !
 ! Local variables

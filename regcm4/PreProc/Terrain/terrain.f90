@@ -69,7 +69,7 @@
       character(1) , dimension(ix,jx) :: ch
       character(10) :: char_lnd , char_tex
       character(1) , dimension(ix*nsg,jx*nsg) :: ch_s
-      character(50) :: filctl_s , filout_s
+      character(256) :: filctl_s , filout_s
       integer :: i , j , k
       logical :: ibndry
       integer :: myid=1
