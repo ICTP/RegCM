@@ -1411,7 +1411,7 @@
 ! Local variables
 !
         real :: fdemon , fnumer
-        integer :: idate , iday , imo , ixr , j , julday , nmo , nyr
+        integer :: idate , iday , imo , iyr , j , julday , nmo , nyr
         integer , dimension(12) :: jprev , julmid , lenmon , midmon
 !
         data lenmon/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 ,   &
@@ -1425,8 +1425,8 @@
         nyrp = 0
  
         idate = mdate/100
-        ixr = idate/10000
-        imo = (idate-ixr*10000)/100
+        iyr = idate/10000
+        imo = (idate-iyr*10000)/100
         iday = mod(idate,100)
  
         jprev(1) = 0
@@ -1440,8 +1440,8 @@
  
         do nyr = 1000 , 2100
           do nmo = 1 , 12
-            if ( (nyr==ixr) .and. (julmid(nmo)>julday) ) go to 100
-            if ( nyr>ixr ) go to 100
+            if ( (nyr==iyr) .and. (julmid(nmo)>julday) ) go to 100
+            if ( nyr>iyr ) go to 100
             nmop = nmo
             nyrp = nyr
           end do

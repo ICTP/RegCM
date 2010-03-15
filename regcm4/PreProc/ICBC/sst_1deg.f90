@@ -373,7 +373,7 @@
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , ierr , igrads , ixy , j , jxx , k , kz , &
+      integer :: i , ibigend , ierr , igrads , iyy , j , jxx , k , kz , &
                & month , nx , ny , period
       character(6) :: iproj
       real , dimension(30) :: sigmaf
@@ -381,14 +381,14 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      read (10,rec=1,iostat=ierr) ixy , jxx , kz , dsinm , clat , clon ,&
+      read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
                                 & plat , plon , grdfac , iproj ,        &
                                 & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
                                 & ibigend , truelatl , truelath
-      if ( ixy/=ix .or. jxx/=jx ) then
+      if ( iyy/=ix .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (SST_1DEG.f)'
         print * , '  icbc.param: ' , ix , jx
-        print * , '  DOMAIN.INFO: ' , ixy , jxx
+        print * , '  DOMAIN.INFO: ' , iyy , jxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
       end if
@@ -562,7 +562,7 @@
             & ptop , rlatinc , rloninc
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: day , i , ibigend , ierr , igrads , ixy , j , jxx , k ,&
+      integer :: day , i , ibigend , ierr , igrads , iyy , j , jxx , k ,&
                & kz , month , nx , ny
       character(6) :: iproj
       real , dimension(30) :: sigmaf
@@ -574,14 +574,14 @@
          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
 !
-      read (10,rec=1,iostat=ierr) ixy , jxx , kz , dsinm , clat , clon ,&
+      read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
                                 & plat , plon , grdfac , iproj ,        &
                                 & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
                                 & ibigend , truelatl , truelath
-      if ( ixy/=ix .or. jxx/=jx ) then
+      if ( iyy/=ix .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (SST_1DEG.f)'
         print * , '  icbc.param: ' , ix , jx
-        print * , '  DOMAIN.INFO: ' , ixy , jxx
+        print * , '  DOMAIN.INFO: ' , iyy , jxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml2)'
       end if

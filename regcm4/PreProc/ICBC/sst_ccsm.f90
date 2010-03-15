@@ -181,7 +181,7 @@
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , igrads , ixy , j , jxx , k , kz ,        &
+      integer :: i , ibigend , igrads , iyy , j , jxx , k , kz ,        &
                & month , nx , ny , period
       character(6) :: iproj
       real , dimension(30) :: sigmaf
@@ -189,11 +189,11 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      read (10,rec=1) ixy , jxx , kz , dsinm , clat , clon , plat ,     &
+      read (10,rec=1) iyy , jxx , kz , dsinm , clat , clon , plat ,     &
                     & plon , grdfac , iproj , (sigmaf(k),k=1,kz+1) ,    &
                     & ptop , igrads , ibigend
-      if ( ixy/=ix .or. jxx/=jx ) then
-        write (*,*) 'IY,JX,IYY,JXX' , ix , jx , ixy , jxx
+      if ( iyy/=ix .or. jxx/=jx ) then
+        write (*,*) 'IY,JX,IYY,JXX' , ix , jx , iyy , jxx
         stop
       end if
       read (10,rec=4) ((lu(i,j),j=1,jx),i=1,ix)
