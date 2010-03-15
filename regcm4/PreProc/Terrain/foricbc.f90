@@ -37,11 +37,11 @@
 !
       open (23,file='../ICBC/icbc.param')
       write (23,'(a)') '      INTEGER JX'
-      write (23,'(a)') '      INTEGER IY'
+      write (23,'(a)') '      INTEGER IX'
       write (23,'(a)') '      INTEGER KZ'
       write (23,'(a)') '      INTEGER NSG'
       write (23,'(a)') '      INTEGER JX_O'
-      write (23,'(a)') '      INTEGER IY_O'
+      write (23,'(a)') '      INTEGER IX_O'
       write (23,'(a)') '      INTEGER KZ_O'
       write (23,'(a)') '      INTEGER NP'
       write (23,'(a)') '      INTEGER IDATE1'
@@ -53,22 +53,22 @@
       write (23,'(a)') '      CHARACTER*4 LSMTYP'
       write (23,'(a)') '      CHARACTER*7 AERTYP'
       write (23,99001) 'JX     =' , jx
-      write (23,99001) 'IY     =' , ix
+      write (23,99001) 'IX     =' , ix
       write (23,99001) 'KZ     =' , kz
       write (23,99001) 'NSG    =' , nsg
       if ( dattyp=='FNEST' ) then
         write (*,*) 'You are preparing the NEST run from previous run'
         write (*,*) 'Please input the original size of ARRAYs'
-        write (*,*) 'JX_O, IY_O, KZ_O'
-        write (*,*) 'You need cut 2 rows for both JX_O and IY_O'
+        write (*,*) 'JX_O, IX_O, KZ_O'
+        write (*,*) 'You need cut 2 rows for both JX_O and IX_O'
         read (*,*) jx_o , ix_o , kz_o
         write (23,99001) 'JX_O   =' , jx_o
-        write (23,99001) 'IY_O   =' , ix_o
+        write (23,99001) 'IX_O   =' , ix_o
         write (23,99001) 'KZ_O   =' , kz_o
         write (23,99001) 'NP     =' , 15
       else
         write (23,99001) 'JX_O   =' , 1
-        write (23,99001) 'IY_O   =' , 1
+        write (23,99001) 'IX_O   =' , 1
         write (23,99001) 'KZ_O   =' , 14
         write (23,99001) 'NP     =' , 15
       end if
