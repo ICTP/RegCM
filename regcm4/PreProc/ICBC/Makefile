@@ -28,8 +28,6 @@ ICBCOBJ = icbc.o bilinx.o cressmcr.o cressmdt.o fexist.o gradsctlb.o \
           mkssta.o mxmn3d.o p1p2.o printl.o top2btm.o uvrot4.o uvrot4nx.o \
           header_ICBC.o
 
-F90FLAGS += -traceback
-
 aerosol: $(SHRMOD) $(AEROSOLOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(LIB) $(NETCDFLIB)
 

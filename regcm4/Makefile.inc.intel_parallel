@@ -1,6 +1,9 @@
 # This file contains variables to be included in all other Makefiles
 # Tested with ifort versions 10.1 and 11.0
 
+NETCDF_LIB=${HOME}/netcdf/lib
+NETCDF_INC=${HOME}/netcdf/include
+
 SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
 
 # libraries and data
@@ -12,9 +15,8 @@ INTELINC = -I/opt/intel/fce/10.1.018/include
 
 # general compile options
 CPPFLAGS = -DDIAG -DINTEL -DMPP1
-USCORING = -assume nounderscore
-F90FLAGS =   -mp1 -O2 -convert big_endian -assume byterecl 
-LDFLAGS = -i-dynamic
+F90FLAGS =   -mp1 -O0 -g -convert big_endian -assume byterecl -traceback
+LDFLAGS = -i-dynamic -traceback
 FC = mpif90
 F90 = mpif90
 LD =$(FC)
