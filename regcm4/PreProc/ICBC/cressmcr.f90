@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,i1ur,i1ul,    &
+      subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,ix,i1ur,i1ul,    &
                         & i1dr,i1dl,j1ur,j1ul,j1dr,j1dl,d1xt,d1xa,d1xb, &
                         & d1xc,d1xd,nlon,nlat,nlev)
       use mod_mxncom
@@ -25,15 +25,15 @@
 !
 ! Dummy arguments
 !
-      integer :: iy , jx , nlat , nlev , nlon
-      real , dimension(jx,iy) :: alat , alon , d1xa , d1xb , d1xc ,     &
+      integer :: ix , jx , nlat , nlev , nlon
+      real , dimension(jx,ix) :: alat , alon , d1xa , d1xb , d1xc ,     &
                                & d1xd , d1xt
       real , dimension(nlon,nlat,nlev,5) :: b2
-      real , dimension(jx,iy,nlev,5) :: b3
+      real , dimension(jx,ix,nlev,5) :: b3
       real , dimension(nlon,nlat) :: glat , glon
-      integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
+      integer , dimension(jx,ix) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
                                   & j1dr , j1ul , j1ur
-      intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
+      intent (in) alat , alon , b2 , glat , glon , ix , jx , nlat ,     &
                 & nlev , nlon
       intent (out) b3
       intent (inout) d1xa , d1xb , d1xc , d1xd , d1xt , i1dl , i1dr ,   &
@@ -70,7 +70,7 @@
         end do
         alonmx = -361.
         alonmn = 361.
-        do j = 1 , iy
+        do j = 1 , ix
           do i = 1 , jx
             if ( alonmx<alon(i,j) ) alonmx = alon(i,j)
             if ( alonmn>alon(i,j) ) alonmn = alon(i,j)
@@ -86,7 +86,7 @@
         end do
         alatmx = -91.
         alatmn = 91.
-        do j = 1 , iy
+        do j = 1 , ix
           do i = 1 , jx
             if ( alatmx<alat(i,j) ) alatmx = alat(i,j)
             if ( alatmn>alat(i,j) ) alatmn = alat(i,j)
@@ -99,7 +99,7 @@
         imxmn = 1
       end if
       if ( lcross==0 ) then
-        do j = 1 , iy
+        do j = 1 , ix
           do i = 1 , jx
  
             mur = 1000
@@ -209,7 +209,7 @@
         end do
         lcross = 1
       else
-        do j = 1 , iy
+        do j = 1 , ix
           do i = 1 , jx
  
             mur = i1ur(i,j)

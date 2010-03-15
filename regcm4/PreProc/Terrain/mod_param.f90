@@ -23,7 +23,7 @@
 ! PARAMETER definitions
 !
       character(6) , parameter :: iproj = 'LAMCON'
-      integer , parameter :: iy = 34
+      integer , parameter :: ix = 34
       integer , parameter :: jx = 48
       integer , parameter :: kz = 18
       integer , parameter :: nsg = 1

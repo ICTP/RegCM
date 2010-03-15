@@ -137,8 +137,8 @@
       ! Whole space
       real , target , dimension(ilon,jlat,npl*3) :: b2
       real , target , dimension(ilon,jlat,npl*2) :: d2
-      real , target , dimension(jx,iy,klev*3) :: b3
-      real , target , dimension(jx,iy,npl*2) :: d3
+      real , target , dimension(jx,ix,klev*3) :: b3
+      real , target , dimension(jx,ix,npl*2) :: d3
 
       ! Shared by netcdf I/O routines
       integer , dimension(10) :: icount , istart
@@ -159,8 +159,8 @@
       real , dimension(ilon) :: glon
       real , dimension(npl) :: pplev , sigma1 , sigmar
 
-      real , dimension(jx,iy,npl) :: dum1
-      real , dimension(jx,iy,npl,2) :: dum2
+      real , dimension(jx,ix,npl) :: dum1
+      real , dimension(jx,ix,npl,2) :: dum2
 
       public :: get_cam42 , head_cam42
       public :: get_cam85 , head_cam85
@@ -284,39 +284,39 @@
         call humid1fv(tvar,qvar,pp3d,ilonh,jlath,klev)
         call intlin(qp,qvar,psvar,pp3d,ilonh,jlath,klev,pplev,npl)
  
-        call bilinx2(b3,b2,xlon,xlat,glon,glat,jx,iy,ilonh,jlath,npl)
-        call bilinx2(d3,d2,dlon,dlat,glon,glat,jx,iy,ilonh,jlath,npl)
-        call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,             &
+        call bilinx2(b3,b2,xlon,xlat,glon,glat,jx,ix,ilonh,jlath,npl)
+        call bilinx2(d3,d2,dlon,dlat,glon,glat,jx,ix,ilonh,jlath,npl)
+        call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,ix,             &
                 &   npl,plon,plat,iproj)
  
-        call top2btm(t3,jx,iy,npl)
-        call top2btm(q3,jx,iy,npl)
-        call top2btm(h3,jx,iy,npl)
-        call top2btm(u3,jx,iy,npl)
-        call top2btm(v3,jx,iy,npl)
+        call top2btm(t3,jx,ix,npl)
+        call top2btm(q3,jx,ix,npl)
+        call top2btm(h3,jx,ix,npl)
+        call top2btm(u3,jx,ix,npl)
+        call top2btm(v3,jx,ix,npl)
  
         call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,                   &
-                  & jx,iy,npl,dum1,dum2)
+                  & jx,ix,npl,dum1,dum2)
  
-        call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-        call p1p2(b3pd,ps4,jx,iy)
+        call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,ix)
+        call p1p2(b3pd,ps4,jx,ix)
  
-        call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl,dum1)
+        call intv3(ts4,t3,ps4,sigmar,ptop,jx,ix,npl,dum1)
         call camclndr(idate,nyrp,nmop,wt)
-        call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+        call mksst(ts4,sst1,sst2,topogm,xlandu,jx,ix,nyrp,nmop,wt)
         call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,                       &
-                &  jx,iy,kz,npl,1,1,dum2,c1,c2)
+                &  jx,ix,kz,npl,1,1,dum2,c1,c2)
         call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,                       &
-               &   jx,iy,kz,npl,1,1,dum2,c1,c2)
+               &   jx,ix,kz,npl,1,1,dum2,c1,c2)
         call intv2(t4,t3,ps4,sigma2,sigmar,ptop,                        &
-               &   jx,iy,kz,npl,1,dum2,c1,c2)
+               &   jx,ix,kz,npl,1,dum2,c1,c2)
  
         call intv1(q4,q3,ps4,sigma2,sigmar,ptop,                        &
-               &   jx,iy,kz,npl,1,0,dum2,c1,c2)
-        call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+               &   jx,ix,kz,npl,1,0,dum2,c1,c2)
+        call humid2fv(t4,q4,ps4,ptop,sigma2,jx,ix,kz)
  
         call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,               &
-               &     dsigma,jx,iy,kz)
+               &     dsigma,jx,ix,kz)
  
         call writef(ptop,idate)
 
@@ -579,7 +579,7 @@
           nlon1 = xlon(jx,1)
         end if
         nlat0 = xlat(1,1)
-        nlat1 = xlat(1,iy)
+        nlat1 = xlat(1,ix)
         istart(1) = 1
         icount(1) = lonlen
         istatus = nf90_inq_varid(inet6(kkrec),'lon',lonid)
@@ -895,36 +895,36 @@
       call humid1fv(tvar,qvar,pp3d,ilon,jlat,klev)
       call intlin(qp,qvar,psvar,pp3d,ilon,jlat,klev,pplev,npl)
  
-      call bilinx2(b3,b2,xlon,xlat,glon,glat,jx,iy,ilon,jlat,npl)
-      call bilinx2(d3,d2,dlon,dlat,glon,glat,jx,iy,ilon,jlat,npl)
-      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,npl,plon,plat, &
+      call bilinx2(b3,b2,xlon,xlat,glon,glat,jx,ix,ilon,jlat,npl)
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,jx,ix,ilon,jlat,npl)
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,ix,npl,plon,plat, &
                 & iproj)
  
-      call top2btm(t3,jx,iy,npl)
-      call top2btm(q3,jx,iy,npl)
-      call top2btm(h3,jx,iy,npl)
-      call top2btm(u3,jx,iy,npl)
-      call top2btm(v3,jx,iy,npl)
+      call top2btm(t3,jx,ix,npl)
+      call top2btm(q3,jx,ix,npl)
+      call top2btm(h3,jx,ix,npl)
+      call top2btm(u3,jx,ix,npl)
+      call top2btm(v3,jx,ix,npl)
  
-      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl,dum1,dum2)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,ix,npl,dum1,dum2)
  
-      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-      call p1p2(b3pd,ps4,jx,iy)
+      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,ix)
+      call p1p2(b3pd,ps4,jx,ix)
  
-      call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl,dum1)
+      call intv3(ts4,t3,ps4,sigmar,ptop,jx,ix,npl,dum1)
       call camclndr(idate,nyrp,nmop,wt)
-      call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl,1,1,dum2,c1,&
+      call mksst(ts4,sst1,sst2,topogm,xlandu,jx,ix,nyrp,nmop,wt)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,npl,1,1,dum2,c1,&
                & c2)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl,1,1,dum2,c1,&
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,npl,1,1,dum2,c1,&
                & c2)
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl,1,dum2,c1,c2)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kz,npl,1,dum2,c1,c2)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl,1,0,dum2,c1, &
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kz,npl,1,0,dum2,c1, &
                & c2)
-      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,ix,kz)
  
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kz)
  
       call writef(ptop,idate)
  
@@ -1198,7 +1198,7 @@
           nlon1 = xlon(jx,1)
         end if
         nlat0 = xlat(1,1)
-        nlat1 = xlat(1,iy)
+        nlat1 = xlat(1,ix)
         istart(1) = 1
         icount(1) = lonlen
         istatus = nf90_inq_varid(inet6(kkrec),'lon',lonid)
@@ -1411,7 +1411,7 @@
 ! Local variables
 !
         real :: fdemon , fnumer
-        integer :: idate , iday , imo , iyr , j , julday , nmo , nyr
+        integer :: idate , iday , imo , ixr , j , julday , nmo , nyr
         integer , dimension(12) :: jprev , julmid , lenmon , midmon
 !
         data lenmon/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 ,   &
@@ -1425,8 +1425,8 @@
         nyrp = 0
  
         idate = mdate/100
-        iyr = idate/10000
-        imo = (idate-iyr*10000)/100
+        ixr = idate/10000
+        imo = (idate-ixr*10000)/100
         iday = mod(idate,100)
  
         jprev(1) = 0
@@ -1440,8 +1440,8 @@
  
         do nyr = 1000 , 2100
           do nmo = 1 , 12
-            if ( (nyr==iyr) .and. (julmid(nmo)>julday) ) go to 100
-            if ( nyr>iyr ) go to 100
+            if ( (nyr==ixr) .and. (julmid(nmo)>julday) ) go to 100
+            if ( nyr>ixr ) go to 100
             nmop = nmo
             nyrp = nyr
           end do

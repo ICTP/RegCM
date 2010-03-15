@@ -66,9 +66,9 @@
 !
 ! Local variables
 !
-      character(1) , dimension(iy,jx) :: ch
+      character(1) , dimension(ix,jx) :: ch
       character(10) :: char_lnd , char_tex
-      character(1) , dimension(iy*nsg,jx*nsg) :: ch_s
+      character(1) , dimension(ix*nsg,jx*nsg) :: ch_s
       character(50) :: filctl_s , filout_s
       integer :: i , j , k
       logical :: ibndry
@@ -109,31 +109,31 @@
           write (filout_s,99002) filout(1:18) , nsg , filout(19:23)
           write (filctl_s,99004) filctl(1:18) , nsg , filctl(19:22)
         end if
-        call setup(nunitc_s,iy*nsg,jx*nsg,ntypec_s,iproj,ds/nsg,clat,   &
+        call setup(nunitc_s,ix*nsg,jx*nsg,ntypec_s,iproj,ds/nsg,clat,   &
                  & clong,igrads,ibyte,filout_s,filctl_s)
         if ( iproj=='LAMCON' ) then
-          call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iy*nsg,jx*nsg,clong,&
+          call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,ix*nsg,jx*nsg,clong,&
                     & clat,dsinm,0,xn,truelatl,truelath)
-          call lambrt(dlon_s,dlat_s,dmap_s,coriol_s,iy*nsg,jx*nsg,clong,&
+          call lambrt(dlon_s,dlat_s,dmap_s,coriol_s,ix*nsg,jx*nsg,clong,&
                     & clat,dsinm,1,xn,truelatl,truelath)
           write (*,*) 'XN,TRUELATL,TRUELATH = ' , xn , truelatl ,       &
                     & truelath
         else if ( iproj=='POLSTR' ) then
-          call mappol(xlon_s,xlat_s,xmap_s,coriol_s,iy*nsg,jx*nsg,clong,&
+          call mappol(xlon_s,xlat_s,xmap_s,coriol_s,ix*nsg,jx*nsg,clong,&
                     & clat,dsinm,0)
-          call mappol(dlon_s,dlat_s,dmap_s,coriol_s,iy*nsg,jx*nsg,clong,&
+          call mappol(dlon_s,dlat_s,dmap_s,coriol_s,ix*nsg,jx*nsg,clong,&
                     & clat,dsinm,1)
           xn = 1.
         else if ( iproj=='NORMER' ) then
-          call normer(xlon_s,xlat_s,xmap_s,coriol_s,iy*nsg,jx*nsg,clong,&
+          call normer(xlon_s,xlat_s,xmap_s,coriol_s,ix*nsg,jx*nsg,clong,&
                     & clat,dsinm,0)
-          call normer(dlon_s,dlat_s,dmap_s,coriol_s,iy*nsg,jx*nsg,clong,&
+          call normer(dlon_s,dlat_s,dmap_s,coriol_s,ix*nsg,jx*nsg,clong,&
                     & clat,dsinm,1)
           xn = 0.
         else if ( iproj=='ROTMER' ) then
-          call rotmer(xlon_s,xlat_s,xmap_s,coriol_s,iy*nsg,jx*nsg,clon, &
+          call rotmer(xlon_s,xlat_s,xmap_s,coriol_s,ix*nsg,jx*nsg,clon, &
                     & clat,plon,plat,dsinm,0)
-          call rotmer(dlon_s,dlat_s,dmap_s,coriol_s,iy*nsg,jx*nsg,clon, &
+          call rotmer(dlon_s,dlat_s,dmap_s,coriol_s,ix*nsg,jx*nsg,clon, &
                     & clat,plon,plat,dsinm,1)
           xn = 0.
         else
@@ -144,7 +144,7 @@
 !
 !       reduce the search area for the domain
 !       [minlat:maxlat,minlon:maxlon]
-        call mxmnll(iy*nsg,jx*nsg,clong,xlon_s,xlat_s,ntypec_s)
+        call mxmnll(ix*nsg,jx*nsg,clong,xlon_s,xlat_s,ntypec_s)
         print * , 'after calling MXMNLL, for subgrid'
 !
 !       read in the terrain & landuse data
@@ -158,18 +158,18 @@
         endif
         if ( ifanal ) then
 !         convert xobs and yobs from LON and LAT to x and y in mesh
-          call xyobsll(iy*nsg,jx*nsg,iproj,clat,clong,plat,plon,        &
+          call xyobsll(ix*nsg,jx*nsg,iproj,clat,clong,plat,plon,        &
                      & truelath)
           print * , 'after calling XYOBSLL, for subgrid'
 !
 !         create the terrain height fields
-          call anal2(htsdgrid_s,ht2,nobs,iy*nsg,jx*nsg,corc_s,sumc_s,   &
+          call anal2(htsdgrid_s,ht2,nobs,ix*nsg,jx*nsg,corc_s,sumc_s,   &
                    & nsc_s,wtmaxc_s,htsavc_s)
-          call anal2(htgrid_s,ht,nobs,iy*nsg,jx*nsg,corc_s,sumc_s,nsc_s,&
+          call anal2(htgrid_s,ht,nobs,ix*nsg,jx*nsg,corc_s,sumc_s,nsc_s,&
                    & wtmaxc_s,htsavc_s)
           print * , 'after calling ANAL2, for subgrid'
           do j = 1 , jx*nsg
-            do i = 1 , iy*nsg
+            do i = 1 , ix*nsg
               htgrid_s(i,j) = amax1(htgrid_s(i,j)*100.,0.0)
               htsdgrid_s(i,j) = amax1(htsdgrid_s(i,j)*100000.,0.0)
               htsdgrid_s(i,j) = sqrt(amax1(htsdgrid_s(i,j)-htgrid_s(i,j)&
@@ -183,7 +183,7 @@
 !         print*, '  underestimated using INTERP. (I dont know why?)'
         end if
 !       create surface landuse types
-        call surf(xlat_s,xlon_s,lnduse_s,iy*nsg,jx*nsg,iter,jter,nnc,   &
+        call surf(xlat_s,xlon_s,lnduse_s,ix*nsg,jx*nsg,iter,jter,nnc,   &
                 & xnc,lndout_s,land_s,lnd8,nobs,grdltmn,grdlnmn,h2opct, &
                 & lsmtyp,sanda_s,sandb_s,claya_s,clayb_s,frac_lnd_s,    &
                 & nveg,aertyp,intext_s,texout_s,frac_tex_s,ntex)
@@ -192,18 +192,18 @@
         if ( lakadj ) then
           print * ,                                                     &
                &'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
-          call lakeadj(lsmtyp,lnduse_s,htgrid_s,xlat_s,xlon_s,iy*nsg,   &
+          call lakeadj(lsmtyp,lnduse_s,htgrid_s,xlat_s,xlon_s,ix*nsg,   &
                      & jx*nsg)
           print * , 'after calling LAKEADJ, for subgrid'
         end if
-        call smth121(htgrid_s,iy*nsg,jx*nsg,hscr1_s)
-        call smth121(htsdgrid_s,iy*nsg,jx*nsg,hscr1_s)
+        call smth121(htgrid_s,ix*nsg,jx*nsg,hscr1_s)
+        call smth121(htsdgrid_s,ix*nsg,jx*nsg,hscr1_s)
 !       **** Readjust the Great Lake Heights to their actual values
 !       again.
         if ( lakadj ) then
           print * ,                                                     &
                &'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
-          call lakeadj(lsmtyp,lnduse_s,htgrid_s,xlat_s,xlon_s,iy*nsg,   &
+          call lakeadj(lsmtyp,lnduse_s,htgrid_s,xlat_s,xlon_s,ix*nsg,   &
                      & jx*nsg)
           print * , 'after calling LAKEADJ, for subgrid'
         end if
@@ -211,38 +211,38 @@
         if ( ibndry ) then
           do j = 2 , jx*nsg - 1
             htgrid_s(1,j) = htgrid_s(2,j)
-            htgrid_s(iy*nsg,j) = htgrid_s(iy*nsg-1,j)
+            htgrid_s(ix*nsg,j) = htgrid_s(ix*nsg-1,j)
             lnduse_s(1,j) = lnduse_s(2,j)
-            lnduse_s(iy*nsg,j) = lnduse_s(iy*nsg-1,j)
+            lnduse_s(ix*nsg,j) = lnduse_s(ix*nsg-1,j)
             lndout_s(1,j) = lndout_s(2,j)
-            lndout_s(iy*nsg,j) = lndout_s(iy*nsg-1,j)
+            lndout_s(ix*nsg,j) = lndout_s(ix*nsg-1,j)
  
             if ( lsmtyp=='USGS' ) then
               sanda_s(1,j) = sanda_s(2,j)
-              sanda_s(iy*nsg,j) = sanda_s(iy*nsg-1,j)
+              sanda_s(ix*nsg,j) = sanda_s(ix*nsg-1,j)
               sandb_s(1,j) = sandb_s(2,j)
-              sandb_s(iy*nsg,j) = sandb_s(iy*nsg-1,j)
+              sandb_s(ix*nsg,j) = sandb_s(ix*nsg-1,j)
               claya_s(1,j) = claya_s(2,j)
-              claya_s(iy*nsg,j) = claya_s(iy*nsg-1,j)
+              claya_s(ix*nsg,j) = claya_s(ix*nsg-1,j)
               clayb_s(1,j) = clayb_s(2,j)
-              clayb_s(iy*nsg,j) = clayb_s(iy*nsg-1,j)
+              clayb_s(ix*nsg,j) = clayb_s(ix*nsg-1,j)
               do k = 1 , nveg
                 frac_lnd_s(1,j,k) = frac_lnd_s(2,j,k)
-                frac_lnd_s(iy*nsg,j,k) = frac_lnd_s(iy*nsg-1,j,k)
+                frac_lnd_s(ix*nsg,j,k) = frac_lnd_s(ix*nsg-1,j,k)
               end do
             end if
             if ( aertyp(7:7)=='1' ) then
               intext_s(1,j) = intext_s(2,j)
-              intext_s(iy*nsg,j) = intext_s(iy*nsg-1,j)
+              intext_s(ix*nsg,j) = intext_s(ix*nsg-1,j)
               texout_s(1,j) = texout_s(2,j)
-              texout_s(iy*nsg,j) = texout_s(iy*nsg-1,j)
+              texout_s(ix*nsg,j) = texout_s(ix*nsg-1,j)
               do k = 1 , ntex
                 frac_tex_s(1,j,k) = frac_tex_s(2,j,k)
-                frac_tex_s(iy*nsg,j,k) = frac_tex_s(iy*nsg-1,j,k)
+                frac_tex_s(ix*nsg,j,k) = frac_tex_s(ix*nsg-1,j,k)
               end do
             end if
           end do
-          do i = 1 , iy*nsg
+          do i = 1 , ix*nsg
             htgrid_s(i,1) = htgrid_s(i,2)
             htgrid_s(i,jx*nsg) = htgrid_s(i,jx*nsg-1)
             lnduse_s(i,1) = lnduse_s(i,2)
@@ -276,7 +276,7 @@
             end if
           end do
         end if
-        do i = 1 , iy*nsg
+        do i = 1 , ix*nsg
           do j = 1 , jx*nsg
             snowam_s(i,j) = 0.0
           end do
@@ -289,15 +289,15 @@
           write (char_lnd,99006) 'LANDUSE_' , nsg
           write (char_tex,99006) 'TEXTURE_' , nsg
         end if
-        call lndfudge(fudge_lnd_s,ch_s,lndout_s,htgrid_s,iy*nsg,jx*nsg, &
+        call lndfudge(fudge_lnd_s,ch_s,lndout_s,htgrid_s,ix*nsg,jx*nsg, &
                     & lsmtyp,char_lnd)
         if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex_s,ch_s,texout_s,&
-           & htgrid_s,iy*nsg,jx*nsg,char_tex)
+           & htgrid_s,ix*nsg,jx*nsg,char_tex)
         print * , 'after calling FUDGE, for subgrid'
 !       output terrestrial fields
 !       OUTPUT is used to output also the fraction of each
 !       LANDUSE legend and TEXTURE type
-        call output(nunitc_s,iy*nsg,jx*nsg,1,dsinm,clat,clong,plat,plon,&
+        call output(nunitc_s,ix*nsg,jx*nsg,1,dsinm,clat,clong,plat,plon,&
                   & iproj,htgrid_s,htsdgrid_s,lndout_s,xlat_s,xlon_s,   &
                   & dlat_s,dlon_s,xmap_s,dattyp,dmap_s,coriol_s,        &
                   & snowam_s,igrads,ibigend,kz,sigma,mask_s,ptop,       &
@@ -311,29 +311,29 @@
       dycen = 0.0
 !
 !     set up the parameters and constants
-      call setup(nunitc,iy,jx,ntypec,iproj,ds,clat,clong,igrads,ibyte,  &
+      call setup(nunitc,ix,jx,ntypec,iproj,ds,clat,clong,igrads,ibyte,  &
                & filout,filctl)
       print * , 'after calling SETUP'
 !
 !-----calling the map projection subroutine
       if ( iproj=='LAMCON' ) then
-        call lambrt(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0,xn,  &
+        call lambrt(xlon,xlat,xmap,coriol,ix,jx,clong,clat,dsinm,0,xn,  &
                   & truelatl,truelath)
-        call lambrt(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1,xn,  &
+        call lambrt(dlon,dlat,dmap,coriol,ix,jx,clong,clat,dsinm,1,xn,  &
                   & truelatl,truelath)
         write (*,*) 'XN,TRUELATL,TRUELATH = ' , xn , truelatl , truelath
       else if ( iproj=='POLSTR' ) then
-        call mappol(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
-        call mappol(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
+        call mappol(xlon,xlat,xmap,coriol,ix,jx,clong,clat,dsinm,0)
+        call mappol(dlon,dlat,dmap,coriol,ix,jx,clong,clat,dsinm,1)
         xn = 1.
       else if ( iproj=='NORMER' ) then
-        call normer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
-        call normer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
+        call normer(xlon,xlat,xmap,coriol,ix,jx,clong,clat,dsinm,0)
+        call normer(dlon,dlat,dmap,coriol,ix,jx,clong,clat,dsinm,1)
         xn = 0.
       else if ( iproj=='ROTMER' ) then
-        call rotmer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,plon,plat,   &
+        call rotmer(xlon,xlat,xmap,coriol,ix,jx,clong,clat,plon,plat,   &
                   & dsinm,0)
-        call rotmer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,plon,plat,   &
+        call rotmer(dlon,dlat,dmap,coriol,ix,jx,clong,clat,plon,plat,   &
                   & dsinm,1)
         xn = 0.
       else
@@ -344,7 +344,7 @@
 !
 !     reduce the search area for the domain
 !     [minlat:maxlat,minlon:maxlon]
-      call mxmnll(iy,jx,clong,xlon,xlat,ntypec)
+      call mxmnll(ix,jx,clong,xlon,xlat,ntypec)
       print * , 'after calling MXMNLL'
 !
 !     read in the terrain & landuse data
@@ -364,15 +364,15 @@
  
       if ( ifanal ) then
 !       convert xobs and yobs from LON and LAT to x and y in mesh
-        call xyobsll(iy,jx,iproj,clat,clong,plat,plon,truelath)
+        call xyobsll(ix,jx,iproj,clat,clong,plat,plon,truelath)
         print * , 'after calling XYOBSLL'
  
 !       create the terrain height fields
-        call anal2(htsdgrid,ht2,nobs,iy,jx,corc,sumc,nsc,wtmaxc,htsavc)
-        call anal2(htgrid,ht,nobs,iy,jx,corc,sumc,nsc,wtmaxc,htsavc)
+        call anal2(htsdgrid,ht2,nobs,ix,jx,corc,sumc,nsc,wtmaxc,htsavc)
+        call anal2(htgrid,ht,nobs,ix,jx,corc,sumc,nsc,wtmaxc,htsavc)
         print * , 'after calling ANAL2'
         do j = 1 , jx
-          do i = 1 , iy
+          do i = 1 , ix
             htgrid(i,j) = amax1(htgrid(i,j)*100.,0.0)
             htsdgrid(i,j) = amax1(htsdgrid(i,j)*100000.,0.0)
             htsdgrid(i,j) = sqrt(amax1(htsdgrid(i,j)-htgrid(i,j)**2,0.0)&
@@ -388,7 +388,7 @@
  
  
 !     create surface landuse types
-      call surf(xlat,xlon,lnduse,iy,jx,iter,jter,nnc,xnc,lndout,land,   &
+      call surf(xlat,xlon,lnduse,ix,jx,iter,jter,nnc,xnc,lndout,land,   &
               & lnd8,nobs,grdltmn,grdlnmn,h2opct,lsmtyp,sanda,sandb,    &
               & claya,clayb,frac_lnd,nveg,aertyp,intext,texout,frac_tex,&
               & ntex)
@@ -397,59 +397,59 @@
 !     **** Adjust the Great Lake Heights to their actual values.
       if ( lakadj ) then
         print * , 'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
-        call lakeadj(lsmtyp,lnduse,htgrid,xlat,xlon,iy,jx)
+        call lakeadj(lsmtyp,lnduse,htgrid,xlat,xlon,ix,jx)
         print * , 'after calling LAKEADJ'
       end if
  
 !     ******           preliminary heavy smoothing of boundaries
-      if ( smthbdy ) call smthtr(htgrid,iy,jx)
+      if ( smthbdy ) call smthtr(htgrid,ix,jx)
  
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
-      call smth121(htgrid,iy,jx,hscr1)
-      call smth121(htsdgrid,iy,jx,hscr1)
+      call smth121(htgrid,ix,jx,hscr1)
+      call smth121(htsdgrid,ix,jx,hscr1)
  
 !     **** Readjust the Great Lake Heights to their actual values again.
       if ( lakadj ) then
         print * , 'CALLING LAKEADJ FOR THE SECOND TIME (after 2dx pass)'
-        call lakeadj(lsmtyp,lnduse,htgrid,xlat,xlon,iy,jx)
+        call lakeadj(lsmtyp,lnduse,htgrid,xlat,xlon,ix,jx)
       end if
  
       ibndry = .true.
       if ( ibndry ) then
         do j = 2 , jx - 1
           htgrid(1,j) = htgrid(2,j)
-          htgrid(iy,j) = htgrid(iy-1,j)
+          htgrid(ix,j) = htgrid(ix-1,j)
           lnduse(1,j) = lnduse(2,j)
-          lnduse(iy,j) = lnduse(iy-1,j)
+          lnduse(ix,j) = lnduse(ix-1,j)
           lndout(1,j) = lndout(2,j)
-          lndout(iy,j) = lndout(iy-1,j)
+          lndout(ix,j) = lndout(ix-1,j)
  
           if ( lsmtyp=='USGS' ) then
             sanda(1,j) = sanda(2,j)
-            sanda(iy,j) = sanda(iy-1,j)
+            sanda(ix,j) = sanda(ix-1,j)
             sandb(1,j) = sandb(2,j)
-            sandb(iy,j) = sandb(iy-1,j)
+            sandb(ix,j) = sandb(ix-1,j)
             claya(1,j) = claya(2,j)
-            claya(iy,j) = claya(iy-1,j)
+            claya(ix,j) = claya(ix-1,j)
             clayb(1,j) = clayb(2,j)
-            clayb(iy,j) = clayb(iy-1,j)
+            clayb(ix,j) = clayb(ix-1,j)
             do k = 1 , nveg
               frac_lnd(1,j,k) = frac_lnd(2,j,k)
-              frac_lnd(iy,j,k) = frac_lnd(iy-1,j,k)
+              frac_lnd(ix,j,k) = frac_lnd(ix-1,j,k)
             end do
           end if
           if ( aertyp(7:7)=='1' ) then
             intext(1,j) = intext(2,j)
-            intext(iy,j) = intext(iy-1,j)
+            intext(ix,j) = intext(ix-1,j)
             texout(1,j) = texout(2,j)
-            texout(iy,j) = texout(iy-1,j)
+            texout(ix,j) = texout(ix-1,j)
             do k = 1 , ntex
               frac_tex(1,j,k) = frac_tex(2,j,k)
-              frac_tex(iy,j,k) = frac_tex(iy-1,j,k)
+              frac_tex(ix,j,k) = frac_tex(ix-1,j,k)
             end do
           end if
         end do
-        do i = 1 , iy
+        do i = 1 , ix
           htgrid(i,1) = htgrid(i,2)
           htgrid(i,jx) = htgrid(i,jx-1)
           lnduse(i,1) = lnduse(i,2)
@@ -484,7 +484,7 @@
         end do
       end if
  
-      do i = 1 , iy
+      do i = 1 , ix
         do j = 1 , jx
           snowam(i,j) = 0.0
         end do
@@ -492,14 +492,14 @@
 !     land/sea mask fudging
       char_lnd = 'LANDUSE'
       char_tex = 'TEXTURE'
-      call lndfudge(fudge_lnd,ch,lndout,htgrid,iy,jx,lsmtyp,char_lnd)
+      call lndfudge(fudge_lnd,ch,lndout,htgrid,ix,jx,lsmtyp,char_lnd)
       if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex,ch,texout,htgrid, &
-         & iy,jx,char_tex)
+         & ix,jx,char_tex)
       print * , 'after calling FUDGE'
 !     output terrestrial fields
 !     OUTPUT is used to output also the fraction of each
 !     LANDUSE legend and TEXTURE type
-      call output(nunitc,iy,jx,nsg,dsinm,clat,clong,plat,plon,iproj,    &
+      call output(nunitc,ix,jx,nsg,dsinm,clat,clong,plat,plon,iproj,    &
                 & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,xmap,      &
                 & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
                 & mask,ptop,htgrid_s,lndout_s,ibyte,nsg,truelatl,       &
@@ -508,11 +508,11 @@
       print * , 'after calling OUTPUT'
  
 !     prepare domain and time parameters for ICBC step
-      call foricbc(iy,jx,kz,nsg,idate1,idate2,ibyte,dattyp,ssttyp,ehso4,&
+      call foricbc(ix,jx,kz,nsg,idate1,idate2,ibyte,dattyp,ssttyp,ehso4,&
                  & lsmtyp,aertyp)
  
 !     prepare domain parameters for RegCM step
-      call formain(iy,jx,kz,nsg,ibyte,dattyp,ehso4,lsmtyp,aertyp,nproc)
+      call formain(ix,jx,kz,nsg,ibyte,dattyp,ehso4,lsmtyp,aertyp,nproc)
 !
       stop 9999
 !

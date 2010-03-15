@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine formain(iy,jx,kz,nsg,ibyte,dattyp,ehso4,lsmtyp,aertyp, &
+      subroutine formain(ix,jx,kz,nsg,ibyte,dattyp,ehso4,lsmtyp,aertyp, &
                        & nproc)
       implicit none
 !
@@ -26,9 +26,9 @@
       character(7) :: aertyp
       character(5) :: dattyp
       logical :: ehso4
-      integer :: ibyte , iy , jx , kz , nproc , nsg
+      integer :: ibyte , ix , jx , kz , nproc , nsg
       character(4) :: lsmtyp
-      intent (in) aertyp , dattyp , ehso4 , ibyte , iy , jx , kz ,      &
+      intent (in) aertyp , dattyp , ehso4 , ibyte , ix , jx , kz ,      &
                 & lsmtyp , nproc , nsg
 !
       open (23,file='../../Main/regcm.param')
@@ -43,7 +43,7 @@
       write (23,'(a)') '      CHARACTER*4 LSMTYP'
       write (23,'(a)') '      CHARACTER*7 AERTYP'
       write (23,'(a)') '      integer jlx,jlxm'
-      write (23,99001) 'IX     =' , iy
+      write (23,99001) 'IX     =' , ix
       write (23,99001) 'JX     =' , jx
       write (23,99001) 'KX     =' , kz
       write (23,99001) 'NSG    =' , nsg
@@ -75,7 +75,7 @@
         write (23,'(a)') '      CHARACTER*4 LSMTYP'
         write (23,'(a)') '      CHARACTER*7 AERTYP'
         write (23,'(a)') '      integer jxbb'
-        write (23,99001) 'IX     =' , iy
+        write (23,99001) 'IX     =' , ix
         write (23,99001) 'NPROC  =' , nproc
         write (23,99001) 'MJX    =' , jx
         if ( mod(jx,nproc)==0 ) then

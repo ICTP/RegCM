@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine surf(xlat,xlon,lnduse,iy,jx,iter,jter,incr,dsgrid,     &
+      subroutine surf(xlat,xlon,lnduse,ix,jx,iter,jter,incr,dsgrid,     &
                     & lndout,land,lnd8,nrec,grdltmn,grdlnmn,h2opct,     &
                     & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,     &
                     & aertyp,intext,texout,frac_tex,ntex)
@@ -28,17 +28,17 @@
 !
       character(7) :: aertyp
       real(4) :: dsgrid , grdlnmn , grdltmn , h2opct
-      integer :: incr , iter , iy , jter , jx , nrec , ntex , nveg
+      integer :: incr , iter , ix , jter , jx , nrec , ntex , nveg
       character(4) :: lsmtyp
-      real(4) , dimension(iy,jx) :: claya , clayb , lndout , sanda ,    &
+      real(4) , dimension(ix,jx) :: claya , clayb , lndout , sanda ,    &
                                   & sandb , texout , xlat , xlon
-      real(4) , dimension(iy,jx,nveg) :: frac_lnd
-      real(4) , dimension(iy,jx,ntex) :: frac_tex
-      integer , dimension(iy,jx) :: intext , lnduse
-      real(4) , dimension(iy,jx,2) :: land
+      real(4) , dimension(ix,jx,nveg) :: frac_lnd
+      real(4) , dimension(ix,jx,ntex) :: frac_tex
+      integer , dimension(ix,jx) :: intext , lnduse
+      real(4) , dimension(ix,jx,2) :: land
       real(8) , dimension(iter,jter) :: lnd8
       intent (in) aertyp , dsgrid , grdlnmn , grdltmn , h2opct , incr , &
-                & iy , jx , lsmtyp , nrec , ntex , nveg , xlat
+                & ix , jx , lsmtyp , nrec , ntex , nveg , xlat
       intent (out) claya , clayb , frac_lnd , frac_tex , intext ,       &
                  & lnduse , sanda , sandb
       intent (inout) land , lndout , texout , xlon
@@ -48,13 +48,13 @@
       logical :: flag
       integer :: i , ii , iindex , ilev , j , jindex , jj , k , lrec ,  &
                & lengdo , nbase
-      real(4) , dimension(iy,jx,2) :: itex
+      real(4) , dimension(ix,jx,2) :: itex
       real(8) :: xx , yy
       real(8) , external :: bint
 !
 !---------------------------------------------------------------------
 !
-!     imx,jmx must correspond to iy,jx in the master input file;
+!     imx,jmx must correspond to ix,jx in the master input file;
 !     otherwise the program will abort.
 !
 !-----------------------------------------------------------------------
@@ -63,7 +63,7 @@
       lrec = 0
       do k = 1 , 2
         do j = 1 , jx
-          do i = 1 , iy
+          do i = 1 , ix
             land(i,j,k) = 0
             itex(i,j,k) = 0
           end do
@@ -98,7 +98,7 @@
         end do
 !
         if ( ilev<=nveg ) then
-          do ii = 1 , iy
+          do ii = 1 , ix
             do jj = 1 , jx
               yy = -(grdltmn-xlat(ii,jj))/dsgrid + 1.0
               if ( grdlnmn<=-180.0 .and. xlon(ii,jj)>0.0 ) xlon(ii,jj)  &
@@ -133,7 +133,7 @@
             nbase = nveg + 4
           else
           end if
-          do ii = 1 , iy
+          do ii = 1 , ix
             do jj = 1 , jx
               yy = -(grdltmn-xlat(ii,jj))/dsgrid + 1.0
               if ( grdlnmn<=-180.0 .and. xlon(ii,jj)>0.0 ) xlon(ii,jj)  &
@@ -164,7 +164,7 @@
             end do
           end do
         else if ( lsmtyp=='USGS' ) then
-          do ii = 1 , iy
+          do ii = 1 , ix
             do jj = 1 , jx
               yy = -(grdltmn-xlat(ii,jj))/dsgrid + 1.0
               if ( grdlnmn<=-180.0 .and. xlon(ii,jj)>0.0 ) xlon(ii,jj)  &
@@ -187,7 +187,7 @@
       end do
       close (48)
 !
-      do i = 1 , iy
+      do i = 1 , ix
         do j = 1 , jx
           lndout(i,j) = land(i,j,2)
           lnduse(i,j) = int(land(i,j,2))

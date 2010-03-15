@@ -117,7 +117,7 @@
       character(8) :: a8
       character(26) :: finame
       integer :: idate , idatef , iday , ifile , imon , imonnew ,       &
-               & imonold , isize , isystm , iyr , nnn , inmber , numfile
+               & imonold , isize , isystm , ixr , nnn , inmber , numfile
       character(25) :: inrcm , inrcm2
       logical :: there
       integer :: nnnend , nstart
@@ -131,7 +131,7 @@
       write (*,*) 'NSTART,NNNEND: ' , nstart , nnnend
       write (*,*) 'IDATE1,IDATE2: ' , idate1 , idate2
  
-      isize = jx*iy*4*(kz*4+3)
+      isize = jx*ix*4*(kz*4+3)
       numfile = 2100000000/isize
       numfile = (numfile/20)*20
  
@@ -231,14 +231,14 @@
       ifile = 101
       do nnn = nstart , nnnend
         idate = mdate(nnn)
-        iyr = idate/1000000
-        imon = idate/10000 - iyr*100
+        ixr = idate/1000000
+        imon = idate/10000 - ixr*100
 !       IF(MOD(NNN-NSTART,NUMFILE).EQ.0 .or.
 !       &     (imon.ne.imonold.and.nnn.lt.nnnend.and.nnn.gt.nstart))
 !       THEN
         if ( nnn==nstart .or.                                           &
            & (imon/=imonold .and. nnn<nnnend .and. nnn>nstart) ) then
-          iday = idate/100 - iyr*10000 - imon*100
+          iday = idate/100 - ixr*10000 - imon*100
           write (finame,99007) idate
           if ( nnn>nstart ) then
             if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
@@ -271,9 +271,9 @@
           imonnew = imon + 1
           if ( imon>=12 ) then
             imonnew = 1
-            iyr = iyr + 1
+            ixr = ixr + 1
           end if
-          idatef = iyr*1000000 + imonnew*10000 + 100
+          idatef = ixr*1000000 + imonnew*10000 + 100
           if ( imon==1 .or. imon==3 .or. imon==5 .or. imon==7 .or.      &
              & imon==8 .or. imon==10 .or. imon==12 ) then
             inmber = (32-iday)*4 + 1
@@ -281,18 +281,18 @@
                   & then
             inmber = (31-iday)*4 + 1
           else
-            if ( mod(iyr,4)==0 ) then
+            if ( mod(ixr,4)==0 ) then
               inmber = (30-iday)*4 + 1
             else
               inmber = (29-iday)*4 + 1
             end if
-            if ( mod(iyr,100)==0 ) inmber = (29-iday)*4 + 1
-            if ( mod(iyr,400)==0 ) inmber = (30-iday)*4 + 1
+            if ( mod(ixr,100)==0 ) inmber = (29-iday)*4 + 1
+            if ( mod(ixr,400)==0 ) inmber = (30-iday)*4 + 1
           end if
           if ( igrads==1 ) call gradsctl(finame,idate,inmber)
           call fexist(finame)
           open (64,file=finame,form='unformatted',status='unknown',     &
-              & recl=jx*iy*ibyte,access='direct')
+              & recl=jx*ix*ibyte,access='direct')
           write (a50,99008) finame(4:) , ifile
           write (99,99003) a50
           imonold = imon

@@ -61,11 +61,11 @@
         alatmax = -999999.
         do j = 1 , jx
           if ( xlat(j,1)<alatmin ) alatmin = xlat(j,1)
-          if ( xlat(j,iy)>alatmax ) alatmax = xlat(j,iy)
+          if ( xlat(j,ix)>alatmax ) alatmax = xlat(j,ix)
         end do
         alonmin = 999999.
         alonmax = -999999.
-        do i = 1 , iy
+        do i = 1 , ix
           do j = 1 , jx
             if ( clon>=0.0 ) then
               if ( xlon(j,i)>=0.0 ) then
@@ -98,25 +98,25 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
         centerj = jx/2.
-        centeri = iy/2.
+        centeri = ix/2.
       end if
       if ( iproj=='LAMCON' ) then       ! Lambert projection
-        write (71,99001) jx , iy , clat , clon , centerj , centeri ,    &
+        write (71,99001) jx , ix , clat , clon , centerj , centeri ,    &
                        & truelatl , truelath , clon , delx , delx
         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc
       else if ( iproj=='POLSTR' ) then  !
       else if ( iproj=='NORMER' ) then
         write (71,99004) jx , xlon(1,1) , xlon(2,1) - xlon(1,1)
-        write (71,99005) iy
-        write (71,99006) (xlat(1,i),i=1,iy)
+        write (71,99005) ix
+        write (71,99006) (xlat(1,i),i=1,ix)
       else if ( iproj=='ROTMER' ) then
         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
                    &' projections are not supported by GrADS.'
         write (*,*) '  Although not exact, the eta.u projection' ,      &
                    &' in GrADS is somewhat similar.'
         write (*,*) ' FERRET, however, does support this projection.'
-        write (71,99007) jx , iy , plon , plat , delx/111000. ,         &
+        write (71,99007) jx , ix , plon , plat , delx/111000. ,         &
                        & delx/111000.*.95238
         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc

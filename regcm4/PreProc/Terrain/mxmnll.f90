@@ -17,16 +17,16 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine mxmnll(iy,jx,clon,xlon,xlat,ntypec)
+      subroutine mxmnll(ix,jx,clon,xlon,xlat,ntypec)
       use mod_aa
       implicit none
 !
 ! Dummy arguments
 !
       real(4) :: clon
-      integer :: iy , jx , ntypec
-      real(4) , dimension(iy,jx) :: xlat , xlon
-      intent (in) clon , iy , jx , ntypec , xlat , xlon
+      integer :: ix , jx , ntypec
+      real(4) , dimension(ix,jx) :: xlat , xlon
+      intent (in) clon , ix , jx , ntypec , xlat , xlon
 !
 ! Local variables
 !
@@ -43,13 +43,13 @@
       xminlon = 999999.
       xmaxlon = -999999.
 !
-      do i = 1 , iy
+      do i = 1 , ix
         do j = 1 , jx
           xminlat = amin1(xminlat,xlat(i,j))
           xmaxlat = amax1(xmaxlat,xlat(i,j))
         end do
       end do
-      do i = 1 , iy
+      do i = 1 , ix
         do j = 1 , jx
           if ( clon>=0.0 ) then
             if ( xlon(i,j)>=0.0 ) then

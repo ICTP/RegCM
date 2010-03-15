@@ -3,6 +3,8 @@
   
 include ../../Makefile.inc
 
+SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
+
 all: terrain
 
 MODOBJS =  mod_param.o     mod_icontr.o     mod_const.o      mod_maps.o   \

@@ -17,16 +17,16 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine lambrt(xlon,xlat,smap,coriol,iy,jx,clon,clat,ds,idot,  &
+      subroutine lambrt(xlon,xlat,smap,coriol,ix,jx,clon,clat,ds,idot,  &
                       & xn,truelatl,truelath)
       implicit none
 !
 ! Dummy arguments
 !
       real(4) :: clat , clon , ds , truelath , truelatl , xn
-      integer :: idot , iy , jx
-      real(4) , dimension(iy,jx) :: coriol , smap , xlat , xlon
-      intent (in) clat , clon , ds , idot , iy , jx , truelath ,        &
+      integer :: idot , ix , jx
+      real(4) , dimension(ix,jx) :: coriol , smap , xlat , xlon
+      intent (in) clat , clon , ds , idot , ix , jx , truelath ,        &
                 & truelatl
       intent (out) coriol , smap , xlon
       intent (inout) xlat , xn
@@ -84,7 +84,7 @@
       psi1 = psi1*d2r
       omega2 = 7.2921159D-05*2.0D0
       cntrj = (jx+idot)/2.
-      cntri = (iy+idot)/2.
+      cntri = (ix+idot)/2.
 !
       psx = (pole-clat)*d2r
       cell = er*sin(psi1)/xn
@@ -96,7 +96,7 @@
 !
       do j = 1 , jx
         x = xcntr + (j-cntrj)*ds
-        do i = 1 , iy
+        do i = 1 , ix
           y = ycntr + (i-cntri)*ds
           r = sqrt(x*x+y*y)
           if ( y==0. ) then
@@ -126,7 +126,7 @@
         end do
       end do
       if ( idot==1 ) then
-        do i = 1 , iy
+        do i = 1 , ix
           do j = 1 , jx
             coriol(i,j) = omega2*sin(xlat(i,j)*d2r)
           end do

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine foricbc(iy,jx,kz,nsg,idate1,idate2,ibyte,dattyp,ssttyp,&
+      subroutine foricbc(ix,jx,kz,nsg,idate1,idate2,ibyte,dattyp,ssttyp,&
                        & ehso4,lsmtyp,aertyp)
       implicit none
 !
@@ -26,14 +26,14 @@
       character(7) :: aertyp
       character(5) :: dattyp , ssttyp
       logical :: ehso4
-      integer :: ibyte , idate1 , idate2 , iy , jx , kz , nsg
+      integer :: ibyte , idate1 , idate2 , ix , jx , kz , nsg
       character(4) :: lsmtyp
       intent (in) aertyp , dattyp , ehso4 , ibyte , idate1 , idate2 ,   &
-                & iy , jx , kz , lsmtyp , nsg , ssttyp
+                & ix , jx , kz , lsmtyp , nsg , ssttyp
 !
 ! Local variables
 !
-      integer :: iy_o , jx_o , kz_o
+      integer :: ix_o , jx_o , kz_o
 !
       open (23,file='../ICBC/icbc.param')
       write (23,'(a)') '      INTEGER JX'
@@ -53,7 +53,7 @@
       write (23,'(a)') '      CHARACTER*4 LSMTYP'
       write (23,'(a)') '      CHARACTER*7 AERTYP'
       write (23,99001) 'JX     =' , jx
-      write (23,99001) 'IY     =' , iy
+      write (23,99001) 'IY     =' , ix
       write (23,99001) 'KZ     =' , kz
       write (23,99001) 'NSG    =' , nsg
       if ( dattyp=='FNEST' ) then
@@ -61,9 +61,9 @@
         write (*,*) 'Please input the original size of ARRAYs'
         write (*,*) 'JX_O, IY_O, KZ_O'
         write (*,*) 'You need cut 2 rows for both JX_O and IY_O'
-        read (*,*) jx_o , iy_o , kz_o
+        read (*,*) jx_o , ix_o , kz_o
         write (23,99001) 'JX_O   =' , jx_o
-        write (23,99001) 'IY_O   =' , iy_o
+        write (23,99001) 'IY_O   =' , ix_o
         write (23,99001) 'KZ_O   =' , kz_o
         write (23,99001) 'NP     =' , 15
       else

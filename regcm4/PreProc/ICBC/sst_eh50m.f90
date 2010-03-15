@@ -31,7 +31,7 @@
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      use mod_param , only : iy , jx , ssttyp , lsmtyp , ibyte ,        &
+      use mod_param , only : ix , jx , ssttyp , lsmtyp , ibyte ,        &
             &                idate1 , idate2
 
       use mod_datenum
@@ -50,7 +50,7 @@
       real , dimension(ilon,jlat) :: sst
       integer :: idate
       integer :: nnnend , nstart
-      real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+      real , dimension(ix,jx) :: lu , sstmm , xlat , xlon
       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
       real , dimension(jlat) :: lati
       real , dimension(ilon) :: loni
@@ -243,16 +243,16 @@
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
       open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
+          & recl=ix*jx*ibyte,access='direct',status='unknown',err=100)
       call initdate_eh50(ssttyp)
       call finddate_eh50(nstart,idate1)
       call finddate_eh50(nnnend,idate2)
       write (*,*) nstart , nnnend
       print * , idate1 , nnnend - nstart + 1
-      call gridml(xlon,xlat,lu,iy,jx,idate1,nnnend-nstart+1,truelatl,   &
+      call gridml(xlon,xlat,lu,ix,jx,idate1,nnnend-nstart+1,truelatl,   &
                 & truelath)
       open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
-          & recl=iy*jx*ibyte,access='direct')
+          & recl=ix*jx*ibyte,access='direct')
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -373,14 +373,14 @@
 !       ******           PRINT OUT DATA AS A CHECK
         if ( nmo==1 ) call printl(sst,ilon,jlat)
  
-        call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+        call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,ix,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
         write (21) nhour , nday , nmo , nyear , sstmm
         print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
         mrec = mrec + 1
-        write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
+        write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,ix)
       end do
  
       stop 99999
@@ -393,16 +393,16 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,numrec,truelatl,      &
+      subroutine gridml(xlon,xlat,lu,ix,jx,idate1,numrec,truelatl,      &
                       & truelath)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate1 , iy , jx , numrec
+      integer :: idate1 , ix , jx , numrec
       real :: truelath , truelatl
-      real , dimension(iy,jx) :: lu , xlat , xlon
-      intent (in) idate1 , iy , jx , numrec
+      real , dimension(ix,jx) :: lu , xlat , xlon
+      intent (in) idate1 , ix , jx , numrec
       intent (out) lu
       intent (inout) truelath , truelatl , xlat , xlon
 !
@@ -413,7 +413,7 @@
             & ptop , rlatinc , rloninc
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , igrads , iyy , j , jxx , k , kz ,        &
+      integer :: i , ibigend , igrads , ixy , j , jxx , k , kz ,        &
                & month , nday , nhour , nx , ny , nyear , period
       character(6) :: iproj
       real , dimension(30) :: sigmaf
@@ -425,16 +425,16 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      read (10,rec=1) iyy , jxx , kz , dsinm , clat , clon , plat ,     &
+      read (10,rec=1) ixy , jxx , kz , dsinm , clat , clon , plat ,     &
                     & plon , grdfac , iproj , (sigmaf(k),k=1,kz+1) ,    &
                     & ptop , igrads , ibigend , truelatl , truelath
-      if ( iyy/=iy .or. jxx/=jx ) then
-        write (*,*) 'IY,JX,IYY,JXX' , iy , jx , iyy , jxx
+      if ( ixy/=ix .or. jxx/=jx ) then
+        write (*,*) 'IY,JX,IYY,JXX' , ix , jx , ixy , jxx
         stop
       end if
-      read (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
-      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
-      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
+      read (10,rec=4) ((lu(i,j),j=1,jx),i=1,ix)
+      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,ix)
+      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,ix)
 !
       if ( igrads==1 ) then
         open (31,file='RCM_SST.ctl',status='replace')
@@ -451,11 +451,11 @@
           alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
-            if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
+            if ( xlat(ix,j)>alatmax ) alatmax = xlat(ix,j)
           end do
           alonmin = 999999.
           alonmax = -999999.
-          do i = 1 , iy
+          do i = 1 , ix
             do j = 1 , jx
               if ( clon>=0.0 ) then
                 if ( xlon(i,j)>=0.0 ) then
@@ -488,25 +488,25 @@
           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
           centerj = jx/2.
-          centeri = iy/2.
+          centeri = ix/2.
         end if
         if ( iproj=='LAMCON' ) then        ! Lambert projection
-          write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
+          write (31,99001) jx , ix , clat , clon , centerj , centeri ,  &
                          & truelatl , truelath , clon , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj=='POLSTR' ) then   !
         else if ( iproj=='NORMER' ) then
           write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
-          write (31,99005) iy
-          write (31,99006) (xlat(i,1),i=1,iy)
+          write (31,99005) ix
+          write (31,99006) (xlat(i,1),i=1,ix)
         else if ( iproj=='ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , iy , plon , plat , dsinm/111000. ,      &
+          write (31,99007) jx , ix , plon , plat , dsinm/111000. ,      &
                          & dsinm/111000.*.95238
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc

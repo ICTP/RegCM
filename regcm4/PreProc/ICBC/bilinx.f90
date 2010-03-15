@@ -17,19 +17,19 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx, &
+      subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,ix,jx, &
                       & nflds)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: iy , jx , nflds , nlati , nloni
+      integer :: ix , jx , nflds , nlati , nloni
       real , dimension(nloni,nlati,nflds) :: fin
       real , dimension(nlati) :: lati
-      real , dimension(iy,jx) :: lato , lono
+      real , dimension(ix,jx) :: lato , lono
       real , dimension(nloni) :: loni
-      real , dimension(iy,jx,nflds) :: fout
-      intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
+      real , dimension(ix,jx,nflds) :: fout
+      intent (in) fin , ix , jx , lati , lato , loni , lono , nflds ,   &
                 & nlati , nloni
       intent (out) fout
 !
@@ -62,7 +62,7 @@
 !     POINT.
  
       do j = 1 , jx
-        do i = 1 , iy
+        do i = 1 , ix
  
           yind = (((lato(i,j)-lati(1))/(lati(nlati)-lati(1)))           &
                & *float(nlati-1)) + 1.
@@ -111,18 +111,18 @@
  
       end subroutine bilinx
 
-      subroutine bilinx2(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
+      subroutine bilinx2(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,ix,llev)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: iy , jx , llev , nlat , nlon
-      real , dimension(jx,iy) :: alat , alon
+      integer :: ix , jx , llev , nlat , nlon
+      real , dimension(jx,ix) :: alat , alon
       real , dimension(nlon,nlat,llev) :: b2
-      real , dimension(jx,iy,llev) :: b3
+      real , dimension(jx,ix,llev) :: b3
       real , dimension(nlat) :: hlat
       real , dimension(nlon) :: hlon
-      intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev ,     &
+      intent (in) alat , alon , b2 , hlat , hlon , ix , jx , llev ,     &
                 & nlat , nlon
       intent (out) b3
 !
@@ -152,7 +152,7 @@
 !     IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID
 !     POINT.
 !
-      do j = 1 , iy
+      do j = 1 , ix
         do i = 1 , jx
  
           i1 = 1000

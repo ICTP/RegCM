@@ -29,7 +29,7 @@
 !          NL= 1 is  90.0; ML= 2 is  88.75 ; => ML=145 is -90.       c
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_param , only : iy , jx , ssttyp , lsmtyp , ibyte ,        &
+      use mod_param , only : ix , jx , ssttyp , lsmtyp , ibyte ,        &
             &                idate1 , idate2
 
       implicit none
@@ -48,7 +48,7 @@
       real(4) , dimension(192,145) :: temp
       real , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
-      real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+      real , dimension(ix,jx) :: lu , sstmm , xlat , xlon
       real :: truelath , truelatl
 
       logical :: there
@@ -82,7 +82,7 @@
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
       open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
+          & recl=ix*jx*ibyte,access='direct',status='unknown',err=100)
       idate = idate1/10000
       if ( idate-(idate/100)*100==1 ) then
         idate = idate - 89
@@ -99,9 +99,9 @@
       end if
       idatef = idate
       print * , idate1 , idate2 , idateo , idatef
-      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef,truelatl,truelath)
+      call gridml(xlon,xlat,lu,ix,jx,idateo,idatef,truelatl,truelath)
       open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
-          & recl=iy*jx*ibyte,access='direct')
+          & recl=ix*jx*ibyte,access='direct')
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -144,11 +144,11 @@
 !       ******           PRINT OUT DATA AS A CHECK
         if ( nmo==1 ) call printl(sst,ilon,jlat)
  
-        call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+        call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,ix,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
         do j = 1 , jx
-          do i = 1 , iy
+          do i = 1 , ix
             if ( sstmm(i,j)<-5000. .and.                                &
                & (lu(i,j)>13.5 .and. lu(i,j)<15.5) ) then
               do k = 1 , 20
@@ -189,9 +189,9 @@
         idate = idate + 1
         if ( nmo==12 ) idate = idate + 88
         mrec = mrec + 1
-        write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
+        write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,ix)
       end do
-      write (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
+      write (10,rec=4) ((lu(i,j),j=1,jx),i=1,ix)
  
       stop 99999
 !     4810 PRINT *,'ERROR OPENING GISST FILE'
@@ -203,16 +203,16 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2,truelatl,      &
+      subroutine gridml(xlon,xlat,lu,ix,jx,idate1,idate2,truelatl,      &
                       & truelath)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate1 , idate2 , iy , jx
+      integer :: idate1 , idate2 , ix , jx
       real :: truelath , truelatl
-      real , dimension(iy,jx) :: lu , xlat , xlon
-      intent (in) idate1 , idate2 , iy , jx
+      real , dimension(ix,jx) :: lu , xlat , xlon
+      intent (in) idate1 , idate2 , ix , jx
       intent (out) lu
       intent (inout) truelath , truelatl , xlat , xlon
 !
@@ -222,7 +222,7 @@
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , igrads ,  iyy , j , jxx , k , kz ,       &
+      integer :: i , ibigend , igrads ,  ixy , j , jxx , k , kz ,       &
                & month , nx , ny , period
       character(6) :: iproj
       real , dimension(30) :: sigmaf
@@ -230,16 +230,16 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      read (10,rec=1) iyy , jxx , kz , dsinm , clat , clon , plat ,     &
+      read (10,rec=1) ixy , jxx , kz , dsinm , clat , clon , plat ,     &
                     & plon , grdfac , iproj , (sigmaf(k),k=1,kz+1) ,    &
                     & ptop , igrads , ibigend , truelatl , truelath
-      if ( iyy/=iy .or. jxx/=jx ) then
-        write (*,*) 'IY,JX,IYY,JXX' , iy , jx , iyy , jxx
+      if ( ixy/=ix .or. jxx/=jx ) then
+        write (*,*) 'IY,JX,IYY,JXX' , ix , jx , ixy , jxx
         stop
       end if
-      read (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
-      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
-      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
+      read (10,rec=4) ((lu(i,j),j=1,jx),i=1,ix)
+      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,ix)
+      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,ix)
 !
       if ( igrads==1 ) then
         open (31,file='RCM_SST.ctl',status='replace')
@@ -256,11 +256,11 @@
           alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
-            if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
+            if ( xlat(ix,j)>alatmax ) alatmax = xlat(ix,j)
           end do
           alonmin = 999999.
           alonmax = -999999.
-          do i = 1 , iy
+          do i = 1 , ix
             do j = 1 , jx
               if ( clon>=0.0 ) then
                 if ( xlon(i,j)>=0.0 ) then
@@ -293,25 +293,25 @@
           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
           centerj = jx/2.
-          centeri = iy/2.
+          centeri = ix/2.
         end if
         if ( iproj=='LAMCON' ) then        ! Lambert projection
-          write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
+          write (31,99001) jx , ix , clat , clon , centerj , centeri ,  &
                          & truelatl , truelath , clon , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj=='POLSTR' ) then   !
         else if ( iproj=='NORMER' ) then
           write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
-          write (31,99005) iy
-          write (31,99006) (xlat(i,1),i=1,iy)
+          write (31,99005) ix
+          write (31,99006) (xlat(i,1),i=1,ix)
         else if ( iproj=='ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , iy , plon , plat , dsinm/111000. ,      &
+          write (31,99007) jx , ix , plon , plat , dsinm/111000. ,      &
                          & dsinm/111000.*.95238
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
