@@ -297,6 +297,7 @@
           write (99,99003) a50
           imonold = imon
           ifile = ifile + 1
+          noutrec = 0
         end if
         if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
           call getncep(idate)
