@@ -42,7 +42,7 @@
         fields = 14 + numcompounds
         if ( fields>50 ) then
           stop 999
-        else if ( fields>50 ) then
+        else if ( fields<14 ) then
           go to 50
         else
         end if
