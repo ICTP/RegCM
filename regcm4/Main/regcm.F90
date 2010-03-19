@@ -172,7 +172,7 @@
         call say
         call fatal(__FILE__,__LINE__,'CPU Count mismatch')
       end if
-      print * , "process" , myid , "of" , nproc
+!      print * , "process" , myid , "of" , nproc
       call mpi_barrier(mpi_comm_world,ierr)
 !     starttime= MPI_WTIME()
       if ( myid.gt.0 ) then
@@ -211,7 +211,7 @@
         jendm = jxp - 2
       end if
 #else
-      myid = 1
+      myid = 0
 #endif
 !!
       call header(myid)

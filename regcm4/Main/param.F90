@@ -404,37 +404,44 @@
 #endif
 
 !---------------------------------------------------------------------
-!-----read in namelist variables:
 !
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        open (2,file='regcm.in',status='old')
-        read (2,restartparam)
-        print * , 'RESTARTPARAM READ IN'
-        read (2,timeparam)
-        print * , 'TIMEPARAM READ IN'
-        read (2,outparam)
-        print * , 'OUTPARAM READ IN'
-        read (2,physicsparam)
-        print * , 'PHYSICSPARAM READ IN'
-        if ( ipptls.eq.1 ) then
-          read (2,subexparam)
-          print * , 'SUBEXPARAM READ IN'
-        end if
-        if ( icup.eq.2 ) then
-          read (2,grellparam)
-          print * , 'GRELLPARAM READ IN'
-        else if ( icup.eq.4 ) then
-          read (2,emanparam)
-          print * , 'EMANPARAM READ IN'
-        else
-        end if
-        if ( ichem.eq.1 ) then
-          read (2,chemparam)
-          print * , 'CHEMPARAM READ IN'
-        end if
-        close (2)
+#endif 
+
+!  
+!-----read in namelist variables:
+      read (*,restartparam)
+      print * , 'param: RESTARTPARAM READ IN'
+      read (*,timeparam)
+      print * , 'param: TIMEPARAM READ IN'
+      read (*,outparam)
+      print * , 'param: OUTPARAM READ IN'
+      read (*,physicsparam)
+      print * , 'param: PHYSICSPARAM READ IN'
+      if ( ipptls.eq.1 ) then
+        read (*,subexparam)
+        print * , 'param: SUBEXPARAM READ IN'
       end if
+      if ( icup.eq.2 ) then
+        read (*,grellparam)
+        print * , 'param: GRELLPARAM READ IN'
+      else if ( icup.eq.4 ) then
+        read (*,emanparam)
+        print * , 'param: EMANPARAM READ IN'
+      else
+      end if
+      if ( ichem.eq.1 ) then
+        read (*,chemparam)
+        print * , 'param: CHEMPARAM READ IN'
+      end if
+!
+#ifdef MPP1
+      end if 
+      call mpi_barrier(mpi_comm_world,ierr) 
+!
+!  communicate to all processors 
+!
       call mpi_bcast(ifrest,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(idate0,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(idate1,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -545,34 +552,11 @@
         call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
       end if
-#else
-      read (*,restartparam)
-      print * , 'RESTARTPARAM READ IN'
-      read (*,timeparam)
-      print * , 'TIMEPARAM READ IN'
-      read (*,outparam)
-      print * , 'OUTPARAM READ IN'
-      read (*,physicsparam)
-      print * , 'PHYSICSPARAM READ IN'
-      if ( ipptls.eq.1 ) then
-        read (*,subexparam)
-        print * , 'SUBEXPARAM READ IN'
-      end if
-      if ( icup.eq.2 ) then
-        read (*,grellparam)
-        print * , 'GRELLPARAM READ IN'
-      else if ( icup.eq.4 ) then
-        read (*,emanparam)
-        print * , 'EMANPARAM READ IN'
-      else
-      end if
-      if ( ichem.eq.1 ) then
-        read (*,chemparam)
-        print * , 'CHEMPARAM READ IN'
-      end if
 #endif
  
       if ( ichem.eq.0 ) ifchem = .false.
+
+!first checks 
 !as
       if ( mod(anint(radfrq*60.),anint(dt)).ne.0 ) then
         write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
@@ -620,7 +604,7 @@
       do ns = 1 , nsplit
         dtau(ns) = dtsplit(ns)
       end do
-      write (aline, *) ' dtau = ' , dtau
+      write (aline, *) 'param: dtau = ' , dtau
       call say
       dt0 = dt      !store original dt
       maschk = nint(prtfrq*3600./dt)
@@ -654,7 +638,7 @@
  
 !     ktaur = nint((NSTART-NSTRT0)*ibdyfrq*60/dtmin)
       ntimax = (nnnend-nstrt0)*ibdyfrq*60
-      write (aline, *) 'IDATE1, IDATE2, dtmin, ktaur = ' ,              &
+      write (aline, *) 'param: IDATE1, IDATE2, dtmin, ktaur = ' ,              &
                            & idate1 , idate2 , dtmin , ktaur
       call say
       ldatez = idate1
@@ -673,7 +657,7 @@
 !
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        print * , 'READING HEADER FILE'
+        print * , 'param: READING HEADER FILE'
         write (finm,99001) iutin
         if ( nsg.gt.1 ) open (iutin1,file='fort.11',form='unformatted', &
                             & status='old',access='direct',             &
@@ -684,19 +668,19 @@
                                       & clon , plat , plon , grdfac ,   &
                                       & proj , sp1d , ptsp , igrads ,   &
                                       & ibigend , truelatl , truelath
-        print * , 'DIMS' , nyy , nxx , kzz
-        print * , 'DOMAIN' , dxsp , clat , clon , plat , plon , grdfac
-        print * , 'PROJ' , proj
-        print * , 'SIGMA' , sp1d
-        print * , 'PTOP' , ptsp
-        print * , 'OUTPUT' , igrads , ibigend
+        print * , 'param: DIMS' , nyy , nxx , kzz
+        print * , 'param: DOMAIN' , dxsp , clat , clon , plat , plon , grdfac
+        print * , 'param: PROJ' , proj
+        print * , 'param: SIGMA' , sp1d
+        print * , 'param: PTOP' , ptsp
+        print * , 'param: OUTPUT' , igrads , ibigend
         ptop = ptsp
         dx = dxsp
         if ( nyy.ne.ix .or. nxx.ne.jx .or. kzz.ne.kx ) then
-          write (aline,*) '  SET IN regcm.param:  IX=' , ix , ' JX=' ,  &
+          write (aline,*) 'param:  SET IN regcm.param:  IX=' , ix , ' JX=' ,  &
                         & jx , ' KX=' , kx
           call say
-          write (aline,*) '  SET IN TERRAIN: NYY=' , nyy , ' NXX=' ,    &
+          write (aline,*) 'param:  SET IN TERRAIN: NYY=' , nyy , ' NXX=' ,    &
                         & nxx , ' NZZ=' , kzz
           call say
           write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' &
@@ -751,7 +735,7 @@
  
 !rst-fix
       mdate0 = idate0
-      write (aline, *) '***** mdate = ' , mdate0
+      write (aline, *) ' param: ***** mdate = ' , mdate0
       call say
       myear = mdate0/1000000
       nyear = idate1/1000000
@@ -800,7 +784,7 @@
 !
       conf = 1.
  
-      write (aline, *) ' input/output parameters '
+      write (aline, *) 'param: input/output parameters '
       call say
       write (aline, *) ' ifsave = ' , ifsave , ' savfrq = ' , savfrq ,  &
              &' iftape = ' , iftape , ' tapfrq = ' , tapfrq ,           &
@@ -812,7 +796,7 @@
       call say
       write (aline, *) ' '
       call say
-      write (aline, *) ' physical parameterizations '
+      write (aline, *) 'param: physical parameterizations '
       call say
 #ifdef CLM
       write (aline, *) ' iboudy = ' , iboudy , ' icup = ' , icup ,      &
@@ -829,7 +813,7 @@
       call say
       write (aline, *) ' '
       call say
-      write (aline, *) ' model parameters '
+      write (aline, *) 'param: model parameters '
       call say
       write (aline, *) ' radfrq = ' , radfrq , ' abatm = ' , abatm ,    &
             &' abemh = ' , abemh , ' dt = ' , dt
@@ -955,7 +939,7 @@
             end do
           end do
           if ( ierr1.ne.0 ) then
-            write (aline,*) '  Check ibyte in parameter.inc: ibyte = ' ,&
+            write (aline,*) '  Check ibyte in  mod_regcm_param.F90  ibyte = ' ,&
                           & ibyte
             call fatal(__FILE__,__LINE__,'REACHED EOF')
           end if
