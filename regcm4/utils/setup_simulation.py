@@ -94,20 +94,20 @@ def write_ICBC(parameters,filename,verbose=False):
     SSTTYP=parameters['ssttyp'].strip("'")
     AERTYP=parameters['aertyp'].strip("'")
  
-    default="'./SST \n'" 
+    default="./sst_1deg \n" 
     # various conditions to check 
     if ((DATTYP=='FVGCM') or  (DATTYP == 'FNEST' and (SSTTYP== 'FV_RF' or SSTTYP == 'FV_A2') ) ):
-        default="./SST_FVGCM\n"
+        default="./sst_fvgcm\n"
     if ((DATTYP=='EH5OM') or (DATTYP=='FNEST' and (SSTTYP=='EH5RF' or SSTTYP=='EH5A2' or SSTTYP=='EH5B1' or SSTTYP=='EHA1B'))):
-        default="./SST_EH5OM\n"
+        default="./sst_eh50m\n"
     if ((DATTYP=='EIN15' or DATTYP=='ERAIN') and (SSTTYP=='ERSST' or SSTTYP=='ERSKT')):
-        default="./SST_ERSST\n" 
+        default="./sst_ersst\n" 
  
     fhandler.write(default) 
 
     # chemistry enabled ? 
     if (AERTYP[3:5]!='00'):
-          fhandler.write('./AEROSOL \n') 
+          fhandler.write('./aereosol \n') 
       
     if (DATTYP=='ERAHI'): 
           fhandler.writelines('echo: not yet ported ERAHI \nexit \n') 
@@ -136,7 +136,7 @@ class MyOptions(object):
         usage = "usage: %s [-q] [-c|-d directory] " % sys.argv[0]
         self.parser = OptionParser(usage)
         self.parser.add_option("-f", "--file", dest="filename",
-                      help="input fle to read ", metavar="FILE")
+                      help="input file to read ", metavar="FILE")
         self.parser.add_option("-q", "--quiet",
                       action="store_false", dest="verbose", default=True,
                       help="don't print status messages to stdout")
@@ -171,9 +171,15 @@ def main():
 	for key, value in parameters.iteritems():
 		print "%s has value %s" % (key, value)
         # write F90 modules 
-        write_modulef90(parameters,'mod_regcm_param.F90',options.verbose)
-        write_modulef90(parameters,'mod_param.f90',options.verbose)
-        write_ICBC(parameters,"icbc.x",options.verbose)
+        # define three standard places: this should be improved at a later stage 
+        default_mod_regcm_param="../Main/mod_regcm_param.F90"
+        default_mod_paramT="../PreProc/Terrain/mod_param.f90" 
+        default_mod_paramI="../PreProc/ICBC/mod_param.f90" 
+        write_modulef90(parameters,default_mod_regcm_param,options.verbose)
+        write_modulef90(parameters,default_mod_paramT,options.verbose)
+        write_modulef90(parameters,default_mod_paramI,options.verbose)
+        default_ICBC="../PreProc/ICBC/icbc_v4.x"
+        write_ICBC(parameters,default_ICBC,options.verbose)
     else:
         sys.stderr.write("I don't know what to do!!!\n")
             
