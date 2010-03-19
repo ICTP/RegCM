@@ -5,6 +5,7 @@ include ../../Makefile.inc
 
 SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
 
+F90FLAGS += -check
 all: clm2rcm
 
 MODOBJ = mod_param_clm.o

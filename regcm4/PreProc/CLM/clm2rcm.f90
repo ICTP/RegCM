@@ -6,44 +6,46 @@
 
       implicit none
 !
-      real(4) , parameter :: vmisdat=-99.e30
+      real(4) , parameter :: vmisdat=-9999
       integer , parameter :: ndim = 3
       logical , parameter :: bvoc = .false.
 !
 ! Local variables
 !
-      real :: clatx , clonx , dsx , grdfac , grdfacx , offset , perr ,  &
-           & platx , plonx , pmax , ptopx , xscale , xlatmax , xlatmin ,&
-           & xlonmax , xlonmin
-      real , allocatable , dimension(:) :: glat , glon , zlat ,         &
-               &                           zlev , zlon
+      real(4) :: clatx , clonx , dsx , grdfac , grdfacx , offset ,      &
+           & perr , platx , plonx , pmax , ptopx , xscale , xlatmax ,   &
+           & xlatmin , xlonmax , xlonmin
       integer :: i , ibigendx , idatex , idin , idout , idy , ierr ,    &
                & ifield , ifld , igradsx , ihr , ilatmax , ilatmin ,    &
                & ilonmax , ilonmin , imap , imo , iotyp , irec , iyr ,  &
                & ixx , j , julnc , jxx , kk , kmax , kzz , l , nf_close
+      integer :: k
       integer :: iunout , iunctl
       integer , dimension(4) :: icount , istart
       integer , dimension(3) :: iadim
       character(6) :: iprojx
-      real , allocatable , dimension(:,:) :: landmask , regxy , sandclay
-      character(30) , dimension(nfld) :: lnam
-      character(53) :: outfil_ctl , outfil_gr , outfil_nc
-      real , allocatable , dimension(:,:,:) :: regxyz
-      real , allocatable , dimension(:,:,:,:) :: regyxzt , zoom
-      real , dimension(1) :: sig1d
-      real , dimension(2) :: sigf
-      real , dimension(kz+1) :: sigx
+      character(64) , dimension(nfld) :: lnam
+      character(256) :: outfil_ctl , outfil_gr , outfil_nc
+      real(4) , dimension(1) :: sig1d
+      real(4) , dimension(2) :: sigf
+      real(4) , dimension(kz+1) :: sigx
       logical :: there
-      character(13) , dimension(nfld) :: units
-      real , dimension(3) :: varmax , varmin
-      character(15) , dimension(nfld) :: vnam_o
+      character(64) , dimension(nfld) :: units
+      real(4) , dimension(3) :: varmax , varmin
+      character(64) , dimension(nfld) :: vnam_o
+      real(4) , dimension(ix,jx) :: xlat , xlon
+      real(4) , dimension(ix) :: xlat1d
+      real(4) , dimension(jx) :: xlon1d
       real(8) :: xhr
-      real , dimension(ix,jx) :: xlat , xlon
-      real , dimension(ix) :: xlat1d
-      real , dimension(jx) :: xlon1d
+      real(4) , allocatable , dimension(:) :: glat , glon , zlat ,      &
+               &                           zlev , zlon
+      real(4) , allocatable , dimension(:,:,:) :: regxyz
+      real(4) , allocatable , dimension(:,:,:,:) :: regyxzt , zoom
+      real(4) , allocatable , dimension(:,:) :: landmask , regxy ,      &
+               &                             sandclay
 !
 !     ** Get latitudes and longitudes from DOMAIN.INFO
-      open (unit=10,file='fort.10',status='old',form='unformatted',     &
+      open (unit=10,file=filout,status='old',form='unformatted',     &
           & recl=ix*jx*ibyte,access='direct')
       read (10,rec=1) ixx , jxx , kzz , dsx , clatx , clonx , platx ,   &
                     & plonx , grdfacx , iprojx , sigx , ptopx ,         &
@@ -83,15 +85,18 @@
       iotyp = 2
       xscale = 1.
       offset = 0.
+      iunout = 101
+      iunctl = 102
  
 !     ** Open direct access CLM3/RegCM3 output file
       outfil_gr = trim(outdir)//trim(outfil)
       call fexist(outfil_gr)
-      open (iunout,file=outfil_gr,status='unknown',form='unformatted',  &
-          & recl=jx*ix*ibyte,access='direct')
+      print *, 'Open ', trim(outfil_gr)
+      open (iunout,file=outfil_gr,status='replace',                     &
+          & form='unformatted',recl=jx*ix*ibyte,access='direct')
       irec = 1
       write (iunout,rec=irec) ixx , jxx , npft , nsoi , dsx , clatx ,   &
-                            & clonx , platx , plonx , grdfac , iprojx
+                            & clonx , platx , plonx , grdfacx , iprojx
 !abt  added below
 !     ** determine which files to create (emission factor map or not)
       call comp(ifield,bvoc)
@@ -123,9 +128,9 @@
             ierr = nf90_open(infil(ifld),nf90_nowrite,idin)
           end if
 !******************************************* ABT ***************************************
-          outfil_nc = trim(outdir)//'RCM'//trim(infil(ifld)(7:50))
+          outfil_nc = trim(outdir)//'RCM'//infil(ifld)(7:50)
 !         CALL FEXIST(outfil_nc)
-          print * , 'OPENING NetCDF FILE: ' , outfil_nc
+          print * , 'OPENING NetCDF FILE: ' , trim(outfil_nc)
           call rcrecdf(outfil_nc,idout,varmin,varmax,3,ierr)
         end if
  
@@ -227,6 +232,7 @@
         allocate(regyxzt(ix,jx,nlev(ifld),ntim(ifld)))
         allocate(regxyz(jx,ix,nlev(ifld)))
         allocate(regxy(jx,ix))
+
         call bilinx4d(zoom,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
                     & xlat,ix,jx,icount(3),icount(4),vmin(ifld),vmisdat)
  
@@ -288,8 +294,10 @@
         deallocate(zlon)
         deallocate(zlat)
         deallocate(zlev)
+        deallocate(landmask)
         deallocate(regyxzt)
         deallocate(regxyz)
+        deallocate(regxy)
         if ( ifld==isnd .or. ifld==icly ) deallocate(sandclay)
  
       end do  ! End nfld loop
@@ -299,12 +307,7 @@
       open (iunctl,file=outfil_ctl,status='unknown')
 !     do ifld=1,nfld
       do ifld = 1 , ifield
-        if ( ifld==ilai .or. ifld==isai .or. ifld==itop .or.            &
-           & ifld==ibot ) then
-          vnam_o(ifld) = trim(vnam(ifld)(9:20))
-        else
-          vnam_o(ifld) = trim(vnam(ifld)(1:15))
-        end if
+        vnam_o(ifld) = vnam(ifld)
       end do
       call makectl(iunctl,outfil,jx,ix,npft,ifield,dsx,clatx,clonx,     &
                  & platx,plonx,iprojx,ibigendx,truelatl,truelath,       &

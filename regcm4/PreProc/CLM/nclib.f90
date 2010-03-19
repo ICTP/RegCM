@@ -34,19 +34,19 @@
 
 !     Argument declarations.
       integer , intent (in) :: ndim
-      character(len=*), intent(in) :: filnam
+      character(256), intent(in) :: filnam
       real(4) , dimension(ndim) :: phymin , phymax
       integer , intent (out) :: ierr , cdfid
 
 !     Local variable declarations.
       integer , parameter :: maxdim = 4
-      character(len=20) :: attnam
-      character(len=1)  :: chrid(maxdim)
+      character(64) :: attnam
+      character(1)  :: chrid(maxdim)
       integer :: k
       data chrid /'x','y','z','a'/
 
 !     create the netCDF file
-      ierr = nf90_create(trim(filnam),nf90_clobber, cdfid)
+      ierr = nf90_create(filnam,nf90_clobber, cdfid)
       if ( ierr/=nf90_noerr ) go to 920
 
 !     define global attributes
@@ -87,7 +87,7 @@
 
       implicit none
 
-      character(len=*) , intent(in) :: filnam
+      character(256) , intent(in) :: filnam
       integer , intent(in) :: ndim
       integer , intent(out) :: cdfid
       integer , intent(out) :: ierr
@@ -152,7 +152,7 @@
       implicit none
 
       integer , intent(in) :: cdfid , ie , je , ke
-      character(len=*) :: varnam , lname , vunit
+      character(64) :: varnam , lname , vunit
       real(4) , dimension(ie,je,ke) , intent(in) :: arr
       real(4) , dimension(ie) , intent(in) :: xlon1d
       real(4) , dimension(je) , intent(in) :: xlat1d
@@ -197,11 +197,12 @@
       varstg(3) = -0.5
       if ( izstag/=0 ) varstg(3) = 0.0
 
-      it = nf90_inq_varid(cdfid,trim(varnam),idtest)
+      it = nf90_inq_varid(cdfid,varnam,idtest)
       if ( it/=nf90_noerr ) then
         call putdefcdf(cdfid,varnam,ndims,vmisdat,lname,vunit,          &
               &        offset,factor,vardim,varmin,varmax,iotype,it)
-        call putcoords(cdfid,ievar,jevar,kevar,xlat1d,xlon1d,sigh,it)
+        call putcoords(cdfid,ndims,vardim,ievar,jevar,kevar,            &
+              &        xlat1d,xlon1d,sigh,it)
       end if
 
 !     loop over all vertical levels and write the data
@@ -214,12 +215,12 @@
 
         if ( iotype==1 ) then        ! Integer*2 format
           rfac = 1./factor
-          call putdatcdfi2(cdfid,trim(varnam),vtstep, k, iputlev,       &
-                 &         ievar, jevar, kevar, arr, ie, je, ke,        &
+          call putdatcdfi2(cdfid, varnam, vtstep, k,              &
+                 &         iputlev, ievar, jevar, arr, ie, je, ke,      &
                  &         vmisdat, rfac, offset, it) 
         else if ( iotype==2 ) then   ! Real*4 format
-          call putdatcdfr4(cdfid,trim(varnam),vtstep,k,iputlev,        &
-                 &         ievar,jevar,kevar,arr,ie,je,ke,it)
+          call putdatcdfr4(cdfid,varnam,vtstep,k,iputlev,         &
+                 &         ievar,jevar,arr,ie,je,ke,it)
         end if
       
       end do   ! loop over vertical levels
@@ -243,12 +244,14 @@
 !        overwrites or extends an existing times-array.
 !------------------------------------------------------------------------
 
-      subroutine putcoords(cdfid,ie,je,ke,xlat1d,xlon1d,sigh,ierr)
+      subroutine putcoords(cdfid,ndim,vardim,ie,je,ke,xlat1d,xlon1d,    &
+                     &     sigh,ierr)
 
       use netcdf
       implicit none
 
-      integer , intent(in) :: cdfid , ie , je , ke
+      integer , intent(in) :: cdfid , ie , je , ke , ndim
+      integer , dimension(ndim) , intent(in) :: vardim
       real(4) , dimension(ie) :: xlon1d
       real(4) , dimension(je) :: xlat1d
       real(4) , dimension(ke) :: sigh
@@ -257,6 +260,7 @@
       integer :: ncvid
 
       ierr = 0
+
       ierr = nf90_inq_varid(cdfid,'lon',ncvid)
       if ( ierr/=nf90_noerr) go to 920
       ierr = nf90_put_var(cdfid,ncvid,xlon1d)
@@ -265,10 +269,12 @@
       if ( ierr/=nf90_noerr) go to 920
       ierr = nf90_put_var(cdfid,ncvid,xlat1d)
       if ( ierr/=nf90_noerr) go to 920
-      ierr = nf90_inq_varid(cdfid,'level',ncvid)
-      if ( ierr/=nf90_noerr) go to 920
-      ierr = nf90_put_var(cdfid,ncvid,sigh)
-      if ( ierr/=nf90_noerr) go to 920
+      if ( vardim(3) > 1) then
+        ierr = nf90_inq_varid(cdfid,'level',ncvid)
+        if ( ierr/=nf90_noerr) go to 920
+        ierr = nf90_put_var(cdfid,ncvid,sigh)
+        if ( ierr/=nf90_noerr) go to 920
+      end if
 
       return
 
@@ -341,7 +347,7 @@
 
       integer , intent(in) :: cdfid , ievar , jevar , ie , je , ke , k ,&
                             & level
-      character(len=*) , intent(in) :: varnam
+      character(64) , intent(in) :: varnam
       real(4) , dimension(ie,je,ke) , intent(in) :: arr
       real(4) , intent(in) :: vmisdat , rfac , offset
       integer , intent(out) :: ierr
@@ -373,11 +379,11 @@
       end do
 
 !     get definitions of data
-      call getdefi2 (cdfid, trim(varnam), ndims, misdat, vardim, ierr)
+      call getdefi2 (cdfid,varnam,ndims,misdat,vardim,ierr)
       if ( ierr/=0 ) go to 920
 
 !     get id of variable
-      ierr = nf90_inq_varid(cdfid,trim(varnam),idvar)
+      ierr = nf90_inq_varid(cdfid,varnam,idvar)
       if ( ierr/=nf90_noerr ) go to 920
 
 !     get times-array 
@@ -427,7 +433,7 @@
       edgeln(ik) = 1
       
 !     Put data on NetCDF file
-      ierr = nf90_put_var(cdfid,idvar,dat,corner,edgeln)
+      ierr = nf90_put_var(cdfid,idvar,dat,corner(1:ik),edgeln(1:ik))
       if ( ierr/=nf90_noerr ) go to 920
 
 !     Synchronize output to disk and close the files
@@ -438,7 +444,7 @@
 
 !     ierr exit
  920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
-            &      'write variable ', trim(varnam), ' values ',         &
+            &      'write variable ', varnam, ' values ',               &
             &      'at time ', time, ' in putdatcdfi2.'
       write (6, *) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
@@ -480,7 +486,6 @@
 !       Apr. 93    Christoph Schaer (ETHZ)     Created.
 !-----------------------------------------------------------------------
 
-
       subroutine putdefcdf(cdfid,varnam,ndim,misdat,clname,             &
                   &        clunits,offset,xscale,vardim,varmin,varmax,  &
                   &        iotype,ierr)
@@ -492,35 +497,36 @@
 
 !     Argument declarations.
       integer , intent(in) :: cdfid , ndim , iotype
-      character(len=*) , intent(in) :: varnam , clname , clunits
+      character(64) , intent(in) :: varnam , clname , clunits
       integer , dimension(ndim) :: vardim
       real(4) , dimension(ndim) :: varmin , varmax
       real(4) , intent(in) :: xscale , offset , misdat
       integer , intent(out) :: ierr
 
 !     Local variable declarations.
-      character(len=20) :: dimnam , dimchk
-      character(len=20) , dimension(maxdim) :: dimnams
-      character(len=5) , dimension(maxdim) :: rdim
-      integer , dimension(maxdim) :: dimvals , did
+      character(64) :: dimnam , dimchk
+      character(64) , dimension(10) :: dimnams
+      character(5) , dimension(maxdim) :: rdim
+      integer , dimension(10) :: dimvals
+      integer , dimension(maxdim) :: did
       integer :: numdims , numvars , numgats , dimulim
       integer :: id , idtime , i , k , ik
       integer :: idcoor
       real(4) , dimension(2) :: vrange
       real(8) , dimension(2) :: dvrange
-      character(len=20) , dimension(maxdim) :: long_name
-      character(len=30) , dimension(maxdim) :: units
+      character(64) , dimension(maxdim) :: long_name
+      character(64) , dimension(maxdim) :: units
       integer(2) , parameter :: shfill = -32767
       real(4) , parameter :: flfill = 9.9692099683868690e+36
 
-      data rdim /'lon  ','lat  ','level','time '/
+      data rdim /'lon','lat','level','time'/
       data long_name /'Longitude','Latitude','Height_Index','Time'/
 
       data units / 'degrees_east', 'degrees_north',                     &
              &     'level' , 'hours since 1900-1-1 00:00:0.0' /
 
-!     Make sure ndim <= MAXDIM.
-      if ( ndim>MAXDIM ) then
+!     Make sure ndim <= maxdim.
+      if ( ndim>maxdim ) then
          ierr = 10
          go to 900
       end if
@@ -545,7 +551,7 @@
       do k = 1 , max0(ndim,3)
         if ( vardim(k)>1 ) then
           ik = ik + 1
-          dimnam = trim(rdim(k))
+          dimnam = rdim(k)
           did(ik) = -1
           if ( numdims>0 ) then
 !           check if an existing dimension-declaration can be used
@@ -560,10 +566,9 @@
           end if
           if ( did(ik)<0 ) then
 !         define the dimension and an array with name of dimension
-            ierr = nf90_def_dim(cdfid,trim(dimnam),vardim(k),did(ik))
+            ierr = nf90_def_dim(cdfid,dimnam,vardim(k),did(ik))
             if ( ierr/=nf90_noerr ) go to 920
-            ierr = nf90_def_var(cdfid,trim(dimnam),nf90_float,         &
-                      &          did(ik),idcoor)
+            ierr = nf90_def_var(cdfid,dimnam,nf90_float,did(ik),idcoor)
             if ( ierr/=nf90_noerr ) go to 920
             vrange(1) = varmin(k)
             vrange(2) = varmax(k)
@@ -606,9 +611,9 @@
 
 !     define variable
       if ( iotype==1 ) then
-        ierr = nf90_def_var(cdfid,varnam,nf90_short,did,id)
+        ierr = nf90_def_var(cdfid,varnam,nf90_short,did(1:ik),id)
       else if (iotype==2) then
-        ierr = nf90_def_var(cdfid,varnam,nf90_float,did,id)
+        ierr = nf90_def_var(cdfid,varnam,nf90_float,did(1:ik),id)
       end if
       if ( ierr/=nf90_noerr ) go to 920
 
@@ -620,20 +625,18 @@
       if ( ierr/=nf90_noerr ) go to 920
 !     define missing data value
       if ( iotype==1 ) then
-        ierr = nf90_put_att(cdfid,id,'_FillValue',shfill)
+        ierr = nf90_put_att(cdfid,id,'missing_value',shfill)
       else if ( iotype==2 ) then
-        ierr = nf90_put_att(cdfid,id,'_FillValue',misdat)
+        ierr = nf90_put_att(cdfid,id,'missing_value',misdat)
       end if
       if ( ierr/=nf90_noerr ) go to 920
 
-!     define offset_value
       if ( iotype==1 ) then
+!       define offset_value
         ierr = nf90_put_att(cdfid,id,'add_offset',offset)
         if ( ierr/=nf90_noerr ) go to 920
-      end if
 
-!     define scale_factor
-      if ( iotype==1 ) then
+!       define scale_factor
         ierr = nf90_put_att(cdfid,id,'scale_factor',xscale)
         if ( ierr/=nf90_noerr ) go to 920
       end if
@@ -720,7 +723,7 @@
       implicit none
 
       integer , intent(in) :: cdfid
-      character(len=*) , intent(in) :: varnam
+      character(64) , intent(in) :: varnam
       real(8) , intent(in) :: time
       integer , intent(in) :: k , level , ievar , jevar , ie ,  je , ke
       real(4) , dimension(ie,je,ke) , intent(in) :: arr
@@ -730,7 +733,7 @@
 !     Declaration of local variables
 
       real(4), dimension(ie*je*ke) :: dat
-      real :: misdat
+      real(4) :: misdat
       real(8) :: timeval
       real(8) , dimension(2) :: dvrange
 
@@ -748,12 +751,11 @@
       end do
 
 !     get definitions of data
-      call getdefcdfr4(cdfid, trim(varnam), ndims , misdat, vardim,     &
-                 &     ierr)
+      call getdefcdfr4(cdfid,varnam,ndims,misdat,vardim,ierr)
       if ( ierr/=0 ) go to 920
 
 !     get id of variable
-      ierr = nf90_inq_varid(cdfid,trim(varnam),idvar)
+      ierr = nf90_inq_varid(cdfid,varnam,idvar)
       if ( ierr/=nf90_noerr ) go to 920
 
 !     get times-array 
@@ -777,7 +779,7 @@
         ntime = ntime+1
         iflag = ntime
         istart(1) = ntime
-        ierr = nf90_put_var(cdfid,idtime,timeval,istart)
+        ierr = nf90_put_var(cdfid,idtime,time,istart)
         if ( ierr/=nf90_noerr ) go to 920
         ierr = nf90_get_att(cdfid,idtime,'actual_range',dvrange)
         if ( ierr/=nf90_noerr ) go to 920
@@ -806,7 +808,7 @@
       
 !     Put data on NetCDF file
 
-      ierr = nf90_put_var(cdfid,idvar,dat,corner,edgeln)
+      ierr = nf90_put_var(cdfid,idvar,dat,corner(1:ik),edgeln(1:ik))
       if ( ierr/=nf90_noerr ) go to 920
 
 !     Synchronize output to disk and close the files
@@ -817,8 +819,8 @@
       return
 
  920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
-            &      'write variable ', trim(varnam), ' values ',         &
-            &      'at time ', time, ' in putdatcdfi2.'
+            &      'write variable ', varnam, ' values ',               &
+            &      'at time ', time, ' in putdatcdfr4.'
       write (6, *) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
@@ -861,14 +863,14 @@
 
       integer , intent(in) :: cdfid
       integer , intent(inout) :: ndim
-      character(len=*), intent(in) :: varnam
+      character(64), intent(in) :: varnam
       integer, dimension(ndim) , intent(out) :: vardim
       real(4) , intent(out) :: misdat
       integer , intent(out) :: ierr
 
 !     Local variable declarations.
-      character(len=20) , dimension(maxdim) :: dimnam
-      character(len=20) :: vnam
+      character(64) , dimension(maxdim) :: dimnam
+      character(64) :: vnam
       integer :: id , i , k
       integer :: ndims , nvars , ngatts , recdim
       integer , dimension(maxdim) :: dimsiz
@@ -897,8 +899,8 @@
         go to 910
       end if
 
-!     Make sure ndim <= MAXDIM.
-      if ( ndim>MAXDIM ) then
+!     Make sure ndim <= maxdim.
+      if ( ndim>maxdim ) then
          ierr = 1
          go to 900
       end if
@@ -970,15 +972,15 @@
 !     Argument declarations.
       integer , parameter :: maxdim = 4
       integer , intent(in) :: cdfid
-      character(len=*) , intent(in) :: varnam
+      character(64) , intent(in) :: varnam
       integer , intent(inout) :: ndim
       integer, dimension(ndim) , intent(out) :: vardim
       real(4) , intent(out) :: misdat
       integer , intent(out) :: ierr
 
 !     Local variable declarations.
-      character(len=20), dimension(10) :: dimnam
-      character(len=20) :: vnam
+      character(64), dimension(10) :: dimnam
+      character(64) :: vnam
       integer :: id , i , k
       integer :: ndims , nvars , ngatts , recdim
       integer , dimension(10) :: dimsiz
@@ -1009,8 +1011,8 @@
         go to 910
       end if
 
-!     Make sure ndim <= MAXDIM.
-      if ( ndim>MAXDIM ) then
+!     Make sure ndim <= maxdim.
+      if ( ndim>maxdim ) then
          ierr = 1
          go to 900
       end if

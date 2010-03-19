@@ -4,14 +4,14 @@
 ! Dummy arguments
 !
       integer :: nx , ny
-      real , dimension(ny,nx) :: xlon
+      real(4) , dimension(ny,nx) :: xlon
       intent (in) nx , ny
       intent (inout) xlon
 !
 ! Local variables
 !
       integer :: i , j
-      real , dimension(ny,nx) :: xlon1
+      real(4) , dimension(ny,nx) :: xlon1
 !
       do i = 1 , nx
         do j = 1 , ny

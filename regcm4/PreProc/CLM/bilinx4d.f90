@@ -45,12 +45,12 @@
 ! Dummy arguments
 !
       integer :: iy , jx , nlati , nloni , nt , nz
-      real :: vmisdat , xming
-      real , dimension(nloni,nlati,nz,nt) :: mti
-      real , dimension(nlati) :: lati
-      real , dimension(iy,jx) :: lato , lono
-      real , dimension(nloni) :: loni
-      real , dimension(iy,jx,nz,nt) :: mto
+      real(4) :: vmisdat , xming
+      real(4) , dimension(nloni,nlati,nz,nt) :: mti
+      real(4) , dimension(nlati) :: lati
+      real(4) , dimension(iy,jx) :: lato , lono
+      real(4) , dimension(nloni) :: loni
+      real(4) , dimension(iy,jx,nz,nt) :: mto
       intent (in) mti , iy , jx , lati , lato , loni , lono , nlati ,   &
                 & nloni , nt , nz , vmisdat , xming
       intent (out) mto
@@ -58,7 +58,7 @@
 ! Local variables
 !
       integer :: i , ip , ipp1 , j , jq , jqp1 , k , l
-      real :: lon360 , p , q , temp1 , temp2 , xind , yind
+      real(4) :: lon360 , p , q , temp1 , temp2 , xind , yind
 !
       do j = 1 , jx
         do i = 1 , iy

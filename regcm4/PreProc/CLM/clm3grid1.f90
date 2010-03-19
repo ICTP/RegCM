@@ -5,11 +5,11 @@
 !
 ! Dummy arguments
 !
-      real :: glat1 , glat2 , glon1 , glon2 , xlatmax , xlatmin ,       &
+      real(4) :: glat1 , glat2 , glon1 , glon2 , xlatmax , xlatmin ,    &
             & xlonmax , xlonmin
       integer :: nlat , nlev , nlon , ntim
-      real , dimension(nlat) :: glat
-      real , dimension(nlon) :: glon
+      real(4) , dimension(nlat) :: glat
+      real(4) , dimension(nlon) :: glon
       integer , dimension(4) :: icount , istart
       intent (in) glat1 , glat2 , nlat , nlev , nlon , ntim
       intent (out) glat , glon , icount , istart
@@ -20,7 +20,7 @@
 !
       integer :: corrlatn , corrlats , i , ilatmax , ilatmin , ilonmax ,&
                & ilonmin , j
-      real :: dlat , dlon
+      real(4) :: dlat , dlon
  
 !     dlon = 360./nlon
 !     dlat = 180./nlat

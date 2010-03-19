@@ -9,19 +9,19 @@
 !
       integer :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
                & nlev , nlev1 , nlon , nlon1 , ntim , ntim1
-      character(*) :: lnam , units , vnam
-      real , dimension(nlon,nlat,nlev,ntim) :: vals
+      character(64) :: lnam , units , vnam
+      real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
       intent (in) nglat , nglev , nglon , ngtim , nlat , nlat1 , nlev , &
                 & nlev1 , nlon , nlon1 , ntim , ntim1
       intent (out) vals
 !
 ! Local variables
 !
-      character(10) :: cattr
+      character(64) :: cattr
       integer :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
                & l , ll , nlat2 , nlev2 , nlon2 , ntim2
       integer , dimension(4) :: icount , istart
-      real , allocatable , dimension(:,:,:,:) :: vals1 , vals2
+      real(4) , allocatable , dimension(:,:,:,:) :: vals1 , vals2
 ! 
       istart(1) = 1
       icount(1) = nglon

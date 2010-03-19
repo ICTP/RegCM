@@ -6,14 +6,14 @@
 !
 ! Dummy arguments
 !
-      real :: clat , clon , ds , xlatmax , xlatmin , xlonmax , xlonmin ,&
-            & xplat , xplon
+      real(4) :: clat , clon , ds , xlatmax , xlatmin , xlonmax ,       &
+            & xlonmin , xplat , xplon
       integer :: kz , ndim , nx , ny
       integer , dimension(ndim) :: iadim
-      real , dimension(ndim) :: varmax , varmin
-      real , dimension(ny,nx) :: xlat , xlon
-      real , dimension(ny) :: xlat1d
-      real , dimension(nx) :: xlon1d
+      real(4) , dimension(ndim) :: varmax , varmin
+      real(4) , dimension(ny,nx) :: xlat , xlon
+      real(4) , dimension(ny) :: xlat1d
+      real(4) , dimension(nx) :: xlon1d
       intent (in) kz , ndim , nx , ny , xlat , xlon
       intent (out) iadim , varmax , varmin , xlat1d , xlatmax , xlatmin ,&
                  & xlon1d , xlonmax , xlonmin
@@ -22,11 +22,11 @@
 !
       integer :: i , j
 !
-      varmin(1) = xlon(ny/2,1)
-      varmin(2) = xlat(1,nx/2)
+      varmin(1) = minval(xlon)
+      varmin(2) = minval(xlat)
       varmin(3) = 1 !1050.
-      varmax(1) = xlon(ny/2,nx)
-      varmax(2) = xlat(ny,nx/2)
+      varmax(1) = maxval(xlon)
+      varmax(2) = maxval(xlat)
       varmax(3) = kz !1050.
       iadim(1) = nx
       iadim(2) = ny

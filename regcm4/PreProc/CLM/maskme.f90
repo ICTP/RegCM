@@ -4,9 +4,9 @@
 ! Dummy arguments
 !
       integer :: nlat , nlev , nlon , ntim
-      real :: vmisdat
-      real , dimension(nlon,nlat) :: landmask
-      real , dimension(nlon,nlat,nlev,ntim) :: vals
+      real(4) :: vmisdat
+      real(4) , dimension(nlon,nlat) :: landmask
+      real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
       intent (in) landmask , nlat , nlev , nlon , ntim , vmisdat
       intent (inout) vals
 !

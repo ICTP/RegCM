@@ -8,10 +8,10 @@
 !
       integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
                & ntim , ntim1
-      character(30) :: lnam
-      character(22) :: units
-      character(*) :: vnam
-      real , dimension(nlon,nlat,nlev,ntim) :: vals
+      character(64) :: lnam
+      character(64) :: units
+      character(64) :: vnam
+      real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
       intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
                 & ntim1
       intent (out) vals

@@ -6,12 +6,12 @@
 ! Dummy arguments
 !
       integer :: ifld , nfld , nlat , nlon
-      real , dimension(nlat) :: glat
-      real , dimension(nlon) :: glon
+      real(4) , dimension(nlat) :: glat
+      real(4) , dimension(nlon) :: glon
       integer , dimension(4) :: icount , istart
-      real , dimension(icount(2)) :: zlat
-      real , dimension(icount(3)) :: zlev
-      real , dimension(icount(1)) :: zlon
+      real(4) , dimension(icount(2)) :: zlat
+      real(4) , dimension(icount(3)) :: zlev
+      real(4) , dimension(icount(1)) :: zlon
       intent (in) glat , glon , icount , istart , nlat , nlon
       intent (out) zlat , zlev , zlon
 !

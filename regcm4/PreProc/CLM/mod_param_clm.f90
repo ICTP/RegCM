@@ -22,6 +22,8 @@
 !     ** npft = number of plant functional types
 !     ** nsoi = number of soil levels
 
+      integer, private :: k
+
       integer , parameter :: nfld = 18 , npft = 17 , nsoi = 10 ,        &
                            & ipft = 1 , ilai = 2 , isai = 3 , itop = 4 ,&
                            & ibot = 5 , ilak = 6 , iwtl = 7 , iglc = 8 ,&
@@ -32,15 +34,14 @@
 !
 ! Local variables
 !
-      real , dimension(nfld) :: glat1 , glat2 , glon1 , glon2 , vmin
-!     ** glev_st = soil level depths
-      real , dimension(nsoi) :: glev_st
-      character(50) , dimension(nfld) :: infil
-      integer :: k
+      real(4) , dimension(nfld) :: glat1 , glat2 , glon1 , glon2 , vmin
       integer , dimension(nfld) :: nlat , nlev , nlon , ntim
-      character(30) :: outdir , outfil
-      character(20) , dimension(nfld) :: vnam
-      character(20) :: vnam_lm , vnam_st
+!     ** glev_st = soil level depths
+      real(4) , dimension(nsoi) :: glev_st
+      character(256) , dimension(nfld) :: infil
+      character(256) :: outdir , outfil
+      character(64) , dimension(nfld) :: vnam
+      character(64) :: vnam_lm , vnam_st
 !
       data outdir/'../../Input/'/
       data outfil/'CLM3.INFO'/
@@ -56,7 +57,7 @@
  
 !     ** Plant functional types
       data vnam(ipft) , vmin(ipft)/'PCT_PFT' , -99/
-      data infil(ipft)/'mksrf_pft.nc'/
+      data infil(ipft)/'../DATA/CLM/mksrf_pft.nc'/
       data nlon(ipft) , nlat(ipft) , nlev(ipft) , ntim(ipft)/720 , 360 ,&
          & npft , 1/
       data glon1(ipft) , glon2(ipft) , glat1(ipft) , glat2(ipft)        &
@@ -67,10 +68,10 @@
       data vnam(isai) , vmin(isai)/'MONTHLY_SAI' , -99/
       data vnam(itop) , vmin(itop)/'MONTHLY_HEIGHT_TOP' , -99/
       data vnam(ibot) , vmin(ibot)/'MONTHLY_HEIGHT_BOT' , -99/
-      data infil(ilai)/'mksrf_lai.nc'/
-      data infil(isai)/'mksrf_lai.nc'/
-      data infil(itop)/'mksrf_lai.nc'/
-      data infil(ibot)/'mksrf_lai.nc'/
+      data infil(ilai)/'../DATA/CLM/mksrf_lai.nc'/
+      data infil(isai)/'../DATA/CLM/mksrf_lai.nc'/
+      data infil(itop)/'../DATA/CLM/mksrf_lai.nc'/
+      data infil(ibot)/'../DATA/CLM/mksrf_lai.nc'/
       data nlon(ilai) , nlat(ilai) , nlev(ilai) , ntim(ilai)/720 , 360 ,&
          & npft , 12/
       data nlon(isai) , nlat(isai) , nlev(isai) , ntim(isai)/720 , 360 ,&
@@ -91,8 +92,8 @@
 !     ** Land water (lake and wetland)
 !     data vnam(ilak), vmin(ilak)  / 'PCT_LAKE', -99 /
 !     data vnam(iwtl), vmin(iwtl)  / 'PCT_WETLAND', -99 /
-!     data infil(ilak) / 'mksrf_lanwat.nc' /
-!     data infil(iwtl) / 'mksrf_lanwat.nc' /
+!     data infil(ilak) / '../DATA/CLM/mksrf_lanwat.nc' /
+!     data infil(iwtl) / '../DATA/CLM/mksrf_lanwat.nc' /
 !     data nlon(ilak),nlat(ilak),nlev(ilak),ntim(ilak)
 !     &   /        360,       180,         1,        1 /
 !     data nlon(iwtl),nlat(iwtl),nlev(iwtl),ntim(iwtl)
@@ -103,8 +104,8 @@
 !     &   /         0.5,      359.5,      -89.5,       89.5 /
       data vnam(ilak) , vmin(ilak)/'PCT_LAKE' , -99/
       data vnam(iwtl) , vmin(iwtl)/'PCT_WETLAND' , -99/
-      data infil(ilak)/'mksrf_lanwat.nc'/
-      data infil(iwtl)/'mksrf_lanwat.nc'/
+      data infil(ilak)/'../DATA/CLM/mksrf_lanwat.nc'/
+      data infil(iwtl)/'../DATA/CLM/mksrf_lanwat.nc'/
       data nlon(ilak) , nlat(ilak) , nlev(ilak) , ntim(ilak)/7200 ,     &
          & 3600 , 1 , 1/
       data nlon(iwtl) , nlat(iwtl) , nlev(iwtl) , ntim(iwtl)/7200 ,     &
@@ -116,7 +117,7 @@
  
 !     ** Glacier
       data vnam(iglc) , vmin(iglc)/'PCT_GLACIER' , -99/
-      data infil(iglc)/'mksrf_glacier.nc'/
+      data infil(iglc)/'../DATA/CLM/mksrf_glacier.nc'/
       data nlon(iglc) , nlat(iglc) , nlev(iglc) , ntim(iglc)/7200 ,     &
          & 3600 , 1 , 1/
       data glon1(iglc) , glon2(iglc) , glat1(iglc) , glat2(iglc)        &
@@ -124,7 +125,7 @@
  
 !     ** Urban
       data vnam(iurb) , vmin(iurb)/'PCT_URBAN' , -99/
-      data infil(iurb)/'mksrf_urban.nc'/
+      data infil(iurb)/'../DATA/CLM/mksrf_urban.nc'/
       data nlon(iurb) , nlat(iurb) , nlev(iurb) , ntim(iurb)/7200 ,     &
          & 3600 , 1 , 1/
       data glon1(iurb) , glon2(iurb) , glat1(iurb) , glat2(iurb)        &
@@ -134,8 +135,8 @@
       data vnam_st/'MAPUNITS'/
       data vnam(isnd) , vmin(isnd)/'PCT_SAND' , -99/
       data vnam(icly) , vmin(icly)/'PCT_CLAY' , -99/
-      data infil(isnd)/'mksrf_soitex.10level.nc'/
-      data infil(icly)/'mksrf_soitex.10level.nc'/
+      data infil(isnd)/'../DATA/CLM/mksrf_soitex.10level.nc'/
+      data infil(icly)/'../DATA/CLM/mksrf_soitex.10level.nc'/
       data nlon(isnd) , nlat(isnd) , nlev(isnd) , ntim(isnd)/4320 ,     &
          & 2160 , 10 , 6998/
       data nlon(icly) , nlat(icly) , nlev(icly) , ntim(icly)/4320 ,     &
@@ -147,13 +148,13 @@
  
 !     ** Soil color
 !     data vnam(icol), vmin(icol)  / 'SOIL_COLOR', 0 /
-!     data infil(icol) / 'mksrf_soicol_clm2.nc' /
+!     data infil(icol) / '../DATA/CLM/mksrf_soicol_clm2.nc' /
 !     data nlon(icol),nlat(icol),nlev(icol),ntim(icol)
 !     &   /       128,       64,        1,       1 /
 !     data glon1(icol),glon2(icol),glat1(icol),glat2(icol)
 !     &   /          0.,   357.1875,   -87.8638,    87.8638 /
       data vnam(icol) , vmin(icol)/'SOIL_COLOR' , 0/
-      data infil(icol)/'mksrf_soicol_clm2.nc'/
+      data infil(icol)/'../DATA/CLM/mksrf_soicol_clm2.nc'/
       data nlon(icol) , nlat(icol) , nlev(icol) , ntim(icol)/7200 ,     &
          & 3600 , 1 , 1/
       data glon1(icol) , glon2(icol) , glat1(icol) , glat2(icol)        &
@@ -161,13 +162,13 @@
  
 !     ** Orography
       data vnam(ioro) , vmin(ioro)/'LANDFRAC' , -99./
-      data infil(ioro)/'mksrf_navyoro_20min.nc'/
+      data infil(ioro)/'../DATA/CLM/mksrf_navyoro_20min.nc'/
       data nlon(ioro) , nlat(ioro) , nlev(ioro) , ntim(ioro)/7200 ,     &
          & 3600 , 1 , 1/
       data glon1(ioro) , glon2(ioro) , glat1(ioro) , glat2(ioro)        &
          & / - 179.975 , 179.975 , -89.975 , 89.975/
 !     data vnam(ioro), vmin(ioro)  / 'lufrac', -99. /
-!     data infil(ioro) / 'mksrf_navyoro_20min.nc' /
+!     data infil(ioro) / '../DATA/CLM/mksrf_navyoro_20min.nc' /
 !     data nlon(ioro),nlat(ioro),nlev(ioro),ntim(ioro)
 !     &   /      1080,      540,        20,       1 /
 !     data glon1(ioro),glon2(ioro),glat1(ioro),glat2(ioro)
@@ -210,7 +211,7 @@
  
 !     **** ADDITION Maximum Fractional Saturated Area ***
       data vnam(ifma) , vmin(ifma)/'FMAX' , -99/
-      data infil(ifma)/'mksrf_fmax.nc'/
+      data infil(ifma)/'../DATA/CLM/mksrf_fmax.nc'/
       data nlon(ifma) , nlat(ifma) , nlev(ifma) , ntim(ifma)/720 , 360 ,&
          & 1 , 1/
       data glon1(ifma) , glon2(ifma) , glat1(ifma) , glat2(ifma)        &
