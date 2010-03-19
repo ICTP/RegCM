@@ -1170,7 +1170,7 @@
             if ( oldsav(1:3).eq.'SAV' ) then
               inquire (file=oldsav,exist=there)
               if ( there ) then
-                call unlink(oldsav, iresult)
+                call unlink(oldsav)
               end if
             end if
             oldsav = tmpfil
@@ -1312,7 +1312,7 @@
           if ( oldsav(1:3).eq.'SAV' ) then
             inquire (file=oldsav,exist=there)
             if ( there ) then
-              call unlink(oldsav, iresult)
+              call unlink(oldsav)
             end if
           end if
           oldsav = tmpfil
