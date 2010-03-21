@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-USECLM = 0
+USECLM = 1
 
 SCENARIO = A1B
 SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
@@ -71,7 +71,7 @@ else
 endif
 
 $(CLMPTH)/libclm.a: mod_clm.o mod_regcm_param.o
-	cd $(CLMPTH) && make
+	cd $(CLMPTH) && touch patchset/* && make patchsrc && make
 
 regcm: $(CLMLIB) $(MODOBJS) $(OBJS)
 	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) \
@@ -83,8 +83,14 @@ regcm: $(CLMLIB) $(MODOBJS) $(OBJS)
 %.o: %.f90
 	$(F90) -c $(F90FLAGS) $(USCORING) -c $<
 
+ifeq ($(USECLM),1)
 clean:
 	rm -f *.mod *.o regcm
+	cd clmlib && make clean
+else
+clean:
+	rm -f *.mod *.o regcm
+endif
 
 mod_aerosol.o: mod_aerosol.F90 mod_regcm_param.o
 mod_bats.o: mod_bats.F90 mod_regcm_param.o

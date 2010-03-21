@@ -40,7 +40,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 2
+      integer , parameter :: nproc = 32
 
 ! Point in Y (latitude) direction
 
@@ -50,7 +50,7 @@
 
 ! Sub grid decomposition
 
-      integer , parameter :: nsg = 5
+      integer , parameter :: nsg = 1
 
 ! Number of bytes in reclen. Usually 4
 

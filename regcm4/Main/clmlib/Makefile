@@ -90,7 +90,7 @@ ESMF_INCLUDE = $(CLMSRC)/src/utils/esmf_wrf_timemgr
 UTIL_INCLUDE = $(CLMSRC)/src/utils/timing/
 GLOB_INCLUDE = .
 
-CPPFLAGS += -DMAXPATCH_PFT=4 -DOFFLINE -DFORTRANUNDERSCORE
+CPPFLAGS += -DMAXPATCH_PFT=4 -DOFFLINE -DFORTRANUNDERSCORE -DLINUX
 F90FLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
             -I$(REGCMSRC) $(NETCDFINC)
 
@@ -439,7 +439,7 @@ shr_mpi_mod.o : shr_mpi_mod.F90 shr_kind_mod.o
 shr_msg_mod.o : shr_msg_mod.F90 shr_sys_mod.o shr_file_mod.o 
 shr_ncio_mod.o : shr_ncio_mod.F90 shr_string_mod.o shr_sys_mod.o shr_kind_mod.o shr_const_mod.o shr_mpi_mod.o 
 shr_ncread_mod.o : shr_ncread_mod.F90 shr_string_mod.o shr_sys_mod.o shr_file_mod.o shr_kind_mod.o shr_cal_mod.o 
-shr_orb_mod.o : shr_orb_mod.F90 shr_sys_mod.o shr_kind_mod.o shr_const_mod.o 
+shr_orb_mod.o : shr_orb_mod.F90 shr_sys_mod.o shr_kind_mod.o shr_const_mod.o clm_varsur.o
 shr_stream_mod.o : shr_stream_mod.F90 shr_string_mod.o shr_sys_mod.o shr_kind_mod.o shr_const_mod.o shr_ncread_mod.o 
 shr_string_mod.o : shr_string_mod.F90 shr_sys_mod.o shr_kind_mod.o shr_timer_mod.o shr_cal_mod.o 
 shr_sys_mod.o : shr_sys_mod.F90 shr_kind_mod.o shr_mpi_mod.o 

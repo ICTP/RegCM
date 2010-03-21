@@ -149,14 +149,15 @@
         solvs2d(n,jslc) = solvs(n)
         solvd2d(n,jslc) = solvd(n)
 !       sinc2d(n,jslc)=solin(n)
-      end do
 !
 #ifdef CLM
-      sols2d(n,jslc) = sols(n)
-      soll2d(n,jslc) = soll(n)
-      solsd2d(n,jslc) = solsd(n)
-      solld2d(n,jslc) = solld(n)
+        sols2d(n,jslc) = sols(n)
+        soll2d(n,jslc) = soll(n)
+        solsd2d(n,jslc) = solsd(n)
+        solld2d(n,jslc) = solld(n)
 #endif
+
+      end do
 !
       if ( ifrad ) then
         if ( mod(ntime+nint(dtmin*60.),nradisp).eq.0 .or.               &
