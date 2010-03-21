@@ -527,6 +527,7 @@
 #ifdef CLM
       if ( init_grid ) then
         call initclm(ktau)
+        init_grid = .false.
       end if
 #endif
 !
