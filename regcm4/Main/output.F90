@@ -61,7 +61,7 @@
 !
 ! Local variables
 !
-      integer :: i , iresult , j
+      integer :: i , j
       logical :: there
       character(3) :: itype
       character(14) :: newfil
