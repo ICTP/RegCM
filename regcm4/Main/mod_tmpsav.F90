@@ -47,8 +47,8 @@
       real(8) , dimension(kx,8,jxp) :: sav6
       real(8) , dimension(kx,8,jx) :: sav_6
 #ifdef CLM
-      real(8) , dimension(ixm1,9,jxp) :: sav_clmout
-      real(8) , dimension(ixm1,9,jx) :: sav_clmin
+      real(8) , dimension(ixm1,9,jx) :: sav_clmout
+      real(8) , dimension(ixm1,9,jxp) :: sav_clmin
 #endif
 
 #endif
