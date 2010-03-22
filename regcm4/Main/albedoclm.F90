@@ -122,9 +122,9 @@
 
 !original albedo = 1 if(ldoc1d(n,i).gt.0.1.and.sice1d(n,i).eq.0.) then
 
-          if ( ocld2d(n,i,j)==1. .and. aldirs2d(i,j)==1 .and.         &
-             & aldifs2d(i,j)==1. .and. aldirl2d(i,j)==1 .and.         &
-             & aldifl2d(i,j)==1. ) then
+          if ( ocld2d(n,i,j)==1. .and. (aldirs2d(i,j)==1 .or.           &
+             & aldifs2d(i,j)==1. .or. aldirl2d(i,j)==1 .or.             &
+             & aldifl2d(i,j)==1. ) ) then
  
             sfac = 1. - fseas(tgb1d(n,i))
  
@@ -191,34 +191,41 @@
 !l        5.  albedo over open ocean
 !=====================================================================
  
-!***      DOES NOT INCLUDE ANY SUB_BATS!  Uses zero albedo for czeta < 0
  
           if ( ocld2d(n,i,j)==0. ) then
 !           *********   ocean albedo depends on zenith angle
-            if ( czeta<0.0 ) then
-              albvs(i) = albgs
-              albvl(i) = albgl
-              aldirs(i) = albgs
-              aldirl(i) = albgl
-              aldifs(i) = albgsd
-              aldifl(i) = albgld
-            else
-!             **********   albedo independent of wavelength
-              albg = 0.05/(czeta+0.15)
-              albgs = albg
-              albgl = albg
-              albgsd = 0.08
-              albgld = 0.08
-              albvs(i) = albvs(i)
-              albvl(i) = albvl(i)
-              aldirs(i) = albgs
-              aldirl(i) = albgl
-              aldifs(i) = albgsd
-              aldifl(i) = albgld
-            end if
+            albg = 0.05/(czeta+0.15)
+            albgs = albg
+            albgl = albg
+            albgsd = 0.08
+            albgld = 0.08
           end if
+          aldirs_s(n)=(1.-veg1d(n,i))*albgs +veg1d(n,i)*albs
+          aldirl_s(n)=(1.-veg1d(n,i))*albgl +veg1d(n,i)*albl
+          aldifs_s(n)=(1.-veg1d(n,i))*albgsd+veg1d(n,i)*albsd
+          aldifl_s(n)=(1.-veg1d(n,i))*albgld+veg1d(n,i)*albld
         end do
- 
+        albvs(i)  = albvs_s(1)
+        albvl(i)  = albvl_s(1)
+        aldirs(i) = aldirs_s(1)
+        aldirl(i) = aldirl_s(1)
+        aldifs(i) = aldifs_s(1)
+        aldifl(i) = aldifl_s(1)
+
+        do n = 1 , nnsg
+          albvs(i)  = albvs(i) +albvs_s(n)
+          albvl(i)  = albvl(i) +albvl_s(n)
+          aldirs(i) = aldirs(i)+aldirs_s(n)
+          aldirl(i) = aldirl(i)+aldirl_s(n)
+          aldifs(i) = aldifs(i)+aldifs_s(n)
+          aldifl(i) = aldifl(i)+aldifl_s(n)
+        end do
+        albvs(i)  = albvs(i)/dble(nnsg)
+        albvl(i)  = albvl(i)/dble(nnsg)
+        aldirs(i) = aldirs(i)/dble(nnsg)
+        aldirl(i) = aldirl(i)/dble(nnsg)
+        aldifs(i) = aldifs(i)/dble(nnsg)
+        aldifl(i) = aldifl(i)/dble(nnsg)
       end do
  
       end subroutine albedoclm

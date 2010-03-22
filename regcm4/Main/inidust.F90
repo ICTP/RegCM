@@ -87,7 +87,7 @@
       do j = jbegin , jendm
         do i = 2 , ixm2
           itex = nint(dustsotex(i,j))
-          if ( itex.ne.0 .and. itex.le.12 ) then
+          if ( itex.ge.1 .and. itex.le.nats ) then
 !           remember for the moment one texture type per grid cell !
             clay2row2(i,itex,j) = bcly(itex)*100.0
             sand2row2(i,itex,j) = bsnd(itex)*100.0
@@ -103,7 +103,7 @@
       do j = 2 , jxm2
         do i = 2 , ixm2
           itex = nint(dustsotex(i,j))
-          if ( itex.ne.0 .and. itex.le.12 ) then
+          if ( itex.ge.1 .and. itex.le.nats ) then
 !           remember for the moment one texture type per grid cell !
             clay2row2(i,itex,j) = bcly(itex)*100.0
             sand2row2(i,itex,j) = bsnd(itex)*100.0

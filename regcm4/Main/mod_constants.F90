@@ -132,7 +132,11 @@
       ! Ocean roughness length
       real(8) , parameter :: zoce = 0.00040D+00
       ! Snow roughness length
+#ifdef CLM
+      real(8) , parameter :: zsno = 0.00240D+00
+#else
       real(8) , parameter :: zsno = 0.00040D+00
+#endif
       ! Von Karman constant
       real(8) , parameter :: vonkar = 0.378D+00
       ! Drag coefficient for soil under canopy

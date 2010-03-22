@@ -33,6 +33,10 @@
 #else 
       include 'mpif.h'
 #endif 
+#ifdef CLM
+      use surfrdMod , only : clm_getsoitex
+      use clm_varsur, only : clm_soitex
+#endif
 #endif
       implicit none
 !
@@ -296,6 +300,18 @@
 !     modification dust : read the soil texture type
 
 #ifdef MPP1
+#ifdef CLM
+      if ( myid.eq.0 ) then
+        if ( rd_tex ) then
+          call clm_getsoitex()
+          do j = 1 , jx
+            do i = 1 , ix
+              dustsotex_io(i,j) = clm_soitex(i,j)
+            end do
+          end do
+        end if
+      end if
+#else
       if ( myid.eq.0 ) then
         if ( rd_tex ) then
           if ( lsmtyp.eq.'BATS' ) then
@@ -313,6 +329,7 @@
         end if
       end if
 !     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+#endif
       call mpi_scatter(dustsotex_io(1,1),ix*jxp,mpi_real8,              &
                      & dustsotex(1,1),ix*jxp,mpi_real8,0,               &
                      & mpi_comm_world,ierr)
@@ -332,6 +349,7 @@
         end do
       end if
 #endif
+
       if ( rd_tex ) call inidust
  
 !     sulfates sources

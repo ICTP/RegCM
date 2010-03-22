@@ -31,7 +31,9 @@
 !
 #ifdef CLM
       use mod_regcm_param , only : myid , jxp
-      use clm_time_manager , only : get_curr_calday
+!     use clm_time_manager , only : get_curr_calday
+      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0 ,   &
+                            xtime
       use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl
       use mod_clm
 #else
@@ -52,7 +54,7 @@
       integer :: ill
 #ifdef CLM
       integer :: jj
-      real(kind=8) :: calday1 , declinp1
+      real(kind=8) :: cldy , declinp1
 #else
       real(kind=8) :: omega , tlocap , xt24 , xxlat
 #endif
@@ -60,12 +62,13 @@
 !***********************************************************************
 !
 #ifdef CLM
-      calday1 = get_curr_calday()
-      call shr_orb_decl(calday1,r2ceccen,r2cmvelpp,r2clambm0,           &
+!     cldy = get_curr_calday()
+      cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+      call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
            &            r2cobliqr,declinp1,r2ceccf)
       jj = (jxp*myid) + jslc
       do ill = 1 , ivmx
-        coszrs(ill) = shr_orb_cosz(calday1,r2cxlat_all(jj,ill),         &
+        coszrs(ill) = shr_orb_cosz(cldy,r2cxlat_all(jj,ill),            &
             &                      r2cxlon_all(jj,ill),declinp1)
         coszrs(ill) = dmax1(0.d0,coszrs(ill))
       end do

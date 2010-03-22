@@ -19,13 +19,13 @@
 
 #ifdef MPP1
 
-      subroutine interfclm(inout,nstep)
+      subroutine interfclm(ivers,nstep)
 
 !=======================================================================
 !l  built for clm version 3.0
 !=======================================================================
-! inout = 1 : regcm -> clm
-! inout = 2 : clm -> regcm
+! ivers = 1 : regcm -> clm
+! ivers = 2 : clm -> regcm
 !
       use mod_regcm_param
       use clm_varsur,    only : landmask, landfrac
@@ -47,8 +47,8 @@
 !
 ! Dummy arguments
 !
-      integer :: inout , nstep
-      intent (in) inout
+      integer :: ivers , nstep
+      intent (in) ivers
 !
 ! Local variables
 !
@@ -71,7 +71,7 @@
 !     clm: i=lon, j=lat, arrays are lon by lat
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
-      if ( inout==1 ) then
+      if ( ivers==1 ) then
  
         locid = 1
 !       clm3 currently works on all ix,jx instead of 2-ilx and 2-jlx so
@@ -184,7 +184,7 @@
           end if
         end do
 
-      else if ( inout==2 ) then ! end of inout = 1
+      else if ( ivers==2 ) then ! end of ivers = 1
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c
@@ -385,10 +385,7 @@
                 sfracs2d(i,j) = sfracs2d(i,j) + sigf(n,i)*wt(n,i)       &
                               & + (1.-sigf(n,i))*scvk(n,i)
 !               svegfrac2d(i,j)= svegfrac2d(i,j)+veg1d(n,i)
-!               abt *** svegfrac2d is assumed to not change over time
-!               *** therefore svegfrac2d is set in init_clmpara/ser
-!               *** beware of this if attempting to run CLM with
-!chem2_         Dynamic Veg
+!chem2_
  
                 if ( iocnflx==1 .or.                                    &
                    & (iocnflx==2 .and. ocld2d(n,i,j)>=0.5) ) then
@@ -778,7 +775,7 @@
             end do  ! end of i loop
           end if    ! end if jyear eq jyearr
         end do      ! end of j loop
-      else          ! end if inout = 2
+      else          ! end if ivers = 2
       end if
  
       end subroutine interfclm

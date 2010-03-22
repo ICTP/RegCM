@@ -102,7 +102,7 @@ mod_clm.o: mod_clm.f90 mod_regcm_param.o
 mod_comctl.o: mod_comctl.f90
 mod_comozp.o: mod_comozp.f90
 mod_comtim.o: mod_comtim.f90
-mod_constants.o: mod_constants.f90
+mod_constants.o: mod_constants.F90
 mod_convect.o: mod_convect.f90
 mod_crdcae.o: mod_crdcae.f90
 mod_culookup.o: mod_culookup.f90
@@ -161,8 +161,15 @@ chdrydep.o: chdrydep.f90 mod_constants.o
 chemtap.o: chemtap.F90 mod_date.o mod_iunits.o mod_main.o mod_mainchem.o \
            mod_param2.o mod_regcm_param.o mod_trachem.o
 chrsetc.o: chrsetc.f90
+ifeq ($(USECLM),1)
+chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
+           mod_message.o mod_regcm_param.o mod_trachem.o \
+        $(CLMPTH)/clm_varsur.o $(CLMPTH)/surfrdMod.o
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+else
 chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
            mod_message.o mod_regcm_param.o mod_trachem.o
+endif
 cldefr.o: cldefr.f90 mod_regcm_param.o
 cldems.o: cldems.f90 mod_regcm_param.o
 cldfrac.o: cldfrac.f90 mod_pmoist.o mod_rad.o mod_regcm_param.o mod_slice.o
@@ -416,7 +423,7 @@ endif
 zenith.o: zenith.f90
 ifeq ($(USECLM),1)
 zenitm.o: zenitm.F90 mod_regcm_param.o mod_clm.o $(CLMPTH)/shr_orb_mod.o \
-          $(CLMPTH)/clm_time_manager.o
+          $(CLMPTH)/clm_time_manager.o mod_date.o
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 zenitm.o: zenitm.F90 mod_constants.o mod_date.o mod_main.o mod_regcm_param.o
