@@ -62,6 +62,10 @@
       real(4) , allocatable , dimension(:,:,:,:) :: regyxzt , zoom
       real(4) , allocatable , dimension(:,:) :: landmask , regxy ,      &
                &                             sandclay
+      integer :: ipathdiv
+      character :: cpathdiv
+
+      data cpathdiv /'/'/
 !
 !     ** Get latitudes and longitudes from DOMAIN.INFO
       open (unit=10,file=filout,status='old',form='unformatted',     &
@@ -140,14 +144,17 @@
            & ifld==iapin ) then
 !         ************************ CHANGED LINE ABOVE to include iiso
 !         ************************
-          if ( ifld==iiso .or. ifld==ibpin .or. ifld==iapin .or.        &
-             & ifld==imbo ) then   !****** added if statement to read isoprene differently ABT  ***
-            ierr = nf90_open(infil(ifld),nf90_nowrite,idin)
-          else
-            ierr = nf90_open(infil(ifld),nf90_nowrite,idin)
+          ierr = nf90_open(infil(ifld),nf90_nowrite,idin)
+          if ( ierr/=nf90_noerr ) then
+            write (6,*) 'Cannot open input file ', trim(infil(ifld))
+            stop 'INPUT NOT READY'
           end if
-!******************************************* ABT ***************************************
-          outfil_nc = trim(outdir)//'RCM'//infil(ifld)(7:50)
+          ipathdiv = scan(infil(ifld), cpathdiv, .true.)
+          if ( ipathdiv/=0 ) then
+            outfil_nc = trim(outdir)//'RCM'//infil(ifld)(ipathdiv+7:)
+          else
+            outfil_nc = trim(outdir)//'RCM'//infil(ifld)(7:)
+          endif
 !         CALL FEXIST(outfil_nc)
           print * , 'OPENING NetCDF FILE: ' , trim(outfil_nc)
           call rcrecdf(outfil_nc,idout,varmin,varmax,3,ierr)
