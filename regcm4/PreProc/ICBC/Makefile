@@ -54,7 +54,7 @@ mod_param.o: ../Terrain/mod_param.f90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
 
-mod_constants.o: ../../Main/mod_constants.f90
+mod_constants.o: ../../Main/mod_constants.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
 header_ICBC.o: header_ICBC.F90
