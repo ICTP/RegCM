@@ -1736,32 +1736,32 @@
           if ( myid.eq.0 ) then
             do j = 1 , jxm1
               do i = 1 , ixm1
-                sav_clmin(i,1,j) = sols2d_io(i,j)
-                sav_clmin(i,2,j) = soll2d_io(i,j)
-                sav_clmin(i,3,j) = solsd2d_io(i,j)
-                sav_clmin(i,4,j) = solld2d_io(i,j)
-                sav_clmin(i,5,j) = aldirs2d_io(i,j)
-                sav_clmin(i,6,j) = aldirl2d_io(i,j)
-                sav_clmin(i,7,j) = aldifs2d_io(i,j)
-                sav_clmin(i,8,j) = aldifl2d_io(i,j)
-                sav_clmin(i,9,j) = coszrs2d_io(i,j)
+                sav_clmout(i,1,j) = sols2d_io(i,j)
+                sav_clmout(i,2,j) = soll2d_io(i,j)
+                sav_clmout(i,3,j) = solsd2d_io(i,j)
+                sav_clmout(i,4,j) = solld2d_io(i,j)
+                sav_clmout(i,5,j) = aldirs2d_io(i,j)
+                sav_clmout(i,6,j) = aldirl2d_io(i,j)
+                sav_clmout(i,7,j) = aldifs2d_io(i,j)
+                sav_clmout(i,8,j) = aldifl2d_io(i,j)
+                sav_clmout(i,9,j) = coszrs2d_io(i,j)
               end do
             end do
           end if
-          call mpi_scatter(sav_clmin, ixm1*9*jxp,mpi_real8,             &
-                         & sav_clmout,ixm1*9*jxp,mpi_real8,             &
+          call mpi_scatter(sav_clmout,ixm1*9*jxp,mpi_real8,             &
+                         & sav_clmin, ixm1*9*jxp,mpi_real8,             &
                          & 0,mpi_comm_world,ierr)
           do j = 1 , jendx
             do i = 1 , ixm1
-              sols2d(i,j) = sav_clmout(i,1,j)
-              soll2d(i,j) = sav_clmout(i,2,j)
-              solsd2d(i,j) = sav_clmout(i,3,j)
-              solld2d(i,j) = sav_clmout(i,4,j)
-              aldirs2d(i,j) = sav_clmout(i,5,j)
-              aldirl2d(i,j) = sav_clmout(i,6,j)
-              aldifs2d(i,j) = sav_clmout(i,7,j)
-              aldifl2d(i,j) = sav_clmout(i,8,j)
-              coszrs2d(i,j) = sav_clmout(i,9,j)
+              sols2d(i,j) = sav_clmin(i,1,j)
+              soll2d(i,j) = sav_clmin(i,2,j)
+              solsd2d(i,j) = sav_clmin(i,3,j)
+              solld2d(i,j) = sav_clmin(i,4,j)
+              aldirs2d(i,j) = sav_clmin(i,5,j)
+              aldirl2d(i,j) = sav_clmin(i,6,j)
+              aldifs2d(i,j) = sav_clmin(i,7,j)
+              aldifl2d(i,j) = sav_clmin(i,8,j)
+              coszrs2d(i,j) = sav_clmin(i,9,j)
             end do
           end do
 #endif
