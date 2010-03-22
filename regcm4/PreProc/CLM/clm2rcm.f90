@@ -31,13 +31,12 @@
 !
 ! Local variables
 !
-      real(4) :: clatx , clonx , dsx , grdfac , grdfacx , offset ,      &
+      real(4) :: clatx , clonx , dsx , grdfacx , offset ,               &
            & perr , platx , plonx , pmax , ptopx , xscale , xlatmax ,   &
            & xlatmin , xlonmax , xlonmin
       integer :: i , ibigendx , idatex , idin , idout , idy , ierr ,    &
-               & ifield , ifld , igradsx , ihr , ilatmax , ilatmin ,    &
-               & ilonmax , ilonmin , imap , imo , iotyp , irec , iyr ,  &
-               & ixx , j , julnc , jxx , kk , kmax , kzz , l , nf_close
+               & ifield , ifld , igradsx , ihr , imap , imo , iotyp ,   &
+               & irec , iyr , ixx , j , julnc , jxx , kmax , kzz , l
       integer :: k
       integer :: iunout , iunctl
       integer , dimension(4) :: icount , istart
@@ -45,8 +44,6 @@
       character(6) :: iprojx
       character(64) , dimension(nfld) :: lnam
       character(256) :: outfil_ctl , outfil_gr , outfil_nc
-      real(4) , dimension(1) :: sig1d
-      real(4) , dimension(2) :: sigf
       real(4) , dimension(kz+1) :: sigx
       logical :: there
       character(64) , dimension(nfld) :: units
@@ -161,9 +158,9 @@
         end if
  
 !       ** Setup RegCM3 grid variables
-        call param(jx,ix,nlev(ifld),ds,clatx,clonx,platx,plonx,xlat,    &
-                 & xlon,varmin,varmax,xlat1d,xlon1d,xlonmin,xlonmax,    &
-                 & xlatmin,xlatmax,iadim,ndim)
+        call param(jx,ix,nlev(ifld),xlat,xlon,varmin,varmax,            &
+                 & xlat1d,xlon1d,xlonmin,xlonmax,xlatmin,xlatmax,       &
+                 & iadim,ndim)
  
 !       ** Setup CLM3 grid variables, including subgrid region
         allocate(glon(nlon(ifld)))
@@ -184,8 +181,8 @@
         allocate(zlat(icount(2)))
         allocate(zlev(icount(3)))
         allocate(landmask(icount(1),icount(2)))
-        call clm3grid2(nlon(ifld),nlat(ifld),ifield,glon,glat,istart,   &
-                     & icount,ifld,zlon,zlat,zlev)
+        call clm3grid2(nlon(ifld),nlat(ifld),glon,glat,istart,          &
+                     & icount,zlon,zlat,zlev)
  
 !       ** Read in the variables.
 !       In some cases, special reads need to be performed:
@@ -337,7 +334,7 @@
       end do
       call makectl(iunctl,outfil,jx,ix,npft,ifield,dsx,clatx,clonx,     &
                  & platx,plonx,iprojx,ibigendx,truelatl,truelath,       &
-                 & grdfacx,vmisdat,vnam_o,lnam,nlev,ntim,varmin,varmax)
+                 & vmisdat,vnam_o,lnam,nlev,ntim,varmin,varmax)
 !     ** Close files
       call clscdf(idin,ierr)
       call clscdf(idout,ierr)

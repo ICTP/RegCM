@@ -19,13 +19,12 @@
 
       subroutine makectl(iunctl,outfil,nx,ny,nzmax,nfld,dsm,clat,clon,  &
                        & plat,plon,iproj,ibigend,truelatl,truelath,     &
-                       & grdfac,vmisdat,vnam,lnam,nlev,ntim,varmin,     &
-                       & varmax)
+                       & vmisdat,vnam,lnam,nlev,ntim,varmin,varmax)
       implicit none
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , dsm , grdfac , plat , plon , truelath ,  &
+      real(4) :: clat , clon , dsm , plat , plon , truelath ,           &
             & truelatl , vmisdat
       integer :: ibigend , iunctl , nfld , nx , ny , nzmax
       character(6) :: iproj

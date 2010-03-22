@@ -17,14 +17,14 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine clm3grid2(nlon,nlat,nfld,glon,glat,istart,icount,ifld, &
-                         & zlon,zlat,zlev)
+      subroutine clm3grid2(nlon,nlat,glon,glat,istart,icount,zlon,      &
+                  &        zlat,zlev)
  
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: ifld , nfld , nlat , nlon
+      integer :: nlat , nlon
       real(4) , dimension(nlat) :: glat
       real(4) , dimension(nlon) :: glon
       integer , dimension(4) :: icount , istart

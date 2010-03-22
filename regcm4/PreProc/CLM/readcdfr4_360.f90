@@ -36,7 +36,6 @@
 !
 ! Local variables
 !
-      character(64) :: cattr
       integer :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
                & l , ll , nlat2 , nlev2 , nlon2 , ntim2
       integer , dimension(4) :: icount , istart

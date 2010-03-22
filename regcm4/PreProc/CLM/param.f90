@@ -17,16 +17,14 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine param(nx,ny,kz,ds,clat,clon,xplat,xplon,xlat,xlon,     &
-                     & varmin,varmax,xlat1d,xlon1d,xlonmin,xlonmax,     &
-                     & xlatmin,xlatmax,iadim,ndim)
+      subroutine param(nx,ny,kz,xlat,xlon,varmin,varmax,xlat1d,xlon1d,  &
+                     & xlonmin,xlonmax,xlatmin,xlatmax,iadim,ndim)
  
       implicit none
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , ds , xlatmax , xlatmin , xlonmax ,       &
-            & xlonmin , xplat , xplon
+      real(4) :: xlatmax , xlatmin , xlonmax , xlonmin
       integer :: kz , ndim , nx , ny
       integer , dimension(ndim) :: iadim
       real(4) , dimension(ndim) :: varmax , varmin
