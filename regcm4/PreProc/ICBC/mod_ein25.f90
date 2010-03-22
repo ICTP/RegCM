@@ -154,7 +154,7 @@
       character(24) :: inname
       character(38) :: pathaddname
       logical :: there
-      character(1) , dimension(5) :: varname
+!     character(1) , dimension(5) :: varname
       real(8) :: xadd , xscale
       integer , dimension(10) :: icount , istart
 !
@@ -167,9 +167,8 @@
 !     will contain the unpacked data.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'t' , 'z' , 'r' , 'u' , 'v'/
+!
+!     data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 !
 !     Below in the ncopen call is the file name of the netCDF file.
 !     You may want to add code to read in the file name and the

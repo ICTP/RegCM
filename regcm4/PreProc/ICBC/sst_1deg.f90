@@ -863,7 +863,7 @@
       real(8) :: xadd , xscale
       character(35) :: pathaddname
       logical :: there
-      character(5) :: varname
+!     character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
 !
 !
@@ -876,9 +876,8 @@
 !     will contain the unpacked data.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'sst'/
+!
+!     data varname/'sst'/
 !
       if ( idate==idate0 ) then
         pathaddname = '../DATA/SST/sst.mnmean.nc'
@@ -949,7 +948,7 @@
       real(8) :: xadd , xscale
       character(35) :: pathaddname
       logical :: there
-      character(5) :: varname
+!     character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
 !
 !
@@ -962,9 +961,8 @@
 !     will contain the unpacked data.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'ice'/
+!
+!     data varname/'ice'/
 !
       if ( idate==idate0 ) then
         pathaddname = '../DATA/SST/icec.mnmean.nc'
@@ -1035,7 +1033,7 @@
       real(8) :: xadd , xscale
       character(38) :: pathaddname
       logical :: there
-      character(3) :: varname
+!     character(3) :: varname
       integer(2) , dimension(ilon,jlat) :: work
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -1047,9 +1045,8 @@
 !     will contain the unpacked data.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'sst'/
+!
+!     data varname/'sst'/
 !
       if ( idate==idate0 ) then
         if ( idate<1989123100 ) then
@@ -1141,7 +1138,7 @@
       real(8) :: xadd , xscale
       character(64) :: pathaddname
       logical :: there
-      character(3) :: varname
+!     character(3) :: varname
       integer(2) , dimension(ilon,jlat) :: work
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -1153,9 +1150,8 @@
 !     will contain the unpacked data.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'ice'/
+!
+!     data varname/'ice'/
 !
       if ( idate==idate0 ) then
         if ( idate<1989123100 ) then

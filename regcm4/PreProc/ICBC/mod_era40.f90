@@ -164,10 +164,10 @@
                & nday , nhour , nyear , istatus
       character(24) :: inname
       character(64) :: pathaddname
-      character(5) , dimension(3,4) :: sarname
-      character(2) :: snownm
+!     character(5) , dimension(3,4) :: sarname
+!     character(2) :: snownm
       logical :: there
-      character(5) , dimension(6) :: varname
+!     character(5) , dimension(6) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
       integer(2) , dimension(ilon,jlat) :: work2d
       real(8) :: xadd , xscale
@@ -188,13 +188,12 @@
 !     will contain the unpacked data.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega'/
-      data sarname/'swvl1' , 'istl1' , 'stl1' , 'swvl2' , 'istl2' ,     &
-          &'stl2' , 'swvl3' , 'istl3' , 'stl3' , 'swvl4' , 'istl4' ,    &
-          &'stl4'/
-      data snownm/'sd'/
+!
+!     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega'/
+!     data sarname/'swvl1' , 'istl1' , 'stl1' , 'swvl2' , 'istl2' ,     &
+!         &'stl2' , 'swvl3' , 'istl3' , 'stl3' , 'swvl4' , 'istl4' ,    &
+!         &'stl4'/
+!     data snownm/'sd'/
 !
 !     Below in the ncopen call is the file name of the netCDF file.
 !     You may want to add code to read in the file name and the

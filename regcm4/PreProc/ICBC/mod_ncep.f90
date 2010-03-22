@@ -161,7 +161,7 @@
       character(21) :: inname
       character(35) :: pathaddname
       logical :: there
-      character(5) , dimension(7) :: varname
+!     character(5) , dimension(7) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
       real(8) :: xadd , xscale
       integer , dimension(10) :: icount , istart
@@ -176,10 +176,9 @@
 !     work will be used to hold the packed integers.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
-          &'pres'/
+!
+!     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
+!         &'pres'/
 !
 !     Below in the ncopen call is the file name of the netCDF file.
 !     You may want to add code to read in the file name and the
@@ -478,7 +477,7 @@
       character(24) :: inname
       character(38) :: pathaddname
       logical :: there
-      character(5) , dimension(7) :: varname
+!     character(5) , dimension(7) :: varname
       integer(2) , dimension(iii,jjj,klev+1) :: work
       real(8) :: xadd , xscale
       integer , dimension(10) :: icount , istart
@@ -493,10 +492,9 @@
 !     work will be used to hold the packed integers.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
-          &'pres'/
+!
+!     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
+!         &'pres'/
 !
       if ( idate==idate0 ) then
         i0 = lon0/2.5 + 1

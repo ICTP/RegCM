@@ -315,7 +315,7 @@
       integer :: i , j , n
       character(35) :: pathaddname
       logical :: there
-      character(3) :: varname
+!     character(3) :: varname
       integer(2) , dimension(ilon,jlat) :: work
       integer , dimension(10) :: icount , istart
       integer :: inet , istatus
@@ -330,9 +330,8 @@
 !     will contain the unpacked data.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'skt'/
+!
+!     data varname/'skt'/
 !
       if ( it==it0 ) then
         pathaddname = '../DATA/SST/tskinERAIN.1989-2009.nc'
@@ -389,7 +388,7 @@
       integer :: i , j , n
       character(33) :: pathaddname
       logical :: there
-      character(3) :: varname
+!     character(3) :: varname
       integer(2) , dimension(ilon,jlat) :: work
       integer , dimension(10) :: icount , istart
       integer :: inet , istatus
@@ -404,9 +403,8 @@
 !     will contain the unpacked data.
 !
 !     DATA ARRAY AND WORK ARRAY
-!bxq
-!bxq_
-      data varname/'sst'/
+!
+!     data varname/'sst'/
 !
       if ( it==it0 ) then
         pathaddname = '../DATA/SST/sstERAIN.1989-2009.nc'
