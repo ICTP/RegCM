@@ -23,21 +23,21 @@
 ! PARAMETER definitions
 !
       character(6) , parameter :: iproj = 'LAMCON'
-      integer , parameter :: ix = 34
-      integer , parameter :: jx = 48
+      integer , parameter :: ix = 120
+      integer , parameter :: jx = 128
       integer , parameter :: kz = 18
       integer , parameter :: nsg = 1
-      real(4) , parameter :: ds = 60.0
+      real(4) , parameter :: ds = 15.0
       real(4) , parameter :: ptop = 5.0
-      real(4) , parameter :: clat = 45.39
-      real(4) , parameter :: clon = 13.48
+      real(4) , parameter :: clat = 43.00
+      real(4) , parameter :: clon = 10.70
       real(4) , parameter :: plat = clat
       real(4) , parameter :: plon = clon
       real(4) , parameter :: truelatl = 30.
       real(4) , parameter :: truelath = 60.
       real(4) , parameter :: h2opct = 75.
-      integer , parameter :: ntypec = 10
-      integer , parameter :: ntypec_s = 10
+      integer , parameter :: ntypec = 2
+      integer , parameter :: ntypec_s = 2
       logical , parameter :: ifanal = .true.
       logical , parameter :: smthbdy = .false.
       logical , parameter :: lakadj = .false.
@@ -58,20 +58,20 @@
       logical , parameter :: fudge_tex_s = .false.
       character(50) , parameter :: filout = '../../Input/DOMAIN.INFO'
       character(50) , parameter :: filctl = '../../Input/DOMAIN.CTL'
-      integer , parameter :: idate1 = 1990060100
-      integer , parameter :: idate2 = 1990070100
+      integer , parameter :: idate1 = 1959010100
+      integer , parameter :: idate2 = 1959020100
 !
 ! One in:
 !        ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
 !        NRP2W,GFS11,FVGCM,FNEST,EH5OM
 !
-      character(5) , parameter :: dattyp = 'EIN15'
+      character(5) , parameter :: dattyp = 'FNEST'
 
 ! One in:
 !        GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,
 !        EH5A2,EH5B1,EHA1B,ERSST,ERSKT
 !
-      character(5) , parameter :: ssttyp = 'OI_WK'
+      character(5) , parameter :: ssttyp = 'EH5RF'
 
       logical , parameter :: ehso4 = .false.
       character(4) , parameter :: lsmtyp = 'BATS'
@@ -79,4 +79,10 @@
       character(7) , parameter :: aertyp = 'AER00D0'
       integer , parameter :: ntex = 17
       integer , parameter :: nproc = 16
+
+! Tracer parameters: number of tracers and bins number for dust
+
+      integer , parameter :: ntr = 10
+      integer , parameter :: nbin = 4
+
       end module mod_param
