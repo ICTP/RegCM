@@ -28,12 +28,9 @@
 !
 ! Local variables
 !
-      real(8) :: age , albg , albgl , albgld , albgs , albgsd ,         &
-               & albl , albld , albs , albsd , albzn , alwet ,          &
-               & cf1 , cff , conn , cons , czeta , czf , dfalbl ,       &
-               & dfalbs , dralbl , dralbs , fsol1 , fsol2 , sfac ,      &
-               & sical0 , sical1 , sl , sl2 , sli , snal0 , snal1 ,     &
-               & tdiff , tdiffs , wet , x
+      real(8) :: albg , albgl , albgld , albgs , albgsd , albl , albld ,&
+               & albs , albsd , albzn , alwet , czeta , fsol1 , fsol2 , &
+               & sfac , sical0 , sical1 , snal0 , snal1 , wet , x
       real(8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  & aldifs_s , aldirl_s , aldirs_s
       real(8) :: fseas

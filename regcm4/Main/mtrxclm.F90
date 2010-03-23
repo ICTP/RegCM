@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine mtrxclm(nstep)
+      subroutine mtrxclm
 !
 !=======================================================================
 !  based on: clm version 3.5
@@ -45,18 +45,15 @@
       use mod_message
       use mod_clm
       implicit none
-!
-! Dummy arguments
-!
-      integer :: nstep
+
 !---------------------------------------------------------------------
  
 #ifdef MPP1
-      call interfclm(1,nstep)
+      call interfclm(1)
 #else
       write (*,*) 'CLM not implemented for serial run'
       call fatal(__FILE__,__LINE__, 'CLM not implemented')
-!      call interfclm_ser(1,nstep)
+!      call interfclm_ser(1)
 #endif
 
       call rcmdrv()
@@ -64,11 +61,11 @@
       call clm_run2(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
  
 #ifdef MPP1
-      call interfclm(2,nstep)
+      call interfclm(2)
 #else
       write (*,*) 'CLM not implemented for serial run'
       call fatal(__FILE__,__LINE__, 'CLM not implemented')
-!      call interfclm_ser(2,nstep)
+!      call interfclm_ser(2)
 #endif
 
       end subroutine mtrxclm

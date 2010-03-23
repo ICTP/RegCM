@@ -95,10 +95,7 @@
 !
 ! Local variables
 !
-      integer :: ci , cj , i , ii , is , itex , iyear_ad , j , je , jj ,&
-               & js , k , n , ni , nj , nlveg , nt , p , ierr
-      logical :: init_grid , log_print
-      real(r8) :: mvelp , obliq
+      integer :: ci , cj , i , ii , j , je , jj , js , n , ierr
       real(8) , dimension(jxp,ix) :: r2cflwd , r2cpsb , r2cqb ,         &
                 & r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
                 & r2csolsd , r2ctb , r2cuxb , r2cvxb , r2cxlat ,        &

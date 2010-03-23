@@ -1341,7 +1341,7 @@
         else
           r2cnstep = (ktau+1)/nbatst
         end if
-        call mtrxclm(r2cnstep)
+        call mtrxclm
       end if
 #endif
 

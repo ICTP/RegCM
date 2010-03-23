@@ -19,7 +19,7 @@
 
 #ifdef MPP1
 
-      subroutine interfclm(ivers,nstep)
+      subroutine interfclm(ivers)
 
 !=======================================================================
 !l  built for clm version 3.0
@@ -47,16 +47,14 @@
 !
 ! Dummy arguments
 !
-      integer :: ivers , nstep
+      integer :: ivers
       intent (in) ivers
 !
 ! Local variables
 !
-      real(8) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
-                    & fracs , fracv , mmpd , sfac , solvt , wpm2
-      integer :: ci , cj , counter , i , icount , ii , iii , j , je ,   &
-               & ji , jj , jo , js , kk , locid , n , nn1 , nnn , nout ,&
-               & p , x
+      real(8) :: mmpd , wpm2
+      integer :: ci , cj , counter , i , ii , iii , j , jj , kk ,       &
+                & locid , n , nn1 , nnn , nout
       real(8) , dimension(jxp,ix) :: r2cflwd , r2cpsb , r2cqb ,    &
                 & r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
                 & r2csolsd , r2ctb , r2cuxb , r2cvxb , r2czga
