@@ -59,7 +59,10 @@
 !
 ! Local variables
 !
-      real(8) :: amco2 , amd , amo , cpwpl , p0 , theta , vmmr
+#ifndef CLM
+      real(8) :: theta
+#endif
+      real(8) :: amco2 , amd , amo , cpwpl , p0 , vmmr
       integer :: i , k
 !
 !------------------------------Arguments--------------------------------

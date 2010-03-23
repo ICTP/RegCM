@@ -1,18 +1,18 @@
- $restartparam
+ &restartparam
  ifrest   =    .false.,
- idate0   = 1989010100,
- idate1   = 1989010100,
- idate2   = 1989020100,
+ idate0   = 1990060100,
+ idate1   = 1990060100,
+ idate2   = 1990070100,
  nslice  =        120,
- $
- $timeparam
+ /
+ &timeparam
  radfrq  =    30.,
  abemh   =    18.,
  abatm   =   600.,
  dt      =   150.,
  ibdyfrq =          6,
- $
- $outparam
+ /
+ &outparam
  ifsave  = .true. ,
    savfrq  =    48.,
  iftape  = .true. ,
@@ -30,8 +30,8 @@
  ibintyp =          1,
  ifchem  = .true. ,
    chemfrq =     6.,
- $
- $physicsparam
+ /
+ &physicsparam
  iboudy  =          5,
  ibltyp  =          1,
  icup    =          2,
@@ -42,17 +42,17 @@
  iemiss  =          0,
  lakemod =          0,
  ichem   =          0,
- $
- $subexparam
- $
- $grellparam
- $
- $emanparam
- $
- $chemparam
+ /
+ &subexparam
+ /
+ &grellparam
+ /
+ &emanparam
+ /
+ &chemparam
  idirect   =    2,
  chtrname  =    'SO2',
  chtrsol   =  0.20,
  chtrdpv   = 0.00300,0.00800,
  dustbsiz  =  0.01, 1.00,
- $
+ /

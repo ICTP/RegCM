@@ -22,7 +22,7 @@ CPPFLAGS = -DDIAG -DINTEL
 INTELINC = -I/opt/intel/fce/10.1.018/include
 USCORING = -assume nounderscore
 # FFLAGS: needed by  F77 stlye codes ( terrain / icbc etc..) 
-FFLAGS = -O2 -mp1  -convert big_endian -assume byterecl -traceback
+FFLAGS = -O2 -mp1  -convert big_endian -assume byterecl -check -traceback
 # F90FLAGS: needed by F90 codes (Main..) 
 F90FLAGS =  -O2 -mp1  -convert big_endian -assume byterecl -traceback
 
@@ -31,7 +31,7 @@ FC = ifort
 # F90 compiler 
 F90 = ifort
 # linker 
-LDFLAGS = -i-dynamic -traceback
+LDFLAGS = -i-dynamic -check -traceback
 LD =$(FC)
 
 # do not touch below this line unless you are a developer 
