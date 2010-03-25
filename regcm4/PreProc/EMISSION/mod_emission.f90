@@ -1,6 +1,7 @@
       module mod_emission
 
-      use mod_param , only : ix , jx , idate1 , idate2
+      use mod_regcm_param , only : ix , jx
+      use mod_preproc_param , only : idate1 , idate2
 
       implicit none
 !

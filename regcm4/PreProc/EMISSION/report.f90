@@ -1,5 +1,5 @@
       program report
-      use mod_param , only : ntr ,  nbin
+      use mod_regcm_param , only : ntr ,  nbin
       use mod_emission
       implicit none
 !

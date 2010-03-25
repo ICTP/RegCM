@@ -16,12 +16,16 @@
 !    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-! this for AQCWA test 
 !
       module mod_regcm_param
+
       implicit none
 !
 ! PARAMETER definitions
+!
+
+!
+!################### GRID DIMENSION ####################################
 !
 
 ! Point in X (longitude) direction
@@ -35,6 +39,22 @@
 ! Point in vertical
 
       integer , parameter :: kx = 18
+
+!###################### I/O control flag ###############################
+
+! Create GrADS CTL files
+
+      integer , parameter :: igrads = 1
+
+! Machine endianess. LEAVE IT UNTOUCHED IF WANT TO EXCHANGE I/O FILES
+
+      integer , parameter :: ibigend = 1
+
+! Number of bytes in reclen. Usually 4
+
+      integer , parameter :: ibyte = 4
+
+!####################### MPI parameters ################################
 
 #ifdef MPP1
 
@@ -51,10 +71,6 @@
 ! Sub grid decomposition
 
       integer , parameter :: nsg = 1
-
-! Number of bytes in reclen. Usually 4
-
-      integer , parameter :: ibyte = 4
 
 ! Set amount of printout
 
@@ -75,13 +91,38 @@
 
       integer , parameter :: lkpts = 10
 
-! BATS parameters
+! Type of global analysis datasets used in Pre processing
+!
+! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
+!         NRP2W,GFS11,FVGCM,FNEST,EH5OM
+!
 
       character(5) , parameter :: dattyp = 'FNEST'
 
+! SO4 Control Flag
+
       logical , parameter :: ehso4 = .false.
 
+! Land Surface Legend type
+!
+! WARNING : SET TOGETHER lsmtyp and nveg. THEY MUST BE CONSISTENT.
+!
+! lsmtyp -> One in : BATS,USGS
+! nveg   -> Set to 20 for BATS, 25 for USGS
+
       character(4) , parameter :: lsmtyp = 'BATS'
+      integer , parameter :: nveg = 20
+
+! Aerosol dataset used
+!
+! One in : AER00D0 -> Neither aerosol, nor dust used
+!          AER01D0 -> Biomass, SO2 + BC + OC, no dust
+!          AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
+!          AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
+!          AER00D1 -> No aerosol, with dust
+!          AER01D1 -> Biomass, SO2 + BC + OC, with dust
+!          AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
+!          AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
 
       character(7) , parameter :: aertyp = 'AER00D0'
 

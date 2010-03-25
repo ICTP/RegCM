@@ -18,6 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       program aerosol
+
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Comments on dataset sources and location:                          c
 !                                                                    c
@@ -31,7 +32,8 @@
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_param
+      use mod_preproc_param
+      use mod_regcm_param , only : ix , jx , ibyte
 
       implicit none
 !

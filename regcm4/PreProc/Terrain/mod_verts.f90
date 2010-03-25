@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_verts
-      use mod_param , only : kz
+      use mod_regcm_param , only : kx
       implicit none
-      real(4) , dimension(kz+1) :: sigma
+      real(4) , dimension(kx+1) :: sigma
       end module mod_verts

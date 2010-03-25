@@ -19,7 +19,8 @@
 
       module mod_ncep
 
-      use mod_param
+      use mod_regcm_param , only : ix , jx , kx , ibyte , dattyp
+      use mod_preproc_param
 
       implicit none
 
@@ -50,7 +51,6 @@
       contains
 
       subroutine getncep(idate)
-      use mod_param
       use mod_grid
       use mod_write
       implicit none
@@ -129,16 +129,16 @@
 !     F2  DETERMINE P* AND HEIGHT.
 !
 !     F3  INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,klev)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,klev)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
 !
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kz,klev)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kz,klev)
-      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kz)
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
 !
 !     F4  DETERMINE H
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kz)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kx)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
       call writef(ptop,idate)
@@ -365,7 +365,6 @@
       end subroutine cdc6hour
 
       subroutine getncepw(idate)
-      use mod_param
       use mod_grid
       use mod_write
       implicit none
@@ -444,16 +443,16 @@
 !     F2  DETERMINE P* AND HEIGHT.
 !
 !     F3  INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,klev)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,klev)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
 !
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kz,klev)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kz,klev)
-      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kz)
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
 !
 !     F4  DETERMINE H
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kz)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kx)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
       call writef(ptop,idate)

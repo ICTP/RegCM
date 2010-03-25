@@ -1,10 +1,12 @@
 include ../Makefile.inc
 
-USECLM = 1
+USECLM = 0
 
 SCENARIO = A1B
 
 all:: regcm
+
+SHROBJS = mod_constants.o mod_regcm_param.o
 
 MODOBJS = \
 mod_mppio.o      mod_crdcae.o     mod_mainchem.o   mod_radbuf.o      \
@@ -16,8 +18,8 @@ mod_bmparam.o    mod_diagnosis.o  mod_param1.o     mod_tmpsav.o      \
 mod_bxq.o        mod_dust.o       mod_param2.o     mod_tracer0.o     \
 mod_comctl.o     mod_param3.o     mod_tracer.o     mod_comozp.o      \
 mod_grads.o      mod_pmoist.o     mod_trachem.o    mod_comtim.o      \
-mod_ictp01.o     mod_constants.o  mod_iunits.o     mod_regcm_param.o \
-mod_pbldim.o     mod_lake.o       mod_interfaces.o
+mod_ictp01.o     mod_iunits.o     mod_pbldim.o     mod_lake.o        \
+mod_interfaces.o
 
 CLMOBJS = \
 initializeMod.o  shr_orb_mod.o    shr_kind_mod.o  clm_varpar.o       \
@@ -72,9 +74,15 @@ endif
 $(CLMPTH)/libclm.a: mod_clm.o mod_regcm_param.o
 	cd $(CLMPTH) && touch patchset/* && make patchsrc && make
 
-regcm: $(CLMLIB) $(MODOBJS) $(OBJS)
-	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) \
+regcm: $(SHROBJS) $(CLMLIB) $(MODOBJS) $(OBJS)
+	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) $(SHROBJS)\
                $(LIB) $(NETCDFLIB)
+
+mod_constants.o: ../Config/mod_constants.F90
+	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
+
+mod_regcm_param.o: ../Config/mod_regcm_param.F90
+	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
 
 %.o: %.F90
 	$(F90) -c $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
@@ -101,7 +109,6 @@ mod_clm.o: mod_clm.f90 mod_regcm_param.o
 mod_comctl.o: mod_comctl.f90
 mod_comozp.o: mod_comozp.f90
 mod_comtim.o: mod_comtim.f90
-mod_constants.o: mod_constants.F90
 mod_convect.o: mod_convect.f90
 mod_crdcae.o: mod_crdcae.f90
 mod_culookup.o: mod_culookup.f90
@@ -122,7 +129,6 @@ mod_outrad.o: mod_outrad.F90 mod_regcm_param.o
 mod_param1.o: mod_param1.f90 mod_regcm_param.o
 mod_param2.o: mod_param2.F90
 mod_param3.o: mod_param3.f90 mod_regcm_param.o
-mod_regcm_param.o: mod_regcm_param.F90
 mod_pbldim.o: mod_pbldim.F90 mod_regcm_param.o
 mod_pmoist.o: mod_pmoist.F90 mod_regcm_param.o
 mod_rad.o: mod_rad.F90 mod_regcm_param.o

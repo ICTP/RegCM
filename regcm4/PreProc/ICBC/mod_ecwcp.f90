@@ -18,7 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_ecwcp
-      use mod_param
+
+      use mod_regcm_param , only : ix , jx , kx , ibyte
+      use mod_preproc_param
+
       implicit none
 
       private
@@ -175,17 +178,17 @@
       end if
  
 !     F3     INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,nlev1)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,nlev1)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,nlev1)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,nlev1)
 !
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kz,nlev1)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kx,nlev1)
  
       call humid1(t3,q3,100.,0.0,sigma1,jx,ix,nlev1)
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kz,nlev1)
-      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kz)
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kx,nlev1)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
 !
 !     F4     DETERMINE H
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kz)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kx)
 !
 !     G      WRITE AN INITIAL FILE FOR THE RegCM
       call writef(ptop,idate)

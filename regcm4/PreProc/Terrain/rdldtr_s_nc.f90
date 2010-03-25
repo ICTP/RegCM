@@ -19,7 +19,8 @@
 
       subroutine rdldtr_s_nc
       use netcdf
-      use mod_param
+      use mod_regcm_param , only : ibyte , lsmtyp , aertyp , nveg
+      use mod_preproc_param , only : ntypec , ntypec_s , ntex
       use mod_a
       use mod_aa
       use mod_block

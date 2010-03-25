@@ -18,7 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine gradsctlb(finame,idate,inumber)
-      use mod_param
+      use mod_regcm_param , only : ix , jx , kx , ibyte , dattyp ,      &
+                 &                 ehso4 , lsmtyp , ibigend
+      use mod_preproc_param
+
       use mod_grid
       implicit none
 !
@@ -124,7 +127,7 @@
         write (*,*) 'Are you sure your map projection is correct ?'
         stop
       end if
-      write (71,99008) kz , ((1013.25-ptop*10.)*sigma2(k)+ptop*10.,k=kz,&
+      write (71,99008) kx , ((1013.25-ptop*10.)*sigma2(k)+ptop*10.,k=kx,&
                      & 1,-1)
       nyear = idate/1000000
       month = (idate-nyear*1000000)/10000
@@ -138,10 +141,10 @@
         write (71,99010) 7
       end if
       write (71,'(a)') 'date 0 99 header information'
-      write (71,99012) 'u   ' , kz , 'westerly wind    '
-      write (71,99012) 'v   ' , kz , 'southerly wind   '
-      write (71,99012) 't   ' , kz , 'air temperature  '
-      write (71,99012) 'q   ' , kz , 'specific moisture'
+      write (71,99012) 'u   ' , kx , 'westerly wind    '
+      write (71,99012) 'v   ' , kx , 'southerly wind   '
+      write (71,99012) 't   ' , kx , 'air temperature  '
+      write (71,99012) 'q   ' , kx , 'specific moisture'
       write (71,99013) 'px  ' , 'surface pressure           '
       write (71,99013) 'ts  ' , 'surface air temperature    '
       if ( lsmtyp=='USGS' ) then

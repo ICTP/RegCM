@@ -52,7 +52,9 @@
 !  terrain will be read from unit 12, landuse from unit 10 or 11,
 !  output variables unit 9.
 !---------------------------------------------------------------------
-      use mod_param
+      use mod_preproc_param
+      use mod_regcm_param , only : igrads , ibyte , lsmtyp , aertyp ,   &
+             &               dattyp , ibigend , kx
       use mod_aa
       use mod_addstack
       use mod_addstack2
@@ -300,7 +302,7 @@
         call output(nunitc_s,ix*nsg,jx*nsg,1,dsinm,clat,clong,plat,plon,&
                   & iproj,htgrid_s,htsdgrid_s,lndout_s,xlat_s,xlon_s,   &
                   & dlat_s,dlon_s,xmap_s,dattyp,dmap_s,coriol_s,        &
-                  & snowam_s,igrads,ibigend,kz,sigma,mask_s,ptop,       &
+                  & snowam_s,igrads,ibigend,kx,sigma,mask_s,ptop,       &
                   & htgrid_s,lndout_s,ibyte,nsg,truelatl,truelath,xn,   &
                   & datafile,lsmtyp,sanda_s,sandb_s,claya_s,clayb_s,    &
                   & frac_lnd_s,nveg,aertyp,texout_s,frac_tex_s,ntex)
@@ -503,19 +505,12 @@
 !     LANDUSE legend and TEXTURE type
       call output(nunitc,ix,jx,nsg,dsinm,clat,clong,plat,plon,iproj,    &
                 & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,xmap,      &
-                & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
+                & dattyp,dmap,coriol,snowam,igrads,ibigend,kx,sigma,    &
                 & mask,ptop,htgrid_s,lndout_s,ibyte,nsg,truelatl,       &
                 & truelath,xn,filout,lsmtyp,sanda,sandb,claya,clayb,    &
                 & frac_lnd,nveg,aertyp,texout,frac_tex,ntex)
       print * , 'after calling OUTPUT'
  
-!     prepare domain and time parameters for ICBC step
-      call foricbc(ix,jx,kz,nsg,idate1,idate2,ibyte,dattyp,ssttyp,ehso4,&
-                 & lsmtyp,aertyp)
- 
-!     prepare domain parameters for RegCM step
-      call formain(ix,jx,kz,nsg,ibyte,dattyp,ehso4,lsmtyp,aertyp,nproc)
-!
       stop 9999
 !
 99001 format (a18,i1,a5)

@@ -66,9 +66,9 @@
       real(8) , dimension(nsplit) :: dtsplit
       character(7) :: finm
       real(4) :: grdfac
-      integer :: i , ibigend , ierr1 , igrads , ii , j , jj , k ,       &
-               & kbase , ktop , kzz , m , mdate1 , mday , mmon , my1 ,  &
-               & my2 , my3 , myear , n , ns , nxx , nyy
+      integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
+               & kbase , ktop , kxx , m , mdate1 , mday , mmon , my1 ,  &
+               & my2 , my3 , myear , n , ns , jxx , ixx
       integer , dimension(12) :: mmd
       real(4) , dimension(kxp1) :: sp1d
       real(4) , dimension(ix,jx) :: sp2d
@@ -664,24 +664,25 @@
                             & recl=ix*jx*nnsg*ibyte)
         open (iutin,file=finm,form='unformatted',status='old',          &
              &access='direct',recl=ix*jx*ibyte)
-        read (iutin,rec=1,iostat=ierr1) nyy , nxx , kzz , dxsp , clat , &
+        read (iutin,rec=1,iostat=ierr1) ixx , jxx , kxx , dxsp , clat , &
                                       & clon , plat , plon , grdfac ,   &
-                                      & proj , sp1d , ptsp , igrads ,   &
-                                      & ibigend , truelatl , truelath
-        print * , 'param: DIMS' , nyy , nxx , kzz
-        print * , 'param: DOMAIN' , dxsp , clat , clon , plat , plon , grdfac
+                                      & proj , sp1d , ptsp , igra ,     &
+                                      & ibig , truelatl , truelath
+        print * , 'param: DIMS' , ixx , jxx , kxx
+        print * , 'param: DOMAIN' , dxsp , clat , clon , plat , plon ,  &
+                  &  grdfac
         print * , 'param: PROJ' , proj
         print * , 'param: SIGMA' , sp1d
         print * , 'param: PTOP' , ptsp
-        print * , 'param: OUTPUT' , igrads , ibigend
+        print * , 'param: OUTPUT' , igra , ibig
         ptop = ptsp
         dx = dxsp
-        if ( nyy.ne.ix .or. nxx.ne.jx .or. kzz.ne.kx ) then
-          write (aline,*) 'param:  SET IN regcm.param:  IX=' , ix , ' JX=' ,  &
-                        & jx , ' KX=' , kx
+        if ( ixx.ne.ix .or. jxx.ne.jx .or. kxx.ne.kx ) then
+          write (aline,*) 'param:  SET IN regcm.param:  IX=' , ix ,     &
+                 & ' JX=' ,  jx , ' KX=' , kx
           call say
-          write (aline,*) 'param:  SET IN TERRAIN: NYY=' , nyy , ' NXX=' ,    &
-                        & nxx , ' NZZ=' , kzz
+          write (aline,*) 'param:  SET IN TERRAIN: NYY=' , ixx ,        &
+                 & ' NXX=' , jxx , ' NZZ=' , kxx
           call say
           write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' &
                         & , ibyte
@@ -705,11 +706,11 @@
                           & recl=ix*jx*nnsg*ibyte)
       open (iutin,file=finm,form='unformatted',status='old',            &
            &access='direct',recl=ix*jx*ibyte)
-      read (iutin,rec=1,iostat=ierr1) nyy , nxx , kzz , dxsp , clat ,   &
+      read (iutin,rec=1,iostat=ierr1) ixx , jxx , kxx , dxsp , clat ,   &
                                     & clon , plat , plon , grdfac ,     &
                                     & proj , sp1d , ptsp , igrads ,     &
                                     & ibigend , truelatl , truelath
-      print * , 'DIMS' , nyy , nxx , kzz
+      print * , 'DIMS' , ixx , jxx , kxx
       print * , 'DOMAIN' , dxsp , clat , clon , plat , plon , grdfac
       print * , 'PROJ' , proj
       print * , 'SIGMA' , sp1d
@@ -717,12 +718,12 @@
       print * , 'OUTPUT' , igrads , ibigend
       ptop = ptsp
       dx = dxsp
-      if ( nyy.ne.ix .or. nxx.ne.jx .or. kzz.ne.kx ) then
+      if ( ixx.ne.ix .or. jxx.ne.jx .or. kxx.ne.kx ) then
         write (aline,*) '  SET IN regcm.param:  IX=' , ix , ' JX=' ,    &
                       & jx , ' KX=' , kx
         call say
-        write (aline,*) '  SET IN TERRAIN: NYY=' , nyy , ' NXX=' , nxx ,&
-                       &' NZZ=' , kzz
+        write (aline,*) '  SET IN TERRAIN: NYY=' , ixx , ' NXX=' , jxx ,&
+                       &' NZZ=' , kxx
         call say
         write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' , &
                       & ibyte

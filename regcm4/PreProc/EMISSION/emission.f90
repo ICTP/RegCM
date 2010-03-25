@@ -1,4 +1,5 @@
       program emission
+
 !#####################################################################
 !#    This program read the emission species from different emission
 !# inventories, and interpolat the data to model grid.
@@ -64,7 +65,7 @@
 ! DR3      : the directory of GFED data
 ! DR4      : the directory of EDGAR data
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_param
+      use mod_regcm_param , only : ix , jx , aertyp , ibyte
       use mod_emission
       implicit none
 !

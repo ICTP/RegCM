@@ -18,6 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       program rdsst
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Comments on dataset sources and location:                          !
 !                                                                    !
@@ -31,8 +32,8 @@
 !          NL= 1 is  90.0; ML= 2 is  88.5; => ML=121 is -90.         !
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      use mod_param , only : ix , jx , ssttyp , lsmtyp , ibyte ,        &
-            &                idate1 , idate2
+      use mod_regcm_param , only : ix , jx , lsmtyp , ibyte
+      use mod_preproc_param , only : ssttyp , idate1 , idate2
       use mod_datenum
       implicit none
 !

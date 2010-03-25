@@ -121,7 +121,8 @@
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
-      use mod_param
+      use mod_regcm_param , only : ix , jx , kx
+      use mod_preproc_param
 
       implicit none
 
@@ -181,7 +182,7 @@
 ! Local variables
 !
         real , dimension(npl) :: c1
-        real , dimension(kz) :: c2
+        real , dimension(kx) :: c2
         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
                 & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
                 & istatus
@@ -305,18 +306,18 @@
         call camclndr(idate,nyrp,nmop,wt)
         call mksst(ts4,sst1,sst2,topogm,xlandu,jx,ix,nyrp,nmop,wt)
         call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,                       &
-                &  jx,ix,kz,npl,1,1,dum2,c1,c2)
+                &  jx,ix,kx,npl,1,1,dum2,c1,c2)
         call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,                       &
-               &   jx,ix,kz,npl,1,1,dum2,c1,c2)
+               &   jx,ix,kx,npl,1,1,dum2,c1,c2)
         call intv2(t4,t3,ps4,sigma2,sigmar,ptop,                        &
-               &   jx,ix,kz,npl,1,dum2,c1,c2)
+               &   jx,ix,kx,npl,1,dum2,c1,c2)
  
         call intv1(q4,q3,ps4,sigma2,sigmar,ptop,                        &
-               &   jx,ix,kz,npl,1,0,dum2,c1,c2)
-        call humid2fv(t4,q4,ps4,ptop,sigma2,jx,ix,kz)
+               &   jx,ix,kx,npl,1,0,dum2,c1,c2)
+        call humid2fv(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
  
         call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,               &
-               &     dsigma,jx,ix,kz)
+               &     dsigma,jx,ix,kx)
  
         call writef(ptop,idate)
 
@@ -793,7 +794,7 @@
 ! Local variables
 !
       real , dimension(npl) :: c1
-      real , dimension(kz) :: c2
+      real , dimension(kx) :: c2
       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
                & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
                & istatus
@@ -914,17 +915,17 @@
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,ix,npl,dum1)
       call camclndr(idate,nyrp,nmop,wt)
       call mksst(ts4,sst1,sst2,topogm,xlandu,jx,ix,nyrp,nmop,wt)
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,npl,1,1,dum2,c1,&
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,npl,1,1,dum2,c1,&
                & c2)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,npl,1,1,dum2,c1,&
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,npl,1,1,dum2,c1,&
                & c2)
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kz,npl,1,dum2,c1,c2)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kx,npl,1,dum2,c1,c2)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kz,npl,1,0,dum2,c1, &
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kx,npl,1,0,dum2,c1, &
                & c2)
-      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,ix,kz)
+      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
  
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kz)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kx)
  
       call writef(ptop,idate)
  

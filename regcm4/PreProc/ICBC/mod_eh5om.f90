@@ -18,7 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_eh5om
-      use mod_param
+      use mod_regcm_param , only : ix , jx , kx , ibyte , ehso4
+      use mod_preproc_param
+
       implicit none
 
       private
@@ -50,7 +52,7 @@
       real , dimension(ilon,jlat,mlev,2) :: sulfate1
       real , dimension(ilon,jlat,mlev) :: sulfate2
       real , dimension(jx,ix,mlev) :: sulfate3
-      real , dimension(jx,ix,kz) :: sulfate4
+      real , dimension(jx,ix,kx) :: sulfate4
 
       integer(4) , dimension(10) :: icount , istart
 
@@ -596,16 +598,16 @@
 !     F2  DETERMINE P* AND HEIGHT.
 !
 !     F3  INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,klev)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kz,klev)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
 !
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kz,klev)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kz,klev)
-      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kz)
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
 !
 !     F4  DETERMINE H
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kz)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kx)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
       call writef(ptop,idate)
@@ -1126,7 +1128,7 @@
                   &  ilon,jlat,jx,ix,1)
         do i = 1 , ix
           do j = 1 , jx
-            do l = 1 , kz
+            do l = 1 , kx
               prcm = ((ps4(j,i)-ptop)*sigma2(l)+ptop)*10.
               k0 = -1
               do k = mlev , 1 , -1
@@ -1153,7 +1155,7 @@
           end do
         end do
 !
-        do k = kz , 1 , -1
+        do k = kx , 1 , -1
           noutrec = noutrec + 1
           write (64,rec=noutrec) ((sulfate4(j,i,k),j=1,jx),i=1,ix)
         end do

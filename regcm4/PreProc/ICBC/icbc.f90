@@ -18,6 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       program icbc
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                      !
 !   ICBC is the third component of the REGional Climate Modeling       !
@@ -91,7 +92,9 @@
 !   have just provided EMOSLIB library for LINUX PGI5 and IBM AIX.     !
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      use mod_param
+      use mod_regcm_param , only : ix , jx , kx , nsg , ehso4
+      use mod_regcm_param , only : lsmtyp , ibyte , aertyp , igrads
+      use mod_preproc_param , only : ssttyp , idate1 , idate2
       use mod_datenum
       use mod_grid
       use mod_ingrid
@@ -132,7 +135,7 @@
       write (*,*) 'NSTART,NNNEND: ' , nstart , nnnend
       write (*,*) 'IDATE1,IDATE2: ' , idate1 , idate2
  
-      isize = jx*ix*4*(kz*4+3)
+      isize = jx*ix*4*(kx*4+3)
       numfile = 2100000000/isize
       numfile = (numfile/20)*20
  

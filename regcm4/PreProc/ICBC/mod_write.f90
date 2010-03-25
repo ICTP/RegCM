@@ -19,14 +19,14 @@
 
       module mod_write
 
-      use mod_param , only : jx , ix , kz
+      use mod_regcm_param , only : jx , ix , kx
 
       implicit none
 
       integer :: noutrec
 
       real , dimension(jx,ix) :: ps4 , ts4
-      real , dimension(jx,ix,kz) :: c4 , h4 , q4 , t4 , u4 , v4
+      real , dimension(jx,ix,kx) :: c4 , h4 , q4 , t4 , u4 , v4
 
       data noutrec /0/
 
@@ -49,20 +49,20 @@
 !
 !     PRINT *,'WRITING OUTPUT:  IDATE= ',IDATE
       noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , jx , ix , kz
-      do k = kz , 1 , -1
+      write (64,rec=noutrec) idate , jx , ix , kx
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,ix)
       end do
@@ -90,20 +90,20 @@
 !
 !     PRINT *,'WRITING OUTPUT:  IDATE= ',IDATE
       noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , jx , ix , kz
-      do k = kz , 1 , -1
+      write (64,rec=noutrec) idate , jx , ix , kx
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,ix)
       end do
@@ -133,20 +133,20 @@
 !     THIS ROUTINE WRITES OUT AN INPUT FILE FOR THE RCM
 !
       noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , jx , ix , kz
-      do k = kz , 1 , -1
+      write (64,rec=noutrec) idate , jx , ix , kx
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,ix)
       end do
-      do k = kz , 1 , -1
+      do k = kx , 1 , -1
         noutrec = noutrec + 1
         write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,ix)
       end do

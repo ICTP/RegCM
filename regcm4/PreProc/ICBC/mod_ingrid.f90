@@ -19,11 +19,11 @@
 
       module mod_ingrid
 
-      use mod_param
+      use mod_regcm_param , only : ix , jx , kx , ibyte , dattyp
 
       implicit none
 
-      integer :: jx_in , ix_in , kz_in
+      integer :: jx_in , ix_in , kx_in
       real :: ptop_in
       real :: clat_in , clon_in , plat_in , plon_in
       real :: truelath_in , truelatl_in
@@ -52,25 +52,25 @@
           & recl=jx*ix*ibyte,access='direct')
       if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.                    &
          & dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
-        read (10,rec=1,iostat=ierr) ix_in , jx_in , kz_in , delx ,      &
+        read (10,rec=1,iostat=ierr) ix_in , jx_in , kx_in , delx ,      &
                                   & clat_in , clon_in , plat_in ,       &
                                   & plon_in , grdfac , cgtype_in ,      &
-                                  & (sigmaf(k),k=1,kz+1) , ptop_in ,    &
+                                  & (sigmaf(k),k=1,kx+1) , ptop_in ,    &
                                   & igrads_in , ibigend_in ,            &
                                   & truelatl_in , truelath_in ,         &
                                   & lon0 , lon1 , lat0 , lat1
       else
-        read (10,rec=1,iostat=ierr) ix_in , jx_in , kz_in , delx ,      &
+        read (10,rec=1,iostat=ierr) ix_in , jx_in , kx_in , delx ,      &
                                   & clat_in , clon_in , plat_in ,       &
                                   & plon_in , grdfac , cgtype_in ,      &
-                                  & (sigmaf(k),k=1,kz+1) , ptop_in ,    &
+                                  & (sigmaf(k),k=1,kx+1) , ptop_in ,    &
                                   & igrads_in , ibigend_in ,            &
                                   & truelatl_in , truelath_in
       end if
-      if ( ix_in/=ix .or. jx_in/=jx .or. kz_in/=kz ) then
+      if ( ix_in/=ix .or. jx_in/=jx .or. kx_in/=kx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (ICBC.f)'
-        print * , '  icbc.param: ' , ix , jx , kz
-        print * , '  DOMAIN.INFO: ' , ix_in , jx_in , kz_in
+        print * , '  icbc.param: ' , ix , jx , kx
+        print * , '  DOMAIN.INFO: ' , ix_in , jx_in , kx_in
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
       end if
@@ -101,7 +101,7 @@
 !
       call gridml
 !
-      do k = 1 , kz
+      do k = 1 , kx
         sigma2(k) = 0.5*(sigmaf(k+1)+sigmaf(k))
         dsigma(k) = sigmaf(k+1) - sigmaf(k)
       end do

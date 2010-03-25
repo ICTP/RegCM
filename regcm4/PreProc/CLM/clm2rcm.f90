@@ -20,7 +20,8 @@
       program clmproc
  
       use netcdf
-      use mod_param
+      use mod_regcm_param , only : ix , jx , kx , ibyte
+      use mod_preproc_param
       use mod_param_clm
 
       implicit none
@@ -36,7 +37,7 @@
            & xlatmin , xlonmax , xlonmin
       integer :: i , ibigendx , idatex , idin , idout , idy , ierr ,    &
                & ifield , ifld , igradsx , ihr , imap , imo , iotyp ,   &
-               & irec , iyr , ixx , j , julnc , jxx , kmax , kzz , l
+               & irec , iyr , ixx , j , julnc , jxx , kmax , kxx , l
       integer :: k
       integer :: iunout , iunctl
       integer , dimension(4) :: icount , istart
@@ -44,7 +45,7 @@
       character(6) :: iprojx
       character(64) , dimension(nfld) :: lnam
       character(256) :: outfil_ctl , outfil_gr , outfil_nc
-      real(4) , dimension(kz+1) :: sigx
+      real(4) , dimension(kx+1) :: sigx
       logical :: there
       character(64) , dimension(nfld) :: units
       real(4) , dimension(3) :: varmax , varmin
@@ -67,7 +68,7 @@
 !     ** Get latitudes and longitudes from DOMAIN.INFO
       open (unit=10,file=filout,status='old',form='unformatted',     &
           & recl=ix*jx*ibyte,access='direct')
-      read (10,rec=1) ixx , jxx , kzz , dsx , clatx , clonx , platx ,   &
+      read (10,rec=1) ixx , jxx , kxx , dsx , clatx , clonx , platx ,   &
                     & plonx , grdfacx , iprojx , sigx , ptopx ,         &
                     & igradsx , ibigendx
       if ( ixx/=ix .or. jxx/=jx ) then

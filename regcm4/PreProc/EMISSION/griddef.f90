@@ -1,5 +1,5 @@
       subroutine griddef(year,trec)
-      use mod_param
+      use mod_regcm_param , only : aertyp , ibyte , kx
       use mod_emission
       implicit none
 !
@@ -19,7 +19,7 @@
                & xnspc2a , xnspc2b , xnspc3 , xnspc4a , xnspc4b ,       &
                & xnspc5a , xnspc5b
       character(6) :: cprj
-      real(4) , dimension(kz) :: sigmaf
+      real(4) , dimension(kx+1) :: sigmaf
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
@@ -68,7 +68,7 @@
 !
       read (10,rec=1,iostat=ierr) ixx , jxx , nl , dsinm , xcla , xclo ,&
                                 & xpla , xplo , grdfac , cprj ,         &
-                                & (sigmaf(k),k=1,kz+1) , xpto , dograd ,&
+                                & (sigmaf(k),k=1,kx+1) , xpto , dograd ,&
                                 & isbige , xtrul , xtruh
       if ( ixx/=ix .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'

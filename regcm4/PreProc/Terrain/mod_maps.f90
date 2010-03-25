@@ -18,7 +18,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_maps
-      use mod_param , only : ix , jx , nveg , ntex
+      use mod_regcm_param , only : ix , jx , nveg
+      use mod_preproc_param , only : ntex
       implicit none
       real(4) , dimension(ix,jx) :: claya , clayb , coriol , dlat ,     &
                                   & dlon , dmap , htgrid , htsdgrid ,   &

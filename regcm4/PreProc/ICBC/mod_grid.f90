@@ -19,7 +19,7 @@
 
       module mod_grid
 
-      use mod_param , only : jx , ix , kz
+      use mod_regcm_param , only : jx , ix , kx
 
       implicit none
 
@@ -29,8 +29,8 @@
       real , dimension(jx,ix) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
                                & ice2
       real , dimension(jx,ix) :: b3pd
-      real , dimension(kz) :: dsigma , sigma2
-      real , dimension(kz+1) :: sigmaf
+      real , dimension(kx) :: dsigma , sigma2
+      real , dimension(kx+1) :: sigmaf
       real :: delx , grdfac
       integer :: i0 , i1 , j0 , j1
       real :: lat0 , lat1 , lon0 , lon1

@@ -41,8 +41,8 @@
 !     PATH /DATA/SST/
 !
 !******************************************************************************
-      use mod_param , only : ix , jx , ssttyp , lsmtyp , ibyte ,        &
-            &                idate1 , idate2
+      use mod_regcm_param , only : ix , jx , lsmtyp , ibyte
+      use mod_preproc_param , only : ssttyp , idate1 , idate2
 
       implicit none
 !
