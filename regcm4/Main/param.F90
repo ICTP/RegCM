@@ -681,8 +681,8 @@
           write (aline,*) 'param:  SET IN regcm.param:  IX=' , ix ,     &
                  & ' JX=' ,  jx , ' KX=' , kx
           call say
-          write (aline,*) 'param:  SET IN TERRAIN: NYY=' , ixx ,        &
-                 & ' NXX=' , jxx , ' NZZ=' , kxx
+          write (aline,*) 'param:  SET IN TERRAIN: IXX=' , ixx ,        &
+                 & ' JXX=' , jxx , ' KXX=' , kxx
           call say
           write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' &
                         & , ibyte
@@ -722,8 +722,8 @@
         write (aline,*) '  SET IN regcm.param:  IX=' , ix , ' JX=' ,    &
                       & jx , ' KX=' , kx
         call say
-        write (aline,*) '  SET IN TERRAIN: NYY=' , ixx , ' NXX=' , jxx ,&
-                       &' NZZ=' , kxx
+        write (aline,*) '  SET IN TERRAIN: IXX=' , ixx , ' JXX=' , jxx ,&
+                       &' KXX=' , kxx
         call say
         write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' , &
                       & ibyte
