@@ -1,8 +1,8 @@
 # This file contains variables to be included in all other Makefiles
 # Tested with ifort versions 10.1 and 11.0
 
-#NETCDF_LIB=${HOME}/netcdf/lib
-#NETCDF_INC=${HOME}/netcdf/include
+NETCDF_LIB=${HOME}/netcdf/lib
+NETCDF_INC=${HOME}/netcdf/include
 
 # libraries and data
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
