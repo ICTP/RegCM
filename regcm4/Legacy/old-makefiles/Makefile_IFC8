@@ -1,9 +1,0 @@
-#  IFC8
-
-FFLAGS = -fpe3 -tpp7 -cm -w -w90 -w95 -convert big_endian
-FC = ifort
-F90 = ifort
-LD = $(FC)
-LIBS = -Vaxlib
-
-include makefile.common

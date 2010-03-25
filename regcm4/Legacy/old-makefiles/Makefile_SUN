@@ -1,9 +1,0 @@
-# SUN
-
-FFLAGS =  -O2 -fns -ftrap=common
-#DEBUG  FFLAGS = -g -fns -ftrap=common
-FC = f90
-F90 = f90
-LD = $(FC)
-
-include makefile.common

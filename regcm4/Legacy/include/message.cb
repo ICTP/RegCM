@@ -1,2 +1,0 @@
-      character(len=80) :: aline
-      common /regcmprint/ aline

@@ -1,9 +1,0 @@
-# AMD64p OpenMPI IFC8
-
-FFLAGS = -fpe3 -tpp7 -cm -w -w90 -w95 -convert big_endian 
-FC = mpif90
-F90 = mpif90
-LD = $(FC) 
-LIBS = -Vaxlib
-
-include makefile.common
