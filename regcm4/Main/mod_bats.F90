@@ -101,7 +101,7 @@
 #endif
 !
 #ifdef MPP1
-      real(4) , dimension(jxp,ixm2) :: drag_o , evpa_o , flwa_o ,       &
+      real(4) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o ,  &
                                      & flwd_o , fswa_o , prcv_o ,       &
                                      & psmn_o , ps_o , q2m_o , rnos_o , &
                                      & rsw_o , scv_o , sena_o , sina_o ,&
@@ -110,7 +110,7 @@
                                      & tpr_o , u10m_o , v10m_o ,        &
                                      & w10x_o , zpbl_o
 #else
-      real(4) , dimension(jxm2,ixm2) :: drag_o , evpa_o , flwa_o ,      &
+      real(4) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o ,  &
                                       & flwd_o , fswa_o , prcv_o ,      &
                                       & psmn_o , ps_o , q2m_o , rnos_o ,&
                                       & rsw_o , scv_o , sena_o ,        &
@@ -122,25 +122,25 @@
 #endif
 !
 #ifdef MPP1
-      real(4) , dimension(nnsg,jxp,ixm2) :: drag_s , evpa_s , prcv_s ,  &
+      real(4) , pointer , dimension(:,:,:) :: drag_s , evpa_s , prcv_s ,&
            & ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
            & t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
 #else
-      real(4) , dimension(nnsg,jxm2,ixm2) :: drag_s , evpa_s , prcv_s , &
+      real(4) , pointer , dimension(:,:,:) :: drag_s , evpa_s , prcv_s ,&
            & ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
            & t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
 #endif
 !
 #ifdef MPP1
-      real(4) , dimension(jxp,ixm2,numbat) :: fbat
+      real(4) , target , dimension(jxp,ixm2,numbat) :: fbat
 #else
-      real(4) , dimension(jxm2,ixm2,numbat) :: fbat
+      real(4) , target , dimension(jxm2,ixm2,numbat) :: fbat
 #endif
 
 #ifdef MPP1
-      real(4) , dimension(nnsg,jxp,ixm2,numsub) :: fsub
+      real(4) , target , dimension(nnsg,jxp,ixm2,numsub) :: fsub
 #else
-      real(4) , dimension(nnsg,jxm2,ixm2,numsub) :: fsub
+      real(4) , target , dimension(nnsg,jxm2,ixm2,numsub) :: fsub
 #endif
 !
       real(8) , dimension(nnsg,ixm1) :: p1d0 , qs1d0 , ts1d0
@@ -165,7 +165,6 @@
       real(8) , dimension(ixm1,jxp):: q2d   ! 2 meter specific humidity
 #endif
 #endif
-
 !
 !------------------ DATA SECTION ----------------------------------------
 !
@@ -293,55 +292,55 @@
 
       contains
 
-        subroutine fillbat
+        subroutine inibat
           implicit none
-          fbat(:,:,1)  = u10m_o(:,:)
-          fbat(:,:,2)  = v10m_o(:,:)
-          fbat(:,:,3)  = drag_o(:,:)
-          fbat(:,:,4)  = tg_o(:,:)
-          fbat(:,:,5)  = tlef_o(:,:)
-          fbat(:,:,6)  = t2m_o(:,:)
-          fbat(:,:,7)  = q2m_o(:,:)
-          fbat(:,:,8)  = ssw_o(:,:)
-          fbat(:,:,9)  = rsw_o(:,:)
-          fbat(:,:,10) = tpr_o(:,:)
-          fbat(:,:,11) = evpa_o(:,:)
-          fbat(:,:,12) = rnos_o(:,:)
-          fbat(:,:,13) = scv_o(:,:)
-          fbat(:,:,14) = sena_o(:,:)
-          fbat(:,:,15) = flwa_o(:,:)
-          fbat(:,:,16) = fswa_o(:,:)
-          fbat(:,:,17) = flwd_o(:,:)
-          fbat(:,:,18) = sina_o(:,:)
-          fbat(:,:,19) = prcv_o(:,:)
-          fbat(:,:,20) = ps_o(:,:)
-          fbat(:,:,21) = zpbl_o(:,:)
-          fbat(:,:,22) = tgmx_o(:,:)
-          fbat(:,:,23) = tgmn_o(:,:)
-          fbat(:,:,24) = t2mx_o(:,:)
-          fbat(:,:,25) = t2mn_o(:,:)
-          fbat(:,:,26) = w10x_o(:,:)
-          fbat(:,:,27) = psmn_o(:,:)
-        end subroutine fillbat
+          u10m_o => fbat(:,:,1)
+          v10m_o => fbat(:,:,2)
+          drag_o => fbat(:,:,3)
+          tg_o   => fbat(:,:,4)
+          tlef_o => fbat(:,:,5)
+          t2m_o  => fbat(:,:,6)
+          q2m_o  => fbat(:,:,7)
+          ssw_o  => fbat(:,:,8)
+          rsw_o  => fbat(:,:,9)
+          tpr_o  => fbat(:,:,10)
+          evpa_o => fbat(:,:,11)
+          rnos_o => fbat(:,:,12)
+          scv_o  => fbat(:,:,13)
+          sena_o => fbat(:,:,14)
+          flwa_o => fbat(:,:,15)
+          fswa_o => fbat(:,:,16)
+          flwd_o => fbat(:,:,17)
+          sina_o => fbat(:,:,18)
+          prcv_o => fbat(:,:,19)
+          ps_o   => fbat(:,:,20)
+          zpbl_o => fbat(:,:,21)
+          tgmx_o => fbat(:,:,22)
+          tgmn_o => fbat(:,:,23)
+          t2mx_o => fbat(:,:,24)
+          t2mn_o => fbat(:,:,25)
+          w10x_o => fbat(:,:,26)
+          psmn_o => fbat(:,:,27)
+        end subroutine inibat
 
-        subroutine fillsub
+        subroutine inisub
         implicit none
-          fsub(:,:,:,1)  = u10m_s(:,:,:)
-          fsub(:,:,:,2)  = v10m_s(:,:,:)
-          fsub(:,:,:,3)  = drag_s(:,:,:)
-          fsub(:,:,:,4)  = tg_s(:,:,:)
-          fsub(:,:,:,5)  = tlef_s(:,:,:)
-          fsub(:,:,:,6)  = t2m_s(:,:,:)
-          fsub(:,:,:,7)  = q2m_s(:,:,:)
-          fsub(:,:,:,8)  = ssw_s(:,:,:)
-          fsub(:,:,:,9)  = rsw_s(:,:,:)
-          fsub(:,:,:,10) = tpr_s(:,:,:)
-          fsub(:,:,:,11) = evpa_s(:,:,:)
-          fsub(:,:,:,12) = rnos_s(:,:,:)
-          fsub(:,:,:,13) = scv_s(:,:,:)
-          fsub(:,:,:,14) = sena_s(:,:,:)
-          fsub(:,:,:,15) = prcv_s(:,:,:)
-          fsub(:,:,:,16) = ps_s(:,:,:)
-        end subroutine fillsub
+          u10m_s => fsub(:,:,:,1)
+          v10m_s => fsub(:,:,:,2)
+          drag_s => fsub(:,:,:,3)
+          tg_s   => fsub(:,:,:,4)
+          tlef_s => fsub(:,:,:,5)
+          t2m_s  => fsub(:,:,:,6)
+          q2m_s  => fsub(:,:,:,7)
+          ssw_s  => fsub(:,:,:,8)
+          rsw_s  => fsub(:,:,:,9)
+          tpr_s  => fsub(:,:,:,10)
+          evpa_s => fsub(:,:,:,11)
+          rnos_s => fsub(:,:,:,12)
+          scv_s  => fsub(:,:,:,13)
+          sena_s => fsub(:,:,:,14)
+          prcv_s => fsub(:,:,:,15)
+          ps_s   => fsub(:,:,:,16)
+        end subroutine inisub
 
       end module mod_bats

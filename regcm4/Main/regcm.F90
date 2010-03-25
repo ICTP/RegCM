@@ -26,6 +26,7 @@
       use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : ptop , sigma
       use mod_message , only : aline
+      use mod_bats , only : inibat , inisub
 #ifdef MPP1
       use mpi
 #ifdef CLM
@@ -215,6 +216,11 @@
 #endif
 !!
       call header(myid)
+!
+!     Init bats I/O
+!
+      call inibat
+      call inisub
 !
 !-----set up parameters:
 !

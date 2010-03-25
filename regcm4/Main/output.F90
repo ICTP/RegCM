@@ -234,7 +234,6 @@
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
 
-          call fillbat
           do j = 1 , jendx
             do l = 1 , numbat
               do i = 1 , ixm2
@@ -270,7 +269,6 @@
 
           if ( ifsub .and. nsg.gt.1 ) then
 
-            call fillsub
             do j = 1 , jxp
               do l = 1 , numsub
                 do n = 1 , nnsg
@@ -1250,7 +1248,6 @@
         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
-          call fillbat
           call outsrf
           do i = 1 , ixm2
             do j = 1 , jxm2
@@ -1263,7 +1260,6 @@
             end do
           end do
           if ( ifsub .and. nsg.gt.1 ) then
-            call fillsub
             call outsub
           end if
         end if
