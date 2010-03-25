@@ -72,7 +72,7 @@
 
       integer , parameter :: nsg = 1
 
-! Set amount of printout
+! Set amount of printout (still unused, sorry)
 
       integer , parameter :: debug_level = 1
 
@@ -133,7 +133,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! End of configureation. Below this point things are
-!    calculated from above
+!    calculated from above or should be considered as fixed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       integer , parameter :: ixm1 = ix - 1
