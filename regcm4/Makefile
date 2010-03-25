@@ -1,18 +1,9 @@
-# Global Makefile for RegCM v4 - credit to UCSC guys
+# Global Makefile for RegCM v4
 
 include Makefile.inc
 
-TARGET = AMD64
 HOST = @host@
-REGCM_NEST_DIR = 
-NENSEMBLES = 
-REMOVALSTR = --remove
 
-ifeq ($(NENSEMBLES),)
-  ENSFLAG=
-else
-  ENSFLAG="--ensembles=$(NENSEMBLES)"
-endif
 
 #all: terrain icbc regcm
 printall:
@@ -23,7 +14,12 @@ printall:
 	@echo '  --- make icbc: to compile icbc codes'
 	@echo '  ----make run_icbc: to run icbc codes'
 	@echo '  ----make regcm:  to compile regcm code' 
-	@echo '  ' 
+	@echo '  ----make check : to check your configuration (run this if any of the steps above fails)' 
+
+check: 
+	# check compilation flags and how MACROs are defined in Makefile.inc 
+	utils/check_make.py 
+
 
 data: 
 	#link the Data directory to PreProc/DATA
@@ -31,22 +27,20 @@ data:
 
 terrain:
 
-	#link domain.param to Terrain
-	-ln -sf $(REGCM_BASE_DIR)/domain.param $(REGCM_BASE_DIR)/PreProc/Terrain/domain.param
 	#Move to the Terrain directory and run make there
 	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) 
 
 run_terrain:
 	# execute the terrain command 
-	cd $(REGCM_BASE_DIR)/PreProc/Terrain && ./terrain >terrain.log 
+	cd $(REGCM_BASE_DIR)/PreProc/Terrain && ./terrain  
 
 icbc:
 	#Move to the ICBC directory and run make there
 	cd $(REGCM_BASE_DIR)/PreProc/ICBC && $(MAKE) 
 
 run_icbc:
-	# Run icbc.py script 
-	cd $(REGCM_BASE_DIR)/PreProc/ICBC && ./icbc.py
+	# Run icbc.x script 
+	cd $(REGCM_BASE_DIR)/PreProc/ICBC && csh ./icbc.x
 
 regcm:
 	# Change to the Main directory and run make there
