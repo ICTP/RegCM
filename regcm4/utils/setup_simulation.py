@@ -172,12 +172,10 @@ def main():
 		print "%s has value %s" % (key, value)
         # write F90 modules 
         # define three standard places: this should be improved at a later stage 
-        default_mod_regcm_param="../Main/mod_regcm_param.F90"
-        default_mod_paramT="../PreProc/Terrain/mod_param.f90" 
-        default_mod_paramI="../PreProc/ICBC/mod_param.f90" 
+        default_mod_regcm_param="../Config/mod_regcm_param.F90"
+        default_mod_paramT="../Config/mod_preproc_param.f90" 
         write_modulef90(parameters,default_mod_regcm_param,options.verbose)
         write_modulef90(parameters,default_mod_paramT,options.verbose)
-        write_modulef90(parameters,default_mod_paramI,options.verbose)
         default_ICBC="../PreProc/ICBC/icbc_v4.x"
         write_ICBC(parameters,default_ICBC,options.verbose)
     else:
