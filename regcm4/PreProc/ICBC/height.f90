@@ -38,7 +38,7 @@
 !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
 !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
 !
-      use mod_constants , only : rgti , rgas , lrate
+      use mod_constants , only : rgti , rgas , lrate , bltop
 
       implicit none
 !
@@ -58,7 +58,6 @@
       integer :: i , j , k , kb , kbc , kt , n
       real , dimension(61) :: psig
       real , dimension(60) :: sig
-      real, parameter :: bltop = 0.96
 !
       do j = 1 , jm
         do i = 1 , im

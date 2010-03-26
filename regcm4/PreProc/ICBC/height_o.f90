@@ -37,7 +37,7 @@
 !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
 !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
 !
-      use mod_constants , only : rgti , rgas , lrate
+      use mod_constants , only : rgti , rgas , lrate , bltop
       implicit none
 !
 ! Dummy arguments
@@ -58,7 +58,6 @@
       real :: psfc , temp , wb , wt
       integer :: i , j , k , kb , kbc , kt , n
       real , dimension(100) :: psig
-      real, parameter :: bltop = 0.96
 !
       do k = 1 , km
         if ( sig(k)<bltop ) kbc = k
