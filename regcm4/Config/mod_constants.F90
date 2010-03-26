@@ -73,6 +73,7 @@
       real(8) , parameter :: stdpmb = 1013.250D+00
       real(8) , parameter :: stdt = 288.15D+00
       real(8) , parameter :: lrate = 0.00649D+00 ! K/km from MSL up to 11 km
+      real(8) , parameter :: bltop = 0.960D+00
  
       ! Stefan-Boltzmann  constant CODATA 2007
       real(8) , parameter :: sigm = 5.670400D-08
