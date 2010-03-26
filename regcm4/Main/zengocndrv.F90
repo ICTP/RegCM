@@ -98,7 +98,7 @@
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,        &
                        & uv10,tau,lh,sh,dth,dqh,ustar,zo)
 #ifdef DCSST
-!           time step considered for the integration pof pronostic skin
+!           time step considered for the integration of prognostic skin
 !           temperature , equal to BATS time step
             dtsst = dtbat
 !           handle the first call of the scheme
