@@ -160,11 +160,62 @@ class MyOptions(object):
               print self.parser.format_help()
               self.parser.error("Only one options among '-c' and '-d' has to be supplied")
 
+def check():
+   filename="../Makefile.inc"
+   try:
+      f=open(filename,"r")
+      makeinc=f.readlines()
+      f.close()
+
+      datadir=''
+      basedir=''
+      ncdfinc=''
+      ncdflib=''
+      
+      for line in makeinc :
+         if line.find('REGCM_DATA_DIR') > -1 : 
+            tmp = line.rsplit('=')
+            datadir = tmp[1].rstrip()
+            datadir = datadir.replace(' ','')
+            if os.path.isdir(datadir) :
+               print 'The data directory',datadir,'exists.'
+            else :
+               print 'WARNING! The data directory',datadir,'does not exist!'
+         if line.find('REGCM_BASE_DIR') > -1 : 
+            tmp = line.rsplit('=')
+            basedir = tmp[1].rstrip()
+            basedir = basedir.replace(' ','')
+            if os.path.isdir(basedir) :
+               print 'The base directory',basedir,'exists.'
+            else :
+               print 'WARNING! The data directory',basedir,'does not exist!'
+               #sys.exit(1)
+         if line.find('NETCDFINC') > -1 : 
+            tmp = line.rsplit('=')
+            ncdfinc = tmp[1].rstrip()
+            if ncdfinc ==  '':
+               print 'WARNING! The NetCDF include directory',ncdfinc,'was not defined!'
+               #sys.exit(1)
+            else :
+               print ncdfinc,'defined as NetCDF include directory. Please be sure is the correct one.'
+         if line.find('NETCDFLIB') > -1 : 
+            tmp = line.rsplit('=')
+            ncdflib = tmp[1].rstrip()
+            if ncdflib ==  '':
+               print 'WARNING! The NetCDF library',ncdflib,'was not defined!'
+               #sys.exit(1)
+            else :
+               print ncdflib,'defined as NetCDF library. Please be sure is the correct one.'  
+   except IOError, error:
+      print  filename,' is not available!'
+      sys.exit(1)
+	
 def main():
     options = MyOptions()
     options.parse(sys.argv[1:])
     parameters = {}
 
+    check()
 # check if Makefile inc exists and all the variables are defined:
 # variable to be there:
 #   netcdf       error 
