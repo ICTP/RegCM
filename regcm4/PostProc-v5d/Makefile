@@ -10,14 +10,14 @@ PROGRAM = postpv5d
 CFLAGS = -c -g -DUNDERSCORE 
 FFLAGS = -byteswapio -fast -Ktrap=fp -g 
 CC = cc
-F77 =pgf90
+F77 = pgf90
 LIBS = -lm
 
 OBJECTS  =  $(PROGRAM).o 
 
 
 $(PROGRAM): $(OBJECTS)
-	$(F77) $(OBJECTS) $(LIBS) -o $@ libv5dnew.a 
+	$(F77) $(OBJECTS) $(LIBS) -o $@ -L./libv5d -lv5d
 
 
 $(PROGRAM).o: $(PROGRAM).f

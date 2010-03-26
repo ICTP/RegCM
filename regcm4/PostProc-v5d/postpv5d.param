@@ -1,11 +1,37 @@
-      include '../PostProc/postproc.param'
-      integer ,nx,ny,nx1,ny1,nb1,nxb,nyb,nzp
+cccc SET DOMAIN DIMENSIONS                                                    
+cccc ny = number of north-south points                                        
+cccc nx = number of east-west points                                          
+cccc nz = number of vertical levels                                           
+cccc SET MODEL OUTPUT INTERVALS                                               
+cccc dtbc = ibdyfrq = ICBC output interval (hrs)                              
+cccc dtout = atmfrq = atmospheric output interval (hrs)                       
+cccc dtbat = srffrq = surface output interval (hrs)                           
+cccc dtrad = radfrq = radiation output interval (hrs)                         
+cccc DIRECT ACCESS BINARY SPECIFICATION                                       
+cccc ibyte = 4 for PGI, IFC; 1 for SUN, SGI, DEC, IBM                         
+      integer nxf,nyf,nz,nxs,nys                                              
+      parameter (nyf =  52)                                                   
+      parameter (nxf =  48)                                                   
+      parameter (nz  =  18)                                                   
+      parameter (nxs =   1)                                                   
+      parameter (nys =   1)                                                   
+      integer ibyte                                                           
+      parameter (ibyte =   4)                                                 
+      real dtbc,dtout,dtbat,dtrad,dtche,dtsub                                 
+      parameter (dtbc  =      6.00)                                           
+      parameter (dtout =      6.00)                                           
+      parameter (dtbat =      3.00)                                           
+      parameter (dtrad =      6.00)                                           
+      parameter (dtche =      6.00)                                           
+      parameter (dtsub =      3.00)                                           
+
+      integer nx,ny,nx1,ny1,nb1,nxb,nyb,nzp
      &      , no3d,no2d,no3d2,no2d2,nout3d,nout2d,notot
      &      , nbat,nbat2,nr2d,nr3d,nrtot,nhrout,nhrbat,nhrrad,nhrche
      &      , ntrac, nctot, nc3d,nc2d
      &      , nv5d
      &      , ioouttyp, iobattyp, ioradtyp,ilev
-      real dtche,dtv5d
+      real dtv5d
 
 
 c ********************** SET DOMAIN DIMENSIONS ********************* c
@@ -40,7 +66,6 @@ c *****dtchem =chemfrq= chemistry/tracer output interval (hrs)  **** c
 c *** Rq the time step used to display files in v5d is dtout    **** c
 c *** no time average operations are performed yet              **** c
 c ****************************************************************** c
-      parameter (dtche=6.)
 
       parameter (nhrout=nint(24./dtout)
      &        ,  nhrrad=nint(24./dtrad), nhrche=nint(24./dtche))
@@ -84,9 +109,7 @@ c set the total number of fields in the v5d file ( maxi out +chem +rad)
 c should be consistent with the option set im the postpv5d.in file
 c****************************************************************
 
-c      parameter (nv5d= notot +  nrtot + nctot)
-cbxq   parameter (nv5d = notot+nrtot+nctot)
-       parameter (nv5d = notot)
+       parameter (nv5d = notot+nrtot+nctot)
 
 c ********************* NAME OF THE INPUT FILE ********************* c
 c **** This file contains the information on the dates and      **** c

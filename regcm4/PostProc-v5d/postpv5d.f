@@ -1,5 +1,4 @@
-compile on linux: pgf77 -byteswapio -fast -Ktrap=fp -o postpv5d postpv5d.f -L../Commons/env/liblinux  -lnetcdf
-compile on SUN: f77 -fast -fns -ftrap=common -o postpv5d postpv5d.f -L../Commons/env/libsun -lnetcdf
+      program postpv5d
       implicit none
       include 'postpv5d.param'
       logical there
@@ -2821,7 +2820,7 @@ c-----------------------------------------------------------------------
 
       implicit none
       include 'postpv5d.param'
-      include "v5df.h"
+      include "libv5d/v5df.h"
       
         
       integer numtimes, numvars,julda1,julda2,ihr1,ihr2,nf3d 
@@ -2972,7 +2971,7 @@ c-------------------------------------------------------------------
      
       implicit none
       include 'postpv5d.param'
-      include "v5df.h"
+      include "libv5d/v5df.h"
 
       integer no,mx,my,mz
       real dt,vmisdatv5d
@@ -3012,7 +3011,7 @@ c
       
 
       include 'postpv5d.param'
-      include "v5df.h"
+      include "libv5d/v5df.h"
        
       integer n
 c     close the v5d file and exit
