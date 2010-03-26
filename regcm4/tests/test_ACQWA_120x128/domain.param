@@ -7,7 +7,7 @@ c                         iproj='LAMCON', Lambert conformal
 c                         iproj='POLSTR', Polar stereographic
 c                         iproj='NORMER', Normal  Mercator (ROTMER w/ plat=0)
 c                         iproj='ROTMER', Rotated Mercator
-      integer iy        ! number of grid points in y direction (i)
+      integer ix        ! number of grid points in y direction (i)
       integer jx        ! number of grid points in x direction (j)
       integer kz        ! number of vertical levels (k), 18, 14, or 23
       integer nsg       ! number of subgrid in x (y) direction
@@ -92,7 +92,7 @@ c              ! 'AER11D1', Anthropogenic+Biomass, SO2 + BC + OC, with dust.
             !                 and  prepare regcm.param2 for parallel run. 
 
       parameter(iproj='LAMCON') ! Map projection (LAMCON,NORMER,POLSTR,ROTMER)
-      parameter(iy=120)          ! number of grid points in y direction (i)
+      parameter(ix=120)          ! number of grid points in y direction (i)
       parameter(jx=128)          ! number of grid points in x direction (j)
       parameter(kz=18)          ! number of vertical levels (14, 18 or 23)
       parameter(nsg=5)          ! number of subgrids in 1 grid (one direction)
@@ -119,7 +119,7 @@ c              ! 'AER11D1', Anthropogenic+Biomass, SO2 + BC + OC, with dust.
 
       parameter(igrads=1)       ! Output GrADS control file?
       parameter(ibigend=1)      ! 1=big-endian; (always 1)
-      parameter(ibyte=1)        ! For direct access open statements (1 or 4)
+      parameter(ibyte=4)        ! For direct access open statements (1 or 4)
 
       parameter(FUDGE_LND=.false.)   ! LANDUSE adjustments?
       parameter(FUDGE_LND_s=.false.) ! Subgrid LANDUSE adjustments?
@@ -143,4 +143,4 @@ c The following parameters can be reset later in RegCM/ICBC/icbc.param
                                      ! 20 for BATS, 25 for USGS.
       parameter(AERTYP='AER00D0')    ! AEROSOL TYPE option,
       parameter(ntex=17)             ! Number of SOIL TEXTURE categories
-      parameter(NPROC=16)             ! Number of CPU used for parallel job. 
+      parameter(NPROC=32)             ! Number of CPU used for parallel job. 

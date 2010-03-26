@@ -60,6 +60,14 @@ cupara.o          initlk.o      pcp.o       tgrund.o    zenitm.o     \
 cuparan.o         interf.o      printsp.o   tpfc.o      cupemandrv.o \
 intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
 
+
+# check if we need the MPI wrapper 
+
+ifneq ($(PARALLEL),"")
+  F90=$(MPIF90)
+endif  
+
+
 ifeq ($(USECLM),1)
   CLMPTH = ./clmlib
   CPPFLAGS += -DCLM

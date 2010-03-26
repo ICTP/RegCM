@@ -38,11 +38,11 @@ def get_size(filename):
     data = f.readlines()
     f.close()
     for line in data:
-       g=re.search("pdef\s+(\d+)\s+(\d+)\s*lccr",line)
+       g=re.search("pdef\s+(\d+)\s+(\d+)\s*lcc",line)
        if g:
        # keys are variable in the code so let us consider them all lowercase 
-         iy=g.group(1)
-         ix=g.group(2)
+         ix=g.group(1)
+         iy=g.group(2)
   except IOError, error:
     print  filename,' is not available (%s)' % error
   return (ix,iy)
@@ -72,14 +72,14 @@ for namefile in os.listdir(dirname):
         listafile.setdefault(year, []).append(fileoutput)  	
         listadays.setdefault(year, []).append(day_to_process)  	
 #       
-#        average_day(int(ix),int(iy),namefile,fileoutput,day_to_process)	
+        average_day(int(ix),int(iy),namefile,fileoutput,day_to_process)	
 #
 for year,value  in listafile.iteritems():
 #  print year,value,listadays[year]
   print " processing year  %s" % year 
   outputfile= "out" + year
   files= "".join(value) 
-  month_average(int(iy),int(ix),files,outputfile,listadays[year])
+  month_average(int(ix),int(iy),files,outputfile,listadays[year])
   print " completed: monthly average written in %s " % outputfile 
    
 #  

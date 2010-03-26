@@ -164,9 +164,18 @@ def main():
     options = MyOptions()
     options.parse(sys.argv[1:])
     parameters = {}
+
+# check if Makefile inc exists and all the variables are defined:
+# variable to be there:
+#   netcdf       error 
+#   datadir ( ?) warning 
+#   regcmbasedir error 
+#   Martin  
+
     if options.clean:
         cleandir(options.verbose)
     elif options.filename:
+        # read parameters from doman.parama files.. 
         parameters = readinput(options.filename, options.verbose)
 	for key, value in parameters.iteritems():
 		print "%s has value %s" % (key, value)

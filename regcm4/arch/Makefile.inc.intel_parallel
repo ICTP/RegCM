@@ -1,25 +1,35 @@
 # This file contains variables to be included in all other Makefiles
-# Tested with ifort versions 10.1 and 11.0
+# This is for Linux Cluster 64 bit architecture and Intel compiler
+# It will use openmpi library for the parallel compilation  
+#  
+#
+# Netcdf libraries are indicated for hg1.hpc.sissa.it platform  
+#
 
-NETCDF_LIB=${HOME}/netcdf/lib
-NETCDF_INC=${HOME}/netcdf/include
+NETCDF_LIB=/opt/netcdf/4.0.1/intel/lib
+NETCDF_INC=/opt/netcdf/4.0.1/intel/include
 
 # libraries and data
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
 NETCDFINC = -I$(NETCDF_INC)
-REGCM_DATA_DIR = ./Input/DATA
-REGCM_BASE_DIR = myregcmdir
+REGCM_DATA_DIR = /scratch/esp/RCM3DATA
+REGCM_BASE_DIR = `pwd`
 INTELINC = -I/opt/intel/fce/10.1.018/include
 
+# parallel version of regcm
+# uncomment this line:
+PARALLEL="MPP1"
+
 # general compile options
-CPPFLAGS = -DDIAG -DINTEL -DMPP1
+CPPFLAGS = -DDIAG -DINTEL -D$(PARALLEL)
 # Use for debub
 F90FLAGS = -mp1 -O0 -g -convert big_endian -assume byterecl -check \
            -traceback -warn all
 #F90FLAGS =   -mp1 -O3 -convert big_endian -assume byterecl -traceback
 LDFLAGS = -i-dynamic -traceback
-FC = mpif90
-F90 = mpif90
+FC = ifort 
+F90 = ifort  
+MPIF90=mpif90
 LD =$(FC)
 
 # do not touch below this line unless you are a developer 

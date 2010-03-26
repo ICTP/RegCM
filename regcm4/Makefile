@@ -40,7 +40,7 @@ icbc:
 
 run_icbc:
 	# Run icbc.x script 
-	cd $(REGCM_BASE_DIR)/PreProc/ICBC && csh ./icbc.x
+	cd $(REGCM_BASE_DIR)/PreProc/ICBC && csh ./icbc_v4.x
 
 regcm:
 	# Change to the Main directory and run make there
