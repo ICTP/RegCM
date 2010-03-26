@@ -2,6 +2,8 @@ include ../Makefile.inc
 
 USECLM = 0
 
+CPPFLAGS += -DDCSST
+
 SCENARIO = A1B
 
 all:: regcm
@@ -66,7 +68,6 @@ intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
 ifneq ($(PARALLEL),"")
   F90=$(MPIF90)
 endif  
-
 
 ifeq ($(USECLM),1)
   CLMPTH = ./clmlib
@@ -159,7 +160,7 @@ aeroppt.o: aeroppt.F90 mod_aerosol.o mod_constants.o \
 aerout.o: aerout.F90 mod_aerosol.o mod_param2.o mod_regcm_param.o \
           mod_trachem.o
 albedoclm.o: albedoclm.F90 mod_bats.o mod_regcm_param.o
-albedov.o: albedov.f90 mod_constants.o mod_bats.o mod_regcm_param.o
+albedov.o: albedov.F90 mod_constants.o mod_bats.o mod_regcm_param.o
 bdyin.o: bdyin.F90 mod_bats.o mod_bdycod.o mod_date.o mod_iunits.o mod_main.o \
          mod_param1.o mod_param3.o mod_regcm_param.o mod_tmpsav.o
 bdyuv.o: bdyuv.F90 mod_bdycod.o mod_cvaria.o mod_main.o mod_regcm_param.o
@@ -220,7 +221,7 @@ deriv.o: deriv.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_regcm_param.o
 diffu.o: diffu.F90 mod_main.o mod_regcm_param.o mod_slice.o
 diffut.o: diffut.F90 mod_main.o mod_regcm_param.o mod_slice.o
 drag.o: drag.f90 mod_constants.o mod_bats.o mod_regcm_param.o
-dragdn.o: dragdn.f90 mod_constants.o mod_bats.o mod_regcm_param.o
+dragdn.o: dragdn.F90 mod_constants.o mod_bats.o mod_regcm_param.o
 drip.o: drip.f90 mod_constants.o mod_bats.o mod_regcm_param.o
 dsflx.o: dsflx.F90 mod_constants.o mod_dust.o mod_message.o mod_regcm_param.o
 eddy.o: eddy.f90 mod_constants.o
@@ -407,7 +408,7 @@ trcems.o: trcems.f90 mod_constants.o mod_regcm_param.o
 trcmix.o: trcmix.f90 mod_regcm_param.o mod_tracer.o
 trcplk.o: trcplk.f90 mod_constants.o mod_regcm_param.o
 trcpth.o: trcpth.f90 mod_constants.o mod_regcm_param.o
-tseaice.o: tseaice.f90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
+tseaice.o: tseaice.F90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
 tstep.o: tstep.f90 mod_date.o mod_param1.o mod_regcm_param.o
 vadv.o: vadv.f90 mod_cvaria.o mod_main.o mod_param3.o mod_regcm_param.o
 vcheke.o: vcheke.f90

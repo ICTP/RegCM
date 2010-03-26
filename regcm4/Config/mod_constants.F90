@@ -35,6 +35,8 @@
       real(8) , parameter :: cpv = 1869.46D+00
       ! Specific heat of water at 15 Celsius J/kg/K
       real(8) , parameter :: cpw = 4186.95D+00
+      ! Specific heat of water at 0 Celsius J/kg/K
+      real(8) , parameter :: cpw0 = 4218.0D+00
 
       ! Various utility terms used in calculations
       real(8) , parameter :: rgti = 1.0D+00/gti
@@ -77,6 +79,9 @@
  
       ! Stefan-Boltzmann  constant CODATA 2007
       real(8) , parameter :: sigm = 5.670400D-08
+
+      ! Fixed emissivity of water
+      real(8) , parameter :: emsw = 0.97D+00
 
       ! Trigonometric constants. 
       real(8) , parameter :: mathpi =                                   &

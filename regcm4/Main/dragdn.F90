@@ -60,12 +60,14 @@
           z1(n,i) = z1d(n,i)
           z1log(n,i) = dlog(z1(n,i))
  
-!          Code Commented - SeaIce code
-!          if ( ldoc1d(n,i).gt.1.5 ) then
-!            sigf(n,i) = 0.0
-!            cdrn(n,i) = ( vonkar / dlog( z1(n,i)/zlnd ) )**2
-!          else if ( ldoc1d(n,i).gt.0.5 ) then
+#ifdef SEAICE
+           if ( ldoc1d(n,i).gt.1.5 ) then
+             sigf(n,i) = 0.0
+             cdrn(n,i) = ( vonkar / dlog( z1(n,i)/zlnd ) )**2
+           else if ( ldoc1d(n,i).gt.0.5 ) then
+#else
            if ( ldoc1d(n,i).gt.0.5 ) then
+#endif
  
 !           ******           drag coeff over land
             frav = sigf(n,i)

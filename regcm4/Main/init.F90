@@ -507,28 +507,29 @@
             tgb(i,j) = ts0(i,j)
           end do
         end do
-!       Code commented - SeaIce code
-!       do j = 1 , jendx
-!         do i = 1 , ixm1
-!           if ( veg2d(i,j).le.0.00001 ) then
-!             if ( ts0(i,j).le.271.38 ) then
-!               tga(i,j) = 271.38
-!               tgb(i,j) = 271.38
-!               ts0(i,j) = 271.38
-!!              write(*,*) 'Sea Ice point:', i,j
-!               do n = 1, nnsg
-!                 ocld2d(n,i,j)=2.
-!                 sice2d(n,i,j)=1000.
-!               end do
-!             else
-!               do n = 1, nnsg
-!                 ocld2d(n,i,j)=0.
-!                 sice2d(n,i,j)=0.
-!               end do
-!             end if
-!           end if
-!         end do
-!       end do
+#ifdef SEAICE
+        do j = 1 , jendx
+          do i = 1 , ixm1
+            if ( veg2d(i,j).le.0.00001 ) then
+              if ( ts0(i,j).le.271.38 ) then
+                tga(i,j) = 271.38
+                tgb(i,j) = 271.38
+                ts0(i,j) = 271.38
+!               write(*,*) 'Sea Ice point:', i,j
+                do n = 1, nnsg
+                  ocld2d(n,i,j)=2.
+                  sice2d(n,i,j)=1000.
+                end do
+              else
+                do n = 1, nnsg
+                  ocld2d(n,i,j)=0.
+                  sice2d(n,i,j)=0.
+                end do
+              end if
+            end if
+          end do
+        end do
+#endif
         do k = 1 , kx
           do j = 1 , jendl
             do i = 1 , ix
@@ -777,28 +778,29 @@
             tgb(i,j) = ts0(i,j)
           end do
         end do
-!       Code commented - SeaIce code
-!       do j = 1 , jxm1
-!         do i = 1 , ixm1
-!           if ( veg2d(i,j).le.0.00001 ) then
-!             if ( ts0(i,j).le.271.38 ) then
-!               tga(i,j) = 271.38
-!               tgb(i,j) = 271.38
-!               ts0(i,j) = 271.38
-!!              write(*,*) 'Sea Ice point:', i,j
-!               do n = 1, nnsg
-!                 ocld2d(n,i,j)=2.
-!                 sice2d(n,i,j)=1000.
-!               end do
-!             else
-!               do n = 1, nnsg
-!                 ocld2d(n,i,j)=0.
-!                 sice2d(n,i,j)=0.
-!               end do
-!             end if
-!           end if
-!         end do
-!       end do
+#ifdef SEAICE
+        do j = 1 , jxm1
+          do i = 1 , ixm1
+            if ( veg2d(i,j).le.0.00001 ) then
+              if ( ts0(i,j).le.271.38 ) then
+                tga(i,j) = 271.38
+                tgb(i,j) = 271.38
+                ts0(i,j) = 271.38
+!               write(*,*) 'Sea Ice point:', i,j
+                do n = 1, nnsg
+                  ocld2d(n,i,j)=2.
+                  sice2d(n,i,j)=1000.
+                end do
+              else
+                do n = 1, nnsg
+                  ocld2d(n,i,j)=0.
+                  sice2d(n,i,j)=0.
+                end do
+              end if
+            end if
+          end do
+        end do
+#endif
         do k = 1 , kx
           do j = 1 , jx
             do i = 1 , ix

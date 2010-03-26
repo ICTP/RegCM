@@ -127,20 +127,21 @@
 !         can't use pointer "nalbk" here because not set - use nldock
 !         instead tgb1d(i) used instead of tbelow
 !
-!          Code commented - SeaIce code 
-!          if ( ldoc1d(n,i).gt.1.5 ) then
-!            tdiffs=ts1d(n,i)-tzero
-!            tdiff=dmax1(tdiffs,0.d0)
-!            tdiffs=dmin1(tdiff,20.d0)
-!            albgl=sical1-1.1e-2*tdiffs
-!            albgs=sical0-2.45e-2*tdiffs
-!            albg=fsol1*albgs+fsol2*albgl
-!            albgsd=albgs
-!            albgld=albgl
-!          else if ( ldoc1d(n,i).gt.0.1D0 .and.                          &
-!           &       sice1d(n,i).eq.0.D0 ) then
-!          Code commented - SeaIce code
+#ifdef SEAICE
+          if ( ldoc1d(n,i).gt.1.5 ) then
+            tdiffs=ts1d(n,i)-tzero
+            tdiff=dmax1(tdiffs,0.d0)
+            tdiffs=dmin1(tdiff,20.d0)
+            albgl=sical1-1.1e-2*tdiffs
+            albgs=sical0-2.45e-2*tdiffs
+            albg=fsol1*albgs+fsol2*albgl
+            albgsd=albgs
+            albgld=albgl
+          else if ( ldoc1d(n,i).gt.0.1D0 .and.                          &
+           &       sice1d(n,i).eq.0.D0 ) then
+#else
            if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
+#endif
             sfac = 1.D0 - fseas(tgb1d(n,i))
  
 !           **********  ccm tests here on land mask for veg and soils

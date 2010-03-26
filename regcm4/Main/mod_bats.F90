@@ -160,7 +160,26 @@
 #endif
 #endif
 
+#ifdef DCSST
+      ! dtskin is difference between skin tem and bulk sst
+#ifdef MPP1
+      real(8) , dimension(ix,jxp) :: deltas , tdeltas , dtskin
+      logical , dimension(ix,jxp) :: firstcall
+#else
+      real(8) , dimension(ix,jx) :: deltas , tdeltas , dtskin
+      logical , dimension(ix,jx) :: firstcall
+#endif
+
+#endif
+
       contains
+
+#ifdef DCSST
+        subroutine inidcsst
+          implicit none
+          firstcall(:,:) = .false.
+        end subroutine inidcsst
+#endif
 
         subroutine inibat
           implicit none

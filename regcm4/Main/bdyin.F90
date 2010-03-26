@@ -39,6 +39,9 @@
       use mod_main
       use mod_bdycod
       use mod_bats , only : veg2d , ocld2d , sice2d , ocld2d , sice2d
+#ifdef DCSST
+      use mod_bats , only : dtskin
+#endif
       use mod_date , only : idatex , ldatez , mmrec , ndate0 , ndate1 , &
                    & nmonth , nnbase , nnnnnn , nyear , nnnchk , mdate ,&
                    & xtime
@@ -62,10 +65,11 @@
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
       real(8) , dimension(ix,jxp) :: psdot , tdum
-!     Code commented - SeaIce code
-!     integer :: n
 #else
       real(8) , dimension(ix,jx) :: psdot , tdum
+#endif
+#ifdef SEAICE
+      integer :: n
 #endif
 !
       if ( dabs(xtime).gt.0.0001 ) return
@@ -533,26 +537,32 @@
 #else
               if ( veg2d(i,j).le.0.00001 ) then
 #endif
+#ifdef DCSST
+                tga(i,j) = tdum(i,j) + dtskin(i,j)
+                tgb(i,j) = tdum(i,j) + dtskin(i,j)
+#else
                 tga(i,j) = tdum(i,j)
                 tgb(i,j) = tdum(i,j)
-!               Code Commented - SeaIce code
-!               if ( tdum(i,j).le.271.38 ) then
-!                 print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
-!                       & ' t=',tdum(i,j)
-!                 tga(i,j) = 271.38
-!                 tgb(i,j) = 271.38
-!                 tdum(i,j) = 271.38
-!                 do n = 1, nnsg
-!                   ocld2d(n,i,j) = 2.
-!!                  sice2d(n,i,j)=1000.
-!                   sice2d(n,i,j) = 0.
-!                 end do
-!               else
-!                 do n = 1, nnsg
-!                   ocld2d(n,i,j) = 0.
-!                   sice2d(n,i,j) = 0.
-!                 end do
-!               end if
+#endif
+#ifdef SEAICE
+                if ( tdum(i,j).le.271.38 ) then
+                  print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
+                        & ' t=',tdum(i,j)
+                  tga(i,j) = 271.38
+                  tgb(i,j) = 271.38
+                  tdum(i,j) = 271.38
+                  do n = 1, nnsg
+                    ocld2d(n,i,j) = 2.
+!                   sice2d(n,i,j)=1000.
+                    sice2d(n,i,j) = 0.
+                  end do
+                else
+                 do n = 1, nnsg
+                   ocld2d(n,i,j) = 0.
+                   sice2d(n,i,j) = 0.
+                 end do
+               end if
+#endif
               end if
             end do
           end do
@@ -883,21 +893,32 @@
           do j = 1 , jxm1
             do i = 1 , ixm1
               if ( veg2d(i,j).le.0.00001 ) then
+#ifdef DCSST
+                tga(i,j) = tdum(i,j) + dtskin(i,j)
+                tgb(i,j) = tdum(i,j) + dtskin(i,j)
+#else
                 tga(i,j) = tdum(i,j)
                 tgb(i,j) = tdum(i,j)
-!elguindi   if (tdum(i,j).le.271.35) then
-!           if (tdum(i,j).le.271.38) then
-!           print *,'Setting ocld2d to ice at i=',i,' j=',j,'
-!           t=',tdum(i,j) do n=1,NNSG
-!           ocld2d(n,i,j)=2.
-!           sice2d(n,i,j)=1000.
-!           end do
-!           else
-!           do n=1,NNSG
-!           ocld2d(n,i,j)=0.
-!           sice2d(n,i,j)=0.
-!           end do
-!           end if
+#endif
+#ifdef SEAICE
+                if ( tdum(i,j).le.271.38 ) then
+                  print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
+                        & ' t=',tdum(i,j)
+                  tga(i,j) = 271.38
+                  tgb(i,j) = 271.38
+                  tdum(i,j) = 271.38
+                  do n = 1, nnsg
+                    ocld2d(n,i,j) = 2.
+!                   sice2d(n,i,j)=1000.
+                    sice2d(n,i,j) = 0.
+                  end do
+                else
+                 do n = 1, nnsg
+                   ocld2d(n,i,j) = 0.
+                   sice2d(n,i,j) = 0.
+                 end do
+               end if
+#endif
               end if
             end do
           end do

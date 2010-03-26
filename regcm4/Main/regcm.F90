@@ -27,6 +27,9 @@
       use mod_param3 , only : ptop , sigma
       use mod_message , only : aline
       use mod_bats , only : inibat , inisub
+#ifdef DCSST
+      use mod_bats , only : inidcsst
+#endif
 #ifdef MPP1
       use mpi
 #ifdef CLM
@@ -221,6 +224,9 @@
 !
       call inibat
       call inisub
+#ifdef DCSST
+      call inidcsst
+#endif
 !
 !-----set up parameters:
 !
