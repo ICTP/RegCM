@@ -6,8 +6,8 @@
 # Netcdf libraries are indicated for hg1.hpc.sissa.it platform  
 #
 
-NETCDF_LIB=/opt/netcdf/4.0.1/intel/lib
-NETCDF_INC=/opt/netcdf/4.0.1/intel/include
+NETCDF_LIB=/opt/intel/NetCDF/lib
+NETCDF_INC=/opt/intel/NetCDF/include
 
 # libraries and data
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf

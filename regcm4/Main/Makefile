@@ -6,7 +6,7 @@ SCENARIO = A1B
 
 all:: regcm
 
-SHROBJS = mod_constants.o mod_regcm_param.o
+SHROBJS = mod_constants.o mod_regcm_param.o mod_bats_param.o
 
 MODOBJS = \
 mod_mppio.o      mod_crdcae.o     mod_mainchem.o   mod_radbuf.o      \
@@ -92,6 +92,9 @@ mod_constants.o: ../Config/mod_constants.F90
 mod_regcm_param.o: ../Config/mod_regcm_param.F90
 	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
 
+mod_bats_param.o: ../Config/mod_bats_param.F90
+	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
+
 %.o: %.F90
 	$(F90) -c $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
 
@@ -108,7 +111,7 @@ clean:
 endif
 
 mod_aerosol.o: mod_aerosol.F90 mod_regcm_param.o
-mod_bats.o: mod_bats.F90 mod_regcm_param.o
+mod_bats.o: mod_bats.F90 mod_regcm_param.o mod_bats_param.o
 mod_bdycod.o: mod_bdycod.F90 mod_regcm_param.o
 mod_blh_tmp.o: mod_blh_tmp.F90 mod_regcm_param.o
 mod_bmparam.o: mod_bmparam.f90

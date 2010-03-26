@@ -53,7 +53,7 @@
           if ( lveg(n,i).eq.14 ) exit   ! lake model handles this case
  
           if ( ldoc1d(n,i).gt.1.5 ) then
-!           Commented code - SeaIce Code
+!           Code commented - SeaIce code
 !           if ( sice1d(n,i).lt.1000. ) sice1d(n,i) = 1000.0
  
 ! ******                rhosw = density of snow relative to water

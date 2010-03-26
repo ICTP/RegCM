@@ -60,8 +60,10 @@
       integer :: i , ierr1 , j , k , nn , nnb
       real(4) , dimension(ix,jx) :: io2d
 #ifdef MPP1
-      integer :: ierr , n , ndeb , ndwb , nkk , nxeb , nxwb
+      integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
       real(8) , dimension(ix,jxp) :: psdot , tdum
+!     Code commented - SeaIce code
+!     integer :: n
 #else
       real(8) , dimension(ix,jx) :: psdot , tdum
 #endif

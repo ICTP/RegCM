@@ -130,7 +130,7 @@
 !
 !
       use mod_regcm_param
-      use mod_bats , only : emiss1d , lat , ps , sice1d , aldirs ,      &
+      use mod_bats , only : emiss1d , ilat , ps , sice1d , aldirs ,     &
                     & aldifs , aldirl , aldifl , ldoc1d , ocld2d
       use mod_comtim
       use mod_comctl
@@ -240,7 +240,7 @@
 !
 !     Set latitude index to jslc
 !
-      lat = jslc
+      ilat = jslc
 !
 !     Set parameters in common block comtim : dosw,dolw,doabsems
 !
@@ -310,12 +310,12 @@
 !
 !     Find the albedo for land points
 !
-!KN   call albland(lat     ,ioro    ,sndpth  ,coszrs  ,asdir   ,
+!KN   call albland(ilat     ,ioro    ,sndpth  ,coszrs  ,asdir   ,
 !KN   $     aldir   ,asdif   ,aldif   )
 !
 !     Find the albedo for ocean/sea-ice points
 !
-!KN   call albocean(lat     ,ioro    ,sndpth  ,coszrs  ,asdir   ,
+!KN   call albocean(ilat     ,ioro    ,sndpth  ,coszrs  ,asdir   ,
 !KN   $     aldir   ,asdif   ,aldif   )
 !
 !     NB:

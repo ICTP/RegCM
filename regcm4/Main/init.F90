@@ -507,7 +507,7 @@
             tgb(i,j) = ts0(i,j)
           end do
         end do
-!       Code Commented - SeaIce Code
+!       Code commented - SeaIce code
 !       do j = 1 , jendx
 !         do i = 1 , ixm1
 !           if ( veg2d(i,j).le.0.00001 ) then
@@ -777,7 +777,7 @@
             tgb(i,j) = ts0(i,j)
           end do
         end do
-!       Commented Code - SeaIce Code
+!       Code commented - SeaIce code
 !       do j = 1 , jxm1
 !         do i = 1 , ixm1
 !           if ( veg2d(i,j).le.0.00001 ) then

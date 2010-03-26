@@ -54,10 +54,6 @@
 !
       real(8) :: bneg , rotf , trsmx , wlttb , wltub , wmli
       integer :: n , i
-      real(8) , dimension(20) :: rootf
-!
-      data rootf/.30 , .80 , .67 , .67 , .50 , .80 , .80 , .90 , .90 ,  &
-         & .30 , .80 , 9*.50/
 !
       do i = 2 , ixm1
         do n = 1 , nnsg

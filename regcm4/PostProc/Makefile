@@ -5,7 +5,8 @@ include ../Makefile.inc
 
 all: postproc test_read
 
-SHRMODS =  mod_postproc_param.o mod_regcm_param.o mod_constants.o
+SHRMODS =  mod_postproc_param.o mod_regcm_param.o mod_constants.o \
+           mod_bats_param.o
 
 MODOBJS =  mod_batflds.o   mod_bcflds.o   mod_cheflds.o   mod_outflds.o  \
            mod_point.o     mod_radflds.o  mod_subflds.o
@@ -24,6 +25,10 @@ mod_regcm_param.o: ../Config/mod_regcm_param.F90
                $(USCORING) -c -o $@ $<
 
 mod_postproc_param.o: ../Config/mod_postproc_param.f90
+	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+               $(USCORING) -c -o $@ $<
+
+mod_bats_param.o: ../Config/mod_bats_param.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
@@ -91,7 +96,7 @@ rdheadicbc.o: rdheadicbc.f90
 setconst.o: setconst.f90
 test_read.o: test_read.f90
 two2three.o: two2three.f90
-writebathead.o: writebathead.f90 mod_regcm_param.o
+writebathead.o: writebathead.f90 mod_regcm_param.o mod_bats_param.o
 writegrads.o: writegrads.f90
 writehead.o: writehead.f90 mod_regcm_param.o
 xtdot.o: xtdot.f90
