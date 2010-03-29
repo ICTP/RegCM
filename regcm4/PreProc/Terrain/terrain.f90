@@ -511,7 +511,7 @@
                 & frac_lnd,nveg,aertyp,texout,frac_tex,ntex)
       print * , 'after calling OUTPUT'
  
-      stop 9999
+!      stop 9999
 !
 99001 format (a18,i1,a5)
 99002 format (a18,i2,a5)
