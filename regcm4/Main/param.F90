@@ -66,7 +66,7 @@
       real(8) , dimension(nsplit) :: dtsplit
       character(7) :: finm
       real(4) :: grdfac
-      integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
+      integer :: i , ibig , ierr1 , igra ,  ii , j , jj , k ,   &
                & kbase , ktop , kxx , m , mdate1 , mday , mmon , my1 ,  &
                & my2 , my3 , myear , n , ns , jxx , ixx
       integer , dimension(12) :: mmd
@@ -708,14 +708,14 @@
            &access='direct',recl=ix*jx*ibyte)
       read (iutin,rec=1,iostat=ierr1) ixx , jxx , kxx , dxsp , clat ,   &
                                     & clon , plat , plon , grdfac ,     &
-                                    & proj , sp1d , ptsp , igrads ,     &
-                                    & ibigend , truelatl , truelath
+                                    & proj , sp1d , ptsp , igra ,       &
+                                    & ibig , truelatl , truelath
       print * , 'DIMS' , ixx , jxx , kxx
       print * , 'DOMAIN' , dxsp , clat , clon , plat , plon , grdfac
       print * , 'PROJ' , proj
       print * , 'SIGMA' , sp1d
       print * , 'PTOP' , ptsp
-      print * , 'OUTPUT' , igrads , ibigend
+      print * , 'OUTPUT' , igrads , ibig
       ptop = ptsp
       dx = dxsp
       if ( ixx.ne.ix .or. jxx.ne.jx .or. kxx.ne.kx ) then
