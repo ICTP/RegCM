@@ -8,7 +8,7 @@
 REGCM_BASE_DIR = /home/myuserid/regcm
 
 # DATA directories: 
-REGCM_DATA_DIR = /scratch/mydatadir
+REGCM_DATA_DIR = /lustre/mydir
 
 # NetCDF library:
 # The NetCDF library is needed to run RegCM, 
@@ -16,8 +16,8 @@ REGCM_DATA_DIR = /scratch/mydatadir
 # In NETCDFINC you should define the path to NetCDF include files
 # In NETCDFLIB you should define the path and the name of the NetCDF library
 
-NETCDFLIB = -L/opt/libs/netcdf/lib -lnetcdf
-NETCDFINC = -I/opt/libs/netcdf/inc
+NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
+NETCDFINC = -I$(NETCDF_INC)
 
 # PREPROCESSOR AND COMPILER OPTIONS
 
@@ -25,14 +25,14 @@ NETCDFINC = -I/opt/libs/netcdf/inc
 # serial version : PARALLEL = ""
 # parallel version : PARALLEL = "MPP1"
 
-PARALLEL = ""
+PARALLEL = "MPP1"
 
 # Add further preprocessor flags, if necessary. Those available are:
 # -DINTEL : to compile using Intel Fortran Compiler 
 # -DIBM : to compile using IBM xlf compiler
 # -DDIAG : to compile enabling Diagnostic capabilities (?) 
 
-CPPFLAGS = -D$(PARALLEL)
+CPPFLAGS = -DINTEL -D$(PARALLEL)
 
 # underscoring approach for subroutines:
 #USCORING = -assume nounderscore
@@ -41,13 +41,13 @@ CPPFLAGS = -D$(PARALLEL)
 # IMPORTANT : Check that your compiler complies with this RegCM features:
 # - RegCM expects the output to be written in big endian format
 # - RegCM expects Fortran records to be measured in bytes
-F90FLAGS = 
+F90FLAGS = -O3 -mp1 -convert big_endian -assume byterecl
 
 # Set the Fortran 90 compiler here
-F90 =
+F90 = ifort
 
 # Set the MPI Fortran 90 compiler here
-MPIF90 = 
+MPIF90 = mpif90 
 
 # Set the linker here
 # Modify this variable only if you really know what you are doing !!!
