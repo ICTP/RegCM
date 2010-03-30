@@ -95,10 +95,10 @@ F90FLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
             -I$(REGCMSRC) $(NETCDFINC)
 
 %.o: %.F90
-	$(F90) -c -o $@ $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
+	$(MPIF90) -c -o $@ $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
 
 %.o: %.f90
-	$(F90) -c -o $@ $(F90FLAGS) $(USCORING) -c $<
+	$(MPIF90) -c -o $@ $(F90FLAGS) $(USCORING) -c $<
 
 clean:
 	rm -f *.mod *.o libclm.a $(PATCHSRC)
