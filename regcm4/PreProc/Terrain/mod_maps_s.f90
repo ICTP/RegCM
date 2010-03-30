@@ -18,14 +18,14 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_maps_s
-      use mod_regcm_param , only : ix , jx , nsg , nveg
+      use mod_regcm_param , only : ixsg , jxsg , nveg
       use mod_preproc_param , only : ntex
       implicit none
-      real(4) , dimension(ix*nsg,jx*nsg) :: claya_s , clayb_s ,         &
-           & coriol_s , dlat_s , dlon_s , dmap_s , htgrid_s ,           &
-           & htsdgrid_s ,  lndout_s , mask_s , sanda_s , sandb_s ,      &
-           & snowam_s , texout_s , xlat_s , xlon_s , xmap_s
-      real(4) , dimension(ix*nsg,jx*nsg,nveg) :: frac_lnd_s
-      real(4) , dimension(ix*nsg,jx*nsg,ntex) :: frac_tex_s
-      integer , dimension(ix*nsg,jx*nsg) :: intext_s , lnduse_s
+      real(4) , dimension(ixsg,jxsg) :: claya_s , clayb_s , coriol_s ,  &
+           & dlat_s , dlon_s , dmap_s , htgrid_s , htsdgrid_s ,         &
+           & lndout_s , mask_s , sanda_s , sandb_s , snowam_s ,         &
+           & texout_s , xlat_s , xlon_s , xmap_s
+      real(4) , dimension(ixsg,jxsg,nveg) :: frac_lnd_s
+      real(4) , dimension(ixsg,jxsg,ntex) :: frac_tex_s
+      integer , dimension(ixsg,jxsg) :: intext_s , lnduse_s
       end module mod_maps_s

@@ -72,7 +72,7 @@
       integer , dimension(12) :: mmd
       real(4) , dimension(kxp1) :: sp1d
       real(4) , dimension(ix,jx) :: sp2d
-      real(4) , dimension(ix*nsg,jx*nsg) :: sp2d1
+      real(4) , dimension(ixsg,jxsg) :: sp2d1
 #ifdef MPP1
       integer :: ierr
 #endif
@@ -661,7 +661,7 @@
         write (finm,99001) iutin
         if ( nsg.gt.1 ) open (iutin1,file='fort.11',form='unformatted', &
                             & status='old',access='direct',             &
-                            & recl=ix*jx*nnsg*ibyte)
+                            & recl=ixsg*jxsg*ibyte)
         open (iutin,file=finm,form='unformatted',status='old',          &
              &access='direct',recl=ix*jx*ibyte)
         read (iutin,rec=1,iostat=ierr1) ixx , jxx , kxx , dxsp , clat , &
@@ -703,7 +703,7 @@
       write (finm,99001) iutin
       if ( nsg.gt.1 ) open (iutin1,file='fort.11',form='unformatted',   &
                           & status='old',access='direct',               &
-                          & recl=ix*jx*nnsg*ibyte)
+                          & recl=ixsg*jxsg*ibyte)
       open (iutin,file=finm,form='unformatted',status='old',            &
            &access='direct',recl=ix*jx*ibyte)
       read (iutin,rec=1,iostat=ierr1) ixx , jxx , kxx , dxsp , clat ,   &
@@ -838,9 +838,9 @@
           end do
           if ( nsg.gt.1 ) then
             read (iutin1,rec=2,iostat=ierr1)                            &
-                & ((sp2d1(i,j),j=1,jx*nsg),i=1,ix*nsg)
-            do j = 1 , jx*nsg
-              do i = 1 , ix*nsg
+                & ((sp2d1(i,j),j=1,jxsg),i=1,ixsg)
+            do j = 1 , jxsg
+              do i = 1 , ixsg
                 jj = mod(j,nsg)
                 if ( jj.eq.0 ) jj = nsg
                 ii = mod(i,nsg)
@@ -875,9 +875,9 @@
           end do
           if ( nsg.gt.1 ) then
             read (iutin1,rec=4,iostat=ierr1)                            &
-                & ((sp2d1(i,j),j=1,jx*nsg),i=1,ix*nsg)
-            do j = 1 , jx*nsg
-              do i = 1 , ix*nsg
+                & ((sp2d1(i,j),j=1,jxsg),i=1,ixsg)
+            do j = 1 , jxsg
+              do i = 1 , ixsg
                 jj = mod(j,nsg)
                 if ( jj.eq.0 ) jj = nsg
                 ii = mod(i,nsg)
@@ -940,8 +940,9 @@
             end do
           end do
           if ( ierr1.ne.0 ) then
-            write (aline,*) '  Check ibyte in  mod_regcm_param.F90  ibyte = ' ,&
-                          & ibyte
+            write (aline,*)                                             &
+             &  '  Check ibyte in  mod_regcm_param.F90  ibyte = ' ,     &
+             & ibyte
             call fatal(__FILE__,__LINE__,'REACHED EOF')
           end if
           do j = 1 , jx
@@ -1059,9 +1060,9 @@
         end do
         if ( nsg.gt.1 ) then
           read (iutin1,rec=2,iostat=ierr1)                              &
-              & ((sp2d1(i,j),j=1,jx*nsg),i=1,ix*nsg)
-          do j = 1 , jx*nsg
-            do i = 1 , ix*nsg
+              & ((sp2d1(i,j),j=1,jxsg),i=1,ixsg)
+          do j = 1 , jxsg
+            do i = 1 , ixsg
               jj = mod(j,nsg)
               if ( jj.eq.0 ) jj = nsg
               ii = mod(i,nsg)
@@ -1096,9 +1097,9 @@
         end do
         if ( nsg.gt.1 ) then
           read (iutin1,rec=4,iostat=ierr1)                              &
-              & ((sp2d1(i,j),j=1,jx*nsg),i=1,ix*nsg)
-          do j = 1 , jx*nsg
-            do i = 1 , ix*nsg
+              & ((sp2d1(i,j),j=1,jxsg),i=1,ixsg)
+          do j = 1 , jxsg
+            do i = 1 , ixsg
               jj = mod(j,nsg)
               if ( jj.eq.0 ) jj = nsg
               ii = mod(i,nsg)

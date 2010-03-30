@@ -34,7 +34,7 @@
 !
 ! Local variables
 !
-      real(4) , dimension(jxm2*nsg,ixm2*nsg) :: v2b
+      real(4) , dimension(jxm2sg,ixm2sg) :: v2b
       integer :: n
 
 #ifdef MPP1

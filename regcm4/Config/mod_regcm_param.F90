@@ -151,7 +151,17 @@
       integer , parameter :: kxp3 = kx + 3
       integer , parameter :: kxp4 = kx + 4
 
-      integer , parameter :: nnsg = 1
+      integer , parameter :: ixsg = ix * nsg
+      integer , parameter :: jxsg = jx * nsg
+      integer , parameter :: ixm1sg = (ix-1) * nsg
+      integer , parameter :: jxm1sg = (jx-1) * nsg
+      integer , parameter :: ixm2sg = (ix-2) * nsg
+      integer , parameter :: jxm2sg = (jx-2) * nsg
+#ifdef MPP1
+      integer , parameter :: jxpsg = jxp * nsg
+#endif
+
+      integer , parameter :: nnsg = nsg*nsg
       integer , parameter :: nspgv = (nspgd+nspgx)*8 + 8
       integer , parameter :: nspgp = nspgx*4
 

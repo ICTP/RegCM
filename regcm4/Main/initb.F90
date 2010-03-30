@@ -118,7 +118,7 @@
  
 !     ******  initialize hostetler lake model
 #ifdef MPP1
-      if ( lakemod.eq.1 ) call initlk(veg2d1,(ixm1)*nsg,jxp*nsg)
+      if ( lakemod.eq.1 ) call initlk(veg2d1,ixm1sg,jxpsg)
       do jll = 1 , jendx
         do ill = 1 , ixm1
           do k = 1 , nnsg
@@ -161,7 +161,7 @@
         end do
       end do
 #else
-      if ( lakemod.eq.1 ) call initlk(veg2d1,(ixm1)*nsg,(jxm1)*nsg)
+      if ( lakemod.eq.1 ) call initlk(veg2d1,ixm1sg,jxm1sg)
 
       do jll = 1 , jxm1
         do ill = 1 , ixm1

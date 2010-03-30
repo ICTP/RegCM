@@ -323,9 +323,9 @@
       integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
                & nday , nhour , nnumb , nx , ny
 #ifdef MPP1
-      real(4) , dimension(jx*nsg,ix*nsg) :: xlat_s_io , xlon_s_io
+      real(4) , dimension(jxsg,ixsg) :: xlat_s_io , xlon_s_io
 #else
-      real(4) , dimension(jx*nsg,ix*nsg) :: xlat_s , xlon_s
+      real(4) , dimension(jxsg,ixsg) :: xlat_s , xlon_s
 #endif
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
@@ -423,7 +423,7 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( proj.eq.'LAMCON' ) then   ! Lambert projection
-          write (31,99006) (jxm2)*nsg , (ixm2)*nsg , clat , clon ,      &
+          write (31,99006) jxm2sg , ixm2sg , clat , clon ,              &
                          & centerj*nsg , centeri*nsg , truelatl ,       &
                          & truelath , clon , dxsp/nsg , dxsp/nsg
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
@@ -434,17 +434,17 @@
 #ifdef MPP1
           read (iutin1,rec=5) xlat_s_io
           read (iutin1,rec=6) xlon_s_io
-          write (31,99009) (jxm2)*nsg , xlon_s_io(nsg,nsg) ,            &
+          write (31,99009) jxm2sg , xlon_s_io(nsg,nsg) ,                &
                          & xlon_s_io(nsg+1,nsg) - xlon_s_io(nsg,nsg)
-          write (31,99010) (ixm2)*nsg
-          write (31,99011) (xlat_s_io(nsg+1,i),i=nsg+1,(ixm1)*nsg)
+          write (31,99010) ixm2sg
+          write (31,99011) (xlat_s_io(nsg+1,i),i=nsg+1,ixm1sg)
 #else
           read (iutin1,rec=5) xlat_s
           read (iutin1,rec=6) xlon_s
-          write (31,99009) (jxm2)*nsg , xlon_s(nsg,nsg) ,               &
+          write (31,99009) jxm2sg , xlon_s(nsg,nsg) ,                   &
                          & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
-          write (31,99010) (ixm2)*nsg
-          write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,(ixm1)*nsg)
+          write (31,99010) ixm2sg
+          write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,ixm1sg)
 #endif
         else if ( proj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -452,7 +452,7 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99012) (jxm2)*nsg , (ixm2)*nsg , plon , plat ,      &
+          write (31,99012) jxm2sg , ixm2sg , plon , plat ,              &
                          & dxsp/111000./nsg , dxsp/111000.*.95238/nsg
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
@@ -461,9 +461,9 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-        write (31,99009) (jxm2)*nsg , xlong_io(2,2) ,                   &
+        write (31,99009) jxm2sg , xlong_io(2,2) ,                       &
                        & (xlong_io(2,3)-xlong_io(2,2))/nsg
-        write (31,99013) (ixm2)*nsg , xlat_io(2,2) ,                    &
+        write (31,99013) ixm2sg , xlat_io(2,2) ,                        &
                        & (xlat_io(3,2)-xlat_io(2,2))/nsg
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)

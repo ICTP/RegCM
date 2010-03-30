@@ -18,8 +18,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       program postproc
-      use mod_regcm_param , only : ix , jx , ixm2 , jxm2 , kx , nsg ,   &
-                             &     ibyte
+      use mod_regcm_param , only : ix , jx , ixm2 , jxm2 , ixsg , jxsg ,&
+                   & ixm2sg , jxm2sg , kx , ibyte
       use mod_batflds
       use mod_bcflds
       use mod_cheflds
@@ -60,7 +60,7 @@
       real(4) :: clat , clon , ds , dssb , pt , xplat , xplon
       real(4) , dimension(jxm2,ixm2) :: dlat , dlon , dmap , f , ls ,   &
                                   & xlat , xlon , xmap , zs , zssd
-      real(4) , dimension(jxsg,ixsg) :: dmapsb , fsb ,                  &
+      real(4) , dimension(jxm2sg,ixm2sg) :: dmapsb , fsb ,              &
                                    & lssb , xlatsb , xlonsb , xmapsb ,  &
                                    & zssb , zssdsb
       real(4) , dimension(nbat2) :: factbat , offsetbat , xmaxbat ,     &
@@ -128,9 +128,9 @@
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(8) :: xhr , xhr0 , xhr1 , xhr2 , xhrdy , xhrm
       real(4) , dimension(ixm2) :: xlat1d
-      real(4) , dimension(ixsg) :: xlatsb1d
       real(4) , dimension(jxm2) :: xlon1d
-      real(4) , dimension(jxsg) :: xlonsb1d
+      real(4) , dimension(ixm2sg) :: xlatsb1d
+      real(4) , dimension(jxm2sg) :: xlonsb1d
 !
       data un1i , un2i , un3i , un4i/80 , 70 , 60 , 50/
       data un1o , un2o , un3o , un4o/80 , 70 , 60 , 50/
@@ -1979,11 +1979,11 @@
         call rdhead(clat,clon,ds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
                   & xmap,dmap,xlat,xlon,zs,zssd,ls,mdate0,iin,          &
                   & inhead,idirect)
-        call rdheadicbc(jx*nsg,ix*nsg,jxsg,ixsg,kx,clat,clon,dssb,pt,   &
+        call rdheadicbc(jxsg,ixsg,jxm2sg,ixm2sg,kx,clat,clon,dssb,pt,   &
                       & sigf,sigh,sighrev,xplat,xplon,fsb,xmapsb,dmapsb,&
                       & xlatsb,xlonsb,zssb,zssdsb,lssb,mdate0,iin,      &
                       & icbcheadsb,ibyte)
-        call param(jxsg,ixsg,1,1,xlatsb,xlonsb,vvarmin,vvarmax,         &
+        call param(jxm2sg,ixm2sg,1,1,xlatsb,xlonsb,vvarmin,vvarmax,     &
                &   xlatsb1d,xlonsb1d,iadm,ndim,plv)
         print * , '            '
         print * , '            '
@@ -1999,7 +1999,7 @@
         if ( idirect==1 ) then
           srec = 0
           open (iin,file=filrcm(ifil),status='old',form='unformatted',  &
-              & recl=jxsg*ixsg*ibyte,access='direct')
+              & recl=jxm2sg*ixm2sg*ibyte,access='direct')
         else
           open (iin,file=filrcm(ifil),status='old',form='unformatted')
         end if
@@ -2018,7 +2018,7 @@
             print * , 'OPENING SUB NetCDF FILE' , idout
           else if ( iotyp==3 ) then
             open (un1s,file=filsub,status='unknown',form='unformatted', &
-                & recl=jxsg*ixsg*ibyte,access='direct')
+                & recl=jxm2sg*ixm2sg*ibyte,access='direct')
             nr1s = 0
             print * , 'OPENING SUB GrADS FILE' , un1s
           else
@@ -2040,14 +2040,14 @@
               call rcrecdf(fildaysub,idday,vvarmin,vvarmax,ndim,ierr)
             else if ( iotyp==3 ) then
               open (un2s,file=fildaysub,status='unknown',               &
-                   &form='unformatted',recl=jxsg*ixsg*ibyte,            &
+                   &form='unformatted',recl=jxm2sg*ixm2sg*ibyte,        &
                    &access='direct')
               nr2s = 0
             else
             end if
           end if
-          call setconst(s2davg,0.0,jxsg,ixsg,nsub2,nhrsub,1,1,jxsg,1,   &
-                      & ixsg)
+          call setconst(s2davg,0.0,jxm2sg,ixm2sg,nsub2,nhrsub,1,        &
+                     &  1,jxm2sg,1,ixm2sg)
           do l = 1 , nhrsub
             nsubtime(l) = 0
           end do
@@ -2059,8 +2059,8 @@
         end if
         idateold = idate
 !       **** Initialize Max and Min Temperatures
-!       do j=1,ixsg
-!       do i=1,jxsg
+!       do j=1,ixm2sg
+!       do i=1,jxm2sg
 !       sfld2d(i,j,nstmax) = sfld2d(i,j,nstanm)
 !       sfld2d(i,j,nstmin) = sfld2d(i,j,nstanm)
 !       end do
@@ -2092,7 +2092,7 @@
             if ( idirect==1 ) then
               srec = 0
               open (iin,file=filrcm(ifil),status='old',                 &
-                   &form='unformatted',recl=jxsg*ixsg*ibyte,            &
+                   &form='unformatted',recl=jxm2sg*ixm2sg*ibyte,        &
                    &access='direct')
             else
               open (iin,file=filrcm(ifil),status='old',                 &
@@ -2104,11 +2104,11 @@
           xhr = float(julnc)
           ihr = ihr/nint(dtsub) + 1
           if ( ihr==0 ) ihr = 24/nint(dtsub)
-!         CALL TMINMAX(sfld2d,s2davg,jxsg,ixsg,nsub2,nhrsub,ihr
+!         CALL TMINMAX(sfld2d,s2davg,jxm2sg,ixm2sg,nsub2,nhrsub,ihr
 !         &       , nstanm,nstmax,nstmin)
-!         CALL CALCMSE2D(sfld2d,zssb,jxsg,ixsg,nsub2
+!         CALL CALCMSE2D(sfld2d,zssb,jxm2sg,ixm2sg,nsub2
 !         &       , nstanm,nsqanm,nsmsea)
-          call calcrh2d(sfld2d,jxsg,ixsg,nsub2,nstanm,nsqanm,nspsrf,    &
+          call calcrh2d(sfld2d,jxm2sg,ixm2sg,nsub2,nstanm,nsqanm,nspsrf,&
                       & nsrha,vmisdat)
 !         **** AVERAGE DATA **** c
           if ( subavg .or. subdiur .or. subday ) then
@@ -2139,8 +2139,8 @@
                   do l = 1 , nhrsub
                     nsubtime(l) = 0
                     do ns = 1 , nsub2
-                      do j = 1 , ixsg
-                        do i = 1 , jxsg
+                      do j = 1 , ixm2sg
+                        do i = 1 , jxm2sg
                           s2davg(i,j,ns,l) = 0.0
                         end do
                       end do
@@ -2200,7 +2200,7 @@
             call rcrecdf(filavgsub,idout,vvarmin,vvarmax,ndim,ierr)
           else if ( iotyp==3 ) then
             open (un3s,file=filavgsub,status='unknown',                 &
-                 &form='unformatted',recl=jxsg*ixsg*ibyte,              &
+                 &form='unformatted',recl=jxm2sg*ixm2sg*ibyte,          &
                  &access='direct')
             nr3s = 0
           else
@@ -2222,7 +2222,7 @@
             call rcrecdf(fildiursub,idout,vvarmin,vvarmax,ndim,ierr)
           else if ( iotyp==3 ) then
             open (un4s,file=fildiursub,status='unknown',                &
-                 &form='unformatted',recl=jxsg*ixsg*ibyte,              &
+                 &form='unformatted',recl=jxm2sg*ixm2sg*ibyte,              &
                  &access='direct')
             nr4s = 0
           else

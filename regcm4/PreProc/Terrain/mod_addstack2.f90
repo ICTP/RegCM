@@ -18,15 +18,15 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_addstack2
-      use mod_regcm_param , only : ix , jx , nsg
+      use mod_regcm_param , only : ix , jx , nsg , ixsg , jxsg
       implicit none
       real(4) :: clong
       real(4) , dimension(ix,jx) :: corc , hscr1 , htsavc , sumc ,      &
                                   & wtmaxc
-      real(4) , dimension(ix*nsg,jx*nsg) :: corc_s , hscr1_s ,          &
-           & htsavc_s , sumc_s , wtmaxc_s
+      real(4) , dimension(ixsg,jxsg) :: corc_s , hscr1_s , htsavc_s ,   &
+                                  & sumc_s , wtmaxc_s
       real(4) , dimension(ix,jx,2) :: itex , land
-      real(4) , dimension(ix*nsg,jx*nsg,2) :: itex_s , land_s
+      real(4) , dimension(ixsg,jxsg,2) :: itex_s , land_s
       integer , dimension(ix,jx) :: nsc
-      integer , dimension(ix*nsg,jx*nsg) :: nsc_s
+      integer , dimension(ixsg,jxsg) :: nsc_s
       end module mod_addstack2
