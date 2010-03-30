@@ -20,6 +20,7 @@
       module mod_bats_param
       implicit none
 !
+      real(8) , dimension(8) :: solour
       real(8) , dimension(20) :: albvgl , albvgs , crough , deprv ,     &
                                & deptv , depuv , displa , fc , freza ,  &
                                & frezu , rough , rsmin , sai , seasf ,  &
@@ -30,6 +31,16 @@
 !
 !------------------ DATA SECTION ----------------------------------------
 !
+
+!*    soil albedo for different coloured
+#ifdef CLM
+     data solour / 0.12D0 , 0.11D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
+                    0.07D0 , 0.06D0 , 0.05D0 /
+#else
+     data solour / 0.16D0 , 0.11D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
+                    0.07D0 , 0.06D0 , 0.05D0 /
+#endif
+
 !*    vegc is maximum fractional cover of vegetation
       data vegc /0.85D0 , 0.8D0 , 0.8D0 , 0.8D0 , 0.8D0  , 0.9D0 ,      &
               &  0.8D0  , 0.0D0 , 0.6D0 , 0.8D0 , 0.35D0 , 0.0D0 ,      &
