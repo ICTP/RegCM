@@ -13,6 +13,7 @@ SUBROUTINE header(myid)
   IMPLICIT NONE 
   !! local variables:
   INTEGER len,len_strim
+  INTEGER hostnm
   INTEGER ihost,idir
   INTEGER getcwd
   CHARACTER (len=24) :: data='?'

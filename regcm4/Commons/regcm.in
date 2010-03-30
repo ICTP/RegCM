@@ -1,8 +1,8 @@
  &restartparam
  ifrest   =    .false.,
- idate0   = 1990060100,
- idate1   = 1990060100,
- idate2   = 1990070100,
+ idate0   = 1990010100,
+ idate1   = 1990010100,
+ idate2   = 1990020100,
  nslice  =        120,
  /
  &timeparam

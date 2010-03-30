@@ -28,14 +28,10 @@ NETCDFINC = -I$(NETCDF_INC)
 PARALLEL = "MPP1"
 
 # Add further preprocessor flags, if necessary. Those available are:
-# -DINTEL : to compile using Intel Fortran Compiler 
 # -DIBM : to compile using IBM xlf compiler
 # -DDIAG : to compile enabling Diagnostic capabilities (?) 
 
-CPPFLAGS = -DINTEL -D$(PARALLEL)
-
-# underscoring approach for subroutines:
-#USCORING = -assume nounderscore
+CPPFLAGS = -D$(PARALLEL)
 
 # Specific compiler flags (eg.: optimization / debugging) 
 # IMPORTANT : Check that your compiler complies with this RegCM features:

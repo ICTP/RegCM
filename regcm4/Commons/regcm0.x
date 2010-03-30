@@ -7,5 +7,4 @@ make
 cd $mydir                                         
 mv ../Main/regcm .                                
 /bin/ln -sf ../Input/DOMAIN.INFO fort.10          
-/bin/ln -sf    ../Input/ICBC1990060100 fort.101   
-./regcm<./regcm.in                                
+/bin/ln -sf    ../Input/ICBC1990010100 fort.101   
