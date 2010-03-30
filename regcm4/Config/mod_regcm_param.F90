@@ -30,11 +30,11 @@
 
 ! Point in X (longitude) direction
 
-      integer , parameter :: ix = 120
+      integer , parameter :: ix = 34
 
 ! Point in Y (latitude) direction
 
-      integer , parameter :: jx = 128
+      integer , parameter :: jx = 48
 
 ! Point in vertical
 
@@ -60,7 +60,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 32
+      integer , parameter :: nproc = 16
 
 ! Point in Y (latitude) direction
 
@@ -97,7 +97,7 @@
 !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 !
 
-      character(5) , parameter :: dattyp = 'FNEST'
+      character(5) , parameter :: dattyp = 'EIN15'
 
 ! SO4 Control Flag
 
@@ -151,7 +151,7 @@
       integer , parameter :: kxp3 = kx + 3
       integer , parameter :: kxp4 = kx + 4
 
-      integer , parameter :: nnsg = nsg*nsg
+      integer , parameter :: nnsg = 1
       integer , parameter :: nspgv = (nspgd+nspgx)*8 + 8
       integer , parameter :: nspgp = nspgx*4
 

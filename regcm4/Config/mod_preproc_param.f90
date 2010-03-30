@@ -29,14 +29,14 @@
 !
 ! One in : 'LAMCON', Lambert conformal
 !          'POLSTR', Polar stereographic
-!          'NORMER', Normal  Mercator (ROTMER w/ plat=0)
+!          'NORMER', Normal  Mercator (ROTMER w/ plat = clat
 !          'ROTMER', Rotated Mercator
 
       character(6) , parameter :: iproj = 'LAMCON'
 
 ! Grid point horizontal resolution in km
 
-      real(4) , parameter :: ds = 15.0
+      real(4) , parameter :: ds = 60.0
 
 ! Pressure of model top in cbar
 
@@ -44,11 +44,11 @@
 
 ! Central latitude  of model domain in degrees, north hem. is positive
 
-      real(4) , parameter :: clat = 43.00
+      real(4) , parameter :: clat = 45.39
 
 ! Central longitude of model domain in degrees, west is negative
 
-      real(4) , parameter :: clon = 10.70
+      real(4) , parameter :: clon = 13.48
 
 ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
@@ -79,11 +79,11 @@
 !          3, for  3 minutes resolution
 !          2, for  2 minutes resolution
 
-      integer , parameter :: ntypec = 2
+      integer , parameter :: ntypec = 10
 
 ! Same for subgrid (Used only if nsg > 1)
 
-      integer , parameter :: ntypec_s = 2
+      integer , parameter :: ntypec_s = 10
 
 ! Interpolation Control flag.
 !
@@ -126,15 +126,15 @@
 
 ! Global Begin and End date for Input Pre processing
 
-      integer , parameter :: idate1 = 1959010100 ! BEGIN
-      integer , parameter :: idate2 = 1959020100 ! END
+      integer , parameter :: idate1 = 1990060100 ! BEGIN
+      integer , parameter :: idate2 = 1990070100 ! END
 
 ! Type of Sea Surface Temperature used
 !
 ! One in: GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,
 !         EH5A2,EH5B1,EHA1B,ERSST,ERSKT
 !
-      character(5) , parameter :: ssttyp = 'EH5RF'
+      character(5) , parameter :: ssttyp = 'OI_WK'
 
 ! Number of Soil texture categories, leave it to 17
 

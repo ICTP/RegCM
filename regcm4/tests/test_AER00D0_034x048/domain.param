@@ -6,7 +6,7 @@
 !                         iproj='POLSTR', Polar stereographic
 !                         iproj='NORMER', Normal  Mercator (ROTMER w/ plat=0)
 !                         iproj='ROTMER', Rotated Mercator
-      integer iy        ! number of grid points in y direction (i)
+      integer ix        ! number of grid points in y direction (i)
       integer jx        ! number of grid points in x direction (j)
       integer kz        ! number of vertical levels (k), 18, 14, or 23
       integer nsg       ! number of subgrid in x (y) direction
@@ -97,7 +97,7 @@
             !                 and  prepare regcm.param2 for parallel run. 
 
       parameter(iproj='LAMCON') ! Map projection (LAMCON,NORMER,POLSTR,ROTMER)
-      parameter(iy=34)         ! number of grid points in y direction (i)
+      parameter(ix=34)         ! number of grid points in y direction (i)
       parameter(jx=48)         ! number of grid points in x direction (j)
       parameter(kz=18)          ! number of vertical levels (14, 18 or 23)
       parameter(nsg=1)          ! number of subgrids in 1 grid (one direction)

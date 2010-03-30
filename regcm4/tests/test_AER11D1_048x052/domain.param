@@ -6,7 +6,7 @@
 !                         iproj='POLSTR', Polar stereographic
 !                         iproj='NORMER', Normal  Mercator (ROTMER w/ plat=0)
 !                         iproj='ROTMER', Rotated Mercator
-      integer iy        ! number of grid points in y direction (i)
+      integer ix        ! number of grid points in y direction (i)
       integer jx        ! number of grid points in x direction (j)
       integer kz        ! number of vertical levels (k), 18, 14, or 23
       integer nsg       ! number of subgrid in x (y) direction
@@ -97,7 +97,7 @@
             !                 and  prepare regcm.param2 for parallel run. 
 
       parameter(iproj='LAMCON') ! Map projection (LAMCON,NORMER,POLSTR,ROTMER)
-      parameter(iy=48)         ! number of grid points in y direction (i)
+      parameter(ix=48)         ! number of grid points in y direction (i)
       parameter(jx=52)         ! number of grid points in x direction (j)
       parameter(kz=18)          ! number of vertical levels (14, 18 or 23)
       parameter(nsg=1)          ! number of subgrids in 1 grid (one direction)
@@ -142,11 +142,11 @@
 !DATTYP: (ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,NRP2W,GFS11,FVGCM,FNEST,EH5OM)
       parameter(DATTYP='ERA40')
       ! SSTTYP : (GISST,OISST,OI_WK,FV_RF,FV_A2,FV_B2,EH5RF,EH5A2,EH5B1,EHA1B,ERSST,ERSKT)
-      ???????? parameter(SSTTYP='')
+      parameter(SSTTYP='OI_WK')
       parameter(EHSO4 =.false.)
       parameter(LSMTYP='BATS')      ! LANDUSE legend (BATS or USGS)
       parameter(nveg=20)            ! Number of LANDUSE categories
                                     ! 20 for BATS, 25 for USGS.
       parameter(AERTYP='AER11D1')   ! AEROSOL TYPE option,
       parameter(ntex=17)            ! Number of SOIL TEXTURE categories
-      parameter(NPROC=0)            ! Number of CPU used for parallel job. 
+      parameter(NPROC=16)            ! Number of CPU used for parallel job. 
