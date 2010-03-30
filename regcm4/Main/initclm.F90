@@ -64,7 +64,7 @@
       use clm_varsur,    only : landmask , landfrac , satbrt_clm
       use clm_varsur,    only : r2cimask , init_tgb , r2coutfrq
       use clm_varsur,    only : clm2bats_veg , ht_rcm
-      use clm_varsur,    only : clm_soitex , clm2bats_veg , clm_fracveg
+      use clm_varsur,    only : clm_fracveg
       use clm_varsur,    only : slmo
       use atmdrvMod
       use spmdMod,       only : masterproc, iam, spmd_init
@@ -736,7 +736,6 @@
       if ( allocated(ht_rcm) ) deallocate(ht_rcm)
       if ( allocated(satbrt_clm) ) deallocate(satbrt_clm)
       if ( allocated(init_tgb) ) deallocate(init_tgb)
-      if ( allocated(clm_soitex) ) deallocate(clm_soitex)
       if ( allocated(clm2bats_veg) ) deallocate(clm2bats_veg)
       if ( allocated(clm_fracveg) ) deallocate(clm_fracveg)
  

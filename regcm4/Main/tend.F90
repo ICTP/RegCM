@@ -524,6 +524,7 @@
 !=======================================================================
 !
       call slice3d
+
 #ifdef CLM
       if ( init_grid ) then
         call initclm(ktau)

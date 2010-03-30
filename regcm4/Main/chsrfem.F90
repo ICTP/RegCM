@@ -311,6 +311,7 @@
           end do
         end if
       end if
+      if ( allocated(clm_soitex) ) deallocate(clm_soitex)
 #else
       if ( myid.eq.0 ) then
         if ( rd_tex ) then
