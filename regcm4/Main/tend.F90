@@ -1311,19 +1311,19 @@
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
            & .eq.0 ) call colmod3(j)
  
+#ifndef CLM
 !       ****** call vector bats for surface physics calculations
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
            &  mod(ktau+1,nbatst).eq.0 ) then
           dtbat = dt/2.*nbatst
-#ifndef CLM
           if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
           call vecbats(j, kx , 2 , ixm1 , nnsg)
 !         Zeng ocean flux model
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , ixm1 , kx)
 !         ****** accumulate quantities for energy and moisture budgets
           call interf(2 , j , kx , 2 , ixm1 , nnsg)
-#endif
         end if
+#endif
  
       end do
 
@@ -1341,6 +1341,7 @@
         else
           r2cnstep = (ktau+1)/nbatst
         end if
+        ! CLM j loop is in mtrxclm
         call mtrxclm
       end if
 #endif

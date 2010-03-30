@@ -53,7 +53,6 @@
 #else
       write (*,*) 'CLM not implemented for serial run'
       call fatal(__FILE__,__LINE__, 'CLM not implemented')
-!      call interfclm_ser(1)
 #endif
 
       call rcmdrv()
@@ -65,7 +64,6 @@
 #else
       write (*,*) 'CLM not implemented for serial run'
       call fatal(__FILE__,__LINE__, 'CLM not implemented')
-!      call interfclm_ser(2)
 #endif
 
       end subroutine mtrxclm

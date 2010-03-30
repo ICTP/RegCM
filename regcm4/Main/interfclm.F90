@@ -104,7 +104,7 @@
 !           Surface winds
             r2cuxb(j,i) = ubx3d(ci,kx,cj)
             r2cvxb(j,i) = vbx3d(ci,kx,cj)
-!           Surface Pressure in Pa from hPa
+!           Surface Pressure in Pa from cbar
             r2cpsb(j,i) = (psb(ci,cj)+ptop)*1000.
 !           Rainfall
             r2crnc(j,i) = pptc(ci,cj)
