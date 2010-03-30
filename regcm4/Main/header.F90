@@ -17,11 +17,11 @@ SUBROUTINE header(myid)
   !! local variables:
   INTEGER len,len_strim
   INTEGER ihost,idir
-#ifdef INTEL
-  INTEGER hostnm
-#else
-  INTEGER gethostname 
-#endif
+!#ifdef INTEL
+!  INTEGER hostnm
+!#else
+!  INTEGER gethostname 
+!#endif
   INTEGER getcwd
   CHARACTER (len=24) :: data='?'
   CHARACTER (len=32) :: hostname='?' 
@@ -37,17 +37,12 @@ SUBROUTINE header(myid)
      WRITE (nrite,100)  SVN_REV, __DATE__ , __TIME__   
 100  FORMAT(2x,' SVN Revision: ',A,' compiled at: data : ',A,'  time: ',A,/)
 
-#ifdef INTEL
-!     Ihost = gethostname(hostname,30)
-     ihost=hostnm(hostname)
-     call getlog(user)
-     CALL FDATE(data)
-#elif defined IBM
+#ifdef IBM
      hostname='ibm platform '
      user= 'Unknown'
      call fdate_(data)
 #else
-     Ihost = gethostname(hostname,30)
+     Ihost = hostnm(hostname)
      call getlog(user)
      CALL fdate(data)
 #endif 
