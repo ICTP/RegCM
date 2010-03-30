@@ -149,14 +149,12 @@
         solvs2d(n,jslc) = solvs(n)
         solvd2d(n,jslc) = solvd(n)
 !       sinc2d(n,jslc)=solin(n)
-!
 #ifdef CLM
         sols2d(n,jslc) = sols(n)
         soll2d(n,jslc) = soll(n)
         solsd2d(n,jslc) = solsd(n)
         solld2d(n,jslc) = solld(n)
 #endif
-
       end do
 !
       if ( ifrad ) then

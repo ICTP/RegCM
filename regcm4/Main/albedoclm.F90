@@ -35,7 +35,6 @@
                                  & aldifs_s , aldirl_s , aldirs_s
       real(8) :: fseas
       integer :: kolour , n , i
-      real(8) , dimension(8) :: solour
 !
 ! *******************************************************************
 ! albedo calculates fragmented albedos (direct and diffuse) in   
@@ -59,10 +58,7 @@
 !
 ! (depuv/10.0)= the ratio of upper soil layer to total         
 ! root depth; used to compute "wet" for soil albedo
-! solour        =  soil albedo for different coloured
 !*********************************************************************
- 
-      data solour/.12 , .11 , .10 , .09 , .08 , .07 , .06 , .05/
  
 !     =================================================================
 !l    1. set initial parameters

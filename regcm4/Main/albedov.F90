@@ -24,7 +24,7 @@
                   & aldifs , aldifl , czen , sice1d , emiss1d , coszrs ,&
                   & ldoc1d , tgb1d , lveg , ts1d , scv1d , sag1d , wt , &
                   & scvk , veg1d , emiss2d , albvgs , albvgl , kolsol , &
-                  & depuv
+                  & depuv , solour
       use mod_constants , only : tzero
       implicit none
 !
@@ -44,7 +44,6 @@
                                  & aldifs_s , aldirl_s , aldirs_s
       real(8) :: fseas
       integer :: kolour , n , i
-      real(8) , dimension(8) :: solour
 !
 !     Albedo calculates fragmented albedos (direct and diffuse) in
 !     wavelength regions split at 0.7um.
@@ -68,12 +67,7 @@
 !
 !     (depuv/10.0)= the ratio of upper soil layer to total
 !     root depth; used to compute "wet" for soil albedo
-!     solour        =  soil albedo for different coloured soils
 !
-!     data    solour/ .12, .11, .10, .09, .08, .07, .06, .05 /
-      data solour / 0.16D0 , 0.11D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
-                    0.07D0 , 0.06D0 , 0.05D0 /
- 
 !     =================================================================
 !     1. set initial parameters
 !     =================================================================
