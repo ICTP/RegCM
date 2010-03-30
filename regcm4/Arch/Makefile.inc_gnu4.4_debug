@@ -1,0 +1,54 @@
+# This a a template file that  contains all variables to be included in all other Makefiles
+# This file is commented in detail to help you fine tune your RegCM distribution
+
+# GENERAL FLAGS: these should be always defined!  
+
+# Base directory:
+
+REGCM_BASE_DIR = /home/myuserid/regcm
+
+# DATA directories: 
+REGCM_DATA_DIR = /scratch/mydatadir
+
+# NetCDF library:
+# The NetCDF library is needed to run RegCM, 
+# RegCM V4 was successfuly tested with NetCDF 4.0.1
+# In NETCDFINC you should define the path to NetCDF include files
+# In NETCDFLIB you should define the path and the name of the NetCDF library
+
+NETCDFLIB = -L/opt/libs/netcdf/lib -lnetcdf
+NETCDFINC = -I/opt/libs/netcdf/inc
+
+# PREPROCESSOR AND COMPILER OPTIONS
+
+# Use this variable to enable the parallel version of the code
+# serial version : PARALLEL = ""
+# parallel version : PARALLEL = "MPP1"
+
+#PARALLEL = ""
+
+# Add further preprocessor flags, if necessary. Those available are:
+# -DIBM : to compile using IBM xlf compiler
+# -DDIAG : to compile enabling Diagnostic capabilities (?) 
+
+CPPFLAGS = -D$(PARALLEL)
+
+# Specific compiler flags (eg.: optimization / debugging) 
+# IMPORTANT : Check that your compiler complies with this RegCM features:
+# - RegCM expects the output to be written in big endian format
+# - RegCM expects Fortran records to be measured in bytes
+F90FLAGS = -O0 -g -fbounds-check -ffpe-trap=zero -fconvert=big-endian -Wall -pedantic 
+
+# Set the Fortran 90 compiler here
+F90 = gfortran
+
+# Set the MPI Fortran 90 compiler here
+MPIF90 = 
+
+# Set the linker here
+# Modify this variable only if you really know what you are doing !!!
+LD =$(F90)
+
+# You should not change the lines below unless you are a developer
+
+SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
