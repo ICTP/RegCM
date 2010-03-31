@@ -97,13 +97,13 @@
         if ( jcx.eq.1 ) then
 !......for jcx = 1:
           do i = 2 , iym1
-            do k = 1 , kz$
+            do k = 1 , kz
               psabar = 0.5*(psa(i,jcx)+psa(i-1,jcx))
               scrx1(k,i) = ua(i,k,jcx)/psabar
               scrx2(k,i) = va(i,k,jcx)/psabar
             end do
           end do
-          do k = 1 , kz$
+          do k = 1 , kz
             scrx1(k,1) = ua(1,k,jcx)/psa(1,jcx)
             scrx1(k,iy) = ua(iy,k,jcx)/psa(iym1,jcx)
             scrx2(k,1) = va(1,k,jcx)/psa(1,jcx)
@@ -112,13 +112,13 @@
         else if ( jcx.eq.jx ) then
 !......for jcx = jx:
           do i = 2 , iym1
-            do k = 1 , kz$
+            do k = 1 , kz
               psabar = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
               scrx1(k,i) = ua(i,k,jcx)/psabar
               scrx2(k,i) = va(i,k,jcx)/psabar
             end do
           end do
-          do k = 1 , kz$
+          do k = 1 , kz
             scrx1(k,1) = ua(1,k,jcx)/psa(1,jxm1)
             scrx1(k,iy) = ua(iy,k,jcx)/psa(iym1,jxm1)
             scrx2(k,1) = va(1,k,jcx)/psa(1,jxm1)
@@ -127,14 +127,14 @@
         else
 !......interior slice:
           do i = 2 , iym1
-            do k = 1 , kz$
+            do k = 1 , kz
               psabar = 0.25*(psa(i,jcx)+psa(i,jcx-1)+psa(i-1,jcx)       &
                      & +psa(i-1,jcx-1))
               scrx1(k,i) = ua(i,k,jcx)/psabar
               scrx2(k,i) = va(i,k,jcx)/psabar
             end do
           end do
-          do k = 1 , kz$
+          do k = 1 , kz
             psab1 = 0.5*(psa(1,jcx-1)+psa(1,jcx))
             psab2 = 0.5*(psa(iym1,jcx-1)+psa(iym1,jcx))
             scrx1(k,1) = ua(1,k,jcx)/psab1
@@ -150,16 +150,16 @@
 !
         if ( jcx.eq.1 ) then
 !......for jcx = 1:
-          do i = 1 , iy$
-            do k = 1 , kz$
+          do i = 1 , iy
+            do k = 1 , kz
               scrx1(k,i) = uj1(i,k)
               scrx2(k,i) = vj1(i,k)
             end do
           end do
         else if ( jcx.eq.jx ) then
 !......for jcx = jx:
-          do i = 1 , iy$
-            do k = 1 , kz$
+          do i = 1 , iy
+            do k = 1 , kz
               scrx1(k,i) = ujl(i,k)
               scrx2(k,i) = vjl(i,k)
             end do
@@ -167,14 +167,14 @@
         else
 !......interior slice:
           do i = 2 , iym1
-            do k = 1 , kz$
+            do k = 1 , kz
               psabar = 0.25*(psa(i,jcx)+psa(i,jcx-1)+psa(i-1,jcx)       &
                      & +psa(i-1,jcx-1))
               scrx1(k,i) = ua(i,k,jcx)/psabar
               scrx2(k,i) = va(i,k,jcx)/psabar
             end do
           end do
-          do k = 1 , kz$
+          do k = 1 , kz
             scrx1(k,1) = ui1(k,jcx)
             scrx1(k,iy) = uil(k,jcx)
             scrx2(k,1) = vi1(k,jcx)
@@ -195,7 +195,7 @@
 !.....t:
 !
       do i = 1 , iym1
-        do k = 1 , kz$
+        do k = 1 , kz
           scrx1(k,i) = ta(i,k,jcx)/psa(i,jcx)
         end do
       end do
@@ -206,7 +206,7 @@
 !.....qv:
 !
       do i = 1 , iym1
-        do k = 1 , kz$
+        do k = 1 , kz
           scrx1(k,i) = qva(i,k,jcx)/psa(i,jcx)
         end do
       end do
@@ -218,7 +218,7 @@
 !....qc and qr:
 !
       do i = 1 , iym1
-        do k = 1 , kz$
+        do k = 1 , kz
           scrx1(k,i) = qca(i,k,jcx)/psa(i,jcx)
         end do
       end do
@@ -297,7 +297,7 @@
 !
       else if ( iexec.gt.1 ) then
 !
-        do i = 1 , iy$
+        do i = 1 , iy
           hscr1(i,1) = uj1(i,kout)
           hscr1(i,jx) = ujl(i,kout)
           hscr2(i,1) = vj1(i,kout)
