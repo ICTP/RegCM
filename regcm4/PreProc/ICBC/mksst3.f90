@@ -17,14 +17,14 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine mksst3(tsccm,sst1,topogm,xlandu,jx,ix,kdate)
+      subroutine mksst3(tsccm,sst1,topogm,xlandu,jx,iy,kdate)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: ix , jx , kdate
-      real , dimension(jx,ix) :: sst1 , topogm , tsccm , xlandu
-      intent (in) ix , jx , kdate , topogm , xlandu
+      integer :: iy , jx , kdate
+      real , dimension(jx,iy) :: sst1 , topogm , tsccm , xlandu
+      intent (in) iy , jx , kdate , topogm , xlandu
       intent (out) tsccm
       intent (inout) sst1
 !
@@ -43,12 +43,12 @@
 !     ******           READ IN RCM 6 HOUR SST DATASET
  100  continue
       read (60,end=200) mhour , mday , mmo , myear ,                    &
-                      & ((sst1(i,j),j=1,ix),i=1,jx)
+                      & ((sst1(i,j),j=1,iy),i=1,jx)
       if ( nyear/=myear .or. nmo/=mmo .or. nday/=mday .or.              &
          & nhour/=mhour ) go to 100
  
       do i = 1 , jx
-        do j = 1 , ix
+        do j = 1 , iy
           if ( (topogm(i,j)<=1.) .and.                                  &
              & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.          &
              & (sst1(i,j)>-900.0) ) tsccm(i,j) = sst1(i,j)

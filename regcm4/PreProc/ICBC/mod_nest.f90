@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_nest
-      use mod_regcm_param , only : ix , jx , kx , ibyte , dattyp
+      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp
       use mod_preproc_param
 
       implicit none
@@ -29,9 +29,9 @@
 
       integer :: nrec
 
-      real , target , dimension(jx,ix,np*4) :: b3
-      real , target , dimension(jx,ix,np*2) :: d3
-      real , dimension(jx,ix) :: b3pd
+      real , target , dimension(jx,iy,np*4) :: b3
+      real , target , dimension(jx,iy,np*2) :: d3
+      real , dimension(jx,iy) :: b3pd
 
       real , allocatable , target , dimension(:,:,:) :: b2
       real , allocatable , target , dimension(:,:,:) :: d2
@@ -47,7 +47,7 @@
       real , pointer , dimension(:,:,:) :: cp , hp , qp , tp
       real , pointer , dimension(:,:,:) :: up , vp
 
-      real , dimension(jx,ix,kx) :: z1
+      real , dimension(jx,iy,kz) :: z1
 
       real , dimension(np) :: plev , sigmar
       real , allocatable , dimension(:) :: sigf
@@ -80,11 +80,11 @@
       character(14) :: fillin
       integer :: i , idatek , j , k , mn0 , mn1 , nd0 , nd1 , nh0 ,     &
                & nh1 , nmop , ny0 , ny1 , nyrp
-      real , dimension(jx,ix) :: d1xa , d1xb , d1xc , d1xd , d1xt
-      integer , dimension(jx,ix) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
+      real , dimension(jx,iy) :: d1xa , d1xb , d1xc , d1xd , d1xt
+      integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
                                   & j1dr , j1ul , j1ur
-      real , dimension(jx,ix) :: d2xa , d2xb , d2xc , d2xd , d2xt
-      integer , dimension(jx,ix) :: i2dl , i2dr , i2ul , i2ur , j2dl ,  &
+      real , dimension(jx,iy) :: d2xa , d2xb , d2xc , d2xd , d2xt
+      integer , dimension(jx,iy) :: i2dl , i2dr , i2ul , i2ur , j2dl ,  &
                                   & j2dr , j2ul , j2ur
       logical :: there
       real :: wt
@@ -334,16 +334,16 @@
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-      call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,ix,i1ur,i1ul,    &
+      call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,iy,i1ur,i1ul,    &
                   & i1dr,i1dl,j1ur,j1ul,j1dr,j1dl,d1xt,d1xa,d1xb,d1xc,  &
                   & d1xd,jl,il,np)
-      call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,ix,i2ur,i2ul,    &
+      call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,iy,i2ur,i2ul,    &
                   & i2dr,i2dl,j2ur,j2ul,j2dr,j2dl,d2xt,d2xa,d2xb,d2xc,  &
                   & d2xd,jl,il,np)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,ix,np,plon,plat,  &
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,np,plon,plat,  &
                 & iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
@@ -353,61 +353,61 @@
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
 !HH:  CHANGE THE VERTICAL ORDER.
-      call top2btm(t3,jx,ix,np)
-      call top2btm(q3,jx,ix,np)
-      call top2btm(c3,jx,ix,np)
-      call top2btm(h3,jx,ix,np)
-      call top2btm(u3,jx,ix,np)
-      call top2btm(v3,jx,ix,np)
+      call top2btm(t3,jx,iy,np)
+      call top2btm(q3,jx,iy,np)
+      call top2btm(c3,jx,iy,np)
+      call top2btm(h3,jx,iy,np)
+      call top2btm(u3,jx,iy,np)
+      call top2btm(v3,jx,iy,np)
 !HH:OVER
 !
 !     ******           NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
-      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,ix,np)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,np)
  
-      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,ix)
-      call p1p2(b3pd,ps4,jx,ix)
+      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+      call p1p2(b3pd,ps4,jx,iy)
 !
 !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
-      call intv3(ts4,t3,ps4,sigmar,ptop,jx,ix,np)
+      call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,np)
  
       if ( ssttyp=='EH5RF' .or. ssttyp=='EH5A2' .or.                    &
          & ssttyp=='EH5B1' .or. ssttyp=='EHA1B' ) then
-        call mksst3(ts4,sst1,topogm,xlandu,jx,ix,idate)
+        call mksst3(ts4,sst1,topogm,xlandu,jx,iy,idate)
       else if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !       F1    CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
 !       PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
         call julian(idate,nyrp,nmop,wt)
 !
         if ( ssttyp=='OI2ST' ) then
-          call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,ix,nyrp, &
+          call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &
                &      nmop,wt)
         else
-          call mksst(ts4,sst1,sst2,topogm,xlandu,jx,ix,nyrp,nmop,wt)
+          call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
         end if
       else
         if ( ssttyp=='OI2WK' ) then
-          call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,ix,    &
+          call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,    &
                &       idate/100)
         else
-          call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,ix,idate/100)
+          call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
         end if
       end if
  
 !     F2     DETERMINE P* AND HEIGHT.
 !
 !     F3     INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,np)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,np)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
 !
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kx,np)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,np)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kx,np)
-      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
-      call intv1(c4,c3,ps4,sigma2,sigmar,ptop,jx,ix,kx,np)
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,np)
+      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+      call intv1(c4,c3,ps4,sigma2,sigmar,ptop,jx,iy,kz,np)
 !
 !     F4     DETERMINE H
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kx)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G      WRITE AN INITIAL FILE FOR THE RegCM
       call writef2(ptop,idate)

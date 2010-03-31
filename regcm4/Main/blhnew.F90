@@ -70,15 +70,15 @@
                & therm2 , tkv , tlv , ttkl , vv , vvl , wsc , z , zh ,  &
                & zl , zm , zp , zzh , zzhnew , zzhnew2
       integer :: i , j , k , k2
-      real(8) , dimension(ix,kx) :: ri
-      real(8) , dimension(ix) :: therm
+      real(8) , dimension(iy,kz) :: ri
+      real(8) , dimension(iy) :: therm
 !
       data kzo/1./
 !
 !
 !     ------------------------------------------------------------
 !
-!     real(kind=8)  cgq(ix,kx)
+!     real(kind=8)  cgq(iy,kz)
 !     -----------------------------------------------------------
  
 !     gravity
@@ -103,12 +103,12 @@
  
 !       ****note: kt, max no. of pbl levels, calculated in param
 !       ******   compute richardson number
-        do i = 2 , ixm1
+        do i = 2 , iym1
           therm(i) = 0.0
         end do
  
-        do k = kx , kt , -1
-          do i = 2 , ixm1
+        do k = kz , kt , -1
+          do i = 2 , iym1
             vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
             ri(i,k) = gti*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/            &
                     & (th10(i,j)*vv)
@@ -116,14 +116,14 @@
         end do
  
 !       ******   first, set bl height to height of lowest model level
-        do i = 2 , ixm1
-          zpbl(i,j) = za(i,kx,j)
+        do i = 2 , iym1
+          zpbl(i,j) = za(i,kz,j)
         end do
  
 !       ******   looking for bl top
-        do k = kx , kt + 1 , -1
+        do k = kz , kt + 1 , -1
           k2 = k - 1
-          do i = 2 , ixm1
+          do i = 2 , iym1
 !     ******   bl height lies between this level and the last
 !     ******   use linear interp. of rich. no. to height of ri=ricr
             if ( (ri(i,k).lt.ricr) .and. (ri(i,k2).ge.ricr) ) zpbl(i,j) &
@@ -132,28 +132,28 @@
           end do
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
 !     ******   set bl top to highest allowable model layer
           if ( ri(i,kt).lt.ricr ) zpbl(i,j) = za(i,kt,j)
         end do
  
 !       ******   recompute richardson no. at lowest model level
-        do i = 2 , ixm1
+        do i = 2 , iym1
           if ( hfxv(i,j).gt.0. ) then
 !           ******   estimate of convective velocity scale
             xfmt = (1.0-(binm*zpbl(i,j)/obklen(i,j)))**onet
             wsc = ustr(i,j)*xfmt
 !           ******   thermal temperature excess
-            therm(i) = (xhfx(i,j)+0.61*thx3d(i,kx,j)*xqfx(i,j))*fak/wsc
-            vvl = ubx3d(i,kx,j)*ubx3d(i,kx,j) + vbx3d(i,kx,j)           &
-                & *vbx3d(i,kx,j)
-            ri(i,kx) = -gti*therm(i)*za(i,kx,j)/(th10(i,j)*vvl)
+            therm(i) = (xhfx(i,j)+0.61*thx3d(i,kz,j)*xqfx(i,j))*fak/wsc
+            vvl = ubx3d(i,kz,j)*ubx3d(i,kz,j) + vbx3d(i,kz,j)           &
+                & *vbx3d(i,kz,j)
+            ri(i,kz) = -gti*therm(i)*za(i,kz,j)/(th10(i,j)*vvl)
           end if
         end do
  
 !       ******   recompute richardson no. at other model levels
-        do k = kx - 1 , kt , -1
-          do i = 2 , ixm1
+        do k = kz - 1 , kt , -1
+          do i = 2 , iym1
             if ( hfxv(i,j).gt.0. ) then
               tlv = th10(i,j) + therm(i)
               tkv = thx3d(i,k,j)                                        &
@@ -167,9 +167,9 @@
  
 !       ******   improve estimate of bl height under convective
 !       conditions ******   using convective temperature excess (therm)
-        do k = kx , kt + 1 , -1
+        do k = kz , kt + 1 , -1
           k2 = k - 1
-          do i = 2 , ixm1
+          do i = 2 , iym1
             if ( hfxv(i,j).gt.0. ) then
 !     ******   bl height lies between this level and the last
 !     ******   use linear interp. of rich. no. to height of ri=ricr
@@ -180,7 +180,7 @@
           end do
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           if ( hfxv(i,j).gt.0. ) then
 !     ******   set bl top to highest allowable model layer
             if ( ri(i,kt).lt.ricr ) zpbl(i,j) = za(i,kt,j)
@@ -188,19 +188,19 @@
         end do
  
 !       ******   limit bl height to be at least mech. mixing depth
-        do i = 2 , ixm1
+        do i = 2 , iym1
 !         ******   limit coriolis parameter to value at 10 deg. latitude
           pfcor = dmax1(dabs(f(i,j)),2.546D-5)
 !         ******   compute mechanical mixing depth,
 !         ******   set to lowest model level if lower
           phpblm = 0.07*ustr(i,j)/pfcor
-          phpblm = dmax1(phpblm,za(i,kx,j))
+          phpblm = dmax1(phpblm,za(i,kz,j))
           zpbl(i,j) = dmax1(zpbl(i,j),phpblm)
         end do
  
-        do k = kx , kt + 1 , -1
+        do k = kz , kt + 1 , -1
           k2 = k - 1
-          do i = 2 , ixm1
+          do i = 2 , iym1
             pblk = 0.0
             zm = za(i,k,j)
             zp = za(i,k2,j)

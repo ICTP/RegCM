@@ -30,15 +30,15 @@
 
 ! Point in X (longitude) direction
 
-      integer , parameter :: ix = 34
+      integer , parameter :: iy = 120
 
 ! Point in Y (latitude) direction
 
-      integer , parameter :: jx = 48
+      integer , parameter :: jx = 128
 
 ! Point in vertical
 
-      integer , parameter :: kx = 18
+      integer , parameter :: kz = 18
 
 !###################### I/O control flag ###############################
 
@@ -60,7 +60,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 16
+      integer , parameter :: nproc = 32
 
 ! Point in Y (latitude) direction
 
@@ -136,26 +136,26 @@
 !    calculated from above or should be considered as fixed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      integer , parameter :: ixm1 = ix - 1
-      integer , parameter :: ixm2 = ix - 2
-      integer , parameter :: ixm3 = ix - 3
+      integer , parameter :: iym1 = iy - 1
+      integer , parameter :: iym2 = iy - 2
+      integer , parameter :: iym3 = iy - 3
 
       integer , parameter :: jxp1 = jx + 1
       integer , parameter :: jxm1 = jx - 1
       integer , parameter :: jxm2 = jx - 2
 
-      integer , parameter :: kxm1 = kx - 1
-      integer , parameter :: kxm2 = kx - 2
-      integer , parameter :: kxp1 = kx + 1
-      integer , parameter :: kxp2 = kx + 2
-      integer , parameter :: kxp3 = kx + 3
-      integer , parameter :: kxp4 = kx + 4
+      integer , parameter :: kzm1 = kz - 1
+      integer , parameter :: kzm2 = kz - 2
+      integer , parameter :: kzp1 = kz + 1
+      integer , parameter :: kzp2 = kz + 2
+      integer , parameter :: kzp3 = kz + 3
+      integer , parameter :: kzp4 = kz + 4
 
-      integer , parameter :: ixsg = ix * nsg
+      integer , parameter :: iysg = iy * nsg
       integer , parameter :: jxsg = jx * nsg
-      integer , parameter :: ixm1sg = (ix-1) * nsg
+      integer , parameter :: iym1sg = (iy-1) * nsg
       integer , parameter :: jxm1sg = (jx-1) * nsg
-      integer , parameter :: ixm2sg = (ix-2) * nsg
+      integer , parameter :: iym2sg = (iy-2) * nsg
       integer , parameter :: jxm2sg = (jx-2) * nsg
 #ifdef MPP1
       integer , parameter :: jxpsg = jxp * nsg

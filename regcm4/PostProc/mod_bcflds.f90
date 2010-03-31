@@ -19,7 +19,7 @@
 
       module mod_bcflds
 
-      use mod_regcm_param , only : jxm2 , ixm2 , kx
+      use mod_regcm_param , only : jxm2 , iym2 , kz
       use mod_postproc_param , only : nhrbc , npl
 
       implicit none
@@ -33,13 +33,13 @@
       integer , parameter :: nbc3d = ni3d + ni3d2
       integer , parameter :: nitot = nbc3d + nbc2d
 
-      real(4) , dimension(jxm2,ixm2,nbc2d,nhrbc) :: i2davg
-      real(4) , dimension(jxm2,ixm2,kx,nbc3d,nhrbc) :: i3davg
-      real(4) , dimension(jxm2,ixm2,nbc2d) :: ifld2d
-      real(4) , dimension(jxm2,ixm2,kx,nbc3d) :: ifld3d
+      real(4) , dimension(jxm2,iym2,nbc2d,nhrbc) :: i2davg
+      real(4) , dimension(jxm2,iym2,kz,nbc3d,nhrbc) :: i3davg
+      real(4) , dimension(jxm2,iym2,nbc2d) :: ifld2d
+      real(4) , dimension(jxm2,iym2,kz,nbc3d) :: ifld3d
 
-      real(4) , dimension(jxm2,ixm2,npl,nbc3d,nhrbc) :: i3davg_p
-      real(4) , dimension(jxm2,ixm2,npl,nbc3d) :: ifld3d_p
+      real(4) , dimension(jxm2,iym2,npl,nbc3d,nhrbc) :: i3davg_p
+      real(4) , dimension(jxm2,iym2,npl,nbc3d) :: ifld3d_p
 
       contains
 
@@ -57,7 +57,7 @@
 ! Local variables
 !
       integer :: i , j , k , kk , ni
-      real(4) , dimension(jxm2,ixm2) :: tmp2d
+      real(4) , dimension(jxm2,iym2) :: tmp2d
 !
       print * , ''
       ierr = 0
@@ -66,20 +66,20 @@
       if ( ierr/=0 ) return
 !     print *,'Reading ICBC:  ',idate
       do ni = 1 , ni3d
-        do k = 1 , kx
+        do k = 1 , kz
           irec = irec + 1
           read (iin,rec=irec,iostat=ierr) tmp2d
           if ( ierr/=0 ) return
-          kk = kx - k + 1
+          kk = kz - k + 1
           if ( ni==nui .or. ni==nvi ) then
-            do j = 1 , ixm2
+            do j = 1 , iym2
               do i = 1 , jxm2
                 ifld3d(i,j,kk,ni) = 0.25*(tmp2d(i+2,j+2)+tmp2d(i+1,j+1)+&
                                   & tmp2d(i+1,j+2)+tmp2d(i+2,j+1))
               end do
             end do
           else
-            do j = 1 , ixm2
+            do j = 1 , iym2
               do i = 1 , jxm2
                 ifld3d(i,j,kk,ni) = tmp2d(i+1,j+1)
 !               ifld3d(i,j,k,ni) = tmp2d(i+1,j+1)
@@ -92,7 +92,7 @@
         irec = irec + 1
         read (iin,rec=irec,iostat=ierr) tmp2d
         if ( ierr/=0 ) return
-        do j = 1 , ixm2
+        do j = 1 , iym2
           do i = 1 , jxm2
             if ( ni==npsi ) then
               ifld2d(i,j,ni) = tmp2d(i+1,j+1)*10.
@@ -221,12 +221,12 @@
       real(4) , dimension(nitot) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
       character(64) , dimension(nitot) :: lnambc
-      real(4) , dimension(kx) :: sighrev
+      real(4) , dimension(kz) :: sighrev
       character(64) , dimension(nitot) :: ubc
       integer , dimension(nitot) :: u_bc
       character(64) , dimension(nitot) :: vnambc
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2) :: xlat1d
+      real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
       intent (in) ndim , lpl , u_bc , xmax , xmin
 !
@@ -234,26 +234,26 @@
 !
       integer :: i , j , k , ni , nni
       real(4) :: misdat , vmax , vmin
-      real(4) , dimension(jxm2,ixm2) :: tmp2d
-      real(4) , dimension(jxm2,ixm2,kx) :: tmp3d
-      real(4) , dimension(jxm2,ixm2,npl) :: tmp3d_p
+      real(4) , dimension(jxm2,iym2) :: tmp2d
+      real(4) , dimension(jxm2,iym2,kz) :: tmp3d
+      real(4) , dimension(jxm2,iym2,npl) :: tmp3d_p
 !
 !     **** WRITE OUT 3-D FIELDS IN NetCDF FORMAT **** c
       if ( .not.lpl ) then
-        iadm(3) = kx
-        call setconst(tmp3d,vmisdat,jxm2,ixm2,kx,1,1,1,jxm2,1,ixm2)
+        iadm(3) = kz
+        call setconst(tmp3d,vmisdat,jxm2,iym2,kz,1,1,1,jxm2,1,iym2)
         do ni = 1 , nbc3d
           if ( u_bc(ni)==1 ) then
 !           print*,ni,vnambc(ni)
-            do k = 1 , kx
-              do j = 1 , ixm2
+            do k = 1 , kz
+              do j = 1 , iym2
                 do i = 1 , jxm2
                   tmp3d(i,j,k) = max(ifld3d(i,j,k,ni),vmisdat)
                 end do
               end do
             end do
             if ( iobctyp==1 ) then
-              call getminmax(tmp3d,jxm2,ixm2,kx,vmin,vmax,vmisdat)
+              call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
               if ( vmin<xmin(ni) .or. vmax>xmax(ni) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnambc(ni)
                 print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ni)
@@ -266,31 +266,31 @@
             else
             end if
             if ( iobctyp==1 .or. iobctyp==2 ) then
-              call writecdf(idout,vnambc(ni),tmp3d,jxm2,ixm2,kx,iadm,   &
+              call writecdf(idout,vnambc(ni),tmp3d,jxm2,iym2,kz,iadm,   &
                           & xhr,lnambc(ni),ubc(ni),fact(ni),offset(ni), &
                           & vvarmin,vvarmax,xlat1d,xlon1d,sighrev,0,    &
                           & misdat,iobctyp)
             else if ( iobctyp==3 ) then
-              call writegrads(iunt,tmp3d,jxm2,ixm2,kx,nrec)
+              call writegrads(iunt,tmp3d,jxm2,iym2,kz,nrec)
             else
             end if
           end if
         end do
       else
         iadm(3) = npl
-        call setconst(tmp3d_p,vmisdat,jxm2,ixm2,npl,1,1,1,jxm2,1,ixm2)
+        call setconst(tmp3d_p,vmisdat,jxm2,iym2,npl,1,1,1,jxm2,1,iym2)
         do ni = 1 , nbc3d
           if ( u_bc(ni)==1 ) then
 !           print*,ni,vnambc(ni)
             do k = 1 , npl
-              do j = 1 , ixm2
+              do j = 1 , iym2
                 do i = 1 , jxm2
                   tmp3d_p(i,j,k) = max(ifld3d_p(i,j,k,ni),vmisdat)
                 end do
               end do
             end do
             if ( iobctyp==1 ) then
-              call getminmax(tmp3d_p,jxm2,ixm2,npl,vmin,vmax,vmisdat)
+              call getminmax(tmp3d_p,jxm2,iym2,npl,vmin,vmax,vmisdat)
               if ( vmin<xmin(ni) .or. vmax>xmax(ni) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnambc(ni)
                 print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ni)
@@ -303,12 +303,12 @@
             else
             end if
             if ( iobctyp==1 .or. iobctyp==2 ) then
-              call writecdf(idout,vnambc(ni),tmp3d_p,jxm2,ixm2,npl,iadm,&
+              call writecdf(idout,vnambc(ni),tmp3d_p,jxm2,iym2,npl,iadm,&
                           & xhr,lnambc(ni),ubc(ni),fact(ni),offset(ni), &
                           & vvarmin,vvarmax,xlat1d,xlon1d,plev,0,misdat,&
                           & iobctyp)
             else if ( iobctyp==3 ) then
-              call writegrads(iunt,tmp3d_p,jxm2,ixm2,npl,nrec)
+              call writegrads(iunt,tmp3d_p,jxm2,iym2,npl,nrec)
             else
             end if
           end if
@@ -316,19 +316,19 @@
       end if
 !     **** WRITE OUT 2-D FIELDS IN NetCDF FORMAT **** c
       iadm(3) = 1
-      call setconst(tmp2d,vmisdat,jxm2,ixm2,1,1,1,1,jxm2,1,ixm2)
+      call setconst(tmp2d,vmisdat,jxm2,iym2,1,1,1,1,jxm2,1,iym2)
       do ni = 1 , nbc2d
         nni = ni + nbc3d
         if ( u_bc(nni)==1 ) then
 !         print*,ni,nni,vnambc(nni)
-          do j = 1 , ixm2
+          do j = 1 , iym2
             do i = 1 , jxm2
               tmp2d(i,j) = max(ifld2d(i,j,ni),vmisdat)
             end do
           end do
           if ( iobctyp==1 ) then
             misdat = xmin(ni)
-            call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+            call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
             if ( vmin<xmin(nni) .or. vmax>xmax(nni) ) then
               print * , 'Values Out of Range:  FIELD=' , vnambc(nni)
               print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nni)
@@ -340,12 +340,12 @@
           else
           end if
           if ( iobctyp==1 .or. iobctyp==2 ) then
-            call writecdf(idout,vnambc(nni),tmp2d,jxm2,ixm2,1,iadm,xhr, &
+            call writecdf(idout,vnambc(nni),tmp2d,jxm2,iym2,1,iadm,xhr, &
                         & lnambc(nni),ubc(nni),fact(nni),offset(nni),   &
                         & vvarmin,vvarmax,xlat1d,xlon1d,sighrev,0,      &
                         & misdat,iobctyp)
           else if ( iobctyp==3 ) then
-            call writegrads(iunt,tmp2d,jxm2,ixm2,1,nrec)
+            call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
           else
           end if
         end if
@@ -372,12 +372,12 @@
       integer , dimension(ndim) :: iadm
       character(64) , dimension(nitot) :: lnambc
       integer , dimension(nhrbc) :: nbctime
-      real(4) , dimension(kx) :: sighrev
+      real(4) , dimension(kz) :: sighrev
       character(64) , dimension(nitot) :: ubc
       integer , dimension(nitot) :: u_bc
       character(64) , dimension(nitot) :: vnambc
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2) :: xlat1d
+      real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
       intent (in) nbctime , ndim , plv , u_bc , xhr1 , xmax , xmin
 !
@@ -385,9 +385,9 @@
 !
       integer :: i , ihr , j , k , ni , nni
       real(4) :: misdat , vmax , vmin , xntimes
-      real(4) , dimension(jxm2,ixm2) :: tmp2d
-      real(4) , dimension(jxm2,ixm2,kx) :: tmp3d
-      real(4) , dimension(jxm2,ixm2,npl) :: tmp3d_p
+      real(4) , dimension(jxm2,iym2) :: tmp2d
+      real(4) , dimension(jxm2,iym2,kz) :: tmp3d
+      real(4) , dimension(jxm2,iym2,npl) :: tmp3d_p
       real(8) :: xhravg
 !
       print * , 'COMPUTING AVERAGE ICBC FIELDS:' , nbctime
@@ -395,16 +395,16 @@
       print * , 'xhravg=' , xhravg
 !     **** WRITE ICBC AVERAGED 3-D FIELDS IN NetCDF FORMAT **** c
       if ( .not.plv ) then
-        iadm(3) = kx
-        call setconst(tmp3d,vmisdat,jxm2,ixm2,kx,1,1,1,jxm2,1,ixm2)
+        iadm(3) = kz
+        call setconst(tmp3d,vmisdat,jxm2,iym2,kz,1,1,1,jxm2,1,iym2)
         do ni = 1 , nbc3d
           if ( u_bc(ni)==1 ) then
 !           print*,vnambc(ni)
-            call setconst(tmp3d,0.0,jxm2,ixm2,kx,1,1,1,jxm2,1,ixm2)
+            call setconst(tmp3d,0.0,jxm2,iym2,kz,1,1,1,jxm2,1,iym2)
             do ihr = 1 , nhrbc
               xntimes = 1./float(nbctime(ihr)*nhrbc)
-              do k = 1 , kx
-                do j = 1 , ixm2
+              do k = 1 , kz
+                do j = 1 , iym2
                   do i = 1 , jxm2
                     if ( i3davg(i,j,k,ni,ihr)>vmisdat ) then
                       tmp3d(i,j,k) = tmp3d(i,j,k) + i3davg(i,j,k,ni,ihr)&
@@ -418,7 +418,7 @@
               end do
             end do
             if ( iobctyp==1 ) then
-              call getminmax(tmp3d,jxm2,ixm2,kx,vmin,vmax,vmisdat)
+              call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
               if ( vmin<xmin(ni) .or. vmax>xmax(ni) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnambc(ni)
                 print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ni)
@@ -431,27 +431,27 @@
             else
             end if
             if ( iobctyp==1 .or. iobctyp==2 ) then
-              call writecdf(idout,vnambc(ni),tmp3d,jxm2,ixm2,kx,iadm,   &
+              call writecdf(idout,vnambc(ni),tmp3d,jxm2,iym2,kz,iadm,   &
                           & xhravg,lnambc(ni),ubc(ni),fact(ni),         &
                           & offset(ni),vvarmin,vvarmax,xlat1d,xlon1d,   &
                           & sighrev,0,misdat,iobctyp)
             else if ( iobctyp==3 ) then
-              call writegrads(iunt,tmp3d,jxm2,ixm2,kx,nrec)
+              call writegrads(iunt,tmp3d,jxm2,iym2,kz,nrec)
             else
             end if
           end if
         end do
       else
         iadm(3) = npl
-        call setconst(tmp3d_p,vmisdat,jxm2,ixm2,npl,1,1,1,jxm2,1,ixm2)
+        call setconst(tmp3d_p,vmisdat,jxm2,iym2,npl,1,1,1,jxm2,1,iym2)
         do ni = 1 , nbc3d
           if ( u_bc(ni)==1 ) then
 !           print*,vnambc(ni)
-            call setconst(tmp3d_p,0.0,jxm2,ixm2,npl,1,1,1,jxm2,1,ixm2)
+            call setconst(tmp3d_p,0.0,jxm2,iym2,npl,1,1,1,jxm2,1,iym2)
             do ihr = 1 , nhrbc
               xntimes = 1./float(nbctime(ihr)*nhrbc)
               do k = 1 , npl
-                do j = 1 , ixm2
+                do j = 1 , iym2
                   do i = 1 , jxm2
                     if ( i3davg_p(i,j,k,ni,ihr)>vmisdat ) then
                       tmp3d_p(i,j,k) = tmp3d_p(i,j,k)                   &
@@ -465,7 +465,7 @@
               end do
             end do
             if ( iobctyp==1 ) then
-              call getminmax(tmp3d_p,jxm2,ixm2,npl,vmin,vmax,vmisdat)
+              call getminmax(tmp3d_p,jxm2,iym2,npl,vmin,vmax,vmisdat)
               if ( vmin<xmin(ni) .or. vmax>xmax(ni) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnambc(ni)
                 print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ni)
@@ -478,12 +478,12 @@
             else
             end if
             if ( iobctyp==1 .or. iobctyp==2 ) then
-              call writecdf(idout,vnambc(ni),tmp3d_p,jxm2,ixm2,npl,iadm,&
+              call writecdf(idout,vnambc(ni),tmp3d_p,jxm2,iym2,npl,iadm,&
                           & xhravg,lnambc(ni),ubc(ni),fact(ni),         &
                           & offset(ni),vvarmin,vvarmax,xlat1d,xlon1d,   &
                           & plev,0,misdat,iobctyp)
             else if ( iobctyp==3 ) then
-              call writegrads(iunt,tmp3d_p,jxm2,ixm2,npl,nrec)
+              call writegrads(iunt,tmp3d_p,jxm2,iym2,npl,nrec)
             else
             end if
           end if
@@ -495,10 +495,10 @@
         nni = nbc3d + ni
         if ( u_bc(nni)==1 ) then
 !         print*,vnambc(nni)
-          call setconst(tmp2d,0.0,jxm2,ixm2,1,1,1,1,jxm2,1,ixm2)
+          call setconst(tmp2d,0.0,jxm2,iym2,1,1,1,1,jxm2,1,iym2)
           do ihr = 1 , nhrbc
             xntimes = 1./float(nbctime(ihr)*nhrbc)
-            do j = 1 , ixm2
+            do j = 1 , iym2
               do i = 1 , jxm2
                 if ( i2davg(i,j,ni,ihr)>vmisdat ) then
                   tmp2d(i,j) = tmp2d(i,j) + i2davg(i,j,ni,ihr)*xntimes
@@ -510,7 +510,7 @@
             end do
           end do
           if ( iobctyp==1 ) then
-            call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+            call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
             if ( vmin<xmin(nni) .or. vmax>xmax(nni) ) then
               print * , 'Values Out of Range:  FIELD=' , vnambc(nni)
               print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nni)
@@ -523,12 +523,12 @@
           else
           end if
           if ( iobctyp==1 .or. iobctyp==2 ) then
-            call writecdf(idout,vnambc(nni),tmp2d,jxm2,ixm2,1,iadm,     &
+            call writecdf(idout,vnambc(nni),tmp2d,jxm2,iym2,1,iadm,     &
                         & xhravg,lnambc(nni),ubc(nni),fact(nni),        &
                         & offset(nni),vvarmin,vvarmax,xlat1d,xlon1d,    &
                         & sighrev,0,misdat,iobctyp)
           else if ( iobctyp==3 ) then
-            call writegrads(iunt,tmp2d,jxm2,ixm2,1,nrec)
+            call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
           else
           end if
         end if
@@ -554,12 +554,12 @@
       integer , dimension(ndim) :: iadm
       character(64) , dimension(nitot) :: lnambc
       integer , dimension(nhrbc) :: nbctime
-      real(4) , dimension(kx) :: sighrev
+      real(4) , dimension(kz) :: sighrev
       character(64) , dimension(nitot) :: ubc
       integer , dimension(nitot) :: u_bc
       character(64) , dimension(nitot) :: vnambc
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2) :: xlat1d
+      real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
       intent (in) nbctime , ndim , plv , u_bc , xhr1 , xmax , xmin
 !
@@ -567,17 +567,17 @@
 !
       integer :: i , ihr , j , k , ni , nni
       real(4) :: misdat , vmax , vmin , xntimes
-      real(4) , dimension(jxm2,ixm2) :: tmp2d
-      real(4) , dimension(jxm2,ixm2,kx) :: tmp3d
-      real(4) , dimension(jxm2,ixm2,npl) :: tmp3d_p
+      real(4) , dimension(jxm2,iym2) :: tmp2d
+      real(4) , dimension(jxm2,iym2,kz) :: tmp3d
+      real(4) , dimension(jxm2,iym2,npl) :: tmp3d_p
       real(8) :: xhravg
 !
       print * , 'COMPUTING AVERAGE FIELDS FOR DIURNAL OUTPUT:' , nbctime
  
 !     **** WRITE ICBC AVERAGED 3-D FIELDS IN NetCDF FORMAT **** c
       if ( .not.plv ) then
-        iadm(3) = kx
-        call setconst(tmp3d,vmisdat,jxm2,ixm2,kx,1,1,1,jxm2,1,ixm2)
+        iadm(3) = kz
+        call setconst(tmp3d,vmisdat,jxm2,iym2,kz,1,1,1,jxm2,1,iym2)
         do ni = 1 , nbc3d
           if ( u_bc(ni)==1 ) then
 !           print*,vnambc(ni)
@@ -589,8 +589,8 @@
                 print * , 'NOTHING TO AVERAGE -- nbctime = 0'
                 stop 999
               end if
-              do k = 1 , kx
-                do j = 1 , ixm2
+              do k = 1 , kz
+                do j = 1 , iym2
                   do i = 1 , jxm2
                     if ( i3davg(i,j,k,ni,ihr)>vmisdat ) then
                       tmp3d(i,j,k) = i3davg(i,j,k,ni,ihr)*xntimes
@@ -602,7 +602,7 @@
                 end do
               end do
               if ( iobctyp==1 ) then
-                call getminmax(tmp3d,jxm2,ixm2,kx,vmin,vmax,vmisdat)
+                call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
                 if ( vmin<xmin(ni) .or. vmax>xmax(ni) ) then
                   print * , 'Values Out of Range:  FIELD=' , vnambc(ni)
                   print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ni)
@@ -615,12 +615,12 @@
               else
               end if
               if ( iobctyp==1 .or. iobctyp==2 ) then
-                call writecdf(idout,vnambc(ni),tmp3d,jxm2,ixm2,kx,iadm, &
+                call writecdf(idout,vnambc(ni),tmp3d,jxm2,iym2,kz,iadm, &
                             & xhravg,lnambc(ni),ubc(ni),fact(ni),       &
                             & offset(ni),vvarmin,vvarmax,xlat1d,xlon1d, &
                             & sighrev,0,misdat,iobctyp)
               else if ( iobctyp==3 ) then
-                call writegrads(iunt,tmp3d,jxm2,ixm2,kx,nrec)
+                call writegrads(iunt,tmp3d,jxm2,iym2,kz,nrec)
               else
               end if
             end do
@@ -628,7 +628,7 @@
         end do
       else
         iadm(3) = npl
-        call setconst(tmp3d_p,vmisdat,jxm2,ixm2,npl,1,1,1,jxm2,1,ixm2)
+        call setconst(tmp3d_p,vmisdat,jxm2,iym2,npl,1,1,1,jxm2,1,iym2)
         do ni = 1 , nbc3d
           if ( u_bc(ni)==1 ) then
 !           print*,vnambc(ni)
@@ -641,7 +641,7 @@
                 stop 999
               end if
               do k = 1 , npl
-                do j = 1 , ixm2
+                do j = 1 , iym2
                   do i = 1 , jxm2
                     if ( i3davg_p(i,j,k,ni,ihr)>vmisdat ) then
                       tmp3d_p(i,j,k) = i3davg_p(i,j,k,ni,ihr)*xntimes
@@ -653,7 +653,7 @@
                 end do
               end do
               if ( iobctyp==1 ) then
-                call getminmax(tmp3d_p,jxm2,ixm2,npl,vmin,vmax,vmisdat)
+                call getminmax(tmp3d_p,jxm2,iym2,npl,vmin,vmax,vmisdat)
                 if ( vmin<xmin(ni) .or. vmax>xmax(ni) ) then
                   print * , 'Values Out of Range:  FIELD=' , vnambc(ni)
                   print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ni)
@@ -666,12 +666,12 @@
               else
               end if
               if ( iobctyp==1 .or. iobctyp==2 ) then
-                call writecdf(idout,vnambc(ni),tmp3d_p,jxm2,ixm2,npl,   &
+                call writecdf(idout,vnambc(ni),tmp3d_p,jxm2,iym2,npl,   &
                             & iadm,xhravg,lnambc(ni),ubc(ni),fact(ni),  &
                             & offset(ni),vvarmin,vvarmax,xlat1d,xlon1d, &
                             & plev,0,misdat,iobctyp)
               else if ( iobctyp==3 ) then
-                call writegrads(iunt,tmp3d_p,jxm2,ixm2,npl,nrec)
+                call writegrads(iunt,tmp3d_p,jxm2,iym2,npl,nrec)
               else
               end if
  
@@ -695,7 +695,7 @@
               print * , 'NOTHING TO AVERAGE -- nbctime = 0'
               stop 999
             end if
-            do j = 1 , ixm2
+            do j = 1 , iym2
               do i = 1 , jxm2
                 if ( i2davg(i,j,ni,ihr)>vmisdat ) then
                   tmp2d(i,j) = i2davg(i,j,ni,ihr)*xntimes
@@ -706,7 +706,7 @@
               end do
             end do
             if ( iobctyp==1 ) then
-              call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+              call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
               if ( vmin<xmin(nni) .or. vmax>xmax(nni) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnambc(nni)
                 print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nni)
@@ -718,7 +718,7 @@
               misdat = vmisdat
             else
             end if
-            call writecdf(idout,vnambc(nni),tmp2d,jxm2,ixm2,1,iadm,     &
+            call writecdf(idout,vnambc(nni),tmp2d,jxm2,iym2,1,iadm,     &
                         & xhravg,lnambc(nni),ubc(nni),fact(nni),        &
                         & offset(nni),vvarmin,vvarmax,xlat1d,xlon1d,    &
                         & sighrev,0,misdat,iobctyp)

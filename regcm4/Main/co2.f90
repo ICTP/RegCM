@@ -52,13 +52,13 @@
 !
 ! Local variables
 !
-      real(8) , dimension(nnsg,ixm1) :: cari
+      real(8) , dimension(nnsg,iym1) :: cari
       integer :: n , i
       real(8) :: rap , resps , rmp , rsp , rt
       real(8), external :: carbon
  
       rmp = 800.0
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then
@@ -74,7 +74,7 @@
         end do
       end do
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then

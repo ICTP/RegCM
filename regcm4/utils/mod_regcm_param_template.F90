@@ -16,31 +16,51 @@
 !    along with RegCM model.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!  this is for 048x052
 !
       module mod_regcm_param
+
       implicit none
 !
 ! PARAMETER definitions
 !
 
+!
+!################### GRID DIMENSION ####################################
+!
+
 ! Point in X (longitude) direction
 
-      integer , parameter :: ix = 52
+      integer , parameter :: iy = 120
 
 ! Point in Y (latitude) direction
 
-      integer , parameter :: jx = 48
+      integer , parameter :: jx = 128
 
 ! Point in vertical
 
-      integer , parameter :: kx = 18
+      integer , parameter :: kz = 18
+
+!###################### I/O control flag ###############################
+
+! Create GrADS CTL files
+
+      integer , parameter :: igrads = 1
+
+! Machine endianess. LEAVE IT UNTOUCHED IF WANT TO EXCHANGE I/O FILES
+
+      integer , parameter :: ibigend = 1
+
+! Number of bytes in reclen. Usually 4
+
+      integer , parameter :: ibyte = 4
+
+!####################### MPI parameters ################################
 
 #ifdef MPP1
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 8
+      integer , parameter :: nproc = 32
 
 ! Point in Y (latitude) direction
 
@@ -51,13 +71,8 @@
 ! Sub grid decomposition
 
       integer , parameter :: nsg = 1
-      integer , parameter :: nnsg = 1
 
-! Number of bytes in reclen. Usually 4
-
-      integer , parameter :: ibyte = 4
-
-! Set amount of printout
+! Set amount of printout (still unused, sorry)
 
       integer , parameter :: debug_level = 1
 
@@ -76,15 +91,38 @@
 
       integer , parameter :: lkpts = 10
 
-! BATS parameters
+! Type of global analysis datasets used in Pre processing
+!
+! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
+!         NRP2W,GFS11,FVGCM,FNEST,EH5OM
+!
 
-      integer , parameter :: np1 = 2
+      character(5) , parameter :: dattyp = 'EIN15'
 
-      character(5) , parameter :: dattyp = 'ERAIN'
+! SO4 Control Flag
 
       logical , parameter :: ehso4 = .false.
 
+! Land Surface Legend type
+!
+! WARNING : SET TOGETHER lsmtyp and nveg. THEY MUST BE CONSISTENT.
+!
+! lsmtyp -> One in : BATS,USGS
+! nveg   -> Set to 20 for BATS, 25 for USGS
+
       character(4) , parameter :: lsmtyp = 'BATS'
+      integer , parameter :: nveg = 20
+
+! Aerosol dataset used
+!
+! One in : AER00D0 -> Neither aerosol, nor dust used
+!          AER01D0 -> Biomass, SO2 + BC + OC, no dust
+!          AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
+!          AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
+!          AER00D1 -> No aerosol, with dust
+!          AER01D1 -> Biomass, SO2 + BC + OC, with dust
+!          AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
+!          AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
 
       character(7) , parameter :: aertyp = 'AER00D0'
 
@@ -95,31 +133,45 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! End of configureation. Below this point things are
-!    calculated from above
+!    calculated from above or should be considered as fixed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      integer , parameter :: ixm1 = ix - 1
-      integer , parameter :: ixm2 = ix - 2
-      integer , parameter :: ixm3 = ix - 3
+      integer , parameter :: iym1 = iy - 1
+      integer , parameter :: iym2 = iy - 2
+      integer , parameter :: iym3 = iy - 3
 
       integer , parameter :: jxp1 = jx + 1
       integer , parameter :: jxm1 = jx - 1
       integer , parameter :: jxm2 = jx - 2
 
-      integer , parameter :: kxm1 = kx - 1
-      integer , parameter :: kxm2 = kx - 2
-      integer , parameter :: kxp1 = kx + 1
-      integer , parameter :: kxp2 = kx + 2
-      integer , parameter :: kxp3 = kx + 3
-      integer , parameter :: kxp4 = kx + 4
+      integer , parameter :: kzm1 = kz - 1
+      integer , parameter :: kzm2 = kz - 2
+      integer , parameter :: kzp1 = kz + 1
+      integer , parameter :: kzp2 = kz + 2
+      integer , parameter :: kzp3 = kz + 3
+      integer , parameter :: kzp4 = kz + 4
 
+      integer , parameter :: iysg = iy * nsg
+      integer , parameter :: jxsg = jx * nsg
+      integer , parameter :: iym1sg = (iy-1) * nsg
+      integer , parameter :: jxm1sg = (jx-1) * nsg
+      integer , parameter :: iym2sg = (iy-2) * nsg
+      integer , parameter :: jxm2sg = (jx-2) * nsg
+#ifdef MPP1
+      integer , parameter :: jxpsg = jxp * nsg
+#endif
+
+      integer , parameter :: nnsg = nsg*nsg
       integer , parameter :: nspgv = (nspgd+nspgx)*8 + 8
       integer , parameter :: nspgp = nspgx*4
-      integer , parameter :: nbmax = ix - 1
 
 #ifdef MPP1
-      integer :: myid , iwest , ieast
-      integer :: jbegin, jendl, jendx, jendm
+      integer :: myid
+      integer :: iwest , ieast , isouth , inorth
+      integer :: jbegin , ibegin
+      integer :: jendl , iendl
+      integer :: jendx , iendx
+      integer :: jendm , iendm
 #endif
 
       integer , dimension(289276) :: mdatez

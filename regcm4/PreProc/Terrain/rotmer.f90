@@ -17,16 +17,16 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine rotmer(xlon,xlat,xmap,coriol,ix,jx,clon,clat,pollon,   &
+      subroutine rotmer(xlon,xlat,xmap,coriol,iy,jx,clon,clat,pollon,   &
                       & pollat,ds,idot)
       implicit none
 !
 ! Dummy arguments
 !
       real(4) :: clat , clon , ds , pollat , pollon
-      integer :: idot , ix , jx
-      real(4) , dimension(ix,jx) :: coriol , xlat , xlon , xmap
-      intent (in) clat , clon , ds , idot , ix , jx
+      integer :: idot , iy , jx
+      real(4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+      intent (in) clat , clon , ds , idot , iy , jx
       intent (out) coriol , xlon , xmap
       intent (inout) xlat
 !
@@ -54,13 +54,13 @@
       re = 6.371229D+06                ! RADIUS OF EARTH IN METERS
 !-----CENTER OF GRID
       cntrj = (jx+idot)/2.
-      cntri = (ix+idot)/2.
+      cntri = (iy+idot)/2.
  
       ddeg = ds*r2d/re                 ! GRID SPACING IN DEGREES
       xoff = clon - pollon
       yoff = clat - pollat
 !-----CALCULATE X AND Y POSITIONS OF GRID
-      do i = 1 , ix
+      do i = 1 , iy
         do j = 1 , jx
           xr = xoff + (j-cntrj)*ddeg
           yr = yoff + (i-cntri)*ddeg
@@ -76,7 +76,7 @@
  
       if ( idot==1 ) then
         xomega2 = 2.*xomega
-        do i = 1 , ix
+        do i = 1 , iy
           do j = 1 , jx
             coriol(i,j) = xomega2*sin(xlat(i,j)*d2r)
           end do

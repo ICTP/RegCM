@@ -41,6 +41,7 @@
       use mod_slice
       use mod_pbldim
       use mod_bats
+      use mod_mppio
       use mod_constants
       use mod_interfaces
       implicit none
@@ -55,12 +56,12 @@
       real(8) :: mmpd , wpm2
       integer :: ci , cj , counter , i , ii , iii , j , jj , kk ,       &
                 & locid , n , nn1 , nnn , nout
-      real(8) , dimension(jxp,ix) :: r2cflwd , r2cpsb , r2cqb ,    &
+      real(8) , dimension(jxp,iy) :: r2cflwd , r2cpsb , r2cqb ,    &
                 & r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
                 & r2csolsd , r2ctb , r2cuxb , r2cvxb , r2czga
       real(4) :: real_4
-      real(8) , dimension(jxp*ix*13) :: workin
-      real(8) , dimension(jx*ix*13) :: workout
+      real(8) , dimension(jxp*iy*13) :: workin
+      real(8) , dimension(jx*iy*13) :: workout
       integer :: ierr
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -72,13 +73,13 @@
       if ( ivers==1 ) then
  
         locid = 1
-!       clm3 currently works on all ix,jx instead of 2-ilx and 2-jlx so
+!       clm3 currently works on all iy,jx instead of 2-ilx and 2-jlx so
 !       copy neighboring values for now
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
  
 !jlb        10/05 treat all variables identically. Copy i=2 to i=1 and
-!           i=ilx to i=ix. For myid = 0, copy j=2 to j=1. For myid =
+!           i=ilx to i=iy. For myid = 0, copy j=2 to j=1. For myid =
 !           nproc-1, copy j=jendx to j=jxp.
             if ( myid==0 .and. j==1 ) then
               cj = 2
@@ -89,21 +90,21 @@
             end if
             if ( i==1 ) then
               ci = 2
-            else if ( i==ix ) then
-              ci = ix - 1
+            else if ( i==iy ) then
+              ci = iy - 1
             else
               ci = i
             end if
  
 !           T(K) at bottom layer
-            r2ctb(j,i) = tb3d(ci,kx,cj)
+            r2ctb(j,i) = tb3d(ci,kz,cj)
 !           Specific Humidity ?
-            r2cqb(j,i) = qvb3d(ci,kx,cj)/(1+qvb3d(ci,kx,cj))
+            r2cqb(j,i) = qvb3d(ci,kz,cj)/(1+qvb3d(ci,kz,cj))
 !           Reference Height (m)
-            r2czga(j,i) = za(ci,kx,cj)
+            r2czga(j,i) = za(ci,kz,cj)+ht_io(ci,cj)
 !           Surface winds
-            r2cuxb(j,i) = ubx3d(ci,kx,cj)
-            r2cvxb(j,i) = vbx3d(ci,kx,cj)
+            r2cuxb(j,i) = ubx3d(ci,kz,cj)
+            r2cvxb(j,i) = vbx3d(ci,kz,cj)
 !           Surface Pressure in Pa from cbar
             r2cpsb(j,i) = (psb(ci,cj)+ptop)*1000.
 !           Rainfall
@@ -121,10 +122,10 @@
  
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c      cc
-!c      1. Copy 2d (jxp,ix) arrays to 1d work_in (jx*ix) array.      cc
+!c      1. Copy 2d (jxp,iy) arrays to 1d work_in (jx*iy) array.      cc
 !c      2. Gather jxp values of each nproc work_in array and fill     cc
-!c      work_out(jx*ix) array.                                   cc
-!c      3. Copy 1d work_out array to 2d (jx,ix) array for passing    cc
+!c      work_out(jx*iy) array.                                   cc
+!c      3. Copy 1d work_out array to 2d (jx,iy) array for passing    cc
 !c      to clm.                                                   cc
 !c      abt updated below 1/09                                        cc
 !c      UPDATE:  copy all r2c vars to one large array; this allows    cc
@@ -133,52 +134,52 @@
  
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             workin(ii) = r2ctb(j,i)
-            workin(ii+(jxp*ix)) = r2cqb(j,i)
-            workin(ii+(2*jxp*ix)) = r2czga(j,i)
-            workin(ii+(3*jxp*ix)) = r2cpsb(j,i)
-            workin(ii+(4*jxp*ix)) = r2cuxb(j,i)
-            workin(ii+(5*jxp*ix)) = r2cvxb(j,i)
-            workin(ii+(6*jxp*ix)) = r2crnc(j,i)
-            workin(ii+(7*jxp*ix)) = r2crnnc(j,i)
-            workin(ii+(8*jxp*ix)) = r2csols(j,i)
-            workin(ii+(9*jxp*ix)) = r2csoll(j,i)
-            workin(ii+(10*jxp*ix)) = r2csolsd(j,i)
-            workin(ii+(11*jxp*ix)) = r2csolld(j,i)
-            workin(ii+(12*jxp*ix)) = r2cflwd(j,i)
+            workin(ii+(jxp*iy)) = r2cqb(j,i)
+            workin(ii+(2*jxp*iy)) = r2czga(j,i)
+            workin(ii+(3*jxp*iy)) = r2cpsb(j,i)
+            workin(ii+(4*jxp*iy)) = r2cuxb(j,i)
+            workin(ii+(5*jxp*iy)) = r2cvxb(j,i)
+            workin(ii+(6*jxp*iy)) = r2crnc(j,i)
+            workin(ii+(7*jxp*iy)) = r2crnnc(j,i)
+            workin(ii+(8*jxp*iy)) = r2csols(j,i)
+            workin(ii+(9*jxp*iy)) = r2csoll(j,i)
+            workin(ii+(10*jxp*iy)) = r2csolsd(j,i)
+            workin(ii+(11*jxp*iy)) = r2csolld(j,i)
+            workin(ii+(12*jxp*iy)) = r2cflwd(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(workin,13*jxp*ix,mpi_double_precision,       &
-                         & workout,13*jxp*ix,mpi_double_precision,      &
+        call mpi_allgather(workin,13*jxp*iy,mpi_double_precision,       &
+                         & workout,13*jxp*iy,mpi_double_precision,      &
                          & mpi_comm_world,ierr)
  
         ii = 1
         kk = 1
         counter = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2ctb_all(j,i) = workout(ii)
-            r2cqb_all(j,i) = workout(ii+(jxp*ix))
-            r2czga_all(j,i) = workout(ii+(2*jxp*ix))
-            r2cpsb_all(j,i) = workout(ii+(3*jxp*ix))
-            r2cuxb_all(j,i) = workout(ii+(4*jxp*ix))
-            r2cvxb_all(j,i) = workout(ii+(5*jxp*ix))
-            r2crnc_all(j,i) = workout(ii+(6*jxp*ix))
-            r2crnnc_all(j,i) = workout(ii+(7*jxp*ix))
-            r2csols_all(j,i) = workout(ii+(8*jxp*ix))
-            r2csoll_all(j,i) = workout(ii+(9*jxp*ix))
-            r2csolsd_all(j,i) = workout(ii+(10*jxp*ix))
-            r2csolld_all(j,i) = workout(ii+(11*jxp*ix))
-            r2cflwd_all(j,i) = workout(ii+(12*jxp*ix))
+            r2cqb_all(j,i) = workout(ii+(jxp*iy))
+            r2czga_all(j,i) = workout(ii+(2*jxp*iy))
+            r2cpsb_all(j,i) = workout(ii+(3*jxp*iy))
+            r2cuxb_all(j,i) = workout(ii+(4*jxp*iy))
+            r2cvxb_all(j,i) = workout(ii+(5*jxp*iy))
+            r2crnc_all(j,i) = workout(ii+(6*jxp*iy))
+            r2crnnc_all(j,i) = workout(ii+(7*jxp*iy))
+            r2csols_all(j,i) = workout(ii+(8*jxp*iy))
+            r2csoll_all(j,i) = workout(ii+(9*jxp*iy))
+            r2csolsd_all(j,i) = workout(ii+(10*jxp*iy))
+            r2csolld_all(j,i) = workout(ii+(11*jxp*iy))
+            r2cflwd_all(j,i) = workout(ii+(12*jxp*iy))
             ii = ii + 1
             counter = counter + 1
           end do
-          if ( counter>jxp*ix ) then
+          if ( counter>jxp*iy ) then
             kk = kk + 1
             counter = 1
-            ii = jxp*(kk-1)*13*ix + 1
+            ii = jxp*(kk-1)*13*iy + 1
           end if
         end do
 
@@ -186,12 +187,12 @@
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c
-!c 1. Copy the parts of 2d (jx,ix) clm arrays that contain
-!c     data to 1d work_in (jx*ix) array.
+!c 1. Copy the parts of 2d (jx,iy) clm arrays that contain
+!c     data to 1d work_in (jx*iy) array.
 !c 2. Gather jxp values of each nproc work_in array and fill
-!c     work_out (jx*ix) array.
-!c 3. Copy 1d work_out array to 2d (jx,ix) array for passing
-!c     to nproc 2d (jxp,ix) arrays.
+!c     work_out (jx*iy) array.
+!c 3. Copy 1d work_out array to 2d (jx,iy) array for passing
+!c     to nproc 2d (jxp,iy) arrays.
 !c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
@@ -255,7 +256,7 @@
  
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c      cc
-!c      Fill nproc 2d (jxp,ix) arrays from full 2d (jx,ix) clm data. cc
+!c      Fill nproc 2d (jxp,iy) arrays from full 2d (jx,iy) clm data. cc
 !c      cc
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
@@ -276,10 +277,10 @@
         do j = jbegin , jendx
           jj = (jxp*myid) + j
  
-          call interf(1 , j , kx , 2 , ixm1 , nnsg)
-          if ( iocnflx==2 ) call zengocndrv(j, nnsg , 2 , ixm1 , kx)
+          call interf(1 , j , kz , 2 , iym1 , nnsg)
+          if ( iocnflx==2 ) call zengocndrv(j, nnsg , 2 , iym1 , kz)
  
-          do i = 2 , ixm1
+          do i = 2 , iym1
             ci = i
             uvdrag(i,j) = 0.0
             hfx(i,j) = 0.0
@@ -304,7 +305,7 @@
               tgbb(i,j) = c2rtgbb(jj,ci)
  
               if ( r2cdoalb ) coszrs2d(i,j) = c2rcosz(jj,ci)
-              if ( i<=ix-1 ) then
+              if ( i<=iy-1 ) then
                 aldirs2d(i,j) = c2ralbdirs(jj,ci)
                 aldirl2d(i,j) = c2ralbdirl(jj,ci)
                 aldifs2d(i,j) = c2ralbdifs(jj,ci)
@@ -600,7 +601,7 @@
  
 !!!!!!!!!!!!!!!! addition from new RegCM !!!!!!!!!!!!!!!!!!!
  
-          do i = 2 , ixm1
+          do i = 2 , iym1
             ci = i
  
             u10m_o(j,i-1) = 0.0
@@ -610,14 +611,14 @@
  
             do n = 1 , nnsg
               if ( ocld2d(n,i,j)>0.5 ) then
-                u10m_s(n,j,i-1) = ubx3d(i,kx,j)
-                v10m_s(n,j,i-1) = vbx3d(i,kx,j)
+                u10m_s(n,j,i-1) = ubx3d(i,kz,j)
+                v10m_s(n,j,i-1) = vbx3d(i,kz,j)
                 tg_s(n,j,i-1) = tg2d(n,i,j)
                 t2m_s(n,j,i-1) = taf2d(n,i,j)
 !               abt            u10m_o(j,i-1)= u10m_o(j,i-1)+ u10m1d(n,i)
 !               abt            v10m_o(j,i-1)= v10m_o(j,i-1)+ v10m1d(n,i)
-                u10m_o(j,i-1) = u10m_o(j,i-1) + ubx3d(i,kx,j)
-                v10m_o(j,i-1) = v10m_o(j,i-1) + vbx3d(i,kx,j)
+                u10m_o(j,i-1) = u10m_o(j,i-1) + ubx3d(i,kz,j)
+                v10m_o(j,i-1) = v10m_o(j,i-1) + vbx3d(i,kz,j)
                 t2m_o(j,i-1) = t2m_o(j,i-1) + taf2d(n,i,j)
                 tg_o(j,i-1) = tg_o(j,i-1) + tg2d(n,i,j)
               else if ( ocld2d(n,i,j)<0.5 ) then
@@ -665,7 +666,7 @@
               wpm2 = 1./(batfrq*3600.)
             end if
  
-            do i = 2 , ixm1
+            do i = 2 , iym1
               ci = i
  
               drag_o(j,i-1) = 0.0

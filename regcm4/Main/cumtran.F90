@@ -41,20 +41,20 @@
 #else
         do j = 2 , jxm1
 #endif
-          do i = 2 , ixm1
+          do i = 2 , iym1
             if ( icumtop(i,j).gt.0 ) then
               deltas = 0.
               chiabar = 0.
               chibbar = 0.
               kcumtop = max0(icumtop(i,j),4)
-              do k = kcumtop , kx
+              do k = kcumtop , kz
                 deltas = deltas + dsigma(k)
                 chiabar = chiabar + chia(i,k,j,n)*dsigma(k)
                 chibbar = chibbar + chib(i,k,j,n)*dsigma(k)
               end do
-!?            do 95 k=icumtop(i,j),kx      ! yhuang, 12/98
+!?            do 95 k=icumtop(i,j),kz      ! yhuang, 12/98
 !qhy
-              do k = kcumtop , kx
+              do k = kcumtop , kz
                 chia(i,k,j,n) = chia(i,k,j,n)*(1.-cumfrc)               &
                               & + cumfrc*chiabar/deltas
                 chib(i,k,j,n) = chib(i,k,j,n)*(1.-cumfrc)               &

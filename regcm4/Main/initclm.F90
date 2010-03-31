@@ -96,12 +96,12 @@
 ! Local variables
 !
       integer :: ci , cj , i , ii , j , je , jj , js , n , ierr
-      real(8) , dimension(jxp,ix) :: r2cflwd , r2cpsb , r2cqb ,         &
+      real(8) , dimension(jxp,iy) :: r2cflwd , r2cpsb , r2cqb ,         &
                 & r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
                 & r2csolsd , r2ctb , r2cuxb , r2cvxb , r2cxlat ,        &
                 & r2cxlatd , r2cxlon , r2cxlond , r2czga
-      real(r8) , dimension(jxp*ix) :: work_in
-      real(r8) , dimension(jx*ix) :: work_out
+      real(r8) , dimension(jxp*iy) :: work_in
+      real(r8) , dimension(jx*iy) :: work_out
 !
 !----------------------------------------------------------------------
 !     About the dimension ordering:
@@ -150,14 +150,14 @@
 !     Set landmask method
       r2cimask = imask
 !     Set elevation and BATS landuse type (abt added)
-      if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(ix,jx))
-      if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(ix,jx))
-      if ( .not.allocated(init_tgb) ) allocate(init_tgb(ix,jx))
-      if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,ix))
-      if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(ix,jx))
+      if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(iy,jx))
+      if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(iy,jx))
+      if ( .not.allocated(init_tgb) ) allocate(init_tgb(iy,jx))
+      if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
+      if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(iy,jx))
       if ( myid==0 ) then
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             ht_rcm(i,j) = ht_io(i,j)
             satbrt_clm(i,j) = satbrt_io(i,j)
             init_tgb(i,j) = ts0_io(i,j)
@@ -200,13 +200,13 @@
  
       do j = 1 , jxp
  
-!       clm3 currently works on all ix,jx instead of 2-ilx and 2-jlx so
+!       clm3 currently works on all iy,jx instead of 2-ilx and 2-jlx so
 !       copy neighboring values for now
 
-        do i = 1 , ix
+        do i = 1 , iy
  
 !         10/05 treat all variables identically. Copy i=2 to i=1 and
-!         i=ilx to i=ix. For myid = 0, copy j=2 to j=1. For myid =
+!         i=ilx to i=iy. For myid = 0, copy j=2 to j=1. For myid =
 !         nproc-1, copy j=jendx to j=jxp.
 
           if ( myid==0 .and. j==1 ) then
@@ -218,8 +218,8 @@
           end if
           if ( i==1 ) then
             ci = 2
-          else if ( i==ix ) then
-            ci = ix - 1
+          else if ( i==iy ) then
+            ci = iy - 1
           else
             ci = i
           end if
@@ -233,15 +233,15 @@
  
           if ( .not.ifrest ) then
 !           T(K) at bottom layer
-            r2ctb(j,i) = tb3d(ci,kx,cj)
+            r2ctb(j,i) = tb3d(ci,kz,cj)
 !           Specific Humidity
-            r2cqb(j,i) = qvb3d(ci,kx,cj)/(1.+qvb3d(ci,kx,cj))
+            r2cqb(j,i) = qvb3d(ci,kz,cj)/(1.+qvb3d(ci,kz,cj))
 !           Reference Height (m)
-!           abt               r2czga(j,i) = za3d(ci,kx,cj)
-            r2czga(j,i) = za(ci,kx,cj)
+!           abt               r2czga(j,i) = za3d(ci,kz,cj)
+            r2czga(j,i) = za(ci,kz,cj)
 !           Surface winds
-            r2cuxb(j,i) = ubx3d(ci,kx,cj)
-            r2cvxb(j,i) = vbx3d(ci,kx,cj)
+            r2cuxb(j,i) = ubx3d(ci,kz,cj)
+            r2cvxb(j,i) = vbx3d(ci,kz,cj)
 !           Surface Pressure in Pa from hPa
             r2cpsb(j,i) = (psb(ci,cj)+ptop)*1000.
 !
@@ -261,10 +261,10 @@
  
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c
-!c    1. Copy 2d (jxp,ix) arrays to 1d work_in (jx*ix) array.
+!c    1. Copy 2d (jxp,iy) arrays to 1d work_in (jx*iy) array.
 !c    2. Gather jxp values of each nproc work_in array and fill
-!c    work_out(jx*ix) array.
-!c    3. Copy 1d work_out array to 2d (jx,ix) array for passing
+!c    work_out(jx*iy) array.
+!c    3. Copy 1d work_out array to 2d (jx,iy) array for passing
 !c    to clm.
 !c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -273,17 +273,17 @@
 !       TGB
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2ctb(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2ctb_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -291,17 +291,17 @@
 !       QB
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2cqb(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2cqb_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -309,17 +309,17 @@
 !       ZGA
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2czga(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2czga_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -327,17 +327,17 @@
 !       PSB
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2cpsb(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2cpsb_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -345,17 +345,17 @@
 !       UXB
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2cuxb(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2cuxb_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -363,17 +363,17 @@
 !       VXB
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2cvxb(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2cvxb_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -381,17 +381,17 @@
 !       RNC
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2crnc(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2crnc_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -399,17 +399,17 @@
 !       RNNC
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2crnnc(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2crnnc_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -417,17 +417,17 @@
 !       SOLS
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2csols(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2csols_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -435,17 +435,17 @@
 !       SOLL
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2csoll(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2csoll_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -453,17 +453,17 @@
 !       SOLSD
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2csolsd(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2csolsd_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -471,17 +471,17 @@
 !       SOLLD
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2csolld(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2csolld_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -489,17 +489,17 @@
 !       LONGWAVE RAD.
         ii = 1
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             work_in(ii) = r2cflwd(j,i)
             ii = ii + 1
           end do
         end do
-        call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,&
-                         & jxp*ix,mpi_double_precision,mpi_comm_world,  &
+        call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
+                         & jxp*iy,mpi_double_precision,mpi_comm_world,  &
                          & ierr)
         ii = 1
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             r2cflwd_all(j,i) = work_out(ii)
             ii = ii + 1
           end do
@@ -511,17 +511,17 @@
 !     XLAT in radians
       ii = 1
       do j = 1 , jxp
-        do i = 1 , ix
+        do i = 1 , iy
           work_in(ii) = r2cxlat(j,i)
           ii = ii + 1
         end do
       end do
-      call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,  &
-                       & jxp*ix,mpi_double_precision,mpi_comm_world,    &
+      call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
+                       & jxp*iy,mpi_double_precision,mpi_comm_world,    &
                        & ierr)
       ii = 1
       do j = 1 , jx
-        do i = 1 , ix
+        do i = 1 , iy
           r2cxlat_all(j,i) = work_out(ii)
           ii = ii + 1
         end do
@@ -529,17 +529,17 @@
 !     XLON in radians
       ii = 1
       do j = 1 , jxp
-        do i = 1 , ix
+        do i = 1 , iy
           work_in(ii) = r2cxlon(j,i)
           ii = ii + 1
         end do
       end do
-      call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,  &
-                       & jxp*ix,mpi_double_precision,mpi_comm_world,    &
+      call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
+                       & jxp*iy,mpi_double_precision,mpi_comm_world,    &
                        & ierr)
       ii = 1
       do j = 1 , jx
-        do i = 1 , ix
+        do i = 1 , iy
           r2cxlon_all(j,i) = work_out(ii)
           ii = ii + 1
         end do
@@ -547,17 +547,17 @@
 !     XLAT in degrees
       ii = 1
       do j = 1 , jxp
-        do i = 1 , ix
+        do i = 1 , iy
           work_in(ii) = r2cxlatd(j,i)
           ii = ii + 1
         end do
       end do
-      call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,  &
-                       & jxp*ix,mpi_double_precision,mpi_comm_world,    &
+      call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
+                       & jxp*iy,mpi_double_precision,mpi_comm_world,    &
                        & ierr)
       ii = 1
       do j = 1 , jx
-        do i = 1 , ix
+        do i = 1 , iy
           r2cxlatd_all(j,i) = work_out(ii)
           ii = ii + 1
         end do
@@ -565,17 +565,17 @@
 !     XLON in degrees
       ii = 1
       do j = 1 , jxp
-        do i = 1 , ix
+        do i = 1 , iy
           work_in(ii) = r2cxlond(j,i)
           ii = ii + 1
         end do
       end do
-      call mpi_allgather(work_in,jxp*ix,mpi_double_precision,work_out,  &
-                       & jxp*ix,mpi_double_precision,mpi_comm_world,    &
+      call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
+                       & jxp*iy,mpi_double_precision,mpi_comm_world,    &
                        & ierr)
       ii = 1
       do j = 1 , jx
-        do i = 1 , ix
+        do i = 1 , iy
           r2cxlond_all(j,i) = work_out(ii)
           ii = ii + 1
         end do
@@ -589,7 +589,7 @@
  
 !     clm vars are (lon x lat), regcm (lat x lon)
       do j = 1 , jx
-        do i = 1 , ix
+        do i = 1 , iy
           r2cedgen = dmax1(r2cxlatd_all(j,i),r2cedgen)
           r2cedges = dmin1(r2cxlatd_all(j,i),r2cedges)
           r2cedgee = dmax1(r2cxlond_all(j,i),r2cedgee)
@@ -607,7 +607,7 @@
       r2cnstep = ktau
  
       lsmlon = jx   !abt changed clm_varpar_init also
-      lsmlat = ix
+      lsmlat = iy
  
 !!!!! Program_off initializes MPI,timing,and surface variables
  
@@ -654,7 +654,7 @@
       jj = 0
       do j = js , je
         jj = jj + 1
-        do i = 1 , ix - 1
+        do i = 1 , iy - 1
  
           if ( .not.ifrest ) then
             do n = 1 , nnsg

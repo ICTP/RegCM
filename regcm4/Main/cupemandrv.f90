@@ -37,7 +37,7 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: ntra = 0 , nl = kx - 1
+      integer , parameter :: ntra = 0 , nl = kz - 1
 !
 ! Dummy arguments
 !
@@ -48,20 +48,20 @@
 !
       real(8) :: akclth , aprdiv , cbmf , dtime , fppt , qprime ,       &
                & tprime , uconv , wd
-      real(8) , dimension(kx) :: fq , ft , fu , fv , pcup , qcup ,      &
+      real(8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                & qscup , tcup , ucup , vcup
-      real(8) , dimension(kx,1) :: ftra , tra
+      real(8) , dimension(kz,1) :: ftra , tra
       integer :: i , iconj , iflag , k , kbase , kclth , kk , ktop
-      real(8) , dimension(kxp1) :: phcup
+      real(8) , dimension(kzp1) :: phcup
 !
       dtime = dt
       uconv = 0.5*dt
       aprdiv = 1.0/float(nbatst)
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
       iconj = 0
-      do i = 2 , ixm2
-        do k = 1 , kx
-          kk = kxp1 - k
+      do i = 2 , iym2
+        do k = 1 , kz
+          kk = kzp1 - k
           cldlwc(i,k) = 0.          ! Zero out cloud water content
           cldfra(i,k) = 0.          ! Zero out cloud fraction coverage
           tcup(k) = tb3d(i,kk,j)                          ! [k]
@@ -71,13 +71,13 @@
           vcup(k) = vbx3d(i,kk,j)                         ! [m/s]
           pcup(k) = pb3d(i,kk,j)*10.                      ! [hPa]
         end do
-        do k = 1 , kxp1
-          kk = kxp1 - k + 1
+        do k = 1 , kzp1
+          kk = kzp1 - k + 1
           phcup(k) = (sigma(kk)*psb(i,j)+ptop)*10.        ! [hPa]
         end do
         cbmf = cbmf2d(i,j)                                ! [(kg/m**2)/s]
  
-        call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kx,kxp1,  &
+        call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
                    & nl,ntra,dtime,iflag,ft,fq,fu,fv,ftra,fppt,wd,      &
                    & tprime,qprime,cbmf,kbase,ktop)
  
@@ -88,7 +88,7 @@
 !       iflag=1: Moist convection occurs.
 !       iflag=2: No moist convection: lifted condensation level above
 !       200 mb. iflag=3: No moist convection: cloud base higher than
-!       level kxm2. iflag=4: Moist convection occurs, but CFL condition
+!       level kzm2. iflag=4: Moist convection occurs, but CFL condition
 !       on the subsidence warming is violated. (Does not terminate
 !       scheme.)
         if ( iflag.eq.1 .or. iflag.eq.4 ) then
@@ -99,8 +99,8 @@
 !         end if
  
 !         **** Tendencies
-          do k = 1 , kx
-            kk = kxp1 - k
+          do k = 1 , kz
+            kk = kzp1 - k
             tten(i,kk,j) = ft(k)*psb(i,j) + tten(i,kk,j)
             qvten(i,kk,j) = fq(k)/(1.-fq(k))*psb(i,j) + qvten(i,kk,j)
 !           There is a bit of an inconsistency here...  The wind
@@ -114,7 +114,7 @@
           kclth = ktop - kbase + 1
           akclth = 1./float(kclth)
           do k = kbase , ktop
-            kk = kxp1 - k
+            kk = kzp1 - k
             cldlwc(i,kk) = cllwcv
             cldfra(i,kk) = 1. - (1.-clfrcv)**akclth
           end do

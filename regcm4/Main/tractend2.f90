@@ -56,20 +56,20 @@
                & remcum , rxs1 , rxs11 , rxs2 , rxs21 , satvp , shu10 , &
                & u10 , v10
       real(8) , dimension(ntr) :: agingtend , wetrem , wetrem_cvc
-      real(8) , dimension(ix,kx) :: concmin , cutend_dwd , cutend_up ,  &
+      real(8) , dimension(iy,kz) :: concmin , cutend_dwd , cutend_up ,  &
                                   & fracloud , fracum , rho , settend , &
                                   & ttb , wk , wl
       logical :: gfcall , gfcall2 , gfcall3 , gfcall4
       integer :: i , ibin , itr , k , kb , kdwd
-      integer , dimension(ix) :: ivegcov , soilt
-      real(8) , dimension(ix,kx,nbin) :: pdepv
-      real(8) , dimension(ix) :: psurf , rh10 , soilw , srad ,  &
+      integer , dimension(iy) :: ivegcov , soilt
+      real(8) , dimension(iy,kz,nbin) :: pdepv
+      real(8) , dimension(iy) :: psurf , rh10 , soilw , srad ,  &
                                & temp10 , tsurf , vegfrac , wid10 , zeff
-      real(8) , dimension(ix,nbin) :: rsfrow
+      real(8) , dimension(iy,nbin) :: rsfrow
 !
 !bxq  real(kind=8)  h2o2mol
-!     real(kind=8)  ustar(ix)
-!     real(kind=8)  zza(ix,kx)
+!     real(kind=8)  ustar(iy)
+!     real(kind=8)  zza(iy,kz)
 !
 !     clmin = non-precipitating cloud conversion threshold,
 !     clmin=0.01g/m3
@@ -80,8 +80,8 @@
 !     Preliminary calculations independant of tracer nature
  
 !     the unit: rho - kg/m3, wl - g/m3
-      do k = 1 , kx
-        do i = 2 , ixm2
+      do k = 1 , kz
+        do i = 2 , iym2
           rho(i,k) = (psb(i,j)*a(k)+ptop)*1000./287./tb(i,k,j)*psb(i,j)
           wl(i,k) = qcb(i,k,j)/psb(i,j)*1000.*rho(i,k)
         end do
@@ -95,13 +95,13 @@
 !     cumulus scale : fracum, calculated from the total cloud fraction
  
 !     (as defined for the radiation scheme in cldfrac.f routine)
-      do i = 2 , ixm2
-        do k = 1 , kx
+      do i = 2 , iym2
+        do k = 1 , kz
           fracloud(i,k) = dmin1(fcc(i,k,j),fcmax)
           fracum(i,k) = 0.
         end do
         if ( icumtop(i,j).ne.0 ) then
-          do k = icumtop(i,j) , kx
+          do k = icumtop(i,j) , kz
             fracum(i,k) = cldfra(i,k) - fracloud(i,k)
           end do
         end if
@@ -111,8 +111,8 @@
 !     TRANSPORT OF TRACERS
 !----initialize tracer tendencies, and scratch arrays
       do itr = 1 , ntr
-        do k = 1 , kx
-          do i = 1 , ixm1
+        do k = 1 , kz
+          do i = 1 , iym1
             chiten(i,k,j,itr) = 0.
           end do
         end do
@@ -137,8 +137,8 @@
 !     subgrid vertical transport by convective mass flux : a modifier !
  
       if ( ichcumtra.eq.2 ) then
-        do k = 2 , kx
-          do i = 2 , ixm2
+        do k = 2 , kz
+          do i = 2 , iym2
             wk(i,k) = (1./psa(i,j))                                     &
                     & *(twt(k,1)*chib(i,k,j,itr)+twt(k,2)*chib(i,k-1,j, &
                     & itr))
@@ -148,7 +148,7 @@
           end do
         end do
  
-        do i = 2 , ixm2
+        do i = 2 , iym2
  
           if ( icumtop(i,j).ne.0 ) then
  
@@ -177,10 +177,10 @@
             cutend_dwd(i,kdwd) = -mflx(i,2)*gti*1.E-3*wk(i,kdwd)        &
                                & /(dsigma(kdwd))
  
-            cutend_dwd(i,kx) = +mflx(i,2)*gti*1.E-3*wk(i,kdwd)          &
-                             & /(dsigma(kx))
+            cutend_dwd(i,kz) = +mflx(i,2)*gti*1.E-3*wk(i,kdwd)          &
+                             & /(dsigma(kz))
  
-            do k = kt , kx
+            do k = kt , kz
               chiten(i,k,j,itr) = chiten(i,k,j,itr) + cutend_up(i,k)    &
                                 & + cutend_dwd(i,k)
             end do
@@ -218,8 +218,8 @@
  
 !         ohconc
  
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               cldno = 1.    ! no cloud fraction
  
 !             if(coszrs(i,j).lt.0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
@@ -258,8 +258,8 @@
  
 !         Aqueous conversion from so2 to so4 ;control by h2o2
  
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
 !bxq          h2o2mol = 1.e-6 * h2o2conc(i,j,k)
               chimol = 28.9/64.*chib(i,k,j,iso2)/psb(i,j)      ! kg/kg to mole
 !             concmin(i,k)=dmin1(h2o2mol,chimol)*64./28.9*psb(i,j)  !
@@ -270,8 +270,8 @@
  
 !         Large scale clouds
  
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               rxs1 = 0.0
               rxs11 = 0.0      ! fraction of conversion, not removed, as SO4 src
               wetrem(iso2) = 0.
@@ -323,9 +323,9 @@
  
  
 !         Kasibhatla )
-          do i = 2 , ixm2
+          do i = 2 , iym2
             if ( icumtop(i,j).ne.0 ) then
-              do k = icumtop(i,j) , kx
+              do k = icumtop(i,j) , kz
                 rxs2 = 0.0
                 rxs21 = 0.0    ! fraction of conversion, not removed, as SO4 src
                 wetrem_cvc(iso2) = 0.   ! scavenging for SO2, below lsc
@@ -374,8 +374,8 @@
 !           clmin=0.01g/m3) the same as that in subroutine exmois
 !           clmin = 0.01
  
-            do k = 1 , kx
-              do i = 2 , ixm2
+            do k = 1 , kz
+              do i = 2 , iym2
                 if ( wl(i,k).gt.clmin ) then
                   wetrem(itr) = 0.
                   if ( remrat(i,k).gt.0. ) then
@@ -396,9 +396,9 @@
 !           sub-scale wet removal, cumulus cloud (fracum)
 !           remcum = removal rate for cumulus cloud scavenging (s-1)
 !           remcum = 1.e-3
-            do i = 2 , ixm2
+            do i = 2 , iym2
               if ( icumtop(i,j).ne.0 ) then
-                do k = icumtop(i,j) , kx
+                do k = icumtop(i,j) , kz
                   wetrem_cvc(itr) = fracum(i,k)*chtrsol(itr)            &
                                   & *chib(i,k,j,itr)                    &
                                   & *(dexp(-remcum*dt)-1.)
@@ -425,8 +425,8 @@
 !bxq      agingtend(itr) = 0.
 !bxq      end do
  
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               agingtend(ibchb) = -chib(i,k,j,ibchb)*(1.-dexp(-dt/agct)) &
                                & /dt
               agingtend(ibchl) = -agingtend(ibchb)
@@ -450,8 +450,8 @@
 !bxq      agingtend(itr) = 0.
 !bxq      end do
  
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               agingtend(iochb) = -chib(i,k,j,iochb)*(1-dexp(-dt/agct))  &
                                & /dt
               agingtend(iochl) = -agingtend(iochb)
@@ -484,11 +484,11 @@
  
         if ( chtrname(itr).eq.'DUST' .and. gfcall2 ) then
  
-          do i = 2 , ixm2
+          do i = 2 , iym2
             ivegcov(i) = nint(veg2d(i,j))
             psurf(i) = psb(i,j)*1000. + ptop
  
-            do k = 1 , kx
+            do k = 1 , kz
               ttb(i,k) = tb(i,k,j)/psb(i,j)
 !             zza(i,k) = za(i,k,j)
             end do
@@ -497,10 +497,10 @@
 !           method based on bats diagnostic in routine interf.
  
             if ( (ivegcov(i).ne.0) ) then
-              facv = dlog(za(i,kx,j)/10.)                               &
-                   & /dlog(za(i,kx,j)/rough(ivegcov(i)))
-              facb = dlog(za(i,kx,j)/10.)/dlog(za(i,kx,j)/zlnd)
-              facs = dlog(za(i,kx,j)/10.)/dlog(za(i,kx,j)/zsno)
+              facv = dlog(za(i,kz,j)/10.)                               &
+                   & /dlog(za(i,kz,j)/rough(ivegcov(i)))
+              facb = dlog(za(i,kz,j)/10.)/dlog(za(i,kz,j)/zlnd)
+              facs = dlog(za(i,kz,j)/10.)/dlog(za(i,kz,j)/zsno)
  
               fact = sfracv2d(i,j)*facv + sfracb2d(i,j)                 &
                    & *facb + sfracs2d(i,j)*facs
@@ -509,22 +509,22 @@
               zeff(i) = rough(ivegcov(i)) ! ajouter contrib sol nu et snow
             else
 !             water surface
-              fact = dlog(za(i,kx,j)/10.)/dlog(za(i,kx,j)/zoce)
+              fact = dlog(za(i,kz,j)/10.)/dlog(za(i,kz,j)/zoce)
  
               zeff(i) = zoce
             end if
  
 !           10 m wind
-            u10 = (ub(i,kx,j)/psb(i,j))*(1-fact)
-            v10 = (vb(i,kx,j)/psb(i,j))*(1-fact)
+            u10 = (ub(i,kz,j)/psb(i,j))*(1-fact)
+            v10 = (vb(i,kz,j)/psb(i,j))*(1-fact)
             wid10(i) = sqrt(u10**2+v10**2)
 !           wid10(5) = 15
 !           10 m air temperature
  
-            temp10(i) = ttb(i,kx) - sdeltk2d(i,j)*fact
+            temp10(i) = ttb(i,kz) - sdeltk2d(i,j)*fact
  
 !           specific  humidity at 10m
-            shu10 = (qvb(i,kx,j)/psb(i,j))/(1.+qvb(i,kx,j)/psb(i,j))    &
+            shu10 = (qvb(i,kz,j)/psb(i,j))/(1.+qvb(i,kz,j)/psb(i,j))    &
                   & - sdelqk2d(i,j)*fact
  
 !           retransform in mixing ratio
@@ -548,9 +548,9 @@
 !           friction velocity ( not used fo the moment)
 !
 !           ustar(i) = sqrt ( uvdrag(i,j)                 *
-!           &              sqrt ( (ub(i,kx,j)/psb(i,j) )**2 +
-!           &                     (vb(i,kx,j)/psb(i,j) )**2 ) /
-!           &                rho(i,kx)                          )
+!           &              sqrt ( (ub(i,kz,j)/psb(i,j) )**2 +
+!           &                     (vb(i,kz,j)/psb(i,j) )**2 ) /
+!           &                rho(i,kz)                          )
  
 !           soil wetness
             soilw(i) = ssw2da(i,j)                                      &
@@ -572,7 +572,7 @@
  
 !           bare ground and vegetation
             if ( ivegcov(i).ne.0 ) then
-              tsurf(i) = ttb(i,kx) - sdeltk2d(i,j)
+              tsurf(i) = ttb(i,kz) - sdeltk2d(i,j)
             else
 !             ocean temperature in this case
               tsurf(i) = tgb(i,j)
@@ -584,10 +584,10 @@
  
           end do
  
-          call sfflux(ix,2,ixm2,j,20,ivegcov(1),vegfrac(1),soilt(1),    &
-                    & zeff,soilw(1),wid10(1),rho(1,kx),dustbsiz,rsfrow)
+          call sfflux(iy,2,iym2,j,20,ivegcov(1),vegfrac(1),soilt(1),    &
+                    & zeff,soilw(1),wid10(1),rho(1,kz),dustbsiz,rsfrow)
  
-          call chdrydep(ix,2,ixm2,kx,1,nbin,ivegcov,ttb,rho,a,psurf,    &
+          call chdrydep(iy,2,iym2,kz,1,nbin,ivegcov,ttb,rho,a,psurf,    &
                       & temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,     &
                       & pdepv)
  
@@ -603,10 +603,10 @@
           ibin = ibin + 1
  
 !         calculate the source tendancy
-          do i = 2 , ixm2
+          do i = 2 , iym2
             chemsrc(i,j,lmonth,itr) = rsfrow(i,ibin)
-            chiten(i,kx,j,itr) = chiten(i,kx,j,itr) + rsfrow(i,ibin)    &
-                               & *gti/(dsigma(kx)*1.E3)
+            chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + rsfrow(i,ibin)    &
+                               & *gti/(dsigma(kz)*1.E3)
 !           diagnostique source
             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
                            & *dt/2.
@@ -615,8 +615,8 @@
 !         calculate the tendancy du to gravitationnal settling and dry
  
 !         deposition
-          do k = 2 , kx
-            do i = 2 , ixm2
+          do k = 2 , kz
+            do i = 2 , iym2
               wk(i,k) = (1./psb(i,j))                                   &
                       & *(twt(k,1)*chib(i,k,j,itr)+twt(k,2)*chib(i,k-1, &
                       & j,itr))
@@ -625,37 +625,37 @@
  
 !         remember PDEPV is defined for ibin which is not necessarly itr
  
-          do i = 2 , ixm2
-            do k = 2 , kx - 1
+          do i = 2 , iym2
+            do k = 2 , kz - 1
                         ! do not apply to the first level
               settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,ibin)-wk(i,k)*pdepv(&
                            & i,k,ibin))*gti*1.E-3/dsigma(k)
               chiten(i,k,j,itr) = chiten(i,k,j,itr) - settend(i,k)
             end do
 !
-            settend(i,kx) = -(wk(i,kx)*pdepv(i,kx,ibin)*gti*1.E-3)      &
-                          & /dsigma(kx)
-            chiten(i,kx,j,itr) = chiten(i,kx,j,itr) + settend(i,kx)
+            settend(i,kz) = -(wk(i,kz)*pdepv(i,kz,ibin)*gti*1.E-3)      &
+                          & /dsigma(kz)
+            chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + settend(i,kz)
  
 !           dignoctic for dry deposition
-            remdrd(i,j,itr) = remdrd(i,j,itr) - settend(i,kx)*dt/2.
+            remdrd(i,j,itr) = remdrd(i,j,itr) - settend(i,kz)*dt/2.
           end do
  
         end if !( end calculation of dust tendancies)
  
 !CCCC   Source tendenciesCCCC
  
-        do i = 2 , ixm2
+        do i = 2 , iym2
           if ( chtrname(itr).ne.'DUST' ) then
-            chiten(i,kx,j,itr) = chiten(i,kx,j,itr)                     &
+            chiten(i,kz,j,itr) = chiten(i,kz,j,itr)                     &
                                & + chemsrc(i,j,lmonth,itr)              &
-                               & *gti*0.7/(dsigma(kx)*1.E3)
-            chiten(i,kx-1,j,itr) = chiten(i,kx-1,j,itr)                 &
+                               & *gti*0.7/(dsigma(kz)*1.E3)
+            chiten(i,kz-1,j,itr) = chiten(i,kz-1,j,itr)                 &
                                  & + chemsrc(i,j,lmonth,itr)            &
-                                 & *gti*0.15/(dsigma(kx-1)*1.E3)
-            chiten(i,kxm2,j,itr) = chiten(i,kx-2,j,itr)                 &
+                                 & *gti*0.15/(dsigma(kz-1)*1.E3)
+            chiten(i,kzm2,j,itr) = chiten(i,kzm2,j,itr)                 &
                                  & + chemsrc(i,j,lmonth,itr)            &
-                                 & *gti*0.15/(dsigma(kxm2)*1.E3)
+                                 & *gti*0.15/(dsigma(kzm2)*1.E3)
 !           diagnostic for source, cumul
             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
                            & *dt/2.

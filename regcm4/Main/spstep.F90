@@ -44,20 +44,20 @@
       integer :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
 #ifdef MPP1
       integer :: ierr
-      real(8) , dimension(ix*2) :: wkrecv , wksend
+      real(8) , dimension(iy*2) :: wkrecv , wksend
 #endif
 !
       do n = 1 , nsplit
 #ifdef MPP1
         do j = 1 , jendl
-          do i = 1 , ix
+          do i = 1 , iy
             ddsum(i,j,n) = 0.
             dhsum(i,j,n) = 0.
           end do
         end do
 #else
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             ddsum(i,j,n) = 0.
             dhsum(i,j,n) = 0.
           end do
@@ -83,7 +83,7 @@
 !
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ixm1
+          do i = 1 , iym1
 !           deld, delh: 1,ilx on cross grid
             ddsum(i,j,ns) = deld(i,j,ns,n0)
             dhsum(i,j,ns) = delh(i,j,ns,n0)
@@ -91,7 +91,7 @@
         end do
 #else
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
 !           deld, delh: 1,ilx on cross grid
             ddsum(i,j,ns) = deld(i,j,ns,n0)
             dhsum(i,j,ns) = delh(i,j,ns,n0)
@@ -105,12 +105,12 @@
 !**     compute gradient of delh;  output = (work1,work2)
 !
 #ifdef MPP1
-        call mpi_sendrecv(delh(1,jxp,ns,n0),ix,mpi_real8,               &
-                        & ieast,1,delh(1,0,ns,n0),ix,                   &
+        call mpi_sendrecv(delh(1,jxp,ns,n0),iy,mpi_real8,               &
+                        & ieast,1,delh(1,0,ns,n0),iy,                   &
                         & mpi_real8,iwest,1,mpi_comm_world,             &
                         & mpi_status_ignore,ierr)
         do j = jbegin , jendx
-          do i = 2 , ixm1
+          do i = 2 , iym1
             fac = dx2*msfx(i,j)
             work(i,j,1) = (delh(i,j,ns,n0)+delh(i-1,j,ns,n0)-delh(i,j-1,&
                         & ns,n0)-delh(i-1,j-1,ns,n0))/fac
@@ -120,7 +120,7 @@
         end do
 #else
         do j = 2 , jxm1
-          do i = 2 , ixm1
+          do i = 2 , iym1
             fac = dx2*msfx(i,j)
             work(i,j,1) = (delh(i,j,ns,n0)+delh(i-1,j,ns,n0)-delh(i,j-1,&
                         & ns,n0)-delh(i-1,j-1,ns,n0))/fac
@@ -134,14 +134,14 @@
         do nw = 1 , 2
 #ifdef MPP1
           do j = jbegin , jendx
-            do i = 2 , ixm1
+            do i = 2 , iym1
 !             work: 2,ilx on dot grid
               work(i,j,nw) = work(i,j,nw)*psdot(i,j)
             end do
           end do
 #else
           do j = 2 , jxm1
-            do i = 2 , ixm1
+            do i = 2 , iym1
 !             work: 2,ilx on dot grid
               work(i,j,nw) = work(i,j,nw)*psdot(i,j)
             end do
@@ -156,14 +156,14 @@
 !
 #ifdef MPP1
         do j = jbegin , jendx
-          do i = 2 , ixm1
+          do i = 2 , iym1
             uu(i,j) = work(i,j,1)*msfd(i,j)
             vv(i,j) = work(i,j,2)*msfd(i,j)
           end do
         end do
 #else
         do j = 2 , jxm1
-          do i = 2 , ixm1
+          do i = 2 , iym1
             uu(i,j) = work(i,j,1)*msfd(i,j)
             vv(i,j) = work(i,j,2)*msfd(i,j)
           end do
@@ -171,20 +171,20 @@
 #endif
 !
 #ifdef MPP1
-        do i = 1 , ix
+        do i = 1 , iy
           wksend(i) = uu(i,1)
-          wksend(i+ix) = vv(i,1)
+          wksend(i+iy) = vv(i,1)
         end do
-        call mpi_sendrecv(wksend(1),2*ix,mpi_real8,iwest,2,             &
-                        & wkrecv(1),2*ix,mpi_real8,ieast,2,             &
+        call mpi_sendrecv(wksend(1),2*iy,mpi_real8,iwest,2,             &
+                        & wkrecv(1),2*iy,mpi_real8,ieast,2,             &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        do i = 1 , ix
+        do i = 1 , iy
           uu(i,jxp+1) = wkrecv(i)
-          vv(i,jxp+1) = wkrecv(i+ix)
+          vv(i,jxp+1) = wkrecv(i+iy)
         end do
 !
         do j = jbegin , jendm
-          do i = 2 , ixm2
+          do i = 2 , iym2
             fac = dx2*msfx(i,j)*msfx(i,j)
             work(i,j,3) = (-uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)     &
                         & +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1))/fac
@@ -192,7 +192,7 @@
         end do
 #else
         do j = 2 , jxm2
-          do i = 2 , ixm2
+          do i = 2 , iym2
             fac = dx2*msfx(i,j)*msfx(i,j)
             work(i,j,3) = (-uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)     &
                         & +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1))/fac
@@ -204,8 +204,8 @@
 !
 #ifdef MPP1
         do j = jbegin , jendm
-          do i = 2 , ixm2
-!           work3: 2,ixm2 on cross grid
+          do i = 2 , iym2
+!           work3: 2,iym2 on cross grid
             deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
                             & + deld(i,j,ns,3)/m2
             delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hbar(ns)       &
@@ -215,8 +215,8 @@
         end do
 #else
         do j = 2 , jxm2
-          do i = 2 , ixm2
-!           work3: 2,ixm2 on cross grid
+          do i = 2 , iym2
+!           work3: 2,iym2 on cross grid
             deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
                             & + deld(i,j,ns,3)/m2
             delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hbar(ns)       &
@@ -228,7 +228,7 @@
  
 !**     not in madala(1987)
         fac = (m(ns)-1.)/m(ns)
-        do i = 2 , ixm2
+        do i = 2 , iym2
 #ifdef MPP1
           if ( myid.eq.0 ) delh(i,1,ns,n1) = delh(i,1,ns,n0)*fac
           if ( myid.eq.nproc-1 ) delh(i,jendx,ns,n1)                    &
@@ -241,25 +241,25 @@
 #ifdef MPP1
         do j = 1 , jendx
           delh(1,j,ns,n1) = delh(1,j,ns,n0)*fac
-          delh(ixm1,j,ns,n1) = delh(ixm1,j,ns,n0)*fac
+          delh(iym1,j,ns,n1) = delh(iym1,j,ns,n0)*fac
         end do
 #else
         do j = 1 , jxm1
           delh(1,j,ns,n1) = delh(1,j,ns,n0)*fac
-          delh(ixm1,j,ns,n1) = delh(ixm1,j,ns,n0)*fac
+          delh(iym1,j,ns,n1) = delh(iym1,j,ns,n0)*fac
         end do
 #endif
 !
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ixm1
+          do i = 1 , iym1
             ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n1)
             dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n1)
           end do
         end do
 #else
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n1)
             dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n1)
           end do
@@ -273,12 +273,12 @@
 !**       compute gradient of delh;  output = (work1,work2)
 !
 #ifdef MPP1
-          call mpi_sendrecv(delh(1,jxp,ns,n1),ix,mpi_real8,             &
-                          & ieast,1,delh(1,0,ns,n1),ix,                 &
+          call mpi_sendrecv(delh(1,jxp,ns,n1),iy,mpi_real8,             &
+                          & ieast,1,delh(1,0,ns,n1),iy,                 &
                           & mpi_real8,iwest,1,mpi_comm_world,           &
                           & mpi_status_ignore,ierr)
           do j = jbegin , jendx
-            do i = 2 , ixm1
+            do i = 2 , iym1
               fac = dx2*msfx(i,j)
               work(i,j,1) = (delh(i,j,ns,n1)+delh(i-1,j,ns,n1)-delh(i,j-&
                           & 1,ns,n1)-delh(i-1,j-1,ns,n1))/fac
@@ -288,7 +288,7 @@
           end do
 #else
           do j = 2 , jxm1
-            do i = 2 , ixm1
+            do i = 2 , iym1
               fac = dx2*msfx(i,j)
               work(i,j,1) = (delh(i,j,ns,n1)+delh(i-1,j,ns,n1)-delh(i,j-&
                           & 1,ns,n1)-delh(i-1,j-1,ns,n1))/fac
@@ -302,13 +302,13 @@
           do nw = 1 , 2
 #ifdef MPP1
             do j = jbegin , jendx
-              do i = 2 , ixm1
+              do i = 2 , iym1
                 work(i,j,nw) = work(i,j,nw)*psdot(i,j)
               end do
             end do
 #else
             do j = 2 , jxm1
-              do i = 2 , ixm1
+              do i = 2 , iym1
                 work(i,j,nw) = work(i,j,nw)*psdot(i,j)
               end do
             end do
@@ -322,14 +322,14 @@
 !
 #ifdef MPP1
           do j = jbegin , jendx
-            do i = 2 , ixm1
+            do i = 2 , iym1
               uu(i,j) = work(i,j,1)*msfd(i,j)
               vv(i,j) = work(i,j,2)*msfd(i,j)
             end do
           end do
 #else
           do j = 2 , jxm1
-            do i = 2 , ixm1
+            do i = 2 , iym1
               uu(i,j) = work(i,j,1)*msfd(i,j)
               vv(i,j) = work(i,j,2)*msfd(i,j)
             end do
@@ -337,20 +337,20 @@
 #endif
 !
 #ifdef MPP1
-          do i = 1 , ix
+          do i = 1 , iy
             wksend(i) = uu(i,1)
-            wksend(i+ix) = vv(i,1)
+            wksend(i+iy) = vv(i,1)
           end do
-          call mpi_sendrecv(wksend(1),2*ix,mpi_real8,iwest,2,           &
-                          & wkrecv(1),2*ix,mpi_real8,ieast,2,           &
+          call mpi_sendrecv(wksend(1),2*iy,mpi_real8,iwest,2,           &
+                          & wkrecv(1),2*iy,mpi_real8,ieast,2,           &
                           & mpi_comm_world,mpi_status_ignore,ierr)
-          do i = 1 , ix
+          do i = 1 , iy
             uu(i,jxp+1) = wkrecv(i)
-            vv(i,jxp+1) = wkrecv(i+ix)
+            vv(i,jxp+1) = wkrecv(i+iy)
           end do
 !
           do j = jbegin , jendm
-            do i = 2 , ixm2
+            do i = 2 , iym2
               fac = dx2*msfx(i,j)*msfx(i,j)
               work(i,j,3) = (-uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)   &
                           & +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1))   &
@@ -359,7 +359,7 @@
           end do
 #else
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               fac = dx2*msfx(i,j)*msfx(i,j)
               work(i,j,3) = (-uu(i+1,j)+uu(i+1,j+1)-uu(i,j)+uu(i,j+1)   &
                           & +vv(i+1,j)+vv(i+1,j+1)-vv(i,j)-vv(i,j+1))   &
@@ -372,7 +372,7 @@
 !
 #ifdef MPP1
           do j = jbegin , jendm
-            do i = 2 , ixm2
+            do i = 2 , iym2
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                               & + deld(i,j,ns,3)/m(ns)
               delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hbar(ns)        &
@@ -382,7 +382,7 @@
           end do
 #else
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                               & + deld(i,j,ns,3)/m(ns)
               delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hbar(ns)        &
@@ -393,7 +393,7 @@
 #endif
 !
 !**       not in madala(1987)
-          do i = 2 , ixm2
+          do i = 2 , iym2
 #ifdef MPP1
             if ( myid.eq.0 ) delh(i,1,ns,n2) = 2.*delh(i,1,ns,n1)       &
                & - delh(i,1,ns,n0)
@@ -407,25 +407,25 @@
 #ifdef MPP1
           do j = 1 , jendx
             delh(1,j,ns,n2) = 2.*delh(1,j,ns,n1) - delh(1,j,ns,n0)
-            delh(ixm1,j,ns,n2) = 2.*delh(ixm1,j,ns,n1) - delh(ixm1,j,ns,n0)
+            delh(iym1,j,ns,n2) = 2.*delh(iym1,j,ns,n1) - delh(iym1,j,ns,n0)
           end do
 #else
           do j = 1 , jxm1
             delh(1,j,ns,n2) = 2.*delh(1,j,ns,n1) - delh(1,j,ns,n0)
-            delh(ixm1,j,ns,n2) = 2.*delh(ixm1,j,ns,n1) - delh(ixm1,j,ns,n0)
+            delh(iym1,j,ns,n2) = 2.*delh(iym1,j,ns,n1) - delh(iym1,j,ns,n0)
           end do
 #endif
 !
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , ixm1
+            do i = 1 , iym1
               ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n2)
               dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n2)
             end do
           end do
 #else
           do j = 1 , jxm1
-            do i = 1 , ixm1
+            do i = 1 , iym1
               ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n2)
               dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n2)
             end do

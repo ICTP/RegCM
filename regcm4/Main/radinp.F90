@@ -39,7 +39,8 @@
 !
       use mod_regcm_param
       use mod_comtim
-      use mod_constants , only : gtigts , twopi , dayspy , rgsslp
+      use mod_constants , only : gtigts , twopi , dayspy , rgsslp , sslp
+      use mod_constants , only : amd , amo , amco2
       use mod_crdcae , only : co2vmr
 #ifdef CLM
       use mod_clm
@@ -49,9 +50,9 @@
 ! Dummy arguments
 !
       real(8) :: eccf
-      real(8) , dimension(ixm1,kxp1) :: cld , pint , pintrd , plco2 ,   &
+      real(8) , dimension(iym1,kzp1) :: cld , pint , pintrd , plco2 ,   &
            & plh2o , tclrsf
-      real(8) , dimension(ixm1,kx) :: h2ommr , o3mmr , o3vmr , pmid ,   &
+      real(8) , dimension(iym1,kz) :: h2ommr , o3mmr , o3vmr , pmid ,   &
            & pmidrd
       intent (in) cld , h2ommr , o3vmr , pint , pmid
       intent (out) eccf , o3mmr , plco2 , pmidrd
@@ -62,7 +63,7 @@
 #ifndef CLM
       real(8) :: theta
 #endif
-      real(8) :: amco2 , amd , amo , cpwpl , p0 , vmmr
+      real(8) :: cpwpl , vmmr
       integer :: i , k
 !
 !------------------------------Arguments--------------------------------
@@ -90,17 +91,8 @@
 ! i       - Longitude loop index
 ! k       - Vertical loop index
 ! theta   - Earth orbit seasonal angle in radians
-! p0      - Standard pressure (dynes/cm**2)
-! amd     - Effective molecular weight of dry air (g/mol)
-! amo     - Molecular weight of ozone (g/mol)
-! amco2   - Molecular weight of co2   (g/mol)
 ! cpwpl   - Const in co2 mixing ratio to path length conversn
 ! vmmr    - Ozone volume mixing ratio
-!
-      data p0/1.01325E6/
-      data amd/28.9644/
-      data amo/48.0000/
-      data amco2/44.0000/
 !
 !-----------------------------------------------------------------------
 !
@@ -124,27 +116,27 @@
 !
 !     Convert pressure from pascals to dynes/cm2
 !
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
           pmidrd(i,k) = pmid(i,k)*10.0
           pintrd(i,k) = pint(i,k)*10.0
         end do
       end do
-      do i = 1 , ixm1
-        pintrd(i,kxp1) = pint(i,kx + 1)*10.0
+      do i = 1 , iym1
+        pintrd(i,kzp1) = pint(i,kz + 1)*10.0
       end do
 !
 !     Compute path quantities used in the longwave radiation:
 !
       vmmr = amco2/amd
-      cpwpl = vmmr*0.5/(gtigts*p0)
-      do i = 1 , ixm1
+      cpwpl = vmmr*0.5/(gtigts*sslp)
+      do i = 1 , iym1
         plh2o(i,1) = rgsslp*h2ommr(i,1)*pintrd(i,1)*pintrd(i,1)
         plco2(i,1) = co2vmr*cpwpl*pintrd(i,1)*pintrd(i,1)
         tclrsf(i,1) = 1.
       end do
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
           plh2o(i,k+1) = plh2o(i,k)                                     &
                        & + rgsslp*(pintrd(i,k+1)**2-pintrd(i,k)**2)     &
                        & *h2ommr(i,k)
@@ -156,8 +148,8 @@
 !     Convert ozone volume mixing ratio to mass mixing ratio:
 !
       vmmr = amo/amd
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
           o3mmr(i,k) = vmmr*o3vmr(i,k)
         end do
       end do

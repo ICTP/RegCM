@@ -57,8 +57,8 @@
                & sca , siglcl , suma , sumb , t1 , tdmax , tlcl , tmax ,&
                & tmean , ttconv , ttp , ttsum , xsav , zlcl
       integer :: i , k , kbase , kbaseb , kclth , kk , ktop
-      real(8) , dimension(kx) :: seqt
-      real(8) , dimension(ix,kx) :: tmp3
+      real(8) , dimension(kz) :: seqt
+      real(8) , dimension(iy,kz) :: tmp3
 !
 !
 !----------------------------------------------------------------------
@@ -72,14 +72,14 @@
       data dlt , cdscld/3.0 , 0.3/
 !
 !
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
           cldlwc(i,k) = 0.
           cldfra(i,k) = 0.
         end do
       end do
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
           qvten(i,k,j) = 0.
         end do
       end do
@@ -95,7 +95,7 @@
 !       icumbot = bottom level of cumulus clouds
 !       (calculated in cupara and stored for tractend)
 !       before do 100 put
-        do i = 2 , ixm2
+        do i = 2 , iym2
           icumtop(i,j) = 0
           icumbot(i,j) = 0
         end do
@@ -106,10 +106,10 @@
 !     at this stage, qvten(i,k,j) only includes horizontal advection.
 !     sca: is the amount of total moisture convergence
 !
-      do i = 2 , ixm2
+      do i = 2 , iym2
 !
         sca = 0.0
-        do k = 1 , kx
+        do k = 1 , kz
           sca = sca + qvten(i,k,j)*dsigma(k)
         end do
 !
@@ -125,7 +125,7 @@
 !         as the origin of air parcel that produce cloud.
 !
           eqtm = 0.0
-          do k = k700 , kx
+          do k = k700 , kz
             ttp = ta(i,k,j)/psa(i,j) + pert
             q = qva(i,k,j)/psa(i,j) + perq
             psg = psa(i,j)*a(k) + ptop
@@ -155,11 +155,11 @@
 !--3--compute seqt (saturation equivalent potential temperature)
 !         of all the levels that are above the lcl
 !
-          do k = 1 , kx
+          do k = 1 , kz
             if ( a(k).ge.siglcl ) exit
           end do
           kbase = k
-          if ( kbase.gt.kx ) kbase = kx
+          if ( kbase.gt.kz ) kbase = kz
 !
 !.....kbase is the layer where lcl is located.
 !
@@ -224,10 +224,10 @@
               sumb = 0.
               arh = 0.
               psx = psa(i,j)
-              do k = 1 , kx
+              do k = 1 , kz
                 qwght(k) = 0.0
               end do
-              do k = ktop , kx
+              do k = ktop , kz
                 pux = psx*a(k) + ptop
                 e1 = .611*dexp(19.84659-5418.12/(ta(i,k,j)/psx))
                 qs = ep2*e1/(pux-e1)
@@ -247,10 +247,10 @@
                 c301 = 0.0
                 suma = 1.0
               end if
-              do k = ktop , kx
+              do k = ktop , kz
                 qwght(k) = qwght(k)/suma
               end do
-              do k = 1 , kx
+              do k = 1 , kz
                 ttconv = wlhvocp*(1.0-c301)*twght(k,kbase,ktop)*sca
                 rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dt/2.
 !x              if (ttconv*2. .gt. 0.01) write(18,1234) i,j,k,ttconv*2.
@@ -264,7 +264,7 @@
 !
 !             find cloud fractional cover and liquid water content
 !
-              kbaseb = min0(kbase,kxm2)
+              kbaseb = min0(kbase,kzm2)
               if ( ktop.le.kbaseb ) then
                 kclth = kbaseb - ktop + 1
                 akclth = 1./dble(kclth)
@@ -297,7 +297,7 @@
 !.....convection not exist, compute the vertical advection term:
 !
         tmp3(i,1) = 0.
-        do k = 2 , kx
+        do k = 2 , kz
           if ( qva(i,k,j).lt.1.E-15 ) then
             tmp3(i,k) = 0.0
           else
@@ -305,18 +305,18 @@
           end if
         end do
         qvten(i,1,j) = qvten(i,1,j) - qdot(i,2,j)*tmp3(i,2)/dsigma(1)
-        do k = 2 , kxm1
+        do k = 2 , kzm1
           qvten(i,k,j) = qvten(i,k,j)                                   &
                        & - (qdot(i,k+1,j)*tmp3(i,k+1)-qdot(i,k,j)       &
                        & *tmp3(i,k))/dsigma(k)
         end do
-        qvten(i,kx,j) = qvten(i,kx,j) + qdot(i,kx,j)*tmp3(i,kx)         &
-                      & /dsigma(kx)
+        qvten(i,kz,j) = qvten(i,kz,j) + qdot(i,kz,j)*tmp3(i,kz)         &
+                      & /dsigma(kz)
 !
-      end do           !end i=2,ixm2 loop
+      end do           !end i=2,iym2 loop
 !
-      do k = 1 , kx
-        do i = 2 , ixm2
+      do k = 1 , kz
+        do i = 2 , iym2
           rsheat(i,k,j) = dmax1(rsheat(i,k,j),0.D0)
           rswat(i,k,j) = dmax1(rswat(i,k,j),0.D0)
           rsht = rsheat(i,k,j)/tauht

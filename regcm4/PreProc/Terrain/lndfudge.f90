@@ -17,18 +17,18 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine lndfudge(fudge,ch,lndout,htgrid,ix,jx,lsmtyp,char_lnd)
+      subroutine lndfudge(fudge,ch,lndout,htgrid,iy,jx,lsmtyp,char_lnd)
       implicit none
 !
 ! Dummy arguments
 !
       character(10) :: char_lnd
       logical :: fudge
-      integer :: ix , jx
+      integer :: iy , jx
       character(4) :: lsmtyp
-      character(1) , dimension(ix,jx) :: ch
-      real(4) , dimension(ix,jx) :: htgrid , lndout
-      intent (in) char_lnd , fudge , ix , jx , lsmtyp
+      character(1) , dimension(iy,jx) :: ch
+      real(4) , dimension(iy,jx) :: htgrid , lndout
+      intent (in) char_lnd , fudge , iy , jx , lsmtyp
       intent (inout) ch , htgrid , lndout
 !
 ! Local variables
@@ -38,12 +38,12 @@
       if ( lsmtyp=='BATS' ) then
         if ( fudge ) then
           open (13,file=char_lnd,form='formatted')
-          do i = ix , 1 , -1
+          do i = iy , 1 , -1
             read (13,99001) (ch(i,j),j=1,jx)
           end do
           close (13)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               if ( ch(i,j)==' ' ) then
                 lndout(i,j) = 15.
               else if ( ch(i,j)=='1' ) then
@@ -100,7 +100,7 @@
           end do
         else
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               if ( nint(lndout(i,j))==15 ) then
                 ch(i,j) = ' '
               else if ( nint(lndout(i,j))==1 ) then
@@ -149,7 +149,7 @@
             end do
           end do
           open (13,file=char_lnd,form='formatted')
-          do i = ix , 1 , -1
+          do i = iy , 1 , -1
             write (13,99001) (ch(i,j),j=1,jx)
           end do
           close (13)
@@ -157,12 +157,12 @@
       else if ( lsmtyp=='USGS' ) then
         if ( fudge ) then
           open (13,file=char_lnd,form='formatted')
-          do i = ix , 1 , -1
+          do i = iy , 1 , -1
             read (13,99001) (ch(i,j),j=1,jx)
           end do
           close (13)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               if ( ch(i,j)==' ' ) then
                 lndout(i,j) = 25.
               else if ( ch(i,j)=='1' ) then
@@ -224,7 +224,7 @@
           end do
         else
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               if ( nint(lndout(i,j))==25 .or. nint(lndout(i,j))==0 )    &
                  & then
                 ch(i,j) = ' '
@@ -284,7 +284,7 @@
             end do
           end do
           open (13,file=char_lnd,form='formatted')
-          do i = ix , 1 , -1
+          do i = iy , 1 , -1
             write (13,99001) (ch(i,j),j=1,jx)
           end do
           close (13)

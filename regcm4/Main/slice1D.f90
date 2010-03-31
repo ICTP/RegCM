@@ -40,7 +40,7 @@
 !     **********            This is taken from subroutine interf so that
 !     **********            radiation can be called in tend (not
 !     vecbats).
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           ldoc1d(n,i) = ocld2d(n,i,j)
           sice1d(n,i) = sice2d(n,i,j)
@@ -54,7 +54,7 @@
           else
             veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
           end if
-          ts1d(n,i) = thx3d(i,kx,j)-6.5E-3*rgti*(ht1(n,i,j)-ht(i,j))
+          ts1d(n,i) = thx3d(i,kz,j)-6.5E-3*rgti*(ht1(n,i,j)-ht(i,j))
           scv1d(n,i) = scv2d(n,i,j)
           sag1d(n,i) = sag2d(n,i,j)
         end do

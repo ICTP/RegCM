@@ -19,7 +19,7 @@
 
       module mod_emission
 
-      use mod_regcm_param , only : ix , jx
+      use mod_regcm_param , only : iy , jx
       use mod_preproc_param , only : idate1 , idate2
 
       implicit none
@@ -100,7 +100,7 @@
       character(30) , dimension(nspc5a) :: ele_mozrta
       character(30) , dimension(nspc5b) :: ele_mozrtb
 
-      real(4) , dimension(ix,jx) :: aermm , xlat , xlon
+      real(4) , dimension(iy,jx) :: aermm , xlat , xlon
 
       contains
 
@@ -251,7 +251,7 @@
       end if
 !--------The output file-------------------------
       open (15,file='../../Input/AERO_new.dat',form='unformatted',      &
-          & access='direct',recl=jx*ix*4)
+          & access='direct',recl=jx*iy*4)
  
  
 !     REWIND(11)
@@ -418,20 +418,20 @@
             write (*,*) year , month , recc , element
 
             call bilinxo(emiss_in,loni,lati,nlons,nlats,aermm,xlon,xlat,&
-                       & ix,jx,1)
+                       & iy,jx,1)
  
             if ( invntry=='poet' ) then
               cfact = molwgt(element)*10/avo
               write (*,*) 'kkkkk' , element , molwgt(element) , cfact
-              write (15,rec=recc) ((cfact*aermm(i,j),j=1,jx),i=1,ix)
+              write (15,rec=recc) ((cfact*aermm(i,j),j=1,jx),i=1,iy)
  
             else if ( invntry=='mozart' ) then
               cfact = molwgt(element)*10/avo
               write (*,*) 'kkkkk' , element , molwgt(element) , cfact
-              write (15,rec=recc) ((cfact*aermm(i,j),j=1,jx),i=1,ix)
+              write (15,rec=recc) ((cfact*aermm(i,j),j=1,jx),i=1,iy)
  
             else
-              write (15,rec=recc) ((aermm(i,j),j=1,jx),i=1,ix)
+              write (15,rec=recc) ((aermm(i,j),j=1,jx),i=1,iy)
             end if
 !           write(*,*)AERMM
 !-------------------------------------------------------------------

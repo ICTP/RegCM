@@ -23,7 +23,7 @@
       real(8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
                                & ppsum , ppwin , ppwrk
       real(8) , dimension(32) :: ppwrkh
-      real(8) , dimension(kxp2) :: prlevh
+      real(8) , dimension(kzp2) :: prlevh
 !
       data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
          & 9.895D-8 , 1.175D-7 , 1.399D-7 , 1.677D-7 , 2.003D-7 ,       &

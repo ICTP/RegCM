@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine griddef(year,trec)
-      use mod_regcm_param , only : aertyp , ibyte , kx
+      use mod_regcm_param , only : aertyp , ibyte , kz
       use mod_emission
       implicit none
 !
@@ -33,12 +33,12 @@
             & centerj , xcla , xclo , dsinm , grdfac , xpla , xplo ,    &
             & xpto , rlatinc , rloninc , xtrul , xtruh
       character(3) , dimension(12) :: cmonth
-      integer :: i , isbige , ierr , dograd , ixx , j , jxx , k , nl ,  &
+      integer :: i , isbige , ierr , dograd , iyy , j , jxx , k , nl ,  &
                & month , nx , ny , period , xnspc1a , xnspc1b ,         &
                & xnspc2a , xnspc2b , xnspc3 , xnspc4a , xnspc4b ,       &
                & xnspc5a , xnspc5b
       character(6) :: cprj
-      real(4) , dimension(kx+1) :: sigmaf
+      real(4) , dimension(kz+1) :: sigmaf
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
@@ -85,19 +85,19 @@
         xnspc3 = 0
       end if
 !
-      read (10,rec=1,iostat=ierr) ixx , jxx , nl , dsinm , xcla , xclo ,&
+      read (10,rec=1,iostat=ierr) iyy , jxx , nl , dsinm , xcla , xclo ,&
                                 & xpla , xplo , grdfac , cprj ,         &
-                                & (sigmaf(k),k=1,kx+1) , xpto , dograd ,&
+                                & (sigmaf(k),k=1,kz+1) , xpto , dograd ,&
                                 & isbige , xtrul , xtruh
-      if ( ixx/=ix .or. jxx/=jx ) then
+      if ( iyy/=iy .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'
-        print * , '  icbc.param: ' , ix , jx
-        print * , '  DOMAIN.INFO: ' , ixx , jxx
+        print * , '  icbc.param: ' , iy , jx
+        print * , '  DOMAIN.INFO: ' , iyy , jxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
       end if
-      read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,jx),i=1,ix)
-      read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,jx),i=1,ix)
+      read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,jx),i=1,iy)
+      read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,jx),i=1,iy)
       if ( ierr/=0 ) then
         print * , 'END OF FILE REACHED (AEROSOL.f)'
         print * , '  Check ibyte in icbc.param: ibyte= ' , ibyte
@@ -126,11 +126,11 @@
           alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
-            if ( xlat(ix,j)>alatmax ) alatmax = xlat(ix,j)
+            if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
           end do
           alonmin = 999999.
           alonmax = -999999.
-          do i = 1 , ix
+          do i = 1 , iy
             do j = 1 , jx
               if ( xclo>=0.0 ) then
                 if ( xlon(i,j)>=0.0 ) then
@@ -163,25 +163,25 @@
           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
           centerj = jx/2.
-          centeri = ix/2.
+          centeri = iy/2.
         end if
         if ( cprj=='LAMCON' ) then        ! Lambert projection
-          write (31,99001) jx , ix , xcla , xclo , centerj , centeri ,  &
+          write (31,99001) jx , iy , xcla , xclo , centerj , centeri ,  &
                          & xtrul , xtruh , xclo , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( cprj=='POLSTR' ) then   !
         else if ( cprj=='NORMER' ) then
           write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
-          write (31,99005) ix
-          write (31,99006) (xlat(i,1),i=1,ix)
+          write (31,99005) iy
+          write (31,99006) (xlat(i,1),i=1,iy)
         else if ( cprj=='ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , ix , xplo , xpla , dsinm/111000. ,      &
+          write (31,99007) jx , iy , xplo , xpla , dsinm/111000. ,      &
                          & dsinm/111000.*.95238
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc

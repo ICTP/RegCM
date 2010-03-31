@@ -24,29 +24,29 @@
       implicit none
 
       integer , dimension(nsplit) :: m
-      real(8) , dimension(kx,kx) :: a , a1 , a2 , a3 , a4 , d1 , d2 ,   &
+      real(8) , dimension(kz,kz) :: a , a1 , a2 , a3 , a4 , d1 , d2 ,   &
                                   & e1 , e2 , e3 , g1 , g2 , g3 , s1 ,  &
                                   & s2 , w1 , w2 , x1
-      integer , dimension(kx) :: iw2
-      real(8) , dimension(kxp1) :: tbarf , thetaf
-      real(8) , dimension(kx) :: thetah , tweigh
-      real(8) , dimension(kxp1,kx) :: w3
+      integer , dimension(kz) :: iw2
+      real(8) , dimension(kzp1) :: tbarf , thetaf
+      real(8) , dimension(kz) :: thetah , tweigh
+      real(8) , dimension(kzp1,kz) :: w3
 !
       real(8) :: alpha1 , alpha2 , pd , ps , pt , r
-      real(8) , dimension(kx) :: cpfac , dsigma , hbar , hweigh , tbarh
-      real(8) , dimension(kx,kxp1) :: hydroc , varpa1
-      real(8) , dimension(kx,kx) :: hydror , hydros , tau , zmatx ,     &
+      real(8) , dimension(kz) :: cpfac , dsigma , hbar , hweigh , tbarh
+      real(8) , dimension(kz,kzp1) :: hydroc , varpa1
+      real(8) , dimension(kz,kz) :: hydror , hydros , tau , zmatx ,     &
                                   & zmatxr
-      real(8) , dimension(kxp1) :: sigmah
-      real(8) , dimension(kxp1,kxp1) :: varpa2
+      real(8) , dimension(kzp1) :: sigmah
+      real(8) , dimension(kzp1,kzp1) :: varpa2
 !
-      real(8) , dimension(kx,nsplit) :: am
+      real(8) , dimension(kz,nsplit) :: am
       real(8) , dimension(nsplit) :: an
 
 #ifdef MPP1
-      real(8) , dimension(ix,0:jxp+1,nsplit) :: dstor , hstor
+      real(8) , dimension(iy,0:jxp+1,nsplit) :: dstor , hstor
 #else
-      real(8) , dimension(ix,jx,nsplit) :: dstor , hstor
+      real(8) , dimension(iy,jx,nsplit) :: dstor , hstor
 #endif
 
       end module mod_split

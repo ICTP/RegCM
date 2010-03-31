@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine gradsctlb(finame,idate,inumber)
-      use mod_regcm_param , only : ix , jx , kx , ibyte , dattyp ,      &
+      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp ,      &
                  &                 ehso4 , lsmtyp , ibigend
       use mod_preproc_param
 
@@ -64,11 +64,11 @@
         alatmax = -999999.
         do j = 1 , jx
           if ( xlat(j,1)<alatmin ) alatmin = xlat(j,1)
-          if ( xlat(j,ix)>alatmax ) alatmax = xlat(j,ix)
+          if ( xlat(j,iy)>alatmax ) alatmax = xlat(j,iy)
         end do
         alonmin = 999999.
         alonmax = -999999.
-        do i = 1 , ix
+        do i = 1 , iy
           do j = 1 , jx
             if ( clon>=0.0 ) then
               if ( xlon(j,i)>=0.0 ) then
@@ -101,25 +101,25 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
         centerj = jx/2.
-        centeri = ix/2.
+        centeri = iy/2.
       end if
       if ( iproj=='LAMCON' ) then       ! Lambert projection
-        write (71,99001) jx , ix , clat , clon , centerj , centeri ,    &
+        write (71,99001) jx , iy , clat , clon , centerj , centeri ,    &
                        & truelatl , truelath , clon , delx , delx
         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc
       else if ( iproj=='POLSTR' ) then  !
       else if ( iproj=='NORMER' ) then
         write (71,99004) jx , xlon(1,1) , xlon(2,1) - xlon(1,1)
-        write (71,99005) ix
-        write (71,99006) (xlat(1,i),i=1,ix)
+        write (71,99005) iy
+        write (71,99006) (xlat(1,i),i=1,iy)
       else if ( iproj=='ROTMER' ) then
         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
                    &' projections are not supported by GrADS.'
         write (*,*) '  Although not exact, the eta.u projection' ,      &
                    &' in GrADS is somewhat similar.'
         write (*,*) ' FERRET, however, does support this projection.'
-        write (71,99007) jx , ix , plon , plat , delx/111000. ,         &
+        write (71,99007) jx , iy , plon , plat , delx/111000. ,         &
                        & delx/111000.*.95238
         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc
@@ -127,7 +127,7 @@
         write (*,*) 'Are you sure your map projection is correct ?'
         stop
       end if
-      write (71,99008) kx , ((1013.25-ptop*10.)*sigma2(k)+ptop*10.,k=kx,&
+      write (71,99008) kz , ((1013.25-ptop*10.)*sigma2(k)+ptop*10.,k=kz,&
                      & 1,-1)
       nyear = idate/1000000
       month = (idate-nyear*1000000)/10000
@@ -141,10 +141,10 @@
         write (71,99010) 7
       end if
       write (71,'(a)') 'date 0 99 header information'
-      write (71,99012) 'u   ' , kx , 'westerly wind    '
-      write (71,99012) 'v   ' , kx , 'southerly wind   '
-      write (71,99012) 't   ' , kx , 'air temperature  '
-      write (71,99012) 'q   ' , kx , 'specific moisture'
+      write (71,99012) 'u   ' , kz , 'westerly wind    '
+      write (71,99012) 'v   ' , kz , 'southerly wind   '
+      write (71,99012) 't   ' , kz , 'air temperature  '
+      write (71,99012) 'q   ' , kz , 'specific moisture'
       write (71,99013) 'px  ' , 'surface pressure           '
       write (71,99013) 'ts  ' , 'surface air temperature    '
       if ( lsmtyp=='USGS' ) then

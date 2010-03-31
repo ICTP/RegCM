@@ -85,35 +85,35 @@
 !
 !**   compute pt, ps and tbarh for use in vmodes.
       ps = 0.
-      do k = 1 , kx
+      do k = 1 , kz
         tbarh(k) = 0.
       end do
       pt = ptop
 #ifdef MPP1
-      ijlx = ixm1*jendx
+      ijlx = iym1*jendx
       do j = 1 , jendx
-        do i = 1 , ixm1
+        do i = 1 , iym1
           ps = ps + psa(i,j)/ijlx
         end do
       end do
 #else
-      ijlx = ixm1*jxm1
+      ijlx = iym1*jxm1
       do j = 1 , jxm1
-        do i = 1 , ixm1
+        do i = 1 , iym1
           ps = ps + psa(i,j)/ijlx
         end do
       end do
 #endif
-      do k = 1 , kx
+      do k = 1 , kz
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ixm1
+          do i = 1 , iym1
             tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
           end do
         end do
 #else
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
           end do
         end do
@@ -126,8 +126,8 @@
       call vmodes(lstand,sigma,kv1)
 !
 !**   subract a4 from a for use in computing am.
-      do l = 1 , kx
-        do k = 1 , kx
+      do l = 1 , kz
+        do k = 1 , kz
           a(k,l) = a(k,l) - a4(k,l)
         end do
       end do
@@ -135,25 +135,25 @@
 !**   compute am and an.
       do n = 1 , nsplit
         an(n) = 0.
-        do l = 1 , kx
+        do l = 1 , kz
           an(n) = an(n) + dsigma(l)*zmatx(l,n)
         end do
-        do k = 1 , kx
+        do k = 1 , kz
           am(k,n) = 0.
           tau(n,k) = 0.
         end do
-        do l = 1 , kx
-          do k = 1 , kx
+        do l = 1 , kz
+          do k = 1 , kz
             am(k,n) = am(k,n) + a(k,l)*zmatx(l,n)
             tau(n,k) = tau(n,k) + r*zmatxr(n,l)*hydros(l,k)
           end do
         end do
 !
-        do k = 1 , kxp1
+        do k = 1 , kzp1
           varpa1(n,k) = 0.
         end do
-        do l = 1 , kx
-          do k = 1 , kxp1
+        do l = 1 , kz
+          do k = 1 , kzp1
             varpa1(n,k) = varpa1(n,k) + r*zmatxr(n,l)*hydroc(l,k)
           end do
         end do
@@ -170,7 +170,7 @@
         print * , 'm, fac = ' , m(l) , fac
 #endif
         an(l) = an(l)*fac
-        do k = 1 , kx
+        do k = 1 , kz
           zmatx(k,l) = zmatx(k,l)*fac
           am(k,l) = am(k,l)*fac
         end do
@@ -187,14 +187,14 @@
           read (iutrs) vi1_io , vi2_io , vilx_io , vil_io
           do j = 1 , jx
             do n = 1 , nsplit
-              do i = 1 , ix
+              do i = 1 , iy
                 sav_0d(i,n,j) = dstor_io(i,j,n)
                 sav_0d(i,n+nsplit,j) = hstor_io(i,j,n)
               end do
             end do
           end do
           do j = 1 , jx
-            do k = 1 , kx
+            do k = 1 , kz
               sav_6(k,1,j) = ui1_io(k,j)
               sav_6(k,2,j) = ui2_io(k,j)
               sav_6(k,3,j) = uilx_io(k,j)
@@ -206,22 +206,22 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_0d(1,1,1),ix*nsplit*2*jxp,mpi_real8,       &
-                       & sav0d(1,1,1), ix*nsplit*2*jxp,mpi_real8,       &
+        call mpi_scatter(sav_0d(1,1,1),iy*nsplit*2*jxp,mpi_real8,       &
+                       & sav0d(1,1,1), iy*nsplit*2*jxp,mpi_real8,       &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do n = 1 , nsplit
-            do i = 1 , ix
+            do i = 1 , iy
               dstor(i,j,n) = sav0d(i,n,j)
               hstor(i,j,n) = sav0d(i,n+nsplit,j)
             end do
           end do
         end do
-        call mpi_scatter(sav_6(1,1,1),kx*8*jxp,mpi_real8,               &
-                       & sav6(1,1,1),kx*8*jxp,mpi_real8,0,              &
+        call mpi_scatter(sav_6(1,1,1),kz*8*jxp,mpi_real8,               &
+                       & sav6(1,1,1),kz*8*jxp,mpi_real8,0,              &
                        & mpi_comm_world,ierr)
         do j = 1 , jendl
-          do k = 1 , kx
+          do k = 1 , kz
             ui1(k,j) = sav6(k,1,j)
             ui2(k,j) = sav6(k,2,j)
             uilx(k,j) = sav6(k,3,j)
@@ -232,16 +232,16 @@
             vil(k,j) = sav6(k,8,j)
           end do
         end do
-        call mpi_bcast(uj1,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(uj2,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(vj1,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(vj2,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(ujlx,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(ujl,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(vjlx,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(vjl,ix*kx,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(uj1,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(uj2,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vj1,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vj2,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(ujlx,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(ujl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vjlx,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vjl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
         if ( myid.ne.nproc-1 ) then
-          do k = 1 , kx
+          do k = 1 , kz
             var1snd(k,1) = ui1(k,jxp)
             var1snd(k,2) = vi1(k,jxp)
             var1snd(k,3) = ui2(k,jxp)
@@ -252,11 +252,11 @@
             var1snd(k,8) = vil(k,jxp)
           end do
         end if
-        call mpi_sendrecv(var1snd(1,1),kx*8,mpi_real8,ieast,            &
-                        & 1,var1rcv(1,1),kx*8,mpi_real8,                &
+        call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,ieast,            &
+                        & 1,var1rcv(1,1),kz*8,mpi_real8,                &
                         & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
         if ( myid.ne.0 ) then
-          do k = 1 , kx
+          do k = 1 , kz
             ui1(k,0) = var1rcv(k,1)
             vi1(k,0) = var1rcv(k,2)
             ui2(k,0) = var1rcv(k,3)
@@ -268,7 +268,7 @@
           end do
         end if
         if ( myid.ne.0 ) then
-          do k = 1 , kx
+          do k = 1 , kz
             var1snd(k,1) = ui1(k,1)
             var1snd(k,2) = vi1(k,1)
             var1snd(k,3) = ui2(k,1)
@@ -279,11 +279,11 @@
             var1snd(k,8) = vil(k,1)
           end do
         end if
-        call mpi_sendrecv(var1snd(1,1),kx*8,mpi_real8,iwest,            &
-                        & 2,var1rcv(1,1),kx*8,mpi_real8,                &
+        call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,iwest,            &
+                        & 2,var1rcv(1,1),kz*8,mpi_real8,                &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
         if ( myid.ne.nproc-1 ) then
-          do k = 1 , kx
+          do k = 1 , kz
             ui1(k,jxp+1) = var1rcv(k,1)
             vi1(k,jxp+1) = var1rcv(k,2)
             ui2(k,jxp+1) = var1rcv(k,3)
@@ -311,17 +311,17 @@
 !       ( u must be pstar * u ; similarly for v )
 !       ( note: map scale factors have been inverted in model (init) )
 !
-        do k = 1 , kx
+        do k = 1 , kz
 #ifdef MPP1
           do j = 1 , jendl
-            do i = 1 , ix
+            do i = 1 , iy
               uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
               vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
             end do
           end do
 #else
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
               vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
             end do
@@ -329,34 +329,34 @@
 #endif
         end do
 #ifdef MPP1
-        call mpi_sendrecv(uuu(1,1,1),ix*kx,mpi_real8,iwest,2,           &
-                        & uuu(1,1,jxp+1),ix*kx,mpi_real8,               &
+        call mpi_sendrecv(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,           &
+                        & uuu(1,1,jxp+1),iy*kz,mpi_real8,               &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(vvv(1,1,1),ix*kx,mpi_real8,iwest,2,           &
-                        & vvv(1,1,jxp+1),ix*kx,mpi_real8,               &
+        call mpi_sendrecv(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,           &
+                        & vvv(1,1,jxp+1),iy*kz,mpi_real8,               &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
         do l = 1 , nsplit
 #ifdef MPP1
           do j = 1 , jendl
-            do i = 1 , ix
+            do i = 1 , iy
               dstor(i,j,l) = 0.
             end do
           end do
 #else
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               dstor(i,j,l) = 0.
             end do
           end do
 #endif
         end do
         do l = 1 , nsplit
-          do k = 1 , kx
+          do k = 1 , kz
 #ifdef MPP1
             do j = 1 , jendx
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 fac = dx2*msfx(i,j)*msfx(i,j)
                 dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k)               &
                              & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)&
@@ -366,7 +366,7 @@
             end do
 #else
             do j = 1 , jxm1
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 fac = dx2*msfx(i,j)*msfx(i,j)
                 dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k)               &
                              & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)&
@@ -382,29 +382,29 @@
 !
 !******* geopotential manipulations
         do l = 1 , nsplit
-          pdlog = varpa1(l,kxp1)*dlog(sigmah(kxp1)*pd+pt)
-          eps1 = varpa1(l,kxp1)*sigmah(kxp1)/(sigmah(kxp1)*pd+pt)
+          pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+pt)
+          eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+pt)
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , ixm1
+            do i = 1 , iym1
               eps = eps1*(psb(i,j)-pd)
               hstor(i,j,l) = pdlog + eps
             end do
           end do
 #else
           do j = 1 , jxm1
-            do i = 1 , ixm1
+            do i = 1 , iym1
               eps = eps1*(psb(i,j)-pd)
               hstor(i,j,l) = pdlog + eps
             end do
           end do
 #endif
-          do k = 1 , kx
+          do k = 1 , kz
             pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+pt)
             eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+pt)
 #ifdef MPP1
             do j = 1 , jendx
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 eps = eps1*(psb(i,j)-pd)
                 hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&
                              & /psb(i,j) + eps
@@ -412,7 +412,7 @@
             end do
 #else
             do j = 1 , jxm1
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 eps = eps1*(psb(i,j)-pd)
                 hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&
                              & /psb(i,j) + eps

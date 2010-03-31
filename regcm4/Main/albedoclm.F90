@@ -85,7 +85,7 @@
 !l    1.3  set default vegetation and albedo
 !     ( do loop 50 in ccm not used here )
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         czen(i) = dmax1(coszrs(i),0.D0)
         czeta = czen(i)
         do n = 1 , nnsg

@@ -28,7 +28,7 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: nk1 = kxp1
+      integer , parameter :: nk1 = kzp1
 !
 ! Dummy arguments
 !
@@ -43,7 +43,7 @@
       integer :: ier , k , k1 , k2 , l , mm , numerr
       logical :: lhydro , lprint , lsigma
       real(8) :: ps2 , rm1 , x
-      real(8) , dimension(kx) :: work
+      real(8) , dimension(kz) :: work
 !
 !  this subroutine determines the vertical modes of the psu/ncar meso-
 !  scale model designated mm4.  it also computes associated transform
@@ -54,9 +54,9 @@
 !
 !   the following are user set parameters:
 !
-! ix,jx  = dimension of horizontal grid (later called ni,nj).
-!          as in mm4, ix is for n-s direction, jx for w-e direction.
-! kx     = number of model data levels
+! iy,jx  = dimension of horizontal grid (later called ni,nj).
+!          as in mm4, iy is for n-s direction, jx for w-e direction.
+! kz     = number of model data levels
 ! dt     = time step used to generate tendencies (later called delt)
 ! dx     = grid spacing at center in meters (later called delx).
 ! clat   = latitude of central point, used to determine coriolis param.
@@ -92,7 +92,7 @@
       pd = ps - pt
       r = rgas
 !
-!  read sigmaf (sigma at full (integral) index levels; kxp1 values as
+!  read sigmaf (sigma at full (integral) index levels; kzp1 values as
 !  in the mm4.   check that values are ordered properly.
 !
       if ( lstand ) then
@@ -108,7 +108,7 @@
       lsigma = .false.
       if ( sigmaf(1).ne.0. ) lsigma = .true.
       if ( sigmaf(nk1).ne.1. ) lsigma = .true.
-      do k = 1 , kx
+      do k = 1 , kz
         if ( sigmaf(k+1).le.sigmaf(k) ) then
           lsigma = .true.
           write (aline,99001) k , sigmaf(k+1) , sigmaf(k)
@@ -122,27 +122,27 @@
                             & )
 !
 !  compute sigmah (sigma at half levels) and delta sigma
-      do k = 1 , kx
+      do k = 1 , kz
         sigmah(k) = 0.5*(sigmaf(k)+sigmaf(k+1))
         dsigma(k) = sigmaf(k+1) - sigmaf(k)
       end do
       sigmah(nk1) = 1.0
 !
 !  set tbarh (temperature at half (data) levels: indexed k + 1/2)
-      if ( lstand ) call vtlaps(tbarh,sigmah,r,pt,pd,kx)
-      call vchekt(tbarh,sigmah,sigmaf,rovcp,pt,pd,kx,numerr)
+      if ( lstand ) call vtlaps(tbarh,sigmah,r,pt,pd,kz)
+      call vchekt(tbarh,sigmah,sigmaf,rovcp,pt,pd,kz,numerr)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !      determine thermodynamic matrix
 !
 !  compute thetah
-      do k = 1 , kx
+      do k = 1 , kz
         thetah(k) = tbarh(k)*((sigmah(k)+pt/pd)**(-rovcp))
       end do
 !
 !  compute tbarf and thetaf
-      do k = 2 , kx
+      do k = 2 , kz
         k1 = k - 1
         tbarf(k) = tbarh(k1)*(sigmah(k)-sigmaf(k))                      &
                  & /(sigmah(k)-sigmah(k1)) + tbarh(k)                   &
@@ -156,16 +156,16 @@
       end do
 !
 !  define matrices for determination of thermodynamic matrix
-      do l = 1 , kx
-        do k = 1 , kx
+      do l = 1 , kz
+        do k = 1 , kz
           if ( l.gt.k ) e2(k,l) = 0.
           if ( l.le.k ) e2(k,l) = 1.
           e1(k,l) = 1.
         end do
       end do
 !
-      do l = 1 , kx
-        do k = 1 , kx
+      do l = 1 , kz
+        do k = 1 , kz
           a3(k,l) = 0.
           d1(k,l) = 0.
           d2(k,l) = 0.
@@ -174,7 +174,7 @@
           x1(k,l) = 0.
         end do
       end do
-      do k = 1 , kx
+      do k = 1 , kz
         a3(k,k) = -tbarh(k)
         d1(k,k) = sigmaf(k+1) - sigmaf(k)
         d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+pt/pd)
@@ -183,70 +183,70 @@
         x1(k,k) = 1.
       end do
 !
-      do k = 1 , kx
-        do l = 1 , kx
+      do k = 1 , kz
+        do l = 1 , kz
           e3(k,l) = 0.
           g1(k,l) = 0.
         end do
         e3(k,k) = 1.
         if ( k.gt.1 ) g1(k,k) = tbarf(k)
-        if ( k.lt.kx ) g1(k,k+1) = -tbarf(k+1)
-        if ( k.lt.kx ) e3(k,k+1) = 1.
+        if ( k.lt.kz ) g1(k,k+1) = -tbarf(k+1)
+        if ( k.lt.kz ) e3(k,k+1) = 1.
       end do
 !
 !  compute g2 (i.e., the transform from divg. to sigma dot)
-      call vsubtm(w1,e2,x1,kx)
-      call vmultm(w2,w1,d1,kx)
-      call vmultm(g2,e1,d1,kx)
-      call vmultm(w1,s1,g2,kx)
-      call vsubtm(g2,w1,w2,kx)
+      call vsubtm(w1,e2,x1,kz)
+      call vmultm(w2,w1,d1,kz)
+      call vmultm(g2,e1,d1,kz)
+      call vmultm(w1,s1,g2,kz)
+      call vsubtm(g2,w1,w2,kz)
 !
 !  compute a1
-      do k = 1 , kx
-        do l = 1 , kx
+      do k = 1 , kz
+        do l = 1 , kz
           w2(k,l) = 0.
         end do
         w2(k,k) = 1./d1(k,k)
       end do
-      call vmultm(w1,g1,g2,kx)
-      call vmultm(a1,w2,w1,kx)
+      call vmultm(w1,g1,g2,kz)
+      call vmultm(a1,w2,w1,kz)
 !
 !  compute a2
-      call vmultm(w1,e1,d1,kx)
-      call vmultm(a2,s2,w1,kx)
-      call vmultm(w2,e3,g2,kx)
-      call vmultc(w2,w2,kx,0.5D0)
-      call vsubtm(w1,w2,a2,kx)
-      call vmultm(a2,d2,w1,kx)
+      call vmultm(w1,e1,d1,kz)
+      call vmultm(a2,s2,w1,kz)
+      call vmultm(w2,e3,g2,kz)
+      call vmultc(w2,w2,kz,0.5D0)
+      call vsubtm(w1,w2,a2,kz)
+      call vmultm(a2,d2,w1,kz)
 !
 !  compute a4
-      call vmultm(w1,e1,d1,kx)
-      call vmultm(a4,a3,w1,kx)
-      call vmultc(a4,a4,kx,-1.D0)
+      call vmultm(w1,e1,d1,kz)
+      call vmultm(a4,a3,w1,kz)
+      call vmultc(a4,a4,kz,-1.D0)
 !
 !  compute a
-      call vaddms(a,a1,a2,kx)
-      call vaddms(a,a,a3,kx)
-      call vaddms(a,a,a4,kx)
+      call vaddms(a,a1,a2,kz)
+      call vaddms(a,a,a3,kz)
+      call vaddms(a,a,a4,kz)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !       determine matrices for linearized determination of geopotential
 !
 !  compute delta log p
-      do k = 2 , kx
+      do k = 2 , kz
         w1(k,1) = dlog((sigmah(k)+pt/pd)/(sigmah(k-1)+pt/pd))
       end do
 !
 !  compute matrix which multiples t vector
-      do l = 1 , kx
-        do k = 1 , kx
+      do l = 1 , kz
+        do k = 1 , kz
           hydros(k,l) = 0.
         end do
       end do
 !
-      do k = 1 , kx - 1
-        do l = k , kx - 1
+      do k = 1 , kz - 1
+        do l = k , kz - 1
           hydros(k,l) = hydros(k,l) + w1(l+1,1)*dsigma(l)               &
                       & /(dsigma(l+1)+dsigma(l))
           hydros(k,l+1) = hydros(k,l+1) + w1(l+1,1)*dsigma(l+1)         &
@@ -254,47 +254,47 @@
         end do
       end do
 !
-      do k = 1 , kx
-        hydros(k,kx) = hydros(k,kx)                                     &
-                     & + dlog((1.+pt/pd)/(sigmah(kx)+pt/pd))
+      do k = 1 , kz
+        hydros(k,kz) = hydros(k,kz)                                     &
+                     & + dlog((1.+pt/pd)/(sigmah(kz)+pt/pd))
       end do
 !
 !  compute matirx which multiplies log(sigma*p+pt) vector
       do l = 1 , nk1
-        do k = 1 , kx
+        do k = 1 , kz
           hydroc(k,l) = 0.
         end do
       end do
 !
       tweigh(1) = 0.
-      do l = 2 , kx
+      do l = 2 , kz
         tweigh(l) = (tbarh(l)*dsigma(l)+tbarh(l-1)*dsigma(l-1))         &
                   & /(dsigma(l)+dsigma(l-1))
       end do
 !
-      do l = 2 , kx - 1
+      do l = 2 , kz - 1
         do k = 1 , l - 1
           hydroc(k,l) = tweigh(l) - tweigh(l+1)
         end do
       end do
 !
-      do l = 1 , kx - 1
+      do l = 1 , kz - 1
         hydroc(l,l) = tbarh(l) - tweigh(l+1)
       end do
 !
-      do k = 1 , kx - 1
-        hydroc(k,kx) = tweigh(kx) - tbarh(kx)
+      do k = 1 , kz - 1
+        hydroc(k,kz) = tweigh(kz) - tbarh(kz)
       end do
 !
-      do k = 1 , kx
-        hydroc(k,nk1) = tbarh(kx)
+      do k = 1 , kz
+        hydroc(k,nk1) = tbarh(kz)
       end do
 !
 !  test hydroc and hydros matrices (if correct, w1(k,1)=w1(k,2))
       lhydro = .false.
-      do k = 1 , kx
+      do k = 1 , kz
         w1(k,1) = 0.
-        do l = 1 , kx
+        do l = 1 , kz
           w1(k,1) = w1(k,1) + hydros(k,l)*tbarh(l)
         end do
         w1(k,2) = -tbarh(k)*dlog(sigmah(k)*pd+pt)
@@ -309,22 +309,22 @@
         numerr = numerr + 1
         print 99002
 99002   format ('0 problem with linearization of hydostatic equation')
-        call vprntv(w1(1,1),kx,'test1   ')
-        call vprntv(w1(1,2),kx,'test2   ')
+        call vprntv(w1(1,1),kz,'test1   ')
+        call vprntv(w1(1,2),kz,'test2   ')
       end if
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !       determine tau matrix
 !
-      do l = 1 , kx
+      do l = 1 , kz
         do k = 1 , nk1
           w3(k,l) = dsigma(l)/(1.+pt/(pd*sigmah(k)))
         end do
       end do
 !
-      do l = 1 , kx
-        do k = 1 , kx
+      do l = 1 , kz
+        do k = 1 , kz
           w2(k,l) = 0.
           do mm = 1 , nk1
             w2(k,l) = w2(k,l) + hydroc(k,mm)*w3(mm,l)
@@ -332,38 +332,38 @@
         end do
       end do
 !
-      call vmultm(w1,hydros,a,kx)
-      call vsubtm(tau,w1,w2,kx)
+      call vmultm(w1,hydros,a,kz)
+      call vsubtm(tau,w1,w2,kz)
       rm1 = -1.*r
-      call vmultc(tau,tau,kx,rm1)
+      call vmultc(tau,tau,kz,rm1)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !       determine other matrices and vectors
 !
 !  compute eigenvalues and vectors for tau (rg calls eispack routines)
-      call vmultc(w1,tau,kx,1.D0) ! copy tau since rg destroys input
-      call rg(kx,w1,hbar,w2,1,zmatx,ier)
+      call vmultc(w1,tau,kz,1.D0) ! copy tau since rg destroys input
+      call rg(kz,w1,hbar,w2,1,zmatx,ier)
       call vcheki(ier,numerr,'zmatx   ')
-      call vcheke(hbar,w2,kx,numerr,'tau     ')
-      call vorder(zmatx,hbar,w1,w2,kx)
-      call vnorml(zmatx,sigmaf,kx,nk1)
+      call vcheke(hbar,w2,kz,numerr,'tau     ')
+      call vorder(zmatx,hbar,w1,w2,kz)
+      call vnorml(zmatx,sigmaf,kz,nk1)
 !
 !  compute inverse of zmatx
-      call invmtrx(zmatx,kx,zmatxr,kx,kx,det,iw2,ier,work)
+      call invmtrx(zmatx,kz,zmatxr,kz,kz,det,iw2,ier,work)
       call vcheki(ier,numerr,'zmatxr  ')
 !
 !  compute inverse of hydros
-      call invmtrx(hydros,kx,hydror,kx,kx,det,iw2,ier,work)
+      call invmtrx(hydros,kz,hydror,kz,kz,det,iw2,ier,work)
       call vcheki(ier,numerr,'hydror  ')
 !
 !  compute cpfac
-      call invmtrx(tau,kx,w1,kx,kx,det,iw2,ier,work)
+      call invmtrx(tau,kz,w1,kz,kz,det,iw2,ier,work)
       call vcheki(ier,numerr,'taur    ')
 !
-      do k = 1 , kx
+      do k = 1 , kz
         cpfac(k) = 0.
-        do l = 1 , kx
+        do l = 1 , kz
           cpfac(k) = cpfac(k) + (sigmaf(l+1)-sigmaf(l))*w1(l,k)
         end do
       end do
@@ -373,15 +373,15 @@
 !       determine arrays needed for daley's variational scheme
 !             for determination of surface pressure changes
 !
-      do k = 1 , kx      ! weight of t for different levels
+      do k = 1 , kz      ! weight of t for different levels
         hweigh(k) = 0.
       end do
-      hweigh(kx) = 1.    ! only lowest sigma level t considered
+      hweigh(kz) = 1.    ! only lowest sigma level t considered
 !
-      do k1 = 1 , kx
-        do k2 = 1 , kx    ! compute b(-1t) w/tbar**2 b(-1)
+      do k1 = 1 , kz
+        do k2 = 1 , kz    ! compute b(-1t) w/tbar**2 b(-1)
           w1(k2,k1) = 0.
-          do k = 1 , kx
+          do k = 1 , kz
             w1(k2,k1) = hydror(k,k2)*hydror(k,k1)*hweigh(k)/            &
                     & (tbarh(k)**2)+w1(k2,k1)
           end do
@@ -390,9 +390,9 @@
 !
       ps2 = ps*ps
       do k1 = 1 , nk1
-        do k2 = 1 , kx
+        do k2 = 1 , kz
           varpa1(k2,k1) = 0.
-          do k = 1 , kx
+          do k = 1 , kz
             varpa1(k2,k1) = varpa1(k2,k1) + w1(k2,k)*hydroc(k,k1)*ps2
           end do
         end do
@@ -401,23 +401,23 @@
       do k1 = 1 , nk1
         do k2 = 1 , nk1
           varpa2(k2,k1) = 0.
-          do k = 1 , kx
+          do k = 1 , kz
             varpa2(k2,k1) = varpa2(k2,k1) + hydroc(k,k2)*varpa1(k,k1)
           end do
         end do
       end do
 !
-      alpha1 = hydros(kx,kx)*tbarh(kx)/ps
-      alpha2 = hweigh(kx)
+      alpha1 = hydros(kz,kz)*tbarh(kz)/ps
+      alpha2 = hweigh(kz)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !       output desired arrays
 !
       call vprntv(sigmaf,nk1,'sigmaf  ')
-      call vprntv(tbarh,kx,'t mean  ')
+      call vprntv(tbarh,kz,'t mean  ')
       call vprntv(ps,1,'ps mean ')
-      print 99003 , kx , numerr
+      print 99003 , kz , numerr
 99003 format ('0 vertical mode problem completed for kx=',i3,5x,i1,     &
              &' errors detected   (should be 0)')
 !
@@ -425,24 +425,24 @@
       if ( .not.lprint ) then
         return
       end if
-      call vprntv(cpfac,kx,'cpfac   ')
-      call vprntv(dsigma,kx,'dsigma  ')
-      call vprntv(hbar,kx,'hbar    ')
+      call vprntv(cpfac,kz,'cpfac   ')
+      call vprntv(dsigma,kz,'dsigma  ')
+      call vprntv(hbar,kz,'hbar    ')
       call vprntv(sigmah,nk1,'sigmah  ')
       call vprntv(tbarf,nk1,'tbarf   ')
-      call vprntv(thetah,kx,'thetah  ')
+      call vprntv(thetah,kz,'thetah  ')
       call vprntv(thetaf,nk1,'thetaf  ')
-      call vprntv(hweigh,kx,'hweigh  ')
+      call vprntv(hweigh,kz,'hweigh  ')
       print 99004 , alpha1 , alpha2
 99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
-      call vprntm(a,kx,kx,'a       ')
-      call vprntm(hydros,kx,kx,'hydros  ')
-      call vprntm(hydror,kx,kx,'hydror  ')
-      call vprntm(hydroc,kx,nk1,'hydroc  ')
-      call vprntm(tau,kx,kx,'tau     ')
-      call vprntm(zmatx,kx,kx,'zmatx   ')
-      call vprntm(zmatxr,kx,kx,'zmatxr  ')
-      call vprntm(varpa1,kx,nk1,'varpa1  ')
+      call vprntm(a,kz,kz,'a       ')
+      call vprntm(hydros,kz,kz,'hydros  ')
+      call vprntm(hydror,kz,kz,'hydror  ')
+      call vprntm(hydroc,kz,nk1,'hydroc  ')
+      call vprntm(tau,kz,kz,'tau     ')
+      call vprntm(zmatx,kz,kz,'zmatx   ')
+      call vprntm(zmatxr,kz,kz,'zmatxr  ')
+      call vprntm(varpa1,kz,nk1,'varpa1  ')
       call vprntm(varpa2,nk1,nk1,'varpa2  ')
 !
       return

@@ -21,7 +21,7 @@
                             & vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,  &
                             & idout,xhro,iotyp)
  
-      use mod_regcm_param , only : jxm2 , ixm2
+      use mod_regcm_param , only : jxm2 , iym2
       use mod_bats_param
       implicit none
 !
@@ -29,11 +29,11 @@
 !
       integer :: idout , iotyp , ndim
       real(8) :: xhro
-      real(4) , dimension(jxm2,ixm2) :: dlat , dlon , dmap , f , ls ,   &
+      real(4) , dimension(jxm2,iym2) :: dlat , dlon , dmap , f , ls ,   &
                              & xlat , xlon , xmap , zs
       integer , dimension(ndim) :: iadm
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2) :: xlat1d
+      real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
       intent (in) dlat , dlon , dmap , f , ls , ndim , xlat , xlon ,    &
                 & xmap , zs
@@ -43,17 +43,17 @@
       real(4) :: aaa , fact , misdat , offset , vmax , vmin , vmisdat , &
             & xmax , xmin
       integer :: i , j
-      integer , dimension(jxm2,ixm2) :: icol , ils , itex
+      integer , dimension(jxm2,iym2) :: icol , ils , itex
       character(64) :: lname
-      real(4) , dimension(jxm2,ixm2) :: tmp2d
+      real(4) , dimension(jxm2,iym2) :: tmp2d
       character(64) :: units
       character(64) :: varnam
 !
       iadm(3) = 1
       aaa = 2.**16. - 1.
-!     CALL XTDOT(zs,zs,jxm2,ixm2,1,jxm2-1,ixm2-1)
-!     CALL XTDOT(f,f,jxm2,ixm2,1,jxm2-1,ixm2-1)
-      do j = 1 , ixm2
+!     CALL XTDOT(zs,zs,jxm2,iym2,1,jxm2-1,iym2-1)
+!     CALL XTDOT(f,f,jxm2,iym2,1,jxm2-1,iym2-1)
+      do j = 1 , iym2
         do i = 1 , jxm2
           ils(i,j) = nint(ls(i,j))
           itex(i,j) = iexsol(ils(i,j))
@@ -69,13 +69,13 @@
       xmin = -100.
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = zs(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(zb)=' , vmin , 'XMIN=' , xmin
@@ -87,7 +87,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -99,13 +99,13 @@
       xmin = -1.
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = ls(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(lu)=' , vmin , 'XMIN=' , xmin
@@ -117,7 +117,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -129,13 +129,13 @@
       xmin = -0.001
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = f(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(f)=' , vmin , 'XMIN=' , xmin
@@ -147,7 +147,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -159,13 +159,13 @@
       xmin = 0.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = xmap(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xmap)=' , vmin , 'XMIN=' , xmin
@@ -177,7 +177,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -189,13 +189,13 @@
       xmin = 0.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = dmap(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(dmap)=' , vmin , 'XMIN=' , xmin
@@ -207,7 +207,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -219,13 +219,13 @@
       xmin = -100.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = xlat(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xlat)=' , vmin , 'XMIN=' , xmin
@@ -237,7 +237,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -249,13 +249,13 @@
       xmin = -200.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = xlon(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xlon)=' , vmin , 'XMIN=' , xmin
@@ -267,7 +267,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -279,13 +279,13 @@
       xmin = -100.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = dlat(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(dlat)=' , vmin , 'XMIN=' , xmin
@@ -297,7 +297,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -309,13 +309,13 @@
       xmin = -200.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 3 , ixm2 - 2
+      do j = 3 , iym2 - 2
         do i = 3 , jxm2 - 2
           tmp2d(i-2,j-2) = dlon(i,j)
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(dlon)=' , vmin , 'XMIN=' , xmin
@@ -327,7 +327,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -339,7 +339,7 @@
       xmin = -0.5
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           if ( ils(i,j)==15 ) then
             tmp2d(i,j) = -999.
@@ -349,7 +349,7 @@
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(land)=' , vmin , 'XMIN=' , xmin
@@ -361,7 +361,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -373,13 +373,13 @@
       xmin = -0.5
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = rootf(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(rootf)=' , vmin , 'XMIN=' , xmin
@@ -391,7 +391,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -403,13 +403,13 @@
       xmin = -0.5
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = vegc(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(vegc)=' , vmin , 'XMIN=' , xmin
@@ -421,7 +421,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -433,13 +433,13 @@
       xmin = -0.5
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = seasf(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(seasf)=' , vmin , 'XMIN=' , xmin
@@ -451,7 +451,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -463,13 +463,13 @@
       xmin = -0.5
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = rough(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(rough)=' , vmin , 'XMIN=' , xmin
@@ -481,7 +481,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -493,13 +493,13 @@
       xmin = -2.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = displa(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(displa)=' , vmin , 'XMIN=' , xmin
@@ -511,7 +511,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -523,13 +523,13 @@
       xmin = -10.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = rsmin(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(rsmin)=' , vmin , 'XMIN=' , xmin
@@ -541,7 +541,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -553,13 +553,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = xla(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xla)=' , vmin , 'XMIN=' , xmin
@@ -571,7 +571,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -583,13 +583,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = xlai0(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xlai0)=' , vmin , 'XMIN=' , xmin
@@ -601,7 +601,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -613,13 +613,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = sai(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(sai)=' , vmin , 'XMIN=' , xmin
@@ -631,7 +631,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -643,13 +643,13 @@
       xmin = -10.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = sqrtdi(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(sqrtdi)=' , vmin , 'XMIN=' , xmin
@@ -661,7 +661,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -673,13 +673,13 @@
       xmin = -10.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = fc(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(fc)=' , vmin , 'XMIN=' , xmin
@@ -691,7 +691,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -703,13 +703,13 @@
       xmin = -10.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = depuv(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(depuv)=' , vmin , 'XMIN=' , xmin
@@ -721,7 +721,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -733,13 +733,13 @@
       xmin = -10.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = deprv(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(deprv)=' , vmin , 'XMIN=' , xmin
@@ -751,7 +751,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -763,13 +763,13 @@
       xmin = -10.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = deptv(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(deptv)=' , vmin , 'XMIN=' , xmin
@@ -781,7 +781,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -793,13 +793,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = iexsol(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(iexsol)=' , vmin , 'XMIN=' , xmin
@@ -811,7 +811,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -823,13 +823,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = kolsol(ils(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(kolsol)=' , vmin , 'XMIN=' , xmin
@@ -841,7 +841,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -853,13 +853,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = xmopor(itex(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xmopor)=' , vmin , 'XMIN=' , xmin
@@ -871,7 +871,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -883,13 +883,13 @@
       xmin = -10.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = xmosuc(itex(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xmosuc)=' , vmin , 'XMIN=' , xmin
@@ -901,7 +901,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -913,13 +913,13 @@
       xmin = 0.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = xmohyd(itex(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xmohyd)=' , vmin , 'XMIN=' , xmin
@@ -931,7 +931,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -943,13 +943,13 @@
       xmin = 0.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = xmowil(itex(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(xmowil)=' , vmin , 'XMIN=' , xmin
@@ -961,7 +961,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -973,13 +973,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = bee(itex(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(bee)=' , vmin , 'XMIN=' , xmin
@@ -991,7 +991,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -1003,13 +1003,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = skrat(itex(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(skrat)=' , vmin , 'XMIN=' , xmin
@@ -1021,7 +1021,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -1033,13 +1033,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = albvgs(itex(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(albvgs)=' , vmin , 'XMIN=' , xmin
@@ -1051,7 +1051,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  
@@ -1063,13 +1063,13 @@
       xmin = -1.0
       fact = (xmax-xmin)/aaa
       offset = (xmax+xmin)/2.
-      do j = 1 , ixm2
+      do j = 1 , iym2
         do i = 1 , jxm2
           tmp2d(i,j) = albvgl(itex(i,j))
         end do
       end do
       if ( iotyp==1 ) then
-        call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+        call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
         if ( vmin<xmin .or. vmax>xmax ) then
           print * , 'Values Out of Range:  FIELD=' , varnam
           print * , 'MINVAL(albvgl)=' , vmin , 'XMIN=' , xmin
@@ -1081,7 +1081,7 @@
         misdat = vmisdat
       else
       end if
-      call writecdf(idout,varnam,tmp2d,jxm2,ixm2,1,iadm,xhro,lname,     &
+      call writecdf(idout,varnam,tmp2d,jxm2,iym2,1,iadm,xhro,lname,     &
                 & units,fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,1.0,0,&
                 & misdat,iotyp)
  

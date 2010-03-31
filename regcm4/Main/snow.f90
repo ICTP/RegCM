@@ -48,7 +48,7 @@
       real(8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels ,&
                & sge , tage
       integer :: n , i
-      real(8) , dimension(nnsg,ixm1) :: sold
+      real(8) , dimension(nnsg,iym1) :: sold
 !
       age3 = 0.3
  
@@ -56,7 +56,7 @@
 !     1.   partition soil evaporation and precipitation
 !     between water and snow
 !=======================================================================
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
  
@@ -81,7 +81,7 @@
 !=======================================================================
 !     2.   update snow cover
 !=======================================================================
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             sold(n,i) = scv1d(n,i)

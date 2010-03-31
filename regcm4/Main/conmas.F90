@@ -65,14 +65,14 @@
 !
       tdrym = 0.
 #ifdef MPP1
-      call mpi_gather(psa(1,1),   ix*jxp,mpi_real8,                     &
-                    & psa_io(1,1),ix*jxp,mpi_real8,                     &
+      call mpi_gather(psa(1,1),   iy*jxp,mpi_real8,                     &
+                    & psa_io(1,1),iy*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
-        do k = 1 , kx
+        do k = 1 , kz
           tttmp = 0.
           do j = 1 , jxm1
-            do i = 1 , ixm1
+            do i = 1 , iym1
               tttmp = tttmp + psa_io(i,j)
             end do
           end do
@@ -82,10 +82,10 @@
       end if
       call mpi_bcast(tdrym,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
-      do k = 1 , kx
+      do k = 1 , kz
         tttmp = 0.
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             tttmp = tttmp + psa(i,j)
           end do
         end do
@@ -98,14 +98,14 @@
 !
       tvmass = 0.
 #ifdef MPP1
-      call mpi_gather(qva(1,1,1),   ix*kx*jxp,mpi_real8,                &
-                    & qva_io(1,1,1),ix*kx*jxp,mpi_real8,                &
+      call mpi_gather(qva(1,1,1),   iy*kz*jxp,mpi_real8,                &
+                    & qva_io(1,1,1),iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
-        do k = 1 , kx
+        do k = 1 , kz
           tttmp = 0.
           do j = 1 , jxm1
-            do i = 1 , ixm1
+            do i = 1 , iym1
               tttmp = tttmp + qva_io(i,k,j)
             end do
           end do
@@ -116,10 +116,10 @@
       call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,               &
                    & ierr)
 #else
-      do k = 1 , kx
+      do k = 1 , kz
         tttmp = 0.
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             tttmp = tttmp + qva(i,k,j)
           end do
         end do
@@ -131,14 +131,14 @@
       tcmass = 0.
 
 #ifdef MPP1
-      call mpi_gather(qca(1,1,1),   ix*kx*jxp,mpi_real8,                &
-                    & qca_io(1,1,1),ix*kx*jxp,mpi_real8,                &
+      call mpi_gather(qca(1,1,1),   iy*kz*jxp,mpi_real8,                &
+                    & qca_io(1,1,1),iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
-        do k = 1 , kx
+        do k = 1 , kz
           tttmp = 0.
           do j = 1 , jxm1
-            do i = 1 , ixm1
+            do i = 1 , iym1
               tttmp = tttmp + qca_io(i,k,j)
             end do
           end do
@@ -149,10 +149,10 @@
       call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,               &
                    & ierr)
 #else
-      do k = 1 , kx
+      do k = 1 , kz
         tttmp = 0.
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             tttmp = tttmp + qca(i,k,j)
           end do
         end do
@@ -175,17 +175,17 @@
 !-----total raifall at this time:
 !
 #ifdef MPP1
-      call mpi_gather(rainc(1,1),   ix*jxp,mpi_real8,                   &
-                    & rainc_io(1,1),ix*jxp,mpi_real8,                   &
+      call mpi_gather(rainc(1,1),   iy*jxp,mpi_real8,                   &
+                    & rainc_io(1,1),iy*jxp,mpi_real8,                   &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(rainnc(1,1),   ix*jxp,mpi_real8,                  &
-                    & rainnc_io(1,1),ix*jxp,mpi_real8,                  &
+      call mpi_gather(rainnc(1,1),   iy*jxp,mpi_real8,                  &
+                    & rainnc_io(1,1),iy*jxp,mpi_real8,                  &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         tcrai = 0.
         tncrai = 0.
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             tcrai = tcrai + rainc_io(i,j)*dxsq
             tncrai = tncrai + rainnc_io(i,j)*dxsq
           end do
@@ -197,7 +197,7 @@
       tcrai = 0.
       tncrai = 0.
       do j = 1 , jxm1
-        do i = 1 , ixm1
+        do i = 1 , iym1
           tcrai = tcrai + rainc(i,j)*dxsq
           tncrai = tncrai + rainnc(i,j)*dxsq
         end do

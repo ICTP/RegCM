@@ -23,14 +23,14 @@
 
       implicit none
 !
-      real(8) , dimension(ix,kxp1) :: zq
+      real(8) , dimension(iy,kzp1) :: zq
 
 #ifdef MPP1
-      real(8) , dimension(ix,kx,jxp) :: dzq , thvx , thx3d , za
-      real(8) , dimension(ix,jxp) :: rhox2d
+      real(8) , dimension(iy,kz,jxp) :: dzq , thvx , thx3d , za
+      real(8) , dimension(iy,jxp) :: rhox2d
 #else
-      real(8) , dimension(ix,kx,jx) :: dzq , thvx , thx3d , za
-      real(8) , dimension(ix,jx) :: rhox2d
+      real(8) , dimension(iy,kz,jx) :: dzq , thvx , thx3d , za
+      real(8) , dimension(iy,jx) :: rhox2d
 #endif
 
       end module mod_pbldim

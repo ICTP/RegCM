@@ -24,14 +24,14 @@
       implicit none
 !
       integer :: ispgd , ispgx , jxsex , k700 , kchi , kclo , kcmd ,    &
-               & kt , kxout , ncld
+               & kt , kzout , ncld
 !
       real(8) :: ptop , ptop4
       real(8) :: akht1 , akht2
 
-      real(8) , dimension(kx) :: a , anudg , dsigma , qcon
-      real(8) , dimension(kxp1) :: sigma
-      real(8) , dimension(kx,2) :: twt
+      real(8) , dimension(kz) :: a , anudg , dsigma , qcon
+      real(8) , dimension(kzp1) :: sigma
+      real(8) , dimension(kz,2) :: twt
       real(8) , dimension(nspgd) :: wgtd
       real(8) , dimension(nspgx) :: wgtx
 

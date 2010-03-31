@@ -130,6 +130,8 @@
       use mod_regcm_param
       use mod_dust
       use mod_message
+      use mod_constants , only : vonkar
+      use mod_aero_param , only : rhop
       implicit none
 !
 ! Dummy arguments
@@ -147,13 +149,13 @@
 ! Local variables
 !
       real(8) , dimension(ilg) :: alamda , hc , rc , srl , wprim
-      real(8) :: arc1 , arc2 , br , cly1 , cly2 , rhop , sigr , tempd , &
-               & umin , ustarns , uth , utmin , vk , x , xz , ym , z0s
+      real(8) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,        &
+               & umin , ustarns , uth , utmin , x , xz , ym , z0s
       integer :: i
       real(8) , dimension(ilg,nats) :: ustar
       real(8) , dimension(ilg,nsoil) :: utheff
 !
-      data umin/15./ , rhop/2500.000/ , vk/0.4/
+      data umin/15./
       data xz/0.25/ , br/202.0/ , ym/0.16/ , sigr/1.45/
       data z0s/3.E-3/ , x/10./
  
@@ -271,11 +273,11 @@
 !       ***** *     no. d6, p6203-6209, 1998                           
 !       *****
 ! *******************************************************************
-        ustarns = (vk*100.*surfwd(i))/(log(1000./srl(i)))
-        utmin = (umin/(100.*vk*rc(i)))*log(1000./srl(i))
+        ustarns = (vonkar*100.*surfwd(i))/(log(1000./srl(i)))
+        utmin = (umin/(100.*vonkar*rc(i)))*log(1000./srl(i))
  
 ! *******************************************************************
-!       *     vk=0.4: karman constant, and 1000 cm =10 m:            
+!       *     vonkar=karman constant, and 1000 cm =10 m:            
 !       ***** *     the height of wind defined level. umin: 21 cm/s:   
 !       ***** *    the minimal threshold wind friction velocity.       
 !       *****

@@ -54,7 +54,7 @@
 !
       real(8) :: difzen , g , radfi , seas , vpdf , x
       real(8) :: fseas
-      real(8) , dimension(nnsg,ixm1) :: fsol0 , fsold , radf , rmini ,  &
+      real(8) , dimension(nnsg,iym1) :: fsol0 , fsold , radf , rmini ,  &
            & trup , trupd
       integer :: il , ilmax , n , i
       real(8) , dimension(10) :: rad , radd
@@ -77,7 +77,7 @@
 !*    delete fracd here to put in diffuse mod_radiation from ccm
 !cc   fracd = difrat         !  from shuttleworth mods #2
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then
@@ -94,7 +94,7 @@
         end do
       end do
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then
@@ -117,7 +117,7 @@
         end do
       end do
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then

@@ -56,20 +56,20 @@
 !     Aerosol mass mixing ratio
 !
 #ifdef MPP1
-      real(8) , dimension(ixm1,kx,jxp) :: aermm
+      real(8) , dimension(iym1,kz,jxp) :: aermm
 #else
-      real(8) , dimension(ixm1,kx,jxm1) :: aermm
+      real(8) , dimension(iym1,kz,jxm1) :: aermm
 #endif
 
 !
 !     Background aerosol mass mixing ratio
 !
-      real(8) , dimension(ixm1,kx) :: aermmb
+      real(8) , dimension(iym1,kz) :: aermmb
 
 !
 !     Radiation level aerosol mass mixing ratio
 !
-      real(8) , dimension(ixm1,kx,ntr) :: aermmr
+      real(8) , dimension(iym1,kz,ntr) :: aermmr
 
 !------------------------------------------------------------------------------
 !                  DATA SECTION

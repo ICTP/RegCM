@@ -29,7 +29,7 @@
       use mod_param1
       use mod_param2
       use mod_param3 , only : wgtx , sigma , dsigma , a , anudg , twt , &
-                   & qcon , wgtd , akht1 , akht2 , kt , kxout , ncld ,  &
+                   & qcon , wgtd , akht1 , akht2 , kt , kzout , ncld ,  &
                    & ptop , ptop4 , kchi , k700 , jxsex , ispgx , ispgd
       use mod_iunits
       use mod_pmoist
@@ -67,12 +67,12 @@
       character(7) :: finm
       real(4) :: grdfac
       integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
-               & kbase , ktop , kxx , m , mdate1 , mday , mmon , my1 ,  &
-               & my2 , my3 , myear , n , ns , jxx , ixx
+               & kbase , ktop , kzz , m , mdate1 , mday , mmon , my1 ,  &
+               & my2 , my3 , myear , n , ns , jxx , iyy
       integer , dimension(12) :: mmd
-      real(4) , dimension(kxp1) :: sp1d
-      real(4) , dimension(ix,jx) :: sp2d
-      real(4) , dimension(ixsg,jxsg) :: sp2d1
+      real(4) , dimension(kzp1) :: sp1d
+      real(4) , dimension(iy,jx) :: sp2d
+      real(4) , dimension(iysg,jxsg) :: sp2d1
 #ifdef MPP1
       integer :: ierr
 #endif
@@ -99,11 +99,11 @@
 !chem2
 #ifdef CLM
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
-      & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
+      & prtfrq , kzout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
       & batfrq , iotyp , ibintyp , ifchem , chemfrq , clmfrq
 #else
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
-      & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
+      & prtfrq , kzout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
       & batfrq , iotyp , ibintyp , ifchem , chemfrq
 #endif
 !
@@ -210,7 +210,7 @@
 !     = 0 ; no
 !     = 1 ; yes
 !
-!     kxout  : the k level of the horizontal slice for printer output.
+!     kzout  : the k level of the horizontal slice for printer output.
 !
 !     jxsex  : the j index of the north-south vertical slice for printer
 !     output.
@@ -309,7 +309,7 @@
       ifsub = .true.
       ifprt = .true.
       prtfrq = 12.
-      kxout = kx
+      kzout = kz
       jxsex = 25
       iotyp = 1
       ibintyp = 1
@@ -465,7 +465,7 @@
       call mpi_bcast(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ifprt,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(prtfrq,1,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(kxout,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(kzout,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(jxsex,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(iotyp,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ibintyp,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -661,14 +661,14 @@
         write (finm,99001) iutin
         if ( nsg.gt.1 ) open (iutin1,file='fort.11',form='unformatted', &
                             & status='old',access='direct',             &
-                            & recl=ixsg*jxsg*ibyte)
+                            & recl=iysg*jxsg*ibyte)
         open (iutin,file=finm,form='unformatted',status='old',          &
-             &access='direct',recl=ix*jx*ibyte)
-        read (iutin,rec=1,iostat=ierr1) ixx , jxx , kxx , dxsp , clat , &
+             &access='direct',recl=iy*jx*ibyte)
+        read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dxsp , clat , &
                                       & clon , plat , plon , grdfac ,   &
                                       & proj , sp1d , ptsp , igra ,     &
                                       & ibig , truelatl , truelath
-        print * , 'param: DIMS' , ixx , jxx , kxx
+        print * , 'param: DIMS' , iyy , jxx , kzz
         print * , 'param: DOMAIN' , dxsp , clat , clon , plat , plon ,  &
                   &  grdfac
         print * , 'param: PROJ' , proj
@@ -677,19 +677,19 @@
         print * , 'param: OUTPUT' , igra , ibig
         ptop = ptsp
         dx = dxsp
-        if ( ixx.ne.ix .or. jxx.ne.jx .or. kxx.ne.kx ) then
-          write (aline,*) 'param:  SET IN regcm.param:  IX=' , ix ,     &
-                 & ' JX=' ,  jx , ' KX=' , kx
+        if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
+          write (aline,*) 'param:  SET IN regcm.param:  IX=' , iy ,     &
+                 & ' JX=' ,  jx , ' KX=' , kz
           call say
-          write (aline,*) 'param:  SET IN TERRAIN: IXX=' , ixx ,        &
-                 & ' JXX=' , jxx , ' KXX=' , kxx
+          write (aline,*) 'param:  SET IN TERRAIN: IYY=' , iyy ,        &
+                 & ' JXX=' , jxx , ' KZZ=' , kzz
           call say
           write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' &
                         & , ibyte
           call fatal(__FILE__,__LINE__,                                 &
                     &'IMPROPER DIMENSION SPECIFICATION')
         end if
-        do k = 1 , kxp1
+        do k = 1 , kzp1
           sigma(k) = dble(sp1d(k))
         end do
       end if
@@ -697,20 +697,20 @@
       call mpi_bcast(plon,1,mpi_real,0,mpi_comm_world,ierr)
       call mpi_bcast(ptop,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(dx,1,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(sigma,kxp1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
 #else
       print * , 'READING HEADER FILE'
       write (finm,99001) iutin
       if ( nsg.gt.1 ) open (iutin1,file='fort.11',form='unformatted',   &
                           & status='old',access='direct',               &
-                          & recl=ixsg*jxsg*ibyte)
+                          & recl=iysg*jxsg*ibyte)
       open (iutin,file=finm,form='unformatted',status='old',            &
-           &access='direct',recl=ix*jx*ibyte)
-      read (iutin,rec=1,iostat=ierr1) ixx , jxx , kxx , dxsp , clat ,   &
+           &access='direct',recl=iy*jx*ibyte)
+      read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dxsp , clat ,   &
                                     & clon , plat , plon , grdfac ,     &
                                     & proj , sp1d , ptsp , igra ,       &
                                     & ibig , truelatl , truelath
-      print * , 'DIMS' , ixx , jxx , kxx
+      print * , 'DIMS' , iyy , jxx , kzz
       print * , 'DOMAIN' , dxsp , clat , clon , plat , plon , grdfac
       print * , 'PROJ' , proj
       print * , 'SIGMA' , sp1d
@@ -718,18 +718,18 @@
       print * , 'OUTPUT' , igra , ibig
       ptop = ptsp
       dx = dxsp
-      if ( ixx.ne.ix .or. jxx.ne.jx .or. kxx.ne.kx ) then
-        write (aline,*) '  SET IN regcm.param:  IX=' , ix , ' JX=' ,    &
-                      & jx , ' KX=' , kx
+      if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
+        write (aline,*) '  SET IN regcm.param:  IX=' , iy , ' JX=' ,    &
+                      & jx , ' KX=' , kz
         call say
-        write (aline,*) '  SET IN TERRAIN: IXX=' , ixx , ' JXX=' , jxx ,&
-                       &' KXX=' , kxx
+        write (aline,*) '  SET IN TERRAIN: IYY=' , iyy , ' JXX=' , jxx ,&
+                       &' KZZ=' , kzz
         call say
         write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' , &
                       & ibyte
         call fatal(__FILE__,__LINE__,'IMPROPER DIMENSION SPECIFICATION')
       end if
-      do k = 1 , kxp1
+      do k = 1 , kzp1
         sigma(k) = dble(sp1d(k))
       end do
 #endif
@@ -790,7 +790,7 @@
       write (aline, *) ' ifsave = ' , ifsave , ' savfrq = ' , savfrq ,  &
              &' iftape = ' , iftape , ' tapfrq = ' , tapfrq ,           &
              &' ifprt  = ' , ifprt , ' prtfrq = ' , prtfrq ,            &
-             &' kxout  = ' , kxout , ' jxsex  = ' , jxsex ,             &
+             &' kzout  = ' , kzout , ' jxsex  = ' , jxsex ,             &
              &' radisp = ' , radisp , ' batfrq = ' , batfrq ,           &
              &' nslice = ' , nslice , ' ifchem = ' , ifchem ,           &
              &' chemfrq =' , chemfrq
@@ -830,17 +830,17 @@
       if ( .not.ifrest ) then
         if ( myid.eq.0 ) then
           print * , 'HT'
-          read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               ht_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           if ( nsg.gt.1 ) then
             read (iutin1,rec=2,iostat=ierr1)                            &
-                & ((sp2d1(i,j),j=1,jxsg),i=1,ixsg)
+                & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
             do j = 1 , jxsg
-              do i = 1 , ixsg
+              do i = 1 , iysg
                 jj = mod(j,nsg)
                 if ( jj.eq.0 ) jj = nsg
                 ii = mod(i,nsg)
@@ -853,31 +853,31 @@
             end do
           else
             do j = 1 , jx
-              do i = 1 , ix
+              do i = 1 , iy
                 ht1_io(1,i,j) = sp2d(i,j)*gti
               end do
             end do
           end if
  
           print * , 'HTSD'
-          read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               htsd_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'SATBRT'
-          read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               satbrt_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           if ( nsg.gt.1 ) then
             read (iutin1,rec=4,iostat=ierr1)                            &
-                & ((sp2d1(i,j),j=1,jxsg),i=1,ixsg)
+                & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
             do j = 1 , jxsg
-              do i = 1 , ixsg
+              do i = 1 , iysg
                 jj = mod(j,nsg)
                 if ( jj.eq.0 ) jj = nsg
                 ii = mod(i,nsg)
@@ -890,50 +890,50 @@
             end do
           else
             do j = 1 , jx
-              do i = 1 , ix
+              do i = 1 , iy
                 satbrt1_io(1,i,j) = satbrt_io(i,j)
               end do
             end do
           end if
           print * , 'XLAT'
-          read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               xlat_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'XLONG'
-          read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               xlong_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'MSFX'
-          read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               msfx_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'MSFD'
-          read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               msfd_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'F'
-          read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               f_io(i,j) = dble(sp2d(i,j))
             end do
           end do
           print * , 'SNOWC'
-          read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               do n = 1 , nnsg
                 snowc_io(n,i,j) = dble(sp2d(i,j))
               end do
@@ -946,7 +946,7 @@
             call fatal(__FILE__,__LINE__,'REACHED EOF')
           end if
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               inisrf_0(i,1,j) = ht_io(i,j)
               inisrf_0(i,2,j) = htsd_io(i,j)
               inisrf_0(i,3,j) = satbrt_io(i,j)
@@ -957,7 +957,7 @@
               inisrf_0(i,8,j) = f_io(i,j)
             end do
             do n = 1 , nnsg
-              do i = 1 , ix
+              do i = 1 , iy
                 inisrf_0(i,8+n,j) = ht1_io(n,i,j)
                 inisrf_0(i,8+nnsg+n,j) = satbrt1_io(n,i,j)
                 inisrf_0(i,8+nnsg*2+n,j) = snowc_io(n,i,j)
@@ -965,17 +965,17 @@
             end do
           end do
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               ht_io(i,j) = ht_io(i,j)*gti
             end do
           end do
         end if                 ! end if (myid.eq.0)
  
-        call mpi_scatter(inisrf_0(1,1,1),ix*(nnsg*3+8)*jxp,mpi_real8,   &
-                       & inisrf0(1,1,1), ix*(nnsg*3+8)*jxp,mpi_real8,   &
+        call mpi_scatter(inisrf_0(1,1,1),iy*(nnsg*3+8)*jxp,mpi_real8,   &
+                       & inisrf0(1,1,1), iy*(nnsg*3+8)*jxp,mpi_real8,   &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jxp
-          do i = 1 , ix
+          do i = 1 , iy
             ht(i,j) = inisrf0(i,1,j)
             htsd(i,j) = inisrf0(i,2,j)
             satbrt(i,j) = inisrf0(i,3,j)
@@ -986,7 +986,7 @@
             f(i,j) = inisrf0(i,8,j)
           end do
           do n = 1 , nnsg
-            do i = 1 , ix
+            do i = 1 , iy
               ht1(n,i,j) = inisrf0(i,8+n,j)
               satbrt1(n,i,j) = inisrf0(i,8+nnsg+n,j)
               snowc(n,i,j) = inisrf0(i,8+nnsg*2+n,j)
@@ -997,12 +997,12 @@
 !------invert mapscale factors:
 !
         do j = 1 , jendl
-          do i = 1 , ix
+          do i = 1 , iy
             msfd(i,j) = 1./msfd(i,j)
           end do
         end do
         do j = 1 , jendl
-          do i = 1 , ix
+          do i = 1 , iy
             msfx(i,j) = 1./msfx(i,j)
             ht(i,j) = ht(i,j)*gti
           end do
@@ -1017,7 +1017,7 @@
                &'**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
           print * , '****     Map Projection: ' , proj ,                &
                &'                ****'
-          print * , '****     IX=' , ix , ' JX=' , jx , ' KX=' , kx ,   &
+          print * , '****     IX=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
                &'             ****'
           print * , '****     PTOP=' , ptsp , ' DX=' , dxsp ,           &
                &'       ****'
@@ -1030,39 +1030,39 @@
           print * , ' '
  
         end if
-        call mpi_sendrecv(ht(1,jxp),ix,mpi_real8,ieast,1,               &
-                        & ht(1,0),ix,mpi_real8,iwest,1,                 &
+        call mpi_sendrecv(ht(1,jxp),iy,mpi_real8,ieast,1,               &
+                        & ht(1,0),iy,mpi_real8,iwest,1,                 &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(ht(1,1),ix,mpi_real8,iwest,2,                 &
-                        & ht(1,jxp+1),ix,mpi_real8,ieast,2,             &
+        call mpi_sendrecv(ht(1,1),iy,mpi_real8,iwest,2,                 &
+                        & ht(1,jxp+1),iy,mpi_real8,ieast,2,             &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfx(1,jxp-1),ix*2,mpi_real8,ieast,           &
-                        & 1,msfx(1,-1),ix*2,mpi_real8,iwest,            &
+        call mpi_sendrecv(msfx(1,jxp-1),iy*2,mpi_real8,ieast,           &
+                        & 1,msfx(1,-1),iy*2,mpi_real8,iwest,            &
                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfx(1,1),ix*2,mpi_real8,iwest,2,             &
-                        & msfx(1,jxp+1),ix*2,mpi_real8,ieast,           &
+        call mpi_sendrecv(msfx(1,1),iy*2,mpi_real8,iwest,2,             &
+                        & msfx(1,jxp+1),iy*2,mpi_real8,ieast,           &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfd(1,jxp-1),ix*2,mpi_real8,ieast,           &
-                        & 1,msfd(1,-1),ix*2,mpi_real8,iwest,            &
+        call mpi_sendrecv(msfd(1,jxp-1),iy*2,mpi_real8,ieast,           &
+                        & 1,msfd(1,-1),iy*2,mpi_real8,iwest,            &
                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfd(1,1),ix*2,mpi_real8,iwest,2,             &
-                        & msfd(1,jxp+1),ix*2,mpi_real8,ieast,           &
+        call mpi_sendrecv(msfd(1,1),iy*2,mpi_real8,iwest,2,             &
+                        & msfd(1,jxp+1),iy*2,mpi_real8,ieast,           &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
       end if
 #else
       if ( .not.ifrest ) then
         print * , 'HT'
-        read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             ht(i,j) = dble(sp2d(i,j))
           end do
         end do
         if ( nsg.gt.1 ) then
           read (iutin1,rec=2,iostat=ierr1)                              &
-              & ((sp2d1(i,j),j=1,jxsg),i=1,ixsg)
+              & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
           do j = 1 , jxsg
-            do i = 1 , ixsg
+            do i = 1 , iysg
               jj = mod(j,nsg)
               if ( jj.eq.0 ) jj = nsg
               ii = mod(i,nsg)
@@ -1075,31 +1075,31 @@
           end do
         else
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               ht1(1,i,j) = sp2d(i,j)*gti
             end do
           end do
         end if
 
         print * , 'HTSD'
-        read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             htsd(i,j) = dble(sp2d(i,j))
           end do
         end do
         print * , 'SATBRT'
-        read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             satbrt(i,j) = dble(sp2d(i,j))
           end do
         end do
         if ( nsg.gt.1 ) then
           read (iutin1,rec=4,iostat=ierr1)                              &
-              & ((sp2d1(i,j),j=1,jxsg),i=1,ixsg)
+              & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
           do j = 1 , jxsg
-            do i = 1 , ixsg
+            do i = 1 , iysg
               jj = mod(j,nsg)
               if ( jj.eq.0 ) jj = nsg
               ii = mod(i,nsg)
@@ -1112,50 +1112,50 @@
           end do
         else
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               satbrt1(1,i,j) = satbrt(i,j)
             end do
           end do
         end if
         print * , 'XLAT'
-        read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             xlat(i,j) = dble(sp2d(i,j))
           end do
         end do
         print * , 'XLONG'
-        read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             xlong(i,j) = dble(sp2d(i,j))
           end do
         end do
         print * , 'MSFX'
-        read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             msfx(i,j) = dble(sp2d(i,j))
           end do
         end do
         print * , 'MSFD'
-        read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             msfd(i,j) = dble(sp2d(i,j))
           end do
         end do
         print * , 'F'
-        read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             f(i,j) = dble(sp2d(i,j))
           end do
         end do
         print * , 'SNOWC'
-        read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,ix)
+        read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             do n = 1 , nnsg
               snowc(n,i,j) = dble(sp2d(i,j))
             end do
@@ -1168,12 +1168,12 @@
         end if
 !------invert mapscale factors:
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             msfd(i,j) = 1./msfd(i,j)
           end do
         end do
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             msfx(i,j) = 1./msfx(i,j)
             ht(i,j) = ht(i,j)*gti
           end do
@@ -1184,7 +1184,7 @@
         print * , '**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
         print * , '****     Map Projection: ' , proj ,                  &
              &'                ****'
-        print * , '****     IX=' , ix , ' JX=' , jx , ' KX=' , kx ,     &
+        print * , '****     IX=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
              &'             ****'
         print * , '****     PTOP=' , ptsp , ' DX=' , dxsp ,             &
              &'       ****'
@@ -1201,12 +1201,12 @@
 !
 !-----compute dsigma and half sigma levels.
 !
-      do k = 1 , kx
+      do k = 1 , kz
         dsigma(k) = sigma(k+1) - sigma(k)
         a(k) = 0.5*(sigma(k+1)+sigma(k))
       end do
  
-      do k = 1 , kx
+      do k = 1 , kz
         if ( a(k).lt.0.4 ) then
           anudg(k) = 3.
         else if ( a(k).lt.0.8 ) then
@@ -1218,14 +1218,14 @@
 !
 !-----specify heating profile (twght) and weighted function
 !     for moisture fluxes due to convection (vqflx)
-!     assume base of cloud varies as  < kbase = 5,kx >
+!     assume base of cloud varies as  < kbase = 5,kz >
 !     top  of cloud varies as  < ktop  = 1,kbase-3 >
 !     exceptions to this are treated explicitly in subroutine
 !     "cupara".
 !
-      do kbase = 5 , kx
+      do kbase = 5 , kz
         do ktop = 1 , kbase - 3
-          do k = 1 , kx
+          do k = 1 , kz
             twght(k,kbase,ktop) = 0.
             vqflx(k,kbase,ktop) = 0.
           end do
@@ -1284,7 +1284,7 @@
 !
       sigtbl = (70.-ptop)/(101.3-ptop)
       kt = 1
-      do k = kx , 1 , -1
+      do k = kz , 1 , -1
         delsig = a(k) - sigtbl
         if ( delsig.le.0. ) then
           kt = k
@@ -1338,9 +1338,9 @@
         write (aline, *) '*********************************'
         call say
       else if ( icup.eq.2 ) then
-        kbmax = kx
-        do k = 1 , kx - 1
-          if ( a(k).le.skbmax ) kbmax = kx - k
+        kbmax = kz
+        do k = 1 , kz - 1
+          if ( a(k).le.skbmax ) kbmax = kz - k
         end do
         write (aline, *) '*********************************' 
         call say
@@ -1390,7 +1390,7 @@
         call say
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , ixm1
+          do i = 1 , iym1
             shrmax2d(i,j) = shrmax
             shrmin2d(i,j) = shrmin
             edtmax2d(i,j) = edtmax
@@ -1409,7 +1409,7 @@
         end do
 #else
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             shrmax2d(i,j) = shrmax
             shrmin2d(i,j) = shrmin
             edtmax2d(i,j) = edtmax
@@ -1435,9 +1435,9 @@
       else if ( icup.eq.4 ) then
         cllwcv = 0.5E-4    ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
-        minorig = kx
-        do k = 1 , kx
-          if ( a(k).le.minsig ) minorig = kx - k
+        minorig = kz
+        do k = 1 , kz
+          if ( a(k).le.minsig ) minorig = kz - k
         end do
         write (aline, *) ' '
         call say
@@ -1524,7 +1524,7 @@
       twt(1,1) = 0.
       twt(1,2) = 0.
       qcon(1) = 0.
-      do k = 2 , kx
+      do k = 2 , kz
         twt(k,1) = (sigma(k)-a(k-1))/(a(k)-a(k-1))
         twt(k,2) = 1. - twt(k,1)
         qcon(k) = (sigma(k)-a(k))/(a(k-1)-a(k))
@@ -1535,7 +1535,7 @@
       pz = a(1)*(1000.-ptmb) + ptmb
       if ( pz.gt.chibot ) call fatal(__FILE__,__LINE__,                 &
                                     &'VERTICAL INTERPOLATION ERROR')
-      do k = 1 , kx
+      do k = 1 , kz
         pk = a(k)*(1000.-ptmb) + ptmb
         if ( pk.le.chibot ) kchi = k
       end do
@@ -1546,7 +1546,7 @@
 !     produces cloud (used in the cumulus parameterization scheme).
 !
       sig700 = (70.-ptop)/(100.-ptop)
-      do k = 1 , kx
+      do k = 1 , kz
         k700 = k
         if ( sig700.le.sigma(k+1) .and. sig700.gt.sigma(k) ) exit
       end do
@@ -1606,16 +1606,16 @@
  
         print 99010
 !
-        do k = 1 , kx
+        do k = 1 , kz
           print 99011 , k , sigma(k) , a(k) , dsigma(k) , twt(k,1) ,    &
               & twt(k,2) , qcon(k)
         end do
-        print 99012 , kxp1 , sigma(kxp1)
+        print 99012 , kzp1 , sigma(kzp1)
         print 99013 , daymax
         print 99014 , dt
         print 99015 , dx
-        print 99016 , jx , ix
-        print 99017 , kx
+        print 99016 , jx , iy
+        print 99017 , kz
         print 99018 , xkhz
         print 99019 , xkhmax
       end if
@@ -1632,16 +1632,16 @@
 
       print 99010
 !
-      do k = 1 , kx
+      do k = 1 , kz
         print 99011 , k , sigma(k) , a(k) , dsigma(k) , twt(k,1) ,      &
             & twt(k,2) , qcon(k)
       end do
-      print 99012 , kxp1 , sigma(kxp1)
+      print 99012 , kzp1 , sigma(kzp1)
       print 99013 , daymax
       print 99014 , dt
       print 99015 , dx
-      print 99016 , jx , ix
-      print 99017 , kx
+      print 99016 , jx , iy
+      print 99017 , kz
       print 99018 , xkhz
       print 99019 , xkhmax
 #endif

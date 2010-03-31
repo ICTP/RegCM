@@ -31,17 +31,17 @@
 !     compute ozone mixing ratio distribution
 !
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
-        do k = 1 , kx
+        do k = 1 , kz
 #ifdef MPP1
           do j = 1 , jendl
-            do i = 1 , ixm1
+            do i = 1 , iym1
               heatrt(i,k,j) = 0.
               o3prof(i,k,j) = 0.
             end do
           end do
 #else
           do j = 1 , jxm1
-            do i = 1 , ixm1
+            do i = 1 , iym1
               heatrt(i,k,j) = 0.
               o3prof(i,k,j) = 0.
             end do
@@ -50,14 +50,14 @@
         end do
 #ifdef MPP1
         do j = 1 , jendl
-          do i = 1 , ixm1
-            o3prof(i,kxp1,j) = 0.
+          do i = 1 , iym1
+            o3prof(i,kzp1,j) = 0.
           end do
         end do
 #else
         do j = 1 , jxm1
-          do i = 1 , ixm1
-            o3prof(i,kxp1,j) = 0.
+          do i = 1 , iym1
+            o3prof(i,kzp1,j) = 0.
           end do
         end do
 #endif
@@ -65,13 +65,13 @@
 #ifdef MPP1
         if ( myid.eq.0 ) then
           print * , 'ozone profiles'
-          do k = 1 , kxp1
+          do k = 1 , kzp1
             write (6,99001) o3prof(3,k,3)
           end do
         end if
 #else
         print * , 'ozone profiles'
-        do k = 1 , kxp1
+        do k = 1 , kzp1
           write (6,99001) o3prof(3,k,3)
         end do
 #endif

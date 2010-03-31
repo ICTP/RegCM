@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine rdheadicbc(ix,jx,nx,ny,kx,clat,clon,ds,pt,sigf,sigh, &
+      subroutine rdheadicbc(iy,jx,nx,ny,kz,clat,clon,ds,pt,sigf,sigh, &
                           & sighrev,xplat,xplon,f,xmap,dmap,xlat,xlon,  &
                           & zs,zssd,ls,iin,inhead,ibyte)
  
@@ -26,13 +26,13 @@
 ! Dummy arguments
 !
       real(4) :: clat , clon , ds , pt , xplat , xplon
-      integer :: ibyte , iin , nx , ix , ny , jx , kx
+      integer :: ibyte , iin , nx , iy , ny , jx , kz
       character(70) :: inhead
       real(4) , dimension(nx,ny) :: dmap , f , ls , xlat , xlon , xmap ,&
                               &  zs , zssd
-      real(4) , dimension(kx+1) :: sigf
-      real(4) , dimension(kx) :: sigh , sighrev
-      intent (in) ibyte , iin , inhead , nx , ix , ny , jx , kx
+      real(4) , dimension(kz+1) :: sigf
+      real(4) , dimension(kz) :: sigh , sighrev
+      intent (in) ibyte , iin , inhead , nx , iy , ny , jx , kz
       intent (out) dmap , f , ls , sighrev , xlat , xlon , xmap , zs ,  &
                  & zssd
       intent (inout) clat , clon , ds , pt , sigf , sigh , xplat , xplon
@@ -42,10 +42,10 @@
       real(4) :: grdfac
       integer :: i , ibigend , ierr , igrads , j , k , kk , ni , nj , nk
       character(6) :: proj
-      real(4) , dimension(ix,jx) :: tmp2d
+      real(4) , dimension(iy,jx) :: tmp2d
 !
       open (iin,file=inhead,status='old',form='unformatted',            &
-          & recl=ix*jx*ibyte,access='direct')
+          & recl=iy*jx*ibyte,access='direct')
       read (iin,rec=1,iostat=ierr) ni , nj , nk , ds , clat , clon ,    &
                                  & xplat , xplon , grdfac , proj ,      &
                                  & sigf , pt , igrads , ibigend
@@ -55,9 +55,9 @@
       print * , sigf
       print * , 'pt,clat,clon,xplat,xplon,proj='
       print * , pt , clat , clon , xplat , xplon , proj
-      if ( ni/=jx .or. nj/=ix .or. kx/=nk ) then
+      if ( ni/=jx .or. nj/=iy .or. kz/=nk ) then
         print * , 'Grid Dimensions DO NOT MATCH'
-        print * , '  jx=' , jx , 'ix=' , ix , 'kx=' , kx
+        print * , '  jx=' , jx , 'ix=' , iy , 'kx=' , kz
         print * , '  ni=' , ni , 'nj=' , nj , 'nk=' , nk
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'BAD DIMENSIONS (SUBROUTINE RDHEADICBC)'
@@ -125,8 +125,8 @@
         stop 'EOF (SUBROUTINE RDHEADICBC)'
       end if
  
-      do k = 1 , kx
-        kk = kx - k + 1
+      do k = 1 , kz
+        kk = kz - k + 1
         sigh(k) = (sigf(k)+sigf(k+1))/2.
         sighrev(kk) = sigh(k)
       end do

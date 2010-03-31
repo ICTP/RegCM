@@ -69,8 +69,8 @@
 !-----compute the p* at dot points:
 !
 !=======================================================================
-      call mpi_sendrecv(psa(1,jxp),ix,mpi_real8,ieast,1,                &
-                      & psa(1,0),ix,mpi_real8,iwest,1,                  &
+      call mpi_sendrecv(psa(1,jxp),iy,mpi_real8,ieast,1,                &
+                      & psa(1,0),iy,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !=======================================================================
@@ -79,14 +79,14 @@
 !
 #ifdef MPP1
       do j = jbegin , jendx
-        do i = 2 , ixm1
+        do i = 2 , iym1
           pdota(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
                      & )
         end do
       end do
 #else
       do j = 2 , jxm1
-        do i = 2 , ixm1
+        do i = 2 , iym1
           pdota(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
                      & )
         end do
@@ -95,7 +95,7 @@
 !
 !-----east and west boundaries:
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
 #ifdef MPP1
         if ( myid.eq.0 ) pdota(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
         if ( myid.eq.nproc-1 ) pdota(i,jendl)                           &
@@ -111,12 +111,12 @@
 #ifdef MPP1
       do j = jbegin , jendx
         pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
-        pdota(ix,j) = 0.5*(psa(ixm1,j)+psa(ixm1,j-1))
+        pdota(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
       end do
 #else
       do j = 2 , jxm1
         pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
-        pdota(ix,j) = 0.5*(psa(ixm1,j)+psa(ixm1,j-1))
+        pdota(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
       end do
 #endif
 !
@@ -125,27 +125,27 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
         pdota(1,1) = psa(1,1)
-        pdota(ix,1) = psa(ixm1,1)
+        pdota(iy,1) = psa(iym1,1)
       end if
       if ( myid.eq.nproc-1 ) then
         pdota(1,jendl) = psa(1,jendx)
-        pdota(ix,jendl) = psa(ixm1,jendx)
+        pdota(iy,jendl) = psa(iym1,jendx)
       end if
 #else
       pdota(1,1) = psa(1,1)
-      pdota(ix,1) = psa(ixm1,1)
+      pdota(iy,1) = psa(iym1,1)
       pdota(1,jx) = psa(1,jxm1)
-      pdota(ix,jx) = psa(ixm1,jxm1)
+      pdota(iy,jx) = psa(iym1,jxm1)
 #endif
 !=======================================================================
 !
 !-----interior silces:
 !
-      do k = 1 , kx
+      do k = 1 , kz
 !
 !.....for j = 2 and j = jlx :
 !
-        do i = 2 , ixm1
+        do i = 2 , iym1
 #ifdef MPP1
           if ( myid.eq.0 ) then
             uj2(i,k) = ua(i,k,2)/pdota(i,2)
@@ -163,21 +163,21 @@
 #endif
         end do
 !
-!.....for i = 2 and i = ixm1 :
+!.....for i = 2 and i = iym1 :
 !
 #ifdef MPP1
         do j = jbegin , jendx
           ui2(k,j) = ua(2,k,j)/pdota(2,j)
           vi2(k,j) = va(2,k,j)/pdota(2,j)
-          uilx(k,j) = ua(ixm1,k,j)/pdota(ixm1,j)
-          vilx(k,j) = va(ixm1,k,j)/pdota(ixm1,j)
+          uilx(k,j) = ua(iym1,k,j)/pdota(iym1,j)
+          vilx(k,j) = va(iym1,k,j)/pdota(iym1,j)
         end do
 #else
         do j = 2 , jxm1
           ui2(k,j) = ua(2,k,j)/pdota(2,j)
           vi2(k,j) = va(2,k,j)/pdota(2,j)
-          uilx(k,j) = ua(ixm1,k,j)/pdota(ixm1,j)
-          vilx(k,j) = va(ixm1,k,j)/pdota(ixm1,j)
+          uilx(k,j) = ua(iym1,k,j)/pdota(iym1,j)
+          vilx(k,j) = va(iym1,k,j)/pdota(iym1,j)
         end do
 #endif
 !
@@ -190,11 +190,11 @@
 !
 !-----fixed boundary conditions:
 !
-        do k = 1 , kx
+        do k = 1 , kz
 !
 !.....west (j = 1) and east (j = jx) boundaries:
 !
-          do i = 1 , ix
+          do i = 1 , iy
 #ifdef MPP1
             if ( myid.eq.0 ) then
               uj1(i,k) = uwb(i,k,1)/pdota(i,1)
@@ -212,21 +212,21 @@
 #endif
           end do
 !
-!.....south (i = 1) and north (i = ix) boundaries:
+!.....south (i = 1) and north (i = iy) boundaries:
 !
 #ifdef MPP1
           do j = 1 , jendl
             ui1(k,j) = usb(1,k,j)/pdota(1,j)
             vi1(k,j) = vsb(1,k,j)/pdota(1,j)
-            uil(k,j) = unb(1,k,j)/pdota(ix,j)
-            vil(k,j) = vnb(1,k,j)/pdota(ix,j)
+            uil(k,j) = unb(1,k,j)/pdota(iy,j)
+            vil(k,j) = vnb(1,k,j)/pdota(iy,j)
           end do
 #else
           do j = 1 , jx
             ui1(k,j) = usb(1,k,j)/pdota(1,j)
             vi1(k,j) = vsb(1,k,j)/pdota(1,j)
-            uil(k,j) = unb(1,k,j)/pdota(ix,j)
-            vil(k,j) = vnb(1,k,j)/pdota(ix,j)
+            uil(k,j) = unb(1,k,j)/pdota(iy,j)
+            vil(k,j) = vnb(1,k,j)/pdota(iy,j)
           end do
 #endif
         end do
@@ -236,11 +236,11 @@
 !
 !-----time-dependent boundary conditions:
 !
-      do k = 1 , kx
+      do k = 1 , kz
 !
 !.....west (j = 1) and east (j = jx) boundaries:
 !
-        do i = 1 , ix
+        do i = 1 , iy
 #ifdef MPP1
           if ( myid.eq.0 ) then
             uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
@@ -258,21 +258,21 @@
 #endif
         end do
 !
-!.....south (i = 1) and north (i = ix) boundaries:
+!.....south (i = 1) and north (i = iy) boundaries:
 !
 #ifdef MPP1
         do j = 1 , jendl
           ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
           vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
-          uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(ix,j)
-          vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(ix,j)
+          uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
+          vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
         end do
 #else
         do j = 1 , jx
           ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
           vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
-          uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(ix,j)
-          vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(ix,j)
+          uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
+          vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
         end do
 #endif
 !
@@ -283,30 +283,30 @@
  100  continue
 
 #ifdef MPP1
-      do k = 1 , kx
+      do k = 1 , kz
         if ( myid.eq.0 ) then
           uj2(1,k) = ui1(k,2)
-          uj2(ix,k) = uil(k,2)
+          uj2(iy,k) = uil(k,2)
           ui2(k,1) = uj1(2,k)
-          uilx(k,1) = uj1(ixm1,k)
+          uilx(k,1) = uj1(iym1,k)
           vj2(1,k) = vi1(k,2)
-          vj2(ix,k) = vil(k,2)
+          vj2(iy,k) = vil(k,2)
           vi2(k,1) = vj1(2,k)
-          vilx(k,1) = vj1(ixm1,k)
+          vilx(k,1) = vj1(iym1,k)
         end if
         if ( myid.eq.nproc-1 ) then
           ujlx(1,k) = ui1(k,jendx)
-          ujlx(ix,k) = uil(k,jendx)
+          ujlx(iy,k) = uil(k,jendx)
           ui2(k,jendl) = ujl(2,k)
-          uilx(k,jendl) = ujl(ixm1,k)
+          uilx(k,jendl) = ujl(iym1,k)
           vjlx(1,k) = vi1(k,jendx)
-          vjlx(ix,k) = vil(k,jendx)
+          vjlx(iy,k) = vil(k,jendx)
           vi2(k,jendl) = vjl(2,k)
-          vilx(k,jendl) = vjl(ixm1,k)
+          vilx(k,jendl) = vjl(iym1,k)
         end if
       end do
       if ( myid.ne.nproc-1 ) then
-        do k = 1 , kx
+        do k = 1 , kz
           var1snd(k,1) = ui1(k,jxp)
           var1snd(k,2) = vi1(k,jxp)
           var1snd(k,3) = ui2(k,jxp)
@@ -317,11 +317,11 @@
           var1snd(k,8) = vil(k,jxp)
         end do
       end if
-      call mpi_sendrecv(var1snd(1,1),kx*8,mpi_real8,ieast,1,            &
-                      & var1rcv(1,1),kx*8,mpi_real8,iwest,1,            &
+      call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,ieast,1,            &
+                      & var1rcv(1,1),kz*8,mpi_real8,iwest,1,            &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
-        do k = 1 , kx
+        do k = 1 , kz
           ui1(k,0) = var1rcv(k,1)
           vi1(k,0) = var1rcv(k,2)
           ui2(k,0) = var1rcv(k,3)
@@ -334,7 +334,7 @@
       end if
 !
       if ( myid.ne.0 ) then
-        do k = 1 , kx
+        do k = 1 , kz
           var1snd(k,1) = ui1(k,1)
           var1snd(k,2) = vi1(k,1)
           var1snd(k,3) = ui2(k,1)
@@ -345,11 +345,11 @@
           var1snd(k,8) = vil(k,1)
         end do
       end if
-      call mpi_sendrecv(var1snd(1,1),kx*8,mpi_real8,iwest,2,            &
-                      & var1rcv(1,1),kx*8,mpi_real8,ieast,2,            &
+      call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,iwest,2,            &
+                      & var1rcv(1,1),kz*8,mpi_real8,ieast,2,            &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
-        do k = 1 , kx
+        do k = 1 , kz
           ui1(k,jxp+1) = var1rcv(k,1)
           vi1(k,jxp+1) = var1rcv(k,2)
           ui2(k,jxp+1) = var1rcv(k,3)
@@ -361,23 +361,23 @@
         end do
       end if
 #else
-      do k = 1 , kx
+      do k = 1 , kz
         uj2(1,k) = ui1(k,2)
-        uj2(ix,k) = uil(k,2)
+        uj2(iy,k) = uil(k,2)
         ui2(k,1) = uj1(2,k)
-        uilx(k,1) = uj1(ixm1,k)
+        uilx(k,1) = uj1(iym1,k)
         vj2(1,k) = vi1(k,2)
-        vj2(ix,k) = vil(k,2)
+        vj2(iy,k) = vil(k,2)
         vi2(k,1) = vj1(2,k)
-        vilx(k,1) = vj1(ixm1,k)
+        vilx(k,1) = vj1(iym1,k)
         ujlx(1,k) = ui1(k,jxm1)
-        ujlx(ix,k) = uil(k,jxm1)
+        ujlx(iy,k) = uil(k,jxm1)
         ui2(k,jx) = ujl(2,k)
-        uilx(k,jx) = ujl(ixm1,k)
+        uilx(k,jx) = ujl(iym1,k)
         vjlx(1,k) = vi1(k,jxm1)
-        vjlx(ix,k) = vil(k,jxm1)
+        vjlx(iy,k) = vil(k,jxm1)
         vi2(k,jx) = vjl(2,k)
-        vilx(k,jx) = vjl(ixm1,k)
+        vilx(k,jx) = vjl(iym1,k)
       end do
 #endif
 !

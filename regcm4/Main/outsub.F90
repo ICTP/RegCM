@@ -34,20 +34,20 @@
 !
 ! Local variables
 !
-      real(4) , dimension(jxm2sg,ixm2sg) :: v2b
+      real(4) , dimension(jxm2sg,iym2sg) :: v2b
       integer :: n
 
 #ifdef MPP1
       if ( iotyp.eq.1 ) then
         do n = 1 , numsub
           nrcsub = nrcsub + 1
-          call reorder(fsub_io(1,1,1,n),v2b,jxm2,ixm2,nsg)
+          call reorder(fsub_io(1,1,1,n),v2b,jxm2,iym2,nsg)
           write (iutsub,rec=nrcsub) v2b
         end do
       else
         write (iutsub) idatex
         do n = 1 , numsub
-          call reorder(fsub_io(1,1,1,n),v2b,jxm2,ixm2,nsg)
+          call reorder(fsub_io(1,1,1,n),v2b,jxm2,iym2,nsg)
           write (iutsub) v2b
         end do
       end if
@@ -55,13 +55,13 @@
       if ( iotyp.eq.1 ) then
         do n = 1 , numsub
           nrcsub = nrcsub + 1
-          call reorder(fsub(1,1,1,n),v2b,jxm2,ixm2,nsg)
+          call reorder(fsub(1,1,1,n),v2b,jxm2,iym2,nsg)
           write (iutsub,rec=nrcsub) v2b
         end do
       else
         write (iutsub) idatex
         do n = 1 , numsub
-          call reorder(fsub(1,1,1,n),v2b,jxm2,ixm2,nsg)
+          call reorder(fsub(1,1,1,n),v2b,jxm2,iym2,nsg)
           write (iutsub) v2b
         end do
       end if

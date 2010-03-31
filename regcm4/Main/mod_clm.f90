@@ -1,6 +1,6 @@
       module mod_clm
 
-      use mod_regcm_param , only : ix , jx , nproc
+      use mod_regcm_param , only : iy , jx , nproc
 
       implicit none
 
@@ -44,53 +44,53 @@
 
       logical :: r2cdoalb      ! time for next albedo call
 
-      real(8) , dimension(jx,ix) :: r2ctb_all   
-      real(8) , dimension(jx,ix) :: r2cqb_all    
-      real(8) , dimension(jx,ix) :: r2czga_all   
-      real(8) , dimension(jx,ix) :: r2cpsb_all   
-      real(8) , dimension(jx,ix) :: r2cuxb_all   
-      real(8) , dimension(jx,ix) :: r2cvxb_all   
-      real(8) , dimension(jx,ix) :: r2crnc_all   
-      real(8) , dimension(jx,ix) :: r2crnnc_all  
-      real(8) , dimension(jx,ix) :: r2csols_all  
-      real(8) , dimension(jx,ix) :: r2csoll_all  
-      real(8) , dimension(jx,ix) :: r2csolsd_all 
-      real(8) , dimension(jx,ix) :: r2csolld_all
-      real(8) , dimension(jx,ix) :: r2cflwd_all
-      real(8) , dimension(jx,ix) :: r2ccosz_all
-      real(8) , dimension(jx,ix) :: r2cxlat_all     ! xlat in radians
-      real(8) , dimension(jx,ix) :: r2cxlon_all     ! xlon in radians
-      real(8) , dimension(jx,ix) :: r2cxlatd_all    ! xlat in degrees
-      real(8) , dimension(jx,ix) :: r2cxlond_all    ! xlon in degrees
-      real(8) , dimension(jx,ix) :: c2rtgb
-      real(8) , dimension(jx,ix) :: c2rsenht
-      real(8) , dimension(jx,ix) :: c2rlatht
-      real(8) , dimension(jx,ix) :: c2ralbdirs
-      real(8) , dimension(jx,ix) :: c2ralbdirl
-      real(8) , dimension(jx,ix) :: c2ralbdifs
-      real(8) , dimension(jx,ix) :: c2ralbdifl
-      real(8) , dimension(jx,ix) :: c2rtaux
-      real(8) , dimension(jx,ix) :: c2rtauy
-      real(8) , dimension(jx,ix) :: c2ruvdrag
-      real(8) , dimension(jx,ix) :: c2rlsmask
-      real(8) , dimension(jx,ix) :: c2rtgbb
-      real(8) , dimension(jx,ix) :: c2rcosz
-      real(8) , dimension(jx,ix) :: c2rsnowc
-      real(8) , dimension(jx,ix) :: c2rtest
-      real(8) , dimension(jx,ix) :: c2r2mt
-      real(8) , dimension(jx,ix) :: c2r2mq
-      real(8) , dimension(jx,ix) :: c2rtlef
-      real(8) , dimension(jx,ix) :: c2ru10
-      real(8) , dimension(jx,ix) :: c2rsm10cm
-      real(8) , dimension(jx,ix) :: c2rsm1m
-      real(8) , dimension(jx,ix) :: c2rsmtot
-      real(8) , dimension(jx,ix) :: c2rinfl
-      real(8) , dimension(jx,ix) :: c2rro_sur
-      real(8) , dimension(jx,ix) :: c2rro_sub
-      real(8) , dimension(jx,ix) :: c2rfracsno      
-      real(8) , dimension(jx,ix) :: c2rfvegnosno 
+      real(8) , dimension(jx,iy) :: r2ctb_all   
+      real(8) , dimension(jx,iy) :: r2cqb_all    
+      real(8) , dimension(jx,iy) :: r2czga_all   
+      real(8) , dimension(jx,iy) :: r2cpsb_all   
+      real(8) , dimension(jx,iy) :: r2cuxb_all   
+      real(8) , dimension(jx,iy) :: r2cvxb_all   
+      real(8) , dimension(jx,iy) :: r2crnc_all   
+      real(8) , dimension(jx,iy) :: r2crnnc_all  
+      real(8) , dimension(jx,iy) :: r2csols_all  
+      real(8) , dimension(jx,iy) :: r2csoll_all  
+      real(8) , dimension(jx,iy) :: r2csolsd_all 
+      real(8) , dimension(jx,iy) :: r2csolld_all
+      real(8) , dimension(jx,iy) :: r2cflwd_all
+      real(8) , dimension(jx,iy) :: r2ccosz_all
+      real(8) , dimension(jx,iy) :: r2cxlat_all     ! xlat in radians
+      real(8) , dimension(jx,iy) :: r2cxlon_all     ! xlon in radians
+      real(8) , dimension(jx,iy) :: r2cxlatd_all    ! xlat in degrees
+      real(8) , dimension(jx,iy) :: r2cxlond_all    ! xlon in degrees
+      real(8) , dimension(jx,iy) :: c2rtgb
+      real(8) , dimension(jx,iy) :: c2rsenht
+      real(8) , dimension(jx,iy) :: c2rlatht
+      real(8) , dimension(jx,iy) :: c2ralbdirs
+      real(8) , dimension(jx,iy) :: c2ralbdirl
+      real(8) , dimension(jx,iy) :: c2ralbdifs
+      real(8) , dimension(jx,iy) :: c2ralbdifl
+      real(8) , dimension(jx,iy) :: c2rtaux
+      real(8) , dimension(jx,iy) :: c2rtauy
+      real(8) , dimension(jx,iy) :: c2ruvdrag
+      real(8) , dimension(jx,iy) :: c2rlsmask
+      real(8) , dimension(jx,iy) :: c2rtgbb
+      real(8) , dimension(jx,iy) :: c2rcosz
+      real(8) , dimension(jx,iy) :: c2rsnowc
+      real(8) , dimension(jx,iy) :: c2rtest
+      real(8) , dimension(jx,iy) :: c2r2mt
+      real(8) , dimension(jx,iy) :: c2r2mq
+      real(8) , dimension(jx,iy) :: c2rtlef
+      real(8) , dimension(jx,iy) :: c2ru10
+      real(8) , dimension(jx,iy) :: c2rsm10cm
+      real(8) , dimension(jx,iy) :: c2rsm1m
+      real(8) , dimension(jx,iy) :: c2rsmtot
+      real(8) , dimension(jx,iy) :: c2rinfl
+      real(8) , dimension(jx,iy) :: c2rro_sur
+      real(8) , dimension(jx,iy) :: c2rro_sub
+      real(8) , dimension(jx,iy) :: c2rfracsno      
+      real(8) , dimension(jx,iy) :: c2rfvegnosno 
 
-      integer :: c2rprocmap(jx,ix)
+      integer :: c2rprocmap(jx,iy)
       integer :: c2rngc(nproc)
       integer :: c2rdisps(nproc)
       integer :: c2rcnts

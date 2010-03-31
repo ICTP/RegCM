@@ -19,18 +19,18 @@
 
       module mod_grid
 
-      use mod_regcm_param , only : jx , ix , kx
+      use mod_regcm_param , only : jx , iy , kz
 
       implicit none
 
-      real , dimension(jx,ix) :: coriol , dlat , dlon , msfx , snowcv , &
+      real , dimension(jx,iy) :: coriol , dlat , dlon , msfx , snowcv , &
                                & topogm , toposdgm , xlandu , xlat ,    &
                                & xlon
-      real , dimension(jx,ix) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
+      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
                                & ice2
-      real , dimension(jx,ix) :: b3pd
-      real , dimension(kx) :: dsigma , sigma2
-      real , dimension(kx+1) :: sigmaf
+      real , dimension(jx,iy) :: b3pd
+      real , dimension(kz) :: dsigma , sigma2
+      real , dimension(kz+1) :: sigmaf
       real :: delx , grdfac
       integer :: i0 , i1 , j0 , j1
       real :: lat0 , lat1 , lon0 , lon1

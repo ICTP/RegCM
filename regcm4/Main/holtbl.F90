@@ -50,26 +50,26 @@
 !
 ! Local variables
 !
-      real(8) , dimension(ix,kx) :: alphak , betak , chix , coef1 ,     &
+      real(8) , dimension(iy,kz) :: alphak , betak , chix , coef1 ,     &
                                   & coef2 , coef3 , coefe , coeff1 ,    &
                                   & coeff2 , tpred1 , tpred2
       real(8) :: drgdot , dumr , kzmax , kzo , oblen , xps , ps2 , ri , &
                & sf , sh10 , ss , szkm , tvcon , uflxsf , uflxsfx ,     &
                & vflxsf , vflxsfx
-      real(8) , dimension(ixm1) :: govrth
+      real(8) , dimension(iym1) :: govrth
       integer :: i , idx , idxm1 , itr , j , jdx , jdxm1 , k
-      real(8) , dimension(ixm1,kx) :: kzm , rc , ttnp
-      real(8) , dimension(ixm1,ntr) :: vdep
+      real(8) , dimension(iym1,kz) :: kzm , rc , ttnp
+      real(8) , dimension(iym1,ntr) :: vdep
 #ifdef MPP1
       integer :: ierr , ii
-      real(8) , dimension(ixm1,kx,jxp) :: auxx , avxx , dza , qcx
-      real(8) , dimension(ixm1,kx,0:jxp+1) :: akxx1 , akxx2
-      real(8) , dimension(2*(ixm2)*kx) :: wkrecv , wksend
-      real(8) , dimension(ix,kx,jxp) :: rhohf
+      real(8) , dimension(iym1,kz,jxp) :: auxx , avxx , dza , qcx
+      real(8) , dimension(iym1,kz,0:jxp+1) :: akzz1 , akzz2
+      real(8) , dimension(2*(iym2)*kz) :: wkrecv , wksend
+      real(8) , dimension(iy,kz,jxp) :: rhohf
 #else
-      real(8) , dimension(ixm1,kx,jxm1) :: auxx , avxx , dza , qcx
-      real(8) , dimension(ixm1,kx,0:jxm1) :: akxx1 , akxx2
-      real(8) , dimension(ix,kx,jxm1) :: rhohf
+      real(8) , dimension(iym1,kz,jxm1) :: auxx , avxx , dza , qcx
+      real(8) , dimension(iym1,kz,0:jxm1) :: akzz1 , akzz2
+      real(8) , dimension(iy,kz,jxm1) :: rhohf
 #endif
 !
       data kzo/1./
@@ -81,12 +81,12 @@
 !
 #ifdef DIAG
 #ifdef MPP1
-      call mpi_gather(qfx(1,1),   ix*jxp,mpi_real8,                     &
-                    & qfx_io(1,1),ix*jxp,mpi_real8,                     &
+      call mpi_gather(qfx(1,1),   iy*jxp,mpi_real8,                     &
+                    & qfx_io(1,1),iy*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do j = 2 , jxm2
-          do i = 2 , ixm2
+          do i = 2 , iym2
             tqeva = tqeva + qfx_io(i,j)*dx*dx*dtmin*60.
           end do
         end do
@@ -94,7 +94,7 @@
       call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do j = 2 , jxm2
-        do i = 2 , ixm2
+        do i = 2 , iym2
           tqeva = tqeva + qfx(i,j)*dx*dx*dtmin*60.
         end do
       end do
@@ -116,15 +116,15 @@
 !     tendencies.
 !
 #ifdef MPP1
-      call mpi_sendrecv(psb(1,jxp),ix,mpi_real8,ieast,1,                &
-                      & psb(1,0),ix,mpi_real8,iwest,1,                  &
+      call mpi_sendrecv(psb(1,jxp),iy,mpi_real8,ieast,1,                &
+                      & psb(1,0),iy,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(uvdrag(1,jxp),ix,mpi_real8,ieast,1,             &
-                      & uvdrag(1,0),ix,mpi_real8,iwest,1,               &
+      call mpi_sendrecv(uvdrag(1,jxp),iy,mpi_real8,ieast,1,             &
+                      & uvdrag(1,0),iy,mpi_real8,iwest,1,               &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       do j = jbegin , jendx
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             dumr = 4./(psb(i,j)+psb(i,j-1)+psb(i-1,j)+psb(i-1,j-1))
             auxx(i,k,j) = ub(i,k,j)*dumr
             avxx(i,k,j) = vb(i,k,j)*dumr
@@ -132,8 +132,8 @@
         end do
 #else
       do j = 2 , jxm1
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             dumr = 4./(psb(i,j)+psb(i,j-1)+psb(i-1,j)+psb(i-1,j-1))
             auxx(i,k,j) = ub(i,k,j)*dumr
             avxx(i,k,j) = vb(i,k,j)*dumr
@@ -141,15 +141,15 @@
         end do
 #endif 
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             tvcon = (1.+ep1*qvb3d(i,k,j))
             thvx(i,k,j) = thx3d(i,k,j)*tvcon
           end do
         end do
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             qcx(i,k,j) = qcb(i,k,j)/psb(i,j)
           end do
         end do
@@ -157,8 +157,8 @@
 !.....density at surface is stored in rhox2d(i,j), at half levels in
 !       rhohf(i,k,j).
 !
-        do k = 1 , kxm1
-          do i = 2 , ixm1
+        do k = 1 , kzm1
+          do i = 2 , iym1
             dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
             xps = (a(k)*psb(i,j)+ptop)*1000.
             ps2 = (a(k+1)*psb(i,j)+ptop)*1000.
@@ -166,16 +166,16 @@
           end do
         end do
 !
-        do i = 2 , ixm1
-          govrth(i) = gti/thx3d(i,kx,j)
+        do i = 2 , iym1
+          govrth(i) = gti/thx3d(i,kz,j)
         end do
 !
 ! *********************************************************************
 !
 !-----compute the vertical diffusion term:
 !
-        do k = 2 , kx
-          do i = 2 , ixm1
+        do k = 2 , kz
+          do i = 2 , iym1
             rc(i,k) = 0.257*dzq(i,k,j)**0.175
           end do
         end do
@@ -184,8 +184,8 @@
 !
 !       blackadar scheme above boundary layer top
 !
-        do k = 2 , kx
-          do i = 2 , ixm1
+        do k = 2 , kz
+          do i = 2 , iym1
             kzmax = 0.8*dza(i,k-1,j)*dzq(i,k,j)/dt
             ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))                         &
                & *(ubx3d(i,k-1,j)-ubx3d(i,k,j))                         &
@@ -209,8 +209,8 @@
 !       initialize bl diffusion coefficients and counter-gradient terms
 !       with free atmosphere values and make specific humidity
 !
-        do k = 2 , kx
-          do i = 2 , ixm1
+        do k = 2 , kz
+          do i = 2 , iym1
 !           eddy diffusivities for momentum, heat and moisture
             kvm(i,k,j) = kzm(i,k)
             kvh(i,k,j) = kzm(i,k)
@@ -223,10 +223,10 @@
           end do
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
 !         compute friction velocity
           idx = i
-          idx = min0(idx,ixm1)
+          idx = min0(idx,iym1)
           idxm1 = i - 1
           idxm1 = max0(idxm1,2)
           jdx = j
@@ -238,8 +238,8 @@
           jdx = min0(jdx,jxm1)
           jdxm1 = max0(jdxm1,2)
 #endif
-          uflxsfx = uvdrag(idx,jdx)*ubx3d(i,kx,j)
-          vflxsfx = uvdrag(idx,jdx)*vbx3d(i,kx,j)
+          uflxsfx = uvdrag(idx,jdx)*ubx3d(i,kz,j)
+          vflxsfx = uvdrag(idx,jdx)*vbx3d(i,kz,j)
           ustr(i,j) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)      &
                     & /rhox2d(i,j))
  
@@ -247,7 +247,7 @@
           xhfx(i,j) = hfx(i,j)/(cpd*rhox2d(i,j))
           xqfx(i,j) = qfx(i,j)/rhox2d(i,j)
 !         compute virtual heat flux at surface
-          hfxv(i,j) = xhfx(i,j) + 0.61*thx3d(i,kx,j)*xqfx(i,j)
+          hfxv(i,j) = xhfx(i,j) + 0.61*thx3d(i,kz,j)*xqfx(i,j)
         end do
 !
 !       estimate potential temperature at 10m via log temperature
@@ -256,33 +256,33 @@
 !       value from the surface to the lowest model level.
 !
  
-        do i = 2 , ixm1
-          sh10 = qvb3d(i,kx,j)/(qvb3d(i,kx,j)+1)
-!         th10(i,j) = ((thx3d(i,kx,j)+tgb(i,j))/2.0)*(1.0+0.61*sh10)
-!         th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(vonkar*ustr(i,j))
-!         1            *dlog(za(i,kx,j)/10.)
+        do i = 2 , iym1
+          sh10 = qvb3d(i,kz,j)/(qvb3d(i,kz,j)+1)
+!         th10(i,j) = ((thx3d(i,kz,j)+tgb(i,j))/2.0)*(1.0+0.61*sh10)
+!         th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))
+!         1            *dlog(za(i,kz,j)/10.)
  
 !         "virtual" potential temperature
           if ( hfxv(i,j).ge.0. ) then
-            th10(i,j) = thvx(i,kx,j)
+            th10(i,j) = thvx(i,kz,j)
           else
 !           th10(i,j) =
-!----       (0.25*thx3d(i,kx,j)+0.75*tgb(i,j))*(1.0+0.61*sh10) first
+!----       (0.25*thx3d(i,kz,j)+0.75*tgb(i,j))*(1.0+0.61*sh10) first
 !           approximation for obhukov length
-            oblen = -0.5*(thx3d(i,kx,j)+tgb(i,j))*(1.0+0.61*sh10)       &
+            oblen = -0.5*(thx3d(i,kz,j)+tgb(i,j))*(1.0+0.61*sh10)       &
                   & *ustr(i,j)                                          &
                   & **3/(gti*vonkar*(hfxv(i,j)+dsign(1.D-10,hfxv(i,j))))
-            if ( oblen.ge.za(i,kx,j) ) then
-              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
-                        & *(dlog(za(i,kx,j)/10.)                        &
-                        & +5./oblen*(za(i,kx,j)-10.))
-            else if ( oblen.lt.za(i,kx,j) .and. oblen.gt.10. ) then
-              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
+            if ( oblen.ge.za(i,kz,j) ) then
+              th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
+                        & *(dlog(za(i,kz,j)/10.)                        &
+                        & +5./oblen*(za(i,kz,j)-10.))
+            else if ( oblen.lt.za(i,kz,j) .and. oblen.gt.10. ) then
+              th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                         & *(dlog(oblen/10.)+5./oblen*(oblen-10.)        &
-                        & +6*dlog(za(i,kx,j)/oblen))
+                        & +6*dlog(za(i,kz,j)/oblen))
             else if ( oblen.le.10. ) then
-              th10(i,j) = thvx(i,kx,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
-                        & *6*dlog(za(i,kx,j)/10.)
+              th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
+                        & *6*dlog(za(i,kz,j)/10.)
             else
             end if
             th10(i,j) = dmax1(th10(i,j),tgb(i,j))
@@ -303,52 +303,52 @@
       do j = jbegin , jendx
         if ( (myid.ne.nproc-1) .or. (myid.eq.nproc-1 .and. j.lt.jendx) )&
            & then
-          do k = 1 , kx
-            do i = 2 , ixm1
-              if ( k.gt.1 ) akxx1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)    &
+          do k = 1 , kz
+            do i = 2 , iym1
+              if ( k.gt.1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)    &
                  & /dza(i,k-1,j)
-              akxx2(i,k,j) = gti/(psb(i,j)*1000.)/dsigma(k)
+              akzz2(i,k,j) = gti/(psb(i,j)*1000.)/dsigma(k)
             end do
           end do
         end if
       end do
       ii = 0
-      do k = 1 , kx
-        do i = 2 , ixm1
+      do k = 1 , kz
+        do i = 2 , iym1
           ii = ii + 1
-          wksend(ii) = akxx1(i,k,jxp)
+          wksend(ii) = akzz1(i,k,jxp)
         end do
       end do
-      do k = 1 , kx
-        do i = 2 , ixm1
+      do k = 1 , kz
+        do i = 2 , iym1
           ii = ii + 1
-          wksend(ii) = akxx2(i,k,jxp)
+          wksend(ii) = akzz2(i,k,jxp)
         end do
       end do
-      call mpi_sendrecv(wksend(1),(ixm2)*kx*2,mpi_real8,                &
-                      & ieast,1,wkrecv(1),(ixm2)*kx*2,                  &
+      call mpi_sendrecv(wksend(1),(iym2)*kz*2,mpi_real8,                &
+                      & ieast,1,wkrecv(1),(iym2)*kz*2,                  &
                       & mpi_real8,iwest,1,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       ii = 0
-      do k = 1 , kx
-        do i = 2 , ixm1
+      do k = 1 , kz
+        do i = 2 , iym1
           ii = ii + 1
-          akxx1(i,k,0) = wkrecv(ii)
+          akzz1(i,k,0) = wkrecv(ii)
         end do
       end do
-      do k = 1 , kx
-        do i = 2 , ixm1
+      do k = 1 , kz
+        do i = 2 , iym1
           ii = ii + 1
-          akxx2(i,k,0) = wkrecv(ii)
+          akzz2(i,k,0) = wkrecv(ii)
         end do
       end do
 #else
       do j = 2 , jxm2
-        do k = 1 , kx
-          do i = 2 , ixm1
-            if ( k.gt.1 ) akxx1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)      &
+        do k = 1 , kz
+          do i = 2 , iym1
+            if ( k.gt.1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)      &
                & /dza(i,k-1,j)
-            akxx2(i,k,j) = gti/(psb(i,j)*1000.)/dsigma(k)
+            akzz2(i,k,j) = gti/(psb(i,j)*1000.)/dsigma(k)
           end do
         end do
       end do
@@ -367,15 +367,15 @@
 #else
         if ( j.eq.2 ) then
 #endif
-          do k = 1 , kx
-            do i = 2 , ixm1
+          do k = 1 , kz
+            do i = 2 , iym1
               idx = i
-              idx = min0(idx,ixm2)
+              idx = min0(idx,iym2)
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k.gt.1 )                                             &
-                 & betak(i,k) = 0.5*(akxx1(idx,k,j)+akxx1(idxm1,k,j))
-              alphak(i,k) = 0.5*(akxx2(idx,k,j)+akxx2(idxm1,k,j))
+                 & betak(i,k) = 0.5*(akzz1(idx,k,j)+akzz1(idxm1,k,j))
+              alphak(i,k) = 0.5*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
             end do
           end do
 #ifdef MPP1
@@ -383,31 +383,31 @@
 #else
         else if ( j.eq.jxm1 ) then
 #endif
-          do k = 1 , kx
-            do i = 2 , ixm1
+          do k = 1 , kz
+            do i = 2 , iym1
               idx = i
-              idx = min0(idx,ixm2)
+              idx = min0(idx,iym2)
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k.gt.1 )                                             &
-                 & betak(i,k) = 0.5*(akxx1(idx,k,j-1)+                  &
-                 &                   akxx1(idxm1,k,j-1))
-              alphak(i,k) = 0.5*(akxx2(idx,k,j-1)+akxx2(idxm1,k,j-1))
+                 & betak(i,k) = 0.5*(akzz1(idx,k,j-1)+                  &
+                 &                   akzz1(idxm1,k,j-1))
+              alphak(i,k) = 0.5*(akzz2(idx,k,j-1)+akzz2(idxm1,k,j-1))
             end do
           end do
         else
-          do k = 1 , kx
-            do i = 2 , ixm1
+          do k = 1 , kz
+            do i = 2 , iym1
               idx = i
-              idx = min0(idx,ixm2)
+              idx = min0(idx,iym2)
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k.gt.1 )                                             &
-                 & betak(i,k) = 0.25*(akxx1(idx,k,j-1)+                 &
-                 &                    akxx1(idxm1,k,j-1)+               &
-                 &                    akxx1(idx,k,j)+akxx1(idxm1,k,j))
-              alphak(i,k) = 0.25*(akxx2(idx,k,j-1)+akxx2(idxm1,k,j-1)+  &
-                          &       akxx2(idx,k,j)+akxx2(idxm1,k,j))
+                 & betak(i,k) = 0.25*(akzz1(idx,k,j-1)+                 &
+                 &                    akzz1(idxm1,k,j-1)+               &
+                 &                    akzz1(idx,k,j)+akzz1(idxm1,k,j))
+              alphak(i,k) = 0.25*(akzz2(idx,k,j-1)+akzz2(idxm1,k,j-1)+  &
+                          &       akzz2(idx,k,j)+akzz2(idxm1,k,j))
             end do
           end do
         end if
@@ -431,31 +431,31 @@
 !       first compute coefficients of the tridiagonal matrix
 !
  
-        do k = 2 , kx - 1
-          do i = 2 , ixm1
+        do k = 2 , kz - 1
+          do i = 2 , iym1
             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
             coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
             coef3(i,k) = dt*alphak(i,k)*betak(i,k)
           end do
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           coef1(i,1) = dt*alphak(i,1)*betak(i,2)
           coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
           coef3(i,1) = 0.
-          coef1(i,kx) = 0.
-          coef2(i,kx) = 1. + dt*alphak(i,kx)*betak(i,kx)
-          coef3(i,kx) = dt*alphak(i,kx)*betak(i,kx)
+          coef1(i,kz) = 0.
+          coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+          coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           coefe(i,1) = coef1(i,1)/coef2(i,1)
           coeff1(i,1) = auxx(i,1,j)/coef2(i,1)
           coeff2(i,1) = avxx(i,1,j)/coef2(i,1)
         end do
  
-        do k = 2 , kx - 1
-          do i = 2 , ixm1
+        do k = 2 , kz - 1
+          do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
             coeff1(i,k) = (auxx(i,k,j)+coef3(i,k)*coeff1(i,k-1))        &
                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
@@ -464,9 +464,9 @@
           end do
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           idx = i
-          idx = min0(idx,ixm1)
+          idx = min0(idx,iym1)
           idxm1 = i - 1
           idxm1 = max0(idxm1,2)
           jdx = j
@@ -480,29 +480,29 @@
 #endif
           drgdot = 0.25*(uvdrag(idxm1,jdxm1)+uvdrag(idxm1,jdx)          &
                  & +uvdrag(idx,jdxm1)+uvdrag(idx,jdx))
-          uflxsf = drgdot*auxx(i,kx,j)
-          vflxsf = drgdot*avxx(i,kx,j)
+          uflxsf = drgdot*auxx(i,kz,j)
+          vflxsf = drgdot*avxx(i,kz,j)
  
-          coefe(i,kx) = 0.
-          coeff1(i,kx) = (auxx(i,kx,j)-dt*alphak(i,kx)*uflxsf+          &
-                          coef3(i,kx)*coeff1(i,kx-1))                   &
-                       & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
-          coeff2(i,kx) = (avxx(i,kx,j)-dt*alphak(i,kx)*vflxsf+          &
-                       &  coef3(i,kx)*coeff2(i,kx-1))                   &
-                       & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
+          coefe(i,kz) = 0.
+          coeff1(i,kz) = (auxx(i,kz,j)-dt*alphak(i,kz)*uflxsf+          &
+                          coef3(i,kz)*coeff1(i,kz-1))                   &
+                       & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+          coeff2(i,kz) = (avxx(i,kz,j)-dt*alphak(i,kz)*vflxsf+          &
+                       &  coef3(i,kz)*coeff2(i,kz-1))                   &
+                       & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
  
         end do
 !
 !       all coefficients have been computed, predict field and put it in
 !       temporary work space tpred
 !
-        do i = 2 , ixm1
-          tpred1(i,kx) = coeff1(i,kx)
-          tpred2(i,kx) = coeff2(i,kx)
+        do i = 2 , iym1
+          tpred1(i,kz) = coeff1(i,kz)
+          tpred2(i,kz) = coeff2(i,kz)
         end do
  
-        do k = kx - 1 , 1 , -1
-          do i = 2 , ixm1
+        do k = kz - 1 , 1 , -1
+          do i = 2 , iym1
             tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
             tpred2(i,k) = coefe(i,k)*tpred2(i,k+1) + coeff2(i,k)
           end do
@@ -512,8 +512,8 @@
 !       calculate tendency due to vertical diffusion using temporary
 !       predicted field
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             dumr = 0.25*(psb(i,j)+psb(i,j-1)+psb(i-1,j)+psb(i-1,j-1))
             uten(i,k,j) = uten(i,k,j) + (tpred1(i,k)-auxx(i,k,j))       &
                         & /dt*dumr
@@ -527,49 +527,49 @@
  
 !       calculate coefficients at cross points for temperature
  
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)        &
                                      & /dza(i,k-1,j)
             alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
           end do
         end do
  
-        do k = 2 , kx - 1
-          do i = 2 , ixm1
+        do k = 2 , kz - 1
+          do i = 2 , iym1
             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
             coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
             coef3(i,k) = dt*alphak(i,k)*betak(i,k)
           end do
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           coef1(i,1) = dt*alphak(i,1)*betak(i,2)
           coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
           coef3(i,1) = 0.
-          coef1(i,kx) = 0.
-          coef2(i,kx) = 1. + dt*alphak(i,kx)*betak(i,kx)
-          coef3(i,kx) = dt*alphak(i,kx)*betak(i,kx)
+          coef1(i,kz) = 0.
+          coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+          coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           coefe(i,1) = coef1(i,1)/coef2(i,1)
           coeff1(i,1) = thx3d(i,1,j)/coef2(i,1)
         end do
  
-        do k = 2 , kx - 1
-          do i = 2 , ixm1
+        do k = 2 , kz - 1
+          do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
             coeff1(i,k) = (thx3d(i,k,j)+coef3(i,k)*coeff1(i,k-1))       &
                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
-        do i = 2 , ixm1
-          coefe(i,kx) = 0.
-          coeff1(i,kx) = (thx3d(i,kx,j)+dt*alphak(i,kx)*hfx(i,j)        &
-                       & *rcpd+coef3(i,kx)*coeff1(i,kx-1))              &
-                       & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
+        do i = 2 , iym1
+          coefe(i,kz) = 0.
+          coeff1(i,kz) = (thx3d(i,kz,j)+dt*alphak(i,kz)*hfx(i,j)        &
+                       & *rcpd+coef3(i,kz)*coeff1(i,kz-1))              &
+                       & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
         end do
  
 !
@@ -577,12 +577,12 @@
 !       temporary work space tpred
 !
  
-        do i = 2 , ixm1
-          tpred1(i,kx) = coeff1(i,kx)
+        do i = 2 , iym1
+          tpred1(i,kz) = coeff1(i,kz)
         end do
  
-        do k = kx - 1 , 1 , -1
-          do i = 2 , ixm1
+        do k = kz - 1 , 1 , -1
+          do i = 2 , iym1
             tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
           end do
         end do
@@ -591,8 +591,8 @@
 !       calculate tendency due to vertical diffusion using temporary
 !       predicted field
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             sf = tb(i,k,j)/thx3d(i,k,j)
             difft(i,k,j) = difft(i,k,j) + (tpred1(i,k)-thx3d(i,k,j))    &
                          & /dt*sf
@@ -604,61 +604,61 @@
  
 !       calculate coefficients at cross points for water vapor
  
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
             alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
           end do
         end do
  
-        do k = 2 , kx - 1
-          do i = 2 , ixm1
+        do k = 2 , kz - 1
+          do i = 2 , iym1
             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
             coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
             coef3(i,k) = dt*alphak(i,k)*betak(i,k)
           end do
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           coef1(i,1) = dt*alphak(i,1)*betak(i,2)
           coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
           coef3(i,1) = 0.
-          coef1(i,kx) = 0.
-          coef2(i,kx) = 1. + dt*alphak(i,kx)*betak(i,kx)
-          coef3(i,kx) = dt*alphak(i,kx)*betak(i,kx)
+          coef1(i,kz) = 0.
+          coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+          coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           coefe(i,1) = coef1(i,1)/coef2(i,1)
           coeff1(i,1) = qvb3d(i,1,j)/coef2(i,1)
         end do
  
-        do k = 2 , kx - 1
-          do i = 2 , ixm1
+        do k = 2 , kz - 1
+          do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
             coeff1(i,k) = (qvb3d(i,k,j)+coef3(i,k)*coeff1(i,k-1))       &
                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
-        do i = 2 , ixm1
-          coefe(i,kx) = 0.
-          coeff1(i,kx) = (qvb3d(i,kx,j)+dt*alphak(i,kx)*qfx(i,j)        &
-                       & +coef3(i,kx)*coeff1(i,kx-1))                   &
-                       & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
+        do i = 2 , iym1
+          coefe(i,kz) = 0.
+          coeff1(i,kz) = (qvb3d(i,kz,j)+dt*alphak(i,kz)*qfx(i,j)        &
+                       & +coef3(i,kz)*coeff1(i,kz-1))                   &
+                       & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
         end do
  
 !
 !       all coefficients have been computed, predict field and put it in
 !       temporary work space tpred
  
-        do i = 2 , ixm1
-          tpred1(i,kx) = coeff1(i,kx)
+        do i = 2 , iym1
+          tpred1(i,kz) = coeff1(i,kz)
         end do
  
-        do k = kx - 1 , 1 , -1
-          do i = 2 , ixm1
+        do k = kz - 1 , 1 , -1
+          do i = 2 , iym1
             tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
           end do
         end do
@@ -667,8 +667,8 @@
 !       calculate tendency due to vertical diffusion using temporary
 !       predicted field
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             diffq(i,k,j) = diffq(i,k,j)                                 &
                          & + (tpred1(i,k)-qvb(i,k,j)/psb(i,j))          &
                          & /dt*psb(i,j)
@@ -677,48 +677,48 @@
  
 !       calculate coefficients at cross points for cloud vater
  
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
             alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
           end do
         end do
  
-        do k = 2 , kx - 1
-          do i = 2 , ixm1
+        do k = 2 , kz - 1
+          do i = 2 , iym1
             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
             coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
             coef3(i,k) = dt*alphak(i,k)*betak(i,k)
           end do
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           coef1(i,1) = dt*alphak(i,1)*betak(i,2)
           coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
           coef3(i,1) = 0.
-          coef1(i,kx) = 0.
-          coef2(i,kx) = 1. + dt*alphak(i,kx)*betak(i,kx)
-          coef3(i,kx) = dt*alphak(i,kx)*betak(i,kx)
+          coef1(i,kz) = 0.
+          coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+          coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
         end do
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           coefe(i,1) = coef1(i,1)/coef2(i,1)
           coeff1(i,1) = qcx(i,1,j)/coef2(i,1)
         end do
  
-        do k = 2 , kx - 1
-          do i = 2 , ixm1
+        do k = 2 , kz - 1
+          do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
             coeff1(i,k) = (qcx(i,k,j)+coef3(i,k)*coeff1(i,k-1))         &
                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
-        do i = 2 , ixm1
-          coefe(i,kx) = 0.
-          coeff1(i,kx) = (qcx(i,kx,j)+coef3(i,kx)*coeff1(i,kx-1))       &
-                       & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
+        do i = 2 , iym1
+          coefe(i,kz) = 0.
+          coeff1(i,kz) = (qcx(i,kz,j)+coef3(i,kz)*coeff1(i,kz-1))       &
+                       & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
         end do
  
 !
@@ -726,12 +726,12 @@
 !       temporary work space tpred
 !
  
-        do i = 2 , ixm1
-          tpred1(i,kx) = coeff1(i,kx)
+        do i = 2 , iym1
+          tpred1(i,kz) = coeff1(i,kz)
         end do
  
-        do k = kx - 1 , 1 , -1
-          do i = 2 , ixm1
+        do k = kz - 1 , 1 , -1
+          do i = 2 , iym1
             tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
           end do
         end do
@@ -740,8 +740,8 @@
 !       calculate tendency due to vertical diffusion using temporary
 !       predicted field
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             qcten(i,k,j) = qcten(i,k,j)                                 &
                          & + (tpred1(i,k)-qcb(i,k,j)/psb(i,j))          &
                          & /dt*psb(i,j)
@@ -754,12 +754,12 @@
 !       now add countergradient term to temperature and water vapor
 !       equation
 !trapuv
-        do i = 2 , ixm1
+        do i = 2 , iym1
           ttnp(i,1) = 0.0D0
         end do
 !trapuv_
-        do k = 2 , kx
-          do i = 2 , ixm1
+        do k = 2 , kz
+          do i = 2 , iym1
             sf = tb(i,k,j)/(psb(i,j)*thx3d(i,k,j))
             ttnp(i,k) = sf*cpd*rhohf(i,k-1,j)*kvh(i,k,j)*cgh(i,k,j)
           end do
@@ -767,13 +767,13 @@
 !
 !-----compute the tendencies:
 !
-        do i = 2 , ixm1
-          difft(i,kx,j) = difft(i,kx,j) - gti*ttnp(i,kx)                &
-                        & /(1000.*cpd*dsigma(kx))
+        do i = 2 , iym1
+          difft(i,kz,j) = difft(i,kz,j) - gti*ttnp(i,kz)                &
+                        & /(1000.*cpd*dsigma(kz))
         end do
 !
-        do k = 1 , kxm1
-          do i = 2 , ixm1
+        do k = 1 , kzm1
+          do i = 2 , iym1
             difft(i,k,j) = difft(i,k,j) + gti*(ttnp(i,k+1)-ttnp(i,k))   &
                          & /(1000.*cpd*dsigma(k))
           end do
@@ -789,36 +789,36 @@
 !
 !         recalculation of coef1,2,3  with tracer diffusivity kvc
  
-          do k = 1 , kx
-            do i = 2 , ixm1
+          do k = 1 , kz
+            do i = 2 , iym1
               if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvc(i,k,j)      &
                  & /dza(i,k-1,j)
               alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
             end do
           end do
  
-          do k = 2 , kx - 1
-            do i = 2 , ixm1
+          do k = 2 , kz - 1
+            do i = 2 , iym1
               coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
               coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
               coef3(i,k) = dt*alphak(i,k)*betak(i,k)
             end do
           end do
  
-          do i = 2 , ixm1
+          do i = 2 , iym1
             coef1(i,1) = dt*alphak(i,1)*betak(i,2)
             coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
             coef3(i,1) = 0.
-            coef1(i,kx) = 0.
-            coef2(i,kx) = 1. + dt*alphak(i,kx)*betak(i,kx)
-            coef3(i,kx) = dt*alphak(i,kx)*betak(i,kx)
+            coef1(i,kz) = 0.
+            coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+            coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
           end do
 !
 !         set the Vd for in case of prescribed deposition velocities
 !
  
           do itr = 1 , ntr
-            do i = 2 , ixm1
+            do i = 2 , iym1
 #ifdef CLM
               if ( ocld2d(1,i,j).le.0.00001 ) then
 #else
@@ -836,19 +836,19 @@
 !
           do itr = 1 , ntr
 !
-            do k = 1 , kx
-              do i = 2 , ixm1
+            do k = 1 , kz
+              do i = 2 , iym1
                 chix(i,k) = chib(i,k,j,itr)/psb(i,j)
               end do
             end do
 !
-            do i = 2 , ixm1
+            do i = 2 , iym1
               coefe(i,1) = coef1(i,1)/coef2(i,1)
               coeff1(i,1) = chix(i,1)/coef2(i,1)
             end do
 !
-            do k = 2 , kx - 1
-              do i = 2 , ixm1
+            do k = 2 , kz - 1
+              do i = 2 , iym1
                 coefe(i,k) = coef1(i,k)                                 &
                            & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
                 coeff1(i,k) = (chix(i,k)+coef3(i,k)*coeff1(i,k-1))      &
@@ -856,25 +856,25 @@
               end do
             end do
  
-            do i = 2 , ixm1
-              coefe(i,kx) = 0.
+            do i = 2 , iym1
+              coefe(i,kz) = 0.
  
 !             add dry deposition option1
-              coeff1(i,kx) = (chix(i,kx)-dt*alphak(i,kx)*chix(i,kx)     &
-                           & *vdep(i,itr)*rhox2d(i,j)+coef3(i,kx)       &
-                           & *coeff1(i,kx-1))                           &
-                           & /(coef2(i,kx)-coef3(i,kx)*coefe(i,kx-1))
+              coeff1(i,kz) = (chix(i,kz)-dt*alphak(i,kz)*chix(i,kz)     &
+                           & *vdep(i,itr)*rhox2d(i,j)+coef3(i,kz)       &
+                           & *coeff1(i,kz-1))                           &
+                           & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
             end do
 !
 !           all coefficients have been computed, predict field and put
 !           it in temporary work space tpred1
 !
-            do i = 2 , ixm1
-              tpred1(i,kx) = coeff1(i,kx)
+            do i = 2 , iym1
+              tpred1(i,kz) = coeff1(i,kz)
             end do
 !
-            do k = kx - 1 , 1 , -1
-              do i = 2 , ixm1
+            do k = kz - 1 , 1 , -1
+              do i = 2 , iym1
                 tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
               end do
             end do
@@ -885,8 +885,8 @@
 !           Dry deposition option 1 is included
  
 !
-            do k = 1 , kx
-              do i = 2 , ixm1
+            do k = 1 , kz
+              do i = 2 , iym1
 !qian           chiten(i,k,j,itr)=chiten(i,k,j,itr)
 !CGAFFE         TEST diffusion/10
                 chiten(i,k,j,itr) = chiten(i,k,j,itr)                   &
@@ -897,11 +897,11 @@
  
               end do
             end do
-            do i = 2 , ixm1
+            do i = 2 , iym1
  
               if ( chtrname(itr).ne.'DUST' ) remdrd(i,j,itr)            &
-                 & = remdrd(i,j,itr) + chix(i,kx)*vdep(i,itr)*psb(i,j)  &
-                 & *dt/2.*rhox2d(i,j)*gti/(psb(i,j)*1000.*dsigma(kx))
+                 & = remdrd(i,j,itr) + chix(i,kz)*vdep(i,itr)*psb(i,j)  &
+                 & *dt/2.*rhox2d(i,j)*gti/(psb(i,j)*1000.*dsigma(kz))
  
             end do
           end do

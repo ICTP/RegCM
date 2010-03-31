@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine calcrh(fld2d,fld3d,nx,ny,kx,nfld2d,nfld3d,sigh,pt,nta, &
+      subroutine calcrh(fld2d,fld3d,nx,ny,kz,nfld2d,nfld3d,sigh,pt,nta, &
                       & nqva,npsa,nrh,ntd,nth,nx1,ny1)
  
       use mod_constants , only : svp1 , svp2 , svp3 , ep2 , rovcp
@@ -26,13 +26,13 @@
 ! Dummy arguments
 !
       integer :: nfld2d , nfld3d , npsa , nqva , nrh , nta , ntd , nth ,&
-               & nx , nx1 , ny , ny1 , kx
+               & nx , nx1 , ny , ny1 , kz
       real(4) :: pt
       real(4) , dimension(nx,ny,nfld2d) :: fld2d
-      real(4) , dimension(nx,ny,kx,nfld3d) :: fld3d
-      real(4) , dimension(kx) :: sigh
+      real(4) , dimension(nx,ny,kz,nfld3d) :: fld3d
+      real(4) , dimension(kz) :: sigh
       intent (in) fld2d , nfld2d , nfld3d , npsa , nqva , nrh , nta ,   &
-                & ntd , nth , nx , nx1 , ny , ny1 , kx , pt , sigh
+                & ntd , nth , nx , nx1 , ny , ny1 , kz , pt , sigh
       intent (inout) fld3d
 !
 ! Local variables
@@ -40,7 +40,7 @@
       real(4) :: dpd , pres , q , qs , satvp , t , tmp , x
       integer :: i , j , k
 !
-      do k = 1 , kx
+      do k = 1 , kz
         do j = 1 , ny1
           do i = 1 , nx1
             pres = (fld2d(i,j,npsa)-pt*10.)*sigh(k) + pt*10.

@@ -33,7 +33,7 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_preproc_param
-      use mod_regcm_param , only : ix , jx , ibyte
+      use mod_regcm_param , only : iy , jx , ibyte
 
       implicit none
 !
@@ -47,7 +47,7 @@
       real , dimension(jlat) :: lati
       real , dimension(ilon) :: loni
       real , dimension(ilon,jlat) :: aer2
-      real , dimension(ix,jx) :: aermm , xlat , xlon
+      real , dimension(iy,jx) :: aermm , xlat , xlon
       logical :: there
  
       inquire (file='../DATA/AERGLOB/AEROSOL.dat',exist=there)
@@ -56,14 +56,14 @@
       open (11,file='../DATA/AERGLOB/AEROSOL.dat',form='unformatted',   &
           & recl=360*180*ibyte,access='direct',status='old',err=100)
       open (25,file='../../Input/AERO.dat',form='unformatted',          &
-          & recl=ix*jx*ibyte,access='direct',status='replace')
+          & recl=iy*jx*ibyte,access='direct',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE AEROSOL DESIRED?
       open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=ix*jx*ibyte,access='direct',status='unknown',err=200)
+          & recl=iy*jx*ibyte,access='direct',status='unknown',err=200)
  
 !
-      call gridml(xlon,xlat,ix,jx,ibyte,truelatl,truelath)
+      call gridml(xlon,xlat,iy,jx,ibyte,truelatl,truelath)
 !
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR AEROSOL DATA
@@ -78,10 +78,10 @@
       do nrec = 1 , 39
         read (11,rec=nrec) aer2
  
-        call bilinx(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,ix,jx,1)
+        call bilinx(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
  
 !       ******           WRITE OUT AEROSOL DATA ON RegCM GRID
-        write (25,rec=nrec) ((aermm(i,j),j=1,jx),i=1,ix)
+        write (25,rec=nrec) ((aermm(i,j),j=1,jx),i=1,iy)
       end do
  
       stop 99999
@@ -95,15 +95,15 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,ix,jx,ibyte,truelatl,truelath)
+      subroutine gridml(xlon,xlat,iy,jx,ibyte,truelatl,truelath)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: ibyte , ix , jx
+      integer :: ibyte , iy , jx
       real :: truelath , truelatl
-      real , dimension(ix,jx) :: xlat , xlon
-      intent (in) ibyte , ix , jx
+      real , dimension(iy,jx) :: xlat , xlon
+      intent (in) ibyte , iy , jx
       intent (inout) truelath , truelatl , xlat , xlon
 !
 ! Local variables
@@ -112,7 +112,7 @@
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , ierr , igrads , ixx , j , jxx ,          &
+      integer :: i , ibigend , ierr , igrads , iyy , j , jxx ,          &
                & k , kz , month , nx , ny , period
       character(6) :: iproj
       real , dimension(30) :: sigmaf
@@ -120,19 +120,19 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
-      read (10,rec=1,iostat=ierr) ixx , jxx , kz , dsinm , clat , clon ,&
+      read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
                                 & plat , plon , grdfac , iproj ,        &
                                 & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
                                 & ibigend , truelatl , truelath
-      if ( ixx/=ix .or. jxx/=jx ) then
+      if ( iyy/=iy .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'
-        print * , '  icbc.param: ' , ix , jx
-        print * , '  DOMAIN.INFO: ' , ixx , jxx
+        print * , '  icbc.param: ' , iy , jx
+        print * , '  DOMAIN.INFO: ' , iyy , jxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
       end if
-      read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,jx),i=1,ix)
-      read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,jx),i=1,ix)
+      read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,jx),i=1,iy)
+      read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,jx),i=1,iy)
       if ( ierr/=0 ) then
         print * , 'END OF FILE REACHED (AEROSOL.f)'
         print * , '  Check ibyte in icbc.param: ibyte= ' , ibyte
@@ -155,11 +155,11 @@
           alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
-            if ( xlat(ix,j)>alatmax ) alatmax = xlat(ix,j)
+            if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
           end do
           alonmin = 999999.
           alonmax = -999999.
-          do i = 1 , ix
+          do i = 1 , iy
             do j = 1 , jx
               if ( clon>=0.0 ) then
                 if ( xlon(i,j)>=0.0 ) then
@@ -192,25 +192,25 @@
           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
           centerj = jx/2.
-          centeri = ix/2.
+          centeri = iy/2.
         end if
         if ( iproj=='LAMCON' ) then        ! Lambert projection
-          write (31,99001) jx , ix , clat , clon , centerj , centeri ,  &
+          write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
                          & truelatl , truelath , clon , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj=='POLSTR' ) then   !
         else if ( iproj=='NORMER' ) then
           write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
-          write (31,99005) ix
-          write (31,99006) (xlat(i,1),i=1,ix)
+          write (31,99005) iy
+          write (31,99006) (xlat(i,1),i=1,iy)
         else if ( iproj=='ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , ix , plon , plat , dsinm/111000. ,      &
+          write (31,99007) jx , iy , plon , plat , dsinm/111000. ,      &
                          & dsinm/111000.*.95238
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc

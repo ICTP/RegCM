@@ -36,8 +36,8 @@
 !                                                                     c
 !     j       : j'th slice of variable ubd3d                          c
 !                                                                     c
-!     iend    : = ixm2 for cross-point variables                      c
-!               = ixm1  for dot-point   variables                      c
+!     iend    : = iym2 for cross-point variables                      c
+!               = iym1  for dot-point   variables                      c
 !                                                                     c
 !     jend    : = jxm2 for cross-point variables                      c
 !               = jlx  for dot-point   variables                      c
@@ -55,7 +55,7 @@
 !
       real(8) :: c203
       integer :: ind , j
-      real(8) , dimension(ix,kx) :: ften , xkc
+      real(8) , dimension(iy,kz) :: ften , xkc
       intent (in) c203 , ind , j , xkc
       intent (inout) ften
 !
@@ -73,8 +73,8 @@
 #endif
 !
 !......second-order scheme for east or west boundary:
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(ubd3d(i,k,j+1)+ubd3d(i,k,j-1)          &
@@ -93,8 +93,8 @@
       else
 !
 !.....fourth-order scheme for interior:
-        do k = 1 , kx
-          do i = 3 , ixm1 - 1
+        do k = 1 , kz
+          do i = 3 , iym1 - 1
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) - xkc(i,k)                          &
                         & *c203*(ubd3d(i,k,j+2)+ubd3d(i,k,j-2)          &
@@ -115,8 +115,8 @@
           end do
         end do
 !......second-order scheme for north and south boundaries:
-        do i = 2 , ixm1 , ixm1 - 2
-          do k = 1 , kx
+        do i = 2 , iym1 , iym1 - 2
+          do k = 1 , kz
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(ubd3d(i,k,j+1)+ubd3d(i,k,j-1)          &
@@ -157,8 +157,8 @@
 !                                                                     c
 !     j       : j'th slice of variable vbd3d                          c
 !                                                                     c
-!     iend    : = ixm2 for cross-point variables                      c
-!               = ixm1  for dot-point   variables                      c
+!     iend    : = iym2 for cross-point variables                      c
+!               = iym1  for dot-point   variables                      c
 !                                                                     c
 !     jend    : = jxm2 for cross-point variables                      c
 !               = jlx  for dot-point   variables                      c
@@ -176,7 +176,7 @@
 !
       real(8) :: c203
       integer :: ind , j
-      real(8) , dimension(ix,kx) :: ften , xkc
+      real(8) , dimension(iy,kz) :: ften , xkc
       intent (in) c203 , ind , j , xkc
       intent (inout) ften
 !
@@ -194,8 +194,8 @@
 #endif
 !
 !......second-order scheme for east or west boundary:
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(vbd3d(i,k,j+1)+vbd3d(i,k,j-1)          &
@@ -214,8 +214,8 @@
       else
 !
 !.....fourth-order scheme for interior:
-        do k = 1 , kx
-          do i = 3 , ixm1 - 1
+        do k = 1 , kz
+          do i = 3 , iym1 - 1
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) - xkc(i,k)                          &
                         & *c203*(vbd3d(i,k,j+2)+vbd3d(i,k,j-2)          &
@@ -236,8 +236,8 @@
           end do
         end do
 !......second-order scheme for north and south boundaries:
-        do i = 2 , ixm1 , ixm1 - 2
-          do k = 1 , kx
+        do i = 2 , iym1 , iym1 - 2
+          do k = 1 , kz
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(vbd3d(i,k,j+1)+vbd3d(i,k,j-1)          &

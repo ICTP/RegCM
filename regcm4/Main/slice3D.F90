@@ -41,8 +41,8 @@
 #else
       do j = 1 , jxm1
 #endif
-        do k = 1 , kx
-          do i = 1 , ixm1
+        do k = 1 , kz
+          do i = 1 , iym1
             tb3d(i,k,j) = tb(i,k,j)/psb(i,j)
             qvb3d(i,k,j) = qvb(i,k,j)/psb(i,j)
             qcb3d(i,k,j) = qcb(i,k,j)/psb(i,j)
@@ -66,10 +66,10 @@
         jdx = max0(j,2)
         jdxp1 = min0(j+1,jxm1)
 #endif
-        do k = 1 , kx
-          do i = 1 , ixm1
+        do k = 1 , kz
+          do i = 1 , iym1
             idx = max0(i,2)
-            idxp1 = min0(i+1,ixm1)
+            idxp1 = min0(i+1,iym1)
             ubx3d(i,k,j) = 0.25*(ub(idx,k,jdx)+ub(idxp1,k,jdx)+ub(idx,k,&
                          & jdxp1)+ub(idxp1,k,jdxp1))/psb(i,j)
             vbx3d(i,k,j) = 0.25*(vb(idx,k,jdx)+vb(idxp1,k,jdx)+vb(idx,k,&
@@ -83,8 +83,8 @@
 #else
       do j = 1 , jx
 #endif
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             ubd3d(i,k,j) = ub(i,k,j)/pdotb(i,j)
             vbd3d(i,k,j) = vb(i,k,j)/pdotb(i,j)
           end do
@@ -96,8 +96,8 @@
 #else
       do j = 2 , jxm1
 #endif
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             pl = a(k)*psb(i,j) + ptop
             thcon = ((psb(i,j)+ptop)/pl)**rovcp
             pb3d(i,k,j) = pl
@@ -112,12 +112,12 @@
 #else
       do j = 2 , jxm1
 #endif
-        do i = 2 , ixm1
-          zq(i,kxp1) = 0.
+        do i = 2 , iym1
+          zq(i,kzp1) = 0.
         end do
-        do kk = 1 , kx
-          k = kxp1 - kk
-          do i = 2 , ixm1
+        do kk = 1 , kz
+          k = kzp1 - kk
+          do i = 2 , iym1
             cell = ptop/psb(i,j)
             zq(i,k) = rovg*tb3d(i,k,j)                                  &
                     & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))          &
@@ -125,21 +125,21 @@
           end do
         end do
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             za(i,k,j) = 0.5*(zq(i,k)+zq(i,k+1))
             dzq(i,k,j) = zq(i,k) - zq(i,k+1)
           end do
         end do
  
 !-----Calculate the relative humidity and air density
-        do i = 2 , ixm1
+        do i = 2 , iym1
           psrf = (psb(i,j)+ptop)*1000.
-          tv = tb3d(i,kx,j)
+          tv = tb3d(i,kz,j)
           rhox2d(i,j) = psrf/(rgas*tv)
         end do
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             pres = (a(k)*psb(i,j)+ptop)*1000.
             rhob3d(i,k,j) = pres/(rgas*tb3d(i,k,j)) !air density
             if ( tb3d(i,k,j).gt.tzero ) then

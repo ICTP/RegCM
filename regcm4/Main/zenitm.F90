@@ -47,7 +47,7 @@
 ! Arguments
 !
       integer, intent (in) :: ivmx , jslc
-      real(kind=8) , intent (inout), dimension(ix) :: coszrs
+      real(kind=8) , intent (inout), dimension(iy) :: coszrs
 !
 ! Local variables
 !

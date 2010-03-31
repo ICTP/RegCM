@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine anal2(a2,asta,nsta,ix,jx,cor,xsum,ns,wtmax,htsav)
+      subroutine anal2(a2,asta,nsta,iy,jx,cor,xsum,ns,wtmax,htsav)
       use mod_addstack
       use mod_block
       use mod_const
@@ -25,11 +25,11 @@
 !
 ! Dummy arguments
 !
-      integer :: ix , jx , nsta
-      real(4) , dimension(ix,jx) :: a2 , cor , htsav , xsum , wtmax
+      integer :: iy , jx , nsta
+      real(4) , dimension(iy,jx) :: a2 , cor , htsav , xsum , wtmax
       real(4) , dimension(nsta) :: asta
-      integer , dimension(ix,jx) :: ns
-      intent (in) asta , ix , jx , nsta
+      integer , dimension(iy,jx) :: ns
+      intent (in) asta , iy , jx , nsta
       intent (out) a2 , htsav
       intent (inout) cor , ns , xsum , wtmax
 !
@@ -45,7 +45,7 @@
 !     xobs and yobs are x and y positions on observations, not
 !     necessarily grid points.
 !
-      ie = ix - 1
+      ie = iy - 1
       je = jx - 1
       nscan = 1
       deltas = dsinm
@@ -54,7 +54,7 @@
 !-----grid lengths in x and y directions are unity.
 !
       xcntr = jx/2.
-      ycntr = ix/2.
+      ycntr = iy/2.
       dy = deltas
       dx = deltas
       ris = rin**2
@@ -63,7 +63,7 @@
 !
       nskip = 1
       do j = 1 , jx
-        do i = 1 , ix
+        do i = 1 , iy
           cor(i,j) = 0.0
           xsum(i,j) = 0.0
           ns(i,j) = 0

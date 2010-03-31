@@ -17,16 +17,16 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine reorder(fdp,fsp,jx,ix,nz)
+      subroutine reorder(fdp,fsp,jx,iy,nz)
  
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: ix , jx , nz
-      real(4) , dimension(nz*nz,jx,ix) :: fdp
-      real(4) , dimension(jx*nz,ix*nz) :: fsp
-      intent (in) fdp , ix , jx , nz
+      integer :: iy , jx , nz
+      real(4) , dimension(nz*nz,jx,iy) :: fdp
+      real(4) , dimension(jx*nz,iy*nz) :: fsp
+      intent (in) fdp , iy , jx , nz
       intent (out) fsp
 !
 ! Local variables
@@ -34,7 +34,7 @@
       integer :: i , ii , j , jj , k
 !
       do j = 1 , jx*nz
-        do i = 1 , ix*nz
+        do i = 1 , iy*nz
           jj = mod(j,nz)
           if ( jj.eq.0 ) jj = nz
           ii = mod(i,nz)

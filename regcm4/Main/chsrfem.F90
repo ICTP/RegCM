@@ -45,7 +45,7 @@
       character(5) :: aerctl
       integer :: i , itr , j , k , l , m , n
       logical :: rd_tex , there
-      real(4) , dimension(ix,jx) :: toto
+      real(4) , dimension(iy,jx) :: toto
 #ifdef MPP1
       integer :: ierr
 #endif
@@ -79,13 +79,13 @@
           print * , itr , aerctl
           if ( aerctl(1:4).ne.'DUST' .and. aertyp(4:5).ne.'00' ) then
             open (unit=iutchsrc,file='AERO.dat',status='old',           &
-                 &form='unformatted',access='direct',recl=ix*jx*ibyte)
+                 &form='unformatted',access='direct',recl=iy*jx*ibyte)
             if ( aerctl(1:3).eq.'SO2' ) then
               if ( aertyp(4:4).eq.'1' ) then
-                read (iutchsrc,rec=1) ((toto(i,j),j=1,jx),i=1,ix)
+                read (iutchsrc,rec=1) ((toto(i,j),j=1,jx),i=1,iy)
                 do m = 1 , 12
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = toto(i,j)
                     end do
                   end do
@@ -93,7 +93,7 @@
               else
                 do m = 1 , 12
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = 0.0D0
                     end do
                   end do
@@ -101,9 +101,9 @@
               end if
               if ( aertyp(5:5).eq.'1' ) then
                 do m = 1 , 12
-                  read (iutchsrc,rec=3+m) ((toto(i,j),j=1,jx),i=1,ix)
+                  read (iutchsrc,rec=3+m) ((toto(i,j),j=1,jx),i=1,iy)
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)     &
                       & + toto(i,j)
                     end do
@@ -112,10 +112,10 @@
               end if
             else if ( aerctl(1:2).eq.'BC' ) then
               if ( aertyp(4:4).eq.'1' ) then
-                read (iutchsrc,rec=2) ((toto(i,j),j=1,jx),i=1,ix)
+                read (iutchsrc,rec=2) ((toto(i,j),j=1,jx),i=1,iy)
                 do m = 1 , 12
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = toto(i,j)
                     end do
                   end do
@@ -123,7 +123,7 @@
               else
                 do m = 1 , 12
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = 0.0D0
                     end do
                   end do
@@ -131,9 +131,9 @@
               end if
               if ( aertyp(5:5).eq.'1' ) then
                 do m = 1 , 12
-                  read (iutchsrc,rec=15+m) ((toto(i,j),j=1,jx),i=1,ix)
+                  read (iutchsrc,rec=15+m) ((toto(i,j),j=1,jx),i=1,iy)
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)     &
                       & + toto(i,j)
                     end do
@@ -142,10 +142,10 @@
               end if
             else if ( aerctl(1:2).eq.'OC' ) then
               if ( aertyp(4:4).eq.'1' ) then
-                read (iutchsrc,rec=3) ((toto(i,j),j=1,jx),i=1,ix)
+                read (iutchsrc,rec=3) ((toto(i,j),j=1,jx),i=1,iy)
                 do m = 1 , 12
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = toto(i,j)
                     end do
                   end do
@@ -153,7 +153,7 @@
               else
                 do m = 1 , 12
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = 0.0D0
                     end do
                   end do
@@ -161,9 +161,9 @@
               end if
               if ( aertyp(5:5).eq.'1' ) then
                 do m = 1 , 12
-                  read (iutchsrc,rec=27+m) ((toto(i,j),j=1,jx),i=1,ix)
+                  read (iutchsrc,rec=27+m) ((toto(i,j),j=1,jx),i=1,iy)
                   do j = 1 , jx
-                    do i = 1 , ix
+                    do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)     &
                       & + toto(i,j)
                     end do
@@ -177,7 +177,7 @@
         do j = 1 , jx
           do itr = 1 , ntr
             do m = 1 , 12
-              do i = 1 , ix
+              do i = 1 , iy
                 src_0(i,m,itr,j) = chemsrc_io(i,j,m,itr)
               end do
             end do
@@ -185,13 +185,13 @@
         end do
       end if
 !     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      call mpi_scatter(src_0(1,1,1,1),ix*12*ntr*jxp,mpi_real8,          &
-                     & src0(1,1,1,1), ix*12*ntr*jxp,mpi_real8,          &
+      call mpi_scatter(src_0(1,1,1,1),iy*12*ntr*jxp,mpi_real8,          &
+                     & src0(1,1,1,1), iy*12*ntr*jxp,mpi_real8,          &
                      & 0,mpi_comm_world,ierr)
       do j = 1 , jendl
         do itr = 1 , ntr
           do m = 1 , 12
-            do i = 1 , ix
+            do i = 1 , iy
               chemsrc(i,j,m,itr) = src0(i,m,itr,j)
             end do
           end do
@@ -203,13 +203,13 @@
         print * , itr , aerctl
         if ( aerctl(1:4).ne.'DUST' .and. aertyp(4:5).ne.'00' ) then
           open (unit=iutchsrc,file='AERO.dat',status='old',             &
-               &form='unformatted',access='direct',recl=ix*jx*ibyte)
+               &form='unformatted',access='direct',recl=iy*jx*ibyte)
           if ( aerctl(1:3).eq.'SO2' ) then
             if ( aertyp(4:4).eq.'1' ) then
-              read (iutchsrc,rec=1) ((toto(i,j),j=1,jx),i=1,ix)
+              read (iutchsrc,rec=1) ((toto(i,j),j=1,jx),i=1,iy)
               do m = 1 , 12
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = toto(i,j)
                   end do
                 end do
@@ -217,7 +217,7 @@
             else
               do m = 1 , 12
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = 0.0D0
                   end do
                 end do
@@ -225,9 +225,9 @@
             end if
             if ( aertyp(5:5).eq.'1' ) then
               do m = 1 , 12
-                read (iutchsrc,rec=3+m) ((toto(i,j),j=1,jx),i=1,ix)
+                read (iutchsrc,rec=3+m) ((toto(i,j),j=1,jx),i=1,iy)
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(i,j)
                   end do
                 end do
@@ -235,10 +235,10 @@
             end if
           else if ( aerctl(1:2).eq.'BC' ) then
             if ( aertyp(4:4).eq.'1' ) then
-              read (iutchsrc,rec=2) ((toto(i,j),j=1,jx),i=1,ix)
+              read (iutchsrc,rec=2) ((toto(i,j),j=1,jx),i=1,iy)
               do m = 1 , 12
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = toto(i,j)
                   end do
                 end do
@@ -246,7 +246,7 @@
             else
               do m = 1 , 12
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = 0.0D0
                   end do
                 end do
@@ -254,9 +254,9 @@
             end if
             if ( aertyp(5:5).eq.'1' ) then
               do m = 1 , 12
-                read (iutchsrc,rec=15+m) ((toto(i,j),j=1,jx),i=1,ix)
+                read (iutchsrc,rec=15+m) ((toto(i,j),j=1,jx),i=1,iy)
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(i,j)
                   end do
                 end do
@@ -264,10 +264,10 @@
             end if
           else if ( aerctl(1:2).eq.'OC' ) then
             if ( aertyp(4:4).eq.'1' ) then
-              read (iutchsrc,rec=3) ((toto(i,j),j=1,jx),i=1,ix)
+              read (iutchsrc,rec=3) ((toto(i,j),j=1,jx),i=1,iy)
               do m = 1 , 12
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = toto(i,j)
                   end do
                 end do
@@ -275,7 +275,7 @@
             else
               do m = 1 , 12
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = 0.0D0
                   end do
                 end do
@@ -283,9 +283,9 @@
             end if
             if ( aertyp(5:5).eq.'1' ) then
               do m = 1 , 12
-                read (iutchsrc,rec=27+m) ((toto(i,j),j=1,jx),i=1,ix)
+                read (iutchsrc,rec=27+m) ((toto(i,j),j=1,jx),i=1,iy)
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(i,j)
                   end do
                 end do
@@ -305,7 +305,7 @@
         if ( rd_tex ) then
           call clm_getsoitex()
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               dustsotex_io(i,j) = clm_soitex(i,j)
             end do
           end do
@@ -316,14 +316,14 @@
       if ( myid.eq.0 ) then
         if ( rd_tex ) then
           if ( lsmtyp.eq.'BATS' ) then
-            read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,ix)
+            read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,iy)
           else if ( lsmtyp.eq.'USGS' ) then
-            read (iutin,rec=43) ((toto(i,j),j=1,jx),i=1,ix)
+            read (iutin,rec=43) ((toto(i,j),j=1,jx),i=1,iy)
           else
           end if
           close (iutin)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               dustsotex_io(i,j) = dble(toto(i,j))
             end do
           end do
@@ -331,20 +331,20 @@
       end if
 !     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 #endif
-      call mpi_scatter(dustsotex_io(1,1),ix*jxp,mpi_real8,              &
-                     & dustsotex(1,1),ix*jxp,mpi_real8,0,               &
+      call mpi_scatter(dustsotex_io(1,1),iy*jxp,mpi_real8,              &
+                     & dustsotex(1,1),iy*jxp,mpi_real8,0,               &
                      & mpi_comm_world,ierr)
 #else
       if ( rd_tex ) then
         if ( lsmtyp.eq.'BATS' ) then
-          read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,iy)
         else if ( lsmtyp.eq.'USGS' ) then
-          read (iutin,rec=43) ((toto(i,j),j=1,jx),i=1,ix)
+          read (iutin,rec=43) ((toto(i,j),j=1,jx),i=1,iy)
         else
         end if
         close (iutin)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             dustsotex(i,j) = dble(toto(i,j))
           end do
         end do
@@ -360,7 +360,7 @@
 #else
         do j = 1 , jx
 #endif
-          do i = 1 , ix
+          do i = 1 , iy
             if ( iso4.gt.0 ) chemsrc(i,j,m,iso4)                        &
                & = 0.02*chemsrc(i,j,m,iso2)
             if ( iso2.gt.0 ) chemsrc(i,j,m,iso2)                        &

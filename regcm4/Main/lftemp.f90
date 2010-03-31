@@ -83,7 +83,7 @@
       real(8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
                & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
                & xxkb
-      real(8) , dimension(nnsg,ixm1) :: dels , efpot , tbef
+      real(8) , dimension(nnsg,iym1) :: dels , efpot , tbef
       integer :: iter , itfull , itmax , n , i
 !
 !=======================================================================
@@ -92,7 +92,7 @@
 !
 !l    1.1  get stress-free stomatal resistance
 !     (1st guess at vapor pressure deficit)
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then
@@ -140,7 +140,7 @@
         call lfdrag
         call condch
  
-        do i = 2 , ixm1
+        do i = 2 , iym1
           do n = 1 , nnsg
             if ( ldoc1d(n,i).gt.0.5 ) then
               if ( sigf(n,i).gt.0.001 ) then
@@ -167,7 +167,7 @@
         if ( iter.eq.0 ) call condcq
  
         epss = 1.E-10
-        do i = 2 , ixm1
+        do i = 2 , iym1
           do n = 1 , nnsg
             if ( ldoc1d(n,i).gt.0.5 ) then
               if ( sigf(n,i).gt.0.001 ) then
@@ -221,7 +221,7 @@
         if ( iter.le.itfull ) call deriv
 !
 !l      3.3  compute dcn from dcd, output from subr. deriv
-        do i = 2 , ixm1
+        do i = 2 , iym1
           do n = 1 , nnsg
             if ( ldoc1d(n,i).gt.0.5 ) then
               if ( sigf(n,i).gt.0.001 ) then
@@ -264,7 +264,7 @@
  
       end do
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then

@@ -23,12 +23,12 @@
       implicit none
 
 #ifdef MPP1
-      real(8) , dimension(ix,kx,jxp) :: cgh , kvc , kvh , kvm , kvq
-      real(8) , dimension(ix,jxp) :: hfxv , obklen , th10 , ustr ,      &
+      real(8) , dimension(iy,kz,jxp) :: cgh , kvc , kvh , kvm , kvq
+      real(8) , dimension(iy,jxp) :: hfxv , obklen , th10 , ustr ,      &
                                    & xhfx , xqfx
 #else
-      real(8) , dimension(ix,kx,jxm1) :: cgh , kvc , kvh , kvm , kvq
-      real(8) , dimension(ix,jx) :: hfxv , obklen , th10 , ustr ,       &
+      real(8) , dimension(iy,kz,jxm1) :: cgh , kvc , kvh , kvm , kvq
+      real(8) , dimension(iy,jx) :: hfxv , obklen , th10 , ustr ,       &
                                    & xhfx , xqfx
 #endif
 

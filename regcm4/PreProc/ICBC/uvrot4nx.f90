@@ -17,18 +17,18 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine uvrot4nx(u,v,dlon,dlat,clon,clat,gridfc,jx,ix,ll,      &
+      subroutine uvrot4nx(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,      &
                         & pollon,pollat,lgtype)
       implicit none
 !
 ! Dummy arguments
 !
       real :: clat , clon , gridfc , pollat , pollon
-      integer :: ix , jx , ll
+      integer :: iy , jx , ll
       character(6) :: lgtype
-      real , dimension(jx,ix) :: dlat , dlon
-      real , dimension(jx,ix,ll) :: u , v
-      intent (in) clat , clon , dlat , dlon , gridfc , ix , jx ,        &
+      real , dimension(jx,iy) :: dlat , dlon
+      real , dimension(jx,iy,ll) :: u , v
+      intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,        &
                 & lgtype , ll , pollat , pollon
       intent (inout) u , v
 !
@@ -63,7 +63,7 @@
         polcphi = cos(pir180*polphi)
         polsphi = sin(pir180*polphi)
  
-        do j = 1 , ix
+        do j = 1 , iy
           do i = 1 , jx
             zphi = dlat(i,j)*pir180
             zrla = dlon(i,j)*pir180
@@ -83,7 +83,7 @@
           end do
         end do
       else
-        do j = 1 , ix
+        do j = 1 , iy
           do i = 1 , jx
             if ( (clon>=0.0 .and. dlon(i,j)>=0.) .or.                   &
                & (clon<0.0 .and. dlon(i,j)<0.) ) then

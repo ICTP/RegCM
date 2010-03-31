@@ -45,14 +45,14 @@
       if ( iotyp.eq.1 ) then
         do n = 1 , nrad3d
           if ( n.ne.1 ) then
-            do k = kx , 1 , -1
+            do k = kz , 1 , -1
               nrcrad = nrcrad + 1
 #ifdef MPP1
               write (iutrad,rec=nrcrad) ((frad3d_io(j,i,k,n),j=1,jxm2), &
-                                      & i=1,ixm2)
+                                      & i=1,iym2)
 #else
               write (iutrad,rec=nrcrad) ((frad3d(j,i,k,n),j=1,jxm2),i=1,&
-                                      & ixm2)
+                                      & iym2)
 #endif
             end do
           end if
@@ -63,9 +63,9 @@
             nrcrad = nrcrad + 1
 #ifdef MPP1
             write (iutrad,rec=nrcrad) ((frad2d_io(j,i,n),j=1,jxm2),i=1, &
-                                    & ixm2)
+                                    & iym2)
 #else
-            write (iutrad,rec=nrcrad) ((frad2d(j,i,n),j=1,jxm2),i=1,ixm2&
+            write (iutrad,rec=nrcrad) ((frad2d(j,i,n),j=1,jxm2),i=1,iym2&
                                     & )
 #endif
           end if
@@ -74,11 +74,11 @@
         write (iutrad) idatex
         do n = 1 , nrad3d
           if ( n.ne.1 ) then
-            do k = kx , 1 , -1
+            do k = kz , 1 , -1
 #ifdef MPP1
-              write (iutrad) ((frad3d_io(j,i,k,n),j=1,jxm2),i=1,ixm2)
+              write (iutrad) ((frad3d_io(j,i,k,n),j=1,jxm2),i=1,iym2)
 #else
-              write (iutrad) ((frad3d(j,i,k,n),j=1,jxm2),i=1,ixm2)
+              write (iutrad) ((frad3d(j,i,k,n),j=1,jxm2),i=1,iym2)
 #endif
             end do
           end if
@@ -86,10 +86,10 @@
         do n = 1 , nrad2d
 #ifdef MPP1
           if ( n.lt.10 )                                                &
-            write (iutrad) ((frad2d_io(j,i,n),j=1,jxm2),i=1,ixm2)
+            write (iutrad) ((frad2d_io(j,i,n),j=1,jxm2),i=1,iym2)
 #else
           if ( n.lt.10 )                                                &
-            write (iutrad) ((frad2d(j,i,n),j=1,jxm2),i=1,ixm2)
+            write (iutrad) ((frad2d(j,i,n),j=1,jxm2),i=1,iym2)
 #endif
                             ! skip everything from alb (10 to 21)
         end do

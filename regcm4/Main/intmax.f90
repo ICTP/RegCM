@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      function intmax(n,ix,inc)
+      function intmax(n,iy,inc)
 !
       implicit none
 !
@@ -25,18 +25,18 @@
 !
       integer :: inc , n
       integer :: intmax
-      integer , dimension(*) :: ix
-      intent (in) inc , ix , n
+      integer , dimension(*) :: iy
+      intent (in) inc , iy , n
 !
 ! Local variables
 !
       integer :: i , mx
 !
-      mx = ix(1)
+      mx = iy(1)
       intmax = 1
       do i = 1 + inc , inc*n , inc
-        if ( ix(i).gt.mx ) then
-          mx = ix(i)
+        if ( iy(i).gt.mx ) then
+          mx = iy(i)
           intmax = i
         end if
       end do

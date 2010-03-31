@@ -45,7 +45,7 @@
                      & filsub
       character(40) :: filnam
       integer , dimension(nfmax) :: idate1d , imo , iyr
-      integer :: idatepp , iym1 , iym2 , n , nmo
+      integer :: idatepp , iyr1 , iyr2 , n , nmo
       character(3) :: itype
 !
       print * , ' '
@@ -56,7 +56,7 @@
         write (filatm,99001) itype , idatex
         if ( iotyp.eq.1 ) then
           open (iutdat,file='output/'//filatm,status='unknown',         &
-               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
+               &form='unformatted',recl=iym2*jxm2*ibyte,                &
                &access='direct')
           nrcout = 0
         else if ( iotyp.eq.2 ) then
@@ -74,7 +74,7 @@
         write (filsrf,99001) itype , idatex
         if ( iotyp.eq.1 ) then
           open (iutbat,file='output/'//filsrf,status='unknown',         &
-               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
+               &form='unformatted',recl=iym2*jxm2*ibyte,                &
                &access='direct')
           nrcbat = 0
         else if ( iotyp.eq.2 ) then
@@ -92,7 +92,7 @@
         write (filsub,99001) itype , idatex
         if ( iotyp.eq.1 ) then
           open (iutsub,file='output/'//filsub,status='unknown',         &
-               &form='unformatted',recl=(ixm2)*(jxm2)*nnsg*ibyte,       &
+               &form='unformatted',recl=iym2*jxm2*nnsg*ibyte,           &
                &access='direct')
           nrcsub = 0
         else if ( iotyp.eq.2 ) then
@@ -110,7 +110,7 @@
         write (filrad,99001) itype , idatex
         if ( iotyp.eq.1 ) then
           open (iutrad,file='output/'//filrad,status='unknown',         &
-               &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,            &
+               &form='unformatted',recl=iym2*jxm2*ibyte,                &
                &access='direct')
           nrcrad = 0
         else if ( iotyp.eq.2 ) then
@@ -130,7 +130,7 @@
           write (filchem,99001) itype , idatex
           if ( iotyp.eq.1 ) then
             open (iutchem,file='output/'//filchem,status='unknown',     &
-                 &form='unformatted',recl=(ixm2)*(jxm2)*ibyte,          &
+                 &form='unformatted',recl=iym2*jxm2*ibyte,              &
                  &access='direct')
             nrcchem = 0
           else if ( iotyp.eq.2 ) then
@@ -204,15 +204,15 @@
              &' (-1=monthly;1=daily;5=5day)'
         write (99,99008) a78
         if ( nmo.le.1 ) then
-          iym1 = iyr(nmo)*100 + imo(nmo)
-          write (a16,99005) a1 , iym1 , a1
+          iyr1 = iyr(nmo)*100 + imo(nmo)
+          write (a16,99005) a1 , iyr1 , a1
         else if ( nmo.le.2 ) then
-          iym1 = iyr(nmo)*100 + imo(nmo)
-          write (a16,99005) a1 , iym1 , a1
+          iyr1 = iyr(nmo)*100 + imo(nmo)
+          write (a16,99005) a1 , iyr1 , a1
         else
-          iym1 = iyr(2)*100 + imo(2)
-          iym2 = iyr(nmo)*100 + imo(nmo)
-          write (a16,99006) a1 , iym1 , iym2 , a1
+          iyr1 = iyr(2)*100 + imo(2)
+          iyr2 = iyr(nmo)*100 + imo(nmo)
+          write (a16,99006) a1 , iyr1 , iyr2 , a1
         end if
         a78 = a16//'! postproc output filename (not'//                  &
              &' including type & ext)'
@@ -282,11 +282,11 @@
         write (99,99008) a78
         a78 = '      integer nxf,nyf,nz,nxs,nys'
         write (99,99008) a78
-        write (a78,99009) ix
+        write (a78,99009) iy
         write (99,99008) a78
         write (a78,99010) jx
         write (99,99008) a78
-        write (a78,99011) kx
+        write (a78,99011) kz
         write (99,99008) a78
         write (a78,99012) 1
                          ! nxs when SUBBATS si in

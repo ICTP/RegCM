@@ -17,17 +17,17 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine texfudge(fudge,ch,texout,htgrid,ix,jx,char_tex)
+      subroutine texfudge(fudge,ch,texout,htgrid,iy,jx,char_tex)
       implicit none
 !
 ! Dummy arguments
 !
       character(10) :: char_tex
       logical :: fudge
-      integer :: ix , jx
-      character(1) , dimension(ix,jx) :: ch
-      real(4) , dimension(ix,jx) :: htgrid , texout
-      intent (in) char_tex , fudge , ix , jx
+      integer :: iy , jx
+      character(1) , dimension(iy,jx) :: ch
+      real(4) , dimension(iy,jx) :: htgrid , texout
+      intent (in) char_tex , fudge , iy , jx
       intent (out) htgrid
       intent (inout) ch , texout
 !
@@ -37,12 +37,12 @@
 !
       if ( fudge ) then
         open (13,file=char_tex,form='formatted')
-        do i = ix , 1 , -1
+        do i = iy , 1 , -1
           read (13,99001) (ch(i,j),j=1,jx)
         end do
         close (13)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             if ( ch(i,j)==' ' ) then
               texout(i,j) = 14.
             else if ( ch(i,j)=='1' ) then
@@ -91,7 +91,7 @@
         end do
       else
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             if ( nint(texout(i,j))==14 ) then
               ch(i,j) = ' '
             else if ( nint(texout(i,j))==1 ) then
@@ -134,7 +134,7 @@
           end do
         end do
         open (13,file=char_tex,form='formatted')
-        do i = ix , 1 , -1
+        do i = iy , 1 , -1
           write (13,99001) (ch(i,j),j=1,jx)
         end do
         close (13)

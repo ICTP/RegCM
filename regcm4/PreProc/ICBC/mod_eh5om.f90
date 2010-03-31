@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_eh5om
-      use mod_regcm_param , only : ix , jx , kx , ibyte , ehso4
+      use mod_regcm_param , only : iy , jx , kz , ibyte , ehso4
       use mod_preproc_param
 
       implicit none
@@ -30,8 +30,8 @@
 
       real , target , dimension(ilon,jlat,klev*3) :: b2
       real , target , dimension(ilon,jlat,klev*2) :: d2
-      real , target , dimension(jx,ix,klev*3) :: b3
-      real , target , dimension(jx,ix,klev*2) :: d3
+      real , target , dimension(jx,iy,klev*3) :: b3
+      real , target , dimension(jx,iy,klev*2) :: d3
 
       real , pointer :: u3(:,:,:) , v3(:,:,:)
       real , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -48,11 +48,11 @@
       real(4) , dimension(ilon,jlat,mlev,12) :: sulfate
 
       real , dimension(ilon,jlat) :: pso4_2
-      real , dimension(jx,ix) :: pso4_3
+      real , dimension(jx,iy) :: pso4_3
       real , dimension(ilon,jlat,mlev,2) :: sulfate1
       real , dimension(ilon,jlat,mlev) :: sulfate2
-      real , dimension(jx,ix,mlev) :: sulfate3
-      real , dimension(jx,ix,kx) :: sulfate4
+      real , dimension(jx,iy,mlev) :: sulfate3
+      real , dimension(jx,iy,kz) :: sulfate4
 
       integer(4) , dimension(10) :: icount , istart
 
@@ -121,7 +121,7 @@
 !     D      BEGIN LOOP OVER NTIMES
 !
       nyear = idate/1000000
-                         !, SST2(JX,IX)
+                         !, SST2(JX,IY)
       month = idate/10000 - nyear*100
       nday = idate/100 - (idate/10000)*100
       nhour = mod(idate,100)
@@ -558,12 +558,12 @@
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-      call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,ix,klev*3)
-      call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,ix,klev*2)
+      call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,ix,klev,plon,plat,&
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,&
                 & iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
@@ -573,41 +573,41 @@
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
 !HH:  CHANGE THE VERTICAL ORDER.
-      call top2btm(t3,jx,ix,klev)
-      call top2btm(q3,jx,ix,klev)
-      call top2btm(h3,jx,ix,klev)
-      call top2btm(u3,jx,ix,klev)
-      call top2btm(v3,jx,ix,klev)
+      call top2btm(t3,jx,iy,klev)
+      call top2btm(q3,jx,iy,klev)
+      call top2btm(h3,jx,iy,klev)
+      call top2btm(u3,jx,iy,klev)
+      call top2btm(v3,jx,iy,klev)
 !HH:OVER
 !
 !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
-      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,ix,klev)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
  
-      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,ix)
-      call p1p2(b3pd,ps4,jx,ix)
+      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+      call p1p2(b3pd,ps4,jx,iy)
  
 !
 !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
-      call intv3(ts4,t3,ps4,sigmar,ptop,jx,ix,klev)
+      call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
  
 !     F1  CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
 !     PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
-      call mksst3(ts4,sst1,topogm,xlandu,jx,ix,idate)
+      call mksst3(ts4,sst1,topogm,xlandu,jx,iy,idate)
  
 !     F2  DETERMINE P* AND HEIGHT.
 !
 !     F3  INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
 !
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
-      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
 !     F4  DETERMINE H
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kx)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
       call writef(ptop,idate)
@@ -1123,12 +1123,12 @@
           end if
         end if
         call bilinx2(sulfate3,sulfate2,xlon,xlat,glon,glat,             &
-                  &  ilon,jlat,jx,ix,mlev)
+                  &  ilon,jlat,jx,iy,mlev)
         call bilinx2(pso4_3,pso4_2,xlon,xlat,glon,glat,                 &
-                  &  ilon,jlat,jx,ix,1)
-        do i = 1 , ix
+                  &  ilon,jlat,jx,iy,1)
+        do i = 1 , iy
           do j = 1 , jx
-            do l = 1 , kx
+            do l = 1 , kz
               prcm = ((ps4(j,i)-ptop)*sigma2(l)+ptop)*10.
               k0 = -1
               do k = mlev , 1 , -1
@@ -1155,9 +1155,9 @@
           end do
         end do
 !
-        do k = kx , 1 , -1
+        do k = kz , 1 , -1
           noutrec = noutrec + 1
-          write (64,rec=noutrec) ((sulfate4(j,i,k),j=1,jx),i=1,ix)
+          write (64,rec=noutrec) ((sulfate4(j,i,k),j=1,jx),i=1,iy)
         end do
       end if
       end subroutine geteh5om

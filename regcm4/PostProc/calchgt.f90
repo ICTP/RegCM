@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine calchgt(fld2d,fld3d,nx,ny,kx,nfld2d,nfld3d,zs,sigf,    &
+      subroutine calchgt(fld2d,fld3d,nx,ny,kz,nfld2d,nfld3d,zs,sigf,    &
                        & sigh,pt,nta,nqva,npsa,nhgt,nx1,ny1)
  
       use mod_constants , only : ep1 , rovg
@@ -26,24 +26,24 @@
 ! Dummy arguments
 !
       integer :: nfld2d , nfld3d , nhgt , npsa , nqva , nta , nx , nx1 ,&
-               & ny , ny1 , kx
+               & ny , ny1 , kz
       real(4) :: pt
       real(4) , dimension(nx,ny,nfld2d) :: fld2d
-      real(4) , dimension(nx,ny,kx,nfld3d) :: fld3d
-      real(4) , dimension(kx+1) :: sigf
-      real(4) , dimension(kx) :: sigh
+      real(4) , dimension(nx,ny,kz,nfld3d) :: fld3d
+      real(4) , dimension(kz+1) :: sigf
+      real(4) , dimension(kz) :: sigh
       real(4) , dimension(nx,ny) :: zs
       intent (in) fld2d , nfld2d , nfld3d , nhgt , npsa , nqva , nta ,  &
-                & nx , nx1 , ny , ny1 , kx , pt , sigf , sigh , zs
+                & nx , nx1 , ny , ny1 , kz , pt , sigf , sigh , zs
       intent (inout) fld3d
 !
 ! Local variables
 !
-      real(4) , dimension(kx) :: dsig
+      real(4) , dimension(kz) :: dsig
       real(4) :: pf , ps , q , q1 , q2 , t , t1 , t2 , tv , tv1 , tv2
       integer :: i , j , k , k1 , k2
 !
-      do k = 1 , kx
+      do k = 1 , kz
         dsig(k) = sigf(k) - sigf(k+1)
       end do
  
@@ -54,9 +54,9 @@
           q = fld3d(i,j,1,nqva)
           pf = pt/(ps-pt)
           tv = t*(1.0+ep1*q)
-          fld3d(i,j,kx,nhgt) = zs(i,j)                                  &
-                             & + tv*rovg*log((1.+pf)/(sigh(kx)+pf))
-          do k1 = kx - 1 , 1 , -1
+          fld3d(i,j,kz,nhgt) = zs(i,j)                                  &
+                             & + tv*rovg*log((1.+pf)/(sigh(kz)+pf))
+          do k1 = kz - 1 , 1 , -1
             k2 = k1 + 1
             t1 = fld3d(i,j,k1,nta)
             t2 = fld3d(i,j,k2,nta)

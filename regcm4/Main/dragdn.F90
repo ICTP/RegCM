@@ -46,7 +46,7 @@
       integer :: n , i
 !
 !     ******           sea ice classified same as desert
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( lveg(n,i).le.0 .and. sice1d(n,i).gt.0. ) lveg(n,i) = 8
         end do
@@ -54,7 +54,7 @@
  
       call depth
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
  
           z1(n,i) = z1d(n,i)

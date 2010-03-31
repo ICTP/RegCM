@@ -41,11 +41,11 @@
 ! Dummy arguments
 !
 #ifdef MPP1
-      real(8) , dimension(ix,jxp) :: psa , psb
-      real(8) , dimension(ix,kx,jxp) :: qca , qcb , qva , qvb , ta , tb
+      real(8) , dimension(iy,jxp) :: psa , psb
+      real(8) , dimension(iy,kz,jxp) :: qca , qcb , qva , qvb , ta , tb
 #else
-      real(8) , dimension(ix,jx) :: psa , psb
-      real(8) , dimension(ix,kx,jx) :: qca , qcb , qva , qvb , ta , tb
+      real(8) , dimension(iy,jx) :: psa , psb
+      real(8) , dimension(iy,kz,jx) :: qca , qcb , qva , qvb , ta , tb
 #endif
       intent (in) psa , psb
       intent (inout) qca , qcb , qva , qvb , ta , tb
@@ -56,7 +56,7 @@
                & qcavg , qcbs , qvas , qvavg , qvbs , r1 , tavg ,       &
                & tpavg , tta
       integer :: i , j , k
-      real(8) , dimension(ix,kx) :: scr
+      real(8) , dimension(iy,kz) :: scr
 !
 !----------------------------------------------------------------------
 #ifdef MPP1
@@ -64,8 +64,8 @@
 #else
       do j = 1 , jxm1
 #endif
-        do k = 1 , kx
-          do i = 1 , ixm1
+        do k = 1 , kz
+          do i = 1 , iym1
             tavg = 0.5*(ta(i,k,j)/psa(i,j)+tb(i,k,j)/psb(i,j))
             tpavg = 0.5*(ta(i,k,j)+tb(i,k,j))
             qvavg = 0.5*(qva(i,k,j)/psa(i,j)+qvb(i,k,j)/psb(i,j))
@@ -85,8 +85,8 @@
           end do
         end do
 !
-        do k = 1 , kx
-          do i = 1 , ixm1
+        do k = 1 , kz
+          do i = 1 , iym1
             qcavg = dmin1(qca(i,k,j)/psa(i,j),qcb(i,k,j)/psb(i,j))
             exces = qcavg + scr(i,k)
             if ( exces.ge.0. ) then
@@ -101,8 +101,8 @@
           end do
         end do
 !
-        do k = 1 , kx
-          do i = 1 , ixm1
+        do k = 1 , kz
+          do i = 1 , iym1
             qvas = qva(i,k,j) - scr(i,k)*psa(i,j)
             qvbs = qvb(i,k,j) - scr(i,k)*psb(i,j)
             qva(i,k,j) = dmax1(qvas,1.D-99)
@@ -121,8 +121,8 @@
         if ( j.ne.1 .and. j.ne.jxm1 ) then
 #endif
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               ex = 1.
               ta(i,k,j) = ta(i,k,j) + wlhvocp*scr(i,k)*psa(i,j)*ex
               tb(i,k,j) = tb(i,k,j) + wlhvocp*scr(i,k)*psb(i,j)*ex

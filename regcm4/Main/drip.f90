@@ -32,7 +32,7 @@
 !
       integer :: n , i
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then

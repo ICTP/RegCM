@@ -60,10 +60,10 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(ixm1,kxp1) :: piln , plh2o , pnm , s2c ,    &
+      real(8) , dimension(iym1,kzp1) :: piln , plh2o , pnm , s2c ,    &
            & s2t , tint , tint4 , tlayr , tlayr4 , tplnka , w
-      real(8) , dimension(ixm1,kx) :: pmln , qnm , tnm
-      real(8) , dimension(ixm1) :: tplnke , ts
+      real(8) , dimension(iym1,kz) :: pmln , qnm , tnm
+      real(8) , dimension(iym1) :: tplnke , ts
       intent (in) piln , plh2o , pmln , pnm , qnm , tnm , ts
       intent (out) tint4 , tplnke
       intent (inout) s2c , s2t , tint , tlayr , tlayr4 , tplnka , w
@@ -95,9 +95,9 @@
 !     Tint is lower interface temperature
 !     (not available for bottom layer, so use ground temperature)
 !
-      do i = 1 , ixm1
-        tint(i,kxp1) = ts(i)
-        tint4(i,kxp1) = tint(i,kx + 1)**4
+      do i = 1 , iym1
+        tint(i,kzp1) = ts(i)
+        tint4(i,kzp1) = tint(i,kz + 1)**4
         tplnka(i,1) = tnm(i,1)
         tint(i,1) = tplnka(i,1)
         tlayr4(i,1) = tplnka(i,1)**4
@@ -107,8 +107,8 @@
 !     Intermediate level temperatures are computed using temperature
 !     at the full level below less dy*delta t,between the full level
 !
-      do k = 2 , kx
-        do i = 1 , ixm1
+      do k = 2 , kz
+        do i = 1 , iym1
           dy = (piln(i,k)-pmln(i,k))/(pmln(i,k-1)-pmln(i,k))
           tint(i,k) = tnm(i,k) - dy*(tnm(i,k)-tnm(i,k-1))
           tint4(i,k) = tint(i,k)**4
@@ -120,8 +120,8 @@
 !     the intermediate level temperatures.  Note that tplnka is not
 !     equal to the full level temperatures.
 !
-      do k = 2 , kxp1
-        do i = 1 , ixm1
+      do k = 2 , kzp1
+        do i = 1 , iym1
           tlayr(i,k) = tnm(i,k-1)
           tlayr4(i,k) = tlayr(i,k)**4
           tplnka(i,k) = .5*(tint(i,k)+tint(i,k-1))
@@ -131,14 +131,14 @@
 !     Calculate tplank for emissivity calculation.
 !     Assume isothermal tplnke i.e. all levels=ttop.
 !
-      do i = 1 , ixm1
+      do i = 1 , iym1
         tplnke(i) = tplnka(i,1)
         tlayr(i,1) = tint(i,1)
       end do
 !
 !     Now compute h2o path fields:
 !
-      do i = 1 , ixm1
+      do i = 1 , iym1
         s2t(i,1) = plh2o(i,1)*tnm(i,1)
 !       ccm3.2
 !       w(i,1)   = (plh2o(i,1)*2.) / pnm(i,1)
@@ -149,8 +149,8 @@
         rtnm = 1./tnm(i,1)
         s2c(i,1) = plh2o(i,1)*exp(1800.*(rtnm-r296))*qnm(i,1)*repsil
       end do
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
           dpnm = pnm(i,k+1) - pnm(i,k)
           dpnmsq = pnm(i,k+1)**2 - pnm(i,k)**2
           rtnm = 1./tnm(i,k)

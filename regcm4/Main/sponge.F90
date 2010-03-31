@@ -33,8 +33,8 @@
 !     pebt, pwbt, pnbt, psbt : are the large-scale or observed        c
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
-!     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ixm1, je = jxm1 for cross-point variables.                 c
+!     ie = iy, je = jx for dot-point variables.                       c
+!     ie = iym1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -46,7 +46,7 @@
 ! Dummy arguments
 !
       integer :: ip , j
-      real(8) , dimension(ix) :: ften
+      real(8) , dimension(iy) :: ften
       real(8) , dimension(ip) :: wg
       intent (in) ip , j , wg
       intent (inout) ften
@@ -83,7 +83,7 @@
       if ( jsls.gt.ip ) then
 !-----interior j slices:
         do i = 2 , ip
-          ii = ix - i
+          ii = iy - i
 !.......south boundary:
           ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
 !.......north boundary:
@@ -92,17 +92,17 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ixm1 - 1
+        iend = iym1 - 1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
-            ii = ix - i
+            ii = iy - i
 !........south boundary:
             ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
 !........north boundary:
             ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
           end do
           ibeg = jsls
-          iend = ix - jsls
+          iend = iy - jsls
         end if
 !
         if ( jj.gt.ip ) then
@@ -151,8 +151,8 @@
 !     tebt, twbt, tnbt, tsbt : are the large-scale or observed        c
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
-!     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ixm1, je = jxm1 for cross-point variables.                 c
+!     ie = iy, je = jx for dot-point variables.                       c
+!     ie = iym1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -165,7 +165,7 @@
 ! Dummy arguments
 !
       integer :: ip , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       real(8) , dimension(ip) :: wg
       intent (in) ip , j , wg
       intent (inout) ften
@@ -202,8 +202,8 @@
       if ( jsls.gt.ip ) then
 !-----interior j slices:
         do i = 2 , ip
-          ii = ix - i
-          do k = 1 , kx
+          ii = iy - i
+          do k = 1 , kz
 !.......south boundary:
             ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
 !.......north boundary:
@@ -213,11 +213,11 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ixm1 - 1
+        iend = iym1 - 1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
-            ii = ix - i
-            do k = 1 , kx
+            ii = iy - i
+            do k = 1 , kz
 !........south boundary:
               ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
 !........north boundary:
@@ -225,12 +225,12 @@
             end do
           end do
           ibeg = jsls
-          iend = ix - jsls
+          iend = iy - jsls
         end if
 !
         if ( jj.gt.ip ) then
 !------west-boundary slice:
-          do k = 1 , kx
+          do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
@@ -243,7 +243,7 @@
           end do
         else if ( jj.le.ip ) then
 !------east-boundary slice:
-          do k = 1 , kx
+          do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
@@ -280,8 +280,8 @@
 !     qebt, qwbt, qnbt, qsbt : are the large-scale or observed        c
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
-!     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ixm1, je = jxm1 for cross-point variables.                 c
+!     ie = iy, je = jx for dot-point variables.                       c
+!     ie = iym1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -294,7 +294,7 @@
 ! Dummy arguments
 !
       integer :: ip , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       real(8) , dimension(ip) :: wg
       intent (in) ip , j , wg
       intent (inout) ften
@@ -331,8 +331,8 @@
       if ( jsls.gt.ip ) then
 !-----interior j slices:
         do i = 2 , ip
-          ii = ix - i
-          do k = 1 , kx
+          ii = iy - i
+          do k = 1 , kz
 !.......south boundary:
             ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
 !.......north boundary:
@@ -342,11 +342,11 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ixm1 - 1
+        iend = iym1 - 1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
-            ii = ix - i
-            do k = 1 , kx
+            ii = iy - i
+            do k = 1 , kz
 !........south boundary:
               ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
 !........north boundary:
@@ -354,12 +354,12 @@
             end do
           end do
           ibeg = jsls
-          iend = ix - jsls
+          iend = iy - jsls
         end if
 !
         if ( jj.gt.ip ) then
 !------west-boundary slice:
-          do k = 1 , kx
+          do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
@@ -372,7 +372,7 @@
           end do
         else if ( jj.le.ip ) then
 !------east-boundary slice:
-          do k = 1 , kx
+          do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
@@ -408,8 +408,8 @@
 !     uebt, uwbt, unbt, usbt : are the large-scale or observed        c
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
-!     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ixm1, je = jxm1 for cross-point variables.                 c
+!     ie = iy, je = jx for dot-point variables.                       c
+!     ie = iym1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -422,7 +422,7 @@
 ! Dummy arguments
 !
       integer :: ip , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       real(8) , dimension(ip) :: wg
       intent (in) ip , j , wg
       intent (inout) ften
@@ -453,8 +453,8 @@
       if ( jsls.gt.ip ) then
 !-----interior j slices:
         do i = 2 , ip
-          ii = ix - i + 1
-          do k = 1 , kx
+          ii = iy - i + 1
+          do k = 1 , kz
 !.......south boundary:
             ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
 !.......north boundary:
@@ -464,11 +464,11 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ixm1
+        iend = iym1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
-            ii = ix - i + 1
-            do k = 1 , kx
+            ii = iy - i + 1
+            do k = 1 , kz
 !........south boundary:
               ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
 !........north boundary:
@@ -476,12 +476,12 @@
             end do
           end do
           ibeg = jsls
-          iend = ix - jsls + 1
+          iend = iy - jsls + 1
         end if
 !
         if ( jj.gt.ip ) then
 !------west-boundary slice:
-          do k = 1 , kx
+          do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
@@ -494,7 +494,7 @@
           end do
         else if ( jj.le.ip ) then
 !------east-boundary slice:
-          do k = 1 , kx
+          do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
@@ -530,8 +530,8 @@
 !     vebt, vwbt, vnbt, vsbt : are the large-scale or observed        c
 !            tendencies at east, west, north, and south boundaries.   c
 !                                                                     c
-!     ie = ix, je = jx for dot-point variables.                       c
-!     ie = ixm1, je = jxm1 for cross-point variables.                 c
+!     ie = iy, je = jx for dot-point variables.                       c
+!     ie = iym1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
 !                                                                     c
@@ -544,7 +544,7 @@
 ! Dummy arguments
 !
       integer :: ip , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       real(8) , dimension(ip) :: wg
       intent (in) ip , j , wg
       intent (inout) ften
@@ -574,8 +574,8 @@
       if ( jsls.gt.ip ) then
 !-----interior j slices:
         do i = 2 , ip
-          ii = ix - i + 1
-          do k = 1 , kx
+          ii = iy - i + 1
+          do k = 1 , kz
 !.......south boundary:
             ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
 !.......north boundary:
@@ -585,11 +585,11 @@
 !
       else if ( jsls.le.ip ) then
         ibeg = 2
-        iend = ixm1
+        iend = iym1
         if ( jsls.gt.2 ) then
           do i = 2 , jsls - 1
-            ii = ix - i + 1
-            do k = 1 , kx
+            ii = iy - i + 1
+            do k = 1 , kz
 !........south boundary:
               ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
 !........north boundary:
@@ -597,12 +597,12 @@
             end do
           end do
           ibeg = jsls
-          iend = ix - jsls + 1
+          iend = iy - jsls + 1
         end if
 !
         if ( jj.gt.ip ) then
 !------west-boundary slice:
-          do k = 1 , kx
+          do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
@@ -615,7 +615,7 @@
           end do
         else if ( jj.le.ip ) then
 !------east-boundary slice:
-          do k = 1 , kx
+          do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &

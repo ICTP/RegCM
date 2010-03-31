@@ -18,14 +18,14 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_subflds
-      use mod_regcm_param , only : jxm2sg , ixm2sg , nsg , numsub
+      use mod_regcm_param , only : jxm2sg , iym2sg , nsg , numsub
       use mod_postproc_param , only : nhrsub
       implicit none
 
       integer , parameter :: nsub2 = numsub+1
 
-      real(4) , dimension(jxm2sg,ixm2sg,nsub2,nhrsub) :: s2davg
-      real(4) , dimension(jxm2sg,ixm2sg,nsub2) :: sfld2d
+      real(4) , dimension(jxm2sg,iym2sg,nsub2,nhrsub) :: s2davg
+      real(4) , dimension(jxm2sg,iym2sg,nsub2) :: sfld2d
 
       contains
 
@@ -42,7 +42,7 @@
 ! Local variables
 !
       integer :: i , j , ns
-      real(4) , dimension(jxm2sg,ixm2sg) :: s2d
+      real(4) , dimension(jxm2sg,iym2sg) :: s2d
 !
       ierr = 0
       if ( idirect/=1 ) then
@@ -57,7 +57,7 @@
         else
           read (iin,iostat=ierr) s2d
         end if
-        do j = 1 , ixm2sg
+        do j = 1 , iym2sg
           do i = 1 , jxm2sg
             sfld2d(i,j,ns) = s2d(i,j)
           end do
@@ -89,7 +89,7 @@
       do nb = 1 , nsub2
 !       if ((nb.eq.nstmin.or.nb.eq.nstmax) .and. ihr.lt.nhrsub) then
 !       else
-        do j = 1 , ixm2sg
+        do j = 1 , iym2sg
           do i = 1 , jxm2sg
             if ( sfld2d(i,j,nb)>misdat ) then
               s2davg(i,j,nb,ihr) = s2davg(i,j,nb,ihr) + sfld2d(i,j,nb)
@@ -250,7 +250,7 @@
       character(64) , dimension(nsub2) :: usub
       character(64) , dimension(nsub2) :: vnamsub
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2sg) :: xlat1d
+      real(4) , dimension(iym2sg) :: xlat1d
       real(4) , dimension(jxm2sg) :: xlon1d
       intent (in) ndim , xmax , xmin
 !
@@ -259,19 +259,19 @@
       integer :: i , j , ns
       real(4) :: misdat , vmax , vmin
       real(4) , dimension(1) :: sig1
-      real(4) , dimension(jxm2sg,ixm2sg) :: tmp2d
+      real(4) , dimension(jxm2sg,iym2sg) :: tmp2d
 !
       sig1(1) = 1.0
-      call setconst(tmp2d,vmisdat,jxm2sg,ixm2sg,1,1,1,1,jxm2sg,1,ixm2sg)
+      call setconst(tmp2d,vmisdat,jxm2sg,iym2sg,1,1,1,1,jxm2sg,1,iym2sg)
       do ns = 1 , nsub2
 !       if (ns.ne.nstmin .and. ns.ne.nstmax) then
         do i = 1 , jxm2sg
-          do j = 1 , ixm2sg
+          do j = 1 , iym2sg
             tmp2d(i,j) = max(sfld2d(i,j,ns),vmisdat)
           end do
         end do
         if ( iotyp==1 ) then
-          call getminmax(tmp2d,jxm2sg,ixm2sg,1,vmin,vmax,vmisdat)
+          call getminmax(tmp2d,jxm2sg,iym2sg,1,vmin,vmax,vmisdat)
           if ( vmin<xmin(ns) .or. vmax>xmax(ns) ) then
             print * , 'Values Out of Range:  FIELD=' , vnamsub(ns)
             print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ns)
@@ -285,12 +285,12 @@
         end if
 !       print*,vnamsub(ns),nrec+1
         if ( iotyp==1 .or. iotyp==2 ) then
-          call writecdf(idout,vnamsub(ns),tmp2d,jxm2sg,ixm2sg,1,iadm,   &
+          call writecdf(idout,vnamsub(ns),tmp2d,jxm2sg,iym2sg,1,iadm,   &
                       & xhr,lnamsub(ns),usub(ns),fact(ns),offset(ns),   &
                       & vvarmin,vvarmax,xlat1d,xlon1d,sig1,0,misdat,    &
                       & iotyp)
         else if ( iotyp==3 ) then
-          call writegrads(iunt,tmp2d,jxm2sg,ixm2sg,1,nrec)
+          call writegrads(iunt,tmp2d,jxm2sg,iym2sg,1,nrec)
         else
         end if
 !       end if
@@ -317,17 +317,17 @@
       character(64) , dimension(nsub2) :: usub
       character(64) , dimension(nsub2) :: vnamsub
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2sg) :: xlat1d
+      real(4) , dimension(iym2sg) :: xlat1d
       real(4) , dimension(jxm2sg) :: xlon1d
       intent (in) ndim , nsubtime , xhr1 , xmax , xmin
 !
 ! Local variables
 !
       real(4) :: const , misdat , vmax , vmin , xntimes
-      real(4) , dimension(jxm2sg,ixm2sg,nsub2) :: favgsum
+      real(4) , dimension(jxm2sg,iym2sg,nsub2) :: favgsum
       integer :: i , ihr , j , ns
       real(4) , dimension(1) :: sig1
-      real(4) , dimension(jxm2sg,ixm2sg) :: tmp2d
+      real(4) , dimension(jxm2sg,iym2sg) :: tmp2d
       real(8) :: xhravg
 !
       iadm(3) = 1
@@ -335,9 +335,9 @@
  
       print * , 'COMPUTING AVERAGE SUB FIELDS:' , nsubtime
  
-      call setconst(tmp2d,vmisdat,jxm2sg,ixm2sg,1,1,1,1,jxm2sg,1,ixm2sg)
-      call setconst(favgsum,0.0,jxm2sg,ixm2sg,nsub2,1,1,                &
-                 &  1,jxm2sg,1,ixm2sg)
+      call setconst(tmp2d,vmisdat,jxm2sg,iym2sg,1,1,1,1,jxm2sg,1,iym2sg)
+      call setconst(favgsum,0.0,jxm2sg,iym2sg,nsub2,1,1,                &
+                 &  1,jxm2sg,1,iym2sg)
       do ihr = 1 , nhrsub
         do ns = 1 , nsub2
           const = 1.0
@@ -346,7 +346,7 @@
 !         else
           xntimes = const/float(nhrsub*nsubtime(ihr))
 !         end if
-          do j = 1 , ixm2sg
+          do j = 1 , iym2sg
             do i = 1 , jxm2sg
               if ( s2davg(i,j,ns,ihr)>vmisdat ) then
                 favgsum(i,j,ns) = favgsum(i,j,ns) + s2davg(i,j,ns,ihr)  &
@@ -364,13 +364,13 @@
           print * , 'NOTHING TO AVERAGE -- nsubtime = 0'
           stop 999
         end if
-        do j = 1 , ixm2sg
+        do j = 1 , iym2sg
           do i = 1 , jxm2sg
             tmp2d(i,j) = favgsum(i,j,ns)
           end do
         end do
         if ( iotyp==1 ) then
-          call getminmax(tmp2d,jxm2sg,ixm2sg,1,vmin,vmax,vmisdat)
+          call getminmax(tmp2d,jxm2sg,iym2sg,1,vmin,vmax,vmisdat)
           if ( vmin<xmin(ns) .or. vmax>xmax(ns) ) then
             print * , 'Values Out of Range:  FIELD=' , vnamsub(ns)
             print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ns)
@@ -383,12 +383,12 @@
         else
         end if
         if ( iotyp==1 .or. iotyp==2 ) then
-          call writecdf(idsub,vnamsub(ns),tmp2d,jxm2sg,ixm2sg,1,iadm,   &
+          call writecdf(idsub,vnamsub(ns),tmp2d,jxm2sg,iym2sg,1,iadm,   &
                       & xhravg,lnamsub(ns),usub(ns),fact(ns),offset(ns),&
                       & vvarmin,vvarmax,xlat1d,xlon1d,sig1,0,misdat,    &
                       & iotyp)
         else if ( iotyp==3 ) then
-          call writegrads(iunt,tmp2d,jxm2sg,ixm2sg,1,nrec)
+          call writegrads(iunt,tmp2d,jxm2sg,iym2sg,1,nrec)
         else
         end if
       end do
@@ -416,7 +416,7 @@
       character(64) , dimension(nsub2) :: usub
       character(64) , dimension(nsub2) :: vnamsub
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2sg) :: xlat1d
+      real(4) , dimension(iym2sg) :: xlat1d
       real(4) , dimension(jxm2sg) :: xlon1d
       intent (in) ndim , nsubtime , xhr1 , xmax , xmin
 !
@@ -425,12 +425,12 @@
       real(4) :: const , misdat , vmax , vmin , xntimes
       integer :: i , ihr , j , ns
       real(4) , dimension(1) :: sig1
-      real(4) , dimension(jxm2sg,ixm2sg) :: tmp2d
+      real(4) , dimension(jxm2sg,iym2sg) :: tmp2d
       real(8) :: xhravg
 !
       iadm(3) = 1
       sig1(1) = 1.
-      call setconst(tmp2d,vmisdat,jxm2sg,ixm2sg,1,1,1,1,jxm2sg,1,ixm2sg)
+      call setconst(tmp2d,vmisdat,jxm2sg,iym2sg,1,1,1,1,jxm2sg,1,iym2sg)
       do ihr = 1 , nhrsub
         xhravg = xhr1 + float(ihr-1)*dtsub
         if ( nsubtime(ihr)<=0 ) then
@@ -445,13 +445,13 @@
           xntimes = const/float(nsubtime(ihr))
 !         end if
 !         if ((ns.eq.nstmin.or.ns.eq.nstmax) .and. ihr.lt.nhrsub) then
-          do j = 1 , ixm2sg
+          do j = 1 , iym2sg
             do i = 1 , jxm2sg
               tmp2d(i,j) = vmisdat
             end do
           end do
 !         else
-          do j = 1 , ixm2sg
+          do j = 1 , iym2sg
             do i = 1 , jxm2sg
               if ( s2davg(i,j,ns,ihr)>vmisdat ) then
                 tmp2d(i,j) = s2davg(i,j,ns,ihr)*xntimes
@@ -462,7 +462,7 @@
           end do
 !         end if
           if ( iotyp==1 ) then
-            call getminmax(tmp2d,jxm2sg,ixm2sg,1,vmin,vmax,vmisdat)
+            call getminmax(tmp2d,jxm2sg,iym2sg,1,vmin,vmax,vmisdat)
             if ( vmin<xmin(ns) .or. vmax>xmax(ns) ) then
               print * , 'Values Out of Range:  FIELD=' , vnamsub(ns)
               print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ns)
@@ -475,12 +475,12 @@
           else
           end if
           if ( iotyp==1 .or. iotyp==2 ) then
-            call writecdf(idsub,vnamsub(ns),tmp2d,jxm2sg,ixm2sg,1,iadm, &
+            call writecdf(idsub,vnamsub(ns),tmp2d,jxm2sg,iym2sg,1,iadm, &
                         & xhravg,lnamsub(ns),usub(ns),fact(ns),         &
                         & offset(ns),vvarmin,vvarmax,xlat1d,xlon1d,sig1,&
                         & 0,misdat,iotyp)
           else if ( iotyp==3 ) then
-            call writegrads(iunt,tmp2d,jxm2sg,ixm2sg,1,nrec)
+            call writegrads(iunt,tmp2d,jxm2sg,iym2sg,1,nrec)
           else
           end if
         end do

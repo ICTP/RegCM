@@ -17,16 +17,16 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine maximi(array,ix,kx,ks,ke,imax,istart,iend)
+      subroutine maximi(array,iy,kz,ks,ke,imax,istart,iend)
 
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: iend , istart , ix , ke , ks , kx
-      real(8) , dimension(ix,kx) :: array
-      integer , dimension(ix) :: imax
-      intent (in) array , iend , istart , ix , ke , ks , kx
+      integer :: iend , istart , iy , ke , ks , kz
+      real(8) , dimension(iy,kz) :: array
+      integer , dimension(iy) :: imax
+      intent (in) array , iend , istart , iy , ke , ks , kz
       intent (out) imax
 !
 ! Local variables

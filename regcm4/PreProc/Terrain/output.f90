@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine output(nunitc,ix,jx,nsg,dsinm,clat,clon,plat,plon,     &
+      subroutine output(nunitc,iy,jx,nsg,dsinm,clat,clon,plat,plon,     &
                       & iproj,htgrid,htsdgrid,lndout,xlat,xlon,dlat,    &
                       & dlon,xmap,dattyp,dmap,coriol,snowam,igrads,     &
                       & ibigend,kz,sigma,mask,ptop,htgrid_s,lndout_s,   &
@@ -33,22 +33,22 @@
                & truelath , truelatl
       character(5) :: dattyp
       character(50) :: filout
-      integer :: ibigend , ibyte , igrads , ix , jx , kz , ngrid , nsg ,&
+      integer :: ibigend , ibyte , igrads , iy , jx , kz , ngrid , nsg ,&
                & ntex , nunitc , nveg
       character(6) :: iproj
       character(4) :: lsmtyp
-      real(4) , dimension(ix,jx) :: claya , clayb , coriol , dlat ,     &
+      real(4) , dimension(iy,jx) :: claya , clayb , coriol , dlat ,     &
                                   & dlon , dmap , htgrid , htsdgrid ,   &
                                   & lndout , mask , sanda , sandb ,     &
                                   & snowam , texout , xlat , xlon , xmap
-      real(4) , dimension(ix,jx,nveg) :: frac_lnd
-      real(4) , dimension(ix,jx,ntex) :: frac_tex
-      real(4) , dimension(ix*nsg,jx*nsg) :: htgrid_s , lndout_s
+      real(4) , dimension(iy,jx,nveg) :: frac_lnd
+      real(4) , dimension(iy,jx,ntex) :: frac_tex
+      real(4) , dimension(iy*nsg,jx*nsg) :: htgrid_s , lndout_s
       real(4) , dimension(kz+1) :: sigma
       intent (in) aertyp , clat , claya , clayb , clon , coriol ,       &
                 & dattyp , dlat , dlon , dmap , dsinm , filout ,        &
                 & frac_lnd , frac_tex , grdfac , htgrid , htsdgrid ,    &
-                & ibigend , ibyte , igrads , iproj , ix , jx , kz ,     &
+                & ibigend , ibyte , igrads , iproj , iy , jx , kz ,     &
                 & lndout , lsmtyp , ngrid , nsg , ntex , nunitc , nveg ,&
                 & plat , plon , ptop , sanda , sandb , snowam , texout ,&
                 & truelath , truelatl , xlat , xlon , xmap
@@ -143,10 +143,10 @@
           stop
         end if
         open (19,file=fsubname,form='unformatted',                      &
-            & recl=ix*jx*nsg*nsg*ibyte,access='direct')
-        read (19,rec=2) ((htgrid_s(i,j),j=1,jx*nsg),i=1,ix*nsg)
-        read (19,rec=4) ((lndout_s(i,j),j=1,jx*nsg),i=1,ix*nsg)
-        do i = 1 , ix*nsg
+            & recl=iy*jx*nsg*nsg*ibyte,access='direct')
+        read (19,rec=2) ((htgrid_s(i,j),j=1,jx*nsg),i=1,iy*nsg)
+        read (19,rec=4) ((lndout_s(i,j),j=1,jx*nsg),i=1,iy*nsg)
+        do i = 1 , iy*nsg
           do j = 1 , jx*nsg
             if ( (lsmtyp=='BATS' .and. (lndout_s(i,j)>20. .or. lndout_s(&
                & i,j)<0.)) .or.                                         &
@@ -157,7 +157,7 @@
             end if
           end do
         end do
-        do i = 1 , ix
+        do i = 1 , iy
           do j = 1 , jx
             i0 = (i-1)*nsg
             j0 = (j-1)*nsg
@@ -189,12 +189,12 @@
             end do
           end do
         end do
-        write (19,rec=2) ((htgrid_s(i,j),j=1,jx*nsg),i=1,ix*nsg)
-        write (19,rec=4) ((lndout_s(i,j),j=1,jx*nsg),i=1,ix*nsg)
+        write (19,rec=2) ((htgrid_s(i,j),j=1,jx*nsg),i=1,iy*nsg)
+        write (19,rec=4) ((lndout_s(i,j),j=1,jx*nsg),i=1,iy*nsg)
         close (19)
       end if
  
-      do i = 1 , ix
+      do i = 1 , iy
         do j = 1 , jx
           if ( (lsmtyp=='BATS' .and. (lndout(i,j)>20. .or. lndout(i,j)< &
              & 0.)) .or.                                                &
@@ -207,7 +207,7 @@
       end do
       if ( ngrid/=nsg .or. (dattyp/='FVGCM' .and. dattyp/='NRP2W' .and. &
          & dattyp/='GFS11' .and. dattyp/='EH5OM') ) then
-        write (nunitc,rec=1) ix , jx , kz , dsinm , clat , clon , plat ,&
+        write (nunitc,rec=1) iy , jx , kz , dsinm , clat , clon , plat ,&
                            & plon , grdfac , iproj , (sigma(k),k=1,kz+1)&
                            & , ptop , igrads , ibigend , truelatl ,     &
                            & truelath
@@ -215,7 +215,7 @@
         write (*,*) 'please input lon0,lon1,lat0,lat1'
         write (*,*) 'Note: lon0 < lon1, and lat0 < lat1'
         read (*,*) lon0 , lon1 , lat0 , lat1
-        write (nunitc,rec=1) ix , jx , kz , dsinm , clat , clon , plat ,&
+        write (nunitc,rec=1) iy , jx , kz , dsinm , clat , clon , plat ,&
                            & plon , grdfac , iproj , (sigma(k),k=1,kz+1)&
                            & , ptop , igrads , ibigend , truelatl ,     &
                            & truelath , lon0 , lon1 , lat0 , lat1
@@ -235,18 +235,18 @@
         end if
         close (23)
       end if
-      write (nunitc,rec=2) ((htgrid(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=3) ((htsdgrid(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=4) ((lndout(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=5) ((xlat(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=6) ((xlon(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=7) ((dlat(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=8) ((dlon(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=9) ((xmap(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=10) ((dmap(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=11) ((coriol(i,j),j=1,jx),i=1,ix)
-      write (nunitc,rec=12) ((snowam(i,j),j=1,jx),i=1,ix)
-      do i = 1 , ix
+      write (nunitc,rec=2) ((htgrid(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=3) ((htsdgrid(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=4) ((lndout(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=7) ((dlat(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=8) ((dlon(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=9) ((xmap(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=10) ((dmap(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=11) ((coriol(i,j),j=1,jx),i=1,iy)
+      write (nunitc,rec=12) ((snowam(i,j),j=1,jx),i=1,iy)
+      do i = 1 , iy
         do j = 1 , jx
           if ( lsmtyp=='BATS' ) then
             if ( lndout(i,j)>13.5 .and. lndout(i,j)<15.5 ) then
@@ -264,27 +264,27 @@
           end if
         end do
       end do
-      write (nunitc,rec=13) ((mask(i,j),j=1,jx),i=1,ix)
+      write (nunitc,rec=13) ((mask(i,j),j=1,jx),i=1,iy)
       if ( lsmtyp=='USGS' ) then
-        write (nunitc,rec=14) ((sanda(i,j),j=1,jx),i=1,ix)
-        write (nunitc,rec=15) ((sandb(i,j),j=1,jx),i=1,ix)
-        write (nunitc,rec=16) ((claya(i,j),j=1,jx),i=1,ix)
-        write (nunitc,rec=17) ((clayb(i,j),j=1,jx),i=1,ix)
+        write (nunitc,rec=14) ((sanda(i,j),j=1,jx),i=1,iy)
+        write (nunitc,rec=15) ((sandb(i,j),j=1,jx),i=1,iy)
+        write (nunitc,rec=16) ((claya(i,j),j=1,jx),i=1,iy)
+        write (nunitc,rec=17) ((clayb(i,j),j=1,jx),i=1,iy)
         do k = 1 , nveg
-          write (nunitc,rec=17+k) ((frac_lnd(i,j,k),j=1,jx),i=1,ix)
+          write (nunitc,rec=17+k) ((frac_lnd(i,j,k),j=1,jx),i=1,iy)
         end do
       end if
       if ( aertyp(7:7)=='1' ) then
         if ( lsmtyp=='BATS' ) then
-          write (nunitc,rec=14) ((texout(i,j),j=1,jx),i=1,ix)
+          write (nunitc,rec=14) ((texout(i,j),j=1,jx),i=1,iy)
           do k = 1 , ntex
-            write (nunitc,rec=14+k) ((frac_tex(i,j,k),j=1,jx),i=1,ix)
+            write (nunitc,rec=14+k) ((frac_tex(i,j,k),j=1,jx),i=1,iy)
           end do
         else if ( lsmtyp=='USGS' ) then
-          write (nunitc,rec=18+nveg) ((texout(i,j),j=1,jx),i=1,ix)
+          write (nunitc,rec=18+nveg) ((texout(i,j),j=1,jx),i=1,iy)
           do k = 1 , ntex
             write (nunitc,rec=18+nveg+k)                                &
-                 & ((frac_tex(i,j,k),j=1,jx),i=1,ix)
+                 & ((frac_tex(i,j,k),j=1,jx),i=1,iy)
           end do
         else
         end if
@@ -311,11 +311,11 @@
           alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
-            if ( xlat(ix,j)>alatmax ) alatmax = xlat(ix,j)
+            if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
           end do
           alonmin = 999999.
           alonmax = -999999.
-          do i = 1 , ix
+          do i = 1 , iy
             do j = 1 , jx
               if ( clon>=0.0 ) then
                 if ( xlon(i,j)>=0.0 ) then
@@ -348,25 +348,25 @@
           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
           centerj = jx/2.
-          centeri = ix/2.
+          centeri = iy/2.
         end if
         if ( iproj=='LAMCON' ) then        ! Lambert projection
-          write (31,99011) jx , ix , clat , clon , centerj , centeri ,  &
+          write (31,99011) jx , iy , clat , clon , centerj , centeri ,  &
                          & truelatl , truelath , clon , dsinm , dsinm
           write (31,99012) nx + 2 , alonmin - rloninc , rloninc
           write (31,99013) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj=='POLSTR' ) then   !
         else if ( iproj=='NORMER' ) then
           write (31,99014) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
-          write (31,99015) ix
-          write (31,99016) (xlat(i,1),i=1,ix)
+          write (31,99015) iy
+          write (31,99016) (xlat(i,1),i=1,iy)
         else if ( iproj=='ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99017) jx , ix , plon , plat , dsinm/111000. ,      &
+          write (31,99017) jx , iy , plon , plat , dsinm/111000. ,      &
                          & dsinm/111000.*.95238
           write (31,99012) nx + 2 , alonmin - rloninc , rloninc
           write (31,99013) ny + 2 , alatmin - rlatinc , rlatinc

@@ -36,7 +36,7 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(nnsg,ixm1) :: p , qsat , t
+      real(8) , dimension(nnsg,iym1) :: p , qsat , t
       intent (in) p , t
       intent (out) qsat
 !
@@ -44,7 +44,7 @@
 !
       integer :: n , i
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( t(n,i).le.tzero ) then
             a(n,i) = c3ies

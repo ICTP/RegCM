@@ -55,9 +55,9 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(ixm1,kx) :: fice , pmid , rei , rel , t
-      integer , dimension(ixm1) :: ioro
-      real(8) , dimension(ixm1) :: ps
+      real(8) , dimension(iym1,kz) :: fice , pmid , rei , rel , t
+      integer , dimension(iym1) :: ioro
+      real(8) , dimension(iym1) :: ps
       intent (in) ioro , pmid , ps , t
       intent (out) fice , rei , rel
 !
@@ -74,8 +74,8 @@
       real(8) :: picemn , pirnge , pnrml , reimax , rirnge , rliq ,     &
                & weight
 !
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
 !
 !         Define liquid drop size
 !

@@ -17,15 +17,15 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine normer(xlon,xlat,xmap,coriol,ix,jx,clon,clat,delx,idot)
+      subroutine normer(xlon,xlat,xmap,coriol,iy,jx,clon,clat,delx,idot)
       implicit none
 !
 ! Dummy arguments
 !
       real(4) :: clat , clon , delx
-      integer :: idot , ix , jx
-      real(4) , dimension(ix,jx) :: coriol , xlat , xlon , xmap
-      intent (in) clat , clon , delx , idot , ix , jx
+      integer :: idot , iy , jx
+      real(4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+      intent (in) clat , clon , delx , idot , iy , jx
       intent (out) coriol , xlon , xmap
       intent (inout) xlat
 !
@@ -49,7 +49,7 @@
       d2r = atan(1.)/45.                     ! CONVERT DEGREES TO RADIANS
       pole = 90.
       cntrj = (jx+idot)/2.
-      cntri = (ix+idot)/2.
+      cntri = (iy+idot)/2.
       if ( clat<0.0 ) pole = -90.0
 !
 !     FOR MERCATOR PROJECTION TRUE AT PHI1
@@ -62,7 +62,7 @@
       cell = cos(phictr)/(1.+sin(phictr))
       ycntr = -c2*log(cell)
 !
-      ii1 = ix
+      ii1 = iy
       jj1 = jx
       do i = 1 , ii1
         y = ycntr + (i-cntri)*delx
@@ -81,7 +81,7 @@
  
       if ( idot==1 ) then
         xomega2 = 2.*xomega
-        do i = 1 , ix
+        do i = 1 , iy
           do j = 1 , jx
             coriol(i,j) = xomega2*sin(xlat(i,j)*d2r)
           end do

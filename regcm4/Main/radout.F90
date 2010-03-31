@@ -72,12 +72,12 @@
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(ixm1) :: alb , albc , clrls , clrlt , clrss , &
+      real(8) , dimension(iym1) :: alb , albc , clrls , clrlt , clrss , &
                                   & clrst , firtp , frla , frsa , fsds ,&
                                   & fsnirt , fsnirtsq , fsnrtc , sabtp ,&
                                   & slwd , solin , soll , solld , sols ,&
                                   & solsd , srfrad
-      real(8) , dimension(ixm1,kx) :: cld , clwp , h2ommr , qrl , qrs
+      real(8) , dimension(iym1,kz) :: cld , clwp , h2ommr , qrl , qrs
       intent (in) alb , albc , cld , clrls , clrlt , clrss , clrst ,    &
                 & clwp , firtp , frla , frsa , fsds , fsnirt ,          &
                 & fsnirtsq , fsnrtc , h2ommr , jslc , qrl , qrs ,       &
@@ -91,14 +91,14 @@
 !     compute total radiative heating flux for the surface,
 !     converting units from cgs to mks:
 !
-      do i = 1 , ixm1    ! level index
+      do i = 1 , iym1    ! level index
 !KN     srfrad(i) = (frsa(i) + slwd(i)) * cgsmks
         srfrad(i) = frsa(i) + slwd(i)
       end do
 !
 !     convert units from cgs to mks in solar fluxes:
 !
-!KN   do 20 i=1,ixm1
+!KN   do 20 i=1,iym1
 !KN   solin(i) = solin(i) * cgsmks
 !KN   sabtp(i) = sabtp(i) * cgsmks
 !KN   frsa(i)  = frsa(i)  * cgsmks
@@ -108,7 +108,7 @@
 !
 !     convert units from cgs to mks in longwave fluxes:
 !
-!KN   do 30 i=1,ixm1
+!KN   do 30 i=1,iym1
 !KN   firtp(i) = firtp(i) * cgsmks
 !KN   frla(i)  = frla(i)  * cgsmks
 !KN   clrlt(i) = clrlt(i) * cgsmks
@@ -117,21 +117,21 @@
 !------
 !------total heating rate in deg/s
 !------
-      do nll = 1 , kx
-        do n = 1 , ixm1
+      do nll = 1 , kz
+        do n = 1 , iym1
           heatrt(n,nll,jslc) = qrs(n,nll) + qrl(n,nll)
         end do
       end do
 !------
 !------surface absorbed solar flux in watts/m2
 !------
-      do n = 1 , ixm1
+      do n = 1 , iym1
         fsw2d(n,jslc) = frsa(n)
       end do
 !------
 !------net up longwave flux at the surface
 !------
-      do n = 1 , ixm1
+      do n = 1 , iym1
         flw2d(n,jslc) = frla(n)
         flwd2d(n,jslc) = slwd(n)                        ! BATS Output
       end do
@@ -142,7 +142,7 @@
 !     to frsa (solar absorbed by surface). possible problems are
 !     over sparsely vegetated areas in which vegetation and ground
 !     albedo are significantly different
-      do n = 1 , ixm1
+      do n = 1 , iym1
         sabv2d(n,jslc) = sabveg(n)
         sol2d(n,jslc) = solis(n)
         sinc2d(n,jslc) = soll(n) + sols(n) + solsd(n) + solld(n)
@@ -160,8 +160,8 @@
       if ( ifrad ) then
         if ( mod(ntime+nint(dtmin*60.),nradisp).eq.0 .or.               &
            & (jyear.eq.jyearr .and. ktau.eq.ktaur) ) then
-          do k = 1 , kx
-            do i = 2 , ixm1
+          do k = 1 , kz
+            do i = 2 , iym1
 #ifdef MPP1
               frad3d(jslc,i-1,k,1) = h2ommr(i,k)
               frad3d(jslc,i-1,k,2) = cld(i,k)
@@ -178,7 +178,7 @@
             end do
           end do
  
-          do i = 2 , ixm1
+          do i = 2 , iym1
 #ifdef MPP1
             frad2d(jslc,i-1,1) = frsa(i)      ! write
             frad2d(jslc,i-1,2) = frla(i)      ! write

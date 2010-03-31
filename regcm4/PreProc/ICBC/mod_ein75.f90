@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_ein75
-      use mod_regcm_param , only : ix , jx , kx , ibyte , dattyp
+      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp
       use mod_preproc_param
 
       implicit none
@@ -29,8 +29,8 @@
 
       real , target , dimension(ilon,jlat,klev*3) :: b2
       real , target , dimension(ilon,jlat,klev*2) :: d2
-      real , target , dimension(jx,ix,klev*3) :: b3
-      real , target , dimension(jx,ix,klev*2) :: d3
+      real , target , dimension(jx,iy,klev*3) :: b3
+      real , target , dimension(jx,iy,klev*2) :: d3
 
       real , pointer :: u3(:,:,:) , v3(:,:,:)
       real , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -66,12 +66,12 @@
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-      call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,ix,klev*3)
-      call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,ix,klev*2)
+      call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,ix,klev,plon,plat,&
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,&
                 & iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
@@ -81,24 +81,24 @@
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
 !HH:  CHANGE THE VERTICAL ORDER.
-      call top2btm(t3,jx,ix,klev)
-      call top2btm(q3,jx,ix,klev)
-      call top2btm(h3,jx,ix,klev)
-      call top2btm(u3,jx,ix,klev)
-      call top2btm(v3,jx,ix,klev)
+      call top2btm(t3,jx,iy,klev)
+      call top2btm(q3,jx,iy,klev)
+      call top2btm(h3,jx,iy,klev)
+      call top2btm(u3,jx,iy,klev)
+      call top2btm(v3,jx,iy,klev)
 !HH:OVER
 !
 !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
-      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,ix,klev)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
  
-      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,ix)
-      call p1p2(b3pd,ps4,jx,ix)
+      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+      call p1p2(b3pd,ps4,jx,iy)
  
-!     CALL HUMID1(T3,Q3,100.,0.0,SIGMA1,JX,IX,klev)
+!     CALL HUMID1(T3,Q3,100.,0.0,SIGMA1,JX,IY,klev)
 !
 !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
-      call intv3(ts4,t3,ps4,sigmar,ptop,jx,ix,klev)
+      call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
  
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !       F1  CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
@@ -106,33 +106,33 @@
         call julian(idate,nyrp,nmop,wt)
 !
         if ( ssttyp=='OI2ST' ) then
-          call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,ix,nyrp, &
+          call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &
                  &    nmop,wt)
         else
-          call mksst(ts4,ice1,ice2,topogm,xlandu,jx,ix,nyrp,nmop,wt)
+          call mksst(ts4,ice1,ice2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
         end if
       else
         if ( ssttyp=='OI2WK' ) then
-          call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,ix,     &
+          call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,     &
                  &     idate/100)
         else
-          call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,ix,idate/100)
+          call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
         end if
       end if
  
 !     F2  DETERMINE P* AND HEIGHT.
 !
 !     F3  INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
 !
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,ix,kx,klev)
-      call humid2(t4,q4,ps4,ptop,sigma2,jx,ix,kx)
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
 !     F4  DETERMINE H
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,ix,kx)
+      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
       call writef(ptop,idate)

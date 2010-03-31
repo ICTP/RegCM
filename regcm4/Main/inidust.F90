@@ -49,7 +49,7 @@
       real(8) :: deldp , eps , rhop , stotal , xk , xl , xm , xn
       integer :: i , itex , j , n , nm , ns , nt , t
       real(8) , dimension(3,12) :: mmd , pcent , sigma
-      real(8) , dimension(ix,nsoil,nats) :: srel
+      real(8) , dimension(iy,nsoil,nats) :: srel
       real(8) , dimension(nsoil) :: ss
 !
       data bcly/0.00 , 0.10 , 0.10 , 0.15 , 0.15 , 0.15 , 0.20 , 0.20 , &
@@ -85,7 +85,7 @@
 
 #ifdef MPP1
       do j = jbegin , jendm
-        do i = 2 , ixm2
+        do i = 2 , iym2
           itex = nint(dustsotex(i,j))
           if ( itex.ge.1 .and. itex.le.nats ) then
 !           remember for the moment one texture type per grid cell !
@@ -101,7 +101,7 @@
       end do
 #else
       do j = 2 , jxm2
-        do i = 2 , ixm2
+        do i = 2 , iym2
           itex = nint(dustsotex(i,j))
           if ( itex.ge.1 .and. itex.le.nats ) then
 !           remember for the moment one texture type per grid cell !
@@ -127,12 +127,12 @@
       do j = jbegin , jendm
         do n = 1 , nats
           do ns = 1 , nsoil
-            do i = 1 , ix
+            do i = 1 , iy
               srel(i,ns,n) = 0.
             end do
           end do
         end do
-        do i = 2 , ixm2
+        do i = 2 , iym2
           if ( sandrow2(i,j).gt.0.0 .or. clayrow2(i,j).gt.0.0 ) then
             do nt = 1 , nats                  !soil types
               do ns = 1 , nsoil
@@ -160,13 +160,13 @@
                 end do
                 do ns = 1 , nsoil
                   if ( stotal.gt.0.0 ) srel(i,ns,nt) = ss(ns)/stotal
-                                                !srel(ix,nsoil,nats)
+                                                !srel(iy,nsoil,nats)
                 end do
               end if
             end do                    ! soil types
           end if
         end do
-        do i = 2 , ixm2
+        do i = 2 , iym2
           itex = nint(dustsotex(i,j))
           if ( itex.ge.1 .and. itex.le.nats ) then
             do ns = 1 , nsoil
@@ -179,12 +179,12 @@
       do j = 2 , jxm2
         do n = 1 , nats
           do ns = 1 , nsoil
-            do i = 1 , ix
+            do i = 1 , iy
               srel(i,ns,n) = 0.
             end do
           end do
         end do
-        do i = 2 , ixm2
+        do i = 2 , iym2
           if ( sandrow2(i,j).gt.0.0 .or. clayrow2(i,j).gt.0.0 ) then
             do nt = 1 , nats                  !soil types
               do ns = 1 , nsoil
@@ -212,13 +212,13 @@
                 end do
                 do ns = 1 , nsoil
                   if ( stotal.gt.0.0 ) srel(i,ns,nt) = ss(ns)/stotal
-                                                !srel(ix,nsoil,nats)
+                                                !srel(iy,nsoil,nats)
                 end do
               end if
             end do                    ! soil types
           end if
         end do
-        do i = 2 , ixm2
+        do i = 2 , iym2
           itex = nint(dustsotex(i,j))
           if ( itex.ge.1 .and. itex.le.nats ) then
             do ns = 1 , nsoil

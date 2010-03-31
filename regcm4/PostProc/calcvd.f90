@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine calcvd(fld3d,nx,ny,kx,nfld3d,ds,dmap,xmap,nua,nva,nvor,&
+      subroutine calcvd(fld3d,nx,ny,kz,nfld3d,ds,dmap,xmap,nua,nva,nvor,&
                       & ndiv,nx1,ny1)
  
       implicit none
@@ -26,25 +26,25 @@
 !
       real(4) :: ds
       integer :: ndiv , nfld3d , nua , nva , nvor , nx , nx1 , ny ,     &
-               & ny1 , kx
+               & ny1 , kz
       real(4) , dimension(nx,ny) :: dmap , xmap
-      real(4) , dimension(nx,ny,kx,nfld3d) :: fld3d
+      real(4) , dimension(nx,ny,kz,nfld3d) :: fld3d
       intent (in) dmap , ds , ndiv , nfld3d , nua , nva , nvor , nx ,   &
-                & nx1 , ny , ny1 , kx , xmap
+                & nx1 , ny , ny1 , kz , xmap
       intent (inout) fld3d
 !
 ! Local variables
 !
       real(4) :: ds2r , u1 , u2 , u3 , u4 , v1 , v2 , v3 , v4
       integer :: i , j , k
-      real(4) , dimension(nx,ny,kx) :: u , v
+      real(4) , dimension(nx,ny,kz) :: u , v
 !
       ds2r = 1.0/(2.0*ds)
  
       u(:,:,:) = fld3d(:,:,:,nua)
       v(:,:,:) = fld3d(:,:,:,nva)
  
-      do k = 1 , kx
+      do k = 1 , kz
         do j = 1 , ny1
           do i = 1 , nx1
             u1 = u(i,j,k)/dmap(i,j)

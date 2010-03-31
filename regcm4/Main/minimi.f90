@@ -17,16 +17,16 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine minimi(array,ix,kx,ks,kend,kt,istart,iend)
+      subroutine minimi(array,iy,kz,ks,kend,kt,istart,iend)
 !
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: iend , istart , ix , kend , kx
-      real(8) , dimension(ix,kx) :: array
-      integer , dimension(ix) :: ks , kt
-      intent (in) array , iend , istart , ix , kend , ks , kx
+      integer :: iend , istart , iy , kend , kz
+      real(8) , dimension(iy,kz) :: array
+      integer , dimension(iy) :: ks , kt
+      intent (in) array , iend , istart , iy , kend , ks , kz
       intent (out) kt
 !
 ! Local variables

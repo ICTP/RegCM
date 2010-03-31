@@ -49,8 +49,8 @@
 !     3 d fields
  
       do itr = 1 , ntr
-        do k = kx , 1 , -1
-          do i = 1 , ixm2
+        do k = kz , 1 , -1
+          do i = 1 , iym2
             do j = 1 , jxm2
 #ifdef MPP1
               fchem(j,i) = chia_io(i+1,k,j+1,itr)/psa_io(i+1,j+1)
@@ -71,8 +71,8 @@
  
 !     optical properties of the tracer mixing (independant of ntr)
  
-      do k = kx , 1 , -1
-        do i = 1 , ixm2
+      do k = kz , 1 , -1
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = aerext_io(i+1,k,j+1)
@@ -90,8 +90,8 @@
         end if
       end do
  
-      do k = kx , 1 , -1
-        do i = 1 , ixm2
+      do k = kz , 1 , -1
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = aerssa_io(i+1,k,j+1)
@@ -109,8 +109,8 @@
         end if
       end do
  
-      do k = kx , 1 , -1
-        do i = 1 , ixm2
+      do k = kz , 1 , -1
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = aerasp_io(i+1,k,j+1)
@@ -132,7 +132,7 @@
 !     instantaneous colum burden
       do itr = 1 , ntr
 !       -------
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = dtrace_io(i+1,j+1,itr)
@@ -160,7 +160,7 @@
 !       CARE here CUMUL
 !       mpd = 1.
  
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = wdlsc_io(i+1,j+1,itr)*mpd
@@ -177,7 +177,7 @@
         else
         end if
 !       --------
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = wdcvc_io(i+1,j+1,itr)*mpd
@@ -194,7 +194,7 @@
         else
         end if
 !       -------------
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = ddsfc_io(i+1,j+1,itr)*mpd
@@ -211,7 +211,7 @@
         else
         end if
 !----------------------
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = wxsg_io(i+1,j+1,itr)*mpd
@@ -228,7 +228,7 @@
         else
         end if
 !----------------------
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = wxaq_io(i+1,j+1,itr)*mpd
@@ -245,7 +245,7 @@
         else
         end if
 !----------------------
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fchem(j,i) = cemtrac_io(i+1,j+1,itr)*mpd
@@ -264,7 +264,7 @@
  
 !       IF YOU WANT THE INSTANTANEOUS EMISSION IN THE SOURCE
  
-!       do i=1,ixm2
+!       do i=1,iym2
 !       do j=1,jxm2
 !       fchem(j,i) = chemsrc(i+1,j+1,lmonth,itr) * 1.e9
 !       unit = microg/m2.s
@@ -311,7 +311,7 @@
  
 !----total aerosol TOA radiative forcing ( independant of the number of tracer)
  
-      do i = 1 , ixm2
+      do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
           fchem(j,i) = aertarf_io(i+1,j+1)
@@ -329,7 +329,7 @@
       end if
  
  
-      do i = 1 , ixm2
+      do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
           fchem(j,i) = aersrrf_io(i+1,j+1)

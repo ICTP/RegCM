@@ -44,15 +44,15 @@
           nrcbat = nrcbat + 1
 #ifdef MPP1
           write (iutbat,rec=nrcbat)                                     &
-                & ((fbat_io(j,i,n),j=1,jxm2),i=1,ixm2)
+                & ((fbat_io(j,i,n),j=1,jxm2),i=1,iym2)
 #else
-          write (iutbat,rec=nrcbat) ((fbat(j,i,n),j=1,jxm2),i=1,ixm2)
+          write (iutbat,rec=nrcbat) ((fbat(j,i,n),j=1,jxm2),i=1,iym2)
 #endif
         else if ( iotyp.eq.2 ) then
 #ifdef MPP1
-          write (iutbat) ((fbat_io(j,i,n),j=1,jxm2),i=1,ixm2)
+          write (iutbat) ((fbat_io(j,i,n),j=1,jxm2),i=1,iym2)
 #else
-          write (iutbat) ((fbat(j,i,n),j=1,jxm2),i=1,ixm2)
+          write (iutbat) ((fbat(j,i,n),j=1,jxm2),i=1,iym2)
 #endif
         else
         end if

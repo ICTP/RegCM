@@ -18,14 +18,14 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_maps
-      use mod_regcm_param , only : ix , jx , nveg
+      use mod_regcm_param , only : iy , jx , nveg
       use mod_preproc_param , only : ntex
       implicit none
-      real(4) , dimension(ix,jx) :: claya , clayb , coriol , dlat ,     &
+      real(4) , dimension(iy,jx) :: claya , clayb , coriol , dlat ,     &
                                   & dlon , dmap , htgrid , htsdgrid ,   &
                                   & lndout , mask , sanda , sandb ,     &
                                   & snowam , texout , xlat , xlon , xmap
-      real(4) , dimension(ix,jx,nveg) :: frac_lnd
-      real(4) , dimension(ix,jx,ntex) :: frac_tex
-      integer , dimension(ix,jx) :: intext , lnduse
+      real(4) , dimension(iy,jx,nveg) :: frac_lnd
+      real(4) , dimension(iy,jx,ntex) :: frac_tex
+      integer , dimension(iy,jx) :: intext , lnduse
       end module mod_maps

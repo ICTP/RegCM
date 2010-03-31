@@ -64,7 +64,7 @@
 !
 !     parameters :
 !
-!     ix, jx, kx : dimensions of arrays in y, x, z directions
+!     iy, jx, kz : dimensions of arrays in y, x, z directions
 !     for large domain.
 !
 !     nx (=7) : seven "j" (north-south) slices are needed for
@@ -243,7 +243,7 @@
  
       call bdyin
 !
-      call spinit(ptop,sigma,kxp1)
+      call spinit(ptop,sigma,kzp1)
 !
 !chem2
       if ( ichem.eq.1 ) call chsrfem

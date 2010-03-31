@@ -73,7 +73,7 @@
 #else
         do j = 1 , jxm1
 #endif
-          do i = 1 , ixm1
+          do i = 1 , iym1
             dtrace(i,j,itr) = 0.0
             wdlsc(i,j,itr) = 0.0
             wdcvc(i,j,itr) = 0.0
@@ -92,8 +92,8 @@
 #else
         do j = 1 , jxm1
 #endif
-          do i = 1 , ixm1
-            do k = 1 , kx
+          do i = 1 , iym1
+            do k = 1 , kz
               dtrace(i,j,itr) = dtrace(i,j,itr) + chia(i,k,j,itr)       &
                               & *dsigma(k)
               wdlsc(i,j,itr) = wdlsc(i,j,itr) + remlsc(i,k,j,itr)       &
@@ -106,7 +106,7 @@
                             & + (rxsaq1(i,k,j,itr)+rxsaq2(i,k,j,itr))   &
                             & *dsigma(k)
             end do
-            ddsfc(i,j,itr) = ddsfc(i,j,itr) + remdrd(i,j,itr)*dsigma(kx)
+            ddsfc(i,j,itr) = ddsfc(i,j,itr) + remdrd(i,j,itr)*dsigma(kz)
 !           Source cumulated diag(care the unit are alredy .m-2)
             cemtrac(i,j,itr) = cemtr(i,j,itr)
           end do
@@ -116,74 +116,74 @@
 #ifdef DIAG
 #ifdef MPP1
       do itr = 1 , ntr
-        call mpi_gather(chia(1,1,1,itr),   ix*kx*jxp,mpi_real8,         &
-                      & chia_io(1,1,1,itr),ix*kx*jxp,mpi_real8,         &
+        call mpi_gather(chia(1,1,1,itr),   iy*kz*jxp,mpi_real8,         &
+                      & chia_io(1,1,1,itr),iy*kz*jxp,mpi_real8,         &
                       & 0,mpi_comm_world,ierr)
-        call mpi_gather(remlsc(1,1,1,itr),   ix*kx*jxp,mpi_real8,       &
-                      & remlsc_io(1,1,1,itr),ix*kx*jxp,mpi_real8,       &
+        call mpi_gather(remlsc(1,1,1,itr),   iy*kz*jxp,mpi_real8,       &
+                      & remlsc_io(1,1,1,itr),iy*kz*jxp,mpi_real8,       &
                       & 0,mpi_comm_world,ierr)
-        call mpi_gather(remcvc(1,1,1,itr),   ix*kx*jxp,mpi_real8,       &
-                      & remcvc_io(1,1,1,itr),ix*kx*jxp,mpi_real8,       &
+        call mpi_gather(remcvc(1,1,1,itr),   iy*kz*jxp,mpi_real8,       &
+                      & remcvc_io(1,1,1,itr),iy*kz*jxp,mpi_real8,       &
                       & 0,mpi_comm_world,ierr)
-        call mpi_gather(rxsg(1,1,1,itr),   ix*kx*jxp,mpi_real8,         &
-                      & rxsg_io(1,1,1,itr),ix*kx*jxp,mpi_real8,         &
+        call mpi_gather(rxsg(1,1,1,itr),   iy*kz*jxp,mpi_real8,         &
+                      & rxsg_io(1,1,1,itr),iy*kz*jxp,mpi_real8,         &
                       & 0,mpi_comm_world,ierr)
-        call mpi_gather(rxsaq1(1,1,1,itr),   ix*kx*jxp,mpi_real8,       &
-                      & rxsaq1_io(1,1,1,itr),ix*kx*jxp,mpi_real8,       &
+        call mpi_gather(rxsaq1(1,1,1,itr),   iy*kz*jxp,mpi_real8,       &
+                      & rxsaq1_io(1,1,1,itr),iy*kz*jxp,mpi_real8,       &
                       & 0,mpi_comm_world,ierr)
-        call mpi_gather(rxsaq2(1,1,1,itr),   ix*kx*jxp,mpi_real8,       &
-                      & rxsaq2_io(1,1,1,itr),ix*kx*jxp,mpi_real8,       &
+        call mpi_gather(rxsaq2(1,1,1,itr),   iy*kz*jxp,mpi_real8,       &
+                      & rxsaq2_io(1,1,1,itr),iy*kz*jxp,mpi_real8,       &
                       & 0,mpi_comm_world,ierr)
-        call mpi_gather(remdrd(1,1,itr),   ix*jxp,mpi_real8,            &
-                      & remdrd_io(1,1,itr),ix*jxp,mpi_real8,            &
+        call mpi_gather(remdrd(1,1,itr),   iy*jxp,mpi_real8,            &
+                      & remdrd_io(1,1,itr),iy*jxp,mpi_real8,            &
                       & 0,mpi_comm_world,ierr)
         do l = 1 , 12
-          call mpi_gather(chemsrc(1,1,l,itr),   ix*jxp,mpi_real8,       &
-                        & chemsrc_io(1,1,l,itr),ix*jxp,mpi_real8,       &
+          call mpi_gather(chemsrc(1,1,l,itr),   iy*jxp,mpi_real8,       &
+                        & chemsrc_io(1,1,l,itr),iy*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
         end do
       end do
       if ( myid.eq.0 ) then
         do itr = 1 , ntr
-          do k = 1 , kx
+          do k = 1 , kz
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ixm2
+              do i = 2 , iym2
                 tttmp = tttmp + chia_io(i,k,j,itr)
               end do
             end do
             ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ixm2
+              do i = 2 , iym2
                 tttmp = tttmp + remlsc_io(i,k,j,itr)
               end do
             end do
             tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ixm2
+              do i = 2 , iym2
                 tttmp = tttmp + remcvc_io(i,k,j,itr)
               end do
             end do
             tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ixm2
+              do i = 2 , iym2
                 tttmp = tttmp + rxsg_io(i,k,j,itr)
               end do
             end do
             trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ixm2
+              do i = 2 , iym2
                 tttmp = tttmp + rxsaq1_io(i,k,j,itr)
               end do
             end do
             trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
             tttmp = 0.
             do j = 2 , jxm2
-              do i = 2 , ixm2
+              do i = 2 , iym2
                 tttmp = tttmp + rxsaq2_io(i,k,j,itr)
               end do
             end do
@@ -203,16 +203,16 @@
         do itr = 1 , ntr
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               tttmp = tttmp + remdrd_io(i,j,itr)
             end do
           end do
-          tremdrd(itr,1) = tremdrd(itr,1) + tttmp*dx*dx*dsigma(kx)
+          tremdrd(itr,1) = tremdrd(itr,1) + tttmp*dx*dx*dsigma(kz)
  
 !         emissions
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               tttmp = tttmp + chemsrc_io(i,j,lmonth,itr)*dtmin*60.*dx*dx
             end do
           end do
@@ -229,45 +229,45 @@
       call mpi_bcast(tchie(1),ntr,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do itr = 1 , ntr
-        do k = 1 , kx
+        do k = 1 , kz
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               tttmp = tttmp + chia(i,k,j,itr)
             end do
           end do
           ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               tttmp = tttmp + remlsc(i,k,j,itr)
             end do
           end do
           tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               tttmp = tttmp + remcvc(i,k,j,itr)
             end do
           end do
           tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               tttmp = tttmp + rxsg(i,k,j,itr)
             end do
           end do
           trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               tttmp = tttmp + rxsaq1(i,k,j,itr)
             end do
           end do
           trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
           tttmp = 0.
           do j = 2 , jxm2
-            do i = 2 , ixm2
+            do i = 2 , iym2
               tttmp = tttmp + rxsaq2(i,k,j,itr)
             end do
           end do
@@ -287,16 +287,16 @@
       do itr = 1 , ntr
         tttmp = 0.
         do j = 2 , jxm2
-          do i = 2 , ixm2
+          do i = 2 , iym2
             tttmp = tttmp + remdrd(i,j,itr)
           end do
         end do
-        tremdrd(itr,1) = tremdrd(itr,1) + tttmp*dx*dx*dsigma(kx)
+        tremdrd(itr,1) = tremdrd(itr,1) + tttmp*dx*dx*dsigma(kz)
 
 !       emissions
         tttmp = 0.
         do j = 2 , jxm2
-          do i = 2 , ixm2
+          do i = 2 , iym2
             tttmp = tttmp + chemsrc(i,j,lmonth,itr)*dtmin*60.*dx*dx
           end do
         end do
@@ -321,7 +321,7 @@
 #else
         do j = 1 , jxm1
 #endif
-          do i = 1 , ixm1
+          do i = 1 , iym1
             dtrace(i,j,itr) = 1.E6*dtrace(i,j,itr)*1000.*rgti
                                                         ! unit: mg/m2
             wdlsc(i,j,itr) = 1.E6*wdlsc(i,j,itr)*1000.*rgti

@@ -19,11 +19,11 @@
 
       module mod_ingrid
 
-      use mod_regcm_param , only : ix , jx , kx , ibyte , dattyp
+      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp
 
       implicit none
 
-      integer :: jx_in , ix_in , kx_in
+      integer :: jx_in , iy_in , kz_in
       real :: ptop_in
       real :: clat_in , clon_in , plat_in , plon_in
       real :: truelath_in , truelatl_in
@@ -49,28 +49,28 @@
 !     READ APPROPRIATE FILE OF TERRAIN AND LANDUSE FOR THIS GRID
 !
       open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=jx*ix*ibyte,access='direct')
+          & recl=jx*iy*ibyte,access='direct')
       if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.                    &
          & dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
-        read (10,rec=1,iostat=ierr) ix_in , jx_in , kx_in , delx ,      &
+        read (10,rec=1,iostat=ierr) iy_in , jx_in , kz_in , delx ,      &
                                   & clat_in , clon_in , plat_in ,       &
                                   & plon_in , grdfac , cgtype_in ,      &
-                                  & (sigmaf(k),k=1,kx+1) , ptop_in ,    &
+                                  & (sigmaf(k),k=1,kz+1) , ptop_in ,    &
                                   & igrads_in , ibigend_in ,            &
                                   & truelatl_in , truelath_in ,         &
                                   & lon0 , lon1 , lat0 , lat1
       else
-        read (10,rec=1,iostat=ierr) ix_in , jx_in , kx_in , delx ,      &
+        read (10,rec=1,iostat=ierr) iy_in , jx_in , kz_in , delx ,      &
                                   & clat_in , clon_in , plat_in ,       &
                                   & plon_in , grdfac , cgtype_in ,      &
-                                  & (sigmaf(k),k=1,kx+1) , ptop_in ,    &
+                                  & (sigmaf(k),k=1,kz+1) , ptop_in ,    &
                                   & igrads_in , ibigend_in ,            &
                                   & truelatl_in , truelath_in
       end if
-      if ( ix_in/=ix .or. jx_in/=jx .or. kx_in/=kx ) then
+      if ( iy_in/=iy .or. jx_in/=jx .or. kz_in/=kz ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (ICBC.f)'
-        print * , '  icbc.param: ' , ix , jx , kx
-        print * , '  DOMAIN.INFO: ' , ix_in , jx_in , kx_in
+        print * , '  icbc.param: ' , iy , jx , kz
+        print * , '  DOMAIN.INFO: ' , iy_in , jx_in , kz_in
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
       end if
@@ -101,7 +101,7 @@
 !
       call gridml
 !
-      do k = 1 , kx
+      do k = 1 , kz
         sigma2(k) = 0.5*(sigmaf(k+1)+sigmaf(k))
         dsigma(k) = sigmaf(k+1) - sigmaf(k)
       end do

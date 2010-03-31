@@ -20,7 +20,7 @@
       program clmproc
  
       use netcdf
-      use mod_regcm_param , only : ix , jx , kx , ibyte
+      use mod_regcm_param , only : iy , jx , kz , ibyte
       use mod_preproc_param
       use mod_param_clm
 
@@ -37,7 +37,7 @@
            & xlatmin , xlonmax , xlonmin
       integer :: i , ibigendx , idatex , idin , idout , idy , ierr ,    &
                & ifield , ifld , igradsx , ihr , imap , imo , iotyp ,   &
-               & irec , iyr , ixx , j , julnc , jxx , kmax , kxx , l
+               & irec , iyr , iyy , j , julnc , jxx , kmax , kzz , l
       integer :: k
       integer :: iunout , iunctl
       integer , dimension(4) :: icount , istart
@@ -45,13 +45,13 @@
       character(6) :: iprojx
       character(64) , dimension(nfld) :: lnam
       character(256) :: outfil_ctl , outfil_gr , outfil_nc
-      real(4) , dimension(kx+1) :: sigx
+      real(4) , dimension(kz+1) :: sigx
       logical :: there
       character(64) , dimension(nfld) :: units
       real(4) , dimension(3) :: varmax , varmin
       character(64) , dimension(nfld) :: vnam_o
-      real(4) , dimension(ix,jx) :: xlat , xlon
-      real(4) , dimension(ix) :: xlat1d
+      real(4) , dimension(iy,jx) :: xlat , xlon
+      real(4) , dimension(iy) :: xlat1d
       real(4) , dimension(jx) :: xlon1d
       real(8) :: xhr
       real(4) , allocatable , dimension(:) :: glat , glon , zlat ,      &
@@ -67,14 +67,14 @@
 !
 !     ** Get latitudes and longitudes from DOMAIN.INFO
       open (unit=10,file=filout,status='old',form='unformatted',     &
-          & recl=ix*jx*ibyte,access='direct')
-      read (10,rec=1) ixx , jxx , kxx , dsx , clatx , clonx , platx ,   &
+          & recl=iy*jx*ibyte,access='direct')
+      read (10,rec=1) iyy , jxx , kzz , dsx , clatx , clonx , platx ,   &
                     & plonx , grdfacx , iprojx , sigx , ptopx ,         &
                     & igradsx , ibigendx
-      if ( ixx/=ix .or. jxx/=jx ) then
+      if ( iyy/=iy .or. jxx/=jx ) then
         print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  domain.param:    ix=' , ix , '   jx=' , jx
-        print * , '  DOMAIN.INFO:     ix=' , ixx , '   jx=' , jxx
+        print * , '  domain.param:    iy=' , iy , '   jx=' , jx
+        print * , '  DOMAIN.INFO:     iy=' , iyy , '   jx=' , jxx
         stop 780
       end if
       if ( abs(ds*1000.-dsx)>0.01 ) then
@@ -98,8 +98,8 @@
         print * , '  DOMAIN.INFO:  iproj=' , iprojx
         stop 783
       end if
-      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,ix)
-      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,ix)
+      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
+      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
       close (10)
  
 !     ** Set output variables
@@ -114,9 +114,9 @@
       call fexist(outfil_gr)
       print *, 'Open ', trim(outfil_gr)
       open (iunout,file=outfil_gr,status='replace',                     &
-          & form='unformatted',recl=jx*ix*ibyte,access='direct')
+          & form='unformatted',recl=jx*iy*ibyte,access='direct')
       irec = 1
-      write (iunout,rec=irec) ixx , jxx , npft , nsoi , dsx , clatx ,   &
+      write (iunout,rec=irec) iyy , jxx , npft , nsoi , dsx , clatx ,   &
                             & clonx , platx , plonx , grdfacx , iprojx
 !abt  added below
 !     ** determine which files to create (emission factor map or not)
@@ -159,7 +159,7 @@
         end if
  
 !       ** Setup RegCM3 grid variables
-        call param(jx,ix,nlev(ifld),xlat,xlon,varmin,varmax,            &
+        call param(jx,iy,nlev(ifld),xlat,xlon,varmin,varmax,            &
                  & xlat1d,xlon1d,xlonmin,xlonmax,xlatmin,xlatmax,       &
                  & iadim,ndim)
  
@@ -253,12 +253,12 @@
                                     & icount(2),icount(3),icount(4))
  
 !       ** Interpolate data to RegCM3 grid
-        allocate(regyxzt(ix,jx,nlev(ifld),ntim(ifld)))
-        allocate(regxyz(jx,ix,nlev(ifld)))
-        allocate(regxy(jx,ix))
+        allocate(regyxzt(iy,jx,nlev(ifld),ntim(ifld)))
+        allocate(regxyz(jx,iy,nlev(ifld)))
+        allocate(regxy(jx,iy))
 
         call bilinx4d(zoom,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
-                    & xlat,ix,jx,icount(3),icount(4),vmin(ifld),vmisdat)
+                    & xlat,iy,jx,icount(3),icount(4),vmin(ifld),vmisdat)
  
 !       ** Write the interpolated data to NetCDF and direct-access
 !       output
@@ -266,7 +266,7 @@
           idatex = 1900000000 + l*10000 + 1500
           call julian(idatex,julnc,iyr,imo,idy,ihr,xhr)
           if ( ifld==ipft ) then
-            do j = 1 , ix
+            do j = 1 , iy
               do i = 1 , jx
                 if ( regyxzt(j,i,1,l)>-99. ) then
                   do k = 1 , nlev(ifld)
@@ -289,7 +289,7 @@
             end do
           end if
           do k = 1 , nlev(ifld)
-            do j = 1 , ix
+            do j = 1 , iy
               do i = 1 , jx
                 if ( ifld==icol ) regyxzt(j,i,k,l)                      &
                    & = float(nint(regyxzt(j,i,k,l)))
@@ -306,7 +306,7 @@
             write (iunout,rec=irec) regxy
           end do
  
-          call writecdf(idout,vnam(ifld),regxyz,jx,ix,nlev(ifld),iadim, &
+          call writecdf(idout,vnam(ifld),regxyz,jx,iy,nlev(ifld),iadim, &
                       & xhr,lnam(ifld),units(ifld),xscale,offset,varmin,&
                       & varmax,xlat1d,xlon1d,zlev,0,vmisdat,iotyp)
         end do
@@ -333,7 +333,7 @@
       do ifld = 1 , ifield
         vnam_o(ifld) = vnam(ifld)
       end do
-      call makectl(iunctl,outfil,jx,ix,npft,ifield,dsx,clatx,clonx,     &
+      call makectl(iunctl,outfil,jx,iy,npft,ifield,dsx,clatx,clonx,     &
                  & platx,plonx,iprojx,ibigendx,truelatl,truelath,       &
                  & vmisdat,vnam_o,lnam,nlev,ntim,varmin,varmax)
 !     ** Close files

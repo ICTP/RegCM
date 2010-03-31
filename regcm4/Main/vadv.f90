@@ -51,14 +51,14 @@
 ! Dummy arguments
 !
       integer :: ind , j
-      real(8) , dimension(ix,kx) :: fa , ften
+      real(8) , dimension(iy,kz) :: fa , ften
       intent (in) fa , ind , j
       intent (inout) ften
 !
 ! Local variables
 !
       real(8) :: f1 , f2
-      real(8) , dimension(ix,kx) :: fg
+      real(8) , dimension(iy,kz) :: fg
       integer :: i , k
 !
 !----------------------------------------------------------------------
@@ -68,11 +68,11 @@
 !-----vertical advection terms for:
 !.....interpolate ta to full sigma levels:
 !
-        do i = 2 , ixm2
+        do i = 2 , iym2
           fg(i,1) = 0.
         end do
-        do k = 2 , kx
-          do i = 2 , ixm2
+        do k = 2 , kz
+          do i = 2 , iym2
             fg(i,k) = twt(k,1)*fa(i,k)                                  &
                     & *((psa(i,j)*sigma(k)+ptop)/(psa(i,j)*a(k)+ptop))  &
                     & **0.287 + twt(k,2)*fa(i,k-1)                      &
@@ -81,20 +81,20 @@
           end do
         end do
 !......k = 1
-        do i = 2 , ixm2
+        do i = 2 , iym2
           ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
         end do
-!......k = 2,kxm1
-        do k = 2 , kxm1
-          do i = 2 , ixm2
+!......k = 2,kzm1
+        do k = 2 , kzm1
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
           end do
         end do
-!,.....k = kx
-        do i = 2 , ixm2
-          ften(i,kx) = ften(i,kx) + qdot(i,kx,j)*fg(i,kx)/dsigma(kx)
+!,.....k = kz
+        do i = 2 , iym2
+          ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
 !
       else if ( ind.eq.2 ) then
@@ -102,11 +102,11 @@
 !-----vertical advection term for qv:
 !.....interpolate qv to full sigma levels:
 !
-        do i = 2 , ixm2
+        do i = 2 , iym2
           fg(i,1) = 0.
         end do
-        do k = 2 , kx
-          do i = 2 , ixm2
+        do k = 2 , kz
+          do i = 2 , iym2
 ! modif !!
             if ( fa(i,k).gt.1.E-15 .and. fa(i,k-1).gt.1.E-15 ) then
               fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
@@ -116,20 +116,20 @@
           end do
         end do
 !......k = 1
-        do i = 2 , ixm2
+        do i = 2 , iym2
           ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
         end do
-!......k = 2,kxm1
-        do k = 2 , kxm1
-          do i = 2 , ixm2
+!......k = 2,kzm1
+        do k = 2 , kzm1
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
           end do
         end do
-!,.....k = kx
-        do i = 2 , ixm2
-          ften(i,kx) = ften(i,kx) + qdot(i,kx,j)*fg(i,kx)/dsigma(kx)
+!,.....k = kz
+        do i = 2 , iym2
+          ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
 !
       else if ( ind.eq.3 ) then
@@ -137,7 +137,7 @@
 !-----vertical advection terms for qc and qr:
 !
 !......k = 1
-        do i = 2 , ixm2
+        do i = 2 , iym2
           if ( qdot(i,2,j).ge.0. ) then
             f2 = fa(i,1)
           else
@@ -145,9 +145,9 @@
           end if
           ften(i,1) = ften(i,1) - qdot(i,2,j)*f2/dsigma(1)
         end do
-!......k = 2,kxm1
-        do k = 2 , kxm1
-          do i = 2 , ixm2
+!......k = 2,kzm1
+        do k = 2 , kzm1
+          do i = 2 , iym2
             if ( qdot(i,k+1,j).ge.0. ) then
               f2 = fa(i,k)
             else
@@ -162,14 +162,14 @@
                       & /dsigma(k)
           end do
         end do
-!......k = kx
-        do i = 2 , ixm2
-          if ( qdot(i,kx,j).ge.0. ) then
-            f1 = fa(i,kxm1)
+!......k = kz
+        do i = 2 , iym2
+          if ( qdot(i,kz,j).ge.0. ) then
+            f1 = fa(i,kzm1)
           else
-            f1 = fa(i,kx)
+            f1 = fa(i,kz)
           end if
-          ften(i,kx) = ften(i,kx) + qdot(i,kx,j)*f1/dsigma(kx)
+          ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*f1/dsigma(kz)
         end do
 !
       else if ( ind.eq.4 ) then
@@ -177,23 +177,23 @@
 !-----vertical advection terms for u and v:
 !.....interpolate ua or va to full sigma levels:
 !
-        do i = 2 , ixm1
+        do i = 2 , iym1
           fg(i,1) = 0.
         end do
-        do k = 2 , kx
-          do i = 2 , ixm1
+        do k = 2 , kz
+          do i = 2 , iym1
             fg(i,k) = 0.5*(fa(i,k)+fa(i,k-1))/msfd(i,j)
           end do
         end do
 !......k = 1
-        do i = 2 , ixm1
+        do i = 2 , iym1
           ften(i,1) = ften(i,1)                                         &
                     & - (qdot(i-1,2,j-1)+qdot(i,2,j-1)+qdot(i,2,j)      &
                     & +qdot(i-1,2,j))*fg(i,2)/(4.*dsigma(1))
         end do
-!......k = 2,kxm1
-        do k = 2 , kxm1
-          do i = 2 , ixm1
+!......k = 2,kzm1
+        do k = 2 , kzm1
+          do i = 2 , iym1
             ften(i,k) = ften(i,k)                                       &
                       & - ((qdot(i,k+1,j-1)+qdot(i-1,k+1,j-1)+qdot(i,   &
                       & k+1,j)+qdot(i-1,k+1,j))*fg(i,k+1)               &
@@ -201,38 +201,38 @@
                       & +qdot(i-1,k,j))*fg(i,k))/(4.*dsigma(k))
           end do
         end do
-!......k = kx
-        do i = 2 , ixm1
-          ften(i,kx) = ften(i,kx)                                       &
-                     & + (qdot(i,kx,j-1)+qdot(i-1,kx,j-1)+qdot(i,kx,j)  &
-                     & +qdot(i-1,kx,j))*fg(i,kx)/(4.*dsigma(kx))
+!......k = kz
+        do i = 2 , iym1
+          ften(i,kz) = ften(i,kz)                                       &
+                     & + (qdot(i,kz,j-1)+qdot(i-1,kz,j-1)+qdot(i,kz,j)  &
+                     & +qdot(i-1,kz,j))*fg(i,kz)/(4.*dsigma(kz))
         end do
 !
  
  
       else if ( ind.eq.5 ) then
  
-        do k = 2 , kx
-          do i = 2 , ixm2
+        do k = 2 , kz
+          do i = 2 , iym2
             fg(i,k) = twt(k,1)*fa(i,k) + twt(k,2)*fa(i,k-1)
           end do
         end do
  
 !......k = 1
-        do i = 2 , ixm2
+        do i = 2 , iym2
           ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
         end do
-!......k = 2,kxm1
-        do k = 2 , kxm1
-          do i = 2 , ixm2
+!......k = 2,kzm1
+        do k = 2 , kzm1
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
           end do
         end do
-!,.....k = kx
-        do i = 2 , ixm2
-          ften(i,kx) = ften(i,kx) + qdot(i,kx,j)*fg(i,kx)/dsigma(kx)
+!,.....k = kz
+        do i = 2 , iym2
+          ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
  
       else

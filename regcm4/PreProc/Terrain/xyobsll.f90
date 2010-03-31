@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine xyobsll(ix,jx,iproj,clat,clon,plat,plon,truelath)
+      subroutine xyobsll(iy,jx,iproj,clat,clon,plat,plon,truelath)
       use mod_block
       use mod_const
       implicit none
@@ -26,8 +26,8 @@
 !
       real(4) :: clat , clon , plat , plon , truelath
       character(6) :: iproj
-      integer :: ix , jx
-      intent (in) clat , clon , iproj , ix , jx , truelath
+      integer :: iy , jx
+      intent (in) clat , clon , iproj , iy , jx , truelath
 !
 ! Local variables
 !
@@ -37,8 +37,8 @@
                & xrot , ycntr , ynr , yr
       integer :: ie , ii , ilen , im , je
 !
-      ilen = ix*jx + 2
-      ie = ix - 1
+      ilen = iy*jx + 2
+      ie = iy - 1
       je = jx - 1
       r2d = 57.29578
       c1 = 1.454441E-4

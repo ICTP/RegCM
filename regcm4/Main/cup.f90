@@ -35,17 +35,17 @@
 !
       real(8) :: dtime
       integer :: iend , istart , jslc
-      integer , dimension(ix) :: kdet
-      real(8) , dimension(ix,kx) :: outq , outtem , p , po , q , qo ,   &
+      integer , dimension(iy) :: kdet
+      real(8) , dimension(iy,kz) :: outq , outtem , p , po , q , qo ,   &
                                   & t , tn , vsp
-      real(8) , dimension(ix) :: pre , psur , qcrit , z1
+      real(8) , dimension(iy) :: pre , psur , qcrit , z1
       intent (in) dtime , jslc , kdet , p , po , psur , qcrit , t , tn ,&
                 & z1
       intent (inout) outq , outtem , pre , q , qo
 !
 ! Local variables
 !
-      real(8) , dimension(ix) :: aa0 , aa1 , bu , buo , edt , edto ,    &
+      real(8) , dimension(iy) :: aa0 , aa1 , bu , buo , edt , edto ,    &
                                & edtx , hcd , hcdo , hkb , hkbo , pwav ,&
                                & pwavo , pwev , pwevo , qcd , qcdo ,    &
                                & qck , qcko , qkb , qkbo , vshear ,     &
@@ -58,7 +58,7 @@
                & gammo0 , mbdt , outtes , pbcdif , qrch , qrcho ,       &
                & tcrit , tfinv , tvbar , tvbaro , xk
       real(8) , dimension(2) :: ae , be , ht
-      real(8) , dimension(ix,kx) :: dby , dbyo , dellah , dellaq ,      &
+      real(8) , dimension(iy,kz) :: dby , dbyo , dellah , dellaq ,      &
                                   & dellat , dkk , he , heo , hes ,     &
                                   & heso , pw , pwd , pwdo , pwo , qc , &
                                   & qco , qes , qeso , qrcd , qrcdo ,   &
@@ -66,7 +66,7 @@
                                   & xpwd , xq , xqc , xqes , xqrcd ,    &
                                   & xt , xtv , xz , z , zo
       integer :: i , iph , ipho , k , kbcono , kclth , kk , lpt
-      integer , dimension(ix) :: jmin , k22 , kb , kbcon , kds , ktop
+      integer , dimension(iy) :: jmin , k22 , kb , kbcon , kds , ktop
 !
       tcrit = 50.
  
@@ -85,7 +85,7 @@
 !
 !---  environmental conditions, first heights
 !
-      do k = 1 , kx
+      do k = 1 , kz
         do i = istart , iend
           dkk(i,k) = 1.
           iph = 1
@@ -104,7 +104,7 @@
           tvo(i,k) = tn(i,k) + .608*qo(i,k)*tn(i,k)
         end do
       end do
-      do i = 1 , ix
+      do i = 1 , iy
         hkb(i) = 0. ! EES
         qkb(i) = 0.
         hkbo(i) = 0.
@@ -147,7 +147,7 @@
         zo(i,1) = z1(i) - (dlog(po(i,1))-dlog(psur(i)))*287.*tvo(i,1)   &
                 & *rgti
       end do
-      do k = 2 , kx
+      do k = 2 , kz
         do i = istart , iend
           tvbar = .5*tv(i,k) + .5*tv(i,k-1)
           z(i,k) = z(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))             &
@@ -160,7 +160,7 @@
 !
 !---  moist static energy
 !
-      do k = 1 , kx
+      do k = 1 , kz
         do i = istart , iend
           cldlwc(i,k) = 0.
           cldfra(i,k) = 0.
@@ -185,14 +185,14 @@
           xt(i,k) = t(i,k)
           xq(i,k) = q(i,k)
           xhe(i,k) = he(i,k)
-          if ( k.ne.kx ) qrcd(i,k) = .5*(qes(i,k)+qes(i,k+1))
-          if ( k.ne.kx ) qrcdo(i,k) = .5*(qeso(i,k)+qeso(i,k+1))
+          if ( k.ne.kz ) qrcd(i,k) = .5*(qes(i,k)+qes(i,k+1))
+          if ( k.ne.kz ) qrcdo(i,k) = .5*(qeso(i,k)+qeso(i,k+1))
         end do
       end do
 !
 !------- determine level with highest moist static energy content.
 !
-      call maximi(he,ix,kx,1,kbmax2d(i,jslc),k22,istart,iend)
+      call maximi(he,iy,kz,1,kbmax2d(i,jslc),k22,istart,iend)
       do i = istart , iend
         if ( aa0(i).ge.0. ) then
           if ( k22(i).ge.kbmax2d(i,jslc) ) then
@@ -277,8 +277,8 @@
 !
 !---  downdraft originating level
 !
-      call minimi(he,ix,kx,kb,kx,jmin,istart,iend)
-      call maximi(vsp,ix,kx,1,kx,kds,istart,iend)
+      call minimi(he,iy,kz,kb,kz,jmin,istart,iend)
+      call maximi(vsp,iy,kz,1,kz,kds,istart,iend)
 !
 !**************************** static control
 !
@@ -291,14 +291,14 @@
             aa0(i) = -1.
             go to 300
           end if
-          if ( kds(i).ge.kx ) kds(i) = kx - 1
+          if ( kds(i).ge.kz ) kds(i) = kz - 1
           if ( kds(i).le.kbcon(i) ) kds(i) = kbcon(i)
-          dby(i,kx) = hkb(i) - hes(i,kx)
-          dbyo(i,kx) = hkbo(i) - heso(i,kx)
+          dby(i,kz) = hkb(i) - hes(i,kz)
+          dbyo(i,kz) = hkbo(i) - heso(i,kz)
         end if
  300    continue
       end do
-      do k = 1 , kx - 1
+      do k = 1 , kz - 1
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             dby(i,k) = hkb(i) - .5*(hes(i,k)+hes(i,k+1))
@@ -308,8 +308,8 @@
       end do
       do i = istart , iend
         if ( aa0(i).ne.-1. ) then
-          do k = 2 , kx - kbcon(i) - 1
-            kk = kx - k + 1
+          do k = 2 , kz - kbcon(i) - 1
+            kk = kz - k + 1
             if ( dby(i,kk).ge.0. ) then
               ktop(i) = kk + 1
               go to 320
@@ -318,7 +318,7 @@
           aa0(i) = -1.
           go to 400
  320      continue
-          if ( ktop(i).gt.kx ) ktop(i) = kx
+          if ( ktop(i).gt.kz ) ktop(i) = kz
           if ( p(i,kbcon(i))-p(i,ktop(i)).lt.mincld2d(i,jslc) ) aa0(i)  &
              & = -1.
         end if
@@ -328,7 +328,7 @@
  
 !------- moisture and cloud work functions
 !
-      do k = 2 , kx - 1
+      do k = 2 , kz - 1
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             if ( k.gt.kbcon(i) ) then
@@ -393,7 +393,7 @@
 !
 !---  determine downdraft strength in terms of windshear
 !
-      do kk = 1 , kx/2
+      do kk = 1 , kz/2
         do i = istart , iend
           if ( aa0(i).ne.-1. ) vshear(i) = vshear(i)                    &
              & + dabs((vsp(i,kk+1)-vsp(i,kk))/(z(i,kk+1)-z(i,kk)))
@@ -401,7 +401,7 @@
       end do
       do i = istart , iend
         if ( aa0(i).ne.-1. ) then
-          vshear(i) = 1.E3*vshear(i)/dble(kx/2)
+          vshear(i) = 1.E3*vshear(i)/dble(kz/2)
           edt(i) = 1. - (1.591-.639*vshear(i)+.0953*(vshear(i)**2)      &
                  & -.00496*(vshear(i)**3))
  
@@ -410,18 +410,18 @@
  
           edto(i) = edt(i)
           edtx(i) = edt(i)
-          qrcd(i,kx) = qes(i,kx)
+          qrcd(i,kz) = qes(i,kz)
           hcd(i) = .5*(he(i,jmin(i))+he(i,jmin(i)+1))
           qcd(i) = .5*(q(i,jmin(i))+q(i,jmin(i)+1))
-          qrcdo(i,kx) = qeso(i,kx)
-          hcdo(i) = heso(i,kx)
+          qrcdo(i,kz) = qeso(i,kz)
+          hcdo(i) = heso(i,kz)
           hcdo(i) = .5*(heo(i,jmin(i))+heo(i,jmin(i)+1))
           qcdo(i) = .5*(qo(i,jmin(i))+qo(i,jmin(i)+1))
           bu(i) = 0.
           buo(i) = 0.
         end if
       end do
-      do k = 1 , kx - 1
+      do k = 1 , kz - 1
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             if ( k.lt.jmin(i) ) then
@@ -489,7 +489,7 @@
         end if
       end do
 !
-      do k = 1 , kx - 1
+      do k = 1 , kz - 1
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             if ( k.ne.1 .and. k.lt.ktop(i) ) then
@@ -555,7 +555,7 @@
 !
 !---  environmental conditions, first heights
 !
-      do k = 1 , kx
+      do k = 1 , kz
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             iph = 1
@@ -569,7 +569,7 @@
         end do
       end do
 !     bug fix
-      do k = 1 , kx - 1
+      do k = 1 , kz - 1
         do i = istart , iend
           if ( aa0(i).ne.-1 ) xqrcd(i,k) = .5*(xqes(i,k)+xqes(i,k+1))
         end do
@@ -580,7 +580,7 @@
                                      & - (dlog(p(i,1))-dlog(psur(i)))   &
                                      & *287.*xtv(i,1)*rgti
       end do
-      do k = 2 , kx
+      do k = 2 , kz
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             tvbar = .5*xtv(i,k) + .5*xtv(i,k-1)
@@ -592,7 +592,7 @@
 !
 !---  moist static energy
 !
-      do k = 1 , kx
+      do k = 1 , kz
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             xhes(i,k) = gti*xz(i,k) + cpd*xt(i,k) + 2.5E06*xqes(i,k)
@@ -607,13 +607,13 @@
       do i = istart , iend
         if ( aa0(i).ne.-1. ) then
           xqck(i) = xqkb(i)
-          xdby(i,kx) = xhkb(i) - xhes(i,kx)
+          xdby(i,kz) = xhkb(i) - xhes(i,kz)
         end if
       end do
 !
 !------- moisture and cloud work functions
 !
-      do k = 1 , kx - 1
+      do k = 1 , kz - 1
         do i = istart , iend
           if ( aa0(i).ge.0. ) then
             xdby(i,k) = xhkb(i) - .5*(xhes(i,k)+xhes(i,k+1))
@@ -645,7 +645,7 @@
           xqc(i,k) = xqes(i,k)
           xpw(i,k) = (qrch-xqes(i,k))
           xpwav(i) = xpwav(i) + xpw(i,k)
-          xqrcd(i,kx) = xqes(i,kx)
+          xqrcd(i,kz) = xqes(i,kz)
           xhcd(i) = .5*(xhe(i,jmin(i))+xhe(i,jmin(i)+1))
           xqcd(i) = .5*(xq(i,jmin(i))+xq(i,jmin(i)+1))
           xpwev(i) = 0.
@@ -658,7 +658,7 @@
 !
 !---  downdraft moisture properties
 !
-      do k = 1 , kx - 1
+      do k = 1 , kz - 1
         do i = istart , iend
           if ( aa0(i).ge.0. ) then
             if ( k.lt.jmin(i) ) then
@@ -696,7 +696,7 @@
 !---  downdraft cloudwork functions
 !
 !
-      do k = 1 , kx - 1
+      do k = 1 , kz - 1
         do i = istart , iend
           if ( aa0(i).ge.0. ) then
             if ( k.lt.jmin(i) ) then
@@ -767,7 +767,7 @@
 !
 !---  feedback
 !
-      do k = 1 , kx
+      do k = 1 , kz
         do i = istart , iend
           if ( aa0(i).ge.0. ) then
             if ( k.le.ktop(i) ) then
@@ -800,7 +800,7 @@
             kclth = ktop(i) - kbcon(i) + 1
             akclth = 1./dble(kclth)
             do k = kbcon(i) , ktop(i)
-              kk = kx - k + 1
+              kk = kz - k + 1
               cldlwc(i,kk) = cllwcv
               cldfra(i,kk) = 1. - (1.-clfrcv)**akclth
             end do
@@ -808,9 +808,9 @@
 !chem2      define convection  base and top for tracers
             if ( ichem.eq.1 ) then
               if ( ktop(i).gt.1 .and. k22(i).ge.1 ) then
-                icumtop(i,jslc) = kxp1 - ktop(i)
-                icumbot(i,jslc) = kxp1 - k22(i)
-                icumdwd(i,jslc) = kxp1 - jmin(i)
+                icumtop(i,jslc) = kzp1 - ktop(i)
+                icumbot(i,jslc) = kzp1 - k22(i)
+                icumdwd(i,jslc) = kzp1 - jmin(i)
               end if
             end if
 !chem2_

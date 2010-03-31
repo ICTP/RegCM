@@ -19,15 +19,15 @@
 
       module mod_batflds
 
-      use mod_regcm_param , only : jxm2 , ixm2 , numbat
+      use mod_regcm_param , only : jxm2 , iym2 , numbat
       use mod_postproc_param , only : nhrbat
 
       implicit none
 
       integer , parameter :: nbat2 = numbat + 1
 
-      real(4) , dimension(jxm2,ixm2,nbat2,nhrbat) :: b2davg
-      real(4) , dimension(jxm2,ixm2,nbat2) :: bfld2d
+      real(4) , dimension(jxm2,iym2,nbat2,nhrbat) :: b2davg
+      real(4) , dimension(jxm2,iym2,nbat2) :: bfld2d
 
       contains
 
@@ -43,7 +43,7 @@
 !
 ! Local variables
 !
-      real(4) , dimension(jxm2,ixm2) :: b2d
+      real(4) , dimension(jxm2,iym2) :: b2d
       integer :: i , j , nb
 !
       ierr = 0
@@ -61,7 +61,7 @@
         else
           read (iin,iostat=ierr) b2d
         end if
-        do j = 1 , ixm2
+        do j = 1 , iym2
           do i = 1 , jxm2
             bfld2d(i,j,nb) = b2d(i,j)
           end do
@@ -289,7 +289,7 @@
       do nb = 1 , nbat2
 !       if ((nb.eq.ntmin.or.nb.eq.ntmax) .and. ihr.lt.nhrbat) then
 !       else
-        do j = 1 , ixm2
+        do j = 1 , iym2
           do i = 1 , jxm2
             if ( bfld2d(i,j,nb)>misdat ) then
               b2davg(i,j,nb,ihr) = b2davg(i,j,nb,ihr) + bfld2d(i,j,nb)
@@ -321,7 +321,7 @@
       integer , dimension(nbat2) :: u_bat
       character(64) , dimension(nbat2) :: vnambat
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2) :: xlat1d
+      real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
       intent (in) ndim , u_bat , xmax , xmin
 !
@@ -330,20 +330,20 @@
       integer :: i , j , nb
       real(4) :: misdat , vmax , vmin
       real(4) , dimension(1) :: sig1
-      real(4) , dimension(jxm2,ixm2) :: tmp2d
+      real(4) , dimension(jxm2,iym2) :: tmp2d
 !
       sig1(1) = 1.
-      call setconst(tmp2d,vmisdat,jxm2,ixm2,1,1,1,1,jxm2,1,ixm2)
+      call setconst(tmp2d,vmisdat,jxm2,iym2,1,1,1,1,jxm2,1,iym2)
       do nb = 1 , nbat2
         if ( u_bat(nb)==1 ) then
 !         if (nb.ne.ntmin .and. nb.ne.ntmax) then
           do i = 1 , jxm2
-            do j = 1 , ixm2
+            do j = 1 , iym2
               tmp2d(i,j) = max(bfld2d(i,j,nb),vmisdat)
             end do
           end do
           if ( iotyp==1 ) then
-            call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+            call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
             if ( vmin<xmin(nb) .or. vmax>xmax(nb) ) then
               print * , 'Values Out of Range:  FIELD=' , vnambat(nb)
               print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nb)
@@ -356,12 +356,12 @@
           else
           end if
           if ( iotyp==1 .or. iotyp==2 ) then
-            call writecdf(idout,vnambat(nb),tmp2d,jxm2,ixm2,1,iadm,xhr, &
+            call writecdf(idout,vnambat(nb),tmp2d,jxm2,iym2,1,iadm,xhr, &
                         & lnambat(nb),ubat(nb),fact(nb),offset(nb),     &
                         & vvarmin,vvarmax,xlat1d,xlon1d,sig1,0,misdat,  &
                         & iotyp)
           else if ( iotyp==3 ) then
-            call writegrads(iunt,tmp2d,jxm2,ixm2,1,nrec)
+            call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
           else
           end if
         end if
@@ -389,17 +389,17 @@
       integer , dimension(nbat2) :: u_bat
       character(64) , dimension(nbat2) :: vnambat
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2) :: xlat1d
+      real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
       intent (in) nbattime , ndim , u_bat , xhr1 , xmax , xmin
 !
 ! Local variables
 !
       real(4) :: const , misdat , vmax , vmin , xntimes
-      real(4) , dimension(jxm2,ixm2,nbat2) :: favgsum
+      real(4) , dimension(jxm2,iym2,nbat2) :: favgsum
       integer :: i , ihr , j , nb
       real(4) , dimension(1) :: sig1
-      real(4) , dimension(jxm2,ixm2) :: tmp2d
+      real(4) , dimension(jxm2,iym2) :: tmp2d
       real(8) :: xhravg
 !
       iadm(3) = 1
@@ -407,8 +407,8 @@
  
       print * , 'COMPUTING AVERAGE BAT FIELDS:' , nbattime
  
-      call setconst(tmp2d,vmisdat,jxm2,ixm2,1,1,1,1,jxm2,1,ixm2)
-      call setconst(favgsum,0.0,jxm2,ixm2,nbat2,1,1,1,jxm2,1,ixm2)
+      call setconst(tmp2d,vmisdat,jxm2,iym2,1,1,1,1,jxm2,1,iym2)
+      call setconst(favgsum,0.0,jxm2,iym2,nbat2,1,1,1,jxm2,1,iym2)
       do ihr = 1 , nhrbat
         do nb = 1 , nbat2
           if ( u_bat(nb)==1 ) then
@@ -418,7 +418,7 @@
 !           else
             xntimes = const/float(nhrbat*nbattime(ihr))
 !           end if
-            do j = 1 , ixm2
+            do j = 1 , iym2
               do i = 1 , jxm2
                 if ( b2davg(i,j,nb,ihr)>vmisdat ) then
                   favgsum(i,j,nb) = favgsum(i,j,nb) + b2davg(i,j,nb,ihr)&
@@ -438,13 +438,13 @@
             print * , 'NOTHING TO AVERAGE -- nbattime = 0'
             stop 999
           end if
-          do j = 1 , ixm2
+          do j = 1 , iym2
             do i = 1 , jxm2
               tmp2d(i,j) = favgsum(i,j,nb)
             end do
           end do
           if ( iotyp==1 ) then
-            call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+            call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
             if ( vmin<xmin(nb) .or. vmax>xmax(nb) ) then
               print * , 'Values Out of Range:  FIELD=' , vnambat(nb)
               print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nb)
@@ -457,12 +457,12 @@
           else
           end if
           if ( iotyp==1 .or. iotyp==2 ) then
-            call writecdf(idbat,vnambat(nb),tmp2d,jxm2,ixm2,1,iadm,     &
+            call writecdf(idbat,vnambat(nb),tmp2d,jxm2,iym2,1,iadm,     &
                         & xhravg,lnambat(nb),ubat(nb),fact(nb),         &
                         & offset(nb),vvarmin,vvarmax,xlat1d,xlon1d,sig1,&
                         & 0,misdat,iotyp)
           else if ( iotyp==3 ) then
-            call writegrads(iunt,tmp2d,jxm2,ixm2,1,nrec)
+            call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
           else
           end if
         end if
@@ -491,7 +491,7 @@
       integer , dimension(nbat2) :: u_bat
       character(64) , dimension(nbat2) :: vnambat
       real(4) , dimension(ndim) :: vvarmax , vvarmin
-      real(4) , dimension(ixm2) :: xlat1d
+      real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
       intent (in) nbattime , ndim , u_bat , xhr1 , xmax , xmin
 !
@@ -500,12 +500,12 @@
       real(4) :: const , misdat , vmax , vmin , xntimes
       integer :: i , ihr , j , nb
       real(4) , dimension(1) :: sig1
-      real(4) , dimension(jxm2,ixm2) :: tmp2d
+      real(4) , dimension(jxm2,iym2) :: tmp2d
       real(8) :: xhravg
 !
       iadm(3) = 1
       sig1(1) = 1.
-      call setconst(tmp2d,vmisdat,jxm2,ixm2,1,1,1,1,jxm2,1,ixm2)
+      call setconst(tmp2d,vmisdat,jxm2,iym2,1,1,1,1,jxm2,1,iym2)
       do ihr = 1 , nhrbat
         xhravg = xhr1 + float(ihr-1)*dtbat
         if ( nbattime(ihr)<=0 ) then
@@ -521,13 +521,13 @@
             xntimes = const/float(nbattime(ihr))
 !           end if
 !           if ((nb.eq.ntmin.or.nb.eq.ntmax) .and. ihr.lt.nhrbat) then
-            do j = 1 , ixm2
+            do j = 1 , iym2
               do i = 1 , jxm2
                 tmp2d(i,j) = vmisdat
               end do
             end do
 !           else
-            do j = 1 , ixm2
+            do j = 1 , iym2
               do i = 1 , jxm2
                 if ( b2davg(i,j,nb,ihr)>vmisdat ) then
                   tmp2d(i,j) = b2davg(i,j,nb,ihr)*xntimes
@@ -538,7 +538,7 @@
             end do
 !           end if
             if ( iotyp==1 ) then
-              call getminmax(tmp2d,jxm2,ixm2,1,vmin,vmax,vmisdat)
+              call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
               if ( vmin<xmin(nb) .or. vmax>xmax(nb) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnambat(nb)
                 print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nb)
@@ -551,12 +551,12 @@
             else
             end if
             if ( iotyp==1 .or. iotyp==2 ) then
-              call writecdf(idbat,vnambat(nb),tmp2d,jxm2,ixm2,1,iadm,   &
+              call writecdf(idbat,vnambat(nb),tmp2d,jxm2,iym2,1,iadm,   &
                           & xhravg,lnambat(nb),ubat(nb),fact(nb),       &
                           & offset(nb),vvarmin,vvarmax,xlat1d,xlon1d,   &
                           & sig1,0,misdat,iotyp)
             else if ( iotyp==3 ) then
-              call writegrads(iunt,tmp2d,jxm2,ixm2,1,nrec)
+              call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
             else
             end if
           end if

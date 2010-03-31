@@ -61,12 +61,12 @@
       real(8) :: dtbdys
       character(8) :: finm
       integer :: i , ierr1 , j , k , nn , nnb
-      real(4) , dimension(ix,jx) :: io2d
+      real(4) , dimension(iy,jx) :: io2d
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
-      real(8) , dimension(ix,jxp) :: psdot , tdum
+      real(8) , dimension(iy,jxp) :: psdot , tdum
 #else
-      real(8) , dimension(ix,jx) :: psdot , tdum
+      real(8) , dimension(iy,jx) :: psdot , tdum
 #endif
 #ifdef SEAICE
       integer :: n
@@ -81,9 +81,9 @@
         if ( myid.eq.0 ) then
           do
             if ( ehso4 ) then
-              do k = 1 , kx
+              do k = 1 , kz
                 do j = 1 , jendl
-                  do i = 1 , ix
+                  do i = 1 , iy
                     so4(i,k,j) = so0(i,k,j)
                   end do
                 end do
@@ -97,7 +97,7 @@
               write (finm,99001) iutbc
 !_sgi         101    format('fort.',I2)
               open (iutbc,file=finm,form='unformatted',status='old',    &
-                  & access='direct',recl=ix*jx*ibyte)
+                  & access='direct',recl=iy*jx*ibyte)
               mmrec = 0
               print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
               if ( iutbc.gt.999 )                                       &
@@ -112,14 +112,14 @@
                 print * , 'read in datasets at :' , ndate0
                 if ( ehso4 ) then
                   if ( lsmtyp.ne.'USGS' ) then
-                    mmrec = mmrec + kx*5 + 2
+                    mmrec = mmrec + kz*5 + 2
                   else
-                    mmrec = mmrec + kx*5 + 2 + 13
+                    mmrec = mmrec + kz*5 + 2 + 13
                   end if
                 else if ( lsmtyp.ne.'USGS' ) then
-                  mmrec = mmrec + kx*4 + 2
+                  mmrec = mmrec + kz*4 + 2
                 else
-                  mmrec = mmrec + kx*4 + 2 + 13
+                  mmrec = mmrec + kz*4 + 2 + 13
                 end if
                 cycle
               end if
@@ -135,68 +135,68 @@
 
         if ( myid.eq.0 ) then
 !           print*,'UB1'
-            do k = kx , 1 , -1
+            do k = kz , 1 , -1
               mmrec = mmrec + 1
-              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
               do j = 1 , jx
-                do i = 1 , ix
+                do i = 1 , iy
                   ub1_io(i,k,j) = dble(io2d(i,j))
                 end do
               end do
             end do
 !           print*,'VB1'
-            do k = kx , 1 , -1
+            do k = kz , 1 , -1
               mmrec = mmrec + 1
-              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
               do j = 1 , jx
-                do i = 1 , ix
+                do i = 1 , iy
                   vb1_io(i,k,j) = dble(io2d(i,j))
                 end do
               end do
             end do
 !           print*,'TB1'
-            do k = kx , 1 , -1
+            do k = kz , 1 , -1
               mmrec = mmrec + 1
-              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
               do j = 1 , jx
-                do i = 1 , ix
+                do i = 1 , iy
                   tb1_io(i,k,j) = dble(io2d(i,j))
                 end do
               end do
             end do
 !           print*,'QB1'
-            do k = kx , 1 , -1
+            do k = kz , 1 , -1
               mmrec = mmrec + 1
-              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
               do j = 1 , jx
-                do i = 1 , ix
+                do i = 1 , iy
                   qb1_io(i,k,j) = dble(io2d(i,j))
                 end do
               end do
             end do
 !           print*,'PS1'
             mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
             do j = 1 , jx
-              do i = 1 , ix
+              do i = 1 , iy
                 ps1_io(i,j) = dble(io2d(i,j))
               end do
             end do
 !           print*,'TS1'
             mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
             do j = 1 , jx
-              do i = 1 , ix
+              do i = 1 , iy
                 ts1_io(i,j) = dble(io2d(i,j))
               end do
             end do
             if ( ehso4 ) then
 !             print*,'SO1'
-              do k = kx , 1 , -1
+              do k = kz , 1 , -1
                 mmrec = mmrec + 1
-                read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+                read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
                 do j = 1 , jx
-                  do i = 1 , ix
+                  do i = 1 , iy
                     so1_io(i,k,j) = dble(io2d(i,j))
                   end do
                 end do
@@ -204,23 +204,23 @@
             end if
             if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
             do j = 1 , jx
-              do k = 1 , kx
-                do i = 1 , ix
+              do k = 1 , kz
+                do i = 1 , iy
                   sav_0(i,k,j) = ub1_io(i,k,j)
-                  sav_0(i,kx+k,j) = vb1_io(i,k,j)
-                  sav_0(i,kx*2+k,j) = qb1_io(i,k,j)
-                  sav_0(i,kx*3+k,j) = tb1_io(i,k,j)
+                  sav_0(i,kz+k,j) = vb1_io(i,k,j)
+                  sav_0(i,kz*2+k,j) = qb1_io(i,k,j)
+                  sav_0(i,kz*3+k,j) = tb1_io(i,k,j)
                 end do
               end do
-              do i = 1 , ix
-                sav_0(i,kx*4+1,j) = ps1_io(i,j)
-                sav_0(i,kx*4+2,j) = ts1_io(i,j)
+              do i = 1 , iy
+                sav_0(i,kz*4+1,j) = ps1_io(i,j)
+                sav_0(i,kz*4+2,j) = ts1_io(i,j)
               end do
             end do
             if ( ehso4 ) then
               do j = 1 , jx
-                do k = 1 , kx
-                  do i = 1 , ix
+                do k = 1 , kz
+                  do i = 1 , iy
                     sav_0s(i,k,j) = so1_io(i,k,j)
                   end do
                 end do
@@ -228,30 +228,30 @@
             end if
         end if
         call mpi_bcast(ndate1,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_scatter(sav_0(1,1,1),ix*(kx*4+2)*jxp,mpi_real8,        &
-                       & sav0(1,1,1), ix*(kx*4+2)*jxp,mpi_real8,        &
+        call mpi_scatter(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
+                       & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               ub1(i,k,j) = sav0(i,k,j)
-              vb1(i,k,j) = sav0(i,kx+k,j)
-              qb1(i,k,j) = sav0(i,kx*2+k,j)
-              tb1(i,k,j) = sav0(i,kx*3+k,j)
+              vb1(i,k,j) = sav0(i,kz+k,j)
+              qb1(i,k,j) = sav0(i,kz*2+k,j)
+              tb1(i,k,j) = sav0(i,kz*3+k,j)
             end do
           end do
-          do i = 1 , ix
-            ps1(i,j) = sav0(i,kx*4+1,j)
-            ts1(i,j) = sav0(i,kx*4+2,j)
+          do i = 1 , iy
+            ps1(i,j) = sav0(i,kz*4+1,j)
+            ts1(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
         if ( ehso4 ) then
-          call mpi_scatter(sav_0s(1,1,1),ix*kx*jxp,mpi_real8,           &
-                         & sav0s(1,1,1),ix*kx*jxp,mpi_real8,            &
+          call mpi_scatter(sav_0s(1,1,1),iy*kz*jxp,mpi_real8,           &
+                         & sav0s(1,1,1),iy*kz*jxp,mpi_real8,            &
                          & 0,mpi_comm_world,ierr)
           do j = 1 , jendl
-            do k = 1 , kx
-              do i = 1 , ix
+            do k = 1 , kz
+              do i = 1 , iy
                 so1(i,k,j) = sav0s(i,k,j)
               end do
             end do
@@ -259,7 +259,7 @@
         end if
 !       Convert surface pressure to pstar
         do j = 1 , jendl
-          do i = 1 , ix
+          do i = 1 , iy
             ps1(i,j) = ps1(i,j) - ptop
           end do
         end do
@@ -267,19 +267,19 @@
 !
 !       this routine determines p(.) from p(x) by a 4-point
 !       interpolation. on the x-grid, a p(x) point outside the grid
-!       domain is assumed to satisfy p(0,j)=p(1,j); p(ix,j)=p(ixm1,j);
+!       domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
 !       and similarly for the i's.
-        call mpi_sendrecv(ps1(1,jxp),ix,mpi_real8,ieast,1,              &
-                        & ps1(1,0),ix,mpi_real8,iwest,1,                &
+        call mpi_sendrecv(ps1(1,jxp),iy,mpi_real8,ieast,1,              &
+                        & ps1(1,0),iy,mpi_real8,iwest,1,                &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendx
-          do i = 2 , ixm1
+          do i = 2 , iym1
             psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
                        &       ps1(i,j-1)+ps1(i-1,j-1))
           end do
         end do
 !
-        do i = 2 , ixm1
+        do i = 2 , iym1
           if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
           if ( myid.eq.nproc-1 )                                        &
              & psdot(i,jendl) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
@@ -287,23 +287,23 @@
 !
         do j = jbegin , jendx
           psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
-          psdot(ix,j) = 0.5*(ps1(ixm1,j)+ps1(ixm1,j-1))
+          psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
         end do
 !
         if ( myid.eq.0 ) then
           psdot(1,1) = ps1(1,1)
-          psdot(ix,1) = ps1(ixm1,1)
+          psdot(iy,1) = ps1(iym1,1)
         end if
         if ( myid.eq.nproc-1 ) then
           psdot(1,jendl) = ps1(1,jendx)
-          psdot(ix,jendl) = ps1(ixm1,jendx)
+          psdot(iy,jendl) = ps1(iym1,jendx)
         end if
 !
 !=======================================================================
 !       Couple pressure u,v,t,q
-        do k = 1 , kx
+        do k = 1 , kz
           do j = 1 , jendl
-            do i = 1 , ix
+            do i = 1 , iy
               ub1(i,k,j) = ub1(i,k,j)*psdot(i,j)
               vb1(i,k,j) = vb1(i,k,j)*psdot(i,j)
               tb1(i,k,j) = tb1(i,k,j)*ps1(i,j)
@@ -354,20 +354,20 @@
         else
         end if
         do nn = 1 , nxwb
-          do i = 1 , ixm1
+          do i = 1 , iym1
             pwb(i,nn) = ps0(i,nn)
             pwbt(i,nn) = (ps1(i,nn)-ps0(i,nn))/dtbdys
           end do
         end do
         do nn = 1 , nxeb
           nnb = min(jendx,jxp) - nn + 1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             peb(i,nn) = ps0(i,nnb)
             pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
           end do
         end do
         do nn = 1 , nspgx
-          nnb = ixm1 - nn + 1
+          nnb = iym1 - nn + 1
           do j = 1 , jendx
             pnb(nn,j) = ps0(nnb,j)
             pss(nn,j) = ps0(nn,j)
@@ -412,8 +412,8 @@
         else
         end if
         do nn = 1 , ndwb
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               uwb(i,k,nn) = ub0(i,k,nn)
               vwb(i,k,nn) = vb0(i,k,nn)
               uwbt(i,k,nn) = (ub1(i,k,nn)-ub0(i,k,nn))/dtbdys
@@ -423,8 +423,8 @@
         end do
         do nn = 1 , ndeb
           nnb = min(jendl,jxp) - nn + 1
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               ueb(i,k,nn) = ub0(i,k,nnb)
               veb(i,k,nn) = vb0(i,k,nnb)
               uebt(i,k,nn) = (ub1(i,k,nnb)-ub0(i,k,nnb))/dtbdys
@@ -433,8 +433,8 @@
           end do
         end do
         do nn = 1 , nspgd
-          nnb = ix - nn + 1
-          do k = 1 , kx
+          nnb = iy - nn + 1
+          do k = 1 , kz
             do j = 1 , jendl
               unb(nn,k,j) = ub0(nnb,k,j)
               usb(nn,k,j) = ub0(nn,k,j)
@@ -451,8 +451,8 @@
 !-----compute boundary conditions for p*t and p*qv:
 !
         do nn = 1 , nxwb
-          do k = 1 , kx
-            do i = 1 , ixm1
+          do k = 1 , kz
+            do i = 1 , iym1
               twb(i,k,nn) = tb0(i,k,nn)
               qwb(i,k,nn) = qb0(i,k,nn)
               twbt(i,k,nn) = (tb1(i,k,nn)-tb0(i,k,nn))/dtbdys
@@ -462,8 +462,8 @@
         end do
         do nn = 1 , nxeb
           nnb = min(jendx,jxp) - nn + 1
-          do k = 1 , kx
-            do i = 1 , ixm1
+          do k = 1 , kz
+            do i = 1 , iym1
               teb(i,k,nn) = tb0(i,k,nnb)
               qeb(i,k,nn) = qb0(i,k,nnb)
               tebt(i,k,nn) = (tb1(i,k,nnb)-tb0(i,k,nnb))/dtbdys
@@ -472,8 +472,8 @@
           end do
         end do
         do nn = 1 , nspgx
-          nnb = ixm1 - nn + 1
-          do k = 1 , kx
+          nnb = iym1 - nn + 1
+          do k = 1 , kz
             do j = 1 , jendx
               tnb(nn,k,j) = tb0(nnb,k,j)
               tsb(nn,k,j) = tb0(nn,k,j)
@@ -491,13 +491,13 @@
         idatex = ndate0
         ndate0 = ndate1
         do j = 1 , jendx
-          do i = 1 , ixm1
+          do i = 1 , iym1
             tdum(i,j) = ts1(i,j)
           end do
         end do
-        do k = 1 , kx
+        do k = 1 , kz
           do j = 1 , jendl
-            do i = 1 , ix
+            do i = 1 , iy
               ub0(i,k,j) = ub1(i,k,j)
               vb0(i,k,j) = vb1(i,k,j)
               qb0(i,k,j) = qb1(i,k,j)
@@ -506,15 +506,15 @@
           end do
         end do
         do j = 1 , jendl
-          do i = 1 , ix
+          do i = 1 , iy
             ps0(i,j) = ps1(i,j)
             ts0(i,j) = ts1(i,j)
           end do
         end do
         if ( ehso4 ) then
-          do k = 1 , kx
+          do k = 1 , kz
             do j = 1 , jendl
-              do i = 1 , ix
+              do i = 1 , iy
                 so0(i,k,j) = so1(i,k,j)
               end do
             end do
@@ -530,7 +530,7 @@
         if ( ldatez.lt.ndate1 ) then
  
           do j = 1 , jendx
-            do i = 1 , ixm1
+            do i = 1 , iym1
 #ifdef CLM
 ! manuaully setting ocld2d subgrid to 1 (regcm_clm does not support subgridding)
               if ( ocld2d(1,i,j).le.0.00001 ) then
@@ -574,9 +574,9 @@
         dtbdys = ibdyfrq*60.*60.
         do
           if ( ehso4 ) then
-            do k = 1 , kx
+            do k = 1 , kz
               do j = 1 , jx
-                do i = 1 , ix
+                do i = 1 , iy
                   so4(i,k,j) = so0(i,k,j)
                 end do
               end do
@@ -590,7 +590,7 @@
             write (finm,99001) iutbc
 !_sgi     101    format('fort.',I2)
             open (iutbc,file=finm,form='unformatted',status='old',        &
-                 &access='direct',recl=ix*jx*ibyte)
+                 &access='direct',recl=iy*jx*ibyte)
             mmrec = 0
             print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
             if ( iutbc.gt.999 )                                           &
@@ -604,14 +604,14 @@
               print * , 'read in datasets at :' , ndate0
               if ( ehso4 ) then
                 if ( lsmtyp.ne.'USGS' ) then
-                  mmrec = mmrec + kx*5 + 2
+                  mmrec = mmrec + kz*5 + 2
                 else
-                  mmrec = mmrec + kx*5 + 2 + 13
+                  mmrec = mmrec + kz*5 + 2 + 13
                 end if
               else if ( lsmtyp.ne.'USGS' ) then
-                mmrec = mmrec + kx*4 + 2
+                mmrec = mmrec + kz*4 + 2
               else
-                mmrec = mmrec + kx*4 + 2 + 13
+                mmrec = mmrec + kz*4 + 2 + 13
               end if
               cycle
             end if
@@ -625,68 +625,68 @@
         end do
 
 !     print*,'UB1'
-        do k = kx , 1 , -1
+        do k = kz , 1 , -1
           mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               ub1(i,k,j) = dble(io2d(i,j))
             end do
           end do
         end do
 !     print*,'VB1'
-        do k = kx , 1 , -1
+        do k = kz , 1 , -1
           mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               vb1(i,k,j) = dble(io2d(i,j))
             end do
           end do
         end do
 !     print*,'TB1'
-        do k = kx , 1 , -1
+        do k = kz , 1 , -1
           mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               tb1(i,k,j) = dble(io2d(i,j))
             end do
           end do
         end do
 !     print*,'QB1'
-        do k = kx , 1 , -1
+        do k = kz , 1 , -1
           mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               qb1(i,k,j) = dble(io2d(i,j))
             end do
           end do
         end do
 !     print*,'PS1'
         mmrec = mmrec + 1
-        read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+        read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             ps1(i,j) = dble(io2d(i,j))
           end do
         end do
 !     print*,'TS1'
         mmrec = mmrec + 1
-        read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+        read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             ts1(i,j) = dble(io2d(i,j))
           end do
         end do
         if ( ehso4 ) then
 !       print*,'SO1'
-          do k = kx , 1 , -1
+          do k = kz , 1 , -1
             mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,ix)
+            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
             do j = 1 , jx
-              do i = 1 , ix
+              do i = 1 , iy
                 so1(i,k,j) = dble(io2d(i,j))
               end do
             end do
@@ -695,7 +695,7 @@
         if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
 !     Convert surface pressure to pstar
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             ps1(i,j) = ps1(i,j) - ptop
           end do
         end do
@@ -703,35 +703,35 @@
 !
 !     this routine determines p(.) from p(x) by a 4-point
 !     interpolation. on the x-grid, a p(x) point outside the grid
-!     domain is assumed to satisfy p(0,j)=p(1,j); p(ix,j)=p(ixm1,j);
+!     domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
 !     and similarly for the i's.
         do j = 2 , jxm1
-          do i = 2 , ixm1
+          do i = 2 , iym1
             psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
                        &       ps1(i,j-1)+ps1(i-1,j-1))
           end do
         end do
 !
-        do i = 2 , ixm1
+        do i = 2 , iym1
           psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
           psdot(i,jx) = 0.5*(ps1(i,jxm1)+ps1(i-1,jxm1))
         end do
 !
         do j = 2 , jxm1
           psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
-          psdot(ix,j) = 0.5*(ps1(ixm1,j)+ps1(ixm1,j-1))
+          psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
         end do
 !
         psdot(1,1) = ps1(1,1)
-        psdot(ix,1) = ps1(ixm1,1)
+        psdot(iy,1) = ps1(iym1,1)
         psdot(1,jx) = ps1(1,jxm1)
-        psdot(ix,jx) = ps1(ixm1,jxm1)
+        psdot(iy,jx) = ps1(iym1,jxm1)
 !
 !=======================================================================
 !     Couple pressure u,v,t,q
-        do k = 1 , kx
+        do k = 1 , kz
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               ub1(i,k,j) = ub1(i,k,j)*psdot(i,j)
               vb1(i,k,j) = vb1(i,k,j)*psdot(i,j)
               tb1(i,k,j) = tb1(i,k,j)*ps1(i,j)
@@ -749,20 +749,20 @@
 !
  
         do nn = 1 , nspgx
-          do i = 1 , ixm1
+          do i = 1 , iym1
             pwb(i,nn) = ps0(i,nn)
             pwbt(i,nn) = (ps1(i,nn)-ps0(i,nn))/dtbdys
           end do
         end do
         do nn = 1 , nspgx
           nnb = jxm1 - nn + 1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             peb(i,nn) = ps0(i,nnb)
             pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
           end do
         end do
         do nn = 1 , nspgx
-          nnb = ixm1 - nn + 1
+          nnb = iym1 - nn + 1
           do j = 1 , jxm1
             pnb(nn,j) = ps0(nnb,j)
             pss(nn,j) = ps0(nn,j)
@@ -774,8 +774,8 @@
 !-----compute boundary conditions for p*u and p*v:
 !
         do nn = 1 , nspgd
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               uwb(i,k,nn) = ub0(i,k,nn)
               vwb(i,k,nn) = vb0(i,k,nn)
               uwbt(i,k,nn) = (ub1(i,k,nn)-ub0(i,k,nn))/dtbdys
@@ -785,8 +785,8 @@
         end do
         do nn = 1 , nspgd
           nnb = jx - nn + 1
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               ueb(i,k,nn) = ub0(i,k,nnb)
               veb(i,k,nn) = vb0(i,k,nnb)
               uebt(i,k,nn) = (ub1(i,k,nnb)-ub0(i,k,nnb))/dtbdys
@@ -795,8 +795,8 @@
           end do
         end do
         do nn = 1 , nspgd
-          nnb = ix - nn + 1
-          do k = 1 , kx
+          nnb = iy - nn + 1
+          do k = 1 , kz
             do j = 1 , jx
               unb(nn,k,j) = ub0(nnb,k,j)
               usb(nn,k,j) = ub0(nn,k,j)
@@ -813,8 +813,8 @@
 !-----compute boundary conditions for p*t and p*qv:
 !
         do nn = 1 , nspgx
-          do k = 1 , kx
-            do i = 1 , ixm1
+          do k = 1 , kz
+            do i = 1 , iym1
               twb(i,k,nn) = tb0(i,k,nn)
               qwb(i,k,nn) = qb0(i,k,nn)
               twbt(i,k,nn) = (tb1(i,k,nn)-tb0(i,k,nn))/dtbdys
@@ -824,8 +824,8 @@
         end do
         do nn = 1 , nspgx
           nnb = jxm1 - nn + 1
-          do k = 1 , kx
-            do i = 1 , ixm1
+          do k = 1 , kz
+            do i = 1 , iym1
               teb(i,k,nn) = tb0(i,k,nnb)
               qeb(i,k,nn) = qb0(i,k,nnb)
               tebt(i,k,nn) = (tb1(i,k,nnb)-tb0(i,k,nnb))/dtbdys
@@ -834,8 +834,8 @@
           end do
         end do
         do nn = 1 , nspgx
-          nnb = ixm1 - nn + 1
-          do k = 1 , kx
+          nnb = iym1 - nn + 1
+          do k = 1 , kz
             do j = 1 , jxm1
               tnb(nn,k,j) = tb0(nnb,k,j)
               tsb(nn,k,j) = tb0(nn,k,j)
@@ -852,13 +852,13 @@
         idatex = ndate0
         ndate0 = ndate1
         do j = 1 , jxm1
-          do i = 1 , ixm1
+          do i = 1 , iym1
             tdum(i,j) = ts1(i,j)
           end do
         end do
-        do k = 1 , kx
+        do k = 1 , kz
           do j = 1 , jx
-            do i = 1 , ix
+            do i = 1 , iy
               ub0(i,k,j) = ub1(i,k,j)
               vb0(i,k,j) = vb1(i,k,j)
               qb0(i,k,j) = qb1(i,k,j)
@@ -867,15 +867,15 @@
           end do
         end do
         do j = 1 , jx
-          do i = 1 , ix
+          do i = 1 , iy
             ps0(i,j) = ps1(i,j)
             ts0(i,j) = ts1(i,j)
           end do
         end do
         if ( ehso4 ) then
-          do k = 1 , kx
+          do k = 1 , kz
             do j = 1 , jx
-              do i = 1 , ix
+              do i = 1 , iy
                 so0(i,k,j) = so1(i,k,j)
               end do
             end do
@@ -891,7 +891,7 @@
         if ( ldatez.lt.ndate1 ) then
  
           do j = 1 , jxm1
-            do i = 1 , ixm1
+            do i = 1 , iym1
               if ( veg2d(i,j).le.0.00001 ) then
 #ifdef DCSST
                 tga(i,j) = tdum(i,j) + dtskin(i,j)

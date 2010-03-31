@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine mksst2a(tsccm,sst1,sst2,ice1,ice2,topogm,xlandu,jx,ix, &
+      subroutine mksst2a(tsccm,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy, &
                        & kdate)
       use mod_datewk
       use mod_datenum
@@ -25,10 +25,10 @@
 !
 ! Dummy arguments
 !
-      integer :: ix , jx , kdate
-      real , dimension(jx,ix) :: ice1 , ice2 , sst1 , sst2 , topogm ,   &
+      integer :: iy , jx , kdate
+      real , dimension(jx,iy) :: ice1 , ice2 , sst1 , sst2 , topogm ,   &
                                & tsccm , xlandu
-      intent (in) ix , jx , kdate , topogm , xlandu
+      intent (in) iy , jx , kdate , topogm , xlandu
       intent (out) tsccm
       intent (inout) ice1 , ice2 , sst1 , sst2
 !
@@ -60,7 +60,7 @@
  
 !     ******           INITIALIZE SST1, SST2 (NEEDED FOR 82 JAN CASE)
       do lon = 1 , jx
-        do lat = 1 , ix
+        do lat = 1 , iy
           sst1(lon,lat) = 0.
           sst2(lon,lat) = 0.
         end do
@@ -68,18 +68,18 @@
  
 !     ******           READ IN RCM MONTHLY SST DATASET
  100  continue
-      read (60,end=200) nday , nmo , nyear , ((sst1(i,j),j=1,ix),i=1,jx)&
-                      & , ((ice1(i,j),j=1,ix),i=1,jx)
+      read (60,end=200) nday , nmo , nyear , ((sst1(i,j),j=1,iy),i=1,jx)&
+                      & , ((ice1(i,j),j=1,iy),i=1,jx)
       if ( nyear*10000+nmo*100+nday/=kdate1 ) go to 100
 !     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
  
 !     ******           READ IN RCM MONTHLY SST DATASET
-      read (60,end=200) nday , nmo , nyear , ((sst2(i,j),j=1,ix),i=1,jx)&
-                      & , ((ice2(i,j),j=1,ix),i=1,jx)
+      read (60,end=200) nday , nmo , nyear , ((sst2(i,j),j=1,iy),i=1,jx)&
+                      & , ((ice2(i,j),j=1,iy),i=1,jx)
 !     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
  
       do i = 1 , jx
-        do j = 1 , ix
+        do j = 1 , iy
           if ( (topogm(i,j)<=1.) .and.                                  &
              & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.          &
              & (sst1(i,j)>-900.0 .and. sst2(i,j)>-900.0) ) then

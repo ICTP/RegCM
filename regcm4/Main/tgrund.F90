@@ -60,7 +60,7 @@
 !
 ! Local variables
 !
-      real(8) , dimension(nnsg,ixm1) :: bb , bcoef , cc , depann ,      &
+      real(8) , dimension(nnsg,iym1) :: bb , bcoef , cc , depann ,      &
            & depdiu , deprat , fct2 , hs , rscsa , rscsd , ska , skd ,  &
            & sks , swtrta , swtrtd
       real(8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
@@ -92,7 +92,7 @@
 !l    3.4  permafrost temperature
       t3 = 271.
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
  
@@ -195,7 +195,7 @@
 !l    3.   update soil temperatures
 !=======================================================================
 !l    3.1  update surface soil temperature
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
             tbef = tg1d(n,i)

@@ -24,44 +24,44 @@
 
       implicit none
 !
-      real(8) , dimension(nnsg,ixm1) :: delq1d , delt1d , drag1d ,      &
+      real(8) , dimension(nnsg,iym1) :: delq1d , delt1d , drag1d ,      &
            & emiss_1d , evpr1d , gwet1d , ircp1d , ldew1d , ldoc1d ,    &
            & p1d , pbp1d , prcp1d , q2m_1d , qg1d , qs1d , resp1d ,     &
            & rhs1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,  &
            & sice1d , ssw1d , t2m_1d , taf1d , tg1d , tgb1d , tlef1d ,  &
            & ts1d , tsw1d , u10m1d , v10m1d , veg1d , z1d
-      real(8) , dimension(ixm1) :: flw1d , fsw1d , us1d , vs1d
+      real(8) , dimension(iym1) :: flw1d , fsw1d , us1d , vs1d
 !
-      real(8) , dimension(nnsg,ixm1) :: bfc , bsw , evmx0 , fdry ,      &
+      real(8) , dimension(nnsg,iym1) :: bfc , bsw , evmx0 , fdry ,      &
            & fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc , rnet ,      &
            & texrat , vegt , wiltr , wt , xkmx
-      real(8) , dimension(ixm1) :: czen , sola , vpdd
+      real(8) , dimension(iym1) :: czen , sola , vpdd
       real(8) :: difrat
 !
       integer :: ilat , ihis , mhis , ncase
 !
-      real(8) , dimension(nnsg,ixm1) :: aarea , cdr , cdrn , cdrx ,     &
+      real(8) , dimension(nnsg,iym1) :: aarea , cdr , cdrn , cdrx ,     &
            & cf , cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg , &
            & etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,    &
            & fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,     &
            & rlai , rpp , scrat , scvk , sdrop , seasb , sigf , sm ,    &
            & tm , uaf , vspda , wata , watr , watt , watu , wta , xlai ,&
            & xlsai , xrun , z1 , z1log
-      real(8) , dimension(ixm1) :: ems
-      integer , dimension(nnsg,ixm1) :: imelt , lveg
+      real(8) , dimension(iym1) :: ems
+      integer , dimension(nnsg,iym1) :: imelt , lveg
 !
-      real(8) , dimension(nnsg,ixm1) :: cn1 , df , rgr , wta0 , wtaq0 , &
+      real(8) , dimension(nnsg,iym1) :: cn1 , df , rgr , wta0 , wtaq0 , &
            & wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq , wtgq ,   &
            & wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi
 !
-      real(8) , dimension(ixm1) :: albdif , albdir , albvl , albvld ,   &
+      real(8) , dimension(iym1) :: albdif , albdir , albvl , albvld ,   &
                                 & albvs , albvsd , aldifl , aldifs ,    &
                                 & aldirl , aldirs , emiss1d , fracd ,   &
                                 & sabveg , solis , solvd , solvs
-      real(8) , dimension(ix) :: coszrs
+      real(8) , dimension(iy) :: coszrs
 !
 #ifdef MPP1
-      real(8) , dimension(ixm1,jxp) :: flw2d , flwa2d , flwd2d ,        &
+      real(8) , dimension(iym1,jxp) :: flw2d , flwa2d , flwd2d ,        &
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
                                     & sabv2d , sdelqk2d , sdeltk2d ,    &
@@ -70,7 +70,7 @@
                                     & solvd2d , solvs2d , ssw2da ,      &
                                     & svegfrac2d , svga2d , veg2d
 #else
-      real(8) , dimension(ixm1,jxm1) :: flw2d , flwa2d , flwd2d ,       &
+      real(8) , dimension(iym1,jxm1) :: flw2d , flwa2d , flwd2d ,       &
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
                                     & sabv2d , sdelqk2d , sdeltk2d ,    &
@@ -81,17 +81,17 @@
 #endif
 !
 #ifdef MPP1
-      real(8) , dimension(nnsg,ixm1,jxp) :: col2d , dew2d , emiss2d ,   &
+      real(8) , dimension(nnsg,iym1,jxp) :: col2d , dew2d , emiss2d ,   &
            & evpa2d , gwet2d , ircp2d , ocld2d , rno2d , rnos2d ,       &
            & sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d ,  &
            & taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
-      real(8) , dimension(nnsg,ix,jxp) :: ht1 , satbrt1
+      real(8) , dimension(nnsg,iy,jxp) :: ht1 , satbrt1
 #else
-      real(8) , dimension(nnsg,ixm1,jxm1) :: col2d , dew2d , emiss2d ,  &
+      real(8) , dimension(nnsg,iym1,jxm1) :: col2d , dew2d , emiss2d ,  &
            & evpa2d , gwet2d , ircp2d , ocld2d , rno2d , rnos2d ,       &
            & sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d ,  &
            & taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
-      real(8) , dimension(nnsg,ix,jx) :: ht1 , satbrt1
+      real(8) , dimension(nnsg,iy,jx) :: ht1 , satbrt1
 #endif
 !
 #ifdef MPP1
@@ -126,48 +126,48 @@
 #endif
 !
 #ifdef MPP1
-      real(4) , target , dimension(jxp,ixm2,numbat) :: fbat
+      real(4) , target , dimension(jxp,iym2,numbat) :: fbat
 #else
-      real(4) , target , dimension(jxm2,ixm2,numbat) :: fbat
+      real(4) , target , dimension(jxm2,iym2,numbat) :: fbat
 #endif
 
 #ifdef MPP1
-      real(4) , target , dimension(nnsg,jxp,ixm2,numsub) :: fsub
+      real(4) , target , dimension(nnsg,jxp,iym2,numsub) :: fsub
 #else
-      real(4) , target , dimension(nnsg,jxm2,ixm2,numsub) :: fsub
+      real(4) , target , dimension(nnsg,jxm2,iym2,numsub) :: fsub
 #endif
 !
-      real(8) , dimension(nnsg,ixm1) :: p1d0 , qs1d0 , ts1d0
+      real(8) , dimension(nnsg,iym1) :: p1d0 , qs1d0 , ts1d0
 !
 #ifdef MPP1
 #ifdef CLM
       ! Direct solar rad incident on surface (<0.7)
-      real(8) , dimension(ixm1,jxp):: sols2d
+      real(8) , dimension(iym1,jxp):: sols2d
       ! Direct solar rad incident on surface (>=0.7)
-      real(8) , dimension(ixm1,jxp):: soll2d
+      real(8) , dimension(iym1,jxp):: soll2d
       ! Diffuse solar rad incident on surface (<0.7)
-      real(8) , dimension(ixm1,jxp):: solsd2d
+      real(8) , dimension(iym1,jxp):: solsd2d
       ! Diffuse solar rad incident on surface (>=0.7)
-      real(8) , dimension(ixm1,jxp):: solld2d
-      real(8) , dimension(ixm1,jxp):: aldirs2d
-      real(8) , dimension(ixm1,jxp):: aldirl2d
-      real(8) , dimension(ixm1,jxp):: aldifs2d
-      real(8) , dimension(ixm1,jxp):: aldifl2d
-      real(8) , dimension(ixm1,jxp):: coszrs2d
-      real(8) , dimension(ixm1,jxp):: rs2d
-      real(8) , dimension(ixm1,jxp):: ra2d
-      real(8) , dimension(ixm1,jxp):: q2d   ! 2 meter specific humidity
+      real(8) , dimension(iym1,jxp):: solld2d
+      real(8) , dimension(iym1,jxp):: aldirs2d
+      real(8) , dimension(iym1,jxp):: aldirl2d
+      real(8) , dimension(iym1,jxp):: aldifs2d
+      real(8) , dimension(iym1,jxp):: aldifl2d
+      real(8) , dimension(iym1,jxp):: coszrs2d
+      real(8) , dimension(iym1,jxp):: rs2d
+      real(8) , dimension(iym1,jxp):: ra2d
+      real(8) , dimension(iym1,jxp):: q2d   ! 2 meter specific humidity
 #endif
 #endif
 
 #ifdef DCSST
       ! dtskin is difference between skin tem and bulk sst
 #ifdef MPP1
-      real(8) , dimension(ix,jxp) :: deltas , tdeltas , dtskin
-      logical , dimension(ix,jxp) :: firstcall
+      real(8) , dimension(iy,jxp) :: deltas , tdeltas , dtskin
+      logical , dimension(iy,jxp) :: firstcall
 #else
-      real(8) , dimension(ix,jx) :: deltas , tdeltas , dtskin
-      logical , dimension(ix,jx) :: firstcall
+      real(8) , dimension(iy,jx) :: deltas , tdeltas , dtskin
+      logical , dimension(iy,jx) :: firstcall
 #endif
 
 #endif

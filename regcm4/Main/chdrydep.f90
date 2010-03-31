@@ -55,12 +55,10 @@
 !**************************************************************
 
       use mod_constants , only : ep2 , gti , rgti , vonkar , mathpi ,   &
-                               & tzero
+                               & tzero , boltzk , stdpmb
+      use mod_aero_param
+
       implicit none
-!
-! PARAMETER definitions
-!
-      integer , parameter :: isize = 12
 !
 ! Dummy arguments
 !
@@ -79,46 +77,21 @@
 !
 ! Local variables
 !
-      real(8) :: a1 , a2 , a3 , aa , aa1 , aa2 , aa3 , amfp , amob ,    &
-               & asq , boltzk , c1 , c2 , c3 , c4 , ch , cm , cun ,     &
-               & dtemp , dthv , eb , eim , ein , es , fh , fm , frx1 ,  &
-               & krm , kui , logratio , mol , pmb , pre ,               &
-               & prii , priiv , psit , psiu , ptemp2 , qs , r1 ,        &
-               & ratioz , rhop , rib , st , tbar , thstar , tsv , tsw , &
-               & ustarsq , utstar , vp , vptemp , wvpm , ww , x , y ,   &
-               & z , z0water , z10 , zdl , zl
-      real(8) , dimension(2,isize) :: aerosize
-      real(8) , dimension(20) :: aest , arye
+      real(8) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
+               & eim , ein , es , fh , fm , frx1 , kui , logratio ,     &
+               & mol , pre , prii , priiv , psit , psiu , ptemp2 , qs , &
+               & r1 , ratioz , aa , rib , st , tbar , thstar , tsv ,    &
+               & tsw , ustarsq , utstar , vp , vptemp , wvpm , ww , x , &
+               & y , z , z0water , zdl , zl
       real(8) , dimension(ilg,ilev) :: amu
       real(8) , dimension(ilg) :: anu , schm , zz0
-      real(8) , dimension(isize) :: avesize
       real(8) , dimension(ilg,ilev,isize) :: cfac , pdepvsub , pdiff ,  &
            & rhsize , taurel
       integer :: i , j , jc , k , kcov , l , lev , n , tot
       real(8) , dimension(ilg,luc) :: ra , ustar , vegcover
       real(8) , dimension(ilg,luc,isize) :: rs
  
-      data aerosize/1.0E-08 , 2.0E-08 , 2.0E-08 , 4.0E-08 , 4.0E-08 ,   &
-         & 8.0E-08 , 8.0E-08 , 1.6E-07 , 1.6E-07 , 3.2E-07 , 3.2E-07 ,  &
-         & 6.4E-07 , 6.4E-07 , 1.28E-06 , 1.28E-06 , 2.56E-06 ,         &
-         & 2.56E-06 , 5.12E-06 , 5.12E-06 , 10.4E-06 , 10.24E-06 ,      &
-         & 20.48E-06 , 20.48E-06 , 40.6E-06/
- 
-      data a1/145.8/ , a2/1.5/ , a3/110.4/
-      data c1/6.54E-8/ , c2/1.818E-5/ , c3/1.013E5/ , c4/293.15/
-      data aa1/1.257/ , aa2/0.4/ , aa3/1.1/
-      data boltzk/1.3806044E-23/
-      data rhop/2650.0/
- 
-      data aest/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,     &
-         & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
-         & 1.2 , 1.2 , 1.2/
-      data arye/0.5 , 5.0 , 0.5 , 5.0 , 1.0 , 1.0 , 0.0001 , 5.0 ,      &
-         & 10.0 , 10.0 , 0.0001 , 0.0001 , 0.56 , 0.56 , 0.56 , 0.56 ,  &
-         & 0.56 , 0.56 , 0.56 , 0.56/
- 
- 
-      data krm/0.4/ , z10/10.0/ , pmb/1000.0/
+      real(8) , parameter :: z10 = 10.0
  
       do n = 1 , isize
         avesize(n) = (aerosize(1,n)+aerosize(2,n))/2.0
@@ -189,7 +162,7 @@
 !     * srad   -solar irradiance at the ground(w/m**2)****
 !     * rh10  - relative humidity of air at 10m.      ****
 !     *           (0.0-1.0)                           ****
-!     * pmb   - sea level pressure (mb)               ****
+!     * stdpmb - sea level pressure (mb)               ****
 !     ****************************************************
       do j = 1 , luc
         do i = il1 , il2
@@ -220,7 +193,7 @@
 ! **************************************************************
             es = 6.108*exp(17.27*(temp2(i)-tzero)/(temp2(i)-35.86))
             vp = rh10(i)*es
-            wvpm = ep2*vp/(pmb-vp)
+            wvpm = ep2*vp/(stdpmb-vp)
             vptemp = ptemp2*(1.0+0.61*wvpm)
  
 ! **************************************************************
@@ -235,7 +208,7 @@
 ! **************************************************************
             tsw = sutemp(i)
             vp = 6.108*exp(17.27*(tsw-tzero)/(tsw-35.86))
-            qs = ep2*vp/(pmb-vp)
+            qs = ep2*vp/(stdpmb-vp)
             tsv = tsw*(1.+0.61*qs)
             z0water = 1.0E-4
 ! **************************************************************
@@ -281,8 +254,8 @@
             end if
             z0water = 0.000002*ww**2.5
 !
-            ustar(i,j) = krm*ww/(dlog(z10/z0water)-psiu)
-            thstar = krm*(ptemp2-sutemp(i))                             &
+            ustar(i,j) = vonkar*ww/(dlog(z10/z0water)-psiu)
+            thstar = vonkar*(ptemp2-sutemp(i))                          &
                    & /(0.74*dlog(z10/z0water)-psit)
             zz0(i) = z0water
 !
@@ -331,7 +304,7 @@
             mol = tbar*ustarsq/(vonkar*gti*thstar)
           end if
  
-          kui = 1.0/(krm*ustar(i,j))
+          kui = 1.0/(vonkar*ustar(i,j))
  
 !         **************************************************************
 !         * compute the values of  ra                            *******

@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-USECLM = 0
+USECLM = 1
 
 CPPFLAGS += -DDCSST
 
@@ -21,7 +21,7 @@ mod_bxq.o        mod_dust.o       mod_param2.o     mod_tracer0.o     \
 mod_comctl.o     mod_param3.o     mod_tracer.o     mod_comozp.o      \
 mod_grads.o      mod_pmoist.o     mod_trachem.o    mod_comtim.o      \
 mod_ictp01.o     mod_iunits.o     mod_pbldim.o     mod_lake.o        \
-mod_interfaces.o
+mod_interfaces.o mod_aero_param.o
 
 CLMOBJS = \
 initializeMod.o  shr_orb_mod.o    shr_kind_mod.o  clm_varpar.o       \
@@ -111,6 +111,7 @@ clean:
 	rm -f *.mod *.o regcm
 endif
 
+mod_aero_param.o: mod_aero_param.f90 mod_regcm_param.o
 mod_aerosol.o: mod_aerosol.F90 mod_regcm_param.o
 mod_bats.o: mod_bats.F90 mod_regcm_param.o mod_bats_param.o
 mod_bdycod.o: mod_bdycod.F90 mod_regcm_param.o
@@ -174,7 +175,7 @@ bmpara.o: bmpara.F90 mod_bats.o mod_bmparam.o mod_constants.o mod_date.o \
 bndry.o: bndry.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_param1.o \
          mod_regcm_param.o
 carbon.o: carbon.f90
-chdrydep.o: chdrydep.f90 mod_constants.o
+chdrydep.o: chdrydep.f90 mod_constants.o mod_aero_param.o
 chemtap.o: chemtap.F90 mod_date.o mod_iunits.o mod_main.o mod_mainchem.o \
            mod_param2.o mod_regcm_param.o mod_trachem.o
 chrsetc.o: chrsetc.f90
@@ -437,7 +438,7 @@ zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_slice.o \
               mod_interfaces.o mod_regcm_param.o
 endif
-zenith.o: zenith.f90
+zenith.o: zenith.f90 mod_constants.o
 ifeq ($(USECLM),1)
 zenitm.o: zenitm.F90 mod_regcm_param.o mod_clm.o $(CLMPTH)/shr_orb_mod.o \
           $(CLMPTH)/clm_time_manager.o mod_date.o

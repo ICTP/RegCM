@@ -69,10 +69,10 @@
 ! Dummy arguments
 !
       integer :: k1 , k2
-      real(8) , dimension(14,ixm1,kxp1) :: abplnk1
-      real(8) , dimension(ixm1) :: abstrc , dplh2o , dw , pnew , tco2 ,&
+      real(8) , dimension(14,iym1,kzp1) :: abplnk1
+      real(8) , dimension(iym1) :: abstrc , dplh2o , dw , pnew , tco2 ,&
                                   & th2o , to3 , to3co2
-      real(8) , dimension(ixm1,kxp1) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
+      real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
            & s2c , ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,  &
            & uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
       intent (in) abplnk1 , bch4 , bn2o0 , bn2o1 , dplh2o , dw , k1 ,   &
@@ -153,10 +153,10 @@
                & du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
                & phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
                & tch4 , tlw , u , w1
-      real(8) , dimension(ixm1) :: ds2c , duptyp , sqti , tt
+      real(8) , dimension(iym1) :: ds2c , duptyp , sqti , tt
       real(8) :: func
       integer :: i , l
-      real(8) , dimension(ixm1,6) :: tw
+      real(8) , dimension(iym1,6) :: tw
 !
       data g1/0.0468556 , 0.0397454 , 0.0407664 , 0.0304380 ,           &
          & 0.0540398 , 0.0321962/
@@ -176,7 +176,7 @@
 !------------------------------------------------------------------
       func(u,b) = u/dsqrt(4.0+u*(1.0+1.0/b))
 !
-      do i = 1 , ixm1
+      do i = 1 , iym1
         sqti(i) = dsqrt(to3co2(i))
 !       h2o transmission
         tt(i) = dabs(to3co2(i)-250.0)
@@ -185,7 +185,7 @@
       end do
 !
       do l = 1 , 6
-        do i = 1 , ixm1
+        do i = 1 , iym1
           psi1 = dexp(abp(l)*tt(i)+bbp(l)*tt(i)*tt(i))
           phi1 = dexp(ab(l)*tt(i)+bb(l)*tt(i)*tt(i))
           p1 = pnew(i)*(psi1/phi1)/sslp
@@ -195,7 +195,7 @@
         end do
       end do
 !
-      do i = 1 , ixm1
+      do i = 1 , iym1
         du1 = dabs(ucfc11(i,k1)-ucfc11(i,k2))
         du2 = dabs(ucfc12(i,k1)-ucfc12(i,k2))
 !       cfc transmissions

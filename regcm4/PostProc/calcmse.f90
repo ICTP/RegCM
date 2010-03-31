@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine calcmse(f2d,f3d,nx,ny,kx,nfld2d,nfld3d,zs,sigh,pt,nta, &
+      subroutine calcmse(f2d,f3d,nx,ny,kz,nfld2d,nfld3d,zs,sigh,pt,nta, &
                        & nqva,npsa,nmse,nx1,ny1)
  
       use mod_constants , only : gti , rovg , wlhv , cpd
@@ -26,35 +26,35 @@
 ! Dummy arguments
 !
       integer :: nfld2d , nfld3d , nmse , npsa , nqva , nta , nx , nx1 ,&
-               & ny , ny1 , kx
+               & ny , ny1 , kz
       real(4) :: pt
       real(4) , dimension(nx,ny,nfld2d) :: f2d
-      real(4) , dimension(nx,ny,kx,nfld3d) :: f3d
-      real(4) , dimension(kx) :: sigh
+      real(4) , dimension(nx,ny,kz,nfld3d) :: f3d
+      real(4) , dimension(kz) :: sigh
       real(4) , dimension(nx,ny) :: zs
       intent (in) f2d , nfld2d , nfld3d , nmse , npsa , nqva , nta ,    &
-                & nx , nx1 , ny , ny1 , kx , pt , sigh , zs
+                & nx , nx1 , ny , ny1 , kz , pt , sigh , zs
       intent (inout) f3d
 !
 ! Local variables
 !
       real(4) :: dp , ps , q , t , tvbar
       integer :: i , j , k , k1
-      real(4) , dimension(nx,ny,kx) :: p , tv , z
+      real(4) , dimension(nx,ny,kz) :: p , tv , z
 !
       do j = 1 , ny1
         do i = 1 , nx1
-          t = f3d(i,j,kx,nta)
-          q = f3d(i,j,kx,nqva)
+          t = f3d(i,j,kz,nta)
+          q = f3d(i,j,kz,nqva)
           ps = f2d(i,j,npsa)
-          tv(i,j,kx) = t*(1.+0.608*q)
-          p(i,j,kx) = (ps-pt*10.)*sigh(kx) + pt*10.
-          dp = log(p(i,j,kx)) - log(ps)
-          z(i,j,kx) = zs(i,j) - dp*tv(i,j,kx)*rovg
-          f3d(i,j,kx,nmse) = gti*z(i,j,kx) + cpd*t + wlhv*q
+          tv(i,j,kz) = t*(1.+0.608*q)
+          p(i,j,kz) = (ps-pt*10.)*sigh(kz) + pt*10.
+          dp = log(p(i,j,kz)) - log(ps)
+          z(i,j,kz) = zs(i,j) - dp*tv(i,j,kz)*rovg
+          f3d(i,j,kz,nmse) = gti*z(i,j,kz) + cpd*t + wlhv*q
         end do
       end do
-      do k = kx - 1 , 1 , -1
+      do k = kz - 1 , 1 , -1
         do j = 1 , ny1
           do i = 1 , nx1
             k1 = k + 1

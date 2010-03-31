@@ -134,13 +134,13 @@
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(14,ixm1,kxp1) :: abplnk1 , abplnk2
-      real(8) , dimension(ixm1,kxp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
+      real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
+      real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
            & co2t , h2otr , piln , plco2 , plh2o , plol , plos , pnm ,  &
            & s2c , s2t , tint , tlayr , tplnka , ucfc11 , ucfc12 ,      &
            & uch4 , uco211 , uco212 , uco213 , uco221 , uco222 ,        &
            & uco223 , un2o0 , un2o1 , uptype , w
-      real(8) , dimension(ixm1,kx) :: co2eml , pbr , pmln
+      real(8) , dimension(iym1,kz) :: co2eml , pbr , pmln
       intent (in) abplnk2 , co2em , co2eml , co2t , h2otr , jslc , pbr ,&
                 & piln , plco2 , plh2o , plol , plos , pmln , s2t ,     &
                 & tint , tlayr , tplnka , w
@@ -299,8 +299,8 @@
                & tcrfac , te , tlocal , tmp1 , tmp2 , tmp3 , tpath ,    &
                & tr1 , tr2 , tr5 , tr6 , u1 , u13 , u2 , u8 , u9 ,      &
                & ubar , wco2
-      real(8) , dimension(ixm1,6) :: abso
-      real(8) , dimension(ixm1) :: abstrc , dplh2o , dpnm , dtp , dtx ,&
+      real(8) , dimension(iym1,6) :: abso
+      real(8) , dimension(iym1) :: abstrc , dplh2o , dpnm , dtp , dtx ,&
                                   & dty , dtyp15 , dtyp15sq , dtz , dw ,&
                                   & f1sqwp , f2co2 , f3co2 , fwk ,      &
                                   & fwku , pnew , rbeta7 , sqrtu ,      &
@@ -308,17 +308,17 @@
                                   & to3co2 , to3h2o , tpatha , tr10 ,   &
                                   & tr9 , trab2 , trab4 , trab6 , u ,   &
                                   & u7 , uc , uc1
-      real(8) , dimension(14,ixm1,4) :: bplnk
+      real(8) , dimension(14,iym1,4) :: bplnk
       real(8) :: dbvt
-      real(8) , dimension(ixm1,kxp1) :: dbvtit , pnmsq , term6 , term9
-      real(8) , dimension(ixm1,kx) :: dbvtly
-      real(8) , dimension(ixm1,4) :: emm , o3emm , pinpl , tbar ,      &
+      real(8) , dimension(iym1,kzp1) :: dbvtit , pnmsq , term6 , term9
+      real(8) , dimension(iym1,kz) :: dbvtly
+      real(8) , dimension(iym1,4) :: emm , o3emm , pinpl , tbar ,      &
                                     & temh2o , term1 , term2 , term3 ,  &
                                     & term4 , term5 , uinpl , winpl ,   &
                                     & zinpl
       integer :: i , iband , k , k1 , k2 , kn , wvl
       real(8) , dimension(2) :: r2st
-      real(8) , dimension(ixm1,2) :: term7 , term8 , trline
+      real(8) , dimension(iym1,2) :: term7 , term8 , trline
 !
 !--------------------------Statement function---------------------------
 !
@@ -329,14 +329,14 @@
 !
 !     Initialize
 !
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
           dbvtly(i,k) = dbvt(tlayr(i,k+1))
           dbvtit(i,k) = dbvt(tint(i,k))
         end do
       end do
-      do i = 1 , ixm1
-        dbvtit(i,kxp1) = dbvt(tint(i,kx + 1))
+      do i = 1 , iym1
+        dbvtit(i,kzp1) = dbvt(tint(i,kz + 1))
       end do
 !
       r80257 = 1./8.0257D-04
@@ -359,8 +359,8 @@
 !     abso(i,5)   o3  9.6 micrometer band (nu3 and nu1 bands)
 !     abso(i,6)   co2 15  micrometer band system
 !
-      do k = 1 , kxp1
-        do i = 1 , ixm1
+      do k = 1 , kzp1
+        do i = 1 , iym1
           pnmsq(i,k) = pnm(i,k)**2
           dtx(i) = tplnka(i,k) - 250.
           term6(i,k) = coeff(1,2) + coeff(2,2)*dtx(i)                   &
@@ -374,10 +374,10 @@
 !
 !     Non-nearest layer level loops
 !
-      do k1 = kxp1 , 1 , -1
-        do k2 = kxp1 , 1 , -1
+      do k1 = kzp1 , 1 , -1
+        do k2 = kzp1 , 1 , -1
           if ( k1.ne.k2 ) then
-            do i = 1 , ixm1
+            do i = 1 , iym1
               dplh2o(i) = plh2o(i,k1) - plh2o(i,k2)
               u(i) = dabs(dplh2o(i))
               sqrtu(i) = dsqrt(u(i))
@@ -386,7 +386,7 @@
               uc1(i) = (ds2c+1.7E-3*u(i))*(1.+2.*ds2c)/(1.+15.*ds2c)
               uc(i) = ds2c + 2.E-3*u(i)
             end do
-            do i = 1 , ixm1
+            do i = 1 , iym1
               pnew(i) = u(i)/dw(i)
               tpatha(i) = (s2t(i,k1)-s2t(i,k2))/dplh2o(i)
               dtx(i) = tplnka(i,k2) - 250.
@@ -397,7 +397,7 @@
               dtp(i) = dty(i) - 50.
             end do
             do iband = 2 , 4 , 2
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 term1(i,iband) = coefe(1,iband) + coefe(2,iband)*dtx(i) &
                                & *(1.+c1(iband)*dtx(i))
                 term2(i,iband) = coefb(1,iband) + coefb(2,iband)*dtx(i) &
@@ -415,7 +415,7 @@
 !
 !           abso(i,1)     0 -  800 cm-1   h2o rotation band
 !
-            do i = 1 , ixm1
+            do i = 1 , iym1
               a11 = 0.44 + 3.380E-4*dtz(i) - 1.520E-6*dtz(i)*dtz(i)
               a31 = 1.05 - 6.000E-3*dtp(i) + 3.000E-6*dtp(i)*dtp(i)
               a21 = 1.00 + 1.717E-3*dtz(i) - 1.133E-5*dtz(i)*dtz(i)
@@ -434,7 +434,7 @@
 !
 !           abso(i,2)  1200 - 2200 cm-1   h2o vibration-rotation band
 !
-            do i = 1 , ixm1
+            do i = 1 , iym1
               a41 = 1.75 - 3.960E-03*dtz(i)
               a51 = 1.00 + 1.3*sqrtu(i)
               a61 = 1.00 + 1.250E-03*dtp(i) + 6.250E-05*dtp(i)*dtp(i)
@@ -450,7 +450,7 @@
 !           Line transmission in 800-1000 and 1000-1200 cm-1 intervals
 !
             do k = 1 , 2
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 phi = dexp(a1(k)*dtyp15(i)+a2(k)*dtyp15sq(i))
                 psi = dexp(b1(k)*dtyp15(i)+b2(k)*dtyp15sq(i))
                 ubar = dw(i)*phi*1.66*r80257
@@ -461,7 +461,7 @@
                 trline(i,k) = dexp(-g4)
               end do
             end do
-            do i = 1 , ixm1
+            do i = 1 , iym1
               term7(i,1) = coefj(1,1) + coefj(2,1)*dty(i)               &
                          & *(1.+c16*dty(i))
               term8(i,1) = coefk(1,1) + coefk(2,1)*dty(i)               &
@@ -475,7 +475,7 @@
 !           abso(i,3)   800 - 1200 cm-1   h2o window
 !           abso(i,4)   500 -  800 cm-1   h2o rotation band overlap
 !           with co2
-            do i = 1 , ixm1
+            do i = 1 , iym1
               k21 = term7(i,1) + term8(i,1)                             &
                   & /(1.+(c30+c31*(dty(i)-10.)*(dty(i)-10.))*sqrtu(i))
               k22 = term7(i,2) + term8(i,2)                             &
@@ -496,18 +496,18 @@
               abso(i,4) = term9(i,k2)*.5*(tr1-tr9(i)+tr2-tr10(i))
             end do
             if ( k2.lt.k1 ) then
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 to3h2o(i) = h2otr(i,k1)/h2otr(i,k2)
               end do
             else
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 to3h2o(i) = h2otr(i,k2)/h2otr(i,k1)
               end do
             end if
 !
 !           abso(i,5)   o3  9.6 micrometer band (nu3 and nu1 bands)
 !
-            do i = 1 , ixm1
+            do i = 1 , iym1
               dpnm(i) = pnm(i,k1) - pnm(i,k2)
               to3co2(i) = (pnm(i,k1)*co2t(i,k1)-pnm(i,k2)*co2t(i,k2))   &
                         & /dpnm(i)
@@ -531,7 +531,7 @@
 !
 !           abso(i,6)      co2 15  micrometer band system
 !
-            do i = 1 , ixm1
+            do i = 1 , iym1
               sqwp = dsqrt(dabs(plco2(i,k1)-plco2(i,k2)))
               et = dexp(-480./to3co2(i))
               sqti(i) = dsqrt(to3co2(i))
@@ -564,12 +564,12 @@
               f3co2(i) = u13/dsqrt(4.+u13*(1.+rbeta13))
             end do
             if ( k2.ge.k1 ) then
-              do i = 1 , ixm1
+              do i = 1 , iym1
                 sqti(i) = dsqrt(tlayr(i,k2))
               end do
             end if
 !
-            do i = 1 , ixm1
+            do i = 1 , iym1
               tmp1 = dlog(1.+f1sqwp(i))
               tmp2 = dlog(1.+f2co2(i))
               tmp3 = dlog(1.+f3co2(i))
@@ -589,7 +589,7 @@
 !
 !           Sum total absorptivity
 !
-            do i = 1 , ixm1
+            do i = 1 , iym1
               abstot(i,k1,k2,jslc) = abso(i,1) + abso(i,2) + abso(i,3)  &
                                    & + abso(i,4) + abso(i,5) + abso(i,6)&
                                    & + abstrc(i)
@@ -609,8 +609,8 @@
 !
 !     Nearest layer level loop
 !
-      do k2 = kx , 1 , -1
-        do i = 1 , ixm1
+      do k2 = kz , 1 , -1
+        do i = 1 , iym1
           tbar(i,1) = 0.5*(tint(i,k2+1)+tlayr(i,k2+1))
           emm(i,1) = 0.5*(co2em(i,k2+1)+co2eml(i,k2))
           tbar(i,2) = 0.5*(tlayr(i,k2+1)+tint(i,k2))
@@ -633,7 +633,7 @@
 !       Weighted Planck functions for trace gases
 !
         do wvl = 1 , 14
-          do i = 1 , ixm1
+          do i = 1 , iym1
             bplnk(wvl,i,1) = 0.5*(abplnk1(wvl,i,k2+1)+abplnk2(wvl,i,k2))
             bplnk(wvl,i,2) = 0.5*(abplnk1(wvl,i,k2)+abplnk2(wvl,i,k2))
             bplnk(wvl,i,3) = bplnk(wvl,i,1)
@@ -641,7 +641,7 @@
           end do
         end do
 !---------------------------------------------------------
-        do i = 1 , ixm1
+        do i = 1 , iym1
           rdpnmsq = 1./(pnmsq(i,k2+1)-pnmsq(i,k2))
           rdpnm = 1./dpnm(i)
           p1 = .5*(pbr(i,k2)+pnm(i,k2+1))
@@ -667,7 +667,7 @@
           pinpl(i,4) = 0.5*(p2+pnm(i,k2+1))
         end do
         do kn = 1 , 4
-          do i = 1 , ixm1
+          do i = 1 , iym1
             u(i) = uinpl(i,kn)*dabs(plh2o(i,k2)-plh2o(i,k2+1))
             sqrtu(i) = dsqrt(u(i))
             dw(i) = dabs(w(i,k2)-w(i,k2+1))
@@ -677,7 +677,7 @@
             uc1(i) = (uc1(i)+1.7E-3*u(i))*(1.+2.*uc1(i))/(1.+15.*uc1(i))
             uc(i) = uinpl(i,kn)*ds2c + 2.E-3*u(i)
           end do
-          do i = 1 , ixm1
+          do i = 1 , iym1
             dtx(i) = temh2o(i,kn) - 250.
             dty(i) = tbar(i,kn) - 250.
             dtyp15(i) = dty(i) + 15.
@@ -686,7 +686,7 @@
             dtp(i) = dty(i) - 50.
           end do
           do iband = 2 , 4 , 2
-            do i = 1 , ixm1
+            do i = 1 , iym1
               term1(i,iband) = coefe(1,iband) + coefe(2,iband)*dtx(i)   &
                              & *(1.+c1(iband)*dtx(i))
               term2(i,iband) = coefb(1,iband) + coefb(2,iband)*dtx(i)   &
@@ -704,7 +704,7 @@
 !
 !         abso(i,1)     0 -  800 cm-1   h2o rotation band
 !
-          do i = 1 , ixm1
+          do i = 1 , iym1
             a11 = 0.44 + 3.380E-4*dtz(i) - 1.520E-6*dtz(i)*dtz(i)
             a31 = 1.05 - 6.000E-3*dtp(i) + 3.000E-6*dtp(i)*dtp(i)
             a21 = 1.00 + 1.717E-3*dtz(i) - 1.133E-5*dtz(i)*dtz(i)
@@ -723,7 +723,7 @@
 !
 !         abso(i,2)  1200 - 2200 cm-1   h2o vibration-rotation band
 !
-          do i = 1 , ixm1
+          do i = 1 , iym1
             a41 = 1.75 - 3.960E-03*dtz(i)
             a51 = 1.00 + 1.3*sqrtu(i)
             a61 = 1.00 + 1.250E-03*dtp(i) + 6.250E-05*dtp(i)*dtp(i)
@@ -739,7 +739,7 @@
 !         Line transmission in 800-1000 and 1000-1200 cm-1 intervals
 !
           do k = 1 , 2
-            do i = 1 , ixm1
+            do i = 1 , iym1
               phi = dexp(a1(k)*dtyp15(i)+a2(k)*dtyp15sq(i))
               psi = dexp(b1(k)*dtyp15(i)+b2(k)*dtyp15sq(i))
               ubar = dw(i)*phi*winpl(i,kn)*1.66*r80257
@@ -750,7 +750,7 @@
               trline(i,k) = dexp(-g4)
             end do
           end do
-          do i = 1 , ixm1
+          do i = 1 , iym1
             term7(i,1) = coefj(1,1) + coefj(2,1)*dty(i)*(1.+c16*dty(i))
             term8(i,1) = coefk(1,1) + coefk(2,1)*dty(i)*(1.+c17*dty(i))
             term7(i,2) = coefj(1,2) + coefj(2,2)*dty(i)*(1.+c26*dty(i))
@@ -760,7 +760,7 @@
 !         abso(i,3)   800 - 1200 cm-1   h2o window
 !         abso(i,4)   500 -  800 cm-1   h2o rotation band overlap with
 !         co2
-          do i = 1 , ixm1
+          do i = 1 , iym1
             dtym10 = dty(i) - 10.
             denom = 1. + (c30+c31*dtym10*dtym10)*sqrtu(i)
             k21 = term7(i,1) + term8(i,1)/denom
@@ -790,7 +790,7 @@
 !
 !         abso(i,5)  o3  9.6 micrometer (nu3 and nu1 bands)
 !
-          do i = 1 , ixm1
+          do i = 1 , iym1
             te = (tbar(i,kn)*r293)**.7
             dplos = dabs(plos(i,k2+1)-plos(i,k2))
             u1 = zinpl(i,kn)*18.29*dplos/te
@@ -809,7 +809,7 @@
 !
 !         abso(i,6)   co2 15  micrometer band system
 !
-          do i = 1 , ixm1
+          do i = 1 , iym1
             dplco2 = plco2(i,k2+1) - plco2(i,k2)
             sqwp = dsqrt(uinpl(i,kn)*dplco2)
             et = dexp(-480./tbar(i,kn))
@@ -860,7 +860,7 @@
 !
 !         Total next layer absorptivity:
 !
-          do i = 1 , ixm1
+          do i = 1 , iym1
             absnxt(i,k2,kn,jslc) = abso(i,1) + abso(i,2) + abso(i,3)    &
                                  & + abso(i,4) + abso(i,5) + abso(i,6)  &
                                  & + abstrc(i)

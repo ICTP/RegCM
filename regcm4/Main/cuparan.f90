@@ -35,17 +35,17 @@
 ! Dummy arguments
 !
       integer :: j
-      real(8) , dimension(ix,kx) :: qten , tten
+      real(8) , dimension(iy,kz) :: qten , tten
       intent (inout) qten , tten
 !
 ! Local variables
 !
       real(8) :: aprdiv , calc , dtime , pkdcut , pkk , prainx , us , vs
       integer :: i , iconj , icut , iend , istart , k , kk
-      integer , dimension(ix) :: kdet
-      real(8) , dimension(ix,kx) :: outq , outt , p , po , q , qo , t , &
+      integer , dimension(iy) :: kdet
+      real(8) , dimension(iy,kz) :: outq , outt , p , po , q , qo , t , &
                                   & tn , vsp
-      real(8) , dimension(ix) :: pret , psur , qcrit , ter11
+      real(8) , dimension(iy) :: pret , psur , qcrit , ter11
 !
 !     zero out radiative clouds
 !
@@ -56,7 +56,7 @@
       dtime = dt
       pkdcut = 75.
       istart = 2 + icut
-      iend = ixm2 - icut
+      iend = iym2 - icut
 !
 !---  prepare input, erase output
 !
@@ -66,9 +66,9 @@
         pret(i) = 0.
       end do
 
-      do k = 1 , kx
-        do i = 2 + icut , ixm2 - icut
-          kk = kx - k + 1
+      do k = 1 , kz
+        do i = 2 + icut , iym2 - icut
+          kk = kz - k + 1
           us = ua(i,kk,j)/psb(i,j)
           vs = va(i,kk,j)/psb(i,j)
           us = 0.25*(ua(i,kk,j)/psb(i,j)+ua(i+1,kk,j)/psb(i+1,j)        &
@@ -100,10 +100,10 @@
 !
       call cup(qcrit,t,q,ter11,tn,qo,po,pret,p,outt,outq,dtime,psur,vsp,&
              & istart,iend,kdet,j)
-      do k = 1 , kx
+      do k = 1 , kz
         do i = istart , iend
           if ( pret(i).gt.0. ) then
-            kk = kx - k + 1
+            kk = kz - k + 1
             tten(i,kk) = psb(i,j)*outt(i,k) + tten(i,kk)
             qten(i,kk) = psb(i,j)*outq(i,k) + qten(i,kk)
           end if

@@ -89,7 +89,7 @@
 !l    1.   initialize
 !=======================================================================
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
  
           htvp(n,i) = wlhv
@@ -139,7 +139,7 @@
 !=======================================================================
 !l    3.1  get derivative of fluxes with repect to tg
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).le.0.001 .and. ldoc1d(n,i).lt.1.5 ) then
@@ -171,7 +171,7 @@
         end do
       end do
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then   !  check each point
@@ -210,7 +210,7 @@
 !
 !l    5.3  over ocean
 !l    set snow cover to zero in case it was previously sea ice
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).lt.0.5 ) then
             scv1d(n,i) = 0.
@@ -223,7 +223,7 @@
 !l    6.   linkage to meteorological model
 !=======================================================================
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
  
           if ( ldoc1d(n,i).lt.0.5 .or. lveg(n,i).eq.14 .or. lveg(n,i)   &

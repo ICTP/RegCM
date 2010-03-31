@@ -35,9 +35,9 @@
 ! Dummy arguments
 !
 #ifdef MPP1
-      real(8) , dimension(ix,kx,jxp) :: xkc
+      real(8) , dimension(iy,kz,jxp) :: xkc
 #else
-      real(8) , dimension(ix,kx,jx) :: xkc
+      real(8) , dimension(iy,kz,jx) :: xkc
 #endif
       intent (in) xkc
 !
@@ -45,25 +45,25 @@
 !
 #ifdef MPP1
       integer :: ierr
-      real(8) , dimension(kx,ntr,jxp) :: chia01 , chia02 , chiaill ,    &
+      real(8) , dimension(kz,ntr,jxp) :: chia01 , chia02 , chiaill ,    &
            & chiaill1
-      real(8) , dimension(kx,ntr,jx) :: chia01_g , chia02_g ,           &
+      real(8) , dimension(kz,ntr,jx) :: chia01_g , chia02_g ,           &
            & chiaill1_g , chiaill_g
       real(8) , dimension(jxp) :: psa01 , psa02 , psaill , psaill1
       real(8) , dimension(jx) :: psa01_g , psa02_g , psaill1_g ,        &
                                 & psaill_g
-      real(8) , dimension(kx,jxp) :: va02 , vaill , xkc02 , xkcill1
-      real(8) , dimension(kx,jx) :: va02_g , vaill_g , xkc02_g ,        &
+      real(8) , dimension(kz,jxp) :: va02 , vaill , xkc02 , xkcill1
+      real(8) , dimension(kz,jx) :: va02_g , vaill_g , xkc02_g ,        &
                                    & xkcill1_g
       real(8) :: chid1 , chid2
 #endif
       real(8) :: fact1 , fact2 , fx1 , fx2 , uavg1 , uavg2 , vavg1 ,    &
            &  vavg2
       integer :: i , j , k , n
-      real(8) , dimension(ixm1,kx,ntr) :: worka , workb
+      real(8) , dimension(iym1,kz,ntr) :: worka , workb
 !
-!     real(kind=8)  chixp1,chixm1,chiyp1,chiym1,chi00,chidx,chidy
-!     real(kind=8)  chixp2,chixm2,chiyp2,chiym2
+!     real(kind=8)  chixp1,chiym1,chiyp1,chiym1,chi00,chidx,chidy
+!     real(kind=8)  chixp2,chiym2,chiyp2,chiym2
  
 !ccccccccccccccccccccccccccccccccccccccccccccccc
  
@@ -83,8 +83,8 @@
 !     inflow/outflow
 #ifdef MPP1
       do n = 1 , ntr
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             if ( myid.eq.nproc-1 ) then
               uavg2 = 0.5*(ua(i+1,k,jendx)+ua(i,k,jendx))
               if ( uavg2.lt.0. ) then
@@ -116,12 +116,12 @@
           end do
         end do
       end do
-      call mpi_bcast(worka,ixm1*kx*ntr,mpi_real8,nproc-1,               &
+      call mpi_bcast(worka,iym1*kz*ntr,mpi_real8,nproc-1,               &
                    & mpi_comm_world,ierr)
 #else
       do n = 1 , ntr
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             uavg2 = 0.5*(ua(i+1,k,jxm1)+ua(i,k,jxm1))
             if ( uavg2.lt.0. ) then
               worka(i,k,n) = -uavg2*(fact1*chia(i,k,jxm1,n)/psa(i,jxm1) &
@@ -153,46 +153,46 @@
 
 #ifdef MPP1
       do j = 1 , jendl
-        do k = 1 , kx
-          vaill(k,j) = va(ixm1,k,j)
+        do k = 1 , kz
+          vaill(k,j) = va(iym1,k,j)
           va02(k,j) = va(2,k,j)
-          xkcill1(k,j) = xkc(ixm2,k,j)
+          xkcill1(k,j) = xkc(iym2,k,j)
           xkc02(k,j) = xkc(2,k,j)
           do n = 1 , ntr
-            chiaill(k,n,j) = chia(ixm1,k,j,n)
-            chiaill1(k,n,j) = chia(ixm2,k,j,n)
+            chiaill(k,n,j) = chia(iym1,k,j,n)
+            chiaill1(k,n,j) = chia(iym2,k,j,n)
             chia01(k,n,j) = chia(1,k,j,n)
             chia02(k,n,j) = chia(2,k,j,n)
           end do
         end do
-        psaill(j) = psa(ixm1,j)
-        psaill1(j) = psa(ixm2,j)
+        psaill(j) = psa(iym1,j)
+        psaill1(j) = psa(iym2,j)
         psa01(j) = psa(1,j)
         psa02(j) = psa(2,j)
       end do
-      call mpi_gather(vaill(1,1),  kx*jxp,mpi_real8,                    &
-                    & vaill_g(1,1),kx*jxp,mpi_real8,                    &
+      call mpi_gather(vaill(1,1),  kz*jxp,mpi_real8,                    &
+                    & vaill_g(1,1),kz*jxp,mpi_real8,                    &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(va02(1,1),  kx*jxp,mpi_real8,                     &
-                    & va02_g(1,1),kx*jxp,mpi_real8,                     &
+      call mpi_gather(va02(1,1),  kz*jxp,mpi_real8,                     &
+                    & va02_g(1,1),kz*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(xkcill1(1,1),  kx*jxp,mpi_real8,                  &
-                    & xkcill1_g(1,1),kx*jxp,mpi_real8,                  &
+      call mpi_gather(xkcill1(1,1),  kz*jxp,mpi_real8,                  &
+                    & xkcill1_g(1,1),kz*jxp,mpi_real8,                  &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(xkc02(1,1),  kx*jxp,mpi_real8,                    &
-                    & xkc02_g(1,1),kx*jxp,mpi_real8,                    &
+      call mpi_gather(xkc02(1,1),  kz*jxp,mpi_real8,                    &
+                    & xkc02_g(1,1),kz*jxp,mpi_real8,                    &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chiaill(1,1,1),  kx*ntr*jxp,mpi_real8,            &
-                    & chiaill_g(1,1,1),kx*ntr*jxp,mpi_real8,            &
+      call mpi_gather(chiaill(1,1,1),  kz*ntr*jxp,mpi_real8,            &
+                    & chiaill_g(1,1,1),kz*ntr*jxp,mpi_real8,            &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chiaill1(1,1,1),  kx*ntr*jxp,mpi_real8,           &
-                    & chiaill1_g(1,1,1),kx*ntr*jxp,mpi_real8,           &
+      call mpi_gather(chiaill1(1,1,1),  kz*ntr*jxp,mpi_real8,           &
+                    & chiaill1_g(1,1,1),kz*ntr*jxp,mpi_real8,           &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chia01(1,1,1),  kx*ntr*jxp,mpi_real8,             &
-                    & chia01_g(1,1,1),kx*ntr*jxp,mpi_real8,             &
+      call mpi_gather(chia01(1,1,1),  kz*ntr*jxp,mpi_real8,             &
+                    & chia01_g(1,1,1),kz*ntr*jxp,mpi_real8,             &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chia02(1,1,1),  kx*ntr*jxp,mpi_real8,             &
-                    & chia02_g(1,1,1),kx*ntr*jxp,mpi_real8,             &
+      call mpi_gather(chia02(1,1,1),  kz*ntr*jxp,mpi_real8,             &
+                    & chia02_g(1,1,1),kz*ntr*jxp,mpi_real8,             &
                     & 0,mpi_comm_world,ierr)
       call mpi_gather(psaill(1),  jxp,mpi_real8,                        &
                     & psaill_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
@@ -204,8 +204,8 @@
                     & psa02_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do n = 1 , ntr
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)              &
                         & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
             end do
@@ -213,20 +213,20 @@
 !.....
 !.....advection through north-south boundaries:
 !
-          do k = 1 , kx
+          do k = 1 , kz
             do j = 2 , jxm2
 !hy           inflow/outflow
               vavg2 = 0.5*(vaill_g(k,j+1)+vaill_g(k,j))
               if ( vavg2.lt.0. ) then
                 fx2 = -vavg2*(fact1*chiaill_g(k,n,j)/psaill_g(j)        &
-                    & /(msfx_io(ixm1,j)*msfx_io(ixm1,j))                &
+                    & /(msfx_io(iym1,j)*msfx_io(iym1,j))                &
                     & +fact2*chiaill1_g(k,n,j)/psaill1_g(j)             &
-                    & /(msfx_io(ixm2,j)*msfx_io(ixm2,j)))
+                    & /(msfx_io(iym2,j)*msfx_io(iym2,j)))
               else
                 fx2 = -vavg2*(fact1*chiaill1_g(k,n,j)/psaill1_g(j)      &
-                    & /(msfx_io(ixm2,j)*msfx_io(ixm2,j))                &
+                    & /(msfx_io(iym2,j)*msfx_io(iym2,j))                &
                     & +fact2*chiaill_g(k,n,j)/psaill_g(j)               &
-                    & /(msfx_io(ixm1,j)*msfx_io(ixm1,j)))
+                    & /(msfx_io(iym1,j)*msfx_io(iym1,j)))
               end if
  
               vavg1 = 0.5*(va02_g(k,j+1)+va02_g(k,j))
@@ -248,8 +248,8 @@
       call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do n = 1 , ntr
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)                &
                       & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
           end do
@@ -259,19 +259,19 @@
 !.....advection through north-south boundaries:
 !
       do n = 1 , ntr
-        do k = 1 , kx
+        do k = 1 , kz
           do j = 2 , jxm2
 !hy         inflow/outflow
-            vavg2 = 0.5*(va(ixm1,k,j+1)+va(ixm1,k,j))
+            vavg2 = 0.5*(va(iym1,k,j+1)+va(iym1,k,j))
             if ( vavg2.lt.0. ) then
-              fx2 = -vavg2*(fact1*chia(ixm1,k,j,n)/psa(ixm1,j)          &
-                  & /(msfx(ixm1,j)*msfx(ixm1,j))+fact2*chia(ixm2,k,j,n) &
-                  & /psa(ixm2,j)/(msfx(ixm2,j)*msfx(ixm2,j)))
+              fx2 = -vavg2*(fact1*chia(iym1,k,j,n)/psa(iym1,j)          &
+                  & /(msfx(iym1,j)*msfx(iym1,j))+fact2*chia(iym2,k,j,n) &
+                  & /psa(iym2,j)/(msfx(iym2,j)*msfx(iym2,j)))
             else
-              fx2 = -vavg2*(fact1*chia(ixm2,k,j,n)/psa(ixm2,j)          &
-                  & /(msfx(ixm2,j)*msfx(ixm2,j))                        &
-                  & +fact2*chia(ixm1,k,j,n)/psa(ixm1,j)                 &
-                  & /(msfx(ixm1,j)*msfx(ixm1,j)))
+              fx2 = -vavg2*(fact1*chia(iym2,k,j,n)/psa(iym2,j)          &
+                  & /(msfx(iym2,j)*msfx(iym2,j))                        &
+                  & +fact2*chia(iym1,k,j,n)/psa(iym1,j)                 &
+                  & /(msfx(iym1,j)*msfx(iym1,j)))
             end if
  
             vavg1 = 0.5*(va(1+1,k,j+1)+va(1+1,k,j))
@@ -298,8 +298,8 @@
 !
 #ifdef MPP1
       do n = 1 , ntr
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             if ( myid.eq.nproc-1 ) worka(i,k,n) = xkc(i,k,jendm)        &
                & *psa(i,jendm)                                          &
                & *(chia(i,k,jendm,n)/psa(i,jendm)-chia(i,k,jendx,n)     &
@@ -309,12 +309,12 @@
           end do
         end do
       end do
-      call mpi_bcast(worka,ixm1*kx*ntr,mpi_real8,nproc-1,               &
+      call mpi_bcast(worka,iym1*kz*ntr,mpi_real8,nproc-1,               &
                    & mpi_comm_world,ierr)
 #else
       do n = 1 , ntr
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             worka(i,k,n) = xkc(i,k,jxm2)*psa(i,jxm2)                    &
                          & *(chia(i,k,jxm2,n)/psa(i,jxm2)               &
                          & -chia(i,k,jxm1,n)/psa(i,jxm1))
@@ -329,8 +329,8 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
         do n = 1 , ntr
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)              &
                         & *(workb(i,k,n)+worka(i,k,n))*rgti
             end do
@@ -338,7 +338,7 @@
  
 !.....  diffusion through north-south boundaries:
  
-          do k = 1 , kx
+          do k = 1 , kz
             do j = 2 , jxm2
               chid1 = xkcill1_g(k,j)*psaill1_g(j)                       &
                     & *(chiaill1_g(k,n,j)/psaill1_g(j)-chiaill_g(k,n,j) &
@@ -355,8 +355,8 @@
       call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do n = 1 , ntr
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)                &
                       & *(workb(i,k,n)+worka(i,k,n))*rgti
           end do

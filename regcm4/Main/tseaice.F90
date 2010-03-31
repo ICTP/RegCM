@@ -47,7 +47,7 @@
                & wtt
       integer :: n , i
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
  
           if ( lveg(n,i).eq.14 ) exit   ! lake model handles this case

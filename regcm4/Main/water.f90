@@ -60,7 +60,7 @@
 !
       real(8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
                & evmxt , rap , vakb , wtg2c , xxkb
-      real(8) , dimension(nnsg,ixm1) :: gwatr , rnof , rsubsr ,         &
+      real(8) , dimension(nnsg,iym1) :: gwatr , rnof , rsubsr ,         &
            & rsubss , rsubst , rsur , wflux1 , wflux2 , wfluxc , xkmx1 ,&
            & xkmx2 , xkmxr
       integer :: n , i
@@ -72,7 +72,7 @@
 !     1.   define soil water fluxes
 !=======================================================================
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
 !
@@ -133,7 +133,7 @@
 !
 !     1.5  net flux at air interface
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
             gwatr(n,i) = pw(n,i) - evapw(n,i) + sm(n,i)                 &
@@ -197,7 +197,7 @@
         end do
       end do
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
 !
@@ -255,7 +255,7 @@
 !     wetness factor, allowing for snow being saturated
 !=======================================================================
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
             xxkb = dmin1(rough(lveg(n,i)),1.D0)

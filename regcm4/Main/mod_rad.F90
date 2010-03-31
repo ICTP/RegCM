@@ -24,13 +24,13 @@
       implicit none
 
 #ifdef MPP1
-      real(8) , dimension(ixm1,kx) :: cldfra , cldlwc
-      real(8) , dimension(ixm1,kx,jxp) :: heatrt
-      real(8) , dimension(ixm1,kxp1,jxp) :: o3prof
+      real(8) , dimension(iym1,kz) :: cldfra , cldlwc
+      real(8) , dimension(iym1,kz,jxp) :: heatrt
+      real(8) , dimension(iym1,kzp1,jxp) :: o3prof
 #else
-      real(8) , dimension(ixm1,kx) :: cldfra , cldlwc
-      real(8) , dimension(ixm1,kx,jxm1) :: heatrt
-      real(8) , dimension(ixm1,kxp1,jxm1) :: o3prof
+      real(8) , dimension(iym1,kz) :: cldfra , cldlwc
+      real(8) , dimension(iym1,kz,jxm1) :: heatrt
+      real(8) , dimension(iym1,kzp1,jxm1) :: o3prof
 #endif
 
       end module mod_rad

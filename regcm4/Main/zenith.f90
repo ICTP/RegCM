@@ -54,6 +54,8 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
+      use mod_constants , only : twopi
+
       implicit none
 !
 ! Dummy arguments
@@ -64,10 +66,8 @@
 !
 ! Local variables
 !
-      real(8) :: cc , cosz , dlon , ha , ss , tpifjd , twopi
+      real(8) :: cc , cosz , dlon , ha , ss , tpifjd
       integer :: i
-!
-      data twopi / 6.28318530717958647692 /
 !
 !***********************************************************************
 !

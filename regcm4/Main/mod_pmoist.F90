@@ -30,30 +30,30 @@
                & qdcrit , rh0land , rh0oce , rhmax , shrmax , tc0 ,     &
                & shrmin , skbmax
 #ifdef MPP1
-      real(8) , dimension(ix,jxp) :: cbmf2d , cgul , dtauc2d ,          &
+      real(8) , dimension(iy,jxp) :: cbmf2d , cgul , dtauc2d ,          &
                                    & edtmax2d , edtmaxo2d , edtmaxx2d , &
                                    & edtmin2d , edtmino2d , edtminx2d , &
                                    & htmax2d , htmin2d , mincld2d ,     &
                                    & pbcmax2d , qck1 , rh0 , shrmax2d , &
                                    & shrmin2d
-      real(8) , dimension(ix,kx,jxp) :: fcc , rsheat , rswat
+      real(8) , dimension(iy,kz,jxp) :: fcc , rsheat , rswat
 #else
-      real(8) , dimension(ix,jx) :: cbmf2d , cgul , dtauc2d , edtmax2d ,&
+      real(8) , dimension(iy,jx) :: cbmf2d , cgul , dtauc2d , edtmax2d ,&
                                   & edtmaxo2d , edtmaxx2d , edtmin2d ,  &
                                   & edtmino2d , edtminx2d , htmax2d ,   &
                                   & htmin2d , mincld2d , pbcmax2d ,     &
                                   & qck1 , rh0 , shrmax2d , shrmin2d
-      real(8) , dimension(ix,kx,jx) :: fcc , rsheat , rswat
+      real(8) , dimension(iy,kz,jx) :: fcc , rsheat , rswat
 #endif
-      real(8) , dimension(kx) :: qwght
-      real(8) , dimension(kx,5:kx,1:kx-3) :: twght , vqflx
+      real(8) , dimension(kz) :: qwght
+      real(8) , dimension(kz,5:kz,1:kz-3) :: twght , vqflx
 !
 #ifdef MPP1
       integer , dimension(jxp) :: icon
-      integer , dimension(ix,jxp) :: kbmax2d
+      integer , dimension(iy,jxp) :: kbmax2d
 #else
       integer , dimension(jx) :: icon
-      integer , dimension(ix,jx) :: kbmax2d
+      integer , dimension(iy,jx) :: kbmax2d
 #endif
       integer :: kbmax
 

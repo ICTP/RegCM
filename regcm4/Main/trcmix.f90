@@ -48,9 +48,9 @@
 !
 ! Dummy arguments
 !
-      real(8) , dimension(ixm1,kx) :: cfc11 , cfc12 , ch4 , n2o ,    &
+      real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
            & pmid
-      real(8) , dimension(ixm1) :: clat , coslat
+      real(8) , dimension(iym1) :: clat , coslat
       intent (in) clat , coslat , pmid
       intent (out) cfc11 , cfc12 , ch4 , n2o
 !
@@ -68,9 +68,9 @@
 !
       real(8) :: dlat , pratio , xcfc11 , xcfc12 , xch4 , xn2o
       integer :: i , k
-      real(8) , dimension(ixm1) :: ptrop
+      real(8) , dimension(iym1) :: ptrop
 !
-      do i = 1 , ixm1
+      do i = 1 , iym1
 !       set stratospheric scale height factor for gases
         dlat = dabs(57.2958*clat(i))
         if ( dlat.le.45.0 ) then
@@ -90,8 +90,8 @@
 !
       end do
 !
-      do k = 1 , kx
-        do i = 1 , ixm1
+      do k = 1 , kz
+        do i = 1 , iym1
           if ( pmid(i,k).ge.ptrop(i) ) then
             ch4(i,k) = ch40
             n2o(i,k) = n2o0

@@ -42,8 +42,8 @@
 !
 ! Local variables
 !
-      real(4) , dimension(jxm2,ixm2) :: fout
-      real(8) , dimension(jx,ix) :: out1
+      real(4) , dimension(jxm2,iym2) :: fout
+      real(8) , dimension(jx,iy) :: out1
       integer :: i , j , k , n , nn
       real(8) :: mmpd
 !
@@ -57,8 +57,8 @@
 !
 !     ******  write one time of data to mm4 output file.
  
-      do k = kx , 1 , -1
-        do i = 1 , ix
+      do k = kz , 1 , -1
+        do i = 1 , iy
           do j = 1 , jx
 #ifdef MPP1
             out1(j,i) = ua_io(i,k,j)
@@ -67,7 +67,7 @@
 #endif
           end do
         end do
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fout(j,i) = 0.25*(out1(j+1,i+1)+out1(j+2,i+1)+out1(j+1,i+2) &
@@ -86,8 +86,8 @@
         else
         end if
       end do
-      do k = kx , 1 , -1
-        do i = 1 , ix
+      do k = kz , 1 , -1
+        do i = 1 , iy
           do j = 1 , jx
 #ifdef MPP1
             out1(j,i) = va_io(i,k,j)
@@ -96,7 +96,7 @@
 #endif
           end do
         end do
-        do i = 1 , ixm2
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fout(j,i) = 0.25*(out1(j+1,i+1)+out1(j+2,i+1)+out1(j+1,i+2) &
@@ -115,8 +115,8 @@
         else
         end if
       end do
-      do k = kx , 1 , -1
-        do i = 1 , ixm2
+      do k = kz , 1 , -1
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fout(j,i) = omega_io(i+1,k,j+1)
@@ -133,8 +133,8 @@
         else
         end if
       end do
-      do k = kx , 1 , -1
-        do i = 1 , ixm2
+      do k = kz , 1 , -1
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fout(j,i) = ta_io(i+1,k,j+1)/psa_io(i+1,j+1)
@@ -151,8 +151,8 @@
         else
         end if
       end do
-      do k = kx , 1 , -1
-        do i = 1 , ixm2
+      do k = kz , 1 , -1
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fout(j,i) = qva_io(i+1,k,j+1)/psa_io(i+1,j+1)
@@ -169,8 +169,8 @@
         else
         end if
       end do
-      do k = kx , 1 , -1
-        do i = 1 , ixm2
+      do k = kz , 1 , -1
+        do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
             fout(j,i) = qca_io(i+1,k,j+1)/psa_io(i+1,j+1)
@@ -187,7 +187,7 @@
         else
         end if
       end do
-      do i = 1 , ixm2
+      do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
           fout(j,i) = (psa_io(i+1,j+1)+ptop)*10.
@@ -204,7 +204,7 @@
       else
       end if
       mmpd = 24./tapfrq
-      do i = 1 , ixm2
+      do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
           fout(j,i) = (rainc_io(i+1,j+1)+rainnc_io(i+1,j+1))*mmpd
@@ -225,7 +225,7 @@
 !     1.  temp of lower soil layer (17)
 !     2.  total soil water in mm h2o (13)
 !     3.  accum infiltration (30)
-      do i = 1 , ixm2
+      do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
           fout(j,i) = tgb2d_io(1,i+1,j+1)
@@ -249,7 +249,7 @@
       else
       end if
  
-      do i = 1 , ixm2
+      do i = 1 , iym2
         do j = 1 , jxm2
           fout(j,i) = 0.0
           nn = 0
@@ -281,7 +281,7 @@
       else
       end if
  
-      do i = 1 , ixm2
+      do i = 1 , iym2
         do j = 1 , jxm2
           fout(j,i) = 0.0
           nn = 0

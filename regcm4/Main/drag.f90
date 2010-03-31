@@ -37,7 +37,7 @@
 !
 ! Local variables
 !
-      real(8) , dimension(nnsg,ixm1) :: cdrmin , rib , ribl , ribn
+      real(8) , dimension(nnsg,iym1) :: cdrmin , rib , ribl , ribn
       real(8) :: dthdz , u1 , u2 , zatild
       integer :: n , i
 !
@@ -46,7 +46,7 @@
 !=======================================================================
       call dragdn
  
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
 !=======================================================================
 !         2.   compute stability as bulk rich. no. = rin/rid =
@@ -105,7 +105,7 @@
 !=======================================================================
  
 !     4.1  test if northern or southern hemisphere
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
                                                     ! check each point
 !cc   if(lat(i).eq.    1) aarea(i) = 0.005  ! ccm specific code
@@ -117,7 +117,7 @@
       end do
  
 !     4.4  neutral cd over lead water
-      do i = 2 , ixm1
+      do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.1.5 ) then       !  check each point
             cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**2

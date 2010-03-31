@@ -24,28 +24,28 @@
       implicit none
 !
 #ifdef MPP1
-      real(8) , dimension(ix,jxp,12,ntr) :: chemsrc
-      real(8) , dimension(ix,kx,-1:jxp+2,ntr) :: chia , chib
-      real(8) , dimension(ix,jxp,ntr) :: srclp2
+      real(8) , dimension(iy,jxp,12,ntr) :: chemsrc
+      real(8) , dimension(iy,kz,-1:jxp+2,ntr) :: chia , chib
+      real(8) , dimension(iy,jxp,ntr) :: srclp2
 #else
-      real(8) , dimension(ix,jx,12,ntr) :: chemsrc
-      real(8) , dimension(ix,kx,jx,ntr) :: chia , chib
-      real(8) , dimension(ix,jx,ntr) :: srclp2
+      real(8) , dimension(iy,jx,12,ntr) :: chemsrc
+      real(8) , dimension(iy,kz,jx,ntr) :: chia , chib
+      real(8) , dimension(iy,jx,ntr) :: srclp2
 #endif
 !
 #ifdef MPP1
-      real(8) , dimension(ix,jxp,ntr) :: ddsfc , dtrace , wdcvc ,       &
+      real(8) , dimension(iy,jxp,ntr) :: ddsfc , dtrace , wdcvc ,       &
                                        & wdlsc , wxaq , wxsg
 #else
-      real(8) , dimension(ix,jx,ntr) :: ddsfc , dtrace , wdcvc , wdlsc ,&
+      real(8) , dimension(iy,jx,ntr) :: ddsfc , dtrace , wdcvc , wdlsc ,&
                                       & wxaq , wxsg
 #endif
 
-      real(4) , dimension(jxm2,ixm2) :: fchem
+      real(4) , dimension(jxm2,iym2) :: fchem
 
 #ifdef MPP1
-      real(8) , dimension(ix,12,ntr,jxp) :: src0
-      real(8) , dimension(ix,12,ntr,jx) :: src_0
+      real(8) , dimension(iy,12,ntr,jxp) :: src0
+      real(8) , dimension(iy,12,ntr,jx) :: src_0
 #endif
 
       end module mod_mainchem

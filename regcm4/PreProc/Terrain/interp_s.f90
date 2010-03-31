@@ -57,7 +57,7 @@
       flag = .false.
       dsgrid = float(ntypec)/60.
  
-      do i = 1 , ixsg - 1
+      do i = 1 , iysg - 1
         do j = 1 , jxsg - 1
  
           yy = -(grdltmn-xlat_s(i,j))/dsgrid + 1.0

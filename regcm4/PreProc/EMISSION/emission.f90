@@ -84,7 +84,7 @@
 ! DR3      : the directory of GFED data
 ! DR4      : the directory of EDGAR data
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param , only : ix , jx , aertyp , ibyte
+      use mod_regcm_param , only : iy , jx , aertyp , ibyte
       use mod_emission
       implicit none
 !
@@ -112,7 +112,7 @@
  
 !     ******    ON WHAT RegCM GRID ARE AEROSOL DESIRED?
       open (10,file='../ICBC/fort.10',form='unformatted',               &
-          & recl=ix*jx*ibyte,access='direct',status='old',err=100)
+          & recl=iy*jx*ibyte,access='direct',status='old',err=100)
 !     &   ,convert='big_endian' ,status='unknown',ERR=4830)
       inquire (file='../../Input/AERO.dat',exist=there)
       if ( there ) call unlink('../../Input/oxid.dat')

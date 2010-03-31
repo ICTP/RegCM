@@ -92,19 +92,19 @@
                & qvas , qvbs , rovcpm , rtbar , sigpsa , tv ,           &
                & tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,      &
                & xday , xmsf , xtm1
-      real(8) , dimension(ix,kx) :: divl
+      real(8) , dimension(iy,kz) :: divl
       integer :: i , icons , iptn , itr , j , k , lev , n
 #ifdef MPP1
       integer :: ierr , icons_mpi , numrec
-      real(8) , dimension(ix,kx,jxp) :: ttld
-      real(8) , dimension(ix,kx*16+4) :: bdyewrcv , bdyewsnd
-      real(8) , dimension(nspgx,kx*16+4) :: bdynsrcv , bdynssnd
-      real(8) , dimension(ix,4,jxp) :: ps4
-      real(8) , dimension(ix,4,jx) :: ps_4 
-      real(8) , dimension(ix,kx*(ntr+5)*2) :: var2rcv , var2snd
-      real(8) , dimension(ix,kx*(ntr+11)+1) :: tvar1rcv , tvar1snd
+      real(8) , dimension(iy,kz,jxp) :: ttld
+      real(8) , dimension(iy,kz*16+4) :: bdyewrcv , bdyewsnd
+      real(8) , dimension(nspgx,kz*16+4) :: bdynsrcv , bdynssnd
+      real(8) , dimension(iy,4,jxp) :: ps4
+      real(8) , dimension(iy,4,jx) :: ps_4 
+      real(8) , dimension(iy,kz*(ntr+5)*2) :: var2rcv , var2snd
+      real(8) , dimension(iy,kz*(ntr+11)+1) :: tvar1rcv , tvar1snd
 #else
-      real(8) , dimension(ix,kx,jx) :: ttld
+      real(8) , dimension(iy,kz,jx) :: ttld
 #endif
 !
 !----------------------------------------------------------------------
@@ -128,19 +128,19 @@
 #else
       do j = 1 , jx
 #endif
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             ua(i,k,j) = ua(i,k,j)*msfd(i,j)
             va(i,k,j) = va(i,k,j)*msfd(i,j)
           end do
         end do
       end do
 #ifdef MPP1
-      call mpi_sendrecv(psa(1,jxp),ix,mpi_real8,ieast,1,                &
-                      & psa(1,0),ix,mpi_real8,iwest,1,                  &
+      call mpi_sendrecv(psa(1,jxp),iy,mpi_real8,ieast,1,                &
+                      & psa(1,0),iy,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(psa(1,1),ix,mpi_real8,iwest,2,                  &
-                      & psa(1,jxp+1),ix,mpi_real8,ieast,2,              &
+      call mpi_sendrecv(psa(1,1),iy,mpi_real8,iwest,2,                  &
+                      & psa(1,jxp+1),iy,mpi_real8,ieast,2,              &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
@@ -155,16 +155,16 @@
 #endif
 !-----------lateral slices:
 !-----------west boundary:
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               u(i,k,j) = uj1(i,k)
               v(i,k,j) = vj1(i,k)
             end do
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
-            do k = 1 , kx
-              do i = 1 , ix
+            do k = 1 , kz
+              do i = 1 , iy
                 if ( u(i,k,j).lt.0. ) then
                   v(i,k,j) = vj2(i,k)
                   u(i,k,j) = uj2(i,k)
@@ -177,24 +177,24 @@
 #else
         else if ( j.eq.2 ) then
 #endif
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               u(i,k,j) = uj2(i,k)
               v(i,k,j) = vj2(i,k)
             end do
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
-            do k = 1 , kx
+            do k = 1 , kz
 !.................south boundary:
               if ( v(1,k,j).lt.0. ) then
                 v(1,k,j) = v(2,k,j)
                 u(1,k,j) = u(2,k,j)
               end if
 !.................north boundary:
-              if ( v(ix,k,j).ge.0. ) then
-                v(ix,k,j) = v(ixm1,k,j)
-                u(ix,k,j) = u(ixm1,k,j)
+              if ( v(iy,k,j).ge.0. ) then
+                v(iy,k,j) = v(iym1,k,j)
+                u(iy,k,j) = u(iym1,k,j)
               end if
             end do
           end if
@@ -203,24 +203,24 @@
 #else
         else if ( j.eq.jxm1 ) then
 #endif
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               u(i,k,j) = ujlx(i,k)
               v(i,k,j) = vjlx(i,k)
             end do
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
-            do k = 1 , kx
+            do k = 1 , kz
 !.................south boundary:
               if ( v(1,k,j).lt.0. ) then
                 v(1,k,j) = v(2,k,j)
                 u(1,k,j) = u(2,k,j)
               end if
 !.................north boundary:
-              if ( v(ix,k,j).ge.0. ) then
-                v(ix,k,j) = v(ixm1,k,j)
-                u(ix,k,j) = u(ixm1,k,j)
+              if ( v(iy,k,j).ge.0. ) then
+                v(iy,k,j) = v(iym1,k,j)
+                u(iy,k,j) = u(iym1,k,j)
               end if
             end do
           end if
@@ -233,16 +233,16 @@
 !
 !...........no inflow/outflow dependence:
 !
-          do k = 1 , kx
-            do i = 1 , ix
+          do k = 1 , kz
+            do i = 1 , iy
               u(i,k,j) = ujl(i,k)
               v(i,k,j) = vjl(i,k)
             end do
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
-            do k = 1 , kx
-              do i = 1 , ix
+            do k = 1 , kz
+              do i = 1 , iy
                 if ( u(i,k,j).ge.0. ) then
                   v(i,k,j) = vjlx(i,k)
                   u(i,k,j) = ujlx(i,k)
@@ -255,8 +255,8 @@
 !-----interior slice:
 !-----interior points:
 !
-          do k = 1 , kx
-            do i = 3 , ixm2
+          do k = 1 , kz
+            do i = 3 , iym2
               psabar = 0.25*(psa(i,j)+psa(i,j-1)+                       &
                      &       psa(i-1,j)+psa(i-1,j-1))
               xmsf = msfd(i,j)
@@ -268,30 +268,30 @@
 !-----------north/south boundary points:
 !...........no inflow/outflow dependence:
 !
-          do k = 1 , kx
-!..............for i=2 and i=ixm1:
+          do k = 1 , kz
+!..............for i=2 and i=iym1:
             u(2,k,j) = ui2(k,j)
-            u(ixm1,k,j) = uilx(k,j)
+            u(iym1,k,j) = uilx(k,j)
             v(2,k,j) = vi2(k,j)
-            v(ixm1,k,j) = vilx(k,j)
+            v(iym1,k,j) = vilx(k,j)
 !..............for i=1 and i=ix:
             u(1,k,j) = ui1(k,j)
-            u(ix,k,j) = uil(k,j)
+            u(iy,k,j) = uil(k,j)
             v(1,k,j) = vi1(k,j)
-            v(ix,k,j) = vil(k,j)
+            v(iy,k,j) = vil(k,j)
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
-            do k = 1 , kx
+            do k = 1 , kz
 !.................south boundary:
               if ( v(1,k,j).lt.0. ) then
                 v(1,k,j) = v(2,k,j)
                 u(1,k,j) = u(2,k,j)
               end if
 !.................north boundary:
-              if ( v(ix,k,j).ge.0. ) then
-                v(ix,k,j) = v(ixm1,k,j)
-                u(ix,k,j) = u(ixm1,k,j)
+              if ( v(iy,k,j).ge.0. ) then
+                v(iy,k,j) = v(iym1,k,j)
+                u(iy,k,j) = u(iym1,k,j)
               end if
             end do
           end if
@@ -303,8 +303,8 @@
 #else
       do j = 1 , jxm1
 #endif
-        do k = 1 , kx
-          do i = 1 , ixm1
+        do k = 1 , kz
+          do i = 1 , iym1
             t(i,k,j) = ta(i,k,j)/psa(i,j)
             qv(i,k,j) = qva(i,k,j)/psa(i,j)
             qc(i,k,j) = qca(i,k,j)/psa(i,j)
@@ -322,8 +322,8 @@
 #else
           do j = 1 , jxm1
 #endif
-            do k = 1 , kx
-              do i = 1 , ixm1
+            do k = 1 , kz
+              do i = 1 , iym1
                 chi(i,k,j,n) = chia(i,k,j,n)/psa(i,j)
               end do
             end do
@@ -335,64 +335,64 @@
 !=======================================================================
 #ifdef MPP1
       if ( myid.ne.nproc-1 ) then
-        do i = 1 , ix
+        do i = 1 , iy
           tvar1snd(i,1) = psb(i,jxp)
         end do
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             tvar1snd(i,1+k) = tb(i,k,jxp)
-            tvar1snd(i,1+kx+k) = qvb(i,k,jxp)
-            tvar1snd(i,1+kx*2+k) = ub(i,k,jxp)
-            tvar1snd(i,1+kx*3+k) = vb(i,k,jxp)
-            tvar1snd(i,1+kx*4+k) = u(i,k,jxp)
-            tvar1snd(i,1+kx*5+k) = v(i,k,jxp)
-            tvar1snd(i,1+kx*6+k) = t(i,k,jxp)
-            tvar1snd(i,1+kx*7+k) = qv(i,k,jxp)
-            tvar1snd(i,1+kx*8+k) = qc(i,k,jxp)
-            tvar1snd(i,1+kx*9+k) = ua(i,k,jxp)
-            tvar1snd(i,1+kx*10+k) = va(i,k,jxp)
+            tvar1snd(i,1+kz+k) = qvb(i,k,jxp)
+            tvar1snd(i,1+kz*2+k) = ub(i,k,jxp)
+            tvar1snd(i,1+kz*3+k) = vb(i,k,jxp)
+            tvar1snd(i,1+kz*4+k) = u(i,k,jxp)
+            tvar1snd(i,1+kz*5+k) = v(i,k,jxp)
+            tvar1snd(i,1+kz*6+k) = t(i,k,jxp)
+            tvar1snd(i,1+kz*7+k) = qv(i,k,jxp)
+            tvar1snd(i,1+kz*8+k) = qc(i,k,jxp)
+            tvar1snd(i,1+kz*9+k) = ua(i,k,jxp)
+            tvar1snd(i,1+kz*10+k) = va(i,k,jxp)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kx
-              do i = 1 , ix
-                tvar1snd(i,kx*11+1+(n-1)*kx+k) = chi(i,k,jxp,n)
+            do k = 1 , kz
+              do i = 1 , iy
+                tvar1snd(i,kz*11+1+(n-1)*kz+k) = chi(i,k,jxp,n)
               end do
             end do
           end do
         end if
       end if
-      numrec = kx*11 + 1
-      if ( ichem.eq.1 ) numrec = kx*(ntr+11) + 1
-      call mpi_sendrecv(tvar1snd(1,1),ix*numrec,mpi_real8,              &
-                      & ieast,1,tvar1rcv(1,1),ix*numrec,                &
+      numrec = kz*11 + 1
+      if ( ichem.eq.1 ) numrec = kz*(ntr+11) + 1
+      call mpi_sendrecv(tvar1snd(1,1),iy*numrec,mpi_real8,              &
+                      & ieast,1,tvar1rcv(1,1),iy*numrec,                &
                       & mpi_real8,iwest,1,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
-        do i = 1 , ix
+        do i = 1 , iy
           psb(i,0) = tvar1rcv(i,1)
         end do
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             tb(i,k,0) = tvar1rcv(i,1+k)
-            qvb(i,k,0) = tvar1rcv(i,1+kx+k)
-            ub(i,k,0) = tvar1rcv(i,1+kx*2+k)
-            vb(i,k,0) = tvar1rcv(i,1+kx*3+k)
-            u(i,k,0) = tvar1rcv(i,1+kx*4+k)
-            v(i,k,0) = tvar1rcv(i,1+kx*5+k)
-            t(i,k,0) = tvar1rcv(i,1+kx*6+k)
-            qv(i,k,0) = tvar1rcv(i,1+kx*7+k)
-            qc(i,k,0) = tvar1rcv(i,1+kx*8+k)
-            ua(i,k,0) = tvar1rcv(i,1+kx*9+k)
-            va(i,k,0) = tvar1rcv(i,1+kx*10+k)
+            qvb(i,k,0) = tvar1rcv(i,1+kz+k)
+            ub(i,k,0) = tvar1rcv(i,1+kz*2+k)
+            vb(i,k,0) = tvar1rcv(i,1+kz*3+k)
+            u(i,k,0) = tvar1rcv(i,1+kz*4+k)
+            v(i,k,0) = tvar1rcv(i,1+kz*5+k)
+            t(i,k,0) = tvar1rcv(i,1+kz*6+k)
+            qv(i,k,0) = tvar1rcv(i,1+kz*7+k)
+            qc(i,k,0) = tvar1rcv(i,1+kz*8+k)
+            ua(i,k,0) = tvar1rcv(i,1+kz*9+k)
+            va(i,k,0) = tvar1rcv(i,1+kz*10+k)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kx
-              do i = 1 , ix
-                chi(i,k,0,n) = tvar1rcv(i,kx*11+1+(n-1)*kx+k)
+            do k = 1 , kz
+              do i = 1 , iy
+                chi(i,k,0,n) = tvar1rcv(i,kz*11+1+(n-1)*kz+k)
               end do
             end do
           end do
@@ -400,64 +400,64 @@
       end if
 !
       if ( myid.ne.0 ) then
-        do i = 1 , ix
+        do i = 1 , iy
           tvar1snd(i,1) = psb(i,1)
         end do
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             tvar1snd(i,1+k) = tb(i,k,1)
-            tvar1snd(i,1+kx+k) = qvb(i,k,1)
-            tvar1snd(i,1+kx*2+k) = ub(i,k,1)
-            tvar1snd(i,1+kx*3+k) = vb(i,k,1)
-            tvar1snd(i,1+kx*4+k) = u(i,k,1)
-            tvar1snd(i,1+kx*5+k) = v(i,k,1)
-            tvar1snd(i,1+kx*6+k) = t(i,k,1)
-            tvar1snd(i,1+kx*7+k) = qv(i,k,1)
-            tvar1snd(i,1+kx*8+k) = qc(i,k,1)
-            tvar1snd(i,1+kx*9+k) = ua(i,k,1)
-            tvar1snd(i,1+kx*10+k) = va(i,k,1)
+            tvar1snd(i,1+kz+k) = qvb(i,k,1)
+            tvar1snd(i,1+kz*2+k) = ub(i,k,1)
+            tvar1snd(i,1+kz*3+k) = vb(i,k,1)
+            tvar1snd(i,1+kz*4+k) = u(i,k,1)
+            tvar1snd(i,1+kz*5+k) = v(i,k,1)
+            tvar1snd(i,1+kz*6+k) = t(i,k,1)
+            tvar1snd(i,1+kz*7+k) = qv(i,k,1)
+            tvar1snd(i,1+kz*8+k) = qc(i,k,1)
+            tvar1snd(i,1+kz*9+k) = ua(i,k,1)
+            tvar1snd(i,1+kz*10+k) = va(i,k,1)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kx
-              do i = 1 , ix
-                tvar1snd(i,kx*11+1+(n-1)*kx+k) = chi(i,k,1,n)
+            do k = 1 , kz
+              do i = 1 , iy
+                tvar1snd(i,kz*11+1+(n-1)*kz+k) = chi(i,k,1,n)
               end do
             end do
           end do
         end if
       end if
-      numrec = kx*11 + 1
-      if ( ichem.eq.1 ) numrec = kx*(ntr+11) + 1
-      call mpi_sendrecv(tvar1snd(1,1),ix*numrec,mpi_real8,              &
-                      & iwest,2,tvar1rcv(1,1),ix*numrec,                &
+      numrec = kz*11 + 1
+      if ( ichem.eq.1 ) numrec = kz*(ntr+11) + 1
+      call mpi_sendrecv(tvar1snd(1,1),iy*numrec,mpi_real8,              &
+                      & iwest,2,tvar1rcv(1,1),iy*numrec,                &
                       & mpi_real8,ieast,2,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
-        do i = 1 , ix
+        do i = 1 , iy
           psb(i,jxp+1) = tvar1rcv(i,1)
         end do
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             tb(i,k,jxp+1) = tvar1rcv(i,1+k)
-            qvb(i,k,jxp+1) = tvar1rcv(i,1+kx+k)
-            ub(i,k,jxp+1) = tvar1rcv(i,1+kx*2+k)
-            vb(i,k,jxp+1) = tvar1rcv(i,1+kx*3+k)
-            u(i,k,jxp+1) = tvar1rcv(i,1+kx*4+k)
-            v(i,k,jxp+1) = tvar1rcv(i,1+kx*5+k)
-            t(i,k,jxp+1) = tvar1rcv(i,1+kx*6+k)
-            qv(i,k,jxp+1) = tvar1rcv(i,1+kx*7+k)
-            qc(i,k,jxp+1) = tvar1rcv(i,1+kx*8+k)
-            ua(i,k,jxp+1) = tvar1rcv(i,1+kx*9+k)
-            va(i,k,jxp+1) = tvar1rcv(i,1+kx*10+k)
+            qvb(i,k,jxp+1) = tvar1rcv(i,1+kz+k)
+            ub(i,k,jxp+1) = tvar1rcv(i,1+kz*2+k)
+            vb(i,k,jxp+1) = tvar1rcv(i,1+kz*3+k)
+            u(i,k,jxp+1) = tvar1rcv(i,1+kz*4+k)
+            v(i,k,jxp+1) = tvar1rcv(i,1+kz*5+k)
+            t(i,k,jxp+1) = tvar1rcv(i,1+kz*6+k)
+            qv(i,k,jxp+1) = tvar1rcv(i,1+kz*7+k)
+            qc(i,k,jxp+1) = tvar1rcv(i,1+kz*8+k)
+            ua(i,k,jxp+1) = tvar1rcv(i,1+kz*9+k)
+            va(i,k,jxp+1) = tvar1rcv(i,1+kz*10+k)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kx
-              do i = 1 , ix
-                chi(i,k,jxp+1,n) = tvar1rcv(i,kx*11+1+(n-1)*kx+k)
+            do k = 1 , kz
+              do i = 1 , iy
+                chi(i,k,jxp+1,n) = tvar1rcv(i,kz*11+1+(n-1)*kz+k)
               end do
             end do
           end do
@@ -473,7 +473,7 @@
 #else
       do j = 2 , jxm1
 #endif
-        do i = 2 , ixm1
+        do i = 2 , iym1
           pdotb(i,j) = 0.25*(psb(i,j)+psb(i-1,j)+                       &
                      &       psb(i,j-1)+psb(i-1,j-1))
         end do
@@ -481,7 +481,7 @@
 !
 !-----east and west boundaries:
 !
-      do i = 2 , ixm1
+      do i = 2 , iym1
 #ifdef MPP1
         if ( myid.eq.0 ) pdotb(i,1) = 0.5*(psb(i,1)+psb(i-1,1))
         if ( myid.eq.nproc-1 )                                          &
@@ -500,7 +500,7 @@
       do j = 2 , jxm1
 #endif
         pdotb(1,j) = 0.5*(psb(1,j)+psb(1,j-1))
-        pdotb(ix,j) = 0.5*(psb(ixm1,j)+psb(ixm1,j-1))
+        pdotb(iy,j) = 0.5*(psb(iym1,j)+psb(iym1,j-1))
       end do
 !
 !-----corner points:
@@ -508,17 +508,17 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
         pdotb(1,1) = psb(1,1)
-        pdotb(ix,1) = psb(ixm1,1)
+        pdotb(iy,1) = psb(iym1,1)
       end if
       if ( myid.eq.nproc-1 ) then
         pdotb(1,jendl) = psb(1,jendx)
-        pdotb(ix,jendl) = psb(ixm1,jendx)
+        pdotb(iy,jendl) = psb(iym1,jendx)
       end if
 #else
       pdotb(1,1) = psb(1,1)
-      pdotb(ix,1) = psb(ixm1,1)
+      pdotb(iy,1) = psb(iym1,1)
       pdotb(1,jx) = psb(1,jxm1)
-      pdotb(ix,jx) = psb(ixm1,jxm1)
+      pdotb(iy,jx) = psb(iym1,jxm1)
 #endif
 !
 !=======================================================================
@@ -536,58 +536,58 @@
 !
 #ifdef MPP1
       if ( myid.ne.nproc-1 ) then
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             var2snd(i,+k) = ubd3d(i,k,jxp-1)
-            var2snd(i,kx+k) = ubd3d(i,k,jxp)
-            var2snd(i,kx*2+k) = vbd3d(i,k,jxp-1)
-            var2snd(i,kx*3+k) = vbd3d(i,k,jxp)
-            var2snd(i,kx*4+k) = tb3d(i,k,jxp-1)
-            var2snd(i,kx*5+k) = tb3d(i,k,jxp)
-            var2snd(i,kx*6+k) = qvb3d(i,k,jxp-1)
-            var2snd(i,kx*7+k) = qvb3d(i,k,jxp)
-            var2snd(i,kx*8+k) = qcb3d(i,k,jxp-1)
-            var2snd(i,kx*9+k) = qcb3d(i,k,jxp)
+            var2snd(i,kz+k) = ubd3d(i,k,jxp)
+            var2snd(i,kz*2+k) = vbd3d(i,k,jxp-1)
+            var2snd(i,kz*3+k) = vbd3d(i,k,jxp)
+            var2snd(i,kz*4+k) = tb3d(i,k,jxp-1)
+            var2snd(i,kz*5+k) = tb3d(i,k,jxp)
+            var2snd(i,kz*6+k) = qvb3d(i,k,jxp-1)
+            var2snd(i,kz*7+k) = qvb3d(i,k,jxp)
+            var2snd(i,kz*8+k) = qcb3d(i,k,jxp-1)
+            var2snd(i,kz*9+k) = qcb3d(i,k,jxp)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kx
-              do i = 1 , ix
-                var2snd(i,kx*10+(n-1)*2*kx+k) = chib3d(i,k,jxp-1,n)
-                var2snd(i,kx*10+(n-1)*2*kx+kx+k) = chib3d(i,k,jxp,n)
+            do k = 1 , kz
+              do i = 1 , iy
+                var2snd(i,kz*10+(n-1)*2*kz+k) = chib3d(i,k,jxp-1,n)
+                var2snd(i,kz*10+(n-1)*2*kz+kz+k) = chib3d(i,k,jxp,n)
               end do
             end do
           end do
         end if
       end if
-      numrec = kx*5*2
-      if ( ichem.eq.1 ) numrec = kx*(ntr+5)*2
-      call mpi_sendrecv(var2snd(1,1),ix*numrec,mpi_real8,               &
-                      & ieast,1,var2rcv(1,1),ix*numrec,                 &
+      numrec = kz*5*2
+      if ( ichem.eq.1 ) numrec = kz*(ntr+5)*2
+      call mpi_sendrecv(var2snd(1,1),iy*numrec,mpi_real8,               &
+                      & ieast,1,var2rcv(1,1),iy*numrec,                 &
                       & mpi_real8,iwest,1,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             ubd3d(i,k,-1) = var2rcv(i,+k)
-            ubd3d(i,k,0) = var2rcv(i,kx+k)
-            vbd3d(i,k,-1) = var2rcv(i,kx*2+k)
-            vbd3d(i,k,0) = var2rcv(i,kx*3+k)
-            tb3d(i,k,-1) = var2rcv(i,kx*4+k)
-            tb3d(i,k,0) = var2rcv(i,kx*5+k)
-            qvb3d(i,k,-1) = var2rcv(i,kx*6+k)
-            qvb3d(i,k,0) = var2rcv(i,kx*7+k)
-            qcb3d(i,k,-1) = var2rcv(i,kx*8+k)
-            qcb3d(i,k,0) = var2rcv(i,kx*9+k)
+            ubd3d(i,k,0) = var2rcv(i,kz+k)
+            vbd3d(i,k,-1) = var2rcv(i,kz*2+k)
+            vbd3d(i,k,0) = var2rcv(i,kz*3+k)
+            tb3d(i,k,-1) = var2rcv(i,kz*4+k)
+            tb3d(i,k,0) = var2rcv(i,kz*5+k)
+            qvb3d(i,k,-1) = var2rcv(i,kz*6+k)
+            qvb3d(i,k,0) = var2rcv(i,kz*7+k)
+            qcb3d(i,k,-1) = var2rcv(i,kz*8+k)
+            qcb3d(i,k,0) = var2rcv(i,kz*9+k)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kx
-              do i = 1 , ix
-                chib3d(i,k,-1,n) = var2rcv(i,kx*10+(n-1)*2*kx+k)
-                chib3d(i,k,0,n) = var2rcv(i,kx*10+(n-1)*2*kx+kx+k)
+            do k = 1 , kz
+              do i = 1 , iy
+                chib3d(i,k,-1,n) = var2rcv(i,kz*10+(n-1)*2*kz+k)
+                chib3d(i,k,0,n) = var2rcv(i,kz*10+(n-1)*2*kz+kz+k)
               end do
             end do
           end do
@@ -595,58 +595,58 @@
       end if
 !
       if ( myid.ne.0 ) then
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             var2snd(i,+k) = ubd3d(i,k,1)
-            var2snd(i,kx+k) = ubd3d(i,k,2)
-            var2snd(i,kx*2+k) = vbd3d(i,k,1)
-            var2snd(i,kx*3+k) = vbd3d(i,k,2)
-            var2snd(i,kx*4+k) = tb3d(i,k,1)
-            var2snd(i,kx*5+k) = tb3d(i,k,2)
-            var2snd(i,kx*6+k) = qvb3d(i,k,1)
-            var2snd(i,kx*7+k) = qvb3d(i,k,2)
-            var2snd(i,kx*8+k) = qcb3d(i,k,1)
-            var2snd(i,kx*9+k) = qcb3d(i,k,2)
+            var2snd(i,kz+k) = ubd3d(i,k,2)
+            var2snd(i,kz*2+k) = vbd3d(i,k,1)
+            var2snd(i,kz*3+k) = vbd3d(i,k,2)
+            var2snd(i,kz*4+k) = tb3d(i,k,1)
+            var2snd(i,kz*5+k) = tb3d(i,k,2)
+            var2snd(i,kz*6+k) = qvb3d(i,k,1)
+            var2snd(i,kz*7+k) = qvb3d(i,k,2)
+            var2snd(i,kz*8+k) = qcb3d(i,k,1)
+            var2snd(i,kz*9+k) = qcb3d(i,k,2)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kx
-              do i = 1 , ix
-                var2snd(i,kx*10+(n-1)*2*kx+k) = chib3d(i,k,1,n)
-                var2snd(i,kx*10+(n-1)*2*kx+kx+k) = chib3d(i,k,2,n)
+            do k = 1 , kz
+              do i = 1 , iy
+                var2snd(i,kz*10+(n-1)*2*kz+k) = chib3d(i,k,1,n)
+                var2snd(i,kz*10+(n-1)*2*kz+kz+k) = chib3d(i,k,2,n)
               end do
             end do
           end do
         end if
       end if
-      numrec = kx*5*2
-      if ( ichem.eq.1 ) numrec = kx*(ntr+5)*2
-      call mpi_sendrecv(var2snd(1,1),ix*numrec,mpi_real8,               &
-                      & iwest,2,var2rcv(1,1),ix*numrec,                 &
+      numrec = kz*5*2
+      if ( ichem.eq.1 ) numrec = kz*(ntr+5)*2
+      call mpi_sendrecv(var2snd(1,1),iy*numrec,mpi_real8,               &
+                      & iwest,2,var2rcv(1,1),iy*numrec,                 &
                       & mpi_real8,ieast,2,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             ubd3d(i,k,jxp+1) = var2rcv(i,+k)
-            ubd3d(i,k,jxp+2) = var2rcv(i,kx+k)
-            vbd3d(i,k,jxp+1) = var2rcv(i,kx*2+k)
-            vbd3d(i,k,jxp+2) = var2rcv(i,kx*3+k)
-            tb3d(i,k,jxp+1) = var2rcv(i,kx*4+k)
-            tb3d(i,k,jxp+2) = var2rcv(i,kx*5+k)
-            qvb3d(i,k,jxp+1) = var2rcv(i,kx*6+k)
-            qvb3d(i,k,jxp+2) = var2rcv(i,kx*7+k)
-            qcb3d(i,k,jxp+1) = var2rcv(i,kx*8+k)
-            qcb3d(i,k,jxp+2) = var2rcv(i,kx*9+k)
+            ubd3d(i,k,jxp+2) = var2rcv(i,kz+k)
+            vbd3d(i,k,jxp+1) = var2rcv(i,kz*2+k)
+            vbd3d(i,k,jxp+2) = var2rcv(i,kz*3+k)
+            tb3d(i,k,jxp+1) = var2rcv(i,kz*4+k)
+            tb3d(i,k,jxp+2) = var2rcv(i,kz*5+k)
+            qvb3d(i,k,jxp+1) = var2rcv(i,kz*6+k)
+            qvb3d(i,k,jxp+2) = var2rcv(i,kz*7+k)
+            qcb3d(i,k,jxp+1) = var2rcv(i,kz*8+k)
+            qcb3d(i,k,jxp+2) = var2rcv(i,kz*9+k)
           end do
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kx
-              do i = 1 , ix
-                chib3d(i,k,jxp+1,n) = var2rcv(i,kx*10+(n-1)*2*kx+k)
-                chib3d(i,k,jxp+2,n) = var2rcv(i,kx*10+(n-1)*2*kx+kx+k)
+            do k = 1 , kz
+              do i = 1 , iy
+                chib3d(i,k,jxp+1,n) = var2rcv(i,kz*10+(n-1)*2*kz+k)
+                chib3d(i,k,jxp+2,n) = var2rcv(i,kz*10+(n-1)*2*kz+kz+k)
               end do
             end do
           end do
@@ -670,8 +670,8 @@
 #else
         if ( j.eq.1 .or. j.eq.jxm1 ) then
 #endif
-          do k = 1 , kxp1
-            do i = 1 , ixm1
+          do k = 1 , kzp1
+            do i = 1 , iym1
               qdot(i,k,j) = 0.
             end do
           end do
@@ -680,11 +680,11 @@
 !----------------------------------------------------------------------
 !**p**compute the pressure tendency:
 !
-          do i = 2 , ixm2
+          do i = 2 , iym2
             pten(i,j) = 0.
           end do
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               divl(i,k) = (ua(i+1,k,j+1)+ua(i,k,j+1)-ua(i+1,k,j)        &
                         & -ua(i,k,j))                                   &
                         & + (va(i+1,k,j+1)+va(i+1,k,j)-va(i,k,j+1)      &
@@ -696,13 +696,13 @@
 !
 !..p..compute vertical sigma-velocity (qdot):
 !
-          do k = 1 , kxp1
-            do i = 1 , ixm1
+          do k = 1 , kzp1
+            do i = 1 , iym1
               qdot(i,k,j) = 0.
             end do
           end do
-          do k = 2 , kx
-            do i = 2 , ixm2
+          do k = 2 , kz
+            do i = 2 , iym2
               qdot(i,k,j) = qdot(i,k-1,j)                               &
                           & - (pten(i,j)+divl(i,k-1)/(dx2*msfx(i,j)     &
                           & *msfx(i,j)))*dsigma(k-1)/psa(i,j)
@@ -711,12 +711,12 @@
         end if
       end do
 #ifdef MPP1
-      call mpi_sendrecv(qdot(1,1,jxp),ix*kxp1,mpi_real8,                &
-                      & ieast,1,qdot(1,1,0),ix*kxp1,                    &
+      call mpi_sendrecv(qdot(1,1,jxp),iy*kzp1,mpi_real8,                &
+                      & ieast,1,qdot(1,1,0),iy*kzp1,                    &
                       & mpi_real8,iwest,1,mpi_comm_world,               &
                       & mpi_status_ignore,ierr)
-      call mpi_sendrecv(qdot(1,1,1),ix*kxp1,mpi_real8,iwest,            &
-                      & 2,qdot(1,1,jxp+1),ix*kxp1,mpi_real8,            &
+      call mpi_sendrecv(qdot(1,1,1),iy*kzp1,mpi_real8,iwest,            &
+                      & 2,qdot(1,1,jxp+1),iy*kzp1,mpi_real8,            &
                       & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
@@ -730,14 +730,14 @@
       do j = 1 , jxm1
         if ( j.eq.1 .or. j.eq.jxm1 ) then
 #endif
-          do k = 1 , kx
-            do i = 1 , ixm1
+          do k = 1 , kz
+            do i = 1 , iym1
               omega(i,k,j) = 0.
             end do
           end do
         else
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               omega(i,k,j) = 0.5*psa(i,j)*(qdot(i,k+1,j)+qdot(i,k,j))+  &
                            & a(k)*(pten(i,j)+((u(i,k,j)+u(i+1,k,j)+     &
                            & u(i+1,k,j+1)+u(i,k,j+1))*(psa(i,j+1)-      &
@@ -750,37 +750,37 @@
       end do
 #ifdef MPP1
       if ( nspgx.ge.jxp ) then
-        do i = 1 , ix
+        do i = 1 , iy
           bdyewsnd(i,1) = peb(i,1)
           bdyewsnd(i,2) = pwb(i,jxp)
           bdyewsnd(i,3) = pebt(i,1)
           bdyewsnd(i,4) = pwbt(i,jxp)
         end do
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             bdyewsnd(i,4+k) = teb(i,k,1)
-            bdyewsnd(i,4+kx+k) = twb(i,k,jxp)
-            bdyewsnd(i,4+kx*2+k) = tebt(i,k,1)
-            bdyewsnd(i,4+kx*3+k) = twbt(i,k,jxp)
-            bdyewsnd(i,4+kx*4+k) = qeb(i,k,1)
-            bdyewsnd(i,4+kx*5+k) = qwb(i,k,jxp)
-            bdyewsnd(i,4+kx*6+k) = qebt(i,k,1)
-            bdyewsnd(i,4+kx*7+k) = qwbt(i,k,jxp)
-            bdyewsnd(i,4+kx*8+k) = ueb(i,k,1)
-            bdyewsnd(i,4+kx*9+k) = uwb(i,k,jxp)
-            bdyewsnd(i,4+kx*10+k) = uebt(i,k,1)
-            bdyewsnd(i,4+kx*11+k) = uwbt(i,k,jxp)
-            bdyewsnd(i,4+kx*12+k) = veb(i,k,1)
-            bdyewsnd(i,4+kx*13+k) = vwb(i,k,jxp)
-            bdyewsnd(i,4+kx*14+k) = vebt(i,k,1)
-            bdyewsnd(i,4+kx*15+k) = vwbt(i,k,jxp)
+            bdyewsnd(i,4+kz+k) = twb(i,k,jxp)
+            bdyewsnd(i,4+kz*2+k) = tebt(i,k,1)
+            bdyewsnd(i,4+kz*3+k) = twbt(i,k,jxp)
+            bdyewsnd(i,4+kz*4+k) = qeb(i,k,1)
+            bdyewsnd(i,4+kz*5+k) = qwb(i,k,jxp)
+            bdyewsnd(i,4+kz*6+k) = qebt(i,k,1)
+            bdyewsnd(i,4+kz*7+k) = qwbt(i,k,jxp)
+            bdyewsnd(i,4+kz*8+k) = ueb(i,k,1)
+            bdyewsnd(i,4+kz*9+k) = uwb(i,k,jxp)
+            bdyewsnd(i,4+kz*10+k) = uebt(i,k,1)
+            bdyewsnd(i,4+kz*11+k) = uwbt(i,k,jxp)
+            bdyewsnd(i,4+kz*12+k) = veb(i,k,1)
+            bdyewsnd(i,4+kz*13+k) = vwb(i,k,jxp)
+            bdyewsnd(i,4+kz*14+k) = vebt(i,k,1)
+            bdyewsnd(i,4+kz*15+k) = vwbt(i,k,jxp)
           end do
         end do
-        call mpi_sendrecv(bdyewsnd(1,1),ix*(kx*16+4),                   &
+        call mpi_sendrecv(bdyewsnd(1,1),iy*(kz*16+4),                   &
                         & mpi_real8,ieast,1,bdyewrcv(1,1),              &
-                        & ix*(kx*16+4),mpi_real8,iwest,1,               &
+                        & iy*(kz*16+4),mpi_real8,iwest,1,               &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        do i = 1 , ix
+        do i = 1 , iy
           if ( myid.eq.nproc-1 ) then
             peb(i,jendl) = bdyewrcv(i,1)
             pebt(i,jendl) = bdyewrcv(i,3)
@@ -791,34 +791,34 @@
           pwb(i,0) = bdyewrcv(i,2)
           pwbt(i,0) = bdyewrcv(i,4)
         end do
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             if ( myid.eq.nproc-1 ) then
               teb(i,k,jendl) = bdyewrcv(i,4+k)
-              tebt(i,k,jendl) = bdyewrcv(i,4+kx*2+k)
-              qeb(i,k,jendl) = bdyewrcv(i,4+kx*4+k)
-              qebt(i,k,jendl) = bdyewrcv(i,4+kx*6+k)
+              tebt(i,k,jendl) = bdyewrcv(i,4+kz*2+k)
+              qeb(i,k,jendl) = bdyewrcv(i,4+kz*4+k)
+              qebt(i,k,jendl) = bdyewrcv(i,4+kz*6+k)
             else
               teb(i,k,jxp+1) = bdyewrcv(i,4+k)
-              tebt(i,k,jxp+1) = bdyewrcv(i,4+kx*2+k)
-              qeb(i,k,jxp+1) = bdyewrcv(i,4+kx*4+k)
-              qebt(i,k,jxp+1) = bdyewrcv(i,4+kx*6+k)
+              tebt(i,k,jxp+1) = bdyewrcv(i,4+kz*2+k)
+              qeb(i,k,jxp+1) = bdyewrcv(i,4+kz*4+k)
+              qebt(i,k,jxp+1) = bdyewrcv(i,4+kz*6+k)
             end if
-            ueb(i,k,jxp+1) = bdyewrcv(i,4+kx*8+k)
-            uebt(i,k,jxp+1) = bdyewrcv(i,4+kx*10+k)
-            veb(i,k,jxp+1) = bdyewrcv(i,4+kx*12+k)
-            vebt(i,k,jxp+1) = bdyewrcv(i,4+kx*14+k)
-            twb(i,k,0) = bdyewrcv(i,4+kx+k)
-            twbt(i,k,0) = bdyewrcv(i,4+kx*3+k)
-            qwb(i,k,0) = bdyewrcv(i,4+kx*5+k)
-            qwbt(i,k,0) = bdyewrcv(i,4+kx*7+k)
-            uwb(i,k,0) = bdyewrcv(i,4+kx*9+k)
-            uwbt(i,k,0) = bdyewrcv(i,4+kx*11+k)
-            vwb(i,k,0) = bdyewrcv(i,4+kx*13+k)
-            vwbt(i,k,0) = bdyewrcv(i,4+kx*15+k)
+            ueb(i,k,jxp+1) = bdyewrcv(i,4+kz*8+k)
+            uebt(i,k,jxp+1) = bdyewrcv(i,4+kz*10+k)
+            veb(i,k,jxp+1) = bdyewrcv(i,4+kz*12+k)
+            vebt(i,k,jxp+1) = bdyewrcv(i,4+kz*14+k)
+            twb(i,k,0) = bdyewrcv(i,4+kz+k)
+            twbt(i,k,0) = bdyewrcv(i,4+kz*3+k)
+            qwb(i,k,0) = bdyewrcv(i,4+kz*5+k)
+            qwbt(i,k,0) = bdyewrcv(i,4+kz*7+k)
+            uwb(i,k,0) = bdyewrcv(i,4+kz*9+k)
+            uwbt(i,k,0) = bdyewrcv(i,4+kz*11+k)
+            vwb(i,k,0) = bdyewrcv(i,4+kz*13+k)
+            vwbt(i,k,0) = bdyewrcv(i,4+kz*15+k)
           end do
         end do
-        do i = 1 , ix
+        do i = 1 , iy
           if ( myid.eq.nproc-1 ) then
             bdyewsnd(i,1) = peb(i,jendx)
             bdyewsnd(i,3) = pebt(i,jendx)
@@ -829,61 +829,61 @@
           bdyewsnd(i,2) = pwb(i,1)
           bdyewsnd(i,4) = pwbt(i,1)
         end do
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             if ( myid.eq.nproc-1 ) then
               bdyewsnd(i,4+k) = teb(i,k,jendx)
-              bdyewsnd(i,4+kx*2+k) = tebt(i,k,jendx)
-              bdyewsnd(i,4+kx*4+k) = qeb(i,k,jendx)
-              bdyewsnd(i,4+kx*6+k) = qebt(i,k,jendx)
+              bdyewsnd(i,4+kz*2+k) = tebt(i,k,jendx)
+              bdyewsnd(i,4+kz*4+k) = qeb(i,k,jendx)
+              bdyewsnd(i,4+kz*6+k) = qebt(i,k,jendx)
             else
               bdyewsnd(i,4+k) = teb(i,k,jxp)
-              bdyewsnd(i,4+kx*2+k) = tebt(i,k,jxp)
-              bdyewsnd(i,4+kx*4+k) = qeb(i,k,jxp)
-              bdyewsnd(i,4+kx*6+k) = qebt(i,k,jxp)
+              bdyewsnd(i,4+kz*2+k) = tebt(i,k,jxp)
+              bdyewsnd(i,4+kz*4+k) = qeb(i,k,jxp)
+              bdyewsnd(i,4+kz*6+k) = qebt(i,k,jxp)
             end if
-            bdyewsnd(i,4+kx*8+k) = ueb(i,k,jxp)
-            bdyewsnd(i,4+kx*10+k) = uebt(i,k,jxp)
-            bdyewsnd(i,4+kx*12+k) = veb(i,k,jxp)
-            bdyewsnd(i,4+kx*14+k) = vebt(i,k,jxp)
-            bdyewsnd(i,4+kx+k) = twb(i,k,1)
-            bdyewsnd(i,4+kx*3+k) = twbt(i,k,1)
-            bdyewsnd(i,4+kx*5+k) = qwb(i,k,1)
-            bdyewsnd(i,4+kx*7+k) = qwbt(i,k,1)
-            bdyewsnd(i,4+kx*9+k) = uwb(i,k,1)
-            bdyewsnd(i,4+kx*11+k) = uwbt(i,k,1)
-            bdyewsnd(i,4+kx*13+k) = vwb(i,k,1)
-            bdyewsnd(i,4+kx*15+k) = vwbt(i,k,1)
+            bdyewsnd(i,4+kz*8+k) = ueb(i,k,jxp)
+            bdyewsnd(i,4+kz*10+k) = uebt(i,k,jxp)
+            bdyewsnd(i,4+kz*12+k) = veb(i,k,jxp)
+            bdyewsnd(i,4+kz*14+k) = vebt(i,k,jxp)
+            bdyewsnd(i,4+kz+k) = twb(i,k,1)
+            bdyewsnd(i,4+kz*3+k) = twbt(i,k,1)
+            bdyewsnd(i,4+kz*5+k) = qwb(i,k,1)
+            bdyewsnd(i,4+kz*7+k) = qwbt(i,k,1)
+            bdyewsnd(i,4+kz*9+k) = uwb(i,k,1)
+            bdyewsnd(i,4+kz*11+k) = uwbt(i,k,1)
+            bdyewsnd(i,4+kz*13+k) = vwb(i,k,1)
+            bdyewsnd(i,4+kz*15+k) = vwbt(i,k,1)
           end do
         end do
-        call mpi_sendrecv(bdyewsnd(1,1),ix*(kx*16+4),                   &
+        call mpi_sendrecv(bdyewsnd(1,1),iy*(kz*16+4),                   &
                         & mpi_real8,iwest,2,bdyewrcv(1,1),              &
-                        & ix*(kx*16+4),mpi_real8,ieast,2,               &
+                        & iy*(kz*16+4),mpi_real8,ieast,2,               &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        do i = 1 , ix
+        do i = 1 , iy
           peb(i,0) = bdyewrcv(i,1)
           pebt(i,0) = bdyewrcv(i,3)
           pwb(i,jxp+1) = bdyewrcv(i,2)
           pwbt(i,jxp+1) = bdyewrcv(i,4)
         end do
-        do k = 1 , kx
-          do i = 1 , ix
+        do k = 1 , kz
+          do i = 1 , iy
             teb(i,k,0) = bdyewrcv(i,4+k)
-            twb(i,k,jxp+1) = bdyewrcv(i,4+kx+k)
-            tebt(i,k,0) = bdyewrcv(i,4+kx*2+k)
-            twbt(i,k,jxp+1) = bdyewrcv(i,4+kx*3+k)
-            qeb(i,k,0) = bdyewrcv(i,4+kx*4+k)
-            qwb(i,k,jxp+1) = bdyewrcv(i,4+kx*5+k)
-            qebt(i,k,0) = bdyewrcv(i,4+kx*6+k)
-            qwbt(i,k,jxp+1) = bdyewrcv(i,4+kx*7+k)
-            ueb(i,k,0) = bdyewrcv(i,4+kx*8+k)
-            uwb(i,k,jxp+1) = bdyewrcv(i,4+kx*9+k)
-            uebt(i,k,0) = bdyewrcv(i,4+kx*10+k)
-            uwbt(i,k,jxp+1) = bdyewrcv(i,4+kx*11+k)
-            veb(i,k,0) = bdyewrcv(i,4+kx*12+k)
-            vwb(i,k,jxp+1) = bdyewrcv(i,4+kx*13+k)
-            vebt(i,k,0) = bdyewrcv(i,4+kx*14+k)
-            vwbt(i,k,jxp+1) = bdyewrcv(i,4+kx*15+k)
+            twb(i,k,jxp+1) = bdyewrcv(i,4+kz+k)
+            tebt(i,k,0) = bdyewrcv(i,4+kz*2+k)
+            twbt(i,k,jxp+1) = bdyewrcv(i,4+kz*3+k)
+            qeb(i,k,0) = bdyewrcv(i,4+kz*4+k)
+            qwb(i,k,jxp+1) = bdyewrcv(i,4+kz*5+k)
+            qebt(i,k,0) = bdyewrcv(i,4+kz*6+k)
+            qwbt(i,k,jxp+1) = bdyewrcv(i,4+kz*7+k)
+            ueb(i,k,0) = bdyewrcv(i,4+kz*8+k)
+            uwb(i,k,jxp+1) = bdyewrcv(i,4+kz*9+k)
+            uebt(i,k,0) = bdyewrcv(i,4+kz*10+k)
+            uwbt(i,k,jxp+1) = bdyewrcv(i,4+kz*11+k)
+            veb(i,k,0) = bdyewrcv(i,4+kz*12+k)
+            vwb(i,k,jxp+1) = bdyewrcv(i,4+kz*13+k)
+            vebt(i,k,0) = bdyewrcv(i,4+kz*14+k)
+            vwbt(i,k,jxp+1) = bdyewrcv(i,4+kz*15+k)
           end do
         end do
       end if
@@ -895,30 +895,30 @@
           bdynssnd(i,3) = pss(i,jxp)
           bdynssnd(i,4) = psbt(i,jxp)
         end do
-        do k = 1 , kx
+        do k = 1 , kz
           do i = 1 , nspgx
             bdynssnd(i,4+k) = tnb(i,k,jxp)
-            bdynssnd(i,4+kx+k) = tnbt(i,k,jxp)
-            bdynssnd(i,4+kx*2+k) = tsb(i,k,jxp)
-            bdynssnd(i,4+kx*3+k) = tsbt(i,k,jxp)
-            bdynssnd(i,4+kx*4+k) = qnb(i,k,jxp)
-            bdynssnd(i,4+kx*5+k) = qnbt(i,k,jxp)
-            bdynssnd(i,4+kx*6+k) = qsb(i,k,jxp)
-            bdynssnd(i,4+kx*7+k) = qsbt(i,k,jxp)
-            bdynssnd(i,4+kx*8+k) = unb(i,k,jxp)
-            bdynssnd(i,4+kx*9+k) = unbt(i,k,jxp)
-            bdynssnd(i,4+kx*10+k) = usb(i,k,jxp)
-            bdynssnd(i,4+kx*11+k) = usbt(i,k,jxp)
-            bdynssnd(i,4+kx*12+k) = vnb(i,k,jxp)
-            bdynssnd(i,4+kx*13+k) = vnbt(i,k,jxp)
-            bdynssnd(i,4+kx*14+k) = vsb(i,k,jxp)
-            bdynssnd(i,4+kx*15+k) = vsbt(i,k,jxp)
+            bdynssnd(i,4+kz+k) = tnbt(i,k,jxp)
+            bdynssnd(i,4+kz*2+k) = tsb(i,k,jxp)
+            bdynssnd(i,4+kz*3+k) = tsbt(i,k,jxp)
+            bdynssnd(i,4+kz*4+k) = qnb(i,k,jxp)
+            bdynssnd(i,4+kz*5+k) = qnbt(i,k,jxp)
+            bdynssnd(i,4+kz*6+k) = qsb(i,k,jxp)
+            bdynssnd(i,4+kz*7+k) = qsbt(i,k,jxp)
+            bdynssnd(i,4+kz*8+k) = unb(i,k,jxp)
+            bdynssnd(i,4+kz*9+k) = unbt(i,k,jxp)
+            bdynssnd(i,4+kz*10+k) = usb(i,k,jxp)
+            bdynssnd(i,4+kz*11+k) = usbt(i,k,jxp)
+            bdynssnd(i,4+kz*12+k) = vnb(i,k,jxp)
+            bdynssnd(i,4+kz*13+k) = vnbt(i,k,jxp)
+            bdynssnd(i,4+kz*14+k) = vsb(i,k,jxp)
+            bdynssnd(i,4+kz*15+k) = vsbt(i,k,jxp)
           end do
         end do
       end if
-      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kx*16+4),                  &
+      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kz*16+4),                  &
                       & mpi_real8,ieast,1,bdynsrcv(1,1),                &
-                      & nspgx*(kx*16+4),mpi_real8,iwest,1,              &
+                      & nspgx*(kz*16+4),mpi_real8,iwest,1,              &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.0 ) then
         do i = 1 , nspgx
@@ -927,24 +927,24 @@
           pss(i,0) = bdynsrcv(i,3)
           psbt(i,0) = bdynsrcv(i,4)
         end do
-        do k = 1 , kx
+        do k = 1 , kz
           do i = 1 , nspgx
             tnb(i,k,0) = bdynsrcv(i,4+k)
-            tnbt(i,k,0) = bdynsrcv(i,4+kx+k)
-            tsb(i,k,0) = bdynsrcv(i,4+kx*2+k)
-            tsbt(i,k,0) = bdynsrcv(i,4+kx*3+k)
-            qnb(i,k,0) = bdynsrcv(i,4+kx*4+k)
-            qnbt(i,k,0) = bdynsrcv(i,4+kx*5+k)
-            qsb(i,k,0) = bdynsrcv(i,4+kx*6+k)
-            qsbt(i,k,0) = bdynsrcv(i,4+kx*7+k)
-            unb(i,k,0) = bdynsrcv(i,4+kx*8+k)
-            unbt(i,k,0) = bdynsrcv(i,4+kx*9+k)
-            usb(i,k,0) = bdynsrcv(i,4+kx*10+k)
-            usbt(i,k,0) = bdynsrcv(i,4+kx*11+k)
-            vnb(i,k,0) = bdynsrcv(i,4+kx*12+k)
-            vnbt(i,k,0) = bdynsrcv(i,4+kx*13+k)
-            vsb(i,k,0) = bdynsrcv(i,4+kx*14+k)
-            vsbt(i,k,0) = bdynsrcv(i,4+kx*15+k)
+            tnbt(i,k,0) = bdynsrcv(i,4+kz+k)
+            tsb(i,k,0) = bdynsrcv(i,4+kz*2+k)
+            tsbt(i,k,0) = bdynsrcv(i,4+kz*3+k)
+            qnb(i,k,0) = bdynsrcv(i,4+kz*4+k)
+            qnbt(i,k,0) = bdynsrcv(i,4+kz*5+k)
+            qsb(i,k,0) = bdynsrcv(i,4+kz*6+k)
+            qsbt(i,k,0) = bdynsrcv(i,4+kz*7+k)
+            unb(i,k,0) = bdynsrcv(i,4+kz*8+k)
+            unbt(i,k,0) = bdynsrcv(i,4+kz*9+k)
+            usb(i,k,0) = bdynsrcv(i,4+kz*10+k)
+            usbt(i,k,0) = bdynsrcv(i,4+kz*11+k)
+            vnb(i,k,0) = bdynsrcv(i,4+kz*12+k)
+            vnbt(i,k,0) = bdynsrcv(i,4+kz*13+k)
+            vsb(i,k,0) = bdynsrcv(i,4+kz*14+k)
+            vsbt(i,k,0) = bdynsrcv(i,4+kz*15+k)
           end do
         end do
       end if
@@ -956,30 +956,30 @@
           bdynssnd(i,3) = pss(i,1)
           bdynssnd(i,4) = psbt(i,1)
         end do
-        do k = 1 , kx
+        do k = 1 , kz
           do i = 1 , nspgx
             bdynssnd(i,4+k) = tnb(i,k,1)
-            bdynssnd(i,4+kx+k) = tnbt(i,k,1)
-            bdynssnd(i,4+kx*2+k) = tsb(i,k,1)
-            bdynssnd(i,4+kx*3+k) = tsbt(i,k,1)
-            bdynssnd(i,4+kx*4+k) = qnb(i,k,1)
-            bdynssnd(i,4+kx*5+k) = qnbt(i,k,1)
-            bdynssnd(i,4+kx*6+k) = qsb(i,k,1)
-            bdynssnd(i,4+kx*7+k) = qsbt(i,k,1)
-            bdynssnd(i,4+kx*8+k) = unb(i,k,1)
-            bdynssnd(i,4+kx*9+k) = unbt(i,k,1)
-            bdynssnd(i,4+kx*10+k) = usb(i,k,1)
-            bdynssnd(i,4+kx*11+k) = usbt(i,k,1)
-            bdynssnd(i,4+kx*12+k) = vnb(i,k,1)
-            bdynssnd(i,4+kx*13+k) = vnbt(i,k,1)
-            bdynssnd(i,4+kx*14+k) = vsb(i,k,1)
-            bdynssnd(i,4+kx*15+k) = vsbt(i,k,1)
+            bdynssnd(i,4+kz+k) = tnbt(i,k,1)
+            bdynssnd(i,4+kz*2+k) = tsb(i,k,1)
+            bdynssnd(i,4+kz*3+k) = tsbt(i,k,1)
+            bdynssnd(i,4+kz*4+k) = qnb(i,k,1)
+            bdynssnd(i,4+kz*5+k) = qnbt(i,k,1)
+            bdynssnd(i,4+kz*6+k) = qsb(i,k,1)
+            bdynssnd(i,4+kz*7+k) = qsbt(i,k,1)
+            bdynssnd(i,4+kz*8+k) = unb(i,k,1)
+            bdynssnd(i,4+kz*9+k) = unbt(i,k,1)
+            bdynssnd(i,4+kz*10+k) = usb(i,k,1)
+            bdynssnd(i,4+kz*11+k) = usbt(i,k,1)
+            bdynssnd(i,4+kz*12+k) = vnb(i,k,1)
+            bdynssnd(i,4+kz*13+k) = vnbt(i,k,1)
+            bdynssnd(i,4+kz*14+k) = vsb(i,k,1)
+            bdynssnd(i,4+kz*15+k) = vsbt(i,k,1)
           end do
         end do
       end if
-      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kx*16+4),                  &
+      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kz*16+4),                  &
                       & mpi_real8,iwest,2,bdynsrcv(1,1),                &
-                      & nspgx*(kx*16+4),mpi_real8,ieast,2,              &
+                      & nspgx*(kz*16+4),mpi_real8,ieast,2,              &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       if ( myid.ne.nproc-1 ) then
         do i = 1 , nspgx
@@ -988,24 +988,24 @@
           pss(i,jxp+1) = bdynsrcv(i,3)
           psbt(i,jxp+1) = bdynsrcv(i,4)
         end do
-        do k = 1 , kx
+        do k = 1 , kz
           do i = 1 , nspgx
             tnb(i,k,jxp+1) = bdynsrcv(i,4+k)
-            tnbt(i,k,jxp+1) = bdynsrcv(i,4+kx+k)
-            tsb(i,k,jxp+1) = bdynsrcv(i,4+kx*2+k)
-            tsbt(i,k,jxp+1) = bdynsrcv(i,4+kx*3+k)
-            qnb(i,k,jxp+1) = bdynsrcv(i,4+kx*4+k)
-            qnbt(i,k,jxp+1) = bdynsrcv(i,4+kx*5+k)
-            qsb(i,k,jxp+1) = bdynsrcv(i,4+kx*6+k)
-            qsbt(i,k,jxp+1) = bdynsrcv(i,4+kx*7+k)
-            unb(i,k,jxp+1) = bdynsrcv(i,4+kx*8+k)
-            unbt(i,k,jxp+1) = bdynsrcv(i,4+kx*9+k)
-            usb(i,k,jxp+1) = bdynsrcv(i,4+kx*10+k)
-            usbt(i,k,jxp+1) = bdynsrcv(i,4+kx*11+k)
-            vnb(i,k,jxp+1) = bdynsrcv(i,4+kx*12+k)
-            vnbt(i,k,jxp+1) = bdynsrcv(i,4+kx*13+k)
-            vsb(i,k,jxp+1) = bdynsrcv(i,4+kx*14+k)
-            vsbt(i,k,jxp+1) = bdynsrcv(i,4+kx*15+k)
+            tnbt(i,k,jxp+1) = bdynsrcv(i,4+kz+k)
+            tsb(i,k,jxp+1) = bdynsrcv(i,4+kz*2+k)
+            tsbt(i,k,jxp+1) = bdynsrcv(i,4+kz*3+k)
+            qnb(i,k,jxp+1) = bdynsrcv(i,4+kz*4+k)
+            qnbt(i,k,jxp+1) = bdynsrcv(i,4+kz*5+k)
+            qsb(i,k,jxp+1) = bdynsrcv(i,4+kz*6+k)
+            qsbt(i,k,jxp+1) = bdynsrcv(i,4+kz*7+k)
+            unb(i,k,jxp+1) = bdynsrcv(i,4+kz*8+k)
+            unbt(i,k,jxp+1) = bdynsrcv(i,4+kz*9+k)
+            usb(i,k,jxp+1) = bdynsrcv(i,4+kz*10+k)
+            usbt(i,k,jxp+1) = bdynsrcv(i,4+kz*11+k)
+            vnb(i,k,jxp+1) = bdynsrcv(i,4+kz*12+k)
+            vnbt(i,k,jxp+1) = bdynsrcv(i,4+kz*13+k)
+            vsb(i,k,jxp+1) = bdynsrcv(i,4+kz*14+k)
+            vsbt(i,k,jxp+1) = bdynsrcv(i,4+kz*15+k)
           end do
         end do
       end if
@@ -1042,7 +1042,7 @@
       do j = 1 , jxm1
         if ( j.eq.1 ) then
 #endif
-          do i = 1 , ixm1
+          do i = 1 , iym1
             psc(i,j) = psb(i,j) + dt*pwbt(i,j)
             psd(i,j) = psa(i,j)
           end do
@@ -1051,32 +1051,32 @@
 #else
         else if ( j.eq.jxm1 ) then
 #endif
-          do i = 1 , ixm1
+          do i = 1 , iym1
             psd(i,j) = psa(i,j)
           end do
         else
 !
 !..p..forecast pressure:
 !
-          do i = 2 , ixm2
+          do i = 2 , iym2
             psc(i,j) = psb(i,j) + pten(i,j)*dt
           end do
 !
 !..p..weighted p* (psd)
 !
-          do i = 2 , ixm2
+          do i = 2 , iym2
             psd(i,j) = psa(i,j)
           end do
 !
           psc(1,j) = psb(1,j) + dt*psbt(1,j)
-          psc(ixm1,j) = psb(ixm1,j) + dt*pnbt(1,j)
+          psc(iym1,j) = psb(iym1,j) + dt*pnbt(1,j)
           psd(1,j) = psa(1,j)
-          psd(ixm1,j) = psa(ixm1,j)
+          psd(iym1,j) = psa(iym1,j)
         end if
       end do
 #ifdef MPP1
-      call mpi_sendrecv(psd(1,jxp),ix,mpi_real8,ieast,1,                &
-                      & psd(1,0),ix,mpi_real8,iwest,1,                  &
+      call mpi_sendrecv(psd(1,jxp),iy,mpi_real8,ieast,1,                &
+                      & psd(1,0),iy,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
@@ -1084,15 +1084,15 @@
 !
 #ifdef MPP1
       do j = 1 , jendl
-        do i = 1 , ix
+        do i = 1 , iy
           ps4(i,1,j) = pten(i,j)
           ps4(i,2,j) = psc(i,j)
           ps4(i,3,j) = psb(i,j)
           ps4(i,4,j) = psa(i,j)
         end do
       end do
-      call mpi_gather(ps4(1,1,1),ix*4*jxp,mpi_real8,                    &
-                    & ps_4(1,1,1),ix*4*jxp,mpi_real8,0,                 &
+      call mpi_gather(ps4(1,1,1),iy*4*jxp,mpi_real8,                    &
+                    & ps_4(1,1,1),iy*4*jxp,mpi_real8,0,                 &
                     & mpi_comm_world,ierr)
 #endif
       iptn = 0
@@ -1102,7 +1102,7 @@
       if ( myid.eq.0 ) then
         do j = 2 , jxm2
           if ( jyear.ne.jyear0 .or. ktau.ne.0 ) then
-            do i = 2 , ixm2
+            do i = 2 , iym2
               iptn = iptn + 1
               ptntot = ptntot + dabs(ps_4(i,1,j))
               pt2tot = pt2tot +                                         &
@@ -1119,7 +1119,7 @@
       do j = 2 , jxm1
         if ( j.ne.jxm1 ) then
           if ( jyear.ne.jyear0 .or. ktau.ne.0 ) then
-            do i = 2 , ixm2
+            do i = 2 , iym2
               iptn = iptn + 1
               ptntot = ptntot + dabs(pten(i,j))
               pt2tot = pt2tot + dabs((psc(i,j)+psb(i,j)-2.*psa(i,j))    &
@@ -1141,8 +1141,8 @@
 !       the values are calculated at cross points, but they also used
 !       for dot-point variables.
  
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             dudx = ub(i,k,j+1) + ub(i+1,k,j+1) - ub(i,k,j) - ub(i+1,k,j)
             dvdx = vb(i,k,j+1) + vb(i+1,k,j+1) - vb(i,k,j) - vb(i+1,k,j)
             dudy = ub(i+1,k,j) + ub(i+1,k,j+1) - ub(i,k,j) - ub(i,k,j+1)
@@ -1168,8 +1168,8 @@
 !---------------------------------------------------------------------
 !**t**compute the temperature tendency:
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               tten(i,k,j) = 0.
               qvten(i,k,j) = 0.
               qcten(i,k,j) = 0.
@@ -1188,8 +1188,8 @@
 !
 !..t..compute the adiabatic term:
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               rovcpm = rgas/(cpd*(1.+0.8*(qv(i,k,j))))
               tv = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
               tten(i,k,j) = tten(i,k,j) + (omega(i,k,j)*rovcpm*tv)      &
@@ -1199,8 +1199,8 @@
 !
 !..t..compute the diffusion term for t and store in difft:
 !
-          do k = 1 , kx
-            do i = 1 , ixm1
+          do k = 1 , kz
+            do i = 1 , iym1
               difft(i,k,j) = 0.
               diffq(i,k,j) = 0.
             end do
@@ -1242,12 +1242,12 @@
 !           call hadvQC(qcten(1,1,j),dx,j,2)
 !fix        call vadv(qcten(1,1,j),qca(1,1,j),j,3)
             call vadv(qcten(1,1,j),qca(1,1,j),j,5)
-            call pcp(j , 2 , ixm2 , kx)
+            call pcp(j , 2 , iym2 , kz)
             call cldfrac(j)
  
 !           need also to set diffq to 0 here before calling diffut
-            do k = 1 , kx
-              do i = 1 , ixm1
+            do k = 1 , kz
+              do i = 1 , iym1
                 diffq(i,k,j) = 0.
               end do
             end do
@@ -1263,7 +1263,7 @@
 !
 !chem2    compute the tracers tendencies
           if ( ichem.eq.1 ) then
-            call zenitm(coszrs,ix,j)
+            call zenitm(coszrs,iy,j)
             call tractend2(j)
           end if
 !chem2_
@@ -1274,8 +1274,8 @@
 !       the diffusion and pbl tendencies of t and qv are stored in
 !       difft and diffq.
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             uten(i,k,j) = 0.
             vten(i,k,j) = 0.
           end do
@@ -1285,7 +1285,7 @@
 !       ****** calculate solar zenith angle
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,nbatst)  &
            & .eq.0 .or. mod(ktau+1,ntrad).eq.0 ) then
-          call zenitm(coszrs,ix,j)
+          call zenitm(coszrs,iy,j)
           call slice1D(j)
         end if
  
@@ -1293,7 +1293,7 @@
 #ifdef CLM
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
            & .eq.0 ) then
-          do i = 1 , ixm1
+          do i = 1 , iym1
             aldirs(i) = aldirs2d(i,j)
             aldirl(i) = aldirl2d(i,j)
             aldifs(i) = aldifs2d(i,j)
@@ -1318,11 +1318,11 @@
            &  mod(ktau+1,nbatst).eq.0 ) then
           dtbat = dt/2.*nbatst
           if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
-          call vecbats(j, kx , 2 , ixm1 , nnsg)
+          call vecbats(j, kz , 2 , iym1 , nnsg)
 !         Zeng ocean flux model
-          if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , ixm1 , kx)
+          if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)
 !         ****** accumulate quantities for energy and moisture budgets
-          call interf(2 , j , kx , 2 , ixm1 , nnsg)
+          call interf(2 , j , kz , 2 , iym1 , nnsg)
         end if
 #endif
  
@@ -1362,8 +1362,8 @@
 #endif
 !       add ccm radiative transfer package-calculated heating rates to
 !       temperature tendency
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             ! heating rate in deg/sec
             tten(i,k,j) = tten(i,k,j) + psb(i,j)*heatrt(i,k,j)
           end do
@@ -1379,14 +1379,14 @@
 !         and qvten for calculating condensational term in subroutine
 !         "condtq".
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               tten(i,k,j) = tten(i,k,j) + difft(i,k,j)
             end do
           end do
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               qvten(i,k,j) = qvten(i,k,j) + diffq(i,k,j)
             end do
           end do
@@ -1400,25 +1400,25 @@
 !         qvten for appling the sponge boundary conditions on t and qv:
 !
           if ( iboudy.eq.4 ) then
-            do k = 1 , kx
-              do i = 2 , ixm2
+            do k = 1 , kz
+              do i = 2 , iym2
                 tten(i,k,j) = tten(i,k,j) - difft(i,k,j)
               end do
             end do
             call sponge_t(ispgx,wgtx,tten(1,1,j),j)
-            do k = 1 , kx
-              do i = 2 , ixm2
+            do k = 1 , kz
+              do i = 2 , iym2
                 tten(i,k,j) = tten(i,k,j) + difft(i,k,j)
               end do
             end do
-            do k = 1 , kx
-              do i = 2 , ixm2
+            do k = 1 , kz
+              do i = 2 , iym2
                 qvten(i,k,j) = qvten(i,k,j) - diffq(i,k,j)
               end do
             end do
             call spongeqv(ispgx,wgtx,qvten(1,1,j),j)
-            do k = 1 , kx
-              do i = 2 , ixm2
+            do k = 1 , kz
+              do i = 2 , iym2
                 qvten(i,k,j) = qvten(i,k,j) + diffq(i,k,j)
               end do
             end do
@@ -1438,20 +1438,20 @@
 !
 !..tq.forecast t, qv, and qc at tau+1:
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               qvc(i,k,j) = qvb(i,k,j) + dt*qvten(i,k,j)
             end do
           end do
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               qcc(i,k,j) = qcb(i,k,j) + dt*qcten(i,k,j)
             end do
           end do
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               tc(i,k,j) = tb(i,k,j) + dt*tten(i,k,j)
             end do
           end do
@@ -1461,8 +1461,8 @@
           if ( ichem.eq.1 ) then
 !
             do itr = 1 , ntr
-              do k = 1 , kx
-                do i = 2 , ixm2
+              do k = 1 , kz
+                do i = 2 , iym2
                   chic(i,k,j,itr) = chib(i,k,j,itr)                     &
                                   & + dt*chiten(i,k,j,itr)
                 end do
@@ -1481,8 +1481,8 @@
         if ( j.eq.1 ) then
 #endif
           if ( ipgf.eq.1 ) then
-            do k = 1 , kx
-              do i = 1 , ixm1
+            do k = 1 , kz
+              do i = 1 , iym1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
                 ttld(i,k,j) = td(i,k,j) - psa(i,j)                      &
                             & *t00pg*((a(k)*psa(i,j)+ptop)/p00pg)       &
@@ -1490,8 +1490,8 @@
               end do
             end do
           else if ( ipgf.eq.0 ) then
-            do k = 1 , kx
-              do i = 1 , ixm1
+            do k = 1 , kz
+              do i = 1 , iym1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
               end do
             end do
@@ -1507,8 +1507,8 @@
 !-----set td and psd at j=jlx equal to ta and psa:
 !
           if ( ipgf.eq.1 ) then
-            do k = 1 , kx
-              do i = 1 , ixm1
+            do k = 1 , kz
+              do i = 1 , iym1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
                 ttld(i,k,j) = td(i,k,j) - psa(i,j)                      &
                             & *t00pg*((a(k)*psa(i,j)+ptop)/p00pg)       &
@@ -1516,8 +1516,8 @@
               end do
             end do
           else if ( ipgf.eq.0 ) then
-            do k = 1 , kx
-              do i = 1 , ixm1
+            do k = 1 , kz
+              do i = 1 , iym1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
               end do
             end do
@@ -1529,8 +1529,8 @@
 !
         else if ( ipgf.eq.1 ) then
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               tvc = tc(i,k,j)*(1.+ep1*(qvc(i,k,j))/psc(i,j))
               tva = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
               tvb = tb(i,k,j)*(1.+ep1*(qvb(i,k,j))/psb(i,j))
@@ -1539,29 +1539,29 @@
                           & *t00pg*((a(k)*psd(i,j)+ptop)/p00pg)**pgfaa1
             end do
           end do
-          do k = 1 , kx
+          do k = 1 , kz
             td(1,k,j) = ta(1,k,j)*(1.+ep1*(qv(1,k,j)))
             ttld(1,k,j) = td(1,k,j) - psa(1,j)                          &
                         & *t00pg*((a(k)*psa(1,j)+ptop)/p00pg)**pgfaa1
-            td(ixm1,k,j) = ta(ixm1,k,j)*(1.+ep1*(qv(ixm1,k,j)))
-            ttld(ixm1,k,j) = td(ixm1,k,j) - psa(ixm1,j)                 &
-                          & *t00pg*((a(k)*psa(ixm1,j)+ptop)/p00pg)      &
+            td(iym1,k,j) = ta(iym1,k,j)*(1.+ep1*(qv(iym1,k,j)))
+            ttld(iym1,k,j) = td(iym1,k,j) - psa(iym1,j)                 &
+                          & *t00pg*((a(k)*psa(iym1,j)+ptop)/p00pg)      &
                           & **pgfaa1
           end do
 !
         else if ( ipgf.eq.0 ) then
 !
-          do k = 1 , kx
-            do i = 2 , ixm2
+          do k = 1 , kz
+            do i = 2 , iym2
               tvc = tc(i,k,j)*(1.+ep1*(qvc(i,k,j))/psc(i,j))
               tva = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
               tvb = tb(i,k,j)*(1.+ep1*(qvb(i,k,j))/psb(i,j))
               td(i,k,j) = alpha*(tvc+tvb) + beta*tva
             end do
           end do
-          do k = 1 , kx
+          do k = 1 , kz
             td(1,k,j) = ta(1,k,j)*(1.+ep1*(qv(1,k,j)))
-            td(ixm1,k,j) = ta(ixm1,k,j)*(1.+ep1*(qv(ixm1,k,j)))
+            td(iym1,k,j) = ta(iym1,k,j)*(1.+ep1*(qv(iym1,k,j)))
           end do
  
         else         !end if(j.ne.jxm1),else test
@@ -1579,8 +1579,8 @@
 !..uv.compute the diffusion terms:
 !       put diffusion and pbl tendencies of u and v in difuu and difuv.
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             difuu(i,k,j) = uten(i,k,j)
             difuv(i,k,j) = vten(i,k,j)
           end do
@@ -1591,8 +1591,8 @@
 !
 !..uv.compute the horizontal advection terms for u and v:
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             uten(i,k,j) = 0.
             vten(i,k,j) = 0.
           end do
@@ -1603,8 +1603,8 @@
 !
 !..uv.compute coriolis terms:
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             uten(i,k,j) = uten(i,k,j) + f(i,j)*va(i,k,j)/msfd(i,j)
             vten(i,k,j) = vten(i,k,j) - f(i,j)*ua(i,k,j)/msfd(i,j)
           end do
@@ -1620,8 +1620,8 @@
 !..uv.compute pressure gradient terms:
 !
         if ( ipgf.eq.1 ) then
-          do k = 1 , kx
-            do i = 2 , ixm1
+          do k = 1 , kz
+            do i = 2 , iym1
               psasum = psd(i,j) + psd(i-1,j) + psd(i,j-1) + psd(i-1,j-1)
               sigpsa = psasum
               tv1 = t(i-1,k,j-1)*(1.+ep1*(qv(i-1,k,j-1)))
@@ -1644,8 +1644,8 @@
             end do
           end do
         else if ( ipgf.eq.0 ) then
-          do k = 1 , kx
-            do i = 2 , ixm1
+          do k = 1 , kz
+            do i = 2 , iym1
               psasum = psd(i,j) + psd(i-1,j) + psd(i,j-1) + psd(i-1,j-1)
               sigpsa = psasum
               tv1 = t(i-1,k,j-1)*(1.+ep1*(qv(i-1,k,j-1)))
@@ -1679,19 +1679,19 @@
 !
         if ( ipgf.eq.1 ) then
  
-          do i = 1 , ixm1
-            tv = (ttld(i,kx,j)/psd(i,j))/(1.+qc(i,kx,j)/(1.+qv(i,kx,j)))
-            phi(i,kx,j) = ht(i,j)                                       &
+          do i = 1 , iym1
+            tv = (ttld(i,kz,j)/psd(i,j))/(1.+qc(i,kz,j)/(1.+qv(i,kz,j)))
+            phi(i,kz,j) = ht(i,j)                                       &
                         & + rgas*t00pg/pgfaa1*((psd(i,j)+ptop)/p00pg)   &
                         & **pgfaa1
-            phi(i,kx,j) = phi(i,kx,j)                                   &
-                        & - rgas*tv*dlog((a(kx)+ptop/psd(i,j))/(1.+     &
+            phi(i,kz,j) = phi(i,kz,j)                                   &
+                        & - rgas*tv*dlog((a(kz)+ptop/psd(i,j))/(1.+     &
                         & ptop/psd(i,j)))
           end do
  
-          do k = 1 , kxm1
-            lev = kx - k
-            do i = 1 , ixm1
+          do k = 1 , kzm1
+            lev = kz - k
+            do i = 1 , iym1
               tvavg = ((ttld(i,lev,j)*dsigma(lev)+ttld(i,lev+1,j)*      &
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+            &
                     & dsigma(lev+1))))/(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
@@ -1703,16 +1703,16 @@
  
         else if ( ipgf.eq.0 ) then
  
-          do i = 1 , ixm1
-            tv = (td(i,kx,j)/psd(i,j))/(1.+qc(i,kx,j)/(1.+qv(i,kx,j)))
-            phi(i,kx,j) = ht(i,j)                                       &
-                        & - rgas*tv*dlog((a(kx)+ptop/psd(i,j))/         &
+          do i = 1 , iym1
+            tv = (td(i,kz,j)/psd(i,j))/(1.+qc(i,kz,j)/(1.+qv(i,kz,j)))
+            phi(i,kz,j) = ht(i,j)                                       &
+                        & - rgas*tv*dlog((a(kz)+ptop/psd(i,j))/         &
                         & (1.+ptop/psd(i,j)))
           end do
  
-          do k = 1 , kxm1
-            lev = kx - k
-            do i = 1 , ixm1
+          do k = 1 , kzm1
+            lev = kz - k
+            do i = 1 , iym1
               tvavg = ((td(i,lev,j)*dsigma(lev)+td(i,lev+1,j)*          &
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+            &
                     & dsigma(lev+1))))/(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
@@ -1726,8 +1726,8 @@
         end if
       end do
 #ifdef MPP1
-      call mpi_sendrecv(phi(1,1,jxp),ix*kx,mpi_real8,ieast,1,           &
-                      & phi(1,1,0),ix*kx,mpi_real8,iwest,1,             &
+      call mpi_sendrecv(phi(1,1,jxp),iy*kz,mpi_real8,ieast,1,           &
+                      & phi(1,1,0),iy*kz,mpi_real8,iwest,1,             &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       do j = jbegin , jendx
 #else
@@ -1736,8 +1736,8 @@
 !
 !..uv.compute the geopotential gradient terms:
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             uten(i,k,j) = uten(i,k,j)                                   &
                         & -(psd(i-1,j-1)+psd(i,j-1)+psd(i-1,j)+psd(i,j))&
                         & *(phi(i,k,j)+phi(i-1,k,j)-phi(i,k,j-1)-       &
@@ -1779,8 +1779,8 @@
 !
 !..uv.add the diffusion and pbl tendencies to uten and vten:
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             uten(i,k,j) = uten(i,k,j) + difuu(i,k,j)
             vten(i,k,j) = vten(i,k,j) + difuv(i,k,j)
           end do
@@ -1788,8 +1788,8 @@
 !
 !..uv.forecast p*u and p*v at tau+1:
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             uc(i,k,j) = ub(i,k,j) + dt*uten(i,k,j)
             vc(i,k,j) = vb(i,k,j) + dt*vten(i,k,j)
           end do
@@ -1808,8 +1808,8 @@
 #else
       do j = 2 , jxm1
 #endif
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             ub(i,k,j) = omuhf*ua(i,k,j)/msfd(i,j)                       &
                       & + gnuhf*(ub(i,k,j)+uc(i,k,j))
             vb(i,k,j) = omuhf*va(i,k,j)/msfd(i,j)                       &
@@ -1825,29 +1825,29 @@
 #else
       do j = 2 , jxm2
 #endif
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             tb(i,k,j) = omuhf*ta(i,k,j) + gnuhf*(tb(i,k,j)+tc(i,k,j))
             ta(i,k,j) = tc(i,k,j)
           end do
-          do i = 2 , ixm2
+          do i = 2 , iym2
             qvbs = omuhf*qva(i,k,j) + gnuhf*(qvb(i,k,j)+qvc(i,k,j))
             qvas = qvc(i,k,j)
             qvb(i,k,j) = dmax1(qvbs,1.D-99)
             qva(i,k,j) = dmax1(qvas,1.D-99)
           end do
-          do i = 2 , ixm2
+          do i = 2 , iym2
             qcbs = omu*qca(i,k,j) + gnu*(qcb(i,k,j)+qcc(i,k,j))
             qcb(i,k,j) = dmax1(qcbs,0.D0)
           end do
-          do i = 2 , ixm2
+          do i = 2 , iym2
             qcas = qcc(i,k,j)
             qca(i,k,j) = dmax1(qcas,0.D0)
           end do
 !chem2
           if ( ichem.eq.1 ) then
             do itr = 1 , ntr
-              do i = 2 , ixm2
+              do i = 2 , iym2
                 chibs = omu*chia(i,k,j,itr)                             &
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
                 chib(i,k,j,itr) = dmax1(chibs,0.D0)
@@ -1858,19 +1858,19 @@
           end if
 !chem2_
         end do
-        do i = 2 , ixm2
+        do i = 2 , iym2
           psb(i,j) = omuhf*psa(i,j) + gnuhf*(psb(i,j)+psc(i,j))
           psa(i,j) = psc(i,j)
         end do
       end do
       if ( ehso4 ) then
-        do k = 1 , kx
+        do k = 1 , kz
 #ifdef MPP1
           do j = 1 , jendx
 #else
           do j = 1 , jxm1
 #endif
-            do i = 1 , ixm1
+            do i = 1 , iym1
               aermm(i,k,j) = so4(i,k,j)
             end do
           end do

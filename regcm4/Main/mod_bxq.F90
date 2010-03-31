@@ -24,25 +24,25 @@
       implicit none
 !
 #ifdef MPP1
-      real(8) , dimension(ix,jxp,nsplit) :: ddsum
-      real(8) , dimension(ix,jxp,nsplit,3) :: deld
-      real(8) , dimension(ix,0:jxp,nsplit,3) :: delh
-      real(8) , dimension(ix,0:jxp,nsplit) :: dhsum
-      real(8) , dimension(ix,jxp) :: psdot
-      real(8) , dimension(ix,jxp,3) :: work
+      real(8) , dimension(iy,jxp,nsplit) :: ddsum
+      real(8) , dimension(iy,jxp,nsplit,3) :: deld
+      real(8) , dimension(iy,0:jxp,nsplit,3) :: delh
+      real(8) , dimension(iy,0:jxp,nsplit) :: dhsum
+      real(8) , dimension(iy,jxp) :: psdot
+      real(8) , dimension(iy,jxp,3) :: work
 !
-      real(8) , dimension(ix,jxp+1) :: uu , vv
+      real(8) , dimension(iy,jxp+1) :: uu , vv
 !
-      real(8) , dimension(ix,kx,jxp+1) :: uuu , vvv
+      real(8) , dimension(iy,kz,jxp+1) :: uuu , vvv
 #else
-      real(8) , dimension(ix,jx,nsplit) :: ddsum , dhsum
-      real(8) , dimension(ix,jx,nsplit,3) :: deld , delh
-      real(8) , dimension(ix,jx) :: psdot
-      real(8) , dimension(ix,jx,3) :: work
+      real(8) , dimension(iy,jx,nsplit) :: ddsum , dhsum
+      real(8) , dimension(iy,jx,nsplit,3) :: deld , delh
+      real(8) , dimension(iy,jx) :: psdot
+      real(8) , dimension(iy,jx,3) :: work
 !
-      real(8) , dimension(ix,jx) :: uu , vv
+      real(8) , dimension(iy,jx) :: uu , vv
 !
-      real(8) , dimension(ix,kx,jx) :: uuu , vvv
+      real(8) , dimension(iy,kz,jx) :: uuu , vvv
 #endif
 
       end module mod_bxq

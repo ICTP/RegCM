@@ -112,7 +112,7 @@
           if ( k.ge.nk + 1 - mxaerl ) then
             aermmb(i,k) = gtigts*tauvis/(1.0D4*kaervs*rhfac*(1.-omgvis* &
                         & gvis*gvis)                                    &
-                        & *(pint(i,kxp1)-pint(i,kx + 1 - mxaerl)))
+                        & *(pint(i,kzp1)-pint(i,kz + 1 - mxaerl)))
           else
             aermmb(i,k) = 0.0D0
           end if

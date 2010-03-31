@@ -79,6 +79,8 @@
  
       ! Stefan-Boltzmann  constant CODATA 2007
       real(8) , parameter :: sigm = 5.670400D-08
+      ! Boltzman Constant k CODATA 2007
+      real(8) , parameter :: boltzk = 1.3806504D-23
 
       ! Fixed emissivity of water
       real(8) , parameter :: emsw = 0.97D+00
@@ -221,10 +223,16 @@
       real(8) , parameter :: rga = 1.0D+00/gtigts
       real(8) , parameter :: cpdgts = cpd*1.0D+04
       real(8) , parameter :: gocp = gtigts/cpdgts
-      real(8) , parameter :: sslp = stdp*10.0D+00
+      real(8) , parameter :: sslp = stdp*10.0D+00 ! dynes/cm^2
       real(8) , parameter :: rsslp = 1.0D+00/sslp
       real(8) , parameter :: stebol = sigm*1.0D+03
       real(8) , parameter :: rgsslp = 0.5D+00/(gtigts*sslp)
+      ! Effective molecular weight of dry air (g/mol)
+      real(8) , parameter :: amd = 28.9644D+00
+      ! Molecular weight of ozone (g/mol)
+      real(8) , parameter :: amo = 48.0D+00
+      ! Molecular weight of co2 (g/mol)
+      real(8) , parameter :: amco2 = 44.0D+00
 
       ! Radiation constants
       real(8) , parameter :: dpfco2 = 5.0D-03

@@ -2795,7 +2795,7 @@
 +    character(len=32) :: subname = 'clm_getsoitex'     ! subroutine name
 +!-----------------------------------------------------------------------
 +
-+            nlat = ix
++            nlat = iy
 +            nlon = jx
 +
 +            start(1) = 1

@@ -52,7 +52,7 @@
 !
       real(8) :: dxx
       integer :: ind , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       intent (in) dxx , ind , j
       intent (inout) ften
 !
@@ -69,8 +69,8 @@
 !
 !-----for t and qv:
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(t(i,k,j+1)      &
                       & +t(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
@@ -93,8 +93,8 @@
 !-----for qc and qr:
 !       up-wind values of qc and qr are used.
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -140,11 +140,11 @@
         jdxm1 = max0(jdxm1,2)
 #endif
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ixm1)
+            idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -209,7 +209,7 @@
 !
       real(8) :: dxx
       integer :: ind , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       intent (in) dxx , ind , j
       intent (inout) ften
 !
@@ -226,8 +226,8 @@
 !
 !-----for t and qv:
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(u(i,k,j+1)      &
                       & +u(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
@@ -250,8 +250,8 @@
 !-----for qc and qr:
 !       up-wind values of qc and qr are used.
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -297,11 +297,11 @@
         jdxm1 = max0(jdxm1,2)
 #endif
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ixm1)
+            idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -366,7 +366,7 @@
 !
       real(8) :: dxx
       integer :: ind , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       intent (in) dxx , ind , j
       intent (inout) ften
 !
@@ -383,8 +383,8 @@
 !
 !-----for t and qv:
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(v(i,k,j+1)      &
                       & +v(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
@@ -407,8 +407,8 @@
 !-----for qc and qr:
 !       up-wind values of qc and qr are used.
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -454,11 +454,11 @@
         jdxm1 = max0(jdxm1,2)
 #endif
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ixm1)
+            idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -523,7 +523,7 @@
 !
       real(8) :: dxx
       integer :: ind , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       intent (in) dxx , ind , j
       intent (inout) ften
 !
@@ -540,8 +540,8 @@
 !
 !-----for t and qv:
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qv(i,k,j+1)     &
                       & +qv(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
@@ -564,8 +564,8 @@
 !-----for qc and qr:
 !       up-wind values of qc and qr are used.
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -611,11 +611,11 @@
         jdxm1 = max0(jdxm1,2)
 #endif
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ixm1)
+            idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -680,7 +680,7 @@
 !
       real(8) :: dxx
       integer :: ind , j
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       intent (in) dxx , ind , j
       intent (inout) ften
 !
@@ -697,8 +697,8 @@
 !
 !-----for t and qv:
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qc(i,k,j+1)     &
                       & +qc(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
@@ -721,8 +721,8 @@
 !-----for qc and qr:
 !       up-wind values of qc and qr are used.
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -768,11 +768,11 @@
         jdxm1 = max0(jdxm1,2)
 #endif
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ixm1)
+            idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
@@ -837,7 +837,7 @@
 !
       real(8) :: dxx
       integer :: ind , j , n
-      real(8) , dimension(ix,kx) :: ften
+      real(8) , dimension(iy,kz) :: ften
       intent (in) dxx , ind , j , n
       intent (inout) ften
 !
@@ -854,8 +854,8 @@
 !
 !-----for t and qv:
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
                       & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(chi(i,k,j+1,n)  &
                       & +chi(i,k,j,n))-(ua(i+1,k,j)+ua(i,k,j))          &
@@ -879,8 +879,8 @@
 !-----for qc and qr:
 !       up-wind values of qc and qr are used.
 !
-        do k = 1 , kx
-          do i = 2 , ixm2
+        do k = 1 , kz
+          do i = 2 , iym2
             uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
@@ -926,11 +926,11 @@
         jdxm1 = max0(jdxm1,2)
 #endif
 !
-        do k = 1 , kx
-          do i = 2 , ixm1
+        do k = 1 , kz
+          do i = 2 , iym1
             idx = i
             idxp1 = i + 1
-            idxp1 = min0(idxp1,ixm1)
+            idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &

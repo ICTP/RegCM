@@ -32,33 +32,33 @@
       integer :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc ,        &
                & ichsursrc
 #ifdef MPP1
-      integer , dimension(ix,jxp) :: icumbot , icumdwd , icumtop
+      integer , dimension(iy,jxp) :: icumbot , icumdwd , icumtop
 #else
-      integer , dimension(ix,jx) :: icumbot , icumdwd , icumtop
+      integer , dimension(iy,jx) :: icumbot , icumdwd , icumtop
 #endif
 !
       integer :: ibchb , ibchl , iochb , iochl , iso2 , iso4 , mixtype
       integer , dimension(nbin) :: idust
 !
-      real(8) , dimension(ix,2) :: mflx
+      real(8) , dimension(iy,2) :: mflx
 !
 #ifdef MPP1
-      real(8) , dimension(ixm1,kx,jxp) :: aerasp , aerext , aerssa
-      real(8) , dimension(ixm1,jxp) :: aersrrf , aertarf
+      real(8) , dimension(iym1,kz,jxp) :: aerasp , aerext , aerssa
+      real(8) , dimension(iym1,jxp) :: aersrrf , aertarf
 #else
-      real(8) , dimension(ixm1,kx,jxm1) :: aerasp , aerext , aerssa
-      real(8) , dimension(ixm1,jxm1) :: aersrrf , aertarf
+      real(8) , dimension(iym1,kz,jxm1) :: aerasp , aerext , aerssa
+      real(8) , dimension(iym1,jxm1) :: aersrrf , aertarf
 #endif
 !
 #ifdef MPP1
-      real(8) , dimension(ix,jxp,ntr) :: cemtr , cemtrac , remdrd
-      real(8) , dimension(ix,kx) :: rembc , remrat
-      real(8) , dimension(ix,kx,jxp,ntr) :: remcvc , remlsc , rxsaq1 ,  &
+      real(8) , dimension(iy,jxp,ntr) :: cemtr , cemtrac , remdrd
+      real(8) , dimension(iy,kz) :: rembc , remrat
+      real(8) , dimension(iy,kz,jxp,ntr) :: remcvc , remlsc , rxsaq1 ,  &
            & rxsaq2 , rxsg
 #else
-      real(8) , dimension(ix,jx,ntr) :: cemtr , cemtrac , remdrd
-      real(8) , dimension(ix,kx) :: rembc , remrat
-      real(8) , dimension(ix,kx,jx,ntr) :: remcvc , remlsc , rxsaq1 ,   &
+      real(8) , dimension(iy,jx,ntr) :: cemtr , cemtrac , remdrd
+      real(8) , dimension(iy,kz) :: rembc , remrat
+      real(8) , dimension(iy,kz,jx,ntr) :: remcvc , remlsc , rxsaq1 ,   &
            & rxsaq2 , rxsg
 #endif
 

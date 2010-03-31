@@ -64,14 +64,14 @@
       real(8) :: dqv , exces , fccc , pres , qvc_cld , qvs , r1 ,       &
                & rh0adj , rhc , satvp
       integer :: i , k
-      real(8) , dimension(ix,kx) :: qccs , tmp1 , tmp2 , tmp3
+      real(8) , dimension(iy,kz) :: qccs , tmp1 , tmp2 , tmp3
 !
  
 !---------------------------------------------------------------------
 !     1.  Compute t, qv, and qc at tau+1 without condensational term
 !---------------------------------------------------------------------
-      do k = 1 , kx
-        do i = 2 , ixm2
+      do k = 1 , kz
+        do i = 2 , iym2
           tmp3(i,k) = (tb(i,k,j)+dt*tten(i,k,j))/psc(i,j)
           qvcs(i,k) = dmax1((qvb(i,k,j)+dt*qvten(i,k,j))/psc(i,j),      &
                     & 1.D-30)
@@ -83,8 +83,8 @@
 !---------------------------------------------------------------------
 !     2.  Compute the cloud condensation/evaporation term.
 !---------------------------------------------------------------------
-      do k = 1 , kx
-        do i = 2 , ixm2
+      do k = 1 , kz
+        do i = 2 , iym2
  
 !         2a. Calculate the saturation mixing ratio and relative
 !         humidity
@@ -136,8 +136,8 @@
 !---------------------------------------------------------------------
 !     3.  Compute the tendencies.
 !---------------------------------------------------------------------
-      do k = 1 , kx
-        do i = 2 , ixm2
+      do k = 1 , kz
+        do i = 2 , iym2
           qvten(i,k,j) = qvten(i,k,j) - psc(i,j)*tmp2(i,k)
           qcten(i,k,j) = qcten(i,k,j) + psc(i,j)*tmp2(i,k)
           tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2(i,k)*wlhvocp
