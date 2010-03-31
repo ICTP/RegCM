@@ -29,7 +29,7 @@
       use mod_param1
       use mod_param2
       use mod_param3 , only : wgtx , sigma , dsigma , a , anudg , twt , &
-                   & qcon , wgtd , akht1 , akht2 , kt , kzout , ncld ,  &
+                   & qcon , wgtd , akht1 , akht2 , kt , kxout , ncld ,  &
                    & ptop , ptop4 , kchi , k700 , jxsex , ispgx , ispgd
       use mod_iunits
       use mod_pmoist
@@ -99,11 +99,11 @@
 !chem2
 #ifdef CLM
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
-      & prtfrq , kzout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
+      & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
       & batfrq , iotyp , ibintyp , ifchem , chemfrq , clmfrq
 #else
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
-      & prtfrq , kzout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
+      & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
       & batfrq , iotyp , ibintyp , ifchem , chemfrq
 #endif
 !
@@ -210,7 +210,7 @@
 !     = 0 ; no
 !     = 1 ; yes
 !
-!     kzout  : the k level of the horizontal slice for printer output.
+!     kxout  : the k level of the horizontal slice for printer output.
 !
 !     jxsex  : the j index of the north-south vertical slice for printer
 !     output.
@@ -309,7 +309,7 @@
       ifsub = .true.
       ifprt = .true.
       prtfrq = 12.
-      kzout = kz
+      kxout = kz
       jxsex = 25
       iotyp = 1
       ibintyp = 1
@@ -465,7 +465,7 @@
       call mpi_bcast(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ifprt,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(prtfrq,1,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(kzout,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(kxout,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(jxsex,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(iotyp,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ibintyp,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -790,7 +790,7 @@
       write (aline, *) ' ifsave = ' , ifsave , ' savfrq = ' , savfrq ,  &
              &' iftape = ' , iftape , ' tapfrq = ' , tapfrq ,           &
              &' ifprt  = ' , ifprt , ' prtfrq = ' , prtfrq ,            &
-             &' kzout  = ' , kzout , ' jxsex  = ' , jxsex ,             &
+             &' kxout  = ' , kxout , ' jxsex  = ' , jxsex ,             &
              &' radisp = ' , radisp , ' batfrq = ' , batfrq ,           &
              &' nslice = ' , nslice , ' ifchem = ' , ifchem ,           &
              &' chemfrq =' , chemfrq

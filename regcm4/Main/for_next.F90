@@ -21,7 +21,7 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
-      use mod_param3 , only : jxsex , kzout, ncld
+      use mod_param3 , only : jxsex , kxout, ncld
       use mod_date
       use mod_convect
       use mod_pmoist
@@ -92,7 +92,7 @@
         write (99,99006) 'ifprt   = .false.'
       end if
       write (99,99009) 'prtfrq  = ' , prtfrq
-      write (99,99010) 'kzout   = ' , kzout
+      write (99,99010) 'kxout   = ' , kxout
       write (99,99010) 'jxsex   = ' , jxsex
       write (99,99007) 'iotyp   = ' , iotyp
       write (99,99007) 'ibintyp = ' , ibintyp
