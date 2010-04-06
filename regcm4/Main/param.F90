@@ -678,7 +678,7 @@
         ptop = ptsp
         dx = dxsp
         if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
-          write (aline,*) 'param:  SET IN regcm.param:  IX=' , iy ,     &
+          write (aline,*) 'param:  SET IN regcm.param:  IY=' , iy ,     &
                  & ' JX=' ,  jx , ' KX=' , kz
           call say
           write (aline,*) 'param:  SET IN TERRAIN: IYY=' , iyy ,        &
@@ -719,7 +719,7 @@
       ptop = ptsp
       dx = dxsp
       if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
-        write (aline,*) '  SET IN regcm.param:  IX=' , iy , ' JX=' ,    &
+        write (aline,*) '  SET IN regcm.param:  IY=' , iy , ' JX=' ,    &
                       & jx , ' KX=' , kz
         call say
         write (aline,*) '  SET IN TERRAIN: IYY=' , iyy , ' JXX=' , jxx ,&
@@ -1017,7 +1017,7 @@
                &'**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
           print * , '****     Map Projection: ' , proj ,                &
                &'                ****'
-          print * , '****     IX=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
+          print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
                &'             ****'
           print * , '****     PTOP=' , ptsp , ' DX=' , dxsp ,           &
                &'       ****'
@@ -1184,7 +1184,7 @@
         print * , '**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
         print * , '****     Map Projection: ' , proj ,                  &
              &'                ****'
-        print * , '****     IX=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
+        print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
              &'             ****'
         print * , '****     PTOP=' , ptsp , ' DX=' , dxsp ,             &
              &'       ****'

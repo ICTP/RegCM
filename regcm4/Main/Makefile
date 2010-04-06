@@ -1,8 +1,8 @@
 include ../Makefile.inc
 
-USECLM = 1
-
-CPPFLAGS += -DDCSST
+USECLM = 0      # Set to 1 to enable CLM coupling
+USEDCSST = 0    # Set to 1 to enable daily cycle SST
+USESEAICE = 0   # Set to 1 to enable Sea Ice effects
 
 SCENARIO = A1B
 
@@ -78,6 +78,14 @@ ifeq ($(USECLM),1)
   CLMLIB = $(CLMPTH)/libclm.a
 else
   CLMLIB =
+endif
+
+ifeq ($(USEDCSST),1)
+  CPPFLAGS += -DDCSST
+endif
+
+ifeq ($(USESEAICE),1)
+  CPPFLAGS += -DSEAICE
 endif
 
 $(CLMPTH)/libclm.a: mod_clm.o mod_regcm_param.o
@@ -431,12 +439,12 @@ zengocn.o: zengocn.f90 mod_constants.o
 ifeq ($(USECLM),1)
 zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_slice.o \
-              mod_interfaces.o $(CLMPTH)/clm_varsur.o
+              mod_bdycod.o mod_interfaces.o $(CLMPTH)/clm_varsur.o
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_slice.o \
-              mod_interfaces.o mod_regcm_param.o
+              mod_interfaces.o mod_regcm_param.o mod_bdycod.o
 endif
 zenith.o: zenith.f90 mod_constants.o
 ifeq ($(USECLM),1)

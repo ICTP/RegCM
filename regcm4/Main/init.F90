@@ -234,7 +234,7 @@
             mmrec = mmrec + 1
             read (iutbc,rec=mmrec) ndate0 , nxxx , nyyy , kzzz
             if ( nyyy.ne.iy .or. nxxx.ne.jx .or. kzzz.ne.kz ) then
-              write (aline,*) 'SET IN regcm.param: IX=' , iy , ' JX=' , &
+              write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' , &
                             & jx , ' KX=' , kz
               call say
               write (aline,*) 'SET IN ICBC: NY=' , nyyy , ' NX=' ,      &
@@ -576,7 +576,7 @@
           mmrec = mmrec + 1
           read (iutbc,rec=mmrec) ndate0 , nxxx , nyyy , kzzz
           if ( nyyy.ne.iy .or. nxxx.ne.jx .or. kzzz.ne.kz ) then
-            write (aline,*) 'SET IN regcm.param: IX=' , iy , ' JX=' ,   &
+            write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' ,   &
                           & jx , ' KX=' , kz
             call say
             write (aline,*) 'SET IN ICBC: NY=' , nyyy , ' NX=' , nxxx , &

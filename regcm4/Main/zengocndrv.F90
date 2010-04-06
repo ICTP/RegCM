@@ -39,6 +39,7 @@
       use mod_param1 , only : dtbat
       use mod_bats , only : deltas , tdeltas , firstcall , dtskin ,     &
                  &          fsw2d , flw2d
+      use mod_bdycod , only : ts1
       use mod_constants , only : sigm , rhoh2o , cpw0 , emsw , gti ,    &
                  &               vonkar
 #endif
@@ -108,6 +109,12 @@
               firstcall(i,j) = .true.
               td = tdeltas(i,j)
             end if
+!           Init local variables
+            delta = deltas(i,j)
+            tdelta = tdeltas(i,j)
+!           td is now the 3m bulk SST from the forcing variable
+            td = ts1(i,j)
+!
 !           deep impact of aod on sst
 !           if ( sum(aerext(i,:,j)).le.1 ) then
 !             td = ts1(i,j) - sum(aerext(i,:,j))*0.8
