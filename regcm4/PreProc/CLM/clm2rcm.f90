@@ -132,8 +132,8 @@
 !       Therefore, **   the output file should only be opened once.
         inquire (file=infil(ifld),exist=there)
         if ( .not.there ) then
-          print * , 'CLM Input file does not exist: ' , infil(ifld)
-          stop 'NON-EXISTANT FILE'
+          print * , 'CLM Input file does not exist: ', trim(infil(ifld))
+          stop 'NON-EXISTENT FILE'
         end if
         if ( ifld==ipft .or. ifld==ilai .or. ifld==ilak .or.            &
            & ifld==iglc .or. ifld==iurb .or. ifld==isnd .or.            &
