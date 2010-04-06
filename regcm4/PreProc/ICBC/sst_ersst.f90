@@ -87,7 +87,7 @@
           stop
         end if
       else
-        write (*,*) 'PLEASE SET the right SSTTYP in domain.param'
+        write (*,*) 'PLEASE SET right SSTTYP in mod_preproc_param.f90'
         stop
       end if
       open (21,file='SST.RCM',form='unformatted',status='replace')
@@ -316,11 +316,13 @@
       integer :: i , j , n
       character(35) :: pathaddname
       logical :: there
-!     character(3) :: varname
+      character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
-      integer , dimension(10) :: icount , istart
-      integer :: inet , istatus
-      real(8) :: xadd , xscale
+      integer :: istatus
+!
+      integer , dimension(10) , save :: icount , istart
+      integer , save :: inet , ivar
+      real(8) , save :: xadd , xscale
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -332,7 +334,7 @@
 !
 !     DATA ARRAY AND WORK ARRAY
 !
-!     data varname/'skt'/
+      data varname/'skt'/
 !
       if ( it==it0 ) then
         pathaddname = '../DATA/SST/tskinERAIN.1989-2009.nc'
@@ -341,10 +343,19 @@
           write (*,*) pathaddname , ' is not available'
           stop
         end if
-        istatus = nf90_open('../DATA/SST/tskinERAIN.1989-2009.nc',       &
-               & nf90_nowrite,inet)
-        istatus = nf90_get_att(inet,4,'scale_factor',xscale)
-        istatus = nf90_get_att(inet,4,'add_offset',xadd)
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet)
+        if ( istatus/=nf90_noerr ) then
+          write ( 6,* ) 'Cannot open input file ', pathaddname
+          stop 'INPUT FILE OPEN ERROR'
+        end if
+        istatus = nf90_inq_varid(inet,varname,ivar)
+        if ( istatus/=nf90_noerr ) then
+          write ( 6,* ) 'Cannot find variable ', varname,               &
+               &        ' in input file ', pathaddname
+          stop 'INPUT FILE ERROR'
+        end if
+        istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+        istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
         istart(1) = 1
         istart(2) = 1
         icount(1) = 240
@@ -358,7 +369,12 @@
 !bxq
       istart(3) = it
       icount(3) = 1
-      istatus = nf90_get_var(inet,4,work,istart,icount)
+      istatus = nf90_get_var(inet,ivar,work,istart,icount)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,* ) 'Cannot get ', varname, ' from file'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'ERROR READ SST'
+      end if
 !bxq_
 !
       do j = 1 , jlat
@@ -367,8 +383,6 @@
         end do
       end do
 !
-      istatus = nf90_close(inet)
-
       end subroutine skt_erain
 !
 !-----------------------------------------------------------------------
@@ -389,11 +403,13 @@
       integer :: i , j , n
       character(33) :: pathaddname
       logical :: there
-!     character(3) :: varname
+      character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
-      integer , dimension(10) :: icount , istart
-      integer :: inet , istatus
-      real(8) :: xadd , xscale
+      integer :: istatus
+!
+      integer , save :: inet , ivar
+      real(8) , save :: xadd , xscale
+      integer , dimension(10) , save :: icount , istart
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -405,7 +421,7 @@
 !
 !     DATA ARRAY AND WORK ARRAY
 !
-!     data varname/'sst'/
+      data varname/'sst'/
 !
       if ( it==it0 ) then
         pathaddname = '../DATA/SST/sstERAIN.1989-2009.nc'
@@ -414,10 +430,19 @@
           write (*,*) pathaddname , ' is not available'
           stop
         end if
-        istatus = nf90_open('../DATA/SST/sstERAIN.1989-2009.nc',        &
-                 &          nf90_nowrite,inet)
-        istatus = nf90_get_att(inet,4,'scale_factor',xscale)
-        istatus = nf90_get_att(inet,4,'add_offset',xadd)
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet)
+        if ( istatus/=nf90_noerr ) then
+          write ( 6,* ) 'Cannot open input file ', pathaddname
+          stop 'INPUT FILE OPEN ERROR'
+        end if
+        istatus = nf90_inq_varid(inet,varname,ivar)
+        if ( istatus/=nf90_noerr ) then
+          write ( 6,* ) 'Cannot find variable ', varname,               &
+               &        ' in input file ', pathaddname
+          stop 'INPUT FILE ERROR'
+        end if
+        istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+        istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
         istart(1) = 1
         istart(2) = 1
         icount(1) = 240
@@ -431,7 +456,12 @@
 !bxq
       istart(3) = it
       icount(3) = 1
-      istatus = nf90_get_var(inet,4,work,istart,icount)
+      istatus = nf90_get_var(inet,ivar,work,istart,icount)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,* ) 'Cannot get ', varname, ' from file'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'ERROR READ SST'
+      end if
 !bxq_
 !
       do j = 1 , jlat
@@ -439,6 +469,5 @@
           sst(i,jlat+1-j) = work(i,j)*xscale + xadd
         end do
       end do
-      istatus = nf90_close(inet)
 !
       end subroutine sst_erain

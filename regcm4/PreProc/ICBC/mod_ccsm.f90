@@ -600,7 +600,7 @@
           print * , 'CCSM Window LAT min=' , work2(1) , 'max=' ,        &
               & work2(latlen)
           print * , 'RCM  Domain LAT min=' , nlat0 , 'max=' , nlat1
-          stop 'Correct Domain Parameters in domain.param'
+          stop 'Correct Domain Parameters in mod_preproc_param.f90'
         end if
  
         if ( idate==idate0 ) then
@@ -1219,7 +1219,7 @@
           print * , 'CCSM Window LAT min=' , work2(1) , 'max=' ,        &
               & work2(latlen)
           print * , 'RCM  Domain LAT min=' , nlat0 , 'max=' , nlat1
-          stop 'Correct Domain Parameters in domain.param'
+          stop 'Correct Domain Parameters in mod_preproc_param.f90'
         end if
  
         if ( idate==idate0 ) then

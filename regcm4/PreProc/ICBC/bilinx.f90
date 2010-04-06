@@ -67,6 +67,7 @@
           yind = (((lato(i,j)-lati(1))/(lati(nlati)-lati(1)))           &
                & *float(nlati-1)) + 1.
           jq = int(yind)
+          jq = max0(jq,1)
           jqp1 = min0(jq+1,nlati)
           q = yind - jq
  
@@ -75,6 +76,7 @@
           xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))              &
                & *float(nloni-1)) + 1.
           ip = int(xind)
+          ip = max0(ip,1)
           ipp1 = min0(ip+1,nloni)
           p = xind - ip
  

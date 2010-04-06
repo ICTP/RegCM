@@ -236,7 +236,7 @@
           stop
         end if
       else
-        write (*,*) 'PLEASE SET the right SSTTYP in domain.param'
+        write (*,*) 'PLEASE SET right SSTTYP in mod_preproc_param.f90'
         stop
       end if
       open (21,file='SST.RCM',form='unformatted',status='replace')

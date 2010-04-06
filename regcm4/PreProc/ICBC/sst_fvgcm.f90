@@ -75,7 +75,7 @@
         open (11,file='../DATA/SST/Sst_2069_2101_B2.dat',               &
              &form='unformatted',recl=192*145*ibyte,access='direct')
       else
-        write (*,*) 'PLEASE SET SSTTYP in domain.param'
+        write (*,*) 'PLEASE SET SSTTYP in mod_preproc_param.f90'
         stop
       end if
       open (21,file='SST.RCM',form='unformatted',status='replace')
