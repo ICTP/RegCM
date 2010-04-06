@@ -190,7 +190,7 @@ def check():
             else :
                print 'WARNING! The data directory',basedir,'does not exist!'
                #sys.exit(1)
-         if line.find('NETCDFINC') > -1 : 
+         if line.find('NETCDFINC =') > -1 : 
             tmp = line.rsplit('=')
             ncdfinc = tmp[1].rstrip()
             if ncdfinc ==  '':
@@ -198,7 +198,7 @@ def check():
                #sys.exit(1)
             else :
                print ncdfinc,'defined as NetCDF include directory. Please be sure is the correct one.'
-         if line.find('NETCDFLIB') > -1 : 
+         if line.find('NETCDFLIB =') > -1 : 
             tmp = line.rsplit('=')
             ncdflib = tmp[1].rstrip()
             if ncdflib ==  '':
