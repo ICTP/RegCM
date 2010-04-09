@@ -1,0 +1,62 @@
+# This is Cineca  SP6 include file that  contains all variables to be included in all other Makefiles
+# This file is commented in detail to help you fine tune your RegCM distribution
+# 
+# 
+# Please load this module on SP6 machine in order to compile correctly the code:
+#
+#
+#
+#
+
+# GENERAL FLAGS: these should be always defined!  
+
+# Base directory:
+
+REGCM_BASE_DIR = `pwd`
+
+# DATA directories: 
+REGCM_DATA_DIR = 
+
+# NetCDF library:
+# The NetCDF library is needed to run RegCM, 
+# RegCM V4 was successfuly tested with NetCDF 4.0.1
+# In NETCDFINC you should define the path to NetCDF include files
+# In NETCDFLIB you should define the path and the name of the NetCDF library
+
+NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
+NETCDFINC = -I$(NETCDF_INC)
+
+# PREPROCESSOR AND COMPILER OPTIONS
+
+# Use this variable to enable the parallel version of the code
+# serial version : PARALLEL = ""
+# parallel version : PARALLEL = "MPP1"
+
+PARALLEL = "MPP1"
+
+# Add further preprocessor flags, if necessary. Those available are:
+# -DIBM : to compile using IBM xlf compiler
+# -DDIAG : to compile enabling Diagnostic capabilities (?) 
+
+CPPFLAGS = -WF,-D$(PARALLEL) -WF,-DIBM
+
+# Specific compiler flags (eg.: optimization / debugging) 
+# IMPORTANT : Check that your compiler complies with this RegCM features:
+# - RegCM expects the output to be written in big endian format
+# - RegCM expects Fortran records to be measured in bytes
+
+F90FLAGS =   -bnoquiet -O3  -qintlog  -qstrict  -qcheck -qmaxmem=-1 -qzerosize 
+
+# Set the Fortran 90 compiler here
+F90 = xlf90
+
+# Set the MPI Fortran 90 compiler here
+MPIF90 = mpxlf90
+
+# Set the linker here
+# Modify this variable only if you really know what you are doing !!!
+LD =$(F90)
+
+# You should not change the lines below unless you are a developer
+
+SVNDEF := -WF,-D'SVN_REV="$(shell svnversion -n .)"'

@@ -3,7 +3,6 @@
   
 include ../../Makefile.inc
 
-SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
 
 all: terrain
 

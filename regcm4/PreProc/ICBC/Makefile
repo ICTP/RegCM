@@ -3,7 +3,6 @@
   
 include ../../Makefile.inc
 
-SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
 
 all: aerosol sst_1deg sst_ccsm sst_eh50m sst_ersst sst_fvgcm icbc
 
