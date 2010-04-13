@@ -28,11 +28,11 @@
 !################### GRID DIMENSION ####################################
 !
 
-! Point in X (longitude) direction
+! Point in Y (latitude) direction
 
       integer , parameter :: iy = 34
 
-! Point in Y (latitude) direction
+! Point in X (longitude) direction
 
       integer , parameter :: jx = 48
 
