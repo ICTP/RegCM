@@ -133,7 +133,9 @@
       real(8) , parameter :: eomeg = 7.2921159D-05
       real(8) , parameter :: eomeg2 = 2.0D0*eomeg
       ! Solar Constant in W/m**2
-      real(8) , parameter :: solcon = 1.3956D+03
+      real(8) , parameter :: solcon = 1367.0D+00
+      ! Solar Constant in erg/cm**2/sec
+      real(8) , parameter :: scon = solcon*1000.0D+00
 
       ! Soil roughness length
       real(8) , parameter :: zlnd = 0.01D+00
