@@ -79,7 +79,7 @@
       character(39) :: fnso4_rf
       integer :: i , i2 , ii , j , j2 , k , k0 , krec , l , month ,     &
                & nday , nhour , nrec , numx , numy , nyear
-      integer(2) , dimension(192,96) :: itmp
+      integer(2) , dimension(ilon,jlat) :: itmp
       real(8) :: offset , xscale
       real :: pmpi , pmpj , prcm
       logical :: there
@@ -175,7 +175,7 @@
       end if
       numx = nint((lon1-lon0)/1.875) + 1
       numy = nint((lat1-lat0)/1.875) + 1
-      if ( numx/=192 .or. numy/=96 ) then
+      if ( numx/=ilon .or. numy/=jlat ) then
         if ( nday/=1 .or. nhour/=0 ) then
           if ( ssttyp=='EH5RF' ) then
             finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_RF'//             &
@@ -421,8 +421,8 @@
         if ( ehso4 ) krec = (nday-1)*4 + nhour/6
       else if ( month==1 .or. month==2 .or. month==4 .or. month==6 .or. &
               & month==8 .or. month==9 .or. month==11 ) then
-        nrec = (31*4-1)*(klev*5)
-        if ( ehso4 ) krec = 31*4
+        nrec = (mlev*4-1)*(klev*5)
+        if ( ehso4 ) krec = mlev*4
       else if ( month==5 .or. month==7 .or. month==10 .or. month==12 )  &
               & then
         nrec = (30*4-1)*(klev*5)
@@ -440,16 +440,16 @@
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
             ii = i + 1
-            if ( ii<=0 ) ii = ii + 192
-            if ( ii>192 ) ii = ii - 192
+            if ( ii<=0 ) ii = ii + ilon
+            if ( ii>ilon ) ii = ii - ilon
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
-            if ( numx==192 .and. numy==96 ) then
+            if ( numx==ilon .and. numy==jlat ) then
               pso4_2(ii,49-j) = itmp(i2,j2)*xscale + offset +            &
                               & pso4_0(ii,49-j)
             else
-              pso4_2(ii,j+96/2) = itmp(i2,j2)*xscale + offset +          &
-                                & pso4_0(ii,j+96/2)
+              pso4_2(ii,j+jlat/2) = itmp(i2,j2)*xscale + offset +          &
+                                & pso4_0(ii,j+jlat/2)
             end if
           end do
         end do
@@ -463,14 +463,14 @@
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
             ii = i + 1
-            if ( ii<=0 ) ii = ii + 192
-            if ( ii>192 ) ii = ii - 192
+            if ( ii<=0 ) ii = ii + ilon
+            if ( ii>ilon ) ii = ii - ilon
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
-            if ( numx==192 .and. numy==96 ) then
+            if ( numx==ilon .and. numy==jlat ) then
               hvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
             else
-              hvar(ii,j+96/2,k) = itmp(i2,j2)*xscale + offset
+              hvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
             end if
           end do
         end do
@@ -482,15 +482,15 @@
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
             ii = i + 1
-            if ( ii<=0 ) ii = ii + 192
-            if ( ii>192 ) ii = ii - 192
+            if ( ii<=0 ) ii = ii + ilon
+            if ( ii>ilon ) ii = ii - ilon
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
-            if ( numx==192 .and. numy==96 ) then
+            if ( numx==ilon .and. numy==jlat ) then
               rhvar(ii,49-j,k) = dmin1(dmax1(itmp(i2,j2)*xscale+offset,  &
                                & 0.D0),1.D0)
             else
-              rhvar(ii,j+96/2,k) = dmin1(dmax1(itmp(i2,j2)*xscale+offset,&
+              rhvar(ii,j+jlat/2,k) = dmin1(dmax1(itmp(i2,j2)*xscale+offset,&
                                  & 0.D0),1.D0)
             end if
           end do
@@ -503,14 +503,14 @@
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
             ii = i + 1
-            if ( ii<=0 ) ii = ii + 192
-            if ( ii>192 ) ii = ii - 192
+            if ( ii<=0 ) ii = ii + ilon
+            if ( ii>ilon ) ii = ii - ilon
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
-            if ( numx==192 .and. numy==96 ) then
+            if ( numx==ilon .and. numy==jlat ) then
               tvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
             else
-              tvar(ii,j+96/2,k) = itmp(i2,j2)*xscale + offset
+              tvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
             end if
           end do
         end do
@@ -522,14 +522,14 @@
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
             ii = i + 1
-            if ( ii<=0 ) ii = ii + 192
-            if ( ii>192 ) ii = ii - 192
+            if ( ii<=0 ) ii = ii + ilon
+            if ( ii>ilon ) ii = ii - ilon
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
-            if ( numx==192 .and. numy==96 ) then
+            if ( numx==ilon .and. numy==jlat ) then
               uvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
             else
-              uvar(ii,j+96/2,k) = itmp(i2,j2)*xscale + offset
+              uvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
             end if
           end do
         end do
@@ -541,14 +541,14 @@
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
             ii = i + 1
-            if ( ii<=0 ) ii = ii + 192
-            if ( ii>192 ) ii = ii - 192
+            if ( ii<=0 ) ii = ii + ilon
+            if ( ii>ilon ) ii = ii - ilon
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
-            if ( numx==192 .and. numy==96 ) then
+            if ( numx==ilon .and. numy==jlat ) then
               vvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
             else
-              vvar(ii,j+96/2,k) = itmp(i2,j2)*xscale + offset
+              vvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
             end if
           end do
         end do
@@ -1444,9 +1444,9 @@
         istart(9) = 0
         istart(10) = 0
  
-        icount(1) = 192
-        icount(2) = 96
-        icount(3) = 31
+        icount(1) = ilon
+        icount(2) = jlat
+        icount(3) = mlev
         icount(4) = 12
         icount(5) = 0
         icount(6) = 0
