@@ -14,13 +14,7 @@ SUBROUTINE header(myid)
   !! local variables:
   INTEGER len,len_strim
   INTEGER ihost,idir
-#ifdef INTEL
   INTEGER hostnm
-#else
-#ifndef IBM
-  INTEGER gethostname 
-#endif
-#endif
   INTEGER getcwd
   CHARACTER (len=24) :: data='?'
   CHARACTER (len=32) :: hostname='?' 
