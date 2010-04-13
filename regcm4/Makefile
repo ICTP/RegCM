@@ -26,7 +26,6 @@ data:
 	cd $(REGCM_BASE_DIR)/PreProc/DATA && ./datalinker.py -d  $(REGCM_DATA_DIR) 
 
 terrain:
-
 	#Move to the Terrain directory and run make there
 	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) 
 
@@ -39,7 +38,8 @@ icbc:
 	cd $(REGCM_BASE_DIR)/PreProc/ICBC && $(MAKE) 
 
 run_icbc:
-	# Run icbc.x script 
+	# Create and run icbc.x script 
+	cd $(REGCM_BASE_DIR)/utils && ./setup_ICBC.py
 	cd $(REGCM_BASE_DIR)/PreProc/ICBC && csh ./icbc_v4.x
 
 regcm:
