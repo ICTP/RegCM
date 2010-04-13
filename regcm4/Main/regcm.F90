@@ -32,6 +32,7 @@
 #endif
 #ifdef MPP1
       use mpi
+      use mod_message , only : fatal
 #ifdef CLM
       use perf_mod
       use spmdMod, only: mpicom
