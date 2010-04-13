@@ -173,13 +173,14 @@
       integer(2) , dimension(ilon,jlat,klev) :: work
       integer(2) , dimension(ilon,jlat) :: work2d
       real(8) :: xadd , xscale
-      integer , dimension(10) :: icount , istart
-      real(8) , dimension(5,4) :: xoff , xscl
-      real(8) , dimension(3,4,4) :: xoff_s , xscl_s
-      real(8) , dimension(4) :: xoff_sn , xscl_sn
-      integer , dimension(5,4) :: inet6
-      integer , dimension(3,4,4) :: isnet3
-      integer , dimension(4) :: isnow
+
+      integer , dimension(10) , save :: icount , istart
+      real(8) , dimension(5,4) , save :: xoff , xscl
+      real(8) , dimension(3,4,4) , save :: xoff_s , xscl_s
+      real(8) , dimension(4) , save :: xoff_sn , xscl_sn
+      integer , dimension(5,4) , save :: inet6
+      integer , dimension(3,4,4) , save :: isnet3
+      integer , dimension(4) , save :: isnow
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
