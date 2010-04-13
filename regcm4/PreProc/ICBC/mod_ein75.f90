@@ -158,9 +158,10 @@
       logical :: there
 !     character(1) , dimension(5) :: varname
       real(8) :: xadd , xscale
-      integer , dimension(10) :: icount , istart
-      integer , dimension(5,4) :: inet6
-      real(8) , dimension(5,4) :: xoff , xscl
+!
+      integer , dimension(10) , save :: icount , istart
+      integer , dimension(5,4) , save :: inet6
+      real(8) , dimension(5,4) , save :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the

@@ -164,9 +164,9 @@
 !     character(5) , dimension(7) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
       real(8) :: xadd , xscale
-      integer , dimension(10) :: icount , istart
-      integer , dimension(7) :: inet7
-      real(8) , dimension(7) :: xoff , xscl
+      integer , dimension(10) , save :: icount , istart
+      integer , dimension(7) , save :: inet7
+      real(8) , dimension(7) , save :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the

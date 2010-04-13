@@ -41,9 +41,6 @@
       real , dimension(ilon) :: glon
       real , dimension(klev) :: sigma1 , sigmar
 
-      integer , dimension(5,4) :: inet6
-      real(8) , dimension(5,4) :: xoff , xscl
-
       public :: getein25 , headerein25
 
       contains
@@ -158,7 +155,10 @@
       logical :: there
 !     character(1) , dimension(5) :: varname
       real(8) :: xadd , xscale
-      integer , dimension(10) :: icount , istart
+!
+      integer , dimension(5,4) , save :: inet6
+      real(8) , dimension(5,4) , save :: xoff , xscl
+      integer , dimension(10) , save :: icount , istart
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
