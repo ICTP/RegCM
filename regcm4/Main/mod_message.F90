@@ -16,9 +16,21 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
+      module mod_message
+
+#ifdef MPP1
+      use mod_regcm_param , only : myid
+#endif
+      use mod_regcm_param , only : debug_level
+
+      implicit none
+!
+      character(512) :: aline
+
+      contains
+
       function active(level)
-      use mod_regcm_param
       implicit none
 !
 ! Dummy arguments
@@ -31,8 +43,6 @@
       end function active
  
       subroutine say
-      use mod_regcm_param
-      use mod_message
       implicit none
 #ifdef MPP1
       if ( myid.eq.0 ) print * , trim(aline)
@@ -42,8 +52,6 @@
       end subroutine say
  
       subroutine warning
-      use mod_regcm_param
-      use mod_message
       implicit none
 #ifdef MPP1
       print * , ' Processor ' , myid , ' : ' , trim(aline)
@@ -53,7 +61,6 @@
       end subroutine warning
  
       subroutine fatal(filename,line,str)
-      use mod_message
 #ifdef MPP1
       use mpi
 #endif
@@ -92,7 +99,6 @@
       end subroutine fatal
  
       subroutine vprntv(a,n,nam)
-      use mod_regcm_param
       implicit none
 !
 ! Dummy arguments
@@ -111,7 +117,6 @@
       end subroutine vprntv
  
       subroutine vprntm(a,n1,n2,nam)
-      use mod_regcm_param
       implicit none
 !
 ! Dummy arguments
@@ -141,3 +146,5 @@
 99001 format ('1',a8,/)
 99002 format (1x,i3,5x,1p,11G11.3,1x,/,9x,1p,11G11.3)
       end subroutine vprntm
+
+      end module mod_message

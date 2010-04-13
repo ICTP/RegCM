@@ -61,7 +61,8 @@
       use mod_regcm_param
       use mod_interfaces
       use mod_comtim
-      use mod_aerosol , only : nspi
+      use mod_aerosol , only : aermix , aeroppt , aerout
+      use mod_interfaces
       implicit none
 !
 !     Input arguments
@@ -150,10 +151,6 @@
 !
       real(8) , dimension(iym1) :: aeradfo , aeradfos
       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o
-      real(8) , dimension(iym1,0:kz,nspi) :: ftota_mix , gtota_mix , &
-           & tauasc_mix , tauxar_mix
-      real(8) , dimension(iym1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
-           & tauasc_mix_cs , tauxar_mix_cs
       integer :: i
       real(8) , dimension(iym1,kz) :: o3mmr , pbr , rh
       real(8) , dimension(iym1,kzp1) :: plco2 , plh2o , pnm , tclrsf
@@ -175,21 +172,15 @@
 !
         call aermix(pnm,rh,jslc,1,iym1,iym1,kz,ntr)
  
-        call aeroppt(rh,pint,tauxar_mix,tauasc_mix,gtota_mix,ftota_mix, &
-                   & tauxar_mix_cs,tauasc_mix_cs,gtota_mix_cs,          &
-                   & ftota_mix_cs)
+        call aeroppt(rh,pint)
 !
         call radcsw(pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,albs,   &
                   & albsd,albl,albld,solin,qrs,fsns,fsnt,fsds,fsnsc,    &
                   & fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq, &
-                  & tauxar_mix,tauasc_mix,gtota_mix,ftota_mix,          &
-                  & tauxar_mix_cs,tauasc_mix_cs,gtota_mix_cs,           &
-                  & ftota_mix_cs,aeradfo,aeradfos)
- 
-        call aerout(jslc,tauxar_mix,tauasc_mix,gtota_mix,aeradfo,       &
-                  & aeradfos)
- 
- 
+                  & aeradfo,aeradfos)
+!
+        call aerout(jslc,aeradfo,aeradfos)
+!
 !       Convert units of shortwave fields needed by rest of model from
 !       CGS to MKS
         do i = 1 , iym1

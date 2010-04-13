@@ -41,15 +41,6 @@
       end interface
 
       interface
-        subroutine aermix(pint , rh , j , istart , iend , nx , nk ,     &
-                          ntrac)
-          integer :: j , istart , iend , nx , nk , ntrac
-          real(8) , dimension(nx,nk+1) :: pint
-          real(8) , dimension(nx,nk) :: rh
-        end subroutine aermix
-      end interface
-
-      interface
         subroutine vecbats(j , k , istart , iend , ng)
           integer :: j , k , istart , iend , ng
         end subroutine vecbats

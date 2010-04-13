@@ -28,7 +28,10 @@
 !
 ! PARAMETER definitions
 !
+!      Num of spctrl intervals across solar spectrum
+!
       integer , parameter :: nspi = 19   ! Spectral index
+!
       integer , parameter :: ncoefs = 5  ! Number of coefficients
 !
 ! kscoef  - specific extinction (m2/g)
@@ -70,6 +73,14 @@
 !     Radiation level aerosol mass mixing ratio
 !
       real(8) , dimension(iym1,kz,ntr) :: aermmr
+!
+!     Aerosol extinction optical depth
+!
+      real(8) , dimension(iym1,0:kz,nspi) :: ftota_mix , gtota_mix , &
+           & tauasc_mix , tauxar_mix
+!
+      real(8) , dimension(iym1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
+           & tauasc_mix_cs , tauxar_mix_cs
 
 !------------------------------------------------------------------------------
 !                  DATA SECTION
@@ -278,4 +289,576 @@
           & 0.26761 , 0.56045 , 0.68897 , 0.68174 , 0.26761 , 0.56045 , &
           & 0.68897 , 0.68174/
 !
+      contains
+!
+! SUBROUTINE AERMIX
+!
+      subroutine aermix(pint , rh , j , istart , iend , nx , nk , ntrac)
+ 
+!-----------------------------------------------------------------------
+! Set global mean tropospheric aerosol
+!
+! Specify aerosol mixing ratio and compute relative humidity for later
+! adjustment of aerosol optical properties. Aerosol mass mixing ratio
+! is specified so that the column visible aerosol optical depth is a
+! specified global number (tauvis). This means that the actual mixing
+! ratio depends on pressure thickness of the lowest three atmospheric
+! layers near the surface.
+!
+! Optical properties and relative humidity parameterization are from:
+!
+! J.T. Kiehl and B.P. Briegleb  "The Relative Roles of Sulfate Aerosols
+! and Greenhouse Gases in Climate Forcing"  Science  260  pp311-314
+! 16 April 1993
+!
+! Visible (vis) here means 0.5-0.7 micro-meters
+! Forward scattering fraction is taken as asymmetry parameter squared
+!
+!---------------------------Code history--------------------------------
+!
+! Original version:  B. Briegleb  March 1995
+! Standarized:       L. Buja,     Feb 1996
+! Reviewed:          B. Briegleb, Mar 1996
+!
+!-----------------------------------------------------------------------
+ 
+      use mod_param2 , only : ichem
+      use mod_slice , only : rhb3d
+      use mod_main , only : psa
+      use mod_mainchem , only : chia
+      use mod_constants , only : gtigts
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: j , istart , iend , nx , nk , ntrac
+!     Radiation level interface pressures (dynes/cm2)
+      real(8) , dimension(nx,nk+1) :: pint
+!     Radiation level relative humidity (fraction)
+      real(8) , dimension(nx,nk) :: rh
+!
+      intent (in) j , pint , istart , iend , nk , ntrac
+      intent (out) rh
+!
+!---------------------------Local variables-----------------------------
+!
+! i      - longitude index
+! k      - level index
+! mxaerl - max nmbr aerosol levels counting up from surface
+! tauvis - visible optical depth
+! kaervs - visible extinction coefficiant of aerosol (m2/g)
+! omgvis - visible omega0
+! gvis   - visible forward scattering asymmetry parameter
+!
+!-----------------------------------------------------------------------
+ 
+      real(8) :: gvis , kaervs , omgvis , rhfac , tauvis
+      integer :: i , itr , k , mxaerl
+!
+      data kaervs/5.3012D0/         ! multiplication factor for kaer
+      data omgvis/0.999999D0/
+      data gvis/0.694889D0/
+      data rhfac/1.6718D0/          ! EES added for efficiency
+!
+!--------------------------------------------------------------------------
+!
+      mxaerl = 4
+!
+!fil  tauvis = 0.01D0
+      tauvis = 0.04D0
+!
+!     Set relative humidity and factor; then aerosol amount:
+!
+      do k = 1 , nk
+        do i = istart , iend
+ 
+!added    July 13, 2000: needed for aerosols in radiation
+          rh(i,k) = dmin1(rhb3d(i,k,j),0.99D0)
+!EES:     do not change to 1.00:  wscoef(3,10) in radcsw = .9924 and is
+!         divided by RH.  rh is limited to .99 to avoid dividing by zero
+!added
+ 
+!
+!         Define background aerosol
+!         Find constant aerosol mass mixing ratio for specified levels
+!         in the column, converting units where appropriate
+!         for the moment no more used
+!
+          if ( k.ge.nk + 1 - mxaerl ) then
+            aermmb(i,k) = gtigts*tauvis/(1.0D4*kaervs*rhfac*(1.-omgvis* &
+                        & gvis*gvis)                                    &
+                        & *(pint(i,kzp1)-pint(i,kz + 1 - mxaerl)))
+          else
+            aermmb(i,k) = 0.0D0
+          end if
+ 
+!         if(ichem .eq. 1 .and. idirect .eq. 1) then
+          if ( ichem.eq.1 ) then
+            do itr = 1 , ntrac
+!             aermmr(i,k,itr)= dmax1( chia(i,k,j,itr)/psa(i,j)
+!             $                               ,aermmb(i,k) )
+              aermmr(i,k,itr) = chia(i,k,j,itr)/psa(i,j)
+            end do
+          else if ( ehso4 ) then
+            do itr = 1 , ntrac
+!             aermmr(i,k,itr) = aermmb(i,k) + aermm(i,k,j)
+!Dec.11       aermmr(i,k,itr) = aermm(i,k,j)
+              aermmr(i,k,itr) = 0.0D0
+!Dec.11_
+            end do
+          else
+            do itr = 1 , ntrac
+!             aermmr(i,k,itr)= 0.0D0
+              aermmr(i,k,itr) = aermmb(i,k)
+            end do
+          end if
+        end do
+      end do
+!
+      end subroutine aermix
+!
+! SUBROUTINE AEROPPT
+!
+      subroutine aeroppt(rh,pint)
+!
+      use mod_param2 , only : idirect
+      use mod_trachem , only : mixtype , chtrname , iso4 , ibchl ,      &
+                    &          iochl , idust
+      use mod_message , only : fatal
+      use mod_constants , only : rhoso4 , rhobc, rhooc, rhodust , gtigts
+      implicit none
+!
+! Dummy arguments
+!
+!     Interface pressure, relative humidity
+!
+      real(8) , dimension(iym1,kzp1) :: pint
+      real(8) , dimension(iym1,kz) :: rh
+      intent (in) pint , rh
+!
+! Local variables
+!
+      real(8) , dimension(iym1,kz) :: aermtot , aervtot
+      real(8) , dimension(iym1,0:kz,ntr) :: fa , ga , tauxar , uaer ,   &
+           & wa
+      real(8) , dimension(iym1,ntr) :: faer , gaer , tauaer , utaer ,   &
+                                      & waer
+      real(8) , dimension(4) :: frac , prop
+      integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k , ns
+      real(8) :: path
+!
+! uaer, tauxar  - Aerosol radiative properties (local arrays)
+! wa            - Aerosol single scattering albedo
+! ga            - Aerosol asimmetry parameter
+! fa            - Aerosol forward scattered fraction
+! utaer, tauaer - Total column aerosol extinction
+! waer          - Aerosol single scattering albedo
+! gaer          - Aerosol asymmetry parameter
+! faer          - Aerosol forward scattered fraction
+!
+! Visible band
+!     real(kind=8)  aertau(iym1,ntr)
+!     real(kind=8)  aerprf(iym1,0:kz,ntr)
+!     real(kind=8)  tauprf
+
+!trapuv
+      tauxar = 0.0
+      wa = 0.0
+      ga = 0.0
+      fa = 0.0
+!trapuv_
+ 
+!     Spectral loop
+      do ns = 1 , nspi
+!---------------
+        do itr = 1 , ntr
+          do i = 1 , iym1
+!           set above top value
+            uaer(i,0,itr) = 0.0
+            tauxar(i,0,itr) = 0.0
+            wa(i,0,itr) = 0.0
+            ga(i,0,itr) = 0.0
+            fa(i,0,itr) = 0.0
+            utaer(i,itr) = 0.0
+            tauaer(i,itr) = 0.0
+            waer(i,itr) = 0.0
+            gaer(i,itr) = 0.0
+            faer(i,itr) = 0.0
+          end do
+        end do
+ 
+        do i = 1 , iym1
+          tauxar_mix_cs(i,ns) = 0.0
+          tauasc_mix_cs(i,ns) = 0.0
+          gtota_mix_cs(i,ns) = 0.0
+          ftota_mix_cs(i,ns) = 0.0
+        end do
+ 
+        do k = 0 , kz
+          do i = 1 , iym1
+            tauxar_mix(i,k,ns) = 0.0
+            tauasc_mix(i,k,ns) = 0.0
+            gtota_mix(i,k,ns) = 0.0
+            ftota_mix(i,k,ns) = 0.0
+          end do
+        end do
+ 
+        if ( idirect.ge.1 ) then
+!
+!         calculate optical properties of each aerosol component
+!
+ 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!
+!         Option 1  melange externe
+!
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+          if ( mixtype.eq.1 ) then
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+            do k = 1 , kz
+              do i = 1 , iym1
+                path = (pint(i,k+1)-pint(i,k))/gtigts
+                ibin = 0
+                do itr = 1 , ntr
+                  uaer(i,k,itr) = 0.
+                  if ( rh(i,k).lt.0.0 .or. rh(i,k).gt.1.0 ) print * ,   &
+                     & i , k , rh(i,k) , '  RH WARNING !!!!!'
+ 
+                  if ( chtrname(itr).eq.'DUST' ) then
+                    uaer(i,k,itr) = aermmr(i,k,itr)*path
+!                   gaffe au facteur !!
+!                   gaffe au ntr/bins
+                    ibin = ibin + 1
+                    if ( ibin.gt.4 ) print * , 'DUST OP PBLEME !!!!'
+ 
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksdust(ns,ibin)
+                    wa(i,k,itr) = wsdust(ns,ibin)
+                    ga(i,k,itr) = gsdust(ns,ibin)
+                    fa(i,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
+ 
+                  else if ( chtrname(itr).eq.'SO4' ) then
+                    uaer(i,k,itr) = aermmr(i,k,itr)*path
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbase(ns)     &
+                                    & *exp(kscoef(ns,1)+kscoef(ns,2)    &
+                                    & /(rh(i,k)+kscoef(ns,3))           &
+                                    & +kscoef(ns,4)                     &
+                                    & /(rh(i,k)+kscoef(ns,5)))
+!
+                    wa(i,k,itr) = 1.0 - wsbase(ns)                      &
+                                & *exp(wscoef(ns,1)+wscoef(ns,2)        &
+                                & /(rh(i,k)+wscoef(ns,3))+wscoef(ns,4)  &
+                                & /(rh(i,k)+wscoef(ns,5)))
+!
+                    ga(i,k,itr) = gsbase(ns)                            &
+                                & *exp(gscoef(ns,1)+gscoef(ns,2)        &
+                                & /(rh(i,k)+gscoef(ns,3))+gscoef(ns,4)  &
+                                & /(rh(i,k)+gscoef(ns,5)))
+!
+                    fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+ 
+                  else if ( chtrname(itr).eq.'OC_HL' ) then
+                    uaer(i,k,itr) = aermmr(i,k,itr)*path
+!                   Humidity effect !
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hl(ns)    &
+                                    & *(1-rh(i,k))**(-0.2)
+                    wa(i,k,itr) = wsoc_hl(ns)
+                    ga(i,k,itr) = gsoc_hl(ns)
+                    fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+                  else if ( chtrname(itr).eq.'BC_HL' ) then
+                    uaer(i,k,itr) = aermmr(i,k,itr)*path
+!                   Humidity effect !
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hl(ns)    &
+                                    & *(1-rh(i,k))**(-0.25)
+                    wa(i,k,itr) = wsbc_hl(ns)
+                    ga(i,k,itr) = gsbc_hl(ns)
+                    fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+                  else if ( chtrname(itr).eq.'OC_HB' ) then
+                    uaer(i,k,itr) = aermmr(i,k,itr)*path
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hb(ns)
+                    wa(i,k,itr) = wsoc_hb(ns)
+                    ga(i,k,itr) = gsoc_hb(ns)
+                    fa(i,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
+                  else if ( chtrname(itr).eq.'BC_HB' ) then
+                    uaer(i,k,itr) = aermmr(i,k,itr)*path
+!                   Absorbing aerosols (soot type)
+                    tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hb(ns)
+                    wa(i,k,itr) = wsbc_hb(ns)
+                    ga(i,k,itr) = gsbc_hb(ns)
+                    fa(i,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
+                  else
+                  end if
+                end do  ! end tracer loop
+              end do
+            end do
+!           optical properties for the clear sky diagnostic
+            do i = 1 , iym1
+              do itr = 1 , ntr
+                do k = 1 , kz
+                  utaer(i,itr) = utaer(i,itr) + uaer(i,k,itr)
+                  tauaer(i,itr) = tauaer(i,itr) + tauxar(i,k,itr)
+                  waer(i,itr) = waer(i,itr) + wa(i,k,itr)*uaer(i,k,itr)
+                  gaer(i,itr) = gaer(i,itr) + ga(i,k,itr)*uaer(i,k,itr)
+                  faer(i,itr) = faer(i,itr) + fa(i,k,itr)*uaer(i,k,itr)
+                end do
+                if ( utaer(i,itr).le.1.D-10 ) utaer(i,itr) = 1.D-10
+                waer(i,itr) = waer(i,itr)/utaer(i,itr)
+                gaer(i,itr) = gaer(i,itr)/utaer(i,itr)
+                faer(i,itr) = faer(i,itr)/utaer(i,itr)
+              end do
+            end do
+!
+!           Calculate the EXTERNAL Mixing of aerosols
+!           melange externe
+!
+            do i = 1 , iym1
+              do itr = 1 , ntr
+!               only for climatic feedback allowed
+                do k = 0 , kz
+                  tauxar_mix(i,k,ns) = tauxar_mix(i,k,ns)               &
+                                     & + tauxar(i,k,itr)
+                  tauasc_mix(i,k,ns) = tauasc_mix(i,k,ns)               &
+                                     & + tauxar(i,k,itr)*wa(i,k,itr)
+                  gtota_mix(i,k,ns) = gtota_mix(i,k,ns) + ga(i,k,itr)   &
+                                    & *tauxar(i,k,itr)*wa(i,k,itr)
+                  ftota_mix(i,k,ns) = ftota_mix(i,k,ns) + fa(i,k,itr)   &
+                                    & *tauxar(i,k,itr)*wa(i,k,itr)
+                end do
+!
+!               Clear sky (always calcuated if idirect >=1 for
+!               diagnostic radiative forcing)
+!
+                tauxar_mix_cs(i,ns) = tauxar_mix_cs(i,ns)               &
+                                    & + tauaer(i,itr)
+                tauasc_mix_cs(i,ns) = tauasc_mix_cs(i,ns)               &
+                                    & + tauaer(i,itr)*waer(i,itr)
+                gtota_mix_cs(i,ns) = gtota_mix_cs(i,ns) + gaer(i,itr)   &
+                                   & *tauaer(i,itr)*waer(i,itr)
+                ftota_mix_cs(i,ns) = ftota_mix_cs(i,ns) + faer(i,itr)   &
+                                   & *tauaer(i,itr)*waer(i,itr)
+              end do
+            end do
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!
+!           Option 2  melange interne
+!
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+          else if ( mixtype.eq.2 ) then
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+            do i = 1 , iym1
+              do k = 1 , kz
+                path = (pint(i,k+1)-pint(i,k))/gtigts
+                if ( rh(i,k).lt.0.0 .or. rh(i,k).gt.1.0 ) print * , i , &
+                   & k , rh(i,k) , '  RH WARNING !!!!!'
+ 
+!               sum of hydrophilic aerosols
+                aervtot(i,k) = 0.
+                aermtot(i,k) = 0.
+ 
+                if ( iso4.ne.0 ) then
+                  aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iso4)/rhoso4
+                  aermtot(i,k) = aermtot(i,k) + aermmr(i,k,iso4)
+                end if
+ 
+                if ( ibchl.ne.0 ) then
+                  aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ibchl)/rhobc
+                  aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ibchl)
+                end if
+ 
+                if ( iochl.ne.0 ) then
+                  aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iochl)/rhooc
+                  aermtot(i,k) = aermtot(i,k) + aermmr(i,k,iochl)
+                end if
+ 
+                if ( idust(1).ne.0 ) then
+                  aervtot(i,k) = aervtot(i,k) + aermmr(i,k,idust(1))    &
+                               & /rhodust
+                  aermtot(i,k) = aermtot(i,k) + aermmr(i,k,idust(1))
+                end if
+ 
+!               minimum quantity of total aerosol
+ 
+                if ( aermtot(i,k).gt.1.D-14 ) then
+!                 indexes in the internal mixing table
+                  prop(1) = (aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)
+                  prop(2) = (aermmr(i,k,ibchl)/rhobc)/aervtot(i,k)
+                  prop(3) = (aermmr(i,k,iochl)/rhooc)/aervtot(i,k)
+                  prop(4) = (aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
+                  frac(1) = fraction(prop(1))
+                  frac(2) = fraction(prop(2))
+                  frac(3) = fraction(prop(3))
+                  frac(4) = fraction(prop(4))
+!                 FIND THE GREATEST FRACTIONAL PART
+ 
+                  if ( iso4.ne.0 ) then
+                    i1 = nint(10*prop(1)) + 1
+                  else
+                    i1 = 0 + 1
+                  end if
+ 
+                  if ( ibchl.ne.0 ) then
+                    i2 = nint(10*prop(2)) + 1
+                  else
+                    i2 = 0 + 1
+                  end if
+ 
+                  if ( iochl.ne.0 ) then
+                    i3 = nint(10*prop(3)) + 1
+                  else
+                    i3 = 0 + 1
+                  end if
+ 
+                  if ( idust(1).ne.0 ) then
+                    i4 = nint(10*prop(4)) + 1
+                  else
+                    i4 = 0 + 1
+                  end if
+!
+!                 final optical parameters
+!
+                  if ( i1+i2+i3+i4.eq.13 ) i4 = i4 + 1
+                  if ( i1+i2+i3+i4.eq.15 ) then
+                    if ( i4.ne.1 ) i4 = i4 - 1
+                  end if
+ 
+                  if ( i1+i2+i3+i4.eq.15 ) then
+                    if ( i1.ne.1 ) i1 = i1 - 1
+                  end if
+ 
+                  if ( i1+i2+i3+i4.eq.15 ) then
+                    if ( i3.ne.1 ) i3 = i3 - 1
+                  end if
+ 
+                  if ( i1+i2+i3+i4.eq.15 ) call fatal(__FILE__,__LINE__,&
+                      &'WRONG COMBINATION. SHOULD NEVER HAPPEN')
+ 
+                  if ( i1+i2+i3+i4.ne.14 ) then
+                    print * , i1 , i2 , i3 , i4 , i1 + i2 + i3 + i4
+                    print * , idust(1) , iochl , ibchl , iso4
+                    print * , 'OC HL' , aermmr(i,k,iochl)/rhooc
+                    print * , 'BC HL' , aermmr(i,k,ibchl)/rhobc
+                    print * , 'SO4' , aermmr(i,k,iso4)/rhoso4
+                    print * , 'DUST' , aermmr(i,k,idust(1))/rhodust
+                    print * , 'VOL TOT' , aervtot(i,k)
+                    print * , 'OC HL%' , 10*(aermmr(i,k,iochl)/rhooc)   &
+                        & /aervtot(i,k)
+                    print * , 'BC HL%' , 10*(aermmr(i,k,ibchl)/rhobc)   &
+                        & /aervtot(i,k)
+                    print * , 'SO4 %' , 10*(aermmr(i,k,iso4)/rhoso4)    &
+                        & /aervtot(i,k)
+                    print * , 'SO4 %' ,                                 &
+                        & nint(10*(aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)&
+                        & )
+                    print * , 'DUST %' ,                                &
+                        & 10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
+                    print * , 'DUST %' ,                                &
+                        & nint(10*(aermmr(i,k,idust(1))/rhodust)        &
+                        & /aervtot(i,k))
+                    call fatal(__FILE__,__LINE__,                       &
+                              &'SOMETHING WRONG ON SPECIES ABUNDANCE')
+                  end if
+                  tauxar_mix(i,k,ns) = dextmix(1,ns,i4,i2,i3,i1)        &
+                                     & *aermtot(i,k)*path*1D5
+                  tauasc_mix(i,k,ns) = dssamix(1,ns,i4,i2,i3,i1)        &
+                                     & *tauxar_mix(i,k,ns)
+                  gtota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)           &
+                                    & *tauasc_mix(i,k,ns)               &
+                                    & *tauxar_mix(i,k,ns)
+                  ftota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)           &
+                                    & *dgmix(1,ns,i4,i2,i3,i1)          &
+                                    & *tauasc_mix(i,k,ns)               &
+                                    & *tauxar_mix(i,k,ns)
+ 
+!                 clear sky dignostic
+                  utaer(i,1) = utaer(i,1) + aermtot(i,k)*path
+ 
+                  tauaer(i,1) = tauaer(i,1) + dextmix(1,ns,i4,i2,i3,i1) &
+                              & *aermtot(i,k)*path*1D5
+                  waer(i,1) = waer(i,1) + dssamix(1,ns,i4,i2,i3,i1)     &
+                            & *aermtot(i,k)*path
+                  gaer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1)       &
+                            & *aermtot(i,k)*path
+                  faer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1)       &
+                            & *dgmix(1,ns,i4,i2,i3,i1)*aermtot(i,k)*path
+ 
+                end if ! end minimum concentration conditions
+              end do ! end k loop
+ 
+              if ( utaer(i,1).gt.1.D-12 ) then
+                waer(i,1) = waer(i,1)/utaer(i,1)
+                gaer(i,1) = gaer(i,1)/utaer(i,1)
+                faer(i,1) = faer(i,1)/utaer(i,1)
+              end if
+!             clear sky final effective optical properties
+ 
+              tauxar_mix_cs(i,ns) = tauaer(i,1)
+              tauasc_mix_cs(i,ns) = waer(i,1)*tauaer(i,1)
+              gtota_mix_cs(i,ns) = gaer(i,1)*waer(i,1)*tauaer(i,1)
+              ftota_mix_cs(i,ns) = faer(i,1)*waer(i,1)*tauaer(i,1)
+            end do ! end i loop
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+          else
+          end if
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+        end if
+ 
+!       end spectral loop
+      end do
+ 
+      end subroutine aeroppt
+!
+! SUBROUTINE AEROUT
+!
+      subroutine aerout(jslc,aeradfo,aeradfos)
+!
+      use mod_param2 , only : chemfrq , radfrq
+      use mod_trachem , only : aerext , aerssa , aerasp , aertarf ,     &
+                      &        aersrrf
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: jslc
+      real(8) , dimension(iym1) :: aeradfo , aeradfos
+      intent (in) aeradfo , aeradfos
+!
+! Local variables
+!
+      integer :: i , k , ntim
+! 
+      do k = 1 , kz
+        do i = 2 , iym1
+#ifdef MPP1
+          aerext(i-1,k,jslc) = tauxar_mix(i,k,8)
+          aerssa(i-1,k,jslc) = tauasc_mix(i,k,8)
+          aerasp(i-1,k,jslc) = gtota_mix(i,k,8)
+#else
+          aerext(i-1,k,jslc-1) = tauxar_mix(i,k,8)
+          aerssa(i-1,k,jslc-1) = tauasc_mix(i,k,8)
+          aerasp(i-1,k,jslc-1) = gtota_mix(i,k,8)
+#endif
+        end do
+      end do
+!
+!     CARE :Average the radiative forcing between chem output time
+!     steps (in hour) according to radfrq (in min), aertarf is reset to
+!     0 at each chem output (cf output.f)
+!
+      ntim = 60*chemfrq/radfrq
+!
+!     aersol radative forcing (care cgs to mks after radiation scheme !)
+!
+      do i = 2 , iym1
+#ifdef MPP1
+        aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)*1.E-3/ntim
+        aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)*1.E-3/ntim
+#else
+        aertarf(i-1,jslc-1) = aertarf(i-1,jslc-1) + aeradfo(i)          &
+                            & *1.E-3/ntim
+        aersrrf(i-1,jslc-1) = aersrrf(i-1,jslc-1) + aeradfos(i)         &
+                            & *1.E-3/ntim
+#endif
+      end do
+ 
+      end subroutine aerout
+
       end module mod_aerosol

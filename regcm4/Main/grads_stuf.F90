@@ -19,6 +19,7 @@
  
       subroutine gradsbat(ctlname)
       use mod_regcm_param
+      use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
@@ -298,6 +299,7 @@
 !
       subroutine gradssub(ctlname)
       use mod_regcm_param
+      use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
@@ -563,6 +565,7 @@
 !
       subroutine gradschem(ctlname)
       use mod_regcm_param
+      use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
@@ -817,6 +820,7 @@
 !
       subroutine gradsctl(ctlname)
       use mod_regcm_param
+      use mod_message , only : fatal
       use mod_date
       use mod_param2
       use mod_grads
@@ -990,6 +994,7 @@
 !
       subroutine gradsout(ctlname)
       use mod_regcm_param
+      use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
@@ -1222,6 +1227,7 @@
 !
       subroutine gradsrad(ctlname)
       use mod_regcm_param
+      use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2

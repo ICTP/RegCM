@@ -25,7 +25,7 @@
       use mod_param1 , only : nslice , dt , dt2 , dtmin
       use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : ptop , sigma
-      use mod_message , only : aline
+      use mod_message , only : aline , say
       use mod_bats , only : inibat , inisub
 #ifdef DCSST
       use mod_bats , only : inidcsst

@@ -40,6 +40,7 @@
 !****                  left with the ioff rightmost characters filled
 !****                  in accordance with iflg.
 !
+      use mod_message , only : fatal
       implicit none
 !
 ! Dummy arguments

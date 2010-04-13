@@ -29,10 +29,9 @@ clm_varsur.o     atmdrvMod.o      spmdMod.o       program_offMod.o   \
 clm_comp.o       clmtype.o        perf_mod.o      clm_time_manager.o \
 restFileMod.o
 
-OBJS = \
-aermix.o          cup.o         isrchfgt.o  radclw.o    tractend2.o  \
-aeroppt.o         depth.o       isrchfle.o  radcsw.o    trcab.o      \
-aerout.o          deriv.o       lakedrv.o   radctl.o    trcabn.o     \
+OBJS =            cup.o         isrchfgt.o  radclw.o    tractend2.o  \
+                  depth.o       isrchfle.o  radcsw.o    trcab.o      \
+                  deriv.o       lakedrv.o   radctl.o    trcabn.o     \
 albedov.o         diffu.o       lake.o      radded.o    trcems.o     \
 radclr.o          diffut.o      lenchr.o    radems.o    trcmix.o     \
 bdyin.o           dragdn.o      lfdrag.o    radini.o    trcplk.o     \
@@ -43,7 +42,7 @@ bmpara.o          eddy.o        lshfch.o    radtap.o    vadv.o       \
 bndry.o           eispack.o     lutbl.o     radtpl.o    vcheke.o     \
 carbon.o          eomb.o        mapsmp.o    regcm.o     vcheki.o     \
 chdrydep.o        finddate.o    maximi.o    reorder.o   vchekt.o     \
-chemtap.o         for_next.o    message.o   root.o      vcover.o     \
+chemtap.o         for_next.o                root.o      vcover.o     \
 chrsetc.o         frawat.o      minimi.o    satur.o     vecbats.o    \
 chsrfem.o         getdat.o      mixer.o     slice1D.o   vmodes.o     \
 cldefr.o          grads_stuf.o  mkfile.o    slice3D.o   vmultm.o     \
@@ -120,7 +119,9 @@ clean:
 endif
 
 mod_aero_param.o: mod_aero_param.f90 mod_regcm_param.o
-mod_aerosol.o: mod_aerosol.F90 mod_regcm_param.o
+mod_aerosol.o: mod_aerosol.F90 mod_constants.o mod_main.o mod_mainchem.o \
+               mod_message.o mod_param2.o mod_regcm_param.o mod_trachem.o \
+               mod_slice.o
 mod_bats.o: mod_bats.F90 mod_regcm_param.o mod_bats_param.o
 mod_bdycod.o: mod_bdycod.F90 mod_regcm_param.o
 mod_blh_tmp.o: mod_blh_tmp.F90 mod_regcm_param.o
@@ -143,7 +144,7 @@ mod_iunits.o: mod_iunits.f90
 mod_lake.o: mod_lake.f90
 mod_main.o: mod_main.F90 mod_regcm_param.o
 mod_mainchem.o: mod_mainchem.F90 mod_regcm_param.o
-mod_message.o: mod_message.f90
+mod_message.o: mod_message.F90 mod_regcm_param.o
 mod_mppio.o: mod_mppio.F90 mod_regcm_param.o
 mod_o3blk.o: mod_o3blk.F90 mod_regcm_param.o
 mod_outrad.o: mod_outrad.F90 mod_regcm_param.o
@@ -162,12 +163,6 @@ mod_tracer0.o: mod_tracer0.F90
 	$(F90) -c $(CPPFLAGS) -D$(SCENARIO) $(F90FLAGS) $(USCORING) -c $<
 mod_tracer.o: mod_tracer.f90
 mod_trachem.o: mod_trachem.F90 mod_regcm_param.o
-aermix.o: aermix.f90 mod_aerosol.o mod_main.o mod_mainchem.o \
-          mod_param2.o mod_slice.o mod_constants.o mod_interfaces.o
-aeroppt.o: aeroppt.F90 mod_aerosol.o mod_constants.o \
-           mod_message.o mod_param2.o mod_regcm_param.o mod_trachem.o
-aerout.o: aerout.F90 mod_aerosol.o mod_param2.o mod_regcm_param.o \
-          mod_trachem.o
 albedoclm.o: albedoclm.F90 mod_bats.o mod_regcm_param.o
 albedov.o: albedov.F90 mod_constants.o mod_bats.o mod_regcm_param.o
 bdyin.o: bdyin.F90 mod_bats.o mod_bdycod.o mod_date.o mod_iunits.o mod_main.o \
@@ -292,7 +287,6 @@ lshfch.o: lshfch.F90
 lutbl.o: lutbl.f90 mod_constants.o mod_bmparam.o
 mapsmp.o: mapsmp.f90
 maximi.o: maximi.f90
-message.o: message.F90 mod_message.o mod_regcm_param.o
 minimi.o: minimi.f90
 mixer.o: mixer.f90 mod_constants.o
 mkfile.o: mkfile.F90 mod_bats.o mod_date.o mod_iunits.o mod_mainchem.o \

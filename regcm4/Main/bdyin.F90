@@ -39,6 +39,7 @@
       use mod_main
       use mod_bdycod
       use mod_bats , only : veg2d , ocld2d , sice2d , ocld2d , sice2d
+      use mod_message , only : fatal
 #ifdef DCSST
       use mod_bats , only : dtskin
 #endif

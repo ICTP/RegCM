@@ -44,6 +44,7 @@
       logical :: lhydro , lprint , lsigma
       real(8) :: ps2 , rm1 , x
       real(8) , dimension(kz) :: work
+      real(8) , dimension(1) :: pps
 !
 !  this subroutine determines the vertical modes of the psu/ncar meso-
 !  scale model designated mm4.  it also computes associated transform
@@ -416,7 +417,8 @@
 !
       call vprntv(sigmaf,nk1,'sigmaf  ')
       call vprntv(tbarh,kz,'t mean  ')
-      call vprntv(ps,1,'ps mean ')
+      pps(1) = ps
+      call vprntv(pps,1,'ps mean ')
       print 99003 , kz , numerr
 99003 format ('0 vertical mode problem completed for kx=',i3,5x,i1,     &
              &' errors detected   (should be 0)')

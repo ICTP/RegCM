@@ -20,9 +20,7 @@
       subroutine radcsw(pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,   &
                       & asdir,asdif,aldir,aldif,solin,qrs,fsns,fsnt,    &
                       & fsds,fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,  &
-                      & fsnrtc,fsnirtsq,tauxar_mix,tauasc_mix,gtota_mix,&
-                      & ftota_mix,tauxar_mix_cs,tauasc_mix_cs,          &
-                      & gtota_mix_cs,ftota_mix_cs,aeradfo,aeradfos)
+                      & fsnrtc,fsnirtsq,aeradfo,aeradfos)
  
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !qian 30/06/99,  csm new scheme: hygroscopic growth effect of
@@ -80,19 +78,17 @@
       use mod_param2
       use mod_bats
       use mod_tracer
-      use mod_aerosol , only : nspi
-      use mod_constants , only : gocp , gtigts , sslp , rga
+      use mod_aerosol , only : nspi , tauxar_mix , tauasc_mix ,         &
+               &     gtota_mix , ftota_mix , tauxar_mix_cs ,            &
+               &     tauasc_mix_cs , gtota_mix_cs , ftota_mix_cs
+      use mod_constants , only : gocp , gtigts , sslp , rga , scon
       implicit none
 !
 ! PARAMETER definitions
 !
-! scon        - Solar constant (in erg/cm**2/sec)
-! nspint      - Num of spctrl intervals across solar spectrum
 ! v_raytau_xx - Constants for new bands
 ! v_abo3_xx   - Constants for new bands
 !
-      real(8) , parameter :: scon = 1.367E6
-      integer , parameter :: nspint = 19
       real(8) , parameter :: v_raytau_35 = 0.155208 ,                   &
                            & v_raytau_64 = 0.0392 ,                     &
                            & v_abo3_35 = 2.4058030E+01 ,                &
@@ -143,13 +139,8 @@
       real(8) , dimension(iym1,kzp1) :: cld , pint
       real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , o3mmr , &
            & qrs , rei , rel
-      real(8) , dimension(iym1,0:kz,nspi) :: ftota_mix , gtota_mix , &
-           & tauasc_mix , tauxar_mix
-      real(8) , dimension(iym1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
-           & tauasc_mix_cs , tauxar_mix_cs
       intent (in) aldif , aldir , asdif , asdir , cld , clwp , eccf ,   &
-                & fice , ftota_mix , gtota_mix , h2ommr , o3mmr , pint ,&
-                & rei , rel , tauasc_mix , tauxar_mix
+                & fice , h2ommr , o3mmr , pint , rei , rel
       intent (out) aeradfo , aeradfos , fsds , qrs
       intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    & fsntc , solin , soll , solld , sols , solsd
@@ -316,7 +307,7 @@
                & pthco2 , pthh2o , ptho2 , ptho3 , ptop , rdenom ,      &
                & sqrco2 , tmp1 , tmp1i , tmp1l , tmp2 , tmp2i , tmp2l , &
                & tmp3i , tmp3l , trayoslp , wavmid , wgtint
-      real(8) , dimension(nspint) :: abco2 , abh2o , abo2 , abo3 ,      &
+      real(8) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,        &
                                    & frcsol , nirwgt , pco2 , ph2o ,    &
                                    & po2 , raytau , wavmax , wavmin
       real(8) , dimension(iym1,0:kz) :: explay , fci , fcl , flxdiv ,&
@@ -580,7 +571,7 @@
 !
 !     Begin spectral loop
 !
-      do ns = 1 , nspint
+      do ns = 1 , nspi
         wgtint = nirwgt(ns)
 !
 !       Set index for cloud particle properties based on the wavelength,
