@@ -28,13 +28,13 @@
 !################### GRID DIMENSION ####################################
 !
 
-! Point in X (longitude) direction
-
-      integer , parameter :: iy = 120
-
 ! Point in Y (latitude) direction
 
-      integer , parameter :: jx = 128
+      integer , parameter :: iy = 34
+
+! Point in X (longitude) direction
+
+      integer , parameter :: jx = 48
 
 ! Point in vertical
 
@@ -60,7 +60,7 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 32
+      integer , parameter :: nproc = 1
 
 ! Point in Y (latitude) direction
 
