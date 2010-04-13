@@ -88,7 +88,7 @@
         write (*,*) 'SLONMIN,SLONMAX= ' , slonmin , slonmax
       end if
       write (finame,99001) idate
-      open (61,file=finame,form='unformatted',recl=320*160*ibyte,       &
+      open (61,file=finame,form='unformatted',recl=nlons*ntals*ibyte,   &
            &access='direct')
       nrec = 0
       nrec = nrec + 1
