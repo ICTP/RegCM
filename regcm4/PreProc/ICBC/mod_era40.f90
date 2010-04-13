@@ -115,14 +115,14 @@
         print * , 'INPUT DAY FOR SST DATA ACQUISITION:' , idate
         call julian(idate,nyrp,nmop,wt)
 !
-        if ( ssttyp/='OI2ST' ) then
+        if ( ssttyp=='OI2ST' ) then
           call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,      &
                  &    nyrp,nmop,wt)
         else
           call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
         end if
       else
-        if ( ssttyp/='OI2WK' ) then
+        if ( ssttyp=='OI2WK' ) then
           call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,     &
                    &   idate/100)
         else
