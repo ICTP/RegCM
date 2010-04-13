@@ -215,7 +215,7 @@ def main():
     options.parse(sys.argv[1:])
     parameters = {}
 
-    check()
+#    check()
 # check if Makefile inc exists and all the variables are defined:
 # variable to be there:
 #   netcdf       error 
