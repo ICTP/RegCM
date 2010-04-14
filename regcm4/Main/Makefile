@@ -21,7 +21,7 @@ mod_bxq.o        mod_dust.o       mod_param2.o     mod_tracer0.o     \
 mod_comctl.o     mod_param3.o     mod_tracer.o     mod_comozp.o      \
 mod_grads.o      mod_pmoist.o     mod_trachem.o    mod_comtim.o      \
 mod_ictp01.o     mod_iunits.o     mod_pbldim.o     mod_lake.o        \
-mod_interfaces.o mod_aero_param.o
+mod_interfaces.o mod_aero_param.o mod_when.o
 
 CLMOBJS = \
 initializeMod.o  shr_orb_mod.o    shr_kind_mod.o  clm_varpar.o       \
@@ -50,10 +50,10 @@ cldems.o          hadv.o        nconvp.o    snow.o      vnorml.o     \
 cldfrac.o         header.o      nudge.o     soilbc.o    vorder.o     \
 co2.o             holtbl.o      o3data.o    solar1.o    vtlaps.o     \
 colmod3.o         htdiff.o      outprt.o    spinit.o    water.o      \
-conadv.o          ice.o         output.o    spline.o    wheneq.o     \
-condch.o          tracdiag.o    outsav.o    splitf.o    whenfgt.o    \
-condcq.o          inidust.o     outsrf.o    sponge.o    whenflt.o    \
-condtq.o          inirad.o      outsub.o    spstep.o    whenne.o     \
+conadv.o          ice.o         output.o    spline.o                 \
+condch.o          tracdiag.o    outsav.o    splitf.o                 \
+condcq.o          inidust.o     outsrf.o    sponge.o                 \
+condtq.o          inirad.o      outsub.o    spstep.o                 \
 conmas.o          initb.o       outtap0.o   stomat.o    zengocndrv.o \
 convect_tables.o  initdate.o    outtap.o    temp.o      zengocn.o    \
 cumtran.o         init.o        param.o     tend.o      zenith.o     \
@@ -64,7 +64,7 @@ intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
 
 # check if we need the MPI wrapper 
 
-ifneq ($(PARALLEL),"")
+ifneq ($(PARALLEL),0)
   F90=$(MPIF90)
 endif  
 
@@ -163,6 +163,8 @@ mod_tracer0.o: mod_tracer0.F90
 	$(F90) -c $(CPPFLAGS) -D$(SCENARIO) $(F90FLAGS) $(USCORING) -c $<
 mod_tracer.o: mod_tracer.f90
 mod_trachem.o: mod_trachem.F90 mod_regcm_param.o
+mod_when.o: mod_when.f90
+#
 albedoclm.o: albedoclm.F90 mod_bats.o mod_regcm_param.o
 albedov.o: albedov.F90 mod_constants.o mod_bats.o mod_regcm_param.o
 bdyin.o: bdyin.F90 mod_bats.o mod_bdycod.o mod_date.o mod_iunits.o mod_main.o \
@@ -331,14 +333,14 @@ pcp.o: pcp.f90 mod_bats.o mod_constants.o mod_cvaria.o mod_date.o mod_main.o \
 printsp.o: printsp.f90
 radabs.o: radabs.f90 mod_crdcae.o mod_constants.o mod_radbuf.o \
           mod_regcm_param.o
-radclr.o: radclr.f90 mod_aerosol.o mod_regcm_param.o
+radclr.o: radclr.f90 mod_aerosol.o mod_regcm_param.o mod_when.o
 radclw.o: radclw.f90 mod_constants.o mod_date.o mod_param1.o mod_param2.o \
-          mod_radbuf.o mod_regcm_param.o
+          mod_radbuf.o mod_regcm_param.o mod_when.o
 radcsw.o: radcsw.f90 mod_aerosol.o mod_bats.o mod_constants.o mod_param2.o \
           mod_regcm_param.o mod_tracer.o
 radctl.o: radctl.f90 mod_aerosol.o mod_comtim.o mod_regcm_param.o \
           mod_interfaces.o
-radded.o: radded.f90 mod_regcm_param.o
+radded.o: radded.f90 mod_regcm_param.o mod_when.o
 radems.o: radems.f90 mod_crdcae.o mod_constants.o mod_radbuf.o \
           mod_regcm_param.o
 radini.o: radini.F90 mod_comozp.o mod_crdcae.o mod_constants.o mod_date.o \
@@ -425,10 +427,6 @@ vnorml.o: vnorml.f90
 vorder.o: vorder.f90
 vtlaps.o: vtlaps.f90 mod_constants.o
 water.o: water.f90 mod_constants.o mod_bats.o mod_param1.o mod_regcm_param.o
-wheneq.o: wheneq.f90
-whenfgt.o: whenfgt.f90
-whenflt.o: whenflt.f90
-whenne.o: whenne.f90
 zengocn.o: zengocn.f90 mod_constants.o
 ifeq ($(USECLM),1)
 zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \

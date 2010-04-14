@@ -51,6 +51,7 @@
       use mod_radbuf
       use mod_date , only : jyear , jyear0 , ktau
       use mod_constants , only : gocp , stebol
+      use mod_when , only : whenne , whenflt
       implicit none
 !
 !     Input arguments

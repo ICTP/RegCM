@@ -44,6 +44,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
+      use mod_when , only : whenfgt
       implicit none
 !
 !     Minimum total transmission below which no layer computation are

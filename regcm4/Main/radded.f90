@@ -46,6 +46,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_regcm_param
+      use mod_when , only : whenfgt
       implicit none
 !
 ! PARAMETER definitions
