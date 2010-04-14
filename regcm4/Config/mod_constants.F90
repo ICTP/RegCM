@@ -51,6 +51,7 @@
       real(8) , parameter :: als = 2.8345D+06
       real(8) , parameter :: alf = als - alv
       real(8) , parameter :: tzero = 273.15D+00
+      real(8) , parameter :: rtzero = 1.0D+00/tzero
       real(8) , parameter :: wattp = 273.16D+00
       real(8) , parameter :: tboil = 373.1339D+00
       real(8) , parameter :: c1es = 610.78D+00
