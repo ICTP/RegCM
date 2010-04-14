@@ -48,6 +48,7 @@ MPIF90 =
 # Set the linker here
 # Modify this variable only if you really know what you are doing !!!
 LD =$(F90)
+LDFLAGS =
 
 # You should not change the lines below unless you are a developer
 
