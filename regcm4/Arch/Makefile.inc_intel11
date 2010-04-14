@@ -37,7 +37,7 @@ CPPFLAGS = -D$(PARALLEL)
 # IMPORTANT : Check that your compiler complies with this RegCM features:
 # - RegCM expects the output to be written in big endian format
 # - RegCM expects Fortran records to be measured in bytes
-F90FLAGS = -O3 -fp-model fast=1 -convert big_endian -assume byterecl
+F90FLAGS = -O3 -convert big_endian -assume byterecl -fp-model precise
 
 # Set the Fortran 90 compiler here
 F90 = ifort
