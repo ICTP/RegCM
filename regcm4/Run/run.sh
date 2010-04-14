@@ -88,7 +88,7 @@ then
   then
     shift
     shift
-    command="mpirun $@ $PWD/regcm"
+    command="mpirun $@ $PWD/regcm < regcm.in"
   fi
 else
  command="$PWD/regcm < regcm.in"
