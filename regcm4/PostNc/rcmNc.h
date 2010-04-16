@@ -60,6 +60,41 @@ namespace rcm
       NcVar *qcvar;
       unsigned int count;
   };
+
+  class rcmNcSrf : public rcmNc {
+    public:
+      rcmNcSrf(char *fname, char *experiment, header_data &h);
+      void put_rec(srfdata &s);
+    private:
+      NcVar *u10mvar;
+      NcVar *v10mvar;
+      NcVar *uvdragvar;
+      NcVar *tgvar;
+      NcVar *tlefvar;
+      NcVar *t2mvar;
+      NcVar *q2mvar;
+      NcVar *sswvar;
+      NcVar *rswvar;
+      NcVar *tprvar;
+      NcVar *evpvar;
+      NcVar *runoffvar;
+      NcVar *scvvar;
+      NcVar *senavar;
+      NcVar *flwvar;
+      NcVar *fswvar;
+      NcVar *flwdvar;
+      NcVar *sinavar;
+      NcVar *prcvvar;
+      NcVar *psbvar;
+      NcVar *zpblvar;
+      NcVar *tgmaxvar;
+      NcVar *tgminvar;
+      NcVar *t2maxvar;
+      NcVar *t2minvar;
+      NcVar *w10maxvar;
+      NcVar *ps_minvar;
+      unsigned int count;
+  };
 }
 
 #endif

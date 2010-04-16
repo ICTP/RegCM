@@ -96,6 +96,44 @@ namespace rcm
       char *buffer;
   };
 
+  class srfdata {
+    public:
+      srfdata(int nx, int ny, int mdate0, float dts);
+      ~srfdata( );
+      float *u10m;
+      float *v10m;
+      float *uvdrag;
+      float *tg;
+      float *tlef;
+      float *t2m;
+      float *q2m;
+      float *ssw;
+      float *rsw;
+      float *tpr;
+      float *evp;
+      float *runoff;
+      float *scv;
+      float *sena;
+      float *flw;
+      float *fsw;
+      float *flwd;
+      float *sina;
+      float *prcv;
+      float *psb;
+      float *zpbl;
+      float *tgmax;
+      float *tgmin;
+      float *t2max;
+      float *t2min;
+      float *w10max;
+      float *ps_min;
+      int date0;
+      float dt;
+      size_t datasize;
+      int nvals;
+      char *buffer;
+  };
+
   class rcmio
   {
     public:
@@ -103,6 +141,7 @@ namespace rcm
       ~rcmio( );
       void read_header(header_data &h);
       int atmo_read_tstep(atmodata &a);
+      int srf_read_tstep(srfdata &a);
       bool has_atmo;
       bool has_chem;
       bool has_srf;

@@ -49,7 +49,17 @@ int main(int argc, char *argv[])
       atmnc.put_rec(a);
   }
 
-  // Add Surface variables
+  if (rcmout.has_srf)
+  {
+    srfdata s(outhead.nx, outhead.ny, outhead.mdate0, outhead.dtb);
+    char fname[PATH_MAX];
+    sprintf(fname, "SRF_%s_%d.nc", argv[2], outhead.mdate0);
+    rcmNcSrf srfnc(fname, argv[2], outhead);
+    // Add Surface variables
+    while ((rcmout.srf_read_tstep(s)) == 0)
+      srfnc.put_rec(s);
+  }
+
   // Add Radiation variables
   // Add Chemical tracers variables
 

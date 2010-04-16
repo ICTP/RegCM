@@ -249,3 +249,59 @@ void rcmNcAtmo::put_rec(atmodata &a)
   count ++;
   return;
 }
+
+rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
+  : rcmNc(fname, experiment, h)
+{
+  float fillv = -1e+34;
+  // Add two more vertical dimensions for 10m and 2m hgts
+  NcDim *m10 = f->add_dim("m10", 1);
+  NcDim *m2 = f->add_dim("m2", 1);
+
+  NcVar *m10var = f->add_var("m10", ncFloat, m10);
+  m10var->add_att("standard_name", "altitude");
+  m10var->add_att("long_name", "Convenience 10 m elevation level");
+  m10var->add_att("positive", "up");
+  m10var->add_att("units", "m");
+  m10var->add_att("axis", "Z");
+  NcVar *m2var = f->add_var("m2", ncFloat, m10);
+  m2var->add_att("standard_name", "altitude");
+  m2var->add_att("long_name", "Convenience 2 m elevation level");
+  m2var->add_att("positive", "up");
+  m2var->add_att("units", "m");
+  m2var->add_att("axis", "Z");
+  float val = 10.0;
+  m10var->put(&val, 1);
+  val = 2.0;
+  m2var->put(&val, 1);
+
+  // Setup variables
+  u10mvar = f->add_var("u10m", ncFloat, tt, m10, iy, jx);
+  u10mvar->add_att("standard_name", "eastward_wind");
+  u10mvar->add_att("long_name", "U component (westerly) of wind");
+  u10mvar->add_att("coordinates", "xlon xlat");
+  u10mvar->add_att("units", "m/s");
+  v10mvar = f->add_var("v10m", ncFloat, tt, m10, iy, jx);
+  v10mvar->add_att("standard_name", "northward_wind");
+  v10mvar->add_att("long_name", "V component (southerly) of wind");
+  v10mvar->add_att("coordinates", "xlon xlat");
+  v10mvar->add_att("units", "m/s");
+  t2mvar = f->add_var("t2m", ncFloat, tt, m2, iy, jx);
+  t2mvar->add_att("standard_name", "air_temperature");
+  t2mvar->add_att("long_name", "Air temperature");
+  t2mvar->add_att("coordinates", "xlon xlat");
+  t2mvar->add_att("units", "K");
+  count = 0;
+}
+
+void rcmNcSrf::put_rec(srfdata &s)
+{
+  double xtime = reference_time + count*s.dt;
+  timevar->put_rec(&xtime, count);
+  u10mvar->put_rec(s.u10m, count);
+  v10mvar->put_rec(s.v10m, count);
+  t2mvar->put_rec(s.t2m, count);
+  count ++;
+  return;
+}
+

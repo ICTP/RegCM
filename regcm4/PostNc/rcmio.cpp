@@ -179,6 +179,48 @@ atmodata::~atmodata( )
   delete [] buffer;
 }
 
+srfdata::srfdata(int nx, int ny, int mdate0, float dto)
+{
+  date0 = mdate0;
+  dt = dto;
+  size_t size2D = nx*ny;
+  nvals = 27*size2D;
+  datasize = nvals*sizeof(float);
+  buffer = new char[datasize];
+  u10m = (float *) buffer;
+  v10m = u10m + size2D;
+  uvdrag = v10m + size2D;
+  tg = uvdrag + size2D;
+  tlef = tg + size2D;
+  t2m = tlef + size2D;
+  q2m = t2m + size2D;
+  ssw = q2m + size2D;
+  rsw = ssw + size2D;
+  tpr = rsw + size2D;
+  evp = tpr + size2D;
+  runoff = evp + size2D;
+  scv = runoff + size2D;
+  sena = scv + size2D;
+  flw = sena + size2D;
+  fsw = flw + size2D;
+  flwd = fsw + size2D;
+  sina = flwd + size2D;
+  prcv = sina + size2D;
+  psb = prcv + size2D;
+  zpbl = psb + size2D;
+  tgmax = zpbl + size2D;
+  tgmin = tgmax + size2D;
+  t2max = tgmin + size2D;
+  t2min = t2max + size2D;
+  w10max = t2min + size2D;
+  ps_min = w10max + size2D;
+}
+
+srfdata::~srfdata( )
+{
+  delete [] buffer;
+}
+
 rcmio::rcmio(char *directory, bool lbig, bool ldirect)
 {
   // big or little endian swapping ?
@@ -404,6 +446,33 @@ int rcmio::atmo_read_tstep(atmodata &a)
   }
   atmof.read(storage, a.datasize);
   vectorfrombuf(storage, (float *) a.buffer, a.nvals);
+  return 0;
+}
+
+int rcmio::srf_read_tstep(srfdata &s)
+{
+  if (! has_srf) return 1;
+  if (! initsrf)
+  {
+    char fname[PATH_MAX];
+    sprintf(fname, "%s%sSRF.%d", outdir, separator, s.date0);
+    srff.open(fname, std::ios::binary);
+    if (! srff.good()) return -1;
+    storage = new char[s.datasize];
+    initsrf = true;
+    srff.seekg (0, std::ios::end);
+    srfsize = srff.tellg();
+    srff.seekg (0, std::ios::beg);
+  }
+  if (srff.tellg( ) == srfsize)
+  {
+    delete [] storage;
+    storage = 0;
+    srff.close();
+    return 1;
+  }
+  srff.read(storage, s.datasize);
+  vectorfrombuf(storage, (float *) s.buffer, s.nvals);
   return 0;
 }
 
