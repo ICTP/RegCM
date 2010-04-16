@@ -33,37 +33,62 @@ using namespace rcm;
 
 int main(int argc, char *argv[])
 {
-  rcmio rcmout(argv[1], true, true);
-
-  header_data outhead;
-  rcmout.read_header(outhead);
-
-  if (rcmout.has_atmo)
+  if (argc != 3)
   {
-    atmodata a(outhead.nx, outhead.ny, outhead.nz, outhead.mdate0, outhead.dto);
-    char fname[PATH_MAX];
-    sprintf(fname, "ATM_%s_%d.nc", argv[2], outhead.mdate0);
-    rcmNcAtmo atmnc(fname, argv[2], outhead);
-    // Add Atmospheric variables
-    while ((rcmout.atmo_read_tstep(a)) == 0)
-      atmnc.put_rec(a);
+    std::cerr << std::endl
+        << "Howdy there, wrong number of arguments." << std::endl
+        << std::endl << "I need two arguments:" << std::endl
+        << "    outdir  - output directory of RegCM model v4" << std::endl
+        << "    expname - a (meaningful) name for this expertiment" << std::endl
+        << std::endl << "Example:" << std::endl << "     " << argv[0]
+        << " /home/regcm/Run/output ACWA_reference" << std::endl << std::endl;
+   return -1;
   }
 
-  if (rcmout.has_srf)
+  try
   {
-    srfdata s(outhead.nx, outhead.ny, outhead.mdate0, outhead.dtb);
-    char fname[PATH_MAX];
-    sprintf(fname, "SRF_%s_%d.nc", argv[2], outhead.mdate0);
-    rcmNcSrf srfnc(fname, argv[2], outhead);
-    // Add Surface variables
-    while ((rcmout.srf_read_tstep(s)) == 0)
-      srfnc.put_rec(s);
+    rcmio rcmout(argv[1], true, true);
+    header_data outhead;
+    rcmout.read_header(outhead);
+
+    if (rcmout.has_atmo)
+    {
+      atmodata a(outhead.nx, outhead.ny, outhead.nz, 
+                 outhead.mdate0, outhead.dto);
+      char fname[PATH_MAX];
+      sprintf(fname, "ATM_%s_%d.nc", argv[2], outhead.mdate0);
+      rcmNcAtmo atmnc(fname, argv[2], outhead);
+      // Add Atmospheric variables
+      while ((rcmout.atmo_read_tstep(a)) == 0)
+        atmnc.put_rec(a);
+    }
+
+    if (rcmout.has_srf)
+    {
+      srfdata s(outhead.nx, outhead.ny, outhead.mdate0, outhead.dtb);
+      char fname[PATH_MAX];
+      sprintf(fname, "SRF_%s_%d.nc", argv[2], outhead.mdate0);
+      rcmNcSrf srfnc(fname, argv[2], outhead);
+      // Add Surface variables
+      while ((rcmout.srf_read_tstep(s)) == 0)
+        srfnc.put_rec(s);
+    }
+
+    // Add Radiation variables
+    // Add Chemical tracers variables
+
+    outhead.free_space( );
+
   }
-
-  // Add Radiation variables
-  // Add Chemical tracers variables
-
-  outhead.free_space( );
+  catch (const char *e)
+  {
+    std::cerr << "Error : " << e << std::endl;
+    return -1;
+  }
+  catch (...)
+  {
+    return -1;
+  }
 
   std::cout << "Done" << std::endl;
   return 0;
