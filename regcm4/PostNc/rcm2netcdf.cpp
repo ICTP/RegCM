@@ -1,0 +1,60 @@
+/***************************************************************************
+ *   Copyright (C) 2008-2009 by Graziano Giuliani                          *
+ *   graziano.giuliani at aquila.infn.it                                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details. (see COPYING)            *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   LIC: GPL                                                              *
+ *                                                                         *
+ ***************************************************************************/
+
+#include <netcdf.hh>
+#include <cstring>
+#include <iostream>
+#include <cstdio>
+#include <ctime>
+#include <rcmio.h>
+#include <rcmNc.h>
+
+using namespace rcm;
+
+int main(int argc, char *argv[])
+{
+  rcmio rcmout(argv[1], true, true);
+
+  header_data outhead;
+  rcmout.read_header(outhead);
+
+  if (rcmout.has_atmo)
+  {
+    atmodata a(outhead.nx, outhead.ny, outhead.nz, outhead.mdate0, outhead.dto);
+    char fname[PATH_MAX];
+    sprintf(fname, "ATM_%s_%d.nc", argv[2], outhead.mdate0);
+    rcmNcAtmo atmnc(fname, argv[2], outhead);
+    // Add Atmospheric variables
+    while ((rcmout.atmo_read_tstep(a)) == 0)
+      atmnc.put_rec(a);
+  }
+
+  // Add Surface variables
+  // Add Radiation variables
+  // Add Chemical tracers variables
+
+  outhead.free_space( );
+
+  std::cout << "Done" << std::endl;
+  return 0;
+}
