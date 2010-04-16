@@ -264,7 +264,7 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   m10var->add_att("positive", "up");
   m10var->add_att("units", "m");
   m10var->add_att("axis", "Z");
-  NcVar *m2var = f->add_var("m2", ncFloat, m10);
+  NcVar *m2var = f->add_var("m2", ncFloat, m2);
   m2var->add_att("standard_name", "altitude");
   m2var->add_att("long_name", "Convenience 2 m elevation level");
   m2var->add_att("positive", "up");
@@ -278,17 +278,17 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   // Setup variables
   u10mvar = f->add_var("u10m", ncFloat, tt, m10, iy, jx);
   u10mvar->add_att("standard_name", "eastward_wind");
-  u10mvar->add_att("long_name", "U component (westerly) of wind");
+  u10mvar->add_att("long_name", "10 meters U component (westerly) of wind");
   u10mvar->add_att("coordinates", "xlon xlat");
   u10mvar->add_att("units", "m/s");
   v10mvar = f->add_var("v10m", ncFloat, tt, m10, iy, jx);
   v10mvar->add_att("standard_name", "northward_wind");
-  v10mvar->add_att("long_name", "V component (southerly) of wind");
+  v10mvar->add_att("long_name", "10 meters V component (southerly) of wind");
   v10mvar->add_att("coordinates", "xlon xlat");
   v10mvar->add_att("units", "m/s");
   t2mvar = f->add_var("t2m", ncFloat, tt, m2, iy, jx);
   t2mvar->add_att("standard_name", "air_temperature");
-  t2mvar->add_att("long_name", "Air temperature");
+  t2mvar->add_att("long_name", "2 meters temperature");
   t2mvar->add_att("coordinates", "xlon xlat");
   t2mvar->add_att("units", "K");
   count = 0;
