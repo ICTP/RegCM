@@ -73,8 +73,7 @@ namespace rcm
       NcVar *tlefvar;
       NcVar *t2mvar;
       NcVar *q2mvar;
-      NcVar *sswvar;
-      NcVar *rswvar;
+      NcVar *smwvar;
       NcVar *tprvar;
       NcVar *evpvar;
       NcVar *runoffvar;

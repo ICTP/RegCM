@@ -92,6 +92,10 @@ namespace rcm
       int date0;
       float dt;
       size_t datasize;
+      int n3D;
+      int n2D;
+      size_t size3D;
+      size_t size2D;
       int nvals;
       char *buffer;
   };
@@ -107,8 +111,7 @@ namespace rcm
       float *tlef;
       float *t2m;
       float *q2m;
-      float *ssw;
-      float *rsw;
+      float *smw;
       float *tpr;
       float *evp;
       float *runoff;
@@ -130,6 +133,8 @@ namespace rcm
       int date0;
       float dt;
       size_t datasize;
+      int n2D;
+      size_t size2D;
       int nvals;
       char *buffer;
   };

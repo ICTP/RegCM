@@ -156,9 +156,11 @@ atmodata::atmodata(int nx, int ny, int nz, int mdate0, float dto)
 {
   date0 = mdate0;
   dt = dto;
-  size_t size3D = nx*ny*nz;
-  size_t size2D = nx*ny;
-  nvals = 6*size3D + 5*size2D;
+  n3D = 6;
+  n2D = 5;
+  size3D = nx*ny*nz;
+  size2D = nx*ny;
+  nvals = n3D*size3D + n2D*size2D;
   datasize = nvals*sizeof(float);
   buffer = new char[datasize];
   u = (float *) buffer;
@@ -183,8 +185,9 @@ srfdata::srfdata(int nx, int ny, int mdate0, float dto)
 {
   date0 = mdate0;
   dt = dto;
-  size_t size2D = nx*ny;
-  nvals = 27*size2D;
+  n2D = 27;
+  size2D = nx*ny;
+  nvals = n2D*size2D;
   datasize = nvals*sizeof(float);
   buffer = new char[datasize];
   u10m = (float *) buffer;
@@ -194,9 +197,8 @@ srfdata::srfdata(int nx, int ny, int mdate0, float dto)
   tlef = tg + size2D;
   t2m = tlef + size2D;
   q2m = t2m + size2D;
-  ssw = q2m + size2D;
-  rsw = ssw + size2D;
-  tpr = rsw + size2D;
+  smw = q2m + size2D;
+  tpr = smw + 2*size2D;
   evp = tpr + size2D;
   runoff = evp + size2D;
   scv = runoff + size2D;
@@ -431,7 +433,10 @@ int rcmio::atmo_read_tstep(atmodata &a)
     sprintf(fname, "%s%sATM.%d", outdir, separator, a.date0);
     atmof.open(fname, std::ios::binary);
     if (! atmof.good()) return -1;
-    storage = new char[a.datasize];
+    if (doseq)
+      storage = new char[a.datasize+(a.n3D+a.n2D)*2*sizeof(int)];
+    else
+      storage = new char[a.datasize];
     initatmo = true;
     atmof.seekg (0, std::ios::end);
     atmsize = atmof.tellg();
@@ -444,7 +449,28 @@ int rcmio::atmo_read_tstep(atmodata &a)
     atmof.close();
     return 1;
   }
-  atmof.read(storage, a.datasize);
+  if (doseq)
+  {
+    atmof.read(storage, a.datasize+(a.n3D+a.n2D)*2*sizeof(int));
+    char *p1 = storage;
+    char *p2 = storage;
+    for (int i = 0; i < a.n3D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, a.size3D*sizeof(float));
+      p2 += a.size3D*sizeof(float);
+      p1 += a.size3D*sizeof(float)+sizeof(int);
+    }
+    for (int i = 0; i < a.n2D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, a.size2D*sizeof(float));
+      p2 += a.size2D*sizeof(float);
+      p1 += a.size2D*sizeof(float)+sizeof(int);
+    }
+  }
+  else
+    atmof.read(storage, a.datasize);
   vectorfrombuf(storage, (float *) a.buffer, a.nvals);
   return 0;
 }
@@ -458,7 +484,10 @@ int rcmio::srf_read_tstep(srfdata &s)
     sprintf(fname, "%s%sSRF.%d", outdir, separator, s.date0);
     srff.open(fname, std::ios::binary);
     if (! srff.good()) return -1;
-    storage = new char[s.datasize];
+    if (doseq)
+      storage = new char[s.datasize+s.n2D*2*sizeof(int)];
+    else
+      storage = new char[s.datasize];
     initsrf = true;
     srff.seekg (0, std::ios::end);
     srfsize = srff.tellg();
@@ -471,7 +500,21 @@ int rcmio::srf_read_tstep(srfdata &s)
     srff.close();
     return 1;
   }
-  srff.read(storage, s.datasize);
+  if (doseq)
+  {
+    srff.read(storage, s.datasize+s.n2D*2*sizeof(int));
+    char *p1 = storage;
+    char *p2 = storage;
+    for (int i = 0; i < s.n2D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, s.size2D*sizeof(float));
+      p2 += s.size2D*sizeof(float);
+      p1 += s.size2D*sizeof(float)+sizeof(int);
+    }
+  }
+  else
+    srff.read(storage, s.datasize);
   vectorfrombuf(storage, (float *) s.buffer, s.nvals);
   return 0;
 }
