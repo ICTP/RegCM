@@ -181,6 +181,37 @@ atmodata::~atmodata( )
   delete [] buffer;
 }
 
+raddata::raddata(int nx, int ny, int nz, int mdate0, float dtr)
+{
+  date0 = mdate0;
+  dt = dtr;
+  n3D = 4;
+  n2D = 9;
+  size3D = nx*ny*nz;
+  size2D = nx*ny;
+  nvals = n3D*size3D + n2D*size2D;
+  datasize = nvals*sizeof(float);
+  buffer = new char[datasize];
+  cld = (float *) buffer;
+  clwp = cld + size3D;
+  qrs = clwp + size3D;
+  qrl = qrs + size3D;
+  frsa = qrl + size3D;
+  frla = frsa + size2D;
+  clrst = frla + size2D;
+  clrss = clrst + size2D;
+  clrlt = clrss + size2D;
+  clrls = clrlt + size2D;
+  solin = clrls + size2D;
+  sabtp = solin + size2D;
+  firtp = sabtp + size2D;
+}
+
+raddata::~raddata( )
+{
+  delete [] buffer;
+}
+
 srfdata::srfdata(int nx, int ny, int mdate0, float dto)
 {
   date0 = mdate0;
@@ -516,6 +547,57 @@ int rcmio::srf_read_tstep(srfdata &s)
   else
     srff.read(storage, s.datasize);
   vectorfrombuf(storage, (float *) s.buffer, s.nvals);
+  return 0;
+}
+
+int rcmio::rad_read_tstep(raddata &r)
+{
+  if (! has_rad) return 1;
+  if (! initrad)
+  {
+    char fname[PATH_MAX];
+    sprintf(fname, "%s%sRAD.%d", outdir, separator, r.date0);
+    radf.open(fname, std::ios::binary);
+    if (! radf.good()) return -1;
+    if (doseq)
+      storage = new char[r.datasize+(r.n3D+r.n2D)*2*sizeof(int)];
+    else
+      storage = new char[r.datasize];
+    initrad = true;
+    radf.seekg (0, std::ios::end);
+    atmsize = radf.tellg();
+    radf.seekg (0, std::ios::beg);
+  }
+  if (radf.tellg( ) == atmsize)
+  {
+    delete [] storage;
+    storage = 0;
+    radf.close();
+    return 1;
+  }
+  if (doseq)
+  {
+    radf.read(storage, r.datasize+(r.n3D+r.n2D)*2*sizeof(int));
+    char *p1 = storage;
+    char *p2 = storage;
+    for (int i = 0; i < r.n3D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, r.size3D*sizeof(float));
+      p2 += r.size3D*sizeof(float);
+      p1 += r.size3D*sizeof(float)+sizeof(int);
+    }
+    for (int i = 0; i < r.n2D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, r.size2D*sizeof(float));
+      p2 += r.size2D*sizeof(float);
+      p1 += r.size2D*sizeof(float)+sizeof(int);
+    }
+  }
+  else
+    radf.read(storage, r.datasize);
+  vectorfrombuf(storage, (float *) r.buffer, r.nvals);
   return 0;
 }
 

@@ -100,6 +100,34 @@ namespace rcm
       char *buffer;
   };
 
+  class raddata {
+    public:
+      raddata(int nx, int ny, int nz, int mdate0, float dts);
+      ~raddata( );
+      float *cld;
+      float *clwp;
+      float *qrs;
+      float *qrl;
+      float *frsa;
+      float *frla;
+      float *clrst;
+      float *clrss;
+      float *clrlt;
+      float *clrls;
+      float *solin;
+      float *sabtp;
+      float *firtp;
+      int date0;
+      float dt;
+      size_t datasize;
+      int n2D;
+      int n3D;
+      size_t size2D;
+      size_t size3D;
+      int nvals;
+      char *buffer;
+  };
+
   class srfdata {
     public:
       srfdata(int nx, int ny, int mdate0, float dts);
@@ -147,6 +175,7 @@ namespace rcm
       void read_header(header_data &h);
       int atmo_read_tstep(atmodata &a);
       int srf_read_tstep(srfdata &a);
+      int rad_read_tstep(raddata &a);
       bool has_atmo;
       bool has_chem;
       bool has_srf;

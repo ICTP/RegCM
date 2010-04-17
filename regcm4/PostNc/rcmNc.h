@@ -94,6 +94,28 @@ namespace rcm
       NcVar *ps_minvar;
       unsigned int count;
   };
+
+  class rcmNcRad : public rcmNc {
+    public:
+      rcmNcRad(char *fname, char *experiment, header_data &h);
+      void put_rec(raddata &r);
+    private:
+      NcVar *cldvar;
+      NcVar *clwpvar;
+      NcVar *qrsvar;
+      NcVar *qrlvar;
+      NcVar *frsavar;
+      NcVar *frlavar;
+      NcVar *clrstvar;
+      NcVar *clrssvar;
+      NcVar *clrltvar;
+      NcVar *clrlsvar;
+      NcVar *solinvar;
+      NcVar *sabtpvar;
+      NcVar *firtpvar;
+      unsigned int count;
+  };
+
 }
 
 #endif

@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
     header_data outhead;
     rcmout.read_header(outhead);
 
+    rcmout.has_atmo = false;
     if (rcmout.has_atmo)
     {
       atmodata a(outhead.nx, outhead.ny, outhead.nz, 
@@ -63,6 +64,7 @@ int main(int argc, char *argv[])
         atmnc.put_rec(a);
     }
 
+    rcmout.has_srf = false;
     if (rcmout.has_srf)
     {
       srfdata s(outhead.nx, outhead.ny, outhead.mdate0, outhead.dtb);
@@ -74,7 +76,18 @@ int main(int argc, char *argv[])
         srfnc.put_rec(s);
     }
 
-    // Add Radiation variables
+    if (rcmout.has_rad)
+    {
+      raddata r(outhead.nx, outhead.ny, outhead.nz,
+                outhead.mdate0, outhead.dtr);
+      char fname[PATH_MAX];
+      sprintf(fname, "RAD_%s_%d.nc", argv[2], outhead.mdate0);
+      rcmNcRad radnc(fname, argv[2], outhead);
+      // Add Radiation variables
+      while ((rcmout.rad_read_tstep(r)) == 0)
+        radnc.put_rec(r);
+    }
+
     // Add Chemical tracers variables
 
     outhead.free_space( );

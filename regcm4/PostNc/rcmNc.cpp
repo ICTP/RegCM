@@ -254,7 +254,7 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   : rcmNc(fname, experiment, h)
 {
   float fillv = -1e+34;
-  // Add two more vertical dimensions for 10m and 2m hgts
+  // Add three more vertical dimensions for 10m, 2m hgts and soil layers
   NcDim *m10 = f->add_dim("m10", 1);
   NcDim *m2 = f->add_dim("m2", 1);
   NcDim *soil = f->add_dim("soil_layer", 2);
@@ -459,3 +459,107 @@ void rcmNcSrf::put_rec(srfdata &s)
   return;
 }
 
+rcmNcRad::rcmNcRad(char *fname, char *experiment, header_data &h)
+  : rcmNc(fname, experiment, h)
+{
+  float fillv = -1e+34;
+
+  // Setup variables
+  cldvar = f->add_var("cld", ncFloat, tt, kz, iy, jx);
+  cldvar->add_att("standard_name", "cloud_area_fraction_in_atmosphere_layer");
+  cldvar->add_att("long_name", "Cloud fractional cover");
+  cldvar->add_att("coordinates", "xlon xlat");
+  cldvar->add_att("units", "1");
+  clwpvar = f->add_var("clwp", ncFloat, tt, kz, iy, jx);
+  clwpvar->add_att("standard_name",
+                   "atmosphere_optical_thickness_due_to_cloud");
+  clwpvar->add_att("long_name", "Cloud liquid water path");
+  clwpvar->add_att("coordinates", "xlon xlat");
+  clwpvar->add_att("units", "1");
+  qrsvar = f->add_var("qrs", ncFloat, tt, kz, iy, jx);
+  qrsvar->add_att("standard_name",
+                   "tendency_of_air_temperature_due_to_shortwave_heating");
+  qrsvar->add_att("long_name", "Solar heating rate");
+  qrsvar->add_att("coordinates", "xlon xlat");
+  qrsvar->add_att("units", "K s-1");
+  qrlvar = f->add_var("qrl", ncFloat, tt, kz, iy, jx);
+  qrlvar->add_att("standard_name",
+                   "tendency_of_air_temperature_due_to_longwave_heating");
+  qrlvar->add_att("long_name", "Longwave cooling rate");
+  qrlvar->add_att("coordinates", "xlon xlat");
+  qrlvar->add_att("units", "K s-1");
+  frsavar = f->add_var("frsa", ncFloat, tt, iy, jx);
+  frsavar->add_att("standard_name",
+                   "surface_downwelling_shortwave_flux_in_air");
+  frsavar->add_att("long_name", "Surface absorbed solar flux");
+  frsavar->add_att("coordinates", "xlon xlat");
+  frsavar->add_att("units", "W m-2");
+  frlavar = f->add_var("frla", ncFloat, tt, iy, jx);
+  frlavar->add_att("standard_name", "downwelling_longwave_flux_in_air");
+  frlavar->add_att("long_name", "Longwave cooling of surface flux");
+  frlavar->add_att("coordinates", "xlon xlat");
+  frlavar->add_att("units", "W m-2");
+  clrstvar = f->add_var("clrst", ncFloat, tt, iy, jx);
+  clrstvar->add_att("standard_name",
+                   "downwelling_shortwave_flux_in_air_assuming_clear_sky");
+  clrstvar->add_att("long_name", "clearsky total column absorbed solar flux");
+  clrstvar->add_att("coordinates", "xlon xlat");
+  clrstvar->add_att("units", "W m-2");
+  clrssvar = f->add_var("clrss", ncFloat, tt, iy, jx);
+  clrssvar->add_att("standard_name",
+                   "net_downward_shortwave_flux_in_air_assuming_clear_sky");
+  clrssvar->add_att("long_name", "clearsky surface absorbed solar flux");
+  clrssvar->add_att("coordinates", "xlon xlat");
+  clrssvar->add_att("units", "W m-2");
+  clrltvar = f->add_var("clrlt", ncFloat, tt, iy, jx);
+  clrltvar->add_att("standard_name",
+                   "toa_net_upward_longwave_flux_assuming_clear_sky");
+  clrltvar->add_att("long_name", "clearsky net upward LW flux at TOA");
+  clrltvar->add_att("coordinates", "xlon xlat");
+  clrltvar->add_att("units", "W m-2");
+  clrlsvar = f->add_var("clrls", ncFloat, tt, iy, jx);
+  clrlsvar->add_att("standard_name",
+                   "net_upward_longwave_flux_in_air_assuming_clear_sky");
+  clrlsvar->add_att("long_name", "clearsky LW cooling at surface");
+  clrlsvar->add_att("coordinates", "xlon xlat");
+  clrlsvar->add_att("units", "W m-2");
+  solinvar = f->add_var("solin", ncFloat, tt, iy, jx);
+  solinvar->add_att("standard_name", "toa_instantaneous_shortwave_forcing");
+  solinvar->add_att("long_name", "Instantaneous incident solar");
+  solinvar->add_att("coordinates", "xlon xlat");
+  solinvar->add_att("units", "W m-2");
+  sabtpvar = f->add_var("sabtp", ncFloat, tt, iy, jx);
+  sabtpvar->add_att("standard_name",
+                  "atmosphere_net_rate_of_absorption_of_shortwave_energy");
+  sabtpvar->add_att("long_name", "Total column absorbed solar flux");
+  sabtpvar->add_att("coordinates", "xlon xlat");
+  sabtpvar->add_att("units", "W m-2");
+  firtpvar = f->add_var("firtp", ncFloat, tt, iy, jx);
+  firtpvar->add_att("standard_name",
+                  "atmosphere_net_rate_of_absorption_of_longwave_energy");
+  firtpvar->add_att("long_name", "net upward LW flux at TOA");
+  firtpvar->add_att("coordinates", "xlon xlat");
+  firtpvar->add_att("units", "W m-2");
+  count = 0;
+}
+
+void rcmNcRad::put_rec(raddata &r)
+{
+  double xtime = reference_time + count*r.dt;
+  timevar->put_rec(&xtime, count);
+  cldvar->put_rec(r.cld, count);
+  clwpvar->put_rec(r.clwp, count);
+  qrsvar->put_rec(r.qrs, count);
+  qrlvar->put_rec(r.qrl, count);
+  frsavar->put_rec(r.frsa, count);
+  frlavar->put_rec(r.frla, count);
+  clrstvar->put_rec(r.clrst, count);
+  clrssvar->put_rec(r.clrss, count);
+  clrltvar->put_rec(r.clrlt, count);
+  clrlsvar->put_rec(r.clrls, count);
+  solinvar->put_rec(r.solin, count);
+  sabtpvar->put_rec(r.sabtp, count);
+  firtpvar->put_rec(r.firtp, count);
+  count ++;
+  return;
+}
