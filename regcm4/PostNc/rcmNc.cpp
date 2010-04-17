@@ -464,7 +464,15 @@ rcmNcRad::rcmNcRad(char *fname, char *experiment, header_data &h)
 {
   float fillv = -1e+34;
 
+  psa = new float[h.nx*h.ny];
+  for (int i = 0; i < h.nx*h.ny; i ++)
+    psa[i] = 1013.15;
   // Setup variables
+  psvar = f->add_var("psa", ncFloat, tt, iy, jx);
+  psvar->add_att("standard_name", "surface_air_pressure");
+  psvar->add_att("long_name", "Surface pressure");
+  psvar->add_att("coordinates", "xlon xlat");
+  psvar->add_att("units", "hPa");
   cldvar = f->add_var("cld", ncFloat, tt, kz, iy, jx);
   cldvar->add_att("standard_name", "cloud_area_fraction_in_atmosphere_layer");
   cldvar->add_att("long_name", "Cloud fractional cover");
@@ -547,6 +555,7 @@ void rcmNcRad::put_rec(raddata &r)
 {
   double xtime = reference_time + count*r.dt;
   timevar->put_rec(&xtime, count);
+  psvar->put_rec(psa, count);
   cldvar->put_rec(r.cld, count);
   clwpvar->put_rec(r.clwp, count);
   qrsvar->put_rec(r.qrs, count);
@@ -562,4 +571,160 @@ void rcmNcRad::put_rec(raddata &r)
   firtpvar->put_rec(r.firtp, count);
   count ++;
   return;
+}
+
+rcmNcRad::~rcmNcRad( )
+{
+  delete [ ] psa;
+}
+
+rcmNcChe::rcmNcChe(char *fname, char *experiment, header_data &h)
+  : rcmNc(fname, experiment, h)
+{
+  float fillv = -1e+34;
+
+  nx = h.nx;
+  ny = h.ny;
+
+  // This guy does not respect any coventions
+  f->add_att("Conventions", "None");
+
+  // Add tracer numbers dimension
+  trc = f->add_dim("tracer", 10);
+
+  psa = new float[h.nx*h.ny];
+  for (int i = 0; i < h.nx*h.ny; i ++)
+    psa[i] = 1013.15;
+  // Setup variables
+  psvar = f->add_var("psa", ncFloat, tt, iy, jx);
+  psvar->add_att("standard_name", "surface_air_pressure");
+  psvar->add_att("long_name", "Surface pressure");
+  psvar->add_att("coordinates", "xlon xlat");
+  psvar->add_att("units", "hPa");
+  trac3Dvar = f->add_var("trac", ncFloat, tt, trc, kz, iy, jx);
+  trac3Dvar->add_att("standard_name", "atmosphere_mixing_ratio_of_tracer");
+  trac3Dvar->add_att("long_name", "Tracers mixing ratios");
+  trac3Dvar->add_att("coordinates", "xlon xlat");
+  trac3Dvar->add_att("units", "kg kg-1");
+  aext8var = f->add_var("aext8", ncFloat, tt, kz, iy, jx);
+  aext8var->add_att("standard_name", "aerosol_extincion_coefficient");
+  aext8var->add_att("long_name", "aer mix. ext. coef");
+  aext8var->add_att("coordinates", "xlon xlat");
+  aext8var->add_att("units", "1");
+  assa8var = f->add_var("assa8", ncFloat, tt, kz, iy, jx);
+  assa8var->add_att("standard_name", "aerosol_single_scattering_albedo");
+  assa8var->add_att("long_name", "aer mix. sin. scat. alb");
+  assa8var->add_att("coordinates", "xlon xlat");
+  assa8var->add_att("units", "1");
+  agfu8var = f->add_var("agfu8", ncFloat, tt, kz, iy, jx);
+  agfu8var->add_att("standard_name", "aerosol_asymmetry_parameter");
+  agfu8var->add_att("long_name", "aer mix. ass. par");
+  agfu8var->add_att("coordinates", "xlon xlat");
+  agfu8var->add_att("units", "1");
+  colbvar = f->add_var("colb", ncFloat, tt, trc, iy, jx);
+  colbvar->add_att("standard_name", "instantaneous_deposition_of_tracer");
+  colbvar->add_att("long_name", "columnburden inst");
+  colbvar->add_att("coordinates", "xlon xlat");
+  colbvar->add_att("units", "mg m-2");
+  wdlscvar = f->add_var("wdlsc", ncFloat, tt, trc, iy, jx);
+  wdlscvar->add_att("standard_name",
+      "tendency_of_wet_deposition_of_tracer_due_to_large_scale_precipitation");
+  wdlscvar->add_att("long_name", "wet dep lgscale");
+  wdlscvar->add_att("coordinates", "xlon xlat");
+  wdlscvar->add_att("units", "mg m-2 day-1");
+  wdcvcvar = f->add_var("wdcvc", ncFloat, tt, trc, iy, jx);
+  wdcvcvar->add_att("standard_name",
+      "tendency_of_wet_deposition_of_tracer_due_to_convective_precipitation");
+  wdcvcvar->add_att("long_name", "wet dep convect");
+  wdcvcvar->add_att("coordinates", "xlon xlat");
+  wdcvcvar->add_att("units", "mg m-2 day-1");
+  sdrdpvar = f->add_var("sdrdp", ncFloat, tt, trc, iy, jx);
+  sdrdpvar->add_att("standard_name", "tendency_of_dry_deposition_of_tracer");
+  sdrdpvar->add_att("long_name", "surf dry depos");
+  sdrdpvar->add_att("coordinates", "xlon xlat");
+  sdrdpvar->add_att("units", "mg m-2 day-1");
+  xgascvar = f->add_var("xgasc", ncFloat, tt, trc, iy, jx);
+  xgascvar->add_att("standard_name", "tendency_of_gas_conversion_of_tracer");
+  xgascvar->add_att("long_name", "chem gas conv");
+  xgascvar->add_att("coordinates", "xlon xlat");
+  xgascvar->add_att("units", "mg m-2 day-1");
+  xaqucvar = f->add_var("xaquc", ncFloat, tt, trc, iy, jx);
+  xaqucvar->add_att("standard_name",
+                    "tendency_of_aqueous_conversion_of_tracer");
+  xaqucvar->add_att("long_name", "chem aqu conv");
+  xaqucvar->add_att("coordinates", "xlon xlat");
+  xaqucvar->add_att("units", "mg m-2 day-1");
+  emissvar = f->add_var("emiss", ncFloat, tt, trc, iy, jx);
+  emissvar->add_att("standard_name",
+                    "tendency_of_surface_emission_of_tracer");
+  emissvar->add_att("long_name", "surf emission");
+  emissvar->add_att("coordinates", "xlon xlat");
+  emissvar->add_att("units", "mg m-2 day-1");
+  acstoarfvar = f->add_var("acstoarf", ncFloat, tt, iy, jx);
+  acstoarfvar->add_att("standard_name",
+                    "toa_instantaneous_radiative_forcing");
+  acstoarfvar->add_att("long_name", "TOArad forcing av.");
+  acstoarfvar->add_att("coordinates", "xlon xlat");
+  acstoarfvar->add_att("units", "W m-2");
+  acstsrrfvar = f->add_var("acstsrrf", ncFloat, tt, iy, jx);
+  acstsrrfvar->add_att("standard_name",
+                    "surface_instantaneous_radiative_forcing");
+  acstsrrfvar->add_att("long_name", "SRFrad forcing av.");
+  acstsrrfvar->add_att("coordinates", "xlon xlat");
+  acstsrrfvar->add_att("units", "W m-2");
+  count = 0;
+}
+
+void rcmNcChe::put_rec(chedata &c)
+{
+  double xtime = reference_time + count*c.dt;
+  timevar->put_rec(&xtime, count);
+  psvar->put_rec(psa, count);
+  trac3Dvar->put_rec(c.trac3D, count);
+  aext8var->put_rec(c.aext8, count);
+  assa8var->put_rec(c.assa8, count);
+  agfu8var->put_rec(c.agfu8, count);
+  float *colb;
+  float *wdlsc;
+  float *wdcvc;
+  float *sdrdp;
+  float *xgasc;
+  float *xaquc;
+  float *emiss;
+  float *base;
+  for (int i = 0; i < 10; i++)
+  {
+    base = c.trac2D+(i*(7*c.size2D));
+
+    colb = base;
+    colbvar->set_cur(count , i, 0, 0);
+    colbvar->put(colb, 1, 1, nx, ny);
+    wdlsc = colb+c.size2D;
+    wdlscvar->set_cur(count , i, 0, 0);
+    wdlscvar->put(wdlsc, 1, 1, nx, ny);
+    wdcvc = wdlsc+c.size2D;
+    wdcvcvar->set_cur(count , i, 0, 0);
+    wdcvcvar->put(wdcvc, 1, 1, nx, ny);
+    sdrdp = wdcvc+c.size2D;
+    sdrdpvar->set_cur(count , i, 0, 0);
+    sdrdpvar->put(sdrdp, 1, 1, nx, ny);
+    xgasc = sdrdp+c.size2D;
+    xgascvar->set_cur(count , i, 0, 0);
+    xgascvar->put(xgasc, 1, 1, nx, ny);
+    xaquc = xgasc+c.size2D;
+    xaqucvar->set_cur(count , i, 0, 0);
+    xaqucvar->put(xaquc, 1, 1, nx, ny);
+    emiss = xaquc+c.size2D;
+    emissvar->set_cur(count , i, 0, 0);
+    emissvar->put(emiss, 1, 1, nx, ny);
+  }
+  acstoarfvar->put_rec(c.acstoarf, count);
+  acstsrrfvar->put_rec(c.acstsrrf, count);
+  count ++;
+  return;
+}
+
+rcmNcChe::~rcmNcChe( )
+{
+  delete [ ] psa;
 }

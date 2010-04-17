@@ -128,6 +128,29 @@ namespace rcm
       char *buffer;
   };
 
+  class chedata {
+    public:
+      chedata(int nx, int ny, int nz, int mdate0, float dts);
+      ~chedata( );
+      float *trac3D;
+      float *trac2D;
+      float *aext8;
+      float *assa8;
+      float *agfu8;
+      float *acstoarf;
+      float *acstsrrf;
+      int date0;
+      float dt;
+      size_t datasize;
+      int n2D;
+      int n3D;
+      size_t size2D;
+      size_t size3D;
+      int nvals;
+      int ntr;
+      char *buffer;
+  };
+
   class srfdata {
     public:
       srfdata(int nx, int ny, int mdate0, float dts);
@@ -176,8 +199,9 @@ namespace rcm
       int atmo_read_tstep(atmodata &a);
       int srf_read_tstep(srfdata &a);
       int rad_read_tstep(raddata &a);
-      bool has_atmo;
-      bool has_chem;
+      int che_read_tstep(chedata &a);
+      bool has_atm;
+      bool has_che;
       bool has_srf;
       bool has_rad;
       bool has_sub;
@@ -246,13 +270,13 @@ namespace rcm
       bool doswap;
       bool doseq;
       // ATM pieces
-      bool initatmo;
-      std::ifstream atmof;
+      bool initatm;
+      std::ifstream atmf;
       size_t atmsize;
       // CHE pieces
-      bool initchem;
-      std::ifstream chemf;
-      size_t chemsize;
+      bool initche;
+      std::ifstream chef;
+      size_t chesize;
       // SRF pieces
       bool initsrf;
       std::ifstream srff;

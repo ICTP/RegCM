@@ -98,8 +98,10 @@ namespace rcm
   class rcmNcRad : public rcmNc {
     public:
       rcmNcRad(char *fname, char *experiment, header_data &h);
+      ~rcmNcRad( );
       void put_rec(raddata &r);
     private:
+      NcVar *psvar;
       NcVar *cldvar;
       NcVar *clwpvar;
       NcVar *qrsvar;
@@ -113,6 +115,33 @@ namespace rcm
       NcVar *solinvar;
       NcVar *sabtpvar;
       NcVar *firtpvar;
+      float *psa;
+      unsigned int count;
+  };
+
+  class rcmNcChe : public rcmNc {
+    public:
+      rcmNcChe(char *fname, char *experiment, header_data &h);
+      ~rcmNcChe( );
+      void put_rec(chedata &r);
+    private:
+      NcDim *trc;
+      NcVar *psvar;
+      NcVar *trac3Dvar;
+      NcVar *colbvar;
+      NcVar *wdlscvar;
+      NcVar *wdcvcvar;
+      NcVar *sdrdpvar;
+      NcVar *xgascvar;
+      NcVar *xaqucvar;
+      NcVar *emissvar;
+      NcVar *aext8var;
+      NcVar *assa8var;
+      NcVar *agfu8var;
+      NcVar *acstoarfvar;
+      NcVar *acstsrrfvar;
+      long nx, ny;
+      float *psa;
       unsigned int count;
   };
 

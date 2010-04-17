@@ -212,6 +212,32 @@ raddata::~raddata( )
   delete [] buffer;
 }
 
+chedata::chedata(int nx, int ny, int nz, int mdate0, float dtr)
+{
+  date0 = mdate0;
+  dt = dtr;
+  ntr = 10;
+  n3D = 13;
+  n2D = 72;
+  size3D = nx*ny*nz;
+  size2D = nx*ny;
+  nvals = n3D*size3D + n2D*size2D;
+  datasize = nvals*sizeof(float);
+  buffer = new char[datasize];
+  trac3D = (float *) buffer;
+  aext8 = trac3D + 10*size3D;
+  assa8 = aext8 + size3D;
+  agfu8 = assa8 + size3D;
+  trac2D = agfu8 + size3D;
+  acstoarf = trac2D + 70*size2D;
+  acstsrrf = acstoarf + size2D;
+}
+
+chedata::~chedata( )
+{
+  delete [] buffer;
+}
+
 srfdata::srfdata(int nx, int ny, int mdate0, float dto)
 {
   date0 = mdate0;
@@ -265,10 +291,10 @@ rcmio::rcmio(char *directory, bool lbig, bool ldirect)
   strncpy(outdir, directory, PATH_MAX);
 
   // All to false
-  initatmo = false;
-  has_atmo = false;
-  initchem = false;
-  has_chem = false;
+  initatm = false;
+  has_atm = false;
+  initche = false;
+  has_che = false;
   initsrf = false;
   has_srf = false;
   initrad = false;
@@ -444,45 +470,45 @@ void rcmio::read_header(header_data &h)
 
   // Check what output is present for that header
   sprintf(fname, "%s%sATM.%d", outdir, separator, h.mdate0);
-  has_atmo = fexist(fname);
+  has_atm = fexist(fname);
   sprintf(fname, "%s%sSRF.%d", outdir, separator, h.mdate0);
   has_srf = fexist(fname);
   sprintf(fname, "%s%sSUB.%d", outdir, separator, h.mdate0);
   has_sub = fexist(fname);
   sprintf(fname, "%s%sCHE.%d", outdir, separator, h.mdate0);
-  has_chem = fexist(fname);
+  has_che = fexist(fname);
   sprintf(fname, "%s%sRAD.%d", outdir, separator, h.mdate0);
   has_rad = fexist(fname);
 }
 
 int rcmio::atmo_read_tstep(atmodata &a)
 {
-  if (! has_atmo) return 1;
-  if (! initatmo)
+  if (! has_atm) return 1;
+  if (! initatm)
   {
     char fname[PATH_MAX];
     sprintf(fname, "%s%sATM.%d", outdir, separator, a.date0);
-    atmof.open(fname, std::ios::binary);
-    if (! atmof.good()) return -1;
+    atmf.open(fname, std::ios::binary);
+    if (! atmf.good()) return -1;
     if (doseq)
       storage = new char[a.datasize+(a.n3D+a.n2D)*2*sizeof(int)];
     else
       storage = new char[a.datasize];
-    initatmo = true;
-    atmof.seekg (0, std::ios::end);
-    atmsize = atmof.tellg();
-    atmof.seekg (0, std::ios::beg);
+    initatm = true;
+    atmf.seekg (0, std::ios::end);
+    atmsize = atmf.tellg();
+    atmf.seekg (0, std::ios::beg);
   }
-  if (atmof.tellg( ) == atmsize)
+  if (atmf.tellg( ) == atmsize)
   {
     delete [] storage;
     storage = 0;
-    atmof.close();
+    atmf.close();
     return 1;
   }
   if (doseq)
   {
-    atmof.read(storage, a.datasize+(a.n3D+a.n2D)*2*sizeof(int));
+    atmf.read(storage, a.datasize+(a.n3D+a.n2D)*2*sizeof(int));
     char *p1 = storage;
     char *p2 = storage;
     for (int i = 0; i < a.n3D; i ++)
@@ -501,7 +527,7 @@ int rcmio::atmo_read_tstep(atmodata &a)
     }
   }
   else
-    atmof.read(storage, a.datasize);
+    atmf.read(storage, a.datasize);
   vectorfrombuf(storage, (float *) a.buffer, a.nvals);
   return 0;
 }
@@ -565,10 +591,10 @@ int rcmio::rad_read_tstep(raddata &r)
       storage = new char[r.datasize];
     initrad = true;
     radf.seekg (0, std::ios::end);
-    atmsize = radf.tellg();
+    radsize = radf.tellg();
     radf.seekg (0, std::ios::beg);
   }
-  if (radf.tellg( ) == atmsize)
+  if (radf.tellg( ) == radsize)
   {
     delete [] storage;
     storage = 0;
@@ -598,6 +624,57 @@ int rcmio::rad_read_tstep(raddata &r)
   else
     radf.read(storage, r.datasize);
   vectorfrombuf(storage, (float *) r.buffer, r.nvals);
+  return 0;
+}
+
+int rcmio::che_read_tstep(chedata &c)
+{
+  if (! has_che) return 1;
+  if (! initche)
+  {
+    char fname[PATH_MAX];
+    sprintf(fname, "%s%sCHE.%d", outdir, separator, c.date0);
+    chef.open(fname, std::ios::binary);
+    if (! chef.good()) return -1;
+    if (doseq)
+      storage = new char[c.datasize+(c.n3D+c.n2D)*2*sizeof(int)];
+    else
+      storage = new char[c.datasize];
+    initche = true;
+    chef.seekg (0, std::ios::end);
+    chesize = chef.tellg();
+    chef.seekg (0, std::ios::beg);
+  }
+  if (chef.tellg( ) == chesize)
+  {
+    delete [] storage;
+    storage = 0;
+    chef.close();
+    return 1;
+  }
+  if (doseq)
+  {
+    chef.read(storage, c.datasize+(c.n3D+c.n2D)*2*sizeof(int));
+    char *p1 = storage;
+    char *p2 = storage;
+    for (int i = 0; i < c.n3D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, c.size3D*sizeof(float));
+      p2 += c.size3D*sizeof(float);
+      p1 += c.size3D*sizeof(float)+sizeof(int);
+    }
+    for (int i = 0; i < c.n2D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, c.size2D*sizeof(float));
+      p2 += c.size2D*sizeof(float);
+      p1 += c.size2D*sizeof(float)+sizeof(int);
+    }
+  }
+  else
+    chef.read(storage, c.datasize);
+  vectorfrombuf(storage, (float *) c.buffer, c.nvals);
   return 0;
 }
 

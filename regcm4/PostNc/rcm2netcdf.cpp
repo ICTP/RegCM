@@ -51,8 +51,7 @@ int main(int argc, char *argv[])
     header_data outhead;
     rcmout.read_header(outhead);
 
-    rcmout.has_atmo = false;
-    if (rcmout.has_atmo)
+    if (rcmout.has_atm)
     {
       atmodata a(outhead.nx, outhead.ny, outhead.nz, 
                  outhead.mdate0, outhead.dto);
@@ -64,7 +63,6 @@ int main(int argc, char *argv[])
         atmnc.put_rec(a);
     }
 
-    rcmout.has_srf = false;
     if (rcmout.has_srf)
     {
       srfdata s(outhead.nx, outhead.ny, outhead.mdate0, outhead.dtb);
@@ -88,7 +86,17 @@ int main(int argc, char *argv[])
         radnc.put_rec(r);
     }
 
-    // Add Chemical tracers variables
+    if (rcmout.has_che)
+    {
+      chedata c(outhead.nx, outhead.ny, outhead.nz,
+                outhead.mdate0, outhead.dtc);
+      char fname[PATH_MAX];
+      sprintf(fname, "CHE_%s_%d.nc", argv[2], outhead.mdate0);
+      rcmNcChe chenc(fname, argv[2], outhead);
+      // Add Chemical tracers variables
+      while ((rcmout.che_read_tstep(c)) == 0)
+        chenc.put_rec(c);
+    }
 
     outhead.free_space( );
 
