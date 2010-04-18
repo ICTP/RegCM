@@ -6,7 +6,9 @@ CXXFLAGS = -O2 -g
 CPPFLAGS = -I. -I/usr/include
 LIBS = -L/usr/lib64 -lnetcdf_c++ -lnetcdf
 
-OBJS = rcmio.o rcmNc.o
+OBJS = rcminp.o rcmio.o rcmNc.o
+
+rcminp.o: rcminp.cpp rcminp.h
 
 rcmio.o: rcmio.cpp rcmio.h
 
