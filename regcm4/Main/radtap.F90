@@ -22,12 +22,15 @@
       use mod_regcm_param
       use mod_param1
       use mod_param2
+      use mod_param3 , only : ptop
       use mod_date
       use mod_iunits
       use mod_outrad
       use mod_radbuf
 #ifdef MPP1
       use mod_mppio
+#else
+      use mod_main , only : psa
 #endif
       implicit none
 !
@@ -57,8 +60,17 @@
             end do
           end if
         end do
+        do j = 1 , jxm2
+          do i = 1 , iym2
+#ifdef MPP1
+            frad2d_io(j,i,22) = (psa_io(i+1,j+1)+ptop)*10.
+#else
+            frad2d(j,i,22) = (psa(i+1,j+1)+ptop)*10.
+#endif
+          end do
+        end do
         do n = 1 , nrad2d
-          if ( n.lt.10 ) then
+          if ( n.lt.10 .or. n .eq. 22 ) then
                             ! skip everything from alb (10 to 21)
             nrcrad = nrcrad + 1
 #ifdef MPP1

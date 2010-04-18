@@ -755,7 +755,7 @@
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
-      write (31,99016) ntr + 3 + 7*ntr + 2
+      write (31,99016) ntr + 3 + 7*ntr + 2 + 1
  
       do itr = 1 , ntr
         if ( itr.lt.10 ) then
@@ -791,6 +791,7 @@
       end do
       write (31,99017) 'acstoarf' , ' TOArad forcing av.(W/m2)'
       write (31,99017) 'acstsrrf' , ' SRFrad forcing av.(W/m2)'
+      write (31,99017) 'psa' , ' Surface Pressure (hPa)'
  
       write (31,99022)
       close (31)
@@ -1416,7 +1417,7 @@
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
-      write (31,99016) 13
+      write (31,99016) 14
       write (31,99018) 'cld   ' , kz ,                                  &
                       &'cloud fractional cover               '
       write (31,99018) 'clwp  ' , kz ,                                  &
@@ -1443,6 +1444,8 @@
                       &'total column absorbed solar flux W/m2'
       write (31,99017) 'firtp ' ,                                       &
                       &'net upward LW flux at TOA (W/m2)     '
+      write (31,99017) 'psa   ' ,                                       &
+                      &'Surface pressure (hPa)               '
       write (31,99019)
       close (31)
 99001 format ('dset ^',a14)

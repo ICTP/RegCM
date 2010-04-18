@@ -346,6 +346,23 @@
       else
       end if
  
+      do i = 1 , iym2
+        do j = 1 , jxm2
+#ifdef MPP1
+          fchem(j,i) = psa_io(i+1,j+1)
+#else
+          fchem(j,i) = psa(i+1,j+1)
+#endif
+        end do
+      end do
+      if ( iotyp.eq.1 ) then
+        nrcchem = nrcchem + 1
+        write (iutchem,rec=nrcchem) fchem
+      else if ( iotyp.eq.2 ) then
+        write (iutchem) fchem
+      else
+      end if
+ 
 !     reset rad diag to 0 ( averaged between output time stepsin aerout)
 #ifdef MPP1
       aertarf_io = 0.0

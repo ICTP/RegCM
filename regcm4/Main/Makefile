@@ -350,8 +350,8 @@ radinp.o: radinp.F90 mod_comtim.o mod_constants.o mod_regcm_param.o mod_clm.o
 else
 radinp.o: radinp.F90 mod_comtim.o mod_constants.o mod_regcm_param.o
 endif
-radout.o: radout.F90 mod_bats.o mod_date.o mod_outrad.o mod_param1.o \
-          mod_param2.o mod_rad.o mod_regcm_param.o
+radout.o: radout.F90 mod_bats.o mod_date.o mod_main.o mod_outrad.o \
+          mod_param1.o mod_param2.o mod_param3.o mod_rad.o mod_regcm_param.o
 radoz2.o: radoz2.f90 mod_comozp.o mod_regcm_param.o
 radtap.o: radtap.F90 mod_date.o mod_iunits.o mod_outrad.o mod_param1.o \
           mod_param2.o mod_radbuf.o mod_regcm_param.o
