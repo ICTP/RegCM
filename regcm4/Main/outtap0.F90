@@ -60,7 +60,7 @@
       write (20,rec=1) mdate0 , ibltyp , icup , ipptls , iboudy , iy ,  &
                      & jx , kz , sp1d , dxsp , ptsp , clat , clon ,     &
                      & plat , plon , proj , dto , dtb , dtr , dtc ,     &
-                     & iotyp
+                     & iotyp, truelatl, truelath
 
       do i = 1 , iym2
         do j = 1 , jxm2
