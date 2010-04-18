@@ -26,6 +26,7 @@
 #include <fstream>
 #include <cstring>
 #include <sys/stat.h>
+#include <cmath>
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -186,7 +187,7 @@ raddata::raddata(int nx, int ny, int nz, int mdate0, float dtr)
   date0 = mdate0;
   dt = dtr;
   n3D = 4;
-  n2D = 9;
+  n2D = 10;
   size3D = nx*ny*nz;
   size2D = nx*ny;
   nvals = n3D*size3D + n2D*size2D;
@@ -205,6 +206,7 @@ raddata::raddata(int nx, int ny, int nz, int mdate0, float dtr)
   solin = clrls + size2D;
   sabtp = solin + size2D;
   firtp = sabtp + size2D;
+  psa = firtp + size2D;
 }
 
 raddata::~raddata( )
@@ -218,7 +220,7 @@ chedata::chedata(int nx, int ny, int nz, int mdate0, float dtr)
   dt = dtr;
   ntr = 10;
   n3D = 13;
-  n2D = 72;
+  n2D = 73;
   size3D = nx*ny*nz;
   size2D = nx*ny;
   nvals = n3D*size3D + n2D*size2D;
@@ -231,6 +233,7 @@ chedata::chedata(int nx, int ny, int nz, int mdate0, float dtr)
   trac2D = agfu8 + size3D;
   acstoarf = trac2D + 70*size2D;
   acstsrrf = acstoarf + size2D;
+  psa = acstsrrf + size2D;
 }
 
 chedata::~chedata( )
@@ -238,10 +241,10 @@ chedata::~chedata( )
   delete [] buffer;
 }
 
-srfdata::srfdata(int nx, int ny, int mdate0, float dto)
+srfdata::srfdata(int nx, int ny, int mdate0, float dtb)
 {
   date0 = mdate0;
-  dt = dto;
+  dt = dtb;
   n2D = 27;
   size2D = nx*ny;
   nvals = n2D*size2D;
@@ -276,6 +279,37 @@ srfdata::srfdata(int nx, int ny, int mdate0, float dto)
 }
 
 srfdata::~srfdata( )
+{
+  delete [] buffer;
+}
+
+subdata::subdata(int nx, int ny, int nsg, int mdate0, float dtu)
+{
+  date0 = mdate0;
+  dt = dtu;
+  n2D = 16;
+  size2D = nx*ny*nsg*nsg;
+  nvals = n2D*size2D;
+  datasize = nvals*sizeof(float);
+  buffer = new char[datasize];
+  u10m = (float *) buffer;
+  v10m = u10m + size2D;
+  uvdrag = v10m + size2D;
+  tg = uvdrag + size2D;
+  tlef = tg + size2D;
+  t2m = tlef + size2D;
+  q2m = t2m + size2D;
+  smw = q2m + size2D;
+  tpr = smw + 2*size2D;
+  evp = tpr + size2D;
+  runoff = evp + size2D;
+  scv = runoff + size2D;
+  sena = scv + size2D;
+  prcv = sena + size2D;
+  psb = prcv + size2D;
+}
+
+subdata::~subdata( )
 {
   delete [] buffer;
 }
@@ -383,6 +417,8 @@ void rcmio::read_header(header_data &h)
   h.dtr = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.dtc = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.idirect = intvalfrombuf(buf); buf = buf + sizeof(int);
+  h.trlat1 = rvalfrombuf(buf); buf = buf + sizeof(float);
+  h.trlat2 = rvalfrombuf(buf); buf = buf + sizeof(float);
 
   // First record is mostly empty except above infos
   buf = header.data + nvals*sizeof(float);
@@ -473,12 +509,49 @@ void rcmio::read_header(header_data &h)
   has_atm = fexist(fname);
   sprintf(fname, "%s%sSRF.%d", outdir, separator, h.mdate0);
   has_srf = fexist(fname);
-  sprintf(fname, "%s%sSUB.%d", outdir, separator, h.mdate0);
-  has_sub = fexist(fname);
   sprintf(fname, "%s%sCHE.%d", outdir, separator, h.mdate0);
   has_che = fexist(fname);
   sprintf(fname, "%s%sRAD.%d", outdir, separator, h.mdate0);
   has_rad = fexist(fname);
+  sprintf(fname, "%s%sSUB.%d", outdir, separator, h.mdate0);
+  has_sub = fexist(fname);
+  if (has_sub)
+  {
+    if (! has_srf)
+    {
+      std::cerr << "Unable to determine subgrid decomposition." << std::endl;
+      std::cerr << "Will not convert SUB output." << std::endl;
+      has_sub = false;
+    }
+    else
+    {
+      // BATS timestep is the same for SRF and SUB
+      sprintf(fname, "%s%sSRF.%d", outdir, separator, h.mdate0);
+      srff.open(fname, std::ios::binary);
+      srff.seekg (0, std::ios::end);
+      srfsize = srff.tellg();
+      srff.close();
+      // BATS SRF contains 27 2D matrices
+      long ntimes = srfsize / (27*h.nx*h.ny*sizeof(float));
+      // Try to estimate nsg "cracking" the format
+      sprintf(fname, "%s%sSUB.%d", outdir, separator, h.mdate0);
+      subf.open(fname, std::ios::binary);
+      subf.seekg (0, std::ios::end);
+      subsize = subf.tellg();
+      subf.close();
+      // File contains 16 2D matrice
+      double nsgsq = subsize / (16*h.nx*h.ny*sizeof(float)*ntimes);
+      h.nsg = sqrt(nsgsq);
+      // Double check
+      long calculated = 16*h.nsg*h.nx*h.nsg*h.ny*sizeof(float)*ntimes;
+      if (calculated != subsize)
+      {
+        std::cerr << "Unable to determine subgrid decomposition." << std::endl;
+        std::cerr << "Will not convert SUB output." << std::endl;
+        has_sub = false;
+      }
+    }
+  }
 }
 
 int rcmio::atmo_read_tstep(atmodata &a)
@@ -486,29 +559,31 @@ int rcmio::atmo_read_tstep(atmodata &a)
   if (! has_atm) return 1;
   if (! initatm)
   {
+    if (doseq)
+      readsize = a.datasize+(a.n3D+a.n2D)*2*sizeof(int);
+    else
+      readsize = a.datasize;
     char fname[PATH_MAX];
     sprintf(fname, "%s%sATM.%d", outdir, separator, a.date0);
     atmf.open(fname, std::ios::binary);
     if (! atmf.good()) return -1;
-    if (doseq)
-      storage = new char[a.datasize+(a.n3D+a.n2D)*2*sizeof(int)];
-    else
-      storage = new char[a.datasize];
+    storage = new char[readsize];
     initatm = true;
     atmf.seekg (0, std::ios::end);
     atmsize = atmf.tellg();
     atmf.seekg (0, std::ios::beg);
   }
-  if (atmf.tellg( ) == atmsize)
+  size_t pos = atmf.tellg( );
+  if (pos+readsize > atmsize)
   {
     delete [] storage;
     storage = 0;
     atmf.close();
     return 1;
   }
+  atmf.read(storage, readsize);
   if (doseq)
   {
-    atmf.read(storage, a.datasize+(a.n3D+a.n2D)*2*sizeof(int));
     char *p1 = storage;
     char *p2 = storage;
     for (int i = 0; i < a.n3D; i ++)
@@ -526,8 +601,6 @@ int rcmio::atmo_read_tstep(atmodata &a)
       p1 += a.size2D*sizeof(float)+sizeof(int);
     }
   }
-  else
-    atmf.read(storage, a.datasize);
   vectorfrombuf(storage, (float *) a.buffer, a.nvals);
   return 0;
 }
@@ -537,29 +610,31 @@ int rcmio::srf_read_tstep(srfdata &s)
   if (! has_srf) return 1;
   if (! initsrf)
   {
+    if (doseq)
+      readsize = s.datasize+s.n2D*2*sizeof(int);
+    else
+      readsize = s.datasize;
     char fname[PATH_MAX];
     sprintf(fname, "%s%sSRF.%d", outdir, separator, s.date0);
     srff.open(fname, std::ios::binary);
     if (! srff.good()) return -1;
-    if (doseq)
-      storage = new char[s.datasize+s.n2D*2*sizeof(int)];
-    else
-      storage = new char[s.datasize];
+    storage = new char[readsize];
     initsrf = true;
     srff.seekg (0, std::ios::end);
     srfsize = srff.tellg();
     srff.seekg (0, std::ios::beg);
   }
-  if (srff.tellg( ) == srfsize)
+  size_t pos = srff.tellg( );
+  if (pos+readsize > srfsize)
   {
     delete [] storage;
     storage = 0;
     srff.close();
     return 1;
   }
+  srff.read(storage, readsize);
   if (doseq)
   {
-    srff.read(storage, s.datasize+s.n2D*2*sizeof(int));
     char *p1 = storage;
     char *p2 = storage;
     for (int i = 0; i < s.n2D; i ++)
@@ -570,9 +645,51 @@ int rcmio::srf_read_tstep(srfdata &s)
       p1 += s.size2D*sizeof(float)+sizeof(int);
     }
   }
-  else
-    srff.read(storage, s.datasize);
   vectorfrombuf(storage, (float *) s.buffer, s.nvals);
+  return 0;
+}
+
+int rcmio::sub_read_tstep(subdata &u)
+{
+  if (! has_sub) return 1;
+  if (! initsub)
+  {
+    if (doseq)
+      readsize = u.datasize+u.n2D*2*sizeof(int);
+    else
+      readsize = u.datasize;
+    char fname[PATH_MAX];
+    sprintf(fname, "%s%sSUB.%d", outdir, separator, u.date0);
+    subf.open(fname, std::ios::binary);
+    if (! subf.good()) return -1;
+    storage = new char[readsize];
+    initsub = true;
+    subf.seekg (0, std::ios::end);
+    subsize = subf.tellg();
+    subf.seekg (0, std::ios::beg);
+  }
+  size_t pos = subf.tellg( );
+  if (pos+readsize > subsize)
+  {
+    delete [] storage;
+    storage = 0;
+    subf.close();
+    return 1;
+  }
+  subf.read(storage, readsize);
+  if (doseq)
+  {
+    char *p1 = storage;
+    char *p2 = storage;
+    for (int i = 0; i < u.n2D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, u.size2D*sizeof(float));
+      p2 += u.size2D*sizeof(float);
+      p1 += u.size2D*sizeof(float)+sizeof(int);
+    }
+  }
+  vectorfrombuf(storage, (float *) u.buffer, u.nvals);
   return 0;
 }
 
@@ -581,29 +698,32 @@ int rcmio::rad_read_tstep(raddata &r)
   if (! has_rad) return 1;
   if (! initrad)
   {
+    if (doseq)
+      readsize = r.datasize+(r.n3D+r.n2D)*2*sizeof(int);
+    else
+      readsize = r.datasize;
+
     char fname[PATH_MAX];
     sprintf(fname, "%s%sRAD.%d", outdir, separator, r.date0);
     radf.open(fname, std::ios::binary);
     if (! radf.good()) return -1;
-    if (doseq)
-      storage = new char[r.datasize+(r.n3D+r.n2D)*2*sizeof(int)];
-    else
-      storage = new char[r.datasize];
+    storage = new char[readsize];
     initrad = true;
     radf.seekg (0, std::ios::end);
     radsize = radf.tellg();
     radf.seekg (0, std::ios::beg);
   }
-  if (radf.tellg( ) == radsize)
+  size_t pos = radf.tellg( );
+  if (pos+readsize > radsize)
   {
     delete [] storage;
     storage = 0;
     radf.close();
     return 1;
   }
+  radf.read(storage, readsize);
   if (doseq)
   {
-    radf.read(storage, r.datasize+(r.n3D+r.n2D)*2*sizeof(int));
     char *p1 = storage;
     char *p2 = storage;
     for (int i = 0; i < r.n3D; i ++)
@@ -621,8 +741,6 @@ int rcmio::rad_read_tstep(raddata &r)
       p1 += r.size2D*sizeof(float)+sizeof(int);
     }
   }
-  else
-    radf.read(storage, r.datasize);
   vectorfrombuf(storage, (float *) r.buffer, r.nvals);
   return 0;
 }
@@ -632,29 +750,31 @@ int rcmio::che_read_tstep(chedata &c)
   if (! has_che) return 1;
   if (! initche)
   {
+    if (doseq)
+      readsize = c.datasize+(c.n3D+c.n2D)*2*sizeof(int);
+    else
+      readsize = c.datasize;
     char fname[PATH_MAX];
     sprintf(fname, "%s%sCHE.%d", outdir, separator, c.date0);
     chef.open(fname, std::ios::binary);
     if (! chef.good()) return -1;
-    if (doseq)
-      storage = new char[c.datasize+(c.n3D+c.n2D)*2*sizeof(int)];
-    else
-      storage = new char[c.datasize];
+    storage = new char[readsize];
     initche = true;
     chef.seekg (0, std::ios::end);
     chesize = chef.tellg();
     chef.seekg (0, std::ios::beg);
   }
-  if (chef.tellg( ) == chesize)
+  size_t pos = chef.tellg( );
+  if (pos+readsize > chesize)
   {
     delete [] storage;
     storage = 0;
     chef.close();
     return 1;
   }
+  chef.read(storage, readsize);
   if (doseq)
   {
-    chef.read(storage, c.datasize+(c.n3D+c.n2D)*2*sizeof(int));
     char *p1 = storage;
     char *p2 = storage;
     for (int i = 0; i < c.n3D; i ++)
@@ -672,8 +792,6 @@ int rcmio::che_read_tstep(chedata &c)
       p1 += c.size2D*sizeof(float)+sizeof(int);
     }
   }
-  else
-    chef.read(storage, c.datasize);
   vectorfrombuf(storage, (float *) c.buffer, c.nvals);
   return 0;
 }

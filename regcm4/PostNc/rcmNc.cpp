@@ -51,6 +51,8 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead)
   f->add_att("pole_latitude_degrees_north", outhead.xplat);
   f->add_att("pole_longitude_degrees_east", outhead.xplat);
   f->add_att("pole_longitude_degrees_east", outhead.xplon);
+  f->add_att("standard_parallel_1", outhead.trlat1);
+  f->add_att("standard_parallel_2", outhead.trlat2);
   f->add_att("model_boundary_conditions", outhead.lbcs());
   f->add_att("model_cumulous_convection_scheme", outhead.cums());
   f->add_att("model_boundary_layer_scheme", outhead.pbls());
@@ -464,9 +466,6 @@ rcmNcRad::rcmNcRad(char *fname, char *experiment, header_data &h)
 {
   float fillv = -1e+34;
 
-  psa = new float[h.nx*h.ny];
-  for (int i = 0; i < h.nx*h.ny; i ++)
-    psa[i] = 1013.15;
   // Setup variables
   psvar = f->add_var("psa", ncFloat, tt, iy, jx);
   psvar->add_att("standard_name", "surface_air_pressure");
@@ -555,7 +554,7 @@ void rcmNcRad::put_rec(raddata &r)
 {
   double xtime = reference_time + count*r.dt;
   timevar->put_rec(&xtime, count);
-  psvar->put_rec(psa, count);
+  psvar->put_rec(r.psa, count);
   cldvar->put_rec(r.cld, count);
   clwpvar->put_rec(r.clwp, count);
   qrsvar->put_rec(r.qrs, count);
@@ -573,11 +572,6 @@ void rcmNcRad::put_rec(raddata &r)
   return;
 }
 
-rcmNcRad::~rcmNcRad( )
-{
-  delete [ ] psa;
-}
-
 rcmNcChe::rcmNcChe(char *fname, char *experiment, header_data &h)
   : rcmNc(fname, experiment, h)
 {
@@ -592,9 +586,6 @@ rcmNcChe::rcmNcChe(char *fname, char *experiment, header_data &h)
   // Add tracer numbers dimension
   trc = f->add_dim("tracer", 10);
 
-  psa = new float[h.nx*h.ny];
-  for (int i = 0; i < h.nx*h.ny; i ++)
-    psa[i] = 1013.15;
   // Setup variables
   psvar = f->add_var("psa", ncFloat, tt, iy, jx);
   psvar->add_att("standard_name", "surface_air_pressure");
@@ -679,7 +670,7 @@ void rcmNcChe::put_rec(chedata &c)
 {
   double xtime = reference_time + count*c.dt;
   timevar->put_rec(&xtime, count);
-  psvar->put_rec(psa, count);
+  psvar->put_rec(c.psa, count);
   trac3Dvar->put_rec(c.trac3D, count);
   aext8var->put_rec(c.aext8, count);
   assa8var->put_rec(c.assa8, count);
@@ -722,9 +713,4 @@ void rcmNcChe::put_rec(chedata &c)
   acstsrrfvar->put_rec(c.acstsrrf, count);
   count ++;
   return;
-}
-
-rcmNcChe::~rcmNcChe( )
-{
-  delete [ ] psa;
 }

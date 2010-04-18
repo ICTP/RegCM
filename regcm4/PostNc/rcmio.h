@@ -54,9 +54,10 @@ namespace rcm
       // Dimensions
       unsigned int iy, jx, kz;
       unsigned int nx, ny, nz;
+      unsigned int nsg;
       // Geolocation
       char proj[7];
-      float clat, clon, ds, xplat, xplon;
+      float clat, clon, ds, xplat, xplon, trlat1, trlat2;
       // Timesteps for output
       float dto, dtb, dtr, dtc;
       // Vertical sigma levels ant top pressure
@@ -117,6 +118,7 @@ namespace rcm
       float *solin;
       float *sabtp;
       float *firtp;
+      float *psa;
       int date0;
       float dt;
       size_t datasize;
@@ -139,6 +141,7 @@ namespace rcm
       float *agfu8;
       float *acstoarf;
       float *acstsrrf;
+      float *psa;
       int date0;
       float dt;
       size_t datasize;
@@ -148,6 +151,34 @@ namespace rcm
       size_t size3D;
       int nvals;
       int ntr;
+      char *buffer;
+  };
+
+  class subdata {
+    public:
+      subdata(int nx, int ny, int nsg, int mdate0, float dts);
+      ~subdata( );
+      float *u10m;
+      float *v10m;
+      float *uvdrag;
+      float *tg;
+      float *tlef;
+      float *t2m;
+      float *q2m;
+      float *smw;
+      float *tpr;
+      float *evp;
+      float *runoff;
+      float *scv;
+      float *sena;
+      float *prcv;
+      float *psb;
+      int date0;
+      float dt;
+      size_t datasize;
+      int n2D;
+      size_t size2D;
+      int nvals;
       char *buffer;
   };
 
@@ -200,6 +231,7 @@ namespace rcm
       int srf_read_tstep(srfdata &a);
       int rad_read_tstep(raddata &a);
       int che_read_tstep(chedata &a);
+      int sub_read_tstep(subdata &a);
       bool has_atm;
       bool has_che;
       bool has_srf;
@@ -289,7 +321,9 @@ namespace rcm
       bool initsub;
       std::ifstream subf;
       size_t subsize;
+      // just I/O space
       char *storage;
+      size_t readsize;
   };
 }
 
