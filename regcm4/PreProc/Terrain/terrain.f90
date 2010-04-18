@@ -54,7 +54,7 @@
 !---------------------------------------------------------------------
       use mod_preproc_param
       use mod_regcm_param , only : igrads , ibyte , lsmtyp , aertyp ,   &
-             &               dattyp , ibigend , kz
+             &               dattyp , ibigend , kz , iym2 , jxm2
       use mod_aa
       use mod_addstack
       use mod_addstack2
@@ -73,8 +73,18 @@
       character(1) , dimension(iysg,jxsg) :: ch_s
       character(256) :: ctlfile , datafile
       integer :: i , j , k
+      integer :: minsize
       logical :: ibndry
       integer :: myid=1
+!
+!     Preliminary consistency check to avoid I/O format errors
+!
+      minsize = (kz+1)+16
+      if ((iym2*jxm2) .lt. minsize) then
+        write (6, *) 'Please increase domain size.'
+        write (6, *) 'Minsize (iy-2)*(jx-2) is ', minsize
+        call abort
+      end if
 
       call header(myid)
 !
