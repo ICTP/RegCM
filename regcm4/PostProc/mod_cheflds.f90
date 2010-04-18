@@ -87,6 +87,8 @@
           end do
         end do
       end do
+!     Skip added psa not needed here
+      crec = crec + 1
       end subroutine rdche
  
       subroutine mmvluche(vnamche,lnamche,uche,xmin,xmax,fact,offset)

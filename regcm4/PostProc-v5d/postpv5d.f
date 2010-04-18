@@ -1468,8 +1468,9 @@ c          print*,nc,maxval( cfld3d(:,:,:,nc))
         end do
 c        print*,nc,maxval( cfld2d(:,:,nc))
       end do
+!     Skip not needed PSA
+      read (iin,iostat=ierr) tmp2d
 c     print*,'DONE CHEM FOR CURRENT TIMESTEP',idate
-   
       return
       end
 
@@ -1858,7 +1859,8 @@ ccccccccccccccccccccccc
         end do
         end do
       end do
-     
+!     Skip added PSA not needed here     
+      read (iin,iostat=ierr) tmp2d
 c     print*,'DONE READING RADIATION FOR CURRENT TIMESTEP',xday
 
       return

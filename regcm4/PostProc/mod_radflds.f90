@@ -91,6 +91,8 @@
           end do
         end do
       end do
+!     Skip added psa not needed here
+      rrec = rrec + 1
 !     print*,'DONE READING RADIATION FOR CURRENT TIMESTEP',idate
  
       end subroutine rdrad
