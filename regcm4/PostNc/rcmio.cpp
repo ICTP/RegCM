@@ -707,7 +707,7 @@ void rcmio::read_header(header_data &h)
   float *fsigf = new float[h.kz+1];
   for (int i = 0; i < h.kz+1; i ++)
   {
-    fsigf[h.kz-i] = rvalfrombuf(buf); buf = buf + sizeof(float);
+    fsigf[i] = rvalfrombuf(buf); buf = buf + sizeof(float);
   }
   for (int i = 0; i < h.kz; i ++)
     h.hsigf[i] = fsigf[i]+0.5*(fsigf[i+1]-fsigf[i]);
