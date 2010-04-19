@@ -23,6 +23,8 @@
 
 #include <rcmNc.h>
 #include <ctime>
+#include <map>
+#include <string>
 
 using namespace rcm;
 
@@ -55,8 +57,24 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead)
   f->add_att("standard_parallel_2", outhead.trlat2);
   f->add_att("model_boundary_conditions", outhead.lbcs());
   f->add_att("model_cumulous_convection_scheme", outhead.cums());
+  if (outhead.icup == 2)
+    f->add_att("model_convective_closure_assumption", outhead.cumsclos());
   f->add_att("model_boundary_layer_scheme", outhead.pbls());
   f->add_att("model_moist_physics_scheme", outhead.moists());
+  f->add_att("model_ocean_flux_scheme", outhead.ocnflxs());
+  f->add_att("model_pressure_gradient_force_scheme", outhead.pgfs());
+  f->add_att("model_use_emission_factor", outhead.emisss());
+  f->add_att("model_use_lake_model", outhead.lakes());
+  f->add_att("model_chemistry_dust_aerosol", outhead.chems());
+  f->add_att("model_simulation_initial_start", outhead.mdate0);
+  f->add_att("model_simulation_start", outhead.idate1);
+  f->add_att("model_simulation_expected_end", outhead.idate2);
+  f->add_att("model_simulation_is_a_restart", outhead.ifrest);
+  f->add_att("model_timestep_in_seconds", outhead.dt);
+  f->add_att("model_timestep_in_minutes_solar_rad_calc", outhead.radfrq);
+  f->add_att("model_timestep_in_seconds_bats_calc", outhead.abatm);
+  f->add_att("model_timestep_in_hours_radiation_calc", outhead.abemh);
+  f->add_att("model_timestep_in_hours_boundary_input", outhead.ibdyfrq);
 
   iy = f->add_dim("iy", outhead.nx);
   jx = f->add_dim("jx", outhead.ny);
@@ -149,8 +167,8 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead)
   ref.tm_year = 70;
   time_t tzero = mktime(&ref);
   memset(&ref, 0, sizeof(struct tm));
-  unsigned int base = outhead.mdate0;
-  unsigned int basey = outhead.mdate0/1000000;
+  unsigned int base = outhead.idate1;
+  unsigned int basey = base/1000000;
   base = base-basey*1000000;
   ref.tm_year = basey - 1900;
   unsigned int basem = base/10000;

@@ -35,7 +35,6 @@
 using namespace rcm;
 
 static const int aword = 4;
-static const char separator[2] = "/";
 
 bool fexist(char *fname)
 {
@@ -50,10 +49,25 @@ typedef struct {
   char *data;
 } t_fortran_record;
 
-header_data::header_data( )
+header_data::header_data(rcminp &in)
 {
   hsigf = ht = htsd = veg2d = landuse = 0;
   xlat = xlon = xmap = dmap = coriol = mask = 0;
+  idate0 = in.valuei("idate0");
+  idate1 = in.valuei("idate1");
+  idate2 = in.valuei("idate2");
+  ifrest = in.valueb("ifrest");
+  radfrq = in.valuef("radfrq");
+  abatm = in.valuef("abatm");
+  abemh = in.valuef("abemh");
+  dt = in.valuef("dt");
+  ibdyfrq = in.valuef("ibdyfrq");
+  igcc = in.valuei("igcc");
+  iocnflx = in.valuei("iocnflx");
+  ipgf = in.valuei("ipgf");
+  iemiss = in.valuei("iemiss");
+  lakemod = in.valuei("lakemod");
+  ichem = in.valuei("ichem");
 }
 
 header_data::~header_data( )
@@ -126,6 +140,21 @@ const char *header_data::cums( )
   }
 }
 
+const char *header_data::cumsclos( )
+{
+  switch(igcc)
+  {
+    case 1:
+      return "Arakawa & Schubert (1974)";
+      break;
+    case 2:
+      return "Fritsch & Chappell (1980)";
+      break;
+    default:
+      return "Unknown or not specified";
+  }
+}
+
 const char *header_data::pbls( )
 {
   switch (ibltyp)
@@ -153,14 +182,95 @@ const char *header_data::moists( )
   }
 }
 
-atmodata::atmodata(int nx, int ny, int nz, int mdate0, float dto)
+const char *header_data::ocnflxs( )
 {
-  date0 = mdate0;
-  dt = dto;
+  switch(iocnflx)
+  {
+    case 1:
+      return "Use BATS1e Monin-Obukhov";
+      break;
+    case 2:
+      return "Zeng et al (1998)";
+      break;
+    default:
+      return "Unknown or not specified";
+  }
+}
+
+const char *header_data::pgfs( )
+{
+  switch(ipgf)
+  {
+    case 0:
+      return "Use full fields";
+      break;
+    case 1:
+      return "Hydrostatic deduction with perturbation temperature";
+      break;
+    default:
+      return "Unknown or not specified";
+  }
+}
+
+const char *header_data::emisss( )
+{
+  switch(iemiss)
+  {
+    case 0:
+      return "No";
+      break;
+    case 1:
+      return "Yes";
+      break;
+    default:
+      return "Unknown or not specified";
+  }
+}
+
+const char *header_data::lakes( )
+{
+  switch(lakemod)
+  {
+    case 0:
+      return "No";
+      break;
+    case 1:
+      return "Yes";
+      break;
+    default:
+      return "Unknown or not specified";
+  }
+}
+
+const char *header_data::chems( )
+{
+  switch(ichem)
+  {
+    case 0:
+      return "Not active";
+      break;
+    case 1:
+      return "Active";
+      break;
+    default:
+      return "Unknown or not specified";
+  }
+}
+
+const char *tftostring(const char *tf)
+{
+  if (strstr(tf, "false") != NULL) return "No";
+  return "Yes";
+}
+
+atmodata::atmodata(header_data &h)
+{
+  date0 = h.idate1;
+  dt = h.dto;
   n3D = 6;
   n2D = 5;
-  size3D = nx*ny*nz;
-  size2D = nx*ny;
+  size2D = h.nx*h.ny;
+  size3D = size2D*h.nz;
   nvals = n3D*size3D + n2D*size2D;
   datasize = nvals*sizeof(float);
   buffer = new char[datasize];
@@ -182,14 +292,14 @@ atmodata::~atmodata( )
   delete [] buffer;
 }
 
-raddata::raddata(int nx, int ny, int nz, int mdate0, float dtr)
+raddata::raddata(header_data &h)
 {
-  date0 = mdate0;
-  dt = dtr;
+  date0 = h.idate1;
+  dt = h.dtr;
   n3D = 4;
   n2D = 10;
-  size3D = nx*ny*nz;
-  size2D = nx*ny;
+  size2D = h.nx*h.ny;
+  size3D = size2D*h.nz;
   nvals = n3D*size3D + n2D*size2D;
   datasize = nvals*sizeof(float);
   buffer = new char[datasize];
@@ -214,15 +324,15 @@ raddata::~raddata( )
   delete [] buffer;
 }
 
-chedata::chedata(int nx, int ny, int nz, int mdate0, float dtr)
+chedata::chedata(header_data &h)
 {
-  date0 = mdate0;
-  dt = dtr;
+  date0 = h.idate1;
+  dt = h.dtr;
   ntr = 10;
   n3D = 13;
   n2D = 73;
-  size3D = nx*ny*nz;
-  size2D = nx*ny;
+  size2D = h.nx*h.ny;
+  size3D = size2D*h.nz;
   nvals = n3D*size3D + n2D*size2D;
   datasize = nvals*sizeof(float);
   buffer = new char[datasize];
@@ -241,12 +351,12 @@ chedata::~chedata( )
   delete [] buffer;
 }
 
-srfdata::srfdata(int nx, int ny, int mdate0, float dtb)
+srfdata::srfdata(header_data &h)
 {
-  date0 = mdate0;
-  dt = dtb;
+  date0 = h.idate1;
+  dt = h.dtb;
   n2D = 27;
-  size2D = nx*ny;
+  size2D = h.nx*h.ny;
   nvals = n2D*size2D;
   datasize = nvals*sizeof(float);
   buffer = new char[datasize];
@@ -283,12 +393,12 @@ srfdata::~srfdata( )
   delete [] buffer;
 }
 
-subdata::subdata(int nx, int ny, int nsg, int mdate0, float dtu)
+subdata::subdata(header_data &h)
 {
-  date0 = mdate0;
-  dt = dtu;
+  date0 = h.idate1;
+  dt = h.dtb;
   n2D = 16;
-  size2D = nx*ny*nsg*nsg;
+  size2D = h.nx*h.ny*h.nsg*h.nsg;
   nvals = n2D*size2D;
   datasize = nvals*sizeof(float);
   buffer = new char[datasize];
@@ -338,10 +448,10 @@ rcmio::rcmio(char *directory, bool lbig, bool ldirect)
   storage = 0;
 }
 
-void rcmio::read_header(header_data &h)
+void rcmio::read_header(header_data &h, char *f)
 {
   char fname[PATH_MAX];
-  sprintf(fname, "%s%s%s", outdir, separator, "OUT_HEAD");
+  sprintf(fname, "%s%s%s", outdir, separator, f);
 
   std::ifstream rcmf;
   rcmf.open(fname, std::ios::binary);
@@ -369,6 +479,12 @@ void rcmio::read_header(header_data &h)
   char *buf = header.data;
   if (doseq) buf = buf+sizeof(int);
   h.mdate0 = intvalfrombuf(buf); buf = buf + sizeof(int);
+  if (h.mdate0 != h.idate0)
+  {
+    std::cerr << "idate0 in input regcm is : " << h.idate0 << std::endl;
+    std::cerr << "mdate0 in " << fname << " is : " << h.mdate0 << std::endl;
+    throw "Regcm input file is not relative to OUT_HEAD file in output dir";
+  }
   h.ibltyp = (short int) intvalfrombuf(buf); buf = buf + sizeof(int);
   h.icup = (short int) intvalfrombuf(buf); buf = buf + sizeof(int);
   h.imoist = (short int) intvalfrombuf(buf); buf = buf + sizeof(int);
@@ -505,15 +621,15 @@ void rcmio::read_header(header_data &h)
   delete [] header.data;
 
   // Check what output is present for that header
-  sprintf(fname, "%s%sATM.%d", outdir, separator, h.mdate0);
+  sprintf(fname, "%s%sATM.%d", outdir, separator, h.idate1);
   has_atm = fexist(fname);
-  sprintf(fname, "%s%sSRF.%d", outdir, separator, h.mdate0);
+  sprintf(fname, "%s%sSRF.%d", outdir, separator, h.idate1);
   has_srf = fexist(fname);
-  sprintf(fname, "%s%sCHE.%d", outdir, separator, h.mdate0);
+  sprintf(fname, "%s%sCHE.%d", outdir, separator, h.idate1);
   has_che = fexist(fname);
-  sprintf(fname, "%s%sRAD.%d", outdir, separator, h.mdate0);
+  sprintf(fname, "%s%sRAD.%d", outdir, separator, h.idate1);
   has_rad = fexist(fname);
-  sprintf(fname, "%s%sSUB.%d", outdir, separator, h.mdate0);
+  sprintf(fname, "%s%sSUB.%d", outdir, separator, h.idate1);
   has_sub = fexist(fname);
   if (has_sub)
   {
@@ -526,7 +642,7 @@ void rcmio::read_header(header_data &h)
     else
     {
       // BATS timestep is the same for SRF and SUB
-      sprintf(fname, "%s%sSRF.%d", outdir, separator, h.mdate0);
+      sprintf(fname, "%s%sSRF.%d", outdir, separator, h.idate1);
       srff.open(fname, std::ios::binary);
       srff.seekg (0, std::ios::end);
       srfsize = srff.tellg();
@@ -534,7 +650,7 @@ void rcmio::read_header(header_data &h)
       // BATS SRF contains 27 2D matrices
       long ntimes = srfsize / (27*h.nx*h.ny*sizeof(float));
       // Try to estimate nsg "cracking" the format
-      sprintf(fname, "%s%sSUB.%d", outdir, separator, h.mdate0);
+      sprintf(fname, "%s%sSUB.%d", outdir, separator, h.idate1);
       subf.open(fname, std::ios::binary);
       subf.seekg (0, std::ios::end);
       subsize = subf.tellg();

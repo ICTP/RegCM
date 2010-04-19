@@ -32,7 +32,10 @@ namespace rcm {
   class rcminp {
     public:
       rcminp(char *fname);
-      const char *value(const char *key);
+      const char *valuec(const char *key);
+      int valuei(const char *key);
+      float valuef(const char *key);
+      bool valueb(const char *key);
     private:
       std::map<std::string, std::string> items;
   };

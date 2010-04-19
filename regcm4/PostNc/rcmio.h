@@ -26,6 +26,7 @@
 
 #include <cstring>
 #include <fstream>
+#include <rcminp.h>
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -33,24 +34,48 @@
 
 namespace rcm
 {
+
+  static const char separator[2] = "/";
+
   // Header data
   class header_data {
     public:
-      header_data( );
+      header_data(rcminp &inp);
       ~header_data( );
       const char *lbcs( );
       const char *cums( );
+      const char *cumsclos( );
       const char *pbls( );
       const char *moists( );
+      const char *ocnflxs( );
+      const char *pgfs( );
+      const char *emisss( );
+      const char *lakes( );
+      const char *chems( );
       void free_space( );
-      // Base date for run
+      // Base dates for run
       int mdate0;
+      int idate0;
+      int idate1;
+      int idate2;
       // Model configuration
+      bool ifrest;
       unsigned short ibltyp;
       unsigned short icup;
+      unsigned short igcc;
       unsigned short imoist;
       unsigned short iboudy;
       unsigned short idirect;
+      unsigned short iocnflx;
+      unsigned short ipgf;
+      unsigned short iemiss;
+      unsigned short lakemod;
+      unsigned short ichem;
+      float radfrq;
+      float abatm;
+      float abemh;
+      float dt;
+      float ibdyfrq;
       // Dimensions
       unsigned int iy, jx, kz;
       unsigned int nx, ny, nz;
@@ -77,7 +102,7 @@ namespace rcm
 
   class atmodata {
     public:
-      atmodata(int nx, int ny, int nz, int mdate0, float dto);
+      atmodata(header_data &h);
       ~atmodata( );
       float *u;
       float *v;
@@ -103,7 +128,7 @@ namespace rcm
 
   class raddata {
     public:
-      raddata(int nx, int ny, int nz, int mdate0, float dts);
+      raddata(header_data &h);
       ~raddata( );
       float *cld;
       float *clwp;
@@ -132,7 +157,7 @@ namespace rcm
 
   class chedata {
     public:
-      chedata(int nx, int ny, int nz, int mdate0, float dts);
+      chedata(header_data &h);
       ~chedata( );
       float *trac3D;
       float *trac2D;
@@ -156,7 +181,7 @@ namespace rcm
 
   class subdata {
     public:
-      subdata(int nx, int ny, int nsg, int mdate0, float dts);
+      subdata(header_data &h);
       ~subdata( );
       float *u10m;
       float *v10m;
@@ -184,7 +209,7 @@ namespace rcm
 
   class srfdata {
     public:
-      srfdata(int nx, int ny, int mdate0, float dts);
+      srfdata(header_data &h);
       ~srfdata( );
       float *u10m;
       float *v10m;
@@ -226,7 +251,7 @@ namespace rcm
     public:
       rcmio(char *dirname, bool lbig, bool ldirect);
       ~rcmio( );
-      void read_header(header_data &h);
+      void read_header(header_data &h, char *fname);
       int atmo_read_tstep(atmodata &a);
       int srf_read_tstep(srfdata &a);
       int rad_read_tstep(raddata &a);

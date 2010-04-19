@@ -26,7 +26,9 @@
 #include <iostream>
 #include <cstdio>
 #include <ctime>
+#include <libgen.h>
 #include <rcmio.h>
+#include <rcminp.h>
 #include <rcmNc.h>
 
 using namespace rcm;
@@ -38,25 +40,44 @@ int main(int argc, char *argv[])
     std::cerr << std::endl
         << "Howdy there, wrong number of arguments." << std::endl
         << std::endl << "I need two arguments:" << std::endl
-        << "    outdir  - output directory of RegCM model v4" << std::endl
-        << "    expname - a (meaningful) name for this expertiment" << std::endl
-        << std::endl << "Example:" << std::endl << "     " << argv[0]
-        << " /home/regcm/Run/output ACWA_reference" << std::endl << std::endl;
+        << "    regcm.in  - path to regcm.in of RegCM model v4" << std::endl
+        << "    expname   - a (meaningful) name for this expertiment"
+        << std::endl
+        << std::endl << "Example:" << std::endl
+        << std::endl << "     " << argv[0]
+        << " /home/regcm/Run/regcm.in ACWA_reference" << std::endl << std::endl
+        << "I will assume in this case that:" << std::endl
+        << "   -) The output directory of the model is '/home/regcm/Run/output'"
+        << std::endl
+        << "   -) All output files You want to process are inside this dir"
+        << std::endl
+        << "   -) The regcm.in file is relative to those files"
+        << std::endl
+        << "   -) In case of subgridding, the fort.11 link is present"
+        << std::endl << std::endl;
    return -1;
   }
 
   try
   {
-    rcmio rcmout(argv[1], true, true);
-    header_data outhead;
-    rcmout.read_header(outhead);
+    char *regcmin = strdup(argv[1]);
+    rcminp inpf(regcmin);
+
+    char *rundir = dirname(regcmin);
+    char outdir[PATH_MAX];
+    snprintf(outdir, 256, "%s%s%s", rundir, separator, "output");
+    std::cout << "Outdir is " << outdir << std::endl;
+
+    rcmio rcmout(outdir, true, true);
+    header_data outhead(inpf);
+    char fname[PATH_MAX];
+    snprintf(fname, 256, "OUT_HEAD");
+    rcmout.read_header(outhead, fname);
 
     if (rcmout.has_atm)
     {
-      atmodata a(outhead.nx, outhead.ny, outhead.nz, 
-                 outhead.mdate0, outhead.dto);
-      char fname[PATH_MAX];
-      sprintf(fname, "ATM_%s_%d.nc", argv[2], outhead.mdate0);
+      atmodata a(outhead);
+      sprintf(fname, "ATM_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcAtmo atmnc(fname, argv[2], outhead);
       // Add Atmospheric variables
       while ((rcmout.atmo_read_tstep(a)) == 0)
@@ -65,9 +86,8 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_srf)
     {
-      srfdata s(outhead.nx, outhead.ny, outhead.mdate0, outhead.dtb);
-      char fname[PATH_MAX];
-      sprintf(fname, "SRF_%s_%d.nc", argv[2], outhead.mdate0);
+      srfdata s(outhead);
+      sprintf(fname, "SRF_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcSrf srfnc(fname, argv[2], outhead);
       // Add Surface variables
       while ((rcmout.srf_read_tstep(s)) == 0)
@@ -76,10 +96,8 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_rad)
     {
-      raddata r(outhead.nx, outhead.ny, outhead.nz,
-                outhead.mdate0, outhead.dtr);
-      char fname[PATH_MAX];
-      sprintf(fname, "RAD_%s_%d.nc", argv[2], outhead.mdate0);
+      raddata r(outhead);
+      sprintf(fname, "RAD_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcRad radnc(fname, argv[2], outhead);
       // Add Radiation variables
       while ((rcmout.rad_read_tstep(r)) == 0)
@@ -88,10 +106,8 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_che)
     {
-      chedata c(outhead.nx, outhead.ny, outhead.nz,
-                outhead.mdate0, outhead.dtc);
-      char fname[PATH_MAX];
-      sprintf(fname, "CHE_%s_%d.nc", argv[2], outhead.mdate0);
+      chedata c(outhead);
+      sprintf(fname, "CHE_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcChe chenc(fname, argv[2], outhead);
       // Add Chemical tracers variables
       while ((rcmout.che_read_tstep(c)) == 0)
@@ -99,6 +115,20 @@ int main(int argc, char *argv[])
     }
 
     outhead.free_space( );
+
+    if (rcmout.has_sub)
+    {
+      snprintf(fname, 256, "../fort.11");
+      rcmout.read_header(outhead, fname);
+/*
+      subdata s(outhead);
+      sprintf(fname, "SUB_%s_%d.nc", argv[2], outhead.idate1);
+      rcmNcSub subnc(fname, argv[2], outhead);
+      // Add Chemical tracers variables
+      while ((rcmout.sub_read_tstep(s)) == 0)
+        subnc.put_rec(s);
+*/
+    }
 
   }
   catch (const char *e)

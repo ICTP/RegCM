@@ -34,12 +34,16 @@ char *strstrip(char *s)
   size_t size = strlen(s);
   if (!size)
     return s;
+  for (size_t i = 0; i < size; i ++)
+    *s = tolower(*s);
   char *end = s + size - 1;
   while (end >= s && isspace(*end))
     end--;
   *(end + 1) = '\0';
   while (*s && isspace(*s))
     s++;
+  char *p = strrchr(s, ',');
+  if (p != NULL) *p = 0;
   return s;
 }
 
@@ -57,19 +61,46 @@ rcminp::rcminp(char *fname)
     rcinp.getline(buf, 256);
     if (sscanf(buf, "%[ A-z0-9_]=%[ A-z0-9.', -]\n", tok1, tok2) < 2)
       continue;
-    // Strip last comma from tok2
-    char *p = strrchr(tok2, ',');
-    if (p != NULL) *p = 0;
     items.insert(std::pair<std::string,std::string>(strstrip(tok1),
                                                     strstrip(tok2)));
   }
   rcinp.close();
 }
 
-const char *rcminp::value(const char *key)
+const char *rcminp::valuec(const char *key)
 {
   std::map<std::string, std::string>::iterator iter = items.find(key);
+  if (iter == items.end()) throw "Item not found";
   return iter->second.c_str();
+}
+
+int rcminp::valuei(const char *key)
+{
+  std::map<std::string, std::string>::iterator iter = items.find(key);
+  if (iter == items.end()) throw "Item not found";
+  int vl;
+  if (sscanf(iter->second.c_str(), "%d", &vl) != 1)
+    throw "rcminp::value_int : cannot parse to integer";
+  return vl;
+}
+
+float rcminp::valuef(const char *key)
+{
+  std::map<std::string, std::string>::iterator iter = items.find(key);
+  if (iter == items.end()) throw "Item not found";
+  float vl;
+  if (sscanf(iter->second.c_str(), "%f", &vl) != 1)
+    throw "rcminp::value_real : cannot parse to real";
+  return vl;
+}
+
+bool rcminp::valueb(const char *key)
+{
+  std::map<std::string, std::string>::iterator iter = items.find(key);
+  if (iter == items.end()) throw "Item not found";
+  bool vl;
+  if (strstr(iter->second.c_str(), "false") != NULL) return false;
+  return true;
 }
 
 #ifdef TESTME
@@ -77,7 +108,7 @@ const char *rcminp::value(const char *key)
 int main(int argc, char *argv[])
 {
   rcminp a(argv[1]);
-  std::cout << a.value("idate1") << std::endl;
+  std::cout << a.valuei("idate1") << std::endl;
   return 0;
 }
 
