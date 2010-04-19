@@ -39,22 +39,22 @@ int main(int argc, char *argv[])
   {
     std::cerr << std::endl
         << "Howdy there, wrong number of arguments." << std::endl
-        << std::endl << "I need two arguments:" << std::endl
+        << std::endl << "I need two arguments:" << std::endl << std::endl
         << "    regcm.in  - path to regcm.in of RegCM model v4" << std::endl
         << "    expname   - a (meaningful) name for this expertiment"
         << std::endl
         << std::endl << "Example:" << std::endl
         << std::endl << "     " << argv[0]
         << " /home/regcm/Run/regcm.in ACWA_reference" << std::endl << std::endl
-        << "I will assume in this case that:" << std::endl
+        << "I will assume in this case that:" << std::endl << std::endl
         << "   -) The output directory of the model is '/home/regcm/Run/output'"
         << std::endl
         << "   -) All output files You want to process are inside this dir"
         << std::endl
         << "   -) The regcm.in file is relative to those files"
         << std::endl
-        << "   -) In case of subgridding, the fort.11 link is present"
-        << std::endl << std::endl;
+        << "   -) In case of subgridding, the fort.11 link is present "
+        << "in '/home/regcm/Run'" << std::endl << std::endl;
    return -1;
   }
 

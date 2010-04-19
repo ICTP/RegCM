@@ -106,7 +106,7 @@ namespace rcm
       unsigned int nsg;
       unsigned int nx, ny;
       float ds, clat, clon, xplat, xplon, trlat1, trlat2;
-      char proj[6];
+      char proj[7];
       float *ht;
       float *htsd;
       float *landuse;
