@@ -47,14 +47,21 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   snprintf(buffer, 256, "Experiment Name is : %s", experiment);
   f->add_att("comment", buffer);
   f->add_att("projection", outhead.proj);
-  f->add_att("domain_spacing_km", outhead.ds);
-  f->add_att("center_latitude_degrees_north", outhead.clat);
-  f->add_att("center_longitude_degrees_east", outhead.clon);
-  f->add_att("pole_latitude_degrees_north", outhead.xplat);
-  f->add_att("pole_longitude_degrees_east", outhead.xplat);
-  f->add_att("pole_longitude_degrees_east", outhead.xplon);
-  f->add_att("standard_parallel_1", outhead.trlat1);
-  f->add_att("standard_parallel_2", outhead.trlat2);
+  f->add_att("grid_size_in_meters", outhead.ds);
+  f->add_att("latitude_of_projection_origin", outhead.clat);
+  f->add_att("longitude_of_projection_origin", outhead.clon);
+  if (strcmp(outhead.proj, "POLSTR") == 0)
+  {
+    f->add_att("latitude_of_projection_pole", outhead.xplat);
+    f->add_att("longitude_of_projection_pole", outhead.xplon);
+  }
+  if (strcmp(outhead.proj, "LAMCON") == 0)
+  {
+    double stp[2];
+    stp[0] = outhead.trlat1;
+    stp[1] = outhead.trlat2;
+    f->add_att("standard_parallel", 2, stp);
+  }
   f->add_att("model_boundary_conditions", outhead.lbcs());
   f->add_att("model_cumulous_convection_scheme", outhead.cums());
   if (outhead.icup == 2)
@@ -94,9 +101,9 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   // Add time independent variables and time itself
   NcVar *sigfvar = f->add_var("level", ncFloat, kz);
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
-  sigfvar->add_att("long_name", "Sigma at layer midpoints");
+  sigfvar->add_att("long_name", "Sigma at model layer midpoints");
   sigfvar->add_att("positive", "down");
-  sigfvar->add_att("units", "1");
+  sigfvar->add_att("units", "level");
   sigfvar->add_att("axis", "Z");
   sigfvar->add_att("formula_terms", "sigma: level ps: psa ptop: ptop");
   NcVar *ptopvar = f->add_var("ptop", ncFloat);
