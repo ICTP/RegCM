@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
 
     rcmio rcmout(outdir, true, true);
     header_data outhead(inpf);
+    rcmout.read_header(outhead);
+
     char fname[PATH_MAX];
-    snprintf(fname, 256, "OUT_HEAD");
-    rcmout.read_header(outhead, fname);
 
     if (rcmout.has_atm)
     {
@@ -114,22 +114,19 @@ int main(int argc, char *argv[])
         chenc.put_rec(c);
     }
 
-    outhead.free_space( );
-
     if (rcmout.has_sub)
     {
-      snprintf(fname, 256, "../fort.11");
-      rcmout.read_header(outhead, fname);
-/*
-      subdata s(outhead);
+      subdom_data subdom;
+      rcmout.read_subdom(outhead, subdom);
+      subdata s(outhead, subdom);
       sprintf(fname, "SUB_%s_%d.nc", argv[2], outhead.idate1);
-      rcmNcSub subnc(fname, argv[2], outhead);
-      // Add Chemical tracers variables
+      rcmNcSub subnc(fname, argv[2], outhead, subdom);
+      // Add Subgrid variables
       while ((rcmout.sub_read_tstep(s)) == 0)
         subnc.put_rec(s);
-*/
     }
 
+    outhead.free_space( );
   }
   catch (const char *e)
   {

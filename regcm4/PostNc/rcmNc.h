@@ -31,7 +31,7 @@ namespace rcm
 {
   class rcmNc {
     public:
-      rcmNc(char *fname, char *experiment, header_data &h);
+      rcmNc(char *fname, char *experiment, header_data &h, bool full);
       ~rcmNc();
       NcFile *f;
       NcDim *iy;
@@ -138,6 +138,29 @@ namespace rcm
       NcVar *acstoarfvar;
       NcVar *acstsrrfvar;
       long nx, ny;
+      unsigned int count;
+  };
+
+  class rcmNcSub : public rcmNc {
+    public:
+      rcmNcSub(char *fname, char *experiment, header_data &h, subdom_data &s);
+      void put_rec(subdata &s);
+    private:
+      NcVar *u10mvar;
+      NcVar *v10mvar;
+      NcVar *uvdragvar;
+      NcVar *tgvar;
+      NcVar *tlefvar;
+      NcVar *t2mvar;
+      NcVar *q2mvar;
+      NcVar *smwvar;
+      NcVar *tprvar;
+      NcVar *evpvar;
+      NcVar *runoffvar;
+      NcVar *scvvar;
+      NcVar *senavar;
+      NcVar *prcvvar;
+      NcVar *psbvar;
       unsigned int count;
   };
 

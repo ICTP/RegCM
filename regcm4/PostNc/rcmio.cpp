@@ -44,6 +44,20 @@ bool fexist(char *fname)
   return false;
 }
 
+void reduce(float *a, float *b, int ni, int nj, int nsg)
+{
+  int count = 0;
+  for (int i = nsg; i < ni-nsg; i ++)
+  {
+    for (int j = nsg; j < nj-nsg; j ++)
+    {
+       b[count] = a[i*nj+j];
+       count ++;
+    }
+  }
+  return;
+}
+
 typedef struct {
   size_t len;
   char *data;
@@ -393,12 +407,12 @@ srfdata::~srfdata( )
   delete [] buffer;
 }
 
-subdata::subdata(header_data &h)
+subdata::subdata(header_data &h, subdom_data &s)
 {
   date0 = h.idate1;
   dt = h.dtb;
   n2D = 16;
-  size2D = h.nx*h.ny*h.nsg*h.nsg;
+  size2D = s.nx*s.ny;
   nvals = n2D*size2D;
   datasize = nvals*sizeof(float);
   buffer = new char[datasize];
@@ -448,10 +462,189 @@ rcmio::rcmio(char *directory, bool lbig, bool ldirect)
   storage = 0;
 }
 
-void rcmio::read_header(header_data &h, char *f)
+subdom_data::subdom_data( )
+{
+  nsg = 1;
+  ht = htsd = landuse = xlat = xlon = xmap = coriol = mask = 0;
+}
+
+subdom_data::~subdom_data( )
+{
+  if (ht) delete [] ht;
+  if (htsd) delete [] htsd;
+  if (landuse) delete [] landuse;
+  if (xlat) delete [] xlat;
+  if (xlon) delete [] xlon;
+  if (xmap) delete [] xmap;
+  if (coriol) delete [] coriol;
+  if (mask) delete [] mask;
+}
+
+void rcmio::read_subdom(header_data &h, subdom_data &s)
 {
   char fname[PATH_MAX];
-  sprintf(fname, "%s%s%s", outdir, separator, f);
+  sprintf(fname, "%s%s%s", outdir, separator, "../fort.11");
+
+  std::ifstream rcmf;
+  rcmf.open(fname, std::ios::binary);
+  if (! rcmf.good()) throw "Invalid Input. Cannot open.";
+
+  // Read entire file
+  t_fortran_record header;
+  rcmf.seekg (0, std::ios::end);
+  header.len = rcmf.tellg();
+  rcmf.seekg (0, std::ios::beg);
+
+  // Check for minimal size for reading in basic informations
+  size_t minsize = 3*sizeof(int);
+  if (doseq) minsize += sizeof(int);
+
+  if (header.len <= minsize)
+  {
+    throw "OUT_HEAD file size is too short.";
+  }
+
+  header.data = new char[header.len];
+  rcmf.read(header.data, header.len);
+  rcmf.close();
+
+  char *buf = header.data;
+  if (doseq) buf = buf+sizeof(int);
+  int iy = intvalfrombuf(buf); buf = buf + sizeof(int);
+  int nsg = iy/h.iy;
+  s.nx = (h.iy-2)*nsg;
+  int jx = intvalfrombuf(buf); buf = buf + sizeof(int);
+  s.ny = (h.jx-2)*nsg;
+  // We do not need any vertical information
+  int kz = intvalfrombuf(buf); buf = buf + sizeof(int);
+
+  // Now I have record len of fortran I/O
+  int nvals = iy*jx;
+  int rdc = s.nx*s.ny;
+  size_t size2D = nvals*sizeof(float);
+
+  // Double check file size if correct before memcopy
+  // We need to read only up to mask
+  size_t chk = size2D*14;
+  if (doseq) chk += 28*sizeof(int);
+  if (chk < header.len)
+  {
+    delete [] header.data;
+    throw "ERROR IN READING DOMAIN INFO DATA";
+  }
+  // We will take projection informations from here
+  s.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
+  s.clat = rvalfrombuf(buf); buf = buf + sizeof(float);
+  s.clon = rvalfrombuf(buf); buf = buf + sizeof(float);
+  s.xplat = rvalfrombuf(buf); buf = buf + sizeof(float);
+  s.xplon = rvalfrombuf(buf); buf = buf + sizeof(float);
+  // Skip grdfac
+  buf = buf + sizeof(float);
+  s.proj[6] = 0;
+  memcpy(s.proj, buf, 6); buf = buf + 6;
+  // Skip siglevs
+  buf = buf + (kz+1)*sizeof(float);
+  // Skip ptop
+  buf = buf + sizeof(float);
+  // Skip igrads, ibigend...
+  buf = buf + 2*sizeof(int);
+  // ... but read truelats.
+  s.trlat1 = rvalfrombuf(buf); buf = buf + sizeof(float);
+  s.trlat2 = rvalfrombuf(buf); buf = buf + sizeof(float);
+
+  // First record is mostly empty except above infos
+  buf = header.data + nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  float *space = new float[nvals];
+
+  // Read terrain elevation
+  vectorfrombuf(buf, space, nvals);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  if (s.ht) delete [] s.ht;
+  s.ht = new float[rdc];
+  reduce(space, s.ht, iy, jx, nsg);
+
+  // Read terrain elevation std dev
+  vectorfrombuf(buf, space, nvals);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  if (s.htsd) delete [] s.htsd;
+  s.htsd = new float[rdc];
+  reduce(space, s.htsd, iy, jx, nsg);
+
+  // Read surface landuse
+  vectorfrombuf(buf, space, nvals);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  if (s.landuse) delete [] s.landuse;
+  s.landuse = new float[rdc];
+  reduce(space, s.landuse, iy, jx, nsg);
+
+  // Read latitude cross points
+  vectorfrombuf(buf, space, nvals);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  if (s.xlat) delete [] s.xlat;
+  s.xlat = new float[rdc];
+  reduce(space, s.xlat, iy, jx, nsg);
+
+  // Read longitude cross points
+  vectorfrombuf(buf, space, nvals);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  if (s.xlon) delete [] s.xlon;
+  s.xlon = new float[rdc];
+  reduce(space, s.xlon, iy, jx, nsg);
+
+  // Skip dlat, dlon
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  // Read xmap
+  vectorfrombuf(buf, space, nvals);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  if (s.xmap) delete [] s.xmap;
+  s.xmap = new float[rdc];
+  reduce(space, s.xmap, iy, jx, nsg);
+
+  // Skip dmap
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  // Read Coriolis force
+  vectorfrombuf(buf, space, nvals);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  if (s.coriol) delete [] s.coriol;
+  s.coriol = new float[rdc];
+  reduce(space, s.coriol, iy, jx, nsg);
+
+  // Skip snowam
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  // Read Land/Sea mask
+  vectorfrombuf(buf, space, nvals);
+  buf += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+  if (s.mask) delete [] s.mask;
+  s.mask = new float[rdc];
+  reduce(space, s.mask, iy, jx, nsg);
+
+  delete [] header.data;
+  delete [] space;
+  return;
+}
+
+void rcmio::read_header(header_data &h)
+{
+  char fname[PATH_MAX];
+  sprintf(fname, "%s%s%s", outdir, separator, "OUT_HEAD");
 
   std::ifstream rcmf;
   rcmf.open(fname, std::ios::binary);
@@ -631,43 +824,6 @@ void rcmio::read_header(header_data &h, char *f)
   has_rad = fexist(fname);
   sprintf(fname, "%s%sSUB.%d", outdir, separator, h.idate1);
   has_sub = fexist(fname);
-  if (has_sub)
-  {
-    if (! has_srf)
-    {
-      std::cerr << "Unable to determine subgrid decomposition." << std::endl;
-      std::cerr << "Will not convert SUB output." << std::endl;
-      has_sub = false;
-    }
-    else
-    {
-      // BATS timestep is the same for SRF and SUB
-      sprintf(fname, "%s%sSRF.%d", outdir, separator, h.idate1);
-      srff.open(fname, std::ios::binary);
-      srff.seekg (0, std::ios::end);
-      srfsize = srff.tellg();
-      srff.close();
-      // BATS SRF contains 27 2D matrices
-      long ntimes = srfsize / (27*h.nx*h.ny*sizeof(float));
-      // Try to estimate nsg "cracking" the format
-      sprintf(fname, "%s%sSUB.%d", outdir, separator, h.idate1);
-      subf.open(fname, std::ios::binary);
-      subf.seekg (0, std::ios::end);
-      subsize = subf.tellg();
-      subf.close();
-      // File contains 16 2D matrice
-      double nsgsq = subsize / (16*h.nx*h.ny*sizeof(float)*ntimes);
-      h.nsg = sqrt(nsgsq);
-      // Double check
-      long calculated = 16*h.nsg*h.nx*h.nsg*h.ny*sizeof(float)*ntimes;
-      if (calculated != subsize)
-      {
-        std::cerr << "Unable to determine subgrid decomposition." << std::endl;
-        std::cerr << "Will not convert SUB output." << std::endl;
-        has_sub = false;
-      }
-    }
-  }
 }
 
 int rcmio::atmo_read_tstep(atmodata &a)
@@ -771,7 +927,7 @@ int rcmio::sub_read_tstep(subdata &u)
   if (! initsub)
   {
     if (doseq)
-      readsize = u.datasize+u.n2D*2*sizeof(int);
+      readsize = u.datasize+u.n2D*2*sizeof(int)+3*sizeof(int);
     else
       readsize = u.datasize;
     char fname[PATH_MAX];
@@ -795,8 +951,8 @@ int rcmio::sub_read_tstep(subdata &u)
   subf.read(storage, readsize);
   if (doseq)
   {
-    char *p1 = storage;
-    char *p2 = storage;
+    char *p1 = storage+3*sizeof(int);
+    char *p2 = storage+3*sizeof(int);
     for (int i = 0; i < u.n2D; i ++)
     {
       p1 += sizeof(int);

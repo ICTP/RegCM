@@ -79,7 +79,6 @@ namespace rcm
       // Dimensions
       unsigned int iy, jx, kz;
       unsigned int nx, ny, nz;
-      unsigned int nsg;
       // Geolocation
       char proj[7];
       float clat, clon, ds, xplat, xplon, trlat1, trlat2;
@@ -96,6 +95,24 @@ namespace rcm
       float *xlon;
       float *xmap;
       float *dmap;
+      float *coriol;
+      float *mask;
+  };
+
+  class subdom_data {
+    public:
+      subdom_data( );
+      ~subdom_data( );
+      unsigned int nsg;
+      unsigned int nx, ny;
+      float ds, clat, clon, xplat, xplon, trlat1, trlat2;
+      char proj[6];
+      float *ht;
+      float *htsd;
+      float *landuse;
+      float *xlat;
+      float *xlon;
+      float *xmap;
       float *coriol;
       float *mask;
   };
@@ -181,7 +198,7 @@ namespace rcm
 
   class subdata {
     public:
-      subdata(header_data &h);
+      subdata(header_data &h, subdom_data &s);
       ~subdata( );
       float *u10m;
       float *v10m;
@@ -251,7 +268,8 @@ namespace rcm
     public:
       rcmio(char *dirname, bool lbig, bool ldirect);
       ~rcmio( );
-      void read_header(header_data &h, char *fname);
+      void read_header(header_data &h);
+      void read_subdom(header_data &h, subdom_data &s);
       int atmo_read_tstep(atmodata &a);
       int srf_read_tstep(srfdata &a);
       int rad_read_tstep(raddata &a);

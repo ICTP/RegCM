@@ -28,7 +28,7 @@
 
 using namespace rcm;
 
-rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead)
+rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
 {
   f = new NcFile(fname, NcFile::Replace);
 
@@ -76,8 +76,11 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead)
   f->add_att("model_timestep_in_hours_radiation_calc", outhead.abemh);
   f->add_att("model_timestep_in_hours_boundary_input", outhead.ibdyfrq);
 
-  iy = f->add_dim("iy", outhead.nx);
-  jx = f->add_dim("jx", outhead.ny);
+  if (full)
+  {
+    iy = f->add_dim("iy", outhead.nx);
+    jx = f->add_dim("jx", outhead.ny);
+  }
   kz = f->add_dim("kz", outhead.kz);
   tt = f->add_dim("time");
 
@@ -96,69 +99,72 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead)
   sigfvar->add_att("units", "1");
   sigfvar->add_att("axis", "Z");
   sigfvar->add_att("formula_terms", "sigma: level ps: psa ptop: ptop");
-  NcVar *xlatvar = f->add_var("xlat", ncFloat, iy, jx);
-  xlatvar->add_att("standard_name", "latitude");
-  xlatvar->add_att("long_name", "Latitude");
-  xlatvar->add_att("units", "degrees_north");
-  NcVar *xlonvar = f->add_var("xlon", ncFloat, iy, jx);
-  xlonvar->add_att("standard_name", "longitude");
-  xlonvar->add_att("long_name", "Longitude");
-  xlonvar->add_att("units", "degrees_east");
-  NcVar *htvar = f->add_var("ht", ncFloat, iy, jx);
-  htvar->add_att("standard_name", "surface_altitude");
-  htvar->add_att("long_name", "Domain surface elevation");
-  htvar->add_att("coordinates", "xlon xlat");
-  htvar->add_att("units", "m");
-  NcVar *htsdvar = f->add_var("htsd", ncFloat, iy, jx);
-  htsdvar->add_att("standard_name", "surface_altitude");
-  htsdvar->add_att("long_name", "Domain elevation stantard deviation");
-  htsdvar->add_att("coordinates", "xlon xlat");
-  htsdvar->add_att("units", "m");
-  htsdvar->add_att("cell_method", "area: standard_deviation");
-  NcVar *veg2dvar = f->add_var("veg2d", ncFloat, iy, jx);
-  veg2dvar->add_att("long_name", "Vegetation category as defined in BATS");
-  veg2dvar->add_att("units", "1");
-  veg2dvar->add_att("coordinates", "xlon xlat");
-  NcVar *landusevar = f->add_var("landuse", ncFloat, iy, jx);
-  landusevar->add_att("long_name", "Landuse category as defined in BATS");
-  landusevar->add_att("standard_name", "soil_type");
-  landusevar->add_att("units", "1");
-  landusevar->add_att("coordinates", "xlon xlat");
-  NcVar *xmapvar = f->add_var("xmap", ncFloat, iy, jx);
-  xmapvar->add_att("long_name", "Map factor in domain cross points");
-  xmapvar->add_att("units", "1");
-  xmapvar->add_att("coordinates", "xlon xlat");
-  NcVar *dmapvar = f->add_var("dmap", ncFloat, iy, jx);
-  dmapvar->add_att("long_name", "Map factor in domain dot points");
-  dmapvar->add_att("units", "1");
-  dmapvar->add_att("coordinates", "xlon xlat");
-  NcVar *coriolvar = f->add_var("coriol", ncFloat, iy, jx);
-  coriolvar->add_att("long_name", "Coriolis parameter");
-  coriolvar->add_att("standard_name", "coriolis_parameter");
-  coriolvar->add_att("units", "s-1");
-  coriolvar->add_att("coordinates", "xlon xlat");
-  NcVar *maskvar = f->add_var("mask", ncFloat, iy, jx);
-  maskvar->add_att("long_name", "Land Sea mask");
-  maskvar->add_att("standard_name", "land_binary_mask");
-  maskvar->add_att("units", "1");
-  maskvar->add_att("coordinates", "xlon xlat");
   NcVar *ptopvar = f->add_var("ptop", ncFloat);
   ptopvar->add_att("long_name", "Pressure at model top");
   ptopvar->add_att("standard_name", "air_pressure");
   ptopvar->add_att("units", "hPa");
-
+  if (full)
+  {
+    NcVar *xlatvar = f->add_var("xlat", ncFloat, iy, jx);
+    xlatvar->add_att("standard_name", "latitude");
+    xlatvar->add_att("long_name", "Latitude");
+    xlatvar->add_att("units", "degrees_north");
+    NcVar *xlonvar = f->add_var("xlon", ncFloat, iy, jx);
+    xlonvar->add_att("standard_name", "longitude");
+    xlonvar->add_att("long_name", "Longitude");
+    xlonvar->add_att("units", "degrees_east");
+    NcVar *htvar = f->add_var("ht", ncFloat, iy, jx);
+    htvar->add_att("standard_name", "surface_altitude");
+    htvar->add_att("long_name", "Domain surface elevation");
+    htvar->add_att("coordinates", "xlon xlat");
+    htvar->add_att("units", "m");
+    NcVar *htsdvar = f->add_var("htsd", ncFloat, iy, jx);
+    htsdvar->add_att("standard_name", "surface_altitude");
+    htsdvar->add_att("long_name", "Domain elevation stantard deviation");
+    htsdvar->add_att("coordinates", "xlon xlat");
+    htsdvar->add_att("units", "m");
+    htsdvar->add_att("cell_method", "area: standard_deviation");
+    NcVar *veg2dvar = f->add_var("veg2d", ncFloat, iy, jx);
+    veg2dvar->add_att("long_name", "Vegetation category as defined in BATS");
+    veg2dvar->add_att("units", "1");
+    veg2dvar->add_att("coordinates", "xlon xlat");
+    NcVar *landusevar = f->add_var("landuse", ncFloat, iy, jx);
+    landusevar->add_att("long_name", "Landuse category as defined in BATS");
+    landusevar->add_att("standard_name", "soil_type");
+    landusevar->add_att("units", "1");
+    landusevar->add_att("coordinates", "xlon xlat");
+    NcVar *xmapvar = f->add_var("xmap", ncFloat, iy, jx);
+    xmapvar->add_att("long_name", "Map factor in domain cross points");
+    xmapvar->add_att("units", "1");
+    xmapvar->add_att("coordinates", "xlon xlat");
+    NcVar *dmapvar = f->add_var("dmap", ncFloat, iy, jx);
+    dmapvar->add_att("long_name", "Map factor in domain dot points");
+    dmapvar->add_att("units", "1");
+    dmapvar->add_att("coordinates", "xlon xlat");
+    NcVar *coriolvar = f->add_var("coriol", ncFloat, iy, jx);
+    coriolvar->add_att("long_name", "Coriolis parameter");
+    coriolvar->add_att("standard_name", "coriolis_parameter");
+    coriolvar->add_att("units", "s-1");
+    coriolvar->add_att("coordinates", "xlon xlat");
+    NcVar *maskvar = f->add_var("mask", ncFloat, iy, jx);
+    maskvar->add_att("long_name", "Land Sea mask");
+    maskvar->add_att("standard_name", "land_binary_mask");
+    maskvar->add_att("units", "1");
+    maskvar->add_att("coordinates", "xlon xlat");
+    xlatvar->put(outhead.xlat, outhead.nx, outhead.ny);
+    xlonvar->put(outhead.xlon, outhead.nx, outhead.ny);
+    htvar->put(outhead.ht, outhead.nx, outhead.ny);
+    htsdvar->put(outhead.htsd, outhead.nx, outhead.ny);
+    veg2dvar->put(outhead.veg2d, outhead.nx, outhead.ny);
+    landusevar->put(outhead.landuse, outhead.nx, outhead.ny);
+    xmapvar->put(outhead.xmap, outhead.nx, outhead.ny);
+    dmapvar->put(outhead.dmap, outhead.nx, outhead.ny);
+    coriolvar->put(outhead.coriol, outhead.nx, outhead.ny);
+    maskvar->put(outhead.mask, outhead.nx, outhead.ny);
+  }
   sigfvar->put(outhead.hsigf, outhead.kz);
-  xlatvar->put(outhead.xlat, outhead.nx, outhead.ny);
-  xlonvar->put(outhead.xlon, outhead.nx, outhead.ny);
-  htvar->put(outhead.ht, outhead.nx, outhead.ny);
-  htsdvar->put(outhead.htsd, outhead.nx, outhead.ny);
-  veg2dvar->put(outhead.veg2d, outhead.nx, outhead.ny);
-  landusevar->put(outhead.landuse, outhead.nx, outhead.ny);
-  xmapvar->put(outhead.xmap, outhead.nx, outhead.ny);
-  dmapvar->put(outhead.dmap, outhead.nx, outhead.ny);
-  coriolvar->put(outhead.coriol, outhead.nx, outhead.ny);
-  maskvar->put(outhead.mask, outhead.nx, outhead.ny);
   ptopvar->put(&outhead.ptop, 1);
+
   f->sync();
 
   // Manage time setup
@@ -188,7 +194,7 @@ rcmNc::~rcmNc( )
 }
 
 rcmNcAtmo::rcmNcAtmo(char *fname, char *experiment, header_data &h)
-  : rcmNc(fname, experiment, h)
+  : rcmNc(fname, experiment, h, true)
 {
   float fillv = -1e+34;
   psvar = f->add_var("psa", ncFloat, tt, iy, jx);
@@ -271,7 +277,7 @@ void rcmNcAtmo::put_rec(atmodata &a)
 }
 
 rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
-  : rcmNc(fname, experiment, h)
+  : rcmNc(fname, experiment, h, true)
 {
   float fillv = -1e+34;
   // Add three more vertical dimensions for 10m, 2m hgts and soil layers
@@ -480,7 +486,7 @@ void rcmNcSrf::put_rec(srfdata &s)
 }
 
 rcmNcRad::rcmNcRad(char *fname, char *experiment, header_data &h)
-  : rcmNc(fname, experiment, h)
+  : rcmNc(fname, experiment, h, true)
 {
   float fillv = -1e+34;
 
@@ -591,7 +597,7 @@ void rcmNcRad::put_rec(raddata &r)
 }
 
 rcmNcChe::rcmNcChe(char *fname, char *experiment, header_data &h)
-  : rcmNc(fname, experiment, h)
+  : rcmNc(fname, experiment, h, true)
 {
   float fillv = -1e+34;
 
@@ -732,3 +738,202 @@ void rcmNcChe::put_rec(chedata &c)
   count ++;
   return;
 }
+
+rcmNcSub::rcmNcSub(char *fname, char *experiment, header_data &h,
+                   subdom_data &s)
+  : rcmNc(fname, experiment, h, false)
+{
+  float fillv = -1e+34;
+
+  // Add subgrid dimensions
+  NcDim *iys = f->add_dim("iys", s.nx);
+  NcDim *jxs = f->add_dim("jxs", s.ny);
+
+  // Add three more vertical dimensions for 10m, 2m hgts and soil layers
+  NcDim *m10 = f->add_dim("m10", 1);
+  NcDim *m2 = f->add_dim("m2", 1);
+  NcDim *soil = f->add_dim("soil_layer", 2);
+
+  NcVar *m10var = f->add_var("m10", ncFloat, m10);
+  m10var->add_att("standard_name", "altitude");
+  m10var->add_att("long_name", "Convenience 10 m elevation level");
+  m10var->add_att("positive", "up");
+  m10var->add_att("units", "m");
+  m10var->add_att("axis", "Z");
+  NcVar *m2var = f->add_var("m2", ncFloat, m2);
+  m2var->add_att("standard_name", "altitude");
+  m2var->add_att("long_name", "Convenience 2 m elevation level");
+  m2var->add_att("positive", "up");
+  m2var->add_att("units", "m");
+  m2var->add_att("axis", "Z");
+  NcVar *soilvar = f->add_var("layer", ncFloat, soil);
+  soilvar->add_att("standard_name", "model_level_number");
+  soilvar->add_att("long_name", "Surface and root zone");
+  soilvar->add_att("positive", "down");
+  soilvar->add_att("units", "1");
+  soilvar->add_att("axis", "Z");
+  float val[2];
+  val[0] = 10.0;
+  m10var->put(val, 1);
+  val[0] = 2.0;
+  m2var->put(val, 1);
+  val[0] = 0.0;
+  val[1] = 1.0;
+  soilvar->put(val, 2);
+
+  // Setup variables
+  NcVar *xlatvar = f->add_var("xlatsub", ncFloat, iys, jxs);
+  xlatvar->add_att("standard_name", "latitude");
+  xlatvar->add_att("long_name", "Latitude");
+  xlatvar->add_att("units", "degrees_north");
+  NcVar *xlonvar = f->add_var("xlonsub", ncFloat, iys, jxs);
+  xlonvar->add_att("standard_name", "longitude");
+  xlonvar->add_att("long_name", "Longitude");
+  xlonvar->add_att("units", "degrees_east");
+  NcVar *htvar = f->add_var("htsub", ncFloat, iys, jxs);
+  htvar->add_att("standard_name", "surface_altitude");
+  htvar->add_att("long_name", "Domain surface elevation");
+  htvar->add_att("coordinates", "xlonsub xlatsub");
+  htvar->add_att("units", "m");
+  NcVar *htsdvar = f->add_var("htsdsub", ncFloat, iys, jxs);
+  htsdvar->add_att("standard_name", "surface_altitude");
+  htsdvar->add_att("long_name", "Domain elevation stantard deviation");
+  htsdvar->add_att("coordinates", "xlonsub xlatsub");
+  htsdvar->add_att("units", "m");
+  htsdvar->add_att("cell_method", "area: standard_deviation");
+  NcVar *landusevar = f->add_var("landusesub", ncFloat, iys, jxs);
+  landusevar->add_att("long_name", "Landuse category as defined in BATS");
+  landusevar->add_att("standard_name", "soil_type");
+  landusevar->add_att("units", "1");
+  landusevar->add_att("coordinates", "xlonsub xlatsub");
+  NcVar *xmapvar = f->add_var("xmapsub", ncFloat, iys, jxs);
+  xmapvar->add_att("long_name", "Map factor in domain cross points");
+  xmapvar->add_att("units", "1");
+  xmapvar->add_att("coordinates", "xlonsub xlatsub");
+  NcVar *coriolvar = f->add_var("coriolsub", ncFloat, iys, jxs);
+  coriolvar->add_att("long_name", "Coriolis parameter");
+  coriolvar->add_att("standard_name", "coriolis_parameter");
+  coriolvar->add_att("units", "s-1");
+  coriolvar->add_att("coordinates", "xlonsub xlatsub");
+  NcVar *maskvar = f->add_var("masksub", ncFloat, iys, jxs);
+  maskvar->add_att("long_name", "Land Sea mask");
+  maskvar->add_att("standard_name", "land_binary_mask");
+  maskvar->add_att("units", "1");
+  maskvar->add_att("coordinates", "xlonsub xlatsub");
+
+  xlatvar->put(s.xlat, s.nx, s.ny);
+  xlonvar->put(s.xlon, s.nx, s.ny);
+  htvar->put(s.ht, s.nx, s.ny);
+  htsdvar->put(s.htsd, s.nx, s.ny);
+  landusevar->put(s.landuse, s.nx, s.ny);
+  xmapvar->put(s.xmap, s.nx, s.ny);
+  coriolvar->put(s.coriol, s.nx, s.ny);
+  maskvar->put(s.mask, s.nx, s.ny);
+
+  f->sync();
+
+  u10mvar = f->add_var("u10m", ncFloat, tt, m10, iys, jxs);
+  u10mvar->add_att("standard_name", "eastward_wind");
+  u10mvar->add_att("long_name", "10 meters U component (westerly) of wind");
+  u10mvar->add_att("coordinates", "xlonsub xlatsub");
+  u10mvar->add_att("units", "m/s");
+  v10mvar = f->add_var("v10m", ncFloat, tt, m10, iys, jxs);
+  v10mvar->add_att("standard_name", "northward_wind");
+  v10mvar->add_att("long_name", "10 meters V component (southerly) of wind");
+  v10mvar->add_att("coordinates", "xlonsub xlatsub");
+  v10mvar->add_att("units", "m/s");
+  uvdragvar = f->add_var("uvdrag", ncFloat, tt, iys, jxs);
+  uvdragvar->add_att("standard_name", "surface_drag_coefficient_in_air");
+  uvdragvar->add_att("long_name", "Surface drag stress");
+  uvdragvar->add_att("coordinates", "xlonsub xlatsub");
+  uvdragvar->add_att("units", "1");
+  tgvar = f->add_var("tg", ncFloat, tt, iys, jxs);
+  tgvar->add_att("standard_name", "surface_temperature");
+  tgvar->add_att("long_name", "Ground temperature");
+  tgvar->add_att("coordinates", "xlonsub xlatsub");
+  tgvar->add_att("units", "K");
+  tlefvar = f->add_var("tlef", ncFloat, tt, iys, jxs);
+  tlefvar->add_att("standard_name", "canopy_temperature");
+  tlefvar->add_att("long_name", "Foliage temperature");
+  tlefvar->add_att("coordinates", "xlonsub xlatsub");
+  tlefvar->add_att("_FillValue", fillv);
+  tlefvar->add_att("units", "K");
+  t2mvar = f->add_var("t2m", ncFloat, tt, m2, iys, jxs);
+  t2mvar->add_att("standard_name", "air_temperature");
+  t2mvar->add_att("long_name", "2 meters temperature");
+  t2mvar->add_att("coordinates", "xlonsub xlatsub");
+  t2mvar->add_att("units", "K");
+  q2mvar = f->add_var("q2m", ncFloat, tt, m2, iys, jxs);
+  q2mvar->add_att("standard_name", "humidity_mixing_ratio");
+  q2mvar->add_att("long_name", "2 meters vapour mixing ratio");
+  q2mvar->add_att("coordinates", "xlonsub xlatsub");
+  q2mvar->add_att("units", "kg kg-1");
+  smwvar = f->add_var("smw", ncFloat, tt, soil, iys, jxs);
+  smwvar->add_att("standard_name", "soil_moisture_content");
+  smwvar->add_att("long_name", "Moisture content");
+  smwvar->add_att("coordinates", "xlonsub xlatsub");
+  smwvar->add_att("_FillValue", fillv);
+  smwvar->add_att("units", "kg m-2");
+  tprvar = f->add_var("tpr", ncFloat, tt, iys, jxs);
+  tprvar->add_att("standard_name", "precipitation_amount");
+  tprvar->add_att("long_name", "Total precipitation");
+  tprvar->add_att("coordinates", "xlonsub xlatsub");
+  tprvar->add_att("units", "kg m-2");
+  evpvar = f->add_var("evp", ncFloat, tt, iys, jxs);
+  evpvar->add_att("standard_name", "water_evaporation_amount");
+  evpvar->add_att("long_name", "Total evapotranspiration");
+  evpvar->add_att("coordinates", "xlonsub xlatsub");
+  evpvar->add_att("units", "kg m-2");
+  runoffvar = f->add_var("runoff", ncFloat, tt, iys, jxs);
+  runoffvar->add_att("standard_name", "surface_runoff_flux");
+  runoffvar->add_att("long_name", "surface runoff");
+  runoffvar->add_att("coordinates", "xlonsub xlatsub");
+  runoffvar->add_att("_FillValue", fillv);
+  runoffvar->add_att("units", "kg m-2 day-1");
+  scvvar = f->add_var("scv", ncFloat, tt, iys, jxs);
+  scvvar->add_att("standard_name", "snowfall_amount");
+  scvvar->add_att("long_name", "Snow precipitation");
+  scvvar->add_att("coordinates", "xlonsub xlatsub");
+  scvvar->add_att("_FillValue", fillv);
+  scvvar->add_att("units", "kg m-2");
+  senavar = f->add_var("sena", ncFloat, tt, iys, jxs);
+  senavar->add_att("standard_name", "surface_downward_sensible_heat_flux");
+  senavar->add_att("long_name", "Sensible heat flux");
+  senavar->add_att("coordinates", "xlonsub xlatsub");
+  senavar->add_att("units", "W m-2");
+  prcvvar = f->add_var("prcv", ncFloat, tt, iys, jxs);
+  prcvvar->add_att("standard_name", "convective_rainfall_flux");
+  prcvvar->add_att("long_name", "Convective precipitation");
+  prcvvar->add_att("coordinates", "xlonsub xlatsub");
+  prcvvar->add_att("units", "kg m-2 day-1");
+  psbvar = f->add_var("psa", ncFloat, tt, iys, jxs);
+  psbvar->add_att("standard_name", "air_pressure");
+  psbvar->add_att("long_name", "Surface pressure");
+  psbvar->add_att("coordinates", "xlonsub xlatsub");
+  psbvar->add_att("units", "hPa");
+  count = 0;
+}
+
+void rcmNcSub::put_rec(subdata &s)
+{
+  double xtime = reference_time + count*s.dt;
+  timevar->put_rec(&xtime, count);
+  u10mvar->put_rec(s.u10m, count);
+  v10mvar->put_rec(s.v10m, count);
+  uvdragvar->put_rec(s.uvdrag, count);
+  tgvar->put_rec(s.tg, count);
+  tlefvar->put_rec(s.tlef, count);
+  t2mvar->put_rec(s.t2m, count);
+  q2mvar->put_rec(s.q2m, count);
+  smwvar->put_rec(s.smw, count);
+  tprvar->put_rec(s.tpr, count);
+  evpvar->put_rec(s.evp, count);
+  runoffvar->put_rec(s.runoff, count);
+  scvvar->put_rec(s.scv, count);
+  senavar->put_rec(s.sena, count);
+  prcvvar->put_rec(s.prcv, count);
+  psbvar->put_rec(s.psb, count);
+  count ++;
+  return;
+}
+
