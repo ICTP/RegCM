@@ -19,7 +19,7 @@ if os.path.isfile(file1):
     f.close()
     for line in content:
             if line.find('ssttyp') > -1:
-                riga = line.rsplit('=')
+                riga = line.split('=')
                 ssttyp=riga[1].strip()
                 #print sstyp
 else :
@@ -34,10 +34,10 @@ if os.path.isfile(file2):
     f.close()
     for line in content:
             if line.find('dattyp') > -1:
-                riga = line.rsplit('=')
+                riga = line.split('=')
                 dattyp=riga[1].strip()
             if line.find('aertyp') > -1:
-                riga = line.rsplit('=')
+                riga = line.split('=')
                 aertyp=riga[1].strip()
 else :
     print file2,"not found!!!"
