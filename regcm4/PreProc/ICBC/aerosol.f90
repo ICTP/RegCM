@@ -63,7 +63,7 @@
           & recl=iy*jx*ibyte,access='direct',status='unknown',err=200)
  
 !
-      call gridml(xlon,xlat,iy,jx,ibyte,truelatl,truelath)
+      call gridml(xlon,xlat,iy,jx,ibyte)
 !
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR AEROSOL DATA
@@ -95,22 +95,21 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,iy,jx,ibyte,truelatl,truelath)
+      subroutine gridml(xlon,xlat,iy,jx,ibyte)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: ibyte , iy , jx
-      real :: truelath , truelatl
       real , dimension(iy,jx) :: xlat , xlon
       intent (in) ibyte , iy , jx
-      intent (inout) truelath , truelatl , xlat , xlon
+      intent (out) xlat , xlon
 !
 ! Local variables
 !
       real :: alatmax , alatmin , alonmax , alonmin , centeri ,         &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
-            & ptop , rlatinc , rloninc
+            & ptop , rlatinc , rloninc, th, tl
       character(3) , dimension(12) :: cmonth
       integer :: i , ibigend , ierr , igrads , iyy , j , jxx ,          &
                & k , kz , month , nx , ny , period
@@ -123,7 +122,7 @@
       read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
                                 & plat , plon , grdfac , iproj ,        &
                                 & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
-                                & ibigend , truelatl , truelath
+                                & ibigend ,tl , th
       if ( iyy/=iy .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'
         print * , '  icbc.param: ' , iy , jx
@@ -196,7 +195,7 @@
         end if
         if ( iproj=='LAMCON' ) then        ! Lambert projection
           write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
-                         & truelatl , truelath , clon , dsinm , dsinm
+                         & tl , th , clon , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj=='POLSTR' ) then   !
@@ -318,3 +317,102 @@
 99011 format (a6,'0 99 ',a40)
 !
       end subroutine gridml
+!
+!
+!
+      subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx, &
+                      & nflds)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: iy , jx , nflds , nlati , nloni
+      real , dimension(nloni,nlati,nflds) :: fin
+      real , dimension(nlati) :: lati
+      real , dimension(iy,jx) :: lato , lono
+      real , dimension(nloni) :: loni
+      real , dimension(iy,jx,nflds) :: fout
+      intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
+                & nlati , nloni
+      intent (out) fout
+!
+! Local variables
+!
+      real :: bas , lon180 , p , q , xsum , xind , yind
+      integer :: i , ip , ipp1 , j , jq , jqp1 , l
+!
+!
+!     PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
+!     BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY XLONS AND XLATS OF
+!     GRID2. A POINT ON GRID2 IS TRAPPED WITHIN FOUR GRID POINTS ON
+!     GRID4.THE GRID POINTS ARE ALWAYS TO THE NORTH AND EAST OF THE
+!     TRAPPED POINT.. THE ALGORITHM COMPUTES THE FRACTIONAL DISTANCES
+!     IN BOTH X AND Y DIRECTION OF THE TRAPPED GRID POINT AND USES THE
+!     INFORMATION AS WEIGHTING FACTORS IN THE INTERPOLATION.
+!     THERE IS ONE LESS ROW AND COLUMN WHEN THE SCALAR FIELDS ARE
+!     INTERPOLATED BECAUSE XLATS AND XLONS ARE NOT DEFINED FOR
+!     THE CROSS POINTS IN THE MM4 MODEL.
+!
+!     IN(NLONI,NLATI,NFLDS)  IS THE INPUT FIELD ON REGULAR LAT/LON GRID.
+!     OUT(NLATO,NLONO,NFLDS) IS THE OUTPUT FIELD ON LAMBERT CONFORMAL
+!     GRID. LONI.....LONGITUDE VALUES IN DEGREES OF THE LAT-LON GRID.
+!     LATI.....LATITUDE VALUES IN DEGREES OF THE LAT-LON GRID.
+!     P.........EAST-WEST WEIGHTING FACTOR.
+!     Q.........NORTH-SOUTH WEIGHTING FACTOR.
+!     IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
+!     IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID
+ 
+!     POINT.
+ 
+      do j = 1 , jx
+        do i = 1 , iy
+ 
+          yind = (((lato(i,j)-lati(1))/(lati(nlati)-lati(1)))           &
+               & *float(nlati-1)) + 1.
+          jq = int(yind)
+          jq = max0(jq,1)
+          jqp1 = min0(jq+1,nlati)
+          q = yind - jq
+ 
+          lon180 = lono(i,j)
+          if ( lono(i,j)<-180. ) lon180 = lono(i,j) + 360.
+          if ( lono(i,j)>180. ) lon180 = lono(i,j) - 360.
+          xind = (((lon180-loni(1))/(loni(nloni)-loni(1)))              &
+               & *float(nloni-1)) + 1.
+          ip = int(xind)
+          ip = max0(ip,1)
+          ipp1 = min0(ip+1,nloni)
+          p = xind - ip
+ 
+          do l = 1 , nflds
+            xsum = 0.0
+            bas = 0.0
+            if ( fin(ip,jq,l)<-9990.0 .and. fin(ipp1,jq,l)<-9990.0 .and.&
+               & fin(ipp1,jqp1,l)<-9990.0 .and. fin(ip,jqp1,l)<-9990.0 )&
+               & then
+              fout(i,j,l) = -9999.
+            else
+              if ( fin(ip,jq,l)>-9990.0 ) then
+                xsum = xsum + (1.-q)*(1.-p)*fin(ip,jq,l)
+                bas = bas + (1.-q)*(1.-p)
+              end if
+              if ( fin(ipp1,jq,l)>-9990.0 ) then
+                xsum = xsum + (1.-q)*p*fin(ipp1,jq,l)
+                bas = bas + (1.-q)*p
+              end if
+              if ( fin(ipp1,jqp1,l)>-9990.0 ) then
+                xsum = xsum + q*p*fin(ipp1,jqp1,l)
+                bas = bas + q*p
+              end if
+              if ( fin(ip,jqp1,l)>-9990.0 ) then
+                xsum = xsum + q*(1.-p)*fin(ip,jqp1,l)
+                bas = bas + q*(1.-p)
+              end if
+              fout(i,j,l) = xsum/bas
+            end if
+          end do
+        end do
+ 
+      end do
+ 
+      end subroutine bilinx
