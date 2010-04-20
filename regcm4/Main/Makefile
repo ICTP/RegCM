@@ -1,8 +1,11 @@
 include ../Makefile.inc
 
-USECLM = 0      # Set to 1 to enable CLM coupling
-USEDCSST = 0    # Set to 1 to enable daily cycle SST
-USESEAICE = 0   # Set to 1 to enable Sea Ice effects
+# Set to 1 to enable CLM coupling
+USECLM = 0
+# Set to 1 to enable daily cycle SST
+USEDCSST = 1
+# Set to 1 to enable Sea Ice effects
+USESEAICE = 0
 
 SCENARIO = A1B
 
