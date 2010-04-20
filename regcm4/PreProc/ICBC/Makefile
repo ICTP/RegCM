@@ -8,7 +8,7 @@ all: aerosol sst_1deg sst_ccsm sst_eh50m sst_ersst sst_fvgcm icbc
 AEROSOLOBJ = aerosol.o
 SST1DEGOBJ = sst_1deg.o bilinx.o printl.o
 SSTCCSMOBJ = sst_ccsm.o bilinx.o printl.o
-SSTEH50OBJ = sst_ccsm.o bilinx.o printl.o
+SSTEH50OBJ = sst_eh50m.o bilinx.o printl.o mod_datenum.o
 SSTERAOBJ = sst_ersst.o bilinx.o printl.o mod_datenum.o
 SSTFVGCOBJ = sst_fvgcm.o bilinx.o printl.o mod_datenum.o
 
