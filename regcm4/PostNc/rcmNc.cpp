@@ -95,7 +95,7 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   timevar = f->add_var("time", ncDouble, tt);
   timevar->add_att("long_name", "time");
   timevar->add_att("standard_name", "time");
-  timevar->add_att("calendar", "generic");
+  timevar->add_att("calendar", "standard");
   timevar->add_att("units", "hours since 1970-01-01 00:00:00 UTC");
 
   // Add time independent variables and time itself
