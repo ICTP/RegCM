@@ -49,7 +49,6 @@
       real , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
       real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
-      real :: truelath , truelatl
 
       logical :: there
 !
@@ -99,7 +98,7 @@
       end if
       idatef = idate
       print * , idate1 , idate2 , idateo , idatef
-      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef,truelatl,truelath)
+      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef)
       open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
           & recl=iy*jx*ibyte,access='direct')
       mrec = 0
@@ -203,24 +202,22 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2,truelatl,      &
-                      & truelath)
+      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate1 , idate2 , iy , jx
-      real :: truelath , truelatl
       real , dimension(iy,jx) :: lu , xlat , xlon
       intent (in) idate1 , idate2 , iy , jx
       intent (out) lu
-      intent (inout) truelath , truelatl , xlat , xlon
+      intent (out) xlat , xlon
 !
 ! Local variables
 !
       real :: alatmax , alatmin , alonmax , alonmin , centeri ,         &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
-            & ptop , rlatinc , rloninc
+            & ptop , rlatinc , rloninc, trl, trh
       character(3) , dimension(12) :: cmonth
       integer :: i , ibigend , igrads ,  iyy , j , jxx , k , kz ,       &
                & month , nx , ny , period
@@ -232,7 +229,7 @@
 !
       read (10,rec=1) iyy , jxx , kz , dsinm , clat , clon , plat ,     &
                     & plon , grdfac , iproj , (sigmaf(k),k=1,kz+1) ,    &
-                    & ptop , igrads , ibigend , truelatl , truelath
+                    & ptop , igrads , ibigend , trl , trh
       if ( iyy/=iy .or. jxx/=jx ) then
         write (*,*) 'IY,JX,IYY,JXX' , iy , jx , iyy , jxx
         stop
@@ -297,7 +294,7 @@
         end if
         if ( iproj=='LAMCON' ) then        ! Lambert projection
           write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
-                         & truelatl , truelath , clon , dsinm , dsinm
+                         & trl , trh , clon , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj=='POLSTR' ) then   !
