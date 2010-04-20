@@ -75,46 +75,67 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_atm)
     {
+      std::cout << "Found Atmospheric data ATM and processing";
       atmodata a(outhead);
       sprintf(fname, "ATM_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcAtmo atmnc(fname, argv[2], outhead);
       // Add Atmospheric variables
       while ((rcmout.atmo_read_tstep(a)) == 0)
+      {
+        std::cout << ".";
         atmnc.put_rec(a);
+      }
+      std::cout << "Done." << std::endl;
     }
 
     if (rcmout.has_srf)
     {
+      std::cout << "Found Surface data SRF and processing";
       srfdata s(outhead);
       sprintf(fname, "SRF_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcSrf srfnc(fname, argv[2], outhead);
       // Add Surface variables
       while ((rcmout.srf_read_tstep(s)) == 0)
+      {
+        std::cout << ".";
         srfnc.put_rec(s);
+      }
+      std::cout << "Done." << std::endl;
     }
 
     if (rcmout.has_rad)
     {
+      std::cout << "Found Radiation data RAD and processing";
       raddata r(outhead);
       sprintf(fname, "RAD_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcRad radnc(fname, argv[2], outhead);
       // Add Radiation variables
       while ((rcmout.rad_read_tstep(r)) == 0)
+      {
+        std::cout << ".";
         radnc.put_rec(r);
+      }
+      std::cout << "Done." << std::endl;
     }
 
     if (rcmout.has_che)
     {
+      std::cout << "Found Chemical data CHE and processing";
       chedata c(outhead);
       sprintf(fname, "CHE_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcChe chenc(fname, argv[2], outhead);
       // Add Chemical tracers variables
       while ((rcmout.che_read_tstep(c)) == 0)
+      {
+        std::cout << ".";
         chenc.put_rec(c);
+      }
+      std::cout << "Done." << std::endl;
     }
 
     if (rcmout.has_sub)
     {
+      std::cout << "Found Surface Subgrid data SUB and processing";
       subdom_data subdom;
       rcmout.read_subdom(outhead, subdom);
       subdata s(outhead, subdom);
@@ -122,7 +143,11 @@ int main(int argc, char *argv[])
       rcmNcSub subnc(fname, argv[2], outhead, subdom);
       // Add Subgrid variables
       while ((rcmout.sub_read_tstep(s)) == 0)
+      {
+        std::cout << ".";
         subnc.put_rec(s);
+      }
+      std::cout << "Done." << std::endl;
     }
 
     outhead.free_space( );
@@ -137,6 +162,6 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  std::cout << "Done" << std::endl;
+  std::cout << "Successfully completed processing." << std::endl;
   return 0;
 }
