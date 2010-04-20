@@ -84,6 +84,7 @@
         write (25,rec=nrec) ((aermm(i,j),j=1,jx),i=1,iy)
       end do
  
+      print *, 'Success.'
       stop 99999
  100  continue
       print * , 'ERROR OPENING AEROSOL FILE'
