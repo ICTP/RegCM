@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
     char *rundir = dirname(regcmin);
     char outdir[PATH_MAX];
     snprintf(outdir, 256, "%s%s%s", rundir, separator, "output");
-    std::cout << "Outdir is " << outdir << std::endl;
 
     rcmio rcmout(outdir, true, true);
     header_data outhead(inpf);
