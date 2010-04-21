@@ -103,7 +103,6 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
   sigfvar->add_att("positive", "down");
-  sigfvar->add_att("units", "level");
   sigfvar->add_att("axis", "Z");
   sigfvar->add_att("formula_terms", "sigma: level ps: psa ptop: ptop");
   NcVar *ptopvar = f->add_var("ptop", ncFloat);
