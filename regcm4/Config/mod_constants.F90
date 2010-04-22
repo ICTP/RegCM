@@ -122,8 +122,9 @@
       ! drain is set fairly large to prevent swamping the soil
       real(8) , parameter :: drain = 1.D-04
 
-      ! Earth radius
+      ! Earth radius in meters
       real(8) , parameter :: earthrad = 6.371229D+06
+      real(8) , parameter :: erkm = earthrad/1000.0D+00
       ! Length of day in seconds
       real(8) , parameter :: tau1 = 8.64D+04
       ! Days per year
