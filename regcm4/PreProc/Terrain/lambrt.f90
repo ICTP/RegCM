@@ -19,6 +19,9 @@
 
       subroutine lambrt(xlon,xlat,smap,coriol,iy,jx,clon,clat,ds,idot,  &
                       & xn,truelatl,truelath)
+      use mod_constants , only : pi => mathpi
+      use mod_constants , only : d2r => degrad
+      use mod_constants , only : omega2 => eomeg2 , er => earthrad
       implicit none
 !
 ! Dummy arguments
@@ -33,9 +36,9 @@
 !
 ! Local variables
 !
-      real(8) :: er , cell , cell1 , cell2 , cntri , cntrj , d2r , flp ,&
-               & flpp , omega2 , pi , pole , psi1 , psix , psx , r ,    &
-               & xsign , truelat1 , truelat2 , x , xcntr , y , ycntr
+      real(8) :: cell , cell1 , cell2 , cntri , cntrj , flp , flpp ,    &
+               & pole , psi1 , psix , psx , r , xsign , truelat1 ,      &
+               & truelat2 , x , xcntr , y , ycntr
       integer :: i , j
 !
 !     CLAT IS THE CENTRAL LATITUDE OF THE COARSE DOMAIN.
@@ -57,15 +60,12 @@
 !
 !---------------------------------------------------------------------
 !
-      er = 6.371229E6
       if ( clat<0. ) then
         xsign = -1.       ! SOUTH HEMESPHERE
       else
         xsign = 1.        ! NORTH HEMESPHERE
       end if
       pole = xsign*90.0
-      pi = 3.1415926535897932384626433832795029D+00
-      d2r = pi/180.
  
       truelat1 = truelath
       truelat2 = truelatl
@@ -82,7 +82,6 @@
       if ( clat<0. ) psi1 = -psi1
 !
       psi1 = psi1*d2r
-      omega2 = 7.2921159D-05*2.0D0
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
 !

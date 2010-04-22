@@ -18,6 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine normer(xlon,xlat,xmap,coriol,iy,jx,clon,clat,delx,idot)
+      use mod_constants , only : aa => earthrad
+      use mod_constants , only : xomega2 => eomeg2
+      use mod_constants , only : pi => mathpi
+      use mod_constants , only : d2r => degrad
       implicit none
 !
 ! Dummy arguments
@@ -31,9 +35,8 @@
 !
 ! Local variables
 !
-      real(4) :: aa , c2 , cell , cntri , cntrj , d2r , deglat , phi1 , &
-               & phictr , pi , pole , x , xcntr , xomega , xomega2 , y ,&
-               & ycntr
+      real(4) :: c2 , cell , cntri , cntrj , deglat , phi1 , phictr ,   &
+               & pole , x , xcntr , y , ycntr
       integer :: i , ii1 , j , jj1
 !
 !     COMPUTE LATS, LONS, AND MAP-SCALE FACTORS FOR
@@ -43,10 +46,6 @@
 !     DELX IS GRID SPACING IN METERS.
 !     ALWAYS FOR CROSS GRID.
  
-      xomega = 7.2722E-5                     ! ANG. ROT OF EARTH IN S**-1
-      aa = 6.371229E6
-      pi = atan(1.)*4.
-      d2r = atan(1.)/45.                     ! CONVERT DEGREES TO RADIANS
       pole = 90.
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
@@ -80,7 +79,6 @@
       end do
  
       if ( idot==1 ) then
-        xomega2 = 2.*xomega
         do i = 1 , iy
           do j = 1 , jx
             coriol(i,j) = xomega2*sin(xlat(i,j)*d2r)

@@ -18,6 +18,11 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine mappol(xlon,xlat,xmap,coriol,iy,jx,clon,clat,delx,idot)
+      use mod_constants , only : aa => earthrad
+      use mod_constants , only : pi => mathpi
+      use mod_constants , only : d2r => degrad
+      use mod_constants , only : xomega => eomeg
+      use mod_constants , only : xomeg2 => eomeg2
       implicit none
 !
 ! Dummy arguments
@@ -31,9 +36,9 @@
 !
 ! Local variables
 !
-      real(4) :: aa , cell , cell1 , cell2 , cntri , cntrj , d2r , flp ,&
-               & flpp , pi , pole , psi1 , psix , psx , r , x , xcntr , &
-               & xn , xomeg2 , xomega , y , ycntr
+      real(4) :: cell , cell1 , cell2 , cntri , cntrj , flp , flpp ,    &
+               & pole , psi1 , psix , psx , r , x , xcntr , xn , y ,    &
+               & ycntr
       integer :: i , ii1 , j , jj1
 !
 !     XN IS CONE FACTOR FOR THE PROJECTION (FROM PROGRAM TERRAIN).
@@ -51,10 +56,7 @@
 !     ALWAYS FOR CROSS GRID.
  
 !
-      aa = 6.371229E6
       xn = 1.0
-      pi = atan(1.)*4.
-      d2r = pi/180.
 !
       pole = 90.
       psi1 = 30.
@@ -108,9 +110,6 @@
       end do
  
       if ( idot==1 ) then
-        xomega = 7.2722E-5            ! ANG. ROT OF EARTH IN S**-1
-        d2r = atan(1.)/45.          ! CONVERT DEGREES TO RADIANS
-        xomeg2 = 2.*xomega
         do i = 1 , iy
           do j = 1 , jx
             coriol(i,j) = xomeg2*sin(xlat(i,j)*d2r)

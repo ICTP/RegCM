@@ -18,19 +18,21 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine nrot2rot(lam,phi,pollon,pollat,lams,phis)
+      use mod_constants , only : r2d => raddeg
+      use mod_constants , only : d2r => degrad
       implicit none
 !
 ! Dummy arguments
 !
-      real(4) :: lam , lams , phi , phis , pollat , pollon
+      real(8) :: lam , lams , phi , phis , pollat , pollon
       intent (in) lam , phi , pollat , pollon
       intent (out) lams
       intent (inout) phis
 !
 ! Local variables
 !
-      real(4) :: d2r , plam , pphi , r2d , zarg , zarg1 , zarg2 ,       &
-               & zcospol , zlam , zlampol , zphi , zsinpol
+      real(8) :: plam , pphi , zarg , zarg1 , zarg2 , zcospol , zlam ,  &
+             &   zlampol , zphi , zsinpol
 !
 ! ----------------------------------------------------------------------
 !     Purpose:
@@ -44,9 +46,6 @@
 !     05/90   D.MAJEWSKI (DWD), G. DE MORSIER (SMA)
 !     03/93   D.BRESCH (ETHZ)
 !     11/97   D.LUETHI (ETHZ)
- 
-      r2d = 45./atan(1.)
-      d2r = atan(1.)/45.
  
       plam = pollon + 180.
       pphi = 90. - pollat

@@ -19,6 +19,11 @@
 
       subroutine rotmer(xlon,xlat,xmap,coriol,iy,jx,clon,clat,pollon,   &
                       & pollat,ds,idot)
+      use mod_constants , only : re => earthrad
+      use mod_constants , only : xomega => eomeg
+      use mod_constants , only : xomega2 => eomeg2
+      use mod_constants , only : d2r => degrad
+      use mod_constants , only : r2d => raddeg
       implicit none
 !
 ! Dummy arguments
@@ -32,8 +37,8 @@
 !
 ! Local variables
 !
-      real(8) :: re, cntri , cntrj , d2r , ddeg , fai , r2d , x , xoff ,&
-               & xomega , xomega2 , xr , y , yoff , yr
+      real(8) :: cntri , cntrj , ddeg , fai , xoff , yoff
+      real(8) :: xr , yr , x , y , plat , plon
       integer :: i , j
 !
 !---------------------------------------------------------------------
@@ -47,26 +52,32 @@
 !     GRID DIMENSIONS. IMXC IS EQUAL TO IMX IF YOU ARE NOT USING THE
 !     EXPANDED GRID. SAME FOR J.
 !
-!
-      xomega = 7.2921159D-05           ! ANG. ROT OF EARTH IN S**-1
-      d2r = atan(1.)/45.               ! CONVERT DEGREES TO RADIANS
-      r2d = 1./d2r                     ! CONVERT RADIANS TO DEGREES
-      re = 6.371229D+06                ! RADIUS OF EARTH IN METERS
 !-----CENTER OF GRID
+!
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
- 
-      ddeg = ds*r2d/re                 ! GRID SPACING IN DEGREES
+
+!     GRID SPACING IN DEGREES
+
+      ddeg = ds*r2d/re
+      plat = pollat
+      plon = pollon
+!
       xoff = clon - pollon
       yoff = clat - pollat
+!
 !-----CALCULATE X AND Y POSITIONS OF GRID
+!
       do i = 1 , iy
         do j = 1 , jx
           xr = xoff + (j-cntrj)*ddeg
           yr = yoff + (i-cntri)*ddeg
+!
 !-----NOW CALCULATE LAT AND LON OF THIS POINT
 !-----    ROTATE COORDINATES BACK TO NONRATED POLE
-          call rot2nrot(xr,yr,pollon,pollat,x,y)
+!
+          call rot2nrot(xr,yr,plon,plat,x,y)
+!
           xlon(i,j) = x
           xlat(i,j) = y
           fai = d2r*yr
@@ -75,7 +86,6 @@
       end do
  
       if ( idot==1 ) then
-        xomega2 = 2.*xomega
         do i = 1 , iy
           do j = 1 , jx
             coriol(i,j) = xomega2*sin(xlat(i,j)*d2r)

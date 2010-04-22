@@ -6,7 +6,7 @@ include ../../Makefile.inc
 
 all: terrain
 
-SHRMODS =  mod_preproc_param.o mod_regcm_param.o
+SHRMODS =  mod_preproc_param.o mod_regcm_param.o mod_constants.o
 
 MODOBJS =  mod_block.o     mod_icontr.o     mod_const.o      mod_maps.o   \
            mod_aa.o        mod_maps_s.o     mod_addstack2.o  mod_verts.o  \
@@ -26,6 +26,10 @@ mod_regcm_param.o: ../../Config/mod_regcm_param.F90
                $(USCORING) -c -o $@ $<
 
 mod_preproc_param.o: ../../Config/mod_preproc_param.f90
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+               $(USCORING) -c -o $@ $<
+
+mod_constants.o: ../../Config/mod_constants.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
@@ -63,12 +67,12 @@ interp.o: interp.f90 mod_preproc_param.o mod_aa.o mod_block.o mod_const.o \
 interp_s.o: interp_s.f90 mod_preproc_param.o mod_aa.o mod_block.o mod_const.o \
             mod_maps_s.o
 lakeadj.o: lakeadj.f90
-lambrt.o: lambrt.f90
+lambrt.o: lambrt.f90 mod_constants.o
 lndfudge.o: lndfudge.f90
-mappol.o: mappol.f90
+mappol.o: mappol.f90 mod_constants.o
 mxmnll.o: mxmnll.f90 mod_aa.o
-normer.o: normer.f90
-nrot2rot.o: nrot2rot.f90
+normer.o: normer.f90 mod_constants.o
+nrot2rot.o: nrot2rot.f90 mod_constants.o
 oned.o: oned.f90
 output.o: output.f90
 rdldtr.o: rdldtr.f90 mod_preproc_param.o mod_a.o mod_aa.o mod_block.o \
@@ -79,14 +83,14 @@ rdldtr_s.o: rdldtr_s.f90 mod_preproc_param.o mod_a.o mod_aa.o mod_block.o \
             mod_const.o
 rdldtr_s_nc.o: rdldtr_s_nc.f90 mod_preproc_param.o mod_a.o mod_aa.o \
                mod_block.o mod_const.o
-rot2nrot.o: rot2nrot.f90
-rotmer.o: rotmer.f90
+rot2nrot.o: rot2nrot.f90 mod_constants.o
+rotmer.o: rotmer.f90 mod_constants.o
 setup.o: setup.f90 mod_const.o
 smth121.o: smth121.f90
 smther.o: smther.f90
 smthtr.o: smthtr.f90
 surf.o: surf.f90 mod_a.o
-xyobsll.o: xyobsll.f90 mod_block.o mod_const.o
+xyobsll.o: xyobsll.f90 mod_block.o mod_const.o mod_constants.o
 texfudge.o: texfudge.f90
 terrain.o: terrain.f90 mod_regcm_param.o mod_preproc_param.o mod_aa.o \
            mod_addstack.o mod_addstack2.o mod_block.o mod_const.o \
