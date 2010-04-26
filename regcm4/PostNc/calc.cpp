@@ -27,6 +27,34 @@
 
 using namespace rcm;
 
+const static float misval = -1e34;
+const static float tzero = 273.15;
+const static float rgas = 287.0058;
+const static float rgti = 1.0/9.80665;
+const static float cpd = 1005.46;
+const static float rovcp = rgas/cpd;
+const static float ep2 = 0.62197;
+const static float svp1 = 6.112;
+const static float svp2 = 17.67;
+const static float svp3 = 29.65;
+const static float svp4 = svp1;
+const static float svp5 = 22.514;
+const static float svp6 = 6150.0;
+
+inline float rhfromptq(float p, float t, float q)
+{
+  float r, satvp, qs;
+  if (t > tzero)
+    satvp = svp1*exp(svp2*(t-tzero)/(t-svp3));
+  else
+    satvp = svp4*exp(svp5-svp6/t);
+  qs =  ep2*satvp/(p-satvp);
+  r = (q/qs);
+  if (r < 0.0) r = 0.0;
+  if (r > 1.0) r = 1.0;
+  return r;
+}
+
 srfcalc::srfcalc(header_data &h)
 {
   nh = h.nx*h.ny;
@@ -40,21 +68,10 @@ srfcalc::~srfcalc()
 
 void srfcalc::calcrh(float *sp, float *t2, float *q2)
 {
-  float satvp, qs;
-
   for (int i = 0; i < nh; i ++)
   {
     if (sp[i] > 0.0)
-    {
-      if (t2[i] > tzero)
-        satvp = svp1*exp(svp2*(t2[i]-tzero)/(t2[i]-svp3));
-      else
-        satvp = svp4*exp(svp5-svp6/t2[i]);
-      qs =  ep2*satvp/(sp[i]-satvp);
-      r2[i] = (q2[i]/qs);
-      if (r2[i] < 0.0) r2[i] = 0.0;
-      if (r2[i] > 1.0) r2[i] = 1.0;
-    }
+      r2[i] = rhfromptq(sp[i], t2[i], q2[i]);
     else
       r2[i] = misval;
   }
@@ -62,6 +79,36 @@ void srfcalc::calcrh(float *sp, float *t2, float *q2)
 }
 
 void srfcalc::do_calc(srfdata &s, t_srf_deriv &d)
+{
+  calcrh(s.psb, s.t2m, s.q2m);
+  d.r2 = r2;
+  return;
+}
+
+subcalc::subcalc(header_data &h, subdom_data &s)
+{
+  nh = s.nx*s.ny;
+  r2 = new float[nh];
+}
+
+subcalc::~subcalc()
+{
+  delete [] r2;
+}
+
+void subcalc::calcrh(float *sp, float *t2, float *q2)
+{
+  for (int i = 0; i < nh; i ++)
+  {
+    if (sp[i] > 0.0)
+      r2[i] = rhfromptq(sp[i], t2[i], q2[i]);
+    else
+      r2[i] = misval;
+  }
+  return;
+}
+
+void subcalc::do_calc(subdata &s, t_srf_deriv &d)
 {
   calcrh(s.psb, s.t2m, s.q2m);
   d.r2 = r2;
@@ -112,19 +159,8 @@ void atmcalc::calcp(float *sp)
 
 void atmcalc::calcrh(float *t, float *q)
 {
-  float satvp, qs;
-
   for (int i = 0; i < nh; i ++)
-  {
-    if (t[i] > tzero)
-      satvp = svp1*exp(svp2*(t[i]-tzero)/(t[i]-svp3));
-    else
-      satvp = svp4*exp(svp5-svp6/t[i]);
-    qs =  ep2*satvp/(p[i]-satvp);
-    rh[i] = q[i]/qs;
-    if (rh[i] < 0.0) rh[i] = 0.0;
-    if (rh[i] > 1.0) rh[i] = 1.0;
-  }
+    rh[i] = rhfromptq(p[i], t[i], q[i]);
   return;
 }
 

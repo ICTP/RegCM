@@ -153,7 +153,7 @@ namespace rcm
   class rcmNcSub : public rcmNc {
     public:
       rcmNcSub(char *fname, char *experiment, header_data &h, subdom_data &s);
-      void put_rec(subdata &s);
+      void put_rec(subdata &s, t_srf_deriv &d);
     private:
       NcVar *u10mvar;
       NcVar *v10mvar;
@@ -162,6 +162,7 @@ namespace rcm
       NcVar *tlefvar;
       NcVar *t2mvar;
       NcVar *q2mvar;
+      NcVar *r2mvar;
       NcVar *smwvar;
       NcVar *tprvar;
       NcVar *evpvar;

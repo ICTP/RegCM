@@ -28,20 +28,6 @@
 
 namespace rcm {
 
-  const static float misval = -1e34;
-  const static float tzero = 273.15;
-  const static float rgas = 287.0058;
-  const static float rgti = 1.0/9.80665;
-  const static float cpd = 1005.46;
-  const static float rovcp = rgas/cpd;
-  const static float ep2 = 0.62197;
-  const static float svp1 = 6.112;
-  const static float svp2 = 17.67;
-  const static float svp3 = 29.65;
-  const static float svp4 = svp1;
-  const static float svp5 = 22.514;
-  const static float svp6 = 6150.0;
-
   typedef struct {
     float *r2;
   } t_srf_deriv;
@@ -51,6 +37,17 @@ namespace rcm {
       srfcalc(header_data &h);
       ~srfcalc( );
       void do_calc(srfdata &s, t_srf_deriv &d);
+    private:
+      void calcrh(float *sp, float *t2, float *q2);
+      int nh;
+      float *r2;
+  };
+
+  class subcalc {
+    public:
+      subcalc(header_data &h, subdom_data &s);
+      ~subcalc( );
+      void do_calc(subdata &s, t_srf_deriv &d);
     private:
       void calcrh(float *sp, float *t2, float *q2);
       int nh;

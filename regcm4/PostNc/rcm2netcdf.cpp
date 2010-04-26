@@ -148,11 +148,14 @@ int main(int argc, char *argv[])
       subdata s(outhead, subdom);
       sprintf(fname, "SUB_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcSub subnc(fname, argv[2], outhead, subdom);
+      subcalc c(outhead, subdom);
+      t_srf_deriv d;
       // Add Subgrid variables
       while ((rcmout.sub_read_tstep(s)) == 0)
       {
         std::cout << ".";
-        subnc.put_rec(s);
+        c.do_calc(s, d);
+        subnc.put_rec(s, d);
       }
       std::cout << "Done." << std::endl;
     }
