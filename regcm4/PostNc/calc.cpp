@@ -159,7 +159,7 @@ void atmcalc::calcp(float *sp)
 
 void atmcalc::calcrh(float *t, float *q)
 {
-  for (int i = 0; i < nh; i ++)
+  for (int i = 0; i < nh*nk; i ++)
     rh[i] = rhfromptq(p[i], t[i], q[i]);
   return;
 }

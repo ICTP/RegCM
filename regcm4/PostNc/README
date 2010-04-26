@@ -1,0 +1,46 @@
+
+This little program performs some of the processing done by the former
+postproc program in V3.
+
+What it does:
+
+        * Transform output (not ICBC) to NetCDF CF-1.4 convention compliant
+          files (except for CHEM, which is mostly but not all compliant in
+          terms of variables standard_name).
+        * Keep inside output files information about run parameters and
+          schemes
+        * Allow plotting using CF convention aware tools
+        * Allow operations using operators like CDO or NCO
+
+Notably it does not:
+
+        * Display data (left to tools like Unidata IDV or NASA panoply)
+        * Perform time means (left to NCO or CDO)
+        * Perform pressure level interpolation
+
+Using this program should (hopefully) be straightforward. It does expect You
+are running or have completed to run a RegCM V4 simulation in a directory
+somewhere on Your machine with a standard file layout. It does require for this
+just two arguments:
+
+    regcm.in  - path to regcm.in of RegCM model v4
+    expname   - a (meaningful) name for this expertiment
+
+Example:
+
+     ./rcm2netcdf /home/regcm/Run/regcm.in ACWA_reference
+
+It does assume in this case that:
+
+   -) The output directory of the model is '/home/regcm/Run/output'
+   -) All output files You want to process are inside this dir
+   -) The regcm.in file is relative to those files
+   -) In case of subgridding, the fort.11 link is present in '/home/regcm/Run'
+
+Link to useful tools:
+
+   * NetCDF Operators       : http://nco.sourceforge.net
+   * Climate Data Operators : https://code.zmaw.de/projects/cdo
+   * NASA Panoply           : http://www.giss.nasa.gov/tools/panoply
+   * Unidata IDV            : http://www.unidata.ucar.edu/software/idv
+
