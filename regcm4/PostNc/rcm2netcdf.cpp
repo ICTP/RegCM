@@ -30,6 +30,7 @@
 #include <rcmio.h>
 #include <rcminp.h>
 #include <rcmNc.h>
+#include <calc.h>
 
 using namespace rcm;
 
@@ -79,11 +80,14 @@ int main(int argc, char *argv[])
       atmodata a(outhead);
       sprintf(fname, "ATM_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcAtmo atmnc(fname, argv[2], outhead);
+      atmcalc c(outhead);
+      t_atm_deriv d;
       // Add Atmospheric variables
       while ((rcmout.atmo_read_tstep(a)) == 0)
       {
         std::cout << ".";
-        atmnc.put_rec(a);
+        c.do_calc(a, d);
+        atmnc.put_rec(a, d);
       }
       std::cout << "Done." << std::endl;
     }

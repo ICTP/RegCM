@@ -87,6 +87,7 @@ namespace rcm
       // Vertical sigma levels ant top pressure
       float ptop;
       float *hsigf;
+      float *hsigm;
       float *ht;
       float *htsd;
       float *veg2d;

@@ -26,6 +26,7 @@
 
 #include <netcdf.hh>
 #include <rcmio.h>
+#include <calc.h>
 
 namespace rcm
 {
@@ -45,7 +46,7 @@ namespace rcm
   class rcmNcAtmo : public rcmNc {
     public:
       rcmNcAtmo(char *fname, char *experiment, header_data &h);
-      void put_rec(atmodata &a);
+      void put_rec(atmodata &a, t_atm_deriv &d);
     private:
       NcVar *psvar;
       NcVar *tprvar;
@@ -56,6 +57,13 @@ namespace rcm
       NcVar *vvar;
       NcVar *ovar;
       NcVar *tvar;
+      NcVar *rhvar;
+      NcVar *tdvar;
+      NcVar *tpvar;
+      NcVar *pvar;
+      NcVar *htvar;
+      NcVar *dvvar;
+      NcVar *vrvar;
       NcVar *qvvar;
       NcVar *qcvar;
       unsigned int count;

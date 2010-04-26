@@ -30,13 +30,15 @@ CXXFLAGS = -O2 -g
 CPPFLAGS = -I. $(NETCDFINC)
 LIBS = $(NETCDFLIB) -lnetcdf_c++ -lnetcdf
 
-OBJS = rcminp.o rcmio.o rcmNc.o
+OBJS = rcminp.o rcmio.o rcmNc.o calc.o
+
+calc.o: calc.cpp calc.h
 
 rcminp.o: rcminp.cpp rcminp.h
 
 rcmio.o: rcmio.cpp rcmio.h
 
-rcmNc.o: rcmNc.cpp rcmNc.h rcmio.h
+rcmNc.o: rcmNc.cpp rcmNc.h rcmio.h calc.h
 
 rcm2netcdf: rcm2netcdf.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< $(OBJS) $(LIBS)

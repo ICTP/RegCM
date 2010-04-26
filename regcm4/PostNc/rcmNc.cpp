@@ -168,7 +168,7 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
     coriolvar->put(outhead.coriol, outhead.nx, outhead.ny);
     maskvar->put(outhead.mask, outhead.nx, outhead.ny);
   }
-  sigfvar->put(outhead.hsigf, outhead.kz);
+  sigfvar->put(outhead.hsigm, outhead.kz);
   ptopvar->put(&outhead.ptop, 1);
 
   f->sync();
@@ -250,6 +250,41 @@ rcmNcAtmo::rcmNcAtmo(char *fname, char *experiment, header_data &h)
   tvar->add_att("long_name", "Temperature");
   tvar->add_att("coordinates", "xlon xlat");
   tvar->add_att("units", "K");
+  pvar = f->add_var("p", ncFloat, tt, kz, iy, jx);
+  pvar->add_att("standard_name", "air_pressure");
+  pvar->add_att("long_name", "Pressure");
+  pvar->add_att("coordinates", "xlon xlat");
+  pvar->add_att("units", "hPa");
+  rhvar = f->add_var("rh", ncFloat, tt, kz, iy, jx);
+  rhvar->add_att("standard_name", "relative_humidity");
+  rhvar->add_att("long_name", "Relative Humidity");
+  rhvar->add_att("coordinates", "xlon xlat");
+  rhvar->add_att("units", "1");
+  tdvar = f->add_var("td", ncFloat, tt, kz, iy, jx);
+  tdvar->add_att("standard_name", "dew_point_temperature");
+  tdvar->add_att("long_name", "Dewpoint Temperature");
+  tdvar->add_att("coordinates", "xlon xlat");
+  tdvar->add_att("units", "K");
+  tpvar = f->add_var("tp", ncFloat, tt, kz, iy, jx);
+  tpvar->add_att("standard_name", "air_potential_temperature");
+  tpvar->add_att("long_name", "Potential Temperature");
+  tpvar->add_att("coordinates", "xlon xlat");
+  tpvar->add_att("units", "K");
+  htvar = f->add_var("hgt", ncFloat, tt, kz, iy, jx);
+  htvar->add_att("standard_name", "geopotential_height");
+  htvar->add_att("long_name", "Geopotential Height");
+  htvar->add_att("coordinates", "xlon xlat");
+  htvar->add_att("units", "m");
+  dvvar = f->add_var("dv", ncFloat, tt, kz, iy, jx);
+  dvvar->add_att("standard_name", "divergence_of_wind");
+  dvvar->add_att("long_name", "Wind divergence");
+  dvvar->add_att("coordinates", "xlon xlat");
+  dvvar->add_att("units", "s-1");
+  vrvar = f->add_var("vr", ncFloat, tt, kz, iy, jx);
+  vrvar->add_att("standard_name", "atmosphere_relative_vorticity");
+  vrvar->add_att("long_name", "Vorticity");
+  vrvar->add_att("coordinates", "xlon xlat");
+  vrvar->add_att("units", "s-1");
   qvvar = f->add_var("qv", ncFloat, tt, kz, iy, jx);
   qvvar->add_att("standard_name", "humidity_mixing_ratio");
   qvvar->add_att("long_name", "Water vapor mixing ratio");
@@ -263,7 +298,7 @@ rcmNcAtmo::rcmNcAtmo(char *fname, char *experiment, header_data &h)
   count = 0;
 }
 
-void rcmNcAtmo::put_rec(atmodata &a)
+void rcmNcAtmo::put_rec(atmodata &a, t_atm_deriv &d)
 {
   double xtime = reference_time + count*a.dt;
   timevar->put_rec(&xtime, count);
@@ -276,6 +311,13 @@ void rcmNcAtmo::put_rec(atmodata &a)
   vvar->put_rec(a.v, count);
   ovar->put_rec(a.omega, count);
   tvar->put_rec(a.t, count);
+  pvar->put_rec(d.p, count);
+  rhvar->put_rec(d.rh, count);
+  tdvar->put_rec(d.td, count);
+  tpvar->put_rec(d.pt, count);
+  htvar->put_rec(d.ht, count);
+  dvvar->put_rec(d.dv, count);
+  vrvar->put_rec(d.vr, count);
   qvvar->put_rec(a.qv, count);
   qcvar->put_rec(a.qc, count);
   count ++;

@@ -65,7 +65,7 @@ typedef struct {
 
 header_data::header_data(rcminp &in)
 {
-  hsigf = ht = htsd = veg2d = landuse = 0;
+  hsigf = hsigm = ht = htsd = veg2d = landuse = 0;
   xlat = xlon = xmap = dmap = coriol = mask = 0;
   idate0 = in.valuei("idate0");
   idate1 = in.valuei("idate1");
@@ -92,6 +92,7 @@ header_data::~header_data( )
 void header_data::free_space( )
 {
   if (hsigf) delete [ ] hsigf;
+  if (hsigm) delete [ ] hsigm;
   if (ht) delete [ ] ht;
   if (htsd) delete [ ] htsd;
   if (veg2d) delete [ ] veg2d;
@@ -102,7 +103,7 @@ void header_data::free_space( )
   if (dmap) delete [ ] dmap;
   if (coriol) delete [ ] coriol;
   if (mask) delete [ ] mask;
-  hsigf = ht = htsd = veg2d = landuse = 0;
+  hsigf = hsigm = ht = htsd = veg2d = landuse = 0;
   xlat = xlon = xmap = dmap = coriol = mask = 0;
 }
 
@@ -703,15 +704,15 @@ void rcmio::read_header(header_data &h)
 
   // Calculate and store half sigma levels
   if (h.hsigf) delete [] h.hsigf;
-  h.hsigf = new float[h.kz];
-  float *fsigf = new float[h.kz+1];
+  if (h.hsigm) delete [] h.hsigm;
+  h.hsigf = new float[h.kz+1];
+  h.hsigm = new float[h.kz];
   for (int i = 0; i < h.kz+1; i ++)
   {
-    fsigf[i] = rvalfrombuf(buf); buf = buf + sizeof(float);
+    h.hsigf[i] = rvalfrombuf(buf); buf = buf + sizeof(float);
   }
   for (int i = 0; i < h.kz; i ++)
-    h.hsigf[i] = fsigf[i]+0.5*(fsigf[i+1]-fsigf[i]);
-  delete [] fsigf;
+    h.hsigm[i] = h.hsigf[i]+0.5*(h.hsigf[i+1]-h.hsigf[i]);
   h.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.ptop = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.ptop *= 10.0; // Put in hPa from cbar
