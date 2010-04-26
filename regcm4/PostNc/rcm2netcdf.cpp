@@ -99,10 +99,13 @@ int main(int argc, char *argv[])
       sprintf(fname, "SRF_%s_%d.nc", argv[2], outhead.idate1);
       rcmNcSrf srfnc(fname, argv[2], outhead);
       // Add Surface variables
+      srfcalc c(outhead);
+      t_srf_deriv d;
       while ((rcmout.srf_read_tstep(s)) == 0)
       {
         std::cout << ".";
-        srfnc.put_rec(s);
+        c.do_calc(s, d);
+        srfnc.put_rec(s, d);
       }
       std::cout << "Done." << std::endl;
     }

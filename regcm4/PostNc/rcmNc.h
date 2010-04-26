@@ -72,7 +72,7 @@ namespace rcm
   class rcmNcSrf : public rcmNc {
     public:
       rcmNcSrf(char *fname, char *experiment, header_data &h);
-      void put_rec(srfdata &s);
+      void put_rec(srfdata &s, t_srf_deriv &d);
     private:
       NcVar *u10mvar;
       NcVar *v10mvar;
@@ -100,6 +100,7 @@ namespace rcm
       NcVar *t2minvar;
       NcVar *w10maxvar;
       NcVar *ps_minvar;
+      NcVar *r2mvar;
       unsigned int count;
   };
 

@@ -397,6 +397,11 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   q2mvar->add_att("long_name", "2 meters vapour mixing ratio");
   q2mvar->add_att("coordinates", "xlon xlat");
   q2mvar->add_att("units", "kg kg-1");
+  r2mvar = f->add_var("r2m", ncFloat, tt, m2, iy, jx);
+  r2mvar->add_att("standard_name", "relative_humidity");
+  r2mvar->add_att("long_name", "2 meters relative humidity");
+  r2mvar->add_att("coordinates", "xlon xlat");
+  r2mvar->add_att("units", "1");
   smwvar = f->add_var("smw", ncFloat, tt, soil, iy, jx);
   smwvar->add_att("standard_name", "soil_moisture_content");
   smwvar->add_att("long_name", "Moisture content");
@@ -500,7 +505,7 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   count = 0;
 }
 
-void rcmNcSrf::put_rec(srfdata &s)
+void rcmNcSrf::put_rec(srfdata &s, t_srf_deriv &d)
 {
   double xtime = reference_time + count*s.dt;
   timevar->put_rec(&xtime, count);
@@ -511,6 +516,7 @@ void rcmNcSrf::put_rec(srfdata &s)
   tlefvar->put_rec(s.tlef, count);
   t2mvar->put_rec(s.t2m, count);
   q2mvar->put_rec(s.q2m, count);
+  r2mvar->put_rec(d.r2, count);
   smwvar->put_rec(s.smw, count);
   tprvar->put_rec(s.tpr, count);
   evpvar->put_rec(s.evp, count);
