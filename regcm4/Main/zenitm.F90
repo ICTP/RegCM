@@ -31,9 +31,9 @@
 !
 #ifdef CLM
       use mod_regcm_param , only : myid , jxp
-!     use clm_time_manager , only : get_curr_calday
-      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0 ,   &
-                            xtime
+      use clm_time_manager , only : get_curr_calday
+!      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0 ,   &
+!                           xtime
       use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl
       use mod_clm
 #else
@@ -62,8 +62,8 @@
 !***********************************************************************
 !
 #ifdef CLM
-!     cldy = get_curr_calday()
-      cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+      cldy = get_curr_calday()
+!      cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
       call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
            &            r2cobliqr,declinp1,r2ceccf)
       jj = (jxp*myid) + jslc

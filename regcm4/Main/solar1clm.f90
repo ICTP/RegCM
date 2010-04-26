@@ -45,7 +45,7 @@
 !
       use mod_clm , only : r2ceccen , r2cobliqr , r2clambm0 ,           &
              &             r2cmvelpp , r2ceccf
-      use mod_message , only : aline
+      use mod_message , only : aline , say
       use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0 ,   &
              &              idate1
       use mod_constants , only : degrad , dayspy

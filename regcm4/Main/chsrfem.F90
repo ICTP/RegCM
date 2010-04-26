@@ -34,8 +34,8 @@
       include 'mpif.h'
 #endif 
 #ifdef CLM
-      use surfrdMod , only : clm_getsoitex
-      use clm_varsur, only : clm_soitex
+!      use surfrdMod , only : clm_getsoitex
+!      use clm_varsur, only : clm_soitex
 #endif
 #endif
       implicit none
@@ -301,17 +301,17 @@
 
 #ifdef MPP1
 #ifdef CLM
-      if ( myid.eq.0 ) then
-        if ( rd_tex ) then
-          call clm_getsoitex()
-          do j = 1 , jx
-            do i = 1 , iy
-              dustsotex_io(i,j) = clm_soitex(i,j)
-            end do
-          end do
-        end if
-      end if
-      if ( allocated(clm_soitex) ) deallocate(clm_soitex)
+!      if ( myid.eq.0 ) then
+!        if ( rd_tex ) then
+!          call clm_getsoitex()
+!          do j = 1 , jx
+!            do i = 1 , iy
+!              dustsotex_io(i,j) = clm_soitex(i,j)
+!            end do
+!          end do
+!        end if
+!      end if
+!      if ( allocated(clm_soitex) ) deallocate(clm_soitex)
 #else
       if ( myid.eq.0 ) then
         if ( rd_tex ) then
