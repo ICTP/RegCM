@@ -70,7 +70,7 @@ void help(char *pname)
 int main(int argc, char *argv[])
 {
   bool ldirect, lbigend;
-  int iseq, ilittle, istart;
+  int iseq, ilittle, istart, nsteps;
   bool onlyatm, onlysrf, onlysub, onlyrad, onlyche;
   ldirect = true;
   lbigend = true;
@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
   iseq = 0;
   ilittle = 0;
   istart = 0;
+  nsteps = -1;
 
   while (1)
   {
@@ -94,12 +95,13 @@ int main(int argc, char *argv[])
       { "onlyrad", no_argument, 0, 'r'},
       { "onlyche", no_argument, 0, 'c'},
       { "startstep", required_argument, 0, 't'},
+      { "nsteps", required_argument, 0, 'n'},
       { "help", no_argument, 0, 'h'},
       { "version", no_argument, 0, 'V'},
       { 0, 0, 0, 0 }
     };
     int optind, c = 0;
-    c = getopt_long (argc, argv, "asruct:hV",
+    c = getopt_long (argc, argv, "asruct:n:hV",
                      long_options, &optind);
     if (c == -1) break;
     switch (c)
@@ -131,6 +133,9 @@ int main(int argc, char *argv[])
         break;
       case 't':
         sscanf(optarg, "%d", &istart);
+        break;
+      case 'n':
+        sscanf(optarg, "%d", &nsteps);
         break;
       case '?':
         break;
@@ -175,7 +180,8 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_atm && onlyatm)
     {
-      int astart = istart -1;
+      int recnum = 1;
+      int astart = istart - 1;
       std::cout << "Found Atmospheric data ATM and processing";
       atmodata a(outhead);
       sprintf(fname, "ATM_%s_%d.nc", experiment, outhead.idate1);
@@ -185,6 +191,8 @@ int main(int argc, char *argv[])
       // Add Atmospheric variables
       while ((rcmout.atmo_read_tstep(a)) == 0)
       {
+        if (nsteps > 0)
+          if (recnum > nsteps) break;
         if (astart > 0)
         {
           astart --;
@@ -195,12 +203,14 @@ int main(int argc, char *argv[])
         std::cout.flush();
         c.do_calc(a, d);
         atmnc.put_rec(a, d);
+        recnum ++;
       }
       std::cout << " Done." << std::endl;
     }
 
     if (rcmout.has_srf && onlysrf)
     {
+      int recnum = 1;
       int sstart = istart - 1;
       std::cout << "Found Surface data SRF and processing";
       srfdata s(outhead);
@@ -211,6 +221,8 @@ int main(int argc, char *argv[])
       t_srf_deriv d;
       while ((rcmout.srf_read_tstep(s)) == 0)
       {
+        if (nsteps > 0)
+          if (recnum > nsteps) break;
         if (sstart > 0)
         {
           sstart --;
@@ -221,12 +233,14 @@ int main(int argc, char *argv[])
         std::cout.flush();
         c.do_calc(s, d);
         srfnc.put_rec(s, d);
+        recnum ++;
       }
       std::cout << " Done." << std::endl;
     }
 
     if (rcmout.has_rad && onlyrad)
     {
+      int recnum = 1;
       int rstart = istart - 1;
       std::cout << "Found Radiation data RAD and processing";
       raddata r(outhead);
@@ -235,6 +249,8 @@ int main(int argc, char *argv[])
       // Add Radiation variables
       while ((rcmout.rad_read_tstep(r)) == 0)
       {
+        if (nsteps > 0)
+          if (recnum > nsteps) break;
         if (rstart > 0)
         {
           rstart --;
@@ -244,12 +260,14 @@ int main(int argc, char *argv[])
         std::cout << ".";
         std::cout.flush();
         radnc.put_rec(r);
+        recnum ++;
       }
       std::cout << " Done." << std::endl;
     }
 
     if (rcmout.has_che && onlyche)
     {
+      int recnum = 1;
       int cstart = istart - 1;
       std::cout << "Found Chemical data CHE and processing";
       chedata c(outhead);
@@ -258,6 +276,8 @@ int main(int argc, char *argv[])
       // Add Chemical tracers variables
       while ((rcmout.che_read_tstep(c)) == 0)
       {
+        if (nsteps > 0)
+          if (recnum > nsteps) break;
         if (cstart > 0)
         {
           cstart --;
@@ -267,12 +287,14 @@ int main(int argc, char *argv[])
         std::cout << ".";
         std::cout.flush();
         chenc.put_rec(c);
+        recnum ++;
       }
       std::cout << " Done." << std::endl;
     }
 
     if (rcmout.has_sub && onlysub)
     {
+      int recnum = 1;
       int ustart = istart - 1;
       std::cout << "Found Surface Subgrid data SUB and processing";
       subdom_data subdom;
@@ -285,6 +307,8 @@ int main(int argc, char *argv[])
       // Add Subgrid variables
       while ((rcmout.sub_read_tstep(s)) == 0)
       {
+        if (nsteps > 0)
+          if (recnum > nsteps) break;
         if (ustart > 0)
         {
           ustart --;
@@ -295,6 +319,7 @@ int main(int argc, char *argv[])
         std::cout.flush();
         c.do_calc(s, d);
         subnc.put_rec(s, d);
+        recnum ++;
       }
       std::cout << " Done." << std::endl;
     }
