@@ -27,7 +27,7 @@ all: rcm2netcdf
 
 CXX = icpc
 CXXFLAGS = -O2 -g
-CPPFLAGS = -I. $(NETCDFINC)
+CPPFLAGS = -I. $(NETCDFINC) $(SVNDEF)
 LIBS = $(NETCDFLIB) -lnetcdf_c++ -lnetcdf
 
 OBJS = rcminp.o rcmio.o rcmNc.o calc.o

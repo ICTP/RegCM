@@ -39,7 +39,7 @@
 
 using namespace rcm;
 
-const static char version[] = "1.0";
+const static char version[] = SVN_REV;
 
 void help(char *pname)
 {
@@ -47,14 +47,38 @@ void help(char *pname)
       << "                 RegCM V4 ICTP NetCDF Postprocessor." << std::endl
       << std::endl
       << "This simple programs converts binary output files from RegCM V4 "
-      << "into" << std::endl << "NetCDF CF-1.4 convention compliant data files."
-      << std::endl
-      << std::endl << "I need two arguments:" << std::endl << std::endl
+      << "into NetCDF" << std::endl << "CF-1.4 convention compliant data files."
+      << std::endl << std::endl << "I need two mandatory arguments:"
+      << std::endl << std::endl
       << "    regcm.in  - path to regcm.in of RegCM model v4" << std::endl
       << "    expname   - a (meaningful) name for this expertiment"
       << std::endl << std::endl << "Example:" << std::endl
       << std::endl << "     " << pname
-      << " /home/regcm/Run/regcm.in ACWA_reference" << std::endl << std::endl
+      << " [options] /home/regcm/Run/regcm.in ACWA_reference"
+      << std::endl << std::endl
+      << "where options can be in:" << std::endl << std::endl
+  << "   --sequential              : Set I/O non direct (direct access default)"
+      << std::endl
+  << "   --little_endian           : Set I/O endianess to LITTLE (BIG default)"
+      << std::endl
+  << "   --onlyatm/-a              : Process ATM file (default do all)"
+      << std::endl
+  << "   --onlysrf/-s              : Process SRF file (default do all)"
+      << std::endl
+  << "   --onlysub/-u              : Process SUB file (default do all)"
+      << std::endl
+  << "   --onlyrad/-r              : Process RAD file (default do all)"
+      << std::endl
+  << "   --onlyche/-c              : Process CHE file (default do all)"
+      << std::endl
+  << "   --startstep/-t [number]   : Start at timestep number 'number'"
+      << std::endl
+  << "   --nsteps/-n [number]      : Process just 'number' timesteps"
+      << std::endl
+  << "   --help/-h                 : Print this help"
+      << std::endl
+  << "   --version/-V              : Print versioning information"
+      << std::endl << std::endl
       << "I will assume in this case that:" << std::endl << std::endl
       << "   -) The output directory of the model is '/home/regcm/Run/output'"
       << std::endl

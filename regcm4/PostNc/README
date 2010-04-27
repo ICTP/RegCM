@@ -21,14 +21,14 @@ Notably it does not:
 Using this program should (hopefully) be straightforward. It does expect You
 are running or have completed to run a RegCM V4 simulation in a directory
 somewhere on Your machine with a standard file layout. It does require for this
-just two arguments:
+just two mandatory arguments:
 
     regcm.in  - path to regcm.in of RegCM model v4
     expname   - a (meaningful) name for this expertiment
 
 Example:
 
-     ./rcm2netcdf /home/regcm/Run/regcm.in ACWA_reference
+     ./rcm2netcdf [options] /home/regcm/Run/regcm.in ACWA_reference
 
 It does assume in this case that:
 
@@ -36,6 +36,20 @@ It does assume in this case that:
    -) All output files You want to process are inside this dir
    -) The regcm.in file is relative to those files
    -) In case of subgridding, the fort.11 link is present in '/home/regcm/Run'
+
+Some useful options are provided:
+
+   --sequential              : Set I/O non direct (direct access default)
+   --little_endian           : Set I/O endianess to LITTLE (BIG default)
+   --onlyatm/-a              : Process ATM file (default do all)
+   --onlysrf/-s              : Process SRF file (default do all)
+   --onlysub/-u              : Process SUB file (default do all)
+   --onlyrad/-r              : Process RAD file (default do all)
+   --onlyche/-c              : Process CHE file (default do all)
+   --startstep/-t [number]   : Start at timestep number 'number'
+   --nsteps/-n [number]      : Process just 'number' timesteps
+   --help/-h                 : Print help
+   --version/-V              : Print versioning information
 
 Link to useful tools:
 
