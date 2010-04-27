@@ -192,6 +192,8 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   ref.tm_hour = base;
   time_t tref = mktime(&ref);
   reference_time = (unsigned long) (difftime(tref,tzero)/3600.0);
+  rcount = 0;
+  tcount = 0;
 }
 
 rcmNc::~rcmNc( )
@@ -295,32 +297,32 @@ rcmNcAtmo::rcmNcAtmo(char *fname, char *experiment, header_data &h)
   qcvar->add_att("long_name", "Cloud water mixing ratio");
   qcvar->add_att("coordinates", "xlon xlat");
   qcvar->add_att("units", "kg kg-1");
-  count = 0;
 }
 
 void rcmNcAtmo::put_rec(atmodata &a, t_atm_deriv &d)
 {
-  double xtime = reference_time + count*a.dt;
-  timevar->put_rec(&xtime, count);
-  psvar->put_rec(a.psa, count);
-  tprvar->put_rec(a.tpr, count);
-  tgbvar->put_rec(a.tgb, count);
-  swtvar->put_rec(a.swt, count);
-  rnovar->put_rec(a.rno, count);
-  uvar->put_rec(a.u, count);
-  vvar->put_rec(a.v, count);
-  ovar->put_rec(a.omega, count);
-  tvar->put_rec(a.t, count);
-  pvar->put_rec(d.p, count);
-  rhvar->put_rec(d.rh, count);
-  tdvar->put_rec(d.td, count);
-  tpvar->put_rec(d.pt, count);
-  htvar->put_rec(d.ht, count);
-  dvvar->put_rec(d.dv, count);
-  vrvar->put_rec(d.vr, count);
-  qvvar->put_rec(a.qv, count);
-  qcvar->put_rec(a.qc, count);
-  count ++;
+  double xtime = reference_time + tcount*a.dt;
+  timevar->put_rec(&xtime, rcount);
+  psvar->put_rec(a.psa, rcount);
+  tprvar->put_rec(a.tpr, rcount);
+  tgbvar->put_rec(a.tgb, rcount);
+  swtvar->put_rec(a.swt, rcount);
+  rnovar->put_rec(a.rno, rcount);
+  uvar->put_rec(a.u, rcount);
+  vvar->put_rec(a.v, rcount);
+  ovar->put_rec(a.omega, rcount);
+  tvar->put_rec(a.t, rcount);
+  pvar->put_rec(d.p, rcount);
+  rhvar->put_rec(d.rh, rcount);
+  tdvar->put_rec(d.td, rcount);
+  tpvar->put_rec(d.pt, rcount);
+  htvar->put_rec(d.ht, rcount);
+  dvvar->put_rec(d.dv, rcount);
+  vrvar->put_rec(d.vr, rcount);
+  qvvar->put_rec(a.qv, rcount);
+  qcvar->put_rec(a.qc, rcount);
+  rcount ++;
+  tcount ++;
   return;
 }
 
@@ -502,40 +504,40 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   ps_minvar->add_att("coordinates", "xlon xlat");
   ps_minvar->add_att("cell_methods", "time: minimum within days");
   ps_minvar->add_att("units", "hPa");
-  count = 0;
 }
 
 void rcmNcSrf::put_rec(srfdata &s, t_srf_deriv &d)
 {
-  double xtime = reference_time + count*s.dt;
-  timevar->put_rec(&xtime, count);
-  u10mvar->put_rec(s.u10m, count);
-  v10mvar->put_rec(s.v10m, count);
-  uvdragvar->put_rec(s.uvdrag, count);
-  tgvar->put_rec(s.tg, count);
-  tlefvar->put_rec(s.tlef, count);
-  t2mvar->put_rec(s.t2m, count);
-  q2mvar->put_rec(s.q2m, count);
-  r2mvar->put_rec(d.r2, count);
-  smwvar->put_rec(s.smw, count);
-  tprvar->put_rec(s.tpr, count);
-  evpvar->put_rec(s.evp, count);
-  runoffvar->put_rec(s.runoff, count);
-  scvvar->put_rec(s.scv, count);
-  senavar->put_rec(s.sena, count);
-  flwvar->put_rec(s.flw, count);
-  fswvar->put_rec(s.fsw, count);
-  sinavar->put_rec(s.sina, count);
-  prcvvar->put_rec(s.prcv, count);
-  psbvar->put_rec(s.psb, count);
-  zpblvar->put_rec(s.zpbl, count);
-  tgmaxvar->put_rec(s.tgmax, count);
-  tgminvar->put_rec(s.tgmin, count);
-  t2maxvar->put_rec(s.t2max, count);
-  t2minvar->put_rec(s.t2min, count);
-  w10maxvar->put_rec(s.w10max, count);
-  ps_minvar->put_rec(s.ps_min, count);
-  count ++;
+  double xtime = reference_time + tcount*s.dt;
+  timevar->put_rec(&xtime, rcount);
+  u10mvar->put_rec(s.u10m, rcount);
+  v10mvar->put_rec(s.v10m, rcount);
+  uvdragvar->put_rec(s.uvdrag, rcount);
+  tgvar->put_rec(s.tg, rcount);
+  tlefvar->put_rec(s.tlef, rcount);
+  t2mvar->put_rec(s.t2m, rcount);
+  q2mvar->put_rec(s.q2m, rcount);
+  r2mvar->put_rec(d.r2, rcount);
+  smwvar->put_rec(s.smw, rcount);
+  tprvar->put_rec(s.tpr, rcount);
+  evpvar->put_rec(s.evp, rcount);
+  runoffvar->put_rec(s.runoff, rcount);
+  scvvar->put_rec(s.scv, rcount);
+  senavar->put_rec(s.sena, rcount);
+  flwvar->put_rec(s.flw, rcount);
+  fswvar->put_rec(s.fsw, rcount);
+  sinavar->put_rec(s.sina, rcount);
+  prcvvar->put_rec(s.prcv, rcount);
+  psbvar->put_rec(s.psb, rcount);
+  zpblvar->put_rec(s.zpbl, rcount);
+  tgmaxvar->put_rec(s.tgmax, rcount);
+  tgminvar->put_rec(s.tgmin, rcount);
+  t2maxvar->put_rec(s.t2max, rcount);
+  t2minvar->put_rec(s.t2min, rcount);
+  w10maxvar->put_rec(s.w10max, rcount);
+  ps_minvar->put_rec(s.ps_min, rcount);
+  rcount ++;
+  tcount ++;
   return;
 }
 
@@ -625,28 +627,28 @@ rcmNcRad::rcmNcRad(char *fname, char *experiment, header_data &h)
   firtpvar->add_att("long_name", "net upward LW flux at TOA");
   firtpvar->add_att("coordinates", "xlon xlat");
   firtpvar->add_att("units", "W m-2");
-  count = 0;
 }
 
 void rcmNcRad::put_rec(raddata &r)
 {
-  double xtime = reference_time + count*r.dt;
-  timevar->put_rec(&xtime, count);
-  psvar->put_rec(r.psa, count);
-  cldvar->put_rec(r.cld, count);
-  clwpvar->put_rec(r.clwp, count);
-  qrsvar->put_rec(r.qrs, count);
-  qrlvar->put_rec(r.qrl, count);
-  frsavar->put_rec(r.frsa, count);
-  frlavar->put_rec(r.frla, count);
-  clrstvar->put_rec(r.clrst, count);
-  clrssvar->put_rec(r.clrss, count);
-  clrltvar->put_rec(r.clrlt, count);
-  clrlsvar->put_rec(r.clrls, count);
-  solinvar->put_rec(r.solin, count);
-  sabtpvar->put_rec(r.sabtp, count);
-  firtpvar->put_rec(r.firtp, count);
-  count ++;
+  double xtime = reference_time + tcount*r.dt;
+  timevar->put_rec(&xtime, rcount);
+  psvar->put_rec(r.psa, rcount);
+  cldvar->put_rec(r.cld, rcount);
+  clwpvar->put_rec(r.clwp, rcount);
+  qrsvar->put_rec(r.qrs, rcount);
+  qrlvar->put_rec(r.qrl, rcount);
+  frsavar->put_rec(r.frsa, rcount);
+  frlavar->put_rec(r.frla, rcount);
+  clrstvar->put_rec(r.clrst, rcount);
+  clrssvar->put_rec(r.clrss, rcount);
+  clrltvar->put_rec(r.clrlt, rcount);
+  clrlsvar->put_rec(r.clrls, rcount);
+  solinvar->put_rec(r.solin, rcount);
+  sabtpvar->put_rec(r.sabtp, rcount);
+  firtpvar->put_rec(r.firtp, rcount);
+  rcount ++;
+  tcount ++;
   return;
 }
 
@@ -741,18 +743,17 @@ rcmNcChe::rcmNcChe(char *fname, char *experiment, header_data &h)
   acstsrrfvar->add_att("long_name", "SRFrad forcing av.");
   acstsrrfvar->add_att("coordinates", "xlon xlat");
   acstsrrfvar->add_att("units", "W m-2");
-  count = 0;
 }
 
 void rcmNcChe::put_rec(chedata &c)
 {
-  double xtime = reference_time + count*c.dt;
-  timevar->put_rec(&xtime, count);
-  psvar->put_rec(c.psa, count);
-  trac3Dvar->put_rec(c.trac3D, count);
-  aext8var->put_rec(c.aext8, count);
-  assa8var->put_rec(c.assa8, count);
-  agfu8var->put_rec(c.agfu8, count);
+  double xtime = reference_time + tcount*c.dt;
+  timevar->put_rec(&xtime, rcount);
+  psvar->put_rec(c.psa, rcount);
+  trac3Dvar->put_rec(c.trac3D, rcount);
+  aext8var->put_rec(c.aext8, rcount);
+  assa8var->put_rec(c.assa8, rcount);
+  agfu8var->put_rec(c.agfu8, rcount);
   float *colb;
   float *wdlsc;
   float *wdcvc;
@@ -766,30 +767,31 @@ void rcmNcChe::put_rec(chedata &c)
     base = c.trac2D+(i*(7*c.size2D));
 
     colb = base;
-    colbvar->set_cur(count , i, 0, 0);
+    colbvar->set_cur(rcount , i, 0, 0);
     colbvar->put(colb, 1, 1, nx, ny);
     wdlsc = colb+c.size2D;
-    wdlscvar->set_cur(count , i, 0, 0);
+    wdlscvar->set_cur(rcount , i, 0, 0);
     wdlscvar->put(wdlsc, 1, 1, nx, ny);
     wdcvc = wdlsc+c.size2D;
-    wdcvcvar->set_cur(count , i, 0, 0);
+    wdcvcvar->set_cur(rcount , i, 0, 0);
     wdcvcvar->put(wdcvc, 1, 1, nx, ny);
     sdrdp = wdcvc+c.size2D;
-    sdrdpvar->set_cur(count , i, 0, 0);
+    sdrdpvar->set_cur(rcount , i, 0, 0);
     sdrdpvar->put(sdrdp, 1, 1, nx, ny);
     xgasc = sdrdp+c.size2D;
-    xgascvar->set_cur(count , i, 0, 0);
+    xgascvar->set_cur(rcount , i, 0, 0);
     xgascvar->put(xgasc, 1, 1, nx, ny);
     xaquc = xgasc+c.size2D;
-    xaqucvar->set_cur(count , i, 0, 0);
+    xaqucvar->set_cur(rcount , i, 0, 0);
     xaqucvar->put(xaquc, 1, 1, nx, ny);
     emiss = xaquc+c.size2D;
-    emissvar->set_cur(count , i, 0, 0);
+    emissvar->set_cur(rcount , i, 0, 0);
     emissvar->put(emiss, 1, 1, nx, ny);
   }
-  acstoarfvar->put_rec(c.acstoarf, count);
-  acstsrrfvar->put_rec(c.acstsrrf, count);
-  count ++;
+  acstoarfvar->put_rec(c.acstoarf, rcount);
+  acstsrrfvar->put_rec(c.acstsrrf, rcount);
+  rcount ++;
+  tcount ++;
   return;
 }
 
@@ -970,30 +972,29 @@ rcmNcSub::rcmNcSub(char *fname, char *experiment, header_data &h,
   psbvar->add_att("long_name", "Surface pressure");
   psbvar->add_att("coordinates", "xlonsub xlatsub");
   psbvar->add_att("units", "hPa");
-  count = 0;
 }
 
 void rcmNcSub::put_rec(subdata &s, t_srf_deriv &d)
 {
-  double xtime = reference_time + count*s.dt;
-  timevar->put_rec(&xtime, count);
-  u10mvar->put_rec(s.u10m, count);
-  v10mvar->put_rec(s.v10m, count);
-  uvdragvar->put_rec(s.uvdrag, count);
-  tgvar->put_rec(s.tg, count);
-  tlefvar->put_rec(s.tlef, count);
-  t2mvar->put_rec(s.t2m, count);
-  q2mvar->put_rec(s.q2m, count);
-  r2mvar->put_rec(d.r2, count);
-  smwvar->put_rec(s.smw, count);
-  tprvar->put_rec(s.tpr, count);
-  evpvar->put_rec(s.evp, count);
-  runoffvar->put_rec(s.runoff, count);
-  scvvar->put_rec(s.scv, count);
-  senavar->put_rec(s.sena, count);
-  prcvvar->put_rec(s.prcv, count);
-  psbvar->put_rec(s.psb, count);
-  count ++;
+  double xtime = reference_time + tcount*s.dt;
+  timevar->put_rec(&xtime, rcount);
+  u10mvar->put_rec(s.u10m, rcount);
+  v10mvar->put_rec(s.v10m, rcount);
+  uvdragvar->put_rec(s.uvdrag, rcount);
+  tgvar->put_rec(s.tg, rcount);
+  tlefvar->put_rec(s.tlef, rcount);
+  t2mvar->put_rec(s.t2m, rcount);
+  q2mvar->put_rec(s.q2m, rcount);
+  r2mvar->put_rec(d.r2, rcount);
+  smwvar->put_rec(s.smw, rcount);
+  tprvar->put_rec(s.tpr, rcount);
+  evpvar->put_rec(s.evp, rcount);
+  runoffvar->put_rec(s.runoff, rcount);
+  scvvar->put_rec(s.scv, rcount);
+  senavar->put_rec(s.sena, rcount);
+  prcvvar->put_rec(s.prcv, rcount);
+  psbvar->put_rec(s.psb, rcount);
+  rcount ++;
+  tcount ++;
   return;
 }
-

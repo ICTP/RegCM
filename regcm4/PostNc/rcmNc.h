@@ -34,6 +34,7 @@ namespace rcm
     public:
       rcmNc(char *fname, char *experiment, header_data &h, bool full);
       ~rcmNc();
+      void increment_time( ) { tcount ++; }
       NcFile *f;
       NcDim *iy;
       NcDim *jx;
@@ -41,6 +42,8 @@ namespace rcm
       NcDim *tt;
       NcVar *timevar;
       unsigned long reference_time;
+      unsigned int rcount;
+      unsigned int tcount;
   };
 
   class rcmNcAtmo : public rcmNc {
@@ -66,7 +69,6 @@ namespace rcm
       NcVar *vrvar;
       NcVar *qvvar;
       NcVar *qcvar;
-      unsigned int count;
   };
 
   class rcmNcSrf : public rcmNc {
@@ -101,7 +103,6 @@ namespace rcm
       NcVar *w10maxvar;
       NcVar *ps_minvar;
       NcVar *r2mvar;
-      unsigned int count;
   };
 
   class rcmNcRad : public rcmNc {
@@ -123,7 +124,6 @@ namespace rcm
       NcVar *solinvar;
       NcVar *sabtpvar;
       NcVar *firtpvar;
-      unsigned int count;
   };
 
   class rcmNcChe : public rcmNc {
@@ -147,7 +147,6 @@ namespace rcm
       NcVar *acstoarfvar;
       NcVar *acstsrrfvar;
       long nx, ny;
-      unsigned int count;
   };
 
   class rcmNcSub : public rcmNc {
@@ -171,7 +170,6 @@ namespace rcm
       NcVar *senavar;
       NcVar *prcvvar;
       NcVar *psbvar;
-      unsigned int count;
   };
 
 }
