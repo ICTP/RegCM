@@ -670,14 +670,14 @@
       return
 
 !     Error exits.
- 900  write (6, *) '*ERROR*: When calling putcdf, the number of ',      &
+ 900  write (6, *) '*ERROR*: When calling putdefcdf, the number of ',   &
                &   'variable dimensions must be less or equal 4.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
  920  write (6, *) '*ERROR*: An error occurred while attempting to ',   &
-               &   'write the data file in subroutine putcdf.'
+               &   'write the data file in subroutine putdefcdf.'
       write (6, *) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
@@ -881,9 +881,9 @@
       integer , parameter :: maxdim = 4
 
       integer , intent(in) :: cdfid
-      integer , intent(inout) :: ndim
+      integer , intent(out) :: ndim
       character(64), intent(in) :: varnam
-      integer, dimension(ndim) , intent(out) :: vardim
+      integer, dimension(4) , intent(out) :: vardim
       real(4) , intent(out) :: misdat
       integer , intent(out) :: ierr
 
@@ -937,20 +937,20 @@
       return
 
 !     Error exits.
- 900  write (6, *) '*ERROR*: When calling getcdf, the number of ',      &
+ 900  write (6, *) '*ERROR*: When calling getdefi2, the number of ',    &
                  & 'variable dimensions must be less or equal 4.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
  910  write (6, *) '*ERROR*: The selected variable could not be found ',&
-                 & 'or is of wrong type in the file by getcdf.'
+                 & 'or is of wrong type in the file by getdefi2.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
  920  write (6, *) '*ERROR*: An error occurred while attempting to ',   &
-                 & 'read the data file in subroutine getcdf.'
+                 & 'read the data file in subroutine getdefi2.'
       write (6, *) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
@@ -989,11 +989,10 @@
       implicit none
 
 !     Argument declarations.
-      integer , parameter :: maxdim = 4
       integer , intent(in) :: cdfid
       character(64) , intent(in) :: varnam
-      integer , intent(inout) :: ndim
-      integer, dimension(ndim) , intent(out) :: vardim
+      integer , intent(out) :: ndim
+      integer, dimension(4) , intent(out) :: vardim
       real(4) , intent(out) :: misdat
       integer , intent(out) :: ierr
 
@@ -1009,60 +1008,75 @@
 
 !     inquire for number of dimensions
       ierr = nf90_inquire(cdfid,ndims,nvars,ngatts,recdim)
-      if ( ierr/=nf90_noerr ) go to 920
+      if ( ierr/=nf90_noerr ) then
+        print *, 'Error in nf90_inquire'
+        go to 920
+      end if
 
 !     read dimension-table
       do  i = 1 , ndims 
         ierr = nf90_inquire_dimension(cdfid,i,dimnam(i),dimsiz(i))
-        if ( ierr/=nf90_noerr ) go to 920
+        if ( ierr/=nf90_noerr ) then
+          print *, 'Error nf90_inquire_dimension ', dimnam(i)
+          go to 920
+        end if
       end do
 
 !     get id of the variable
       ierr = nf90_inq_varid(cdfid,varnam,id)
-      if ( ierr/=nf90_noerr ) go to 920
+      if ( ierr/=nf90_noerr ) then
+        print *, 'Error nf90_inq_varid ', varnam
+        go to 920
+      end if
 
 !     inquire about variable
-      ierr = nf90_inquire_variable(cdfid,id,vnam,vartyp,ndim,          &
+      ierr = nf90_inquire_variable(cdfid,id,vnam,vartyp,ndim,           &
                    &                vardim,nvatts)
-      if ( ierr/=nf90_noerr ) go to 920
+      if ( ierr/=nf90_noerr ) then
+        print *, 'Error nf90_inquire_variable ', varnam
+        go to 920
+      end if
       if ( vartyp/=nf90_float ) then
         ierr = 1
         go to 910
       end if
 
 !     Make sure ndim <= maxdim.
-      if ( ndim>maxdim ) then
+      if ( ndim>4 ) then
          ierr = 1
          go to 900
       end if
 
 !     get dimensions from dimension-table
-      do k = 1 , ndim 
+      do k = 1 , ndims
         vardim(k) = dimsiz(vardim(k))
       end do
 
 !     get missing data value
       ierr = nf90_get_att(cdfid,id,'missing_value',misdat)
-      if ( ierr/=nf90_noerr ) go to 920
+      if ( ierr/=nf90_noerr ) then
+        print *, 'Error in nf90_get_att missing_value'
+        go to 920
+      end if
 
 !     normal exit
       return
 
 !     Error exits.
- 900  write (6, *) '*ERROR*: When calling getcdf, the number of ',      &
+ 900  write (6, *) '*ERROR*: When calling getdefcdfr4, the number of ', &
                  & 'variable dimensions must be less or equal 4.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
  910  write (6, *) '*ERROR*: The selected variable could not be found ',&
-                 & 'or is of wrong type in the file by getcdf.'
+                 & 'or is of wrong type in the file by getdefcdfr4.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
  920  write (6, *) '*ERROR*: An error occurred while attempting to ',   &
-                 & 'read the data file in subroutine getcdf.'
+                 & 'read the data file in subroutine getdefcdfr4.'
       write (6, *) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1

@@ -73,29 +73,29 @@
                     & igradsx , ibigendx
       if ( iyy/=iy .or. jxx/=jx ) then
         print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  domain.param:    iy=' , iy , '   jx=' , jx
-        print * , '  DOMAIN.INFO:     iy=' , iyy , '   jx=' , jxx
+        print * , '  mod_regcm_param:    iy=' , iy , '   jx=' , jx
+        print * , '  DOMAIN.INFO    :    iy=' , iyy , '   jx=' , jxx
         stop 780
       end if
       if ( abs(ds*1000.-dsx)>0.01 ) then
         print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  domain.param: ds=' , ds*1000.
-        print * , '  DOMAIN.INFO:  ds=' , dsx
+        print * , '  mod_regcm_param: ds=' , ds*1000.
+        print * , '  DOMAIN.INFO    : ds=' , dsx
         stop 781
       end if
       if ( clatx/=clat .or. clonx/=clon .or. platx/=plat .or.           &
          & plonx/=plon ) then
         print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  domain.param:  clat=' , clat , ' clon=' , clon
-        print * , '  DOMAIN.INFO:   clat=' , clatx , ' clon=' , clonx
-        print * , '  domain.param:  plat=' , plat , ' plon=' , plon
-        print * , '  DOMAIN.INFO:   plat=' , platx , ' plon=' , plonx
+        print * , '  mod_regcm_param:  clat=' , clat , ' clon=' , clon
+        print * , '  DOMAIN.INFO    :  clat=' , clatx , ' clon=' , clonx
+        print * , '  mod_regcm_param:  plat=' , plat , ' plon=' , plon
+        print * , '  DOMAIN.INFO    :  plat=' , platx , ' plon=' , plonx
         stop 782
       end if
       if ( iprojx/=iproj ) then
         print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  domain.param: iproj=' , iproj
-        print * , '  DOMAIN.INFO:  iproj=' , iprojx
+        print * , '  mod_regcm_param: iproj=' , iproj
+        print * , '  DOMAIN.INFO    : iproj=' , iprojx
         stop 783
       end if
       read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
@@ -142,6 +142,7 @@
            & ifld==iapin ) then
 !         ************************ CHANGED LINE ABOVE to include iiso
 !         ************************
+          print * , 'OPENING Input NetCDF FILE: ' , trim(infil(ifld))
           ierr = nf90_open(infil(ifld),nf90_nowrite,idin)
           if ( ierr/=nf90_noerr ) then
             write (6,*) 'Cannot open input file ', trim(infil(ifld))
@@ -154,7 +155,7 @@
             outfil_nc = trim(outdir)//'RCM'//infil(ifld)(7:)
           endif
 !         CALL FEXIST(outfil_nc)
-          print * , 'OPENING NetCDF FILE: ' , trim(outfil_nc)
+          print * , 'OPENING Output NetCDF FILE: ' , trim(outfil_nc)
           call rcrecdf(outfil_nc,idout,varmin,varmax,3,ierr)
         end if
  
@@ -182,9 +183,12 @@
         allocate(zlat(icount(2)))
         allocate(zlev(icount(3)))
         allocate(landmask(icount(1),icount(2)))
+!
         call clm3grid2(nlon(ifld),nlat(ifld),glon,glat,istart,          &
                      & icount,zlon,zlat,zlev)
- 
+!
+        print *, 'Reading variables from input file'
+!
 !       ** Read in the variables.
 !       In some cases, special reads need to be performed:
 !       - Sand/clay fractions need a mapping variable
@@ -195,10 +199,13 @@
           allocate(sandclay(ntim(ifld),nlev(ifld)))
           call readcdfr4(idin,vnam(ifld),lnam(ifld),units(ifld),1,      &
                        & ntim(ifld),1,nlev(ifld),1,1,1,1,sandclay)
+          print *, 'Read ', trim(lnam(ifld))
           call readcdfr4(idin,vnam_lm,lnam(ifld),units(ifld),istart(1), &
                        & icount(1),istart(2),icount(2),1,1,1,1,landmask)
+          print *, 'Read ', trim(lnam(ifld))
           call readcdfr4(idin,vnam_st,lnam(ifld),units(ifld),istart(1), &
                        & icount(1),istart(2),icount(2),1,1,1,1,zoom)
+          print *, 'Read ', trim(lnam(ifld))
           do j = 1 , icount(2)
             do i = 1 , icount(1)
               imap = nint(zoom(i,j,1,1))
@@ -216,26 +223,29 @@
           end do
           ntim(ifld) = 1
  
-!****************** ADDED IF STATEMENT TO INCLUDE BVOCS ABT **************
         else if ( ifld==iiso .or. ifld==ibpin .or. ifld==iapin .or.     &
                 & ifld==imbo ) then
           call readcdfr4_iso(idin,vnam(ifld),lnam(ifld),units(ifld),    &
                            & istart(1),icount(1),istart(2),icount(2),   &
                            & istart(3),icount(3),istart(4),icount(4),   &
                            & zoom)
-!***************** ADDED 'IF' TO INCLUDE BVOCS ABT ************************
- 
+          print *, 'Read ', trim(lnam(ifld))
         else
-          if ( ifld/=icol ) call readcdfr4(idin,vnam_lm,lnam(ifld),     &
-             & units(ifld),istart(1),icount(1),istart(2),icount(2),1,1, &
-             & 1,1,landmask)      !HI-RES SHOULD HAVE LANDMASK FOR ALL EXCEPT SOILCOLOR (abt edit)
+          if ( ifld/=icol ) then
+            call readcdfr4(idin,vnam_lm,lnam(ifld),units(ifld),         &
+                 & istart(1),icount(1),istart(2),icount(2),1,1,1,1,     &
+                 & landmask)
+            print *, 'Read ', trim(lnam(ifld))
+          end if
           call readcdfr4(idin,vnam(ifld),lnam(ifld),units(ifld),        &
                        & istart(1),icount(1),istart(2),icount(2),       &
                        & istart(3),icount(3),istart(4),icount(4),zoom)
+          print *, 'Read ', trim(lnam(ifld))
         end if
  
         if ( ifld==icol .or. ifld==iiso .or. ifld==ibpin .or.           &
-           & ifld==imbo .or. ifld==iapin ) then         ! ******** ABT added iiso for calculating landmask *******
+           & ifld==imbo .or. ifld==iapin ) then
+          print *, 'Adjusting landmask'
           do j = 1 , icount(2)
             do i = 1 , icount(1)
               if ( zoom(i,j,1,1)>vmin(ifld) ) then
