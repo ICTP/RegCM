@@ -101,7 +101,7 @@
 !           Specific Humidity ?
             r2cqb(j,i) = qvb3d(ci,kz,cj)/(1+qvb3d(ci,kz,cj))
 !           Reference Height (m)
-            r2czga(j,i) = za(ci,kz,cj)+ht_io(ci,cj)
+            r2czga(j,i) = za(ci,kz,cj)
 !           Surface winds
             r2cuxb(j,i) = ubx3d(ci,kz,cj)
             r2cvxb(j,i) = vbx3d(ci,kz,cj)

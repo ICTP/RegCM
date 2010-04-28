@@ -65,7 +65,7 @@
                   &         fsw2d , emiss2d , seasf , veg2d1 , vegc
       use mod_constants , only : tau1 , zlnd , zoce , zsno , rgti ,     &
                   &              rgas , tzero , lh0 , lh1 , lsvp1 ,     &
-                  &              lsvp2 , ep2
+                  &              lsvp2 , ep2 , lrate
       use mod_date , only : jyear , jyear0 , jyearr , ntime , ktau ,    &
                   &         ktaur
       implicit none
@@ -121,7 +121,7 @@
             rh0 = dmax1(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01-satvp)), &
                 & 0.D0)
  
-            ts1d(n,i) = ts1d0(n,i) - 6.5E-3*rgti*(ht1(n,i,j)-ht(i,j))
+            ts1d(n,i) = ts1d0(n,i) - lrate*rgti*(ht1(n,i,j)-ht(i,j))
             p1d(n,i) = p1d0(n,i)*(ts1d(n,i)/ts1d0(n,i))
  
             hl = lh0 - lh1*(ts1d(n,i)-tzero)

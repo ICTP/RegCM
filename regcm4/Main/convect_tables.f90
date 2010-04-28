@@ -47,7 +47,8 @@
  
       use mod_culookup
       use mod_tiedparam0
-      use mod_constants
+      use mod_constants , only :  tzero , rgas , rwat , c3les , c3ies , &
+            & c4les , c4ies , c2es , c5alvcp , c5alscp , alvdcp , alsdcp
       implicit none
 !
 ! PARAMETER definitions
