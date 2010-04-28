@@ -38,6 +38,19 @@
       ! Specific heat of water at 0 Celsius J/kg/K
       real(8) , parameter :: cpw0 = 4218.0D+00
 
+      ! Specific heats per m**3  (joules/m**3/k)
+      real(8) , parameter :: ch2o = 4.186D+06
+      real(8) , parameter :: cice = 0.45D+00*ch2o
+      real(8) , parameter :: cwi = 1.0D+00/0.45D+00
+      real(8) , parameter :: csnw = 0.49D+00*ch2o
+      real(8) , parameter :: cws = 1.0D+00/0.49D+00
+
+      ! Latent heats (Joules/kg)
+      real(8) , parameter :: wlhf = 0.3336D+06
+      real(8) , parameter :: wlhv = 2.51040D+06
+      real(8) , parameter :: wlhs = wlhv + wlhf
+      real(8) , parameter :: wlhvocp = wlhv*rcpd
+
       ! Various utility terms used in calculations
       real(8) , parameter :: rgti = 1.0D+00/gti
       real(8) , parameter :: rcpd = 1.0D+00/cpd
@@ -47,9 +60,6 @@
       real(8) , parameter :: vtmpc1 = rwat/rgas - 1.0D+00
       real(8) , parameter :: vtmpc2 = cpv*rcpd - 1.0D+00
       real(8) , parameter :: rhoh2o = 1000.0D+00
-      real(8) , parameter :: alv = 2.5008D+06
-      real(8) , parameter :: als = 2.8345D+06
-      real(8) , parameter :: alf = als - alv
       real(8) , parameter :: tzero = 273.15D+00
       real(8) , parameter :: rtzero = 1.0D+00/tzero
       real(8) , parameter :: wattp = 273.16D+00
@@ -62,10 +72,10 @@
       real(8) , parameter :: c4ies = 7.66D+00
       real(8) , parameter :: c5les = c3les*(tzero-c4les)
       real(8) , parameter :: c5ies = c3ies*(tzero-c4ies)
-      real(8) , parameter :: c5alvcp = c5les*alv*rcpd
-      real(8) , parameter :: c5alscp = c5ies*als*rcpd
-      real(8) , parameter :: alvdcp = alv*rcpd
-      real(8) , parameter :: alsdcp = als*rcpd
+      real(8) , parameter :: c5alvcp = c5les*wlhv*rcpd
+      real(8) , parameter :: c5alscp = c5ies*wlhs*rcpd
+      real(8) , parameter :: alvdcp = wlhv*rcpd
+      real(8) , parameter :: alsdcp = wlhs*rcpd
       real(8) , parameter :: pq0 = 379.90516D+00
       ! value used for the latent heat term in the exponent for
       ! calculating equivalent potential temperature
@@ -94,19 +104,6 @@
       real(8) , parameter :: twopi = mathpi*2.0D+00
       real(8) , parameter :: degrad = mathpi/180.0D+00
       real(8) , parameter :: raddeg = 180.0D+00/mathpi
-
-      ! Specific heats per m**3  (joules/m**3/k)
-      real(8) , parameter :: ch2o = 4.186D+06
-      real(8) , parameter :: cice = 0.45D+00*ch2o
-      real(8) , parameter :: cwi = 1.0D+00/0.45D+00
-      real(8) , parameter :: csnw = 0.49D+00*ch2o
-      real(8) , parameter :: cws = 1.0D+00/0.49D+00
-
-      ! Latent heats (Joules/kg)
-      real(8) , parameter :: wlhf = 0.3336D+06
-      real(8) , parameter :: wlhv = 2.51040D+06
-      real(8) , parameter :: wlhs = wlhv + wlhf
-      real(8) , parameter :: wlhvocp = wlhv*rcpd
 
       ! Maximum stomatl resistance (s/m)
       real(8) , parameter :: rmax0 = 2.0D+04
