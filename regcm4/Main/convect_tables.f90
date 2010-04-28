@@ -36,7 +36,7 @@
 !
 !   tlucub :  merge(c5alvcp,c5alscp,lo) / (tt-merge(c4les,c4ies,lo))**2
 !
-!   tlucuc :  merge(alvdcp, alsdcp, lo)
+!   tlucuc :  merge(wlhvocp, wlhsocp, lo)
 !
 !   tlucuaw:  c2es*exp(c3les*(tt-tzero)*(1./(tt-c4les)))
 !
@@ -48,7 +48,7 @@
       use mod_culookup
       use mod_tiedparam0
       use mod_constants , only :  tzero , rgas , rwat , c3les , c3ies , &
-            & c4les , c4ies , c2es , c5alvcp , c5alscp , alvdcp , alsdcp
+         & c4les , c4ies , c2es , c5alvcp , c5alscp , wlhvocp , wlhsocp
       implicit none
 !
 ! PARAMETER definitions
@@ -85,7 +85,7 @@
         end if
         tlucub(it) = merge(c5alvcp,c5alscp,lo)                          &
                    & *(1./(tt-merge(c4les,c4ies,lo)))**2
-        tlucuc(it) = merge(alvdcp,alsdcp,lo)
+        tlucuc(it) = merge(wlhvocp,wlhsocp,lo)
  
         tlucuaw(it) = c2es*exp(c3les*(tt-tzero)*(1./(tt-c4les)))
  
