@@ -49,7 +49,6 @@
       real(8) , parameter :: wlhf = 0.3336D+06
       real(8) , parameter :: wlhv = 2.51040D+06
       real(8) , parameter :: wlhs = wlhv + wlhf
-      real(8) , parameter :: wlhvocp = wlhv*rcpd
 
       ! Various utility terms used in calculations
       real(8) , parameter :: rgti = 1.0D+00/gti
@@ -74,8 +73,8 @@
       real(8) , parameter :: c5ies = c3ies*(tzero-c4ies)
       real(8) , parameter :: c5alvcp = c5les*wlhv*rcpd
       real(8) , parameter :: c5alscp = c5ies*wlhs*rcpd
-      real(8) , parameter :: alvdcp = wlhv*rcpd
-      real(8) , parameter :: alsdcp = wlhs*rcpd
+      real(8) , parameter :: wlhvocp = wlhv*rcpd
+      real(8) , parameter :: wlhsocp = wlhs*rcpd
       real(8) , parameter :: pq0 = 379.90516D+00
       ! value used for the latent heat term in the exponent for
       ! calculating equivalent potential temperature
