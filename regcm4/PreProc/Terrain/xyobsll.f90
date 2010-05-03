@@ -35,11 +35,11 @@
 !
 ! Local variables
 !
-      real(8) :: c1 , c2 , cell , cell2 , cntri , cntrj , flp , flpp ,  &
+      real(8) :: c2 , cell , cell2 , cntri , cntrj , flp , flpp ,       &
                & phi1 , phic , phir , phix , pole , psi1 , psx , r ,    &
                & xcntr , xlonx ,  xrot , ycntr
       real(8) :: xnr , ynr , xr , yr , pla , plo, cla , clo
-      integer :: ie , ii , ilen , im , je
+      integer :: ie , je , ii , im , ilen
 !
       pla = plat
       plo = plon
@@ -48,12 +48,12 @@
       ilen = iy*jx + 2
       ie = iy - 1
       je = jx - 1
-      c1 = 1.454441E-4
-      psi1 = 1.0E36
-      pole = 90.
+      psi1 = 1.0D+36
+      pole = 90.0D+00
       if ( iproj=='LAMCON' ) psi1 = 90. - truelath
       if ( iproj=='POLSTR' ) psi1 = 30.0
       psi1 = psi1/r2d
+
 !-----psi1 is colatitude of lat where cone or plane intersects earth
 
       if ( cla<0. ) then
