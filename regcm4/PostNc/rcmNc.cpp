@@ -99,6 +99,16 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   timevar->add_att("units", "hours since 1970-01-01 00:00:00 UTC");
 
   // Add time independent variables and time itself
+  NcVar *iyvar = f->add_var("iy", ncFloat, iy);
+  iyvar->add_att("long_name", "y-coordinate in Cartesian system");
+  iyvar->add_att("standard_name", "projection_y_coordinate");
+  iyvar->add_att("axis", "Y");
+  iyvar->add_att("units", "m");
+  NcVar *jxvar = f->add_var("jx", ncFloat, jx);
+  jxvar->add_att("long_name", "x-coordinate in Cartesian system");
+  jxvar->add_att("standard_name", "projection_x_coordinate");
+  jxvar->add_att("axis", "X");
+  jxvar->add_att("units", "m");
   NcVar *sigfvar = f->add_var("level", ncFloat, kz);
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
@@ -170,6 +180,18 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   }
   sigfvar->put(outhead.hsigm, outhead.kz);
   ptopvar->put(&outhead.ptop, 1);
+  float *tmp = new float[outhead.nx];
+  tmp[0] = -(((float) outhead.nx-1)/2.0) * outhead.ds;
+  for (int i = 1; i < outhead.nx; i ++)
+    tmp[i] = tmp[i-1] + outhead.ds;
+  iyvar->put(tmp, outhead.nx);
+  delete [] tmp;
+  tmp = new float[outhead.ny];
+  tmp[0] = -(((float) outhead.ny-1)/2.0) * outhead.ds;
+  for (int i = 1; i < outhead.ny; i ++)
+    tmp[i] = tmp[i-1] + outhead.ds;
+  jxvar->put(tmp, outhead.ny);
+  delete [] tmp;
 
   f->sync();
 
@@ -839,6 +861,16 @@ rcmNcSub::rcmNcSub(char *fname, char *experiment, header_data &h,
   soilvar->put(val, 2);
 
   // Setup variables
+  NcVar *iyvar = f->add_var("iy", ncFloat, iy);
+  iyvar->add_att("long_name", "y-coordinate in Cartesian system");
+  iyvar->add_att("standard_name", "projection_y_coordinate");
+  iyvar->add_att("axis", "Y");
+  iyvar->add_att("units", "m");
+  NcVar *jxvar = f->add_var("jx", ncFloat, jx);
+  jxvar->add_att("long_name", "x-coordinate in Cartesian system");
+  jxvar->add_att("standard_name", "projection_x_coordinate");
+  jxvar->add_att("axis", "X");
+  jxvar->add_att("units", "m");
   NcVar *xlatvar = f->add_var("xlatsub", ncFloat, iys, jxs);
   xlatvar->add_att("standard_name", "latitude");
   xlatvar->add_att("long_name", "Latitude");
@@ -886,6 +918,19 @@ rcmNcSub::rcmNcSub(char *fname, char *experiment, header_data &h,
   xmapvar->put(s.xmap, s.nx, s.ny);
   coriolvar->put(s.coriol, s.nx, s.ny);
   maskvar->put(s.mask, s.nx, s.ny);
+  float *tmp = new float[s.nx];
+  float incr = s.ds/((float) s.nsg);
+  tmp[0] = -(((float) s.nx-1)/2.0) * incr;
+  for (int i = 1; i < s.nx; i ++)
+    tmp[i] = tmp[i-1] + incr;
+  iyvar->put(tmp, s.nx);
+  delete [] tmp;
+  tmp = new float[s.ny];
+  tmp[0] = -(((float) s.ny-1)/2.0) * incr;
+  for (int i = 1; i < s.ny; i ++)
+    tmp[i] = tmp[i-1] + incr;
+  jxvar->put(tmp, s.ny);
+  delete [] tmp;
 
   f->sync();
 
@@ -1049,6 +1094,16 @@ void domNc::write(domain_data &d)
   NcDim *kz = f->add_dim("kz", d.nz);
 
   // Add time independent variables
+  NcVar *iyvar = f->add_var("iy", ncFloat, iy);
+  iyvar->add_att("long_name", "y-coordinate in Cartesian system");
+  iyvar->add_att("standard_name", "projection_y_coordinate");
+  iyvar->add_att("axis", "Y");
+  iyvar->add_att("units", "m");
+  NcVar *jxvar = f->add_var("jx", ncFloat, jx);
+  jxvar->add_att("long_name", "x-coordinate in Cartesian system");
+  jxvar->add_att("standard_name", "projection_x_coordinate");
+  jxvar->add_att("axis", "X");
+  jxvar->add_att("units", "m");
   NcVar *sigfvar = f->add_var("level", ncFloat, kz);
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
@@ -1115,6 +1170,19 @@ void domNc::write(domain_data &d)
   maskvar->add_att("units", "1");
 
   sigfvar->put(d.hsigm, d.nz);
+  float *tmp = new float[d.nx];
+  tmp[0] = -(((float) d.nx-1)/2.0) * d.ds;
+  for (int i = 1; i < d.nx; i ++)
+    tmp[i] = tmp[i-1] + d.ds;
+  iyvar->put(tmp, d.nx);
+  delete [] tmp;
+  tmp = new float[d.ny];
+  tmp[0] = -(((float) d.ny-1)/2.0) * d.ds;
+  for (int i = 1; i < d.ny; i ++)
+    tmp[i] = tmp[i-1] + d.ds;
+  jxvar->put(tmp, d.ny);
+  delete [] tmp;
+
   ptopvar->put(&d.ptop, 1);
   xlatvar->put(d.xlat, d.nx, d.ny);
   xlonvar->put(d.xlon, d.nx, d.ny);
@@ -1179,6 +1247,16 @@ bcNc::bcNc(char *fname, char *experiment, domain_data &d)
   timevar->add_att("units", "hours since 1970-01-01 00:00:00 UTC");
 
   // Add time independent variables
+  NcVar *iyvar = f->add_var("iy", ncFloat, iy);
+  iyvar->add_att("long_name", "y-coordinate in Cartesian system");
+  iyvar->add_att("standard_name", "projection_y_coordinate");
+  iyvar->add_att("axis", "Y");
+  iyvar->add_att("units", "m");
+  NcVar *jxvar = f->add_var("jx", ncFloat, jx);
+  jxvar->add_att("long_name", "x-coordinate in Cartesian system");
+  jxvar->add_att("standard_name", "projection_x_coordinate");
+  jxvar->add_att("axis", "X");
+  jxvar->add_att("units", "m");
   NcVar *sigfvar = f->add_var("level", ncFloat, kz);
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
@@ -1248,6 +1326,18 @@ bcNc::bcNc(char *fname, char *experiment, domain_data &d)
   for (int i = 0; i < d.nz; i ++)
     tmp[i] = d.hsigm[d.nz-1-i];
   sigfvar->put(tmp, d.nz);
+  delete [] tmp;
+  tmp = new float[d.nx];
+  tmp[0] = -(((float) d.nx-1)/2.0) * d.ds;
+  for (int i = 1; i < d.nx; i ++)
+    tmp[i] = tmp[i-1] + d.ds;
+  iyvar->put(tmp, d.nx);
+  delete [] tmp;
+  tmp = new float[d.ny];
+  tmp[0] = -(((float) d.ny-1)/2.0) * d.ds;
+  for (int i = 1; i < d.ny; i ++)
+    tmp[i] = tmp[i-1] + d.ds;
+  jxvar->put(tmp, d.ny);
   delete [] tmp;
   ptopvar->put(&d.ptop, 1);
   xlatvar->put(d.xlat, d.nx, d.ny);
