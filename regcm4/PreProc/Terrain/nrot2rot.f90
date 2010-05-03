@@ -26,8 +26,7 @@
 !
       real(8) :: lam , lams , phi , phis , pollat , pollon
       intent (in) lam , phi , pollat , pollon
-      intent (out) lams
-      intent (inout) phis
+      intent (out) lams , phis
 !
 ! Local variables
 !
@@ -72,9 +71,9 @@
       zlam = d2r*zlam
       zarg1 = -sin(zlam-zlampol)*cos(zphi)
       zarg2 = -zsinpol*cos(zphi)*cos(zlam-zlampol) + zcospol*sin(zphi)
-      if ( abs(zarg2)>=1.E-30 ) then
+      if ( abs(zarg2)>=1.E-37 ) then
         lams = r2d*atan2(zarg1,zarg2)
-      else if ( abs(zarg1)<1.E-30 ) then
+      else if ( abs(zarg1)<1.E-37 ) then
         lams = 0.0
       else if ( zarg1>0. ) then
         lams = 90.0

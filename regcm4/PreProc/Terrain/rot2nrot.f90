@@ -70,9 +70,9 @@
       zarg2 = cos(zlampol)                                              &
             & *(-zsinpol*cos(zlams)*cos(zphis)+zcospol*sin(zphis))      &
             & + sin(zlampol)*sin(zlams)*cos(zphis)
-      if ( abs(zarg2)>=1.E-30 ) then
+      if ( abs(zarg2)>=1.E-37 ) then
         lam = r2d*atan2(zarg1,zarg2)
-      else if ( abs(zarg1)<1.E-30 ) then
+      else if ( abs(zarg1)<1.E-37 ) then
         lam = 0.0
       else if ( zarg1>0. ) then
         lam = 90.0
