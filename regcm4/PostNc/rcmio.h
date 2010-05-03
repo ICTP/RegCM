@@ -100,6 +100,36 @@ namespace rcm
       float *mask;
   };
 
+  // DOMAIN data
+  class domain_data {
+    public:
+      domain_data( );
+      ~domain_data( );
+      // Dimensions
+      unsigned int nx, ny, nz;
+      // Geolocation
+      char proj[7];
+      float clat, clon, ds, xplat, xplon, grdfac, trlat1, trlat2;
+      // Vertical sigma levels ant top pressure
+      float ptop;
+      int n2D;
+      char *buffer;
+      float *hsigf;
+      float *hsigm;
+      float *ht;
+      float *htsd;
+      float *landuse;
+      float *xlat;
+      float *xlon;
+      float *dlat;
+      float *dlon;
+      float *xmap;
+      float *dmap;
+      float *coriol;
+      float *snowam;
+      float *mask;
+  };
+
   class subdom_data {
     public:
       subdom_data( );
@@ -270,6 +300,7 @@ namespace rcm
       rcmio(char *dirname, bool lbig, bool ldirect);
       ~rcmio( );
       void read_header(header_data &h);
+      void read_domain(char *name, domain_data &d);
       void read_subdom(header_data &h, subdom_data &s);
       int atmo_read_tstep(atmodata &a);
       int srf_read_tstep(srfdata &a);

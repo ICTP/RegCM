@@ -408,6 +408,18 @@ srfdata::~srfdata( )
   delete [] buffer;
 }
 
+domain_data::domain_data( )
+{
+  n2D = 14;
+  nx = ny = nz = 0;
+  buffer = 0;
+}
+
+domain_data::~domain_data( )
+{
+  if (buffer) delete [ ] buffer;
+}
+
 subdata::subdata(header_data &h, subdom_data &s)
 {
   date0 = h.idate1;
@@ -447,7 +459,8 @@ rcmio::rcmio(char *directory, bool lbig, bool ldirect)
 
   // direct access or sequential file ?
   doseq = ! ldirect;
-  strncpy(outdir, directory, PATH_MAX);
+  if (directory != NULL)
+    strncpy(outdir, directory, PATH_MAX);
 
   // All to false
   initatm = false;
@@ -479,6 +492,155 @@ subdom_data::~subdom_data( )
   if (xmap) delete [] xmap;
   if (coriol) delete [] coriol;
   if (mask) delete [] mask;
+}
+
+void rcmio::read_domain(char *name, domain_data &d)
+{
+  std::ifstream rcmf;
+  rcmf.open(name, std::ios::binary);
+  if (! rcmf.good()) throw "Invalid Input. Cannot open.";
+
+  // Read entire file
+  size_t len;
+  rcmf.seekg (0, std::ios::end);
+  len = rcmf.tellg();
+  rcmf.seekg (0, std::ios::beg);
+
+  // Check for minimal size for reading in basic informations
+  size_t minsize = 3*sizeof(int);
+  if (doseq) minsize += sizeof(int);
+
+  if (len <= minsize)
+  {
+    throw "DOMAIN.INFO file size is too short.";
+  }
+
+  char *buffer = new char[len];
+  rcmf.read(buffer, len);
+  rcmf.close();
+
+  char *buf = buffer;
+  if (doseq) buf = buf+sizeof(int);
+
+  // Read dimensions
+  d.nx = intvalfrombuf(buf); buf = buf + sizeof(int);
+  d.ny = intvalfrombuf(buf); buf = buf + sizeof(int);
+  d.nz = intvalfrombuf(buf); buf = buf + sizeof(int);
+  if (d.nx <= 0 || d.ny <= 0 || d.nz <= 0)
+  {
+    throw "DOMAIN.INFO dims inconsistent";
+  }
+  // Now I have record len of fortran I/O
+  int nvals = d.nx*d.ny;
+  size_t size2D = nvals*sizeof(float);
+  d.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
+  d.clat = rvalfrombuf(buf); buf = buf + sizeof(float);
+  d.clon = rvalfrombuf(buf); buf = buf + sizeof(float);
+  d.xplat = rvalfrombuf(buf); buf = buf + sizeof(float);
+  d.xplon = rvalfrombuf(buf); buf = buf + sizeof(float);
+  d.grdfac = rvalfrombuf(buf); buf = buf + sizeof(float);
+  d.proj[6] = 0;
+  memcpy(d.proj, buf, 6); buf = buf + 6;
+  // Calculate and store half sigma levels
+  if (d.hsigf) delete [] d.hsigf;
+  if (d.hsigm) delete [] d.hsigm;
+  d.hsigf = new float[d.nz+1];
+  d.hsigm = new float[d.nz];
+  for (int i = 0; i < d.nz+1; i ++)
+  {
+    d.hsigf[i] = rvalfrombuf(buf); buf = buf + sizeof(float);
+  }
+  for (int i = 0; i < d.nz; i ++)
+    d.hsigm[i] = d.hsigf[i]+0.5*(d.hsigf[i+1]-d.hsigf[i]);
+  d.ptop = rvalfrombuf(buf); buf = buf + sizeof(float);
+  d.ptop *= 10.0; // Put in hPa from cbar
+  // skip I/O flags
+  buf = buf + sizeof(int);
+  buf = buf + sizeof(int);
+  d.trlat1 = rvalfrombuf(buf); buf = buf + sizeof(float);
+  d.trlat2 = rvalfrombuf(buf); buf = buf + sizeof(float);
+  
+  // First record is mostly empty except above infos
+  buf = buffer + nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.buffer = new char[nvals*d.n2D*sizeof(float)];
+  char *p = (char *) d.buffer;
+
+  d.ht = (float *) p;
+  vectorfrombuf(buf, d.ht, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.htsd = (float *) p;
+  vectorfrombuf(buf, d.htsd, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.landuse = (float *) p;
+  vectorfrombuf(buf, d.landuse, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.xlat = (float *) p;
+  vectorfrombuf(buf, d.xlat, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.xlon = (float *) p;
+  vectorfrombuf(buf, d.xlon, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.dlat = (float *) p;
+  vectorfrombuf(buf, d.dlat, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.dlon = (float *) p;
+  vectorfrombuf(buf, d.dlon, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.xmap = (float *) p;
+  vectorfrombuf(buf, d.xmap, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.dmap = (float *) p;
+  vectorfrombuf(buf, d.dmap, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.coriol = (float *) p;
+  vectorfrombuf(buf, d.coriol, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.snowam = (float *) p;
+  vectorfrombuf(buf, d.snowam, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  d.mask = (float *) p;
+  vectorfrombuf(buf, d.mask, nvals);
+  buf += nvals*sizeof(float);
+  p += nvals*sizeof(float);
+  if (doseq) buf = buf + 2*sizeof(int);
+
+  delete [ ] buffer;
+  return;
 }
 
 void rcmio::read_subdom(header_data &h, subdom_data &s)
