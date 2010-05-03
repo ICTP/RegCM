@@ -1244,7 +1244,11 @@ bcNc::bcNc(char *fname, char *experiment, domain_data &d)
   maskvar->add_att("standard_name", "land_binary_mask");
   maskvar->add_att("units", "1");
 
-  sigfvar->put(d.hsigm, d.nz);
+  float *tmp = new float[d.nz];
+  for (int i = 0; i < d.nz; i ++)
+    tmp[i] = d.hsigm[d.nz-1-i];
+  sigfvar->put(tmp, d.nz);
+  delete [] tmp;
   ptopvar->put(&d.ptop, 1);
   xlatvar->put(d.xlat, d.nx, d.ny);
   xlonvar->put(d.xlon, d.nx, d.ny);
@@ -1397,6 +1401,7 @@ void bcNc::put_rec(bcdata &b)
   vvar->put_rec(b.v, rcount);
   tvar->put_rec(b.t, rcount);
   qvvar->put_rec(b.q, rcount);
+  for (int i = 0; i < b.size2D; i ++) b.px[i] *= 10.0;
   psvar->put_rec(b.px, rcount);
   tsvar->put_rec(b.ts, rcount);
   if (b.eh50)
