@@ -26,12 +26,9 @@ include ../Makefile.inc
 all: dom2netcdf icbc2netcdf rcm2netcdf
 
 CXX = icpc
-CXX = g++
 CXXFLAGS = -O2 -g
 CPPFLAGS = -I. $(NETCDFINC) $(SVNDEF)
-CPPFLAGS = -I. $(SVNDEF)
 LIBS = $(NETCDFLIB) -lnetcdf_c++ -lnetcdf
-LIBS = -lnetcdf_c++ -lnetcdf
 
 OBJS = rcminp.o rcmio.o rcmNc.o calc.o
 
