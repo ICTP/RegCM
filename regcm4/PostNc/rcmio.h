@@ -130,6 +130,38 @@ namespace rcm
       float *mask;
   };
 
+  // ICBC data
+  class bcdata {
+    public:
+      bcdata(domain_data &d, int idate0);
+      ~bcdata();
+      float *u;
+      float *v;
+      float *t;
+      float *q;
+      float *px;
+      float *ts;
+      // Present so4?
+      bool eh50;
+      float *so4;
+      // Present usgs soil?
+      bool usgs;
+      float *sm;
+      float *icet;
+      float *soilt;
+      float *snowd;
+      int date0;
+      int date1;
+      size_t datasize;
+      int n2D;
+      int n3D;
+      int nz;
+      size_t size2D;
+      size_t size3D;
+      int nvals;
+      char *buffer;
+  };
+
   class subdom_data {
     public:
       subdom_data( );
@@ -303,16 +335,18 @@ namespace rcm
       void read_domain(char *name, domain_data &d);
       void read_subdom(header_data &h, subdom_data &s);
       int atmo_read_tstep(atmodata &a);
-      int srf_read_tstep(srfdata &a);
-      int rad_read_tstep(raddata &a);
-      int che_read_tstep(chedata &a);
-      int sub_read_tstep(subdata &a);
+      int srf_read_tstep(srfdata &s);
+      int rad_read_tstep(raddata &r);
+      int che_read_tstep(chedata &c);
+      int sub_read_tstep(subdata &u);
+      int bc_read_tstep(bcdata &b);
       bool has_atm;
       bool has_che;
       bool has_srf;
       bool has_rad;
       bool has_sub;
     private:
+      int find_nextstep(std::ifstream &f, size_t recsize, size_t end);
       inline void swap2(char *p)
       {
         unsigned short *x;
@@ -396,6 +430,10 @@ namespace rcm
       bool initsub;
       std::ifstream subf;
       size_t subsize;
+      // BC pieces
+      bool initbc;
+      std::ifstream bcf;
+      size_t bcsize;
       // just I/O space
       char *storage;
       size_t readsize;

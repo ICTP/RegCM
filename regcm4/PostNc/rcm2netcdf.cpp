@@ -28,6 +28,7 @@
 #include <cstring>
 #include <cstdio>
 #include <ctime>
+#include <cstdlib>
 #include <libgen.h>
 #include <unistd.h>
 #include <getopt.h>
@@ -349,6 +350,8 @@ int main(int argc, char *argv[])
     }
 
     outhead.free_space( );
+    free(experiment);
+    free(regcmin);
   }
   catch (const char *e)
   {

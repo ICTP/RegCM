@@ -23,12 +23,15 @@
 
 include ../Makefile.inc
 
-all: rcm2netcdf dom2netcdf
+all: dom2netcdf icbc2netcdf rcm2netcdf
 
 CXX = icpc
+CXX = g++
 CXXFLAGS = -O2 -g
 CPPFLAGS = -I. $(NETCDFINC) $(SVNDEF)
+CPPFLAGS = -I. $(SVNDEF)
 LIBS = $(NETCDFLIB) -lnetcdf_c++ -lnetcdf
+LIBS = -lnetcdf_c++ -lnetcdf
 
 OBJS = rcminp.o rcmio.o rcmNc.o calc.o
 
@@ -46,5 +49,8 @@ rcm2netcdf: rcm2netcdf.cpp $(OBJS)
 dom2netcdf: dom2netcdf.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< $(OBJS) $(LIBS)
 
+icbc2netcdf: icbc2netcdf.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< $(OBJS) $(LIBS)
+
 clean:
-	rm -f rcm2netcdf dom2netcdf *.o
+	rm -f rcm2netcdf dom2netcdf icbc2netcdf *.o

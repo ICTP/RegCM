@@ -278,6 +278,22 @@ const char *tftostring(const char *tf)
   return "Yes";
 }
 
+bcdata::bcdata(domain_data &d, int idate0)
+{
+  date0 = idate0;
+  size2D = d.nx*d.ny;
+  size3D = size2D*d.nz;
+  nz = d.nz;
+  eh50 = false;
+  usgs = false;
+  buffer = 0;
+}
+
+bcdata::~bcdata()
+{
+  if (buffer) delete [] buffer;
+}
+
 atmodata::atmodata(header_data &h)
 {
   date0 = h.idate1;
@@ -413,11 +429,14 @@ domain_data::domain_data( )
   n2D = 14;
   nx = ny = nz = 0;
   buffer = 0;
+  hsigf = hsigm = 0;
 }
 
 domain_data::~domain_data( )
 {
   if (buffer) delete [ ] buffer;
+  if (hsigf) delete [ ] hsigf;
+  if (hsigm) delete [ ] hsigm;
 }
 
 subdata::subdata(header_data &h, subdom_data &s)
@@ -473,6 +492,7 @@ rcmio::rcmio(char *directory, bool lbig, bool ldirect)
   has_rad = false;
   initsub = false;
   has_sub = false;
+  initbc  = false;
   storage = 0;
 }
 
@@ -1228,6 +1248,157 @@ int rcmio::che_read_tstep(chedata &c)
     }
   }
   vectorfrombuf(storage, (float *) c.buffer, c.nvals);
+  return 0;
+}
+
+int rcmio::find_nextstep(std::ifstream &f, size_t recsize, size_t end)
+{
+  char check[3*sizeof(int)];
+  char tbc[3*sizeof(int)];
+
+  // Goto begin, skip time integer
+  f.seekg(0, std::ios::beg);
+  if (doseq) f.seekg(sizeof(int), std::ios::cur);
+  f.seekg(sizeof(int), std::ios::cur);
+
+  // Read three integers (nx, ny, nz)
+  f.read(check, 3*sizeof(int));
+  // Goto next record
+  f.seekg(recsize, std::ios::beg);
+  if (doseq) f.seekg(2*sizeof(int), std::ios::cur);
+
+  int irec = 1;
+  size_t pos;
+  // Start search
+  while ((pos = f.tellg( )) < end)
+  {
+    f.seekg (sizeof(int), std::ios::cur);
+    f.read(tbc, 3*sizeof(int));
+    if (memcmp((const void *) tbc, (const void *) check, 3*sizeof(int)) == 0)
+    {
+      // Found again nx, ny, nz
+      f.seekg (0, std::ios::beg);
+      return irec;
+    }
+    // This is not a new time. Goto next
+    f.seekg(pos, std::ios::beg);
+    f.seekg(recsize, std::ios::cur);
+    if (doseq) f.seekg (2*sizeof(int), std::ios::cur);
+    irec ++;
+  }
+  f.seekg (0, std::ios::beg);
+  return irec;
+}
+
+int rcmio::bc_read_tstep(bcdata &b)
+{
+  if (! initbc)
+  {
+    // Open BC file
+    char fname[PATH_MAX];
+    sprintf(fname, "%s%sICBC%d", outdir, separator, b.date0);
+    bcf.open(fname, std::ios::binary);
+    if (! bcf.good()) return -1;
+
+    bcf.seekg (0, std::ios::end);
+    bcsize = bcf.tellg();
+    bcf.seekg (0, std::ios::beg);
+
+    b.n3D = 4;
+    int baserec = b.n3D*b.nz+3;
+    int baseso4 = baserec+1;
+    int baseusg = baserec+13;
+    int allrecs = baserec+14;
+
+    int nrecs = find_nextstep(bcf, b.size2D*sizeof(float), bcsize);
+    if (nrecs == baserec)
+    {
+      b.n2D = 3;
+      b.eh50 = false;
+      b.usgs = false;
+    }
+    else if (nrecs == baseso4)
+    {
+      b.n2D = 4;
+      b.eh50 = true;
+      b.usgs = false;
+    }
+    else if (nrecs == baseusg)
+    {
+      b.n2D = 16;
+      b.eh50 = false;
+      b.usgs = true;
+    }
+    else if (nrecs == allrecs)
+    {
+      b.n2D = 17;
+      b.eh50 = true;
+      b.usgs = true;
+    } 
+    else
+    {
+      std::cerr << "Found NREC = " << nrecs << std::endl;
+      throw "Cannot find lsmtyp and dattyp";
+    }
+    b.nvals = b.n3D*b.size3D + (b.n2D-1)*b.size2D;
+    b.datasize = b.nvals*sizeof(float);
+    b.buffer = new char[b.datasize];
+    readsize = b.datasize+b.size2D*sizeof(float);
+    if (doseq)
+      readsize = readsize+(b.n3D+b.n2D)*2*sizeof(int);
+    storage = new char[readsize];
+
+    b.u = (float *) b.buffer;
+    b.v = b.u + b.size3D;
+    b.t = b.v + b.size3D;
+    b.q = b.t + b.size3D;
+    b.px = b.q + b.size3D;
+    b.ts = b.px + b.size2D;
+    float *pnt = b.ts + b.size2D;
+    if (b.eh50)
+    {
+      b.so4 = pnt;
+      pnt += b.size2D;
+    }
+    if (b.usgs)
+    {
+      b.sm = pnt;
+      b.icet = b.sm + 4 * b.size2D;
+      b.soilt = b.icet + 4 * b.size2D;
+      b.snowd = b.icet + 4 * b.size2D;
+    }
+    initbc = true;
+  }
+  size_t pos = bcf.tellg( );
+  if (pos+readsize > bcsize)
+  {
+    delete [] storage;
+    storage = 0;
+    bcf.close();
+    return 1;
+  }
+  bcf.read(storage, readsize);
+  if (doseq)
+  {
+    char *p1 = storage;
+    char *p2 = storage;
+    for (int i = 0; i < b.n3D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, b.size3D*sizeof(float));
+      p2 += b.size3D*sizeof(float);
+      p1 += b.size3D*sizeof(float)+sizeof(int);
+    }
+    for (int i = 0; i < b.n2D; i ++)
+    {
+      p1 += sizeof(int);
+      memcpy(p2, p1, b.size2D*sizeof(float));
+      p2 += b.size2D*sizeof(float);
+      p1 += b.size2D*sizeof(float)+sizeof(int);
+    }
+  }
+  b.date1 = intvalfrombuf(storage);
+  vectorfrombuf(storage+b.size2D*sizeof(float), (float *) b.buffer, b.nvals);
   return 0;
 }
 

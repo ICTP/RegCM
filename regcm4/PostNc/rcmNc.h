@@ -30,6 +30,47 @@
 
 namespace rcm
 {
+  class domNc {
+    public:
+      domNc(char *fname, char *experiment);
+      ~domNc();
+      void write(domain_data &d);
+    private:
+      NcFile *f;
+  };
+
+  class bcNc {
+    public:
+      bcNc(char *fname, char *experiment, domain_data &d);
+      ~bcNc( );
+      void put_rec(bcdata &b);
+    private:
+      NcFile *f;
+      NcDim *iy;
+      NcDim *jx;
+      NcDim *kz;
+      NcDim *tt;
+      NcDim *soil;
+      NcVar *timevar;
+      NcVar *uvar;
+      NcVar *vvar;
+      NcVar *tvar;
+      NcVar *qvvar;
+      NcVar *psvar;
+      NcVar *tsvar;
+      NcVar *so4var;
+      NcVar *smvar;
+      NcVar *itvar;
+      NcVar *stvar;
+      NcVar *snam;
+      unsigned long reference_time;
+      unsigned int rcount;
+      unsigned int tcount;
+      bool notinit;
+      bool secondt;
+      int dt;
+  };
+
   class rcmNc {
     public:
       rcmNc(char *fname, char *experiment, header_data &h, bool full);
