@@ -173,6 +173,13 @@
           stop
         end if
       end if
+      if (abs(lon1-lon0)<1E-30 .and. abs(lat1-lat0)<1E-30) then
+        print *, 'Assuming You have global dataset EH5OM'
+        lon0 = 0
+        lon1 = 358.125
+        lat0 = -89.0625
+        lat1 = 89.0625
+      end if
       numx = nint((lon1-lon0)/1.875) + 1
       numy = nint((lat1-lat0)/1.875) + 1
       if ( numx/=ilon .or. numy/=jlat ) then
@@ -435,7 +442,7 @@
         if ( ehso4 ) krec = 28*4
       end if
       if ( ehso4 ) then
-        read (62,rec=krec) offset , xscale ,                             &
+        read (62,rec=krec) offset , xscale ,                            &
                          & ((itmp(i,j),i=1,numx),j=1,numy)
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
@@ -445,10 +452,10 @@
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
             if ( numx==ilon .and. numy==jlat ) then
-              pso4_2(ii,49-j) = itmp(i2,j2)*xscale + offset +            &
+              pso4_2(ii,49-j) = itmp(i2,j2)*xscale + offset +           &
                               & pso4_0(ii,49-j)
             else
-              pso4_2(ii,j+jlat/2) = itmp(i2,j2)*xscale + offset +          &
+              pso4_2(ii,j+jlat/2) = itmp(i2,j2)*xscale + offset +       &
                                 & pso4_0(ii,j+jlat/2)
             end if
           end do
@@ -458,7 +465,7 @@
  
       do k = klev , 1 , -1
         nrec = nrec + 1
-        read (63,rec=nrec) offset , xscale ,                             &
+        read (63,rec=nrec) offset , xscale ,                            &
                          & ((itmp(i,j),i=1,numx),j=1,numy)
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
@@ -477,7 +484,7 @@
       end do
       do k = klev , 1 , -1
         nrec = nrec + 1
-        read (63,rec=nrec) offset , xscale ,                             &
+        read (63,rec=nrec) offset , xscale ,                            &
                          & ((itmp(i,j),i=1,numx),j=1,numy)
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
@@ -487,18 +494,18 @@
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
             if ( numx==ilon .and. numy==jlat ) then
-              rhvar(ii,49-j,k) = dmin1(dmax1(itmp(i2,j2)*xscale+offset,  &
+              rhvar(ii,49-j,k) = dmin1(dmax1(itmp(i2,j2)*xscale+offset, &
                                & 0.D0),1.D0)
             else
-              rhvar(ii,j+jlat/2,k) = dmin1(dmax1(itmp(i2,j2)*xscale+offset,&
-                                 & 0.D0),1.D0)
+              rhvar(ii,j+jlat/2,k) = dmin1(dmax1(itmp(i2,j2)*xscale+    &
+                              & offset,0.D0),1.D0)
             end if
           end do
         end do
       end do
       do k = klev , 1 , -1
         nrec = nrec + 1
-        read (63,rec=nrec) offset , xscale ,                             &
+        read (63,rec=nrec) offset , xscale ,                            &
                          & ((itmp(i,j),i=1,numx),j=1,numy)
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
@@ -517,7 +524,7 @@
       end do
       do k = klev , 1 , -1
         nrec = nrec + 1
-        read (63,rec=nrec) offset , xscale ,                             &
+        read (63,rec=nrec) offset , xscale ,                            &
                          & ((itmp(i,j),i=1,numx),j=1,numy)
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
@@ -536,7 +543,7 @@
       end do
       do k = klev , 1 , -1
         nrec = nrec + 1
-        read (63,rec=nrec) offset , xscale ,                             &
+        read (63,rec=nrec) offset , xscale ,                            &
                          & ((itmp(i,j),i=1,numx),j=1,numy)
         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
           do i = nint(lon0/1.875) , nint(lon1/1.875)
