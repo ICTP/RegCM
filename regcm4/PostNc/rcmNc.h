@@ -144,6 +144,8 @@ namespace rcm
       NcVar *w10maxvar;
       NcVar *ps_minvar;
       NcVar *r2mvar;
+      NcVar *tbnd;
+      double last_time;
   };
 
   class rcmNcRad : public rcmNc {

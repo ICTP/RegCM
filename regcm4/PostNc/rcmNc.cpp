@@ -113,6 +113,7 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
   sigfvar->add_att("positive", "down");
+  sigfvar->add_att("units", "1");
   sigfvar->add_att("axis", "Z");
   sigfvar->add_att("formula_terms", "sigma: level ps: psa ptop: ptop");
   NcVar *ptopvar = f->add_var("ptop", ncFloat);
@@ -357,6 +358,13 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   NcDim *m10 = f->add_dim("m10", 1);
   NcDim *m2 = f->add_dim("m2", 1);
   NcDim *soil = f->add_dim("soil_layer", 2);
+  NcDim *nv = f->add_dim("nv", 2);
+
+  timevar->add_att("bounds", "time_bnds");
+
+  tbnd = f->add_var("time_bnds", ncFloat, tt, nv);
+  tbnd->add_att("calendar", "standard");
+  tbnd->add_att("units", "hours since 1970-01-01 00:00:00 UTC");
 
   NcVar *m10var = f->add_var("m10", ncFloat, m10);
   m10var->add_att("standard_name", "altitude");
@@ -386,6 +394,7 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   soilvar->put(val, 2);
 
   // Setup variables
+  char cell_method[64];
   u10mvar = f->add_var("u10m", ncFloat, tt, m10, iy, jx);
   u10mvar->add_att("standard_name", "eastward_wind");
   u10mvar->add_att("long_name", "10 meters U component (westerly) of wind");
@@ -495,44 +504,55 @@ rcmNcSrf::rcmNcSrf(char *fname, char *experiment, header_data &h)
   tgmaxvar->add_att("standard_name", "surface_temperature");
   tgmaxvar->add_att("long_name", "Maximum surface temperature");
   tgmaxvar->add_att("coordinates", "xlon xlat");
-  tgmaxvar->add_att("cell_methods", "time: maximum within days");
+  sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
+  tgmaxvar->add_att("cell_methods", cell_method);
   tgmaxvar->add_att("units", "K");
   tgminvar = f->add_var("tgmin", ncFloat, tt, iy, jx);
   tgminvar->add_att("standard_name", "surface_temperature");
   tgminvar->add_att("long_name", "Maximum surface temperature");
   tgminvar->add_att("coordinates", "xlon xlat");
-  tgminvar->add_att("cell_methods", "time: minimum within days");
+  sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
+  tgminvar->add_att("cell_methods", cell_method);
   tgminvar->add_att("units", "K");
   t2maxvar = f->add_var("t2max", ncFloat, tt, m2, iy, jx);
   t2maxvar->add_att("standard_name", "air_temperature");
   t2maxvar->add_att("long_name", "Maximum 2 meters temperature");
   t2maxvar->add_att("coordinates", "xlon xlat");
-  t2maxvar->add_att("cell_methods", "time: maximum within days");
+  sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
+  t2maxvar->add_att("cell_methods", cell_method);
   t2maxvar->add_att("units", "K");
   t2minvar = f->add_var("t2min", ncFloat, tt, m2, iy, jx);
   t2minvar->add_att("standard_name", "air_temperature");
   t2minvar->add_att("long_name", "Minimum 2 meters temperature");
   t2minvar->add_att("coordinates", "xlon xlat");
-  t2minvar->add_att("cell_methods", "time: minimum within days");
+  sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
+  t2minvar->add_att("cell_methods", cell_method);
   t2minvar->add_att("units", "K");
   w10maxvar = f->add_var("w10max", ncFloat, tt, m10, iy, jx);
   w10maxvar->add_att("standard_name", "wind_speed");
   w10maxvar->add_att("long_name", "Maximum speed of 10m wind");
   w10maxvar->add_att("coordinates", "xlon xlat");
-  w10maxvar->add_att("cell_methods", "time: maximum within days");
+  sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
+  w10maxvar->add_att("cell_methods", cell_method);
   w10maxvar->add_att("units", "m/s");
   ps_minvar = f->add_var("ps_min", ncFloat, tt, iy, jx);
   ps_minvar->add_att("standard_name", "air_pressure");
   ps_minvar->add_att("long_name", "Surface pressure");
   ps_minvar->add_att("coordinates", "xlon xlat");
-  ps_minvar->add_att("cell_methods", "time: minimum within days");
+  sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
+  ps_minvar->add_att("cell_methods", cell_method);
   ps_minvar->add_att("units", "hPa");
+  last_time = reference_time;
 }
 
 void rcmNcSrf::put_rec(srfdata &s, t_srf_deriv &d)
 {
-  double xtime = reference_time + tcount*s.dt;
-  timevar->put_rec(&xtime, rcount);
+  double xtime[2];
+  xtime[0] = reference_time + tcount*s.dt;
+  xtime[1] = last_time;
+  timevar->put_rec(xtime, rcount);
+  tbnd->put_rec(xtime, rcount);
+  last_time = xtime[0];
   u10mvar->put_rec(s.u10m, rcount);
   v10mvar->put_rec(s.v10m, rcount);
   uvdragvar->put_rec(s.uvdrag, rcount);
@@ -1104,16 +1124,6 @@ void domNc::write(domain_data &d)
   jxvar->add_att("standard_name", "projection_x_coordinate");
   jxvar->add_att("axis", "X");
   jxvar->add_att("units", "m");
-  NcVar *sigfvar = f->add_var("level", ncFloat, kz);
-  sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
-  sigfvar->add_att("long_name", "Sigma at model layer midpoints");
-  sigfvar->add_att("positive", "down");
-  sigfvar->add_att("axis", "Z");
-  sigfvar->add_att("formula_terms", "sigma: level ps: psa ptop: ptop");
-  NcVar *ptopvar = f->add_var("ptop", ncFloat);
-  ptopvar->add_att("long_name", "Pressure at model top");
-  ptopvar->add_att("standard_name", "air_pressure");
-  ptopvar->add_att("units", "hPa");
   NcVar *xlatvar = f->add_var("xlat", ncFloat, iy, jx);
   xlatvar->add_att("standard_name", "latitude");
   xlatvar->add_att("long_name", "Latitude");
@@ -1169,7 +1179,6 @@ void domNc::write(domain_data &d)
   maskvar->add_att("standard_name", "land_binary_mask");
   maskvar->add_att("units", "1");
 
-  sigfvar->put(d.hsigm, d.nz);
   float *tmp = new float[d.nx];
   tmp[0] = -(((float) d.nx-1)/2.0) * d.ds;
   for (int i = 1; i < d.nx; i ++)
@@ -1183,7 +1192,6 @@ void domNc::write(domain_data &d)
   jxvar->put(tmp, d.ny);
   delete [] tmp;
 
-  ptopvar->put(&d.ptop, 1);
   xlatvar->put(d.xlat, d.nx, d.ny);
   xlonvar->put(d.xlon, d.nx, d.ny);
   dlatvar->put(d.dlat, d.nx, d.ny);
@@ -1261,6 +1269,7 @@ bcNc::bcNc(char *fname, char *experiment, domain_data &d)
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
   sigfvar->add_att("positive", "down");
+  sigfvar->add_att("units", "1");
   sigfvar->add_att("axis", "Z");
   sigfvar->add_att("formula_terms", "sigma: level ps: psa ptop: ptop");
   NcVar *ptopvar = f->add_var("ptop", ncFloat);
