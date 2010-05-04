@@ -37,6 +37,13 @@
       logical smthbdy   ! TRUE=Perform extra smoothing in boundaries
       logical lakadj    ! TRUE=Adjust Great Lakes Levels according to obs
 
+      integer itype_in  ! Input format,
+!                         itype_in = 1, direct access binary;
+!                         itype_in = 2, netcdf format.
+!     integer itype_out ! Output format,
+!                         itype_out = 1, direct access binary;
+!                         itype_out = 2, netcdf format.
+
       integer igrads    ! output GrADS control file, 1 Yes (0 No)
       integer ibigend   ! 1 for big-endian binary computer (SUN, SGI, IBM)
 !                       ! 0 for little-endian binary computer (PC LINUX, DEC)
@@ -123,6 +130,9 @@
       parameter(smthbdy=.false.)! Smoothing of boundaries
       parameter(lakadj=.false.) ! Adjust Great Lakes levels (for US domain)
 
+      parameter(itype_in =1)    ! Input  format
+!     parameter(itype_out=1)    ! Output format
+
       parameter(igrads=1)       ! Output GrADS control file?
       parameter(ibigend=1)      ! 1=big-endian; (always 1)
       parameter(ibyte=4)        ! For direct access open statements (1 or 4)
@@ -138,11 +148,11 @@
 
 ! The following parameters can be reset later in RegCM/ICBC/icbc.param
       parameter(IDATE1=1991010100)  ! First date of simulation
-      parameter(IDATE2=1992010100)  ! Last  date of simulation
+      parameter(IDATE2=1991020100)  ! Last  date of simulation
 !DATTYP: (ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,NRP2W,GFS11,FVGCM,FNEST,EH5OM)
       parameter(DATTYP='EIN75')
       ! SSTTYP : (GISST,OISST,OI_WK,FV_RF,FV_A2,FV_B2,EH5RF,EH5A2,EH5B1,EHA1B,ERSST,ERSKT)
-      ???????? parameter(SSTTYP='OI_WK')
+      parameter(SSTTYP='OI_WK')
       parameter(EHSO4 =.false.)
       parameter(LSMTYP='BATS')      ! LANDUSE legend (BATS or USGS)
       parameter(nveg=20)            ! Number of LANDUSE categories

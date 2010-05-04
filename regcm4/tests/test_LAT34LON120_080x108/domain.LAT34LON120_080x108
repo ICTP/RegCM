@@ -136,7 +136,7 @@
 
       parameter(igrads=1)       ! Output GrADS control file?
       parameter(ibigend=1)      ! 1=big-endian; (always 1)
-      parameter(ibyte=1)        ! For direct access open statements (1 or 4)
+      parameter(ibyte=4)        ! For direct access open statements (1 or 4)
 
       parameter(FUDGE_LND=.false.)  ! LANDUSE adjustments?
       parameter(FUDGE_LND_s=.false.)! Subgrid LANDUSE adjustments?
@@ -148,8 +148,8 @@
       parameter(filctl='../../Input/DOMAIN.CTL')  ! Location/name of GrADS ctl
 
 ! The following parameters can be reset later in RegCM/ICBC/icbc.param
-      parameter(IDATE1=1994040100)  ! First date of simulation
-      parameter(IDATE2=1995100100)  ! Last  date of simulation
+      parameter(IDATE1=1994010100)  ! First date of simulation
+      parameter(IDATE2=1994020100)  ! Last  date of simulation
 !DATTYP: (ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,NRP2W,GFS11,FVGCM,FNEST,EH5OM)
       parameter(DATTYP='ERA40')
       ! SSTTYP : (GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,EH5A2,EH5B1,EHA1B,ERSST,ERSKT)
@@ -160,4 +160,4 @@
                                     ! 20 for BATS, 25 for USGS.
       parameter(AERTYP='AER00D0')   ! AEROSOL TYPE option,
       parameter(ntex=17)            ! Number of SOIL TEXTURE categories
-      parameter(NPROC=2)            ! Number of CPU used for parallel job. 
+      parameter(NPROC=8)            ! Number of CPU used for parallel job. 
