@@ -17,7 +17,14 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_fudge
+
+      implicit none
+
+      contains
+
       subroutine lndfudge(fudge,ch,lndout,htgrid,iy,jx,lsmtyp,char_lnd)
+
       implicit none
 !
 ! Dummy arguments
@@ -101,7 +108,7 @@
         else
           do j = 1 , jx
             do i = 1 , iy
-              if ( nint(lndout(i,j))==15 ) then
+              if ( nint(lndout(i,j))==15 .or. nint(lndout(i,j))==0 ) then
                 ch(i,j) = ' '
               else if ( nint(lndout(i,j))==1 ) then
                 ch(i,j) = '1'
@@ -295,3 +302,199 @@
       end if
 99001 format (132A1)
       end subroutine lndfudge
+
+      subroutine texfudge(fudge,ch,texout,htgrid,iy,jx,char_tex)
+      implicit none
+!
+! Dummy arguments
+!
+      character(10) :: char_tex
+      logical :: fudge
+      integer :: iy , jx
+      character(1) , dimension(iy,jx) :: ch
+      real(4) , dimension(iy,jx) :: htgrid , texout
+      intent (in) char_tex , fudge , iy , jx
+      intent (out) htgrid
+      intent (inout) ch , texout
+!
+! Local variables
+!
+      integer :: i , j
+!
+      if ( fudge ) then
+        open (13,file=char_tex,form='formatted')
+        do i = iy , 1 , -1
+          read (13,99001) (ch(i,j),j=1,jx)
+        end do
+        close (13)
+        do j = 1 , jx
+          do i = 1 , iy
+            if ( ch(i,j)==' ' ) then
+              texout(i,j) = 14.
+            else if ( ch(i,j)=='1' ) then
+              texout(i,j) = 1.
+            else if ( ch(i,j)=='2' ) then
+              texout(i,j) = 2.
+            else if ( ch(i,j)=='3' ) then
+              texout(i,j) = 3.
+            else if ( ch(i,j)=='4' ) then
+              texout(i,j) = 4.
+            else if ( ch(i,j)=='5' ) then
+              texout(i,j) = 5.
+            else if ( ch(i,j)=='6' ) then
+              texout(i,j) = 6.
+            else if ( ch(i,j)=='7' ) then
+              texout(i,j) = 7.
+            else if ( ch(i,j)=='8' ) then
+              texout(i,j) = 8.
+            else if ( ch(i,j)=='9' ) then
+              texout(i,j) = 9.
+            else if ( ch(i,j)=='A' ) then
+              texout(i,j) = 10.
+            else if ( ch(i,j)=='B' ) then
+              texout(i,j) = 11.
+            else if ( ch(i,j)=='C' ) then
+              texout(i,j) = 12.
+            else if ( ch(i,j)=='D' ) then
+              texout(i,j) = 13.
+            else if ( ch(i,j)=='E' ) then
+              texout(i,j) = 14.
+            else if ( ch(i,j)=='F' ) then
+              texout(i,j) = 15.
+            else if ( ch(i,j)=='G' ) then
+              texout(i,j) = 16.
+            else if ( ch(i,j)=='H' ) then
+              texout(i,j) = 17.
+            else if ( nint(texout(i,j))==0 ) then
+!             ch(i,j) = 'X'
+              ch(i,j) = ' '
+            else
+              write (*,*) 'TEXTURE TYPE exceed the limit'
+              stop
+            end if
+            if ( nint(texout(i,j))==14 ) htgrid(i,j) = 0.0
+          end do
+        end do
+      else
+        do j = 1 , jx
+          do i = 1 , iy
+            if ( nint(texout(i,j))==14 ) then
+              ch(i,j) = ' '
+            else if ( nint(texout(i,j))==1 ) then
+              ch(i,j) = '1'
+            else if ( nint(texout(i,j))==2 ) then
+              ch(i,j) = '2'
+            else if ( nint(texout(i,j))==3 ) then
+              ch(i,j) = '3'
+            else if ( nint(texout(i,j))==4 ) then
+              ch(i,j) = '4'
+            else if ( nint(texout(i,j))==5 ) then
+              ch(i,j) = '5'
+            else if ( nint(texout(i,j))==6 ) then
+              ch(i,j) = '6'
+            else if ( nint(texout(i,j))==7 ) then
+              ch(i,j) = '7'
+            else if ( nint(texout(i,j))==8 ) then
+              ch(i,j) = '8'
+            else if ( nint(texout(i,j))==9 ) then
+              ch(i,j) = '9'
+            else if ( nint(texout(i,j))==10 ) then
+              ch(i,j) = 'A'
+            else if ( nint(texout(i,j))==11 ) then
+              ch(i,j) = 'B'
+            else if ( nint(texout(i,j))==12 ) then
+              ch(i,j) = 'C'
+            else if ( nint(texout(i,j))==13 ) then
+              ch(i,j) = 'D'
+            else if ( nint(texout(i,j))==15 ) then
+              ch(i,j) = 'F'
+            else if ( nint(texout(i,j))==16 ) then
+              ch(i,j) = 'G'
+            else if ( nint(texout(i,j))==17 ) then
+              ch(i,j) = 'H'
+            else
+              write (*,*) 'TEXTURE TYPE' , nint(texout(i,j)) ,          &
+                         &'exceed the limit'
+              stop
+            end if
+          end do
+        end do
+        open (13,file=char_tex,form='formatted')
+        do i = iy , 1 , -1
+          write (13,99001) (ch(i,j),j=1,jx)
+        end do
+        close (13)
+      end if
+99001 format (132A1)
+      end subroutine texfudge
+
+      subroutine lakeadj(lsmtyp,lnduse,htgrid,xlat,xlon,imx,jmx)
+ 
+      implicit none
+!
+! PARAMETER definitions
+!
+      real(4) , parameter :: zerie = 174. , zhuron = 177. ,             &
+                           & zontar = 75. , zsup = 183. , zmich = 177.
+!
+! Dummy arguments
+!
+      integer :: imx , jmx
+      character(4) :: lsmtyp
+      real(4) , dimension(imx,jmx) :: htgrid , xlat , xlon
+      integer , dimension(imx,jmx) :: lnduse
+      intent (in) imx , jmx , lnduse , lsmtyp , xlat , xlon
+      intent (inout) htgrid
+!
+! Local variables
+!
+      integer :: i , j
+      real(4) :: xx , yy
+!
+!     ****  ADJUST GREAT LAKE ELEVATION **** C
+!
+      do i = 1 , imx
+        do j = 1 , jmx
+          if ( (lsmtyp=='BATS' .and. lnduse(i,j)==14) .or.              &
+              &(lsmtyp=='USGS' .and. lnduse(i,j)==16) ) then
+            xx = xlon(i,j)
+            yy = xlat(i,j)
+            if ( yy<=43.2 .and. yy>=41.0 .and. xx<=-78.0 .and.          &
+               & xx>=-84.0 ) then                       ! LAKE ERIE
+              print * , '**** ADUJUSTING LAKE ERIE LEVEL ****'
+              print * , '     NEW:' , zerie , '    OLD:' , htgrid(i,j) ,&
+                  & i , j
+              htgrid(i,j) = zerie
+            else if ( yy<=46.4 .and. yy>=43.0 .and. xx<=-79.9 .and.     &
+                    & yy>=-85.0 ) then                  ! LAKE HURON
+              print * , '**** ADUJUSTING LAKE HURON LEVEL ****'
+              print * , '     NEW:' , zhuron , '    OLD:' , htgrid(i,j) &
+                  & , i , j
+              htgrid(i,j) = zhuron
+            else if ( yy<=44.5 .and. yy>=43.2 .and. xx<=-75.0 .and.     &
+                    & yy>=-79.9 ) then                  ! LAKE ONTARIO
+              print * , '**** ADUJUSTING LAKE ONTARIO LEVEL ****'
+              print * , '     NEW:' , zontar , '    OLD:' , htgrid(i,j) &
+                  & , i , j
+              htgrid(i,j) = zontar
+            else if ( yy<=49.4 .and. yy>=46.2 .and. xx<=-84.2 .and.     &
+                    & xx>=-93.0 ) then                  ! LAKE SUPERIOR
+              print * , '**** ADUJUSTING LAKE SUPERIOR LEVEL ****'
+              print * , '     NEW:' , zsup , '    OLD:' , htgrid(i,j) , &
+                  & i , j
+              htgrid(i,j) = zsup
+            else if ( yy<=46.2 .and. yy>=41.0 .and. xx<=-84.8 .and.     &
+                    & xx>=-89.0 ) then                  ! LAKE MICHIGAN
+              print * , '**** ADUJUSTING LAKE MICHIGAN LEVEL ****'
+              print * , '     NEW:' , zmich , '    OLD:' , htgrid(i,j) ,&
+                  & i , j
+              htgrid(i,j) = zmich
+            else
+            end if
+          end if
+        end do
+      end do
+ 
+      end subroutine lakeadj
+
+      end module mod_fudge

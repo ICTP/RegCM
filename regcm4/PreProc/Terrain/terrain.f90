@@ -55,15 +55,14 @@
       use mod_preproc_param
       use mod_regcm_param , only : igrads , ibyte , lsmtyp , aertyp ,   &
              &               dattyp , ibigend , kz , iym2 , jxm2
-      use mod_aa
-      use mod_addstack
-      use mod_addstack2
-      use mod_block
-      use mod_const
-      use mod_icontr
+      use mod_regcm_param , only : iy , jx , nsg , iysg , jxsg
+      use mod_smooth , only : smth121 , smthtr
+      use mod_projections , only : lambrt , mappol , normer , rotmer
+      use mod_interp , only : anal2
+      use mod_fudge , only : lndfudge , texfudge , lakeadj
+      use mod_rdldtr , only : rdldtr , rdldtr_nc
       use mod_maps
-      use mod_maps_s
-      use mod_verts
+      use mod_block
       implicit none
 !
 ! Local variables
@@ -76,6 +75,17 @@
       integer :: minsize
       logical :: ibndry
       integer :: myid=1
+      integer :: nunitc , nunitc_s
+      real(4) :: clong
+      real(4) , dimension(iy,jx) :: corc , hscr1 , htsavc , sumc ,      &
+                                  & wtmaxc
+      real(4) , dimension(iy,jx,2) :: itex , land
+      integer , dimension(iy,jx) :: nsc
+      real(4) , dimension(iysg,jxsg) :: corc_s , hscr1_s , htsavc_s ,   &
+                                  & sumc_s , wtmaxc_s
+      real(4) , dimension(iysg,jxsg,2) :: itex_s , land_s
+      integer , dimension(iysg,jxsg) :: nsc_s
+      real(4) , dimension(kz+1) :: sigma
 !
 !     Preliminary consistency check to avoid I/O format errors
 !
@@ -161,12 +171,14 @@
 !
 !       read in the terrain & landuse data
         if ( itype_in==1 ) then
-          call rdldtr_s
+          call rdldtr(ntypec_s,nveg,ntex,lsmtyp,aertyp,ibyte)
           print * , 'after calling RDLDTR_s, for subgrid'
         else if ( itype_in==2 ) then
-          call rdldtr_s_nc
-          print * , 'after calling RDLDTR_s_nc, for subgrid'
+          call rdldtr_nc(ntypec_s,nveg,ntex,lsmtyp,aertyp)
+          print * , 'after calling RDLDTR_nc, for subgrid'
         else
+          print * , 'Unknown Itype for input'
+          stop
         endif
         if ( ifanal ) then
 !         convert xobs and yobs from LON and LAT to x and y in mesh
@@ -189,14 +201,14 @@
             end do
           end do
         else
-          call interp_s
+          call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s,htsdgrid_s)
           print * , 'after calling INTERP, for subgrid'
 !         print*, '  Note that the terrain standard deviation is'
 !         print*, '  underestimated using INTERP. (I dont know why?)'
         end if
 !       create surface landuse types
-        call surf(xlat_s,xlon_s,lnduse_s,iysg,jxsg,iter,jter,nnc,       &
-                & xnc,lndout_s,land_s,lnd8,nobs,grdltmn,grdlnmn,h2opct, &
+        call surf(xlat_s,xlon_s,lnduse_s,iysg,jxsg,nnc,       &
+                & xnc,lndout_s,land_s,nobs,h2opct, &
                 & lsmtyp,sanda_s,sandb_s,claya_s,clayb_s,frac_lnd_s,    &
                 & nveg,aertyp,intext_s,texout_s,frac_tex_s,ntex)
         print * , 'after calling SURF, for subgrid'
@@ -363,10 +375,10 @@
 !
 !     read in the terrain & landuse data
       if ( itype_in==1 ) then
-        call rdldtr
+        call rdldtr(ntypec,nveg,ntex,lsmtyp,aertyp,ibyte)
         print * , 'after calling RDLDTR'
       else if (itype_in==2 ) then
-        call rdldtr_nc
+        call rdldtr_nc(ntypec,nveg,ntex,lsmtyp,aertyp)
         print * , 'after calling RDLDTR_nc'
       else
       endif
@@ -394,7 +406,7 @@
           end do
         end do
       else
-        call interp
+        call interp(jx,iy,xlat,xlon,htgrid,htsdgrid)
 !       print*, 'after calling INTERP'
 !       print*, '  Note that the terrain standard deviation is'
 !       print*, '  underestimated using INTERP. (I dont know why!)'
@@ -402,8 +414,8 @@
  
  
 !     create surface landuse types
-      call surf(xlat,xlon,lnduse,iy,jx,iter,jter,nnc,xnc,lndout,land,   &
-              & lnd8,nobs,grdltmn,grdlnmn,h2opct,lsmtyp,sanda,sandb,    &
+      call surf(xlat,xlon,lnduse,iy,jx,nnc,xnc,lndout,land,   &
+              & nobs,h2opct,lsmtyp,sanda,sandb,    &
               & claya,clayb,frac_lnd,nveg,aertyp,intext,texout,frac_tex,&
               & ntex)
       print * , 'after calling SURF'
@@ -520,6 +532,7 @@
                 & truelath,xn,filout,lsmtyp,sanda,sandb,claya,clayb,    &
                 & frac_lnd,nveg,aertyp,texout,frac_tex,ntex)
       print * , 'after calling OUTPUT'
+      close (48, status='delete')
  
 !      stop 9999
 !

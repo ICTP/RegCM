@@ -20,10 +20,82 @@
       module mod_block
       implicit none
       integer :: nobs
+      integer :: nnc
       integer , parameter :: iter = 2400 , jter = 2400
       integer , parameter :: iblk = (iter*jter)/2
       real(4) , dimension(iblk,2) :: clay , sand
       real(4) , dimension(iblk) :: ht , ht2 , htsd
       real(4) , dimension(iblk) :: xobs , yobs
       real(8) , dimension(iter,jter) :: lnd8
+      real(4) , dimension(50) :: stores
+      real(4) :: grdlnmn , grdltmn
+      real(4) :: xmaxlat , xmaxlon , xminlat , xminlon
+      real(4) :: dsinm , rin , xn , xnc
+      real(4) :: dxcen , dycen
+
+      contains
+
+      subroutine mxmnll(iy,jx,clon,xlon,xlat,ntypec)
+      implicit none
+!
+! Dummy arguments
+!
+      real(4) :: clon
+      integer :: iy , jx , ntypec
+      real(4) , dimension(iy,jx) :: xlat , xlon
+      intent (in) clon , iy , jx , ntypec , xlat , xlon
+!
+! Local variables
+!
+      integer :: i , j
+!
+!     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
+!
+      xmaxlat = -90
+      xminlat = 90
+      xminlon = 999999.
+      xmaxlon = -999999.
+!
+      do i = 1 , iy
+        do j = 1 , jx
+          xminlat = amin1(xminlat,xlat(i,j))
+          xmaxlat = amax1(xmaxlat,xlat(i,j))
+        end do
+      end do
+      do i = 1 , iy
+        do j = 1 , jx
+          if ( clon>=0.0 ) then
+            if ( xlon(i,j)>=0.0 ) then
+              xminlon = amin1(xminlon,xlon(i,j))
+              xmaxlon = amax1(xmaxlon,xlon(i,j))
+            else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)+360.)) )  &
+                    & then
+              xminlon = amin1(xminlon,xlon(i,j))
+              xmaxlon = amax1(xmaxlon,xlon(i,j))
+            else
+              xminlon = amin1(xminlon,xlon(i,j)+360.)
+              xmaxlon = amax1(xmaxlon,xlon(i,j)+360.)
+            end if
+          else if ( xlon(i,j)<0.0 ) then
+            xminlon = amin1(xminlon,xlon(i,j))
+            xmaxlon = amax1(xmaxlon,xlon(i,j))
+          else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)-360.)) )    &
+                  & then
+            xminlon = amin1(xminlon,xlon(i,j))
+            xmaxlon = amax1(xmaxlon,xlon(i,j))
+          else
+            xminlon = amin1(xminlon,xlon(i,j)-360.)
+            xmaxlon = amax1(xmaxlon,xlon(i,j)-360.)
+          end if
+        end do
+      end do
+ 
+      print 99001 , xminlat , xmaxlat , xminlon , xmaxlon , ntypec
+!--------initialize minimum lat and lon of data from tape
+      grdltmn = xminlat + 5.
+      grdlnmn = xminlon + 5.
+99001 format (1x,'xminlat,xmaxlat,xminlon,xmaxlon,ntypec= ',4F10.2,i10)
+!
+      end subroutine mxmnll
+
       end module mod_block

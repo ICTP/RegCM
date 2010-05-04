@@ -17,18 +17,19 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine surf(xlat,xlon,lnduse,iy,jx,iter,jter,incr,dsgrid,     &
-                    & lndout,land,lnd8,nrec,grdltmn,grdlnmn,h2opct,     &
+      subroutine surf(xlat,xlon,lnduse,iy,jx,incr,dsgrid,     &
+                    & lndout,land,nrec,h2opct,     &
                     & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,     &
                     & aertyp,intext,texout,frac_tex,ntex)
-      use mod_a
+      use mod_block
+      use mod_interp , only : bint
       implicit none
 !
 ! Dummy arguments
 !
       character(7) :: aertyp
-      real(4) :: dsgrid , grdlnmn , grdltmn , h2opct
-      integer :: incr , iter , iy , jter , jx , nrec , ntex , nveg
+      real(4) :: dsgrid , h2opct
+      integer :: incr , iy , jx , nrec , ntex , nveg
       character(4) :: lsmtyp
       real(4) , dimension(iy,jx) :: claya , clayb , lndout , sanda ,    &
                                   & sandb , texout , xlat , xlon
@@ -36,8 +37,7 @@
       real(4) , dimension(iy,jx,ntex) :: frac_tex
       integer , dimension(iy,jx) :: intext , lnduse
       real(4) , dimension(iy,jx,2) :: land
-      real(8) , dimension(iter,jter) :: lnd8
-      intent (in) aertyp , dsgrid , grdlnmn , grdltmn , h2opct , incr , &
+      intent (in) aertyp , dsgrid , h2opct , incr , &
                 & iy , jx , lsmtyp , nrec , ntex , nveg , xlat
       intent (out) claya , clayb , frac_lnd , frac_tex , intext ,       &
                  & lnduse , sanda , sandb
@@ -50,7 +50,6 @@
                & lengdo , nbase
       real(4) , dimension(iy,jx,2) :: itex
       real(8) :: xx , yy
-      real(8) , external :: bint
 !
 !---------------------------------------------------------------------
 !
@@ -185,7 +184,6 @@
         else
         end if
       end do
-      close (48)
 !
       do i = 1 , iy
         do j = 1 , jx

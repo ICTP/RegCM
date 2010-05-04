@@ -19,11 +19,8 @@
 
       subroutine xyobsll(iy,jx,iproj,clat,clon,plat,plon,truelath)
       use mod_block
-      use mod_const
-      use mod_constants , only : r2d => raddeg
-      use mod_constants , only : d2r => degrad
-      use mod_constants , only : pi => mathpi
-      use mod_constants , only : a => erkm
+      use mod_projections , only : nrot2rot
+      use mod_constants , only : raddeg , degrad , erkm
       implicit none
 !
 ! Dummy arguments
@@ -52,7 +49,7 @@
       pole = 90.0D+00
       if ( iproj=='LAMCON' ) psi1 = 90. - truelath
       if ( iproj=='POLSTR' ) psi1 = 30.0
-      psi1 = psi1/r2d
+      psi1 = psi1/raddeg
 
 !-----psi1 is colatitude of lat where cone or plane intersects earth
 
@@ -63,15 +60,15 @@
           psi1 = -(90.+truelath)
         end if
         pole = -90.
-        psi1 = psi1/r2d
+        psi1 = psi1/raddeg
       end if
       if ( iproj=='LAMCON' .or. iproj=='POLSTR' ) then
-        psx = (pole-cla)/r2d
+        psx = (pole-cla)/raddeg
         if ( iproj=='LAMCON' ) then
-          cell = a*sin(psi1)/xn
+          cell = erkm*sin(psi1)/xn
           cell2 = (tan(psx/2.))/(tan(psi1/2.))
         else if ( iproj=='POLSTR' ) then
-          cell = a*sin(psx)/xn
+          cell = erkm*sin(psx)/xn
           cell2 = (1.+cos(psi1))/(1.+cos(psx))
         else
         end if
@@ -91,14 +88,14 @@
           xrot = clo + 90./xn
           phix = yobs(ii)
           xlonx = xobs(ii)
-          flpp = (xlonx-xrot)/r2d
+          flpp = (xlonx-xrot)/raddeg
           flp = xn*flpp
-          psx = (pole-phix)/r2d
+          psx = (pole-phix)/raddeg
           if ( iproj=='LAMCON' ) then
-            cell = a*sin(psi1)/xn
+            cell = erkm*sin(psi1)/xn
             cell2 = (tan(psx/2.))/(tan(psi1/2.))
           else if ( iproj=='POLSTR' ) then
-            cell = a*sin(psx)/xn
+            cell = erkm*sin(psx)/xn
             cell2 = (1.+cos(psi1))/(1.+cos(psx))
           else
           end if
@@ -108,14 +105,14 @@
           if ( cla<0.0 ) xobs(ii) = -xobs(ii)
         end if
         if ( iproj=='NORMER' ) then
-          phi1 = 0.0   ! plat/r2d
-          phir = yobs(ii)/r2d
-          phic = cla/r2d
-          c2 = a*cos(phi1)
+          phi1 = 0.0   ! plat/raddeg
+          phir = yobs(ii)/raddeg
+          phic = cla/raddeg
+          c2 = erkm*cos(phi1)
           cell = cos(phir)/(1.0+sin(phir))
           cell2 = cos(phic)/(1.0+sin(phic))
           ycntr = -c2*log(cell2)
-          xobs(ii) = (c2*(xobs(ii)-clo)/r2d)*1000.
+          xobs(ii) = (c2*(xobs(ii)-clo)/raddeg)*1000.
           yobs(ii) = (-c2*log(cell)-ycntr)*1000.
         end if
         if ( iproj=='ROTMER' ) then
@@ -124,8 +121,8 @@
           xnr = xobs(ii)
           ynr = yobs(ii)
           call nrot2rot(xnr,ynr,plo,pla,xr,yr)
-          xobs(ii) = a*d2r*(xcntr+xr)*1000.
-          yobs(ii) = a*d2r*(ycntr+yr)*1000.
+          xobs(ii) = erkm*degrad*(xcntr+xr)*1000.
+          yobs(ii) = erkm*degrad*(ycntr+yr)*1000.
         end if
         ht(ii) = ht(ii)/100.
         ht2(ii) = ht2(ii)/100000.
