@@ -3,12 +3,12 @@
   
 include ../../Makefile.inc
 
-all: aerosol sst_1deg sst_ccsm sst_eh50m sst_ersst sst_fvgcm icbc
+all: aerosol sst_1deg sst_ccsm sst_eh5om sst_ersst sst_fvgcm icbc
 
 AEROSOLOBJ = aerosol.o
 SST1DEGOBJ = sst_1deg.o bilinx.o printl.o
 SSTCCSMOBJ = sst_ccsm.o bilinx.o printl.o
-SSTEH50OBJ = sst_eh50m.o bilinx.o printl.o mod_datenum.o
+SSTEH5OOBJ = sst_eh5om.o bilinx.o printl.o mod_datenum.o
 SSTERAOBJ = sst_ersst.o bilinx.o printl.o mod_datenum.o
 SSTFVGCOBJ = sst_fvgcm.o bilinx.o printl.o mod_datenum.o
 
@@ -38,8 +38,8 @@ sst_ccsm: $(SHRMOD) $(SSTCCSMOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTCCSMOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
-sst_eh50m: $(SHRMOD) $(SSTEH50OBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTEH50OBJ) $(SHRMOD) \
+sst_eh5om: $(SHRMOD) $(SSTEH5OOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTEH5OOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
 sst_ersst: $(SHRMOD) $(SSTERAOBJ)
@@ -74,7 +74,7 @@ header_ICBC.o: header_ICBC.F90
 
 clean:
 	rm -f *.mod *.o aerosol sst_1deg sst_ccsm \
-                        sst_eh50m sst_ersst sst_fvgcm icbc
+                        sst_eh5om sst_ersst sst_fvgcm icbc
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
@@ -149,7 +149,7 @@ uvrot4nx.o: uvrot4nx.f90 mod_constants.o
 aerosol.o: aerosol.f90 mod_preproc_param.o mod_regcm_param.o
 sst_1deg.o: sst_1deg.f90 mod_preproc_param.o mod_regcm_param.o
 sst_ccsm.o: sst_ccsm.f90 mod_preproc_param.o mod_regcm_param.o
-sst_eh50m.o: sst_eh50m.f90 mod_preproc_param.o mod_regcm_param.o mod_datenum.o
+sst_eh5om.o: sst_eh5om.f90 mod_preproc_param.o mod_regcm_param.o mod_datenum.o
 sst_ersst.o: sst_ersst.f90 mod_datenum.o mod_preproc_param.o mod_regcm_param.o
 sst_fvgcm.o: sst_fvgcm.f90 mod_preproc_param.o mod_regcm_param.o
 icbc.o: icbc.f90 mod_regcm_param.o mod_preproc_param.o mod_datenum.o \
