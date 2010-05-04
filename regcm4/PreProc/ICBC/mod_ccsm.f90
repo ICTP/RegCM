@@ -136,32 +136,32 @@
       integer , parameter :: klev = 26 , npl = 18
 
       ! Whole space
-      real , target , dimension(ilon,jlat,npl*3) :: b2
-      real , target , dimension(ilon,jlat,npl*2) :: d2
-      real , target , dimension(jx,iy,klev*3) :: b3
-      real , target , dimension(jx,iy,npl*2) :: d3
+      real(4) , target , dimension(ilon,jlat,npl*3) :: b2
+      real(4) , target , dimension(ilon,jlat,npl*2) :: d2
+      real(4) , target , dimension(jx,iy,klev*3) :: b3
+      real(4) , target , dimension(jx,iy,npl*2) :: d3
 
       ! Shared by netcdf I/O routines
       integer , dimension(10) :: icount , istart
       integer :: inet1 , ivar1
       integer , dimension(6) :: inet6 , ivar6
 
-      real , pointer :: u3(:,:,:) , v3(:,:,:)
-      real , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-      real , pointer :: up(:,:,:) , vp(:,:,:)
-      real , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
+      real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
+      real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+      real(4) , pointer :: up(:,:,:) , vp(:,:,:)
+      real(4) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
 
-      real , dimension(ilon,jlat,klev) :: pp3d
-      real , dimension(ilon,jlat,klev) :: hvar , qvar , tvar , uvar ,   &
+      real(4) , dimension(ilon,jlat,klev) :: pp3d
+      real(4) , dimension(ilon,jlat,klev) :: hvar , qvar , tvar , uvar ,&
                                         & vvar
-      real , dimension(ilon,jlat) :: psvar , zsvar
-      real , dimension(klev+1) :: ak , bk
-      real , dimension(jlat) :: glat
-      real , dimension(ilon) :: glon
-      real , dimension(npl) :: pplev , sigma1 , sigmar
+      real(4) , dimension(ilon,jlat) :: psvar , zsvar
+      real(4) , dimension(klev+1) :: ak , bk
+      real(4) , dimension(jlat) :: glat
+      real(4) , dimension(ilon) :: glon
+      real(4) , dimension(npl) :: pplev , sigma1 , sigmar
 
-      real , dimension(jx,iy,npl) :: dum1
-      real , dimension(jx,iy,npl,2) :: dum2
+      real(4) , dimension(jx,iy,npl) :: dum1
+      real(4) , dimension(jx,iy,npl,2) :: dum2
 
       public :: get_cam42 , head_cam42
       public :: get_cam85 , head_cam85
@@ -181,16 +181,16 @@
 !
 ! Local variables
 !
-        real , dimension(npl) :: c1
-        real , dimension(kz) :: c2
+        real(4) , dimension(npl) :: c1
+        real(4) , dimension(kz) :: c2
         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
                 & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
                 & istatus
-        real :: wt
+        real(4) :: wt
         character(38) :: pathaddname
         logical :: there
         character(4) :: varname
-        real , allocatable , dimension(:,:) :: work
+        real(4) , allocatable , dimension(:,:) :: work
 
         data varname/'PHIS'/
  
@@ -332,7 +332,7 @@
 ! Local variables
 !
         integer :: i , k , kr
-        real, dimension(jlath) :: fixlat
+        real(4) , dimension(jlath) :: fixlat
 !
         data fixlat/ - 87.8638 , -85.0965 , -82.3129 , -79.5256 ,       &
          & -76.7369 ,                                                   &
@@ -468,7 +468,7 @@
 ! Dummy arguments
 !
       integer :: idate , idate0
-      real , dimension(jlath) :: glat
+      real(4) , dimension(jlath) :: glat
       intent (in) glat , idate , idate0
 !
 ! Local variables
@@ -478,13 +478,13 @@
                & lonlen , month , nday , nhour , nlev , nyear ,         &
                & istatus , timid , timlen
       character(25) :: inname
-      real :: nlat0 , nlat1 , nlon0 , nlon1
+      real(4) :: nlat0 , nlat1 , nlon0 , nlon1
       character(39) :: pathaddname
       logical :: there
-      real , dimension(6) :: checklat , checklon , checktim
+      real(4) , dimension(6) :: checklat , checklon , checktim
       character(2) , dimension(6) :: varname
-      real , allocatable , dimension(:,:,:) :: work
-      real , allocatable , dimension(:) :: work1 , work2
+      real(4) , allocatable , dimension(:,:,:) :: work
+      real(4) , allocatable , dimension(:) :: work1 , work2
 !
       data varname/'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
 !
@@ -793,16 +793,16 @@
 !
 ! Local variables
 !
-      real , dimension(npl) :: c1
-      real , dimension(kz) :: c2
+      real(4) , dimension(npl) :: c1
+      real(4) , dimension(kz) :: c2
       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
                & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
                & istatus
-      real :: wt
+      real(4) :: wt
       character(38) :: pathaddname
       logical :: there
       character(4) :: varname
-      real , allocatable , dimension(:,:) :: work
+      real(4) , allocatable , dimension(:,:) :: work
 !
       data varname/'PHIS'/
  
@@ -940,7 +940,7 @@
 ! Local variables
 !
       integer :: i , k , kr
-      real, dimension(jlat) :: fixlat
+      real(4) , dimension(jlat) :: fixlat
 !
       data fixlat/ - 88.928 , -87.539 , -86.141 , -84.742 , -83.343 ,   &
          & -81.942 , -80.543 , -79.142 , -77.742 , -76.341 , -74.941 ,  &
@@ -1084,7 +1084,7 @@
 ! Dummy arguments
 !
       integer :: idate , idate0
-      real , dimension(jlat) :: glat
+      real(4) , dimension(jlat) :: glat
       intent (in) glat , idate , idate0
 !
 ! Local variables
@@ -1094,14 +1094,14 @@
                & month , nday , nhour , nlev , nyear , istatus ,        &
                & timid , timlen
       character(25) :: inname
-      real :: nlat0 , nlat1 , nlon0 , nlon1
+      real(4) :: nlat0 , nlat1 , nlon0 , nlon1
       character(3) , dimension(12) :: nmonth
       character(39) :: pathaddname
       logical :: there
       character(2) , dimension(6) :: varname
-      real , allocatable , dimension(:,:,:) :: work
-      real , allocatable , dimension(:) :: work1 , work2
-      real , dimension(6) :: checklat , checklon , checktim
+      real(4) , allocatable , dimension(:,:,:) :: work
+      real(4) , allocatable , dimension(:) :: work1 , work2
+      real(4) , dimension(6) :: checklat , checklon , checktim
 !
       data nmonth/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' ,       &
          & 'JUL' , 'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
@@ -1404,14 +1404,14 @@
 ! Dummy arguments
 !
         integer :: mdate , nmop , nyrp
-        real :: wt
+        real(4) :: wt
         intent (in) mdate
         intent (out) nyrp , wt
         intent (inout) nmop
 !
 ! Local variables
 !
-        real :: fdemon , fnumer
+        real(4) :: fdemon , fnumer
         integer :: idate , iday , imo , iyr , j , julday , nmo , nyr
         integer , dimension(12) :: jprev , julmid , lenmon , midmon
 !

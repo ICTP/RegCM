@@ -43,21 +43,21 @@
 ! Dummy arguments
 !
       integer :: im , jm , km , kp
-      real :: ptop
-      real , dimension(im,jm,km) :: h , t
-      real , dimension(im,jm,kp) :: hp
-      real , dimension(im,jm) :: ht , pstar
-      real , dimension(kp) :: p
-      real , dimension(km) :: sig
+      real(4) :: ptop
+      real(4) , dimension(im,jm,km) :: h , t
+      real(4) , dimension(im,jm,kp) :: hp
+      real(4) , dimension(im,jm) :: ht , pstar
+      real(4) , dimension(kp) :: p
+      real(4) , dimension(km) :: sig
       intent (in) h , ht , im , jm , km , kp , p , pstar , ptop , sig , &
                 & t
       intent (out) hp
 !
 ! Local variables
 !
-      real :: psfc , temp , wb , wt
+      real(4) :: psfc , temp , wb , wt
       integer :: i , j , k , kb , kbc , kt , n
-      real , dimension(100) :: psig
+      real(4) , dimension(100) :: psig
 !
       do k = 1 , km
         if ( sig(k)<bltop ) kbc = k

@@ -45,19 +45,19 @@
 ! Dummy arguments
 !
       integer :: im , jm , km , kp
-      real , dimension(im,jm,km) :: h , p3d , t
-      real , dimension(im,jm,kp) :: hp
-      real , dimension(im,jm) :: ht , ps
-      real , dimension(kp) :: p
+      real(4) , dimension(im,jm,km) :: h , p3d , t
+      real(4) , dimension(im,jm,kp) :: hp
+      real(4) , dimension(im,jm) :: ht , ps
+      real(4) , dimension(kp) :: p
       intent (in) h , ht , im , jm , km , kp , p , p3d , ps , t
       intent (out) hp
 !
 ! Local variables
 !
-      real :: psfc , temp , wb , wt
+      real(4) :: psfc , temp , wb , wt
       integer :: i , j , k , kb , kbc , kt , n
-      real , dimension(61) :: psig
-      real , dimension(60) :: sig
+      real(4) , dimension(61) :: psig
+      real(4) , dimension(60) :: sig
 !
       do j = 1 , jm
         do i = 1 , im

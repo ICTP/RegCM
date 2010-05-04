@@ -52,15 +52,15 @@
 !
 ! Local variables
 !
-      real , dimension(jlat) :: glat
-      real , dimension(ilon) :: glon
-      real , dimension(ilon,jlat) :: sst
+      real(4) , dimension(jlat) :: glat
+      real(4) , dimension(ilon) :: glon
+      real(4) , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
                & nday , nmo , nyear
-      real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+      real(4) , dimension(iy,jx) :: lu , sstmm , xlat , xlon
       integer , dimension(20) :: lund
-      real :: truelath , truelatl
+      real(4) :: truelath , truelatl
 !
       do i = 1 , ilon
         glon(i) = 0.5 + float(i-1)
@@ -169,22 +169,22 @@
 ! Dummy arguments
 !
       integer :: idate1 , idate2 , iy , jx
-      real :: truelath , truelatl
-      real , dimension(iy,jx) :: lu , xlat , xlon
+      real(4) :: truelath , truelatl
+      real(4) , dimension(iy,jx) :: lu , xlat , xlon
       intent (in) idate1 , idate2 , iy , jx , truelath , truelatl
       intent (out) lu
       intent (inout) xlat , xlon
 !
 ! Local variables
 !
-      real :: alatmax , alatmin , alonmax , alonmin , centeri ,         &
+      real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(3) , dimension(12) :: cmonth
       integer :: i , ibigend , igrads , iyy , j , jxx , k , kz ,        &
                & month , nx , ny , period
       character(6) :: iproj
-      real , dimension(30) :: sigmaf
+      real(4) , dimension(30) :: sigmaf
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
@@ -314,13 +314,13 @@
 
       integer , intent (in) :: idate , idate0
       integer , intent (in) :: ilon , jlat
-      real, dimension(ilon, jlat) , intent(out) :: sst
+      real(4) , dimension(ilon, jlat) , intent(out) :: sst
 
       integer, dimension(12) :: ndays
       character(len=4), dimension(2) :: varname
       integer, allocatable ::  work1(:)
-      real, dimension (ilon , jlat) :: work2
-      real :: imisng
+      real(4) , dimension (ilon , jlat) :: work2
+      real(4) :: imisng
 
       character(len=26) :: pathaddname
       integer :: nyear , month

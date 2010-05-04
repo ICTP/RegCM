@@ -44,10 +44,10 @@
 ! Local variables
 !
       integer :: i , j , nrec
-      real , dimension(jlat) :: lati
-      real , dimension(ilon) :: loni
-      real , dimension(ilon,jlat) :: aer2
-      real , dimension(iy,jx) :: aermm , xlat , xlon
+      real(4) , dimension(jlat) :: lati
+      real(4) , dimension(ilon) :: loni
+      real(4) , dimension(ilon,jlat) :: aer2
+      real(4) , dimension(iy,jx) :: aermm , xlat , xlon
       logical :: there
  
       inquire (file='../DATA/AERGLOB/AEROSOL.dat',exist=there)
@@ -102,20 +102,20 @@
 ! Dummy arguments
 !
       integer :: ibyte , iy , jx
-      real , dimension(iy,jx) :: xlat , xlon
+      real(4) , dimension(iy,jx) :: xlat , xlon
       intent (in) ibyte , iy , jx
       intent (out) xlat , xlon
 !
 ! Local variables
 !
-      real :: alatmax , alatmin , alonmax , alonmin , centeri ,         &
+      real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc, th, tl
       character(3) , dimension(12) :: cmonth
       integer :: i , ibigend , ierr , igrads , iyy , j , jxx ,          &
                & k , kz , month , nx , ny , period
       character(6) :: iproj
-      real , dimension(30) :: sigmaf
+      real(4) , dimension(30) :: sigmaf
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
@@ -328,18 +328,18 @@
 ! Dummy arguments
 !
       integer :: iy , jx , nflds , nlati , nloni
-      real , dimension(nloni,nlati,nflds) :: fin
-      real , dimension(nlati) :: lati
-      real , dimension(iy,jx) :: lato , lono
-      real , dimension(nloni) :: loni
-      real , dimension(iy,jx,nflds) :: fout
+      real(4) , dimension(nloni,nlati,nflds) :: fin
+      real(4) , dimension(nlati) :: lati
+      real(4) , dimension(iy,jx) :: lato , lono
+      real(4) , dimension(nloni) :: loni
+      real(4) , dimension(iy,jx,nflds) :: fout
       intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
                 & nlati , nloni
       intent (out) fout
 !
 ! Local variables
 !
-      real :: bas , lon180 , p , q , xsum , xind , yind
+      real(4) :: bas , lon180 , p , q , xsum , xind , yind
       integer :: i , ip , ipp1 , j , jq , jqp1 , l
 !
 !

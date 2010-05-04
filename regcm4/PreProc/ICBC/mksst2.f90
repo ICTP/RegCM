@@ -25,7 +25,8 @@
 ! Dummy arguments
 !
       integer :: iy , jx , kdate
-      real , dimension(jx,iy) :: sst1 , sst2 , topogm , tsccm , xlandu
+      real(4) , dimension(jx,iy) :: sst1 , sst2 , topogm , tsccm ,      &
+                                 &  xlandu
       intent (in) iy , jx , kdate , topogm , xlandu
       intent (out) tsccm
       intent (inout) sst1 , sst2
@@ -34,7 +35,7 @@
 !
       integer :: i , j , k , kdate1 , kdate2 , ks , ks1 , ks2 , lat ,   &
                & lon , nday , nmo , nyear
-      real :: wt
+      real(4) :: wt
 !
       do k = 427 + 1045 , 1 , -1
         if ( wkday(k)<=kdate ) then

@@ -27,19 +27,19 @@
 
       integer , parameter :: klev = 26 , jlat = 181 , ilon = 360
 
-      real , target , dimension(ilon,jlat,klev*3) :: b2
-      real , target , dimension(ilon,jlat,klev*2) :: d2
-      real , target , dimension(jx,iy,klev*3) :: b3
-      real , target , dimension(jx,iy,klev*2) :: d3
+      real(4) , target , dimension(ilon,jlat,klev*3) :: b2
+      real(4) , target , dimension(ilon,jlat,klev*2) :: d2
+      real(4) , target , dimension(jx,iy,klev*3) :: b3
+      real(4) , target , dimension(jx,iy,klev*2) :: d3
 
-      real , pointer :: u3(:,:,:) , v3(:,:,:)
-      real , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-      real , pointer :: uvar(:,:,:) , vvar(:,:,:)
-      real , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+      real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
+      real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+      real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+      real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-      real , dimension(jlat) :: glat
-      real , dimension(ilon) :: glon
-      real , dimension(klev) :: sigma1 , sigmar
+      real(4) , dimension(jlat) :: glat
+      real(4) , dimension(ilon) :: glon
+      real(4) , dimension(klev) :: sigma1 , sigmar
 
       public :: getgfs11 , headergfs
 
@@ -63,7 +63,7 @@
       integer(2) , dimension(360,181) :: itmp
       real(8) :: offset , xscale
       logical :: there
-      real :: wt
+      real(4) :: wt
       character(4) , dimension(9) :: yrgfs
 !
 !     DIMENSION SURFACE TEMPERATURE ON RCM SURFACE; NOT GIVEN BY ECMWF

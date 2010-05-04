@@ -22,24 +22,24 @@
 !
 ! PARAMETER definitions
 !
-      real , parameter :: psccm = 100.
+      real(4) , parameter :: psccm = 100.
 !
 ! Dummy arguments
 !
       integer :: kccm , krcm , ni , nj
-      real :: pt
-      real , dimension(ni,nj,kccm) :: fccm
-      real , dimension(ni,nj,krcm) :: frcm
-      real , dimension(ni,nj) :: psrcm
-      real , dimension(kccm) :: sccm
-      real , dimension(krcm) :: srcm
+      real(4) :: pt
+      real(4) , dimension(ni,nj,kccm) :: fccm
+      real(4) , dimension(ni,nj,krcm) :: frcm
+      real(4) , dimension(ni,nj) :: psrcm
+      real(4) , dimension(kccm) :: sccm
+      real(4) , dimension(krcm) :: srcm
       intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm ,    &
                 & srcm
       intent (out) frcm
 !
 ! Local variables
 !
-      real :: dp1 , pt1 , rc , rc1 , sc
+      real(4) :: dp1 , pt1 , rc , rc1 , sc
       integer :: i , j , k , k1 , k1p , n
 !
 !     INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE

@@ -23,7 +23,7 @@
 ! Dummy arguments
 !
       integer :: n1 , n2
-      real , dimension(n1,n2) :: a
+      real(4) , dimension(n1,n2) :: a
       intent (in) a , n1 , n2
 !
 ! Local variables

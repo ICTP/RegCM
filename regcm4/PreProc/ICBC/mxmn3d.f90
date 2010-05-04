@@ -24,13 +24,13 @@
 !
       character(2) :: cvar
       integer :: iy , jx , np
-      real , dimension(jx,iy,np) :: var
+      real(4) , dimension(jx,iy,np) :: var
       intent (in) cvar , iy , jx , np , var
 !
 ! Local variables
 !
       integer :: i , j , k
-      real :: smax , smin
+      real(4) :: smax , smin
 !
       do k = 1 , np
         smax = -1.E8

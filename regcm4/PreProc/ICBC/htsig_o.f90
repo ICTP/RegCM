@@ -24,16 +24,16 @@
 ! Dummy arguments
 !
       integer :: im , jm , km
-      real :: ptop
-      real , dimension(im,jm,km) :: h , t
-      real , dimension(im,jm) :: ht , pstar
-      real , dimension(km) :: sig
+      real(4) :: ptop
+      real(4) , dimension(im,jm,km) :: h , t
+      real(4) , dimension(im,jm) :: ht , pstar
+      real(4) , dimension(km) :: sig
       intent (in) ht , im , jm , km , pstar , ptop , sig , t
       intent (inout) h
 !
 ! Local variables
 !
-      real :: tbar
+      real(4) :: tbar
       integer :: i , j , k
 !
       do j = 1 , jm

@@ -29,35 +29,36 @@
 
       integer :: nrec
 
-      real , target , dimension(jx,iy,np*4) :: b3
-      real , target , dimension(jx,iy,np*2) :: d3
-      real , dimension(jx,iy) :: b3pd
+      real(4) , target , dimension(jx,iy,np*4) :: b3
+      real(4) , target , dimension(jx,iy,np*2) :: d3
+      real(4) , dimension(jx,iy) :: b3pd
 
-      real , allocatable , target , dimension(:,:,:) :: b2
-      real , allocatable , target , dimension(:,:,:) :: d2
+      real(4) , allocatable , target , dimension(:,:,:) :: b2
+      real(4) , allocatable , target , dimension(:,:,:) :: d2
 
-      real , allocatable , dimension(:,:,:) :: c , q , t
-      real , allocatable , dimension(:,:,:) :: u , v
-      real , allocatable , dimension(:,:) :: ps
-      real , allocatable , dimension(:,:) :: ht_in , xlat_in , xlon_in
+      real(4) , allocatable , dimension(:,:,:) :: c , q , t
+      real(4) , allocatable , dimension(:,:,:) :: u , v
+      real(4) , allocatable , dimension(:,:) :: ps
+      real(4) , allocatable , dimension(:,:) :: ht_in
+      real(4) , allocatable , dimension(:,:) :: xlat_in , xlon_in
 
-      real , pointer , dimension(:,:,:) :: c3 , h3 , q3 , t3
-      real , pointer , dimension(:,:,:) :: u3 , v3
+      real(4) , pointer , dimension(:,:,:) :: c3 , h3 , q3 , t3
+      real(4) , pointer , dimension(:,:,:) :: u3 , v3
  
-      real , pointer , dimension(:,:,:) :: cp , hp , qp , tp
-      real , pointer , dimension(:,:,:) :: up , vp
+      real(4) , pointer , dimension(:,:,:) :: cp , hp , qp , tp
+      real(4) , pointer , dimension(:,:,:) :: up , vp
 
-      real , dimension(jx,iy,kz) :: z1
+      real(4) , dimension(jx,iy,kz) :: z1
 
-      real , dimension(np) :: plev , sigmar
-      real , allocatable , dimension(:) :: sigf
-      real , allocatable , dimension(:) :: sig
+      real(4) , dimension(np) :: plev , sigmar
+      real(4) , allocatable , dimension(:) :: sigf
+      real(4) , allocatable , dimension(:) :: sig
 
       character(6) :: iproj_in
 
       integer :: il , jl , kl , iotyp_in , idate0
 
-      real :: clat_in , clon_in , plat_in , plon_in , ptop_in
+      real(4) :: clat_in , clon_in , plat_in , plon_in , ptop_in
 
       public :: get_nest , headnest
 
@@ -80,14 +81,14 @@
       character(14) :: fillin
       integer :: i , idatek , j , k , mn0 , mn1 , nd0 , nd1 , nh0 ,     &
                & nh1 , nmop , ny0 , ny1 , nyrp
-      real , dimension(jx,iy) :: d1xa , d1xb , d1xc , d1xd , d1xt
+      real(4) , dimension(jx,iy) :: d1xa , d1xb , d1xc , d1xd , d1xt
       integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
                                   & j1dr , j1ul , j1ur
-      real , dimension(jx,iy) :: d2xa , d2xb , d2xc , d2xd , d2xt
+      real(4) , dimension(jx,iy) :: d2xa , d2xb , d2xc , d2xd , d2xt
       integer , dimension(jx,iy) :: i2dl , i2dr , i2ul , i2ur , j2dl ,  &
                                   & j2dr , j2ul , j2ur
       logical :: there
-      real :: wt
+      real(4) :: wt
 !
       if (.not. allocated(b2)) then
         write (*,*) 'Called get_nest before headnest !'
@@ -439,7 +440,7 @@
 !
 ! Local variables
 !
-      real :: d2r , dtb , dtc , dto , dtr , dxsp , ptsp , xsign ,       &
+      real(4) :: d2r , dtb , dtc , dto , dtr , dxsp , ptsp , xsign ,    &
             & truelat1 , truelat2
       integer :: ibltyp , iboudy , icup , ipptls , k
       integer :: ias

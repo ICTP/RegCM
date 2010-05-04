@@ -25,8 +25,8 @@
 
       integer :: noutrec
 
-      real , dimension(jx,iy) :: ps4 , ts4
-      real , dimension(jx,iy,kz) :: c4 , h4 , q4 , t4 , u4 , v4
+      real(4) , dimension(jx,iy) :: ps4 , ts4
+      real(4) , dimension(jx,iy,kz) :: c4 , h4 , q4 , t4 , u4 , v4
 
       data noutrec /0/
 
@@ -38,7 +38,7 @@
 ! Dummy arguments
 !
       integer :: idate
-      real :: ptop
+      real(4) :: ptop
       intent (in) idate , ptop
 !
 ! Local variables
@@ -79,7 +79,7 @@
 ! Dummy arguments
 !
       integer :: idate
-      real :: ptop
+      real(4) :: ptop
       intent (in) idate , ptop
 !
 ! Local variables
@@ -121,9 +121,9 @@
 !
       integer :: idate
       character(4) :: lsmtyp
-      real :: ptop
-      real , dimension(jx,iy,4) :: qs3 , ti3 , ts3
-      real , dimension(jx,iy) :: snow
+      real(4) :: ptop
+      real(4) , dimension(jx,iy,4) :: qs3 , ti3 , ts3
+      real(4) , dimension(jx,iy) :: snow
       intent (in) idate , lsmtyp , ptop , snow , ti3 , ts3 , qs3
 !
 ! Local variables

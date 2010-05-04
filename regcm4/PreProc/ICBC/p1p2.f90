@@ -23,7 +23,7 @@
 ! Dummy arguments
 !
       integer :: ni , nj
-      real , dimension(ni,nj) :: pd , px
+      real(4) , dimension(ni,nj) :: pd , px
       intent (in) ni , nj , px
       intent (out) pd
 !

@@ -24,9 +24,9 @@
       implicit none
 
       integer :: jx_in , iy_in , kz_in
-      real :: ptop_in
-      real :: clat_in , clon_in , plat_in , plon_in
-      real :: truelath_in , truelatl_in
+      real(4) :: ptop_in
+      real(4) :: clat_in , clon_in , plat_in , plon_in
+      real(4) :: truelath_in , truelatl_in
 
       character(6) :: cgtype_in
 

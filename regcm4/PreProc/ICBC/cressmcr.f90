@@ -26,11 +26,11 @@
 ! Dummy arguments
 !
       integer :: iy , jx , nlat , nlev , nlon
-      real , dimension(jx,iy) :: alat , alon , d1xa , d1xb , d1xc ,     &
+      real(4) , dimension(jx,iy) :: alat , alon , d1xa , d1xb , d1xc ,  &
                                & d1xd , d1xt
-      real , dimension(nlon,nlat,nlev,5) :: b2
-      real , dimension(jx,iy,nlev,5) :: b3
-      real , dimension(nlon,nlat) :: glat , glon
+      real(4) , dimension(nlon,nlat,nlev,5) :: b2
+      real(4) , dimension(jx,iy,nlev,5) :: b3
+      real(4) , dimension(nlon,nlat) :: glat , glon
       integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
                                   & j1dr , j1ul , j1ur
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
@@ -41,7 +41,7 @@
 !
 ! Local variables
 !
-      real :: aaa , dist , dista , distb , distc , distd
+      real(4) :: aaa , dist , dista , distb , distc , distd
       integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &
                & ndr , nul , nur
 !

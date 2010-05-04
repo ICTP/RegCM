@@ -23,14 +23,14 @@
 ! Dummy arguments
 !
       integer :: nlat1 , nlev1 , nlon1
-      real , dimension(nlon1,nlat1,nlev1) :: x
+      real(4) , dimension(nlon1,nlat1,nlev1) :: x
       intent (in) nlat1 , nlev1 , nlon1
       intent (inout) x
 !
 ! Local variables
 !
       integer :: i , j , k , kr
-      real , dimension(nlev1) :: work
+      real(4) , dimension(nlev1) :: work
 !
       do i = 1 , nlon1
         do j = 1 , nlat1

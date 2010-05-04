@@ -47,14 +47,14 @@
       integer :: it_base
       integer(2) , dimension(192,96) :: ivar
       real(8) :: offset , xscale
-      real , dimension(ilon,jlat) :: sst
+      real(4) , dimension(ilon,jlat) :: sst
       integer :: idate
       integer :: nnnend , nstart
-      real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+      real(4) , dimension(iy,jx) :: lu , sstmm , xlat , xlon
       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
-      real , dimension(jlat) :: lati
-      real , dimension(ilon) :: loni
-      real :: truelath , truelatl
+      real(4) , dimension(jlat) :: lati
+      real(4) , dimension(ilon) :: loni
+      real(4) :: truelath , truelatl
       logical :: there
 !
       if ( ssttyp=='EH5RF' ) then
@@ -400,15 +400,15 @@
 ! Dummy arguments
 !
       integer :: idate1 , iy , jx , numrec
-      real :: truelath , truelatl
-      real , dimension(iy,jx) :: lu , xlat , xlon
+      real(4) :: truelath , truelatl
+      real(4) , dimension(iy,jx) :: lu , xlat , xlon
       intent (in) idate1 , iy , jx , numrec
       intent (out) lu
       intent (inout) truelath , truelatl , xlat , xlon
 !
 ! Local variables
 !
-      real :: alatmax , alatmin , alonmax , alonmin , centeri ,         &
+      real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(2) , dimension(31) :: cday
@@ -416,7 +416,7 @@
       integer :: i , ibigend , igrads , iyy , j , jxx , k , kz ,        &
                & month , nday , nhour , nx , ny , nyear , period
       character(6) :: iproj
-      real , dimension(30) :: sigmaf
+      real(4) , dimension(30) :: sigmaf
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &

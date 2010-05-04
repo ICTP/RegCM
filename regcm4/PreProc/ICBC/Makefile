@@ -144,8 +144,8 @@ mxmn3d.o: mxmn3d.f90
 p1p2.o: p1p2.f90
 printl.o: printl.f90
 top2btm.o: top2btm.f90
-uvrot4.o: uvrot4.f90
-uvrot4nx.o: uvrot4nx.f90
+uvrot4.o: uvrot4.f90 mod_constants.o
+uvrot4nx.o: uvrot4nx.f90 mod_constants.o
 aerosol.o: aerosol.f90 mod_preproc_param.o mod_regcm_param.o
 sst_1deg.o: sst_1deg.f90 mod_preproc_param.o mod_regcm_param.o
 sst_ccsm.o: sst_ccsm.f90 mod_preproc_param.o mod_regcm_param.o

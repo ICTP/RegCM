@@ -24,20 +24,20 @@
 ! Dummy arguments
 !
       integer :: im , jm , km , kp
-      real :: ptop
-      real , dimension(im,jm,km) :: f
-      real , dimension(im,jm,kp) :: fp
-      real , dimension(kp) :: p
-      real , dimension(im,jm) :: pstar
-      real , dimension(km) :: sig
+      real(4) :: ptop
+      real(4) , dimension(im,jm,km) :: f
+      real(4) , dimension(im,jm,kp) :: fp
+      real(4) , dimension(kp) :: p
+      real(4) , dimension(im,jm) :: pstar
+      real(4) , dimension(km) :: sig
       intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
       intent (out) fp
 !
 ! Local variables
 !
-      real :: sigp , w1 , wp
+      real(4) :: sigp , w1 , wp
       integer :: i , j , k , k1 , k1p , kbc , n
-      real , parameter :: bltop = .96
+      real(4) , parameter :: bltop = .96
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,

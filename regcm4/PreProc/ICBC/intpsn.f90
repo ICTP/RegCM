@@ -24,14 +24,14 @@
 ! Dummy arguments
 !
       integer :: ni , nj
-      real :: pt
-      real , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
+      real(4) :: pt
+      real(4) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
       intent (in) ni , nj , pa , pt , tlayer , za , zrcm
       intent (out) psrcm
 !
 ! Local variables
 !
-      real :: tb
+      real(4) :: tb
       integer :: i , j
 !
 !     EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.

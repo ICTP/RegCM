@@ -28,26 +28,26 @@
       integer , parameter :: nlevs = 60 , nlats = 160 , nlons = 320 ,   &
                            & nlev2 = 18
 
-      real , dimension(nlevs+1) :: ak , bk
-      real , dimension(nlev2) :: pplev , sigma1 , sigmar
-      real , dimension(nlats) :: slat
-      real , dimension(nlons) :: slon
+      real(4) , dimension(nlevs+1) :: ak , bk
+      real(4) , dimension(nlev2) :: pplev , sigma1 , sigmar
+      real(4) , dimension(nlats) :: slat
+      real(4) , dimension(nlons) :: slon
 
-      real , dimension(nlons,nlats) :: lsm , ps2 , zs2
-      real , dimension(nlons,nlats,nlevs) :: q2 , t2 , u2 , v2
-      real , dimension(nlons,nlats,nlevs) :: pp3d , z1
-      real , dimension(jx,iy) :: b3pd
-      real , target , dimension(jx,iy,nlev2) :: w3
+      real(4) , dimension(nlons,nlats) :: lsm , ps2 , zs2
+      real(4) , dimension(nlons,nlats,nlevs) :: q2 , t2 , u2 , v2
+      real(4) , dimension(nlons,nlats,nlevs) :: pp3d , z1
+      real(4) , dimension(jx,iy) :: b3pd
+      real(4) , target , dimension(jx,iy,nlev2) :: w3
 
-      real , target , dimension(nlons,nlats,nlev2*3) :: b2
-      real , target , dimension(nlons,nlats,nlev2*2) :: d2
-      real , target , dimension(jx,iy,nlev2*3) :: b3
-      real , target , dimension(jx,iy,nlev2*2) :: d3
+      real(4) , target , dimension(nlons,nlats,nlev2*3) :: b2
+      real(4) , target , dimension(nlons,nlats,nlev2*2) :: d2
+      real(4) , target , dimension(jx,iy,nlev2*3) :: b3
+      real(4) , target , dimension(jx,iy,nlev2*2) :: d3
 
-      real , pointer , dimension(:,:,:) :: tp , qp , hp
-      real , pointer , dimension(:,:,:) :: up , vp
-      real , pointer , dimension(:,:,:) :: t3 , q3 , h3
-      real , pointer , dimension(:,:,:) :: u3 , v3
+      real(4) , pointer , dimension(:,:,:) :: tp , qp , hp
+      real(4) , pointer , dimension(:,:,:) :: up , vp
+      real(4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+      real(4) , pointer , dimension(:,:,:) :: u3 , v3
 
       public :: geterahi , headerehi
 
@@ -66,7 +66,7 @@
 !
       character(14) :: finame
       integer :: i , j , k , nmop , nrec , nyrp
-      real :: slonmax , slonmin , wt , xlonmax , xlonmin
+      real(4) :: slonmax , slonmin , wt , xlonmax , xlonmin
 !
       if ( idate==idate1 ) then
                   !,lrec

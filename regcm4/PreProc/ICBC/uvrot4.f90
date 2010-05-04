@@ -19,24 +19,27 @@
 
       subroutine uvrot4(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,pollon, &
                       & pollat,lgtype)
+
+      use mod_constants , only : degrad
+
       implicit none
 !
 ! Dummy arguments
 !
-      real :: clat , clon , gridfc , pollat , pollon
+      real(4) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
       character(6) :: lgtype
-      real , dimension(jx,iy) :: dlat , dlon
-      real , dimension(jx,iy,ll) :: u , v
+      real(4) , dimension(jx,iy) :: dlat , dlon
+      real(4) , dimension(jx,iy,ll) :: u , v
       intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,        &
                 & lgtype , ll , pollat , pollon
       intent (inout) u , v
 !
 ! Local variables
 !
-      real :: cosdel , d , pir180 , polcphi , pollam , polphi ,         &
-            & polsphi , sindel , us , vs , x , xc , xs , zarg1 , zarg2 ,&
-            & znorm , zphi , zrla , zrlap
+      real(4) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
+            & sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
+            & zphi , zrla , zrlap
       integer :: i , j , l
 !
 !     CHANGE U AND V FROM TRUE (N,E) TO MAP VALUES (X,Y)
@@ -49,7 +52,6 @@
 !**   CALL  :   CALL UVUSVS(U,V,US,VS,DLON,DLAT,POLLON,POLLAT)
 !**   AUTHOR:   D.MAJEWSKI
 !
-      pir180 = atan(1.)/45.
       if ( lgtype=='ROTMER' ) then
         if ( pollat>0. ) then
           pollam = pollon + 180.
@@ -60,15 +62,15 @@
         end if
         if ( pollam>180. ) pollam = pollam - 360.
  
-        polcphi = cos(pir180*polphi)
-        polsphi = sin(pir180*polphi)
+        polcphi = cos(degrad*polphi)
+        polsphi = sin(degrad*polphi)
  
         do j = 1 , iy
           do i = 1 , jx
-            zphi = dlat(i,j)*pir180
-            zrla = dlon(i,j)*pir180
+            zphi = dlat(i,j)*degrad
+            zrla = dlon(i,j)*degrad
             if ( dlat(i,j)>89.999999 ) zrla = 0.0
-            zrlap = pollam*pir180 - zrla
+            zrlap = pollam*degrad - zrla
             zarg1 = polcphi*sin(zrlap)
             zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
             znorm = 1.0/sqrt(zarg1**2+zarg2**2)
@@ -87,18 +89,18 @@
           do i = 1 , jx
             if ( (clon>=0.0 .and. dlon(i,j)>=0.) .or.                   &
                & (clon<0.0 .and. dlon(i,j)<0.) ) then
-              x = (clon-dlon(i,j))*pir180*gridfc
+              x = (clon-dlon(i,j))*degrad*gridfc
             else if ( clon>=0.0 ) then
               if ( abs(clon-(dlon(i,j)+360.))<abs(clon-dlon(i,j)) ) then
-                x = (clon-(dlon(i,j)+360.))*pir180*gridfc
+                x = (clon-(dlon(i,j)+360.))*degrad*gridfc
               else
-                x = (clon-dlon(i,j))*pir180*gridfc
+                x = (clon-dlon(i,j))*degrad*gridfc
               end if
             else if ( abs(clon-(dlon(i,j)-360.))<abs(clon-dlon(i,j)) )  &
                     & then
-              x = (clon-(dlon(i,j)-360.))*pir180*gridfc
+              x = (clon-(dlon(i,j)-360.))*degrad*gridfc
             else
-              x = (clon-dlon(i,j))*pir180*gridfc
+              x = (clon-dlon(i,j))*degrad*gridfc
             end if
             xs = sin(x)
             xc = cos(x)

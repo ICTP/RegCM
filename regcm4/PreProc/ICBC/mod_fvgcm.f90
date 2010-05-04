@@ -27,29 +27,29 @@
 
       integer , parameter :: nlev2 = 18 , nlat2 = 181 , nlon2 = 288
 
-      real , dimension(nlev2+1) :: ak , bk
-      real , dimension(nlev2) :: pplev , sigma1 , sigmar
-      real , dimension(nlat2) :: vlat
-      real , dimension(nlon2) :: vlon
+      real(4) , dimension(nlev2+1) :: ak , bk
+      real(4) , dimension(nlev2) :: pplev , sigma1 , sigmar
+      real(4) , dimension(nlat2) :: vlat
+      real(4) , dimension(nlon2) :: vlon
 
-      real , target , dimension(nlon2,nlat2,nlev2*4+1) :: bb
-      real , target , dimension(nlon2,nlat2,nlev2*3) :: b2
-      real , target , dimension(nlon2,nlat2,nlev2*2) :: d2
-      real , target , dimension(jx,iy,nlev2*3) :: b3
-      real , target , dimension(jx,iy,nlev2*2) :: d3
+      real(4) , target , dimension(nlon2,nlat2,nlev2*4+1) :: bb
+      real(4) , target , dimension(nlon2,nlat2,nlev2*3) :: b2
+      real(4) , target , dimension(nlon2,nlat2,nlev2*2) :: d2
+      real(4) , target , dimension(jx,iy,nlev2*3) :: b3
+      real(4) , target , dimension(jx,iy,nlev2*2) :: d3
 
-      real , dimension(nlon2,nlat2) :: zs2
-      real , dimension(nlon2,nlat2,nlev2) :: pp3d , z1
+      real(4) , dimension(nlon2,nlat2) :: zs2
+      real(4) , dimension(nlon2,nlat2,nlev2) :: pp3d , z1
 
-      real , dimension(jx,iy) :: b3pd
-      real , dimension(jx,iy,nlev2) :: w3
+      real(4) , dimension(jx,iy) :: b3pd
+      real(4) , dimension(jx,iy,nlev2) :: w3
 
-      real , pointer , dimension(:,:) :: ps2
-      real , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
-      real , pointer , dimension(:,:,:) :: tp , qp , hp
-      real , pointer , dimension(:,:,:) :: up , vp
-      real , pointer , dimension(:,:,:) :: t3 , q3 , h3
-      real , pointer , dimension(:,:,:) :: u3 , v3
+      real(4) , pointer , dimension(:,:) :: ps2
+      real(4) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
+      real(4) , pointer , dimension(:,:,:) :: tp , qp , hp
+      real(4) , pointer , dimension(:,:,:) :: up , vp
+      real(4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+      real(4) , pointer , dimension(:,:,:) :: u3 , v3
 
       public :: getfvgcm , headerfv
 
@@ -73,9 +73,9 @@
                & nhour , nmop , nrec , numx , numy , nyear , nyrp
       integer(2) , dimension(288,181) :: itmp
       real(8) :: offset , xscale
-      real , dimension(288,181) :: temp
+      real(4) , dimension(288,181) :: temp
       logical :: there
-      real :: wt
+      real(4) :: wt
       character(4) , dimension(30) :: yr_a2 , yr_rf
 !
       data fn_rf/'FV_RF'/ , fn_a2/'FV_A2'/

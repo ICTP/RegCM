@@ -23,22 +23,22 @@
 !
 ! PARAMETER definitions
 !
-      real , parameter :: rgas2 = rgas/2.
-      real , parameter :: b1 = -gti/lrate
+      real(4) , parameter :: rgas2 = rgas/2.
+      real(4) , parameter :: b1 = -gti/lrate
 !
 ! Dummy arguments
 !
       integer :: kccm , ni , nj
-      real :: ptop
-      real , dimension(ni,nj,kccm) :: fccm
-      real , dimension(ni,nj) :: fsccm , psrccm
-      real , dimension(kccm) :: sccm
+      real(4) :: ptop
+      real(4) , dimension(ni,nj,kccm) :: fccm
+      real(4) , dimension(ni,nj) :: fsccm , psrccm
+      real(4) , dimension(kccm) :: sccm
       intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
       intent (out) fsccm
 !
 ! Local variables
 !
-      real :: a1 , rc , rc1 , sc
+      real(4) :: a1 , rc , rc1 , sc
       integer :: i , j , k , k1 , kp1
 !
 !**   INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION

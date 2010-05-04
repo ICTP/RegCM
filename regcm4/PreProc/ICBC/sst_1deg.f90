@@ -57,13 +57,13 @@
       real(4) , dimension(ilon,jlat) :: sst , ice
       integer :: idate , idate0 , kend , kstart
       integer , dimension(427+1045) :: wkday
-      real , dimension(iy,jx) :: lu , sstmm , icemm , xlat , xlon
+      real(4) , dimension(iy,jx) :: lu , sstmm , icemm , xlat , xlon
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
                & nday , nmo , nrec , nyear
-      real , dimension(jlat) :: lati
-      real , dimension(ilon) :: loni
+      real(4) , dimension(jlat) :: lati
+      real(4) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
-      real :: truelath , truelatl
+      real(4) :: truelath , truelatl
       logical :: there
 !
       if ( ssttyp=='GISST' ) then
@@ -361,8 +361,8 @@
 ! Dummy arguments
 !
       integer :: ibyte , idate1 , idate2 , iy , jx
-      real :: truelath , truelatl
-      real , dimension(iy,jx) :: lu , xlat , xlon
+      real(4) :: truelath , truelatl
+      real(4) , dimension(iy,jx) :: lu , xlat , xlon
       character(5) :: ssttyp
       intent (in) ibyte , idate1 , idate2 , iy , jx , ssttyp
       intent (out) lu
@@ -370,14 +370,14 @@
 !
 ! Local variables
 !
-      real :: alatmax , alatmin , alonmax , alonmin , centeri ,         &
+      real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(3) , dimension(12) :: cmonth
       integer :: i , ibigend , ierr , igrads , iyy , j , jxx , k , kz , &
                & month , nx , ny , period
       character(6) :: iproj
-      real , dimension(30) :: sigmaf
+      real(4) , dimension(30) :: sigmaf
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
@@ -549,8 +549,8 @@
 ! Dummy arguments
 !
       integer :: ibyte , idate1 , iy , jx , inumber
-      real :: truelath , truelatl
-      real , dimension(iy,jx) :: lu , xlat , xlon
+      real(4) :: truelath , truelatl
+      real(4) , dimension(iy,jx) :: lu , xlat , xlon
       character(5) :: ssttyp
       intent (in) ibyte , idate1 , iy , jx , inumber , ssttyp
       intent (out) lu
@@ -558,7 +558,7 @@
 !
 ! Local variables
 !
-      real :: alatmax , alatmin , alonmax , alonmin , centeri ,         &
+      real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
       character(2) , dimension(31) :: cday
@@ -566,7 +566,7 @@
       integer :: day , i , ibigend , ierr , igrads , iyy , j , jxx , k ,&
                & kz , month , nx , ny
       character(6) :: iproj
-      real , dimension(30) :: sigmaf
+      real(4) , dimension(30) :: sigmaf
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/

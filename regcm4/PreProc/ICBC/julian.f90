@@ -23,14 +23,14 @@
 ! Dummy arguments
 !
       integer :: mdate , nmop , nyrp
-      real :: wt
+      real(4) :: wt
       intent (in) mdate
       intent (out) nyrp , wt
       intent (inout) nmop
 !
 ! Local variables
 !
-      real :: fdenom , fnumer
+      real(4) :: fdenom , fnumer
       integer :: idate , iday , ileap , imo , iyr , j , julday , nmo ,  &
                & nyr
       integer , dimension(12) :: jprev , julmid , lenmon , midmon

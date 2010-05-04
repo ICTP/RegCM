@@ -23,18 +23,18 @@
 ! Dummy arguments
 !
       integer :: im , jm , km , kp
-      real , dimension(im,jm,km) :: f , p3d
-      real , dimension(im,jm,kp) :: fp
-      real , dimension(kp) :: p
-      real , dimension(im,jm) :: ps
+      real(4) , dimension(im,jm,km) :: f , p3d
+      real(4) , dimension(im,jm,kp) :: fp
+      real(4) , dimension(kp) :: p
+      real(4) , dimension(im,jm) :: ps
       intent (in) f , im , jm , km , kp , p , p3d , ps
       intent (out) fp
 !
 ! Local variables
 !
       integer :: i , j , k , k1 , k1p , n
-      real , dimension(61) :: sig
-      real :: sigp , w1 , wp
+      real(4) , dimension(61) :: sig
+      real(4) :: sigp , w1 , wp
 !
 !     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
 !     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION

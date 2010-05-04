@@ -23,7 +23,7 @@
 ! Dummy arguments
 !
       integer :: iy , jx , kdate
-      real , dimension(jx,iy) :: sst1 , topogm , tsccm , xlandu
+      real(4) , dimension(jx,iy) :: sst1 , topogm , tsccm , xlandu
       intent (in) iy , jx , kdate , topogm , xlandu
       intent (out) tsccm
       intent (inout) sst1

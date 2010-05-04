@@ -23,8 +23,9 @@
 ! Dummy arguments
 !
       integer :: iy , jx , nmop , nyrp
-      real :: wt
-      real , dimension(jx,iy) :: sst1 , sst2 , topogm , tsccm , xlandu
+      real(4) :: wt
+      real(4) , dimension(jx,iy) :: sst1 , sst2 , topogm , tsccm ,      &
+                                 &  xlandu
       intent (in) iy , jx , nmop , nyrp , topogm , xlandu
       intent (out) tsccm
       intent (inout) sst1 , sst2 , wt

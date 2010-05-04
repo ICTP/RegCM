@@ -23,16 +23,15 @@
 
       implicit none
 
-      real , dimension(jx,iy) :: coriol , dlat , dlon , msfx , snowcv , &
-                               & topogm , toposdgm , xlandu , xlat ,    &
-                               & xlon
-      real , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za , ice1 ,&
-                               & ice2
-      real , dimension(jx,iy) :: b3pd
-      real , dimension(kz) :: dsigma , sigma2
-      real , dimension(kz+1) :: sigmaf
-      real :: delx , grdfac
+      real(4) , dimension(jx,iy) :: coriol , dlat , dlon , msfx ,       &
+                 & snowcv , topogm , toposdgm , xlandu , xlat , xlon
+      real(4) , dimension(jx,iy) :: pa , sst1 , sst2 , tlayer , za ,    &
+                 & ice1 , ice2
+      real(4) , dimension(jx,iy) :: b3pd
+      real(4) , dimension(kz) :: dsigma , sigma2
+      real(4) , dimension(kz+1) :: sigmaf
+      real(4) :: delx , grdfac
       integer :: i0 , i1 , j0 , j1
-      real :: lat0 , lat1 , lon0 , lon1
+      real(4) :: lat0 , lat1 , lon0 , lon1
 
       end module mod_grid

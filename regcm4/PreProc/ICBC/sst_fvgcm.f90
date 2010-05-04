@@ -42,13 +42,13 @@
 !
       integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
              &   mrec , nday , nmo , nyear
-      real , dimension(jlat) :: lati
-      real , dimension(ilon) :: loni
+      real(4) , dimension(jlat) :: lati
+      real(4) , dimension(ilon) :: loni
       integer , dimension(20) :: lund
       real(4) , dimension(192,145) :: temp
-      real , dimension(ilon,jlat) :: sst
+      real(4) , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
-      real , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+      real(4) , dimension(iy,jx) :: lu , sstmm , xlat , xlon
 
       logical :: there
 !
@@ -208,21 +208,21 @@
 ! Dummy arguments
 !
       integer :: idate1 , idate2 , iy , jx
-      real , dimension(iy,jx) :: lu , xlat , xlon
+      real(4) , dimension(iy,jx) :: lu , xlat , xlon
       intent (in) idate1 , idate2 , iy , jx
       intent (out) lu
       intent (out) xlat , xlon
 !
 ! Local variables
 !
-      real :: alatmax , alatmin , alonmax , alonmin , centeri ,         &
+      real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc, trl, trh
       character(3) , dimension(12) :: cmonth
       integer :: i , ibigend , igrads ,  iyy , j , jxx , k , kz ,       &
                & month , nx , ny , period
       character(6) :: iproj
-      real , dimension(30) :: sigmaf
+      real(4) , dimension(30) :: sigmaf
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/

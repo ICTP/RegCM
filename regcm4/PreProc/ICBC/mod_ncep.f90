@@ -30,21 +30,21 @@
       integer , parameter :: klev = 13 , jlat = 73 , ilon = 144
 
       real(4) , dimension(ilon,jlat) :: psvar
-      real , dimension(jlat) :: glat
-      real , dimension(ilon) :: glon
-      real , dimension(klev) :: sigma1 , sigmar
+      real(4) , dimension(jlat) :: glat
+      real(4) , dimension(ilon) :: glon
+      real(4) , dimension(klev) :: sigma1 , sigmar
 
-      real , dimension(ilon,jlat,klev) :: wvar
+      real(4) , dimension(ilon,jlat,klev) :: wvar
 
-      real , target , dimension(ilon,jlat,klev*3) :: b2
-      real , target , dimension(ilon,jlat,klev*2) :: d2
-      real , target , dimension(jx,iy,klev*3) :: b3
-      real , target , dimension(jx,iy,klev*2) :: d3
+      real(4) , target , dimension(ilon,jlat,klev*3) :: b2
+      real(4) , target , dimension(ilon,jlat,klev*2) :: d2
+      real(4) , target , dimension(jx,iy,klev*3) :: b3
+      real(4) , target , dimension(jx,iy,klev*2) :: d3
       
-      real , pointer :: u3(:,:,:) , v3(:,:,:)
-      real , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-      real , pointer :: uvar(:,:,:) , vvar(:,:,:)
-      real , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+      real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
+      real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+      real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+      real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
       public :: getncep , getncepw , headernc
 
@@ -62,7 +62,7 @@
 ! Local variables
 !
       integer :: nmop , nyrp
-      real :: wt
+      real(4) :: wt
 
 !
 !     D      BEGIN LOOP OVER NTIMES
@@ -376,7 +376,7 @@
 ! Local variables
 !
       integer :: nmop , nyrp
-      real :: wt
+      real(4) :: wt
 
 !
 !     D      BEGIN LOOP OVER NTIMES

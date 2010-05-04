@@ -28,21 +28,21 @@
 
       integer , parameter :: nlev1 = 15 , jlat = 64 , ilon = 128
 
-      real , dimension(jlat) :: hlat
-      real , dimension(ilon) :: hlon
-      real , dimension(nlev1) :: sigma1 , sigmar
+      real(4) , dimension(jlat) :: hlat
+      real(4) , dimension(ilon) :: hlon
+      real(4) , dimension(nlev1) :: sigma1 , sigmar
 
-      real , dimension(ilon,jlat,nlev1) :: w1
+      real(4) , dimension(ilon,jlat,nlev1) :: w1
 
-      real , target , dimension(ilon,jlat,nlev1*3) :: b2
-      real , target , dimension(ilon,jlat,nlev1*2) :: d2
-      real , target , dimension(jx,iy,nlev1*3) :: b3
-      real , target , dimension(jx,iy,nlev1*2) :: d3
+      real(4) , target , dimension(ilon,jlat,nlev1*3) :: b2
+      real(4) , target , dimension(ilon,jlat,nlev1*2) :: d2
+      real(4) , target , dimension(jx,iy,nlev1*3) :: b3
+      real(4) , target , dimension(jx,iy,nlev1*2) :: d3
 
-      real , pointer , dimension(:,:,:) :: t1 , q1 , h1
-      real , pointer , dimension(:,:,:) :: u1 , v1
-      real , pointer , dimension(:,:,:) :: t3 , q3 , h3
-      real , pointer , dimension(:,:,:) :: u3 , v3
+      real(4) , pointer , dimension(:,:,:) :: t1 , q1 , h1
+      real(4) , pointer , dimension(:,:,:) :: u1 , v1
+      real(4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+      real(4) , pointer , dimension(:,:,:) :: u3 , v3
 
       public :: getecwcp , headerec
 
@@ -63,7 +63,7 @@
       integer :: i , j , k , month , nday , nhour , nmop , nrec ,       &
                & nyear , nyrp
       logical :: there
-      real :: wt
+      real(4) :: wt
 !
       data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,      &
           &'ECT421993APR' , 'ECT421993MAY' , 'ECT421993JUN' ,           &

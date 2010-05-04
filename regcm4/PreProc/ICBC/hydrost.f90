@@ -24,18 +24,18 @@
 ! Dummy arguments
 !
       integer :: ni , nj , nk
-      real :: pt
-      real , dimension(nk) :: dsigma , sigmah
-      real , dimension(ni,nj,nk) :: h , t
-      real , dimension(ni,nj) :: phis , ps
-      real , dimension(nk+1) :: sigmaf
+      real(4) :: pt
+      real(4) , dimension(nk) :: dsigma , sigmah
+      real(4) , dimension(ni,nj,nk) :: h , t
+      real(4) , dimension(ni,nj) :: phis , ps
+      real(4) , dimension(nk+1) :: sigmaf
       intent (in) ni , nj , nk , phis , ps , pt , sigmaf , sigmah , t
       intent (inout) dsigma , h
 !
 ! Local variables
 !
       integer :: i , j , k , k1 , k2
-      real :: pf , tbar
+      real(4) :: pf , tbar
 !
 !     ROUTINE TO COMPUTE HEIGHT USING THE HYDROSTATIC RELATION.
 !     THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE

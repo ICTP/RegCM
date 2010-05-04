@@ -24,18 +24,18 @@
 ! Dummy arguments
 !
       integer :: iy , jx , nflds , nlati , nloni
-      real , dimension(nloni,nlati,nflds) :: fin
-      real , dimension(nlati) :: lati
-      real , dimension(iy,jx) :: lato , lono
-      real , dimension(nloni) :: loni
-      real , dimension(iy,jx,nflds) :: fout
+      real(4) , dimension(nloni,nlati,nflds) :: fin
+      real(4) , dimension(nlati) :: lati
+      real(4) , dimension(iy,jx) :: lato , lono
+      real(4) , dimension(nloni) :: loni
+      real(4) , dimension(iy,jx,nflds) :: fout
       intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
                 & nlati , nloni
       intent (out) fout
 !
 ! Local variables
 !
-      real :: bas , lon360 , p , q , xsum , xind , yind
+      real(4) :: bas , lon360 , p , q , xsum , xind , yind
       integer :: i , ip , ipp1 , j , jq , jqp1 , l
 !
 !
@@ -119,18 +119,18 @@
 ! Dummy arguments
 !
       integer :: iy , jx , llev , nlat , nlon
-      real , dimension(jx,iy) :: alat , alon
-      real , dimension(nlon,nlat,llev) :: b2
-      real , dimension(jx,iy,llev) :: b3
-      real , dimension(nlat) :: hlat
-      real , dimension(nlon) :: hlon
+      real(4) , dimension(jx,iy) :: alat , alon
+      real(4) , dimension(nlon,nlat,llev) :: b2
+      real(4) , dimension(jx,iy,llev) :: b3
+      real(4) , dimension(nlat) :: hlat
+      real(4) , dimension(nlon) :: hlon
       intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev ,     &
                 & nlat , nlon
       intent (out) b3
 !
 ! Local variables
 !
-      real :: ave , p1 , p2 , q1 , q2
+      real(4) :: ave , p1 , p2 , q1 , q2
       integer :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
 !
 !     PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A

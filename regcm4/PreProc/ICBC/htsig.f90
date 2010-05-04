@@ -24,14 +24,14 @@
 ! Dummy arguments
 !
       integer :: im , jm , km
-      real , dimension(im,jm,km) :: h , p3d , t
-      real , dimension(im,jm) :: ht , ps
+      real(4) , dimension(im,jm,km) :: h , p3d , t
+      real(4) , dimension(im,jm) :: ht , ps
       intent (in) ht , im , jm , km , p3d , ps , t
       intent (inout) h
 !
 ! Local variables
 !
-      real :: tbar
+      real(4) :: tbar
       integer :: i , j , k
 !
       do j = 1 , jm

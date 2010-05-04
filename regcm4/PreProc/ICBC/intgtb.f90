@@ -23,9 +23,9 @@
 ! Dummy arguments
 !
       integer :: ni , nj , nlev1
-      real , dimension(ni,nj) :: pa , tlayer , za , zrcm
-      real , dimension(nlev1) :: sccm
-      real , dimension(ni,nj,nlev1) :: tp , zp
+      real(4) , dimension(ni,nj) :: pa , tlayer , za , zrcm
+      real(4) , dimension(nlev1) :: sccm
+      real(4) , dimension(ni,nj,nlev1) :: tp , zp
       intent (in) ni , nj , nlev1 , sccm , tp , zp , zrcm
       intent (out) pa , za
       intent (inout) tlayer

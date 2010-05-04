@@ -23,21 +23,21 @@
 !
 ! PARAMETER definitions
 !
-      real , parameter :: tr = 1./tzero
+      real(4) , parameter :: tr = 1./tzero
 !
 ! Dummy arguments
 !
       integer :: ni , nj , nk
-      real :: pt
-      real , dimension(ni,nj) :: ps
-      real , dimension(ni,nj,nk) :: q , t
-      real , dimension(nk) :: sigma
+      real(4) :: pt
+      real(4) , dimension(ni,nj) :: ps
+      real(4) , dimension(ni,nj,nk) :: q , t
+      real(4) , dimension(nk) :: sigma
       intent (in) ni , nj , nk , ps , pt , sigma , t
       intent (inout) q
 !
 ! Local variables
 !
-      real :: hl , p , qs , satvp
+      real(4) :: hl , p , qs , satvp
       integer :: i , j , k
 !
 !     THIS ROUTINE REPLACES RELATIVE HUMIDITY BY SPECIFIC HUMIDITY
