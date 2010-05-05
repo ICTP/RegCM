@@ -32,8 +32,7 @@
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_preproc_param
-      use mod_regcm_param , only : iy , jx , ibyte
+      use mod_dynparam
 
       implicit none
 !
@@ -43,13 +42,32 @@
 !
 ! Local variables
 !
-      integer :: i , j , nrec
+      logical :: there
+      integer :: i , j , nrec , ierr
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       real(4) , dimension(ilon,jlat) :: aer2
-      real(4) , dimension(iy,jx) :: aermm , xlat , xlon
-      logical :: there
- 
+      real(4) , allocatable , dimension(:,:) :: aermm , xlat , xlon
+      character(256) :: namelistfile, prgname 
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+!
+      allocate(aermm(iy,jx))
+      allocate(xlat(iy,jx))
+      allocate(xlon(iy,jx))
+
       inquire (file='../DATA/AERGLOB/AEROSOL.dat',exist=there)
       if ( .not.there ) print * , 'AEROSOL.dat is not available' ,      &
                              &' under ../DATA/AERGLOB/'
@@ -85,6 +103,10 @@
       end do
  
       print *, 'Success.'
+      deallocate(aermm)
+      deallocate(xlat)
+      deallocate(xlon)
+
       stop 99999
  100  continue
       print * , 'ERROR OPENING AEROSOL FILE'

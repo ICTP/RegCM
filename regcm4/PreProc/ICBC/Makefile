@@ -12,6 +12,7 @@ SSTEH5OOBJ = sst_eh5om.o bilinx.o printl.o mod_datenum.o
 SSTERAOBJ = sst_ersst.o bilinx.o printl.o mod_datenum.o
 SSTFVGCOBJ = sst_fvgcm.o bilinx.o printl.o mod_datenum.o
 
+SHRMODS = mod_dynparam.o mod_constants.o
 SHRMOD = mod_regcm_param.o mod_preproc_param.o mod_constants.o
 
 MODOBJ = mod_ccsm.o mod_datenum.o mod_datewk.o mod_ecwcp.o mod_eh5om.o \
@@ -26,12 +27,12 @@ ICBCOBJ = icbc.o bilinx.o cressmcr.o cressmdt.o fexist.o gradsctlb.o \
           mkssta.o mxmn3d.o p1p2.o printl.o top2btm.o uvrot4.o uvrot4nx.o \
           header_ICBC.o
 
-aerosol: $(SHRMOD) $(AEROSOLOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(SHRMOD) \
+aerosol: $(AEROSOLOBJ) $(SHRMODS)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(SHRMODS) \
                $(LIB) $(NETCDFLIB)
 
-sst_1deg: $(SHRMOD) $(SST1DEGOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SST1DEGOBJ) $(SHRMOD) \
+sst_1deg: $(SHRMODS) $(SST1DEGOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SST1DEGOBJ) $(SHRMODS) \
                $(LIB) $(NETCDFLIB)
 
 sst_ccsm: $(SHRMOD) $(SSTCCSMOBJ)
@@ -53,6 +54,10 @@ sst_fvgcm: $(SHRMOD) $(SSTFVGCOBJ)
 icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMOD) $(MODOBJ) $(ICBCOBJ) \
                $(LIB) $(NETCDFLIB)
+
+mod_dynparam.o: ../../Config/mod_dynparam.F90
+	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+               $(USCORING) -c -o $@ $<
 
 mod_regcm_param.o: ../../Config/mod_regcm_param.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
@@ -146,8 +151,8 @@ printl.o: printl.f90
 top2btm.o: top2btm.f90
 uvrot4.o: uvrot4.f90 mod_constants.o
 uvrot4nx.o: uvrot4nx.f90 mod_constants.o
-aerosol.o: aerosol.f90 mod_preproc_param.o mod_regcm_param.o
-sst_1deg.o: sst_1deg.f90 mod_preproc_param.o mod_regcm_param.o
+aerosol.o: aerosol.f90 mod_dynparam.o
+sst_1deg.o: sst_1deg.f90 mod_dynparam.o
 sst_ccsm.o: sst_ccsm.f90 mod_preproc_param.o mod_regcm_param.o
 sst_eh5om.o: sst_eh5om.f90 mod_preproc_param.o mod_regcm_param.o mod_datenum.o
 sst_ersst.o: sst_ersst.f90 mod_datenum.o mod_preproc_param.o mod_regcm_param.o

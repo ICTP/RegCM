@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program rdsst
+      program sst_1deg
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Comments on dataset sources and location:                          c
@@ -43,8 +43,7 @@
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param , only : iy , jx , lsmtyp , ibyte
-      use mod_preproc_param , only : idate1 , idate2 , ssttyp
+      use mod_dynparam
 
       implicit none
 !
@@ -57,19 +56,40 @@
       real(4) , dimension(ilon,jlat) :: sst , ice
       integer :: idate , idate0 , kend , kstart
       integer , dimension(427+1045) :: wkday
-      real(4) , dimension(iy,jx) :: lu , sstmm , icemm , xlat , xlon
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
-               & nday , nmo , nrec , nyear
+               & nday , nmo , nrec , nyear , ierr
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
-      real(4) :: truelath , truelatl
+      character(256) :: namelistfile, prgname
       logical :: there
+      real(4) , allocatable , dimension(:,:) :: lu , sstmm , icemm ,    &
+                                  &             xlat , xlon
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+!
+      allocate(lu(iy,jx))
+      allocate(sstmm(iy,jx))
+      allocate(icemm(iy,jx))
+      allocate(xlat(iy,jx))
+      allocate(xlon(iy,jx))
 !
       if ( ssttyp=='GISST' ) then
-        if ( idate1<1947121512 .or. idate2>2002091512 ) then
+        if ( globidate1<1947121512 .or. globidate2>2002091512 ) then
           print * , 'GISST data required are not available'
-          print * , 'IDATE1, IDATE2 = ' , idate1 , idate2
+          print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
         end if
         open (11,file='../DATA/SST/GISST_194712_200209',                &
@@ -77,9 +97,9 @@
             & status='old',err=100)
       else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.               &
             &   ssttyp=='OI2ST' ) then
-        if ( idate1<1981121512 .or. idate2<1981121512 ) then
+        if ( globidate1<1981121512 .or. globidate2<1981121512 ) then
           print * , 'OISST data required are not available'
-          print * , 'IDATE1, IDATE2 = ' , idate1 , idate2
+          print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
         end if
         inquire (file='../DATA/SST/sst.mnmean.nc',exist=there)
@@ -92,9 +112,9 @@
                    &' under ../DATA/SST/'
         end if
       else if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) then
-        if ( idate1<1981110100 .or. idate2<1981110106 ) then
+        if ( globidate1<1981110100 .or. globidate2<1981110106 ) then
           print * , 'OI_WK (or OI2WK) data required are not available'
-          print * , 'IDATE1, IDATE2 = ' , idate1 , idate2
+          print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
         end if
         inquire (file='../DATA/SST/sst.wkmean.1981-1989.nc',exist=there)
@@ -134,7 +154,7 @@
 !#####
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !#####
-        idate = idate1/10000
+        idate = globidate1/10000
         if ( idate-(idate/100)*100==1 ) then
           idate = idate - 89
         else
@@ -142,27 +162,26 @@
         end if
         idateo = idate
         idate0 = idateo*10000 + 100
-        idate = idate2/10000
+        idate = globidate2/10000
         if ( idate-(idate/100)*100==12 ) then
           idate = idate + 89
         else
           idate = idate + 1
         end if
         idatef = idate
-        print * , idate1 , idate2 , idateo , idatef
-        call gridml(xlon,xlat,lu,iy,jx,idateo,idatef,ibyte,truelatl,    &
-                  & truelath,ssttyp)
+        print * , globidate1 , globidate2 , idateo , idatef
+        call gridml(xlon,xlat,lu,iy,jx,idateo,idatef,ibyte,ssttyp)
 !#####
       else
 !#####
-        idate = idate1/100
+        idate = globidate1/100
         do k = 427 + 1045 , 1 , -1
           if ( wkday(k)<=idate ) then
             kstart = k
             exit
           end if
         end do
-        idate = idate2/100
+        idate = globidate2/100
         do k = 1 , 427 + 1045
           if ( wkday(k)>idate ) then
             kend = k
@@ -172,9 +191,10 @@
         idateo = wkday(kstart)
         idate0 = wkday(kstart)*100
         idatef = wkday(kend)
-        print * , idate1 , idate2 , idateo , idatef , kend - kstart + 1
+        print * , globidate1 , globidate2 , idateo , idatef ,           &
+                &  kend - kstart + 1
         call gridml2(xlon,xlat,lu,iy,jx,idateo,kend-kstart+1,ibyte,     &
-                   & truelatl,truelath,ssttyp)
+                   & ssttyp)
 !#####
       end if
 !#####
@@ -342,6 +362,11 @@
 !#####
       end if
 !#####
+      deallocate(lu)
+      deallocate(sstmm)
+      deallocate(icemm)
+      deallocate(xlat)
+      deallocate(xlon)
  
       stop 99999
  100  continue
@@ -350,26 +375,25 @@
  200  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 IN PROGRAM RDSST'
-      end program rdsst
+
+      end program sst_1deg
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2,ibyte,truelatl,&
-                      & truelath,ssttyp)
+      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2,ibyte,ssttyp)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: ibyte , idate1 , idate2 , iy , jx
-      real(4) :: truelath , truelatl
       real(4) , dimension(iy,jx) :: lu , xlat , xlon
       character(5) :: ssttyp
       intent (in) ibyte , idate1 , idate2 , iy , jx , ssttyp
-      intent (out) lu
-      intent (inout) truelath , truelatl , xlat , xlon
+      intent (out) lu , xlat , xlon
 !
 ! Local variables
 !
+      real(4) :: truelath , truelatl
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
@@ -542,22 +566,20 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml2(xlon,xlat,lu,iy,jx,idate1,inumber,ibyte,       &
-                       & truelatl,truelath,ssttyp)
+      subroutine gridml2(xlon,xlat,lu,iy,jx,idate1,inumber,ibyte,ssttyp)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: ibyte , idate1 , iy , jx , inumber
-      real(4) :: truelath , truelatl
       real(4) , dimension(iy,jx) :: lu , xlat , xlon
       character(5) :: ssttyp
       intent (in) ibyte , idate1 , iy , jx , inumber , ssttyp
-      intent (out) lu
-      intent (inout) truelath , truelatl , xlat , xlon
+      intent (out) lu , xlat , xlon
 !
 ! Local variables
 !
+      real(4) :: truelath , truelatl
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
