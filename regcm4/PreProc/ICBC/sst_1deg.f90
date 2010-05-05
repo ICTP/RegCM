@@ -142,14 +142,15 @@
           end if
         end if
       else
-        write (*,*) 'PLEASE SET SSTTYP in mod_preproc_param.f90'
+        write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
+        write (*,*) 'Supported are GISST OISST OI_NC OI2ST OI_WK OI2WK'
         stop
       end if
       open (21,file='SST.RCM',form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=iy*jx*ibyte,access='direct',status='unknown',err=200)
+      open (10,file=terfilout,form='unformatted',recl=iy*jx*ibyte,      &
+          & access='direct',status='unknown',err=200)
  
 !#####
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
@@ -412,7 +413,7 @@
                                 & ibigend , truelatl , truelath
       if ( iyy/=iy .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (SST_1DEG.f)'
-        print * , '  icbc.param: ' , iy , jx
+        print * , '  regcm.in   : ' , iy , jx
         print * , '  DOMAIN.INFO: ' , iyy , jxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
@@ -593,7 +594,7 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
-          &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+         & '09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
 !
@@ -603,7 +604,7 @@
                                 & ibigend , truelatl , truelath
       if ( iyy/=iy .or. jxx/=jx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (SST_1DEG.f)'
-        print * , '  icbc.param: ' , iy , jx
+        print * , '  regcm.in   : ' , iy , jx
         print * , '  DOMAIN.INFO: ' , iyy , jxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml2)'

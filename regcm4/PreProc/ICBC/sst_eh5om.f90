@@ -254,14 +254,15 @@
           stop
         end if
       else
-        write (*,*) 'PLEASE SET right SSTTYP in mod_preproc_param.f90'
+        write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
+        write (*,*) 'Supported types are EH5RF EH5A2 EH5B1 EHA1B'
         stop
       end if
       open (21,file='SST.RCM',form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
+      open (10,file=terfilout,form='unformatted',recl=iy*jx*ibyte,      &
+         &  access='direct',status='unknown',err=100)
       call initdate_eh50(ssttyp)
       call finddate_eh50(nstart,globidate1)
       call finddate_eh50(nnnend,globidate2)

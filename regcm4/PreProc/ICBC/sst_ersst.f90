@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program rdsst
+      program sst_ersst
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Comments on dataset sources and location:                          !
@@ -32,8 +32,7 @@
 !          NL= 1 is  90.0; ML= 2 is  88.5; => ML=121 is -90.         !
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      use mod_regcm_param , only : iy , jx , lsmtyp , ibyte
-      use mod_preproc_param , only : ssttyp , idate1 , idate2
+      use mod_dynparam
       use mod_datenum
       implicit none
 !
@@ -46,17 +45,36 @@
       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
-      integer :: idate
+      integer :: idate , ierr
       logical :: there
       integer :: nnnend , nstart
       real(4) , dimension(ilon,jlat) :: sst
-      real(4) , dimension(iy,jx) :: lu , sstmm , xlat , xlon
-      real(4) :: truelath , truelatl
+      character(256) :: namelistfile, prgname
+      real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+!
+      allocate(lu(iy,jx))
+      allocate(sstmm(iy,jx))
+      allocate(xlat(iy,jx))
+      allocate(xlon(iy,jx))
 !
       if ( ssttyp=='ERSST' ) then
         there = .false.
-        if ( (idate1>=1989010100 .and. idate1<=2009053118) .or.         &
-           & (idate2>=1989010100 .and. idate2<=2009053118) ) then
+        if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
+           & (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
           inquire (file='../DATA/SST/sstERAIN.1989-2009.nc',exist=there)
           if ( .not.there ) then
             print * , 'sstERAIN.1989-2009.nc is not available' ,        &
@@ -71,8 +89,8 @@
         end if
       else if ( ssttyp=='ERSKT' ) then
         there = .false.
-        if ( (idate1>=1989010100 .and. idate1<=2009053118) .or.         &
-           & (idate2>=1989010100 .and. idate2<=2009053118) ) then
+        if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
+           & (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
           inquire (file='../DATA/SST/tskinERAIN.1989-2009.nc',          &
                  & exist=there)
           if ( .not.there ) then
@@ -87,21 +105,21 @@
           stop
         end if
       else
-        write (*,*) 'PLEASE SET right SSTTYP in mod_preproc_param.f90'
+        write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
+        write (*,*) 'Supported types are ERSST ERSKT'
         stop
       end if
       open (21,file='SST.RCM',form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
+      open (10,file=terfilout,form='unformatted',recl=iy*jx*ibyte,      &
+         &  access='direct',status='unknown',err=100)
       call initdate_era
-      call finddate_era(nstart,idate1)
-      call finddate_era(nnnend,idate2)
+      call finddate_era(nstart,globidate1)
+      call finddate_era(nnnend,globidate2)
       write (*,*) nstart , nnnend
-      print * , idate1 , nnnend - nstart + 1
-      call gridml(xlon,xlat,lu,iy,jx,idate1,nnnend-nstart+1,truelatl,   &
-                & truelath)
+      print * , globidate1 , nnnend - nstart + 1
+      call gridml(xlon,xlat,lu,iy,jx,globidate1,nnnend-nstart+1)
       open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
           & recl=iy*jx*ibyte,access='direct')
       mrec = 0
@@ -140,31 +158,34 @@
         write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
       end do
  
+      deallocate(lu)
+      deallocate(sstmm)
+      deallocate(xlat)
+      deallocate(xlon)
+
       stop 99999
 !     4810 PRINT *,'ERROR OPENING GISST FILE'
 !     STOP '4810 IN PROGRAM RDSST'
  100  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 IN PROGRAM RDSST'
-      end program rdsst
+      end program sst_ersst
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,numrec,truelatl,      &
-                      & truelath)
+      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,numrec)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate1 , iy , jx , numrec
-      real(4) :: truelath , truelatl
       real(4) , dimension(iy,jx) :: lu , xlat , xlon
       intent (in) idate1 , iy , jx , numrec
-      intent (out) lu
-      intent (inout) truelath , truelatl , xlat , xlon
+      intent (out) lu , xlat , xlon
 !
 ! Local variables
 !
+      real(4) :: truelath , truelatl
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc

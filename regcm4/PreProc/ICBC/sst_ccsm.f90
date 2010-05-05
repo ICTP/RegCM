@@ -91,8 +91,8 @@
       open (21,file='SST.RCM',form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
+      open (10,file=terfilout,form='unformatted',recl=iy*jx*ibyte,      &
+          & access='direct',status='unknown',err=100)
       idate = globidate1/10000
       if ( idate-(idate/100)*100==1 ) then
         idate = idate - 89

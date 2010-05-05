@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program rdsst
+      program sst_fvgcm
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Comments on dataset sources and location:                          c
@@ -30,8 +30,9 @@
 !          NL= 1 is  90.0; ML= 2 is  88.75 ; => ML=145 is -90.       c
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param , only : iy , jx , lsmtyp , ibyte
-      use mod_preproc_param , only : ssttyp , idate1 , idate2
+
+      use mod_dynparam
+
       implicit none
 !
 ! PARAMETER definitions
@@ -41,22 +42,40 @@
 ! Local variables
 !
       integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
-             &   mrec , nday , nmo , nyear
+             &   mrec , nday , nmo , nyear , ierr
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(20) :: lund
       real(4) , dimension(192,145) :: temp
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
-      real(4) , dimension(iy,jx) :: lu , sstmm , xlat , xlon
-
       logical :: there
+      character(256) :: namelistfile, prgname
+      real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+!
+      allocate(lu(iy,jx))
+      allocate(sstmm(iy,jx))
+      allocate(xlat(iy,jx))
+      allocate(xlon(iy,jx))
 !
       if ( ssttyp=='FV_RF' ) then
         inquire (file='../DATA/SST/Sst_1959_1991ref.dat',exist=there)
         if ( .not.there ) print * ,                                     &
-                               &'Sst_1959_1991ref.dat is not available' &
-                              & , ' under ../DATA/SST/'
+            & 'Sst_1959_1991ref.dat is not available under ../DATA/SST/'
         open (11,file='../DATA/SST/Sst_1959_1991ref.dat',               &
              &form='unformatted',recl=192*145*ibyte,access='direct')
       else if ( ssttyp=='FV_A2' ) then
@@ -74,15 +93,16 @@
         open (11,file='../DATA/SST/Sst_2069_2101_B2.dat',               &
              &form='unformatted',recl=192*145*ibyte,access='direct')
       else
-        write (*,*) 'PLEASE SET SSTTYP in mod_preproc_param.f90'
+        write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
+        write (*,*) 'Supported types are FV_RF FV_A2 FV_B2'
         stop
       end if
       open (21,file='SST.RCM',form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
-          & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
-      idate = idate1/10000
+      open (10,file=terfilout,form='unformatted',recl=iy*jx*ibyte,      &
+         &  access='direct',status='unknown',err=100)
+      idate = globidate1/10000
       if ( idate-(idate/100)*100==1 ) then
         idate = idate - 89
       else
@@ -90,14 +110,14 @@
       end if
       idateo = idate
       idate0 = idateo*10000 + 100
-      idate = idate2/10000
+      idate = globidate2/10000
       if ( idate-(idate/100)*100==12 ) then
         idate = idate + 89
       else
         idate = idate + 1
       end if
       idatef = idate
-      print * , idate1 , idate2 , idateo , idatef
+      print * , globidate1 , globidate2 , idateo , idatef
       call gridml(xlon,xlat,lu,iy,jx,idateo,idatef)
       open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
           & recl=iy*jx*ibyte,access='direct')
@@ -192,13 +212,18 @@
       end do
       write (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
  
+      deallocate(lu)
+      deallocate(sstmm)
+      deallocate(xlat)
+      deallocate(xlon)
+
       stop 99999
 !     4810 PRINT *,'ERROR OPENING GISST FILE'
 !     STOP '4810 IN PROGRAM RDSST'
  100  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 IN PROGRAM RDSST'
-      end program rdsst
+      end program sst_fvgcm
 !
 !-----------------------------------------------------------------------
 !
