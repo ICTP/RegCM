@@ -59,7 +59,7 @@
 !     Aerosol mass mixing ratio
 !
 #ifdef MPP1
-      real(8) , dimension(iym1,kz,jxp) :: aermm
+      real(8) , allocatable, dimension(:,:,:) :: aermm
 #else
       real(8) , dimension(iym1,kz,jxm1) :: aermm
 #endif
@@ -290,6 +290,14 @@
           & 0.68897 , 0.68174/
 !
       contains
+
+! 
+     subroutine allocate_aermod
+	 
+     allocate(aermm(iym1,kz,jxp))
+	
+     end subroutine allocate_aermod
+
 !
 ! SUBROUTINE AERMIX
 !

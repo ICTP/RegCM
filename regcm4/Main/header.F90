@@ -22,7 +22,7 @@ SUBROUTINE header(myid)
   CHARACTER (len=100) :: directory='?'
   INTEGER :: nrite=6, myid
   
-  if (myid.eq.1)  then 
+  if (myid.eq.0)  then 
 
      !!open here the output file:
 !     OPEN ( 20,file='OUTPUT')

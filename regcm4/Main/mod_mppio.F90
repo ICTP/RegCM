@@ -101,7 +101,7 @@
                                       & ub_io , va_io , vb_io
       real(8) , dimension(nnsg,iy,jx) :: snowc_io
 
-      real(8) , dimension(iy,nnsg*3+8,jxp) :: inisrf0
+      real(8) ,allocatable, dimension(:,:,:) :: inisrf0
       real(8) , dimension(iy,nnsg*3+8,jx) :: inisrf_0
 
       real(8) , dimension(kz,8) :: var1snd , var1rcv
@@ -115,4 +115,14 @@
 
 #endif
 
+contains 
+
+	subroutine allocate_mppio
+!
+!     This routines allocate all the arrays contained in the module
+!	
+       allocate (inisrf0(iy,nnsg*3+8,jxp)) 	
+       
+       end subroutine allocate_mppio
+      
       end module mod_mppio

@@ -30,13 +30,13 @@
                & qdcrit , rh0land , rh0oce , rhmax , shrmax , tc0 ,     &
                & shrmin , skbmax
 #ifdef MPP1
-      real(8) , dimension(iy,jxp) :: cbmf2d , cgul , dtauc2d ,          &
+      real(8) ,allocatable, dimension(:,:) :: cbmf2d , cgul , dtauc2d ,          &
                                    & edtmax2d , edtmaxo2d , edtmaxx2d , &
                                    & edtmin2d , edtmino2d , edtminx2d , &
                                    & htmax2d , htmin2d , mincld2d ,     &
                                    & pbcmax2d , qck1 , rh0 , shrmax2d , &
                                    & shrmin2d
-      real(8) , dimension(iy,kz,jxp) :: fcc , rsheat , rswat
+      real(8) ,allocatable, dimension(:,:,:) :: fcc , rsheat , rswat
 #else
       real(8) , dimension(iy,jx) :: cbmf2d , cgul , dtauc2d , edtmax2d ,&
                                   & edtmaxo2d , edtmaxx2d , edtmin2d ,  &
@@ -49,12 +49,42 @@
       real(8) , dimension(kz,5:kz,1:kz-3) :: twght , vqflx
 !
 #ifdef MPP1
-      integer , dimension(jxp) :: icon
-      integer , dimension(iy,jxp) :: kbmax2d
+      integer ,allocatable, dimension(:) :: icon
+      integer ,allocatable, dimension(:,:) :: kbmax2d
 #else
       integer , dimension(jx) :: icon
       integer , dimension(iy,jx) :: kbmax2d
 #endif
       integer :: kbmax
 
+contains
+
+     subroutine allocate_mod_pmoist
+
+     allocate(cbmf2d(iy,jxp))
+     allocate(cgul(iy,jxp))
+     allocate(dtauc2d(iy,jxp))
+     allocate(edtmax2d(iy,jxp))
+     allocate(edtmaxo2d(iy,jxp))
+     allocate(edtmaxx2d(iy,jxp))
+     allocate(edtmin2d(iy,jxp))
+     allocate(edtmino2d(iy,jxp))
+     allocate(edtminx2d(iy,jxp))
+     allocate(htmax2d(iy,jxp))
+     allocate(htmin2d(iy,jxp))
+     allocate(mincld2d(iy,jxp))
+     allocate(pbcmax2d(iy,jxp))
+     allocate(qck1(iy,jxp))
+     allocate(rh0(iy,jxp))
+     allocate(shrmax2d(iy,jxp))
+     allocate(shrmin2d(iy,jxp))
+
+     allocate(fcc(iy,kz,jxp))
+     allocate(rsheat(iy,kz,jxp))
+     allocate(rswat(iy,kz,jxp))
+
+     allocate(icon(jxp))
+     allocate(kbmax2d(iy,jxp))
+
+     end subroutine allocate_mod_pmoist
       end module mod_pmoist

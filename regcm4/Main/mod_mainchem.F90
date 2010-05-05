@@ -24,9 +24,9 @@
       implicit none
 !
 #ifdef MPP1
-      real(8) , dimension(iy,jxp,12,ntr) :: chemsrc
-      real(8) , dimension(iy,kz,-1:jxp+2,ntr) :: chia , chib
-      real(8) , dimension(iy,jxp,ntr) :: srclp2
+      real(8) , allocatable, dimension(:,:,:,:) :: chemsrc
+      real(8) , allocatable, dimension(:,:,:,:) :: chia , chib
+      real(8) , allocatable, dimension(:,:,:) :: srclp2
 #else
       real(8) , dimension(iy,jx,12,ntr) :: chemsrc
       real(8) , dimension(iy,kz,jx,ntr) :: chia , chib
@@ -34,7 +34,7 @@
 #endif
 !
 #ifdef MPP1
-      real(8) , dimension(iy,jxp,ntr) :: ddsfc , dtrace , wdcvc ,       &
+      real(8) , allocatable, dimension(:,:,:) :: ddsfc , dtrace , wdcvc ,       &
                                        & wdlsc , wxaq , wxsg
 #else
       real(8) , dimension(iy,jx,ntr) :: ddsfc , dtrace , wdcvc , wdlsc ,&
@@ -44,8 +44,27 @@
       real(4) , dimension(jxm2,iym2) :: fchem
 
 #ifdef MPP1
-      real(8) , dimension(iy,12,ntr,jxp) :: src0
+      real(8) , allocatable, dimension(:,:,:,:) :: src0
       real(8) , dimension(iy,12,ntr,jx) :: src_0
 #endif
+
+contains 
+
+	subroutine allocate_mainchem
+
+	allocate(chemsrc(iy,jxp,12,ntr))
+	allocate(chia(iy,kz,-1:jxp+2,ntr))
+	allocate(chib(iy,kz,-1:jxp+2,ntr))
+        allocate(srclp2(iy,jxp,ntr))
+        allocate(ddsfc(iy,jxp,ntr)) 
+	allocate(dtrace(iy,jxp,ntr))
+	allocate(wdcvc(iy,jxp,ntr))
+	allocate(wdlsc(iy,jxp,ntr))
+	allocate(wxaq(iy,jxp,ntr))
+	allocate(wxsg(iy,jxp,ntr))
+	allocate(src0(iy,12,ntr,jxp))
+       
+       end subroutine allocate_mainchem
+ 
 
       end module mod_mainchem

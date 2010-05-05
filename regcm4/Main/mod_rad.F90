@@ -24,13 +24,21 @@
       implicit none
 
 #ifdef MPP1
-      real(8) , dimension(iym1,kz) :: cldfra , cldlwc
-      real(8) , dimension(iym1,kz,jxp) :: heatrt
-      real(8) , dimension(iym1,kzp1,jxp) :: o3prof
+      real(8) , allocatable, dimension(:,:) :: cldfra , cldlwc
+      real(8) , allocatable, dimension(:,:,:) :: heatrt
+      real(8) , allocatable, dimension(:,:,:) :: o3prof
 #else
       real(8) , dimension(iym1,kz) :: cldfra , cldlwc
       real(8) , dimension(iym1,kz,jxm1) :: heatrt
       real(8) , dimension(iym1,kzp1,jxm1) :: o3prof
 #endif
+contains 
+	subroutine allocate_mod_rad
 
+	allocate(cldfra(iym1,kz))
+	allocate(cldlwc(iym1,kz))
+	allocate(heatrt(iym1,kz,jxp))
+	allocate(o3prof(iym1,kzp1,jxp))
+
+        end subroutine  allocate_mod_rad
       end module mod_rad

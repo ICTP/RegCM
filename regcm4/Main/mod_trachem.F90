@@ -32,7 +32,7 @@
       integer :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc ,        &
                & ichsursrc
 #ifdef MPP1
-      integer , dimension(iy,jxp) :: icumbot , icumdwd , icumtop
+      integer , allocatable, dimension(:,:) :: icumbot , icumdwd , icumtop
 #else
       integer , dimension(iy,jx) :: icumbot , icumdwd , icumtop
 #endif
@@ -43,17 +43,17 @@
       real(8) , dimension(iy,2) :: mflx
 !
 #ifdef MPP1
-      real(8) , dimension(iym1,kz,jxp) :: aerasp , aerext , aerssa
-      real(8) , dimension(iym1,jxp) :: aersrrf , aertarf
+      real(8) , allocatable, dimension(:,:,:) :: aerasp , aerext , aerssa
+      real(8) , allocatable, dimension(:,:) :: aersrrf , aertarf
 #else
       real(8) , dimension(iym1,kz,jxm1) :: aerasp , aerext , aerssa
       real(8) , dimension(iym1,jxm1) :: aersrrf , aertarf
 #endif
 !
 #ifdef MPP1
-      real(8) , dimension(iy,jxp,ntr) :: cemtr , cemtrac , remdrd
+      real(8) , allocatable, dimension(:,:,:) :: cemtr , cemtrac , remdrd
       real(8) , dimension(iy,kz) :: rembc , remrat
-      real(8) , dimension(iy,kz,jxp,ntr) :: remcvc , remlsc , rxsaq1 ,  &
+      real(8) , allocatable, dimension(:,:,:,:) :: remcvc , remlsc , rxsaq1 ,  &
            & rxsaq2 , rxsg
 #else
       real(8) , dimension(iy,jx,ntr) :: cemtr , cemtrac , remdrd
@@ -61,5 +61,31 @@
       real(8) , dimension(iy,kz,jx,ntr) :: remcvc , remlsc , rxsaq1 ,   &
            & rxsaq2 , rxsg
 #endif
+
+contains
+	subroutine allocate_mod_trachem
+
+	allocate(icumbot(iy,jxp) )
+	allocate(icumdwd(iy,jxp) )
+	allocate(icumtop(iy,jxp) ) 
+
+        allocate(aerasp(iym1,kz,jxp) )
+        allocate(aerext(iym1,kz,jxp) )
+        allocate(aerssa(iym1,kz,jxp) )
+
+        allocate(aersrrf(iym1,jxp) )
+        allocate(aertarf(iym1,jxp) )
+
+        allocate(cemtr(iy,jxp,ntr))
+        allocate(cemtrac(iy,jxp,ntr))
+        allocate(remdrd(iy,jxp,ntr))
+
+        allocate(remcvc(iy,kz,jxp,ntr))
+        allocate(remlsc(iy,kz,jxp,ntr))
+        allocate(rxsaq1(iy,kz,jxp,ntr))
+        allocate(rxsaq2(iy,kz,jxp,ntr))
+        allocate(rxsg(iy,kz,jxp,ntr))
+
+        end subroutine allocate_mod_trachem
 
       end module mod_trachem

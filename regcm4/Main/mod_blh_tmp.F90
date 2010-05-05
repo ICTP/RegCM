@@ -23,13 +23,34 @@
       implicit none
 
 #ifdef MPP1
-      real(8) , dimension(iy,kz,jxp) :: cgh , kvc , kvh , kvm , kvq
-      real(8) , dimension(iy,jxp) :: hfxv , obklen , th10 , ustr ,      &
+      real(8) ,allocatable, dimension(:,:,:) :: cgh , kvc , kvh , kvm , kvq
+      real(8) ,allocatable, dimension(:,:) :: hfxv , obklen , th10 , ustr ,      &
                                    & xhfx , xqfx
 #else
       real(8) , dimension(iy,kz,jxm1) :: cgh , kvc , kvh , kvm , kvq
       real(8) , dimension(iy,jx) :: hfxv , obklen , th10 , ustr ,       &
                                    & xhfx , xqfx
 #endif
+
+contains 
+
+      subroutine allocate_mod_blh_tmp
+
+      allocate(cgh(iy,kz,jxp))	
+      allocate(kvc(iy,kz,jxp))	
+      allocate(kvh(iy,kz,jxp))	
+      allocate(kvm(iy,kz,jxp))	
+      allocate(kvq(iy,kz,jxp))
+
+	
+      allocate(hfxv(iy,jxp))	
+      allocate(obklen(iy,jxp))	
+      allocate(th10(iy,jxp))	
+      allocate(ustr(iy,jxp))	
+      allocate(xhfx(iy,jxp))	
+      allocate(xqfx(iy,jxp))	
+
+
+      end  subroutine allocate_mod_blh_tmp
 
       end module mod_blh_tmp

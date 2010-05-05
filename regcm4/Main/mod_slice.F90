@@ -24,10 +24,10 @@
       implicit none
 
 #ifdef MPP1
-      real(8) , dimension(iy,kz,-1:jxp+2,ntr) :: chib3d
-      real(8) , dimension(iy,kz,jxp) :: pb3d , qsb3d , rhb3d , rhob3d , &
+      real(8) ,allocatable, dimension(:,:,:,:) :: chib3d
+      real(8) ,allocatable, dimension(:,:,:) :: pb3d , qsb3d , rhb3d , rhob3d , &
                                       & ubx3d , vbx3d
-      real(8) , dimension(iy,kz,-1:jxp+2) :: qcb3d , qvb3d , tb3d ,     &
+      real(8) ,allocatable, dimension(:,:,:) :: qcb3d , qvb3d , tb3d ,     &
                                       & ubd3d , vbd3d
 #else
       real(8) , dimension(iy,kz,jx,ntr) :: chib3d
@@ -35,5 +35,27 @@
                                      & rhb3d , rhob3d , tb3d , ubd3d ,  &
                                      & ubx3d , vbd3d , vbx3d
 #endif
+
+contains 
+	subroutine allocate_mod_slice
+	
+
+        allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
+
+	allocate(pb3d(iy,kz,jxp))
+	allocate(qsb3d(iy,kz,jxp))
+	allocate(rhb3d(iy,kz,jxp))
+	allocate(rhob3d(iy,kz,jxp))
+	allocate(ubx3d(iy,kz,jxp))
+	allocate(vbx3d(iy,kz,jxp))
+
+	allocate(qcb3d(iy,kz,-1:jxp+2) )
+	allocate(qvb3d(iy,kz,-1:jxp+2) )
+	allocate(tb3d(iy,kz,-1:jxp+2) )
+	allocate(ubd3d(iy,kz,-1:jxp+2) )
+	allocate(vbd3d(iy,kz,-1:jxp+2) )
+
+       end subroutine allocate_mod_slice
+
 
       end module mod_slice

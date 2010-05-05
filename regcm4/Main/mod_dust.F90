@@ -33,10 +33,10 @@
       integer , parameter :: ust = 1
 !
 #ifdef MPP1
-      real(8) , dimension(iy,nats,jxp) :: clay2row2 , sand2row2 ,       &
+      real(8) , allocatable, dimension(:,:,:) :: clay2row2 , sand2row2 ,       &
            & silt2row2
-      real(8) , dimension(iy,jxp) :: clayrow2 , dustsotex , sandrow2
-      real(8) , dimension(iy,jxp,nsoil) :: srel2d
+      real(8) ,allocatable,  dimension(:,:) :: clayrow2 , dustsotex , sandrow2
+      real(8) ,allocatable,  dimension(:,:,:) :: srel2d
 #else
       real(8) , dimension(iy,nats,jx) :: clay2row2 , sand2row2 ,        &
            & silt2row2
@@ -44,5 +44,21 @@
       real(8) , dimension(iy,jx,nsoil) :: srel2d
 #endif
       real(8) , dimension(nsoil) :: dp
+
+contains 
+	subroutine allocate_mod_dust 
+
+	allocate(clay2row2(iy,nats,jxp) )
+	allocate(sand2row2(iy,nats,jxp) )
+	allocate(silt2row2(iy,nats,jxp) )
+
+	allocate(clayrow2(iy,jxp) )
+	allocate(dustsotex(iy,jxp) )
+	allocate(sandrow2(iy,jxp) )
+
+	allocate(srel2d(iy,jxp,nsoil))
+	
+
+	end subroutine allocate_mod_dust
 
       end module mod_dust

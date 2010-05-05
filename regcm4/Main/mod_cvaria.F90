@@ -24,15 +24,15 @@
       implicit none
 !
 #ifdef MPP1
-      real(8) , dimension(iy,kz,jxp) :: diffq , difft , difuu , difuv , &
+      real(8) ,allocatable, dimension(:,:,:) :: diffq , difft , difuu , difuv , &
                                       & omega , qcc , qcten , qvc ,     &
                                       & qvten , tc , td , tten , uc ,   &
                                       & uten , vc , vten , xkc
-      real(8) , dimension(iy,jxp) :: pdota , psc , pten
-      real(8) , dimension(iy,kz,0:jxp) :: phi
-      real(8) , dimension(iy,0:jxp+1) :: psd
-      real(8) , dimension(iy,kz,0:jxp+1) :: qc , qv , t , u , v
-      real(8) , dimension(iy,kzp1,0:jxp+1) :: qdot
+      real(8) ,allocatable, dimension(:,:) :: pdota , psc , pten
+      real(8) ,allocatable, dimension(:,:,:) :: phi
+      real(8) ,allocatable, dimension(:,:) :: psd
+      real(8) ,allocatable, dimension(:,:,:) :: qc , qv , t , u , v
+      real(8) ,allocatable, dimension(:,:,:) :: qdot
       real(8) , dimension(iy,kz) :: qvcs
 #else
       real(8) , dimension(iy,kz,jx) :: diffq , difft , difuu , difuv ,  &
@@ -46,10 +46,50 @@
 #endif
 !
 #ifdef MPP1
-      real(8) , dimension(iy,kz,0:jxp+1,ntr) :: chi
-      real(8) , dimension(iy,kz,jxp,ntr) :: chic , chiten
+      real(8) ,allocatable, dimension(:,:,:,:) :: chi
+      real(8) ,allocatable, dimension(:,:,:,:) :: chic , chiten
 #else
       real(8) , dimension(iy,kz,jx,ntr) :: chi , chic , chiten
 #endif
 
+contains 
+	subroutine allocate_mod_cvaria
+
+	allocate(diffq(iy,kz,jxp))
+	allocate(difft(iy,kz,jxp))
+	allocate(difuu(iy,kz,jxp))
+	allocate(difuv(iy,kz,jxp))
+	allocate(omega(iy,kz,jxp))
+	allocate(qcc(iy,kz,jxp))
+	allocate(qcten(iy,kz,jxp))
+	allocate(qvc(iy,kz,jxp))
+	allocate(qvten(iy,kz,jxp))
+	allocate(tc(iy,kz,jxp))
+	allocate(td(iy,kz,jxp))
+	allocate(tten(iy,kz,jxp))
+	allocate(uc(iy,kz,jxp))
+	allocate(uten(iy,kz,jxp))
+	allocate(vc(iy,kz,jxp))
+	allocate(vten(iy,kz,jxp))
+	allocate(xkc(iy,kz,jxp))
+
+
+	allocate(pdota(iy,jxp))
+	allocate(psc(iy,jxp))
+	allocate(pten(iy,jxp))
+	allocate(phi(iy,kz,0:jxp))
+	allocate(psd(iy,0:jxp+1))
+
+        allocate(qc(iy,kz,0:jxp+1))
+        allocate(qv(iy,kz,0:jxp+1))
+        allocate(t(iy,kz,0:jxp+1))
+        allocate(u(iy,kz,0:jxp+1))
+        allocate(v(iy,kz,0:jxp+1))
+
+	allocate(qdot(iy,kzp1,0:jxp+1))
+	allocate(chi(iy,kz,0:jxp+1,ntr))
+	allocate(chic(iy,kz,jxp,ntr))
+	allocate(chiten(iy,kz,jxp,ntr))
+
+      end  subroutine allocate_mod_cvaria
       end module mod_cvaria

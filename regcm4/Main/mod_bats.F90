@@ -61,7 +61,7 @@
       real(8) , dimension(iy) :: coszrs
 !
 #ifdef MPP1
-      real(8) , dimension(iym1,jxp) :: flw2d , flwa2d , flwd2d ,        &
+      real(8) , allocatable, dimension(:,:) :: flw2d , flwa2d , flwd2d ,        &
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
                                     & sabv2d , sdelqk2d , sdeltk2d ,    &
@@ -81,11 +81,11 @@
 #endif
 !
 #ifdef MPP1
-      real(8) , dimension(nnsg,iym1,jxp) :: col2d , dew2d , emiss2d ,   &
+      real(8) , allocatable, dimension(:,:,:) :: col2d , dew2d , emiss2d ,   &
            & evpa2d , gwet2d , ircp2d , ocld2d , rno2d , rnos2d ,       &
            & sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d ,  &
            & taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
-      real(8) , dimension(nnsg,iy,jxp) :: ht1 , satbrt1
+      real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1
 #else
       real(8) , dimension(nnsg,iym1,jxm1) :: col2d , dew2d , emiss2d ,  &
            & evpa2d , gwet2d , ircp2d , ocld2d , rno2d , rnos2d ,       &
@@ -126,13 +126,13 @@
 #endif
 !
 #ifdef MPP1
-      real(4) , target , dimension(jxp,iym2,numbat) :: fbat
+      real(4) , target , allocatable, dimension(:,:,:) :: fbat
 #else
       real(4) , target , dimension(jxm2,iym2,numbat) :: fbat
 #endif
 
 #ifdef MPP1
-      real(4) , target , dimension(nnsg,jxp,iym2,numsub) :: fsub
+      real(4) , target ,allocatable, dimension(:,:,:,:) :: fsub
 #else
       real(4) , target , dimension(nnsg,jxm2,iym2,numsub) :: fsub
 #endif
@@ -173,6 +173,68 @@
 #endif
 
       contains
+
+       subroutine allocate_mod_bats 
+
+        allocate(flw2d(iym1,jxp)) 
+        allocate(flwa2d(iym1,jxp))
+        allocate(flwd2d(iym1,jxp))
+        allocate(flwda2d(iym1,jxp))
+	allocate(fsw2d(iym1,jxp))
+	allocate(fswa2d(iym1,jxp))
+	allocate(pptc(iym1,jxp))  
+	allocate(pptnc(iym1,jxp))
+	allocate(prca2d(iym1,jxp))
+        allocate(prnca2d(iym1,jxp))
+        allocate(sabv2d(iym1,jxp))
+        allocate(sdelqk2d(iym1,jxp))
+        allocate(sdeltk2d(iym1,jxp))
+        allocate(sfracb2d (iym1,jxp))
+        allocate(sfracs2d(iym1,jxp))
+        allocate(sfracv2d(iym1,jxp))
+        allocate(sina2d(iym1,jxp))
+        allocate(sinc2d(iym1,jxp))
+        allocate(sol2d(iym1,jxp))
+        allocate(solvd2d(iym1,jxp))
+        allocate(solvs2d(iym1,jxp))
+        allocate(ssw2da(iym1,jxp))
+        allocate(svegfrac2d(iym1,jxp))
+        allocate(svga2d(iym1,jxp))
+        allocate(veg2d(iym1,jxp))
+
+      
+        allocate(col2d(nnsg,iym1,jxp))
+        allocate(dew2d(nnsg,iym1,jxp))
+        allocate(emiss2d(nnsg,iym1,jxp))
+        allocate(evpa2d(nnsg,iym1,jxp))
+        allocate(gwet2d(nnsg,iym1,jxp))
+        allocate(ircp2d(nnsg,iym1,jxp))
+        allocate(ocld2d(nnsg,iym1,jxp))
+        allocate(rno2d(nnsg,iym1,jxp))
+        allocate(rnos2d(nnsg,iym1,jxp))
+        allocate(sag2d(nnsg,iym1,jxp))
+        allocate(scv2d(nnsg,iym1,jxp))
+        allocate(sena2d(nnsg,iym1,jxp))
+        allocate(sice2d(nnsg,iym1,jxp))
+        allocate(srw2d(nnsg,iym1,jxp))
+        allocate(ssw2d(nnsg,iym1,jxp))
+        allocate(swt2d(nnsg,iym1,jxp))
+        allocate(taf2d(nnsg,iym1,jxp))
+        allocate(text2d(nnsg,iym1,jxp))
+        allocate(tg2d(nnsg,iym1,jxp))
+        allocate(tgb2d(nnsg,iym1,jxp))
+	allocate(tlef2d(nnsg,iym1,jxp))
+	allocate(veg2d1(nnsg,iym1,jxp))
+
+	allocate(ht1(nnsg,iy,jxp))
+	allocate(satbrt1(nnsg,iy,jxp))
+
+
+	allocate(fbat(jxp,iym2,numbat))
+        allocate(fsub(nnsg,jxp,iym2,numsub))
+
+       end subroutine allocate_mod_bats 
+
 
 #ifdef DCSST
         subroutine inidcsst

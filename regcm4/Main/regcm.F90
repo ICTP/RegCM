@@ -26,7 +26,7 @@
       use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : ptop , sigma
       use mod_message , only : aline , say
-      use mod_bats , only : inibat , inisub
+      use mod_bats , only : inibat , inisub , allocate_mod_bats
 #ifdef DCSST
       use mod_bats , only : inidcsst
 #endif
@@ -170,6 +170,8 @@
       call mpi_init(ierr)
       call mpi_comm_rank(mpi_comm_world,myid,ierr)
       call mpi_comm_size(mpi_comm_world,ncpu,ierr)
+      call set_nproc(ncpu)
+
       if ( ncpu.ne.nproc ) then
         write (aline,*) 'The number of CPU is not well set'
         call say
@@ -223,6 +225,7 @@
 !
 !     Init bats I/O
 !
+      call allocate_mod_bats
       call inibat
       call inisub
 #ifdef DCSST

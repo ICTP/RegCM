@@ -44,9 +44,16 @@
       real(8) , dimension(nsplit) :: an
 
 #ifdef MPP1
-      real(8) , dimension(iy,0:jxp+1,nsplit) :: dstor , hstor
+      real(8) , allocatable, dimension(:,:,:) :: dstor , hstor
 #else
       real(8) , dimension(iy,jx,nsplit) :: dstor , hstor
 #endif
 
+contains 
+	subroutine allocate_mod_split
+	
+	allocate(dstor(iy,0:jxp+1,nsplit))
+	allocate(hstor(iy,0:jxp+1,nsplit))
+
+	end subroutine allocate_mod_split
       end module mod_split

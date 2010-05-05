@@ -28,14 +28,23 @@
       ! emstot  - Total emissivity
 
 #ifdef MPP1
-      real(8) , dimension(iym1,kz,4,jxp) :: absnxt
-      real(8) , dimension(iym1,kzp1,kz + 1,jxp) :: abstot
-      real(8) , dimension(iym1,kzp1,jxp) :: emstot
+      real(8) , allocatable, dimension(:,:,:,:)  :: absnxt
+      real(8),  allocatable, dimension(:,:,:,:)  :: abstot
+      real(8) , allocatable, dimension(:,:,:) :: emstot
 #else
       real(8) , dimension(iym1,kz,4,jxm1) :: absnxt
       real(8) , dimension(iym1,kzp1,kz + 1,jxm1) :: abstot
       real(8) , dimension(iym1,kzp1,jxm1) :: emstot
 #endif
+
+contains 
+	subroutine allocate_mod_radbuf 
+	
+	allocate( absnxt(iym1,kz,4,jxp))
+	allocate(abstot(iym1,kzp1,kz + 1,jxp))
+	allocate(emstot(iym1,kzp1,jxp))
+
+	end subroutine allocate_mod_radbuf 
 
       end module mod_radbuf
 

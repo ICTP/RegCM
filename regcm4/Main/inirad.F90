@@ -66,7 +66,7 @@
         if ( myid.eq.0 ) then
           print * , 'ozone profiles'
           do k = 1 , kzp1
-            write (6,99001) o3prof(3,k,3)
+            write (6,99001) o3prof(3,k,jxp)
           end do
         end if
 #else
