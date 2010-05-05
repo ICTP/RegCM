@@ -35,14 +35,18 @@
 !
       rin = 1.5          ! 1.5 rad of influence-coarse mesh
  
-      write (6,*) 'ntypec=' , ntypec
-      write (6,*) 'iy=' , iy
-      write (6,*) 'jx=' , jx
-      write (6,*) 'ds=' , ds
-      write (6,*) 'clat=' , clat
-      write (6,*) 'clon=' , clon
-      write (6,*) 'rin=' , rin
-      write (6,*) 'iproj=' , iproj
+      write (6,*) ' '
+      write (6,*) 'Doing Domain Setup with following parameters'
+      write (6,*) ' '
+      write (6,*) 'ntypec = ' , ntypec
+      write (6,*) 'iy     = ' , iy
+      write (6,*) 'jx     = ' , jx
+      write (6,*) 'ds     = ' , ds
+      write (6,*) 'clat   = ' , clat
+      write (6,*) 'clon   = ' , clon
+      write (6,*) 'rin    = ' , rin
+      write (6,*) 'iproj  = ' , iproj
+      write (6,*) ' '
 !
       call fexist(filout)
       open (nunit,file=filout,status='unknown',form='unformatted',      &
@@ -51,7 +55,6 @@
         call fexist(filctl)
         open (31,file=filctl,status='unknown')
       end if
- 
 !
       dsinm = ds*1000.
 !

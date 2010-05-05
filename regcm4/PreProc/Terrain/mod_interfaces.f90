@@ -27,20 +27,20 @@
       end interface
 
       interface
-        subroutine output(nunitc,iy,jx,nsg,dsinm,clat,clon,plat,plon,   &
+        subroutine output(nunitc,iy,jx,dsinm,clat,clon,plat,plon,       &
                       & iproj,htgrid,htsdgrid,lndout,xlat,xlon,dlat,    &
                       & dlon,xmap,dattyp,dmap,coriol,snowam,igrads,     &
-                      & ibigend,kz,sigma,mask,ptop,htgrid_s,lndout_s,   &
-                      & ibyte,ngrid,truelatl,truelath,grdfac,filout,    &
-                      & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,   &
-                      & aertyp,texout,frac_tex,ntex)
+                      & ibigend,kz,sigma,mask,ptop,nsg,truelatl,        &
+                      & truelath,grdfac,filout,lsmtyp,sanda,sandb,claya,&
+                      & clayb,frac_lnd,nveg,aertyp,texout,frac_tex,ntex,&
+                      & lcoarse)
           character(7) :: aertyp
           real(4) :: clat , clon , dsinm , grdfac , plat , plon , ptop ,&
                    & truelath , truelatl
           character(5) :: dattyp
           character(50) :: filout
-          integer :: ibigend , ibyte , igrads , iy , jx , kz , ngrid ,  &
-                   & nsg , ntex , nunitc , nveg
+          integer :: ibigend , igrads , iy , jx , kz , ntex , nunitc ,  &
+                   & nveg , nsg
           character(6) :: iproj
           character(4) :: lsmtyp
           real(4) , dimension(iy,jx) :: claya , clayb , coriol , dlat , &
@@ -49,8 +49,8 @@
                                   & snowam , texout , xlat , xlon , xmap
           real(4) , dimension(iy,jx,nveg) :: frac_lnd
           real(4) , dimension(iy,jx,ntex) :: frac_tex
-          real(4) , dimension(iy*nsg,jx*nsg) :: htgrid_s , lndout_s
           real(4) , dimension(kz+1) :: sigma
+          logical :: lcoarse
         end subroutine
       end interface
 

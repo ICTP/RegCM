@@ -326,9 +326,7 @@
             a2(i,j) = cor(i,j)
 !--------if closest observation to i,j is ocean, override a2(i,j) to
 !--------preserve the coastline.
-!Sara
            if (htsav(i,j) .le. 0.001) a2(i,j) = htsav(i,j)
-!Sara_
           end if
         end do
       end do

@@ -67,11 +67,13 @@
 !
       integer :: maxiter , maxjter , maxdim
       character(10) :: char_lnd , char_tex
-      character(256) :: namelistfile, ctlfile , datafile , prgname
-      integer :: i , j , k , minsize , ierr
+      character(256) :: namelistfile, prgname
+      character(256) :: ctlfile_s , datafile_s
+      character(256) :: ctlfile , datafile
+      integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
       logical :: ibndry
       integer :: nunitc , nunitc_s
-      real(4) :: clong
+      real(4) :: clong , dsx , dsx_s , htave , htgrid_a
 !
       call header(1)
 !
@@ -101,6 +103,75 @@
       call allocate_grid(iy,jx,kz,nveg,ntex)
       if ( nsg>1 ) call allocate_subgrid(iysg,jxsg,nveg,ntex)
 !
+!     Setup hardcoded sigma levels
+
+      if ( kz==14 ) then                      ! RegCM2
+        sigma(1) = 0.0
+        sigma(2) = 0.04
+        sigma(3) = 0.10
+        sigma(4) = 0.17
+        sigma(5) = 0.25
+        sigma(6) = 0.35
+        sigma(7) = 0.46
+        sigma(8) = 0.56
+        sigma(9) = 0.67
+        sigma(10) = 0.77
+        sigma(11) = 0.86
+        sigma(12) = 0.93
+        sigma(13) = 0.97
+        sigma(14) = 0.99
+        sigma(15) = 1.0
+      else if ( kz==18 ) then                 ! RegCM3, default
+        sigma(1) = 0.0
+        sigma(2) = 0.05
+        sigma(3) = 0.10
+        sigma(4) = 0.16
+        sigma(5) = 0.23
+        sigma(6) = 0.31
+        sigma(7) = 0.39
+        sigma(8) = 0.47
+        sigma(9) = 0.55
+        sigma(10) = 0.63
+        sigma(11) = 0.71
+        sigma(12) = 0.78
+        sigma(13) = 0.84
+        sigma(14) = 0.89
+        sigma(15) = 0.93
+        sigma(16) = 0.96
+        sigma(17) = 0.98
+        sigma(18) = 0.99
+        sigma(19) = 1.0
+      else if ( kz==23 ) then                 ! MM5V3
+        sigma(1) = 0.0
+        sigma(2) = 0.05
+        sigma(3) = 0.1
+        sigma(4) = 0.15
+        sigma(5) = 0.2
+        sigma(6) = 0.25
+        sigma(7) = 0.3
+        sigma(8) = 0.35
+        sigma(9) = 0.4
+        sigma(10) = 0.45
+        sigma(11) = 0.5
+        sigma(12) = 0.55
+        sigma(13) = 0.6
+        sigma(14) = 0.65
+        sigma(15) = 0.7
+        sigma(16) = 0.75
+        sigma(17) = 0.8
+        sigma(18) = 0.85
+        sigma(19) = 0.89
+        sigma(20) = 0.93
+        sigma(21) = 0.96
+        sigma(22) = 0.98
+        sigma(23) = 0.99
+        sigma(24) = 1.0
+      else
+        write (*,*) 'You vertical level number is not 14, 18, or 23'
+        write (*,*) 'Please set your sigma parameters in OUTPUT'
+        stop
+      end if
+
 !---------------------------------------------------------------------
 !
 !     iblk = dimension of arrays xobs,yobs,ht,htsd
@@ -127,16 +198,18 @@
       if ( nsg>1 ) then
         nunitc_s = 19
         if ( nsg<10 ) then
-          write (datafile,99001)                                        &
+          write (datafile_s,99001)                                      &
                 & terfilout(1:18) , nsg , terfilout(19:23)
-          write (ctlfile,99003) terfilctl(1:18) , nsg , terfilctl(19:22)
+          write (ctlfile_s,99003)                                       &
+                & terfilctl(1:18) , nsg , terfilctl(19:22)
         else
-          write (datafile,99002)                                        &
+          write (datafile_s,99002)                                      &
                 & terfilout(1:18) , nsg , terfilout(19:23)
-          write (ctlfile,99004) terfilctl(1:18) , nsg , terfilctl(19:22)
+          write (ctlfile_s,99004)                                       &
+                & terfilctl(1:18) , nsg , terfilctl(19:22)
         end if
         call setup(nunitc_s,iysg,jxsg,ntypec_s,iproj,ds/nsg,clat,       &
-                 & clong,igrads,ibyte,datafile,ctlfile)
+                 & clong,igrads,ibyte,datafile_s,ctlfile_s)
         if ( iproj=='LAMCON' ) then
           call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,0,xn,truelatl,truelath)
@@ -166,6 +239,7 @@
           print * , 'iproj MAP PROJECTION IS NOT AN OPTION'
           stop 999
         end if
+        dsx_s = dsinm
         print * , 'after calling MAP PROJECTION, for subgrid'
 !
 !       reduce the search area for the domain
@@ -332,16 +406,9 @@
 !       output terrestrial fields
 !       OUTPUT is used to output also the fraction of each
 !       LANDUSE legend and TEXTURE type
-        call output(nunitc_s,iysg,jxsg,1,dsinm,clat,clong,plat,plon,    &
-                  & iproj,htgrid_s,htsdgrid_s,lndout_s,xlat_s,xlon_s,   &
-                  & dlat_s,dlon_s,xmap_s,dattyp,dmap_s,coriol_s,        &
-                  & snowam_s,igrads,ibigend,kz,sigma,mask_s,ptop,       &
-                  & htgrid_s,lndout_s,ibyte,nsg,truelatl,truelath,xn,   &
-                  & datafile,lsmtyp,sanda_s,sandb_s,claya_s,clayb_s,    &
-                  & frac_lnd_s,nveg,aertyp,texout_s,frac_tex_s,ntex)
-        print * , 'after calling OUTPUT, for subgrid'
 
         call free_block
+
       end if
 !
       dxcen = 0.0
@@ -379,6 +446,7 @@
         print * , 'iproj MAP PROJECTION IS NOT AN OPTION'
         stop 999
       end if
+      dsx = dsinm
       print * , 'after calling MAP PROJECTION'
 !
 !     reduce the search area for the domain
@@ -544,18 +612,62 @@
 !     output terrestrial fields
 !     OUTPUT is used to output also the fraction of each
 !     LANDUSE legend and TEXTURE type
-      call output(nunitc,iy,jx,nsg,dsinm,clat,clong,plat,plon,iproj,    &
+      call free_block
+
+      if ( nsg>1 ) then
+        do i = 1 , iy
+          do j = 1 , jx
+            i0 = (i-1)*nsg
+            j0 = (j-1)*nsg
+            htave = 0.0
+            do m = 1 , nsg
+              do n = 1 , nsg
+                if ( lsmtyp=='BATS' ) then
+                  if ( htgrid(i,j)<0.1 .and.                            &
+                     & (lndout(i,j)>14.5 .and. lndout(i,j)<15.5) ) then
+                    htgrid_s(i0+m,j0+n) = 0.0
+                    lndout_s(i0+m,j0+n) = 15.
+                  end if
+                else if ( lsmtyp=='USGS' ) then
+                  if ( htgrid(i,j)<0.1 .and. lndout(i,j)>24.5 ) then
+                    htgrid_s(i0+m,j0+n) = 0.0
+                    lndout_s(i0+m,j0+n) = 25.
+                  end if
+                else
+                end if
+                htave = htave + htgrid_s(i0+m,j0+n)
+              end do
+            end do
+            htgrid_a = htave/float(nsg*nsg)
+            do m = 1 , nsg
+              do n = 1 , nsg
+                htgrid_s(i0+m,j0+n) = htgrid_s(i0+m,j0+n) - htgrid_a +  &
+                                    & htgrid(i,j)
+              end do
+            end do
+          end do
+        end do
+        call output(nunitc_s,iysg,jxsg,dsx_s,clat,clong,plat,plon,      &
+                  & iproj,htgrid_s,htsdgrid_s,lndout_s,xlat_s,xlon_s,   &
+                  & dlat_s,dlon_s,xmap_s,dattyp,dmap_s,coriol_s,        &
+                  & snowam_s,igrads,ibigend,kz,sigma,mask_s,ptop,nsg,   &
+                  & truelatl,truelath,xn,datafile_s,lsmtyp,             &
+                  & sanda_s,sandb_s,claya_s,clayb_s,frac_lnd_s,nveg,    &
+                  & aertyp,texout_s,frac_tex_s,ntex,.false.)
+        print * , 'after calling OUTPUT, for subgrid'
+      end if
+
+      call output(nunitc,iy,jx,dsx,clat,clong,plat,plon,iproj,          &
                 & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,xmap,      &
                 & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
-                & mask,ptop,htgrid,lndout,ibyte,nsg,truelatl,           &
-                & truelath,xn,terfilout,lsmtyp,sanda,sandb,claya,clayb, &
-                & frac_lnd,nveg,aertyp,texout,frac_tex,ntex)
+                & mask,ptop,nsg,truelatl,truelath,xn,datafile,          &
+                & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,aertyp,  &
+                & texout,frac_tex,ntex,.true.)
       print * , 'after calling OUTPUT'
 
-      call free_block
       close (48, status='delete')
  
-!      stop 9999
+!     stop 9999
 !
 99001 format (a18,i1,a5)
 99002 format (a18,i2,a5)

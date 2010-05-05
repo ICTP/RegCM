@@ -17,13 +17,13 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine output(nunitc,iy,jx,nsg,dsinm,clat,clon,plat,plon,     &
-                      & iproj,htgrid,htsdgrid,lndout,xlat,xlon,dlat,    &
-                      & dlon,xmap,dattyp,dmap,coriol,snowam,igrads,     &
-                      & ibigend,kz,sigma,mask,ptop,htgrid_s,lndout_s,   &
-                      & ibyte,ngrid,truelatl,truelath,grdfac,filout,    &
-                      & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,   &
-                      & aertyp,texout,frac_tex,ntex)
+      subroutine output(nunitc,iy,jx,dsinm,clat,clon,plat,plon,iproj,   &
+                      & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,     &
+                      & xmap,dattyp,dmap,coriol,snowam,igrads,ibigend,  &
+                      & kz,sigma,mask,ptop,nsg,truelatl,truelath,       &
+                      & grdfac,filout,lsmtyp,sanda,sandb,claya,clayb,   &
+                      & frac_lnd,nveg,aertyp,texout,frac_tex,ntex,      &
+                      & lcoarse)
 
       use mod_interfaces
 
@@ -36,8 +36,8 @@
                & truelath , truelatl
       character(5) :: dattyp
       character(50) :: filout
-      integer :: ibigend , ibyte , igrads , iy , jx , kz , ngrid , nsg ,&
-               & ntex , nunitc , nveg
+      integer :: ibigend , igrads , iy , jx , kz , nsg , ntex ,         &
+               & nunitc , nveg
       character(6) :: iproj
       character(4) :: lsmtyp
       real(4) , dimension(iy,jx) :: claya , clayb , coriol , dlat ,     &
@@ -46,170 +46,39 @@
                                   & snowam , texout , xlat , xlon , xmap
       real(4) , dimension(iy,jx,nveg) :: frac_lnd
       real(4) , dimension(iy,jx,ntex) :: frac_tex
-      real(4) , dimension(iy*nsg,jx*nsg) :: htgrid_s , lndout_s
       real(4) , dimension(kz+1) :: sigma
+      logical :: lcoarse
       intent (in) aertyp , clat , claya , clayb , clon , coriol ,       &
                 & dattyp , dlat , dlon , dmap , dsinm , filout ,        &
                 & frac_lnd , frac_tex , grdfac , htgrid , htsdgrid ,    &
-                & ibigend , ibyte , igrads , iproj , iy , jx , kz ,     &
-                & lndout , lsmtyp , ngrid , nsg , ntex , nunitc , nveg ,&
+                & ibigend , igrads , iproj , iy , jx , kz ,             &
+                & lndout , lsmtyp , nsg , ntex , nunitc , nveg ,        &
                 & plat , plon , ptop , sanda , sandb , snowam , texout ,&
-                & truelath , truelatl , xlat , xlon , xmap
-      intent (inout) htgrid_s , lndout_s , mask , sigma
+                & truelath , truelatl , xlat , xlon , xmap , lcoarse ,  &
+                & sigma
+      intent (inout) mask
 !
 ! Local variables
 !
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
-               & centerj , htave , htgrid_a , lat0 , lat1 , lon0 ,      &
-               & lon1 , rlatinc , rloninc
-      character(25) :: fsubname
-      integer :: i , i0 , iii , j , j0 , jjj , k , m , n , nx , ny
-      logical :: there
+               & centerj , lat0 , lat1 , lon0 , lon1 , rlatinc , rloninc
+      integer :: i , j , k , nx , ny
 !
-      if ( kz==14 ) then                      ! RegCM2
-        sigma(1) = 0.0
-        sigma(2) = 0.04
-        sigma(3) = 0.10
-        sigma(4) = 0.17
-        sigma(5) = 0.25
-        sigma(6) = 0.35
-        sigma(7) = 0.46
-        sigma(8) = 0.56
-        sigma(9) = 0.67
-        sigma(10) = 0.77
-        sigma(11) = 0.86
-        sigma(12) = 0.93
-        sigma(13) = 0.97
-        sigma(14) = 0.99
-        sigma(15) = 1.0
-      else if ( kz==18 ) then                 ! RegCM3, default
-        sigma(1) = 0.0
-        sigma(2) = 0.05
-        sigma(3) = 0.10
-        sigma(4) = 0.16
-        sigma(5) = 0.23
-        sigma(6) = 0.31
-        sigma(7) = 0.39
-        sigma(8) = 0.47
-        sigma(9) = 0.55
-        sigma(10) = 0.63
-        sigma(11) = 0.71
-        sigma(12) = 0.78
-        sigma(13) = 0.84
-        sigma(14) = 0.89
-        sigma(15) = 0.93
-        sigma(16) = 0.96
-        sigma(17) = 0.98
-        sigma(18) = 0.99
-        sigma(19) = 1.0
-      else if ( kz==23 ) then                 ! MM5V3
-        sigma(1) = 0.0
-        sigma(2) = 0.05
-        sigma(3) = 0.1
-        sigma(4) = 0.15
-        sigma(5) = 0.2
-        sigma(6) = 0.25
-        sigma(7) = 0.3
-        sigma(8) = 0.35
-        sigma(9) = 0.4
-        sigma(10) = 0.45
-        sigma(11) = 0.5
-        sigma(12) = 0.55
-        sigma(13) = 0.6
-        sigma(14) = 0.65
-        sigma(15) = 0.7
-        sigma(16) = 0.75
-        sigma(17) = 0.8
-        sigma(18) = 0.85
-        sigma(19) = 0.89
-        sigma(20) = 0.93
-        sigma(21) = 0.96
-        sigma(22) = 0.98
-        sigma(23) = 0.99
-        sigma(24) = 1.0
-      else
-        write (*,*) 'You vertical level number is not 14, 18, or 23'
-        write (*,*) 'Please set your sigma parameters in OUTPUT'
-        stop
-      end if
- 
-      if ( nsg>1 ) then
-        if ( nsg<10 ) then
-          write (fsubname,99001) nsg
-        else
-          write (fsubname,99002) nsg
-        end if
-        write (*,*) fsubname
-        inquire (file=fsubname,exist=there)
-        if ( .not.there ) then
-          write (*,*) 'Subgrid Terrain and Landuse must be available'
-          stop
-        end if
-        open (19,file=fsubname,form='unformatted',                      &
-            & recl=iy*jx*nsg*nsg*ibyte,access='direct')
-        read (19,rec=2) ((htgrid_s(i,j),j=1,jx*nsg),i=1,iy*nsg)
-        read (19,rec=4) ((lndout_s(i,j),j=1,jx*nsg),i=1,iy*nsg)
-        do i = 1 , iy*nsg
-          do j = 1 , jx*nsg
-            if ( (lsmtyp=='BATS' .and. (lndout_s(i,j)>20. .or. lndout_s(&
-               & i,j)<0.)) .or.                                         &
-               & (lsmtyp=='USGS' .and. (lndout_s(i,j)>25. .or.          &
-               & lndout_s(i,j)<0.)) ) then
-              print * , i , j , lndout_s(i,j)
-              stop 999
-            end if
-          end do
-        end do
-        do i = 1 , iy
-          do j = 1 , jx
-            i0 = (i-1)*nsg
-            j0 = (j-1)*nsg
-            htave = 0.0
-            do m = 1 , nsg
-              do n = 1 , nsg
-                if ( lsmtyp=='BATS' ) then
-                  if ( htgrid(i,j)<0.1 .and.                            &
-                     & (lndout(i,j)>14.5 .and. lndout(i,j)<15.5) ) then
-                    htgrid_s(i0+m,j0+n) = 0.0
-                    lndout_s(i0+m,j0+n) = 15.
-                  end if
-                else if ( lsmtyp=='USGS' ) then
-                  if ( htgrid(i,j)<0.1 .and. lndout(i,j)>24.5 ) then
-                    htgrid_s(i0+m,j0+n) = 0.0
-                    lndout_s(i0+m,j0+n) = 25.
-                  end if
-                else
-                end if
-                htave = htave + htgrid_s(i0+m,j0+n)
-              end do
-            end do
-            htgrid_a = htave/float(nsg*nsg)
-            do m = 1 , nsg
-              do n = 1 , nsg
-                htgrid_s(i0+m,j0+n) = htgrid_s(i0+m,j0+n) - htgrid_a +  &
-                                    & htgrid(i,j)
-              end do
-            end do
-          end do
-        end do
-        write (19,rec=2) ((htgrid_s(i,j),j=1,jx*nsg),i=1,iy*nsg)
-        write (19,rec=4) ((lndout_s(i,j),j=1,jx*nsg),i=1,iy*nsg)
-        close (19)
-      end if
- 
       do i = 1 , iy
         do j = 1 , jx
-          if ( (lsmtyp=='BATS' .and. (lndout(i,j)>20. .or. lndout(i,j)< &
-             & 0.)) .or.                                                &
-             & (lsmtyp=='USGS' .and. (lndout(i,j)>25. .or. lndout(i,j)  &
-             & <0.)) ) then
+          if ( (lsmtyp=='BATS' .and.                                    &
+             &  (lndout(i,j)>20. .or. lndout(i,j)<0.)) .or.             &
+             & (lsmtyp=='USGS' .and.                                    &
+             &  (lndout(i,j)>25. .or. lndout(i,j)<0.)) ) then
             print * , i , j , lndout(i,j)
             stop 999
           end if
         end do
       end do
-      if ( ngrid/=nsg .or. (dattyp/='FVGCM' .and. dattyp/='NRP2W' .and. &
-         & dattyp/='GFS11' .and. dattyp/='EH5OM') ) then
+
+      if ( .not. lcoarse .or.                                           &
+         & ( dattyp/='FVGCM' .and. dattyp/='NRP2W' .and.  &
+         &   dattyp/='GFS11' .and. dattyp/='EH5OM') ) then
         write (nunitc,rec=1) iy , jx , kz , dsinm , clat , clon , plat ,&
                            & plon , grdfac , iproj , (sigma(k),k=1,kz+1)&
                            & , ptop , igrads , ibigend , truelatl ,     &
@@ -223,21 +92,7 @@
                            & , ptop , igrads , ibigend , truelatl ,     &
                            & truelath , lon0 , lon1 , lat0 , lat1
       end if
-      if ( ngrid==nsg ) then
-        open (23,file='../ICBC/icbcWIN.param')
-        write (23,'(a)') '      INTEGER III'
-        write (23,'(a)') '      INTEGER JJJ'
-        if ( dattyp=='NRP2W' ) then
-          iii = nint((lon1-lon0)/2.5) + 1
-          jjj = nint((lat1-lat0)/2.5) + 1
-          write (23,99003) 'III   =' , iii
-          write (23,99003) 'JJJ   =' , jjj
-        else
-          write (23,99003) 'III   =' , 1
-          write (23,99003) 'JJJ   =' , 1
-        end if
-        close (23)
-      end if
+
       write (nunitc,rec=2) ((htgrid(i,j),j=1,jx),i=1,iy)
       write (nunitc,rec=3) ((htsdgrid(i,j),j=1,jx),i=1,iy)
       write (nunitc,rec=4) ((lndout(i,j),j=1,jx),i=1,iy)
@@ -295,9 +150,9 @@
       close (nunitc)
  
       if ( igrads==1 ) then
-        if ( ngrid==nsg ) then
+        if ( lcoarse ) then
           write (31,99004)
-        else if ( ngrid<10 ) then
+        else if ( nsg<10 ) then
           write (31,99005) filout(13:24)
         else
           write (31,99006) filout(13:25)
