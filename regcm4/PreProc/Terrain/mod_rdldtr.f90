@@ -321,8 +321,8 @@
 99014 format (1x,'***array dimension error***',/,'     iter = ',i5,     &
              &' must be greater than ',i5,10x,'jter = ',i5,             &
              &' must be greater than ',i5)
-99015 format (1x,'***array dimension error***',/,'  ihmax*jhmax = ',i5, &
-             &' must be greater than ',i5,10x,'iblk = ',i5)
+99015 format (1x,'***array dimension error***',/,'  ihmax*jhmax = ',i8, &
+             &' must be greater than ',i8,10x,'iblk = ',i8)
       end subroutine rdldtr
 
       subroutine rdldtr_nc(ntypec,nveg,ntex,lsmtyp,aertyp)
@@ -688,8 +688,8 @@
 99012 format (1x,'***array dimension error***',/,'     iter = ',i5,     &
              &' must be greater than ',i5,10x,'jter = ',i5,             &
              &' must be greater than ',i5)
-99013 format (1x,'***array dimension error***',/,'  ihmax*jhmax = ',i5, &
-             &' must be greater than ',i5,10x,'iblk = ',i5)
+99013 format (1x,'***array dimension error***',/,'  ihmax*jhmax = ',i8, &
+             &' must be greater than ',i8,10x,'iblk = ',i8)
       end subroutine rdldtr_nc
 !
       end module mod_rdldtr
