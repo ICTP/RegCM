@@ -18,6 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine xyobsll(iy,jx,iproj,clat,clon,plat,plon,truelath)
+      use mod_interfaces
       use mod_block
       use mod_projections , only : nrot2rot
       use mod_constants , only : raddeg , degrad , erkm

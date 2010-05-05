@@ -17,10 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine surf(xlat,xlon,lnduse,iy,jx,incr,dsgrid,     &
-                    & lndout,land,nrec,h2opct,     &
-                    & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,     &
-                    & aertyp,intext,texout,frac_tex,ntex)
+      subroutine surf(xlat,xlon,lnduse,iy,jx,incr,dsgrid,lndout,land,   &
+                    & nrec,h2opct,lsmtyp,sanda,sandb,claya,clayb,       &
+                    & frac_lnd,nveg,aertyp,intext,texout,frac_tex,ntex)
+      use mod_interfaces
       use mod_block
       use mod_interp , only : bint
       implicit none
@@ -201,7 +201,7 @@
 !-----grdlnmn = minimum longitude of incoming data.  point(1,1)
 !-----is value at (grdltmn,grdlnmn)
 !
-99001 format (1x,'*** iindex = ',i3,'   jindex = ',i3,'   lrec = ',i5,  &
+99001 format (1x,'*** iindex = ',i4,'   jindex = ',i4,'   lrec = ',i5,  &
              &'   lat = ',f10.3,3x,'lon = ',f10.3,3x,'grdltmn = ',f10.3,&
             & 5x,'grdlnmn = ',f10.3)
 !

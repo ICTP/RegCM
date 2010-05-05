@@ -55,37 +55,27 @@
       use mod_preproc_param
       use mod_regcm_param , only : igrads , ibyte , lsmtyp , aertyp ,   &
              &               dattyp , ibigend , kz , iym2 , jxm2
-      use mod_regcm_param , only : iy , jx , nsg , iysg , jxsg
+      use mod_regcm_param , only : iy , jx , nsg , iysg , jxsg , nveg
       use mod_smooth , only : smth121 , smthtr
       use mod_projections , only : lambrt , mappol , normer , rotmer
-      use mod_interp , only : anal2
+      use mod_interp , only : anal2 , interp
       use mod_fudge , only : lndfudge , texfudge , lakeadj
       use mod_rdldtr , only : rdldtr , rdldtr_nc
       use mod_maps
       use mod_block
+      use mod_interfaces
       implicit none
 !
 ! Local variables
 !
-      character(1) , dimension(iy,jx) :: ch
+      integer , parameter :: myid=1
+      integer :: maxiter , maxjter , maxdim
       character(10) :: char_lnd , char_tex
-      character(1) , dimension(iysg,jxsg) :: ch_s
       character(256) :: ctlfile , datafile
-      integer :: i , j , k
-      integer :: minsize
+      integer :: i , j , k , minsize
       logical :: ibndry
-      integer :: myid=1
       integer :: nunitc , nunitc_s
       real(4) :: clong
-      real(4) , dimension(iy,jx) :: corc , hscr1 , htsavc , sumc ,      &
-                                  & wtmaxc
-      real(4) , dimension(iy,jx,2) :: itex , land
-      integer , dimension(iy,jx) :: nsc
-      real(4) , dimension(iysg,jxsg) :: corc_s , hscr1_s , htsavc_s ,   &
-                                  & sumc_s , wtmaxc_s
-      real(4) , dimension(iysg,jxsg,2) :: itex_s , land_s
-      integer , dimension(iysg,jxsg) :: nsc_s
-      real(4) , dimension(kz+1) :: sigma
 !
 !     Preliminary consistency check to avoid I/O format errors
 !
@@ -97,9 +87,11 @@
       end if
 
       call header(myid)
+
+      call allocate_grid(iy,jx,kz,nveg,ntex)
+      if ( nsg>1 ) call allocate_subgrid(iysg,jxsg,nveg,ntex)
 !
 !---------------------------------------------------------------------
-!     note: internally set params!!!!!
 !
 !     iblk = dimension of arrays xobs,yobs,ht,htsd
 !     estimate iblk = ihmax*jhmax where ihmax = (xmaxlat-xminlat)/xnc
@@ -168,6 +160,12 @@
 !       [minlat:maxlat,minlon:maxlon]
         call mxmnll(iysg,jxsg,clong,xlon_s,xlat_s,ntypec_s)
         print * , 'after calling MXMNLL, for subgrid'
+!
+        maxiter = (xmaxlat-xminlat)/xnc
+        maxjter = (xmaxlon-xminlon)/xnc
+        maxdim = max(maxiter,maxjter) + 2
+        print *, 'Allocating ' , maxdim
+        call allocate_block(maxdim,maxdim)
 !
 !       read in the terrain & landuse data
         if ( itype_in==1 ) then
@@ -329,6 +327,8 @@
                   & datafile,lsmtyp,sanda_s,sandb_s,claya_s,clayb_s,    &
                   & frac_lnd_s,nveg,aertyp,texout_s,frac_tex_s,ntex)
         print * , 'after calling OUTPUT, for subgrid'
+
+        call free_block
       end if
 !
       dxcen = 0.0
@@ -372,6 +372,12 @@
 !     [minlat:maxlat,minlon:maxlon]
       call mxmnll(iy,jx,clong,xlon,xlat,ntypec)
       print * , 'after calling MXMNLL'
+
+      maxiter = (xmaxlat-xminlat)/xnc
+      maxjter = (xmaxlon-xminlon)/xnc
+      maxdim = max(maxiter,maxjter) + 2
+      print *, 'Allocating ' , maxdim
+      call allocate_block(maxdim,maxdim)
 !
 !     read in the terrain & landuse data
       if ( itype_in==1 ) then
@@ -532,6 +538,8 @@
                 & truelath,xn,filout,lsmtyp,sanda,sandb,claya,clayb,    &
                 & frac_lnd,nveg,aertyp,texout,frac_tex,ntex)
       print * , 'after calling OUTPUT'
+
+      call free_block
       close (48, status='delete')
  
 !      stop 9999

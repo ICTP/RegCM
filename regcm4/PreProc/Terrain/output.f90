@@ -24,6 +24,9 @@
                       & ibyte,ngrid,truelatl,truelath,grdfac,filout,    &
                       & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,   &
                       & aertyp,texout,frac_tex,ntex)
+
+      use mod_interfaces
+
       implicit none
 !
 ! Dummy arguments

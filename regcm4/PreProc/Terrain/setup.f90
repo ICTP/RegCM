@@ -19,6 +19,7 @@
 
       subroutine setup(nunit,iy,jx,ntypec,iproj,ds,clat,clon,igrads,    &
                      & ibyte,filout,filctl)
+      use mod_interfaces
       use mod_block
       implicit none
 !

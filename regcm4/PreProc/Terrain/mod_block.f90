@@ -21,12 +21,11 @@
       implicit none
       integer :: nobs
       integer :: nnc
-      integer , parameter :: iter = 2400 , jter = 2400
-      integer , parameter :: iblk = (iter*jter)/2
-      real(4) , dimension(iblk,2) :: clay , sand
-      real(4) , dimension(iblk) :: ht , ht2 , htsd
-      real(4) , dimension(iblk) :: xobs , yobs
-      real(8) , dimension(iter,jter) :: lnd8
+      integer :: iblk , iter, jter
+      real(4) , allocatable , dimension(:,:) :: clay , sand
+      real(4) , allocatable , dimension(:) :: ht , ht2 , htsd
+      real(4) , allocatable , dimension(:) :: xobs , yobs
+      real(8) , allocatable , dimension(:,:) :: lnd8
       real(4) , dimension(50) :: stores
       real(4) :: grdlnmn , grdltmn
       real(4) :: xmaxlat , xmaxlon , xminlat , xminlon
@@ -34,6 +33,36 @@
       real(4) :: dxcen , dycen
 
       contains
+
+      subroutine allocate_block(ni, nj)
+        implicit none
+        integer , intent(in) :: ni , nj
+        iter = ni
+        jter = nj
+        iblk = (iter*jter)/2
+        allocate(lnd8(iter,jter))
+        allocate(clay(iblk,2))
+        allocate(sand(iblk,2))
+        allocate(ht(iblk))
+        allocate(ht2(iblk))
+        allocate(htsd(iblk))
+        allocate(xobs(iblk))
+        allocate(yobs(iblk))
+      end subroutine
+
+      subroutine free_block
+        iter = 0
+        jter = 0
+        iblk = 0
+        if (allocated(lnd8)) deallocate(lnd8)
+        if (allocated(clay)) deallocate(clay)
+        if (allocated(sand)) deallocate(sand)
+        if (allocated(ht)) deallocate(ht)
+        if (allocated(ht2)) deallocate(ht2)
+        if (allocated(htsd)) deallocate(htsd)
+        if (allocated(xobs)) deallocate(xobs)
+        if (allocated(yobs)) deallocate(yobs)
+      end subroutine
 
       subroutine mxmnll(iy,jx,clon,xlon,xlat,ntypec)
       implicit none
