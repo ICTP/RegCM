@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program rdsst
+      program sst_eh5om
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Comments on dataset sources and location:                          !
@@ -32,8 +32,7 @@
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      use mod_regcm_param , only : iy , jx , lsmtyp , ibyte
-      use mod_preproc_param , only : ssttyp , idate1 , idate2
+      use mod_dynparam
       use mod_datenum
 
       implicit none
@@ -50,17 +49,36 @@
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate
       integer :: nnnend , nstart
-      real(4) , dimension(iy,jx) :: lu , sstmm , xlat , xlon
-      integer :: i , it , j , mrec , nday , nhour , nmo , nyear
+      integer :: i , it , j , mrec , nday , nhour , nmo , nyear , ierr
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
-      real(4) :: truelath , truelatl
       logical :: there
+      character(256) :: namelistfile, prgname
+      real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
 !
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+!
+      allocate(lu(iy,jx))
+      allocate(sstmm(iy,jx))
+      allocate(xlat(iy,jx))
+      allocate(xlon(iy,jx))
+
       if ( ssttyp=='EH5RF' ) then
         there = .false.
-        if ( (idate1>=1941010106 .and. idate1<=1961123118) .or.         &
-           & (idate2>=1941010106 .and. idate2<=1961123118) ) then
+        if ( (globidate1>=1941010106 .and. globidate1<=1961123118) .or. &
+           & (globidate2>=1941010106 .and. globidate2<=1961123118) ) then
           inquire (file='../DATA/SST/SST_20C_3_1941010106_1961123118',  &
                  & exist=there)
           if ( .not.there ) then
@@ -69,8 +87,8 @@
             stop
           end if
         end if
-        if ( (idate1>=1962010100 .and. idate1<=1993123118) .or.         &
-           & (idate2>=1962010100 .and. idate2<=1993123118) ) then
+        if ( (globidate1>=1962010100 .and. globidate1<=1993123118) .or. &
+           & (globidate2>=1962010100 .and. globidate2<=1993123118) ) then
           inquire (file='../DATA/SST/SST_20C_3_1962010100_1993123118',  &
                  & exist=there)
           if ( .not.there ) then
@@ -79,8 +97,8 @@
             stop
           end if
         end if
-        if ( (idate1>=1994010100 .and. idate1<=2001010100) .or.         &
-           & (idate2>=1994010100 .and. idate2<=2001010100) ) then
+        if ( (globidate1>=1994010100 .and. globidate1<=2001010100) .or. &
+           & (globidate2>=1994010100 .and. globidate2<=2001010100) ) then
           inquire (file='../DATA/SST/SST_20C_3_1994010100_2001010100',  &
                  & exist=there)
           if ( .not.there ) then
@@ -96,8 +114,8 @@
         end if
       else if ( ssttyp=='EH5A2' ) then
         there = .false.
-        if ( (idate1>=2001010100 .and. idate1<=2029123118) .or.         &
-           & (idate2>=2001010100 .and. idate2<=2029123118) ) then
+        if ( (globidate1>=2001010100 .and. globidate1<=2029123118) .or. &
+           & (globidate2>=2001010100 .and. globidate2<=2029123118) ) then
           inquire (file='../DATA/SST/SST_A2_1_2001010100_2029123118',   &
                  & exist=there)
           if ( .not.there ) then
@@ -106,8 +124,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2030010100 .and. idate1<=2061123118) .or.         &
-           & (idate2>=2030010100 .and. idate2<=2061123118) ) then
+        if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
+           & (globidate2>=2030010100 .and. globidate2<=2061123118) ) then
           inquire (file='../DATA/SST/SST_A2_1_2030010100_2061123118',   &
                  & exist=there)
           if ( .not.there ) then
@@ -116,8 +134,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2062010100 .and. idate1<=2093123118) .or.         &
-           & (idate2>=2062010100 .and. idate2<=2093123118) ) then
+        if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
+           & (globidate2>=2062010100 .and. globidate2<=2093123118) ) then
           inquire (file='../DATA/SST/SST_A2_1_2062010100_2093123118',   &
                  & exist=there)
           if ( .not.there ) then
@@ -126,8 +144,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2094010100 .and. idate1<=2100123118) .or.         &
-           & (idate2>=2094010100 .and. idate2<=2100123118) ) then
+        if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
+           & (globidate2>=2094010100 .and. globidate2<=2100123118) ) then
           inquire (file='../DATA/SST/SST_A2_1_2094010100_2100123118',   &
                  & exist=there)
           if ( .not.there ) then
@@ -143,8 +161,8 @@
         end if
       else if ( ssttyp=='EH5B1' ) then
         there = .false.
-        if ( (idate1>=2001010100 .and. idate1<=2029123118) .or.         &
-           & (idate2>=2001010100 .and. idate2<=2029123118) ) then
+        if ( (globidate1>=2001010100 .and. globidate1<=2029123118) .or. &
+           & (globidate2>=2001010100 .and. globidate2<=2029123118) ) then
           inquire (file='../DATA/SST/SST_B1_1_2001010100_2029123118',   &
                  & exist=there)
           if ( .not.there ) then
@@ -153,8 +171,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2030010100 .and. idate1<=2061123118) .or.         &
-           & (idate2>=2030010100 .and. idate2<=2061123118) ) then
+        if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
+           & (globidate2>=2030010100 .and. globidate2<=2061123118) ) then
           inquire (file='../DATA/SST/SST_B1_1_2030010100_2061123118',   &
                  & exist=there)
           if ( .not.there ) then
@@ -163,8 +181,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2062010100 .and. idate1<=2093123118) .or.         &
-           & (idate2>=2062010100 .and. idate2<=2093123118) ) then
+        if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
+           & (globidate2>=2062010100 .and. globidate2<=2093123118) ) then
           inquire (file='../DATA/SST/SST_B1_1_2062010100_2093123118',   &
                  & exist=there)
           if ( .not.there ) then
@@ -173,8 +191,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2094010100 .and. idate1<=2100123118) .or.         &
-           & (idate2>=2094010100 .and. idate2<=2100123118) ) then
+        if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
+           & (globidate2>=2094010100 .and. globidate2<=2100123118) ) then
           inquire (file='../DATA/SST/SST_B1_1_2094010100_2100123118',   &
                  & exist=there)
           if ( .not.there ) then
@@ -190,8 +208,8 @@
         end if
       else if ( ssttyp=='EHA1B' ) then
         there = .false.
-        if ( (idate1>=2001010100 .and. idate1<=2029123118) .or.         &
-           & (idate2>=2001010100 .and. idate2<=2029123118) ) then
+        if ( (globidate1>=2001010100 .and. globidate1<=2029123118) .or. &
+           & (globidate2>=2001010100 .and. globidate2<=2029123118) ) then
           inquire (file='../DATA/SST/SST_A1B_3_2001010100_2029123118',  &
                  & exist=there)
           if ( .not.there ) then
@@ -200,8 +218,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2030010100 .and. idate1<=2061123118) .or.         &
-           & (idate2>=2030010100 .and. idate2<=2061123118) ) then
+        if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
+           & (globidate2>=2030010100 .and. globidate2<=2061123118) ) then
           inquire (file='../DATA/SST/SST_A1B_3_2030010100_2061123118',  &
                  & exist=there)
           if ( .not.there ) then
@@ -210,8 +228,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2062010100 .and. idate1<=2093123118) .or.         &
-           & (idate2>=2062010100 .and. idate2<=2093123118) ) then
+        if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
+           & (globidate2>=2062010100 .and. globidate2<=2093123118) ) then
           inquire (file='../DATA/SST/SST_A1B_3_2062010100_2093123118',  &
                  & exist=there)
           if ( .not.there ) then
@@ -220,8 +238,8 @@
             stop
           end if
         end if
-        if ( (idate1>=2094010100 .and. idate1<=2100123118) .or.         &
-           & (idate2>=2094010100 .and. idate2<=2100123118) ) then
+        if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
+           & (globidate2>=2094010100 .and. globidate2<=2100123118) ) then
           inquire (file='../DATA/SST/SST_A1B_3_2094010100_2100123118',  &
                  & exist=there)
           if ( .not.there ) then
@@ -245,12 +263,11 @@
       open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
           & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
       call initdate_eh50(ssttyp)
-      call finddate_eh50(nstart,idate1)
-      call finddate_eh50(nnnend,idate2)
+      call finddate_eh50(nstart,globidate1)
+      call finddate_eh50(nnnend,globidate2)
       write (*,*) nstart , nnnend
-      print * , idate1 , nnnend - nstart + 1
-      call gridml(xlon,xlat,lu,iy,jx,idate1,nnnend-nstart+1,truelatl,   &
-                & truelath)
+      print * , globidate1 , nnnend - nstart + 1
+      call gridml(xlon,xlat,lu,iy,jx,globidate1,nnnend-nstart+1)
       open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
           & recl=iy*jx*ibyte,access='direct')
       mrec = 0
@@ -383,31 +400,34 @@
         write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
       end do
  
+      deallocate(lu)
+      deallocate(sstmm)
+      deallocate(xlat)
+      deallocate(xlon)
+
       stop 99999
 !     4810 PRINT *,'ERROR OPENING GISST FILE'
 !     STOP '4810 IN PROGRAM RDSST'
  100  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 IN PROGRAM RDSST'
-      end program rdsst
+      end program sst_eh5om
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,numrec,truelatl,      &
-                      & truelath)
+      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,numrec)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate1 , iy , jx , numrec
-      real(4) :: truelath , truelatl
       real(4) , dimension(iy,jx) :: lu , xlat , xlon
       intent (in) idate1 , iy , jx , numrec
-      intent (out) lu
-      intent (inout) truelath , truelatl , xlat , xlon
+      intent (out) lu , xlat , xlon
 !
 ! Local variables
 !
+      real(4) :: truelath , truelatl
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc

@@ -35,12 +35,12 @@ sst_1deg: $(SHRMODS) $(SST1DEGOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SST1DEGOBJ) $(SHRMODS) \
                $(LIB) $(NETCDFLIB)
 
-sst_ccsm: $(SHRMOD) $(SSTCCSMOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTCCSMOBJ) $(SHRMOD) \
+sst_ccsm: $(SHRMODS) $(SSTCCSMOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTCCSMOBJ) $(SHRMODS) \
                $(LIB) $(NETCDFLIB)
 
-sst_eh5om: $(SHRMOD) $(SSTEH5OOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTEH5OOBJ) $(SHRMOD) \
+sst_eh5om: $(SHRMODS) $(SSTEH5OOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTEH5OOBJ) $(SHRMODS) \
                $(LIB) $(NETCDFLIB)
 
 sst_ersst: $(SHRMOD) $(SSTERAOBJ)
@@ -153,8 +153,8 @@ uvrot4.o: uvrot4.f90 mod_constants.o
 uvrot4nx.o: uvrot4nx.f90 mod_constants.o
 aerosol.o: aerosol.f90 mod_dynparam.o
 sst_1deg.o: sst_1deg.f90 mod_dynparam.o
-sst_ccsm.o: sst_ccsm.f90 mod_preproc_param.o mod_regcm_param.o
-sst_eh5om.o: sst_eh5om.f90 mod_preproc_param.o mod_regcm_param.o mod_datenum.o
+sst_ccsm.o: sst_ccsm.f90 mod_dynparam.o
+sst_eh5om.o: sst_eh5om.f90 mod_dynparam.o mod_datenum.o
 sst_ersst.o: sst_ersst.f90 mod_datenum.o mod_preproc_param.o mod_regcm_param.o
 sst_fvgcm.o: sst_fvgcm.f90 mod_preproc_param.o mod_regcm_param.o
 icbc.o: icbc.f90 mod_regcm_param.o mod_preproc_param.o mod_datenum.o \

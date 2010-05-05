@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program rdsst
+      program sst_ccsm
 !
 !*******************************************************************************
 !
@@ -41,8 +41,7 @@
 !     PATH /DATA/SST/
 !
 !******************************************************************************
-      use mod_regcm_param , only : iy , jx , lsmtyp , ibyte
-      use mod_preproc_param , only : ssttyp , idate1 , idate2
+      use mod_dynparam
 
       implicit none
 !
@@ -57,11 +56,31 @@
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
-               & nday , nmo , nyear
-      real(4) , dimension(iy,jx) :: lu , sstmm , xlat , xlon
+               & nday , nmo , nyear , ierr
       integer , dimension(20) :: lund
-      real(4) :: truelath , truelatl
+      character(256) :: namelistfile, prgname
 !
+      real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+!
+      allocate(lu(iy,jx))
+      allocate(sstmm(iy,jx))
+      allocate(xlat(iy,jx))
+      allocate(xlon(iy,jx))
+
       do i = 1 , ilon
         glon(i) = 0.5 + float(i-1)
       end do
@@ -74,7 +93,7 @@
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
       open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
           & recl=iy*jx*ibyte,access='direct',status='unknown',err=100)
-      idate = idate1/10000
+      idate = globidate1/10000
       if ( idate-(idate/100)*100==1 ) then
         idate = idate - 89
       else
@@ -82,16 +101,16 @@
       end if
       idateo = idate
       idate0 = idateo*10000 + 100
-      idate = idate2/10000
+      idate = globidate2/10000
       if ( idate-(idate/100)*100==12 ) then
         idate = idate + 89
       else
         idate = idate + 1
       end if
       idatef = idate
-      print * , idate1 , idate2 , idateo , idatef
+      print * , globidate1 , globidate2 , idateo , idatef
  
-      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef,truelatl,truelath)
+      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef)
       open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
           & recl=iy*jx*ibyte,access='direct')
       mrec = 0
@@ -154,29 +173,32 @@
       end do
       write (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
  
+      deallocate(lu)
+      deallocate(sstmm)
+      deallocate(xlat)
+      deallocate(xlon)
+
       stop 99999
  100  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 in PROGRAM RDSST'
-      end program rdsst
+      end program sst_ccsm
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2,truelatl,      &
-                      & truelath)
+      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate1 , idate2 , iy , jx
-      real(4) :: truelath , truelatl
       real(4) , dimension(iy,jx) :: lu , xlat , xlon
-      intent (in) idate1 , idate2 , iy , jx , truelath , truelatl
-      intent (out) lu
-      intent (inout) xlat , xlon
+      intent (in) idate1 , idate2 , iy , jx
+      intent (out) lu , xlat , xlon
 !
 ! Local variables
 !
+      real(4) :: truelath , truelatl
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
             & ptop , rlatinc , rloninc
