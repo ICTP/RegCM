@@ -547,7 +547,7 @@
       call output(nunitc,iy,jx,nsg,dsinm,clat,clong,plat,plon,iproj,    &
                 & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,xmap,      &
                 & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
-                & mask,ptop,htgrid_s,lndout_s,ibyte,nsg,truelatl,       &
+                & mask,ptop,htgrid,lndout,ibyte,nsg,truelatl,           &
                 & truelath,xn,terfilout,lsmtyp,sanda,sandb,claya,clayb, &
                 & frac_lnd,nveg,aertyp,texout,frac_tex,ntex)
       print * , 'after calling OUTPUT'
