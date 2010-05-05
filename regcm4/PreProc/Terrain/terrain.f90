@@ -52,10 +52,7 @@
 !  terrain will be read from unit 12, landuse from unit 10 or 11,
 !  output variables unit 9.
 !---------------------------------------------------------------------
-      use mod_preproc_param
-      use mod_regcm_param , only : igrads , ibyte , lsmtyp , aertyp ,   &
-             &               dattyp , ibigend , kz , iym2 , jxm2
-      use mod_regcm_param , only : iy , jx , nsg , iysg , jxsg , nveg
+      use mod_regcm_param
       use mod_smooth , only : smth121 , smthtr
       use mod_projections , only : lambrt , mappol , normer , rotmer
       use mod_interp , only : anal2 , interp
@@ -68,14 +65,18 @@
 !
 ! Local variables
 !
-      integer , parameter :: myid=1
       integer :: maxiter , maxjter , maxdim
       character(10) :: char_lnd , char_tex
-      character(256) :: ctlfile , datafile
+      character(256) :: namelistfile, ctlfile , datafile
       integer :: i , j , k , minsize
       logical :: ibndry
       integer :: nunitc , nunitc_s
       real(4) :: clong
+!
+!     Read input global namelist
+!
+      call getarg(1, namelistfile)
+      call initparam(namelistfile)
 !
 !     Preliminary consistency check to avoid I/O format errors
 !
@@ -86,7 +87,7 @@
         call abort
       end if
 
-      call header(myid)
+      call header(1)
 
       call allocate_grid(iy,jx,kz,nveg,ntex)
       if ( nsg>1 ) call allocate_subgrid(iysg,jxsg,nveg,ntex)
@@ -117,11 +118,13 @@
       if ( nsg>1 ) then
         nunitc_s = 19
         if ( nsg<10 ) then
-          write (datafile,99001) filout(1:18) , nsg , filout(19:23)
-          write (ctlfile,99003) filctl(1:18) , nsg , filctl(19:22)
+          write (datafile,99001)                                        &
+                & terfilout(1:18) , nsg , terfilout(19:23)
+          write (ctlfile,99003) terfilctl(1:18) , nsg , terfilctl(19:22)
         else
-          write (datafile,99002) filout(1:18) , nsg , filout(19:23)
-          write (ctlfile,99004) filctl(1:18) , nsg , filctl(19:22)
+          write (datafile,99002)                                        &
+                & terfilout(1:18) , nsg , terfilout(19:23)
+          write (ctlfile,99004) terfilctl(1:18) , nsg , terfilctl(19:22)
         end if
         call setup(nunitc_s,iysg,jxsg,ntypec_s,iproj,ds/nsg,clat,       &
                  & clong,igrads,ibyte,datafile,ctlfile)
@@ -199,7 +202,8 @@
             end do
           end do
         else
-          call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s,htsdgrid_s)
+          call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s,htsdgrid_s,      &
+                    & ntypec_s)
           print * , 'after calling INTERP, for subgrid'
 !         print*, '  Note that the terrain standard deviation is'
 !         print*, '  underestimated using INTERP. (I dont know why?)'
@@ -335,8 +339,8 @@
       dycen = 0.0
 !
 !     set up the parameters and constants
-      datafile = filout
-      ctlfile = filctl
+      datafile = terfilout
+      ctlfile = terfilctl
       call setup(nunitc,iy,jx,ntypec,iproj,ds,clat,clong,igrads,ibyte,  &
                & datafile,ctlfile)
       print * , 'after calling SETUP'
@@ -412,7 +416,7 @@
           end do
         end do
       else
-        call interp(jx,iy,xlat,xlon,htgrid,htsdgrid)
+        call interp(jx,iy,xlat,xlon,htgrid,htsdgrid,ntypec)
 !       print*, 'after calling INTERP'
 !       print*, '  Note that the terrain standard deviation is'
 !       print*, '  underestimated using INTERP. (I dont know why!)'
@@ -535,7 +539,7 @@
                 & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,xmap,      &
                 & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
                 & mask,ptop,htgrid_s,lndout_s,ibyte,nsg,truelatl,       &
-                & truelath,xn,filout,lsmtyp,sanda,sandb,claya,clayb,    &
+                & truelath,xn,terfilout,lsmtyp,sanda,sandb,claya,clayb, &
                 & frac_lnd,nveg,aertyp,texout,frac_tex,ntex)
       print * , 'after calling OUTPUT'
 

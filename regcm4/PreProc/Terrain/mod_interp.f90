@@ -23,18 +23,17 @@
 
       contains
 
-      subroutine interp(nx, ny, alat, alon, htg, htsdg)
+      subroutine interp(nx, ny, alat, alon, htg, htsdg, ntypec)
  
-      use mod_preproc_param
       use mod_block
       use mod_maps
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: nx , ny
+      integer :: nx , ny , ntypec
       real(4) , dimension(nx, ny) :: alat , alon , htg , htsdg
-      intent(in) nx , ny , alat
+      intent(in) nx , ny , alat , ntypec
       intent(inout) alon
       intent(out) htg , htsdg
 !
