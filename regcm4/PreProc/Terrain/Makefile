@@ -47,7 +47,7 @@ mod_interfaces.o: mod_interfaces.f90
 mod_maps.o: mod_maps.f90
 mod_smooth.o: mod_smooth.f90
 mod_projections.o: mod_projections.f90 mod_constants.o
-mod_interp.o: mod_interp.f90 mod_preproc_param.o mod_block.o mod_maps.o
+mod_interp.o: mod_interp.f90 mod_block.o mod_maps.o
 output.o: output.f90 mod_interfaces.o
 mod_rdldtr.o: mod_rdldtr.f90 mod_block.o
 setup.o: setup.f90 mod_block.o mod_interfaces.o
