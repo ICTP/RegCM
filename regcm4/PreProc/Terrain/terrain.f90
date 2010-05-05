@@ -52,7 +52,7 @@
 !  terrain will be read from unit 12, landuse from unit 10 or 11,
 !  output variables unit 9.
 !---------------------------------------------------------------------
-      use mod_regcm_param
+      use mod_dynparam
       use mod_smooth , only : smth121 , smthtr
       use mod_projections , only : lambrt , mappol , normer , rotmer
       use mod_interp , only : anal2 , interp
