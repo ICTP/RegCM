@@ -67,16 +67,27 @@
 !
       integer :: maxiter , maxjter , maxdim
       character(10) :: char_lnd , char_tex
-      character(256) :: namelistfile, ctlfile , datafile
-      integer :: i , j , k , minsize
+      character(256) :: namelistfile, ctlfile , datafile , prgname
+      integer :: i , j , k , minsize , ierr
       logical :: ibndry
       integer :: nunitc , nunitc_s
       real(4) :: clong
 !
+      call header(1)
+!
 !     Read input global namelist
 !
+      call getarg(0, prgname)
       call getarg(1, namelistfile)
-      call initparam(namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
 !
 !     Preliminary consistency check to avoid I/O format errors
 !
@@ -86,8 +97,6 @@
         write (6, *) 'Minsize (iy-2)*(jx-2) is ', minsize
         call abort
       end if
-
-      call header(1)
 
       call allocate_grid(iy,jx,kz,nveg,ntex)
       if ( nsg>1 ) call allocate_subgrid(iysg,jxsg,nveg,ntex)

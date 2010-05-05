@@ -286,9 +286,10 @@
 
       contains
 
-      subroutine initparam(filename)
+      subroutine initparam(filename, ierr)
         implicit none
         character (len=*) , intent(in) :: filename
+        integer , intent(out) :: ierr
 
         namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
                      & plon , truelatl, truelath
@@ -359,10 +360,11 @@
 
         read(ipunit, aerosolparam, err=100)
 
+        ierr = 0
         return
 
-  100   write ( 6, * ) 'Cannot read namelist file'
-        stop
+  100   write ( 6, * ) 'Cannot read namelist file ', trim(filename)
+        ierr = 1
 
       end subroutine
 
