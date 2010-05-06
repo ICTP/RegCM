@@ -23,39 +23,43 @@
 
       implicit none
 
-#ifdef MPP1
       real(8) ,allocatable, dimension(:,:,:,:) :: chib3d
-      real(8) ,allocatable, dimension(:,:,:) :: pb3d , qsb3d , rhb3d , rhob3d , &
-                                      & ubx3d , vbx3d
-      real(8) ,allocatable, dimension(:,:,:) :: qcb3d , qvb3d , tb3d ,     &
+      real(8) ,allocatable, dimension(:,:,:) :: pb3d , qsb3d , rhb3d ,  &
+                                      & rhob3d , ubx3d , vbx3d
+      real(8) ,allocatable, dimension(:,:,:) :: qcb3d , qvb3d , tb3d ,  &
                                       & ubd3d , vbd3d
-#else
-      real(8) , dimension(iy,kz,jx,ntr) :: chib3d
-      real(8) , dimension(iy,kz,jx) :: pb3d , qcb3d , qsb3d , qvb3d ,   &
-                                     & rhb3d , rhob3d , tb3d , ubd3d ,  &
-                                     & ubx3d , vbd3d , vbx3d
-#endif
-
-contains 
+      contains 
         subroutine allocate_mod_slice
-        
+        implicit none   
 #ifdef MPP1
         allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
-
         allocate(pb3d(iy,kz,jxp))
         allocate(qsb3d(iy,kz,jxp))
         allocate(rhb3d(iy,kz,jxp))
         allocate(rhob3d(iy,kz,jxp))
         allocate(ubx3d(iy,kz,jxp))
         allocate(vbx3d(iy,kz,jxp))
+        allocate(qcb3d(iy,kz,-1:jxp+2))
+        allocate(qvb3d(iy,kz,-1:jxp+2))
+        allocate(tb3d(iy,kz,-1:jxp+2))
+        allocate(ubd3d(iy,kz,-1:jxp+2))
+        allocate(vbd3d(iy,kz,-1:jxp+2))
+#else
+        allocate(chib3d(iy,kz,jx,ntr))      
+        allocate(pb3d(iy,kz,jx))
+        allocate(qsb3d(iy,kz,jx))
+        allocate(rhb3d(iy,kz,jx))
+        allocate(rhob3d(iy,kz,jx))
+        allocate(ubx3d(iy,kz,jx))
+        allocate(vbx3d(iy,kz,jx))
+        allocate(qcb3d(iy,kz,jx))
+        allocate(qvb3d(iy,kz,jx))
+        allocate(tb3d(iy,kz,jx))
+        allocate(ubd3d(iy,kz,jx))
+        allocate(vbd3d(iy,kz,jx))
 
-        allocate(qcb3d(iy,kz,-1:jxp+2) )
-        allocate(qvb3d(iy,kz,-1:jxp+2) )
-        allocate(tb3d(iy,kz,-1:jxp+2) )
-        allocate(ubd3d(iy,kz,-1:jxp+2) )
-        allocate(vbd3d(iy,kz,-1:jxp+2) )
 #endif
-       end subroutine allocate_mod_slice
 
+       end subroutine allocate_mod_slice
 
       end module mod_slice

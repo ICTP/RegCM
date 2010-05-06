@@ -23,32 +23,19 @@
 
       implicit none
 !
-#ifdef MPP1
       real(8) ,allocatable, dimension(:,:,:) :: ddsum
       real(8) ,allocatable, dimension(:,:,:,:) :: deld
       real(8) ,allocatable, dimension(:,:,:,:) :: delh
       real(8) ,allocatable, dimension(:,:,:) :: dhsum
       real(8) ,allocatable, dimension(:,:) :: psdot
       real(8) ,allocatable, dimension(:,:,:) :: work
-!
       real(8) ,allocatable, dimension(:,:) :: uu , vv
-!
       real(8) ,allocatable, dimension(:,:,:) :: uuu , vvv
-#else
-      real(8) , dimension(iy,jx,nsplit) :: ddsum , dhsum
-      real(8) , dimension(iy,jx,nsplit,3) :: deld , delh
-      real(8) , dimension(iy,jx) :: psdot
-      real(8) , dimension(iy,jx,3) :: work
-!
-      real(8) , dimension(iy,jx) :: uu , vv
-!
-      real(8) , dimension(iy,kz,jx) :: uuu , vvv
-#endif
 
-contains 
+      contains 
 
         subroutine allocate_mod_bxq
-
+        implicit none
 #ifdef MPP1
         allocate(ddsum(iy,jxp,nsplit))
         allocate(deld(iy,jxp,nsplit,3))
@@ -60,7 +47,18 @@ contains
         allocate(vv(iy,jxp+1))
         allocate(uuu(iy,kz,jxp+1))
         allocate(vvv(iy,kz,jxp+1))
+#else
+        allocate(ddsum(iy,jx,nsplit))
+        allocate(deld(iy,jx,nsplit,3))
+        allocate(delh(iy,jx,nsplit,3))
+        allocate(dhsum(iy,jx,nsplit))
+        allocate(psdot(iy,jx))
+        allocate(work(iy,jx,3))
+        allocate(uu(iy,jx))
+        allocate(vv(iy,jx))
+        allocate(uuu(iy,kz,jx))
+        allocate(vvv(iy,kz,jx))
 #endif 
-
         end subroutine allocate_mod_bxq
+
       end module mod_bxq

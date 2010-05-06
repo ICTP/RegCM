@@ -32,33 +32,33 @@
       integer , parameter :: jfs = 0
       integer , parameter :: ust = 1
 !
-#ifdef MPP1
-      real(8) , allocatable, dimension(:,:,:) :: clay2row2 , sand2row2 ,       &
+      real(8) , allocatable, dimension(:,:,:) :: clay2row2 , sand2row2 ,&
            & silt2row2
-      real(8) ,allocatable,  dimension(:,:) :: clayrow2 , dustsotex , sandrow2
+      real(8) ,allocatable,  dimension(:,:) :: clayrow2 , dustsotex ,   &
+           & sandrow2
       real(8) ,allocatable,  dimension(:,:,:) :: srel2d
-#else
-      real(8) , dimension(iy,nats,jx) :: clay2row2 , sand2row2 ,        &
-           & silt2row2
-      real(8) , dimension(iy,jx) :: clayrow2 , dustsotex , sandrow2
-      real(8) , dimension(iy,jx,nsoil) :: srel2d
-#endif
       real(8) , dimension(nsoil) :: dp
 
-contains 
+      contains 
+
         subroutine allocate_mod_dust 
-
+        implicit none
 #ifdef MPP1
-        allocate(clay2row2(iy,nats,jxp) )
-        allocate(sand2row2(iy,nats,jxp) )
-        allocate(silt2row2(iy,nats,jxp) )
-
-        allocate(clayrow2(iy,jxp) )
-        allocate(dustsotex(iy,jxp) )
-        allocate(sandrow2(iy,jxp) )
-
+        allocate(clay2row2(iy,nats,jxp))
+        allocate(sand2row2(iy,nats,jxp))
+        allocate(silt2row2(iy,nats,jxp))
+        allocate(clayrow2(iy,jxp))
+        allocate(dustsotex(iy,jxp))
+        allocate(sandrow2(iy,jxp))
         allocate(srel2d(iy,jxp,nsoil))
-        
+#else        
+        allocate(clay2row2(iy,nats,jx))
+        allocate(sand2row2(iy,nats,jx))
+        allocate(silt2row2(iy,nats,jx))
+        allocate(clayrow2(iy,jx))
+        allocate(dustsotex(iy,jx))
+        allocate(sandrow2(iy,jx))
+        allocate(srel2d(iy,jx,nsoil))
 #endif 
 
         end subroutine allocate_mod_dust

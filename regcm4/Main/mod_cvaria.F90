@@ -93,7 +93,7 @@
         allocate(vten(iy,kz,jx))
         allocate(xkc(iy,kz,jx))
         allocate(pdota(iy,jx))
-        allocate(psc(iy,jxp)
+        allocate(psc(iy,jx))
         allocate(pten(iy,jx))
         allocate(phi(iy,kz,jx))
         allocate(psd(iy,jx))

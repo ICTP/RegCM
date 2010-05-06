@@ -86,9 +86,9 @@ contains
         allocate(rxsaq2(iy,kz,jxp,ntr))
         allocate(rxsg(iy,kz,jxp,ntr))
 #else
-        allocate(icumbot((iy,jx))
-        allocate(icumdwd((iy,jx))
-        allocate(icumtop((iy,jx))
+        allocate(icumbot(iy,jx))
+        allocate(icumdwd(iy,jx))
+        allocate(icumtop(iy,jx))
         allocate(aerasp(iym1,kz,jxm1))
         allocate(aerext(iym1,kz,jxm1))
         allocate(aerssa(iym1,kz,jxm1))

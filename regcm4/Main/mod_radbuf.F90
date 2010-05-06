@@ -27,24 +27,22 @@
       ! abstot  - Non-adjacent layer absorptivites
       ! emstot  - Total emissivity
 
-#ifdef MPP1
       real(8) , allocatable, dimension(:,:,:,:)  :: absnxt
       real(8),  allocatable, dimension(:,:,:,:)  :: abstot
       real(8) , allocatable, dimension(:,:,:) :: emstot
-#else
-      real(8) , dimension(iym1,kz,4,jxm1) :: absnxt
-      real(8) , dimension(iym1,kzp1,kz + 1,jxm1) :: abstot
-      real(8) , dimension(iym1,kzp1,jxm1) :: emstot
-#endif
 
-contains 
+      contains 
+
         subroutine allocate_mod_radbuf 
-        
+        implicit none        
 #ifdef MPP1
         allocate(absnxt(iym1,kz,4,jxp))
-        allocate(abstot(iym1,kzp1,kz + 1,jxp))
+        allocate(abstot(iym1,kzp1,kzp1,jxp))
         allocate(emstot(iym1,kzp1,jxp))
 #else
+        allocate(absnxt(iym1,kz,4,jxm1))
+        allocate(abstot(iym1,kzp1,kzp1,jxm1))
+        allocate(emstot(iym1,kzp1,jxm1))
 #endif 
         end subroutine allocate_mod_radbuf 
 
