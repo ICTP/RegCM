@@ -295,7 +295,7 @@
                      & smthbdy , lakadj , fudge_lnd , fudge_lnd_s ,     &
                      & fudge_tex , fudge_tex_s , ntex , h2opct ,        &
                      & terfilout , terfilctl
-        namelist /dimparam/ iy , jx , kz , nsg , nproc
+        namelist /dimparam/ iy , jx , kz , nsg
         namelist /ioparam/ igrads , ibigend , ibyte
         namelist /debugparam/ debug_level
         namelist /boundaryparam/ nspgx , nspgd
