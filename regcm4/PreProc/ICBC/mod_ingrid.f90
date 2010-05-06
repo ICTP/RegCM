@@ -19,22 +19,20 @@
 
       module mod_ingrid
 
-      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp
-
       implicit none
 
       integer :: jx_in , iy_in , kz_in
       real(4) :: ptop_in
       real(4) :: clat_in , clon_in , plat_in , plon_in
       real(4) :: truelath_in , truelatl_in
-
       character(6) :: cgtype_in
-
       integer :: igrads_in , ibigend_in
 
       contains
 
       subroutine gridml
+
+      use mod_dynparam
       use mod_grid
       implicit none
 !
@@ -93,6 +91,7 @@
 
       subroutine commhead
       use mod_grid
+      use mod_dynparam
       implicit none
 !
 ! Local variables

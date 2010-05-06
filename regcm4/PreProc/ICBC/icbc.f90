@@ -92,9 +92,7 @@
 !   have just provided EMOSLIB library for LINUX PGI5 and IBM AIX.     !
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      use mod_regcm_param , only : iy , jx , kz , nsg , ehso4
-      use mod_regcm_param , only : lsmtyp , ibyte , aertyp , igrads
-      use mod_preproc_param , only : ssttyp , idate1 , idate2
+      use mod_dynparam
       use mod_datenum
       use mod_grid
       use mod_ingrid
@@ -115,25 +113,39 @@
 !
 ! Local variables
 !
-      character(120) :: a120
       character(50) :: a50
-      character(7) :: a7
-      character(8) :: a8
       character(26) :: finame
       integer :: idate , idatef , iday , ifile , imon , imonnew ,       &
-               & imonold , isize , isystm , iyr , nnn , inmber , numfile
-      character(25) :: inrcm , inrcm2
-      logical :: there
+               & imonold , isize , iyr , nnn , inmber , numfile
       integer :: nnnend , nstart
-      integer :: system,myid=1
+      integer :: ierr
+      character(256) :: namelistfile, prgname
 !
-      call header(myid)
+      call header(1)
+!
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+!
+      call init_grid(iy,jx,kz)
+      call init_output(jx,iy,kz)
       call initdate_icbc
-      call finddate_icbc(nstart,idate1)
-      call finddate_icbc(nnnend,idate2)
+      call finddate_icbc(nstart,globidate1)
+      call finddate_icbc(nnnend,globidate2)
 
       write (*,*) 'NSTART,NNNEND: ' , nstart , nnnend
-      write (*,*) 'IDATE1,IDATE2: ' , idate1 , idate2
+      write (*,*) 'IDATE1,IDATE2: ' , globidate1 , globidate2
  
       isize = jx*iy*4*(kz*4+3)
       numfile = 2100000000/isize
@@ -170,67 +182,6 @@
       end if
       if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) call headwk
  
-      inrcm = '../../Commons/regcm.in'
-      inrcm2 = '../../Commons/regcm0.in'
-      inquire (file=inrcm,exist=there)
-      if ( there ) then
-        inquire (file='tmp.in',exist=there)
-        if ( there ) isystm = system('/bin/rm -f tmp.in')
-        a120 = 'cat '//inrcm//' | grep -v rest | grep -v idat > tmp.in'
-        isystm = system(a120)
-        a120 = '/bin/mv -f '//inrcm//' '//inrcm2
-        isystm = system(a120)
-        open (99,file=inrcm,status='unknown')
-        write (99,*) '&restartparam'
-        a7 = '.false.'
-        a8 = 'ifrest'
-        write (99,99001) a8 , a7
-        a8 = 'idate0'
-        write (99,99002) a8 , idate1
-        a8 = 'idate1'
-        write (99,99002) a8 , idate1
-        a8 = 'idate2'
-        write (99,99002) a8 , idate2
-        close (99)
-        a120 = 'cat tmp.in >> '//inrcm
-        isystm = system(a120)
-        isystm = system('/bin/rm -f tmp.in')
-      end if
- 
-      inrcm = '../../Commons/regcm.x'
-      inrcm2 = '../../Commons/regcm0.x'
-      a120 = '/bin/mv -f '//inrcm//' '//inrcm2
-      inquire (file=inrcm,exist=there)
-      if ( there ) isystm = system(a120)
-      open (99,file=inrcm,status='new')
-      a50 = '#!/bin/csh -f'
-      write (99,99003) a50
-      a50 = 'set mydir=$PWD'
-      write (99,99003) a50
-      a50 = 'cd ../Main'
-      write (99,99003) a50
-      a50 = 'make clean'
-      write (99,99003) a50
-      a50 = './MAKECODE'
-      write (99,99003) a50
-      a50 = 'make'
-      write (99,99003) a50
-      a50 = 'cd $mydir'
-      write (99,99003) a50
-      a50 = 'mv ../Main/regcm .'
-      write (99,99003) a50
-      a50 = '/bin/ln -sf ../Input/DOMAIN.INFO fort.10'
-      write (99,99003) a50
-      if ( nsg>1 .and. nsg<10 ) then
-        write (99,99004) '/bin/ln -sf ../Input/DOMAIN' , nsg ,          &
-                        &'.INFO fort.11'
-      else if ( nsg>=10 ) then
-        write (99,99005) '/bin/ln -sf ../Input/DOMAIN' , nsg ,          &
-                        &'.INFO fort.11'
-      else
-      end if
-      if ( aertyp(4:4)=='1' .or. aertyp(5:5)=='1' ) write (99,99006)    &
-          & '/bin/ln -sf ../Input/AERO.dat AERO.dat'
       imonold = 0
       ifile = 101
       do nnn = nstart , nnnend
@@ -330,12 +281,13 @@
         else
         end if
       end do
-      a50 = './regcm<./regcm.in'
-      write (99,99003) a50
-      a50 = 'chmod ugo+x '//inrcm
-      isystm = system(a50)
       close (99)
+
+      call free_output
+      call free_grid
  
+      print *, 'Successfully completed ICBC'
+
       stop
  100  continue
       print * , 'ERROR OPENING SST.RCM FILE'

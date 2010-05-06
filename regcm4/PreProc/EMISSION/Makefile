@@ -13,7 +13,7 @@ EMISSOBJ = emission.o bilinxo.o griddef.o julian2.o
 
 REPORTOBJ = report.o bilinxo.o julian2.o
 
-SHRMOD = mod_preproc_param.o mod_regcm_param.o
+SHRMOD = mod_dynparam.o
 
 report: $(SHRMOD) $(MODOBJ) $(REPORTOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(REPORTOBJ) $(LIB) \
@@ -23,11 +23,7 @@ emission: $(SHRMOD) $(MODOBJ) $(EMISSOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(EMISSOBJ) $(LIB) \
                $(MODOBJ) $(SHRMOD) $(NETCDFLIB)
 
-mod_preproc_param.o: ../../Config/mod_preproc_param.f90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
-            $(USCORING) -c -o $@ $<
-
-mod_regcm_param.o: ../../Config/mod_regcm_param.F90
+mod_dynparam.o: ../../Config/mod_dynparam.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
 
@@ -40,9 +36,9 @@ clean:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_emission.o: mod_emission.f90 mod_preproc_param.o mod_regcm_param.o
+mod_emission.o: mod_emission.f90
 bilinxo.o: bilinxo.f90
 julian2.o: julian2.f90
-griddef.o: griddef.f90 mod_emission.o mod_regcm_param.o
-emission.o: emission.f90 mod_regcm_param.o mod_emission.o
-report.o: mod_emission.o mod_regcm_param.o
+griddef.o: griddef.f90 mod_emission.o
+emission.o: emission.f90 mod_dynparam.o mod_emission.o
+report.o: mod_emission.o mod_dynparam.o

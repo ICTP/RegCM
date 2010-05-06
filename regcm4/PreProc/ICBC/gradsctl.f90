@@ -18,9 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       subroutine gradsctl(finame,idate,inumber)
-      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp ,      &
-                 &                 ehso4 , lsmtyp , ibigend
-      use mod_preproc_param
+      use mod_dynparam
       use mod_grid
       implicit none
 !

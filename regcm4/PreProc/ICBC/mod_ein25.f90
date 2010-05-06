@@ -18,9 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_ein25
-      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp
-      use mod_preproc_param
-
+      use mod_dynparam
       implicit none
 
       private
@@ -29,13 +27,14 @@
 
       real(4) , target , dimension(ilon,jlat,klev*3) :: b2
       real(4) , target , dimension(ilon,jlat,klev*2) :: d2
-      real(4) , target , dimension(jx,iy,klev*3) :: b3
-      real(4) , target , dimension(jx,iy,klev*2) :: d3
+      real(4) , allocatable , target , dimension(:,:,:) :: b3
+      real(4) , allocatable , target , dimension(:,:,:) :: d3
 
       real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
       real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
       real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
       real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+
       integer(2) , dimension(ilon,jlat,37) :: work
       real(4) , dimension(jlat) :: glat
       real(4) , dimension(ilon) :: glon
@@ -61,7 +60,7 @@
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-      call ein256hour(dattyp,idate,idate1)
+      call ein256hour(dattyp,idate,globidate1)
       write (*,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
@@ -528,6 +527,9 @@
         sigma1(k) = sigmar(kr)
       end do
  
+      allocate(b3(jx,iy,klev*3))
+      allocate(d3(jx,iy,klev*2))
+
 !     Set up pointers
 
       u3 => d3(:,:,1:klev)

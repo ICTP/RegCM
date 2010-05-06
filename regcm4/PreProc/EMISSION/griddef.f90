@@ -5,7 +5,7 @@
 !    ICTP RegCM is free software: you can redistribute it and/or modify
 !    it under the terms of the GNU General Public License as published by
 !    the Free Software Foundation, either version 3 of the License, or
-!    (at your option) any later version.
+!    (at your option) ainy later version.
 !
 !    ICTP RegCM is distributed in the hope that it will be useful,
 !    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,15 +17,17 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine griddef(year,trec)
-      use mod_regcm_param , only : aertyp , ibyte , kz
+      subroutine griddef(year,trec,aertyp,ibyte,kz)
+
       use mod_emission
+
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: trec , year
-      intent (in) trec , year
+      integer :: trec , year , ibyte , kz
+      character(7) :: aertyp
+      intent (in) trec , year , aertyp , ibyte , kz
 !
 ! Local variables
 !
@@ -33,8 +35,8 @@
             & centerj , xcla , xclo , dsinm , grdfac , xpla , xplo ,    &
             & xpto , rlatinc , rloninc , xtrul , xtruh
       character(3) , dimension(12) :: cmonth
-      integer :: i , isbige , ierr , dograd , iyy , j , jxx , k , nl ,  &
-               & month , nx , ny , period , xnspc1a , xnspc1b ,         &
+      integer :: i , isbige , ierr , dograd , nyy , j , nxx , k , nl ,  &
+               & month , jnx , iny , period , xnspc1a , xnspc1b ,       &
                & xnspc2a , xnspc2b , xnspc3 , xnspc4a , xnspc4b ,       &
                & xnspc5a , xnspc5b
       character(6) :: cprj
@@ -85,19 +87,19 @@
         xnspc3 = 0
       end if
 !
-      read (10,rec=1,iostat=ierr) iyy , jxx , nl , dsinm , xcla , xclo ,&
+      read (10,rec=1,iostat=ierr) nyy , nxx , nl , dsinm , xcla , xclo ,&
                                 & xpla , xplo , grdfac , cprj ,         &
                                 & (sigmaf(k),k=1,kz+1) , xpto , dograd ,&
                                 & isbige , xtrul , xtruh
-      if ( iyy/=iy .or. jxx/=jx ) then
+      if ( nyy/=ny .or. nxx/=nx ) then
         print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'
-        print * , '  icbc.param: ' , iy , jx
-        print * , '  DOMAIN.INFO: ' , iyy , jxx
+        print * , '  icbc.param: ' , ny , nx
+        print * , '  DOMAIN.INFO: ' , nyy , nxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
         stop 'Dimensions (subroutine gridml)'
       end if
-      read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,jx),i=1,iy)
-      read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,jx),i=1,iy)
+      read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,nx),i=1,ny)
+      read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,nx),i=1,ny)
       if ( ierr/=0 ) then
         print * , 'END OF FILE REACHED (AEROSOL.f)'
         print * , '  Check ibyte in icbc.param: ibyte= ' , ibyte
@@ -124,14 +126,14 @@
         if ( cprj=='LAMCON' .or. cprj=='ROTMER' ) then
           alatmin = 999999.
           alatmax = -999999.
-          do j = 1 , jx
+          do j = 1 , nx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
-            if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
+            if ( xlat(ny,j)>alatmax ) alatmax = xlat(ny,j)
           end do
           alonmin = 999999.
           alonmax = -999999.
-          do i = 1 , iy
-            do j = 1 , jx
+          do i = 1 , ny
+            do j = 1 , nx
               if ( xclo>=0.0 ) then
                 if ( xlon(i,j)>=0.0 ) then
                   alonmin = amin1(alonmin,xlon(i,j))
@@ -159,32 +161,32 @@
           end do
           rlatinc = dsinm*0.001/111./2.
           rloninc = dsinm*0.001/111./2.
-          ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
-          nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+          iny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+          jnx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
-          centerj = jx/2.
-          centeri = iy/2.
+          centerj = nx/2.
+          centeri = ny/2.
         end if
         if ( cprj=='LAMCON' ) then        ! Lambert projection
-          write (31,99001) jx , iy , xcla , xclo , centerj , centeri ,  &
+          write (31,99001) nx , ny , xcla , xclo , centerj , centeri ,  &
                          & xtrul , xtruh , xclo , dsinm , dsinm
-          write (31,99002) nx + 2 , alonmin - rloninc , rloninc
-          write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          write (31,99002) jnx + 2 , alonmin - rloninc , rloninc
+          write (31,99003) iny + 2 , alatmin - rlatinc , rlatinc
         else if ( cprj=='POLSTR' ) then   !
         else if ( cprj=='NORMER' ) then
-          write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
-          write (31,99005) iy
-          write (31,99006) (xlat(i,1),i=1,iy)
+          write (31,99004) nx , xlon(1,1) , xlon(1,2) - xlon(1,1)
+          write (31,99005) ny
+          write (31,99006) (xlat(i,1),i=1,ny)
         else if ( cprj=='ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , iy , xplo , xpla , dsinm/111000. ,      &
+          write (31,99007) nx , ny , xplo , xpla , dsinm/111000. ,      &
                          & dsinm/111000.*.95238
-          write (31,99002) nx + 2 , alonmin - rloninc , rloninc
-          write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+          write (31,99002) jnx + 2 , alonmin - rloninc , rloninc
+          write (31,99003) iny + 2 , alatmin - rlatinc , rlatinc
         else
           write (*,*) 'Are you sure your map projection is correct ?'
           stop

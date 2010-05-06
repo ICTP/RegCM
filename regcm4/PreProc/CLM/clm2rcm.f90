@@ -20,8 +20,7 @@
       program clmproc
  
       use netcdf
-      use mod_regcm_param , only : iy , jx , kz , ibyte
-      use mod_preproc_param
+      use mod_dynparam
       use mod_param_clm
 
       implicit none
@@ -45,14 +44,10 @@
       character(6) :: iprojx
       character(64) , dimension(nfld) :: lnam
       character(256) :: outfil_ctl , outfil_gr , outfil_nc
-      real(4) , dimension(kz+1) :: sigx
       logical :: there
       character(64) , dimension(nfld) :: units
       real(4) , dimension(3) :: varmax , varmin
       character(64) , dimension(nfld) :: vnam_o
-      real(4) , dimension(iy,jx) :: xlat , xlon
-      real(4) , dimension(iy) :: xlat1d
-      real(4) , dimension(jx) :: xlon1d
       real(8) :: xhr
       real(4) , allocatable , dimension(:) :: glat , glon , zlat ,      &
                &                           zlev , zlon
@@ -60,13 +55,39 @@
       real(4) , allocatable , dimension(:,:,:,:) :: regyxzt , zoom
       real(4) , allocatable , dimension(:,:) :: landmask , regxy ,      &
                &                             sandclay
+      real(4) , allocatable , dimension(:,:) :: xlat , xlon
+      real(4) , allocatable , dimension(:) :: xlat1d
+      real(4) , allocatable , dimension(:) :: xlon1d
+      real(4) , allocatable , dimension(:) :: sigx
       integer :: ipathdiv
       character :: cpathdiv
-
+      character(256) :: namelistfile, prgname
+!
       data cpathdiv /'/'/
 !
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+!
+      allocate(xlat(iy,jx))
+      allocate(xlon(iy,jx))
+      allocate(xlat1d(iy))
+      allocate(xlon1d(jx))
+      allocate(sigx(kz+1))
+!
 !     ** Get latitudes and longitudes from DOMAIN.INFO
-      open (unit=10,file=filout,status='old',form='unformatted',     &
+!
+      open (unit=10,file=terfilout,status='old',form='unformatted',     &
           & recl=iy*jx*ibyte,access='direct')
       read (10,rec=1) iyy , jxx , kzz , dsx , clatx , clonx , platx ,   &
                     & plonx , grdfacx , iprojx , sigx , ptopx ,         &
@@ -335,6 +356,12 @@
         if ( ifld==isnd .or. ifld==icly ) deallocate(sandclay)
  
       end do  ! End nfld loop
+
+      deallocate(xlat)
+      deallocate(xlon)
+      deallocate(xlat1d)
+      deallocate(xlon1d)
+      deallocate(sigx)
  
 !     ** Make GrADS CTL file
       outfil_ctl = trim(outdir)//trim(outfil)//'.CTL'
@@ -351,5 +378,6 @@
       call clscdf(idout,ierr)
       close (iunout)
       close (iunctl)
+      print *, 'Successfully completed CLM preprocessing.'
  
       end program clmproc

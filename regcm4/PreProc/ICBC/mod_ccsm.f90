@@ -121,8 +121,7 @@
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
-      use mod_regcm_param , only : iy , jx , kz
-      use mod_preproc_param
+      use mod_dynparam
 
       implicit none
 
@@ -138,8 +137,10 @@
       ! Whole space
       real(4) , target , dimension(ilon,jlat,npl*3) :: b2
       real(4) , target , dimension(ilon,jlat,npl*2) :: d2
-      real(4) , target , dimension(jx,iy,klev*3) :: b3
-      real(4) , target , dimension(jx,iy,npl*2) :: d3
+      real(4) , allocatable , target , dimension(:,:,:) :: b3
+      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(4) , allocatable , dimension(:,:,:) :: dum1
+      real(4) , allocatable , dimension(:,:,:,:) :: dum2
 
       ! Shared by netcdf I/O routines
       integer , dimension(10) :: icount , istart
@@ -159,9 +160,6 @@
       real(4) , dimension(jlat) :: glat
       real(4) , dimension(ilon) :: glon
       real(4) , dimension(npl) :: pplev , sigma1 , sigmar
-
-      real(4) , dimension(jx,iy,npl) :: dum1
-      real(4) , dimension(jx,iy,npl,2) :: dum2
 
       public :: get_cam42 , head_cam42
       public :: get_cam85 , head_cam85
@@ -194,9 +192,9 @@
 
         data varname/'PHIS'/
  
-        call cam42(idate,idate1,glat)
+        call cam42(idate,globidate1,glat)
 
-        if ( idate==idate1 ) then
+        if ( idate==globidate1 ) then
           pathaddname = '../DATA/CAM42/ccsm_ht.nc'
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
@@ -442,6 +440,11 @@
         bk(26) = 0.9851122
         bk(27) = 1.
  
+        allocate(b3(jx,iy,klev*3))
+        allocate(d3(jx,iy,npl*2))
+        allocate(dum1(jx,iy,npl))
+        allocate(dum2(jx,iy,npl,2))
+
 !       Set up pointers
  
         u3 => d3(:,:,1:npl)
@@ -806,9 +809,9 @@
 !
       data varname/'PHIS'/
  
-      call cam85(idate,idate1,glat)
+      call cam85(idate,globidate1,glat)
 
-      if ( idate==idate1 ) then
+      if ( idate==globidate1 ) then
         pathaddname = '../DATA/CAM85/ccsm_ht.nc'
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
@@ -1058,6 +1061,11 @@
       bk(26) = 0.9851122
       bk(27) = 1.
  
+      allocate(b3(jx,iy,klev*3))
+      allocate(d3(jx,iy,npl*2))
+      allocate(dum1(jx,iy,npl))
+      allocate(dum2(jx,iy,npl,2))
+
 !     Set up pointers
 
       u3 => d3(:,:,1:npl)

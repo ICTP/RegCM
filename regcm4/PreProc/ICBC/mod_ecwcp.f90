@@ -19,8 +19,7 @@
 
       module mod_ecwcp
 
-      use mod_regcm_param , only : iy , jx , kz , ibyte
-      use mod_preproc_param
+      use mod_dynparam
 
       implicit none
 
@@ -36,8 +35,8 @@
 
       real(4) , target , dimension(ilon,jlat,nlev1*3) :: b2
       real(4) , target , dimension(ilon,jlat,nlev1*2) :: d2
-      real(4) , target , dimension(jx,iy,nlev1*3) :: b3
-      real(4) , target , dimension(jx,iy,nlev1*2) :: d3
+      real(4) , allocatable , target , dimension(:,:,:) :: b3
+      real(4) , allocatable , target , dimension(:,:,:) :: d3
 
       real(4) , pointer , dimension(:,:,:) :: t1 , q1 , h1
       real(4) , pointer , dimension(:,:,:) :: u1 , v1
@@ -296,6 +295,9 @@
         sigma1(k) = sigmar(kr)
       end do
 
+      allocate(b3(jx,iy,nlev1*3))
+      allocate(d3(jx,iy,nlev1*2))
+      
 !       Set up pointers
 
       u3 => d3(:,:,1:nlev1)

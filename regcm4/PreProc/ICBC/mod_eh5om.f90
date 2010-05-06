@@ -18,8 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_eh5om
-      use mod_regcm_param , only : iy , jx , kz , ibyte , ehso4
-      use mod_preproc_param
+      use mod_dynparam
 
       implicit none
 
@@ -30,8 +29,11 @@
 
       real(4) , target , dimension(ilon,jlat,klev*3) :: b2
       real(4) , target , dimension(ilon,jlat,klev*2) :: d2
-      real(4) , target , dimension(jx,iy,klev*3) :: b3
-      real(4) , target , dimension(jx,iy,klev*2) :: d3
+      real(4) , allocatable , target , dimension(:,:,:) :: b3
+      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(4) , allocatable , dimension(:,:,:) :: sulfate3
+      real(4) , allocatable , dimension(:,:) :: pso4_3
+      real(4) , allocatable , dimension(:,:,:) :: sulfate4
 
       real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
       real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -48,11 +50,8 @@
       real(4) , dimension(ilon,jlat,mlev,12) :: sulfate
 
       real(4) , dimension(ilon,jlat) :: pso4_2
-      real(4) , dimension(jx,iy) :: pso4_3
       real(4) , dimension(ilon,jlat,mlev,2) :: sulfate1
       real(4) , dimension(ilon,jlat,mlev) :: sulfate2
-      real(4) , dimension(jx,iy,mlev) :: sulfate3
-      real(4) , dimension(jx,iy,kz) :: sulfate4
 
       integer(4) , dimension(10) :: icount , istart
 
@@ -1473,6 +1472,12 @@
         close (30)
       end if
  
+      allocate(b3(jx,iy,klev*3))
+      allocate(d3(jx,iy,klev*2))
+      allocate(sulfate3(jx,iy,mlev))
+      allocate(pso4_3(jx,iy))
+      allocate(sulfate4(jx,iy,kz))
+
 !     Set up pointers
 
       u3 => d3(:,:,1:klev)

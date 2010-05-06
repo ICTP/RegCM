@@ -84,7 +84,7 @@
         allocate(lnduse(iy,jx))
         allocate(frac_lnd(iy,jx,nveg))
         allocate(frac_tex(iy,jx,ntex))
-      end subroutine
+      end subroutine allocate_grid
 
       subroutine allocate_subgrid(iysg,jxsg,nveg,ntex)
         implicit none
@@ -119,6 +119,75 @@
         allocate(lnduse_s(iysg,jxsg))
         allocate(frac_lnd_s(iysg,jxsg,nveg))
         allocate(frac_tex_s(iysg,jxsg,ntex))
-      end subroutine
+      end subroutine allocate_subgrid
+
+      subroutine free_grid
+        implicit none
+        deallocate(sigma)
+        deallocate(ch)
+        deallocate(corc)
+        deallocate(nsc)
+        deallocate(hscr1)
+        deallocate(htsavc)
+        deallocate(sumc)
+        deallocate(wtmaxc)
+        deallocate(itex)
+        deallocate(land)
+        deallocate(claya)
+        deallocate(clayb)
+        deallocate(coriol)
+        deallocate(xlat)
+        deallocate(xlon)
+        deallocate(dlat)
+        deallocate(dlon)
+        deallocate(xmap)
+        deallocate(dmap)
+        deallocate(htgrid)
+        deallocate(htsdgrid)
+        deallocate(lndout)
+        deallocate(mask)
+        deallocate(sanda)
+        deallocate(sandb)
+        deallocate(snowam)
+        deallocate(texout)
+        deallocate(intext)
+        deallocate(lnduse)
+        deallocate(frac_lnd)
+        deallocate(frac_tex)
+      end subroutine free_grid
+
+      subroutine free_subgrid
+        implicit none
+        deallocate(ch_s)
+        deallocate(corc_s)
+        deallocate(nsc_s)
+        deallocate(hscr1_s)
+        deallocate(htsavc_s)
+        deallocate(sumc_s)
+        deallocate(wtmaxc_s)
+        deallocate(itex_s)
+        deallocate(land_s)
+        deallocate(claya_s)
+        deallocate(clayb_s)
+        deallocate(coriol_s)
+        deallocate(xlat_s)
+        deallocate(xlon_s)
+        deallocate(dlat_s)
+        deallocate(dlon_s)
+        deallocate(xmap_s)
+        deallocate(dmap_s)
+        deallocate(htgrid_s)
+        deallocate(htsdgrid_s)
+        deallocate(lndout_s)
+        deallocate(mask_s)
+        deallocate(sanda_s)
+        deallocate(sandb_s)
+        deallocate(snowam_s)
+        deallocate(texout_s)
+        deallocate(intext_s)
+        deallocate(lnduse_s)
+        deallocate(frac_lnd_s)
+        deallocate(frac_tex_s)
+      end subroutine free_subgrid
 
       end module mod_maps

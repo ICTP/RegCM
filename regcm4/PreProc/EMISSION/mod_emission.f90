@@ -19,9 +19,6 @@
 
       module mod_emission
 
-      use mod_regcm_param , only : iy , jx
-      use mod_preproc_param , only : idate1 , idate2
-
       implicit none
 !
 ! PARAMETER definitions
@@ -100,9 +97,30 @@
       character(30) , dimension(nspc5a) :: ele_mozrta
       character(30) , dimension(nspc5b) :: ele_mozrtb
 
-      real(4) , dimension(iy,jx) :: aermm , xlat , xlon
+      integer :: ny , nx
+      integer :: idate1 , idate2
+      real(4) , allocatable , dimension(:,:) :: aermm , xlat , xlon
 
       contains
+
+      subroutine init_emiss(iny,jnx,iidate1,iidate2)
+        implicit none
+        integer , intent (in) :: iny , jnx , iidate1 , iidate2
+        ny = iny
+        nx = jnx
+        idate1 = iidate1
+        idate2 = iidate2
+        allocate(aermm(ny,nx))
+        allocate(xlat(ny,nx))
+        allocate(xlon(ny,nx))
+      end subroutine
+
+      subroutine free_emiss
+        implicit none
+        deallocate(aermm)
+        deallocate(xlat)
+        deallocate(xlon)
+      end subroutine
 
       subroutine reademission(nlats,nlons,nlvls,inv,dr,src,nnn,emiss_in,&
                             & loni,lati,yy,month,recc)
@@ -124,7 +142,7 @@
 !
       real(4) :: avo , cfact , mw
       integer :: ayr1 , ayr2 , dt , emiss_varid , emsrc , i , idy1 ,    &
-               & idy2 , ihr1 , ihr2 , imo1 , imo2 , iyr1 , iyr2 , j ,   &
+               & idy2 , ihr1 , ihr2 , imo1 , imo2 , nyr1 , nyr2 , j ,   &
                & jul1900 , julday , julncep , lat_varid , lon_varid ,   &
                & ncid , ndims_in , ngatts_in , nspc , nvars_in ,        &
                & retval , spc , unlimdimid_in
@@ -221,17 +239,17 @@
 !     WRITE(*,*)INVNTRY
 !     WRITE(*,*)DATADIR
 !---------------------------------------------------------------
-      call julian2(idate1,dt,julday,julncep,jul1900,iyr1,imo1,idy1,ihr1,&
+      call julian2(idate1,dt,julday,julncep,jul1900,nyr1,imo1,idy1,ihr1,&
                  & ayr1)
  
-      call julian2(idate2,dt,julday,julncep,jul1900,iyr2,imo2,idy2,ihr2,&
+      call julian2(idate2,dt,julday,julncep,jul1900,nyr2,imo2,idy2,ihr2,&
                  & ayr2)
  
-!ah   IF (iyr1 .ge. 1960 .and. iyr2 .le. 2000) THEN
+!ah   IF (nyr1 .ge. 1960 .and. nyr2 .le. 2000) THEN
 !     WRITE(*,*)'THE DATA will be RETRIEVE FROM RETRO INVENTORY'
-!ah   ELSE IF (iyr1 .ge. 2000 .and. iyr2 .le. 2005) THEN
+!ah   ELSE IF (nyr1 .ge. 2000 .and. nyr2 .le. 2005) THEN
 !     WRITE(*,*)'THE Bio. DATA will be RETRIEVE FROM GFED INVENTORY'
-!ah   ELSE IF (iyr1 .ge. 1960 .and. iyr2 .le. 2005) THEN
+!ah   ELSE IF (nyr1 .ge. 1960 .and. nyr2 .le. 2005) THEN
 !     WRITE(*,*)'THE DATA will be RETRIEVED FROM RETRO + GFED'
 !ah   ELSE
 !     WRITE(*,*)'YOUR DATA IS OUTSIDE THE DATA RANGE'
@@ -251,7 +269,7 @@
       end if
 !--------The output file-------------------------
       open (15,file='../../Input/AERO_new.dat',form='unformatted',      &
-          & access='direct',recl=jx*iy*4)
+          & access='direct',recl=nx*ny*4)
  
  
 !     REWIND(11)
@@ -418,20 +436,20 @@
             write (*,*) year , month , recc , element
 
             call bilinxo(emiss_in,loni,lati,nlons,nlats,aermm,xlon,xlat,&
-                       & iy,jx,1)
+                       & ny,nx,1)
  
             if ( invntry=='poet' ) then
               cfact = molwgt(element)*10/avo
               write (*,*) 'kkkkk' , element , molwgt(element) , cfact
-              write (15,rec=recc) ((cfact*aermm(i,j),j=1,jx),i=1,iy)
+              write (15,rec=recc) ((cfact*aermm(i,j),j=1,nx),i=1,ny)
  
             else if ( invntry=='mozart' ) then
               cfact = molwgt(element)*10/avo
               write (*,*) 'kkkkk' , element , molwgt(element) , cfact
-              write (15,rec=recc) ((cfact*aermm(i,j),j=1,jx),i=1,iy)
+              write (15,rec=recc) ((cfact*aermm(i,j),j=1,nx),i=1,ny)
  
             else
-              write (15,rec=recc) ((aermm(i,j),j=1,jx),i=1,iy)
+              write (15,rec=recc) ((aermm(i,j),j=1,nx),i=1,ny)
             end if
 !           write(*,*)AERMM
 !-------------------------------------------------------------------

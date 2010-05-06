@@ -18,8 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_fvgcm
-      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp
-      use mod_preproc_param
+      use mod_dynparam
 
       implicit none
 
@@ -35,14 +34,13 @@
       real(4) , target , dimension(nlon2,nlat2,nlev2*4+1) :: bb
       real(4) , target , dimension(nlon2,nlat2,nlev2*3) :: b2
       real(4) , target , dimension(nlon2,nlat2,nlev2*2) :: d2
-      real(4) , target , dimension(jx,iy,nlev2*3) :: b3
-      real(4) , target , dimension(jx,iy,nlev2*2) :: d3
+      real(4) , allocatable , target , dimension(:,:,:) :: b3
+      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(4) , allocatable , dimension(:,:,:) :: w3
+      real(4) , allocatable , dimension(:,:) :: b3pd
 
       real(4) , dimension(nlon2,nlat2) :: zs2
       real(4) , dimension(nlon2,nlat2,nlev2) :: pp3d , z1
-
-      real(4) , dimension(jx,iy) :: b3pd
-      real(4) , dimension(jx,iy,nlev2) :: w3
 
       real(4) , pointer , dimension(:,:) :: ps2
       real(4) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
@@ -94,7 +92,7 @@
           &'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
 !
 !
-      if ( idate==idate1 ) then
+      if ( idate==globidate1 ) then
         numx = nint((lon1-lon0)/1.25) + 1
         numy = nint(lat1-lat0) + 1
         inquire (file='../DATA/FVGCM/HT_SRF',exist=there)
@@ -475,6 +473,11 @@
       bk(18) = 0.9851222
       bk(19) = 1.0
  
+      allocate(b3(jx,iy,nlev2*3))
+      allocate(d3(jx,iy,nlev2*2))
+      allocate(w3(jx,iy,nlev2))
+      allocate(b3pd(jx,iy))
+
 !     Set up pointers
 
       ps2 => bb(:,:,1)

@@ -12,8 +12,7 @@ SSTEH5OOBJ = sst_eh5om.o bilinx.o printl.o mod_datenum.o
 SSTERAOBJ = sst_ersst.o bilinx.o printl.o mod_datenum.o
 SSTFVGCOBJ = sst_fvgcm.o bilinx.o printl.o mod_datenum.o
 
-SHRMODS = mod_dynparam.o mod_constants.o
-SHRMOD = mod_regcm_param.o mod_preproc_param.o mod_constants.o
+SHRMOD = mod_dynparam.o mod_constants.o
 
 MODOBJ = mod_ccsm.o mod_datenum.o mod_datewk.o mod_ecwcp.o mod_eh5om.o \
          mod_ein15.o mod_ein25.o mod_ein75.o mod_era40.o mod_erahi.o \
@@ -27,28 +26,28 @@ ICBCOBJ = icbc.o bilinx.o cressmcr.o cressmdt.o fexist.o gradsctlb.o \
           mkssta.o mxmn3d.o p1p2.o printl.o top2btm.o uvrot4.o uvrot4nx.o \
           header_ICBC.o
 
-aerosol: $(AEROSOLOBJ) $(SHRMODS)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(SHRMODS) \
+aerosol: $(AEROSOLOBJ) $(SHRMOD)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
-sst_1deg: $(SHRMODS) $(SST1DEGOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SST1DEGOBJ) $(SHRMODS) \
+sst_1deg: $(SHRMOD) $(SST1DEGOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SST1DEGOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
-sst_ccsm: $(SHRMODS) $(SSTCCSMOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTCCSMOBJ) $(SHRMODS) \
+sst_ccsm: $(SHRMOD) $(SSTCCSMOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTCCSMOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
-sst_eh5om: $(SHRMODS) $(SSTEH5OOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTEH5OOBJ) $(SHRMODS) \
+sst_eh5om: $(SHRMOD) $(SSTEH5OOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTEH5OOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
-sst_ersst: $(SHRMODS) $(SSTERAOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTERAOBJ) $(SHRMODS) \
+sst_ersst: $(SHRMOD) $(SSTERAOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTERAOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
-sst_fvgcm: $(SHRMODS) $(SSTFVGCOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTFVGCOBJ) $(SHRMODS) \
+sst_fvgcm: $(SHRMOD) $(SSTFVGCOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTFVGCOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
 icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
@@ -58,14 +57,6 @@ icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
 mod_dynparam.o: ../../Config/mod_dynparam.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
-
-mod_regcm_param.o: ../../Config/mod_regcm_param.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
-            $(USCORING) -c -o $@ $<
-
-mod_preproc_param.o: ../../Config/mod_preproc_param.f90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
-            $(USCORING) -c -o $@ $<
 
 mod_constants.o: ../../Config/mod_constants.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
@@ -84,42 +75,31 @@ clean:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_ccsm.o: mod_ccsm.f90 mod_regcm_param.o mod_preproc_param.o \
-            mod_grid.o mod_write.o
 mod_datenum.o: mod_datenum.f90
 mod_datewk.o: mod_datewk.f90
-mod_ecwcp.o: mod_ecwcp.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_eh5om.o: mod_eh5om.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_ein15.o: mod_ein15.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_ein25.o: mod_ein25.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_ein75.o: mod_ein75.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_era40.o: mod_era40.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_erahi.o: mod_erahi.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_fvgcm.o: mod_fvgcm.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_gfs11.o: mod_gfs11.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_grid.o: mod_grid.f90 mod_regcm_param.o
-mod_ingrid.o: mod_ingrid.f90 mod_regcm_param.o mod_grid.o
+mod_ccsm.o:  mod_ccsm.f90  mod_dynparam.o mod_grid.o mod_write.o
+mod_ecwcp.o: mod_ecwcp.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_eh5om.o: mod_eh5om.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_ein15.o: mod_ein15.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_ein25.o: mod_ein25.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_ein75.o: mod_ein75.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_era40.o: mod_era40.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_erahi.o: mod_erahi.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_fvgcm.o: mod_fvgcm.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_gfs11.o: mod_gfs11.f90 mod_dynparam.o mod_grid.o mod_write.o
+mod_ncep.o:  mod_ncep.f90  mod_dynparam.o mod_grid.o mod_write.o
+mod_grid.o: mod_grid.f90 mod_dynparam.o
+mod_ingrid.o: mod_ingrid.f90 mod_dynparam.o mod_grid.o
 mod_mxncom.o: mod_mxncom.f90
-mod_ncep.o: mod_ncep.f90 mod_preproc_param.o mod_regcm_param.o \
-             mod_grid.o mod_write.o
-mod_nest.o: mod_nest.f90 mod_preproc_param.o mod_regcm_param.o \
-            mod_grid.o mod_write.o mod_datenum.o mod_mxncom.o
-mod_write.o: mod_write.f90 mod_regcm_param.o
+mod_nest.o: mod_nest.f90 mod_dynparam.o mod_grid.o mod_write.o \
+            mod_datenum.o mod_mxncom.o
+mod_write.o: mod_write.f90
 bilinx.o: bilinx.f90
 cressmcr.o: mod_mxncom.o
 cressmdt.o: mod_mxncom.o
 fexist.o: fexist.f90
-gradsctlb.o: gradsctlb.f90 mod_preproc_param.o mod_regcm_param.o mod_grid.o
-gradsctl.o: gradsctl.f90 mod_preproc_param.o mod_regcm_param.o mod_grid.o
+gradsctlb.o: gradsctlb.f90 mod_dynparam.o mod_grid.o
+gradsctl.o: gradsctl.f90 mod_dynparam.o mod_grid.o
 height.o: height.f90 mod_constants.o
 height_o.o: height_o.f90 mod_constants.o
 htsig.o: htsig.f90 mod_constants.o
@@ -157,5 +137,5 @@ sst_ccsm.o: sst_ccsm.f90 mod_dynparam.o
 sst_eh5om.o: sst_eh5om.f90 mod_dynparam.o mod_datenum.o
 sst_ersst.o: sst_ersst.f90 mod_dynparam.o mod_datenum.o
 sst_fvgcm.o: sst_fvgcm.f90 mod_dynparam.o
-icbc.o: icbc.f90 mod_regcm_param.o mod_preproc_param.o mod_datenum.o \
-        mod_grid.o mod_write.o mod_ingrid.o mod_datewk.o mod_ein15.o
+icbc.o: icbc.f90 mod_dynparam.o mod_datenum.o mod_grid.o mod_write.o \
+        mod_ingrid.o mod_datewk.o mod_ein15.o

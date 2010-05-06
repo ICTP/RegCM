@@ -84,7 +84,7 @@
 ! DR3      : the directory of GFED data
 ! DR4      : the directory of EDGAR data
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param , only : iy , jx , aertyp , ibyte
+      use mod_dynparam
       use mod_emission
       implicit none
 !
@@ -101,14 +101,31 @@
                & imo2 , iyr1 , iyr2 , jul1900 , julday , julncep ,      &
                & mm , mm1 , mm2 , mm22 , mm3 , mm4 , mm5 , mone ,       &
                & mons , record , trec , yr , yr1 , yr2 , yr22 ,  yr3 ,  &
-               & yr4 , yr5
+               & yr4 , yr5 , ierr
       logical :: there
- 
+      character(256) :: namelistfile, prgname
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+! 
       open (30,file='namelist.input',status='old')
 !     READ(30,NML=SPECIES)
  
       inquire (file='../../Input/AERO_new.dat',exist=there)
       if ( there ) call unlink('../../Input/AERO.dat')
+!
+      call init_emiss(iy,jx,globidate1,globidate2)
  
 !     ******    ON WHAT RegCM GRID ARE AEROSOL DESIRED?
       open (10,file='../ICBC/fort.10',form='unformatted',               &
@@ -120,17 +137,17 @@
 !     &       ,recl=IY*JX*ibyte,access='direct')
  
       dt = 1
-      call julian2(idate1,dt,julday,julncep,jul1900,iyr1,imo1,idy1,ihr1,&
-                 & ayr1)
-      call julian2(idate2,dt,julday,julncep,jul1900,iyr2,imo2,idy2,ihr2,&
-                 & ayr2)
+      call julian2(globidate1,dt,julday,julncep,jul1900,                &
+               &   iyr1,imo1,idy1,ihr1,ayr1)
+      call julian2(globidate2,dt,julday,julncep,jul1900,                &
+               &   iyr2,imo2,idy2,ihr2,ayr2)
  
       write (*,*) 'START YEAR=' , iyr1 , 'END YEAR=' , iyr2
       write (*,*) 'START MONTH=' , imo1 , 'END MONTHE=' , imo2
       trec = (iyr2-iyr1+1)*12 - (imo1-1) - (12-imo2)
       write (*,*) 'TOTAL RECORD NUMBER per element=' , trec
  
-      call griddef(iyr2,trec)
+      call griddef(iyr2,trec,aertyp,ibyte,kz)
  
       record = 0
  
@@ -221,6 +238,7 @@
  
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  
+      call free_emiss
       stop 99999
 
       print * , 'ERROR OPENING AEROSOL FILE'

@@ -18,8 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_erahi
-      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp
-      use mod_preproc_param
+      use mod_dynparam
 
       implicit none
 
@@ -36,13 +35,13 @@
       real(4) , dimension(nlons,nlats) :: lsm , ps2 , zs2
       real(4) , dimension(nlons,nlats,nlevs) :: q2 , t2 , u2 , v2
       real(4) , dimension(nlons,nlats,nlevs) :: pp3d , z1
-      real(4) , dimension(jx,iy) :: b3pd
-      real(4) , target , dimension(jx,iy,nlev2) :: w3
 
       real(4) , target , dimension(nlons,nlats,nlev2*3) :: b2
       real(4) , target , dimension(nlons,nlats,nlev2*2) :: d2
-      real(4) , target , dimension(jx,iy,nlev2*3) :: b3
-      real(4) , target , dimension(jx,iy,nlev2*2) :: d3
+      real(4) , allocatable , target , dimension(:,:,:) :: b3
+      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(4) , allocatable , target , dimension(:,:,:) :: w3
+      real(4) , allocatable , dimension(:,:) :: b3pd
 
       real(4) , pointer , dimension(:,:,:) :: tp , qp , hp
       real(4) , pointer , dimension(:,:,:) :: up , vp
@@ -68,7 +67,7 @@
       integer :: i , j , k , nmop , nrec , nyrp
       real(4) :: slonmax , slonmin , wt , xlonmax , xlonmin
 !
-      if ( idate==idate1 ) then
+      if ( idate==globidate1 ) then
                   !,lrec
         xlonmin = 400.
         xlonmax = -400.
@@ -550,6 +549,11 @@
       bk(60) = 0.99763012
       bk(61) = 1.00000000
  
+      allocate(b3(jx,iy,nlev2*3))
+      allocate(d3(jx,iy,nlev2*2))
+      allocate(b3pd(jx,iy))
+      allocate(w3(jx,iy,nlev2))
+
 !     Set up pointers
 
       tp => b2(:,:,1:nlev2)

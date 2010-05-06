@@ -655,6 +655,7 @@
                   & sanda_s,sandb_s,claya_s,clayb_s,frac_lnd_s,nveg,    &
                   & aertyp,texout_s,frac_tex_s,ntex,.false.)
         print * , 'after calling OUTPUT, for subgrid'
+        call free_subgrid
       end if
 
       call output(nunitc,iy,jx,dsx,clat,clong,plat,plon,iproj,          &
@@ -664,6 +665,7 @@
                 & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,aertyp,  &
                 & texout,frac_tex,ntex,.true.)
       print * , 'after calling OUTPUT'
+      call free_grid
 
       close (48, status='delete')
  

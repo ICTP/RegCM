@@ -18,8 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_nest
-      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp
-      use mod_preproc_param
+      use mod_dynparam
 
       implicit none
 
@@ -29,9 +28,10 @@
 
       integer :: nrec
 
-      real(4) , target , dimension(jx,iy,np*4) :: b3
-      real(4) , target , dimension(jx,iy,np*2) :: d3
-      real(4) , dimension(jx,iy) :: b3pd
+      real(4) , allocatable , target , dimension(:,:,:) :: b3
+      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(4) , allocatable , dimension(:,:) :: b3pd
+      real(4) , allocatable , dimension(:,:,:) :: z1
 
       real(4) , allocatable , target , dimension(:,:,:) :: b2
       real(4) , allocatable , target , dimension(:,:,:) :: d2
@@ -47,8 +47,6 @@
  
       real(4) , pointer , dimension(:,:,:) :: cp , hp , qp , tp
       real(4) , pointer , dimension(:,:,:) :: up , vp
-
-      real(4) , dimension(jx,iy,kz) :: z1
 
       real(4) , dimension(np) :: plev , sigmar
       real(4) , allocatable , dimension(:) :: sigf
@@ -112,16 +110,16 @@
           rewind (55)
         else
         end if
-      else if ( idate==idate1 ) then
+      else if ( idate==globidate1 ) then
         ny0 = idate0/1000000
         mn0 = mod(idate0/10000,100)
         nd0 = mod(idate0/100,100)
         nh0 = mod(idate0,100)
  
-        ny1 = idate1/1000000
-        mn1 = mod(idate1/10000,100)
-        nd1 = mod(idate1/100,100)
-        nh1 = mod(idate1,100)
+        ny1 = globidate1/1000000
+        mn1 = mod(globidate1/10000,100)
+        nd1 = mod(globidate1/100,100)
+        nh1 = mod(globidate1,100)
  
         if ( ny0==ny1 .and. mn0==mn1 ) then
           write (fillin,99001) idate0
@@ -227,8 +225,8 @@
 !     WRITE(*,*) 'Open ATM file:', '../DATA/RegCM/'//fillin
  
       if ( iotyp_in==1 ) then
-        if ( idate/=idate1 .and. mod(idate,10000)==100 .and. ncr==1 )   &
-           & nrec = nrec - (kl*6+5)
+        if ( idate/=globidate1 .and. mod(idate,10000)==100 .and.        &
+           & ncr==1 ) nrec = nrec - (kl*6+5)
         idatek = idate
         do k = kl , 1 , -1
           nrec = nrec + 1
@@ -255,8 +253,8 @@
         read (55,rec=nrec) ((ps(i,j),i=1,jl),j=1,il)
         nrec = nrec + 4
       else if ( iotyp_in==2 ) then
-        if ( idate/=idate1 .and. mod(idate,10000)==100 .and. ncr==1 )   &
-           & rewind (55)
+        if ( idate/=globidate1 .and. mod(idate,10000)==100 .and.        &
+           & ncr==1 ) rewind (55)
  50     continue
         read (55) idatek
         if ( idatek/=idate ) then
@@ -294,7 +292,7 @@
       else
       end if
       write (*,*) 'READ IN fields at DATE:' , idatek , ' from ' , fillin
-      if ( idate/=idate1 .and. mod(idate,10000)==100 .and. ncr==1 ) then
+      if ( idate/=globidate1 .and. mod(idate,10000)==100 .and. ncr==1 ) then
         write (fillin,99001) idate
         inquire (file='../DATA/RegCM/'//fillin,exist=there)
         if ( .not.there ) then
@@ -550,6 +548,11 @@
       imxmn = 0
       lcross = 0
       ldot = 0
+
+      allocate(b3(jx,iy,np*4))
+      allocate(d3(jx,iy,np*2))
+      allocate(b3pd(jx,iy))
+      allocate(z1(jx,iy,kz))
 
 !     Set up pointers
  

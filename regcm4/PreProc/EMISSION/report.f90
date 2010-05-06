@@ -18,14 +18,47 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       program report
-      use mod_regcm_param , only : ntr ,  nbin
+      use mod_dynparam
+      implicit none
+
+      integer :: ierr
+      character(256) :: namelistfile, prgname
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+
+      call printspecies(ntr, nbin)
+
+      end program report
+
+      subroutine printspecies(ntr, nbin)
       use mod_emission
       implicit none
 !
+! Dummy arguments
+!
+      integer , intent(in) :: ntr , nbin
+!
+! PARAMETERS
+!
+      integer , parameter :: maxtr = 20
+      integer , parameter :: maxbin = 10
+!
 ! Local variables
 !
-      character(8) , dimension(ntr) :: chtrname
-      real , dimension(nbin) :: dustbsiz
+      character(8) , dimension(maxtr) :: chtrname
+      real , dimension(maxbin) :: dustbsiz
 !
 !     This program produce a report have all information about
 !     emission species and transported species
@@ -36,6 +69,8 @@
       namelist /transport/ chtrname
       namelist /dust_bins/ dustbsiz
 
+      chtrname = '       '
+      dustbsiz = 0.0
       open (10,file='namelist.report',status='old')
       read (10,nml=species)
       read (10,nml=transport)
@@ -43,7 +78,6 @@
  
       write (*,*) ele_retroa
       write (*,*) ele_edgara
-      write (*,*) chtrname
-      write (*,*) dustbsiz
-
-      end program report
+      write (*,*) chtrname(1:ntr)
+      write (*,*) dustbsiz(1:nbin)
+      end subroutine printspecies

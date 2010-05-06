@@ -18,9 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_era40
-      use mod_regcm_param , only : iy , jx , kz , ibyte , dattyp , &
-                  &                lsmtyp
-      use mod_preproc_param
+      use mod_dynparam
 
       implicit none
 
@@ -31,9 +29,9 @@
       real(4) , target , dimension(ilon,jlat,klev*3) :: b2
       real(4) , target , dimension(ilon,jlat,klev*2) :: d2
       real(4) , target , dimension(ilon,jlat,4*3+1) :: s2
-      real(4) , target , dimension(jx,iy,klev*3) :: b3
-      real(4) , target , dimension(jx,iy,klev*2) :: d3
-      real(4) , target , dimension(jx,iy,4*3+1) :: s3
+      real(4) , allocatable , target , dimension(:,:,:) :: b3
+      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(4) , allocatable , target , dimension(:,:,:) :: s3
 
       real(4) , dimension(ilon,jlat,klev) :: wvar
 
@@ -70,7 +68,7 @@
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-      call era6hour(dattyp,lsmtyp,idate,idate1)
+      call era6hour(dattyp,lsmtyp,idate,globidate1)
       write (*,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
@@ -633,6 +631,10 @@
         sigma1(k) = sigmar(kr)
       end do
  
+      allocate(b3(jx,iy,klev*3))
+      allocate(d3(jx,iy,klev*2))
+      allocate(s3(jx,iy,4*3+1))
+
 !     Set up pointers
 
       u3 => d3(:,:,1:klev)
