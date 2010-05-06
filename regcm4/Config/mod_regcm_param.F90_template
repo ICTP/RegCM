@@ -28,11 +28,11 @@
 !################### GRID DIMENSION ####################################
 !
 
-! Point in Y (latitude) direction
+! Point in X (longitude) direction
 
       integer , parameter :: iy = 34
 
-! Point in X (longitude) direction
+! Point in Y (latitude) direction
 
       integer , parameter :: jx = 48
 
@@ -60,11 +60,11 @@
 
 ! Number of processor used
 
-      integer , parameter :: nproc = 8
+      integer  :: nproc = 16
 
 ! Point in Y (latitude) direction
 
-      integer , parameter :: jxp = jx/nproc
+      integer  :: jxp
 
 #endif
 
@@ -158,10 +158,10 @@
       integer , parameter :: iym2sg = (iy-2) * nsg
       integer , parameter :: jxm2sg = (jx-2) * nsg
 #ifdef MPP1
-      integer , parameter :: jxpsg = jxp * nsg
+      integer :: jxpsg 
 #endif
 
-      integer , parameter :: nnsg = nsg*nsg
+      integer , parameter :: nnsg = nsg*nsg 
       integer , parameter :: nspgv = (nspgd+nspgx)*8 + 8
       integer , parameter :: nspgp = nspgx*4
 
@@ -181,4 +181,22 @@
       integer , parameter :: nrad2d = 22
       integer , parameter :: nrad3d = 5
 
-      end module mod_regcm_param
+contains 
+
+     subroutine set_nproc(ncpu)
+     integer, intent(in) :: ncpu 
+     integer :: nproc=0
+!   
+! this routine set the number of cpu for the run 
+! and all the parameters associated 
+!
+#ifdef MPP1
+     nproc = ncpu 
+     jxp   =  jx/nproc
+     jxpsg  = jxp * nsg
+#endif
+
+     end subroutine set_nproc 	
+
+
+    end module mod_regcm_param
