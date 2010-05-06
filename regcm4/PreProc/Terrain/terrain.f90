@@ -668,6 +668,8 @@
       call free_grid
 
       close (48, status='delete')
+
+      print *, 'Successfully completed terrain fields generation'
  
 !     stop 9999
 !
