@@ -59,6 +59,7 @@ contains
 
 	subroutine allocate_mod_tmpsav 
 
+#ifdef MPP1
 	allocate(sav0(iy,kz*4+2,jxp))
 	allocate(sav0a(iy,kz+nnsg+5,jxp) )
 	allocate( sav0b(iy,kzp1,jxp))
@@ -73,6 +74,8 @@ contains
 	allocate(sav6(kz,8,jxp))
 #ifdef CLM
 	allocate(sav_clmin((iym1,9,jxp))
+#endif 
+
 #endif 
 	end  subroutine allocate_mod_tmpsav
 

@@ -68,6 +68,7 @@
 contains
 	subroutine allocate_mod_bdycon
 
+#ifdef MPP1
 	allocate(ps0(iy,0:jxp+1))
 	allocate(ps1(iy,0:jxp+1))
 	allocate(qb0(iy,kz,jxp))
@@ -139,6 +140,7 @@ contains
 	allocate(vsb(nspgd,kz,0:jxp+1))
 	allocate(vsbt(nspgd,kz,0:jxp+1))
 
+#endif 
 	end subroutine allocate_mod_bdycon
 
       end module mod_bdycod

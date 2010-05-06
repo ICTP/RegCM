@@ -47,23 +47,23 @@
       use mod_grads
       use mod_constants , only : mathpi , gti , rgti , rgas , vonkar ,  &
                                & cpd , tauht
+      use mod_rad , only: allocate_mod_rad
+      use mod_split, only : allocate_mod_split
+      use mod_slice, only : allocate_mod_slice
+      use mod_pbldim,    only: allocate_mod_pbldim    
+      use mod_outrad,    only: allocate_mod_outrad  
+      use mod_blh_tmp,  only: allocate_mod_blh_tmp
 #ifdef MPP1
       use mod_mppio
       use mod_aerosol, only : allocate_aermod
-      use mod_split, only : allocate_mod_split
-      use mod_slice, only : allocate_mod_slice
       use mod_radbuf, only: allocate_mod_radbuf
       use mod_dust,    only: allocate_mod_dust
       use mod_bxq,    only: allocate_mod_bxq
       use mod_bdycod,   only: allocate_mod_bdycon 
       use mod_mainchem,  only: allocate_mainchem
-      use mod_pbldim,    only: allocate_mod_pbldim    
       use mod_radbuf,    only: allocate_mod_radbuf   
-      use mod_outrad,    only: allocate_mod_outrad  
       use mod_tmpsav, only: allocate_mod_tmpsav 
-      use mod_rad , only: allocate_mod_rad
       use mod_cvaria , only: allocate_mod_cvaria
-      use mod_blh_tmp,  only: allocate_mod_blh_tmp
 #ifndef IBM
       use mpi
 #else 
@@ -423,7 +423,7 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
 #endif 
-
+  
 !  
 !-----read in namelist variables:
       read (*,restartparam)
@@ -840,7 +840,16 @@
       call say
       write (aline, *) ' '
       call say
+
 !
+! allocation stuff already enabled for serial version
+!
+      call allocate_mod_rad
+      call allocate_mod_split
+      call allocate_mod_pbldim
+      call allocate_mod_outrad
+      call allocate_mod_blh_tmp
+
 #ifdef MPP1
 
 !! allocating a few stuff 
@@ -848,21 +857,16 @@
       call allocate_mppio
       call allocate_mod_main
       call allocate_aermod
+      call allocate_mod_slice
       call allocate_mod_bdycon
       call allocate_mod_bxq
       call allocate_mod_dust
       call allocate_mainchem
-      call allocate_mod_outrad
-      call allocate_mod_pbldim
       call allocate_mod_pmoist
       call allocate_mod_radbuf 
-      call allocate_mod_slice
-      call allocate_mod_split
       call allocate_mod_trachem
       call allocate_mod_tmpsav 
-      call allocate_mod_rad
       call allocate_mod_cvaria
-      call allocate_mod_blh_tmp
 !!!
 
 

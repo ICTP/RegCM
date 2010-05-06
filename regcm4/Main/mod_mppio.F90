@@ -121,8 +121,9 @@ contains
 !
 !     This routines allocate all the arrays contained in the module
 !	
+#ifdef MPP1
        allocate (inisrf0(iy,nnsg*3+8,jxp)) 	
-       
+#endif       
        end subroutine allocate_mppio
       
       end module mod_mppio

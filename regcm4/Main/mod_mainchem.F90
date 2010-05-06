@@ -52,6 +52,7 @@ contains
 
 	subroutine allocate_mainchem
 
+#ifdef MPP1
 	allocate(chemsrc(iy,jxp,12,ntr))
 	allocate(chia(iy,kz,-1:jxp+2,ntr))
 	allocate(chib(iy,kz,-1:jxp+2,ntr))
@@ -63,6 +64,7 @@ contains
 	allocate(wxaq(iy,jxp,ntr))
 	allocate(wxsg(iy,jxp,ntr))
 	allocate(src0(iy,12,ntr,jxp))
+#endif 
        
        end subroutine allocate_mainchem
  

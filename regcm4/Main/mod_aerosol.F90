@@ -294,8 +294,10 @@
 ! 
      subroutine allocate_aermod
 	 
+#ifdef MPP1
      allocate(aermm(iym1,kz,jxp))
 	
+#endif 
      end subroutine allocate_aermod
 
 !

@@ -53,6 +53,8 @@
 contains 
 	subroutine allocate_mod_main
 
+#ifdef MPP1
+
 	allocate(cldefi(iy,jxp) )
 	allocate(f(iy,jxp) )
 	allocate(hfx(iy,jxp) )
@@ -96,6 +98,7 @@ contains
 	allocate(tbase(iy,kz,jxp)) 
        
         allocate(uvdrag(iy,0:jxp))
+#endif 
 	end subroutine allocate_mod_main 
 
  end module mod_main

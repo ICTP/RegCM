@@ -66,8 +66,7 @@ intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
 
 
 # check if we need the MPI wrapper 
-
-ifneq ($(PARALLEL),0)
+ifneq ($(PARALLEL),"")
   F90=$(MPIF90)
 endif  
 

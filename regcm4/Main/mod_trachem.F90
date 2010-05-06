@@ -65,6 +65,7 @@
 contains
 	subroutine allocate_mod_trachem
 
+#ifdef MPP1
 	allocate(icumbot(iy,jxp) )
 	allocate(icumdwd(iy,jxp) )
 	allocate(icumtop(iy,jxp) ) 
@@ -85,6 +86,10 @@ contains
         allocate(rxsaq1(iy,kz,jxp,ntr))
         allocate(rxsaq2(iy,kz,jxp,ntr))
         allocate(rxsg(iy,kz,jxp,ntr))
+
+#else
+
+#endif 
 
         end subroutine allocate_mod_trachem
 

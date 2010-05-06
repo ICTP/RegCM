@@ -43,17 +43,16 @@
       real(8) , dimension(kz,nsplit) :: am
       real(8) , dimension(nsplit) :: an
 
-#ifdef MPP1
       real(8) , allocatable, dimension(:,:,:) :: dstor , hstor
-#else
-      real(8) , dimension(iy,jx,nsplit) :: dstor , hstor
-#endif
 
 contains 
-	subroutine allocate_mod_split
-	
-	allocate(dstor(iy,0:jxp+1,nsplit))
-	allocate(hstor(iy,0:jxp+1,nsplit))
-
+      subroutine allocate_mod_split
+#ifdef MPP1
+        allocate(dstor(iy,0:jxp+1,nsplit))
+        allocate(hstor(iy,0:jxp+1,nsplit))
+#else
+       allocate(dstor(iy,jx,nsplit))
+       allocate(hstor(iy,jx,nsplit))
+#endif 
 	end subroutine allocate_mod_split
       end module mod_split

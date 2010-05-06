@@ -40,10 +40,12 @@
 contains 
 	subroutine allocate_mod_radbuf 
 	
-	allocate( absnxt(iym1,kz,4,jxp))
+#ifdef MPP1
+	allocate(absnxt(iym1,kz,4,jxp))
 	allocate(abstot(iym1,kzp1,kz + 1,jxp))
 	allocate(emstot(iym1,kzp1,jxp))
-
+#else
+#endif 
 	end subroutine allocate_mod_radbuf 
 
       end module mod_radbuf

@@ -55,6 +55,7 @@
 contains 
 	subroutine allocate_mod_cvaria
 
+#ifdef MPP1
 	allocate(diffq(iy,kz,jxp))
 	allocate(difft(iy,kz,jxp))
 	allocate(difuu(iy,kz,jxp))
@@ -91,5 +92,6 @@ contains
 	allocate(chic(iy,kz,jxp,ntr))
 	allocate(chiten(iy,kz,jxp,ntr))
 
+#endif
       end  subroutine allocate_mod_cvaria
       end module mod_cvaria

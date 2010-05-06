@@ -48,6 +48,7 @@
 contains 
 	subroutine allocate_mod_dust 
 
+#ifdef MPP1
 	allocate(clay2row2(iy,nats,jxp) )
 	allocate(sand2row2(iy,nats,jxp) )
 	allocate(silt2row2(iy,nats,jxp) )
@@ -58,6 +59,7 @@ contains
 
 	allocate(srel2d(iy,jxp,nsoil))
 	
+#endif 
 
 	end subroutine allocate_mod_dust
 

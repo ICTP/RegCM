@@ -25,22 +25,28 @@
 !
       real(8) , dimension(iy,kzp1) :: zq
 
-#ifdef MPP1
       real(8) ,allocatable, dimension(:,:,:) :: dzq , thvx , thx3d , za
       real(8) ,allocatable,  dimension(:,:) :: rhox2d
-#else
-      real(8) , dimension(iy,kz,jx) :: dzq , thvx , thx3d , za
-      real(8) , dimension(iy,jx) :: rhox2d
-#endif
+
+
 contains
      subroutine allocate_mod_pbldim
 	
+#ifdef MPP1
 	allocate(dzq(iy,kz,jxp))
 	allocate(thvx(iy,kz,jxp))
 	allocate(thx3d(iy,kz,jxp))
 	allocate(za(iy,kz,jxp))
 
 	allocate(rhox2d(iy,jxp))
+#else 
+        allocate(dzq(iy,kz,jx))
+        allocate(thvx(iy,kz,jx))
+        allocate(thx3d(iy,kz,jx))
+        allocate(za(iy,kz,jx))
+
+        allocate(rhox2d(iy,jx))
+#endif 
 
      end subroutine allocate_mod_pbldim
       end module mod_pbldim

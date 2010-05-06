@@ -176,6 +176,7 @@
 
        subroutine allocate_mod_bats 
 
+#ifdef MPP1
         allocate(flw2d(iym1,jxp)) 
         allocate(flwa2d(iym1,jxp))
         allocate(flwd2d(iym1,jxp))
@@ -232,6 +233,8 @@
 
 	allocate(fbat(jxp,iym2,numbat))
         allocate(fsub(nnsg,jxp,iym2,numsub))
+
+#endif 
 
        end subroutine allocate_mod_bats 
 

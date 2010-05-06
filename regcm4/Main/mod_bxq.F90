@@ -49,6 +49,7 @@ contains
 
 	subroutine allocate_mod_bxq
 
+#ifdef MPP1
 	allocate(ddsum(iy,jxp,nsplit))
 	allocate(deld(iy,jxp,nsplit,3))
 	allocate(delh(iy,0:jxp,nsplit,3))
@@ -59,6 +60,7 @@ contains
 	allocate(vv(iy,jxp+1))
 	allocate(uuu(iy,kz,jxp+1))
 	allocate(vvv(iy,kz,jxp+1))
+#endif 
 
 	end subroutine allocate_mod_bxq
       end module mod_bxq

@@ -21,19 +21,18 @@
       use mod_regcm_param
       implicit none
 
-#ifdef MPP1
       real(4) ,allocatable, dimension(:,:,:) :: frad2d
       real(4) ,allocatable, dimension(:,:,:,:) :: frad3d
-#else
-      real(4) , dimension(jxm2,iym2,nrad2d) :: frad2d
-      real(4) , dimension(jxm2,iym2,kz,nrad3d) :: frad3d
-#endif
-
 contains
-	subroutine allocate_mod_outrad
+      subroutine allocate_mod_outrad
 
-	allocate(frad2d(jxp,iym2,nrad2d))
-	allocate(frad3d(jxp,iym2,kz,nrad3d))
+#ifdef MPP1
+        allocate(frad2d(jxp,iym2,nrad2d))
+        allocate(frad3d(jxp,iym2,kz,nrad3d))
+#else
+        allocate(frad2d(jxm2,iym2,nrad2d))
+	allocate(frad3d(jxm2,iym2,kz,nrad3d))
+#endif
 
 	end subroutine allocate_mod_outrad
 

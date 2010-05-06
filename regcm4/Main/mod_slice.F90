@@ -39,7 +39,7 @@
 contains 
 	subroutine allocate_mod_slice
 	
-
+#ifdef MPP1
         allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
 
 	allocate(pb3d(iy,kz,jxp))
@@ -54,7 +54,7 @@ contains
 	allocate(tb3d(iy,kz,-1:jxp+2) )
 	allocate(ubd3d(iy,kz,-1:jxp+2) )
 	allocate(vbd3d(iy,kz,-1:jxp+2) )
-
+#endif
        end subroutine allocate_mod_slice
 
 

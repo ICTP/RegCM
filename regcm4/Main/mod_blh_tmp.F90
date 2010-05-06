@@ -22,27 +22,21 @@
 
       implicit none
 
-#ifdef MPP1
       real(8) ,allocatable, dimension(:,:,:) :: cgh , kvc , kvh , kvm , kvq
       real(8) ,allocatable, dimension(:,:) :: hfxv , obklen , th10 , ustr ,      &
                                    & xhfx , xqfx
-#else
-      real(8) , dimension(iy,kz,jxm1) :: cgh , kvc , kvh , kvm , kvq
-      real(8) , dimension(iy,jx) :: hfxv , obklen , th10 , ustr ,       &
-                                   & xhfx , xqfx
-#endif
 
 contains 
 
       subroutine allocate_mod_blh_tmp
 
+#ifdef MPP1
       allocate(cgh(iy,kz,jxp))	
       allocate(kvc(iy,kz,jxp))	
       allocate(kvh(iy,kz,jxp))	
       allocate(kvm(iy,kz,jxp))	
       allocate(kvq(iy,kz,jxp))
 
-	
       allocate(hfxv(iy,jxp))	
       allocate(obklen(iy,jxp))	
       allocate(th10(iy,jxp))	
@@ -50,6 +44,22 @@ contains
       allocate(xhfx(iy,jxp))	
       allocate(xqfx(iy,jxp))	
 
+#else 
+
+      allocate(cgh(iy,kz,jxm1))	
+      allocate(kvc(iy,kz,jxm1))	
+      allocate(kvh(iy,kz,jxm1))	
+      allocate(kvm(iy,kz,jxm1))	
+      allocate(kvq(iy,kz,jxm1))
+
+      allocate(hfxv(iy,jx))	
+      allocate(obklen(iy,jx))	
+      allocate(th10(iy,jx))	
+      allocate(ustr(iy,jx))	
+      allocate(xhfx(iy,jx))	
+      allocate(xqfx(iy,jx))	
+
+#endif 
 
       end  subroutine allocate_mod_blh_tmp
 

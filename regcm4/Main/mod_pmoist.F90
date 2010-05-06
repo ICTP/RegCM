@@ -61,6 +61,8 @@ contains
 
      subroutine allocate_mod_pmoist
 
+#ifdef MPP1
+
      allocate(cbmf2d(iy,jxp))
      allocate(cgul(iy,jxp))
      allocate(dtauc2d(iy,jxp))
@@ -85,6 +87,7 @@ contains
 
      allocate(icon(jxp))
      allocate(kbmax2d(iy,jxp))
+#endif
 
      end subroutine allocate_mod_pmoist
       end module mod_pmoist
