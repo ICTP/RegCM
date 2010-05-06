@@ -40,13 +40,17 @@
 
       integer :: kz
 
+! Sub grid decomposition
+
+      integer :: nsg
+
 ! Projection
 !
 ! One in : 'LAMCON', Lambert conformal
 !          'POLSTR', Polar stereographic
 !          'NORMER', Normal  Mercator (ROTMER w/ plat = clat
 !          'ROTMER', Rotated Mercator
-
+!
       character(6) :: iproj
 
 ! Grid point horizontal resolution in km
@@ -95,26 +99,16 @@
 
       integer :: ibyte
 
-!####################### MPI parameters ################################
-
-! Number of processor used
-
-      integer :: nproc
-
-!####################### MPI parameters ################################
-
-! Sub grid decomposition
-
-      integer :: nsg
-
 ! Set amount of printout (still unused, sorry)
 
       integer :: debug_level
 
+!###################### I/O control flag ###############################
+
 ! Buffer Zone Depth
 ! nspgx-1,nspgd-1 represent the number of cross/dot point slices
 ! on the boundary sponge or relaxation boundary conditions.
-
+!
       integer :: nspgx
       integer :: nspgd
 
@@ -131,7 +125,6 @@
 ! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
 !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 !
-
       character(5) :: dattyp
 
 ! Type of Sea Surface Temperature used
@@ -198,6 +191,9 @@
       integer :: nspgp
 
 #ifdef MPP1
+!####################### MPI parameters ################################
+
+      integer :: nproc
       integer :: myid
       integer :: jxp
       integer :: jxpsg
@@ -206,6 +202,8 @@
       integer :: jendl , iendl
       integer :: jendx , iendx
       integer :: jendm , iendm
+
+!####################### MPI parameters ################################
 #endif
 
 ! Surface minimum H2O percent to be considered water
@@ -367,5 +365,15 @@
         ierr = 1
 
       end subroutine
+
+#ifdef MPP1
+      subroutine set_nproc(ncpu)
+        implicit none
+        integer , intent(in) :: ncpu
+        nproc = ncpu 
+        jxp   =  jx/nproc
+        jxpsg  = jxp * nsg
+      end subroutine set_nproc
+#endif
 
       end module mod_dynparam
