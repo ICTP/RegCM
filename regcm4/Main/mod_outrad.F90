@@ -23,9 +23,11 @@
 
       real(4) ,allocatable, dimension(:,:,:) :: frad2d
       real(4) ,allocatable, dimension(:,:,:,:) :: frad3d
-contains
-      subroutine allocate_mod_outrad
 
+      contains
+
+      subroutine allocate_mod_outrad
+        implicit none
 #ifdef MPP1
         allocate(frad2d(jxp,iym2,nrad2d))
         allocate(frad3d(jxp,iym2,kz,nrad3d))

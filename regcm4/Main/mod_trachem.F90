@@ -52,7 +52,8 @@
       real(8) , allocatable , dimension(:,:,:,:) :: remcvc , remlsc ,   &
                         & rxsaq1 , rxsaq2 , rxsg
 
-contains
+      contains
+
         subroutine allocate_mod_trachem
         use mod_message , only : say , aline
         implicit none

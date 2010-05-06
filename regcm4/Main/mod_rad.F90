@@ -27,9 +27,10 @@
       real(8) , allocatable, dimension(:,:,:) :: heatrt
       real(8) , allocatable, dimension(:,:,:) :: o3prof
 
-contains 
+      contains 
+
         subroutine allocate_mod_rad
-! allocating routine
+        implicit none
 
         allocate(cldfra(iym1,kz))
         allocate(cldlwc(iym1,kz))
@@ -37,9 +38,9 @@ contains
         allocate(heatrt(iym1,kz,jxp))
         allocate(o3prof(iym1,kzp1,jxp))
 #else
-       allocate(heatrt(iym1,kz,jxm1))
-       allocate(o3prof(iym1,kzp1,jxm1))
+        allocate(heatrt(iym1,kz,jxm1))
+        allocate(o3prof(iym1,kzp1,jxm1))
 #endif 
-
         end subroutine  allocate_mod_rad
+
       end module mod_rad

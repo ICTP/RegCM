@@ -42,7 +42,7 @@
       integer ,allocatable, dimension(:,:) :: kbmax2d
       integer :: kbmax
 
-contains
+      contains
 
       subroutine allocate_mod_pmoist
       implicit none

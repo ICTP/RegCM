@@ -22,14 +22,15 @@
 
       implicit none
 
-      real(8) ,allocatable, dimension(:,:,:) :: cgh , kvc , kvh , kvm , kvq
-      real(8) ,allocatable, dimension(:,:) :: hfxv , obklen , th10 , ustr ,      &
-                                   & xhfx , xqfx
+      real(8) ,allocatable, dimension(:,:,:) :: cgh , kvc , kvh , kvm , &
+                                             &  kvq
+      real(8) ,allocatable, dimension(:,:) :: hfxv , obklen , th10 ,    &
+                                             & ustr , xhfx , xqfx
 
-contains 
+      contains 
 
       subroutine allocate_mod_blh_tmp
-
+      implicit none
 #ifdef MPP1
       allocate(cgh(iy,kz,jxp))        
       allocate(kvc(iy,kz,jxp))        

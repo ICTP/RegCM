@@ -42,9 +42,10 @@
       real(8) , allocatable , dimension(:,:,:) :: unb , unbt , usb ,    &
            & usbt , vnb , vnbt , vsb , vsbt
 
-contains
-        subroutine allocate_mod_bdycon
+      contains
 
+        subroutine allocate_mod_bdycon
+        implicit none
 #ifdef MPP1
         allocate(ps0(iy,0:jxp+1))
         allocate(ps1(iy,0:jxp+1))

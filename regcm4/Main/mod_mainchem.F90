@@ -37,7 +37,7 @@
       real(8) , allocatable , dimension(:,:,:,:) :: src_0
 #endif
 
-contains 
+      contains 
 
         subroutine allocate_mod_mainchem
         use mod_dust , only : nats

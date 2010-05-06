@@ -55,10 +55,10 @@
 
 !---------- DATA init section--------------------------------------------
 
-contains 
+      contains 
 
         subroutine allocate_mod_tmpsav 
-
+        implicit none
 #ifdef MPP1
         allocate(sav0(iy,kz*4+2,jxp))
         allocate(sav_0(iy,kz*4+2,jx))
