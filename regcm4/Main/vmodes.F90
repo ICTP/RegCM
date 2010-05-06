@@ -19,16 +19,12 @@
  
       subroutine vmodes(lstand,sigmaf,kv1)
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1
       use mod_split
       use mod_message
       use mod_constants , only : rgas , rovcp
       implicit none
-!
-! PARAMETER definitions
-!
-      integer , parameter :: nk1 = kzp1
 !
 ! Dummy arguments
 !
@@ -108,7 +104,7 @@
 !
       lsigma = .false.
       if ( sigmaf(1).ne.0. ) lsigma = .true.
-      if ( sigmaf(nk1).ne.1. ) lsigma = .true.
+      if ( sigmaf(kzp1).ne.1. ) lsigma = .true.
       do k = 1 , kz
         if ( sigmaf(k+1).le.sigmaf(k) ) then
           lsigma = .true.
@@ -127,7 +123,7 @@
         sigmah(k) = 0.5*(sigmaf(k)+sigmaf(k+1))
         dsigma(k) = sigmaf(k+1) - sigmaf(k)
       end do
-      sigmah(nk1) = 1.0
+      sigmah(kzp1) = 1.0
 !
 !  set tbarh (temperature at half (data) levels: indexed k + 1/2)
       if ( lstand ) call vtlaps(tbarh,sigmah,r,pt,pd,kz)
@@ -150,9 +146,9 @@
                  & *(sigmaf(k)-sigmah(k1))/(sigmah(k)-sigmah(k1))
       end do
       tbarf(1) = 0.
-      tbarf(nk1) = 0.
+      tbarf(kzp1) = 0.
 !
-      do k = 1 , nk1
+      do k = 1 , kzp1
         thetaf(k) = tbarf(k)*((sigmaf(k)+pt/pd)**(-rovcp))
       end do
 !
@@ -261,7 +257,7 @@
       end do
 !
 !  compute matirx which multiplies log(sigma*p+pt) vector
-      do l = 1 , nk1
+      do l = 1 , kzp1
         do k = 1 , kz
           hydroc(k,l) = 0.
         end do
@@ -288,7 +284,7 @@
       end do
 !
       do k = 1 , kz
-        hydroc(k,nk1) = tbarh(kz)
+        hydroc(k,kzp1) = tbarh(kz)
       end do
 !
 !  test hydroc and hydros matrices (if correct, w1(k,1)=w1(k,2))
@@ -299,7 +295,7 @@
           w1(k,1) = w1(k,1) + hydros(k,l)*tbarh(l)
         end do
         w1(k,2) = -tbarh(k)*dlog(sigmah(k)*pd+pt)
-        do l = 1 , nk1
+        do l = 1 , kzp1
           w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+pt)
         end do
         x = dabs(w1(k,1)-w1(k,2))/(dabs(w1(k,1))+dabs(w1(k,2)))
@@ -319,7 +315,7 @@
 !       determine tau matrix
 !
       do l = 1 , kz
-        do k = 1 , nk1
+        do k = 1 , kzp1
           w3(k,l) = dsigma(l)/(1.+pt/(pd*sigmah(k)))
         end do
       end do
@@ -327,7 +323,7 @@
       do l = 1 , kz
         do k = 1 , kz
           w2(k,l) = 0.
-          do mm = 1 , nk1
+          do mm = 1 , kzp1
             w2(k,l) = w2(k,l) + hydroc(k,mm)*w3(mm,l)
           end do
         end do
@@ -348,7 +344,7 @@
       call vcheki(ier,numerr,'zmatx   ')
       call vcheke(hbar,w2,kz,numerr,'tau     ')
       call vorder(zmatx,hbar,w1,w2,kz)
-      call vnorml(zmatx,sigmaf,kz,nk1)
+      call vnorml(zmatx,sigmaf,kz,kzp1)
 !
 !  compute inverse of zmatx
       call invmtrx(zmatx,kz,zmatxr,kz,kz,det,iw2,ier,work)
@@ -390,7 +386,7 @@
       end do
 !
       ps2 = ps*ps
-      do k1 = 1 , nk1
+      do k1 = 1 , kzp1
         do k2 = 1 , kz
           varpa1(k2,k1) = 0.
           do k = 1 , kz
@@ -399,8 +395,8 @@
         end do
       end do
 !
-      do k1 = 1 , nk1
-        do k2 = 1 , nk1
+      do k1 = 1 , kzp1
+        do k2 = 1 , kzp1
           varpa2(k2,k1) = 0.
           do k = 1 , kz
             varpa2(k2,k1) = varpa2(k2,k1) + hydroc(k,k2)*varpa1(k,k1)
@@ -415,7 +411,7 @@
 !
 !       output desired arrays
 !
-      call vprntv(sigmaf,nk1,'sigmaf  ')
+      call vprntv(sigmaf,kzp1,'sigmaf  ')
       call vprntv(tbarh,kz,'t mean  ')
       pps(1) = ps
       call vprntv(pps,1,'ps mean ')
@@ -430,22 +426,22 @@
       call vprntv(cpfac,kz,'cpfac   ')
       call vprntv(dsigma,kz,'dsigma  ')
       call vprntv(hbar,kz,'hbar    ')
-      call vprntv(sigmah,nk1,'sigmah  ')
-      call vprntv(tbarf,nk1,'tbarf   ')
+      call vprntv(sigmah,kzp1,'sigmah  ')
+      call vprntv(tbarf,kzp1,'tbarf   ')
       call vprntv(thetah,kz,'thetah  ')
-      call vprntv(thetaf,nk1,'thetaf  ')
+      call vprntv(thetaf,kzp1,'thetaf  ')
       call vprntv(hweigh,kz,'hweigh  ')
       print 99004 , alpha1 , alpha2
 99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
       call vprntm(a,kz,kz,'a       ')
       call vprntm(hydros,kz,kz,'hydros  ')
       call vprntm(hydror,kz,kz,'hydror  ')
-      call vprntm(hydroc,kz,nk1,'hydroc  ')
+      call vprntm(hydroc,kz,kzp1,'hydroc  ')
       call vprntm(tau,kz,kz,'tau     ')
       call vprntm(zmatx,kz,kz,'zmatx   ')
       call vprntm(zmatxr,kz,kz,'zmatxr  ')
-      call vprntm(varpa1,kz,nk1,'varpa1  ')
-      call vprntm(varpa2,nk1,nk1,'varpa2  ')
+      call vprntm(varpa1,kz,kzp1,'varpa1  ')
+      call vprntm(varpa2,kzp1,kzp1,'varpa2  ')
 !
       return
  

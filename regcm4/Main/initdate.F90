@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine initdate
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1
       use mod_message
       implicit none

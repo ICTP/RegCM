@@ -25,7 +25,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : dt , dt2 , dx , ibdyfrq
       use mod_param2 , only : ibltyp , ichem , icup , iemiss , ifrest , &
                    & iocnflx , ipptls , lakemod , icnt

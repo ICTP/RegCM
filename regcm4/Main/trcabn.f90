@@ -22,7 +22,7 @@
                       & winpl,pinpl,tco2,th2o,to3,uptype,dw,s2c,up2,    &
                       & pnew,abstrc,uinpl)
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_constants , only : sslp
       implicit none
 !

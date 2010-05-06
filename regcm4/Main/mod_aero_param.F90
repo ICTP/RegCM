@@ -19,7 +19,7 @@
 !
       module mod_aero_param
 
-      use mod_regcm_param , only : nveg
+      use mod_dynparam , only : nveg
 
       implicit none
 !
@@ -48,8 +48,10 @@
       real(8) , dimension(2,isize) :: aerosize
       real(8) , dimension(isize) :: avesize
 !     Stokes parameter
-      real(8) , dimension(nveg) :: aest
-      real(8) , dimension(nveg) :: arye
+      real(8) , dimension(20) :: aest_bats
+      real(8) , dimension(20) :: arye_bats
+      real(8) , allocatable , dimension(:) :: aest
+      real(8) , allocatable , dimension(:) :: arye
 !
 ! DATA SECTION
 !
@@ -59,12 +61,30 @@
          & 2.56E-06 , 5.12E-06 , 5.12E-06 , 10.4E-06 , 10.24E-06 ,      &
          & 20.48E-06 , 20.48E-06 , 40.6E-06/
 
-      data aest/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,     &
+      data aest_bats/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,&
          & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
          & 1.2 , 1.2 , 1.2/
 
-      data arye/0.5 , 5.0 , 0.5 , 5.0 , 1.0 , 1.0 , 0.0001 , 5.0 ,      &
+      data arye_bats/0.5 , 5.0 , 0.5 , 5.0 , 1.0 , 1.0 , 0.0001 , 5.0 , &
          & 10.0 , 10.0 , 0.0001 , 0.0001 , 0.56 , 0.56 , 0.56 , 0.56 ,  &
          & 0.56 , 0.56 , 0.56 , 0.56/
+
+       contains
+
+       subroutine allocate_mod_aero_param
+       use mod_message , only : fatal
+       implicit none
+       allocate(aest(nveg))
+       allocate(arye(nveg))
+
+       if ( nveg==20 ) then
+         aest = aest_bats
+         arye = arye_bats
+       else
+         print *, 'Undefined stokes parameters for non bats'
+         print *, 'Please define them in mod_aero_param'
+         call fatal(__FILE__,__LINE__,'STOKES UNDEF IN MOD_AERO_PARAM')
+       end if
+       end subroutine allocate_mod_aero_param
 
       end module mod_aero_param

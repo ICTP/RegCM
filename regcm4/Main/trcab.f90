@@ -22,7 +22,7 @@
                      & bch4,to3co2,pnm,dw,pnew,s2c,uptype,dplh2o,       &
                      & abplnk1,tco2,th2o,to3,abstrc)
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_constants , only : sslp
       implicit none
 !

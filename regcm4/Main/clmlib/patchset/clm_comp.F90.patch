@@ -45,7 +45,7 @@
      use driver          , only : driver1
      use clm_atmlnd      , only : clm_map2gcell
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
  !
  ! !ARGUMENTS:
 -    real(r8), intent(in) , optional :: nextsw_cday
@@ -139,7 +139,7 @@
 + !   use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
      use driver          , only : driver2
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
  !
  ! !ARGUMENTS:
      logical,optional,intent(in) :: rstwr    ! true => write restart file this step

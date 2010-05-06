@@ -391,6 +391,7 @@
 !     *** ***  static energy that has the maximum value of moist static
 !     energy ***
       ahmax = 0.0
+      nk = nl
       do i = minorig , ihmin
         if ( hm(i).gt.ahmax ) then
           nk = i

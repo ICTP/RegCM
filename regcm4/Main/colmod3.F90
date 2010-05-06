@@ -129,7 +129,7 @@
 !     output file is also a text (ascii) file.
 !
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : emiss1d , ilat , ps , sice1d , aldirs ,     &
                     & aldifs , aldirl , aldifl , ldoc1d , ocld2d
       use mod_comtim
@@ -144,7 +144,7 @@
 ! Local variables
 !
       real(8) , dimension(iym1) :: alb , albc , aldif , aldir , asdif ,&
-                                  & asdir , clat , coslat , flns ,      &
+                                  & asdir , alat , coslat , flns ,      &
                                   & flnsc , flnt , flntc , flwds ,      &
                                   & fsds , fsnirt , fsnirtsq , fsnrtc , &
                                   & fsns , fsnsc , fsnt , fsntc ,       &
@@ -290,7 +290,7 @@
 !
 !     getdat() also sets calday (used in zenith() and radinp()).
 !
-      call getdat(jslc,h2ommr,clat,cld,clwp,coslat,loctim,o3mmr,o3vmr,  &
+      call getdat(jslc,h2ommr,alat,cld,clwp,coslat,loctim,o3mmr,o3vmr,  &
                 & pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
 !
 !     NB:
@@ -300,7 +300,7 @@
 !
 !     Get coszrs: needed as input to albland(), albocean(), radctl()
 !
-!KN   call zenith (calday  ,dodiavg ,clat    ,coszrs  )
+!KN   call zenith (calday  ,dodiavg ,alat    ,coszrs  )
 !
 !     NB:
 !     land and ocean albedos are calculated
@@ -360,7 +360,7 @@
 !++csz
 !add  by bixq
 !add_
-      call radctl(jslc,clat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
+      call radctl(jslc,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
                 & qm1,cld,effcld,clwp,asdir,asdif,aldir,aldif,fsns,qrs, &
                 & qrl,flwds,rel,rei,fice,sols,soll,solsd,solld,emiss1d, &
                 & fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,&

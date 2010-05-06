@@ -9,7 +9,7 @@
 +!c abt rcm
    use perf_mod
 +  use mod_clm
-+  use mod_regcm_param
++  use mod_dynparam
  !
  ! !PUBLIC TYPES:
    implicit none
@@ -758,7 +758,7 @@
 +    use fileutils , only : getfil
 +    use ncdio
 +!   use mod_clm
-+!   use mod_regcm_param
++!   use mod_dynparam
 +!
 +! !ARGUMENTS:
 +    implicit none

@@ -19,7 +19,7 @@
 
       module mod_aerosol
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 
@@ -58,29 +58,24 @@
 !
 !     Aerosol mass mixing ratio
 !
-#ifdef MPP1
-      real(8) , allocatable, dimension(:,:,:) :: aermm
-#else
-      real(8) , dimension(iym1,kz,jxm1) :: aermm
-#endif
-
+      real(8) , allocatable , dimension(:,:,:) :: aermm
 !
 !     Background aerosol mass mixing ratio
 !
-      real(8) , dimension(iym1,kz) :: aermmb
+      real(8) , allocatable , dimension(:,:) :: aermmb
 
 !
 !     Radiation level aerosol mass mixing ratio
 !
-      real(8) , dimension(iym1,kz,ntr) :: aermmr
+      real(8) , allocatable , dimension(:,:,:) :: aermmr
 !
 !     Aerosol extinction optical depth
 !
-      real(8) , dimension(iym1,0:kz,nspi) :: ftota_mix , gtota_mix , &
-           & tauasc_mix , tauxar_mix
+      real(8) , allocatable , dimension(:,:,:) :: ftota_mix ,           &
+                 & gtota_mix , tauasc_mix , tauxar_mix
 !
-      real(8) , dimension(iym1,nspi) :: ftota_mix_cs , gtota_mix_cs ,  &
-           & tauasc_mix_cs , tauxar_mix_cs
+      real(8) , allocatable , dimension(:,:) :: ftota_mix_cs ,          &
+                 & gtota_mix_cs , tauasc_mix_cs , tauxar_mix_cs
 
 !------------------------------------------------------------------------------
 !                  DATA SECTION
@@ -292,13 +287,24 @@
       contains
 
 ! 
-     subroutine allocate_aermod
-	 
+      subroutine allocate_mod_aerosol
+      implicit none   
 #ifdef MPP1
-     allocate(aermm(iym1,kz,jxp))
-	
+      allocate(aermm(iym1,kz,jxp))
+#else
+      allocate(aermm(iym1,kz,jxm1))
 #endif 
-     end subroutine allocate_aermod
+      allocate(aermmb(iym1,kz))
+      allocate(aermmr(iym1,kz,ntr))
+      allocate(ftota_mix(iym1,0:kz,nspi))
+      allocate(gtota_mix(iym1,0:kz,nspi))
+      allocate(tauasc_mix(iym1,0:kz,nspi))
+      allocate(tauxar_mix(iym1,0:kz,nspi))
+      allocate(ftota_mix_cs(iym1,nspi))
+      allocate(gtota_mix_cs(iym1,nspi))
+      allocate(tauasc_mix_cs(iym1,nspi))
+      allocate(tauxar_mix_cs(iym1,nspi))
+      end subroutine allocate_mod_aerosol
 
 !
 ! SUBROUTINE AERMIX

@@ -44,7 +44,7 @@
    use abortutils   , only : endrun
 +  use clm_varsur   , only : r2coutfrq
 +  use mod_clm
-+  use mod_regcm_param
++  use mod_dynparam
  !
  ! !PUBLIC TYPES:
    implicit none

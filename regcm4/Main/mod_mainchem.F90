@@ -19,54 +19,57 @@
 
       module mod_mainchem
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 !
-#ifdef MPP1
       real(8) , allocatable, dimension(:,:,:,:) :: chemsrc
       real(8) , allocatable, dimension(:,:,:,:) :: chia , chib
       real(8) , allocatable, dimension(:,:,:) :: srclp2
-#else
-      real(8) , dimension(iy,jx,12,ntr) :: chemsrc
-      real(8) , dimension(iy,kz,jx,ntr) :: chia , chib
-      real(8) , dimension(iy,jx,ntr) :: srclp2
-#endif
 !
-#ifdef MPP1
-      real(8) , allocatable, dimension(:,:,:) :: ddsfc , dtrace , wdcvc ,       &
-                                       & wdlsc , wxaq , wxsg
-#else
-      real(8) , dimension(iy,jx,ntr) :: ddsfc , dtrace , wdcvc , wdlsc ,&
-                                      & wxaq , wxsg
-#endif
+      real(8) , allocatable , dimension(:,:,:) :: ddsfc , dtrace ,      &
+                                       & wdcvc , wdlsc , wxaq , wxsg
 
-      real(4) , dimension(jxm2,iym2) :: fchem
+      real(4) , allocatable , dimension(:,:) :: fchem
 
 #ifdef MPP1
-      real(8) , allocatable, dimension(:,:,:,:) :: src0
-      real(8) , dimension(iy,12,ntr,jx) :: src_0
+      real(8) , allocatable , dimension(:,:,:,:) :: src0
+      real(8) , allocatable , dimension(:,:,:,:) :: src_0
 #endif
 
 contains 
 
-	subroutine allocate_mainchem
-
+        subroutine allocate_mod_mainchem
+        use mod_dust , only : nats
+        implicit none
 #ifdef MPP1
-	allocate(chemsrc(iy,jxp,12,ntr))
-	allocate(chia(iy,kz,-1:jxp+2,ntr))
-	allocate(chib(iy,kz,-1:jxp+2,ntr))
+        allocate(chemsrc(iy,jxp,nats,ntr))
+        allocate(chia(iy,kz,-1:jxp+2,ntr))
+        allocate(chib(iy,kz,-1:jxp+2,ntr))
         allocate(srclp2(iy,jxp,ntr))
         allocate(ddsfc(iy,jxp,ntr)) 
-	allocate(dtrace(iy,jxp,ntr))
-	allocate(wdcvc(iy,jxp,ntr))
-	allocate(wdlsc(iy,jxp,ntr))
-	allocate(wxaq(iy,jxp,ntr))
-	allocate(wxsg(iy,jxp,ntr))
-	allocate(src0(iy,12,ntr,jxp))
+        allocate(dtrace(iy,jxp,ntr))
+        allocate(wdcvc(iy,jxp,ntr))
+        allocate(wdlsc(iy,jxp,ntr))
+        allocate(wxaq(iy,jxp,ntr))
+        allocate(wxsg(iy,jxp,ntr))
+        allocate(src0(iy,nats,ntr,jxp))
+        allocate(src_0(iy,nats,ntr,jx))
+#else
+        allocate(chemsrc(iy,jx,nats,ntr))
+        allocate(chia(iy,kz,jx,ntr))
+        allocate(chib(iy,kz,jx,ntr))
+        allocate(srclp2(iy,jx,ntr))
+        allocate(ddsfc(iy,jx,ntr))
+        allocate(dtrace(iy,jx,ntr))
+        allocate(wdcvc(iy,jx,ntr))
+        allocate(wdlsc(iy,jx,ntr))
+        allocate(wxaq(iy,jx,ntr))
+        allocate(wxsg(iy,jx,ntr))
 #endif 
+        allocate(fchem(jxm2,iym2))
        
-       end subroutine allocate_mainchem
+       end subroutine allocate_mod_mainchem
  
 
       end module mod_mainchem

@@ -45,7 +45,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_when , only : whenfgt
       implicit none
 !

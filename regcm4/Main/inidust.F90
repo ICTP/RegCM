@@ -38,7 +38,7 @@
 !  * 12        clay                   fine               *****
 !  ***********************************************************
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_constants , only : twopi
       use mod_dust
       implicit none

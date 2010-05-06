@@ -55,7 +55,7 @@
 ! PRECCmms convective precipitation (mm H2O / sec)  optional (replaces PRECT)
 ! PRECLmms large-scale precipitation (mm H2O / sec) optional (replaces PRECT)
  
-      use mod_regcm_param
+      use mod_dynparam
 !
       use initializeMod
       use shr_orb_mod

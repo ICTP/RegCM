@@ -17,11 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine spinit(ptop,sigma,kv1)
+      subroutine spinit(xtop,sigma,kv1)
 !
 !** compute vertical modes.
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : dt , dtau , dx2
       use mod_param2
       use mod_iunits
@@ -44,9 +44,9 @@
 ! Dummy arguments
 !
       integer :: kv1
-      real(8) :: ptop
+      real(8) :: xtop
       real(8) , dimension(kv1) :: sigma
-      intent (in) ptop
+      intent (in) xtop
 !
 ! Local variables
 !
@@ -88,7 +88,7 @@
       do k = 1 , kz
         tbarh(k) = 0.
       end do
-      pt = ptop
+      pt = xtop
 #ifdef MPP1
       ijlx = iym1*jendx
       do j = 1 , jendx

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine radctl(jslc,clat,coslat,ts,pmid,pint,pmln,piln,t,      &
+      subroutine radctl(jslc,alat,coslat,ts,pmid,pint,pmln,piln,t,      &
                       & h2ommr,cld,effcld,clwp,albs,albsd,albl,albld,   &
                       & fsns,qrs,qrl,flwds,rel,rei,fice,sols,soll,solsd,&
                       & solld,emiss1d,fsnt,fsntc,fsnsc,flnt,flns,flntc, &
@@ -58,7 +58,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_interfaces
       use mod_comtim
       use mod_aerosol , only : aermix , aeroppt , aerout
@@ -80,7 +80,7 @@
 ! cld     - Fractional cloud cover
 ! effcld  - Effective fractional cloud cover
 ! clwp    - Cloud liquid water path
-! clat    - current latitude(radians)
+! alat    - current latitude(radians)
 ! coslat  - cosine latitude
 !
 !     Output solar arguments
@@ -103,7 +103,7 @@
       real(8) :: eccf
       integer :: jslc
       real(8) , dimension(iym1) :: alb , albc , albl , albld , albs ,  &
-                                  & albsd , clat , coslat , emiss1d ,   &
+                                  & albsd , alat , coslat , emiss1d ,   &
                                   & flns , flnsc , flnt , flntc ,       &
                                   & flwds , fsds , fsnirt , fsnirtsq ,  &
                                   & fsnrtc , fsns , fsnsc , fsnt ,      &
@@ -221,7 +221,7 @@
 !
 !       Specify trace gas mixing ratios
 !
-        call trcmix(pmid,clat,coslat,n2o,ch4,cfc11,cfc12)
+        call trcmix(pmid,alat,coslat,n2o,ch4,cfc11,cfc12)
 !
         call radclw(jslc,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,plco2,     &
                   & plh2o,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &

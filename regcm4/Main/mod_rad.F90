@@ -19,7 +19,7 @@
 
       module mod_rad
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 
@@ -28,14 +28,14 @@
       real(8) , allocatable, dimension(:,:,:) :: o3prof
 
 contains 
-	subroutine allocate_mod_rad
+        subroutine allocate_mod_rad
 ! allocating routine
 
-	allocate(cldfra(iym1,kz))
-	allocate(cldlwc(iym1,kz))
+        allocate(cldfra(iym1,kz))
+        allocate(cldlwc(iym1,kz))
 #ifdef MPP1
-	allocate(heatrt(iym1,kz,jxp))
-	allocate(o3prof(iym1,kzp1,jxp))
+        allocate(heatrt(iym1,kz,jxp))
+        allocate(o3prof(iym1,kzp1,jxp))
 #else
        allocate(heatrt(iym1,kz,jxm1))
        allocate(o3prof(iym1,kzp1,jxm1))

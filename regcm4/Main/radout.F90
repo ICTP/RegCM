@@ -29,7 +29,7 @@
 ! compute the total radiative heat flux at the surface for
 ! the surface temperature computation
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : dtmin
       use mod_param2 , only : ifrad , nradisp
       use mod_bats

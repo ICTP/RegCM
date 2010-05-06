@@ -19,7 +19,7 @@
  
       subroutine slice1D(j)
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_main
       use mod_pbldim
       use mod_bats

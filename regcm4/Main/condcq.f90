@@ -26,7 +26,7 @@
 !
 !     latent fluxes differ from sensible due to stomatal resistance
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : wtlq , gwet1d , wtlq , wtlh , rpp , sigf ,  &
                    & ldoc1d , wtgaq , wtaq0 , wtglq , wtlq0 , wtgq0 ,   &
                    & wtsqi , wtgq , rgr , wtg , wta

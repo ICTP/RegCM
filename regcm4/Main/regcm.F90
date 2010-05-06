@@ -19,14 +19,13 @@
  
       program regcm
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_date , only : deltmx , idate1 , idate2 , nnbase ,         &
                      & nnnend , nnnnnn , jyear , jyear0 , ktau , xtime
       use mod_param1 , only : nslice , dt , dt2 , dtmin
       use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : ptop , sigma
       use mod_message , only : aline , say
-      use mod_bats , only : inibat , inisub , allocate_mod_bats
 #ifdef DCSST
       use mod_bats , only : inidcsst
 #endif
@@ -44,11 +43,13 @@
 !
       real(8) :: dtinc , extime
       integer :: iexec , iexecn
+      integer :: ierr
 #ifdef MPP1
-      integer :: ierr , ncpu
+      integer :: ncpu
 #else
       integer :: myid
 #endif
+      character(256) :: namelistfile, prgname
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -164,6 +165,21 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
+!
+!     Read input global namelist
+!
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
+
 !**********************************************************************
 
 #ifdef MPP1
@@ -222,15 +238,6 @@
 #endif
 !!
       call header(myid)
-!
-!     Init bats I/O
-!
-      call allocate_mod_bats
-      call inibat
-      call inisub
-#ifdef DCSST
-      call inidcsst
-#endif
 !
 !-----set up parameters:
 !

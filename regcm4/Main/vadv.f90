@@ -42,7 +42,7 @@
 !           4 : for u and v.                                          c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param3 , only : dsigma , ptop , qcon , twt , a , sigma
       use mod_main
       use mod_cvaria

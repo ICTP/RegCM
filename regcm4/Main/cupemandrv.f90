@@ -23,7 +23,7 @@
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : dt , nbatst
       use mod_param3 , only : ptop , sigma
       use mod_main
@@ -37,7 +37,7 @@
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: ntra = 0 , nl = kz - 1
+      integer , parameter :: ntra = 0
 !
 ! Dummy arguments
 !
@@ -78,7 +78,7 @@
         cbmf = cbmf2d(i,j)                                ! [(kg/m**2)/s]
  
         call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
-                   & nl,ntra,dtime,iflag,ft,fq,fu,fv,ftra,fppt,wd,      &
+                   & kzm1,ntra,dtime,iflag,ft,fq,fu,fv,ftra,fppt,wd,    &
                    & tprime,qprime,cbmf,kbase,ktop)
  
         cbmf2d(i,j) = cbmf

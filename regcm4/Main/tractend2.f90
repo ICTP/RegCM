@@ -26,7 +26,7 @@
 !     j:             index of j slice in current computation
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1
       use mod_param3 , only : dsigma , twt , ptop , kt , a , sigma
       use mod_main

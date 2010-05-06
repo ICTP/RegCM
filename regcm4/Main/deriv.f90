@@ -29,7 +29,7 @@
 !     dependences on leaf temperature are omitted, as convergence
 !     rate is not affected.
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : wtg0 , ldoc1d , sigf , tlef1d , df , cdr ,  &
                     & ts1d , wtga , qsatl , wta0 , wtgaq , tg1d , cn1
       use mod_constants , only : tzero

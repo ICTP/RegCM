@@ -44,7 +44,7 @@
 !     documented in ncar tech note, dickinson et al., 1986
 !     improved stomatal shading, dickinson, nov 88.
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats
       use mod_ictp01
       use mod_constants , only : rmax0

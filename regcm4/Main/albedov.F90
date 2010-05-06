@@ -19,7 +19,7 @@
  
       subroutine albedov(j,iemiss)
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : albvs , albvl , aldirs , aldirl , ssw1d ,   &
                   & aldifs , aldifl , czen , sice1d , emiss1d , coszrs ,&
                   & ldoc1d , tgb1d , lveg , ts1d , scv1d , sag1d , wt , &

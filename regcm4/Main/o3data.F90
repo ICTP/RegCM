@@ -20,7 +20,7 @@
 !----------------------------------------------------------------------
       subroutine o3data
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param3 , only : ptop , sigma
       use mod_main
       use mod_rad

@@ -33,7 +33,7 @@
 !              ** keep fwet le 1.0 **
 !  dewmxi = inverse of max allowed dew depth on leaf in mm
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : xlai , ldoc1d , sigf , ldew1d , fwet ,      &
                    & xlsai , fdry , vegt
       use mod_constants , only : dewmxi

@@ -58,7 +58,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_crdcae
       use mod_constants , only : rsslp , rga , dpfco2 , dpfo3
       use mod_radbuf

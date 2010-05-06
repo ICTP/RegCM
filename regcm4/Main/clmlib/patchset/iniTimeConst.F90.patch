@@ -20,7 +20,7 @@
 +  use decompMod  , only : ldecomp
 +  use clm_varsur
 +  use mod_clm
-+  use mod_regcm_param
++  use mod_dynparam
 +!abt above
  !
  ! !ARGUMENTS:

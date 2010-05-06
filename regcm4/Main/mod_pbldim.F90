@@ -19,34 +19,34 @@
 
       module mod_pbldim
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 !
-      real(8) , dimension(iy,kzp1) :: zq
+      real(8) , allocatable , dimension(:,:) :: zq
+      real(8) , allocatable ,  dimension(:,:) :: rhox2d
+      real(8) , allocatable , dimension(:,:,:) :: dzq , thvx , thx3d
+      real(8) , allocatable , dimension(:,:,:) :: za
 
-      real(8) ,allocatable, dimension(:,:,:) :: dzq , thvx , thx3d , za
-      real(8) ,allocatable,  dimension(:,:) :: rhox2d
+      contains
 
-
-contains
-     subroutine allocate_mod_pbldim
-	
+      subroutine allocate_mod_pbldim
+        
 #ifdef MPP1
-	allocate(dzq(iy,kz,jxp))
-	allocate(thvx(iy,kz,jxp))
-	allocate(thx3d(iy,kz,jxp))
-	allocate(za(iy,kz,jxp))
-
-	allocate(rhox2d(iy,jxp))
+        allocate(dzq(iy,kz,jxp))
+        allocate(thvx(iy,kz,jxp))
+        allocate(thx3d(iy,kz,jxp))
+        allocate(za(iy,kz,jxp))
+        allocate(rhox2d(iy,jxp))
 #else 
         allocate(dzq(iy,kz,jx))
         allocate(thvx(iy,kz,jx))
         allocate(thx3d(iy,kz,jx))
         allocate(za(iy,kz,jx))
-
         allocate(rhox2d(iy,jx))
 #endif 
+        allocate(zq(iy,kzp1))
 
-     end subroutine allocate_mod_pbldim
+      end subroutine allocate_mod_pbldim
+
       end module mod_pbldim

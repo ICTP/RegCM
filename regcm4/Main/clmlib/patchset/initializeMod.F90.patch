@@ -27,7 +27,7 @@
      use shr_InputInfo_mod, only : shr_InputInfo_initType
 +    use clm_varsur, only : landmask  !abt rcm
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
  !
  ! !ARGUMENTS:
      type(shr_InputInfo_initType), intent(in), optional :: CCSMInit

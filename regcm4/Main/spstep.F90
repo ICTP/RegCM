@@ -19,7 +19,7 @@
  
       subroutine spstep(hbar,dx2,dtau,m)
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_main
       use mod_bxq
 #ifdef MPP1

@@ -19,7 +19,7 @@
 
       module mod_dust
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 !
@@ -46,21 +46,21 @@
       real(8) , dimension(nsoil) :: dp
 
 contains 
-	subroutine allocate_mod_dust 
+        subroutine allocate_mod_dust 
 
 #ifdef MPP1
-	allocate(clay2row2(iy,nats,jxp) )
-	allocate(sand2row2(iy,nats,jxp) )
-	allocate(silt2row2(iy,nats,jxp) )
+        allocate(clay2row2(iy,nats,jxp) )
+        allocate(sand2row2(iy,nats,jxp) )
+        allocate(silt2row2(iy,nats,jxp) )
 
-	allocate(clayrow2(iy,jxp) )
-	allocate(dustsotex(iy,jxp) )
-	allocate(sandrow2(iy,jxp) )
+        allocate(clayrow2(iy,jxp) )
+        allocate(dustsotex(iy,jxp) )
+        allocate(sandrow2(iy,jxp) )
 
-	allocate(srel2d(iy,jxp,nsoil))
-	
+        allocate(srel2d(iy,jxp,nsoil))
+        
 #endif 
 
-	end subroutine allocate_mod_dust
+        end subroutine allocate_mod_dust
 
       end module mod_dust

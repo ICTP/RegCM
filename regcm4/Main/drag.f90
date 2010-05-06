@@ -28,7 +28,7 @@
  
 !     ****  b.  modifies cdrn as fn of bulk rich. no. of surface layer
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : ribd , us1d , vs1d , vspda , cdrn , cdrx ,  &
                      & cdr , aarea , z1 , clead , ts1d , lveg , tg1d ,  &
                      & sigf , displa , ldoc1d ,  taf1d

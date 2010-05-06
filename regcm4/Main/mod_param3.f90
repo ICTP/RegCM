@@ -19,20 +19,34 @@
 
       module mod_param3
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 !
       integer :: ispgd , ispgx , jxsex , k700 , kchi , kclo , kcmd ,    &
                & kt , kxout , ncld
 !
-      real(8) :: ptop , ptop4
+      real(8) :: ptop4
       real(8) :: akht1 , akht2
 
-      real(8) , dimension(kz) :: a , anudg , dsigma , qcon
-      real(8) , dimension(kzp1) :: sigma
-      real(8) , dimension(kz,2) :: twt
-      real(8) , dimension(nspgd) :: wgtd
-      real(8) , dimension(nspgx) :: wgtx
+      real(8) , allocatable , dimension(:) :: a , anudg , dsigma , qcon
+      real(8) , allocatable , dimension(:) :: sigma
+      real(8) , allocatable , dimension(:,:) :: twt
+      real(8) , allocatable , dimension(:) :: wgtd
+      real(8) , allocatable , dimension(:) :: wgtx
+
+      contains
+
+      subroutine allocate_mod_param3
+      implicit none
+        allocate(a(kz))
+        allocate(anudg(kz))
+        allocate(dsigma(kz))
+        allocate(qcon(kz))
+        allocate(sigma(kzp1))
+        allocate(twt(kz,2))
+        allocate(wgtd(nspgd))
+        allocate(wgtx(nspgx))
+      end subroutine allocate_mod_param3
 
       end module mod_param3

@@ -12,7 +12,6 @@ SUBROUTINE header(myid)
 
   IMPLICIT NONE 
   !! local variables:
-  INTEGER len,len_strim
   INTEGER ihost,idir
   INTEGER hostnm
   INTEGER getcwd
@@ -44,34 +43,10 @@ SUBROUTINE header(myid)
 
 
      WRITE(nrite,*) ": this run start at    : ",data
-     len=len_strim(user)
-     WRITE(nrite,*) ": it is submitted by   : ",user(1:len)
-     len=len_strim(hostname)
-     WRITE(nrite,*) ": it is running on     : ",hostname(1:len-1)
-     len=len_strim(directory) 
-
-     WRITE(nrite,*) ": in directory         : ",directory(1:len)
+     WRITE(nrite,*) ": it is submitted by   : ",trim(user)
+     WRITE(nrite,*) ": it is running on     : ",trim(hostname)
+     WRITE(nrite,*) ": in directory         : ",trim(directory)
      WRITE(nrite,*) "                      " 
      end if 
   RETURN 
 END SUBROUTINE header
-
-!!>
-  !!   ROUTINE : LEN_STRIM
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
-  !!   ACTION : trimming of string
-  !!< 
-  FUNCTION len_strim (string) RESULT (len_trim_RESULT)
-    IMPLICIT NONE 
-    CHARACTER  (len=*), INTENT(IN) :: string
-    INTEGER :: len_trim_RESULT,k
-
-    len_trim_RESULT =0 
-    DO k= LEN(string),1,-1
-       IF (string(k:k) /=' ') THEN
-          len_trim_RESULT =k
-          EXIT
-       END IF
-    END DO
-
-  END FUNCTION len_strim

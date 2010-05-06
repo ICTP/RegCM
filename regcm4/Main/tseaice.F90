@@ -19,7 +19,7 @@
  
       subroutine tseice
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : dtbat
       use mod_bats
       use mod_constants , only : ch2o , cice , csnw , tzero , stdp ,    &

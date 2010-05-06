@@ -37,7 +37,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_comtim
       use mod_constants , only : gtigts , twopi , dayspy , rgsslp , sslp
       use mod_constants , only : amd , amo , amco2

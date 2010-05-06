@@ -32,7 +32,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_comozp
       use mod_crdcae
       use mod_tracer0

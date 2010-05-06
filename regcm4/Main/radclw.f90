@@ -45,7 +45,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : ifrabe
       use mod_param2 , only : iemiss
       use mod_radbuf

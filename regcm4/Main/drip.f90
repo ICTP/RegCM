@@ -22,7 +22,7 @@
 !  excess leaf water is put into rain or snow;
 !  leaf water is reset to its maximum value.
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : etrrun , ldew1d , vegt , sdrop , xrun ,     &
                     & ldoc1d , sigf , tm
       use mod_constants , only : dewmx , tzero

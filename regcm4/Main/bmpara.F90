@@ -48,7 +48,7 @@
 !*****************************************************************
 ! *** warning: this subroutine will not work if kz.lt.12;
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : nbatst , dt2 , dtmin
       use mod_param2
       use mod_param3 , only : ptop , sigma , a , dsigma
@@ -104,7 +104,7 @@
                            & , a23m4l = c3les*(tzero-c4les)*wlhv ,      &
                            & cporng = 1./dm2859 , elocp = wlhv/cpd ,    &
                            & cprlg = cpd/(row*gti*wlhv)
-      integer , parameter :: lp1 = kzp1 , lm1 = kz - 1
+      integer :: lp1 , lm1
 !
 ! Dummy arguments
 !
@@ -146,7 +146,10 @@
       real(8), external :: tpfc
 
 !-----------------------------------------------------------------------
-
+!
+      lp1 = kzp1
+      lm1 = kz - 1
+!
       do k = 1 , kz
         do i = 1 , iym1
           cldlwc(i,k) = 0.

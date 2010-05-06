@@ -22,7 +22,7 @@
 !** compute deld, delh
 !** integrate in time and add correction terms appropriately
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1
       use mod_main
       use mod_split

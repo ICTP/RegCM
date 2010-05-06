@@ -33,7 +33,7 @@
 !     of snow equals height of vegetation
 !
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : lveg , rhosw , densi , scrat , wt , rough , &
                     & veg1d , sigf , scvk , ldoc1d , sag1d , scv1d
       implicit none

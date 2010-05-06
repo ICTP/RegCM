@@ -52,7 +52,7 @@
 !                    kvq     eddy diffusivity for moisture
 !                    zpbl     boundary layer height
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param2
       use mod_param3 , only : kt
       use mod_main

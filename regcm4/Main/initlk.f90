@@ -19,7 +19,7 @@
  
       subroutine initlk(veg2d,ix1,jx1)
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_lake
       implicit none
 !

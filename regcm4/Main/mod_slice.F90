@@ -19,7 +19,7 @@
 
       module mod_slice
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 
@@ -37,23 +37,23 @@
 #endif
 
 contains 
-	subroutine allocate_mod_slice
-	
+        subroutine allocate_mod_slice
+        
 #ifdef MPP1
         allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
 
-	allocate(pb3d(iy,kz,jxp))
-	allocate(qsb3d(iy,kz,jxp))
-	allocate(rhb3d(iy,kz,jxp))
-	allocate(rhob3d(iy,kz,jxp))
-	allocate(ubx3d(iy,kz,jxp))
-	allocate(vbx3d(iy,kz,jxp))
+        allocate(pb3d(iy,kz,jxp))
+        allocate(qsb3d(iy,kz,jxp))
+        allocate(rhb3d(iy,kz,jxp))
+        allocate(rhob3d(iy,kz,jxp))
+        allocate(ubx3d(iy,kz,jxp))
+        allocate(vbx3d(iy,kz,jxp))
 
-	allocate(qcb3d(iy,kz,-1:jxp+2) )
-	allocate(qvb3d(iy,kz,-1:jxp+2) )
-	allocate(tb3d(iy,kz,-1:jxp+2) )
-	allocate(ubd3d(iy,kz,-1:jxp+2) )
-	allocate(vbd3d(iy,kz,-1:jxp+2) )
+        allocate(qcb3d(iy,kz,-1:jxp+2) )
+        allocate(qvb3d(iy,kz,-1:jxp+2) )
+        allocate(tb3d(iy,kz,-1:jxp+2) )
+        allocate(ubd3d(iy,kz,-1:jxp+2) )
+        allocate(vbd3d(iy,kz,-1:jxp+2) )
 #endif
        end subroutine allocate_mod_slice
 

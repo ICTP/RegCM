@@ -44,7 +44,7 @@
 !     efpr = the relative contribution of upper soil layer to
 !     evapotranspiration - need soil moist. budget (subrout water)
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats
       use mod_ictp01
       use mod_constants , only : trsmx0

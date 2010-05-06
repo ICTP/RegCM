@@ -18,13 +18,12 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine gradsbat(ctlname)
-      use mod_regcm_param
+      use mod_dynparam
       use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
       use mod_param3 , only : ptop , a
-      use mod_grads
 !#ifdef INTEL
 !  include 'ifport.f90'
 !#endif
@@ -65,7 +64,7 @@
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
-      if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
+      if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
         do j = 1 , jx
@@ -132,8 +131,8 @@
 #endif
           end do
         end do
-        rlatinc = dxsp*0.001/111./2.
-        rloninc = dxsp*0.001/111./2.
+        rlatinc = dx*0.001/111./2.
+        rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
@@ -141,15 +140,15 @@
         centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
-        if ( proj.eq.'LAMCON' ) then   ! Lambert projection
+        if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
-                         & centeri , truelatl , truelath , clon , dxsp ,&
-                         & dxsp
+                         & centeri , truelatl , truelath , clon , dx ,&
+                         & dx
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
-        else if ( proj.eq.'POLSTR' ) then
+        else if ( iproj.eq.'POLSTR' ) then
                                         !
-        else if ( proj.eq.'NORMER' ) then
+        else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
@@ -160,14 +159,14 @@
           write (31,99010) iym2
           write (31,99011) (xlat(i,2),i=2,iym1)
 #endif
-        else if ( proj.eq.'ROTMER' ) then
+        else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
-                         & dxsp/111000. , dxsp/111000.*.95238
+                         & dx/111000. , dx/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -212,7 +211,7 @@
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
       write (31,99016) 21 + 6
-      if ( proj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
+      if ( iproj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
         write (31,99018) 'u10m    ' ,                                   &
                         &'westerly  wind at 10m (m/s)          '
         write (31,99019) 'v10m    ' ,                                   &
@@ -298,13 +297,12 @@
       end subroutine gradsbat
 !
       subroutine gradssub(ctlname)
-      use mod_regcm_param
+      use mod_dynparam
       use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
       use mod_param3
-      use mod_grads
       use mod_iunits
       use mod_main
 #ifdef MPP1
@@ -348,7 +346,7 @@
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
-      if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
+      if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
         do j = 1 , jx
@@ -415,8 +413,8 @@
 #endif
           end do
         end do
-        rlatinc = dxsp*0.001/111./2.
-        rloninc = dxsp*0.001/111./2.
+        rlatinc = dx*0.001/111./2.
+        rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
@@ -424,15 +422,15 @@
         centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
-        if ( proj.eq.'LAMCON' ) then   ! Lambert projection
+        if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
           write (31,99006) jxm2sg , iym2sg , clat , clon ,              &
                          & centerj*nsg , centeri*nsg , truelatl ,       &
-                         & truelath , clon , dxsp/nsg , dxsp/nsg
+                         & truelath , clon , dx/nsg , dx/nsg
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
-        else if ( proj.eq.'POLSTR' ) then
+        else if ( iproj.eq.'POLSTR' ) then
                                         !
-        else if ( proj.eq.'NORMER' ) then
+        else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
           read (iutin1,rec=5) xlat_s_io
           read (iutin1,rec=6) xlon_s_io
@@ -448,14 +446,14 @@
           write (31,99010) iym2sg
           write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,iym1sg)
 #endif
-        else if ( proj.eq.'ROTMER' ) then
+        else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
           write (31,99012) jxm2sg , iym2sg , plon , plat ,              &
-                         & dxsp/111000./nsg , dxsp/111000.*.95238/nsg
+                         & dx/111000./nsg , dx/111000.*.95238/nsg
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -500,7 +498,7 @@
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
       write (31,99016) 16
-      if ( proj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
+      if ( iproj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
         write (31,99018) 'u10m    ' ,                                   &
                         &'westerly  wind at 10m (m/s)          '
         write (31,99019) 'v10m    ' ,                                   &
@@ -564,13 +562,12 @@
       end subroutine gradssub
 !
       subroutine gradschem(ctlname)
-      use mod_regcm_param
+      use mod_dynparam
       use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
       use mod_param3
-      use mod_grads
       use mod_main
 #ifdef MPP1
       use mod_mppio
@@ -608,7 +605,7 @@
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
-      if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
+      if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
         do j = 1 , jx
@@ -676,8 +673,8 @@
 #endif
           end do
         end do
-        rlatinc = dxsp*0.001/111./2.
-        rloninc = dxsp*0.001/111./2.
+        rlatinc = dx*0.001/111./2.
+        rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
@@ -685,15 +682,15 @@
         centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
-        if ( proj.eq.'LAMCON' ) then   ! Lambert projection
+        if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
-                         & centeri , truelatl , truelath , clon , dxsp ,&
-                         & dxsp
+                         & centeri , truelatl , truelath , clon , dx ,&
+                         & dx
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
-        else if ( proj.eq.'POLSTR' ) then
+        else if ( iproj.eq.'POLSTR' ) then
                                         !
-        else if ( proj.eq.'NORMER' ) then
+        else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
@@ -704,14 +701,14 @@
           write (31,99010) iym2
           write (31,99011) (xlat(i,2),i=2,iym1)
 #endif
-        else if ( proj.eq.'ROTMER' ) then
+        else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
-                         & dxsp/111000. , dxsp/111000.*.95238
+                         & dx/111000. , dx/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -820,11 +817,11 @@
       end subroutine gradschem
 !
       subroutine gradsctl(ctlname)
-      use mod_regcm_param
+      use mod_dynparam
       use mod_message , only : fatal
       use mod_date
+      use mod_param1
       use mod_param2
-      use mod_grads
       use mod_main
 #ifdef MPP1
       use mod_mppio
@@ -851,7 +848,7 @@
       else
       end if
       write (31,99005)
-      if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
+      if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
         do j = 1 , jx
@@ -918,22 +915,22 @@
 #endif
           end do
         end do
-        rlatinc = dxsp*0.001/111./2.
-        rloninc = dxsp*0.001/111./2.
+        rlatinc = dx*0.001/111./2.
+        rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
         centerj = (jxm2)/2.
         centeri = (iym2)/2.
       end if
-      if ( proj.eq.'LAMCON' ) then     ! Lambert projection
+      if ( iproj.eq.'LAMCON' ) then     ! Lambert projection
         write (31,99006) jxm2 , iym2 , clat , clon , centerj ,          &
-                       & centeri , truelatl , truelath , clon , dxsp ,  &
-                       & dxsp
+                       & centeri , truelatl , truelath , clon , dx ,  &
+                       & dx
         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
-      else if ( proj.eq.'POLSTR' ) then !
-      else if ( proj.eq.'NORMER' ) then
+      else if ( iproj.eq.'POLSTR' ) then !
+      else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
@@ -944,14 +941,14 @@
         write (31,99010) iym2
         write (31,99011) (xlat(i,2),i=2,iym1)
 #endif
-      else if ( proj.eq.'ROTMER' ) then
+      else if ( iproj.eq.'ROTMER' ) then
         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
                    &' projections are not supported by GrADS.'
         write (*,*) '  Although not exact, the eta.u projection' ,      &
                    &' in GrADS is somewhat similar.'
         write (*,*) ' FERRET, however, does support this projection.'
-       write (31,99012) jxm2 , iym2 , plon , plat , dxsp/111000. ,      &
-                       & dxsp/111000.*.95238
+       write (31,99012) jxm2 , iym2 , plon , plat , dx/111000. ,      &
+                       & dx/111000.*.95238
         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
 
@@ -994,13 +991,12 @@
       end subroutine gradsctl
 !
       subroutine gradsout(ctlname)
-      use mod_regcm_param
+      use mod_dynparam
       use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
       use mod_param3
-      use mod_grads
       use mod_main
 #ifdef MPP1
       use mod_mppio
@@ -1038,7 +1034,7 @@
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
-      if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
+      if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
         do j = 1 , jx
@@ -1105,8 +1101,8 @@
 #endif
           end do
         end do
-        rlatinc = dxsp*0.001/111./2.
-        rloninc = dxsp*0.001/111./2.
+        rlatinc = dx*0.001/111./2.
+        rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
@@ -1114,15 +1110,15 @@
         centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
-        if ( proj.eq.'LAMCON' ) then   ! Lambert projection
+        if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
-                         & centeri , truelatl , truelath , clon , dxsp ,&
-                         & dxsp
+                         & centeri , truelatl , truelath , clon , dx ,&
+                         & dx
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
-        else if ( proj.eq.'POLSTR' ) then
+        else if ( iproj.eq.'POLSTR' ) then
                                         !
-        else if ( proj.eq.'NORMER' ) then
+        else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
@@ -1133,14 +1129,14 @@
           write (31,99010) iym2
           write (31,99011) (xlat(i,2),i=2,iym1)
 #endif
-        else if ( proj.eq.'ROTMER' ) then
+        else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
-                         & dxsp/111000. , dxsp/111000.*.95238
+                         & dx/111000. , dx/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -1185,7 +1181,7 @@
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
       write (31,99016) 10 + 1
-      if ( proj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
+      if ( iproj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
         write (31,99019) 'u       ' , kz , 'westerly wind (m/s)        '
         write (31,99020) 'v       ' , kz , 'southerly wind (m/s)       '
       else
@@ -1227,13 +1223,12 @@
       end subroutine gradsout
 !
       subroutine gradsrad(ctlname)
-      use mod_regcm_param
+      use mod_dynparam
       use mod_message , only : fatal
       use mod_date
       use mod_param1
       use mod_param2
       use mod_param3
-      use mod_grads
       use mod_main
 #ifdef MPP1
       use mod_mppio
@@ -1271,7 +1266,7 @@
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
-      if ( proj.eq.'LAMCON' .or. proj.eq.'ROTMER' ) then
+      if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
         alatmin = 999999.
         alatmax = -999999.
         do j = 1 , jx
@@ -1338,8 +1333,8 @@
 #endif
           end do
         end do
-        rlatinc = dxsp*0.001/111./2.
-        rloninc = dxsp*0.001/111./2.
+        rlatinc = dx*0.001/111./2.
+        rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
@@ -1347,15 +1342,15 @@
         centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
-        if ( proj.eq.'LAMCON' ) then   ! Lambert projection
+        if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
-                         & centeri , truelatl , truelath , clon , dxsp ,&
-                         & dxsp
+                         & centeri , truelatl , truelath , clon , dx ,&
+                         & dx
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
-        else if ( proj.eq.'POLSTR' ) then
+        else if ( iproj.eq.'POLSTR' ) then
                                         !
-        else if ( proj.eq.'NORMER' ) then
+        else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
@@ -1366,14 +1361,14 @@
           write (31,99010) iym2
           write (31,99011) (xlat(i,2),i=2,iym1)
 #endif
-        else if ( proj.eq.'ROTMER' ) then
+        else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
-                         & dxsp/111000. , dxsp/111000.*.95238
+                         & dx/111000. , dx/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else

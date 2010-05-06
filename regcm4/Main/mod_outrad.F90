@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_outrad
-      use mod_regcm_param
+      use mod_dynparam
       implicit none
 
       real(4) ,allocatable, dimension(:,:,:) :: frad2d
@@ -31,9 +31,9 @@ contains
         allocate(frad3d(jxp,iym2,kz,nrad3d))
 #else
         allocate(frad2d(jxm2,iym2,nrad2d))
-	allocate(frad3d(jxm2,iym2,kz,nrad3d))
+        allocate(frad3d(jxm2,iym2,kz,nrad3d))
 #endif
 
-	end subroutine allocate_mod_outrad
+        end subroutine allocate_mod_outrad
 
       end module mod_outrad

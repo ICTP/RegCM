@@ -19,7 +19,7 @@
  
       subroutine htdiff(dto2,dxsq,akht1)
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_pmoist
 #ifdef MPP1
       use mod_mppio

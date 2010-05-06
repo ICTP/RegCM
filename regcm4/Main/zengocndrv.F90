@@ -32,7 +32,7 @@
       use mod_constants , only : wlhv , tzero
 
 #ifdef CLM
-      use mod_regcm_param , only : myid , jxp
+      use mod_dynparam , only : myid , jxp
       use clm_varsur , only : landmask
 #endif
 #ifdef DCSST

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine getdat(jslc,h2ommr,clat,cld,clwp,coslat,loctim,o3mmr,  &
+      subroutine getdat(jslc,h2ommr,alat,cld,clwp,coslat,loctim,o3mmr,  &
                       & o3vmr,pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
 !
 !-----------------------------------------------------------------------
@@ -31,7 +31,7 @@
 ! also, from the cloud input (fraction and liquid water path), the
 ! cloud longwave emissivity must be computed; this is done here
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1
       use mod_param3 , only : ncld , ptop , a , sigma
       use mod_main
@@ -44,14 +44,14 @@
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(iym1) :: clat , coslat , loctim , ps , ts
+      real(8) , dimension(iym1) :: alat , coslat , loctim , ps , ts
       real(8) , dimension(iym1,kzp1) :: cld , pilnm1 , pintm1
       real(8) , dimension(iym1,kz) :: clwp , h2ommr , o3mmr , o3vmr ,&
            & pmidm1 , pmlnm1 , qm1 , tm1
       intent (in) jslc
       intent (out) clwp , coslat , loctim , o3vmr , pilnm1 , pmlnm1 ,   &
                  & qm1 , ts
-      intent (inout) clat , cld , h2ommr , o3mmr , pintm1 , pmidm1 ,    &
+      intent (inout) alat , cld , h2ommr , o3mmr , pintm1 , pmidm1 ,    &
                    & ps , tm1
 !
 ! Local variables
@@ -256,8 +256,8 @@
 !KN     added above
 !
         loctim(i) = (calday-aint(calday))*24.
-        clat(i) = rlat(i)*degrad
-        coslat(i) = dcos(clat(i))
+        alat(i) = rlat(i)*degrad
+        coslat(i) = dcos(alat(i))
 !
       end do
 !

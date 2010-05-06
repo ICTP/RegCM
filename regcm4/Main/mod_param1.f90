@@ -19,7 +19,7 @@
 
       module mod_param1
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
  
@@ -31,6 +31,13 @@
       real(8) :: c200 , c201 , c203 
       real(8) :: fnudge , gnudge
       real(8) :: xkhmax , xkhz
-      real(8) , dimension(nsplit) :: dtau
+      real(8) , allocatable , dimension(:) :: dtau
+
+      contains
+
+      subroutine allocate_mod_param1
+      implicit none
+       allocate(dtau(nsplit))
+      end subroutine allocate_mod_param1
 
       end module mod_param1

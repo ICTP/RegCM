@@ -1,6 +1,6 @@
       module mod_clm
 
-      use mod_regcm_param , only : iy , jx , nproc
+      use mod_dynparam , only : iy , jx , nproc
 
       implicit none
 

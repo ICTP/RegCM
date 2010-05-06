@@ -48,7 +48,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_slice
       use mod_main
       implicit none
@@ -143,7 +143,7 @@
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+      use mod_dynparam
       use mod_slice
       use mod_main
       implicit none
@@ -242,7 +242,7 @@
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+      use mod_dynparam
       use mod_slice
       use mod_main
       implicit none
@@ -341,7 +341,7 @@
 !              = jlx  for dot-point   variables                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+      use mod_dynparam
       use mod_slice
       use mod_main
       implicit none

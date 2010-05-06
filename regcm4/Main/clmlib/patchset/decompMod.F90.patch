@@ -5,7 +5,7 @@
    use shr_sys_mod , only : shr_sys_flush
    use abortutils  , only : endrun
 +  use mod_clm
-+  use mod_regcm_param
++  use mod_dynparam
  !
  ! !PUBLIC TYPES:
    implicit none

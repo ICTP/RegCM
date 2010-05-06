@@ -27,7 +27,7 @@
 !                                                 equation 1)
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_ictp01
       use mod_bats
       use mod_constants , only : tzero , c1es , c4ies , c4les , c3ies , &

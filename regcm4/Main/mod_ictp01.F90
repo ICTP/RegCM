@@ -19,14 +19,31 @@
 
       module mod_ictp01
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
-      real(8) , dimension(nnsg,iym1) :: a , b
-      real(8) , dimension(nnsg,iym1) :: ra , rs
-      real(8) , dimension(nnsg,iym1) :: cdrd
-      real(8) , dimension(nnsg,iym1) :: vpdc
-      real(8) , dimension(nnsg,iym1) :: rppq , efe , qsatld , dcd
-      real(8) , dimension(nnsg,iym1) :: etrc
+      real(8) , allocatable , dimension(:,:) :: a , b
+      real(8) , allocatable , dimension(:,:) :: ra , rs
+      real(8) , allocatable , dimension(:,:) :: cdrd
+      real(8) , allocatable , dimension(:,:) :: vpdc
+      real(8) , allocatable , dimension(:,:) :: rppq , efe , qsatld
+      real(8) , allocatable , dimension(:,:) :: dcd , etrc
+
+      contains
+
+      subroutine allocate_mod_ictp01
+      implicit none
+      allocate(a(nnsg,iym1))
+      allocate(b(nnsg,iym1))
+      allocate(ra(nnsg,iym1))
+      allocate(rs(nnsg,iym1))
+      allocate(cdrd(nnsg,iym1))
+      allocate(vpdc(nnsg,iym1))
+      allocate(rppq(nnsg,iym1))
+      allocate(efe(nnsg,iym1))
+      allocate(qsatld(nnsg,iym1))
+      allocate(dcd(nnsg,iym1))
+      allocate(etrc(nnsg,iym1))
+      end subroutine allocate_mod_ictp01
 
       end module mod_ictp01

@@ -23,7 +23,7 @@
 !     provides leaf and stem area parameters;
 !     depends on climate through subsoil temperatures.
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats
       implicit none
 !

@@ -29,7 +29,7 @@
 !     explained in "tend".                                            c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : dt , dtmin , dx4 , nbatst
       use mod_param2
       use mod_param3 , only : dsigma , a , qcon , ptop , k700

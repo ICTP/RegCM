@@ -30,7 +30,7 @@
 !        the total mass.                                              c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param3 , only : ptop , a
       use mod_pmoist
       use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &

@@ -26,7 +26,7 @@
 !
 !     ***   units are si
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param2
       use mod_bats , only : pptnc , pptc , veg2d , veg2d1 , ocld2d ,    &
                   & tg2d , tgb2d , taf2d , tlef2d , swt2d , srw2d ,     &

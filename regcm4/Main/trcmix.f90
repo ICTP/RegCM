@@ -17,9 +17,9 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine trcmix(pmid,clat,coslat,n2o,ch4,cfc11,cfc12)
+      subroutine trcmix(pmid,alat,coslat,n2o,ch4,cfc11,cfc12)
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_tracer
       implicit none
 !
@@ -34,7 +34,7 @@
 !------------------------------input------------------------------------
 !
 ! pmid   - model pressures
-! clat   - current latitude in radians
+! alat   - current latitude in radians
 ! coslat - cosine of latitude
 !
 !------------------------------output-----------------------------------
@@ -50,8 +50,8 @@
 !
       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
            & pmid
-      real(8) , dimension(iym1) :: clat , coslat
-      intent (in) clat , coslat , pmid
+      real(8) , dimension(iym1) :: alat , coslat
+      intent (in) alat , coslat , pmid
       intent (out) cfc11 , cfc12 , ch4 , n2o
 !
 ! Local variables
@@ -72,7 +72,7 @@
 !
       do i = 1 , iym1
 !       set stratospheric scale height factor for gases
-        dlat = dabs(57.2958*clat(i))
+        dlat = dabs(57.2958*alat(i))
         if ( dlat.le.45.0 ) then
           xn2o = 0.3478 + 0.00116*dlat
           xch4 = 0.2353

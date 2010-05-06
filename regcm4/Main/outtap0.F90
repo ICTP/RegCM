@@ -26,12 +26,11 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param2
       use mod_param3 , only : sigma
       use mod_main
       use mod_bats
-      use mod_grads
       use mod_date , only : mdate0
       use mod_constants , only : rgti
 #ifdef MPP1
@@ -58,8 +57,8 @@
       dtr = radisp
       dtc = chemfrq
       write (20,rec=1) mdate0 , ibltyp , icup , ipptls , iboudy , iy ,  &
-                     & jx , kz , sp1d , dxsp , ptsp , clat , clon ,     &
-                     & plat , plon , proj , dto , dtb , dtr , dtc ,     &
+                     & jx , kz , sp1d , ds , ptop , clat , clon ,       &
+                     & plat , plon , iproj , dto , dtb , dtr , dtc ,    &
                      & iotyp, truelatl, truelath
 
       do i = 1 , iym2

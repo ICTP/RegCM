@@ -19,14 +19,29 @@
 
       module mod_diagnosis
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 !
       real(8) :: tdadv , tdini , tqadv , tqeva , tqini , tqrai
 !
-      real(8) , dimension(ntr) :: tchiad , tchie , tchitb
-      real(8) , dimension(ntr,2) :: tremcvc , tremdrd , tremlsc ,       &
-                                  & trxsaq1 , trxsaq2 , trxsg , ttrace
+      real(8) , allocatable , dimension(:) :: tchiad , tchie , tchitb
+      real(8) , allocatable , dimension(:,:) :: tremcvc , tremdrd ,     &
+               & tremlsc , trxsaq1 , trxsaq2 , trxsg , ttrace
+      contains
+
+      subroutine allocate_mod_diagnosis
+      implicit none
+        allocate(tchiad(ntr))
+        allocate(tchie(ntr))
+        allocate(tchitb(ntr))
+        allocate(tremcvc(ntr,2))
+        allocate(tremdrd(ntr,2))
+        allocate(tremlsc(ntr,2))
+        allocate(trxsaq1(ntr,2))
+        allocate(trxsaq2(ntr,2))
+        allocate(trxsg(ntr,2))
+        allocate(ttrace(ntr,2))
+      end subroutine allocate_mod_diagnosis
 
       end module mod_diagnosis

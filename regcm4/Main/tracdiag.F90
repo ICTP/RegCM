@@ -19,7 +19,7 @@
  
       subroutine tracdiag(xkc)
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1
       use mod_param3 , only : dsigma
       use mod_diagnosis

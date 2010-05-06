@@ -24,7 +24,7 @@
 !     recalculate stability dependent drag coefficient for vegetation,
 !     given the neutral drag coefficient.
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats
       use mod_ictp01
       use mod_constants , only : gti , wtur

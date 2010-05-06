@@ -111,7 +111,7 @@
      use fileutils , only : getfil
 +    use domainMod , only : domain_type
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
  !
  ! !ARGUMENTS:
      implicit none
@@ -369,7 +369,7 @@
 +    use clm_varsur, only : landmask,landfrac,satbrt_clm,r2cimask,init_tgb
 +    use clm_varsur, only : glatc,glonc
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
  !
  ! !ARGUMENTS:
      implicit none
@@ -671,7 +671,7 @@
 +    use clm_varsur, only : satbrt_clm,r2cimask
 +!abt above
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
 +!
 +! !ARGUMENTS:
 +    implicit none
@@ -1005,7 +1005,7 @@
 +    use clm_varsur, only : satbrt_clm,r2cimask
 +!abt above
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
 +!
 +! !ARGUMENTS:
 +    implicit none
@@ -1177,7 +1177,7 @@
 +    use clm_varcon, only : grav
 +    use clm_varsur, only : ht_rcm
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
 +!
 +! !ARGUMENTS:
 +    implicit none
@@ -1786,7 +1786,7 @@
 +    use fileutils   , only : getfil
 +    use clm_time_manager, only : get_step_size
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
 +!
 +! !ARGUMENTS:
 +    implicit none
@@ -1979,7 +1979,7 @@
      use pftvarcon   , only : crop, noveg
      use domainMod   , only : domain_type
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
  !
  ! !ARGUMENTS:
      implicit none
@@ -2203,7 +2203,7 @@
 +    use decompMod   , only : adecomp
 +    use clm_varsur  , only : wtxy,satbrt_clm
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
 +!
 +    implicit none
 +    include 'netcdf.inc'
@@ -2461,7 +2461,7 @@
 +    use clm_varsur  , only : clm2bats_veg,clm_fracveg,satbrt_clm
 +    use clm_varsur  , only : landmask
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
 +!
 +    implicit none
 +    include 'netcdf.inc'
@@ -2767,7 +2767,7 @@
 +    use clm_varctl  , only : mksrf_fsoitex
 +    use fileutils   , only : getfil
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
 +!
 +    implicit none
 +    include 'netcdf.inc'

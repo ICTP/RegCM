@@ -5,7 +5,7 @@
    use shr_kind_mod, only: r8 => shr_kind_r8
    use abortutils,   only: endrun
 +  use mod_clm
-+  use mod_regcm_param
++  use mod_dynparam
  !
  ! !PUBLIC TYPES:
    implicit none

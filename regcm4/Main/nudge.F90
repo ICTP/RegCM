@@ -53,7 +53,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bdycod
       use mod_main
       use mod_param3 , only : anudg
@@ -358,7 +358,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_main
       use mod_bdycod
       use mod_param3 , only : anudg
@@ -708,7 +708,7 @@
 !              5 = exponential                                        c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_regcm_param
+      use mod_dynparam
       use mod_main
       use mod_bdycod
       use mod_param3 , only : anudg
@@ -1059,7 +1059,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_main
       use mod_bdycod
       use mod_param3 , only : anudg
@@ -1403,7 +1403,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bdycod
       use mod_main
       use mod_param3 , only : anudg

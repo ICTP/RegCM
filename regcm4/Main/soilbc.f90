@@ -24,7 +24,7 @@
 !   this subrout overwrites many of the soil constants
 !   as a function of location(jlon,jlat)
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats
       implicit none
 !

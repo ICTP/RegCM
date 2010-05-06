@@ -25,12 +25,13 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1
       use mod_param2
       use mod_param3 , only : wgtx , sigma , dsigma , a , anudg , twt , &
                    & qcon , wgtd , akht1 , akht2 , kt , kxout , ncld ,  &
-                   & ptop , ptop4 , kchi , k700 , jxsex , ispgx , ispgd
+                   & ptop , ptop4 , kchi , k700 , jxsex , ispgx ,       &
+                   & ispgd , allocate_mod_param3
       use mod_iunits
       use mod_pmoist
       use mod_bats
@@ -44,26 +45,28 @@
                    & ldatez , idatex , jyear , jyear0 , jyearr , ntime ,&
                    & ktau , ktaur , xtime
       use mod_message
-      use mod_grads
       use mod_constants , only : mathpi , gti , rgti , rgas , vonkar ,  &
                                & cpd , tauht
-      use mod_rad , only: allocate_mod_rad
+      use mod_rad , only : allocate_mod_rad
       use mod_split, only : allocate_mod_split
       use mod_slice, only : allocate_mod_slice
-      use mod_pbldim,    only: allocate_mod_pbldim    
-      use mod_outrad,    only: allocate_mod_outrad  
-      use mod_blh_tmp,  only: allocate_mod_blh_tmp
+      use mod_pbldim, only : allocate_mod_pbldim    
+      use mod_outrad, only : allocate_mod_outrad  
+      use mod_blh_tmp, only : allocate_mod_blh_tmp
+      use mod_aero_param, only : allocate_mod_aero_param
+      use mod_aerosol, only : allocate_mod_aerosol
+      use mod_radbuf, only : allocate_mod_radbuf
+      use mod_dust, only : allocate_mod_dust
+      use mod_bxq, only : allocate_mod_bxq
+      use mod_bdycod, only : allocate_mod_bdycon 
+      use mod_mainchem, only : allocate_mod_mainchem
+      use mod_radbuf, only : allocate_mod_radbuf   
+      use mod_tmpsav, only : allocate_mod_tmpsav 
+      use mod_cvaria , only : allocate_mod_cvaria
+      use mod_ictp01 , only : allocate_mod_ictp01
+      use mod_o3blk , only : allocate_mod_o3blk
 #ifdef MPP1
       use mod_mppio
-      use mod_aerosol, only : allocate_aermod
-      use mod_radbuf, only: allocate_mod_radbuf
-      use mod_dust,    only: allocate_mod_dust
-      use mod_bxq,    only: allocate_mod_bxq
-      use mod_bdycod,   only: allocate_mod_bdycon 
-      use mod_mainchem,  only: allocate_mainchem
-      use mod_radbuf,    only: allocate_mod_radbuf   
-      use mod_tmpsav, only: allocate_mod_tmpsav 
-      use mod_cvaria , only: allocate_mod_cvaria
 #ifndef IBM
       use mpi
 #else 
@@ -74,6 +77,8 @@
 !
 ! Local variables
 !
+      real(4) :: dsx , iclat , iclon , iplat , iplon , ptsp , trl , trh
+      character(6) :: proj
       real(8) :: afracl , afracs , bb , cc , chibot , daymax , delsig , &
                & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
@@ -88,6 +93,12 @@
       real(4) , dimension(kzp1) :: sp1d
       real(4) , dimension(iy,jx) :: sp2d
       real(4) , dimension(iysg,jxsg) :: sp2d1
+      character(5) , dimension(maxntr) :: inpchtrname
+      real(8) , dimension(maxntr) :: inpchtrsol
+      real(8) , dimension(maxntr,2) :: inpchtrdpv
+      real(8) , dimension(maxnbin,2) :: inpchtrsize
+      real(8) , dimension(maxnbin,2) :: inpdustbsiz
+
 #ifdef MPP1
       integer :: ierr
 #endif
@@ -145,10 +156,44 @@
  
 !chem2
       namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
-      & ichcumtra , idirect , mixtype , chtrname , chtrsol , chtrdpv ,  &
-      & dustbsiz
+      & ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
+      & inpchtrdpv , inpdustbsiz
 !chem2_
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 !
+! allocation stuff already enabled for serial version
+!
+      call allocate_mod_aero_param
+      call allocate_mod_aerosol
+      call allocate_mod_bats
+      call allocate_mod_bdycon
+      call allocate_mod_blh_tmp
+      call allocate_mod_bxq
+      call allocate_mod_cvaria
+      call allocate_mod_dust
+      call allocate_mod_ictp01
+      call allocate_mod_main
+      call allocate_mod_mainchem
+      call allocate_mod_outrad
+      call allocate_mod_o3blk
+      call allocate_mod_param1
+      call allocate_mod_param3
+      call allocate_mod_pbldim
+      call allocate_mod_pmoist
+      call allocate_mod_radbuf 
+      call allocate_mod_rad
+      call allocate_mod_slice
+      call allocate_mod_split
+      call allocate_mod_tmpsav 
+      call allocate_mod_trachem
+
+#ifdef DIAG
+      call allocate_mod_diagnosis
+#endif
+
 !----------------------------------------------------------------------
 !-----specify unit numbers for input/output.
 !     units 10,101,14  are input.
@@ -426,29 +471,34 @@
   
 !  
 !-----read in namelist variables:
-      read (*,restartparam)
+      read (ipunit, restartparam)
       print * , 'param: RESTARTPARAM READ IN'
-      read (*,timeparam)
+      read (ipunit, timeparam)
       print * , 'param: TIMEPARAM READ IN'
-      read (*,outparam)
+      read (ipunit, outparam)
       print * , 'param: OUTPARAM READ IN'
-      read (*,physicsparam)
+      read (ipunit, physicsparam)
       print * , 'param: PHYSICSPARAM READ IN'
       if ( ipptls.eq.1 ) then
-        read (*,subexparam)
+        read (ipunit, subexparam)
         print * , 'param: SUBEXPARAM READ IN'
       end if
       if ( icup.eq.2 ) then
-        read (*,grellparam)
+        read (ipunit, grellparam)
         print * , 'param: GRELLPARAM READ IN'
       else if ( icup.eq.4 ) then
-        read (*,emanparam)
+        read (ipunit, emanparam)
         print * , 'param: EMANPARAM READ IN'
       else
       end if
       if ( ichem.eq.1 ) then
-        read (*,chemparam)
+        read (ipunit, chemparam)
         print * , 'param: CHEMPARAM READ IN'
+        chtrname = inpchtrname(1:ntr)
+        chtrdpv = inpchtrdpv(1:ntr,:)
+        chtrsize = inpchtrsize(1:nbin,:)
+        dustbsiz = inpdustbsiz(1:nbin,:)
+        chtrsol = inpchtrsol(1:ntr)
       end if
 !
 #ifdef MPP1
@@ -679,19 +729,18 @@
                             & recl=iysg*jxsg*ibyte)
         open (iutin,file=finm,form='unformatted',status='old',          &
              &access='direct',recl=iy*jx*ibyte)
-        read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dxsp , clat , &
-                                      & clon , plat , plon , grdfac ,   &
+        read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dsx , iclat , &
+                                      & iclon , iplat , iplon , grdfac ,&
                                       & proj , sp1d , ptsp , igra ,     &
-                                      & ibig , truelatl , truelath
+                                      & ibig , trl , trh
         print * , 'param: DIMS' , iyy , jxx , kzz
-        print * , 'param: DOMAIN' , dxsp , clat , clon , plat , plon ,  &
-                  &  grdfac
+        print * , 'param: DOMAIN' , dsx , iclat , iclon , iplat ,      &
+                  & iplon ,  grdfac
         print * , 'param: PROJ' , proj
         print * , 'param: SIGMA' , sp1d
         print * , 'param: PTOP' , ptsp
         print * , 'param: OUTPUT' , igra , ibig
-        ptop = ptsp
-        dx = dxsp
+        dx = dsx
         if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
           write (aline,*) 'param:  SET IN regcm.param:  IY=' , iy ,     &
                  & ' JX=' ,  jx , ' KX=' , kz
@@ -721,18 +770,18 @@
                           & recl=iysg*jxsg*ibyte)
       open (iutin,file=finm,form='unformatted',status='old',            &
            &access='direct',recl=iy*jx*ibyte)
-      read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dxsp , clat ,   &
-                                    & clon , plat , plon , grdfac ,     &
+      read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dsx , iclat ,   &
+                                    & iclon , iplat , iplon , grdfac ,  &
                                     & proj , sp1d , ptsp , igra ,       &
-                                    & ibig , truelatl , truelath
+                                    & ibig , trl , trh
       print * , 'DIMS' , iyy , jxx , kzz
-      print * , 'DOMAIN' , dxsp , clat , clon , plat , plon , grdfac
+      print * , 'DOMAIN' , dsx , iclat , iclon , iplat , iplon , grdfac
       print * , 'PROJ' , proj
       print * , 'SIGMA' , sp1d
       print * , 'PTOP' , ptsp
       print * , 'OUTPUT' , igra , ibig
       ptop = ptsp
-      dx = dxsp
+      dx = dsx
       if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
         write (aline,*) '  SET IN regcm.param:  IY=' , iy , ' JX=' ,    &
                       & jx , ' KX=' , kz
@@ -841,34 +890,9 @@
       write (aline, *) ' '
       call say
 
-!
-! allocation stuff already enabled for serial version
-!
-      call allocate_mod_rad
-      call allocate_mod_split
-      call allocate_mod_pbldim
-      call allocate_mod_outrad
-      call allocate_mod_blh_tmp
-
 #ifdef MPP1
 
-!! allocating a few stuff 
-
-      call allocate_mppio
-      call allocate_mod_main
-      call allocate_aermod
-      call allocate_mod_slice
-      call allocate_mod_bdycon
-      call allocate_mod_bxq
-      call allocate_mod_dust
-      call allocate_mainchem
-      call allocate_mod_pmoist
-      call allocate_mod_radbuf 
-      call allocate_mod_trachem
-      call allocate_mod_tmpsav 
-      call allocate_mod_cvaria
-!!!
-
+      call allocate_mod_mppio
 
       if ( .not.ifrest ) then
         if ( myid.eq.0 ) then
@@ -984,7 +1008,7 @@
           end do
           if ( ierr1.ne.0 ) then
             write (aline,*)                                             &
-             &  '  Check ibyte in  mod_regcm_param.F90  ibyte = ' ,     &
+             &  '  Check ibyte in  mod_dynparam.F90  ibyte = ' ,     &
              & ibyte
             call fatal(__FILE__,__LINE__,'REACHED EOF')
           end if
@@ -1062,7 +1086,7 @@
                &'                ****'
           print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
                &'             ****'
-          print * , '****     PTOP=' , ptsp , ' DX=' , dxsp ,           &
+          print * , '****     PTOP=' , ptsp , ' DX=' , dsx ,            &
                &'       ****'
           print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
                &'    ****'
@@ -1229,7 +1253,7 @@
              &'                ****'
         print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
              &'             ****'
-        print * , '****     PTOP=' , ptsp , ' DX=' , dxsp ,             &
+        print * , '****     PTOP=' , ptsp , ' DX=' , dsx ,              &
              &'       ****'
         print * , '****     CLAT= ' , clat , ' CLON=' , clon ,          &
              &'    ****'

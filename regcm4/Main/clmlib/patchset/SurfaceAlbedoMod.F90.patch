@@ -9,7 +9,7 @@
 +!    use clm_varsur      , only : c2rcosz1d
 +!abt added above
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
  !
  ! !ARGUMENTS:
      implicit none

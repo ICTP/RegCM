@@ -31,7 +31,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_constants , only : ep2 , rga , sslp , rgsslp
       implicit none
 !

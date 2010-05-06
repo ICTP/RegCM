@@ -20,9 +20,9 @@
       module mod_message
 
 #ifdef MPP1
-      use mod_regcm_param , only : myid
+      use mod_dynparam , only : myid
 #endif
-      use mod_regcm_param , only : debug_level
+      use mod_dynparam , only : debug_level
 
       implicit none
 !

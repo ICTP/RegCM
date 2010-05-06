@@ -107,7 +107,7 @@
  ! !INTERFACE:
  subroutine driver2(caldayp1, declinp1, rstwr)
 +  use mod_clm
-+  use mod_regcm_param
++  use mod_dynparam
  !
  ! !ARGUMENTS:
    implicit none
@@ -187,7 +187,7 @@
      use clm_time_manager, only : get_curr_date, get_prev_date, get_step_size
      use clm_varctl  , only : hist_crtinic
 +    use mod_clm
-+    use mod_regcm_param
++    use mod_dynparam
  !
  ! !ARGUMENTS:
      implicit none

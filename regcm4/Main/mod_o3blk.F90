@@ -18,12 +18,12 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_o3blk
-      use mod_regcm_param
+      use mod_dynparam
       implicit none
       real(8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
                                & ppsum , ppwin , ppwrk
       real(8) , dimension(32) :: ppwrkh
-      real(8) , dimension(kzp2) :: prlevh
+      real(8) , allocatable , dimension(:) :: prlevh
 !
       data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
          & 9.895D-8 , 1.175D-7 , 1.399D-7 , 1.677D-7 , 2.003D-7 ,       &
@@ -52,5 +52,12 @@
          & 79.551 , 67.940 , 58.072 , 49.593 , 42.318 , 36.138 ,        &
          & 30.907 , 26.362 , 16.423 , 7.583 , 3.620 , 1.807 , 0.938 ,   &
          & 0.469/
+
+      contains
+
+      subroutine allocate_mod_o3blk
+        implicit none
+        allocate(prlevh(kzp2))
+      end subroutine allocate_mod_o3blk
 
       end module mod_o3blk

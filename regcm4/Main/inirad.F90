@@ -19,7 +19,7 @@
  
       subroutine inirad
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_rad , only : o3prof , heatrt
       use mod_date , only : jyear , jyear0 , ktau
       implicit none

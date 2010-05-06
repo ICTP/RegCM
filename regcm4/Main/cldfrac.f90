@@ -48,7 +48,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_pmoist
       use mod_rad
       use mod_slice

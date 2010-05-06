@@ -19,7 +19,7 @@
  
       subroutine slice3d
  
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param2
       use mod_param3 , only : ptop , sigma , a
       use mod_main

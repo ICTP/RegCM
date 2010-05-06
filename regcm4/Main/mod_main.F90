@@ -19,7 +19,7 @@
 
       module mod_main
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 !
@@ -51,54 +51,54 @@
 #endif
 
 contains 
-	subroutine allocate_mod_main
+        subroutine allocate_mod_main
 
 #ifdef MPP1
 
-	allocate(cldefi(iy,jxp) )
-	allocate(f(iy,jxp) )
-	allocate(hfx(iy,jxp) )
-	allocate(hgfact(iy,jxp) )
-	allocate(htsd(iy,jxp) )
+        allocate(cldefi(iy,jxp) )
+        allocate(f(iy,jxp) )
+        allocate(hfx(iy,jxp) )
+        allocate(hgfact(iy,jxp) )
+        allocate(htsd(iy,jxp) )
         allocate(qfx(iy,jxp) )
-	allocate(rainc(iy,jxp) )
-	allocate(rainnc(iy,jxp) )
-	allocate(tgb(iy,jxp) )
-	allocate(tgbb(iy,jxp) )
-	allocate(xlat(iy,jxp) )
-	allocate(xlong(iy,jxp) )
-	allocate(zpbl(iy,jxp) )
+        allocate(rainc(iy,jxp) )
+        allocate(rainnc(iy,jxp) )
+        allocate(tgb(iy,jxp) )
+        allocate(tgbb(iy,jxp) )
+        allocate(xlat(iy,jxp) )
+        allocate(xlong(iy,jxp) )
+        allocate(zpbl(iy,jxp) )
         
         allocate(ht(iy,0:jxp+1) )
 
-	allocate(msfd(iy,-1:jxp+2))
-	allocate(msfx(iy,-1:jxp+2))
-	allocate(pdotb(iy,-1:jxp+2))
-	allocate(psa(iy,-1:jxp+2))
-	allocate(rainp(iy,-1:jxp+2)) 
+        allocate(msfd(iy,-1:jxp+2))
+        allocate(msfx(iy,-1:jxp+2))
+        allocate(pdotb(iy,-1:jxp+2))
+        allocate(psa(iy,-1:jxp+2))
+        allocate(rainp(iy,-1:jxp+2)) 
 
-	allocate(psb(iy,0:jxp+2))
+        allocate(psb(iy,0:jxp+2))
 
-	allocate(qca(iy,kz,-1:jxp+2) )
-	allocate(qcb(iy,kz,-1:jxp+2) )
-	allocate(qva(iy,kz,-1:jxp+2) )
-	allocate(qvb(iy,kz,-1:jxp+2) )
+        allocate(qca(iy,kz,-1:jxp+2) )
+        allocate(qcb(iy,kz,-1:jxp+2) )
+        allocate(qva(iy,kz,-1:jxp+2) )
+        allocate(qvb(iy,kz,-1:jxp+2) )
         allocate(ta(iy,kz,-1:jxp+2) )
-	allocate(tb(iy,kz,-1:jxp+2) )
-	allocate(ua(iy,kz,-1:jxp+2) )
-	allocate(ub(iy,kz,-1:jxp+2) )
-	allocate(va(iy,kz,-1:jxp+2) )
-	allocate(vb(iy,kz,-1:jxp+2) )
+        allocate(tb(iy,kz,-1:jxp+2) )
+        allocate(ua(iy,kz,-1:jxp+2) )
+        allocate(ub(iy,kz,-1:jxp+2) )
+        allocate(va(iy,kz,-1:jxp+2) )
+        allocate(vb(iy,kz,-1:jxp+2) )
 
 
         allocate(satbrt(iy,jxp+1)) 
-	allocate(tga(iy,jxp+1)) 
+        allocate(tga(iy,jxp+1)) 
         allocate(snowc(nnsg,iy,jxp)) 
         allocate(so4(iy,kz,jxp))
-	allocate(tbase(iy,kz,jxp)) 
+        allocate(tbase(iy,kz,jxp)) 
        
         allocate(uvdrag(iy,0:jxp))
 #endif 
-	end subroutine allocate_mod_main 
+        end subroutine allocate_mod_main 
 
  end module mod_main

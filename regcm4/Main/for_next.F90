@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine for_next
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1
       use mod_param2
       use mod_param3 , only : jxsex , kxout, ncld

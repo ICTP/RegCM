@@ -99,7 +99,7 @@ contains
   use ESMF_Mod
   use perf_mod
   use mod_clm
-  use mod_regcm_param
+  use mod_dynparam
 
 ! !ARGUMENTS:
     implicit none

@@ -42,7 +42,7 @@
 !     resistances for co2 are larger than those for h2o due to
 !                    difference in molecular weight
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : dtbat
       use mod_bats , only : fdry , pbp1d , resp1d , ldoc1d , sigf ,     &
                    & rlai , gwmx0, solis , tlef1d , ssw1d , tg1d ,      &

@@ -27,7 +27,7 @@
 ! ivers = 1 : regcm -> clm
 ! ivers = 2 : clm -> regcm
 !
-      use mod_regcm_param
+      use mod_dynparam
       use clm_varsur,    only : landmask, landfrac
       use clmtype
       use clm_varsur,    only : c2r_allout,omap_i,omap_j

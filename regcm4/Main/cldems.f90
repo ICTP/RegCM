@@ -31,7 +31,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       implicit none
 !
 ! PARAMETER definitions

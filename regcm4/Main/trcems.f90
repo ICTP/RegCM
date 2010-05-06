@@ -22,7 +22,7 @@
                       & uco222,uco223,uptype,w,s2c,up2,emplnk,th2o,tco2,&
                       & to3,emstrc)
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_constants , only : sslp
       implicit none
 !

@@ -19,7 +19,7 @@
  
       subroutine chsrfem
 
-      use mod_regcm_param
+      use mod_dynparam
       use mod_mainchem
       use mod_trachem
       use mod_dust

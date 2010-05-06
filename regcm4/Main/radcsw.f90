@@ -74,7 +74,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param2
       use mod_bats
       use mod_tracer
@@ -239,7 +239,7 @@
 ! tmp2     - Temporary constant array
 ! pdel     - Pressure difference across layer
 ! path     - Mass path of layer
-! ptop     - Lower interface pressure of extra layer
+! xptop    - Lower interface pressure of extra layer
 ! ptho2    - Used to compute mass path of o2
 ! ptho3    - Used to compute mass path of o3
 ! pthco2   - Used to compute mass path of co2
@@ -304,7 +304,7 @@
       real(8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli ,  &
                & dbarii , dbarli , delta , ebarii , ebarli , fbarii ,   &
                & fbarli , h2ostr , o2mmr , path , pdel , psf ,          &
-               & pthco2 , pthh2o , ptho2 , ptho3 , ptop , rdenom ,      &
+               & pthco2 , pthh2o , ptho2 , ptho3 , xptop , rdenom ,     &
                & sqrco2 , tmp1 , tmp1i , tmp1l , tmp2 , tmp2i , tmp2l , &
                & tmp3i , tmp3l , trayoslp , wavmid , wgtint
       real(8) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,        &
@@ -482,13 +482,13 @@
       sqrco2 = sqrt(co2mmr)
       do n = 1 , nloop
         do i = is(n) , ie(n)
-          ptop = pflx(i,1)
-          ptho2 = o2mmr*ptop/gtigts
-          ptho3 = o3mmr(i,1)*ptop/gtigts
-          pthco2 = sqrco2*(ptop/gtigts)
+          xptop = pflx(i,1)
+          ptho2 = o2mmr*xptop/gtigts
+          ptho3 = o3mmr(i,1)*xptop/gtigts
+          pthco2 = sqrco2*(xptop/gtigts)
           h2ostr = sqrt(1./h2ommr(i,1))
           zenfac(i) = sqrt(coszrs(i))
-          pthh2o = ptop**2*tmp1 + (ptop*rga)*(h2ostr*zenfac(i)*delta)
+          pthh2o = xptop**2*tmp1 + (xptop*rga)*(h2ostr*zenfac(i)*delta)
           uh2o(i,0) = h2ommr(i,1)*pthh2o
           uco2(i,0) = zenfac(i)*pthco2
           uo2(i,0) = zenfac(i)*ptho2

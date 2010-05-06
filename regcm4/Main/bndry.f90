@@ -62,7 +62,7 @@
 !
 !  ** note: water and soil parameters are in mm
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_param1 , only : dtbat
       use mod_bats , only : htvp , sdrop , etrrun , flnet , fevpg ,     &
                   & fseng , vegt , efpr , etr , ts1d , ssw1d , tm ,     &

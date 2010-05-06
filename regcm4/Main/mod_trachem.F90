@@ -19,77 +19,99 @@
 
       module mod_trachem
 
-      use mod_regcm_param
+      use mod_dynparam
 
       implicit none
 !
-      character(5) , dimension(ntr) :: chtrname
+      integer , parameter :: maxntr = 20
+      integer , parameter :: maxnbin = 20
+
+      character(5) , allocatable , dimension(:) :: chtrname
 !
-      real(8) , dimension(ntr,2) :: chtrdpv
-      real(8) , dimension(nbin,2) :: chtrsize , dustbsiz
-      real(8) , dimension(ntr) :: chtrsol
+      real(8) , allocatable , dimension(:,:) :: chtrdpv
+      real(8) , allocatable , dimension(:,:) :: chtrsize , dustbsiz
+      real(8) , allocatable , dimension(:) :: chtrsol
 !
       integer :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc ,        &
                & ichsursrc
-#ifdef MPP1
-      integer , allocatable, dimension(:,:) :: icumbot , icumdwd , icumtop
-#else
-      integer , dimension(iy,jx) :: icumbot , icumdwd , icumtop
-#endif
+      integer , allocatable, dimension(:,:) :: icumbot , icumdwd ,      &
+               & icumtop
 !
       integer :: ibchb , ibchl , iochb , iochl , iso2 , iso4 , mixtype
-      integer , dimension(nbin) :: idust
+      integer , allocatable , dimension(:) :: idust
 !
-      real(8) , dimension(iy,2) :: mflx
+      real(8) , allocatable , dimension(:,:) :: mflx
 !
-#ifdef MPP1
-      real(8) , allocatable, dimension(:,:,:) :: aerasp , aerext , aerssa
-      real(8) , allocatable, dimension(:,:) :: aersrrf , aertarf
-#else
-      real(8) , dimension(iym1,kz,jxm1) :: aerasp , aerext , aerssa
-      real(8) , dimension(iym1,jxm1) :: aersrrf , aertarf
-#endif
+      real(8) , allocatable , dimension(:,:,:) :: aerasp , aerext ,     &
+                                & aerssa
+      real(8) , allocatable , dimension(:,:) :: aersrrf , aertarf
 !
-#ifdef MPP1
-      real(8) , allocatable, dimension(:,:,:) :: cemtr , cemtrac , remdrd
-      real(8) , dimension(iy,kz) :: rembc , remrat
-      real(8) , allocatable, dimension(:,:,:,:) :: remcvc , remlsc , rxsaq1 ,  &
-           & rxsaq2 , rxsg
-#else
-      real(8) , dimension(iy,jx,ntr) :: cemtr , cemtrac , remdrd
-      real(8) , dimension(iy,kz) :: rembc , remrat
-      real(8) , dimension(iy,kz,jx,ntr) :: remcvc , remlsc , rxsaq1 ,   &
-           & rxsaq2 , rxsg
-#endif
+      real(8) , allocatable , dimension(:,:,:) :: cemtr , cemtrac ,     &
+                        & remdrd
+      real(8) , allocatable , dimension(:,:) :: rembc , remrat
+      real(8) , allocatable , dimension(:,:,:,:) :: remcvc , remlsc ,   &
+                        & rxsaq1 , rxsaq2 , rxsg
 
 contains
-	subroutine allocate_mod_trachem
-
+        subroutine allocate_mod_trachem
+        use mod_message , only : say , aline
+        implicit none
+        if ( ntr>maxntr ) then
+          write (aline , *) 'In mod_trachem, resetting ntr to maxntr ', &
+                 maxntr
+          call say
+          ntr = maxntr
+        end if
+        if ( nbin>maxnbin ) then
+          write (aline , *) 'In mod_trachem, resetting nbin to maxbin ',&
+                 maxnbin
+          call say
+          nbin = maxnbin
+        end if
 #ifdef MPP1
-	allocate(icumbot(iy,jxp) )
-	allocate(icumdwd(iy,jxp) )
-	allocate(icumtop(iy,jxp) ) 
-
-        allocate(aerasp(iym1,kz,jxp) )
-        allocate(aerext(iym1,kz,jxp) )
-        allocate(aerssa(iym1,kz,jxp) )
-
-        allocate(aersrrf(iym1,jxp) )
-        allocate(aertarf(iym1,jxp) )
-
+        allocate(icumbot(iy,jxp))
+        allocate(icumdwd(iy,jxp))
+        allocate(icumtop(iy,jxp)) 
+        allocate(aerasp(iym1,kz,jxp))
+        allocate(aerext(iym1,kz,jxp))
+        allocate(aerssa(iym1,kz,jxp))
+        allocate(aersrrf(iym1,jxp))
+        allocate(aertarf(iym1,jxp))
         allocate(cemtr(iy,jxp,ntr))
         allocate(cemtrac(iy,jxp,ntr))
         allocate(remdrd(iy,jxp,ntr))
-
         allocate(remcvc(iy,kz,jxp,ntr))
         allocate(remlsc(iy,kz,jxp,ntr))
         allocate(rxsaq1(iy,kz,jxp,ntr))
         allocate(rxsaq2(iy,kz,jxp,ntr))
         allocate(rxsg(iy,kz,jxp,ntr))
-
 #else
-
+        allocate(icumbot((iy,jx))
+        allocate(icumdwd((iy,jx))
+        allocate(icumtop((iy,jx))
+        allocate(aerasp(iym1,kz,jxm1))
+        allocate(aerext(iym1,kz,jxm1))
+        allocate(aerssa(iym1,kz,jxm1))
+        allocate(aersrrf(iym1,jxm1))
+        allocate(aertarf(iym1,jxm1))
+        allocate(cemtr(iy,jx,ntr))
+        allocate(cemtrac(iy,jx,ntr))
+        allocate(remdrd(iy,jx,ntr))
+        allocate(remcvc(iy,kz,jx,ntr))
+        allocate(remlsc(iy,kz,jx,ntr))
+        allocate(rxsaq1(iy,kz,jx,ntr))
+        allocate(rxsaq2(iy,kz,jx,ntr))
+        allocate(rxsg(iy,kz,jx,ntr))
 #endif 
+        allocate(chtrname(ntr))
+        allocate(chtrdpv(ntr,2))
+        allocate(chtrsize(nbin,2))
+        allocate(dustbsiz(nbin,2))
+        allocate(chtrsol(ntr))
+        allocate(idust(nbin))
+        allocate(mflx(iy,2))
+        allocate(rembc(iy,kz))
+        allocate(remrat(iy,kz))
 
         end subroutine allocate_mod_trachem
 

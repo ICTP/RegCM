@@ -24,7 +24,7 @@
 !     dimensional and non-dimensional sensible heat conductances
 !               for canopy and soil flux calculations
 !
-      use mod_regcm_param
+      use mod_dynparam
       use mod_bats , only : vegt , vspda , cdr , lveg , sigf , uaf ,    &
                     & cf , wta , wtlh , wtg , wtshi , wtl0 , wtg0 ,     &
                     & wtgl , wta0 , wtga , ldoc1d , sqrtdi
