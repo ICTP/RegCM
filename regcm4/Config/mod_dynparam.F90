@@ -279,7 +279,7 @@
 
       integer , parameter :: numbat = 21 + 6
       integer , parameter :: numsub = 16
-      integer , parameter :: nrad2d = 22
+      integer , parameter :: nrad2d = 21
       integer , parameter :: nrad3d = 5
 
       contains
