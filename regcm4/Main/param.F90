@@ -67,6 +67,9 @@
       use mod_o3blk , only : allocate_mod_o3blk
 #ifdef MPP1
       use mod_mppio
+#ifdef CLM
+      use mod_clm , only : allocate_mod_clm
+#endif
 #ifndef IBM
       use mpi
 #else 
@@ -192,6 +195,10 @@
 
 #ifdef DIAG
       call allocate_mod_diagnosis
+#endif
+
+#ifdef CLM
+      call allocate_mod_clm
 #endif
 
 !----------------------------------------------------------------------

@@ -1,9 +1,9 @@
 include ../Makefile.inc
 
 # Set to 1 to enable CLM coupling
-USECLM = 0
+USECLM = 1
 # Set to 1 to enable daily cycle SST
-USEDCSST = 0
+USEDCSST = 1
 # Set to 1 to enable Sea Ice effects
 USESEAICE = 0
 
@@ -129,7 +129,7 @@ mod_bdycod.o: mod_bdycod.F90 mod_dynparam.o
 mod_blh_tmp.o: mod_blh_tmp.F90 mod_dynparam.o
 mod_bmparam.o: mod_bmparam.f90
 mod_bxq.o: mod_bxq.F90 mod_dynparam.o
-mod_clm.o: mod_clm.f90 mod_dynparam.o
+mod_clm.o: mod_clm.F90 mod_dynparam.o
 mod_comctl.o: mod_comctl.f90
 mod_comozp.o: mod_comozp.f90
 mod_comtim.o: mod_comtim.f90
