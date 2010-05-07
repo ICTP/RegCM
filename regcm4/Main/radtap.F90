@@ -37,6 +37,7 @@
 ! Local variables
 !
       integer :: i , j , k , n
+      real(4) , dimension(jxm2,iym2) :: radpsa
 !
 !
 !     Radiation resolution and I/O parameters
@@ -45,6 +46,17 @@
 !     converting units from cgs to mks
 !
       print * , 'Writing rad fields at ktau = ' , ktau , idatex
+      do i = 1 , iym2
+        do j = 1 , jxm2
+#ifdef MPP1
+          radpsa(j,i) = (psa_io(i+1,j+1)+ptop)*10.
+#else
+          radpsa(j,i) = (psa(i+1,j+1)+ptop)*10.
+#endif
+        end do
+      end do
+
+
       if ( iotyp.eq.1 ) then
         do n = 1 , nrad3d
           if ( n.ne.1 ) then
@@ -60,15 +72,6 @@
             end do
           end if
         end do
-        do j = 1 , jxm2
-          do i = 1 , iym2
-#ifdef MPP1
-            frad2d_io(j,i,22) = (psa_io(i+1,j+1)+ptop)*10.
-#else
-            frad2d(j,i,22) = (psa(i+1,j+1)+ptop)*10.
-#endif
-          end do
-        end do
         do n = 1 , nrad2d
           if ( n.lt.10 .or. n .eq. 22 ) then
                             ! skip everything from alb (10 to 21)
@@ -82,6 +85,8 @@
 #endif
           end if
         end do
+        nrcrad = nrcrad + 1
+        write (iutrad,rec=nrcrad) ((radpsa(j,i),j=1,jxm2),i=1,iym2)
       else if ( iotyp.eq.2 ) then
         write (iutrad) idatex
         do n = 1 , nrad3d
@@ -105,6 +110,7 @@
 #endif
                             ! skip everything from alb (10 to 21)
         end do
+        write (iutrad) ((radpsa(j,i),j=1,jxm2),i=1,iym2)
       else
       end if
  
