@@ -307,7 +307,7 @@
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
 !=======================================================================
-!         frad2d, frad3d
+!         frad2d, frad3d , psa
           do n = 1 , nrad2d
             do j = 1 , jxp
               do i = 1 , iym2
@@ -328,6 +328,9 @@
                         & mpi_real4,rad_0(1,1,1),(iym2)                 &
                         & *(nrad3d*kz+nrad2d)*jxp,mpi_real4,0,          &
                         & mpi_comm_world,ierr)
+         call mpi_gather(psa(1,1), iy*jxp,mpi_real8,                    &
+                        & psa_io(1,1),iy*jxp,mpi_real8,                 &
+                        & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do n = 1 , nrad2d
               do j = 1 , jxm2
