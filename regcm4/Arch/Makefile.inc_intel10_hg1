@@ -22,16 +22,20 @@ NETCDFINC = -I$(NETCDF_INC)
 # PREPROCESSOR AND COMPILER OPTIONS
 
 # Use this variable to enable the parallel version of the code
-# serial version : PARALLEL = ""
-# parallel version : PARALLEL = "MPP1"
+# Serial version   : leave commented
+# parallel version : uncomment the line
 
-PARALLEL = "MPP1"
+PARALLEL = MPP1
 
 # Add further preprocessor flags, if necessary. Those available are:
 # -DIBM : to compile using IBM xlf compiler
-# -DDIAG : to compile enabling Diagnostic capabilities (?) 
+# -DDIAG : to compile enabling Diagnostic capabilities (?)
 
-CPPFLAGS = -D$(PARALLEL)
+CPFLAGS =
+
+ifneq ($(origin PARALLEL), undefined)
+CPPFLAGS += -D$(PARALLEL)
+endif
 
 # Specific compiler flags (eg.: optimization / debugging) 
 # IMPORTANT : Check that your compiler complies with this RegCM features:
