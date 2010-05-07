@@ -26,9 +26,6 @@
       use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : ptop , sigma
       use mod_message , only : aline , say
-#ifdef DCSST
-      use mod_bats , only : inidcsst
-#endif
 #ifdef MPP1
       use mpi
       use mod_message , only : fatal
@@ -165,6 +162,7 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
+!**********************************************************************
 !
 !     Read input global namelist
 !
@@ -180,9 +178,11 @@
         stop
       end if
 
-!**********************************************************************
-
 #ifdef MPP1
+!**********************************************************************
+!
+!     MPI Initialization
+!
       call mpi_init(ierr)
       call mpi_comm_rank(mpi_comm_world,myid,ierr)
       call mpi_comm_size(mpi_comm_world,ncpu,ierr)
@@ -236,41 +236,52 @@
 #else
       myid = 0
 #endif
-!!
-      call header(myid)
+
+!**********************************************************************
 !
-!-----set up parameters:
+!     RegCM V4 printout header
+!
+      call header(myid)
+
+!**********************************************************************
+!
+!     Parameter Setup
 !
       extime = 0.
-      dtinc = 0.
-      iexec = 1
+      dtinc  = 0.
+      iexec  = 1
       iexecn = 1
-!
       call param
+
+!**********************************************************************
 !
-!-----read in initial data:
+!     Read initial data and setup boundary condition
 !
       call init
  
       call bdyin
-!
-      call spinit(ptop,sigma,kzp1)
-!
-!chem2
-      if ( ichem.eq.1 ) call chsrfem
-!chem2_
  
+      call spinit(ptop,sigma,kzp1)
+ 
+      if ( ichem.eq.1 ) call chsrfem
+ 
+!**********************************************************************
+!
+!     Write initial state to output
+!
       call output(iexec)
-      do
+
+!**********************************************************************
 !
-!-----begin forecast:
+!     Time Loop : begin Forecast
 !
+      do while ( nnnnnn.lt.nnnend )
 !
-!-----read in boundary conditions:
+!       Read in boundary conditions if needed
 !
         if ( nnnnnn.gt.nnbase ) call bdyin
 !
-!.....refined start:
+!       Refined start
 !
         if ( .not.ifrest ) then
           if ( rfstrt ) then
@@ -284,51 +295,61 @@
           end if
         end if
 !
+!       Compute tendencies
+!
         call tend(iexec)
+!
+!       Split modes
 !
         call splitf
 !
-!-----output:
+!       Write output for this timestep
 !
         call output(iexec)
 !
+!       Increment time
+!
         extime = extime + dtinc
-!       print*,nnnnnn,nnnend
-        if ( nnnnnn.ge.nnnend ) then
-          write (aline, 99002) xtime , ktau , jyear
-          call say
-!
-!-----set length of next run (auto-restart option)
-!
-!         xchar = 't'
-          idate1 = idate2
-          idate2 = mdatez(nnnend+nslice)
-          write (aline, *) ' *** new max DATE will be ' , idate2
-          call say
 
-#ifdef MPP1
-          if ( myid.eq.0 ) then
-            call for_next
-          end if
-          call mpi_finalize(ierr)
-#else
-          call for_next
-#endif
-!         endtime = MPI_WTIME()
-!         print *,"The Program took  ",endtime-starttime," secondes"
-#ifdef CLM
-          call t_prf('timing_all',mpicom)
-          call t_finalizef()
-#endif
-          stop 99999
-        end if
       end do
 
+!
+!     Simulation completed
+!
+      write (aline, 99002) xtime , ktau , jyear
+      call say
+!
+!     Set length of next run (auto-restart option)
+!
+      idate1 = idate2
+      idate2 = mdatez(nnnend+nslice)
+      write (aline, *) ' *** new max DATE will be ' , idate2
+      call say
+
+#ifdef MPP1
+      if ( myid.eq.0 ) then
+        call for_next
+      end if
+      call mpi_finalize(ierr)
+#else
+      call for_next
+#endif
+!     endtime = MPI_WTIME()
+!     print *,"The Program took  ",endtime-starttime," secondes"
+#ifdef CLM
+      call t_prf('timing_all',mpicom)
+      call t_finalizef()
+#endif
+
+      if ( myid.eq.0 ) then
+        print *, 'RegCM V4 simulation successfully reached end'
+      end if
+
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
-             &' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
-             &i7,' in year ',i4)
+            & ' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
+            & i7,' in year ',i4)
 99002 format (                                                          &
-          &' ***** restart file for next run is written at time     = ',&
-          &f10.2,' minutes, ktau = ',i7,' in year ',i4)
+         & ' ***** restart file for next run is written at time     = ',&
+         & f10.2,' minutes, ktau = ',i7,' in year ',i4)
 
       end program regcm
