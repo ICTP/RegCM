@@ -127,6 +127,9 @@
 
       subroutine allocate_mod_clm
       implicit none
+!     About the dimension ordering:
+!     regcm: ix=lat,jx=lon, arrays are lat by lon
+!     clm: i=lon, j=lat, arrays are lon by lat
 #ifdef MPP1
       allocate(clmspace(jx,iy,45))
       r2ctb_all     => clmspace(:,:,1)

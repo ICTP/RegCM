@@ -134,6 +134,8 @@
 ! which CLM does not use
 
             lveg(n,i) = nint(veg2d1(n,i,j))
+            if ( lveg(n,i)<1 )    lveg(n,i) = 1
+            if ( lveg(n,i)>nveg ) lveg(n,i) = nveg
             albs = albvgs(lveg(n,i))
             albl = albvgl(lveg(n,i))
  

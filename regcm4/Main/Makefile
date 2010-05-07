@@ -1,15 +1,33 @@
 include ../Makefile.inc
 
+destdir = ../Run
+prgsuffix = S
+
+# check if we need the MPI wrapper 
+ifneq ($(origin PARALLEL), undefined)
+  F90 = $(MPIF90)
+  prgsuffix = M
+endif  
+
 # Set to 1 to enable CLM coupling
-USECLM = 1
+USECLM = 0
 # Set to 1 to enable daily cycle SST
-USEDCSST = 1
+USEDCSST = 0
 # Set to 1 to enable Sea Ice effects
 USESEAICE = 0
 
 SCENARIO = A1B
 
-all:: regcm
+ifeq ($(USECLM),1)
+CLMPTH = ./clmlib
+CLMLIB = $(CLMPTH)/libclm.a
+#all:: $(CLMLIB) program
+all:: program
+prgsuffix = _clM
+else
+CLMLIB =
+all:: program
+endif
 
 SHROBJS = mod_constants.o mod_dynparam.o mod_bats_param.o
 
@@ -33,8 +51,8 @@ clm_comp.o       clmtype.o        perf_mod.o      clm_time_manager.o \
 restFileMod.o
 
 OBJS =            cup.o         isrchfgt.o  radclw.o    tractend2.o  \
-                  depth.o       isrchfle.o  radcsw.o    trcab.o      \
-                  deriv.o       lakedrv.o   radctl.o    trcabn.o     \
+intmax.o          depth.o       isrchfle.o  radcsw.o    trcab.o      \
+radabs.o          deriv.o       lakedrv.o   radctl.o    trcabn.o     \
 albedov.o         diffu.o       lake.o      radded.o    trcems.o     \
 radclr.o          diffut.o      lenchr.o    radems.o    trcmix.o     \
 bdyin.o           dragdn.o      lfdrag.o    radini.o    trcplk.o     \
@@ -45,7 +63,7 @@ bmpara.o          eddy.o        lshfch.o    radtap.o    vadv.o       \
 bndry.o           eispack.o     lutbl.o     radtpl.o    vcheke.o     \
 carbon.o          eomb.o        mapsmp.o    regcm.o     vcheki.o     \
 chdrydep.o        finddate.o    maximi.o    reorder.o   vchekt.o     \
-chemtap.o         for_next.o                root.o      vcover.o     \
+chemtap.o         for_next.o    tracbud.o   root.o      vcover.o     \
 chrsetc.o         frawat.o      minimi.o    satur.o     vecbats.o    \
 chsrfem.o         getdat.o      mixer.o     slice1D.o   vmodes.o     \
 cldefr.o          grads_stuf.o  mkfile.o    slice3D.o   vmultm.o     \
@@ -53,44 +71,39 @@ cldems.o          hadv.o        nconvp.o    snow.o      vnorml.o     \
 cldfrac.o         header.o      nudge.o     soilbc.o    vorder.o     \
 co2.o             holtbl.o      o3data.o    solar1.o    vtlaps.o     \
 colmod3.o         htdiff.o      outprt.o    spinit.o    water.o      \
-conadv.o          ice.o         output.o    spline.o                 \
-condch.o          tracdiag.o    outsav.o    splitf.o                 \
-condcq.o          inidust.o     outsrf.o    sponge.o                 \
-condtq.o          inirad.o      outsub.o    spstep.o                 \
+conadv.o          ice.o         output.o    spline.o    cupeman.o    \
+condch.o          tracdiag.o    outsav.o    splitf.o    invmtrx.o    \
+condcq.o          inidust.o     outsrf.o    sponge.o    cupemandrv.o \
+condtq.o          inirad.o      outsub.o    spstep.o    tpfc.o       \
 conmas.o          initb.o       outtap0.o   stomat.o    zengocndrv.o \
 convect_tables.o  initdate.o    outtap.o    temp.o      zengocn.o    \
 cumtran.o         init.o        param.o     tend.o      zenith.o     \
 cupara.o          initlk.o      pcp.o       tgrund.o    zenitm.o     \
-cuparan.o         interf.o      printsp.o   tpfc.o      cupemandrv.o \
-intmax.o          radabs.o      tracbud.o   cupeman.o   invmtrx.o
-
-
-# check if we need the MPI wrapper 
-ifneq ($(PARALLEL),"")
-  F90=$(MPIF90)
-endif  
+cuparan.o         interf.o      printsp.o
 
 ifeq ($(USECLM),1)
-  CLMPTH = ./clmlib
   CPPFLAGS += -DCLM
   MODOBJS += mod_clm.o
   OBJS += initclm.o interfclm.o mod_clm.o mtrxclm.o solar1clm.o albedoclm.o
   LIB += -L$(CLMPTH) -lclm
-  CLMLIB = $(CLMPTH)/libclm.a
 else
-  CLMLIB =
-endif
-
 ifeq ($(USEDCSST),1)
   CPPFLAGS += -DDCSST
+  dcsstsuffix = _ds
 endif
-
 ifeq ($(USESEAICE),1)
   CPPFLAGS += -DSEAICE
+  seaicesuffix = _si
+endif
 endif
 
-$(CLMPTH)/libclm.a: mod_clm.o mod_dynparam.o
-	cd $(CLMPTH) && touch patchset/* && make patchsrc && make
+program: regcm
+	@install -m755 regcm \
+          $(destdir)/regcm$(prgsuffix)$(dcsstsuffix)$(seaicesuffix)
+	@echo "Executable is installed now in $(destdir)"
+
+$(CLMPTH)/libclm.a: mod_dynparam.o mod_clm.o
+	make -C $(CLMPTH)
 
 regcm: $(SHROBJS) $(CLMLIB) $(MODOBJS) $(OBJS)
 	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) $(SHROBJS)\
@@ -187,8 +200,7 @@ chemtap.o: chemtap.F90 mod_date.o mod_iunits.o mod_main.o mod_mainchem.o \
 chrsetc.o: chrsetc.f90
 ifeq ($(USECLM),1)
 chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
-           mod_message.o mod_dynparam.o mod_trachem.o \
-        $(CLMPTH)/clm_varsur.o $(CLMPTH)/surfrdMod.o
+           mod_message.o mod_dynparam.o mod_trachem.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
@@ -259,7 +271,7 @@ init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
         mod_diagnosis.o mod_iunits.o mod_main.o mod_mainchem.o mod_message.o \
         mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
         mod_radbuf.o mod_dynparam.o mod_tmpsav.o mod_trachem.o \
-        $(CLMPTH)/clm_varsur.o
+        $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
@@ -305,8 +317,7 @@ output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_iunits.o mod_main.o mod_mainchem.o mod_message.o mod_outrad.o \
           mod_param1.o mod_param2.o mod_pmoist.o mod_rad.o \
           mod_radbuf.o mod_dynparam.o mod_split.o mod_tmpsav.o \
-          mod_trachem.o $(CLMPTH)/clm_varctl.o $(CLMPTH)/restFileMod.o \
-          $(CLMPTH)/clm_time_manager.o
+          mod_trachem.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
@@ -359,11 +370,11 @@ radtap.o: radtap.F90 mod_date.o mod_iunits.o mod_outrad.o mod_param1.o \
 radtpl.o: radtpl.f90 mod_dynparam.o mod_constants.o
 ifeq ($(USECLM),1)
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
-         mod_dynparam.o $(CLMPTH)/perf_mod.o $(CLMPTH)/spmdMod.o
+         mod_param3.o mod_dynparam.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
-         mod_dynparam.o
+         mod_param3.o mod_dynparam.o
 endif
 reorder.o: reorder.f90
 root.o: root.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_dynparam.o
@@ -389,7 +400,7 @@ tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
         mod_cvaria.o mod_date.o mod_main.o mod_mainchem.o mod_message.o \
         mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
         mod_dynparam.o mod_slice.o mod_trachem.o mod_interfaces.o mod_clm.o \
-        $(CLMPTH)/clm_varsur.o
+        $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
@@ -432,7 +443,7 @@ zengocn.o: zengocn.f90 mod_constants.o
 ifeq ($(USECLM),1)
 zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_slice.o \
-              mod_bdycod.o mod_interfaces.o $(CLMPTH)/clm_varsur.o
+              mod_bdycod.o mod_interfaces.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
@@ -441,30 +452,22 @@ zengocndrv.o: zengocndrv.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
 endif
 zenith.o: zenith.f90 mod_constants.o
 ifeq ($(USECLM),1)
-zenitm.o: zenitm.F90 mod_dynparam.o mod_clm.o $(CLMPTH)/shr_orb_mod.o \
-          $(CLMPTH)/clm_time_manager.o mod_date.o
+zenitm.o: zenitm.F90 mod_dynparam.o mod_clm.o mod_date.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 zenitm.o: zenitm.F90 mod_constants.o mod_date.o mod_main.o mod_dynparam.o
 endif
-initclm.o: initclm.F90 $(CLMPTH)/initializeMod.o $(CLMPTH)/shr_orb_mod.o \
-           $(CLMPTH)/shr_kind_mod.o $(CLMPTH)/clm_varpar.o \
-           $(CLMPTH)/clm_varsur.o $(CLMPTH)/atmdrvMod.o $(CLMPTH)/spmdMod.o \
-           $(CLMPTH)/program_offMod.o $(CLMPTH)/clm_comp.o \
-           $(CLMPTH)/clmtype.o $(CLMPTH)/perf_mod.o \
-           mod_constants.o mod_dynparam.o mod_param1.o \
-           mod_date.o mod_param2.o mod_param3.o mod_clm.o mod_bats.o \
-           mod_mppio.o mod_main.o mod_pbldim.o mod_slice.o
+initclm.o: initclm.F90 $(CLMLIB) mod_constants.o mod_dynparam.o mod_param1.o \
+           mod_mppio.o mod_date.o mod_param2.o mod_param3.o mod_clm.o \
+           mod_bats.o mod_mppio.o mod_main.o mod_pbldim.o mod_slice.o
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 interfclm.o: interfclm.F90 $(CLMPTH)/clm_varsur.o $(CLMPTH)/clmtype.o \
              mod_clm.o mod_dynparam.o mod_date.o mod_main.o mod_param1.o \
              mod_param2.o mod_param3.o mod_slice.o mod_pbldim.o mod_bats.o \
-             mod_constants.o
+             mod_constants.o mod_mppio.o mod_interfaces.o
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
-mtrxclm.o: mtrxclm.F90 $(CLMPTH)/atmdrvMod.o $(CLMPTH)/clm_comp.o \
-           $(CLMPTH)/shr_kind_mod.o mod_message.o mod_clm.o
+mtrxclm.o: mtrxclm.F90 $(CLMLIB) mod_message.o mod_clm.o
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
-solar1clm.o: solar1clm.f90 $(CLMPTH)/shr_orb_mod.o $(CLMPTH)/clm_varsur.o \
-             $(CLMPTH)/shr_kind_mod.o mod_clm.o mod_message.o mod_date.o \
+solar1clm.o: solar1clm.f90 $(CLMLIB) mod_clm.o mod_message.o mod_date.o \
              mod_constants.o
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<

@@ -70,25 +70,37 @@ surfrdMod.F90 system_messages.F90 threadutil.c wrf_error_fatal.F90 \
 wrf_message.F90
 
 PATCHSRC = \
-accFldsMod.F90 atmdrvMod.F90 BalanceCheckMod.F90 BareGroundFluxesMod.F90 \
-Biogeophysics2Mod.F90 BiogeophysicsLakeMod.F90 CanopyFluxesMod.F90 \
+accFldsMod.F90 atmdrvMod.F90 BareGroundFluxesMod.F90 \
+BalanceCheckMod.F90 BiogeophysicsLakeMod.F90 CanopyFluxesMod.F90 \
 clm_atmlnd.F90 clm_comp.F90 clmtype.F90 clmtypeInitMod.F90 clm_varctl.F90 \
-clm_varpar.F90 clm_varsur.F90 controlMod.F90 decompMod.F90 driver.F90 \
-histFileMod.F90 histFldsMod.F90 initGridCellsMod.F90 initializeMod.F90 \
-iniTimeConst.F90 mkarbinitMod.F90 perf_mod.F90 restFileMod.F90 \
-shr_orb_mod.F90 STATICEcosysDynMod.F90 subgridMod.F90 SurfaceAlbedoMod.F90 \
-surfrdMod.F90 VOCEmissionMod.F90
+clm_varpar.F90 clm_varsur.F90 controlMod.F90 decompMod.F90 \
+driver.F90 histFileMod.F90 histFldsMod.F90 initializeMod.F90 \
+initGridCellsMod.F90 iniTimeConst.F90 mkarbinitMod.F90 perf_mod.F90 \
+restFileMod.F90 shr_orb_mod.F90 STATICEcosysDynMod.F90 subgridMod.F90 \
+SurfaceAlbedoMod.F90 surfrdMod.F90 VOCEmissionMod.F90 clm_time_manager.F90 \
+abortutils.F90 Meat.F90 wrf_error_fatal.F90 wrf_message.F90 \
+scam_setlatlonidx.F90 gptl.c gptl_papi.c gptlutil.c f_wrappers.c \
+threadutil.c mkarbinitMod.F90 getdatetime.F90 snowdp2lev.F90 \
+do_close_dispose.F90
 
-OBJS = $(addsuffix .o, $(basename $(SRCS)))
+NEWSRC = \
+clm_varvoc.F90 program_offMod.F90 VOCRestMod.F90
+
+#OBJS = $(addsuffix .o, $(basename $(SRCS)))
+OBJS = $(addsuffix .o, $(basename $(PATCHSRC))) \
+       $(addsuffix .o, $(basename $(NEWSRC)))
 
 all: libclm.a
 
 libclm.a: $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(AR) $(ARFLAGS) $@ *.o
 
 ESMF_INCLUDE = $(CLMSRC)/src/utils/esmf_wrf_timemgr
 UTIL_INCLUDE = $(CLMSRC)/src/utils/timing/
 GLOB_INCLUDE = .
+
+CC = mpicc
+CFLAGS = -O2 -g
 
 CPPFLAGS += -DMAXPATCH_PFT=4 -DOFFLINE -DFORTRANUNDERSCORE -DLINUX
 F90FLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
@@ -113,17 +125,9 @@ atmdrvMod.F90: patchset/atmdrvMod.F90.patch
 	cp -f $(CLMSRC)/src/main/atmdrvMod.F90 .
 	patch -p1 -i patchset/atmdrvMod.F90.patch
 
-BalanceCheckMod.F90: patchset/BalanceCheckMod.F90.patch
-	cp -f $(CLMSRC)/src/biogeophys/BalanceCheckMod.F90 .
-	patch -p1 -i patchset/BalanceCheckMod.F90.patch
-
 BareGroundFluxesMod.F90: patchset/BareGroundFluxesMod.F90.patch
 	cp -f $(CLMSRC)/src/biogeophys/BareGroundFluxesMod.F90 .
 	patch -p1 -i patchset/BareGroundFluxesMod.F90.patch
-
-Biogeophysics2Mod.F90: patchset/Biogeophysics2Mod.F90.patch
-	cp -f $(CLMSRC)/src/biogeophys/Biogeophysics2Mod.F90 .
-	patch -p1 -i patchset/Biogeophysics2Mod.F90.patch
 
 BiogeophysicsLakeMod.F90: patchset/BiogeophysicsLakeMod.F90.patch
 	cp -f $(CLMSRC)/src/biogeophys/BiogeophysicsLakeMod.F90 .
@@ -180,10 +184,6 @@ histFileMod.F90: patchset/histFileMod.F90.patch
 histFldsMod.F90: patchset/histFldsMod.F90.patch
 	cp -f $(CLMSRC)/src/main/histFldsMod.F90 .
 	patch -p1 -i patchset/histFldsMod.F90.patch
-
-initGridCellsMod.F90: patchset/initGridCellsMod.F90.patch
-	cp -f $(CLMSRC)/src/main/initGridCellsMod.F90 .
-	patch -p1 -i patchset/initGridCellsMod.F90.patch
 
 initializeMod.F90: patchset/initializeMod.F90.patch
 	cp -f $(CLMSRC)/src/main/initializeMod.F90 .

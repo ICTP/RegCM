@@ -131,7 +131,7 @@
 !     don't write to NCAR Mass Store
       r2cmss_irt = 0
 !     clm output frequency
-      r2coutfrq = clmfrq
+      r2coutfrq = batfrq
 !     radiation calculation frequency
 !     regcm: radfrq is in minutes
 !     clm: irad is (+) iterations or (-) hours

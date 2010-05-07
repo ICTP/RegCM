@@ -105,6 +105,9 @@
 #ifdef MPP1
       integer :: ierr
 #endif
+#ifndef CLM
+      integer :: imask
+#endif
 !
 !
 !----------------------------------------------------------------------
@@ -126,24 +129,12 @@
       namelist /timeparam/ radfrq , abatm , abemh , dt , ibdyfrq
  
 !chem2
-#ifdef CLM
-      namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
-      & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
-      & batfrq , iotyp , ibintyp , ifchem , chemfrq , clmfrq
-#else
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
       & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
       & batfrq , iotyp , ibintyp , ifchem , chemfrq
-#endif
-!
 !chem2
-#ifdef CLM
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem , imask
-#else
-      namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
-      & iemiss , lakemod , ipptls , iocnflx , ichem
-#endif
 !chem2_
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -466,7 +457,6 @@
       mixtype = 1
 #ifdef CLM
 !c------CLM Specific
-      clmfrq = 0
       imask = 2
 #endif
 
@@ -556,7 +546,6 @@
       call mpi_bcast(ichem,1,mpi_integer,0,mpi_comm_world,ierr)
  
 #ifdef CLM
-      call mpi_bcast(clmfrq,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(imask,1,mpi_integer,0,mpi_comm_world,ierr)
 #endif
 
