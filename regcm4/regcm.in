@@ -51,7 +51,7 @@
  /
  &globdatparam
  ssttyp = 'OI_WK',
- dattyp = 'EIN15',
+ dattyp = 'ERAIN',
  ehso4 = .false.,
  globidate1 = 1990060100,
  globidate2 = 1990070100,

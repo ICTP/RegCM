@@ -38,7 +38,7 @@ PARALLEL = MPP1
 # -DIBM : to compile using IBM xlf compiler
 # -DDIAG : to compile enabling Diagnostic capabilities (?)
 
-CPFLAGS = -WF,-DIBM
+CPPFLAGS = -WF,-DIBM
 
 ifneq ($(origin PARALLEL), undefined)
 CPPFLAGS += -WF,-D$(PARALLEL)

@@ -5,7 +5,7 @@ include Makefile.inc
 HOST = @host@
 
 
-#all: terrain icbc regcm
+all: terrain icbc regcm
 printall:
 	@echo ' this is Makefile for Regcm4 package: supported actions are: '
 	@echo '  --- make data: to create DATA link '
