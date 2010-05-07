@@ -1,3 +1,22 @@
+# Makefile for Main regcm Model
+
+###########################################################################
+# CONFIGURABLE PATAMETERS
+###########################################################################
+
+# Set to 1 to enable CLM coupling
+USECLM = 1
+# Set to 1 to enable daily cycle SST
+USEDCSST = 0
+# Set to 1 to enable Sea Ice effects
+USESEAICE = 0
+
+SCENARIO = A1B
+
+###########################################################################
+# END CONFIGURABLE PARAMETERS
+###########################################################################
+
 include ../Makefile.inc
 
 destdir = ../Run
@@ -9,20 +28,10 @@ ifneq ($(origin PARALLEL), undefined)
   prgsuffix = M
 endif  
 
-# Set to 1 to enable CLM coupling
-USECLM = 0
-# Set to 1 to enable daily cycle SST
-USEDCSST = 0
-# Set to 1 to enable Sea Ice effects
-USESEAICE = 0
-
-SCENARIO = A1B
-
 ifeq ($(USECLM),1)
 CLMPTH = ./clmlib
 CLMLIB = $(CLMPTH)/libclm.a
-#all:: $(CLMLIB) program
-all:: program
+all:: $(CLMLIB) program
 prgsuffix = _clM
 else
 CLMLIB =
@@ -103,6 +112,10 @@ program: regcm
 	@echo "Executable is installed now in $(destdir)"
 
 $(CLMPTH)/libclm.a: mod_dynparam.o mod_clm.o
+ifeq ($(origin PARALLEL), undefined)
+	@echo "ERROR: CLM wants PARALLEL activated"
+	@exit 1
+endif
 	make -C $(CLMPTH)
 
 regcm: $(SHROBJS) $(CLMLIB) $(MODOBJS) $(OBJS)
