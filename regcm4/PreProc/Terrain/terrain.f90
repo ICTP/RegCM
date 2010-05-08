@@ -249,7 +249,7 @@
 !
         maxiter = (xmaxlat-xminlat)/xnc
         maxjter = (xmaxlon-xminlon)/xnc
-        maxdim = max(maxiter,maxjter) + 500
+        maxdim = max(maxiter,maxjter) + 1000
         print *, 'Allocating ' , maxdim
         call allocate_block(maxdim,maxdim)
 !
@@ -456,7 +456,7 @@
 
       maxiter = (xmaxlat-xminlat)/xnc
       maxjter = (xmaxlon-xminlon)/xnc
-      maxdim = max(maxiter,maxjter) + 500
+      maxdim = max(maxiter,maxjter) + 1000
       print *, 'Allocating ' , maxdim
       call allocate_block(maxdim,maxdim)
 !
