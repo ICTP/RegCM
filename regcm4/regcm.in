@@ -1,3 +1,9 @@
+ &dimparam
+ iy     = 34,
+ jx     = 48,
+ kz     = 18,
+ nsg    = 1,
+ /
  &geoparam
  iproj = 'LAMCON',
  ds = 60.0,
@@ -24,12 +30,6 @@
  h2opct = 75.,
  terfilout = '../../Input/DOMAIN.INFO',
  terfilctl = '../../Input/DOMAIN.CTL',
- /
- &dimparam
- iy     = 34,
- jx     = 48,
- kz     = 18,
- nsg    = 1,
  /
  &ioparam
  igrads = 1,
