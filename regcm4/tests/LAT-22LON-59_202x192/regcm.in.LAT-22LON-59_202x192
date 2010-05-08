@@ -5,7 +5,7 @@
  nsg    = 1,
  /
  &geoparam
- iproj = 'LAMCON',
+ iproj = 'ROTMER',
  ds = 50.0,
  ptop = 5.0,
  clat = -22.00,
@@ -119,7 +119,7 @@
  /
  &emanparam
  /
-  &chemparam
+ &chemparam
  idirect   =    1,
  inpchtrname  =   '',
  inpchtrsol   =   .00,
