@@ -267,11 +267,6 @@
         write (*,*) 'YOU CHOOSE FIRE EMISSION'
       else
       end if
-!--------The output file-------------------------
-      open (15,file='../../Input/AERO_new.dat',form='unformatted',      &
-          & access='direct',recl=nx*ny*4)
- 
- 
 !     REWIND(11)
 !     REWIND(12)
       do           !loop over species file

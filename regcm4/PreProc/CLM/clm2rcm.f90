@@ -60,10 +60,8 @@
       real(4) , allocatable , dimension(:) :: xlon1d
       real(4) , allocatable , dimension(:) :: sigx
       integer :: ipathdiv
-      character :: cpathdiv
       character(256) :: namelistfile, prgname
-!
-      data cpathdiv /'/'/
+      character(256) :: terfile
 !
 !     Read input global namelist
 !
@@ -87,35 +85,37 @@
 !
 !     ** Get latitudes and longitudes from DOMAIN.INFO
 !
-      open (unit=10,file=terfilout,status='old',form='unformatted',     &
+      write (terfile,99001)                                             &
+        & trim(dirter), pthsep, trim(domname), '.INFO'
+      open (unit=10,file=terfile,status='old',form='unformatted',       &
           & recl=iy*jx*ibyte,access='direct')
       read (10,rec=1) iyy , jxx , kzz , dsx , clatx , clonx , platx ,   &
                     & plonx , grdfacx , iprojx , sigx , ptopx ,         &
                     & igradsx , ibigendx
       if ( iyy/=iy .or. jxx/=jx ) then
-        print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  mod_regcm_param:    iy=' , iy , '   jx=' , jx
+        print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+        print * , '  namelist       :    iy=' , iy , '   jx=' , jx
         print * , '  DOMAIN.INFO    :    iy=' , iyy , '   jx=' , jxx
         stop 780
       end if
       if ( abs(ds*1000.-dsx)>0.01 ) then
-        print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  mod_regcm_param: ds=' , ds*1000.
+        print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+        print * , '  namelist       : ds=' , ds*1000.
         print * , '  DOMAIN.INFO    : ds=' , dsx
         stop 781
       end if
       if ( clatx/=clat .or. clonx/=clon .or. platx/=plat .or.           &
          & plonx/=plon ) then
-        print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  mod_regcm_param:  clat=' , clat , ' clon=' , clon
+        print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+        print * , '  namelist       :  clat=' , clat , ' clon=' , clon
         print * , '  DOMAIN.INFO    :  clat=' , clatx , ' clon=' , clonx
-        print * , '  mod_regcm_param:  plat=' , plat , ' plon=' , plon
+        print * , '  namelist       :  plat=' , plat , ' plon=' , plon
         print * , '  DOMAIN.INFO    :  plat=' , platx , ' plon=' , plonx
         stop 782
       end if
       if ( iprojx/=iproj ) then
-        print * , 'DOMAIN.INFO is inconsistent with domain.param'
-        print * , '  mod_regcm_param: iproj=' , iproj
+        print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+        print * , '  namelist       : iproj=' , iproj
         print * , '  DOMAIN.INFO    : iproj=' , iprojx
         stop 783
       end if
@@ -131,7 +131,7 @@
       iunctl = 102
  
 !     ** Open direct access CLM3/RegCM3 output file
-      outfil_gr = trim(outdir)//trim(outfil)
+      outfil_gr = trim(dirglob)//pthsep//trim(domname)//'_CLM3.INFO'
       call fexist(outfil_gr)
       print *, 'Open ', trim(outfil_gr)
       open (iunout,file=outfil_gr,status='replace',                     &
@@ -169,11 +169,13 @@
             write (6,*) 'Cannot open input file ', trim(infil(ifld))
             stop 'INPUT NOT READY'
           end if
-          ipathdiv = scan(infil(ifld), cpathdiv, .true.)
+          ipathdiv = scan(infil(ifld), pthsep, .true.)
           if ( ipathdiv/=0 ) then
-            outfil_nc = trim(outdir)//'RCM'//infil(ifld)(ipathdiv+7:)
+            outfil_nc = trim(dirglob)//pthsep//trim(domname)//          &
+                   &  '_RCM'//infil(ifld)(ipathdiv+7:)
           else
-            outfil_nc = trim(outdir)//'RCM'//infil(ifld)(7:)
+            outfil_nc = trim(dirglob)//pthsep//trim(domname)//          &
+                   & '_RCM'//infil(ifld)(7:)
           endif
 !         CALL FEXIST(outfil_nc)
           print * , 'OPENING Output NetCDF FILE: ' , trim(outfil_nc)
@@ -364,13 +366,13 @@
       deallocate(sigx)
  
 !     ** Make GrADS CTL file
-      outfil_ctl = trim(outdir)//trim(outfil)//'.CTL'
+      outfil_ctl = trim(dirglob)//pthsep//trim(domname)//'_CLM3.CTL'
       open (iunctl,file=outfil_ctl,status='unknown')
 !     do ifld=1,nfld
       do ifld = 1 , ifield
         vnam_o(ifld) = vnam(ifld)
       end do
-      call makectl(iunctl,outfil,jx,iy,npft,ifield,dsx,clatx,clonx,     &
+      call makectl(iunctl,domname,jx,iy,npft,ifield,dsx,clatx,clonx,    &
                  & platx,plonx,iprojx,ibigendx,truelatl,truelath,       &
                  & vmisdat,vnam_o,lnam,nlev,ntim,varmin,varmax)
 !     ** Close files
@@ -380,4 +382,5 @@
       close (iunctl)
       print *, 'Successfully completed CLM preprocessing.'
  
+99001 format (a,a,a,a)
       end program clmproc

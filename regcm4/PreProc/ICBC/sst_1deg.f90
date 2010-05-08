@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program sst_1deg
+      subroutine sst_1deg
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Comments on dataset sources and location:                          c
@@ -57,28 +57,14 @@
       integer :: idate , idate0 , kend , kstart
       integer , dimension(427+1045) :: wkday
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
-               & nday , nmo , nrec , nyear , ierr
+               & nday , nmo , nrec , nyear
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
-      character(256) :: namelistfile, prgname
+      character(256) :: terfile , sstfile
       logical :: there
       real(4) , allocatable , dimension(:,:) :: lu , sstmm , icemm ,    &
                                   &             xlat , xlon
-!
-!     Read input global namelist
-!
-      call getarg(0, prgname)
-      call getarg(1, namelistfile)
-      call initparam(namelistfile, ierr)
-      if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
-      end if
 !
       allocate(lu(iy,jx))
       allocate(sstmm(iy,jx))
@@ -146,12 +132,37 @@
         write (*,*) 'Supported are GISST OISST OI_NC OI2ST OI_WK OI2WK'
         stop
       end if
-      open (21,file='SST.RCM',form='unformatted',status='replace')
+      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
+             & '_SST.RCM'
+      open (21,file=sstfile,form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      open (10,file=terfilout,form='unformatted',recl=iy*jx*ibyte,      &
+      write (terfile,99001)                                             &
+        & trim(dirter), pthsep, trim(domname), '.INFO'
+      open (10,file=terfile,form='unformatted',recl=iy*jx*ibyte,        &
           & access='direct',status='unknown',err=200)
- 
+      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
+          & '_RCM_SST.dat'
+      open (25,file=sstfile,status='unknown',form='unformatted',        &
+          & recl=iy*jx*ibyte,access='direct')
+      if ( igrads==1 ) then
+        write (sstfile,99001) trim(dirglob), pthsep, trim(domname),     &
+           &  '_RCM_SST.ctl'
+        open (31,file=sstfile,status='replace')
+        write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
+      end if
+      if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+        write (sstfile,99001) trim(dirglob), pthsep, trim(domname),     &
+           &  '_RCM_ICE.dat'
+        open (26,file=sstfile,status='unknown',form='unformatted',      &
+          & recl=iy*jx*ibyte,access='direct')
+        if ( igrads==1 ) then
+          write (sstfile,99001) trim(dirglob), pthsep, trim(domname),   &
+            & '_RCM_ICE.ctl'
+          open ( 32,file=sstfile,status='replace')
+          write (32,'(a,a,a)') 'dset ^',trim(domname),'_RCM_ICE.dat'
+        end if
+      end if
 !#####
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !#####
@@ -171,7 +182,7 @@
         end if
         idatef = idate
         print * , globidate1 , globidate2 , idateo , idatef
-        call gridml(xlon,xlat,lu,iy,jx,idateo,idatef,ibyte,ssttyp)
+        call gridml1d(xlon,xlat,lu,iy,jx,idateo,idatef,ibyte,ssttyp)
 !#####
       else
 !#####
@@ -199,13 +210,6 @@
 !#####
       end if
 !#####
-      open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
-          & recl=iy*jx*ibyte,access='direct')
-      if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
-        open (26,file='RCM_ICE.dat',status='unknown',form='unformatted',&
-          & recl=iy*jx*ibyte,access='direct')
-
-      end if
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -369,7 +373,8 @@
       deallocate(xlat)
       deallocate(xlon)
  
-      stop 99999
+      return
+
  100  continue
       print * , 'ERROR OPENING GISST FILE'
       stop '4810 IN PROGRAM RDSST'
@@ -377,11 +382,12 @@
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 IN PROGRAM RDSST'
 
-      end program sst_1deg
+99001 format (a,a,a,a)
+      end subroutine sst_1deg
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2,ibyte,ssttyp)
+      subroutine gridml1d(xlon,xlat,lu,iy,jx,idate1,idate2,ibyte,ssttyp)
       implicit none
 !
 ! Dummy arguments
@@ -416,7 +422,7 @@
         print * , '  regcm.in   : ' , iy , jx
         print * , '  DOMAIN.INFO: ' , iyy , jxx
         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
-        stop 'Dimensions (subroutine gridml)'
+        stop 'Dimensions (subroutine gridml1d)'
       end if
       read (10,rec=4,iostat=ierr) ((lu(i,j),j=1,jx),i=1,iy)
       read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,jx),i=1,iy)
@@ -424,12 +430,10 @@
       if ( ierr/=0 ) then
         print * , 'END OF FILE REACHED (SST_1DEG.f)'
         print * , '  Check ibyte in icbc.param: ibyte= ' , ibyte
-        stop 'EOF (subroutine gridml)'
+        stop 'EOF (subroutine gridml1d)'
       end if
 !
       if ( igrads==1 ) then
-        open (31,file='RCM_SST.ctl',status='replace')
-        write (31,'(a)') 'dset ^RCM_SST.dat'
         write (31,'(a)') 'title SST fields for RegCM domain'
         if ( ibigend==1 ) then
           write (31,'(a)') 'options big_endian'
@@ -438,8 +442,6 @@
         end if
         write (31,'(a)') 'undef -9999.'
         if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
-           open ( 32,file='RCM_ICE.ctl',status='replace')
-           write (32,'(a)') 'dset ^RCM_ICE.dat'
            write (32,'(a)') 'title SeaIce fields for RegCM domain'
            if ( ibigend.eq.1 ) then
              write (32,'(a)') 'options big_endian'
@@ -563,7 +565,7 @@
 99010 format ('vars ',i1)
 99011 format (a4,'0 99 ',a26)
 !
-      end subroutine gridml
+      end subroutine gridml1d
 !
 !-----------------------------------------------------------------------
 !
@@ -619,8 +621,6 @@
       end if
 !
       if ( igrads==1 ) then
-        open (31,file='RCM_SST.ctl',status='replace')
-        write (31,'(a)') 'dset ^RCM_SST.dat'
         write (31,'(a)') 'title SST fields for RegCM domain'
         if ( ibigend==1 ) then
           write (31,'(a)') 'options big_endian'
@@ -629,8 +629,6 @@
         end if
         write (31,'(a)') 'undef -9999.'
         if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
-           open ( 32,file='RCM_ICE.ctl',status='replace')
-           write (32,'(a)') 'dset ^RCM_ICE.dat'
            write (32,'(a)') 'title SeaIce fields for RegCM domain'
            if ( ibigend.eq.1 ) then
              write (32,'(a)') 'options big_endian'

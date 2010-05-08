@@ -59,6 +59,7 @@
                & nday , nmo , nyear , ierr
       integer , dimension(20) :: lund
       character(256) :: namelistfile, prgname
+      character(256) :: terfile , sstfile
 !
       real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
 !
@@ -88,10 +89,14 @@
         glat(j) = -89.5 + 1.*float(j-1)
       end do
  
-      open (21,file='SST.RCM',form='unformatted',status='replace')
+      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
+           & 'SST.RCM'
+      open (21,file=sstfile,form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      open (10,file=terfilout,form='unformatted',recl=iy*jx*ibyte,      &
+      write (terfile,99001)                                             &
+        & trim(dirter), pthsep, trim(domname), '.INFO'
+      open (10,file=terfile,form='unformatted',recl=iy*jx*ibyte,        &
           & access='direct',status='unknown',err=100)
       idate = globidate1/10000
       if ( idate-(idate/100)*100==1 ) then
@@ -110,9 +115,17 @@
       idatef = idate
       print * , globidate1 , globidate2 , idateo , idatef
  
-      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef)
-      open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
+      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
+         &  '_RCM_SST.dat'
+      open (25,file=sstfile,status='unknown',form='unformatted',        &
           & recl=iy*jx*ibyte,access='direct')
+      if ( igrads==1 ) then
+        write (sstfile,99001) trim(dirglob), pthsep, trim(domname),     &
+          & '_RCM_SST.ctl'
+        open (31,file=sstfile,status='replace')
+        write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
+      end if
+      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef)
       mrec = 0
  
       idate = idateo
@@ -182,6 +195,8 @@
  100  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 in PROGRAM RDSST'
+
+99001 format (a,a,a,a)
       end program sst_ccsm
 !
 !-----------------------------------------------------------------------
@@ -223,8 +238,6 @@
       read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
 !
       if ( igrads==1 ) then
-        open (31,file='RCM_SST.ctl',status='replace')
-        write (31,'(a)') 'dset ^RCM_SST.dat'
         write (31,'(a)') 'title SST fields for RegCM domain'
         if ( ibigend==1 ) then
           write (31,'(a)') 'options big_endian'

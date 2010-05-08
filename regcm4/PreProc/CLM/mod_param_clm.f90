@@ -34,8 +34,6 @@
 !     ** glat2  = last latitude in CLM3 file
 !     ** vnam   = variable name (short name)
 !     ** vmin   = minimum possible data value (for undefined values)
-!     ** outdir = name of directory where to put the interpolated files
-!     ** outfil = name of interpolated CLM3/RegCM3 file
 !     ** infil  = names of global CLM3 input files (NetCDF is defined
 !     elsewhere)
 !     ** npft = number of plant functional types
@@ -58,13 +56,9 @@
 !     ** glev_st = soil level depths
       real(4) , dimension(nsoi) :: glev_st
       character(256) , dimension(nfld) :: infil
-      character(256) :: outdir , outfil
       character(64) , dimension(nfld) :: vnam
       character(64) :: vnam_lm , vnam_st
 !
-      data outdir/'../../Input/'/
-      data outfil/'CLM3.INFO'/
- 
       data (glev_st(k),k=1,nsoi)/0.0175 , 0.0451 , 0.0906 , 0.1656 ,    &
           & 0.2892 , 0.4930 , 0.8290 , 1.3829 , 2.2962 , 3.4332/
  

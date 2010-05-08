@@ -27,7 +27,7 @@
       end interface
 
       interface
-        subroutine output(nunitc,iy,jx,dsinm,clat,clon,plat,plon,       &
+        subroutine output(nunitc,iunctl,iy,jx,dsinm,clat,clon,plat,plon,&
                       & iproj,htgrid,htsdgrid,lndout,xlat,xlon,dlat,    &
                       & dlon,xmap,dattyp,dmap,coriol,snowam,igrads,     &
                       & ibigend,kz,sigma,mask,ptop,nsg,truelatl,        &
@@ -40,7 +40,7 @@
           character(5) :: dattyp
           character(50) :: filout
           integer :: ibigend , igrads , iy , jx , kz , ntex , nunitc ,  &
-                   & nveg , nsg
+                   & nveg , nsg , iunctl
           character(6) :: iproj
           character(4) :: lsmtyp
           real(4) , dimension(iy,jx) :: claya , clayb , coriol , dlat , &
@@ -55,11 +55,11 @@
       end interface
 
       interface
-        subroutine setup(nunit,iy,jx,ntypec,iproj,ds,clat,clon,igrads,  &
-                       & ibyte,filout,filctl)
+        subroutine setup(nunit,iunctl,iy,jx,ntypec,iproj,ds,clat,clon,  &
+                       & igrads,ibyte,filout,filctl)
           real(4) :: clat , clon , ds
           character(256) :: filctl , filout
-          integer :: ibyte , igrads , iy , jx , ntypec , nunit
+          integer :: ibyte , igrads , iy , jx , ntypec , nunit , iunctl
           character(6) :: iproj
         end subroutine setup
       end interface

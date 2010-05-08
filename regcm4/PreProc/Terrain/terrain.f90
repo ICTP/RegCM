@@ -66,13 +66,13 @@
 ! Local variables
 !
       integer :: maxiter , maxjter , maxdim
-      character(10) :: char_lnd , char_tex
-      character(256) :: namelistfile, prgname
+      character(256) :: char_lnd , char_tex
+      character(256) :: namelistfile , prgname
       character(256) :: ctlfile_s , datafile_s
       character(256) :: ctlfile , datafile
       integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
       logical :: ibndry
-      integer :: nunitc , nunitc_s
+      integer :: nunitc , nunitc_s , ctlunit , ctlunit_s
       real(4) :: clong , dsx , dsx_s , htave , htgrid_a
 !
       call header(1)
@@ -194,22 +194,17 @@
       clong = clon
       if ( clong>180. ) clong = clong - 360.
       if ( clong<=-180. ) clong = clong + 360.
-      nunitc = 9
+      nunitc  = 109
+      ctlunit = 110
       if ( nsg>1 ) then
-        nunitc_s = 19
-        if ( nsg<10 ) then
-          write (datafile_s,99001)                                      &
-                & terfilout(1:18) , nsg , terfilout(19:23)
-          write (ctlfile_s,99003)                                       &
-                & terfilctl(1:18) , nsg , terfilctl(19:22)
-        else
-          write (datafile_s,99002)                                      &
-                & terfilout(1:18) , nsg , terfilout(19:23)
-          write (ctlfile_s,99004)                                       &
-                & terfilctl(1:18) , nsg , terfilctl(19:22)
-        end if
-        call setup(nunitc_s,iysg,jxsg,ntypec_s,iproj,ds/nsg,clat,       &
-                 & clong,igrads,ibyte,datafile_s,ctlfile_s)
+        nunitc_s  = 119
+        ctlunit_s = 120
+        write (datafile_s,99001)                                        &
+              & trim(dirter), pthsep, trim(domname) , nsg , '.INFO'
+        write (ctlfile_s,99001)                                         &
+              & trim(dirter), pthsep, trim(domname) , nsg , '.CTL'
+        call setup(nunitc_s,ctlunit_s,iysg,jxsg,ntypec_s,iproj,ds/nsg,  &
+                 & clat,clong,igrads,ibyte,datafile_s,ctlfile_s)
         if ( iproj=='LAMCON' ) then
           call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,0,xn,truelatl,truelath)
@@ -391,17 +386,14 @@
           end do
         end do
 !       land/sea mask fudging
-        if ( nsg>=10 ) then
-          write (char_lnd,99005) 'LANDUSE_' , nsg
-          write (char_tex,99005) 'TEXTURE_' , nsg
-        else
-          write (char_lnd,99006) 'LANDUSE_' , nsg
-          write (char_tex,99006) 'TEXTURE_' , nsg
-        end if
+        write (char_lnd,99003) trim(dirter), pthsep, trim(domname),     &
+           &   '_LANDUSE_' , nsg
+        write (char_tex,99003) trim(dirter), pthsep, trim(domname),     &
+           &   'TEXTURE_' , nsg
         call lndfudge(fudge_lnd_s,ch_s,lndout_s,htgrid_s,iysg,jxsg,     &
-                    & lsmtyp,char_lnd)
+                    & lsmtyp,trim(char_lnd))
         if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex_s,ch_s,texout_s,&
-           & htgrid_s,iysg,jxsg,char_tex)
+           & htgrid_s,iysg,jxsg,trim(char_tex))
         print * , 'after calling FUDGE, for subgrid'
 !       output terrestrial fields
 !       OUTPUT is used to output also the fraction of each
@@ -415,10 +407,12 @@
       dycen = 0.0
 !
 !     set up the parameters and constants
-      datafile = terfilout
-      ctlfile = terfilctl
-      call setup(nunitc,iy,jx,ntypec,iproj,ds,clat,clong,igrads,ibyte,  &
-               & datafile,ctlfile)
+      write (datafile,99002)                                            &
+           & trim(dirter), pthsep, trim(domname) , '.INFO'
+      write (ctlfile,99002)                                             &
+           & trim(dirter), pthsep, trim(domname) , '.CTL'
+      call setup(nunitc,ctlunit,iy,jx,ntypec,iproj,ds,clat,clong,igrads,&
+               & ibyte,datafile,ctlfile)
       print * , 'after calling SETUP'
 !
 !-----calling the map projection subroutine
@@ -603,11 +597,14 @@
         end do
       end do
 !     land/sea mask fudging
-      char_lnd = 'LANDUSE'
-      char_tex = 'TEXTURE'
-      call lndfudge(fudge_lnd,ch,lndout,htgrid,iy,jx,lsmtyp,char_lnd)
+      write (char_lnd,99004) trim(dirter), pthsep, trim(domname),       &
+           &   '_LANDUSE'
+      write (char_tex,99004) trim(dirter), pthsep, trim(domname),       &
+           &   '_TEXTURE'
+      call lndfudge(fudge_lnd,ch,lndout,htgrid,iy,jx,lsmtyp,            &
+         & trim(char_lnd))
       if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex,ch,texout,htgrid, &
-         & iy,jx,char_tex)
+         & iy,jx,trim(char_tex))
       print * , 'after calling FUDGE'
 !     output terrestrial fields
 !     OUTPUT is used to output also the fraction of each
@@ -647,21 +644,21 @@
             end do
           end do
         end do
-        call output(nunitc_s,iysg,jxsg,dsx_s,clat,clong,plat,plon,      &
-                  & iproj,htgrid_s,htsdgrid_s,lndout_s,xlat_s,xlon_s,   &
-                  & dlat_s,dlon_s,xmap_s,dattyp,dmap_s,coriol_s,        &
-                  & snowam_s,igrads,ibigend,kz,sigma,mask_s,ptop,nsg,   &
-                  & truelatl,truelath,xn,datafile_s,lsmtyp,             &
+        call output(nunitc_s,ctlunit_s,iysg,jxsg,dsx_s,clat,clong,      &
+                  & plat,plon,iproj,htgrid_s,htsdgrid_s,lndout_s,       &
+                  & xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,dattyp,dmap_s,   &
+                  & coriol_s,snowam_s,igrads,ibigend,kz,sigma,mask_s,   &
+                  & ptop,nsg,truelatl,truelath,xn,domname,lsmtyp,       &
                   & sanda_s,sandb_s,claya_s,clayb_s,frac_lnd_s,nveg,    &
                   & aertyp,texout_s,frac_tex_s,ntex,.false.)
         print * , 'after calling OUTPUT, for subgrid'
         call free_subgrid
       end if
 
-      call output(nunitc,iy,jx,dsx,clat,clong,plat,plon,iproj,          &
+      call output(nunitc,ctlunit,iy,jx,dsx,clat,clong,plat,plon,iproj,  &
                 & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,xmap,      &
                 & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
-                & mask,ptop,nsg,truelatl,truelath,xn,datafile,          &
+                & mask,ptop,nsg,truelatl,truelath,xn,domname,           &
                 & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,aertyp,  &
                 & texout,frac_tex,ntex,.true.)
       print * , 'after calling OUTPUT'
@@ -673,10 +670,8 @@
  
 !     stop 9999
 !
-99001 format (a18,i1,a5)
-99002 format (a18,i2,a5)
-99003 format (a18,i1,a4)
-99004 format (a18,i2,a4)
-99005 format (a8,i2)
-99006 format (a8,i1)
+99001 format (a,a,a,i0.3,a)
+99002 format (a,a,a,a)
+99003 format (a,a,a,a8,i0.3)
+99004 format (a,a,a,a8)
       end program terrain

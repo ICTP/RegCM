@@ -39,6 +39,7 @@
 ! Local variables
 !
       integer :: ierr , k
+      character(256) :: terfile
 !
 !     THIS SUBROUTINE CALLS ROUTINES TO PRODUCE THE MAP FACTORS
 !     IT ALSO READS A FILE OF TOPOGRAPHY AND LANDUSE APPROPRIATE FOR
@@ -46,7 +47,9 @@
 !
 !     READ APPROPRIATE FILE OF TERRAIN AND LANDUSE FOR THIS GRID
 !
-      open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
+      write (terfile,99001)                                             &
+        & trim(dirter), pthsep, trim(domname), '.INFO'
+      open (10,file=terfile,form='unformatted',                         &
           & recl=jx*iy*ibyte,access='direct')
       if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.                    &
          & dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
@@ -87,6 +90,7 @@
         stop 'EOF (subroutine gridml)'
       end if
 !
+99001 format (a,a,a,a)
       end subroutine gridml
 
       subroutine commhead

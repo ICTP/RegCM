@@ -48,7 +48,7 @@
       real(4) , dimension(ilon) :: loni
       real(4) , dimension(ilon,jlat) :: aer2
       real(4) , allocatable , dimension(:,:) :: aermm , xlat , xlon
-      character(256) :: namelistfile, prgname 
+      character(256) :: namelistfile, prgname , terfile , aerofile
 !
 !     Read input global namelist
 !
@@ -73,13 +73,24 @@
                              &' under ../DATA/AERGLOB/'
       open (11,file='../DATA/AERGLOB/AEROSOL.dat',form='unformatted',   &
           & recl=360*180*ibyte,access='direct',status='old',err=100)
-      open (25,file='../../Input/AERO.dat',form='unformatted',          &
+
+      write (aerofile,99001)                                            &
+        & trim(dirglob), pthsep, trim(domname), '_AERO.dat'
+      open (25,file=aerofile,form='unformatted',                        &
           & recl=iy*jx*ibyte,access='direct',status='replace')
+      if ( igrads==1 ) then
+        write (aerofile,99001)                                          &
+          & trim(dirglob), pthsep, trim(domname), '_AERO.ctl'
+        open (31,file=aerofile,status='replace')
+        write (31,'(a,a,a)') 'dset ^',trim(domname),'_AERO.dat'
+      end if
  
 !     ******    ON WHAT RegCM GRID ARE AEROSOL DESIRED?
-      open (10,file='../../Input/DOMAIN.INFO',form='unformatted',       &
+
+      write (terfile,99001)                                             &
+        & trim(dirter), pthsep, trim(domname), '.INFO'
+      open (10,file=terfile,form='unformatted',                         &
           & recl=iy*jx*ibyte,access='direct',status='unknown',err=200)
- 
 !
       call gridml(xlon,xlat,iy,jx,ibyte)
 !
@@ -102,18 +113,20 @@
         write (25,rec=nrec) ((aermm(i,j),j=1,jx),i=1,iy)
       end do
  
-      print *, 'Success.'
       deallocate(aermm)
       deallocate(xlat)
       deallocate(xlon)
 
-      stop 99999
+      print *, 'Successfully built aerosol data for domain'
+      stop
+
  100  continue
       print * , 'ERROR OPENING AEROSOL FILE'
       stop '4810 IN PROGRAM AEROSOL'
  200  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 IN PROGRAM RDSST'
+99001 format (a,a,a,a)
       end program aerosol
 !
 !-----------------------------------------------------------------------
@@ -162,8 +175,6 @@
       end if
 !
       if ( igrads==1 ) then
-        open (31,file='../../Input/AERO.ctl',status='replace')
-        write (31,'(a)') 'dset ^AERO.dat'
         write (31,'(a)')                                                &
                      &'title AEROSOL fields for RegCM domain, kg/m2/sec'
         if ( ibigend==1 ) then

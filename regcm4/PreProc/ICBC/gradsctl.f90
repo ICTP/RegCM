@@ -47,8 +47,8 @@
 !
 !     DOMAIN VARIABLES FOR RCM HORIZONTAL GRID
 !
-      open (71,file=finame//'.CTL',status='replace')
-      write (71,'(a)') 'dset ^'//finame(13:26)
+      open (71,file=trim(finame)//'.CTL',status='replace')
+      write (71,'(a,a,a,i10)') 'dset ^',trim(domname),'_ICBC',idate
       write (71,'(a)') 'title ICBC fields for RegCM domain'
       if ( ibigend==1 ) then
         write (71,'(a)') 'options big_endian'

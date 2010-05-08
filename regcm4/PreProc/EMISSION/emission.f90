@@ -102,8 +102,8 @@
                & mm , mm1 , mm2 , mm22 , mm3 , mm4 , mm5 , mone ,       &
                & mons , record , trec , yr , yr1 , yr2 , yr22 ,  yr3 ,  &
                & yr4 , yr5 , ierr
-      logical :: there
-      character(256) :: namelistfile, prgname
+      character(256) :: namelistfile , prgname
+      character(256) :: terfile , outfile
 !
 !     Read input global namelist
 !
@@ -120,22 +120,23 @@
       end if
 ! 
       open (30,file='namelist.input',status='old')
-!     READ(30,NML=SPECIES)
- 
-      inquire (file='../../Input/AERO_new.dat',exist=there)
-      if ( there ) call unlink('../../Input/AERO.dat')
-!
+
       call init_emiss(iy,jx,globidate1,globidate2)
  
 !     ******    ON WHAT RegCM GRID ARE AEROSOL DESIRED?
-      open (10,file='../ICBC/fort.10',form='unformatted',               &
+      terfile = trim(dirter)//pthsep//trim(domname)//'.INFO'
+      open (10,file=terfile,form='unformatted',                         &
           & recl=iy*jx*ibyte,access='direct',status='old',err=100)
-!     &   ,convert='big_endian' ,status='unknown',ERR=4830)
-      inquire (file='../../Input/AERO.dat',exist=there)
-      if ( there ) call unlink('../../Input/oxid.dat')
-!     OPEN(55,file='../../Input/oxid.dat',form='unformatted'
-!     &       ,recl=IY*JX*ibyte,access='direct')
  
+!--------The output file-------------------------
+      outfile = trim(dirter)//pthsep//trim(domname)//'_AERO_new.dat'
+      open (15,file=outfile,form='unformatted',                         &
+          & access='direct',recl=nx*ny*4,status='replace')
+      
+      outfile = trim(dirter)//pthsep//trim(domname)//'_AERO_new.ctl'
+      open (31,file=outfile,status='replace')
+      write (31,'(a,a,a)') 'dset ^',trim(domname),'_AERO_new.dat'
+
       dt = 1
       call julian2(globidate1,dt,julday,julncep,jul1900,                &
                &   iyr1,imo1,idy1,ihr1,ayr1)
@@ -239,11 +240,13 @@
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  
       call free_emiss
-      stop 99999
+
+      print *, 'CLM emission file prepared'
+      stop
 
       print * , 'ERROR OPENING AEROSOL FILE'
       stop '4810 IN PROGRAM AEROSOL'
  100  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
-      stop '4830 IN PROGRAM RDSST'
+      stop '4830 IN PROGRAM EMISSION'
       end program emission

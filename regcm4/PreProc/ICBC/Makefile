@@ -3,14 +3,12 @@
   
 include ../../Makefile.inc
 
-all: aerosol sst_1deg sst_ccsm sst_eh5om sst_ersst sst_fvgcm icbc
+all: aerosol sst sst_ccsm icbc
 
 AEROSOLOBJ = aerosol.o
-SST1DEGOBJ = sst_1deg.o bilinx.o printl.o
+SSTOBJ = sst.o sst_eh5om.o sst_ersst.o sst_fvgcm.o sst_1deg.o \
+         bilinx.o printl.o mod_datenum.o
 SSTCCSMOBJ = sst_ccsm.o bilinx.o printl.o
-SSTEH5OOBJ = sst_eh5om.o bilinx.o printl.o mod_datenum.o
-SSTERAOBJ = sst_ersst.o bilinx.o printl.o mod_datenum.o
-SSTFVGCOBJ = sst_fvgcm.o bilinx.o printl.o mod_datenum.o
 
 SHRMOD = mod_dynparam.o mod_constants.o
 
@@ -30,24 +28,12 @@ aerosol: $(AEROSOLOBJ) $(SHRMOD)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
-sst_1deg: $(SHRMOD) $(SST1DEGOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SST1DEGOBJ) $(SHRMOD) \
+sst: $(SHRMOD) $(SSTOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
 sst_ccsm: $(SHRMOD) $(SSTCCSMOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTCCSMOBJ) $(SHRMOD) \
-               $(LIB) $(NETCDFLIB)
-
-sst_eh5om: $(SHRMOD) $(SSTEH5OOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTEH5OOBJ) $(SHRMOD) \
-               $(LIB) $(NETCDFLIB)
-
-sst_ersst: $(SHRMOD) $(SSTERAOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTERAOBJ) $(SHRMOD) \
-               $(LIB) $(NETCDFLIB)
-
-sst_fvgcm: $(SHRMOD) $(SSTFVGCOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTFVGCOBJ) $(SHRMOD) \
                $(LIB) $(NETCDFLIB)
 
 icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
@@ -137,5 +123,6 @@ sst_ccsm.o: sst_ccsm.f90 mod_dynparam.o
 sst_eh5om.o: sst_eh5om.f90 mod_dynparam.o mod_datenum.o
 sst_ersst.o: sst_ersst.f90 mod_dynparam.o mod_datenum.o
 sst_fvgcm.o: sst_fvgcm.f90 mod_dynparam.o
+sst.o: mod_dynparam.o
 icbc.o: icbc.f90 mod_dynparam.o mod_datenum.o mod_grid.o mod_write.o \
         mod_ingrid.o mod_datewk.o mod_ein15.o

@@ -265,8 +265,7 @@
 
 ! Terrain output files
 
-      character(64) :: terfilout
-      character(64) :: terfilctl
+      character(64) :: domname
 
 ! Global Begin and End date for Input Pre processing
 
@@ -282,6 +281,13 @@
       integer , parameter :: nrad2d = 21
       integer , parameter :: nrad3d = 5
 
+      character(1), parameter :: pthsep = '/'
+
+! Paths
+
+      character(256) :: dirter
+      character(256) :: dirglob
+
       contains
 
       subroutine initparam(filename, ierr)
@@ -291,10 +297,10 @@
 
         namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
                      & plon , truelatl, truelath
-        namelist /terrainparam/ itype_in , ntypec , ntypec_s , ifanal , &
-                     & smthbdy , lakadj , fudge_lnd , fudge_lnd_s ,     &
-                     & fudge_tex , fudge_tex_s , ntex , h2opct ,        &
-                     & terfilout , terfilctl
+        namelist /terrainparam/ domname , itype_in , ntypec , ntypec_s ,&
+                     &  ifanal , smthbdy , lakadj , fudge_lnd ,         &
+                     & fudge_lnd_s , fudge_tex , fudge_tex_s , ntex ,   &
+                     & h2opct , dirter
         namelist /dimparam/ iy , jx , kz , nsg
         namelist /ioparam/ igrads , ibigend , ibyte
         namelist /debugparam/ debug_level
@@ -302,7 +308,7 @@
         namelist /modesparam/ nsplit
         namelist /lakemodparam/ lkpts
         namelist /globdatparam/ dattyp , ssttyp , ehso4 , globidate1 ,  &
-                     & globidate2
+                     & globidate2 , dirglob
         namelist /lsmparam/ lsmtyp
         namelist /aerosolparam/ aertyp , ntr, nbin
 

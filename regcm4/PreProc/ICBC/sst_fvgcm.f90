@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program sst_fvgcm
+      subroutine sst_fvgcm
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Comments on dataset sources and location:                          c
@@ -42,7 +42,7 @@
 ! Local variables
 !
       integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
-             &   mrec , nday , nmo , nyear , ierr
+             &   mrec , nday , nmo , nyear
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(20) :: lund
@@ -50,22 +50,8 @@
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
       logical :: there
-      character(256) :: namelistfile, prgname
       real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
-!
-!     Read input global namelist
-!
-      call getarg(0, prgname)
-      call getarg(1, namelistfile)
-      call initparam(namelistfile, ierr)
-      if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
-      end if
+      character(256) :: terfile , sstfile
 !
       allocate(lu(iy,jx))
       allocate(sstmm(iy,jx))
@@ -97,10 +83,14 @@
         write (*,*) 'Supported types are FV_RF FV_A2 FV_B2'
         stop
       end if
-      open (21,file='SST.RCM',form='unformatted',status='replace')
+      write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
+        &  'SST.RCM'
+      open (21,file=sstfile,form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      open (10,file=terfilout,form='unformatted',recl=iy*jx*ibyte,      &
+      write (terfile,99001)                                             &
+        & trim(dirter), pthsep, trim(domname) , '.INFO'
+      open (10,file=terfile,form='unformatted',recl=iy*jx*ibyte,        &
          &  access='direct',status='unknown',err=100)
       idate = globidate1/10000
       if ( idate-(idate/100)*100==1 ) then
@@ -118,9 +108,17 @@
       end if
       idatef = idate
       print * , globidate1 , globidate2 , idateo , idatef
-      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef)
-      open (25,file='RCM_SST.dat',status='unknown',form='unformatted',  &
+      write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
+          &  '_RCM_SST.dat'
+      open (25,file=sstfile,status='unknown',form='unformatted',        &
           & recl=iy*jx*ibyte,access='direct')
+      if ( igrads==1 ) then
+        write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,    &
+         &   '_RCM_SST.ctl'
+        open (31,file=sstfile,status='replace')
+        write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
+      end if
+      call gridmlf(xlon,xlat,lu,iy,jx,idateo,idatef)
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -217,17 +215,20 @@
       deallocate(xlat)
       deallocate(xlon)
 
-      stop 99999
+      return
+
 !     4810 PRINT *,'ERROR OPENING GISST FILE'
 !     STOP '4810 IN PROGRAM RDSST'
  100  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 IN PROGRAM RDSST'
-      end program sst_fvgcm
+
+99001 format (a,a,a,a)
+      end subroutine sst_fvgcm
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2)
+      subroutine gridmlf(xlon,xlat,lu,iy,jx,idate1,idate2)
       implicit none
 !
 ! Dummy arguments
@@ -264,8 +265,6 @@
       read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
 !
       if ( igrads==1 ) then
-        open (31,file='RCM_SST.ctl',status='replace')
-        write (31,'(a)') 'dset ^RCM_SST.dat'
         write (31,'(a)') 'title SST fields for RegCM domain'
         if ( ibigend==1 ) then
           write (31,'(a)') 'options big_endian'
@@ -363,4 +362,4 @@
 99010 format ('vars ',i1)
 99011 format (a4,'0 99 ',a26)
 !
-      end subroutine gridml
+      end subroutine gridmlf

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine makectl(iunctl,outfil,nx,ny,nzmax,nfld,dsm,clat,clon,  &
+      subroutine makectl(iunctl,domname,nx,ny,nzmax,nfld,dsm,clat,clon, &
                        & plat,plon,iproj,ibigend,truelatl,truelath,     &
                        & vmisdat,vnam,lnam,nlev,ntim,varmin,varmax)
       implicit none
@@ -28,14 +28,14 @@
             & truelatl , vmisdat
       integer :: ibigend , iunctl , nfld , nx , ny , nzmax
       character(6) :: iproj
-      character(256) :: outfil
+      character(256) :: domname
       character(64) , dimension(nfld) :: vnam
       character(64) , dimension(nfld) :: lnam
       integer , dimension(nfld) :: nlev , ntim
       real(4) , dimension(3) :: varmax , varmin
       intent (in) clat , clon , dsm , ibigend , iproj , iunctl , lnam , &
-                & nfld , nlev , ntim , nx , ny , nzmax , outfil , plat ,&
-                & plon , truelath , truelatl , varmax , varmin ,        &
+                & nfld , nlev , ntim , nx , ny , nzmax , domname ,      &
+                & plon , truelath , truelatl , varmax , varmin , plat , &
                 & vmisdat , vnam
 !
 ! Local variables
@@ -51,7 +51,7 @@
  
       ddeg = (dsm/1000.)*(45./atan(1.))/6371229.
  
-      write (iunctl,99001) outfil
+      write (iunctl,99001) domname//'_CLM3.INFO'
  
       write (iunctl,99002)
  

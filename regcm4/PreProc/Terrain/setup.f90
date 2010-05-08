@@ -17,8 +17,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine setup(nunit,iy,jx,ntypec,iproj,ds,clat,clon,igrads,    &
-                     & ibyte,filout,filctl)
+      subroutine setup(nunit,unctl,iy,jx,ntypec,iproj,ds,clat,clon,     &
+                     & igrads,ibyte,filout,filctl)
       use mod_interfaces
       use mod_block
       implicit none
@@ -27,10 +27,10 @@
 !
       real(4) :: clat , clon , ds
       character(256) :: filctl , filout
-      integer :: ibyte , igrads , iy , jx , ntypec , nunit
+      integer :: ibyte , igrads , iy , jx , ntypec , nunit , unctl
       character(6) :: iproj
       intent (in) clat , clon , ds , ibyte , igrads , iproj , iy , jx , &
-                & ntypec , nunit
+                & ntypec , nunit , unctl
       intent (inout) :: filctl , filout
 !
       rin = 1.5          ! 1.5 rad of influence-coarse mesh
@@ -53,7 +53,7 @@
           & access='direct',recl=iy*jx*ibyte)
       if ( igrads==1 ) then
         call fexist(filctl)
-        open (31,file=filctl,status='unknown')
+        open (unctl,file=filctl,status='unknown')
       end if
 !
       dsinm = ds*1000.

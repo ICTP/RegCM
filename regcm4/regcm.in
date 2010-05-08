@@ -16,6 +16,7 @@
  truelath = 60,
  /
  &terrainparam
+ domname = 'Italy',
  itype_in = 1,
  ntypec = 5,
  ntypec_s = 2,
@@ -28,8 +29,7 @@
  fudge_tex_s = .false.,
  ntex = 17,
  h2opct = 75.,
- terfilout = '../../Input/DOMAIN.INFO',
- terfilctl = '../../Input/DOMAIN.CTL',
+ dirter = '/home/graziano/Software/regcm/branches/regcm4/Input',
  /
  &ioparam
  igrads = 1,
@@ -51,10 +51,11 @@
  /
  &globdatparam
  ssttyp = 'OI_WK',
- dattyp = 'ERAIN',
+ dattyp = 'EIN15',
  ehso4 = .false.,
  globidate1 = 1990060100,
  globidate2 = 1990070100,
+ dirglob = '/home/graziano/Software/regcm/branches/regcm4/Input',
  /
  &lsmparam
  lsmtyp = 'BATS',

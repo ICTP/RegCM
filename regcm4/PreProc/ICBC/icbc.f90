@@ -113,13 +113,12 @@
 !
 ! Local variables
 !
-      character(50) :: a50
-      character(26) :: finame
       integer :: idate , idatef , iday , ifile , imon , imonnew ,       &
                & imonold , isize , iyr , nnn , inmber , numfile
       integer :: nnnend , nstart
       integer :: ierr
       character(256) :: namelistfile, prgname
+      character(256) :: sstfile , finame
 !
       call header(1)
 !
@@ -151,7 +150,9 @@
       numfile = 2100000000/isize
       numfile = (numfile/20)*20
  
-      open (60,file='SST.RCM',form='unformatted',status='old',err=100)
+      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
+          & '_SST.RCM'
+      open (60,file=sstfile,form='unformatted',status='old',err=100)
  
       call commhead
 
@@ -194,7 +195,8 @@
         if ( nnn==nstart .or.                                           &
            & (imon/=imonold .and. nnn<nnnend .and. nnn>nstart) ) then
           iday = idate/100 - iyr*10000 - imon*100
-          write (finame,99007) idate
+          write (finame,99002) trim(dirglob), pthsep, trim(domname),    &
+              '_ICBC', idate
           if ( nnn>nstart ) then
             if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
               call getncep(idate)
@@ -248,8 +250,6 @@
           call fexist(finame)
           open (64,file=finame,form='unformatted',status='unknown',     &
               & recl=jx*iy*ibyte,access='direct')
-          write (a50,99008) finame(4:) , ifile
-          write (99,99003) a50
           imonold = imon
           ifile = ifile + 1
           noutrec = 0
@@ -281,7 +281,6 @@
         else
         end if
       end do
-      close (99)
 
       call free_output
       call free_grid
@@ -292,12 +291,6 @@
  100  continue
       print * , 'ERROR OPENING SST.RCM FILE'
       stop '4810 IN PROGRAM ICBC'
-99001 format (1x,a8,1x,'=',4x,a7,',')
-99002 format (1x,a8,1x,'=',1x,i10,',')
-99003 format (a50)
-99004 format (a27,i1,a13)
-99005 format (a27,i2,a13)
-99006 format (a38)
-99007 format ('../../Input/ICBC',i10)
-99008 format ('/bin/ln -sf ',a26,' fort.',i3)
+99001 format (a,a,a,a)
+99002 format (a,a,a,a,i10)
       end program icbc

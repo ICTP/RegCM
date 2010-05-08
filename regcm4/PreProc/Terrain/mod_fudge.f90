@@ -29,7 +29,7 @@
 !
 ! Dummy arguments
 !
-      character(10) :: char_lnd
+      character(*) :: char_lnd
       logical :: fudge
       integer :: iy , jx
       character(4) :: lsmtyp
@@ -308,7 +308,7 @@
 !
 ! Dummy arguments
 !
-      character(10) :: char_tex
+      character(*) :: char_tex
       logical :: fudge
       integer :: iy , jx
       character(1) , dimension(iy,jx) :: ch

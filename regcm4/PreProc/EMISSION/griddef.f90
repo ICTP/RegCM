@@ -92,29 +92,21 @@
                                 & (sigmaf(k),k=1,kz+1) , xpto , dograd ,&
                                 & isbige , xtrul , xtruh
       if ( nyy/=ny .or. nxx/=nx ) then
-        print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'
-        print * , '  icbc.param: ' , ny , nx
+        print * , 'IMPROPER DIMENSION SPECIFICATION'
+        print * , '  namelist   : ' , ny , nx
         print * , '  DOMAIN.INFO: ' , nyy , nxx
-        print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
-        stop 'Dimensions (subroutine gridml)'
+        stop
       end if
       read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,nx),i=1,ny)
       read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,nx),i=1,ny)
       if ( ierr/=0 ) then
-        print * , 'END OF FILE REACHED (AEROSOL.f)'
-        print * , '  Check ibyte in icbc.param: ibyte= ' , ibyte
-        stop 'EOF (subroutine gridml)'
+        stop 'EOF'
       end if
 !
       if ( dograd==1 ) then
 !       inquire(file='../../Input/AERO.ctl',exist=there)
 !       if(there) isystm=system('/bin/rm ../../Input/AERO.ctl')
-        open (31,file='../../Input/AERO_new.ctl')
-        open (32,file='../../Main/emission.param')
-        write (32,'(T7,A,I3)') 'INTEGER, PARAMETER :: TREC =' , trec
-        write (32,'(T7,A)') 'include ''Commons/emission.def'' '
 !       OPEN(31,file='AERO.ctl',status='new')
-        write (31,'(a)') 'dset ^AERO_new.dat'
         write (31,'(a)')                                                &
                      &'title AEROSOL fields for RegCM domain, kg/m2/sec'
         if ( isbige==1 ) then
@@ -213,18 +205,12 @@
             do i = 1 , xnspc1b
               write (31,99011) ele_retrob(i) ,                          &
                               &'Biogenic emission, RETRO      '
-!             write(32,701) ELE_RETROB(I)
-              write (32,99018) ele_retrob(i) , i
-              write (32,*)
             end do
           end if
           if ( ipoet ) then
             do i = 1 , xnspc2b
               write (31,99011) ele_poetb(i) ,                           &
                               &'Biogenic emission, POET  '
-!             write(32,701) ELE_POETB(I)
-              write (32,99018) ele_poetb(i) , i + xnspc1b
-              write (32,*)
             end do
           end if
           if ( igfed ) then
@@ -232,9 +218,6 @@
               do i = 1 , xnspc3
                 write (31,99011) ele_gfed(i) ,                          &
                                 &'Biogenic emission,GFED     '
-!               write(32,701) ELE_GFED(I)
-                write (32,99018) ele_gfed(i) , i + xnspc1b + xnspc2b
-                write (32,*)
               end do
             end if
           end if
@@ -242,10 +225,6 @@
             do i = 1 , xnspc4b
               write (31,99011) ele_edgarb(i) ,                          &
                               &'Biogenic emission, EDGAR       '
-!             write(32,701) ELE_EDGARB(I)
-              write (32,99018) ele_edgarb(i) , i + xnspc1b + xnspc3 +   &
-                             & xnspc2b
-              write (32,*)
             end do
           end if
 !----------------------------------------------------------------
@@ -255,27 +234,18 @@
             do i = 1 , xnspc1a
               write (31,99010) ele_retroa(i) ,                          &
                               &'Anthropogenic emission, RETRO  '
-!             write(32,700) ELE_RETROA(I)
-              write (32,99017) ele_retroa(i) , i
-              write (32,*)
             end do
           end if
           if ( ipoet ) then
             do i = 1 , xnspc2a
               write (31,99010) ele_poeta(i) ,                           &
                               &'Anthropogenic emission, POET  '
-!             write(32,700) ELE_POETA(I)
-              write (32,99017) ele_poeta(i) , i + xnspc1a
-              write (32,*)
             end do
           end if
           if ( iedgar ) then
             do i = 1 , xnspc4a
               write (31,99010) ele_edgara(i) ,                          &
                               &'Anthropogenic emission, EDGAR  '
-!             write(32,700) ELE_EDGARA(I)
-              write (32,99017) ele_edgara(i) , i + xnspc2a + xnspc1a
-              write (32,*)
             end do
           end if
  
@@ -293,36 +263,24 @@
             do i = 1 , xnspc1a
               write (31,99010) ele_retroa(i) ,                          &
                               &'Anthropogenic emission, RETRO  '
-!             write(32,700) ELE_RETROA(I)
-              write (32,99017) ele_retroa(i) , i
-              write (32,*)
             end do
           end if
           if ( ipoet ) then
             do i = 1 , xnspc2a
               write (31,99010) ele_poeta(i) ,                           &
                               &'Anthropogenic emission, POET  '
-!             write(32,700) ELE_POETA(I)
-              write (32,99017) ele_poeta(i) , i + xnspc1a
-              write (32,*)
             end do
           end if
           if ( iedgar ) then
             do i = 1 , xnspc4a
               write (31,99010) ele_edgara(i) ,                          &
                               &'Anthropogenic emission, EDGAR  '
-!             write(32,700) ELE_EDGARA(I)
-              write (32,99017) ele_edgara(i) , i + xnspc2a + xnspc1a
-              write (32,*)
             end do
           end if
           if ( imozart ) then
             do i = 1 , xnspc5a
               write (31,99010) ele_mozrta(i) ,                          &
                               &'Anthropogenic emission, MOZART  '
-!             write(32,700) ELE_MOZRTA(I)
-              write (32,99017) ele_mozrta(i) , i + xnspc4a + xnspc2a +  &
-                             & xnspc1a
             end do
           end if
 !------------------START BIOGENIC EMISSION---------------------
@@ -330,51 +288,30 @@
             do i = 1 , xnspc1b
               write (31,99011) ele_retrob(i) ,                          &
                               &'Biogenic emission, RETRO      '
-!             write(32,701) ELE_RETROB(I)
-              write (32,99018) ele_retrob(i) , i + xnspc1a + xnspc2a +  &
-                             & xnspc4a + xnspc5a
-              write (32,*)
             end do
           end if
           if ( ipoet ) then
             do i = 1 , xnspc2b
               write (31,99011) ele_poetb(i) ,                           &
                               &'Biogenic emission, POET  '
-!             write(32,701) ELE_POETB(I)
-              write (32,99018) ele_poetb(i) , i + xnspc1a + xnspc2a +   &
-                             & xnspc4a + xnspc5a + xnspc1b
-              write (32,*)
             end do
           end if
           if ( igfed ) then
             do i = 1 , xnspc3
               write (31,99011) ele_gfed(i) ,                            &
                               &'Biogenic emission,GFED          '
-!             write(32,701) ELE_GFED(I)
-              write (32,99018) ele_gfed(i) , i + xnspc1a + xnspc2a +    &
-                             & xnspc4a + +xnspc5a + xnspc1b + xnspc2b
-              write (32,*)
             end do
           end if
           if ( iedgar ) then
             do i = 1 , xnspc4b
               write (31,99011) ele_edgarb(i) ,                          &
                               &'Biogenic emission, EDGAR       '
-!             write(32,701) ELE_EDGARB(I)
-              write (32,99018) ele_edgarb(i) , i + xnspc1a + xnspc2a +  &
-                             & xnspc4a + xnspc1b + xnspc5a + xnspc2b +  &
-                             & xnspc3
-              write (32,*)
             end do
           end if
           if ( imozart ) then
             do i = 1 , xnspc5b
               write (31,99011) ele_mozrtb(i) ,                          &
                               &'Biogenic emission, MOZART'
-!             write(32,701) ELE_MOZRTB(I)
-              write (32,99018) ele_mozrtb(i) , i + xnspc1a + xnspc2a +  &
-                             & xnspc4a + xnspc5a + xnspc1b + xnspc2b +  &
-                             & xnspc3 + xnspc4b
             end do
           end if
         case default
@@ -396,11 +333,5 @@
 99010 format ('a_',a10,'0 99 ',a40)
 99011 format ('b_',a10,'0 99 ',a40)
 99012 format ('vars ',i2)
-99013 format (a4,i2,' 0 ',a17)
-99014 format (a5,i2,' 0 ',a17)
-99015 format (8x,'INTEGER',2x,'ia_',a10)
-99016 format (8x,'INTEGER',2x,'ib_',a10)
-99017 format (8x,'PARAMETER',2x,'(ia_',a10,'=',i2,')')
-99018 format (8x,'PARAMETER',2x,'(ib_',a10,'=',i2,')')
 !
       end subroutine griddef
