@@ -309,8 +309,6 @@
         open(ipunit, file=filename, status='old', &
                      action='read', err=100)
 !
-        read(ipunit, geoparam, err=100)
-        read(ipunit, terrainparam, err=100)
         read(ipunit, dimparam, err=100)
 
 !       Setup all convenience dimensions
@@ -335,6 +333,8 @@
         jxm2sg = (jx-2) * nsg
         nnsg = nsg*nsg
 
+        read(ipunit, geoparam, err=100)
+        read(ipunit, terrainparam, err=100)
         read(ipunit, ioparam, err=100)
         read(ipunit, debugparam, err=100)
         read(ipunit, boundaryparam, err=100)
