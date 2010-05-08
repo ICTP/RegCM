@@ -1,0 +1,277 @@
+!-----------------------------------------------------------------------
+!
+! This README details namelist parameters for RegCM V4
+!
+!-----------------------------------------------------------------------
+!
+! DOMAIN dimension Stanza
+!
+ &dimparam 
+ iy     = 34,  ! This is number of points in the N/S direction
+ jx     = 48,  ! This is number of points in the E/W direction
+ kz     = 18,  ! Number of vertical levels: supported are 14, 18 and 23
+ nsg    = 1,   ! For subgridding, number of points to decompose. If nsg=1,
+               ! no subgridding is performed. CLM does NOT work as of now with
+               ! subgridding enabled.
+ /
+!
+! DOMAIN geolocation Stanza
+!
+ &geoparam
+ iproj = 'LAMCON', ! Domain cartographic projection. Supported values are:
+                   ! 'LAMCON', Lambert conformal.
+                   ! 'POLSTR', Polar stereographic.
+                   ! 'NORMER', Normal  Mercator.
+                   ! 'ROTMER', Rotated Mercator.
+ ds = 60.0,        ! Grid point horizontal resolution in km
+ ptop = 5.0,       ! Pressure of model top in cbar
+ clat = 45.39,     ! Central latitude  of model domain in degrees
+                   ! North hemisphere is positive
+ clon = 13.48,     ! entral longitude of model domain in degrees
+                   ! West is negative.
+ plat = 45.39,     ! Pole latitude (only for rotated Mercator Proj)
+ plon = 13.48,     ! Pole longitude (only for rotated Mercator Proj)
+ truelatl = 30.0,  ! Lambert true latitude (low latitude side)
+ truelath = 60,    ! Lambert true latitude (high latitude side)
+ /
+!
+! DOMAIN terrain generation parameters
+!
+ &terrainparam
+ itype_in = 1,          ! I/O format
+                        ! 1 => direct access binary
+                        ! 2 => netcdf
+ ntypec = 5,            ! Resolution of the global terrain and landuse data
+                        ! Use 60, for  1  degree resolution
+                        !     30, for 30 minutes resolution
+                        !     10, for 10 minutes resolution
+                        !      5, for  5 minutes resolution
+                        !      3, for  3 minutes resolution
+                        !      2, for  2 minutes resolution
+ ntypec_s = 2,          ! Same for subgrid (Used only if nsg > 1)
+ ifanal = .true.,       ! Interpolation Control flag.
+                        !  true  -> Perform cressman-type objective analysis
+                        !  false -> 16-point overlapping parabolic interpolation
+ smthbdy = .false.,     ! Smoothing Control flag
+                        !  true  -> Perform extra smoothing in boundaries
+ lakadj = .false.,      ! Great Lakes levels adjustment Control Flag
+                        !   (Set true only if US EastCoast)
+                        !  true  -> Adjust Great Lakes Levels according to obs
+ fudge_lnd   = .false., ! Fudging for landuse and texture for grid and subgrid
+ fudge_lnd_s = .false., ! Fudging for landuse and texture for grid and subgrid
+ fudge_tex   = .false., ! Fudging for landuse and texture for grid and subgrid
+ fudge_tex_s = .false., ! Fudging for landuse and texture for grid and subgrid
+ ntex = 17,             ! Number of Soil texture categories, leave it to 17
+ h2opct = 75.,          ! Surface minimum H2O percent to be considered water
+                        ! Terrain output files
+ terfilout = '../../Input/DOMAIN.INFO',
+ terfilctl = '../../Input/DOMAIN.CTL',
+ /
+!
+! Global I/O control Stanza
+!
+ &ioparam
+ igrads = 1,  ! Create GrADS CTL files
+ ibigend = 1, ! Machine endianess.
+              ! LEAVE IT UNTOUCHED IF WANT TO EXCHANGE I/O FILES
+ ibyte = 4,   ! Number of bytes in reclen. Usually 4
+ /
+!
+! Debug I/O printout level. Currently unused
+!
+ &debugparam
+ debug_level = 1
+ /
+!
+! Buffer Zone Depth
+!
+ &boundaryparam
+ nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
+              ! the boundary sponge or relaxation boundary conditions.
+ nspgd  = 12, ! nspgd-1 represent the number of dot point slices on 
+              ! the boundary sponge or relaxation boundary conditions.
+ /
+!
+! Split modes
+!
+ &modesparam
+ nsplit = 2, ! Number od split exp modes
+ /
+!
+! Lake Model
+!
+ &lakemodparam
+ lkpts  = 10, ! Number of lake points for lake model
+ /
+!
+! ICBC Global data input control
+!
+ &globdatparam
+ ssttyp = 'OI_WK',        ! Type of Sea Surface Temperature used
+                          !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
+                          !          FV_RF, FV_A2, FV_B2,
+                          !          EH5RF, EH5A2, EH5B1, EHA1B,
+                          !          ERSST, ERSKT
+ dattyp = 'ERAIN',        ! Type of global analysis datasets used
+                          !  One in: ECMWF, ERA40, ERAIN, EIN75, EIN15,
+                          !          EIM25, ERAHI, NNRP1, NNRP2, NRP2W,
+                          !          GFS11, FVGCM, FNEST, EH5OM
+ ehso4 = .false.,         ! Sulfate dataset Control Flag
+ globidate1 = 1990060100, ! Start date for ICBC data generation
+ globidate2 = 1990070100, ! End data for ICBC data generation
+ /
+!
+! LSM data generation
+!
+ &lsmparam
+ lsmtyp = 'BATS', ! Land Surface Legend type
+                  ! One in : BATS, USGS
+                  ! Note that in model only BATS is supported, You should check
+                  ! any data array with nveg dimension to enable USGS.
+ /
+!
+! Aerosol dataset creation and use
+!
+ &aerosolparam
+ aertyp = 'AER00D0' ! Aerosol dataset used
+                    ! One in :
+                    ! AER00D0 -> Neither aerosol, nor dust used
+                    ! AER01D0 -> Biomass, SO2 + BC + OC, no dust
+                    ! AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
+                    ! AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
+                    ! AER00D1 -> No aerosol, with dust
+                    ! AER01D1 -> Biomass, SO2 + BC + OC, with dust
+                    ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
+                    ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
+ ntr = 10,          ! Tracer parameters: number of tracers
+ nbin = 4,          ! Tracer parameters: bins number for dust
+ /
+!
+! Model start/restart control
+!
+ &restartparam
+ ifrest  = .false. ,   ! If a restart
+ idate0  = 1990060100, ! Global start (is globidate1)
+ idate1  = 1990060100, ! Start date of this run
+ idate2  = 1990060200, ! End date for this run
+ nslice  =        120, ! # of days for next model run (used with restart)
+ /
+!
+! Model timing parameters
+!
+ &timeparam
+ radfrq  =    30.,   ! time interval in min solar rad caluclated
+ abemh   =    18.,   ! time interval at which bats is called (secs)
+ abatm   =   600.,   ! time interval absorption-emission calculated (hours)
+ dt      =   150.,   ! time step in seconds
+ ibdyfrq =     6,    ! boundary condition interval (hours)
+ /
+!
+! Model Output control
+!
+ &outparam
+ ifsave  = .true. , ! Create SAV files for restart
+ savfrq  =    48.,  ! Frequency in hours to create them
+ iftape  = .true. , ! Output ATM
+ tapfrq  =     6.,  ! Frequency in hours to write to ATM
+ ifrad   = .true. , ! Output RAD
+ radisp  =     6.,  ! Frequency in hours to write to RAD
+ ifbat   = .true. , ! Output SRF
+ ifsub   = .true. , ! Output SUB
+ batfrq  =     3.,  ! Frequency in hours to write to SRF (and CLM)
+ ifprt   = .false., ! Printout. WARNING: WORKS ONLY FOR SERIAL
+ prtfrq  =    12.,  ! Frequency in hours for printout
+ kxout   =     6,   ! Printout control
+ jxsex   =     40,  ! Printout control
+ maschk  =     10,  ! Printout control
+ iotyp   =     1,   ! 
+ ibintyp =     1,   !
+ ifchem  = .true.,  ! Output CHE
+ chemfrq =     6.,  ! Frequency in hours to write to CHE
+ /
+!
+! Model Physics
+!
+ &physicsparam
+ iboudy  =          5,  ! Lateral Boundary conditions scheme
+                        !   0 => Fixed
+                        !   1 => Relaxation, linear technique.
+                        !   2 => Time-dependent
+                        !   3 => Time and inflow/outflow dependent.
+                        !   4 => Sponge (Perkey & Kreitzberg, MWR 1976)
+                        !   5 => Relaxation, exponential technique.
+ ibltyp  =          1,  ! Boundary layer scheme
+                        !   0 => Frictionless
+                        !   1 => Holtslag PBL (Holtslag, 1990)
+ icup    =          4,  ! Cumulus convection scheme
+                        !   1 => Kuo
+                        !   2 => Grell
+                        !   3 => Betts-Miller (1986) DOES NOT WORK !!!
+                        !   4 => Emanuel (1991)
+   igcc  =          1,  ! Grell Scheme Cumulus closure scheme
+                        !   1 => Arakawa & Schubert (1974)
+                        !   2 => Fritsch & Chappell (1980)
+ ipptls  =          1,  ! Moisture scheme
+                        !   1 => Explicit moisture (SUBEX; Pal et al 2000)
+ iocnflx =          2,  ! Ocean Flux scheme
+                        !   1 => Use BATS1e Monin-Obukhov
+                        !   2 => Zeng et al (1998)
+ ipgf    =          0,  ! Pressure gradient force scheme
+                        !   0 => Use full fields
+                        !   1 => Hydrostatic deduction with pert. temperature
+ iemiss  =          0,  ! Calculate emission
+ lakemod =          0,  ! Use lake model
+ ichem   =          1,  ! Use chemical model
+ imask   =          1,  ! For CLM, Type of land surface parameterization
+                        !   1 => using DOMAIN.INFO for landmask (same as BATS)
+                        !   2 => using mksrf_navyoro file landfraction for
+                        !        landmask and perform a weighted average over
+                        !        ocean/land gridcells; for example:
+                        ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
+ /
+!
+! Moisture scheme comtrol (You know what You are doing, don't You?)
+!
+ &subexparam
+ ncld      =          1, ! # of bottom model levels with no clouds
+ fcmax     =       0.80, ! Maximum cloud fraction cover
+ qck1land  =   .250E-03, ! Autoconversion Rate for Land
+ qck1oce   =   .250E-03, ! Autoconversion Rate for Ocean
+ gulland   =        0.4, ! Fract of Gultepe eqn (qcth) when precip occurs
+ guloce    =        0.4, ! Fract of Gultepe eqn (qcth) for ocean
+ rhmax     =       1.01, ! RH at whicn FCC = 1.0
+ rh0oce    =       0.90, ! Relative humidity threshold for ocean
+ rh0land   =       0.80, ! Relative humidity threshold for land
+ tc0       =      238.0, ! Below this temperature, rh0 begins to approach unity
+ cevap     =   .100E-02, ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+ caccr     =      3.000, ! Raindrop accretion rate [m3/kg/s]
+ cllwcv    =     0.3E-3, ! Cloud liquid water content for convective precip.
+ clfrcvmax =       0.25, ! Max cloud fractional cover for convective precip.
+ /
+!
+! Grell Cumulus scheme control (please look param.F90)
+!
+ &grellparam
+ /
+!
+! Emanuel Cumuls scheme control (please look param.F90)
+!
+ &emanparam
+ /
+!
+! Chemical control parameter
+!
+  &chemparam
+ idirect      =    1,  ! tracer direct effect
+ ichremlsc    =    1,  ! tracer removal by large scale cloud
+ ichremcvc    =    1,  ! tracer removal by convective clouds
+ ichdrdepo    =    1,  ! tracer dry deposition
+ ichcumtra    =    1,  ! tracer convective transport
+ mixtype      =    1,  ! Tracer mixing
+ inpchtrname  =   '',             ! See tractend2.f90
+ inpchtrsol   =   .00,            ! See tractend2.f90
+ inpchtrdpv   =  .00000, .00000,  ! See tractend2.f90
+ inpdustbsiz  =   .00,  .00,      ! See tractend2.f90
+ /
+
+! ####################################################################
