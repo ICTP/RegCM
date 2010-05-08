@@ -16,6 +16,7 @@
  truelath = 60.0,
  /
  &terrainparam
+ domname = 'LAT+09LON040_112x128',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
@@ -28,8 +29,7 @@
  fudge_tex_s = .false.,
  ntex = 17,
  h2opct = 75.,
- terfilout = '../../Input/DOMAIN.INFO',
- terfilctl = '../../Input/DOMAIN.CTL',
+ dirter = '../../Input',
  /
  &ioparam
  igrads = 1,
@@ -55,6 +55,7 @@
  ehso4 = .false.,
  globidate1 = 1991010100,
  globidate2 = 1991020100,
+ dirglob = '../../Input',
  /
  &lsmparam
  lsmtyp = 'BATS',
