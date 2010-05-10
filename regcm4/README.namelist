@@ -65,6 +65,7 @@
  ntex = 17,              ! Number of Soil texture categories, leave it to 17
  h2opct = 75.,           ! Surface minimum H2O percent to be considered water
  dirter = '../../Input', ! Output directory for terrain files
+ inpter = '../DATA',     ! Input directory for SURFACE dataset
  /
 !
 ! Global I/O control Stanza
@@ -74,9 +75,9 @@
  ibigend = 1, ! Machine endianess.
               ! LEAVE IT UNTOUCHED IF WANT TO EXCHANGE I/O FILES
  ibyte = 4,   ! Number of bytes in reclen. Usually 4
- iotyp = 1,   ! Type of output file
+ iotyp = 1,   ! Type of output file, used in regcm only as of now.
               !   1 => direct access file OK for the GrADS, mostly used
-              !   2 => sequential I/O with time listing interleaved
+              !   2 => sequential I/O with time listing interleaved for legacy
  /
 !
 ! Debug I/O printout level. Currently unused
@@ -122,6 +123,9 @@
  globidate1 = 1990060100,    ! Start date for ICBC data generation
  globidate2 = 1990070100,    ! End data for ICBC data generation
  dirglob = '/scratch/Input', ! Path for ICBC produced input files
+ inpglob = '../DATA',        ! Path for ICBC global input datasets.
+                             ! Look http://users.ictp.it/~pubregcm/RegCM3
+                             ! on how to download them.
  /
 !
 ! LSM data generation
@@ -184,8 +188,8 @@
  batfrq  =     3.,  ! Frequency in hours to write to SRF (and CLM)
  ifprt   = .false., ! Printout. WARNING: WORKS ONLY FOR SERIAL
  prtfrq  =    12.,  ! Frequency in hours for printout
- kxout   =     6,   ! Printout control
- jxsex   =     40,  ! Printout control
+ kxout   =     6,   ! Printout control for vertical level
+ jxsex   =     40,  ! Printout control for horizontal point
  ifchem  = .true.,  ! Output CHE
  chemfrq =     6.,  ! Frequency in hours to write to CHE
  /
