@@ -105,9 +105,6 @@
 #ifdef MPP1
       integer :: ierr
 #endif
-#ifndef CLM
-      integer :: imask
-#endif
 !
 !
 !----------------------------------------------------------------------
