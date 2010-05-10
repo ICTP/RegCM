@@ -61,7 +61,7 @@
       real(4) , allocatable , dimension(:) :: sigx
       integer :: ipathdiv
       character(256) :: namelistfile, prgname
-      character(256) :: terfile
+      character(256) :: terfile , inpfile
 !
 !     Read input global namelist
 !
@@ -77,6 +77,12 @@
         stop
       end if
 !
+      if ( nsg/=1 ) then
+        write ( 6,* ) 'CLM does not work with subgridding enable.'
+        write ( 6,* ) 'Please set nsg=1 in regcm.in'
+        stop
+      end if
+
       allocate(xlat(iy,jx))
       allocate(xlon(iy,jx))
       allocate(xlat1d(iy))
@@ -151,9 +157,10 @@
 !       ** Open input and output files
 !       **   Some files have more than one required variable. 
 !       Therefore, **   the output file should only be opened once.
-        inquire (file=infil(ifld),exist=there)
+        inpfile = trim(inpglob)//infil(ifld)
+        inquire (file=inpfile,exist=there)
         if ( .not.there ) then
-          print * , 'CLM Input file does not exist: ', trim(infil(ifld))
+          print * , 'CLM Input file does not exist: ', trim(inpfile)
           stop 'NON-EXISTENT FILE'
         end if
         if ( ifld==ipft .or. ifld==ilai .or. ifld==ilak .or.            &
@@ -163,19 +170,19 @@
            & ifld==iapin ) then
 !         ************************ CHANGED LINE ABOVE to include iiso
 !         ************************
-          print * , 'OPENING Input NetCDF FILE: ' , trim(infil(ifld))
-          ierr = nf90_open(infil(ifld),nf90_nowrite,idin)
+          print * , 'OPENING Input NetCDF FILE: ' , trim(inpfile)
+          ierr = nf90_open(inpfile,nf90_nowrite,idin)
           if ( ierr/=nf90_noerr ) then
-            write (6,*) 'Cannot open input file ', trim(infil(ifld))
+            write (6,*) 'Cannot open input file ', trim(inpfile)
             stop 'INPUT NOT READY'
           end if
-          ipathdiv = scan(infil(ifld), pthsep, .true.)
+          ipathdiv = scan(inpfile, pthsep, .true.)
           if ( ipathdiv/=0 ) then
             outfil_nc = trim(dirglob)//pthsep//trim(domname)//          &
-                   &  '_RCM'//infil(ifld)(ipathdiv+7:)
+                   &  '_RCM'//inpfile(ipathdiv+7:)
           else
             outfil_nc = trim(dirglob)//pthsep//trim(domname)//          &
-                   & '_RCM'//infil(ifld)(7:)
+                   & '_RCM'//inpfile(7:)
           endif
 !         CALL FEXIST(outfil_nc)
           print * , 'OPENING Output NetCDF FILE: ' , trim(outfil_nc)
