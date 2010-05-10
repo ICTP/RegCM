@@ -526,7 +526,6 @@
       call mpi_bcast(prtfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(kxout,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(jxsex,1,mpi_integer,0,mpi_comm_world,ierr)
-      call mpi_bcast(iotyp,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
  
