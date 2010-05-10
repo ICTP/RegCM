@@ -121,7 +121,7 @@
 ! 
       open (30,file='namelist.input',status='old')
 
-      call init_emiss(iy,jx,globidate1,globidate2)
+      call init_emiss(iy,jx,globidate1,globidate2,inpglob)
  
 !     ******    ON WHAT RegCM GRID ARE AEROSOL DESIRED?
       terfile = trim(dirter)//pthsep//trim(domname)//'.INFO'
@@ -148,7 +148,7 @@
       trec = (iyr2-iyr1+1)*12 - (imo1-1) - (12-imo2)
       write (*,*) 'TOTAL RECORD NUMBER per element=' , trec
  
-      call griddef(iyr2,trec,aertyp,ibyte,kz)
+      call griddef(iyr2,trec,aertyp,kz)
  
       record = 0
  

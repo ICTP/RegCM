@@ -64,12 +64,13 @@
          & lat_units    = "degrees_north" ,                             &
          & lon_units    = "degrees_east"
 
+      character(256) :: emibase
       character(*) , parameter ::                                       &
-         & datadir1 = "../DATA/EMISSION_INVENTORY/retro/" ,             &
-         & datadir2 = "../DATA/EMISSION_INVENTORY/poet/netcdf/" ,       &
-         & datadir3 = "../DATA/EMISSION_INVENTORY/gfed/" ,              &
-         & datadir4 = "../DATA/EMISSION_INVENTORY/edgar/netcdf/" ,      &
-         & datadir5 = "../DATA//EMISSION_INVENTORY/mozart/"
+         & datadir1 = "/EMISSION_INVENTORY/retro/" ,                    &
+         & datadir2 = "/EMISSION_INVENTORY/poet/netcdf/" ,              &
+         & datadir3 = "/EMISSION_INVENTORY/gfed/" ,                     &
+         & datadir4 = "/EMISSION_INVENTORY/edgar/netcdf/" ,             &
+         & datadir5 = "/EMISSION_INVENTORY/mozart/"
 
       logical , parameter :: iretro  = .true.
       logical , parameter :: ipoet   = .true.
@@ -103,13 +104,15 @@
 
       contains
 
-      subroutine init_emiss(iny,jnx,iidate1,iidate2)
+      subroutine init_emiss(iny,jnx,iidate1,iidate2,dirglob)
         implicit none
         integer , intent (in) :: iny , jnx , iidate1 , iidate2
+        character(*) , intent(in) :: dirglob
         ny = iny
         nx = jnx
         idate1 = iidate1
         idate2 = iidate2
+        emibase = trim(dirglob)
         allocate(aermm(ny,nx))
         allocate(xlat(ny,nx))
         allocate(xlon(ny,nx))
@@ -274,7 +277,7 @@
         read (12,fmt=99001,end=100) year , element
         do spc = 1 , nspc    !loop over species
  
-          file_name = trim(datadir)//cname
+          file_name = trim(emibase)//trim(datadir)//cname
 !         WRITE(*,*)YEAR,ELEMENT,FILE_NAME
 
           if ( emsrc==1 .and. invntry=='retro' ) then

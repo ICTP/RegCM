@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine griddef(year,trec,aertyp,ibyte,kz)
+      subroutine griddef(year,trec,aertyp,kz)
 
       use mod_emission
 
@@ -25,9 +25,9 @@
 !
 ! Dummy arguments
 !
-      integer :: trec , year , ibyte , kz
+      integer :: trec , year , kz
       character(7) :: aertyp
-      intent (in) trec , year , aertyp , ibyte , kz
+      intent (in) trec , year , aertyp , kz
 !
 ! Local variables
 !
