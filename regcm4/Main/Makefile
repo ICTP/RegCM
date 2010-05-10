@@ -5,7 +5,7 @@
 ###########################################################################
 
 # Set to 1 to enable CLM coupling
-USECLM = 1
+USECLM = 0
 # Set to 1 to enable daily cycle SST
 USEDCSST = 0
 # Set to 1 to enable Sea Ice effects
@@ -20,12 +20,12 @@ SCENARIO = A1B
 include ../Makefile.inc
 
 destdir = ../Run
-prgsuffix = S
+prgsuffix = Serial
 
 # check if we need the MPI wrapper 
 ifneq ($(origin PARALLEL), undefined)
   F90 = $(MPIF90)
-  prgsuffix = M
+  prgsuffix = MPI
 endif  
 
 ifeq ($(USECLM),1)
