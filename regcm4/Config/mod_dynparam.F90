@@ -292,6 +292,9 @@
 
       character(256) :: dirter , inpter
       character(256) :: dirglob , inpglob
+#ifdef CLM
+      character(256) :: dirclm
+#endif
 
 ! Model output control parameters
 
@@ -367,7 +370,15 @@
         nnsg = nsg*nsg
 
         read(ipunit, geoparam, err=102)
+
+        ! Defaults to have SAME behaviour of V3 if not specified
+        inpter  = '../DATA'
+        inpglob = '../DATA'
+        dirter  = '../../Input'
+        dirglob = '../../Input'
+
         read(ipunit, terrainparam, err=103)
+
         ! Set convenient defaults for I/O parameters
         iotyp   = 1
         ibigend = 1

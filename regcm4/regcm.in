@@ -128,3 +128,6 @@
  inpchtrdpv   =  .00000, .00000,
  inpdustbsiz  =   .00,  .00,
  /
+ &clmparam
+ dirclm = '/home/graziano/Software/regcm/branches/regcm4/Input',
+ /

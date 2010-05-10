@@ -273,5 +273,11 @@
  inpchtrdpv   =  .00000, .00000,  ! See tractend2.f90
  inpdustbsiz  =   .00,  .00,      ! See tractend2.f90
  /
-
+!
+! CLM path to Input data produced by clm2rcm. If relative, It should be
+! how to reach the Input dir from the Run dir.
+!
+ &clmparam
+ dirclm = '../Input',
+ /
 ! ####################################################################

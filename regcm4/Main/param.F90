@@ -156,6 +156,10 @@
       & inpchtrdpv , inpdustbsiz
 !chem2_
 
+#ifdef CLM
+      namelist /clmparam/ dirclm
+#endif
+
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -494,6 +498,10 @@
         dustbsiz = inpdustbsiz(1:nbin,:)
         chtrsol = inpchtrsol(1:ntr)
       end if
+#ifdef CLM
+      read (ipunit , clmparam)
+      print * , 'param: CLMPARAM READ IN'
+#endif
 !
 #ifdef MPP1
       end if 
@@ -608,6 +616,10 @@
         call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
       end if
+#endif
+
+#ifdef CLM
+      all mpi_bcast(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
 #endif
  
       if ( ichem.eq.0 ) ifchem = .false.
