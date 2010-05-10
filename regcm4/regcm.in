@@ -2,7 +2,7 @@
  iy     = 34,
  jx     = 48,
  kz     = 18,
- nsg    = 1,
+ nsg    = 5,
  /
  &geoparam
  iproj = 'LAMCON',
@@ -30,6 +30,7 @@
  ntex = 17,
  h2opct = 75.,
  dirter = '/home/graziano/Software/regcm/branches/regcm4/Input',
+ inpter = '/home/graziano/Software/regcm/branches/regcm4/PreProc/DATA',
  /
  &ioparam
  igrads = 1,
@@ -56,6 +57,7 @@
  globidate1 = 1990060100,
  globidate2 = 1990070100,
  dirglob = '/home/graziano/Software/regcm/branches/regcm4/Input',
+ inpglob = '/home/graziano/Software/regcm/branches/regcm4/PreProc/DATA',
  /
  &lsmparam
  lsmtyp = 'BATS',

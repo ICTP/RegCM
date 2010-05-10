@@ -250,10 +250,10 @@
 !
 !       read in the terrain & landuse data
         if ( itype_in==1 ) then
-          call rdldtr(ntypec_s,nveg,ntex,lsmtyp,aertyp,ibyte)
+          call rdldtr(inpter,ntypec_s,nveg,ntex,lsmtyp,aertyp,ibyte)
           print * , 'after calling RDLDTR_s, for subgrid'
         else if ( itype_in==2 ) then
-          call rdldtr_nc(ntypec_s,nveg,ntex,lsmtyp,aertyp)
+          call rdldtr_nc(inpter,ntypec_s,nveg,ntex,lsmtyp,aertyp)
           print * , 'after calling RDLDTR_nc, for subgrid'
         else
           print * , 'Unknown Itype for input'
@@ -456,10 +456,10 @@
 !
 !     read in the terrain & landuse data
       if ( itype_in==1 ) then
-        call rdldtr(ntypec,nveg,ntex,lsmtyp,aertyp,ibyte)
+        call rdldtr(inpter,ntypec,nveg,ntex,lsmtyp,aertyp,ibyte)
         print * , 'after calling RDLDTR'
       else if (itype_in==2 ) then
-        call rdldtr_nc(ntypec,nveg,ntex,lsmtyp,aertyp)
+        call rdldtr_nc(inpter,ntypec,nveg,ntex,lsmtyp,aertyp)
         print * , 'after calling RDLDTR_nc'
       else
       endif

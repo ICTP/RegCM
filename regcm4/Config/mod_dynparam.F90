@@ -285,8 +285,8 @@
 
 ! Paths
 
-      character(256) :: dirter
-      character(256) :: dirglob
+      character(256) :: dirter , inpter
+      character(256) :: dirglob , inpglob
 
       contains
 
@@ -300,7 +300,7 @@
         namelist /terrainparam/ domname , itype_in , ntypec , ntypec_s ,&
                      &  ifanal , smthbdy , lakadj , fudge_lnd ,         &
                      & fudge_lnd_s , fudge_tex , fudge_tex_s , ntex ,   &
-                     & h2opct , dirter
+                     & h2opct , dirter , inpter
         namelist /dimparam/ iy , jx , kz , nsg
         namelist /ioparam/ igrads , ibigend , ibyte
         namelist /debugparam/ debug_level
@@ -308,7 +308,7 @@
         namelist /modesparam/ nsplit
         namelist /lakemodparam/ lkpts
         namelist /globdatparam/ dattyp , ssttyp , ehso4 , globidate1 ,  &
-                     & globidate2 , dirglob
+                     & globidate2 , dirglob , inpglob
         namelist /lsmparam/ lsmtyp
         namelist /aerosolparam/ aertyp , ntr, nbin
 

@@ -23,7 +23,7 @@
 
       contains
 
-      subroutine rdldtr(ntypec,nveg,ntex,lsmtyp,aertyp,ibyte)
+      subroutine rdldtr(inpter,ntypec,nveg,ntex,lsmtyp,aertyp,ibyte)
 
       implicit none
 !
@@ -32,17 +32,18 @@
       integer :: ntypec , ibyte , nveg , ntex
       character(4) :: lsmtyp
       character(7) :: aertyp
-      intent(in) ntypec , ibyte , nveg , ntex , lsmtyp , aertyp
+      character(*) :: inpter
+      intent(in) inpter , ntypec , ibyte , nveg , ntex , lsmtyp , aertyp
 !
 ! Local variables
 !
       integer :: nxmax , nymax
       real(4) :: center , rlat , rlon
       character(2) :: char_2
-      character(36) :: filcat , filelev
-      character(7) :: filclay , filsand
-      character(10) :: filtext
-      character(11) :: filusgs
+      character(256) :: filcat , filelev
+      character(256) :: filclay , filsand
+      character(256) :: filtext
+      character(256) :: filusgs
       integer :: ihmax , ilat1 , ilat2 , irec , irect , j , jhmax , k , &
                & lrec
       logical :: there
@@ -64,9 +65,9 @@
       allocate(ch_htsd(nxmax))
 
       if ( ntypec<10 ) then
-        write (filelev,99001) ntypec
+        write (filelev,99001) trim(inpter) , ntypec
       else if ( ntypec<100 ) then
-        write (filelev,99002) ntypec
+        write (filelev,99002) trim(inpter) , ntypec
       else
         write (*,*) 'For terrain, ntypec is not set correctly ' , ntypec
         stop 'subroutine RDLDTR'
@@ -82,9 +83,9 @@
  
       if ( lsmtyp=='BATS' ) then
         if ( ntypec<10 ) then
-          write (filcat,99003) ntypec
+          write (filcat,99003) trim(inpter) , ntypec
         else if ( ntypec<100 ) then
-          write (filcat,99004) ntypec
+          write (filcat,99004) trim(inpter) , ntypec
         else
           write (*,*) 'For landuse, ntypec is not set correctly ' ,     &
                     & ntypec
@@ -100,62 +101,69 @@
             & access='direct')
       else if ( lsmtyp=='USGS' ) then
         if ( ntypec<10 ) then
-          write (filusgs,99005) ntypec
-          write (filsand,99006) ntypec
-          write (filclay,99007) ntypec
+          write (filusgs,99005) trim(inpter) , ntypec
+          write (filsand,99006) trim(inpter) , ntypec
+          write (filclay,99007) trim(inpter) , ntypec
         else if ( ntypec<100 ) then
-          write (filusgs,99008) ntypec
-          write (filsand,99009) ntypec
-          write (filclay,99010) ntypec
+          write (filusgs,99008) trim(inpter) , ntypec
+          write (filsand,99009) trim(inpter) , ntypec
+          write (filclay,99010) trim(inpter) , ntypec
         else
           write (*,*) 'Error input of ntypec: ' , ntypec
         end if
         if ( ntypec==2 ) then
-          inquire (file='../DATA/SURFACE/'//filusgs//'A',exist=there)
+          inquire (file=trim(inpter)//'/SURFACE/'//filusgs//'A',        &
+            & exist=there)
           if ( .not.there ) then
-            print * , 'ERROR OPENING ' , '../DATA/SURFACE/'//filusgs ,  &
-                 &' FILE: FILE DOES NOT EXIST'
+            print * , 'ERROR OPENING ' ,                                &
+                 & trim(inpter)//'/SURFACE/'//filusgs ,                 &
+                 & ' FILE: FILE DOES NOT EXIST'
             stop '4820 IN SUBROUTINE RDLDTR'
           end if
-          inquire (file='../DATA/SURFACE/'//filusgs//'B',exist=there)
+          inquire (file=trim(inpter)//'/SURFACE/'//filusgs//'B',        &
+                 & exist=there)
           if ( .not.there ) then
-            print * , 'ERROR OPENING ' , '../DATA/SURFACE/'//filusgs ,  &
-                 &' FILE: FILE DOES NOT EXIST'
+            print * , 'ERROR OPENING ' ,                                &
+                 & trim(inpter)//'/SURFACE/'//filusgs ,                 &
+                 & ' FILE: FILE DOES NOT EXIST'
             stop '4820 IN SUBROUTINE RDLDTR'
           end if
         else
-          inquire (file='../DATA/SURFACE/'//filusgs,exist=there)
+          inquire (file=trim(inpter)//'/SURFACE/'//filusgs,exist=there)
           if ( .not.there ) then
-            print * , 'ERROR OPENING ' , '../DATA/SURFACE/'//filusgs ,  &
-                 &' FILE: FILE DOES NOT EXIST'
+            print * , 'ERROR OPENING ' ,                                &
+               & trim(inpter)//'/SURFACE/'//filusgs ,                   &
+               & ' FILE: FILE DOES NOT EXIST'
             stop '4820 IN SUBROUTINE RDLDTR'
           end if
         end if
-        inquire (file='../DATA/SURFACE/'//filsand,exist=there)
+        inquire (file=trim(inpter)//'/SURFACE/'//filsand,exist=there)
         if ( .not.there ) then
-          print * , 'ERROR OPENING ' , '../DATA/SURFACE/'//filsand ,    &
-               &' FILE: FILE DOES NOT EXIST'
+          print * , 'ERROR OPENING ' ,                                  &
+               & trim(inpter)//'/SURFACE/'//filsand ,                   &
+               & ' FILE: FILE DOES NOT EXIST'
           stop '4820 IN SUBROUTINE RDLDTR'
         end if
-        inquire (file='../DATA/SURFACE/'//filclay,exist=there)
+        inquire (file=trim(inpter)//'/SURFACE/'//filclay,exist=there)
         if ( .not.there ) then
-          print * , 'ERROR OPENING ' , '../DATA/SURFACE/'//filclay ,    &
-               &' FILE: FILE DOES NOT EXIST'
+          print * , 'ERROR OPENING ' ,                                  &
+               & trim(inpter)//'/SURFACE/'//filclay ,                   &
+               & ' FILE: FILE DOES NOT EXIST'
           stop '4820 IN SUBROUTINE RDLDTR'
         end if
         if ( ntypec==2 ) then
-          open (41,file='../DATA/SURFACE/'//filusgs//'A',               &
+          open (41,file=trim(inpter)//'/SURFACE/'//filusgs//'A',        &
                &form='unformatted',recl=nxmax*ibyte/2,access='direct')
-          open (44,file='../DATA/SURFACE/'//filusgs//'B',               &
+          open (44,file=trim(inpter)//'/SURFACE/'//filusgs//'B',        &
                &form='unformatted',recl=nxmax*ibyte/2,access='direct')
         else
-          open (41,file='../DATA/SURFACE/'//filusgs,form='unformatted', &
-              & recl=nxmax*ibyte/2,access='direct')
+          open (41,file=trim(inpter)//'/SURFACE/'//filusgs,             &
+               &form='unformatted',recl=nxmax*ibyte/2,access='direct')
         end if
-        open (42,file='../DATA/SURFACE/'//filsand,form='unformatted',   &
-            & recl=nxmax*ibyte/2,access='direct')
-        open (43,file='../DATA/SURFACE/'//filclay,form='unformatted',   &
-            & recl=nxmax*ibyte/2,access='direct')
+        open (42,file=trim(inpter)//'/SURFACE/'//filsand,               &
+            & form='unformatted',recl=nxmax*ibyte/2,access='direct')
+        open (43,file=trim(inpter)//'/SURFACE/'//filclay,               &
+            & form='unformatted',recl=nxmax*ibyte/2,access='direct')
       else
       end if
       if ( aertyp(7:7)=='1' ) then
@@ -166,14 +174,15 @@
         else
           write (*,*) 'Error input of ntypec: ' , ntypec
         end if
-        inquire (file='../DATA/SURFACE/'//filtext,exist=there)
+        inquire (file=trim(inpter)//'/SURFACE/'//filtext,exist=there)
         if ( .not.there ) then
-          print * , 'ERROR OPENING ' , '../DATA/SURFACE/'//filtext ,    &
-               &' FILE: FILE DOES NOT EXIST'
+          print * , 'ERROR OPENING ' ,                                  &
+              & trim(inpter)//'/SURFACE/'//filtext ,                    &
+              & ' FILE: FILE DOES NOT EXIST'
           stop '4830 IN SUBROUTINE RDLDTR'
         end if
-        open (45,file='../DATA/SURFACE/'//filtext,form='unformatted',   &
-            & recl=nxmax*ntex*ibyte/4,access='direct')
+        open (45,file=trim(inpter)//'/SURFACE/'//filtext,               &
+           & form='unformatted',recl=nxmax*ntex*ibyte/4,access='direct')
       end if
  
       lrec = 0
@@ -305,10 +314,10 @@
       deallocate(ch_topo)
       deallocate(ch_htsd)
 
-99001 format ('../DATA/SURFACE/GTOPO30_',i1,'MIN.dat')
-99002 format ('../DATA/SURFACE/GTOPO30_',i2,'MIN.dat')
-99003 format ('../DATA/SURFACE/GLCC',i1,'MIN_BATS.dat')
-99004 format ('../DATA/SURFACE/GLCC',i2,'MIN_BATS.dat')
+99001 format (a,'/SURFACE/GTOPO30_',i1,'MIN.dat')
+99002 format (a,'/SURFACE/GTOPO30_',i2,'MIN.dat')
+99003 format (a,'/SURFACE/GLCC',i1,'MIN_BATS.dat')
+99004 format (a,'/SURFACE/GLCC',i2,'MIN_BATS.dat')
 99005 format ('VEG-USGS.0',i1)
 99006 format ('SAND.0',i1)
 99007 format ('CLAY.0',i1)
@@ -325,7 +334,7 @@
              &' must be greater than ',i8,10x,'iblk = ',i8)
       end subroutine rdldtr
 
-      subroutine rdldtr_nc(ntypec,nveg,ntex,lsmtyp,aertyp)
+      subroutine rdldtr_nc(inpter,ntypec,nveg,ntex,lsmtyp,aertyp)
 
       use netcdf
 
@@ -336,14 +345,15 @@
       integer :: ntypec , nveg , ntex
       character(4) :: lsmtyp
       character(7) :: aertyp
-      intent(in) ntypec , nveg , ntex , lsmtyp , aertyp
+      character(*) :: inpter
+      intent(in) inpter , ntypec , nveg , ntex , lsmtyp , aertyp
 !
 ! Local variables
 !
       integer :: nxmax , nymax
       real(4) :: center , rlat , rlon
-      character(64) :: filcat , filsandclay , filusgs
-      character(64) :: filelev , filtext
+      character(256) :: filcat , filsandclay , filusgs
+      character(256) :: filelev , filtext
       integer , dimension(3) :: icount3 , istart3
       integer , dimension(4) :: icount4 , istart4
       integer :: ihmax , ilat1 , ilat2 , irec , istat ,  j , jhmax , k ,&
@@ -368,9 +378,9 @@
       allocate(ihtsd(nxmax))
 
       if ( ntypec<10 ) then
-        write (filelev,99001) ntypec
+        write (filelev,99001) trim(inpter), ntypec
       else if ( ntypec<100 ) then
-        write (filelev,99002) ntypec
+        write (filelev,99002) trim(inpter), ntypec
       else
         write (*,*) 'For terrain, ntypec is not set correctly ' , ntypec
         stop 'subroutine RDLDTR_nc'
@@ -402,9 +412,9 @@
  
       if ( lsmtyp=='BATS' ) then
         if ( ntypec<10 ) then
-          write (filcat,99003) ntypec
+          write (filcat,99003) trim(inpter), ntypec
         else if ( ntypec<100 ) then
-          write (filcat,99004) ntypec
+          write (filcat,99004) trim(inpter), ntypec
         else
           write (*,*) 'For landuse, ntypec is not set correctly ' ,     &
                     & ntypec
@@ -674,16 +684,16 @@
       deallocate(itopo)
       deallocate(ihtsd)
 
-99001 format ('../DATA/SURFACE/GTOPO30_',i1,'min.nc')
-99002 format ('../DATA/SURFACE/GTOPO30_',i2,'min.nc')
-99003 format ('../DATA/SURFACE/GLCC_BATS_',i1,'min.nc')
-99004 format ('../DATA/SURFACE/GLCC_BATS_',i2,'min.nc')
-99005 format ('../DATA/SURFACE/GLCC_USGS_',i1,'min.nc')
-99006 format ('../DATA/SURFACE/SAND_CLAY_',i1,'min.nc')
-99007 format ('../DATA/SURFACE/GLCC_USGS_',i2,'min.nc')
-99008 format ('../DATA/SURFACE/SAND_CLAY_',i2,'min.nc')
-99009 format ('../DATA/SURFACE/SOILCAT_',i1,'min.nc')
-99010 format ('../DATA/SURFACE/SOILCAT_',i2,'min.nc')
+99001 format (a,'/SURFACE/GTOPO30_',i1,'min.nc')
+99002 format (a,'/SURFACE/GTOPO30_',i2,'min.nc')
+99003 format (a,'/SURFACE/GLCC_BATS_',i1,'min.nc')
+99004 format (a,'/SURFACE/GLCC_BATS_',i2,'min.nc')
+99005 format (a,'/SURFACE/GLCC_USGS_',i1,'min.nc')
+99006 format (a,'/SURFACE/SAND_CLAY_',i1,'min.nc')
+99007 format (a,'/SURFACE/GLCC_USGS_',i2,'min.nc')
+99008 format (a,'/SURFACE/SAND_CLAY_',i2,'min.nc')
+99009 format (a,'/SURFACE/SOILCAT_',i1,'min.nc')
+99010 format (a,'/SURFACE/SOILCAT_',i2,'min.nc')
 99011 format (1x,i10,' terrain heights read from land use volume')
 99012 format (1x,'***array dimension error***',/,'     iter = ',i5,     &
              &' must be greater than ',i5,10x,'jter = ',i5,             &
