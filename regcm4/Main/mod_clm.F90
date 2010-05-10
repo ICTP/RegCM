@@ -27,6 +27,8 @@
 
 #ifdef MPP1
 
+      integer :: imask
+
       integer :: r2cdtime      ! timestep in seconds
       integer :: r2cnsrest     ! 0=initial, 1=restart
       integer :: r2cnestep     ! final timestep (or day if negative) number

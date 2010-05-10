@@ -68,7 +68,7 @@
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
-      use mod_clm , only : allocate_mod_clm
+      use mod_clm , only : imask , allocate_mod_clm
 #endif
 #ifndef IBM
       use mpi
@@ -104,6 +104,11 @@
 
 #ifdef MPP1
       integer :: ierr
+#ifndef CLM
+      integer :: imask
+#endif
+#else
+      integer :: imask
 #endif
 !
 !
@@ -128,7 +133,7 @@
 !chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
       & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
-      & batfrq , iotyp , ibintyp , ifchem , chemfrq
+      & batfrq , ifchem , chemfrq
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem , imask
@@ -318,9 +323,6 @@
 !     iotyp  : Type of output files,
 !     1=direct access (GrADS); 2=sequential w/ time listing
 !
-!     ibintyp : Type of binary output for GrADS ctl files
-!     1=big endian; 2=little endian
-!
 !     maschk : specify the frequency in time steps, the mass-
 !     conservation information will be printed out.
 !
@@ -366,8 +368,6 @@
       prtfrq = 12.
       kxout = kz
       jxsex = 25
-      iotyp = 1
-      ibintyp = 1
       maschk = 10           ! * defined below
  
 !chem2
@@ -527,7 +527,6 @@
       call mpi_bcast(kxout,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(jxsex,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(iotyp,1,mpi_integer,0,mpi_comm_world,ierr)
-      call mpi_bcast(ibintyp,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
  
@@ -1031,9 +1030,11 @@
           end do
         end if                 ! end if (myid.eq.0)
  
+        call mpi_barrier(mpi_comm_world,ierr)
         call mpi_scatter(inisrf_0(1,1,1),iy*(nnsg*3+8)*jxp,mpi_real8,   &
                        & inisrf0(1,1,1), iy*(nnsg*3+8)*jxp,mpi_real8,   &
                        & 0,mpi_comm_world,ierr)
+        call mpi_barrier(mpi_comm_world,ierr)
         do j = 1 , jxp
           do i = 1 , iy
             ht(i,j) = inisrf0(i,1,j)

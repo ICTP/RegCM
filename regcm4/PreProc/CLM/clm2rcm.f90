@@ -35,7 +35,7 @@
            & perr , platx , plonx , pmax , ptopx , xscale , xlatmax ,   &
            & xlatmin , xlonmax , xlonmin
       integer :: i , ibigendx , idatex , idin , idout , idy , ierr ,    &
-               & ifield , ifld , igradsx , ihr , imap , imo , iotyp ,   &
+               & ifield , ifld , igradsx , ihr , imap , imo , jotyp ,   &
                & irec , iyr , iyy , j , julnc , jxx , kmax , kzz , l
       integer :: k
       integer :: iunout , iunctl
@@ -130,7 +130,7 @@
       close (10)
  
 !     ** Set output variables
-      iotyp = 2
+      jotyp = 2
       xscale = 1.
       offset = 0.
       iunout = 101
@@ -348,7 +348,7 @@
  
           call writecdf(idout,vnam(ifld),regxyz,jx,iy,nlev(ifld),iadim, &
                       & xhr,lnam(ifld),units(ifld),xscale,offset,varmin,&
-                      & varmax,xlat1d,xlon1d,zlev,0,vmisdat,iotyp)
+                      & varmax,xlat1d,xlon1d,zlev,0,vmisdat,jotyp)
         end do
  
 !       ** Deallocate variables for next CLM3 field

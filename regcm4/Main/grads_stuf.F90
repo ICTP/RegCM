@@ -56,9 +56,9 @@
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
-      if ( ibintyp.eq.1 ) then
+      if ( ibigend.eq.1 ) then
         write (31,99003)
-      else if ( ibintyp.eq.2 ) then
+      else if ( ibigend.eq.0 ) then
         write (31,99004)
       else
       end if
@@ -338,9 +338,9 @@
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
-      if ( ibintyp.eq.1 ) then
+      if ( ibigend.eq.1 ) then
         write (31,99003)
-      else if ( ibintyp.eq.2 ) then
+      else if ( ibigend.eq.0 ) then
         write (31,99004)
       else
       end if
@@ -597,9 +597,9 @@
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
-      if ( ibintyp.eq.1 ) then
+      if ( ibigend.eq.1 ) then
         write (31,99003)
-      else if ( ibintyp.eq.2 ) then
+      else if ( ibigend.eq.0 ) then
         write (31,99004)
       else
       end if
@@ -841,9 +841,9 @@
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001)
       write (31,99002)
-      if ( ibintyp.eq.1 ) then
+      if ( ibigend.eq.1 ) then
         write (31,99003)
-      else if ( ibintyp.eq.2 ) then
+      else if ( ibigend.eq.0 ) then
         write (31,99004)
       else
       end if
@@ -1026,9 +1026,9 @@
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
-      if ( ibintyp.eq.1 ) then
+      if ( ibigend.eq.1 ) then
         write (31,99003)
-      else if ( ibintyp.eq.2 ) then
+      else if ( ibigend.eq.0 ) then
         write (31,99004)
       else
       end if
@@ -1258,9 +1258,9 @@
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
-      if ( ibintyp.eq.1 ) then
+      if ( ibigend.eq.1 ) then
         write (31,99003)
-      else if ( ibintyp.eq.2 ) then
+      else if ( ibigend.eq.0 ) then
         write (31,99004)
       else
       end if

@@ -162,10 +162,25 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
+#ifdef MPP1
+!**********************************************************************
+!
+!     MPI Initialization
+!
+      call mpi_init(ierr)
+      call mpi_comm_rank(mpi_comm_world,myid,ierr)
+      call mpi_comm_size(mpi_comm_world,ncpu,ierr)
+
+#endif
+
 !**********************************************************************
 !
 !     Read input global namelist
 !
+#ifdef MPP1
+      if ( myid.eq.0 ) then
+#endif
+
       call getarg(0, prgname)
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
@@ -179,13 +194,17 @@
       end if
 
 #ifdef MPP1
+      end if
+#endif
+
+#ifdef MPP1
 !**********************************************************************
 !
-!     MPI Initialization
+!     MPI Initialization for model
 !
-      call mpi_init(ierr)
-      call mpi_comm_rank(mpi_comm_world,myid,ierr)
-      call mpi_comm_size(mpi_comm_world,ncpu,ierr)
+
+      call broadcast_params
+
       call set_nproc(ncpu)
 
       if ( ncpu.ne.nproc ) then

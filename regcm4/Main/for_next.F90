@@ -95,7 +95,6 @@
       write (99,99010) 'kxout   = ' , kxout
       write (99,99010) 'jxsex   = ' , jxsex
       write (99,99007) 'iotyp   = ' , iotyp
-      write (99,99007) 'ibintyp = ' , ibintyp
       if ( ifchem ) then
         write (99,99006) 'ifchem  = .true. '
       else

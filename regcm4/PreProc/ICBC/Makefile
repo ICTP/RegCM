@@ -36,11 +36,11 @@ icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
                $(LIB) $(NETCDFLIB)
 
 mod_dynparam.o: ../../Config/mod_dynparam.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
 mod_constants.o: ../../Config/mod_constants.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
 
 header_ICBC.o: header_ICBC.F90

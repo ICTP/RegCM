@@ -99,6 +99,11 @@
 
       integer :: ibyte
 
+! Type of output files. Usually 1 (direct access). Set to 2 for sequantial
+! foles with time listing interleave.
+
+      integer ::iotyp
+
 ! Set amount of printout (still unused, sorry)
 
       integer :: debug_level
@@ -288,6 +293,28 @@
       character(256) :: dirter , inpter
       character(256) :: dirglob , inpglob
 
+! Model output control parameters
+
+      logical :: ifsave
+      real(8) :: savfrq
+
+      logical :: iftape
+      real(8) :: tapfrq
+
+      logical :: ifrad
+      real(8) :: radisp
+
+      logical :: ifbat
+      logical :: ifsub
+      real(8) :: batfrq
+
+      logical :: ifprt
+      real(8) :: prtfrq
+      integer :: kxout , jxsex
+
+      logical :: ifchem
+      real(8) :: chemfrq
+
       contains
 
       subroutine initparam(filename, ierr)
@@ -302,7 +329,7 @@
                      & fudge_lnd_s , fudge_tex , fudge_tex_s , ntex ,   &
                      & h2opct , dirter , inpter
         namelist /dimparam/ iy , jx , kz , nsg
-        namelist /ioparam/ igrads , ibigend , ibyte
+        namelist /ioparam/ igrads , ibigend , ibyte , iotyp
         namelist /debugparam/ debug_level
         namelist /boundaryparam/ nspgx , nspgd
         namelist /modesparam/ nsplit
@@ -341,6 +368,9 @@
 
         read(ipunit, geoparam, err=102)
         read(ipunit, terrainparam, err=103)
+        ! Set convenient defaults for I/O parameters
+        iotyp   = 1
+        ibigend = 1
         read(ipunit, ioparam, err=104)
         read(ipunit, debugparam, err=105)
         read(ipunit, boundaryparam, err=106)
@@ -416,6 +446,23 @@
 
       end subroutine
 
+      subroutine init_outparam
+        implicit none
+
+        integer :: ierr
+
+        namelist /outparam/ ifsave , savfrq , iftape , tapfrq ,         &
+              &     ifrad , radisp , ifbat , ifsub ,  batfrq ,          &
+              &     ifprt , prtfrq , kxout , jxsex , ifchem , chemfrq
+
+        read(ipunit, outparam, err=100)
+        return
+
+  100   write ( 6, * ) 'Cannot read namelist stanza: outparam'
+        ierr = 1
+
+      end subroutine init_outparam
+
 #ifdef MPP1
       subroutine set_nproc(ncpu)
         implicit none
@@ -424,24 +471,82 @@
         jxp   =  jx/nproc
         jxpsg  = jxp * nsg
       end subroutine set_nproc
-#endif
 
-      subroutine init_timeparam(radfrq,abatm,abemh,dt,ibdyfrq)
+      subroutine broadcast_params
+
+        use mpi
         implicit none
-
-        integer , intent(out) :: ibdyfrq
-        real(8) , intent(out) :: radfrq , abatm , abemh , dt
 
         integer :: ierr
 
-        namelist /timeparam/ radfrq , abatm , abemh , dt , ibdyfrq
+        call mpi_barrier(mpi_comm_world,ierr)
 
-        read(ipunit, timeparam, err=100)
-        return
+        call mpi_bcast(iy,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(jx,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(kz,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(nsg,1,mpi_integer,0,mpi_comm_world,ierr)
 
-  100   write ( 6, * ) 'Cannot read namelist stanza: timeparam'
-        ierr = 1
+        call mpi_bcast(iproj,6,mpi_character,0,mpi_comm_world,ierr)
+        call mpi_bcast(ds,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(ptop,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(clat,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(clon,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(plat,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(plon,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(truelatl,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(truelath,1,mpi_real8,0,mpi_comm_world,ierr)
 
-      end subroutine init_timeparam
+        call mpi_bcast(domname,64,mpi_character,0,mpi_comm_world,ierr)
+        call mpi_bcast(nveg,1,mpi_integer,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(igrads,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(ibigend,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(ibyte,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(iotyp,1,mpi_integer,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(debug_level,1,mpi_integer,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(nspgx,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(nspgd,1,mpi_integer,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(nsplit,1,mpi_integer,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(lkpts,1,mpi_integer,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(lsmtyp,4,mpi_character,0,mpi_comm_world,ierr)
+        call mpi_bcast(ehso4,1,mpi_logical,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(aertyp,7,mpi_character,0,mpi_comm_world,ierr)
+        call mpi_bcast(ntr,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(nbin,1,mpi_integer,0,mpi_comm_world,ierr)
+
+!       Setup all convenience dimensions
+
+        if ( myid/= 0) then
+          iym1 = iy - 1
+          iym2 = iy - 2
+          iym3 = iy - 3
+          jxp1 = jx + 1
+          jxm1 = jx - 1
+          jxm2 = jx - 2
+          kzm1 = kz - 1
+          kzm2 = kz - 2
+          kzp1 = kz + 1
+          kzp2 = kz + 2
+          kzp3 = kz + 3
+          kzp4 = kz + 4
+          iysg = iy * nsg
+          jxsg = jx * nsg
+          iym1sg = (iy-1) * nsg
+          jxm1sg = (jx-1) * nsg
+          iym2sg = (iy-2) * nsg
+          jxm2sg = (jx-2) * nsg
+          nnsg = nsg*nsg
+        end if
+
+        call mpi_barrier(mpi_comm_world,ierr)
+
+      end subroutine broadcast_params
+#endif
 
       end module mod_dynparam

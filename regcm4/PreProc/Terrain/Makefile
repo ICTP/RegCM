@@ -14,11 +14,11 @@ OBJS =     output.o        surf.o          terrain.o  \
            xyobsll.o       setup.o         header_terrain.o
 
 mod_dynparam.o: ../../Config/mod_dynparam.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
 mod_constants.o: ../../Config/mod_constants.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
 terrain: $(SHRMODS) $(MODOBJS) $(OBJS)

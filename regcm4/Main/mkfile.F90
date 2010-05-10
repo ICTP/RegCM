@@ -35,17 +35,18 @@
 !
 ! Local variables
 !
-      character(1) :: a1
-      character(16) :: a16
-      character(2) :: a2
-      character(22) :: a22
-      character(78) :: a78
-      real(4) :: dtb , dtc , dto , dtr
+!      character(1) :: a1
+!      character(16) :: a16
+!      character(2) :: a2
+!      character(22) :: a22
+!      character(78) :: a78
+!      real(4) :: dtb , dtc , dto , dtr
       character(14) :: filatm , filchem , fillak , filrad , filsrf ,    &
                      & filsub
-      character(40) :: filnam
+!      character(40) :: filnam
       integer , dimension(nfmax) :: idate1d , imo , iyr
-      integer :: idatepp , iyr1 , iyr2 , n , nmo
+!      integer :: iyr1 , iyr2
+      integer :: idatepp , n , nmo
       character(3) :: itype
 !
       print * , ' '

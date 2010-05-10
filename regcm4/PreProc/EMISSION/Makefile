@@ -24,7 +24,7 @@ emission: $(SHRMOD) $(MODOBJ) $(EMISSOBJ)
                $(MODOBJ) $(SHRMOD) $(NETCDFLIB)
 
 mod_dynparam.o: ../../Config/mod_dynparam.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
 
 %.o: %.f90

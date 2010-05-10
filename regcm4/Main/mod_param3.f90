@@ -23,8 +23,7 @@
 
       implicit none
 !
-      integer :: ispgd , ispgx , jxsex , k700 , kchi , kclo , kcmd ,    &
-               & kt , kxout , ncld
+      integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
 !
       real(8) :: ptop4
       real(8) :: akht1 , akht2

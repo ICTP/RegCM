@@ -826,7 +826,8 @@
 !
       subroutine aerout(jslc,aeradfo,aeradfos)
 !
-      use mod_param2 , only : chemfrq , radfrq
+      use mod_dynparam , only : chemfrq
+      use mod_param2 , only : radfrq
       use mod_trachem , only : aerext , aerssa , aerasp , aertarf ,     &
                       &        aersrrf
       implicit none

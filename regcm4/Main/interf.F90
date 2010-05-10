@@ -26,9 +26,10 @@
 !  ivers = 1 ,   regcm2d --> bats
 !  ivers = 2 ,   bats --> regcm2d
 !
+      use mod_dynparam , only : batfrq
       use mod_interfaces
       use mod_param1 , only : dtbat , dtmin
-      use mod_param2 , only : batfrq , iocnflx , kbats
+      use mod_param2 , only : iocnflx , kbats
       use mod_param3 , only : ptop
       use mod_main , only : psb , hfx , qfx , ht , zpbl , uvdrag ,      &
                   &         snowc , tgbb , tga , tgb

@@ -74,6 +74,9 @@
  ibigend = 1, ! Machine endianess.
               ! LEAVE IT UNTOUCHED IF WANT TO EXCHANGE I/O FILES
  ibyte = 4,   ! Number of bytes in reclen. Usually 4
+ iotyp = 1,   ! Type of output file
+              !   1 => direct access file OK for the GrADS, mostly used
+              !   2 => sequential I/O with time listing interleaved
  /
 !
 ! Debug I/O printout level. Currently unused
@@ -183,9 +186,6 @@
  prtfrq  =    12.,  ! Frequency in hours for printout
  kxout   =     6,   ! Printout control
  jxsex   =     40,  ! Printout control
- maschk  =     10,  ! Printout control
- iotyp   =     1,   ! 
- ibintyp =     1,   !
  ifchem  = .true.,  ! Output CHE
  chemfrq =     6.,  ! Frequency in hours to write to CHE
  /
