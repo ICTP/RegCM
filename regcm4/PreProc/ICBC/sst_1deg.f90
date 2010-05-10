@@ -61,7 +61,7 @@
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
-      character(256) :: terfile , sstfile
+      character(256) :: terfile , sstfile , inpfile
       logical :: there
       real(4) , allocatable , dimension(:,:) :: lu , sstmm , icemm ,    &
                                   &             xlat , xlon
@@ -78,7 +78,7 @@
           print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
         end if
-        open (11,file='../DATA/SST/GISST_194712_200209',                &
+        open (11,file=trim(inpglob)//'/SST/GISST_194712_200209',        &
              &form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
             & status='old',err=100)
       else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.               &
@@ -88,14 +88,15 @@
           print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
         end if
-        inquire (file='../DATA/SST/sst.mnmean.nc',exist=there)
+        inquire (file=trim(inpglob)//'/SST/sst.mnmean.nc',exist=there)
         if ( .not.there ) print * , 'sst.mnmean.nc is not available' ,  &
-                               &' under ../DATA/SST/'
+                               &' under ',trim(inpglob),'/SST/'
         if ( ssttyp=='OI2ST' ) then
-          inquire (file='../DATA/SST/icec.mnmean.nc',exist=there)
+          inquire (file=trim(inpglob)//'/SST/icec.mnmean.nc',           &
+              &    exist=there)
           if ( .not. there )                                            &
             & print *, 'icec.mnmean.nc is not available' ,              &
-                   &' under ../DATA/SST/'
+                   &' under ',trim(inpglob),'/SST/'
         end if
       else if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) then
         if ( globidate1<1981110100 .or. globidate2<1981110106 ) then
@@ -103,28 +104,29 @@
           print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
         end if
-        inquire (file='../DATA/SST/sst.wkmean.1981-1989.nc',exist=there)
+        inquire (file=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc',    &
+             &   exist=there)
         if ( .not.there ) print * ,                                     &
                              &'sst.wkmean.1981-1989.nc is not available'&
-                            & , ' under ../DATA/SST/'
-        inquire (file='../DATA/SST/sst.wkmean.1990-present.nc',         &
+                            & , ' under ',trim(inpglob),'/SST/'
+        inquire (file=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc', &
                & exist=there)
         if ( .not.there ) print * ,                                     &
                           &'sst.wkmean.1990-present.nc is not available'&
-                         & , ' under ../DATA/SST/'
+                         & , ' under ',trim(inpglob),'/SST/'
         call headwk(wkday)
         if ( ssttyp=='OI2WK' ) then
-          inquire (file='../DATA/SST/icec.wkmean.1981-1989.nc',         &
+          inquire (file=trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc', &
                 & exist=there)
           if ( .not.there ) then
             print *, 'icec.wkmean.1981-1989.nc is not available',       &
-                &    ' under ../DATA/SST/'
+                &    ' under ',trim(inpglob),'/SST/'
           end if
-          inquire (file='../DATA/SST/icec.wkmean.1990-present.nc',      &
-                &  exist=there)
+          inquire (file=trim(inpglob)//                                 &
+                 '/SST/icec.wkmean.1990-present.nc',exist=there)
           if ( .not.there ) then
             print *, 'icec.wkmean.1990-present.nc is not available',    &
-                &    ' under ../DATA/SST/'
+                &    ' under ',trim(inpglob),'/SST/'
           end if
         end if
       else
@@ -236,9 +238,12 @@
           else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.           &
                     ssttyp=='OI2ST') then
             write (*,*) idate*10000 + 100 , idate0
-            call sst_mn(idate*10000+100,idate0,ilon,jlat,sst)
-            if ( ssttyp=='OI2ST' )                                      &
-             &  call ice_mn(idate*10000+100,idate0,ilon,jlat,ice)
+            inpfile = trim(inpglob)//'/SST/sst.mnmean.nc'
+            call sst_mn(idate*10000+100,idate0,ilon,jlat,sst,inpfile)
+            if ( ssttyp=='OI2ST' ) then
+              inpfile = trim(inpglob)//'/SST/icec.mnmean.nc'
+              call ice_mn(idate*10000+100,idate0,ilon,jlat,ice,inpfile)
+            end if
           else
           end if
  
@@ -336,12 +341,22 @@
           nmo = idate/100 - nyear*100
           nday = mod(idate,100)
           write (*,*) idate*100 , idate0 , k
-          call sst_wk(idate*100,idate0,k,ilon,jlat,sst)
+          if ( idate<1989123100 ) then
+            inpfile = trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
+          else
+            inpfile = trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
+          end if
+          call sst_wk(idate*100,idate0,k,ilon,jlat,sst,inpfile)
  
           call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
               & sstmm(1,1)
           if ( ssttyp=='OI2WK') then
+            if ( idate<1989123100 ) then
+              inpfile = trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc'
+            else
+             inpfile = trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
+            end if
             call ice_wk(idate*100,idate0,k)
             call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           end if 
@@ -866,21 +881,21 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine sst_mn(idate,idate0,ilon,jlat,sst)
+      subroutine sst_mn(idate,idate0,ilon,jlat,sst,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate , idate0 , ilon , jlat
-      intent (in) idate , idate0 , ilon , jlat
+      character(256) :: pathaddname
+      intent (in) idate , idate0 , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
-      character(35) :: pathaddname
       logical :: there
       character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
@@ -903,7 +918,6 @@
       data varname/'sst'/
 !
       if ( idate==idate0 ) then
-        pathaddname = '../DATA/SST/sst.mnmean.nc'
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) pathaddname , ' is not available'
@@ -964,21 +978,21 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine ice_mn(idate,idate0,ilon,jlat,ice)
+      subroutine ice_mn(idate,idate0,ilon,jlat,ice,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate , idate0 , ilon , jlat
-      intent (in) idate , idate0 , ilon , jlat
+      character(256) :: pathaddname
+      intent (in) idate , idate0 , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
 !
 ! Local variables
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
-      character(35) :: pathaddname
       logical :: there
       character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
@@ -1001,7 +1015,6 @@
       data varname/'ice'/
 !
       if ( idate==idate0 ) then
-        pathaddname = '../DATA/SST/icec.mnmean.nc'
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) pathaddname , ' is not available'
@@ -1062,21 +1075,21 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine sst_wk(idate,idate0,kkk,ilon,jlat,sst)
+      subroutine sst_wk(idate,idate0,kkk,ilon,jlat,sst,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate , idate0 , kkk , ilon , jlat
-      intent (in) idate , idate0 , kkk , ilon , jlat
+      character(256) :: pathaddname
+      intent (in) idate , idate0 , kkk , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
-      character(38) :: pathaddname
       logical :: there
       character(3) :: varname
       integer :: istatus
@@ -1099,11 +1112,6 @@
       data varname/'sst'/
 !
       if ( idate==idate0 ) then
-        if ( idate<1989123100 ) then
-          pathaddname = '../DATA/SST/sst.wkmean.1981-1989.nc'
-        else
-          pathaddname = '../DATA/SST/sst.wkmean.1990-present.nc'
-        end if
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) pathaddname , ' is not available'
@@ -1132,7 +1140,7 @@
         end do
       end if
       if ( idate0<1989123100 .and. idate==1989123100 ) then
-        pathaddname = '../DATA/SST/sst.wkmean.1990-present.nc'
+        istatus = nf90_close(inet)
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) pathaddname , ' is not available'
@@ -1192,21 +1200,21 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine ice_wk(idate,idate0,kkk,ilon,jlat,ice)
+      subroutine ice_wk(idate,idate0,kkk,ilon,jlat,ice,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate , idate0 , kkk , ilon , jlat
-      intent (in) idate , idate0 , kkk , ilon , jlat
+      character(256) :: pathaddname
+      intent (in) idate , idate0 , kkk , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
 !
 ! Local variables
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
-      character(64) :: pathaddname
       logical :: there
       character(3) :: varname
       integer(2) , dimension(ilon,jlat) :: work
@@ -1229,11 +1237,6 @@
       data varname/'ice'/
 !
       if ( idate==idate0 ) then
-        if ( idate<1989123100 ) then
-          pathaddname = '../DATA/SST/icec.wkmean.1981-1989.nc'
-        else
-          pathaddname = '../DATA/SST/icec.wkmean.1990-present.nc'
-        end if
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) pathaddname , ' is not available'
@@ -1262,7 +1265,7 @@
         end do
       end if
       if ( idate0<1989123100 .and. idate==1989123100 ) then
-        pathaddname = '../DATA/SST/icec.wkmean.1990-present.nc'
+        istatus = nf90_close(inet)
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) pathaddname , ' is not available'

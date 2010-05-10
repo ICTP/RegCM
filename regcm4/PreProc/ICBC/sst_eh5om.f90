@@ -44,7 +44,7 @@
 ! Local variables
 !
       integer :: it_base
-      integer(2) , dimension(192,96) :: ivar
+      integer(2) , dimension(ilon,jlat) :: ivar
       real(8) :: offset , xscale
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate
@@ -65,31 +65,31 @@
         there = .false.
         if ( (globidate1>=1941010106 .and. globidate1<=1961123118) .or. &
            & (globidate2>=1941010106 .and. globidate2<=1961123118) ) then
-          inquire (file='../DATA/SST/SST_20C_3_1941010106_1961123118',  &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+                   '/SST/SST_20C_3_1941010106_1961123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_20C_3_1941010106_1961123118 is not available'&
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=1962010100 .and. globidate1<=1993123118) .or. &
            & (globidate2>=1962010100 .and. globidate2<=1993123118) ) then
-          inquire (file='../DATA/SST/SST_20C_3_1962010100_1993123118',  &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+               &   '/SST/SST_20C_3_1962010100_1993123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_20C_3_1962010100_1993123118 is not available'&
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=1994010100 .and. globidate1<=2001010100) .or. &
            & (globidate2>=1994010100 .and. globidate2<=2001010100) ) then
-          inquire (file='../DATA/SST/SST_20C_3_1994010100_2001010100',  &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+               &   '/SST/SST_20C_3_1994010100_2001010100',exist=there)
           if ( .not.there ) then
             print * , 'SST_20C_3_1994010100_2001010100 is not available'&
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
@@ -102,41 +102,41 @@
         there = .false.
         if ( (globidate1>=2001010100 .and. globidate1<=2029123118) .or. &
            & (globidate2>=2001010100 .and. globidate2<=2029123118) ) then
-          inquire (file='../DATA/SST/SST_A2_1_2001010100_2029123118',   &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+                 & '/SST/SST_A2_1_2001010100_2029123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_A2_1_2001010100_2029123118 is not available' &
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
            & (globidate2>=2030010100 .and. globidate2<=2061123118) ) then
-          inquire (file='../DATA/SST/SST_A2_1_2030010100_2061123118',   &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+                 & '/SST/SST_A2_1_2030010100_2061123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_A2_1_2030010100_2061123118 is not available' &
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
            & (globidate2>=2062010100 .and. globidate2<=2093123118) ) then
-          inquire (file='../DATA/SST/SST_A2_1_2062010100_2093123118',   &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+           &  '/SST/SST_A2_1_2062010100_2093123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_A2_1_2062010100_2093123118 is not available' &
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
            & (globidate2>=2094010100 .and. globidate2<=2100123118) ) then
-          inquire (file='../DATA/SST/SST_A2_1_2094010100_2100123118',   &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+           &       '/SST/SST_A2_1_2094010100_2100123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_A2_1_2094010100_2100123118 is not available' &
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
@@ -149,41 +149,41 @@
         there = .false.
         if ( (globidate1>=2001010100 .and. globidate1<=2029123118) .or. &
            & (globidate2>=2001010100 .and. globidate2<=2029123118) ) then
-          inquire (file='../DATA/SST/SST_B1_1_2001010100_2029123118',   &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+                &  '/SST/SST_B1_1_2001010100_2029123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_B1_1_2001010100_2029123118 is not available' &
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
            & (globidate2>=2030010100 .and. globidate2<=2061123118) ) then
-          inquire (file='../DATA/SST/SST_B1_1_2030010100_2061123118',   &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+             &     '/SST/SST_B1_1_2030010100_2061123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_B1_1_2030010100_2061123118 is not available' &
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
            & (globidate2>=2062010100 .and. globidate2<=2093123118) ) then
-          inquire (file='../DATA/SST/SST_B1_1_2062010100_2093123118',   &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+              &    '/SST/SST_B1_1_2062010100_2093123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_B1_1_2062010100_2093123118 is not available' &
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
            & (globidate2>=2094010100 .and. globidate2<=2100123118) ) then
-          inquire (file='../DATA/SST/SST_B1_1_2094010100_2100123118',   &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+             &     '/SST/SST_B1_1_2094010100_2100123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_B1_1_2094010100_2100123118 is not available' &
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
@@ -196,41 +196,41 @@
         there = .false.
         if ( (globidate1>=2001010100 .and. globidate1<=2029123118) .or. &
            & (globidate2>=2001010100 .and. globidate2<=2029123118) ) then
-          inquire (file='../DATA/SST/SST_A1B_3_2001010100_2029123118',  &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+             &     '/SST/SST_A1B_3_2001010100_2029123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_A1B_3_2001010100_2029123118 is not available'&
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
            & (globidate2>=2030010100 .and. globidate2<=2061123118) ) then
-          inquire (file='../DATA/SST/SST_A1B_3_2030010100_2061123118',  &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+                &  '/SST/SST_A1B_3_2030010100_2061123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_A1B_3_2030010100_2061123118 is not available'&
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
            & (globidate2>=2062010100 .and. globidate2<=2093123118) ) then
-          inquire (file='../DATA/SST/SST_A1B_3_2062010100_2093123118',  &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+              &    '/SST/SST_A1B_3_2062010100_2093123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_A1B_3_2062010100_2093123118 is not available'&
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
         if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
            & (globidate2>=2094010100 .and. globidate2<=2100123118) ) then
-          inquire (file='../DATA/SST/SST_A1B_3_2094010100_2100123118',  &
-                 & exist=there)
+          inquire (file=trim(inpglob)//                                 &
+                 & '/SST/SST_A1B_3_2094010100_2100123118',exist=there)
           if ( .not.there ) then
             print * , 'SST_A1B_3_2094010100_2100123118 is not available'&
-                & , ' under ../DATA/SST/'
+                & , ' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
@@ -287,88 +287,103 @@
         idate = mdate(it)
         if ( ssttyp=='EH5RF' ) then
           if ( idate>=1941010106 .and. idate<=1961123118 ) then
-            open (11,file='../DATA/SST/SST_20C_3_1941010106_1961123118',&
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_20C_3_1941010106_1961123118',               &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 1
           else if ( idate>=1962010100 .and. idate<=1993123118 ) then
-            open (11,file='../DATA/SST/SST_20C_3_1962010100_1993123118',&
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_20C_3_1962010100_1993123118',               &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 30680
           else if ( idate>=1994010100 .and. idate<=2001010100 ) then
-            open (11,file='../DATA/SST/SST_20C_3_1994010100_2001010100',&
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_20C_3_1994010100_2001010100',               &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 30680 + 46752
           else
           end if
         else if ( ssttyp=='EH5A2' ) then
           if ( idate>=2001010100 .and. idate<=2029123118 ) then
-            open (11,file='../DATA/SST/SST_A2_1_2001010100_2029123118', &
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_A2_1_2001010100_2029123118',                &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 0
           else if ( idate>=2030010100 .and. idate<=2061123118 ) then
-            open (11,file='../DATA/SST/SST_A2_1_2030010100_2061123118', &
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_A2_1_2030010100_2061123118',                &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368
           else if ( idate>=2062010100 .and. idate<=2093123118 ) then
-            open (11,file='../DATA/SST/SST_A2_1_2062010100_2093123118', &
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_A2_1_2062010100_2093123118',                &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368 + 46752
           else if ( idate>=2094010100 .and. idate<=2100123118 ) then
-            open (11,file='../DATA/SST/SST_A2_1_2094010100_2100123118', &
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_A2_1_2094010100_2100123118',                &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368 + 46752*2
           else
           end if
         else if ( ssttyp=='EH5B1' ) then
           if ( idate>=2001010100 .and. idate<=2029123118 ) then
-            open (11,file='../DATA/SST/SST_B1_1_2001010100_2029123118', &
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_B1_1_2001010100_2029123118',                &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 0
           else if ( idate>=2030010100 .and. idate<=2061123118 ) then
-            open (11,file='../DATA/SST/SST_B1_1_2030010100_2061123118', &
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_B1_1_2030010100_2061123118',                &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368
           else if ( idate>=2062010100 .and. idate<=2093123118 ) then
-            open (11,file='../DATA/SST/SST_B1_1_2062010100_2093123118', &
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_B1_1_2062010100_2093123118',                &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368 + 46752
           else if ( idate>=2094010100 .and. idate<=2100123118 ) then
-            open (11,file='../DATA/SST/SST_B1_1_2094010100_2100123118', &
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_B1_1_2094010100_2100123118',                &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368 + 46752*2
           else
           end if
         else if ( ssttyp=='EHA1B' ) then
           if ( idate>=2001010100 .and. idate<=2029123118 ) then
-            open (11,file='../DATA/SST/SST_A1B_3_2001010100_2029123118',&
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_A1B_3_2001010100_2029123118',               &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 0
           else if ( idate>=2030010100 .and. idate<=2061123118 ) then
-            open (11,file='../DATA/SST/SST_A1B_3_2030010100_2061123118',&
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_A1B_3_2030010100_2061123118',               &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368
           else if ( idate>=2062010100 .and. idate<=2093123118 ) then
-            open (11,file='../DATA/SST/SST_A1B_3_2062010100_2093123118',&
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_A1B_3_2062010100_2093123118',               &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368 + 46752
           else if ( idate>=2094010100 .and. idate<=2100123118 ) then
-            open (11,file='../DATA/SST/SST_A1B_3_2094010100_2100123118',&
-                & form='unformatted',recl=(192*96/2+4)*ibyte,           &
-                 &access='direct')
+            open (11,file=trim(inpglob)//                               &
+             &    '/SST/SST_A1B_3_2094010100_2100123118',               &
+             &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
+             &    access='direct')
             it_base = 42368 + 46752*2
           else
           end if

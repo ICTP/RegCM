@@ -46,7 +46,7 @@
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(20) :: lund
-      real(4) , dimension(192,145) :: temp
+      real(4) , dimension(ilon,jlat) :: temp
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
       logical :: there
@@ -59,25 +59,29 @@
       allocate(xlon(iy,jx))
 !
       if ( ssttyp=='FV_RF' ) then
-        inquire (file='../DATA/SST/Sst_1959_1991ref.dat',exist=there)
+        inquire (file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',       &
+            &    exist=there)
         if ( .not.there ) print * ,                                     &
-            & 'Sst_1959_1991ref.dat is not available under ../DATA/SST/'
-        open (11,file='../DATA/SST/Sst_1959_1991ref.dat',               &
-             &form='unformatted',recl=192*145*ibyte,access='direct')
+            & 'Sst_1959_1991ref.dat is not available under ',           &
+            & trim(inpglob),'/SST/'
+        open (11,file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',       &
+             &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
       else if ( ssttyp=='FV_A2' ) then
-        inquire (file='../DATA/SST/Sst_2069_2101_A2.dat',exist=there)
+        inquire (file=trim(inpglob)//'/SST/Sst_2069_2101_A2.dat',       &
+             &   exist=there)
         if ( .not.there ) print * ,                                     &
-                               &'Sst_2069_2101_A2.dat is not available' &
-                              & , ' under ../DATA/SST/'
-        open (11,file='../DATA/SST/Sst_2069_2101_A2.dat',               &
-             &form='unformatted',recl=192*145*ibyte,access='direct')
+            & 'Sst_2069_2101_A2.dat is not available under ',           &
+            & trim(inpglob),'/SST/'
+        open (11,file=trim(inpglob)//'/SST/Sst_2069_2101_A2.dat',       &
+             &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
       else if ( ssttyp=='FV_B2' ) then
-        inquire (file='../DATA/SST/Sst_2069_2101_B2.dat',exist=there)
+        inquire (file=trim(inpglob)//'/SST/Sst_2069_2101_B2.dat',       &
+              &  exist=there)
         if ( .not.there ) print * ,                                     &
-                               &'Sst_2069_2101_B2.dat is not available' &
-                              & , ' under ../DATA/SST/'
-        open (11,file='../DATA/SST/Sst_2069_2101_B2.dat',               &
-             &form='unformatted',recl=192*145*ibyte,access='direct')
+             & 'Sst_2069_2101_B2.dat is not available under ',          &
+             & trim(inpglob),'/SST/'
+        open (11,file=trim(inpglob)//'/SST/Sst_2069_2101_B2.dat',       &
+             &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
       else
         write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
         write (*,*) 'Supported types are FV_RF FV_A2 FV_B2'

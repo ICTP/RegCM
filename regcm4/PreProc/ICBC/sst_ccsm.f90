@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program sst_ccsm
+      subroutine sst_ccsm
 !
 !*******************************************************************************
 !
@@ -56,26 +56,11 @@
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
-               & nday , nmo , nyear , ierr
+               & nday , nmo , nyear
       integer , dimension(20) :: lund
-      character(256) :: namelistfile, prgname
-      character(256) :: terfile , sstfile
+      character(256) :: terfile , sstfile , inpfile
 !
       real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
-!
-!     Read input global namelist
-!
-      call getarg(0, prgname)
-      call getarg(1, namelistfile)
-      call initparam(namelistfile, ierr)
-      if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
-      end if
 !
       allocate(lu(iy,jx))
       allocate(sstmm(iy,jx))
@@ -125,7 +110,7 @@
         open (31,file=sstfile,status='replace')
         write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
       end if
-      call gridml(xlon,xlat,lu,iy,jx,idateo,idatef)
+      call gridmlc(xlon,xlat,lu,iy,jx,idateo,idatef)
       mrec = 0
  
       idate = idateo
@@ -133,7 +118,8 @@
         nyear = idate/100
         nmo = idate - nyear*100
  
-        call ccsm_sst(idate*10000+100,idate0,ilon,jlat,sst)
+        inpfile = trim(inpglob)//'/SST/ccsm_mn.sst.nc'
+        call ccsm_sst(idate*10000+100,idate0,ilon,jlat,sst,inpfile)
  
 !       ******           PRINT OUT DATA AS A CHECK
         if ( nmo==1 ) call printl(sst,jlat,ilon)
@@ -191,17 +177,18 @@
       deallocate(xlat)
       deallocate(xlon)
 
-      stop 99999
+      return
+
  100  continue
       print * , 'ERROR OPENING DOMAIN HEADER FILE'
       stop '4830 in PROGRAM RDSST'
 
 99001 format (a,a,a,a)
-      end program sst_ccsm
+      end subroutine sst_ccsm
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,lu,iy,jx,idate1,idate2)
+      subroutine gridmlc(xlon,xlat,lu,iy,jx,idate1,idate2)
       implicit none
 !
 ! Dummy arguments
@@ -335,13 +322,13 @@
 99010 format ('vars ',i1)
 99011 format (a4,'0 99 ',a26)
 !
-      end subroutine gridml
+      end subroutine gridmlc
 !
 !-----------------------------------------------------------------------
 !
 !     Subroutine to read required records from SST data file
 !
-      subroutine ccsm_sst(idate,idate0,ilon,jlat,sst)
+      subroutine ccsm_sst(idate,idate0,ilon,jlat,sst,pathaddname)
 
       use netcdf
 
@@ -349,6 +336,7 @@
 
       integer , intent (in) :: idate , idate0
       integer , intent (in) :: ilon , jlat
+      character(len=356) ,intent(in) :: pathaddname
       real(4) , dimension(ilon, jlat) , intent(out) :: sst
 
       integer, dimension(12) :: ndays
@@ -357,7 +345,6 @@
       real(4) , dimension (ilon , jlat) :: work2
       real(4) :: imisng
 
-      character(len=26) :: pathaddname
       integer :: nyear , month
       integer :: inet1
       integer, dimension(10) :: istart , icount , istartt , icountt
@@ -375,7 +362,6 @@
       month = idate/10000 - nyear*100
       
       if (idate == idate0) then
-         pathaddname = '../DATA/SST/ccsm_mn.sst.nc'
          inquire(file=pathaddname,exist=there)
          if (.not.there) then
             print *, pathaddname,' is not available'

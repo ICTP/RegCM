@@ -50,7 +50,7 @@
       integer :: nnnend , nstart
       real(4) , dimension(ilon,jlat) :: sst
       real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
-      character(256) :: terfile , sstfile
+      character(256) :: terfile , sstfile , inpfile
 !
       allocate(lu(iy,jx))
       allocate(sstmm(iy,jx))
@@ -61,10 +61,11 @@
         there = .false.
         if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
            & (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
-          inquire (file='../DATA/SST/sstERAIN.1989-2009.nc',exist=there)
+          inquire (file=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc',    &
+            &      exist=there)
           if ( .not.there ) then
             print * , 'sstERAIN.1989-2009.nc is not available' ,        &
-                 &' under ../DATA/SST/'
+                 &' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
@@ -77,11 +78,11 @@
         there = .false.
         if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
            & (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
-          inquire (file='../DATA/SST/tskinERAIN.1989-2009.nc',          &
+          inquire (file=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc',  &
                  & exist=there)
           if ( .not.there ) then
             print * , 'tskinERAIN.1989-2009.nc is not available' ,      &
-                 &' under ../DATA/SST/'
+                 &' under ',trim(inpglob),'/SST/'
             stop
           end if
         end if
@@ -133,9 +134,11 @@
       do it = nstart , nnnend
         idate = mdate(it)
         if ( ssttyp=='ERSST' ) then
-          call sst_erain(it,nstart,ilon,jlat,sst)
+          inpfile = trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
+          call sst_erain(it,nstart,ilon,jlat,sst,inpfile)
         else if ( ssttyp=='ERSKT' ) then
-          call skt_erain(it,nstart,ilon,jlat,sst)
+          inpfile = trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
+          call skt_erain(it,nstart,ilon,jlat,sst,inpfile)
         else
         end if
         nyear = idate/1000000
@@ -320,21 +323,21 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine skt_erain(it,it0,ilon,jlat,sst)
+      subroutine skt_erain(it,it0,ilon,jlat,sst,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
       integer :: it , it0 , ilon , jlat
-      intent (in) it , it0 , ilon , jlat
+      character(256) :: pathaddname
+      intent (in) it , it0 , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
 !
       integer :: i , j , n
-      character(35) :: pathaddname
       logical :: there
       character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
@@ -357,7 +360,6 @@
       data varname/'skt'/
 !
       if ( it==it0 ) then
-        pathaddname = '../DATA/SST/tskinERAIN.1989-2009.nc'
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) pathaddname , ' is not available'
@@ -407,21 +409,21 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine sst_erain(it,it0,ilon,jlat,sst)
+      subroutine sst_erain(it,it0,ilon,jlat,sst,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
       integer :: it , it0 , ilon , jlat
-      intent (in) it , it0 , ilon , jlat
+      character(256) :: pathaddname
+      intent (in) it , it0 , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
 !
       integer :: i , j , n
-      character(33) :: pathaddname
       logical :: there
       character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
@@ -444,7 +446,6 @@
       data varname/'sst'/
 !
       if ( it==it0 ) then
-        pathaddname = '../DATA/SST/sstERAIN.1989-2009.nc'
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) pathaddname , ' is not available'
