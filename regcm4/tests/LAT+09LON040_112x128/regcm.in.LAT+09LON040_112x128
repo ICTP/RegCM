@@ -36,6 +36,7 @@
  igrads = 1,
  ibigend = 1,
  ibyte = 4,
+ iotyp = 1,       
  /
  &debugparam
  debug_level = 1
@@ -95,8 +96,6 @@
    prtfrq  =    12.,
    kxout   =          6,
    jxsex   =         40,
- iotyp   =          1,
- ibintyp =          1,
  ifchem  = .true.,
    chemfrq =     6.,
  /
