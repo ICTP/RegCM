@@ -185,7 +185,7 @@
                 & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
                 & istatus
         real(4) :: wt
-        character(38) :: pathaddname
+        character(256) :: pathaddname
         logical :: there
         character(4) :: varname
         real(4) , allocatable , dimension(:,:) :: work
@@ -195,7 +195,7 @@
         call cam42(idate,globidate1,glat)
 
         if ( idate==globidate1 ) then
-          pathaddname = '../DATA/CAM42/ccsm_ht.nc'
+          pathaddname = trim(inpglob)//'/CAM42/ccsm_ht.nc'
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
             print * , pathaddname , 'is not available'
@@ -482,7 +482,7 @@
                & istatus , timid , timlen
       character(25) :: inname
       real(4) :: nlat0 , nlat1 , nlon0 , nlon1
-      character(39) :: pathaddname
+      character(256) :: pathaddname
       logical :: there
       real(4) , dimension(6) :: checklat , checklon , checktim
       character(2) , dimension(6) :: varname
@@ -516,7 +516,7 @@
           else
           end if
  
-          pathaddname = '../DATA/CAM42/'//inname
+          pathaddname = trim(inpglob)//'/CAM42/'//inname
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
             print * , pathaddname , ' is not available'
@@ -802,7 +802,7 @@
                & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
                & istatus
       real(4) :: wt
-      character(38) :: pathaddname
+      character(256) :: pathaddname
       logical :: there
       character(4) :: varname
       real(4) , allocatable , dimension(:,:) :: work
@@ -812,7 +812,7 @@
       call cam85(idate,globidate1,glat)
 
       if ( idate==globidate1 ) then
-        pathaddname = '../DATA/CAM85/ccsm_ht.nc'
+        pathaddname = trim(inpglob)//'/CAM85/ccsm_ht.nc'
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           print * , pathaddname , 'is not available'
@@ -1104,7 +1104,7 @@
       character(25) :: inname
       real(4) :: nlat0 , nlat1 , nlon0 , nlon1
       character(3) , dimension(12) :: nmonth
-      character(39) :: pathaddname
+      character(256) :: pathaddname
       logical :: there
       character(2) , dimension(6) :: varname
       real(4) , allocatable , dimension(:,:,:) :: work
@@ -1141,7 +1141,7 @@
           else
           end if
  
-          pathaddname = '../DATA/CAM85/'//inname
+          pathaddname = trim(inpglob)//'/CAM85/'//inname
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
             print * , pathaddname , ' is not available'

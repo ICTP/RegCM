@@ -68,11 +68,12 @@
       allocate(xlat(iy,jx))
       allocate(xlon(iy,jx))
 
-      inquire (file='../DATA/AERGLOB/AEROSOL.dat',exist=there)
+      inquire (file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',exist=there)
       if ( .not.there ) print * , 'AEROSOL.dat is not available' ,      &
-                             &' under ../DATA/AERGLOB/'
-      open (11,file='../DATA/AERGLOB/AEROSOL.dat',form='unformatted',   &
-          & recl=360*180*ibyte,access='direct',status='old',err=100)
+                             &' under ',trim(inpglob),'/AERGLOB/'
+      open (11,file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',              &
+          & form='unformatted',recl=ilon*jlat*ibyte,access='direct',    &
+          & status='old',err=100)
 
       write (aerofile,99001)                                            &
         & trim(dirglob), pthsep, trim(domname), '_AERO.dat'

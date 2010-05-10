@@ -73,9 +73,9 @@
 !
       character(3) , dimension(12) :: chmon
       character(21) :: finm , psnm
-      character(44) :: fnso4_a1b
-      character(42) :: fnso4_a2 , fnso4_b1
-      character(39) :: fnso4_rf
+      character(256) :: fnso4_a1b
+      character(256) :: fnso4_a2 , fnso4_b1
+      character(256) :: fnso4_rf
       integer :: i , i2 , ii , j , j2 , k , k0 , krec , l , month ,     &
                & nday , nhour , nrec , numx , numy , nyear
       integer(2) , dimension(ilon,jlat) :: itmp
@@ -404,22 +404,25 @@
         end do
       end if
  
-      inquire (file='../DATA/EH5OM/'//finm,exist=there)
+      inquire (file=trim(inpglob)//'/EH5OM/'//finm,exist=there)
       if ( .not.there ) then
-        write (*,*) '../DATA/EH5OM/'//finm , ' is not available'
-        write (*,*) 'please copy EH5OM output under ../DATA/EH5OM/'
+        write (*,*) trim(inpglob)//'/EH5OM/'//finm , ' is not available'
+        write (*,*) 'please copy EH5OM output under ',trim(inpglob),    &
+             &      '/EH5OM/'
         stop
       end if
-      open (63,file='../DATA/EH5OM/'//finm,form='unformatted',          &
+      open (63,file=trim(inpglob)//'/EH5OM/'//finm,form='unformatted',  &
           & recl=(numx*numy*2+16)/4*ibyte,access='direct')
       if ( ehso4 ) then
-        inquire (file='../DATA/EH5OM/'//psnm,exist=there)
+        inquire (file=trim(inpglob)//'/EH5OM/'//psnm,exist=there)
         if ( .not.there ) then
-          write (*,*) '../DATA/EH5OM/'//psnm , ' is not available'
-          write (*,*) 'please copy EH5OM output under ../DATA/EH5OM/'
+          write (*,*) trim(inpglob)//'/EH5OM/'//psnm ,                  &
+            &          ' is not available'
+          write (*,*) 'please copy EH5OM output under ',trim(inpglob),  &
+            &         '/EH5OM/'
           stop
         end if
-        open (62,file='../DATA/EH5OM/'//psnm,form='unformatted',        &
+        open (62,file=trim(inpglob)//'/EH5OM/'//psnm,form='unformatted',&
             & recl=(numx*numy*2+16)/4*ibyte,access='direct')
       end if
       if ( nday/=1 .or. nhour/=0 ) then
@@ -619,7 +622,7 @@
       call writef(ptop,idate)
       if ( ehso4 ) then
         if ( ssttyp=='EH5RF' ) then
-          fnso4_rf = '../DATA/EH5OM/SO4/RF/T63L31_skg_'//               &
+          fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
                    & yr_rf(nyear-1940)//'.nc'
           inquire (file=fnso4_rf,exist=there)
           if ( .not.there ) then
@@ -715,7 +718,7 @@
                 end do
               end do
             end do
-            fnso4_rf = '../DATA/EH5OM/SO4/RF/T63L31_skg_'//             &
+            fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
                      & yr_rf(nyear-1939)//'.nc'
             inquire (file=fnso4_rf,exist=there)
             if ( .not.there ) then
@@ -812,7 +815,7 @@
                 end do
               end do
             end do
-            fnso4_rf = '../DATA/EH5OM/SO4/RF/T63L31_skg_'//             &
+            fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
                      & yr_rf(nyear-1941)//'.nc'
             inquire (file=fnso4_rf,exist=there)
             if ( .not.there ) then
@@ -843,7 +846,7 @@
           end if
         else
           if ( ssttyp=='EH5A2' ) then
-            fnso4_a2 = '../DATA/EH5OM/SO4/A2/T63L31_skg_A2_'//          &
+            fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//  &
                      & yr_a2(nyear-2000)//'.nc'
             inquire (file=fnso4_a2,exist=there)
             if ( .not.there ) then
@@ -852,8 +855,9 @@
             end if
             istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
           else if ( ssttyp=='EHA1B' ) then
-            fnso4_a1b = '../DATA/EH5OM/SO4/A1B/T63L31_skg_A1B_'//       &
-                      & yr_a2(nyear-2000)//'.nc'
+            fnso4_a1b = trim(inpglob)//                                 &
+                 & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//                   &
+                 & yr_a2(nyear-2000)//'.nc'
             inquire (file=fnso4_a1b,exist=there)
             if ( .not.there ) then
               write (*,*) fnso4_a1b , ' is not available'
@@ -861,7 +865,7 @@
             end if
             istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
           else if ( ssttyp=='EH5B1' ) then
-            fnso4_b1 = '../DATA/EH5OM/SO4/B1/T63L31_skg_B1_'//          &
+            fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//  &
                      & yr_a2(nyear-2000)//'.nc'
             inquire (file=fnso4_b1,exist=there)
             if ( .not.there ) then
@@ -960,7 +964,7 @@
               end do
             end do
             if ( ssttyp=='EH5A2' ) then
-              fnso4_a2 = '../DATA/EH5OM/SO4/A2/T63L31_skg_A2_'//        &
+              fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
                        & yr_a2(nyear-1999)//'.nc'
               inquire (file=fnso4_a2,exist=there)
               if ( .not.there ) then
@@ -969,7 +973,8 @@
               end if
               istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
             else if ( ssttyp=='EHA1B' ) then
-              fnso4_a1b = '../DATA/EH5OM/SO4/A1B/T63L31_skg_A1B_'//     &
+              fnso4_a1b = trim(inpglob)//                               &
+                        & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//            &
                         & yr_a2(nyear-1999)//'.nc'
               inquire (file=fnso4_a1b,exist=there)
               if ( .not.there ) then
@@ -978,7 +983,7 @@
               end if
               istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
             else if ( ssttyp=='EH5B1' ) then
-              fnso4_b1 = '../DATA/EH5OM/SO4/B1/T63L31_skg_B1_'//        &
+              fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
                        & yr_a2(nyear-1999)//'.nc'
               inquire (file=fnso4_b1,exist=there)
               if ( .not.there ) then
@@ -1078,7 +1083,7 @@
               end do
             end do
             if ( ssttyp=='EH5A2' ) then
-              fnso4_a2 = '../DATA/EH5OM/SO4/A2/T63L31_skg_A2_'//        &
+              fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
                        & yr_a2(nyear-2001)//'.nc'
               inquire (file=fnso4_a2,exist=there)
               if ( .not.there ) then
@@ -1087,7 +1092,8 @@
               end if
               istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
             else if ( ssttyp=='EHA1B' ) then
-              fnso4_a1b = '../DATA/EH5OM/SO4/A1B/T63L31_skg_A1B_'//     &
+              fnso4_a1b = trim(inpglob)//                               &
+                        & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//            &
                         & yr_a2(nyear-2001)//'.nc'
               inquire (file=fnso4_a1b,exist=there)
               if ( .not.there ) then
@@ -1096,7 +1102,7 @@
               end if
               istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
             else if ( ssttyp=='EH5B1' ) then
-              fnso4_b1 = '../DATA/EH5OM/SO4/B1/T63L31_skg_B1_'//        &
+              fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
                        & yr_a2(nyear-2001)//'.nc'
               inquire (file=fnso4_b1,exist=there)
               if ( .not.there ) then
@@ -1461,13 +1467,13 @@
         icount(9) = 0
         icount(10) = 0
  
-        inquire (file='../DATA/EH5OM/EHgPS.dat',exist=there)
+        inquire (file=trim(inpglob)//'/EH5OM/EHgPS.dat',exist=there)
         if ( .not.there ) then
-          write (*,*) '../DATA/EH5OM/EHgPS.dat is not available'
+          write (*,*) trim(inpglob)//'/EH5OM/EHgPS.dat is not available'
           stop
         end if
-        open (30,file='../DATA/EH5OM/EHgPS.dat',form='unformatted',     &
-            & recl=ilon*jlat*4,access='direct')
+        open (30,file=trim(inpglob)//'/EH5OM/EHgPS.dat',                &
+            & form='unformatted',recl=ilon*jlat*4,access='direct')
         read (30,rec=1) pso4_0
         close (30)
       end if

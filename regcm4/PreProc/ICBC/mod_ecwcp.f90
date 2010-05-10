@@ -90,14 +90,14 @@
       nday = idate/100 - (idate/10000)*100
       nhour = mod(idate,100)
  
-      inquire (file='../DATA/ECWCRP/'//finm(month,nyear-1992),          &
+      inquire (file=trim(inpglob)//'/ECWCRP/'//finm(month,nyear-1992),  &
              & exist=there)
       if ( .not.there ) then
-        write (*,*) '../DATA/ECWCRP/'//finm(month,nyear-1992) ,         &
+        write (*,*) trim(inpglob)//'/ECWCRP/'//finm(month,nyear-1992) , &
                    &' is not available'
         stop
       end if
-      open (63,file='../DATA/ECWCRP/'//finm(month,nyear-1992),          &
+      open (63,file=trim(inpglob)//'/ECWCRP/'//finm(month,nyear-1992),  &
            &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
       nrec = ((nday-1)*4+nhour/6)*(nlev1*6+1)
       nrec = nrec + 1

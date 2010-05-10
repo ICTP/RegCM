@@ -163,7 +163,7 @@
       integer :: i , inet , it , j , k , k4 , kkrec , l4 , month ,      &
                & nday , nhour , nyear , istatus
       character(24) :: inname
-      character(64) :: pathaddname
+      character(256) :: pathaddname
 !     character(5) , dimension(3,4) :: sarname
 !     character(2) :: snownm
       logical :: there
@@ -286,7 +286,7 @@
             else
             end if
  
-            pathaddname = '../DATA/'//dattyp//'/'//inname
+            pathaddname = trim(inpglob)//dattyp//'/'//inname
             inquire (file=pathaddname,exist=there)
             if ( .not.there ) then
               print * , pathaddname , ' is not available'
@@ -343,7 +343,7 @@
                 else
                 end if
  
-                pathaddname = '../DATA/'//dattyp//'/0surface/'//inname
+                pathaddname = trim(inpglob)//dattyp//'/0surface/'//inname
                 inquire (file=pathaddname,exist=there)
                 if ( .not.there ) then
                   print * , pathaddname , ' is not available'
@@ -370,7 +370,7 @@
               write (inname,99024) 'snowdpth'
             else
             end if
-            pathaddname = '../DATA/'//dattyp//'/0surface/'//inname
+            pathaddname = trim(inpglob)//dattyp//'/0surface/'//inname
             inquire (file=pathaddname,exist=there)
             if ( .not.there ) then
               print * , pathaddname , ' is not available'

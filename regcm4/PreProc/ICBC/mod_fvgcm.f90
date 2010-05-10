@@ -95,12 +95,12 @@
       if ( idate==globidate1 ) then
         numx = nint((lon1-lon0)/1.25) + 1
         numy = nint(lat1-lat0) + 1
-        inquire (file='../DATA/FVGCM/HT_SRF',exist=there)
+        inquire (file=trim(inpglob)//'/FVGCM/HT_SRF',exist=there)
         if ( .not.there ) then
-          write (*,*) '../DATA/FVGCM/HT_SRF is not available'
+          write (*,*) trim(inpglob)//'/FVGCM/HT_SRF is not available'
           stop
         end if
-        open (61,file='../DATA/FVGCM/HT_SRF',form='unformatted',        &
+        open (61,file=trim(inpglob)//'/FVGCM/HT_SRF',form='unformatted',&
             & recl=numx*numy*ibyte,access='direct')
         read (61,rec=1) ((temp(i,j),i=1,numx),j=1,numy)
         do j = nint(lat0) , nint(lat1)
@@ -184,15 +184,16 @@
           end do
         end do
       end do
-      inquire (file='../DATA/FVGCM/'//finm,exist=there)
+      inquire (file=trim(inpglob)//'/FVGCM/'//finm,exist=there)
       if ( .not.there ) then
-        write (*,*) '../DATA/FVGCM/'//finm , ' is not available'
-        write (*,*) 'please copy FVGCM output under ../DATA/FVGCM/'
+        write (*,*) trim(inpglob)//'/FVGCM/'//finm , ' is not available'
+        write (*,*) 'please copy FVGCM output under ',                  &
+            &       trim(inpglob)//'/FVGCM/'
         stop
       end if
-      open (63,file='../DATA/FVGCM/'//finm,form='unformatted',          &
+      open (63,file=trim(inpglob)//'/FVGCM/'//finm,form='unformatted',  &
           & recl=(numx*numy*2+16)/4*ibyte,access='direct')
-      open (62,file='../DATA/FVGCM/'//fips,form='unformatted',          &
+      open (62,file=trim(inpglob)//'/FVGCM/'//fips,form='unformatted',  &
           & recl=numx*numy*ibyte,access='direct')
       if ( nday/=1 .or. nhour/=0 ) then
         nrec = ((nday-1)*4+nhour/6-1)*(nlev2*4)

@@ -124,13 +124,14 @@
           end do
         end do
       end do
-      inquire (file='../DATA/GFS11/'//finm,exist=there)
+      inquire (file=trim(inpglob)//'/GFS11/'//finm,exist=there)
       if ( .not.there ) then
-        write (*,*) '../DATA/GFS11/'//finm , ' is not available'
-        write (*,*) 'please copy GFS11 datasets under ../DATA/GFS11/'
+        write (*,*) trim(inpglob)//'/GFS11/'//finm , ' is not available'
+        write (*,*) 'please copy GFS11 datasets under ',                &
+              &     trim(inpglob)//'/GFS11/'
         stop
       end if
-      open (63,file='../DATA/GFS11/'//finm,form='unformatted',          &
+      open (63,file=trim(inpglob)//'/GFS11/'//finm,form='unformatted',  &
           & recl=(numx*numy*2+16)/4*ibyte,access='direct')
       if ( nday/=1 .or. nhour/=0 ) then
         nrec = ((nday-1)*4+nhour/6-1)*127

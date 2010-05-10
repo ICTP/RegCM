@@ -95,18 +95,20 @@
 !
       if ( idate==idate0 ) then
         write (fillin,99001) idate
-        inquire (file='../DATA/RegCM/'//fillin,exist=there)
+        inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
         if ( .not.there ) then
-          write (*,*) '../DATA/RegCM/'//fillin , ' is not available'
+          write (*,*) trim(inpglob)//'/RegCM/'//fillin ,                &
+           &    ' is not available'
           write (*,*) 'please copy (or link)' , fillin
           stop
         end if
         if ( iotyp_in==1 ) then
-          open (55,file='../DATA/RegCM/'//fillin,form='unformatted',    &
-              & recl=il*jl*ibyte,access='direct')
+          open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
+              & form='unformatted',recl=il*jl*ibyte,access='direct')
           nrec = 0
         else if ( iotyp_in==2 ) then
-          open (55,file='../DATA/RegCM/'//fillin,form='unformatted')
+          open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
+              & form='unformatted')
           rewind (55)
         else
         end if
@@ -123,33 +125,36 @@
  
         if ( ny0==ny1 .and. mn0==mn1 ) then
           write (fillin,99001) idate0
-          inquire (file='../DATA/RegCM/'//fillin,exist=there)
+          inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
           if ( .not.there ) then
-            write (*,*) '../DATA/RegCM/'//fillin , ' is not available'
+            write (*,*) trim(inpglob)//'/RegCM/'//fillin ,              &
+             &          ' is not available'
             write (*,*) 'please copy (or link)' , fillin
             stop
           end if
           if ( iotyp_in==1 ) then
-            open (55,file='../DATA/RegCM/'//fillin,form='unformatted',  &
-                & recl=il*jl*ibyte,access='direct')
+            open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
+                & form='unformatted',recl=il*jl*ibyte,access='direct')
             nrec = ((nd1-nd0)*4+(nh1-nh0)/6)*(kl*6+5)
           else if ( iotyp_in==2 ) then
-            open (55,file='../DATA/RegCM/'//fillin,form='unformatted')
+            open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
+                & form='unformatted')
             rewind (55)
           else
           end if
         else if ( nd1==1 .and. nh1==0 ) then
           if ( (ny1-ny0)*12+(mn1-mn0)==1 ) then
             write (fillin,99001) idate0
-            inquire (file='../DATA/RegCM/'//fillin,exist=there)
+            inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
             if ( .not.there ) then
-              write (*,*) '../DATA/RegCM/'//fillin , ' is not available'
+              write (*,*) trim(inpglob)//'/RegCM/'//fillin ,            &
+                     &   ' is not available'
               write (*,*) 'please copy (or link)' , fillin
               stop
             end if
             if ( iotyp_in==1 ) then
-              open (55,file='../DATA/RegCM/'//fillin,form='unformatted',&
-                  & recl=il*jl*ibyte,access='direct')
+              open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
+                 &  form='unformatted',recl=il*jl*ibyte,access='direct')
               if ( mn0==1 .or. mn0==3 .or. mn0==5 .or. mn0==7 .or.      &
                  & mn0==8 .or. mn0==10 .or. mn0==12 ) then
                 nrec = (124-(nd0-1)*4+nh0/6)*(kl*6+5)
@@ -164,7 +169,8 @@
                 nrec = nrec*(kl*6+5)
               end if
             else if ( iotyp_in==2 ) then
-              open (55,file='../DATA/RegCM/'//fillin,form='unformatted')
+              open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
+                 &  form='unformatted')
               rewind (55)
             else
             end if
@@ -174,15 +180,16 @@
             else
               write (fillin,99001) (ny1-1)*1000000 + 120100
             end if
-            inquire (file='../DATA/RegCM/'//fillin,exist=there)
+            inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
             if ( .not.there ) then
-              write (*,*) '../DATA/RegCM/'//fillin , ' is not available'
+              write (*,*) trim(inpglob)//'/RegCM/'//fillin ,            &
+                 &        ' is not available'
               write (*,*) 'please copy (or link)' , fillin
               stop
             end if
             if ( iotyp_in==1 ) then
-              open (55,file='../DATA/RegCM/'//fillin,form='unformatted',&
-                  & recl=il*jl*ibyte,access='direct')
+              open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
+                &   form='unformatted',recl=il*jl*ibyte,access='direct')
               if ( mn0==1 .or. mn0==3 .or. mn0==5 .or. mn0==7 .or.      &
                  & mn0==8 .or. mn0==10 .or. mn0==12 ) then
                 nrec = 123*(kl*6+5)
@@ -197,32 +204,35 @@
                 nrec = nrec*(kl*6+5)
               end if
             else if ( iotyp_in==2 ) then
-              open (55,file='../DATA/RegCM/'//fillin,form='unformatted')
+              open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
+                  & form='unformatted')
               rewind (55)
             else
             end if
           end if
         else
           write (fillin,99001) ny1*1000000 + mn1*10000 + 100
-          inquire (file='../DATA/RegCM/'//fillin,exist=there)
+          inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
           if ( .not.there ) then
-            write (*,*) '../DATA/RegCM/'//fillin , ' is not available'
+            write (*,*) trim(inpglob)//'/RegCM/'//fillin ,              &
+               &        ' is not available'
             write (*,*) 'please copy (or link)' , fillin
             stop
           end if
           if ( iotyp_in==1 ) then
-            open (55,file='../DATA/RegCM/'//fillin,form='unformatted',  &
-                & recl=il*jl*ibyte,access='direct')
+            open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
+                & form='unformatted',recl=il*jl*ibyte,access='direct')
             nrec = ((nd1-1)*4+nh1/6-1)*(kl*6+5)
           else if ( iotyp_in==2 ) then
-            open (55,file='../DATA/RegCM/'//fillin,form='unformatted')
+            open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
+               &  form='unformatted')
             rewind (55)
           else
           end if
         end if
       else
       end if
-!     WRITE(*,*) 'Open ATM file:', '../DATA/RegCM/'//fillin
+!     WRITE(*,*) 'Open ATM file:', trim(inpglob)//'/RegCM/'//fillin
  
       if ( iotyp_in==1 ) then
         if ( idate/=globidate1 .and. mod(idate,10000)==100 .and.        &
@@ -294,18 +304,20 @@
       write (*,*) 'READ IN fields at DATE:' , idatek , ' from ' , fillin
       if ( idate/=globidate1 .and. mod(idate,10000)==100 .and. ncr==1 ) then
         write (fillin,99001) idate
-        inquire (file='../DATA/RegCM/'//fillin,exist=there)
+        inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
         if ( .not.there ) then
-          write (*,*) '../DATA/RegCM/'//fillin , ' is not available'
+          write (*,*) trim(inpglob)//'/RegCM/'//fillin ,                &
+               &      ' is not available'
           write (*,*) 'please copy (or link)' , fillin
           stop
         end if
         if ( iotyp_in==1 ) then
-          open (55,file='../DATA/RegCM/'//fillin,form='unformatted',    &
-              & recl=il*jl*ibyte,access='direct')
+          open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
+              & form='unformatted',recl=il*jl*ibyte,access='direct')
           nrec = 0
         else if ( iotyp_in==2 ) then
-          open (55,file='../DATA/RegCM/'//fillin,form='unformatted')
+          open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
+              & form='unformatted')
           rewind (55)
         else
         end if
@@ -464,15 +476,15 @@
         sigmar(k) = plev(k)*0.001
       end do
  
-      inquire (file='../DATA/RegCM/OUT_HEAD',exist=there)
+      inquire (file=trim(inpglob)//'/RegCM/OUT_HEAD',exist=there)
       if ( .not.there ) then
-        write (*,*) '../DATA/RegCM/OUT_HEAD is not available'
+        write (*,*) trim(inpglob)//'/RegCM/OUT_HEAD is not available'
         write (*,*) 'please copy (or link) the previous output OUT_HEAD'
         stop
       end if
 
-      open (49,file='../DATA/RegCM/OUT_HEAD',form='unformatted',        &
-           &access='direct',recl=24**ibyte)
+      open (49,file=trim(inpglob)//'/RegCM/OUT_HEAD',                   &
+          & form='unformatted',access='direct',recl=24**ibyte)
       read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , il ,   &
                     & jl , kl
       close (49)
@@ -506,8 +518,8 @@
       allocate(ht_in(il,jl), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: ht_in'
 
-      open (49,file='../DATA/RegCM/OUT_HEAD',form='unformatted',        &
-           &access='direct',recl=il*jl*ibyte)
+      open (49,file=trim(inpglob)//'/RegCM/OUT_HEAD',form='unformatted',&
+          & access='direct',recl=il*jl*ibyte)
       read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , il ,   &
                     & jl , kl , (sigf(k),k=kl+1,1,-1) , dxsp ,          &
                     & ptsp , clat_in , clon_in , plat_in , plon_in ,    &

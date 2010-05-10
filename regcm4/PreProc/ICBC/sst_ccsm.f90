@@ -336,7 +336,7 @@
 
       integer , intent (in) :: idate , idate0
       integer , intent (in) :: ilon , jlat
-      character(len=356) ,intent(in) :: pathaddname
+      character(len=256) ,intent(in) :: pathaddname
       real(4) , dimension(ilon, jlat) , intent(out) :: sst
 
       integer, dimension(12) :: ndays

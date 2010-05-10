@@ -158,7 +158,7 @@
       integer :: i , ilev , inet , it , j , kkrec , m , month , nday ,  &
                & k , nhour , nlev , nyear , istatus
       character(21) :: inname
-      character(35) :: pathaddname
+      character(256) :: pathaddname
       logical :: there
 !     character(5) , dimension(7) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
@@ -224,9 +224,9 @@
           end if
  
           if ( dattyp=='NNRP1' ) then
-            pathaddname = '../DATA/NNRP1/'//inname
+            pathaddname = trim(inpglob)//'/NNRP1/'//inname
           else if ( dattyp=='NNRP2' ) then
-            pathaddname = '../DATA/NNRP2/'//inname
+            pathaddname = trim(inpglob)//'/NNRP2/'//inname
           else
           end if
           inquire (file=pathaddname,exist=there)
@@ -473,7 +473,7 @@
       integer :: i , ii , ilev , inet , it , j , jj , kkrec , m ,       &
                & month , nday , nhour , nlev , nyear , istatus
       character(24) :: inname
-      character(38) :: pathaddname
+      character(256) :: pathaddname
       logical :: there
 !     character(5) , dimension(7) :: varname
       integer(2) , dimension(iii,jjj,klev+1) :: work
@@ -534,7 +534,7 @@
           else
           end if
  
-          pathaddname = '../DATA/NNRP2/'//inname
+          pathaddname = trim(inpglob)//'/NNRP2/'//inname
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
             print * , pathaddname , ' is not available'
