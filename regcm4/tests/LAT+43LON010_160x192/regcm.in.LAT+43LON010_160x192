@@ -5,7 +5,7 @@
  nsg    = 1,
  /
  &geoparam
- iproj = 'LAMCOM',
+ iproj = 'LAMCON',
  ds = 50.0,
  ptop = 5.0,
  clat =  43.00,
