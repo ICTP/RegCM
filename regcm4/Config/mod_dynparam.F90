@@ -368,39 +368,50 @@
         return
 
   100   write ( 6, * ) 'Cannot read namelist file ', trim(filename)
-	ierr = 1 
+        ierr = 1 
         return 
-  101   write ( 6, * ) 'Cannot read namelist stanza: dimparam       ', trim(filename)
+  101   write ( 6, * ) 'Cannot read namelist stanza: dimparam       ',  &
+            & trim(filename)
         ierr = 1
         return
-  102   write ( 6, * ) 'Cannot read namelist stanza: geoparam       ', trim(filename)
+  102   write ( 6, * ) 'Cannot read namelist stanza: geoparam       ',  &
+            & trim(filename)
         ierr = 1
         return
-  103   write ( 6, * ) 'Cannot read namelist stanza: terrainparam   ', trim(filename)
+  103   write ( 6, * ) 'Cannot read namelist stanza: terrainparam   ',  &
+            & trim(filename)
         ierr = 1
         return
-  104   write ( 6, * ) 'Cannot read namelist stanza: ioparam        ', trim(filename)
+  104   write ( 6, * ) 'Cannot read namelist stanza: ioparam        ',  &
+            & trim(filename)
         ierr = 1
         return
-  105   write ( 6, * ) 'Cannot read namelist stanza: debugparam     ', trim(filename)
+  105   write ( 6, * ) 'Cannot read namelist stanza: debugparam     ',  &
+            & trim(filename)
         ierr = 1
         return
-  106   write ( 6, * ) 'Cannot read namelist stanza: boundaryparam  ', trim(filename)
+  106   write ( 6, * ) 'Cannot read namelist stanza: boundaryparam  ',  &
+            & trim(filename)
         ierr = 1
         return
-  107   write ( 6, * ) 'Cannot read namelist stanza: modesparam     ', trim(filename)
+  107   write ( 6, * ) 'Cannot read namelist stanza: modesparam     ',  &
+            & trim(filename)
         ierr = 1
         return
-  108   write ( 6, * ) 'Cannot read namelist stanza: lakemodparam   ', trim(filename)
+  108   write ( 6, * ) 'Cannot read namelist stanza: lakemodparam   ',  &
+            & trim(filename)
         ierr = 1
         return
-  109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ', trim(filename)
+  109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ',  &
+            & trim(filename)
         ierr = 1
         return
-  110   write ( 6, * ) 'Cannot read namelist stanza: lsmparam       ', trim(filename)
+  110   write ( 6, * ) 'Cannot read namelist stanza: lsmparam       ',  &
+            & trim(filename)
         ierr = 1
         return
-  111   write ( 6, * ) 'Cannot read namelist stanza: aereosolparam  ', trim(filename)
+  111   write ( 6, * ) 'Cannot read namelist stanza: aereosolparam  ',  &
+            & trim(filename)
         ierr = 1
 
       end subroutine
@@ -414,5 +425,23 @@
         jxpsg  = jxp * nsg
       end subroutine set_nproc
 #endif
+
+      subroutine init_timeparam(radfrq,abatm,abemh,dt,ibdyfrq)
+        implicit none
+
+        integer , intent(out) :: ibdyfrq
+        real(8) , intent(out) :: radfrq , abatm , abemh , dt
+
+        integer :: ierr
+
+        namelist /timeparam/ radfrq , abatm , abemh , dt , ibdyfrq
+
+        read(ipunit, timeparam, err=100)
+        return
+
+  100   write ( 6, * ) 'Cannot read namelist stanza: timeparam'
+        ierr = 1
+
+      end subroutine init_timeparam
 
       end module mod_dynparam
