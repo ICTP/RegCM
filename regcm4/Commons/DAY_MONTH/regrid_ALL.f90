@@ -1,11 +1,11 @@
       program regrid_ALL
-      integer ix,jx,kx,ibyte
+      integer iy,jx,kz,ibyte
       logical ifDOMAIN,ifICBC,ifOUT_HEAD,ifATM,ifSRF,ifRAD
       integer idate0,idate1,idate2
       real*4  truelatL,truelatH
       real*4  xminlon,xmaxlon,xminlat,xmaxlat,ddeg
       COMMON /WINDOW/ xminlon,xmaxlon,xminlat,xmaxlat,ddeg
-      namelist /control/ ix,jx,kx,ibyte    &
+      namelist /control/ iy,jx,kz,ibyte    &
                ,ifDOMAIN,ifICBC,ifOUT_HEAD,ifATM,ifSRF,ifRAD  &
                ,idate0,idate1,idate2,truelatL,truelatH        &
                ,xminlon,xmaxlon,xminlat,xmaxlat,ddeg
@@ -20,26 +20,26 @@
 
       read(*,control) 
 
-      if(ifDOMAIN) call regrid_DOMAIN(ix,jx,kx,ibyte)
+      if(ifDOMAIN) call regrid_DOMAIN(iy,jx,kz,ibyte)
 
-      if(ifICBC) call regrid_ICBC(ix,jx,kx,ibyte,idate0,idate1,idate2)
+      if(ifICBC) call regrid_ICBC(iy,jx,kz,ibyte,idate0,idate1,idate2)
 
-      if(ifOUT_HEAD) call regrid_OUT_HEAD(ix,jx,kx,ibyte)
+      if(ifOUT_HEAD) call regrid_OUT_HEAD(iy,jx,kz,ibyte)
 
-      if(ifATM) call regrid_ATM(ix,jx,kx,ibyte,idate0,idate1,idate2   &
+      if(ifATM) call regrid_ATM(iy,jx,kz,ibyte,idate0,idate1,idate2   &
                                ,truelatL,truelatH)
 
-      if(ifSRF) call regrid_SRF(ix,jx,kx,ibyte,idate0,idate1,idate2   &
+      if(ifSRF) call regrid_SRF(iy,jx,kz,ibyte,idate0,idate1,idate2   &
                                ,truelatL,truelatH)
 
-      if(ifRAD) call regrid_RAD(ix,jx,kx,ibyte,idate0,idate1,idate2)
+      if(ifRAD) call regrid_RAD(iy,jx,kz,ibyte,idate0,idate1,idate2)
 
       stop
       end
 
-      subroutine regrid_DOMAIN(ix,jx,kx,ibyte)
+      subroutine regrid_DOMAIN(iy,jx,kz,ibyte)
       implicit none
-      integer ix,jx,kx,ibyte
+      integer iy,jx,kz,ibyte
       integer iiy,jjx,kkz
       real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
@@ -72,18 +72,18 @@
 
       PI = atan(1.)*4.
 
-      allocate(sigma(kx+1))
-      allocate(o(jx,ix,9))
-      allocate(xlat(jx,ix))
-      allocate(xlon(jx,ix))
+      allocate(sigma(kz+1))
+      allocate(o(jx,iy,9))
+      allocate(xlat(jx,iy))
+      allocate(xlon(jx,iy))
 
       open(10,file='DOMAIN.INFO',form='unformatted' &
-             ,recl=jx*ix*ibyte,access='direct')
+             ,recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
-                    ,iproj,(sigma(k),k=1,kx+1),ptop,igrads,ibigend &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
                     ,truelatL,truelatH
-      if(iiy.ne.ix.or.jjx.ne.jx.or.kkz.ne.kx) then
-         write(*,*) 'iy,jx,kz in parameter = ',ix,jx,kx
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
          write(*,*) 'iy,jx,kz in DOMAIN.INFO ',iiy,jjx,kkz
          write(*,*) 'They are not consistent'
          stop
@@ -95,7 +95,7 @@
       else
          xmaxlat = -1.e10
          xminlat =  1.e10
-         do i=2,ix-1
+         do i=2,iy-1
          do j=2,jx-1
             if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
             if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
@@ -109,7 +109,7 @@
       else
          xmaxlon = -1.e10
          xminlon =  1.e10
-         do i=2,ix-1
+         do i=2,iy-1
          do j=2,jx-1
             if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
             if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
@@ -138,15 +138,15 @@
          olon(m) = real(m-1)*ddeg
       enddo
 
-      read(10,rec=2)  ((o(j,i,1),j=1,jx),i=1,ix)   ! ht
-      read(10,rec=5)  ((o(j,i,2),j=1,jx),i=1,ix)   ! xlat
-      read(10,rec=6)  ((o(j,i,3),j=1,jx),i=1,ix)   ! xlon
-      read(10,rec=7)  ((o(j,i,4),j=1,jx),i=1,ix)   ! dlat
-      read(10,rec=8)  ((o(j,i,5),j=1,jx),i=1,ix)   ! dlon
-      read(10,rec=9)  ((o(j,i,6),j=1,jx),i=1,ix)   ! xmap
-      read(10,rec=10) ((o(j,i,7),j=1,jx),i=1,ix)   ! dmap
-      read(10,rec=11) ((o(j,i,8),j=1,jx),i=1,ix)   ! coriol
-      read(10,rec=13) ((o(j,i,9),j=1,jx),i=1,ix)   ! mask
+      read(10,rec=2)  ((o(j,i,1),j=1,jx),i=1,iy)   ! ht
+      read(10,rec=5)  ((o(j,i,2),j=1,jx),i=1,iy)   ! xlat
+      read(10,rec=6)  ((o(j,i,3),j=1,jx),i=1,iy)   ! xlon
+      read(10,rec=7)  ((o(j,i,4),j=1,jx),i=1,iy)   ! dlat
+      read(10,rec=8)  ((o(j,i,5),j=1,jx),i=1,iy)   ! dlon
+      read(10,rec=9)  ((o(j,i,6),j=1,jx),i=1,iy)   ! xmap
+      read(10,rec=10) ((o(j,i,7),j=1,jx),i=1,iy)   ! dmap
+      read(10,rec=11) ((o(j,i,8),j=1,jx),i=1,iy)   ! coriol
+      read(10,rec=13) ((o(j,i,9),j=1,jx),i=1,iy)   ! mask
 
       if(iproj.eq.'NORMER') then
          do l=1,9
@@ -154,7 +154,7 @@
          do m=nlon,mlon
             out(m,n) = -9999.
 
-            do i=2,ix-2
+            do i=2,iy-2
             do j=2,jx-2
                if((xlat(j,i).lt.olat(n).and.      &
                    xlon(j,i).lt.olon(m))          &
@@ -207,7 +207,7 @@
             DISTc=1.E8
             DISTd=1.E8
 
-            do i=2,ix-1
+            do i=2,iy-1
             do j=2,jx-1
          IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
             (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
@@ -371,9 +371,9 @@
       return
       end
 
-      subroutine regrid_OUT_HEAD(ix,jx,kx,ibyte)
+      subroutine regrid_OUT_HEAD(iy,jx,kz,ibyte)
       implicit none
-      integer ix,jx,kx,ibyte
+      integer iy,jx,kz,ibyte
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  dxsp,ptsp,clat,clon,plat,plon
@@ -411,19 +411,19 @@
 
       PI = atan(1.)*4.
 
-      allocate(sigma(kx+1))
-      allocate(o(jx-2,ix-2,7))
-      allocate(xlat(jx-2,ix-2))
-      allocate(xlon(jx-2,ix-2))
+      allocate(sigma(kz+1))
+      allocate(o(jx-2,iy-2,7))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
 
       open(10,file='OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(ix-2)*ibyte,access='direct')
+             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
-                    ,iiy,jjx,kkz,(sigma(k),k=1,kx+1)   &
+                    ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon          &
                     ,iproj,dto,dtb,dtr,dtc,iotyp
-      if(iiy.ne.ix.or.jjx.ne.jx.or.kkz.ne.kx) then
-         write(*,*) 'iy,jx,kz in parameter = ',ix,jx,kx
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
          write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
          write(*,*) 'They are not consistent'
          stop
@@ -435,7 +435,7 @@
       else
          xmaxlat = -1.e10
          xminlat =  1.e10
-         do i=1,ix-2
+         do i=1,iy-2
          do j=1,jx-2
             if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
             if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
@@ -449,7 +449,7 @@
       else
          xmaxlon = -1.e10
          xminlon =  1.e10
-         do i=1,ix-2
+         do i=1,iy-2
          do j=1,jx-2
             if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
             if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
@@ -478,13 +478,13 @@
          olon(m) = real(m-1)*ddeg
       enddo
 
-      read(10,rec=2)  ((o(j,i,1),j=1,jx-2),i=1,ix-2)   ! ht
-      read(10,rec=6)  ((o(j,i,2),j=1,jx-2),i=1,ix-2)   ! xlat
-      read(10,rec=7)  ((o(j,i,3),j=1,jx-2),i=1,ix-2)   ! xlon
-      read(10,rec=8)  ((o(j,i,4),j=1,jx-2),i=1,ix-2)   ! xmap
-      read(10,rec=9)  ((o(j,i,5),j=1,jx-2),i=1,ix-2)   ! dmap
-      read(10,rec=10) ((o(j,i,6),j=1,jx-2),i=1,ix-2)   ! coriol
-      read(10,rec=11) ((o(j,i,7),j=1,jx-2),i=1,ix-2)   ! mask
+      read(10,rec=2)  ((o(j,i,1),j=1,jx-2),i=1,iy-2)   ! ht
+      read(10,rec=6)  ((o(j,i,2),j=1,jx-2),i=1,iy-2)   ! xlat
+      read(10,rec=7)  ((o(j,i,3),j=1,jx-2),i=1,iy-2)   ! xlon
+      read(10,rec=8)  ((o(j,i,4),j=1,jx-2),i=1,iy-2)   ! xmap
+      read(10,rec=9)  ((o(j,i,5),j=1,jx-2),i=1,iy-2)   ! dmap
+      read(10,rec=10) ((o(j,i,6),j=1,jx-2),i=1,iy-2)   ! coriol
+      read(10,rec=11) ((o(j,i,7),j=1,jx-2),i=1,iy-2)   ! mask
 
       if(iproj.eq.'NORMER') then
          do l=1,7
@@ -492,7 +492,7 @@
          do m=nlon,mlon
             out(m,n) = -9999.
 
-            do i=1,ix-3
+            do i=1,iy-3
             do j=1,jx-3
                if((xlat(j,i).lt.olat(n).and.      &
                    xlon(j,i).lt.olon(m))          &
@@ -545,7 +545,7 @@
             DISTc=1.E8
             DISTd=1.E8
 
-            do i=1,ix-2
+            do i=1,iy-2
             do j=1,jx-2
          IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
             (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
@@ -707,9 +707,9 @@
       return
       end
 
-      subroutine regrid_ICBC(ix,jx,kx,ibyte,idate0,idate1,idate2)
+      subroutine regrid_ICBC(iy,jx,kz,ibyte,idate0,idate1,idate2)
       implicit none
-      integer ix,jx,kx,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2
       integer iiy,jjx,kkz
       real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
@@ -784,20 +784,20 @@
       PI = atan(1.)*4.
       PIR180 = atan(1.)/45.
 
-      allocate(sigma(kx+1))
-      allocate(o(jx,ix,kx*4+2))
-      allocate(xlat(jx,ix))
-      allocate(xlon(jx,ix))
-      allocate(dlat(jx,ix))
-      allocate(dlon(jx,ix))
+      allocate(sigma(kz+1))
+      allocate(o(jx,iy,kz*4+2))
+      allocate(xlat(jx,iy))
+      allocate(xlon(jx,iy))
+      allocate(dlat(jx,iy))
+      allocate(dlon(jx,iy))
 
       open(10,file='DOMAIN.INFO',form='unformatted' &
-             ,recl=jx*ix*ibyte,access='direct')
+             ,recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
-                    ,iproj,(sigma(k),k=1,kx+1),ptop,igrads,ibigend &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
                     ,truelatL,truelatH
-      if(iiy.ne.ix.or.jjx.ne.jx.or.kkz.ne.kx) then
-         write(*,*) 'iy,jx,kz in parameter = ',ix,jx,kx
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
          write(*,*) 'iy,jx,kz in DOMAIN.INFO ',iiy,jjx,kkz
          write(*,*) 'They are not consistent'
          stop
@@ -810,7 +810,7 @@
       else
          xmaxlat = -1.e10
          xminlat =  1.e10
-         do i=2,ix-2
+         do i=2,iy-2
          do j=2,jx-2
             if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
             if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
@@ -824,7 +824,7 @@
       else
          xmaxlon = -1.e10
          xminlon =  1.e10
-         do i=2,ix-2
+         do i=2,iy-2
          do j=2,jx-2
             if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
             if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
@@ -896,7 +896,7 @@
                filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'0100'
                open(10,file=filein,form='unformatted' &
-                      ,recl=ix*jx*ibyte,access='direct')
+                      ,recl=iy*jx*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -926,7 +926,7 @@
                filein = 'ICBC'//chy(nyear)//chm(month)//'01'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'01'
                open(10,file=filein(1:12),form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout(1:16),form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -944,12 +944,12 @@
                   filein = 'ICBC'//chy(nyear)
                   fileout= 'ICBC_LL.'//chy(nyear)
                   open(10,file=filein(1:8)//'.dat',form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                 open(20,file=fileout(1:12)//'.dat',form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
-               mrec = (month-1)*(kx*4+2)
-               nrec = (month-1)*(kx*4+2)
+               mrec = (month-1)*(kz*4+2)
+               nrec = (month-1)*(kz*4+2)
             endif
 
             do nnn=1,n_slice
@@ -957,22 +957,22 @@
                   mrec = mrec+1
                   read(10,rec=mrec) IDATE
                   write(*,*) 'IDATE = ',IDATE
-                  do l=1,kx*4+2
+                  do l=1,kz*4+2
                      mrec = mrec+1
-                     read(10,rec=mrec) ((o(j,i,l),j=1,jx),i=1,ix)
+                     read(10,rec=mrec) ((o(j,i,l),j=1,jx),i=1,iy)
                   enddo
                else
-                  do l=1,kx*4+2
+                  do l=1,kz*4+2
                      mrec = mrec+1
-                     read(10,rec=mrec) ((o(j,i,l),j=2,jx-1),i=2,ix-1)
+                     read(10,rec=mrec) ((o(j,i,l),j=2,jx-1),i=2,iy-1)
                   enddo
                endif
-               do l=1,kx*2
+               do l=1,kz*2
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
 
-                     do i=2,ix-2
+                     do i=2,iy-2
                      do j=2,jx-2
                         if((dlat(j,i).lt.olat(n).and.      &
                             dlon(j,i).lt.olon(m))          &
@@ -992,12 +992,12 @@
                   nrec = nrec+1
                   write(20,rec=nrec)((out(m,n),m=nlon,mlon),n=nlat,mlat)
                enddo
-               do l=kx*2+1,kx*4+2
+               do l=kz*2+1,kz*4+2
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
 
-                     do i=2,ix-2
+                     do i=2,iy-2
                      do j=2,jx-2
                         if((xlat(j,i).lt.olat(n).and.      &
                             xlon(j,i).lt.olon(m))          &
@@ -1041,8 +1041,8 @@
                write(31,50)
                write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
                write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
-               write(31,300) kx, &
-       ((1013.25-ptop*10.)*(sigma(k)+sigma(k+1))*0.5+ptop*10.,k=kx,1,-1)
+               write(31,300) kz, &
+       ((1013.25-ptop*10.)*(sigma(k)+sigma(k+1))*0.5+ptop*10.,k=kz,1,-1)
                if(ntype.eq.0) then
                   write(31,400) n_slice,0,'01',chmc(month),nyear,6
                else if(ntype.eq.1) then
@@ -1051,10 +1051,10 @@
                   write(31,402) n_slice,'15',chmc(month),nyear
                endif
                write(31,500) 6
-               write(31,650) 'u       ',kx,'westerly wind (m/s)        '
-               write(31,650) 'v       ',kx,'southerly wind (m/s)       '
-               write(31,650) 't       ',kx,'air temperature (degree)   '
-               write(31,650) 'q       ',kx,'water vapor mixing ratio   '
+               write(31,650) 'u       ',kz,'westerly wind (m/s)        '
+               write(31,650) 'v       ',kz,'southerly wind (m/s)       '
+               write(31,650) 't       ',kz,'air temperature (degree)   '
+               write(31,650) 'q       ',kz,'water vapor mixing ratio   '
                write(31,600) 'psa     ',   'surface pressure (hPa)     '
                write(31,600) 'tas     ',   'surface air temperature, K '
                write(31,700)
@@ -1094,7 +1094,7 @@
             DISTc=1.E8
             DISTd=1.E8
 
-            do i=2,ix-1
+            do i=2,iy-1
             do j=2,jx-1
          IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
             (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
@@ -1190,7 +1190,7 @@
             DISTc=1.E8
             DISTd=1.E8
 
-            do i=2,ix-1
+            do i=2,iy-1
             do j=2,jx-1
          IF((dlon(j,i).ge.olon(m).and.dlon(j,i)-olon(m).lt.10.) .and. &
             (dlat(j,i).ge.olat(n).and.dlat(j,i)-olat(n).lt.10.)) then
@@ -1282,7 +1282,7 @@
                filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'0100'
                open(10,file=filein,form='unformatted' &
-                      ,recl=ix*jx*ibyte,access='direct')
+                      ,recl=iy*jx*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -1312,7 +1312,7 @@
                filein = 'ICBC'//chy(nyear)//chm(month)//'01'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'01'
                open(10,file=filein(1:12),form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout(1:16),form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -1330,12 +1330,12 @@
                   filein = 'ICBC'//chy(nyear)
                   fileout= 'ICBC_LL.'//chy(nyear)
                   open(10,file=filein(1:8)//'.dat',form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                 open(20,file=fileout(1:12)//'.dat',form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
-               mrec = (month-1)*(kx*4+2)
-               nrec = (month-1)*(kx*4+2)
+               mrec = (month-1)*(kz*4+2)
+               nrec = (month-1)*(kz*4+2)
             endif
 
             do nnn=1,n_slice
@@ -1343,14 +1343,14 @@
                   mrec = mrec+1
                   read(10,rec=mrec) IDATE
                   write(*,*) 'IDATE = ',IDATE
-                  do l=1,kx*4+2
+                  do l=1,kz*4+2
                      mrec = mrec+1
-                     read(10,rec=mrec) ((o(j,i,l),j=1,jx),i=1,ix)
+                     read(10,rec=mrec) ((o(j,i,l),j=1,jx),i=1,iy)
                   enddo
                else
-                  do l=1,kx*4+2
+                  do l=1,kz*4+2
                      mrec = mrec+1
-                     read(10,rec=mrec) ((o(j,i,l),j=2,jx-1),i=2,ix-1)
+                     read(10,rec=mrec) ((o(j,i,l),j=2,jx-1),i=2,iy-1)
                   enddo
                endif
                IF(iproj.eq.'ROTMER') THEN
@@ -1364,7 +1364,7 @@
                   IF(POLLAM.GT.180.) POLLAM = POLLAM - 360.
                   POLCPHI = cos(PIR180*POLPHI)
                   POLSPHI = sin(PIR180*POLPHI)
-                  do i=2,ix-1
+                  do i=2,iy-1
                   do j=2,jx-1
                      ZPHI = DLAT(j,i)*PIR180
                      ZRLA = DLON(j,i)*PIR180
@@ -1376,11 +1376,11 @@
                      ZNORM  = 1.0/sqrt(ZARG1**2+ZARG2**2)
                      SINDEL = ZARG1*ZNORM
                      COSDEL = ZARG2*ZNORM
-                     do k=1,kx
-                        US =  o(j,i,k)*COSDEL + o(j,i,k+kx)*SINDEL
-                        VS = -o(j,i,k)*SINDEL + o(j,i,k+kx)*COSDEL
+                     do k=1,kz
+                        US =  o(j,i,k)*COSDEL + o(j,i,k+kz)*SINDEL
+                        VS = -o(j,i,k)*SINDEL + o(j,i,k+kz)*COSDEL
                         o(j,i,k) = US
-                        o(j,i,k+kx) = VS
+                        o(j,i,k+kz) = VS
                      enddo
                   enddo
                   enddo
@@ -1398,7 +1398,7 @@
                   ELSE
                      GRIDFC=SIGN0*sin(truelatL*PIR180)
                   ENDIF
-                  do i=2,ix-1
+                  do i=2,iy-1
                   do j=2,jx-1
                      IF((CLON.ge.0.0.and.DLON(j,i).ge.0.).or. &
                         (CLON.lt.0.0.and.DLON(j,i).lt.0.)) THEN
@@ -1423,24 +1423,24 @@
                      SINDEL=sin(X)
                      COSDEL=cos(X)
                      IF(CLAT.ge.0.) THEN
-                        do k=1,kx
-                           US= o(j,i,k)*COSDEL - o(j,i,k+kx)*SINDEL
-                           VS=-o(j,i,k)*SINDEL + o(j,i,k+kx)*COSDEL
+                        do k=1,kz
+                           US= o(j,i,k)*COSDEL - o(j,i,k+kz)*SINDEL
+                           VS=-o(j,i,k)*SINDEL + o(j,i,k+kz)*COSDEL
                            o(j,i,k) = US
-                           o(j,i,k+kx) = VS
+                           o(j,i,k+kz) = VS
                         enddo
                      ELSE
-                        do k=1,kx
-                           US= o(j,i,k)*COSDEL + o(j,i,k+kx)*SINDEL
-                           VS=-o(j,i,k)*SINDEL + o(j,i,k+kx)*COSDEL
+                        do k=1,kz
+                           US= o(j,i,k)*COSDEL + o(j,i,k+kz)*SINDEL
+                           VS=-o(j,i,k)*SINDEL + o(j,i,k+kz)*COSDEL
                            o(j,i,k) = US
-                           o(j,i,k+kx) = VS
+                           o(j,i,k+kz) = VS
                         enddo
                      ENDIF
                   enddo
                   enddo
                ENDIF
-               do l=1,kx*2
+               do l=1,kz*2
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
@@ -1472,7 +1472,7 @@
                   nrec=nrec+1
                   write(20,rec=nrec)((out(m,n),m=nlon,mlon),n=nlat,mlat)
                enddo
-               do l=kx*2+1,kx*4+2
+               do l=kz*2+1,kz*4+2
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
@@ -1528,8 +1528,8 @@
                write(31,50)
                write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
                write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
-               write(31,300) kx, &
-       ((1013.25-ptop*10.)*(sigma(k)+sigma(k+1))*0.5+ptop*10.,k=kx,1,-1)
+               write(31,300) kz, &
+       ((1013.25-ptop*10.)*(sigma(k)+sigma(k+1))*0.5+ptop*10.,k=kz,1,-1)
                if(ntype.eq.0) then
                   write(31,400) n_slice,0,'01',chmc(month),nyear,6
                else if(ntype.eq.1) then
@@ -1538,10 +1538,10 @@
                   write(31,402) n_slice,'15',chmc(month),nyear
                endif
                write(31,500) 6
-               write(31,650) 'u       ',kx,'westerly wind (m/s)        '
-               write(31,650) 'v       ',kx,'southerly wind (m/s)       '
-               write(31,650) 't       ',kx,'air temperature (degree, K)'
-               write(31,650) 'q       ',kx,'water vapor mixing ratio   '
+               write(31,650) 'u       ',kz,'westerly wind (m/s)        '
+               write(31,650) 'v       ',kz,'southerly wind (m/s)       '
+               write(31,650) 't       ',kz,'air temperature (degree, K)'
+               write(31,650) 'q       ',kz,'water vapor mixing ratio   '
                write(31,600) 'psa     ',   'surface pressure (hPa)     '
                write(31,600) 'tas     ',   'surface air temperature, K '
                write(31,700)
@@ -1608,10 +1608,10 @@
       return
       end
 
-      subroutine regrid_ATM(ix,jx,kx,ibyte,idate0,idate1,idate2   &
+      subroutine regrid_ATM(iy,jx,kz,ibyte,idate0,idate1,idate2   &
                            ,truelatL,truelatH)
       implicit none
-      integer ix,jx,kx,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2
       real*4  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -1683,19 +1683,19 @@
       PI = atan(1.)*4.
       PIR180 = atan(1.)/45.
 
-      allocate(sigma(kx+1))
-      allocate(o(jx-2,ix-2,kx*6+5))
-      allocate(xlat(jx-2,ix-2))
-      allocate(xlon(jx-2,ix-2))
+      allocate(sigma(kz+1))
+      allocate(o(jx-2,iy-2,kz*6+5))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
 
       open(10,file='OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(ix-2)*ibyte,access='direct')
+             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
-                    ,iiy,jjx,kkz,(sigma(k),k=1,kx+1)   &
+                    ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon          &
                     ,iproj,dto,dtb,dtr,dtc,iotyp
-      if(iiy.ne.ix.or.jjx.ne.jx.or.kkz.ne.kx) then
-         write(*,*) 'iy,jx,kz in parameter = ',ix,jx,kx
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
          write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
          write(*,*) 'They are not consistent'
          stop
@@ -1707,7 +1707,7 @@
       else
          xmaxlat = -1.e10
          xminlat =  1.e10
-         do i=1,ix-2
+         do i=1,iy-2
          do j=1,jx-2
             if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
             if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
@@ -1721,7 +1721,7 @@
       else
          xmaxlon = -1.e10
          xminlon =  1.e10
-         do i=1,ix-2
+         do i=1,iy-2
          do j=1,jx-2
             if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
             if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
@@ -1792,7 +1792,7 @@
                filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'0100'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -1822,7 +1822,7 @@
                filein = 'ATM.'//chy(nyear)//chm(month)//'01'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -1841,25 +1841,25 @@
                   filein = 'ATM.'//chy(nyear)//'mon'
                   fileout= 'ATM_LL.'//chy(nyear)//'mon'
                   open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                   open(20,file=fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
-               mrec = (month-1)*(kx*6+5)
-               nrec = (month-1)*(kx*6+5)
+               mrec = (month-1)*(kz*6+5)
+               nrec = (month-1)*(kz*6+5)
             endif
 
             do nnn=1,n_slice
-               do l=1,kx*6+5
+               do l=1,kz*6+5
                   mrec = mrec+1
-                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,ix-2)
+                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
                enddo
-               do l=1,kx*6+5
+               do l=1,kz*6+5
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
 
-                     do i=1,ix-3
+                     do i=1,iy-3
                      do j=1,jx-3
                         if((xlat(j,i).lt.olat(n).and.      &
                             xlon(j,i).lt.olon(m))          &
@@ -1903,8 +1903,8 @@
                write(31,50)
                write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
                write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
-               write(31,300) kx, &
-          ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kx)
+               write(31,300) kz, &
+          ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kz)
                if(ntype.eq.0) then
                if(nfile.eq.1.and.idate0.eq.idate1) then
                write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dto)
@@ -1917,12 +1917,12 @@
                   write(31,402) n_slice,'15',chmc(month),nyear
                endif
                write(31,500) 11
-               write(31,650) 'u       ',kx,'westerly wind (m/s)        '
-               write(31,650) 'v       ',kx,'southerly wind (m/s)       '
-               write(31,650) 'w       ',kx,'omega (hPa/s)   p-velocity '
-               write(31,650) 't       ',kx,'air temperature (degree)   '
-               write(31,650) 'qv      ',kx,'water vapor mixing ratio   '
-               write(31,650) 'qc      ',kx,'cloud water mixing ratio   '
+               write(31,650) 'u       ',kz,'westerly wind (m/s)        '
+               write(31,650) 'v       ',kz,'southerly wind (m/s)       '
+               write(31,650) 'w       ',kz,'omega (hPa/s)   p-velocity '
+               write(31,650) 't       ',kz,'air temperature (degree)   '
+               write(31,650) 'qv      ',kz,'water vapor mixing ratio   '
+               write(31,650) 'qc      ',kz,'cloud water mixing ratio   '
                write(31,600) 'psa     ',   'surface pressure (hPa)     '
                write(31,600) 'tpr     ',   'total precipitation(mm/day)'
                write(31,600) 'tgb     ',   'lower groud temp. in BATS  '
@@ -1965,7 +1965,7 @@
             DISTc=1.E8
             DISTd=1.E8
 
-            do i=1,ix-2
+            do i=1,iy-2
             do j=1,jx-2
          IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
             (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
@@ -2058,7 +2058,7 @@
                filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'0100'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -2088,7 +2088,7 @@
                filein = 'ATM.'//chy(nyear)//chm(month)//'01'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -2106,18 +2106,18 @@
                   filein = 'ATM.'//chy(nyear)//'mon'
                   fileout= 'ATM_LL.'//chy(nyear)//'mon'
                   open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                   open(20,file=fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
-               mrec = (month-1)*(kx*6+5)
-               nrec = (month-1)*(kx*6+5)
+               mrec = (month-1)*(kz*6+5)
+               nrec = (month-1)*(kz*6+5)
             endif
 
             do nnn=1,n_slice
-               do l=1,kx*6+5
+               do l=1,kz*6+5
                   mrec = mrec+1
-                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,ix-2)
+                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
                enddo
                
                IF(iproj.eq.'ROTMER') THEN
@@ -2131,7 +2131,7 @@
                   IF(POLLAM.GT.180.) POLLAM = POLLAM - 360.
                   POLCPHI = cos(PIR180*POLPHI)
                   POLSPHI = sin(PIR180*POLPHI)
-                  do i=1,ix-2
+                  do i=1,iy-2
                   do j=1,jx-2
                      ZPHI = XLAT(j,i)*PIR180
                      ZRLA = XLON(j,i)*PIR180
@@ -2143,11 +2143,11 @@
                      ZNORM  = 1.0/sqrt(ZARG1**2+ZARG2**2)
                      SINDEL = ZARG1*ZNORM
                      COSDEL = ZARG2*ZNORM
-                     do k=1,kx
-                        US =  o(j,i,k)*COSDEL + o(j,i,k+kx)*SINDEL
-                        VS = -o(j,i,k)*SINDEL + o(j,i,k+kx)*COSDEL
+                     do k=1,kz
+                        US =  o(j,i,k)*COSDEL + o(j,i,k+kz)*SINDEL
+                        VS = -o(j,i,k)*SINDEL + o(j,i,k+kz)*COSDEL
                         o(j,i,k) = US
-                        o(j,i,k+kx) = VS
+                        o(j,i,k+kz) = VS
                      enddo
                   enddo
                   enddo
@@ -2165,7 +2165,7 @@
                   ELSE
                      GRIDFC=SIGN0*sin(truelatL*PIR180)
                   ENDIF
-                  do i=1,ix-2
+                  do i=1,iy-2
                   do j=1,jx-2
                      IF((CLON.ge.0.0.and.XLON(j,i).ge.0.).or. &
                         (CLON.lt.0.0.and.XLON(j,i).lt.0.)) THEN
@@ -2190,25 +2190,25 @@
                      SINDEL=sin(X)
                      COSDEL=cos(X)
                      IF(CLAT.ge.0.) THEN
-                        do k=1,kx
-                           US= o(j,i,k)*COSDEL - o(j,i,k+kx)*SINDEL
-                           VS=-o(j,i,k)*SINDEL + o(j,i,k+kx)*COSDEL
+                        do k=1,kz
+                           US= o(j,i,k)*COSDEL - o(j,i,k+kz)*SINDEL
+                           VS=-o(j,i,k)*SINDEL + o(j,i,k+kz)*COSDEL
                            o(j,i,k) = US
-                           o(j,i,k+kx) = VS
+                           o(j,i,k+kz) = VS
                         enddo
                      ELSE
-                        do k=1,kx
-                           US= o(j,i,k)*COSDEL + o(j,i,k+kx)*SINDEL
-                           VS=-o(j,i,k)*SINDEL + o(j,i,k+kx)*COSDEL
+                        do k=1,kz
+                           US= o(j,i,k)*COSDEL + o(j,i,k+kz)*SINDEL
+                           VS=-o(j,i,k)*SINDEL + o(j,i,k+kz)*COSDEL
                            o(j,i,k) = US
-                           o(j,i,k+kx) = VS
+                           o(j,i,k+kz) = VS
                         enddo
                      ENDIF
                   enddo
                   enddo
                ENDIF
 
-               do l=1,kx*6+5
+               do l=1,kz*6+5
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
@@ -2264,8 +2264,8 @@
                write(31,50)
                write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
                write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
-               write(31,300) kx, &
-          ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kx)
+               write(31,300) kz, &
+          ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kz)
                if(ntype.eq.0) then
                if(nfile.eq.1.and.idate0.eq.idate1) then
                write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dto)
@@ -2278,12 +2278,12 @@
                   write(31,402) n_slice,'15',chmc(month),nyear
                endif
                write(31,500) 11
-               write(31,650) 'u       ',kx,'westerly wind (m/s)        '
-               write(31,650) 'v       ',kx,'southerly wind (m/s)       '
-               write(31,650) 'w       ',kx,'omega (hPa/s)   p-velocity '
-               write(31,650) 't       ',kx,'air temperature (degree)   '
-               write(31,650) 'qv      ',kx,'water vapor mixing ratio   '
-               write(31,650) 'qc      ',kx,'cloud water mixing ratio   '
+               write(31,650) 'u       ',kz,'westerly wind (m/s)        '
+               write(31,650) 'v       ',kz,'southerly wind (m/s)       '
+               write(31,650) 'w       ',kz,'omega (hPa/s)   p-velocity '
+               write(31,650) 't       ',kz,'air temperature (degree)   '
+               write(31,650) 'qv      ',kz,'water vapor mixing ratio   '
+               write(31,650) 'qc      ',kz,'cloud water mixing ratio   '
                write(31,600) 'psa     ',   'surface pressure (hPa)     '
                write(31,600) 'tpr     ',   'total precipitation(mm/day)'
                write(31,600) 'tgb     ',   'lower groud temp. in BATS  '
@@ -2337,10 +2337,10 @@
       return
       end
 
-      subroutine regrid_SRF(ix,jx,kx,ibyte,idate0,idate1,idate2    &
+      subroutine regrid_SRF(iy,jx,kz,ibyte,idate0,idate1,idate2    &
                            ,truelatL,truelatH)
       implicit none
-      integer ix,jx,kx,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2
       real*4  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -2413,19 +2413,19 @@
       PI = atan(1.)*4.
       PIR180 = atan(1.)/45.
 
-      allocate(sigma(kx+1))
-      allocate(o(jx-2,ix-2,27))
-      allocate(xlat(jx-2,ix-2))
-      allocate(xlon(jx-2,ix-2))
+      allocate(sigma(kz+1))
+      allocate(o(jx-2,iy-2,27))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
 
       open(10,file='OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(ix-2)*ibyte,access='direct')
+             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
-                    ,iiy,jjx,kkz,(sigma(k),k=1,kx+1)   &
+                    ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon          &
                     ,iproj,dto,dtb,dtr,dtc,iotyp
-      if(iiy.ne.ix.or.jjx.ne.jx.or.kkz.ne.kx) then
-         write(*,*) 'iy,jx,kz in parameter = ',ix,jx,kx
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
          write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
          write(*,*) 'They are not consistent'
          stop
@@ -2437,7 +2437,7 @@
       else
          xmaxlat = -1.e10
          xminlat =  1.e10
-         do i=1,ix-2
+         do i=1,iy-2
          do j=1,jx-2
             if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
             if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
@@ -2451,7 +2451,7 @@
       else
          xmaxlon = -1.e10
          xminlon =  1.e10
-         do i=1,ix-2
+         do i=1,iy-2
          do j=1,jx-2
             if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
             if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
@@ -2522,7 +2522,7 @@
                filein = 'SRF.'//chy(nyear)//chm(month)//'0100'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'0100'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -2552,7 +2552,7 @@
                filein = 'SRF.'//chy(nyear)//chm(month)//'01'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -2570,7 +2570,7 @@
                   filein = 'SRF.'//chy(nyear)//'mon'
                   fileout= 'SRF_LL.'//chy(nyear)//'mon'
                   open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                   open(20,file=fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
@@ -2581,14 +2581,14 @@
             do nnn=1,n_slice
                do l=1,27
                   mrec = mrec+1
-                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,ix-2)
+                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
                enddo
                do l=1,27
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
 
-                     do i=1,ix-3
+                     do i=1,iy-3
                      do j=1,jx-3
                         if((xlat(j,i).lt.olat(n).and.      &
                             xlon(j,i).lt.olon(m))          &
@@ -2656,7 +2656,7 @@
                write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
                write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
                write(31,300) &
-            (1013.25-ptsp*10.)*(sigma(kx)+sigma(kx+1))*0.5+ptsp*10.
+            (1013.25-ptsp*10.)*(sigma(kz)+sigma(kz+1))*0.5+ptsp*10.
                if(ntype.eq.0) then
                if(nfile.eq.1.and.idate0.eq.idate1) then
                write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dtb)
@@ -2733,7 +2733,7 @@
             DISTc=1.E8
             DISTd=1.E8
 
-            do i=1,ix-2
+            do i=1,iy-2
             do j=1,jx-2
          IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
             (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
@@ -2826,7 +2826,7 @@
                filein = 'SRF.'//chy(nyear)//chm(month)//'0100'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'0100'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -2856,7 +2856,7 @@
                filein = 'SRF.'//chy(nyear)//chm(month)//'01'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -2874,7 +2874,7 @@
                   filein = 'SRF.'//chy(nyear)//'mon'
                   fileout= 'SRF_LL.'//chy(nyear)//'mon'
                   open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                   open(20,file=fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
@@ -2885,7 +2885,7 @@
             do nnn=1,n_slice
                do l=1,27
                   mrec = mrec+1
-                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,ix-2)
+                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
                enddo
                IF(iproj.eq.'ROTMER') THEN
                   IF(PLAT.GT.0.) THEN
@@ -2898,7 +2898,7 @@
                   IF(POLLAM.GT.180.) POLLAM = POLLAM - 360.
                   POLCPHI = cos(PIR180*POLPHI)
                   POLSPHI = sin(PIR180*POLPHI)
-                  do i=1,ix-2
+                  do i=1,iy-2
                   do j=1,jx-2
                      ZPHI = XLAT(j,i)*PIR180
                      ZRLA = XLON(j,i)*PIR180
@@ -2930,7 +2930,7 @@
                   ELSE
                      GRIDFC=SIGN0*sin(truelatL*PIR180)
                   ENDIF
-                  do i=1,ix-2
+                  do i=1,iy-2
                   do j=1,jx-2
                      IF((CLON.ge.0.0.and.XLON(j,i).ge.0.).or. &
                         (CLON.lt.0.0.and.XLON(j,i).lt.0.)) THEN
@@ -3045,7 +3045,7 @@
                write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
                write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
                write(31,300) &
-            (1013.25-ptsp*10.)*(sigma(kx)+sigma(kx+1))*0.5+ptsp*10.
+            (1013.25-ptsp*10.)*(sigma(kz)+sigma(kz+1))*0.5+ptsp*10.
                if(ntype.eq.0) then
                if(nfile.eq.1.and.idate0.eq.idate1) then
                write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dtb)
@@ -3132,9 +3132,9 @@
       return
       end
 
-      subroutine regrid_RAD(ix,jx,kx,ibyte,idate0,idate1,idate2)
+      subroutine regrid_RAD(iy,jx,kz,ibyte,idate0,idate1,idate2)
       implicit none
-      integer ix,jx,kx,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  dxsp,ptsp,clat,clon,plat,plon
@@ -3201,19 +3201,19 @@
 
       PI = atan(1.)*4.
 
-      allocate(sigma(kx+1))
-      allocate(o(jx-2,ix-2,kx*4+9))
-      allocate(xlat(jx-2,ix-2))
-      allocate(xlon(jx-2,ix-2))
+      allocate(sigma(kz+1))
+      allocate(o(jx-2,iy-2,kz*4+9))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
 
       open(10,file='OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(ix-2)*ibyte,access='direct')
+             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
-                    ,iiy,jjx,kkz,(sigma(k),k=1,kx+1)   &
+                    ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon          &
                     ,iproj,dto,dtb,dtr,dtc,iotyp
-      if(iiy.ne.ix.or.jjx.ne.jx.or.kkz.ne.kx) then
-         write(*,*) 'iy,jx,kz in parameter = ',ix,jx,kx
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
          write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
          write(*,*) 'They are not consistent'
          stop
@@ -3225,7 +3225,7 @@
       else
          xmaxlat = -1.e10
          xminlat =  1.e10
-         do i=1,ix-2
+         do i=1,iy-2
          do j=1,jx-2
             if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
             if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
@@ -3239,7 +3239,7 @@
       else
          xmaxlon = -1.e10
          xminlon =  1.e10
-         do i=1,ix-2
+         do i=1,iy-2
          do j=1,jx-2
             if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
             if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
@@ -3310,7 +3310,7 @@
                filein = 'RAD.'//chy(nyear)//chm(month)//'0100'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'0100'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -3340,7 +3340,7 @@
                filein = 'RAD.'//chy(nyear)//chm(month)//'01'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -3358,25 +3358,25 @@
                   filein = 'RAD.'//chy(nyear)//'mon'
                   fileout= 'RAD_LL.'//chy(nyear)//'mon'
                   open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                   open(20,file=fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
-               mrec = (month-1)*(kx*4+9)
-               nrec = (month-1)*(kx*4+9)
+               mrec = (month-1)*(kz*4+9)
+               nrec = (month-1)*(kz*4+9)
             endif
 
             do nnn=1,n_slice
-               do l=1,kx*4+9
+               do l=1,kz*4+9
                   mrec = mrec+1
-                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,ix-2)
+                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
                enddo
-               do l=1,kx*4+9
+               do l=1,kz*4+9
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
 
-                     do i=1,ix-3
+                     do i=1,iy-3
                      do j=1,jx-3
                         if((xlat(j,i).lt.olat(n).and.      &
                             xlon(j,i).lt.olon(m))          &
@@ -3420,8 +3420,8 @@
                write(31,50)
                write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
                write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
-               write(31,300) kx, &
-          ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kx)
+               write(31,300) kz, &
+          ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kz)
                if(ntype.eq.0) then
                if(nfile.eq.1.and.idate0.eq.idate1) then
                write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dtr)
@@ -3434,10 +3434,10 @@
                   write(31,402) n_slice,'15',chmc(month),nyear
                endif
                write(31,500) 13
-        write(31,650)'cld   ',kx,'cloud fractional cover               '
-        write(31,650)'clwp  ',kx,'cloud liquid water path              '
-        write(31,650)'qrs   ',kx,'solar heating rate                   '
-        write(31,650)'qrl   ',kx,'longwave cooling rate                '
+        write(31,650)'cld   ',kz,'cloud fractional cover               '
+        write(31,650)'clwp  ',kz,'cloud liquid water path              '
+        write(31,650)'qrs   ',kz,'solar heating rate                   '
+        write(31,650)'qrl   ',kz,'longwave cooling rate                '
         write(31,600)'frsa  ',   'surface absorbed solar flux          '
         write(31,600)'frla  ',   'longwave cooling of surface          '
         write(31,600)'clrst ',   'clearsky total column abs solar flux '
@@ -3484,7 +3484,7 @@
             DISTc=1.E8
             DISTd=1.E8
 
-            do i=1,ix-2
+            do i=1,iy-2
             do j=1,jx-2
          IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
             (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
@@ -3577,7 +3577,7 @@
                filein = 'RAD.'//chy(nyear)//chm(month)//'0100'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'0100'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -3607,7 +3607,7 @@
                filein = 'RAD.'//chy(nyear)//chm(month)//'01'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
                open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
                open(20,file=fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
@@ -3625,20 +3625,20 @@
                   filein = 'RAD.'//chy(nyear)//'mon'
                   fileout= 'RAD_LL.'//chy(nyear)//'mon'
                   open(10,file=filein,form='unformatted' &
-                      ,recl=(ix-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                   open(20,file=fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
-               mrec = (month-1)*(kx*4+9)
-               nrec = (month-1)*(kx*4+9)
+               mrec = (month-1)*(kz*4+9)
+               nrec = (month-1)*(kz*4+9)
             endif
 
             do nnn=1,n_slice
-               do l=1,kx*4+9
+               do l=1,kz*4+9
                   mrec = mrec+1
-                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,ix-2)
+                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
                enddo
-               do l=1,kx*4+9
+               do l=1,kz*4+9
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
@@ -3694,8 +3694,8 @@
                write(31,50)
                write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
                write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
-               write(31,300) kx, &
-          ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kx)
+               write(31,300) kz, &
+          ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kz)
                if(ntype.eq.0) then
                if(nfile.eq.1.and.idate0.eq.idate1) then
                write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dtr)
@@ -3708,10 +3708,10 @@
                   write(31,402) n_slice,'15',chmc(month),nyear
                endif
                write(31,500) 13
-        write(31,650)'cld   ',kx,'cloud fractional cover               '
-        write(31,650)'clwp  ',kx,'cloud liquid water path              '
-        write(31,650)'qrs   ',kx,'solar heating rate                   '
-        write(31,650)'qrl   ',kx,'longwave cooling rate                '
+        write(31,650)'cld   ',kz,'cloud fractional cover               '
+        write(31,650)'clwp  ',kz,'cloud liquid water path              '
+        write(31,650)'qrs   ',kz,'solar heating rate                   '
+        write(31,650)'qrl   ',kz,'longwave cooling rate                '
         write(31,600)'frsa  ',   'surface absorbed solar flux          '
         write(31,600)'frla  ',   'longwave cooling of surface          '
         write(31,600)'clrst ',   'clearsky total column abs solar flux '
