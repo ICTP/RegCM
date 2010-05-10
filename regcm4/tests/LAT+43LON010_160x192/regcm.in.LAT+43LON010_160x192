@@ -30,7 +30,7 @@
  ntex = 17,
  h2opct = 75.,
  dirter = '../../Input',
- inpter = '../../DATA',
+ inpter = '../DATA',
  /
  &ioparam
  igrads = 1,
@@ -57,7 +57,7 @@
  globidate1 = 1989010100,
  globidate2 = 1989123100,
  dirglob = '../../Input',
- inpglob = '../../DATA',
+ inpglob = '../DATA',
  /
  &lsmparam
  lsmtyp = 'BATS',
