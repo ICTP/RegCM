@@ -178,141 +178,144 @@
         end if
  
 !       **** Write out postprocessing information
-        open (99,file='postproc.in',form='FORMATTED',status='unknown')
-        a1 = char(39)
-        write (99,99002) idate1d(2)
-        write (99,99003) idate1d(2)
-        write (99,99004) idate2
-        a78 = '2,              ! iotype: 1=I*2 NetCDF;'//               &
-             &' 2=r*4 NetCDF; 3=grads; 4=vis5d'
-        write (99,99008) a78
-        a78 = '.false.,        ! Write out header?'
-        write (99,99008) a78
-        a78 = '.false.,        ! Write out all RegCM data b/twn'//      &
-             &' idate1 & idate2?'
-        write (99,99008) a78
-        a78 = '.false.,        ! Average RegCM data b/twn idate1'//     &
-             &' & idate2?'
-        write (99,99008) a78
-        a78 = '.false.,        ! Diurnali avg of RegCM data b/twn'//    &
-             &' idate1 & idate2?'
-        write (99,99008) a78
-        a78 = '.true.,         ! Continually average ATM data b/twn'//  &
-             &' idate1 & idate2?'
-        write (99,99008) a78
-        a78 = '-1.,            ! No. Days for continual averaging'//    &
-             &' (-1=monthly;1=daily;5=5day)'
-        write (99,99008) a78
-        if ( nmo.le.1 ) then
-          iyr1 = iyr(nmo)*100 + imo(nmo)
-          write (a16,99005) a1 , iyr1 , a1
-        else if ( nmo.le.2 ) then
-          iyr1 = iyr(nmo)*100 + imo(nmo)
-          write (a16,99005) a1 , iyr1 , a1
-        else
-          iyr1 = iyr(2)*100 + imo(2)
-          iyr2 = iyr(nmo)*100 + imo(nmo)
-          write (a16,99006) a1 , iyr1 , iyr2 , a1
-        end if
-        a78 = a16//'! postproc output filename (not'//                  &
-             &' including type & ext)'
-        write (99,99008) a78
- 
-        a78 = a1//'../Input'//a1//',     ! ICBC directory'
-        write (99,99008) a78
-        a78 = a1//'output'//a1//',       ! RegCM Output directory'
-        write (99,99008) a78
-        a78 = a1//'DOMAIN.INFO'//a1//                                   &
-             &',  ! Domain Info Filename (from terrain)'
-        write (99,99008) a78
-        a78 = a1//'OUT_HEAD'//a1//                                      &
-             &',     ! Header File name (from RegCM)'
-        write (99,99008) a78
-        if ( nmo.le.1 ) then
-          a2 = 'st'
-          write (a22,99007) a1 , idate1d(1) , a1 , nmo , a2
-          a78 = a22//' RegCM Output File Extension'
-          write (99,99008) a78
-        else
-          do n = 2 , nmo
-            if ( n.eq.2 ) then
-              a2 = 'st'
-            else if ( n.eq.3 ) then
-              a2 = 'nd'
-            else if ( n.eq.4 ) then
-              a2 = 'rd'
-            else
-              a2 = 'th'
-            end if
-            write (a22,99007) a1 , idate1d(n) , a1 , n - 1 , a2
-            a78 = a22//'RegCM Output File Extension'
-            write (99,99008) a78
-          end do
-        end if
-        close (98)
-        close (99)
- 
-        filnam = '../PostProc/postproc.param'
-        open (99,file=filnam,form='FORMATTED',status='replace')
-        dto = tapfrq
-        dtb = batfrq
-        dtr = radisp
-        dtc = chemfrq
-        a78 = 'cccc SET DOMAIN DIMENSIONS'
-        write (99,99008) a78
-        a78 = 'cccc ny = number of north-south points'
-        write (99,99008) a78
-        a78 = 'cccc nx = number of east-west points'
-        write (99,99008) a78
-        a78 = 'cccc nz = number of vertical levels'
-        write (99,99008) a78
-        a78 = 'cccc SET MODEL OUTPUT INTERVALS'
-        write (99,99008) a78
-        a78 = 'cccc dtbc = ibdyfrq = ICBC output interval (hrs)'
-        write (99,99008) a78
-        a78 = 'cccc dtout = atmfrq = atmospheric output interval (hrs)'
-        write (99,99008) a78
-        a78 = 'cccc dtbat = srffrq = surface output interval (hrs)'
-        write (99,99008) a78
-        a78 = 'cccc dtrad = radfrq = radiation output interval (hrs)'
-        write (99,99008) a78
-        a78 = 'cccc DIRECT ACCESS BINARY SPECIFICATION'
-        write (99,99008) a78
-        a78 = 'cccc ibyte = 4 for PGI, IFC; 1 for SUN, SGI, DEC, IBM'
-        write (99,99008) a78
-        a78 = '      integer nxf,nyf,nz,nxs,nys'
-        write (99,99008) a78
-        write (a78,99009) iy
-        write (99,99008) a78
-        write (a78,99010) jx
-        write (99,99008) a78
-        write (a78,99011) kz
-        write (99,99008) a78
-        write (a78,99012) 1
-                         ! nxs when SUBBATS si in
-        write (99,99008) a78
-        write (a78,99013) 1
-                         ! nys when SUBBATS si in
-        write (99,99008) a78
-        a78 = '      integer ibyte'
-        write (99,99008) a78
-        write (a78,99014) ibyte
-        write (99,99008) a78
-        a78 = '      real dtbc,dtout,dtbat,dtrad,dtche,dtsub'
-        write (99,99008) a78
-        write (a78,99015) ibdyfrq
-        write (99,99008) a78
-        write (a78,99016) dto
-        write (99,99008) a78
-        write (a78,99017) dtb
-        write (99,99008) a78
-        write (a78,99018) dtr
-        write (99,99008) a78
-        write (a78,99019) dtc
-        write (99,99008) a78
-        write (a78,99020) dtb
-        write (99,99008) a78
-        close (99)
+
+! here below commented out: useless with new postprocessing tools 
+!
+!        open (99,file='postproc.in',form='FORMATTED',status='unknown')
+!        a1 = char(39)
+!        write (99,99002) idate1d(2)
+!        write (99,99003) idate1d(2)
+!        write (99,99004) idate2
+!        a78 = '2,              ! iotype: 1=I*2 NetCDF;'//               &
+!             &' 2=r*4 NetCDF; 3=grads; 4=vis5d'
+!        write (99,99008) a78
+!        a78 = '.false.,        ! Write out header?'
+!        write (99,99008) a78
+!        a78 = '.false.,        ! Write out all RegCM data b/twn'//      &
+!             &' idate1 & idate2?'
+!        write (99,99008) a78
+!        a78 = '.false.,        ! Average RegCM data b/twn idate1'//     &
+!             &' & idate2?'
+!        write (99,99008) a78
+!        a78 = '.false.,        ! Diurnali avg of RegCM data b/twn'//    &
+!             &' idate1 & idate2?'
+!        write (99,99008) a78
+!        a78 = '.true.,         ! Continually average ATM data b/twn'//  &
+!             &' idate1 & idate2?'
+!        write (99,99008) a78
+!        a78 = '-1.,            ! No. Days for continual averaging'//    &
+!             &' (-1=monthly;1=daily;5=5day)'
+!        write (99,99008) a78
+!        if ( nmo.le.1 ) then
+!          iyr1 = iyr(nmo)*100 + imo(nmo)
+!          write (a16,99005) a1 , iyr1 , a1
+!        else if ( nmo.le.2 ) then
+!          iyr1 = iyr(nmo)*100 + imo(nmo)
+!          write (a16,99005) a1 , iyr1 , a1
+!        else
+!          iyr1 = iyr(2)*100 + imo(2)
+!          iyr2 = iyr(nmo)*100 + imo(nmo)
+!          write (a16,99006) a1 , iyr1 , iyr2 , a1
+!        end if
+!        a78 = a16//'! postproc output filename (not'//                  &
+!             &' including type & ext)'
+!        write (99,99008) a78
+! 
+!        a78 = a1//'../Input'//a1//',     ! ICBC directory'
+!        write (99,99008) a78
+!        a78 = a1//'output'//a1//',       ! RegCM Output directory'
+!        write (99,99008) a78
+!        a78 = a1//'DOMAIN.INFO'//a1//                                   &
+!             &',  ! Domain Info Filename (from terrain)'
+!        write (99,99008) a78
+!        a78 = a1//'OUT_HEAD'//a1//                                      &
+!             &',     ! Header File name (from RegCM)'
+!        write (99,99008) a78
+!        if ( nmo.le.1 ) then
+!          a2 = 'st'
+!          write (a22,99007) a1 , idate1d(1) , a1 , nmo , a2
+!          a78 = a22//' RegCM Output File Extension'
+!          write (99,99008) a78
+!        else
+!          do n = 2 , nmo
+!            if ( n.eq.2 ) then
+!              a2 = 'st'
+!            else if ( n.eq.3 ) then
+!              a2 = 'nd'
+!            else if ( n.eq.4 ) then
+!              a2 = 'rd'
+!            else
+!              a2 = 'th'
+!            end if
+!            write (a22,99007) a1 , idate1d(n) , a1 , n - 1 , a2
+!            a78 = a22//'RegCM Output File Extension'
+!            write (99,99008) a78
+!          end do
+!        end if
+!        close (98)
+!        close (99)
+! 
+!        filnam = '../PostProc/postproc.param'
+!        open (99,file=filnam,form='FORMATTED',status='replace')
+!        dto = tapfrq
+!        dtb = batfrq
+!        dtr = radisp
+!        dtc = chemfrq
+!        a78 = 'cccc SET DOMAIN DIMENSIONS'
+!        write (99,99008) a78
+!        a78 = 'cccc ny = number of north-south points'
+!        write (99,99008) a78
+!        a78 = 'cccc nx = number of east-west points'
+!        write (99,99008) a78
+!        a78 = 'cccc nz = number of vertical levels'
+!        write (99,99008) a78
+!        a78 = 'cccc SET MODEL OUTPUT INTERVALS'
+!        write (99,99008) a78
+!        a78 = 'cccc dtbc = ibdyfrq = ICBC output interval (hrs)'
+!        write (99,99008) a78
+!        a78 = 'cccc dtout = atmfrq = atmospheric output interval (hrs)'
+!        write (99,99008) a78
+!        a78 = 'cccc dtbat = srffrq = surface output interval (hrs)'
+!        write (99,99008) a78
+!        a78 = 'cccc dtrad = radfrq = radiation output interval (hrs)'
+!        write (99,99008) a78
+!        a78 = 'cccc DIRECT ACCESS BINARY SPECIFICATION'
+!        write (99,99008) a78
+!        a78 = 'cccc ibyte = 4 for PGI, IFC; 1 for SUN, SGI, DEC, IBM'
+!        write (99,99008) a78
+!        a78 = '      integer nxf,nyf,nz,nxs,nys'
+!        write (99,99008) a78
+!        write (a78,99009) iy
+!        write (99,99008) a78
+!        write (a78,99010) jx
+!        write (99,99008) a78
+!        write (a78,99011) kz
+!        write (99,99008) a78
+!        write (a78,99012) 1
+!                         ! nxs when SUBBATS si in
+!        write (99,99008) a78
+!        write (a78,99013) 1
+!                         ! nys when SUBBATS si in
+!        write (99,99008) a78
+!        a78 = '      integer ibyte'
+!        write (99,99008) a78
+!        write (a78,99014) ibyte
+!        write (99,99008) a78
+!        a78 = '      real dtbc,dtout,dtbat,dtrad,dtche,dtsub'
+!        write (99,99008) a78
+!        write (a78,99015) ibdyfrq
+!        write (99,99008) a78
+!        write (a78,99016) dto
+!        write (99,99008) a78
+!        write (a78,99017) dtb
+!        write (99,99008) a78
+!        write (a78,99018) dtr
+!        write (99,99008) a78
+!        write (a78,99019) dtc
+!        write (99,99008) a78
+!        write (a78,99020) dtb
+!        write (99,99008) a78
+!        close (99)
       end if
  
 99001 format (a3,'.',i10)

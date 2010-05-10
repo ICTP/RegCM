@@ -315,7 +315,7 @@
         open(ipunit, file=filename, status='old', &
                      action='read', err=100)
 !
-        read(ipunit, dimparam, err=100)
+        read(ipunit, dimparam, err=101)
 
 !       Setup all convenience dimensions
 
@@ -339,19 +339,19 @@
         jxm2sg = (jx-2) * nsg
         nnsg = nsg*nsg
 
-        read(ipunit, geoparam, err=100)
-        read(ipunit, terrainparam, err=100)
-        read(ipunit, ioparam, err=100)
-        read(ipunit, debugparam, err=100)
-        read(ipunit, boundaryparam, err=100)
+        read(ipunit, geoparam, err=102)
+        read(ipunit, terrainparam, err=103)
+        read(ipunit, ioparam, err=104)
+        read(ipunit, debugparam, err=105)
+        read(ipunit, boundaryparam, err=106)
 
         nspgv = (nspgd+nspgx)*8 + 8
         nspgp = nspgx*4
 
-        read(ipunit, modesparam, err=100)
-        read(ipunit, lakemodparam, err=100)
-        read(ipunit, globdatparam, err=100)
-        read(ipunit, lsmparam, err=100)
+        read(ipunit, modesparam, err=107)
+        read(ipunit, lakemodparam, err=108)
+        read(ipunit, globdatparam, err=109)
+        read(ipunit, lsmparam, err=110)
 
         if (lsmtyp == 'BATS') then
           nveg = 20
@@ -362,12 +362,45 @@
           stop
         end if
 
-        read(ipunit, aerosolparam, err=100)
+        read(ipunit, aerosolparam, err=111)
 
         ierr = 0
         return
 
   100   write ( 6, * ) 'Cannot read namelist file ', trim(filename)
+	ierr = 1 
+        return 
+  101   write ( 6, * ) 'Cannot read namelist stanza: dimparam       ', trim(filename)
+        ierr = 1
+        return
+  102   write ( 6, * ) 'Cannot read namelist stanza: geoparam       ', trim(filename)
+        ierr = 1
+        return
+  103   write ( 6, * ) 'Cannot read namelist stanza: terrainparam   ', trim(filename)
+        ierr = 1
+        return
+  104   write ( 6, * ) 'Cannot read namelist stanza: ioparam        ', trim(filename)
+        ierr = 1
+        return
+  105   write ( 6, * ) 'Cannot read namelist stanza: debugparam     ', trim(filename)
+        ierr = 1
+        return
+  106   write ( 6, * ) 'Cannot read namelist stanza: boundaryparam  ', trim(filename)
+        ierr = 1
+        return
+  107   write ( 6, * ) 'Cannot read namelist stanza: modesparam     ', trim(filename)
+        ierr = 1
+        return
+  108   write ( 6, * ) 'Cannot read namelist stanza: lakemodparam   ', trim(filename)
+        ierr = 1
+        return
+  109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ', trim(filename)
+        ierr = 1
+        return
+  110   write ( 6, * ) 'Cannot read namelist stanza: lsmparam       ', trim(filename)
+        ierr = 1
+        return
+  111   write ( 6, * ) 'Cannot read namelist stanza: aereosolparam  ', trim(filename)
         ierr = 1
 
       end subroutine
