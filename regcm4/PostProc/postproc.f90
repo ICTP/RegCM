@@ -18,8 +18,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       program postproc
-      use mod_regcm_param , only : iy , jx , iym2 , jxm2 , iysg , jxsg ,&
-                   & iym2sg , jxm2sg , kz , ibyte
+      use mod_dynparam
+      use mod_postproc_param
       use mod_batflds
       use mod_bcflds
       use mod_cheflds
@@ -27,7 +27,6 @@
       use mod_radflds
       use mod_subflds
       use mod_point
-      use mod_postproc_param
       implicit none
 !
 ! PARAMETER definitions
@@ -37,14 +36,14 @@
 !
 ! Local variables
 !
-      character(256) :: adate , filinfo , icbcdir , icbcheadnam ,        &
+      character(256) :: adate , filinfo , icbcdir , icbcheadnam ,       &
                      & inheadnam , rcmdir
       integer :: add , batproc , bcproc , brec , cheproc , icount ,     &
                & crec , i , idate , idate0 , idate1 , idate2 ,          &
                & idatenew , idateold , idatex , idday , idirect ,       &
                & idout , idy , idy0 , idy1 , idy2 , idyx , ierr , ifil ,&
                & ihr , ihr0 , ihr1 , ihr2 , ihrx , imo , imo0 , imo1 ,  &
-               & imo2 , imox , iotyp , irec , iyr , iyr0 , iyr1 , iyr2 ,&
+               & imo2 , imox , jotyp , irec , iyr , iyr0 , iyr1 , iyr2 ,&
                & iyrx , j , julmid , julnc , julnc0 , julnc1 , julnc2 , &
                & julncx , l , mdate0 , nb , nday , nfiles , nr1b ,      &
                & nr1c , nr1i , nr1o , nr1r , nr1s , nr2b , nr2c , nr2i ,&
@@ -57,23 +56,12 @@
                & outdiur , outhead , plv , rad , radavg , radday ,      &
                & raddiur , sub , subavg , subday , subdiur , there ,    &
                & usgs
-      real(4) :: clat , clon , ds , dssb , pt , xplat , xplon
-      real(4) , dimension(jxm2,iym2) :: dlat , dlon , dmap , f , ls ,   &
-                                  & xlat , xlon , xmap , zs , zssd
-      real(4) , dimension(jxm2sg,iym2sg) :: dmapsb , fsb ,              &
-                                   & lssb , xlatsb , xlonsb , xmapsb ,  &
-                                   & zssb , zssdsb
-      real(4) , dimension(nbat2) :: factbat , offsetbat , xmaxbat ,     &
-                                  & xminbat
-      real(4) , dimension(nitot) :: factbc , offsetbc , xmaxbc , xminbc
-      real(4) , dimension(nctot) :: factche , offsetche , xmaxche ,     &
-                                  & xminche
-      real(4) , dimension(notot) :: factout , offsetout , xmaxout ,     &
-                                  & xminout
-      real(4) , dimension(nrtot) :: factrad , offsetrad , xmaxrad ,     &
-                                  & xminrad
-      real(4) , dimension(nsub2) :: factsub , offsetsub , xmaxsub ,     &
-                                  & xminsub
+      real(4) :: xclat , xclon , xds , dssb , pt , xplat , xplon
+
+      real(4) , allocatable , dimension(:,:) :: dlat , dlon , dmap , f ,&
+                             &  ls , xlat , xlon , xmap , zs , zssd
+      real(4) , allocatable , dimension(:,:) :: dmapsb , fsb , lssb ,   &
+                             & xlatsb , xlonsb , xmapsb ,  zssb , zssdsb
       character(256) :: fhdbat , fhdout , fhdrad , fhdsub , filavgbat , &
                      & filavgbc , filavgche , filavgout , filavgrad ,   &
                      & filavgsub , filbat , filbc , filche , fildaybat ,&
@@ -85,18 +73,6 @@
       character(256) , dimension(nfmax) :: filrcm
       integer , dimension(ndim) :: iadm
       integer , dimension(nfmax) :: ircmext
-      character(64) , dimension(nbat2) :: lnambat
-      character(64) , dimension(nitot) :: lnambc
-      character(64) , dimension(nctot) :: lnamche
-      character(64) , dimension(notot) :: lnamout
-      character(64) , dimension(nrtot) :: lnamrad
-      character(64) , dimension(nsub2) :: lnamsub
-      integer , dimension(nhrbat) :: nbattime
-      integer , dimension(nhrbc) :: nbctime
-      integer , dimension(nhrche) :: nchetime
-      integer , dimension(nhrout) :: nouttime
-      integer , dimension(nhrrad) :: nradtime
-      integer , dimension(nhrsub) :: nsubtime
       integer :: orec , outproc , radproc , rrec , srec , subproc ,     &
                & ubc3d , ubctot , ubtot , uc3d , uctot , un1b ,         &
                & un1c , un1i , un1o , un1r , un1s , un2b , un2c , un2i ,&
@@ -105,32 +81,15 @@
                & uotot , ur3d , urtot , userin , ustot
       character(256) , dimension(nfmax) :: rcmext
       real(4) , dimension(2) :: sigb
-      real(4) , dimension(kz+1) :: sigf
-      real(4) , dimension(kz) :: sigh , sighrev
-      character(64) , dimension(nbat2) :: ubat
-      character(64) , dimension(nitot) :: ubc
-      character(64) , dimension(nctot) :: uche
-      character(64) , dimension(notot) :: uout
-      character(64) , dimension(nrtot) :: urad
-      character(64) , dimension(nsub2) :: usub
-      integer , dimension(nbat2) :: u_bat
-      integer , dimension(nitot) :: u_bc
-      integer , dimension(nctot) :: u_che
-      integer , dimension(notot) :: u_out
-      integer , dimension(nrtot) :: u_rad
-      integer , dimension(nsub2) :: u_sub
-      character(64) , dimension(nbat2) :: vnambat
-      character(64) , dimension(nitot) :: vnambc
-      character(64) , dimension(nctot) :: vnamche
-      character(64) , dimension(notot) :: vnamout
-      character(64) , dimension(nrtot) :: vnamrad
-      character(64) , dimension(nsub2) :: vnamsub
+      real(4) , allocatable , dimension(:) :: sigf
+      real(4) , allocatable , dimension(:) :: sigh , sighrev
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(8) :: xhr , xhr0 , xhr1 , xhr2 , xhrdy , xhrm
-      real(4) , dimension(iym2) :: xlat1d
-      real(4) , dimension(jxm2) :: xlon1d
-      real(4) , dimension(iym2sg) :: xlatsb1d
-      real(4) , dimension(jxm2sg) :: xlonsb1d
+      real(4) , allocatable , dimension(:) :: xlat1d
+      real(4) , allocatable , dimension(:) :: xlon1d
+      real(4) , allocatable , dimension(:) :: xlatsb1d
+      real(4) , allocatable , dimension(:) :: xlonsb1d
+      character(256) :: namelistfile , prgname
 !
       data un1i , un2i , un3i , un4i/80 , 70 , 60 , 50/
       data un1o , un2o , un3o , un4o/80 , 70 , 60 , 50/
@@ -138,21 +97,110 @@
       data un1s , un2s , un3s , un4s/80 , 70 , 60 , 50/
       data un1r , un2r , un3r , un4r/80 , 70 , 60 , 50/
       data un1c , un2c , un3c , un4c/80 , 70 , 60 , 50/
+
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
 !
       print * , 'ENTER THE TYPE OF REGCM OUTPUT TO BE PROCESSED:'
       print * , '  ICBC (0=no; 1=yes)'
       read (*,*) bcproc
-      print * , '  ATM (0=no; 1=yes)'
-      read (*,*) outproc
-      print * , '  SRF (0=no; 1=yes)'
-      read (*,*) batproc
-      print * , '  RAD (0=no; 1=yes)'
-      read (*,*) radproc
-      print * , '  CHE (0=no; 1=yes)'
-      read (*,*) cheproc
-      print * , '  SUB (0=no; 1=yes)'
-      read (*,*) subproc
+      if ( iftape ) then
+        print * , '  ATM (0=no; 1=yes)'
+        read (*,*) outproc
+      end if
+      if ( ifbat ) then
+        print * , '  SRF (0=no; 1=yes)'
+        read (*,*) batproc
+      end if
+      if ( ifrad ) then
+        print * , '  RAD (0=no; 1=yes)'
+        read (*,*) radproc
+      end if
+      if ( ifchem ) then
+        print * , '  CHE (0=no; 1=yes)'
+        read (*,*) cheproc
+      end if
+      if ( ifsub ) then
+        print * , '  SUB (0=no; 1=yes)'
+        read (*,*) subproc
+      end if
+
+      call init_outparam
+
+      dtbc = 6.00
+      dtout = batfrq
+      dtbat = batfrq
+      dtrad = radisp
+      dtche = chemfrq
+
+      nhrbc  = 24.001/dtbc
+      nhrout = 24.001/dtout
+      nhrbat = 24.001/dtbat
+      nhrsub = 24.001/dtsub
+      nhrrad = 24.001/dtrad
+      nhrche = 24.001/dtche
+
+      ! Now we should have all dimensions "ready" to allocate space
+
+      allocate(sigf(kz+1))
+      allocate(sigh(kz))
+      allocate(sighrev(kz))
+      allocate(xlat1d(iym2))
+      allocate(xlon1d(jxm2))
+      allocate(xlat(jxm2,iym2))
+      allocate(xlon(jxm2,iym2))
+      allocate(dlat(jxm2,iym2))
+      allocate(dlon(jxm2,iym2))
+      allocate(dmap(jxm2,iym2))
+      allocate(xmap(jxm2,iym2))
+      allocate(f(jxm2,iym2))
+      allocate(ls(jxm2,iym2))
+      allocate(zs(jxm2,iym2))
+      allocate(zssd(jxm2,iym2))
  
+      if ( bcproc ) then
+        call init_mod_bcflds
+      end if
+
+      if ( outproc .and. iftape ) then
+        call init_mod_outflds
+      end if
+
+      if ( batproc .and. ifbat ) then
+        call init_mod_batflds
+      end if
+
+      if ( radproc .and. ifrad ) then
+        call init_mod_radflds
+      end if
+
+      if ( cheproc .and. ifchem ) then
+        call init_mod_cheflds
+      end if
+
+      if ( subproc .and. ifsub ) then
+        allocate(xlatsb1d(iym2sg))
+        allocate(xlonsb1d(jxm2sg))
+        allocate(xlatsb(jxm2sg,iym2sg))
+        allocate(xlonsb(jxm2sg,iym2sg))
+        allocate(xmapsb(jxm2sg,iym2sg))
+        allocate(dmapsb(jxm2sg,iym2sg))
+        allocate(fsb(jxm2sg,iym2sg))
+        allocate(lssb(jxm2sg,iym2sg))
+        allocate(zssb(jxm2sg,iym2sg))
+        allocate(zssdsb(jxm2sg,iym2sg))
+        call init_mod_subflds
+      end if
+
       do i = 1 , nfmax
         filrcm(i) = 'FILE NOT NAMED'
       end do
@@ -161,7 +209,7 @@
       read (11,*) idate0
       read (11,*) idate1
       read (11,*) idate2
-      read (11,*) iotyp
+      read (11,*) jotyp
       read (11,*) plv
       read (11,*) usgs
       read (11,*) outhead
@@ -357,11 +405,11 @@
       inhead = trim(rcmdir)//'/'//trim(inheadnam)
       icbchead = trim(icbcdir)//'/'//trim(icbcheadnam)
       icbcheadsb = 'fort.11'
-      if ( iotyp==1 .or. iotyp==2 ) then
+      if ( jotyp==1 .or. jotyp==2 ) then
         filext = '.nc'
-      else if ( iotyp==3 ) then
+      else if ( jotyp==3 ) then
         filext = '.DAT'
-      else if ( iotyp==4 ) then
+      else if ( jotyp==4 ) then
         filext = '.V5D'
       else
       end if
@@ -507,7 +555,7 @@
         fhdbat = 'HEAD_BAT.NC'
         fhdsub = 'HEAD_SUB.NC'
         fhdrad = 'HEAD_RAD.NC'
-        call rdhead(clat,clon,ds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
+        call rdhead(xclat,xclon,xds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
                   & xmap,dmap,xlat,xlon,zs,zssd,ls,mdate0,iin,          &
                   & inhead,idirect)
         print * , 'HEADER READ IN'
@@ -516,26 +564,26 @@
         call rcrecdf(fhdout,idout,vvarmin,vvarmax,ndim,ierr)
         call writehead(f,xmap,dmap,xlat,xlon,dlat,dlon,zs,zssd,ls,      &
                      & vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,idout,   &
-                     & xhr0,iotyp)
+                     & xhr0,jotyp)
         call clscdf(idout,ierr)
         call param(jxm2,iym2,1,1,xlat,xlon,vvarmin,vvarmax,             &
                 &  xlat1d,xlon1d,iadm,ndim,plv)
         call rcrecdf(fhdbat,idout,vvarmin,vvarmax,ndim,ierr)
         call writebathead(f,xmap,dmap,xlat,xlon,dlat,dlon,zs,ls,vvarmin,&
                         & vvarmax,xlat1d,xlon1d,iadm,ndim,idout,xhr0,   &
-                        & iotyp)
+                        & jotyp)
         call clscdf(idout,ierr)
 !SUB    CALL RCRECDF(fhdsub,idout,vvarmin,vvarmax,ndim,ierr)
 !SUB    CALL WRITESUBHEAD(f,xmap,dmap,xlat,xlon,dlat,dlon,zs,ls
 !SUB    &     , vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,idout,xhr0
-!SUB    &     , iotyp)
+!SUB    &     , jotyp)
 !SUB    CALL CLSCDF(idout,ierr)
         call param(jxm2,iym2,kz,kz,xlat,xlon,vvarmin,vvarmax,           &
              &     xlat1d,xlon1d,iadm,ndim,plv)
         call rcrecdf(fhdrad,idout,vvarmin,vvarmax,ndim,ierr)
         call writehead(f,xmap,dmap,xlat,xlon,dlat,dlon,zs,zssd,ls,      &
                      & vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,idout,   &
-                     & xhr0,iotyp)
+                     & xhr0,jotyp)
         call clscdf(idout,ierr)
       end if
 !     **** COMPUTE VVARMIN AND VVARMAX **** C
@@ -570,7 +618,7 @@
           call fexist(fildaybc)
           print * , 'ICBC DAILY AVERAGE FILE: ' , fildaybc
         end if
-        call rdheadicbc(iy,jx,jxm2,iym2,kz,clat,clon,ds,pt,sigf,sigh,   &
+        call rdheadicbc(iy,jx,jxm2,iym2,kz,xclat,xclon,xds,pt,sigf,sigh,   &
                       & sighrev,xplat,xplon,f,xmap,dmap,xlat,xlon,      &
                       & zs,zssd,ls,iin,icbchead,ibyte)
         call param(jxm2,iym2,kz,npl,xlat,xlon,vvarmin,vvarmax,          &
@@ -582,9 +630,9 @@
             & access='direct',recl=iy*jx*ibyte)
         print * , 'INPUT (ICBC) FILE: ' , filrcm(ifil)
         if ( bc ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filbc,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un1i,file=filbc,status='unknown',form='unformatted',  &
                 & recl=jxm2*iym2*ibyte,access='direct')
             nr1i = 0
@@ -592,9 +640,9 @@
           end if
         end if
         if ( bcday ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(fildaybc,idday,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un2i,file=fildaybc,status='unknown',                  &
                 & form='unformatted',recl=jxm2*iym2*ibyte,              &
                 & access='direct')
@@ -603,7 +651,7 @@
           end if
         end if
 !       **** SETUP MIN, MAX, VARNAM, LNAME, UNITS DATA FOR NetCDF ****
-        call mmvlubc(vnambc,lnambc,ubc,xminbc,xmaxbc,factbc,offsetbc)
+        call mmvlubc
 !       **** ZERO OUT AVERAGE ARRAYS **** C
         if ( bcavg .or. bcdiur .or. bcday ) then
           if ( .not.plv ) then
@@ -681,7 +729,7 @@
 !         &       , zs,sigf,sigh,pt,nti,nqvi,npsi,nhgti,jxm2,iym2)
           call calcslp(ifld3d,ifld2d,nhgti,nti,npsi,zs,nslpi,sigh,      &
                      & jxm2,iym2,kz,nbc3d,nbc2d,jxm2,iym2)
-          call calcvd(ifld3d,jxm2,iym2,kz,nbc3d,ds,dmap,xmap,nui,nvi,   &
+          call calcvd(ifld3d,jxm2,iym2,kz,nbc3d,xds,dmap,xmap,nui,nvi,   &
                     & nvori,ndivi,jxm2,iym2)
           if ( plv ) then
             call intlin(ifld3d_p,ifld3d,ifld2d,npsi,pt,sigh,jxm2,iym2,  &
@@ -735,11 +783,9 @@
                     xhrdy = float(julncx) + dtbc - 24. - (nday-1)*24.
                   end if
                   print * , 'WRITING CONTINUAL OUTPUT' , xhrdy , idatex
-                  call writeavgbc(sighrev,vnambc,lnambc,ubc,xminbc,     &
-                                & xmaxbc,factbc,offsetbc,vvarmin,       &
-                                & vvarmax,xlat1d,xlon1d,iadm,ndim,xhrdy,&
-                                & nbctime,idday,vmisdat,iotyp,un2i,nr2i,&
-                                & plv,u_bc)
+                  call writeavgbc(sighrev,vvarmin,vvarmax,xlat1d,xlon1d,&
+                                & iadm,ndim,xhrdy,idday,vmisdat,jotyp,  &
+                                & un2i,nr2i,plv)
                   do l = 1 , nhrbc
                     nbctime(l) = 0
                   end do
@@ -750,10 +796,9 @@
 !         **** WRITE ICBC DATA IN NETCDF FORMAT AT EACH TIME STEP **** c
           if ( bc ) then
             if ( idate>=idate1 .and. idate<=idate2 ) then
-              call writebc(vvarmin,vvarmax,vnambc,lnambc,ubc,xminbc,    &
-                         & xmaxbc,factbc,offsetbc,iadm,ndim,xlat1d,     &
-                         & xlon1d,sighrev,vmisdat,idout,xhr,iotyp,un1i, &
-                         & nr1i,plv,u_bc)
+              call writebc(vvarmin,vvarmax,iadm,ndim,xlat1d,xlon1d,     &
+                         & sighrev,vmisdat,idout,xhr,jotyp,un1i,nr1i,   &
+                         & plv)
               print * , 'DATA WRITTEN: ' , xhr , idate
             end if
           end if
@@ -763,18 +808,18 @@
           call julian(idate,julnc,iyr,imo,idy,ihr)
         end do
         if ( bc ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un1i)
           else
           end if
           print * , 'DONE WRITING ICBC DATA!!!'
         end if
         if ( bcday ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idday,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un2i)
           else
           end if
@@ -798,42 +843,38 @@
         end do
       end if
       if ( bcavg ) then
-        if ( iotyp==1 .or. iotyp==2 ) then
+        if ( jotyp==1 .or. jotyp==2 ) then
           call rcrecdf(filavgbc,idout,vvarmin,vvarmax,ndim,ierr)
-        else if ( iotyp==3 ) then
+        else if ( jotyp==3 ) then
           open (un3i,file=filavgbc,status='unknown',form='unformatted', &
               & recl=jxm2*iym2*ibyte,access='direct')
           nr3i = 0
         else
         end if
-        call writeavgbc(sighrev,vnambc,lnambc,ubc,xminbc,xmaxbc,factbc, &
-                      & offsetbc,vvarmin,vvarmax,xlat1d,xlon1d,iadm,    &
-                      & ndim,xhrm,nbctime,idout,vmisdat,iotyp,un3i,nr3i,&
-                      & plv,u_bc)
-        if ( iotyp==1 .or. iotyp==2 ) then
+        call writeavgbc(sighrev,vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,&
+                      & xhrm,idout,vmisdat,jotyp,un3i,nr3i,plv)
+        if ( jotyp==1 .or. jotyp==2 ) then
           call clscdf(idout,ierr)
-        else if ( iotyp==3 ) then
+        else if ( jotyp==3 ) then
           close (un3i)
         else
         end if
         print * , 'DONE WRITING AVERAGED DATA IN COARDS CONVENTIONS!!!'
       end if
       if ( bcdiur ) then
-        if ( iotyp==1 .or. iotyp==2 ) then
+        if ( jotyp==1 .or. jotyp==2 ) then
           call rcrecdf(fildiurbc,idout,vvarmin,vvarmax,ndim,ierr)
-        else if ( iotyp==3 ) then
+        else if ( jotyp==3 ) then
           open (un4i,file=fildiurbc,status='unknown',form='unformatted',&
               & recl=jxm2*iym2*ibyte,access='direct')
           nr4i = 0
         else
         end if
-        call writediurbc(sighrev,vnambc,lnambc,ubc,xminbc,xmaxbc,factbc,&
-                       & offsetbc,vvarmin,vvarmax,xlat1d,xlon1d,iadm,   &
-                       & ndim,xhrm,nbctime,idout,vmisdat,iotyp,un4i,    &
-                       & nr4i,plv,u_bc)
-        if ( iotyp==1 .or. iotyp==2 ) then
+        call writediurbc(sighrev,vvarmin,vvarmax,xlat1d,xlon1d,iadm,    &
+                       & ndim,xhrm,idout,vmisdat,jotyp,un4i,nr4i,plv)
+        if ( jotyp==1 .or. jotyp==2 ) then
           call clscdf(idout,ierr)
-        else if ( iotyp==3 ) then
+        else if ( jotyp==3 ) then
           close (un4i)
         else
         end if
@@ -871,7 +912,7 @@
           call fexist(fildayout)
           print * , 'OUTPUT DAILY AVERAGE FILE: ' , fildayout
         end if
-        call rdhead(clat,clon,ds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
+        call rdhead(xclat,xclon,xds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
                   & xmap,dmap,xlat,xlon,zs,zssd,ls,mdate0,iin,          &
                   & inhead,idirect)
         call param(jxm2,iym2,kz,npl,xlat,xlon,vvarmin,vvarmax,          &
@@ -887,9 +928,9 @@
           open (iin,file=filrcm(ifil),status='old',form='unformatted')
         end if
         if ( lout ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filout,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un1o,file=filout,status='unknown',form='unformatted', &
                 & recl=jxm2*iym2*ibyte,access='direct')
             nr1o = 0
@@ -897,9 +938,9 @@
           end if
         end if
         if ( outday ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(fildayout,idday,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un2o,file=fildayout,status='unknown',                 &
                  & form='unformatted',recl=jxm2*iym2*ibyte,             &
                  & access='direct')
@@ -908,8 +949,7 @@
           end if
         end if
 !       **** SETUP MIN, MAX, VARNAM, LNAME, UNITS DATA FOR NetCDF ****
-        call mmvluout(vnamout,lnamout,uout,xminout,xmaxout,factout,     &
-                    & offsetout)
+        call mmvluout
 !       **** ZERO OUT AVERAGE ARRAYS **** C
         if ( outavg .or. outdiur .or. outday ) then
           if ( .not.plv ) then
@@ -989,7 +1029,7 @@
 !         &       , zs,sigf,sigh,pt,nti,nqvi,npsi,nhgti,jxm2,iym2)
           call calcslp(ofld3d,ofld2d,nhgt,nta,npsa,zs,nslp,sigh,jxm2,   &
                      & iym2,kz,nout3d,nout2d,jxm2,iym2)
-          call calcvd(ofld3d,jxm2,iym2,kz,nout3d,ds,dmap,xmap,nua,nva,  &
+          call calcvd(ofld3d,jxm2,iym2,kz,nout3d,xds,dmap,xmap,nua,nva,  &
                     & nvora,ndiva,jxm2,iym2)
           if ( plv ) then
             call intlin(ofld3d_p,ofld3d,ofld2d,npsa,pt,sigh,jxm2,iym2,  &
@@ -1045,11 +1085,9 @@
                     xhrdy = float(julncx) + dtout - 24. - (nday-1)*24.
                   end if
                   print * , 'WRITING CONTINUAL OUTPUT' , xhrdy , idatex
-                  call writeavgout(sighrev,vnamout,lnamout,uout,xminout,&
-                                 & xmaxout,factout,offsetout,vvarmin,   &
-                                 & vvarmax,xlat1d,xlon1d,iadm,ndim,     &
-                                 & xhrdy,nouttime,idday,vmisdat,iotyp,  &
-                                 & un2o,nr2o,plv,u_out)
+                  call writeavgout(sighrev,vvarmin,vvarmax,xlat1d,      &
+                                 & xlon1d,iadm,ndim,xhrdy,idday,vmisdat,&
+                                 & jotyp,un2o,nr2o,plv)
                   do l = 1 , nhrout
                     nouttime(l) = 0
                   end do
@@ -1060,10 +1098,9 @@
 !         **** WRITE OUT DATA IN NETCDF FORMAT AT EACH TIME STEP **** c
           if ( lout ) then
             if ( idate>=idate1 .and. idate<=idate2 ) then
-              call writeout(vvarmin,vvarmax,vnamout,lnamout,uout,       &
-                          & xminout,xmaxout,factout,offsetout,iadm,ndim,&
-                          & xlat1d,xlon1d,sighrev,vmisdat,idout,xhr,    &
-                          & iotyp,un1o,nr1o,plv,u_out)
+              call writeout(vvarmin,vvarmax,iadm,ndim,xlat1d,xlon1d,    &
+                          & sighrev,vmisdat,idout,xhr,jotyp,un1o,nr1o,  &
+                          & plv)
               print * , 'DATA WRITTEN: ' , xhr , idate
             end if
           end if
@@ -1073,18 +1110,18 @@
           call julian(idate,julnc,iyr,imo,idy,ihr)
         end do
         if ( lout ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un1o)
           else
           end if
           print * , 'DONE WRITING OUT DATA!!!'
         end if
         if ( outday ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idday,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un2o)
           else
           end if
@@ -1108,42 +1145,38 @@
         end do
       end if
       if ( outavg ) then
-        if ( iotyp==1 .or. iotyp==2 ) then
+        if ( jotyp==1 .or. jotyp==2 ) then
           call rcrecdf(filavgout,idout,vvarmin,vvarmax,ndim,ierr)
-        else if ( iotyp==3 ) then
+        else if ( jotyp==3 ) then
           open (un3o,file=filavgout,status='unknown',form='unformatted',&
               & recl=jxm2*iym2*ibyte,access='direct')
           nr3o = 0
         else
         end if
-        call writeavgout(sighrev,vnamout,lnamout,uout,xminout,xmaxout,  &
-                       & factout,offsetout,vvarmin,vvarmax,xlat1d,      &
-                       & xlon1d,iadm,ndim,xhrm,nouttime,idout,vmisdat,  &
-                       & iotyp,un3o,nr3o,plv,u_out)
-        if ( iotyp==1 .or. iotyp==2 ) then
+        call writeavgout(sighrev,vvarmin,vvarmax,xlat1d,xlon1d,iadm,    &
+                       & ndim,xhrm,idout,vmisdat,jotyp,un3o,nr3o,plv)
+        if ( jotyp==1 .or. jotyp==2 ) then
           call clscdf(idout,ierr)
-        else if ( iotyp==3 ) then
+        else if ( jotyp==3 ) then
           close (un3o)
         else
         end if
         print * , 'DONE WRITING AVERAGED DATA IN COARDS CONVENTIONS!!!'
       end if
       if ( outdiur ) then
-        if ( iotyp==1 .or. iotyp==2 ) then
+        if ( jotyp==1 .or. jotyp==2 ) then
           call rcrecdf(fildiurout,idout,vvarmin,vvarmax,ndim,ierr)
-        else if ( iotyp==3 ) then
+        else if ( jotyp==3 ) then
           open (un4o,file=fildiurout,status='unknown',                  &
               & form='unformatted',recl=jxm2*iym2*ibyte,access='direct')
           nr4o = 0
         else
         end if
-        call writediurout(sighrev,vnamout,lnamout,uout,xminout,xmaxout, &
-                        & factout,offsetout,vvarmin,vvarmax,xlat1d,     &
-                        & xlon1d,iadm,ndim,xhrm,nouttime,idout,vmisdat, &
-                        & iotyp,un4o,nr4o,plv,u_out)
-        if ( iotyp==1 .or. iotyp==2 ) then
+        call writediurout(sighrev,vvarmin,vvarmax,xlat1d,xlon1d,iadm,   &
+                        & ndim,xhrm,idout,vmisdat,jotyp,un4o,nr4o,plv)
+        if ( jotyp==1 .or. jotyp==2 ) then
           call clscdf(idout,ierr)
-        else if ( iotyp==3 ) then
+        else if ( jotyp==3 ) then
           close (un4o)
         else
         end if
@@ -1159,7 +1192,7 @@
           print * , 'MUST RUN BATDAY SEPARATE FROM BATAVG AND BATDIUR'
           stop 999
         end if
-        call rdhead(clat,clon,ds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
+        call rdhead(xclat,xclon,xds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
                   & xmap,dmap,xlat,xlon,zs,zssd,ls,mdate0,iin,          &
                   & inhead,idirect)
 !       **** OPEN NetCDF FILE **** C
@@ -1174,8 +1207,7 @@
           open (iin,file=filrcm(ifil),status='old',form='unformatted')
         end if
 !       **** SETUP MIN, MAX, VARNAM, LNAME, UNITS DATA FOR NetCDF ****
-        call mmvlubat(vnambat,lnambat,ubat,xminbat,xmaxbat,factbat,     &
-                    & offsetbat)
+        call mmvlubat
 !       **** COMPUTE VVARMIN AND VVARMAX **** C
         call param(jxm2,iym2,1,1,xlat,xlon,vvarmin,vvarmax,             &
               &    xlat1d,xlon1d,iadm,ndim,plv)
@@ -1185,10 +1217,10 @@
         if ( bats ) then
           filbat = 'SRF'//trim(filinfo)//filext
           call fexist(filbat)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filbat,idout,vvarmin,vvarmax,ndim,ierr)
             print * , 'OPENING BATS NetCDF FILE' , idout
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un1b,file=filbat,status='unknown',form='unformatted', &
                 & recl=jxm2*iym2*ibyte,access='direct')
             nr1b = 0
@@ -1208,9 +1240,9 @@
           if ( batday ) then
             fildaybat = 'SRF'//trim(filinfo)//'AVG'//filext
             call fexist(fildaybat)
-            if ( iotyp==1 .or. iotyp==2 ) then
+            if ( jotyp==1 .or. jotyp==2 ) then
               call rcrecdf(fildaybat,idday,vvarmin,vvarmax,ndim,ierr)
-            else if ( iotyp==3 ) then
+            else if ( jotyp==3 ) then
               open (un2b,file=fildaybat,status='unknown',               &
                    & form='unformatted',recl=jxm2*iym2*ibyte,           &
                    & access='direct')
@@ -1303,11 +1335,9 @@
                     xhrdy = float(julncx) + dtbat - 24. - (nday-1)*24.
                   end if
                   print * , 'WRITING CONTINUAL OUTPUT' , xhrdy , idatex
-                  call writeavgbat(vmisdat,vnambat,lnambat,ubat,xminbat,&
-                                 & xmaxbat,factbat,offsetbat,vvarmin,   &
-                                 & vvarmax,xlat1d,xlon1d,iadm,ndim,     &
-                                 & xhrdy,nbattime,idday,iotyp,un2b,nr2b,&
-                                 & u_bat)
+                  call writeavgbat(vmisdat,vvarmin,vvarmax,xlat1d,      &
+                                 & xlon1d,iadm,ndim,xhrdy,idday,jotyp,  &
+                                 & un2b,nr2b)
                   do l = 1 , nhrbat
                     nbattime(l) = 0
                     do nb = 1 , nbat2
@@ -1325,10 +1355,8 @@
 !         **** WRITE BATS IN COARDS NetCDF CONVENTIONS **** C
           if ( bats ) then
             if ( idate>=idate1 .and. idate<=idate2 ) then
-              call writebat(vnambat,lnambat,ubat,xminbat,xmaxbat,       &
-                          & factbat,offsetbat,vvarmin,vvarmax,xlat1d,   &
-                          & xlon1d,iadm,ndim,vmisdat,xhr,idout,         &
-                          & iotyp,un1b,nr1b,u_bat)
+              call writebat(vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,    &
+                         &  vmisdat,xhr,idout,jotyp,un1b,nr1b)
               print * , 'BATS DATA WRITTEN:  ' , idate
               print * , ''
             end if
@@ -1340,18 +1368,18 @@
         end do
         close (iin)
         if ( bats ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un1b)
           else
           end if
           print * , 'DONE WRITING BATS DATA!!!'
         end if
         if ( batday ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idday,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un2b)
           else
           end if
@@ -1368,44 +1396,40 @@
           end do
         end if
         if ( batavg ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filavgbat,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un3b,file=filavgbat,status='unknown',                 &
                  & form='unformatted',recl=jxm2*iym2*ibyte,             &
                  & access='direct')
             nr3b = 0
           else
           end if
-          call writeavgbat(vmisdat,vnambat,lnambat,ubat,xminbat,xmaxbat,&
-                         & factbat,offsetbat,vvarmin,vvarmax,xlat1d,    &
-                         & xlon1d,iadm,ndim,xhrm,nbattime,idout,iotyp,  &
-                         & un3b,nr3b,u_bat)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          call writeavgbat(vmisdat,vvarmin,vvarmax,xlat1d,xlon1d,iadm,  &
+                        & ndim,xhrm,idout,jotyp,un3b,nr3b)
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un3b)
           else
           end if
           print * , 'DONE WRITING AVERAGED BATS DATA'
         end if
         if ( batdiur ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(fildiurbat,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un4b,file=fildiurbat,status='unknown',                &
                  & form='unformatted',recl=jxm2*iym2*ibyte,             &
                  & access='direct')
             nr4b = 0
           else
           end if
-          call writediurbat(vmisdat,vnambat,lnambat,ubat,xminbat,       &
-                          & xmaxbat,factbat,offsetbat,vvarmin,vvarmax,  &
-                          & xlat1d,xlon1d,iadm,ndim,xhrm,nbattime,idout,&
-                          & iotyp,un4b,nr4b,u_bat)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          call writediurbat(vmisdat,vvarmin,vvarmax,xlat1d,xlon1d,iadm, &
+                          & ndim,xhrm,idout,jotyp,un4b,nr4b)
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un4b)
           else
           end if
@@ -1424,7 +1448,7 @@
           stop 999
         end if
 !       **** OPEN NetCDF FILE **** C
-        call rdhead(clat,clon,ds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
+        call rdhead(xclat,xclon,xds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
                   & xmap,dmap,xlat,xlon,zs,zssd,ls,mdate0,iin,          &
                   & inhead,idirect)
         ifil = 1
@@ -1438,8 +1462,7 @@
         end if
         print * , 'INPUT (RAD) FILE: ' , filrcm(ifil)
 !       **** SETUP MIN, MAX, VARNAM, LNAME, UNITS DATA FOR NetCDF ****
-        call mmvlurad(vnamrad,lnamrad,urad,xminrad,xmaxrad,factrad,     &
-                    & offsetrad)
+        call mmvlurad
 !       **** COMPUTE VVARMIN AND VVARMAX **** C
         call param(jxm2,iym2,kz,npl,xlat,xlon,vvarmin,vvarmax,          &
                &   xlat1d,xlon1d,iadm,ndim,plv)
@@ -1447,9 +1470,9 @@
         if ( rad ) then
           filrad = 'RAD'//trim(filinfo)//filext
           call fexist(filrad)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filrad,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un1r,file=filrad,status='unknown',form='unformatted', &
                 & recl=jxm2*iym2*ibyte,access='direct')
             nr1r = 0
@@ -1459,9 +1482,9 @@
         if ( radday ) then
           fildayrad = 'RAD'//trim(filinfo)//'AVG'//filext
           call fexist(fildayrad)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(fildayrad,idday,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un2r,file=fildayrad,status='unknown',                 &
                  & form='unformatted',recl=jxm2*iym2*ibyte,             &
                  & access='direct')
@@ -1586,11 +1609,9 @@
                     xhrdy = float(julncx) + dtrad - 24. - (nday-1)*24.
                   end if
                   print * , 'WRITING CONTINUAL OUTPUT' , xhrdy , idatex
-                  call writeavgrad(xhrdy,sighrev,vnamrad,lnamrad,urad,  &
-                                 & xminrad,xmaxrad,factrad,offsetrad,   &
-                                 & vvarmin,vvarmax,xlat1d,xlon1d,iadm,  &
-                                 & ndim,vmisdat,nradtime,idday,iotyp,   &
-                                 & un2r,nr2r,plv,u_rad)
+                  call writeavgrad(xhrdy,sighrev,vvarmin,vvarmax,xlat1d,&
+                                   xlon1d,iadm,ndim,vmisdat,idday,jotyp,&
+                                 & un2r,nr2r,plv)
                   print * , 'DAILY RAD DATA WRITTEN: ' , xhr , idate
                   do l = 1 , nhrrad
                     nradtime(l) = 0
@@ -1602,10 +1623,8 @@
 !         **** WRITE RADIATION IN IVE NetCDF CONVENTIONS **** C
           if ( rad ) then
             if ( idate>=idate1 .and. idate<=idate2 ) then
-              call writerad(vnamrad,lnamrad,urad,xminrad,xmaxrad,       &
-                          & factrad,offsetrad,vvarmin,vvarmax,xlat1d,   &
-                          & xlon1d,iadm,ndim,sighrev,vmisdat,idout,xhr, &
-                          & iotyp,un1r,nr1r)
+              call writerad(vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,    &
+                          & sighrev,vmisdat,idout,xhr,jotyp,un1r,nr1r)
               print * , 'RADIATION DATA WRITTEN:  ' , idate
               print * , ''
             end if
@@ -1617,18 +1636,18 @@
         end do
         close (iin)
         if ( rad ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un1r)
           else
           end if
           print * , 'DONE RADIATION DATA!!!'
         end if
         if ( radday ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idday,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un2r)
           else
           end if
@@ -1646,44 +1665,40 @@
           end do
         end if
         if ( radavg ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filavgrad,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un3r,file=filavgrad,status='unknown',                 &
                 & form='unformatted',recl=jxm2*iym2*ibyte,              &
                 & access='direct')
             nr3r = 0
           else
           end if
-          call writeavgrad(xhrm,sighrev,vnamrad,lnamrad,urad,xminrad,   &
-                         & xmaxrad,factrad,offsetrad,vvarmin,vvarmax,   &
-                         & xlat1d,xlon1d,iadm,ndim,vmisdat,nradtime,    &
-                         & idout,iotyp,un3r,nr3r,plv,u_rad)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          call writeavgrad(xhrm,sighrev,vvarmin,vvarmax,xlat1d,xlon1d,  &
+                         & iadm,ndim,vmisdat,idout,jotyp,un3r,nr3r,plv)
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un3r)
           else
           end if
           print * , 'DONE WRITING AVERAGED RADIATION DATA'
         end if
         if ( raddiur ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(fildiurrad,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un4r,file=filavgrad,status='unknown',                 &
                 & form='unformatted',recl=jxm2*iym2*ibyte,              &
                 & access='direct')
             nr4r = 0
           else
           end if
-          call writediurrad(xhrm,sighrev,vnamrad,lnamrad,urad,xminrad,  &
-                          & xmaxrad,factrad,offsetrad,vvarmin,vvarmax,  &
-                          & xlat1d,xlon1d,iadm,ndim,vmisdat,nradtime,   &
-                          & idout,iotyp,un4r,nr4r,plv,u_rad)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          call writediurrad(xhrm,sighrev,vvarmin,vvarmax,xlat1d,xlon1d, &
+                          & iadm,ndim,vmisdat,idout,jotyp,un4r,nr4r,plv)
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un4r)
           else
           end if
@@ -1703,7 +1718,7 @@
         end if
 !       **** OPEN NetCDF FILE **** C
         print * , 'toto' , trim(rcmext(ifil))
-        call rdhead(clat,clon,ds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
+        call rdhead(xclat,xclon,xds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
                   & xmap,dmap,xlat,xlon,zs,zssd,ls,mdate0,iin,          &
                   & inhead,idirect)
         ifil = 1
@@ -1718,8 +1733,7 @@
         end if
         print * , 'INPUT (CHE) FILE: ' , filrcm(ifil)
 !       **** SETUP MIN, MAX, VARNAM, LNAME, UNITS DATA FOR NetCDF ****
-        call mmvluche(vnamche,lnamche,uche,xminche,xmaxche,factche,     &
-                    & offsetche)
+        call mmvluche
         print * , vnamche
  
 !       **** COMPUTE VVARMIN AND VVARMAX **** C
@@ -1730,9 +1744,9 @@
           filche = 'CHE'//trim(filinfo)//filext
           print * , filche
           call fexist(filche)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filche,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un1c,file=filche,status='unknown',form='unformatted', &
                 & recl=jxm2*iym2*ibyte,access='direct')
             nr1c = 0
@@ -1742,9 +1756,9 @@
         if ( cheday ) then
           fildayche = 'CHE'//trim(filinfo)//'AVG'//filext
           call fexist(fildayche)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(fildayche,idday,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un2c,file=fildayche,status='unknown',                 &
                  &form='unformatted',recl=jxm2*iym2*4,access='direct')
             nr2c = 0
@@ -1858,11 +1872,9 @@
                     xhrdy = float(julncx) + dtche - 24. - (nday-1)*24.
                   end if
                   print * , 'WRITING CONTINUAL OUTPUT' , xhrdy , idatex
-                  call writeavgche(xhrdy,sighrev,vnamche,lnamche,uche,  &
-                                 & xminche,xmaxche,factche,offsetche,   &
-                                 & vvarmin,vvarmax,xlat1d,xlon1d,iadm,  &
-                                 & ndim,vmisdat,nchetime,idday,iotyp,   &
-                                 & un2c,nr2c,plv,u_che)
+                  call writeavgche(xhrdy,sighrev,vvarmin,vvarmax,xlat1d,&
+                                 & xlon1d,iadm,ndim,vmisdat,idday,jotyp,&
+                                 & un2c,nr2c,plv)
                   print * , 'DAILY CHE DATA WRITTEN: ' , xhr , idate
                   do l = 1 , nhrche
                     nchetime(l) = 0
@@ -1874,10 +1886,8 @@
 !         **** WRITE RADIATION IN IVE NetCDF CONVENTIONS **** C
           if ( che ) then
             if ( idate>=idate1 .and. idate<=idate2 ) then
-              call writeche(vnamche,lnamche,uche,xminche,xmaxche,       &
-                          & factche,offsetche,vvarmin,vvarmax,xlat1d,   &
-                          & xlon1d,iadm,ndim,sighrev,vmisdat,idout,xhr, &
-                          & iotyp,un1c,nr1c,u_che)
+              call writeche(vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,    &
+                          & sighrev,vmisdat,idout,xhr,jotyp,un1c,nr1c)
               print * , 'CHEM-TRACER DATA WRITTEN:  ' , idate
               print * , ''
             end if
@@ -1889,18 +1899,18 @@
         end do
         close (iin)
         if ( che ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un1c)
           else
           end if
           print * , 'DONE CHEM-TRACER DATA!!!'
         end if
         if ( cheday ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idday,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un2c)
           else
           end if
@@ -1922,43 +1932,39 @@
         end if
         if ( cheavg ) then
           print * , 'YES' , filavgche
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filavgche,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un3c,file=filavgche,status='unknown',                 &
                 & form='unformatted',recl=jxm2*iym2*ibyte,              &
                 & access='direct')
             nr3c = 0
           else
           end if
-          call writeavgche(xhrm,sighrev,vnamche,lnamche,uche,xminche,   &
-                         & xmaxche,factche,offsetche,vvarmin,vvarmax,   &
-                         & xlat1d,xlon1d,iadm,ndim,vmisdat,nchetime,    &
-                         & idout,iotyp,un3c,nr3c,plv,u_che)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          call writeavgche(xhrm,sighrev,vvarmin,vvarmax,xlat1d,xlon1d,  &
+                         & iadm,ndim,vmisdat,idout,jotyp,un3c,nr3c,plv)
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un3c)
           else
           end if
           print * , 'DONE WRITING AVERAGED CHE-TRACER DATA'
         end if
         if ( chediur ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(fildiurche,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un4c,file=filavgche,status='unknown',                 &
                  &form='unformatted',recl=jxm2*iym2*4,access='direct')
             nr4c = 0
           else
           end if
-          call writediurche(xhrm,sighrev,vnamche,lnamche,uche,xminche,  &
-                          & xmaxche,factche,offsetche,vvarmin,vvarmax,  &
-                          & xlat1d,xlon1d,iadm,ndim,vmisdat,nchetime,   &
-                          & idout,iotyp,un4c,nr4c,plv,u_che)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          call writediurche(xhrm,sighrev,vvarmin,vvarmax,xlat1d,xlon1d, &
+                          & iadm,ndim,vmisdat,idout,jotyp,un4c,nr4c,plv)
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un4c)
           else
           end if
@@ -1976,10 +1982,10 @@
           print * , 'MUST RUN SUBDAY SEPARATE FROM SUBAVG AND SUBDIUR'
           stop 999
         end if
-        call rdhead(clat,clon,ds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
+        call rdhead(xclat,xclon,xds,pt,sigf,sigh,sighrev,xplat,xplon,f,    &
                   & xmap,dmap,xlat,xlon,zs,zssd,ls,mdate0,iin,          &
                   & inhead,idirect)
-        call rdheadicbc(jxsg,iysg,jxm2sg,iym2sg,kz,clat,clon,dssb,pt,   &
+        call rdheadicbc(jxsg,iysg,jxm2sg,iym2sg,kz,xclat,xclon,dssb,pt,   &
                       & sigf,sigh,sighrev,xplat,xplon,fsb,xmapsb,dmapsb,&
                       & xlatsb,xlonsb,zssb,zssdsb,lssb,mdate0,iin,      &
                       & icbcheadsb,ibyte)
@@ -2004,8 +2010,7 @@
           open (iin,file=filrcm(ifil),status='old',form='unformatted')
         end if
 !       **** SETUP MIN, MAX, VARNAM, LNAME, UNITS DATA FOR NetCDF ****
-        call mmvlusub(vnamsub,lnamsub,usub,xminsub,xmaxsub,factsub,     &
-                    & offsetsub)
+        call mmvlusub
 !       **** COMPUTE VVARMIN AND VVARMAX **** C
         vvarmax(3) = 1050.
         iadm(3) = 1
@@ -2013,10 +2018,10 @@
         if ( sub ) then
           filsub = 'SUB'//trim(filinfo)//filext
           call fexist(filsub)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filsub,idout,vvarmin,vvarmax,ndim,ierr)
             print * , 'OPENING SUB NetCDF FILE' , idout
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un1s,file=filsub,status='unknown',form='unformatted', &
                 & recl=jxm2sg*iym2sg*ibyte,access='direct')
             nr1s = 0
@@ -2036,9 +2041,9 @@
           if ( subday ) then
             fildaysub = 'SUB'//trim(filinfo)//'AVG'//filext
             call fexist(fildaysub)
-            if ( iotyp==1 .or. iotyp==2 ) then
+            if ( jotyp==1 .or. jotyp==2 ) then
               call rcrecdf(fildaysub,idday,vvarmin,vvarmax,ndim,ierr)
-            else if ( iotyp==3 ) then
+            else if ( jotyp==3 ) then
               open (un2s,file=fildaysub,status='unknown',               &
                    &form='unformatted',recl=jxm2sg*iym2sg*ibyte,        &
                    &access='direct')
@@ -2132,10 +2137,9 @@
                     xhrdy = float(julncx) + dtsub - 24. - (nday-1)*24.
                   end if
                   print * , 'WRITING CONTINUAL OUTPUT' , xhrdy , idatex
-                  call writeavgsub(vmisdat,vnamsub,lnamsub,usub,xminsub,&
-                                 & xmaxsub,factsub,offsetsub,vvarmin,   &
-                                 & vvarmax,xlatsb1d,xlonsb1d,iadm,ndim, &
-                                 & xhrdy,nsubtime,idday,iotyp,un2s,nr2s)
+                  call writeavgsub(vmisdat,vvarmin,vvarmax,xlatsb1d,    &
+                                 & xlonsb1d,iadm,ndim,xhrdy,idday,jotyp,&
+                                 & un2s,nr2s)
                   do l = 1 , nhrsub
                     nsubtime(l) = 0
                     do ns = 1 , nsub2
@@ -2153,10 +2157,8 @@
 !         **** WRITE SUB IN COARDS NetCDF CONVENTIONS **** C
           if ( sub ) then
             if ( idate>=idate1 .and. idate<=idate2 ) then
-              call writesub(vnamsub,lnamsub,usub,xminsub,xmaxsub,       &
-                          & factsub,offsetsub,vvarmin,vvarmax,xlatsb1d, &
-                          & xlonsb1d,iadm,ndim,vmisdat,xhr,idout,       &
-                          & iotyp,un1s,nr1s)
+              call writesub(vvarmin,vvarmax,xlatsb1d,xlonsb1d,iadm,ndim,&
+                          & vmisdat,xhr,idout,jotyp,un1s,nr1s)
               print * , 'SUB DATA WRITTEN:  ' , idate
               print * , ''
             end if
@@ -2168,18 +2170,18 @@
         end do
         close (iin)
         if ( sub ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un1s)
           else
           end if
           print * , 'DONE WRITING SUB DATA!!!'
         end if
         if ( subday ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idday,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un2s)
           else
           end if
@@ -2196,44 +2198,40 @@
           end do
         end if
         if ( subavg ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(filavgsub,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un3s,file=filavgsub,status='unknown',                 &
                  &form='unformatted',recl=jxm2sg*iym2sg*ibyte,          &
                  &access='direct')
             nr3s = 0
           else
           end if
-          call writeavgsub(vmisdat,vnamsub,lnamsub,usub,xminsub,xmaxsub,&
-                         & factsub,offsetsub,vvarmin,vvarmax,xlatsb1d,  &
-                         & xlonsb1d,iadm,ndim,xhrm,nsubtime,idout,iotyp,&
-                         & un3s,nr3s)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          call writeavgsub(vmisdat,vvarmin,vvarmax,xlatsb1d,xlonsb1d,   &
+                         & iadm,ndim,xhrm,idout,jotyp,un3s,nr3s)
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un3s)
           else
           end if
           print * , 'DONE WRITING AVERAGED SUB DATA'
         end if
         if ( subdiur ) then
-          if ( iotyp==1 .or. iotyp==2 ) then
+          if ( jotyp==1 .or. jotyp==2 ) then
             call rcrecdf(fildiursub,idout,vvarmin,vvarmax,ndim,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             open (un4s,file=fildiursub,status='unknown',                &
-                 &form='unformatted',recl=jxm2sg*iym2sg*ibyte,              &
+                 &form='unformatted',recl=jxm2sg*iym2sg*ibyte,          &
                  &access='direct')
             nr4s = 0
           else
           end if
-          call writediursub(vmisdat,vnamsub,lnamsub,usub,xminsub,       &
-                          & xmaxsub,factsub,offsetsub,vvarmin,vvarmax,  &
-                          & xlatsb1d,xlonsb1d,iadm,ndim,xhrm,nsubtime,  &
-                          & idout,iotyp,un4s,nr4s)
-          if ( iotyp==1 .or. iotyp==2 ) then
+          call writediursub(vmisdat,vvarmin,vvarmax,xlatsb1d,xlonsb1d,  &
+                          & iadm,ndim,xhrm,idout,jotyp,un4s,nr4s)
+          if ( jotyp==1 .or. jotyp==2 ) then
             call clscdf(idout,ierr)
-          else if ( iotyp==3 ) then
+          else if ( jotyp==3 ) then
             close (un4s)
           else
           end if

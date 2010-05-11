@@ -19,24 +19,56 @@
 
       module mod_cheflds
 
-      use mod_regcm_param , only : jxm2 , iym2 , kz , ntr
+      use mod_dynparam
       use mod_postproc_param , only : nhrche , npl
 
       implicit none
 
-      integer , parameter :: nc3d  = ntr*1 + 3
-      integer , parameter :: nc2d  = ntr*7 + 2
-      integer , parameter :: nctot = nc3d + nc2d
+      integer :: nc3d
+      integer :: nc2d
+      integer :: nctot
 
-      real(4) , dimension(jxm2,iym2,nc2d,nhrche) :: c2davg
-      real(4) , dimension(jxm2,iym2,kz,nc3d,nhrche) :: c3davg
-      real(4) , dimension(jxm2,iym2,nc2d) :: cfld2d
-      real(4) , dimension(jxm2,iym2,kz,nc3d) :: cfld3d
+      real(4) , allocatable , dimension(:,:,:,:) :: c2davg
+      real(4) , allocatable , dimension(:,:,:,:,:) :: c3davg
+      real(4) , allocatable , dimension(:,:,:) :: cfld2d
+      real(4) , allocatable , dimension(:,:,:,:) :: cfld3d
 
-      real(4) , dimension(jxm2,iym2,npl,nc3d,nhrche) :: c3davg_p
-      real(4) , dimension(jxm2,iym2,npl,nc3d) :: cfld3d_p
+      real(4) , allocatable , dimension(:,:,:,:,:) :: c3davg_p
+      real(4) , allocatable , dimension(:,:,:,:) :: cfld3d_p
+
+      real(4) , allocatable , dimension(:) :: factche , offsetche ,     &
+                               &              xmaxche , xminche
+
+      character(64) , allocatable , dimension(:) :: vnamche
+      character(64) , allocatable , dimension(:) :: lnamche
+      character(64) , allocatable , dimension(:) :: uche
+
+      integer , allocatable , dimension(:) :: nchetime
+      integer , allocatable , dimension(:) :: u_che
 
       contains
+
+      subroutine init_mod_cheflds
+      implicit none
+      nc3d  = ntr*1 + 3
+      nc2d  = ntr*7 + 2
+      nctot = nc3d + nc2d
+      allocate(c2davg(jxm2,iym2,nc2d,nhrche))
+      allocate(c3davg(jxm2,iym2,kz,nc3d,nhrche))
+      allocate(cfld2d(jxm2,iym2,nc2d))
+      allocate(cfld3d(jxm2,iym2,kz,nc3d))
+      allocate(c3davg_p(jxm2,iym2,npl,nc3d,nhrche))
+      allocate(cfld3d_p(jxm2,iym2,npl,nc3d))
+      allocate(factche(nctot))
+      allocate(offsetche(nctot))
+      allocate(xmaxche(nctot))
+      allocate(xminche(nctot))
+      allocate(vnamche(nctot))
+      allocate(lnamche(nctot))
+      allocate(uche(nctot))
+      allocate(u_che(nctot))
+      allocate(nchetime(nhrche))
+      end subroutine init_mod_cheflds
 
       subroutine rdche(iin,idate,crec,idirect,ierr)
       implicit none
@@ -91,18 +123,9 @@
       crec = crec + 1
       end subroutine rdche
  
-      subroutine mmvluche(vnamche,lnamche,uche,xmin,xmax,fact,offset)
+      subroutine mmvluche
  
       implicit none
-!
-! Dummy arguments
-!
-      real(4) , dimension(nctot) :: fact , offset , xmax , xmin
-      character(64) , dimension(nctot) :: lnamche
-      character(64) , dimension(nctot) :: uche
-      character(64) , dimension(nctot) :: vnamche
-      intent (out) fact , lnamche , offset , uche , vnamche
-      intent (inout) xmax , xmin
 !
 ! Local variables
 !
@@ -131,20 +154,20 @@
       lnamche(7) = 'aer mix. ext. coef'
       vnamche(7) = 'aext8'
       uche(7) = 'na'
-      xmax(7) = 0.5
-      xmin(7) = 0.
+      xmaxche(7) = 0.5
+      xminche(7) = 0.
  
       lnamche(8) = 'aer mix. scat. alb'
       vnamche(8) = 'assa9'
       uche(8) = 'na'
-      xmax(8) = 0.5
-      xmin(8) = 0.
+      xmaxche(8) = 0.5
+      xminche(8) = 0.
  
       lnamche(9) = 'aer mix. scat. alb'
       vnamche(9) = 'agfu8'
       uche(9) = 'na'
-      xmax(9) = 0.5
-      xmin(9) = 0.
+      xmaxche(9) = 0.5
+      xminche(9) = 0.
  
       r = (nc2d-2)/ntr
  
@@ -186,69 +209,67 @@
       end do
  
       do n = 1 , nc3d - 3
-        xmax(n) = 10.E6
-        xmin(n) = 0.
+        xmaxche(n) = 10.E6
+        xminche(n) = 0.
       end do
  
-!     xmax(5) = 10.E9
-!     xmax(6) = 10.E9
+!     xmaxche(5) = 10.E9
+!     xmaxche(6) = 10.E9
       do n = nc3d + 1 , nc3d + nc2d - 2
-        xmax(n) = 10.E10
-        xmin(n) = 0.
+        xmaxche(n) = 10.E10
+        xminche(n) = 0.
       end do
  
-!     xmax(ncld)        = 1.1
-!     xmax(nclwp)       = 5000.0
-!     xmax(nqrs)        = 1.0e-3
-!     xmax(nqrl)        = 1.0e-3
-!     xmax(nr3d+nfsw)   = 1200.0
-!     xmax(nr3d+nflw)   = 500.0
-!     xmax(nr3d+nclrst) = 1500.0
-!     xmax(nr3d+nclrss) = 1500.0
-!     xmax(nr3d+nclrlt) = 1500.0
-!     xmax(nr3d+nclrls) = 500.0
-!     xmax(nr3d+nsolin) = 1500.0
-!     xmax(nr3d+nsabtp) = 1500.0
-!     xmax(nr3d+nfirtp) = 500.0
+!     xmaxche(ncld)        = 1.1
+!     xmaxche(nclwp)       = 5000.0
+!     xmaxche(nqrs)        = 1.0e-3
+!     xmaxche(nqrl)        = 1.0e-3
+!     xmaxche(nr3d+nfsw)   = 1200.0
+!     xmaxche(nr3d+nflw)   = 500.0
+!     xmaxche(nr3d+nclrst) = 1500.0
+!     xmaxche(nr3d+nclrss) = 1500.0
+!     xmaxche(nr3d+nclrlt) = 1500.0
+!     xmaxche(nr3d+nclrls) = 500.0
+!     xmaxche(nr3d+nsolin) = 1500.0
+!     xmaxche(nr3d+nsabtp) = 1500.0
+!     xmaxche(nr3d+nfirtp) = 500.0
  
-!     xmin(ncld)        = -0.1
-!     xmin(nclwp)       = -10.0
-!     xmin(nqrs)        = -1.0e-3
-!     xmin(nqrl)        = -1.0e-3
-!     xmin(nr3d+nfsw)   = -10.0
-!     xmin(nr3d+nflw)   = -100.0
-!     xmin(nr3d+nclrst) = -10.0
-!     xmin(nr3d+nclrss) = -10.0
-!     xmin(nr3d+nclrlt) = -10.0
-!     xmin(nr3d+nclrls) = -10.0
-!     xmin(nr3d+nsolin) = -10.0
-!     xmin(nr3d+nsabtp) = -10.0
-!     xmin(nr3d+nfirtp) = -10.0
+!     xminche(ncld)        = -0.1
+!     xminche(nclwp)       = -10.0
+!     xminche(nqrs)        = -1.0e-3
+!     xminche(nqrl)        = -1.0e-3
+!     xminche(nr3d+nfsw)   = -10.0
+!     xminche(nr3d+nflw)   = -100.0
+!     xminche(nr3d+nclrst) = -10.0
+!     xminche(nr3d+nclrss) = -10.0
+!     xminche(nr3d+nclrlt) = -10.0
+!     xminche(nr3d+nclrls) = -10.0
+!     xminche(nr3d+nsolin) = -10.0
+!     xminche(nr3d+nsabtp) = -10.0
+!     xminche(nr3d+nfirtp) = -10.0
  
       lnamche(52) = 'TOArad forcing'
       vnamche(52) = 'acsto'
       uche(52) = 'W/m^2'
-      xmax(52) = 200.0
-      xmin(52) = -200.0
+      xmaxche(52) = 200.0
+      xminche(52) = -200.0
  
       lnamche(53) = 'TOArad forcing'
       vnamche(53) = 'acsto'
       uche(53) = 'W/m^2'
-      xmax(53) = 200.0
-      xmin(53) = -200.0
+      xmaxche(53) = 200.0
+      xminche(53) = -200.0
  
       aaa = 2.**16. - 1.
       do l = 1 , nctot
-        fact(l) = (xmax(l)-xmin(l))/aaa
-        offset(l) = (xmax(l)+xmin(l))/2.
+        factche(l) = (xmaxche(l)-xminche(l))/aaa
+        offsetche(l) = (xmaxche(l)+xminche(l))/2.
       end do
  
       end subroutine mmvluche
 
-      subroutine writeche(vnamche,lnamche,uche,xmin,xmax,fact,offset,   &
-                        & vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,      &
-                        & sighrev,vmisdat,idout,xhr,iotyp,iunt,nrec,    &
-                        & u_che)
+      subroutine writeche(vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,      &
+                        & sighrev,vmisdat,idout,xhr,iotyp,iunt,nrec)
  
       implicit none
 !
@@ -257,17 +278,12 @@
       integer :: idout , iotyp , ndim , nrec , iunt
       real(4) :: vmisdat
       real(8) :: xhr
-      real(4) , dimension(nctot) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nctot) :: lnamche
       real(4) , dimension(kz) :: sighrev
-      character(64) , dimension(nctot) :: uche
-      integer , dimension(nctot) :: u_che
-      character(64) , dimension(nctot) :: vnamche
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
-      intent (in) ndim , u_che , xmax , xmin
+      intent (in) ndim
 !
 ! Local variables
 !
@@ -292,13 +308,13 @@
           end do
           if ( iotyp==1 ) then
             call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
-            if ( vmin<xmin(nc) .or. vmax>xmax(nc) ) then
+            if ( vmin<xminche(nc) .or. vmax>xmaxche(nc) ) then
               print * , 'Values Out of Range:  FIELD=' , vnamche(nc)
-              print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nc)
-              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nc)
+              print * , 'MINVAL=' , vmin , 'XMIN=' , xminche(nc)
+              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxche(nc)
               stop 999
             end if
-            misdat = xmin(nc)
+            misdat = xminche(nc)
           else if ( iotyp==2 ) then
             misdat = vmisdat
           else
@@ -306,9 +322,9 @@
           if ( iotyp==1 .or. iotyp==2 ) then
  
             call writecdf(idout,vnamche(nc),tmp3d,jxm2,iym2,kz,iadm,xhr,&
-                        & lnamche(nc),uche(nc),fact(nc),offset(nc),     &
-                        & vvarmin,vvarmax,xlat1d,xlon1d,sighrev,0,      &
-                        & misdat,iotyp)
+                        & lnamche(nc),uche(nc),factche(nc),             &
+                        & offsetche(nc),vvarmin,vvarmax,xlat1d,xlon1d,  &
+                        & sighrev,0,misdat,iotyp)
  
           else if ( iotyp==3 ) then
             call writegrads(iunt,tmp3d,jxm2,iym2,kz,nrec)
@@ -331,13 +347,13 @@
           end do
           if ( iotyp==1 ) then
             call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
-            if ( vmin<xmin(nnc) .or. vmax>xmax(nnc) ) then
+            if ( vmin<xminche(nnc) .or. vmax>xmaxche(nnc) ) then
               print * , 'Values Out of Range:  FIELD=' , vnamche(nnc)
-              print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nnc)
-              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nnc)
+              print * , 'MINVAL=' , vmin , 'XMIN=' , xminche(nnc)
+              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxche(nnc)
               stop 999
             end if
-            misdat = xmin(nc)
+            misdat = xminche(nc)
           else if ( iotyp==2 ) then
             misdat = vmisdat
           else
@@ -345,9 +361,9 @@
           if ( iotyp==1 .or. iotyp==2 ) then
  
             call writecdf(idout,vnamche(nnc),tmp2d,jxm2,iym2,1,iadm,xhr,&
-                        & lnamche(nnc),uche(nnc),fact(nnc),offset(nnc), &
-                        & vvarmin,vvarmax,xlat1d,xlon1d,sighrev,0,      &
-                        & misdat,iotyp)
+                        & lnamche(nnc),uche(nnc),factche(nnc),          &
+                        & offsetche(nnc),vvarmin,vvarmax,xlat1d,xlon1d, &
+                        & sighrev,0,misdat,iotyp)
           else if ( iotyp==3 ) then
             call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
           else
@@ -356,10 +372,9 @@
       end do
       end subroutine writeche
 
-      subroutine writeavgche(xhr1,sighrev,vnamche,lnamche,uche,xmin,    &
-                           & xmax,fact,offset,vvarmin,vvarmax,xlat1d,   &
-                           & xlon1d,iadm,ndim,vmisdat,nchetime,idche,   &
-                           & iotyp,iunt,nrec,plv,u_che)
+      subroutine writeavgche(xhr1,sighrev,vvarmin,vvarmax,xlat1d,       &
+                           & xlon1d,iadm,ndim,vmisdat,idche,iotyp,iunt, &
+                           & nrec,plv)
  
       use mod_point
       use mod_postproc_param , only : plev
@@ -371,18 +386,12 @@
       logical :: plv
       real(4) :: vmisdat
       real(8) :: xhr1
-      real(4) , dimension(nctot) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nctot) :: lnamche
-      integer , dimension(nhrche) :: nchetime
       real(4) , dimension(kz) :: sighrev
-      character(64) , dimension(nctot) :: uche
-      integer , dimension(nctot) :: u_che
-      character(64) , dimension(nctot) :: vnamche
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
-      intent (in) nchetime , ndim , plv , u_che , xhr1 , xmax , xmin
+      intent (in) ndim , plv , xhr1
 !
 ! Local variables
 !
@@ -424,21 +433,21 @@
             end do
             if ( iotyp==1 ) then
               call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
-              if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+              if ( vmin<xminche(nr) .or. vmax>xmaxche(nr) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnamche(nr)
-                print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+                print * , 'MINVAL=' , vmin , 'XMIN=' , xminche(nr)
+                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxche(nr)
                 stop 999
               end if
-              misdat = xmin(nr)
+              misdat = xminche(nr)
             else if ( iotyp==2 ) then
               misdat = vmisdat
             else
             end if
             if ( iotyp==1 .or. iotyp==2 ) then
               call writecdf(idche,vnamche(nr),tmp3d,jxm2,iym2,kz,iadm,  &
-                          & xhravg,lnamche(nr),uche(nr),fact(nr),       &
-                          & offset(nr),vvarmin,vvarmax,xlat1d,xlon1d,   &
+                          & xhravg,lnamche(nr),uche(nr),factche(nr),    &
+                          & offsetche(nr),vvarmin,vvarmax,xlat1d,xlon1d,&
                           & sighrev,0,misdat,iotyp)
             else if ( iotyp==3 ) then
               call writegrads(iunt,tmp3d,jxm2,iym2,kz,nrec)
@@ -471,22 +480,22 @@
             end do
             if ( iotyp==1 ) then
               call getminmax(tmp3d_p,jxm2,iym2,npl,vmin,vmax,vmisdat)
-              if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+              if ( vmin<xminche(nr) .or. vmax>xmaxche(nr) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnamche(nr)
-                print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+                print * , 'MINVAL=' , vmin , 'XMIN=' , xminche(nr)
+                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxche(nr)
                 stop 999
               end if
-              misdat = xmin(nr)
+              misdat = xminche(nr)
             else if ( iotyp==2 ) then
               misdat = vmisdat
             else
             end if
             if ( iotyp==1 .or. iotyp==2 ) then
               call writecdf(idche,vnamche(nr),tmp3d_p,jxm2,iym2,npl,    &
-                          & iadm,xhravg,lnamche(nr),uche(nr),fact(nr),  &
-                          & offset(nr),vvarmin,vvarmax,xlat1d,xlon1d,   &
-                          & plev,0,misdat,iotyp)
+                          & iadm,xhravg,lnamche(nr),uche(nr),           &
+                          & factche(nr),offsetche(nr),vvarmin,vvarmax,  &
+                          & xlat1d,xlon1d,plev,0,misdat,iotyp)
             else if ( iotyp==3 ) then
               call writegrads(iunt,tmp3d_p,jxm2,iym2,npl,nrec)
             else
@@ -517,21 +526,21 @@
           end do
           if ( iotyp==1 ) then
             call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
-            if ( vmin<xmin(nnr) .or. vmax>xmax(nnr) ) then
+            if ( vmin<xminche(nnr) .or. vmax>xmaxche(nnr) ) then
               print * , 'Values Out of Range:  FIELD=' , vnamche(nnr)
-              print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nnr)
-              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nnr)
+              print * , 'MINVAL=' , vmin , 'XMIN=' , xminche(nnr)
+              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxche(nnr)
               stop 999
             end if
-            misdat = xmin(nr)
+            misdat = xminche(nr)
           else if ( iotyp==2 ) then
             misdat = vmisdat
           else
           end if
           if ( iotyp==1 .or. iotyp==2 ) then
             call writecdf(idche,vnamche(nnr),tmp2d,jxm2,iym2,1,iadm,    &
-                        & xhravg,lnamche(nnr),uche(nnr),fact(nnr),      &
-                        & offset(nnr),vvarmin,vvarmax,xlat1d,xlon1d,    &
+                        & xhravg,lnamche(nnr),uche(nnr),factche(nnr),   &
+                        & offsetche(nnr),vvarmin,vvarmax,xlat1d,xlon1d, &
                         & sighrev,0,misdat,iotyp)
           else if ( iotyp==3 ) then
             call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
@@ -541,10 +550,9 @@
       end do
       end subroutine writeavgche
  
-      subroutine writediurche(xhr1,sighrev,vnamche,lnamche,uche,xmin,   &
-                            & xmax,fact,offset,vvarmin,vvarmax,xlat1d,  &
-                            & xlon1d,iadm,ndim,vmisdat,nchetime,idche,  &
-                            & iotyp,iunt,nrec,plv,u_che)
+      subroutine writediurche(xhr1,sighrev,vvarmin,vvarmax,xlat1d,      &
+                            & xlon1d,iadm,ndim,vmisdat,idche,iotyp,iunt,&
+                            & nrec,plv)
  
       use mod_point
       use mod_postproc_param , only : dtche , plev
@@ -556,18 +564,12 @@
       logical :: plv
       real(4) :: vmisdat
       real(8) :: xhr1
-      real(4) , dimension(nctot) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nctot) :: lnamche
-      integer , dimension(nhrche) :: nchetime
       real(4) , dimension(kz) :: sighrev
-      character(64) , dimension(nctot) :: uche
-      integer , dimension(nctot) :: u_che
-      character(64) , dimension(nctot) :: vnamche
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
-      intent (in) nchetime , ndim , plv , u_che , xhr1 , xmax , xmin
+      intent (in) ndim , plv , xhr1
 !
 ! Local variables
 !
@@ -607,22 +609,22 @@
               end do
               if ( iotyp==1 ) then
                 call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
-                if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+                if ( vmin<xminche(nr) .or. vmax>xmaxche(nr) ) then
                   print * , 'Values Out of Range:  FIELD=' , vnamche(nr)
-                  print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-                  print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+                  print * , 'MINVAL=' , vmin , 'XMIN=' , xminche(nr)
+                  print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxche(nr)
                   stop 999
                 end if
-                misdat = xmin(nr)
+                misdat = xminche(nr)
               else if ( iotyp==2 ) then
                 misdat = vmisdat
               else
               end if
               if ( iotyp==1 .or. iotyp==2 ) then
                 call writecdf(idche,vnamche(nr),tmp3d,jxm2,iym2,kz,iadm,&
-                            & xhravg,lnamche(nr),uche(nr),fact(nr),     &
-                            & offset(nr),vvarmin,vvarmax,xlat1d,xlon1d, &
-                            & sighrev,0,misdat,iotyp)
+                            & xhravg,lnamche(nr),uche(nr),factche(nr),  &
+                            & offsetche(nr),vvarmin,vvarmax,xlat1d,     &
+                            & xlon1d,sighrev,0,misdat,iotyp)
               else if ( iotyp==3 ) then
                 call writegrads(iunt,tmp3d,jxm2,iym2,kz,nrec)
               else
@@ -658,22 +660,22 @@
               end do
               if ( iotyp==1 ) then
                 call getminmax(tmp3d_p,jxm2,iym2,npl,vmin,vmax,vmisdat)
-                if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+                if ( vmin<xminche(nr) .or. vmax>xmaxche(nr) ) then
                   print * , 'Values Out of Range:  FIELD=' , vnamche(nr)
-                  print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-                  print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+                  print * , 'MINVAL=' , vmin , 'XMIN=' , xminche(nr)
+                  print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxche(nr)
                   stop 999
                 end if
-                misdat = xmin(nr)
+                misdat = xminche(nr)
               else if ( iotyp==2 ) then
                 misdat = vmisdat
               else
               end if
               if ( iotyp==1 .or. iotyp==2 ) then
                 call writecdf(idche,vnamche(nr),tmp3d_p,jxm2,iym2,npl,  &
-                            & iadm,xhravg,lnamche(nr),uche(nr),fact(nr),&
-                            & offset(nr),vvarmin,vvarmax,xlat1d,xlon1d, &
-                            & plev,0,misdat,iotyp)
+                            & iadm,xhravg,lnamche(nr),uche(nr),         &
+                            & factche(nr),offsetche(nr),vvarmin,vvarmax,&
+                            & xlat1d,xlon1d,plev,0,misdat,iotyp)
               else if ( iotyp==3 ) then
                 call writegrads(iunt,tmp3d_p,jxm2,iym2,npl,nrec)
               else
@@ -708,22 +710,22 @@
             end do
             if ( iotyp==1 ) then
               call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
-              if ( vmin<xmin(nnr) .or. vmax>xmax(nnr) ) then
+              if ( vmin<xminche(nnr) .or. vmax>xmaxche(nnr) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnamche(nnr)
-                print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nnr)
-                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nnr)
+                print * , 'MINVAL=' , vmin , 'XMIN=' , xminche(nnr)
+                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxche(nnr)
                 stop 999
               end if
-              misdat = xmin(nr)
+              misdat = xminche(nr)
             else if ( iotyp==2 ) then
               misdat = vmisdat
             else
             end if
             if ( iotyp==1 .or. iotyp==2 ) then
               call writecdf(idche,vnamche(nnr),tmp2d,jxm2,iym2,1,iadm,  &
-                          & xhravg,lnamche(nnr),uche(nnr),fact(nnr),    &
-                          & offset(nnr),vvarmin,vvarmax,xlat1d,xlon1d,  &
-                          & sighrev,0,misdat,iotyp)
+                          & xhravg,lnamche(nnr),uche(nnr),factche(nnr), &
+                          & offsetche(nnr),vvarmin,vvarmax,xlat1d,      &
+                          & xlon1d,sighrev,0,misdat,iotyp)
             else if ( iotyp==3 ) then
               call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
             else

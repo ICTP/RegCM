@@ -5,11 +5,10 @@ include ../Makefile.inc
 
 all: postproc test_read
 
-SHRMODS =  mod_postproc_param.o mod_regcm_param.o mod_constants.o \
-           mod_bats_param.o
+SHRMODS =  mod_dynparam.o mod_constants.o mod_bats_param.o
 
 MODOBJS =  mod_batflds.o   mod_bcflds.o   mod_cheflds.o   mod_outflds.o  \
-           mod_point.o     mod_radflds.o  mod_subflds.o
+           mod_point.o     mod_radflds.o  mod_subflds.o   mod_postproc_param.o
 
 OBJS =     average_day.o   average_month.o  avgdata2d.o  avgdata3d.o \
            avgrain.o       calchgt.o        calcmse2d.o  calcmse.o   \
@@ -20,12 +19,12 @@ OBJS =     average_day.o   average_month.o  avgdata2d.o  avgdata3d.o \
            rdhead.o        rdheadicbc.o     setconst.o   two2three.o \
            writebathead.o  writegrads.o     writehead.o  xtdot.o
 
-mod_regcm_param.o: ../Config/mod_regcm_param.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+mod_dynparam.o: ../Config/mod_dynparam.F90
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
-mod_postproc_param.o: ../Config/mod_postproc_param.f90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+mod_postproc_param.o: mod_postproc_param.f90
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
 mod_bats_param.o: ../Config/mod_bats_param.F90
@@ -72,31 +71,31 @@ htsig.o: htsig.f90
 intlin.o: intlin.f90
 intlog.o: intlog.f90 mod_constants.o
 julian.o: julian.f90
-mod_batflds.o: mod_batflds.f90 mod_regcm_param.o mod_postproc_param.o \
+mod_batflds.o: mod_batflds.f90 mod_dynparam.o mod_postproc_param.o \
                mod_point.o
-mod_bcflds.o: mod_bcflds.f90 mod_regcm_param.o mod_postproc_param.o \
+mod_bcflds.o: mod_bcflds.f90 mod_dynparam.o mod_postproc_param.o \
               mod_point.o
-mod_cheflds.o: mod_cheflds.f90 mod_regcm_param.o mod_postproc_param.o \
+mod_cheflds.o: mod_cheflds.f90 mod_dynparam.o mod_postproc_param.o \
                mod_point.o
-mod_outflds.o: mod_outflds.f90 mod_regcm_param.o mod_postproc_param.o \
+mod_outflds.o: mod_outflds.f90 mod_dynparam.o mod_postproc_param.o \
                mod_point.o
 mod_point.o: mod_point.f90
-mod_radflds.o: mod_radflds.f90 mod_regcm_param.o mod_postproc_param.o \
+mod_radflds.o: mod_radflds.f90 mod_dynparam.o mod_postproc_param.o \
                mod_point.o
-mod_subflds.o: mod_subflds.f90 mod_regcm_param.o mod_postproc_param.o \
+mod_subflds.o: mod_subflds.f90 mod_dynparam.o mod_postproc_param.o \
                mod_point.o
 nclib.o: nclib.f90
 one2two.o: one2two.f90
 param.o: param.f90
-postproc.o: postproc.f90 mod_regcm_param.o mod_batflds.o mod_bcflds.o \
+postproc.o: postproc.f90 mod_dynparam.o mod_batflds.o mod_bcflds.o \
             mod_cheflds.o mod_outflds.o mod_radflds.o mod_subflds.o \
             mod_point.o mod_postproc_param.o
-rdhead.o: rdhead.f90 mod_regcm_param.o mod_postproc_param.o
+rdhead.o: rdhead.f90 mod_dynparam.o mod_postproc_param.o
 rdheadicbc.o: rdheadicbc.f90
 setconst.o: setconst.f90
 test_read.o: test_read.f90
 two2three.o: two2three.f90
-writebathead.o: writebathead.f90 mod_regcm_param.o mod_bats_param.o
+writebathead.o: writebathead.f90 mod_dynparam.o mod_bats_param.o
 writegrads.o: writegrads.f90
-writehead.o: writehead.f90 mod_regcm_param.o
+writehead.o: writehead.f90 mod_dynparam.o
 xtdot.o: xtdot.f90

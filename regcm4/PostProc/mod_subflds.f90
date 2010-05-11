@@ -18,16 +18,43 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_subflds
-      use mod_regcm_param , only : jxm2sg , iym2sg , nsg , numsub
+
+      use mod_dynparam
       use mod_postproc_param , only : nhrsub
       implicit none
 
-      integer , parameter :: nsub2 = numsub+1
+      integer :: nsub2
 
-      real(4) , dimension(jxm2sg,iym2sg,nsub2,nhrsub) :: s2davg
-      real(4) , dimension(jxm2sg,iym2sg,nsub2) :: sfld2d
+      real(4) , allocatable , dimension(:,:,:,:) :: s2davg
+      real(4) , allocatable , dimension(:,:,:) :: sfld2d
+
+      real(4) , allocatable , dimension(:) :: factsub , offsetsub ,     &
+                              &               xmaxsub , xminsub
+
+      character(64) , allocatable , dimension(:) :: vnamsub
+      character(64) , allocatable , dimension(:) :: lnamsub
+      character(64) , allocatable , dimension(:) :: usub
+
+      integer , allocatable , dimension(:) :: u_sub
+      integer , allocatable , dimension(:) :: nsubtime
 
       contains
+
+      subroutine init_mod_subflds
+      implicit none
+      nsub2 = numsub+1
+      allocate(s2davg(jxm2sg,iym2sg,nsub2,nhrsub))
+      allocate(sfld2d(jxm2sg,iym2sg,nsub2))
+      allocate(factsub(nsub2))
+      allocate(offsetsub(nsub2))
+      allocate(xmaxsub(nsub2))
+      allocate(xminsub(nsub2))
+      allocate(vnamsub(nsub2))
+      allocate(lnamsub(nsub2))
+      allocate(usub(nsub2))
+      allocate(u_sub(nsub2))
+      allocate(nsubtime(nhrsub))
+      end subroutine init_mod_subflds
 
       subroutine rdsub(idate,iin,srec,idirect,ierr)
  
@@ -103,19 +130,10 @@
  
       end subroutine avgdatasub
  
-      subroutine mmvlusub(vnamsub,lnamsub,usub,xmin,xmax,fact,offset)
+      subroutine mmvlusub
  
       use mod_point
       implicit none
-!
-! Dummy arguments
-!
-      real(4) , dimension(nsub2) :: fact , offset , xmax , xmin
-      character(64) , dimension(nsub2) :: lnamsub
-      character(64) , dimension(nsub2) :: usub
-      character(64) , dimension(nsub2) :: vnamsub
-      intent (out) fact , lnamsub , offset , usub , vnamsub
-      intent (inout) xmax , xmin
 !
 ! Local variables
 !
@@ -125,115 +143,114 @@
       lnamsub(nsux) = 'Anemom Zonal Winds'
       vnamsub(nsux) = 'UA'
       usub(nsux) = 'm/s'
-      xmax(nsux) = 50.0
-      xmin(nsux) = -50.0
+      xmaxsub(nsux) = 50.0
+      xminsub(nsux) = -50.0
  
       lnamsub(nsvx) = 'Anemom Merid Winds'
       vnamsub(nsvx) = 'VA'
       usub(nsvx) = 'm/s'
-      xmax(nsvx) = 50.0
-      xmin(nsvx) = -50.0
+      xmaxsub(nsvx) = 50.0
+      xminsub(nsvx) = -50.0
  
       lnamsub(nsdrag) = 'Surface Drag Stress'
       vnamsub(nsdrag) = 'DRAG'
       usub(nsdrag) = 'si'
-      xmax(nsdrag) = 1.0
-      xmin(nsdrag) = -1.0
+      xmaxsub(nsdrag) = 1.0
+      xminsub(nsdrag) = -1.0
  
       vnamsub(nstg) = 'TG'
       lnamsub(nstg) = 'Ground Temperature'
       usub(nstg) = 'K'
-      xmax(nstg) = 350.0
-      xmin(nstg) = 180.0
+      xmaxsub(nstg) = 350.0
+      xminsub(nstg) = 180.0
  
       vnamsub(nstf) = 'TF'
       lnamsub(nstf) = 'Foliage Temp'
       usub(nstf) = 'K'
-      xmax(nstf) = 350.0
-      xmin(nstf) = 180.0
+      xmaxsub(nstf) = 350.0
+      xminsub(nstf) = 180.0
  
       lnamsub(nstanm) = 'Anemom Temp'
       vnamsub(nstanm) = 'TA'
       usub(nstanm) = 'K'
-      xmax(nstanm) = 350.0
-      xmin(nstanm) = 180.0
+      xmaxsub(nstanm) = 350.0
+      xminsub(nstanm) = 180.0
  
       lnamsub(nsqanm) = 'Anemom Spec Humidity'
       vnamsub(nsqanm) = 'QA'
       usub(nsqanm) = 'kg/kg'
-      xmax(nsqanm) = 0.20
-      xmin(nsqanm) = -1.0E-5
+      xmaxsub(nsqanm) = 0.20
+      xminsub(nsqanm) = -1.0E-5
  
       lnamsub(nssmu) = 'Top Layer Soil Moist'
       vnamsub(nssmu) = 'SMU'
       usub(nssmu) = 'mm'
-      xmax(nssmu) = 80.0
-      xmin(nssmu) = -1.0
+      xmaxsub(nssmu) = 80.0
+      xminsub(nssmu) = -1.0
  
       lnamsub(nssmr) = 'Root Lay Soil Moist'
       vnamsub(nssmr) = 'SMR'
       usub(nssmr) = 'mm'
-      xmax(nssmr) = 1200.0
-      xmin(nssmr) = -1.0
+      xmaxsub(nssmr) = 1200.0
+      xminsub(nssmr) = -1.0
  
       lnamsub(nset) = 'Evapotranspiration'
       vnamsub(nset) = 'ET'
       usub(nset) = 'mm/day'
-      xmax(nset) = 150.0
-      xmin(nset) = -5.0
+      xmaxsub(nset) = 150.0
+      xminsub(nset) = -5.0
  
       lnamsub(nsrnfs) = 'Surface Runoff'
       vnamsub(nsrnfs) = 'RNFS'
       usub(nsrnfs) = 'mm/day'
-      xmax(nsrnfs) = 2000.0
-      xmin(nsrnfs) = -200.0
+      xmaxsub(nsrnfs) = 2000.0
+      xminsub(nsrnfs) = -200.0
  
       lnamsub(nssnow) = 'Snow Depth'
       vnamsub(nssnow) = 'SNOW'
       usub(nssnow) = 'mm H2O'
-      xmax(nssnow) = 1000.0
-      xmin(nssnow) = -1.0
+      xmaxsub(nssnow) = 1000.0
+      xminsub(nssnow) = -1.0
  
       lnamsub(nssh) = 'Sensible Heat'
       vnamsub(nssh) = 'SH'
       usub(nssh) = 'W/m2'
-      xmax(nssh) = 1000.0
-      xmin(nssh) = -300.0
+      xmaxsub(nssh) = 1000.0
+      xminsub(nssh) = -300.0
  
       lnamsub(nsprc) = 'Convective Precip'
       vnamsub(nsprc) = 'RC'
       usub(nsprc) = 'mm/day'
-      xmax(nsprc) = 1500.0
-      xmin(nsprc) = -1.0
+      xmaxsub(nsprc) = 1500.0
+      xminsub(nsprc) = -1.0
  
       lnamsub(nspt) = 'Total Precipitation'
       vnamsub(nspt) = 'RT'
       usub(nspt) = 'mm/day'
-      xmax(nspt) = 2500.0
-      xmin(nspt) = -1.0
+      xmaxsub(nspt) = 2500.0
+      xminsub(nspt) = -1.0
  
       lnamsub(nspsrf) = 'Surface Pressure'
       vnamsub(nspsrf) = 'PSRF'
       usub(nspsrf) = 'hPa'
-      xmax(nspsrf) = 1500.0
-      xmin(nspsrf) = 300.0
+      xmaxsub(nspsrf) = 1500.0
+      xminsub(nspsrf) = 300.0
  
       lnamsub(nsrha) = 'Relative Humidity'
       vnamsub(nsrha) = 'RHA'
       usub(nsrha) = 'fraction'
-      xmax(nsrha) = 5.0
-      xmin(nsrha) = -0.1
+      xmaxsub(nsrha) = 5.0
+      xminsub(nsrha) = -0.1
  
       aaa = 2.**16. - 1.
       do l = 1 , nsub2
-        fact(l) = (xmax(l)-xmin(l))/aaa
-        offset(l) = (xmax(l)+xmin(l))/2.
+        factsub(l) = (xmaxsub(l)-xminsub(l))/aaa
+        offsetsub(l) = (xmaxsub(l)+xminsub(l))/2.
       end do
  
       end subroutine mmvlusub
 
-      subroutine writesub(vnamsub,lnamsub,usub,xmin,xmax,fact,offset,   &
-                        & vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,      &
+      subroutine writesub(vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,      &
                         & vmisdat,xhr,idout,iotyp,iunt,nrec)
  
       use mod_point
@@ -244,15 +261,11 @@
       integer :: idout , iotyp , ndim , nrec , iunt
       real(4) :: vmisdat
       real(8) :: xhr
-      real(4) , dimension(nsub2) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nsub2) :: lnamsub
-      character(64) , dimension(nsub2) :: usub
-      character(64) , dimension(nsub2) :: vnamsub
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2sg) :: xlat1d
       real(4) , dimension(jxm2sg) :: xlon1d
-      intent (in) ndim , xmax , xmin
+      intent (in) ndim
 !
 ! Local variables
 !
@@ -272,13 +285,13 @@
         end do
         if ( iotyp==1 ) then
           call getminmax(tmp2d,jxm2sg,iym2sg,1,vmin,vmax,vmisdat)
-          if ( vmin<xmin(ns) .or. vmax>xmax(ns) ) then
+          if ( vmin<xminsub(ns) .or. vmax>xmaxsub(ns) ) then
             print * , 'Values Out of Range:  FIELD=' , vnamsub(ns)
-            print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ns)
-            print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(ns)
+            print * , 'MINVAL=' , vmin , 'XMIN=' , xminsub(ns)
+            print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxsub(ns)
 !           stop 999
           end if
-          misdat = xmin(ns)
+          misdat = xminsub(ns)
         else if ( iotyp==2 .or. iotyp==3 ) then
           misdat = vmisdat
         else
@@ -286,9 +299,9 @@
 !       print*,vnamsub(ns),nrec+1
         if ( iotyp==1 .or. iotyp==2 ) then
           call writecdf(idout,vnamsub(ns),tmp2d,jxm2sg,iym2sg,1,iadm,   &
-                      & xhr,lnamsub(ns),usub(ns),fact(ns),offset(ns),   &
-                      & vvarmin,vvarmax,xlat1d,xlon1d,sig1,0,misdat,    &
-                      & iotyp)
+                      & xhr,lnamsub(ns),usub(ns),factsub(ns),           &
+                      & offsetsub(ns),vvarmin,vvarmax,xlat1d,xlon1d,    &
+                      & sig1,0,misdat,iotyp)
         else if ( iotyp==3 ) then
           call writegrads(iunt,tmp2d,jxm2sg,iym2sg,1,nrec)
         else
@@ -297,10 +310,8 @@
       end do
       end subroutine writesub
  
-      subroutine writeavgsub(vmisdat,vnamsub,lnamsub,usub,xmin,xmax,    &
-                           & fact,offset,vvarmin,vvarmax,xlat1d,xlon1d, &
-                           & iadm,ndim,xhr1,nsubtime,idsub,iotyp,iunt,  &
-                           & nrec)
+      subroutine writeavgsub(vmisdat,vvarmin,vvarmax,xlat1d,xlon1d,     &
+                           & iadm,ndim,xhr1,idsub,iotyp,iunt,nrec)
  
       use mod_point
       implicit none
@@ -310,16 +321,11 @@
       integer :: idsub , iotyp , ndim , nrec , iunt
       real(4) :: vmisdat
       real(8) :: xhr1
-      real(4) , dimension(nsub2) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nsub2) :: lnamsub
-      integer , dimension(nhrsub) :: nsubtime
-      character(64) , dimension(nsub2) :: usub
-      character(64) , dimension(nsub2) :: vnamsub
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2sg) :: xlat1d
       real(4) , dimension(jxm2sg) :: xlon1d
-      intent (in) ndim , nsubtime , xhr1 , xmax , xmin
+      intent (in) ndim , xhr1
 !
 ! Local variables
 !
@@ -371,22 +377,22 @@
         end do
         if ( iotyp==1 ) then
           call getminmax(tmp2d,jxm2sg,iym2sg,1,vmin,vmax,vmisdat)
-          if ( vmin<xmin(ns) .or. vmax>xmax(ns) ) then
+          if ( vmin<xminsub(ns) .or. vmax>xmaxsub(ns) ) then
             print * , 'Values Out of Range:  FIELD=' , vnamsub(ns)
-            print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ns)
-            print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(ns)
+            print * , 'MINVAL=' , vmin , 'XMIN=' , xminsub(ns)
+            print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxsub(ns)
             stop 999
           end if
-          misdat = xmin(ns)
+          misdat = xminsub(ns)
         else if ( iotyp==2 ) then
           misdat = vmisdat
         else
         end if
         if ( iotyp==1 .or. iotyp==2 ) then
           call writecdf(idsub,vnamsub(ns),tmp2d,jxm2sg,iym2sg,1,iadm,   &
-                      & xhravg,lnamsub(ns),usub(ns),fact(ns),offset(ns),&
-                      & vvarmin,vvarmax,xlat1d,xlon1d,sig1,0,misdat,    &
-                      & iotyp)
+                      & xhravg,lnamsub(ns),usub(ns),factsub(ns),        &
+                      & offsetsub(ns),vvarmin,vvarmax,xlat1d,xlon1d,    &
+                      & sig1,0,misdat,iotyp)
         else if ( iotyp==3 ) then
           call writegrads(iunt,tmp2d,jxm2sg,iym2sg,1,nrec)
         else
@@ -394,10 +400,8 @@
       end do
       end subroutine writeavgsub
 
-      subroutine writediursub(vmisdat,vnamsub,lnamsub,usub,xmin,xmax,   &
-                            & fact,offset,vvarmin,vvarmax,xlat1d,xlon1d,&
-                            & iadm,ndim,xhr1,nsubtime,idsub,iotyp,iunt, &
-                            & nrec)
+      subroutine writediursub(vmisdat,vvarmin,vvarmax,xlat1d,xlon1d,    &
+                            & iadm,ndim,xhr1,idsub,iotyp,iunt,nrec)
  
       use mod_point
       use mod_postproc_param , only : dtsub , nhrbat
@@ -409,16 +413,11 @@
       integer :: idsub , iotyp , ndim , nrec , iunt
       real(4) :: vmisdat
       real(8) :: xhr1
-      real(4) , dimension(nsub2) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nsub2) :: lnamsub
-      integer , dimension(nhrbat) :: nsubtime
-      character(64) , dimension(nsub2) :: usub
-      character(64) , dimension(nsub2) :: vnamsub
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2sg) :: xlat1d
       real(4) , dimension(jxm2sg) :: xlon1d
-      intent (in) ndim , nsubtime , xhr1 , xmax , xmin
+      intent (in) ndim , xhr1
 !
 ! Local variables
 !
@@ -463,22 +462,22 @@
 !         end if
           if ( iotyp==1 ) then
             call getminmax(tmp2d,jxm2sg,iym2sg,1,vmin,vmax,vmisdat)
-            if ( vmin<xmin(ns) .or. vmax>xmax(ns) ) then
+            if ( vmin<xminsub(ns) .or. vmax>xmaxsub(ns) ) then
               print * , 'Values Out of Range:  FIELD=' , vnamsub(ns)
-              print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(ns)
-              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(ns)
+              print * , 'MINVAL=' , vmin , 'XMIN=' , xminsub(ns)
+              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxsub(ns)
               stop 999
             end if
-            misdat = xmin(ns)
+            misdat = xminsub(ns)
           else if ( iotyp==2 ) then
             misdat = vmisdat
           else
           end if
           if ( iotyp==1 .or. iotyp==2 ) then
             call writecdf(idsub,vnamsub(ns),tmp2d,jxm2sg,iym2sg,1,iadm, &
-                        & xhravg,lnamsub(ns),usub(ns),fact(ns),         &
-                        & offset(ns),vvarmin,vvarmax,xlat1d,xlon1d,sig1,&
-                        & 0,misdat,iotyp)
+                        & xhravg,lnamsub(ns),usub(ns),factsub(ns),      &
+                        & offsetsub(ns),vvarmin,vvarmax,xlat1d,xlon1d,  &
+                        & sig1,0,misdat,iotyp)
           else if ( iotyp==3 ) then
             call writegrads(iunt,tmp2d,jxm2sg,iym2sg,1,nrec)
           else

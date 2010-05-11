@@ -21,7 +21,7 @@
                          & vvarmin,vvarmax,xlat1d,xlon1d,iadim,ndim,    &
                          & idout,xhro,iotyp)
 
-      use mod_regcm_param , only : jxm2 , iym2 
+      use mod_dynparam , only : jxm2 , iym2 
 
       implicit none
 !

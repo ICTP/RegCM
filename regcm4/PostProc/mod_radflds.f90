@@ -19,7 +19,7 @@
 
       module mod_radflds
 
-      use mod_regcm_param , only : jxm2 , iym2 , kz
+      use mod_dynparam
       use mod_postproc_param , only : nhrrad , npl
 
       implicit none
@@ -28,16 +28,44 @@
       integer , parameter :: nr3d = 4
       integer , parameter :: nrtot = nr3d + nr2d
 
-      real(4) , dimension(jxm2,iym2,nr2d,nhrrad) :: r2davg
-      real(4) , dimension(jxm2,iym2,kz,nr3d,nhrrad) :: r3davg
-      real(4) , dimension(jxm2,iym2,nr2d) :: rfld2d
-      real(4) , dimension(jxm2,iym2,kz,nr3d) :: rfld3d
+      real(4) , allocatable , dimension(:,:,:,:) :: r2davg
+      real(4) , allocatable , dimension(:,:,:,:,:) :: r3davg
+      real(4) , allocatable , dimension(:,:,:) :: rfld2d
+      real(4) , allocatable , dimension(:,:,:,:) :: rfld3d
 
+      real(4) , allocatable , dimension(:,:,:,:,:) :: r3davg_p
+      real(4) , allocatable , dimension(:,:,:,:) :: rfld3d_p
 
-      real(4) , dimension(jxm2,iym2,npl,nr3d,nhrrad) :: r3davg_p
-      real(4) , dimension(jxm2,iym2,npl,nr3d) :: rfld3d_p
+      real(4) , allocatable , dimension(:) :: factrad , offsetrad ,     &
+                                  &           xmaxrad , xminrad
+
+      character(64) , allocatable , dimension(:) :: vnamrad
+      character(64) , allocatable , dimension(:) :: lnamrad
+      character(64) , allocatable , dimension(:) :: urad
+
+      integer , allocatable , dimension(:) :: u_rad
+      integer , allocatable , dimension(:) :: nradtime
 
       contains
+
+      subroutine init_mod_radflds
+      implicit none
+      allocate(r2davg(jxm2,iym2,nr2d,nhrrad))
+      allocate(r3davg(jxm2,iym2,kz,nr3d,nhrrad))
+      allocate(rfld2d(jxm2,iym2,nr2d))
+      allocate(rfld3d(jxm2,iym2,kz,nr3d))
+      allocate(r3davg_p(jxm2,iym2,npl,nr3d,nhrrad))
+      allocate(rfld3d_p(jxm2,iym2,npl,nr3d))
+      allocate(factrad(nrtot))
+      allocate(offsetrad(nrtot))
+      allocate(xmaxrad(nrtot))
+      allocate(xminrad(nrtot))
+      allocate(vnamrad(nrtot))
+      allocate(lnamrad(nrtot))
+      allocate(urad(nrtot))
+      allocate(u_rad(nrtot))
+      allocate(nradtime(nhrrad))
+      end subroutine init_mod_radflds
 
       subroutine rdrad(iin,idate,rrec,idirect,ierr)
  
@@ -97,19 +125,10 @@
  
       end subroutine rdrad
 
-      subroutine mmvlurad(vnamrad,lnamrad,urad,xmin,xmax,fact,offset)
+      subroutine mmvlurad
  
       use mod_point
       implicit none
-!
-! Dummy arguments
-!
-      real(4) , dimension(nrtot) :: fact , offset , xmax , xmin
-      character(64) , dimension(nrtot) :: lnamrad
-      character(64) , dimension(nrtot) :: urad
-      character(64) , dimension(nrtot) :: vnamrad
-      intent (out) fact , lnamrad , offset , urad , vnamrad
-      intent (inout) xmax , xmin
 !
 ! Local variables
 !
@@ -158,44 +177,43 @@
       urad(nr3d+nsabtp) = 'W/m2'
       urad(nr3d+nfirtp) = 'W/m2'
  
-      xmax(ncld) = 1.1
-      xmax(nclwp) = 5000.0
-      xmax(nqrs) = 1.0E-2
-      xmax(nqrl) = 1.0E-2
-      xmax(nr3d+nfsw) = 1200.0
-      xmax(nr3d+nflw) = 500.0
-      xmax(nr3d+nclrst) = 1500.0
-      xmax(nr3d+nclrss) = 1500.0
-      xmax(nr3d+nclrlt) = 1500.0
-      xmax(nr3d+nclrls) = 500.0
-      xmax(nr3d+nsolin) = 1500.0
-      xmax(nr3d+nsabtp) = 1500.0
-      xmax(nr3d+nfirtp) = 500.0
+      xmaxrad(ncld) = 1.1
+      xmaxrad(nclwp) = 5000.0
+      xmaxrad(nqrs) = 1.0E-2
+      xmaxrad(nqrl) = 1.0E-2
+      xmaxrad(nr3d+nfsw) = 1200.0
+      xmaxrad(nr3d+nflw) = 500.0
+      xmaxrad(nr3d+nclrst) = 1500.0
+      xmaxrad(nr3d+nclrss) = 1500.0
+      xmaxrad(nr3d+nclrlt) = 1500.0
+      xmaxrad(nr3d+nclrls) = 500.0
+      xmaxrad(nr3d+nsolin) = 1500.0
+      xmaxrad(nr3d+nsabtp) = 1500.0
+      xmaxrad(nr3d+nfirtp) = 500.0
  
-      xmin(ncld) = -0.1
-      xmin(nclwp) = -10.0
-      xmin(nqrs) = -1.0E-2
-      xmin(nqrl) = -1.0E-2
-      xmin(nr3d+nfsw) = -10.0
-      xmin(nr3d+nflw) = -100.0
-      xmin(nr3d+nclrst) = -10.0
-      xmin(nr3d+nclrss) = -10.0
-      xmin(nr3d+nclrlt) = -10.0
-      xmin(nr3d+nclrls) = -10.0
-      xmin(nr3d+nsolin) = -10.0
-      xmin(nr3d+nsabtp) = -10.0
-      xmin(nr3d+nfirtp) = -10.0
+      xminrad(ncld) = -0.1
+      xminrad(nclwp) = -10.0
+      xminrad(nqrs) = -1.0E-2
+      xminrad(nqrl) = -1.0E-2
+      xminrad(nr3d+nfsw) = -10.0
+      xminrad(nr3d+nflw) = -100.0
+      xminrad(nr3d+nclrst) = -10.0
+      xminrad(nr3d+nclrss) = -10.0
+      xminrad(nr3d+nclrlt) = -10.0
+      xminrad(nr3d+nclrls) = -10.0
+      xminrad(nr3d+nsolin) = -10.0
+      xminrad(nr3d+nsabtp) = -10.0
+      xminrad(nr3d+nfirtp) = -10.0
  
       aaa = 2.**16. - 1.
       do l = 1 , nrtot
-        fact(l) = (xmax(l)-xmin(l))/aaa
-        offset(l) = (xmax(l)+xmin(l))/2.
+        factrad(l) = (xmaxrad(l)-xminrad(l))/aaa
+        offsetrad(l) = (xmaxrad(l)+xminrad(l))/2.
       end do
  
       end subroutine mmvlurad
 
-      subroutine writerad(vnamrad,lnamrad,urad,xmin,xmax,fact,offset,   &
-                        & vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,      &
+      subroutine writerad(vvarmin,vvarmax,xlat1d,xlon1d,iadm,ndim,      &
                         & sighrev,vmisdat,idout,xhr,iotyp,iunt,nrec)
  
       use mod_point
@@ -206,16 +224,12 @@
       integer :: idout , iotyp , ndim , nrec , iunt
       real(4) :: vmisdat
       real(8) :: xhr
-      real(4) , dimension(nrtot) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nrtot) :: lnamrad
       real(4) , dimension(kz) :: sighrev
-      character(64) , dimension(nrtot) :: urad
-      character(64) , dimension(nrtot) :: vnamrad
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
-      intent (in) ndim , xmax , xmin
+      intent (in) ndim
 !
 ! Local variables
 !
@@ -238,20 +252,20 @@
         end do
         if ( iotyp==1 ) then
           call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
-          if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+          if ( vmin<xminrad(nr) .or. vmax>xmaxrad(nr) ) then
             print * , 'Values Out of Range:  FIELD=' , vnamrad(nr)
-            print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-            print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+            print * , 'MINVAL=' , vmin , 'XMIN=' , xminrad(nr)
+            print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxrad(nr)
             stop 999
           end if
-          misdat = xmin(nr)
+          misdat = xminrad(nr)
         else if ( iotyp==2 ) then
           misdat = vmisdat
         else
         end if
         if ( iotyp==1 .or. iotyp==2 ) then
           call writecdf(idout,vnamrad(nr),tmp3d,jxm2,iym2,kz,iadm,xhr,  &
-                      & lnamrad(nr),urad(nr),fact(nr),offset(nr),       &
+                      & lnamrad(nr),urad(nr),factrad(nr),offsetrad(nr), &
                       & vvarmin,vvarmax,xlat1d,xlon1d,sighrev,0,misdat, &
                       & iotyp)
         else if ( iotyp==3 ) then
@@ -273,22 +287,22 @@
         end do
         if ( iotyp==1 ) then
           call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
-          if ( vmin<xmin(nnr) .or. vmax>xmax(nnr) ) then
+          if ( vmin<xminrad(nnr) .or. vmax>xmaxrad(nnr) ) then
             print * , 'Values Out of Range:  FIELD=' , vnamrad(nnr)
-            print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nnr)
-            print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nnr)
+            print * , 'MINVAL=' , vmin , 'XMIN=' , xminrad(nnr)
+            print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxrad(nnr)
             stop 999
           end if
-          misdat = xmin(nr)
+          misdat = xminrad(nr)
         else if ( iotyp==2 ) then
           misdat = vmisdat
         else
         end if
         if ( iotyp==1 .or. iotyp==2 ) then
           call writecdf(idout,vnamrad(nnr),tmp2d,jxm2,iym2,1,iadm,xhr,  &
-                      & lnamrad(nnr),urad(nnr),fact(nnr),offset(nnr),   &
-                      & vvarmin,vvarmax,xlat1d,xlon1d,sighrev,0,misdat, &
-                      & iotyp)
+                      & lnamrad(nnr),urad(nnr),factrad(nnr),            &
+                      & offsetrad(nnr),vvarmin,vvarmax,xlat1d,xlon1d,   &
+                      & sighrev,0,misdat,iotyp)
         else if ( iotyp==3 ) then
           call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
         else
@@ -296,10 +310,9 @@
       end do
       end subroutine writerad
  
-      subroutine writeavgrad(xhr1,sighrev,vnamrad,lnamrad,urad,xmin,    &
-                           & xmax,fact,offset,vvarmin,vvarmax,xlat1d,   &
-                           & xlon1d,iadm,ndim,vmisdat,nradtime,idrad,   &
-                           & iotyp,iunt,nrec,plv,u_rad)
+      subroutine writeavgrad(xhr1,sighrev,vvarmin,vvarmax,xlat1d,       &
+                           & xlon1d,iadm,ndim,vmisdat,idrad,iotyp,iunt, &
+                           & nrec,plv)
  
       use mod_point
       use mod_postproc_param , only : plev
@@ -311,18 +324,12 @@
       logical :: plv
       real(4) :: vmisdat
       real(8) :: xhr1
-      real(4) , dimension(nrtot) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nrtot) :: lnamrad
-      integer , dimension(nhrrad) :: nradtime
       real(4) , dimension(kz) :: sighrev
-      character(64) , dimension(nrtot) :: urad
-      integer , dimension(nrtot) :: u_rad
-      character(64) , dimension(nrtot) :: vnamrad
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
-      intent (in) ndim , nradtime , plv , u_rad , xhr1 , xmax , xmin
+      intent (in) ndim , plv , xhr1
 !
 ! Local variables
 !
@@ -364,21 +371,21 @@
             end do
             if ( iotyp==1 ) then
               call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
-              if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+              if ( vmin<xminrad(nr) .or. vmax>xmaxrad(nr) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnamrad(nr)
-                print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+                print * , 'MINVAL=' , vmin , 'XMIN=' , xminrad(nr)
+                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxrad(nr)
                 stop 999
               end if
-              misdat = xmin(nr)
+              misdat = xminrad(nr)
             else if ( iotyp==2 ) then
               misdat = vmisdat
             else
             end if
             if ( iotyp==1 .or. iotyp==2 ) then
               call writecdf(idrad,vnamrad(nr),tmp3d,jxm2,iym2,kz,iadm,  &
-                          & xhravg,lnamrad(nr),urad(nr),fact(nr),       &
-                          & offset(nr),vvarmin,vvarmax,xlat1d,xlon1d,   &
+                          & xhravg,lnamrad(nr),urad(nr),factrad(nr),    &
+                          & offsetrad(nr),vvarmin,vvarmax,xlat1d,xlon1d,&
                           & sighrev,0,misdat,iotyp)
             else if ( iotyp==3 ) then
               call writegrads(iunt,tmp3d,jxm2,iym2,kz,nrec)
@@ -411,22 +418,22 @@
             end do
             if ( iotyp==1 ) then
               call getminmax(tmp3d_p,jxm2,iym2,npl,vmin,vmax,vmisdat)
-              if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+              if ( vmin<xminrad(nr) .or. vmax>xmaxrad(nr) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnamrad(nr)
-                print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+                print * , 'MINVAL=' , vmin , 'XMIN=' , xminrad(nr)
+                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxrad(nr)
                 stop 999
               end if
-              misdat = xmin(nr)
+              misdat = xminrad(nr)
             else if ( iotyp==2 ) then
               misdat = vmisdat
             else
             end if
             if ( iotyp==1 .or. iotyp==2 ) then
               call writecdf(idrad,vnamrad(nr),tmp3d_p,jxm2,iym2,npl,    &
-                          & iadm,xhravg,lnamrad(nr),urad(nr),fact(nr),  &
-                          & offset(nr),vvarmin,vvarmax,xlat1d,xlon1d,   &
-                          & plev,0,misdat,iotyp)
+                         & iadm,xhravg,lnamrad(nr),urad(nr),factrad(nr),&
+                         & offsetrad(nr),vvarmin,vvarmax,xlat1d,xlon1d, &
+                         & plev,0,misdat,iotyp)
             else if ( iotyp==3 ) then
               call writegrads(iunt,tmp3d_p,jxm2,iym2,npl,nrec)
             else
@@ -457,21 +464,21 @@
           end do
           if ( iotyp==1 ) then
             call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
-            if ( vmin<xmin(nnr) .or. vmax>xmax(nnr) ) then
+            if ( vmin<xminrad(nnr) .or. vmax>xmaxrad(nnr) ) then
               print * , 'Values Out of Range:  FIELD=' , vnamrad(nnr)
-              print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nnr)
-              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nnr)
+              print * , 'MINVAL=' , vmin , 'XMIN=' , xminrad(nnr)
+              print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxrad(nnr)
               stop 999
             end if
-            misdat = xmin(nr)
+            misdat = xminrad(nr)
           else if ( iotyp==2 ) then
             misdat = vmisdat
           else
           end if
           if ( iotyp==1 .or. iotyp==2 ) then
             call writecdf(idrad,vnamrad(nnr),tmp2d,jxm2,iym2,1,iadm,    &
-                        & xhravg,lnamrad(nnr),urad(nnr),fact(nnr),      &
-                        & offset(nnr),vvarmin,vvarmax,xlat1d,xlon1d,    &
+                        & xhravg,lnamrad(nnr),urad(nnr),factrad(nnr),   &
+                        & offsetrad(nnr),vvarmin,vvarmax,xlat1d,xlon1d, &
                         & sighrev,0,misdat,iotyp)
           else if ( iotyp==3 ) then
             call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
@@ -481,10 +488,9 @@
       end do
       end subroutine writeavgrad
  
-      subroutine writediurrad(xhr1,sighrev,vnamrad,lnamrad,urad,xmin,   &
-                            & xmax,fact,offset,vvarmin,vvarmax,xlat1d,  &
-                            & xlon1d,iadm,ndim,vmisdat,nradtime,idrad,  &
-                            & iotyp,iunt,nrec,plv,u_rad)
+      subroutine writediurrad(xhr1,sighrev,vvarmin,vvarmax,xlat1d,      &
+                            & xlon1d,iadm,ndim,vmisdat,idrad,iotyp,iunt,&
+                            & nrec,plv)
  
       use mod_point
       use mod_postproc_param , only : plev , dtrad
@@ -496,18 +502,12 @@
       logical :: plv
       real(4) :: vmisdat
       real(8) :: xhr1
-      real(4) , dimension(nrtot) :: fact , offset , xmax , xmin
       integer , dimension(ndim) :: iadm
-      character(64) , dimension(nrtot) :: lnamrad
-      integer , dimension(nhrrad) :: nradtime
       real(4) , dimension(kz) :: sighrev
-      character(64) , dimension(nrtot) :: urad
-      integer , dimension(nrtot) :: u_rad
-      character(64) , dimension(nrtot) :: vnamrad
       real(4) , dimension(ndim) :: vvarmax , vvarmin
       real(4) , dimension(iym2) :: xlat1d
       real(4) , dimension(jxm2) :: xlon1d
-      intent (in) ndim , nradtime , plv , u_rad , xhr1 , xmax , xmin
+      intent (in) ndim , plv , xhr1
 !
 ! Local variables
 !
@@ -547,22 +547,22 @@
               end do
               if ( iotyp==1 ) then
                 call getminmax(tmp3d,jxm2,iym2,kz,vmin,vmax,vmisdat)
-                if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+                if ( vmin<xminrad(nr) .or. vmax>xmaxrad(nr) ) then
                   print * , 'Values Out of Range:  FIELD=' , vnamrad(nr)
-                  print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-                  print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+                  print * , 'MINVAL=' , vmin , 'XMIN=' , xminrad(nr)
+                  print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxrad(nr)
                   stop 999
                 end if
-                misdat = xmin(nr)
+                misdat = xminrad(nr)
               else if ( iotyp==2 ) then
                 misdat = vmisdat
               else
               end if
               if ( iotyp==1 .or. iotyp==2 ) then
                 call writecdf(idrad,vnamrad(nr),tmp3d,jxm2,iym2,kz,iadm,&
-                            & xhravg,lnamrad(nr),urad(nr),fact(nr),     &
-                            & offset(nr),vvarmin,vvarmax,xlat1d,xlon1d, &
-                            & sighrev,0,misdat,iotyp)
+                            & xhravg,lnamrad(nr),urad(nr),factrad(nr),  &
+                            & offsetrad(nr),vvarmin,vvarmax,xlat1d,     &
+                            & xlon1d,sighrev,0,misdat,iotyp)
               else if ( iotyp==3 ) then
                 call writegrads(iunt,tmp3d,jxm2,iym2,kz,nrec)
               else
@@ -598,22 +598,22 @@
               end do
               if ( iotyp==1 ) then
                 call getminmax(tmp3d_p,jxm2,iym2,npl,vmin,vmax,vmisdat)
-                if ( vmin<xmin(nr) .or. vmax>xmax(nr) ) then
+                if ( vmin<xminrad(nr) .or. vmax>xmaxrad(nr) ) then
                   print * , 'Values Out of Range:  FIELD=' , vnamrad(nr)
-                  print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nr)
-                  print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nr)
+                  print * , 'MINVAL=' , vmin , 'XMIN=' , xminrad(nr)
+                  print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxrad(nr)
                   stop 999
                 end if
-                misdat = xmin(nr)
+                misdat = xminrad(nr)
               else if ( iotyp==2 ) then
                 misdat = vmisdat
               else
               end if
               if ( iotyp==1 .or. iotyp==2 ) then
                 call writecdf(idrad,vnamrad(nr),tmp3d_p,jxm2,iym2,npl,  &
-                            & iadm,xhravg,lnamrad(nr),urad(nr),fact(nr),&
-                            & offset(nr),vvarmin,vvarmax,xlat1d,xlon1d, &
-                            & plev,0,misdat,iotyp)
+                            & iadm,xhravg,lnamrad(nr),urad(nr),         &
+                            & factrad(nr),offsetrad(nr),vvarmin,vvarmax,&
+                            & xlat1d,xlon1d,plev,0,misdat,iotyp)
               else if ( iotyp==3 ) then
                 call writegrads(iunt,tmp3d_p,jxm2,iym2,npl,nrec)
               else
@@ -649,22 +649,22 @@
             end do
             if ( iotyp==1 ) then
               call getminmax(tmp2d,jxm2,iym2,1,vmin,vmax,vmisdat)
-              if ( vmin<xmin(nnr) .or. vmax>xmax(nnr) ) then
+              if ( vmin<xminrad(nnr) .or. vmax>xmaxrad(nnr) ) then
                 print * , 'Values Out of Range:  FIELD=' , vnamrad(nnr)
-                print * , 'MINVAL=' , vmin , 'XMIN=' , xmin(nnr)
-                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmax(nnr)
+                print * , 'MINVAL=' , vmin , 'XMIN=' , xminrad(nnr)
+                print * , 'MAXVAL=' , vmax , 'XMAX=' , xmaxrad(nnr)
                 stop 999
               end if
-              misdat = xmin(nr)
+              misdat = xminrad(nr)
             else if ( iotyp==2 ) then
               misdat = vmisdat
             else
             end if
             if ( iotyp==1 .or. iotyp==2 ) then
               call writecdf(idrad,vnamrad(nnr),tmp2d,jxm2,iym2,1,iadm,  &
-                          & xhravg,lnamrad(nnr),urad(nnr),fact(nnr),    &
-                          & offset(nnr),vvarmin,vvarmax,xlat1d,xlon1d,  &
-                          & sighrev,0,misdat,iotyp)
+                          & xhravg,lnamrad(nnr),urad(nnr),factrad(nnr), &
+                          & offsetrad(nnr),vvarmin,vvarmax,xlat1d,      &
+                          & xlon1d,sighrev,0,misdat,iotyp)
             else if ( iotyp==3 ) then
               call writegrads(iunt,tmp2d,jxm2,iym2,1,nrec)
             else

@@ -21,7 +21,7 @@
                       & xmap,dmap,xlat,xlon,zs,zssd,ls,mdate0,&
                       & iin,inhead,idirect)
  
-      use mod_regcm_param , only : jx , iy , kz , ibyte
+      use mod_dynparam , only : jx , iy , kz , ibyte
       use mod_postproc_param , only : dtout , dtbat , dtrad , dtche
       implicit none
 !
