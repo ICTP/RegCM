@@ -5,16 +5,16 @@ include Makefile.inc
 HOST = @host@
 
 
-all: terrain icbc regcm
 printall:
 	@echo ' this is Makefile for Regcm4 package: supported actions are: '
 	@echo '  --- make data: to create DATA link '
 	@echo '  --- make terrain: to compile terrain' 
-	@echo '  --- make run_terrain: to execute terrain code' 
 	@echo '  --- make icbc: to compile icbc codes'
-	@echo '  ----make run_icbc: to run icbc codes'
 	@echo '  ----make regcm:  to compile regcm code' 
-	@echo '  ----make check : to check your configuration (run this if any of the steps above fails)' 
+	@echo '  ----make all: to compile all the codes and tools'
+	@echo '  ----make check : to check your configuration (still to be implemented)' 
+
+all: terrain icbc regcm
 
 check: 
 	# check compilation flags and how MACROs are defined in Makefile.inc 
@@ -37,11 +37,6 @@ icbc:
 	#Move to the ICBC directory and run make there
 	cd $(REGCM_BASE_DIR)/PreProc/ICBC && $(MAKE) 
 
-run_icbc:
-	# Create and run icbc.x script 
-	cd $(REGCM_BASE_DIR)/utils && ./setup_ICBC.py
-	cd $(REGCM_BASE_DIR)/PreProc/ICBC && csh ./icbc_v4.x
-
 regcm:
 	# Change to the Main directory and run make there
 	cd $(REGCM_BASE_DIR)/Main && $(MAKE) all TARGET=$(TARGET)
@@ -49,10 +44,6 @@ regcm:
 postproc:
 	cd $(REGCM_BASE_DIR)/PostProc && $(MAKE) all TARGET=$(TARGET)
 
-
-$(ICBC_DEPS): terrain	
-
-$(REGCM_DEPS): icbc	
 
 clean:
 	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) clean 
