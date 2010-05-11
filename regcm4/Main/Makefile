@@ -107,8 +107,9 @@ endif
 endif
 
 program: regcm
-	@install -m755 regcm \
+	@cp regcm \
           $(destdir)/regcm$(prgsuffix)$(dcsstsuffix)$(seaicesuffix)
+	@chmod 755  $(destdir)/regcm$(prgsuffix)$(dcsstsuffix)$(seaicesuffix) 
 	@echo "Executable is installed now in $(destdir)"
 
 $(CLMPTH)/libclm.a: mod_dynparam.o mod_clm.o
