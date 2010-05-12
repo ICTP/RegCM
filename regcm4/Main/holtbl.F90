@@ -24,7 +24,7 @@
       use mod_dynparam
       use mod_param1
       use mod_param2
-      use mod_param3 , only : dsigma , ptop , a
+      use mod_param3 , only : dsigma , r8pt , a
       use mod_main
       use mod_mainchem
       use mod_pbldim
@@ -160,8 +160,8 @@
         do k = 1 , kzm1
           do i = 2 , iym1
             dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
-            xps = (a(k)*psb(i,j)+ptop)*1000.
-            ps2 = (a(k+1)*psb(i,j)+ptop)*1000.
+            xps = (a(k)*psb(i,j)+r8pt)*1000.
+            ps2 = (a(k+1)*psb(i,j)+r8pt)*1000.
             rhohf(i,k,j) = (ps2-xps)/(gti*dza(i,k,j))
           end do
         end do

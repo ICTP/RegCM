@@ -23,7 +23,7 @@
 !
       use mod_dynparam
       use mod_param1 , only : dt , dtmin , nbatst
-      use mod_param3 , only : ptop , a
+      use mod_param3 , only : r8pt , a
       use mod_pmoist
       use mod_rad
       use mod_bats , only : pptc
@@ -80,12 +80,12 @@
           if ( q(i,k).lt.1.E-08 ) q(i,k) = 1.E-08
           tn(i,k) = t(i,k) + (tten(i,kk))/psb(i,j)*dtime
           qo(i,k) = q(i,k) + (qten(i,kk))/psb(i,j)*dtime
-          p(i,k) = 10.*psb(i,j)*a(kk) + 10.*ptop
+          p(i,k) = 10.*psb(i,j)*a(kk) + 10.*r8pt
           vsp(i,k) = dsqrt(us**2+vs**2)
           if ( qo(i,k).lt.1.E-08 ) qo(i,k) = 1.E-08
 !
           po(i,k) = p(i,k)
-          psur(i) = 10.*psb(i,j) + 10.*ptop
+          psur(i) = 10.*psb(i,j) + 10.*r8pt
           outt(i,k) = 0.
           pkk = psur(i) - po(i,k)
           if ( pkk.le.pkdcut ) kdet(i) = kdet(i) + 1

@@ -47,7 +47,7 @@
       use mod_dynparam
       use mod_param1
       use mod_param2
-      use mod_param3 , only : dsigma , a , wgtx , wgtd , ptop , ispgx , &
+      use mod_param3 , only : dsigma , a , wgtx , wgtd , r8pt , ispgx , &
                    & ispgd , akht1
       use mod_main
       use mod_mainchem
@@ -1193,7 +1193,7 @@
               rovcpm = rgas/(cpd*(1.+0.8*(qv(i,k,j))))
               tv = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
               tten(i,k,j) = tten(i,k,j) + (omega(i,k,j)*rovcpm*tv)      &
-                          & /(ptop/psa(i,j)+a(k))
+                          & /(r8pt/psa(i,j)+a(k))
             end do
           end do
 !
@@ -1485,7 +1485,7 @@
               do i = 1 , iym1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
                 ttld(i,k,j) = td(i,k,j) - psa(i,j)                      &
-                            & *t00pg*((a(k)*psa(i,j)+ptop)/p00pg)       &
+                            & *t00pg*((a(k)*psa(i,j)+r8pt)/p00pg)       &
                             & **pgfaa1
               end do
             end do
@@ -1511,7 +1511,7 @@
               do i = 1 , iym1
                 td(i,k,j) = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
                 ttld(i,k,j) = td(i,k,j) - psa(i,j)                      &
-                            & *t00pg*((a(k)*psa(i,j)+ptop)/p00pg)       &
+                            & *t00pg*((a(k)*psa(i,j)+r8pt)/p00pg)       &
                             & **pgfaa1
               end do
             end do
@@ -1536,16 +1536,16 @@
               tvb = tb(i,k,j)*(1.+ep1*(qvb(i,k,j))/psb(i,j))
               td(i,k,j) = alpha*(tvc+tvb) + beta*tva
               ttld(i,k,j) = td(i,k,j) - psd(i,j)                        &
-                          & *t00pg*((a(k)*psd(i,j)+ptop)/p00pg)**pgfaa1
+                          & *t00pg*((a(k)*psd(i,j)+r8pt)/p00pg)**pgfaa1
             end do
           end do
           do k = 1 , kz
             td(1,k,j) = ta(1,k,j)*(1.+ep1*(qv(1,k,j)))
             ttld(1,k,j) = td(1,k,j) - psa(1,j)                          &
-                        & *t00pg*((a(k)*psa(1,j)+ptop)/p00pg)**pgfaa1
+                        & *t00pg*((a(k)*psa(1,j)+r8pt)/p00pg)**pgfaa1
             td(iym1,k,j) = ta(iym1,k,j)*(1.+ep1*(qv(iym1,k,j)))
             ttld(iym1,k,j) = td(iym1,k,j) - psa(iym1,j)                 &
-                          & *t00pg*((a(k)*psa(iym1,j)+ptop)/p00pg)      &
+                          & *t00pg*((a(k)*psa(iym1,j)+r8pt)/p00pg)      &
                           & **pgfaa1
           end do
 !
@@ -1629,18 +1629,18 @@
               tv3 = t(i-1,k,j)*(1.+ep1*(qv(i-1,k,j)))
               tv4 = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
               rtbar = tv1 + tv2 + tv3 + tv4 -                           &
-                    & 4.*t00pg*((a(k)*psasum/4.+ptop)/p00pg)**pgfaa1
+                    & 4.*t00pg*((a(k)*psasum/4.+r8pt)/p00pg)**pgfaa1
               rtbar = rgas*rtbar*sigpsa/16.
               uten(i,k,j) = uten(i,k,j)                                 &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
-                          & +ptop)                                      &
+                          & +r8pt)                                      &
                           & -dlog(0.5*(psd(i,j-1)+psd(i-1,j-1))*a(k)    &
-                          & +ptop))/(dx*msfd(i,j))
+                          & +r8pt))/(dx*msfd(i,j))
               vten(i,k,j) = vten(i,k,j)                                 &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i,j-1))*a(k)&
-                          & +ptop)                                      &
+                          & +r8pt)                                      &
                           & -dlog(0.5*(psd(i-1,j-1)+psd(i-1,j))*a(k)    &
-                          & +ptop))/(dx*msfd(i,j))
+                          & +r8pt))/(dx*msfd(i,j))
             end do
           end do
         else if ( ipgf.eq.0 ) then
@@ -1655,14 +1655,14 @@
               rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.
               uten(i,k,j) = uten(i,k,j)                                 &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
-                          & +ptop)                                      &
+                          & +r8pt)                                      &
                           & -dlog(0.5*(psd(i,j-1)+psd(i-1,j-1))*a(k)    &
-                          & +ptop))/(dx*msfd(i,j))
+                          & +r8pt))/(dx*msfd(i,j))
               vten(i,k,j) = vten(i,k,j)                                 &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i,j-1))*a(k)&
-                          & +ptop)                                      &
+                          & +r8pt)                                      &
                           & -dlog(0.5*(psd(i-1,j-1)+psd(i-1,j))*a(k)    &
-                          & +ptop))/(dx*msfd(i,j))
+                          & +r8pt))/(dx*msfd(i,j))
             end do
           end do
         else
@@ -1682,11 +1682,11 @@
           do i = 1 , iym1
             tv = (ttld(i,kz,j)/psd(i,j))/(1.+qc(i,kz,j)/(1.+qv(i,kz,j)))
             phi(i,kz,j) = ht(i,j)                                       &
-                        & + rgas*t00pg/pgfaa1*((psd(i,j)+ptop)/p00pg)   &
+                        & + rgas*t00pg/pgfaa1*((psd(i,j)+r8pt)/p00pg)   &
                         & **pgfaa1
             phi(i,kz,j) = phi(i,kz,j)                                   &
-                        & - rgas*tv*dlog((a(kz)+ptop/psd(i,j))/(1.+     &
-                        & ptop/psd(i,j)))
+                        & - rgas*tv*dlog((a(kz)+r8pt/psd(i,j))/(1.+     &
+                        & r8pt/psd(i,j)))
           end do
  
           do k = 1 , kzm1
@@ -1696,8 +1696,8 @@
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+            &
                     & dsigma(lev+1))))/(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j)                             &
-                           & - rgas*tvavg*dlog((a(lev)+ptop/psd(i,j))   &
-                           & /(a(lev+1)+ptop/psd(i,j)))
+                           & - rgas*tvavg*dlog((a(lev)+r8pt/psd(i,j))   &
+                           & /(a(lev+1)+r8pt/psd(i,j)))
             end do
           end do
  
@@ -1706,8 +1706,8 @@
           do i = 1 , iym1
             tv = (td(i,kz,j)/psd(i,j))/(1.+qc(i,kz,j)/(1.+qv(i,kz,j)))
             phi(i,kz,j) = ht(i,j)                                       &
-                        & - rgas*tv*dlog((a(kz)+ptop/psd(i,j))/         &
-                        & (1.+ptop/psd(i,j)))
+                        & - rgas*tv*dlog((a(kz)+r8pt/psd(i,j))/         &
+                        & (1.+r8pt/psd(i,j)))
           end do
  
           do k = 1 , kzm1
@@ -1717,8 +1717,8 @@
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+            &
                     & dsigma(lev+1))))/(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j)                             &
-                           & - rgas*tvavg*dlog((a(lev)+ptop/psd(i,j))   &
-                           & /(a(lev+1)+ptop/psd(i,j)))
+                           & - rgas*tvavg*dlog((a(lev)+r8pt/psd(i,j))   &
+                           & /(a(lev+1)+r8pt/psd(i,j)))
             end do
           end do
  

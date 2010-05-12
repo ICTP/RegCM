@@ -22,7 +22,7 @@
       use mod_interfaces
       use mod_param1 , only : dtmin
       use mod_param2 , only : kbats
-      use mod_param3 , only : ptop
+      use mod_param3 , only : r8pt
       use mod_main , only : tgb , psb , zpbl
       use mod_pbldim , only : rhox2d , za
       use mod_slice , only : tb3d , ubx3d , vbx3d , qvb3d
@@ -95,7 +95,7 @@
             q995 = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
             z995 = za(i,k,j)
             zi = zpbl(i,j)
-            psurf = (psb(i,j)+ptop)*10.
+            psurf = (psb(i,j)+r8pt)*10.
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,        &
                        & uv10,tau,lh,sh,dth,dqh,ustar,zo)
 #ifdef DCSST

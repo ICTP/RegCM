@@ -31,7 +31,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_dynparam
-      use mod_param3 , only : ptop , a
+      use mod_param3 , only : r8pt , a
       use mod_pmoist
       use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
                              & svp2 , svp3 , svp4 , svp5 , svp6 ,       &
@@ -70,7 +70,7 @@
             tpavg = 0.5*(ta(i,k,j)+tb(i,k,j))
             qvavg = 0.5*(qva(i,k,j)/psa(i,j)+qvb(i,k,j)/psb(i,j))
             pavg = 0.5*(psa(i,j)+psb(i,j))
-            psx = pavg*a(k) + ptop
+            psx = pavg*a(k) + r8pt
             tta = tpavg/pavg
             if ( tta.gt.tzero ) then
 !             v8 svp formula

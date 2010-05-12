@@ -24,6 +24,7 @@
       use mod_split
       use mod_message
       use mod_constants , only : rgas , rovcp
+      use mod_param3 , only : r8pt
       implicit none
 !
 ! Dummy arguments
@@ -57,7 +58,7 @@
 ! dt     = time step used to generate tendencies (later called delt)
 ! dx     = grid spacing at center in meters (later called delx).
 ! clat   = latitude of central point, used to determine coriolis param.
-! ptop   = model top in units of cb (later called pt).
+! r8pt   = model top in units of cb
 !
 !
 !     programmed by ronald m. errico at ncar,  dec 1984.
@@ -68,7 +69,7 @@
 !  iunit is the output unit number for file of eigenvectors, etc.
 !  lstand = .true. if standard atmosphere t to be used (ignore input
 !            tbarh and ps in that case).  otherwise, ps and tbarh must
-!            be defined on input.  note that in either case, pt must
+!            be defined on input.  note that in either case, r8pt must
 !            also be defined on input (common block named cvert).
 !
       data lprint/.false./  ! true if all matrices to be printed
@@ -86,7 +87,7 @@
 !  set reference pressures
       if ( lstand ) ps = 100.
                             ! standard ps in cb; otherwise ps set in tav
-      pd = ps - pt
+      pd = ps - r8pt
 !
 !  read sigmaf (sigma at full (integral) index levels; kzp1 values as
 !  in the mm4.   check that values are ordered properly.
@@ -125,8 +126,8 @@
       sigmah(kzp1) = 1.0
 !
 !  set tbarh (temperature at half (data) levels: indexed k + 1/2)
-      if ( lstand ) call vtlaps(tbarh,sigmah,pt,pd,kz)
-      call vchekt(tbarh,sigmah,sigmaf,rovcp,pt,pd,kz,numerr)
+      if ( lstand ) call vtlaps(tbarh,sigmah,r8pt,pd,kz)
+      call vchekt(tbarh,sigmah,sigmaf,rovcp,r8pt,pd,kz,numerr)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
@@ -134,7 +135,7 @@
 !
 !  compute thetah
       do k = 1 , kz
-        thetah(k) = tbarh(k)*((sigmah(k)+pt/pd)**(-rovcp))
+        thetah(k) = tbarh(k)*((sigmah(k)+r8pt/pd)**(-rovcp))
       end do
 !
 !  compute tbarf and thetaf
@@ -151,7 +152,7 @@
         if ( sigmaf(k).lt.1E-30 ) then
           thetaf(k) = tbarf(k)
         else
-          thetaf(k) = tbarf(k)*((sigmaf(k)+pt/pd)**(-rovcp))
+          thetaf(k) = tbarf(k)*((sigmaf(k)+r8pt/pd)**(-rovcp))
         end if
       end do
 !
@@ -177,7 +178,7 @@
       do k = 1 , kz
         a3(k,k) = -tbarh(k)
         d1(k,k) = sigmaf(k+1) - sigmaf(k)
-        d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+pt/pd)
+        d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+r8pt/pd)
         s1(k,k) = sigmaf(k)
         s2(k,k) = sigmah(k)
         x1(k,k) = 1.
@@ -235,7 +236,7 @@
 !
 !  compute delta log p
       do k = 2 , kz
-        w1(k,1) = dlog((sigmah(k)+pt/pd)/(sigmah(k-1)+pt/pd))
+        w1(k,1) = dlog((sigmah(k)+r8pt/pd)/(sigmah(k-1)+r8pt/pd))
       end do
 !
 !  compute matrix which multiples t vector
@@ -256,10 +257,10 @@
 !
       do k = 1 , kz
         hydros(k,kz) = hydros(k,kz)                                     &
-                     & + dlog((1.+pt/pd)/(sigmah(kz)+pt/pd))
+                     & + dlog((1.+r8pt/pd)/(sigmah(kz)+r8pt/pd))
       end do
 !
-!  compute matirx which multiplies log(sigma*p+pt) vector
+!  compute matirx which multiplies log(sigma*p+r8pt) vector
       do l = 1 , kzp1
         do k = 1 , kz
           hydroc(k,l) = 0.
@@ -297,9 +298,9 @@
         do l = 1 , kz
           w1(k,1) = w1(k,1) + hydros(k,l)*tbarh(l)
         end do
-        w1(k,2) = -tbarh(k)*dlog(sigmah(k)*pd+pt)
+        w1(k,2) = -tbarh(k)*dlog(sigmah(k)*pd+r8pt)
         do l = 1 , kzp1
-          w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+pt)
+          w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+r8pt)
         end do
         x = dabs(w1(k,1)-w1(k,2))/(dabs(w1(k,1))+dabs(w1(k,2)))
         if ( x.gt.1.E-8 ) lhydro = .true.
@@ -319,7 +320,7 @@
 !
       do l = 1 , kz
         do k = 1 , kzp1
-          w3(k,l) = dsigma(l)/(1.+pt/(pd*sigmah(k)))
+          w3(k,l) = dsigma(l)/(1.+r8pt/(pd*sigmah(k)))
         end do
       end do
 !

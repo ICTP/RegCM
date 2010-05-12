@@ -10,20 +10,21 @@
 !    ICTP RegCM is distributed in the hope that it will be useful,
 !    but WITHOUT ANY WARRANTY; without even the implied warranty of
 !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more details.
+!    GNU General Public Licens for more details.
 !
 !    You should have received a copy of the GNU General Public License
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine spinit(xtop,sigma,kv1)
+      subroutine spinit(sigma,kv1)
 !
 !** compute vertical modes.
 !
       use mod_dynparam
       use mod_param1 , only : dt , dtau , dx2
       use mod_param2
+      use mod_param3 , only : r8pt
       use mod_iunits
       use mod_bdycod
       use mod_main
@@ -45,9 +46,7 @@
 ! Dummy arguments
 !
       integer :: kv1
-      real(8) :: xtop
       real(8) , dimension(kv1) :: sigma
-      intent (in) xtop
 !
 ! Local variables
 !
@@ -60,7 +59,7 @@
 !
 !     lstand = .true. if standard atmosphere t to be used (ignore input
 !     tbarh and ps in that case).  otherwise, ps and tbarh must
-!     be defined on input.  note that in either case, pt must
+!     be defined on input.  note that in either case, r8pt must
 !     also be defined on input (common block named cvert).
 !
 !
@@ -84,12 +83,11 @@
       print * , 'dt, dtau = ' , dt , dtau
 #endif
 !
-!**   compute pt, ps and tbarh for use in vmodes.
+!**   compute ps and tbarh for use in vmodes.
       ps = 0.
       do k = 1 , kz
         tbarh(k) = 0.
       end do
-      pt = xtop
 #ifdef MPP1
       ijlx = iym1*jendx
       do j = 1 , jendx
@@ -383,8 +381,8 @@
 !
 !******* geopotential manipulations
         do l = 1 , nsplit
-          pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+pt)
-          eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+pt)
+          pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
+          eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
 #ifdef MPP1
           do j = 1 , jendx
             do i = 1 , iym1
@@ -401,8 +399,8 @@
           end do
 #endif
           do k = 1 , kz
-            pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+pt)
-            eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+pt)
+            pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
+            eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
 #ifdef MPP1
             do j = 1 , jendx
               do i = 1 , iym1

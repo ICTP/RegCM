@@ -17,6 +17,12 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
+      module mod_isrchf
+!
+!     Functions to search index of values on array respecting conditions
+!
+      contains
+
       function isrchfgt(n,array,inc,rtarg)
       implicit none
 !
@@ -45,5 +51,38 @@
           ind = ind + inc
         end if
       end do
-      isrchfgt = n + 1
+      isrchfgt = ind
       end function isrchfgt
+ 
+      function isrchfle(n,array,inc,rtarg)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: inc , n
+      real(8) :: rtarg
+      real(8) , dimension(*) :: array
+      integer :: isrchfle
+      intent (in) array , inc , n , rtarg
+!
+! Local variables
+!
+      integer :: i , ind
+!
+      if ( n.le.0 ) then
+        isrchfle = 0
+        return
+      end if
+      ind = 1
+      do i = 1 , n
+        if ( array(ind).le.rtarg ) then
+          isrchfle = i
+          return
+        else
+          ind = ind + inc
+        end if
+      end do
+      isrchfle = ind
+      end function isrchfle
+
+      end module mod_isrchf

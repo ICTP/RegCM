@@ -29,7 +29,7 @@
       use mod_param1 , only : dt , dt2 , dx , ibdyfrq
       use mod_param2 , only : ibltyp , ichem , icup , iemiss , ifrest , &
                    & iocnflx , ipptls , lakemod , icnt
-      use mod_param3 , only : a , dsigma , ptop
+      use mod_param3 , only : a , dsigma , r8pt
       use mod_iunits
       use mod_bats , only : ssw2da , sdeltk2d , sdelqk2d , sfracv2d ,   &
                    & sfracb2d , sfracs2d , svegfrac2d , ht1 , satbrt1 , &
@@ -407,7 +407,7 @@
 !
         do j = 1 , jendl
           do i = 1 , iy
-            ps0(i,j) = ps0(i,j) - ptop
+            ps0(i,j) = ps0(i,j) - r8pt
           end do
         end do
 !=======================================================================
@@ -533,7 +533,7 @@
         do k = 1 , kz
           do j = 1 , jendl
             do i = 1 , iy
-              tbase(i,k,j) = ts00 + tlp*dlog((psa(i,j)*a(k)+ptop)/100.)
+              tbase(i,k,j) = ts00 + tlp*dlog((psa(i,j)*a(k)+r8pt)/100.)
             end do
           end do
         end do
@@ -687,7 +687,7 @@
 !
         do j = 1 , jx
           do i = 1 , iy
-            ps0(i,j) = ps0(i,j) - ptop
+            ps0(i,j) = ps0(i,j) - r8pt
           end do
         end do
 !=======================================================================
@@ -804,7 +804,7 @@
         do k = 1 , kz
           do j = 1 , jx
             do i = 1 , iy
-              tbase(i,k,j) = ts00 + tlp*dlog((psa(i,j)*a(k)+ptop)/100.)
+              tbase(i,k,j) = ts00 + tlp*dlog((psa(i,j)*a(k)+r8pt)/100.)
             end do
           end do
         end do

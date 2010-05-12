@@ -25,7 +25,7 @@
  
       use mod_dynparam
       use mod_param1 , only : dt , nbatst
-      use mod_param3 , only : ptop , sigma
+      use mod_param3 , only : r8pt , sigma
       use mod_main
       use mod_pmoist
       use mod_cvaria
@@ -73,7 +73,7 @@
         end do
         do k = 1 , kzp1
           kk = kzp1 - k + 1
-          phcup(k) = (sigma(kk)*psb(i,j)+ptop)*10.        ! [hPa]
+          phcup(k) = (sigma(kk)*psb(i,j)+r8pt)*10.        ! [hPa]
         end do
         cbmf = cbmf2d(i,j)                                ! [(kg/m**2)/s]
  

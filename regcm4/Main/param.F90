@@ -30,7 +30,7 @@
       use mod_param2
       use mod_param3 , only : wgtx , sigma , dsigma , a , anudg , twt , &
                    & qcon , wgtd , akht1 , akht2 , kt , kxout , ncld ,  &
-                   & ptop , ptop4 , kchi , k700 , jxsex , ispgx ,       &
+                   & r8pt , ptop4 , kchi , k700 , jxsex , ispgx ,       &
                    & ispgd , allocate_mod_param3
       use mod_iunits
       use mod_pmoist
@@ -765,7 +765,7 @@
       end if
       call mpi_bcast(clat,1,mpi_real,0,mpi_comm_world,ierr)
       call mpi_bcast(plon,1,mpi_real,0,mpi_comm_world,ierr)
-      call mpi_bcast(ptop,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(r8pt,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(dx,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
 #else
@@ -786,7 +786,7 @@
       print * , 'SIGMA' , sp1d
       print * , 'PTOP' , ptsp
       print * , 'OUTPUT' , igra , ibig
-      ptop = ptsp
+      r8pt = ptsp
       dx = dsx
       if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
         write (aline,*) '  SET IN regcm.param:  IY=' , iy , ' JX=' ,    &
@@ -839,14 +839,14 @@
 !     all the other constants are used to compute the cloud
 !     microphysical parameterization (ref. orville & kopp, 1977 jas).
 !
-      ptop4 = 4.*ptop
+      ptop4 = 4.*r8pt
       dx2 = 2.*dx
       dx4 = 4.*dx
       dx8 = 8.*dx
       dx16 = 16.*dx
       dxsq = dx*dx
-      c200 = vonkar*vonkar*dx/(4.*(100.-ptop))
-      c201 = (100.-ptop)/dxsq
+      c200 = vonkar*vonkar*dx/(4.*(100.-r8pt))
+      c201 = (100.-r8pt)/dxsq
       c203 = 1./dxsq
       xkhz = 1.5E-3*dxsq/dt
       xkhmax = dxsq/(64.*dt)
@@ -1322,8 +1322,8 @@
 !......get vqflx from  d(w*q) / dsigma on full levels
 !         do computations in p to avoid sigma=0. discontinuity
 !
-          xtop = dlog((100.-ptop)*sigma(ktop)+ptop)
-          xbot = dlog((100.-ptop)*sigma(kbase+1)+ptop)
+          xtop = dlog((100.-r8pt)*sigma(ktop)+r8pt)
+          xbot = dlog((100.-r8pt)*sigma(kbase+1)+r8pt)
           bb = xtop + xbot
           cc = xtop*xbot
           vqmax = 0.
@@ -1333,9 +1333,9 @@
           wk = (xx*xx) - (bb*xx) + cc
           qk = -((yy*yy)-(bb*yy)+cc)
           do k = ktop , kbase
-            xx = dlog((100.-ptop)*sigma(k+1)+ptop)
-            yy = dlog((100.-ptop)                                       &
-               & *(sigma(ktop)+sigma(kbase+1)-sigma(k+1))+ptop)
+            xx = dlog((100.-r8pt)*sigma(k+1)+r8pt)
+            yy = dlog((100.-r8pt)                                       &
+               & *(sigma(ktop)+sigma(kbase+1)-sigma(k+1))+r8pt)
             wkp1 = (xx*xx) - (bb*xx) + cc
             qkp1 = -((yy*yy)-(bb*yy)+cc)
             vqflx(k,kbase,ktop) = -((wkp1*qkp1)-(wk*qk))/dsigma(k)
@@ -1357,7 +1357,7 @@
 !-----   allowed pbl, and 1013mb as standard surface pressure. (sigtbl)
 !-----2. find first model sigma level above sigtbl.
 !
-      sigtbl = (70.-ptop)/(101.3-ptop)
+      sigtbl = (70.-r8pt)/(101.3-r8pt)
       kt = 1
       do k = kz , 1 , -1
         delsig = a(k) - sigtbl
@@ -1606,7 +1606,7 @@
       end do
  
       chibot = 450.
-      ptmb = 10.*ptop
+      ptmb = 10.*r8pt
       pz = a(1)*(1000.-ptmb) + ptmb
       if ( pz.gt.chibot ) call fatal(__FILE__,__LINE__,                 &
                                     &'VERTICAL INTERPOLATION ERROR')
@@ -1620,7 +1620,7 @@
 !     temperature will be regarded as the origin of air parcel that
 !     produces cloud (used in the cumulus parameterization scheme).
 !
-      sig700 = (70.-ptop)/(100.-ptop)
+      sig700 = (70.-r8pt)/(100.-r8pt)
       do k = 1 , kz
         k700 = k
         if ( sig700.le.sigma(k+1) .and. sig700.gt.sigma(k) ) exit
@@ -1657,7 +1657,7 @@
         fnudge = 0.1/dt2
         gnudge = (dxsq/dt)/50.
       end if
-      if ( icup.eq.3 ) call lutbl(ptop)
+      if ( icup.eq.3 ) call lutbl(r8pt)
 !
 !-----print out the parameters specified in the model.
 !

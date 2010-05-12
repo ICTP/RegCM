@@ -35,7 +35,7 @@
       use mod_dynparam
       use mod_iunits
       use mod_param1
-      use mod_param3 , only : ptop
+      use mod_param3 , only : r8pt
       use mod_main
       use mod_bdycod
       use mod_bats , only : veg2d , ocld2d , sice2d , ocld2d , sice2d
@@ -261,7 +261,7 @@
 !       Convert surface pressure to pstar
         do j = 1 , jendl
           do i = 1 , iy
-            ps1(i,j) = ps1(i,j) - ptop
+            ps1(i,j) = ps1(i,j) - r8pt
           end do
         end do
 !=======================================================================
@@ -697,7 +697,7 @@
 !     Convert surface pressure to pstar
         do j = 1 , jx
           do i = 1 , iy
-            ps1(i,j) = ps1(i,j) - ptop
+            ps1(i,j) = ps1(i,j) - r8pt
           end do
         end do
 !=======================================================================

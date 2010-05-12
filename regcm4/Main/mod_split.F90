@@ -32,7 +32,7 @@
       real(8) , allocatable , dimension(:) :: thetah , tweigh
       real(8) , allocatable , dimension(:,:) :: w3
 !
-      real(8) :: alpha1 , alpha2 , pd , ps , pt
+      real(8) :: alpha1 , alpha2 , pd , ps
       real(8) , allocatable , dimension(:) :: cpfac , dsigma , hbar ,   &
                & hweigh , tbarh
       real(8) , allocatable , dimension(:,:) :: hydroc , varpa1

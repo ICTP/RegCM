@@ -23,7 +23,7 @@
       use mod_date
       use mod_param1
       use mod_param2
-      use mod_param3 , only : ptop , a
+      use mod_param3 , only : r8pt , a
 !#ifdef INTEL
 !  include 'ifport.f90'
 !#endif
@@ -186,7 +186,7 @@
 #endif
       else
       end if
-      write (31,99014) (1013.25-ptop*10.)*a(kz) + ptop*10.
+      write (31,99014) (1013.25-r8pt*10.)*a(kz) + r8pt*10.
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
       nday = (ldatez-myear*1000000-month*10000)/100
@@ -475,7 +475,7 @@
 #endif
       else
       end if
-      write (31,99014) 1 , (1013.25-ptop*10.)*a(kz) + ptop*10.
+      write (31,99014) 1 , (1013.25-r8pt*10.)*a(kz) + r8pt*10.
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
       nday = (ldatez-myear*1000000-month*10000)/100
@@ -732,7 +732,7 @@
 #endif
       else
       end if
-      write (31,99014) kz , ((1013.25-ptop*10.)*a(k)+ptop*10.,k=kz,1,-1)
+      write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
       nday = (ldatez-myear*1000000-month*10000)/100
@@ -1164,7 +1164,7 @@
 #endif
       else
       end if
-      write (31,99014) kz , ((1013.25-ptop*10.)*a(k)+ptop*10.,k=kz,1,-1)
+      write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
       nday = (ldatez-myear*1000000-month*10000)/100
@@ -1398,7 +1398,7 @@
 #endif
       else
       end if
-      write (31,99014) kz , ((1013.25-ptop*10.)*a(k)+ptop*10.,k=kz,1,-1)
+      write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
       nday = (ldatez-myear*1000000-month*10000)/100

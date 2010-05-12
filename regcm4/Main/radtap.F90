@@ -22,7 +22,7 @@
       use mod_dynparam
       use mod_param1
       use mod_param2
-      use mod_param3 , only : ptop
+      use mod_param3 , only : r8pt
       use mod_date
       use mod_iunits
       use mod_outrad
@@ -49,9 +49,9 @@
       do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
-          radpsa(j,i) = (psa_io(i+1,j+1)+ptop)*10.
+          radpsa(j,i) = (psa_io(i+1,j+1)+r8pt)*10.
 #else
-          radpsa(j,i) = (psa(i+1,j+1)+ptop)*10.
+          radpsa(j,i) = (psa(i+1,j+1)+r8pt)*10.
 #endif
         end do
       end do

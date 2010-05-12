@@ -29,7 +29,7 @@
       use mod_dynparam
       use mod_param1
       use mod_param2
-      use mod_param3 , only : ptop
+      use mod_param3 , only : r8pt
       use mod_iunits
       use mod_main
       use mod_date
@@ -173,9 +173,17 @@
         do i = 1 , iym2
           do j = 1 , jxm2
 #ifdef MPP1
-            fout(j,i) = qca_io(i+1,k,j+1)/psa_io(i+1,j+1)
+            if ( qca_io(i+1,k,j+1).lt.1E-30 ) then
+              fout(j,i) = 0.0
+            else
+              fout(j,i) = qca_io(i+1,k,j+1)/psa_io(i+1,j+1)
+            end if
 #else
-            fout(j,i) = qca(i+1,k,j+1)/psa(i+1,j+1)
+            if ( qca(i+1,k,j+1).lt.1E-30 ) then
+              fout(j,i) = 0.0
+            else
+              fout(j,i) = qca(i+1,k,j+1)/psa(i+1,j+1)
+            end if
 #endif
           end do
         end do
@@ -190,9 +198,9 @@
       do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
-          fout(j,i) = (psa_io(i+1,j+1)+ptop)*10.
+          fout(j,i) = (psa_io(i+1,j+1)+r8pt)*10.
 #else
-          fout(j,i) = (psa(i+1,j+1)+ptop)*10.
+          fout(j,i) = (psa(i+1,j+1)+r8pt)*10.
 #endif
         end do
       end do
@@ -207,9 +215,19 @@
       do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
-          fout(j,i) = (rainc_io(i+1,j+1)+rainnc_io(i+1,j+1))*mmpd
+          if ( rainc_io(i+1,j+1) .gt. 1E-30 .or.                        &
+               rainnc_io(i+1,j+1) .gt. 1E-30) then
+            fout(j,i) = (rainc_io(i+1,j+1)+rainnc_io(i+1,j+1))*mmpd
+          else
+            fout(j,i) = 0.0
+          end if
 #else
-          fout(j,i) = (rainc(i+1,j+1)+rainnc(i+1,j+1))*mmpd
+          if ( rainc(i+1,j+1) .gt. 1E-30 .or.                        &
+               rainnc(i+1,j+1) .gt. 1E-30) then
+            fout(j,i) = (rainc(i+1,j+1)+rainnc(i+1,j+1))*mmpd
+          else
+            fout(j,i) = 0.0
+          end if
 #endif
         end do
       end do

@@ -43,7 +43,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_dynparam
-      use mod_param3 , only : dsigma , ptop , qcon , twt , a , sigma
+      use mod_param3 , only : dsigma , r8pt , qcon , twt , a , sigma
       use mod_main
       use mod_cvaria
       implicit none
@@ -74,9 +74,9 @@
         do k = 2 , kz
           do i = 2 , iym2
             fg(i,k) = twt(k,1)*fa(i,k)                                  &
-                    & *((psa(i,j)*sigma(k)+ptop)/(psa(i,j)*a(k)+ptop))  &
+                    & *((psa(i,j)*sigma(k)+r8pt)/(psa(i,j)*a(k)+r8pt))  &
                     & **0.287 + twt(k,2)*fa(i,k-1)                      &
-                    & *((psa(i,j)*sigma(k)+ptop)/(psa(i,j)*a(k-1)+ptop))&
+                    & *((psa(i,j)*sigma(k)+r8pt)/(psa(i,j)*a(k-1)+r8pt))&
                     & **0.287
           end do
         end do

@@ -30,7 +30,7 @@
       use mod_interfaces
       use mod_param1 , only : dtbat , dtmin
       use mod_param2 , only : iocnflx , kbats
-      use mod_param3 , only : ptop
+      use mod_param3 , only : r8pt
       use mod_main , only : psb , hfx , qfx , ht , zpbl , uvdrag ,      &
                   &         snowc , tgbb , tga , tgb
       use mod_pbldim , only : thx3d , za
@@ -111,7 +111,7 @@
 
         do i = istart, iend
           do n = 1 , ng
-            p1d0(n,i) = (psb(i,j)+ptop)*1000.
+            p1d0(n,i) = (psb(i,j)+r8pt)*1000.
             z1d(n,i) = za(i,k,j)
             ts1d0(n,i) = thx3d(i,k,j)
             qs1d0(n,i) = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
@@ -349,7 +349,7 @@
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**2+    &
                         & v10m_o(j,i-1)**2))
-          real_4 = (psb(i,j)+ptop)*10.
+          real_4 = (psb(i,j)+r8pt)*10.
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
 #else
           u10m_o(j-1,i-1) = 0.0
@@ -400,7 +400,7 @@
           t2mn_o(j-1,i-1) = amin1(t2mn_o(j-1,i-1),t2m_o(j-1,i-1))
           w10x_o(j-1,i-1) = amax1(w10x_o(j-1,i-1),sqrt(u10m_o(j-1,i-1)**&
                           & 2+v10m_o(j-1,i-1)**2))
-          real_4 = (psb(i,j)+ptop)*10.
+          real_4 = (psb(i,j)+r8pt)*10.
           psmn_o(j-1,i-1) = amin1(psmn_o(j-1,i-1),real_4)
 #endif
         end do
@@ -462,7 +462,7 @@
             flwd_o(j,i-1) = flwda2d(i,j)*wpm2
             sina_o(j,i-1) = sina2d(i,j)*wpm2
             prcv_o(j,i-1) = prca2d(i,j)*mmpd
-            ps_o(j,i-1) = (psb(i,j)+ptop)*10.
+            ps_o(j,i-1) = (psb(i,j)+r8pt)*10.
             zpbl_o(j,i-1) = zpbl(i,j)
  
             tlef_o(j,i-1) = 0.0
@@ -529,6 +529,8 @@
               drag_s(n,j-1,i-1) = drag1d(n,i)
               evpa_s(n,j-1,i-1) = evpa2d(n,i,j)*mmpd
               sena_s(n,j-1,i-1) = sena2d(n,i,j)*wpm2
+              if ( prnca2d(i,j) < 1E-30 ) prnca2d(i,j) = 0.0
+              if ( prca2d(i,j) < 1E-30 ) prca2d(i,j) = 0.0
               tpr_s(n,j-1,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
               prcv_s(n,j-1,i-1) = prca2d(i,j)*mmpd
               ps_s(n,j-1,i-1) = p1d(n,i)*0.01
@@ -548,7 +550,7 @@
             flwd_o(j-1,i-1) = flwda2d(i,j)*wpm2
             sina_o(j-1,i-1) = sina2d(i,j)*wpm2
             prcv_o(j-1,i-1) = prca2d(i,j)*mmpd
-            ps_o(j-1,i-1) = (psb(i,j)+ptop)*10.
+            ps_o(j-1,i-1) = (psb(i,j)+r8pt)*10.
             zpbl_o(j-1,i-1) = zpbl(i,j)
 
             tlef_o(j-1,i-1) = 0.0

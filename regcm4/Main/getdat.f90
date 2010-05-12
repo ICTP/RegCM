@@ -33,7 +33,7 @@
 !
       use mod_dynparam
       use mod_param1
-      use mod_param3 , only : ncld , ptop , a , sigma
+      use mod_param3 , only : ncld , r8pt , a , sigma
       use mod_main
       use mod_rad
       use mod_comtim
@@ -96,9 +96,9 @@
 !-----surface pressure and scaled pressure, from which level pressures
 !-----are computed
       do n = 1 , iym1
-        ps(n) = (psb(n,jslc)+ptop)*10.
+        ps(n) = (psb(n,jslc)+r8pt)*10.
         do nll = 1 , kz
-          pmidm1(n,nll) = (psb(n,jslc)*a(nll)+ptop)*10.
+          pmidm1(n,nll) = (psb(n,jslc)*a(nll)+r8pt)*10.
 !KN       sclpr(nll)=pmidm1(n,nll)/ps(n)
         end do
       end do
@@ -117,7 +117,7 @@
       end do
       do k = 1 , kzp1
         do i = 1 , iym1
-          pintm1(i,k) = (psb(i,jslc)*sigma(k)+ptop)*1000.
+          pintm1(i,k) = (psb(i,jslc)*sigma(k)+r8pt)*1000.
           pilnm1(i,k) = dlog(pintm1(i,k))
         end do
       end do

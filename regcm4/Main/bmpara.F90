@@ -51,7 +51,7 @@
       use mod_dynparam
       use mod_param1 , only : nbatst , dt2 , dtmin
       use mod_param2
-      use mod_param3 , only : ptop , sigma , a , dsigma
+      use mod_param3 , only : r8pt , sigma , a , dsigma
       use mod_date , only : jyear , jyear0 , ktau
       use mod_main
       use mod_pmoist
@@ -211,7 +211,7 @@
           t(i,k) = tb(i,k,j)/psb(i,j)
           if ( t(i,k).gt.tzero .and. ml(i).eq.kzp1 ) ml(i) = k
           q(i,k) = qvb(i,k,j)/psb(i,j)
-          pppk = (a(k)*psb(i,j)+ptop)*1000.
+          pppk = (a(k)*psb(i,j)+r8pt)*1000.
           ape(i,k) = (pppk/h10e5)**dm2859
         end do
         lbot(i) = kz
@@ -223,7 +223,7 @@
 !...ip300 is the highest model level in the lowest 300 mb...
         ifbuoy(i) = 0
         ip300(i) = 0
-        cell = ptop/psb(i,j)
+        cell = r8pt/psb(i,j)
         do k = 1 , kz
           dzq(k) = rovg*tbase(i,k,j)                                    &
                  & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))
@@ -244,8 +244,8 @@
 !--------------search for maximum buoyancy level------------------------
       do kb = 1 , kz
         do i = 2 , iym2
-          pkl = (a(kb)*psb(i,j)+ptop)*1000.
-          psfck = (a(kz)*psb(i,j)+ptop)*1000.
+          pkl = (a(kb)*psb(i,j)+r8pt)*1000.
+          psfck = (a(kz)*psb(i,j)+r8pt)*1000.
           if ( pkl.ge.psfck-pbm ) then
             tthbt(i) = t(i,kb)*ape(i,kb)
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
@@ -268,7 +268,7 @@
       do k = 1 , lm1
         ak = a(k)
         do i = 2 , iym2
-          p(i) = (ak*psb(i,j)+ptop)*1000.
+          p(i) = (ak*psb(i,j)+r8pt)*1000.
 !         cloud bottom cannot be above 200 mb
           if ( p(i).lt.psp(i) .and. p(i).ge.pqm ) lbot(i) = k + 1
         end do
@@ -276,15 +276,15 @@
 !***  warning: lbot must not be gt kz-1 in shallow convection
 !***  make sure the cloud base is at least 25 mb above the surface
       do i = 2 , iym2
-        pbot(i) = (a(lbot(i))*psb(i,j)+ptop)*1000.
-        psfck = (a(kz)*psb(i,j)+ptop)*1000.
+        pbot(i) = (a(lbot(i))*psb(i,j)+r8pt)*1000.
+        psfck = (a(kz)*psb(i,j)+r8pt)*1000.
         if ( pbot(i).ge.psfck-pone .or. lbot(i).ge.kz ) then
 !***      cloud bottom is at the surface so recalculate cloud bottom
           do k = 1 , lm1
-            p(i) = (a(kz)*psb(i,j)+ptop)*1000.
+            p(i) = (a(kz)*psb(i,j)+r8pt)*1000.
             if ( p(i).lt.psfck-pone ) lbot(i) = k
           end do
-          pbot(i) = (a(lbot(i))*psb(i,j)+ptop)*1000.
+          pbot(i) = (a(lbot(i))*psb(i,j)+r8pt)*1000.
         end if
       end do
 !--------------cloud top computation------------------------------------
@@ -296,7 +296,7 @@
         l = lp1 - ivi
 !--------------find environmental saturation equiv pot temp...
         do i = 2 , iym2
-          p(i) = (a(l)*psb(i,j)+ptop)*1000.
+          p(i) = (a(l)*psb(i,j)+r8pt)*1000.
           es = aliq*exp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
           qs = ep2*es/(p(i)-es)
           ths(i) = t(i,l)*ape(i,l)*exp(elocp*qs/t(i,l))
@@ -314,7 +314,7 @@
 !--------------cloud top pressure---------------------------------------
       do i = 2 , iym2
 !       if(kf(i).eq.1) goto 275
-        prtop(i) = (a(ltop(i))*psb(i,j)+ptop)*1000.
+        prtop(i) = (a(ltop(i))*psb(i,j)+r8pt)*1000.
       end do
 !-----------------------------------------------------------------------
 !--------------define and smooth dsps and cldefi------------------------
@@ -393,7 +393,7 @@
           qkl = q(i,k)
           qk(k) = qkl
           qrefk(k) = qkl
-          pkl = (a(k)*psb(i,j)+ptop)*1000.
+          pkl = (a(k)*psb(i,j)+r8pt)*1000.
 !**************
           tref(i,k) = tpfc(pkl,thesp(i),t(i,k),d273,wlhv,qu,ape(i,k))
 !***************
@@ -608,7 +608,7 @@
           qk(k) = qkl
           qrefk(k) = qkl
           qsatk(k) = qkl
-          pkl = (a(k)*psb(i,j)+ptop)*1000.
+          pkl = (a(k)*psb(i,j)+r8pt)*1000.
           pk(k) = pkl
           apekl = ape(i,k)
           apek(k) = apekl
@@ -685,7 +685,7 @@
         end if
 !--------------scaling potential temperature & table index at top-------
         thtpk = t(i,ltp1)*ape(i,ltp1)
-        pkl = (a(ltp1)*psb(i,j)+ptop)*1000.
+        pkl = (a(ltp1)*psb(i,j)+r8pt)*1000.
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
         tdpt = 1./(d273-rwat/wlhv*dlog(ee/611.))
         tdpt = dmin1(tdpt,t(i,ltp1))

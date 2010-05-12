@@ -85,6 +85,8 @@
               if ( czen(i).gt.0.001 ) then
                 trup(n,i) = dexp(-g*rlai(n,i)/(ilmax*czen(i)))
                 trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(ilmax))
+                if ( trup(n,i) .lt. 1E-30 ) trup(n,i) = 0.0
+                if ( trupd(n,i) .lt. 1E-30 ) trupd(n,i) = 0.0
                 fsold(n,i) = fracd(i)*solis(i)*fc(lveg(n,i))
                 fsol0(n,i) = (1.-fracd(i))*solis(i)*fc(lveg(n,i))
                 rmini(n,i) = rsmin(lveg(n,i))/rmax0

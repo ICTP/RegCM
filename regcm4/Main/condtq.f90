@@ -40,7 +40,7 @@
  
       use mod_dynparam
       use mod_param1
-      use mod_param3 , only : ptop , a
+      use mod_param3 , only : r8pt , a
       use mod_main
       use mod_cvaria
       use mod_pmoist
@@ -88,7 +88,7 @@
  
 !         2a. Calculate the saturation mixing ratio and relative
 !         humidity
-          pres = (a(k)*psc(i,j)+ptop)*1000.
+          pres = (a(k)*psc(i,j)+r8pt)*1000.
           if ( tmp3(i,k).gt.tzero ) then
             satvp = svp1*1.E3*dexp(svp2*(tmp3(i,k)-tzero)               &
                   & /(tmp3(i,k)-svp3))

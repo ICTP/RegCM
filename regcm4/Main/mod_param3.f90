@@ -25,7 +25,7 @@
 !
       integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
 !
-      real(8) :: ptop4
+      real(8) :: ptop4 , r8pt
       real(8) :: akht1 , akht2
 
       real(8) , allocatable , dimension(:) :: a , anudg , dsigma , qcon

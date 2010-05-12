@@ -32,7 +32,7 @@
       use mod_dynparam
       use mod_param1 , only : dt , dtmin , dx4 , nbatst
       use mod_param2
-      use mod_param3 , only : dsigma , a , qcon , ptop , k700
+      use mod_param3 , only : dsigma , a , qcon , r8pt , k700
       use mod_main
       use mod_cvaria
       use mod_pmoist
@@ -131,7 +131,7 @@
           do k = k700 , kz
             ttp = ta(i,k,j)/psa(i,j) + pert
             q = qva(i,k,j)/psa(i,j) + perq
-            psg = psa(i,j)*a(k) + ptop
+            psg = psa(i,j)*a(k) + r8pt
             t1 = ttp*(100./psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
             if ( eqt.gt.eqtm ) then
@@ -153,7 +153,7 @@
           tmean = 0.5*(tmax+tlcl)
           dlnp = (gti*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
-          siglcl = (plcl-ptop)/psa(i,j)
+          siglcl = (plcl-r8pt)/psa(i,j)
 !
 !--3--compute seqt (saturation equivalent potential temperature)
 !         of all the levels that are above the lcl
@@ -168,7 +168,7 @@
 !
           do k = 1 , kbase
             ttp = ta(i,k,j)/psa(i,j)
-            psg = psa(i,j)*a(k) + ptop
+            psg = psa(i,j)*a(k) + r8pt
             es = .611*dexp(19.84659-5418.12/ttp)
             qs = ep2*es/(psg-es)
             t1 = ttp*(100./psg)**rovcp
@@ -231,7 +231,7 @@
                 qwght(k) = 0.0
               end do
               do k = ktop , kz
-                pux = psx*a(k) + ptop
+                pux = psx*a(k) + r8pt
                 e1 = .611*dexp(19.84659-5418.12/(ta(i,k,j)/psx))
                 qs = ep2*e1/(pux-e1)
                 rh = qva(i,k,j)/(qs*psx)

@@ -195,10 +195,26 @@
             frad2d(jslc,i-1,13) = fsnirt(i)   ! skip
             frad2d(jslc,i-1,14) = fsnrtc(i)   ! skip
             frad2d(jslc,i-1,15) = fsnirtsq(i) ! skip
-            frad2d(jslc,i-1,16) = soll(i)     ! skip
-            frad2d(jslc,i-1,17) = sols(i)     ! skip
-            frad2d(jslc,i-1,18) = solsd(i)    ! skip
-            frad2d(jslc,i-1,19) = solld(i)    ! skip
+            if ( soll(i) .lt. 1E-30 ) then
+              frad2d(jslc,i-1,16) = 0.0
+            else
+              frad2d(jslc,i-1,16) = soll(i)     ! skip
+            end if
+            if ( sols(i) .lt. 1E-30 ) then
+              frad2d(jslc,i-1,17) = 0.0
+            else
+              frad2d(jslc,i-1,17) = sols(i)     ! skip
+            end if
+            if ( solsd(i) .lt. 1E-30 ) then
+              frad2d(jslc,i-1,18) = 0.0
+            else
+              frad2d(jslc,i-1,18) = solsd(i)     ! skip
+            end if
+            if ( solld(i) .lt. 1E-30 ) then
+              frad2d(jslc,i-1,19) = 0.0
+            else
+              frad2d(jslc,i-1,19) = solld(i)     ! skip
+            end if
             frad2d(jslc,i-1,20) = solis(i)    ! skip
             frad2d(jslc,i-1,21) = sabveg(i)   ! skip
 #else
@@ -217,10 +233,26 @@
             frad2d(jslc-1,i-1,13) = fsnirt(i)   ! skip
             frad2d(jslc-1,i-1,14) = fsnrtc(i)   ! skip
             frad2d(jslc-1,i-1,15) = fsnirtsq(i) ! skip
-            frad2d(jslc-1,i-1,16) = soll(i)     ! skip
-            frad2d(jslc-1,i-1,17) = sols(i)     ! skip
-            frad2d(jslc-1,i-1,18) = solsd(i)    ! skip
-            frad2d(jslc-1,i-1,19) = solld(i)    ! skip
+            if ( soll(i) .lt. 1E-30 ) then
+              frad2d(jslc-1,i-1,16) = 0.0
+            else
+              frad2d(jslc-1,i-1,16) = soll(i)     ! skip
+            end if
+            if ( sols(i) .lt. 1E-30 ) then
+              frad2d(jslc-1,i-1,17) = 0.0
+            else
+              frad2d(jslc-1,i-1,17) = sols(i)     ! skip
+            end if
+            if ( solsd(i) .lt. 1E-30 ) then
+              frad2d(jslc-1,i-1,18) = 0.0
+            else
+              frad2d(jslc-1,i-1,18) = solsd(i)     ! skip
+            end if
+            if ( solld(i) .lt. 1E-30 ) then
+              frad2d(jslc-1,i-1,19) = 0.0
+            else
+              frad2d(jslc-1,i-1,19) = solld(i)     ! skip
+            end if
             frad2d(jslc-1,i-1,20) = solis(i)    ! skip
             frad2d(jslc-1,i-1,21) = sabveg(i)   ! skip
 #endif

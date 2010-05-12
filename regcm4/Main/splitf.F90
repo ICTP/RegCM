@@ -24,6 +24,7 @@
 !
       use mod_dynparam
       use mod_param1
+      use mod_param3 , only : r8pt
       use mod_main
       use mod_split
       use mod_bxq
@@ -323,8 +324,8 @@
 !=======================================================================
 !******* geopotential manipulations (f)
       do l = 1 , nsplit
-        pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+pt)
-        eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+pt)
+        pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
+        eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
 #ifdef MPP1
         do j = 1 , jendx
           do i = 1 , iym1
@@ -341,8 +342,8 @@
         end do
 #endif
         do k = 1 , kz
-          pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+pt)
-          eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+pt)
+          pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
+          eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
 #ifdef MPP1
           do j = 1 , jendx
             do i = 1 , iym1
@@ -383,8 +384,8 @@
 !=======================================================================
 !******* geopotential manipulations (0)
       do l = 1 , nsplit
-        pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+pt)
-        eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+pt)
+        pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
+        eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
 #ifdef MPP1
         do j = 1 , jendx
           do i = 1 , iym1
@@ -401,8 +402,8 @@
         end do
 #endif
         do k = 1 , kz
-          pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+pt)
-          eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+pt)
+          pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
+          eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
 #ifdef MPP1
           do j = 1 , jendx
             do i = 1 , iym1

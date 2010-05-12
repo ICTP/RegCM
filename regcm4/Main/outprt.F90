@@ -50,7 +50,7 @@
       use mod_dynparam
       use mod_param1
       use mod_param2
-      use mod_param3 , only : jxsex , kxout , ptop , a
+      use mod_param3 , only : jxsex , kxout , r8pt , a
       use mod_main
       use mod_bdycod
       use mod_pmoist
@@ -251,7 +251,7 @@
 !
 !....surface pressure
 !
-      const = -ptop
+      const = -r8pt
       c40nam = '         surface pressure (cb)         '
       call mapsmp(psa,psar,iy,jx,1,iym1,iyn,1,jxm1,jxn,const,1,c40nam,  &
                   & xth)
@@ -335,7 +335,7 @@
 !
       do j = 1 , jxm1
         do i = 1 , iym1
-          pres = a(kout)*psa(i,j) + ptop
+          pres = a(kout)*psa(i,j) + r8pt
           if ( hscr1(i,j).gt.tzero ) then
 !           v8 svp formula
             satvp = svp1*dexp(svp2*(hscr1(i,j)-tzero)/(hscr1(i,j)-svp3))

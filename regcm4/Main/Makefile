@@ -51,7 +51,7 @@ mod_bxq.o        mod_dust.o       mod_param2.o     mod_tracer0.o     \
 mod_comctl.o     mod_param3.o     mod_tracer.o     mod_comozp.o      \
 mod_when.o       mod_pmoist.o     mod_trachem.o    mod_comtim.o      \
 mod_ictp01.o     mod_iunits.o     mod_pbldim.o     mod_lake.o        \
-mod_interfaces.o mod_aero_param.o
+mod_interfaces.o mod_aero_param.o mod_isrchf.o
 
 CLMOBJS = \
 initializeMod.o  shr_orb_mod.o    shr_kind_mod.o  clm_varpar.o       \
@@ -59,8 +59,8 @@ clm_varsur.o     atmdrvMod.o      spmdMod.o       program_offMod.o   \
 clm_comp.o       clmtype.o        perf_mod.o      clm_time_manager.o \
 restFileMod.o
 
-OBJS =            cup.o         isrchfgt.o  radclw.o    tractend2.o  \
-intmax.o          depth.o       isrchfle.o  radcsw.o    trcab.o      \
+OBJS =            cup.o         printsp.o   radclw.o    tractend2.o  \
+intmax.o          depth.o       interf.o    radcsw.o    trcab.o      \
 radabs.o          deriv.o       lakedrv.o   radctl.o    trcabn.o     \
 albedov.o         diffu.o       lake.o      radded.o    trcems.o     \
 radclr.o          diffut.o      lenchr.o    radems.o    trcmix.o     \
@@ -88,7 +88,7 @@ conmas.o          initb.o       outtap0.o   stomat.o    zengocndrv.o \
 convect_tables.o  initdate.o    outtap.o    temp.o      zengocn.o    \
 cumtran.o         init.o        param.o     tend.o      zenith.o     \
 cupara.o          initlk.o      pcp.o       tgrund.o    zenitm.o     \
-cuparan.o         interf.o      printsp.o
+cuparan.o
 
 ifeq ($(USECLM),1)
   CPPFLAGS += -DCLM
@@ -301,8 +301,7 @@ interf.o: interf.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
           mod_slice.o
 intmax.o: intmax.f90
 invmtrx.o: invmtrx.F90 mod_message.o
-isrchfgt.o: isrchfgt.f90
-isrchfle.o: isrchfle.f90
+mod_isrchf.o: mod_isrchf.f90
 lake.o: lake.f90 mod_constants.o mod_lake.o
 lakedrv.o: lakedrv.f90 mod_bats.o mod_date.o mod_iunits.o mod_param1.o \
            mod_dynparam.o

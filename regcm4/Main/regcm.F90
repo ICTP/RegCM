@@ -24,7 +24,7 @@
                      & nnnend , nnnnnn , jyear , jyear0 , ktau , xtime
       use mod_param1 , only : nslice , dt , dt2 , dtmin
       use mod_param2 , only : ichem , ifrest , rfstrt
-      use mod_param3 , only : ptop , sigma
+      use mod_param3 , only : r8pt , sigma
       use mod_message , only : aline , say
 #ifdef MPP1
       use mpi
@@ -280,7 +280,7 @@
  
       call bdyin
  
-      call spinit(ptop,sigma,kzp1)
+      call spinit(sigma,kzp1)
  
       if ( ichem.eq.1 ) call chsrfem
  

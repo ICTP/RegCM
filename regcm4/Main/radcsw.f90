@@ -82,6 +82,7 @@
                &     gtota_mix , ftota_mix , tauxar_mix_cs ,            &
                &     tauasc_mix_cs , gtota_mix_cs , ftota_mix_cs
       use mod_constants , only : gocp , gtigts , sslp , rga , scon
+      use mod_isrchf , only : isrchfgt , isrchfle
       implicit none
 !
 ! PARAMETER definitions
@@ -323,8 +324,6 @@
       real(8) , dimension(iym1,0:kz,4) :: wkaer
       real(8) , dimension(iym1,4) :: zero
 !
-      integer, external :: isrchfgt , isrchfle
-!
       data abarl/2.817E-02 , 2.682E-02 , 2.264E-02 , 1.281E-02/
       data bbarl/1.305 , 1.346 , 1.454 , 1.641/
       data cbarl/ - 5.62E-08 , -6.94E-06 , 4.64E-04 , 0.201/
@@ -399,46 +398,44 @@
 !
 !     Initialize output fields:
 !
-      do i = 1 , iym1
-        fsds(i) = 0.0
-        fsnirt(i) = 0.0
-        fsnrtc(i) = 0.0
-        fsnirtsq(i) = 0.0
-        fsnt(i) = 0.0
-        fsns(i) = 0.0
-        solin(i) = 0.0
-        fsnsc(i) = 0.0
-        fsntc(i) = 0.0
-        sols(i) = 0.0
-        soll(i) = 0.0
-        solsd(i) = 0.0
-        solld(i) = 0.0
-        sabveg(i) = 0.0
-        solis(i) = 0.0
-        solvs(i) = 0.0
-        solvd(i) = 0.0
+      fsds(:) = 0.0
+      fsnirt(:) = 0.0
+      fsnrtc(:) = 0.0
+      fsnirtsq(:) = 0.0
+      fsnt(:) = 0.0
+      fsns(:) = 0.0
+      solin(:) = 0.0
+      fsnsc(:) = 0.0
+      fsntc(:) = 0.0
+      sols(:) = 0.0
+      soll(:) = 0.0
+      solsd(:) = 0.0
+      solld(:) = 0.0
+      sabveg(:) = 0.0
+      solis(:) = 0.0
+      solvs(:) = 0.0
+      solvd(:) = 0.0
 !
-        aeradfo(i) = 0.0
-        aeradfos(i) = 0.0
-        x0fsntc(i) = 0.0
-        x0fsnsc(i) = 0.0
-        x0fsnrtc(i) = 0.0
-      end do
-      do k = 1 , kz
-        do i = 1 , iym1
-          qrs(i,k) = 0.0
-        end do
-      end do
+      aeradfo(:) = 0.0
+      aeradfos(:) = 0.0
+      x0fsntc(:) = 0.0
+      x0fsnsc(:) = 0.0
+      x0fsnrtc(:) = 0.0
+!
+      qrs(:,:) = 0.0
+!
       do k = 1 , kz
         do i = 1 , iym1
           pdel = pint(i,k+1) - pint(i,k)
-          path = pdel/gtigts
+          path = pdel*rga
         end do
       end do
 !
 !     Compute starting, ending daytime loop indices:
 !
       nloop = 0
+      is = 0
+      ie = 0
       is(1) = isrchfgt(iym1,coszrs,1,0.D0)
 !
 !     If night everywhere, return:
@@ -483,9 +480,9 @@
       do n = 1 , nloop
         do i = is(n) , ie(n)
           xptop = pflx(i,1)
-          ptho2 = o2mmr*xptop/gtigts
-          ptho3 = o3mmr(i,1)*xptop/gtigts
-          pthco2 = sqrco2*(xptop/gtigts)
+          ptho2 = o2mmr*xptop*rga
+          ptho3 = o3mmr(i,1)*xptop*rga
+          pthco2 = sqrco2*(xptop*rga)
           h2ostr = sqrt(1./h2ommr(i,1))
           zenfac(i) = sqrt(coszrs(i))
           pthh2o = xptop**2*tmp1 + (xptop*rga)*(h2ostr*zenfac(i)*delta)
@@ -496,12 +493,12 @@
         end do
       end do
 !
-      tmp2 = delta/gtigts
+      tmp2 = delta*rga
       do k = 1 , kz
         do n = 1 , nloop
           do i = is(n) , ie(n)
             pdel = pflx(i,k+1) - pflx(i,k)
-            path = pdel/gtigts
+            path = pdel*rga
             ptho2 = o2mmr*path
             ptho3 = o3mmr(i,k)*path
             pthco2 = sqrco2*path
@@ -764,8 +761,9 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               rdenom = 1./(1.-rdndif(i,k)*rupdif(i,k))
-              fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-exptdn&
-                          & (i,k))*rupdif(i,k))*rdenom
+              fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+                   &
+                          & (tottrn(i,k)-exptdn(i,k))*rupdif(i,k))*     &
+                          & rdenom
               fluxdn(i,k) = exptdn(i,k)                                 &
                           & + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
                           & *rupdir(i,k)*rdndif(i,k))*rdenom

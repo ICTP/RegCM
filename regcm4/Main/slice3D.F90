@@ -21,7 +21,7 @@
  
       use mod_dynparam
       use mod_param2
-      use mod_param3 , only : ptop , sigma , a
+      use mod_param3 , only : r8pt , sigma , a
       use mod_main
       use mod_mainchem
       use mod_pbldim
@@ -98,8 +98,8 @@
 #endif
         do k = 1 , kz
           do i = 2 , iym1
-            pl = a(k)*psb(i,j) + ptop
-            thcon = ((psb(i,j)+ptop)/pl)**rovcp
+            pl = a(k)*psb(i,j) + r8pt
+            thcon = ((psb(i,j)+r8pt)/pl)**rovcp
             pb3d(i,k,j) = pl
             thx3d(i,k,j) = tb3d(i,k,j)*thcon
           end do
@@ -118,7 +118,7 @@
         do kk = 1 , kz
           k = kzp1 - kk
           do i = 2 , iym1
-            cell = ptop/psb(i,j)
+            cell = r8pt/psb(i,j)
             zq(i,k) = rovg*tb3d(i,k,j)                                  &
                     & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))          &
                     & + zq(i,k+1)
@@ -134,13 +134,13 @@
  
 !-----Calculate the relative humidity and air density
         do i = 2 , iym1
-          psrf = (psb(i,j)+ptop)*1000.
+          psrf = (psb(i,j)+r8pt)*1000.
           tv = tb3d(i,kz,j)
           rhox2d(i,j) = psrf/(rgas*tv)
         end do
         do k = 1 , kz
           do i = 2 , iym2
-            pres = (a(k)*psb(i,j)+ptop)*1000.
+            pres = (a(k)*psb(i,j)+r8pt)*1000.
             rhob3d(i,k,j) = pres/(rgas*tb3d(i,k,j)) !air density
             if ( tb3d(i,k,j).gt.tzero ) then
               satvp = svp1*1.E3*dexp(svp2*(tb3d(i,k,j)-tzero)           &

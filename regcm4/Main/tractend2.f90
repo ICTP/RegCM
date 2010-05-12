@@ -28,7 +28,7 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_dynparam
       use mod_param1
-      use mod_param3 , only : dsigma , twt , ptop , kt , a , sigma
+      use mod_param3 , only : dsigma , twt , r8pt , kt , a , sigma
       use mod_main
       use mod_mainchem
       use mod_cvaria
@@ -82,7 +82,7 @@
 !     the unit: rho - kg/m3, wl - g/m3
       do k = 1 , kz
         do i = 2 , iym2
-          rho(i,k) = (psb(i,j)*a(k)+ptop)*1000./287./tb(i,k,j)*psb(i,j)
+          rho(i,k) = (psb(i,j)*a(k)+r8pt)*1000./287./tb(i,k,j)*psb(i,j)
           wl(i,k) = qcb(i,k,j)/psb(i,j)*1000.*rho(i,k)
         end do
       end do
@@ -486,7 +486,7 @@
  
           do i = 2 , iym2
             ivegcov(i) = nint(veg2d(i,j))
-            psurf(i) = psb(i,j)*1000. + ptop
+            psurf(i) = psb(i,j)*1000. + r8pt
  
             do k = 1 , kz
               ttb(i,k) = tb(i,k,j)/psb(i,j)
