@@ -148,7 +148,11 @@
       tbarf(kzp1) = 0.
 !
       do k = 1 , kzp1
-        thetaf(k) = tbarf(k)*((sigmaf(k)+pt/pd)**(-rovcp))
+        if ( sigmaf(k).lt.1E-30 ) then
+          thetaf(k) = tbarf(k)
+        else
+          thetaf(k) = tbarf(k)*((sigmaf(k)+pt/pd)**(-rovcp))
+        end if
       end do
 !
 !  define matrices for determination of thermodynamic matrix
