@@ -60,6 +60,9 @@
                & dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
       integer :: k , k1 , k2 , kold , noldm1
 !-----------------------------------------------------------------------
+      ak = 0.0
+      bk = 0.0
+      ck = 0.0
       noldm1 = nold - 1
 !
       dxl = xold(2) - xold(1)

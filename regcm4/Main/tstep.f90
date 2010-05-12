@@ -47,6 +47,8 @@
 !
 !---------------------------------------------------------------------
 !
+      deltmn = 0.0
+      tscale = 0.0
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
         idtmax = 1
         tscale = 5.*dt

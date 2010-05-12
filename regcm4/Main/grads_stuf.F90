@@ -53,6 +53,15 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
+      centerj = (jxm2)/2.
+      centeri = (iym2)/2.
+
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
@@ -65,8 +74,6 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        alatmin = 999999.
-        alatmax = -999999.
         do j = 1 , jx
 #ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
@@ -76,8 +83,6 @@
           if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
 #endif
         end do
-        alonmin = 999999.
-        alonmax = -999999.
         do i = 1 , iy
           do j = 1 , jx
 #ifdef MPP1
@@ -135,9 +140,6 @@
         rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
- 
-        centerj = (jxm2)/2.
-        centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
@@ -335,6 +337,15 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
+      centerj = (jxm2)/2.
+      centeri = (iym2)/2.
+
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
@@ -347,8 +358,6 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        alatmin = 999999.
-        alatmax = -999999.
         do j = 1 , jx
 #ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
@@ -358,8 +367,6 @@
           if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
 #endif
         end do
-        alonmin = 999999.
-        alonmax = -999999.
         do i = 1 , iy
           do j = 1 , jx
 #ifdef MPP1
@@ -417,9 +424,6 @@
         rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
- 
-        centerj = (jxm2)/2.
-        centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
@@ -594,6 +598,15 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
+      centerj = (jxm2)/2.
+      centeri = (iym2)/2.
+
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
@@ -606,8 +619,6 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        alatmin = 999999.
-        alatmax = -999999.
         do j = 1 , jx
 #ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
@@ -617,8 +628,6 @@
           if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
 #endif
         end do
-        alonmin = 999999.
-        alonmax = -999999.
         do i = 1 , iy
           do j = 1 , jx
 #ifdef MPP1
@@ -677,9 +686,6 @@
         rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
- 
-        centerj = (jxm2)/2.
-        centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
@@ -838,6 +844,15 @@
                & centerj , rlatinc , rloninc
       integer :: i , j , nx , ny
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
+      centerj = (jxm2)/2.
+      centeri = (iym2)/2.
+
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001)
       write (31,99002)
@@ -849,8 +864,6 @@
       end if
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        alatmin = 999999.
-        alatmax = -999999.
         do j = 1 , jx
 #ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
@@ -860,8 +873,6 @@
           if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
 #endif
         end do
-        alonmin = 999999.
-        alonmax = -999999.
         do i = 1 , iy
           do j = 1 , jx
 #ifdef MPP1
@@ -919,9 +930,6 @@
         rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
- 
-        centerj = (jxm2)/2.
-        centeri = (iym2)/2.
       end if
       if ( iproj.eq.'LAMCON' ) then     ! Lambert projection
         write (31,99006) jxm2 , iym2 , clat , clon , centerj ,          &
@@ -1023,6 +1031,15 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
+      centerj = (jxm2)/2.
+      centeri = (iym2)/2.
+
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
@@ -1035,8 +1052,6 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        alatmin = 999999.
-        alatmax = -999999.
         do j = 1 , jx
 #ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
@@ -1046,8 +1061,6 @@
           if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
 #endif
         end do
-        alonmin = 999999.
-        alonmax = -999999.
         do i = 1 , iy
           do j = 1 , jx
 #ifdef MPP1
@@ -1105,9 +1118,6 @@
         rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
- 
-        centerj = (jxm2)/2.
-        centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
@@ -1255,6 +1265,15 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
+      centerj = (jxm2)/2.
+      centeri = (iym2)/2.
+
       open (31,file='output/'//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
@@ -1267,8 +1286,6 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        alatmin = 999999.
-        alatmax = -999999.
         do j = 1 , jx
 #ifdef MPP1
           if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
@@ -1278,8 +1295,6 @@
           if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
 #endif
         end do
-        alonmin = 999999.
-        alonmax = -999999.
         do i = 1 , iy
           do j = 1 , jx
 #ifdef MPP1
@@ -1337,9 +1352,6 @@
         rloninc = dx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
- 
-        centerj = (jxm2)/2.
-        centeri = (iym2)/2.
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection

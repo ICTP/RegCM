@@ -37,6 +37,7 @@
 !  with the largest absolute value is positive, and the sum of the
 !  mass-weighted squares equals one.
 !
+      kmax = 1
       do l = 1 , nk
         zmax = -1.
         v = 0.

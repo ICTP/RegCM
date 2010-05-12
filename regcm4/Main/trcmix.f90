@@ -70,6 +70,10 @@
       integer :: i , k
       real(8) , dimension(iym1) :: ptrop
 !
+      xcfc11 = 0.0
+      xcfc12 = 0.0
+      xch4 = 0.0
+      xn2o = 0.0
       do i = 1 , iym1
 !       set stratospheric scale height factor for gases
         dlat = dabs(57.2958*alat(i))

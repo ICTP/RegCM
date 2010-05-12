@@ -22,6 +22,7 @@
       use mod_param1 , only : nslice
       use mod_date
 ! 
+      open(99, file='restparam.nl')
       write (99,99001) '&restartparam'
       if ( idate1.lt.globidate2 ) then
         write (99,99001) 'ifrest  = .true. '

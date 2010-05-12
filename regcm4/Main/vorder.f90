@@ -38,6 +38,7 @@
 !  smallest valued.  the columns of z are reorded so that they
 !  correspond to the same (but reordered) components of hbar.
 !
+      kmax = 1
       do k = 1 , nk
         wh(k,1) = hbar(k)
         wh(k,2) = 0.

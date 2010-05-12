@@ -585,6 +585,7 @@
 !       .003) in order to specify the index appropriate for the
 !       near-infrared cloud absorption properties
 !
+        indxsl = 0
         if ( wavmax(ns).le.0.7 ) then
           indxsl = 1
         else if ( wavmin(ns).eq.0.700 ) then

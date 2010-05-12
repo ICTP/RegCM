@@ -91,7 +91,7 @@
       real(4) :: grdfac
       integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
                & kbase , ktop , kzz , m , mdate1 , mday , mmon , my1 ,  &
-               & my2 , my3 , myear , n , ns , jxx , iyy
+               & my2 , my3 , myear , n , ns , jxx , iyy , itr
       integer , dimension(12) :: mmd
       real(4) , dimension(kzp1) :: sp1d
       real(4) , dimension(iy,jx) :: sp2d
@@ -99,7 +99,6 @@
       character(5) , dimension(maxntr) :: inpchtrname
       real(8) , dimension(maxntr) :: inpchtrsol
       real(8) , dimension(maxntr,2) :: inpchtrdpv
-      real(8) , dimension(maxnbin,2) :: inpchtrsize
       real(8) , dimension(maxnbin,2) :: inpdustbsiz
 
 #ifdef MPP1
@@ -393,6 +392,7 @@
       iocnflx = 1
       lakemod = 1
       ichem = 0
+      imask = 1
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
@@ -494,9 +494,12 @@
         print * , 'param: CHEMPARAM READ IN'
         chtrname = inpchtrname(1:ntr)
         chtrdpv = inpchtrdpv(1:ntr,:)
-        chtrsize = inpchtrsize(1:nbin,:)
         dustbsiz = inpdustbsiz(1:nbin,:)
         chtrsol = inpchtrsol(1:ntr)
+      else
+        do itr = 1 , ntr
+          chtrname(itr) = 'XXXXX'
+        end do
       end if
 #ifdef CLM
       read (ipunit , clmparam)

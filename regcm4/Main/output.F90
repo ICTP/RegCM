@@ -68,18 +68,6 @@
       character(17) :: tmpfil
 #ifdef MPP1
       integer :: allrec , idum , ierr , l , k , n
-      real(8) , dimension(iy,kz*6+3+nnsg*4,jxp) :: atm0
-      real(8) , dimension(iy,kz*6+3+nnsg*4,jx) :: atm_0
-      real(4) , dimension(iym2,numbat,jxp) :: bat0
-      real(4) , dimension(iym2,numbat,jx) :: bat_0
-      real(8) , dimension(iy,3,jxp) :: out0
-      real(8) , dimension(iy,3,jx) :: out_0
-      real(4) , dimension(iym2,nrad3d*kz+nrad2d,jxp) :: rad0
-      real(4) , dimension(iym2,nrad3d*kz+nrad2d,jx) :: rad_0
-      real(4) , dimension(iym2,nnsg,numsub,jxp) :: sub0
-      real(4) , dimension(iym2,nnsg,numsub,jx) :: sub_0
-      real(8) , dimension(iy,ntr*kz+kz*3+ntr*7+3,jxp) :: chem0
-      real(8) , dimension(iy,ntr*kz+kz*3+ntr*7+3,jx) :: chem_0
 #ifdef CLM
       real(8) :: dtime
 #endif

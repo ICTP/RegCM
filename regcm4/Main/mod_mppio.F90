@@ -124,6 +124,19 @@
       real(8) , allocatable , dimension(:,:,:) :: inisrf_0
 
       real(8) , allocatable , dimension(:,:) :: var1snd , var1rcv
+ 
+      real(8) , allocatable , dimension(:,:,:) :: atm0
+      real(8) , allocatable , dimension(:,:,:) :: atm_0
+      real(4) , allocatable , dimension(:,:,:) :: bat0
+      real(4) , allocatable , dimension(:,:,:) :: bat_0
+      real(8) , allocatable , dimension(:,:,:) :: out0
+      real(8) , allocatable , dimension(:,:,:) :: out_0
+      real(4) , allocatable , dimension(:,:,:) :: rad0
+      real(4) , allocatable , dimension(:,:,:) :: rad_0
+      real(4) , allocatable , dimension(:,:,:,:) :: sub0
+      real(4) , allocatable , dimension(:,:,:,:) :: sub_0
+      real(8) , allocatable , dimension(:,:,:) :: chem0
+      real(8) , allocatable , dimension(:,:,:) :: chem_0
 
 #ifdef CLM
       real(8) , pointer , dimension(:,:) :: sols2d_io , soll2d_io ,     &
@@ -290,6 +303,18 @@
       allocate(inisrf_0(iy,nnsg*3+8,jx))
       allocate(var1snd(kz,8))
       allocate(var1rcv(kz,8))
+      allocate(atm0(iy,kz*6+3+nnsg*4,jxp))
+      allocate(atm_0(iy,kz*6+3+nnsg*4,jx))
+      allocate(bat0(iym2,numbat,jxp))
+      allocate(bat_0(iym2,numbat,jx))
+      allocate(out0(iy,3,jxp))
+      allocate(out_0(iy,3,jx))
+      allocate(rad0(iym2,nrad3d*kz+nrad2d,jxp))
+      allocate(rad_0(iym2,nrad3d*kz+nrad2d,jx))
+      allocate(sub0(iym2,nnsg,numsub,jxp))
+      allocate(sub_0(iym2,nnsg,numsub,jx))
+      allocate(chem0(iy,ntr*kz+kz*3+ntr*7+3,jxp))
+      allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+3,jx))
 #ifdef CLM
       allocate(spaceclm(iym1,jxm1,9))
       sols2d_io   => spaceclm(:,:,1)

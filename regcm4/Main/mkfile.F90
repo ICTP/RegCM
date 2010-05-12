@@ -320,28 +320,28 @@
       end if
  
 99001 format (a3,'.',i10)
-99002 format (i10,',     ! idate0 = First date in File (yymmddhh)')
-99003 format (i10,                                                      &
-             &',     ! idate1 = Start date for averaging and re-writing'&
-            & )
-99004 format (i10,                                                      &
-             &',     ! idate2 = End date for averaging and re-writing')
-99005 format (a1,i6,a1,',')
-99006 format (a1,i6,'_',i6,a1,',')
-99007 format (a1,i10,a1,',   !',i3,a2)
+!99002 format (i10,',     ! idate0 = First date in File (yymmddhh)')
+!99003 format (i10,                                                      &
+!             &',     ! idate1 = Start date for averaging and re-writing'&
+!            & )
+!99004 format (i10,                                                      &
+!             &',     ! idate2 = End date for averaging and re-writing')
+!99005 format (a1,i6,a1,',')
+!99006 format (a1,i6,'_',i6,a1,',')
+!99007 format (a1,i10,a1,',   !',i3,a2)
  
-99008 format (a78)
-99009 format ('      parameter (nyf =',i4,')')
-99010 format ('      parameter (nxf =',i4,')')
-99011 format ('      parameter (nz  =',i4,')')
-99012 format ('      parameter (nxs =',i4,')')
-99013 format ('      parameter (nys =',i4,')')
-99014 format ('      parameter (ibyte =',i4,')')
-99015 format ('      parameter (dtbc  =',i7,'.00)')
-99016 format ('      parameter (dtout =',f10.2,')')
-99017 format ('      parameter (dtbat =',f10.2,')')
-99018 format ('      parameter (dtrad =',f10.2,')')
-99019 format ('      parameter (dtche =',f10.2,')')
-99020 format ('      parameter (dtsub =',f10.2,')')
+!99008 format (a78)
+!99009 format ('      parameter (nyf =',i4,')')
+!99010 format ('      parameter (nxf =',i4,')')
+!99011 format ('      parameter (nz  =',i4,')')
+!99012 format ('      parameter (nxs =',i4,')')
+!99013 format ('      parameter (nys =',i4,')')
+!99014 format ('      parameter (ibyte =',i4,')')
+!99015 format ('      parameter (dtbc  =',i7,'.00)')
+!99016 format ('      parameter (dtout =',f10.2,')')
+!99017 format ('      parameter (dtbat =',f10.2,')')
+!99018 format ('      parameter (dtrad =',f10.2,')')
+!99019 format ('      parameter (dtche =',f10.2,')')
+!99020 format ('      parameter (dtsub =',f10.2,')')
  
       end subroutine mkfile

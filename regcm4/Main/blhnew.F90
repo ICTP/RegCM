@@ -91,6 +91,8 @@
  
 !     exponent : one third
       onet = 1./3.
+      pblk2 = 0.0
+      zzhnew2 = 0.0
 !     set constants
       ccon = fak*sffrac*vonkar
       binm = betam*sffrac

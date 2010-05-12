@@ -93,6 +93,7 @@
  
       real(8) , parameter :: z10 = 10.0
  
+      i = 0
       do n = 1 , isize
         avesize(n) = (aerosize(1,n)+aerosize(2,n))/2.0
       end do

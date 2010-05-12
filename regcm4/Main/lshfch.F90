@@ -58,6 +58,7 @@
       data iblnk/32/
       data cnull/0/
 !
+      ifill = 0
       ipc = 1
       do i = ioff + 1 , lchar
         temp = ixchar(i:i)

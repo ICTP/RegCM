@@ -72,6 +72,9 @@
       data dlt , cdscld/3.0 , 0.3/
 !
 !
+      pmax = 0.0
+      qmax = 0.0
+      tmax = 0.0
       do k = 1 , kz
         do i = 1 , iym1
           cldlwc(i,k) = 0.
