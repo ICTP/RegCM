@@ -31,6 +31,7 @@
       use mod_bxq
       use mod_tmpsav
       use mod_date , only : jyear , jyear0 , ktau
+      use mod_constants , only : rgas
 #ifdef MPP1
       use mod_mppio
 #ifndef IBM
@@ -145,7 +146,7 @@
         do l = 1 , kz
           do k = 1 , kz
             am(k,n) = am(k,n) + a(k,l)*zmatx(l,n)
-            tau(n,k) = tau(n,k) + r*zmatxr(n,l)*hydros(l,k)
+            tau(n,k) = tau(n,k) + rgas*zmatxr(n,l)*hydros(l,k)
           end do
         end do
 !
@@ -154,7 +155,7 @@
         end do
         do l = 1 , kz
           do k = 1 , kzp1
-            varpa1(n,k) = varpa1(n,k) + r*zmatxr(n,l)*hydroc(l,k)
+            varpa1(n,k) = varpa1(n,k) + rgas*zmatxr(n,l)*hydroc(l,k)
           end do
         end do
       end do

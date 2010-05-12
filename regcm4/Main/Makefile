@@ -401,7 +401,8 @@ snow.o: snow.f90 mod_constants.o mod_bats.o mod_param1.o mod_dynparam.o
 soilbc.o: soilbc.f90 mod_bats.o mod_dynparam.o
 solar1.o: solar1.f90 mod_constants.o mod_date.o mod_message.o
 spinit.o: spinit.F90 mod_bdycod.o mod_bxq.o mod_date.o mod_iunits.o mod_main.o \
-          mod_param1.o mod_param2.o mod_dynparam.o mod_split.o mod_tmpsav.o
+          mod_param1.o mod_param2.o mod_dynparam.o mod_split.o mod_tmpsav.o \
+          mod_constants.o
 spline.o: spline.f90
 splitf.o: splitf.F90 mod_bxq.o mod_main.o mod_param1.o mod_dynparam.o \
           mod_split.o

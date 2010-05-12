@@ -17,9 +17,9 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine vtlaps(t,sigma,r,pt,pd,nk)
+      subroutine vtlaps(t,sigma,pt,pd,nk)
 
-      use mod_constants , only : rgti , stdp , stdt , lrate
+      use mod_constants , only : rgti , stdp , stdt , lrate , rgas
       implicit none
 !
 ! PARAMETER definitions
@@ -30,9 +30,9 @@
 ! Dummy arguments
 !
       integer :: nk
-      real(8) :: pd , pt , r
+      real(8) :: pd , pt
       real(8) , dimension(nk) :: sigma , t
-      intent (in) nk , pd , pt , r , sigma
+      intent (in) nk , pd , pt , sigma
       intent (inout) t
 !
 ! Local variables
@@ -44,7 +44,7 @@
 !  standard atmosphere (see text by hess). units of p are cb.
 !
       p0 = stdp/1000.D0
-      fac = r*lrate*rgti
+      fac = rgas*lrate*rgti
       do k = 1 , nk
         p = sigma(k)*pd + pt
         t(k) = stdt*((p/p0)**fac)

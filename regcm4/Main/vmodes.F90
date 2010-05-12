@@ -38,7 +38,7 @@
       real(8) , dimension(2) :: det
       integer :: ier , k , k1 , k2 , l , mm , numerr
       logical :: lhydro , lprint , lsigma
-      real(8) :: ps2 , rm1 , x
+      real(8) :: ps2 , x
       real(8) , dimension(kz) :: work
       real(8) , dimension(1) :: pps
 !
@@ -87,7 +87,6 @@
       if ( lstand ) ps = 100.
                             ! standard ps in cb; otherwise ps set in tav
       pd = ps - pt
-      r = rgas
 !
 !  read sigmaf (sigma at full (integral) index levels; kzp1 values as
 !  in the mm4.   check that values are ordered properly.
@@ -126,7 +125,7 @@
       sigmah(kzp1) = 1.0
 !
 !  set tbarh (temperature at half (data) levels: indexed k + 1/2)
-      if ( lstand ) call vtlaps(tbarh,sigmah,r,pt,pd,kz)
+      if ( lstand ) call vtlaps(tbarh,sigmah,pt,pd,kz)
       call vchekt(tbarh,sigmah,sigmaf,rovcp,pt,pd,kz,numerr)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -331,8 +330,7 @@
 !
       call vmultm(w1,hydros,a,kz)
       call vsubtm(tau,w1,w2,kz)
-      rm1 = -1.*r
-      call vmultc(tau,tau,kz,rm1)
+      call vmultc(tau,tau,kz,-rgas)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
