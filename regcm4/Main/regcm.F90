@@ -360,6 +360,8 @@
       call t_finalizef()
 #endif
 
+      call finaltime(myid)
+
       if ( myid.eq.0 ) then
         print *, 'RegCM V4 simulation successfully reached end'
       end if

@@ -163,8 +163,6 @@
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
-! allocation stuff already enabled for serial version
-!
       call allocate_mod_aero_param
       call allocate_mod_aerosol
       call allocate_mod_bats
