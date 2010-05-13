@@ -16,7 +16,28 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+      module mod_date
+      implicit none
  
+      integer :: ntimax
+      integer :: nnnnnn , nnnchk , nnnend , nstart , nstrt0 , nnbase
+      integer :: ldatez , lyear , lmonth , lday , lhour
+      integer :: jyear , jyear0 , jyearr , ntime
+
+      integer :: mdate , mdate0 , moutdate
+      integer :: nmonth , nyear
+
+      integer :: mmrec , ndate0 , ndate1
+      integer :: idate0 , idate1 , idate2 , idatee , idates , idatex
+
+      integer :: julday , julian
+      real(8) :: declin , dectim , deltmx , gmt
+      real(8) :: xtime
+      integer :: ktau , ktaur
+
+      contains
+
       subroutine initdate
       use mod_dynparam
       use mod_param1
@@ -152,3 +173,39 @@
       write (aline,*) 'nrec = ' , nrec
       call say
       end subroutine initdate
+!
+!
+!
+      subroutine finddate(npos,idate)
+      use mod_dynparam
+      use mod_message
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: idate , npos
+      intent (in) idate
+      intent (inout) npos
+!
+! Local variables
+!
+      integer :: i
+!
+      i = 0
+      do
+        i = i + 1
+        if ( mdatez(i).eq.idate ) then
+          npos = i
+          exit
+        end if
+        if ( i.gt.289276 ) then
+ 
+          write (aline,*) 'error in finddate : ' , npos , idate
+          call say
+          call fatal(__FILE__,__LINE__,'Date not found')
+          exit
+        end if
+      end do
+      end subroutine finddate
+
+      end module mod_date

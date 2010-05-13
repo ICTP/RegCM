@@ -63,7 +63,7 @@
       use mod_cu_em , only : cupemandrv
       use mod_date , only : dectim , nnnnnn , nstrt0 , lyear , lmonth , &
                    & lday , lhour , ldatez , idate0 , idate1 , jyear ,  &
-                   & jyear0 , ntime , ktau , xtime
+                   & jyear0 , ntime , ktau , xtime , finddate
       use mod_message
       use mod_aerosol , only : aermm
       use mod_constants , only : rgti , rgas , cpd , ep1 , gnu , omu ,  &

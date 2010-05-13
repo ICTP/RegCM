@@ -74,7 +74,7 @@ blhnew.o     dsflx.o       ljchrn.o    radoz2.o    tstep.o      \
              zenitm.o      lshfch.o    radtap.o    vadv.o       \
 bndry.o      eispack.o                 radtpl.o    vcheke.o     \
 carbon.o     eomb.o        mapsmp.o    regcm.o     vcheki.o     \
-chdrydep.o   finddate.o                reorder.o   vchekt.o     \
+chdrydep.o                             reorder.o   vchekt.o     \
 chemtap.o    for_next.o    tracbud.o   root.o      vcover.o     \
 chrsetc.o    frawat.o                  satur.o     vecbats.o    \
 chsrfem.o    getdat.o      tgrund.o    slice1D.o   vmodes.o     \
@@ -88,7 +88,7 @@ condch.o     tracdiag.o    outsav.o    splitf.o    invmtrx.o    \
 condcq.o     inidust.o     outsrf.o    sponge.o                 \
 condtq.o     inirad.o      outsub.o    spstep.o    tpfc.o       \
 conmas.o     initb.o       outtap0.o   stomat.o    zengocndrv.o \
-             initdate.o    outtap.o                zengocn.o    \
+                           outtap.o                zengocn.o    \
 cumtran.o    init.o        param.o     tend.o      zenith.o
 
 ifeq ($(USECLM),1)
@@ -175,7 +175,7 @@ mod_cu_kuo.o: mod_cu_kuo.f90 mod_bats.o mod_constants.o mod_cvaria.o \
               mod_date.o mod_main.o mod_param1.o mod_param2.o mod_param3.o \
               mod_pmoist.o mod_rad.o mod_dynparam.o mod_trachem.o
 mod_cvaria.o: mod_cvaria.F90 mod_dynparam.o
-mod_date.o: mod_date.f90
+mod_date.o: mod_date.F90 mod_message.o mod_param1.o mod_dynparam.o
 mod_diagnosis.o: mod_diagnosis.f90 mod_dynparam.o
 mod_dust.o: mod_dust.F90 mod_dynparam.o
 mod_ictp01.o: mod_ictp01.F90 mod_dynparam.o
@@ -254,7 +254,6 @@ drip.o: drip.f90 mod_constants.o mod_bats.o mod_dynparam.o
 dsflx.o: dsflx.F90 mod_constants.o mod_dust.o mod_message.o mod_dynparam.o
 eispack.o: eispack.f90
 eomb.o: eomb.f90 mod_constants.o
-finddate.o: finddate.F90 mod_message.o mod_dynparam.o
 for_next.o: for_next.F90 mod_cu_em.o mod_date.o mod_param1.o mod_param2.o \
             mod_param3.o mod_pmoist.o mod_dynparam.o mod_trachem.o
 frawat.o: frawat.f90 mod_constants.o mod_bats.o mod_dynparam.o
@@ -287,7 +286,6 @@ init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
         mod_radbuf.o mod_dynparam.o mod_tmpsav.o mod_trachem.o
 endif
 initb.o: initb.F90 mod_bats.o mod_main.o mod_param2.o mod_dynparam.o
-initdate.o: initdate.F90 mod_message.o mod_param1.o mod_dynparam.o
 interf.o: interf.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
           mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_interfaces.o \
           mod_slice.o

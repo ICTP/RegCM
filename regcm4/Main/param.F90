@@ -42,7 +42,7 @@
                    & idate2 , nstrt0 , nyear , nnnend , nmonth ,        &
                    & ndate0 , nnnchk , lyear , lmonth , lday , lhour ,  &
                    & ldatez , idatex , jyear , jyear0 , jyearr , ntime ,&
-                   & ktau , ktaur , xtime
+                   & ktau , ktaur , xtime , initdate , finddate
       use mod_message
       use mod_cu_bm , only : lutbl
       use mod_cu_em
