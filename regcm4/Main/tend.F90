@@ -57,6 +57,10 @@
       use mod_rad
       use mod_bats
       use mod_trachem
+      use mod_cu_grell , only : cuparan
+      use mod_cu_kuo , only : cupara
+      use mod_cu_bm , only : bmpara
+      use mod_cu_em , only : cupemandrv
       use mod_date , only : dectim , nnnnnn , nstrt0 , lyear , lmonth , &
                    & lday , lhour , ldatez , idate0 , idate1 , jyear ,  &
                    & jyear0 , ntime , ktau , xtime

@@ -17,6 +17,20 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
+      module mod_cu_bm
+
+      implicit none
+
+      integer , parameter :: itb = 100
+      integer , parameter :: jtb = 150
+
+      real(8) :: pl , rdp , rdq , rdth , rdthe , thl
+      real(8) , dimension(itb,jtb) :: ptbl
+      real(8) , dimension(jtb) :: qs0 , sqs , sthe , the0
+      real(8) , dimension(jtb,itb) :: ttbl
+
+      contains
+
       subroutine bmpara(tten,qten,j)
 !
 ! modified by jack kain of penn state to replace the look-up tabl
@@ -57,7 +71,6 @@
       use mod_pmoist
       use mod_rad
       use mod_bats , only : pptc , veg2d , ocld2d
-      use mod_bmparam
       use mod_trachem
       use mod_constants , only : rgas , gti , rovg , cpd , rcpd , ep2 , &
                                & trel , tzero , wlhv , c4les , c3les ,  &
@@ -855,3 +868,291 @@
       icon(j) = icond
 
       end subroutine bmpara
+!
+!
+!
+      subroutine lutbl(ptop)
+!
+      use mod_constants , only : cpd , rgas , rovcp , tzero , c3les ,   &
+                               & c4les , eliwv , pq0
+      implicit none
+!
+! PARAMETER definitions
+!
+      real(8) , parameter :: eps = 2.D-12 ! little number
+
+!
+! Dummy arguments
+!
+      real(8) :: ptop
+      intent (in) ptop
+!
+! Local variables
+!
+      real(8) :: ape , dp , dqs , dth , dthe , p , ph , pt , qs , qs0k ,&
+               & sqsk , sthek , th , the0k , thh
+      real(8) , dimension(jtb) :: pnew , pold , &
+                                & qsnew , qsold , thenew , theold ,     &
+                                & tnew , told , y2p , y2t
+      integer :: kp , kpm , kpm1 , kth , kthm , kthm1
+!
+!--------------coarse look-up table for saturation point----------------
+!
+      pt = ptop*1000.0D0
+!     ptop in pascal
+ 
+      kthm = jtb
+      kpm = itb
+      kthm1 = kthm - 1
+      kpm1 = kpm - 1
+!
+      thl = 210.0D0
+      thh = 385.0D0
+      pl = pt
+      ph = 105000.0D0
+!
+      dth = (thh-thl)/dble(kthm-1)
+      dp = (ph-pl)/dble(kpm-1)
+!
+      rdth = 1.0D0/dth
+      rdp = 1.0D0/dp
+      rdq = kpm - 1
+!
+      th = thl - dth
+ 
+!-----------------------------------------------------------------------
+ 
+      do kth = 1 , kthm
+        th = th + dth
+        p = pl - dp
+        do kp = 1 , kpm
+          p = p + dp
+          ape = (100000.D0/p)**(rovcp)
+          qsold(kp) = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
+          pold(kp) = p
+        end do
+!
+        qs0k = qsold(1)
+        sqsk = qsold(kpm) - qsold(1)
+        qsold(1) = 0.0D0
+        qsold(kpm) = 1.0D0
+!
+        do kp = 2 , kpm1
+          qsold(kp) = (qsold(kp)-qs0k)/sqsk
+!wwwwwwwwwwwwww fix due to cyber half prec. limitation wwwwwwwwwwwwwwwww
+          if ( (qsold(kp)-qsold(kp-1)).lt.eps ) qsold(kp) = qsold(kp-1) &
+             & + eps
+!wwwwwwwwwwwwww fix due to cyber half prec. limitation wwwwwwwwwwwwwwwww
+
+        end do
+!
+        qs0(kth) = qs0k
+        sqs(kth) = sqsk
+!-----------------------------------------------------------------------
+        qsnew(1) = 0.0D0
+        qsnew(kpm) = 1.0D0
+        dqs = 1.0D0/dble(kpm-1)
+!
+        do kp = 2 , kpm1
+          qsnew(kp) = qsnew(kp-1) + dqs
+        end do
+!
+        y2p(1) = 0.0D0
+        y2p(kpm) = 0.0D0
+!
+        call spline(kpm,qsold,pold,y2p,kpm,qsnew,pnew)
+!
+        do kp = 1 , kpm
+          ptbl(kp,kth) = pnew(kp)
+        end do
+!-----------------------------------------------------------------------
+      end do
+!-----------------------------------------------------------------------
+ 
+!--------------coarse look-up table for t(p) from constant the----------
+      p = pl - dp
+      do kp = 1 , kpm
+        p = p + dp
+        th = thl - dth
+        do kth = 1 , kthm
+          th = th + dth
+          ape = (100000.D0/p)**(rovcp)
+          qs = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
+          told(kth) = th/ape
+          theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
+        end do
+!
+        the0k = theold(1)
+        sthek = theold(kthm) - theold(1)
+        theold(1) = 0.0D0
+        theold(kthm) = 1.0D0
+!
+        do kth = 2 , kthm1
+          theold(kth) = (theold(kth)-the0k)/sthek
+!wwwwwwwwwwwwww fix due to cyber half prec. limitation wwwwwwwwwwwwwwwww
+          if ( (theold(kth)-theold(kth-1)).lt.eps ) theold(kth)         &
+             & = theold(kth-1) + eps
+!mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+        end do
+!
+        the0(kp) = the0k
+        sthe(kp) = sthek
+!-----------------------------------------------------------------------
+        thenew(1) = 0.0D0
+        thenew(kthm) = 1.0D0
+        dthe = 1.0D0/dble(kthm-1)
+        rdthe = 1.0D0/dthe
+!
+        do kth = 2 , kthm1
+          thenew(kth) = thenew(kth-1) + dthe
+        end do
+!
+        y2t(1) = 0.0D0
+        y2t(kthm) = 0.0D0
+!
+        call spline(kthm,theold,told,y2t,kthm,thenew,tnew)
+!
+        do kth = 1 , kthm
+          ttbl(kth,kp) = tnew(kth)
+        end do
+!-----------------------------------------------------------------------
+      end do
+!-----------------------------------------------------------------------
+!
+      end subroutine lutbl
+!
+!
+!
+      subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew)
+ 
+      implicit none
+!
+!*****************************************************************
+!                                                                *
+!  this is a one-dimensional cubic spline fitting routine        *
+!  programed for a small scalar machine.                         *
+!                                                                *
+!  programer\ z. janjic, yugoslav fed. hydromet. inst., beograd  *
+!                                                                *
+!  nold - number of given values of the function.  must be ge 3. *
+!  xold - locations of the points at which the values of the     *
+!         function are given.  must be in ascending order.       *
+!  yold - the given values of the function at the points xold.   *
+!  y2   - the second derivatives at the points xold.  if natural *
+!         spline is fitted y2(1)=0. and y2(nold)=0. must be      *
+!         specified.                                             *
+!  nnew - number of values of the function to be calculated.     *
+!  xnew - locations of the points at which the values of the     *
+!         function are calculated.  xnew(k) must be ge xold(1)   *
+!         and le xold(nold).                                     *
+!  ynew - the values of the function to be calculated.           *
+!  p, q - auxiliary vectors of the length nold-2.                *
+!                                                                *
+!*****************************************************************
+!
+! Dummy arguments
+!
+      integer :: nnew , nold
+      real(8) , dimension(nold) :: xold , yold , y2
+      real(8) , dimension(nnew) :: xnew, ynew
+      intent (in) nnew , nold , xnew , xold , yold
+      intent (out) ynew
+      intent (inout) y2
+!
+! Local variables
+!
+      real(8) , dimension(nold-2) :: p , q
+      real(8) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
+               & dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
+      integer :: k , k1 , k2 , kold , noldm1
+!-----------------------------------------------------------------------
+      ak = 0.0
+      bk = 0.0
+      ck = 0.0
+      noldm1 = nold - 1
+!
+      dxl = xold(2) - xold(1)
+      dxr = xold(3) - xold(2)
+      dydxl = (yold(2)-yold(1))/dxl
+      dydxr = (yold(3)-yold(2))/dxr
+      rtdxc = .5/(dxl+dxr)
+!
+      p(1) = rtdxc*(6.*(dydxr-dydxl)-dxl*y2(1))
+      q(1) = -rtdxc*dxr
+!
+      if ( nold.eq.3 ) then
+!-----------------------------------------------------------------------
+        k = noldm1
+      else
+!-----------------------------------------------------------------------
+        k = 3
+        do
+!
+          dxl = dxr
+          dydxl = dydxr
+          dxr = xold(k+1) - xold(k)
+          dydxr = (yold(k+1)-yold(k))/dxr
+          dxc = dxl + dxr
+          den = 1./(dxl*q(k-2)+dxc+dxc)
+!
+          p(k-1) = den*(6.*(dydxr-dydxl)-dxl*p(k-2))
+          q(k-1) = -den*dxr
+!
+          k = k + 1
+          if ( k.ge.nold ) then
+            k = noldm1
+            exit
+          end if
+        end do
+      end if
+      do
+!
+        y2(k) = p(k-1) + q(k-1)*y2(k+1)
+!
+        k = k - 1
+        if ( k.le.1 ) then
+!-----------------------------------------------------------------------
+          k1 = 1
+          exit
+        end if
+      end do
+!
+ 100  continue
+      xk = xnew(k1)
+!
+      do k2 = 2 , nold
+        if ( xold(k2).gt.xk ) then
+          kold = k2 - 1
+!
+          if ( k1.eq.1 ) go to 200
+          if ( k.ne.kold ) go to 200
+          go to 300
+        end if
+      end do
+      ynew(k1) = yold(nold)
+      go to 400
+!
+ 200  continue
+      k = kold
+!
+      y2k = y2(k)
+      y2kp1 = y2(k+1)
+      dx = xold(k+1) - xold(k)
+      rdx = 1./dx
+      ak = .1666667*rdx*(y2kp1-y2k)
+      bk = .5*y2k
+      ck = rdx*(yold(k+1)-yold(k)) - .1666667*dx*(y2kp1+y2k+y2k)
+!
+ 300  continue
+      x = xk - xold(k)
+      xsq = x*x
+!
+      ynew(k1) = ak*xsq*x + bk*xsq + ck*x + yold(k)
+!
+ 400  continue
+      k1 = k1 + 1
+      if ( k1.le.nnew ) go to 100
+!-----------------------------------------------------------------------
+      end subroutine spline
+!
+      end module mod_cu_bm

@@ -17,6 +17,126 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
+      module mod_cu_grell
+
+      contains
+
+      subroutine cuparan(tten,qten,j)
+
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      use mod_dynparam
+      use mod_param1 , only : dt , dtmin , nbatst
+      use mod_param3 , only : r8pt , a
+      use mod_pmoist
+      use mod_rad
+      use mod_bats , only : pptc
+      use mod_main
+      use mod_constants , only : rgti
+      use mod_date , only : jyear , jyear0 , ktau
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: j
+      real(8) , dimension(iy,kz) :: qten , tten
+      intent (inout) qten , tten
+!
+! Local variables
+!
+      real(8) :: aprdiv , calc , dtime , pkdcut , pkk , prainx , us , vs
+      integer :: i , iconj , icut , iend , istart , k , kk
+      integer , dimension(iy) :: kdet
+      real(8) , dimension(iy,kz) :: outq , outt , p , po , q , qo , t , &
+                                  & tn , vsp
+      real(8) , dimension(iy) :: pret , psur , qcrit , ter11
+!
+!     zero out radiative clouds
+!
+      cldlwc = 0.0
+      cldfra = 0.0
+ 
+      icut = 0
+      dtime = dt
+      pkdcut = 75.
+      istart = 2 + icut
+      iend = iym2 - icut
+!
+!---  prepare input, erase output
+!
+      do i = istart , iend
+        kdet(i) = 2
+        qcrit(i) = 0.
+        pret(i) = 0.
+      end do
+
+      do k = 1 , kz
+        do i = 2 + icut , iym2 - icut
+          kk = kz - k + 1
+          us = ua(i,kk,j)/psb(i,j)
+          vs = va(i,kk,j)/psb(i,j)
+          us = 0.25*(ua(i,kk,j)/psb(i,j)+ua(i+1,kk,j)/psb(i+1,j)        &
+             & +ua(i,kk,j+1)/psb(i,j+1)+ua(i+1,kk,j+1)/psb(i+1,j+1))
+          vs = 0.25*(va(i,kk,j)/psb(i,j)+va(i+1,kk,j)/psb(i+1,j)        &
+             & +va(i,kk,j+1)/psb(i,j+1)+va(i+1,kk,j+1)/psb(i+1,j+1))
+          t(i,k) = tb(i,kk,j)/psb(i,j)
+          q(i,k) = qvb(i,kk,j)/psb(i,j)
+          if ( q(i,k).lt.1.E-08 ) q(i,k) = 1.E-08
+          tn(i,k) = t(i,k) + (tten(i,kk))/psb(i,j)*dtime
+          qo(i,k) = q(i,k) + (qten(i,kk))/psb(i,j)*dtime
+          p(i,k) = 10.*psb(i,j)*a(kk) + 10.*r8pt
+          vsp(i,k) = dsqrt(us**2+vs**2)
+          if ( qo(i,k).lt.1.E-08 ) qo(i,k) = 1.E-08
+!
+          po(i,k) = p(i,k)
+          psur(i) = 10.*psb(i,j) + 10.*r8pt
+          outt(i,k) = 0.
+          pkk = psur(i) - po(i,k)
+          if ( pkk.le.pkdcut ) kdet(i) = kdet(i) + 1
+          outq(i,k) = 0.
+          ter11(i) = ht(i,j)*rgti
+          if ( ter11(i).le.0. ) ter11(i) = 1.E-05
+          qcrit(i) = qcrit(i) + qten(i,kk)
+        end do
+      end do
+!
+!---  call cumulus parameterization
+!
+      call cup(qcrit,t,q,ter11,tn,qo,po,pret,p,outt,outq,dtime,psur,vsp,&
+             & istart,iend,kdet,j)
+      do k = 1 , kz
+        do i = istart , iend
+          if ( pret(i).gt.0. ) then
+            kk = kz - k + 1
+            tten(i,kk) = psb(i,j)*outt(i,k) + tten(i,kk)
+            qten(i,kk) = psb(i,j)*outq(i,k) + qten(i,kk)
+          end if
+        end do
+      end do
+!
+!---  rain in cm.
+!
+      calc = .5
+      iconj = 0
+      do i = istart , iend
+        if ( pret(i).gt.0. ) then
+          rainc(i,j) = rainc(i,j) + pret(i)*calc*dt
+!         print *,'rainc(',i,j,')=',rainc(i,j)
+          iconj = iconj + 1
+!.....................precipitation rate for bats (mm/s)
+          aprdiv = dble(nbatst)
+          if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
+          prainx = pret(i)*calc*dt
+          pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.)/aprdiv
+!.......................................................
+        end if
+      end do
+      icon(j) = iconj
+!
+      end subroutine cuparan
+!
+!    GRELL CUMULUS SCHEME
+!
       subroutine cup(qcrit,t,q,z1,tn,qo,po,pre,p,outtem,outq,dtime,psur,&
                    & vsp,istart,iend,kdet,jslc)
 
@@ -28,7 +148,7 @@
       use mod_rad
       use mod_trachem
       use mod_constants , only : gti , rgti , cpd , tzero , wlhv ,      &
-                               & rwat , rcpd , wlhvocp
+                               & rwat , rcpd , wlhvocp , rgas , ep2
       implicit none
 !
 ! Dummy arguments
@@ -74,9 +194,9 @@
       alsixt = dlog(610.71D0)
       ht(1) = wlhvocp
       ht(2) = 2.834E6*rcpd
-      be(1) = .622*ht(1)*3.50
+      be(1) = ep2*ht(1)*3.50
       ae(1) = be(1)*tfinv + alsixt
-      be(2) = .622*ht(2)*3.50
+      be(2) = ep2*ht(2)*3.50
       ae(2) = be(2)*tfinv + alsixt
       mbdt = dtime*5.E-03
       c0 = .002
@@ -94,8 +214,8 @@
           if ( tn(i,k).le.tcrit ) ipho = 2
           e = dexp(ae(iph)-be(iph)/t(i,k))
           eo = dexp(ae(ipho)-be(ipho)/tn(i,k))
-          qes(i,k) = .622*e/(100.*p(i,k)-(1.-.622)*e)
-          qeso(i,k) = .622*eo/(100.*po(i,k)-(1.-.622)*eo)
+          qes(i,k) = ep2*e/(100.*p(i,k)-(1.-ep2)*e)
+          qeso(i,k) = ep2*eo/(100.*po(i,k)-(1.-ep2)*eo)
           if ( qes(i,k).le.1.E-08 ) qes(i,k) = 1.E-08
           if ( q(i,k).gt.qes(i,k) ) q(i,k) = qes(i,k)
           if ( qeso(i,k).le.1.E-08 ) qeso(i,k) = 1.E-08
@@ -143,18 +263,18 @@
 !       edtx(i)=0.
         xmb(i) = 0.
         vshear(i) = 0.
-        z(i,1) = z1(i) - (dlog(p(i,1))-dlog(psur(i)))*287.*tv(i,1)*rgti
-        zo(i,1) = z1(i) - (dlog(po(i,1))-dlog(psur(i)))*287.*tvo(i,1)   &
+        z(i,1) = z1(i) - (dlog(p(i,1))-dlog(psur(i)))*rgas*tv(i,1)*rgti
+        zo(i,1) = z1(i) - (dlog(po(i,1))-dlog(psur(i)))*rgas*tvo(i,1)   &
                 & *rgti
       end do
       do k = 2 , kz
         do i = istart , iend
           tvbar = .5*tv(i,k) + .5*tv(i,k-1)
           z(i,k) = z(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))             &
-                 & *287.*tvbar*rgti
+                 & *rgas*tvbar*rgti
           tvbaro = .5*tvo(i,k) + .5*tvo(i,k-1)
           zo(i,k) = zo(i,k-1) - (dlog(po(i,k))-dlog(po(i,k-1)))         &
-                  & *287.*tvbaro*rgti
+                  & *rgas*tvbaro*rgti
         end do
       end do
 !
@@ -176,11 +296,11 @@
           dellah(i,k) = 0.
           dellaq(i,k) = 0.
           dellat(i,k) = 0.
-          he(i,k) = gti*z(i,k) + cpd*t(i,k) + 2.5E06*q(i,k)
-          hes(i,k) = gti*z(i,k) + cpd*t(i,k) + 2.5E06*qes(i,k)
+          he(i,k) = gti*z(i,k) + cpd*t(i,k) + wlhv*q(i,k)
+          hes(i,k) = gti*z(i,k) + cpd*t(i,k) + wlhv*qes(i,k)
           if ( he(i,k).ge.hes(i,k) ) he(i,k) = hes(i,k)
-          heo(i,k) = gti*zo(i,k) + cpd*tn(i,k) + 2.5E06*qo(i,k)
-          heso(i,k) = gti*zo(i,k) + cpd*tn(i,k) + 2.5E06*qeso(i,k)
+          heo(i,k) = gti*zo(i,k) + cpd*tn(i,k) + wlhv*qo(i,k)
+          heso(i,k) = gti*zo(i,k) + cpd*tn(i,k) + wlhv*qeso(i,k)
           if ( heo(i,k).ge.heso(i,k) ) heo(i,k) = heso(i,k)
           xt(i,k) = t(i,k)
           xq(i,k) = q(i,k)
@@ -483,8 +603,8 @@
                       & )*gti/dp
           xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
           xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-          dellat(i,k) = rcpd*(dellah(i,k)-2.5E06*dellaq(i,k))
-          xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-2.5E06*dellaq(i,k))+t(i,k)
+          dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
+          xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k))+t(i,k)
           if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
         end if
       end do
@@ -521,8 +641,8 @@
                           & *detdoq*gti/dp
               xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
               xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-              dellat(i,k) = rcpd*(dellah(i,k)-2.5E06*dellaq(i,k))
-              xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-2.5E06*dellaq(i,k))    &
+              dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
+              xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k))    &
                       & + t(i,k)
               if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
             end if
@@ -543,8 +663,8 @@
           k = lpt
           xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
           xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
-          dellat(i,k) = rcpd*(dellah(i,k)-2.5E06*dellaq(i,k))
-          xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-2.5E06*dellaq(i,k))        &
+          dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
+          xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k))        &
                   & + t(i,k)
           if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
           xhkb(i) = dellah(i,kbcon(i))*mbdt + hkb(i)
@@ -561,7 +681,7 @@
             iph = 1
             if ( xt(i,k).le.tcrit ) iph = 2
             e = dexp(ae(iph)-be(iph)/xt(i,k))
-            xqes(i,k) = .622*e/(100.*p(i,k)-(1.-.622)*e)
+            xqes(i,k) = ep2*e/(100.*p(i,k)-(1.-ep2)*e)
             if ( xqes(i,k).le.1.E-08 ) xqes(i,k) = 1.E-08
             if ( xq(i,k).gt.xqes(i,k) ) xq(i,k) = xqes(i,k)
             xtv(i,k) = xt(i,k) + .608*xq(i,k)*xt(i,k)
@@ -578,14 +698,14 @@
       do i = istart , iend
         if ( aa0(i).ne.-1. ) xz(i,1) = z1(i)                            &
                                      & - (dlog(p(i,1))-dlog(psur(i)))   &
-                                     & *287.*xtv(i,1)*rgti
+                                     & *rgas*xtv(i,1)*rgti
       end do
       do k = 2 , kz
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
             tvbar = .5*xtv(i,k) + .5*xtv(i,k-1)
             xz(i,k) = xz(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))         &
-                    & *287.*tvbar*rgti
+                    & *rgas*tvbar*rgti
           end if
         end do
       end do
@@ -595,7 +715,7 @@
       do k = 1 , kz
         do i = istart , iend
           if ( aa0(i).ne.-1. ) then
-            xhes(i,k) = gti*xz(i,k) + cpd*xt(i,k) + 2.5E06*xqes(i,k)
+            xhes(i,k) = gti*xz(i,k) + cpd*xt(i,k) + wlhv*xqes(i,k)
             if ( xhe(i,k).ge.xhes(i,k) ) xhe(i,k) = xhes(i,k)
           end if
         end do
@@ -819,3 +939,70 @@
  
       end do
       end subroutine cup
+!
+!
+!
+      subroutine minimi(array,iy,kz,ks,kend,kt,istart,iend)
+!
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: iend , istart , iy , kend , kz
+      real(8) , dimension(iy,kz) :: array
+      integer , dimension(iy) :: ks , kt
+      intent (in) array , iend , istart , iy , kend , ks , kz
+      intent (out) kt
+!
+! Local variables
+!
+      integer :: i , k
+      real(8) :: x
+!
+      do i = istart , iend
+        kt(i) = ks(i)
+        x = array(i,ks(i))
+        do k = ks(i) + 1 , kend
+          if ( array(i,k).lt.x ) then
+            x = array(i,k)
+            kt(i) = k
+          end if
+        end do
+      end do
+!
+      end subroutine minimi
+!
+!
+!
+      subroutine maximi(array,iy,kz,ks,ke,imax,istart,iend)
+
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: iend , istart , iy , ke , ks , kz
+      real(8) , dimension(iy,kz) :: array
+      integer , dimension(iy) :: imax
+      intent (in) array , iend , istart , iy , ke , ks , kz
+      intent (out) imax
+!
+! Local variables
+!
+      integer :: i , k
+      real(8) :: x , xar
+!
+      do i = istart , iend
+        imax(i) = ks
+        x = array(i,ks)
+        do k = ks , ke
+          xar = array(i,k)
+          if ( xar.ge.x ) then
+            x = xar
+            imax(i) = k
+          end if
+        end do
+      end do
+!
+      end subroutine maximi
+
+      end module mod_cu_grell

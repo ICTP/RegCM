@@ -37,7 +37,6 @@
       use mod_bats
       use mod_main
       use mod_trachem
-      use mod_convect
       use mod_date , only : mdate0 , ntimax , julday , gmt , deltmx ,   &
                    & dectim , nnnnnn , nstart , idate0 , idate1 ,       &
                    & idate2 , nstrt0 , nyear , nnnend , nmonth ,        &
@@ -45,6 +44,8 @@
                    & ldatez , idatex , jyear , jyear0 , jyearr , ntime ,&
                    & ktau , ktaur , xtime
       use mod_message
+      use mod_cu_bm , only : lutbl
+      use mod_cu_em
       use mod_constants , only : mathpi , gti , rgti , rgas , vonkar ,  &
                                & cpd , tauht
       use mod_rad , only : allocate_mod_rad

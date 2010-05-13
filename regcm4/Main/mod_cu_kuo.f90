@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
+      module mod_cu_kuo
+
+      contains
+
       subroutine cupara(j)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -339,3 +343,7 @@
              &'  & will be set to closest standard.')
 !
       end subroutine cupara
+!
+!
+!
+      end module mod_cu_kuo
