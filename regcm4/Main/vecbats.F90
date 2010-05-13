@@ -136,7 +136,7 @@
 !                            in mm/s.
 !=======================================================================
  
-      use mod_interfaces
+      use mod_bats , only : interf
       use mod_param1 , only : klake
       use mod_param2 , only : iemiss , lakemod
       use mod_date , only : jyear , jyear0 , ktau

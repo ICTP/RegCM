@@ -64,7 +64,7 @@ clm_comp.o       clmtype.o        perf_mod.o      clm_time_manager.o \
 restFileMod.o
 
 OBJS =       printsp.o     radclw.o    tractend2.o              \
-intmax.o     depth.o       interf.o    radcsw.o    trcab.o      \
+intmax.o     depth.o                   radcsw.o    trcab.o      \
 radabs.o     deriv.o                   radctl.o    trcabn.o     \
 albedov.o    diffu.o                   radded.o    trcems.o     \
 radclr.o     diffut.o                  radems.o    trcmix.o     \
@@ -153,7 +153,9 @@ mod_aero_param.o: mod_aero_param.F90 mod_dynparam.o
 mod_aerosol.o: mod_aerosol.F90 mod_constants.o mod_main.o mod_mainchem.o \
                mod_message.o mod_param2.o mod_dynparam.o mod_trachem.o \
                mod_slice.o
-mod_bats.o: mod_bats.F90 mod_dynparam.o mod_bats_param.o
+mod_bats.o: mod_bats.F90 mod_dynparam.o mod_bats_param.o mod_constants.o \
+            mod_date.o mod_main.o mod_param1.o mod_param2.o mod_param3.o \
+            mod_pbldim.o mod_slice.o
 mod_bdycod.o: mod_bdycod.F90 mod_dynparam.o
 mod_blh_tmp.o: mod_blh_tmp.F90 mod_dynparam.o
 mod_bxq.o: mod_bxq.F90 mod_dynparam.o
@@ -213,12 +215,12 @@ mod_when.o: mod_when.f90
 ifeq ($(USECLM),1)
 mod_zengocn.o: mod_zengocn.F90 mod_bats.o mod_constants.o mod_date.o \
                mod_main.o mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o \
-               mod_slice.o mod_bdycod.o mod_interfaces.o $(CLMLIB)
+               mod_slice.o mod_bdycod.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 else
 mod_zengocn.o: mod_zengocn.F90 mod_bats.o mod_constants.o mod_date.o \
                mod_main.o mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o \
-               mod_slice.o mod_interfaces.o mod_dynparam.o mod_bdycod.o
+               mod_slice.o mod_dynparam.o mod_bdycod.o
 endif
 #
 albedoclm.o: albedoclm.F90 mod_bats.o mod_dynparam.o
@@ -300,9 +302,6 @@ init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
         mod_radbuf.o mod_dynparam.o mod_tmpsav.o mod_trachem.o
 endif
 initb.o: initb.F90 mod_bats.o mod_main.o mod_param2.o mod_dynparam.o
-interf.o: interf.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
-          mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o mod_interfaces.o \
-          mod_slice.o
 intmax.o: intmax.f90
 lfdrag.o: lfdrag.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_dynparam.o
 lftemp.o: lftemp.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_param1.o \
@@ -430,7 +429,7 @@ tstep.o: tstep.f90 mod_date.o mod_param1.o mod_dynparam.o
 vadv.o: vadv.f90 mod_cvaria.o mod_main.o mod_param3.o mod_dynparam.o
 vchekt.o: vchekt.f90
 vcover.o: vcover.f90 mod_bats.o mod_dynparam.o
-vecbats.o: vecbats.F90 mod_date.o mod_param1.o mod_param2.o mod_interfaces.o
+vecbats.o: vecbats.F90 mod_date.o mod_param1.o mod_param2.o mod_bats.o
 vtlaps.o: vtlaps.f90 mod_constants.o
 water.o: water.f90 mod_constants.o mod_bats.o mod_param1.o mod_dynparam.o
 zenith.o: zenith.f90 mod_constants.o

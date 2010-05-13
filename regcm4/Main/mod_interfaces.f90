@@ -31,10 +31,4 @@
         end subroutine vecbats
       end interface
 
-      interface
-        subroutine interf(ivers , j , k , istart , iend , ng)
-          integer :: ivers , j , k , istart , iend , ng
-        end subroutine interf
-      end interface
-
       end module mod_interfaces
