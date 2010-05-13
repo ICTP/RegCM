@@ -59,10 +59,8 @@
 !-----------------------------------------------------------------------
 !
       use mod_dynparam
-      use mod_interfaces
-      use mod_comtim
+      use mod_date
       use mod_aerosol , only : aermix , aeroppt , aerout
-      use mod_interfaces
       implicit none
 !
 !     Input arguments

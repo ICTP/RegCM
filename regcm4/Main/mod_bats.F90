@@ -20,6 +20,7 @@
       module mod_bats
 
       use mod_dynparam
+      use mod_param1 , only : dtbat , dtmin
       use mod_bats_param
 
       implicit none
@@ -478,8 +479,6 @@
 !  ivers = 1 ,   regcm2d --> bats
 !  ivers = 2 ,   bats --> regcm2d
 !
-      use mod_dynparam , only : batfrq
-      use mod_param1 , only : dtbat , dtmin
       use mod_param2 , only : iocnflx , kbats
       use mod_param3 , only : r8pt
       use mod_main , only : psb , hfx , qfx , ht , zpbl , uvdrag ,      &
@@ -1038,4 +1037,452 @@
 !
       end subroutine interf
 !
+!     provides leaf and stem area parameters;
+!     depends on climate through subsoil temperatures.
+!
+      subroutine vcover
+!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ 
+      implicit none
+!
+! Local variables
+!
+      integer :: n , i
+!
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) seasb(n,i)                        &
+               & = dmax1(0.D0,1.-0.0016*dmax1(298.-tgb1d(n,i),0.D0)**2)
+          end if
+        end do
+      end do
+ 
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+              xlai(n,i) = xla(lveg(n,i))
+              xlai(n,i) = xlai(n,i) + (xlai0(lveg(n,i))-xlai(n,i))      &
+                         & *(1.-seasb(n,i))
+              rlai(n,i) = xlai(n,i) + sai(lveg(n,i))
+              xlsai(n,i) = xlai(n,i) + sai(lveg(n,i))
+              vegt(n,i) = sigf(n,i)*xlsai(n,i)
+            end if
+          end if
+        end do
+      end do
+!
+      end subroutine vcover
+!
+!
+!     this subroutine provides root function in terms of maximum
+!     transpiration rate plants can sustain depending on soil moisture.
+!
+!     trsmx0 is a prescribed constant (kg/m**2/s).
+!     trsmx is the maximum transpiration rate,
+!        including a low temperature correction (=seasb)
+!        and a correction for fractional vegetation (=sigf).
+!
+!     rotf is ratio of moisture extracton from top to total when
+!           fully saturated
+!     rootf is ratio of roots in upper soil layer
+!                    to roots in root soil layer
+!     bsw is the b param in clapp and hornberger
+!
+!     "wlt  " are ratios factors controlling the saturation
+!                 cf wilting (see ewing paper)
+!     wlttb (total) & wltub (upper) become 1 at the wilting point
+!     (eqn 14 in ewing paper) n.b. etrc=etrmx in ewing paper
+!
+!     etrc= max poss transpiration given the soil moisture distributions
+!     efpr = the relative contribution of upper soil layer to
+!     evapotranspiration - need soil moist. budget (subrout water)
+!
+      subroutine root
+      use mod_ictp01
+      use mod_constants , only : trsmx0
+      implicit none
+!
+! Local variables
+!
+      real(8) :: bneg , rotf , trsmx , wlttb , wltub , wmli
+      integer :: n , i
+!
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            if ( sigf(n,i).gt.0.001 ) then
+!             trsmx = trsmx0*sigf(n,i)*seasb(n,i)
+              trsmx = trsmx0*sigf(n,i)
+              rotf = rootf(lveg(n,i))
+              bneg = -bsw(n,i)
+              wmli = 1./(wiltr(n,i)**bneg-1.)
+              wlttb = (watr(n,i)**bneg-1.)*wmli
+              wltub = (watu(n,i)**bneg-1.)*wmli
+              wlttb = dmin1(wlttb,1.D0)
+              wltub = dmin1(wltub,1.D0)
+              etrc(n,i) = trsmx*(1.-(1.-rotf)*wlttb-rotf*wltub)
+              efpr(n,i) = trsmx*rotf*(1.-wltub)
+              if ( etrc(n,i).lt.1.E-12 ) then
+                etrc(n,i) = 1.E-12
+                efpr(n,i) = 1.0
+              else
+                efpr(n,i) = efpr(n,i)/etrc(n,i)
+              end if
+            end if
+          end if
+        end do
+      end do
+!
+      end subroutine root
+!
+!              update soil moisture and runoff
+!
+!     new algorithms for three soil layers (dickinson & kennedy 8-88)
+!     calculate fluxes through air, surface layer, and root layer faces
+!
+!          b = b of clapp and hornberger
+!       est0 = soil water flux, out top
+!      gwatr = net input of water to the soil surface
+!       ircp = leaf interception
+!     wflux1 = soil water flux, 10 cm
+!     wflux2 = soil water flux, 1 m
+!     rsubss = soil water flux by grav. drainage thru 10 cm interface
+!     rsubsr = soil water flux by grav. drainage thru 1 m interface
+!     rsubst = soil water flux by grav. drainage thru 10 m interface
+!       rsur = surface runoff
+!     rno1d(n,i) = total runoff (mm/day)
+!     rnos1d(n,i) = surface runoff (mm/day)
+!
+!     xkmxr and wflux1 determine flow thru upper/root soil interface
+!     evmxt, xkmx1, and xkmx2 determine flow thru lower interfaces
+!
+!     veg type 10 "irrigated crop" is irrigated through reducing
+!          the runoff (rsur), i.e., by adding a negative number
+!          if the land isn't at least 60% saturated.
+!     veg type 13 and 14 are water covered (lake, swamp, rice paddy);
+!          negative runoff keeps this land saturated.
+!
+      subroutine water
+!
+      use mod_constants , only : drain , tau1 , csoilc , tzero
+      implicit none
+!
+! Local variables
+!
+      real(8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
+               & evmxt , rap , vakb , wtg2c , xxkb
+      real(8) , dimension(nnsg,iym1) :: gwatr , rnof , rsubsr ,         &
+           & rsubss , rsubst , rsur , wflux1 , wflux2 , wfluxc , xkmx1 ,&
+           & xkmx2 , xkmxr
+      integer :: n , i
+!
+!***********************************************************************
+!
+ 
+!=======================================================================
+!     1.   define soil water fluxes
+!=======================================================================
+!
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
+!
+!           1.1  reduce infiltration for frozen ground
+!
+            if ( tgb1d(n,i).gt.tzero ) then
+              xkmxr(n,i) = xkmx(n,i)
+            else
+              xkmxr(n,i) = 0.
+            end if
+!
+!           1.11 permafrost or ice sheet
+!
+            if ( lveg(n,i).eq.9 .or. lveg(n,i).eq.12 ) then
+              xkmx1(n,i) = 0.
+              xkmx2(n,i) = 0.
+            else
+              xkmx1(n,i) = xkmx(n,i)
+              xkmx2(n,i) = drain
+            end if
+!
+!           1.2  diffusive fluxes
+!
+            evmxr = evmx0(n,i)*xkmxr(n,i)/xkmx(n,i)
+            evmxt = evmx0(n,i)*xkmx1(n,i)/xkmx(n,i)
+            b = bsw(n,i)
+            bfac = watr(n,i)**(3.+bfc(n,i))*watu(n,i)**(b-bfc(n,i)-1)
+            bfac2 = watt(n,i)**(2.+bfc(n,i))*watr(n,i)**(b-bfc(n,i))
+            wfluxc(n,i) = evmxr*(depuv(lveg(n,i))/deprv(lveg(n,i)))     &
+                         & **0.4*bfac
+            wflux1(n,i) = wfluxc(n,i)*watr(n,i)
+            wflux2(n,i) = evmxt*(depuv(lveg(n,i))/deprv(lveg(n,i)))     &
+                         & **0.5*bfac2*(watt(n,i)-watr(n,i))
+!
+!           1.3  gravitational drainage
+!
+            rsubss(n,i) = xkmxr(n,i)*watr(n,i)**(b+0.5)*watu(n,i)       &
+                         & **(b+2.5)
+            rsubsr(n,i) = xkmx1(n,i)*watt(n,i)**(b+0.5)*watr(n,i)       &
+                         & **(b+2.5)
+            rsubst(n,i) = xkmx2(n,i)*watt(n,i)**(2.*b+3.)
+!
+!           1.32 bog or water
+!
+            if ( (lveg(n,i).ge.13) .and. (lveg(n,i).le.15) ) then
+              rsubst(n,i) = 0.0
+              rsubss(n,i) = 0.0
+              rsubsr(n,i) = 0.0
+            end if
+!
+!           1.4  fluxes through internal surfaces
+!
+            wflux1(n,i) = wflux1(n,i) - rsubss(n,i)
+            wflux2(n,i) = wflux2(n,i) - rsubsr(n,i)
+          end if
+        end do
+      end do
+!
+!     1.5  net flux at air interface
+!
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
+            gwatr(n,i) = pw(n,i) - evapw(n,i) + sm(n,i)                 &
+                        & + etrrun(n,i)/dtbat
+!
+!=======================================================================
+!           2.   define runoff terms
+!=======================================================================
+!
+!           2.1  surface runoff
+!
+            wata(n,i) = 0.5*(watu(n,i)+watr(n,i))
+!
+!           2.11 increase surface runoff over frozen ground
+!
+            if ( tg1d(n,i).lt.tzero ) then
+              rsur(n,i) = dmin1(1.D0,wata(n,i)**1)*                     &
+                         & dmax1(0.D0,gwatr(n,i))
+            else
+              rsur(n,i) = dmin1(1.D0,wata(n,i)**4)                      &
+                         & *dmax1(0.D0,gwatr(n,i))
+            end if
+!
+!           2.12 irrigate cropland
+!
+            if ( lveg(n,i).eq.10 .and. watr(n,i).lt.relfc(n,i) )        &
+               & rsur(n,i) = rsur(n,i) + (rsw1d(n,i)-relfc(n,i)*        &
+               &             gwmx1(n,i))/dtbat
+!
+!           2.13 saturate swamp or rice paddy
+!
+            if ( (lveg(n,i).ge.13) .and. (lveg(n,i).lt.16) )            &
+               & rsur(n,i) = rsur(n,i) + dmin1(0.D0,(rsw1d(n,i)-        &
+               &             gwmx1(n,i))/dtbat)
+!
+!           2.2  total runoff
+!
+            rnof(n,i) = rsur(n,i) + rsubst(n,i)
+!
+!=======================================================================
+!           3.   increment soil moisture
+!=======================================================================
+!
+!           3.1  update top layer with implicit treatment
+!           of flux from below
+!
+            ssw1d(n,i) = ssw1d(n,i) + dtbat*(gwatr(n,i)-efpr(n,i)*      &
+                        & etr(n,i)-rsur(n,i)+wflux1(n,i))
+            ssw1d(n,i) = ssw1d(n,i)/(1.+wfluxc(n,i)*dtbat/gwmx0(n,i))
+!
+!           3.2  update root zone
+!
+            rsw1d(n,i) = rsw1d(n,i) + dtbat*(gwatr(n,i)-etr(n,i)-       &
+                        & rsur(n,i)+wflux2(n,i))
+!
+!           3.3  update total water
+!
+            tsw1d(n,i) = tsw1d(n,i) + dtbat*(gwatr(n,i)-etr(n,i)-       &
+                        & rnof(n,i))
+          end if
+        end do
+      end do
+!
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
+!
+!=======================================================================
+!           4.   check whether soil water exceeds maximum capacity or
+!           becomes negative (should rarely or never happen)
+!=======================================================================
+!
+!           4.1  surface water assumed to move downward into soil
+!
+            if ( ssw1d(n,i).gt.gwmx0(n,i) ) ssw1d(n,i) = gwmx0(n,i)
+!
+!           4.2  excess root layer water assumed to move downward
+!
+            if ( rsw1d(n,i).gt.gwmx1(n,i) ) rsw1d(n,i) = gwmx1(n,i)
+!
+!           4.3  excess total water assumed to go to subsurface runoff
+!
+            if ( tsw1d(n,i).gt.gwmx2(n,i) ) then
+              delwat = tsw1d(n,i) - gwmx2(n,i)
+              tsw1d(n,i) = gwmx2(n,i)
+              rsubst(n,i) = rsubst(n,i) + delwat/dtbat
+            end if
+!
+!           4.4  check for negative water in top layer
+!
+            if ( ssw1d(n,i).le.1.E-2 ) ssw1d(n,i) = 1.E-2
+!
+!=======================================================================
+!           5.   accumulate leaf interception
+!=======================================================================
+!
+            ircp1d(n,i) = ircp1d(n,i) + sigf(n,i)*(dtbat*               &
+                         & prcp1d(n,i)) - (sdrop(n,i)+etrrun(n,i))
+!
+!=======================================================================
+!           6.   evaluate runoff (incremented in ccm)
+!=======================================================================
+!
+!*          update total runoff
+!
+            rnof(n,i) = rsur(n,i) + rsubst(n,i)
+            rno1d(n,i) = rnof(n,i)*tau1
+            rnos1d(n,i) = rsur(n,i)*tau1
+          else                       ! ocean or sea ice
+            rnof(n,i) = 0.
+            rno1d(n,i) = 0.
+            rnos1d(n,i) = 0.
+          end if
+        end do
+      end do
+!
+!=======================================================================
+!     7.   calculate potential evaporation and use mod_to determine
+!     wetness factor, allowing for snow being saturated
+!=======================================================================
+!
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
+            xxkb = dmin1(rough(lveg(n,i)),1.D0)
+            vakb = (1.-sigf(n,i))*vspda(n,i) + sigf(n,i)                &
+                 & *(xxkb*uaf(n,i)+(1.-xxkb)*vspda(n,i))
+            wtg2c = (1.-sigf(n,i))*cdrx(n,i)*vakb
+            rap = rhs1d(n,i)*(csoilc*uaf(n,i)*sigf(n,i)*(qg1d(n,i)+     &
+                & delq1d(n,i)-qs1d(n,i))+wtg2c*(qg1d(n,i)-qs1d(n,i)))
+            bfac = watr(n,i)**(3.+bfc(n,i))*watu(n,i)                   &
+                 & **(bsw(n,i)-bfc(n,i)-1)
+            est0 = evmx0(n,i)*bfac*watu(n,i)
+            evmax = dmax1(est0,0.D0)
+            gwet1d(n,i) = dmin1(1.D0,evmax/dmax1(1.D-14,rap))
+            gwet1d(n,i) = scvk(n,i) + gwet1d(n,i)*(1.0-scvk(n,i))
+          end if
+        end do
+      end do
+!
+      end subroutine water
+! 
+!     update snow cover and snow age
+!
+!     three-part if block:
+!       if snow cover < 0, then snow cover and snow age = 0
+!       if antarctica, snow age = 0 (katabatic winds keep snow fresh)
+!       if elsewhere, snow age follows given formulae
+!
+!        ps = snow precipitation rate
+!     evaps = moisture flux from ground to atmosphere
+!        sm = snow melt rate
+!     sdrop = snow fallen from vegetation
+!
+!     aging of snow consists of three factors:
+!           age1: snow crystal growth
+!           age2: surface melting
+!           age3: accumulation  of other particles, soot, etc., which
+!                      is small in southern hemisphere
+!
+      subroutine snow
+!
+      use mod_param1 , only : dtbat
+      use mod_constants , only : tzero
+      implicit none
+!
+! Local variables
+!
+      real(8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels ,&
+               & sge , tage
+      integer :: n , i
+      real(8) , dimension(nnsg,iym1) :: sold
+!
+      age3 = 0.3
+ 
+!=======================================================================
+!     1.   partition soil evaporation and precipitation
+!     between water and snow
+!=======================================================================
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 ) then
+ 
+            evapw(n,i) = fevpg(n,i)
+            evaps(n,i) = scvk(n,i)*evapw(n,i)
+            if ( ldoc1d(n,i).gt.1.5 ) evaps(n,i) = fevpg(n,i)
+            evapw(n,i) = (1.-scvk(n,i))*evapw(n,i)
+!
+!           ******                tm  is temperature of precipitation
+            if ( tm(n,i).ge.tzero ) then
+              pw(n,i) = prcp1d(n,i)*(1.-sigf(n,i))
+              ps(n,i) = 0.0
+            else
+!             ******                snowing
+              pw(n,i) = 0.0
+              ps(n,i) = prcp1d(n,i)*(1.-sigf(n,i))
+            end if
+          end if
+        end do
+      end do
+!
+!=======================================================================
+!     2.   update snow cover
+!=======================================================================
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i).gt.0.5 ) then
+            sold(n,i) = scv1d(n,i)
+            scv1d(n,i) = scv1d(n,i) + dtbat                             &
+                        & *(ps(n,i)-evaps(n,i)-sm(n,i)) + sdrop(n,i)
+            scv1d(n,i) = dmax1(scv1d(n,i),0.D0)
+            sag1d(n,i) = dmax1(sag1d(n,i),0.D0)
+ 
+!           ******           snow cover except for antarctica
+!=======================================================================
+!           3.   increment non-dimensional "age" of snow;
+!           10 mm snow restores surface to that of new snow.
+!=======================================================================
+            if ( scv1d(n,i).gt.0. ) then
+              arg = 5.E3*(1./tzero-1./tg1d(n,i))
+              age1 = dexp(arg)
+              arg2 = dmin1(0.D0,10.*arg)
+              age2 = dexp(arg2)
+              tage = age1 + age2 + age3
+              dela0 = 1.E-6*dtbat
+              dela = dela0*tage
+              dels = 0.1*dmax1(0.D0,scv1d(n,i)-sold(n,i))
+              sge = (sag1d(n,i)+dela)*(1.0-dels)
+              sag1d(n,i) = dmax1(0.D0,sge)
+            end if
+ 
+!           ******           antarctica
+            if ( scv1d(n,i).gt.800. ) sag1d(n,i) = 0.
+          end if
+        end do
+      end do
+ 
+      end subroutine snow
       end module mod_bats

@@ -19,10 +19,10 @@
  
       module mod_co2
 
-      implicit none
-
+      use mod_dynparam
+!
       contains
-
+!
       subroutine co2
 
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

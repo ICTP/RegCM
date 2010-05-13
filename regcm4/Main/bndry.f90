@@ -71,7 +71,7 @@
                   & evpr1d , sent1d , tlef1d , uaf , vspda , ldew1d ,   &
                   & scv1d , sag1d , gwet1d , drag1d , rhs1d , qs1d ,    &
                   & taf1d , p1d , ldoc1d , lveg , rsw1d , tsw1d , qg1d ,&
-                  & sigf , cdrx , prcp1d
+                  & sigf , cdrx , prcp1d , vcover , snow , water
       use mod_constants , only : tzero , wlhv , wlhs , cpd
       use mod_ictp01
       implicit none

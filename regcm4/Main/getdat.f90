@@ -36,8 +36,7 @@
       use mod_param3 , only : ncld , r8pt , a , sigma
       use mod_main
       use mod_rad
-      use mod_comtim
-      use mod_date , only : gmt , julday , nnnnnn , nstrt0 , xtime
+      use mod_date
       use mod_constants , only : gti , degrad
       implicit none
 !

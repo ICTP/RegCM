@@ -36,6 +36,12 @@
       real(8) :: xtime
       integer :: ktau , ktaur
 
+      real(8) :: calday , dtime , twodt
+      logical :: doabsems , dolw , dosw
+      integer :: mbdate , mbsec , mcdate , mcsec , mdbase , mdcur ,     &
+               & msbase , mscur , nelapse , nestep , nnbdat , nnbsec ,  &
+               & nndbas , nnsbas , nrstrt , nstep , nstepr , nstop
+
       contains
 
       subroutine initdate

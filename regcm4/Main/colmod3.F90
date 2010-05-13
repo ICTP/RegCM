@@ -132,7 +132,7 @@
       use mod_dynparam
       use mod_bats , only : emiss1d , ilat , ps , sice1d , aldirs ,     &
                     & aldifs , aldirl , aldifl , ldoc1d , ocld2d
-      use mod_comtim
+      use mod_date
       use mod_comctl
       use mod_constants , only : gti , sigm , ep2 , cpd
       implicit none

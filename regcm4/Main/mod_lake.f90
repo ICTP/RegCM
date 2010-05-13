@@ -50,7 +50,7 @@
 ! Local variables
 !
       real(8) :: aveice , dayl , evl , flw , fsw , hlat , hsen , prec , &
-               & ql , snow , tgl , tl , vl , zl
+               & ql , hsnow , tgl , tl , vl , zl
       integer :: ilake , n
 !
       do ilake = 1 , iym1
@@ -68,7 +68,7 @@
             hlat = -1.*evpr1d(n,ilake)
 
             call lake(iutlak,dayl,dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat, &
-                    & tgl,evl,prec,aveice,snow)
+                    & tgl,evl,prec,aveice,hsnow)
  
             tg1d(n,ilake) = tgl
             tgb1d(n,ilake) = tgl
@@ -80,7 +80,7 @@
             else
               ldoc1d(n,ilake) = 2.
               sice1d(n,ilake) = aveice  !  units of ice = mm
-              scv1d(n,ilake) = snow   !  units of snow = mm h2o
+              scv1d(n,ilake) = hsnow   !  units of snow = mm h2o
             end if
  
           end if
