@@ -86,7 +86,7 @@ colmod3.o    htdiff.o      outprt.o    spinit.o    water.o      \
 conadv.o     output.o                             \
 condch.o     tracdiag.o    outsav.o    splitf.o                 \
 condcq.o     inidust.o     outsrf.o    sponge.o                 \
-condtq.o     inirad.o      outsub.o    spstep.o    tpfc.o       \
+condtq.o     inirad.o      outsub.o    spstep.o                 \
 conmas.o     initb.o       outtap0.o   stomat.o    zengocndrv.o \
                            outtap.o                zengocn.o    \
 cumtran.o    init.o        param.o     tend.o      zenith.o
@@ -401,7 +401,6 @@ tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
         mod_dynparam.o mod_slice.o mod_trachem.o mod_interfaces.o
 endif
 tgrund.o: tgrund.F90 mod_constants.o mod_bats.o mod_param1.o mod_dynparam.o
-tpfc.o: tpfc.f90 mod_constants.o
 tracbud.o: tracbud.F90 mod_constants.o mod_date.o mod_diagnosis.o mod_main.o \
            mod_mainchem.o mod_param1.o mod_param2.o mod_param3.o \
            mod_dynparam.o mod_trachem.o

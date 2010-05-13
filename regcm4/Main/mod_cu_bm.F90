@@ -21,6 +21,8 @@
 
       implicit none
 
+      private
+
       integer , parameter :: itb = 100
       integer , parameter :: jtb = 150
 
@@ -28,6 +30,8 @@
       real(8) , dimension(itb,jtb) :: ptbl
       real(8) , dimension(jtb) :: qs0 , sqs , sthe , the0
       real(8) , dimension(jtb,itb) :: ttbl
+
+      public :: bmpara , lutbl
 
       contains
 
@@ -156,8 +160,7 @@
                                & ltop , ml
       integer , dimension(kz) :: kdp , nbotd , nbots , ndpthd , ndpths ,&
                                & ntopd , ntops
-      real(8), external :: tpfc
-
+!
 !-----------------------------------------------------------------------
 !
       lqm = 0.0
@@ -1155,4 +1158,47 @@
 !-----------------------------------------------------------------------
       end subroutine spline
 !
+!
+!
+      function tpfc(press,thetae,tgs,d273,rl,qs,pi)
+ 
+      use mod_constants , only : rcpd , ep2 , rwat
+      implicit none
+!
+! Dummy arguments
+!
+      real(8) :: d273 , pi , press , qs , rl , tgs , thetae
+      real(8) :: tpfc
+      intent (in) d273 , pi , press , rl , tgs , thetae
+      intent (inout) qs
+!
+! Local variables
+!
+      real(8) :: dt , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
+!
+!...iteratively extract temperature from equivalent potential
+!...temperature.
+!
+      rlorw = rl/rwat
+      rlocpd = rl*rcpd
+      rp = thetae/pi
+      es = 611.*dexp(rlorw*(d273-1./tgs))
+      qs = ep2*es/(press-es)
+      fo = tgs*dexp(rlocpd*qs/tgs) - rp
+      t1 = tgs - 0.5*fo
+      tguess = tgs
+ 100  es = 611.*dexp(rlorw*(d273-1./t1))
+      qs = ep2*es/(press-es)
+      f1 = t1*exp(rlocpd*qs/t1) - rp
+      if ( abs(f1).lt..1 ) then
+!
+        tpfc = t1
+      else
+        dt = f1*(t1-tguess)/(f1-fo)
+        tguess = t1
+        fo = f1
+        t1 = t1 - dt
+        go to 100
+      end if
+      end function tpfc
       end module mod_cu_bm
