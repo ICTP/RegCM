@@ -140,6 +140,7 @@
       use mod_param1 , only : klake
       use mod_param2 , only : iemiss , lakemod
       use mod_date , only : jyear , jyear0 , ktau
+      use mod_lake , only : lakedrv
       implicit none
 !
 ! Dummy arguments

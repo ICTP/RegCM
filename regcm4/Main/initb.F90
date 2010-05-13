@@ -35,6 +35,7 @@
                   & fsw2d , flw2d , sabv2d , sol2d , fswa2d , flwa2d ,  &
                   & prca2d , prnca2d , svga2d , sina2d , satbrt1 ,      &
                   & iexsol , xmopor , deptv , deprv , depuv
+      use mod_lake , only : initlk
       use mod_main
       implicit none
 ! 
