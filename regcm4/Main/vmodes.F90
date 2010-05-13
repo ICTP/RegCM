@@ -92,13 +92,13 @@
 !  read sigmaf (sigma at full (integral) index levels; kzp1 values as
 !  in the mm4.   check that values are ordered properly.
 !
+      write (aline,*) 'Calculating Vertical Modes'
+      call say
       if ( lstand ) then
-        write (aline,*)                                                 &
-               &'0 linearization about standard atmosphere (lstand=.t.)'
+        write (aline,*) '- Linearization about standard atmosphere'
         call say
       else
-        write (aline,*) '0 linearization about horizontal mean of data '&
-                      & , '(lstand=.f.)'
+        write (aline,*) '- Linearization about horizontal mean of data'
         call say
       end if
 !
@@ -114,9 +114,9 @@
           call say
         end if
       end do
-      if ( lsigma ) call fatal(__FILE__,__LINE__,                       &
-                             &'sigma values in list vmode inappropriate'&
-                            & )
+      if ( lsigma )                                                     &
+      & call fatal(__FILE__,__LINE__,                                   &
+      &          'Sigma values in list vmode inappropriate')
 !
 !  compute sigmah (sigma at half levels) and delta sigma
       do k = 1 , kz
@@ -134,11 +134,11 @@
 !      determine thermodynamic matrix
 !
 !  compute thetah
-      do k = 1 , kz
-        thetah(k) = tbarh(k)*((sigmah(k)+r8pt/pd)**(-rovcp))
-      end do
+!
+      thetah = tbarh*((sigmah+r8pt/pd)**(-rovcp))
 !
 !  compute tbarf and thetaf
+!
       do k = 2 , kz
         k1 = k - 1
         tbarf(k) = tbarh(k1)*(sigmah(k)-sigmaf(k))                      &
@@ -157,6 +157,7 @@
       end do
 !
 !  define matrices for determination of thermodynamic matrix
+!
       do l = 1 , kz
         do k = 1 , kz
           if ( l.gt.k ) e2(k,l) = 0.
@@ -165,16 +166,13 @@
         end do
       end do
 !
-      do l = 1 , kz
-        do k = 1 , kz
-          a3(k,l) = 0.
-          d1(k,l) = 0.
-          d2(k,l) = 0.
-          s1(k,l) = 0.
-          s2(k,l) = 0.
-          x1(k,l) = 0.
-        end do
-      end do
+      a3 = 0.0
+      d1 = 0.0
+      d2 = 0.0
+      s1 = 0.0
+      s2 = 0.0
+      x1 = 0.0
+!
       do k = 1 , kz
         a3(k,k) = -tbarh(k)
         d1(k,k) = sigmaf(k+1) - sigmaf(k)
@@ -196,39 +194,40 @@
       end do
 !
 !  compute g2 (i.e., the transform from divg. to sigma dot)
-      call vsubtm(w1,e2,x1,kz)
-      call vmultm(w2,w1,d1,kz)
-      call vmultm(g2,e1,d1,kz)
-      call vmultm(w1,s1,g2,kz)
-      call vsubtm(g2,w1,w2,kz)
+!
+      w1 = e2 - x1
+      w2 = matmul(w1,d1)
+      g2 = matmul(e1,d1)
+      w1 = matmul(s1,g2)
+      g2 = w1 - w2
 !
 !  compute a1
+!
+      w2 = 0
       do k = 1 , kz
-        do l = 1 , kz
-          w2(k,l) = 0.
-        end do
-        w2(k,k) = 1./d1(k,k)
+        w2(k,k) = 1.0/d1(k,k)
       end do
-      call vmultm(w1,g1,g2,kz)
-      call vmultm(a1,w2,w1,kz)
+      w1 = matmul(g1,g2)
+      a1 = matmul(w2,w1)
 !
 !  compute a2
-      call vmultm(w1,e1,d1,kz)
-      call vmultm(a2,s2,w1,kz)
-      call vmultm(w2,e3,g2,kz)
-      call vmultc(w2,w2,kz,0.5D0)
-      call vsubtm(w1,w2,a2,kz)
-      call vmultm(a2,d2,w1,kz)
+!
+      w1 = matmul(e1,d1)
+      a2 = matmul(s2,w1)
+      w2 = matmul(e3,g2)
+      w2 = 0.5*w2
+      w1 = w2-a2
+      a2 = matmul(d2,w1)
 !
 !  compute a4
-      call vmultm(w1,e1,d1,kz)
-      call vmultm(a4,a3,w1,kz)
-      call vmultc(a4,a4,kz,-1.D0)
+!
+      w1 = matmul(e1,d1)
+      a4 = matmul(a3,w1)
+      a4 = -a4
 !
 !  compute a
-      call vaddms(a,a1,a2,kz)
-      call vaddms(a,a,a3,kz)
-      call vaddms(a,a,a4,kz)
+!
+      a = a1+a2+a3+a4
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
@@ -240,11 +239,8 @@
       end do
 !
 !  compute matrix which multiples t vector
-      do l = 1 , kz
-        do k = 1 , kz
-          hydros(k,l) = 0.
-        end do
-      end do
+!
+      hydros = 0.0
 !
       do k = 1 , kz - 1
         do l = k , kz - 1
@@ -261,11 +257,8 @@
       end do
 !
 !  compute matirx which multiplies log(sigma*p+r8pt) vector
-      do l = 1 , kzp1
-        do k = 1 , kz
-          hydroc(k,l) = 0.
-        end do
-      end do
+!
+      hydroc = 0.0
 !
       tweigh(1) = 0.
       do l = 2 , kz
@@ -292,6 +285,7 @@
       end do
 !
 !  test hydroc and hydros matrices (if correct, w1(k,1)=w1(k,2))
+!
       lhydro = .false.
       do k = 1 , kz
         w1(k,1) = 0.
@@ -333,16 +327,17 @@
         end do
       end do
 !
-      call vmultm(w1,hydros,a,kz)
-      call vsubtm(tau,w1,w2,kz)
-      call vmultc(tau,tau,kz,-rgas)
+      w1 = matmul(hydros,a)
+      tau = w1-w2
+      tau = -rgas*tau
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !       determine other matrices and vectors
 !
 !  compute eigenvalues and vectors for tau (rg calls eispack routines)
-      call vmultc(w1,tau,kz,1.D0) ! copy tau since rg destroys input
+!
+      w1 = tau
       call rg(kz,w1,hbar,w2,1,zmatx,ier)
       call vcheki(ier,numerr,'zmatx   ')
       call vcheke(hbar,w2,kz,numerr,'tau     ')
@@ -350,14 +345,17 @@
       call vnorml(zmatx,sigmaf,kz,kzp1)
 !
 !  compute inverse of zmatx
+!
       call invmtrx(zmatx,kz,zmatxr,kz,kz,det,iw2,ier,work)
       call vcheki(ier,numerr,'zmatxr  ')
 !
 !  compute inverse of hydros
+!
       call invmtrx(hydros,kz,hydror,kz,kz,det,iw2,ier,work)
       call vcheki(ier,numerr,'hydror  ')
 !
 !  compute cpfac
+!
       call invmtrx(tau,kz,w1,kz,kz,det,iw2,ier,work)
       call vcheki(ier,numerr,'taur    ')
 !
@@ -373,9 +371,7 @@
 !       determine arrays needed for daley's variational scheme
 !             for determination of surface pressure changes
 !
-      do k = 1 , kz      ! weight of t for different levels
-        hweigh(k) = 0.
-      end do
+      hweigh = 0.0
       hweigh(kz) = 1.    ! only lowest sigma level t considered
 !
       do k1 = 1 , kz

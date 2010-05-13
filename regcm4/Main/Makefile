@@ -75,7 +75,7 @@ chdrydep.o        finddate.o    maximi.o    reorder.o   vchekt.o     \
 chemtap.o         for_next.o    tracbud.o   root.o      vcover.o     \
 chrsetc.o         frawat.o      minimi.o    satur.o     vecbats.o    \
 chsrfem.o         getdat.o      mixer.o     slice1D.o   vmodes.o     \
-cldefr.o          grads_stuf.o  mkfile.o    slice3D.o   vmultm.o     \
+cldefr.o          grads_stuf.o  mkfile.o    slice3D.o                \
 cldems.o          hadv.o        nconvp.o    snow.o      vnorml.o     \
 cldfrac.o         header.o      nudge.o     soilbc.o    vorder.o     \
 co2.o             holtbl.o      o3data.o    solar1.o    vtlaps.o     \
