@@ -289,6 +289,8 @@
 !
           prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
           prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
+          if ( prnca2d(i,j) < 1E-30 ) prnca2d(i,j) = 0.0
+          if ( prca2d(i,j) < 1E-30 ) prca2d(i,j) = 0.0
           flwa2d(i,j) = flwa2d(i,j) + dtbat*flw1d(i)
           flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
           fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw1d(i)
@@ -529,8 +531,6 @@
               drag_s(n,j-1,i-1) = drag1d(n,i)
               evpa_s(n,j-1,i-1) = evpa2d(n,i,j)*mmpd
               sena_s(n,j-1,i-1) = sena2d(n,i,j)*wpm2
-              if ( prnca2d(i,j) < 1E-30 ) prnca2d(i,j) = 0.0
-              if ( prca2d(i,j) < 1E-30 ) prca2d(i,j) = 0.0
               tpr_s(n,j-1,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
               prcv_s(n,j-1,i-1) = prca2d(i,j)*mmpd
               ps_s(n,j-1,i-1) = p1d(n,i)*0.01
