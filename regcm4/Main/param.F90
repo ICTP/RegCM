@@ -745,6 +745,7 @@
         print * , 'param: SIGMA' , sp1d
         print * , 'param: PTOP' , ptsp
         print * , 'param: OUTPUT' , igra , ibig
+        r8pt = ptsp
         dx = dsx
         if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
           write (aline,*) 'param:  SET IN regcm.param:  IY=' , iy ,     &
