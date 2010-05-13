@@ -51,6 +51,8 @@
       use clm_varctl , only : filer_rest
       use clm_time_manager, only : get_step_size
 #endif
+#else
+      use mod_outprt , only : outprt
 #endif
       implicit none
 !

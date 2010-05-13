@@ -43,7 +43,7 @@
       use mod_bats
       use mod_mppio
       use mod_constants
-      use mod_interfaces
+      use mod_zengocn , only : zengocndrv
       implicit none
 !
 ! Dummy arguments

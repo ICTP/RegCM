@@ -26,21 +26,6 @@
       end interface
 
       interface
-        subroutine zengocndrv(j , ng , istart , iend , k)
-          integer :: j , ng , istart , iend , k
-        end subroutine zengocndrv
-      end interface
-
-      interface
-        subroutine zengocn(u , ts , t , q , hgt , zi , ps , qs , u10 ,  &
-                           tau , alh , ash , dth , dqh , ustar , zo)
-          real(kind=8) :: hgt , q , t , u , zi , ts , ps
-          real(kind=8) :: alh , ash , tau , u10
-          real(kind=8) :: dqh , dth , qs , ustar , zo
-        end subroutine zengocn
-      end interface
-
-      interface
         subroutine vecbats(j , k , istart , iend , ng)
           integer :: j , k , istart , iend , ng
         end subroutine vecbats

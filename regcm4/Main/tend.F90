@@ -43,7 +43,6 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      use mod_interfaces
       use mod_dynparam
       use mod_param1
       use mod_param2
@@ -69,6 +68,7 @@
       use mod_constants , only : rgti , rgas , cpd , ep1 , gnu , omu ,  &
                    & gnuhf , omuhf , alpha , beta , t00pg , p00pg ,     &
                    & pgfaa1
+      use mod_zengocn , only : zengocndrv
 #ifdef MPP1
       use mod_slice
 #ifdef CLM
