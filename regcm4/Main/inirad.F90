@@ -20,6 +20,7 @@
       subroutine inirad
  
       use mod_dynparam
+      use mod_o3blk , only : o3data
       use mod_rad , only : o3prof , heatrt
       use mod_date , only : jyear , jyear0 , ktau
       implicit none

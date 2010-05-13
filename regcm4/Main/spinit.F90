@@ -33,6 +33,7 @@
       use mod_tmpsav
       use mod_date , only : jyear , jyear0 , ktau
       use mod_constants , only : rgas
+      use mod_vmodes , only : vmodes
 #ifdef MPP1
       use mod_mppio
 #ifndef IBM

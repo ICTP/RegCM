@@ -26,6 +26,10 @@
 
       implicit none
 
+      private
+
+      public :: lakedrv , initlk
+
       integer :: iin , iout , lcount
 
       contains
@@ -476,7 +480,6 @@
                & t2 , tf , theta , x
       real(8) :: f , t4
       integer :: nits
-      real(8) , external :: eomb
 !
 !****************************SUBROUINE ICE*****************************
 !     SIMULATES LAKE ICE                           *
@@ -570,5 +573,28 @@
       end do
  
       end subroutine ice
+!
+! Computes air vapor pressure as a function of temp (in K)
+!
+      function eomb(x)
 
+      use mod_constants , only : stdpmb , tboil , tzero
+      implicit none
+!
+! Dummy arguments
+!
+      real(8) :: x
+      intent (in) x
+      real(8) :: eomb
+!
+! Local variables
+!
+      real(8) :: tr1
+!
+      tr1 = 1.0 - (tboil/(x+tzero))
+      eomb = stdpmb*dexp(13.3185*tr1-1.976*tr1**2-0.6445*tr1**3-       &
+           & 0.1299*tr1**4)
+
+      end function eomb
+!
       end module mod_lake

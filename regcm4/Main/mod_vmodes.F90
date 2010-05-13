@@ -17,14 +17,22 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
+      module mod_vmodes
+
+      private
+
+      public :: vmodes
+
+      contains
+
       subroutine vmodes(lstand,sigmaf,kv1)
 !
       use mod_dynparam
       use mod_param1
       use mod_split
-      use mod_message
       use mod_constants , only : rgas , rovcp
       use mod_param3 , only : r8pt
+      use mod_message
       implicit none
 !
 ! Dummy arguments
@@ -445,3 +453,236 @@
       return
  
       end subroutine vmodes
+!
+!  Check that eigenvalues are real and positive valued.
+!
+      subroutine vcheke(er,ei,nk,numerr,aname)
+      implicit none
+!
+! PARAMETER definitions
+!
+      real(8) , parameter :: tol = 1.E-9
+!
+! Dummy arguments
+!
+      character(8) :: aname
+      integer :: nk , numerr
+      real(8) , dimension(nk) :: ei , er
+      intent (in) aname , ei , er , nk
+      intent (inout) numerr
+!
+! Local variables
+!
+      real(8) :: emax
+      integer :: n , nimag , numneg
+!
+      numneg = 0
+      emax = 0.
+      do n = 1 , nk
+        if ( er(n).le.0. ) numneg = numneg + 1
+        if ( er(n).gt.emax ) emax = er(n)
+      end do
+!
+      nimag = 0
+      do n = 1 , nk
+        if ( ei(n)/emax.gt.tol ) nimag = nimag + 1
+      end do
+!
+      if ( numneg+nimag.eq.0 ) then
+        return
+      end if
+!
+      numerr = numerr + 1
+      print 99001 , aname , numneg , nimag
+99001 format ('0 problem with equivalent depths determined from ',a8,/, &
+            & 10x,i3,' depths are nonpositive valued',10x,i3,           &
+             &' are not real')
+!
+      end subroutine vcheke
+!
+!  Flag of detected errors in linear algebra routines
+!
+      subroutine vcheki(ier,numerr,aname)
+      implicit none
+!
+! Dummy arguments
+!
+      character(8) :: aname
+      integer :: ier , numerr
+      intent (in) aname , ier
+      intent (inout) numerr
+!
+      if ( ier.ne.0 ) then
+        numerr = numerr + 1
+        print 99001 , aname , ier
+99001   format ('0 error in determination of ',a8,                      &
+               &' using library routine     ier=',i4)
+      end if
+!
+      end subroutine vcheki
+!
+!  This routine normalizes the columns of z such that the component
+!  with the largest absolute value is positive, and the sum of the
+!  mass-weighted squares equals one.
+!
+      subroutine vnorml(z,s,nk,nk1)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: nk , nk1
+      real(8) , dimension(nk1) :: s
+      real(8) , dimension(nk,nk) :: z
+      intent (in) nk , nk1 , s
+      intent (inout) z
+!
+! Local variables
+!
+      real(8) :: a , v , zmax
+      integer :: k , kmax , l
+!
+      kmax = 1
+      do l = 1 , nk
+        zmax = -1.
+        v = 0.
+!
+        do k = 1 , nk
+          a = dabs(z(k,l))
+          if ( a.gt.zmax ) then
+            zmax = a
+            kmax = k
+          end if
+          v = (s(k+1)-s(k))*a*a + v
+        end do
+!
+        a = (z(kmax,l)/zmax)/dsqrt(v)
+        do k = 1 , nk
+          z(k,l) = a*z(k,l)
+        end do
+      end do
+!
+      end subroutine vnorml
+!
+!     Matrix inversion using linpack
+!
+      subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
+      use mod_message
+      implicit none
+      integer na , nv , n , ier , info , ip(n)
+      real(kind=8) a(n,n) , v(n,n) , work(n) , d(2)
+      integer i , j , job
+!
+!     08/23/91 version 1.0
+!     12/10/92 updated to correct bugs
+!     note: different from cray routine invmtx
+!     uses subroutines sgefa/sgedi from library linpack
+!     see dick valent, (SCD, consulting) if problems
+!
+      if ( n.ne.na .or. n.ne.nv ) call fatal(__FILE__,__LINE__,         &
+          &'valent invmtx: equate n, na, nv')
+!
+      do j = 1 , n
+        do i = 1 , n
+          v(i,j) = a(i,j)
+        end do
+      end do
+      call sgefa(v,n,n,ip,info)
+      if ( info.ne.0 ) then
+        write (aline,*) 'sgefa info = ' , info
+        call say
+        call fatal(__FILE__,__LINE__,'sgefa error')
+      end if
+      job = 11
+      call sgedi(v,n,n,ip,d,work,job)
+      ier = info
+      end subroutine invmtrx
+!
+!  This routine orders the components of hbar so they are largest to
+!  smallest valued.  The columns of z are reorded so that they
+!  correspond to the same (but reordered) components of hbar.
+!
+      subroutine vorder(z,hbar,wz,wh,nk)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: nk
+      real(8) , dimension(nk) :: hbar
+      real(8) , dimension(nk,2) :: wh
+      real(8) , dimension(nk,nk) :: wz , z
+      intent (in) nk
+      intent (inout) hbar , wh , wz , z
+!
+! Local variables
+!
+      real(8) :: hmax
+      integer :: k , kmax , l
+!
+      kmax = 1
+      do k = 1 , nk
+        wh(k,1) = hbar(k)
+        wh(k,2) = 0.
+        do l = 1 , nk
+          wz(k,l) = z(k,l)
+        end do
+      end do
+!
+      do l = 1 , nk
+        hmax = -1.D100
+        do k = 1 , nk
+          if ( (wh(k,2).eq.0.) .and. (wh(k,1).gt.hmax) ) then
+            hmax = wh(k,1)
+            kmax = k
+          end if
+        end do
+!
+        hbar(l) = hmax
+        wh(kmax,2) = 1.
+        do k = 1 , nk
+          z(k,l) = wz(k,kmax)
+        end do
+      end do
+!
+      end subroutine vorder
+!
+!     Printout helpers
+!
+      subroutine vprntv(a,n,nam)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: n
+      character(8) :: nam
+      real(8) , dimension(n) :: a
+      intent (in) a , n , nam
+ 
+      print 99001 , nam , a
+99001 format ('0',a8,1x,1p,11G11.3,1x,/,9x,1p,11G11.3)
+      end subroutine vprntv
+!
+!
+! 
+      subroutine vprntm(a,n1,n2,nam)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: n1 , n2
+      character(8) :: nam
+      real(8) , dimension(n1,n2) :: a
+      intent (in) a , n1 , n2 , nam
+!
+! Local variables
+!
+      integer :: k , l
+ 
+      print 99001 , nam
+      do k = 1 , n1
+        print 99002 , k , (a(k,l),l=1,n2)
+      end do
+99001 format ('1',a8,/)
+99002 format (1x,i3,5x,1p,11G11.3,1x,/,9x,1p,11G11.3)
+      end subroutine vprntm
+!
+      end module mod_vmodes

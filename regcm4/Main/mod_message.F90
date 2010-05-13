@@ -97,54 +97,5 @@
       call abort
 #endif
       end subroutine fatal
- 
-      subroutine vprntv(a,n,nam)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: n
-      character(8) :: nam
-      real(8) , dimension(n) :: a
-      intent (in) a , n , nam
- 
-#ifdef MPP1
-      if ( myid.eq.0 ) print 99001 , nam , a
-#else
-      print 99001 , nam , a
-#endif
-99001 format ('0',a8,1x,1p,11G11.3,1x,/,9x,1p,11G11.3)
-      end subroutine vprntv
- 
-      subroutine vprntm(a,n1,n2,nam)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: n1 , n2
-      character(8) :: nam
-      real(8) , dimension(n1,n2) :: a
-      intent (in) a , n1 , n2 , nam
-!
-! Local variables
-!
-      integer :: k , l
- 
-#ifdef MPP1
-      if ( myid.eq.0 ) then
-        print 99001 , nam
-        do k = 1 , n1
-          print 99002 , k , (a(k,l),l=1,n2)
-        end do
-      end if
-#else
-      print 99001 , nam
-      do k = 1 , n1
-        print 99002 , k , (a(k,l),l=1,n2)
-      end do
-#endif
-99001 format ('1',a8,/)
-99002 format (1x,i3,5x,1p,11G11.3,1x,/,9x,1p,11G11.3)
-      end subroutine vprntm
 
       end module mod_message
