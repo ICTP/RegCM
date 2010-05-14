@@ -37,6 +37,7 @@
 !
       real(4) :: bas , lon360 , p , q , xsum , xind , yind
       integer :: i , ip , ipp1 , j , jq , jqp1 , l
+      logical :: lg
 !
 !
 !     PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
@@ -58,9 +59,14 @@
 !     Q.........NORTH-SOUTH WEIGHTING FACTOR.
 !     IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
 !     IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID
- 
-!     POINT.
- 
+!               POINT.
+!
+!     Global dataset ?
+! 
+      lg = .true.
+!
+!
+!
       do j = 1 , jx
         do i = 1 , iy
  
@@ -75,10 +81,16 @@
           if ( lono(i,j)<0. ) lon360 = lono(i,j) + 360.
           xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))              &
                & *float(nloni-1)) + 1.
-          ip = int(xind)
-          ip = max0(ip,1)
-          ipp1 = min0(ip+1,nloni)
-          p = xind - ip
+          if ( (xind-nloni) > 0.0 .and. lg ) then
+            ip = nloni
+            ipp1 = 1
+            p = xind - nloni
+          else
+            ip = int(xind)
+            ip = max0(ip,1)
+            ipp1 = min0(ip+1,nloni)
+            p = xind - ip
+          end if
  
           do l = 1 , nflds
             xsum = 0.0
