@@ -87,6 +87,12 @@
         xnspc3 = 0
       end if
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      iny = 0
+      jnx = 0
       read (10,rec=1,iostat=ierr) nyy , nxx , nl , dsinm , xcla , xclo ,&
                                 & xpla , xplo , grdfac , cprj ,         &
                                 & (sigmaf(k),k=1,kz+1) , xpto , dograd ,&
@@ -116,14 +122,10 @@
         end if
         write (31,'(a)') 'undef -9999.'
         if ( cprj=='LAMCON' .or. cprj=='ROTMER' ) then
-          alatmin = 999999.
-          alatmax = -999999.
           do j = 1 , nx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
             if ( xlat(ny,j)>alatmax ) alatmax = xlat(ny,j)
           end do
-          alonmin = 999999.
-          alonmax = -999999.
           do i = 1 , ny
             do j = 1 , nx
               if ( xclo>=0.0 ) then

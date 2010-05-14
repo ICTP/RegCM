@@ -189,6 +189,7 @@
       mw = 30.
       cfact = mw*10./avo
  
+      nspc = 0
       if ( inv=='a' .and. dr=='DR1' .and. src==1 ) then
         invntry = invntry1
         datadir = datadir1
