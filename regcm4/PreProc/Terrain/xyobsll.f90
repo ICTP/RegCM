@@ -54,6 +54,10 @@
 
 !-----psi1 is colatitude of lat where cone or plane intersects earth
 
+      cell = 0.0
+      cell2 = 0.0
+      ycntr = 0.0
+
       if ( cla<0. ) then
         if ( truelath>0. ) then
           psi1 = -(90.-truelath)

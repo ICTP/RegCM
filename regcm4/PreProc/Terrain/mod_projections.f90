@@ -38,8 +38,7 @@
       real(4) , dimension(iy,jx) :: coriol , smap , xlat , xlon
       intent (in) clat , clon , ds , idot , iy , jx , truelath ,        &
                 & truelatl
-      intent (out) coriol , smap , xlon
-      intent (inout) xlat , xn
+      intent (out) coriol , smap , xlat , xlon , xn
 !
 ! Local variables
 !
@@ -150,8 +149,7 @@
       integer :: idot , iy , jx
       real(4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , delx , idot , iy , jx
-      intent (out) coriol , xlon , xmap
-      intent (inout) xlat
+      intent (out) coriol , xlat , xlon , xmap
 !
 ! Local variables
 !
@@ -247,8 +245,7 @@
       integer :: idot , iy , jx
       real(4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , delx , idot , iy , jx
-      intent (out) coriol , xlon , xmap
-      intent (inout) xlat
+      intent (out) coriol , xlat , xlon , xmap
 !
 ! Local variables
 !
@@ -316,8 +313,7 @@
       integer :: idot , iy , jx
       real(4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , ds , idot , iy , jx
-      intent (out) coriol , xlon , xmap
-      intent (inout) xlat
+      intent (out) coriol , xlat , xlon , xmap
 !
 ! Local variables
 !

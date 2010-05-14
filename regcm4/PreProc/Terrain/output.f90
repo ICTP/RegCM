@@ -64,6 +64,13 @@
                & centerj , lat0 , lat1 , lon0 , lon1 , rlatinc , rloninc
       integer :: i , j , k , nx , ny
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
+
       do i = 1 , iy
         do j = 1 , jx
           if ( (lsmtyp=='BATS' .and.                                    &
@@ -163,14 +170,10 @@
         end if
         write (iunc,99010)
         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
-          alatmin = 999999.
-          alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
             if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
           end do
-          alonmin = 999999.
-          alonmax = -999999.
           do i = 1 , iy
             do j = 1 , jx
               if ( clon>=0.0 ) then
@@ -313,9 +316,6 @@
         write (iunc,99022)
         close (iunc)
       end if
-99001 format ('../../Input/DOMAIN',i1,'.INFO')
-99002 format ('../../Input/DOMAIN',i2,'.INFO')
-99003 format ('      parameter(',a8,i4,')')
 99004 format ('dset ^',a,a)
 99005 format ('dset ^',a,i0.3,a)
 99007 format ('title RegCM domain information')

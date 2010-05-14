@@ -30,8 +30,7 @@
       integer :: ibyte , igrads , iy , jx , ntypec , nunit , unctl
       character(6) :: iproj
       intent (in) clat , clon , ds , ibyte , igrads , iproj , iy , jx , &
-                & ntypec , nunit , unctl
-      intent (inout) :: filctl , filout
+                & ntypec , nunit , unctl , filctl , filout
 !
       rin = 1.5          ! 1.5 rad of influence-coarse mesh
  
