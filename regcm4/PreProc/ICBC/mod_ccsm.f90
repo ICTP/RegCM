@@ -495,6 +495,7 @@
       month = idate/10000 - nyear*100
       nday = idate/100 - nyear*10000 - month*100
       nhour = idate - nyear*1000000 - month*10000 - nday*100
+      nlev = 0
       do kkrec = 1 , 6
         if ( kkrec<=5 ) nlev = klev
         if ( kkrec==6 ) nlev = 0
@@ -1120,6 +1121,7 @@
       month = idate/10000 - nyear*100
       nday = idate/100 - nyear*10000 - month*100
       nhour = idate - nyear*1000000 - month*10000 - nday*100
+      nlev = 0
       do kkrec = 1 , 6
         if ( kkrec<=5 ) nlev = klev
         if ( kkrec==6 ) nlev = 0

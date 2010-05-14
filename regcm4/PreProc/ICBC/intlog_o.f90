@@ -49,6 +49,7 @@
  
 !
 !**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG=BLTOP)
+      kbc = 1
       do k = 1 , km
         if ( sig(k)<bltop ) kbc = k
       end do

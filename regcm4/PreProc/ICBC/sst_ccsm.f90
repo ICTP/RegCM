@@ -213,6 +213,12 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
       read (10,rec=1) iyy , jxx , kz , dsinm , clat , clon , plat ,     &
                     & plon , grdfac , iproj , (sigmaf(k),k=1,kz+1) ,    &
                     & ptop , igrads , ibigend
@@ -233,14 +239,10 @@
         end if
         write (31,'(a)') 'undef -9999.'
         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
-          alatmin = 999999.
-          alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
             if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
           end do
-          alonmin = 999999.
-          alonmax = -999999.
           do i = 1 , iy
             do j = 1 , jx
               if ( clon>=0.0 ) then

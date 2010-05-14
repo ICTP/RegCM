@@ -38,6 +38,7 @@
                & lon , nday , nmo , nyear
       real(4) :: wt
 !
+      ks = 427 + 1045
       do k = 427 + 1045 , 1 , -1
         if ( wkday(k)<=kdate ) then
           ks = k

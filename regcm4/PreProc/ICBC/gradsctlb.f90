@@ -47,6 +47,13 @@
 !
 !     DOMAIN VARIABLES FOR RCM HORIZONTAL GRID
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
+!
       open (71,file=finame//'.CTL',status='replace')
       write (71,'(a,a,a,i10)') 'dset ^',trim(domname),'_ICBC',idate
       write (71,'(a)') 'title ICBC fields for RegCM domain'
@@ -57,14 +64,10 @@
       end if
       write (71,'(a)') 'undef -9999.'
       if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
-        alatmin = 999999.
-        alatmax = -999999.
         do j = 1 , jx
           if ( xlat(j,1)<alatmin ) alatmin = xlat(j,1)
           if ( xlat(j,iy)>alatmax ) alatmax = xlat(j,iy)
         end do
-        alonmin = 999999.
-        alonmax = -999999.
         do i = 1 , iy
           do j = 1 , jx
             if ( clon>=0.0 ) then

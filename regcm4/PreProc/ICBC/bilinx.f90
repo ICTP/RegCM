@@ -154,6 +154,13 @@
 !     IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID
 !     POINT.
 !
+      i1 = 0
+      i2 = 0
+      j1 = 0
+      j2 = 0
+      q1 = 0.0
+      q2 = 0.0
+
       do j = 1 , iy
         do i = 1 , jx
  

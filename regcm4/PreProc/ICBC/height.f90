@@ -62,6 +62,7 @@
       do j = 1 , jm
         do i = 1 , im
           psfc = ps(i,j)
+          kbc = 1
           if ( psfc>-9995.0 ) then
             do k = 1 , km
               sig(k) = p3d(i,j,k)/ps(i,j)

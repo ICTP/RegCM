@@ -71,6 +71,8 @@
       allocate(icemm(iy,jx))
       allocate(xlat(iy,jx))
       allocate(xlon(iy,jx))
+      kstart = 0
+      kend = 0
 !
       if ( ssttyp=='GISST' ) then
         if ( globidate1<1947121512 .or. globidate2>2002091512 ) then
@@ -428,6 +430,12 @@
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
       read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
                                 & plat , plon , grdfac , iproj ,        &
                                 & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
@@ -466,14 +474,10 @@
            write (32,'(a)') 'undef -9999.'
         end if
         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
-          alatmin = 999999.
-          alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
             if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
           end do
-          alonmin = 999999.
-          alonmax = -999999.
           do i = 1 , iy
             do j = 1 , jx
               if ( clon>=0.0 ) then
@@ -615,6 +619,12 @@
          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
 !
+      alatmin = 999999.
+      alatmax = -999999.
+      alonmin = 999999.
+      alonmax = -999999.
+      nx = 0
+      ny = 0
       read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
                                 & plat , plon , grdfac , iproj ,        &
                                 & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
@@ -653,14 +663,10 @@
            write (32,'(a)') 'undef -9999.'
         end if
         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
-          alatmin = 999999.
-          alatmax = -999999.
           do j = 1 , jx
             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
             if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
           end do
-          alonmin = 999999.
-          alonmax = -999999.
           do i = 1 , iy
             do j = 1 , jx
               if ( clon>=0.0 ) then

@@ -185,6 +185,8 @@
 !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
 !
 !bxq
+      xadd = 0.0
+      xscale = 1.0
       nyear = idate/1000000
       month = idate/10000 - nyear*100
       nday = idate/100 - nyear*10000 - month*100
@@ -494,6 +496,8 @@
 !     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
 !         &'pres'/
 !
+      xadd = 0.0
+      xscale = 1.0
       if ( idate==idate0 ) then
         i0 = lon0/2.5 + 1
         if ( i0<=0 ) i0 = i0 + ilon
@@ -511,6 +515,7 @@
       nhour = idate - nyear*1000000 - month*10000 - nday*100
 !
 !fix  do kkrec=1,7
+      nlev = 0
       do kkrec = 1 , 5
         if ( kkrec<=6 ) nlev = klev
         if ( kkrec==7 ) nlev = 0

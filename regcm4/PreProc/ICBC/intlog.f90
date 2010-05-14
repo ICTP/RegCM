@@ -51,6 +51,7 @@
       do j = 1 , jm
         do i = 1 , im
           if ( ps(i,j)>-9995.0 ) then
+            kbc = 1
             do k = 1 , km
               sig(k) = p3d(i,j,k)/ps(i,j)
               if ( sig(k)<bltop ) kbc = k

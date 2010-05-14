@@ -59,6 +59,7 @@
       integer :: i , j , k , kb , kbc , kt , n
       real(4) , dimension(100) :: psig
 !
+      kbc = 1
       do k = 1 , km
         if ( sig(k)<bltop ) kbc = k
       end do
