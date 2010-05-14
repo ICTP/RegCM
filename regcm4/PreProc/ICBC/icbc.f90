@@ -120,7 +120,7 @@
       character(256) :: namelistfile, prgname
       character(256) :: sstfile , finame
 !
-      call header(1)
+      call header(0)
 !
 !
 !     Read input global namelist
@@ -285,6 +285,7 @@
       call free_output
       call free_grid
  
+      call finaltime(0)
       print *, 'Successfully completed ICBC'
 
       stop

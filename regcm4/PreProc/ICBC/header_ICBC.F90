@@ -1,77 +1,76 @@
-!!>
-!!c  ROUTINE: HEADER
-!!c  ACTION: print out initial information
-!!c          about machine/time,compilation stamp 
-!!c          and compilation flags 
-!!c  
-!!c  
-!!************************************************************
-!!<
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBROUTINE header(myid)
-
-  IMPLICIT NONE 
-  !! local variables:
-  INTEGER len,len_strim
-  INTEGER ihost,idir
-  INTEGER hostnm
-  INTEGER getcwd
-  CHARACTER (len=24) :: data='?'
-  CHARACTER (len=32) :: hostname='?' 
-  CHARACTER (len=30) :: user='?' 
-  CHARACTER (len=100) :: directory='?'
-  INTEGER :: nrite=6, myid
+      subroutine header(myid)
+      implicit none 
+      integer , intent(in) :: myid
+      integer :: ihost , idir
+      integer :: hostnm
+      integer :: getcwd
+      character (len=24) :: cdata='?'
+      character (len=32) :: hostname='?' 
+      character (len=32) :: user='?' 
+      character (len=256) :: directory='?'
+      integer , parameter :: nrite=6
   
-  if (myid.eq.1)  then 
+      if ( myid.eq.0 )  then 
 
-     !!open here the output file:
-!     OPEN ( 20,file='OUTPUT')
-     WRITE (nrite,"(/,2x,'This is ICBC part of the RegCM version 4 ')")
-     WRITE (nrite,100)  SVN_REV, __DATE__ , __TIME__   
-100  FORMAT(2x,' SVN Revision: ',A,' compiled at: data : ',A,'  time: ',A,/)
+        write (nrite,                                                   &
+           &   "(/,2x,'This is ICBC part of the RegCM version 4 ')")
+        write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
 
 #ifdef IBM
-     hostname='ibm platform '
-     user= 'Unknown'
-     call fdate_(data)
+        hostname='ibm platform '
+        user= 'Unknown'
+        call fdate_(cdata)
 #else
-     Ihost = hostnm(hostname)
-     call getlog(user)
-     CALL fdate(data)
+        ihost = hostnm(hostname)
+        call getlog(user)
+        call fdate(cdata)
 #endif 
 
-     Idir=GETCWD(directory)
+        idir = getcwd(directory)
 
+        write (nrite,*) ": this run start at    : ",cdata
+        write (nrite,*) ": it is submitted by   : ",trim(user)
+        write (nrite,*) ": it is running on     : ",trim(hostname)
+        write (nrite,*) ": in directory         : ",trim(directory)
+        write (nrite,*) "                      " 
+      end if 
+      return 
+99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,          &
+        &    '  time: ',A,/)
+      end subroutine header
 
-     WRITE(nrite,*) ": this run start at    : ",data
-     len=len_strim(user)
-     WRITE(nrite,*) ": it is submitted by   : ",user(1:len)
-     len=len_strim(hostname)
-     WRITE(nrite,*) ": it is running on     : ",hostname(1:len-1)
-     len=len_strim(directory) 
+      subroutine finaltime(myid)
+        implicit none
+        integer , intent (in) :: myid
+        character (len=24) :: cdata='?'
 
-     WRITE(nrite,*) ": in directory         : ",directory(1:len)
-     WRITE(nrite,*) "                      " 
-     end if 
-  RETURN 
-END SUBROUTINE header
+        if ( myid.eq. 0 ) then
+#ifdef IBM
+          call fdate_(cdata)
+#else
+          call fdate(cdata)
+#endif 
+          write ( 6,* ) 'Input ready at : ', cdata
+        end if
 
-!!>
-  !!   ROUTINE : LEN_STRIM
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
-  !!   ACTION : trimming of string
-  !!< 
-  FUNCTION len_strim (string) RESULT (len_trim_RESULT)
-    IMPLICIT NONE 
-    CHARACTER  (len=*), INTENT(IN) :: string
-    INTEGER :: len_trim_RESULT,k
-
-    len_trim_RESULT =0 
-    DO k= LEN(string),1,-1
-       IF (string(k:k) /=' ') THEN
-          len_trim_RESULT =k
-          EXIT
-       END IF
-    END DO
-
-  END FUNCTION len_strim
+        return
+      end subroutine finaltime

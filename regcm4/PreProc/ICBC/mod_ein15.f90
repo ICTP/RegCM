@@ -285,12 +285,12 @@
             istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
                    & 'add_offset',xoff(kkrec,k4))
             if ( istatus /= nf90_noerr) then
-              write (*,*) 'Error attribure add_offset for var ' ,     &
+              write (*,*) 'Error attribure add_offset for var ' ,       &
                      &     varname(kkrec)
               stop
             end if
-            write (*,*) inet5(kkrec,k4) , pathaddname , xscl(kkrec,k4) ,&
-                      & xoff(kkrec,k4)
+            write (*,*) inet5(kkrec,k4) , trim(pathaddname) ,           &
+                       &  xscl(kkrec,k4) , xoff(kkrec,k4)
           end do
         end do
  

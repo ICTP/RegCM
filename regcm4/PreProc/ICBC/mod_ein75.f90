@@ -266,8 +266,8 @@
                    & xscl(kkrec,k4))
             istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
                    & xoff(kkrec,k4))
-            write (*,*) inet6(kkrec,k4) , pathaddname , xscl(kkrec,k4) ,&
-                      & xoff(kkrec,k4)
+            write (*,*) inet6(kkrec,k4) , trim(pathaddname) ,           &
+                      & xscl(kkrec,k4) , xoff(kkrec,k4)
           end do
         end do
  
