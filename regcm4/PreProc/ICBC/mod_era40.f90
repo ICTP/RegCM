@@ -297,17 +297,29 @@
             pathaddname = trim(inpglob)//dattyp//'/'//inname
             inquire (file=pathaddname,exist=there)
             if ( .not.there ) then
-              print * , pathaddname , ' is not available'
+              print * , trim(pathaddname) , ' is not available'
               stop
             end if
             istatus = nf90_open(pathaddname,nf90_nowrite,               &
                    & inet6(kkrec,k4))
+            if ( istatus/=nf90_noerr ) then
+              write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
+              stop 'INPUT FILE OPEN ERROR'
+            end if
             istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',    &
                    & xscl(kkrec,k4))
+            if ( istatus/=nf90_noerr ) then
+              write ( 6,* ) 'Variable has not scale_factor'
+              stop 'ATTRIBUTE ERROR'
+            end if
             istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
                    & xoff(kkrec,k4))
-            write (*,*) inet6(kkrec,k4) , pathaddname , xscl(kkrec,k4) ,&
-                      & xoff(kkrec,k4)
+            if ( istatus/=nf90_noerr ) then
+              write ( 6,* ) 'Variable has not add_offset'
+              stop 'ATTRIBUTE ERROR'
+            end if
+            write (*,*) inet6(kkrec,k4) , trim(pathaddname) ,           &
+                      & xscl(kkrec,k4) , xoff(kkrec,k4)
           end do
         end do
  
@@ -351,19 +363,33 @@
                 else
                 end if
  
-                pathaddname = trim(inpglob)//dattyp//'/0surface/'//inname
+                pathaddname = trim(inpglob)//dattyp//'/0surface/'//     &
+                            & inname
                 inquire (file=pathaddname,exist=there)
                 if ( .not.there ) then
-                  print * , pathaddname , ' is not available'
+                  print * , trim(pathaddname) , ' is not available'
                   stop
                 end if
                 istatus = nf90_open(pathaddname,nf90_nowrite,           &
                        & isnet3(kkrec,l4,k4))
+                if ( istatus/=nf90_noerr ) then
+                  write ( 6,* ) 'Cannot open input file ',              &
+                         &      trim(pathaddname)
+                  stop 'INPUT FILE OPEN ERROR'
+                end if
                 istatus = nf90_get_att(isnet3(kkrec,l4,k4),4,           &
                         &'scale_factor',xscl_s(kkrec,l4,k4))
+                if ( istatus/=nf90_noerr ) then
+                  write ( 6,* ) 'Variable has not scale_factor'
+                  stop 'ATTRIBUTE ERROR'
+                end if
                 istatus = nf90_get_att(isnet3(kkrec,l4,k4),4,           &
                         &'add_offset',xoff_s(kkrec,l4,k4))
-                write (*,*) isnet3(kkrec,l4,k4) , pathaddname ,         &
+                if ( istatus/=nf90_noerr ) then
+                  write ( 6,* ) 'Variable has not add_offset'
+                  stop 'ATTRIBUTE ERROR'
+                end if
+                write (*,*) isnet3(kkrec,l4,k4) , trim(pathaddname) ,   &
                           & xscl_s(kkrec,l4,k4) , xoff_s(kkrec,l4,k4)
               end do
             end do
@@ -385,12 +411,25 @@
               stop
             end if
             istatus = nf90_open(pathaddname,nf90_nowrite,isnow(k4))
+            if ( istatus/=nf90_noerr ) then
+              write ( 6,* ) 'Cannot open input file ',              &
+                      &      trim(pathaddname)
+              stop 'INPUT FILE OPEN ERROR'
+            end if
             istatus = nf90_get_att(isnow(k4),4,'scale_factor',          &
                    & xscl_sn(k4))
+            if ( istatus/=nf90_noerr ) then
+              write ( 6,* ) 'Variable has not scale_factor'
+              stop 'ATTRIBUTE ERROR'
+            end if
             istatus = nf90_get_att(isnow(k4),4,'add_offset',            &
                    & xoff_sn(k4))
-            write (*,*) isnow(k4) , pathaddname , xscl_sn(k4) ,         &
-                      & xoff_sn(k4)
+            if ( istatus/=nf90_noerr ) then
+              write ( 6,* ) 'Variable has not scale_factor'
+              stop 'ATTRIBUTE ERROR'
+            end if
+            write (*,*) isnow(k4) , trim(pathaddname) ,                 &
+                     &  xscl_sn(k4) , xoff_sn(k4)
  
           end do
         end if
@@ -435,6 +474,10 @@
       do kkrec = 1 , 5
         inet = inet6(kkrec,k4)
         istatus = nf90_get_var(inet,5,work,istart,icount)
+        if ( istatus/=nf90_noerr ) then
+          write ( 6,* ) 'Read Variable error at ', istart 
+          stop 'NetCDF READ ERROR'
+        end if
         xscale = xscl(kkrec,k4)
         xadd = xoff(kkrec,k4)
         if ( kkrec==1 ) then
@@ -531,6 +574,10 @@
           do kkrec = 1 , 3
             inet = isnet3(kkrec,l4,k4)
             istatus = nf90_get_var(inet,4,work2d,istart,icount)
+            if ( istatus/=nf90_noerr ) then
+              write ( 6,* ) 'Read Variable error at ', istart 
+              stop 'NetCDF READ ERROR'
+            end if
             xscale = xscl_s(kkrec,l4,k4)
             xadd = xoff_s(kkrec,l4,k4)
             if ( kkrec==1 ) then
@@ -557,6 +604,10 @@
         end do
         inet = isnow(k4)
         istatus = nf90_get_var(inet,4,work2d,istart,icount)
+        if ( istatus/=nf90_noerr ) then
+          write ( 6,* ) 'Read Variable error at ', istart 
+          stop 'NetCDF READ ERROR'
+        end if
         xscale = xscl_sn(k4)
         xadd = xoff_sn(k4)
         do j = 1 , jlat
