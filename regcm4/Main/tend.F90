@@ -1347,6 +1347,7 @@
         else
           r2cnstep = (ktau+1)/nbatst
         end if
+        dtbat = dt/2.*nbatst
         ! CLM j loop is in mtrxclm
         call mtrxclm
       end if
