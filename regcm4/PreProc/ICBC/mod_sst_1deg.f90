@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_sst_1deg
+
+      contains
+
       subroutine sst_1deg
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -44,6 +48,8 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
+      use mod_interp , only : bilinx
+      use mod_printl
 
       implicit none
 !
@@ -359,7 +365,7 @@
             else
              inpfile = trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
             end if
-            call ice_wk(idate*100,idate0,k)
+            call ice_wk(idate*100,idate0,k,ilon,jlat,sst,inpfile)
             call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           end if 
 
@@ -1328,3 +1334,5 @@
       end do
 
       end subroutine ice_wk
+!
+      end module mod_sst_1deg

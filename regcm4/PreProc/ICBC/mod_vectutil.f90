@@ -17,6 +17,40 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_vectutil
+
+      contains
+
+      subroutine mxmn3d(var,cvar,jx,iy,np)
+      implicit none
+!
+! Dummy arguments
+!
+      character(2) :: cvar
+      integer :: iy , jx , np
+      real(4) , dimension(jx,iy,np) :: var
+      intent (in) cvar , iy , jx , np , var
+!
+! Local variables
+!
+      integer :: i , j , k
+      real(4) :: smax , smin
+!
+      do k = 1 , np
+        smax = -1.E8
+        smin = 1.E8
+        do j = 1 , iy
+          do i = 1 , jx
+            if ( smax<var(i,j,k) ) smax = var(i,j,k)
+            if ( smin>var(i,j,k) ) smin = var(i,j,k)
+          end do
+        end do
+        write (*,*) cvar , k , smax , smin
+      end do
+      end subroutine mxmn3d
+!
+!-----------------------------------------------------------------------
+!
       subroutine p1p2(pd,px,ni,nj)
       implicit none
 !
@@ -61,3 +95,35 @@
       pd(ni,nj) = px(ni1,nj1)
 !
       end subroutine p1p2
+!
+!-----------------------------------------------------------------------
+!
+      subroutine top2btm(x,nlon1,nlat1,nlev1)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: nlat1 , nlev1 , nlon1
+      real(4) , dimension(nlon1,nlat1,nlev1) :: x
+      intent (in) nlat1 , nlev1 , nlon1
+      intent (inout) x
+!
+! Local variables
+!
+      integer :: i , j , k , kr
+      real(4) , dimension(nlev1) :: work
+!
+      do i = 1 , nlon1
+        do j = 1 , nlat1
+          do k = 1 , nlev1
+            work(k) = x(i,j,k)
+          end do
+          do k = 1 , nlev1
+            kr = nlev1 - k + 1
+            x(i,j,k) = work(kr)
+          end do
+        end do
+      end do
+      end subroutine top2btm
+!
+      end module mod_vectutil

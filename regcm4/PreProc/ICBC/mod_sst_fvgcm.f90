@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_sst_fvgcm
+
+      contains
+
       subroutine sst_fvgcm
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -32,6 +36,8 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
+      use mod_interp , only : bilinx
+      use mod_printl
 
       implicit none
 !
@@ -369,3 +375,5 @@
 99011 format (a4,'0 99 ',a26)
 !
       end subroutine gridmlf
+
+      end module mod_sst_fvgcm

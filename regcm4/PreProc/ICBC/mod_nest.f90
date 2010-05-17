@@ -65,8 +65,15 @@
       subroutine get_nest(idate,ncr)
       use mod_mxncom
       use mod_grid
-      use mod_datenum
+      use mod_date
       use mod_write
+      use mod_interp , only : cressmcr , cressmdt
+      use mod_vertint
+      use mod_hgt
+      use mod_humid
+      use mod_mksst
+      use mod_uvrot
+      use mod_vectutil
       implicit none
 !
 ! Dummy arguments

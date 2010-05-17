@@ -17,40 +17,31 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine fexist(filnam)
+      module mod_printl
+
+      contains
+
+      subroutine printl(a,n1,n2)
       implicit none
 !
 ! Dummy arguments
 !
-      character(*) :: filnam
-      intent (inout) filnam
+      integer :: n1 , n2
+      real(4) , dimension(n1,n2) :: a
+      intent (in) a , n1 , n2
 !
 ! Local variables
 !
-      logical :: there
-      character(1) :: yesno
+      integer :: inc1 , inc2 , k , l
+!
+      inc2 = -1
+      inc1 = 1
  
- 100  continue
-      inquire (file=filnam,exist=there)
-      if ( there ) then
- 150    continue
-        print * , ' '
-        print * , ' '
-        print * , '**************************************************'
-        print * , 'FILE ALREADY EXISTS:  ' , filnam
-        print * , 'Do you want to overwrite the existing file? [y/n/q]'
-        read (*,*) yesno
-        if ( yesno=='y' ) then
-          return
-        else if ( yesno=='n' ) then
-          print * , 'ENTER NEW FILE NAME'
-          read (*,'(a)') filnam
-          go to 100
-        else if ( yesno=='q' ) then
-          stop 999
-        else
-          go to 150
-        end if
-      end if
+      do l = n2 , 1 , inc2
+        print 99001 , l , (a(k,l),k=1,17,inc1)
+      end do
+99001 format (1x,i3,2x,17F7.2)
  
-      end subroutine fexist
+      end subroutine printl
+
+      end module mod_printl

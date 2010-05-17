@@ -93,10 +93,10 @@
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       use mod_dynparam
-      use mod_datenum
+      use mod_date
       use mod_grid
       use mod_ingrid
-      use mod_datewk
+      use mod_date
       use mod_ecwcp
       use mod_eh5om
       use mod_ein15
@@ -109,6 +109,7 @@
       use mod_ncep
       use mod_nest
       use mod_write
+      use mod_header
       implicit none
 !
 ! Local variables

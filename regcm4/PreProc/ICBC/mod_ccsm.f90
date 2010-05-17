@@ -171,6 +171,14 @@
         use netcdf
         use mod_grid
         use mod_write
+        use mod_interp , only : bilinx2
+        use mod_vertint
+        use mod_hgt
+        use mod_humid
+        use mod_mksst
+        use mod_uvrot
+        use mod_vectutil
+
         implicit none
 !
 ! Dummy arguments
@@ -179,8 +187,6 @@
 !
 ! Local variables
 !
-        real(4) , dimension(npl) :: c1
-        real(4) , dimension(kz) :: c2
         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
                 & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
                 & istatus
@@ -294,24 +300,19 @@
         call top2btm(u3,jx,iy,npl)
         call top2btm(v3,jx,iy,npl)
  
-        call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,                   &
-                  & jx,iy,npl,dum1,dum2)
+        call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
  
         call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
         call p1p2(b3pd,ps4,jx,iy)
  
-        call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl,dum1)
+        call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
         call camclndr(idate,nyrp,nmop,wt)
         call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
-        call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,                       &
-                &  jx,iy,kz,npl,1,1,dum2,c1,c2)
-        call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,                       &
-               &   jx,iy,kz,npl,1,1,dum2,c1,c2)
-        call intv2(t4,t3,ps4,sigma2,sigmar,ptop,                        &
-               &   jx,iy,kz,npl,1,dum2,c1,c2)
+        call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
+        call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
+        call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
  
-        call intv1(q4,q3,ps4,sigma2,sigmar,ptop,                        &
-               &   jx,iy,kz,npl,1,0,dum2,c1,c2)
+        call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
         call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
  
         call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,               &
@@ -788,6 +789,13 @@
         use netcdf
         use mod_grid
         use mod_write
+        use mod_interp , only : bilinx2
+        use mod_vertint
+        use mod_hgt
+        use mod_humid
+        use mod_mksst
+        use mod_uvrot
+        use mod_vectutil
 
         implicit none
 !
@@ -797,8 +805,6 @@
 !
 ! Local variables
 !
-      real(4) , dimension(npl) :: c1
-      real(4) , dimension(kz) :: c2
       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
                & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
                & istatus
@@ -911,22 +917,19 @@
       call top2btm(u3,jx,iy,npl)
       call top2btm(v3,jx,iy,npl)
  
-      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl,dum1,dum2)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
  
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call p1p2(b3pd,ps4,jx,iy)
  
-      call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl,dum1)
+      call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
       call camclndr(idate,nyrp,nmop,wt)
       call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl,1,1,dum2,c1,&
-               & c2)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl,1,1,dum2,c1,&
-               & c2)
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl,1,dum2,c1,c2)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
+      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
  
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl,1,0,dum2,c1, &
-               & c2)
+      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
       call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
  
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)

@@ -54,8 +54,16 @@
       contains
 
       subroutine getfvgcm(idate)
+      use mod_date , only : julian
       use mod_grid
       use mod_write
+      use mod_interp , only : bilinx2
+      use mod_vertint
+      use mod_hgt
+      use mod_humid
+      use mod_mksst
+      use mod_uvrot
+      use mod_vectutil
       implicit none
 !
 ! Dummy arguments
@@ -363,7 +371,7 @@
         end if
       else
         if ( ssttyp=='OI2WK' ) then
-          call mksst2(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,      &
+          call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,     &
                &      idate/100)
         else
           call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)

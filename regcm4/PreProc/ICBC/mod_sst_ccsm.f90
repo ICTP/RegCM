@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_sst_ccsm
+
+      contains
+
       subroutine sst_ccsm
 !
 !*******************************************************************************
@@ -42,6 +46,8 @@
 !
 !******************************************************************************
       use mod_dynparam
+      use mod_interp , only : bilinx
+      use mod_printl
 
       implicit none
 !
@@ -439,3 +445,5 @@
       end do
 
       end subroutine ccsm_sst
+!
+      end module mod_sst_ccsm

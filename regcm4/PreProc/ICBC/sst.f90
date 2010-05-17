@@ -20,6 +20,10 @@
       program sst
 
       use mod_dynparam
+      use mod_sst_1deg
+      use mod_sst_eh5om
+      use mod_sst_ersst
+      use mod_sst_fvgcm
 
       implicit none
       integer :: ierr

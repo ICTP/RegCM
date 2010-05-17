@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_sst_eh5om
+
+      contains
+
       subroutine sst_eh5om
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -33,7 +37,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       use mod_dynparam
-      use mod_datenum
+      use mod_date
+      use mod_interp , only : bilinx
+      use mod_printl
 
       implicit none
 !
@@ -581,3 +587,5 @@
 99011 format (a4,'0 99 ',a26)
 !
       end subroutine gridmlo
+!
+      end module mod_sst_eh5om

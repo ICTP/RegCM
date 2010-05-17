@@ -45,8 +45,16 @@
       contains
 
       subroutine getein25(idate)
+      use mod_date , only : julian
       use mod_grid
       use mod_write
+      use mod_interp , only : bilinx2
+      use mod_vertint
+      use mod_hgt
+      use mod_humid
+      use mod_mksst
+      use mod_uvrot
+      use mod_vectutil
       implicit none
 !
 ! Dummy arguments

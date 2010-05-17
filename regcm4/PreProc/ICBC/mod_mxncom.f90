@@ -20,6 +20,6 @@
       module mod_mxncom
       implicit none
       real(4) :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx ,  &
-            & glonmn , glonmx , pi
+            & glonmn , glonmx
       integer :: imxmn , lcross , ldot
       end module mod_mxncom

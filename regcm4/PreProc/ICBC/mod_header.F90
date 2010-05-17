@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_header
+
+      contains
+
       subroutine header(myid)
       implicit none 
       integer , intent(in) :: myid
@@ -74,3 +78,5 @@
 
         return
       end subroutine finaltime
+
+      end module mod_header

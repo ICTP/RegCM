@@ -6,22 +6,18 @@ include ../../Makefile.inc
 all: aerosol sst icbc install
 
 AEROSOLOBJ = aerosol.o
-SSTOBJ = sst.o sst_eh5om.o sst_ersst.o sst_fvgcm.o sst_1deg.o sst_ccsm.o \
-         bilinx.o printl.o mod_datenum.o
+SSTOBJ = sst.o mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_1deg.o \
+         mod_sst_ccsm.o mod_interp.o mod_mxncom.o mod_printl.o mod_date.o
 
 SHRMOD = mod_dynparam.o mod_constants.o
 
-MODOBJ = mod_ccsm.o mod_datenum.o mod_datewk.o mod_ecwcp.o mod_eh5om.o \
+MODOBJ = mod_ccsm.o mod_date.o mod_vectutil.o mod_ecwcp.o mod_eh5om.o \
          mod_ein15.o mod_ein25.o mod_ein75.o mod_era40.o mod_erahi.o \
          mod_fvgcm.o mod_gfs11.o mod_grid.o mod_ingrid.o mod_mxncom.o \
-         mod_ncep.o mod_nest.o mod_write.o
-ICBCOBJ = icbc.o bilinx.o cressmcr.o cressmdt.o fexist.o gradsctlb.o \
-          gradsctl.o height.o height_o.o htsig.o htsig_o.o humid1.o \
-          humid1fv.o humid1_o.o humid2.o humid2fv.o hydrost.o intgtb.o \
-          intlin.o intlin_o.o intlog.o intlog_o.o intpsn.o intv1.o \
-          intv2.o intv3.o julian.o mksst2.o mksst2a.o mksst3.o mksst.o \
-          mkssta.o mxmn3d.o p1p2.o printl.o top2btm.o uvrot4.o uvrot4nx.o \
-          header_ICBC.o
+         mod_ncep.o mod_nest.o mod_write.o mod_interp.o mod_vertint.o \
+         mod_header.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+
+ICBCOBJ = icbc.o
 
 aerosol: $(AEROSOLOBJ) $(SHRMOD)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(SHRMOD) \
@@ -48,7 +44,7 @@ mod_constants.o: ../../Config/mod_constants.F90
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
 
-header_ICBC.o: header_ICBC.F90
+mod_header.o: mod_header.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 
 %.o: %.f90
@@ -60,68 +56,63 @@ clean:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_datenum.o: mod_datenum.f90
-mod_datewk.o: mod_datewk.f90
-mod_ccsm.o:  mod_ccsm.f90  mod_dynparam.o mod_grid.o mod_write.o
-mod_ecwcp.o: mod_ecwcp.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_eh5om.o: mod_eh5om.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_ein15.o: mod_ein15.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_ein25.o: mod_ein25.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_ein75.o: mod_ein75.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_era40.o: mod_era40.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_erahi.o: mod_erahi.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_fvgcm.o: mod_fvgcm.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_gfs11.o: mod_gfs11.f90 mod_dynparam.o mod_grid.o mod_write.o
-mod_ncep.o:  mod_ncep.f90  mod_dynparam.o mod_grid.o mod_write.o
+mod_date.o: mod_date.f90
+mod_ccsm.o:  mod_ccsm.f90  mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_ecwcp.o: mod_ecwcp.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_eh5om.o: mod_eh5om.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_ein15.o: mod_ein15.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_ein25.o: mod_ein25.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_ein75.o: mod_ein75.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_era40.o: mod_era40.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_erahi.o: mod_erahi.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_fvgcm.o: mod_fvgcm.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_gfs11.o: mod_gfs11.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_ncep.o:  mod_ncep.f90  mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
 mod_grid.o: mod_grid.f90 mod_dynparam.o
+mod_hgt.o: mod_hgt.f90 mod_constants.o
+mod_humid.o: mod_humid.f90 mod_constants.o
 mod_ingrid.o: mod_ingrid.f90 mod_dynparam.o mod_grid.o
+mod_interp.o: mod_interp.f90 mod_constants.o mod_mxncom.o
+mod_mksst.o: mod_mksst.f90 mod_date.o
 mod_mxncom.o: mod_mxncom.f90
 mod_nest.o: mod_nest.f90 mod_dynparam.o mod_grid.o mod_write.o \
-            mod_datenum.o mod_mxncom.o
+            mod_date.o mod_mxncom.o mod_interp.o
+mod_uvrot.o: mod_uvrot.f90 mod_constants.o
+mod_vectutil.o: mod_vectutil.f90
+mod_vertint.o: mod_vertint.f90 mod_constants.o
 mod_write.o: mod_write.f90
-bilinx.o: bilinx.f90
-cressmcr.o: mod_mxncom.o
-cressmdt.o: mod_mxncom.o
-fexist.o: fexist.f90
-gradsctlb.o: gradsctlb.f90 mod_dynparam.o mod_grid.o
-gradsctl.o: gradsctl.f90 mod_dynparam.o mod_grid.o
-height.o: height.f90 mod_constants.o
-height_o.o: height_o.f90 mod_constants.o
-htsig.o: htsig.f90 mod_constants.o
-htsig_o.o: htsig_o.f90 mod_constants.o
-humid1.o: humid1.f90 mod_constants.o
-humid1fv.o: humid1fv.f90 mod_constants.o
-humid1_o.o: humid1_o.f90 mod_constants.o
-humid2.o: humid2.f90 mod_constants.o
-humid2fv.o: humid2fv.f90 mod_constants.o
-hydrost.o: hydrost.f90 mod_constants.o
-intgtb.o: intgtb.f90
-intlin.o: intlin.f90
-intlin_o.o: intlin_o.f90
-intlog.o: intlog.f90 mod_constants.o
-intlog_o.o: intlog_o.f90 mod_constants.o
-intpsn.o: intpsn.f90 mod_constants.o
-intv1.o: intv1.f90
-intv2.o: intv2.f90 mod_constants.o
-intv3.o: intv3.f90 mod_constants.o
-julian.o: julian.f90
-mksst2.o: mksst2.f90 mod_datewk.o mod_datenum.o
-mksst2a.o: mksst2a.f90
-mksst3.o: mksst3.f90
-mksst.o: mksst.f90
-mkssta.o: mkssta.f90
-mxmn3d.o: mxmn3d.f90
-p1p2.o: p1p2.f90
-printl.o: printl.f90
-top2btm.o: top2btm.f90
-uvrot4.o: uvrot4.f90 mod_constants.o
-uvrot4nx.o: uvrot4nx.f90 mod_constants.o
+mod_printl.o: mod_printl.f90
 aerosol.o: aerosol.f90 mod_dynparam.o
-sst_1deg.o: sst_1deg.f90 mod_dynparam.o
-sst_ccsm.o: sst_ccsm.f90 mod_dynparam.o
-sst_eh5om.o: sst_eh5om.f90 mod_dynparam.o mod_datenum.o
-sst_ersst.o: sst_ersst.f90 mod_dynparam.o mod_datenum.o
-sst_fvgcm.o: sst_fvgcm.f90 mod_dynparam.o
-sst.o: mod_dynparam.o
-icbc.o: icbc.f90 mod_dynparam.o mod_datenum.o mod_grid.o mod_write.o \
-        mod_ingrid.o mod_datewk.o mod_ein15.o
+mod_sst_1deg.o: mod_sst_1deg.f90 mod_dynparam.o mod_interp.o mod_printl.o
+mod_sst_ccsm.o: mod_sst_ccsm.f90 mod_dynparam.o mod_interp.o mod_printl.o
+mod_sst_eh5om.o: mod_sst_eh5om.f90 mod_dynparam.o mod_date.o mod_interp.o \
+                 mod_printl.o
+mod_sst_ersst.o: mod_sst_ersst.f90 mod_dynparam.o mod_date.o mod_interp.o \
+                 mod_printl.o
+mod_sst_fvgcm.o: mod_sst_fvgcm.f90 mod_dynparam.o mod_interp.o mod_printl.o
+sst.o: mod_dynparam.o mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o \
+       mod_sst_fvgcm.o mod_sst_ccsm.o
+icbc.o: icbc.f90 mod_dynparam.o mod_date.o mod_grid.o mod_write.o \
+        mod_ingrid.o mod_ein15.o mod_interp.o mod_header.o

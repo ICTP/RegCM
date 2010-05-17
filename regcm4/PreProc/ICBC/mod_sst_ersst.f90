@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_sst_ersst
+
+      contains
+
       subroutine sst_ersst
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -33,7 +37,10 @@
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       use mod_dynparam
-      use mod_datenum
+      use mod_date
+      use mod_interp , only : bilinx
+      use mod_printl
+
       implicit none
 !
 ! PARAMETERS
@@ -494,3 +501,5 @@
       end do
 !
       end subroutine sst_erain
+!
+      end module mod_sst_ersst
