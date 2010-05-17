@@ -15,7 +15,9 @@
 REGCM_BASE_DIR = `pwd`
 
 # DATA directories: 
-REGCM_DATA_DIR = 
+REGCM_DATA_DIR = /gpfs/scratch/userictp/ictpcl03 
+
+BINDIR = /sp6/userictp/ictpcl02/scratch/regcm/branches/regcm4
 
 # NetCDF library:
 # The NetCDF library is needed to run RegCM, 
@@ -50,6 +52,8 @@ endif
 # - RegCM expects Fortran records to be measured in bytes
 
 F90FLAGS = -qsuppress=1501-245 -bnoquiet -O3 -qintlog -qstrict -qcheck -qmaxmem=-1 -qzerosize 
+
+MAKE = gmake
 
 # Set the Fortran 90 compiler here
 F90 = xlf90

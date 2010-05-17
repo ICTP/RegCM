@@ -5,7 +5,7 @@
 ###########################################################################
 
 # Set to 1 to enable CLM coupling
-USECLM = 0
+USECLM = 1
 # Set to 1 to enable daily cycle SST
 USEDCSST = 0
 # Set to 1 to enable Sea Ice effects
@@ -113,7 +113,7 @@ ifeq ($(origin PARALLEL), undefined)
 	@echo "ERROR: CLM wants PARALLEL activated"
 	@exit 1
 endif
-	make -C $(CLMPTH)
+	$(MAKE) -C $(CLMPTH)
 
 regcm: $(SHROBJS) $(CLMLIB) $(MODOBJS) $(OBJS) $(NETLIBOBJS)
 	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) $(SHROBJS) \
@@ -137,7 +137,7 @@ mod_bats_param.o: ../Config/mod_bats_param.F90
 ifeq ($(USECLM),1)
 clean:
 	rm -f *.mod *.o regcm
-	cd clmlib && make clean
+	cd clmlib && $(MAKE) clean
 else
 clean:
 	rm -f *.mod *.o regcm
