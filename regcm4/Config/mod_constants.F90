@@ -146,7 +146,7 @@
       real(8) , parameter :: zsno = 0.00040D+00
 #endif
       ! Von Karman constant
-      real(8) , parameter :: vonkar = 0.378D+00
+      real(8) , parameter :: vonkar = 0.4D+00
       ! Drag coefficient for soil under canopy
       real(8) , parameter :: csoilc = 4.0D-03
       ! Turbulent wind for stable conditions (m/sec)
