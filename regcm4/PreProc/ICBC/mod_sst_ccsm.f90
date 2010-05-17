@@ -372,12 +372,16 @@
       if (idate == idate0) then
          inquire(file=pathaddname,exist=there)
          if (.not.there) then
-            print *, pathaddname,' is not available'
+            print *, trim(pathaddname),' is not available'
             stop
          endif
          istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+         if ( istatus/=nf90_noerr )
+           write ( 6,*) 'Error opening ', trim(pathaddname)
+           stop 'ERROR OPEN FILE'
+         end if
          
-         write(*,*) inet1 , pathaddname , icode
+         write(*,*) inet1 , trim(pathaddname) , icode
       endif  
 !     GET DIMENSION IDs
       istatus = nf90_inq_dimid(inet1,'lat',latid)

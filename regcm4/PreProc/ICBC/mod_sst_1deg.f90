@@ -932,18 +932,18 @@
       if ( idate==idate0 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) pathaddname , ' is not available'
+          write (*,*) trim(pathaddname) , ' is not available'
           stop
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', pathaddname
+          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
           stop 'INPUT FILE OPEN ERROR'
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', pathaddname
+               &        ' in input file ', trim(pathaddname)
           stop 'INPUT FILE ERROR'
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
@@ -1029,18 +1029,18 @@
       if ( idate==idate0 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) pathaddname , ' is not available'
+          write (*,*) trim(pathaddname) , ' is not available'
           stop
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', pathaddname
+          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
           stop 'INPUT FILE OPEN ERROR'
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', pathaddname
+               &        ' in input file ', trim(pathaddname)
           stop 'INPUT FILE ERROR'
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
@@ -1126,18 +1126,18 @@
       if ( idate==idate0 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) pathaddname , ' is not available'
+          write (*,*) trim(pathaddname) , ' is not available'
           stop
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', pathaddname
+          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
           stop 'INPUT FILE OPEN ERROR'
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', pathaddname
+               &        ' in input file ', trim(pathaddname)
           stop 'INPUT FILE ERROR'
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
@@ -1155,18 +1155,18 @@
         istatus = nf90_close(inet)
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) pathaddname , ' is not available'
+          write (*,*) trim(pathaddname) , ' is not available'
           stop
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', pathaddname
+          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
           stop 'INPUT FILE OPEN ERROR'
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', pathaddname
+               &        ' in input file ', trim(pathaddname)
           stop 'INPUT FILE ERROR'
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
@@ -1251,18 +1251,18 @@
       if ( idate==idate0 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) pathaddname , ' is not available'
+          write (*,*) trim(pathaddname) , ' is not available'
           stop
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', pathaddname
+          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
           stop 'INPUT FILE OPEN ERROR'
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', pathaddname
+               &        ' in input file ', trim(pathaddname)
           stop 'INPUT FILE ERROR'
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
@@ -1280,18 +1280,18 @@
         istatus = nf90_close(inet)
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) pathaddname , ' is not available'
+          write (*,*) trim(pathaddname) , ' is not available'
           stop
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', pathaddname
+          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
           stop 'INPUT FILE OPEN ERROR'
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', pathaddname
+               &        ' in input file ', trim(pathaddname)
           stop 'INPUT FILE ERROR'
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
