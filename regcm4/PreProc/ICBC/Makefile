@@ -3,7 +3,7 @@
   
 include ../../Makefile.inc
 
-all: aerosol sst icbc
+all: aerosol sst icbc install
 
 AEROSOLOBJ = aerosol.o
 SSTOBJ = sst.o sst_eh5om.o sst_ersst.o sst_fvgcm.o sst_1deg.o sst_ccsm.o \
@@ -34,6 +34,11 @@ sst: $(SHRMOD) $(SSTOBJ)
 icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMOD) $(MODOBJ) $(ICBCOBJ) \
                $(LIB) $(NETCDFLIB)
+
+install: aerosol icbc sst
+	@cp aerosol icbc sst $(BINDIR)
+	@chmod 755 $(BINDIR)/aerosol $(BINDIR)/icbc $(BINDIR)/sst
+	@echo  " programs all installed in $(BINDIR) " 
 
 mod_dynparam.o: ../../Config/mod_dynparam.F90
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \

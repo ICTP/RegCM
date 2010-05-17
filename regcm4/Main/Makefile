@@ -19,7 +19,7 @@ SCENARIO = A1B
 
 include ../Makefile.inc
 
-destdir = ../Run
+destdir = $(BINDIR)
 prgsuffix = Serial
 
 # check if we need the MPI wrapper 

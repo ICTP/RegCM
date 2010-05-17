@@ -3,7 +3,8 @@
   
 include ../../Makefile.inc
 
-all: terrain
+
+all: terrain install
 
 SHRMODS =  mod_dynparam.o mod_constants.o
 
@@ -24,6 +25,11 @@ mod_constants.o: ../../Config/mod_constants.F90
 terrain: $(SHRMODS) $(MODOBJS) $(OBJS)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMODS) $(MODOBJS) $(OBJS) \
                $(LIB) $(NETCDFLIB)
+
+install: terrain 
+	@cp terrain $(BINDIR)
+	@chmod 755  $(BINDIR)/terrain
+	@echo "Executable terrain is installed now in $(BINDIR)"
 
 %.o: %.f90
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
