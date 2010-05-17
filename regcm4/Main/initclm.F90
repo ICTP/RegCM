@@ -19,7 +19,7 @@
 
 #ifdef MPP1
 #ifdef CLM
-      subroutine initclm(nstep)
+      subroutine initclm(instep)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -90,8 +90,8 @@
 !
 ! Dummy arguments
 !
-      integer :: nstep
-      intent (out) nstep
+      integer :: instep
+      intent (out) instep
 !
 ! Local variables
 !
@@ -642,7 +642,7 @@
  
 !     Initialize radiation and atmosphere variables
       if ( .not.ifrest ) then
-        nstep = ktau
+        instep = ktau
         call rcmdrv()
       end if !end ifrest test
  

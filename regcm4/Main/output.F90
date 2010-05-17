@@ -71,7 +71,7 @@
 #ifdef MPP1
       integer :: allrec , idum , ierr , l , k , n
 #ifdef CLM
-      real(8) :: dtime
+      real(8) :: cdtime
 #endif
 #endif
 !
@@ -1191,14 +1191,14 @@
         if ( ( ( lday.eq.1 .and. lhour.eq.0 .and.                       &
            &     dabs(xtime).lt.0.00001 )   .and.                       &
            &     ldatez.ne.IDATE1 ) .or. nnnnnn.eq.nnnend ) then
-          dtime = get_step_size()
+          cdtime = get_step_size()
           filer_rest = restFile_filename(type='netcdf',                 &
-                     &                   offset=-int(dtime))
+                     &                   offset=-int(cdtime))
           inquire(file=filer_rest,exist=there)
           if (.not. there) then
             call restFile_write( filer_rest )
             filer_rest = restFile_filename(type='binary',               &
-                     &                     offset=-int(dtime))
+                     &                     offset=-int(cdtime))
             call restFile_write_binary( filer_rest )
           endif
         endif

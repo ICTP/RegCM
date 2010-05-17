@@ -395,7 +395,7 @@
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
-      ncld = 1           ! # of bottom model levels with no clouds (rad only)
+      ncld = 3           ! # of bottom model levels with no clouds (rad only)
       fcmax = 0.80       ! Maximum cloud fraction cover (rad only)
 !     qck1land = 0.0005  ! Autoconversion Rate for Land
 !     qck1oce  = 0.0005  ! Autoconversion Rate for Ocean
@@ -621,7 +621,7 @@
 #endif
 
 #ifdef CLM
-      all mpi_bcast(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
+      call mpi_bcast(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
 #endif
  
       if ( ichem.eq.0 ) ifchem = .false.
@@ -1283,11 +1283,11 @@
  
       do k = 1 , kz
         if ( a(k).lt.0.4 ) then
-          anudg(k) = 3.
+          anudg(k) = 4.
         else if ( a(k).lt.0.8 ) then
-          anudg(k) = 2.
+          anudg(k) = 3.
         else
-          anudg(k) = 1.
+          anudg(k) = 2.
         end if
       end do
 !
