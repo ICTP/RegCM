@@ -53,14 +53,17 @@
 !  output variables unit 9.
 !---------------------------------------------------------------------
       use mod_dynparam
+      use mod_maps
+      use mod_block
       use mod_smooth , only : smth121 , smthtr
-      use mod_projections , only : lambrt , mappol , normer , rotmer
+      use mod_projections , only : lambrt , mappol , normer , rotmer ,  &
+                                &  xyobsll
       use mod_interp , only : anal2 , interp
       use mod_fudge , only : lndfudge , texfudge , lakeadj
       use mod_rdldtr , only : rdldtr , rdldtr_nc
-      use mod_maps
-      use mod_block
-      use mod_interfaces
+      use mod_write , only : setup , output
+      use mod_header , only : header
+      use mod_surf , only : surf
       implicit none
 !
 ! Local variables

@@ -17,10 +17,13 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_surf
+
+      contains
+
       subroutine surf(xlat,xlon,lnduse,iy,jx,incr,dsgrid,lndout,land,   &
                     & nrec,h2opct,lsmtyp,sanda,sandb,claya,clayb,       &
                     & frac_lnd,nveg,aertyp,intext,texout,frac_tex,ntex)
-      use mod_interfaces
       use mod_block
       use mod_interp , only : bint
       implicit none
@@ -206,3 +209,5 @@
             & 5x,'grdlnmn = ',f10.3)
 !
       end subroutine surf
+
+      end module mod_surf
