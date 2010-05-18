@@ -108,13 +108,6 @@ def main():
     'd tsdm'
     'printim satemp.png'"""
 
-#    path1=raw_input("Please enter 1st path : ")
-#    if os.path.isdir(path1):
-#        print "Files read from ",path1
-#    else :
-#        print path1,"is not a valid path"
-#        sys.exit(1)
-
     check_domain = check_domain.replace("PATH1",path1)
     check_domain = check_domain.replace("PATH2",path2)
     
@@ -135,8 +128,17 @@ def main():
     out1.close()
     out2.close()
 
-    subprocess.call(["gradsc","-lbxc","check-domain.gs"])
-    subprocess.call(["gradsc","-lbxc","check-icbc.gs"])
+    try :
+        subprocess.call(["gradsc","-lbxc","check-domain.gs"])
+    except OSError :
+        print "No grads binary available!"
+        os.sys.exit(1)
+        
+    try :
+        subprocess.call(["gradsc","-lbxc","check-icbc.gs"])
+    except OSError :
+        print "No grads binary available!"
+        os.sys.exit(1) 
 
     os.remove("check-domain.gs")
     os.remove("check-icbc.gs")
