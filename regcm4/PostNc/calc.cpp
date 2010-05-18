@@ -168,7 +168,7 @@ void atmcalc::calctd(float *t)
 {
   float rx, tx, dpd;
 
-  for (int i = 0; i < nh; i ++)
+  for (int i = 0; i < nh*nk; i ++)
   {
     rx = 1.0 - rh[i];
     tx = t[i] - tzero;
@@ -181,7 +181,7 @@ void atmcalc::calctd(float *t)
 
 void atmcalc::calcpt(float *t)
 {
-  for (int i = 0; i < nh; i ++)
+  for (int i = 0; i < nh*nk; i ++)
     pt[i] = t[i]*pow((1000.0/p[i]), rovcp);
   return;
 }
