@@ -28,6 +28,7 @@
 #ifdef MPP1
 
       integer :: imask
+      real(8) :: clmfrq
 
       integer :: r2cdtime      ! timestep in seconds
       integer :: r2cnsrest     ! 0=initial, 1=restart

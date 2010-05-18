@@ -69,7 +69,7 @@
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
-      use mod_clm , only : imask , allocate_mod_clm
+      use mod_clm , only : imask , clmfrq , allocate_mod_clm
 #endif
 #ifndef IBM
       use mpi
@@ -106,9 +106,11 @@
       integer :: ierr
 #ifndef CLM
       integer :: imask
+      real(8) :: clmfrq
 #endif
 #else
       integer :: imask
+      real(8) :: clmfrq
 #endif
 !
 !
@@ -133,7 +135,7 @@
 !chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
       & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
-      & batfrq , ifchem , chemfrq
+      & batfrq , ifchem , chemfrq , clmfrq
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem , imask
@@ -376,6 +378,7 @@
       ifchem = .false.
       chemfrq = 6.0   ! time interval for disposeing chem output (hrs)
 !chem2_
+      clmfrq = 12.0
  
 !
 !----------------------------------------------------------------------
@@ -552,6 +555,7 @@
  
 #ifdef CLM
       call mpi_bcast(imask,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(clmfrq,1,mpi_real8,0,mpi_comm_world,ierr)
 #endif
 
       if ( ipptls.eq.1 ) then
@@ -863,7 +867,7 @@
              &' kxout  = ' , kxout , ' jxsex  = ' , jxsex ,             &
              &' radisp = ' , radisp , ' batfrq = ' , batfrq ,           &
              &' nslice = ' , nslice , ' ifchem = ' , ifchem ,           &
-             &' chemfrq =' , chemfrq
+             &' chemfrq =' , chemfrq, ' clmfrq = ', clmfrq
       call say
       write (aline, *) ' '
       call say

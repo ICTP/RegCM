@@ -117,8 +117,6 @@
         if ( sigmaf(k+1).le.sigmaf(k) ) then
           lsigma = .true.
           write (aline,99001) k , sigmaf(k+1) , sigmaf(k)
-99001     format ('0 for k=',i3,' sigmaf(k+1)=',f9.6,' .le. sigmaf(k)=',&
-                & f9.6)
           call say
         end if
       end do
@@ -311,7 +309,6 @@
       if ( lhydro ) then
         numerr = numerr + 1
         print 99002
-99002   format ('0 problem with linearization of hydostatic equation')
         call vprntv(w1(1,1),kz,'test1   ')
         call vprntv(w1(1,2),kz,'test2   ')
       end if
@@ -422,9 +419,13 @@
       call vprntv(tbarh,kz,'t mean  ')
       pps(1) = ps
       call vprntv(pps,1,'ps mean ')
+#ifdef MPP1
+      if ( myid.eq.0 ) then
+#endif
       print 99003 , kz , numerr
-99003 format ('0 vertical mode problem completed for kx=',i3,5x,i1,     &
-             &' errors detected   (should be 0)')
+#ifdef MPP1
+      end if
+#endif
 !
 !  printout if desired
       if ( .not.lprint ) then
@@ -439,7 +440,6 @@
       call vprntv(thetaf,kzp1,'thetaf  ')
       call vprntv(hweigh,kz,'hweigh  ')
       print 99004 , alpha1 , alpha2
-99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
       call vprntm(a,kz,kz,'a       ')
       call vprntm(hydros,kz,kz,'hydros  ')
       call vprntm(hydror,kz,kz,'hydror  ')
@@ -451,6 +451,13 @@
       call vprntm(varpa2,kzp1,kzp1,'varpa2  ')
 !
       return
+
+99001 format ('0 for k=',i3,' sigmaf(k+1)=',f9.6,' .le. sigmaf(k)=',    &
+             & f9.6)
+99002 format ('0 problem with linearization of hydostatic equation')
+99003 format ('0 vertical mode problem completed for kx=',i3,5x,i1,     &
+             &' errors detected   (should be 0)')
+99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
  
       end subroutine vmodes
 !
