@@ -554,6 +554,7 @@
       call mpi_bcast(ichem,1,mpi_integer,0,mpi_comm_world,ierr)
  
 #ifdef CLM
+      call mpi_bcast(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
       call mpi_bcast(imask,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(clmfrq,1,mpi_real8,0,mpi_comm_world,ierr)
 #endif
@@ -622,10 +623,6 @@
         call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
       end if
-#endif
-
-#ifdef CLM
-      call mpi_bcast(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
 #endif
  
       if ( ichem.eq.0 ) ifchem = .false.
@@ -712,7 +709,7 @@
  
 !     ktaur = nint((NSTART-NSTRT0)*ibdyfrq*60/dtmin)
       ntimax = (nnnend-nstrt0)*ibdyfrq*60
-      write (aline, *) 'param: IDATE1, IDATE2, dtmin, ktaur = ' ,              &
+      write (aline, *) 'param: IDATE1, IDATE2, dtmin, ktaur = ' ,       &
                            & idate1 , idate2 , dtmin , ktaur
       call say
       ldatez = idate1
@@ -743,7 +740,7 @@
                                       & proj , sp1d , ptsp , igra ,     &
                                       & ibig , trl , trh
         print * , 'param: DIMS' , iyy , jxx , kzz
-        print * , 'param: DOMAIN' , dsx , iclat , iclon , iplat ,      &
+        print * , 'param: DOMAIN' , dsx , iclat , iclon , iplat ,       &
                   & iplon ,  grdfac
         print * , 'param: PROJ' , proj
         print * , 'param: SIGMA' , sp1d
@@ -1018,7 +1015,7 @@
           end do
           if ( ierr1.ne.0 ) then
             write (aline,*)                                             &
-             &  '  Check ibyte in  mod_dynparam.F90  ibyte = ' ,     &
+             &  '  Check ibyte in  mod_dynparam.F90  ibyte = ' ,        &
              & ibyte
             call fatal(__FILE__,__LINE__,'REACHED EOF')
           end if
