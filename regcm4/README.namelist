@@ -192,7 +192,6 @@
  jxsex   =     40,  ! Printout control for horizontal point
  ifchem  = .true.,  ! Output CHE
  chemfrq =     6.,  ! Frequency in hours to write to CHE
- clmfrq  =    12.,  ! Frequency for CLM own output write
  /
 !
 ! Model Physics
@@ -227,12 +226,6 @@
  iemiss  =          0,  ! Calculate emission
  lakemod =          0,  ! Use lake model
  ichem   =          1,  ! Use chemical model
- imask   =          1,  ! For CLM, Type of land surface parameterization
-                        !   1 => using DOMAIN.INFO for landmask (same as BATS)
-                        !   2 => using mksrf_navyoro file landfraction for
-                        !        landmask and perform a weighted average over
-                        !        ocean/land gridcells; for example:
-                        ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
  /
 !
 ! Moisture scheme comtrol (You know what You are doing, don't You?)
@@ -279,10 +272,18 @@
  inpdustbsiz  =   .00,  .00,      ! See tractend2.f90
  /
 !
-! CLM path to Input data produced by clm2rcm. If relative, It should be
-! how to reach the Input dir from the Run dir.
+! CLM parameters
 !
  &clmparam
- dirclm = '../Input',
+ dirclm = '../Input', ! CLM path to Input data produced by clm2rcm. If 
+                      ! relative, It should be how to reach the Input dir
+                      ! from the Run dir.
+ clmfrq =  12.,       ! Frequency for CLM own output write
+ imask  =   1,        ! For CLM, Type of land surface parameterization
+                      !   1 => using DOMAIN.INFO for landmask (same as BATS)
+                      !   2 => using mksrf_navyoro file landfraction for
+                      !        landmask and perform a weighted average over
+                      !        ocean/land gridcells; for example:
+                      ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
  /
 ! ####################################################################

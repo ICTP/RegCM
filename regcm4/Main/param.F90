@@ -135,10 +135,10 @@
 !chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
       & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
-      & batfrq , ifchem , chemfrq , clmfrq
+      & batfrq , ifchem , chemfrq
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
-      & iemiss , lakemod , ipptls , iocnflx , ichem , imask
+      & iemiss , lakemod , ipptls , iocnflx , ichem
 !chem2_
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -159,7 +159,7 @@
 !chem2_
 
 #ifdef CLM
-      namelist /clmparam/ dirclm
+      namelist /clmparam/ dirclm , imask , clmfrq
 #endif
 
 !-----------------------------------------------------------------------

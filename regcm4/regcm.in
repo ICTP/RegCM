@@ -98,7 +98,6 @@
    jxsex   =         40,
  ifchem  = .true.,
    chemfrq =     6.,
- clmfrq = 12.,
  /
  &physicsparam
  iboudy  =          5,
@@ -131,4 +130,6 @@
  /
  &clmparam
  dirclm = '/home/graziano/Software/regcm/branches/regcm4/Input',
+ imask  = 1,
+ clmfrq = 12.,
  /
