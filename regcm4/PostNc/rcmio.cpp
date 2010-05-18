@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 Graziano Giuliani                             *
+ *   Copyright (C) 2010 Graziano Giuliani                                  *
  *   graziano.giuliani at aquila.infn.it                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -278,15 +278,20 @@ const char *tftostring(const char *tf)
   return "Yes";
 }
 
-bcdata::bcdata(domain_data &d, int idate0)
+bcdata::bcdata(domain_data &d, rcminp &in)
 {
-  date0 = idate0;
+  date0 = in.valuei("globidate1");
   size2D = d.nx*d.ny;
   size3D = size2D*d.nz;
   nz = d.nz;
-  eh50 = false;
-  usgs = false;
+  ehso4 = in.valueb("ehso4");
+  if (strcmp(in.valuec("lsmtyp"), "BATS") == 0)
+    usgs = false;
+  else if (strcmp(in.valuec("lsmtyp"), "USGS") == 0)
+    usgs = true;
   buffer = 0;
+  strncpy(ssttyp, in.valuec("ssttyp"), 16);
+  strncpy(dattyp, in.valuec("dattyp"), 16);
 }
 
 bcdata::~bcdata()
@@ -424,12 +429,21 @@ srfdata::~srfdata( )
   delete [] buffer;
 }
 
-domain_data::domain_data( )
+domain_data::domain_data(rcminp &in)
 {
   n2D = 14;
   nx = ny = nz = 0;
   buffer = 0;
   hsigf = hsigm = 0;
+  strncpy(name, in.valuec("domname"), 256);
+  ntypec = in.valuei("ntypec");
+  anal = in.valueb("ifanal");
+  smthbdy = in.valueb("smthbdy");
+  lakadj = in.valueb("lakadj");
+  fudge_lnd = in.valueb("fudge_lnd");
+  fudge_tex = in.valueb("fudge_tex");
+  ntex = in.valuei("ntex");
+  h2opct = in.valuef("h2opct");
 }
 
 domain_data::~domain_data( )
@@ -496,10 +510,14 @@ rcmio::rcmio(char *directory, bool lbig, bool ldirect)
   storage = 0;
 }
 
-subdom_data::subdom_data( )
+subdom_data::subdom_data(rcminp &in)
 {
   nsg = 1;
   ht = htsd = landuse = xlat = xlon = xmap = coriol = mask = 0;
+  strncpy(name, in.valuec("domname"), 256);
+  ntypec_s = in.valuei("ntypec_s");
+  fudge_lnd_s = in.valueb("fudge_lnd_s");
+  fudge_tex_s = in.valueb("fudge_tex_s");
 }
 
 subdom_data::~subdom_data( )
@@ -1314,25 +1332,25 @@ int rcmio::bc_read_tstep(bcdata &b)
     if (nrecs == baserec)
     {
       b.n2D = 3;
-      b.eh50 = false;
+      b.ehso4 = false;
       b.usgs = false;
     }
     else if (nrecs == baseso4)
     {
       b.n2D = 4;
-      b.eh50 = true;
+      b.ehso4 = true;
       b.usgs = false;
     }
     else if (nrecs == baseusg)
     {
       b.n2D = 16;
-      b.eh50 = false;
+      b.ehso4 = false;
       b.usgs = true;
     }
     else if (nrecs == allrecs)
     {
       b.n2D = 17;
-      b.eh50 = true;
+      b.ehso4 = true;
       b.usgs = true;
     } 
     else
@@ -1355,7 +1373,7 @@ int rcmio::bc_read_tstep(bcdata &b)
     b.px = b.q + b.size3D;
     b.ts = b.px + b.size2D;
     float *pnt = b.ts + b.size2D;
-    if (b.eh50)
+    if (b.ehso4)
     {
       b.so4 = pnt;
       pnt += b.size2D;

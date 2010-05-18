@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Graziano Giuliani                          *
+ *   Copyright (C) 2010 Graziano Giuliani                                  *
  *   graziano.giuliani at aquila.infn.it                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -47,8 +47,9 @@ void help(char *pname)
       << std::endl
       << "This simple programs converts binary ICBC files from RegCM V4 "
       << "into NetCDF" << std::endl << "CF-1.4 convention compliant data files."
-      << std::endl << std::endl << "I need three mandatory arguments:"
+      << std::endl << std::endl << "I need four mandatory arguments:"
       << std::endl << std::endl
+      << "    regcm.in       - path to regcm.in of RegCM model v4" << std::endl
       << "    DOMAIN.INFO    - path to DOMAIN.INFO of RegCM model v4"
       << std::endl
       << "    ICBCYYYYMMDDHH - path to ICBC of RegCM model v4" << std::endl
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (argc - optind != 3)
+  if (argc - optind != 4)
   {
     std::cerr << std::endl << "Howdy there, not enough arguments." << std::endl;
     help(argv[0]);
@@ -124,6 +125,7 @@ int main(int argc, char *argv[])
 
   try
   {
+    char *regcmin = strdup(argv[optind++]);
     char *dominfo = strdup(argv[optind++]);
     char *arg2 = strdup(argv[optind++]);
     char *brg2 = strdup(arg2);
@@ -131,13 +133,12 @@ int main(int argc, char *argv[])
     char *icbcd = dirname(brg2);
     char *experiment = strdup(argv[optind++]);
  
-    domain_data d;
+    rcminp inpf(regcmin);
+    domain_data d(inpf);
     rcmio rcmout(icbcd, lbigend, ldirect);
     rcmout.read_domain(dominfo, d);
 
-    int idate0;
-    sscanf(icbcf, "ICBC%d", &idate0);
-    bcdata b(d, idate0);
+    bcdata b(d, inpf);
 
     char fname[PATH_MAX];
     sprintf(fname, "ICBC_%s.nc", experiment);

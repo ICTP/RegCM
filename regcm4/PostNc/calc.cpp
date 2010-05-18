@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 Graziano Giuliani                             *
+ *   Copyright (C) 2010 Graziano Giuliani                                  *
  *   graziano.giuliani at aquila.infn.it                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Graziano Giuliani                          *
+ *   Copyright (C) 2010 Graziano Giuliani                                  *
  *   graziano.giuliani at aquila.infn.it                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
       int recnum = 1;
       int ustart = istart - 1;
       std::cout << "Found Surface Subgrid data SUB and processing";
-      subdom_data subdom;
+      subdom_data subdom(inpf);
       rcmout.read_subdom(outhead, subdom);
       subdata s(outhead, subdom);
       sprintf(fname, "SUB_%s_%d.nc", experiment, outhead.idate1);

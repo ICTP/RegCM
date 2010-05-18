@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Graziano Giuliani                          *
+ *   Copyright (C) 2010 Graziano Giuliani                                  *
  *   graziano.giuliani at aquila.infn.it                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -33,8 +33,8 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   f = new NcFile(fname, NcFile::Replace);
 
   f->add_att("title", "ICTP Regional Climatic model V4 output");
-  f->add_att("institution", "ICTP Trieste");
-  f->add_att("source", "RegCM Model simulation");
+  f->add_att("institution", "ICTP");
+  f->add_att("source", "RegCM V4 Model simulation");
   f->add_att("Conventions", "CF-1.4");
   char buffer[256];
   time_t xtime = time(&xtime);
@@ -130,7 +130,7 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
     xlonvar->add_att("standard_name", "longitude");
     xlonvar->add_att("long_name", "Longitude");
     xlonvar->add_att("units", "degrees_east");
-    NcVar *htvar = f->add_var("ht", ncFloat, iy, jx);
+    NcVar *htvar = f->add_var("topo", ncFloat, iy, jx);
     htvar->add_att("standard_name", "surface_altitude");
     htvar->add_att("long_name", "Domain surface elevation");
     htvar->add_att("coordinates", "xlon xlat");
@@ -842,6 +842,16 @@ rcmNcSub::rcmNcSub(char *fname, char *experiment, header_data &h,
                    subdom_data &s)
   : rcmNc(fname, experiment, h, false)
 {
+  f->add_att("domain_name", s.name);
+  f->add_att("input_dataset_resolution_in_minutes", s.ntypec_s);
+  if (s.fudge_lnd_s)
+    f->add_att("landuse_fudging", "Yes");
+  else
+    f->add_att("landuse_fudging", "No");
+  if (s.fudge_tex_s)
+    f->add_att("texture_fudging", "Yes");
+  else
+    f->add_att("texture_fudging", "No");
   float fillv = -1e+34;
 
   // Add subgrid dimensions
@@ -899,7 +909,7 @@ rcmNcSub::rcmNcSub(char *fname, char *experiment, header_data &h,
   xlonvar->add_att("standard_name", "longitude");
   xlonvar->add_att("long_name", "Longitude");
   xlonvar->add_att("units", "degrees_east");
-  NcVar *htvar = f->add_var("htsub", ncFloat, iys, jxs);
+  NcVar *htvar = f->add_var("topo", ncFloat, iys, jxs);
   htvar->add_att("standard_name", "surface_altitude");
   htvar->add_att("long_name", "Domain surface elevation");
   htvar->add_att("coordinates", "xlonsub xlatsub");
@@ -1069,7 +1079,7 @@ domNc::domNc(char *fname, char *experiment)
 {
   f = new NcFile(fname, NcFile::Replace);
   f->add_att("title", "ICTP Regional Climatic model V4 domain");
-  f->add_att("institution", "ICTP Trieste");
+  f->add_att("institution", "ICTP");
   f->add_att("source", "RegCM Model simulation DOMAIN Input");
   f->add_att("Conventions", "CF-1.4");
   char buffer[256];
@@ -1108,6 +1118,30 @@ void domNc::write(domain_data &d)
     stp[1] = d.trlat2;
     f->add_att("standard_parallel", 2, stp);
   }
+  f->add_att("domain_name", d.name);
+  f->add_att("input_dataset_resolution_in_minutes", d.ntypec);
+  if (d.anal)
+    f->add_att("data_interpolation", "Cressman type objective analysis");
+  else
+    f->add_att("data_interpolation", "Overlapping parabolic 16 points");
+  if (d.smthbdy) 
+    f->add_att("boundary_smoothing", "No");
+  else
+    f->add_att("boundary_smoothing", "Yes");
+  if (d.lakadj)
+    f->add_att("great_lakes_adjustment", "Yes");
+  else
+    f->add_att("great_lakes_adjustment", "No");
+  if (d.fudge_lnd)
+    f->add_att("landuse_fudging", "Yes");
+  else
+    f->add_att("landuse_fudging", "No");
+  if (d.fudge_tex)
+    f->add_att("texture_fudging", "Yes");
+  else
+    f->add_att("texture_fudging", "No");
+  f->add_att("number_of_textures", d.ntex);
+  f->add_att("minimum_h2o_pct_for_water", d.h2opct);
 
   NcDim *iy = f->add_dim("iy", d.nx);
   NcDim *jx = f->add_dim("jx", d.ny);
@@ -1140,7 +1174,7 @@ void domNc::write(domain_data &d)
   dlonvar->add_att("standard_name", "longitude");
   dlonvar->add_att("long_name", "Dot Point Longitude");
   dlonvar->add_att("units", "degrees_east");
-  NcVar *htvar = f->add_var("ht", ncFloat, iy, jx);
+  NcVar *htvar = f->add_var("topo", ncFloat, iy, jx);
   htvar->add_att("standard_name", "surface_altitude");
   htvar->add_att("long_name", "Domain surface elevation");
   htvar->add_att("coordinates", "xlon xlat");
@@ -1212,7 +1246,7 @@ bcNc::bcNc(char *fname, char *experiment, domain_data &d)
 {
   f = new NcFile(fname, NcFile::Replace);
   f->add_att("title", "ICTP Regional Climatic model V4 BC input");
-  f->add_att("institution", "ICTP Trieste");
+  f->add_att("institution", "ICTP");
   f->add_att("source", "RegCM Model simulation DOMAIN Boundary Conditions");
   f->add_att("Conventions", "CF-1.4");
   char buffer[256];
@@ -1292,7 +1326,7 @@ bcNc::bcNc(char *fname, char *experiment, domain_data &d)
   dlonvar->add_att("standard_name", "longitude");
   dlonvar->add_att("long_name", "Dot Point Longitude");
   dlonvar->add_att("units", "degrees_east");
-  NcVar *htvar = f->add_var("ht", ncFloat, iy, jx);
+  NcVar *htvar = f->add_var("topo", ncFloat, iy, jx);
   htvar->add_att("standard_name", "surface_altitude");
   htvar->add_att("long_name", "Domain surface elevation");
   htvar->add_att("coordinates", "xlon xlat");
@@ -1379,6 +1413,8 @@ void bcNc::put_rec(bcdata &b)
   double xtime;
   if (notinit)
   {
+    f->add_att("input_sst_type", b.ssttyp);
+    f->add_att("input_analysis_type", b.dattyp);
     // Manage time setup
     struct tm ref;
     memset(&ref, 0, sizeof(struct tm));
@@ -1432,7 +1468,7 @@ void bcNc::put_rec(bcdata &b)
     tsvar->add_att("coordinates", "xlon xlat");
     tsvar->add_att("units", "K");
 
-    if (b.eh50)
+    if (b.ehso4)
     {
       so4var = f->add_var("so4", ncFloat, tt, iy, jx);
       so4var->add_att("standard_name", "atmosphere_sulfate_content");
@@ -1503,7 +1539,7 @@ void bcNc::put_rec(bcdata &b)
   for (int i = 0; i < b.size2D; i ++) b.px[i] *= 10.0;
   psvar->put_rec(b.px, rcount);
   tsvar->put_rec(b.ts, rcount);
-  if (b.eh50)
+  if (b.ehso4)
     so4var->put_rec(b.so4, rcount);
   if (b.usgs)
   {

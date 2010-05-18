@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Graziano Giuliani                          *
+ *   Copyright (C) 2010 Graziano Giuliani                                  *
  *   graziano.giuliani at aquila.infn.it                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -103,7 +103,7 @@ namespace rcm
   // DOMAIN data
   class domain_data {
     public:
-      domain_data( );
+      domain_data(rcminp &inp);
       ~domain_data( );
       // Dimensions
       unsigned int nx, ny, nz;
@@ -128,12 +128,21 @@ namespace rcm
       float *coriol;
       float *snowam;
       float *mask;
+      char name[256];
+      int ntypec;
+      bool anal;
+      bool smthbdy;
+      bool lakadj;
+      bool fudge_lnd;
+      bool fudge_tex;
+      int ntex;
+      float h2opct;
   };
 
   // ICBC data
   class bcdata {
     public:
-      bcdata(domain_data &d, int idate0);
+      bcdata(domain_data &d, rcminp &in);
       ~bcdata();
       float *u;
       float *v;
@@ -142,7 +151,7 @@ namespace rcm
       float *px;
       float *ts;
       // Present so4?
-      bool eh50;
+      bool ehso4;
       float *so4;
       // Present usgs soil?
       bool usgs;
@@ -160,11 +169,13 @@ namespace rcm
       size_t size3D;
       int nvals;
       char *buffer;
+      char ssttyp[16];
+      char dattyp[16];
   };
 
   class subdom_data {
     public:
-      subdom_data( );
+      subdom_data(rcminp &in);
       ~subdom_data( );
       unsigned int nsg;
       unsigned int nx, ny;
@@ -178,6 +189,10 @@ namespace rcm
       float *xmap;
       float *coriol;
       float *mask;
+      char name[256];
+      int ntypec_s;
+      bool fudge_lnd_s;
+      bool fudge_tex_s;
   };
 
   class atmodata {
