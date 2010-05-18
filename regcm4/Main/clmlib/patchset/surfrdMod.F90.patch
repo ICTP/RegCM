@@ -1,5 +1,5 @@
---- orig/surfrdMod.F90	2010-03-10 16:34:21.000000000 +0100
-+++ patchd/surfrdMod.F90	2010-03-10 16:31:09.408600523 +0100
+--- orig/surfrdMod.F90	2010-05-18 12:02:41.000000000 +0200
++++ patchd/surfrdMod.F90	2010-05-18 12:02:22.000000000 +0200
 @@ -44,11 +44,22 @@
    public :: surfrd_get_latlon  ! Read surface dataset into domain
    public :: surfrd_get_frac  ! Read land fraction into domain
@@ -468,7 +468,7 @@
  
         strt3(1)=1
         strt3(2)=1
-@@ -900,13 +1013,1265 @@
+@@ -900,13 +1013,1266 @@
            cnt1=1
         endif
  
@@ -1431,6 +1431,7 @@
 +         call endrun()
 +      elseif((landfrac(nni,nnj)*100._r8).lt.pctspecB) then
 +         pcturb(nl) = 0._r8
++         pctgla(nl) = 0._r8
 +         pctlak(nl) = 0._r8
 +         pcturb(nl) = 0._r8
 +         pctwet(nl) = 100._r8   !set to 100% for the land portion of the grid
@@ -1739,7 +1740,7 @@
            if (abs(latc(n)-domain%latc(n)) > eps .or. &
                abs(lonc(n)-domain%lonc(n)) > eps) then
               write(6,*) trim(subname),' ERROR: topo file mismatch lat,lon',latc(n),domain%latc(n),lonc(n),domain%lonc(n),eps
-@@ -1012,6 +2377,7 @@
+@@ -1012,6 +2378,7 @@
      call ncd_iolocal(ncid, 'PCT_LAKE'   , 'read', pctlak, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
      call ncd_iolocal(ncid, 'PCT_GLACIER', 'read', pctgla, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
      call ncd_iolocal(ncid, 'PCT_URBAN'  , 'read', pcturb, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
@@ -1747,7 +1748,7 @@
      pctspec = pctwet + pctlak + pctgla + pcturb
  
      ! Error check: glacier, lake, wetland, urban sum must be less than 100
-@@ -1058,13 +2424,221 @@
+@@ -1058,13 +2425,221 @@
         vegxy(nl,npatch_wet)    = noveg
         wtxy(nl,npatch_wet)     = pctwet(nl)/100._r8
  
@@ -1974,7 +1975,7 @@
  
  !-----------------------------------------------------------------------
  !BOP
-@@ -1082,14 +2656,13 @@
+@@ -1082,14 +2657,13 @@
      use clm_varctl, only : create_crop_landunit
      use pftvarcon   , only : crop, noveg
      use domainMod   , only : domain_type
@@ -1991,7 +1992,7 @@
      type(domain_type),intent(in) :: domain ! domain associated with wtxy
  !
  ! !CALLED FROM:
-@@ -1104,7 +2677,7 @@
+@@ -1104,7 +2678,7 @@
      integer  :: k,m,k1,k2,n,nl,ns               ! indices
      integer  :: begg,endg                       ! beg/end gcell index
      integer  :: dimid,varid                     ! netCDF id's
@@ -2000,7 +2001,7 @@
      integer  :: cropcount                       ! temporary counter
      real(r8),allocatable :: sumvec(:)           ! temporary vector sum
      logical  :: found                           ! temporary for error check
-@@ -1120,6 +2693,12 @@
+@@ -1120,6 +2694,12 @@
      integer ,allocatable :: cft(:,:)            ! CFT
      real(r8),allocatable :: pctcft_lunit(:,:)   ! % of crop lunit area for CFTs
      real(r8),allocatable :: pctpft_lunit(:,:)   ! % of vegetated lunit area PFTs
@@ -2013,7 +2014,7 @@
      integer  :: ier                             ! error status
      real(r8),allocatable :: pctpft(:,:)         ! percent of vegetated gridcell area for PFTs
      real(r8),pointer :: arrayl(:)               ! local array
-@@ -1135,6 +2714,7 @@
+@@ -1135,6 +2715,7 @@
      integer  :: closelatidx                     ! Single-column latitude index to retrieve
      integer  :: closelonidx                     ! Single-column longitude index to retrieve
      character(len=32) :: subname = 'surfrd_wtxy_veg_rank'  ! subroutine name
@@ -2021,7 +2022,7 @@
  !-----------------------------------------------------------------------
  
      ns = domain%ns
-@@ -1148,8 +2728,12 @@
+@@ -1148,8 +2729,12 @@
      allocate(pctpft(begg:endg,0:numpft))
      allocate(wsti(maxpatch_pft))
  
@@ -2035,7 +2036,7 @@
      end if
      allocate(arrayl(begg:endg))
      do n = 0,numpft
-@@ -1159,6 +2743,9 @@
+@@ -1159,6 +2744,9 @@
         count(2) = domain%nj
         start(3) = n+1	 ! dataset is 1:numpft+1, not 0:numpft
         count(3) = 1
@@ -2045,7 +2046,7 @@
         if (single_column) then
            call scam_setlatlonidx(ncid,scmlat,scmlon,closelat,closelon,closelatidx,closelonidx)
            start(1)=closelonidx
-@@ -1202,7 +2789,9 @@
+@@ -1202,7 +2790,9 @@
               else
                  ! Separate crop landunit is not created
  
@@ -2056,7 +2057,7 @@
               end if
            end do
  
-@@ -1218,6 +2807,7 @@
+@@ -1218,6 +2808,7 @@
            call endrun()
  
         end if
@@ -2064,7 +2065,7 @@
      end do
  
      ! Find pft and pct arrays 
-@@ -1232,12 +2822,43 @@
+@@ -1232,12 +2823,43 @@
            wst_sum = wst_sum + pctpft(nl,m)
         end do
  
@@ -2108,7 +2109,7 @@
            ! Fill in [pft] and [pctpft] with data for top [maxpatch_pft] PFTs.
            ! If land model grid cell is ocean, set to no PFTs.
            ! If land model grid cell is land then:
-@@ -1361,6 +2982,7 @@
+@@ -1361,6 +2983,7 @@
  
      end do   ! end of latitude loop
  
@@ -2116,7 +2117,7 @@
      ! Determine array [veg], which sets the PFT type for each of the [maxpatch]
      ! patches and array [wtxy], which sets the relative abundance of the PFT.
      ! Fill in PFTs for vegetated portion of grid cell. Fractional areas for
-@@ -1400,11 +3022,10 @@
+@@ -1400,11 +3023,10 @@
               end do
            end if
  
@@ -2129,7 +2130,7 @@
      found = .false.
      sumvec(:) = abs(sum(wtxy,dim=2)-1._r8)
      do nl = begg,endg
-@@ -1415,12 +3036,17 @@
+@@ -1415,12 +3037,17 @@
         endif
      end do
      if ( found ) then
@@ -2148,7 +2149,7 @@
  
    end subroutine surfrd_wtxy_veg_rank
  
-@@ -1460,7 +3086,7 @@
+@@ -1460,7 +3087,7 @@
      integer  :: m,mp7,mp8,mp11,n,nl,ns         ! indices
      integer  :: begg,endg                      ! beg/end gcell index
      integer  :: dimid,varid                    ! netCDF id's
@@ -2157,7 +2158,7 @@
      integer  :: ier                            ! error status	
      real(r8) :: sumpct                         ! sum of %pft over maxpatch_pft
      real(r8),allocatable :: pctpft(:,:)        ! percent of vegetated gridcell area for PFTs
-@@ -1481,7 +3107,8 @@
+@@ -1481,7 +3108,8 @@
      allocate(pctpft(begg:endg,0:numpft))
  
      if (masterproc) then
@@ -2167,7 +2168,7 @@
      endif
  
      allocate(arrayl(begg:endg))
-@@ -1492,6 +3119,10 @@
+@@ -1492,6 +3120,10 @@
         count(2) = domain%nj
         start(3) = n+1         ! dataset is 1:numpft+1, not 0:numpft
         count(3) = 1
@@ -2178,7 +2179,7 @@
         if (single_column) then
            call scam_setlatlonidx(ncid,scmlat,scmlon,closelat,closelon,closelatidx,closelonidx)
            start(1)=closelonidx
-@@ -1718,4 +3349,716 @@
+@@ -1718,4 +3350,716 @@
  
    end subroutine surfrd_mkrank
  
