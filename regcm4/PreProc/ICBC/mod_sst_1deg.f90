@@ -349,7 +349,7 @@
           nmo = idate/100 - nyear*100
           nday = mod(idate,100)
           write (*,*) idate*100 , idate0 , k
-          if ( idate<1989123100 ) then
+          if ( idate<19891231 ) then
             inpfile = trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
           else
             inpfile = trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
@@ -360,7 +360,7 @@
           print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
               & sstmm(1,1)
           if ( ssttyp=='OI2WK') then
-            if ( idate<1989123100 ) then
+            if ( idate<19891231 ) then
               inpfile = trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc'
             else
              inpfile = trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
