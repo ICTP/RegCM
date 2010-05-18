@@ -98,6 +98,7 @@
    jxsex   =         40,
  ifchem  = .true.,
    chemfrq =     6.,
+ clmfrq = 12.,
  /
  &physicsparam
  iboudy  =          5,
@@ -109,7 +110,7 @@
  ipgf    =          0,
  iemiss  =          0,
  lakemod =          0,
- ichem   =          1,
+ ichem   =          0,
  /
  &subexparam
  qck1land=   .250E-03,
