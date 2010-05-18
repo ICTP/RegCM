@@ -5,10 +5,11 @@
       real*4  truelatL,truelatH
       real*4  xminlon,xmaxlon,xminlat,xmaxlat,ddeg
       COMMON /WINDOW/ xminlon,xmaxlon,xminlat,xmaxlat,ddeg
-      namelist /control/ iy,jx,kz,ibyte    &
+      namelist /dimparam/ iy,jx,kz
+      namelist /dateparam/ idate0,idate1,idate2
+      namelist /regridparam/ ibyte    &
                ,ifDOMAIN,ifICBC,ifOUT_HEAD,ifATM,ifSRF,ifRAD  &
-               ,idate0,idate1,idate2,truelatL,truelatH        &
-               ,xminlon,xmaxlon,xminlat,xmaxlat,ddeg
+               ,truelatL,truelatH,xminlon,xmaxlon,xminlat,xmaxlat,ddeg
 
       truelatL = 30.
       truelatH = 60.
@@ -18,7 +19,9 @@
       xmaxlat  = -9999.      
       ddeg     = 0.5
 
-      read(*,control) 
+      read(*,dimparam) 
+      read(*,dateparam) 
+      read(*,regridparam) 
 
       if(ifDOMAIN) call regrid_DOMAIN(iy,jx,kz,ibyte)
 

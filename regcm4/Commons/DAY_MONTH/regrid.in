@@ -1,7 +1,14 @@
-&control
+&dimparam
  iy = 34,
  jx = 51,
  kz = 18,
+/
+&dateparam
+ idate0 = 1989010100,
+ idate1 = 1989010100,
+ idate2 = 1989010200,
+/
+&regridparam
  ibyte = 4,
  ifDOMAIN = .false. ,
  ifICBC = .false.,
@@ -9,9 +16,6 @@
  ifATM = .true.,
  ifSRF = .false.,
  ifRAD = .false.,
- idate0 = 1989010100,
- idate1 = 1989010100,
- idate2 = 1989010200,
  truelatL = 30.0,
  truelatH = 60.0,
  xminlon = -9999.0,
