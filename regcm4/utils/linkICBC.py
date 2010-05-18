@@ -17,14 +17,16 @@ class MyOptions(object):
                       action="store_false", dest="verbose", default=True,
                       help="don't print status messages to stdout")
 	self.parser.add_option("-d", "--dir", dest="dirname",default="../Input",
-                  help="specify ICBC files directory (default ../Input directoty) ", metavar="FILE")
+                  help="specify ICBC files directory (default ../Input directory) ", metavar="FILE")
 	self.parser.add_option("-s","--start", dest="startdate",
 		  help="starting date (i.e. 1961) ")
 	self.parser.add_option("-e","--end", dest="finaldate",
 		  help=" final date (i. e. 1963) ", )
+       
+        self.parser.add_option("-n","--name-domain", dest="namedomain",default="none",
+		  help=" name-domain for ICBC files ", )
         self.parser.add_option("-u","--unit", dest="fortranunit",default="101",
 		  help=" fortran unit to start (default: 101) ", )
-       
    
     def parse(self,args):
       (self.options, self.args) = self.parser.parse_args(args=args) 
@@ -34,6 +36,7 @@ class MyOptions(object):
       self.finaldate=self.options.finaldate
       self.startdate=self.options.startdate
       self.fortranunit=self.options.fortranunit
+      self.namedomain=self.options.namedomain
       #import pdb; pdb.set_trace()
       # check if dates are provided..
       if self.startdate:
@@ -70,10 +73,10 @@ def check_dates(startdate,finaldate):
       sys.exit(1)  
     
 
-def check_and_create_link(suffix, directory, unit):
+def check_and_create_link(suffix, directory,namedomain, unit):
     """ checks if ICBC files are available in the directory specified and create symlink"""
     string="%s" % (unit)
-    namefile=directory+ "ICBC" + suffix 
+    namefile=directory+ namedomain + "_ICBC" + suffix 
     if not os.path.isfile(namefile):
        print "%s does not exist" % namefile 
        return
@@ -90,6 +93,7 @@ def main():
        print "final date  is %s " % options.finaldate
     startdate=options.startdate
     finaldate=options.finaldate
+    namedomain=options.namedomain
 
     # if dates are not given as input let us read from file..    
     if not options.finaldate:
@@ -121,7 +125,7 @@ def main():
     while (string <= finalstring) :
         suffix=string + "0100"
         if options.verbose: sys.stdout.write( "processing %s \n" % string )
-        check_and_create_link(suffix,options.dirname,unit)
+        check_and_create_link(suffix,options.dirname,namedomain,unit)
         month= month + 1
         unit=unit + 1 
         if (month > 12):
