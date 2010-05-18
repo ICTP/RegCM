@@ -1,4 +1,5 @@
       program regrid_ALL
+      implicit none
       integer iy,jx,kz,ibyte
       logical ifDOMAIN,ifICBC,ifOUT_HEAD,ifATM,ifSRF,ifRAD
       integer idate0,idate1,idate2
