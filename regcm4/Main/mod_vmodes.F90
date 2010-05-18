@@ -415,13 +415,13 @@
 !
 !       output desired arrays
 !
+#ifdef MPP1
+      if ( myid.eq.0 ) then
+#endif
       call vprntv(sigmaf,kzp1,'sigmaf  ')
       call vprntv(tbarh,kz,'t mean  ')
       pps(1) = ps
       call vprntv(pps,1,'ps mean ')
-#ifdef MPP1
-      if ( myid.eq.0 ) then
-#endif
       print 99003 , kz , numerr
 #ifdef MPP1
       end if
