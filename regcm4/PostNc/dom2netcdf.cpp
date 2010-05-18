@@ -45,7 +45,7 @@ void help(char *pname)
   std::cerr << std::endl
       << "                 RegCM V4 ICTP NetCDF Postprocessor." << std::endl
       << std::endl
-      << "This simple programs converts binary domain files from RegCM V4 "
+      << "This simple program converts binary domain files from RegCM V4 "
       << "into NetCDF" << std::endl << "CF-1.4 convention compliant data files."
       << std::endl << std::endl << "I need three mandatory arguments:"
       << std::endl << std::endl
