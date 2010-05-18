@@ -98,7 +98,7 @@
 
       parameter(iproj='LAMCON') ! Map projection (LAMCON,NORMER,POLSTR,ROTMER)
       parameter(iy=34)         ! number of grid points in y direction (i)
-      parameter(jx=48)         ! number of grid points in x direction (j)
+      parameter(jx=64)         ! number of grid points in x direction (j)
       parameter(kz=18)          ! number of vertical levels (14, 18 or 23)
       parameter(nsg=1)          ! number of subgrids in 1 grid (one direction)
 
