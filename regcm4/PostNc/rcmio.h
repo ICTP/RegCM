@@ -169,6 +169,7 @@ namespace rcm
       size_t size3D;
       int nvals;
       char *buffer;
+      char name[256];
       char ssttyp[16];
       char dattyp[16];
   };

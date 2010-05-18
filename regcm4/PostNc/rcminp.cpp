@@ -71,6 +71,9 @@ const char *rcminp::valuec(const char *key)
 {
   std::map<std::string, std::string>::iterator iter = items.find(key);
   if (iter == items.end()) throw "Item not found";
+  size_t found;
+  while ( (found = iter->second.find("'")) != std::string::npos)
+    iter->second.erase(found, 1);
   return iter->second.c_str();
 }
 

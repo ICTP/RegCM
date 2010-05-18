@@ -290,6 +290,7 @@ bcdata::bcdata(domain_data &d, rcminp &in)
   else if (strcmp(in.valuec("lsmtyp"), "USGS") == 0)
     usgs = true;
   buffer = 0;
+  strncpy(name, in.valuec("domname"), 256);
   strncpy(ssttyp, in.valuec("ssttyp"), 16);
   strncpy(dattyp, in.valuec("dattyp"), 16);
 }
@@ -1314,7 +1315,7 @@ int rcmio::bc_read_tstep(bcdata &b)
   {
     // Open BC file
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sICBC%d", outdir, separator, b.date0);
+    sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, b.date0);
     bcf.open(fname, std::ios::binary);
     if (! bcf.good()) return -1;
 
