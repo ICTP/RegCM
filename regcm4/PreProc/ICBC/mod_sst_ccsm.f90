@@ -376,7 +376,7 @@
             stop
          endif
          istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
-         if ( istatus/=nf90_noerr )
+         if ( istatus/=nf90_noerr ) then
            write ( 6,*) 'Error opening ', trim(pathaddname)
            stop 'ERROR OPEN FILE'
          end if
