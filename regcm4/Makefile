@@ -15,43 +15,47 @@ printall::
 	@echo '  ----make all: to compile all the codes and tools'
 
 all: terrain icbc regcm postnc postproc
+	@echo "##############################################################"
+	@echo "YOU HAVE DONE IT! YOU HAVE THE MODEL COMPILED AND READY TO GO!"
+	@echo "LET'S START PLAYING WITH THE BEAST....                        "
+	@echo "##############################################################"
 
 terrain:
-	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED TERRAIN BINARY FILE"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 icbc:
-	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED ICBC BINARY FILES"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 regcm:
-	$(MAKE) -C $(REGCM_BASE_DIR)/Main all TARGET=$(TARGET)
+	@$(MAKE) -C $(REGCM_BASE_DIR)/Main all TARGET=$(TARGET)
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED MODEL BINARY FILE"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 postnc:
-	$(MAKE) -C $(REGCM_BASE_DIR)/PostNc
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PostNc
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED C++ POSTPROC BINARY FILES"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 postproc:
-	$(MAKE) -C $(REGCM_BASE_DIR)//PostProc all TARGET=$(TARGET)
+	@$(MAKE) -C $(REGCM_BASE_DIR)//PostProc all TARGET=$(TARGET)
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED F90 POSTPROC BINARY FILES"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 clean:
-	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain clean 
-	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC clean 
-	$(MAKE) -C $(REGCM_BASE_DIR)/Main clean 
-	$(MAKE) -C $(REGCM_BASE_DIR)/PostNc clean 
-	$(MAKE) -C $(REGCM_BASE_DIR)/PostProc clean 
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain clean 
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC clean 
+	@$(MAKE) -C $(REGCM_BASE_DIR)/Main clean 
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PostNc clean 
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PostProc clean 
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CLEANED ALL BINARY FILES"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
