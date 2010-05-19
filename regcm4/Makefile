@@ -18,23 +18,33 @@ all: terrain icbc regcm postnc postproc
 
 terrain:
 	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED TERRAIN BINARY FILE"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 icbc:
 	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED ICBC BINARY FILES"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 regcm:
 	$(MAKE) -C $(REGCM_BASE_DIR)/Main all TARGET=$(TARGET)
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED MODEL BINARY FILE"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 postnc:
 	$(MAKE) -C $(REGCM_BASE_DIR)/PostNc
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED C++ POSTPROC BINARY FILES"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 postproc:
 	$(MAKE) -C $(REGCM_BASE_DIR)//PostProc all TARGET=$(TARGET)
-	@echo "SUCCESSFULLY CREATED F90 POSTPROC BINARY FILEs"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo "SUCCESSFULLY CREATED F90 POSTPROC BINARY FILES"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 clean:
 	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain clean 
@@ -42,6 +52,12 @@ clean:
 	$(MAKE) -C $(REGCM_BASE_DIR)/Main clean 
 	$(MAKE) -C $(REGCM_BASE_DIR)/PostNc clean 
 	$(MAKE) -C $(REGCM_BASE_DIR)/PostProc clean 
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo "SUCCESSFULLY CLEANED ALL BINARY FILES"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 DATAclean:
 	cd $(REGCM_BASE_DIR)/PreProc/DATA && datalink.py -c 
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo "SUCCESSFULLY CLEANED ALL DATA FILES"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
