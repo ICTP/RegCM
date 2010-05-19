@@ -1,6 +1,0 @@
-This directory contains already configured Makefile.inc files for several platforms
-Please identify the one which most fit your needs and create a symbolic link to them in the main directory:
-
-ie., from this directory issue:
-
-ln -sf $PWD./Makefile.inc.gnu ../Makefile.inc 

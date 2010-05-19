@@ -23,12 +23,26 @@ def main():
     print "Do you want a debug - 0 or a production - 1  binary [1]?"
     dbg=raw_input("dbg = ")
     if len(dbg) == 0 :
-        dbg = 1
+        dbg = int(1)
+    else:
+        try :
+            dbg = int(dbg)
+            if not 0<=dbg<=1:
+                dbg = int(1)
+        except :
+            dbg = int(1)
 
     print "Do you want a serial - 0 or MPI-parallel - 1 binary [1]?"
     mpi=raw_input("mpi = ")
     if len(mpi) == 0 :
-        mpi = 1
+        mpi = int(1)
+    else:
+        try :
+            mpi = int(mpi)
+            if not 0<=mpi<=1:
+                mpi = int(1)
+        except :
+            mpi = int(1)
 
     # Let's assume that the compiler is always mpif90
     # We can change that later
@@ -79,8 +93,11 @@ def main():
     # Start real stuff
 
     choose_template(regcm_root,compiler,dbg)
-    makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler)
 
+    if mpi == 1 :
+        makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler)
+    else :
+        makefile_edit(regcm_root,bin_dir,ncpath,mpi,"")
     print "Configuration complete! You should be able to compile RegCM"
 
 def netcdf_search():
@@ -123,6 +140,7 @@ def netcdf_search():
             os.sys.exit(1)
 
 def choose_template(regcm_root,compiler,dbg):
+    print "chose template gets: ",compiler,dbg
     if dbg == 1 and compiler < 5 :
         if compiler == 1 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_gnu4.4",regcm_root+"/Makefile.inc")
@@ -141,8 +159,8 @@ def choose_template(regcm_root,compiler,dbg):
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_pgi9_debug",regcm_root+"/Makefile.inc")
         elif compiler == 4 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf_debug",regcm_root+"/Makefile.inc")
-    else :
-        shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
+    #else :
+        #shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
         
     return
 
