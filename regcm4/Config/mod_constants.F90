@@ -180,13 +180,6 @@
       real(8) , parameter :: g5pb = 1.8273D+00
       real(8) , parameter :: vtc = avt*g4pb/6.0D+00
       real(8) , parameter :: trel = 3000.0D+00
-      ! Marshall Palmer
-      real(8) , parameter :: n0r = 8.0D+06
-      real(8) , parameter :: ppi = 1.0D+00/(mathpi*n0r)
-      real(8) , parameter :: prac = mathpi*n0r*avt*g3pb*0.25D+00
-      real(8) , parameter :: prec1 = 2.0D+00*mathpi*n0r*0.78D+00
-      real(8) , parameter :: prec2 = 2.0D+00*mathpi*n0r*0.32D+00*       &
-                                   & avt**0.5D+00*g5pb
 
       ! Dynamic parameters
       ! alpha = .2495 in brown-campana; = 0. in split explicit
