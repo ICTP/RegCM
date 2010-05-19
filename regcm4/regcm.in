@@ -55,8 +55,8 @@
  ssttyp = 'OI_WK',
  dattyp = 'EIN15',
  ehso4 = .false.,
- globidate1 = 1990060100,
- globidate2 = 1990070100,
+ globidate1 = 1989123000,
+ globidate2 = 1990010200,
  dirglob = '/home/graziano/Software/regcm/branches/regcm4/Input',
  inpglob = '/home/graziano/Software/regcm/branches/regcm4/PreProc/DATA',
  /
@@ -70,9 +70,9 @@
  /
  &restartparam
  ifrest  = .false. ,
- idate0  = 1990060100,
- idate1  = 1990060100,
- idate2  = 1990060200,
+ idate0  = 1989123000,
+ idate1  = 1989123000,
+ idate2  = 1990010200,
  nslice  =        120,
  /
  &timeparam
@@ -98,6 +98,7 @@
    jxsex   =         40,
  ifchem  = .true.,
    chemfrq =     6.,
+ dirout = '/home/graziano/Software/regcm/branches/regcm4/Run/output',
  /
  &physicsparam
  iboudy  =          5,

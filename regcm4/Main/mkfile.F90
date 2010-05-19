@@ -56,17 +56,17 @@
         itype = 'ATM'
         write (filatm,99001) itype , idatex
         if ( iotyp.eq.1 ) then
-          open (iutdat,file='output/'//filatm,status='unknown',         &
-               &form='unformatted',recl=iym2*jxm2*ibyte,                &
-               &access='direct')
+          open (iutdat,file=trim(dirout)//pthsep//filatm,               &
+              & status='replace',form='unformatted',                    &
+              & recl=iym2*jxm2*ibyte,access='direct')
           nrcout = 0
         else if ( iotyp.eq.2 ) then
-          open (iutdat,file='output/'//filatm,status='unknown',         &
-               &form='unformatted')
+          open (iutdat,file=trim(dirout)//pthsep//filatm,               &
+              & status='replace',form='unformatted')
         else
         end if
         call gradsout(filatm//'.ctl')
-        print * , 'OPENING NEW OUT FILE: output/' , filatm
+        print * , 'OPENING NEW OUT FILE: ',trim(dirout),'/',filatm
       end if
  
       if ( ifbat ) then
@@ -74,17 +74,17 @@
         itype = 'SRF'
         write (filsrf,99001) itype , idatex
         if ( iotyp.eq.1 ) then
-          open (iutbat,file='output/'//filsrf,status='unknown',         &
-               &form='unformatted',recl=iym2*jxm2*ibyte,                &
-               &access='direct')
+          open (iutbat,file=trim(dirout)//pthsep//filsrf,               &
+              & status='replace',form='unformatted',                    &
+              & recl=iym2*jxm2*ibyte,access='direct')
           nrcbat = 0
         else if ( iotyp.eq.2 ) then
-          open (iutbat,file='output/'//filsrf,status='unknown',         &
-               &form='unformatted')
+          open (iutbat,file=trim(dirout)//pthsep//filsrf,               &
+              & status='replace',form='unformatted')
         else
         end if
         call gradsbat(filsrf//'.ctl')
-        print * , 'OPENING NEW BAT FILE: output/' , filsrf
+        print * , 'OPENING NEW SRF FILE: ',trim(dirout),'/',filsrf
       end if
  
       if ( nsg.gt.1 .and. ifsub ) then
@@ -92,17 +92,17 @@
         itype = 'SUB'
         write (filsub,99001) itype , idatex
         if ( iotyp.eq.1 ) then
-          open (iutsub,file='output/'//filsub,status='unknown',         &
-               &form='unformatted',recl=iym2*jxm2*nnsg*ibyte,           &
-               &access='direct')
+          open (iutsub,file=trim(dirout)//pthsep//filsub,               &
+              & status='replace',form='unformatted',                    &
+              & recl=iym2*jxm2*nnsg*ibyte,access='direct')
           nrcsub = 0
         else if ( iotyp.eq.2 ) then
-          open (iutsub,file='output/'//filsub,status='unknown',         &
-               &form='unformatted')
+          open (iutsub,file=trim(dirout)//pthsep//filsub,               &
+              & status='replace',form='unformatted')
         else
         end if
         call gradssub(filsub//'.ctl')
-        print * , 'OPENING NEW SUB FILE: output/' , filsub
+        print * , 'OPENING NEW SUB FILE: ',trim(dirout),'/',filsub
       end if
  
       if ( ifrad ) then
@@ -110,17 +110,17 @@
         itype = 'RAD'
         write (filrad,99001) itype , idatex
         if ( iotyp.eq.1 ) then
-          open (iutrad,file='output/'//filrad,status='unknown',         &
-               &form='unformatted',recl=iym2*jxm2*ibyte,                &
-               &access='direct')
+          open (iutrad,file=trim(dirout)//pthsep//filrad,               &
+              & status='replace',form='unformatted',                    &
+              & recl=iym2*jxm2*ibyte,access='direct')
           nrcrad = 0
         else if ( iotyp.eq.2 ) then
-          open (iutrad,file='output/'//filrad,status='unknown',         &
-               &form='unformatted')
+          open (iutrad,file=trim(dirout)//pthsep//filrad,               &
+              & status='replace',form='unformatted')
         else
         end if
         call gradsrad(filrad//'.ctl')
-        print * , 'OPENING NEW RAD FILE: output/' , filrad
+        print * , 'OPENING NEW RAD FILE: ',trim(dirout),'/',filrad
       end if
  
 !chem2
@@ -130,17 +130,17 @@
           itype = 'CHE'
           write (filchem,99001) itype , idatex
           if ( iotyp.eq.1 ) then
-            open (iutchem,file='output/'//filchem,status='unknown',     &
-                 &form='unformatted',recl=iym2*jxm2*ibyte,              &
-                 &access='direct')
+            open (iutchem,file=trim(dirout)//pthsep//filchem,           &
+                & status='replace',form='unformatted',                  &
+                & recl=iym2*jxm2*ibyte,access='direct')
             nrcchem = 0
           else if ( iotyp.eq.2 ) then
-            open (iutchem,file='output/'//filchem,status='unknown',     &
-                 &form='unformatted')
+            open (iutchem,file=trim(dirout)//pthsep//filchem,           &
+                & status='replace',form='unformatted')
           else
           end if
           call gradschem(filchem//'.ctl')
-          print * , 'OPENING NEW CHEM FILE: output/' , filchem
+          print * , 'OPENING NEW CHEM FILE: ',trim(dirout),'/',filchem
         end if
       end if
 !chem2_
@@ -148,9 +148,9 @@
         close (iutlak)
         itype = 'LAK'
         write (fillak,99001) itype , idatex
-        open (iutlak,file='output/'//fillak,status='unknown',           &
-             &form='unformatted')
-        print * , 'OPENING NEW LAK FILE: ' , fillak
+        open (iutlak,file=trim(dirout)//pthsep//fillak,                 &
+            & status='replace',form='unformatted')
+        print * , 'OPENING NEW LAK FILE: ',trim(dirout),'/',fillak
       end if
  
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
@@ -224,7 +224,7 @@
 ! 
 !        a78 = a1//'../Input'//a1//',     ! ICBC directory'
 !        write (99,99008) a78
-!        a78 = a1//'output'//a1//',       ! RegCM Output directory'
+!        a78 = a1//trim(dirout)/a1//',    ! RegCM Output directory'
 !        write (99,99008) a78
 !        a78 = a1//'DOMAIN.INFO'//a1//                                   &
 !             &',  ! Domain Info Filename (from terrain)'

@@ -135,7 +135,7 @@
 !chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
       & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
-      & batfrq , ifchem , chemfrq
+      & batfrq , ifchem , chemfrq , dirout
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem
@@ -373,7 +373,7 @@
       kxout = kz
       jxsex = 25
       maschk = 10           ! * defined below
- 
+      dirout = './output' 
 !chem2
       ifchem = .false.
       chemfrq = 6.0   ! time interval for disposeing chem output (hrs)

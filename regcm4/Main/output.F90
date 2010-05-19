@@ -1139,9 +1139,9 @@
             close (iutsav)
             itype = 'SAV'
             write (newfil,99001) itype , idatex
-            open (iutsav,file='output/'//newfil,status='replace',       &
-                 &form='unformatted')
-            print * , 'OPENING NEW SAV FILE: ' , newfil
+            open (iutsav,file=trim(dirout)//pthsep//newfil,             &
+                & status='replace',form='unformatted')
+            print * , 'OPENING NEW SAV FILE: ',trim(dirout),'/',newfil
             call outsav(iutsav)
             print * , 'restart written date = ' , ldatez + xtime/1440.
             close (iutsav)

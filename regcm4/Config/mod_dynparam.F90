@@ -292,6 +292,7 @@
 
       character(256) :: dirter , inpter
       character(256) :: dirglob , inpglob
+      character(256) :: dirout
 #ifdef CLM
       character(256) :: dirclm
 #endif

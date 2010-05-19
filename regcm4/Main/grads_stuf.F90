@@ -62,7 +62,7 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file='output/'//ctlname,status='replace')
+      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibigend.eq.1 ) then
@@ -346,7 +346,7 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file='output/'//ctlname,status='replace')
+      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibigend.eq.1 ) then
@@ -607,7 +607,7 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file='output/'//ctlname,status='replace')
+      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibigend.eq.1 ) then
@@ -853,7 +853,7 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file='output/'//ctlname,status='replace')
+      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
       write (31,99001)
       write (31,99002)
       if ( ibigend.eq.1 ) then
@@ -1040,7 +1040,7 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file='output/'//ctlname,status='replace')
+      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibigend.eq.1 ) then
@@ -1274,7 +1274,7 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file='output/'//ctlname,status='replace')
+      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
       write (31,99001) ctlname(1:14)
       write (31,99002)
       if ( ibigend.eq.1 ) then
