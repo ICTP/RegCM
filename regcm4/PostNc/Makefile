@@ -23,7 +23,7 @@
 
 include ../Makefile.inc
 
-all: dom2netcdf icbc2netcdf rcm2netcdf
+all:: dom2netcdf icbc2netcdf rcm2netcdf
 
 CPPFLAGS = -I. $(NETCDFINC) $(SVNDEF)
 LIBS = $(CXXNETCDF)

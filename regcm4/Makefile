@@ -4,39 +4,39 @@ include Makefile.inc
 
 HOST = @host@
 
-
-printall:
+printall::
 	@echo ' this is Makefile for Regcm4 package: supported actions are: '
 	@echo '  --- make terrain: to compile terrain' 
 	@echo '  --- make icbc: to compile icbc codes'
 	@echo '  ----make regcm:  to compile regcm code' 
+	@echo '  ----make postnc:  to compile C++ NetCDF postprocessing code' 
+	@echo '  ----make postproc:  to compile F90 postprocessing code' 
 	@echo '  ----make clean:  to clean all ' 
 	@echo '  ----make all: to compile all the codes and tools'
 
-all: terrain icbc regcm
+all: terrain icbc regcm postnc postproc
 
 terrain:
-	#Move to the Terrain directory and run make there
-	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) 
-
+	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain
 
 icbc:
-	#Move to the ICBC directory and run make there
-	cd $(REGCM_BASE_DIR)/PreProc/ICBC && $(MAKE) 
+	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC
 
 regcm:
-	# Change to the Main directory and run make there
-	cd $(REGCM_BASE_DIR)/Main && $(MAKE) all TARGET=$(TARGET)
+	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC all TARGET=$(TARGET)
+
+postnc:
+	$(MAKE) -C $(REGCM_BASE_DIR)/PostNc
 
 postproc:
-	cd $(REGCM_BASE_DIR)/PostProc && $(MAKE) all TARGET=$(TARGET)
-
+	$(MAKE) -C $(REGCM_BASE_DIR)//PostProc all TARGET=$(TARGET)
 
 clean:
-	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) clean 
-	cd $(REGCM_BASE_DIR)/PreProc/ICBC && $(MAKE) clean
-	cd $(REGCM_BASE_DIR)/Main && $(MAKE) clean
-	cd $(REGCM_BASE_DIR)/PostProc && $(MAKE) clean
+	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain clean 
+	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC clean 
+	$(MAKE) -C $(REGCM_BASE_DIR)/Main clean 
+	$(MAKE) -C $(REGCM_BASE_DIR)/PostNc clean 
+	$(MAKE) -C $(REGCM_BASE_DIR)/PostProc clean 
 
 DATAclean:
 	cd $(REGCM_BASE_DIR)/PreProc/DATA && datalink.py -c 
