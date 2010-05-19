@@ -18,18 +18,23 @@ all: terrain icbc regcm postnc postproc
 
 terrain:
 	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain
+	@echo "SUCCESSFULLY CREATED TERRAIN BINARY FILE"
 
 icbc:
 	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC
+	@echo "SUCCESSFULLY CREATED ICBC BINARY FILES"
 
 regcm:
-	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC all TARGET=$(TARGET)
+	$(MAKE) -C $(REGCM_BASE_DIR)/Main all TARGET=$(TARGET)
+	@echo "SUCCESSFULLY CREATED MODEL BINARY FILE"
 
 postnc:
 	$(MAKE) -C $(REGCM_BASE_DIR)/PostNc
+	@echo "SUCCESSFULLY CREATED C++ POSTPROC BINARY FILES"
 
 postproc:
 	$(MAKE) -C $(REGCM_BASE_DIR)//PostProc all TARGET=$(TARGET)
+	@echo "SUCCESSFULLY CREATED F90 POSTPROC BINARY FILEs"
 
 clean:
 	$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain clean 
