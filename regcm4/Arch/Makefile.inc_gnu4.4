@@ -5,13 +5,10 @@
 
 # Base directory:
 
-REGCM_BASE_DIR = /home/myuserid/regcm
-
-# DATA directories: 
-REGCM_DATA_DIR = /scratch/mydatadir
+REGCM_BASE_DIR = !REGCM_ROOT
 
 # Binary installation directory
-BINDIR = $(REGCM_BASE_DIR)/Bin
+BINDIR = !BIN_DIR
 
 # NetCDF library:
 # The NetCDF library is needed to run RegCM, 
@@ -19,9 +16,9 @@ BINDIR = $(REGCM_BASE_DIR)/Bin
 # In NETCDFINC you should define the path to NetCDF include files
 # In NETCDFLIB you should define the path and the name of the NetCDF library
 
-NETCDFLIB = -L/opt/libs/netcdf/lib -lnetcdf
-CXXNETCDF = -L/opt/libs/netcdf/lib -lnetcdf_c++ -lnetcdf
-NETCDFINC = -I/opt/libs/netcdf/inc
+NETCDFINC = !NETCDFINC
+NETCDFLIB = !NETCDFLIB
+CXXNETCDF = !NETCDFC++
 
 # PREPROCESSOR AND COMPILER OPTIONS
 
