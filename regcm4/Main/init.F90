@@ -157,14 +157,14 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
         write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
-             & ndate0
+             & ((ndate0/10000)*100+1)*100
         open (iutbc,file=finm,form='unformatted',status='old',          &
             & access='direct',recl=iy*jx*ibyte)
         mmrec = 0
       end if
 #else
       write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',    &
-             & ndate0
+             & ((ndate0/10000)*100+1)*100
       open (iutbc,file=finm,form='unformatted',status='old',            &
            &access='direct',recl=iy*jx*ibyte)
       mmrec = 0

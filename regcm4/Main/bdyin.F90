@@ -96,7 +96,7 @@
               close (iutbc)
               iutbc = iutbc + 1
               write (finm,99001) trim(dirglob),pthsep,trim(domname),    &
-                   &             '_ICBC',ndate1
+                   &             '_ICBC',((ndate1/10000)*100+1)*100
               open (iutbc,file=finm,form='unformatted',status='old',    &
                   & access='direct',recl=iy*jx*ibyte)
               mmrec = 0
@@ -588,7 +588,7 @@
             close (iutbc)
             iutbc = iutbc + 1
             write (finm,99001) trim(dirglob),pthsep,trim(domname),      &
-                          &    '_ICBC',ndate1
+                   &           '_ICBC',((ndate1/10000)*100+1)*100
             open (iutbc,file=finm,form='unformatted',status='old',      &
                 & access='direct',recl=iy*jx*ibyte)
             mmrec = 0
