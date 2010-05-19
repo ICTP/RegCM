@@ -55,7 +55,7 @@ CXX = g++
 CXXFLAGS = -O0 -g -Wall -pedantic -Wno-long-long
 
 # Set the MPI Fortran 90 compiler here
-MPIF90 = 
+MPIF90 = !MPIF90
 
 # Set the linker here
 # Modify this variable only if you really know what you are doing !!!

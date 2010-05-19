@@ -1,4 +1,24 @@
 #!/usr/bin/python
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 # Configuration script for the RegCM distribution by M. Scarcia
 
 import os,sys,shutil,fileinput
@@ -13,7 +33,7 @@ def main():
     if not os.path.isdir(regcm_root):
         regcm_root = os.getcwd()
 
-    print "Please enter the path where the RegCM binaries will be stored [",regcm_root+"/bin","]"
+    print "Please enter the path where the RegCM binaries will be stored [",regcm_root+"/Bin","]"
     bin_dir=raw_input("bin_dir = ")
     if not os.path.isdir(bin_dir):
         bin_dir=regcm_root+"/Bin"
@@ -79,16 +99,17 @@ def main():
 
     # Add a non-blocking check to see if the compiler binaries actually exist
 
-    print "\nChosen configuration :"
-    print regcm_root
-    print bin_dir
-    print ncpath
-    print dbg
-    print mpi
-    print dcsst
-    print seaice
-    print clm
-    print compiler
+    #print "\nChosen configuration :"
+    #print regcm_root
+    #print bin_dir
+    #print ncpath
+    #print dbg
+    #print mpi
+    #print dcsst
+    #print seaice
+    #print clm
+    #print compiler
+    #print mpi_compiler
 
     # Start real stuff
 
@@ -140,7 +161,7 @@ def netcdf_search():
             os.sys.exit(1)
 
 def choose_template(regcm_root,compiler,dbg):
-    print "chose template gets: ",compiler,dbg
+    #print "chose template gets: ",compiler,dbg
     if dbg == 1 and compiler < 5 :
         if compiler == 1 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_gnu4.4",regcm_root+"/Makefile.inc")

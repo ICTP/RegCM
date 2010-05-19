@@ -42,7 +42,7 @@ endif
 # IMPORTANT : Check that your compiler complies with this RegCM features:
 # - RegCM expects the output to be written in big endian format
 # - RegCM expects Fortran records to be measured in bytes
-F90FLAGS = -O0 -mp -g -convert big_endian -assume byterecl -check all \
+F90FLAGS = -O0 -g -convert big_endian -assume byterecl -check all \
            -traceback -warn all -fp-model strict
 
 # Set the Fortran 90 compiler here
@@ -56,7 +56,7 @@ CXXFLAGS = -O0 -g -check-uninit -debug -fp-model precise -Wall -traceback \
            -fp-stack-check -fstack-security-check
 
 # Set the MPI Fortran 90 compiler here
-MPIF90 = 
+MPIF90 = !MPIF90
 
 # Set the linker here
 # Modify this variable only if you really know what you are doing !!!
