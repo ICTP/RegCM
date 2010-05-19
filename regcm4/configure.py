@@ -16,7 +16,7 @@ def main():
     print "Please enter the path where the RegCM binaries will be stored [",regcm_root+"/bin","]"
     bin_dir=raw_input("bin_dir = ")
     if not os.path.isdir(bin_dir):
-        bin_dir=regcm_root+"/bin"
+        bin_dir=regcm_root+"/Bin"
 
     ncpath=netcdf_search()
 
@@ -142,7 +142,7 @@ def choose_template(regcm_root,compiler,dbg):
         elif compiler == 4 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf_debug",regcm_root+"/Makefile.inc")
     else :
-        shutil.copyfile(regcm_root+"/Arch/Makefile.inc_template",regcm_root+"/Makefile.inc")
+        shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
         
     return
 
@@ -156,6 +156,7 @@ def makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler) :
 
         line=line.replace("!NETCDFINC","-I"+ncpath+"include")
         line=line.replace("!NETCDFLIB","-L"+ncpath+"lib -lnetcdf")
+        line=line.replace("!NETCDFC++","-L"+ncpath+"lib -lnetcdf_c++ -lnetcdf")
 
         if mpi == 1 :
             line=line.replace("# PARALLEL = MPP1","PARALLEL = MPP1")
