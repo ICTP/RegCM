@@ -7,31 +7,18 @@ HOST = @host@
 
 printall:
 	@echo ' this is Makefile for Regcm4 package: supported actions are: '
-	@echo '  --- make data: to create DATA link '
 	@echo '  --- make terrain: to compile terrain' 
 	@echo '  --- make icbc: to compile icbc codes'
 	@echo '  ----make regcm:  to compile regcm code' 
+	@echo '  ----make clean:  to clean all ' 
 	@echo '  ----make all: to compile all the codes and tools'
-	@echo '  ----make check : to check your configuration (still to be implemented)' 
 
 all: terrain icbc regcm
-
-check: 
-	# check compilation flags and how MACROs are defined in Makefile.inc 
-	utils/check_make.py 
-
-
-data: 
-	#link the Data directory to PreProc/DATA
-	cd $(REGCM_BASE_DIR)/PreProc/DATA && ./datalinker.py -d  $(REGCM_DATA_DIR) 
 
 terrain:
 	#Move to the Terrain directory and run make there
 	cd $(REGCM_BASE_DIR)/PreProc/Terrain && $(MAKE) 
 
-run_terrain:
-	# execute the terrain command 
-	cd $(REGCM_BASE_DIR)/PreProc/Terrain && ./terrain  
 
 icbc:
 	#Move to the ICBC directory and run make there
