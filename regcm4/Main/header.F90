@@ -46,7 +46,7 @@
 
         idir = getcwd(directory)
 
-        write (nrite,*) ": this run start at    : ",cdata
+        write (nrite,*) ": this run started at    : ",cdata
         write (nrite,*) ": it is submitted by   : ",trim(user)
         write (nrite,*) ": it is running on     : ",trim(hostname)
         write (nrite,*) ": in directory         : ",trim(directory)
@@ -68,7 +68,7 @@
 #else
           call fdate(cdata)
 #endif 
-          write ( 6,* ) 'Run terminated at : ', cdata
+          write ( 6,* ) ': this run terminated at : ', cdata
         end if
 
         return
