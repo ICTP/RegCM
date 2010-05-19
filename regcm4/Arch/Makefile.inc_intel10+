@@ -3,6 +3,15 @@
 
 # GENERAL FLAGS: these should be always defined!  
 
+# Model flags
+
+# Set to 1 to enable CLM coupling
+USECLM = !CLM
+# Set to 1 to enable daily cycle SST
+USEDCSST = !DCSST
+# Set to 1 to enable Sea Ice effects
+USESEAICE = !SEAICE
+
 # Base directory:
 
 REGCM_BASE_DIR = !REGCM_ROOT

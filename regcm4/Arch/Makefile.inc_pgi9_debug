@@ -1,7 +1,14 @@
 # This a a template file that  contains all variables to be included in all other Makefiles
 # This file is commented in detail to help you fine tune your RegCM distribution
 
-# GENERAL FLAGS: these should be always defined!  
+# Model flags
+
+# Set to 1 to enable CLM coupling
+USECLM = !CLM
+# Set to 1 to enable daily cycle SST
+USEDCSST = !DCSST
+# Set to 1 to enable Sea Ice effects
+USESEAICE = !SEAICE
 
 # Base directory:
 
@@ -19,7 +26,6 @@ BINDIR = !BIN_DIR
 NETCDFINC = !NETCDFINC
 NETCDFLIB = !NETCDFLIB
 CXXNETCDF = !NETCDFC++
-
 
 # PREPROCESSOR AND COMPILER OPTIONS
 

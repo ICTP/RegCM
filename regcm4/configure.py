@@ -72,17 +72,38 @@ def main():
     print "Do you want to enable the DCSST  - 1 or not - 0 [0]?"
     dcsst=raw_input("DCSST = ")
     if len(dcsst) == 0 :
-        dcsst = 0
+        dcsst = int(0)
+    else:
+        try :
+            dcsst = int(dcsst)
+            if not 0<=dcsst<=1:
+                dcsst = int(0)
+        except :
+            dcsst = int(0)
 
     print "Do you want to enable the SeaIce  - 1 or not - 0 [0]?"
     seaice=raw_input("SeaIce = ")
     if len(seaice) == 0 :
-        seaice = 0
+        seaice = int(0)
+    else:
+        try :
+            seaice = int(seaice)
+            if not 0<=seaice<=1:
+                seaice = int(0)
+        except :
+            seaice = int(0)
 
     print "Do you want to enable CLM  - 1 or not - 0 [0]?"
     clm=raw_input("CLM = ")
     if len(clm) == 0 :
-        clm = 0
+        clm = int(0)
+    else:
+        try :
+            clm = int(clm)
+            if not 0<=clm<=1:
+                clm = int(0)
+        except :
+            clm = int(0)
     
     isnotint = True
 
@@ -105,9 +126,9 @@ def main():
     #print ncpath
     #print dbg
     #print mpi
-    #print dcsst
-    #print seaice
-    #print clm
+    print dcsst
+    print seaice
+    print clm
     #print compiler
     #print mpi_compiler
 
@@ -116,9 +137,9 @@ def main():
     choose_template(regcm_root,compiler,dbg)
 
     if mpi == 1 :
-        makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler)
+        makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler,clm,dcsst,seaice)
     else :
-        makefile_edit(regcm_root,bin_dir,ncpath,mpi,"")
+        makefile_edit(regcm_root,bin_dir,ncpath,mpi,"",clm,dcsst,seaice)
     print "Configuration complete! You should be able to compile RegCM"
 
 def netcdf_search():
@@ -186,10 +207,15 @@ def choose_template(regcm_root,compiler,dbg):
     return
 
 
-def makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler) :
+def makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler,clm,dcsst,seaice) :
     #fp = open(regcm_root+"/Makefile.inc","rU")
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
+
+        line=line.replace("!CLM",str(clm))
+        line=line.replace("!DCSST",str(dcsst))
+        line=line.replace("!SEAICE",str(seaice))
+        
         line=line.replace("!REGCM_ROOT",regcm_root)
         line=line.replace("!BIN_DIR",bin_dir)
 

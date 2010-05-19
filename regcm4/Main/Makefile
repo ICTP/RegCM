@@ -5,11 +5,11 @@
 ###########################################################################
 
 # Set to 1 to enable CLM coupling
-USECLM = 0
+#USECLM = 0
 # Set to 1 to enable daily cycle SST
-USEDCSST = 0
+#USEDCSST = 0
 # Set to 1 to enable Sea Ice effects
-USESEAICE = 0
+#USESEAICE = 0
 
 SCENARIO = A1B
 
