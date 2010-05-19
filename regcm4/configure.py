@@ -24,23 +24,27 @@
 import os,sys,shutil,fileinput
 
 def main():
-    print "Welcome to the RegCM configuration!"
+    os.system("clear")
+    print "\t\t#######################################"
+    print "\t\t# Welcome to the RegCM configuration! #"
+    print "\t\t#######################################\n"
+    print "\tThis script will help you to setup the RegCM distribution\n\twith some simple questions. Default options [between square brackets] \n\twill be assumed if you don't select valid options.\n"
 
-    print "Please enter the path to your RegCM distribution [",os.getcwd(),"]"
-    regcm_root=raw_input("regcm_root = ")
+    print "  ****  Please enter the path to your RegCM distribution: \n\t[",os.getcwd(),"]"
+    regcm_root=raw_input("\tregcm_root = ")
     # will need a more sophisticated test here!
     if not os.path.isdir(regcm_root):
         regcm_root = os.getcwd()
 
-    print "Please enter the path where the RegCM binaries will be stored [",regcm_root+"/Bin","]"
-    bin_dir=raw_input("bin_dir = ")
+    print "\n  ****  Please enter the path where the RegCM binaries will be stored: \n\t[",regcm_root+"/Bin","]"
+    bin_dir=raw_input("\tbin_dir = ")
     if not os.path.isdir(bin_dir):
         bin_dir=regcm_root+"/Bin"
 
     ncpath=netcdf_search()
 
-    print "Do you want a debug - 0 or a production - 1  binary [1]?"
-    dbg=raw_input("dbg = ")
+    print "\n  ****  Do you want a debug - 0 or a production - 1  binary? \n\t[1]"
+    dbg=raw_input("\tdbg = ")
     if len(dbg) == 0 :
         dbg = int(1)
     else:
@@ -51,8 +55,8 @@ def main():
         except :
             dbg = int(1)
 
-    print "Do you want a serial - 0 or MPI-parallel - 1 binary [1]?"
-    mpi=raw_input("mpi = ")
+    print "\n  ****  Do you want a serial - 0 or MPI-parallel - 1 binary? \n\t[1]"
+    mpi=raw_input("\tmpi = ")
     if len(mpi) == 0 :
         mpi = int(1)
     else:
@@ -68,8 +72,8 @@ def main():
     if mpi == 1 :
         mpi_compiler="mpif90"
 
-    print "Do you want to enable the DCSST  - 1 or not - 0 [0]?"
-    dcsst=raw_input("DCSST = ")
+    print "\n  ****  Do you want to enable the DCSST  - 1 or not - 0? \n\t[0]"
+    dcsst=raw_input("\tDCSST = ")
     if len(dcsst) == 0 :
         dcsst = int(0)
     else:
@@ -80,8 +84,8 @@ def main():
         except :
             dcsst = int(0)
 
-    print "Do you want to enable the SeaIce  - 1 or not - 0 [0]?"
-    seaice=raw_input("SeaIce = ")
+    print "\n  ****  Do you want to enable the SeaIce  - 1 or not - 0? \n\t[0]"
+    seaice=raw_input("\tSeaIce = ")
     if len(seaice) == 0 :
         seaice = int(0)
     else:
@@ -92,8 +96,8 @@ def main():
         except :
             seaice = int(0)
 
-    print "Do you want to enable CLM  - 1 or not - 0 [0]?"
-    clm=raw_input("CLM = ")
+    print "\n  ****  Do you want to enable CLM  - 1 or not - 0? \n\t[0]"
+    clm=raw_input("\tCLM = ")
     if len(clm) == 0 :
         clm = int(0)
     else:
@@ -106,16 +110,16 @@ def main():
     
     isnotint = True
 
-    print "The following compiler/architecture combinations are tested and known to work,\nplease choose one:\n\n\t1. GNU Fortran v. 4.4 (Linux x86-64)\n\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t3. PGI Fortran v. 9 (Linux x86-64)\n\t4. IBM Xlf Compiler (AIX on SPx)\n\t5. Other"
+    print "\n  ****  The following compiler/architecture combinations \n\tare tested and known to work, please choose one:\n\n\t\t1. GNU Fortran v. 4.4 (Linux x86-64)\n\t\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t\t3. PGI Fortran v. 9 (Linux x86-64)\n\t\t4. IBM Xlf Compiler (AIX on SPx)\n\t\t5. Other"
     while isnotint :
         try :
-            compiler=int(raw_input("\ncompiler = "))
+            compiler=int(raw_input("\n\tcompiler = "))
             if (1 <= compiler <= 5):
                 isnotint=False
             else :
-                print "Please choose one of the available!"
+                print "\tPlease choose one of the available!"
         except:
-            print "Please choose one of the available!" 
+            print "\tPlease choose one of the available!" 
 
     # Add a non-blocking check to see if the compiler binaries actually exist
 
@@ -125,9 +129,9 @@ def main():
     #print ncpath
     #print dbg
     #print mpi
-    print dcsst
-    print seaice
-    print clm
+    #print dcsst
+    #print seaice
+    #print clm
     #print compiler
     #print mpi_compiler
 
@@ -139,7 +143,10 @@ def main():
         makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler,clm,dcsst,seaice)
     else :
         makefile_edit(regcm_root,bin_dir,ncpath,mpi,"",clm,dcsst,seaice)
-    print "Configuration complete! You should be able to compile RegCM"
+
+    print "\n\t###################################################################"
+    print "\t# Configuration complete! You should now be able to compile RegCM #"
+    print "\t###################################################################\n"
 
 def netcdf_search():
 
@@ -200,8 +207,8 @@ def choose_template(regcm_root,compiler,dbg):
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_pgi9_debug",regcm_root+"/Makefile.inc")
         elif compiler == 4 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf_debug",regcm_root+"/Makefile.inc")
-    #else :
-        #shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
+    else :
+        shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
         
     return
 
