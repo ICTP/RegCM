@@ -25,7 +25,10 @@ BINDIR = /sp6/userictp/ictpcl02/scratch/regcm/branches/regcm4
 # In NETCDFINC you should define the path to NetCDF include files
 # In NETCDFLIB you should define the path and the name of the NetCDF library
 
-NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf -L$(HDF5_LIB) -lhdf5 -lhdf5_hl -L$(SZLIB_LIB) -lsz
+NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf -L$(HDF5_LIB) -lhdf5 -lhdf5_hl \
+            -L$(SZLIB_LIB) -lsz
+CXXNETCDF = -L$(NETCDF_LIB) -lnetcdf_c++ -lnetcdf \
+            -L$(HDF5_LIB) -lhdf5 -lhdf5_hl -L$(SZLIB_LIB) -lsz
 NETCDFINC = -I$(NETCDF_INC)
 
 # PREPROCESSOR AND COMPILER OPTIONS
@@ -51,7 +54,8 @@ endif
 # - RegCM expects the output to be written in big endian format
 # - RegCM expects Fortran records to be measured in bytes
 
-F90FLAGS = -qsuppress=1501-245 -bnoquiet -O3 -qintlog -qstrict -qcheck -qmaxmem=-1 -qzerosize 
+F90FLAGS = -qsuppress=1501-245 -bnoquiet -O3 -qintlog -qstrict \
+           -qmaxmem=-1 -qzerosize 
 
 MAKE = gmake
 

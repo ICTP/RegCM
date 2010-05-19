@@ -17,6 +17,7 @@ REGCM_DATA_DIR = /scratch/mydatadir
 # In NETCDFLIB you should define the path and the name of the NetCDF library
 
 NETCDFLIB = -L/opt/libs/netcdf/lib -lnetcdf
+CXXNETCDF = -L/opt/libs/netcdf/lib -lnetcdf_c++ -lnetcdf
 NETCDFINC = -I/opt/libs/netcdf/inc
 
 # PREPROCESSOR AND COMPILER OPTIONS

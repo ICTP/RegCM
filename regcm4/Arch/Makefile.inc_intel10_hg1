@@ -17,6 +17,7 @@ REGCM_DATA_DIR = /lustre/mydir
 # In NETCDFLIB you should define the path and the name of the NetCDF library
 
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
+CXXNETCDF = -L$(NETCDF_LIB) -lnetcdf_c++ -lnetcdf
 NETCDFINC = -I$(NETCDF_INC)
 
 # PREPROCESSOR AND COMPILER OPTIONS

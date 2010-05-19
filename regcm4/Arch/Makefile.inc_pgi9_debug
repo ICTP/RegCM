@@ -19,6 +19,7 @@ REGCM_DATA_DIR = /scratch/mydatadir
 #NETCDFLIB = -L/opt/libs/netcdf/lib -lnetcdf
 #NETCDFINC = -I/opt/libs/netcdf/inc
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf
+CXXNETCDF = -L$(NETCDF_LIB) -lnetcdf_c++ -lnetcdf
 NETCDFINC = -I$(NETCDF_INC) 
 
 
