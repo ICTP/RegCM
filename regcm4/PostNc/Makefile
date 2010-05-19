@@ -24,11 +24,15 @@
 include ../Makefile.inc
 
 all:: dom2netcdf icbc2netcdf rcm2netcdf
+	@cp dom2netcdf icbc2netcdf rcm2netcdf $(BINDIR)
+	@echo Programs all installed in $(BINDIR)
 
 CPPFLAGS = -I. $(NETCDFINC) $(SVNDEF)
 LIBS = $(CXXNETCDF)
 
-OBJS = rcminp.o rcmio.o rcmNc.o calc.o
+OBJS = rcminp.o rcmio.o rcmNc.o calc.o gradsctl.o
+
+gradsctl.o: gradsctl.cpp gradsctl.h
 
 calc.o: calc.cpp calc.h
 
