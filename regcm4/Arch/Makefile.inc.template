@@ -49,6 +49,12 @@ F90 =
 # Set the MPI Fortran 90 compiler here
 MPIF90 = 
 
+# Set the C++ compiler here 
+CXX =
+
+# Compilation flags for C++
+CXXFLAGS =
+
 # Set the linker here
 # Modify this variable only if you really know what you are doing !!!
 LD =$(F90)

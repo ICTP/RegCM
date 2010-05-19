@@ -41,10 +41,16 @@ endif
 # IMPORTANT : Check that your compiler complies with this RegCM features:
 # - RegCM expects the output to be written in big endian format
 # - RegCM expects Fortran records to be measured in bytes
-F90FLAGS = -O3 -mp1 -convert big_endian -assume byterecl -fp-model precise -mcmodel=large  -shared-intel
+F90FLAGS = -O3 -mp1 -convert big_endian -assume byterecl -fp-model precise -mcmodel=large -shared-intel
 
 # Set the Fortran 90 compiler here
 F90 = ifort
+
+# Set the C++ compiler here 
+CXX = icpc
+
+# Compilation flags for C++
+CXXFLAGS = -fast -fp-model precise -mcmodel=large -shared-intel
 
 # Set the MPI Fortran 90 compiler here
 MPIF90 = mpif90 

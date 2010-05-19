@@ -47,6 +47,13 @@ F90FLAGS = -O0 -mp -g -convert big_endian -assume byterecl -check all \
 # Set the Fortran 90 compiler here
 F90 = ifort
 
+# Set the C++ compiler here 
+CXX = icpc
+
+# Compilation flags for C++
+CXXFLAGS = -O0 -g -check-uninit -debug -fp-model precise -Wall -traceback \
+           -fp-stack-check -fstack-security-check
+
 # Set the MPI Fortran 90 compiler here
 MPIF90 =  
 

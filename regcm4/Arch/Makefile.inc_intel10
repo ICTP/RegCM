@@ -46,6 +46,12 @@ F90FLAGS = -O3 -mp1 -convert big_endian -assume byterecl -fp-model precise
 # Set the Fortran 90 compiler here
 F90 = ifort
 
+# Set the C++ compiler here 
+CXX = icpc
+
+# Compilation flags for C++
+CXXFLAGS = -O3
+
 # Set the MPI Fortran 90 compiler here
 MPIF90 =  
 

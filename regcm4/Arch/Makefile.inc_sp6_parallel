@@ -58,6 +58,12 @@ MAKE = gmake
 # Set the Fortran 90 compiler here
 F90 = xlf90
 
+# Set the C++ compiler here 
+CXX = xlC
+
+# Compilation flags for C++
+CXXFLAGS = -O2
+
 # Set the MPI Fortran 90 compiler here
 MPIF90 = mpxlf90
 
