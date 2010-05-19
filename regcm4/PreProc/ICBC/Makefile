@@ -34,7 +34,7 @@ icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
 install: aerosol icbc sst
 	@cp aerosol icbc sst $(BINDIR)
 	@chmod 755 $(BINDIR)/aerosol $(BINDIR)/icbc $(BINDIR)/sst
-	@echo  " programs all installed in $(BINDIR) " 
+	@echo "Programs all installed in $(BINDIR)" 
 
 mod_dynparam.o: ../../Config/mod_dynparam.F90
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
