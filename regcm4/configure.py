@@ -30,16 +30,43 @@ def main():
     if len(mpi) == 0 :
         mpi = 1
 
-    print "The following compiler/architecture combinations are tested and known to work,\nplease choose one:\n\n\t1. GNU Fortran v. 4.4 (Linux x86-64) [default]\n\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t3. PGI Fortran v. 9 (Linux x86-64)\n\t4. IBM Xlf Compiler (AIX on SPx)\n\t5. Other"
-    compiler=raw_input("\ncompiler = ")
-    if compiler == 0 :
-        compiler = 1
-        
+    print "Do you want to enable the DCSST  - 1 or not - 0 [0]?"
+    dcsst=raw_input("DCSST = ")
+    if len(dcsst) == 0 :
+        dcsst = 0
+
+    print "Do you want to enable the SeaIce  - 1 or not - 0 [0]?"
+    seaice=raw_input("SeaIce = ")
+    if len(seaice) == 0 :
+        seaice = 0
+
+    print "Do you want to enable CLM  - 1 or not - 0 [0]?"
+    clm=raw_input("CLM = ")
+    if len(clm) == 0 :
+        clm = 0
+    
+    isnotint = True
+
+    print "The following compiler/architecture combinations are tested and known to work,\nplease choose one:\n\n\t1. GNU Fortran v. 4.4 (Linux x86-64)\n\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t3. PGI Fortran v. 9 (Linux x86-64)\n\t4. IBM Xlf Compiler (AIX on SPx)\n\t5. Other"
+    while isnotint :
+        try :
+            compiler=int(raw_input("\ncompiler = "))
+            if (1 <= compiler <= 5):
+                isnotint=False
+            else :
+                print "Please choose one of the available!"
+        except:
+            print "Please choose one of the available!" 
+
+    print "\Chosen configuration :"
     print regcm_root
     print bin_dir
     print ncpath
     print dbg
     print mpi
+    print dcsst
+    print seaice
+    print clm
     print compiler
 
 def netcdf_search():
