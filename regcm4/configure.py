@@ -25,7 +25,6 @@ import os,sys,shutil,fileinput
 
 def main():
     print "Welcome to the RegCM configuration!"
-    print "BETA VERSION"
 
     print "Please enter the path to your RegCM distribution [",os.getcwd(),"]"
     regcm_root=raw_input("regcm_root = ")
