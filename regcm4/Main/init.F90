@@ -94,6 +94,7 @@
       real(8) , dimension(iy,jx) :: psdot
 #endif
       real(8) , dimension(400) :: tlake
+      logical :: existing=.false.
 !
 #ifdef DIAG
       real(8) :: tvmass , tcmass , tttmp
@@ -158,16 +159,29 @@
       if ( myid.eq.0 ) then
         write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
              & ((ndate0/10000)*100+1)*100
-        open (iutbc,file=finm,form='unformatted',status='old',          &
-            & access='direct',recl=iy*jx*ibyte)
+        inquire(file=finm,exist=existing)
+        if (.not.existing) then
+          call say
+          write (aline,*) ' the following IBC File does not exist' , trim(finm), 'please check location'
+          call fatal(__FILE__,__LINE__, 'ICBC FILE NOT FOUND')
+        else 
+          open (iutbc,file=finm,form='unformatted',status='old',    &
+          & access='direct',recl=iy*jx*ibyte)
+        endif  
         mmrec = 0
       end if
 #else
       write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',    &
              & ((ndate0/10000)*100+1)*100
-      open (iutbc,file=finm,form='unformatted',status='old',            &
+      inquire(file=finm,exist=existing)
+        if (.not.existing) then
+          write (aline,*) ' the following IBC File does not exist' , trim(finm), 'please check location'
+          call fatal(__FILE__,__LINE__,' ICBC FILE NOT FOUND')
+        else 
+           open (iutbc,file=finm,form='unformatted',status='old',            &
            &access='direct',recl=iy*jx*ibyte)
-      mmrec = 0
+           mmrec = 0
+        endif 
 #endif
 !
       if ( .not.ifrest ) then

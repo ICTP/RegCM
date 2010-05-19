@@ -39,7 +39,7 @@
       use mod_main
       use mod_bdycod
       use mod_bats , only : veg2d , ocld2d , sice2d , ocld2d , sice2d
-      use mod_message , only : fatal
+      use mod_message 
 #ifdef DCSST
       use mod_bats , only : dtskin
 #endif
@@ -63,6 +63,7 @@
       character(256) :: finm
       integer :: i , ierr1 , j , k , nn , nnb
       real(4) , dimension(iy,jx) :: io2d
+      logical :: existing=.false. 
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
       real(8) , dimension(iy,jxp) :: psdot , tdum
@@ -97,8 +98,15 @@
               iutbc = iutbc + 1
               write (finm,99001) trim(dirglob),pthsep,trim(domname),    &
                    &             '_ICBC',((ndate1/10000)*100+1)*100
-              open (iutbc,file=finm,form='unformatted',status='old',    &
+              inquire(file=finm,exist=existing)
+              print*, existing, finm 
+	      if (.not.existing) then
+                 call fatal(__FILE__,__LINE__,aline) 
+	         write (aline,*) 'File ' , finm , 'does not exist: please check path/directory where ICBC are stored'
+              else 
+                 open (iutbc,file=finm,form='unformatted',status='old',    &
                   & access='direct',recl=iy*jx*ibyte)
+              endif  
               mmrec = 0
               print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
               if ( iutbc.gt.999 )                                       &
