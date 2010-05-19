@@ -182,14 +182,14 @@ rcmNc::rcmNc(char *fname, char *experiment, header_data &outhead, bool full)
   sigfvar->put(outhead.hsigm, outhead.kz);
   ptopvar->put(&outhead.ptop, 1);
   float *tmp = new float[outhead.nx];
-  tmp[0] = -(((float) outhead.nx-1)/2.0) * outhead.ds;
-  for (int i = 1; i < outhead.nx; i ++)
+  tmp[0] = -(((float) outhead.nx-1)/2.0f) * outhead.ds;
+  for (unsigned int i = 1; i < outhead.nx; i ++)
     tmp[i] = tmp[i-1] + outhead.ds;
   iyvar->put(tmp, outhead.nx);
   delete [] tmp;
   tmp = new float[outhead.ny];
-  tmp[0] = -(((float) outhead.ny-1)/2.0) * outhead.ds;
-  for (int i = 1; i < outhead.ny; i ++)
+  tmp[0] = -(((float) outhead.ny-1)/2.0f) * outhead.ds;
+  for (unsigned int i = 1; i < outhead.ny; i ++)
     tmp[i] = tmp[i-1] + outhead.ds;
   jxvar->put(tmp, outhead.ny);
   delete [] tmp;
@@ -549,7 +549,7 @@ void rcmNcSrf::put_rec(srfdata &s, t_srf_deriv &d)
 {
   double xtime[2];
   xtime[0] = reference_time + tcount*s.dt;
-  xtime[1] = last_time;
+  xtime[1] = (double) last_time;
   timevar->put_rec(xtime, rcount);
   tbnd->put_rec(xtime, rcount);
   last_time = xtime[0];
@@ -587,8 +587,6 @@ void rcmNcSrf::put_rec(srfdata &s, t_srf_deriv &d)
 rcmNcRad::rcmNcRad(char *fname, char *experiment, header_data &h)
   : rcmNc(fname, experiment, h, true)
 {
-  float fillv = -1e+34;
-
   // Setup variables
   psvar = f->add_var("psa", ncFloat, tt, iy, jx);
   psvar->add_att("standard_name", "surface_air_pressure");
@@ -698,8 +696,6 @@ void rcmNcRad::put_rec(raddata &r)
 rcmNcChe::rcmNcChe(char *fname, char *experiment, header_data &h)
   : rcmNc(fname, experiment, h, true)
 {
-  float fillv = -1e+34;
-
   nx = h.nx;
   ny = h.ny;
 
@@ -950,14 +946,14 @@ rcmNcSub::rcmNcSub(char *fname, char *experiment, header_data &h,
   maskvar->put(s.mask, s.nx, s.ny);
   float *tmp = new float[s.nx];
   float incr = s.ds/((float) s.nsg);
-  tmp[0] = -(((float) s.nx-1)/2.0) * incr;
-  for (int i = 1; i < s.nx; i ++)
+  tmp[0] = -(((float) s.nx-1)/2.0f) * incr;
+  for (unsigned int i = 1; i < s.nx; i ++)
     tmp[i] = tmp[i-1] + incr;
   iyvar->put(tmp, s.nx);
   delete [] tmp;
   tmp = new float[s.ny];
-  tmp[0] = -(((float) s.ny-1)/2.0) * incr;
-  for (int i = 1; i < s.ny; i ++)
+  tmp[0] = -(((float) s.ny-1)/2.0f) * incr;
+  for (unsigned int i = 1; i < s.ny; i ++)
     tmp[i] = tmp[i-1] + incr;
   jxvar->put(tmp, s.ny);
   delete [] tmp;
@@ -1145,7 +1141,6 @@ void domNc::write(domain_data &d)
 
   NcDim *iy = f->add_dim("iy", d.nx);
   NcDim *jx = f->add_dim("jx", d.ny);
-  NcDim *kz = f->add_dim("kz", d.nz);
 
   // Add time independent variables
   NcVar *iyvar = f->add_var("iy", ncFloat, iy);
@@ -1214,14 +1209,14 @@ void domNc::write(domain_data &d)
   maskvar->add_att("units", "1");
 
   float *tmp = new float[d.nx];
-  tmp[0] = -(((float) d.nx-1)/2.0) * d.ds;
-  for (int i = 1; i < d.nx; i ++)
+  tmp[0] = -(((float) d.nx-1)/2.0f) * d.ds;
+  for (unsigned int i = 1; i < d.nx; i ++)
     tmp[i] = tmp[i-1] + d.ds;
   iyvar->put(tmp, d.nx);
   delete [] tmp;
   tmp = new float[d.ny];
-  tmp[0] = -(((float) d.ny-1)/2.0) * d.ds;
-  for (int i = 1; i < d.ny; i ++)
+  tmp[0] = -(((float) d.ny-1)/2.0f) * d.ds;
+  for (unsigned int i = 1; i < d.ny; i ++)
     tmp[i] = tmp[i-1] + d.ds;
   jxvar->put(tmp, d.ny);
   delete [] tmp;
@@ -1366,19 +1361,19 @@ bcNc::bcNc(char *fname, char *experiment, domain_data &d)
   maskvar->add_att("units", "1");
 
   float *tmp = new float[d.nz];
-  for (int i = 0; i < d.nz; i ++)
+  for (unsigned int i = 0; i < d.nz; i ++)
     tmp[i] = d.hsigm[d.nz-1-i];
   sigfvar->put(tmp, d.nz);
   delete [] tmp;
   tmp = new float[d.nx];
-  tmp[0] = -(((float) d.nx-1)/2.0) * d.ds;
-  for (int i = 1; i < d.nx; i ++)
+  tmp[0] = -(((float) d.nx-1)/2.0f) * d.ds;
+  for (unsigned int i = 1; i < d.nx; i ++)
     tmp[i] = tmp[i-1] + d.ds;
   iyvar->put(tmp, d.nx);
   delete [] tmp;
   tmp = new float[d.ny];
-  tmp[0] = -(((float) d.ny-1)/2.0) * d.ds;
-  for (int i = 1; i < d.ny; i ++)
+  tmp[0] = -(((float) d.ny-1)/2.0f) * d.ds;
+  for (unsigned int i = 1; i < d.ny; i ++)
     tmp[i] = tmp[i-1] + d.ds;
   jxvar->put(tmp, d.ny);
   delete [] tmp;
@@ -1502,7 +1497,7 @@ void bcNc::put_rec(bcdata &b)
       snam->add_att("units", "m");
     }
 
-    xtime = reference_time;
+    xtime = (double) reference_time;
     notinit = false;
   }
   else if (secondt)
@@ -1526,17 +1521,17 @@ void bcNc::put_rec(bcdata &b)
     time_t t2 = mktime(&ref);
     unsigned long sect = (unsigned long) (difftime(t2,tzero)/3600.0);
     dt = sect - reference_time;
-    xtime = reference_time + dt*tcount;
+    xtime = (double) reference_time + dt*tcount;
     secondt = false;
   }
   else
-    xtime = reference_time + dt*tcount;
+    xtime = (double) reference_time + dt*tcount;
   timevar->put_rec(&xtime, rcount);
   uvar->put_rec(b.u, rcount);
   vvar->put_rec(b.v, rcount);
   tvar->put_rec(b.t, rcount);
   qvvar->put_rec(b.q, rcount);
-  for (int i = 0; i < b.size2D; i ++) b.px[i] *= 10.0;
+  for (unsigned int i = 0; i < b.size2D; i ++) b.px[i] *= 10.0;
   psvar->put_rec(b.px, rcount);
   tsvar->put_rec(b.ts, rcount);
   if (b.ehso4)
@@ -1550,7 +1545,5 @@ void bcNc::put_rec(bcdata &b)
   }
   rcount ++;
   tcount ++;
-  return;
-  
   return;
 }

@@ -38,7 +38,8 @@
 
 using namespace rcm;
 
-const static char version[] = SVN_REV;
+static void help(char *pname);
+static const char version[] = SVN_REV;
 
 void help(char *pname)
 {
@@ -77,6 +78,8 @@ int main(int argc, char *argv[])
   iseq = 0;
   ilittle = 0;
 
+  char *pname = basename(argv[0]);
+
   while (1)
   {
     static struct option long_options[] = {
@@ -95,11 +98,11 @@ int main(int argc, char *argv[])
       case 0:
         if (long_options[optind].flag != 0) break;
       case 'h':
-        help(argv[0]);
+        help(pname);
         return 0;
         break;
       case 'V':
-        std::cerr << "This is " << basename(argv[0]) << " version " << version
+        std::cerr << "This is " << pname << " version " << version
                   << std::endl;
         return 0;
       case '?':
@@ -114,7 +117,7 @@ int main(int argc, char *argv[])
   if (argc - optind != 3)
   {
     std::cerr << std::endl << "Howdy there, not enough arguments." << std::endl;
-    help(argv[0]);
+    help(pname);
     return -1;
   }
 

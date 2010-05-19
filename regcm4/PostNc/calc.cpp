@@ -27,27 +27,27 @@
 
 using namespace rcm;
 
-const static float misval = -1e34;
-const static float tzero = 273.15;
-const static float rgas = 287.0058;
-const static float rgti = 1.0/9.80665;
-const static float cpd = 1005.46;
-const static float rovcp = rgas/cpd;
-const static float ep2 = 0.62197;
-const static float svp1 = 6.112;
-const static float svp2 = 17.67;
-const static float svp3 = 29.65;
-const static float svp4 = svp1;
-const static float svp5 = 22.514;
-const static float svp6 = 6150.0;
+static const float misval = -1e34;
+static const float tzero = 273.15;
+static const float rgas = 287.0058;
+static const float rgti = 1.0/9.80665;
+static const float cpd = 1005.46;
+static const float rovcp = rgas/cpd;
+static const float ep2 = 0.62197;
+static const float svp1 = 6.112;
+static const float svp2 = 17.67;
+static const float svp3 = 29.65;
+static const float svp4 = svp1;
+static const float svp5 = 22.514;
+static const float svp6 = 6150.0;
 
 inline float rhfromptq(float p, float t, float q)
 {
   float r, satvp, qs;
   if (t > tzero)
-    satvp = svp1*exp(svp2*(t-tzero)/(t-svp3));
+    satvp = svp1*expf(svp2*(t-tzero)/(t-svp3));
   else
-    satvp = svp4*exp(svp5-svp6/t);
+    satvp = svp4*expf(svp5-svp6/t);
   qs =  ep2*satvp/(p-satvp);
   r = (q/qs);
   if (r < 0.0) r = 0.0;
@@ -85,7 +85,7 @@ void srfcalc::do_calc(srfdata &s, t_srf_deriv &d)
   return;
 }
 
-subcalc::subcalc(header_data &h, subdom_data &s)
+subcalc::subcalc(subdom_data &s)
 {
   nh = s.nx*s.ny;
   r2 = new float[nh];
@@ -126,7 +126,7 @@ atmcalc::atmcalc(header_data &h)
   hsigm = h.hsigm;
   zs = h.ht;
   ds = h.ds;
-  ds2r = 1.0/(2.0*ds);
+  ds2r = 1.0f/(2.0f*ds);
   xmap = h.xmap;
   dmap = h.dmap;
   p  = new float[nh*nk];
@@ -170,10 +170,11 @@ void atmcalc::calctd(float *t)
 
   for (int i = 0; i < nh*nk; i ++)
   {
-    rx = 1.0 - rh[i];
+    rx = 1.0f - rh[i];
     tx = t[i] - tzero;
-    dpd = (14.55+0.144*tx)*rx + 2*pow(((2.5+0.007*tx)*rx), 3) +
-           (15.9+0.117*tx)*pow(rx,14);
+    dpd = ((14.55f+0.144f*tx) * rx) +
+          (2.0f * powf(((2.5f+0.007f*tx)*rx), 3.0f) +
+          (15.9f+0.117f*tx) * powf(rx,14.0f));
     td[i] = t[i] - dpd;
   }
   return;
@@ -182,21 +183,22 @@ void atmcalc::calctd(float *t)
 void atmcalc::calcpt(float *t)
 {
   for (int i = 0; i < nh*nk; i ++)
-    pt[i] = t[i]*pow((1000.0/p[i]), rovcp);
+    pt[i] = t[i]*powf((1000.0f/p[i]), rovcp);
   return;
 }
 
 void atmcalc::calcht(float *ps, float *t)
 {
   for (int i = 0; i < nh; i ++)
-    ht[i] = zs[i] + rgas*rgti*t[i]*log(ps[i]/p[i]);
+    ht[i] = zs[i] + rgas*rgti*t[i]*logf(ps[i]/p[i]);
   float tbar;
   for(int k = 1; k < nk; k ++)
   {
     for (int i = 0; i < nh; i ++)
     {
-      tbar = 0.5*(t[k*nh+i]+t[(k-1)*nh+i]);
-      ht[k*nh+i] = ht[(k-1)*nh+i] + rgas*rgti*tbar*log(p[(k-1)*nh+i]/p[k*nh+i]);
+      tbar = 0.5f*(t[k*nh+i]+t[(k-1)*nh+i]);
+      ht[k*nh+i] = ht[(k-1)*nh+i] + 
+                   rgas*rgti*tbar*logf(p[(k-1)*nh+i]/p[k*nh+i]);
     }
   }
   return;

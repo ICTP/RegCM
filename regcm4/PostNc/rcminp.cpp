@@ -29,13 +29,13 @@
 
 using namespace rcm;
 
-char *strstrip(char *s)
+char *rcminp::strstrip(char *s)
 {
   size_t size = strlen(s);
   if (!size)
     return s;
   for (size_t i = 0; i < size; i ++)
-    *s = tolower(*s);
+    *s = (char) tolower(*s);
   char *end = s + size - 1;
   while (end >= s && isspace(*end))
     end--;
@@ -56,13 +56,16 @@ rcminp::rcminp(char *fname)
   char buf[256];
   char tok1[256];
   char tok2[256];
+  std::string s1;
+  std::string s2;
   while (! rcinp.eof())
   {
     rcinp.getline(buf, 256);
     if (sscanf(buf, "%[ A-z0-9_]=%[ A-z0-9.', -]\n", tok1, tok2) < 2)
       continue;
-    items.insert(std::pair<std::string,std::string>(strstrip(tok1),
-                                                    strstrip(tok2)));
+    s1 = strstrip(tok1);
+    s2 = strstrip(tok2);
+    items.insert(std::make_pair(s1,s2));
   }
   rcinp.close();
 }
@@ -101,7 +104,6 @@ bool rcminp::valueb(const char *key)
 {
   std::map<std::string, std::string>::iterator iter = items.find(key);
   if (iter == items.end()) throw "Item not found";
-  bool vl;
   if (strstr(iter->second.c_str(), "false") != NULL) return false;
   return true;
 }

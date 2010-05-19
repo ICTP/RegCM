@@ -40,7 +40,8 @@
 
 using namespace rcm;
 
-const static char version[] = SVN_REV;
+static void help(char *pname);
+static const char version[] = SVN_REV;
 
 void help(char *pname)
 {
@@ -109,6 +110,7 @@ int main(int argc, char *argv[])
   istart = 0;
   nsteps = -1;
 
+  char *pname = basename(argv[0]);
   while (1)
   {
     static struct option long_options[] = {
@@ -134,11 +136,11 @@ int main(int argc, char *argv[])
       case 0:
         if (long_options[optind].flag != 0) break;
       case 'h':
-        help(argv[0]);
+        help(pname);
         return 0;
         break;
       case 'V':
-        std::cerr << "This is " << basename(argv[0]) << " version " << version
+        std::cerr << "This is " << pname << " version " << version
                   << std::endl;
         return 0;
       case 'a':
@@ -174,7 +176,7 @@ int main(int argc, char *argv[])
   if (argc - optind != 2)
   {
     std::cerr << std::endl << "Howdy there, not enough arguments." << std::endl;
-    help(argv[0]);
+    help(pname);
     return -1;
   }
 
@@ -327,7 +329,7 @@ int main(int argc, char *argv[])
       subdata s(outhead, subdom);
       sprintf(fname, "SUB_%s_%d.nc", experiment, outhead.idate1);
       rcmNcSub subnc(fname, experiment, outhead, subdom);
-      subcalc c(outhead, subdom);
+      subcalc c(subdom);
       t_srf_deriv d;
       // Add Subgrid variables
       while ((rcmout.sub_read_tstep(s)) == 0)

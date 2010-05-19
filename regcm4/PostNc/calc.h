@@ -45,7 +45,7 @@ namespace rcm {
 
   class subcalc {
     public:
-      subcalc(header_data &h, subdom_data &s);
+      subcalc(subdom_data &s);
       ~subcalc( );
       void do_calc(subdata &s, t_srf_deriv &d);
     private:

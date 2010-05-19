@@ -38,8 +38,10 @@ namespace rcm {
       bool valueb(const char *key);
     private:
       std::map<std::string, std::string> items;
+      char *strstrip(char *s);
+
   };
 
-};
+}
 
 #endif

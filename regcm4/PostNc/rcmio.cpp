@@ -34,7 +34,8 @@
 
 using namespace rcm;
 
-static const int aword = 4;
+static bool fexist(char *fname);
+static void reduce(float *a, float *b, int ni, int nj, int nsg);
 
 bool fexist(char *fname)
 {
@@ -76,12 +77,12 @@ header_data::header_data(rcminp &in)
   abemh = in.valuef("abemh");
   dt = in.valuef("dt");
   ibdyfrq = in.valuef("ibdyfrq");
-  igcc = in.valuei("igcc");
-  iocnflx = in.valuei("iocnflx");
-  ipgf = in.valuei("ipgf");
-  iemiss = in.valuei("iemiss");
-  lakemod = in.valuei("lakemod");
-  ichem = in.valuei("ichem");
+  igcc = (unsigned short) in.valuei("igcc");
+  iocnflx = (unsigned short) in.valuei("iocnflx");
+  ipgf = (unsigned short) in.valuei("ipgf");
+  iemiss = (unsigned short) in.valuei("iemiss");
+  lakemod = (unsigned short) in.valuei("lakemod");
+  ichem = (unsigned short) in.valuei("ichem");
 }
 
 header_data::~header_data( )
@@ -270,12 +271,6 @@ const char *header_data::chems( )
     default:
       return "Unknown or not specified";
   }
-}
-
-const char *tftostring(const char *tf)
-{
-  if (strstr(tf, "false") != NULL) return "No";
-  return "Yes";
 }
 
 bcdata::bcdata(domain_data &d, rcminp &in)
@@ -571,7 +566,6 @@ void rcmio::read_domain(char *name, domain_data &d)
   }
   // Now I have record len of fortran I/O
   int nvals = d.nx*d.ny;
-  size_t size2D = nvals*sizeof(float);
   d.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
   d.clat = rvalfrombuf(buf); buf = buf + sizeof(float);
   d.clon = rvalfrombuf(buf); buf = buf + sizeof(float);
@@ -585,14 +579,14 @@ void rcmio::read_domain(char *name, domain_data &d)
   if (d.hsigm) delete [] d.hsigm;
   d.hsigf = new float[d.nz+1];
   d.hsigm = new float[d.nz];
-  for (int i = 0; i < d.nz+1; i ++)
+  for (unsigned int i = 0; i < d.nz+1; i ++)
   {
     d.hsigf[i] = rvalfrombuf(buf); buf = buf + sizeof(float);
   }
-  for (int i = 0; i < d.nz; i ++)
-    d.hsigm[i] = d.hsigf[i]+0.5*(d.hsigf[i+1]-d.hsigf[i]);
+  for (unsigned int i = 0; i < d.nz; i ++)
+    d.hsigm[i] = d.hsigf[i]+0.5f*(d.hsigf[i+1]-d.hsigf[i]);
   d.ptop = rvalfrombuf(buf); buf = buf + sizeof(float);
-  d.ptop *= 10.0; // Put in hPa from cbar
+  d.ptop *= 10.0f; // Put in hPa from cbar
   // skip I/O flags
   buf = buf + sizeof(int);
   buf = buf + sizeof(int);
@@ -908,12 +902,12 @@ void rcmio::read_header(header_data &h)
   if (h.hsigm) delete [] h.hsigm;
   h.hsigf = new float[h.kz+1];
   h.hsigm = new float[h.kz];
-  for (int i = 0; i < h.kz+1; i ++)
+  for (unsigned int i = 0; i < h.kz+1; i ++)
   {
     h.hsigf[i] = rvalfrombuf(buf); buf = buf + sizeof(float);
   }
-  for (int i = 0; i < h.kz; i ++)
-    h.hsigm[i] = h.hsigf[i]+0.5*(h.hsigf[i+1]-h.hsigf[i]);
+  for (unsigned int i = 0; i < h.kz; i ++)
+    h.hsigm[i] = h.hsigf[i]+0.5f*(h.hsigf[i+1]-h.hsigf[i]);
   h.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.ptop = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.ptop *= 10.0; // Put in hPa from cbar
@@ -927,7 +921,7 @@ void rcmio::read_header(header_data &h)
   h.dtb = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.dtr = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.dtc = rvalfrombuf(buf); buf = buf + sizeof(float);
-  h.idirect = intvalfrombuf(buf); buf = buf + sizeof(int);
+  h.idirect = (unsigned short) intvalfrombuf(buf); buf = buf + sizeof(int);
   h.trlat1 = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.trlat2 = rvalfrombuf(buf); buf = buf + sizeof(float);
 
@@ -1006,7 +1000,7 @@ void rcmio::read_header(header_data &h)
   if (doseq) buf = buf + 2*sizeof(int);
 
   // Last check
-  if ((buf-header.data) != header.len)
+  if (((size_t) (buf-header.data)) != header.len)
   {
     h.free_space();
     delete [] header.data;
