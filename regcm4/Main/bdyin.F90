@@ -60,7 +60,7 @@
 ! Local variables
 !
       real(8) :: dtbdys
-      character(8) :: finm
+      character(256) :: finm
       integer :: i , ierr1 , j , k , nn , nnb
       real(4) , dimension(iy,jx) :: io2d
 #ifdef MPP1
@@ -95,15 +95,14 @@
             if ( ierr1.ne.0 ) then
               close (iutbc)
               iutbc = iutbc + 1
-              write (finm,99001) iutbc
-!_sgi         101    format('fort.',I2)
+              write (finm,99001) trim(dirglob),pthsep,trim(domname),    &
+                   &             '_ICBC',ndate1
               open (iutbc,file=finm,form='unformatted',status='old',    &
                   & access='direct',recl=iy*jx*ibyte)
               mmrec = 0
               print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
               if ( iutbc.gt.999 )                                       &
-                  & call fatal(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED'&
-                 & )
+                 & call fatal(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
               cycle
             end if
             if ( ndate1.lt.mdatez(nnnchk+1) ) then
@@ -588,19 +587,19 @@
           if ( ierr1.ne.0 ) then
             close (iutbc)
             iutbc = iutbc + 1
-            write (finm,99001) iutbc
-!_sgi     101    format('fort.',I2)
-            open (iutbc,file=finm,form='unformatted',status='old',        &
-                 &access='direct',recl=iy*jx*ibyte)
+            write (finm,99001) trim(dirglob),pthsep,trim(domname),      &
+                          &    '_ICBC',ndate1
+            open (iutbc,file=finm,form='unformatted',status='old',      &
+                & access='direct',recl=iy*jx*ibyte)
             mmrec = 0
             print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
-            if ( iutbc.gt.999 )                                           &
+            if ( iutbc.gt.999 )                                         &
                 & call fatal(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
             cycle
           end if
           if ( ndate1.lt.mdatez(nnnchk+1) ) then
             if ( ndate1.lt.mdatez(nnnchk+1) ) then
-              print * , 'Searching for proper date: ' , ndate1 ,          &
+              print * , 'Searching for proper date: ' , ndate1 ,        &
                   & mdatez(nnnchk+1)
               print * , 'read in datasets at :' , ndate0
               if ( ehso4 ) then
@@ -928,6 +927,6 @@
       end do
 #endif
 
-99001 format ('fort.',i3)
+99001 format (a,a,a,a,i0.10)
  
       end subroutine bdyin

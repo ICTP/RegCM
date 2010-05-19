@@ -43,12 +43,9 @@
               nday = 31
             else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
               nday = 30
-            else if ( mod(nyear,4)==0 ) then
+            else if ( mod(nyear,400).eq.0 .or.                          &
+               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
               nday = 29
-              if ( mod(nyear,100)==0 ) then
-                nday = 28
-                if ( mod(nyear,400)==0 ) nday = 29
-              end if
             else
               nday = 28
             end if
@@ -123,12 +120,9 @@
                 nday = 31
               else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
                 nday = 30
-              else if ( mod(nyear,4)==0 ) then
+              else if ( mod(nyear,400).eq.0 .or.                        &
+               &   ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
                 nday = 29
-                if ( mod(nyear,100)==0 ) then
-                  nday = 28
-                  if ( mod(nyear,400)==0 ) nday = 29
-                end if
               else
                 nday = 28
               end if
@@ -162,12 +156,9 @@
                 nday = 31
               else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
                 nday = 30
-              else if ( mod(nyear,4)==0 ) then
+              else if ( mod(nyear,400).eq.0 .or.                        &
+               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
                 nday = 29
-                if ( mod(nyear,100)==0 ) then
-                  nday = 28
-                  if ( mod(nyear,400)==0 ) nday = 29
-                end if
               else
                 nday = 28
               end if
@@ -279,10 +270,9 @@
               nday = 31
             else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
               nday = 30
-            else if ( mod(nyear,4)==0 ) then
+            else if ( mod(nyear,400).eq.0 .or.                          &
+               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
               nday = 29
-              if ( mod(nyear,100)==0 ) nday = nday - 1
-              if ( mod(nyear,400)==0 ) nday = nday + 1
             else
               nday = 28
             end if
@@ -366,25 +356,17 @@
             mday = mday - 30
             month = month + 1
           end if
-        else if ( mod(myear,4)/=0 ) then
-          if ( mday>28 ) then
-            mday = mday - 28
-            month = month + 1
-          end if
-        else if ( mod(myear,400)==0 ) then
+        else if ( mod(myear,400).eq.0 .or.                              &
+           & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) then
           if ( mday>29 ) then
             mday = mday - 29
             month = month + 1
           end if
-        else if ( mod(myear,100)==0 ) then
+        else
           if ( mday>28 ) then
             mday = mday - 28
             month = month + 1
           end if
-        else if ( mday>29 ) then
-          mday = mday - 29
-          month = month + 1
-        else
         end if
         wkday(i) = myear*10000 + month*100 + mday
       end do
@@ -413,25 +395,17 @@
             mday = mday - 30
             month = month + 1
           end if
-        else if ( mod(myear,4)/=0 ) then
-          if ( mday>28 ) then
-            mday = mday - 28
-            month = month + 1
-          end if
-        else if ( mod(myear,400)==0 ) then
+        else if ( mod(myear,400).eq.0 .or.                              &
+           & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) then
           if ( mday>29 ) then
             mday = mday - 29
             month = month + 1
           end if
-        else if ( mod(myear,100)==0 ) then
+        else
           if ( mday>28 ) then
             mday = mday - 28
             month = month + 1
           end if
-        else if ( mday>29 ) then
-          mday = mday - 29
-          month = month + 1
-        else
         end if
         wkday(i) = myear*10000 + month*100 + mday
       end do

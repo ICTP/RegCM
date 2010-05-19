@@ -68,9 +68,9 @@
               nday = 30
             else
               nday = 28
-              if ( mod(nyear,4).eq.0 ) nday = nday + 1
-              if ( mod(nyear,100).eq.0 ) nday = nday - 1
-              if ( mod(nyear,400).eq.0 ) nday = nday + 1
+              if ( mod(nyear,400).eq.0 .or.                             &
+               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) )      &
+               &  nday = nday + 1
             end if
             nbase = mbase
             do i = 1 , nday
@@ -104,9 +104,9 @@
               nday = 30
             else
               nday = 28
-              if ( mod(nyear,4).eq.0 ) nday = nday + 1
-              if ( mod(nyear,100).eq.0 ) nday = nday - 1
-              if ( mod(nyear,400).eq.0 ) nday = nday + 1
+              if ( mod(nyear,400).eq.0 .or.                             &
+               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) )      &
+               &  nday = nday + 1
             end if
             nbase = mbase
             do i = 1 , nday
@@ -148,9 +148,9 @@
               nday = 30
             else
               nday = 28
-              if ( mod(nyear,4).eq.0 ) nday = nday + 1
-              if ( mod(nyear,100).eq.0 ) nday = nday - 1
-              if ( mod(nyear,400).eq.0 ) nday = nday + 1
+              if ( mod(nyear,400).eq.0 .or.                             &
+               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) )      &
+               &  nday = nday + 1
             end if
             nbase = mbase
             do i = 1 , nday

@@ -88,11 +88,10 @@
                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
                & wkp1 , xbot , xtop , xx , yy
       real(8) , dimension(nsplit) :: dtsplit
-      character(7) :: finm
       real(4) :: grdfac
       integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
-               & kbase , ktop , kzz , m , mdate1 , mday , mmon , my1 ,  &
-               & my2 , my3 , myear , n , ns , jxx , iyy , itr
+               & kbase , ktop , kzz , m , mdate1 , mday , mmon , myear ,&
+               & n , ns , jxx , iyy , itr
       integer , dimension(12) :: mmd
       real(4) , dimension(kzp1) :: sp1d
       real(4) , dimension(iy,jx) :: sp2d
@@ -101,6 +100,7 @@
       real(8) , dimension(maxntr) :: inpchtrsol
       real(8) , dimension(maxntr,2) :: inpchtrdpv
       real(8) , dimension(maxnbin,2) :: inpdustbsiz
+      character(256) :: domfile , subdom
 
 #ifdef MPP1
       integer :: ierr
@@ -729,12 +729,15 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
         print * , 'param: READING HEADER FILE'
-        write (finm,99001) iutin
-        if ( nsg.gt.1 ) open (iutin1,file='fort.11',form='unformatted', &
-                            & status='old',access='direct',             &
-                            & recl=iysg*jxsg*ibyte)
-        open (iutin,file=finm,form='unformatted',status='old',          &
-             &access='direct',recl=iy*jx*ibyte)
+        domfile = trim(dirter)//pthsep//trim(domname)//'.INFO'
+        open (iutin,file=domfile,form='unformatted',status='old',       &
+            & access='direct',recl=iy*jx*ibyte)
+        if ( nsg.gt.1 ) then
+          write (subdom,99001)                                          &
+             &   trim(dirter),pthsep,trim(domname),nsg,'.INFO'
+          open (iutin1,file=subdom,form='unformatted',status='old',     &
+             &  access='direct',recl=iysg*jxsg*ibyte)
+        end if
         read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dsx , iclat , &
                                       & iclon , iplat , iplon , grdfac ,&
                                       & proj , sp1d , ptsp , igra ,     &
@@ -771,12 +774,15 @@
       call mpi_bcast(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
 #else
       print * , 'READING HEADER FILE'
-      write (finm,99001) iutin
-      if ( nsg.gt.1 ) open (iutin1,file='fort.11',form='unformatted',   &
-                          & status='old',access='direct',               &
-                          & recl=iysg*jxsg*ibyte)
-      open (iutin,file=finm,form='unformatted',status='old',            &
-           &access='direct',recl=iy*jx*ibyte)
+      domfile = trim(dirter)//pthsep//trim(domname)//'.INFO'
+      open (iutin,file=domfile,form='unformatted',status='old',         &
+          & access='direct',recl=iy*jx*ibyte)
+      if ( nsg.gt.1 ) then
+        write (subdom,99001)                                            &
+           &   trim(dirter),pthsep,trim(domname),nsg,'.INFO'
+        open (iutin1,file=subdom,form='unformatted',status='old',       &
+           &  access='direct',recl=iysg*jxsg*ibyte)
+      end if
       read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dsx , iclat ,   &
                                     & iclon , iplat , iplon , grdfac ,  &
                                     & proj , sp1d , ptsp , igra ,       &
@@ -821,11 +827,10 @@
 !
 !.....find the year is a leap year or not (assume the initial data
 !     is within this century.):
+!
       if ( myear.lt.100 ) myear = 1900 + myear
-      my1 = mod(myear,4)
-      my2 = mod(myear,100)
-      my3 = mod(myear,400)
-      if ( my1.eq.0 .and. my2.ne.0 .or. my3.eq.0 ) mmd(2) = 29
+      if ( mod(myear,400).eq.0 .or.                                     &
+       & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) mmd(2) = 29
       julday = mday
       do m = 1 , mmon - 1
         julday = julday + mmd(m)
@@ -1721,7 +1726,7 @@
       print 99018 , xkhz
       print 99019 , xkhmax
 #endif
-99001 format ('fort.',i2)
+99001 format (a,a,a,i0.3,a)
 99002 format (/'   frictionless and insulated for the lower boundary.')
 99003 format (                                                          &
      &'     the surface energy budget is used to calculate the ground te&

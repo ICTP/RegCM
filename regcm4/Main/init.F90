@@ -85,9 +85,8 @@
                & itr , j , jm1h , jp1h , k , kzzz , n 
       real(8) :: eta , hg1 , hg2 , hg3 , hg4 , hgmax , hi , hii , hs ,  &
                & tlp , ts00
-!_sgi character*7 finm
-      character(8) :: finm
       real(4) , dimension(iy,jx) :: io2d
+      character(256) :: finm
 #ifdef MPP1
       real(8) , dimension(iy,jxp) :: psdot
       integer :: allrec , ierr , l
@@ -157,13 +156,15 @@
 
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        write (finm,99001) iutbc
+        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
+             & ndate0
         open (iutbc,file=finm,form='unformatted',status='old',          &
-             &access='direct',recl=iy*jx*ibyte)
+            & access='direct',recl=iy*jx*ibyte)
         mmrec = 0
       end if
 #else
-      write (finm,99001) iutbc
+      write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',    &
+             & ndate0
       open (iutbc,file=finm,form='unformatted',status='old',            &
            &access='direct',recl=iy*jx*ibyte)
       mmrec = 0
@@ -2131,7 +2132,7 @@
       write (aline, *) 'dectim = ' , dectim
       call say
 
-99001 format ('fort.',i3)
+99001 format (a,a,a,a,i0.10)
 #ifdef DIAG
 99002 format (' *** initial total air = ',e12.5,' kg, total water = ',  &
             & e12.5,' kg in large domain.')
