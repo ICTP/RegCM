@@ -4,6 +4,8 @@
 include ../Makefile.inc
 
 all: postproc test_read
+	@cp postproc test_read $(BINDIR)
+	@echo "Programs all installed in $(BINDIR)"
 
 SHRMODS =  mod_dynparam.o mod_constants.o mod_bats_param.o
 
