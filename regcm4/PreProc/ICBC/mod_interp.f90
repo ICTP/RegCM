@@ -18,7 +18,23 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_interp
+ 
+      real(4) :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx ,  &
+            &    glonmn , glonmx
+      integer :: imxmn , lcross , ldot
 
+      real(4) , allocatable , dimension(:,:) :: dc1xa , dc1xb , dc1xc , &
+                                       &        dc1xd , dc1xt
+      integer , allocatable, dimension(:,:) :: ic1dl , ic1dr , ic1ul ,  &
+                              &   ic1ur , jc1dl , jc1dr , jc1ul , jc1ur
+      real(4) , allocatable , dimension(:,:) :: dd1xa , dd1xb , dd1xc , &
+                                       &        dd1xd , dd1xt
+      integer , allocatable, dimension(:,:) :: id1dl , id1dr , id1ul ,  &
+                              &   id1ur , jd1dl , jd1dr , jd1ul , jd1ur
+
+      data imxmn /0/
+      data lcross /0/
+      data ldot /0/
       contains
 !
 !-----------------------------------------------------------------------
@@ -298,34 +314,27 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,i1ur,i1ul,    &
-                        & i1dr,i1dl,j1ur,j1ul,j1dr,j1dl,d1xt,d1xa,d1xb, &
-                        & d1xc,d1xd,nlon,nlat,nlev)
-      use mod_constants , only : mathpi
-      use mod_mxncom
+      subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,    &
+                        & nlev)
+      use mod_constants , only : degrad
       implicit none
 !
 ! Dummy arguments
 !
       integer :: iy , jx , nlat , nlev , nlon
-      real(4) , dimension(jx,iy) :: alat , alon , d1xa , d1xb , d1xc ,  &
-                               & d1xd , d1xt
-      real(4) , dimension(nlon,nlat,nlev,5) :: b2
-      real(4) , dimension(jx,iy,nlev,5) :: b3
+      real(4) , dimension(jx,iy) :: alat , alon
+      real(4) , dimension(jx,iy,nlev*4) :: b3
       real(4) , dimension(nlon,nlat) :: glat , glon
-      integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
-                                  & j1dr , j1ul , j1ur
+      real(4) , dimension(nlon,nlat,nlev*4) :: b2
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
                 & nlev , nlon
       intent (out) b3
-      intent (inout) d1xa , d1xb , d1xc , d1xd , d1xt , i1dl , i1dr ,   &
-                   & i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
 !
 ! Local variables
 !
       real(4) :: aaa , dist , dista , distb , distc , distd
       integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &
-               & ndr , nul , nur
+               & ndr , nul , nur , kin
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
 !     THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -379,18 +388,34 @@
         write (*,*) glatmn , alatmn , alatmx , glatmx
         imxmn = 1
       end if
+
       if ( lcross==0 ) then
+        if (.not. allocated(ic1dl)) allocate (ic1dl(jx,iy))
+        if (.not. allocated(ic1dr)) allocate (ic1dr(jx,iy))
+        if (.not. allocated(ic1ul)) allocate (ic1ul(jx,iy))
+        if (.not. allocated(ic1ur)) allocate (ic1ur(jx,iy))
+        if (.not. allocated(jc1dl)) allocate (jc1dl(jx,iy))
+        if (.not. allocated(jc1dr)) allocate (jc1dr(jx,iy))
+        if (.not. allocated(jc1ul)) allocate (jc1ul(jx,iy))
+        if (.not. allocated(jc1ur)) allocate (jc1ur(jx,iy))
+        if (.not. allocated(dc1xa)) allocate (dc1xa(jx,iy))
+        if (.not. allocated(dc1xb)) allocate (dc1xb(jx,iy))
+        if (.not. allocated(dc1xc)) allocate (dc1xc(jx,iy))
+        if (.not. allocated(dc1xd)) allocate (dc1xd(jx,iy))
+        if (.not. allocated(dc1xt)) allocate (dc1xt(jx,iy))
+        write ( 6,* ) 'FIRST TIME in CRESSMCR'
+        write ( 6,* ) 'Calculating weights....'
         do j = 1 , iy
           do i = 1 , jx
  
-            mur = 1000
-            nur = 1000
-            mul = 1000
-            nul = 1000
-            mdr = 1000
-            ndr = 1000
-            mdl = 1000
-            ndl = 1000
+            mur = -1000
+            nur = -1000
+            mul = -1000
+            nul = -1000
+            mdr = -1000
+            ndr = -1000
+            mdl = -1000
+            ndl = -1000
  
             dista = 1.E8
             distb = 1.E8
@@ -398,52 +423,52 @@
             distd = 1.E8
             do n = 2 , nlat
               do m = 2 , nlon
-                if ( (glon(m,n)>=alon(i,j) .and. glon(m,n)-alon(i,j)    &
-                   & <10.) .and.                                        &
-                   & (glat(m,n)>=alat(i,j) .and. glat(m,n)-alat(i,j)    &
-                   & <10.) ) then
-                  aaa = ((glon(m,n)-alon(i,j))                          &
-                      & *cos((glat(m,n)+alat(i,j))/360.*mathpi))        &
-                      & **2 + (glat(m,n)-alat(i,j))**2
+                if ( (glon(m,n)>=alon(i,j) .and.                        &
+                   &  glon(m,n)-alon(i,j) < 10. ) .and.                 &
+                   & (glat(m,n)>=alat(i,j) .and.                        &
+                   &  glat(m,n)-alat(i,j) <10. ) ) then
+                  aaa = ((glon(m,n)-alon(i,j)) *                        &
+                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
+                      & (glat(m,n)-alat(i,j))**2
                   if ( dista>aaa ) then
                     dista = aaa
                     mur = m
                     nur = n
                   end if
                 end if
-                if ( (glon(m,n)<alon(i,j) .and. alon(i,j)-glon(m,n)<10.)&
-                   & .and.                                              &
-                   & (glat(m,n)>=alat(i,j) .and. glat(m,n)-alat(i,j)    &
-                   & <10.) ) then
-                  aaa = ((glon(m,n)-alon(i,j))                          &
-                      & *cos((glat(m,n)+alat(i,j))/360.*mathpi))        &
-                      & **2 + (glat(m,n)-alat(i,j))**2
+                if ( (glon(m,n)<alon(i,j) .and.                         &
+                   &  alon(i,j)-glon(m,n) < 10.) .and.                  &
+                   & (glat(m,n)>=alat(i,j) .and.                        &
+                   &  glat(m,n)-alat(i,j) < 10.) ) then
+                  aaa = ((glon(m,n)-alon(i,j)) *                        &
+                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
+                      & (glat(m,n)-alat(i,j))**2
                   if ( distb>aaa ) then
                     distb = aaa
                     mul = m
                     nul = n
                   end if
                 end if
-                if ( (glon(m,n)>=alon(i,j) .and. glon(m,n)-alon(i,j)    &
-                   & <10.) .and.                                        &
-                   & (glat(m,n)<alat(i,j) .and. alat(i,j)-glat(m,n)<10.)&
-                   & ) then
-                  aaa = ((glon(m,n)-alon(i,j))                          &
-                      & *cos((glat(m,n)+alat(i,j))/360.*mathpi))        &
-                      & **2 + (glat(m,n)-alat(i,j))**2
+                if ( (glon(m,n)>=alon(i,j) .and.                        &
+                   &  glon(m,n)-alon(i,j) < 10. ) .and.                 &
+                   & (glat(m,n)<alat(i,j) .and.                         &
+                   &  alat(i,j)-glat(m,n) < 10. ) ) then
+                  aaa = ((glon(m,n)-alon(i,j)) *                        &
+                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
+                      & (glat(m,n)-alat(i,j))**2
                   if ( distc>aaa ) then
                     distc = aaa
                     mdr = m
                     ndr = n
                   end if
                 end if
-                if ( (glon(m,n)<alon(i,j) .and. alon(i,j)-glon(m,n)<10.)&
-                   & .and.                                              &
-                   & (glat(m,n)<alat(i,j) .and. alat(i,j)-glat(m,n)<10.)&
-                   & ) then
-                  aaa = ((glon(m,n)-alon(i,j))                          &
-                      & *cos((glat(m,n)+alat(i,j))/360.*mathpi))        &
-                      & **2 + (glat(m,n)-alat(i,j))**2
+                if ( (glon(m,n)<alon(i,j) .and.                         &
+                   &  alon(i,j)-glon(m,n) < 10. ) .and.                 &
+                   & (glat(m,n)<alat(i,j) .and.                         &
+                   &  alat(i,j)-glat(m,n) < 10. ) ) then
+                  aaa = ((glon(m,n)-alon(i,j)) *                        &
+                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
+                      & (glat(m,n)-alat(i,j))**2
                   if ( distd>aaa ) then
                     distd = aaa
                     mdl = m
@@ -452,76 +477,93 @@
                 end if
               end do
             end do
+
+            if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
+                 mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 )    &
+            then
+              write ( 6, * ) 'NEST DOMAIN TOO NEAR TO PARENT.'
+              write ( 6, * ) mur , nur , mdr , ndr
+              write ( 6, * ) mul , nul , mdl , ndl
+              write ( 6, * ) i , j
+              write ( 6, * ) alon(i,j)
+              write ( 6, * ) alat(i,j)
+              stop
+            end if
+
             dist = amin1(dista,distb,distc,distd)
  
-            i1ur(i,j) = mur
-            j1ur(i,j) = nur
-            i1ul(i,j) = mul
-            j1ul(i,j) = nul
-            i1dr(i,j) = mdr
-            j1dr(i,j) = ndr
-            i1dl(i,j) = mdl
-            j1dl(i,j) = ndl
-            d1xt(i,j) = dist
-            d1xa(i,j) = dista
-            d1xb(i,j) = distb
-            d1xc(i,j) = distc
-            d1xd(i,j) = distd
+            ic1ur(i,j) = mur
+            jc1ur(i,j) = nur
+            ic1ul(i,j) = mul
+            jc1ul(i,j) = nul
+            ic1dr(i,j) = mdr
+            jc1dr(i,j) = ndr
+            ic1dl(i,j) = mdl
+            jc1dl(i,j) = ndl
+            dc1xt(i,j) = dist
+            dc1xa(i,j) = dista
+            dc1xb(i,j) = distb
+            dc1xc(i,j) = distc
+            dc1xd(i,j) = distd
+
             do l = 1 , 4
               do k = 1 , nlev
+                kin = (l-1)*nlev+k
                 if ( dist>0.000001 ) then
-                  b3(i,j,k,l) = (b2(mur,nur,k,l)/dista+b2(mul,nul,k,l)  &
-                              & /distb+b2(mdr,ndr,k,l)                  &
-                              & /distc+b2(mdl,ndl,k,l)/distd)           &
+                  b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
+                              & /distb+b2(mdr,ndr,kin)                  &
+                              & /distc+b2(mdl,ndl,kin)/distd)           &
                               & /(1./dista+1./distb+1./distc+1./distd)
                 else if ( dist==dista ) then
-                  b3(i,j,k,l) = b2(mur,nur,k,l)
+                  b3(i,j,kin) = b2(mur,nur,kin)
                 else if ( dist==distb ) then
-                  b3(i,j,k,l) = b2(mul,nul,k,l)
+                  b3(i,j,kin) = b2(mul,nul,kin)
                 else if ( dist==distc ) then
-                  b3(i,j,k,l) = b2(mdr,ndr,k,l)
+                  b3(i,j,kin) = b2(mdr,ndr,kin)
                 else if ( dist==distd ) then
-                  b3(i,j,k,l) = b2(mdl,ndl,k,l)
+                  b3(i,j,kin) = b2(mdl,ndl,kin)
                 else
                 end if
               end do
             end do
           end do
         end do
+        write ( 6,* ) 'Done.'
         lcross = 1
       else
         do j = 1 , iy
           do i = 1 , jx
  
-            mur = i1ur(i,j)
-            nur = j1ur(i,j)
-            mul = i1ul(i,j)
-            nul = j1ul(i,j)
-            mdr = i1dr(i,j)
-            ndr = j1dr(i,j)
-            mdl = i1dl(i,j)
-            ndl = j1dl(i,j)
-            dist = d1xt(i,j)
-            dista = d1xa(i,j)
-            distb = d1xb(i,j)
-            distc = d1xc(i,j)
-            distd = d1xd(i,j)
+            mur = ic1ur(i,j)
+            nur = jc1ur(i,j)
+            mul = ic1ul(i,j)
+            nul = jc1ul(i,j)
+            mdr = ic1dr(i,j)
+            ndr = jc1dr(i,j)
+            mdl = ic1dl(i,j)
+            ndl = jc1dl(i,j)
+            dist = dc1xt(i,j)
+            dista = dc1xa(i,j)
+            distb = dc1xb(i,j)
+            distc = dc1xc(i,j)
+            distd = dc1xd(i,j)
  
             do l = 1 , 4
               do k = 1 , nlev
+                kin = (l-1)*nlev+k
                 if ( dist>0.000001 ) then
-                  b3(i,j,k,l) = (b2(mur,nur,k,l)/dista+b2(mul,nul,k,l)  &
-                              & /distb+b2(mdr,ndr,k,l)                  &
-                              & /distc+b2(mdl,ndl,k,l)/distd)           &
+                  b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
+                              & /distb+b2(mdr,ndr,kin)                  &
+                              & /distc+b2(mdl,ndl,kin)/distd)           &
                               & /(1./dista+1./distb+1./distc+1./distd)
                 else if ( dist==dista ) then
-                  b3(i,j,k,l) = b2(mur,nur,k,l)
+                  b3(i,j,kin) = b2(mur,nur,kin)
                 else if ( dist==distb ) then
-                  b3(i,j,k,l) = b2(mul,nul,k,l)
+                  b3(i,j,kin) = b2(mul,nul,kin)
                 else if ( dist==distc ) then
-                  b3(i,j,k,l) = b2(mdr,ndr,k,l)
+                  b3(i,j,kin) = b2(mdr,ndr,kin)
                 else if ( dist==distd ) then
-                  b3(i,j,k,l) = b2(mdl,ndl,k,l)
+                  b3(i,j,kin) = b2(mdl,ndl,kin)
                 else
                 end if
               end do
@@ -534,34 +576,27 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,i1ur,i1ul,    &
-                        & i1dr,i1dl,j1ur,j1ul,j1dr,j1dl,d1xt,d1xa,d1xb, &
-                        & d1xc,d1xd,nlon,nlat,nlev)
-      use mod_constants , only : mathpi
-      use mod_mxncom
+      subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,    &
+                        & nlev)
+      use mod_constants , only : degrad
       implicit none
 !
 ! Dummy arguments
 !
       integer :: iy , jx , nlat , nlev , nlon
-      real(4) , dimension(jx,iy) :: alat , alon , d1xa , d1xb , d1xc ,  &
-                               & d1xd , d1xt
-      real(4) , dimension(nlon,nlat,nlev,5) :: b2
-      real(4) , dimension(jx,iy,nlev,5) :: b3
+      real(4) , dimension(jx,iy) :: alat , alon
+      real(4) , dimension(jx,iy,nlev*2) :: b3
       real(4) , dimension(nlon,nlat) :: glat , glon
-      integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
-                                  & j1dr , j1ul , j1ur
+      real(4) , dimension(nlon,nlat,nlev*2) :: b2
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
                 & nlev , nlon
       intent (out) b3
-      intent (inout) d1xa , d1xb , d1xc , d1xd , d1xt , i1dl , i1dr ,   &
-                   & i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
 !
 ! Local variables
 !
       real(4) :: aaa , dist , dista , distb , distc , distd
       integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &
-               & ndr , nul , nur
+               & ndr , nul , nur , kin
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
 !     THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -615,6 +650,21 @@
         imxmn = 1
       end if
       if ( ldot==0 ) then
+        if (.not. allocated(id1dl)) allocate (id1dl(jx,iy))
+        if (.not. allocated(id1dr)) allocate (id1dr(jx,iy))
+        if (.not. allocated(id1ul)) allocate (id1ul(jx,iy))
+        if (.not. allocated(id1ur)) allocate (id1ur(jx,iy))
+        if (.not. allocated(jd1dl)) allocate (jd1dl(jx,iy))
+        if (.not. allocated(jd1dr)) allocate (jd1dr(jx,iy))
+        if (.not. allocated(jd1ul)) allocate (jd1ul(jx,iy))
+        if (.not. allocated(jd1ur)) allocate (jd1ur(jx,iy))
+        if (.not. allocated(dd1xa)) allocate (dd1xa(jx,iy))
+        if (.not. allocated(dd1xb)) allocate (dd1xb(jx,iy))
+        if (.not. allocated(dd1xc)) allocate (dd1xc(jx,iy))
+        if (.not. allocated(dd1xd)) allocate (dd1xd(jx,iy))
+        if (.not. allocated(dd1xt)) allocate (dd1xt(jx,iy))
+        write ( 6,* ) 'FIRST TIME in CRESSMDT'
+        write ( 6,* ) 'Calculating weights....'
         do j = 1 , iy
           do i = 1 , jx
  
@@ -633,52 +683,52 @@
             distd = 1.E8
             do n = 2 , nlat
               do m = 2 , nlon
-                if ( (glon(m,n)>=alon(i,j) .and. glon(m,n)-alon(i,j)    &
-                   & <10.) .and.                                        &
-                   & (glat(m,n)>=alat(i,j) .and. glat(m,n)-alat(i,j)    &
-                   & <10.) ) then
-                  aaa = ((glon(m,n)-alon(i,j))                          &
-                      & *cos((glat(m,n)+alat(i,j))/360.*mathpi))        &
-                      & **2 + (glat(m,n)-alat(i,j))**2
+                if ( (glon(m,n)>=alon(i,j) .and.                        &
+                   &  glon(m,n)-alon(i,j) < 10. ) .and.                 &
+                   & (glat(m,n)>=alat(i,j) .and.                        &
+                   &  glat(m,n)-alat(i,j) < 10. ) ) then
+                  aaa = ((glon(m,n)-alon(i,j)) *                        &
+                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
+                      & (glat(m,n)-alat(i,j))**2
                   if ( dista>aaa ) then
                     dista = aaa
                     mur = m
                     nur = n
                   end if
                 end if
-                if ( (glon(m,n)<alon(i,j) .and. alon(i,j)-glon(m,n)<10.)&
-                   & .and.                                              &
-                   & (glat(m,n)>=alat(i,j) .and. glat(m,n)-alat(i,j)    &
-                   & <10.) ) then
-                  aaa = ((glon(m,n)-alon(i,j))                          &
-                      & *cos((glat(m,n)+alat(i,j))/360.*mathpi))        &
-                      & **2 + (glat(m,n)-alat(i,j))**2
+                if ( (glon(m,n)<alon(i,j) .and.                         &
+                   &  alon(i,j)-glon(m,n) < 10. ) .and.                 &
+                   & (glat(m,n)>=alat(i,j) .and.                        &
+                   &  glat(m,n)-alat(i,j) < 10. ) ) then
+                  aaa = ((glon(m,n)-alon(i,j)) *                        &
+                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
+                      & (glat(m,n)-alat(i,j))**2
                   if ( distb>aaa ) then
                     distb = aaa
                     mul = m
                     nul = n
                   end if
                 end if
-                if ( (glon(m,n)>=alon(i,j) .and. glon(m,n)-alon(i,j)    &
-                   & <10.) .and.                                        &
-                   & (glat(m,n)<alat(i,j) .and. alat(i,j)-glat(m,n)<10.)&
-                   & ) then
-                  aaa = ((glon(m,n)-alon(i,j))                          &
-                      & *cos((glat(m,n)+alat(i,j))/360.*mathpi))        &
-                      & **2 + (glat(m,n)-alat(i,j))**2
+                if ( (glon(m,n)>=alon(i,j) .and.                        &
+                   &  glon(m,n)-alon(i,j) < 10. ) .and.                 &
+                   & (glat(m,n)<alat(i,j) .and.                         &
+                   &  alat(i,j)-glat(m,n) < 10.) ) then
+                  aaa = ((glon(m,n)-alon(i,j)) *                        &
+                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
+                      & (glat(m,n)-alat(i,j))**2
                   if ( distc>aaa ) then
                     distc = aaa
                     mdr = m
                     ndr = n
                   end if
                 end if
-                if ( (glon(m,n)<alon(i,j) .and. alon(i,j)-glon(m,n)<10.)&
-                   & .and.                                              &
-                   & (glat(m,n)<alat(i,j) .and. alat(i,j)-glat(m,n)<10.)&
-                   & ) then
-                  aaa = ((glon(m,n)-alon(i,j))                          &
-                      & *cos((glat(m,n)+alat(i,j))/360.*mathpi))        &
-                      & **2 + (glat(m,n)-alat(i,j))**2
+                if ( (glon(m,n)<alon(i,j) .and.                         &
+                   &  alon(i,j)-glon(m,n) < 10. ) .and.                 &
+                   & (glat(m,n)<alat(i,j) .and.                         &
+                   &  alat(i,j)-glat(m,n) < 10. ) ) then
+                  aaa = ((glon(m,n)-alon(i,j)) *                        &
+                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
+                      & (glat(m,n)-alat(i,j))**2
                   if ( distd>aaa ) then
                     distd = aaa
                     mdl = m
@@ -687,36 +737,50 @@
                 end if
               end do
             end do
+
+            if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
+                 mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 )    &
+            then
+              write ( 6, * ) 'NEST DOMAIN TOO NEAR TO PARENT.'
+              write ( 6, * ) mur , nur , mdr , ndr
+              write ( 6, * ) mul , nul , mdl , ndl
+              write ( 6, * ) i , j
+              write ( 6, * ) alon(i,j)
+              write ( 6, * ) alat(i,j)
+              stop
+            end if
+
             dist = amin1(dista,distb,distc,distd)
  
-            i1ur(i,j) = mur
-            j1ur(i,j) = nur
-            i1ul(i,j) = mul
-            j1ul(i,j) = nul
-            i1dr(i,j) = mdr
-            j1dr(i,j) = ndr
-            i1dl(i,j) = mdl
-            j1dl(i,j) = ndl
-            d1xt(i,j) = dist
-            d1xa(i,j) = dista
-            d1xb(i,j) = distb
-            d1xc(i,j) = distc
-            d1xd(i,j) = distd
-            do l = 1 , 3
+            id1ur(i,j) = mur
+            jd1ur(i,j) = nur
+            id1ul(i,j) = mul
+            jd1ul(i,j) = nul
+            id1dr(i,j) = mdr
+            jd1dr(i,j) = ndr
+            id1dl(i,j) = mdl
+            jd1dl(i,j) = ndl
+            dd1xt(i,j) = dist
+            dd1xa(i,j) = dista
+            dd1xb(i,j) = distb
+            dd1xc(i,j) = distc
+            dd1xd(i,j) = distd
+            do l = 1 , 2
               do k = 1 , nlev
+                kin = (l-1)*nlev+k
                 if ( dist>0.000001 ) then
-                  b3(i,j,k,l) = (b2(mur,nur,k,l)/dista+b2(mul,nul,k,l)  &
-                              & /distb+b2(mdr,ndr,k,l)                  &
-                              & /distc+b2(mdl,ndl,k,l)/distd)           &
+                  b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
+                              & /distb+b2(mdr,ndr,kin)                  &
+                              & /distc+b2(mdl,ndl,kin)/distd)           &
                               & /(1./dista+1./distb+1./distc+1./distd)
                 else if ( dist==dista ) then
-                  b3(i,j,k,l) = b2(mur,nur,k,l)
+                  b3(i,j,kin) = b2(mur,nur,kin)
                 else if ( dist==distb ) then
-                  b3(i,j,k,l) = b2(mul,nul,k,l)
+                  b3(i,j,kin) = b2(mul,nul,kin)
                 else if ( dist==distc ) then
-                  b3(i,j,k,l) = b2(mdr,ndr,k,l)
+                  b3(i,j,kin) = b2(mdr,ndr,kin)
                 else if ( dist==distd ) then
-                  b3(i,j,k,l) = b2(mdl,ndl,k,l)
+                  b3(i,j,kin) = b2(mdl,ndl,kin)
                 else
                 end if
               end do
@@ -728,41 +792,43 @@
         do j = 1 , iy
           do i = 1 , jx
  
-            mur = i1ur(i,j)
-            nur = j1ur(i,j)
-            mul = i1ul(i,j)
-            nul = j1ul(i,j)
-            mdr = i1dr(i,j)
-            ndr = j1dr(i,j)
-            mdl = i1dl(i,j)
-            ndl = j1dl(i,j)
-            dist = d1xt(i,j)
-            dista = d1xa(i,j)
-            distb = d1xb(i,j)
-            distc = d1xc(i,j)
-            distd = d1xd(i,j)
+            mur = id1ur(i,j)
+            nur = jd1ur(i,j)
+            mul = id1ul(i,j)
+            nul = jd1ul(i,j)
+            mdr = id1dr(i,j)
+            ndr = jd1dr(i,j)
+            mdl = id1dl(i,j)
+            ndl = jd1dl(i,j)
+            dist = dd1xt(i,j)
+            dista = dd1xa(i,j)
+            distb = dd1xb(i,j)
+            distc = dd1xc(i,j)
+            distd = dd1xd(i,j)
  
-            do l = 1 , 3
+            do l = 1 , 2
               do k = 1 , nlev
+                kin = (l-1)*nlev+k
                 if ( dist>0.000001 ) then
-                  b3(i,j,k,l) = (b2(mur,nur,k,l)/dista+b2(mul,nul,k,l)  &
-                              & /distb+b2(mdr,ndr,k,l)                  &
-                              & /distc+b2(mdl,ndl,k,l)/distd)           &
+                  b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
+                              & /distb+b2(mdr,ndr,kin)                  &
+                              & /distc+b2(mdl,ndl,kin)/distd)           &
                               & /(1./dista+1./distb+1./distc+1./distd)
                 else if ( dist==dista ) then
-                  b3(i,j,k,l) = b2(mur,nur,k,l)
+                  b3(i,j,kin) = b2(mur,nur,kin)
                 else if ( dist==distb ) then
-                  b3(i,j,k,l) = b2(mul,nul,k,l)
+                  b3(i,j,kin) = b2(mul,nul,kin)
                 else if ( dist==distc ) then
-                  b3(i,j,k,l) = b2(mdr,ndr,k,l)
+                  b3(i,j,kin) = b2(mdr,ndr,kin)
                 else if ( dist==distd ) then
-                  b3(i,j,k,l) = b2(mdl,ndl,k,l)
+                  b3(i,j,kin) = b2(mdl,ndl,kin)
                 else
                 end if
               end do
             end do
           end do
         end do
+        write ( 6,* ) 'Done.'
       end if
  
       end subroutine cressmdt

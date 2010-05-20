@@ -54,7 +54,7 @@
 
       character(6) :: iproj_in
 
-      integer :: il , jl , kl , iotyp_in , idate0
+      integer :: iy_in , jx_in , kl , iotyp_in , idate0
 
       real(4) :: clat_in , clon_in , plat_in , plon_in , ptop_in
 
@@ -63,7 +63,6 @@
       contains
 
       subroutine get_nest(idate,ncr)
-      use mod_mxncom
       use mod_grid
       use mod_date
       use mod_write
@@ -86,12 +85,6 @@
       character(14) :: fillin
       integer :: i , idatek , j , k , mn0 , mn1 , nd0 , nd1 , nh0 ,     &
                & nh1 , nmop , ny0 , ny1 , nyrp
-      real(4) , dimension(jx,iy) :: d1xa , d1xb , d1xc , d1xd , d1xt
-      integer , dimension(jx,iy) :: i1dl , i1dr , i1ul , i1ur , j1dl ,  &
-                                  & j1dr , j1ul , j1ur
-      real(4) , dimension(jx,iy) :: d2xa , d2xb , d2xc , d2xd , d2xt
-      integer , dimension(jx,iy) :: i2dl , i2dr , i2ul , i2ur , j2dl ,  &
-                                  & j2dr , j2ul , j2ur
       logical :: there
       real(4) :: wt
 !
@@ -111,7 +104,8 @@
         end if
         if ( iotyp_in==1 ) then
           open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
-              & form='unformatted',recl=il*jl*ibyte,access='direct')
+              & form='unformatted',recl=iy_in*jx_in*ibyte,              &
+              & access='direct')
           nrec = 0
         else if ( iotyp_in==2 ) then
           open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
@@ -141,7 +135,8 @@
           end if
           if ( iotyp_in==1 ) then
             open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
-                & form='unformatted',recl=il*jl*ibyte,access='direct')
+                & form='unformatted',recl=iy_in*jx_in*ibyte,            &
+                & access='direct')
             nrec = ((nd1-nd0)*4+(nh1-nh0)/6)*(kl*6+5)
           else if ( iotyp_in==2 ) then
             open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
@@ -161,7 +156,8 @@
             end if
             if ( iotyp_in==1 ) then
               open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
-                 &  form='unformatted',recl=il*jl*ibyte,access='direct')
+                 &  form='unformatted',recl=iy_in*jx_in*ibyte,          &
+                 &  access='direct')
               if ( mn0==1 .or. mn0==3 .or. mn0==5 .or. mn0==7 .or.      &
                  & mn0==8 .or. mn0==10 .or. mn0==12 ) then
                 nrec = (124-(nd0-1)*4+nh0/6)*(kl*6+5)
@@ -196,7 +192,8 @@
             end if
             if ( iotyp_in==1 ) then
               open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
-                &   form='unformatted',recl=il*jl*ibyte,access='direct')
+                &   form='unformatted',recl=iy_in*jx_in*ibyte,          &
+                &   access='direct')
               if ( mn0==1 .or. mn0==3 .or. mn0==5 .or. mn0==7 .or.      &
                  & mn0==8 .or. mn0==10 .or. mn0==12 ) then
                 nrec = 123*(kl*6+5)
@@ -228,7 +225,8 @@
           end if
           if ( iotyp_in==1 ) then
             open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
-                & form='unformatted',recl=il*jl*ibyte,access='direct')
+                & form='unformatted',recl=iy_in*jx_in*ibyte,            &
+                & access='direct')
             nrec = ((nd1-1)*4+nh1/6-1)*(kl*6+5)
           else if ( iotyp_in==2 ) then
             open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
@@ -239,7 +237,8 @@
         end if
       else
       end if
-!     WRITE(*,*) 'Open ATM file:', trim(inpglob)//'/RegCM/'//fillin
+
+      write (6,*) 'Open ATM file: ', trim(inpglob)//'/RegCM/'//fillin
  
       if ( iotyp_in==1 ) then
         if ( idate/=globidate1 .and. mod(idate,10000)==100 .and.        &
@@ -247,27 +246,27 @@
         idatek = idate
         do k = kl , 1 , -1
           nrec = nrec + 1
-          read (55,rec=nrec) ((u(i,j,k),i=1,jl),j=1,il)
+          read (55,rec=nrec) ((u(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         do k = kl , 1 , -1
           nrec = nrec + 1
-          read (55,rec=nrec) ((v(i,j,k),i=1,jl),j=1,il)
+          read (55,rec=nrec) ((v(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         nrec = nrec + kl         ! skip omega
         do k = kl , 1 , -1
           nrec = nrec + 1
-          read (55,rec=nrec) ((t(i,j,k),i=1,jl),j=1,il)
+          read (55,rec=nrec) ((t(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         do k = kl , 1 , -1
           nrec = nrec + 1
-          read (55,rec=nrec) ((q(i,j,k),i=1,jl),j=1,il)
+          read (55,rec=nrec) ((q(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         do k = kl , 1 , -1
           nrec = nrec + 1
-          read (55,rec=nrec) ((c(i,j,k),i=1,jl),j=1,il)
+          read (55,rec=nrec) ((c(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         nrec = nrec + 1
-        read (55,rec=nrec) ((ps(i,j),i=1,jl),j=1,il)
+        read (55,rec=nrec) ((ps(i,j),i=1,jx_in),j=1,iy_in)
         nrec = nrec + 4
       else if ( iotyp_in==2 ) then
         if ( idate/=globidate1 .and. mod(idate,10000)==100 .and.        &
@@ -285,24 +284,24 @@
  
 !       print*,' IDATE = ',idate
         do k = kl , 1 , -1
-          read (55) ((u(i,j,k),i=1,jl),j=1,il)
+          read (55) ((u(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         do k = kl , 1 , -1
-          read (55) ((v(i,j,k),i=1,jl),j=1,il)
+          read (55) ((v(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         do k = kl , 1 , -1
           read (55)
         end do
         do k = kl , 1 , -1
-          read (55) ((t(i,j,k),i=1,jl),j=1,il)
+          read (55) ((t(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         do k = kl , 1 , -1
-          read (55) ((q(i,j,k),i=1,jl),j=1,il)
+          read (55) ((q(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
         do k = 1 , kl
-          read (55) ((c(i,j,k),i=1,jl),j=1,il)
+          read (55) ((c(i,j,k),i=1,jx_in),j=1,iy_in)
         end do
-        read (55) ((ps(i,j),i=1,jl),j=1,il)
+        read (55) ((ps(i,j),i=1,jx_in),j=1,iy_in)
         do k = 1 , 4
           read (55)
         end do
@@ -320,7 +319,8 @@
         end if
         if ( iotyp_in==1 ) then
           open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
-              & form='unformatted',recl=il*jl*ibyte,access='direct')
+              & form='unformatted',recl=iy_in*jx_in*ibyte,              &
+              & access='direct')
           nrec = 0
         else if ( iotyp_in==2 ) then
           open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
@@ -332,32 +332,30 @@
       end if
 !
 !     to calculate Heights on sigma surfaces.
-      call htsig_o(t,z1,ps,ht_in,sig,ptop_in,jl,il,kl)
+      call htsig_o(t,z1,ps,ht_in,sig,ptop_in,jx_in,iy_in,kl)
 !
 !     to interpolate H,U,V,T,Q and QC
 !     1. For Heights
-      call height_o(hp,z1,t,ps,ht_in,sig,ptop_in,jl,il,kl,    &
+      call height_o(hp,z1,t,ps,ht_in,sig,ptop_in,jx_in,iy_in,kl,    &
                   & plev,np)
 !     2. For Zonal and Meridional Winds
-      call intlin_o(up,u,ps,sig,ptop_in,jl,il,kl,plev,np)
-      call intlin_o(vp,v,ps,sig,ptop_in,jl,il,kl,plev,np)
+      call intlin_o(up,u,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
+      call intlin_o(vp,v,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
 !     3. For Temperatures
-      call intlog_o(tp,t,ps,sig,ptop_in,jl,il,kl,plev,np)
+      call intlog_o(tp,t,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
 !     4. For Moisture qva & qca
-      call humid1_o(t,q,ps,sig,ptop_in,jl,il,kl)
-      call intlin_o(qp,q,ps,sig,ptop_in,jl,il,kl,plev,np)
-      call intlog_o(cp,c,ps,sig,ptop_in,jl,il,kl,plev,np)
-      call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in,grdfac,jl,    &
-                  & il,np,plon_in,plat_in,iproj_in)
+      call humid1_o(t,q,ps,sig,ptop_in,jx_in,iy_in,kl)
+      call intlin_o(qp,q,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
+      call intlog_o(cp,c,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
+      call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in,grdfac,       &
+             &      jx_in,iy_in,np,plon_in,plat_in,iproj_in)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-      call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,iy,i1ur,i1ul,    &
-                  & i1dr,i1dl,j1ur,j1ul,j1dr,j1dl,d1xt,d1xa,d1xb,d1xc,  &
-                  & d1xd,jl,il,np)
-      call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,iy,i2ur,i2ul,    &
-                  & i2dr,i2dl,j2ur,j2ul,j2dr,j2dl,d2xt,d2xa,d2xb,d2xc,  &
-                  & d2xd,jl,il,np)
+      call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,iy,              &
+                  & jx_in,iy_in,np)
+      call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,iy,              &
+                  & jx_in,iy_in,np)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
@@ -430,20 +428,6 @@
 !     G      WRITE AN INITIAL FILE FOR THE RegCM
       call writef2(ptop,idate)
 !
-      deallocate(sigf)
-      deallocate(sig)
-      deallocate(b2)
-      deallocate(d2)
-      deallocate(c)
-      deallocate(q)
-      deallocate(t)
-      deallocate(u)
-      deallocate(v)
-      deallocate(ps)
-      deallocate(xlat_in)
-      deallocate(xlon_in)
-      deallocate(ht_in)
-
 99001 format ('ATM.',i10)
 !
       end subroutine get_nest
@@ -451,8 +435,8 @@
 !
 !
       subroutine headnest
-      use mod_mxncom
       use mod_grid
+      use mod_interp, only : imxmn , lcross , ldot
       implicit none
 !
 ! Local variables
@@ -492,8 +476,8 @@
 
       open (49,file=trim(inpglob)//'/RegCM/OUT_HEAD',                   &
           & form='unformatted',access='direct',recl=24**ibyte)
-      read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , il ,   &
-                    & jl , kl
+      read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , iy_in ,&
+                    & jx_in , kl
       close (49)
 
 !     Reserve space for I/O
@@ -502,33 +486,33 @@
       if (ias /= 0) stop 'Allocation Error in headnest: sigf'
       allocate(sig(kl), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: sig'
-      allocate(b2(il,jl,np*4), stat=ias)
+      allocate(b2(jx_in,iy_in,np*4), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: b2'
-      allocate(d2(il,jl,np*2), stat=ias)
+      allocate(d2(jx_in,iy_in,np*2), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: d2'
-      allocate(c(il,jl,kl), stat=ias)
+      allocate(c(jx_in,iy_in,kl), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: c'
-      allocate(q(il,jl,kl), stat=ias)
+      allocate(q(jx_in,iy_in,kl), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: q'
-      allocate(t(il,jl,kl), stat=ias)
+      allocate(t(jx_in,iy_in,kl), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: t'
-      allocate(u(il,jl,kl), stat=ias)
+      allocate(u(jx_in,iy_in,kl), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: u'
-      allocate(v(il,jl,kl), stat=ias)
+      allocate(v(jx_in,iy_in,kl), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: v'
-      allocate(ps(il,jl), stat=ias)
+      allocate(ps(jx_in,iy_in), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: ps'
-      allocate(xlat_in(il,jl), stat=ias)
+      allocate(xlat_in(jx_in,iy_in), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: xlat_in'
-      allocate(xlon_in(il,jl), stat=ias)
+      allocate(xlon_in(jx_in,iy_in), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: xlon_in'
-      allocate(ht_in(il,jl), stat=ias)
+      allocate(ht_in(jx_in,iy_in), stat=ias)
       if (ias /= 0) stop 'Allocation Error in headnest: ht_in'
 
       open (49,file=trim(inpglob)//'/RegCM/OUT_HEAD',form='unformatted',&
-          & access='direct',recl=il*jl*ibyte)
-      read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , il ,   &
-                    & jl , kl , (sigf(k),k=kl+1,1,-1) , dxsp ,          &
+          & access='direct',recl=iy_in*jx_in*ibyte)
+      read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , iy_in ,&
+                    & jx_in , kl , (sigf(k),k=kl+1,1,-1) , dxsp ,       &
                     & ptsp , clat_in , clon_in , plat_in , plon_in ,    &
                     & iproj_in , dto , dtb , dtr , dtc ,   &
                     & iotyp_in , truelat1 , truelat2
@@ -568,10 +552,14 @@
       lcross = 0
       ldot = 0
 
-      allocate(b3(jx,iy,np*4))
-      allocate(d3(jx,iy,np*2))
-      allocate(b3pd(jx,iy))
-      allocate(z1(jx,iy,kz))
+      if (allocated(b3)) deallocate(b3)
+      if (allocated(d3)) deallocate(d3)
+      if (allocated(b3pd)) deallocate(b3pd)
+      if (allocated(z1)) deallocate(z1)
+      allocate(b3(iy_in,jx_in,np*4))
+      allocate(d3(iy_in,jx_in,np*2))
+      allocate(b3pd(iy_in,jx_in))
+      allocate(z1(iy_in,jx_in,kl))
 
 !     Set up pointers
  

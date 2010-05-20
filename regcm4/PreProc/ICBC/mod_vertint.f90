@@ -563,6 +563,12 @@
             if ( sc<=sccm(k+1) .and. sc>=sccm(k) ) k1 = k
           end do
  
+          if ( k1==0 ) then
+            write ( 6,* ) 'Cannot interpolate to vertical level'
+            write ( 6,* ) 'Rise Ptop?'
+            write ( 6,* ) sc , ' => ', psrccm(i,j) , ', ', ptop
+            stop
+          end if
 !
 !         CONDITION FOR SC .GT. SCCM(KCCM) FOLLOWS
 !

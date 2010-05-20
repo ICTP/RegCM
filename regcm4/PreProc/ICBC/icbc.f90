@@ -181,6 +181,8 @@
       else if ( dattyp=='FNEST' ) then
         call headnest
       else
+        write ( 6,* ) 'Unknown dattyp'
+        stop
       end if
       if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) call headwk
  
