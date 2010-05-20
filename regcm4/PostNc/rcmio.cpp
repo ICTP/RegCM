@@ -276,6 +276,22 @@ const char *header_data::chems( )
 bcdata::bcdata(domain_data &d, rcminp &in)
 {
   date0 = in.valuei("globidate1");
+  date1 = in.valuei("globidate2");
+  // Calculate number of months (i.e. files) to read
+  unsigned int base = date0;
+  unsigned int basey = base/1000000;
+  int year1 = (int) basey;
+  base = base-basey*1000000;
+  unsigned int basem = base/10000;
+  int month1 = (int) basem;
+  base = date1;
+  basey = base/1000000;
+  int year2 = (int) basey;
+  base = base-basey*1000000;
+  basem = base/10000;
+  int month2 = (int) basem;
+  nfiles = (year2-year1)*12+(month2-month1)+1;
+  rdate = ((date0/10000)*100+1)*100;
   size2D = d.nx*d.ny;
   size3D = size2D*d.nz;
   nz = d.nz;
@@ -676,11 +692,8 @@ void rcmio::read_domain(char *name, domain_data &d)
   return;
 }
 
-void rcmio::read_subdom(header_data &h, subdom_data &s)
+void rcmio::read_subdom(header_data &h, subdom_data &s, char *fname)
 {
-  char fname[PATH_MAX];
-  sprintf(fname, "%s%s%s", outdir, separator, "../fort.11");
-
   std::ifstream rcmf;
   rcmf.open(fname, std::ios::binary);
   if (! rcmf.good()) throw "Invalid Input. Cannot open.";
@@ -1309,7 +1322,8 @@ int rcmio::bc_read_tstep(bcdata &b)
   {
     // Open BC file
     char fname[PATH_MAX];
-    sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, b.date0);
+    sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, 
+            b.rdate);
     bcf.open(fname, std::ios::binary);
     if (! bcf.good()) return -1;
 
@@ -1385,10 +1399,31 @@ int rcmio::bc_read_tstep(bcdata &b)
   size_t pos = bcf.tellg( );
   if (pos+readsize > bcsize)
   {
-    delete [] storage;
-    storage = 0;
-    bcf.close();
-    return 1;
+    if (b.nfiles > 0)
+    {
+      bcf.close();
+      // Add one month
+      b.rdate = b.rdate + 10000;
+      if ( (b.rdate-(b.rdate/1000000*1000000)>120000) )
+        b.rdate = b.rdate+1000000-120000;
+      // Open BC file
+      char fname[PATH_MAX];
+      sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, b.rdate);
+      bcf.open(fname, std::ios::binary);
+      if (! bcf.good()) return -1;
+
+      bcf.seekg (0, std::ios::end);
+      bcsize = bcf.tellg();
+      bcf.seekg (0, std::ios::beg);
+      b.nfiles--;
+    }
+    else
+    {
+      delete [] storage;
+      storage = 0;
+      bcf.close();
+      return 1;
+    }
   }
   bcf.read(storage, readsize);
   if (doseq)

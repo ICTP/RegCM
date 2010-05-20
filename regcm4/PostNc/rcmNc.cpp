@@ -1416,7 +1416,7 @@ void bcNc::put_rec(bcdata &b)
     ref.tm_year = 70;
     time_t tzero = mktime(&ref);
     memset(&ref, 0, sizeof(struct tm));
-    unsigned int base = b.date0;
+    unsigned int base = b.rdate;
     unsigned int basey = base/1000000;
     base = base-basey*1000000;
     ref.tm_year = basey - 1900;

@@ -48,16 +48,11 @@ void help(char *pname)
       << std::endl
       << "This simple program converts binary ICBC files from RegCM V4 "
       << "into NetCDF" << std::endl << "CF-1.4 convention compliant data files."
-      << std::endl << std::endl << "I need four mandatory arguments:"
+      << std::endl << std::endl << "I need ONE mandatory argument:"
       << std::endl << std::endl
       << "    regcm.in       - path to regcm.in of RegCM model v4" << std::endl
-      << "    DOMAIN.INFO    - path to DOMAIN.INFO of RegCM model v4"
-      << std::endl
-      << "    ICBCYYYYMMDDHH - path to ICBC of RegCM model v4" << std::endl
-      << "    expname        - a (meaningful) name for this expertiment"
-      << std::endl << std::endl << "Example:" << std::endl
-      << std::endl << "     " << pname
-      << " [options] DOMAIN.INFO ICBC1990060100 ACWA_reference"
+      << std::endl << "Example:" << std::endl << std::endl << "     " << pname
+      << " [options] regcm.in"
       << std::endl << std::endl
       << "where options can be in:" << std::endl << std::endl
   << "   --sequential              : Set I/O non direct (direct access default)"
@@ -115,9 +110,10 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (argc - optind != 4)
+  if (argc - optind != 1)
   {
-    std::cerr << std::endl << "Howdy there, not enough arguments." << std::endl;
+    std::cerr << std::endl << "Howdy there, wrong number of arguments."
+              << std::endl;
     help(pname);
     return -1;
   }
@@ -128,15 +124,19 @@ int main(int argc, char *argv[])
   try
   {
     char *regcmin = strdup(argv[optind++]);
-    char *dominfo = strdup(argv[optind++]);
-    char *arg2 = strdup(argv[optind++]);
-    char *brg2 = strdup(arg2);
-    char *icbcd = dirname(brg2);
-    char *experiment = strdup(argv[optind++]);
  
     rcminp inpf(regcmin);
     domain_data d(inpf);
-    rcmio rcmout(icbcd, lbigend, ldirect);
+    char *datadir = strdup(inpf.valuec("dirglob"));
+    rcmio rcmout(datadir, lbigend, ldirect);
+
+    char *experiment = strdup(inpf.valuec("domname"));
+    char dominfo[PATH_MAX];
+
+    std::cout << inpf.valuec("dirter") << std::endl;
+    sprintf(dominfo, "%s%s%s.INFO", inpf.valuec("dirter"),
+            separator, experiment);
+    std::cout << "Opening " << dominfo << std::endl;
     rcmout.read_domain(dominfo, d);
 
     bcdata b(d, inpf);
@@ -154,9 +154,7 @@ int main(int argc, char *argv[])
     }
     std::cout << " Done." << std::endl;
 
-    free(dominfo);
-    free(arg2);
-    free(brg2);
+    free(datadir);
     free(experiment);
   }
   catch (const char *e)

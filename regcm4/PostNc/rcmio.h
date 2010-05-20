@@ -161,6 +161,8 @@ namespace rcm
       float *snowd;
       int date0;
       int date1;
+      int rdate;
+      int nfiles;
       size_t datasize;
       int n2D;
       int n3D;
@@ -349,7 +351,7 @@ namespace rcm
       ~rcmio( );
       void read_header(header_data &h);
       void read_domain(char *name, domain_data &d);
-      void read_subdom(header_data &h, subdom_data &s);
+      void read_subdom(header_data &h, subdom_data &s, char *fname);
       int atmo_read_tstep(atmodata &a);
       int srf_read_tstep(srfdata &s);
       int rad_read_tstep(raddata &r);

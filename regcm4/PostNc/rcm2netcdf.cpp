@@ -50,13 +50,11 @@ void help(char *pname)
       << std::endl
       << "This simple program converts binary output files from RegCM V4 "
       << "into NetCDF" << std::endl << "CF-1.4 convention compliant data files."
-      << std::endl << std::endl << "I need two mandatory arguments:"
+      << std::endl << std::endl << "I need ONE mandatory argument:"
       << std::endl << std::endl
       << "    regcm.in  - path to regcm.in of RegCM model v4" << std::endl
-      << "    expname   - a (meaningful) name for this expertiment"
-      << std::endl << std::endl << "Example:" << std::endl
-      << std::endl << "     " << pname
-      << " [options] /home/regcm/Run/regcm.in ACWA_reference"
+      << std::endl << "Example:" << std::endl << std::endl << "     " << pname
+      << " [options] /home/regcm/Run/regcm.in"
       << std::endl << std::endl
       << "where options can be in:" << std::endl << std::endl
   << "   --sequential              : Set I/O non direct (direct access default)"
@@ -80,16 +78,7 @@ void help(char *pname)
   << "   --help/-h                 : Print this help"
       << std::endl
   << "   --version/-V              : Print versioning information"
-      << std::endl << std::endl
-      << "I will assume in this case that:" << std::endl << std::endl
-      << "   -) The output directory of the model is '/home/regcm/Run/output'"
-      << std::endl
-      << "   -) All output files You want to process are inside this dir"
-      << std::endl
-      << "   -) The regcm.in file is relative to those files"
-      << std::endl
-      << "   -) In case of subgridding, the fort.11 link is present "
-      << "in '/home/regcm/Run'" << std::endl << std::endl;
+      << std::endl << std::endl;
    return;
 }
 
@@ -191,13 +180,10 @@ int main(int argc, char *argv[])
   try
   {
     char *regcmin = strdup(argv[optind++]);
-    char *experiment = strdup(argv[optind++]);
-
     rcminp inpf(regcmin);
 
-    char *rundir = dirname(regcmin);
-    char outdir[PATH_MAX];
-    snprintf(outdir, 256, "%s%s%s", rundir, separator, "output");
+    char *experiment = strdup(inpf.valuec("domname"));
+    char *outdir = strdup(inpf.valuec("dirout"));
 
     rcmio rcmout(outdir, lbigend, ldirect);
     header_data outhead(inpf);
@@ -325,7 +311,10 @@ int main(int argc, char *argv[])
       int ustart = istart - 1;
       std::cout << "Found Surface Subgrid data SUB and processing";
       subdom_data subdom(inpf);
-      rcmout.read_subdom(outhead, subdom);
+      char fname[PATH_MAX];
+      sprintf(fname, "%s%s%s%03d.INFO", inpf.valuec("dirter"),
+              separator, inpf.valuec("domname"), inpf.valuei("nsg"));
+      rcmout.read_subdom(outhead, subdom, fname);
       subdata s(outhead, subdom);
       sprintf(fname, "SUB_%s_%d.nc", experiment, outhead.idate1);
       rcmNcSub subnc(fname, experiment, outhead, subdom);
@@ -353,7 +342,7 @@ int main(int argc, char *argv[])
 
     outhead.free_space( );
     free(experiment);
-    free(regcmin);
+    free(outdir);
   }
   catch (const char *e)
   {
