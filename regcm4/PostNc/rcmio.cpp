@@ -1146,13 +1146,14 @@ int rcmio::atmo_read_tstep(atmodata &a)
         a.rdate = a.rdate+1000000-120000;
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sSRF.%d", outdir, separator, a.rdate);
+      sprintf(fname, "%s%sATM.%d", outdir, separator, a.rdate);
       atmf.open(fname, std::ios::binary);
       if (! atmf.good()) return -1;
 
       atmf.seekg (0, std::ios::end);
       atmsize = atmf.tellg();
       atmf.seekg (0, std::ios::beg);
+
       if (atmsize < readsize)
       {
         a.nfiles = 0;
@@ -1299,7 +1300,7 @@ int rcmio::sub_read_tstep(subdata &u)
         u.rdate = u.rdate+1000000-120000;
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sSRF.%d", outdir, separator, u.rdate);
+      sprintf(fname, "%s%sSUB.%d", outdir, separator, u.rdate);
       subf.open(fname, std::ios::binary);
       if (! subf.good()) return -1;
 
@@ -1373,7 +1374,7 @@ int rcmio::rad_read_tstep(raddata &r)
         r.rdate = r.rdate+1000000-120000;
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sSRF.%d", outdir, separator, r.rdate);
+      sprintf(fname, "%s%sRAD.%d", outdir, separator, r.rdate);
       radf.open(fname, std::ios::binary);
       if (! radf.good()) return -1;
 
@@ -1453,7 +1454,7 @@ int rcmio::che_read_tstep(chedata &c)
         c.rdate = c.rdate+1000000-120000;
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sSRF.%d", outdir, separator, c.rdate);
+      sprintf(fname, "%s%sCHE.%d", outdir, separator, c.rdate);
       chef.open(fname, std::ios::binary);
       if (! chef.good()) return -1;
 
