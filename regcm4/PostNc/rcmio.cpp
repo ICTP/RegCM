@@ -402,6 +402,22 @@ chedata::~chedata( )
 srfdata::srfdata(header_data &h)
 {
   date0 = h.idate1;
+  date1 = h.idate2;
+  // Calculate number of months (i.e. files) to read
+  unsigned int base = date0;
+  unsigned int basey = base/1000000;
+  int year1 = (int) basey;
+  base = base-basey*1000000;
+  unsigned int basem = base/10000;
+  int month1 = (int) basem;
+  base = date1;
+  basey = base/1000000;
+  int year2 = (int) basey;
+  base = base-basey*1000000;
+  basem = base/10000;
+  int month2 = (int) basem;
+  nfiles = (year2-year1)*12+(month2-month1)+1;
+  rdate = date0;
   dt = h.dtb;
   n2D = 27;
   size2D = h.nx*h.ny;
@@ -1108,10 +1124,31 @@ int rcmio::srf_read_tstep(srfdata &s)
   size_t pos = srff.tellg( );
   if (pos+readsize > srfsize)
   {
-    delete [] storage;
-    storage = 0;
-    srff.close();
-    return 1;
+    if (s.nfiles > 0)
+    {
+      srff.close( );
+      // Add one month
+      s.rdate = s.rdate + 10000;
+      if ( (s.rdate-(s.rdate/1000000*1000000)>120000) )
+        s.rdate = s.rdate+1000000-120000;
+      // Open BC file
+      char fname[PATH_MAX];
+      sprintf(fname, "%s%sSRF.%d", outdir, separator, s.rdate);
+      srff.open(fname, std::ios::binary);
+      if (! srff.good()) return -1;
+
+      srff.seekg (0, std::ios::end);
+      srfsize = srff.tellg();
+      srff.seekg (0, std::ios::beg);
+      s.nfiles--;
+    }
+    else
+    {
+      delete [] storage;
+      storage = 0;
+      srff.close();
+      return 1;
+    }
   }
   srff.read(storage, readsize);
   if (doseq)

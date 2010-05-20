@@ -336,12 +336,15 @@ namespace rcm
       float *w10max;
       float *ps_min;
       int date0;
+      int date1;
       float dt;
       size_t datasize;
       int n2D;
       size_t size2D;
       int nvals;
       char *buffer;
+      int rdate;
+      int nfiles;
   };
 
   class rcmio
