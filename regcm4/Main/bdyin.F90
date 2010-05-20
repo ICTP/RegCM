@@ -100,11 +100,13 @@
                    &             '_ICBC',((ndate1/10000)*100+1)*100
               inquire(file=finm,exist=existing)
               print*, existing, finm 
-	      if (.not.existing) then
+              if (.not.existing) then
+                write (aline,*)                                         &
+                   & 'The following IBC File does not exist: ' ,        &
+                   & trim(finm), 'please check location'
                  call fatal(__FILE__,__LINE__,aline) 
-	         write (aline,*) 'File ' , finm , 'does not exist: please check path/directory where ICBC are stored'
               else 
-                 open (iutbc,file=finm,form='unformatted',status='old',    &
+                 open (iutbc,file=finm,form='unformatted',status='old', &
                   & access='direct',recl=iy*jx*ibyte)
               endif  
               mmrec = 0

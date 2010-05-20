@@ -1152,16 +1152,16 @@
             close (iutsav)
             itype = 'SAV'
             write (tmpfil,99002) itype , idatex
-            open (iutsav,file=tmpfil,status='unknown',                  &
-                & form='unformatted')
+            open (iutsav,file=trim(dirout)//pthsep//tmpfil,             &
+                & status='replace',form='unformatted')
             call outsav(iutsav)
             close (iutsav)
             print * , 'SAVTMP RESTART WRITTEN: idatex=' , idatex ,      &
                  &'ktau=' , ktau
             if ( oldsav(1:3).eq.'SAV' ) then
-              inquire (file=oldsav,exist=there)
+              inquire (file=trim(dirout)//pthsep//oldsav,exist=there)
               if ( there ) then
-                call unlink(oldsav)
+                call unlink(trim(dirout)//pthsep//oldsav)
               end if
             end if
             oldsav = tmpfil
@@ -1293,15 +1293,16 @@
           close (iutsav)
           itype = 'SAV'
           write (tmpfil,99002) itype , idatex
-          open (iutsav,file=tmpfil,status='unknown',form='unformatted')
+          open (iutsav,file=trim(dirout)//pthsep//tmpfil,               &
+                & status='replace',form='unformatted')
           call outsav(iutsav)
           close (iutsav)
           print * , 'SAVTMP RESTART WRITTEN: idatex=' , idatex ,        &
               & 'ktau=' , ktau
           if ( oldsav(1:3).eq.'SAV' ) then
-            inquire (file=oldsav,exist=there)
+            inquire (file=trim(dirout)//pthsep//oldsav,exist=there)
             if ( there ) then
-              call unlink(oldsav)
+              call unlink(trim(dirout)//pthsep//oldsav)
             end if
           end if
           oldsav = tmpfil

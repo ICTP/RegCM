@@ -78,8 +78,9 @@
           aerctl = chtrname(itr)
           print * , itr , aerctl
           if ( aerctl(1:4).ne.'DUST' .and. aertyp(4:5).ne.'00' ) then
-            open (unit=iutchsrc,file='AERO.dat',status='old',           &
-                 &form='unformatted',access='direct',recl=iy*jx*ibyte)
+            open (unit=iutchsrc,file=trim(dirglob)//pthsep//            &
+                & trim(domname)//'_AERO.dat',status='old',              &
+                & form='unformatted',access='direct',recl=iy*jx*ibyte)
             if ( aerctl(1:3).eq.'SO2' ) then
               if ( aertyp(4:4).eq.'1' ) then
                 read (iutchsrc,rec=1) ((toto(i,j),j=1,jx),i=1,iy)
@@ -202,8 +203,9 @@
         aerctl = chtrname(itr)
         print * , itr , aerctl
         if ( aerctl(1:4).ne.'DUST' .and. aertyp(4:5).ne.'00' ) then
-          open (unit=iutchsrc,file='AERO.dat',status='old',             &
-               &form='unformatted',access='direct',recl=iy*jx*ibyte)
+          open (unit=iutchsrc,file=trim(dirglob)//pthsep//              &
+              & trim(domname)//'_AERO.dat',status='old',                &
+              & form='unformatted',access='direct',recl=iy*jx*ibyte)
           if ( aerctl(1:3).eq.'SO2' ) then
             if ( aertyp(4:4).eq.'1' ) then
               read (iutchsrc,rec=1) ((toto(i,j),j=1,jx),i=1,iy)

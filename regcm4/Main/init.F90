@@ -94,7 +94,7 @@
       real(8) , dimension(iy,jx) :: psdot
 #endif
       real(8) , dimension(400) :: tlake
-      logical :: existing=.false.
+      logical :: existing
 !
 #ifdef DIAG
       real(8) :: tvmass , tcmass , tttmp
@@ -106,6 +106,7 @@
 !
       data tlp , ts00/50.D0 , 288.D0/
 !
+      existing = .false.
 #ifdef MPP1
       peb  = 0.0
       pwb  = 0.0
@@ -159,12 +160,13 @@
       if ( myid.eq.0 ) then
         write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
              & ((ndate0/10000)*100+1)*100
-        inquire(file=finm,exist=existing)
+        inquire (file=finm,exist=existing)
         if (.not.existing) then
+          write (aline,*) 'The following ICBC File does not exist: ' ,  &
+              &            trim(finm), 'please check location'
           call say
-          write (aline,*) ' the following IBC File does not exist' , trim(finm), 'please check location'
           call fatal(__FILE__,__LINE__, 'ICBC FILE NOT FOUND')
-        else 
+        else
           open (iutbc,file=finm,form='unformatted',status='old',    &
           & access='direct',recl=iy*jx*ibyte)
         endif  
@@ -175,10 +177,12 @@
              & ((ndate0/10000)*100+1)*100
       inquire(file=finm,exist=existing)
         if (.not.existing) then
-          write (aline,*) ' the following IBC File does not exist' , trim(finm), 'please check location'
+          write (aline,*) 'The following IBC File does not exist: ' ,   &
+              &            trim(finm), 'please check location'
+          call say
           call fatal(__FILE__,__LINE__,' ICBC FILE NOT FOUND')
         else 
-           open (iutbc,file=finm,form='unformatted',status='old',            &
+           open (iutbc,file=finm,form='unformatted',status='old',       &
            &access='direct',recl=iy*jx*ibyte)
            mmrec = 0
         endif 
@@ -923,7 +927,7 @@
         call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
         tqini = tvmass + tcmass
 !=======================================================================
-        if ( myid.eq.0 ) print 99002 , tdini , tqini
+        if ( myid.eq.0 ) print 99003 , tdini , tqini
 #else
 !=======================================================================
 !
@@ -968,7 +972,7 @@
         tcmass = tcmass*dx*dx*1000.*rgti
         tqini = tvmass + tcmass
 !=======================================================================
-        print 99002 , tdini , tqini
+        print 99003 , tdini , tqini
 #endif
 #endif
 !
@@ -1022,6 +1026,17 @@
 !
 #ifdef MPP1
         if ( myid.eq.0 ) then
+          write (finm,99002) trim(dirout),pthsep,'SAV.',                &
+            &    ((ndate0/10000)*100+1)*100
+          inquire (file=finm,exist=existing)
+          if ( .not.existing ) then
+            write (aline,*) 'The following SAV File does not exist: ' , &
+                &            trim(finm), 'please check location'
+            call say
+            call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
+          else
+            open (iutrs,file=finm,form='unformatted',status='old')
+          end if
           do ! Loop while ldatez.ne.idate1
             read (iutrs) mdate0
             jyear0 = mdate0/1000000
@@ -1143,9 +1158,9 @@
 !
             print * , 'ozone profiles restart'
             do k = 1 , kzp1
-              write (6,99003) o3prof_io(3,3,k)
+              write (6,99004) o3prof_io(3,3,k)
             end do
-            print 99004 , xtime , ktau , jyear , iutrs
+            print 99005 , xtime , ktau , jyear , iutrs
 !
             if ( ldatez.ne.idate1 ) then
               write (*,*) 'INIT: ldatez, idate1=' , ldatez , idate1
@@ -1842,6 +1857,17 @@
         dt = dt2 ! First timestep successfully read in
 
 #else
+        write (finm,99002) trim(dirout),pthsep,'SAV.',                  &
+          &    ((ndate0/10000)*100+1)*100
+        inquire (file=finm,exist=existing)
+        if ( .not.existing ) then
+          write (aline,*) 'The following SAV File does not exist: ' ,   &
+              &            trim(finm), 'please check location'
+          call say
+          call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
+        else
+          open (iutrs,file=finm,form='unformatted',status='old')
+        end if
         do ! Loop while ldatez.ne.idate1
 !
 !-----when ifrest=.true., read in the data saved from previous run
@@ -1942,9 +1968,9 @@
 !
           print * , 'ozone profiles restart'
           do k = 1 , kzp1
-            write (6,99003) o3prof(3,3,k)
+            write (6,99004) o3prof(3,3,k)
           end do
-          print 99004 , xtime , ktau , jyear , iutrs
+          print 99005 , xtime , ktau , jyear , iutrs
 !
           if ( ldatez.ne.idate1 ) then
             write (*,*) 'INIT: ldatez, idate1=' , ldatez , idate1
@@ -2147,12 +2173,13 @@
       call say
 
 99001 format (a,a,a,a,i0.10)
+99002 format (a,a,a,i0.10)
 #ifdef DIAG
-99002 format (' *** initial total air = ',e12.5,' kg, total water = ',  &
+99003 format (' *** initial total air = ',e12.5,' kg, total water = ',  &
             & e12.5,' kg in large domain.')
 #endif
-99003 format (1x,7E12.4)
-99004 format (' ***** restart file for large domain at time = ',f8.0,   &
+99004 format (1x,7E12.4)
+99005 format (' ***** restart file for large domain at time = ',f8.0,   &
              &' minutes, ktau = ',i7,' in year = ',i4,                  &
              &'  read in from unit ',i2,'.'/)
 !
