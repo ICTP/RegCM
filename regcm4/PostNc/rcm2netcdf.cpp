@@ -162,9 +162,10 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (argc - optind != 2)
+  if (argc - optind != 1)
   {
-    std::cerr << std::endl << "Howdy there, not enough arguments." << std::endl;
+    std::cerr << std::endl << "Howdy there, wrong number of arguments."
+              << std::endl;
     help(pname);
     return -1;
   }
