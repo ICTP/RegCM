@@ -1160,7 +1160,7 @@
             do k = 1 , kzp1
               write (6,99004) o3prof_io(3,3,k)
             end do
-            print 99005 , xtime , ktau , jyear , iutrs
+            print 99005 , xtime , ktau , jyear , finm
 !
             if ( ldatez.ne.idate1 ) then
               write (*,*) 'INIT: ldatez, idate1=' , ldatez , idate1
@@ -2181,6 +2181,6 @@
 99004 format (1x,7E12.4)
 99005 format (' ***** restart file for large domain at time = ',f8.0,   &
              &' minutes, ktau = ',i7,' in year = ',i4,                  &
-             &'  read in from unit ',i2,'.'/)
+             &'  read in from ',a)
 !
       end subroutine init
