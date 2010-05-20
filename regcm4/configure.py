@@ -225,9 +225,9 @@ def makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler,clm,dcsst,seaice) :
         line=line.replace("!REGCM_ROOT",regcm_root)
         line=line.replace("!BIN_DIR",bin_dir)
 
-        line=line.replace("!NETCDFINC","-I"+ncpath+"include")
-        line=line.replace("!NETCDFLIB","-L"+ncpath+"lib -lnetcdf")
-        line=line.replace("!NETCDFC++","-L"+ncpath+"lib -lnetcdf_c++ -lnetcdf")
+        line=line.replace("!NETCDFINC","-I"+ncpath+"/include")
+        line=line.replace("!NETCDFLIB","-L"+ncpath+"/lib -lnetcdf")
+        line=line.replace("!NETCDFC++","-L"+ncpath+"/lib -lnetcdf_c++ -lnetcdf")
 
         if mpi == 1 :
             line=line.replace("# PARALLEL = MPP1","PARALLEL = MPP1")
