@@ -137,7 +137,7 @@
 
 ! The following parameters can be reset later in RegCM/ICBC/icbc.param
       parameter(IDATE1=1989010100)  ! First date of simulation
-      parameter(IDATE2=1989123100)  ! Last  date of simulation
+      parameter(IDATE2=1989020100)  ! Last  date of simulation
 !DATTYP: (ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,NRP2W,GFS11,FVGCM,FNEST,EH5OM)
       parameter(DATTYP='EIN15')
       ! SSTTYP : (GISST,OISST,OI_WK,FV_RF,FV_A2,FV_B2,EH5RF,EH5A2,EH5B1,EHA1B,ERSST,ERSKT)
