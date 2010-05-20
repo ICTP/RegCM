@@ -136,7 +136,7 @@ c                                    ! for BVOC
 
 c The following parameters can be reset later in RegCM/ICBC/icbc.param
       parameter(IDATE1=1989050100)   ! First date of simulation
-      parameter(IDATE2=1989093000)   ! Last  date of simulation
+      parameter(IDATE2=1989060100)   ! Last  date of simulation
               ! DATTYP : (ECMWF,ERA40,ERAHI,NNRP1,NNRP2,FVGCM,FNEST,EH5OM)
       parameter(DATTYP='NNRP1')
               ! SSTTYP : (GISST,OISST,OI_WK,FV_RF,FV_A2,FV_B2,EH5RF,EH5A2)

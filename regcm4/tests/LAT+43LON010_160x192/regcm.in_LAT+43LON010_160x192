@@ -29,7 +29,7 @@
  fudge_tex_s = .false.,
  ntex = 17,
  h2opct = 75.,
- dirter = './Input',
+ dirter = '../../Input',
  inpter = '../../PreProc/DATA/',
  /
  &ioparam
@@ -56,8 +56,8 @@
  dattyp = 'EIN15',
  ehso4 = .false.,
  globidate1 = 1989010100,
- globidate2 = 1989123100,
- dirglob = './Input',
+ globidate2 = 1989020100,
+ dirglob = '../../Input',
  inpglob = '../../PreProc/DATA/',
  /
  &lsmparam

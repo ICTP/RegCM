@@ -29,7 +29,7 @@
  fudge_tex_s = .false.,
  ntex = 17,
  h2opct = 75.,
- dirter = './Input',
+ dirter = '../../Input',
  inpter = '../../PreProc/DATA/',
  /
  &ioparam
@@ -56,7 +56,7 @@
  dattyp = 'ERAIN',
  ehso4 = .false.,
  globidate1 = 1989010100,
- globidate2 = 1990010200,
+ globidate2 = 1989020100,
  dirglob = './Input',
  inpglob = '../../PreProc/DATA',
  /
@@ -70,9 +70,9 @@
  /
  &restartparam
  ifrest  = .false. ,
- idate0  = 1990060100,
- idate1  = 1990060100,
- idate2  = 1990060200,
+ idate0  = 1989010100,
+ idate1  = 1989010100,
+ idate2  = 1989020100,
  nslice  =        120,
  /
  &timeparam

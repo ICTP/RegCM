@@ -160,4 +160,4 @@
                                     ! 20 for BATS, 25 for USGS.
       parameter(AERTYP='AER00D0')   ! AEROSOL TYPE option,
       parameter(ntex=17)            ! Number of SOIL TEXTURE categories
-      parameter(NPROC=32)            ! Number of CPU used for parallel job. 
+      parameter(NPROC=8)            ! Number of CPU used for parallel job. 

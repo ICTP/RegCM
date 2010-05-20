@@ -1,22 +1,22 @@
 &dimparam
- iy     = 112,
- jx     = 128,
+ iy     = 160,
+ jx     = 192,
  kz     = 18,
  nsg    = 1,
  /
  &geoparam
- iproj = 'NORMER',
- ds = 30.0,
+ iproj = 'LAMCON',
+ ds = 50.0,
  ptop = 5.0,
- clat = 9.00,
- clon = 40.50,
- plat = 9.00,
- plon = 40.50,
+ clat = 16.93,
+ clon = 67.18,
+ plat = 16.93,
+ plon = 67.18,
  truelatl = 30.0,
- truelath = 60.0,
+ truelath = 65.0,
  /
  &terrainparam
- domname = 'LAT+09LON040_112x128',
+ domname = 'LAT+16LON067_160x192',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
@@ -29,7 +29,7 @@
  fudge_tex_s = .false.,
  ntex = 17,
  h2opct = 75.,
- dirter = './Input',
+ dirter = '../../Input',
  inpter = '../../PreProc/DATA',
  /
  &ioparam
@@ -53,10 +53,10 @@
  /
  &globdatparam
  ssttyp = 'OI_WK',
- dattyp = 'EIN75',
+ dattyp = 'NNRP1',
  ehso4 = .false.,
- globidate1 = 1991010100,
- globidate2 = 1991020100,
+ globidate1 = 1989050100,
+ globidate2 = 1989060100,
  dirglob = '../../Input',
  inpglob = '../../PreProc/DATA',
  /
@@ -64,15 +64,15 @@
  lsmtyp = 'BATS',
  /
  &aerosolparam
- aertyp = 'AER00D0'
+ aertyp = 'AER00D1'
  ntr = 10,
  nbin = 4,
  /
 &restartparam
  ifrest  = .false. ,
- idate0  = 1991010100,
- idate1  = 1991010100,
- idate2  = 1991020100,
+ idate0  = 1989050100,
+ idate1  = 1989050100,
+ idate2  = 1989060100,
  nslice  =        120,
  /
  &timeparam
