@@ -544,6 +544,10 @@
       data units / 'degrees_east', 'degrees_north',                     &
              &     'level' , 'hours since 1900-1-1 00:00:0.0' /
 
+
+!     initialize vardim to something negative
+      vardim(4) = -99
+
 !     Make sure ndim <= maxdim.
       if ( ndim>maxdim ) then
          ierr = 10
@@ -564,6 +568,7 @@
 !     put file into define mode
       ierr = nf90_redef(cdfid)
       if ( ierr/=nf90_noerr ) go to 920
+
 
 !     define spatial dimensions
       ik = 0 
@@ -600,6 +605,7 @@
           end if
         end if
       end do
+
 
 !     define the times-array
       if ( ndim==4 ) then
