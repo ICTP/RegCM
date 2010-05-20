@@ -971,6 +971,8 @@
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
         write ( 6,* ) 'Cannot get ', varname, ' from file'
+        write ( 6,* ) istart
+        write ( 6,* ) icount
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
@@ -1068,6 +1070,8 @@
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
         write ( 6,* ) 'Cannot get ', varname, ' from file'
+        write ( 6,* ) istart
+        write ( 6,* ) icount
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
@@ -1194,6 +1198,8 @@
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
         write ( 6,* ) 'Cannot get ', varname, ' from file'
+        write ( 6,* ) istart
+        write ( 6,* ) icount
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
@@ -1319,6 +1325,8 @@
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
         write ( 6,* ) 'Cannot get ', varname, ' from file'
+        write ( 6,* ) istart
+        write ( 6,* ) icount
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
