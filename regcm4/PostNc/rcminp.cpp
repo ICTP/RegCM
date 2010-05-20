@@ -61,7 +61,7 @@ rcminp::rcminp(char *fname)
   while (! rcinp.eof())
   {
     rcinp.getline(buf, 256);
-    if (sscanf(buf, "%[ A-z0-9_]=%[ A-z0-9.',/ -]\n", tok1, tok2) < 2)
+    if (sscanf(buf, "%[ A-z0-9_]=%[ A-z0-9.',+_/ -]\n", tok1, tok2) < 2)
       continue;
     s1 = strstrip(tok1);
     s2 = strstrip(tok2);
