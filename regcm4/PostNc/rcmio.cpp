@@ -314,6 +314,22 @@ bcdata::~bcdata()
 atmodata::atmodata(header_data &h)
 {
   date0 = h.idate1;
+  date1 = h.idate2;
+  // Calculate number of months (i.e. files) to read
+  unsigned int base = date0;
+  unsigned int basey = base/1000000;
+  int year1 = (int) basey;
+  base = base-basey*1000000;
+  unsigned int basem = base/10000;
+  int month1 = (int) basem;
+  base = date1;
+  basey = base/1000000;
+  int year2 = (int) basey;
+  base = base-basey*1000000;
+  basem = base/10000;
+  int month2 = (int) basem;
+  nfiles = (year2-year1)*12+(month2-month1)+1;
+  rdate = date0;
   dt = h.dto;
   n3D = 6;
   n2D = 5;
@@ -343,6 +359,22 @@ atmodata::~atmodata( )
 raddata::raddata(header_data &h)
 {
   date0 = h.idate1;
+  date1 = h.idate2;
+  // Calculate number of months (i.e. files) to read
+  unsigned int base = date0;
+  unsigned int basey = base/1000000;
+  int year1 = (int) basey;
+  base = base-basey*1000000;
+  unsigned int basem = base/10000;
+  int month1 = (int) basem;
+  base = date1;
+  basey = base/1000000;
+  int year2 = (int) basey;
+  base = base-basey*1000000;
+  basem = base/10000;
+  int month2 = (int) basem;
+  nfiles = (year2-year1)*12+(month2-month1)+1;
+  rdate = date0;
   dt = h.dtr;
   n3D = 4;
   n2D = 10;
@@ -375,6 +407,22 @@ raddata::~raddata( )
 chedata::chedata(header_data &h)
 {
   date0 = h.idate1;
+  date1 = h.idate2;
+  // Calculate number of months (i.e. files) to read
+  unsigned int base = date0;
+  unsigned int basey = base/1000000;
+  int year1 = (int) basey;
+  base = base-basey*1000000;
+  unsigned int basem = base/10000;
+  int month1 = (int) basem;
+  base = date1;
+  basey = base/1000000;
+  int year2 = (int) basey;
+  base = base-basey*1000000;
+  basem = base/10000;
+  int month2 = (int) basem;
+  nfiles = (year2-year1)*12+(month2-month1)+1;
+  rdate = date0;
   dt = h.dtr;
   ntr = 10;
   n3D = 13;
@@ -484,6 +532,22 @@ domain_data::~domain_data( )
 subdata::subdata(header_data &h, subdom_data &s)
 {
   date0 = h.idate1;
+  date1 = h.idate2;
+  // Calculate number of months (i.e. files) to read
+  unsigned int base = date0;
+  unsigned int basey = base/1000000;
+  int year1 = (int) basey;
+  base = base-basey*1000000;
+  unsigned int basem = base/10000;
+  int month1 = (int) basem;
+  base = date1;
+  basey = base/1000000;
+  int year2 = (int) basey;
+  base = base-basey*1000000;
+  basem = base/10000;
+  int month2 = (int) basem;
+  nfiles = (year2-year1)*12+(month2-month1)+1;
+  rdate = date0;
   dt = h.dtb;
   n2D = 16;
   size2D = s.nx*s.ny;
@@ -1073,10 +1137,39 @@ int rcmio::atmo_read_tstep(atmodata &a)
   size_t pos = atmf.tellg( );
   if (pos+readsize > atmsize)
   {
-    delete [] storage;
-    storage = 0;
-    atmf.close();
-    return 1;
+    if (a.nfiles > 0)
+    {
+      atmf.close( );
+      // Add one month
+      a.rdate = a.rdate + 10000;
+      if ( (a.rdate-(a.rdate/1000000*1000000)>120000) )
+        a.rdate = a.rdate+1000000-120000;
+      // Open BC file
+      char fname[PATH_MAX];
+      sprintf(fname, "%s%sSRF.%d", outdir, separator, a.rdate);
+      atmf.open(fname, std::ios::binary);
+      if (! atmf.good()) return -1;
+
+      atmf.seekg (0, std::ios::end);
+      atmsize = atmf.tellg();
+      atmf.seekg (0, std::ios::beg);
+      if (atmsize < readsize)
+      {
+        a.nfiles = 0;
+        delete [] storage;
+        storage = 0;
+        atmf.close();
+        return 1;
+      }
+      a.nfiles--;
+    }
+    else
+    {
+      delete [] storage;
+      storage = 0;
+      atmf.close();
+      return 1;
+    }
   }
   atmf.read(storage, readsize);
   if (doseq)
@@ -1140,6 +1233,14 @@ int rcmio::srf_read_tstep(srfdata &s)
       srff.seekg (0, std::ios::end);
       srfsize = srff.tellg();
       srff.seekg (0, std::ios::beg);
+      if (srfsize < readsize)
+      {
+        s.nfiles = 0;
+        delete [] storage;
+        storage = 0;
+        srff.close();
+        return 1;
+      }
       s.nfiles--;
     }
     else
@@ -1189,10 +1290,39 @@ int rcmio::sub_read_tstep(subdata &u)
   size_t pos = subf.tellg( );
   if (pos+readsize > subsize)
   {
-    delete [] storage;
-    storage = 0;
-    subf.close();
-    return 1;
+    if (u.nfiles > 0)
+    {
+      subf.close( );
+      // Add one month
+      u.rdate = u.rdate + 10000;
+      if ( (u.rdate-(u.rdate/1000000*1000000)>120000) )
+        u.rdate = u.rdate+1000000-120000;
+      // Open BC file
+      char fname[PATH_MAX];
+      sprintf(fname, "%s%sSRF.%d", outdir, separator, u.rdate);
+      subf.open(fname, std::ios::binary);
+      if (! subf.good()) return -1;
+
+      subf.seekg (0, std::ios::end);
+      subsize = subf.tellg();
+      subf.seekg (0, std::ios::beg);
+      if (subsize < readsize)
+      {
+        u.nfiles = 0;
+        delete [] storage;
+        storage = 0;
+        subf.close();
+        return 1;
+      }
+      u.nfiles--;
+    }
+    else
+    {
+      delete [] storage;
+      storage = 0;
+      subf.close();
+      return 1;
+    }
   }
   subf.read(storage, readsize);
   if (doseq)
@@ -1234,10 +1364,39 @@ int rcmio::rad_read_tstep(raddata &r)
   size_t pos = radf.tellg( );
   if (pos+readsize > radsize)
   {
-    delete [] storage;
-    storage = 0;
-    radf.close();
-    return 1;
+    if (r.nfiles > 0)
+    {
+      radf.close( );
+      // Add one month
+      r.rdate = r.rdate + 10000;
+      if ( (r.rdate-(r.rdate/1000000*1000000)>120000) )
+        r.rdate = r.rdate+1000000-120000;
+      // Open BC file
+      char fname[PATH_MAX];
+      sprintf(fname, "%s%sSRF.%d", outdir, separator, r.rdate);
+      radf.open(fname, std::ios::binary);
+      if (! radf.good()) return -1;
+
+      radf.seekg (0, std::ios::end);
+      radsize = radf.tellg();
+      radf.seekg (0, std::ios::beg);
+      if (radsize < readsize)
+      {
+        r.nfiles = 0;
+        delete [] storage;
+        storage = 0;
+        radf.close();
+        return 1;
+      }
+      r.nfiles--;
+    }
+    else
+    {
+      delete [] storage;
+      storage = 0;
+      radf.close();
+      return 1;
+    }
   }
   radf.read(storage, readsize);
   if (doseq)
@@ -1285,10 +1444,39 @@ int rcmio::che_read_tstep(chedata &c)
   size_t pos = chef.tellg( );
   if (pos+readsize > chesize)
   {
-    delete [] storage;
-    storage = 0;
-    chef.close();
-    return 1;
+    if (c.nfiles > 0)
+    {
+      chef.close( );
+      // Add one month
+      c.rdate = c.rdate + 10000;
+      if ( (c.rdate-(c.rdate/1000000*1000000)>120000) )
+        c.rdate = c.rdate+1000000-120000;
+      // Open BC file
+      char fname[PATH_MAX];
+      sprintf(fname, "%s%sSRF.%d", outdir, separator, c.rdate);
+      chef.open(fname, std::ios::binary);
+      if (! chef.good()) return -1;
+
+      chef.seekg (0, std::ios::end);
+      chesize = chef.tellg();
+      chef.seekg (0, std::ios::beg);
+      if (chesize < readsize)
+      {
+        c.nfiles = 0; 
+        delete [] storage;
+        storage = 0;
+        chef.close();
+        return 1;
+      }
+      c.nfiles--;
+    }
+    else
+    {
+      delete [] storage;
+      storage = 0;
+      chef.close();
+      return 1;
+    }
   }
   chef.read(storage, readsize);
   if (doseq)

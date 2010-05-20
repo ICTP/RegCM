@@ -214,6 +214,7 @@ namespace rcm
       float *swt;
       float *rno;
       int date0;
+      int date1;
       float dt;
       size_t datasize;
       int n3D;
@@ -222,6 +223,8 @@ namespace rcm
       size_t size2D;
       int nvals;
       char *buffer;
+      int rdate;
+      int nfiles;
   };
 
   class raddata {
@@ -243,6 +246,7 @@ namespace rcm
       float *firtp;
       float *psa;
       int date0;
+      int date1;
       float dt;
       size_t datasize;
       int n2D;
@@ -251,6 +255,8 @@ namespace rcm
       size_t size3D;
       int nvals;
       char *buffer;
+      int rdate;
+      int nfiles;
   };
 
   class chedata {
@@ -266,6 +272,7 @@ namespace rcm
       float *acstsrrf;
       float *psa;
       int date0;
+      int date1;
       float dt;
       size_t datasize;
       int n2D;
@@ -275,6 +282,8 @@ namespace rcm
       int nvals;
       int ntr;
       char *buffer;
+      int rdate;
+      int nfiles;
   };
 
   class subdata {
@@ -297,12 +306,15 @@ namespace rcm
       float *prcv;
       float *psb;
       int date0;
+      int date1;
       float dt;
       size_t datasize;
       int n2D;
       size_t size2D;
       int nvals;
       char *buffer;
+      int rdate;
+      int nfiles;
   };
 
   class srfdata {
