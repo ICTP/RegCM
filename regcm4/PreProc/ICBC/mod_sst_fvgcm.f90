@@ -94,7 +94,7 @@
         stop
       end if
       write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
-        &  'SST.RCM'
+        &  '_SST.RCM'
       open (21,file=sstfile,form='unformatted',status='replace')
  
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?

@@ -291,7 +291,7 @@
 
       stop
  100  continue
-      print * , 'ERROR OPENING SST.RCM FILE'
+      print * , 'ERROR OPENING ', trim(sstfile)
       stop '4810 IN PROGRAM ICBC'
 99001 format (a,a,a,a)
 99002 format (a,a,a,a,i10)
