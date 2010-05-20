@@ -133,7 +133,6 @@ int main(int argc, char *argv[])
     char *experiment = strdup(inpf.valuec("domname"));
     char dominfo[PATH_MAX];
 
-    std::cout << inpf.valuec("dirter") << std::endl;
     sprintf(dominfo, "%s%s%s.INFO", inpf.valuec("dirter"),
             separator, experiment);
     std::cout << "Opening " << dominfo << std::endl;
