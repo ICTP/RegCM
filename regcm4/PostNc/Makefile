@@ -27,10 +27,18 @@ all:: dom2netcdf icbc2netcdf rcm2netcdf
 	@cp dom2netcdf icbc2netcdf rcm2netcdf $(BINDIR)
 	@echo Programs all installed in $(BINDIR)
 
-CPPFLAGS = -I. $(NETCDFINC) $(SVNDEF)
 LIBS = $(CXXNETCDF)
 
+ifeq ($(AIXSP6),1)
+OBJS = rcminp.o  getopt_long.o rcmio.o rcmNc.o calc.o gradsctl.o
+CPPFLAGS = -I. $(NETCDFINC) $(CXXSVN) -Ilibgetopt
+else
 OBJS = rcminp.o rcmio.o rcmNc.o calc.o gradsctl.o
+CPPFLAGS = -I. $(NETCDFINC) $(SVNDEF)
+endif
+
+getopt_long.o: libgetopt/getopt_long.c
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DREPLACE_GETOPT -c $<
 
 gradsctl.o: gradsctl.cpp gradsctl.h
 

@@ -64,9 +64,10 @@ F90 = xlf90
 
 # Set the C++ compiler here 
 CXX = xlC
+AIXSP6 = 1
 
 # Compilation flags for C++
-CXXFLAGS = -O2
+CXXFLAGS = -O2 -g  
 
 # Set the MPI Fortran 90 compiler here
 MPIF90 = mpxlf90
@@ -79,3 +80,4 @@ LDFLAGS =
 # You should not change the lines below unless you are a developer
 
 SVNDEF := -WF,-D'SVN_REV="$(shell svnversion -n .)"'
+CXXSVN := -D'SVN_REV="$(shell svnversion -n .)"'
