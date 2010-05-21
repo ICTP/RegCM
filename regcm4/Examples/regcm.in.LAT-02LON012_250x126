@@ -1,0 +1,130 @@
+&dimparam
+ iy     = 250,
+ jx     = 256,
+ kz     = 18,
+ nsg    = 1,
+ /
+ &geoparam
+ iproj = 'NORMER',
+ ds = 50.0,
+ ptop = 5.0,
+ clat = -2.00,
+ clon = 12.00,
+ plat = -2.00,
+ plon = 12.00,
+ truelatl = 30.0,
+ truelath = 60.0,
+ /
+ &terrainparam
+ domname = 'LAT-02LON012_250x126',
+ itype_in = 1,
+ ntypec = 10,
+ ntypec_s = 10,
+ ifanal = .true.,
+ smthbdy = .false.,
+ lakadj = .false.,
+ fudge_lnd   = .false.,
+ fudge_lnd_s = .false.,
+ fudge_tex   = .false.,
+ fudge_tex_s = .false.,
+ ntex = 17,
+ h2opct = 75.,
+ dirter = '../../Input/',
+ inpter = '../../PreProc/DATA/',
+ /
+ &ioparam
+ igrads = 1,
+ ibigend = 1,
+ ibyte = 4,
+ iotyp = 1,
+ /
+ &debugparam
+ debug_level = 1
+ /
+ &boundaryparam
+ nspgx  = 12,
+ nspgd  = 12,
+ /
+ &modesparam
+ nsplit = 2,
+ /
+ &lakemodparam
+ lkpts  = 10,
+ /
+ &globdatparam
+ ssttyp = 'OI_WK',
+ dattyp = 'EIN15',
+ ehso4 = .false.,
+ globidate1 = 1989010100,
+ globidate2 = 1990010200,
+ dirglob = '../../Input',
+ inpglob = '../../PreProc/DATA/',
+ /
+ &lsmparam
+ lsmtyp = 'BATS',
+ /
+ &aerosolparam
+ aertyp = 'AER00D0'
+ ntr = 10,
+ nbin = 4,
+ /
+ &restartparam
+ ifrest  = .false. ,
+ idate0  = 1989010100,
+ idate1  = 1989010100,
+ idate2  = 1989020100,
+ nslice  =        120,
+ /
+ &timeparam
+ radfrq  =    30.,
+ abemh   =    18.,
+ abatm   =   600.,
+ dt      =   150.,
+ ibdyfrq =          6,
+ /
+ &outparam
+ ifsave  = .true. ,
+   savfrq  =    48.,
+ iftape  = .true. ,
+   tapfrq  =     6.,
+ ifrad   = .true. ,
+   radisp  =     6.,
+ ifbat   = .true. ,
+ ifsub   = .true. ,
+   batfrq  =     3.,
+ ifprt   = .false.,
+   prtfrq  =    12.,
+   kxout   =          6,
+   jxsex   =         40,
+ ifchem  = .true.,
+   chemfrq =     6.,
+ /
+ &physicsparam
+ iboudy  =          5,
+ ibltyp  =          1,
+ icup    =          4,
+   igcc    =          1,
+ ipptls  =          1,
+ iocnflx =          2,
+ ipgf    =          0,
+ iemiss  =          0,
+ lakemod =          0,
+ ichem   =          1,
+ /
+ &subexparam
+ qck1land=   .250E-03,
+ qck1oce =   .250E-03,
+ cevap   =   .100E-02,
+ caccr   =      3.000,
+ /
+ &grellparam
+ /
+ &emanparam
+ /
+ &chemparam
+ idirect   =    1,
+ inpchtrname  =   '',
+ inpchtrsol   =   .00,
+ inpchtrdpv   =  .00000, .00000,
+ inpdustbsiz  =   .00,  .00,
+ /
