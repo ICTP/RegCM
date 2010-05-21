@@ -29,8 +29,8 @@
  fudge_tex_s = .false.,
  ntex = 17,
  h2opct = 75.,
- dirter = '../../Input/',
- inpter = '../../PreProc/DATA/',
+ dirter = '/set/this/to/where/your/domain/file/is',
+ inpter = '/set/this/to/where/your/surface/dataset/is',
  /
  &ioparam
  igrads = 1,
@@ -57,8 +57,8 @@
  ehso4 = .false.,
  globidate1 = 1989010100,
  globidate2 = 1990010200,
- dirglob = '../../Input',
- inpglob = '../../PreProc/DATA/',
+ dirglob = '/set/this/to/where/your/input/global/data/is',
+ inpglob = '/set/this/to/where/your/icbc/for/model/is',
  /
  &lsmparam
  lsmtyp = 'BATS',
@@ -98,6 +98,7 @@
    jxsex   =         40,
  ifchem  = .true.,
    chemfrq =     6.,
+ dirout = '/set/this/to/where/your/output/files/will/be/written',
  /
  &physicsparam
  iboudy  =          5,
@@ -109,7 +110,7 @@
  ipgf    =          0,
  iemiss  =          0,
  lakemod =          0,
- ichem   =          1,
+ ichem   =          0,
  /
  &subexparam
  qck1land=   .250E-03,
