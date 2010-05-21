@@ -50,7 +50,7 @@
       use mod_date , only : dectim , mdate , mdate0 , mmrec , ldatez ,  &
                    & idate1 , lyear , lmonth , lday , lhour , ndate0 ,  &
                    & ndate1 , nnnchk , jyear , jyear0, jyearr, ntime ,  &
-                   & ktau , ktaur , xtime
+                   & ktau , ktaur , xtime , globidate1
       use mod_radbuf
       use mod_tmpsav
       use mod_constants , only : rgti
@@ -158,8 +158,15 @@
 
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
-             & ((ndate0/10000)*100+1)*100
+        if (ndate0.eq.globidate1 .or.                                   &
+           (((ndate0/10000)*100+1)*100 .eq.                             &
+           ((globidate1/10000)*100+1)*100 ) ) then
+          write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',&
+               & globidate1
+        else
+          write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',&
+               & ((ndate0/10000)*100+1)*100
+        end if
         inquire (file=finm,exist=existing)
         if (.not.existing) then
           write (aline,*) 'The following ICBC File does not exist: ' ,  &
@@ -173,8 +180,15 @@
         mmrec = 0
       end if
 #else
-      write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',    &
+      if (ndate0.eq.globidate1 .or.                                     &
+         (((ndate0/10000)*100+1)*100 .eq.                               &
+         ((globidate1/10000)*100+1)*100 ) ) then
+        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
+             & globidate1
+      else
+        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
              & ((ndate0/10000)*100+1)*100
+      end if
       inquire(file=finm,exist=existing)
         if (.not.existing) then
           write (aline,*) 'The following IBC File does not exist: ' ,   &
