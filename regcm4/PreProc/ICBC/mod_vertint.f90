@@ -559,26 +559,44 @@
         do j = 1 , nj
           sc = (psrccm(i,j)+ptop)/100.
           k1 = 0
-          do k = 1 , kccm - 1
-            if ( sc<=sccm(k+1) .and. sc>=sccm(k) ) k1 = k
+
+          !TAO: Search through the GCM's levels from the top down
+          !to find where the sigma of the RCM's surface is just greater 
+          !than one of the GCM's sigmal levels.  Since sigma levels
+          !increase from the TOA downward, k1 should be equal to k
+          !until the GCM's level goes below the RCM's surface.  If this
+          !condition is not met, then assume that interpolation is
+          !happening at the upper boundary of the model.
+          do k = 1, kccm
+            if(sc > sccm(k))k1 = k
           end do
- 
+
+          !bugfix TAO: the below condition does not allow the RCM level
+          !to be below the GCM's lowest layer; no extrapolation can
+          !occur in this case.
+!          do k = 1 , kccm - 1
+!            if ( sc<=sccm(k+1) .and. sc>=sccm(k) ) k1 = k
+!          end do
+! 
           if ( k1==0 ) then
-            write ( 6,* ) 'Cannot interpolate to vertical level'
-            write ( 6,* ) 'Rise Ptop?'
+            write ( 6,* ) 'Error: the RCM surface is above the GCM'
+            write ( 6,* ) 'model top at i,j=',i,j
+            write ( 6,* ) 'This might reasonably happen if you have a'
+            write ( 6,* ) 'very tall mountain in your domain. Setting '
+            write ( 6,* ) 'ptop to a smaller value could help.'
+            write ( 6,* ) 'Otherwise, this indicates a bug somewhere...'
             write ( 6,* ) sc , ' => ', psrccm(i,j) , ', ', ptop
             stop
           end if
-!
-!         CONDITION FOR SC .GT. SCCM(KCCM) FOLLOWS
-!
-          if ( sc>sccm(kccm) ) then
+
+          !If the surface is below the GCM's lowest level,
+          !then extrapolate temperature
+          if ( k1 > kccm ) then
             a1 = rgas2*log(sc/sccm(kccm))
             fsccm(i,j) = fccm(i,j,kccm+1-kccm)*(b1-a1)/(b1+a1)
+          !Otherwise, interpolate the surface temperature between
+          !the two adjacent GCM levels
           else
-!
-!         CONDITION FOR SC .LT. SCCM(KCCM) FOLLOWS
-!
             kp1 = k1 + 1
             rc = log(sc/sccm(k1))/log(sccm(k1)/sccm(kp1))
             rc1 = rc + 1.
