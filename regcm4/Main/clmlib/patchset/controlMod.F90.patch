@@ -87,7 +87,7 @@
      fndepdyn    = ' '
      finidat     = ' '
 -    fpftcon     = ' '
-+    fpftcon     = '../Input/pft-physiology.c070207'
++    fpftcon     = trim(dirclm)//pthsep//'pft-physiology.c070207'
      frivinp_rtm = ' '
      fpftdyn     = ' '
      nrevsn      = ' '
