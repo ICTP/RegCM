@@ -2808,7 +2808,7 @@
 +            count(3) = 1
 +            count(4) = 1
 +            
-+            call getfil (trim(dirclm)//pthsep//trim(domname)//'_RCMsoitex.10level.nc", locfn, 0)
++            call getfil (trim(dirclm)//pthsep//trim(domname)//'_RCMsoitex.10level.nc', locfn, 0)
 +            call check_ret(nf_open(locfn, 0, ncid), subname)
 +
 +            if(.not.allocated(clm_soitex)) allocate(clm_soitex(nlat,nlon))
