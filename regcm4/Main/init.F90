@@ -50,7 +50,7 @@
       use mod_date , only : dectim , mdate , mdate0 , mmrec , ldatez ,  &
                    & idate1 , lyear , lmonth , lday , lhour , ndate0 ,  &
                    & ndate1 , nnnchk , jyear , jyear0, jyearr, ntime ,  &
-                   & ktau , ktaur , xtime , globidate1
+                   & ktau , ktaur , xtime 
       use mod_radbuf
       use mod_tmpsav
       use mod_constants , only : rgti

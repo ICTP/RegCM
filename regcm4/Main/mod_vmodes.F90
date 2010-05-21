@@ -140,8 +140,13 @@
 !      determine thermodynamic matrix
 !
 !  compute thetah
-!
-      thetah = tbarh*((sigmah+r8pt/pd)**(-rovcp))
+!  this array is never used: it is only computed and printed out 
+!  the  following line causes a segfault on IBM SP6 when compiled with -q check 
+!  because it uses F90 syntax arrays with different sizes  
+!  S.C. 21/05/2010
+!  I therefore decided to comment out this line 
+!      thetah = tbarh*((sigmah+r8pt/pd)**(-rovcp))
+
 !
 !  compute tbarf and thetaf
 !
