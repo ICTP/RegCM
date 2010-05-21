@@ -115,7 +115,10 @@ def main():
         try :
             compiler=int(raw_input("\n\tcompiler = "))
             if (1 <= compiler <= 5):
-                isnotint=False
+                if clm == 1 and compiler == 1:
+                    print "\tnSorry, GNU compilers are not supported by the CLM library!"
+                else :
+                    isnotint=False
             else :
                 print "\tPlease choose one of the available!"
         except:
@@ -178,13 +181,13 @@ def netcdf_search():
     if ncok:
         return ncpath
     else:
-        print "Unable to find a working NetCDF... please input a valid path."
-        ncpath=raw_input("ncpath = ")
+        print "\tUnable to find a working NetCDF... please input a valid path."
+        ncpath=raw_input("\tncpath = ")
         if (os.path.isfile(ncpath+"/lib/libnetcdf.a") or os.path.isfile(ncpath+"/lib/libnetcdf.so")) and (os.path.isfile(ncpath+"/include/netcdf.mod")):
-            print "NetCDF found in ",ncpath
+            print "\tNetCDF found in ",ncpath
             return ncpath
         else :
-            print "NetCDF not found! Cannot continue. Please provide a working NetCDF library."
+            print "\tNetCDF not found! Cannot continue. Please provide a working NetCDF library."
             os.sys.exit(1)
 
 def choose_template(regcm_root,compiler,dbg):
