@@ -79,7 +79,7 @@
  radfrq  =    30.,
  abemh   =    18.,
  abatm   =   600.,
- dt      =   150.,
+ dt      =   100.,
  ibdyfrq =          6,
  /
  &outparam
@@ -98,6 +98,7 @@
    jxsex   =         40,
  ifchem  = .true.,
    chemfrq =     6.,
+ dirout='./output'
  /
  &physicsparam
  iboudy  =          5,
@@ -109,7 +110,7 @@
  ipgf    =          0,
  iemiss  =          0,
  lakemod =          0,
- ichem   =          1,
+ ichem   =          0,
  /
  &subexparam
  qck1land=   .250E-03,

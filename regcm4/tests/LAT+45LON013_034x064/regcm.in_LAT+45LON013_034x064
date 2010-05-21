@@ -98,6 +98,7 @@
    jxsex   =         40,
  ifchem  = .false.,
    chemfrq =     6.,
+ dirout='./output'
  /
  &physicsparam
  iboudy  =          5,
