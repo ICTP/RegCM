@@ -83,6 +83,7 @@
 ! Local variables
 !
       character(14) :: fillin
+      character(256) :: inpfile
       integer :: i , idatek , j , k , mn0 , mn1 , nd0 , nd1 , nh0 ,     &
                & nh1 , nmop , ny0 , ny1 , nyrp
       logical :: there
@@ -95,21 +96,19 @@
 !
       if ( idate==idate0 ) then
         write (fillin,99001) idate
-        inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
+        inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
+        inquire (file=inpfile,exist=there)
         if ( .not.there ) then
-          write (*,*) trim(inpglob)//'/RegCM/'//fillin ,                &
-           &    ' is not available'
-          write (*,*) 'please copy (or link)' , fillin
+          write (*,*) trim(inpfile), ' is not available'
+          write (*,*) 'please copy (or link)' , trim(inpfile)
           stop
         end if
         if ( iotyp_in==1 ) then
-          open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
-              & form='unformatted',recl=iy_in*jx_in*ibyte,              &
-              & access='direct')
+          open (55,file=trim(inpfile),form='unformatted',               &
+              & recl=iy_in*jx_in*ibyte,access='direct')
           nrec = 0
         else if ( iotyp_in==2 ) then
-          open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
-              & form='unformatted')
+          open (55,file=trim(inpfile),form='unformatted')
           rewind (55)
         else
         end if
@@ -126,38 +125,35 @@
  
         if ( ny0==ny1 .and. mn0==mn1 ) then
           write (fillin,99001) idate0
-          inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
+          inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
+          inquire (file=trim(inpfile),exist=there)
           if ( .not.there ) then
-            write (*,*) trim(inpglob)//'/RegCM/'//fillin ,              &
-             &          ' is not available'
-            write (*,*) 'please copy (or link)' , fillin
+            write (*,*) trim(inpfile), ' is not available'
+            write (*,*) 'please copy (or link)' , trim(inpfile)
             stop
           end if
           if ( iotyp_in==1 ) then
-            open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
-                & form='unformatted',recl=iy_in*jx_in*ibyte,            &
-                & access='direct')
+            open (55,file=trim(inpfile),form='unformatted',             &
+                & recl=iy_in*jx_in*ibyte,access='direct')
             nrec = ((nd1-nd0)*4+(nh1-nh0)/6)*(kl*6+5)
           else if ( iotyp_in==2 ) then
-            open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
-                & form='unformatted')
+            open (55,file=trim(inpfile),form='unformatted')
             rewind (55)
           else
           end if
         else if ( nd1==1 .and. nh1==0 ) then
           if ( (ny1-ny0)*12+(mn1-mn0)==1 ) then
             write (fillin,99001) idate0
-            inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
+            inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
+            inquire (file=trim(inpfile),exist=there)
             if ( .not.there ) then
-              write (*,*) trim(inpglob)//'/RegCM/'//fillin ,            &
-                     &   ' is not available'
-              write (*,*) 'please copy (or link)' , fillin
+              write (*,*) trim(inpfile), ' is not available'
+              write (*,*) 'please copy (or link)' , trim(inpfile)
               stop
             end if
             if ( iotyp_in==1 ) then
-              open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
-                 &  form='unformatted',recl=iy_in*jx_in*ibyte,          &
-                 &  access='direct')
+              open (55,file=trim(inpfile),form='unformatted',           &
+                 &  recl=iy_in*jx_in*ibyte,access='direct')
               if ( mn0==1 .or. mn0==3 .or. mn0==5 .or. mn0==7 .or.      &
                  & mn0==8 .or. mn0==10 .or. mn0==12 ) then
                 nrec = (124-(nd0-1)*4+nh0/6)*(kl*6+5)
@@ -172,8 +168,7 @@
                 nrec = nrec*(kl*6+5)
               end if
             else if ( iotyp_in==2 ) then
-              open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
-                 &  form='unformatted')
+              open (55,file=trim(inpfile),form='unformatted')
               rewind (55)
             else
             end if
@@ -183,17 +178,16 @@
             else
               write (fillin,99001) (ny1-1)*1000000 + 120100
             end if
-            inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
+            inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
+            inquire (file=trim(inpfile),exist=there)
             if ( .not.there ) then
-              write (*,*) trim(inpglob)//'/RegCM/'//fillin ,            &
-                 &        ' is not available'
-              write (*,*) 'please copy (or link)' , fillin
+              write (*,*) trim(inpfile), ' is not available'
+              write (*,*) 'please copy (or link)' , trim(inpfile)
               stop
             end if
             if ( iotyp_in==1 ) then
-              open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
-                &   form='unformatted',recl=iy_in*jx_in*ibyte,          &
-                &   access='direct')
+              open (55,file=trim(inpfile),form='unformatted',           &
+                  & recl=iy_in*jx_in*ibyte,access='direct')
               if ( mn0==1 .or. mn0==3 .or. mn0==5 .or. mn0==7 .or.      &
                  & mn0==8 .or. mn0==10 .or. mn0==12 ) then
                 nrec = 123*(kl*6+5)
@@ -208,29 +202,26 @@
                 nrec = nrec*(kl*6+5)
               end if
             else if ( iotyp_in==2 ) then
-              open (55,file=trim(inpglob)//'/RegCM/'//fillin,           &
-                  & form='unformatted')
+              open (55,file=trim(inpfile),form='unformatted')
               rewind (55)
             else
             end if
           end if
         else
           write (fillin,99001) ny1*1000000 + mn1*10000 + 100
-          inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
+          inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
+          inquire (file=trim(inpfile),exist=there)
           if ( .not.there ) then
-            write (*,*) trim(inpglob)//'/RegCM/'//fillin ,              &
-               &        ' is not available'
-            write (*,*) 'please copy (or link)' , fillin
+            write (*,*) trim(inpfile), ' is not available'
+            write (*,*) 'please copy (or link)' , trim(inpfile)
             stop
           end if
           if ( iotyp_in==1 ) then
-            open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
-                & form='unformatted',recl=iy_in*jx_in*ibyte,            &
-                & access='direct')
+            open (55,file=trim(inpfile),form='unformatted',             &
+                & recl=iy_in*jx_in*ibyte,access='direct')
             nrec = ((nd1-1)*4+nh1/6-1)*(kl*6+5)
           else if ( iotyp_in==2 ) then
-            open (55,file=trim(inpglob)//'/RegCM/'//fillin,             &
-               &  form='unformatted')
+            open (55,file=trim(inpfile),form='unformatted')
             rewind (55)
           else
           end if
@@ -238,7 +229,7 @@
       else
       end if
 
-      write (6,*) 'Open ATM file: ', trim(inpglob)//'/RegCM/'//fillin
+      ! write (6,*) 'Open ATM file: ', trim(inpfile)
  
       if ( iotyp_in==1 ) then
         if ( idate/=globidate1 .and. mod(idate,10000)==100 .and.        &
@@ -308,27 +299,26 @@
       else
       end if
       write (*,*) 'READ IN fields at DATE:' , idatek , ' from ' , fillin
+
       if ( idate/=globidate1 .and. mod(idate,10000)==100 .and. ncr==1 ) then
         write (fillin,99001) idate
-        inquire (file=trim(inpglob)//'/RegCM/'//fillin,exist=there)
+        inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
+        inquire (file=trim(inpfile),exist=there)
         if ( .not.there ) then
-          write (*,*) trim(inpglob)//'/RegCM/'//fillin ,                &
-               &      ' is not available'
-          write (*,*) 'please copy (or link)' , fillin
+          write (*,*) trim(inpfile), ' is not available'
+          write (*,*) 'please copy (or link)' , trim(inpfile)
           stop
         end if
         if ( iotyp_in==1 ) then
-          open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
-              & form='unformatted',recl=iy_in*jx_in*ibyte,              &
-              & access='direct')
+          open (55,file=trim(inpfile),form='unformatted',               &
+              & recl=iy_in*jx_in*ibyte,access='direct')
           nrec = 0
         else if ( iotyp_in==2 ) then
-          open (55,file=trim(inpglob)//'/RegCM/'//fillin,               &
-              & form='unformatted')
+          open (55,file=trim(inpfile),form='unformatted')
           rewind (55)
         else
         end if
-!       WRITE(*,*) 'Open ATM file:', fillin
+!       WRITE(*,*) 'Open ATM file:', trim(inpfile)
       end if
 !
 !     to calculate Heights on sigma surfaces.
@@ -437,11 +427,12 @@
       subroutine headnest
       use mod_grid
       use mod_interp, only : imxmn , lcross , ldot
+      use mod_constants , only : degrad
       implicit none
 !
 ! Local variables
 !
-      real(4) :: d2r , dtb , dtc , dto , dtr , dxsp , ptsp , xsign ,    &
+      real(4) :: dtb , dtc , dto , dtr , dxsp , ptsp , xsign ,          & 
             & truelat1 , truelat2
       integer :: ibltyp , iboudy , icup , ipptls , k
       integer :: ias
@@ -480,6 +471,9 @@
                     & jx_in , kl
       close (49)
 
+      iy_in = iy_in - 2
+      jx_in = jx_in - 2
+
 !     Reserve space for I/O
 
       allocate(sigf(kl+1), stat=ias)
@@ -517,20 +511,21 @@
                     & iproj_in , dto , dtb , dtr , dtc ,   &
                     & iotyp_in , truelat1 , truelat2
       ptop_in = ptsp*10.
+      iy_in = iy_in - 2
+      jx_in = jx_in - 2
       if ( iproj_in=='LAMCON' ) then
-        d2r = atan(1.)*4./180.
         if ( clat_in<0. ) then
           xsign = -1.       ! SOUTH HEMESPHERE
         else
           xsign = 1.        ! NORTH HEMESPHERE
         end if
         if ( abs(truelat1-truelat2)>1.E-1 ) then
-          grdfac = (alog10(cos(truelat1*d2r))                           &
-                   & -alog10(cos(truelat2*d2r)))                        &
-                   & /(alog10(tan((45.0-xsign*truelat1/2.0)*d2r))       &
-                   & -alog10(tan((45.0-xsign*truelat2/2.0)*d2r)))
+          grdfac = (log10(cos(truelat1*degrad))                         &
+                   & -log10(cos(truelat2*degrad)))                      &
+                   & /(log10(tan((45.0-xsign*truelat1/2.0)*degrad))     &
+                   & -log10(tan((45.0-xsign*truelat2/2.0)*degrad)))
         else
-          grdfac = xsign*sin(truelat1*d2r)
+          grdfac = xsign*sin(truelat1*degrad)
         end if
       else if ( iproj_in=='POLSTR' ) then
         grdfac = 1.0

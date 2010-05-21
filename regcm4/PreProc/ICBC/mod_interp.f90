@@ -21,6 +21,7 @@
  
       real(4) :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx ,  &
             &    glonmn , glonmx
+      real(4) :: dlatmax , dlonmax
       integer :: imxmn , lcross , ldot
 
       real(4) , allocatable , dimension(:,:) :: dc1xa , dc1xb , dc1xc , &
@@ -350,38 +351,16 @@
 !     Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
 !
       if ( imxmn==0 ) then
-        glonmx = -361.
-        glonmn = 361.
-        do n = 1 , nlat
-          do m = 1 , nlon
-            if ( glonmx<glon(m,n) ) glonmx = glon(m,n)
-            if ( glonmn>glon(m,n) ) glonmn = glon(m,n)
-          end do
-        end do
-        alonmx = -361.
-        alonmn = 361.
-        do j = 1 , iy
-          do i = 1 , jx
-            if ( alonmx<alon(i,j) ) alonmx = alon(i,j)
-            if ( alonmn>alon(i,j) ) alonmn = alon(i,j)
-          end do
-        end do
-        glatmx = -91.
-        glatmn = 91.
-        do n = 1 , nlat
-          do m = 1 , nlon
-            if ( glatmx<glat(m,n) ) glatmx = glat(m,n)
-            if ( glatmn>glat(m,n) ) glatmn = glat(m,n)
-          end do
-        end do
-        alatmx = -91.
-        alatmn = 91.
-        do j = 1 , iy
-          do i = 1 , jx
-            if ( alatmx<alat(i,j) ) alatmx = alat(i,j)
-            if ( alatmn>alat(i,j) ) alatmn = alat(i,j)
-          end do
-        end do
+        glonmx = maxval(glon)
+        glonmn = minval(glon)
+        alonmx = maxval(alon)
+        alonmn = minval(alon)
+        glatmx = maxval(glat)
+        glatmn = minval(glat)
+        alatmx = maxval(alat)
+        alatmn = minval(alat)
+        dlatmax = (glatmx-glatmn)/nlat * 2.
+        dlonmax = (glonmx-glonmn)/nlon * 2.
         write (*,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
         write (*,*) glonmn , alonmn , alonmx , glonmx
         write (*,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
@@ -404,7 +383,7 @@
         if (.not. allocated(dc1xd)) allocate (dc1xd(jx,iy))
         if (.not. allocated(dc1xt)) allocate (dc1xt(jx,iy))
         write ( 6,* ) 'FIRST TIME in CRESSMCR'
-        write ( 6,* ) 'Calculating weights....'
+        write ( 6,* ) 'Calculating weights.... (will take long time)'
         do j = 1 , iy
           do i = 1 , jx
  
@@ -424,9 +403,9 @@
             do n = 2 , nlat
               do m = 2 , nlon
                 if ( (glon(m,n)>=alon(i,j) .and.                        &
-                   &  glon(m,n)-alon(i,j) < 10. ) .and.                 &
+                   &  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
                    & (glat(m,n)>=alat(i,j) .and.                        &
-                   &  glat(m,n)-alat(i,j) <10. ) ) then
+                   &  glat(m,n)-alat(i,j) < dlatmax ) ) then
                   aaa = ((glon(m,n)-alon(i,j)) *                        &
                       & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
                       & (glat(m,n)-alat(i,j))**2
@@ -437,9 +416,9 @@
                   end if
                 end if
                 if ( (glon(m,n)<alon(i,j) .and.                         &
-                   &  alon(i,j)-glon(m,n) < 10.) .and.                  &
+                   &  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
                    & (glat(m,n)>=alat(i,j) .and.                        &
-                   &  glat(m,n)-alat(i,j) < 10.) ) then
+                   &  glat(m,n)-alat(i,j) < dlatmax ) ) then
                   aaa = ((glon(m,n)-alon(i,j)) *                        &
                       & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
                       & (glat(m,n)-alat(i,j))**2
@@ -450,9 +429,9 @@
                   end if
                 end if
                 if ( (glon(m,n)>=alon(i,j) .and.                        &
-                   &  glon(m,n)-alon(i,j) < 10. ) .and.                 &
+                   &  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
                    & (glat(m,n)<alat(i,j) .and.                         &
-                   &  alat(i,j)-glat(m,n) < 10. ) ) then
+                   &  alat(i,j)-glat(m,n) < dlatmax ) ) then
                   aaa = ((glon(m,n)-alon(i,j)) *                        &
                       & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
                       & (glat(m,n)-alat(i,j))**2
@@ -463,9 +442,9 @@
                   end if
                 end if
                 if ( (glon(m,n)<alon(i,j) .and.                         &
-                   &  alon(i,j)-glon(m,n) < 10. ) .and.                 &
+                   &  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
                    & (glat(m,n)<alat(i,j) .and.                         &
-                   &  alat(i,j)-glat(m,n) < 10. ) ) then
+                   &  alat(i,j)-glat(m,n) < dlatmax ) ) then
                   aaa = ((glon(m,n)-alon(i,j)) *                        &
                       & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
                       & (glat(m,n)-alat(i,j))**2
@@ -611,44 +590,23 @@
 !     Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
 !
       if ( imxmn==0 ) then
-        glonmx = -361.
-        glonmn = 361.
-        do n = 1 , nlat
-          do m = 1 , nlon
-            if ( glonmx<glon(m,n) ) glonmx = glon(m,n)
-            if ( glonmn>glon(m,n) ) glonmn = glon(m,n)
-          end do
-        end do
-        alonmx = -361.
-        alonmn = 361.
-        do j = 1 , iy
-          do i = 1 , jx
-            if ( alonmx<alon(i,j) ) alonmx = alon(i,j)
-            if ( alonmn>alon(i,j) ) alonmn = alon(i,j)
-          end do
-        end do
-        glatmx = -91.
-        glatmn = 91.
-        do n = 1 , nlat
-          do m = 1 , nlon
-            if ( glatmx<glat(m,n) ) glatmx = glat(m,n)
-            if ( glatmn>glat(m,n) ) glatmn = glat(m,n)
-          end do
-        end do
-        alatmx = -91.
-        alatmn = 91.
-        do j = 1 , iy
-          do i = 1 , jx
-            if ( alatmx<alat(i,j) ) alatmx = alat(i,j)
-            if ( alatmn>alat(i,j) ) alatmn = alat(i,j)
-          end do
-        end do
+        glonmx = maxval(glon)
+        glonmn = minval(glon)
+        alonmx = maxval(alon)
+        alonmn = minval(alon)
+        glatmx = maxval(glat)
+        glatmn = minval(glat)
+        alatmx = maxval(alat)
+        alatmn = minval(alat)
+        dlatmax = (glatmx-glatmn)/nlat * 2.
+        dlonmax = (glonmx-glonmn)/nlon * 2.
         write (*,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
         write (*,*) glonmn , alonmn , alonmx , glonmx
         write (*,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
         write (*,*) glatmn , alatmn , alatmx , glatmx
         imxmn = 1
       end if
+
       if ( ldot==0 ) then
         if (.not. allocated(id1dl)) allocate (id1dl(jx,iy))
         if (.not. allocated(id1dr)) allocate (id1dr(jx,iy))
@@ -664,7 +622,7 @@
         if (.not. allocated(dd1xd)) allocate (dd1xd(jx,iy))
         if (.not. allocated(dd1xt)) allocate (dd1xt(jx,iy))
         write ( 6,* ) 'FIRST TIME in CRESSMDT'
-        write ( 6,* ) 'Calculating weights....'
+        write ( 6,* ) 'Calculating weights.... (will take long time)'
         do j = 1 , iy
           do i = 1 , jx
  
@@ -684,9 +642,9 @@
             do n = 2 , nlat
               do m = 2 , nlon
                 if ( (glon(m,n)>=alon(i,j) .and.                        &
-                   &  glon(m,n)-alon(i,j) < 10. ) .and.                 &
+                   &  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
                    & (glat(m,n)>=alat(i,j) .and.                        &
-                   &  glat(m,n)-alat(i,j) < 10. ) ) then
+                   &  glat(m,n)-alat(i,j) < dlatmax ) ) then
                   aaa = ((glon(m,n)-alon(i,j)) *                        &
                       & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
                       & (glat(m,n)-alat(i,j))**2
@@ -697,9 +655,9 @@
                   end if
                 end if
                 if ( (glon(m,n)<alon(i,j) .and.                         &
-                   &  alon(i,j)-glon(m,n) < 10. ) .and.                 &
+                   &  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
                    & (glat(m,n)>=alat(i,j) .and.                        &
-                   &  glat(m,n)-alat(i,j) < 10. ) ) then
+                   &  glat(m,n)-alat(i,j) < dlatmax ) ) then
                   aaa = ((glon(m,n)-alon(i,j)) *                        &
                       & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
                       & (glat(m,n)-alat(i,j))**2
@@ -710,9 +668,9 @@
                   end if
                 end if
                 if ( (glon(m,n)>=alon(i,j) .and.                        &
-                   &  glon(m,n)-alon(i,j) < 10. ) .and.                 &
+                   &  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
                    & (glat(m,n)<alat(i,j) .and.                         &
-                   &  alat(i,j)-glat(m,n) < 10.) ) then
+                   &  alat(i,j)-glat(m,n) < dlatmax ) ) then
                   aaa = ((glon(m,n)-alon(i,j)) *                        &
                       & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
                       & (glat(m,n)-alat(i,j))**2
@@ -723,9 +681,9 @@
                   end if
                 end if
                 if ( (glon(m,n)<alon(i,j) .and.                         &
-                   &  alon(i,j)-glon(m,n) < 10. ) .and.                 &
+                   &  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
                    & (glat(m,n)<alat(i,j) .and.                         &
-                   &  alat(i,j)-glat(m,n) < 10. ) ) then
+                   &  alat(i,j)-glat(m,n) < dlatmax ) ) then
                   aaa = ((glon(m,n)-alon(i,j)) *                        &
                       & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
                       & (glat(m,n)-alat(i,j))**2
