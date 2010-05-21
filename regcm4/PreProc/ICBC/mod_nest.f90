@@ -343,9 +343,9 @@
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
       call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,iy,              &
-                  & jx_in,iy_in,np)
+                  & jx_in,iy_in,np,4)
       call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,iy,              &
-                  & jx_in,iy_in,np)
+                  & jx_in,iy_in,np,2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !

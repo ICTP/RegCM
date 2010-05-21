@@ -316,19 +316,19 @@
 !-----------------------------------------------------------------------
 !
       subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,    &
-                        & nlev)
+                        & nlev,nf)
       use mod_constants , only : degrad
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: iy , jx , nlat , nlev , nlon
+      integer :: iy , jx , nlat , nlev , nlon , nf
       real(4) , dimension(jx,iy) :: alat , alon
-      real(4) , dimension(jx,iy,nlev*4) :: b3
+      real(4) , dimension(jx,iy,nlev*nf) :: b3
       real(4) , dimension(nlon,nlat) :: glat , glon
-      real(4) , dimension(nlon,nlat,nlev*4) :: b2
+      real(4) , dimension(nlon,nlat,nlev*nf) :: b2
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
-                & nlev , nlon
+                & nlev , nlon , nf
       intent (out) b3
 !
 ! Local variables
@@ -485,7 +485,7 @@
             dc1xc(i,j) = distc
             dc1xd(i,j) = distd
 
-            do l = 1 , 4
+            do l = 1 , nf
               do k = 1 , nlev
                 kin = (l-1)*nlev+k
                 if ( dist>0.000001 ) then
@@ -527,7 +527,7 @@
             distc = dc1xc(i,j)
             distd = dc1xd(i,j)
  
-            do l = 1 , 4
+            do l = 1 , nf
               do k = 1 , nlev
                 kin = (l-1)*nlev+k
                 if ( dist>0.000001 ) then
@@ -556,19 +556,19 @@
 !-----------------------------------------------------------------------
 !
       subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,    &
-                        & nlev)
+                        & nlev,nf)
       use mod_constants , only : degrad
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: iy , jx , nlat , nlev , nlon
+      integer :: iy , jx , nlat , nlev , nlon , nf
       real(4) , dimension(jx,iy) :: alat , alon
-      real(4) , dimension(jx,iy,nlev*2) :: b3
+      real(4) , dimension(jx,iy,nlev*nf) :: b3
       real(4) , dimension(nlon,nlat) :: glat , glon
-      real(4) , dimension(nlon,nlat,nlev*2) :: b2
+      real(4) , dimension(nlon,nlat,nlev*nf) :: b2
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
-                & nlev , nlon
+                & nlev , nlon , nf
       intent (out) b3
 !
 ! Local variables
@@ -723,7 +723,7 @@
             dd1xb(i,j) = distb
             dd1xc(i,j) = distc
             dd1xd(i,j) = distd
-            do l = 1 , 2
+            do l = 1 , nf
               do k = 1 , nlev
                 kin = (l-1)*nlev+k
                 if ( dist>0.000001 ) then
@@ -746,6 +746,7 @@
           end do
         end do
         ldot = 1
+        write ( 6,* ) 'Done.'
       else
         do j = 1 , iy
           do i = 1 , jx
@@ -764,7 +765,7 @@
             distc = dd1xc(i,j)
             distd = dd1xd(i,j)
  
-            do l = 1 , 2
+            do l = 1 , nf
               do k = 1 , nlev
                 kin = (l-1)*nlev+k
                 if ( dist>0.000001 ) then
@@ -786,7 +787,6 @@
             end do
           end do
         end do
-        write ( 6,* ) 'Done.'
       end if
  
       end subroutine cressmdt
