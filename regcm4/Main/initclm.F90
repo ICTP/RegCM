@@ -685,53 +685,41 @@
             end do
           end if !end ifrest test
  
-          if ( aertyp/="AER00D0" ) then
-            veg2d(i,jj) = clm2bats_veg(j,i)
-            satbrt(i,jj) = clm2bats_veg(j,i)
-            if ( clm2bats_veg(j,i)==0 ) satbrt(i,jj) = 15
-!          if ( satbrt(i,jj).gt.13.9 .and. satbrt(i,jj).lt.15.1 ) then
-!            veg2d(i,jj) = 0
-!          else
-!            veg2d(i,jj) = satbrt(i,jj)
-!          end if
-          end if
-!          svegfrac2d(i,jj) = clm_fracveg(i,j)
-
           if ( landfrac(j,i)/=1. .and. landfrac(j,i)/=0. )              &
              &    landmask(j,i) = 3.
 
           ! Set some clm land surface/vegetation variables to the ones
           ! used in RegCM.  Make sure all are consistent  
 
-!          satbrt(i,jj) = clm2bats_veg(j,i)
-!          if ( clm2bats_veg(j,i).eq.0 ) satbrt(i,jj) = 15
-!          do n = 1 , nnsg
-!            satbrt1(n,i,jj) = clm2bats_veg(j,i)
-!            if ( clm2bats_veg(j,i).eq.0 ) satbrt1(n,i,jj) = 15
-!          end do
-!          if ( satbrt(i,jj).gt.13.9 .and. satbrt(i,jj).lt.15.1 ) then
-!            veg2d(i,jj)  = 0
-!            do n = 1 , nnsg
-!              veg2d1(n,i,jj)  = 0
-!            end do
-!          else
-!            veg2d(i,jj) = satbrt(i,jj)
-!            do n = 1 , nnsg
-!              veg2d1(n,i,jj)  = satbrt(i,jj)
-!            end do
-!          end if
+          satbrt(i,jj) = clm2bats_veg(j,i)
+          if ( clm2bats_veg(j,i).eq.0 ) satbrt(i,jj) = 15
+          do n = 1 , nnsg
+            satbrt1(n,i,jj) = clm2bats_veg(j,i)
+            if ( clm2bats_veg(j,i).eq.0 ) satbrt1(n,i,jj) = 15
+          end do
+          if ( satbrt(i,jj).gt.13.9 .and. satbrt(i,jj).lt.15.1 ) then
+            veg2d(i,jj)  = 0
+            do n = 1 , nnsg
+              veg2d1(n,i,jj)  = 0
+            end do
+          else
+            veg2d(i,jj) = satbrt(i,jj)
+            do n = 1 , nnsg
+              veg2d1(n,i,jj)  = satbrt(i,jj)
+            end do
+          end if
 !          svegfrac2d(i,jj) = clm_fracveg(i,j) 
-!          do n = 1 , nnsg
-!            if ( veg2d(i,jj).eq.0 .and. ocld2d(n,i,jj).eq.1 ) then
-!              veg2d(i,jj)     =  2
-!              veg2d1(n,i,jj)  =  2
-!              satbrt1(n,i,jj) =  2
-!              satbrt(i,jj)    =  2
-!            end if
-!          end do
-!          if ( landfrac(j,i).ne.1 .and. landfrac(j,i).ne.0 ) then
-!            landmask(j,i) = 3
-!          endif
+          do n = 1 , nnsg
+            if ( veg2d(i,jj).eq.0 .and. ocld2d(n,i,jj).eq.1 ) then
+              veg2d(i,jj)     =  2
+              veg2d1(n,i,jj)  =  2
+              satbrt1(n,i,jj) =  2
+              satbrt(i,jj)    =  2
+            end if
+          end do
+          if ( landfrac(j,i).ne.1 .and. landfrac(j,i).ne.0 ) then
+            landmask(j,i) = 3
+          endif
         end do
       end do
  
