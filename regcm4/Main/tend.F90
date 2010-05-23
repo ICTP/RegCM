@@ -1161,6 +1161,7 @@
         end do
       end do
 !
+
 #ifdef MPP1
       do j = jbegin , jendx
         if ( myid.ne.nproc-1 .or. j.ne.jendx ) then
@@ -1296,17 +1297,7 @@
 !       ****** calculate albedo
 #ifdef CLM
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
-           & .eq.0 ) then
-          do i = 1 , iym1
-            aldirs(i) = aldirs2d(i,j)
-            aldirl(i) = aldirl2d(i,j)
-            aldifs(i) = aldifs2d(i,j)
-            aldifl(i) = aldifl2d(i,j)
-            albvs(i)  = aldirs2d(i,j)
-            albvl(i)  = aldirl2d(i,j)
-          end do
-          call albedoclm(j)
-        end if
+           & .eq.0 ) call albedoclm(j,iemiss)
 #else
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
            & .eq.0 ) call albedov(j,iemiss)
