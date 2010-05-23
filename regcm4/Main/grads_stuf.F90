@@ -74,17 +74,17 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        do j = 1 , jx
+        do j = 2 , jx-1
 #ifdef MPP1
-          if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
-          if ( xlat_io(iy,j).gt.alatmax ) alatmax = xlat_io(iy,j)
+          if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+          if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
 #else
-          if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
-          if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
+          if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+          if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
 #endif
         end do
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 2 , iy-1
+          do j = 2 , jx-1
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -358,17 +358,17 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        do j = 1 , jx
+        do j = 2 , jx-1
 #ifdef MPP1
-          if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
-          if ( xlat_io(iy,j).gt.alatmax ) alatmax = xlat_io(iy,j)
+          if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+          if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
 #else
-          if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
-          if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
+          if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+          if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
 #endif
         end do
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 2 , iy-1
+          do j = 2 , jx-1
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -619,17 +619,17 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        do j = 1 , jx
+        do j = 2 , jx-1
 #ifdef MPP1
-          if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
-          if ( xlat_io(iy,j).gt.alatmax ) alatmax = xlat_io(iy,j)
+          if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+          if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
 #else
-          if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
-          if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
+          if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+          if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
 #endif
         end do
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 2 , iy-1
+          do j = 2 , jx-1
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -864,17 +864,17 @@
       end if
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        do j = 1 , jx
+        do j = 2 , jx-1
 #ifdef MPP1
-          if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
-          if ( xlat_io(iy,j).gt.alatmax ) alatmax = xlat_io(iy,j)
+          if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+          if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
 #else
-          if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
-          if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
+          if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+          if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
 #endif
         end do
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 2 , iy-1
+          do j = 2 , jx-1
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -1052,17 +1052,17 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        do j = 1 , jx
+        do j = 2 , jx-1
 #ifdef MPP1
-          if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
-          if ( xlat_io(iy,j).gt.alatmax ) alatmax = xlat_io(iy,j)
+          if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+          if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
 #else
-          if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
-          if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
+          if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+          if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
 #endif
         end do
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 2 , iy-1
+          do j = 2 , jx-1
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -1286,17 +1286,17 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
-        do j = 1 , jx
+        do j = 2 , jx-1
 #ifdef MPP1
-          if ( xlat_io(1,j).lt.alatmin ) alatmin = xlat_io(1,j)
-          if ( xlat_io(iy,j).gt.alatmax ) alatmax = xlat_io(iy,j)
+          if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+          if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
 #else
-          if ( xlat(1,j).lt.alatmin ) alatmin = xlat(1,j)
-          if ( xlat(iy,j).gt.alatmax ) alatmax = xlat(iy,j)
+          if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+          if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
 #endif
         end do
-        do i = 1 , iy
-          do j = 1 , jx
+        do i = 2 , iy-1
+          do j = 2 , jx-1
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
