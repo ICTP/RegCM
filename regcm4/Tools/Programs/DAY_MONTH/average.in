@@ -1,0 +1,25 @@
+&dimparam
+ iy = 80,
+ jx =108,
+ kz = 18,
+ nsg = 1,
+ ntr = 1,
+ ibyte = 4,
+/
+&dateparam
+ idate0 = 1989090100,
+ idate1 = 1989090100,
+ idate2 = 1991010100,
+/
+&averageparam
+ day_ICBC = .false.,
+ day_ATM = .true.,
+ day_RAD = .true.,
+ day_SRF = .true.,
+ day_CHE = .false.,
+ mon_ICBC = .false.,
+ mon_ATM = .true.,
+ mon_RAD = .true.,
+ mon_SRF = .true.,
+ mon_CHE = .false.,
+/
