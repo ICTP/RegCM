@@ -88,18 +88,17 @@ EXTRAOBJS = mod_culookup.o mod_co2.o printsp.o nconvp.o
 
 ifeq ($(USECLM),1)
   CPPFLAGS += -DCLM
-#  MODOBJS += mod_clm.o
   OBJS += initclm.o interfclm.o mod_clm.o mtrxclm.o solar1clm.o albedoclm.o
   LIB += -L$(CLMPTH) -lclm
 else
-ifeq ($(USEDCSST),1)
-  CPPFLAGS += -DDCSST
-  dcsstsuffix = _ds
-endif
 ifeq ($(USESEAICE),1)
   CPPFLAGS += -DSEAICE
   seaicesuffix = _si
 endif
+endif
+ifeq ($(USEDCSST),1)
+  CPPFLAGS += -DDCSST
+  dcsstsuffix = _ds
 endif
 
 program: regcm
@@ -216,7 +215,9 @@ mod_zengocn.o: mod_zengocn.F90 mod_bats.o mod_constants.o mod_date.o \
                mod_slice.o mod_dynparam.o mod_bdycod.o
 endif
 #
-albedoclm.o: albedoclm.F90 mod_bats.o mod_dynparam.o
+albedoclm.o: albedoclm.F90 mod_bats.o mod_dynparam.o \
+	$(CLMLIB)
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
 albedov.o: albedov.F90 mod_constants.o mod_bats.o mod_dynparam.o
 bdyin.o: bdyin.F90 mod_bats.o mod_bdycod.o mod_date.o mod_iunits.o mod_main.o \
          mod_param1.o mod_param3.o mod_dynparam.o mod_tmpsav.o
