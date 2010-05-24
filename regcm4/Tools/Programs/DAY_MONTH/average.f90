@@ -131,6 +131,11 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
@@ -464,6 +469,11 @@
  700  format('endvars')
       close(31)
 
+         inquire(file=trim(Path_Output)//filein,exist=there)
+         if(there) then
+            write(*,*) trim(Path_Output)//filein,' is not avaiable'
+            stop
+         endif
          if(iotyp.eq.1) then
             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
@@ -672,6 +682,13 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
+      inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
+             ,exist=there)
+      if(there) then
+         write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO' &
+                   ,' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
@@ -893,6 +910,13 @@
  700  format('endvars')
       close(31)
 
+         inquire(file=trim(Path_Input)//trim(DomainName)//filein  &
+             ,exist=there)
+         if(there) then
+            write(*,*) trim(Path_Input)//trim(DomainName)//filein  &
+                      ,' is not avaiable'
+            stop
+         endif
          open(10,file=trim(Path_Input)//trim(DomainName)//filein &
                 ,form='unformatted',recl=iy*jx*ibyte,access='direct')
          open(20,file=trim(Path_Input)//trim(DomainName)//fileout  &
@@ -1001,6 +1025,11 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
@@ -1234,6 +1263,11 @@
  700  format('endvars')
          close(31)
 
+         inquire(file=trim(Path_Output)//filein,exist=there)
+         if(there) then
+            write(*,*) trim(Path_Output)//filein,' is not avaiable'
+            stop
+         endif
          if(iotyp.eq.1) then
             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                    ,recl=(iy-2)*nsg*(jx-2)*nsg*ibyte,access='direct')
@@ -1349,6 +1383,11 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
@@ -1688,6 +1727,12 @@
          else if(filename.eq.'CHE') then
             filein = 'CHE.'//chy(nyear)//chm(month)//'01'
          endif
+         inquire(file=trim(Path_Output)//filein,exist=there)
+         if(there) then
+            write(*,*) trim(Path_Output)//filein,' is not avaiable'
+            write(*,*) 'Note: Daily mean files are required.'
+            stop
+         endif
          open(10,file=trim(Path_Output)//filein,form='unformatted' &
                 ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
          nrec = 0
@@ -1790,6 +1835,13 @@
       allocate(xlon(jx-2,iy-2))
 
 
+      inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
+             ,exist=there)
+      if(there) then
+         write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO'  &
+                   ,' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
@@ -2016,6 +2068,14 @@
          if(filename.eq.'ICBC') then
             filein = '_ICBC'//chy(nyear)//chm(month)//'01'
          endif
+         inquire(file=trim(Path_Input)//trim(DomainName)//filein  &
+                ,exist=there)
+         if(there) then
+            write(*,*) trim(Path_Input)//trim(DomainName)//filein  &
+                      ,' is not avaiable'
+            write(*,*) 'Note: Daily mean files are required.'
+            stop
+         endif
          open(10,file=trim(Path_Input)//trim(DomainName)//filein &
            ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
 
@@ -2129,7 +2189,12 @@
  101  format('.INFO',I1)
  102  format('.INFO',I2)
 
-      open(10,file='OUT_HEAD',form='unformatted' &
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
@@ -2352,6 +2417,12 @@
 
          if(filename.eq.'SUB') then
             filein = 'SUB.'//chy(nyear)//chm(month)//'01'
+         endif
+         inquire(file=trim(Path_Output)//filein,exist=there)
+         if(there) then
+            write(*,*) trim(Path_Output)//filein,' is not avaiable'
+            write(*,*) 'Note: Daily mean files are required.'
+            stop
          endif
          open(10,file=trim(Path_Output)//filein,form='unformatted' &
                 ,recl=(iy-2)*nsg*(jx-2)*nsg*ibyte,access='direct')
