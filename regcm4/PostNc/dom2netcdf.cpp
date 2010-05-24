@@ -35,6 +35,7 @@
 
 #include <rcmio.h>
 #include <rcmNc.h>
+#include <gradsctl.h>
 
 using namespace rcm;
 
@@ -140,10 +141,14 @@ int main(int argc, char *argv[])
     rcmout.read_domain(dominfo, d);
 
     char fname[PATH_MAX];
+    char ctlname[PATH_MAX];
     sprintf(fname, "DOMAIN_%s.nc", experiment);
+    sprintf(ctlname, "DOMAIN_%s.ctl", experiment);
+    gradsctl ctl(ctlname, fname);
 
-    domNc dnc(fname, experiment);
-    dnc.write(d);
+    domNc dnc(fname, experiment, ctl);
+    dnc.write(d, ctl);
+    ctl.finalize( );
     free(experiment);
   }
   catch (const char *e)

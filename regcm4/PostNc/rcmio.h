@@ -25,6 +25,7 @@
 #define __RCMIO__H__
 
 #include <cstring>
+#include <ctime>
 #include <fstream>
 #include <rcminp.h>
 
@@ -162,7 +163,9 @@ namespace rcm
       int date0;
       int date1;
       int rdate;
+      int dt;
       int nfiles;
+      int nsteps;
       size_t datasize;
       int n2D;
       int n3D;
@@ -225,6 +228,7 @@ namespace rcm
       char *buffer;
       int rdate;
       int nfiles;
+      int nsteps;
   };
 
   class raddata {
@@ -257,6 +261,7 @@ namespace rcm
       char *buffer;
       int rdate;
       int nfiles;
+      int nsteps;
   };
 
   class chedata {
@@ -284,6 +289,7 @@ namespace rcm
       char *buffer;
       int rdate;
       int nfiles;
+      int nsteps;
   };
 
   class subdata {
@@ -315,6 +321,7 @@ namespace rcm
       char *buffer;
       int rdate;
       int nfiles;
+      int nsteps;
   };
 
   class srfdata {
@@ -357,6 +364,20 @@ namespace rcm
       char *buffer;
       int rdate;
       int nfiles;
+      int nsteps;
+  };
+
+  class rcmdate {
+    public:
+      rcmdate(int date);
+      unsigned long datediffh(int date1);
+      unsigned long unixtime( );
+      int basey;
+      int basem;
+      int based;
+      int baseh;
+    private:
+      time_t tdate;
   };
 
   class rcmio

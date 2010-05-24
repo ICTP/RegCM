@@ -36,6 +36,9 @@ using namespace rcm;
 
 static bool fexist(char *fname);
 static void reduce(float *a, float *b, int ni, int nj, int nsg);
+static int calcnfiles(int date0, int date1);
+static int calcnsteps(int date0, int date1, int dt);
+static int nextmonth(int rdate);
 
 bool fexist(char *fname)
 {
@@ -57,6 +60,39 @@ void reduce(float *a, float *b, int ni, int nj, int nsg)
     }
   }
   return;
+}
+
+int calcnfiles(int date0, int date1)
+{
+  // Calculate number of months (i.e. files) to read
+  unsigned int base = date0;
+  unsigned int basey = base/1000000;
+  int year1 = (int) basey;
+  base = base-basey*1000000;
+  unsigned int basem = base/10000;
+  int month1 = (int) basem;
+  base = date1;
+  basey = base/1000000;
+  int year2 = (int) basey;
+  base = base-basey*1000000;
+  basem = base/10000;
+  int month2 = (int) basem;
+  return (year2-year1)*12+(month2-month1);
+}
+
+int nextmonth(int rdate)
+{
+  rdate = (rdate/10000*10000+100) + 10000;
+  if ( (rdate-(rdate/1000000*1000000)>120000) )
+    rdate = rdate+1000000-120000;
+  return rdate;
+}
+
+int calcnsteps(int date0, int date1, int dt)
+{
+  rcmdate d(date0);
+  unsigned long hdiff = d.datediffh(date1);
+  return (int) (hdiff/(unsigned long) dt);
 }
 
 typedef struct {
@@ -277,20 +313,7 @@ bcdata::bcdata(domain_data &d, rcminp &in)
 {
   date0 = in.valuei("globidate1");
   date1 = in.valuei("globidate2");
-  // Calculate number of months (i.e. files) to read
-  unsigned int base = date0;
-  unsigned int basey = base/1000000;
-  int year1 = (int) basey;
-  base = base-basey*1000000;
-  unsigned int basem = base/10000;
-  int month1 = (int) basem;
-  base = date1;
-  basey = base/1000000;
-  int year2 = (int) basey;
-  base = base-basey*1000000;
-  basem = base/10000;
-  int month2 = (int) basem;
-  nfiles = (year2-year1)*12+(month2-month1)+1;
+  nfiles = calcnfiles(date0, date1);
   rdate = ((date0/10000)*100+1)*100;
   size2D = d.nx*d.ny;
   size3D = size2D*d.nz;
@@ -304,6 +327,10 @@ bcdata::bcdata(domain_data &d, rcminp &in)
   strncpy(name, in.valuec("domname"), 256);
   strncpy(ssttyp, in.valuec("ssttyp"), 16);
   strncpy(dattyp, in.valuec("dattyp"), 16);
+  // HARDCODING 
+  dt = 6;
+  // HARDCODING 
+  nsteps = calcnsteps(date0, date1, dt);
 }
 
 bcdata::~bcdata()
@@ -316,19 +343,7 @@ atmodata::atmodata(header_data &h)
   date0 = h.idate1;
   date1 = h.idate2;
   // Calculate number of months (i.e. files) to read
-  unsigned int base = date0;
-  unsigned int basey = base/1000000;
-  int year1 = (int) basey;
-  base = base-basey*1000000;
-  unsigned int basem = base/10000;
-  int month1 = (int) basem;
-  base = date1;
-  basey = base/1000000;
-  int year2 = (int) basey;
-  base = base-basey*1000000;
-  basem = base/10000;
-  int month2 = (int) basem;
-  nfiles = (year2-year1)*12+(month2-month1)+1;
+  nfiles = calcnfiles(date0, date1);
   rdate = date0;
   dt = h.dto;
   n3D = 6;
@@ -349,6 +364,7 @@ atmodata::atmodata(header_data &h)
   tgb = tpr + size2D;
   swt = tgb + size2D;
   rno = swt + size2D;
+  nsteps = calcnsteps(date0, date1, dt);
 }
 
 atmodata::~atmodata( )
@@ -361,19 +377,7 @@ raddata::raddata(header_data &h)
   date0 = h.idate1;
   date1 = h.idate2;
   // Calculate number of months (i.e. files) to read
-  unsigned int base = date0;
-  unsigned int basey = base/1000000;
-  int year1 = (int) basey;
-  base = base-basey*1000000;
-  unsigned int basem = base/10000;
-  int month1 = (int) basem;
-  base = date1;
-  basey = base/1000000;
-  int year2 = (int) basey;
-  base = base-basey*1000000;
-  basem = base/10000;
-  int month2 = (int) basem;
-  nfiles = (year2-year1)*12+(month2-month1)+1;
+  nfiles = calcnfiles(date0, date1);
   rdate = date0;
   dt = h.dtr;
   n3D = 4;
@@ -397,6 +401,7 @@ raddata::raddata(header_data &h)
   sabtp = solin + size2D;
   firtp = sabtp + size2D;
   psa = firtp + size2D;
+  nsteps = calcnsteps(date0, date1, dt);
 }
 
 raddata::~raddata( )
@@ -409,19 +414,7 @@ chedata::chedata(header_data &h)
   date0 = h.idate1;
   date1 = h.idate2;
   // Calculate number of months (i.e. files) to read
-  unsigned int base = date0;
-  unsigned int basey = base/1000000;
-  int year1 = (int) basey;
-  base = base-basey*1000000;
-  unsigned int basem = base/10000;
-  int month1 = (int) basem;
-  base = date1;
-  basey = base/1000000;
-  int year2 = (int) basey;
-  base = base-basey*1000000;
-  basem = base/10000;
-  int month2 = (int) basem;
-  nfiles = (year2-year1)*12+(month2-month1)+1;
+  nfiles = calcnfiles(date0, date1);
   rdate = date0;
   dt = h.dtr;
   ntr = 10;
@@ -440,6 +433,7 @@ chedata::chedata(header_data &h)
   acstoarf = trac2D + 70*size2D;
   acstsrrf = acstoarf + size2D;
   psa = acstsrrf + size2D;
+  nsteps = calcnsteps(date0, date1, dt);
 }
 
 chedata::~chedata( )
@@ -452,19 +446,7 @@ srfdata::srfdata(header_data &h)
   date0 = h.idate1;
   date1 = h.idate2;
   // Calculate number of months (i.e. files) to read
-  unsigned int base = date0;
-  unsigned int basey = base/1000000;
-  int year1 = (int) basey;
-  base = base-basey*1000000;
-  unsigned int basem = base/10000;
-  int month1 = (int) basem;
-  base = date1;
-  basey = base/1000000;
-  int year2 = (int) basey;
-  base = base-basey*1000000;
-  basem = base/10000;
-  int month2 = (int) basem;
-  nfiles = (year2-year1)*12+(month2-month1)+1;
+  nfiles = calcnfiles(date0, date1);
   rdate = date0;
   dt = h.dtb;
   n2D = 27;
@@ -498,6 +480,7 @@ srfdata::srfdata(header_data &h)
   t2min = t2max + size2D;
   w10max = t2min + size2D;
   ps_min = w10max + size2D;
+  nsteps = calcnsteps(date0, date1, dt);
 }
 
 srfdata::~srfdata( )
@@ -534,19 +517,7 @@ subdata::subdata(header_data &h, subdom_data &s)
   date0 = h.idate1;
   date1 = h.idate2;
   // Calculate number of months (i.e. files) to read
-  unsigned int base = date0;
-  unsigned int basey = base/1000000;
-  int year1 = (int) basey;
-  base = base-basey*1000000;
-  unsigned int basem = base/10000;
-  int month1 = (int) basem;
-  base = date1;
-  basey = base/1000000;
-  int year2 = (int) basey;
-  base = base-basey*1000000;
-  basem = base/10000;
-  int month2 = (int) basem;
-  nfiles = (year2-year1)*12+(month2-month1)+1;
+  nfiles = calcnfiles(date0, date1);
   rdate = date0;
   dt = h.dtb;
   n2D = 16;
@@ -569,6 +540,7 @@ subdata::subdata(header_data &h, subdom_data &s)
   sena = scv + size2D;
   prcv = sena + size2D;
   psb = prcv + size2D;
+  nsteps = calcnsteps(date0, date1, dt);
 }
 
 subdata::~subdata( )
@@ -1141,9 +1113,7 @@ int rcmio::atmo_read_tstep(atmodata &a)
     {
       atmf.close( );
       // Add one month
-      a.rdate = a.rdate + 10000;
-      if ( (a.rdate-(a.rdate/1000000*1000000)>120000) )
-        a.rdate = a.rdate+1000000-120000;
+      a.rdate = nextmonth(a.rdate);
       // Open BC file
       char fname[PATH_MAX];
       sprintf(fname, "%s%sATM.%d", outdir, separator, a.rdate);
@@ -1172,7 +1142,15 @@ int rcmio::atmo_read_tstep(atmodata &a)
       return 1;
     }
   }
+  if (a.nsteps < 0)
+  {
+    delete [] storage;
+    storage = 0;
+    atmf.close();
+    return 1;
+  }
   atmf.read(storage, readsize);
+  a.nsteps --;
   if (doseq)
   {
     char *p1 = storage;
@@ -1222,9 +1200,7 @@ int rcmio::srf_read_tstep(srfdata &s)
     {
       srff.close( );
       // Add one month
-      s.rdate = s.rdate + 10000;
-      if ( (s.rdate-(s.rdate/1000000*1000000)>120000) )
-        s.rdate = s.rdate+1000000-120000;
+      s.rdate = nextmonth(s.rdate);
       // Open BC file
       char fname[PATH_MAX];
       sprintf(fname, "%s%sSRF.%d", outdir, separator, s.rdate);
@@ -1252,7 +1228,15 @@ int rcmio::srf_read_tstep(srfdata &s)
       return 1;
     }
   }
+  if (s.nsteps < 0)
+  {
+    delete [] storage;
+    storage = 0;
+    srff.close();
+    return 1;
+  }
   srff.read(storage, readsize);
+  s.nsteps --;
   if (doseq)
   {
     char *p1 = storage;
@@ -1295,9 +1279,7 @@ int rcmio::sub_read_tstep(subdata &u)
     {
       subf.close( );
       // Add one month
-      u.rdate = u.rdate + 10000;
-      if ( (u.rdate-(u.rdate/1000000*1000000)>120000) )
-        u.rdate = u.rdate+1000000-120000;
+      u.rdate = nextmonth(u.rdate);
       // Open BC file
       char fname[PATH_MAX];
       sprintf(fname, "%s%sSUB.%d", outdir, separator, u.rdate);
@@ -1325,7 +1307,15 @@ int rcmio::sub_read_tstep(subdata &u)
       return 1;
     }
   }
+  if (u.nsteps < 0)
+  {
+    delete [] storage;
+    storage = 0;
+    subf.close();
+    return 1;
+  }
   subf.read(storage, readsize);
+  u.nsteps --;
   if (doseq)
   {
     char *p1 = storage+3*sizeof(int);
@@ -1369,9 +1359,7 @@ int rcmio::rad_read_tstep(raddata &r)
     {
       radf.close( );
       // Add one month
-      r.rdate = r.rdate + 10000;
-      if ( (r.rdate-(r.rdate/1000000*1000000)>120000) )
-        r.rdate = r.rdate+1000000-120000;
+      r.rdate = nextmonth(r.rdate);
       // Open BC file
       char fname[PATH_MAX];
       sprintf(fname, "%s%sRAD.%d", outdir, separator, r.rdate);
@@ -1399,7 +1387,15 @@ int rcmio::rad_read_tstep(raddata &r)
       return 1;
     }
   }
+  if (r.nsteps < 0)
+  {
+    delete [] storage;
+    storage = 0;
+    radf.close();
+    return 1;
+  }
   radf.read(storage, readsize);
+  r.nsteps --;
   if (doseq)
   {
     char *p1 = storage;
@@ -1449,9 +1445,7 @@ int rcmio::che_read_tstep(chedata &c)
     {
       chef.close( );
       // Add one month
-      c.rdate = c.rdate + 10000;
-      if ( (c.rdate-(c.rdate/1000000*1000000)>120000) )
-        c.rdate = c.rdate+1000000-120000;
+      c.rdate = nextmonth(c.rdate);
       // Open BC file
       char fname[PATH_MAX];
       sprintf(fname, "%s%sCHE.%d", outdir, separator, c.rdate);
@@ -1479,7 +1473,15 @@ int rcmio::che_read_tstep(chedata &c)
       return 1;
     }
   }
+  if (c.nsteps < 0)
+  {
+    delete [] storage;
+    storage = 0;
+    chef.close();
+    return 1;
+  }
   chef.read(storage, readsize);
+  c.nsteps --;
   if (doseq)
   {
     char *p1 = storage;
@@ -1629,9 +1631,7 @@ int rcmio::bc_read_tstep(bcdata &b)
     {
       bcf.close();
       // Add one month
-      b.rdate = b.rdate + 10000;
-      if ( (b.rdate-(b.rdate/1000000*1000000)>120000) )
-        b.rdate = b.rdate+1000000-120000;
+      b.rdate = nextmonth(b.rdate);
       // Open BC file
       char fname[PATH_MAX];
       sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, b.rdate);
@@ -1641,6 +1641,7 @@ int rcmio::bc_read_tstep(bcdata &b)
       bcf.seekg (0, std::ios::end);
       bcsize = bcf.tellg();
       bcf.seekg (0, std::ios::beg);
+      bcf.seekg (readsize, std::ios::beg);
       b.nfiles--;
     }
     else
@@ -1651,7 +1652,15 @@ int rcmio::bc_read_tstep(bcdata &b)
       return 1;
     }
   }
+  if (b.nsteps < 0)
+  {
+    delete [] storage;
+    storage = 0;
+    bcf.close();
+    return 1;
+  }
   bcf.read(storage, readsize);
+  b.nsteps --;
   if (doseq)
   {
     char *p1 = storage;
@@ -1674,6 +1683,53 @@ int rcmio::bc_read_tstep(bcdata &b)
   b.date1 = intvalfrombuf(storage);
   vectorfrombuf(storage+b.size2D*sizeof(float), (float *) b.buffer, b.nvals);
   return 0;
+}
+
+rcmdate::rcmdate(int date)
+{
+  struct tm ref;
+  memset(&ref, 0, sizeof(struct tm));
+  unsigned int base = date;
+  basey = base/1000000;
+  base = base-basey*1000000;
+  ref.tm_year = basey - 1900;
+  basem = base/10000;
+  base = base-basem*10000;
+  ref.tm_mon = basem-1;
+  based = base/100;
+  base = base-based*100;
+  ref.tm_mday = based-1;
+  baseh = base;
+  ref.tm_hour = baseh;
+  tdate = mktime(&ref);
+}
+
+unsigned long rcmdate::datediffh(int date1)
+{
+  struct tm ref;
+  memset(&ref, 0, sizeof(struct tm));
+  unsigned int base = date1;
+  int basey1 = base/1000000;
+  base = base-basey1*1000000;
+  ref.tm_year = basey1 - 1900;
+  int basem1 = base/10000;
+  base = base-basem1*10000;
+  ref.tm_mon = basem1-1;
+  int based1 = base/100;
+  base = base-based1*100;
+  ref.tm_mday = based1-1;
+  ref.tm_hour = base;
+  time_t tdate1 = mktime(&ref);
+  return ((unsigned long) (difftime(tdate1,tdate)/3600.0));
+}
+
+unsigned long rcmdate::unixtime( )
+{
+  struct tm ref;
+  memset(&ref, 0, sizeof(struct tm));
+  ref.tm_year = 70;
+  time_t tzero = mktime(&ref);
+  return ((unsigned long) (difftime(tdate,tzero)/3600.0));
 }
 
 rcmio::~rcmio( )

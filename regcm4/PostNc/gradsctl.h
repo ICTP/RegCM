@@ -25,15 +25,40 @@
 #define __GRADSCTL__H__
 
 #include <fstream>
+#include <list>
+#include <rcmio.h>
 
 namespace rcm {
+
+  class gradsvar {
+    public:
+      gradsvar(char *ncname, char *gname, char *desc, int nlevs, bool tv);
+      gradsvar( );
+      void set(char *ncname, char *gname, char *desc, int nlevs, bool tv);
+    private:
+      friend std::ostream& operator<< (std::ostream& os,
+                                       const gradsvar &g);
+      std::string vline;
+  };
 
   class gradsctl {
     public:
       gradsctl(char *ctlname, char *dname);
       ~gradsctl( );
+      void head(char *title, float misval);
+      void set_grid(domain_data &d);
+      void set_levs(float *lev, int nz);
+      void set_time(char *timestr);
+      void add_var(gradsvar &g);
+      void add_time( );
+      void finalize( );
+      char *gradstime(int year, int month, int day, int hour, int incr);
     private:
       std::ofstream ctlf;
+      std::list <gradsvar> vars;
+      std::string timeline;
+      std::string levline;
+      int ntimes;
   };
 
 }

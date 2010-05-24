@@ -191,6 +191,7 @@ int main(int argc, char *argv[])
     rcmout.read_header(outhead);
 
     char fname[PATH_MAX];
+    char ctlname[PATH_MAX];
 
     if (rcmout.has_atm && onlyatm)
     {
@@ -199,7 +200,9 @@ int main(int argc, char *argv[])
       std::cout << "Found Atmospheric data ATM and processing";
       atmodata a(outhead);
       sprintf(fname, "ATM_%s_%d.nc", experiment, outhead.idate1);
-      rcmNcAtmo atmnc(fname, experiment, outhead);
+      sprintf(ctlname, "ATM_%s_%d.ctl", experiment, outhead.idate1);
+      gradsctl ctl(ctlname, fname);
+      rcmNcAtmo atmnc(fname, experiment, outhead, ctl);
       atmcalc c(outhead);
       t_atm_deriv d;
       // Add Atmospheric variables
@@ -216,7 +219,7 @@ int main(int argc, char *argv[])
         std::cout << ".";
         std::cout.flush();
         c.do_calc(a, d);
-        atmnc.put_rec(a, d);
+        atmnc.put_rec(a, d, ctl);
         recnum ++;
       }
       std::cout << " Done." << std::endl;
@@ -229,7 +232,9 @@ int main(int argc, char *argv[])
       std::cout << "Found Surface data SRF and processing";
       srfdata s(outhead);
       sprintf(fname, "SRF_%s_%d.nc", experiment, outhead.idate1);
-      rcmNcSrf srfnc(fname, experiment, outhead);
+      sprintf(ctlname, "SRF_%s_%d.ctl", experiment, outhead.idate1);
+      gradsctl ctl(ctlname, fname);
+      rcmNcSrf srfnc(fname, experiment, outhead, ctl);
       // Add Surface variables
       srfcalc c(outhead);
       t_srf_deriv d;
@@ -246,7 +251,7 @@ int main(int argc, char *argv[])
         std::cout << ".";
         std::cout.flush();
         c.do_calc(s, d);
-        srfnc.put_rec(s, d);
+        srfnc.put_rec(s, d, ctl);
         recnum ++;
       }
       std::cout << " Done." << std::endl;
@@ -259,7 +264,9 @@ int main(int argc, char *argv[])
       std::cout << "Found Radiation data RAD and processing";
       raddata r(outhead);
       sprintf(fname, "RAD_%s_%d.nc", experiment, outhead.idate1);
-      rcmNcRad radnc(fname, experiment, outhead);
+      sprintf(ctlname, "RAD_%s_%d.ctl", experiment, outhead.idate1);
+      gradsctl ctl(ctlname, fname);
+      rcmNcRad radnc(fname, experiment, outhead, ctl);
       // Add Radiation variables
       while ((rcmout.rad_read_tstep(r)) == 0)
       {
@@ -273,7 +280,7 @@ int main(int argc, char *argv[])
         }
         std::cout << ".";
         std::cout.flush();
-        radnc.put_rec(r);
+        radnc.put_rec(r, ctl);
         recnum ++;
       }
       std::cout << " Done." << std::endl;
@@ -286,7 +293,9 @@ int main(int argc, char *argv[])
       std::cout << "Found Chemical data CHE and processing";
       chedata c(outhead);
       sprintf(fname, "CHE_%s_%d.nc", experiment, outhead.idate1);
-      rcmNcChe chenc(fname, experiment, outhead);
+      sprintf(ctlname, "CHE_%s_%d.ctl", experiment, outhead.idate1);
+      gradsctl ctl(ctlname, fname);
+      rcmNcChe chenc(fname, experiment, outhead, ctl);
       // Add Chemical tracers variables
       while ((rcmout.che_read_tstep(c)) == 0)
       {
@@ -300,7 +309,7 @@ int main(int argc, char *argv[])
         }
         std::cout << ".";
         std::cout.flush();
-        chenc.put_rec(c);
+        chenc.put_rec(c, ctl);
         recnum ++;
       }
       std::cout << " Done." << std::endl;
@@ -318,7 +327,9 @@ int main(int argc, char *argv[])
       rcmout.read_subdom(outhead, subdom, fname);
       subdata s(outhead, subdom);
       sprintf(fname, "SUB_%s_%d.nc", experiment, outhead.idate1);
-      rcmNcSub subnc(fname, experiment, outhead, subdom);
+      sprintf(ctlname, "SUB_%s_%d.ctl", experiment, outhead.idate1);
+      gradsctl ctl(ctlname, fname);
+      rcmNcSub subnc(fname, experiment, outhead, subdom, ctl);
       subcalc c(subdom);
       t_srf_deriv d;
       // Add Subgrid variables
@@ -335,7 +346,7 @@ int main(int argc, char *argv[])
         std::cout << ".";
         std::cout.flush();
         c.do_calc(s, d);
-        subnc.put_rec(s, d);
+        subnc.put_rec(s, d, ctl);
         recnum ++;
       }
       std::cout << " Done." << std::endl;

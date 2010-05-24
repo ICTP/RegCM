@@ -27,23 +27,24 @@
 #include <netcdf.hh>
 #include <rcmio.h>
 #include <calc.h>
+#include <gradsctl.h>
 
 namespace rcm
 {
   class domNc {
     public:
-      domNc(char *fname, char *experiment);
+      domNc(char *fname, char *experiment, gradsctl &ctl);
       ~domNc();
-      void write(domain_data &d);
+      void write(domain_data &d, gradsctl &ctl);
     private:
       NcFile *f;
   };
 
   class bcNc {
     public:
-      bcNc(char *fname, char *experiment, domain_data &d);
+      bcNc(char *fname, char *experiment, domain_data &d, gradsctl &ctl);
       ~bcNc( );
-      void put_rec(bcdata &b);
+      void put_rec(bcdata &b, gradsctl &ctl);
     private:
       NcFile *f;
       NcDim *iy;
@@ -67,8 +68,6 @@ namespace rcm
       unsigned int rcount;
       unsigned int tcount;
       bool notinit;
-      bool secondt;
-      int dt;
   };
 
   class rcmNc {
@@ -89,8 +88,8 @@ namespace rcm
 
   class rcmNcAtmo : public rcmNc {
     public:
-      rcmNcAtmo(char *fname, char *experiment, header_data &h);
-      void put_rec(atmodata &a, t_atm_deriv &d);
+      rcmNcAtmo(char *fname, char *experiment, header_data &h, gradsctl &ctl);
+      void put_rec(atmodata &a, t_atm_deriv &d, gradsctl &ctl);
     private:
       NcVar *psvar;
       NcVar *tprvar;
@@ -114,8 +113,8 @@ namespace rcm
 
   class rcmNcSrf : public rcmNc {
     public:
-      rcmNcSrf(char *fname, char *experiment, header_data &h);
-      void put_rec(srfdata &s, t_srf_deriv &d);
+      rcmNcSrf(char *fname, char *experiment, header_data &h, gradsctl &ctl);
+      void put_rec(srfdata &s, t_srf_deriv &d, gradsctl &ctl);
     private:
       NcVar *u10mvar;
       NcVar *v10mvar;
@@ -150,8 +149,8 @@ namespace rcm
 
   class rcmNcRad : public rcmNc {
     public:
-      rcmNcRad(char *fname, char *experiment, header_data &h);
-      void put_rec(raddata &r);
+      rcmNcRad(char *fname, char *experiment, header_data &h, gradsctl &ctl);
+      void put_rec(raddata &r, gradsctl &ctl);
     private:
       NcVar *psvar;
       NcVar *cldvar;
@@ -171,8 +170,8 @@ namespace rcm
 
   class rcmNcChe : public rcmNc {
     public:
-      rcmNcChe(char *fname, char *experiment, header_data &h);
-      void put_rec(chedata &r);
+      rcmNcChe(char *fname, char *experiment, header_data &h, gradsctl &ctl);
+      void put_rec(chedata &r, gradsctl &ctl);
     private:
       NcDim *trc;
       NcVar *psvar;
@@ -194,8 +193,9 @@ namespace rcm
 
   class rcmNcSub : public rcmNc {
     public:
-      rcmNcSub(char *fname, char *experiment, header_data &h, subdom_data &s);
-      void put_rec(subdata &s, t_srf_deriv &d);
+      rcmNcSub(char *fname, char *experiment, header_data &h,
+               subdom_data &s, gradsctl &ctl);
+      void put_rec(subdata &s, t_srf_deriv &d, gradsctl &ctl);
     private:
       NcVar *u10mvar;
       NcVar *v10mvar;

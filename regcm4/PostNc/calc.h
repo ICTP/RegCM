@@ -97,6 +97,33 @@ namespace rcm {
       float *dv;
   };
 
+  class presslevs {
+    public:
+      presslevs(float *plev, int npl, float ptop);
+      void setup_dims(int nx, int ny, int nz, float *sigma);
+      void set_sigmalev(float *sig);
+      ~presslevs( );
+    private:
+      bool dimsok;
+      int nx;
+      int ny;
+      int nz;
+      int np;
+      int n2D;
+      int n3D;
+      int km;
+      int start_tl;
+      float *plevs;
+      float ptop;
+      float *sig;
+      void htsig(float *t, float *h, float *pstar, float *ht);
+      void height(float *hp, float *h, float *t, float *pstar, float *ht);
+      void intlin(float *fp, float *f, float *pstar);
+      void intlog(float *fp, float *f, float *pstar);
+      void slpres(float *h, float *t, float *pstar, float *ht, float *tg,
+                  float *slp1, float *slp2);
+  };
+
 }
 
 #endif

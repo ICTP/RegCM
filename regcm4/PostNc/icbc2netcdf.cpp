@@ -35,6 +35,7 @@
 
 #include <rcmio.h>
 #include <rcmNc.h>
+#include <gradsctl.h>
 
 using namespace rcm;
 
@@ -141,18 +142,22 @@ int main(int argc, char *argv[])
     bcdata b(d, inpf);
 
     char fname[PATH_MAX];
+    char ctlname[PATH_MAX];
     sprintf(fname, "ICBC_%s.nc", experiment);
-    bcNc bcnc(fname, experiment, d);
+    sprintf(ctlname, "ICBC_%s.ctl", experiment);
+    gradsctl ctl(ctlname, fname);
+    bcNc bcnc(fname, experiment, d, ctl);
 
     std::cout << "Processing ICBC";
     while ((rcmout.bc_read_tstep(b)) == 0)
     {
       std::cout << ".";
       std::cout.flush();
-      bcnc.put_rec(b);
+      bcnc.put_rec(b, ctl);
     }
     std::cout << " Done." << std::endl;
 
+    ctl.finalize( );
     free(datadir);
     free(experiment);
   }
