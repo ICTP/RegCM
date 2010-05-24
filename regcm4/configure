@@ -110,15 +110,14 @@ def main():
     
     isnotint = True
 
-    print "\n  ****  The following compiler/architecture combinations \n\tare tested and known to work, please choose one:\n\n\t\t1. GNU Fortran v. 4.4 (Linux x86-64)\n\t\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t\t3. PGI Fortran v. 9 (Linux x86-64)\n\t\t4. IBM Xlf Compiler (AIX on SPx)\n\t\t5. Sun Ceres Fortran 95 v 8.3 r2008/01/28 (Linux x86-64)\n\t\t6. Other"
+    print "\n  ****  The following compiler/architecture combinations \n\tare tested and known to work, please choose one:\n\n\t\t1. GNU Fortran v. 4.4 (Linux x86-64)\n\t\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t\t3. PGI Fortran v. 9 (Linux x86-64)\n\t\t4. IBM Xlf Compiler (generic AIX)\n\t\t5. IBM Xlf Compiler (Cineca SP6)\n\t\t6. Sun Ceres Fortran 95 v 8.3 r2008/01/28 (Linux x86-64)\n\t\t7. Other"
     while isnotint :
         try :
             compiler=int(raw_input("\n\tcompiler = "))
-            if (1 <= compiler <= 6):
+            if (1 <= compiler <= 7):
                 if clm == 1 and compiler == 1:
                     print "\tnSorry, GNU compilers are not supported by the CLM library!"
-
-                elif clm == 1 and compiler == 5:
+                elif clm == 1 and compiler == 6:
                     print "\tnSorry, Sun compilers are not supported by the CLM library due to a bug in the version 8.3 2008/01/28 compilers!"
                 else :
                     isnotint=False
@@ -164,7 +163,7 @@ def main():
     #option to ignore unrecognized command-line options, and the current 
     #Makefile.inc scheme requires that C++ and Fortran portions of the code
     #both use the same NetCDF Include flags.
-    if compiler == 5 :
+    if compiler == 6 :
         print "\n\t###################################################################"
         print "\n\tNOTE: the '-M' portion of the NETCDFINC line in Makefile.inc will "
         print "\tneed to be commented out after all programs are compiled but before"
@@ -217,7 +216,7 @@ def netcdf_search():
 
 def choose_template(regcm_root,compiler,dbg):
     #print "chose template gets: ",compiler,dbg
-    if dbg == 1 and compiler < 6 :
+    if dbg == 1 and compiler < 7 :
         if compiler == 1 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_gnu4.4",regcm_root+"/Makefile.inc")
         elif compiler == 2 :
@@ -227,8 +226,10 @@ def choose_template(regcm_root,compiler,dbg):
         elif compiler == 4 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf",regcm_root+"/Makefile.inc")
         elif compiler == 5 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sp6",regcm_root+"/Makefile.inc")
+        elif compiler == 6 :   
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sun8.3",regcm_root+"/Makefile.inc")
-    elif dbg == 0 and compiler < 6 :
+    elif dbg == 0 and compiler < 7 :
         if compiler == 1 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_gnu4.4_debug",regcm_root+"/Makefile.inc")
         elif compiler == 2 :
@@ -238,6 +239,8 @@ def choose_template(regcm_root,compiler,dbg):
         elif compiler == 4 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf_debug",regcm_root+"/Makefile.inc")
         elif compiler == 5 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sp6_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 6
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sun8.3_debug",regcm_root+"/Makefile.inc")
     else :
         shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
@@ -248,7 +251,6 @@ def choose_template(regcm_root,compiler,dbg):
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
 def makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler,clm,dcsst,seaice,compiler) :
-    #fp = open(regcm_root+"/Makefile.inc","rU")
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
 
@@ -261,13 +263,14 @@ def makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler,clm,dcsst,seaice,co
 
         #If the sun compilers are being used, also indicate the path
         #of the file netcdf.mod
-        if compiler == 5 :
-            line=line.replace("!NETCDFINC","-I"+ncpath+"/include "+"-M"+ncpath+"/include")
-        else :
-            line=line.replace("!NETCDFINC","-I"+ncpath+"/include")
+        if not compiler == 5 :
+            if compiler == 6 :
+                line=line.replace("!NETCDFINC","-I"+ncpath+"/include "+"-M"+ncpath+"/include")
+            else :
+                line=line.replace("!NETCDFINC","-I"+ncpath+"/include")
         
-        line=line.replace("!NETCDFLIB","-L"+ncpath+"/lib -lnetcdf")
-        line=line.replace("!NETCDFC++","-L"+ncpath+"/lib -lnetcdf_c++ -lnetcdf")
+            line=line.replace("!NETCDFLIB","-L"+ncpath+"/lib -lnetcdf")
+            line=line.replace("!NETCDFC++","-L"+ncpath+"/lib -lnetcdf_c++ -lnetcdf")
 
         if mpi == 1 :
             line=line.replace("# PARALLEL = MPP1","PARALLEL = MPP1")
