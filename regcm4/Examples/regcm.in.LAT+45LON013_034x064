@@ -57,8 +57,8 @@
  ehso4 = .false.,
  globidate1 = 1990060100,
  globidate2 = 1990070100,
- dirglob = '/set/this/to/where/your/input/global/data/is',
- inpglob = '/set/this/to/where/your/icbc/for/model/is',
+ dirglob = '/set/this/to/where/your/icbc/for/model/is',
+ inpglob = '/set/this/to/where/your/input/global/data/is',
  /
  &lsmparam
  lsmtyp = 'BATS',
@@ -98,7 +98,7 @@
    jxsex   =         40,
  ifchem  = .false.,
    chemfrq =     6.,
- dirout='./output'
+ dirout='/set/this/to/where/your/output/files/will/be/written'
  /
  &physicsparam
  iboudy  =          5,

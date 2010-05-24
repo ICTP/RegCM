@@ -56,9 +56,9 @@
  dattyp = 'EIN75',
  ehso4 = .false.,
  globidate1 = 1991010100,
- globidate2 = 1992010100,
- dirglob = '/set/this/to/where/your/input/global/data/is',
- inpglob = '/set/this/to/where/your/icbc/for/model/is',
+ globidate2 = 1991020100,
+ dirglob = '/set/this/to/where/your/icbc/for/model/is',
+ inpglob = '/set/this/to/where/your/input/global/data/is',
  /
  &lsmparam
  lsmtyp = 'BATS',
@@ -72,7 +72,7 @@
  ifrest  = .false. ,
  idate0  = 1991010100,
  idate1  = 1991010100,
- idate2  = 1992010100,
+ idate2  = 1991020100,
  nslice  =        120,
  /
  &timeparam
