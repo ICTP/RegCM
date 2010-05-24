@@ -1,13 +1,21 @@
 # This is Cineca  SP6 include file that  contains all variables to be included in all other Makefiles
 # This file is commented in detail to help you fine tune your RegCM distribution
 # 
-# 
 # Please load this module on SP6 machine in order to compile correctly the code:
 # 
 # module load szlib
 # module load hdf5
 # module load netcdf
 #
+
+# Model flags
+
+# Set to 1 to enable CLM coupling
+USECLM = !CLM
+# Set to 1 to enable daily cycle SST
+USEDCSST = !DCSST
+# Set to 1 to enable Sea Ice effects
+USESEAICE = !SEAICE
 
 # GENERAL FLAGS: these should be always defined!  
 
