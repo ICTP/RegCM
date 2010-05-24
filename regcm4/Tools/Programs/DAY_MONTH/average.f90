@@ -26,8 +26,8 @@
       logical day_ICBC,day_ATM,day_RAD,day_SRF,day_SUB,day_CHE
       logical mon_ICBC,mon_ATM,mon_RAD,mon_SRF,mon_SUB,mon_CHE
       integer idate0,idate1,idate2
-      character*80 Path_Input,Path_Output
-      character*10 DomainName
+      character*128 Path_Input,Path_Output
+      character*20 DomainName
 
       namelist /shareparam/iy,jx,kz,nsg,ntr,ibyte &
                           ,Path_Input,DomainName,Path_Output
@@ -75,7 +75,7 @@
                     ,idate0,idate1,idate2)
       implicit none
       character*3 filename
-      character*80 Path_Output
+      character*128 Path_Output
       integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -612,8 +612,8 @@
                      ,idate0,idate1,idate2)
       implicit none
       character*4 filename
-      character*80 Path_Input
-      character*10 DomainName
+      character*128 Path_Input
+      character*20 DomainName
       integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2
       integer iiy,jjx,kkz
       real*4  truelatL,truelatH
@@ -761,7 +761,7 @@
                                                       ,status='new')
          endif
          write(31,10) '^'//trim(DomainName)//fileout
-  10     format('dset ',A24)
+  10     format('dset ',A34)
          write(31,20)
   20     format('title RegCM daily input variables')
          write(31,30)
@@ -940,8 +940,8 @@
                      ,DomainName,Path_Output ,idate0,idate1,idate2)
       implicit none
       character*3 filename
-      character*80 Path_Input,Path_Output
-      character*10 DomainName
+      character*128 Path_Input,Path_Output
+      character*20 DomainName
       integer iy,jx,kz,nsg,ibyte,idate0,idate1,idate2
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -1287,7 +1287,7 @@
                     ,idate0,idate1,idate2)
       implicit none
       character*3 filename
-      character*80 Path_Output
+      character*128 Path_Output
       integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -1729,8 +1729,8 @@
                      ,idate0,idate1,idate2)
       implicit none
       character*4 filename
-      character*80 Path_Input
-      character*10 DomainName
+      character*128 Path_Input
+      character*20 DomainName
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
       integer iiy,jjx,kkz
       real*4  truelatL,truelatH
@@ -1854,7 +1854,7 @@
        trim(Path_Input)//trim(DomainName)//fileout//'.ctl',status='new')
       endif
       write(31,10) '^'//trim(DomainName)//fileout
-  10  format('dset ',A20)
+  10  format('dset ',A30)
       write(31,20)
   20  format('title RegCM daily input variables')
       write(31,30)
@@ -2057,8 +2057,8 @@
                      ,Path_Output,ibyte,idate0,idate1,idate2)
       implicit none
       character*3 filename
-      character*80 Path_Input,Path_Output
-      character*10 DomainName
+      character*128 Path_Input,Path_Output
+      character*20 DomainName
       integer iy,jx,kz,nsg,ibyte,idate0,idate1,idate2
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
