@@ -160,7 +160,7 @@
             if ( (d/l).ge.0 ) then
               phidl = 1+5.*(d/l)
             else
-              phidl = (1-16.*(d/l))**-0.5
+              phidl = (1-16.*(d/l))**(-0.5)
             end if
 !           prognostic evolution of dts
 !           we can split the tendencies ddts/dt = a - b * dts
@@ -180,7 +180,7 @@
             if ( bb.gt.0 ) then
 !             case of cool skin layer correction
               cc= bb**(3./4.)
-              lamb=6.*( (1.+(aa*(q+rs*fs))**0.75)**-0.333)
+              lamb=6.*( (1.+(aa*(q+rs*fs))**0.75)**(-0.333))
               delta = lamb*nuw/ustarw
               tskin= delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
             else
