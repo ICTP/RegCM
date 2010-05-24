@@ -26,3 +26,16 @@
  mon_SRF = .true.,
  mon_CHE = .false.,
 /
+&regridparam
+ regDOMAIN = .true. ,
+ regICBC = .true.,
+ regOUT_HEAD = .true.,
+ regATM = .true.,
+ regSRF = .true.,
+ regRAD = .true.,
+ xminlon = -9999.0,
+ xmaxlon = -9999.0,
+ xminlat = -9999.0,
+ xmaxlat = -9999.0,
+ ddeg = 0.5,
+/

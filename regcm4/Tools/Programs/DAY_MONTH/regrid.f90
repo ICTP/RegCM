@@ -1,49 +1,79 @@
-      program regrid_ALL
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+! This code regrids most of RegCM Input/Output (DOMAIN, ICBC, OUT_HEAD, 
+!  ATM, RAD, and SRF) files from projected grid to a regular lat-lon grid.
+!  Written by Xunqiang Bi, ESP/ICTP
+!
+      program regrid
       implicit none
-      integer iy,jx,kz,ibyte
-      logical ifDOMAIN,ifICBC,ifOUT_HEAD,ifATM,ifSRF,ifRAD
+      integer iy,jx,kz,nsg,ntr,ibyte
+      logical regDOMAIN,regICBC,regOUT_HEAD,regATM,regSRF,regRAD
       integer idate0,idate1,idate2
-      real*4  truelatL,truelatH
+      character*80 Path_Input,Path_Output
+      character*10 DomainName
+
       real*4  xminlon,xmaxlon,xminlat,xmaxlat,ddeg
       COMMON /WINDOW/ xminlon,xmaxlon,xminlat,xmaxlat,ddeg
-      namelist /dimparam/ iy,jx,kz
-      namelist /dateparam/ idate0,idate1,idate2
-      namelist /regridparam/ ibyte    &
-               ,ifDOMAIN,ifICBC,ifOUT_HEAD,ifATM,ifSRF,ifRAD  &
-               ,truelatL,truelatH,xminlon,xmaxlon,xminlat,xmaxlat,ddeg
 
-      truelatL = 30.
-      truelatH = 60.
+      namelist /shareparam/ iy,jx,kz,nsg,ntr,ibyte,Path_Input &
+                           ,DomainName,Path_Output
+      namelist /dateparam/ idate0,idate1,idate2
+      namelist /regridparam/ & 
+                regDOMAIN,regICBC,regOUT_HEAD,regATM,regSRF,regRAD  &
+               ,xminlon,xmaxlon,xminlat,xmaxlat,ddeg
+
       xminlon  = -9999.
       xmaxlon  = -9999.
       xminlat  = -9999.
       xmaxlat  = -9999.      
       ddeg     = 0.5
 
-      read(*,dimparam) 
+      read(*,shareparam) 
       read(*,dateparam) 
       read(*,regridparam) 
 
-      if(ifDOMAIN) call regrid_DOMAIN(iy,jx,kz,ibyte)
+      if(regDOMAIN) call regrid_DOMAIN(iy,jx,kz,ibyte &
+                                      ,Path_Input,DomainName)
 
-      if(ifICBC) call regrid_ICBC(iy,jx,kz,ibyte,idate0,idate1,idate2)
+      if(regICBC) call regrid_ICBC(iy,jx,kz,ibyte,idate0,idate1,idate2 &
+                                  ,Path_Input,DomainName)
 
-      if(ifOUT_HEAD) call regrid_OUT_HEAD(iy,jx,kz,ibyte)
+      if(regOUT_HEAD) call regrid_OUT_HEAD(iy,jx,kz,ibyte,Path_Output)
 
-      if(ifATM) call regrid_ATM(iy,jx,kz,ibyte,idate0,idate1,idate2   &
-                               ,truelatL,truelatH)
+      if(regATM) call regrid_ATM(iy,jx,kz,ibyte,idate0,idate1,idate2 &
+                                ,Path_Output)
 
-      if(ifSRF) call regrid_SRF(iy,jx,kz,ibyte,idate0,idate1,idate2   &
-                               ,truelatL,truelatH)
+      if(regSRF) call regrid_SRF(iy,jx,kz,ibyte,idate0,idate1,idate2 &
+                                ,Path_Output)
 
-      if(ifRAD) call regrid_RAD(iy,jx,kz,ibyte,idate0,idate1,idate2)
+      if(regRAD) call regrid_RAD(iy,jx,kz,ibyte,idate0,idate1,idate2 &
+                                ,Path_Output)
 
       stop
       end
 
-      subroutine regrid_DOMAIN(iy,jx,kz,ibyte)
+      subroutine regrid_DOMAIN(iy,jx,kz,ibyte,Path_Input,DomainName)
       implicit none
       integer iy,jx,kz,ibyte
+      character*80 Path_Input
+      character*10 DomainName
       integer iiy,jjx,kkz
       real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
@@ -60,6 +90,7 @@
       real*4  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
+      logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
       real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
@@ -81,8 +112,8 @@
       allocate(xlat(jx,iy))
       allocate(xlon(jx,iy))
 
-      open(10,file='DOMAIN.INFO',form='unformatted' &
-             ,recl=jx*iy*ibyte,access='direct')
+      open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO' &
+          ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
                     ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
                     ,truelatL,truelatH
@@ -129,8 +160,9 @@
       write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
       write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
-      open(20,file='DOMAIN_LL.dat',form='unformatted' &
-             ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+      open(20,file=trim(Path_Input)//trim(DomainName)//'_LL.dat' &
+         ,form='unformatted',recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte &
+         ,access='direct')
 
       allocate(out(nlon:mlon,nlat:mlat))
       allocate(olat(nlat:mlat))
@@ -334,9 +366,17 @@
       deallocate(xlon)
 
       if(igrads.eq.1) then
-         open(31,file='DOMAIN_LL.ctl',form='formatted')
-         write(31,10)
-  10  format('dset ^DOMAIN_LL.dat')
+         inquire(file=trim(Path_Input)//trim(DomainName)//'_LL.ctl' &
+                ,exist=there)
+         if(there) then
+         open(31,file=trim(Path_Input)//trim(DomainName)//'_LL.ctl' &
+                ,form='formatted',status='replace')
+         else
+         open(31,file=trim(Path_Input)//trim(DomainName)//'_LL.ctl' &
+                ,form='formatted',status='new')
+         endif
+         write(31,10) '^'//trim(DomainName)//'_LL.dat'
+  10  format('dset ',A18)
          write(31,20)
   20  format('title RegCM domain information')
          if(ibigend.eq.1) then
@@ -375,9 +415,10 @@
       return
       end
 
-      subroutine regrid_OUT_HEAD(iy,jx,kz,ibyte)
+      subroutine regrid_OUT_HEAD(iy,jx,kz,ibyte,Path_Output)
       implicit none
       integer iy,jx,kz,ibyte
+      character*80 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  dxsp,ptsp,clat,clon,plat,plon
@@ -396,6 +437,7 @@
       real*4  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
+      logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
       real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
@@ -420,7 +462,7 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
-      open(10,file='OUT_HEAD',form='unformatted' &
+      open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
@@ -469,7 +511,8 @@
       write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
       write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
-      open(20,file='OUTHEAD_LL.dat',form='unformatted' &
+      open(20,file=trim(Path_Output)//'OUTHEAD_LL.dat' &
+             ,form='unformatted' &
              ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
 
       allocate(out(nlon:mlon,nlat:mlat))
@@ -672,7 +715,15 @@
       deallocate(xlon)
 
       if(igrads.eq.1) then
-         open(31,file='OUTHEAD_LL.ctl',form='formatted')
+         inquire(file=trim(Path_Output)//'OUTHEAD_LL.ctl' &
+                ,exist=there)
+         if(there) then
+         open(31,file=trim(Path_Output)//'OUTHEAD_LL.ctl' &
+                ,form='formatted',status='replace')
+         else
+         open(31,file=trim(Path_Output)//'OUTHEAD_LL.ctl' &
+                ,form='formatted',status='new')
+         endif
          write(31,10)
   10  format('dset ^OUTHEAD_LL.dat')
          write(31,20)
@@ -711,9 +762,12 @@
       return
       end
 
-      subroutine regrid_ICBC(iy,jx,kz,ibyte,idate0,idate1,idate2)
+      subroutine regrid_ICBC(iy,jx,kz,ibyte,idate0,idate1,idate2 &
+                            ,Path_Input,DomainName)
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      character*80 Path_Input
+      character*10 DomainName
       integer iiy,jjx,kkz
       real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
@@ -760,6 +814,7 @@
 
       integer mlat,nlat,mlon,nlon
       integer n_month
+      logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
       real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
@@ -795,8 +850,8 @@
       allocate(dlat(jx,iy))
       allocate(dlon(jx,iy))
 
-      open(10,file='DOMAIN.INFO',form='unformatted' &
-             ,recl=jx*iy*ibyte,access='direct')
+      open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
+             ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
                     ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
                     ,truelatL,truelatH
@@ -899,10 +954,13 @@
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./6))+1
                filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'0100'
-               open(10,file=filein,form='unformatted' &
-                      ,recl=iy*jx*ibyte,access='direct')
+               open(10,file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein  &
+                   ,form='unformatted',recl=iy*jx*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+               open(20,file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//fileout &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.1) then
@@ -929,11 +987,15 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ICBC'//chy(nyear)//chm(month)//'01'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'01'
-               open(10,file=filein(1:12),form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               open(10,file= &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
+                   ,form='unformatted' &
+                   ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout(1:16),form='unformatted' &
-               ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               open(20,file= &
+                trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16) &
+                ,form='unformatted' &
+                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
                nyear = idate1/100
@@ -947,9 +1009,13 @@
                if(month.eq.1.or.idate1.eq.idate0) then
                   filein = 'ICBC'//chy(nyear)
                   fileout= 'ICBC_LL.'//chy(nyear)
-                  open(10,file=filein(1:8)//'.dat',form='unformatted' &
+                  open(10,file= &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:8)//'.dat' &
+                      ,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                open(20,file=fileout(1:12)//'.dat',form='unformatted' &
+                open(20,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:12)//'.dat' &
+                ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
                mrec = (month-1)*(kz*4+2)
@@ -960,7 +1026,7 @@
                if(ntype.eq.0) then
                   mrec = mrec+1
                   read(10,rec=mrec) IDATE
-                  write(*,*) 'IDATE = ',IDATE
+!                 write(*,*) 'IDATE = ',IDATE
                   do l=1,kz*4+2
                      mrec = mrec+1
                      read(10,rec=mrec) ((o(j,i,l),j=1,jx),i=1,iy)
@@ -1027,14 +1093,20 @@
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
                (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
                if(ntype.eq.0) then
-                  open(31,file=fileout(1:18)//'.ctl',form='formatted')
-                  write(31,10) fileout(1:18)
+                  open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted')
+                  write(31,10) '^'//trim(DomainName)//'_'//fileout(1:18)
                else if(ntype.eq.1) then
-                  open(31,file=fileout(1:16)//'.ctl',form='formatted')
-                  write(31,11) fileout(1:16)
+                  open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
+                      ,form='formatted')
+                  write(31,11) '^'//trim(DomainName)//'_'//fileout(1:16)
                else if(ntype.eq.2) then
-                  open(31,file=fileout(1:12)//'.ctl',form='formatted')
-                  write(31,12) fileout(1:12)
+                  open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:12)//'.ctl' &
+                      ,form='formatted')
+          write(31,12) '^'//trim(DomainName)//'_'//fileout(1:12)//'.dat'
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -1285,10 +1357,13 @@
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./6))+1
                filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'0100'
-               open(10,file=filein,form='unformatted' &
-                      ,recl=iy*jx*ibyte,access='direct')
+               open(10,file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein  &
+                   ,form='unformatted',recl=iy*jx*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+               open(20,file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//fileout &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.1) then
@@ -1315,10 +1390,14 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ICBC'//chy(nyear)//chm(month)//'01'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'01'
-               open(10,file=filein(1:12),form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               open(10,file= &
+                trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
+                   ,form='unformatted' &
+                   ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout(1:16),form='unformatted' &
+               open(20,file= &
+                trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16) &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -1333,9 +1412,13 @@
                if(month.eq.1.or.idate1.eq.idate0) then
                   filein = 'ICBC'//chy(nyear)
                   fileout= 'ICBC_LL.'//chy(nyear)
-                  open(10,file=filein(1:8)//'.dat',form='unformatted' &
+                  open(10,file= &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:8)//'.dat' &
+                      ,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                open(20,file=fileout(1:12)//'.dat',form='unformatted' &
+                open(20,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:12)//'.dat' &
+                    ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
                mrec = (month-1)*(kz*4+2)
@@ -1346,7 +1429,7 @@
                if(ntype.eq.0) then
                   mrec = mrec+1
                   read(10,rec=mrec) IDATE
-                  write(*,*) 'IDATE = ',IDATE
+!                 write(*,*) 'IDATE = ',IDATE
                   do l=1,kz*4+2
                      mrec = mrec+1
                      read(10,rec=mrec) ((o(j,i,l),j=1,jx),i=1,iy)
@@ -1514,14 +1597,20 @@
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
                (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
                if(ntype.eq.0) then
-                  open(31,file=fileout(1:18)//'.ctl',form='formatted')
-                  write(31,10) fileout(1:18)
+                  open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted')
+                  write(31,10) '^'//trim(DomainName)//'_'//fileout(1:18)
                else if(ntype.eq.1) then
-                  open(31,file=fileout(1:16)//'.ctl',form='formatted')
-                  write(31,11) fileout(1:16)
+                  open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
+                      ,form='formatted')
+                  write(31,11) '^'//trim(DomainName)//'_'//fileout(1:16)
                else if(ntype.eq.2) then
-                  open(31,file=fileout(1:12)//'.ctl',form='formatted')
-                  write(31,12) fileout(1:12)
+                  open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:12)//'.ctl' &
+                      ,form='formatted')
+          write(31,12) '^'//trim(DomainName)//'_'//fileout(1:12)//'.dat'
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -1592,9 +1681,9 @@
       deallocate(dlat)
       deallocate(dlon)
 
-  10  format('dset ^',A18)
-  11  format('dset ^',A16)
-  12  format('dset ^',A12,'.dat')
+  10  format('dset ',A38)
+  11  format('dset ',A36)
+  12  format('dset ',A32)
   20  format('title RegCM domain information')
   30  format('options big_endian')
   40  format('options little_endian')
@@ -1612,10 +1701,11 @@
       return
       end
 
-      subroutine regrid_ATM(iy,jx,kz,ibyte,idate0,idate1,idate2   &
-                           ,truelatL,truelatH)
+      subroutine regrid_ATM(iy,jx,kz,ibyte,idate0,idate1,idate2 &
+                           ,Path_Output)
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      character*80 Path_Output
       real*4  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -1664,6 +1754,7 @@
 
       integer mlat,nlat,mlon,nlon
       integer n_month
+      logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
       real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
@@ -1692,12 +1783,12 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
-      open(10,file='OUT_HEAD',form='unformatted' &
+      open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon          &
-                    ,iproj,dto,dtb,dtr,dtc,iotyp
+                    ,iproj,dto,dtb,dtr,dtc,iotyp,truelatL,truelatH
       if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
          write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
          write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
@@ -1795,10 +1886,10 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'0100'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.1) then
@@ -1825,10 +1916,10 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ATM.'//chy(nyear)//chm(month)//'01'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
 
@@ -1844,9 +1935,9 @@
                if(month.eq.1.or.idate1.eq.idate0) then
                   filein = 'ATM.'//chy(nyear)//'mon'
                   fileout= 'ATM_LL.'//chy(nyear)//'mon'
-                  open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                  open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
                mrec = (month-1)*(kz*6+5)
@@ -1889,13 +1980,16 @@
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
                (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
                if(ntype.eq.0) then
-                  open(31,file=fileout(1:17)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                     ,form='formatted')
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                  open(31,file=fileout(1:15)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                     ,form='formatted')
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                  open(31,file=fileout(1:14)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
+                     ,form='formatted')
                   write(31,12) fileout(1:14)
                endif
                write(31,20)
@@ -2061,10 +2155,10 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'0100'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.1) then
@@ -2091,10 +2185,10 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ATM.'//chy(nyear)//chm(month)//'01'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -2109,9 +2203,9 @@
                if(month.eq.1.or.idate1.eq.idate0) then
                   filein = 'ATM.'//chy(nyear)//'mon'
                   fileout= 'ATM_LL.'//chy(nyear)//'mon'
-                  open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                  open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
                mrec = (month-1)*(kz*6+5)
@@ -2250,13 +2344,16 @@
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
                (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
                if(ntype.eq.0) then
-                  open(31,file=fileout(1:17)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                     ,form='formatted')
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                  open(31,file=fileout(1:15)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                     ,form='formatted')
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                  open(31,file=fileout(1:14)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
+                     ,form='formatted')
                   write(31,12) fileout(1:14)
                endif
                write(31,20)
@@ -2341,10 +2438,11 @@
       return
       end
 
-      subroutine regrid_SRF(iy,jx,kz,ibyte,idate0,idate1,idate2    &
-                           ,truelatL,truelatH)
+      subroutine regrid_SRF(iy,jx,kz,ibyte,idate0,idate1,idate2 &
+                           ,Path_Output)
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      character*80 Path_Output
       real*4  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -2393,6 +2491,7 @@
 
       integer mlat,nlat,mlon,nlon
       integer n_month
+      logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
       real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
@@ -2422,12 +2521,12 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
-      open(10,file='OUT_HEAD',form='unformatted' &
+      open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon          &
-                    ,iproj,dto,dtb,dtr,dtc,iotyp
+                    ,iproj,dto,dtb,dtr,dtc,iotyp,truelatL,truelatH
       if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
          write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
          write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
@@ -2525,10 +2624,10 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'SRF.'//chy(nyear)//chm(month)//'0100'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'0100'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.1) then
@@ -2555,10 +2654,10 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'SRF.'//chy(nyear)//chm(month)//'01'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -2573,9 +2672,9 @@
                if(month.eq.1.or.idate1.eq.idate0) then
                   filein = 'SRF.'//chy(nyear)//'mon'
                   fileout= 'SRF_LL.'//chy(nyear)//'mon'
-                  open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                  open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
                mrec = (month-1)*27
@@ -2641,13 +2740,16 @@
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
                (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
                if(ntype.eq.0) then
-                  open(31,file=fileout(1:17)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                     ,form='formatted')
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                  open(31,file=fileout(1:15)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                     ,form='formatted')
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                  open(31,file=fileout(1:14)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
+                     ,form='formatted')
                   write(31,12) fileout(1:14)
                endif
                write(31,20)
@@ -2829,10 +2931,10 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'SRF.'//chy(nyear)//chm(month)//'0100'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'0100'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.1) then
@@ -2859,10 +2961,10 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'SRF.'//chy(nyear)//chm(month)//'01'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -2877,9 +2979,9 @@
                if(month.eq.1.or.idate1.eq.idate0) then
                   filein = 'SRF.'//chy(nyear)//'mon'
                   fileout= 'SRF_LL.'//chy(nyear)//'mon'
-                  open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                  open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
                mrec = (month-1)*27
@@ -3030,13 +3132,16 @@
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
                (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
                if(ntype.eq.0) then
-                  open(31,file=fileout(1:17)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                     ,form='formatted')
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                  open(31,file=fileout(1:15)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                     ,form='formatted')
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                  open(31,file=fileout(1:14)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
+                     ,form='formatted')
                   write(31,12) fileout(1:14)
                endif
                write(31,20)
@@ -3136,9 +3241,11 @@
       return
       end
 
-      subroutine regrid_RAD(iy,jx,kz,ibyte,idate0,idate1,idate2)
+      subroutine regrid_RAD(iy,jx,kz,ibyte,idate0,idate1,idate2 &
+                           ,Path_Output)
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      character*80 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  dxsp,ptsp,clat,clon,plat,plon
@@ -3186,6 +3293,7 @@
 
       integer mlat,nlat,mlon,nlon
       integer n_month
+      logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
       real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
@@ -3210,7 +3318,7 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
-      open(10,file='OUT_HEAD',form='unformatted' &
+      open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
@@ -3313,10 +3421,10 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'RAD.'//chy(nyear)//chm(month)//'0100'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'0100'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.1) then
@@ -3343,10 +3451,10 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'RAD.'//chy(nyear)//chm(month)//'01'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -3361,9 +3469,9 @@
                if(month.eq.1.or.idate1.eq.idate0) then
                   filein = 'RAD.'//chy(nyear)//'mon'
                   fileout= 'RAD_LL.'//chy(nyear)//'mon'
-                  open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                  open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
                mrec = (month-1)*(kz*4+9)
@@ -3406,13 +3514,16 @@
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
                (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
                if(ntype.eq.0) then
-                  open(31,file=fileout(1:17)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                     ,form='formatted')
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                  open(31,file=fileout(1:15)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                     ,form='formatted')
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                  open(31,file=fileout(1:14)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
+                     ,form='formatted')
                   write(31,12) fileout(1:14)
                endif
                write(31,20)
@@ -3580,10 +3691,10 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'RAD.'//chy(nyear)//chm(month)//'0100'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'0100'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.1) then
@@ -3610,10 +3721,10 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'RAD.'//chy(nyear)//chm(month)//'01'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
-               open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-               open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -3628,9 +3739,9 @@
                if(month.eq.1.or.idate1.eq.idate0) then
                   filein = 'RAD.'//chy(nyear)//'mon'
                   fileout= 'RAD_LL.'//chy(nyear)//'mon'
-                  open(10,file=filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                  open(20,file=fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                endif
                mrec = (month-1)*(kz*4+9)
@@ -3680,13 +3791,16 @@
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
                (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
                if(ntype.eq.0) then
-                  open(31,file=fileout(1:17)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                     ,form='formatted')
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                  open(31,file=fileout(1:15)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                     ,form='formatted')
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                  open(31,file=fileout(1:14)//'.ctl',form='formatted')
+                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
+                     ,form='formatted')
                   write(31,12) fileout(1:14)
                endif
                write(31,20)
