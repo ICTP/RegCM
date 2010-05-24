@@ -306,11 +306,13 @@
             write(31,220) (xlat(1,i),i=1,iy-2)
  220  format(10f7.2)
          elseif(iproj.eq.'ROTMER') then
+         if(nfile.eq.1.or.month.eq.1) then
             write(*,*) 'Note that rotated Mercartor (ROTMER)' &
                    ,' projections are not supported by GrADS.'
             write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
+         endif
             write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
                                           ,dxsp/111.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
@@ -835,11 +837,13 @@
             write(31,220) (xlat(1,i),i=1,iy-2)
  220  format(10f7.2)
          elseif(iproj.eq.'ROTMER') then
+         if(nfile.eq.1.or.month.eq.1) then
             write(*,*) 'Note that rotated Mercartor (ROTMER)' &
                    ,' projections are not supported by GrADS.'
             write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
+         endif
             write(31,230) jx-2,iy-2,plon,plat,dsinm/111000. &
                                           ,dsinm/111000.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
@@ -1151,11 +1155,13 @@
             write(31,220) (xlat(1,i),i=1,iy-2)
  220  format(10f7.2)
          elseif(iproj.eq.'ROTMER') then
+         if(nfile.eq.1.or.month.eq.1) then
             write(*,*) 'Note that rotated Mercartor (ROTMER)' &
                    ,' projections are not supported by GrADS.'
             write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
+         endif
             write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
                                           ,dxsp/111.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
