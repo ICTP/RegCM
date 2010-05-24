@@ -132,7 +132,7 @@
       allocate(xlon(jx-2,iy-2))
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
-      if(there) then
+      if(.not.there) then
          write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
          stop
       endif
@@ -470,7 +470,7 @@
       close(31)
 
          inquire(file=trim(Path_Output)//filein,exist=there)
-         if(there) then
+         if(.not.there) then
             write(*,*) trim(Path_Output)//filein,' is not avaiable'
             stop
          endif
@@ -684,7 +684,7 @@
 
       inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
              ,exist=there)
-      if(there) then
+      if(.not.there) then
          write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO' &
                    ,' is not avaiable'
          stop
@@ -912,7 +912,7 @@
 
          inquire(file=trim(Path_Input)//trim(DomainName)//filein  &
              ,exist=there)
-         if(there) then
+         if(.not.there) then
             write(*,*) trim(Path_Input)//trim(DomainName)//filein  &
                       ,' is not avaiable'
             stop
@@ -1026,7 +1026,7 @@
       allocate(xlon(jx-2,iy-2))
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
-      if(there) then
+      if(.not.there) then
          write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
          stop
       endif
@@ -1264,7 +1264,7 @@
          close(31)
 
          inquire(file=trim(Path_Output)//filein,exist=there)
-         if(there) then
+         if(.not.there) then
             write(*,*) trim(Path_Output)//filein,' is not avaiable'
             stop
          endif
@@ -1384,7 +1384,7 @@
       allocate(xlon(jx-2,iy-2))
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
-      if(there) then
+      if(.not.there) then
          write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
          stop
       endif
@@ -1728,7 +1728,7 @@
             filein = 'CHE.'//chy(nyear)//chm(month)//'01'
          endif
          inquire(file=trim(Path_Output)//filein,exist=there)
-         if(there) then
+         if(.not.there) then
             write(*,*) trim(Path_Output)//filein,' is not avaiable'
             write(*,*) 'Note: Daily mean files are required.'
             stop
@@ -1837,7 +1837,7 @@
 
       inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,exist=there)
-      if(there) then
+      if(.not.there) then
          write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO'  &
                    ,' is not avaiable'
          stop
@@ -2070,7 +2070,7 @@
          endif
          inquire(file=trim(Path_Input)//trim(DomainName)//filein  &
                 ,exist=there)
-         if(there) then
+         if(.not.there) then
             write(*,*) trim(Path_Input)//trim(DomainName)//filein  &
                       ,' is not avaiable'
             write(*,*) 'Note: Daily mean files are required.'
@@ -2190,7 +2190,7 @@
  102  format('.INFO',I2)
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
-      if(there) then
+      if(.not.there) then
          write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
          stop
       endif
@@ -2419,7 +2419,7 @@
             filein = 'SUB.'//chy(nyear)//chm(month)//'01'
          endif
          inquire(file=trim(Path_Output)//filein,exist=there)
-         if(there) then
+         if(.not.there) then
             write(*,*) trim(Path_Output)//filein,' is not avaiable'
             write(*,*) 'Note: Daily mean files are required.'
             stop
