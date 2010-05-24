@@ -269,8 +269,8 @@
                      alonmin = amin1(alonmin,xlon(j,i))
                      alonmax = amax1(alonmax,xlon(j,i))
                   else
-                     if(abs(clon-xlon(j,i).lt. &
-                        abs(clon-xlon(j,i)-360.))) then
+                     if(abs(clon-xlon(j,i)).lt. &
+                        abs(clon-(xlon(j,i)-360.))) then
                         alonmin = amin1(alonmin,xlon(j,i))
                         alonmax = amax1(alonmax,xlon(j,i))
                      else
@@ -798,8 +798,8 @@
                      alonmin = amin1(alonmin,xlon(j,i))
                      alonmax = amax1(alonmax,xlon(j,i))
                   else
-                     if(abs(clon-xlon(j,i).lt. &
-                        abs(clon-xlon(j,i)-360.))) then
+                     if(abs(clon-xlon(j,i)).lt. &
+                        abs(clon-(xlon(j,i)-360.))) then
                         alonmin = amin1(alonmin,xlon(j,i))
                         alonmax = amax1(alonmax,xlon(j,i))
                      else
@@ -1114,8 +1114,8 @@
                      alonmin = amin1(alonmin,xlon(j,i))
                      alonmax = amax1(alonmax,xlon(j,i))
                   else
-                     if(abs(clon-xlon(j,i).lt. &
-                        abs(clon-xlon(j,i)-360.))) then
+                     if(abs(clon-xlon(j,i)).lt. &
+                        abs(clon-(xlon(j,i)-360.))) then
                         alonmin = amin1(alonmin,xlon(j,i))
                         alonmax = amax1(alonmax,xlon(j,i))
                      else
@@ -1447,8 +1447,8 @@
                   alonmin = amin1(alonmin,xlon(j,i))
                   alonmax = amax1(alonmax,xlon(j,i))
                else
-                  if(abs(clon-xlon(j,i).lt. &
-                     abs(clon-xlon(j,i)-360.))) then
+                  if(abs(clon-xlon(j,i)).lt. &
+                     abs(clon-(xlon(j,i)-360.))) then
                      alonmin = amin1(alonmin,xlon(j,i))
                      alonmax = amax1(alonmax,xlon(j,i))
                   else
@@ -1891,8 +1891,8 @@
                   alonmin = amin1(alonmin,xlon(j,i))
                   alonmax = amax1(alonmax,xlon(j,i))
                else
-                  if(abs(clon-xlon(j,i).lt. &
-                     abs(clon-xlon(j,i)-360.))) then
+                  if(abs(clon-xlon(j,i)).lt. &
+                     abs(clon-(xlon(j,i)-360.))) then
                      alonmin = amin1(alonmin,xlon(j,i))
                      alonmax = amax1(alonmax,xlon(j,i))
                   else
@@ -2214,8 +2214,8 @@
                   alonmin = amin1(alonmin,xlon(j,i))
                   alonmax = amax1(alonmax,xlon(j,i))
                else
-                  if(abs(clon-xlon(j,i).lt. &
-                     abs(clon-xlon(j,i)-360.))) then
+                  if(abs(clon-xlon(j,i)).lt. &
+                     abs(clon-(xlon(j,i)-360.))) then
                      alonmin = amin1(alonmin,xlon(j,i))
                      alonmax = amax1(alonmax,xlon(j,i))
                   else
