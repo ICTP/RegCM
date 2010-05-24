@@ -167,27 +167,30 @@
       allocate(zs(jxm2,iym2))
       allocate(zssd(jxm2,iym2))
  
-      if ( bcproc ) then
+      !TAO: changed the following IF-statements to explicitly say .eq.1
+      !because the Sun fortran compilers won't allow integers to be
+      !treated implicitly as logicals
+      if ( bcproc == 1 ) then
         call init_mod_bcflds
       end if
 
-      if ( outproc .and. iftape ) then
+      if ( outproc == 1 .and. iftape ) then
         call init_mod_outflds
       end if
 
-      if ( batproc .and. ifbat ) then
+      if ( batproc == 1 .and. ifbat ) then
         call init_mod_batflds
       end if
 
-      if ( radproc .and. ifrad ) then
+      if ( radproc == 1 .and. ifrad ) then
         call init_mod_radflds
       end if
 
-      if ( cheproc .and. ifchem ) then
+      if ( cheproc == 1 .and. ifchem ) then
         call init_mod_cheflds
       end if
 
-      if ( subproc .and. ifsub ) then
+      if ( subproc == 1 .and. ifsub ) then
         allocate(xlatsb1d(iym2sg))
         allocate(xlonsb1d(jxm2sg))
         allocate(xlatsb(jxm2sg,iym2sg))

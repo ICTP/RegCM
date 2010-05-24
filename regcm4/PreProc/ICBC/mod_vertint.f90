@@ -591,7 +591,7 @@
 
           !If the surface is below the GCM's lowest level,
           !then extrapolate temperature
-          if ( k1 > kccm ) then
+          if ( k1 >= kccm ) then
             a1 = rgas2*log(sc/sccm(kccm))
             fsccm(i,j) = fccm(i,j,kccm+1-kccm)*(b1-a1)/(b1+a1)
           !Otherwise, interpolate the surface temperature between
