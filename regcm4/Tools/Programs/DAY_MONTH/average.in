@@ -1,10 +1,13 @@
-&dimparam
+&shareparam
  iy = 80,
  jx =108,
  kz = 18,
  nsg = 1,
  ntr = 1,
  ibyte = 4,
+ Path_Input = '/home/bixq/BENCHMARK/regcm4_743/Input/',
+ DomainName = 'China'
+ Path_Output = '/home/bixq/BENCHMARK/regcm4_743/Run/output/',
 /
 &dateparam
  idate0 = 1989090100,
@@ -12,12 +15,12 @@
  idate2 = 1991010100,
 /
 &averageparam
- day_ICBC = .false.,
+ day_ICBC = .true.,
  day_ATM = .true.,
  day_RAD = .true.,
  day_SRF = .true.,
  day_CHE = .false.,
- mon_ICBC = .false.,
+ mon_ICBC = .true.,
  mon_ATM = .true.,
  mon_RAD = .true.,
  mon_SRF = .true.,
