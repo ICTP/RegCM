@@ -142,6 +142,9 @@ def main():
 
     choose_template(regcm_root,compiler,dbg)
 
+    if compiler == 4 :
+        mpi_compiler = "mpxlf90"
+
     if mpi == 1 :
         makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler,clm,dcsst,seaice)
     else :
@@ -234,7 +237,8 @@ def makefile_edit(regcm_root,bin_dir,ncpath,mpi,mpi_compiler,clm,dcsst,seaice) :
 
         if mpi == 1 :
             line=line.replace("# PARALLEL = MPP1","PARALLEL = MPP1")
-            line=line.replace("!MPIF90",mpi_compiler)
+            
+        line=line.replace("!MPIF90",mpi_compiler)
     
         print line.rstrip()
 

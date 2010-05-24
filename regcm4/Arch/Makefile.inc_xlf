@@ -12,12 +12,9 @@
 
 # Base directory:
 
-REGCM_BASE_DIR = `pwd`
+REGCM_BASE_DIR = !REGCM_ROOT
 
-# DATA directories: 
-REGCM_DATA_DIR = /gpfs/scratch/userictp/ictpcl03 
-
-BINDIR = /sp6/userictp/ictpcl02/scratch/regcm/branches/regcm4
+BINDIR = !BIN_DIR
 
 # NetCDF library:
 # The NetCDF library is needed to run RegCM, 
@@ -25,11 +22,9 @@ BINDIR = /sp6/userictp/ictpcl02/scratch/regcm/branches/regcm4
 # In NETCDFINC you should define the path to NetCDF include files
 # In NETCDFLIB you should define the path and the name of the NetCDF library
 
-NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf -L$(HDF5_LIB) -lhdf5 -lhdf5_hl \
-            -L$(SZLIB_LIB) -lsz
-CXXNETCDF = -L$(NETCDF_LIB) -lnetcdf_c++ -lnetcdf \
-            -L$(HDF5_LIB) -lhdf5 -lhdf5_hl -L$(SZLIB_LIB) -lsz
-NETCDFINC = -I$(NETCDF_INC)
+NETCDFINC = !NETCDFINC
+NETCDFLIB = !NETCDFLIB 
+CXXNETCDF = !NETCDFC++
 
 # PREPROCESSOR AND COMPILER OPTIONS
 
@@ -37,7 +32,7 @@ NETCDFINC = -I$(NETCDF_INC)
 # Serial version   : leave commented
 # parallel version : uncomment the line
 
-PARALLEL = MPP1
+# PARALLEL = MPP1
 
 # Add further preprocessor flags, if necessary. Those available are:
 # -DIBM : to compile using IBM xlf compiler
@@ -70,7 +65,7 @@ AIXSP6 = 1
 CXXFLAGS = -O2 -g  
 
 # Set the MPI Fortran 90 compiler here
-MPIF90 = mpxlf90
+MPIF90 = !MPIF90
 
 # Set the linker here
 # Modify this variable only if you really know what you are doing !!!
