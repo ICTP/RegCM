@@ -116,9 +116,9 @@ def main():
             compiler=int(raw_input("\n\tcompiler = "))
             if (1 <= compiler <= 7):
                 if clm == 1 and compiler == 1:
-                    print "\tnSorry, GNU compilers are not supported by the CLM library!"
+                    print "\t\nSorry, GNU compilers are not supported by the CLM library!"
                 elif clm == 1 and compiler == 6:
-                    print "\tnSorry, Sun compilers are not supported by the CLM library due to a bug in the version 8.3 2008/01/28 compilers!"
+                    print "\t\nSorry, Sun compilers are not supported by the CLM library due to a bug in the version 8.3 2008/01/28 compilers!"
                 else :
                     isnotint=False
             else :
@@ -144,7 +144,7 @@ def main():
 
     choose_template(regcm_root,compiler,dbg)
 
-    if compiler == 4 :
+    if compiler == 4 or compiler == 5 :
         mpi_compiler = "mpxlf90"
 
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
@@ -240,7 +240,7 @@ def choose_template(regcm_root,compiler,dbg):
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf_debug",regcm_root+"/Makefile.inc")
         elif compiler == 5 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sp6_debug",regcm_root+"/Makefile.inc")
-        elif compiler == 6
+        elif compiler == 6 :
             shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sun8.3_debug",regcm_root+"/Makefile.inc")
     else :
         shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
