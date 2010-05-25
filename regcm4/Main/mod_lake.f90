@@ -451,7 +451,7 @@
 !
 ! Computes air vapor pressure as a function of temp (in K)
 !
-      function eomb(x)
+      function eomb(x) result(e)
 
       use mod_constants , only : stdpmb , tboil , tzero
       implicit none
@@ -460,23 +460,39 @@
 !
       real(8) :: x
       intent (in) x
-      real(8) :: eomb
+      real(8) :: e
 !
 ! Local variables
 !
       real(8) :: tr1
 !
       tr1 = 1.0 - (tboil/(x+tzero))
-      eomb = stdpmb*dexp(13.3185*tr1-1.976*tr1**2-0.6445*tr1**3-       &
+      e = stdpmb*dexp(13.3185*tr1-1.976*tr1**2-0.6445*tr1**3-       &
            & 0.1299*tr1**4)
-
       end function eomb
+
+!	
 !
+!       function t4(x) result(t4) 
+!       use mod_constants , only :: tzero
+!       implicit none 
+!       real(8), intent(in) :: x 
+!       real(8) :: t4 
+
+!        t4 = (x+tzero)**4
+!       end function t4
+
+!       function f(x) result(f)
+!       use mod_constants , only :: tzero
+!       real(8), intent(in) :: x 
+!       real(8) :: f
+
+ 
 !-----------------------------------------------------------------------
 !
       subroutine ice(kd,ld,ta,u2,ea,hs,hi,hii,evap,t,depth,precip)
 
-      use mod_constants , only : ep2 , tzero , sigm , wlhv
+      use mod_constants , only : ep2 , tzero , sigm , wlhv,stdpmb,tboil
       implicit none
 !
 ! PARAMETER definitions
@@ -501,7 +517,7 @@
 !
       real(8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
                & t2 , tf , theta , x
-      real(8) :: f , t4
+      real(8) :: f , t4 ,tr1,eomb
       integer :: nits
 !
 !****************************SUBROUINE ICE*****************************
@@ -510,6 +526,10 @@
  
       t4(x) = (x+tzero)**4
  
+      tr1(x) = 1.0 - (tboil/(x+tzero))
+      eomb(x) = stdpmb*dexp(13.3185*tr1(x)-1.976*tr1(x)**2-0.6445*tr1(x)**3-       &
+           & 0.1299*tr1(x)**4)
+
 !     ****** g. bates changed air to ta, qpen1 to qpen (4/92)
       f(x) = (-ld+0.97*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-ta)-kd)    &
            & - 1./khat*(qpen+tf-x)
