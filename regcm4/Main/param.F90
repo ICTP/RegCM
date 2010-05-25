@@ -398,7 +398,7 @@
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
-      ncld = 3           ! # of bottom model levels with no clouds (rad only)
+      ncld = 1           ! # of bottom model levels with no clouds (rad only)
       fcmax = 0.80       ! Maximum cloud fraction cover (rad only)
 !     qck1land = 0.0005  ! Autoconversion Rate for Land
 !     qck1oce  = 0.0005  ! Autoconversion Rate for Ocean
@@ -1289,11 +1289,11 @@
  
       do k = 1 , kz
         if ( a(k).lt.0.4 ) then
-          anudg(k) = 4.
-        else if ( a(k).lt.0.8 ) then
           anudg(k) = 3.
-        else
+        else if ( a(k).lt.0.8 ) then
           anudg(k) = 2.
+        else
+          anudg(k) = 1.
         end if
       end do
 !
