@@ -22,6 +22,7 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <string>
 
 #include <netcdf.hh>
 
@@ -63,6 +64,10 @@ void help(char *pname)
       << std::endl
   << "   --grads                   : Produce a CTL file for GrADS"
       << std::endl
+  << "   --var/-v[all|name[,name]] : Include only some vars (all default)"
+      << std::endl
+  << "   --list/-l                 : Output list of names for -v option"
+      << std::endl
   << "   --onlyatm/-a              : Process ATM file (default do all)"
       << std::endl
   << "   --onlysrf/-s              : Process SRF file (default do all)"
@@ -89,6 +94,7 @@ int main(int argc, char *argv[])
   bool ldirect, lbigend, lgra;
   int iseq, ilittle, istart, igra, nsteps;
   bool onlyatm, onlysrf, onlysub, onlyrad, onlyche;
+  std::string vnames = "all";
   ldirect = true;
   lbigend = true;
   lgra = false;
@@ -115,6 +121,8 @@ int main(int argc, char *argv[])
       { "onlysub", no_argument, 0, 'u'},
       { "onlyrad", no_argument, 0, 'r'},
       { "onlyche", no_argument, 0, 'c'},
+      { "list", no_argument, 0, 'l'},
+      { "var", required_argument, 0, 'v'},
       { "startstep", required_argument, 0, 't'},
       { "nsteps", required_argument, 0, 'n'},
       { "help", no_argument, 0, 'h'},
@@ -122,7 +130,7 @@ int main(int argc, char *argv[])
       { 0, 0, 0, 0 }
     };
     int optind, c = 0;
-    c = getopt_long (argc, argv, "asruct:n:hV",
+    c = getopt_long (argc, argv, "asruct:n:hVlv:",
                      long_options, &optind);
     if (c == -1) break;
     switch (c)
@@ -137,6 +145,114 @@ int main(int argc, char *argv[])
         std::cerr << "This is " << pname << " version " << version
                   << std::endl;
         return 0;
+      case 'l':
+        std::cout << std::endl
+                  << "List of names for " << pname << " is:" << std::endl
+                  << std::endl
+                  << "###############" << std::endl
+                  << "ATM file source" << std::endl
+                  << "###############" << std::endl
+                  << "  u  :  U component of wind (westerly)" << std::endl
+                  << "  v  :  V component of wind (southerly)" << std::endl
+                  << "  o  :  Vertical pressure velocity" << std::endl
+                  << "  dv :  Wind divergence" << std::endl
+                  << "  vr :  Wind vorticity" << std::endl
+                  << "  p  :  Pressure" << std::endl
+                  << "  hg :  Geopotential Height" << std::endl
+                  << "  t  :  Temperature" << std::endl
+                  << "  td :  Dew point temperature" << std::endl
+                  << "  tp :  Potential temperature" << std::endl
+                  << "  rh :  Relative humidity" << std::endl
+                  << "  qv :  Water Vapor mixing ratio" << std::endl
+                  << "  qc :  Cloud water mixing ratio" << std::endl
+                  << "  tpr:  Total precipitation" << std::endl
+                  << "  tgb:  Temperature of ground" << std::endl
+                  << "  swt:  Soil water content" << std::endl
+                  << "  rno:  Surface runoff" << std::endl
+                  << "###############" << std::endl
+                  << "SRF file source" << std::endl
+                  << "###############" << std::endl
+                  << "  u10:  10m wind U component (westerly)" << std::endl
+                  << "  v10:  10m wind V component (southerly)" << std::endl
+                  << "  udg:  Wind drag" << std::endl
+                  << "  tg :  Ground temperature" << std::endl
+                  << "  tfl:  Foliage temperature" << std::endl
+                  << "  t2 :  2m air temperature" << std::endl
+                  << "  r2 :  2m air relative humidity" << std::endl
+                  << "  q2 :  2m air water vapor mixing ratio" << std::endl
+                  << "  sm :  Soil moisture" << std::endl
+                  << "  tpr:  Total precipitation" << std::endl
+                  << "  evp:  Total evapotranspiration" << std::endl
+                  << "  rno:  Surface runoff" << std::endl
+                  << "  scv:  Snow precipitation" << std::endl
+                  << "  sen:  Sensible heat" << std::endl
+                  << "  flw:  Upward LW" << std::endl
+                  << "  fsw:  Downward SW" << std::endl
+                  << "  fld:  Downward LW" << std::endl
+                  << "  sin:  Solar input energy" << std::endl
+                  << "  prc:  Convective precipitation" << std::endl
+                  << "  zpb:  PBL height" << std::endl
+                  << "  tga:  Maximum ground temperature" << std::endl
+                  << "  tgi:  Minimum ground temperature" << std::endl
+                  << "  t2a:  Maximum 2m air temperature" << std::endl
+                  << "  t2i:  Minimum 2m air temperature" << std::endl
+                  << "  wma:  Maximum speed 10m wind" << std::endl
+                  << "  psi:  Minimum pressure" << std::endl
+                  << "###############" << std::endl
+                  << "RAD file source" << std::endl
+                  << "###############" << std::endl
+                  << "  cld:  Cloud fractional cover" << std::endl
+                  << "  clw:  Cloud liquid water path" << std::endl
+                  << "  qrs:  Solar heating rate" << std::endl
+                  << "  qrl:  LW cooling rate" << std::endl
+                  << "  frs:  Surface absorbed solar flux" << std::endl
+                  << "  frl:  Longwave cooling of surface flux" << std::endl
+                  << "  crs:  Clearsky SW solar column abs. flux" << std::endl
+                  << "  css:  Clearsky SW solar surface flux" << std::endl
+                  << "  crl:  Clearsky LW column flux at TOA" << std::endl
+                  << "  csl:  Clearsky LW flux at surface" << std::endl
+                  << "  soi:  Incident solar flux" << std::endl
+                  << "  sab:  SW absorption rate" << std::endl
+                  << "  fir:  LW absorption rate" << std::endl
+                  << "###############" << std::endl
+                  << "CHE file source" << std::endl
+                  << "###############" << std::endl
+                  << "  trc:  Tracers mixing ratio" << std::endl
+                  << "  axt:  Aerosol extinction coefficient" << std::endl
+                  << "  asa:  Aerosol single scattering albedo" << std::endl
+                  << "  agf:  Aerosol asymmetry parameter" << std::endl
+                  << "  cbd:  Tracer deposition" << std::endl
+                  << "  wdl:  Wet deposition large scale" << std::endl
+                  << "  wdc:  Wet deposition convective" << std::endl
+                  << "  drd:  Dry deposition" << std::endl
+                  << "  xgs:  Gas conversion" << std::endl
+                  << "  xaq:  Aqueous conversion" << std::endl
+                  << "  tem:  Emission of tracer from surface" << std::endl
+                  << "  act:  TOA radiative forcing" << std::endl
+                  << "  acs:  Surface radiative forcing" << std::endl
+                  << "###############" << std::endl
+                  << "SUB file source" << std::endl
+                  << "###############" << std::endl
+                  << "  u10:  10m wind U component (westerly)" << std::endl
+                  << "  v10:  10m wind V component (southerly)" << std::endl
+                  << "  udg:  Wind drag" << std::endl
+                  << "  tg :  Ground temperature" << std::endl
+                  << "  tl :  Foliage temperature" << std::endl
+                  << "  t2 :  2m air temperature" << std::endl
+                  << "  r2 :  2m air relative humidity" << std::endl
+                  << "  q2 :  2m air water vapor mixing ratio" << std::endl
+                  << "  sm :  Soil moisture" << std::endl
+                  << "  tpr:  Total precipitation" << std::endl
+                  << "  evp:  Total evapotranspiration" << std::endl
+                  << "  rno:  Surface runoff" << std::endl
+                  << "  scv:  Snow precipitation" << std::endl
+                  << "  sen:  Sensible heat" << std::endl
+                  << "  prc:  Convective precipitation" << std::endl
+                  << std::endl;
+        return 0;
+      case 'v':
+        vnames = optarg;
+        break;
       case 'a':
         onlyatm = true;
         break;
@@ -214,6 +330,7 @@ int main(int argc, char *argv[])
         sprintf(ctlname, "ATM_%s_%d.ctl", experiment, outhead.idate1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
+      outnc.vl.addvar(vnames);
 
       rcmNcAtmo atmnc(outnc, outhead);
       atmcalc c(outhead);
@@ -256,6 +373,7 @@ int main(int argc, char *argv[])
         sprintf(ctlname, "SRF_%s_%d.ctl", experiment, outhead.idate1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
+      outnc.vl.addvar(vnames);
 
       rcmNcSrf srfnc(outnc, outhead);
       // Add Surface variables
@@ -298,6 +416,7 @@ int main(int argc, char *argv[])
         sprintf(ctlname, "RAD_%s_%d.ctl", experiment, outhead.idate1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
+      outnc.vl.addvar(vnames);
 
       rcmNcRad radnc(outnc, outhead);
       // Add Radiation variables
@@ -337,6 +456,7 @@ int main(int argc, char *argv[])
         sprintf(ctlname, "CHE_%s_%d.ctl", experiment, outhead.idate1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
+      outnc.vl.addvar(vnames);
 
       rcmNcChe chenc(outnc, outhead);
       // Add Chemical tracers variables
@@ -380,6 +500,7 @@ int main(int argc, char *argv[])
         sprintf(ctlname, "SUB_%s_%d.ctl", experiment, outhead.idate1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
+      outnc.vl.addvar(vnames);
 
       rcmNcSub subnc(outnc, outhead, subdom);
       subcalc c(subdom);

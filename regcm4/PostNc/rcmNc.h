@@ -118,10 +118,6 @@ namespace rcm
     private:
       NcVar *psvar;
       bool varmask[17];
-      NcVar *tprvar;
-      NcVar *tgbvar;
-      NcVar *swtvar;
-      NcVar *rnovar;
       NcVar *uvar;
       NcVar *vvar;
       NcVar *ovar;
@@ -135,6 +131,10 @@ namespace rcm
       NcVar *vrvar;
       NcVar *qvvar;
       NcVar *qcvar;
+      NcVar *tprvar;
+      NcVar *tgbvar;
+      NcVar *swtvar;
+      NcVar *rnovar;
   };
 
   class rcmNcSrf : public rcmNc {
@@ -143,13 +143,15 @@ namespace rcm
       void put_rec(srfdata &s, t_srf_deriv &d);
     private:
       NcVar *psbvar;
-      bool varmask[27];
+      NcVar *tbnd;
+      bool varmask[26];
       NcVar *u10mvar;
       NcVar *v10mvar;
       NcVar *uvdragvar;
       NcVar *tgvar;
       NcVar *tlefvar;
       NcVar *t2mvar;
+      NcVar *r2mvar;
       NcVar *q2mvar;
       NcVar *smwvar;
       NcVar *tprvar;
@@ -169,8 +171,6 @@ namespace rcm
       NcVar *t2minvar;
       NcVar *w10maxvar;
       NcVar *ps_minvar;
-      NcVar *r2mvar;
-      NcVar *tbnd;
       unsigned long last_time;
   };
 

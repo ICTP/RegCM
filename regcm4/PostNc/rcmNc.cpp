@@ -282,6 +282,36 @@ rcmNc::~rcmNc( )
 rcmNcAtmo::rcmNcAtmo(regcmout &fnc, header_data &h)
   : rcmNc(fnc, h, true)
 {
+  // Check if var is on wanted list
+  // Special all key
+  for (int i = 0; i < 10; i ++)
+    varmask[i] = false;
+  if (fnc.vl.isthere("all"))
+  {
+    for (int i = 0; i < 10; i ++)
+      varmask[i] = true;
+  }
+  else
+  {
+    if (fnc.vl.isthere("u")) varmask[0] = true;
+    if (fnc.vl.isthere("v")) varmask[1] = true;
+    if (fnc.vl.isthere("o")) varmask[2] = true;
+    if (fnc.vl.isthere("dv")) varmask[3] = true;
+    if (fnc.vl.isthere("vr")) varmask[4] = true;
+    if (fnc.vl.isthere("p")) varmask[5] = true;
+    if (fnc.vl.isthere("hg")) varmask[6] = true;
+    if (fnc.vl.isthere("t")) varmask[7] = true;
+    if (fnc.vl.isthere("td")) varmask[8] = true;
+    if (fnc.vl.isthere("tp")) varmask[9] = true;
+    if (fnc.vl.isthere("rh")) varmask[10] = true;
+    if (fnc.vl.isthere("qv")) varmask[11] = true;
+    if (fnc.vl.isthere("qc")) varmask[12] = true;
+    if (fnc.vl.isthere("tpr")) varmask[13] = true;
+    if (fnc.vl.isthere("tgb")) varmask[14] = true;
+    if (fnc.vl.isthere("swt")) varmask[15] = true;
+    if (fnc.vl.isthere("rno")) varmask[16] = true;
+  }
+
   // Manage time setup
   rcmdate d(h.idate1);
   reference_time = d.unixtime( );
@@ -294,134 +324,231 @@ rcmNcAtmo::rcmNcAtmo(regcmout &fnc, header_data &h)
   psvar->add_att("long_name", "Surface pressure");
   psvar->add_att("coordinates", "xlon xlat");
   psvar->add_att("units", "hPa");
-  tprvar = f->add_var("tpr", ncFloat, tt, iy, jx);
-  tprvar->add_att("standard_name", "precipitation_flux");
-  tprvar->add_att("long_name", "Total daily precipitation rate");
-  tprvar->add_att("coordinates", "xlon xlat");
-  tprvar->add_att("units", "kg m-2 day-1");
-  tgbvar = f->add_var("tgb", ncFloat, tt, iy, jx);
-  tgbvar->add_att("standard_name", "soil_temperature");
-  tgbvar->add_att("long_name", "Lower groud temperature in BATS");
-  tgbvar->add_att("coordinates", "xlon xlat");
-  tgbvar->add_att("units", "K");
-  swtvar = f->add_var("swt", ncFloat, tt, iy, jx);
-  swtvar->add_att("standard_name", "moisture_content_of_soil_layer");
-  swtvar->add_att("_FillValue", fillv);
-  swtvar->add_att("long_name", "Total soil water");
-  swtvar->add_att("coordinates", "xlon xlat");
-  swtvar->add_att("units", "kg m-2");
-  rnovar = f->add_var("rno", ncFloat, tt, iy, jx);
-  rnovar->add_att("standard_name", "runoff_amount");
-  rnovar->add_att("_FillValue", fillv);
-  rnovar->add_att("long_name", "Runoff accumulated infiltration");
-  rnovar->add_att("coordinates", "xlon xlat");
-  rnovar->add_att("units", "kg m-2");
-  uvar = f->add_var("u", ncFloat, tt, kz, iy, jx);
-  uvar->add_att("standard_name", "eastward_wind");
-  uvar->add_att("long_name", "U component (westerly) of wind");
-  uvar->add_att("coordinates", "xlon xlat");
-  uvar->add_att("units", "m s-1");
-  vvar = f->add_var("v", ncFloat, tt, kz, iy, jx);
-  vvar->add_att("standard_name", "northward_wind");
-  vvar->add_att("long_name", "V component (southerly) of wind");
-  vvar->add_att("coordinates", "xlon xlat");
-  vvar->add_att("units", "m s-1");
-  ovar = f->add_var("omega", ncFloat, tt, kz, iy, jx);
-  ovar->add_att("standard_name", "lagrangian_tendency_of_air_pressure");
-  ovar->add_att("long_name", "Pressure velocity");
-  ovar->add_att("coordinates", "xlon xlat");
-  ovar->add_att("units", "hPa s-1");
-  tvar = f->add_var("t", ncFloat, tt, kz, iy, jx);
-  tvar->add_att("standard_name", "air_temperature");
-  tvar->add_att("long_name", "Temperature");
-  tvar->add_att("coordinates", "xlon xlat");
-  tvar->add_att("units", "K");
-  pvar = f->add_var("p", ncFloat, tt, kz, iy, jx);
-  pvar->add_att("standard_name", "air_pressure");
-  pvar->add_att("long_name", "Pressure");
-  pvar->add_att("coordinates", "xlon xlat");
-  pvar->add_att("units", "hPa");
-  rhvar = f->add_var("rh", ncFloat, tt, kz, iy, jx);
-  rhvar->add_att("standard_name", "relative_humidity");
-  rhvar->add_att("long_name", "Relative Humidity");
-  rhvar->add_att("coordinates", "xlon xlat");
-  rhvar->add_att("units", "1");
-  tdvar = f->add_var("td", ncFloat, tt, kz, iy, jx);
-  tdvar->add_att("standard_name", "dew_point_temperature");
-  tdvar->add_att("long_name", "Dewpoint Temperature");
-  tdvar->add_att("coordinates", "xlon xlat");
-  tdvar->add_att("units", "K");
-  tpvar = f->add_var("tp", ncFloat, tt, kz, iy, jx);
-  tpvar->add_att("standard_name", "air_potential_temperature");
-  tpvar->add_att("long_name", "Potential Temperature");
-  tpvar->add_att("coordinates", "xlon xlat");
-  tpvar->add_att("units", "K");
-  hgtvar = f->add_var("hgt", ncFloat, tt, kz, iy, jx);
-  hgtvar->add_att("standard_name", "geopotential_height");
-  hgtvar->add_att("long_name", "Geopotential Height");
-  hgtvar->add_att("coordinates", "xlon xlat");
-  hgtvar->add_att("units", "m");
-  dvvar = f->add_var("dv", ncFloat, tt, kz, iy, jx);
-  dvvar->add_att("standard_name", "divergence_of_wind");
-  dvvar->add_att("long_name", "Wind divergence");
-  dvvar->add_att("coordinates", "xlon xlat");
-  dvvar->add_att("units", "s-1");
-  vrvar = f->add_var("vr", ncFloat, tt, kz, iy, jx);
-  vrvar->add_att("standard_name", "atmosphere_relative_vorticity");
-  vrvar->add_att("long_name", "Vorticity");
-  vrvar->add_att("coordinates", "xlon xlat");
-  vrvar->add_att("units", "s-1");
-  qvvar = f->add_var("qv", ncFloat, tt, kz, iy, jx);
-  qvvar->add_att("standard_name", "humidity_mixing_ratio");
-  qvvar->add_att("long_name", "Water vapor mixing ratio");
-  qvvar->add_att("coordinates", "xlon xlat");
-  qvvar->add_att("units", "kg kg-1");
-  qcvar = f->add_var("qc", ncFloat, tt, kz, iy, jx);
-  qcvar->add_att("standard_name", "cloud_liquid_water_mixing_ratio");
-  qcvar->add_att("long_name", "Cloud water mixing ratio");
-  qcvar->add_att("coordinates", "xlon xlat");
-  qcvar->add_att("units", "kg kg-1");
+
+  if (varmask[0] || varmask[1])
+  {
+    uvar = f->add_var("u", ncFloat, tt, kz, iy, jx);
+    uvar->add_att("standard_name", "eastward_wind");
+    uvar->add_att("long_name", "U component (westerly) of wind");
+    uvar->add_att("coordinates", "xlon xlat");
+    uvar->add_att("units", "m s-1");
+    vvar = f->add_var("v", ncFloat, tt, kz, iy, jx);
+    vvar->add_att("standard_name", "northward_wind");
+    vvar->add_att("long_name", "V component (southerly) of wind");
+    vvar->add_att("coordinates", "xlon xlat");
+    vvar->add_att("units", "m s-1");
+  }
+  if (varmask[2])
+  {
+    ovar = f->add_var("omega", ncFloat, tt, kz, iy, jx);
+    ovar->add_att("standard_name", "lagrangian_tendency_of_air_pressure");
+    ovar->add_att("long_name", "Pressure velocity");
+    ovar->add_att("coordinates", "xlon xlat");
+    ovar->add_att("units", "hPa s-1");
+  }
+  if (varmask[3])
+  {
+    dvvar = f->add_var("dv", ncFloat, tt, kz, iy, jx);
+    dvvar->add_att("standard_name", "divergence_of_wind");
+    dvvar->add_att("long_name", "Wind divergence");
+    dvvar->add_att("coordinates", "xlon xlat");
+    dvvar->add_att("units", "s-1");
+  }
+  if (varmask[4])
+  {
+    vrvar = f->add_var("vr", ncFloat, tt, kz, iy, jx);
+    vrvar->add_att("standard_name", "atmosphere_relative_vorticity");
+    vrvar->add_att("long_name", "Vorticity");
+    vrvar->add_att("coordinates", "xlon xlat");
+    vrvar->add_att("units", "s-1");
+  }
+  if (varmask[5])
+  {
+    pvar = f->add_var("p", ncFloat, tt, kz, iy, jx);
+    pvar->add_att("standard_name", "air_pressure");
+    pvar->add_att("long_name", "Pressure");
+    pvar->add_att("coordinates", "xlon xlat");
+    pvar->add_att("units", "hPa");
+  }
+  if (varmask[6])
+  {
+    hgtvar = f->add_var("hgt", ncFloat, tt, kz, iy, jx);
+    hgtvar->add_att("standard_name", "geopotential_height");
+    hgtvar->add_att("long_name", "Geopotential Height");
+    hgtvar->add_att("coordinates", "xlon xlat");
+    hgtvar->add_att("units", "m");
+  }
+  if (varmask[7])
+  {
+    tvar = f->add_var("t", ncFloat, tt, kz, iy, jx);
+    tvar->add_att("standard_name", "air_temperature");
+    tvar->add_att("long_name", "Temperature");
+    tvar->add_att("coordinates", "xlon xlat");
+    tvar->add_att("units", "K");
+  }
+  if (varmask[8])
+  {
+    tdvar = f->add_var("td", ncFloat, tt, kz, iy, jx);
+    tdvar->add_att("standard_name", "dew_point_temperature");
+    tdvar->add_att("long_name", "Dewpoint Temperature");
+    tdvar->add_att("coordinates", "xlon xlat");
+    tdvar->add_att("units", "K");
+  }
+  if (varmask[9])
+  {
+    tpvar = f->add_var("tp", ncFloat, tt, kz, iy, jx);
+    tpvar->add_att("standard_name", "air_potential_temperature");
+    tpvar->add_att("long_name", "Potential Temperature");
+    tpvar->add_att("coordinates", "xlon xlat");
+    tpvar->add_att("units", "K");
+  }
+  if (varmask[10])
+  {
+    rhvar = f->add_var("rh", ncFloat, tt, kz, iy, jx);
+    rhvar->add_att("standard_name", "relative_humidity");
+    rhvar->add_att("long_name", "Relative Humidity");
+    rhvar->add_att("coordinates", "xlon xlat");
+    rhvar->add_att("units", "1");
+  }
+  if (varmask[11])
+  {
+    qvvar = f->add_var("qv", ncFloat, tt, kz, iy, jx);
+    qvvar->add_att("standard_name", "humidity_mixing_ratio");
+    qvvar->add_att("long_name", "Water vapor mixing ratio");
+    qvvar->add_att("coordinates", "xlon xlat");
+    qvvar->add_att("units", "kg kg-1");
+  }
+  if (varmask[12])
+  {
+    qcvar = f->add_var("qc", ncFloat, tt, kz, iy, jx);
+    qcvar->add_att("standard_name", "cloud_liquid_water_mixing_ratio");
+    qcvar->add_att("long_name", "Cloud water mixing ratio");
+    qcvar->add_att("coordinates", "xlon xlat");
+    qcvar->add_att("units", "kg kg-1");
+  }
+  if (varmask[13])
+  {
+    tprvar = f->add_var("tpr", ncFloat, tt, iy, jx);
+    tprvar->add_att("standard_name", "precipitation_flux");
+    tprvar->add_att("long_name", "Total daily precipitation rate");
+    tprvar->add_att("coordinates", "xlon xlat");
+    tprvar->add_att("units", "kg m-2 day-1");
+  }
+  if (varmask[14])
+  {
+    tgbvar = f->add_var("tgb", ncFloat, tt, iy, jx);
+    tgbvar->add_att("standard_name", "soil_temperature");
+    tgbvar->add_att("long_name", "Lower groud temperature in BATS");
+    tgbvar->add_att("coordinates", "xlon xlat");
+    tgbvar->add_att("units", "K");
+  }
+  if (varmask[15])
+  {
+    swtvar = f->add_var("swt", ncFloat, tt, iy, jx);
+    swtvar->add_att("standard_name", "moisture_content_of_soil_layer");
+    swtvar->add_att("_FillValue", fillv);
+    swtvar->add_att("long_name", "Total soil water");
+    swtvar->add_att("coordinates", "xlon xlat");
+    swtvar->add_att("units", "kg m-2");
+  }
+  if (varmask[16])
+  {
+    rnovar = f->add_var("rno", ncFloat, tt, iy, jx);
+    rnovar->add_att("standard_name", "runoff_amount");
+    rnovar->add_att("_FillValue", fillv);
+    rnovar->add_att("long_name", "Runoff accumulated infiltration");
+    rnovar->add_att("coordinates", "xlon xlat");
+    rnovar->add_att("units", "kg m-2");
+  }
 
   if (ctl->doit)
   {
     gradsvar gv;
     gv.set("psa","psa","Surface pressure (hPa)",0,true);
     ctl->add_var(gv);
-    gv.set("tpr","tpr","Total precipitation (kg m-2 day-1)",0,true);
-    ctl->add_var(gv);
-    gv.set("tgb","tgb","Soil temperature (K)",0,true);
-    ctl->add_var(gv);
-    gv.set("swt","swt","Soil moisture (kg m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("rno","rno","Runoff amount (kg m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("u","u","U component (westerly) of wind (m s-1)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("v","v","V component (southerly) of wind (m s-1)",h.nz,true);
-    ctl->add_var(gv);
-    ctl->addentry("vectorpairs u,v");
-    gv.set("omega","omega","Pressure velocity (hPa s-1)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("t","t","Temperature (K)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("p","p","Pressure (hPa)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("rh","rh","Relative humidity (1)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("td","td","Dew point temperature (K)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("tp","tp","Potential temperature (K)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("hgt","hgt","Geopotential height (m)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("dv","dv","Wind divergence (s-1)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("vr","vr","Wind vorticity (s-1)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("qv","qv","Water vapor mixing ratio (kg kg-1)",h.nz,true);
-    ctl->add_var(gv);
-    gv.set("qc","qc","Cloud water mixing ratio (kg kg-1)",h.nz,true);
-    ctl->add_var(gv);
+    if (varmask[0] || varmask[1])
+    {
+      ctl->addentry("vectorpairs u,v");
+      gv.set("u","u","U component (westerly) of wind (m s-1)",h.nz,true);
+      ctl->add_var(gv);
+      gv.set("v","v","V component (southerly) of wind (m s-1)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[2])
+    {
+      gv.set("omega","omega","Pressure velocity (hPa s-1)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[3])
+    {
+      gv.set("dv","dv","Wind divergence (s-1)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[4])
+    {
+      gv.set("vr","vr","Wind vorticity (s-1)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[5])
+    {
+      gv.set("p","p","Pressure (hPa)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[6])
+    {
+      gv.set("hgt","hgt","Geopotential height (m)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[7])
+    {
+      gv.set("t","t","Temperature (K)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[8])
+    {
+      gv.set("td","td","Dew point temperature (K)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[9])
+    {
+      gv.set("tp","tp","Potential temperature (K)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[10])
+    {
+      gv.set("rh","rh","Relative humidity (1)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[11])
+    {
+      gv.set("qv","qv","Water vapor mixing ratio (kg kg-1)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[12])
+    {
+      gv.set("qc","qc","Cloud water mixing ratio (kg kg-1)",h.nz,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[13])
+    {
+      gv.set("tpr","tpr","Total precipitation (kg m-2 day-1)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[14])
+    {
+      gv.set("tgb","tgb","Soil temperature (K)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[15])
+    {
+      gv.set("swt","swt","Soil moisture (kg m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[16])
+    {
+      gv.set("rno","rno","Runoff amount (kg m-2)",0,true);
+      ctl->add_var(gv);
+    }
   }
 }
 
@@ -430,23 +557,26 @@ void rcmNcAtmo::put_rec(atmodata &a, t_atm_deriv &d)
   double xtime = reference_time + tcount*a.dt;
   timevar->put_rec(&xtime, rcount);
   psvar->put_rec(a.psa, rcount);
-  tprvar->put_rec(a.tpr, rcount);
-  tgbvar->put_rec(a.tgb, rcount);
-  swtvar->put_rec(a.swt, rcount);
-  rnovar->put_rec(a.rno, rcount);
-  uvar->put_rec(a.u, rcount);
-  vvar->put_rec(a.v, rcount);
-  ovar->put_rec(a.omega, rcount);
-  tvar->put_rec(a.t, rcount);
-  pvar->put_rec(d.p, rcount);
-  rhvar->put_rec(d.rh, rcount);
-  tdvar->put_rec(d.td, rcount);
-  tpvar->put_rec(d.tp, rcount);
-  hgtvar->put_rec(d.hg, rcount);
-  dvvar->put_rec(d.dv, rcount);
-  vrvar->put_rec(d.vr, rcount);
-  qvvar->put_rec(a.qv, rcount);
-  qcvar->put_rec(a.qc, rcount);
+  if (varmask[0] || varmask[1])
+  {
+    uvar->put_rec(a.u, rcount);
+    vvar->put_rec(a.v, rcount);
+  }
+  if (varmask[2]) ovar->put_rec(a.omega, rcount);
+  if (varmask[3]) dvvar->put_rec(d.dv, rcount);
+  if (varmask[4]) vrvar->put_rec(d.vr, rcount);
+  if (varmask[5]) pvar->put_rec(d.p, rcount);
+  if (varmask[6]) hgtvar->put_rec(d.hg, rcount);
+  if (varmask[7]) tvar->put_rec(a.t, rcount);
+  if (varmask[8]) tdvar->put_rec(d.td, rcount);
+  if (varmask[9]) tpvar->put_rec(d.tp, rcount);
+  if (varmask[10]) rhvar->put_rec(d.rh, rcount);
+  if (varmask[11]) qvvar->put_rec(a.qv, rcount);
+  if (varmask[12]) qcvar->put_rec(a.qc, rcount);
+  if (varmask[13]) tprvar->put_rec(a.tpr, rcount);
+  if (varmask[14]) tgbvar->put_rec(a.tgb, rcount);
+  if (varmask[15]) swtvar->put_rec(a.swt, rcount);
+  if (varmask[16]) rnovar->put_rec(a.rno, rcount);
   rcount ++;
   tcount ++;
   if (ctl->doit)
@@ -927,6 +1057,7 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
   psvar->add_att("long_name", "Surface pressure");
   psvar->add_att("coordinates", "xlon xlat");
   psvar->add_att("units", "hPa");
+
   trac3Dvar = f->add_var("trac", ncFloat, tt, trc, kz, iy, jx);
   trac3Dvar->add_att("standard_name", "atmosphere_mixing_ratio_of_tracer");
   trac3Dvar->add_att("long_name", "Tracers mixing ratios");

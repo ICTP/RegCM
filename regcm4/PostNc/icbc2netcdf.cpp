@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
       { "grads", no_argument, &igrads, 1},
       { "help", no_argument, 0, 'h'},
       { "list", no_argument, 0, 'l'},
-      { "var", 1, 0, 'v'},
+      { "var", required_argument, 0, 'v'},
       { "version", no_argument, 0, 'V'},
       { 0, 0, 0, 0 }
     };
