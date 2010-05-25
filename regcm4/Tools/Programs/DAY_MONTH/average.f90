@@ -1424,11 +1424,15 @@
                  + (mod(idate2/10000,100)-mod(idate1/10000,100))
          if(mod(idate2,10000).gt.0100) n_month = n_month+1
          ntype = 0
+         month = mod(idate1/10000,100)
+         nyear = idate1/1000000
       else if(idate1.gt.19400101) then     ! daily mean file
          n_month = (idate2/10000-idate1/10000)*12 &
                  + (mod(idate2/100,100)-mod(idate1/100,100))
          if(mod(idate2,100).gt.01) n_month = n_month+1
          ntype = 1
+         month = mod(idate1/100,100)
+         nyear = idate1/10000
       else
          write(*,*) 'date should be in 10 digits, or 8 digits'
          stop
