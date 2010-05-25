@@ -35,7 +35,7 @@ class MyOptions(object):
 #        self.parser.add_option("-q", "--quiet",
 #                      action="store_false", dest="verbose", default=True,
 #                      help="Don't print status messages to stdout")
-        self.parser.add_option("-s","--sim-dir", dest="simdir",default=regcm_root+"/mysim",
+        self.parser.add_option("-s","--sim-dir", dest="simdir",
                   help="Directory where to run the simulation", metavar="DIR")
         self.parser.add_option("-n","--namelist", dest="namelist",default=regcm_root+"/regcm.in_template",
                   help="RegCM input namelist file", metavar="FILE")
@@ -47,6 +47,9 @@ class MyOptions(object):
         self.simdir = self.options.simdir
         self.namelist = self.options.namelist
 
+        if not self.simdir:
+              print self.parser.format_help()
+              self.parser.error("not enough arguments.")
         if not os.path.isdir(self.datadir):
             print "The directory",self.datadir,"does not exist or is not accessible!"
             sys.exit(1)
