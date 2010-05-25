@@ -248,12 +248,12 @@
               end do
             else if ( lsmtyp=='USGS' ) then
               do k = 1 , nveg
-                stores(k+4) = float(iusgs(j,k))*50./32767. + 50.
+                stores(k+4) = iusgs(j,k)*50./32767. + 50.
               end do
-              stores(nveg+5) = float(isand(j,1))*50./32767. + 50.
-              stores(nveg+6) = float(isand(j,2))*50./32767. + 50.
-              stores(nveg+7) = float(iclay(j,1))*50./32767. + 50.
-              stores(nveg+8) = float(iclay(j,2))*50./32767. + 50.
+              stores(nveg+5) = (isand(j,1))*50./32767. + 50.
+              stores(nveg+6) = (isand(j,2))*50./32767. + 50.
+              stores(nveg+7) = (iclay(j,1))*50./32767. + 50.
+              stores(nveg+8) = (iclay(j,2))*50./32767. + 50.
             else
             end if
             if ( aertyp(7:7)=='1' ) then
