@@ -22,6 +22,7 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <string>
 
 #include <netcdf.hh>
 
@@ -56,9 +57,15 @@ void help(char *pname)
       << " [options] regcm.in"
       << std::endl << std::endl
       << "where options can be in:" << std::endl << std::endl
-  << "   --sequential              : Set I/O non direct (direct access default)"
+  << "   --sequential              : Set I/O sequential (direct access default)"
       << std::endl
   << "   --little_endian           : Set I/O endianess to LITTLE (BIG default)"
+      << std::endl
+  << "   --grads                   : Produce a CTL file for GrADS"
+      << std::endl
+  << "   --var/-v[all|name[,name]] : Include only some vars (all default)"
+      << std::endl
+  << "   --list/-l                 : Output list of names for -v option"
       << std::endl
   << "   --help/-h                 : Print this help"
       << std::endl
@@ -69,12 +76,15 @@ void help(char *pname)
 
 int main(int argc, char *argv[])
 {
-  bool ldirect, lbigend;
-  int iseq, ilittle;
+  bool ldirect, lbigend, lgrads;
+  int iseq, ilittle, igrads;
+  std::string vnames = "all";
   ldirect = true;
   lbigend = true;
+  lgrads = false;
   iseq = 0;
   ilittle = 0;
+  igrads = 0;
 
   char *pname = basename(argv[0]);
   while (1)
@@ -82,18 +92,40 @@ int main(int argc, char *argv[])
     static struct option long_options[] = {
       { "sequential", no_argument, &iseq, 1},
       { "little_endian", no_argument, &ilittle, 1},
+      { "grads", no_argument, &igrads, 1},
       { "help", no_argument, 0, 'h'},
+      { "list", no_argument, 0, 'l'},
+      { "var", 1, 0, 'v'},
       { "version", no_argument, 0, 'V'},
       { 0, 0, 0, 0 }
     };
     int optind, c = 0;
-    c = getopt_long (argc, argv, "hV",
+    c = getopt_long (argc, argv, "hVlv:",
                      long_options, &optind);
     if (c == -1) break;
     switch (c)
     {
       case 0:
         if (long_options[optind].flag != 0) break;
+      case 'l':
+        std::cout << std::endl
+                  << "List of names for " << pname << " is:" << std::endl
+                  << std::endl
+                  << "  u  :  U component of wind (westerly)" << std::endl
+                  << "  v  :  V component of wind (southerly)" << std::endl
+                  << "  t  :  Temperature" << std::endl
+                  << "  qv :  Water Vapor mixing ratio" << std::endl
+                  << "  ts :  Soil temperature" << std::endl
+                  << "  so4:  Sulfate (if avail)" << std::endl
+                  << "  sm :  Soil moisture (if avail)" << std::endl
+                  << "  it :  Ice temperature (if avail)" << std::endl
+                  << "  st :  Soil temperature (if avail)" << std::endl
+                  << "  sn :  Snow thickness (if avail)" << std::endl
+                  << std::endl;
+        return 0;
+      case 'v':
+        vnames = optarg;
+        break;
       case 'h':
         help(pname);
         return 0;
@@ -121,6 +153,7 @@ int main(int argc, char *argv[])
 
   if (iseq == 1) ldirect = false;
   if (ilittle == 1) lbigend = false;
+  if (igrads == 1) lgrads = true;
 
   try
   {
@@ -136,28 +169,34 @@ int main(int argc, char *argv[])
 
     sprintf(dominfo, "%s%s%s.INFO", inpf.valuec("dirter"),
             separator, experiment);
-    std::cout << "Opening " << dominfo << std::endl;
     rcmout.read_domain(dominfo, d);
 
     bcdata b(d, inpf);
 
-    char fname[PATH_MAX];
-    char ctlname[PATH_MAX];
-    sprintf(fname, "ICBC_%s.nc", experiment);
-    sprintf(ctlname, "ICBC_%s.ctl", experiment);
-    gradsctl ctl(ctlname, fname);
-    bcNc bcnc(fname, experiment, d, ctl);
+    regcmout outnc;
+    outnc.experiment = experiment;
+    outnc.fname = "ICBC_"+outnc.experiment+".nc";
+    if (lgrads)
+    {
+      char ctlname[PATH_MAX];
+      sprintf(ctlname, "ICBC_%s.ctl", experiment);
+      outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+    }
+    outnc.vl.addvar(vnames);
+
+    bcNc bcnc(outnc, d);
 
     std::cout << "Processing ICBC";
     while ((rcmout.bc_read_tstep(b)) == 0)
     {
       std::cout << ".";
       std::cout.flush();
-      bcnc.put_rec(b, ctl);
+      bcnc.put_rec(b);
     }
     std::cout << " Done." << std::endl;
 
-    ctl.finalize( );
+    if (lgrads)
+      outnc.ctl.finalize( );
     free(datadir);
     free(experiment);
   }

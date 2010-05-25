@@ -70,7 +70,14 @@ std::ostream& rcm::operator<< (std::ostream& os, const gradsvar &g)
   return os;
 }
 
-gradsctl::gradsctl(char *ctlname, char *dname)
+gradsctl::gradsctl( )
+{
+  ntimes = 0;
+  levline = "zdef 1 levels 0.0";
+  timeline = "linear 00Z31dec1999 1yr";
+}
+
+void gradsctl::open(char *ctlname, char *dname)
 {
   ctlf.open(ctlname);
   ctlf << "dset ^" << dname << std::endl
@@ -157,9 +164,6 @@ void gradsctl::set_grid(header_data &d)
   }
   else
     throw "Unknown projection used.";
-  ntimes = 0;
-  levline = "zdef 1 levels 0.0";
-  timeline = "linear 00Z31dec1999 1yr";
 }
 
 void gradsctl::set_grid(domain_data &d)

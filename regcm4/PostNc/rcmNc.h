@@ -24,6 +24,9 @@
 #ifndef __RCMNC__H__
 #define __RCMNC__H__
 
+#include <string>
+#include <list>
+
 #include <netcdf.hh>
 #include <rcmio.h>
 #include <calc.h>
@@ -31,21 +34,39 @@
 
 namespace rcm
 {
+  class regcmvar {
+    public:
+     void addvar(std::string name);
+     bool isthere(std::string name);
+    private:
+     std::list <std::string> rcmname;
+  };
+
+  class regcmout {
+    public:
+      std::string fname;
+      std::string experiment;
+      regcmvar vl;
+      gradsctl ctl;
+  };
+
   class domNc {
     public:
-      domNc(char *fname, char *experiment, gradsctl &ctl);
+      domNc(regcmout &fnc);
       ~domNc();
-      void write(domain_data &d, gradsctl &ctl);
+      void write(domain_data &d);
     private:
+      gradsctl *ctl;
       NcFile *f;
   };
 
   class bcNc {
     public:
-      bcNc(char *fname, char *experiment, domain_data &d, gradsctl &ctl);
+      bcNc(regcmout &fnc, domain_data &d);
       ~bcNc( );
-      void put_rec(bcdata &b, gradsctl &ctl);
+      void put_rec(bcdata &b);
     private:
+      gradsctl *ctl;
       NcFile *f;
       NcDim *iy;
       NcDim *jx;
@@ -53,13 +74,16 @@ namespace rcm
       NcDim *tt;
       NcDim *soil;
       NcVar *timevar;
+      NcVar *psvar;
+      bool varmask[10];
       NcVar *uvar;
       NcVar *vvar;
       NcVar *tvar;
       NcVar *qvvar;
-      NcVar *psvar;
       NcVar *tsvar;
+      // Active if so4
       NcVar *so4var;
+      // Active for USGS (Are used?)
       NcVar *smvar;
       NcVar *itvar;
       NcVar *stvar;
@@ -72,10 +96,10 @@ namespace rcm
 
   class rcmNc {
     public:
-      rcmNc(char *fname, char *experiment, header_data &h, bool full,
-            gradsctl &ctl);
+      rcmNc(regcmout &fnc, header_data &h, bool full);
       ~rcmNc();
       void increment_time( ) { tcount ++; }
+      gradsctl *ctl;
       NcFile *f;
       NcDim *iy;
       NcDim *jx;
@@ -89,10 +113,11 @@ namespace rcm
 
   class rcmNcAtmo : public rcmNc {
     public:
-      rcmNcAtmo(char *fname, char *experiment, header_data &h, gradsctl &ctl);
-      void put_rec(atmodata &a, t_atm_deriv &d, gradsctl &ctl);
+      rcmNcAtmo(regcmout &fnc, header_data &h);
+      void put_rec(atmodata &a, t_atm_deriv &d);
     private:
       NcVar *psvar;
+      bool varmask[17];
       NcVar *tprvar;
       NcVar *tgbvar;
       NcVar *swtvar;
@@ -114,9 +139,11 @@ namespace rcm
 
   class rcmNcSrf : public rcmNc {
     public:
-      rcmNcSrf(char *fname, char *experiment, header_data &h, gradsctl &ctl);
-      void put_rec(srfdata &s, t_srf_deriv &d, gradsctl &ctl);
+      rcmNcSrf(regcmout &fnc, header_data &h);
+      void put_rec(srfdata &s, t_srf_deriv &d);
     private:
+      NcVar *psbvar;
+      bool varmask[27];
       NcVar *u10mvar;
       NcVar *v10mvar;
       NcVar *uvdragvar;
@@ -135,7 +162,6 @@ namespace rcm
       NcVar *flwdvar;
       NcVar *sinavar;
       NcVar *prcvvar;
-      NcVar *psbvar;
       NcVar *zpblvar;
       NcVar *tgmaxvar;
       NcVar *tgminvar;
@@ -150,10 +176,11 @@ namespace rcm
 
   class rcmNcRad : public rcmNc {
     public:
-      rcmNcRad(char *fname, char *experiment, header_data &h, gradsctl &ctl);
-      void put_rec(raddata &r, gradsctl &ctl);
+      rcmNcRad(regcmout &fnc, header_data &h);
+      void put_rec(raddata &r);
     private:
       NcVar *psvar;
+      bool varmask[13];
       NcVar *cldvar;
       NcVar *clwpvar;
       NcVar *qrsvar;
@@ -171,11 +198,12 @@ namespace rcm
 
   class rcmNcChe : public rcmNc {
     public:
-      rcmNcChe(char *fname, char *experiment, header_data &h, gradsctl &ctl);
-      void put_rec(chedata &r, gradsctl &ctl);
+      rcmNcChe(regcmout &fnc, header_data &h);
+      void put_rec(chedata &r);
     private:
       NcDim *trc;
       NcVar *psvar;
+      bool varmask[13];
       NcVar *trac3Dvar;
       NcVar *colbvar;
       NcVar *wdlscvar;
@@ -194,10 +222,11 @@ namespace rcm
 
   class rcmNcSub : public rcmNc {
     public:
-      rcmNcSub(char *fname, char *experiment, header_data &h,
-               subdom_data &s, gradsctl &ctl);
-      void put_rec(subdata &s, t_srf_deriv &d, gradsctl &ctl);
+      rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s);
+      void put_rec(subdata &s, t_srf_deriv &d);
     private:
+      NcVar *psbvar;
+      bool varmask[15];
       NcVar *u10mvar;
       NcVar *v10mvar;
       NcVar *uvdragvar;
@@ -213,7 +242,6 @@ namespace rcm
       NcVar *scvvar;
       NcVar *senavar;
       NcVar *prcvvar;
-      NcVar *psbvar;
   };
 
 }

@@ -43,8 +43,9 @@ namespace rcm {
 
   class gradsctl {
     public:
-      gradsctl(char *ctlname, char *dname);
+      gradsctl( );
       ~gradsctl( );
+      void open(char *ctlname, char *dname);
       void head(char *title, float misval);
       void set_grid(domain_data &d);
       void addentry(char *entry);
@@ -55,6 +56,7 @@ namespace rcm {
       void add_time( );
       void finalize( );
       char *gradstime(int year, int month, int day, int hour, int incr);
+      bool doit;
     private:
       std::ofstream ctlf;
       std::list <gradsvar> vars;

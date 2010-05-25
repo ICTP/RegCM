@@ -56,23 +56,27 @@ void help(char *pname)
       << " [options] ./regcm.in "
       << std::endl << std::endl
       << "where options can be in:" << std::endl << std::endl
-  << "   --sequential              : Set I/O non direct (direct access default)"
+  << "   --sequential      : Set I/O non direct (direct access default)"
       << std::endl
-  << "   --little_endian           : Set I/O endianess to LITTLE (BIG default)"
+  << "   --little_endian   : Set I/O endianess to LITTLE (BIG default)"
       << std::endl
-  << "   --help/-h                 : Print this help"
+  << "   --grads           : Produce a CTL file for GrADS"
       << std::endl
-  << "   --version/-V              : Print versioning information"
+  << "   --help/-h         : Print this help"
+      << std::endl
+  << "   --version/-V      : Print versioning information"
       << std::endl << std::endl;
    return;
 }
 
 int main(int argc, char *argv[])
 {
-  bool ldirect, lbigend;
-  int iseq, ilittle;
+  bool ldirect, lbigend, lgra;
+  int iseq, ilittle, igra;
   ldirect = true;
   lbigend = true;
+  lgra = false;
+  igra = 0;
   iseq = 0;
   ilittle = 0;
 
@@ -83,6 +87,7 @@ int main(int argc, char *argv[])
     static struct option long_options[] = {
       { "sequential", no_argument, &iseq, 1},
       { "little_endian", no_argument, &ilittle, 1},
+      { "grads", no_argument, &igra, 1},
       { "help", no_argument, 0, 'h'},
       { "version", no_argument, 0, 'V'},
       { 0, 0, 0, 0 }
@@ -122,6 +127,7 @@ int main(int argc, char *argv[])
 
   if (iseq == 1) ldirect = false;
   if (ilittle == 1) lbigend = false;
+  if (igra == 1) lgra = true;
 
   try
   {
@@ -133,22 +139,24 @@ int main(int argc, char *argv[])
 
     char *experiment = strdup(inpf.valuec("domname"));
     char dominfo[PATH_MAX];
-
-    std::cout << inpf.valuec("dirter") << std::endl;
     sprintf(dominfo, "%s%s%s.INFO", inpf.valuec("dirter"),
             separator, experiment);
-    std::cout << "Opening " << dominfo << std::endl;
     rcmout.read_domain(dominfo, d);
 
-    char fname[PATH_MAX];
-    char ctlname[PATH_MAX];
-    sprintf(fname, "DOMAIN_%s.nc", experiment);
-    sprintf(ctlname, "DOMAIN_%s.ctl", experiment);
-    gradsctl ctl(ctlname, fname);
+    regcmout outnc;
+    outnc.experiment = experiment;
+    outnc.fname = "DOMAIN_"+outnc.experiment+".nc";
+    if (lgra)
+    {
+      char ctlname[PATH_MAX];
+      sprintf(ctlname, "DOMAIN_%s.ctl", experiment);
+      outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+    }
 
-    domNc dnc(fname, experiment, ctl);
-    dnc.write(d, ctl);
-    ctl.finalize( );
+    domNc dnc(outnc);
+    dnc.write(d);
+    if (lgra)
+      outnc.ctl.finalize( );
     free(experiment);
   }
   catch (const char *e)
