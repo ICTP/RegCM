@@ -222,6 +222,7 @@ int main(int argc, char *argv[])
         atmnc.put_rec(a, d, ctl);
         recnum ++;
       }
+      ctl.finalize( );
       std::cout << " Done." << std::endl;
     }
 
@@ -254,6 +255,7 @@ int main(int argc, char *argv[])
         srfnc.put_rec(s, d, ctl);
         recnum ++;
       }
+      ctl.finalize( );
       std::cout << " Done." << std::endl;
     }
 
@@ -283,6 +285,7 @@ int main(int argc, char *argv[])
         radnc.put_rec(r, ctl);
         recnum ++;
       }
+      ctl.finalize( );
       std::cout << " Done." << std::endl;
     }
 
@@ -312,6 +315,7 @@ int main(int argc, char *argv[])
         chenc.put_rec(c, ctl);
         recnum ++;
       }
+      ctl.finalize( );
       std::cout << " Done." << std::endl;
     }
 
@@ -321,7 +325,6 @@ int main(int argc, char *argv[])
       int ustart = istart - 1;
       std::cout << "Found Surface Subgrid data SUB and processing";
       subdom_data subdom(inpf);
-      char fname[PATH_MAX];
       sprintf(fname, "%s%s%s%03d.INFO", inpf.valuec("dirter"),
               separator, inpf.valuec("domname"), inpf.valuei("nsg"));
       rcmout.read_subdom(outhead, subdom, fname);
@@ -349,12 +352,14 @@ int main(int argc, char *argv[])
         subnc.put_rec(s, d, ctl);
         recnum ++;
       }
+      ctl.finalize( );
       std::cout << " Done." << std::endl;
     }
 
     outhead.free_space( );
-    free(experiment);
     free(outdir);
+    free(experiment);
+    free(regcmin);
   }
   catch (const char *e)
   {

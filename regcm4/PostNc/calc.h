@@ -58,8 +58,8 @@ namespace rcm {
     float *p;
     float *rh;
     float *td;
-    float *pt;
-    float *ht;
+    float *tp;
+    float *hg;
     float *vr;
     float *dv;
   } t_atm_deriv;
@@ -73,8 +73,8 @@ namespace rcm {
       void calcp(float *sp);
       void calcrh(float *t, float *q);
       void calctd(float *t);
-      void calcpt(float *t);
-      void calcht(float *sp, float *t);
+      void calctp(float *t);
+      void calchg(float *sp, float *t);
       void calcdv(float *u, float *v);
       float ptop;
       float ds;
@@ -91,8 +91,8 @@ namespace rcm {
       float *p;
       float *rh;
       float *td;
-      float *pt;
-      float *ht;
+      float *tp;
+      float *hg;
       float *vr;
       float *dv;
   };

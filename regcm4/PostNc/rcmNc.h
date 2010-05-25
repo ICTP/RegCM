@@ -72,7 +72,8 @@ namespace rcm
 
   class rcmNc {
     public:
-      rcmNc(char *fname, char *experiment, header_data &h, bool full);
+      rcmNc(char *fname, char *experiment, header_data &h, bool full,
+            gradsctl &ctl);
       ~rcmNc();
       void increment_time( ) { tcount ++; }
       NcFile *f;
@@ -104,7 +105,7 @@ namespace rcm
       NcVar *tdvar;
       NcVar *tpvar;
       NcVar *pvar;
-      NcVar *htvar;
+      NcVar *hgtvar;
       NcVar *dvvar;
       NcVar *vrvar;
       NcVar *qvvar;

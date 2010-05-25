@@ -119,6 +119,12 @@ header_data::header_data(rcminp &in)
   iemiss = (unsigned short) in.valuei("iemiss");
   lakemod = (unsigned short) in.valuei("lakemod");
   ichem = (unsigned short) in.valuei("ichem");
+  if (ichem == 1)
+  {
+    ntr = in.valuei("ntr");
+    nbin = in.valuei("nbin");
+    trnames = in.valuec("chtrname");
+  }
 }
 
 header_data::~header_data( )
@@ -330,7 +336,7 @@ bcdata::bcdata(domain_data &d, rcminp &in)
   // HARDCODING 
   dt = 6;
   // HARDCODING 
-  nsteps = calcnsteps(date0, date1, dt);
+  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 bcdata::~bcdata()
@@ -364,7 +370,7 @@ atmodata::atmodata(header_data &h)
   tgb = tpr + size2D;
   swt = tgb + size2D;
   rno = swt + size2D;
-  nsteps = calcnsteps(date0, date1, dt);
+  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 atmodata::~atmodata( )
@@ -401,7 +407,7 @@ raddata::raddata(header_data &h)
   sabtp = solin + size2D;
   firtp = sabtp + size2D;
   psa = firtp + size2D;
-  nsteps = calcnsteps(date0, date1, dt);
+  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 raddata::~raddata( )
@@ -433,7 +439,7 @@ chedata::chedata(header_data &h)
   acstoarf = trac2D + 70*size2D;
   acstsrrf = acstoarf + size2D;
   psa = acstsrrf + size2D;
-  nsteps = calcnsteps(date0, date1, dt);
+  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 chedata::~chedata( )
@@ -480,7 +486,7 @@ srfdata::srfdata(header_data &h)
   t2min = t2max + size2D;
   w10max = t2min + size2D;
   ps_min = w10max + size2D;
-  nsteps = calcnsteps(date0, date1, dt);
+  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 srfdata::~srfdata( )
@@ -540,7 +546,7 @@ subdata::subdata(header_data &h, subdom_data &s)
   sena = scv + size2D;
   prcv = sena + size2D;
   psb = prcv + size2D;
-  nsteps = calcnsteps(date0, date1, dt);
+  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 subdata::~subdata( )

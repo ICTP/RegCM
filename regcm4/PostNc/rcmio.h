@@ -80,6 +80,8 @@ namespace rcm
       // Dimensions
       unsigned int iy, jx, kz;
       unsigned int nx, ny, nz;
+      unsigned int ntr, nbin;
+      std::string trnames;
       // Geolocation
       char proj[7];
       float clat, clon, ds, xplat, xplon, trlat1, trlat2;

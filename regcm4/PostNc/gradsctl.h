@@ -47,6 +47,8 @@ namespace rcm {
       ~gradsctl( );
       void head(char *title, float misval);
       void set_grid(domain_data &d);
+      void addentry(char *entry);
+      void set_grid(header_data &d);
       void set_levs(float *lev, int nz);
       void set_time(char *timestr);
       void add_var(gradsvar &g);

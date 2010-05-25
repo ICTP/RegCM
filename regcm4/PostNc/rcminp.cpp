@@ -114,6 +114,7 @@ int main(int argc, char *argv[])
 {
   rcminp a(argv[1]);
   std::cout << a.valuei("idate1") << std::endl;
+  std::cout << a.valuec("chtrname") << std::endl;
   return 0;
 }
 

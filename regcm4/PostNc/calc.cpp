@@ -137,8 +137,8 @@ atmcalc::atmcalc(header_data &h)
   p  = new float[nh*nk];
   rh = new float[nh*nk];
   td = new float[nh*nk];
-  pt = new float[nh*nk];
-  ht = new float[nh*nk];
+  tp = new float[nh*nk];
+  hg = new float[nh*nk];
   vr = new float[nh*nk];
   dv = new float[nh*nk];
 }
@@ -148,8 +148,8 @@ atmcalc::~atmcalc( )
   delete [] p;
   delete [] rh;
   delete [] td;
-  delete [] pt;
-  delete [] ht;
+  delete [] tp;
+  delete [] hg;
   delete [] vr;
   delete [] dv;
 }
@@ -185,24 +185,24 @@ void atmcalc::calctd(float *t)
   return;
 }
 
-void atmcalc::calcpt(float *t)
+void atmcalc::calctp(float *t)
 {
   for (int i = 0; i < nh*nk; i ++)
-    pt[i] = t[i]*powf((1000.0f/p[i]), rovcp);
+    tp[i] = t[i]*powf((1000.0f/p[i]), rovcp);
   return;
 }
 
-void atmcalc::calcht(float *ps, float *t)
+void atmcalc::calchg(float *ps, float *t)
 {
   for (int i = 0; i < nh; i ++)
-    ht[i] = zs[i] + rgas*rgti*t[i]*logf(ps[i]/p[i]);
+    hg[i] = zs[i] + rgas*rgti*t[i]*logf(ps[i]/p[i]);
   float tbar;
   for(int k = 1; k < nk; k ++)
   {
     for (int i = 0; i < nh; i ++)
     {
       tbar = 0.5f*(t[k*nh+i]+t[(k-1)*nh+i]);
-      ht[k*nh+i] = ht[(k-1)*nh+i] + 
+      hg[k*nh+i] = hg[(k-1)*nh+i] + 
                    rgas*rgti*tbar*logf(p[(k-1)*nh+i]/p[k*nh+i]);
     }
   }
@@ -241,14 +241,14 @@ void atmcalc::do_calc(atmodata &a, t_atm_deriv &d)
   calcp(a.psa);
   calcrh(a.t, a.qv);
   calctd(a.t);
-  calcpt(a.t);
-  calcht(a.psa, a.t);
+  calctp(a.t);
+  calchg(a.psa, a.t);
   calcdv(a.u, a.v);
   d.p = p;
   d.rh = rh;
   d.td = td;
-  d.pt = pt;
-  d.ht = ht;
+  d.tp = tp;
+  d.hg = hg;
   d.vr = vr;
   d.dv = dv;
 }
