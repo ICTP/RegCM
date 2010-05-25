@@ -32,14 +32,25 @@ def main():
 
     print "  ****  Please enter the path to your RegCM distribution: \n\t[",os.getcwd(),"]"
     regcm_root=raw_input("\tregcm_root = ")
-    # will need a more sophisticated test here!
-    if not os.path.isdir(regcm_root):
+
+    if regcm_root == "" :
+        print "\tAssuming default path as RegCM root..."
+        regcm_root = os.getcwd()
+    elif not os.path.isdir(regcm_root):
+        print "\tDirectory",regcm_root,"not found! Assuming default path."
         regcm_root = os.getcwd()
 
     print "\n  ****  Please enter the path where the RegCM binaries will be stored: \n\t[",regcm_root+"/Bin","]"
     bin_dir=raw_input("\tbin_dir = ")
-    if not os.path.isdir(bin_dir):
+    if bin_dir == "" :
+        print "\tAssuming default path for RegCM binaries..."
         bin_dir=regcm_root+"/Bin"
+    elif not os.path.isdir(bin_dir):
+        try :
+            os.mkdir(bin_dir)
+        except OSError :
+            print "\tCannot create",bin_dir,"! Binaries will be stored in the default path."
+            bin_dir=regcm_root+"/Bin"
 
     ncpath=netcdf_search()
 
@@ -121,6 +132,8 @@ def main():
                     print "\t\nSorry, GNU compilers are not supported by the CLM library!"
                 elif clm == 1 and compiler == 6:
                     print "\t\nSorry, Sun compilers are not supported by the CLM library due to a bug in the version 8.3 2008/01/28 compilers!"
+                elif clm == 1 and compiler == 7:
+                    print "\t\nSorry, g95 compiler is not currently supported by the CLM library"
                 else :
                     isnotint=False
             else :
