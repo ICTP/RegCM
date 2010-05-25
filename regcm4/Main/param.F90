@@ -31,7 +31,8 @@
       use mod_param3 , only : wgtx , sigma , dsigma , a , anudg , twt , &
                    & qcon , wgtd , akht1 , akht2 , kt , kxout , ncld ,  &
                    & r8pt , ptop4 , kchi , k700 , jxsex , ispgx ,       &
-                   & ispgd , allocate_mod_param3
+                   & ispgd , allocate_mod_param3, high_nudge,           &
+                   & medium_nudge,low_nudge
       use mod_iunits
       use mod_pmoist
       use mod_bats
@@ -138,7 +139,8 @@
       & batfrq , ifchem , chemfrq , dirout
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
-      & iemiss , lakemod , ipptls , iocnflx , ichem
+      & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
+      & medium_nudge, low_nudge 
 !chem2_
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -395,6 +397,9 @@
       lakemod = 1
       ichem = 0
       imask = 1
+      high_nudge = 3 
+      medium_nudge=2
+      low_nudge=1   
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
@@ -552,6 +557,9 @@
       call mpi_bcast(iemiss,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(lakemod,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ichem,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
  
 #ifdef CLM
       call mpi_bcast(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
@@ -752,13 +760,13 @@
         r8pt = ptsp
         dx = dsx
         if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
-          write (aline,*) 'param:  SET IN regcm.param:  IY=' , iy ,     &
+          write (aline,*) 'param:  SET IN regcm.in:  IY=' , iy ,     &
                  & ' JX=' ,  jx , ' KX=' , kz
           call say
           write (aline,*) 'param:  SET IN TERRAIN: IYY=' , iyy ,        &
                  & ' JXX=' , jxx , ' KZZ=' , kzz
           call say
-          write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' &
+          write (aline,*) '  Also check ibyte in regcm.in: ibyte = ' &
                         & , ibyte
           call fatal(__FILE__,__LINE__,                                 &
                     &'IMPROPER DIMENSION SPECIFICATION')
@@ -796,7 +804,7 @@
       r8pt = ptsp
       dx = dsx
       if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
-        write (aline,*) '  SET IN regcm.param:  IY=' , iy , ' JX=' ,    &
+        write (aline,*) '  SET IN regcm.in:  IY=' , iy , ' JX=' ,    &
                       & jx , ' KX=' , kz
         call say
         write (aline,*) '  SET IN TERRAIN: IYY=' , iyy , ' JXX=' , jxx ,&
@@ -875,29 +883,49 @@
       call say
       write (aline, *) 'param: physical parameterizations '
       call say
-#ifdef CLM
-      write (aline, *) ' iboudy = ' , iboudy , ' icup = ' , icup ,      &
-            & ' igcc =' , igcc , ' ipptls = ' , ipptls , ' iocnflx = ' ,&
-            & iocnflx , ' ipgf = ' , ipgf , 'iemiss = ' , iemiss ,      &
-            &' lakemod = ' , lakemod , ' ichem =' , ichem , ' imask = ',&
-            & imask
-#else
-      write (aline, *) ' iboudy = ' , iboudy , ' icup = ' , icup ,      &
-            & ' igcc =' , igcc , ' ipptls = ' , ipptls , ' iocnflx = ' ,&
-            & iocnflx , ' ipgf = ' , ipgf , 'iemiss = ' , iemiss ,      &
-            &' lakemod = ' , lakemod , ' ichem =' , ichem
-#endif
+      write (aline,'(a,i2)' )  '  iboudy = ' , iboudy
+      call say  
+      write (aline,'(a,i2)' )  '  icup = ' , icup
+      call say 
+      write  (aline,'(a,i2)' ) '  igcc =' , igcc 
       call say
+      write  (aline,'(a,i2)' ) '  ipptls = ' , ipptls 
+      call say
+      write  (aline,'(a,i2)' ) '  iocnflx = ' , iocnflx
+      call say
+      write  (aline,'(a,i2)' ) '  ipgf = ' , ipgf 
+      call say   
+      write  (aline,'(a,i2)' ) '  iemiss = ' , iemiss 
+      call say 
+      write  (aline,'(a,i2)' ) '  lakemod = ' , lakemod 
+      call say
+      write  (aline,'(a,i2)' ) '  Chemistry active? 0=no,1=yes  ichem =' , ichem 
+      call say
+       write  (aline,'(a,f9.6)') '  Nudge value high range   =', high_nudge 
+      call say
+       write  (aline,'(a,f9.6)') '  Nudge value medium range =', medium_nudge 
+      call say
+       write  (aline,'(a,f9.6)') '  Nudge value low range    =', low_nudge 
+      call say
+#ifdef CLM 
+       write  (aline,'(a,i2)' ) '  imask=' , imask 
+      call say
+#endif
       write (aline, *) ' '
       call say
       write (aline, *) 'param: model parameters '
       call say
-      write (aline, *) ' radfrq = ' , radfrq , ' abatm = ' , abatm ,    &
-            &' abemh = ' , abemh , ' dt = ' , dt
+      write (aline,'(a,f12.6)')  '   radfrq = ' , radfrq 
+      call say 
+      write (aline,'(a,f12.6)')	 '   abatm  = ' , abatm 
+      call say
+      write (aline,'(a,f12.6)')  '   abemh  = ' , abemh 
+      call say
+      write (aline,'(a,f12.6)')  '   dt     = ' , dt
       call say
       write (aline, *) ' '
       call say
-      write (aline, *) ' ncld = ' , ncld
+      write (aline,'(a,i2)' ) ' ncld = ' , ncld
       call say
       write (aline, *) ' '
       call say
@@ -1289,11 +1317,11 @@
  
       do k = 1 , kz
         if ( a(k).lt.0.4 ) then
-          anudg(k) = 3.
+          anudg(k) = high_nudge
         else if ( a(k).lt.0.8 ) then
-          anudg(k) = 2.
+          anudg(k) = medium_nudge
         else
-          anudg(k) = 1.
+          anudg(k) = low_nudge
         end if
       end do
 !
@@ -1372,13 +1400,13 @@
           exit
         end if
       end do
-      write (aline, *) ' Index of highest allowed pbl:  kt = ' , kt
+      write (aline, '(a,i3)') ' Index of highest allowed pbl:  kt = ' , kt
       call say
       write (aline, *) ' '
       call say
 !
       if ( ipptls.eq.1 ) then
-        write (aline, *) 'AUTO-CONVERSION RATE:  LAND=' , qck1land ,    &
+        write (aline, '(a,f11.6,a,f11.6)') 'AUTO-CONVERSION RATE:  LAND=' , qck1land ,    &
                &'                      OCEAN=' , qck1oce
         call say
         write (aline, *) 'RELATIVE HUMIDITY THRESHOLDS:  LAND=' ,       &

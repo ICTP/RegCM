@@ -27,6 +27,7 @@
 !
       real(8) :: ptop4 , r8pt
       real(8) :: akht1 , akht2
+      real(8) :: high_nudge,medium_nudge,low_nudge
 
       real(8) , allocatable , dimension(:) :: a , anudg , dsigma , qcon
       real(8) , allocatable , dimension(:) :: sigma
