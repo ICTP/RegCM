@@ -180,8 +180,8 @@
                & lon , nday , nmo , nyear
       real(4) :: wt
 !
-      ks = 427 + 1045
-      do k = 427 + 1045 , 1 , -1
+      ks = 427 + 1097
+      do k = 427 + 1097 , 1 , -1
         if ( wkday(k)<=kdate ) then
           ks = k
           exit
@@ -189,7 +189,7 @@
       end do
       kdate1 = wkday(ks)
 !
-      do k = 1 , 427 + 1045
+      do k = 1 , 427 + 1097
         if ( wkday(k)>kdate ) then
           ks = k
           exit
@@ -259,8 +259,8 @@
                & lon , nday , nmo , nyear
       real(4) :: wt
 !
-      ks = 427 + 1045
-      do k = 427 + 1045 , 1 , -1
+      ks = 427 + 1097
+      do k = 427 + 1097 , 1 , -1
         if ( wkday(k)<=kdate ) then
           ks = k
           exit
@@ -268,7 +268,7 @@
       end do
       kdate1 = wkday(ks)
 !
-      do k = 1 , 427 + 1045
+      do k = 1 , 427 + 1097
         if ( wkday(k)>kdate ) then
           ks = k
           exit

@@ -61,7 +61,7 @@
 !
       real(4) , dimension(ilon,jlat) :: sst , ice
       integer :: idate , idate0 , kend , kstart
-      integer , dimension(427+1045) :: wkday
+      integer , dimension(427+1097) :: wkday
       integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
                & nday , nmo , nrec , nyear
       real(4) , dimension(jlat) :: lati
@@ -197,14 +197,14 @@
       else
 !#####
         idate = globidate1/100
-        do k = 427 + 1045 , 1 , -1
+        do k = 427 + 1097 , 1 , -1
           if ( wkday(k)<=idate ) then
             kstart = k
             exit
           end if
         end do
         idate = globidate2/100
-        do k = 1 , 427 + 1045
+        do k = 1 , 427 + 1097
           if ( wkday(k)>idate ) then
             kend = k
             exit
@@ -789,7 +789,7 @@
 !
 ! Dummy arguments
 !
-      integer , intent(out) , dimension(427+1045) :: wkday
+      integer , intent(out) , dimension(427+1097) :: wkday
 !
 ! Local variables
 !
@@ -843,7 +843,7 @@
       end do
 !
       wkday(428) = 19891231
-      do i = 429 , 427 + 1045
+      do i = 429 , 427 + 1097
         wkday(i) = wkday(i-1) + 7
         myear = wkday(i)/10000
         month = wkday(i)/100 - myear*100

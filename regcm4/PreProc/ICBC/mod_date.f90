@@ -22,7 +22,7 @@
       implicit none
 
       integer , dimension(300000) :: mdate
-      integer , dimension(427+1045) :: wkday
+      integer , dimension(427+1097) :: wkday
 
       contains
 
@@ -372,7 +372,7 @@
       end do
 !
       wkday(428) = 19891231
-      do i = 429 , 427 + 1045
+      do i = 429 , 427 + 1097
         wkday(i) = wkday(i-1) + 7
         myear = wkday(i)/10000
         month = wkday(i)/100 - myear*100
