@@ -587,6 +587,45 @@ void rcmNcAtmo::put_rec(atmodata &a, t_atm_deriv &d)
 rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h)
   : rcmNc(fnc, h, true)
 {
+  // Check if var is on wanted list
+  // Special all key
+  for (int i = 0; i < 10; i ++)
+    varmask[i] = false;
+  if (fnc.vl.isthere("all"))
+  {
+    for (int i = 0; i < 10; i ++)
+      varmask[i] = true;
+  }
+  else
+  {
+    if (fnc.vl.isthere("u10")) varmask[0] = true;
+    if (fnc.vl.isthere("v10")) varmask[1] = true;
+    if (fnc.vl.isthere("udg")) varmask[2] = true;
+    if (fnc.vl.isthere("tg")) varmask[3] = true;
+    if (fnc.vl.isthere("tfl")) varmask[4] = true;
+    if (fnc.vl.isthere("t2")) varmask[5] = true;
+    if (fnc.vl.isthere("r2")) varmask[6] = true;
+    if (fnc.vl.isthere("q2")) varmask[7] = true;
+    if (fnc.vl.isthere("sm")) varmask[8] = true;
+    if (fnc.vl.isthere("tpr")) varmask[9] = true;
+    if (fnc.vl.isthere("evp")) varmask[10] = true;
+    if (fnc.vl.isthere("rno")) varmask[11] = true;
+    if (fnc.vl.isthere("scv")) varmask[12] = true;
+    if (fnc.vl.isthere("sen")) varmask[13] = true;
+    if (fnc.vl.isthere("flw")) varmask[14] = true;
+    if (fnc.vl.isthere("fsw")) varmask[15] = true;
+    if (fnc.vl.isthere("fld")) varmask[16] = true;
+    if (fnc.vl.isthere("sin")) varmask[17] = true;
+    if (fnc.vl.isthere("prc")) varmask[18] = true;
+    if (fnc.vl.isthere("zpb")) varmask[19] = true;
+    if (fnc.vl.isthere("tga")) varmask[20] = true;
+    if (fnc.vl.isthere("tgi")) varmask[21] = true;
+    if (fnc.vl.isthere("t2a")) varmask[22] = true;
+    if (fnc.vl.isthere("t2i")) varmask[23] = true;
+    if (fnc.vl.isthere("wma")) varmask[24] = true;
+    if (fnc.vl.isthere("psi")) varmask[25] = true;
+  }
+
   // Manage time setup
   rcmdate d(h.idate1);
   reference_time = d.unixtime( );
@@ -635,210 +674,372 @@ rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h)
 
   // Setup variables
   char cell_method[64];
-  u10mvar = f->add_var("u10m", ncFloat, tt, m10, iy, jx);
-  u10mvar->add_att("standard_name", "eastward_wind");
-  u10mvar->add_att("long_name", "10 meters U component (westerly) of wind");
-  u10mvar->add_att("coordinates", "xlon xlat");
-  u10mvar->add_att("units", "m s-1");
-  v10mvar = f->add_var("v10m", ncFloat, tt, m10, iy, jx);
-  v10mvar->add_att("standard_name", "northward_wind");
-  v10mvar->add_att("long_name", "10 meters V component (southerly) of wind");
-  v10mvar->add_att("coordinates", "xlon xlat");
-  v10mvar->add_att("units", "m s-1");
-  uvdragvar = f->add_var("uvdrag", ncFloat, tt, iy, jx);
-  uvdragvar->add_att("standard_name", "surface_drag_coefficient_in_air");
-  uvdragvar->add_att("long_name", "Surface drag stress");
-  uvdragvar->add_att("coordinates", "xlon xlat");
-  uvdragvar->add_att("units", "1");
-  tgvar = f->add_var("tg", ncFloat, tt, iy, jx);
-  tgvar->add_att("standard_name", "surface_temperature");
-  tgvar->add_att("long_name", "Ground temperature");
-  tgvar->add_att("coordinates", "xlon xlat");
-  tgvar->add_att("units", "K");
-  tlefvar = f->add_var("tlef", ncFloat, tt, iy, jx);
-  tlefvar->add_att("standard_name", "canopy_temperature");
-  tlefvar->add_att("long_name", "Foliage temperature");
-  tlefvar->add_att("coordinates", "xlon xlat");
-  tlefvar->add_att("_FillValue", fillv);
-  tlefvar->add_att("units", "K");
-  t2mvar = f->add_var("t2m", ncFloat, tt, m2, iy, jx);
-  t2mvar->add_att("standard_name", "air_temperature");
-  t2mvar->add_att("long_name", "2 meters temperature");
-  t2mvar->add_att("coordinates", "xlon xlat");
-  t2mvar->add_att("units", "K");
-  q2mvar = f->add_var("q2m", ncFloat, tt, m2, iy, jx);
-  q2mvar->add_att("standard_name", "humidity_mixing_ratio");
-  q2mvar->add_att("long_name", "2 meters vapour mixing ratio");
-  q2mvar->add_att("coordinates", "xlon xlat");
-  q2mvar->add_att("units", "kg kg-1");
-  r2mvar = f->add_var("r2m", ncFloat, tt, m2, iy, jx);
-  r2mvar->add_att("standard_name", "relative_humidity");
-  r2mvar->add_att("long_name", "2 meters relative humidity");
-  r2mvar->add_att("coordinates", "xlon xlat");
-  r2mvar->add_att("units", "1");
-  smwvar = f->add_var("smw", ncFloat, tt, soil, iy, jx);
-  smwvar->add_att("standard_name", "soil_moisture_content");
-  smwvar->add_att("long_name", "Moisture content");
-  smwvar->add_att("coordinates", "xlon xlat");
-  smwvar->add_att("_FillValue", fillv);
-  smwvar->add_att("units", "kg m-2");
-  tprvar = f->add_var("tpr", ncFloat, tt, iy, jx);
-  tprvar->add_att("standard_name", "precipitation_amount");
-  tprvar->add_att("long_name", "Total precipitation");
-  tprvar->add_att("coordinates", "xlon xlat");
-  tprvar->add_att("units", "kg m-2");
-  evpvar = f->add_var("evp", ncFloat, tt, iy, jx);
-  evpvar->add_att("standard_name", "water_evaporation_amount");
-  evpvar->add_att("long_name", "Total evapotranspiration");
-  evpvar->add_att("coordinates", "xlon xlat");
-  evpvar->add_att("units", "kg m-2");
-  runoffvar = f->add_var("runoff", ncFloat, tt, iy, jx);
-  runoffvar->add_att("standard_name", "surface_runoff_flux");
-  runoffvar->add_att("long_name", "surface runoff");
-  runoffvar->add_att("coordinates", "xlon xlat");
-  runoffvar->add_att("_FillValue", fillv);
-  runoffvar->add_att("units", "kg m-2 day-1");
-  scvvar = f->add_var("scv", ncFloat, tt, iy, jx);
-  scvvar->add_att("standard_name", "snowfall_amount");
-  scvvar->add_att("long_name", "Snow precipitation");
-  scvvar->add_att("coordinates", "xlon xlat");
-  scvvar->add_att("_FillValue", fillv);
-  scvvar->add_att("units", "kg m-2");
-  senavar = f->add_var("sena", ncFloat, tt, iy, jx);
-  senavar->add_att("standard_name", "surface_downward_sensible_heat_flux");
-  senavar->add_att("long_name", "Sensible heat flux");
-  senavar->add_att("coordinates", "xlon xlat");
-  senavar->add_att("units", "W m-2");
-  flwvar = f->add_var("flw", ncFloat, tt, iy, jx);
-  flwvar->add_att("standard_name", "net_upward_longwave_flux_in_air");
-  flwvar->add_att("long_name", "Net infrared energy flux");
-  flwvar->add_att("coordinates", "xlon xlat");
-  flwvar->add_att("units", "W m-2");
-  fswvar = f->add_var("fsw", ncFloat, tt, iy, jx);
-  fswvar->add_att("standard_name", "surface_downwelling_shortwave_flux_in_air");
-  fswvar->add_att("long_name", "Solar absorbed energy flux");
-  fswvar->add_att("coordinates", "xlon xlat");
-  fswvar->add_att("units", "W m-2");
-  sinavar = f->add_var("sina", ncFloat, tt, iy, jx);
-  sinavar->add_att("standard_name",
-                   "net_downward_radiative_flux_at_top_of_atmosphere_model");
-  sinavar->add_att("long_name", "Incident solar energy flux");
-  sinavar->add_att("coordinates", "xlon xlat");
-  sinavar->add_att("units", "W m-2");
-  prcvvar = f->add_var("prcv", ncFloat, tt, iy, jx);
-  prcvvar->add_att("standard_name", "convective_rainfall_flux");
-  prcvvar->add_att("long_name", "Convective precipitation");
-  prcvvar->add_att("coordinates", "xlon xlat");
-  prcvvar->add_att("units", "kg m-2 day-1");
   psbvar = f->add_var("psa", ncFloat, tt, iy, jx);
   psbvar->add_att("standard_name", "air_pressure");
   psbvar->add_att("long_name", "Surface pressure");
   psbvar->add_att("coordinates", "xlon xlat");
   psbvar->add_att("units", "hPa");
-  zpblvar = f->add_var("zpbl", ncFloat, tt, iy, jx);
-  zpblvar->add_att("standard_name", "atmosphere_boundary_layer_thickness");
-  zpblvar->add_att("long_name", "PBL layer thickness");
-  zpblvar->add_att("coordinates", "xlon xlat");
-  zpblvar->add_att("units", "m");
-  tgmaxvar = f->add_var("tgmax", ncFloat, tt, iy, jx);
-  tgmaxvar->add_att("standard_name", "surface_temperature");
-  tgmaxvar->add_att("long_name", "Maximum surface temperature");
-  tgmaxvar->add_att("coordinates", "xlon xlat");
-  sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
-  tgmaxvar->add_att("cell_methods", cell_method);
-  tgmaxvar->add_att("units", "K");
-  tgminvar = f->add_var("tgmin", ncFloat, tt, iy, jx);
-  tgminvar->add_att("standard_name", "surface_temperature");
-  tgminvar->add_att("long_name", "Maximum surface temperature");
-  tgminvar->add_att("coordinates", "xlon xlat");
-  sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
-  tgminvar->add_att("cell_methods", cell_method);
-  tgminvar->add_att("units", "K");
-  t2maxvar = f->add_var("t2max", ncFloat, tt, m2, iy, jx);
-  t2maxvar->add_att("standard_name", "air_temperature");
-  t2maxvar->add_att("long_name", "Maximum 2 meters temperature");
-  t2maxvar->add_att("coordinates", "xlon xlat");
-  sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
-  t2maxvar->add_att("cell_methods", cell_method);
-  t2maxvar->add_att("units", "K");
-  t2minvar = f->add_var("t2min", ncFloat, tt, m2, iy, jx);
-  t2minvar->add_att("standard_name", "air_temperature");
-  t2minvar->add_att("long_name", "Minimum 2 meters temperature");
-  t2minvar->add_att("coordinates", "xlon xlat");
-  sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
-  t2minvar->add_att("cell_methods", cell_method);
-  t2minvar->add_att("units", "K");
-  w10maxvar = f->add_var("w10max", ncFloat, tt, m10, iy, jx);
-  w10maxvar->add_att("standard_name", "wind_speed");
-  w10maxvar->add_att("long_name", "Maximum speed of 10m wind");
-  w10maxvar->add_att("coordinates", "xlon xlat");
-  sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
-  w10maxvar->add_att("cell_methods", cell_method);
-  w10maxvar->add_att("units", "m s-1");
-  ps_minvar = f->add_var("ps_min", ncFloat, tt, iy, jx);
-  ps_minvar->add_att("standard_name", "air_pressure");
-  ps_minvar->add_att("long_name", "Surface pressure");
-  ps_minvar->add_att("coordinates", "xlon xlat");
-  sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
-  ps_minvar->add_att("cell_methods", cell_method);
-  ps_minvar->add_att("units", "hPa");
+
+  if (varmask[0] || varmask[1])
+  {
+    u10mvar = f->add_var("u10m", ncFloat, tt, m10, iy, jx);
+    u10mvar->add_att("standard_name", "eastward_wind");
+    u10mvar->add_att("long_name", "10 meters U component (westerly) of wind");
+    u10mvar->add_att("coordinates", "xlon xlat");
+    u10mvar->add_att("units", "m s-1");
+    v10mvar = f->add_var("v10m", ncFloat, tt, m10, iy, jx);
+    v10mvar->add_att("standard_name", "northward_wind");
+    v10mvar->add_att("long_name", "10 meters V component (southerly) of wind");
+    v10mvar->add_att("coordinates", "xlon xlat");
+    v10mvar->add_att("units", "m s-1");
+  }
+  if (varmask[2])
+  {
+    uvdragvar = f->add_var("uvdrag", ncFloat, tt, iy, jx);
+    uvdragvar->add_att("standard_name", "surface_drag_coefficient_in_air");
+    uvdragvar->add_att("long_name", "Surface drag stress");
+    uvdragvar->add_att("coordinates", "xlon xlat");
+    uvdragvar->add_att("units", "1");
+  }
+  if (varmask[3])
+  {
+    tgvar = f->add_var("tg", ncFloat, tt, iy, jx);
+    tgvar->add_att("standard_name", "surface_temperature");
+    tgvar->add_att("long_name", "Ground temperature");
+    tgvar->add_att("coordinates", "xlon xlat");
+    tgvar->add_att("units", "K");
+  }
+  if (varmask[4])
+  {
+    tlefvar = f->add_var("tlef", ncFloat, tt, iy, jx);
+    tlefvar->add_att("standard_name", "canopy_temperature");
+    tlefvar->add_att("long_name", "Foliage temperature");
+    tlefvar->add_att("coordinates", "xlon xlat");
+    tlefvar->add_att("_FillValue", fillv);
+    tlefvar->add_att("units", "K");
+  }
+  if (varmask[5])
+  {
+    t2mvar = f->add_var("t2m", ncFloat, tt, m2, iy, jx);
+    t2mvar->add_att("standard_name", "air_temperature");
+    t2mvar->add_att("long_name", "2 meters temperature");
+    t2mvar->add_att("coordinates", "xlon xlat");
+    t2mvar->add_att("units", "K");
+  }
+  if (varmask[6])
+  {
+    r2mvar = f->add_var("r2m", ncFloat, tt, m2, iy, jx);
+    r2mvar->add_att("standard_name", "relative_humidity");
+    r2mvar->add_att("long_name", "2 meters relative humidity");
+    r2mvar->add_att("coordinates", "xlon xlat");
+    r2mvar->add_att("units", "1");
+  }
+  if (varmask[7])
+  {
+    q2mvar = f->add_var("q2m", ncFloat, tt, m2, iy, jx);
+    q2mvar->add_att("standard_name", "humidity_mixing_ratio");
+    q2mvar->add_att("long_name", "2 meters vapour mixing ratio");
+    q2mvar->add_att("coordinates", "xlon xlat");
+    q2mvar->add_att("units", "kg kg-1");
+  }
+  if (varmask[8])
+  {
+    smwvar = f->add_var("smw", ncFloat, tt, soil, iy, jx);
+    smwvar->add_att("standard_name", "soil_moisture_content");
+    smwvar->add_att("long_name", "Moisture content");
+    smwvar->add_att("coordinates", "xlon xlat");
+    smwvar->add_att("_FillValue", fillv);
+    smwvar->add_att("units", "kg m-2");
+  }
+  if (varmask[9])
+  {
+    tprvar = f->add_var("tpr", ncFloat, tt, iy, jx);
+    tprvar->add_att("standard_name", "precipitation_amount");
+    tprvar->add_att("long_name", "Total precipitation");
+    tprvar->add_att("coordinates", "xlon xlat");
+    tprvar->add_att("units", "kg m-2");
+  }
+  if (varmask[10])
+  {
+    evpvar = f->add_var("evp", ncFloat, tt, iy, jx);
+    evpvar->add_att("standard_name", "water_evaporation_amount");
+    evpvar->add_att("long_name", "Total evapotranspiration");
+    evpvar->add_att("coordinates", "xlon xlat");
+    evpvar->add_att("units", "kg m-2");
+  }
+  if (varmask[11])
+  {
+    runoffvar = f->add_var("runoff", ncFloat, tt, iy, jx);
+    runoffvar->add_att("standard_name", "surface_runoff_flux");
+    runoffvar->add_att("long_name", "surface runoff");
+    runoffvar->add_att("coordinates", "xlon xlat");
+    runoffvar->add_att("_FillValue", fillv);
+    runoffvar->add_att("units", "kg m-2 day-1");
+  }
+  if (varmask[12])
+  {
+    scvvar = f->add_var("scv", ncFloat, tt, iy, jx);
+    scvvar->add_att("standard_name", "snowfall_amount");
+    scvvar->add_att("long_name", "Snow precipitation");
+    scvvar->add_att("coordinates", "xlon xlat");
+    scvvar->add_att("_FillValue", fillv);
+    scvvar->add_att("units", "kg m-2");
+  }
+  if (varmask[13])
+  {
+    senavar = f->add_var("sena", ncFloat, tt, iy, jx);
+    senavar->add_att("standard_name", "surface_downward_sensible_heat_flux");
+    senavar->add_att("long_name", "Sensible heat flux");
+    senavar->add_att("coordinates", "xlon xlat");
+    senavar->add_att("units", "W m-2");
+  }
+  if (varmask[14])
+  {
+    flwvar = f->add_var("flw", ncFloat, tt, iy, jx);
+    flwvar->add_att("standard_name", "net_upward_longwave_flux_in_air");
+    flwvar->add_att("long_name", "Net infrared energy flux");
+    flwvar->add_att("coordinates", "xlon xlat");
+    flwvar->add_att("units", "W m-2");
+  }
+  if (varmask[15])
+  {
+    fswvar = f->add_var("fsw", ncFloat, tt, iy, jx);
+    fswvar->add_att("standard_name",
+                    "surface_downwelling_shortwave_flux_in_air");
+    fswvar->add_att("long_name", "Solar absorbed energy flux");
+    fswvar->add_att("coordinates", "xlon xlat");
+    fswvar->add_att("units", "W m-2");
+  }
+  if (varmask[16])
+  {
+    flwdvar = f->add_var("fld", ncFloat, tt, iy, jx);
+    flwdvar->add_att("standard_name",
+                    "surface_downwelling_longwave_flux_in_air");
+    flwdvar->add_att("long_name", "Downward LW flux");
+    flwdvar->add_att("coordinates", "xlon xlat");
+    flwdvar->add_att("units", "W m-2");
+  }
+  if (varmask[17])
+  {
+    sinavar = f->add_var("sina", ncFloat, tt, iy, jx);
+    sinavar->add_att("standard_name",
+                     "net_downward_radiative_flux_at_top_of_atmosphere_model");
+    sinavar->add_att("long_name", "Incident solar energy flux");
+    sinavar->add_att("coordinates", "xlon xlat");
+    sinavar->add_att("units", "W m-2");
+  }
+  if (varmask[18])
+  {
+    prcvvar = f->add_var("prcv", ncFloat, tt, iy, jx);
+    prcvvar->add_att("standard_name", "convective_rainfall_flux");
+    prcvvar->add_att("long_name", "Convective precipitation");
+    prcvvar->add_att("coordinates", "xlon xlat");
+    prcvvar->add_att("units", "kg m-2 day-1");
+  }
+  if (varmask[19])
+  {
+    zpblvar = f->add_var("zpbl", ncFloat, tt, iy, jx);
+    zpblvar->add_att("standard_name", "atmosphere_boundary_layer_thickness");
+    zpblvar->add_att("long_name", "PBL layer thickness");
+    zpblvar->add_att("coordinates", "xlon xlat");
+    zpblvar->add_att("units", "m");
+  }
+  if (varmask[20])
+  {
+    tgmaxvar = f->add_var("tgmax", ncFloat, tt, iy, jx);
+    tgmaxvar->add_att("standard_name", "surface_temperature");
+    tgmaxvar->add_att("long_name", "Maximum surface temperature");
+    tgmaxvar->add_att("coordinates", "xlon xlat");
+    sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
+    tgmaxvar->add_att("cell_methods", cell_method);
+    tgmaxvar->add_att("units", "K");
+  }
+  if (varmask[21])
+  {
+    tgminvar = f->add_var("tgmin", ncFloat, tt, iy, jx);
+    tgminvar->add_att("standard_name", "surface_temperature");
+    tgminvar->add_att("long_name", "Maximum surface temperature");
+    tgminvar->add_att("coordinates", "xlon xlat");
+    sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
+    tgminvar->add_att("cell_methods", cell_method);
+    tgminvar->add_att("units", "K");
+  }
+  if (varmask[22])
+  {
+    t2maxvar = f->add_var("t2max", ncFloat, tt, m2, iy, jx);
+    t2maxvar->add_att("standard_name", "air_temperature");
+    t2maxvar->add_att("long_name", "Maximum 2 meters temperature");
+    t2maxvar->add_att("coordinates", "xlon xlat");
+    sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
+    t2maxvar->add_att("cell_methods", cell_method);
+    t2maxvar->add_att("units", "K");
+  }
+  if (varmask[23])
+  {
+    t2minvar = f->add_var("t2min", ncFloat, tt, m2, iy, jx);
+    t2minvar->add_att("standard_name", "air_temperature");
+    t2minvar->add_att("long_name", "Minimum 2 meters temperature");
+    t2minvar->add_att("coordinates", "xlon xlat");
+    sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
+    t2minvar->add_att("cell_methods", cell_method);
+    t2minvar->add_att("units", "K");
+  }
+  if (varmask[24])
+  {
+    w10maxvar = f->add_var("w10max", ncFloat, tt, m10, iy, jx);
+    w10maxvar->add_att("standard_name", "wind_speed");
+    w10maxvar->add_att("long_name", "Maximum speed of 10m wind");
+    w10maxvar->add_att("coordinates", "xlon xlat");
+    sprintf(cell_method, "time: maximum (interval: %d hour)", (int) h.dtb);
+    w10maxvar->add_att("cell_methods", cell_method);
+    w10maxvar->add_att("units", "m s-1");
+  }
+  if (varmask[25])
+  {
+    ps_minvar = f->add_var("ps_min", ncFloat, tt, iy, jx);
+    ps_minvar->add_att("standard_name", "air_pressure");
+    ps_minvar->add_att("long_name", "Surface pressure");
+    ps_minvar->add_att("coordinates", "xlon xlat");
+    sprintf(cell_method, "time: minimum (interval: %d hour)", (int) h.dtb);
+    ps_minvar->add_att("cell_methods", cell_method);
+    ps_minvar->add_att("units", "hPa");
+  }
   last_time = reference_time;
   if (ctl->doit)
   {
     gradsvar gv;
-    gv.set("u10","u10","10m U component (westerly) of wind (m s-1)",0,true);
-    ctl->add_var(gv);
-    gv.set("v10","v10","10m V component (southerly) of wind (m s-1)",0,true);
-    ctl->add_var(gv);
-    ctl->addentry("vectorpairs u10,v10");
-    gv.set("uvdrag","uvdrag","Surface drag stress (1)",0,true);
-    ctl->add_var(gv);
-    gv.set("tg","tg","Ground temperature (K)",0,true);
-    ctl->add_var(gv);
-    gv.set("tlef","tlef","Foliage temperature (K)",0,true);
-    ctl->add_var(gv);
-    gv.set("t2m","t2m","2m air temperature (K)",0,true);
-    ctl->add_var(gv);
-    gv.set("q2m","q2m","2m vapor mixing ratio (kg kg-1)",0,true);
-    ctl->add_var(gv);
-    gv.set("r2m","r2m","2m relative humidity (1)",0,true);
-    ctl->add_var(gv);
-    gv.set("smw","smw","Soil moisture content (kg m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("tpr","tpr","Total precipitation amount (kg m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("evp","evp","Total evapotranspiration (kg m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("runoff","runoff","Surface runoff flux (kg m-2 day-1)",0,true);
-    ctl->add_var(gv);
-    gv.set("scv","scv","Snowfall amount (kg m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("sena","sena","Sensible heat flux (W m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("flw","flw","Net infrared energy flux (W m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("fsw","fsw","Net solar absorbed energy flux (W m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("sina","sina","Incident solar energy flux (W m-2)",0,true);
-    ctl->add_var(gv);
-    gv.set("prcv","prcv","Convective precipitation (kg m-2 day-1)",0,true);
-    ctl->add_var(gv);
     gv.set("psa","psa","Surface pressure (hPa)",0,true);
     ctl->add_var(gv);
-    gv.set("zpbl","zpbl","PBL layer thickness (m)",0,true);
-    ctl->add_var(gv);
-    gv.set("tgmax","tgmax","Maximum surface temperature (K)",0,true);
-    ctl->add_var(gv);
-    gv.set("tgmin","tgmin","Minimum surface temperature (K)",0,true);
-    ctl->add_var(gv);
-    gv.set("t2max","t2max","Maximum 2m temperature (K)",0,true);
-    ctl->add_var(gv);
-    gv.set("t2min","t2min","Minimum 2m temperature (K)",0,true);
-    ctl->add_var(gv);
-    gv.set("w10max","w10max","Maximum wind speed at 10m (m s-1)",0,true);
-    ctl->add_var(gv);
-    gv.set("ps_min","ps_min","Minimum surface pressure (hPa)",0,true);
-    ctl->add_var(gv);
+    if (varmask[1] || varmask[2])
+    {
+      ctl->addentry("vectorpairs u10,v10");
+      gv.set("u10","u10","10m U component (westerly) of wind (m s-1)",0,true);
+      ctl->add_var(gv);
+      gv.set("v10","v10","10m V component (southerly) of wind (m s-1)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[2])
+    {
+      gv.set("uvdrag","uvdrag","Surface drag stress (1)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[3])
+    {
+      gv.set("tg","tg","Ground temperature (K)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[4])
+    {
+      gv.set("tlef","tlef","Foliage temperature (K)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[5])
+    {
+      gv.set("t2m","t2m","2m air temperature (K)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[6])
+    {
+      gv.set("r2m","r2m","2m relative humidity (1)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[7])
+    {
+      gv.set("q2m","q2m","2m vapor mixing ratio (kg kg-1)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[8])
+    {
+      std::cout << "Warning: Variable smw is not plottable by GrADS."
+                << std::endl
+                << "Is not added to CTL file, albeit present in NetCDF"
+                << std::endl;
+    }
+    if (varmask[9])
+    {
+      gv.set("tpr","tpr","Total precipitation amount (kg m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[10])
+    {
+      gv.set("evp","evp","Total evapotranspiration (kg m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[11])
+    {
+      gv.set("runoff","runoff","Surface runoff flux (kg m-2 day-1)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[12])
+    {
+      gv.set("scv","scv","Snowfall amount (kg m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[13])
+    {
+      gv.set("sena","sena","Sensible heat flux (W m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[14])
+    {
+      gv.set("flw","flw","Net infrared energy flux (W m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[15])
+    {
+      gv.set("fsw","fsw","Net solar absorbed energy flux (W m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[16])
+    {
+      gv.set("fld","fld","Net downward LW flux (W m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[17])
+    {
+      gv.set("sina","sina","Incident solar energy flux (W m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[18])
+    {
+      gv.set("prcv","prcv","Convective precipitation (kg m-2 day-1)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[19])
+    {
+      gv.set("zpbl","zpbl","PBL layer thickness (m)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[20])
+    {
+      gv.set("tgmax","tgmax","Maximum surface temperature (K)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[21])
+    {
+      gv.set("tgmin","tgmin","Minimum surface temperature (K)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[22])
+    {
+      gv.set("t2max","t2max","Maximum 2m temperature (K)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[23])
+    {
+      gv.set("t2min","t2min","Minimum 2m temperature (K)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[24])
+    {
+      gv.set("w10max","w10max","Maximum wind speed at 10m (m s-1)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[25])
+    {
+      gv.set("ps_min","ps_min","Minimum surface pressure (hPa)",0,true);
+      ctl->add_var(gv);
+    }
   }
 }
 
@@ -850,32 +1051,36 @@ void rcmNcSrf::put_rec(srfdata &s, t_srf_deriv &d)
   timevar->put_rec(xtime, rcount);
   tbnd->put_rec(xtime, rcount);
   last_time = (unsigned long) xtime[0];
-  u10mvar->put_rec(s.u10m, rcount);
-  v10mvar->put_rec(s.v10m, rcount);
-  uvdragvar->put_rec(s.uvdrag, rcount);
-  tgvar->put_rec(s.tg, rcount);
-  tlefvar->put_rec(s.tlef, rcount);
-  t2mvar->put_rec(s.t2m, rcount);
-  q2mvar->put_rec(s.q2m, rcount);
-  r2mvar->put_rec(d.r2, rcount);
-  smwvar->put_rec(s.smw, rcount);
-  tprvar->put_rec(s.tpr, rcount);
-  evpvar->put_rec(s.evp, rcount);
-  runoffvar->put_rec(s.runoff, rcount);
-  scvvar->put_rec(s.scv, rcount);
-  senavar->put_rec(s.sena, rcount);
-  flwvar->put_rec(s.flw, rcount);
-  fswvar->put_rec(s.fsw, rcount);
-  sinavar->put_rec(s.sina, rcount);
-  prcvvar->put_rec(s.prcv, rcount);
   psbvar->put_rec(s.psb, rcount);
-  zpblvar->put_rec(s.zpbl, rcount);
-  tgmaxvar->put_rec(s.tgmax, rcount);
-  tgminvar->put_rec(s.tgmin, rcount);
-  t2maxvar->put_rec(s.t2max, rcount);
-  t2minvar->put_rec(s.t2min, rcount);
-  w10maxvar->put_rec(s.w10max, rcount);
-  ps_minvar->put_rec(s.ps_min, rcount);
+  if (varmask[0] || varmask[1])
+  {
+    u10mvar->put_rec(s.u10m, rcount);
+    v10mvar->put_rec(s.v10m, rcount);
+  }
+  if (varmask[2]) uvdragvar->put_rec(s.uvdrag, rcount);
+  if (varmask[3]) tgvar->put_rec(s.tg, rcount);
+  if (varmask[4]) tlefvar->put_rec(s.tlef, rcount);
+  if (varmask[5]) t2mvar->put_rec(s.t2m, rcount);
+  if (varmask[6]) r2mvar->put_rec(d.r2, rcount);
+  if (varmask[7]) q2mvar->put_rec(s.q2m, rcount);
+  if (varmask[8]) smwvar->put_rec(s.smw, rcount);
+  if (varmask[9]) tprvar->put_rec(s.tpr, rcount);
+  if (varmask[10]) evpvar->put_rec(s.evp, rcount);
+  if (varmask[11]) runoffvar->put_rec(s.runoff, rcount);
+  if (varmask[12]) scvvar->put_rec(s.scv, rcount);
+  if (varmask[13]) senavar->put_rec(s.sena, rcount);
+  if (varmask[14]) flwvar->put_rec(s.flw, rcount);
+  if (varmask[15]) fswvar->put_rec(s.fsw, rcount);
+  if (varmask[16]) flwdvar->put_rec(s.flwd, rcount);
+  if (varmask[17]) sinavar->put_rec(s.sina, rcount);
+  if (varmask[18]) prcvvar->put_rec(s.prcv, rcount);
+  if (varmask[19]) zpblvar->put_rec(s.zpbl, rcount);
+  if (varmask[20]) tgmaxvar->put_rec(s.tgmax, rcount);
+  if (varmask[21]) tgminvar->put_rec(s.tgmin, rcount);
+  if (varmask[22]) t2maxvar->put_rec(s.t2max, rcount);
+  if (varmask[23]) t2minvar->put_rec(s.t2min, rcount);
+  if (varmask[24]) w10maxvar->put_rec(s.w10max, rcount);
+  if (varmask[25]) ps_minvar->put_rec(s.ps_min, rcount);
   rcount ++;
   tcount ++;
   if (ctl->doit)
