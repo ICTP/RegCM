@@ -58,33 +58,33 @@ void help(char *pname)
       << " [options] /home/regcm/Run/regcm.in"
       << std::endl << std::endl
       << "where options can be in:" << std::endl << std::endl
-  << "   --sequential              : Set I/O non direct (direct access default)"
+  << "   --sequential                 : Set sequential (direct access default)"
       << std::endl
-  << "   --little_endian           : Set I/O endianess to LITTLE (BIG default)"
+  << "   --little_endian              : Set endianess to LITTLE (BIG default)"
       << std::endl
-  << "   --grads                   : Produce a CTL file for GrADS"
+  << "   --grads                      : Produce a CTL file for GrADS"
       << std::endl
-  << "   --list/-l                 : Output list of names for -v option"
+  << "   --list/-l                    : Output list of names for -v option"
       << std::endl
-  << "   --var/-v[all|name[,name]] : Include only some vars (all default)"
+  << "   --var/-v[all|name[,name]]    : Include only some vars (all default)"
       << std::endl
   << "   --tstart/-t YYYY[MM[DD[HH]]] : Start processing at this date"
       << std::endl
   << "   --tend/-e YYYY[MM[DD[HH]]]   : Stop processing at this date"
       << std::endl
-  << "   --onlyatm/-a              : Process ATM file (default do all)"
+  << "   --onlyatm/-a                 : Process ATM file (default do all)"
       << std::endl
-  << "   --onlysrf/-s              : Process SRF file (default do all)"
+  << "   --onlysrf/-s                 : Process SRF file (default do all)"
       << std::endl
-  << "   --onlysub/-u              : Process SUB file (default do all)"
+  << "   --onlysub/-u                 : Process SUB file (default do all)"
       << std::endl
-  << "   --onlyrad/-r              : Process RAD file (default do all)"
+  << "   --onlyrad/-r                 : Process RAD file (default do all)"
       << std::endl
-  << "   --onlyche/-c              : Process CHE file (default do all)"
+  << "   --onlyche/-c                 : Process CHE file (default do all)"
       << std::endl
-  << "   --help/-h                 : Print this help"
+  << "   --help/-h                    : Print this help"
       << std::endl
-  << "   --version/-V              : Print versioning information"
+  << "   --version/-V                 : Print versioning information"
       << std::endl << std::endl;
    return;
 }
