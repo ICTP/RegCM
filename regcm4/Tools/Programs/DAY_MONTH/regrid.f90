@@ -26,8 +26,8 @@
       integer iy,jx,kz,nsg,ntr,ibyte
       logical regDOMAIN,regICBC,regOUT_HEAD,regATM,regSRF,regRAD
       integer idate0,idate1,idate2
-      character*80 Path_Input,Path_Output
-      character*10 DomainName
+      character*128 Path_Input,Path_Output
+      character*20 DomainName
 
       real*4  xminlon,xmaxlon,xminlat,xmaxlat,ddeg
       COMMON /WINDOW/ xminlon,xmaxlon,xminlat,xmaxlat,ddeg
@@ -72,8 +72,8 @@
       subroutine regrid_DOMAIN(iy,jx,kz,ibyte,Path_Input,DomainName)
       implicit none
       integer iy,jx,kz,ibyte
-      character*80 Path_Input
-      character*10 DomainName
+      character*128 Path_Input
+      character*20 DomainName
       integer iiy,jjx,kkz
       real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
@@ -112,6 +112,13 @@
       allocate(xlat(jx,iy))
       allocate(xlon(jx,iy))
 
+      inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
+             ,exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO' &
+                  ,' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO' &
           ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
@@ -185,6 +192,7 @@
       read(10,rec=13) ((o(j,i,9),j=1,jx),i=1,iy)   ! mask
 
       if(iproj.eq.'NORMER') then
+         write(*,*)'regrid: NORMER projection, DOMAIN.INFO'
          do l=1,9
          do n=nlat,mlat
          do m=nlon,mlon
@@ -212,6 +220,11 @@
          close(20)
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
+         if(iproj.eq.'LAMCON') then
+            write(*,*)'regrid: LAMCON projection, DOMAIN.INFO'
+         else if(iproj.eq.'ROTMER') then
+            write(*,*)'regrid: ROTMER projection, DOMAIN.INFO'
+         endif
 
          allocate(I1UR(nlon:mlon,nlat:mlat))
          allocate(J1UR(nlon:mlon,nlat:mlat))
@@ -418,7 +431,7 @@
       subroutine regrid_OUT_HEAD(iy,jx,kz,ibyte,Path_Output)
       implicit none
       integer iy,jx,kz,ibyte
-      character*80 Path_Output
+      character*128 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  dxsp,ptsp,clat,clon,plat,plon
@@ -462,6 +475,11 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
@@ -534,6 +552,7 @@
       read(10,rec=11) ((o(j,i,7),j=1,jx-2),i=1,iy-2)   ! mask
 
       if(iproj.eq.'NORMER') then
+         write(*,*)'regrid: NORMER projection, OUT_HEAD'
          do l=1,7
          do n=nlat,mlat
          do m=nlon,mlon
@@ -561,6 +580,11 @@
          close(20)
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
+         if(iproj.eq.'LAMCON') then
+            write(*,*)'regrid: LAMCON projection, OUT_HEAD'
+         else if(iproj.eq.'ROTMER') then
+            write(*,*)'regrid: ROTMER projection, OUT_HEAD'
+         endif
 
          allocate(I1UR(nlon:mlon,nlat:mlat))
          allocate(J1UR(nlon:mlon,nlat:mlat))
@@ -766,8 +790,8 @@
                             ,Path_Input,DomainName)
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
-      character*80 Path_Input
-      character*10 DomainName
+      character*128 Path_Input
+      character*20 DomainName
       integer iiy,jjx,kkz
       real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
@@ -850,6 +874,13 @@
       allocate(dlat(jx,iy))
       allocate(dlon(jx,iy))
 
+      inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
+             ,exist=there)
+      if(.not.there) then
+              write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO' &
+                        ,' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
@@ -937,6 +968,12 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER ICBC Orig.',nyear,month
+               else
+                  write(*,*)'                         ',nyear,month
+               endif
+
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -954,6 +991,16 @@
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./6))+1
                filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'0100'
+
+               inquire(file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein &
+                      ,exist=there)
+               if(.not.there) then
+                  write(*,*) &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein &
+                        ,' is not avaiable'
+                  stop
+               endif
                open(10,file= &
                     trim(Path_Input)//trim(DomainName)//'_'//filein  &
                    ,form='unformatted',recl=iy*jx*ibyte,access='direct')
@@ -969,6 +1016,12 @@
                nyear = nyear + (month-1)/12
                month = mod(month,12)
                if(month.eq.0) month = 12
+
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER ICBC Daily',nyear,month
+               else
+                  write(*,*)'                         ',nyear,month
+               endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -987,6 +1040,16 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ICBC'//chy(nyear)//chm(month)//'01'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'01'
+
+               inquire(file= &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
+                      ,exist=there)
+               if(.not.there) then
+                  write(*,*) &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
+                        ,' is not avaiable'
+                  stop
+               endif
                open(10,file= &
                  trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
                    ,form='unformatted' &
@@ -1004,22 +1067,38 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(month.eq.1.or.nfile.eq.1) then
+                  write(*,*)'regrid: NORMER ICBC Month',nyear,month
+               else
+                  write(*,*)'                         ',nyear,month
+               endif
+
                n_slice = 1
 
-               if(month.eq.1.or.idate1.eq.idate0) then
-                  filein = 'ICBC'//chy(nyear)
-                  fileout= 'ICBC_LL.'//chy(nyear)
+               if(nfile.eq.1) then
+                  filein = 'ICBC'
+                  fileout= 'ICBC_LL'
+
+                  inquire(file= &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:4)//'.mon' &
+                         ,exist=there)
+                  if(.not.there) then
+                  write(*,*) &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:7)//'.mon' &
+                        ,' is not avaiable'
+                     stop
+                  endif
                   open(10,file= &
-          trim(Path_Input)//trim(DomainName)//'_'//filein(1:8)//'.dat' &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:7)//'.mon' &
                       ,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-                open(20,file= &
-        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:12)//'.dat' &
+                  nrec=0
+                  open(20,file= &
+         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:7)//'.mon' &
                 ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec=0
                endif
-               mrec = (month-1)*(kz*4+2)
-               nrec = (month-1)*(kz*4+2)
             endif
 
             do nnn=1,n_slice
@@ -1091,22 +1170,49 @@
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
+               (ntype.eq.2.and.nfile.eq.1))) then
                if(ntype.eq.0) then
-                  open(31,file= &
+                  inquire(file= &
         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
-                      ,form='formatted')
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
                   write(31,10) '^'//trim(DomainName)//'_'//fileout(1:18)
                else if(ntype.eq.1) then
-                  open(31,file= &
+                  inquire(file= &
         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
-                      ,form='formatted')
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
                   write(31,11) '^'//trim(DomainName)//'_'//fileout(1:16)
-               else if(ntype.eq.2) then
-                  open(31,file= &
-        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:12)//'.ctl' &
-                      ,form='formatted')
-          write(31,12) '^'//trim(DomainName)//'_'//fileout(1:12)//'.dat'
+               else if(ntype.eq.2.and.nfile.eq.1) then
+                  inquire(file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:7)//'.ctl' &
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:7)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:7)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
+          write(31,12) '^'//trim(DomainName)//'_'//fileout(1:7)//'.mon'
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -1124,14 +1230,14 @@
                else if(ntype.eq.1) then
                   write(31,401) n_slice,'01',chmc(month),nyear
                else if(ntype.eq.2) then
-                  write(31,402) n_slice,'15',chmc(month),nyear
+                  write(31,402) n_month,'16',chmc(month),nyear
                endif
                write(31,500) 6
                write(31,650) 'u       ',kz,'westerly wind (m/s)        '
                write(31,650) 'v       ',kz,'southerly wind (m/s)       '
                write(31,650) 't       ',kz,'air temperature (degree)   '
                write(31,650) 'q       ',kz,'water vapor mixing ratio   '
-               write(31,600) 'psa     ',   'surface pressure (hPa)     '
+               write(31,600) 'ps      ',   'surface pressure (hPa)     '
                write(31,600) 'tas     ',   'surface air temperature, K '
                write(31,700)
                close(31)
@@ -1340,6 +1446,20 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON ICBC Orig.',nyear,month
+                  else
+                     write(*,*)'                         ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER ICBC Orig.',nyear,month
+                  else
+                     write(*,*)'                         ',nyear,month
+                  endif
+               endif
+
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -1357,6 +1477,16 @@
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./6))+1
                filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'0100'
+
+               inquire(file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein &
+                      ,exist=there)
+               if(.not.there) then
+                  write(*,*) &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein &
+                        ,' is not avaiable'
+                  stop
+               endif
                open(10,file= &
                     trim(Path_Input)//trim(DomainName)//'_'//filein  &
                    ,form='unformatted',recl=iy*jx*ibyte,access='direct')
@@ -1372,6 +1502,20 @@
                nyear = nyear + (month-1)/12
                month = mod(month,12)
                if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON ICBC Daily',nyear,month
+                  else
+                     write(*,*)'                         ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER ICBC Daily',nyear,month
+                  else
+                     write(*,*)'                         ',nyear,month
+                  endif
+               endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -1390,6 +1534,16 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ICBC'//chy(nyear)//chm(month)//'01'
                fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'01'
+
+               inquire(file= &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
+                      ,exist=there)
+               if(.not.there) then
+                  write(*,*) &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
+                        ,' is not avaiable'
+                  stop
+               endif
                open(10,file= &
                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
                    ,form='unformatted' &
@@ -1407,22 +1561,46 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(iproj.eq.'LAMCON') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: LAMCON ICBC Month',nyear,month
+                  else
+                     write(*,*)'                         ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: ROTMER ICBC Month',nyear,month
+                  else
+                     write(*,*)'                         ',nyear,month
+                  endif
+               endif
+
                n_slice = 1
 
-               if(month.eq.1.or.idate1.eq.idate0) then
-                  filein = 'ICBC'//chy(nyear)
-                  fileout= 'ICBC_LL.'//chy(nyear)
+               if(nfile.eq.1) then
+                  filein = 'ICBC'
+                  fileout= 'ICBC_LL'
+
+                  inquire(file= &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:4)//'.mon' &
+                         ,exist=there)
+                  if(.not.there) then
+                  write(*,*) &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:4)//'.mon' &
+                        ,' is not avaiable'
+                     stop
+                  endif
                   open(10,file= &
-          trim(Path_Input)//trim(DomainName)//'_'//filein(1:8)//'.dat' &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:4)//'.mon' &
                       ,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  mrec = 0
                 open(20,file= &
-        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:12)//'.dat' &
+         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:7)//'.mon' &
                     ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  nrec = 0
                endif
-               mrec = (month-1)*(kz*4+2)
-               nrec = (month-1)*(kz*4+2)
             endif
 
             do nnn=1,n_slice
@@ -1595,22 +1773,49 @@
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
+               (ntype.eq.2.and.nfile.eq.1))) then
                if(ntype.eq.0) then
-                  open(31,file= &
+                  inquire(file= &
         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
-                      ,form='formatted')
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
                   write(31,10) '^'//trim(DomainName)//'_'//fileout(1:18)
                else if(ntype.eq.1) then
-                  open(31,file= &
+                  inquire(file= &
         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
-                      ,form='formatted')
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
                   write(31,11) '^'//trim(DomainName)//'_'//fileout(1:16)
                else if(ntype.eq.2) then
-                  open(31,file= &
-        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:12)//'.ctl' &
-                      ,form='formatted')
-          write(31,12) '^'//trim(DomainName)//'_'//fileout(1:12)//'.dat'
+                  inquire(file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:7)//'.ctl' &
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:7)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:7)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
+          write(31,12) '^'//trim(DomainName)//'_'//fileout(1:7)//'.mon'
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -1628,14 +1833,14 @@
                else if(ntype.eq.1) then
                   write(31,401) n_slice,'01',chmc(month),nyear
                else if(ntype.eq.2) then
-                  write(31,402) n_slice,'15',chmc(month),nyear
+                  write(31,402) n_month,'16',chmc(month),nyear
                endif
                write(31,500) 6
                write(31,650) 'u       ',kz,'westerly wind (m/s)        '
                write(31,650) 'v       ',kz,'southerly wind (m/s)       '
                write(31,650) 't       ',kz,'air temperature (degree, K)'
                write(31,650) 'q       ',kz,'water vapor mixing ratio   '
-               write(31,600) 'psa     ',   'surface pressure (hPa)     '
+               write(31,600) 'ps      ',   'surface pressure (hPa)     '
                write(31,600) 'tas     ',   'surface air temperature, K '
                write(31,700)
                close(31)
@@ -1705,7 +1910,7 @@
                            ,Path_Output)
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
-      character*80 Path_Output
+      character*128 Path_Output
       real*4  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -1783,6 +1988,11 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
@@ -1868,6 +2078,12 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER ATM Orig.',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
+
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -1886,6 +2102,11 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'0100'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -1899,6 +2120,11 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER ATM Daily',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -1916,6 +2142,11 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ATM.'//chy(nyear)//chm(month)//'01'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -1930,18 +2161,29 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(month.eq.1.or.nfile.eq.1) then
+                  write(*,*)'regrid: NORMER ATM Month',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
+
                n_slice = 1
 
-               if(month.eq.1.or.idate1.eq.idate0) then
-                  filein = 'ATM.'//chy(nyear)//'mon'
-                  fileout= 'ATM_LL.'//chy(nyear)//'mon'
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
+               if(nfile.eq.1) then
+                  filein = 'ATM.mon'
+                  fileout= 'ATM_LL.mon'
+                  inquire(file=trim(Path_Output)//filein(1:7),exist=there)
+                  if(.not.there) then
+                     write(*,*) trim(Path_Output)//filein(1:7),' is not avaiable'
+                     stop
+                  endif
+             open(10,file=trim(Path_Output)//filein(1:7),form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+                  nrec = 0
+            open(20,file=trim(Path_Output)//fileout(1:10),form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec = 0
                endif
-               mrec = (month-1)*(kz*6+5)
-               nrec = (month-1)*(kz*6+5)
             endif
 
             do nnn=1,n_slice
@@ -1978,19 +2220,46 @@
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
+               (ntype.eq.2.and.nfile.eq.1))) then
                if(ntype.eq.0) then
-                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
-                     ,form='formatted')
-                  write(31,12) fileout(1:14)
+                 inquire(file=trim(Path_Output)//fileout(1:10)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,12) fileout(1:10)
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -2012,7 +2281,7 @@
                else if(ntype.eq.1) then
                   write(31,401) n_slice,'01',chmc(month),nyear
                else if(ntype.eq.2) then
-                  write(31,402) n_slice,'15',chmc(month),nyear
+                  write(31,402) n_month,'16',chmc(month),nyear
                endif
                write(31,500) 11
                write(31,650) 'u       ',kz,'westerly wind (m/s)        '
@@ -2021,7 +2290,7 @@
                write(31,650) 't       ',kz,'air temperature (degree)   '
                write(31,650) 'qv      ',kz,'water vapor mixing ratio   '
                write(31,650) 'qc      ',kz,'cloud water mixing ratio   '
-               write(31,600) 'psa     ',   'surface pressure (hPa)     '
+               write(31,600) 'ps      ',   'surface pressure (hPa)     '
                write(31,600) 'tpr     ',   'total precipitation(mm/day)'
                write(31,600) 'tgb     ',   'lower groud temp. in BATS  '
                write(31,600) 'swt     ',   'total soil water in mm H2O '
@@ -2137,6 +2406,20 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON ATM Orig.',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER ATM Orig.',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
+
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -2155,6 +2438,11 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'0100'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -2167,6 +2455,20 @@
                nyear = nyear + (month-1)/12
                month = mod(month,12)
                if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON ATM Daily',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER ATM Daily',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -2185,6 +2487,11 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ATM.'//chy(nyear)//chm(month)//'01'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -2198,18 +2505,41 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(iproj.eq.'LAMCON') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: LAMCON ATM Month',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: ROTMER ATM Month',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
+
                n_slice = 1
 
-               if(month.eq.1.or.idate1.eq.idate0) then
-                  filein = 'ATM.'//chy(nyear)//'mon'
-                  fileout= 'ATM_LL.'//chy(nyear)//'mon'
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+               if(nfile.eq.1) then
+                  filein = 'ATM.mon'
+                  fileout= 'ATM_LL.mon'
+                  inquire(file=trim(Path_Output)//filein(1:7)  &
+                         ,exist=there)
+                  if(.not.there) then
+                     write(*,*) trim(Path_Output)//filein(1:7)  &
+                              ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file=trim(Path_Output)//filein(1:7)  &
+                         ,form='unformatted' &
+                         ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  nrec = 0
+                  open(20,file=trim(Path_Output)//fileout(1:10)  &
+                         ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec = 0
                endif
-               mrec = (month-1)*(kz*6+5)
-               nrec = (month-1)*(kz*6+5)
             endif
 
             do nnn=1,n_slice
@@ -2342,19 +2672,46 @@
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
+               (ntype.eq.2.and.nfile.eq.1))) then
                if(ntype.eq.0) then
-                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
-                     ,form='formatted')
-                  write(31,12) fileout(1:14)
+                 inquire(file=trim(Path_Output)//fileout(1:10)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,12) fileout(1:10)
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -2376,7 +2733,7 @@
                else if(ntype.eq.1) then
                   write(31,401) n_slice,'01',chmc(month),nyear
                else if(ntype.eq.2) then
-                  write(31,402) n_slice,'15',chmc(month),nyear
+                  write(31,402) n_month,'16',chmc(month),nyear
                endif
                write(31,500) 11
                write(31,650) 'u       ',kz,'westerly wind (m/s)        '
@@ -2385,7 +2742,7 @@
                write(31,650) 't       ',kz,'air temperature (degree)   '
                write(31,650) 'qv      ',kz,'water vapor mixing ratio   '
                write(31,650) 'qc      ',kz,'cloud water mixing ratio   '
-               write(31,600) 'psa     ',   'surface pressure (hPa)     '
+               write(31,600) 'ps      ',   'surface pressure (hPa)     '
                write(31,600) 'tpr     ',   'total precipitation(mm/day)'
                write(31,600) 'tgb     ',   'lower groud temp. in BATS  '
                write(31,600) 'swt     ',   'total soil water in mm H2O '
@@ -2420,7 +2777,7 @@
 
   10  format('dset ^',A17)
   11  format('dset ^',A15)
-  12  format('dset ^',A14)
+  12  format('dset ^',A10)
   20  format('title RegCM domain information')
   30  format('options big_endian')
   40  format('options little_endian')
@@ -2442,7 +2799,7 @@
                            ,Path_Output)
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
-      character*80 Path_Output
+      character*128 Path_Output
       real*4  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -2521,6 +2878,11 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
@@ -2606,6 +2968,12 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER SRF Orig.',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
+
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -2624,6 +2992,11 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'SRF.'//chy(nyear)//chm(month)//'0100'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'0100'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -2637,6 +3010,11 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER SRF Daily',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -2654,6 +3032,11 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'SRF.'//chy(nyear)//chm(month)//'01'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -2667,18 +3050,32 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(month.eq.1.or.nfile.eq.1) then
+                  write(*,*)'regrid: NORMER SRF Month',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
+
                n_slice = 1
 
-               if(month.eq.1.or.idate1.eq.idate0) then
-                  filein = 'SRF.'//chy(nyear)//'mon'
-                  fileout= 'SRF_LL.'//chy(nyear)//'mon'
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+               if(nfile.eq.1) then
+                  filein = 'SRF.mon'
+                  fileout= 'SRF_LL.mon'
+                inquire(file=trim(Path_Output)//filein(1:7),exist=there)
+                  if(.not.there) then
+                     write(*,*) trim(Path_Output)//filein(1:7)  &
+                               ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file=trim(Path_Output)//filein(1:7)  &
+                         ,form='unformatted' &
+                         ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  nrec = 0
+                  open(20,file=trim(Path_Output)//fileout(1:10)  &
+                         ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                     mrec = 0
                endif
-               mrec = (month-1)*27
-               nrec = (month-1)*27
             endif
 
             do nnn=1,n_slice
@@ -2738,19 +3135,46 @@
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
+               (ntype.eq.2.and.nfile.eq.1))) then
                if(ntype.eq.0) then
-                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
-                     ,form='formatted')
-                  write(31,12) fileout(1:14)
+                 inquire(file=trim(Path_Output)//fileout(1:10)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,12) fileout(1:10)
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -2772,7 +3196,7 @@
                else if(ntype.eq.1) then
                   write(31,401) n_slice,'01',chmc(month),nyear
                else if(ntype.eq.2) then
-                  write(31,402) n_slice,'15',chmc(month),nyear
+                  write(31,402) n_month,'16',chmc(month),nyear
                endif
                write(31,500) 27
         write(31,600) 'u10m    ','westerly  wind at 10m (m/s)          '
@@ -2787,14 +3211,14 @@
         write(31,600) 'tpr     ','total precipitation (mm/day)         '
         write(31,600) 'evp     ','evapotranspiration (mm/day)          '
         write(31,600) 'runoff  ','surface runoff (mm/day)              '
-        write(31,600) 'scv     ','total snow amount                    '
+        write(31,600) 'scv     ','snow amount (mm, water equivalent)   '
         write(31,600) 'sena    ','sensible heat flux (W/m2)            '
         write(31,600) 'flw     ','net infrared energy flux (W/m2)      '
         write(31,600) 'fsw     ','net absorbed solar energy flux (W/m2)'
         write(31,600) 'flwd    ','downward infrared energy flux (W/m2) '
         write(31,600) 'sina    ','incident solar energy flux (W/m2)    '
         write(31,600) 'prcv    ','convective precipitation (mm/day)    '
-        write(31,600) 'psb     ','surface pressure (hPa)               '
+        write(31,600) 'ps      ','surface pressure (hPa)               '
         write(31,600) 'zpbl    ','PBL layer height                     '
         write(31,600) 'tgmax   ','maximum ground temperature (K)       '
         write(31,600) 'tgmin   ','minimum ground temperature (K)       '
@@ -2913,6 +3337,20 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON SRF Orig.',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER SRF Orig.',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
+
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -2931,6 +3369,11 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'SRF.'//chy(nyear)//chm(month)//'0100'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'0100'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -2943,6 +3386,20 @@
                nyear = nyear + (month-1)/12
                month = mod(month,12)
                if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON SRF Daily',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER SRF Daily',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -2961,6 +3418,11 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'SRF.'//chy(nyear)//chm(month)//'01'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -2974,18 +3436,40 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(iproj.eq.'LAMCON') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: LAMCON SRF Month',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: ROTMER SRF Month',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
+
                n_slice = 1
 
-               if(month.eq.1.or.idate1.eq.idate0) then
-                  filein = 'SRF.'//chy(nyear)//'mon'
-                  fileout= 'SRF_LL.'//chy(nyear)//'mon'
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+               if(nfile.eq.1) then
+                  filein = 'SRF.mon'
+                  fileout= 'SRF_LL.mon'
+                inquire(file=trim(Path_Output)//filein(1:7),exist=there)
+                  if(.not.there) then
+                     write(*,*) trim(Path_Output)//filein(1:7)  &
+                               ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file=trim(Path_Output)//filein(1:7)  &
+                         ,form='unformatted' &
+                         ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  nrec = 0
+                  open(20,file=trim(Path_Output)//fileout(1:10)  &
+                         ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec = 0
                endif
-               mrec = (month-1)*27
-               nrec = (month-1)*27
             endif
 
             do nnn=1,n_slice
@@ -3130,19 +3614,46 @@
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
+               (ntype.eq.2.and.nfile.eq.1))) then
                if(ntype.eq.0) then
-                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
-                     ,form='formatted')
-                  write(31,12) fileout(1:14)
+                 inquire(file=trim(Path_Output)//fileout(1:10)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,12) fileout(1:10)
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -3164,7 +3675,7 @@
                else if(ntype.eq.1) then
                   write(31,401) n_slice,'01',chmc(month),nyear
                else if(ntype.eq.2) then
-                  write(31,402) n_slice,'15',chmc(month),nyear
+                  write(31,402) n_month,'16',chmc(month),nyear
                endif
                write(31,500) 27
         write(31,600) 'u10m    ','westerly  wind at 10m (m/s)          '
@@ -3179,14 +3690,14 @@
         write(31,600) 'tpr     ','total precipitation (mm/day)         '
         write(31,600) 'evp     ','evapotranspiration (mm/day)          '
         write(31,600) 'runoff  ','surface runoff (mm/day)              '
-        write(31,600) 'scv     ','total snow amount                    '
+        write(31,600) 'scv     ','snow amount (mm, water equivalent)   '
         write(31,600) 'sena    ','sensible heat flux (W/m2)            '
         write(31,600) 'flw     ','net infrared energy flux (W/m2)      '
         write(31,600) 'fsw     ','net absorbed solar energy flux (W/m2)'
         write(31,600) 'flwd    ','downward infrared energy flux (W/m2) '
         write(31,600) 'sina    ','incident solar energy flux (W/m2)    '
         write(31,600) 'prcv    ','convective precipitation (mm/day)    '
-        write(31,600) 'psb     ','surface pressure (hPa)               '
+        write(31,600) 'ps      ','surface pressure (hPa)               '
         write(31,600) 'zpbl    ','PBL layer height                     '
         write(31,600) 'tgmax   ','maximum ground temperature (K)       '
         write(31,600) 'tgmin   ','minimum ground temperature (K)       '
@@ -3224,7 +3735,7 @@
 
   10  format('dset ^',A17)
   11  format('dset ^',A15)
-  12  format('dset ^',A14)
+  12  format('dset ^',A10)
   20  format('title RegCM domain information')
   30  format('options big_endian')
   40  format('options little_endian')
@@ -3245,7 +3756,7 @@
                            ,Path_Output)
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2
-      character*80 Path_Output
+      character*128 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  dxsp,ptsp,clat,clon,plat,plon
@@ -3318,6 +3829,11 @@
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
              ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
@@ -3403,6 +3919,12 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER RAD Orig.',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
+
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -3421,6 +3943,11 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'RAD.'//chy(nyear)//chm(month)//'0100'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'0100'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -3433,6 +3960,12 @@
                nyear = nyear + (month-1)/12
                month = mod(month,12)
                if(month.eq.0) month = 12
+
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER RAD Daily',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -3451,6 +3984,11 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'RAD.'//chy(nyear)//chm(month)//'01'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -3464,18 +4002,33 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(month.eq.1.or.nfile.eq.1) then
+                  write(*,*)'regrid: NORMER RAD Month',nyear,month
+               else
+                  write(*,*)'                        ',nyear,month
+               endif
+
                n_slice = 1
 
-               if(month.eq.1.or.idate1.eq.idate0) then
-                  filein = 'RAD.'//chy(nyear)//'mon'
-                  fileout= 'RAD_LL.'//chy(nyear)//'mon'
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+               if(nfile.eq.1) then
+                  filein = 'RAD.mon'
+                  fileout= 'RAD_LL.mon'
+                  inquire(file=trim(Path_Output)//filein(1:7)  &
+                         ,exist=there)
+                  if(.not.there) then
+                     write(*,*) trim(Path_Output)//filein(1:7)  &
+                               ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file=trim(Path_Output)//filein(1:7)  &
+                         ,form='unformatted' &
+                         ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  nrec = 0
+                  open(20,file=trim(Path_Output)//fileout(1:10)  &
+                         ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec = 0
                endif
-               mrec = (month-1)*(kz*4+9)
-               nrec = (month-1)*(kz*4+9)
             endif
 
             do nnn=1,n_slice
@@ -3512,19 +4065,46 @@
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
+               (ntype.eq.2.and.nfile.eq.1))) then
                if(ntype.eq.0) then
-                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
-                     ,form='formatted')
-                  write(31,12) fileout(1:14)
+                 inquire(file=trim(Path_Output)//fileout(1:10)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,12) fileout(1:10)
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -3546,7 +4126,7 @@
                else if(ntype.eq.1) then
                   write(31,401) n_slice,'01',chmc(month),nyear
                else if(ntype.eq.2) then
-                  write(31,402) n_slice,'15',chmc(month),nyear
+                  write(31,402) n_month,'16',chmc(month),nyear
                endif
                write(31,500) 13
         write(31,650)'cld   ',kz,'cloud fractional cover               '
@@ -3673,6 +4253,20 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON RAD Orig.',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER RAD Orig.',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
+
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
                   month.eq.12) then
@@ -3691,6 +4285,11 @@
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
                filein = 'RAD.'//chy(nyear)//chm(month)//'0100'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'0100'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -3703,6 +4302,20 @@
                nyear = nyear + (month-1)/12
                month = mod(month,12)
                if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON RAD Daily',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER RAD Daily',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -3721,6 +4334,11 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'RAD.'//chy(nyear)//chm(month)//'01'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  stop
+               endif
              open(10,file=trim(Path_Output)//filein,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
@@ -3734,18 +4352,41 @@
                month = mod(month,12)
                if(month.eq.0) month = 12
 
+               if(iproj.eq.'LAMCON') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: LAMCON RAD Month',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: ROTMER RAD Month',nyear,month
+                  else
+                     write(*,*)'                        ',nyear,month
+                  endif
+               endif
+
                n_slice = 1
 
-               if(month.eq.1.or.idate1.eq.idate0) then
-                  filein = 'RAD.'//chy(nyear)//'mon'
-                  fileout= 'RAD_LL.'//chy(nyear)//'mon'
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+               if(nfile.eq.1) then
+                  filein = 'RAD.mon'
+                  fileout= 'RAD_LL.mon'
+                  inquire(file=trim(Path_Output)//filein(1:7)  &
+                         ,exist=there)
+                  if(.not.there) then
+                     write(*,*) trim(Path_Output)//filein(1:7)  &
+                               ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file=trim(Path_Output)//filein(1:7)  &
+                         ,form='unformatted' &
+                         ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  nrec = 0
+                  open(20,file=trim(Path_Output)//fileout(1:10)  &
+                         ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec = 0
                endif
-               mrec = (month-1)*(kz*4+9)
-               nrec = (month-1)*(kz*4+9)
             endif
 
             do nnn=1,n_slice
@@ -3789,19 +4430,46 @@
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
             if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.(month.eq.1.or.idate1.eq.idate0)))) then
+               (ntype.eq.2.and.nfile.eq.1))) then
                if(ntype.eq.0) then
-                 open(31,file=trim(Path_Output)//fileout(1:17)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,10) fileout(1:17)
                else if(ntype.eq.1) then
-                 open(31,file=trim(Path_Output)//fileout(1:15)//'.ctl' &
-                     ,form='formatted')
+                 inquire(file=trim(Path_Output)//fileout(1:15)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:15)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
                   write(31,11) fileout(1:15)
                else if(ntype.eq.2) then
-                 open(31,file=trim(Path_Output)//fileout(1:14)//'.ctl' &
-                     ,form='formatted')
-                  write(31,12) fileout(1:14)
+                 inquire(file=trim(Path_Output)//fileout(1:10)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:10)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,12) fileout(1:10)
                endif
                write(31,20)
                if(ibigend.eq.1) then
@@ -3823,7 +4491,7 @@
                else if(ntype.eq.1) then
                   write(31,401) n_slice,'01',chmc(month),nyear
                else if(ntype.eq.2) then
-                  write(31,402) n_slice,'15',chmc(month),nyear
+                  write(31,402) n_month,'16',chmc(month),nyear
                endif
                write(31,500) 13
         write(31,650)'cld   ',kz,'cloud fractional cover               '
@@ -3869,7 +4537,7 @@
 
   10  format('dset ^',A17)
   11  format('dset ^',A15)
-  12  format('dset ^',A14)
+  12  format('dset ^',A10)
   20  format('title RegCM domain information')
   30  format('options big_endian')
   40  format('options little_endian')
