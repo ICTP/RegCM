@@ -336,7 +336,7 @@
  300  format('zdef 1',' levels ',f7.2)
  318  format('zdef ',I2,' levels ',30f7.2)
          if(nfile.eq.1) then
-            nday=mod(idate0,10000)/100
+            nday=mod(idate1,10000)/100
             nrecord = nrecord+1-nday 
             write(31,400)nrecord,cday(nday),chmc(month),nyear
          else if(nfile.eq.n_month) then
@@ -378,14 +378,14 @@
         write(31,600) 'tpr     ','total precipitation (mm/day)         '
         write(31,600) 'evp     ','evapotranspiration (mm/day)          '
         write(31,600) 'runoff  ','surface runoff (mm/day)              '
-        write(31,600) 'scv     ','total snow amount                    '
+        write(31,600) 'scv     ','snow amount (mm, water equivalent)   '
         write(31,600) 'sena    ','sensible heat flux (W/m2)            '
         write(31,600) 'flw     ','net infrared energy flux (W/m2)      '
         write(31,600) 'fsw     ','net absorbed solar energy flux (W/m2)'
         write(31,600) 'flwd    ','downward infrared energy flux (W/m2) '
         write(31,600) 'sina    ','incident solar energy flux (W/m2)    '
         write(31,600) 'prcv    ','convective precipitation (mm/day)    '
-        write(31,600) 'psb     ','surface pressure (hPa)               '
+        write(31,600) 'ps      ','surface pressure (hPa)               '
         write(31,600) 'zpbl    ','PBL layer height                     '
         write(31,600) 'tgmax   ','maximum ground temperature (K)       '
         write(31,600) 'tgmin   ','minimum ground temperature (K)       '
@@ -408,7 +408,7 @@
         write(31,660) 't       ',kz,'air temperature (degree)    '
         write(31,660) 'qv      ',kz,'water vapor mixing ratio    '
         write(31,660) 'qc      ',kz,'cloud water mixing ratio    '
-        write(31,600) 'psa     ',   'surface pressure (hPa)      '
+        write(31,600) 'ps      ',   'surface pressure (hPa)      '
         write(31,600) 'tpr     ',   'total precipitation(mm/day) '
         write(31,600) 'tgb     ',   'lower groud temp. in BATS   '
         write(31,600) 'swt     ',   'total soil water in mm H2O  '
@@ -463,7 +463,7 @@
        enddo
        write(31,600) 'acstoarf',' TOArad forcing av.(W/m2)            '
        write(31,600) 'acstsrrf',' SRFrad forcing av.(W/m2)            '
-       write(31,600) 'psb     ','surface pressure (hPa)               '
+       write(31,600) 'ps      ','surface pressure (hPa)               '
       endif
       write(31,700)
  700  format('endvars')
@@ -874,7 +874,7 @@
                        +ptop*10.,k=kz,1,-1)
  318  format('zdef ',I2,' levels ',30f7.2)
          if(nfile.eq.1) then
-            nday=mod(idate0,10000)/100
+            nday=mod(idate1,10000)/100
             nrecord = nrecord+1-nday 
             write(31,400)nrecord,cday(nday),chmc(month),nyear
          else if(nfile.eq.n_month) then
@@ -903,7 +903,7 @@
         endif
         write(31,660) 't       ',kz,'air temperature (degree)    '
         write(31,660) 'q       ',kz,'specific moisture (kg/kg)   '
-        write(31,600) 'psa     ',   'surface pressure (hPa)      '
+        write(31,600) 'ps      ',   'surface pressure (hPa)      '
         write(31,600) 'ts      ',   'surface air temperature     '
       endif
       write(31,700)
@@ -1008,6 +1008,7 @@
       character*3 chmc(12)
       data chmc/'jan','feb','mar','apr','may','jun'  &
                ,'jul','aug','sep','oct','nov','dec'/
+      character*3 chnsg
       character*14 filein
       character*12 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
@@ -1016,14 +1017,53 @@
       real*4  centerj,centeri
       integer ny,nx
       integer i,j,k,l,m,n,itr
-      integer number,nvar,mvar,n_month,nrecord,nday,mday
+      integer number,nvar,n_month,nrecord,nday,mday
       integer idatex
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
 
       allocate(sigma(kz+1))
       allocate(b((jx-2)*nsg,(iy-2)*nsg))
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
+
+      allocate(xlat_s((jx-2)*nsg,(iy-2)*nsg))
+      allocate(xlon_s((jx-2)*nsg,(iy-2)*nsg))
+      allocate(a(jx*nsg,iy*nsg))
+
+      if(nsg.lt.10) then
+         write(chnsg,71) nsg
+      else if(nsg.lt.100) then
+         write(chnsg,71) nsg
+      else
+         write(chnsg,71) nsg
+      endif
+ 71   format('00',I1)
+ 72   format('0', I2)
+ 73   format(I3)
+      inquire(file=trim(Path_Input)//trim(DomainName)//chnsg//'.INFO' &
+                  ,exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Input)//trim(DomainName)//chnsg//'.INFO' &
+                   ,' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Input)//trim(DomainName)//chnsg//'.INFO' &
+       ,form='unformatted',recl=jx*nsg*iy*nsg*ibyte,access='direct')
+      read(10,rec=5) a
+      do i=nsg+1,(iy-1)*nsg
+      do j=nsg+1,(jx-1)*nsg
+         xlat_s(j-nsg,i-nsg) = a(j,i)
+      enddo
+      enddo
+      read(10,rec=6) a
+      do i=nsg+1,(iy-1)*nsg
+      do j=nsg+1,(jx-1)*nsg
+         xlon_s(j-nsg,i-nsg) = a(j,i)
+      enddo
+      enddo
+      close(10)
+      deallocate(a)
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
       if(.not.there) then
@@ -1168,8 +1208,9 @@
          endif
 
          if(iproj.eq.'LAMCON') then        ! Lambert projection
-            write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
-                          truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
+            write(31,100) (jx-2)*nsg,(iy-2)*nsg,clat,clon, &
+                          centerj*nsg,centeri*nsg, &
+                 truelatL,truelatH,clon,dxsp/nsg*1000.,dxsp/nsg*1000.
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
             write(31,110) nx+2,alonmin-rloninc,rloninc
  110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
@@ -1177,11 +1218,11 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
          elseif(iproj.eq.'POLSTR') then    !
          elseif(iproj.eq.'NORMER') then
-            write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+            write(31,200) (jx-2)*nsg,xlon_s(1,1),xlon_s(2,1)-xlon_s(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
-            write(31,210) iy-2
+            write(31,210) (iy-2)*nsg
  210  format('ydef ',I3,' levels')
-            write(31,220) (xlat(1,i),i=1,iy-2)
+            write(31,220) (xlat_s(1,i),i=1,(iy-2)*nsg)
  220  format(10f7.2)
          elseif(iproj.eq.'ROTMER') then
          if(nfile.eq.1.or.month.eq.1) then
@@ -1191,8 +1232,8 @@
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
          endif
-            write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
-                                          ,dxsp/111.*.95238
+            write(31,230) (jx-2)*nsg,(iy-2)*nsg,plon,plat, &
+                          dxsp/111./nsg ,dxsp/111.*.95238/nsg
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
             write(31,110) nx+2,alonmin-rloninc,rloninc
             write(31,120) ny+2,alatmin-rlatinc,rlatinc
@@ -1200,16 +1241,10 @@
             write(*,*) 'Are you sure your map projection is right ?'
             stop
          endif
-         if(filename.eq.'SRF') then
       write(31,300) (1013.25-ptsp*10.)*(sigma(1)+sigma(2))*.5+ptsp*10.
-         else
-      write(31,318) kz,((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*.5 &
-                       +ptsp*10.,k=1,kz)
-         endif
  300  format('zdef 1',' levels ',f7.2)
- 318  format('zdef ',I2,' levels ',30f7.2)
          if(nfile.eq.1) then
-            nday=mod(idate0,10000)/100
+            nday=mod(idate1,10000)/100
             nrecord = nrecord+1-nday 
             write(31,400)nrecord,cday(nday),chmc(month),nyear
          else if(nfile.eq.n_month) then
@@ -1225,14 +1260,13 @@
  600  format(A8,'0 99 ',A36)
  611  format(A8,'0 33,105 ',A36)
  612  format(A8,'0 34,105 ',A36)
-         if(filename.eq.'SRF') then
-          if(iproj.eq.'LAMCON') then        ! Lambert projection
+         if(iproj.eq.'LAMCON') then        ! Lambert projection
         write(31,611) 'u10m    ','westerly  wind at 10m (m/s)          '
         write(31,612) 'v10m    ','southerly wind at 10m (m/s)          '
-          else
+         else
         write(31,600) 'u10m    ','westerly  wind at 10m (m/s)          '
         write(31,600) 'v10m    ','southerly wind at 10m (m/s)          '
-          endif
+         endif
         write(31,600) 'uvdrag  ','surface drag stress                  '
         write(31,600) 'tg      ','ground temperature (degree)          '
         write(31,600) 'tlef    ','temperature of foliage               '
@@ -1243,22 +1277,10 @@
         write(31,600) 'tpr     ','total precipitation (mm/day)         '
         write(31,600) 'evp     ','evapotranspiration (mm/day)          '
         write(31,600) 'runoff  ','surface runoff (mm/day)              '
-        write(31,600) 'scv     ','total snow amount                    '
+        write(31,600) 'scv     ','snow amount (mm, water equivalent)   '
         write(31,600) 'sena    ','sensible heat flux (W/m2)            '
-        write(31,600) 'flw     ','net infrared energy flux (W/m2)      '
-        write(31,600) 'fsw     ','net absorbed solar energy flux (W/m2)'
-        write(31,600) 'flwd    ','downward infrared energy flux (W/m2) '
-        write(31,600) 'sina    ','incident solar energy flux (W/m2)    '
         write(31,600) 'prcv    ','convective precipitation (mm/day)    '
-        write(31,600) 'psb     ','surface pressure (hPa)               '
-        write(31,600) 'zpbl    ','PBL layer height                     '
-        write(31,600) 'tgmax   ','maximum ground temperature (K)       '
-        write(31,600) 'tgmin   ','minimum ground temperature (K)       '
-        write(31,600) 't2max   ','maximum 2m air temperature (K)       '
-        write(31,600) 't2min   ','minimum 2m air temperature (K)       '
-        write(31,600) 'w10max  ','maximum 10m wind speed (m/s)         '
-        write(31,600) 'ps_min  ','minimum surface pressure (hPa)       '
-         endif
+        write(31,600) 'ps      ','surface pressure (hPa)               '
          write(31,700)
  700  format('endvars')
          close(31)
@@ -1274,11 +1296,11 @@
          else if(iotyp.eq.2) then
             open(10,file=trim(Path_Output)//filein,form='unformatted')
          endif
-         open(20,file=fileout,form='unformatted' &
+         open(20,file=trim(Path_Output)//fileout,form='unformatted' &
                 ,recl=(iy-2)*nsg*(jx-2)*nsg*ibyte,access='direct')
          mrec = 0
          do nday=1,nrecord
-            do n=1,mvar
+            do n=1,nvar
                do i=1,(iy-2)*nsg
                do j=1,(jx-2)*nsg
                   c(j,i,n) = 0.0
@@ -1287,7 +1309,7 @@
             enddo
             if(iotyp.eq.2) read(10) idatex
             do mday = 1,n_slice
-               do n=1,mvar
+               do n=1,nvar
                   if(iotyp.eq.1) then
                      nrec=nrec+1
                      read(10,rec=nrec) b
@@ -1301,7 +1323,7 @@
                   enddo
                enddo
             enddo
-            do n=1,mvar
+            do n=1,nvar
                do i=1,(iy-2)*nsg
                do j=1,(jx-2)*nsg
                   c(j,i,n) = c(j,i,n)/float(n_slice)
@@ -1320,6 +1342,9 @@
       deallocate(xlat)
       deallocate(xlon)
       deallocate(c)
+
+      deallocate(xlat_s)
+      deallocate(xlon_s)
       return
       end
 
@@ -1547,7 +1572,7 @@
          write(*,*) 'Are you sure your map projection is right ?'
          stop
       endif
-      if(filename.eq.'SRF'.or.filename.eq.'SUB') then
+      if(filename.eq.'SRF') then
       write(31,300) (1013.25-ptsp*10.)*(sigma(1)+sigma(2))*.5+ptsp*10.
       else
       write(31,318) kz,((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*.5 &
@@ -1555,9 +1580,9 @@
       endif
  300  format('zdef 1',' levels ',f7.2)
  318  format('zdef ',I2,' levels ',30f7.2)
-      nyear=idate0/1000000
-      month=(idate0-nyear*1000000)/10000
-      nday =(idate0-nyear*1000000-month*10000)/100
+      nyear=idate1/1000000
+      month=(idate1-nyear*1000000)/10000
+      nday =(idate1-nyear*1000000-month*10000)/100
       write(31,400)n_month,cday(16),chmc(month),nyear
  400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
       if(filename.eq.'ATM') then
@@ -1591,14 +1616,14 @@
         write(31,600) 'tpr     ','total precipitation (mm/day)         '
         write(31,600) 'evp     ','evapotranspiration (mm/day)          '
         write(31,600) 'runoff  ','surface runoff (mm/day)              '
-        write(31,600) 'scv     ','total snow amount                    '
+        write(31,600) 'scv     ','snow amount (mm, water equivalent)   '
         write(31,600) 'sena    ','sensible heat flux (W/m2)            '
         write(31,600) 'flw     ','net infrared energy flux (W/m2)      '
         write(31,600) 'fsw     ','net absorbed solar energy flux (W/m2)'
         write(31,600) 'flwd    ','downward infrared energy flux (W/m2) '
         write(31,600) 'sina    ','incident solar energy flux (W/m2)    '
         write(31,600) 'prcv    ','convective precipitation (mm/day)    '
-        write(31,600) 'psb     ','surface pressure (hPa)               '
+        write(31,600) 'ps      ','surface pressure (hPa)               '
         write(31,600) 'zpbl    ','PBL layer height                     '
         write(31,600) 'tgmax   ','maximum ground temperature (K)       '
         write(31,600) 'tgmin   ','minimum ground temperature (K)       '
@@ -1621,7 +1646,7 @@
         write(31,660) 't       ',kz,'air temperature (degree)    '
         write(31,660) 'qv      ',kz,'water vapor mixing ratio    '
         write(31,660) 'qc      ',kz,'cloud water mixing ratio    '
-        write(31,600) 'psa     ',   'surface pressure (hPa)      '
+        write(31,600) 'ps      ',   'surface pressure (hPa)      '
         write(31,600) 'tpr     ',   'total precipitation(mm/day) '
         write(31,600) 'tgb     ',   'lower groud temp. in BATS   '
         write(31,600) 'swt     ',   'total soil water in mm H2O  '
@@ -1676,7 +1701,7 @@
        enddo
        write(31,600) 'acstoarf',' TOArad forcing av.(W/m2)            '
        write(31,600) 'acstsrrf',' SRFrad forcing av.(W/m2)            '
-       write(31,600) 'psb     ','surface pressure (hPa)               '
+       write(31,600) 'ps      ','surface pressure (hPa)               '
       endif
       write(31,700)
  700  format('endvars')
@@ -2031,7 +2056,7 @@
         endif
         write(31,660) 't       ',kz,'air temperature (degree)    '
         write(31,660) 'q       ',kz,'specific moisture (kg/kg)   '
-        write(31,600) 'psa     ',   'surface pressure (hPa)      '
+        write(31,600) 'ps      ',   'surface pressure (hPa)      '
         write(31,600) 'ts      ',   'surface air temperature     '
       endif
       write(31,700)
@@ -2127,8 +2152,8 @@
       return
       end
 
-      subroutine mon3(filename,iy,jx,kz,nsg, Path_Input,DomainName &
-                     ,Path_Output,ibyte,idate0,idate1,idate2)
+      subroutine mon3(filename,iy,jx,kz,nsg,ibyte, Path_Input &
+                     ,DomainName,Path_Output,idate0,idate1,idate2)
       implicit none
       character*3 filename
       character*128 Path_Input,Path_Output
@@ -2171,9 +2196,9 @@
       character*3 chmc(12)
       data chmc/'jan','feb','mar','apr','may','jun'  &
                ,'jul','aug','sep','oct','nov','dec'/
+      character*3 chnsg
       character*12 filein
       character*7 fileout
-      character*14 headfile
       integer ntype,nfile,nyear,month,mrec,nrec
       integer i,j,k,l,m,n,itr
       integer number,nvar,n_month,nrecord,nday,mday
@@ -2183,19 +2208,50 @@
       integer ny,nx
 
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
 
       allocate(sigma(kz+1))
       allocate(b((jx-2)*nsg,(iy-2)*nsg))
-      allocate(xlat((jx-2)*nsg,(iy-2)*nsg))
-      allocate(xlon((jx-2)*nsg,(iy-2)*nsg))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
+
+      allocate(xlat_s((jx-2)*nsg,(iy-2)*nsg))
+      allocate(xlon_s((jx-2)*nsg,(iy-2)*nsg))
+      allocate(a(jx*nsg,iy*nsg))
 
       if(nsg.lt.10) then
-         write(headfile,101) nsg
+         write(chnsg,71) nsg
+      else if(nsg.lt.100) then
+         write(chnsg,71) nsg
       else
-         write(headfile,102) nsg
+         write(chnsg,71) nsg
       endif
- 101  format('.INFO',I1)
- 102  format('.INFO',I2)
+ 71   format('00',I1)
+ 72   format('0', I2)
+ 73   format(I3)
+      inquire(file=trim(Path_Input)//trim(DomainName)//chnsg//'.INFO' &
+                  ,exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Input)//trim(DomainName)//chnsg//'.INFO' &
+                   ,' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Input)//trim(DomainName)//chnsg//'.INFO' &
+       ,form='unformatted',recl=jx*nsg*iy*nsg*ibyte,access='direct')
+      read(10,rec=5) a
+      do i=nsg+1,(iy-1)*nsg
+      do j=nsg+1,(jx-1)*nsg
+         xlat_s(j-nsg,i-nsg) = a(j,i)
+      enddo
+      enddo
+      read(10,rec=6) a
+      do i=nsg+1,(iy-1)*nsg
+      do j=nsg+1,(jx-1)*nsg
+         xlon_s(j-nsg,i-nsg) = a(j,i)
+      enddo
+      enddo
+      close(10)
+      deallocate(a)
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
       if(.not.there) then
@@ -2231,11 +2287,15 @@
                  + (mod(idate2/10000,100)-mod(idate1/10000,100))
          if(mod(idate2,10000).gt.0100) n_month = n_month+1
          ntype = 0
+         month = mod(idate1/10000,100)
+         nyear = idate1/1000000
       else if(idate1.gt.19400101) then     ! daily mean file
          n_month = (idate2/10000-idate1/10000)*12 &
                  + (mod(idate2/100,100)-mod(idate1/100,100))
          if(mod(idate2,100).gt.01) n_month = n_month+1
          ntype = 1
+         month = mod(idate1/100,100)
+         nyear = idate1/10000
       else
          write(*,*) 'date should be in 10 digits, or 8 digits'
          stop
@@ -2314,8 +2374,9 @@
       endif
 
       if(iproj.eq.'LAMCON') then        ! Lambert projection
-         write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
-                       truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
+         write(31,100) (jx-2)*nsg,(iy-2)*nsg,clat,clon,  &
+                       centerj*nsg,centeri*nsg, &
+               truelatL,truelatH,clon,dxsp*1000./nsg,dxsp*1000./nsg
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
          write(31,110) nx+2,alonmin-rloninc,rloninc
  110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
@@ -2323,11 +2384,11 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
       elseif(iproj.eq.'POLSTR') then    !
       elseif(iproj.eq.'NORMER') then
-         write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+         write(31,200)  (jx-2)*nsg,xlon_s(1,1),xlon_s(2,1)-xlon_s(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
-         write(31,210) iy-2
+         write(31,210) (iy-2)
  210  format('ydef ',I3,' levels')
-         write(31,220) (xlat(1,i),i=1,iy-2)
+         write(31,220) (xlat_s(1,i),i=1,(iy-2)*nsg)
  220  format(10f7.2)
       elseif(iproj.eq.'ROTMER') then
          write(*,*) 'Note that rotated Mercartor (ROTMER)' &
@@ -2335,8 +2396,8 @@
          write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
          write(*,*) ' FERRET, however, does support this projection.'
-         write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
-                                          ,dxsp/111.*.95238
+         write(31,230) (jx-2)*nsg,(iy-2)*nsg,plon,plat, &
+                       dxsp/111./nsg ,dxsp/111.*.95238/nsg
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
          write(31,110) nx+2,alonmin-rloninc,rloninc
          write(31,120) ny+2,alatmin-rlatinc,rlatinc
@@ -2346,9 +2407,9 @@
       endif
       write(31,300) (1013.25-ptsp*10.)*(sigma(1)+sigma(2))*.5+ptsp*10.
  300  format('zdef 1',' levels ',f7.2)
-      nyear=idate0/1000000
-      month=(idate0-nyear*1000000)/10000
-      nday =(idate0-nyear*1000000-month*10000)/100
+      nyear=idate1/1000000
+      month=(idate1-nyear*1000000)/10000
+      nday =(idate1-nyear*1000000-month*10000)/100
       write(31,400)n_month,cday(16),chmc(month),nyear
  400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
       write(31,500) nvar
@@ -2374,10 +2435,10 @@
         write(31,600) 'tpr     ','total precipitation (mm/day)         '
         write(31,600) 'evp     ','evapotranspiration (mm/day)          '
         write(31,600) 'runoff  ','surface runoff (mm/day)              '
-        write(31,600) 'scv     ','total snow amount                    '
+        write(31,600) 'scv     ','snow amount (mm, water equivalent)   '
         write(31,600) 'sena    ','sensible heat flux (W/m2)            '
         write(31,600) 'prcv    ','convective precipitation (mm/day)    '
-        write(31,600) 'psb     ','surface pressure (hPa)               '
+        write(31,600) 'ps      ','surface pressure (hPa)               '
         write(31,700)
  700  format('endvars')
       endif
@@ -2472,5 +2533,8 @@
       deallocate(xlat)
       deallocate(xlon)
       deallocate(c)
+
+      deallocate(xlat_s)
+      deallocate(xlon_s)
       return
       end

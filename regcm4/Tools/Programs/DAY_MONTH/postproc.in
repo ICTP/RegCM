@@ -19,11 +19,13 @@
  day_ATM = .true.,
  day_RAD = .true.,
  day_SRF = .true.,
+ day_SUB = .false.,
  day_CHE = .false.,
  mon_ICBC = .true.,
  mon_ATM = .true.,
  mon_RAD = .true.,
  mon_SRF = .true.,
+ mon_SUB = .true.,
  mon_CHE = .false.,
 /
 &regridparam
