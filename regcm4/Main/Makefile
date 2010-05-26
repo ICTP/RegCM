@@ -88,7 +88,8 @@ EXTRAOBJS = mod_culookup.o mod_co2.o printsp.o nconvp.o
 
 ifeq ($(USECLM),1)
   CPPFLAGS += -DCLM
-  OBJS += initclm.o interfclm.o mod_clm.o mtrxclm.o solar1clm.o albedoclm.o
+  OBJS += initclm.o interfclm.o mtrxclm.o solar1clm.o albedoclm.o
+  MODOBJS += mod_clm.o
   LIB += -L$(CLMPTH) -lclm
 else
 ifeq ($(USESEAICE),1)
