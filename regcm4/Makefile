@@ -8,13 +8,14 @@ printall::
 	@echo ' this is Makefile for Regcm4 package: supported actions are: '
 	@echo '  --- make terrain: to compile terrain' 
 	@echo '  --- make icbc: to compile icbc codes'
+	@echo '  --- make clm2rcm: to compile clm24cm code'
 	@echo '  ----make regcm:  to compile regcm code' 
 	@echo '  ----make postnc:  to compile C++ NetCDF postprocessing code' 
 	@echo '  ----make postproc:  to compile F90 postprocessing code' 
 	@echo '  ----make clean:  to clean all ' 
 	@echo '  ----make all: to compile all the codes and tools'
 
-all: terrain icbc regcm postnc postproc
+all: terrain icbc clm2rcm regcm postnc postproc
 	@echo "##############################################################"
 	@echo "YOU HAVE DONE IT! YOU HAVE THE MODEL COMPILED AND READY TO GO!"
 	@echo "LET'S START PLAYING WITH THE BEAST....                        "
@@ -31,6 +32,16 @@ icbc:
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED ICBC BINARY FILES"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+
+clm2rcm:
+ifeq ($(USECLM),1)
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/CLM
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo "SUCCESSFULLY CREATED clm2rcm BINARY FILES"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+else
+	@echo "CLM option is not activated.  Skipping creation of clm2rcm."
+endif
 
 regcm:
 	@$(MAKE) -C $(REGCM_BASE_DIR)/Main all TARGET=$(TARGET)

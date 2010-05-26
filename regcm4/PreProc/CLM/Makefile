@@ -18,6 +18,7 @@ SHRMOD = mod_dynparam.o
 clm2rcm: $(SHRMOD) $(MODOBJ) $(CLM2RCMOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(CLM2RCMOBJ) $(LIB) \
                $(MODOBJ) $(SHRMOD) $(NETCDFLIB)
+	@cp $@ $(BINDIR)
 
 mod_dynparam.o: ../../Config/mod_dynparam.F90
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
