@@ -17,9 +17,9 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine header(myid)
+      subroutine header(myid,nproc)
       implicit none 
-      integer , intent(in) :: myid
+      integer , intent(in) :: myid,nproc
       integer :: ihost , idir
       integer :: hostnm
       integer :: getcwd
@@ -49,6 +49,7 @@
         write (nrite,*) ": this run started at    : ",cdata
         write (nrite,*) ": it is submitted by   : ",trim(user)
         write (nrite,*) ": it is running on     : ",trim(hostname)
+        write (nrite,*) ": it is using          : ",nproc, '  processors' 
         write (nrite,*) ": in directory         : ",trim(directory)
         write (nrite,*) "                      " 
       end if 
