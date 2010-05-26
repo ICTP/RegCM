@@ -284,11 +284,11 @@ rcmNcAtmo::rcmNcAtmo(regcmout &fnc, header_data &h)
 {
   // Check if var is on wanted list
   // Special all key
-  for (int i = 0; i < 10; i ++)
+  for (int i = 0; i < nvaratm; i ++)
     varmask[i] = false;
   if (fnc.vl.isthere("all"))
   {
-    for (int i = 0; i < 10; i ++)
+    for (int i = 0; i < nvaratm; i ++)
       varmask[i] = true;
   }
   else
@@ -589,11 +589,11 @@ rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h)
 {
   // Check if var is on wanted list
   // Special all key
-  for (int i = 0; i < 10; i ++)
+  for (int i = 0; i < nvarsrf; i ++)
     varmask[i] = false;
   if (fnc.vl.isthere("all"))
   {
-    for (int i = 0; i < 10; i ++)
+    for (int i = 0; i < nvarsrf; i ++)
       varmask[i] = true;
   }
   else
@@ -1093,11 +1093,11 @@ rcmNcRad::rcmNcRad(regcmout &fnc, header_data &h)
 {
   // Check if var is on wanted list
   // Special all key
-  for (int i = 0; i < 10; i ++)
+  for (int i = 0; i < nvarrad; i ++)
     varmask[i] = false;
   if (fnc.vl.isthere("all"))
   {
-    for (int i = 0; i < 10; i ++)
+    for (int i = 0; i < nvarrad; i ++)
       varmask[i] = true;
   }
   else
@@ -1347,11 +1347,11 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
 {
   // Check if var is on wanted list
   // Special all key
-  for (int i = 0; i < 10; i ++)
+  for (int i = 0; i < nvarche; i ++)
     varmask[i] = false;
   if (fnc.vl.isthere("all"))
   {
-    for (int i = 0; i < 10; i ++)
+    for (int i = 0; i < nvarche; i ++)
       varmask[i] = true;
   }
   else
@@ -1606,11 +1606,11 @@ rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s)
 {
   // Check if var is on wanted list
   // Special all key
-  for (int i = 0; i < 10; i ++)
+  for (int i = 0; i < nvarsub; i ++)
     varmask[i] = false;
   if (fnc.vl.isthere("all"))
   {
-    for (int i = 0; i < 10; i ++)
+    for (int i = 0; i < nvarsub; i ++)
       varmask[i] = true;
   }
   else
@@ -2224,11 +2224,11 @@ bcNc::bcNc(regcmout &fnc, domain_data &d)
 {
   // Check if var is on wanted list
   // Special all key
-  for (int i = 0; i < 10; i ++)
+  for (int i = 0; i < nvarbc; i ++)
     varmask[i] = false;
   if (fnc.vl.isthere("all"))
   {
-    for (int i = 0; i < 10; i ++)
+    for (int i = 0; i < nvarbc; i ++)
       varmask[i] = true;
   }
   else

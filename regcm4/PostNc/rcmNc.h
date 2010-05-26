@@ -34,6 +34,13 @@
 
 namespace rcm
 {
+  const int nvarbc = 10;
+  const int nvaratm = 17;
+  const int nvarsrf = 26;
+  const int nvarrad = 13;
+  const int nvarche = 13;
+  const int nvarsub = 15;
+
   class regcmvar {
     public:
      void addvar(std::string name);
@@ -75,7 +82,7 @@ namespace rcm
       NcDim *soil;
       NcVar *timevar;
       NcVar *psvar;
-      bool varmask[10];
+      bool varmask[nvarbc];
       NcVar *uvar;
       NcVar *vvar;
       NcVar *tvar;
@@ -117,7 +124,7 @@ namespace rcm
       void put_rec(atmodata &a, t_atm_deriv &d);
     private:
       NcVar *psvar;
-      bool varmask[17];
+      bool varmask[nvaratm];
       NcVar *uvar;
       NcVar *vvar;
       NcVar *ovar;
@@ -144,7 +151,7 @@ namespace rcm
     private:
       NcVar *psbvar;
       NcVar *tbnd;
-      bool varmask[26];
+      bool varmask[nvarsrf];
       NcVar *u10mvar;
       NcVar *v10mvar;
       NcVar *uvdragvar;
@@ -180,7 +187,7 @@ namespace rcm
       void put_rec(raddata &r);
     private:
       NcVar *psvar;
-      bool varmask[13];
+      bool varmask[nvarrad];
       NcVar *cldvar;
       NcVar *clwpvar;
       NcVar *qrsvar;
@@ -203,7 +210,7 @@ namespace rcm
     private:
       NcDim *trc;
       NcVar *psvar;
-      bool varmask[13];
+      bool varmask[nvarche];
       NcVar *trac3Dvar;
       NcVar *colbvar;
       NcVar *wdlscvar;
@@ -226,7 +233,7 @@ namespace rcm
       void put_rec(subdata &s, t_srf_deriv &d);
     private:
       NcVar *psbvar;
-      bool varmask[15];
+      bool varmask[nvarsub];
       NcVar *u10mvar;
       NcVar *v10mvar;
       NcVar *uvdragvar;
