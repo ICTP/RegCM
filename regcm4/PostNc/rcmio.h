@@ -210,7 +210,7 @@ namespace rcm
 
   class atmodata {
     public:
-      atmodata(header_data &h);
+      atmodata(header_data &h, t_time_interval &t);
       ~atmodata( );
       float *u;
       float *v;
@@ -226,6 +226,8 @@ namespace rcm
       int date0;
       int date1;
       float dt;
+      int nfiles;
+      int nsteps;
       size_t datasize;
       int n3D;
       int n2D;
@@ -234,13 +236,11 @@ namespace rcm
       int nvals;
       char *buffer;
       int rdate;
-      int nfiles;
-      int nsteps;
   };
 
   class raddata {
     public:
-      raddata(header_data &h);
+      raddata(header_data &h, t_time_interval &t);
       ~raddata( );
       float *cld;
       float *clwp;
@@ -258,7 +258,10 @@ namespace rcm
       float *psa;
       int date0;
       int date1;
+      int rdate;
       float dt;
+      int nfiles;
+      int nsteps;
       size_t datasize;
       int n2D;
       int n3D;
@@ -266,14 +269,11 @@ namespace rcm
       size_t size3D;
       int nvals;
       char *buffer;
-      int rdate;
-      int nfiles;
-      int nsteps;
   };
 
   class chedata {
     public:
-      chedata(header_data &h);
+      chedata(header_data &h, t_time_interval &t);
       ~chedata( );
       float *trac3D;
       float *trac2D;
@@ -285,6 +285,7 @@ namespace rcm
       float *psa;
       int date0;
       int date1;
+      int rdate;
       float dt;
       size_t datasize;
       int n2D;
@@ -294,14 +295,13 @@ namespace rcm
       int nvals;
       int ntr;
       char *buffer;
-      int rdate;
       int nfiles;
       int nsteps;
   };
 
   class subdata {
     public:
-      subdata(header_data &h, subdom_data &s);
+      subdata(header_data &h, subdom_data &s, t_time_interval &t);
       ~subdata( );
       float *u10m;
       float *v10m;
@@ -320,20 +320,20 @@ namespace rcm
       float *psb;
       int date0;
       int date1;
+      int rdate;
       float dt;
+      int nfiles;
+      int nsteps;
       size_t datasize;
       int n2D;
       size_t size2D;
       int nvals;
       char *buffer;
-      int rdate;
-      int nfiles;
-      int nsteps;
   };
 
   class srfdata {
     public:
-      srfdata(header_data &h);
+      srfdata(header_data &h, t_time_interval &t);
       ~srfdata( );
       float *u10m;
       float *v10m;
@@ -363,15 +363,15 @@ namespace rcm
       float *ps_min;
       int date0;
       int date1;
+      int rdate;
+      int nfiles;
+      int nsteps;
       float dt;
       size_t datasize;
       int n2D;
       size_t size2D;
       int nvals;
       char *buffer;
-      int rdate;
-      int nfiles;
-      int nsteps;
   };
 
   class rcmdate {

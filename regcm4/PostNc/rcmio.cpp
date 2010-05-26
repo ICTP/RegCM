@@ -368,14 +368,34 @@ bcdata::~bcdata()
   if (buffer) delete [] buffer;
 }
 
-atmodata::atmodata(header_data &h)
+atmodata::atmodata(header_data &h, t_time_interval &t)
 {
+  dt = h.dto;
   date0 = h.idate1;
   date1 = h.idate2;
-  // Calculate number of months (i.e. files) to read
-  nfiles = calcnfiles(date0, date1);
+  rcmdate d1(date0);
   rdate = date0;
-  dt = h.dto;
+  if (t.idate0 < date0)
+  {
+    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
+              << date0 << std::endl;
+  }
+  else if (t.idate0 > date0)
+  {
+    rcmdate d2(t.idate0);
+    // Same month
+    if (d1.idatendh( ) != d2.idatendh( )) rdate = d2.idatendh( )+100;
+    date0 = t.idate0;
+  }
+  if (t.idate1 < date1) date1 = t.idate1;
+  else if (t.idate1 > date1)
+  {
+    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
+              << date1 << std::endl;
+  }
+  nfiles = calcnfiles(date0, date1);
+  nsteps = calcnsteps(date0, date1, (int) dt);
+
   n3D = 6;
   n2D = 5;
   size2D = h.nx*h.ny;
@@ -386,8 +406,8 @@ atmodata::atmodata(header_data &h)
   u = (float *) buffer;
   v = u + size3D;
   omega = v + size3D;
-  t = omega + size3D;
-  qv = t + size3D;
+  this->t = omega + size3D;
+  qv = this->t + size3D;
   qc = qv + size3D;
   psa = qc + size3D;
   tpr = psa + size2D;
@@ -402,14 +422,34 @@ atmodata::~atmodata( )
   delete [] buffer;
 }
 
-raddata::raddata(header_data &h)
+raddata::raddata(header_data &h, t_time_interval &t)
 {
+  dt = h.dtr;
   date0 = h.idate1;
   date1 = h.idate2;
-  // Calculate number of months (i.e. files) to read
-  nfiles = calcnfiles(date0, date1);
+  rcmdate d1(date0);
   rdate = date0;
-  dt = h.dtr;
+  if (t.idate0 < date0)
+  {
+    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
+              << date0 << std::endl;
+  }
+  else if (t.idate0 > date0)
+  {
+    rcmdate d2(t.idate0);
+    // Same month
+    if (d1.idatendh( ) != d2.idatendh( )) rdate = d2.idatendh( )+100;
+    date0 = t.idate0;
+  }
+  if (t.idate1 < date1) date1 = t.idate1;
+  else if (t.idate1 > date1)
+  {
+    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
+              << date1 << std::endl;
+  }
+  nfiles = calcnfiles(date0, date1);
+  nsteps = calcnsteps(date0, date1, (int) dt);
+
   n3D = 4;
   n2D = 10;
   size2D = h.nx*h.ny;
@@ -439,14 +479,34 @@ raddata::~raddata( )
   delete [] buffer;
 }
 
-chedata::chedata(header_data &h)
+chedata::chedata(header_data &h, t_time_interval &t)
 {
+  dt = h.dtc;
   date0 = h.idate1;
   date1 = h.idate2;
-  // Calculate number of months (i.e. files) to read
-  nfiles = calcnfiles(date0, date1);
+  rcmdate d1(date0);
   rdate = date0;
-  dt = h.dtr;
+  if (t.idate0 < date0)
+  {
+    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
+              << date0 << std::endl;
+  }
+  else if (t.idate0 > date0)
+  {
+    rcmdate d2(t.idate0);
+    // Same month
+    if (d1.idatendh( ) != d2.idatendh( )) rdate = d2.idatendh( )+100;
+    date0 = t.idate0;
+  }
+  if (t.idate1 < date1) date1 = t.idate1;
+  else if (t.idate1 > date1)
+  {
+    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
+              << date1 << std::endl;
+  }
+  nfiles = calcnfiles(date0, date1);
+  nsteps = calcnsteps(date0, date1, (int) dt);
+
   ntr = 10;
   n3D = 13;
   n2D = 73;
@@ -471,14 +531,34 @@ chedata::~chedata( )
   delete [] buffer;
 }
 
-srfdata::srfdata(header_data &h)
+srfdata::srfdata(header_data &h, t_time_interval &t)
 {
+  dt = h.dtb;
   date0 = h.idate1;
   date1 = h.idate2;
-  // Calculate number of months (i.e. files) to read
-  nfiles = calcnfiles(date0, date1);
+  rcmdate d1(date0);
   rdate = date0;
-  dt = h.dtb;
+  if (t.idate0 < date0)
+  {
+    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
+              << date0 << std::endl;
+  }
+  else if (t.idate0 > date0)
+  {
+    rcmdate d2(t.idate0);
+    // Same month
+    if (d1.idatendh( ) != d2.idatendh( )) rdate = d2.idatendh( )+100;
+    date0 = t.idate0;
+  }
+  if (t.idate1 < date1) date1 = t.idate1;
+  else if (t.idate1 > date1)
+  {
+    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
+              << date1 << std::endl;
+  }
+  nfiles = calcnfiles(date0, date1);
+  nsteps = calcnsteps(date0, date1, (int) dt);
+
   n2D = 27;
   size2D = h.nx*h.ny;
   nvals = n2D*size2D;
@@ -542,14 +622,34 @@ domain_data::~domain_data( )
   if (hsigm) delete [ ] hsigm;
 }
 
-subdata::subdata(header_data &h, subdom_data &s)
+subdata::subdata(header_data &h, subdom_data &s, t_time_interval &t)
 {
+  dt = h.dtb;
   date0 = h.idate1;
   date1 = h.idate2;
-  // Calculate number of months (i.e. files) to read
-  nfiles = calcnfiles(date0, date1);
+  rcmdate d1(date0);
   rdate = date0;
-  dt = h.dtb;
+  if (t.idate0 < date0)
+  {
+    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
+              << date0 << std::endl;
+  }
+  else if (t.idate0 > date0)
+  {
+    rcmdate d2(t.idate0);
+    // Same month
+    if (d1.idatendh( ) != d2.idatendh( )) rdate = d2.idatendh( )+100;
+    date0 = t.idate0;
+  }
+  if (t.idate1 < date1) date1 = t.idate1;
+  else if (t.idate1 > date1)
+  {
+    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
+              << date1 << std::endl;
+  }
+  nfiles = calcnfiles(date0, date1);
+  nsteps = calcnsteps(date0, date1, (int) dt);
+
   n2D = 16;
   size2D = s.nx*s.ny;
   nvals = n2D*size2D;
@@ -1131,10 +1231,12 @@ int rcmio::atmo_read_tstep(atmodata &a)
     atmf.open(fname, std::ios::binary);
     if (! atmf.good()) return -1;
     storage = new char[readsize];
-    initatm = true;
     atmf.seekg (0, std::ios::end);
     atmsize = atmf.tellg();
-    atmf.seekg (0, std::ios::beg);
+    rcmdate df(a.rdate);
+    int ss = df.datediffh(a.date0)/a.dt;
+    atmf.seekg (ss*readsize, std::ios::beg);
+    initatm = true;
   }
   size_t pos = atmf.tellg( );
   if (pos+readsize > atmsize)
@@ -1218,10 +1320,12 @@ int rcmio::srf_read_tstep(srfdata &s)
     srff.open(fname, std::ios::binary);
     if (! srff.good()) return -1;
     storage = new char[readsize];
-    initsrf = true;
     srff.seekg (0, std::ios::end);
     srfsize = srff.tellg();
-    srff.seekg (0, std::ios::beg);
+    rcmdate df(s.rdate);
+    int ss = df.datediffh(s.date0)/s.dt;
+    srff.seekg (ss*readsize, std::ios::beg);
+    initsrf = true;
   }
   size_t pos = srff.tellg( );
   if (pos+readsize > srfsize)
@@ -1297,10 +1401,12 @@ int rcmio::sub_read_tstep(subdata &u)
     subf.open(fname, std::ios::binary);
     if (! subf.good()) return -1;
     storage = new char[readsize];
-    initsub = true;
     subf.seekg (0, std::ios::end);
     subsize = subf.tellg();
-    subf.seekg (0, std::ios::beg);
+    rcmdate df(u.rdate);
+    int ss = df.datediffh(u.date0)/u.dt;
+    subf.seekg (ss*readsize, std::ios::beg);
+    initsub = true;
   }
   size_t pos = subf.tellg( );
   if (pos+readsize > subsize)
@@ -1377,10 +1483,12 @@ int rcmio::rad_read_tstep(raddata &r)
     radf.open(fname, std::ios::binary);
     if (! radf.good()) return -1;
     storage = new char[readsize];
-    initrad = true;
     radf.seekg (0, std::ios::end);
     radsize = radf.tellg();
-    radf.seekg (0, std::ios::beg);
+    rcmdate df(r.rdate);
+    int ss = df.datediffh(r.date0)/r.dt;
+    radf.seekg (ss*readsize, std::ios::beg);
+    initrad = true;
   }
   size_t pos = radf.tellg( );
   if (pos+readsize > radsize)
@@ -1463,10 +1571,12 @@ int rcmio::che_read_tstep(chedata &c)
     chef.open(fname, std::ios::binary);
     if (! chef.good()) return -1;
     storage = new char[readsize];
-    initche = true;
     chef.seekg (0, std::ios::end);
     chesize = chef.tellg();
-    chef.seekg (0, std::ios::beg);
+    rcmdate df(c.rdate);
+    int ss = df.datediffh(c.date0)/c.dt;
+    chef.seekg (ss*readsize, std::ios::beg);
+    initche = true;
   }
   size_t pos = chef.tellg( );
   if (pos+readsize > chesize)

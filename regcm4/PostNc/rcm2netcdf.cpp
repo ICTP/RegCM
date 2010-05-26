@@ -64,9 +64,13 @@ void help(char *pname)
       << std::endl
   << "   --grads                   : Produce a CTL file for GrADS"
       << std::endl
+  << "   --list/-l                 : Output list of names for -v option"
+      << std::endl
   << "   --var/-v[all|name[,name]] : Include only some vars (all default)"
       << std::endl
-  << "   --list/-l                 : Output list of names for -v option"
+  << "   --tstart/-t YYYY[MM[DD[HH]]] : Start processing at this date"
+      << std::endl
+  << "   --tend/-e YYYY[MM[DD[HH]]]   : Stop processing at this date"
       << std::endl
   << "   --onlyatm/-a              : Process ATM file (default do all)"
       << std::endl
@@ -78,10 +82,6 @@ void help(char *pname)
       << std::endl
   << "   --onlyche/-c              : Process CHE file (default do all)"
       << std::endl
-  << "   --startstep/-t [number]   : Start at timestep number 'number'"
-      << std::endl
-  << "   --nsteps/-n [number]      : Process just 'number' timesteps"
-      << std::endl
   << "   --help/-h                 : Print this help"
       << std::endl
   << "   --version/-V              : Print versioning information"
@@ -92,8 +92,9 @@ void help(char *pname)
 int main(int argc, char *argv[])
 {
   bool ldirect, lbigend, lgra;
-  int iseq, ilittle, istart, igra, nsteps;
+  int iseq, ilittle, igra;
   bool onlyatm, onlysrf, onlysub, onlyrad, onlyche;
+  int date1 = -1, date2= -1;
   std::string vnames = "all";
   ldirect = true;
   lbigend = true;
@@ -105,9 +106,7 @@ int main(int argc, char *argv[])
   onlyche = false;
   iseq = 0;
   ilittle = 0;
-  istart = 0;
   igra = 0;
-  nsteps = -1;
 
   char *pname = basename(argv[0]);
   while (1)
@@ -123,14 +122,14 @@ int main(int argc, char *argv[])
       { "onlyche", no_argument, 0, 'c'},
       { "list", no_argument, 0, 'l'},
       { "var", required_argument, 0, 'v'},
-      { "startstep", required_argument, 0, 't'},
-      { "nsteps", required_argument, 0, 'n'},
+      { "tstart", required_argument, 0, 't'},
+      { "tend", required_argument, 0, 'e'},
       { "help", no_argument, 0, 'h'},
       { "version", no_argument, 0, 'V'},
       { 0, 0, 0, 0 }
     };
     int optind, c = 0;
-    c = getopt_long (argc, argv, "asruct:n:hVlv:",
+    c = getopt_long (argc, argv, "asruct:e:hVlv:",
                      long_options, &optind);
     if (c == -1) break;
     switch (c)
@@ -269,10 +268,10 @@ int main(int argc, char *argv[])
         onlyche = true;
         break;
       case 't':
-        sscanf(optarg, "%d", &istart);
+        sscanf(optarg, "%d", &date1);
         break;
-      case 'n':
-        sscanf(optarg, "%d", &nsteps);
+      case 'e':
+        sscanf(optarg, "%d", &date2);
         break;
       case '?':
         break;
@@ -313,21 +312,34 @@ int main(int argc, char *argv[])
     rcmout.read_header(outhead);
 
     char fname[PATH_MAX];
+    if (date1 < 1) date1 = inpf.valuei("date1");
+    if (date2 < 1) date2 = inpf.valuei("date2");
+    // Year only
+    if (date1 < 10000) date1 = date1*1000000+10100;
+    if (date2 < 10000) date2 = date2*1000000+10100;
+    // Year+month only
+    if (date1 < 1000000) date1 = date1*10000+100;
+    if (date2 < 1000000) date2 = date2*10000+100;
+    // Year+month+day only
+    if (date1 < 100000000) date1 = date1*100;
+    if (date2 < 100000000) date2 = date2*100;
+
+    t_time_interval t;
+    t.idate0 = date1;
+    t.idate1 = date2;
 
     if (rcmout.has_atm && onlyatm)
     {
-      int recnum = 1;
-      int astart = istart - 1;
       std::cout << "Found Atmospheric data ATM and processing";
-      atmodata a(outhead);
+      atmodata a(outhead, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "ATM_%s_%d.nc", experiment, outhead.idate1);
+      sprintf(fname, "ATM_%s_%d.nc", experiment, a.rdate);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "ATM_%s_%d.ctl", experiment, outhead.idate1);
+        sprintf(ctlname, "ATM_%s_%d.ctl", experiment, a.rdate);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -338,19 +350,10 @@ int main(int argc, char *argv[])
       // Add Atmospheric variables
       while ((rcmout.atmo_read_tstep(a)) == 0)
       {
-        if (nsteps > 0)
-          if (recnum > nsteps) break;
-        if (astart > 0)
-        {
-          astart --;
-          atmnc.increment_time();
-          continue;
-        }
         std::cout << ".";
         std::cout.flush();
         c.do_calc(a, d);
         atmnc.put_rec(a, d);
-        recnum ++;
       }
       if (lgra)
         outnc.ctl.finalize( );
@@ -359,18 +362,16 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_srf && onlysrf)
     {
-      int recnum = 1;
-      int sstart = istart - 1;
       std::cout << "Found Surface data SRF and processing";
-      srfdata s(outhead);
+      srfdata s(outhead, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "SRF_%s_%d.nc", experiment, outhead.idate1);
+      sprintf(fname, "SRF_%s_%d.nc", experiment, s.rdate);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "SRF_%s_%d.ctl", experiment, outhead.idate1);
+        sprintf(ctlname, "SRF_%s_%d.ctl", experiment, s.rdate);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -381,19 +382,10 @@ int main(int argc, char *argv[])
       t_srf_deriv d;
       while ((rcmout.srf_read_tstep(s)) == 0)
       {
-        if (nsteps > 0)
-          if (recnum > nsteps) break;
-        if (sstart > 0)
-        {
-          sstart --;
-          srfnc.increment_time();
-          continue;
-        }
         std::cout << ".";
         std::cout.flush();
         c.do_calc(s, d);
         srfnc.put_rec(s, d);
-        recnum ++;
       }
       if (lgra)
         outnc.ctl.finalize( );
@@ -402,18 +394,16 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_rad && onlyrad)
     {
-      int recnum = 1;
-      int rstart = istart - 1;
       std::cout << "Found Radiation data RAD and processing";
-      raddata r(outhead);
+      raddata r(outhead, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "RAD_%s_%d.nc", experiment, outhead.idate1);
+      sprintf(fname, "RAD_%s_%d.nc", experiment, r.rdate);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "RAD_%s_%d.ctl", experiment, outhead.idate1);
+        sprintf(ctlname, "RAD_%s_%d.ctl", experiment, r.rdate);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -422,18 +412,9 @@ int main(int argc, char *argv[])
       // Add Radiation variables
       while ((rcmout.rad_read_tstep(r)) == 0)
       {
-        if (nsteps > 0)
-          if (recnum > nsteps) break;
-        if (rstart > 0)
-        {
-          rstart --;
-          radnc.increment_time();
-          continue;
-        }
         std::cout << ".";
         std::cout.flush();
         radnc.put_rec(r);
-        recnum ++;
       }
       if (lgra)
         outnc.ctl.finalize( );
@@ -442,18 +423,16 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_che && onlyche)
     {
-      int recnum = 1;
-      int cstart = istart - 1;
       std::cout << "Found Chemical data CHE and processing";
-      chedata c(outhead);
+      chedata c(outhead, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "CHE_%s_%d.nc", experiment, outhead.idate1);
+      sprintf(fname, "CHE_%s_%d.nc", experiment, c.rdate);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "CHE_%s_%d.ctl", experiment, outhead.idate1);
+        sprintf(ctlname, "CHE_%s_%d.ctl", experiment, c.rdate);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -462,18 +441,9 @@ int main(int argc, char *argv[])
       // Add Chemical tracers variables
       while ((rcmout.che_read_tstep(c)) == 0)
       {
-        if (nsteps > 0)
-          if (recnum > nsteps) break;
-        if (cstart > 0)
-        {
-          cstart --;
-          chenc.increment_time();
-          continue;
-        }
         std::cout << ".";
         std::cout.flush();
         chenc.put_rec(c);
-        recnum ++;
       }
       if (lgra)
         outnc.ctl.finalize( );
@@ -482,22 +452,20 @@ int main(int argc, char *argv[])
 
     if (rcmout.has_sub && onlysub)
     {
-      int recnum = 1;
-      int ustart = istart - 1;
       std::cout << "Found Surface Subgrid data SUB and processing";
       subdom_data subdom(inpf);
       sprintf(fname, "%s%s%s%03d.INFO", inpf.valuec("dirter"),
               separator, inpf.valuec("domname"), inpf.valuei("nsg"));
       rcmout.read_subdom(outhead, subdom, fname);
-      subdata s(outhead, subdom);
+      subdata s(outhead, subdom, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "SUB_%s_%d.nc", experiment, outhead.idate1);
+      sprintf(fname, "SUB_%s_%d.nc", experiment, s.rdate);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "SUB_%s_%d.ctl", experiment, outhead.idate1);
+        sprintf(ctlname, "SUB_%s_%d.ctl", experiment, s.rdate);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -508,19 +476,10 @@ int main(int argc, char *argv[])
       // Add Subgrid variables
       while ((rcmout.sub_read_tstep(s)) == 0)
       {
-        if (nsteps > 0)
-          if (recnum > nsteps) break;
-        if (ustart > 0)
-        {
-          ustart --;
-          subnc.increment_time();
-          continue;
-        }
         std::cout << ".";
         std::cout.flush();
         c.do_calc(s, d);
         subnc.put_rec(s, d);
-        recnum ++;
       }
       if (lgra)
         outnc.ctl.finalize( );
