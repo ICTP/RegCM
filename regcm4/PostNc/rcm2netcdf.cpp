@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
                   << "  v10:  10m wind V component (southerly)" << std::endl
                   << "  udg:  Wind drag" << std::endl
                   << "  tg :  Ground temperature" << std::endl
-                  << "  tl :  Foliage temperature" << std::endl
+                  << "  tfl:  Foliage temperature" << std::endl
                   << "  t2 :  2m air temperature" << std::endl
                   << "  r2 :  2m air relative humidity" << std::endl
                   << "  q2 :  2m air water vapor mixing ratio" << std::endl
