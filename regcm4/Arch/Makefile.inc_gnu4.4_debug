@@ -59,7 +59,7 @@ F90 = gfortran
 CXX = g++
 
 # Compilation flags for C++
-CXXFLAGS = -O0 -g -Wall -pedantic -Wno-long-long
+CXXFLAGS = -O0 -g -Wall -pedantic -Wno-long-long -Wno-write-strings
 
 # Set the MPI Fortran 90 compiler here
 MPIF90 = !MPIF90
