@@ -126,12 +126,12 @@ rcmNc::rcmNc(regcmout &fnc, header_data &outhead, bool full)
   iyvar->add_att("long_name", "y-coordinate in Cartesian system");
   iyvar->add_att("standard_name", "projection_y_coordinate");
   iyvar->add_att("axis", "Y");
-  iyvar->add_att("units", "m");
+  iyvar->add_att("units", "km");
   NcVar *jxvar = f->add_var("jx", ncFloat, jx);
   jxvar->add_att("long_name", "x-coordinate in Cartesian system");
   jxvar->add_att("standard_name", "projection_x_coordinate");
   jxvar->add_att("axis", "X");
-  jxvar->add_att("units", "m");
+  jxvar->add_att("units", "km");
   NcVar *sigfvar = f->add_var("level", ncFloat, kz);
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
@@ -1691,12 +1691,12 @@ rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s)
   iyvar->add_att("long_name", "y-coordinate in Cartesian system");
   iyvar->add_att("standard_name", "projection_y_coordinate");
   iyvar->add_att("axis", "Y");
-  iyvar->add_att("units", "m");
+  iyvar->add_att("units", "km");
   NcVar *jxvar = f->add_var("jx", ncFloat, jx);
   jxvar->add_att("long_name", "x-coordinate in Cartesian system");
   jxvar->add_att("standard_name", "projection_x_coordinate");
   jxvar->add_att("axis", "X");
-  jxvar->add_att("units", "m");
+  jxvar->add_att("units", "km");
   NcVar *xlatvar = f->add_var("xlatsub", ncFloat, iys, jxs);
   xlatvar->add_att("standard_name", "latitude");
   xlatvar->add_att("long_name", "Latitude");
@@ -2088,12 +2088,12 @@ void domNc::write(domain_data &d)
   iyvar->add_att("long_name", "y-coordinate in Cartesian system");
   iyvar->add_att("standard_name", "projection_y_coordinate");
   iyvar->add_att("axis", "Y");
-  iyvar->add_att("units", "m");
+  iyvar->add_att("units", "km");
   NcVar *jxvar = f->add_var("jx", ncFloat, jx);
   jxvar->add_att("long_name", "x-coordinate in Cartesian system");
   jxvar->add_att("standard_name", "projection_x_coordinate");
   jxvar->add_att("axis", "X");
-  jxvar->add_att("units", "m");
+  jxvar->add_att("units", "km");
   NcVar *xlatvar = f->add_var("xlat", ncFloat, iy, jx);
   xlatvar->add_att("standard_name", "latitude");
   xlatvar->add_att("long_name", "Latitude");
@@ -2190,15 +2190,16 @@ void domNc::write(domain_data &d)
   }
 
   float *tmp = new float[d.nx];
-  tmp[0] = -(((float) d.nx-1)/2.0f) * d.ds;
+  float incr = d.ds*0.001f;
+  tmp[0] = -(((float) d.nx-1)/2.0f) * incr;
   for (unsigned int i = 1; i < d.nx; i ++)
-    tmp[i] = tmp[i-1] + d.ds;
+    tmp[i] = tmp[i-1] + incr;
   iyvar->put(tmp, d.nx);
   delete [] tmp;
   tmp = new float[d.ny];
-  tmp[0] = -(((float) d.ny-1)/2.0f) * d.ds;
+  tmp[0] = -(((float) d.ny-1)/2.0f) * incr;
   for (unsigned int i = 1; i < d.ny; i ++)
-    tmp[i] = tmp[i-1] + d.ds;
+    tmp[i] = tmp[i-1] + incr;
   jxvar->put(tmp, d.ny);
   delete [] tmp;
 
@@ -2300,12 +2301,12 @@ bcNc::bcNc(regcmout &fnc, domain_data &d)
   iyvar->add_att("long_name", "y-coordinate in Cartesian system");
   iyvar->add_att("standard_name", "projection_y_coordinate");
   iyvar->add_att("axis", "Y");
-  iyvar->add_att("units", "m");
+  iyvar->add_att("units", "km");
   NcVar *jxvar = f->add_var("jx", ncFloat, jx);
   jxvar->add_att("long_name", "x-coordinate in Cartesian system");
   jxvar->add_att("standard_name", "projection_x_coordinate");
   jxvar->add_att("axis", "X");
-  jxvar->add_att("units", "m");
+  jxvar->add_att("units", "km");
   NcVar *sigfvar = f->add_var("level", ncFloat, kz);
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
@@ -2423,15 +2424,16 @@ bcNc::bcNc(regcmout &fnc, domain_data &d)
   }
   delete [] tmp;
   tmp = new float[d.nx];
-  tmp[0] = -(((float) d.nx-1)/2.0f) * d.ds;
+  float incr = d.ds*0.001f;
+  tmp[0] = -(((float) d.nx-1)/2.0f) * incr;
   for (unsigned int i = 1; i < d.nx; i ++)
-    tmp[i] = tmp[i-1] + d.ds;
+    tmp[i] = tmp[i-1] + incr;
   iyvar->put(tmp, d.nx);
   delete [] tmp;
   tmp = new float[d.ny];
-  tmp[0] = -(((float) d.ny-1)/2.0f) * d.ds;
+  tmp[0] = -(((float) d.ny-1)/2.0f) * incr;
   for (unsigned int i = 1; i < d.ny; i ++)
-    tmp[i] = tmp[i-1] + d.ds;
+    tmp[i] = tmp[i-1] + incr;
   jxvar->put(tmp, d.ny);
   delete [] tmp;
   ptopvar->put(&d.ptop, 1);
