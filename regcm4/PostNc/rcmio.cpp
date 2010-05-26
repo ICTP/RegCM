@@ -34,11 +34,15 @@
 
 using namespace rcm;
 
+static const int mlen[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 static bool fexist(char *fname);
 static void reduce(float *a, float *b, int ni, int nj, int nsg);
 static int calcnfiles(int date0, int date1);
 static int calcnsteps(int date0, int date1, int dt);
 static int nextmonth(int rdate);
+static bool isleap(int year);
+static int mdays(int mon, int year);
+static int idatei(int y, int m, int d, int h);
 
 bool fexist(char *fname)
 {
@@ -578,6 +582,8 @@ rcmio::rcmio(char *directory, bool lbig, bool ldirect)
   has_sub = false;
   initbc  = false;
   storage = 0;
+  idate_start = 0;
+  idate_end = 0;
 }
 
 subdom_data::subdom_data(rcminp &in)
@@ -1556,8 +1562,7 @@ int rcmio::bc_read_tstep(bcdata &b)
   {
     // Open BC file
     char fname[PATH_MAX];
-    sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, 
-            b.rdate);
+    sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, b.rdate);
     bcf.open(fname, std::ios::binary);
     if (! bcf.good()) return -1;
 
@@ -1708,6 +1713,47 @@ rcmdate::rcmdate(int date)
   baseh = base;
   ref.tm_hour = baseh;
   tdate = mktime(&ref);
+}
+
+static bool isleap(int year)
+{
+  if((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+    return true;
+  else
+    return false;
+}
+
+static int mdays(int year, int mon)
+{
+  if (mon != 2) return mlen[mon];
+  return (mlen[2] + (isleap(year) ? 1 : 0));
+}
+
+static int idatei(int y, int m, int d, int h)
+{
+  return y*1000000+m*10000+d*100+h;
+}
+
+int rcmdate::idate( )
+{
+  return idatei(basey, basem, based, baseh);
+}
+
+int rcmdate::hour_adder(int nh)
+{
+  baseh = baseh+nh;
+  if (baseh < 24) return idatei(basey, basem, based, baseh);
+  based = based + 1;
+  baseh = baseh - 24;
+  int nmd = mdays(basey, basem);
+  if (based < nmd)
+    return idatei(basey, basem, based, baseh);
+  based = based-nmd;
+  basem = basem + 1;
+  if (basem < 12) return idatei(basey, basem, based, baseh);
+  basem = basem - 12;
+  basey = basey + 1;
+  return idatei(basey, basem, based, baseh);
 }
 
 unsigned long rcmdate::datediffh(int date1)

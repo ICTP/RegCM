@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
   iseq = 0;
   ilittle = 0;
   igrads = 0;
+  int date1 = -1, date2= -1;
 
   char *pname = basename(argv[0]);
   while (1)
@@ -96,6 +97,8 @@ int main(int argc, char *argv[])
       { "help", no_argument, 0, 'h'},
       { "list", no_argument, 0, 'l'},
       { "var", required_argument, 0, 'v'},
+      { "tstart", required_argument, 0, 't'},
+      { "tend", required_argument, 0, 'e'},
       { "version", no_argument, 0, 'V'},
       { 0, 0, 0, 0 }
     };
@@ -125,6 +128,12 @@ int main(int argc, char *argv[])
         return 0;
       case 'v':
         vnames = optarg;
+        break;
+      case 't':
+        sscanf(optarg, "%d", &date1);
+        break;
+      case 'e':
+        sscanf(optarg, "%d", &date2);
         break;
       case 'h':
         help(pname);
@@ -161,8 +170,13 @@ int main(int argc, char *argv[])
  
     rcminp inpf(regcmin);
     domain_data d(inpf);
+    if (date1 < 1) date1 = inpf.valuei("globidate1");
+    if (date2 < 1) date2 = inpf.valuei("globidate2");
+
     char *datadir = strdup(inpf.valuec("dirglob"));
     rcmio rcmout(datadir, lbigend, ldirect);
+    rcmout.idate_start = date1;
+    rcmout.idate_end   = date2;
 
     char *experiment = strdup(inpf.valuec("domname"));
     char dominfo[PATH_MAX];

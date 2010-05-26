@@ -374,6 +374,8 @@ namespace rcm
       rcmdate(int date);
       unsigned long datediffh(int date1);
       unsigned long unixtime( );
+      int hour_adder(int hours);
+      int idate( );
       int basey;
       int basem;
       int based;
@@ -401,6 +403,8 @@ namespace rcm
       bool has_srf;
       bool has_rad;
       bool has_sub;
+      int idate_start;
+      int idate_end;
     private:
       int find_nextstep(std::ifstream &f, size_t recsize, size_t end);
       inline void swap2(char *p)
@@ -424,12 +428,12 @@ namespace rcm
         unsigned long long *x;
         x = (unsigned long long *) p;
         *x =  (*x>>56) |
-             ((*x<<40) & 0x00FF000000000000) |
-             ((*x<<24) & 0x0000FF0000000000) |
-             ((*x<<8)  & 0x000000FF00000000) |
-             ((*x>>8)  & 0x00000000FF000000) |
-             ((*x>>24) & 0x0000000000FF0000) |
-             ((*x>>40) & 0x000000000000FF00) |
+             ((*x<<40) & 0x00FF000000000000LL) |
+             ((*x<<24) & 0x0000FF0000000000LL) |
+             ((*x<<8)  & 0x000000FF00000000LL) |
+             ((*x>>8)  & 0x00000000FF000000LL) |
+             ((*x>>24) & 0x0000000000FF0000LL) |
+             ((*x>>40) & 0x000000000000FF00LL) |
               (*x<<56);
       }
       inline int intvalfrombuf(char *p)
