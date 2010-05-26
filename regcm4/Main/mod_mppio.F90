@@ -79,7 +79,8 @@
 
       real(8) , allocatable , dimension(:,:,:) :: aerasp_io ,           &
                                 & aerext_io , aerssa_io
-      real(8) , allocatable , dimension(:,:) :: aersrrf_io , aertarf_io
+      real(8) , allocatable , dimension(:,:) :: aersrrf_io , aertarf_io, &
+                              & aertalwrf_io, aersrlwrf_io
       real(8) , allocatable , dimension(:,:,:) :: cemtrac_io ,          &
                                 & cemtr_io , wxaq_io , wxsg_io
       real(8) , allocatable , dimension(:,:) :: dustsotex_io
@@ -218,6 +219,8 @@
       allocate(aerssa_io(iym1,kz,jxm1))
       allocate(aersrrf_io(iym1,jxm1))
       allocate(aertarf_io(iym1,jxm1))
+      allocate(aertalwrf_io(iym1,jxm1))
+      allocate(aersrlwrf_io(iym1,jxm1))
       allocate(cemtrac_io(iy,jx,ntr))
       allocate(cemtr_io(iy,jx,ntr))
       allocate(wxaq_io(iy,jx,ntr))
@@ -313,8 +316,8 @@
       allocate(rad_0(iym2,nrad3d*kz+nrad2d,jx))
       allocate(sub0(iym2,nnsg,numsub,jxp))
       allocate(sub_0(iym2,nnsg,numsub,jx))
-      allocate(chem0(iy,ntr*kz+kz*3+ntr*7+3,jxp))
-      allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+3,jx))
+      allocate(chem0(iy,ntr*kz+kz*3+ntr*7+5,jxp))
+      allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+5,jx))
 #ifdef CLM
       allocate(spaceclm(iym1,jxm1,9))
       sols2d_io   => spaceclm(:,:,1)

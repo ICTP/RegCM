@@ -864,7 +864,9 @@
 !
  
             do i = 1 , iym1
-              chix1 = chia(i,k,1,itr)/psa(i,1)
+!  FAB force to zero inflow conditions
+!chix1 = chia(i,k,1,itr)/psa(i,1)
+              chix1 = 0. 
               chix2 = chia(i,k,2,itr)/psa(i,2)
               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
               if ( uavg.ge.0. ) then
@@ -878,7 +880,8 @@
 !.....east  boundary:
 !
             do i = 1 , iym1
-              chix1 = chia(i,k,jxm1,itr)/psa(i,jxm1)
+!              chix1 = chia(i,k,jxm1,itr)/psa(i,jxm1)
+              chix1 = 0.
               chix2 = chia(i,k,jxm2,itr)/psa(i,jxm2)
               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
               if ( uavg.lt.0. ) then
@@ -892,7 +895,8 @@
 !.....south boundary:
 !
             do j = 2 , jxm2
-              chix1 = chia(1,k,j,itr)/psa(1,j)
+!              chix1 = chia(1,k,j,itr)/psa(1,j)
+              chix1 = 0.
               chix2 = chia(2,k,j,itr)/psa(2,j)
               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
               if ( vavg.ge.0. ) then
@@ -906,7 +910,8 @@
 !.....north boundary:
 !
             do j = 2 , jxm2
-              chix1 = chia(iym1,k,j,itr)/psa(iym1,j)
+!              chix1 = chia(iym1,k,j,itr)/psa(iym1,j)
+              chix1 = 0.
               chix2 = chia(iym2,k,j,itr)/psa(iym2,j)
               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
               if ( vavg.lt.0. ) then

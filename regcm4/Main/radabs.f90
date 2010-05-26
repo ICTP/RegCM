@@ -666,6 +666,11 @@
           pinpl(i,3) = 0.5*(p1+pnm(i,k2))
           pinpl(i,4) = 0.5*(p2+pnm(i,k2+1))
         end do
+
+!        FAB AER SAVE uinpl  for aerosl LW forcing calculation
+          xuinpl (:,k2,:,jslc) =  uinpl(:,:)
+
+
         do kn = 1 , 4
           do i = 1 , iym1
             u(i) = uinpl(i,kn)*dabs(plh2o(i,k2)-plh2o(i,k2+1))

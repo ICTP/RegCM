@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine sfflux(ilg,il1,il2,jloop,luc,ivegcov,vegfrac,isoiltex, &
-                      & z0,soilw,surfwd,roarow,trsize,rsfrow)
+                      & ustarnd, z0,soilw,surfwd,roarow,trsize,rsfrow)
  
 !  **********************************************************
 !  *  dust emission scheme                             ******
@@ -38,18 +38,19 @@
 !
       integer :: il1 , il2 , ilg , jloop , luc
       integer , dimension(ilg) :: isoiltex , ivegcov
-      real(8) , dimension(ilg) :: roarow , soilw , surfwd , vegfrac , z0
+      real(8) , dimension(ilg) :: roarow , soilw , surfwd , vegfrac , &
+                       &        z0,ustarnd
       real(8) , dimension(ilg,nbin) :: rsfrow
       real(8) , dimension(nbin,2) :: trsize
       intent (in) il1 , il2 , isoiltex , ivegcov , jloop , roarow ,     &
-                & soilw , surfwd , vegfrac , z0
+                & soilw , surfwd , vegfrac , z0, ustarnd
       intent (out) rsfrow
 !
 ! Local variables
 !
       integer :: i , ieff , ieffmax , n , ns
       real(8) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
-                                & xsurfwd , xvegfrac , xz0
+                                & xsurfwd , xvegfrac , xz0, xustarnd
       real(8) , dimension(ilg,20) :: xfland
       integer , dimension(ilg) :: xisoiltex
       real(8) , dimension(ilg,nbin) :: xrsfrow
@@ -67,6 +68,7 @@
       xroarow = 0.
       xsrel2d = 0.
       xsand2row = 0.
+      xustarnd=0.
       xfland = 0.0
       xrsfrow = 0.
  
@@ -82,11 +84,9 @@
           xsurfwd(ieff) = surfwd(i)
           xz0(ieff) = z0(i)
           xroarow(ieff) = roarow(i)
- 
+          xustarnd(ieff) = ustarnd(i) 
 !         soil parameters
 !         ok if one texture per grid cell
-!         (remember srel2d,4 =1 because of memory problem for big
-!         domains)
           do ns = 1 , nsoil
             xsrel2d(ieff,ns,xisoiltex(ieff)) = srel2d(i,jloop,ns)
           end do
@@ -102,11 +102,14 @@
       end do
  
       ieffmax = ieff
- 
+!      if (ieffmax>0. ) print*,&
+!         & maxval(xustarnd)
+
       if ( ieffmax.gt.0 ) call dust_module(1,ieffmax,ilg,trsize,xsoilw, &
          & xvegfrac,xsurfwd,xfland,xclayrow,xsand2row,xroarow,xz0,      &
-         & xsrel2d,xrsfrow,luc)
- 
+         & xsrel2d,xustarnd,xrsfrow,luc)
+        
+!        if (ieffmax>0. ) print*,'FLUX',maxval(xrsfrow)
 !     put back the dust flux on the right grid
  
       ieff = 0
@@ -124,7 +127,7 @@
       end subroutine sfflux
 ! 
       subroutine dust_module(il1,il2,ilg,trsize,soilw,vegfrac,surfwd,   &
-                           & fland,clayrow,sand2row,roarow,z0,srel,     &
+                           & fland,clayrow,sand2row,roarow,z0,srel,ustarnd,     &
                            & rsfrow,luc)
  
       use mod_dynparam
@@ -138,13 +141,13 @@
 !
       integer :: il1 , il2 , ilg , luc
       real(8) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
-                                & vegfrac , z0
+                                & vegfrac , z0, ustarnd
       real(8) , dimension(ilg,20) :: fland
       real(8) , dimension(ilg,nbin) :: rsfrow
       real(8) , dimension(ilg,nats) :: sand2row
       real(8) , dimension(ilg,nsoil,nats) :: srel
       real(8) , dimension(nbin,2) :: trsize
-      intent (in) clayrow , soilw , surfwd , z0
+      intent (in) clayrow , soilw , surfwd , z0,ustarnd
 !
 ! Local variables
 !
@@ -158,7 +161,7 @@
       data umin/15./
       data xz/0.25/ , br/202.0/ , ym/0.16/ , sigr/1.45/
       data z0s/3.E-3/ , x/10./
- 
+
       do i = il1 , il2
  
         srl(i) = z0(i)*100.0
@@ -174,18 +177,15 @@
             alamda(i) = xz*(log(1.0-vegfrac(i)))*(-1.0)
             arc1 = sigr*ym*alamda(i)
             arc2 = br*ym*alamda(i)
- 
- 
- 
             if ( arc1.le.1.0 .and. arc2.le.1.0 ) rc(i)                  &
                & = (sqrt(1.0-arc1)*sqrt(1.0+arc2))
           end if
  
         else if ( jfs.eq.1 ) then
- 
+! Marticorena et al., 1997: correction factor for non erodible elements
+!  
           rc(i) = 1 - (dlog(0.5E-2/z0s)/(dlog(0.35*(x/z0s)**0.8)))
  
-        else
         end if
  
 !       *************************************************************
@@ -210,54 +210,16 @@
  
           cly1 = clayrow(i)
           cly2 = cly1*cly1
- 
- 
           wprim(i) = 0.0014*cly2 + 0.17*cly1
- 
-!         print*,'-----------',wprim(i),clayrow(i)
-!         if (isoiltex(i).eq.1) then
-!         wprim(i) = 1.
-!         end if
- 
-!         if ((isoiltex(i).eq.2).or.(isoiltex(i).eq.3)) then
-!         wprim(i) = 1.84
-!         end if
- 
-!         if ((isoiltex(i).eq.4).or.(isoiltex(i).eq.5)
-!         &                          .or.(isoiltex(i).eq.6)) then
-!         wprim(i) = 2.5
-!         end if
- 
-!         if (isoiltex(i).eq.7) then
-!         wprim(i) = 3.5
-!         end if
- 
-!         if ((isoiltex(i).eq.8).or.(isoiltex(i).eq.9)) then
-!         wprim(i) = 6.8
-!         end if
- 
-!         if (isoiltex(i).eq.10) then
-!         wprim(i) = 10.
-!         end if
- 
-!         if (isoiltex(i).eq.11) then
-!         wprim(i) = 10.5
-!         end if
- 
-!         if (isoiltex(i).eq.12) then
-!         wprim(i) = 11.5
-!         end if
- 
-          tempd = dmax1(0.00001D0,soilw(i)*100.0-wprim(i))
- 
           if ( soilw(i).lt.wprim(i) ) then
             hc(i) = sqrt(1.0+1.21*tempd**0.68)
           else
             hc(i) = 1.0
           end if
  
-!         print*,'hc= ', i,hc(i),hc1(i)
+! no soil humidity correction facor if jsoilm > 1
         else
+          hc(i)=1.0
         end if
  
 ! *****************************************************************
@@ -273,7 +235,9 @@
 !       ***** *     no. d6, p6203-6209, 1998                           
 !       *****
 ! *******************************************************************
-        ustarns = (vonkar*100.*surfwd(i))/(log(1000./srl(i)))
+!        ustarns = (vonkar*100.*surfwd(i))/(log(1000./srl(i)))
+
+        ustarns = ustarnd(i)*100 !cm.s-1
         utmin = (umin/(100.*vonkar*rc(i)))*log(1000./srl(i))
  
 ! *******************************************************************
@@ -501,9 +465,9 @@
                 aeffect = (1-f)*(1-vegfrac(k))
                 beffect = 0.01*fland(k,i)*sand2row(k,i)
  
-                fsoil(k) = srel(k,j,i)*fdp1*fdp2*aeffect*beffect
- 
-!               fsoil(k)=srel(k,j,i)*fdp1*fdp2*(1-f)*(1-vegfrac(k))
+!                fsoil(k) = srel(k,j,i)*fdp1*fdp2*aeffect*beffect
+! FAB 
+                fsoil(k) = srel(k,j,i)*fdp1*fdp2 
  
 !               size-distributed kinetic energy flux
                 dec = fsoil(k)*beta
@@ -543,7 +507,7 @@
           end do
         end do
       end do
- 
+
       totv1 = 0.0
       totv2 = 0.0
       totv3 = 0.0
@@ -567,8 +531,10 @@
         totv2 = totv2 + frac2(n)
         totv3 = totv3 + frac3(n)
       end do
+
+
  
-      do n = 1 , isize
+       do n = 1 , isize
         frac1(n) = frac1(n)/totv1
         frac2(n) = frac2(n)/totv2
         frac3(n) = frac3(n)/totv3
@@ -576,7 +542,7 @@
         if ( frac2(n).lt.1.E-9 ) frac2(n) = 0.0
         if ( frac3(n).lt.1.E-9 ) frac3(n) = 0.0
       end do
- 
+
       do n = 1 , isize
         do i = il1 , il2
  
@@ -586,11 +552,14 @@
  
 !         and in tranport bins (nbin)
           rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
+
+          
           do k = 1 , nbin
             if ( rwi.ge.trsize(k,1) .and. rwi.lt.trsize(k,2) )          &
                & rsfrow(i,k) = rsfrow(i,k) + rsfrowsub(i,n)
           end do
         end do
       end do
+
  
       end subroutine emission

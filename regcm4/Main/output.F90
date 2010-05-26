@@ -384,16 +384,19 @@
             do i = 1 , iym1
               chem0(i,(ntr+3)*kz+ntr*7+1,j) = aertarf(i,j)
               chem0(i,(ntr+3)*kz+ntr*7+2,j) = aersrrf(i,j)
+              chem0(i,(ntr+3)*kz+ntr*7+3,j) = aertalwrf(i,j)
+              chem0(i,(ntr+3)*kz+ntr*7+4,j) = aersrlwrf(i,j)             
+
             end do
           end do
           do j = 1 , jendl
             do i = 1 , iy
-              chem0(i,(ntr+3)*kz+ntr*7+3,j) = psa(i,j)
+              chem0(i,(ntr+3)*kz+ntr*7+5,j) = psa(i,j)
             end do
           end do
-          call mpi_gather(chem0(1,1,1),iy*((ntr+3)*kz+ntr*7+3)*jxp,     &
+          call mpi_gather(chem0(1,1,1),iy*((ntr+3)*kz+ntr*7+5)*jxp,     &
                         & mpi_real8,chem_0(1,1,1),                      &
-                        & iy*((ntr+3)*kz+ntr*7+3)*jxp,                  &
+                        & iy*((ntr+3)*kz+ntr*7+5)*jxp,                  &
                         & mpi_real8,0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do j = 1 , jx
@@ -431,11 +434,13 @@
               do i = 1 , iym1
                 aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j+1)
                 aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j+1)
+                aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j+1)
+                aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j+1)
               end do
             end do
             do j = 1 , jx
               do i = 1 , iy
-                psa_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j)
+                psa_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+5,j)
               end do
             end do
             call chemtap
@@ -471,6 +476,8 @@
             do i = 1 , iym1
               aertarf(i,j) = 0.
               aersrrf(i,j) = 0.
+              aertalwrf(i,j)=0.              
+              aersrlwrf(i,j)=0.
             end do
           end do
         end if

@@ -69,7 +69,7 @@
 !
       real(8) , allocatable , dimension(:,:,:) :: aermmr
 !
-!     Aerosol extinction optical depth
+!     Aerosol optical properties (for the mixing) 
 !
       real(8) , allocatable , dimension(:,:,:) :: ftota_mix ,           &
                  & gtota_mix , tauasc_mix , tauxar_mix
@@ -77,7 +77,7 @@
       real(8) , allocatable , dimension(:,:) :: ftota_mix_cs ,          &
                  & gtota_mix_cs , tauasc_mix_cs , tauxar_mix_cs
 !
-!     Work arrays for aeroppt
+!     Work arrays for aeroppt (aerosol individual optical properties SW)
 !
       real(8) , allocatable , dimension(:,:) :: aermtot , aervtot
       real(8) , allocatable , dimension(:,:,:) :: fa , ga , tauxar ,    &
@@ -85,8 +85,9 @@
       real(8) , allocatable , dimension(:,:) :: faer , gaer , tauaer ,  &
                               &   utaer , waer
       real(8) , dimension(4) :: frac , prop
-
-
+!
+!   Aersol LW optical properties
+      real(8) ,allocatable, dimension(:,:,:) ::  aerlwtr 
 !------------------------------------------------------------------------------
 !                  DATA SECTION
 !------------------------------------------------------------------------------
@@ -326,6 +327,7 @@
       allocate(tauaer(iym1,ntr))
       allocate(utaer(iym1,ntr))
       allocate(waer(iym1,ntr))
+      allocate(aerlwtr(iym1,kzp1,kzp1))
       end subroutine allocate_mod_aerosol
 
 !
@@ -476,8 +478,8 @@
 !
 ! Local variables
 !
-      integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k , ns
-      real(8) :: path
+      integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k, k1, k2 , ns
+      real(8) :: path,uaerdust,qabslw
 !
 ! uaer, tauxar  - Aerosol radiative properties (local arrays)
 ! wa            - Aerosol single scattering albedo
@@ -688,6 +690,7 @@
 !
         end do ! end spectral loop
 
+
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
 !         Option 2  melange interne
@@ -884,24 +887,66 @@
         call fatal(__FILE__,__LINE__,'UNSUPPORTED MIXTYPE IN AEROPPT')
       end if
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
- 
+
+! FAB 
+! DUST LW emissivity 
+!qabslw = absorption coefficient between k1 and  k2 (m2.g-1) in the LW : 
+            qabslw= 0.1
+
+
+! initialisation à 1 = perfect transmittivity
+!
+            aerlwtr (:,:,:) =1.
+
+           if (idirect .ge. 1 ) then
+
+            do k1=1,kzp1
+            do k2=1,kzp1
+            do i =1,iym1
+            if(k1==k2) aerlwtr(i,k1,k2) =1.   
+
+! aerosol path btw k1 and k2 flux level
+
+              ibin = 0
+              uaerdust=0.
+              do itr=1,ntr     
+                if( chtrname(itr) .eq. 'DUST') then
+                  ibin = ibin+1
+                  if (k1 < k2 ) then
+                   uaerdust =  uaerdust +  & 
+       &    1.e5* (sum(uaer(i,k1:k2-1,itr)))
+                   aerlwtr (i,k1,k2) =exp(-1.66 * qabslw * uaerdust)
+                   elseif (k1 > k2 )then
+                   uaerdust =  uaerdust +  &
+        &    1.e5* (sum(uaer(i,k2:k1-1,itr)))
+                   aerlwtr (i,k1,k2) =exp(-1.66 * qabslw * uaerdust)
+                  end if
+                end if
+              end do
+              
+            end do
+            end do
+            end do
+
+            end if
+!     
       end subroutine aeroppt
 !
 ! SUBROUTINE AEROUT
 !
-      subroutine aerout(jslc,aeradfo,aeradfos)
+      subroutine aerout(jslc,aeradfo,aeradfos, aerlwfo,aerlwfos)
 !
       use mod_dynparam , only : chemfrq
       use mod_param2 , only : radfrq
       use mod_trachem , only : aerext , aerssa , aerasp , aertarf ,     &
-                      &        aersrrf
+                      &        aersrrf,aertalwrf, aersrlwrf
       implicit none
 !
 ! Dummy arguments
 !
       integer :: jslc
-      real(8) , dimension(iym1) :: aeradfo , aeradfos
-      intent (in) aeradfo , aeradfos
+      real(8) , dimension(iym1) :: aeradfo , aeradfos, aerlwfo,aerlwfos
+      intent (in) aeradfo , aeradfos, aerlwfo,aerlwfos
 !
 ! Local variables
 !
@@ -933,11 +978,17 @@
 #ifdef MPP1
         aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)*1.E-3/ntim
         aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)*1.E-3/ntim
+        aertalwrf(i-1,jslc)= aertalwrf(i-1,jslc)+ aerlwfo(i) *1.e-3/ntim
+        aersrlwrf(i-1,jslc)= aersrlwrf(i-1,jslc)+ aerlwfos(i)*1.e-3/ntim        
 #else
         aertarf(i-1,jslc-1) = aertarf(i-1,jslc-1) + aeradfo(i)          &
                             & *1.E-3/ntim
         aersrrf(i-1,jslc-1) = aersrrf(i-1,jslc-1) + aeradfos(i)         &
                             & *1.E-3/ntim
+        aertalwrf(i-1,jslc-1)= aertalwrf(i-1,jslc-1)+ aerlwfo(i) *1.e-3/ntim
+        aersrlwrf(i-1,jslc-1)= aersrlwrf(i-1,jslc-1)+ aerlwfos(i)*1.e-3/ntim
+
+
 #endif
       end do
  

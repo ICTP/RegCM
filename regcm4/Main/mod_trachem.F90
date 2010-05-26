@@ -45,6 +45,7 @@
       real(8) , allocatable , dimension(:,:,:) :: aerasp , aerext ,     &
                                 & aerssa
       real(8) , allocatable , dimension(:,:) :: aersrrf , aertarf
+      real(8) , allocatable , dimension(:,:) :: aertalwrf, aersrlwrf 
 !
       real(8) , allocatable , dimension(:,:,:) :: cemtr , cemtrac ,     &
                         & remdrd
@@ -77,6 +78,9 @@
         allocate(aerext(iym1,kz,jxp))
         allocate(aerssa(iym1,kz,jxp))
         allocate(aersrrf(iym1,jxp))
+        allocate(aertalwrf(iym1,jxp))
+        allocate(aersrlwrf(iym1,jxp))
+
         allocate(aertarf(iym1,jxp))
         allocate(cemtr(iy,jxp,ntr))
         allocate(cemtrac(iy,jxp,ntr))
@@ -95,6 +99,9 @@
         allocate(aerssa(iym1,kz,jxm1))
         allocate(aersrrf(iym1,jxm1))
         allocate(aertarf(iym1,jxm1))
+        allocate(aertalwrf(iym1,jxm1))
+        allocate(aersrlwrf(iym1,jxm1))
+
         allocate(cemtr(iy,jx,ntr))
         allocate(cemtrac(iy,jx,ntr))
         allocate(remdrd(iy,jx,ntr))

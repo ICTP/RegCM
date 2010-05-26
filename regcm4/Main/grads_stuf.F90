@@ -758,7 +758,7 @@
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
-      write (31,99016) ntr + 3 + 7*ntr + 2 + 1
+      write (31,99016) ntr + 3 + 7*ntr + 4 + 1
  
       do itr = 1 , ntr
         if ( itr.lt.10 ) then
@@ -792,8 +792,11 @@
           write (31,99021) 'emiss_tr' , itr , 'surf emission  (mg/m2/d)'
         end if
       end do
-      write (31,99017) 'acstoarf' , ' TOArad forcing av.(W/m2)'
-      write (31,99017) 'acstsrrf' , ' SRFrad forcing av.(W/m2)'
+      write (31,99017) 'acstoarf' , ' TOAswd forcing av.(W/m2)'
+      write (31,99017) 'acstsrrf' , ' SRFswd forcing av.(W/m2)'
+      write (31,99017) 'acstalrf',' TOAlwr forcing av.(W/m2)'
+      write (31,99017) 'acssrlrf',' SRFlwr forcing av.(W/m2)'
+
       write (31,99017) 'psa' , ' Surface Pressure (hPa)'
  
       write (31,99022)

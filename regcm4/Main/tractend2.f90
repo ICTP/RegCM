@@ -64,7 +64,7 @@
       integer , dimension(iy) :: ivegcov , soilt
       real(8) , dimension(iy,kz,nbin) :: pdepv
       real(8) , dimension(iy) :: psurf , rh10 , soilw , srad ,  &
-                               & temp10 , tsurf , vegfrac , wid10 , zeff
+                               & temp10 , tsurf , vegfrac , wid10 , zeff, ustar
       real(8) , dimension(iy,nbin) :: rsfrow
 !
 !bxq  real(kind=8)  h2o2mol
@@ -505,8 +505,11 @@
               fact = sfracv2d(i,j)*facv + sfracb2d(i,j)                 &
                    & *facb + sfracs2d(i,j)*facs
  
-!             grid level effective roughness lenght ( a faire !)
-              zeff(i) = rough(ivegcov(i)) ! ajouter contrib sol nu et snow
+!  grid level effective roughness lenght (linear averaging for now)
+              zeff(i) = rough(ivegcov(i))*sfracv2d(i,j)                 &
+     &                  + zlnd * sfracb2d(i,j)                          &
+     &                  + zsno * sfracs2d(i,j)
+
             else
 !             water surface
               fact = dlog(za(i,kz,j)/10.)/dlog(za(i,kz,j)/zoce)
@@ -547,10 +550,10 @@
 !
 !           friction velocity ( not used fo the moment)
 !
-!           ustar(i) = sqrt ( uvdrag(i,j)                 *
-!           &              sqrt ( (ub(i,kz,j)/psb(i,j) )**2 +
-!           &                     (vb(i,kz,j)/psb(i,j) )**2 ) /
-!           &                rho(i,kz)                          )
+           ustar(i) = sqrt ( uvdrag(i,j)                 *  &
+           &              sqrt ( (ub(i,kz,j)/psb(i,j) )**2 +  &
+           &                     (vb(i,kz,j)/psb(i,j) )**2 ) / &
+           &                rho(i,kz)                          )
  
 !           soil wetness
             soilw(i) = ssw2da(i,j)                                      &
@@ -583,9 +586,10 @@
             srad(i) = sol2d(i,j)
  
           end do
+
  
-          call sfflux(iy,2,iym2,j,20,ivegcov(1),vegfrac(1),soilt(1),    &
-                    & zeff,soilw(1),wid10(1),rho(1,kz),dustbsiz,rsfrow)
+          call sfflux(iy,2,iym2,j,20,ivegcov,vegfrac,soilt,ustar,    &
+                    & zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)
  
           call chdrydep(iy,2,iym2,kz,1,nbin,ivegcov,ttb,rho,a,psurf,    &
                       & temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,     &

@@ -19,7 +19,7 @@
  
       subroutine radclw(jslc,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2,&
                       & plh2o,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,  &
-                      & flnt,flnsc,flntc,flwds,emiss1d)
+                      & flnt,flnsc,flntc,flwds,emiss1d,aerlwfo,aerlwfos)
 
 !-----------------------------------------------------------------------
 !
@@ -47,8 +47,9 @@
 !
       use mod_dynparam
       use mod_param1 , only : ifrabe
-      use mod_param2 , only : iemiss
+      use mod_param2 , only : iemiss,idirect
       use mod_radbuf
+      use mod_aerosol, only : aerlwtr
       use mod_date , only : jyear , jyear0 , ktau
       use mod_constants , only : gocp , stebol
       use mod_when , only : whenne , whenflt
@@ -98,8 +99,12 @@
            & plh2o , tclrsf
       real(8) , dimension(iym1) :: emiss1d , flns , flnsc , flnt ,     &
                                   & flntc , flwds , ts
+      real(8), dimension(iym1) :: aerlwfo,aerlwfos
+
+
       intent (in) cld , emiss1d
-      intent (out) flns , flnsc , flnt , flntc , flwds , qrl
+      intent (out) flns , flnsc , flnt , flntc , flwds , qrl,aerlwfo, aerlwfos
+
       intent (inout) tclrsf
 !
 !---------------------------Local variables-----------------------------
@@ -178,16 +183,21 @@
            & rtclrsf , s2c , s2t , tint , tint4 , tlayr , tlayr4 ,      &
            & tplnka , ucfc11 , ucfc12 , uch4 , uco211 , uco212 ,        &
            & uco213 , uco221 , uco222 , uco223 , un2o0 , un2o1 ,        &
-           & uptype , w
+           & uptype , w, fsul0, fsdl0
       real(8) , dimension(iym1,kz) :: co2eml , fclb4 , fclt4
       logical , dimension(iym1) :: done , start
       real(8) :: tmp1
       integer :: i , ii , k , k1 , k2 , k3 , khighest , km , km1 , km2 ,&
-               & km3 , km4 , iym1c
+               & km3 , km4 , iym1c, rad, n
       integer , dimension(iym1) :: indx , khiv , khivm , klov
       real(8) , dimension(iym1,kzp1,kzp1) :: s
+
+      real(8), dimension(iym1,kzp1,kzp1) :: tone
 !
       integer , external :: intmax
+
+      tone(:,:,:)=1. 
+
 !
       do i = 1 , iym1
         rtclrsf(i,1) = 1.0/tclrsf(i,1)
@@ -241,6 +251,10 @@
                   & ucfc12,un2o0,un2o1,uch4,uco211,uco212,uco213,uco221,&
                   & uco222,uco223,uptype,bn2o0,bn2o1,bch4,abplnk1,      &
                   & abplnk2,jslc)
+
+         abstot0(:,:,:,jslc) =  abstot(:,:,:,jslc)
+         emstot0(:,:,jslc)  = emstot(:,:,jslc)
+         absnxt0(:,:,:,jslc)   = absnxt(:,:,:,jslc)   
  
       end if
 !
@@ -286,6 +300,42 @@
           fclb4(i,kzp1-k) = stebol*tint4(i,kzp3-k)
         end do
       end do
+
+!
+! option to calculate LW aerosol radiative forcing
+
+!      CCFAB LW radiative forcing ( rad=1 : avec dust)
+      fsul0(:,:) = 0.
+      fsdl0(:,:)=0.
+      abstot(:,:,:,jslc) = abstot0(:,:,:,jslc)
+      emstot(:,:,jslc) =  emstot0(:,:,jslc)
+      absnxt(:,:,:,jslc)= absnxt0(:,:,:,jslc)
+
+      DO rad = 1,2
+
+
+       if ( rad == 2) then
+
+      
+       abstot(:,:,:,jslc)=1-(1-abstot0(:,:,:,jslc))* aerlwtr(:,:,:)
+
+       emstot(:,:,jslc)= 1-(1-emstot0(:,:,jslc))   &
+         &                          *aerlwtr(:,:,1)
+       
+       do k = 1,kz  ! aerlwtr defined on plev levels
+       do n=1,4
+       absnxt(:,k,n,jslc)= 1- (1-absnxt0(:,k,n,jslc))  &
+        &                     *(aerlwtr(:,k,k+1)**xuinpl(:,k,n,jslc))
+!        print*,'z',jslc,xuinpl(:,k,n,jslc)
+       end do
+       end do
+      
+!       print*, jslc, minval(absnxt(:,:,:,jslc)),
+!     &   maxval(absnxt(:,:,:,jslc)), minval(absnxt0(:,:,:,jslc)),
+!     &   maxval(absnxt0(:,:,:,jslc))
+
+       end if
+
 !
 !     Compute sums used in integrals (all longitude points)
 !
@@ -387,6 +437,30 @@
         fsdl(i,kzp1) = absbt(i) - s(i,kzp1,2)
         fdl(i,kzp1) = fsdl(i,kzp1)
       end do
+
+!FAB radiative forcing sur fsul
+      if ( rad==1) then
+         fsul0(:,:) = fsul(:,:)! save fsul0 = no dust
+         fsdl0(:,:) = fsdl(:,:)!
+      end if
+
+      END DO ! end rad loop
+!FAB after this DO loop fsul account for dust LW effect
+! which is OK in case of idirect=2
+
+        aerlwfo(:) = fsul0(:,1) - fsul(:,1)
+
+! surface lw net ! fsul(i,plevp) - fsdl(i,plevp)
+!         aerlwfos(:)= fsdl0(:,kz)-fsdl(:,kz)
+        aerlwfos(:)=(fsul0(:,kzp1)-fsdl0(:,kzp1))- &
+       &    (fsul(:,kzp1) - fsdl(:,kzp1))
+         
+! return to no aerosol LW effect  situation if idirect ==1
+       if (idirect==1 ) then
+         fsul(:,:) = fsul0(:,:)
+         fsdl(:,:) = fsdl0(:,:)
+       end if 
+
 !
 !     Modifications for clouds
 !

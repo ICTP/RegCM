@@ -92,7 +92,7 @@
       real(8) , dimension(ilg,luc,isize) :: rs
  
       real(8) , parameter :: z10 = 10.0
- 
+
       i = 0
       do n = 1 , isize
         avesize(n) = (aerosize(1,n)+aerosize(2,n))/2.0
@@ -326,16 +326,6 @@
       end do
 !======================================================================
  
-!======================================================================
-!     find the right table index for the cell cover ( ocean and lake
-!     are 0 in the ivegcov and 14-15 in the table )
- 
-      if ( ivegcov(i).eq.0 ) then
-        kcov = 14
-      else
-        kcov = ivegcov(i)
-      end if
- 
 !     *****************************************************
 !     * the schmidt number is the ratio of the         ****
 !     * kinematic viscosity of air to the particle     ****
@@ -372,6 +362,17 @@
           if ( l.eq.ilev ) then
             do k = 1 , luc ! luc  = 1 for the moment
               do i = il1 , il2
+
+!======================================================================
+!     find the right table index for the cell cover ( ocean and lake
+!     are 0 in the ivegcov and 14-15 in the table )
+
+          if ( ivegcov(i).eq.0 ) then
+           kcov = 14
+          else
+           kcov = ivegcov(i)
+          end if
+
  
 !               ******************************************************
 !               * the parameter governing impaction processes is *****

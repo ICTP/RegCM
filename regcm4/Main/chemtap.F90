@@ -345,6 +345,50 @@
         write (iutchem) fchem
       else
       end if
+
+
+
+      do i = 1 , iym2
+        do j = 1 , jxm2
+#ifdef MPP1
+          fchem(j,i) = aertalwrf_io(i+1,j+1)
+#else
+          fchem(j,i) = aertalwrf(i+1,j+1)
+#endif
+        end do
+      end do
+      if ( iotyp.eq.1 ) then
+        nrcchem = nrcchem + 1
+        write (iutchem,rec=nrcchem) fchem
+      else if ( iotyp.eq.2 ) then
+        write (iutchem) fchem
+      else
+      end if
+
+
+      do i = 1 , iym2
+        do j = 1 , jxm2
+#ifdef MPP1
+          fchem(j,i) = aersrlwrf_io(i+1,j+1)
+#else
+          fchem(j,i) = aersrlwrf(i+1,j+1)
+#endif
+        end do
+      end do
+      if ( iotyp.eq.1 ) then
+        nrcchem = nrcchem + 1
+        write (iutchem,rec=nrcchem) fchem
+      else if ( iotyp.eq.2 ) then
+        write (iutchem) fchem
+      else
+      end if
+
+
+
+
+
+
+
  
       do i = 1 , iym2
         do j = 1 , jxm2
@@ -367,9 +411,13 @@
 #ifdef MPP1
       aertarf_io = 0.0
       aersrrf_io = 0.0
+      aersrlwrf_io=0.0
+      aertalwrf_io=0.0
 #else
       aertarf = 0.0
       aersrrf = 0.0
+      aersrlwrf =0.0 
+      aertalwrf=0.0
 #endif
 
       print * , 'Chem variables written ' , idatex
