@@ -64,10 +64,12 @@ void gradsvar::set(char *ncname, char *gname, char *desc, int nlevs, bool tv)
   vline = a.str();
 }
 
-std::ostream& rcm::operator<< (std::ostream& os, const gradsvar &g)
-{
-  os << g.vline;
-  return os;
+namespace rcm {
+  std::ostream& operator<< (std::ostream& os, const gradsvar &g)
+  {
+    os << g.vline;
+    return os;
+  }
 }
 
 gradsctl::gradsctl( )
