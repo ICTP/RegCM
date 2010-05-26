@@ -2467,7 +2467,7 @@ void bcNc::put_rec(bcdata &b)
     f->add_att("input_sst_type", b.ssttyp);
     f->add_att("input_analysis_type", b.dattyp);
     // Manage time setup
-    rcmdate d(b.rdate);
+    rcmdate d(b.date0);
     reference_time = d.unixtime( );
     rcount = 0;
     tcount = 0;

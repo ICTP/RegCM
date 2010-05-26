@@ -57,19 +57,23 @@ void help(char *pname)
       << " [options] regcm.in"
       << std::endl << std::endl
       << "where options can be in:" << std::endl << std::endl
-  << "   --sequential              : Set I/O sequential (direct access default)"
+  << "   --sequential                 : Set sequential (direct access default)"
       << std::endl
-  << "   --little_endian           : Set I/O endianess to LITTLE (BIG default)"
+  << "   --little_endian              : Set endianess to LITTLE (BIG default)"
       << std::endl
-  << "   --grads                   : Produce a CTL file for GrADS"
+  << "   --grads                      : Produce a CTL file for GrADS"
       << std::endl
-  << "   --var/-v[all|name[,name]] : Include only some vars (all default)"
+  << "   --list/-l                    : Output list of names for -v option"
       << std::endl
-  << "   --list/-l                 : Output list of names for -v option"
+  << "   --var/-v[all|name[,name]]    : Include only some vars (all default)"
       << std::endl
-  << "   --help/-h                 : Print this help"
+  << "   --tstart/-t YYYY[MM[DD[HH]]] : Start processing at this date"
       << std::endl
-  << "   --version/-V              : Print versioning information"
+  << "   --tend/-e YYYY[MM[DD[HH]]]   : Stop processing at this date"
+      << std::endl
+  << "   --help/-h                    : Print this help"
+      << std::endl
+  << "   --version/-V                 : Print versioning information"
       << std::endl << std::endl;
    return;
 }
@@ -103,7 +107,7 @@ int main(int argc, char *argv[])
       { 0, 0, 0, 0 }
     };
     int optind, c = 0;
-    c = getopt_long (argc, argv, "hVlv:",
+    c = getopt_long (argc, argv, "hVlv:t:e:",
                      long_options, &optind);
     if (c == -1) break;
     switch (c)
@@ -170,13 +174,9 @@ int main(int argc, char *argv[])
  
     rcminp inpf(regcmin);
     domain_data d(inpf);
-    if (date1 < 1) date1 = inpf.valuei("globidate1");
-    if (date2 < 1) date2 = inpf.valuei("globidate2");
-
+   
     char *datadir = strdup(inpf.valuec("dirglob"));
     rcmio rcmout(datadir, lbigend, ldirect);
-    rcmout.idate_start = date1;
-    rcmout.idate_end   = date2;
 
     char *experiment = strdup(inpf.valuec("domname"));
     char dominfo[PATH_MAX];
@@ -185,7 +185,22 @@ int main(int argc, char *argv[])
             separator, experiment);
     rcmout.read_domain(dominfo, d);
 
-    bcdata b(d, inpf);
+    if (date1 < 1) date1 = inpf.valuei("globidate1");
+    if (date2 < 1) date2 = inpf.valuei("globidate2");
+    // Year only
+    if (date1 < 10000) date1 = date1*1000000+10100;
+    if (date2 < 10000) date2 = date2*1000000+10100;
+    // Year+month only
+    if (date1 < 1000000) date1 = date1*10000+100;
+    if (date2 < 1000000) date2 = date2*10000+100;
+    // Year+month+day only
+    if (date1 < 100000000) date1 = date1*100;
+    if (date2 < 100000000) date2 = date2*100;
+
+    t_time_interval t;
+    t.idate0 = date1;
+    t.idate1 = date2;
+    bcdata b(d, inpf, t);
 
     regcmout outnc;
     outnc.experiment = experiment;

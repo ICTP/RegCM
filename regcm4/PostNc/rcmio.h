@@ -38,6 +38,11 @@ namespace rcm
 
   static const char separator[2] = "/";
 
+  typedef struct {
+    int idate0;
+    int idate1;
+  } t_time_interval;
+
   // Header data
   class header_data {
     public:
@@ -145,7 +150,7 @@ namespace rcm
   // ICBC data
   class bcdata {
     public:
-      bcdata(domain_data &d, rcminp &in);
+      bcdata(domain_data &d, rcminp &in, t_time_interval &t);
       ~bcdata();
       float *u;
       float *v;
@@ -376,6 +381,7 @@ namespace rcm
       unsigned long unixtime( );
       int hour_adder(int hours);
       int idate( );
+      int idatendh( );
       int basey;
       int basem;
       int based;
@@ -403,8 +409,6 @@ namespace rcm
       bool has_srf;
       bool has_rad;
       bool has_sub;
-      int idate_start;
-      int idate_end;
     private:
       int find_nextstep(std::ifstream &f, size_t recsize, size_t end);
       inline void swap2(char *p)

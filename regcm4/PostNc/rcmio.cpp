@@ -319,14 +319,38 @@ const char *header_data::chems( )
   }
 }
 
-bcdata::bcdata(domain_data &d, rcminp &in)
+bcdata::bcdata(domain_data &d, rcminp &in, t_time_interval &t)
 {
+  // HARDCODING 
+  dt = 6;
+  // HARDCODING 
   date0 = in.valuei("globidate1");
   date1 = in.valuei("globidate2");
+  rcmdate d1(date0);
+  rdate = date0;
+  if (t.idate0 < date0)
+  {
+    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
+              << date0 << std::endl;
+  }
+  else if (t.idate0 > date0)
+  {
+    rcmdate d2(t.idate0);
+    // Same month
+    if (d1.idatendh( ) != d2.idatendh( )) rdate = d2.idatendh( )+100;
+    date0 = t.idate0;
+  }
+  if (t.idate1 < date1) date1 = t.idate1;
+  else if (t.idate1 > date1)
+  {
+    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
+              << date1 << std::endl;
+  }
   nfiles = calcnfiles(date0, date1);
-  rdate = ((date0/10000)*100+1)*100;
+  nsteps = calcnsteps(date0, date1, (int) dt);
   size2D = d.nx*d.ny;
   size3D = size2D*d.nz;
+
   nz = d.nz;
   ehso4 = in.valueb("ehso4");
   if (strcmp(in.valuec("lsmtyp"), "BATS") == 0)
@@ -337,10 +361,6 @@ bcdata::bcdata(domain_data &d, rcminp &in)
   strncpy(name, in.valuec("domname"), 256);
   strncpy(ssttyp, in.valuec("ssttyp"), 16);
   strncpy(dattyp, in.valuec("dattyp"), 16);
-  // HARDCODING 
-  dt = 6;
-  // HARDCODING 
-  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 bcdata::~bcdata()
@@ -582,8 +602,6 @@ rcmio::rcmio(char *directory, bool lbig, bool ldirect)
   has_sub = false;
   initbc  = false;
   storage = 0;
-  idate_start = 0;
-  idate_end = 0;
 }
 
 subdom_data::subdom_data(rcminp &in)
@@ -1633,6 +1651,9 @@ int rcmio::bc_read_tstep(bcdata &b)
       b.soilt = b.icet + 4 * b.size2D;
       b.snowd = b.icet + 4 * b.size2D;
     }
+    rcmdate df(b.rdate);
+    int ss = df.datediffh(b.date0)/b.dt;
+    bcf.seekg (ss*readsize, std::ios::beg);
     initbc = true;
   }
   size_t pos = bcf.tellg( );
@@ -1737,6 +1758,11 @@ static int idatei(int y, int m, int d, int h)
 int rcmdate::idate( )
 {
   return idatei(basey, basem, based, baseh);
+}
+
+int rcmdate::idatendh( )
+{
+  return basey*1000000+basem*10000;
 }
 
 int rcmdate::hour_adder(int nh)
