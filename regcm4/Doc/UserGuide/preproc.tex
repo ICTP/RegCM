@@ -1,0 +1,321 @@
+\newpage
+\section{Pre-Processing}
+Before performing a regional climate simulation there are two pre-processing steps that need to be completed.  The first step involves defining the domain and grid interval, and interpolating the landuse and elevation data to the model grid.  This task is performed in the {\bf RegCM/PreProc/Terrain} sub-directory. The second step is to generate the files used for the initial and boundary conditions during the simulation. This step is performed in the {\bf RegCM/PreProc/ICBC} sub-directory.  The input data necessary to run the model can be downloaded from the PWC 
+website at the following URL: \\
+
+{\bf http://www.ictp.trieste.it/$\sim$pubregcm/RegCM3} \\
+
+Input data used by the {\bf Terrain} and {\bf ICBC}  programs are 
+stored in the {\bf RegCM/PreProc/DATA} sub-directory.  A script called
+{\it datalinker.x} is provided in this directory in case the data 
+exists elsewhere.  It can be modified and run to create soft links 
+between the {\bf RegCM/PreProc/DATA} sub-directory and another directory.
+
+The present version of RegCM3 supports multi-platforms running under a UNIX (or LINUX) operating
+system, such as IBM, SGI, SUN, DEC, and PC-LINUX (with PGI FORTRAN compiler (not free) or
+Intel IFC FORTRAN compiler (free)). You must make your choices of Makefile under 
+PreProc/Terrain, PreProc/ICBC, and Main/ directories by copying the appropriate
+Makefile. 
+
+\subsection{Terrain}
+
+The domain for your simulation is defined in {\bf Terrain}. There are several important considerations for choosing the domain
+resolution, projection, and resolution. Resolution depends on the
+science question you are asking and the available computational
+resources. RegCM is a hydrostatic model; therefore, the horizontal grid
+spacing should probably not be set lower than 10 km. In general, the
+Lambert Conformal Conic projection is used for middle and high latitude
+regions, while the standard Mercator and rotated Mercator projections
+are used in tropical and subtropical regions.  When choosing the model's central point (clat, clon) and map projection, it is important to
+make the whole domain map factor as close to 1 as possible, which will be helpful for model's computational stability. The map factor can be checked using the DOMAIN\_INFO.CTL and DOMAIN\_INFO files in GrADS.
+
+As for the choice of the
+domain itself, it depends on the area of interest and the application.
+The regional model solution is a combination of the lateral boundary
+forcing and the internal model physics. With a smaller domain, the
+lateral boundary conditions exert more control. This may be desirable
+for seasonal prediction (although large domains can also be used for this purpose) or other applications. For sensitivity studies
+such as changing land cover or soil moisture, a larger domain may be
+preferable since it allows for more internal model freedom to respond to
+the applied changes \citep{Seth_98}. The issue of computational cost and managing the
+output data is also important. For every doubling (2x) of the number of horizontal grid points, the computational time (assuming the same horizontal grid spacing) increases by a factor of 4. Output data increase slightly less than a factor of 4, since not all RegCM3 output is three-dimensional. Still, it is important to note that data storage can be as expensive in the long term as running the simulation. 
+
+There are some papers (\citet{Seth_98,Vannitsem_05,Rauscher_06a})
+that discuss domain choice in more depth.
+
+
+\begin{table}
+\begin{center}
+\caption{Land Cover/Vegetation classes} \label{VegTypes}
+\begin{tabular}{rl}
+\hline\hline
+1.&Crop/mixed farming\\
+2.&Short grass\\
+3.&Evergreen needleleaf tree\\
+4.&Deciduous needleleaf tree\\
+5.&Deciduous broadleaf tree\\
+6.&Evergreen broadleaf tree\\
+7.&Tall grass\\
+8.&Desert\\
+9.&Tundra\\
+10.&Irrigated Crop\\
+11.&Semi-desert\\
+12.&Ice cap/glacier\\
+13.&Bog or marsh\\
+14.&Inland water\\
+15.&Ocean\\
+16.&Evergreen shrub\\
+17.&Deciduous shrub\\
+18.&Mixed Woodland\\
+19.&Forest/Field mosaic \\
+20.&Water and Land mixture \\
+\hline\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{center}
+\begin{landscape}
+\begin{table}
+%\scriptsize{
+\caption{BATS vegetation/land-cover}  \label{landuse}
+\hspace{-0.8cm}
+%\vspace{-2.0cm}
+\begin{tabular}{lcccccccccccccccccccc} \hline \hline
+\multicolumn{1}{c}{Parameter}&\multicolumn{20}{c}{Land Cover/Vegetation Type}\\
+&1&2&3&4&5&6&7&8&9&10&11&12&13&14&15&16&17&18&19&20 \\ \hline
+Max fractional \\
+vegetation cover&0.85&0.80&0.80&0.80&0.80&0.90&0.80&0.00&0.60&0.80&0.35&0.00&0.80&0.00&0.00&0.80&0.80&0.80&0.80&0.80 \\
+Difference between max\\
+fractional vegetation \\
+cover and cover at 269 K&0.6&0.1&0.1&0.3&0.5&0.3&0.0&0.2&0.6&0.1&0.0&0.4&0.0&0.0&0.2&0.3&0.2&0.4&0.4 \\
+Roughness length (m)       &0.08&0.05&1.00&1.00&0.80&2.00&0.10&0.05&0.04&0.06&0.10&0.01&0.03&0.0004&0.0004&0.10&0.10&0.80&0.3&0.3 \\
+Displacement height (m)    &0.0&0.0&9.0&9.0&0.0&18.0&0.0&0.0&0.0&0.0&0.0&0.0&0.0&0.0&0.0&0.0&0.0&0.0&0.0&0.0 \\
+Min stomatal \\
+resistence (s/m)  &45 &60 &80 &80 &120 &60 &60 &200 &80 &45 &150 &200 &45 &200 &200 &80 &120 &100&120&120  \\
+Max Leaf Area Index            &6   &2   &6   &6   &6   &6   &6   &0   &6   &6   &6   &0   &6   &0   &0   &6   &6   &6 &6 &6    \\
+Min Leaf Area Index            &0.5 &0.5 &5   &1   &1   &5   &0.5 &0   &0.5 &0.5 &0.5 &0   &0.5 &0   &0   &5   &1   &3  &0.5 &0.5   \\
+Stem (dead matter \\
+area index)&0.5&4.0&2.0&2.0&2.0&2.0&2.0&0.5&0.5&2.0&2.0&2.0&2.0&2.0&2.0&2.0&2.0&2.0&2.0&2.0 \\
+Inverse square root of \\
+leaf dimension (m$^{-1/2}$)&10&5&5&5&5&5&5&5&5&5&5&5&5&5&5&5&5&5&5&5\\
+Light sensitivity \\
+factor (m$^2$ W$^{-1}$)&0.02&0.02&0.06&0.06&0.06&0.06&0.02&0.02&0.02&0.02&0.02&0.02&0.02&0.02&0.02&0.02&0.02&0.06&0.02&0.02 \\ 
+Upper soil layer \\
+depth (mm)     &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100 &100  \\
+Root zone soil\\
+layer depth (mm) &1000 &1000 &1500 &1500 &2000 &1500 &1000 &1000 &1000 &1000 &1000 &1000 &1000 &1000 &1000 &1000 &1000 &2000 &2000 &2000  \\
+Depth of total\\
+soil (mm) &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000  \\
+Soil texture type    &6   &6   &6   &6   &7   &8   &6   &3   &6   &6   &5   &12   &6   &6   &6   &6   &5   &6 &6 &0    \\
+Soil color type    &5   &3   &4   &4   &4   &4   &4   &1   &3   &3   &2   &1   &5   &5   &5   &4   &3   &4 &4 &0    \\
+Vegetation albedo for \\
+wavelengths $<$ 0.7 $\mu$ m &0.10&0.10&0.05&0.05&0.08&0.04&0.08&0.20&0.10&0.08&0.17&0.80&0.06&0.07&0.07&0.05&0.08&0.06 &0.06 &0.06 \\
+Vegetation albedo for \\
+wavelengths $>$ 0.7 $\mu$ m &0.30&0.30&0.23&0.23&0.28&0.20&0.30&0.40&0.30&0.28&0.34&0.60&0.18&0.20&0.20&0.23&0.28&0.24&0.18&0.18 \\  \hline \hline
+\end{tabular}
+\end{table}
+\end{landscape}
+\end{center}
+
+The Terrain program horizontally interpolates the landuse and elevation data from a latitude-longitude grid to the cartesian grid of the chosen domain. RegCM currently uses the Global Land Cover Characterization (GLCC) datasets for the vegetation/landuse data.  The GLCC dataset is derived from 1~km Advanced Very High Resolution Radiometer (AVHRR) data spanning April 1992 through March 1993, and is based on the vegetation/land cover types defined by BATS (Biosphere Atmosphere Transfer Scheme).  The 20 vegetation/land cover types and associated parameters are presented in Table~\ref{landuse}. Each grid cell of the model is assigned one of the eighteen 
+categories. More information regarding GLCC datasets can be found at {\bf http://edcdaac.usgs.gov/glcc/glcc.html}.
+
+The elevation data used is from the United States Geological Survey (USGS).Both the landuse and elevation data files are available at 60, 30, 10, 5, 3, and 2 minute resolutions and can be downloaded from the ICTP~PWC website at {\bf http://www.ictp.trieste.it/$\sim$pubregcm/RegCM3/globedat.htm}.
+
+\begin{table}[h]
+\begin{center}
+\caption{List of variables defined in {\it domain.param} file.}  \label{domain.param_file}
+\vspace{0.25cm}
+\begin{tabular}{|l|l|} \hline \hline
+{\small {\bf Parameter}}   &   {\small {\bf Description}} \\ \hline \hline
+{\footnotesize {\bf iproj}}    & {\footnotesize map projection} \\ 
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'LAMCON' = Lambert Conformal } \\
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'POLSTR' = Polar Stereographic } \\ 
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'NORMER' = Normal Mercator} \\
+ &  \hspace{0.5 cm} {\footnotesize 'ROTMER' = Rotated Mercator} \\ \hline
+{\footnotesize {\bf iy}}   &   {\footnotesize number of grid points in y direction (i)} \\ \hline
+{\footnotesize {\bf jx}}   &   {\footnotesize number of grid points in x direction (j)} \\ \hline
+{\footnotesize {\bf kz}}   &   {\footnotesize number of vertical levels (k)} \\ \hline
+{\footnotesize {\bf nsg}}  &   {\footnotesize number of subgrids in one direction} \\ \hline
+{\footnotesize {\bf ds}}   &   {\footnotesize grid point separation in km} \\ \hline
+{\footnotesize {\bf ptop}} &   {\footnotesize pressure of model top in cb} \\ \hline
+{\footnotesize {\bf clat}} &   {\footnotesize central latitude of model domain in degrees} \\  \hline
+{\footnotesize {\bf clon}} &   {\footnotesize central longitude of model domain in degrees} \\  \hline
+{\footnotesize {\bf plat}} &   {\footnotesize pole latitude (only for rotated mercator projection)} \\  \hline
+{\footnotesize {\bf plon}} &   {\footnotesize pole longitude (only for rotated mercator projection)} \\  \hline
+{\footnotesize {\bf truelatL}} &   {\footnotesize Lambert true latitude (low  latitude side)} \\  \hline
+{\footnotesize {\bf truelon}} &   {\footnotesize Lambert true latitude (high latitude side)} \\  \hline
+{\footnotesize {\bf ntypec}} & {\footnotesize resolution of the global terrain and land-use data} \\
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 60 = 1 degree \hspace{1.25cm} 5 = 5 minute} \\ 
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 30 = 30 minute \hspace{1.1cm} 3 = 3 minute} \\ 
+ &  \hspace{0.5 cm} {\footnotesize 10 = 10 minute \hspace{1cm} 2 = 2 minute } \\ \hline
+{\footnotesize {\bf ntypec\_s}} & {\footnotesize same as ntypec, except for subgrid} \\ \hline
+
+{\footnotesize {\bf h2opct}}  & {\footnotesize if water percentage $<$ h2opct, then land else water} \\ \hline
+{\footnotesize {\bf ifanal}}  & {\footnotesize  true=perform cressman-type objective analysis} \\  
+ & {\footnotesize  false=perform 16-point overlapping parabolic interpolation} \\ \hline
+{\footnotesize {\bf smthbdy}}  & {\footnotesize true=extra smoothing in boundaries} \\ \hline
+{\footnotesize {\bf lakadj}}   & {\footnotesize true=adjust lake levels according to obs} \\ \hline
+{\footnotesize {\bf igrads}}   & {\footnotesize true=output GrADS control file} \\ \hline
+{\footnotesize {\bf ibigend}}  & {\footnotesize 1 = big-endian (always 1)} \\ \hline
+{\footnotesize {\bf ibyte}}  & {\footnotesize for direct access open statements (1 or 4)} \\  
+ & {\footnotesize  1 for IFC8, SGI, DEC;  4 for PGI, IFC7, SUN, IBM} \\ \hline
+
+{\footnotesize {\bf FUDGE\_LND}}   & {\footnotesize land use fudge, true or false} \\ \hline
+{\footnotesize {\bf FUDGE\_TEX}}   & {\footnotesize texture fudge, true or false} \\ \hline
+{\footnotesize {\bf FUDGE\_LND\_s}} & {\footnotesize land use fudge for subgrid, true or false} \\ \hline
+{\footnotesize {\bf FUDGE\_TEX}}   & {\footnotesize texture fudge for subgrid, true or false} \\ \hline
+{\footnotesize {\bf filout}}   & {\footnotesize terrain output filename including path} \\ \hline
+{\footnotesize {\bf filctl}}   & {\footnotesize GrADS control filename for output including path} \\ \hline
+{\footnotesize {\bf IDATE1}}   & {\footnotesize beginning date of simulation (YYYYMMDDHH)} \\ \hline
+{\footnotesize {\bf IDATE2}}   & {\footnotesize ending date of simulation (YYYYMMDDHH)} \\ \hline
+{\footnotesize {\bf DATTYP}}   & {\footnotesize global analysis dataset} \\ 
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'ECMWF'} \hspace{0.5 cm} {\footnotesize 'ERA40'}  \hspace{0.5 cm} {\footnotesize 'ERAHI'} \\
+ &  \vspace{-0.15 cm}\hspace{0.5 cm} {\footnotesize 'NNRP1'} \hspace{0.5 cm} {\footnotesize 'NNRP2'} \hspace{0.5 cm} {\footnotesize 'NRP2W'}\\
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'FVGCM'} \hspace{0.5 cm} {\footnotesize 'FNEST'} \hspace{0.5 cm} {\footnotesize 'EH50M'}\\
+\hline
+{\footnotesize {\bf SSTTYP}}  & {\footnotesize SST dataset } \\ 
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'GISST'} \hspace{0.5 cm} {\footnotesize 'OISST'} \hspace{0.5 cm} {\footnotesize 'OI\_NC'} \hspace{0.5 cm} {\footnotesize 'OI\_WK'}\\ 
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize for FVGCM:} \hspace{0.5 cm} {\footnotesize 'FV\_RF'}  \hspace{0.5 cm} {\footnotesize 'FV\_A2'}\\
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize for ECHAM GCM:} \hspace{0.5 cm} {\footnotesize 'EH5RF'}  \hspace{0.5 cm} {\footnotesize 'EH5A2'}\\
+\hline
+{\footnotesize {\bf LSMTYP}} & {\footnotesize LANDUSE legend, 'BATS' or 'USGS'} \\ \hline
+{\footnotesize {\bf AERTYP}} & {\footnotesize AEROSOL datasets:}\\
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'AER00D0'} \hspace{0.5 cm} {\footnotesize Neither aerosol, nor dust used}\\
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'AER01D0'} \hspace{0.5 cm} {\footnotesize Biomass, SO2 + BC + OC, no dust}\\ 
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'AER10D0'} \hspace{0.5 cm} {\footnotesize Anthropogenic, SO2 + BC + OC, no dust}\\
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'AER11D0'} \hspace{0.5 cm} {\footnotesize Anthropogenic+Biomass, SO2 + BC + OC, no dust}\\
+ &  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'AER00D1'} \hspace{0.5 cm} {\footnotesize No aerosol, with dust}\\
+&  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'AER01D1'}  \hspace{0.5 cm} {\footnotesize Biomass, SO2 + BC + OC, with dust}\\
+&  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'AER10D1'}  \hspace{0.5 cm} {\footnotesize Anthropogenic, SO2 + BC + OC, with dust}\\
+&  \vspace{-0.15 cm} \hspace{0.5 cm} {\footnotesize 'AER11D1'}  \hspace{0.5 cm} {\footnotesize Anthropogenic+Biomass, SO2 + BC + OC, with dust.}\\
+\hline
+{\footnotesize {\bf ntex}}   & {\footnotesize Number of SOIL TEXTURE categories, 17} \\ \hline
+{\footnotesize {\bf NPROC}}   & {\footnotesize Number of CPU used for parallel run.} \\ \hline
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+Parameters such as domain size, input data, and length of simulation are defined in the file {\it domain.param} (Table~\ref{domain.param_file}) under directory {\bf RegCM/PreProc/Terrain/}.  After editing this file, running the {\it terrain.x} script will compile and execute the terrain program.  This will generate the output file {\it DOMAIN.INFO} containing elevation, landuse type, and other variables (Table~\ref{ter_var})  in the {\bf RegCM/Input} sub-directory.  A GrADS descriptor file, {\it DOMAIN.CTL} is also created.
+
+In case you are not satisfied with the landuse pattern over your domain, you 
+can modify the landuse values assigned to individual grid points by modifying the
+{\bf RegCM/PreProc/Terrain/}{\it LANDUSE} file and changing the FUDGE\_LND parameter (and/or FUDGE\_LND\_s for sub-BATS) in the
+{\bf RegCM/PreProc/Terrain/}{\it domain.param} file to be true.  The {\it LANDUSE} file 
+contains the land cover/vegetation classes (Table~\ref{VegTypes}) assigned to all 
+of the grid points in your domain.  Land cover/vegetation classes 10--20 are 
+represented with single characters from A--K, in which A represents class 10, 
+B represents class 11, etc.  After you modify the {\it LANDUSE} and change the
+FUDGE\_LND and FUDGE\_LND\_s parameters in the {\it domain.param} file, you must re-run the terrain 
+program.
+
+\begin{table}[h]
+\begin{center}
+\caption{List of output variables from Terrain (DOMAIN)}  \label{ter_var}
+\vspace{0.25cm}
+\begin{tabular}{|l|c|l|} \hline \hline
+{\small {\bf Variables}} & {\small {\bf Description}} \\ \hline \hline
+{\ {\bf ht}}    & {\ {Surface elevation (m)} }      \\ \hline
+{\ {\bf htsd}}    & {\ {Surface elevation standard deviation} }    \\ \hline
+{\ {\bf landuse}}    & {\ {Surface landuse type}}       \\ \hline
+{\ {\bf xlat}}    & {\ {Latitude of cross points} }      \\ \hline
+{\ {\bf xlon}}    & {\ {Longitude of cross points}}   \\ \hline
+{\ {\bf dlat}}    & {\ {Latitude of dot points}}       \\ \hline
+{\ {\bf dlon}}    & {\ {Longitude of dot points} }      \\ \hline
+{\ {\bf xmap}}    & {\ {Map factors of cross points} }     \\ \hline
+{\ {\bf dmap}}    & {\ {Map factors of dot points}}       \\ \hline
+{\ {\bf coriol}}    & {\ {Coriolis force} }      \\ \hline
+{\ {\bf snowam}}    & {\ {Initial snow amount} }     \\ \hline
+{\ {\bf mask}}    & {\ {land/sea mask} }     \\ \hline
+{\ {\bf texture}}    & {\ {Soil texture} }     \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{ICBC}
+The ICBC program interpolates sea surface temperature (SST) and global re-analysis data to the model grid.  These files are used for the initial and boundary conditions during the simulation. 
+
+\subsubsection{Sea surface temperature}     
+
+In the {\bf RegCM/PreProc/Terrain/}{\it domain.param} file, there are several 
+options for SST data, including the Global Sea Surface Temperature (GISST) 
+one-degree monthly gridded data (1871-2002) available from the Hadley Centre 
+Met Office at http://badc.nerc.ac.uk/data/gisst/. Please note that permission is needed from the Hadley Center Met Office to use the GISST datasets. Also available is the 
+Optimum Interpolation Sea Surface Temperature (OISST) one-degree (1981-2005) available from the National Ocean and Atmosphere Administration at both weekly and monthly time scales at http://www.cdc.noaa.gov/. Additionally, SSTs for climate change reference and scenario runs may also be used.
+
+\subsubsection{Data for Initial and Lateral Boundary Conditions}
+
+In the {\bf RegCM/PreProc/Terrain/}{\it domain.param} file, there are several data sets that can be chosen to use for the initial and boundary conditions.  
+
+$\bullet$  {\bf ECMWF}:  The European Centre for Medium-Range Weather Forecasts
+Reanalysis datasets (T42,L15) from 1993--1997. 
+
+$\bullet$  {\bf ERA40}:  ECMWF 40 year reanalysis datasets (2.5 degree grid,L23) from 1957--2002. 
+
+$\bullet$  {\bf ERAHI}: ECMWF 40 year reanalysis datasets, original model level fields:
+ T, U, V and log(Ps) are in spectral coefficients; orography and Q are at the reduced Gaussian grids. T159L60 (N80L60) from 1957--2002 
+
+$\bullet$  {\bf NNRP1}:  The National Center for Environmental Prediction  (NCEP) 
+Reanalysis datasets (2.5 degree grid, L17) from 1948--present. 
+
+$\bullet$  {\bf NNRP2}:  The National Center for Environmental Prediction  (NCEP) 
+Reanalysis datasets (2.5 degree grid, L17) from 1979--2005. 
+
+$\bullet$  {\bf NRP2W}: Small Window (instead of global) of NNRP2 to save disk space. (For example, African window: 40W to 80E, 60S to 70N) 
+
+$\bullet$  {\bf FVGCM}:  For climate change experiments you can use output from the NASA-NCAR finite volume GCM to drive RegCM.  We have run FVGCM (1 x 1.25 degree grid, L18) here at ICTP and have output available from four 30-year simulations. Two present day reference runs from 1961--1990 and two future A2 IPCC emission scenario runs from 2071--2100.  
+
+$\bullet$  {\bf EH50M}: From EC-Hamburg coupled GCM IPCC AR4 experiments (AGCM: Echam5, T63L31; OGCM: MPI-OM GR1.5 256x220L40; Coupler: OASIS), 20C (1950-2000) and A1B (2001-2100) IPCC Emission Senario, T63, reformated pressure layer data.
+
+$\bullet$  {\bf FNEST}:  A one-way nesting option is available for high resolution RegCM simulations in which output from a coarse resolution RegCM simulation are used drive the model at a higher resolution over a subregion. 
+
+\subsubsection{Lateral Boundary Treatment}
+
+\noindent The numerical treatment of the lateral boundaries is a complex but very 
+important aspect of the regional climate model. There are five types of boundary conditions that can be used in the model. The type of boundary conditions used in the simulation is selected in the {\bf RegCM/PreProc/Terrain/}{\it domain.param} file. The options are:
+
+${\bullet}$  {\bf Fixed}: This will not allow time variation at lateral boundaries. Not recommended for real-data applications.
+
+${\bullet}$   {\bf Time-dependent}:  Outer two rows and columns have specified values of all predicted fields. Recommended for nests where time-dependent values are supplied by the parent domain. Not recommended for coarse mesh where only one outer row and column would be specified. 
+
+${\bullet}$    {\bf Linear relaxation}: Outer row and column is specified by time-dependent value, next four points are relaxed towards the boundary values with a relaxation constant that decreases linearly away from the boundary.
+
+${\bullet}$    {\bf Sponge}:  \cite{Perkey_76}
+
+${\bullet}$    {\bf Exponential relaxation}:  \cite{Davies_77}  (default) 
+
+
+\begin{table}[!]
+\begin{center}
+\caption{List of variables in {\it ICBCYYYYMMDDHH} files}  \label{icbc_vars}
+\vspace{0.25cm}
+\begin{tabular}{|l|c|l|} \hline \hline
+{\small {\bf Variables}} & {\small {\bf Description}} \\ \hline \hline
+{\ {\bf date}}    & {\ {Date of simulation (header information) } }      \\ \hline
+{\ {\bf u}}    & {\ {Westerly wind (${\rm m~s^{-1}}$) } }      \\ \hline
+{\ {\bf v}}    & {\ {Southerly wind (${\rm m~s^{-1}}$)} }     \\ \hline
+{\ {\bf t}}    & {\ {Air temperature (K)}}       \\ \hline
+{\ {\bf q}}    & {\ {Specific moisture (${\rm kg~kg^{-1}}$)} }      \\ \hline
+{\ {\bf px}}    & {\ {Surface pressure (hPa)} }     \\ \hline
+{\ {\bf ts}}    & {\ {Surface air temperature (K)}}       \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsubsection{Running ICBC}
+\noindent It is not necessary to modify any files in the  {\bf RegCM/PreProc/ICBC} 
+sub-directory. The {\it SST\_1DEG.f} and {\it ICBC.f} programs interpolate 
+the SST and global analysis data to the model grid.  Running the 
+{\it icbc.x} script will compile and execute these programs.  The following 
+files will be generated; \\ 
+
+\indent {\bf RegCM/Input/}{ICBC.YYYYMMDDHH} (see Table~\ref{icbc_vars} for list of variables) \\
+\indent {\bf RegCM/Input/}{ICBC.YYYYMMDDHH.CTL}  \\
+
+\noindent However, if you want to start a new simulation but do not need to modify your
+domain then you can simply edit the date parameters in the {\bf RegCM/PreProc/ICBC}
+{\it icbc.param} file before running the {\it icbc.x} script.
+
+
