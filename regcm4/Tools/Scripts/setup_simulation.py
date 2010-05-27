@@ -69,8 +69,8 @@ def edit_namelist(namelist,datadir,simdir):
 
     for line in fileinput.FileInput(namelist,inplace=1):
 
-        line = line.replace("/set/this/to/where/your/surface/dataset/is",datadir)
-        line = line.replace("/set/this/to/where/your/input/global/data/is",datadir)
+        line = line.replace("/set/this/to/where/your/surface/dataset/is",datadir+"/")
+        line = line.replace("/set/this/to/where/your/input/global/data/is",datadir+"/")
 
         line = line.replace("/set/this/to/where/your/domain/file/is",simdir+"/input")
         line = line.replace("/set/this/to/where/your/icbc/for/model/is",simdir+"/input")
