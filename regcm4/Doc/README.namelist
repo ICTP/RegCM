@@ -58,10 +58,10 @@
  lakadj = .false.,       ! Great Lakes levels adjustment Control Flag
                          !   (Set true only if US EastCoast)
                          !  true  -> Adjust Great Lakes Levels according to obs
- fudge_lnd   = .false.,  ! Fudging Control flag, for landuse for grid 
- fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse for subgrid
- fudge_tex   = .false.,  ! Fudging Control flag, for texture for grid
- fudge_tex_s = .false.,  ! Fudging Control flag, for texture for subgrid
+ fudge_lnd   = .false.,  ! Fudging Control flag, for landuse of grid 
+ fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse of subgrid
+ fudge_tex   = .false.,  ! Fudging Control flag, for texture of grid
+ fudge_tex_s = .false.,  ! Fudging Control flag, for texture of subgrid
  ntex = 17,              ! Number of Soil texture categories, leave it to 17
  h2opct = 75.,           ! Surface minimum H2O percent to be considered water
  dirter = '../../Input', ! Output directory for terrain files
