@@ -21,6 +21,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <iostream>
 #include <calc.h>
 #include <cmath>
 #include <cstring>
@@ -276,70 +277,9 @@ void presslevs::setup_dims(int nx, int ny, int nz, float *sigma)
   sig = new float [nz];
   for (int k = 0; k < nz; k ++)
     sig[k] = sigma[k];
-  dimsok = true;
-}
-
-void presslevs::htsig(float *t, float *h, float *pstar, float *ht)
-{
-  // Calculate top layer
-  for (int i = 0, j = start_tl; i < n2D; i ++)
-    h[j+i] = ht[i] + rovg*t[j+i] *
-              logf(pstar[i]/((pstar[i]-ptop)*sig[km]+ptop));
-  float tbar;
-  for (int k = km-1; k < 0; k --)
-  {
-    for (int i = 0, j1 = k*n2D, j2 = (k+1)*n2D; i < n2D; i ++)
-    {
-      tbar = 0.5f*(t[j1+i]+t[j2+i]);
-      h[j1+i] = h[j2+i] + rovg * tbar *
-         logf(pstar[i]/((pstar[i]-ptop)*sig[k+1]+ptop)/
-              pstar[i]/((pstar[i]-ptop)*sig[k]+ptop));
-    }
-  }
-  return;
-}
-
-void presslevs::height(float *hp, float *h, float *t, float *pstar, float *ht)
-{
-  int kbc = 0, kt, kb;
-  float *psig = new float [nz];
-  float wt, wb, temp;
-
   for (int k = 0; k < nz; k ++)
-    if (sig[k]<bltop) kbc = k;
-  for (int i = 0; i < n2D; i ++)
-  {
-    for (int k = 0; k < nz; k ++)
-      psig[k] = sig[k]*(pstar[i]-ptop) + ptop;
-    for (int ip = 0; ip < np; ip ++)
-    {
-      kt = 1;
-      for (int k = 0; k < nz; k ++)
-        if (psig[k]<plevs[ip]) kt = k;
-      kb = kt + 1;
-      if (plevs[ip] <= psig[0])
-        hp[ip*n2D+i] = h[i] + rgas*t[i]*logf(psig[0]/plevs[ip])*rgti;
-      else if (plevs[ip] > psig[0] && plevs[ip] < psig[km])
-      {
-        wt = logf(psig[kb]/plevs[ip])/logf(psig[kb]/psig[kt]);
-        wb = logf(plevs[ip]/psig[kt])/logf(psig[kb]/psig[kt]);
-        temp = wt*t[kt*n2D+i] + wb*t[kb*n2D+i];
-        temp = (temp+t[kb*n2D+i])/2.0f;
-        hp[ip*n2D+i] = h[kb*n2D+i] + rgas*temp*logf(psig[kb]/plevs[ip])*rgti;
-      }
-      else if (plevs[ip] > pstar[i])
-      {
-        temp = t[kbc*n2D+i] - lrate*(h[kbc*n2D+i]-ht[i]);
-        hp[ip*n2D+i] = ht[i] - (temp/lrate)*
-           (1.0f-expf(-rgas*lrate*log(plevs[ip]/pstar[i])*rgti));
-      }
-      else
-        throw "GOOSH in height";
-    }
-  }
-
-  delete [ ] psig;
-  return;
+    if (sig[k]>bltop) kbc = k;
+  dimsok = true;
 }
 
 void presslevs::intlin(float *fp, float *f, float *pstar)
@@ -351,18 +291,18 @@ void presslevs::intlin(float *fp, float *f, float *pstar)
     for (int ip = 0; ip < np; ip ++)
     {
       sigp = (plevs[ip]-ptop)/(pstar[i]-ptop);
-      k1 = 0;
-      for (int k = 0; k < nz; k ++)
-        if (sigp>sig[k]) k1 = k;
-      if (sigp <= sig[0])
+      if (sigp >= sig[0])
         fp[ip*n2D+i] = f[i];
-      else if ( (sigp>sig[0]) && (sigp<sig[km]) )
+      else if ( (sigp<sig[0]) && (sigp>sig[km]) )
       {
+        k1 = 0;
+        for (int k = 0; k < nz; k ++)
+          if (sigp<sig[k]) k1 = k;
         k1p = k1 + 1;
         wp = (sigp-sig[k1])/(sig[k1p]-sig[k1]);
         fp[ip*n2D+i] = (1.0f-wp)*f[k1*n2D+i] + wp*f[k1p*n2D+i];
       }
-      else if (sigp>=sig[km])
+      else if (sigp<sig[km])
         fp[ip*n2D+i] = f[km*n2D+i];
       else
         throw "GOOSH in intlin";
@@ -373,35 +313,31 @@ void presslevs::intlin(float *fp, float *f, float *pstar)
 
 void presslevs::intlog(float *fp, float *f, float *pstar)
 {
-  int kbc = -1, k1, k1p;
   float sigp, wp;
-
-  for (int k = 0; k < nz; k ++)
-     if (sig[k]<bltop) kbc = k;
-
+  int k1, k1p;
   for (int i = 0; i < n2D; i ++)
   {
     for (int ip = 0; ip < np; ip ++)
     {
       sigp = (plevs[ip]-ptop)/(pstar[i]-ptop);
-      k1 = 0;
-      for (int k = 0; k < nz; k ++)
-        if (sigp>sig[k]) k1 = k;
-      if (sigp <= sig[0])
+      if (sigp >= sig[0] && sigp < 1.0f)
         fp[ip*n2D+i] = f[i];
-      else if ( (sigp>sig[0]) && (sigp<sig[km]) )
+      else if ( (sigp<sig[0]) && (sigp>sig[km]) )
       {
+        k1 = 0;
+        for (int k = 0; k < nz; k ++)
+          if (sigp<sig[k]) k1 = k;
         k1p = k1 + 1;
-        wp = logf(sigp-sig[k1])/logf(sig[k1p]-sig[k1]);
+        wp = logf(sig[k1]-sigp)/logf(sig[k1]-sig[k1p]);
         fp[ip*n2D+i] = (1.0f-wp)*f[k1*n2D+i] + wp*f[k1p*n2D+i];
       }
-      else if (sigp>=sig[km] && sigp<=1.0f)
+      else if (sigp<sig[km])
         fp[ip*n2D+i] = f[km*n2D+i];
       else if (sigp>1.0f)
         fp[ip*n2D+i] = f[kbc*n2D+i] *
             expf(-rgas*lrate*logf(sigp/sig[kbc])*rgti);
       else
-        throw "GOOSH in intlin";
+        throw "GOOSH in intlog";
     }
   }
   return;
@@ -410,11 +346,8 @@ void presslevs::intlog(float *fp, float *f, float *pstar)
 void presslevs::slpres(float *h, float *t, float *pstar, float *ht, float *tg,
                   float *slp1, float *slp2)
 {
-  int kbc = km;
   float tsfc;
 
-  for (int k = 0; k < nz; k ++)
-    if (sig[k]<bltop) kbc = k;
   for (int i = 0; i < n2D; i ++)
   {
     tsfc = t[kbc*n2D+i] - lrate*(h[kbc*n2D+i]-ht[i]);

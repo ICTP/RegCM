@@ -87,7 +87,9 @@ void copygatt(NcFile *f, NcAtt *src)
       }
       break;
     case ncChar:
+      char *ss = src->as_string(0);
       f->add_att(src->name( ), src->as_string(0));
+      delete [ ] ss;
       break;
     case ncShort:
       {
@@ -145,7 +147,9 @@ void copyvatt(NcVar *v, NcAtt *src)
       }
       break;
     case ncChar:
+      char *ss = src->as_string(0);
       v->add_att(src->name( ), src->as_string(0));
+      delete [ ] ss;
       break;
     case ncShort:
       {
@@ -238,15 +242,14 @@ int main(int argc, char *argv[])
   {
     float *fplev;
     int np;
-    {
-      std::vector<float> fl;
-      levlist_to_vec(plevs, fl);
-      np = fl.size( );
-      if (np <= 0) throw "Unable to understande pressure level list...";
-      fplev = new float[np];
-      for (int i = 0; i < np; i ++)
-        fplev[i] = fl[i];
-    }
+    std::vector<float> fl;
+    levlist_to_vec(plevs, fl);
+    np = fl.size( );
+    if (np <= 0) throw "Unable to understande pressure level list...";
+    fplev = new float[np];
+    for (int i = 0; i < np; i ++)
+      fplev[i] = fl[i];
+    fl.clear( );
     
     std::string iname = argv[1];
     std::string oname = iname.substr(0, iname.find_last_of('.'))+"_plevs.nc";
@@ -282,6 +285,7 @@ int main(int argc, char *argv[])
     {
       NcAtt *att = fin->get_att(i);
       copygatt(fout, att);
+      delete att;
     }
     NcAtt *att = fin->get_att("history");
     std::string ohist = att->as_string(0);
@@ -295,20 +299,25 @@ int main(int argc, char *argv[])
     int nvars = fin->num_vars( );
     bool *is3D = new bool[nvars];
     bool *isvt = new bool[nvars];
+    bool *istemp = new bool[nvars];
     NcDim **xdims;
     xdims = new NcDim*[ndims];
     const NcDim **xxd = (const NcDim **) xdims;
     int levid = -1;
     int timeid = -1;
+    int prid = -1;
+    int psid = -1;
     for (int i = 0; i < nvars; i ++)
     {
       is3D[i] = false;
       isvt[i] = false;
+      istemp[i] = false;
       NcVar *var = fin->get_var(i);
-      if (strcmp(var->name( ), "level") == 0)
+      char *name = (char *) var->name( );
+      if (strcmp(name, "level") == 0)
       {
-        NcVar *pl = fout->add_var("level", ncFloat, pdim);
-        pl->add_att("standard_name", "air_pressure");
+        NcVar *pl = fout->add_var("plev", ncFloat, pdim);
+        pl->add_att("standard_name", "pressure");
         pl->add_att("long_name", "Pressure level");
         pl->add_att("positive", "down");
         pl->add_att("units", "hPa");
@@ -316,7 +325,18 @@ int main(int argc, char *argv[])
         levid = i;
         continue;
       }
-      else if (strcmp(var->name( ), "time") == 0) timeid = i;
+      else if (strcmp(name, "p") == 0)
+      {
+        // Do not define a 3D pressure in output: we are going on pressure
+        // levels as Z dimension.
+        prid = i;
+        continue;
+      }
+      else if (strcmp(name, "time") == 0) timeid = i;
+      else if (strcmp(name, "ps") == 0) psid = i;
+      else if (strcmp(name, "t") == 0)  istemp[i] = true;
+      else if (strcmp(name, "td") == 0) istemp[i] = true;
+      else if (strcmp(name, "tp") == 0) istemp[i] = true;
       int nvdims = var->num_dims( );
       int nvatts = var->num_atts( );
       for (int j = 0; j < nvdims; j ++)
@@ -345,6 +365,7 @@ int main(int argc, char *argv[])
       {
         NcAtt *a = var->get_att(j);
         copyvatt(vout, a);
+        delete a;
       }
     }
     delete [ ] xdims;
@@ -354,17 +375,37 @@ int main(int argc, char *argv[])
     long actsize = 0;
     float *vals = 0;
 
+    float ptop = fin->get_var("ptop")->as_float(0);
+    int nz = zdim->size();
+    float *sigma = new float[nz];
+    NcVar *sigmalev = fin->get_var("level");
+    sigmalev->get(sigma, nz);
+    int nx = fin->get_dim("jx")->size( );
+    int ny = fin->get_dim("iy")->size( );
+    long size2D = nx*ny;
+    long size3D = size2D*nz;
+    long size3Dp = size2D*np;
+    float *ps = new float[size2D];
+    float *varsig = new float[size3D];
+    float *varp = new float[size3Dp];
+    presslevs pint(fplev, np, ptop);
+    pint.setup_dims(nx, ny, nz, sigma);
+
     // Write out time independent data
-    for (int i = 0; i < nvars; i ++)
+    for (int i = 0, io = 0; i < nvars; i ++, io ++)
     {
-      NcVar *vout = fout->get_var(i);
-      if (i == timeid) continue;
+      if (isvt[i] || is3D[i]) continue; // Assuming no static 3D+ needed
+      if (i == prid)
+      {
+        io --;
+        continue;          // Skip undefined var
+      }
+      NcVar *vout = fout->get_var(io);
       if (i == levid)
       {
         vout->put(fplev, np);
         continue;
       }
-      if (isvt[i] || is3D[i]) continue;
       NcVar *vin = fin->get_var(i);
       long *xs = vin->edges( );
       long totsize = vin->num_vals( );
@@ -380,21 +421,41 @@ int main(int argc, char *argv[])
       delete [ ] xs;
     }
 
+    std::cout << "Static 2D vars written..." << std::endl;
+
     // Time dependent data
     int ntimes = udim->size( );
     for (long it = 0; it < ntimes; it ++)
     {
+      // Add a timestep
       NcVar *vint = fin->get_var(timeid);
       NcVar *vt = fout->get_var(timeid);
-      double xtime = vint->get_rec(it)->as_double(0);
+      NcValues *xt = vint->get_rec(it);
+      double xtime = xt->as_double(0);
       vt->put_rec(&xtime, it);
-      for (int i = 0; i < nvars; i ++)
+      delete xt;
+
+      // Need a copy of surface pressure
+      NcVar *psvar = fin->get_var("ps");
+      psvar->set_cur(it);
+      psvar->get(ps, 1, ny, nx);
+      NcVar *psout = fout->get_var("ps");
+      psout->set_cur(it);
+      psout->put(ps, 1, ny, nx);
+
+      for (int i = 0, io = 0; i < nvars; i ++, io ++)
       {
-        if (!isvt[i]) continue;
-        if (!is3D[i])
+        if (i == prid)
+        {
+          io --;    // Do not increment outpointer
+          continue; // Do not want pressure in output on plevs
+        }
+        if (i == psid) continue; // Already written
+        if (!isvt[i])  continue; // Not function of time
+        if (!is3D[i])            // 2D+ var, not vertical info
         {
           NcVar *vin2D = fin->get_var(i);
-          NcVar *vout2D = fout->get_var(i);
+          NcVar *vout2D = fout->get_var(io);
           vin2D->set_cur(it);
           vout2D->set_cur(it);
           long *xs = vin2D->edges( );
@@ -407,19 +468,57 @@ int main(int argc, char *argv[])
             actsize = totsize;
           }
           vin2D->get(vals, xs);
-          vout2D->put(vals, xs);
+          vout2D->put_rec(vals, it);
           delete [ ] xs;
+          continue;
         }
-        // Time dependent and 3D
+        // Time dependent and 3D+
+        NcVar *vin3D = fin->get_var(i);
+        NcVar *vout3D = fout->get_var(io);
+        vin3D->set_cur(it);
+        vout3D->set_cur(it);
+        long *xs = vin3D->edges( );
+        long *xd = vout3D->edges( );
+        long totsize = vin3D->num_vals( )/ntimes;
+        int nblocks = totsize/size3D;
+        xs[0] = 1;
+        xd[0] = 1;
+        if (nblocks > 1) 
+        { 
+          xs[1] = 1;
+          xd[1] = 1;
+        }
+        for (int j = 0; j < nblocks; j ++)
+        {
+          vin3D->get(varsig, xs);
+          if (istemp[i])
+            pint.intlog(varp, varsig, ps);
+          else
+            pint.intlin(varp, varsig, ps);
+          vout3D->put(varp, xd);
+          xs[1] ++;
+          xd[1] ++;
+        }
+        delete [ ] xs;
+        delete [ ] xd;
       }
+      std::cout << "Done timestep." << std::endl;
     }
 
-    if (vals) delete [ ] vals;
+    delete [ ] vals;
+    delete [ ] varsig;
+    delete [ ] varp;
 
     fin->close( );
     fout->close( );
+
     delete [ ] is3D;
     delete [ ] isvt;
+    delete [ ] istemp;
+    delete [ ] fplev;
+    delete [ ] sigma;
+    delete fin;
+    delete fout;
   }
   catch (const char *e)
   {

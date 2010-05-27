@@ -16,7 +16,8 @@ Notably it does not:
 
         * Display data (left to tools like Unidata IDV or NASA panoply)
         * Perform time means (left to NCO or CDO)
-        * Perform pressure level interpolation
+        * Perform pressure level interpolation (left to second level
+          program ncsigtop)
 
 Using this program should (hopefully) be straightforward. It does expect You
 are running or have completed to run a RegCM V4 simulation with its
