@@ -20,7 +20,7 @@
  &geoparam
  iproj = 'LAMCON', ! Domain cartographic projection. Supported values are:
                    ! 'LAMCON', Lambert conformal.
-                   ! 'POLSTR', Polar stereographic.
+                   ! 'POLSTR', Polar stereographic. (Doesn't work)
                    ! 'NORMER', Normal  Mercator.
                    ! 'ROTMER', Rotated Mercator.
  ds = 60.0,        ! Grid point horizontal resolution in km
@@ -58,10 +58,10 @@
  lakadj = .false.,       ! Great Lakes levels adjustment Control Flag
                          !   (Set true only if US EastCoast)
                          !  true  -> Adjust Great Lakes Levels according to obs
- fudge_lnd   = .false.,  ! Fudging for landuse and texture for grid and subgrid
- fudge_lnd_s = .false.,  ! Fudging for landuse and texture for grid and subgrid
- fudge_tex   = .false.,  ! Fudging for landuse and texture for grid and subgrid
- fudge_tex_s = .false.,  ! Fudging for landuse and texture for grid and subgrid
+ fudge_lnd   = .false.,  ! Fudging Control flag, for landuse for grid 
+ fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse for subgrid
+ fudge_tex   = .false.,  ! Fudging Control flag, for texture for grid
+ fudge_tex_s = .false.,  ! Fudging Control flag, for texture for subgrid
  ntex = 17,              ! Number of Soil texture categories, leave it to 17
  h2opct = 75.,           ! Surface minimum H2O percent to be considered water
  dirter = '../../Input', ! Output directory for terrain files

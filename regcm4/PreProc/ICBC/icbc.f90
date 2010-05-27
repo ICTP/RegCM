@@ -42,7 +42,7 @@
 !          Current holdings: 1948 - present, 2.5x2.5L13, netCDF.       !
 !   NNRP2: NCEP/DOE AMIP-II Reanalysis (Reanalysis-2) are at:          !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis2/           !
-!          Current holdings: 1979 - 2007, 2.5x2.5L13, netCDF.          !
+!          Current holdings: 1979 - 2009, 2.5x2.5L13, netCDF.          !
 !   NRP2W: Small Window (instead of global) of NNRP1/2 to save disk    !
 !          space. (For example, African window: 40W,80E;60S,70N)       !
 !   ECMWF: ECMWF TOGA/WCRP Uninitialized Data - (ECWCRP)               !
