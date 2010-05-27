@@ -213,7 +213,7 @@
          if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
             nrecord = min(nrecord,mod(idate2/100-1,100))
          if(nfile.eq.1.and.idate0.eq.idate1) nrec = nvar
-         n_slice = 24/nint(dt)
+         n_slice = nint(24./dt)
 
          if(filename.eq.'ATM') then
             filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
@@ -1035,9 +1035,9 @@
       if(nsg.lt.10) then
          write(chnsg,71) nsg
       else if(nsg.lt.100) then
-         write(chnsg,71) nsg
+         write(chnsg,72) nsg
       else
-         write(chnsg,71) nsg
+         write(chnsg,73) nsg
       endif
  71   format('00',I1)
  72   format('0', I2)
@@ -2225,9 +2225,9 @@
       if(nsg.lt.10) then
          write(chnsg,71) nsg
       else if(nsg.lt.100) then
-         write(chnsg,71) nsg
+         write(chnsg,72) nsg
       else
-         write(chnsg,71) nsg
+         write(chnsg,73) nsg
       endif
  71   format('00',I1)
  72   format('0', I2)
