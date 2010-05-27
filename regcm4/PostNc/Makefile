@@ -23,8 +23,8 @@
 
 include ../Makefile.inc
 
-all:: dom2netcdf icbc2netcdf rcm2netcdf ncsigtop
-	@cp dom2netcdf icbc2netcdf rcm2netcdf ncsigtop $(BINDIR)
+all:: dom2netcdf icbc2netcdf rcm2netcdf ncsigma2p
+	@cp dom2netcdf icbc2netcdf rcm2netcdf ncsigma2p $(BINDIR)
 	@echo Programs all installed in $(BINDIR)
 
 LIBS = $(CXXNETCDF)
@@ -59,8 +59,8 @@ dom2netcdf: dom2netcdf.cpp $(OBJS)
 icbc2netcdf: icbc2netcdf.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< $(OBJS) $(LIBS)
 
-ncsigtop: ncsigtop.cpp calc.o
+ncsigma2p: ncsigma2p.cpp calc.o
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< calc.o $(LIBS)
 
 clean:
-	rm -f rcm2netcdf dom2netcdf icbc2netcdf ncsigtop *.o
+	rm -f rcm2netcdf dom2netcdf icbc2netcdf ncsigma2p *.o

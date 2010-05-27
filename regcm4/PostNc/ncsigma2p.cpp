@@ -287,9 +287,13 @@ int main(int argc, char *argv[])
       copygatt(fout, att);
       delete att;
     }
-    NcAtt *att = fin->get_att("history");
-    std::string ohist = att->as_string(0);
-    delete att;
+    NcAtt *hatt = fin->get_att("history");
+    NcValues *vhatt = hatt->values( );
+    char *cohist = vhatt->as_string(0);
+    std::string ohist = cohist;
+    delete [ ] cohist;
+    delete vhatt;
+    delete hatt;
     ohist += "\n";
     for (int i = 0; i < argc-1; i ++)
       ohist = ohist+argv[i]+" ";
