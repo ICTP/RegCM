@@ -736,13 +736,15 @@
 !
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        print * , 'param: READING HEADER FILE'
+#endif              
         domfile = trim(dirter)//pthsep//trim(domname)//'.INFO'
+        print * , 'READING HEADER FILE:',domfile
         open (iutin,file=domfile,form='unformatted',status='old',       &
             & access='direct',recl=iy*jx*ibyte)
         if ( nsg.gt.1 ) then
           write (subdom,99001)                                          &
              &   trim(dirter),pthsep,trim(domname),nsg,'.INFO'
+          print * , 'READING HEADER FILE for subdomain:',subdom
           open (iutin1,file=subdom,form='unformatted',status='old',     &
              &  access='direct',recl=iysg*jxsg*ibyte)
         end if
@@ -774,50 +776,14 @@
         do k = 1 , kzp1
           sigma(k) = dble(sp1d(k))
         end do
+#ifdef MPP1        
       end if
       call mpi_bcast(clat,1,mpi_real,0,mpi_comm_world,ierr)
       call mpi_bcast(plon,1,mpi_real,0,mpi_comm_world,ierr)
       call mpi_bcast(r8pt,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(dx,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
-#else
-      print * , 'READING HEADER FILE'
-      domfile = trim(dirter)//pthsep//trim(domname)//'.INFO'
-      open (iutin,file=domfile,form='unformatted',status='old',         &
-          & access='direct',recl=iy*jx*ibyte)
-      if ( nsg.gt.1 ) then
-        write (subdom,99001)                                            &
-           &   trim(dirter),pthsep,trim(domname),nsg,'.INFO'
-        open (iutin1,file=subdom,form='unformatted',status='old',       &
-           &  access='direct',recl=iysg*jxsg*ibyte)
-      end if
-      read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dsx , iclat ,   &
-                                    & iclon , iplat , iplon , grdfac ,  &
-                                    & proj , sp1d , ptsp , igra ,       &
-                                    & ibig , trl , trh
-      print * , 'DIMS' , iyy , jxx , kzz
-      print * , 'DOMAIN' , dsx , iclat , iclon , iplat , iplon , grdfac
-      print * , 'PROJ' , proj
-      print * , 'SIGMA' , sp1d
-      print * , 'PTOP' , ptsp
-      print * , 'OUTPUT' , igra , ibig
-      r8pt = ptsp
-      dx = dsx
-      if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
-        write (aline,*) '  SET IN regcm.in:  IY=' , iy , ' JX=' ,    &
-                      & jx , ' KX=' , kz
-        call say
-        write (aline,*) '  SET IN TERRAIN: IYY=' , iyy , ' JXX=' , jxx ,&
-                       &' KZZ=' , kzz
-        call say
-        write (aline,*) '  Also check ibyte in regcm.param: ibyte = ' , &
-                      & ibyte
-        call fatal(__FILE__,__LINE__,'IMPROPER DIMENSION SPECIFICATION')
-      end if
-      do k = 1 , kzp1
-        sigma(k) = dble(sp1d(k))
-      end do
-#endif
+#endif 
  
 !rst-fix
       mdate0 = idate0
