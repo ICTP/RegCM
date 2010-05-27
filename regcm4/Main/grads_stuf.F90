@@ -245,7 +245,7 @@
       write (31,99017) 'runoff  ' ,                                     &
                       &'surface runoff (mm/day)              '
       write (31,99017) 'scv     ' ,                                     &
-                      &'total snow amount (mm)               '
+                      &'snow amount (mm, water equivalent)   '
       write (31,99017) 'sena    ' ,                                     &
                       &'sensible heat flux (W/m2)            '
       write (31,99017) 'flw     ' ,                                     &
@@ -534,7 +534,7 @@
       write (31,99017) 'runoff  ' ,                                     &
                       &'surface runoff (mm/day)              '
       write (31,99017) 'scv     ' ,                                     &
-                      &'total snow amount (mm)               '
+                      &'snow amount (mm, water equivalent)   '
       write (31,99017) 'sena    ' ,                                     &
                       &'sensible heat flux (W/m2)            '
       write (31,99017) 'prcv    ' ,                                     &
