@@ -111,7 +111,6 @@
  iemiss  =          0,
  lakemod =          0,
  ichem   =          0,
- dirout = '/set/this/to/where/your/output/files/will/be/written',
  /
  &subexparam
  qck1land=   .250E-03,
