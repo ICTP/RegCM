@@ -2142,15 +2142,18 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ATM.'//chy(nyear)//chm(month)//'01'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
-               inquire(file=trim(Path_Output)//filein,exist=there)
+               inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
-                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  write(*,*) trim(Path_Output)//filein(1:12)  &
+                            ,' is not avaiable'
                   stop
                endif
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
+             open(10,file=trim(Path_Output)//filein(1:12)  &
+                    ,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout(1:15)  &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
 
@@ -2487,15 +2490,18 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'ATM.'//chy(nyear)//chm(month)//'01'
                fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
-               inquire(file=trim(Path_Output)//filein,exist=there)
+               inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
-                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  write(*,*) trim(Path_Output)//filein(1:12)  &
+                            ,' is not avaiable'
                   stop
                endif
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+             open(10,file=trim(Path_Output)//filein(1:12)  &
+                    ,form='unformatted' &
+                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout(1:15)  &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -3032,15 +3038,18 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'SRF.'//chy(nyear)//chm(month)//'01'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
-               inquire(file=trim(Path_Output)//filein,exist=there)
+               inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
-                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  write(*,*) trim(Path_Output)//filein(1:12)  &
+                            ,' is not avaiable'
                   stop
                endif
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+             open(10,file=trim(Path_Output)//filein(1:12)  &
+                    ,form='unformatted' &
+                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout(1:15)  &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -3418,15 +3427,18 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'SRF.'//chy(nyear)//chm(month)//'01'
                fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
-               inquire(file=trim(Path_Output)//filein,exist=there)
+               inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
-                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  write(*,*) trim(Path_Output)//filein(1:12)  &
+                            ,' is not avaiable'
                   stop
                endif
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+             open(10,file=trim(Path_Output)//filein(1:12)  &
+                    ,form='unformatted' &
+                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout(1:15)  &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -3984,15 +3996,18 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'RAD.'//chy(nyear)//chm(month)//'01'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
-               inquire(file=trim(Path_Output)//filein,exist=there)
+               inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
-                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  write(*,*) trim(Path_Output)//filein(1:12)  &
+                            ,' is not avaiable'
                   stop
                endif
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+             open(10,file=trim(Path_Output)//filein(1:12)  &
+                    ,form='unformatted' &
+                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout(1:15)  &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
@@ -4334,15 +4349,18 @@
                n_slice=min(n_slice,mod(idate2-1,100)+1)
                filein = 'RAD.'//chy(nyear)//chm(month)//'01'
                fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
-               inquire(file=trim(Path_Output)//filein,exist=there)
+               inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
-                  write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                  write(*,*) trim(Path_Output)//filein(1:12)  &
+                            ,' is not avaiable'
                   stop
                endif
-             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+             open(10,file=trim(Path_Output)//filein(1:12)  &
+                    ,form='unformatted' &
+                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                mrec = 0
-            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+            open(20,file=trim(Path_Output)//fileout(1:15)  &
+                   ,form='unformatted' &
                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                nrec = 0
             else if(ntype.eq.2) then
