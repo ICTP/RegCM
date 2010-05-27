@@ -115,10 +115,10 @@
                              !          FV_RF, FV_A2, FV_B2,
                              !          EH5RF, EH5A2, EH5B1, EHA1B,
                              !          ERSST, ERSKT
- dattyp = 'ERAIN',           ! Type of global analysis datasets used
-                             !  One in: ECMWF, ERA40, ERAIN, EIN75, EIN15,
-                             !          EIM25, ERAHI, NNRP1, NNRP2, NRP2W,
-                             !          GFS11, FVGCM, FNEST, EH5OM
+ dattyp = 'EIN15',           ! Type of global analysis datasets used
+                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIM25,
+                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
+                             !          FVGCM, FNEST, EH5OM
  ehso4 = .false.,            ! Sulfate dataset Control Flag
  globidate1 = 1990060100,    ! Start date for ICBC data generation
  globidate2 = 1990070100,    ! End data for ICBC data generation
