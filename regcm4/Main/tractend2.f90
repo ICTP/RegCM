@@ -644,7 +644,7 @@
 !           dignoctic for dry deposition
             remdrd(i,j,itr) = remdrd(i,j,itr) - settend(i,kz)*dt/2.
           end do
- 
+       
         end if !( end calculation of dust tendancies)
  
 !CCCC   Source tendenciesCCCC

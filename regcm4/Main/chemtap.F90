@@ -43,7 +43,7 @@
 !
       integer :: i , itr , j , k
       real(8) :: mpd
- 
+
       if ( iotyp.eq.2 ) write (iutchem) idatex
  
 !     3 d fields
@@ -277,6 +277,9 @@
 !       write(iutchem) fchem
 !       end if
 !       ------------------
+! end tracer loop
+        end do
+
 !       reinitialisation for avraged dposition rates ( a modifier)
 #ifdef MPP1
         remlsc_io  = 0.0
@@ -307,7 +310,6 @@
         wxaq    = 0.0
         cemtrac = 0.0
 #endif
-      end do
  
 !----total aerosol TOA radiative forcing ( independant of the number of tracer)
  

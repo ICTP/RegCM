@@ -430,7 +430,7 @@
                 end do
               end do
             end do
-            do j = 1 , jxm1
+           do j = 1 , jxm1
               do i = 1 , iym1
                 aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j+1)
                 aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j+1)
