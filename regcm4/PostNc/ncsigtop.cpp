@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
     bool *isvt = new bool[nvars];
     NcDim **xdims;
     xdims = new NcDim*[ndims];
-    const NcDim **xxd = xdims;
+    const NcDim **xxd = (const NcDim **) xdims;
     int levid = -1;
     int timeid = -1;
     for (int i = 0; i < nvars; i ++)
@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
         else
         {
           if (d == udim) isvt[i] = true;
-          for (int k = 0; k < dims.size( ); k++)
+          for (unsigned int k = 0; k < dims.size( ); k++)
           {
             if (strcmp(d->name( ), dims[k]->name( )) == 0)
             {

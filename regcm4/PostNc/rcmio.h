@@ -282,6 +282,8 @@ namespace rcm
       float *agfu8;
       float *acstoarf;
       float *acstsrrf;
+      float *acstalrf;
+      float *acssrlrf;
       float *psa;
       int date0;
       int date1;

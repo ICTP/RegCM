@@ -1367,8 +1367,10 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
     if (fnc.vl.isthere("xgs")) varmask[8] = true;
     if (fnc.vl.isthere("xaq")) varmask[9] = true;
     if (fnc.vl.isthere("tem")) varmask[10] = true;
-    if (fnc.vl.isthere("act")) varmask[11] = true;
-    if (fnc.vl.isthere("acs")) varmask[12] = true;
+    if (fnc.vl.isthere("fst")) varmask[11] = true;
+    if (fnc.vl.isthere("fss")) varmask[12] = true;
+    if (fnc.vl.isthere("flt")) varmask[13] = true;
+    if (fnc.vl.isthere("fls")) varmask[14] = true;
   }
 
   // Manage time setup
@@ -1490,8 +1492,8 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
   {
     acstoarfvar = f->add_var("acstoarf", ncFloat, tt, iy, jx);
     acstoarfvar->add_att("standard_name",
-                         "toa_instantaneous_radiative_forcing");
-    acstoarfvar->add_att("long_name", "TOArad forcing av.");
+                         "toa_instantaneous_shortwave_radiative_forcing");
+    acstoarfvar->add_att("long_name", "TOArad SW forcing av.");
     acstoarfvar->add_att("coordinates", "xlon xlat");
     acstoarfvar->add_att("units", "W m-2");
   }
@@ -1499,10 +1501,28 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
   {
     acstsrrfvar = f->add_var("acstsrrf", ncFloat, tt, iy, jx);
     acstsrrfvar->add_att("standard_name",
-                         "surface_instantaneous_radiative_forcing");
-    acstsrrfvar->add_att("long_name", "SRFrad forcing av.");
+                         "surface_instantaneous_shortwave_radiative_forcing");
+    acstsrrfvar->add_att("long_name", "SRFrad SW forcing av.");
     acstsrrfvar->add_att("coordinates", "xlon xlat");
     acstsrrfvar->add_att("units", "W m-2");
+  }
+  if (varmask[13])
+  {
+    acstalrfvar = f->add_var("acstalrf", ncFloat, tt, iy, jx);
+    acstalrfvar->add_att("standard_name",
+                         "toa_instantaneous_longwave_radiative_forcing");
+    acstalrfvar->add_att("long_name", "TOArad LW forcing av.");
+    acstalrfvar->add_att("coordinates", "xlon xlat");
+    acstalrfvar->add_att("units", "W m-2");
+  }
+  if (varmask[14])
+  {
+    acstalrfvar = f->add_var("acssrlrf", ncFloat, tt, iy, jx);
+    acstalrfvar->add_att("standard_name",
+                         "surface_instantaneous_longwave_radiative_forcing");
+    acstalrfvar->add_att("long_name", "SRFrad LW forcing av.");
+    acstalrfvar->add_att("coordinates", "xlon xlat");
+    acstalrfvar->add_att("units", "W m-2");
   }
   if (ctl->doit)
   {
@@ -1517,12 +1537,22 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
                 << std::endl;
     if (varmask[11])
     {
-      gv.set("acstoarf","acstoarf","TOA rad forcing av. (W m-2)",0,true);
+      gv.set("acstoarf","acstoarf","TOA SW rad forcing av. (W m-2)",0,true);
       ctl->add_var(gv);
     }
     if (varmask[12])
     {
-      gv.set("acstsrrf","acstsrrf","SRF rad forcing av. (W m-2)",0,true);
+      gv.set("acstsrrf","acstsrrf","SRF SW rad forcing av. (W m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[13])
+    {
+      gv.set("acstalrf","acstalrf","TOA LW rad forcing av. (W m-2)",0,true);
+      ctl->add_var(gv);
+    }
+    if (varmask[14])
+    {
+      gv.set("acssrlrf","acssrlrf","SRF LW rad forcing av. (W m-2)",0,true);
       ctl->add_var(gv);
     }
   }
@@ -1594,6 +1624,8 @@ void rcmNcChe::put_rec(chedata &c)
   }
   if (varmask[11]) acstoarfvar->put_rec(c.acstoarf, rcount);
   if (varmask[12]) acstsrrfvar->put_rec(c.acstsrrf, rcount);
+  if (varmask[13]) acstalrfvar->put_rec(c.acstalrf, rcount);
+  if (varmask[14]) acssrlrfvar->put_rec(c.acssrlrf, rcount);
   rcount ++;
   tcount ++;
   if (ctl->doit)

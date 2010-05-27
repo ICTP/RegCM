@@ -227,8 +227,10 @@ int main(int argc, char *argv[])
                   << "  xgs:  Gas conversion" << std::endl
                   << "  xaq:  Aqueous conversion" << std::endl
                   << "  tem:  Emission of tracer from surface" << std::endl
-                  << "  act:  TOA radiative forcing" << std::endl
-                  << "  acs:  Surface radiative forcing" << std::endl
+                  << "  fst:  TOA SW radiative forcing" << std::endl
+                  << "  fss:  Surface SW radiative forcing" << std::endl
+                  << "  flt:  TOA LW radiative forcing" << std::endl
+                  << "  fls:  Surface LW radiative forcing" << std::endl
                   << "###############" << std::endl
                   << "SUB file source" << std::endl
                   << "###############" << std::endl

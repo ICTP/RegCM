@@ -509,7 +509,7 @@ chedata::chedata(header_data &h, t_time_interval &t)
 
   ntr = 10;
   n3D = 13;
-  n2D = 73;
+  n2D = 75;
   size2D = h.nx*h.ny;
   size3D = size2D*h.nz;
   nvals = n3D*size3D + n2D*size2D;
@@ -522,7 +522,9 @@ chedata::chedata(header_data &h, t_time_interval &t)
   trac2D = agfu8 + size3D;
   acstoarf = trac2D + 70*size2D;
   acstsrrf = acstoarf + size2D;
-  psa = acstsrrf + size2D;
+  acstalrf = acstsrrf + size2D;
+  acssrlrf = acstalrf + size2D;
+  psa = acssrlrf + size2D;
   nsteps = calcnsteps(date0, date1, (int) dt);
 }
 

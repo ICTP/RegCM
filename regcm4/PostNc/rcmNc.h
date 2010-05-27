@@ -38,7 +38,7 @@ namespace rcm
   const int nvaratm = 17;
   const int nvarsrf = 26;
   const int nvarrad = 13;
-  const int nvarche = 13;
+  const int nvarche = 15;
   const int nvarsub = 15;
 
   class regcmvar {
@@ -224,6 +224,8 @@ namespace rcm
       NcVar *agfu8var;
       NcVar *acstoarfvar;
       NcVar *acstsrrfvar;
+      NcVar *acstalrfvar;
+      NcVar *acssrlrfvar;
       long nx, ny;
   };
 
