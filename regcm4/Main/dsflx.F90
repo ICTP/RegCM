@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       subroutine sfflux(ilg,il1,il2,jloop,luc,ivegcov,vegfrac,isoiltex, &
-                      & ustarnd, z0,soilw,surfwd,roarow,trsize,rsfrow)
+                      & ustarnd,z0,soilw,surfwd,roarow,trsize,rsfrow)
  
 !  **********************************************************
 !  *  dust emission scheme                             ******
@@ -38,19 +38,19 @@
 !
       integer :: il1 , il2 , ilg , jloop , luc
       integer , dimension(ilg) :: isoiltex , ivegcov
-      real(8) , dimension(ilg) :: roarow , soilw , surfwd , vegfrac , &
-                       &        z0,ustarnd
+      real(8) , dimension(ilg) :: roarow , soilw , surfwd , vegfrac ,   &
+                       &          z0 , ustarnd
       real(8) , dimension(ilg,nbin) :: rsfrow
       real(8) , dimension(nbin,2) :: trsize
       intent (in) il1 , il2 , isoiltex , ivegcov , jloop , roarow ,     &
-                & soilw , surfwd , vegfrac , z0, ustarnd
+                & soilw , surfwd , vegfrac , z0 , ustarnd
       intent (out) rsfrow
 !
 ! Local variables
 !
       integer :: i , ieff , ieffmax , n , ns
       real(8) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
-                                & xsurfwd , xvegfrac , xz0, xustarnd
+                                & xsurfwd , xvegfrac , xz0 , xustarnd
       real(8) , dimension(ilg,20) :: xfland
       integer , dimension(ilg) :: xisoiltex
       real(8) , dimension(ilg,nbin) :: xrsfrow
@@ -102,14 +102,14 @@
       end do
  
       ieffmax = ieff
-!      if (ieffmax>0. ) print*,&
-!         & maxval(xustarnd)
+
+!     if ( ieffmax>0. ) print *, maxval(xustarnd)
 
       if ( ieffmax.gt.0 ) call dust_module(1,ieffmax,ilg,trsize,xsoilw, &
          & xvegfrac,xsurfwd,xfland,xclayrow,xsand2row,xroarow,xz0,      &
          & xsrel2d,xustarnd,xrsfrow,luc)
         
-!        if (ieffmax>0. ) print*,'FLUX',maxval(xrsfrow)
+!     if ( ieffmax>0. ) print *, 'FLUX : ' , maxval(xrsfrow)
 !     put back the dust flux on the right grid
  
       ieff = 0
@@ -127,8 +127,8 @@
       end subroutine sfflux
 ! 
       subroutine dust_module(il1,il2,ilg,trsize,soilw,vegfrac,surfwd,   &
-                           & fland,clayrow,sand2row,roarow,z0,srel,ustarnd,     &
-                           & rsfrow,luc)
+                           & fland,clayrow,sand2row,roarow,z0,srel,     &
+                           & ustarnd,rsfrow,luc)
  
       use mod_dynparam
       use mod_dust
@@ -141,13 +141,13 @@
 !
       integer :: il1 , il2 , ilg , luc
       real(8) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
-                                & vegfrac , z0, ustarnd
+                                & vegfrac , z0 , ustarnd
       real(8) , dimension(ilg,20) :: fland
       real(8) , dimension(ilg,nbin) :: rsfrow
       real(8) , dimension(ilg,nats) :: sand2row
       real(8) , dimension(ilg,nsoil,nats) :: srel
       real(8) , dimension(nbin,2) :: trsize
-      intent (in) clayrow , soilw , surfwd , z0,ustarnd
+      intent (in) clayrow , soilw , surfwd , z0 , ustarnd
 !
 ! Local variables
 !
@@ -182,7 +182,8 @@
           end if
  
         else if ( jfs.eq.1 ) then
-! Marticorena et al., 1997: correction factor for non erodible elements
+!
+!         Marticorena et al., 1997: correction factor for non erodible elements
 !  
           rc(i) = 1 - (dlog(0.5E-2/z0s)/(dlog(0.35*(x/z0s)**0.8)))
  
@@ -217,7 +218,7 @@
             hc(i) = 1.0
           end if
  
-! no soil humidity correction facor if jsoilm > 1
+!       no soil humidity correction facor if jsoilm > 1
         else
           hc(i)=1.0
         end if
@@ -235,7 +236,7 @@
 !       ***** *     no. d6, p6203-6209, 1998                           
 !       *****
 ! *******************************************************************
-!        ustarns = (vonkar*100.*surfwd(i))/(log(1000./srl(i)))
+!       ustarns = (vonkar*100.*surfwd(i))/(log(1000./srl(i)))
 
         ustarns = ustarnd(i)*100 !cm.s-1
         utmin = (umin/(100.*vonkar*rc(i)))*log(1000./srl(i))
@@ -465,7 +466,8 @@
                 aeffect = (1-f)*(1-vegfrac(k))
                 beffect = 0.01*fland(k,i)*sand2row(k,i)
  
-!                fsoil(k) = srel(k,j,i)*fdp1*fdp2*aeffect*beffect
+! FAB 
+!               fsoil(k) = srel(k,j,i)*fdp1*fdp2*aeffect*beffect
 ! FAB 
                 fsoil(k) = srel(k,j,i)*fdp1*fdp2 
  
@@ -532,9 +534,7 @@
         totv3 = totv3 + frac3(n)
       end do
 
-
- 
-       do n = 1 , isize
+      do n = 1 , isize
         frac1(n) = frac1(n)/totv1
         frac2(n) = frac2(n)/totv2
         frac3(n) = frac3(n)/totv3
@@ -553,13 +553,11 @@
 !         and in tranport bins (nbin)
           rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
 
-          
           do k = 1 , nbin
             if ( rwi.ge.trsize(k,1) .and. rwi.lt.trsize(k,2) )          &
                & rsfrow(i,k) = rsfrow(i,k) + rsfrowsub(i,n)
           end do
         end do
       end do
-
  
       end subroutine emission

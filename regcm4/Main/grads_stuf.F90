@@ -794,8 +794,8 @@
       end do
       write (31,99017) 'acstoarf' , ' TOAswd forcing av.(W/m2)'
       write (31,99017) 'acstsrrf' , ' SRFswd forcing av.(W/m2)'
-      write (31,99017) 'acstalrf',' TOAlwr forcing av.(W/m2)'
-      write (31,99017) 'acssrlrf',' SRFlwr forcing av.(W/m2)'
+      write (31,99017) 'acstalrf' , ' TOAlwr forcing av.(W/m2)'
+      write (31,99017) 'acssrlrf' , ' SRFlwr forcing av.(W/m2)'
 
       write (31,99017) 'psa' , ' Surface Pressure (hPa)'
  

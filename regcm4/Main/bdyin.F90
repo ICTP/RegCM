@@ -63,10 +63,10 @@
       character(256) :: finm
       integer :: i , ierr1 , j , k , nn , nnb
       real(4) , dimension(iy,jx) :: io2d
-      logical :: existing=.false. 
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
       real(8) , dimension(iy,jxp) :: psdot , tdum
+      logical :: existing = .false. 
 #else
       real(8) , dimension(iy,jx) :: psdot , tdum
 #endif
@@ -99,8 +99,7 @@
               write (finm,99001) trim(dirglob),pthsep,trim(domname),    &
                    &             '_ICBC',((ndate1/10000)*100+1)*100
               inquire(file=finm,exist=existing)
-              print*, existing, finm 
-              if (.not.existing) then
+              if ( .not.existing ) then
                 write (aline,*)                                         &
                    & 'The following IBC File does not exist: ' ,        &
                    & trim(finm), 'please check location'

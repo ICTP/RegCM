@@ -79,8 +79,8 @@
 
       real(8) , allocatable , dimension(:,:,:) :: aerasp_io ,           &
                                 & aerext_io , aerssa_io
-      real(8) , allocatable , dimension(:,:) :: aersrrf_io , aertarf_io, &
-                              & aertalwrf_io, aersrlwrf_io
+      real(8) , allocatable , dimension(:,:) :: aersrrf_io , aertarf_io,&
+                              & aertalwrf_io , aersrlwrf_io
       real(8) , allocatable , dimension(:,:,:) :: cemtrac_io ,          &
                                 & cemtr_io , wxaq_io , wxsg_io
       real(8) , allocatable , dimension(:,:) :: dustsotex_io

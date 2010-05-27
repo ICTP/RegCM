@@ -346,8 +346,6 @@
       else
       end if
 
-
-
       do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1
@@ -364,7 +362,6 @@
         write (iutchem) fchem
       else
       end if
-
 
       do i = 1 , iym2
         do j = 1 , jxm2
@@ -383,13 +380,6 @@
       else
       end if
 
-
-
-
-
-
-
- 
       do i = 1 , iym2
         do j = 1 , jxm2
 #ifdef MPP1

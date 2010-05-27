@@ -367,11 +367,11 @@
 !     find the right table index for the cell cover ( ocean and lake
 !     are 0 in the ivegcov and 14-15 in the table )
 
-          if ( ivegcov(i).eq.0 ) then
-           kcov = 14
-          else
-           kcov = ivegcov(i)
-          end if
+                if ( ivegcov(i).eq.0 ) then
+                  kcov = 14
+                else
+                  kcov = ivegcov(i)
+                end if
 
  
 !               ******************************************************

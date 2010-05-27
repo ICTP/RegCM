@@ -44,7 +44,7 @@
 #ifdef MPP1
       integer :: ncpu
 #else
-      integer :: myid
+      integer :: myid , nproc
 #endif
       character(256) :: namelistfile, prgname
 !

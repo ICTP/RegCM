@@ -476,8 +476,8 @@
             do i = 1 , iym1
               aertarf(i,j) = 0.
               aersrrf(i,j) = 0.
-              aertalwrf(i,j)=0.              
-              aersrlwrf(i,j)=0.
+              aertalwrf(i,j) = 0.              
+              aersrlwrf(i,j) = 0.
             end do
           end do
         end if

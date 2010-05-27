@@ -148,7 +148,7 @@
 ! Local variables
 !
       real(8) , dimension(iym1) :: aeradfo , aeradfos
-      real(8),  dimension(iym1)::  aerlwfo, aerlwfos
+      real(8),  dimension(iym1)::  aerlwfo , aerlwfos
       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o
       integer :: i
       real(8) , dimension(iym1,kz) :: o3mmr , pbr , rh
@@ -178,7 +178,7 @@
                   & fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq, &
                   & aeradfo,aeradfos)
 !
-!        call aerout(jslc,aeradfo,aeradfos)
+!       call aerout(jslc,aeradfo,aeradfos)
 !
 !       Convert units of shortwave fields needed by rest of model from
 !       CGS to MKS
@@ -237,8 +237,8 @@
         end do
       end if
 
-! aersols diagnostics
-       call aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
+!     aersols diagnostics
+
+      call aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
         
- 
       end subroutine radctl

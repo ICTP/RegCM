@@ -917,7 +917,7 @@
       call say
       write (aline,'(a,f12.6)')  '   radfrq = ' , radfrq 
       call say 
-      write (aline,'(a,f12.6)')	 '   abatm  = ' , abatm 
+      write (aline,'(a,f12.6)')  '   abatm  = ' , abatm 
       call say
       write (aline,'(a,f12.6)')  '   abemh  = ' , abemh 
       call say

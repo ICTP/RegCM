@@ -45,7 +45,7 @@
       real(8) , allocatable , dimension(:,:,:) :: aerasp , aerext ,     &
                                 & aerssa
       real(8) , allocatable , dimension(:,:) :: aersrrf , aertarf
-      real(8) , allocatable , dimension(:,:) :: aertalwrf, aersrlwrf 
+      real(8) , allocatable , dimension(:,:) :: aertalwrf , aersrlwrf 
 !
       real(8) , allocatable , dimension(:,:,:) :: cemtr , cemtrac ,     &
                         & remdrd

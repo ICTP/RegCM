@@ -667,9 +667,9 @@
           pinpl(i,4) = 0.5*(p2+pnm(i,k2+1))
         end do
 
-!        FAB AER SAVE uinpl  for aerosl LW forcing calculation
-          xuinpl (:,k2,:,jslc) =  uinpl(:,:)
-
+!       FAB AER SAVE uinpl  for aerosl LW forcing calculation
+        xuinpl (:,k2,:,jslc) =  uinpl(:,:)
+!       FAB AER SAVE uinpl  for aerosl LW forcing calculation
 
         do kn = 1 , 4
           do i = 1 , iym1

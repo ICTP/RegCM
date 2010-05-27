@@ -27,9 +27,9 @@
       ! abstot  - Non-adjacent layer absorptivites
       ! emstot  - Total emissivity
 
-      real(8) , allocatable, dimension(:,:,:,:)  :: absnxt,absnxt0
-      real(8),  allocatable, dimension(:,:,:,:)  :: abstot,abstot0
-      real(8) , allocatable, dimension(:,:,:) :: emstot,emstot0
+      real(8) , allocatable, dimension(:,:,:,:)  :: absnxt , absnxt0
+      real(8),  allocatable, dimension(:,:,:,:)  :: abstot , abstot0
+      real(8) , allocatable, dimension(:,:,:) :: emstot , emstot0
       real(8), allocatable, dimension(:,:,:,:):: xuinpl
       contains 
 

@@ -272,7 +272,9 @@
         end do
       end do
 #endif
-      print*, maxval(srel2d),maxval(dustsotex)
+      print *, 'MAXVAL srel2d    : ' , maxval(srel2d)
+      print *, 'MAXVAL dustsotex : ' , maxval(dustsotex)
+
       end subroutine inidust
 
       end module mod_dust
