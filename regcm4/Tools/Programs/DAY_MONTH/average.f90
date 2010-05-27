@@ -663,8 +663,8 @@
       character*3 chmc(12)
       data chmc/'jan','feb','mar','apr','may','jun'  &
                ,'jul','aug','sep','oct','nov','dec'/
-      character*15 filein
-      character*13 fileout
+      character*14 filein
+      character*12 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
@@ -764,22 +764,23 @@
          n_slice = 24/6
 
          if(filename.eq.'ICBC') then
-            filein = '_ICBC'//chy(nyear)//chm(month)//'0100'
-            fileout= '_ICBC'//chy(nyear)//chm(month)//'01'
+            filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
+            fileout= 'ICBC'//chy(nyear)//chm(month)//'01'
          endif
 
          inquire(file= &
-        trim(Path_Input)//trim(DomainName)//fileout//'.ctl',exist=there)
+        trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl'  &
+                ,exist=there)
          if(there) then
             open(31,file= &
-                 trim(Path_Input)//trim(DomainName)//fileout//'.ctl' &
-                                                      ,status='replace')
+         trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                                                  ,status='replace')
          else
             open(31,file= &
-                 trim(Path_Input)//trim(DomainName)//fileout//'.ctl' &
+         trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
                                                       ,status='new')
          endif
-         write(31,10) '^'//trim(DomainName)//fileout
+         write(31,10) '^'//trim(DomainName)//'_'//fileout
   10     format('dset ',A34)
          write(31,20)
   20     format('title RegCM daily input variables')
@@ -910,16 +911,16 @@
  700  format('endvars')
       close(31)
 
-         inquire(file=trim(Path_Input)//trim(DomainName)//filein  &
+         inquire(file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
              ,exist=there)
          if(.not.there) then
-            write(*,*) trim(Path_Input)//trim(DomainName)//filein  &
+            write(*,*) trim(Path_Input)//trim(DomainName)//'_'//filein &
                       ,' is not avaiable'
             stop
          endif
-         open(10,file=trim(Path_Input)//trim(DomainName)//filein &
+         open(10,file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
                 ,form='unformatted',recl=iy*jx*ibyte,access='direct')
-         open(20,file=trim(Path_Input)//trim(DomainName)//fileout  &
+         open(20,file=trim(Path_Input)//trim(DomainName)//'_'//fileout &
           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
          mrec = 0
          do nday=1,nrecord
@@ -1847,8 +1848,8 @@
       character*3 chmc(12)
       data chmc/'jan','feb','mar','apr','may','jun'  &
                ,'jul','aug','sep','oct','nov','dec'/
-      character*14 filein
-      character*9 fileout
+      character*12 filein
+      character*8 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
       logical there
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
@@ -1927,24 +1928,26 @@
       endif
 
       if(filename.eq.'ICBC') then
-         fileout= '_ICBC.mon'
+         fileout= 'ICBC.mon'
       endif
 
-      open(20,file=trim(Path_Input)//trim(DomainName)//fileout  &
+      open(20,file=trim(Path_Input)//trim(DomainName)//'_'//fileout  &
           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
       mrec = 0
 
-      inquire(file=trim(Path_Input)//trim(DomainName)//fileout//'.ctl' &
+      inquire(file= &
+            trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
              ,exist=there)
       if(there) then
          open(31,file= &
-             trim(Path_Input)//trim(DomainName)//fileout//'.ctl' &
+             trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
                                                    ,status='replace')
       else
          open(31,file= &
-       trim(Path_Input)//trim(DomainName)//fileout//'.ctl',status='new')
+             trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                                                       ,status='new')
       endif
-      write(31,10) '^'//trim(DomainName)//fileout
+      write(31,10) '^'//trim(DomainName)//'_'//fileout
   10  format('dset ',A30)
       write(31,20)
   20  format('title RegCM daily input variables')
@@ -2099,17 +2102,17 @@
          endif
 
          if(filename.eq.'ICBC') then
-            filein = '_ICBC'//chy(nyear)//chm(month)//'01'
+            filein = 'ICBC'//chy(nyear)//chm(month)//'01'
          endif
-         inquire(file=trim(Path_Input)//trim(DomainName)//filein  &
+         inquire(file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
                 ,exist=there)
          if(.not.there) then
-            write(*,*) trim(Path_Input)//trim(DomainName)//filein  &
+            write(*,*) trim(Path_Input)//trim(DomainName)//'_'//filein &
                       ,' is not avaiable'
             write(*,*) 'Note: Daily mean files are required.'
             stop
          endif
-         open(10,file=trim(Path_Input)//trim(DomainName)//filein &
+         open(10,file=trim(Path_Input)//trim(DomainName)//'_'//filein &
            ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
 
          if(nfile.eq.1.or.month.eq.1) then
