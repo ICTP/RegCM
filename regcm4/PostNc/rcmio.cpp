@@ -409,8 +409,8 @@ atmodata::atmodata(header_data &h, t_time_interval &t)
   this->t = omega + size3D;
   qv = this->t + size3D;
   qc = qv + size3D;
-  psa = qc + size3D;
-  tpr = psa + size2D;
+  ps = qc + size3D;
+  tpr = ps + size2D;
   tgb = tpr + size2D;
   swt = tgb + size2D;
   rno = swt + size2D;
@@ -470,7 +470,7 @@ raddata::raddata(header_data &h, t_time_interval &t)
   solin = clrls + size2D;
   sabtp = solin + size2D;
   firtp = sabtp + size2D;
-  psa = firtp + size2D;
+  ps = firtp + size2D;
   nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
@@ -524,7 +524,7 @@ chedata::chedata(header_data &h, t_time_interval &t)
   acstsrrf = acstoarf + size2D;
   acstalrf = acstsrrf + size2D;
   acssrlrf = acstalrf + size2D;
-  psa = acssrlrf + size2D;
+  ps = acssrlrf + size2D;
   nsteps = calcnsteps(date0, date1, (int) dt);
 }
 

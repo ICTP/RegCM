@@ -218,7 +218,7 @@ namespace rcm
       float *t;
       float *qv;
       float *qc;
-      float *psa;
+      float *ps;
       float *tpr;
       float *tgb;
       float *swt;
@@ -255,7 +255,7 @@ namespace rcm
       float *solin;
       float *sabtp;
       float *firtp;
-      float *psa;
+      float *ps;
       int date0;
       int date1;
       int rdate;
@@ -284,7 +284,7 @@ namespace rcm
       float *acstsrrf;
       float *acstalrf;
       float *acssrlrf;
-      float *psa;
+      float *ps;
       int date0;
       int date1;
       int rdate;

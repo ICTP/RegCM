@@ -238,11 +238,11 @@ void atmcalc::calcdv(float *u, float *v)
 
 void atmcalc::do_calc(atmodata &a, t_atm_deriv &d)
 {
-  calcp(a.psa);
+  calcp(a.ps);
   calcrh(a.t, a.qv);
   calctd(a.t);
   calctp(a.t);
-  calchg(a.psa, a.t);
+  calchg(a.ps, a.t);
   calcdv(a.u, a.v);
   d.p = p;
   d.rh = rh;

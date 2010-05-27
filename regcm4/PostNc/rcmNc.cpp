@@ -138,7 +138,7 @@ rcmNc::rcmNc(regcmout &fnc, header_data &outhead, bool full)
   sigfvar->add_att("positive", "down");
   sigfvar->add_att("units", "1");
   sigfvar->add_att("axis", "Z");
-  sigfvar->add_att("formula_terms", "sigma: level ps: psa ptop: ptop");
+  sigfvar->add_att("formula_terms", "sigma: level ps: ps ptop: ptop");
   NcVar *ptopvar = f->add_var("ptop", ncFloat);
   ptopvar->add_att("long_name", "Pressure at model top");
   ptopvar->add_att("standard_name", "air_pressure");
@@ -319,7 +319,7 @@ rcmNcAtmo::rcmNcAtmo(regcmout &fnc, header_data &h)
     ctl->set_time(ctl->gradstime(d.basey,d.basem,d.based,d.baseh,(int) h.dto));
 
   float fillv = -1e+34;
-  psvar = f->add_var("psa", ncFloat, tt, iy, jx);
+  psvar = f->add_var("ps", ncFloat, tt, iy, jx);
   psvar->add_att("standard_name", "surface_air_pressure");
   psvar->add_att("long_name", "Surface pressure");
   psvar->add_att("coordinates", "xlon xlat");
@@ -464,7 +464,7 @@ rcmNcAtmo::rcmNcAtmo(regcmout &fnc, header_data &h)
   if (ctl->doit)
   {
     gradsvar gv;
-    gv.set("psa","psa","Surface pressure (hPa)",0,true);
+    gv.set("ps","ps","Surface pressure (hPa)",0,true);
     ctl->add_var(gv);
     if (varmask[0] || varmask[1])
     {
@@ -556,7 +556,7 @@ void rcmNcAtmo::put_rec(atmodata &a, t_atm_deriv &d)
 {
   double xtime = reference_time + tcount*a.dt;
   timevar->put_rec(&xtime, rcount);
-  psvar->put_rec(a.psa, rcount);
+  psvar->put_rec(a.ps, rcount);
   if (varmask[0] || varmask[1])
   {
     uvar->put_rec(a.u, rcount);
@@ -674,7 +674,7 @@ rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h)
 
   // Setup variables
   char cell_method[64];
-  psbvar = f->add_var("psa", ncFloat, tt, iy, jx);
+  psbvar = f->add_var("ps", ncFloat, tt, iy, jx);
   psbvar->add_att("standard_name", "air_pressure");
   psbvar->add_att("long_name", "Surface pressure");
   psbvar->add_att("coordinates", "xlon xlat");
@@ -908,7 +908,7 @@ rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h)
   if (ctl->doit)
   {
     gradsvar gv;
-    gv.set("psa","psa","Surface pressure (hPa)",0,true);
+    gv.set("ps","ps","Surface pressure (hPa)",0,true);
     ctl->add_var(gv);
     if (varmask[1] || varmask[2])
     {
@@ -1124,7 +1124,7 @@ rcmNcRad::rcmNcRad(regcmout &fnc, header_data &h)
     ctl->set_time(ctl->gradstime(d.basey,d.basem,d.based,d.baseh,(int) h.dtr));
 
   // Setup variables
-  psvar = f->add_var("psa", ncFloat, tt, iy, jx);
+  psvar = f->add_var("ps", ncFloat, tt, iy, jx);
   psvar->add_att("standard_name", "surface_air_pressure");
   psvar->add_att("long_name", "Surface pressure");
   psvar->add_att("coordinates", "xlon xlat");
@@ -1247,7 +1247,7 @@ rcmNcRad::rcmNcRad(regcmout &fnc, header_data &h)
   if (ctl->doit)
   {
     gradsvar gv;
-    gv.set("psa","psa","Surface pressure (hPa)",0,true);
+    gv.set("ps","ps","Surface pressure (hPa)",0,true);
     ctl->add_var(gv);
     if (varmask[0])
     {
@@ -1321,7 +1321,7 @@ void rcmNcRad::put_rec(raddata &r)
 {
   double xtime = reference_time + tcount*r.dt;
   timevar->put_rec(&xtime, rcount);
-  psvar->put_rec(r.psa, rcount);
+  psvar->put_rec(r.ps, rcount);
   if (varmask[0]) cldvar->put_rec(r.cld, rcount);
   if (varmask[1]) clwpvar->put_rec(r.clwp, rcount);
   if (varmask[2]) qrsvar->put_rec(r.qrs, rcount);
@@ -1390,7 +1390,7 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
   trc = f->add_dim("tracer", h.ntr);
 
   // Setup variables
-  psvar = f->add_var("psa", ncFloat, tt, iy, jx);
+  psvar = f->add_var("ps", ncFloat, tt, iy, jx);
   psvar->add_att("standard_name", "surface_air_pressure");
   psvar->add_att("long_name", "Surface pressure");
   psvar->add_att("coordinates", "xlon xlat");
@@ -1527,7 +1527,7 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
   if (ctl->doit)
   {
     gradsvar gv;
-    gv.set("psa","psa","Surface pressure (hPa)",0,true);
+    gv.set("ps","ps","Surface pressure (hPa)",0,true);
     ctl->add_var(gv);
     if (varmask[0] || varmask[1] || varmask[2] || varmask[3] ||
         varmask[4] || varmask[5] || varmask[6] || varmask[7] ||
@@ -1562,7 +1562,7 @@ void rcmNcChe::put_rec(chedata &c)
 {
   double xtime = reference_time + tcount*c.dt;
   timevar->put_rec(&xtime, rcount);
-  psvar->put_rec(c.psa, rcount);
+  psvar->put_rec(c.ps, rcount);
   if (varmask[0]) trac3Dvar->put_rec(c.trac3D, rcount);
   if (varmask[1]) aext8var->put_rec(c.aext8, rcount);
   if (varmask[2]) assa8var->put_rec(c.assa8, rcount);
@@ -1802,7 +1802,7 @@ rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s)
 
   f->sync();
 
-  psbvar = f->add_var("psa", ncFloat, tt, iys, jxs);
+  psbvar = f->add_var("ps", ncFloat, tt, iys, jxs);
   psbvar->add_att("standard_name", "air_pressure");
   psbvar->add_att("long_name", "Surface pressure");
   psbvar->add_att("coordinates", "xlonsub xlatsub");
@@ -2345,7 +2345,7 @@ bcNc::bcNc(regcmout &fnc, domain_data &d)
   sigfvar->add_att("positive", "down");
   sigfvar->add_att("units", "1");
   sigfvar->add_att("axis", "Z");
-  sigfvar->add_att("formula_terms", "sigma: level ps: psa ptop: ptop");
+  sigfvar->add_att("formula_terms", "sigma: level ps: ps ptop: ptop");
   NcVar *ptopvar = f->add_var("ptop", ncFloat);
   ptopvar->add_att("long_name", "Pressure at model top");
   ptopvar->add_att("standard_name", "air_pressure");
@@ -2510,7 +2510,7 @@ void bcNc::put_rec(bcdata &b)
       ctl->set_time(ctl->gradstime(d.basey,d.basem,d.based,d.baseh,(int) b.dt));
 
     // This will allways be here for vertical level calculation
-    psvar = f->add_var("psa", ncFloat, tt, iy, jx);
+    psvar = f->add_var("ps", ncFloat, tt, iy, jx);
     psvar->add_att("standard_name", "surface_air_pressure");
     psvar->add_att("long_name", "Surface pressure");
     psvar->add_att("coordinates", "xlon xlat");
@@ -2556,7 +2556,7 @@ void bcNc::put_rec(bcdata &b)
     if (ctl->doit)
     {
       gradsvar gv;
-      gv.set("psa","psa","Surface pressure (hPa)",0,true);
+      gv.set("ps","ps","Surface pressure (hPa)",0,true);
       ctl->add_var(gv);
       if (varmask[0] || varmask[1])
       {
