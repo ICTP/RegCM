@@ -87,9 +87,11 @@ void copygatt(NcFile *f, NcAtt *src)
       }
       break;
     case ncChar:
-      char *ss = src->as_string(0);
-      f->add_att(src->name( ), ss);
-      delete [ ] ss;
+      {
+        char *ss = src->as_string(0);
+        f->add_att(src->name( ), ss);
+        delete [ ] ss;
+      }
       break;
     case ncShort:
       {
@@ -147,9 +149,11 @@ void copyvatt(NcVar *v, NcAtt *src)
       }
       break;
     case ncChar:
-      char *ss = src->as_string(0);
-      v->add_att(src->name( ), ss);
-      delete [ ] ss;
+      {
+        char *ss = src->as_string(0);
+        v->add_att(src->name( ), ss);
+        delete [ ] ss;
+      }
       break;
     case ncShort:
       {
