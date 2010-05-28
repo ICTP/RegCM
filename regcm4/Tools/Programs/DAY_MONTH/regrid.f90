@@ -900,8 +900,8 @@
       else
          xmaxlat = -1.e10
          xminlat =  1.e10
-         do i=2,iy-2
-         do j=2,jx-2
+         do i=2,iy-1
+         do j=2,jx-1
             if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
             if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
          enddo
@@ -914,8 +914,8 @@
       else
          xmaxlon = -1.e10
          xminlon =  1.e10
-         do i=2,iy-2
-         do j=2,jx-2
+         do i=2,iy-1
+         do j=2,jx-1
             if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
             if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
          enddo

@@ -5,9 +5,9 @@
  nsg = 1,
  ntr = 1,
  ibyte = 4,
- Path_Input = '/media/disk/GCM_RCMs/BENCH_2010/regcm4_743/Input/',
+ Path_Input = '/home/bixq/BENCHMARK/regcm4_851/Input/',
  DomainName = 'China'
- Path_Output = '/media/disk/GCM_RCMs/BENCH_2010/regcm4_743/Run/output/',
+ Path_Output = '/home/bixq/BENCHMARK/regcm4_851/Run/output/',
 /
 &dateparam
  idate0 = 1989090100,
@@ -29,12 +29,12 @@
  mon_CHE = .false.,
 /
 &regridparam
- regDOMAIN = .false. ,
+ regDOMAIN = .true. ,
  regICBC = .true.,
- regOUT_HEAD = .false.,
- regATM = .false.,
- regSRF = .false.,
- regRAD = .false.,
+ regOUT_HEAD = .true.,
+ regATM = .true.,
+ regSRF = .true.,
+ regRAD = .true.,
  xminlon = -9999.0,
  xmaxlon = -9999.0,
  xminlat = -9999.0,

@@ -1289,7 +1289,7 @@
           close (iutsav)
           itype = 'SAV'
           write (newfil,99001) itype , idatex
-          open (iutsav,file='output/'//newfil,status='replace',         &
+          open (iutsav,file=trim(dirout)//newfil,status='replace',      &
                &form='unformatted')
           print * , 'OPENING NEW SAV FILE: ' , newfil
           call outsav(iutsav)
