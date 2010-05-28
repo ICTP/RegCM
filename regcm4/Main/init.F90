@@ -50,7 +50,7 @@
       use mod_date , only : dectim , mdate , mdate0 , mmrec , ldatez ,  &
                    & idate1 , lyear , lmonth , lday , lhour , ndate0 ,  &
                    & ndate1 , nnnchk , jyear , jyear0, jyearr, ntime ,  &
-                   & ktau , ktaur , xtime 
+                   & ktau , ktaur , xtime , idate0
       use mod_radbuf
       use mod_tmpsav
       use mod_constants , only : rgti
@@ -174,7 +174,7 @@
           call say
           call fatal(__FILE__,__LINE__, 'ICBC FILE NOT FOUND')
         else
-          open (iutbc,file=finm,form='unformatted',status='old',    &
+          open (iutbc,file=finm,form='unformatted',status='old',        &
           & access='direct',recl=iy*jx*ibyte)
         endif  
         mmrec = 0
@@ -272,6 +272,7 @@
               call say
               write (aline,*) 'SET IN ICBC: NY=' , nyyy , ' NX=' ,      &
                             & nxxx , ' NZ=' , kzzz
+              call say
               call fatal(__FILE__,__LINE__,                             &
                         &'IMPROPER DIMENSION SPECIFICATION')
             end if
@@ -614,6 +615,7 @@
             call say
             write (aline,*) 'SET IN ICBC: NY=' , nyyy , ' NX=' , nxxx , &
                            &' NZ=' , kzzz
+            call say
             call fatal(__FILE__,__LINE__,                               &
                       &'IMPROPER DIMENSION SPECIFICATION')
           end if
@@ -1040,8 +1042,14 @@
 !
 #ifdef MPP1
         if ( myid.eq.0 ) then
-          write (finm,99002) trim(dirout),pthsep,'SAV.',                &
-            &    ((ndate0/10000)*100+1)*100
+          if (ndate0.eq.idate0 .or.                                     &
+             (((ndate0/10000)*100+1)*100 .eq.                           &
+             ((idate0/10000)*100+1)*100 ) ) then
+            write (finm,99002) trim(dirout),pthsep,'SAV.',idate0
+          else
+            write (finm,99002) trim(dirout),pthsep,'SAV.',              &
+              &    ((ndate0/10000)*100+1)*100
+          end if
           inquire (file=finm,exist=existing)
           if ( .not.existing ) then
             write (aline,*) 'The following SAV File does not exist: ' , &
