@@ -39,8 +39,22 @@ CXXNETCDF = !NETCDFC++
 
 CPPFLAGS = -WF,-DIBM
 
+# Automatically added flags
+
 ifneq ($(origin PARALLEL), undefined)
 CPPFLAGS += -WF,-D$(PARALLEL)
+endif
+
+ifeq ($(USECLM),1)
+  CPPFLAGS += -WF,-DCLM
+endif
+
+ifeq ($(USESEAICE),1)
+  CPPFLAGS += -WF,-DSEAICE
+endif
+
+ifeq ($(USEDCSST),1)
+  CPPFLAGS += -WF,-DDCSST
 endif
 
 # Specific compiler flags (eg.: optimization / debugging) 

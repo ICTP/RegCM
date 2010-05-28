@@ -4,13 +4,6 @@
 # CONFIGURABLE PATAMETERS
 ###########################################################################
 
-# Set to 1 to enable CLM coupling
-#USECLM = 0
-# Set to 1 to enable daily cycle SST
-#USEDCSST = 0
-# Set to 1 to enable Sea Ice effects
-#USESEAICE = 0
-
 SCENARIO = A1B
 
 ###########################################################################
@@ -87,18 +80,18 @@ NETLIBOBJS = linpack.o eispack.o
 EXTRAOBJS = mod_culookup.o mod_co2.o printsp.o nconvp.o
 
 ifeq ($(USECLM),1)
-  CPPFLAGS += -DCLM
+#  CPPFLAGS += -DCLM
   OBJS += initclm.o interfclm.o mtrxclm.o solar1clm.o albedoclm.o
   MODOBJS += mod_clm.o
   LIB += -L$(CLMPTH) -lclm
 else
 ifeq ($(USESEAICE),1)
-  CPPFLAGS += -DSEAICE
+#  CPPFLAGS += -DSEAICE
   seaicesuffix = _si
 endif
 endif
 ifeq ($(USEDCSST),1)
-  CPPFLAGS += -DDCSST
+#  CPPFLAGS += -DDCSST
   dcsstsuffix = _ds
 endif
 
@@ -120,19 +113,19 @@ regcm: $(SHROBJS) $(CLMLIB) $(MODOBJS) $(OBJS) $(NETLIBOBJS)
                $(NETLIBOBJS) $(LIB) $(NETCDFLIB)
 
 mod_constants.o: ../Config/mod_constants.F90
-	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
+	$(F90) $(CPPFLAGS) $(F90FLAGS)  -c -o $@ $<
 
 mod_dynparam.o: ../Config/mod_dynparam.F90
-	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
+	$(F90) $(CPPFLAGS) $(F90FLAGS)  -c -o $@ $<
 
 mod_bats_param.o: ../Config/mod_bats_param.F90
-	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
+	$(F90) $(CPPFLAGS) $(F90FLAGS)  -c -o $@ $<
 
 %.o: %.F90
-	$(F90) -c $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
+	$(F90) -c $(CPPFLAGS) $(F90FLAGS)  -c $<
 
 %.o: %.f90
-	$(F90) -c $(F90FLAGS) $(USCORING) -c $<
+	$(F90) -c $(F90FLAGS)  -c $<
 
 ifeq ($(USECLM),1)
 clean:
@@ -199,7 +192,7 @@ mod_slice.o: mod_slice.F90 mod_dynparam.o
 mod_split.o: mod_split.F90 mod_dynparam.o
 mod_tmpsav.o: mod_tmpsav.F90 mod_dynparam.o
 mod_tracer0.o: mod_tracer0.F90
-	$(F90) -c $(CPPFLAGS) -D$(SCENARIO) $(F90FLAGS) $(USCORING) -c $<
+	$(F90) -c $(CPPFLAGS) -D$(SCENARIO) $(F90FLAGS)  -c $<
 mod_tracer.o: mod_tracer.f90
 mod_trachem.o: mod_trachem.F90 mod_dynparam.o
 mod_vmodes.o: mod_vmodes.F90 mod_param1.o mod_dynparam.o mod_split.o \
@@ -209,7 +202,7 @@ ifeq ($(USECLM),1)
 mod_zengocn.o: mod_zengocn.F90 mod_bats.o mod_constants.o mod_date.o \
                mod_main.o mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o \
                mod_slice.o mod_bdycod.o $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 mod_zengocn.o: mod_zengocn.F90 mod_bats.o mod_constants.o mod_date.o \
                mod_main.o mod_param1.o mod_param2.o mod_param3.o mod_pbldim.o \
@@ -218,7 +211,7 @@ endif
 #
 albedoclm.o: albedoclm.F90 mod_bats.o mod_dynparam.o \
 	$(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 albedov.o: albedov.F90 mod_constants.o mod_bats.o mod_dynparam.o
 bdyin.o: bdyin.F90 mod_bats.o mod_bdycod.o mod_date.o mod_iunits.o mod_main.o \
          mod_param1.o mod_param3.o mod_dynparam.o mod_tmpsav.o
@@ -235,7 +228,7 @@ chemtap.o: chemtap.F90 mod_date.o mod_iunits.o mod_main.o mod_mainchem.o \
 ifeq ($(USECLM),1)
 chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
            mod_message.o mod_dynparam.o mod_trachem.o $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
            mod_message.o mod_dynparam.o mod_trachem.o
@@ -274,7 +267,7 @@ grads_stuf.o: grads_stuf.F90 mod_date.o mod_iunits.o mod_main.o \
               mod_param1.o mod_param2.o mod_param3.o mod_dynparam.o
 hadv.o: hadv.F90 mod_cvaria.o mod_main.o mod_dynparam.o
 header.o: header.F90
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS)   -c $<
 holtbl.o: holtbl.F90 mod_bats.o mod_blh_tmp.o mod_constants.o mod_cvaria.o \
           mod_diagnosis.o mod_main.o mod_mainchem.o mod_param1.o mod_param2.o \
           mod_param3.o mod_pbldim.o mod_pmoist.o mod_dynparam.o mod_slice.o \
@@ -288,7 +281,7 @@ init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
         mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
         mod_radbuf.o mod_dynparam.o mod_tmpsav.o mod_trachem.o \
         $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 init.o: init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
         mod_diagnosis.o mod_iunits.o mod_main.o mod_mainchem.o mod_message.o \
@@ -313,7 +306,7 @@ output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_param1.o mod_param2.o mod_pmoist.o mod_rad.o \
           mod_radbuf.o mod_dynparam.o mod_split.o mod_tmpsav.o \
           mod_trachem.o $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_iunits.o mod_main.o mod_mainchem.o mod_message.o mod_outrad.o \
@@ -365,7 +358,7 @@ radtpl.o: radtpl.f90 mod_dynparam.o mod_constants.o
 ifeq ($(USECLM),1)
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
          mod_param3.o mod_dynparam.o $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
          mod_param3.o mod_dynparam.o
@@ -392,7 +385,7 @@ tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
         mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_rad.o \
         mod_dynparam.o mod_slice.o mod_trachem.o mod_clm.o \
         $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
         mod_cvaria.o mod_date.o mod_main.o mod_mainchem.o mod_message.o \
@@ -423,21 +416,21 @@ vtlaps.o: vtlaps.f90 mod_constants.o
 zenith.o: zenith.f90 mod_constants.o
 ifeq ($(USECLM),1)
 zenitm.o: zenitm.F90 mod_dynparam.o mod_clm.o mod_date.o $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 zenitm.o: zenitm.F90 mod_constants.o mod_date.o mod_main.o mod_dynparam.o
 endif
 initclm.o: initclm.F90 $(CLMLIB) mod_constants.o mod_dynparam.o mod_param1.o \
            mod_mppio.o mod_date.o mod_param2.o mod_param3.o mod_clm.o \
            mod_bats.o mod_mppio.o mod_main.o mod_pbldim.o mod_slice.o
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 interfclm.o: interfclm.F90 $(CLMPTH)/clm_varsur.o $(CLMPTH)/clmtype.o \
              mod_clm.o mod_dynparam.o mod_date.o mod_main.o mod_param1.o \
              mod_param2.o mod_param3.o mod_slice.o mod_pbldim.o mod_bats.o \
              mod_constants.o mod_mppio.o
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 mtrxclm.o: mtrxclm.F90 $(CLMLIB) mod_message.o mod_clm.o
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 solar1clm.o: solar1clm.f90 $(CLMLIB) mod_clm.o mod_message.o mod_date.o \
              mod_constants.o
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
