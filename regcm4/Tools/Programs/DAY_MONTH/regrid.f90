@@ -23,7 +23,7 @@
 !
       program regrid
       implicit none
-      integer iy,jx,kz,nsg,ntr,ibyte
+      integer iy,jx,kz,np,nsg,ntr,ibyte
       logical regDOMAIN,regICBC,regOUT_HEAD,regATM,regSRF,regRAD
       integer idate0,idate1,idate2
       character*128 Path_Input,Path_Output
@@ -32,7 +32,7 @@
       real*4  xminlon,xmaxlon,xminlat,xmaxlat,ddeg
       COMMON /WINDOW/ xminlon,xmaxlon,xminlat,xmaxlat,ddeg
 
-      namelist /shareparam/ iy,jx,kz,nsg,ntr,ibyte,Path_Input &
+      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,ibyte,Path_Input &
                            ,DomainName,Path_Output
       namelist /dateparam/ idate0,idate1,idate2
       namelist /regridparam/ & 
