@@ -798,25 +798,7 @@
       real*4, allocatable ::  sigma(:)
       integer igrads,ibigend
       real*4  truelatL,truelatH
-      character*4 :: chy(1941:2100)
-      data chy/'1941','1942','1943','1944','1945','1946','1947','1948',&
-        '1949','1950','1951','1952','1953','1954','1955','1956','1957',&
-        '1958','1959','1960','1961','1962','1963','1964','1965','1966',&
-        '1967','1968','1969','1970','1971','1972','1973','1974','1975',&
-        '1976','1977','1978','1979','1980','1981','1982','1983','1984',&
-        '1985','1986','1987','1988','1989','1990','1991','1992','1993',&
-        '1994','1995','1996','1997','1998','1999','2000','2001','2002',&
-        '2003','2004','2005','2006','2007','2008','2009','2010','2011',&
-        '2012','2013','2014','2015','2016','2017','2018','2019','2020',&
-        '2021','2022','2023','2024','2025','2026','2027','2028','2029',&
-        '2030','2031','2032','2033','2034','2035','2036','2037','2038',&
-        '2039','2040','2041','2042','2043','2044','2045','2046','2047',&
-        '2048','2049','2050','2051','2052','2053','2054','2055','2056',&
-        '2057','2058','2059','2060','2061','2062','2063','2064','2065',&
-        '2066','2067','2068','2069','2070','2071','2072','2073','2074',&
-        '2075','2076','2077','2078','2079','2080','2081','2082','2083',&
-        '2084','2085','2086','2087','2088','2089','2090','2091','2092',&
-        '2093','2094','2095','2096','2097','2098','2099','2100'/
+      character*4 :: chy
       character*2 chm(12)
       data chm/'01','02','03','04','05','06','07','08','09','10', &
                '11','12'/
@@ -943,17 +925,17 @@
          olon(m) = real(m-1)*ddeg
       enddo
 
-      if(idate1.gt.1940010100) then        ! original file
+      if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
                  + (mod(idate2/10000,100)-mod(idate1/10000,100))   
          if(mod(idate2,10000).gt.0100) n_month = n_month+1
          ntype = 0
-      else if(idate1.gt.19400101) then     ! daily mean file
+      else if(idate1.ge.10000101) then     ! daily mean file
          n_month = (idate2/10000-idate1/10000)*12 &
                  + (mod(idate2/100,100)-mod(idate1/100,100))   
          if(mod(idate2,100).gt.01) n_month = n_month+1
          ntype = 1
-      else if(idate1.gt.194001) then       ! monthly mean file
+      else if(idate1.ge.100001) then       ! monthly mean file
          n_month = (idate2/100-idate1/100)*12 &
                  + (mod(idate2,100)-mod(idate1,100))+1 
          ntype = 2
@@ -989,8 +971,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./6))+1
-               filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
-               fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'0100'
+               write(chy,199) nyear
+               filein = 'ICBC'//chy//chm(month)//'0100'
+               fileout= 'ICBC_LL.'//chy//chm(month)//'0100'
 
                inquire(file= &
                     trim(Path_Input)//trim(DomainName)//'_'//filein &
@@ -1038,8 +1021,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
                n_slice=min(n_slice,mod(idate2-1,100)+1)
-               filein = 'ICBC'//chy(nyear)//chm(month)//'01'
-               fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'01'
+               write(chy,199) nyear
+               filein = 'ICBC'//chy//chm(month)//'01'
+               fileout= 'ICBC_LL.'//chy//chm(month)//'01'
 
                inquire(file= &
                  trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
@@ -1475,8 +1459,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./6))+1
-               filein = 'ICBC'//chy(nyear)//chm(month)//'0100'
-               fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'0100'
+               write(chy,199) nyear
+               filein = 'ICBC'//chy//chm(month)//'0100'
+               fileout= 'ICBC_LL.'//chy//chm(month)//'0100'
 
                inquire(file= &
                     trim(Path_Input)//trim(DomainName)//'_'//filein &
@@ -1532,8 +1517,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
                n_slice=min(n_slice,mod(idate2-1,100)+1)
-               filein = 'ICBC'//chy(nyear)//chm(month)//'01'
-               fileout= 'ICBC_LL.'//chy(nyear)//chm(month)//'01'
+               write(chy,199) nyear
+               filein = 'ICBC'//chy//chm(month)//'01'
+               fileout= 'ICBC_LL.'//chy//chm(month)//'01'
 
                inquire(file= &
                  trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
@@ -1886,6 +1872,7 @@
       deallocate(dlat)
       deallocate(dlon)
 
+ 199  format(I4)
   10  format('dset ',A38)
   11  format('dset ',A36)
   12  format('dset ',A32)
@@ -1919,25 +1906,7 @@
       integer iotyp
       character*6 iproj
       real*4, allocatable ::  sigma(:)
-      character*4 :: chy(1941:2100)
-      data chy/'1941','1942','1943','1944','1945','1946','1947','1948',&
-        '1949','1950','1951','1952','1953','1954','1955','1956','1957',&
-        '1958','1959','1960','1961','1962','1963','1964','1965','1966',&
-        '1967','1968','1969','1970','1971','1972','1973','1974','1975',&
-        '1976','1977','1978','1979','1980','1981','1982','1983','1984',&
-        '1985','1986','1987','1988','1989','1990','1991','1992','1993',&
-        '1994','1995','1996','1997','1998','1999','2000','2001','2002',&
-        '2003','2004','2005','2006','2007','2008','2009','2010','2011',&
-        '2012','2013','2014','2015','2016','2017','2018','2019','2020',&
-        '2021','2022','2023','2024','2025','2026','2027','2028','2029',&
-        '2030','2031','2032','2033','2034','2035','2036','2037','2038',&
-        '2039','2040','2041','2042','2043','2044','2045','2046','2047',&
-        '2048','2049','2050','2051','2052','2053','2054','2055','2056',&
-        '2057','2058','2059','2060','2061','2062','2063','2064','2065',&
-        '2066','2067','2068','2069','2070','2071','2072','2073','2074',&
-        '2075','2076','2077','2078','2079','2080','2081','2082','2083',&
-        '2084','2085','2086','2087','2088','2089','2090','2091','2092',&
-        '2093','2094','2095','2096','2097','2098','2099','2100'/
+      character*4 :: chy
       character*2 chm(12)
       data chm/'01','02','03','04','05','06','07','08','09','10', &
                '11','12'/
@@ -2053,17 +2022,17 @@
          olon(m) = real(m-1)*ddeg
       enddo
 
-      if(idate1.gt.1940010100) then        ! original file
+      if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
                  + (mod(idate2/10000,100)-mod(idate1/10000,100))   
          if(mod(idate2,10000).gt.0100) n_month = n_month+1
          ntype = 0
-      else if(idate1.gt.19400101) then     ! daily mean file
+      else if(idate1.ge.10000101) then     ! daily mean file
          n_month = (idate2/10000-idate1/10000)*12 &
                  + (mod(idate2/100,100)-mod(idate1/100,100))   
          if(mod(idate2,100).gt.01) n_month = n_month+1
          ntype = 1
-      else if(idate1.gt.194001) then       ! monthly mean file
+      else if(idate1.ge.100001) then       ! monthly mean file
          n_month = (idate2/100-idate1/100)*12 &
                  + (mod(idate2,100)-mod(idate1,100))+1
          ntype = 2
@@ -2100,8 +2069,9 @@
                if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./dto))
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
-               filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
-               fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'0100'
+               write(chy,199) nyear
+               filein = 'ATM.'//chy//chm(month)//'0100'
+               fileout= 'ATM_LL.'//chy//chm(month)//'0100'
                inquire(file=trim(Path_Output)//filein,exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein,' is not avaiable'
@@ -2140,8 +2110,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
                n_slice=min(n_slice,mod(idate2-1,100)+1)
-               filein = 'ATM.'//chy(nyear)//chm(month)//'01'
-               fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
+               write(chy,199) nyear
+               filein = 'ATM.'//chy//chm(month)//'01'
+               fileout= 'ATM_LL.'//chy//chm(month)//'01'
                inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein(1:12)  &
@@ -2439,8 +2410,9 @@
                if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./dto))
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
-               filein = 'ATM.'//chy(nyear)//chm(month)//'0100'
-               fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'0100'
+               write(chy,199) nyear
+               filein = 'ATM.'//chy//chm(month)//'0100'
+               fileout= 'ATM_LL.'//chy//chm(month)//'0100'
                inquire(file=trim(Path_Output)//filein,exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein,' is not avaiable'
@@ -2488,8 +2460,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
                n_slice=min(n_slice,mod(idate2-1,100)+1)
-               filein = 'ATM.'//chy(nyear)//chm(month)//'01'
-               fileout= 'ATM_LL.'//chy(nyear)//chm(month)//'01'
+               write(chy,199) nyear
+               filein = 'ATM.'//chy//chm(month)//'01'
+               fileout= 'ATM_LL.'//chy//chm(month)//'01'
                inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein(1:12)  &
@@ -2781,6 +2754,7 @@
       deallocate(xlat)
       deallocate(xlon)
 
+ 199  format(I4)
   10  format('dset ^',A17)
   11  format('dset ^',A15)
   12  format('dset ^',A10)
@@ -2814,25 +2788,7 @@
       integer iotyp
       character*6 iproj
       real*4, allocatable ::  sigma(:)
-      character*4 :: chy(1941:2100)
-      data chy/'1941','1942','1943','1944','1945','1946','1947','1948',&
-        '1949','1950','1951','1952','1953','1954','1955','1956','1957',&
-        '1958','1959','1960','1961','1962','1963','1964','1965','1966',&
-        '1967','1968','1969','1970','1971','1972','1973','1974','1975',&
-        '1976','1977','1978','1979','1980','1981','1982','1983','1984',&
-        '1985','1986','1987','1988','1989','1990','1991','1992','1993',&
-        '1994','1995','1996','1997','1998','1999','2000','2001','2002',&
-        '2003','2004','2005','2006','2007','2008','2009','2010','2011',&
-        '2012','2013','2014','2015','2016','2017','2018','2019','2020',&
-        '2021','2022','2023','2024','2025','2026','2027','2028','2029',&
-        '2030','2031','2032','2033','2034','2035','2036','2037','2038',&
-        '2039','2040','2041','2042','2043','2044','2045','2046','2047',&
-        '2048','2049','2050','2051','2052','2053','2054','2055','2056',&
-        '2057','2058','2059','2060','2061','2062','2063','2064','2065',&
-        '2066','2067','2068','2069','2070','2071','2072','2073','2074',&
-        '2075','2076','2077','2078','2079','2080','2081','2082','2083',&
-        '2084','2085','2086','2087','2088','2089','2090','2091','2092',&
-        '2093','2094','2095','2096','2097','2098','2099','2100'/
+      character*4 :: chy
       character*2 chm(12)
       data chm/'01','02','03','04','05','06','07','08','09','10', &
                '11','12'/
@@ -2949,17 +2905,17 @@
          olon(m) = real(m-1)*ddeg
       enddo
 
-      if(idate1.gt.1940010100) then        ! original file
+      if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
                  + (mod(idate2/10000,100)-mod(idate1/10000,100))   
          if(mod(idate2,10000).gt.0100) n_month = n_month+1
          ntype = 0
-      else if(idate1.gt.19400101) then     ! daily mean file
+      else if(idate1.ge.10000101) then     ! daily mean file
          n_month = (idate2/10000-idate1/10000)*12 &
                  + (mod(idate2/100,100)-mod(idate1/100,100))   
          if(mod(idate2,100).gt.01) n_month = n_month+1
          ntype = 1
-      else if(idate1.gt.194001) then       ! monthly mean file
+      else if(idate1.ge.100001) then       ! monthly mean file
          n_month = (idate2/100-idate1/100)*12 &
                  + (mod(idate2,100)-mod(idate1,100))+1
          ntype = 2
@@ -2996,8 +2952,9 @@
                if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./dtb))
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
-               filein = 'SRF.'//chy(nyear)//chm(month)//'0100'
-               fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'0100'
+               write(chy,199) nyear
+               filein = 'SRF.'//chy//chm(month)//'0100'
+               fileout= 'SRF_LL.'//chy//chm(month)//'0100'
                inquire(file=trim(Path_Output)//filein,exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein,' is not avaiable'
@@ -3036,8 +2993,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
                n_slice=min(n_slice,mod(idate2-1,100)+1)
-               filein = 'SRF.'//chy(nyear)//chm(month)//'01'
-               fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
+               write(chy,199) nyear
+               filein = 'SRF.'//chy//chm(month)//'01'
+               fileout= 'SRF_LL.'//chy//chm(month)//'01'
                inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein(1:12)  &
@@ -3376,8 +3334,9 @@
                if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./dtb))
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
-               filein = 'SRF.'//chy(nyear)//chm(month)//'0100'
-               fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'0100'
+               write(chy,199) nyear
+               filein = 'SRF.'//chy//chm(month)//'0100'
+               fileout= 'SRF_LL.'//chy//chm(month)//'0100'
                inquire(file=trim(Path_Output)//filein,exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein,' is not avaiable'
@@ -3425,8 +3384,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
                n_slice=min(n_slice,mod(idate2-1,100)+1)
-               filein = 'SRF.'//chy(nyear)//chm(month)//'01'
-               fileout= 'SRF_LL.'//chy(nyear)//chm(month)//'01'
+               write(chy,199) nyear
+               filein = 'SRF.'//chy//chm(month)//'01'
+               fileout= 'SRF_LL.'//chy//chm(month)//'01'
                inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein(1:12)  &
@@ -3745,6 +3705,7 @@
       deallocate(xlat)
       deallocate(xlon)
 
+ 199  format(I4)
   10  format('dset ^',A17)
   11  format('dset ^',A15)
   12  format('dset ^',A10)
@@ -3776,25 +3737,7 @@
       integer iotyp
       character*6 iproj
       real*4, allocatable ::  sigma(:)
-      character*4 :: chy(1941:2100)
-      data chy/'1941','1942','1943','1944','1945','1946','1947','1948',&
-        '1949','1950','1951','1952','1953','1954','1955','1956','1957',&
-        '1958','1959','1960','1961','1962','1963','1964','1965','1966',&
-        '1967','1968','1969','1970','1971','1972','1973','1974','1975',&
-        '1976','1977','1978','1979','1980','1981','1982','1983','1984',&
-        '1985','1986','1987','1988','1989','1990','1991','1992','1993',&
-        '1994','1995','1996','1997','1998','1999','2000','2001','2002',&
-        '2003','2004','2005','2006','2007','2008','2009','2010','2011',&
-        '2012','2013','2014','2015','2016','2017','2018','2019','2020',&
-        '2021','2022','2023','2024','2025','2026','2027','2028','2029',&
-        '2030','2031','2032','2033','2034','2035','2036','2037','2038',&
-        '2039','2040','2041','2042','2043','2044','2045','2046','2047',&
-        '2048','2049','2050','2051','2052','2053','2054','2055','2056',&
-        '2057','2058','2059','2060','2061','2062','2063','2064','2065',&
-        '2066','2067','2068','2069','2070','2071','2072','2073','2074',&
-        '2075','2076','2077','2078','2079','2080','2081','2082','2083',&
-        '2084','2085','2086','2087','2088','2089','2090','2091','2092',&
-        '2093','2094','2095','2096','2097','2098','2099','2100'/
+      character*4 :: chy
       character*2 chm(12)
       data chm/'01','02','03','04','05','06','07','08','09','10', &
                '11','12'/
@@ -3906,17 +3849,17 @@
          olon(m) = real(m-1)*ddeg
       enddo
 
-      if(idate1.gt.1940010100) then        ! original file
+      if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
                  + (mod(idate2/10000,100)-mod(idate1/10000,100))   
          if(mod(idate2,10000).gt.0100) n_month = n_month+1
          ntype = 0
-      else if(idate1.gt.19400101) then     ! daily mean file
+      else if(idate1.ge.10000101) then     ! daily mean file
          n_month = (idate2/10000-idate1/10000)*12 &
                  + (mod(idate2/100,100)-mod(idate1/100,100))   
          if(mod(idate2,100).gt.01) n_month = n_month+1
          ntype = 1
-      else if(idate1.gt.194001) then       ! monthly mean file
+      else if(idate1.ge.100001) then       ! monthly mean file
          n_month = (idate2/100-idate1/100)*12 &
                  + (mod(idate2,100)-mod(idate1,100))+1
          ntype = 2
@@ -3953,8 +3896,9 @@
                if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./dtr))
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
-               filein = 'RAD.'//chy(nyear)//chm(month)//'0100'
-               fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'0100'
+               write(chy,199) nyear
+               filein = 'RAD.'//chy//chm(month)//'0100'
+               fileout= 'RAD_LL.'//chy//chm(month)//'0100'
                inquire(file=trim(Path_Output)//filein,exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein,' is not avaiable'
@@ -3994,8 +3938,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
                n_slice=min(n_slice,mod(idate2-1,100)+1)
-               filein = 'RAD.'//chy(nyear)//chm(month)//'01'
-               fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
+               write(chy,199) nyear
+               filein = 'RAD.'//chy//chm(month)//'01'
+               fileout= 'RAD_LL.'//chy//chm(month)//'01'
                inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein(1:12)  &
@@ -4298,8 +4243,9 @@
                if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
                n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./dtr))
                if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
-               filein = 'RAD.'//chy(nyear)//chm(month)//'0100'
-               fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'0100'
+               write(chy,199) nyear
+               filein = 'RAD.'//chy//chm(month)//'0100'
+               fileout= 'RAD_LL.'//chy//chm(month)//'0100'
                inquire(file=trim(Path_Output)//filein,exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein,' is not avaiable'
@@ -4347,8 +4293,9 @@
                endif
                if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
                n_slice=min(n_slice,mod(idate2-1,100)+1)
-               filein = 'RAD.'//chy(nyear)//chm(month)//'01'
-               fileout= 'RAD_LL.'//chy(nyear)//chm(month)//'01'
+               write(chy,199) nyear
+               filein = 'RAD.'//chy//chm(month)//'01'
+               fileout= 'RAD_LL.'//chy//chm(month)//'01'
                inquire(file=trim(Path_Output)//filein(1:12),exist=there)
                if(.not.there) then
                   write(*,*) trim(Path_Output)//filein(1:12)  &
@@ -4553,6 +4500,7 @@
       deallocate(xlat)
       deallocate(xlon)
 
+ 199  format(I4)
   10  format('dset ^',A17)
   11  format('dset ^',A15)
   12  format('dset ^',A10)
