@@ -1,0 +1,77 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_param3.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_param3.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_param3.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_param3><H3>mod_param3</H3></a></p>20:       module mod_param3
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: !
+26:       integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
+27: !
+28:       real(8) :: ptop4 , r8pt
+29:       real(8) :: akht1 , akht2
+30:       real(8) :: high_nudge,medium_nudge,low_nudge
+31: 
+32:       real(8) , allocatable , dimension(:) :: a , anudg , dsigma , qcon
+33:       real(8) , allocatable , dimension(:) :: sigma
+34:       real(8) , allocatable , dimension(:,:) :: twt
+35:       real(8) , allocatable , dimension(:) :: wgtd
+36:       real(8) , allocatable , dimension(:) :: wgtx
+37: 
+38:       contains
+39: 
+<p><a name=allocate_mod_param3><H3>allocate_mod_param3</H3></a></p> Click <a href="./callingtree/allocate_mod_param3_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_param3 is used.
+<hr>
+40:       subroutine allocate_mod_param3
+41:       implicit none
+42:         allocate(a(kz))
+43:         allocate(anudg(kz))
+44:         allocate(dsigma(kz))
+45:         allocate(qcon(kz))
+46:         allocate(sigma(kzp1))
+47:         allocate(twt(kz,2))
+48:         allocate(wgtd(nspgd))
+49:         allocate(wgtx(nspgx))
+50:       end subroutine allocate_mod_param3
+51: 
+52:       end module mod_param3
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

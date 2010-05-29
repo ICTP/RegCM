@@ -1,0 +1,76 @@
+<HTML>
+
+<HEAD>
+<TITLE>clm3grid2.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clm3grid2.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>clm3grid2.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=clm3grid2><H3>clm3grid2</H3></a></p> Click <a href="./callingtree/clm3grid2_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where clm3grid2 is used.
+<hr>
+20:       subroutine clm3grid2(nlon,nlat,glon,glat,istart,icount,zlon,      &
+21:                   &        zlat,zlev)
+22:  
+23:       implicit none
+24: !
+25: ! Dummy arguments
+26: !
+27:       integer :: nlat , nlon
+28:       real(4) , dimension(nlat) :: glat
+29:       real(4) , dimension(nlon) :: glon
+30:       integer , dimension(4) :: icount , istart
+31:       real(4) , dimension(icount(2)) :: zlat
+32:       real(4) , dimension(icount(3)) :: zlev
+33:       real(4) , dimension(icount(1)) :: zlon
+34:       intent (in) glat , glon , icount , istart , nlat , nlon
+35:       intent (out) zlat , zlev , zlon
+36: !
+37: ! Local variables
+38: !
+39:       integer :: i , j , k
+40: ! 
+41:       do i = 1 , icount(1)
+42:         zlon(i) = glon(i+istart(1)-1)
+43:       end do
+44:       do j = 1 , icount(2)
+45:         zlat(j) = glat(j+istart(2)-1)
+46:       end do
+47:       do k = 1 , icount(3)
+48:         zlev(k) = icount(3) - k + 1
+49:       end do
+50:  
+51:       end subroutine clm3grid2
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

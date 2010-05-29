@@ -1,0 +1,589 @@
+<HTML>
+
+<HEAD>
+<TITLE>splitf.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>splitf.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>splitf.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=splitf><H3>splitf</H3></a></p> Click <a href="./callingtree/splitf_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where splitf is used.
+<hr>
+20:       subroutine splitf
+21: !
+22: !** compute deld, delh
+23: !** integrate in time and add correction terms appropriately
+24: !
+25:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+26:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+27:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : r8pt
+28:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+29:       use <a href="./mod_split.F90.html#mod_split" TARGET=CENT_PANEL>mod_split</a>
+30:       use <a href="./mod_bxq.F90.html#mod_bxq" TARGET=CENT_PANEL>mod_bxq</a>
+31:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gnuhf
+32: #ifdef MPP1
+33: #ifndef IBM
+34:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+35: #else
+36:       include 'mpif.h'
+37: #endif
+38: #endif
+39:       implicit none
+40: !
+41: ! Local variables
+42: !
+43:       real(8) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , &
+44:                & y
+45:       integer :: i , j , k , l , n
+46: #ifdef MPP1
+47:       integer :: ierr , ii
+48:       real(8) , dimension(iy*nsplit) :: wkrecv , wksend
+49: #endif
+50: !
+51:       do l = 1 , 3
+52:         do n = 1 , nsplit
+53: #ifdef MPP1
+54:           do j = 1 , jendl
+55:             do i = 1 , iy
+56:               deld(i,j,n,l) = 0.
+57:               delh(i,j,n,l) = 0.
+58:             end do
+59:           end do
+60: #else
+61:           do j = 1 , jx
+62:             do i = 1 , iy
+63:               deld(i,j,n,l) = 0.
+64:               delh(i,j,n,l) = 0.
+65:             end do
+66:           end do
+67: #endif
+68:         end do
+69:       end do
+70: !
+71: !**   compute pressure on dot grid
+72: !=======================================================================
+73: !
+74: !     this routine determines p(.) from p(x) by a 4-point interpolation.
+75: !     on the x-grid, a p(x) point outside the grid domain is assumed to
+76: !     satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j); and similarly for the
+77: !     i's.
+78: #ifdef MPP1
+79:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(psa(1,jxp),iy,mpi_real8,ieast,1,                &
+80:                       & psa(1,0),iy,mpi_real8,iwest,1,                  &
+81:                       & mpi_comm_world,mpi_status_ignore,ierr)
+82:       do j = jbegin , jendx
+83:         do i = 2 , iym1
+84:           psdot(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
+85:                      & )
+86:         end do
+87:       end do
+88: #else
+89:       do j = 2 , jxm1
+90:         do i = 2 , iym1
+91:           psdot(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
+92:                      & )
+93:         end do
+94:       end do
+95: #endif
+96: !
+97:       do i = 2 , iym1
+98: #ifdef MPP1
+99:         if ( myid.eq.0 ) psdot(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
+100:         if ( myid.eq.nproc-1 ) psdot(i,jendl)                           &
+101:            & = 0.5*(psa(i,jendx)+psa(i-1,jendx))
+102: #else
+103:         psdot(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
+104:         psdot(i,jx) = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
+105: #endif
+106:       end do
+107: !
+108: #ifdef MPP1
+109:       do j = jbegin , jendx
+110:         psdot(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
+111:         psdot(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
+112:       end do
+113: #else
+114:       do j = 2 , jxm1
+115:         psdot(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
+116:         psdot(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
+117:       end do
+118: #endif
+119: !
+120: #ifdef MPP1
+121:       if ( myid.eq.0 ) then
+122:         psdot(1,1) = psa(1,1)
+123:         psdot(iy,1) = psa(iym1,1)
+124:       end if
+125:       if ( myid.eq.nproc-1 ) then
+126:         psdot(1,jendl) = psa(1,jendx)
+127:         psdot(iy,jendl) = psa(iym1,jendx)
+128:       end if
+129: #else
+130:       psdot(1,1) = psa(1,1)
+131:       psdot(iy,1) = psa(iym1,1)
+132:       psdot(1,jx) = psa(1,jxm1)
+133:       psdot(iy,jx) = psa(iym1,jxm1)
+134: #endif
+135: !
+136: !=======================================================================
+137: !
+138: !**   get deld(0), delh(0) from storage
+139:       do n = 1 , nsplit
+140: #ifdef MPP1
+141:         do j = 1 , jendl
+142:           do i = 1 , iy
+143:             deld(i,j,n,1) = dstor(i,j,n)
+144:             delh(i,j,n,1) = hstor(i,j,n)
+145:           end do
+146:         end do
+147: #else
+148:         do j = 1 , jx
+149:           do i = 1 , iy
+150:             deld(i,j,n,1) = dstor(i,j,n)
+151:             delh(i,j,n,1) = hstor(i,j,n)
+152:           end do
+153:         end do
+154: #endif
+155:       end do
+156: !
+157: !=======================================================================
+158: !******* divergence manipulations (f)
+159:       do k = 1 , kz
+160: #ifdef MPP1
+161:         do j = 1 , jendl
+162:           do i = 1 , iy
+163:             uuu(i,k,j) = ua(i,k,j)*msfd(i,j)
+164:             vvv(i,k,j) = va(i,k,j)*msfd(i,j)
+165:           end do
+166:         end do
+167: #else
+168:         do j = 1 , jx
+169:           do i = 1 , iy
+170:             uuu(i,k,j) = ua(i,k,j)*msfd(i,j)
+171:             vvv(i,k,j) = va(i,k,j)*msfd(i,j)
+172:           end do
+173:         end do
+174: #endif
+175:       end do
+176: #ifdef MPP1
+177:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,             &
+178:                       & uuu(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
+179:                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
+180:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,             &
+181:                       & vvv(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
+182:                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
+183: #endif
+184:       do l = 1 , nsplit
+185: #ifdef MPP1
+186:         do j = 1 , jendl
+187:           do i = 1 , iy
+188:             deld(i,j,l,3) = 0.
+189:           end do
+190:         end do
+191: #else
+192:         do j = 1 , jx
+193:           do i = 1 , iy
+194:             deld(i,j,l,3) = 0.
+195:           end do
+196:         end do
+197: #endif
+198:         do k = 1 , kz
+199: #ifdef MPP1
+200:           do j = 1 , jendx
+201:             do i = 1 , iym1
+202:               fac = dx2*msfx(i,j)*msfx(i,j)
+203:               deld(i,j,l,3) = deld(i,j,l,3) + zmatxr(l,k)               &
+204:                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j) &
+205:                             & +uuu(i,k,j+1)+vvv(i+1,k,j)+vvv(i+1,k,j+1) &
+206:                             & -vvv(i,k,j)-vvv(i,k,j+1))/fac
+207:             end do
+208:           end do
+209: #else
+210:           do j = 1 , jxm1
+211:             do i = 1 , iym1
+212:               fac = dx2*msfx(i,j)*msfx(i,j)
+213:               deld(i,j,l,3) = deld(i,j,l,3) + zmatxr(l,k)               &
+214:                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j) &
+215:                             & +uuu(i,k,j+1)+vvv(i+1,k,j)+vvv(i+1,k,j+1) &
+216:                             & -vvv(i,k,j)-vvv(i,k,j+1))/fac
+217:             end do
+218:           end do
+219: #endif
+220:         end do
+221:       end do
+222: !
+223: !=======================================================================
+224:  
+225:       do n = 1 , nsplit
+226: #ifdef MPP1
+227:         do j = 1 , jendl
+228:           do i = 1 , iy
+229:             deld(i,j,n,3) = deld(i,j,n,3) - deld(i,j,n,1)
+230:           end do
+231:         end do
+232: #else
+233:         do j = 1 , jx
+234:           do i = 1 , iy
+235:             deld(i,j,n,3) = deld(i,j,n,3) - deld(i,j,n,1)
+236:           end do
+237:         end do
+238: #endif
+239:       end do
+240: !
+241: !=======================================================================
+242: !******* divergence manipulations (0)
+243:       do k = 1 , kz
+244: #ifdef MPP1
+245:         do j = 1 , jendl
+246:           do i = 1 , iy
+247:             uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
+248:             vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
+249:           end do
+250:         end do
+251: #else
+252:         do j = 1 , jx
+253:           do i = 1 , iy
+254:             uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
+255:             vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
+256:           end do
+257:         end do
+258: #endif
+259:       end do
+260: #ifdef MPP1
+261:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,             &
+262:                       & uuu(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
+263:                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
+264:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,             &
+265:                       & vvv(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
+266:                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
+267: #endif
+268:       do l = 1 , nsplit
+269: #ifdef MPP1
+270:         do j = 1 , jendl
+271:           do i = 1 , iy
+272:             deld(i,j,l,2) = 0.
+273:           end do
+274:         end do
+275: #else
+276:         do j = 1 , jx
+277:           do i = 1 , iy
+278:             deld(i,j,l,2) = 0.
+279:           end do
+280:         end do
+281: #endif
+282:         do k = 1 , kz
+283: #ifdef MPP1
+284:           do j = 1 , jendx
+285:             do i = 1 , iym1
+286:               fac = dx2*msfx(i,j)*msfx(i,j)
+287:               deld(i,j,l,2) = deld(i,j,l,2) + zmatxr(l,k)               &
+288:                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j) &
+289:                             & +uuu(i,k,j+1)+vvv(i+1,k,j)+vvv(i+1,k,j+1) &
+290:                             & -vvv(i,k,j)-vvv(i,k,j+1))/fac
+291:             end do
+292:           end do
+293: #else
+294:           do j = 1 , jxm1
+295:             do i = 1 , iym1
+296:               fac = dx2*msfx(i,j)*msfx(i,j)
+297:               deld(i,j,l,2) = deld(i,j,l,2) + zmatxr(l,k)               &
+298:                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j) &
+299:                             & +uuu(i,k,j+1)+vvv(i+1,k,j)+vvv(i+1,k,j+1) &
+300:                             & -vvv(i,k,j)-vvv(i,k,j+1))/fac
+301:             end do
+302:           end do
+303: #endif
+304:         end do
+305:       end do
+306: !
+307: !=======================================================================
+308:       do n = 1 , nsplit
+309: #ifdef MPP1
+310:         do j = 1 , jendl
+311:           do i = 1 , iy
+312:             deld(i,j,n,1) = deld(i,j,n,1) - deld(i,j,n,2)
+313:           end do
+314:         end do
+315: #else
+316:         do j = 1 , jx
+317:           do i = 1 , iy
+318:             deld(i,j,n,1) = deld(i,j,n,1) - deld(i,j,n,2)
+319:           end do
+320:         end do
+321: #endif
+322:       end do
+323: !
+324: !=======================================================================
+325: !******* geopotential manipulations (f)
+326:       do l = 1 , nsplit
+327:         pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
+328:         eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
+329: #ifdef MPP1
+330:         do j = 1 , jendx
+331:           do i = 1 , iym1
+332:             eps = eps1*(psa(i,j)-pd)
+333:             delh(i,j,l,3) = pdlog + eps
+334:           end do
+335:         end do
+336: #else
+337:         do j = 1 , jxm1
+338:           do i = 1 , iym1
+339:             eps = eps1*(psa(i,j)-pd)
+340:             delh(i,j,l,3) = pdlog + eps
+341:           end do
+342:         end do
+343: #endif
+344:         do k = 1 , kz
+345:           pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
+346:           eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
+347: #ifdef MPP1
+348:           do j = 1 , jendx
+349:             do i = 1 , iym1
+350:               eps = eps1*(psa(i,j)-pd)
+351:               delh(i,j,l,3) = delh(i,j,l,3) + pdlog + tau(l,k)*ta(i,k,j)&
+352:                             & /psa(i,j) + eps
+353:             end do
+354:           end do
+355: #else
+356:           do j = 1 , jxm1
+357:             do i = 1 , iym1
+358:               eps = eps1*(psa(i,j)-pd)
+359:               delh(i,j,l,3) = delh(i,j,l,3) + pdlog + tau(l,k)*ta(i,k,j)&
+360:                             & /psa(i,j) + eps
+361:             end do
+362:           end do
+363: #endif
+364:         end do
+365:       end do
+366: !=======================================================================
+367:  
+368:       do n = 1 , nsplit
+369: #ifdef MPP1
+370:         do j = 1 , jendl
+371:           do i = 1 , iy
+372:             delh(i,j,n,3) = delh(i,j,n,3) - delh(i,j,n,1)
+373:           end do
+374:         end do
+375: #else
+376:         do j = 1 , jx
+377:           do i = 1 , iy
+378:             delh(i,j,n,3) = delh(i,j,n,3) - delh(i,j,n,1)
+379:           end do
+380:         end do
+381: #endif
+382:       end do
+383: !
+384: !=======================================================================
+385: !******* geopotential manipulations (0)
+386:       do l = 1 , nsplit
+387:         pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
+388:         eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
+389: #ifdef MPP1
+390:         do j = 1 , jendx
+391:           do i = 1 , iym1
+392:             eps = eps1*(psb(i,j)-pd)
+393:             delh(i,j,l,2) = pdlog + eps
+394:           end do
+395:         end do
+396: #else
+397:         do j = 1 , jxm1
+398:           do i = 1 , iym1
+399:             eps = eps1*(psb(i,j)-pd)
+400:             delh(i,j,l,2) = pdlog + eps
+401:           end do
+402:         end do
+403: #endif
+404:         do k = 1 , kz
+405:           pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
+406:           eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
+407: #ifdef MPP1
+408:           do j = 1 , jendx
+409:             do i = 1 , iym1
+410:               eps = eps1*(psb(i,j)-pd)
+411:               delh(i,j,l,2) = delh(i,j,l,2) + pdlog + tau(l,k)*tb(i,k,j)&
+412:                             & /psb(i,j) + eps
+413:             end do
+414:           end do
+415: #else
+416:           do j = 1 , jxm1
+417:             do i = 1 , iym1
+418:               eps = eps1*(psb(i,j)-pd)
+419:               delh(i,j,l,2) = delh(i,j,l,2) + pdlog + tau(l,k)*tb(i,k,j)&
+420:                             & /psb(i,j) + eps
+421:             end do
+422:           end do
+423: #endif
+424:         end do
+425:       end do
+426: !=======================================================================
+427:       do n = 1 , nsplit
+428: #ifdef MPP1
+429:         do j = 1 , jendl
+430:           do i = 1 , iy
+431:             delh(i,j,n,1) = delh(i,j,n,1) - delh(i,j,n,2)
+432:           end do
+433:         end do
+434: #else
+435:         do j = 1 , jx
+436:           do i = 1 , iy
+437:             delh(i,j,n,1) = delh(i,j,n,1) - delh(i,j,n,2)
+438:           end do
+439:         end do
+440: #endif
+441:       end do
+442: !
+443: !**   put deld(0), delh(0) into storage
+444:       do n = 1 , nsplit
+445: #ifdef MPP1
+446:         do j = 1 , jendl
+447:           do i = 1 , iy
+448:             dstor(i,j,n) = deld(i,j,n,2)
+449:             hstor(i,j,n) = delh(i,j,n,2)
+450:           end do
+451:         end do
+452: #else
+453:         do j = 1 , jx
+454:           do i = 1 , iy
+455:             dstor(i,j,n) = deld(i,j,n,2)
+456:             hstor(i,j,n) = delh(i,j,n,2)
+457:           end do
+458:         end do
+459: #endif
+460:       end do
+461: !
+462: !******* split explicit time integration
+463:       call <a href="./spstep.F90.html#spstep" TARGET=CENT_PANEL>spstep</a>(hbar,dx2,dtau,m)
+464: !
+465: !******* add corrections to t and p;  u and v
+466: !=======================================================================
+467:       do l = 1 , nsplit
+468:         gnuan = gnuhf*an(l)
+469: #ifdef MPP1
+470:         do j = jbegin , jendm
+471:           do i = 2 , iym2
+472:             psa(i,j) = psa(i,j) - an(l)*ddsum(i,j,l)
+473:             psb(i,j) = psb(i,j) - gnuan*ddsum(i,j,l)
+474:           end do
+475:         end do
+476: #else
+477:         do j = 2 , jxm2
+478:           do i = 2 , iym2
+479:             psa(i,j) = psa(i,j) - an(l)*ddsum(i,j,l)
+480:             psb(i,j) = psb(i,j) - gnuan*ddsum(i,j,l)
+481:           end do
+482:         end do
+483: #endif
+484:       end do
+485:       do l = 1 , nsplit
+486:         do k = 1 , kz
+487:           gnuam = gnuhf*am(k,l)
+488: #ifdef MPP1
+489:           do j = jbegin , jendm
+490:             do i = 2 , iym2
+491:               ta(i,k,j) = ta(i,k,j) + am(k,l)*ddsum(i,j,l)
+492:               tb(i,k,j) = tb(i,k,j) + gnuam*ddsum(i,j,l)
+493:             end do
+494:           end do
+495: #else
+496:           do j = 2 , jxm2
+497:             do i = 2 , iym2
+498:               ta(i,k,j) = ta(i,k,j) + am(k,l)*ddsum(i,j,l)
+499:               tb(i,k,j) = tb(i,k,j) + gnuam*ddsum(i,j,l)
+500:             end do
+501:           end do
+502: #endif
+503:         end do
+504:       end do
+505: !=======================================================================
+506: #ifdef MPP1
+507:       ii = 0
+508:       do l = 1 , nsplit
+509:         do i = 1 , iy
+510:           ii = ii + 1
+511:           wksend(ii) = dhsum(i,jxp,l)
+512:         end do
+513:       end do
+514:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(wksend(1),iy*nsplit,mpi_real8,ieast,            &
+515:                       & 1,wkrecv(1),iy*nsplit,mpi_real8,                &
+516:                       & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
+517:       ii = 0
+518:       do l = 1 , nsplit
+519:         do i = 1 , iy
+520:           ii = ii + 1
+521:           dhsum(i,0,l) = wkrecv(ii)
+522:         end do
+523:       end do
+524: #endif
+525:       do l = 1 , nsplit
+526:         do k = 1 , kz
+527:           gnuzm = gnuhf*zmatx(k,l)
+528: #ifdef MPP1
+529:           do j = jbegin , jendx
+530:             do i = 2 , iym1
+531:               fac = psdot(i,j)/(dx2*msfd(i,j))
+532:               x = fac*(dhsum(i,j,l)+dhsum(i-1,j,l)-dhsum(i,j-1,l)       &
+533:                 & -dhsum(i-1,j-1,l))
+534:               y = fac*(dhsum(i,j,l)-dhsum(i-1,j,l)+dhsum(i,j-1,l)       &
+535:                 & -dhsum(i-1,j-1,l))
+536: !
+537:               ua(i,k,j) = ua(i,k,j) - zmatx(k,l)*x
+538:               va(i,k,j) = va(i,k,j) - zmatx(k,l)*y
+539:               ub(i,k,j) = ub(i,k,j) - gnuzm*x
+540:               vb(i,k,j) = vb(i,k,j) - gnuzm*y
+541:             end do
+542:           end do
+543: #else
+544:           do j = 2 , jxm1
+545:             do i = 2 , iym1
+546:               fac = psdot(i,j)/(dx2*msfd(i,j))
+547:               x = fac*(dhsum(i,j,l)+dhsum(i-1,j,l)-dhsum(i,j-1,l)       &
+548:                 & -dhsum(i-1,j-1,l))
+549:               y = fac*(dhsum(i,j,l)-dhsum(i-1,j,l)+dhsum(i,j-1,l)       &
+550:                 & -dhsum(i-1,j-1,l))
+551: !
+552:               ua(i,k,j) = ua(i,k,j) - zmatx(k,l)*x
+553:               va(i,k,j) = va(i,k,j) - zmatx(k,l)*y
+554:               ub(i,k,j) = ub(i,k,j) - gnuzm*x
+555:               vb(i,k,j) = vb(i,k,j) - gnuzm*y
+556:             end do
+557:           end do
+558: #endif
+559:         end do
+560:       end do
+561: !
+562: !=======================================================================
+563: !
+564:       end subroutine splitf
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

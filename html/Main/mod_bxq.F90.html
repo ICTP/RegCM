@@ -1,0 +1,89 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_bxq.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_bxq.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_bxq.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_bxq><H3>mod_bxq</H3></a></p>20:       module mod_bxq
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: !
+26:       real(8) ,allocatable, dimension(:,:,:) :: ddsum
+27:       real(8) ,allocatable, dimension(:,:,:,:) :: deld
+28:       real(8) ,allocatable, dimension(:,:,:,:) :: delh
+29:       real(8) ,allocatable, dimension(:,:,:) :: dhsum
+30:       real(8) ,allocatable, dimension(:,:) :: psdot
+31:       real(8) ,allocatable, dimension(:,:,:) :: work
+32:       real(8) ,allocatable, dimension(:,:) :: uu , vv
+33:       real(8) ,allocatable, dimension(:,:,:) :: uuu , vvv
+34: 
+35:       contains 
+36: 
+<p><a name=allocate_mod_bxq><H3>allocate_mod_bxq</H3></a></p> Click <a href="./callingtree/allocate_mod_bxq_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_bxq is used.
+<hr>
+37:         subroutine allocate_mod_bxq
+38:         implicit none
+39: #ifdef MPP1
+40:         allocate(ddsum(iy,jxp,nsplit))
+41:         allocate(deld(iy,jxp,nsplit,3))
+42:         allocate(delh(iy,0:jxp,nsplit,3))
+43:         allocate(dhsum(iy,0:jxp,nsplit))
+44:         allocate(psdot(iy,jxp))
+45:         allocate(work(iy,jxp,3))
+46:         allocate(uu(iy,jxp+1))
+47:         allocate(vv(iy,jxp+1))
+48:         allocate(uuu(iy,kz,jxp+1))
+49:         allocate(vvv(iy,kz,jxp+1))
+50: #else
+51:         allocate(ddsum(iy,jx,nsplit))
+52:         allocate(deld(iy,jx,nsplit,3))
+53:         allocate(delh(iy,jx,nsplit,3))
+54:         allocate(dhsum(iy,jx,nsplit))
+55:         allocate(psdot(iy,jx))
+56:         allocate(work(iy,jx,3))
+57:         allocate(uu(iy,jx))
+58:         allocate(vv(iy,jx))
+59:         allocate(uuu(iy,kz,jx))
+60:         allocate(vvv(iy,kz,jx))
+61: #endif 
+62:         end subroutine allocate_mod_bxq
+63: 
+64:       end module mod_bxq
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

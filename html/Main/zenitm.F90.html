@@ -1,0 +1,114 @@
+<HTML>
+
+<HEAD>
+<TITLE>zenitm.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>zenitm.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>zenitm.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: !
+<p><a name=zenitm><H3>zenitm</H3></a></p> Click <a href="./callingtree/zenitm_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where zenitm is used.
+<hr>
+20:       subroutine zenitm(coszrs,ivmx,jslc)
+21: !
+22: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+23: !
+24: !   this subroutine calculates the cosine of the solar zenith angle
+25: !   for all longitude points of the mm42d domain. it needs as inputs
+26: !   the longitude and latitude of the points, the initial date of the
+27: !   simulation and the gmt. all these quantities are specified
+28: !   in the initialization procedure of RegCM
+29: !
+30: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+31: !
+32: #ifdef CLM
+33:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a> , only : myid , jxp
+34:       use <a href="#" TARGET=CENT_PANEL>clm_time_manager</a> , only : get_curr_calday
+35: !      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0 ,   &
+36: !                           xtime
+37:       use <a href="#" TARGET=CENT_PANEL>shr_orb_mod</a> , only : shr_orb_cosz , shr_orb_decl
+38:       use <a href="./mod_clm.F90.html#mod_clm" TARGET=CENT_PANEL>mod_clm</a>
+39: #else
+40:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+41:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+42:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : declin , lhour , xtime
+43:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : degrad
+44: #endif
+45:       implicit none
+46: !
+47: ! Arguments
+48: !
+49:       integer, intent (in) :: ivmx , jslc
+50:       real(kind=8) , intent (inout), dimension(iy) :: coszrs
+51: !
+52: ! Local variables
+53: !
+54:       integer :: ill
+55: #ifdef CLM
+56:       integer :: jj
+57:       real(kind=8) :: cldy , declinp1
+58: #else
+59:       real(kind=8) :: omega , tlocap , xt24 , xxlat
+60: #endif
+61: !
+62: !***********************************************************************
+63: !
+64: #ifdef CLM
+65:       cldy = get_curr_calday()
+66: !      cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+67:       call <a href="#" TARGET=CENT_PANEL>shr_orb_decl</a>(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
+68:            &            r2cobliqr,declinp1,r2ceccf)
+69:       jj = (jxp*myid) + jslc
+70:       do ill = 1 , ivmx
+71:         coszrs(ill) = shr_orb_cosz(cldy,r2cxlat_all(jj,ill),            &
+72:             &                      r2cxlon_all(jj,ill),declinp1)
+73:         coszrs(ill) = dmax1(0.d0,coszrs(ill))
+74:       end do
+75: #else
+76:       xt24 = dmod(lhour*60.+xtime,1440.D0)
+77:       do ill = 1 , ivmx
+78:         tlocap = xt24/60. + xlong(ill,jslc)/15.
+79:         tlocap = dmod(tlocap+24.,24.D0)
+80:         omega = 15.*(tlocap-12.)*degrad
+81:         xxlat = xlat(ill,jslc)*degrad
+82: !       coszrs = cosine of solar zenith angle
+83:         coszrs(ill) = dsin(declin)*dsin(xxlat) + dcos(declin)           &
+84:                     & *dcos(xxlat)*dcos(omega)
+85:         coszrs(ill) = dmax1(0.D0,coszrs(ill))
+86:       end do
+87: #endif
+88: !
+89:       end subroutine zenitm
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,160 @@
+<HTML>
+
+<HEAD>
+<TITLE>nconvp.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>nconvp.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>nconvp.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=nconvp><H3>nconvp</H3></a></p> Click <a href="./callingtree/nconvp_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where nconvp is used.
+<hr>
+20:       subroutine nconvp(psa,psb,ta,tb,qva,qvb,qca,qcb)
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine computes the nonconvective precipitation, i.e.  c
+25: !     removes the supersaturation as nonconvective precipitation.     c
+26: !                                                                     c
+27: !     ---the computation procedure uses the averaged value from       c
+28: !        the two timesteps to check for supersaturation and removes   c
+29: !        the supersaturation from both timesteps in order to conserve c
+30: !        the total mass.                                              c
+31: !                                                                     c
+32: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+33:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+34:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : r8pt , a
+35:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+36:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
+37:                              & svp2 , svp3 , svp4 , svp5 , svp6 ,       &
+38:                              & tzero , rwat
+39:       implicit none
+40: !
+41: ! Dummy arguments
+42: !
+43: #ifdef MPP1
+44:       real(8) , dimension(iy,jxp) :: psa , psb
+45:       real(8) , dimension(iy,kz,jxp) :: qca , qcb , qva , qvb , ta , tb
+46: #else
+47:       real(8) , dimension(iy,jx) :: psa , psb
+48:       real(8) , dimension(iy,kz,jx) :: qca , qcb , qva , qvb , ta , tb
+49: #endif
+50:       intent (in) psa , psb
+51:       intent (inout) qca , qcb , qva , qvb , ta , tb
+52: !
+53: ! Local variables
+54: !
+55:       real(8) :: dqv , e1 , es1 , ex , exces , pavg , psx , qcas ,      &
+56:                & qcavg , qcbs , qvas , qvavg , qvbs , r1 , tavg ,       &
+57:                & tpavg , tta
+58:       integer :: i , j , k
+59:       real(8) , dimension(iy,kz) :: scr
+60: !
+61: !----------------------------------------------------------------------
+62: #ifdef MPP1
+63:       do j = 1 , jxp
+64: #else
+65:       do j = 1 , jxm1
+66: #endif
+67:         do k = 1 , kz
+68:           do i = 1 , iym1
+69:             tavg = 0.5*(ta(i,k,j)/psa(i,j)+tb(i,k,j)/psb(i,j))
+70:             tpavg = 0.5*(ta(i,k,j)+tb(i,k,j))
+71:             qvavg = 0.5*(qva(i,k,j)/psa(i,j)+qvb(i,k,j)/psb(i,j))
+72:             pavg = 0.5*(psa(i,j)+psb(i,j))
+73:             psx = pavg*a(k) + r8pt
+74:             tta = tpavg/pavg
+75:             if ( tta.gt.tzero ) then
+76: !             v8 svp formula
+77:               e1 = svp1*dexp(svp2*(tta-tzero)/(tta-svp3))
+78:             else
+79:               e1 = svp4*dexp(svp5-svp6/tta)
+80:             end if
+81:             es1 = ep2*e1/(psx-e1)
+82:             dqv = qvavg - es1*conf
+83:             r1 = 1./(1.+wlhv*wlhv*es1/(rwat*cpd*tavg*tavg))
+84:             scr(i,k) = r1*dqv
+85:           end do
+86:         end do
+87: !
+88:         do k = 1 , kz
+89:           do i = 1 , iym1
+90:             qcavg = dmin1(qca(i,k,j)/psa(i,j),qcb(i,k,j)/psb(i,j))
+91:             exces = qcavg + scr(i,k)
+92:             if ( exces.ge.0. ) then
+93:               scr(i,k) = scr(i,k)
+94:             else
+95:               scr(i,k) = -qcavg
+96:             end if
+97:             qcas = qca(i,k,j) + scr(i,k)*psa(i,j)
+98:             qcbs = qcb(i,k,j) + scr(i,k)*psb(i,j)
+99:             qca(i,k,j) = dmax1(qcas,0.D0)
+100:             qcb(i,k,j) = dmax1(qcbs,0.D0)
+101:           end do
+102:         end do
+103: !
+104:         do k = 1 , kz
+105:           do i = 1 , iym1
+106:             qvas = qva(i,k,j) - scr(i,k)*psa(i,j)
+107:             qvbs = qvb(i,k,j) - scr(i,k)*psb(i,j)
+108:             qva(i,k,j) = dmax1(qvas,1.D-99)
+109:             qvb(i,k,j) = dmax1(qvbs,1.D-99)
+110:           end do
+111:         end do
+112: !
+113: !.....compute nonconvective rainfall when cumulus parameterization
+114: !       scheme is used (i.e. im = 1).
+115: !       unit for precipitation is cm.
+116: !
+117: #ifdef MPP1
+118:         if ( .not.((myid.eq.0 .and. j.eq.1) .or. (myid.eq.nproc-1 .and. &
+119:            & j.eq.jxp-1)) ) then
+120: #else
+121:         if ( j.ne.1 .and. j.ne.jxm1 ) then
+122: #endif
+123: !
+124:           do k = 1 , kz
+125:             do i = 2 , iym2
+126:               ex = 1.
+127:               ta(i,k,j) = ta(i,k,j) + wlhvocp*scr(i,k)*psa(i,j)*ex
+128:               tb(i,k,j) = tb(i,k,j) + wlhvocp*scr(i,k)*psb(i,j)*ex
+129:             end do
+130:           end do
+131:         end if
+132: !
+133:       end do     !end j=1,jxm1 loop
+134: !
+135:       end subroutine nconvp
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,166 @@
+<HTML>
+
+<HEAD>
+<TITLE>drag.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>drag.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>drag.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=drag><H3>drag</H3></a></p> Click <a href="./callingtree/drag_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where drag is used.
+<hr>
+20:       subroutine drag
+21:  
+22: !     *** determines surface transfer coeffs. at anemom. level from
+23: !     *** lowest model level based on monin-obukov theory using
+24: !     *** deardorff parameterization in terms of bulk richardson no.
+25:  
+26: !     ****  a.  calculates neutral drag coefficient (cdrn) as a fn of
+27: !     ****             underlying surface
+28:  
+29: !     ****  b.  modifies cdrn as fn of bulk rich. no. of surface layer
+30:  
+31:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+32:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : ribd , us1d , vs1d , vspda , cdrn , cdrx ,  &
+33:                      & cdr , aarea , z1 , clead , ts1d , lveg , tg1d ,  &
+34:                      & sigf , displa , ldoc1d ,  taf1d
+35:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti , zoce , vonkar , wtur
+36:       implicit none
+37: !
+38: ! Local variables
+39: !
+40:       real(8) , dimension(nnsg,iym1) :: cdrmin , rib , ribl , ribn
+41:       real(8) :: dthdz , u1 , u2 , zatild
+42:       integer :: n , i
+43: !
+44: !=======================================================================
+45: !     1.   get neutral drag coefficient
+46: !=======================================================================
+47:       call <a href="./dragdn.F90.html#dragdn" TARGET=CENT_PANEL>dragdn</a>
+48:  
+49:       do i = 2 , iym1
+50:         do n = 1 , nnsg
+51: !=======================================================================
+52: !         2.   compute stability as bulk rich. no. = rin/rid =
+53: !         ri(numerator)/ri(denominator)
+54: !=======================================================================
+55:           if ( lveg(n,i).ne.0 ) then
+56:             zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i) + z1(n,i)    &
+57:                    & *(1.-sigf(n,i))
+58:           else
+59:             zatild = z1(n,i)
+60:           end if
+61:           ribn(n,i) = zatild*gti*(ts1d(n,i)-sigf(n,i)*taf1d(n,i)-       &
+62:                      & (1.-sigf(n,i))*tg1d(n,i))/ts1d(n,i)
+63: !=======================================================================
+64: !         2.1  compute the bulk richardson number;
+65: !         first get avg winds to use for ri number by summing the
+66: !         squares of horiz., vertical, and convective velocities
+67: !=======================================================================
+68:           if ( ribn(n,i).le.0. ) then
+69:             dthdz = (1.-sigf(n,i))*tg1d(n,i) + sigf(n,i)*taf1d(n,i)     &
+70:                   & - ts1d(n,i)
+71:             u1 = wtur + 2.*dsqrt(dthdz)
+72:             ribd(n,i) = us1d(i)**2 + vs1d(i)**2 + u1**2
+73:           else
+74:             u2 = wtur
+75:             ribd(n,i) = us1d(i)**2 + vs1d(i)**2 + u2**2
+76:           end if
+77:           vspda(n,i) = dsqrt(ribd(n,i))
+78:           if ( vspda(n,i).lt.1. ) then
+79:             vspda(n,i) = 1.
+80:             ribd(n,i) = 1.
+81:           end if
+82:           rib(n,i) = ribn(n,i)/ribd(n,i)
+83: !=======================================================================
+84: !         3.   obtain drag coefficient as product of neutral value
+85: !         and stability correction
+86: !=======================================================================
+87: !         ****   -0.4 < rib < 0.2   (deardorff, jgr, 1968, 2549-2557)
+88:           if ( rib(n,i).lt.0. ) then
+89:             cdr(n,i) = cdrn(n,i)*(1.0+24.5*dsqrt(-cdrn(n,i)*rib(n,i)))
+90:           else
+91:             cdr(n,i) = cdrn(n,i)/(1.0+11.5*rib(n,i))
+92:           end if
+93: !         3.1  apply lower limit to drag coefficient value
+94:           cdrmin(n,i) = dmax1(0.25*cdrn(n,i),6.D-4)
+95:           if ( cdr(n,i).lt.cdrmin(n,i) ) cdr(n,i) = cdrmin(n,i)
+96:           cdrx(n,i) = cdr(n,i)
+97:  
+98:         end do
+99:       end do
+100:  
+101: !=======================================================================
+102: !     4.   obtain drag coefficient over sea ice as weighted average
+103: !     over ice and leads
+104: !     warning! the lat test below (4.1-4.3) is model dependent!
+105: !=======================================================================
+106:  
+107: !     4.1  test if northern or southern hemisphere
+108:       do i = 2 , iym1
+109:         do n = 1 , nnsg
+110:                                                     ! check each point
+111: !cc   if(lat(i).eq.    1) aarea(i) = 0.005  ! ccm specific code
+112: !cc   if(lat(i).eq.    2) aarea(i) = 0.01
+113: !cc   if(lat(i).ge.nlat2) aarea(i) = 0.04   !  4.2  antarctic
+114:           if ( ldoc1d(n,i).gt.1.5 ) aarea(n,i) = 0.02
+115:                                                     !  4.3  arctic
+116:         end do
+117:       end do
+118:  
+119: !     4.4  neutral cd over lead water
+120:       do i = 2 , iym1
+121:         do n = 1 , nnsg
+122:           if ( ldoc1d(n,i).gt.1.5 ) then       !  check each point
+123:             cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**2
+124:  
+125: !           4.5  drag coefficient over leads
+126:             ribl(n,i) = (1.-271.5/ts1d(n,i))*z1(n,i)*gti/ribd(n,i)
+127:             if ( ribl(n,i).ge.0 ) then
+128:               clead(n,i) = cdrn(n,i)/(1.+11.5*ribl(n,i))
+129:             else
+130:               clead(n,i) = cdrn(n,i)*(1.+24.5*dsqrt(-cdrn(n,i)*         &
+131:                     & ribl(n,i)))
+132:             end if
+133:  
+134: !           4.6  calculate weighted avg of ice and lead drag
+135: !           coefficients
+136:             cdrx(n,i) = (1.-aarea(n,i))*cdr(n,i) + aarea(n,i)*clead(n,i)
+137:           end if
+138:         end do
+139:       end do
+140:  
+141:       end subroutine drag
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

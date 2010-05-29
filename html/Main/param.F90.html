@@ -1,0 +1,1776 @@
+<HTML>
+
+<HEAD>
+<TITLE>param.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>param.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>param.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=param><H3>param</H3></a></p> Click <a href="./callingtree/param_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where param is used.
+<hr>
+20:       subroutine param
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine defines various model parameters.               c
+25: !                                                                     c
+26: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+27: 
+28:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+29:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+30:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+31:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : wgtx , sigma , dsigma , a , anudg , twt , &
+32:                    & qcon , wgtd , akht1 , akht2 , kt , kxout , ncld ,  &
+33:                    & r8pt , ptop4 , kchi , k700 , jxsex , ispgx ,       &
+34:                    & ispgd , allocate_mod_param3, high_nudge,           &
+35:                    & medium_nudge,low_nudge
+36:       use <a href="./mod_iunits.f90.html#mod_iunits" TARGET=CENT_PANEL>mod_iunits</a>
+37:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+38:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+39:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+40:       use <a href="./mod_trachem.F90.html#mod_trachem" TARGET=CENT_PANEL>mod_trachem</a>
+41:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : mdate0 , ntimax , julday , gmt , deltmx ,   &
+42:                    & dectim , nnnnnn , nstart , idate0 , idate1 ,       &
+43:                    & idate2 , nstrt0 , nyear , nnnend , nmonth ,        &
+44:                    & ndate0 , nnnchk , lyear , lmonth , lday , lhour ,  &
+45:                    & ldatez , idatex , jyear , jyear0 , jyearr , ntime ,&
+46:                    & ktau , ktaur , xtime , initdate , finddate
+47:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a>
+48:       use <a href="./mod_cu_bm.F90.html#mod_cu_bm" TARGET=CENT_PANEL>mod_cu_bm</a> , only : lutbl
+49:       use <a href="./mod_cu_em.f90.html#mod_cu_em" TARGET=CENT_PANEL>mod_cu_em</a>
+50:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : mathpi , gti , rgti , rgas , vonkar ,  &
+51:                                & cpd , tauht
+52:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a> , only : allocate_<a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a>
+53:       use <a href="./mod_split.F90.html#mod_split" TARGET=CENT_PANEL>mod_split</a>, only : allocate_<a href="./mod_split.F90.html#mod_split" TARGET=CENT_PANEL>mod_split</a>
+54:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>, only : allocate_<a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+55:       use <a href="./mod_pbldim.F90.html#mod_pbldim" TARGET=CENT_PANEL>mod_pbldim</a>, only : allocate_<a href="./mod_pbldim.F90.html#mod_pbldim" TARGET=CENT_PANEL>mod_pbldim</a>    
+56:       use <a href="./mod_outrad.F90.html#mod_outrad" TARGET=CENT_PANEL>mod_outrad</a>, only : allocate_<a href="./mod_outrad.F90.html#mod_outrad" TARGET=CENT_PANEL>mod_outrad</a>  
+57:       use <a href="./mod_blh_tmp.F90.html#mod_blh_tmp" TARGET=CENT_PANEL>mod_blh_tmp</a>, only : allocate_<a href="./mod_blh_tmp.F90.html#mod_blh_tmp" TARGET=CENT_PANEL>mod_blh_tmp</a>
+58:       use <a href="./mod_aero_param.F90.html#mod_aero_param" TARGET=CENT_PANEL>mod_aero_param</a>, only : allocate_<a href="./mod_aero_param.F90.html#mod_aero_param" TARGET=CENT_PANEL>mod_aero_param</a>
+59:       use <a href="./mod_aerosol.F90.html#mod_aerosol" TARGET=CENT_PANEL>mod_aerosol</a>, only : allocate_<a href="./mod_aerosol.F90.html#mod_aerosol" TARGET=CENT_PANEL>mod_aerosol</a>
+60:       use <a href="./mod_radbuf.F90.html#mod_radbuf" TARGET=CENT_PANEL>mod_radbuf</a>, only : allocate_<a href="./mod_radbuf.F90.html#mod_radbuf" TARGET=CENT_PANEL>mod_radbuf</a>
+61:       use <a href="./mod_dust.F90.html#mod_dust" TARGET=CENT_PANEL>mod_dust</a>, only : allocate_<a href="./mod_dust.F90.html#mod_dust" TARGET=CENT_PANEL>mod_dust</a>
+62:       use <a href="./mod_bxq.F90.html#mod_bxq" TARGET=CENT_PANEL>mod_bxq</a>, only : allocate_<a href="./mod_bxq.F90.html#mod_bxq" TARGET=CENT_PANEL>mod_bxq</a>
+63:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>, only : allocate_mod_bdycon 
+64:       use <a href="./mod_mainchem.F90.html#mod_mainchem" TARGET=CENT_PANEL>mod_mainchem</a>, only : allocate_<a href="./mod_mainchem.F90.html#mod_mainchem" TARGET=CENT_PANEL>mod_mainchem</a>
+65:       use <a href="./mod_radbuf.F90.html#mod_radbuf" TARGET=CENT_PANEL>mod_radbuf</a>, only : allocate_<a href="./mod_radbuf.F90.html#mod_radbuf" TARGET=CENT_PANEL>mod_radbuf</a>   
+66:       use <a href="./mod_tmpsav.F90.html#mod_tmpsav" TARGET=CENT_PANEL>mod_tmpsav</a>, only : allocate_<a href="./mod_tmpsav.F90.html#mod_tmpsav" TARGET=CENT_PANEL>mod_tmpsav</a> 
+67:       use <a href="./mod_cvaria.F90.html#mod_cvaria" TARGET=CENT_PANEL>mod_cvaria</a> , only : allocate_<a href="./mod_cvaria.F90.html#mod_cvaria" TARGET=CENT_PANEL>mod_cvaria</a>
+68:       use <a href="./mod_ictp01.F90.html#mod_ictp01" TARGET=CENT_PANEL>mod_ictp01</a> , only : allocate_<a href="./mod_ictp01.F90.html#mod_ictp01" TARGET=CENT_PANEL>mod_ictp01</a>
+69:       use <a href="./mod_o3blk.F90.html#mod_o3blk" TARGET=CENT_PANEL>mod_o3blk</a> , only : allocate_<a href="./mod_o3blk.F90.html#mod_o3blk" TARGET=CENT_PANEL>mod_o3blk</a>
+70: #ifdef MPP1
+71:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+72: #ifdef CLM
+73:       use <a href="./mod_clm.F90.html#mod_clm" TARGET=CENT_PANEL>mod_clm</a> , only : imask , clmfrq , allocate_<a href="./mod_clm.F90.html#mod_clm" TARGET=CENT_PANEL>mod_clm</a>
+74: #endif
+75: #ifndef IBM
+76:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+77: #else 
+78:       include 'mpif.h'
+79: #endif 
+80: #endif
+81:       implicit none
+82: !
+83: ! Local variables
+84: !
+85:       real(4) :: dsx , iclat , iclon , iplat , iplon , ptsp , trl , trh
+86:       character(6) :: proj
+87:       real(8) :: afracl , afracs , bb , cc , chibot , daymax , delsig , &
+88:                & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
+89:                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
+90:                & wkp1 , xbot , xtop , xx , yy
+91:       real(8) , dimension(nsplit) :: dtsplit
+92:       real(4) :: grdfac
+93:       integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
+94:                & kbase , ktop , kzz , m , mdate1 , mday , mmon , myear ,&
+95:                & n , ns , jxx , iyy , itr
+96:       integer , dimension(12) :: mmd
+97:       real(4) , dimension(kzp1) :: sp1d
+98:       real(4) , dimension(iy,jx) :: sp2d
+99:       real(4) , dimension(iysg,jxsg) :: sp2d1
+100:       character(5) , dimension(maxntr) :: inpchtrname
+101:       real(8) , dimension(maxntr) :: inpchtrsol
+102:       real(8) , dimension(maxntr,2) :: inpchtrdpv
+103:       real(8) , dimension(maxnbin,2) :: inpdustbsiz
+104:       character(256) :: domfile , subdom
+105: 
+106: #ifdef MPP1
+107:       integer :: ierr
+108: #ifndef CLM
+109:       integer :: imask
+110:       real(8) :: clmfrq
+111: #endif
+112: #else
+113:       integer :: imask
+114:       real(8) :: clmfrq
+115: #endif
+116: !
+117: !
+118: !----------------------------------------------------------------------
+119: !-----vqrang is the range limit on vqflx.
+120: !.....qdcrit is the precipitation threshold for moisture convergence.
+121: !
+122:       data vqrang/5.0E-4/
+123:       data (mmd(i),i=1,12)/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , &
+124:           & 31 , 30 , 31/
+125:  
+126: ! afracl   - frac. cover for conv. precip. when dx=dxlarg
+127: ! afracs   -   "     "    "    "      "     "   dx=dxsmal
+128: !
+129: !----------------------------------------------------------------------
+130: !-----namelist:
+131: !
+132:       namelist /restartparam/ ifrest , idate0 , idate1 , idate2 , nslice
+133:  
+134:       namelist /timeparam/ radfrq , abatm , abemh , dt , ibdyfrq
+135:  
+136: !chem2
+137:       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
+138:       & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
+139:       & batfrq , ifchem , chemfrq , dirout
+140: !chem2
+141:       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
+142:       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
+143:       & medium_nudge, low_nudge 
+144: !chem2_
+145:       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
+146:       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
+147:       & tc0 , cllwcv , clfrcvmax
+148:  
+149:       namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
+150:       & edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
+151:       & htmin , htmax , skbmax , dtauc
+152:  
+153:       namelist /emanparam/ minsig , elcrit , tlcrit , entp , sigd ,     &
+154:       & sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
+155:       & dtmax , alphae , damp
+156:  
+157: !chem2
+158:       namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
+159:       & ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
+160:       & inpchtrdpv , inpdustbsiz
+161: !chem2_
+162: 
+163: #ifdef CLM
+164:       namelist /clmparam/ dirclm , imask , clmfrq
+165: #endif
+166: 
+167: !-----------------------------------------------------------------------
+168: !-----------------------------------------------------------------------
+169: !-----------------------------------------------------------------------
+170: !
+171:       call <a href="./mod_aero_param.F90.html#allocate_mod_aero_param" TARGET=CENT_PANEL>allocate_mod_aero_param</a>
+172:       call <a href="./mod_aerosol.F90.html#allocate_mod_aerosol" TARGET=CENT_PANEL>allocate_mod_aerosol</a>
+173:       call <a href="./mod_bats.F90.html#allocate_mod_bats" TARGET=CENT_PANEL>allocate_mod_bats</a>
+174:       call <a href="./mod_bdycod.F90.html#allocate_mod_bdycon" TARGET=CENT_PANEL>allocate_mod_bdycon</a>
+175:       call <a href="./mod_blh_tmp.F90.html#allocate_mod_blh_tmp" TARGET=CENT_PANEL>allocate_mod_blh_tmp</a>
+176:       call <a href="./mod_bxq.F90.html#allocate_mod_bxq" TARGET=CENT_PANEL>allocate_mod_bxq</a>
+177:       call <a href="./mod_cvaria.F90.html#allocate_mod_cvaria" TARGET=CENT_PANEL>allocate_mod_cvaria</a>
+178:       call <a href="./mod_dust.F90.html#allocate_mod_dust" TARGET=CENT_PANEL>allocate_mod_dust</a>
+179:       call <a href="./mod_ictp01.F90.html#allocate_mod_ictp01" TARGET=CENT_PANEL>allocate_mod_ictp01</a>
+180:       call <a href="./mod_main.F90.html#allocate_mod_main" TARGET=CENT_PANEL>allocate_mod_main</a>
+181:       call <a href="./mod_mainchem.F90.html#allocate_mod_mainchem" TARGET=CENT_PANEL>allocate_mod_mainchem</a>
+182:       call <a href="./mod_outrad.F90.html#allocate_mod_outrad" TARGET=CENT_PANEL>allocate_mod_outrad</a>
+183:       call <a href="./mod_o3blk.F90.html#allocate_mod_o3blk" TARGET=CENT_PANEL>allocate_mod_o3blk</a>
+184:       call <a href="./mod_param1.f90.html#allocate_mod_param1" TARGET=CENT_PANEL>allocate_mod_param1</a>
+185:       call <a href="./mod_param3.f90.html#allocate_mod_param3" TARGET=CENT_PANEL>allocate_mod_param3</a>
+186:       call <a href="./mod_pbldim.F90.html#allocate_mod_pbldim" TARGET=CENT_PANEL>allocate_mod_pbldim</a>
+187:       call <a href="./mod_pmoist.F90.html#allocate_mod_pmoist" TARGET=CENT_PANEL>allocate_mod_pmoist</a>
+188:       call <a href="./mod_radbuf.F90.html#allocate_mod_radbuf" TARGET=CENT_PANEL>allocate_mod_radbuf</a> 
+189:       call <a href="./mod_rad.F90.html#allocate_mod_rad" TARGET=CENT_PANEL>allocate_mod_rad</a>
+190:       call <a href="./mod_slice.F90.html#allocate_mod_slice" TARGET=CENT_PANEL>allocate_mod_slice</a>
+191:       call <a href="./mod_split.F90.html#allocate_mod_split" TARGET=CENT_PANEL>allocate_mod_split</a>
+192:       call <a href="./mod_tmpsav.F90.html#allocate_mod_tmpsav" TARGET=CENT_PANEL>allocate_mod_tmpsav</a> 
+193:       call <a href="./mod_trachem.F90.html#allocate_mod_trachem" TARGET=CENT_PANEL>allocate_mod_trachem</a>
+194: 
+195: #ifdef DIAG
+196:       call <a href="./mod_diagnosis.f90.html#allocate_mod_diagnosis" TARGET=CENT_PANEL>allocate_mod_diagnosis</a>
+197: #endif
+198: 
+199: #ifdef CLM
+200:       call <a href="./mod_clm.F90.html#allocate_mod_clm" TARGET=CENT_PANEL>allocate_mod_clm</a>
+201: #endif
+202: 
+203: !----------------------------------------------------------------------
+204: !-----specify unit numbers for input/output.
+205: !     units 10,101,14  are input.
+206: !     iutin : input initial data for large domain.
+207: !     iutbc : input slab temperature for large domain ,
+208: !     boundary values and tendencies for large doamin.
+209: !     iutrs : input saved file for large domain for restart from
+210: !     previous forecast.
+211: !     iutdat: output for dataflow, if iftape=.true.
+212: !     iutsav: output saved file for restart, if ifsave=.true. or
+213: !
+214:       qdcrit = 3.0E-7                      ! real*4 for compact input
+215:       iutin = 10
+216:       iutin1 = 11
+217:       iutbc = 101
+218: !_sgi iutbc = 71
+219:       iutrs = 14
+220: !**   initialize output file unit number
+221:       iutdat = 50
+222: !**   initialize save file unit number
+223:       iutsav = 52
+224: !**   initialize bats file unit number
+225:       iutbat = 54
+226:       iutsub = 55
+227: !**   initialize radiation file unit number
+228:       iutrad = 56
+229: !**   initalize lake file unit number
+230:       iutlak = 58
+231: !**   initialize chemistry file number
+232: !chem2
+233: !     emission file
+234:       iutopt = 12
+235:       iutchsrc = 13
+236: !     out file
+237:       iutchem = 60
+238: !chem2_
+239: !
+240: !----------------------------------------------------------------------
+241: !-----specify the parameters used in the model:
+242: !
+243: !     rfstrt : whether the model is to be started with refined time
+244: !     steps in the first hour. if ifrest=.true., this parameter
+245: !     is never used.
+246: !     = .true. ; yes
+247: !     = .false. ; no
+248: !
+249: !     ifrest : whether this run is restarting from a saved tape
+250: !     (unit 14).
+251: !     = .true. ; yes
+252: !     = .false. ; no
+253: !
+254: !     ktaur  : if ifrest=.false., ktaur=0.
+255: !     if ifrest=.true., set ktaur=ktau, which is the time-step
+256: !     the model output is saved.
+257: !
+258: !     ifsave : specify whether a saved tape (unit 24) will be written
+259: !     for restarting.
+260: !     = .true. ; yes
+261: !     = .false. ; no
+262: !
+263: !     savfrq : if ifsave=.true., specify the interval in hours
+264: !     between save operations.
+265: !
+266: !     ibltyp : specify whether bats pbl or holtslag's pbl
+267: !     parameterization is to be used in the model.
+268: !     = 0 ; frictionless
+269: !     = 1 ; holtslag pbl (holtslag, 1990)
+270: !
+271: !     radfrq : specify the frequency in
+272: !     minutes, the solar radiation will be computed in
+273: !     subroutine "sfcrd". a typical value would be 30 minutes.
+274: !
+275: !     lakemod: inclusion of the hostetler lake model
+276: !     = 0 ; no
+277: !     = 1 ; yes
+278: !
+279: !     kxout  : the k level of the horizontal slice for printer output.
+280: !
+281: !     jxsex  : the j index of the north-south vertical slice for printer
+282: !     output.
+283: !
+284: !     icup   : type of cumulus parameterization
+285: !     = 1 ; kuo
+286: !     = 2 ; grell
+287: !     = 3 ; betts-miller (1986)
+288: !     = 4 ; emanuel (1991)
+289: !
+290: !     igcc   : Grell Scheme Convective Closure Assumption
+291: !     = 1 ; Arakawa & Schubert (1974)
+292: !     = 2 ; Fritsch & Chappell (1980)
+293: !
+294: !     ipptls : type of moisture scheme
+295: !     = 1 ; explicit moisture (SUBEX; Pal et al 2000)
+296: !
+297: !     iocnflx: type of ocean flux parameterization
+298: !     = 1 ; BATS
+299: !     = 2 ; Zeng et al.
+300: !
+301: !     iboudy : specify the laterial boundary conditions.
+302: !     = 0 ; fixed.
+303: !     = 1 ; relaxation, linear technique.
+304: !     = 2 ; time-dependent (from observations or large-scale
+305: !     model).
+306: !     = 3 ; time and inflow/outflow dependent.
+307: !     = 4 ; sponge (perkey & kreitzberg, mwr 1976).
+308: !     = 5 ; relaxation, exponential technique.
+309: !
+310: !     iftape : whether you want output in a saved tape (unit 20) for
+311: !     analyses in dataflow.
+312: !     = .true. ; yes
+313: !     = .false. ; no
+314: !
+315: !     tapfrq : if iftape=true., specify the output interval in hours.
+316: !
+317: !     ifrad  : whether you want radiation output saved
+318: !     = .true. ; yes
+319: !     = .false. ; no
+320: !
+321: !     radisp : if ifrad=1, specify the output interval in hours.
+322: !
+323: !     ifprt  : whether you want printer output or not.
+324: !     = 0 ; no
+325: !     = 1 ; yes
+326: !
+327: !     prtfrq : if ifprt=1, specify the output interval in mimutes.
+328: !
+329: !     iotyp  : Type of output files,
+330: !     1=direct access (GrADS); 2=sequential w/ time listing
+331: !
+332: !     maschk : specify the frequency in time steps, the mass-
+333: !     conservation information will be printed out.
+334: !
+335: !     imask : Type of land surface parameterization
+336: !     1= using DOMAIN.INFO for landmask (same as BATS);
+337: !     2= using mksrf_navyoro file landfraction for landmask and perform
+338: !        a weighted average over ocean/land gridcells; for example:
+339: !        tgb = tgb_ocean*(1 - landfraction) + tgb_land*landfraction
+340: !
+341: !----------------------------------------------------------------------
+342: !-----default values for all the options:
+343: !     (can be overwritten by namelist input).
+344: !------namelist restart param:
+345: !
+346:       ifrest = .false.     ! Restart?:  t=true; f=false
+347:       idate0 = 1993063000  ! Start date of the initial simulation
+348:       idate1 = 1993063000  ! Start date of this simulation
+349:       idate2 = 1993080100  ! End Date this simulation
+350:       nslice = 4      ! # of days for next model run (used with restart)
+351:       ! note: beginning/end forecast time set in restart.mm4
+352:  
+353: !------namelist timeparam:
+354: !
+355:       radfrq = 30.    ! time interval in min solar rad caluclated
+356:       abatm = 600.    ! time interval at which bats is called (secs)
+357:       abemh = 12.     ! time interval absorption-emission calculated (hours)
+358:       dt = 200.       ! time step in seconds
+359:       ibdyfrq = 6     ! boundary condition interval (hours)
+360:  
+361: !-----namelist outparam:       note: * signifies currently not in namelist
+362: !
+363:       rfstrt = .false.      ! *
+364:       ifsave = .false.
+365:       savfrq = 6.
+366:       iftape = .true.
+367:       tapfrq = 6.
+368:       ifrad = .true.
+369:       radisp = 6.0       ! time interval for disposing rad output (hrs)
+370:       ifbat = .true.
+371:       batfrq = 1.0      ! time interval for disposing bats output (hrs)
+372:       ifsub = .true.
+373:       ifprt = .true.
+374:       prtfrq = 12.
+375:       kxout = kz
+376:       jxsex = 25
+377:       maschk = 10           ! * defined below
+378:       dirout = './output' 
+379: !chem2
+380:       ifchem = .false.
+381:       chemfrq = 6.0   ! time interval for disposeing chem output (hrs)
+382: !chem2_
+383:       clmfrq = 12.0
+384:  
+385: !
+386: !----------------------------------------------------------------------
+387: !-----namelist physicsparam:
+388: !
+389:       ibltyp = 1
+390:       iboudy = 1
+391:       icup = 1
+392:       ipptls = 1
+393:       igcc = 1
+394:       ipgf = 1
+395:       iemiss = 1
+396:       iocnflx = 1
+397:       lakemod = 1
+398:       ichem = 0
+399:       imask = 1
+400:       high_nudge = 3 
+401:       medium_nudge=2
+402:       low_nudge=1   
+403: !
+404: !----------------------------------------------------------------------
+405: !------namelist subexparam:
+406:       ncld = 1           ! # of bottom model levels with no clouds (rad only)
+407:       fcmax = 0.80       ! Maximum cloud fraction cover (rad only)
+408: !     qck1land = 0.0005  ! Autoconversion Rate for Land
+409: !     qck1oce  = 0.0005  ! Autoconversion Rate for Ocean
+410:       qck1land = 0.00025 ! Autoconversion Rate for Land
+411:       qck1oce = 0.00025  ! Autoconversion Rate for Ocean
+412:       gulland = 0.4      ! Fract of Gultepe eqn (qcth) when precip occurs (land)
+413:       guloce = 0.4       ! Fract of Gultepe eqn (qcth) for ocean
+414:       rhmax = 1.01       ! RH at whicn FCC = 1.0
+415:       rh0oce = 0.90      ! Relative humidity threshold for ocean
+416:       rh0land = 0.80     ! Relative humidity threshold for land
+417:       tc0 = 238.0        ! Below this temperature, rh0 begins to approach unity
+418: !     cevap    = 0.2e-4  ! Raindrop evap rate coef [[(kg m-2
+419: !     s-1)-1/2]/s]
+420:       cevap = 1.0E-3     ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+421: !     caccr    = 6.0     ! Raindrop accretion rate [m3/kg/s]
+422:       caccr = 3.0        ! Raindrop accretion rate [m3/kg/s]
+423:       cllwcv = 0.3E-3    ! Cloud liquid water content for convective precip.
+424:       clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
+425:  
+426: !------namelist grellparam:
+427:       shrmin = 0.25     ! Minimum Shear effect on precip eff.
+428:       shrmax = 0.50     ! Maximum Shear effect on precip eff.
+429:       edtmin = 0.25     ! Minimum Precipitation Efficiency
+430:       edtmax = 1.00     ! Maximum Precipitation Efficiency
+431:       edtmino = 0.0     ! Minimum Precipitation Efficiency (o var)
+432:       edtmaxo = 1.00    ! Maximum Precipitation Efficiency (o var)
+433:       edtminx = 0.25    ! Minimum Precipitation Efficiency (x var)
+434:       edtmaxx = 1.00    ! Maximum Precipitation Efficiency (x var)
+435:       pbcmax = 150.     ! Max depth (mb) of stable layer b/twn LCL & LFC
+436:       mincld = 150.     ! Min cloud depth (mb).
+437:       htmin = -250.     ! Min convective heating
+438:       htmax = 500.      ! Max convective heating
+439:       skbmax = 0.4      ! Max cloud base height in sigma
+440:       dtauc = 30.       ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+441:  
+442: !------namelist emanparam:
+443:       minsig = 0.95     ! Lowest sigma level from which convection can originate
+444:       elcrit = 0.0011   ! AUTOCONVERSION THRESHOLD WATER CONTENT (gm/gm)
+445:       tlcrit = -55.0    ! BELOW TLCRIT AUTO-CONVERSION THRESHOLD IS ZERO
+446:       entp = 1.5        ! COEFFICIENT OF MIXING IN THE ENTRAINMENT FORMULATION
+447:       sigd = 0.05       ! FRACTIONAL AREA COVERED BY UNSATURATED DNDRAFT
+448:       sigs = 0.12       ! FRACTION OF PRECIPITATION FALLING OUTSIDE OF CLOUD
+449:       omtrain = 50.0    ! FALL SPEED OF RAIN (P/s)
+450:       omtsnow = 5.5     ! FALL SPEED OF SNOW (P/s)
+451:       coeffr = 1.0      ! COEFFICIENT GOVERNING THE RATE OF RAIN EVAPORATION
+452:       coeffs = 0.8      ! COEFFICIENT GOVERNING THE RATE OF SNOW EVAPORATION
+453:       cu = 0.7          ! COEFFICIENT GOVERNING CONVECTIVE MOMENTUM TRANSPORT
+454:       betae = 10.0      ! CONTROLS DOWNDRAFT VELOCITY SCALE
+455:       dtmax = 0.9       ! MAX NEGATIVE PARCEL TEMPERATURE PERTURBATION BELOW LFC
+456:       alphae = 0.2      ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
+457:       damp = 0.1        ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
+458: !
+459: !c------namelist chemparam ; ( 0= none, 1= activated)
+460:       ichremlsc = 1     ! tracer removal by large scale clouds
+461:       ichremcvc = 1     ! tracer removal by convective clouds
+462:       ichdrdepo = 1     ! tracer dry deposition
+463:       ichcumtra = 1     ! tracer convective transport
+464:       idirect = 1       ! tracer direct effect
+465:       mixtype = 1
+466: #ifdef CLM
+467: !c------CLM Specific
+468:       imask = 2
+469: #endif
+470: 
+471: !---------------------------------------------------------------------
+472: !
+473: #ifdef MPP1
+474:       if ( myid.eq.0 ) then
+475: #endif 
+476:   
+477: !  
+478: !-----read in namelist variables:
+479:       read (ipunit, restartparam)
+480:       print * , 'param: RESTARTPARAM READ IN'
+481:       read (ipunit, timeparam)
+482:       print * , 'param: TIMEPARAM READ IN'
+483:       read (ipunit, outparam)
+484:       print * , 'param: OUTPARAM READ IN'
+485:       read (ipunit, physicsparam)
+486:       print * , 'param: PHYSICSPARAM READ IN'
+487:       if ( ipptls.eq.1 ) then
+488:         read (ipunit, subexparam)
+489:         print * , 'param: SUBEXPARAM READ IN'
+490:       end if
+491:       if ( icup.eq.2 ) then
+492:         read (ipunit, grellparam)
+493:         print * , 'param: GRELLPARAM READ IN'
+494:       else if ( icup.eq.4 ) then
+495:         read (ipunit, emanparam)
+496:         print * , 'param: EMANPARAM READ IN'
+497:       else
+498:       end if
+499:       if ( ichem.eq.1 ) then
+500:         read (ipunit, chemparam)
+501:         print * , 'param: CHEMPARAM READ IN'
+502:         chtrname = inpchtrname(1:ntr)
+503:         chtrdpv = inpchtrdpv(1:ntr,:)
+504:         dustbsiz = inpdustbsiz(1:nbin,:)
+505:         chtrsol = inpchtrsol(1:ntr)
+506:       else
+507:         do itr = 1 , ntr
+508:           chtrname(itr) = 'XXXXX'
+509:         end do
+510:       end if
+511: #ifdef CLM
+512:       read (ipunit , clmparam)
+513:       print * , 'param: CLMPARAM READ IN'
+514: #endif
+515: !
+516: #ifdef MPP1
+517:       end if 
+518:       call <a href="#" TARGET=CENT_PANEL>mpi_barrier</a>(mpi_comm_world,ierr) 
+519: !
+520: !  communicate to all processors 
+521: !
+522:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ifrest,1,mpi_logical,0,mpi_comm_world,ierr)
+523:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(idate0,1,mpi_integer,0,mpi_comm_world,ierr)
+524:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(idate1,1,mpi_integer,0,mpi_comm_world,ierr)
+525:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(idate2,1,mpi_integer,0,mpi_comm_world,ierr)
+526:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(nslice,1,mpi_integer,0,mpi_comm_world,ierr)
+527:  
+528:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(radfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+529:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(abemh,1,mpi_real8,0,mpi_comm_world,ierr)
+530:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(abatm,1,mpi_real8,0,mpi_comm_world,ierr)
+531:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(dt,1,mpi_real8,0,mpi_comm_world,ierr)
+532:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ibdyfrq,1,mpi_integer,0,mpi_comm_world,ierr)
+533:  
+534:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ifsave,1,mpi_logical,0,mpi_comm_world,ierr)
+535:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(savfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+536:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(iftape,1,mpi_logical,0,mpi_comm_world,ierr)
+537:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(tapfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+538:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ifrad,1,mpi_logical,0,mpi_comm_world,ierr)
+539:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(radisp,1,mpi_real8,0,mpi_comm_world,ierr)
+540:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ifbat,1,mpi_logical,0,mpi_comm_world,ierr)
+541:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ifsub,1,mpi_logical,0,mpi_comm_world,ierr)
+542:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+543:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ifprt,1,mpi_logical,0,mpi_comm_world,ierr)
+544:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(prtfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+545:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(kxout,1,mpi_integer,0,mpi_comm_world,ierr)
+546:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(jxsex,1,mpi_integer,0,mpi_comm_world,ierr)
+547:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
+548:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+549:  
+550:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(iboudy,1,mpi_integer,0,mpi_comm_world,ierr)
+551:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ibltyp,1,mpi_integer,0,mpi_comm_world,ierr)
+552:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(icup,1,mpi_integer,0,mpi_comm_world,ierr)
+553:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(igcc,1,mpi_integer,0,mpi_comm_world,ierr)
+554:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ipptls,1,mpi_integer,0,mpi_comm_world,ierr)
+555:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(iocnflx,1,mpi_integer,0,mpi_comm_world,ierr)
+556:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ipgf,1,mpi_integer,0,mpi_comm_world,ierr)
+557:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(iemiss,1,mpi_integer,0,mpi_comm_world,ierr)
+558:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(lakemod,1,mpi_integer,0,mpi_comm_world,ierr)
+559:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ichem,1,mpi_integer,0,mpi_comm_world,ierr)
+560:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+561:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+562:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+563:  
+564: #ifdef CLM
+565:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
+566:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(imask,1,mpi_integer,0,mpi_comm_world,ierr)
+567:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(clmfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+568: #endif
+569: 
+570:       if ( ipptls.eq.1 ) then
+571:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ncld,1,mpi_integer,0,mpi_comm_world,ierr)
+572:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(fcmax,1,mpi_real8,0,mpi_comm_world,ierr)
+573:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(qck1land,1,mpi_real8,0,mpi_comm_world,ierr)
+574:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(qck1oce,1,mpi_real8,0,mpi_comm_world,ierr)
+575:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(gulland,1,mpi_real8,0,mpi_comm_world,ierr)
+576:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(guloce,1,mpi_real8,0,mpi_comm_world,ierr)
+577:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(rhmax,1,mpi_real8,0,mpi_comm_world,ierr)
+578:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(rh0oce,1,mpi_real8,0,mpi_comm_world,ierr)
+579:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(rh0land,1,mpi_real8,0,mpi_comm_world,ierr)
+580:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(tc0,1,mpi_real8,0,mpi_comm_world,ierr)
+581:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(cevap,1,mpi_real8,0,mpi_comm_world,ierr)
+582:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(caccr,1,mpi_real8,0,mpi_comm_world,ierr)
+583:       end if
+584:  
+585:       if ( icup.eq.2 ) then
+586:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(shrmin,1,mpi_real8,0,mpi_comm_world,ierr)
+587:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(shrmax,1,mpi_real8,0,mpi_comm_world,ierr)
+588:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(edtmin,1,mpi_real8,0,mpi_comm_world,ierr)
+589:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(edtmax,1,mpi_real8,0,mpi_comm_world,ierr)
+590:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(edtmino,1,mpi_real8,0,mpi_comm_world,ierr)
+591:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(edtmaxo,1,mpi_real8,0,mpi_comm_world,ierr)
+592:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(edtminx,1,mpi_real8,0,mpi_comm_world,ierr)
+593:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(edtmaxx,1,mpi_real8,0,mpi_comm_world,ierr)
+594:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(pbcmax,1,mpi_real8,0,mpi_comm_world,ierr)
+595:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(mincld,1,mpi_real8,0,mpi_comm_world,ierr)
+596:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(htmin,1,mpi_real8,0,mpi_comm_world,ierr)
+597:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(htmax,1,mpi_real8,0,mpi_comm_world,ierr)
+598:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(skbmax,1,mpi_real8,0,mpi_comm_world,ierr)
+599:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(dtauc,1,mpi_real8,0,mpi_comm_world,ierr)
+600:  
+601:       else if ( icup.eq.4 ) then
+602:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(minsig,1,mpi_real8,0,mpi_comm_world,ierr)
+603:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(elcrit,1,mpi_real8,0,mpi_comm_world,ierr)
+604:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(tlcrit,1,mpi_real8,0,mpi_comm_world,ierr)
+605:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(entp,1,mpi_real8,0,mpi_comm_world,ierr)
+606:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(sigd,1,mpi_real8,0,mpi_comm_world,ierr)
+607:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(sigs,1,mpi_real8,0,mpi_comm_world,ierr)
+608:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(omtrain,1,mpi_real8,0,mpi_comm_world,ierr)
+609:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(omtsnow,1,mpi_real8,0,mpi_comm_world,ierr)
+610:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(coeffr,1,mpi_real8,0,mpi_comm_world,ierr)
+611:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(coeffs,1,mpi_real8,0,mpi_comm_world,ierr)
+612:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(cu,1,mpi_real8,0,mpi_comm_world,ierr)
+613:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(betae,1,mpi_real8,0,mpi_comm_world,ierr)
+614:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(dtmax,1,mpi_real8,0,mpi_comm_world,ierr)
+615:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(alphae,1,mpi_real8,0,mpi_comm_world,ierr)
+616:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(damp,1,mpi_real8,0,mpi_comm_world,ierr)
+617:       else
+618:       end if
+619:  
+620:       if ( ichem.eq.1 ) then
+621:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ichremlsc,1,mpi_integer,0,mpi_comm_world,ierr)
+622:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ichremcvc,1,mpi_integer,0,mpi_comm_world,ierr)
+623:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ichdrdepo,1,mpi_integer,0,mpi_comm_world,ierr)
+624:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ichcumtra,1,mpi_integer,0,mpi_comm_world,ierr)
+625:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(idirect,1,mpi_integer,0,mpi_comm_world,ierr)
+626:         do n = 1 , ntr
+627:           call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(chtrname(n),5,mpi_character,0,mpi_comm_world,  &
+628:                        & ierr)
+629:         end do
+630:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(chtrsol,ntr,mpi_real8,0,mpi_comm_world,ierr)
+631:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
+632:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
+633:       end if
+634: #endif
+635:  
+636:       if ( ichem.eq.0 ) ifchem = .false.
+637: 
+638: !first checks 
+639: !as
+640:       if ( mod(anint(radfrq*60.),anint(dt)).ne.0 ) then
+641:         write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
+642:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+643:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                                   &
+644:                   &'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
+645:       end if
+646:       if ( mod(anint(abatm),anint(dt)).ne.0 ) then
+647:         write (aline,*) 'ABATM=' , abatm , 'DT=' , dt
+648:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+649:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                                   &
+650:                   &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
+651:       end if
+652:       if ( mod(anint(batfrq*3600.),anint(abatm)).ne.0 ) then
+653:         write (aline,*) 'BATFRQ=' , batfrq , 'ABATM=' , abatm
+654:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+655:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                                   &
+656:                   &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
+657:       end if
+658:       if ( mod(anint(abemh*3600.),anint(dt)).ne.0 ) then
+659:         write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
+660:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+661:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                                   &
+662:                   &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
+663:       end if
+664:       if ( mod(anint(abemh*60.),anint(radfrq)).ne.0 ) then
+665:         write (aline,*) 'ABEMH=' , abemh , 'RADFRQ=' , radfrq
+666:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                                   &
+667:                   &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
+668:                   &' TIMESTEPS SPECIFIED')
+669:       end if
+670:  
+671: !-----reset the options/calculate variables using namelist info:
+672: !
+673:       ndate0 = idate1
+674:       nsavfrq = nint(3600.*savfrq)
+675:       ntapfrq = nint(3600.*tapfrq)
+676:       nprtfrq = nint(3600.*prtfrq)
+677:       ktau = 0
+678:       ktaur = 0
+679:       xtime = 0.
+680:       ntime = 0
+681:       dtsplit(2) = dt/2.
+682:       dtsplit(1) = dt/4.
+683:       do ns = 1 , nsplit
+684:         dtau(ns) = dtsplit(ns)
+685:       end do
+686:       write (aline, *) 'param: dtau = ' , dtau
+687:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+688:       dt0 = dt      !store original dt
+689:       maschk = nint(prtfrq*3600./dt)
+690:                                    !convert prtfrq to #of time steps
+691:       nradisp = nint(radisp*3600)
+692:                                 !convert radisp to time steps
+693:       ifrabe = nint(3600.*abemh/dt)
+694:                                    !abemh is time interval abs./emis. calc.
+695:       kbats = nint(3600.*batfrq)
+696:       nbatst = nint(abatm/dt)
+697:       dt2 = 2.*dt
+698: !chem2
+699:       kchem = nint(3600.*chemfrq)  ! convert chemfrq to time steps
+700: !chem2_
+701: !.....calculate the time step in minutes.
+702:       dtmin = dt/60.
+703:       deltmx = dt
+704: !.....compute the time steps for radiation computation.
+705:       ntrad = nint(radfrq/dtmin)
+706: !sb   lake model mods
+707: !.....compute the time steps for lake model call.
+708:       dtlake = 3600.
+709:       klake = nint(dtlake/dt)
+710: !sb   end lake model mods
+711: !
+712:       call <a href="./mod_date.F90.html#initdate" TARGET=CENT_PANEL>initdate</a>
+713:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(nstrt0,idate0)
+714:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(nstart,idate1)
+715:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(nnnend,idate2)
+716:       nnnchk = nstart
+717:  
+718: !     ktaur = nint((NSTART-NSTRT0)*ibdyfrq*60/dtmin)
+719:       ntimax = (nnnend-nstrt0)*ibdyfrq*60
+720:       write (aline, *) 'param: IDATE1, IDATE2, dtmin, ktaur = ' ,       &
+721:                            & idate1 , idate2 , dtmin , ktaur
+722:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+723:       ldatez = idate1
+724:       nnnnnn = nstart
+725:       lyear = ldatez/1000000
+726:       lmonth = (ldatez-lyear*1000000)/10000
+727:       lday = (ldatez-lyear*1000000-lmonth*10000)/100
+728:       lhour = mod(ldatez,100)
+729:       idatex = ldatez
+730:       jyear = lyear
+731:       jyearr = jyear
+732: !
+733: !-----specify the julian date and gmt of the initial data.
+734: !     dectim : is the time in minutes after which the solar declination
+735: !     angle must be recalculated.
+736: !
+737: #ifdef MPP1
+738:       if ( myid.eq.0 ) then
+739: #endif              
+740:         domfile = trim(dirter)//pthsep//trim(domname)//'.INFO'
+741:         print * , 'READING HEADER FILE:',domfile
+742:         open (iutin,file=domfile,form='unformatted',status='old',       &
+743:             & access='direct',recl=iy*jx*ibyte)
+744:         if ( nsg.gt.1 ) then
+745:           write (subdom,99001)                                          &
+746:              &   trim(dirter),pthsep,trim(domname),nsg,'.INFO'
+747:           print * , 'READING HEADER FILE for subdomain:',subdom
+748:           open (iutin1,file=subdom,form='unformatted',status='old',     &
+749:              &  access='direct',recl=iysg*jxsg*ibyte)
+750:         end if
+751:         read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dsx , iclat , &
+752:                                       & iclon , iplat , iplon , grdfac ,&
+753:                                       & proj , sp1d , ptsp , igra ,     &
+754:                                       & ibig , trl , trh
+755:         print * , 'param: DIMS' , iyy , jxx , kzz
+756:         print * , 'param: DOMAIN' , dsx , iclat , iclon , iplat ,       &
+757:                   & iplon ,  grdfac
+758:         print * , 'param: PROJ' , proj
+759:         print * , 'param: SIGMA' , sp1d
+760:         print * , 'param: PTOP' , ptsp
+761:         print * , 'param: OUTPUT' , igra , ibig
+762:         r8pt = ptsp
+763:         dx = dsx
+764:         if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
+765:           write (aline,*) 'param:  SET IN regcm.in:  IY=' , iy ,     &
+766:                  & ' JX=' ,  jx , ' KX=' , kz
+767:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+768:           write (aline,*) 'param:  SET IN TERRAIN: IYY=' , iyy ,        &
+769:                  & ' JXX=' , jxx , ' KZZ=' , kzz
+770:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+771:           write (aline,*) '  Also check ibyte in regcm.in: ibyte = ' &
+772:                         & , ibyte
+773:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                                 &
+774:                     &'IMPROPER DIMENSION SPECIFICATION')
+775:         end if
+776:         do k = 1 , kzp1
+777:           sigma(k) = dble(sp1d(k))
+778:         end do
+779: #ifdef MPP1        
+780:       end if
+781:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(clat,1,mpi_real,0,mpi_comm_world,ierr)
+782:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(plon,1,mpi_real,0,mpi_comm_world,ierr)
+783:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(r8pt,1,mpi_real8,0,mpi_comm_world,ierr)
+784:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(dx,1,mpi_real8,0,mpi_comm_world,ierr)
+785:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
+786: #endif 
+787:  
+788: !rst-fix
+789:       mdate0 = idate0
+790:       write (aline, *) ' param: ***** mdate = ' , mdate0
+791:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+792:       myear = mdate0/1000000
+793:       nyear = idate1/1000000
+794:       nmonth = (idate1-nyear*1000000)/10000
+795:       mdate1 = mdate0 - myear*1000000
+796:       mmon = mdate1/10000
+797:       mday = (mdate1-mmon*10000)/100
+798:       gmt = mdate1 - mmon*10000 - mday*100
+799:       jyear0 = myear
+800: !rst-fix_
+801: !
+802: !.....find the year is a leap year or not (assume the initial data
+803: !     is within this century.):
+804: !
+805:       if ( myear.lt.100 ) myear = 1900 + myear
+806:       if ( mod(myear,400).eq.0 .or.                                     &
+807:        & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) mmd(2) = 29
+808:       julday = mday
+809:       do m = 1 , mmon - 1
+810:         julday = julday + mmd(m)
+811:       end do
+812:       dectim = (1440.-gmt*60.)
+813:  
+814: !-----specify the constants used in the model.
+815: !     conf   : condensation threshold.
+816: !     qcth   : threshold for the onset of autoconversion.
+817: !     qck1oce  : constant autoconversion rate for ocean.
+818: !     qck1land : constant autoconversion rate for land.
+819: !     all the other constants are used to compute the cloud
+820: !     microphysical parameterization (ref. orville & kopp, 1977 jas).
+821: !
+822:       ptop4 = 4.*r8pt
+823:       dx2 = 2.*dx
+824:       dx4 = 4.*dx
+825:       dx8 = 8.*dx
+826:       dx16 = 16.*dx
+827:       dxsq = dx*dx
+828:       c200 = vonkar*vonkar*dx/(4.*(100.-r8pt))
+829:       c201 = (100.-r8pt)/dxsq
+830:       c203 = 1./dxsq
+831:       xkhz = 1.5E-3*dxsq/dt
+832:       xkhmax = dxsq/(64.*dt)
+833:       akht1 = dxsq/tauht
+834:       akht2 = dxsq/tauht
+835: !
+836:       conf = 1.
+837:  
+838:       write (aline, *) 'param: input/output parameters '
+839:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+840:       write (aline, *) ' ifsave = ' , ifsave , ' savfrq = ' , savfrq ,  &
+841:              &' iftape = ' , iftape , ' tapfrq = ' , tapfrq ,           &
+842:              &' ifprt  = ' , ifprt , ' prtfrq = ' , prtfrq ,            &
+843:              &' kxout  = ' , kxout , ' jxsex  = ' , jxsex ,             &
+844:              &' radisp = ' , radisp , ' batfrq = ' , batfrq ,           &
+845:              &' nslice = ' , nslice , ' ifchem = ' , ifchem ,           &
+846:              &' chemfrq =' , chemfrq, ' clmfrq = ', clmfrq
+847:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+848:       write (aline, *) ' '
+849:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+850:       write (aline, *) 'param: physical parameterizations '
+851:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+852:       write (aline,'(a,i2)' )  '  iboudy = ' , iboudy
+853:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>  
+854:       write (aline,'(a,i2)' )  '  icup = ' , icup
+855:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a> 
+856:       write  (aline,'(a,i2)' ) '  igcc =' , igcc 
+857:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+858:       write  (aline,'(a,i2)' ) '  ipptls = ' , ipptls 
+859:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+860:       write  (aline,'(a,i2)' ) '  iocnflx = ' , iocnflx
+861:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+862:       write  (aline,'(a,i2)' ) '  ipgf = ' , ipgf 
+863:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>   
+864:       write  (aline,'(a,i2)' ) '  iemiss = ' , iemiss 
+865:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a> 
+866:       write  (aline,'(a,i2)' ) '  lakemod = ' , lakemod 
+867:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+868:       write  (aline,'(a,i2)' ) '  Chemistry active? 0=no,1=yes  ichem =' , ichem 
+869:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+870:        write  (aline,'(a,f9.6)') '  Nudge value high range   =', high_nudge 
+871:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+872:        write  (aline,'(a,f9.6)') '  Nudge value medium range =', medium_nudge 
+873:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+874:        write  (aline,'(a,f9.6)') '  Nudge value low range    =', low_nudge 
+875:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+876: #ifdef CLM 
+877:        write  (aline,'(a,i2)' ) '  imask=' , imask 
+878:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+879: #endif
+880:       write (aline, *) ' '
+881:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+882:       write (aline, *) 'param: model parameters '
+883:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+884:       write (aline,'(a,f12.6)')  '   radfrq = ' , radfrq 
+885:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a> 
+886:       write (aline,'(a,f12.6)')  '   abatm  = ' , abatm 
+887:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+888:       write (aline,'(a,f12.6)')  '   abemh  = ' , abemh 
+889:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+890:       write (aline,'(a,f12.6)')  '   dt     = ' , dt
+891:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+892:       write (aline, *) ' '
+893:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+894:       write (aline,'(a,i2)' ) ' ncld = ' , ncld
+895:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+896:       write (aline, *) ' '
+897:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+898: 
+899: #ifdef MPP1
+900: 
+901:       call <a href="./mod_mppio.F90.html#allocate_mod_mppio" TARGET=CENT_PANEL>allocate_mod_mppio</a>
+902: 
+903:       if ( .not.ifrest ) then
+904:         if ( myid.eq.0 ) then
+905:           print * , 'HT'
+906:           read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+907:           do j = 1 , jx
+908:             do i = 1 , iy
+909:               ht_io(i,j) = dble(sp2d(i,j))
+910:             end do
+911:           end do
+912:           if ( nsg.gt.1 ) then
+913:             read (iutin1,rec=2,iostat=ierr1)                            &
+914:                 & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
+915:             do j = 1 , jxsg
+916:               do i = 1 , iysg
+917:                 jj = mod(j,nsg)
+918:                 if ( jj.eq.0 ) jj = nsg
+919:                 ii = mod(i,nsg)
+920:                 if ( ii.eq.0 ) ii = nsg
+921:                 k = (jj-1)*nsg + ii
+922:                 jj = (j+nsg-1)/nsg
+923:                 ii = (i+nsg-1)/nsg
+924:                 ht1_io(k,ii,jj) = sp2d1(i,j)*gti
+925:               end do
+926:             end do
+927:           else
+928:             do j = 1 , jx
+929:               do i = 1 , iy
+930:                 ht1_io(1,i,j) = sp2d(i,j)*gti
+931:               end do
+932:             end do
+933:           end if
+934:  
+935:           print * , 'HTSD'
+936:           read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+937:           do j = 1 , jx
+938:             do i = 1 , iy
+939:               htsd_io(i,j) = dble(sp2d(i,j))
+940:             end do
+941:           end do
+942:           print * , 'SATBRT'
+943:           read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+944:           do j = 1 , jx
+945:             do i = 1 , iy
+946:               satbrt_io(i,j) = dble(sp2d(i,j))
+947:             end do
+948:           end do
+949:           if ( nsg.gt.1 ) then
+950:             read (iutin1,rec=4,iostat=ierr1)                            &
+951:                 & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
+952:             do j = 1 , jxsg
+953:               do i = 1 , iysg
+954:                 jj = mod(j,nsg)
+955:                 if ( jj.eq.0 ) jj = nsg
+956:                 ii = mod(i,nsg)
+957:                 if ( ii.eq.0 ) ii = nsg
+958:                 k = (jj-1)*nsg + ii
+959:                 jj = (j+nsg-1)/nsg
+960:                 ii = (i+nsg-1)/nsg
+961:                 satbrt1_io(k,ii,jj) = sp2d1(i,j)
+962:               end do
+963:             end do
+964:           else
+965:             do j = 1 , jx
+966:               do i = 1 , iy
+967:                 satbrt1_io(1,i,j) = satbrt_io(i,j)
+968:               end do
+969:             end do
+970:           end if
+971:           print * , 'XLAT'
+972:           read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+973:           do j = 1 , jx
+974:             do i = 1 , iy
+975:               xlat_io(i,j) = dble(sp2d(i,j))
+976:             end do
+977:           end do
+978:           print * , 'XLONG'
+979:           read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+980:           do j = 1 , jx
+981:             do i = 1 , iy
+982:               xlong_io(i,j) = dble(sp2d(i,j))
+983:             end do
+984:           end do
+985:           print * , 'MSFX'
+986:           read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+987:           do j = 1 , jx
+988:             do i = 1 , iy
+989:               msfx_io(i,j) = dble(sp2d(i,j))
+990:             end do
+991:           end do
+992:           print * , 'MSFD'
+993:           read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+994:           do j = 1 , jx
+995:             do i = 1 , iy
+996:               msfd_io(i,j) = dble(sp2d(i,j))
+997:             end do
+998:           end do
+999:           print * , 'F'
+1000:           read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1001:           do j = 1 , jx
+1002:             do i = 1 , iy
+1003:               f_io(i,j) = dble(sp2d(i,j))
+1004:             end do
+1005:           end do
+1006:           print * , 'SNOWC'
+1007:           read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1008:           do j = 1 , jx
+1009:             do i = 1 , iy
+1010:               do n = 1 , nnsg
+1011:                 snowc_io(n,i,j) = dble(sp2d(i,j))
+1012:               end do
+1013:             end do
+1014:           end do
+1015:           if ( ierr1.ne.0 ) then
+1016:             write (aline,*)                                             &
+1017:              &  '  Check ibyte in  mod_dynparam.F90  ibyte = ' ,        &
+1018:              & ibyte
+1019:             call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'REACHED EOF')
+1020:           end if
+1021:           do j = 1 , jx
+1022:             do i = 1 , iy
+1023:               inisrf_0(i,1,j) = ht_io(i,j)
+1024:               inisrf_0(i,2,j) = htsd_io(i,j)
+1025:               inisrf_0(i,3,j) = satbrt_io(i,j)
+1026:               inisrf_0(i,4,j) = xlat_io(i,j)
+1027:               inisrf_0(i,5,j) = xlong_io(i,j)
+1028:               inisrf_0(i,6,j) = msfx_io(i,j)
+1029:               inisrf_0(i,7,j) = msfd_io(i,j)
+1030:               inisrf_0(i,8,j) = f_io(i,j)
+1031:             end do
+1032:             do n = 1 , nnsg
+1033:               do i = 1 , iy
+1034:                 inisrf_0(i,8+n,j) = ht1_io(n,i,j)
+1035:                 inisrf_0(i,8+nnsg+n,j) = satbrt1_io(n,i,j)
+1036:                 inisrf_0(i,8+nnsg*2+n,j) = snowc_io(n,i,j)
+1037:               end do
+1038:             end do
+1039:           end do
+1040:           do j = 1 , jx
+1041:             do i = 1 , iy
+1042:               ht_io(i,j) = ht_io(i,j)*gti
+1043:             end do
+1044:           end do
+1045:         end if                 ! end if (myid.eq.0)
+1046:  
+1047:         call <a href="#" TARGET=CENT_PANEL>mpi_barrier</a>(mpi_comm_world,ierr)
+1048:         call <a href="#" TARGET=CENT_PANEL>mpi_scatter</a>(inisrf_0(1,1,1),iy*(nnsg*3+8)*jxp,mpi_real8,   &
+1049:                        & inisrf0(1,1,1), iy*(nnsg*3+8)*jxp,mpi_real8,   &
+1050:                        & 0,mpi_comm_world,ierr)
+1051:         call <a href="#" TARGET=CENT_PANEL>mpi_barrier</a>(mpi_comm_world,ierr)
+1052:         do j = 1 , jxp
+1053:           do i = 1 , iy
+1054:             ht(i,j) = inisrf0(i,1,j)
+1055:             htsd(i,j) = inisrf0(i,2,j)
+1056:             satbrt(i,j) = inisrf0(i,3,j)
+1057:             xlat(i,j) = inisrf0(i,4,j)
+1058:             xlong(i,j) = inisrf0(i,5,j)
+1059:             msfx(i,j) = inisrf0(i,6,j)
+1060:             msfd(i,j) = inisrf0(i,7,j)
+1061:             f(i,j) = inisrf0(i,8,j)
+1062:           end do
+1063:           do n = 1 , nnsg
+1064:             do i = 1 , iy
+1065:               ht1(n,i,j) = inisrf0(i,8+n,j)
+1066:               satbrt1(n,i,j) = inisrf0(i,8+nnsg+n,j)
+1067:               snowc(n,i,j) = inisrf0(i,8+nnsg*2+n,j)
+1068:             end do
+1069:           end do
+1070:         end do
+1071: !
+1072: !------invert mapscale factors:
+1073: !
+1074:         do j = 1 , jendl
+1075:           do i = 1 , iy
+1076:             msfd(i,j) = 1./msfd(i,j)
+1077:           end do
+1078:         end do
+1079:         do j = 1 , jendl
+1080:           do i = 1 , iy
+1081:             msfx(i,j) = 1./msfx(i,j)
+1082:             ht(i,j) = ht(i,j)*gti
+1083:           end do
+1084:         end do
+1085:         if ( myid.eq.0 ) then
+1086:           print * , ' '
+1087:           print * ,                                                     &
+1088:                &'***************************************************'
+1089:           print * ,                                                     &
+1090:                &'***************************************************'
+1091:           print * ,                                                     &
+1092:                &'**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
+1093:           print * , '****     Map Projection: ' , proj ,                &
+1094:                &'                ****'
+1095:           print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
+1096:                &'             ****'
+1097:           print * , '****     PTOP=' , ptsp , ' DX=' , dsx ,            &
+1098:                &'       ****'
+1099:           print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
+1100:                &'    ****'
+1101:           if ( proj.eq.'MERCAT' ) print * , '****     PLAT= ' , plat ,  &
+1102:                                        &' PLON=' , plon , '    ****'
+1103:           print * ,                                                     &
+1104:                &'***************************************************'
+1105:           print * , ' '
+1106:  
+1107:         end if
+1108:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(ht(1,jxp),iy,mpi_real8,ieast,1,               &
+1109:                         & ht(1,0),iy,mpi_real8,iwest,1,                 &
+1110:                         & mpi_comm_world,mpi_status_ignore,ierr)
+1111:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(ht(1,1),iy,mpi_real8,iwest,2,                 &
+1112:                         & ht(1,jxp+1),iy,mpi_real8,ieast,2,             &
+1113:                         & mpi_comm_world,mpi_status_ignore,ierr)
+1114:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(msfx(1,jxp-1),iy*2,mpi_real8,ieast,           &
+1115:                         & 1,msfx(1,-1),iy*2,mpi_real8,iwest,            &
+1116:                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
+1117:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(msfx(1,1),iy*2,mpi_real8,iwest,2,             &
+1118:                         & msfx(1,jxp+1),iy*2,mpi_real8,ieast,           &
+1119:                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
+1120:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(msfd(1,jxp-1),iy*2,mpi_real8,ieast,           &
+1121:                         & 1,msfd(1,-1),iy*2,mpi_real8,iwest,            &
+1122:                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
+1123:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(msfd(1,1),iy*2,mpi_real8,iwest,2,             &
+1124:                         & msfd(1,jxp+1),iy*2,mpi_real8,ieast,           &
+1125:                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
+1126:       end if
+1127: #else
+1128:       if ( .not.ifrest ) then
+1129:         print * , 'HT'
+1130:         read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1131:         do j = 1 , jx
+1132:           do i = 1 , iy
+1133:             ht(i,j) = dble(sp2d(i,j))
+1134:           end do
+1135:         end do
+1136:         if ( nsg.gt.1 ) then
+1137:           read (iutin1,rec=2,iostat=ierr1)                              &
+1138:               & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
+1139:           do j = 1 , jxsg
+1140:             do i = 1 , iysg
+1141:               jj = mod(j,nsg)
+1142:               if ( jj.eq.0 ) jj = nsg
+1143:               ii = mod(i,nsg)
+1144:               if ( ii.eq.0 ) ii = nsg
+1145:               k = (jj-1)*nsg + ii
+1146:               jj = (j+nsg-1)/nsg
+1147:               ii = (i+nsg-1)/nsg
+1148:               ht1(k,ii,jj) = sp2d1(i,j)*gti
+1149:             end do
+1150:           end do
+1151:         else
+1152:           do j = 1 , jx
+1153:             do i = 1 , iy
+1154:               ht1(1,i,j) = sp2d(i,j)*gti
+1155:             end do
+1156:           end do
+1157:         end if
+1158: 
+1159:         print * , 'HTSD'
+1160:         read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1161:         do j = 1 , jx
+1162:           do i = 1 , iy
+1163:             htsd(i,j) = dble(sp2d(i,j))
+1164:           end do
+1165:         end do
+1166:         print * , 'SATBRT'
+1167:         read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1168:         do j = 1 , jx
+1169:           do i = 1 , iy
+1170:             satbrt(i,j) = dble(sp2d(i,j))
+1171:           end do
+1172:         end do
+1173:         if ( nsg.gt.1 ) then
+1174:           read (iutin1,rec=4,iostat=ierr1)                              &
+1175:               & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
+1176:           do j = 1 , jxsg
+1177:             do i = 1 , iysg
+1178:               jj = mod(j,nsg)
+1179:               if ( jj.eq.0 ) jj = nsg
+1180:               ii = mod(i,nsg)
+1181:               if ( ii.eq.0 ) ii = nsg
+1182:               k = (jj-1)*nsg + ii
+1183:               jj = (j+nsg-1)/nsg
+1184:               ii = (i+nsg-1)/nsg
+1185:               satbrt1(k,ii,jj) = sp2d1(i,j)
+1186:             end do
+1187:           end do
+1188:         else
+1189:           do j = 1 , jx
+1190:             do i = 1 , iy
+1191:               satbrt1(1,i,j) = satbrt(i,j)
+1192:             end do
+1193:           end do
+1194:         end if
+1195:         print * , 'XLAT'
+1196:         read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1197:         do j = 1 , jx
+1198:           do i = 1 , iy
+1199:             xlat(i,j) = dble(sp2d(i,j))
+1200:           end do
+1201:         end do
+1202:         print * , 'XLONG'
+1203:         read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1204:         do j = 1 , jx
+1205:           do i = 1 , iy
+1206:             xlong(i,j) = dble(sp2d(i,j))
+1207:           end do
+1208:         end do
+1209:         print * , 'MSFX'
+1210:         read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1211:         do j = 1 , jx
+1212:           do i = 1 , iy
+1213:             msfx(i,j) = dble(sp2d(i,j))
+1214:           end do
+1215:         end do
+1216:         print * , 'MSFD'
+1217:         read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1218:         do j = 1 , jx
+1219:           do i = 1 , iy
+1220:             msfd(i,j) = dble(sp2d(i,j))
+1221:           end do
+1222:         end do
+1223:         print * , 'F'
+1224:         read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1225:         do j = 1 , jx
+1226:           do i = 1 , iy
+1227:             f(i,j) = dble(sp2d(i,j))
+1228:           end do
+1229:         end do
+1230:         print * , 'SNOWC'
+1231:         read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+1232:         do j = 1 , jx
+1233:           do i = 1 , iy
+1234:             do n = 1 , nnsg
+1235:               snowc(n,i,j) = dble(sp2d(i,j))
+1236:             end do
+1237:           end do
+1238:         end do
+1239:         if ( ierr1.ne.0 ) then
+1240:           write (aline,*) '  Check ibyte in parameter.inc: ibyte = ' ,  &
+1241:                         & ibyte
+1242:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'REACHED EOF')
+1243:         end if
+1244: !------invert mapscale factors:
+1245:         do j = 1 , jx
+1246:           do i = 1 , iy
+1247:             msfd(i,j) = 1./msfd(i,j)
+1248:           end do
+1249:         end do
+1250:         do j = 1 , jx
+1251:           do i = 1 , iy
+1252:             msfx(i,j) = 1./msfx(i,j)
+1253:             ht(i,j) = ht(i,j)*gti
+1254:           end do
+1255:         end do
+1256:         print * , ' '
+1257:         print * , '***************************************************'
+1258:         print * , '***************************************************'
+1259:         print * , '**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
+1260:         print * , '****     Map Projection: ' , proj ,                  &
+1261:              &'                ****'
+1262:         print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
+1263:              &'             ****'
+1264:         print * , '****     PTOP=' , ptsp , ' DX=' , dsx ,              &
+1265:              &'       ****'
+1266:         print * , '****     CLAT= ' , clat , ' CLON=' , clon ,          &
+1267:              &'    ****'
+1268:         if ( proj.eq.'MERCAT' ) print * , '****     PLAT= ' , plat ,    &
+1269:                                      &' PLON=' , plon , '    ****'
+1270:         print * , '***************************************************'
+1271:         print * , ' '
+1272: 
+1273:       end if
+1274: #endif
+1275: 
+1276: !
+1277: !-----compute dsigma and half sigma levels.
+1278: !
+1279:       do k = 1 , kz
+1280:         dsigma(k) = sigma(k+1) - sigma(k)
+1281:         a(k) = 0.5*(sigma(k+1)+sigma(k))
+1282:       end do
+1283:  
+1284:       do k = 1 , kz
+1285:         if ( a(k).lt.0.4 ) then
+1286:           anudg(k) = high_nudge
+1287:         else if ( a(k).lt.0.8 ) then
+1288:           anudg(k) = medium_nudge
+1289:         else
+1290:           anudg(k) = low_nudge
+1291:         end if
+1292:       end do
+1293: !
+1294: !-----specify heating profile (twght) and weighted function
+1295: !     for moisture fluxes due to convection (vqflx)
+1296: !     assume base of cloud varies as  < kbase = 5,kz >
+1297: !     top  of cloud varies as  < ktop  = 1,kbase-3 >
+1298: !     exceptions to this are treated explicitly in subroutine
+1299: !     "cupara".
+1300: !
+1301:       do kbase = 5 , kz
+1302:         do ktop = 1 , kbase - 3
+1303:           do k = 1 , kz
+1304:             twght(k,kbase,ktop) = 0.
+1305:             vqflx(k,kbase,ktop) = 0.
+1306:           end do
+1307: !
+1308: !......get twght from 1/2 level sigma values
+1309: !
+1310:           bb = dlog(a(ktop)) + dlog(a(kbase))
+1311:           cc = dlog(a(ktop))*dlog(a(kbase))
+1312:           ssum = 0.
+1313:           do k = ktop , kbase
+1314:             xx = dlog(a(k))
+1315:             twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
+1316:             ssum = ssum + twght(k,kbase,ktop)*dsigma(k)
+1317:           end do
+1318:           do k = ktop , kbase
+1319:             twght(k,kbase,ktop) = twght(k,kbase,ktop)/ssum
+1320:           end do
+1321: !
+1322: !......get vqflx from  d(w*q) / dsigma on full levels
+1323: !         do computations in p to avoid sigma=0. discontinuity
+1324: !
+1325:           xtop = dlog((100.-r8pt)*sigma(ktop)+r8pt)
+1326:           xbot = dlog((100.-r8pt)*sigma(kbase+1)+r8pt)
+1327:           bb = xtop + xbot
+1328:           cc = xtop*xbot
+1329:           vqmax = 0.
+1330:           ssum = 0.
+1331:           xx = xtop
+1332:           yy = xbot
+1333:           wk = (xx*xx) - (bb*xx) + cc
+1334:           qk = -((yy*yy)-(bb*yy)+cc)
+1335:           do k = ktop , kbase
+1336:             xx = dlog((100.-r8pt)*sigma(k+1)+r8pt)
+1337:             yy = dlog((100.-r8pt)                                       &
+1338:                & *(sigma(ktop)+sigma(kbase+1)-sigma(k+1))+r8pt)
+1339:             wkp1 = (xx*xx) - (bb*xx) + cc
+1340:             qkp1 = -((yy*yy)-(bb*yy)+cc)
+1341:             vqflx(k,kbase,ktop) = -((wkp1*qkp1)-(wk*qk))/dsigma(k)
+1342:             ssum = ssum + vqflx(k,kbase,ktop)
+1343:             if ( dabs(vqflx(k,kbase,ktop)).gt.vqmax )                   &
+1344:                & vqmax = dabs(vqflx(k,kbase,ktop))
+1345:             wk = wkp1
+1346:             qk = qkp1
+1347:           end do
+1348:           do k = ktop , kbase
+1349:             vqflx(k,kbase,ktop) = vqflx(k,kbase,ktop)*vqrang/vqmax
+1350:           end do
+1351: !
+1352:         end do
+1353:       end do
+1354: !
+1355: !----calculate max no of pbl levels: kt=k at highest allowed pbl level
+1356: !-----1. caluclate sigma level at 700mb, assuming 600mb highest
+1357: !-----   allowed pbl, and 1013mb as standard surface pressure. (sigtbl)
+1358: !-----2. find first model sigma level above sigtbl.
+1359: !
+1360:       sigtbl = (70.-r8pt)/(101.3-r8pt)
+1361:       kt = 1
+1362:       do k = kz , 1 , -1
+1363:         delsig = a(k) - sigtbl
+1364:         if ( delsig.le.0. ) then
+1365:           kt = k
+1366:           exit
+1367:         end if
+1368:       end do
+1369:       write (aline, '(a,i3)') ' Index of highest allowed pbl:  kt = ' , kt
+1370:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1371:       write (aline, *) ' '
+1372:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1373: !
+1374:       if ( ipptls.eq.1 ) then
+1375:         write (aline, '(a,f11.6,a,f11.6)') 'AUTO-CONVERSION RATE:  LAND=' , qck1land ,    &
+1376:                &'                      OCEAN=' , qck1oce
+1377:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1378:         write (aline, *) 'RELATIVE HUMIDITY THRESHOLDS:  LAND=' ,       &
+1379:                & rh0land , '                              OCEAN=' ,     &
+1380:                & rh0oce
+1381:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1382:         write (aline, *) 'GULTEPE FACTORS:  LAND=' , gulland ,          &
+1383:                &'                 OCEAN=' , guloce
+1384:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1385:         write (aline, *) 'MAXIMUM CLOUD COVER FOR RADIATION: ' , fcmax
+1386:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1387:         write (aline, *) 'MAXIMUM RELATIVE HUMIDITY: ' , rhmax
+1388:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1389:         write (aline, *) 'rh0 temperature threshold: ' , tc0
+1390:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1391:         if ( cevap.le.0.0 ) then
+1392:           write (aline, *) 'RAINDROP EVAPORATION NOT INCLUDED'
+1393:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1394:         end if
+1395:         if ( caccr.le.0.0 ) then
+1396:           write (aline, *) 'RAINDROP ACCRETION NOT INCLUDED'
+1397:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1398:         end if
+1399:         write (aline, *) 'Raindrop Evaporation Rate' , cevap
+1400:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1401:         write (aline, *) 'Raindrop Accretion Rate' , caccr
+1402:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1403:       end if
+1404:  
+1405:       write (aline, *) ' '
+1406:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1407:  
+1408:       if ( icup.eq.1 ) then
+1409:         write (aline, *) '*********************************'
+1410:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1411:         write (aline, *) '***** Anthes-Kuo Convection *****'
+1412:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1413:         write (aline, *) '*********************************'
+1414:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1415:       else if ( icup.eq.2 ) then
+1416:         kbmax = kz
+1417:         do k = 1 , kz - 1
+1418:           if ( a(k).le.skbmax ) kbmax = kz - k
+1419:         end do
+1420:         write (aline, *) '*********************************' 
+1421:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1422:         write (aline, *) '*****    Grell Convection   *****'
+1423:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1424:         write (aline, *) '*********************************'
+1425:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1426:         write (aline, *) '   Max Shear:' , shrmax
+1427:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1428:         write (aline, *) '   Min Shear:' , shrmin
+1429:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1430:         write (aline, *) '   Max PPT eff:' , edtmax
+1431:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1432:         write (aline, *) '   Min PPT eff:' , edtmin
+1433:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1434:         write (aline, *) '   Max PPT eff(o):' , edtmaxo
+1435:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1436:         write (aline, *) '   Min PPT eff(o):' , edtmino
+1437:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1438:         write (aline, *) '   Max PPT eff(x):' , edtmaxx
+1439:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1440:         write (aline, *) '   Min PPT eff(x):' , edtminx
+1441:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1442:         write (aline, *) '   Max PBC (pbcmax):' , pbcmax
+1443:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1444:         write (aline, *) '   Min Cloud Depth:' , mincld
+1445:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1446:         write (aline, *) '   Max Cloud Base:' , kbmax , skbmax
+1447:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1448:         write (aline, *) '   Max Heating:' , htmax
+1449:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1450:         write (aline, *) '   Min Heating:' , htmin
+1451:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1452:         if ( igcc.eq.1 ) then
+1453:           write (aline, *)                                              &
+1454:                &'   Arakawa-Schubert (1974) Closure Assumption'
+1455:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1456:         else if ( igcc.eq.2 ) then
+1457:           write (aline, *)                                              &
+1458:                &'   Fritsch-Chappell (1980) Closure Assumption'
+1459:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1460:           write (aline, *) '     ABE removal timescale: dtauc=' , dtauc
+1461:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1462:         else
+1463:         end if
+1464:         write (aline, *) '*********************************'
+1465:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1466: #ifdef MPP1
+1467:         do j = 1 , jendx
+1468:           do i = 1 , iym1
+1469:             shrmax2d(i,j) = shrmax
+1470:             shrmin2d(i,j) = shrmin
+1471:             edtmax2d(i,j) = edtmax
+1472:             edtmin2d(i,j) = edtmin
+1473:             edtmaxo2d(i,j) = edtmaxo
+1474:             edtmino2d(i,j) = edtmino
+1475:             edtmaxx2d(i,j) = edtmaxx
+1476:             edtminx2d(i,j) = edtminx
+1477:             pbcmax2d(i,j) = pbcmax
+1478:             mincld2d(i,j) = mincld
+1479:             kbmax2d(i,j) = kbmax
+1480:             htmax2d(i,j) = htmax
+1481:             htmin2d(i,j) = htmin
+1482:             dtauc2d(i,j) = dtauc*60.
+1483:           end do
+1484:         end do
+1485: #else
+1486:         do j = 1 , jxm1
+1487:           do i = 1 , iym1
+1488:             shrmax2d(i,j) = shrmax
+1489:             shrmin2d(i,j) = shrmin
+1490:             edtmax2d(i,j) = edtmax
+1491:             edtmin2d(i,j) = edtmin
+1492:             edtmaxo2d(i,j) = edtmaxo
+1493:             edtmino2d(i,j) = edtmino
+1494:             edtmaxx2d(i,j) = edtmaxx
+1495:             edtminx2d(i,j) = edtminx
+1496:             pbcmax2d(i,j) = pbcmax
+1497:             mincld2d(i,j) = mincld
+1498:             kbmax2d(i,j) = kbmax
+1499:             htmax2d(i,j) = htmax
+1500:             htmin2d(i,j) = htmin
+1501:             dtauc2d(i,j) = dtauc*60.
+1502:           end do
+1503:         end do
+1504: #endif
+1505:       else if ( icup.eq.3 ) then
+1506:         write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
+1507:                        &' properly implemented'
+1508:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1509:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
+1510:       else if ( icup.eq.4 ) then
+1511:         cllwcv = 0.5E-4    ! Cloud liquid water content for convective precip.
+1512:         clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
+1513:         minorig = kz
+1514:         do k = 1 , kz
+1515:           if ( a(k).le.minsig ) minorig = kz - k
+1516:         end do
+1517:         write (aline, *) ' '
+1518:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1519:         write (aline, *)                                                &
+1520:               &'EMANUEL (1991) CONVECTION V4.3C (20 May, 2002)'
+1521:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1522:         write (aline, *)                                                &
+1523:               &'  MIN CONVECTION ORIGIN (minsig/orig): ' , minsig ,     &
+1524:               & minorig
+1525:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1526:         write (aline, *)'  AUTOCONVERSION THERSHOLD (elcrit): ' , elcrit
+1527:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1528:         write (aline, *)'  AUTOCONVERSION THRESHOLD TO ZERO (tlcrit): ',&
+1529:               & tlcrit
+1530:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1531:         write (aline, *)'  ENTRAINMENT COEFFICIENT (entp): ' , entp
+1532:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1533:         write (aline, *)                                                &
+1534:               &'  FRACTIONAL AREA OF UNSATURATED DNDRAFT (sigd): '      &
+1535:               & , sigd
+1536:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1537:         write (aline, *)'  PRECIP FRACTION OUTSIDE OF CLOUD (sigs): ' , &
+1538:               & sigs
+1539:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1540:         write (aline, *)'  FALL SPEED OF RAIN (omtrain): ' , omtrain
+1541:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1542:         write (aline, *)'  FALL SPEED OF SNOW (omtsnow): ' , omtsnow
+1543:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1544:         write (aline, *)'  RAIN EVAPORATION COEFFICIENT (coeffr): ' ,   &
+1545:               & coeffr
+1546:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1547:         write (aline, *)'  SNOW EVAPORATION COEFFICIENT (coeffs): ' ,   &
+1548:               & coeffs
+1549:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1550:         write (aline, *)                                                &
+1551:               &'  CONVECTIVE MOMENTUM TRANSPORT COEFFICIENT (cu): '     &
+1552:               & , cu
+1553:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1554:         write (aline, *)'  DOWNDRAFT VELOCITY SCALE (betae): ' , betae
+1555:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1556:         write (aline, *)                                                &
+1557:               &'  MAX NEGATIVE PERTURBATION BELOW LFC (dtmax): ' ,      &
+1558:               & dtmax
+1559:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1560:         write (aline, *)'  QUASI-EQUILIBRIUM APPROACH RATE (alphae): ' ,&
+1561:               & alphae
+1562:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1563:         write (aline, *)'  QUASI-EQUILIBRIUM APPROACH RATE (damp): ' ,  &
+1564:               & damp
+1565:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1566:         write (aline, *) ' '
+1567:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1568:         write (aline, *) ' '
+1569:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1570:       else
+1571:       end if
+1572:  
+1573: !     Convective Cloud Cover
+1574:       afracl = 0.3 ! frac. cover for conv. precip. when dx=dxlarg
+1575:       afracs = 1.0 !   "     "    "    "      "     "   dx=dxsmal
+1576:       dlargc = 200.0
+1577:       dsmalc = 10.0
+1578:       dxtemc = dmin1(dmax1(dx,dsmalc),dlargc)
+1579:       clfrcv = afracl + (afracs-afracl)                                 &
+1580:              & *((dlargc-dxtemc)/(dlargc-dsmalc))**2
+1581:       clfrcv = dmin1(clfrcv,clfrcvmax)
+1582:       write (aline, *) ' '
+1583:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1584:       write (aline, *) 'CONVECTIVE CLOUD FRACTION/WATER'
+1585:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1586:       write (aline, *) '   Maximum Convective Cloud Cover'
+1587:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1588:       write (aline, *) '     before resolution scaling: ' , clfrcvmax
+1589:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1590:       write (aline, *) '   Maximum Convective Cloud Cover'
+1591:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1592:       write (aline, *) '     after resolution scaling: ' , clfrcv
+1593:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1594:       write (aline, *) '   Convective Cloud Water: ' , cllwcv
+1595:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1596: !
+1597: !-----compute the vertical interpolation coefficients for t and qv.
+1598: !
+1599:       twt(1,1) = 0.
+1600:       twt(1,2) = 0.
+1601:       qcon(1) = 0.
+1602:       do k = 2 , kz
+1603:         twt(k,1) = (sigma(k)-a(k-1))/(a(k)-a(k-1))
+1604:         twt(k,2) = 1. - twt(k,1)
+1605:         qcon(k) = (sigma(k)-a(k))/(a(k-1)-a(k))
+1606:       end do
+1607:  
+1608:       chibot = 450.
+1609:       ptmb = 10.*r8pt
+1610:       pz = a(1)*(1000.-ptmb) + ptmb
+1611:       if ( pz.gt.chibot ) call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                 &
+1612:                                     &'VERTICAL INTERPOLATION ERROR')
+1613:       do k = 1 , kz
+1614:         pk = a(k)*(1000.-ptmb) + ptmb
+1615:         if ( pk.le.chibot ) kchi = k
+1616:       end do
+1617:  
+1618: !
+1619: !-----compute the k level under which the maximum equivalent potential
+1620: !     temperature will be regarded as the origin of air parcel that
+1621: !     produces cloud (used in the cumulus parameterization scheme).
+1622: !
+1623:       sig700 = (70.-r8pt)/(100.-r8pt)
+1624:       do k = 1 , kz
+1625:         k700 = k
+1626:         if ( sig700.le.sigma(k+1) .and. sig700.gt.sigma(k) ) exit
+1627:       end do
+1628: !
+1629: !-----specify the coefficients for sponge boundary conditions.
+1630: !
+1631:       ispgd = nspgd - 1
+1632:       ispgx = nspgx - 1
+1633: !.....for dot point variables:
+1634:       if ( iboudy.eq.4 ) then
+1635:         wgtd(1) = 0.
+1636:         wgtd(2) = 0.2
+1637:         wgtd(3) = 0.55
+1638:         wgtd(4) = 0.8
+1639:         wgtd(5) = 0.95
+1640:         do k = 4 , nspgx
+1641:           wgtd(k) = 1.
+1642:         end do
+1643: !.....for cross point variables:
+1644:         wgtx(1) = 0.
+1645:         wgtx(2) = 0.4
+1646:         wgtx(3) = 0.7
+1647:         wgtx(4) = 0.9
+1648:         do k = 5 , nspgx
+1649:           wgtx(k) = 1.
+1650:         end do
+1651:       end if
+1652: !
+1653: !-----specify the coefficients for nudging boundary conditions:
+1654: !
+1655: !.....for large domain:
+1656:       if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
+1657:         fnudge = 0.1/dt2
+1658:         gnudge = (dxsq/dt)/50.
+1659:       end if
+1660:       if ( icup.eq.3 ) call <a href="./mod_cu_bm.F90.html#lutbl" TARGET=CENT_PANEL>lutbl</a>(r8pt)
+1661: !
+1662: !-----print out the parameters specified in the model.
+1663: !
+1664: !     print outparam
+1665: !     print physicsparam
+1666: !     print timeparam
+1667: !.....for large domain:
+1668: !
+1669:       daymax = ntimax/1440.
+1670: #ifdef MPP1
+1671:       if ( myid.eq.0 ) then
+1672:         if ( ibltyp.eq.0 ) print 99002
+1673:         print 99003 , julday , gmt , ntrad
+1674: !
+1675:         if ( iboudy.eq.0 ) print 99004
+1676:         if ( iboudy.eq.1 ) print 99005 , fnudge , gnudge
+1677:         if ( iboudy.eq.2 ) print 99007
+1678:         if ( iboudy.eq.3 ) print 99008
+1679:         if ( iboudy.eq.4 ) print 99009
+1680:         if ( iboudy.eq.5 ) print 99006 , fnudge , gnudge
+1681:  
+1682:         print 99010
+1683: !
+1684:         do k = 1 , kz
+1685:           print 99011 , k , sigma(k) , a(k) , dsigma(k) , twt(k,1) ,    &
+1686:               & twt(k,2) , qcon(k)
+1687:         end do
+1688:         print 99012 , kzp1 , sigma(kzp1)
+1689:         print 99013 , daymax
+1690:         print 99014 , dt
+1691:         print 99015 , dx
+1692:         print 99016 , jx , iy
+1693:         print 99017 , kz
+1694:         print 99018 , xkhz
+1695:         print 99019 , xkhmax
+1696:       end if
+1697: #else
+1698:       if ( ibltyp.eq.0 ) print 99002
+1699:       print 99003 , julday , gmt , ntrad
+1700: !
+1701:       if ( iboudy.eq.0 ) print 99004
+1702:       if ( iboudy.eq.1 ) print 99005 , fnudge , gnudge
+1703:       if ( iboudy.eq.2 ) print 99007
+1704:       if ( iboudy.eq.3 ) print 99008
+1705:       if ( iboudy.eq.4 ) print 99009
+1706:       if ( iboudy.eq.5 ) print 99006 , fnudge , gnudge
+1707: 
+1708:       print 99010
+1709: !
+1710:       do k = 1 , kz
+1711:         print 99011 , k , sigma(k) , a(k) , dsigma(k) , twt(k,1) ,      &
+1712:             & twt(k,2) , qcon(k)
+1713:       end do
+1714:       print 99012 , kzp1 , sigma(kzp1)
+1715:       print 99013 , daymax
+1716:       print 99014 , dt
+1717:       print 99015 , dx
+1718:       print 99016 , jx , iy
+1719:       print 99017 , kz
+1720:       print 99018 , xkhz
+1721:       print 99019 , xkhmax
+1722: #endif
+1723: 99001 format (a,a,a,i0.3,a)
+1724: 99002 format (/'   frictionless and insulated for the lower boundary.')
+1725: 99003 format (                                                          &
+1726:      &'     the surface energy budget is used to calculate the ground te&
+1727:      &mperature.   julday = ',i3,'   gmt = ',f4.1/10x,                  &
+1728:      &'the radiation is computed every ',i4,' time steps.')
+1729: !1100 format('     heat and moisture fluxes from the ground are turned o
+1730: !     1ff.')
+1731: 99004 format (/'   the lateral boundary conditions are fixed.')
+1732: 99005 format (/'   relaxation boundary conditions (linear method)',     &
+1733:              &' are used.  fnudge = ',e15.5,'  gnudge = ',e15.5)
+1734: 99006 format (/'   relaxation boudnary conditions (exponential method)',&
+1735:              &' are used. fnudge = ',e15.5,'  gnudge = ',e15.5)
+1736: 99007 format (/'   time dependent boundary conditions are used.')
+1737: 99008 format (/'   inflow/outflow boundary conditions are used.')
+1738: 99009 format (/'   sponge boundary conditions are used.')
+1739: 99010 format ('0 k',4x,'sigma(k)',3x,'  a(k)',5x,'dsigma(k)',4x,        &
+1740:              &'twt(k,1)',5x,'twt(k,2)',5x,'qcon(k)'/)
+1741: 99011 format (1x,i2,5x,f6.4,5x,f6.4,5x,f6.4,5x,f8.4,5x,f8.4,5x,f8.4)
+1742: 99012 format (1x,i2,5x,f6.4)
+1743: 99013 format (//' maximum time = ',f8.3,' days.')
+1744: 99014 format (' time step = ',f7.2,' seconds')
+1745: 99015 format (' dx = ',f7.0,' meters')
+1746: 99016 format (' grid points (x,y) = (',i3,',',i3,')')
+1747: 99017 format (' number of levels = ',i2)
+1748: 99018 format (' constant hor. diff. coef. = ',e12.5,' m*m/s')
+1749: 99019 format (' maximum  hor. diff. coef. = ',e12.5,' m*m/s')
+1750: !
+1751:       end subroutine param
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

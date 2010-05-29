@@ -1,0 +1,71 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_rad.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_rad.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_rad.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_rad><H3>mod_rad</H3></a></p>20:       module mod_rad
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: 
+26:       real(8) , allocatable, dimension(:,:) :: cldfra , cldlwc
+27:       real(8) , allocatable, dimension(:,:,:) :: heatrt
+28:       real(8) , allocatable, dimension(:,:,:) :: o3prof
+29: 
+30:       contains 
+31: 
+<p><a name=allocate_mod_rad><H3>allocate_mod_rad</H3></a></p> Click <a href="./callingtree/allocate_mod_rad_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_rad is used.
+<hr>
+32:         subroutine allocate_mod_rad
+33:         implicit none
+34: 
+35:         allocate(cldfra(iym1,kz))
+36:         allocate(cldlwc(iym1,kz))
+37: #ifdef MPP1
+38:         allocate(heatrt(iym1,kz,jxp))
+39:         allocate(o3prof(iym1,kzp1,jxp))
+40: #else
+41:         allocate(heatrt(iym1,kz,jxm1))
+42:         allocate(o3prof(iym1,kzp1,jxm1))
+43: #endif 
+44:         end subroutine  allocate_mod_rad
+45: 
+46:       end module mod_rad
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

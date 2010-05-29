@@ -1,0 +1,86 @@
+<HTML>
+
+<HEAD>
+<TITLE>histFileMod.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/histFileMod.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>histFileMod.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/histFileMod.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/histFileMod.F90	2010-03-10 16:29:37.408601048 +0100
+<LI>@@ -2010,6 +2010,9 @@
+<LI>     use clm_varpar   , only : lsmlon, lsmlat, nlevsoi
+<LI>     use ncdio
+<LI>     use spmdGathScatMod, only : gather_data_to_master
+<LI>+!abt added below
+<LI>+    use clm_varsur     , only : glonc,glatc
+<LI>+!abt added above
+<LI> !
+<LI> ! !ARGUMENTS:
+<LI>     implicit none
+<LI>@@ -2216,12 +2219,22 @@
+<LI>           call ncd_ioglobal(varname='latrof', data=runoff%rlat, ncid=nfid(t), flag='write')
+<LI>        endif
+<LI> #endif
+<LI>-       call ncd_iolocal(varname='longxy'  , data=ldomain%lonc, &
+<LI>-            dim1name='gridcell', ncid=nfid(t), &
+<LI>-            flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
+<LI>-       call ncd_iolocal(varname='latixy'  , data=ldomain%latc, &
+<LI>-            dim1name='gridcell', ncid=nfid(t), &
+<LI>-            flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
+<LI>+!original commented out below by abt
+<LI>+!       call ncd_iolocal(varname='longxy'  , data=ldomain%lonc, &
+<LI>+!            dim1name='gridcell', ncid=nfid(t), &
+<LI>+!            flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
+<LI>+!       call ncd_iolocal(varname='latixy'  , data=ldomain%latc, &
+<LI>+!            dim1name='gridcell', ncid=nfid(t), &
+<LI>+!            flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
+<LI>+!abt above
+<LI>+!abt added below
+<LI>+       if (masterproc) then
+<LI>+          call ncd_ioglobal(varname='longxy', data=glonc, ncid=nfid(t), flag='write')
+<LI>+       endif
+<LI>+       if (masterproc) then
+<LI>+          call ncd_ioglobal(varname='latixy', data=glatc, ncid=nfid(t), flag='write')
+<LI>+       endif
+<LI>+!abt added above
+<LI>        call ncd_iolocal(varname='area'    , data=ldomain%area, &
+<LI>             dim1name='gridcell', ncid=nfid(t), &
+<LI>             flag='write', nlonxy=ldomain%ni, nlatxy=ldomain%nj)
+<LI>@@ -3195,6 +3208,10 @@
+<LI> 
+<LI>         call mpi_bcast (ntapes, 1, mpi_integer, 0, mpicom, ier)
+<LI>         do t = 1,ntapes
+<LI>+!abt added below
+<LI>+           tape(t)%nhtfrq = hist_nhtfrq(t)
+<LI>+           tape(t)%mfilt  = hist_mfilt(t)
+<LI>+!abt added above
+<LI>            call mpi_bcast (tape(t)%nflds     , 1, MPI_INTEGER, 0, mpicom, ier)
+<LI>            call mpi_bcast (tape(t)%ntimes    , 1, MPI_INTEGER, 0, mpicom, ier)
+<LI>            call mpi_bcast (tape(t)%nhtfrq    , 1, MPI_INTEGER, 0 ,mpicom, ier)
+<LI>@@ -3616,7 +3633,7 @@
+<LI>       write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
+<LI>    endif
+<LI>    write(hist_index,'(i1.1)') hist_file - 1
+<LI>-   set_hist_filename = "./"//trim(caseid)//".clm2.h"//hist_index//"."//&
+<LI>+   set_hist_filename = "./output/"//trim(caseid)//".clm2.h"//hist_index//"."//&
+<LI>         trim(cdate)//".nc"
+<LI> 
+<LI>   end function set_hist_filename
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

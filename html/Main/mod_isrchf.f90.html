@@ -1,0 +1,115 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_isrchf.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_isrchf.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_isrchf.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=mod_isrchf><H3>mod_isrchf</H3></a></p>20:       module mod_isrchf
+21: !
+22: !     Functions to search index of values on array respecting conditions
+23: !
+24:       contains
+25: 
+<p><a name=isrchfgt><H3>isrchfgt</H3></a></p> Click <a href="./callingtree/isrchfgt_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where isrchfgt is used.
+<hr>
+26:       function isrchfgt(n,array,inc,rtarg)
+27:       implicit none
+28: !
+29: ! Dummy arguments
+30: !
+31:       integer :: inc , n
+32:       real(8) :: rtarg
+33:       real(8) , dimension(*) :: array
+34:       integer :: <a href="./mod_isrchf.f90.html#isrchfgt" TARGET=CENT_PANEL>isrchfgt</a>
+35:       intent (in) array , inc , n , rtarg
+36: !
+37: ! Local variables
+38: !
+39:       integer :: i , ind
+40: !
+41:       if ( n.le.0 ) then
+42:         <a href="./mod_isrchf.f90.html#isrchfgt" TARGET=CENT_PANEL>isrchfgt</a> = 0
+43:         return
+44:       end if
+45:       ind = 1
+46:       do i = 1 , n
+47:         if ( array(ind).gt.rtarg ) then
+48:           <a href="./mod_isrchf.f90.html#isrchfgt" TARGET=CENT_PANEL>isrchfgt</a> = i
+49:           return
+50:         else
+51:           ind = ind + inc
+52:         end if
+53:       end do
+54:       <a href="./mod_isrchf.f90.html#isrchfgt" TARGET=CENT_PANEL>isrchfgt</a> = ind
+55:       end function isrchfgt
+56:  
+<p><a name=isrchfle><H3>isrchfle</H3></a></p> Click <a href="./callingtree/isrchfle_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where isrchfle is used.
+<hr>
+57:       function isrchfle(n,array,inc,rtarg)
+58:       implicit none
+59: !
+60: ! Dummy arguments
+61: !
+62:       integer :: inc , n
+63:       real(8) :: rtarg
+64:       real(8) , dimension(*) :: array
+65:       integer :: <a href="./mod_isrchf.f90.html#isrchfle" TARGET=CENT_PANEL>isrchfle</a>
+66:       intent (in) array , inc , n , rtarg
+67: !
+68: ! Local variables
+69: !
+70:       integer :: i , ind
+71: !
+72:       if ( n.le.0 ) then
+73:         <a href="./mod_isrchf.f90.html#isrchfle" TARGET=CENT_PANEL>isrchfle</a> = 0
+74:         return
+75:       end if
+76:       ind = 1
+77:       do i = 1 , n
+78:         if ( array(ind).le.rtarg ) then
+79:           <a href="./mod_isrchf.f90.html#isrchfle" TARGET=CENT_PANEL>isrchfle</a> = i
+80:           return
+81:         else
+82:           ind = ind + inc
+83:         end if
+84:       end do
+85:       <a href="./mod_isrchf.f90.html#isrchfle" TARGET=CENT_PANEL>isrchfle</a> = ind
+86:       end function isrchfle
+87: 
+88:       end module mod_isrchf
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

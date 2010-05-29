@@ -1,0 +1,137 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_culookup.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_culookup.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_culookup.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_culookup><H3>mod_culookup</H3></a></p>20:       module mod_culookup
+21:       implicit none
+22: !
+23: ! PARAMETER definitions
+24: !
+25:       integer , parameter :: jptlucu1 = 50000 , jptlucu2 = 370000
+26: !
+27:       logical :: lookupoverflow
+28:       real(8) , dimension(jptlucu1:jptlucu2) :: tlucua , tlucuaw ,      &
+29:            & tlucub , tlucuc
+30: !
+31:       real(8) :: cmfcmax , cmfcmin , cmfctop , cmfdeps , cprcon ,       &
+32:                & entrdd , entrmid , entrpen , entrscv , rhcdd
+33:       logical :: lamip2 , lmfdd , lmfdudv , lmfmid , lmfpen , lmfscv
+34: 
+35:       contains
+36: 
+<p><a name=set_lookup_tables><H3>set_lookup_tables</H3></a></p> Click <a href="./callingtree/set_lookup_tables_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where set_lookup_tables is used.
+<hr>
+37:       subroutine set_lookup_tables
+38:  
+39: !-----------------------------------------------------------------------
+40: ! *mo_convect_tables* - tables for convective adjustment code
+41: !
+42: !           d.salmond  cray (uk)   12/8/91
+43: !
+44: !
+45: ! table lookups replaced
+46: !
+47: !           A. Rhodin mpi 12/98
+48: !
+49: ! When replacing the table lookups the following code has been used:
+50: !
+51: !   tlucua :  c2es*exp(merge(c3les,c3ies,lo)*(tt-tzero) &
+52: !           /      (tt-merge(c4les,c4ies,lo)))
+53: !
+54: !   tlucub :  merge(c5alvcp,c5alscp,lo) / (tt-merge(c4les,c4ies,lo))**2
+55: !
+56: !   tlucuc :  merge(wlhvocp, wlhsocp, lo)
+57: !
+58: !   tlucuaw:  c2es*exp(c3les*(tt-tzero)*(1./(tt-c4les)))
+59: !
+60: !   with:     lo = tt > tzero
+61: !
+62: ! compile with option -DNOLOOKUP in order to replace lookup tables
+63: !-----------------------------------------------------------------------
+64:  
+65:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only :  tzero , rgas , rwat , c3les , c3ies , &
+66:          & c4les , c4ies , c2es , c5alvcp , c5alscp , wlhvocp , wlhsocp
+67:       implicit none
+68: !
+69: ! PARAMETER definitions
+70: !
+71:       real(8) , parameter :: clavm1 = -6096.9385 , clavm2 = 21.2409642 ,&
+72:                            & clavm3 = -2.711193 , clavm4 = 1.673952 ,   &
+73:                            & clavm5 = 2.433502 , ciavm1 = -6024.5282 ,  &
+74:                            & ciavm2 = 29.32707 , ciavm3 = 1.0613868 ,   &
+75:                            & ciavm4 = -1.3198825 , ciavm5 = -0.49382577
+76: !
+77: ! Local variables
+78: !
+79:       integer :: it
+80:       logical :: lo
+81:       real(8) :: tt
+82: 
+83: !----------------------------
+84: !     -- Initialise lookup tables
+85: !     called from 'setphys'
+86: !----------------------------
+87:  
+88:       tt = jptlucu1*0.001
+89:       do it = jptlucu1 , jptlucu2
+90:         lo = tt.gt.tzero
+91:  
+92:         if ( lamip2 ) then
+93:           tlucua(it) = exp((merge(clavm1,ciavm1,lo)/tt+merge(clavm2,    &
+94:                      & ciavm2,lo)+merge(clavm3,ciavm3,lo)               &
+95:                      & *tt/100.+merge(clavm4,ciavm4,lo)*tt*tt/1.E5+     &
+96:                      & merge(clavm5,ciavm5,lo)*log(tt)))*rgas/rwat
+97:         else
+98:           tlucua(it) = c2es*exp(merge(c3les,c3ies,lo)*(tt-tzero)        &
+99:                      & *(1./(tt-merge(c4les,c4ies,lo))))
+100:         end if
+101:         tlucub(it) = merge(c5alvcp,c5alscp,lo)                          &
+102:                    & *(1./(tt-merge(c4les,c4ies,lo)))**2
+103:         tlucuc(it) = merge(wlhvocp,wlhsocp,lo)
+104:  
+105:         tlucuaw(it) = c2es*exp(c3les*(tt-tzero)*(1./(tt-c4les)))
+106:  
+107:         tt = tt + 0.001
+108:       end do
+109:  
+110:       end subroutine set_lookup_tables
+111: !
+112:       end module mod_culookup
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,140 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_ingrid.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_ingrid.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_ingrid.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_ingrid><H3>mod_ingrid</H3></a></p>20:       module mod_ingrid
+21: 
+22:       implicit none
+23: 
+24:       integer :: jx_in , iy_in , kz_in
+25:       real(4) :: ptop_in
+26:       real(4) :: clat_in , clon_in , plat_in , plon_in
+27:       real(4) :: truelath_in , truelatl_in
+28:       character(6) :: cgtype_in
+29:       integer :: igrads_in , ibigend_in
+30: 
+31:       contains
+32: 
+<p><a name=gridml><H3>gridml</H3></a></p> Click <a href="./callingtree/gridml_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gridml is used.
+<hr>
+33:       subroutine gridml
+34: 
+35:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+36:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+37:       implicit none
+38: !
+39: ! Local variables
+40: !
+41:       integer :: ierr , k
+42:       character(256) :: terfile
+43: !
+44: !     THIS SUBROUTINE CALLS ROUTINES TO PRODUCE THE MAP FACTORS
+45: !     IT ALSO READS A FILE OF TOPOGRAPHY AND LANDUSE APPROPRIATE FOR
+46: !     GRID FOR EXPLANATION OF VARIABLES SEE SUBROUTINE MAPRON.
+47: !
+48: !     READ APPROPRIATE FILE OF TERRAIN AND LANDUSE FOR THIS GRID
+49: !
+50:       write (terfile,99001)                                             &
+51:         & trim(dirter), pthsep, trim(domname), '.INFO'
+52:       open (10,file=terfile,form='unformatted',                         &
+53:           & recl=jx*iy*ibyte,access='direct')
+54:       if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.                    &
+55:          & dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
+56:         read (10,rec=1,iostat=ierr) iy_in , jx_in , kz_in , delx ,      &
+57:                                   & clat_in , clon_in , plat_in ,       &
+58:                                   & plon_in , grdfac , cgtype_in ,      &
+59:                                   & (sigmaf(k),k=1,kz+1) , ptop_in ,    &
+60:                                   & igrads_in , ibigend_in ,            &
+61:                                   & truelatl_in , truelath_in ,         &
+62:                                   & lon0 , lon1 , lat0 , lat1
+63:       else
+64:         read (10,rec=1,iostat=ierr) iy_in , jx_in , kz_in , delx ,      &
+65:                                   & clat_in , clon_in , plat_in ,       &
+66:                                   & plon_in , grdfac , cgtype_in ,      &
+67:                                   & (sigmaf(k),k=1,kz+1) , ptop_in ,    &
+68:                                   & igrads_in , ibigend_in ,            &
+69:                                   & truelatl_in , truelath_in
+70:       end if
+71:       if ( iy_in/=iy .or. jx_in/=jx .or. kz_in/=kz ) then
+72:         print * , 'IMPROPER DIMENSION SPECIFICATION (ICBC.f)'
+73:         print * , '  icbc.param: ' , iy , jx , kz
+74:         print * , '  DOMAIN.INFO: ' , iy_in , jx_in , kz_in
+75:         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
+76:         stop 'Dimensions (subroutine gridml)'
+77:       end if
+78:       read (10,rec=2,iostat=ierr) topogm
+79:       read (10,rec=3,iostat=ierr) toposdgm
+80:       read (10,rec=4,iostat=ierr) xlandu
+81:       read (10,rec=5,iostat=ierr) xlat
+82:       read (10,rec=6,iostat=ierr) xlon
+83:       read (10,rec=7,iostat=ierr) dlat
+84:       read (10,rec=8,iostat=ierr) dlon
+85:       read (10,rec=9,iostat=ierr) msfx
+86:       close (10)
+87:       if ( ierr/=0 ) then
+88:         print * , 'END OF FILE REACHED (ICBC.f)'
+89:         print * , '  Check ibyte in icbc.param: ibyte= ' , ibyte
+90:         stop 'EOF (subroutine gridml)'
+91:       end if
+92: !
+93: 99001 format (a,a,a,a)
+94:       end subroutine gridml
+95: 
+<p><a name=commhead><H3>commhead</H3></a></p> Click <a href="./callingtree/commhead_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where commhead is used.
+<hr>
+96:       subroutine commhead
+97:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+98:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+99:       implicit none
+100: !
+101: ! Local variables
+102: !
+103:       integer :: k
+104: !
+105:       call <a href="./aerosol.f90.html#gridml" TARGET=CENT_PANEL>gridml</a>
+106: !
+107:       do k = 1 , kz
+108:         sigma2(k) = 0.5*(sigmaf(k+1)+sigmaf(k))
+109:         dsigma(k) = sigmaf(k+1) - sigmaf(k)
+110:       end do
+111:       end subroutine commhead
+112: 
+113:       end module mod_ingrid
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

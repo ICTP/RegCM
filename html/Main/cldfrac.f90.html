@@ -1,0 +1,131 @@
+<HTML>
+
+<HEAD>
+<TITLE>cldfrac.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>cldfrac.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>cldfrac.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=cldfrac><H3>cldfrac</H3></a></p> Click <a href="./callingtree/cldfrac_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where cldfrac is used.
+<hr>
+20:       subroutine cldfrac(j)
+21:  
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     This subroutine computes the fractional cloud coverage and      c
+25: !     liquid water content (in cloud value).  Both are use in         c
+26: !     radiation.                                                      c
+27: !                                                                     c
+28: !     The fractional coverage of large scale clouds is a function of  c
+29: !     relative humidity, using the relationship of sundqvist et       c
+30: !     al., 1989.  The relative humidity at which clouds begin to      c
+31: !     form is lower over land than ocean, due to the greater number   c
+32: !     of cloud condensation nucleii.                                  c
+33: !                                                                     c
+34: !     The fracional coverage of convective clouds is passed in from   c
+35: !     the convection scheme.                                          c
+36: !                                                                     c
+37: !     The large-scale and convective clouds are combined as follows:  c
+38: !     1) If the convective cloud fraction > large scale fraction, the c
+39: !     convective fraction and water content are used (this occurs     c
+40: !     infrequently).                                                  c
+41: !     2) Otherwise, the cloud fraction equals the large-scale         c
+42: !     fraction AND the water content is a weighted average of both    c
+43: !     types.                                                          c
+44: !                                                                     c
+45: !     Note: the incloud water content (g/m3) is passed to radiation   c
+46: !                                                                     c
+47: !     See Pal et al (200) for more info.                              c
+48: !                                                                     c
+49: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+50:  
+51:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+52:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+53:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a>
+54:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+55:       implicit none
+56: !
+57: ! Dummy arguments
+58: !
+59:       integer :: j
+60:       intent (in) j
+61: !
+62: ! Local variables
+63: !
+64:       real(8) :: exlwc , rh0adj
+65:       integer :: i , k
+66: !--------------------------------------------------------------------
+67: !     1.  Determine large-scale cloud fraction
+68: !--------------------------------------------------------------------
+69:       do k = 1 , kz         ! Adjusted relative humidity threshold
+70:         do i = 2 , iym2
+71:           if ( tb3d(i,k,j).gt.tc0 ) then
+72:             rh0adj = rh0(i,j)
+73:           else ! high cloud (less subgrid variability)
+74:             rh0adj = rhmax - (rhmax-rh0(i,j))                           &
+75:                    & /(1.0+0.15*(tc0-tb3d(i,k,j)))
+76:           end if
+77:           if ( rhb3d(i,k,j).ge.rhmax ) then    ! full cloud cover
+78:             fcc(i,k,j) = 1.
+79:           else if ( rhb3d(i,k,j).le.rh0adj ) then
+80:                                                ! no cloud cover
+81:             fcc(i,k,j) = 0.
+82:           else                                ! partial cloud cover
+83:             fcc(i,k,j) = 1. - sqrt(1.-(rhb3d(i,k,j)-rh0adj)/(rhmax-     &
+84:                        & rh0adj))
+85:             fcc(i,k,j) = dmin1(dmax1(fcc(i,k,j),0.01D0),0.99D0)
+86:           end if                      !  rh0 threshold
+87:         end do
+88:       end do
+89:  
+90: !--------------------------------------------------------------------
+91: !     2.  Combine large-scale and convective fraction and liquid water
+92: !     to be passed into radiation.
+93: !--------------------------------------------------------------------
+94:       do k = 1 , kz
+95:         do i = 2 , iym2
+96:           exlwc = qcb3d(i,k,j)*rhob3d(i,k,j)*1.E03
+97:                                                   ! Cloud Water Volume
+98: !         units:  = kg gq / kg dry air * kg dry air / m3 * 1000 = g qc
+99: !         / m3
+100:           cldlwc(i,k) = (cldfra(i,k)*cldlwc(i,k)*1.E3+fcc(i,k,j)*exlwc) &
+101:                       & /dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
+102:           cldfra(i,k) = dmin1(dmax1(cldfra(i,k),fcc(i,k,j)),fcmax)
+103:         end do
+104:       end do
+105:  
+106:       end subroutine cldfrac
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

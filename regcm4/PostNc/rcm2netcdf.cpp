@@ -336,12 +336,12 @@ int main(int argc, char *argv[])
       atmodata a(outhead, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "ATM_%s_%d.nc", experiment, a.rdate);
+      sprintf(fname, "ATM_%s_%d-%d.nc", experiment, a.date0, a.date1);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "ATM_%s_%d.ctl", experiment, a.rdate);
+        sprintf(ctlname, "ATM_%s_%d-%d.ctl", experiment, a.date0, a.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -368,12 +368,12 @@ int main(int argc, char *argv[])
       srfdata s(outhead, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "SRF_%s_%d.nc", experiment, s.rdate);
+      sprintf(fname, "SRF_%s_%d-%d.nc", experiment, s.date0, s.date1);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "SRF_%s_%d.ctl", experiment, s.rdate);
+        sprintf(ctlname, "SRF_%s_%d-%d.ctl", experiment, s.date0, s.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -400,12 +400,12 @@ int main(int argc, char *argv[])
       raddata r(outhead, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "RAD_%s_%d.nc", experiment, r.rdate);
+      sprintf(fname, "RAD_%s_%d-%d.nc", experiment, r.date0, r.date1);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "RAD_%s_%d.ctl", experiment, r.rdate);
+        sprintf(ctlname, "RAD_%s_%d-%d.ctl", experiment, r.date0, r.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -429,12 +429,12 @@ int main(int argc, char *argv[])
       chedata c(outhead, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "CHE_%s_%d.nc", experiment, c.rdate);
+      sprintf(fname, "CHE_%s_%d-%d.nc", experiment, c.date0, c.date1);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "CHE_%s_%d.ctl", experiment, c.rdate);
+        sprintf(ctlname, "CHE_%s_%d-%d.ctl", experiment, c.date0, c.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);
@@ -462,12 +462,12 @@ int main(int argc, char *argv[])
       subdata s(outhead, subdom, t);
       regcmout outnc;
       outnc.experiment = experiment;
-      sprintf(fname, "SUB_%s_%d.nc", experiment, s.rdate);
+      sprintf(fname, "SUB_%s_%d-%d.nc", experiment, s.date0, s.date1);
       outnc.fname = fname;
       if (lgra)
       {
         char ctlname[PATH_MAX];
-        sprintf(ctlname, "SUB_%s_%d.ctl", experiment, s.rdate);
+        sprintf(ctlname, "SUB_%s_%d-%d.ctl", experiment, s.date0, s.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
       }
       outnc.vl.addvar(vnames);

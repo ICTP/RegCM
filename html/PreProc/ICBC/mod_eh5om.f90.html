@@ -1,0 +1,1536 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_eh5om.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_eh5om.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_eh5om.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_eh5om><H3>mod_eh5om</H3></a></p>20:       module mod_eh5om
+21:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+22: 
+23:       implicit none
+24: 
+25:       private
+26: 
+27:       integer , parameter :: klev = 17 , jlat = 96 , ilon = 192
+28:       integer , parameter :: mlev = 31
+29: 
+30:       real(4) , target , dimension(ilon,jlat,klev*3) :: b2
+31:       real(4) , target , dimension(ilon,jlat,klev*2) :: d2
+32:       real(4) , allocatable , target , dimension(:,:,:) :: b3
+33:       real(4) , allocatable , target , dimension(:,:,:) :: d3
+34:       real(4) , allocatable , dimension(:,:,:) :: sulfate3
+35:       real(4) , allocatable , dimension(:,:) :: pso4_3
+36:       real(4) , allocatable , dimension(:,:,:) :: sulfate4
+37: 
+38:       real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
+39:       real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+40:       real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+41:       real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+42: 
+43:       real(4) , dimension(jlat) :: glat
+44:       real(4) , dimension(ilon) :: glon
+45:       real(4) , dimension(klev) :: sigma1 , sigmar
+46: 
+47:       real(4) , dimension(mlev+1) :: hyai , hybi
+48:       real(4) , dimension(mlev) :: hyam , hybm
+49:       real(4) , dimension(ilon,jlat) :: pso4_0
+50:       real(4) , dimension(ilon,jlat,mlev,12) :: sulfate
+51: 
+52:       real(4) , dimension(ilon,jlat) :: pso4_2
+53:       real(4) , dimension(ilon,jlat,mlev,2) :: sulfate1
+54:       real(4) , dimension(ilon,jlat,mlev) :: sulfate2
+55: 
+56:       integer(4) , dimension(10) :: icount , istart
+57: 
+58:       public :: geteh5om , headermpi
+59: 
+60:       contains
+61: 
+<p><a name=geteh5om><H3>geteh5om</H3></a></p> Click <a href="./callingtree/geteh5om_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where geteh5om is used.
+<hr>
+62:       subroutine geteh5om(idate)
+63:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+64:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+65:       use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+66:       use <a href="./mod_interp.f90.html#mod_interp" TARGET=CENT_PANEL>mod_interp</a> , only : bilinx2
+67:       use <a href="./mod_vertint.f90.html#mod_vertint" TARGET=CENT_PANEL>mod_vertint</a>
+68:       use <a href="./mod_hgt.f90.html#mod_hgt" TARGET=CENT_PANEL>mod_hgt</a>
+69:       use <a href="./mod_humid.f90.html#mod_humid" TARGET=CENT_PANEL>mod_humid</a>
+70:       use <a href="./mod_mksst.f90.html#mod_mksst" TARGET=CENT_PANEL>mod_mksst</a>
+71:       use <a href="./mod_uvrot.f90.html#mod_uvrot" TARGET=CENT_PANEL>mod_uvrot</a>
+72:       use <a href="./mod_vectutil.f90.html#mod_vectutil" TARGET=CENT_PANEL>mod_vectutil</a>
+73:       implicit none
+74: !
+75: ! Dummy arguments
+76: !
+77:       integer :: idate
+78: !
+79: ! Local variables
+80: !
+81:       character(3) , dimension(12) :: chmon
+82:       character(21) :: finm , psnm
+83:       character(256) :: fnso4_a1b
+84:       character(256) :: fnso4_a2 , fnso4_b1
+85:       character(256) :: fnso4_rf
+86:       integer :: i , i2 , ii , j , j2 , k , k0 , krec , l , month ,     &
+87:                & nday , nhour , nrec , numx , numy , nyear
+88:       integer(2) , dimension(ilon,jlat) :: itmp
+89:       real(8) :: offset , xscale
+90:       real(4) :: pmpi , pmpj , prcm
+91:       logical :: there
+92:       character(4) , dimension(100) :: yr_a2
+93:       character(4) , dimension(61) :: yr_rf
+94:       integer :: ncid , istatus
+95: 
+96: !
+97:       data yr_rf/'1941' , '1942' , '1943' , '1944' , '1945' , '1946' ,  &
+98:           &'1947' , '1948' , '1949' , '1950' , '1951' , '1952' ,        &
+99:          & '1953' , '1954' , '1955' , '1956' , '1957' , '1958' ,        &
+100:          & '1959' , '1960' , '1961' , '1962' , '1963' , '1964' ,        &
+101:          & '1965' , '1966' , '1967' , '1968' , '1969' , '1970' ,        &
+102:          & '1971' , '1972' , '1973' , '1974' , '1975' , '1976' ,        &
+103:          & '1977' , '1978' , '1979' , '1980' , '1981' , '1982' ,        &
+104:          & '1983' , '1984' , '1985' , '1986' , '1987' , '1988' ,        &
+105:          & '1989' , '1990' , '1991' , '1992' , '1993' , '1994' ,        &
+106:          & '1995' , '1996' , '1997' , '1998' , '1999' , '2000' , '2001'/
+107:       data yr_a2/'2001' , '2002' , '2003' , '2004' , '2005' , '2006' ,  &
+108:           &'2007' , '2008' , '2009' , '2010' , '2011' , '2012' ,        &
+109:          & '2013' , '2014' , '2015' , '2016' , '2017' , '2018' ,        &
+110:          & '2019' , '2020' , '2021' , '2022' , '2023' , '2024' ,        &
+111:          & '2025' , '2026' , '2027' , '2028' , '2029' , '2030' ,        &
+112:          & '2031' , '2032' , '2033' , '2034' , '2035' , '2036' ,        &
+113:          & '2037' , '2038' , '2039' , '2040' , '2041' , '2042' ,        &
+114:          & '2043' , '2044' , '2045' , '2046' , '2047' , '2048' ,        &
+115:          & '2049' , '2050' , '2051' , '2052' , '2053' , '2054' ,        &
+116:          & '2055' , '2056' , '2057' , '2058' , '2059' , '2060' ,        &
+117:          & '2061' , '2062' , '2063' , '2064' , '2065' , '2066' ,        &
+118:          & '2067' , '2068' , '2069' , '2070' , '2071' , '2072' ,        &
+119:          & '2073' , '2074' , '2075' , '2076' , '2077' , '2078' ,        &
+120:          & '2079' , '2080' , '2081' , '2082' , '2083' , '2084' ,        &
+121:          & '2085' , '2086' , '2087' , '2088' , '2089' , '2090' ,        &
+122:          & '2091' , '2092' , '2093' , '2094' , '2095' , '2096' ,        &
+123:          & '2097' , '2098' , '2099' , '2100'/
+124:       data chmon/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' , 'JUL' ,&
+125:           &'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
+126: !
+127: !     D      BEGIN LOOP OVER NTIMES
+128: !
+129:       nyear = idate/1000000
+130:                          !, SST2(JX,IY)
+131:       month = idate/10000 - nyear*100
+132:       nday = idate/100 - (idate/10000)*100
+133:       nhour = mod(idate,100)
+134:  
+135:       if ( ssttyp=='EH5RF' ) then
+136:         if ( idate<1941010106 ) then
+137:           write (*,*) 'EH5RF dataset is just available from 1941010106'
+138:           stop
+139:         end if
+140:         if ( ehso4 ) then
+141:           if ( idate<1950010100 ) then
+142:             write (*,*) 'the monthly EH5RF sulfate data are just' ,     &
+143:                        &' available from 1950010100'
+144:             stop
+145:           end if
+146:         end if
+147:         if ( idate>2001010100 ) then
+148:           write (*,*) 'EH5RF dataset is just available  to  2001010100'
+149:           stop
+150:         end if
+151:       end if
+152:       if ( ssttyp=='EH5A2' ) then
+153:         if ( idate<2001010100 ) then
+154:           write (*,*) 'EH5A2 dataset is just avaiable from 2001010100'
+155:           stop
+156:         end if
+157:         if ( idate>=2101010100 ) then
+158:           write (*,*) 'EH5A2 dataset is just avaiable  to  2100123118'
+159:           stop
+160:         end if
+161:       end if
+162:       if ( ssttyp=='EH5B1' ) then
+163:         if ( idate<2001010100 ) then
+164:           write (*,*) 'EH5B1 dataset is just avaiable from 2001010100'
+165:           stop
+166:         end if
+167:         if ( idate>=2101010100 ) then
+168:           write (*,*) 'EH5B1 dataset is just avaiable  to  2100123118'
+169:           stop
+170:         end if
+171:       end if
+172:       if ( ssttyp=='EHA1B' ) then
+173:         if ( idate<2001010100 ) then
+174:           write (*,*) 'EHA1B dataset is just avaiable from 2001010100'
+175:           stop
+176:         end if
+177:         if ( idate>=2101010100 ) then
+178:           write (*,*) 'EHA1B dataset is just avaiable  to  2100123118'
+179:           stop
+180:         end if
+181:       end if
+182:       if (abs(lon1-lon0)<1E-30 .and. abs(lat1-lat0)<1E-30) then
+183:         print *, 'Assuming You have global dataset EH5OM'
+184:         lon0 = 0
+185:         lon1 = 358.125
+186:         lat0 = -89.0625
+187:         lat1 = 89.0625
+188:       end if
+189:       numx = nint((lon1-lon0)/1.875) + 1
+190:       numy = nint((lat1-lat0)/1.875) + 1
+191:       if ( numx/=ilon .or. numy/=jlat ) then
+192:         if ( nday/=1 .or. nhour/=0 ) then
+193:           if ( ssttyp=='EH5RF' ) then
+194:             finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_RF'//             &
+195:                  & yr_rf(nyear-1940)//chmon(month)
+196:             if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_PS'//&
+197:                               & yr_rf(nyear-1940)//chmon(month)
+198:           else if ( ssttyp=='EH5A2' ) then
+199:             finm = 'A2/'//yr_a2(nyear-2000)//'/'//'EH_A2'//             &
+200:                  & yr_a2(nyear-2000)//chmon(month)
+201:             if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2000)//'/'//'EH_PS'//&
+202:                               & yr_a2(nyear-2000)//chmon(month)
+203:           else if ( ssttyp=='EH5B1' ) then
+204:             finm = 'B1/'//yr_a2(nyear-2000)//'/'//'EH_B1'//             &
+205:                  & yr_a2(nyear-2000)//chmon(month)
+206:             if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2000)//'/'//'EH_PS'//&
+207:                               & yr_a2(nyear-2000)//chmon(month)
+208:           else if ( ssttyp=='EHA1B' ) then
+209:             finm = 'A1B/'//yr_a2(nyear-2000)//'/'//'E_A1B'//            &
+210:                  & yr_a2(nyear-2000)//chmon(month)
+211:             if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)               &
+212:                               & //'/'//'EH_PS'//yr_a2(nyear-2000)       &
+213:                               & //chmon(month)
+214:           else
+215:             write (*,*) 'ERROR IN SSTTYP'
+216:             stop
+217:           end if
+218:         else if ( month/=1 ) then
+219:           if ( ssttyp=='EH5RF' ) then
+220:             finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_RF'//             &
+221:                  & yr_rf(nyear-1940)//chmon(month-1)
+222:             if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_PS'//&
+223:                               & yr_rf(nyear-1940)//chmon(month-1)
+224:           else if ( ssttyp=='EH5A2' ) then
+225:             finm = 'A2/'//yr_a2(nyear-2000)//'/'//'EH_A2'//             &
+226:                  & yr_a2(nyear-2000)//chmon(month-1)
+227:             if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2000)//'/'//'EH_PS'//&
+228:                               & yr_a2(nyear-2000)//chmon(month-1)
+229:           else if ( ssttyp=='EH5B1' ) then
+230:             finm = 'B1/'//yr_a2(nyear-2000)//'/'//'EH_B1'//             &
+231:                  & yr_a2(nyear-2000)//chmon(month-1)
+232:             if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2000)//'/'//'EH_PS'//&
+233:                               & yr_a2(nyear-2000)//chmon(month-1)
+234:           else if ( ssttyp=='EHA1B' ) then
+235:             finm = 'A1B/'//yr_a2(nyear-2000)//'/'//'E_A1B'//            &
+236:                  & yr_a2(nyear-2000)//chmon(month-1)
+237:             if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)               &
+238:                               & //'/'//'EH_PS'//yr_a2(nyear-2000)       &
+239:                               & //chmon(month-1)
+240:           else
+241:             write (*,*) 'ERROR IN SSTTYP'
+242:             stop
+243:           end if
+244:         else if ( ssttyp=='EH5RF' ) then
+245:           finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//               &
+246:                & yr_rf(nyear-1941)//chmon(12)
+247:           if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_PS'//  &
+248:                             & yr_rf(nyear-1941)//chmon(12)
+249:         else if ( ssttyp=='EH5A2' ) then
+250:           if ( nyear==2001 ) then
+251:             finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//             &
+252:                  & yr_rf(nyear-1941)//chmon(12)
+253:             if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_PS'//&
+254:                               & yr_rf(nyear-1941)//chmon(12)
+255:           else
+256:             finm = 'A2/'//yr_a2(nyear-2001)//'/'//'EH_A2'//             &
+257:                  & yr_a2(nyear-2001)//chmon(12)
+258:             if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2001)//'/'//'EH_PS'//&
+259:                               & yr_a2(nyear-2001)//chmon(12)
+260:           end if
+261:         else if ( ssttyp=='EH5B1' ) then
+262:           if ( nyear==2001 ) then
+263:             finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//             &
+264:                  & yr_rf(nyear-1941)//chmon(12)
+265:             if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_PS'//&
+266:                               & yr_rf(nyear-1941)//chmon(12)
+267:           else
+268:             finm = 'B1/'//yr_a2(nyear-2001)//'/'//'EH_B1'//             &
+269:                  & yr_a2(nyear-2001)//chmon(12)
+270:             if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2001)//'/'//'EH_PS'//&
+271:                               & yr_a2(nyear-2001)//chmon(12)
+272:           end if
+273:         else if ( ssttyp=='EHA1B' ) then
+274:           if ( nyear==2001 ) then
+275:             finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//             &
+276:                  & yr_rf(nyear-1941)//chmon(12)
+277:             if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_PS'//&
+278:                               & yr_rf(nyear-1941)//chmon(12)
+279:           else
+280:             finm = 'A1B/'//yr_a2(nyear-2001)//'/'//'E_A1B'//            &
+281:                  & yr_a2(nyear-2001)//chmon(12)
+282:             if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2001)               &
+283:                               & //'/'//'EH_PS'//yr_a2(nyear-2001)       &
+284:                               & //chmon(12)
+285:           end if
+286:         else
+287:           write (*,*) 'ERROR IN SSTTYP'
+288:           stop
+289:         end if
+290:       else if ( nday/=1 .or. nhour/=0 ) then
+291:         if ( ssttyp=='EH5RF' ) then
+292:           finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EHgRF'//               &
+293:                & yr_rf(nyear-1940)//chmon(month)
+294:           if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1940)//'/'//'EHgPS'//  &
+295:                             & yr_rf(nyear-1940)//chmon(month)
+296:         else if ( ssttyp=='EH5A2' ) then
+297:           finm = 'A2/'//yr_a2(nyear-2000)//'/'//'EHgA2'//               &
+298:                & yr_a2(nyear-2000)//chmon(month)
+299:           if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2000)//'/'//'EHgPS'//  &
+300:                             & yr_a2(nyear-2000)//chmon(month)
+301:         else if ( ssttyp=='EH5B1' ) then
+302:           finm = 'B1/'//yr_a2(nyear-2000)//'/'//'EHgB1'//               &
+303:                & yr_a2(nyear-2000)//chmon(month)
+304:           if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2000)//'/'//'EHgPS'//  &
+305:                             & yr_a2(nyear-2000)//chmon(month)
+306:         else if ( ssttyp=='EHA1B' ) then
+307:           finm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EgA1B'//              &
+308:                & yr_a2(nyear-2000)//chmon(month)
+309:           if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EHgPS'// &
+310:                             & yr_a2(nyear-2000)//chmon(month)
+311:         else
+312:           write (*,*) 'ERROR IN SSTTYP'
+313:           stop
+314:         end if
+315:       else if ( month/=1 ) then
+316:         if ( ssttyp=='EH5RF' ) then
+317:           finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EHgRF'//               &
+318:                & yr_rf(nyear-1940)//chmon(month-1)
+319:           if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1940)//'/'//'EHgPS'//  &
+320:                             & yr_rf(nyear-1940)//chmon(month-1)
+321:         else if ( ssttyp=='EH5A2' ) then
+322:           finm = 'A2/'//yr_a2(nyear-2000)//'/'//'EHgA2'//               &
+323:                & yr_a2(nyear-2000)//chmon(month-1)
+324:           if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2000)//'/'//'EHgPS'//  &
+325:                             & yr_a2(nyear-2000)//chmon(month-1)
+326:         else if ( ssttyp=='EH5B1' ) then
+327:           finm = 'B1/'//yr_a2(nyear-2000)//'/'//'EHgB1'//               &
+328:                & yr_a2(nyear-2000)//chmon(month-1)
+329:           if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2000)//'/'//'EHgPS'//  &
+330:                             & yr_a2(nyear-2000)//chmon(month-1)
+331:         else if ( ssttyp=='EHA1B' ) then
+332:           finm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EgA1B'//              &
+333:                & yr_a2(nyear-2000)//chmon(month-1)
+334:           if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EHgPS'// &
+335:                             & yr_a2(nyear-2000)//chmon(month-1)
+336:         else
+337:           write (*,*) 'ERROR IN SSTTYP'
+338:           stop
+339:         end if
+340:       else if ( ssttyp=='EH5RF' ) then
+341:         finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//yr_rf(nyear-1941)&
+342:              & //chmon(12)
+343:         if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgPS'//    &
+344:                           & yr_rf(nyear-1941)//chmon(12)
+345:       else if ( ssttyp=='EH5A2' ) then
+346:         if ( nyear==2001 ) then
+347:           finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//               &
+348:                & yr_rf(nyear-1941)//chmon(12)
+349:           if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgPS'//  &
+350:                             & yr_rf(nyear-1941)//chmon(12)
+351:         else
+352:           finm = 'A2/'//yr_a2(nyear-2001)//'/'//'EHgA2'//               &
+353:                & yr_a2(nyear-2001)//chmon(12)
+354:           if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2001)//'/'//'EHgPS'//  &
+355:                             & yr_a2(nyear-2001)//chmon(12)
+356:         end if
+357:       else if ( ssttyp=='EH5B1' ) then
+358:         if ( nyear==2001 ) then
+359:           finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//               &
+360:                & yr_rf(nyear-1941)//chmon(12)
+361:           if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgPS'//  &
+362:                             & yr_rf(nyear-1941)//chmon(12)
+363:         else
+364:           finm = 'B1/'//yr_a2(nyear-2001)//'/'//'EHgB1'//               &
+365:                & yr_a2(nyear-2001)//chmon(12)
+366:           if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2001)//'/'//'EHgPS'//  &
+367:                             & yr_a2(nyear-2001)//chmon(12)
+368:         end if
+369:       else if ( ssttyp=='EHA1B' ) then
+370:         if ( nyear==2001 ) then
+371:           finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//               &
+372:                & yr_rf(nyear-1941)//chmon(12)
+373:           if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgPS'//  &
+374:                             & yr_rf(nyear-1941)//chmon(12)
+375:         else
+376:           finm = 'A1B/'//yr_a2(nyear-2001)//'/'//'EgA1B'//              &
+377:                & yr_a2(nyear-2001)//chmon(12)
+378:           if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2001)//'/'//'EHgPS'// &
+379:                             & yr_a2(nyear-2001)//chmon(12)
+380:         end if
+381:       else
+382:         write (*,*) 'ERROR IN SSTTYP'
+383:         stop
+384:       end if
+385:       do k = 1 , klev*3
+386:         do j = 1 , jlat
+387:           do i = 1 , ilon
+388:             b2(i,j,k) = -9999.
+389:           end do
+390:         end do
+391:       end do
+392:       do k = 1 , klev*2
+393:         do j = 1 , jlat
+394:           do i = 1 , ilon
+395:             d2(i,j,k) = -9999.
+396:           end do
+397:         end do
+398:       end do
+399:       if ( ehso4 ) then
+400:         do k = 1 , mlev
+401:           do j = 1 , jlat
+402:             do i = 1 , ilon
+403:               sulfate2(i,j,k) = -9999.
+404:             end do
+405:           end do
+406:         end do
+407:         do j = 1 , jlat
+408:           do i = 1 , ilon
+409:             pso4_2(i,j) = -9999.
+410:           end do
+411:         end do
+412:       end if
+413:  
+414:       inquire (file=trim(inpglob)//'/EH5OM/'//finm,exist=there)
+415:       if ( .not.there ) then
+416:         write (*,*) trim(inpglob)//'/EH5OM/'//finm , ' is not available'
+417:         write (*,*) 'please copy EH5OM output under ',trim(inpglob),    &
+418:              &      '/EH5OM/'
+419:         stop
+420:       end if
+421:       open (63,file=trim(inpglob)//'/EH5OM/'//finm,form='unformatted',  &
+422:           & recl=(numx*numy*2+16)/4*ibyte,access='direct')
+423:       if ( ehso4 ) then
+424:         inquire (file=trim(inpglob)//'/EH5OM/'//psnm,exist=there)
+425:         if ( .not.there ) then
+426:           write (*,*) trim(inpglob)//'/EH5OM/'//psnm ,                  &
+427:             &          ' is not available'
+428:           write (*,*) 'please copy EH5OM output under ',trim(inpglob),  &
+429:             &         '/EH5OM/'
+430:           stop
+431:         end if
+432:         open (62,file=trim(inpglob)//'/EH5OM/'//psnm,form='unformatted',&
+433:             & recl=(numx*numy*2+16)/4*ibyte,access='direct')
+434:       end if
+435:       if ( nday/=1 .or. nhour/=0 ) then
+436:         nrec = ((nday-1)*4+nhour/6-1)*(klev*5)
+437:         if ( ehso4 ) krec = (nday-1)*4 + nhour/6
+438:       else if ( month==1 .or. month==2 .or. month==4 .or. month==6 .or. &
+439:               & month==8 .or. month==9 .or. month==11 ) then
+440:         nrec = (mlev*4-1)*(klev*5)
+441:         if ( ehso4 ) krec = mlev*4
+442:       else if ( month==5 .or. month==7 .or. month==10 .or. month==12 )  &
+443:               & then
+444:         nrec = (30*4-1)*(klev*5)
+445:         if ( ehso4 ) krec = 30*4
+446:       else if ( mod(nyear,4)==0 .and. nyear/=2100 ) then
+447:         nrec = (29*4-1)*(klev*5)
+448:         if ( ehso4 ) krec = 29*4
+449:       else
+450:         nrec = (28*4-1)*(klev*5)
+451:         if ( ehso4 ) krec = 28*4
+452:       end if
+453:       if ( ehso4 ) then
+454:         read (62,rec=krec) offset , xscale ,                            &
+455:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+456:         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
+457:           do i = nint(lon0/1.875) , nint(lon1/1.875)
+458:             ii = i + 1
+459:             if ( ii<=0 ) ii = ii + ilon
+460:             if ( ii>ilon ) ii = ii - ilon
+461:             i2 = i - nint(lon0/1.875) + 1
+462:             j2 = j - nint((lat0+.9375)/1.875) + 1
+463:             if ( numx==ilon .and. numy==jlat ) then
+464:               pso4_2(ii,49-j) = itmp(i2,j2)*xscale + offset +           &
+465:                               & pso4_0(ii,49-j)
+466:             else
+467:               pso4_2(ii,j+jlat/2) = itmp(i2,j2)*xscale + offset +       &
+468:                                 & pso4_0(ii,j+jlat/2)
+469:             end if
+470:           end do
+471:         end do
+472:         close (62)
+473:       end if
+474:  
+475:       do k = klev , 1 , -1
+476:         nrec = nrec + 1
+477:         read (63,rec=nrec) offset , xscale ,                            &
+478:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+479:         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
+480:           do i = nint(lon0/1.875) , nint(lon1/1.875)
+481:             ii = i + 1
+482:             if ( ii<=0 ) ii = ii + ilon
+483:             if ( ii>ilon ) ii = ii - ilon
+484:             i2 = i - nint(lon0/1.875) + 1
+485:             j2 = j - nint((lat0+.9375)/1.875) + 1
+486:             if ( numx==ilon .and. numy==jlat ) then
+487:               hvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
+488:             else
+489:               hvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
+490:             end if
+491:           end do
+492:         end do
+493:       end do
+494:       do k = klev , 1 , -1
+495:         nrec = nrec + 1
+496:         read (63,rec=nrec) offset , xscale ,                            &
+497:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+498:         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
+499:           do i = nint(lon0/1.875) , nint(lon1/1.875)
+500:             ii = i + 1
+501:             if ( ii<=0 ) ii = ii + ilon
+502:             if ( ii>ilon ) ii = ii - ilon
+503:             i2 = i - nint(lon0/1.875) + 1
+504:             j2 = j - nint((lat0+.9375)/1.875) + 1
+505:             if ( numx==ilon .and. numy==jlat ) then
+506:               rhvar(ii,49-j,k) = dmin1(dmax1(itmp(i2,j2)*xscale+offset, &
+507:                                & 0.D0),1.D0)
+508:             else
+509:               rhvar(ii,j+jlat/2,k) = dmin1(dmax1(itmp(i2,j2)*xscale+    &
+510:                               & offset,0.D0),1.D0)
+511:             end if
+512:           end do
+513:         end do
+514:       end do
+515:       do k = klev , 1 , -1
+516:         nrec = nrec + 1
+517:         read (63,rec=nrec) offset , xscale ,                            &
+518:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+519:         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
+520:           do i = nint(lon0/1.875) , nint(lon1/1.875)
+521:             ii = i + 1
+522:             if ( ii<=0 ) ii = ii + ilon
+523:             if ( ii>ilon ) ii = ii - ilon
+524:             i2 = i - nint(lon0/1.875) + 1
+525:             j2 = j - nint((lat0+.9375)/1.875) + 1
+526:             if ( numx==ilon .and. numy==jlat ) then
+527:               tvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
+528:             else
+529:               tvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
+530:             end if
+531:           end do
+532:         end do
+533:       end do
+534:       do k = klev , 1 , -1
+535:         nrec = nrec + 1
+536:         read (63,rec=nrec) offset , xscale ,                            &
+537:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+538:         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
+539:           do i = nint(lon0/1.875) , nint(lon1/1.875)
+540:             ii = i + 1
+541:             if ( ii<=0 ) ii = ii + ilon
+542:             if ( ii>ilon ) ii = ii - ilon
+543:             i2 = i - nint(lon0/1.875) + 1
+544:             j2 = j - nint((lat0+.9375)/1.875) + 1
+545:             if ( numx==ilon .and. numy==jlat ) then
+546:               uvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
+547:             else
+548:               uvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
+549:             end if
+550:           end do
+551:         end do
+552:       end do
+553:       do k = klev , 1 , -1
+554:         nrec = nrec + 1
+555:         read (63,rec=nrec) offset , xscale ,                            &
+556:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+557:         do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
+558:           do i = nint(lon0/1.875) , nint(lon1/1.875)
+559:             ii = i + 1
+560:             if ( ii<=0 ) ii = ii + ilon
+561:             if ( ii>ilon ) ii = ii - ilon
+562:             i2 = i - nint(lon0/1.875) + 1
+563:             j2 = j - nint((lat0+.9375)/1.875) + 1
+564:             if ( numx==ilon .and. numy==jlat ) then
+565:               vvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
+566:             else
+567:               vvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
+568:             end if
+569:           end do
+570:         end do
+571:       end do
+572:       close (63)
+573:       write (*,*) 'READ IN fields at DATE:' , idate
+574: !
+575: !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+576: !
+577:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+578:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+579: !
+580: !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+581: !
+582:       call <a href="./mod_uvrot.f90.html#uvrot4" TARGET=CENT_PANEL>uvrot4</a>(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,&
+583:                 & iproj)
+584: !
+585: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+586: !     X X
+587: !     V E R T I C A L   I N T E R P O L A T I O N
+588: !
+589: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+590: !     X X
+591: !HH:  CHANGE THE VERTICAL ORDER.
+592:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(t3,jx,iy,klev)
+593:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(q3,jx,iy,klev)
+594:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(h3,jx,iy,klev)
+595:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(u3,jx,iy,klev)
+596:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(v3,jx,iy,klev)
+597: !HH:OVER
+598: !
+599: !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+600:       call <a href="./mod_vertint.f90.html#intgtb" TARGET=CENT_PANEL>intgtb</a>(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
+601:  
+602:       call <a href="./mod_vertint.f90.html#intpsn" TARGET=CENT_PANEL>intpsn</a>(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+603:       call <a href="./mod_vectutil.f90.html#p1p2" TARGET=CENT_PANEL>p1p2</a>(b3pd,ps4,jx,iy)
+604:  
+605: !
+606: !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
+607: !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
+608:       call <a href="./mod_vertint.f90.html#intv3" TARGET=CENT_PANEL>intv3</a>(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
+609:  
+610: !     F1  CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
+611: !     PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
+612:       call <a href="./mod_mksst.f90.html#mksst3" TARGET=CENT_PANEL>mksst3</a>(ts4,sst1,topogm,xlandu,jx,iy,idate)
+613:  
+614: !     F2  DETERMINE P* AND HEIGHT.
+615: !
+616: !     F3  INTERPOLATE U, V, T, AND Q.
+617:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+618:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+619: !
+620:       call <a href="./mod_vertint.f90.html#intv2" TARGET=CENT_PANEL>intv2</a>(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+621:  
+622:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+623:       call <a href="./mod_humid.f90.html#humid2" TARGET=CENT_PANEL>humid2</a>(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+624: !
+625: !     F4  DETERMINE H
+626:       call <a href="./mod_hgt.f90.html#hydrost" TARGET=CENT_PANEL>hydrost</a>(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
+627: !
+628: !     G   WRITE AN INITIAL FILE FOR THE RCM
+629:       call <a href="./mod_write.f90.html#writef" TARGET=CENT_PANEL>writef</a>(ptop,idate)
+630:       if ( ehso4 ) then
+631:         if ( ssttyp=='EH5RF' ) then
+632:           fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
+633:                    & yr_rf(nyear-1940)//'.nc'
+634:           inquire (file=fnso4_rf,exist=there)
+635:           if ( .not.there ) then
+636:             write (*,*) fnso4_rf , ' is not available'
+637:             stop
+638:           end if
+639:           istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+640:           istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+641:           istatus = nf90_close(ncid)
+642:           if ( nyear==1950 .and. month==1 .and. nday<16 ) then
+643:             do k = 1 , mlev
+644:               do j = 1 , jlat
+645:                 do i = 1 , ilon
+646:                   sulfate2(i,j,k) = sulfate(i,j,k,1)
+647:                 end do
+648:               end do
+649:             end do
+650:           else if ( nyear==2000 .and. month==12 .and. nday>=16 ) then
+651:             do k = 1 , mlev
+652:               do j = 1 , jlat
+653:                 do i = 1 , ilon
+654:                   sulfate2(i,j,k) = sulfate(i,j,k,12)
+655:                 end do
+656:               end do
+657:             end do
+658:           else if ( (month==1 .or. month==3. .or. month==5 .or.         &
+659:                   & month==7 .or. month==8 .or. month==10) .and.        &
+660:                   & nday>=16 ) then
+661:             if ( month==1 ) then
+662:               do k = 1 , mlev
+663:                 do j = 1 , jlat
+664:                   do i = 1 , ilon
+665:                     sulfate2(i,j,k) = sulfate(i,j,k,month)              &
+666:                                     & *(1.-float(nday-16)/30.)          &
+667:                                     & + sulfate(i,j,k,month+1)          &
+668:                                     & *(float(nday-16)/30.)
+669:                   end do
+670:                 end do
+671:               end do
+672:             else if ( month==3 .or. month==5 .or. month==8 .or.         &
+673:                     & month==10 ) then
+674:               do k = 1 , mlev
+675:                 do j = 1 , jlat
+676:                   do i = 1 , ilon
+677:                     sulfate2(i,j,k) = sulfate(i,j,k,month)              &
+678:                                     & *(1.-float(nday-16)/31.)          &
+679:                                     & + sulfate(i,j,k,month+1)          &
+680:                                     & *(float(nday-16)/31.)
+681:                   end do
+682:                 end do
+683:               end do
+684:             else if ( month==7 ) then
+685:               do k = 1 , mlev
+686:                 do j = 1 , jlat
+687:                   do i = 1 , ilon
+688:                     sulfate2(i,j,k) = sulfate(i,j,k,month)              &
+689:                                     & *(1.-float(nday-16)/32.)          &
+690:                                     & + sulfate(i,j,k,month+1)          &
+691:                                     & *(float(nday-16)/32.)
+692:                   end do
+693:                 end do
+694:               end do
+695:             else
+696:             end if
+697:           else if ( month==2 .and. nday>=15 ) then
+698:             do k = 1 , mlev
+699:               do j = 1 , jlat
+700:                 do i = 1 , ilon
+701:                   sulfate2(i,j,k) = sulfate(i,j,k,month)                &
+702:                                   & *(1.-float(nday-16)/30.)            &
+703:                                   & + sulfate(i,j,k,month+1)            &
+704:                                   & *(float(nday-16)/30.)
+705:                 end do
+706:               end do
+707:             end do
+708:           else if ( (month==4. .or. month==6 .or. month==9 .or.         &
+709:                   & month==11) .and. nday>=16 ) then
+710:             do k = 1 , mlev
+711:               do j = 1 , jlat
+712:                 do i = 1 , ilon
+713:                   sulfate2(i,j,k) = sulfate(i,j,k,month)                &
+714:                                   & *(1.-float(nday-16)/31.)            &
+715:                                   & + sulfate(i,j,k,month+1)            &
+716:                                   & *(float(nday-16)/31.)
+717:                 end do
+718:               end do
+719:             end do
+720:           else if ( month==12. .and. nday>=16 ) then
+721:             do k = 1 , mlev
+722:               do j = 1 , jlat
+723:                 do i = 1 , ilon
+724:                   sulfate1(i,j,k,1) = sulfate(i,j,k,12)
+725:                 end do
+726:               end do
+727:             end do
+728:             fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
+729:                      & yr_rf(nyear-1939)//'.nc'
+730:             inquire (file=fnso4_rf,exist=there)
+731:             if ( .not.there ) then
+732:               write (*,*) fnso4_rf , ' is not available'
+733:               stop
+734:             end if
+735:             istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+736:             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+737:             istatus = nf90_close(ncid)
+738:             do k = 1 , mlev
+739:               do j = 1 , jlat
+740:                 do i = 1 , ilon
+741:                   sulfate1(i,j,k,2) = sulfate(i,j,k,1)
+742:                 end do
+743:               end do
+744:             end do
+745:             do k = 1 , mlev
+746:               do j = 1 , jlat
+747:                 do i = 1 , ilon
+748:                   sulfate2(i,j,k) = sulfate1(i,j,k,1)                   &
+749:                                   & *(1.-float(nday-16)/32.)            &
+750:                                   & + sulfate1(i,j,k,2)                 &
+751:                                   & *(float(nday-16)/32.)
+752:                 end do
+753:               end do
+754:             end do
+755:           else if ( (month==3 .or. month==5 .or. month==7 .or.          &
+756:                   & month==8 .or. month==10 .or. month==12) .and.       &
+757:                   & nday<16 ) then
+758:             if ( month==3 ) then
+759:               do k = 1 , mlev
+760:                 do j = 1 , jlat
+761:                   do i = 1 , ilon
+762:                     sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
+763:                                     & *(float(16-nday)/30.)             &
+764:                                     & + sulfate(i,j,k,month)            &
+765:                                     & *(1.-float(16-nday)/30.)
+766:                   end do
+767:                 end do
+768:               end do
+769:             else if ( month==5 .or. month==7 .or. month==10 .or.        &
+770:                     & month==12 ) then
+771:               do k = 1 , mlev
+772:                 do j = 1 , jlat
+773:                   do i = 1 , ilon
+774:                     sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
+775:                                     & *(float(16-nday)/31.)             &
+776:                                     & + sulfate(i,j,k,month)            &
+777:                                     & *(1.-float(16-nday)/31.)
+778:                   end do
+779:                 end do
+780:               end do
+781:             else if ( month==8 ) then
+782:               do k = 1 , mlev
+783:                 do j = 1 , jlat
+784:                   do i = 1 , ilon
+785:                     sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
+786:                                     & *(float(16-nday)/32.)             &
+787:                                     & + sulfate(i,j,k,month)            &
+788:                                     & *(1.-float(16-nday)/32.)
+789:                   end do
+790:                 end do
+791:               end do
+792:             else
+793:             end if
+794:           else if ( month==2 .and. nday<15 ) then
+795:             do k = 1 , mlev
+796:               do j = 1 , jlat
+797:                 do i = 1 , ilon
+798:                   sulfate2(i,j,k) = sulfate(i,j,k,month-1)              &
+799:                                   & *(float(15-nday)/30.)               &
+800:                                   & + sulfate(i,j,k,month)              &
+801:                                   & *(1.-float(15-nday)/30.)
+802:                 end do
+803:               end do
+804:             end do
+805:           else if ( (month==4. .or. month==6 .or. month==9 .or.         &
+806:                   & month==11) .and. nday<16 ) then
+807:             do k = 1 , mlev
+808:               do j = 1 , jlat
+809:                 do i = 1 , ilon
+810:                   sulfate2(i,j,k) = sulfate(i,j,k,month-1)              &
+811:                                   & *(float(16-nday)/31.)               &
+812:                                   & + sulfate(i,j,k,month)              &
+813:                                   & *(1.-float(16-nday)/31.)
+814:                 end do
+815:               end do
+816:             end do
+817:           else if ( month==1 .and. nday<16 ) then
+818:             do k = 1 , mlev
+819:               do j = 1 , jlat
+820:                 do i = 1 , ilon
+821:                   sulfate1(i,j,k,2) = sulfate(i,j,k,1)
+822:                 end do
+823:               end do
+824:             end do
+825:             fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
+826:                      & yr_rf(nyear-1941)//'.nc'
+827:             inquire (file=fnso4_rf,exist=there)
+828:             if ( .not.there ) then
+829:               write (*,*) fnso4_rf , ' is not available'
+830:               stop
+831:             end if
+832:             istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+833:             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+834:             istatus = nf90_close(ncid)
+835:             do k = 1 , mlev
+836:               do j = 1 , jlat
+837:                 do i = 1 , ilon
+838:                   sulfate1(i,j,k,1) = sulfate(i,j,k,12)
+839:                 end do
+840:               end do
+841:             end do
+842:             do k = 1 , mlev
+843:               do j = 1 , jlat
+844:                 do i = 1 , ilon
+845:                   sulfate2(i,j,k) = sulfate1(i,j,k,1)                   &
+846:                                   & *(float(16-nday)/32.)               &
+847:                                   & + sulfate1(i,j,k,2)                 &
+848:                                   & *(1.-float(16-nday)/32.)
+849:                 end do
+850:               end do
+851:             end do
+852:           else
+853:           end if
+854:         else
+855:           if ( ssttyp=='EH5A2' ) then
+856:             fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//  &
+857:                      & yr_a2(nyear-2000)//'.nc'
+858:             inquire (file=fnso4_a2,exist=there)
+859:             if ( .not.there ) then
+860:               write (*,*) fnso4_a2 , ' is not available'
+861:               stop
+862:             end if
+863:             istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
+864:           else if ( ssttyp=='EHA1B' ) then
+865:             fnso4_a1b = trim(inpglob)//                                 &
+866:                  & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//                   &
+867:                  & yr_a2(nyear-2000)//'.nc'
+868:             inquire (file=fnso4_a1b,exist=there)
+869:             if ( .not.there ) then
+870:               write (*,*) fnso4_a1b , ' is not available'
+871:               stop
+872:             end if
+873:             istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
+874:           else if ( ssttyp=='EH5B1' ) then
+875:             fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//  &
+876:                      & yr_a2(nyear-2000)//'.nc'
+877:             inquire (file=fnso4_b1,exist=there)
+878:             if ( .not.there ) then
+879:               write (*,*) fnso4_b1 , ' is not available'
+880:               stop
+881:             end if
+882:             istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
+883:           else
+884:           end if
+885:           istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+886:           istatus = nf90_close(ncid)
+887:           if ( nyear==2001 .and. month==1 .and. nday<16 ) then
+888:             do k = 1 , mlev
+889:               do j = 1 , jlat
+890:                 do i = 1 , ilon
+891:                   sulfate2(i,j,k) = sulfate(i,j,k,1)
+892:                 end do
+893:               end do
+894:             end do
+895:           else if ( nyear==2100 .and. month==12 .and. nday>=16 ) then
+896:             do k = 1 , mlev
+897:               do j = 1 , jlat
+898:                 do i = 1 , ilon
+899:                   sulfate2(i,j,k) = sulfate(i,j,k,12)
+900:                 end do
+901:               end do
+902:             end do
+903:           else if ( (month==1 .or. month==3. .or. month==5 .or.         &
+904:                   & month==7 .or. month==8 .or. month==10) .and.        &
+905:                   & nday>=16 ) then
+906:             if ( month==1 ) then
+907:               do k = 1 , mlev
+908:                 do j = 1 , jlat
+909:                   do i = 1 , ilon
+910:                     sulfate2(i,j,k) = sulfate(i,j,k,month)              &
+911:                                     & *(1.-float(nday-16)/30.)          &
+912:                                     & + sulfate(i,j,k,month+1)          &
+913:                                     & *(float(nday-16)/30.)
+914:                   end do
+915:                 end do
+916:               end do
+917:             else if ( month==3 .or. month==5 .or. month==8 .or.         &
+918:                     & month==10 ) then
+919:               do k = 1 , mlev
+920:                 do j = 1 , jlat
+921:                   do i = 1 , ilon
+922:                     sulfate2(i,j,k) = sulfate(i,j,k,month)              &
+923:                                     & *(1.-float(nday-16)/31.)          &
+924:                                     & + sulfate(i,j,k,month+1)          &
+925:                                     & *(float(nday-16)/31.)
+926:                   end do
+927:                 end do
+928:               end do
+929:             else if ( month==7 ) then
+930:               do k = 1 , mlev
+931:                 do j = 1 , jlat
+932:                   do i = 1 , ilon
+933:                     sulfate2(i,j,k) = sulfate(i,j,k,month)              &
+934:                                     & *(1.-float(nday-16)/32.)          &
+935:                                     & + sulfate(i,j,k,month+1)          &
+936:                                     & *(float(nday-16)/32.)
+937:                   end do
+938:                 end do
+939:               end do
+940:             else
+941:             end if
+942:           else if ( month==2 .and. nday>=15 ) then
+943:             do k = 1 , mlev
+944:               do j = 1 , jlat
+945:                 do i = 1 , ilon
+946:                   sulfate2(i,j,k) = sulfate(i,j,k,month)                &
+947:                                   & *(1.-float(nday-16)/30.)            &
+948:                                   & + sulfate(i,j,k,month+1)            &
+949:                                   & *(float(nday-16)/30.)
+950:                 end do
+951:               end do
+952:             end do
+953:           else if ( (month==4. .or. month==6 .or. month==9 .or.         &
+954:                   & month==11) .and. nday>=16 ) then
+955:             do k = 1 , mlev
+956:               do j = 1 , jlat
+957:                 do i = 1 , ilon
+958:                   sulfate2(i,j,k) = sulfate(i,j,k,month)                &
+959:                                   & *(1.-float(nday-16)/31.)            &
+960:                                   & + sulfate(i,j,k,month+1)            &
+961:                                   & *(float(nday-16)/31.)
+962:                 end do
+963:               end do
+964:             end do
+965:           else if ( month==12. .and. nday>=16 ) then
+966:             do k = 1 , mlev
+967:               do j = 1 , jlat
+968:                 do i = 1 , ilon
+969:                   sulfate1(i,j,k,1) = sulfate(i,j,k,12)
+970:                 end do
+971:               end do
+972:             end do
+973:             if ( ssttyp=='EH5A2' ) then
+974:               fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
+975:                        & yr_a2(nyear-1999)//'.nc'
+976:               inquire (file=fnso4_a2,exist=there)
+977:               if ( .not.there ) then
+978:                 write (*,*) fnso4_a2 , ' is not available'
+979:                 stop
+980:               end if
+981:               istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
+982:             else if ( ssttyp=='EHA1B' ) then
+983:               fnso4_a1b = trim(inpglob)//                               &
+984:                         & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//            &
+985:                         & yr_a2(nyear-1999)//'.nc'
+986:               inquire (file=fnso4_a1b,exist=there)
+987:               if ( .not.there ) then
+988:                 write (*,*) fnso4_a1b , ' is not available'
+989:                 stop
+990:               end if
+991:               istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
+992:             else if ( ssttyp=='EH5B1' ) then
+993:               fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
+994:                        & yr_a2(nyear-1999)//'.nc'
+995:               inquire (file=fnso4_b1,exist=there)
+996:               if ( .not.there ) then
+997:                 write (*,*) fnso4_b1 , ' is not available'
+998:                 stop
+999:               end if
+1000:               istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
+1001:             else
+1002:             end if
+1003:             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+1004:             istatus = nf90_close(ncid)
+1005:             do k = 1 , mlev
+1006:               do j = 1 , jlat
+1007:                 do i = 1 , ilon
+1008:                   sulfate1(i,j,k,2) = sulfate(i,j,k,1)
+1009:                 end do
+1010:               end do
+1011:             end do
+1012:             do k = 1 , mlev
+1013:               do j = 1 , jlat
+1014:                 do i = 1 , ilon
+1015:                   sulfate2(i,j,k) = sulfate1(i,j,k,1)                   &
+1016:                                   & *(1.-float(nday-16)/32.)            &
+1017:                                   & + sulfate1(i,j,k,2)                 &
+1018:                                   & *(float(nday-16)/32.)
+1019:                 end do
+1020:               end do
+1021:             end do
+1022:           else if ( (month==3 .or. month==5 .or. month==7 .or.          &
+1023:                   & month==8 .or. month==10 .or. month==12) .and.       &
+1024:                   & nday<16 ) then
+1025:             if ( month==3 ) then
+1026:               do k = 1 , mlev
+1027:                 do j = 1 , jlat
+1028:                   do i = 1 , ilon
+1029:                     sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
+1030:                                     & *(float(16-nday)/30.)             &
+1031:                                     & + sulfate(i,j,k,month)            &
+1032:                                     & *(1.-float(16-nday)/30.)
+1033:                   end do
+1034:                 end do
+1035:               end do
+1036:             else if ( month==5 .or. month==7 .or. month==10 .or.        &
+1037:                     & month==12 ) then
+1038:               do k = 1 , mlev
+1039:                 do j = 1 , jlat
+1040:                   do i = 1 , ilon
+1041:                     sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
+1042:                                     & *(float(16-nday)/31.)             &
+1043:                                     & + sulfate(i,j,k,month)            &
+1044:                                     & *(1.-float(16-nday)/31.)
+1045:                   end do
+1046:                 end do
+1047:               end do
+1048:             else if ( month==8 ) then
+1049:               do k = 1 , mlev
+1050:                 do j = 1 , jlat
+1051:                   do i = 1 , ilon
+1052:                     sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
+1053:                                     & *(float(16-nday)/32.)             &
+1054:                                     & + sulfate(i,j,k,month)            &
+1055:                                     & *(1.-float(16-nday)/32.)
+1056:                   end do
+1057:                 end do
+1058:               end do
+1059:             else
+1060:             end if
+1061:           else if ( month==2 .and. nday<15 ) then
+1062:             do k = 1 , mlev
+1063:               do j = 1 , jlat
+1064:                 do i = 1 , ilon
+1065:                   sulfate2(i,j,k) = sulfate(i,j,k,month-1)              &
+1066:                                   & *(float(15-nday)/30.)               &
+1067:                                   & + sulfate(i,j,k,month)              &
+1068:                                   & *(1.-float(15-nday)/30.)
+1069:                 end do
+1070:               end do
+1071:             end do
+1072:           else if ( (month==4. .or. month==6 .or. month==9 .or.         &
+1073:                   & month==11) .and. nday<16 ) then
+1074:             do k = 1 , mlev
+1075:               do j = 1 , jlat
+1076:                 do i = 1 , ilon
+1077:                   sulfate2(i,j,k) = sulfate(i,j,k,month-1)              &
+1078:                                   & *(float(16-nday)/31.)               &
+1079:                                   & + sulfate(i,j,k,month)              &
+1080:                                   & *(1.-float(16-nday)/31.)
+1081:                 end do
+1082:               end do
+1083:             end do
+1084:           else if ( month==1 .and. nday<16 ) then
+1085:             do k = 1 , mlev
+1086:               do j = 1 , jlat
+1087:                 do i = 1 , ilon
+1088:                   sulfate1(i,j,k,2) = sulfate(i,j,k,1)
+1089:                 end do
+1090:               end do
+1091:             end do
+1092:             if ( ssttyp=='EH5A2' ) then
+1093:               fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
+1094:                        & yr_a2(nyear-2001)//'.nc'
+1095:               inquire (file=fnso4_a2,exist=there)
+1096:               if ( .not.there ) then
+1097:                 write (*,*) fnso4_a2 , ' is not available'
+1098:                 stop
+1099:               end if
+1100:               istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
+1101:             else if ( ssttyp=='EHA1B' ) then
+1102:               fnso4_a1b = trim(inpglob)//                               &
+1103:                         & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//            &
+1104:                         & yr_a2(nyear-2001)//'.nc'
+1105:               inquire (file=fnso4_a1b,exist=there)
+1106:               if ( .not.there ) then
+1107:                 write (*,*) fnso4_a1b , ' is not available'
+1108:                 stop
+1109:               end if
+1110:               istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
+1111:             else if ( ssttyp=='EH5B1' ) then
+1112:               fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
+1113:                        & yr_a2(nyear-2001)//'.nc'
+1114:               inquire (file=fnso4_b1,exist=there)
+1115:               if ( .not.there ) then
+1116:                 write (*,*) fnso4_b1 , ' is not available'
+1117:                 stop
+1118:               end if
+1119:               istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
+1120:             else
+1121:             end if
+1122:             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+1123:             istatus = nf90_close(ncid)
+1124:             do k = 1 , mlev
+1125:               do j = 1 , jlat
+1126:                 do i = 1 , ilon
+1127:                   sulfate1(i,j,k,1) = sulfate(i,j,k,12)
+1128:                 end do
+1129:               end do
+1130:             end do
+1131:             do k = 1 , mlev
+1132:               do j = 1 , jlat
+1133:                 do i = 1 , ilon
+1134:                   sulfate2(i,j,k) = sulfate1(i,j,k,1)                   &
+1135:                                   & *(float(16-nday)/32.)               &
+1136:                                   & + sulfate1(i,j,k,2)                 &
+1137:                                   & *(1.-float(16-nday)/32.)
+1138:                 end do
+1139:               end do
+1140:             end do
+1141:           else
+1142:           end if
+1143:         end if
+1144:         call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(sulfate3,sulfate2,xlon,xlat,glon,glat,             &
+1145:                   &  ilon,jlat,jx,iy,mlev)
+1146:         call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(pso4_3,pso4_2,xlon,xlat,glon,glat,                 &
+1147:                   &  ilon,jlat,jx,iy,1)
+1148:         do i = 1 , iy
+1149:           do j = 1 , jx
+1150:             do l = 1 , kz
+1151:               prcm = ((ps4(j,i)-ptop)*sigma2(l)+ptop)*10.
+1152:               k0 = -1
+1153:               do k = mlev , 1 , -1
+1154:                 pmpi = (pso4_3(j,i)*hybm(k)+hyam(k))*0.01
+1155:                 k0 = k
+1156:                 if ( prcm>pmpi ) exit
+1157:               end do
+1158:               if ( k0==mlev ) then
+1159:                 pmpj = (pso4_3(j,i)*hybm(mlev-1)+hyam(mlev-1))*0.01
+1160:                 pmpi = (pso4_3(j,i)*hybm(mlev)+hyam(mlev))*0.01
+1161:                 sulfate4(j,i,l) = sulfate3(j,i,mlev)                    &
+1162:                                 & + (sulfate3(j,i,mlev)                 &
+1163:                                 & -sulfate3(j,i,mlev-1))*(prcm-pmpi)    &
+1164:                                 & /(pmpi-pmpj)
+1165:               else if ( k0>=1 ) then
+1166:                 pmpj = (pso4_3(j,i)*hybm(k0)+hyam(k0))*0.01
+1167:                 pmpi = (pso4_3(j,i)*hybm(k0+1)+hyam(k0+1))*0.01
+1168:                 sulfate4(j,i,l) = (sulfate3(j,i,k0+1)*(prcm-pmpj)+      &
+1169:                                 & sulfate3(j,i,k0)*(pmpi-prcm))         &
+1170:                                 & /(pmpi-pmpj)
+1171:               else
+1172:               end if
+1173:             end do
+1174:           end do
+1175:         end do
+1176: !
+1177:         do k = kz , 1 , -1
+1178:           noutrec = noutrec + 1
+1179:           write (64,rec=noutrec) ((sulfate4(j,i,k),j=1,jx),i=1,iy)
+1180:         end do
+1181:       end if
+1182:       end subroutine geteh5om
+1183: 
+<p><a name=headermpi><H3>headermpi</H3></a></p> Click <a href="./callingtree/headermpi_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where headermpi is used.
+<hr>
+1184:       subroutine headermpi(ehso4)
+1185:       implicit none
+1186: !
+1187: ! Dummy arguments
+1188: !
+1189:       logical :: ehso4
+1190:       intent (in) ehso4
+1191: !
+1192: ! Local variables
+1193: !
+1194:       integer :: i , k , kr
+1195:       logical :: there
+1196: !
+1197:       glat(1) = -88.5719985961914
+1198:       glat(2) = -86.7229995727539
+1199:       glat(3) = -84.8619995117188
+1200:       glat(4) = -82.9990005493164
+1201:       glat(5) = -81.1350021362305
+1202:       glat(6) = -79.2710037231445
+1203:       glat(7) = -77.4059982299805
+1204:       glat(8) = -75.5410003662109
+1205:       glat(9) = -73.6760025024414
+1206:       glat(10) = -71.8109970092773
+1207:       glat(11) = -69.9459991455078
+1208:       glat(12) = -68.0810012817383
+1209:       glat(13) = -66.2160034179688
+1210:       glat(14) = -64.3509979248047
+1211:       glat(15) = -62.4860000610352
+1212:       glat(16) = -60.6199989318848
+1213:       glat(17) = -58.7550010681152
+1214:       glat(18) = -56.8899993896484
+1215:       glat(19) = -55.0250015258789
+1216:       glat(20) = -53.1599998474121
+1217:       glat(21) = -51.2939987182617
+1218:       glat(22) = -49.4290008544922
+1219:       glat(23) = -47.5639991760254
+1220:       glat(24) = -45.6990013122559
+1221:       glat(25) = -43.8330001831055
+1222:       glat(26) = -41.9679985046387
+1223:       glat(27) = -40.1030006408691
+1224:       glat(28) = -38.2379989624023
+1225:       glat(29) = -36.3720016479492
+1226:       glat(30) = -34.5069999694824
+1227:       glat(31) = -32.6419982910156
+1228:       glat(32) = -30.7770004272461
+1229:       glat(33) = -28.9109992980957
+1230:       glat(34) = -27.0459995269775
+1231:       glat(35) = -25.1809997558594
+1232:       glat(36) = -23.3159999847412
+1233:       glat(37) = -21.4500007629395
+1234:       glat(38) = -19.5849990844727
+1235:       glat(39) = -17.7199993133545
+1236:       glat(40) = -15.8549995422363
+1237:       glat(41) = -13.9890003204346
+1238:       glat(42) = -12.1239995956421
+1239:       glat(43) = -10.2589998245239
+1240:       glat(44) = -8.39400005340576
+1241:       glat(45) = -6.52799987792969
+1242:       glat(46) = -4.66300010681152
+1243:       glat(47) = -2.79800009727478
+1244:       glat(48) = -0.933000028133392
+1245:       glat(49) = 0.933000028133392
+1246:       glat(50) = 2.79800009727478
+1247:       glat(51) = 4.66300010681152
+1248:       glat(52) = 6.52799987792969
+1249:       glat(53) = 8.39400005340576
+1250:       glat(54) = 10.2589998245239
+1251:       glat(55) = 12.1239995956421
+1252:       glat(56) = 13.9890003204346
+1253:       glat(57) = 15.8549995422363
+1254:       glat(58) = 17.7199993133545
+1255:       glat(59) = 19.5849990844727
+1256:       glat(60) = 21.4500007629395
+1257:       glat(61) = 23.3159999847412
+1258:       glat(62) = 25.1809997558594
+1259:       glat(63) = 27.0459995269775
+1260:       glat(64) = 28.9109992980957
+1261:       glat(65) = 30.7770004272461
+1262:       glat(66) = 32.6419982910156
+1263:       glat(67) = 34.5069999694824
+1264:       glat(68) = 36.3720016479492
+1265:       glat(69) = 38.2379989624023
+1266:       glat(70) = 40.1030006408691
+1267:       glat(71) = 41.9679985046387
+1268:       glat(72) = 43.8330001831055
+1269:       glat(73) = 45.6990013122559
+1270:       glat(74) = 47.5639991760254
+1271:       glat(75) = 49.4290008544922
+1272:       glat(76) = 51.2939987182617
+1273:       glat(77) = 53.1599998474121
+1274:       glat(78) = 55.0250015258789
+1275:       glat(79) = 56.8899993896484
+1276:       glat(80) = 58.7550010681152
+1277:       glat(81) = 60.6199989318848
+1278:       glat(82) = 62.4860000610352
+1279:       glat(83) = 64.3509979248047
+1280:       glat(84) = 66.2160034179688
+1281:       glat(85) = 68.0810012817383
+1282:       glat(86) = 69.9459991455078
+1283:       glat(87) = 71.8109970092773
+1284:       glat(88) = 73.6760025024414
+1285:       glat(89) = 75.5410003662109
+1286:       glat(90) = 77.4059982299805
+1287:       glat(91) = 79.2710037231445
+1288:       glat(92) = 81.1350021362305
+1289:       glat(93) = 82.9990005493164
+1290:       glat(94) = 84.8619995117188
+1291:       glat(95) = 86.7229995727539
+1292:       glat(96) = 88.5719985961914
+1293: !
+1294:       sigmar(1) = .01
+1295:       sigmar(2) = .03
+1296:       sigmar(3) = .05
+1297:       sigmar(4) = .07
+1298:       sigmar(5) = .1
+1299:       sigmar(6) = .15
+1300:       sigmar(7) = .2
+1301:       sigmar(8) = .25
+1302:       sigmar(9) = .3
+1303:       sigmar(10) = .4
+1304:       sigmar(11) = .5
+1305:       sigmar(12) = .6
+1306:       sigmar(13) = .7
+1307:       sigmar(14) = .775
+1308:       sigmar(15) = .85
+1309:       sigmar(16) = .925
+1310:       sigmar(17) = 1.0
+1311: !
+1312: !     INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
+1313: !
+1314:       do i = 1 , ilon
+1315:         glon(i) = float(i-1)*1.875
+1316:       end do
+1317: !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
+1318: !
+1319:       do k = 1 , klev
+1320:         kr = klev - k + 1
+1321:         sigma1(k) = sigmar(kr)
+1322:       end do
+1323:  
+1324:       if ( ehso4 ) then
+1325:         hyai(1) = 0.
+1326:         hyai(2) = 2000.
+1327:         hyai(3) = 4000.
+1328:         hyai(4) = 6000.
+1329:         hyai(5) = 8000.
+1330:         hyai(6) = 9976.13671875
+1331:         hyai(7) = 11820.5400390625
+1332:         hyai(8) = 13431.3896484375
+1333:         hyai(9) = 14736.3603515625
+1334:         hyai(10) = 15689.2099609375
+1335:         hyai(11) = 16266.6103515625
+1336:         hyai(12) = 16465.
+1337:         hyai(13) = 16297.6201171875
+1338:         hyai(14) = 15791.599609375
+1339:         hyai(15) = 14985.26953125
+1340:         hyai(16) = 13925.51953125
+1341:         hyai(17) = 12665.2900390625
+1342:         hyai(18) = 11261.23046875
+1343:         hyai(19) = 9771.40625
+1344:         hyai(20) = 8253.2109375
+1345:         hyai(21) = 6761.33984375
+1346:         hyai(22) = 5345.9140625
+1347:         hyai(23) = 4050.71801757812
+1348:         hyai(24) = 2911.56909179688
+1349:         hyai(25) = 1954.80505371094
+1350:         hyai(26) = 1195.89001464844
+1351:         hyai(27) = 638.14892578125
+1352:         hyai(28) = 271.626495361328
+1353:         hyai(29) = 72.0635833740234
+1354:         hyai(30) = 0.
+1355:         hyai(31) = 0.
+1356:         hyai(32) = 0.
+1357:  
+1358:         hybi(1) = 0.
+1359:         hybi(2) = 0.
+1360:         hybi(3) = 0.
+1361:         hybi(4) = 0.
+1362:         hybi(5) = 0.
+1363:         hybi(6) = 0.000390858185710385
+1364:         hybi(7) = 0.0029197009280324
+1365:         hybi(8) = 0.00919413194060326
+1366:         hybi(9) = 0.0203191600739956
+1367:         hybi(10) = 0.0369748584926128
+1368:         hybi(11) = 0.0594876408576965
+1369:         hybi(12) = 0.0878949835896492
+1370:         hybi(13) = 0.122003600001335
+1371:         hybi(14) = 0.161441504955292
+1372:         hybi(15) = 0.205703303217888
+1373:         hybi(16) = 0.254188597202301
+1374:         hybi(17) = 0.306235402822495
+1375:         hybi(18) = 0.361144989728928
+1376:         hybi(19) = 0.418202310800552
+1377:         hybi(20) = 0.476688086986542
+1378:         hybi(21) = 0.535886585712433
+1379:         hybi(22) = 0.595084190368652
+1380:         hybi(23) = 0.65356457233429
+1381:         hybi(24) = 0.710594415664673
+1382:         hybi(25) = 0.765405178070068
+1383:         hybi(26) = 0.817166984081268
+1384:         hybi(27) = 0.86495578289032
+1385:         hybi(28) = 0.907715916633606
+1386:         hybi(29) = 0.944213211536407
+1387:         hybi(30) = 0.972985208034515
+1388:         hybi(31) = 0.992281496524811
+1389:         hybi(32) = 1.0
+1390:  
+1391:         hyam(1) = 1000.
+1392:         hyam(2) = 3000.
+1393:         hyam(3) = 5000.
+1394:         hyam(4) = 7000.
+1395:         hyam(5) = 8988.068359375
+1396:         hyam(6) = 10898.3383789062
+1397:         hyam(7) = 12625.96484375
+1398:         hyam(8) = 14083.875
+1399:         hyam(9) = 15212.78515625
+1400:         hyam(10) = 15977.91015625
+1401:         hyam(11) = 16365.8051757812
+1402:         hyam(12) = 16381.3100585938
+1403:         hyam(13) = 16044.6098632812
+1404:         hyam(14) = 15388.4345703125
+1405:         hyam(15) = 14455.39453125
+1406:         hyam(16) = 13295.4047851562
+1407:         hyam(17) = 11963.2602539062
+1408:         hyam(18) = 10516.318359375
+1409:         hyam(19) = 9012.30859375
+1410:         hyam(20) = 7507.275390625
+1411:         hyam(21) = 6053.626953125
+1412:         hyam(22) = 4698.31604003906
+1413:         hyam(23) = 3481.1435546875
+1414:         hyam(24) = 2433.18707275391
+1415:         hyam(25) = 1575.34753417969
+1416:         hyam(26) = 917.019470214844
+1417:         hyam(27) = 454.887710571289
+1418:         hyam(28) = 171.845039367676
+1419:         hyam(29) = 36.0317916870117
+1420:         hyam(30) = 0.
+1421:         hyam(31) = 0.
+1422:  
+1423:         hybm(1) = 0.
+1424:         hybm(2) = 0.
+1425:         hybm(3) = 0.
+1426:         hybm(4) = 0.
+1427:         hybm(5) = 0.000195429092855193
+1428:         hybm(6) = 0.00165527955687139
+1429:         hybm(7) = 0.00605691643431783
+1430:         hybm(8) = 0.0147566460072994
+1431:         hybm(9) = 0.0286470092833042
+1432:         hybm(10) = 0.0482312496751547
+1433:         hybm(11) = 0.0736913122236729
+1434:         hybm(12) = 0.104949291795492
+1435:         hybm(13) = 0.141722552478313
+1436:         hybm(14) = 0.18357240408659
+1437:         hybm(15) = 0.229945950210094
+1438:         hybm(16) = 0.280212000012398
+1439:         hybm(17) = 0.333690196275711
+1440:         hybm(18) = 0.38967365026474
+1441:         hybm(19) = 0.447445198893547
+1442:         hybm(20) = 0.506287336349487
+1443:         hybm(21) = 0.565485388040543
+1444:         hybm(22) = 0.624324381351471
+1445:         hybm(23) = 0.682079493999481
+1446:         hybm(24) = 0.737999796867371
+1447:         hybm(25) = 0.791286081075668
+1448:         hybm(26) = 0.841061383485794
+1449:         hybm(27) = 0.886335849761963
+1450:         hybm(28) = 0.925964564085007
+1451:         hybm(29) = 0.958599209785461
+1452:         hybm(30) = 0.982633352279663
+1453:         hybm(31) = 0.996140748262405
+1454:  
+1455:         istart(1) = 1
+1456:         istart(2) = 1
+1457:         istart(3) = 1
+1458:         istart(4) = 1
+1459:         istart(5) = 0
+1460:         istart(6) = 0
+1461:         istart(7) = 0
+1462:         istart(8) = 0
+1463:         istart(9) = 0
+1464:         istart(10) = 0
+1465:  
+1466:         icount(1) = ilon
+1467:         icount(2) = jlat
+1468:         icount(3) = mlev
+1469:         icount(4) = 12
+1470:         icount(5) = 0
+1471:         icount(6) = 0
+1472:         icount(7) = 0
+1473:         icount(8) = 0
+1474:         icount(9) = 0
+1475:         icount(10) = 0
+1476:  
+1477:         inquire (file=trim(inpglob)//'/EH5OM/EHgPS.dat',exist=there)
+1478:         if ( .not.there ) then
+1479:           write (*,*) trim(inpglob)//'/EH5OM/EHgPS.dat is not available'
+1480:           stop
+1481:         end if
+1482:         open (30,file=trim(inpglob)//'/EH5OM/EHgPS.dat',                &
+1483:             & form='unformatted',recl=ilon*jlat*4,access='direct')
+1484:         read (30,rec=1) pso4_0
+1485:         close (30)
+1486:       end if
+1487:  
+1488:       allocate(b3(jx,iy,klev*3))
+1489:       allocate(d3(jx,iy,klev*2))
+1490:       allocate(sulfate3(jx,iy,mlev))
+1491:       allocate(pso4_3(jx,iy))
+1492:       allocate(sulfate4(jx,iy,kz))
+1493: 
+1494: !     Set up pointers
+1495: 
+1496:       u3 => d3(:,:,1:klev)
+1497:       v3 => d3(:,:,klev+1:2*klev)
+1498:       t3 => b3(:,:,1:klev)
+1499:       h3 => b3(:,:,klev+1:2*klev)
+1500:       q3 => b3(:,:,2*klev+1:3*klev)
+1501:       uvar => d2(:,:,1:klev)
+1502:       vvar => d2(:,:,klev+1:2*klev)
+1503:       tvar => b2(:,:,1:klev)
+1504:       hvar => b2(:,:,klev+1:2*klev)
+1505:       rhvar => b2(:,:,2*klev+1:3*klev)
+1506: 
+1507:       end subroutine headermpi
+1508: 
+1509:       end module mod_eh5om
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

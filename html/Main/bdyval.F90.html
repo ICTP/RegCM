@@ -1,0 +1,955 @@
+<HTML>
+
+<HEAD>
+<TITLE>bdyval.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>bdyval.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>bdyval.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=bdyval><H3>bdyval</H3></a></p> Click <a href="./callingtree/bdyval_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where bdyval is used.
+<hr>
+20:       subroutine bdyval(xt,iexec)
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine sets the boundary values for p*, p*u, p*v,      c
+25: !     p*t, p*qv, p*qc, and p*qr.                                      c
+26: !                                                                     c
+27: !     ---the boundary values of p*u and p*v are extrapolated from     c
+28: !        the interior points.                                         c
+29: !                                                                     c
+30: !     ---the boundary values of p* and p*t are specified.             c
+31: !                                                                     c
+32: !     ---the boundary values of p*qv, p*qc, and p*qr depend on        c
+33: !        inflow/outflow conditions, if iboudy = 3 or 4.               c
+34: !                                                                     c
+35: !     xt     : is the time in minutes the variables xxa represent.    c
+36: !                                                                     c
+37: !     iexec  : = 1 ; represents this subroutine is called for the     c
+38: !                    first time in this forecast run.                 c
+39: !              > 1 ; represents subsequent calls to this subroutine.  c
+40: !                                                                     c
+41: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+42: 
+43:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+44:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+45:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+46:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+47:       use <a href="./mod_mainchem.F90.html#mod_mainchem" TARGET=CENT_PANEL>mod_mainchem</a>
+48:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+49:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+50:       implicit none
+51: !
+52: ! Dummy arguments
+53: !
+54:       integer :: iexec
+55:       real(8) :: xt
+56:       intent (in) iexec , xt
+57: !
+58: ! Local variables
+59: !
+60:       real(8) :: chix , chix1 , chix2 , dtb , qcx , qcx2 , qvx , qvx1 , &
+61:                & qvx2 , uavg , vavg
+62:       integer :: i , itr , j , k
+63: !
+64: !*********************************************************************
+65: !*****fill up the boundary value for xxb variables from xxa variables:
+66: !     if this subroutine is called for the first time, this part
+67: !     shall be skipped.
+68: !
+69:       if ( iexec.ne.1 ) then
+70: #ifdef MPP1
+71: !
+72: !-----for p*:
+73: !
+74:         do i = 1 , iym1
+75:           if ( myid.eq.0 ) psb(i,1) = psa(i,1)
+76:           if ( myid.eq.nproc-1 ) psb(i,jendx) = psa(i,jendx)
+77:         end do
+78:         do j = jbegin , jendm
+79:           psb(1,j) = psa(1,j)
+80:           psb(iym1,j) = psa(iym1,j)
+81:         end do
+82: !
+83: !-----for p*u and p*v:
+84: !
+85:         do k = 1 , kz
+86:           do i = 1 , iy
+87:             if ( myid.eq.0 ) then
+88:               ub(i,k,1) = ua(i,k,1)/msfd(i,1)
+89:               vb(i,k,1) = va(i,k,1)/msfd(i,1)
+90:             end if
+91:             if ( myid.eq.nproc-1 ) then
+92:               ub(i,k,jendl) = ua(i,k,jendl)/msfd(i,jendl)
+93:               vb(i,k,jendl) = va(i,k,jendl)/msfd(i,jendl)
+94:             end if
+95:           end do
+96:           do j = jbegin , jendx
+97:             ub(1,k,j) = ua(1,k,j)/msfd(1,j)
+98:             ub(iy,k,j) = ua(iy,k,j)/msfd(iy,j)
+99:             vb(1,k,j) = va(1,k,j)/msfd(1,j)
+100:             vb(iy,k,j) = va(iy,k,j)/msfd(iy,j)
+101:           end do
+102:         end do
+103: !
+104: !-----for p*t:
+105: !
+106:         do k = 1 , kz
+107:           do i = 1 , iym1
+108:             if ( myid.eq.0 ) tb(i,k,1) = ta(i,k,1)
+109:             if ( myid.eq.nproc-1 ) tb(i,k,jendx) = ta(i,k,jendx)
+110:           end do
+111:           do j = jbegin , jendm
+112:             tb(1,k,j) = ta(1,k,j)
+113:             tb(iym1,k,j) = ta(iym1,k,j)
+114:           end do
+115:         end do
+116: !
+117: !-----for p*qv:
+118: !
+119:         do k = 1 , kz
+120:           do i = 1 , iym1
+121:             if ( myid.eq.0 ) qvb(i,k,1) = qva(i,k,1)
+122:             if ( myid.eq.nproc-1 ) qvb(i,k,jendx) = qva(i,k,jendx)
+123:           end do
+124:           do j = jbegin , jendm
+125:             qvb(1,k,j) = qva(1,k,j)
+126:             qvb(iym1,k,j) = qva(iym1,k,j)
+127:           end do
+128:         end do
+129: !
+130: !chem2
+131: !
+132:         if ( ichem.eq.1 ) then
+133: !-----for p*chi (tracers)
+134:           do itr = 1 , ntr
+135:             do k = 1 , kz
+136:               do i = 1 , iym1
+137:                 if ( myid.eq.0 ) chib(i,k,1,itr) = chia(i,k,1,itr)
+138:                 if ( myid.eq.nproc-1 ) chib(i,k,jendx,itr)              &
+139:                    & = chia(i,k,jendx,itr)
+140:               end do
+141:               do j = jbegin , jendm
+142:                 chib(1,k,j,itr) = chia(1,k,j,itr)
+143:                 chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
+144:               end do
+145:             end do
+146:           end do
+147:         end if
+148: !chem2_
+149: !
+150: !-----for p*qc:
+151: !
+152:         do k = 1 , kz
+153:           do i = 1 , iym1
+154:             if ( myid.eq.0 ) qcb(i,k,1) = qca(i,k,1)
+155:             if ( myid.eq.nproc-1 ) qcb(i,k,jendx) = qca(i,k,jendx)
+156:           end do
+157:           do j = jbegin , jendm
+158:             qcb(1,k,j) = qca(1,k,j)
+159:             qcb(iym1,k,j) = qca(iym1,k,j)
+160:           end do
+161:         end do
+162: !
+163:       end if      !end if(iexec.ne.1) test
+164: !**********************************************************************
+165: !*****compute the boundary values for xxa variables:
+166: !
+167: !-----compute the time interval for boundary tendency:
+168: !
+169:       dtb = xt*60.
+170:       if ( dabs(xt).lt.0.00001 .and. ldatez.gt.idate0 )                 &
+171:          & dtb = ibdyfrq*60.*60.
+172: !
+173: !-----set boundary values for p*:
+174: !-----set boundary conditions for p*u and p*v:
+175: !
+176:       if ( .not.(iexec.eq.1 .and. ifrest) ) then
+177: !
+178:         if ( iboudy.eq.0 ) then
+179: !.....fixed boundary conditions:
+180:           do i = 1 , iym1
+181:             if ( myid.eq.0 ) psa(i,1) = pwb(i,1)
+182:             if ( myid.eq.nproc-1 ) psa(i,jendx) = peb(i,1)
+183:           end do
+184:           do j = jbegin , jendm
+185:             psa(1,j) = pss(1,j)
+186:             psa(iym1,j) = pnb(1,j)
+187:           end do
+188: !
+189:           do k = 1 , kz
+190:             do i = 1 , iy
+191:               if ( myid.eq.0 ) then
+192:                 ua(i,k,1) = uwb(i,k,1)
+193:                 va(i,k,1) = vwb(i,k,1)
+194:               end if
+195:               if ( myid.eq.nproc-1 ) then
+196:                 ua(i,k,jendl) = ueb(i,k,1)
+197:                 va(i,k,jendl) = veb(i,k,1)
+198:               end if
+199:             end do
+200:             do j = jbegin , jendx
+201:               ua(1,k,j) = usb(1,k,j)
+202:               ua(iy,k,j) = unb(1,k,j)
+203:               va(1,k,j) = vsb(1,k,j)
+204:               va(iy,k,j) = vnb(1,k,j)
+205:             end do
+206:           end do
+207:         end if
+208: !
+209: !.....time-dependent boundary conditions:
+210: !
+211:         do i = 1 , iym1
+212:           if ( myid.eq.0 ) psa(i,1) = pwb(i,1) + dtb*pwbt(i,1)
+213:           if ( myid.eq.nproc-1 ) psa(i,jendx) = peb(i,1) + dtb*pebt(i,1)
+214:         end do
+215:         do j = jbegin , jendm
+216:           psa(1,j) = pss(1,j) + dtb*psbt(1,j)
+217:           psa(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
+218:         end do
+219: !
+220:         do k = 1 , kz
+221:           do i = 1 , iy
+222:             if ( myid.eq.0 ) then
+223:               ua(i,k,1) = uwb(i,k,1) + dtb*uwbt(i,k,1)
+224:               va(i,k,1) = vwb(i,k,1) + dtb*vwbt(i,k,1)
+225:             end if
+226:             if ( myid.eq.nproc-1 ) then
+227:               ua(i,k,jendl) = ueb(i,k,1) + dtb*uebt(i,k,1)
+228:               va(i,k,jendl) = veb(i,k,1) + dtb*vebt(i,k,1)
+229:             end if
+230:           end do
+231:           do j = jbegin , jendx
+232:             ua(1,k,j) = usb(1,k,j) + dtb*usbt(1,k,j)
+233:             ua(iy,k,j) = unb(1,k,j) + dtb*unbt(1,k,j)
+234:             va(1,k,j) = vsb(1,k,j) + dtb*vsbt(1,k,j)
+235:             va(iy,k,j) = vnb(1,k,j) + dtb*vnbt(1,k,j)
+236:           end do
+237:         end do
+238:       end if
+239: !
+240: !-----get boundary values of u and v:
+241: !
+242:       call <a href="./bdyuv.F90.html#bdyuv" TARGET=CENT_PANEL>bdyuv</a>(iboudy,dtb)
+243: !
+244:       if ( iexec.eq.1 .and. ifrest ) return
+245: !
+246: !-----set boundary values for p*t:
+247: !-----set boundary values for p*qv:
+248: !
+249:       if ( iboudy.eq.0 ) then
+250: !.....fixed boundary conditions:
+251:         do k = 1 , kz
+252:           do i = 1 , iym1
+253:             if ( myid.eq.0 ) ta(i,k,1) = twb(i,k,1)
+254:             if ( myid.eq.nproc-1 ) ta(i,k,jendx) = teb(i,k,1)
+255:           end do
+256:           do j = jbegin , jendm
+257:             ta(1,k,j) = tsb(1,k,j)
+258:             ta(iym1,k,j) = tnb(1,k,j)
+259:           end do
+260:         end do
+261:         do k = 1 , kz
+262:           do i = 1 , iym1
+263:             if ( myid.eq.0 ) qva(i,k,1) = qwb(i,k,1)
+264:             if ( myid.eq.nproc-1 ) qva(i,k,jendx) = qeb(i,k,1)
+265:           end do
+266:           do j = jbegin , jendm
+267:             qva(1,k,j) = qsb(1,k,j)
+268:             qva(iym1,k,j) = qnb(1,k,j)
+269:           end do
+270:         end do
+271:       end if
+272: !
+273: !.....time-dependent boundary conditions:
+274: !
+275:       do k = 1 , kz
+276:         do i = 1 , iym1
+277:           if ( myid.eq.0 ) ta(i,k,1) = twb(i,k,1) + dtb*twbt(i,k,1)
+278:           if ( myid.eq.nproc-1 ) ta(i,k,jendx) = teb(i,k,1)             &
+279:              & + dtb*tebt(i,k,1)
+280:         end do
+281:         do j = jbegin , jendm
+282:           ta(1,k,j) = tsb(1,k,j) + dtb*tsbt(1,k,j)
+283:           ta(iym1,k,j) = tnb(1,k,j) + dtb*tnbt(1,k,j)
+284:         end do
+285:       end do
+286:       do k = 1 , kz
+287:         do i = 1 , iym1
+288:           if ( myid.eq.0 ) qva(i,k,1) = qwb(i,k,1) + dtb*qwbt(i,k,1)
+289:           if ( myid.eq.nproc-1 ) qva(i,k,jendx) = qeb(i,k,1)            &
+290:              & + dtb*qebt(i,k,1)
+291:         end do
+292:         do j = jbegin , jendm
+293:           qva(1,k,j) = qsb(1,k,j) + dtb*qsbt(1,k,j)
+294:           qva(iym1,k,j) = qnb(1,k,j) + dtb*qnbt(1,k,j)
+295:         end do
+296:       end do
+297: !
+298:       if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
+299: !
+300: !-----determine boundary values depends on inflow/outflow:
+301: !
+302:         do k = 1 , kz
+303: !
+304: !.....west boundary:
+305: !
+306:           if ( myid.eq.0 ) then
+307:             do i = 1 , iym1
+308:               qvx1 = qva(i,k,1)/psa(i,1)
+309:               qvx2 = qva(i,k,2)/psa(i,2)
+310:               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+311:               if ( uavg.ge.0. ) then
+312:                 qvx = qvx1
+313:               else
+314:                 qvx = qvx2
+315:               end if
+316:               qva(i,k,1) = qvx*psa(i,1)
+317:             end do
+318:           end if
+319: !
+320: !.....east boundary:
+321: !
+322:           if ( myid.eq.nproc-1 ) then
+323:             do i = 1 , iym1
+324:               qvx1 = qva(i,k,jendx)/psa(i,jendx)
+325:               qvx2 = qva(i,k,jendm)/psa(i,jendm)
+326:               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
+327:               if ( uavg.lt.0. ) then
+328:                 qvx = qvx1
+329:               else
+330:                 qvx = qvx2
+331:               end if
+332:               qva(i,k,jendx) = qvx*psa(i,jendx)
+333:             end do
+334:           end if
+335: !
+336: !.....south boundary:
+337: !
+338:           do j = jbegin , jendm
+339:             qvx1 = qva(1,k,j)/psa(1,j)
+340:             qvx2 = qva(2,k,j)/psa(2,j)
+341:             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+342:             if ( vavg.ge.0. ) then
+343:               qvx = qvx1
+344:             else
+345:               qvx = qvx2
+346:             end if
+347:             qva(1,k,j) = qvx*psa(1,j)
+348:           end do
+349: !
+350: !.....north boundary:
+351: !
+352:           do j = jbegin , jendm
+353:             qvx1 = qva(iym1,k,j)/psa(iym1,j)
+354:             qvx2 = qva(iym2,k,j)/psa(iym2,j)
+355:             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+356:             if ( vavg.lt.0. ) then
+357:               qvx = qvx1
+358:             else
+359:               qvx = qvx2
+360:             end if
+361:             qva(iym1,k,j) = qvx*psa(iym1,j)
+362:           end do
+363: !
+364:         end do
+365:       end if      !end if(iboudy.eq.3.or.4) test
+366: !
+367: !-----set boundary values for p*qc and p*qr:
+368: !     *** note ***
+369: !     for large domain, we assume the boundary tendencies are not
+370: !     available.
+371: !
+372: !
+373: !-----if the boundary values and tendencies are not available,
+374: !     determine boundary values depends on inflow/outflow:
+375: !     inflow  : set it equal to zero.
+376: !     outflow : get from interior point.
+377: !
+378:       do k = 1 , kz
+379: !
+380: !.....west boundary:
+381: !
+382:         if ( myid.eq.0 ) then
+383:           do i = 1 , iym1
+384:             qcx2 = qca(i,k,2)/psa(i,2)
+385:             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+386:             if ( uavg.ge.0. ) then
+387:               qcx = 0.
+388:             else
+389:               qcx = qcx2
+390:             end if
+391:             qca(i,k,1) = qcx*psa(i,1)
+392:           end do
+393:         end if
+394: !
+395: !.....east boundary:
+396: !
+397:         if ( myid.eq.nproc-1 ) then
+398:           do i = 1 , iym1
+399:             qcx2 = qca(i,k,jendm)/psa(i,jendm)
+400:             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
+401:             if ( uavg.lt.0. ) then
+402:               qcx = 0.
+403:             else
+404:               qcx = qcx2
+405:             end if
+406:             qca(i,k,jendx) = qcx*psa(i,jendx)
+407:           end do
+408:         end if
+409: !
+410: !.....south boundary:
+411: !
+412:         do j = jbegin , jendm
+413:           qcx2 = qca(2,k,j)/psa(2,j)
+414:           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+415:           if ( vavg.ge.0. ) then
+416:             qcx = 0.
+417:           else
+418:             qcx = qcx2
+419:           end if
+420:           qca(1,k,j) = qcx*psa(1,j)
+421:         end do
+422: !
+423: !.....north boundary:
+424: !
+425:         do j = jbegin , jendm
+426:           qcx2 = qca(iym2,k,j)/psa(iym2,j)
+427:           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+428:           if ( vavg.lt.0. ) then
+429:             qcx = 0.
+430:           else
+431:             qcx = qcx2
+432:           end if
+433:           qca(iym1,k,j) = qcx*psa(iym1,j)
+434:         end do
+435: !
+436:       end do
+437:  
+438:       if ( ichem.eq.1 ) then
+439: !chem2
+440:  
+441: !----add tracer bc's
+442: !
+443:         do itr = 1 , ntr
+444:           do k = 1 , kz
+445: !
+446: !.....west  boundary:
+447: !
+448:  
+449:             if ( myid.eq.0 ) then
+450:               do i = 1 , iym1
+451:                 chix1 = chia(i,k,1,itr)/psa(i,1)
+452:                 chix2 = chia(i,k,2,itr)/psa(i,2)
+453:                 uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+454:                 if ( uavg.ge.0. ) then
+455:                   chix = chix1
+456:                 else
+457:                   chix = chix2
+458:                 end if
+459:                 chia(i,k,1,itr) = chix*psa(i,1)
+460:               end do
+461:             end if
+462: !
+463: !.....east  boundary:
+464: !
+465:             if ( myid.eq.nproc-1 ) then
+466:               do i = 1 , iym1
+467:                 chix1 = chia(i,k,jendx,itr)/psa(i,jendx)
+468:                 chix2 = chia(i,k,jendm,itr)/psa(i,jendm)
+469:                 uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
+470:                 if ( uavg.lt.0. ) then
+471:                   chix = chix1
+472:                 else
+473:                   chix = chix2
+474:                 end if
+475:                 chia(i,k,jendx,itr) = chix*psa(i,jendx)
+476:               end do
+477:             end if
+478: !
+479: !.....south boundary:
+480: !
+481:             do j = jbegin , jendm
+482:               chix1 = chia(1,k,j,itr)/psa(1,j)
+483:               chix2 = chia(2,k,j,itr)/psa(2,j)
+484:               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+485:               if ( vavg.ge.0. ) then
+486:                 chix = chix1
+487:               else
+488:                 chix = chix2
+489:               end if
+490:               chia(1,k,j,itr) = chix*psa(1,j)
+491:             end do
+492: !
+493: !.....north boundary:
+494: !
+495:             do j = jbegin , jendm
+496:               chix1 = chia(iym1,k,j,itr)/psa(iym1,j)
+497:               chix2 = chia(iym2,k,j,itr)/psa(iym2,j)
+498:               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+499:               if ( vavg.lt.0. ) then
+500:                 chix = chix1
+501:               else
+502:                 chix = chix2
+503:               end if
+504:               chia(iym1,k,j,itr) = chix*psa(iym1,j)
+505:             end do
+506:           end do
+507:         end do
+508: !chem2_
+509:       end if
+510: #else
+511: !
+512: !-----for p*:
+513: !
+514:         do i = 1 , iym1
+515:           psb(i,1) = psa(i,1)
+516:           psb(i,jxm1) = psa(i,jxm1)
+517:         end do
+518:         do j = 2 , jxm2
+519:           psb(1,j) = psa(1,j)
+520:           psb(iym1,j) = psa(iym1,j)
+521:         end do
+522: !
+523: !-----for p*u and p*v:
+524: !
+525:         do k = 1 , kz
+526:           do i = 1 , iy
+527:             ub(i,k,1) = ua(i,k,1)/msfd(i,1)
+528:             vb(i,k,1) = va(i,k,1)/msfd(i,1)
+529:             ub(i,k,jx) = ua(i,k,jx)/msfd(i,jx)
+530:             vb(i,k,jx) = va(i,k,jx)/msfd(i,jx)
+531:           end do
+532:           do j = 2 , jxm1
+533:             ub(1,k,j) = ua(1,k,j)/msfd(1,j)
+534:             ub(iy,k,j) = ua(iy,k,j)/msfd(iy,j)
+535:             vb(1,k,j) = va(1,k,j)/msfd(1,j)
+536:             vb(iy,k,j) = va(iy,k,j)/msfd(iy,j)
+537:           end do
+538:         end do
+539: !
+540: !-----for p*t:
+541: !
+542:         do k = 1 , kz
+543:           do i = 1 , iym1
+544:             tb(i,k,1) = ta(i,k,1)
+545:             tb(i,k,jxm1) = ta(i,k,jxm1)
+546:           end do
+547:           do j = 2 , jxm2
+548:             tb(1,k,j) = ta(1,k,j)
+549:             tb(iym1,k,j) = ta(iym1,k,j)
+550:           end do
+551:         end do
+552: !
+553: !-----for p*qv:
+554: !
+555:         do k = 1 , kz
+556:           do i = 1 , iym1
+557:             qvb(i,k,1) = qva(i,k,1)
+558:             qvb(i,k,jxm1) = qva(i,k,jxm1)
+559:           end do
+560:           do j = 2 , jxm2
+561:             qvb(1,k,j) = qva(1,k,j)
+562:             qvb(iym1,k,j) = qva(iym1,k,j)
+563:           end do
+564:         end do
+565: !
+566: !chem2
+567: !
+568:         if ( ichem.eq.1 ) then
+569: !-----for p*chi (tracers)
+570:           do itr = 1 , ntr
+571:             do k = 1 , kz
+572:               do i = 1 , iym1
+573:                 chib(i,k,1,itr) = chia(i,k,1,itr)
+574:                 chib(i,k,jxm1,itr) = chia(i,k,jxm1,itr)
+575:               end do
+576:               do j = 2 , jxm2
+577:                 chib(1,k,j,itr) = chia(1,k,j,itr)
+578:                 chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
+579:               end do
+580:             end do
+581:           end do
+582:         end if
+583: !chem2_
+584: !
+585: !-----for p*qc:
+586: !
+587:         do k = 1 , kz
+588:           do i = 1 , iym1
+589:             qcb(i,k,1) = qca(i,k,1)
+590:             qcb(i,k,jxm1) = qca(i,k,jxm1)
+591:           end do
+592:           do j = 2 , jxm2
+593:             qcb(1,k,j) = qca(1,k,j)
+594:             qcb(iym1,k,j) = qca(iym1,k,j)
+595:           end do
+596:         end do
+597: !
+598:       end if      !end if(iexec.ne.1) test
+599: !**********************************************************************
+600: !*****compute the boundary values for xxa variables:
+601: !
+602: !-----compute the time interval for boundary tendency:
+603: !
+604:       dtb = xt*60.
+605:       if ( dabs(xt).lt.0.00001 .and. ldatez.gt.idate0 )                 &
+606:          & dtb = ibdyfrq*60.*60.
+607: !
+608: !-----set boundary values for p*:
+609: !-----set boundary conditions for p*u and p*v:
+610: !
+611:       if ( .not.(iexec.eq.1 .and. ifrest) ) then
+612: !
+613:         if ( iboudy.eq.0 ) then
+614: !.....fixed boundary conditions:
+615:           do i = 1 , iym1
+616:             psa(i,1) = pwb(i,1)
+617:             psa(i,jxm1) = peb(i,1)
+618:           end do
+619:           do j = 2 , jxm2
+620:             psa(1,j) = pss(1,j)
+621:             psa(iym1,j) = pnb(1,j)
+622:           end do
+623: !
+624:           do k = 1 , kz
+625:             do i = 1 , iy
+626:               ua(i,k,1) = uwb(i,k,1)
+627:               va(i,k,1) = vwb(i,k,1)
+628:               ua(i,k,jx) = ueb(i,k,1)
+629:               va(i,k,jx) = veb(i,k,1)
+630:             end do
+631:             do j = 2 , jxm1
+632:               ua(1,k,j) = usb(1,k,j)
+633:               ua(iy,k,j) = unb(1,k,j)
+634:               va(1,k,j) = vsb(1,k,j)
+635:               va(iy,k,j) = vnb(1,k,j)
+636:             end do
+637:           end do
+638:         end if
+639: !
+640: !.....time-dependent boundary conditions:
+641: !
+642:         do i = 1 , iym1
+643:           psa(i,1) = pwb(i,1) + dtb*pwbt(i,1)
+644:           psa(i,jxm1) = peb(i,1) + dtb*pebt(i,1)
+645:         end do
+646:         do j = 2 , jxm2
+647:           psa(1,j) = pss(1,j) + dtb*psbt(1,j)
+648:           psa(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
+649:         end do
+650: !
+651:         do k = 1 , kz
+652:           do i = 1 , iy
+653:             ua(i,k,1) = uwb(i,k,1) + dtb*uwbt(i,k,1)
+654:             va(i,k,1) = vwb(i,k,1) + dtb*vwbt(i,k,1)
+655:             ua(i,k,jx) = ueb(i,k,1) + dtb*uebt(i,k,1)
+656:             va(i,k,jx) = veb(i,k,1) + dtb*vebt(i,k,1)
+657:           end do
+658:           do j = 2 , jxm1
+659:             ua(1,k,j) = usb(1,k,j) + dtb*usbt(1,k,j)
+660:             ua(iy,k,j) = unb(1,k,j) + dtb*unbt(1,k,j)
+661:             va(1,k,j) = vsb(1,k,j) + dtb*vsbt(1,k,j)
+662:             va(iy,k,j) = vnb(1,k,j) + dtb*vnbt(1,k,j)
+663:           end do
+664:         end do
+665:       end if
+666: !
+667: !-----get boundary values of u and v:
+668: !
+669:       call <a href="./bdyuv.F90.html#bdyuv" TARGET=CENT_PANEL>bdyuv</a>(iboudy,dtb)
+670: !
+671:       if ( iexec.eq.1 .and. ifrest ) return
+672: !
+673: !-----set boundary values for p*t:
+674: !-----set boundary values for p*qv:
+675: !
+676:       if ( iboudy.eq.0 ) then
+677: !.....fixed boundary conditions:
+678:         do k = 1 , kz
+679:           do i = 1 , iym1
+680:             ta(i,k,1) = twb(i,k,1)
+681:             ta(i,k,jxm1) = teb(i,k,1)
+682:           end do
+683:           do j = 2 , jxm2
+684:             ta(1,k,j) = tsb(1,k,j)
+685:             ta(iym1,k,j) = tnb(1,k,j)
+686:           end do
+687:         end do
+688:         do k = 1 , kz
+689:           do i = 1 , iym1
+690:             qva(i,k,1) = qwb(i,k,1)
+691:             qva(i,k,jxm1) = qeb(i,k,1)
+692:           end do
+693:           do j = 2 , jxm2
+694:             qva(1,k,j) = qsb(1,k,j)
+695:             qva(iym1,k,j) = qnb(1,k,j)
+696:           end do
+697:         end do
+698:       end if
+699: !
+700: !.....time-dependent boundary conditions:
+701: !
+702:       do k = 1 , kz
+703:         do i = 1 , iym1
+704:           ta(i,k,1) = twb(i,k,1) + dtb*twbt(i,k,1)
+705:           ta(i,k,jxm1) = teb(i,k,1) + dtb*tebt(i,k,1)
+706:         end do
+707:         do j = 2 , jxm2
+708:           ta(1,k,j) = tsb(1,k,j) + dtb*tsbt(1,k,j)
+709:           ta(iym1,k,j) = tnb(1,k,j) + dtb*tnbt(1,k,j)
+710:         end do
+711:       end do
+712:       do k = 1 , kz
+713:         do i = 1 , iym1
+714:           qva(i,k,1) = qwb(i,k,1) + dtb*qwbt(i,k,1)
+715:           qva(i,k,jxm1) = qeb(i,k,1) + dtb*qebt(i,k,1)
+716:         end do
+717:         do j = 2 , jxm2
+718:           qva(1,k,j) = qsb(1,k,j) + dtb*qsbt(1,k,j)
+719:           qva(iym1,k,j) = qnb(1,k,j) + dtb*qnbt(1,k,j)
+720:         end do
+721:       end do
+722: !
+723:       if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
+724: !
+725: !-----determine boundary values depends on inflow/outflow:
+726: !
+727:         do k = 1 , kz
+728: !
+729: !.....west boundary:
+730: !
+731:           do i = 1 , iym1
+732:             qvx1 = qva(i,k,1)/psa(i,1)
+733:             qvx2 = qva(i,k,2)/psa(i,2)
+734:             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+735:             if ( uavg.ge.0. ) then
+736:               qvx = qvx1
+737:             else
+738:               qvx = qvx2
+739:             end if
+740:             qva(i,k,1) = qvx*psa(i,1)
+741:           end do
+742: !
+743: !.....east boundary:
+744: !
+745:           do i = 1 , iym1
+746:             qvx1 = qva(i,k,jxm1)/psa(i,jxm1)
+747:             qvx2 = qva(i,k,jxm2)/psa(i,jxm2)
+748:             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
+749:             if ( uavg.lt.0. ) then
+750:               qvx = qvx1
+751:             else
+752:               qvx = qvx2
+753:             end if
+754:             qva(i,k,jxm1) = qvx*psa(i,jxm1)
+755:           end do
+756: !
+757: !.....south boundary:
+758: !
+759:           do j = 2 , jxm2
+760:             qvx1 = qva(1,k,j)/psa(1,j)
+761:             qvx2 = qva(2,k,j)/psa(2,j)
+762:             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+763:             if ( vavg.ge.0. ) then
+764:               qvx = qvx1
+765:             else
+766:               qvx = qvx2
+767:             end if
+768:             qva(1,k,j) = qvx*psa(1,j)
+769:           end do
+770: !
+771: !.....north boundary:
+772: !
+773:           do j = 2 , jxm2
+774:             qvx1 = qva(iym1,k,j)/psa(iym1,j)
+775:             qvx2 = qva(iym2,k,j)/psa(iym2,j)
+776:             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+777:             if ( vavg.lt.0. ) then
+778:               qvx = qvx1
+779:             else
+780:               qvx = qvx2
+781:             end if
+782:             qva(iym1,k,j) = qvx*psa(iym1,j)
+783:           end do
+784: !
+785:         end do
+786:       end if      !end if(iboudy.eq.3.or.4) test
+787: !
+788: !-----set boundary values for p*qc and p*qr:
+789: !     *** note ***
+790: !     for large domain, we assume the boundary tendencies are not
+791: !     available.
+792: !
+793: !
+794: !-----if the boundary values and tendencies are not available,
+795: !     determine boundary values depends on inflow/outflow:
+796: !     inflow  : set it equal to zero.
+797: !     outflow : get from interior point.
+798: !
+799:       do k = 1 , kz
+800: !
+801: !.....west boundary:
+802: !
+803:         do i = 1 , iym1
+804:           qcx2 = qca(i,k,2)/psa(i,2)
+805:           uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+806:           if ( uavg.ge.0. ) then
+807:             qcx = 0.
+808:           else
+809:             qcx = qcx2
+810:           end if
+811:           qca(i,k,1) = qcx*psa(i,1)
+812:         end do
+813: !
+814: !.....east boundary:
+815: !
+816:         do i = 1 , iym1
+817:           qcx2 = qca(i,k,jxm2)/psa(i,jxm2)
+818:           uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
+819:           if ( uavg.lt.0. ) then
+820:             qcx = 0.
+821:           else
+822:             qcx = qcx2
+823:           end if
+824:           qca(i,k,jxm1) = qcx*psa(i,jxm1)
+825:         end do
+826: !
+827: !.....south boundary:
+828: !
+829:         do j = 2 , jxm2
+830:           qcx2 = qca(2,k,j)/psa(2,j)
+831:           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+832:           if ( vavg.ge.0. ) then
+833:             qcx = 0.
+834:           else
+835:             qcx = qcx2
+836:           end if
+837:           qca(1,k,j) = qcx*psa(1,j)
+838:         end do
+839: !
+840: !.....north boundary:
+841: !
+842:         do j = 2 , jxm2
+843:           qcx2 = qca(iym2,k,j)/psa(iym2,j)
+844:           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+845:           if ( vavg.lt.0. ) then
+846:             qcx = 0.
+847:           else
+848:             qcx = qcx2
+849:           end if
+850:           qca(iym1,k,j) = qcx*psa(iym1,j)
+851:         end do
+852: !
+853:       end do
+854:  
+855:       if ( ichem.eq.1 ) then
+856: !chem2
+857:  
+858: !----add tracer bc's
+859: !
+860:         do itr = 1 , ntr
+861:           do k = 1 , kz
+862: !
+863: !.....west  boundary:
+864: !
+865:  
+866:             do i = 1 , iym1
+867: !             FAB force to zero inflow conditions
+868: !             chix1 = chia(i,k,1,itr)/psa(i,1)
+869:               chix1 = 0. 
+870:               chix2 = chia(i,k,2,itr)/psa(i,2)
+871:               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
+872:               if ( uavg.ge.0. ) then
+873:                 chix = chix1
+874:               else
+875:                 chix = chix2
+876:               end if
+877:               chia(i,k,1,itr) = chix*psa(i,1)
+878:             end do
+879: !
+880: !.....east  boundary:
+881: !
+882:             do i = 1 , iym1
+883: !             chix1 = chia(i,k,jxm1,itr)/psa(i,jxm1)
+884:               chix1 = 0.
+885:               chix2 = chia(i,k,jxm2,itr)/psa(i,jxm2)
+886:               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
+887:               if ( uavg.lt.0. ) then
+888:                 chix = chix1
+889:               else
+890:                 chix = chix2
+891:               end if
+892:               chia(i,k,jxm1,itr) = chix*psa(i,jxm1)
+893:             end do
+894: !
+895: !.....south boundary:
+896: !
+897:             do j = 2 , jxm2
+898: !             chix1 = chia(1,k,j,itr)/psa(1,j)
+899:               chix1 = 0.
+900:               chix2 = chia(2,k,j,itr)/psa(2,j)
+901:               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+902:               if ( vavg.ge.0. ) then
+903:                 chix = chix1
+904:               else
+905:                 chix = chix2
+906:               end if
+907:               chia(1,k,j,itr) = chix*psa(1,j)
+908:             end do
+909: !
+910: !.....north boundary:
+911: !
+912:             do j = 2 , jxm2
+913: !             chix1 = chia(iym1,k,j,itr)/psa(iym1,j)
+914:               chix1 = 0.
+915:               chix2 = chia(iym2,k,j,itr)/psa(iym2,j)
+916:               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+917:               if ( vavg.lt.0. ) then
+918:                 chix = chix1
+919:               else
+920:                 chix = chix2
+921:               end if
+922:               chia(iym1,k,j,itr) = chix*psa(iym1,j)
+923:             end do
+924:           end do
+925:         end do
+926: !chem2_
+927:       end if
+928: #endif
+929: !
+930:       end subroutine bdyval
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

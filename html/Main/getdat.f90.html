@@ -1,0 +1,298 @@
+<HTML>
+
+<HEAD>
+<TITLE>getdat.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>getdat.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>getdat.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=getdat><H3>getdat</H3></a></p> Click <a href="./callingtree/getdat_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where getdat is used.
+<hr>
+20:       subroutine getdat(jslc,h2ommr,alat,cld,clwp,coslat,loctim,o3mmr,  &
+21:                       & o3vmr,pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
+22: !
+23: !-----------------------------------------------------------------------
+24: !
+25: ! interface routine for column model that both initializes
+26: ! certain constants and reads external data:
+27: !
+28: ! o3 mass mixing ratios are read in, but the model also requires the
+29: ! path lengths; they are computed here
+30: !
+31: ! also, from the cloud input (fraction and liquid water path), the
+32: ! cloud longwave emissivity must be computed; this is done here
+33: !
+34:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+35:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+36:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : ncld , r8pt , a , sigma
+37:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+38:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a>
+39:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+40:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti , degrad
+41:       implicit none
+42: !
+43: ! Dummy arguments
+44: !
+45:       integer :: jslc
+46:       real(8) , dimension(iym1) :: alat , coslat , loctim , ps , ts
+47:       real(8) , dimension(iym1,kzp1) :: cld , pilnm1 , pintm1
+48:       real(8) , dimension(iym1,kz) :: clwp , h2ommr , o3mmr , o3vmr ,&
+49:            & pmidm1 , pmlnm1 , qm1 , tm1
+50:       intent (in) jslc
+51:       intent (out) clwp , coslat , loctim , o3vmr , pilnm1 , pmlnm1 ,   &
+52:                  & qm1 , ts
+53:       intent (inout) alat , cld , h2ommr , o3mmr , pintm1 , pmidm1 ,    &
+54:                    & ps , tm1
+55: !
+56: ! Local variables
+57: !
+58:       real(8) :: amd , amo , ccvtem , clwtem , rx , vmmr
+59:       real(8) , dimension(iym1,kz) :: deltaz
+60:       integer :: i , k , kj , n , ncldm1 , nll
+61:       real(8) , dimension(iym1) :: rlat
+62: !
+63: !     output arguments
+64: !
+65: ! model latitude in radians
+66: ! cloud fraction
+67: ! cloud liquid water path (g/m**2)
+68: ! cosine latitude
+69: ! local time of solar computation
+70: ! o3 mass mixing ratio
+71: ! o3 volume mixing ratio
+72: ! ln(pintm1)
+73: ! pressure at model interfaces
+74: ! pressure at model mid-levels
+75: ! ln(pmidm1)
+76: ! model surface pressure field
+77: ! moisture field
+78: ! atmospheric temperature
+79: ! surface (air)  temperature
+80: !
+81: !-----------------------------------------------------------------------
+82: !
+83:       data amd/28.9644/
+84:       data amo/48.0000/
+85: !
+86: !KN   instead of reading the data for cloud water and ozone from files,
+87: !KN   their amounts should be calculated in the followings
+88: !
+89: !     set fundamental constants (mks):
+90: !
+91:       rx = 287.
+92: !
+93: !     begin read of data:
+94: !-----
+95: !-----surface pressure and scaled pressure, from which level pressures
+96: !-----are computed
+97:       do n = 1 , iym1
+98:         ps(n) = (psb(n,jslc)+r8pt)*10.
+99:         do nll = 1 , kz
+100:           pmidm1(n,nll) = (psb(n,jslc)*a(nll)+r8pt)*10.
+101: !KN       sclpr(nll)=pmidm1(n,nll)/ps(n)
+102:         end do
+103:       end do
+104: !
+105: !.......... convert pressures from mb to pascals and define
+106: !.......... interface pressures:
+107: !
+108:       do i = 1 , iym1
+109:         ps(i) = ps(i)*100.
+110:         do k = 1 , kz
+111: !
+112:           pmidm1(i,k) = pmidm1(i,k)*100.
+113:           pmlnm1(i,k) = dlog(pmidm1(i,k))
+114: !
+115:         end do
+116:       end do
+117:       do k = 1 , kzp1
+118:         do i = 1 , iym1
+119:           pintm1(i,k) = (psb(i,jslc)*sigma(k)+r8pt)*1000.
+120:           pilnm1(i,k) = dlog(pintm1(i,k))
+121:         end do
+122:       end do
+123: !
+124: !-----
+125: !-----air temperatures
+126: !-----
+127:       do nll = 1 , kz
+128:         do n = 1 , iym1
+129:           tm1(n,nll) = tb(n,nll,jslc)/psb(n,jslc)
+130:         end do
+131:       end do
+132: !-----
+133: !-----surface air temperature
+134: !-----
+135: !-----
+136: !-----h2o mass mixing ratio
+137: !-----
+138:       do nll = 1 , kz
+139:         do n = 1 , iym1
+140:           h2ommr(n,nll) = dmax1(1.D-7,qvb(n,nll,jslc)/psb(n,jslc))
+141:           qm1(n,nll) = h2ommr(n,nll)
+142:         end do
+143:       end do
+144: !-----
+145: !-----o3 mass mixing ratio
+146: !-----
+147:       do nll = 1 , kz
+148:         do n = 1 , iym1
+149:           kj = kzp1 - nll
+150:           o3mmr(n,nll) = o3prof(n,kj,jslc)
+151:         end do
+152:       end do
+153: !-----
+154: !-----fractional cloud cover (dependent on relative humidity)
+155: !-----
+156: !qc   = gary's mods for clouds/radiation tie-in to exmois
+157:       do nll = 1 , kz
+158:         do n = 1 , iym1
+159:  
+160:           ccvtem = 0.   !cqc mod
+161: !KN       cldfrc(n,nll)=dmax1(cldfra(n,nll)*0.9999999,ccvtem)
+162:           cld(n,nll) = dmax1(cldfra(n,nll)*0.9999999,ccvtem)
+163: !KN       cldfrc(n,nll)=dmin1(cldfrc(n,nll),0.9999999)
+164:           cld(n,nll) = dmin1(cld(n,nll),0.9999999D0)
+165: !
+166: !         implement here the new formula then multiply by 10e6
+167: !qc       if (tm1(n,nll).gt.t0max) clwtem=clwmax
+168: !qc       if (tm1(n,nll).ge.t0st .and. tm1(n,nll).le.t0max)
+169: !qc       1     clwtem=clw0st+((tm1(n,nll)-t0st)/(t0max-t0st))**2
+170: !qc       1     *(clwmax-clw0st)
+171: !qc       if (tm1(n,nll).ge.t0min .and. tm1(n,nll).lt.t0st)
+172: !qc       1     clwtem=clw0st+(tm1(n,nll)-t0st)/(t0min-t0st)
+173: !qc       1     *(clwmin-clw0st)
+174: !qc       if (tm1(n,nll).lt.t0min) clwtem=clwmin
+175: !qc       clwtem=clwtem*1.e6
+176: !
+177: !         convert liquid water content into liquid water path, i.e.
+178: !         multiply b deltaz
+179:           clwtem = cldlwc(n,nll)
+180:                                !cqc mod
+181:           deltaz(n,nll) = rx*tm1(n,nll)*(pintm1(n,nll+1)-pintm1(n,nll)) &
+182:                         & /(gti*pmidm1(n,nll))
+183:           clwp(n,nll) = clwtem*deltaz(n,nll)
+184: !KN       if (cldfrc(n,nll).eq.0.) clwp(n,nll)=0.
+185:           if ( cld(n,nll).eq.0. ) clwp(n,nll) = 0.
+186:         end do
+187:       end do
+188:  
+189: !     only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
+190: !     do 89 nll=1,kz
+191: !     do 89 n=1,iym1
+192: !     if (pintm1(n,nll+1) .lt. 40000. ) then
+193: !     cld(n,nll)=dmin1(cld(n,nll),0.25d0)
+194: !
+195: !     else
+196: !     cld(n,nll)=dmin1(cld(n,nll),0.7d0)
+197: !
+198: !     end if
+199: !     89  continue
+200:  
+201: !
+202: !     set cloud fractional cover at top model level = 0
+203:       do n = 1 , iym1
+204:         cld(n,1) = 0.
+205:         clwp(n,1) = 0.
+206:         cld(n,2) = 0.       !yhuang, 8/97 two-level
+207:         clwp(n,2) = 0.
+208:       end do
+209: !
+210: !     set cloud fractional cover at bottom (ncld) model levels = 0
+211: !
+212:       ncldm1 = ncld - 1
+213:       do nll = kz - ncldm1 , kz
+214:         do n = 1 , iym1
+215: !KN       cldfrc(n,nll)=0.
+216:           cld(n,nll) = 0.
+217:           clwp(n,nll) = 0.
+218:         end do
+219:       end do
+220: !
+221: !-----
+222: !-----ground temperature
+223: !-----
+224:       do n = 1 , iym1
+225: !       tg(n)=tgb(n,jlsc)
+226: !       when using bats calculate an equivalent ground (skin)
+227: !       temperature by averaging over vegetated and non-vegetated areas
+228: !jsp    tg(n)=((1.-vgfrac(n))*tgb(n,jslc)**4.+vgfrac(n)*
+229: !jsp    1   tlef2d(n,jslc)**4.)**0.25
+230: !jsp    tg(n)=tgbb(n,jslc)
+231:         ts(n) = tgbb(n,jslc)
+232:       end do
+233: !
+234: !     cloud cover at surface interface always zero
+235: !
+236:       do i = 1 , iym1
+237: !KN     effcld(i,kzp1) = 0.
+238: !KN     cldfrc(i,kzp1) = 0.
+239:         cld(i,kzp1) = 0.
+240:       end do
+241: !
+242: !KN   adopted from regcm2 above
+243: !
+244: !----------------------------------------------------------------------
+245: !
+246:       do i = 1 , iym1
+247: !
+248:         do k = 1 , kz
+249:           if ( cld(i,k).gt.0.999 ) cld(i,k) = .999
+250:         end do
+251: !
+252: !KN     added below
+253:         rlat(i) = xlat(i,jslc)
+254:         calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+255: !KN     added above
+256: !
+257:         loctim(i) = (calday-aint(calday))*24.
+258:         alat(i) = rlat(i)*degrad
+259:         coslat(i) = dcos(alat(i))
+260: !
+261:       end do
+262: !
+263: !     Convert ozone mass mixing ratio to ozone volume mixing ratio:
+264: !
+265:       vmmr = amo/amd
+266:       do k = 1 , kz
+267:         do i = 1 , iym1
+268: !         o3mmr(i,k) = vmmr*o3vmr(i,k)
+269:           o3vmr(i,k) = o3mmr(i,k)/vmmr
+270:         end do
+271:       end do
+272: !
+273:       end subroutine getdat
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

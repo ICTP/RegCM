@@ -1,0 +1,1743 @@
+<HTML>
+
+<HEAD>
+<TITLE>nudge.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>nudge.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>nudge.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=nudge_p><H3>nudge_p</H3></a></p> Click <a href="./callingtree/nudge_p_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where nudge_p is used.
+<hr>
+20:       subroutine nudge_p(ip,fcoef,gcoef,xt,pten,c203,j,iboudy)
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine applies relaxation boundary conditions to the   c
+25: !     tendency term - pten.                                           c
+26: !                                                                     c
+27: !     ip    : is the number of slices affected by nudging.            c
+28: !                                                                     c
+29: !     xt    : is the time in minutes for variable "psb".              c
+30: !                                                                     c
+31: !     fcoef : are the coefficients for the newtonian term.            c
+32: !                                                                     c
+33: !     gcoef : are the coefficients for the diffusion term.            c
+34: !                                                                     c
+35: !     pten  : is the tendency calculated from the model.              c
+36: !                                                                     c
+37: !     peb, pwb, pss, pnb : are the observed boundary values           c
+38: !                   on east, west, south, and north boundaries.       c
+39: !                                                                     c
+40: !     pebt, pwbt, psbt, pnbt : are the large-scale or observed        c
+41: !             tendencies at east, west, south, and north boundaries.  c
+42: !                                                                     c
+43: !     psb    : is the variable at tau-1.                               c
+44: !                                                                     c
+45: !     c203  : = 1./(dx*dx), defined in 'param'.                       c
+46: !                                                                     c
+47: !     ie = iy, je = jx for dot-point variables.                       c
+48: !     ie = iym1, je = jxm1 for cross-point variables.                 c
+49: !                                                                     c
+50: !     j    : is the j'th slice of the tendency to be adjusted.        c
+51: !     iboudy : type of boundary condition relaxation, 1=linear        c
+52: !              5 = exponential                                        c
+53: !                                                                     c
+54: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+55: 
+56:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+57:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+58:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+59:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : anudg
+60:       implicit none
+61: !
+62: ! Dummy arguments
+63: !
+64:       real(8) :: c203 , fcoef , gcoef , xt
+65:       integer :: iboudy , ip , j
+66:       real(8) , dimension(iy) :: pten
+67:       intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+68:       intent (inout) pten
+69: !
+70: ! Local variables
+71: !
+72:       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
+73:       integer :: i , ibeg , iend , ii , jj , jsls , kk , mm
+74:       real(8) :: xfun , xfune
+75: !
+76: #ifdef MPP1
+77:       integer :: jwb , jeb
+78: #endif
+79: !
+80: !
+81:       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
+82:       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+83: !
+84: !----------------------------------------------------------------------
+85: !
+86:       dtb = xt*60.
+87: #ifdef MPP1
+88:       jsls = j + myid*jxp
+89:       jj = jx - jsls
+90:       if ( jj.le.ip ) jsls = jj
+91:       jwb = jsls
+92:       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
+93:       if ( jwb.eq.0 ) jwb = jxp
+94:       if ( myid.eq.nproc-1 ) then
+95:         jeb = jsls
+96:       else
+97:         jeb = jsls + 1
+98:       end if
+99:       if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
+100:       if ( jeb.eq.0 ) jeb = jxp
+101: #else
+102:       jsls = j
+103:       jj = jx - jsls
+104:       if ( jj.le.ip ) jsls = jj
+105: #endif
+106: !
+107: !-----determine which relaxation method to use:linear/expon.
+108: !
+109:       if ( iboudy.eq.1 ) then
+110: !
+111: !---------use linear method
+112: !
+113:         if ( jsls.gt.ip ) then
+114: !------interior j slices:
+115:           do i = 2 , ip
+116:             ii = iym1 - i + 1
+117:             fcx = fcoef*xfun(i)
+118:             gcx = gcoef*xfun(i)
+119: !.......south boundary:
+120:             fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
+121:             fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
+122:             fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
+123:             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
+124:             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+125:             pten(i) = pten(i) + fcx*fls0 -                              &
+126:                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+127: !........north boundary:
+128:             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
+129:             fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
+130:             fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
+131:             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
+132:             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+133:             pten(ii) = pten(ii) + fcx*fls0 -                            &
+134:                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+135:           end do
+136: !
+137:         else if ( jsls.le.ip ) then
+138: !------east or west boundary slices:
+139:           ibeg = 2
+140:           iend = iym1 - 1
+141:           if ( jsls.gt.2 ) then
+142:             do i = 2 , jsls - 1
+143:               ii = iym1 - i + 1
+144:               fcx = fcoef*xfun(i)
+145:               gcx = gcoef*xfun(i)
+146: !........south boundary:
+147:               fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
+148:               fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
+149:               fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
+150:               fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
+151:               fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+152:               pten(i) = pten(i) + fcx*fls0 -                            &
+153:                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+154: !.........north boundary:
+155:               fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
+156:               fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
+157:               fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
+158:               fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
+159:               fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+160:               pten(ii) = pten(ii) + fcx*fls0 -                          &
+161:                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+162:             end do
+163:             ibeg = jsls
+164:             iend = iym1 - jsls + 1
+165:           end if
+166: !
+167:           if ( jj.gt.ip ) then
+168: !-------west-boundary slice:
+169:             fcx = fcoef*xfun(jsls)
+170:             gcx = gcoef*xfun(jsls)
+171:             do i = ibeg , iend
+172: #ifdef MPP1
+173:               fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - psb(i,j)
+174:               fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - psb(i-1,j)
+175:               fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - psb(i+1,j)
+176:               fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - psb(i,j-1)
+177:               fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - psb(i,j+1)
+178: #else
+179:               fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - psb(i,j)
+180:               fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - psb(i-1,j)
+181:               fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - psb(i+1,j)
+182:               fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - psb(i,j-1)
+183:               fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - psb(i,j+1)
+184: #endif
+185:               pten(i) = pten(i) + fcx*fls0 -                            &
+186:                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+187:             end do
+188:           else if ( jj.le.ip ) then
+189: !-------east-boundary slice:
+190:             fcx = fcoef*xfun(jsls)
+191:             gcx = gcoef*xfun(jsls)
+192:             do i = ibeg , iend
+193: #ifdef MPP1
+194:               fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - psb(i,j)
+195:               fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - psb(i-1,j)
+196:               fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - psb(i+1,j)
+197:               fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - psb(i,j-1)
+198:               fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - psb(i,j+1)
+199: #else
+200:               fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - psb(i,j)
+201:               fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - psb(i-1,j)
+202:               fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - psb(i+1,j)
+203:               fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - psb(i,j-1)
+204:               fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - psb(i,j+1)
+205: #endif
+206:               pten(i) = pten(i) + fcx*fls0 -                            &
+207:                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+208:             end do
+209:           else
+210:           end if
+211:         else
+212:         end if
+213: !
+214:       else if ( iboudy.eq.5 ) then
+215:  
+216: !----------use exponential method
+217:  
+218:         if ( jsls.gt.ip ) then
+219: !------interior j slices:
+220:           do i = 2 , ip
+221:             ii = iym1 - i + 1
+222:             fcx = fcoef*xfune(i,kz)
+223:             gcx = gcoef*xfune(i,kz)
+224: !........south boundary:
+225:             fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
+226:             fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
+227:             fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
+228:             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
+229:             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+230:             pten(i) = pten(i) + fcx*fls0 -                              &
+231:                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+232: !........north boundary:
+233:             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
+234:             fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
+235:             fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
+236:             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
+237:             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+238:             pten(ii) = pten(ii) + fcx*fls0 -                            &
+239:                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+240:           end do
+241: !
+242:         else if ( jsls.le.ip ) then
+243: !------east or west boundary slices:
+244:           ibeg = 2
+245:           iend = iym1 - 1
+246:           if ( jsls.gt.2 ) then
+247:             do i = 2 , jsls - 1
+248:               ii = iym1 - i + 1
+249:               fcx = fcoef*xfune(i,kz)
+250:               gcx = gcoef*xfune(i,kz)
+251: !.........south boundary:
+252:               fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
+253:               fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
+254:               fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
+255:               fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
+256:               fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+257:               pten(i) = pten(i) + fcx*fls0 -                            &
+258:                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+259: !.........north boundary:
+260:               fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
+261:               fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
+262:               fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
+263:               fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
+264:               fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+265:               pten(ii) = pten(ii) + fcx*fls0 -                          &
+266:                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+267:             end do
+268:             ibeg = jsls
+269:             iend = iym1 - jsls + 1
+270:           end if
+271: !
+272:           if ( jj.gt.ip ) then
+273: !-------west-boundary slice:
+274:             fcx = fcoef*xfune(jsls,kz)
+275:             gcx = gcoef*xfune(jsls,kz)
+276:             do i = ibeg , iend
+277: #ifdef MPP1
+278:               fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - psb(i,j)
+279:               fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - psb(i-1,j)
+280:               fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - psb(i+1,j)
+281:               fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - psb(i,j-1)
+282:               fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - psb(i,j+1)
+283: #else
+284:               fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - psb(i,j)
+285:               fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - psb(i-1,j)
+286:               fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - psb(i+1,j)
+287:               fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - psb(i,j-1)
+288:               fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - psb(i,j+1)
+289: #endif
+290:               pten(i) = pten(i) + fcx*fls0 -                            &
+291:                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+292:             end do
+293:           else if ( jj.le.ip ) then
+294: !-------east-boundary slice:
+295:             fcx = fcoef*xfune(jsls,kz)
+296:             gcx = gcoef*xfune(jsls,kz)
+297:             do i = ibeg , iend
+298: #ifdef MPP1
+299:               fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - psb(i,j)
+300:               fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - psb(i-1,j)
+301:               fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - psb(i+1,j)
+302:               fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - psb(i,j-1)
+303:               fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - psb(i,j+1)
+304: #else
+305:               fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - psb(i,j)
+306:               fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - psb(i-1,j)
+307:               fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - psb(i+1,j)
+308:               fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - psb(i,j-1)
+309:               fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - psb(i,j+1)
+310: #endif
+311:               pten(i) = pten(i) + fcx*fls0 -                            &
+312:                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+313:             end do
+314:           else
+315:           end if
+316:         else
+317:         end if
+318: !
+319:       else
+320:       end if
+321:       end subroutine nudge_p
+322: !
+323: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+324: !
+<p><a name=nudge_t><H3>nudge_t</H3></a></p> Click <a href="./callingtree/nudge_t_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where nudge_t is used.
+<hr>
+325:       subroutine nudge_t(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
+326: 
+327: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+328: !                                                                     c
+329: !     this subroutine applies relaxation boundary conditions to the   c
+330: !     tendency term - ften.                                           c
+331: !                                                                     c
+332: !     ip    : is the number of slices affected by nudging.            c
+333: !                                                                     c
+334: !     xt    : is the time in minutes for variable "tb".               c
+335: !                                                                     c
+336: !     fcoef : are the coefficients for the newtonian term.            c
+337: !                                                                     c
+338: !     gcoef : are the coefficients for the diffusion term.            c
+339: !                                                                     c
+340: !     ften  : is the tendency calculated from the model.              c
+341: !                                                                     c
+342: !     teb, twb, tsb, tnb : are the observed boundary values           c
+343: !                   on east, west, south, and north boundaries.       c
+344: !                                                                     c
+345: !     tebt, twbt, tsbt, tnbt : are the large-scale or observed        c
+346: !             tendencies at east, west, south, and north boundaries.  c
+347: !                                                                     c
+348: !     tb    : is the variable at tau-1.                               c
+349: !                                                                     c
+350: !     c203  : = 1./(dx*dx), defined in 'param'.                       c
+351: !                                                                     c
+352: !     ie = iy, je = jx for dot-point variables.                       c
+353: !     ie = iym1, je = jxm1 for cross-point variables.                 c
+354: !                                                                     c
+355: !     j    : is the j'th slice of the tendency to be adjusted.        c
+356: !     iboudy : type of boundary condition relaxation, 1=linear        c
+357: !              5 = exponential                                        c
+358: !                                                                     c
+359: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+360: 
+361:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+362:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+363:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+364:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : anudg
+365:       implicit none
+366: !
+367: ! Dummy arguments
+368: !
+369:       real(8) :: c203 , fcoef , gcoef , xt
+370:       integer :: iboudy , ip , j
+371:       real(8) , dimension(iy,kz) :: ften
+372:       intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+373:       intent (inout) ften
+374: !
+375: ! Local variables
+376: !
+377:       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
+378:       integer :: i , ibeg , iend , ii , jj , jsls , k , kk , mm
+379:       real(8) :: xfun , xfune
+380: #ifdef MPP1
+381:       integer jwb , jeb
+382: #endif
+383: !
+384:       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
+385:       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+386: !
+387: !----------------------------------------------------------------------
+388: !
+389:       dtb = xt*60.
+390: #ifdef MPP1
+391:       jsls = j + myid*jxp
+392:       jj = jx - jsls
+393:       if ( jj.le.ip ) jsls = jj
+394:       jwb = jsls
+395:       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
+396:       if ( jwb.eq.0 ) jwb = jxp
+397:       if ( myid.eq.nproc-1 ) then
+398:         jeb = jsls
+399:       else
+400:         jeb = jsls + 1
+401:       end if
+402:       if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
+403:       if ( jeb.eq.0 ) jeb = jxp
+404: #else
+405:       jsls = j
+406:       jj = jx - jsls
+407:       if ( jj.le.ip ) jsls = jj
+408: #endif
+409: !
+410: !-----determine which relaxation method to use:linear/expon.
+411: !
+412:       if ( iboudy.eq.1 ) then
+413: !
+414: !---------use linear method
+415: !
+416:         if ( jsls.gt.ip ) then
+417: !------interior j slices:
+418:           do i = 2 , ip
+419:             ii = iym1 - i + 1
+420:             fcx = fcoef*xfun(i)
+421:             gcx = gcoef*xfun(i)
+422:             do k = 1 , kz
+423: !.......south boundary:
+424:               fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
+425:               fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
+426:               fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
+427:               fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
+428:               fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+429:               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+430:                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+431: !........north boundary:
+432:               fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
+433:               fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
+434:               fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
+435:               fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
+436:               fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+437:               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+438:                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+439:             end do
+440:           end do
+441: !
+442:         else if ( jsls.le.ip ) then
+443: !------east or west boundary slices:
+444:           ibeg = 2
+445:           iend = iym1 - 1
+446:           if ( jsls.gt.2 ) then
+447:             do i = 2 , jsls - 1
+448:               ii = iym1 - i + 1
+449:               fcx = fcoef*xfun(i)
+450:               gcx = gcoef*xfun(i)
+451:               do k = 1 , kz
+452: !........south  boundary:
+453:                 fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
+454:                 fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
+455:                 fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
+456:                 fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
+457:                 fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+458:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+459:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+460: !.........north boundary:
+461:                 fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
+462:                 fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
+463:                 fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
+464:                 fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
+465:                 fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+466:                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
+467:                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+468:               end do
+469:             end do
+470:             ibeg = jsls
+471:             iend = iym1 - jsls + 1
+472:           end if
+473: !
+474:           if ( jj.gt.ip ) then
+475: !-------west-boundary slice:
+476:             fcx = fcoef*xfun(jsls)
+477:             gcx = gcoef*xfun(jsls)
+478:             do k = 1 , kz
+479:               do i = ibeg , iend
+480: #ifdef MPP1
+481:                 fls0 = (twb(i,k,jwb)+dtb*twbt(i,k,jwb)) - tb(i,k,j)
+482:                 fls1 = (twb(i-1,k,jwb)+dtb*twbt(i-1,k,jwb))             &
+483:                      & - tb(i-1,k,j)
+484:                 fls2 = (twb(i+1,k,jwb)+dtb*twbt(i+1,k,jwb))             &
+485:                      & - tb(i+1,k,j)
+486:                 fls3 = (twb(i,k,jwb-1)+dtb*twbt(i,k,jwb-1))             &
+487:                      & - tb(i,k,j-1)
+488:                 fls4 = (twb(i,k,jwb+1)+dtb*twbt(i,k,jwb+1))             &
+489:                      & - tb(i,k,j+1)
+490: #else
+491:                 fls0 = (twb(i,k,jsls)+dtb*twbt(i,k,jsls)) - tb(i,k,j)
+492:                 fls1 = (twb(i-1,k,jsls)+dtb*twbt(i-1,k,jsls))           &
+493:                      & - tb(i-1,k,j)
+494:                 fls2 = (twb(i+1,k,jsls)+dtb*twbt(i+1,k,jsls))           &
+495:                      & - tb(i+1,k,j)
+496:                 fls3 = (twb(i,k,jsls-1)+dtb*twbt(i,k,jsls-1))           &
+497:                      & - tb(i,k,j-1)
+498:                 fls4 = (twb(i,k,jsls+1)+dtb*twbt(i,k,jsls+1))           &
+499:                      & - tb(i,k,j+1)
+500: #endif
+501:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+502:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+503:               end do
+504:             end do
+505:           else if ( jj.le.ip ) then
+506: !-------east-boundary slice:
+507:             fcx = fcoef*xfun(jsls)
+508:             gcx = gcoef*xfun(jsls)
+509:             do k = 1 , kz
+510:               do i = ibeg , iend
+511: #ifdef MPP1
+512:                 fls0 = (teb(i,k,jeb)+dtb*tebt(i,k,jeb)) - tb(i,k,j)
+513:                 fls1 = (teb(i-1,k,jeb)+dtb*tebt(i-1,k,jeb))             &
+514:                      & - tb(i-1,k,j)
+515:                 fls2 = (teb(i+1,k,jeb)+dtb*tebt(i+1,k,jeb))             &
+516:                      & - tb(i+1,k,j)
+517:                 fls3 = (teb(i,k,jeb-1)+dtb*tebt(i,k,jeb-1))             &
+518:                      & - tb(i,k,j-1)
+519:                 fls4 = (teb(i,k,jeb+1)+dtb*tebt(i,k,jeb+1))             &
+520:                      & - tb(i,k,j+1)
+521: #else
+522:                 fls0 = (teb(i,k,jsls)+dtb*tebt(i,k,jsls)) - tb(i,k,j)
+523:                 fls1 = (teb(i-1,k,jsls)+dtb*tebt(i-1,k,jsls))           &
+524:                      & - tb(i-1,k,j)
+525:                 fls2 = (teb(i+1,k,jsls)+dtb*tebt(i+1,k,jsls))           &
+526:                      & - tb(i+1,k,j)
+527:                 fls3 = (teb(i,k,jsls-1)+dtb*tebt(i,k,jsls-1))           &
+528:                      & - tb(i,k,j-1)
+529:                 fls4 = (teb(i,k,jsls+1)+dtb*tebt(i,k,jsls+1))           &
+530:                      & - tb(i,k,j+1)
+531: #endif
+532:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+533:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+534:               end do
+535:             end do
+536:           else
+537:           end if
+538:         else
+539:         end if
+540: !
+541:       else if ( iboudy.eq.5 ) then
+542:  
+543: !----------use exponential method
+544:  
+545:         if ( jsls.gt.ip ) then
+546: !------interior j slices:
+547:           do i = 2 , ip
+548:             ii = iym1 - i + 1
+549:             do k = 1 , kz
+550:               fcx = fcoef*xfune(i,k)
+551:               gcx = gcoef*xfune(i,k)
+552: !........south boundary:
+553:               fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
+554:               fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
+555:               fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
+556:               fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
+557:               fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+558:               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+559:                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+560: !........north boundary:
+561:               fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
+562:               fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
+563:               fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
+564:               fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
+565:               fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+566:               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+567:                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+568:             end do
+569:           end do
+570: !
+571:         else if ( jsls.le.ip ) then
+572: !------east or west boundary slices:
+573:           ibeg = 2
+574:           iend = iym1 - 1
+575:           if ( jsls.gt.2 ) then
+576:             do i = 2 , jsls - 1
+577:               ii = iym1 - i + 1
+578:               do k = 1 , kz
+579:                 fcx = fcoef*xfune(i,k)
+580:                 gcx = gcoef*xfune(i,k)
+581: !.........south boundary:
+582:                 fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
+583:                 fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
+584:                 fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
+585:                 fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
+586:                 fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+587:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+588:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+589: !.........north boundary:
+590:                 fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
+591:                 fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
+592:                 fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
+593:                 fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
+594:                 fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+595:                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
+596:                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+597:               end do
+598:             end do
+599:             ibeg = jsls
+600:             iend = iym1 - jsls + 1
+601:           end if
+602: !
+603:           if ( jj.gt.ip ) then
+604: !-------west-boundary slice:
+605:             do k = 1 , kz
+606:               fcx = fcoef*xfune(jsls,k)
+607:               gcx = gcoef*xfune(jsls,k)
+608:               do i = ibeg , iend
+609: #ifdef MPP1
+610:                 fls0 = (twb(i,k,jwb)+dtb*twbt(i,k,jwb)) - tb(i,k,j)
+611:                 fls1 = (twb(i-1,k,jwb)+dtb*twbt(i-1,k,jwb))             &
+612:                      & - tb(i-1,k,j)
+613:                 fls2 = (twb(i+1,k,jwb)+dtb*twbt(i+1,k,jwb))             &
+614:                      & - tb(i+1,k,j)
+615:                 fls3 = (twb(i,k,jwb-1)+dtb*twbt(i,k,jwb-1))             &
+616:                      & - tb(i,k,j-1)
+617:                 fls4 = (twb(i,k,jwb+1)+dtb*twbt(i,k,jwb+1))             &
+618:                      & - tb(i,k,j+1)
+619: #else
+620:                 fls0 = (twb(i,k,jsls)+dtb*twbt(i,k,jsls)) - tb(i,k,j)
+621:                 fls1 = (twb(i-1,k,jsls)+dtb*twbt(i-1,k,jsls))           &
+622:                      & - tb(i-1,k,j)
+623:                 fls2 = (twb(i+1,k,jsls)+dtb*twbt(i+1,k,jsls))           &
+624:                      & - tb(i+1,k,j)
+625:                 fls3 = (twb(i,k,jsls-1)+dtb*twbt(i,k,jsls-1))           &
+626:                      & - tb(i,k,j-1)
+627:                 fls4 = (twb(i,k,jsls+1)+dtb*twbt(i,k,jsls+1))           &
+628:                      & - tb(i,k,j+1)
+629: #endif
+630:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+631:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+632:               end do
+633:             end do
+634:           else if ( jj.le.ip ) then
+635: !-------east-boundary slice:
+636:             do k = 1 , kz
+637:               fcx = fcoef*xfune(jsls,k)
+638:               gcx = gcoef*xfune(jsls,k)
+639:               do i = ibeg , iend
+640: #ifdef MPP1
+641:                 fls0 = (teb(i,k,jeb)+dtb*tebt(i,k,jeb)) - tb(i,k,j)
+642:                 fls1 = (teb(i-1,k,jeb)+dtb*tebt(i-1,k,jeb))             &
+643:                      & - tb(i-1,k,j)
+644:                 fls2 = (teb(i+1,k,jeb)+dtb*tebt(i+1,k,jeb))             &
+645:                      & - tb(i+1,k,j)
+646:                 fls3 = (teb(i,k,jeb-1)+dtb*tebt(i,k,jeb-1))             &
+647:                      & - tb(i,k,j-1)
+648:                 fls4 = (teb(i,k,jeb+1)+dtb*tebt(i,k,jeb+1))             &
+649:                      & - tb(i,k,j+1)
+650: #else
+651:                 fls0 = (teb(i,k,jsls)+dtb*tebt(i,k,jsls)) - tb(i,k,j)
+652:                 fls1 = (teb(i-1,k,jsls)+dtb*tebt(i-1,k,jsls))           &
+653:                      & - tb(i-1,k,j)
+654:                 fls2 = (teb(i+1,k,jsls)+dtb*tebt(i+1,k,jsls))           &
+655:                      & - tb(i+1,k,j)
+656:                 fls3 = (teb(i,k,jsls-1)+dtb*tebt(i,k,jsls-1))           &
+657:                      & - tb(i,k,j-1)
+658:                 fls4 = (teb(i,k,jsls+1)+dtb*tebt(i,k,jsls+1))           &
+659:                      & - tb(i,k,j+1)
+660: #endif
+661:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+662:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+663:               end do
+664:             end do
+665:           else
+666:           end if
+667:         else
+668:         end if
+669: !
+670:       else
+671:       end if
+672:       end subroutine nudge_t
+673: !
+674: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+675: !
+<p><a name=nudgeqv><H3>nudgeqv</H3></a></p> Click <a href="./callingtree/nudgeqv_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where nudgeqv is used.
+<hr>
+676:       subroutine nudgeqv(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
+677: 
+678: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+679: !                                                                     c
+680: !     this subroutine applies relaxation boundary conditions to the   c
+681: !     tendency term - ften.                                           c
+682: !                                                                     c
+683: !     ip    : is the number of slices affected by nudging.            c
+684: !                                                                     c
+685: !     xt    : is the time in minutes for variable "qvb".               c
+686: !                                                                     c
+687: !     fcoef : are the coefficients for the newtonian term.            c
+688: !                                                                     c
+689: !     gcoef : are the coefficients for the diffusion term.            c
+690: !                                                                     c
+691: !     ften  : is the tendency calculated from the model.              c
+692: !                                                                     c
+693: !     qeb, qwb, qsb, qnb : are the observed boundary values           c
+694: !                   on east, west, south, and north boundaries.       c
+695: !                                                                     c
+696: !     qebt, qwbt, qsbt, qnbt : are the large-scale or observed        c
+697: !             tendencies at east, west, south, and north boundaries.  c
+698: !                                                                     c
+699: !     tb    : is the variable at tau-1.                               c
+700: !                                                                     c
+701: !     c203  : = 1./(dx*dx), defined in 'param'.                       c
+702: !                                                                     c
+703: !     ie = iy, je = jx for dot-point variables.                       c
+704: !     ie = iym1, je = jxm1 for cross-point variables.                 c
+705: !                                                                     c
+706: !     j    : is the j'th slice of the tendency to be adjusted.        c
+707: !     iboudy : type of boundary condition relaxation, 1=linear        c
+708: !              5 = exponential                                        c
+709: !                                                                     c
+710: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+711:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+712:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+713:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+714:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : anudg
+715:       implicit none
+716: !
+717: ! Dummy arguments
+718: !
+719:       real(8) :: c203 , fcoef , gcoef , xt
+720:       integer :: iboudy , ip , j
+721:       real(8) , dimension(iy,kz) :: ften
+722:       intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+723:       intent (inout) ften
+724: !
+725: ! Local variables
+726: !
+727:       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
+728:       integer :: i , ibeg , iend , ii , jj , jsls , k , kk , mm
+729:       real(8) :: xfun , xfune
+730: #ifdef MPP1
+731:       integer :: jeb , jwb
+732: #endif
+733: !
+734:       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
+735:       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+736: !
+737: !----------------------------------------------------------------------
+738: !
+739:       dtb = xt*60.
+740: #ifdef MPP1
+741:       jsls = j + myid*jxp
+742:       jj = jx - jsls
+743:       if ( jj.le.ip ) jsls = jj
+744:       jwb = jsls
+745:       if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
+746:       if ( jwb.eq.0 ) jwb = jxp
+747:       if ( myid.eq.nproc-1 ) then
+748:         jeb = jsls
+749:       else
+750:         jeb = jsls + 1
+751:       end if
+752:       if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
+753:       if ( jeb.eq.0 ) jeb = jxp
+754: #else
+755:       jsls = j
+756:       jj = jx - jsls
+757:       if ( jj.le.ip ) jsls = jj
+758: #endif
+759: !
+760: !-----determine which relaxation method to use:linear/expon.
+761: !
+762:       if ( iboudy.eq.1 ) then
+763: !
+764: !---------use linear method
+765: !
+766:         if ( jsls.gt.ip ) then
+767: !------interior j slices:
+768:           do i = 2 , ip
+769:             ii = iym1 - i + 1
+770:             fcx = fcoef*xfun(i)
+771:             gcx = gcoef*xfun(i)
+772:             do k = 1 , kz
+773: !.......south boundary:
+774:               fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
+775:               fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
+776:               fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
+777:               fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
+778:               fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+779:               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+780:                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+781: !........north boundary:
+782:               fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
+783:               fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
+784:               fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
+785:               fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
+786:               fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+787:               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+788:                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+789:             end do
+790:           end do
+791: !
+792:         else if ( jsls.le.ip ) then
+793: !------east or west boundary slices:
+794:           ibeg = 2
+795:           iend = iym1 - 1
+796:           if ( jsls.gt.2 ) then
+797:             do i = 2 , jsls - 1
+798:               ii = iym1 - i + 1
+799:               fcx = fcoef*xfun(i)
+800:               gcx = gcoef*xfun(i)
+801:               do k = 1 , kz
+802: !........south  boundary:
+803:                 fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
+804:                 fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
+805:                 fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
+806:                 fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
+807:                 fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+808:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+809:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+810: !.........north boundary:
+811:                 fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
+812:                 fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
+813:                 fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
+814:                 fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
+815:                 fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+816:                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
+817:                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+818:               end do
+819:             end do
+820:             ibeg = jsls
+821:             iend = iym1 - jsls + 1
+822:           end if
+823: !
+824:           if ( jj.gt.ip ) then
+825: !-------west-boundary slice:
+826:             fcx = fcoef*xfun(jsls)
+827:             gcx = gcoef*xfun(jsls)
+828:             do k = 1 , kz
+829:               do i = ibeg , iend
+830: #ifdef MPP1
+831:                 fls0 = (qwb(i,k,jwb)+dtb*qwbt(i,k,jwb)) - qvb(i,k,j)
+832:                 fls1 = (qwb(i-1,k,jwb)+dtb*qwbt(i-1,k,jwb))             &
+833:                      & - qvb(i-1,k,j)
+834:                 fls2 = (qwb(i+1,k,jwb)+dtb*qwbt(i+1,k,jwb))             &
+835:                      & - qvb(i+1,k,j)
+836:                 fls3 = (qwb(i,k,jwb-1)+dtb*qwbt(i,k,jwb-1))             &
+837:                      & - qvb(i,k,j-1)
+838:                 fls4 = (qwb(i,k,jwb+1)+dtb*qwbt(i,k,jwb+1))             &
+839:                      & - qvb(i,k,j+1)
+840: #else
+841:                 fls0 = (qwb(i,k,jsls)+dtb*qwbt(i,k,jsls)) - qvb(i,k,j)
+842:                 fls1 = (qwb(i-1,k,jsls)+dtb*qwbt(i-1,k,jsls))           &
+843:                      & - qvb(i-1,k,j)
+844:                 fls2 = (qwb(i+1,k,jsls)+dtb*qwbt(i+1,k,jsls))           &
+845:                      & - qvb(i+1,k,j)
+846:                 fls3 = (qwb(i,k,jsls-1)+dtb*qwbt(i,k,jsls-1))           &
+847:                      & - qvb(i,k,j-1)
+848:                 fls4 = (qwb(i,k,jsls+1)+dtb*qwbt(i,k,jsls+1))           &
+849:                      & - qvb(i,k,j+1)
+850: #endif
+851:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+852:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+853:               end do
+854:             end do
+855:           else if ( jj.le.ip ) then
+856: !-------east-boundary slice:
+857:             fcx = fcoef*xfun(jsls)
+858:             gcx = gcoef*xfun(jsls)
+859:             do k = 1 , kz
+860:               do i = ibeg , iend
+861: #ifdef MPP1
+862:                 fls0 = (qeb(i,k,jeb)+dtb*qebt(i,k,jeb)) - qvb(i,k,j)
+863:                 fls1 = (qeb(i-1,k,jeb)+dtb*qebt(i-1,k,jeb))             &
+864:                      & - qvb(i-1,k,j)
+865:                 fls2 = (qeb(i+1,k,jeb)+dtb*qebt(i+1,k,jeb))             &
+866:                      & - qvb(i+1,k,j)
+867:                 fls3 = (qeb(i,k,jeb-1)+dtb*qebt(i,k,jeb-1))             &
+868:                      & - qvb(i,k,j-1)
+869:                 fls4 = (qeb(i,k,jeb+1)+dtb*qebt(i,k,jeb+1))             &
+870:                      & - qvb(i,k,j+1)
+871: #else
+872:                 fls0 = (qeb(i,k,jsls)+dtb*qebt(i,k,jsls)) - qvb(i,k,j)
+873:                 fls1 = (qeb(i-1,k,jsls)+dtb*qebt(i-1,k,jsls))           &
+874:                      & - qvb(i-1,k,j)
+875:                 fls2 = (qeb(i+1,k,jsls)+dtb*qebt(i+1,k,jsls))           &
+876:                      & - qvb(i+1,k,j)
+877:                 fls3 = (qeb(i,k,jsls-1)+dtb*qebt(i,k,jsls-1))           &
+878:                      & - qvb(i,k,j-1)
+879:                 fls4 = (qeb(i,k,jsls+1)+dtb*qebt(i,k,jsls+1))           &
+880:                      & - qvb(i,k,j+1)
+881: #endif
+882:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+883:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+884:               end do
+885:             end do
+886:           else
+887:           end if
+888:         else
+889:         end if
+890: !
+891:       else if ( iboudy.eq.5 ) then
+892:  
+893: !----------use exponential method
+894:  
+895:         if ( jsls.gt.ip ) then
+896: !------interior j slices:
+897:           do i = 2 , ip
+898:             ii = iym1 - i + 1
+899:             do k = 1 , kz
+900:               fcx = fcoef*xfune(i,k)
+901:               gcx = gcoef*xfune(i,k)
+902: !........south boundary:
+903:               fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
+904:               fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
+905:               fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
+906:               fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
+907:               fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+908:               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+909:                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+910: !........north boundary:
+911:               fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
+912:               fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
+913:               fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
+914:               fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
+915:               fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+916:               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+917:                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+918:             end do
+919:           end do
+920: !
+921:         else if ( jsls.le.ip ) then
+922: !------east or west boundary slices:
+923:           ibeg = 2
+924:           iend = iym1 - 1
+925:           if ( jsls.gt.2 ) then
+926:             do i = 2 , jsls - 1
+927:               ii = iym1 - i + 1
+928:               do k = 1 , kz
+929:                 fcx = fcoef*xfune(i,k)
+930:                 gcx = gcoef*xfune(i,k)
+931: !.........south boundary:
+932:                 fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
+933:                 fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
+934:                 fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
+935:                 fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
+936:                 fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+937:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+938:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+939: !.........north boundary:
+940:                 fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
+941:                 fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
+942:                 fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
+943:                 fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
+944:                 fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+945:                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
+946:                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+947:               end do
+948:             end do
+949:             ibeg = jsls
+950:             iend = iym1 - jsls + 1
+951:           end if
+952: !
+953:           if ( jj.gt.ip ) then
+954: !-------west-boundary slice:
+955:             do k = 1 , kz
+956:               fcx = fcoef*xfune(jsls,k)
+957:               gcx = gcoef*xfune(jsls,k)
+958:               do i = ibeg , iend
+959: #ifdef MPP1
+960:                 fls0 = (qwb(i,k,jwb)+dtb*qwbt(i,k,jwb)) - qvb(i,k,j)
+961:                 fls1 = (qwb(i-1,k,jwb)+dtb*qwbt(i-1,k,jwb))             &
+962:                      & - qvb(i-1,k,j)
+963:                 fls2 = (qwb(i+1,k,jwb)+dtb*qwbt(i+1,k,jwb))             &
+964:                      & - qvb(i+1,k,j)
+965:                 fls3 = (qwb(i,k,jwb-1)+dtb*qwbt(i,k,jwb-1))             &
+966:                      & - qvb(i,k,j-1)
+967:                 fls4 = (qwb(i,k,jwb+1)+dtb*qwbt(i,k,jwb+1))             &
+968:                      & - qvb(i,k,j+1)
+969: #else
+970:                 fls0 = (qwb(i,k,jsls)+dtb*qwbt(i,k,jsls)) - qvb(i,k,j)
+971:                 fls1 = (qwb(i-1,k,jsls)+dtb*qwbt(i-1,k,jsls))           &
+972:                      & - qvb(i-1,k,j)
+973:                 fls2 = (qwb(i+1,k,jsls)+dtb*qwbt(i+1,k,jsls))           &
+974:                      & - qvb(i+1,k,j)
+975:                 fls3 = (qwb(i,k,jsls-1)+dtb*qwbt(i,k,jsls-1))           &
+976:                      & - qvb(i,k,j-1)
+977:                 fls4 = (qwb(i,k,jsls+1)+dtb*qwbt(i,k,jsls+1))           &
+978:                      & - qvb(i,k,j+1)
+979: #endif
+980:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+981:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+982:               end do
+983:             end do
+984:           else if ( jj.le.ip ) then
+985: !-------east-boundary slice:
+986:             do k = 1 , kz
+987:               fcx = fcoef*xfune(jsls,k)
+988:               gcx = gcoef*xfune(jsls,k)
+989:               do i = ibeg , iend
+990: #ifdef MPP1
+991:                 fls0 = (qeb(i,k,jeb)+dtb*qebt(i,k,jeb)) - qvb(i,k,j)
+992:                 fls1 = (qeb(i-1,k,jeb)+dtb*qebt(i-1,k,jeb))             &
+993:                      & - qvb(i-1,k,j)
+994:                 fls2 = (qeb(i+1,k,jeb)+dtb*qebt(i+1,k,jeb))             &
+995:                      & - qvb(i+1,k,j)
+996:                 fls3 = (qeb(i,k,jeb-1)+dtb*qebt(i,k,jeb-1))             &
+997:                      & - qvb(i,k,j-1)
+998:                 fls4 = (qeb(i,k,jeb+1)+dtb*qebt(i,k,jeb+1))             &
+999:                      & - qvb(i,k,j+1)
+1000: #else
+1001:                 fls0 = (qeb(i,k,jsls)+dtb*qebt(i,k,jsls)) - qvb(i,k,j)
+1002:                 fls1 = (qeb(i-1,k,jsls)+dtb*qebt(i-1,k,jsls))           &
+1003:                      & - qvb(i-1,k,j)
+1004:                 fls2 = (qeb(i+1,k,jsls)+dtb*qebt(i+1,k,jsls))           &
+1005:                      & - qvb(i+1,k,j)
+1006:                 fls3 = (qeb(i,k,jsls-1)+dtb*qebt(i,k,jsls-1))           &
+1007:                      & - qvb(i,k,j-1)
+1008:                 fls4 = (qeb(i,k,jsls+1)+dtb*qebt(i,k,jsls+1))           &
+1009:                      & - qvb(i,k,j+1)
+1010: #endif
+1011:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1012:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1013:               end do
+1014:             end do
+1015:           else
+1016:           end if
+1017:         else
+1018:         end if
+1019: !
+1020:       else
+1021:       end if
+1022:       end subroutine nudgeqv
+1023: !
+1024: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+1025: !
+<p><a name=nudge_u><H3>nudge_u</H3></a></p> Click <a href="./callingtree/nudge_u_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where nudge_u is used.
+<hr>
+1026:       subroutine nudge_u(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
+1027: 
+1028: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+1029: !                                                                     c
+1030: !     this subroutine applies relaxation boundary conditions to the   c
+1031: !     tendency term - ften.                                           c
+1032: !                                                                     c
+1033: !     ip    : is the number of slices affected by nudging.            c
+1034: !                                                                     c
+1035: !     xt    : is the time in minutes for variable "ub".               c
+1036: !                                                                     c
+1037: !     fcoef : are the coefficients for the newtonian term.            c
+1038: !                                                                     c
+1039: !     gcoef : are the coefficients for the diffusion term.            c
+1040: !                                                                     c
+1041: !     ften  : is the tendency calculated from the model.              c
+1042: !                                                                     c
+1043: !     ueb, uwb, usb, unb : are the observed boundary values           c
+1044: !                   on east, west, south, and north boundaries.       c
+1045: !                                                                     c
+1046: !     uebt, uwbt, usbt, unbt : are the large-scale or observed        c
+1047: !             tendencies at east, west, south, and north boundaries.  c
+1048: !                                                                     c
+1049: !     tb    : is the variable at tau-1.                               c
+1050: !                                                                     c
+1051: !     c203  : = 1./(dx*dx), defined in 'param'.                       c
+1052: !                                                                     c
+1053: !     ie = iy, je = jx for dot-point variables.                       c
+1054: !     ie = iym1, je = jxm1 for cross-point variables.                 c
+1055: !                                                                     c
+1056: !     j    : is the j'th slice of the tendency to be adjusted.        c
+1057: !     iboudy : type of boundary condition relaxation, 1=linear        c
+1058: !              5 = exponential                                        c
+1059: !                                                                     c
+1060: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+1061: 
+1062:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+1063:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+1064:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+1065:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : anudg
+1066:       implicit none
+1067: !
+1068: ! Dummy arguments
+1069: !
+1070:       real(8) :: c203 , fcoef , gcoef , xt
+1071:       integer :: iboudy , ip , j
+1072:       real(8) , dimension(iy,kz) :: ften
+1073:       intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+1074:       intent (inout) ften
+1075: !
+1076: ! Local variables
+1077: !
+1078:       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
+1079:       integer :: i , ibeg , iend , ii , jj , jsls , k , kk , mm
+1080:       real(8) :: xfun , xfune
+1081: #ifdef MPP1
+1082:       integer :: jew
+1083: #endif
+1084: !
+1085:       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
+1086:       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+1087: !
+1088: !----------------------------------------------------------------------
+1089: !
+1090:       dtb = xt*60.
+1091: #ifdef MPP1
+1092:       jsls = j + myid*jxp
+1093:       jj = jxp1 - jsls
+1094:       if ( jj.le.ip ) jsls = jj
+1095:       jew = jsls
+1096:       if ( jew.gt.jxp ) jew = mod(jsls,jxp)
+1097:       if ( jew.eq.0 ) jew = jxp
+1098: #else
+1099:       jsls = j
+1100:       jj = jxp1 - jsls
+1101:       if ( jj.le.ip ) jsls = jj
+1102: #endif
+1103: !
+1104: !-----determine which relaxation method to use:linear/expon.
+1105: !
+1106:       if ( iboudy.eq.1 ) then
+1107: !
+1108: !---------use linear method
+1109: !
+1110:         if ( jsls.gt.ip ) then
+1111: !------interior j slices:
+1112:           do i = 2 , ip
+1113:             ii = iy - i + 1
+1114:             fcx = fcoef*xfun(i)
+1115:             gcx = gcoef*xfun(i)
+1116:             do k = 1 , kz
+1117: !.......south boundary:
+1118:               fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
+1119:               fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
+1120:               fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
+1121:               fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
+1122:               fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+1123:               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+1124:                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1125: !........north boundary:
+1126:               fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
+1127:               fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
+1128:               fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
+1129:               fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
+1130:               fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+1131:               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+1132:                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1133:             end do
+1134:           end do
+1135: !
+1136:         else if ( jsls.le.ip ) then
+1137: !------east or west boundary slices:
+1138:           ibeg = 2
+1139:           iend = iym1
+1140:           if ( jsls.gt.2 ) then
+1141:             do i = 2 , jsls - 1
+1142:               ii = iy - i + 1
+1143:               fcx = fcoef*xfun(i)
+1144:               gcx = gcoef*xfun(i)
+1145:               do k = 1 , kz
+1146: !........south  boundary:
+1147:                 fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
+1148:                 fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
+1149:                 fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
+1150:                 fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
+1151:                 fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+1152:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1153:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1154: !.........north boundary:
+1155:                 fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
+1156:                 fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
+1157:                 fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
+1158:                 fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
+1159:                 fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+1160:                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
+1161:                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1162:               end do
+1163:             end do
+1164:             ibeg = jsls
+1165:             iend = iy - jsls + 1
+1166:           end if
+1167: !
+1168:           if ( jj.gt.ip ) then
+1169: !-------west-boundary slice:
+1170:             fcx = fcoef*xfun(jsls)
+1171:             gcx = gcoef*xfun(jsls)
+1172:             do k = 1 , kz
+1173:               do i = ibeg , iend
+1174: #ifdef MPP1
+1175:                 fls0 = (uwb(i,k,jew)+dtb*uwbt(i,k,jew)) - ub(i,k,j)
+1176:                 fls1 = (uwb(i-1,k,jew)+dtb*uwbt(i-1,k,jew))             &
+1177:                      & - ub(i-1,k,j)
+1178:                 fls2 = (uwb(i+1,k,jew)+dtb*uwbt(i+1,k,jew))             &
+1179:                      & - ub(i+1,k,j)
+1180:                 fls3 = (uwb(i,k,jew-1)+dtb*uwbt(i,k,jew-1))             &
+1181:                      & - ub(i,k,j-1)
+1182:                 fls4 = (uwb(i,k,jew+1)+dtb*uwbt(i,k,jew+1))             &
+1183:                      & - ub(i,k,j+1)
+1184: #else
+1185:                 fls0 = (uwb(i,k,jsls)+dtb*uwbt(i,k,jsls)) - ub(i,k,j)
+1186:                 fls1 = (uwb(i-1,k,jsls)+dtb*uwbt(i-1,k,jsls))           &
+1187:                      & - ub(i-1,k,j)
+1188:                 fls2 = (uwb(i+1,k,jsls)+dtb*uwbt(i+1,k,jsls))           &
+1189:                      & - ub(i+1,k,j)
+1190:                 fls3 = (uwb(i,k,jsls-1)+dtb*uwbt(i,k,jsls-1))           &
+1191:                      & - ub(i,k,j-1)
+1192:                 fls4 = (uwb(i,k,jsls+1)+dtb*uwbt(i,k,jsls+1))           &
+1193:                      & - ub(i,k,j+1)
+1194: #endif
+1195:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1196:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1197:               end do
+1198:             end do
+1199:           else if ( jj.le.ip ) then
+1200: !-------east-boundary slice:
+1201:             fcx = fcoef*xfun(jsls)
+1202:             gcx = gcoef*xfun(jsls)
+1203:             do k = 1 , kz
+1204:               do i = ibeg , iend
+1205: #ifdef MPP1
+1206:                 fls0 = (ueb(i,k,jew)+dtb*uebt(i,k,jew)) - ub(i,k,j)
+1207:                 fls1 = (ueb(i-1,k,jew)+dtb*uebt(i-1,k,jew))             &
+1208:                      & - ub(i-1,k,j)
+1209:                 fls2 = (ueb(i+1,k,jew)+dtb*uebt(i+1,k,jew))             &
+1210:                      & - ub(i+1,k,j)
+1211:                 fls3 = (ueb(i,k,jew-1)+dtb*uebt(i,k,jew-1))             &
+1212:                      & - ub(i,k,j-1)
+1213:                 fls4 = (ueb(i,k,jew+1)+dtb*uebt(i,k,jew+1))             &
+1214:                      & - ub(i,k,j+1)
+1215: #else
+1216:                 fls0 = (ueb(i,k,jsls)+dtb*uebt(i,k,jsls)) - ub(i,k,j)
+1217:                 fls1 = (ueb(i-1,k,jsls)+dtb*uebt(i-1,k,jsls))           &
+1218:                      & - ub(i-1,k,j)
+1219:                 fls2 = (ueb(i+1,k,jsls)+dtb*uebt(i+1,k,jsls))           &
+1220:                      & - ub(i+1,k,j)
+1221:                 fls3 = (ueb(i,k,jsls-1)+dtb*uebt(i,k,jsls-1))           &
+1222:                      & - ub(i,k,j-1)
+1223:                 fls4 = (ueb(i,k,jsls+1)+dtb*uebt(i,k,jsls+1))           &
+1224:                      & - ub(i,k,j+1)
+1225: #endif
+1226:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1227:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1228:               end do
+1229:             end do
+1230:           else
+1231:           end if
+1232:         else
+1233:         end if
+1234: !
+1235:       else if ( iboudy.eq.5 ) then
+1236:  
+1237: !----------use exponential method
+1238:  
+1239:         if ( jsls.gt.ip ) then
+1240: !------interior j slices:
+1241:           do i = 2 , ip
+1242:             ii = iy - i + 1
+1243:             do k = 1 , kz
+1244:               fcx = fcoef*xfune(i,k)
+1245:               gcx = gcoef*xfune(i,k)
+1246: !........south boundary:
+1247:               fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
+1248:               fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
+1249:               fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
+1250:               fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
+1251:               fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+1252:               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+1253:                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1254: !........north boundary:
+1255:               fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
+1256:               fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
+1257:               fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
+1258:               fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
+1259:               fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+1260:               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+1261:                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1262:             end do
+1263:           end do
+1264: !
+1265:         else if ( jsls.le.ip ) then
+1266: !------east or west boundary slices:
+1267:           ibeg = 2
+1268:           iend = iym1
+1269:           if ( jsls.gt.2 ) then
+1270:             do i = 2 , jsls - 1
+1271:               ii = iy - i + 1
+1272:               do k = 1 , kz
+1273:                 fcx = fcoef*xfune(i,k)
+1274:                 gcx = gcoef*xfune(i,k)
+1275: !.........south boundary:
+1276:                 fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
+1277:                 fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
+1278:                 fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
+1279:                 fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
+1280:                 fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+1281:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1282:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1283: !.........north boundary:
+1284:                 fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
+1285:                 fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
+1286:                 fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
+1287:                 fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
+1288:                 fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+1289:                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
+1290:                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1291:               end do
+1292:             end do
+1293:             ibeg = jsls
+1294:             iend = iy - jsls + 1
+1295:           end if
+1296: !
+1297:           if ( jj.gt.ip ) then
+1298: !-------west-boundary slice:
+1299:             do k = 1 , kz
+1300:               fcx = fcoef*xfune(jsls,k)
+1301:               gcx = gcoef*xfune(jsls,k)
+1302:               do i = ibeg , iend
+1303: #ifdef MPP1
+1304:                 fls0 = (uwb(i,k,jew)+dtb*uwbt(i,k,jew)) - ub(i,k,j)
+1305:                 fls1 = (uwb(i-1,k,jew)+dtb*uwbt(i-1,k,jew))             &
+1306:                      & - ub(i-1,k,j)
+1307:                 fls2 = (uwb(i+1,k,jew)+dtb*uwbt(i+1,k,jew))             &
+1308:                      & - ub(i+1,k,j)
+1309:                 fls3 = (uwb(i,k,jew-1)+dtb*uwbt(i,k,jew-1))             &
+1310:                      & - ub(i,k,j-1)
+1311:                 fls4 = (uwb(i,k,jew+1)+dtb*uwbt(i,k,jew+1))             &
+1312:                      & - ub(i,k,j+1)
+1313: #else
+1314:                 fls0 = (uwb(i,k,jsls)+dtb*uwbt(i,k,jsls)) - ub(i,k,j)
+1315:                 fls1 = (uwb(i-1,k,jsls)+dtb*uwbt(i-1,k,jsls))           &
+1316:                      & - ub(i-1,k,j)
+1317:                 fls2 = (uwb(i+1,k,jsls)+dtb*uwbt(i+1,k,jsls))           &
+1318:                      & - ub(i+1,k,j)
+1319:                 fls3 = (uwb(i,k,jsls-1)+dtb*uwbt(i,k,jsls-1))           &
+1320:                      & - ub(i,k,j-1)
+1321:                 fls4 = (uwb(i,k,jsls+1)+dtb*uwbt(i,k,jsls+1))           &
+1322:                      & - ub(i,k,j+1)
+1323: #endif
+1324:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1325:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1326:               end do
+1327:             end do
+1328:           else if ( jj.le.ip ) then
+1329: !-------east-boundary slice:
+1330:             do k = 1 , kz
+1331:               fcx = fcoef*xfune(jsls,k)
+1332:               gcx = gcoef*xfune(jsls,k)
+1333:               do i = ibeg , iend
+1334: #ifdef MPP1
+1335:                 fls0 = (ueb(i,k,jew)+dtb*uebt(i,k,jew)) - ub(i,k,j)
+1336:                 fls1 = (ueb(i-1,k,jew)+dtb*uebt(i-1,k,jew))             &
+1337:                      & - ub(i-1,k,j)
+1338:                 fls2 = (ueb(i+1,k,jew)+dtb*uebt(i+1,k,jew))             &
+1339:                      & - ub(i+1,k,j)
+1340:                 fls3 = (ueb(i,k,jew-1)+dtb*uebt(i,k,jew-1))             &
+1341:                      & - ub(i,k,j-1)
+1342:                 fls4 = (ueb(i,k,jew+1)+dtb*uebt(i,k,jew+1))             &
+1343:                      & - ub(i,k,j+1)
+1344: #else
+1345:                 fls0 = (ueb(i,k,jsls)+dtb*uebt(i,k,jsls)) - ub(i,k,j)
+1346:                 fls1 = (ueb(i-1,k,jsls)+dtb*uebt(i-1,k,jsls))           &
+1347:                      & - ub(i-1,k,j)
+1348:                 fls2 = (ueb(i+1,k,jsls)+dtb*uebt(i+1,k,jsls))           &
+1349:                      & - ub(i+1,k,j)
+1350:                 fls3 = (ueb(i,k,jsls-1)+dtb*uebt(i,k,jsls-1))           &
+1351:                      & - ub(i,k,j-1)
+1352:                 fls4 = (ueb(i,k,jsls+1)+dtb*uebt(i,k,jsls+1))           &
+1353:                      & - ub(i,k,j+1)
+1354: #endif
+1355:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1356:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1357:               end do
+1358:             end do
+1359:           else
+1360:           end if
+1361:         else
+1362:         end if
+1363: !
+1364:       else
+1365:       end if
+1366:       end subroutine nudge_u
+1367: !
+1368: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+1369: !
+<p><a name=nudge_v><H3>nudge_v</H3></a></p> Click <a href="./callingtree/nudge_v_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where nudge_v is used.
+<hr>
+1370:       subroutine nudge_v(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
+1371: 
+1372: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+1373: !                                                                     c
+1374: !     this subroutine applies relaxation boundary conditions to the   c
+1375: !     tendency term - ften.                                           c
+1376: !                                                                     c
+1377: !     ip    : is the number of slices affected by nudging.            c
+1378: !                                                                     c
+1379: !     xt    : is the time in minutes for variable "vb".               c
+1380: !                                                                     c
+1381: !     fcoef : are the coefficients for the newtonian term.            c
+1382: !                                                                     c
+1383: !     gcoef : are the coefficients for the diffusion term.            c
+1384: !                                                                     c
+1385: !     ften  : is the tendency calculated from the model.              c
+1386: !                                                                     c
+1387: !     veb, vwb, vsb, vnb : are the observed boundary values           c
+1388: !                   on east, west, south, and north boundaries.       c
+1389: !                                                                     c
+1390: !     vebt, vwbt, vsbt, vnbt : are the large-scale or observed        c
+1391: !             tendencies at east, west, south, and north boundaries.  c
+1392: !                                                                     c
+1393: !     tb    : is the variable at tau-1.                               c
+1394: !                                                                     c
+1395: !     c203  : = 1./(dx*dx), defined in 'param'.                       c
+1396: !                                                                     c
+1397: !     ie = iy, je = jx for dot-point variables.                       c
+1398: !     ie = iym1, je = jxm1 for cross-point variables.                 c
+1399: !                                                                     c
+1400: !     j    : is the j'th slice of the tendency to be adjusted.        c
+1401: !     iboudy : type of boundary condition relaxation, 1=linear        c
+1402: !              5 = exponential                                        c
+1403: !                                                                     c
+1404: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+1405: 
+1406:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+1407:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+1408:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+1409:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : anudg
+1410:       implicit none
+1411: !
+1412: ! Dummy arguments
+1413: !
+1414:       real(8) :: c203 , fcoef , gcoef , xt
+1415:       integer :: iboudy , ip , j
+1416:       real(8) , dimension(iy,kz) :: ften
+1417:       intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+1418:       intent (inout) ften
+1419: !
+1420: ! Local variables
+1421: !
+1422:       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
+1423:       integer :: i , ibeg , iend , ii , jj , jsls , k , kk , mm
+1424:       real(8) :: xfun , xfune
+1425: #ifdef MPP1
+1426:       integer :: jew
+1427: #endif
+1428: !
+1429:       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
+1430:       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+1431: !
+1432: !----------------------------------------------------------------------
+1433: !
+1434:       dtb = xt*60.
+1435: #ifdef MPP1
+1436:       jsls = j + myid*jxp
+1437:       jj = jxp1 - jsls
+1438:       if ( jj.le.ip ) jsls = jj
+1439:       jew = jsls
+1440:       if ( jew.gt.jxp ) jew = mod(jsls,jxp)
+1441:       if ( jew.eq.0 ) jew = jxp
+1442: #else
+1443:       jsls = j
+1444:       jj = jxp1 - jsls
+1445:       if ( jj.le.ip ) jsls = jj
+1446: #endif
+1447: !
+1448: !-----determine which relaxation method to use:linear/expon.
+1449: !
+1450:       if ( iboudy.eq.1 ) then
+1451: !
+1452: !---------use linear method
+1453: !
+1454:         if ( jsls.gt.ip ) then
+1455: !------interior j slices:
+1456:           do i = 2 , ip
+1457:             ii = iy - i + 1
+1458:             fcx = fcoef*xfun(i)
+1459:             gcx = gcoef*xfun(i)
+1460:             do k = 1 , kz
+1461: !.......south boundary:
+1462:               fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
+1463:               fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
+1464:               fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
+1465:               fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
+1466:               fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+1467:               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+1468:                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1469: !........north boundary:
+1470:               fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
+1471:               fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
+1472:               fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
+1473:               fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
+1474:               fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+1475:               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+1476:                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1477:             end do
+1478:           end do
+1479: !
+1480:         else if ( jsls.le.ip ) then
+1481: !------east or west boundary slices:
+1482:           ibeg = 2
+1483:           iend = iym1
+1484:           if ( jsls.gt.2 ) then
+1485:             do i = 2 , jsls - 1
+1486:               ii = iy - i + 1
+1487:               fcx = fcoef*xfun(i)
+1488:               gcx = gcoef*xfun(i)
+1489:               do k = 1 , kz
+1490: !........south  boundary:
+1491:                 fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
+1492:                 fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
+1493:                 fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
+1494:                 fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
+1495:                 fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+1496:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1497:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1498: !.........north boundary:
+1499:                 fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
+1500:                 fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
+1501:                 fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
+1502:                 fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
+1503:                 fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+1504:                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
+1505:                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1506:               end do
+1507:             end do
+1508:             ibeg = jsls
+1509:             iend = iy - jsls + 1
+1510:           end if
+1511: !
+1512:           if ( jj.gt.ip ) then
+1513: !-------west-boundary slice:
+1514:             fcx = fcoef*xfun(jsls)
+1515:             gcx = gcoef*xfun(jsls)
+1516:             do k = 1 , kz
+1517:               do i = ibeg , iend
+1518: #ifdef MPP1
+1519:                 fls0 = (vwb(i,k,jew)+dtb*vwbt(i,k,jew)) - vb(i,k,j)
+1520:                 fls1 = (vwb(i-1,k,jew)+dtb*vwbt(i-1,k,jew))             &
+1521:                      & - vb(i-1,k,j)
+1522:                 fls2 = (vwb(i+1,k,jew)+dtb*vwbt(i+1,k,jew))             &
+1523:                      & - vb(i+1,k,j)
+1524:                 fls3 = (vwb(i,k,jew-1)+dtb*vwbt(i,k,jew-1))             &
+1525:                      & - vb(i,k,j-1)
+1526:                 fls4 = (vwb(i,k,jew+1)+dtb*vwbt(i,k,jew+1))             &
+1527:                      & - vb(i,k,j+1)
+1528: #else
+1529:                 fls0 = (vwb(i,k,jsls)+dtb*vwbt(i,k,jsls)) - vb(i,k,j)
+1530:                 fls1 = (vwb(i-1,k,jsls)+dtb*vwbt(i-1,k,jsls))           &
+1531:                      & - vb(i-1,k,j)
+1532:                 fls2 = (vwb(i+1,k,jsls)+dtb*vwbt(i+1,k,jsls))           &
+1533:                      & - vb(i+1,k,j)
+1534:                 fls3 = (vwb(i,k,jsls-1)+dtb*vwbt(i,k,jsls-1))           &
+1535:                      & - vb(i,k,j-1)
+1536:                 fls4 = (vwb(i,k,jsls+1)+dtb*vwbt(i,k,jsls+1))           &
+1537:                      & - vb(i,k,j+1)
+1538: #endif
+1539:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1540:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1541:               end do
+1542:             end do
+1543:           else if ( jj.le.ip ) then
+1544: !-------east-boundary slice:
+1545:             fcx = fcoef*xfun(jsls)
+1546:             gcx = gcoef*xfun(jsls)
+1547:             do k = 1 , kz
+1548:               do i = ibeg , iend
+1549: #ifdef MPP1
+1550:                 fls0 = (veb(i,k,jew)+dtb*vebt(i,k,jew)) - vb(i,k,j)
+1551:                 fls1 = (veb(i-1,k,jew)+dtb*vebt(i-1,k,jew))             &
+1552:                      & - vb(i-1,k,j)
+1553:                 fls2 = (veb(i+1,k,jew)+dtb*vebt(i+1,k,jew))             &
+1554:                      & - vb(i+1,k,j)
+1555:                 fls3 = (veb(i,k,jew-1)+dtb*vebt(i,k,jew-1))             &
+1556:                      & - vb(i,k,j-1)
+1557:                 fls4 = (veb(i,k,jew+1)+dtb*vebt(i,k,jew+1))             &
+1558:                      & - vb(i,k,j+1)
+1559: #else
+1560:                 fls0 = (veb(i,k,jsls)+dtb*vebt(i,k,jsls)) - vb(i,k,j)
+1561:                 fls1 = (veb(i-1,k,jsls)+dtb*vebt(i-1,k,jsls))           &
+1562:                      & - vb(i-1,k,j)
+1563:                 fls2 = (veb(i+1,k,jsls)+dtb*vebt(i+1,k,jsls))           &
+1564:                      & - vb(i+1,k,j)
+1565:                 fls3 = (veb(i,k,jsls-1)+dtb*vebt(i,k,jsls-1))           &
+1566:                      & - vb(i,k,j-1)
+1567:                 fls4 = (veb(i,k,jsls+1)+dtb*vebt(i,k,jsls+1))           &
+1568:                      & - vb(i,k,j+1)
+1569: #endif
+1570:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1571:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1572:               end do
+1573:             end do
+1574:           else
+1575:           end if
+1576:         else
+1577:         end if
+1578: !
+1579:       else if ( iboudy.eq.5 ) then
+1580:  
+1581: !----------use exponential method
+1582:  
+1583:         if ( jsls.gt.ip ) then
+1584: !------interior j slices:
+1585:           do i = 2 , ip
+1586:             ii = iy - i + 1
+1587:             do k = 1 , kz
+1588:               fcx = fcoef*xfune(i,k)
+1589:               gcx = gcoef*xfune(i,k)
+1590: !........south boundary:
+1591:               fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
+1592:               fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
+1593:               fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
+1594:               fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
+1595:               fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+1596:               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+1597:                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1598: !........north boundary:
+1599:               fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
+1600:               fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
+1601:               fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
+1602:               fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
+1603:               fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+1604:               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+1605:                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1606:             end do
+1607:           end do
+1608: !
+1609:         else if ( jsls.le.ip ) then
+1610: !------east or west boundary slices:
+1611:           ibeg = 2
+1612:           iend = iym1
+1613:           if ( jsls.gt.2 ) then
+1614:             do i = 2 , jsls - 1
+1615:               ii = iy - i + 1
+1616:               do k = 1 , kz
+1617:                 fcx = fcoef*xfune(i,k)
+1618:                 gcx = gcoef*xfune(i,k)
+1619: !.........south boundary:
+1620:                 fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
+1621:                 fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
+1622:                 fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
+1623:                 fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
+1624:                 fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+1625:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1626:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1627: !.........north boundary:
+1628:                 fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
+1629:                 fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
+1630:                 fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
+1631:                 fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
+1632:                 fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+1633:                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
+1634:                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1635:               end do
+1636:             end do
+1637:             ibeg = jsls
+1638:             iend = iy - jsls + 1
+1639:           end if
+1640: !
+1641:           if ( jj.gt.ip ) then
+1642: !-------west-boundary slice:
+1643:             do k = 1 , kz
+1644:               fcx = fcoef*xfune(jsls,k)
+1645:               gcx = gcoef*xfune(jsls,k)
+1646:               do i = ibeg , iend
+1647: #ifdef MPP1
+1648:                 fls0 = (vwb(i,k,jew)+dtb*vwbt(i,k,jew)) - vb(i,k,j)
+1649:                 fls1 = (vwb(i-1,k,jew)+dtb*vwbt(i-1,k,jew))             &
+1650:                      & - vb(i-1,k,j)
+1651:                 fls2 = (vwb(i+1,k,jew)+dtb*vwbt(i+1,k,jew))             &
+1652:                      & - vb(i+1,k,j)
+1653:                 fls3 = (vwb(i,k,jew-1)+dtb*vwbt(i,k,jew-1))             &
+1654:                      & - vb(i,k,j-1)
+1655:                 fls4 = (vwb(i,k,jew+1)+dtb*vwbt(i,k,jew+1))             &
+1656:                      & - vb(i,k,j+1)
+1657: #else
+1658:                 fls0 = (vwb(i,k,jsls)+dtb*vwbt(i,k,jsls)) - vb(i,k,j)
+1659:                 fls1 = (vwb(i-1,k,jsls)+dtb*vwbt(i-1,k,jsls))           &
+1660:                      & - vb(i-1,k,j)
+1661:                 fls2 = (vwb(i+1,k,jsls)+dtb*vwbt(i+1,k,jsls))           &
+1662:                      & - vb(i+1,k,j)
+1663:                 fls3 = (vwb(i,k,jsls-1)+dtb*vwbt(i,k,jsls-1))           &
+1664:                      & - vb(i,k,j-1)
+1665:                 fls4 = (vwb(i,k,jsls+1)+dtb*vwbt(i,k,jsls+1))           &
+1666:                      & - vb(i,k,j+1)
+1667: #endif
+1668:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1669:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1670:               end do
+1671:             end do
+1672:           else if ( jj.le.ip ) then
+1673: !-------east-boundary slice:
+1674:             do k = 1 , kz
+1675:               fcx = fcoef*xfune(jsls,k)
+1676:               gcx = gcoef*xfune(jsls,k)
+1677:               do i = ibeg , iend
+1678: #ifdef MPP1
+1679:                 fls0 = (veb(i,k,jew)+dtb*vebt(i,k,jew)) - vb(i,k,j)
+1680:                 fls1 = (veb(i-1,k,jew)+dtb*vebt(i-1,k,jew))             &
+1681:                      & - vb(i-1,k,j)
+1682:                 fls2 = (veb(i+1,k,jew)+dtb*vebt(i+1,k,jew))             &
+1683:                      & - vb(i+1,k,j)
+1684:                 fls3 = (veb(i,k,jew-1)+dtb*vebt(i,k,jew-1))             &
+1685:                      & - vb(i,k,j-1)
+1686:                 fls4 = (veb(i,k,jew+1)+dtb*vebt(i,k,jew+1))             &
+1687:                      & - vb(i,k,j+1)
+1688: #else
+1689:                 fls0 = (veb(i,k,jsls)+dtb*vebt(i,k,jsls)) - vb(i,k,j)
+1690:                 fls1 = (veb(i-1,k,jsls)+dtb*vebt(i-1,k,jsls))           &
+1691:                      & - vb(i-1,k,j)
+1692:                 fls2 = (veb(i+1,k,jsls)+dtb*vebt(i+1,k,jsls))           &
+1693:                      & - vb(i+1,k,j)
+1694:                 fls3 = (veb(i,k,jsls-1)+dtb*vebt(i,k,jsls-1))           &
+1695:                      & - vb(i,k,j-1)
+1696:                 fls4 = (veb(i,k,jsls+1)+dtb*vebt(i,k,jsls+1))           &
+1697:                      & - vb(i,k,j+1)
+1698: #endif
+1699:                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
+1700:                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+1701:               end do
+1702:             end do
+1703:           else
+1704:           end if
+1705:         else
+1706:         end if
+1707: !
+1708:       else
+1709:       end if
+1710:       end subroutine nudge_v
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,92 @@
+<HTML>
+
+<HEAD>
+<TITLE>condcq.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>condcq.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>condcq.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=condcq><H3>condcq</H3></a></p> Click <a href="./callingtree/condcq_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where condcq is used.
+<hr>
+20:       subroutine condcq
+21: 
+22: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+23: !
+24: !     dimensional and non-dimensional latent heat conductances
+25: !               for canopy and soil flux calculations
+26: !
+27: !     latent fluxes differ from sensible due to stomatal resistance
+28: !
+29:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+30:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : wtlq , gwet1d , wtlq , wtlh , rpp , sigf ,  &
+31:                    & ldoc1d , wtgaq , wtaq0 , wtglq , wtlq0 , wtgq0 ,   &
+32:                    & wtsqi , wtgq , rgr , wtg , wta
+33:       implicit none
+34: !
+35: ! Local variables
+36: !
+37:       integer :: n , i
+38: !
+39: !     symbols used for weights are:   wt : weight
+40: !     a : air
+41: !     l : leaf
+42: !     i : inverse
+43: !     s : sum
+44: !     h : sensible heat
+45: !     q : water vapor
+46: !     0 : normalized (sums to one)
+47: !     g : ground
+48: !
+49:       do i = 2 , iym1
+50:         do n = 1 , nnsg
+51:           if ( ldoc1d(n,i).gt.0.5 ) then
+52:             if ( sigf(n,i).gt.0.001 ) then
+53:               rgr(n,i) = gwet1d(n,i)
+54:               wtlq(n,i) = wtlh(n,i)*rpp(n,i)
+55:               wtgq(n,i) = wtg(n,i)*rgr(n,i)
+56:               wtsqi(n,i) = 1./(wta(n,i)+wtlq(n,i)+wtgq(n,i))
+57:               wtgq0(n,i) = wtgq(n,i)*wtsqi(n,i)
+58:               wtlq0(n,i) = wtlq(n,i)*wtsqi(n,i)
+59:               wtglq(n,i) = wtgq0(n,i) + wtlq0(n,i)
+60:               wtaq0(n,i) = 1. - wtglq(n,i)
+61:               wtgaq(n,i) = wtaq0(n,i) + wtgq0(n,i)
+62:             end if
+63:           end if
+64:         end do
+65:       end do
+66:  
+67:       end subroutine condcq
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

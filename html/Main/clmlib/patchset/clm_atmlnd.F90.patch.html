@@ -1,0 +1,748 @@
+<HTML>
+
+<HEAD>
+<TITLE>clm_atmlnd.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/clm_atmlnd.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>clm_atmlnd.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/clm_atmlnd.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/clm_atmlnd.F90	2010-03-10 16:19:07.000000000 +0100
+<LI>@@ -22,6 +22,7 @@
+<LI> !
+<LI> ! !PUBLIC TYPES:
+<LI>   implicit none
+<LI>+
+<LI> !----------------------------------------------------
+<LI> ! atmosphere -> land variables structure
+<LI> !----------------------------------------------------
+<LI>@@ -77,6 +78,20 @@
+<LI>   real(r8), pointer :: qflx_evap_tot(:)!qflx_evap(_soi + _veg) + qflx_tran_veg
+<LI>   real(r8), pointer :: fsa(:)          !solar rad absorbed (total) (W/m**2)
+<LI>   real(r8), pointer :: nee(:)          !net CO2 flux (kg C/m**2/s) [+ to atm]
+<LI>+!abt rcm below
+<LI>+  real(r8), pointer :: smtot(:)          !total soil moisture
+<LI>+  real(r8), pointer :: sm1m(:)           !soil moisture of first 1m
+<LI>+  real(r8), pointer :: tlef(:)           !leaf temperature [Kelvin]
+<LI>+  real(r8), pointer :: u10(:)            !10 meter wind
+<LI>+  real(r8), pointer :: tgrnd(:)          !ground temperature
+<LI>+  real(r8), pointer :: qflx_infl(:)      !infiltration [mm H2O/s]
+<LI>+  real(r8), pointer :: qflx_surf(:)      !surface runoff [mm H2O/s]
+<LI>+  real(r8), pointer :: qflx_drain(:)     !sub-surface runoff [mm H2O/s]
+<LI>+  real(r8), pointer :: uvdrag(:)         !surface drag stress
+<LI>+  real(r8), pointer :: sm10cm(:)         !soil moisture of top 10cm
+<LI>+  real(r8), pointer :: frac_sno(:)       !fraction ground covered by snow
+<LI>+  real(r8), pointer :: frac_veg_nosno(:) !fraction veg with no snow
+<LI>+!abt rcm above
+<LI> #if (defined DUST || defined  PROGSSLT )
+<LI>   real(r8), pointer :: ram1(:)         !aerodynamical resistance (s/m)
+<LI>   real(r8), pointer :: fv(:)           !friction velocity (m/s) (for dust model)
+<LI>@@ -98,9 +113,14 @@
+<LI>   public :: clm_mapa2l
+<LI>   public :: clm_mapl2a
+<LI>   public :: clm_map2gcell
+<LI>+!abt rcm below
+<LI>+  public :: clm2rcm
+<LI>+!abt rcm above
+<LI> !
+<LI> ! !REVISION HISTORY:
+<LI> ! Created by Mariana Vertenstein and Tony Craig, 2006-01-10
+<LI>+! 2008.5.8    A Tawfik Revised to work with RegCM
+<LI>+!
+<LI> !
+<LI> ! !PRIVATE MEMBER FUNCTIONS:
+<LI> 
+<LI>@@ -240,6 +260,22 @@
+<LI>   allocate(l2a%qflx_evap_tot(beg:end))
+<LI>   allocate(l2a%fsa(beg:end))
+<LI>   allocate(l2a%nee(beg:end))
+<LI>+!abt rcm below
+<LI>+  allocate(l2a%smtot(beg:end))
+<LI>+  allocate(l2a%sm1m(beg:end))
+<LI>+  allocate(l2a%u10(beg:end))
+<LI>+  allocate(l2a%tlef(beg:end))
+<LI>+  allocate(l2a%sm10cm(beg:end))
+<LI>+  allocate(l2a%uvdrag(beg:end))
+<LI>+  allocate(l2a%qflx_infl(beg:end))
+<LI>+  allocate(l2a%qflx_surf(beg:end))
+<LI>+  allocate(l2a%qflx_drain(beg:end))
+<LI>+  allocate(l2a%tgrnd(beg:end))
+<LI>+  allocate(l2a%frac_sno(beg:end))
+<LI>+  allocate(l2a%frac_veg_nosno(beg:end))
+<LI>+!abt rcm above
+<LI>+
+<LI>+
+<LI> #if (defined DUST || defined  PROGSSLT )
+<LI>   allocate(l2a%ram1(beg:end))
+<LI>   allocate(l2a%fv(beg:end))
+<LI>@@ -265,6 +301,20 @@
+<LI>   l2a%qflx_evap_tot(beg:end) = ival
+<LI>   l2a%fsa(beg:end) = ival
+<LI>   l2a%nee(beg:end) = ival
+<LI>+!abt rcm below
+<LI>+  l2a%smtot(beg:end)      = ival
+<LI>+  l2a%sm1m(beg:end)       = ival
+<LI>+  l2a%u10(beg:end)        = ival
+<LI>+  l2a%tlef(beg:end)       = ival
+<LI>+  l2a%sm10cm(beg:end)     = ival
+<LI>+  l2a%uvdrag(beg:end)     = ival
+<LI>+  l2a%qflx_infl(beg:end)  = ival
+<LI>+  l2a%qflx_surf(beg:end)  = ival
+<LI>+  l2a%qflx_drain(beg:end) = ival
+<LI>+  l2a%tgrnd(beg:end)      = ival
+<LI>+  l2a%frac_sno(beg:end)   = ival
+<LI>+  l2a%frac_veg_nosno(beg:end)      = ival
+<LI>+!abt rcm above
+<LI> #if (defined DUST || defined  PROGSSLT )
+<LI>   l2a%ram1(beg:end) = ival
+<LI>   l2a%fv(beg:end) = ival
+<LI>@@ -274,6 +324,283 @@
+<LI> #endif
+<LI> end subroutine init_lnd2atm_type
+<LI> 
+<LI>+! abt below rcm subrountine  
+<LI>+!------------------------------------------------------------------------------
+<LI>+!BOP
+<LI>+!
+<LI>+! !IROUTINE: clm_mapr2l
+<LI>+!
+<LI>+! !INTERFACE:
+<LI>+  subroutine clm_mapr2l(a2l_src, a2l_dst)
+<LI>+!
+<LI>+! !DESCRIPTION:
+<LI>+! Maps atm2lnd fields from external grid to clm grid
+<LI>+!
+<LI>+! !USES:
+<LI>+  use decompMod, only : get_proc_bounds, get_proc_bounds_atm
+<LI>+  use areaMod  , only : map_maparrayl, map1dl_a2l, map1dl_l2a, map_setptrs
+<LI>+  use decompMod, only : ldecomp,adecomp
+<LI>+  use domainMod, only : ldomain,adomain
+<LI>+  use QSatMod,   only : QSat
+<LI>+!
+<LI>+! !ARGUMENTS:
+<LI>+  implicit none
+<LI>+  type(atm2lnd_type), intent(in)  :: a2l_src
+<LI>+  type(atm2lnd_type), intent(out) :: a2l_dst
+<LI>+!
+<LI>+! !REVISION HISTORY:
+<LI>+! 2005.11.15  T Craig  Creation.
+<LI>+! 2006.3.30   P Worley Restructuring for improved vector performance
+<LI>+!
+<LI>+!EOP
+<LI>+!
+<LI>+! !LOCAL VARIABLES:
+<LI>+  integer :: n                     ! loop counter
+<LI>+  integer :: ix                    ! field index
+<LI>+  integer :: nflds                 ! number of fields to be mapped
+<LI>+  integer :: nradflds              ! size of 2nd dim in arrays
+<LI>+  integer :: begg_s,endg_s         ! beg,end of input grid
+<LI>+  integer :: begg_d,endg_d         ! beg,end of output grid
+<LI>+  real(r8),pointer :: asrc(:,:)    ! temporary source data
+<LI>+  real(r8),pointer :: adst(:,:)    ! temporary dest data
+<LI>+  integer          :: nmap         ! size of map
+<LI>+  integer          :: mo           ! size of map
+<LI>+  integer, pointer :: src(:)       ! map src index
+<LI>+  integer, pointer :: dst(:)       ! map dst index
+<LI>+  real(r8),pointer :: wts(:)       ! map wts values
+<LI>+  integer :: ns                    !source (atm) indexes
+<LI>+  integer :: nd                    !destination (lnd) indexes
+<LI>+  ! temporaries for topo downscaling:
+<LI>+  real(r8):: hsurf_a,hsurf_l,Hbot,Hsrf,lapse
+<LI>+  real(r8):: zbot_a, tbot_a, pbot_a, thbot_a, qbot_a, qs_a, es_a
+<LI>+  real(r8):: zbot_l, tbot_l, pbot_l, thbot_l, qbot_l, qs_l, es_l
+<LI>+  real(r8):: tsrf_l, psrf_l, egcm_l, rhos_l
+<LI>+  real(r8):: dum1,dum2,sum1,sum2,sum3,sum4,sum5,sum6,sum7,sum8
+<LI>+  real(r8),allocatable :: qsum(:)
+<LI>+  logical :: first_call = .true.
+<LI>+!------------------------------------------------------------------------------
+<LI>+
+<LI>+  if (first_call .and. masterproc) then
+<LI>+    write(6,*) 'clm_mapa2l subroutine'
+<LI>+  endif
+<LI>+
+<LI>+  nradflds = size(a2l_src%forc_solad,dim=2)
+<LI>+  if (nradflds /= numrad) then
+<LI>+    write(6,*) 'clm_mapa2l ERROR: nradflds ne numrad ',nradflds,numrad
+<LI>+    call endrun()
+<LI>+  endif
+<LI>+
+<LI>+  !--- allocate temporaries
+<LI>+  call get_proc_bounds_atm(begg_s, endg_s)
+<LI>+  call get_proc_bounds    (begg_d, endg_d)
+<LI>+
+<LI>+!  nflds = 21+2*numrad
+<LI>+
+<LI>+!  allocate(asrc(begg_s:endg_s,nflds))
+<LI>+!  allocate(adst(begg_d:endg_d,nflds))
+<LI>+
+<LI>+!  ix = 0
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_t(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_u(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_v(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_wind(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_q(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_u(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_t(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_q(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pbot(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_th(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_vp(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_rho(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_psrf(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pco2(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_lwrad(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_solar(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_rain(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_snow(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pc13o2(:)  
+<LI>+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_po2(:)  
+<LI>+!  do n = 1,numrad
+<LI>+!     ix=ix+1; asrc(:,ix) = a2l_src%forc_solad(:,n)  
+<LI>+!     ix=ix+1; asrc(:,ix) = a2l_src%forc_solai(:,n)  
+<LI>+!  enddo
+<LI>+!-forc_ndep is not recd from atm,don't know why it's in a2l (TCFIX) ---
+<LI>+!-forc_ndep cannot be updated here, array will be trashed and CN will fail ---
+<LI>+!  asrc(:,xx) = a2l_src%forc_ndep(:)  
+<LI>+
+<LI>+#if (defined OFFLINE)
+<LI>+  call map_maparrayl(begg_s, endg_s, begg_d, endg_d, 1, a2l_src%flfall, a2l_dst%flfall, map1dl_a2l)
+<LI>+#endif
+<LI>+!  call map_maparrayl(begg_s, endg_s, begg_d, endg_d, nflds, asrc, adst, map1dl_a2l)
+<LI>+
+<LI>+  a2l_dst%forc_t(:)     =     a2l_src%forc_t(:)
+<LI>+  a2l_dst%forc_u(:)     =     a2l_src%forc_u(:)
+<LI>+  a2l_dst%forc_v(:)     =     a2l_src%forc_v(:)
+<LI>+  a2l_dst%forc_wind(:)  =     a2l_src%forc_wind(:)
+<LI>+  a2l_dst%forc_q(:)     =     a2l_src%forc_q(:)
+<LI>+  a2l_dst%forc_hgt(:)   =     a2l_src%forc_hgt(:)
+<LI>+  a2l_dst%forc_hgt_u(:) =     a2l_src%forc_hgt_u(:)
+<LI>+  a2l_dst%forc_hgt_t(:) =     a2l_src%forc_hgt_t(:)
+<LI>+  a2l_dst%forc_hgt_q(:) =     a2l_src%forc_hgt_q(:)
+<LI>+  a2l_dst%forc_pbot(:)  =   a2l_src%forc_pbot(:)
+<LI>+  a2l_dst%forc_th(:)    =   a2l_src%forc_th(:)
+<LI>+  a2l_dst%forc_vp(:)    =   a2l_src%forc_vp(:)
+<LI>+  a2l_dst%forc_rho(:)   =   a2l_src%forc_rho(:)
+<LI>+  a2l_dst%forc_psrf(:)  =   a2l_src%forc_psrf(:)
+<LI>+  a2l_dst%forc_pco2(:)  =   a2l_src%forc_pco2(:)
+<LI>+  a2l_dst%forc_lwrad(:) =   a2l_src%forc_lwrad(:)
+<LI>+  a2l_dst%forc_solar(:) =   a2l_src%forc_solar(:)
+<LI>+  a2l_dst%forc_rain(:)  =   a2l_src%forc_rain(:)
+<LI>+  a2l_dst%forc_snow(:)  =   a2l_src%forc_snow(:)
+<LI>+  a2l_dst%forc_pc13o2(:)=   a2l_src%forc_pc13o2(:)
+<LI>+  a2l_dst%forc_po2(:)   =   a2l_src%forc_po2(:)
+<LI>+  do n = 1,numrad
+<LI>+     a2l_dst%forc_solad(:,n)  = a2l_src%forc_solad(:,n)
+<LI>+     a2l_dst%forc_solai(:,n)  = a2l_src%forc_solai(:,n)
+<LI>+  enddo
+<LI>+
+<LI>+!  deallocate(asrc)
+<LI>+!  deallocate(adst)
+<LI>+
+<LI>+  if (first_call.and.masterproc) then
+<LI>+    write(6,*) 'clm_mapr2l mapping complete'
+<LI>+  endif
+<LI>+
+<LI>+!-topographic downscaling
+<LI>+!-only call this if there is more than 1 land cell / atm cell somewhere
+<LI>+  call map_setptrs(map1dl_l2a,dstmo=mo)
+<LI>+  if (mo > 1) then
+<LI>+
+<LI>+  if (first_call.and.masterproc) then
+<LI>+    write(6,*) 'clm_mapr2l downscaling ON'
+<LI>+  endif
+<LI>+
+<LI>+  call map_setptrs(map1dl_a2l,nwts=nmap,src=src,dst=dst,dstmo=mo)
+<LI>+  if (mo /= 1) then
+<LI>+     write(6,*)' clm_mapr2l ERROR: map1dl_a2l mo not 1 ',mo
+<LI>+     call endrun()
+<LI>+  endif
+<LI>+
+<LI>+  lapse   = 0.0065_r8                  ! hardwired in multiple places in cam
+<LI>+
+<LI>+  do n = 1,nmap
+<LI>+    ns = src(n)
+<LI>+    nd = dst(n)
+<LI>+
+<LI>+    hsurf_a = adomain%topo(ns)        ! atm elevation
+<LI>+    hsurf_l = ldomain%ntop(nd)        ! lnd elevation
+<LI>+
+<LI>+    if (abs(hsurf_a - hsurf_l) .gt. 0.1_r8) then
+<LI>+
+<LI>+       tbot_a = a2l_src%forc_t(ns)        ! atm temp at bot
+<LI>+       thbot_a= a2l_src%forc_th(ns)       ! atm pot temp at bot
+<LI>+       pbot_a = a2l_src%forc_pbot(ns)     ! atm press at bot
+<LI>+       qbot_a = a2l_src%forc_q(ns)        ! atm sp humidity at bot
+<LI>+       zbot_a = a2l_src%forc_hgt(ns)      ! atm ref height
+<LI>+
+<LI>+       zbot_l = zbot_a
+<LI>+       tbot_l = tbot_a-lapse*(hsurf_l-hsurf_a)          ! lnd temp for topo
+<LI>+
+<LI>+       Hbot   = rair*0.5_r8*(tbot_a+tbot_l)/grav        ! scale ht at avg temp
+<LI>+       pbot_l = pbot_a*exp(-(hsurf_l-hsurf_a)/Hbot)     ! lnd press for topo
+<LI>+       thbot_l= tbot_l*exp((zbot_l/Hbot)*(rair/cpair))  ! pot temp calc
+<LI>+
+<LI>+       tsrf_l = tbot_l-lapse*(-zbot_l)                  ! lnd temp at surface
+<LI>+       Hsrf   = rair*0.5_r8*(tbot_l+tsrf_l)/grav        ! scale ht at avg temp
+<LI>+       psrf_l = pbot_l*exp(-(zbot_l)/Hsrf)              ! lnd press for topo
+<LI>+
+<LI>+       call Qsat(tbot_a,pbot_a,es_a,dum1,qs_a,dum2)
+<LI>+       call Qsat(tbot_l,pbot_l,es_l,dum1,qs_l,dum2)
+<LI>+       qbot_l = qbot_a*(qs_l/qs_a)
+<LI>+
+<LI>+       a2l_dst%forc_hgt(nd)  = zbot_l
+<LI>+       a2l_dst%forc_t(nd)    = tbot_l
+<LI>+       a2l_dst%forc_pbot(nd) = pbot_l
+<LI>+       a2l_dst%forc_th(nd)   = thbot_l
+<LI>+       a2l_dst%forc_q(nd)    = qbot_l
+<LI>+       a2l_dst%forc_vp(nd)   = es_l
+<LI>+       a2l_dst%forc_psrf(nd) = psrf_l
+<LI>+
+<LI>+    endif
+<LI>+  enddo
+<LI>+
+<LI>+  allocate(qsum(begg_s:endg_s))
+<LI>+  qsum = 0.0_r8
+<LI>+  call map_setptrs(map1dl_l2a,nwts=nmap,src=src,dst=dst,wts=wts)
+<LI>+  do n = 1,nmap
+<LI>+    ns = dst(n)
+<LI>+    nd = src(n)
+<LI>+    qsum(ns) = qsum(ns) + wts(n)* a2l_dst%forc_q(nd)
+<LI>+  enddo
+<LI>+
+<LI>+!abt below call map_setptrs(map1dl_a2l,nwts=nmap,src=src,dst=dst)
+<LI>+!  do n = 1,nmap
+<LI>+!    ns = src(n)
+<LI>+!    nd = dst(n)
+<LI>+
+<LI>+!    qbot_a = a2l_src%forc_q(ns)        ! atm specific humidity
+<LI>+!    qbot_l = a2l_dst%forc_q(nd)        ! lnd specific humidity
+<LI>+!    pbot_l = a2l_dst%forc_pbot(nd)  
+<LI>+!    tbot_l = a2l_dst%forc_t(nd)  
+<LI>+
+<LI>+!    qbot_l = qbot_l - (qsum(ns) - qbot_a)        ! normalize
+<LI>+!    egcm_l = qbot_l*pbot_l/(0.622+0.378*qbot_l)
+<LI>+!    rhos_l = (pbot_l-0.378*egcm_l) / (rair*tbot_l)
+<LI>+
+<LI>+!    a2l_dst%forc_q(nd)    = qbot_l
+<LI>+!    a2l_dst%forc_rho(nd)  = rhos_l
+<LI>+
+<LI>+!abt above  enddo
+<LI>+
+<LI>+  deallocate(qsum)
+<LI>+
+<LI>+! --- check ---
+<LI>+  call map_setptrs(map1dl_l2a,nwts=nmap,src=src,dst=dst,wts=wts)
+<LI>+  do ns = begg_s,endg_s
+<LI>+    sum1 = 0.0_r8
+<LI>+    sum2 = 0.0_r8
+<LI>+    sum3 = 0.0_r8
+<LI>+    sum4 = 0.0_r8
+<LI>+    sum5 = 0.0_r8
+<LI>+    sum6 = 0.0_r8
+<LI>+    do n = 1,nmap
+<LI>+      if (dst(n) == ns) then
+<LI>+        nd = src(n)
+<LI>+        sum1 = sum1 + ldomain%ntop(nd)   * wts(n)
+<LI>+        sum2 = sum2 + a2l_dst%forc_t(nd)    * wts(n)
+<LI>+        sum3 = sum3 + a2l_dst%forc_q(nd)    * wts(n)
+<LI>+        sum4 = sum4 + a2l_dst%forc_hgt(nd)  * wts(n)
+<LI>+        sum5 = sum5 + a2l_dst%forc_pbot(nd) * wts(n)
+<LI>+        sum6 = sum6 + a2l_dst%forc_th(nd)   * wts(n)
+<LI>+      endif
+<LI>+    enddo
+<LI>+    if   ((abs(sum1 - adomain%topo(ns))   > 1.0e-8) &
+<LI>+      .or.(abs(sum2 - a2l_src%forc_t(ns))    > 1.0e-3) &
+<LI>+      .or.(abs(sum3 - a2l_src%forc_q(ns))    > 1.0e-8) &
+<LI>+      .or.(abs(sum4 - a2l_src%forc_hgt(ns))  > 1.0e-6) &
+<LI>+!      .or.(abs(sum5 - a2l_src%forc_pbot(ns)) > 1.0e-6) &
+<LI>+!      .or.(abs(sum6 - a2l_src%forc_th(ns))   > 1.0e-6) &
+<LI>+       ) then
+<LI>+      write(6,*) 'clm_map2l check ERROR topo ',sum1,adomain%topo(ns)
+<LI>+      write(6,*) 'clm_map2l check ERROR t    ',sum2,a2l_src%forc_t(ns)
+<LI>+      write(6,*) 'clm_map2l check ERROR q    ',sum3,a2l_src%forc_q(ns)
+<LI>+      write(6,*) 'clm_map2l check ERROR hgt  ',sum4,a2l_src%forc_hgt(ns)
+<LI>+      write(6,*) 'clm_map2l check ERROR pbot ',sum5,a2l_src%forc_pbot(ns)
+<LI>+      write(6,*) 'clm_map2l check ERROR th   ',sum6,a2l_src%forc_th(ns)
+<LI>+!      call endrun()
+<LI>+    endif
+<LI>+  enddo
+<LI>+
+<LI>+  endif   ! mx_ovr > 1
+<LI>+
+<LI>+  first_call = .false.
+<LI>+
+<LI>+end subroutine clm_mapr2l
+<LI>+
+<LI>+
+<LI>+
+<LI>+
+<LI> !------------------------------------------------------------------------------
+<LI> !BOP
+<LI> !
+<LI>@@ -694,6 +1021,10 @@
+<LI>   use decompMod   , only : get_proc_bounds
+<LI>   use clm_varcon  , only : sb
+<LI>   use clm_varpar  , only : numrad
+<LI>+!abt added below
+<LI>+  use clm_varcon  , only : denh2o
+<LI>+  use clm_varpar  , only : nlevsoi
+<LI>+!abt added above
+<LI> !
+<LI> ! !ARGUMENTS:
+<LI>   implicit none
+<LI>@@ -702,6 +1033,7 @@
+<LI> !
+<LI> ! !REVISION HISTORY:
+<LI> ! Mariana Vertenstein: created 03/10-25
+<LI>+! 2008.5.8    A Tawfik Revised to work with RegCM
+<LI> !
+<LI> !EOP
+<LI> !
+<LI>@@ -720,11 +1052,22 @@
+<LI> !EOP
+<LI> !
+<LI> ! !LOCAL VARIABLES:
+<LI>-  integer :: g                          ! indices
+<LI>+  integer :: g,lev,c                    ! indices
+<LI>   type(gridcell_type), pointer :: gptr  ! pointer to gridcell derived subtype
+<LI>   type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
+<LI>   type(column_type)  , pointer :: cptr  ! pointer to column derived subtype
+<LI>   type(pft_type)     , pointer :: pptr  ! pointer to pft derived subtype
+<LI>+!abt rcm below
+<LI>+  real(r8), pointer :: wtgcell(:)        ! weight of columns relative to gridcells
+<LI>+  integer , pointer :: cgrid(:)          ! gridcell of corresponding column
+<LI>+  real(r8), pointer :: rootfr(:,:)       ! fraction of roots in each soil layer
+<LI>+  integer , pointer :: pcolumn(:)        ! column index of corresponding pft
+<LI>+  real(r8),allocatable :: temp_sm10cm(:) ! temporary array for 10cm soil moisture
+<LI>+  real(r8),allocatable :: temp_sm1m(:)   ! temporary array for 1m soil moisture
+<LI>+  real(r8),allocatable :: temp_smtot(:)  ! temporary array for total soil moisture
+<LI>+  real(r8),allocatable :: temp_root(:,:) ! temporary array for root fraction (nlevsoi)
+<LI>+  integer :: p
+<LI>+!abt rcm above
+<LI> #if (defined DUST)
+<LI>   type(pft_dflux_type),pointer :: pdf   ! local pointer to derived subtype
+<LI>   integer n
+<LI>@@ -738,11 +1081,18 @@
+<LI>   lptr => clm3%g%l
+<LI>   cptr => clm3%g%l%c
+<LI>   pptr => clm3%g%l%c%p
+<LI>+!abt rcm below
+<LI>+  wtgcell   => clm3%g%l%c%wtgcell
+<LI>+  cgrid     => clm3%g%l%c%gridcell
+<LI>+  rootfr    => clm3%g%l%c%p%pps%rootfr
+<LI>+  pcolumn   => clm3%g%l%c%p%column
+<LI>+!abt rcm above
+<LI> 
+<LI>   ! Determine processor bounds
+<LI> 
+<LI>   call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+<LI> 
+<LI>+
+<LI>   ! Compute gridcell averages. 
+<LI> 
+<LI>   if (present(init)) then
+<LI>@@ -874,10 +1224,285 @@
+<LI>         clm_l2a%t_rad(g) = sqrt(sqrt(clm_l2a%eflx_lwrad_out(g)/sb))
+<LI>      end do
+<LI> 
+<LI>-  end if
+<LI>+!!!!!! abt rcm below for grid-average for additional variables to be passed to atmo!!!!
+<LI>+
+<LI>+allocate(temp_sm10cm(begg:endg))
+<LI>+allocate(temp_smtot(begg:endg))
+<LI>+allocate(temp_sm1m(begg:endg))
+<LI>+allocate(temp_root(begg:endg,1:nlevsoi))
+<LI>+temp_sm1m(:)   = 0._r8
+<LI>+temp_sm10cm(:) = 0._r8
+<LI>+temp_smtot(:)  = 0._r8
+<LI>+temp_root(:,:) = 0._r8
+<LI>+
+<LI>+      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
+<LI>+           nlevsoi,rootfr, temp_root, &
+<LI>+           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     do c = begc,endc
+<LI>+        g = cgrid(c)
+<LI>+!! averaging for smtot and sm1m are done without the p2g or c2g subrountines
+<LI>+       do lev = 1,nlevsoi
+<LI>+        if(cptr%cws%h2osoi_liq(c,lev) /= spval) then
+<LI>+          if(lev.le.3) temp_sm10cm(g) = temp_sm10cm(g) + cptr%cws%h2osoi_liq(c,lev) &
+<LI>+                                        * (1000./denh2o) * wtgcell(c) 
+<LI>+          temp_smtot(g)  = temp_smtot(g) + cptr%cws%h2osoi_liq(c,lev) * &
+<LI>+                           (1000./denh2o) * wtgcell(c) 
+<LI>+          if(temp_root(g,lev) > 0._r8) temp_sm1m(g)   = temp_sm1m(g) +  &
+<LI>+                            cptr%cws%h2osoi_liq(c,lev) * (1000./denh2o) *wtgcell(c)
+<LI>+        endif       
+<LI>+       enddo
+<LI>+     enddo
+<LI>+
+<LI>+     clm_l2a%smtot(:)  = temp_smtot(:)
+<LI>+     clm_l2a%sm10cm(:) = temp_sm10cm(:)
+<LI>+     clm_l2a%sm1m(:)   = temp_sm1m(:)
+<LI>+
+<LI>+     call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
+<LI>+          pptr%pps%u10, clm_l2a%u10, &
+<LI>+          p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
+<LI>+          pptr%pes%t_veg, clm_l2a%tlef, & 
+<LI>+          p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     call c2g(begc, endc, begl, endl, begg, endg, cptr%ces%t_grnd, &
+<LI>+          clm_l2a%tgrnd,c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     call c2g(begc, endc, begl, endl, begg, endg, cptr%cps%frac_sno, &
+<LI>+          clm_l2a%frac_sno,c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
+<LI>+          dble(pptr%pps%frac_veg_nosno), clm_l2a%frac_veg_nosno, &
+<LI>+          p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
+<LI>+          pptr%pef%uvdrag, clm_l2a%uvdrag, &
+<LI>+          p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     call c2g(begc, endc, begl, endl, begg, endg, cptr%cwf%qflx_infl, &
+<LI>+          clm_l2a%qflx_infl,c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     call c2g(begc, endc, begl, endl, begg, endg, cptr%cwf%qflx_surf, &
+<LI>+          clm_l2a%qflx_surf,c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     call c2g(begc, endc, begl, endl, begg, endg, cptr%cwf%qflx_drain, &
+<LI>+          clm_l2a%qflx_drain,c2l_scale_type= 'unity', l2g_scale_type='unity')
+<LI>+
+<LI>+     deallocate(temp_sm10cm)
+<LI>+     deallocate(temp_sm1m)
+<LI>+     deallocate(temp_smtot)
+<LI>+     deallocate(temp_root)
+<LI>+     call clm2rcm(clm_l2a)
+<LI>+
+<LI>+!!!! abt above up for grid averaging !!!!!!!!!!!!!!!
+<LI>+
+<LI>+  end if  !if statement for initialize or not
+<LI> 
+<LI> end subroutine clm_map2gcell
+<LI> 
+<LI>+
+<LI>+! abt rcm below
+<LI>+
+<LI>+!------------------------------------------------------------------------------
+<LI>+!BOP
+<LI>+!
+<LI>+! !IROUTINE: clm2rcm
+<LI>+!
+<LI>+! !INTERFACE:
+<LI>+  subroutine clm2rcm(clm_l2a)
+<LI>+!
+<LI>+! !DESCRIPTION:
+<LI>+! Maps lnd2atm fields from clm grid to external grid
+<LI>+!
+<LI>+! !USES:
+<LI>+!abt rcm below
+<LI>+  use spmdMod 
+<LI>+  use decompMod        , only : ldecomp, get_proc_clumps, get_clump_bounds
+<LI>+  use decompMod        , only : get_proc_global
+<LI>+  use areaMod          , only : map_maparrayl, map1dl_l2a
+<LI>+  use domainMod        , only : adomain,ldomain
+<LI>+  use clm_varsur
+<LI>+  use clm_varpar       , only : lsmlon,lsmlat
+<LI>+  use mod_clm
+<LI>+  use mod_dynparam
+<LI>+!
+<LI>+! !ARGUMENTS:
+<LI>+  implicit none
+<LI>+!rcm above
+<LI>+  type(lnd2atm_type), intent(in)  :: clm_l2a
+<LI>+!  type(lnd2atm_type), intent(out) :: l2a_dst
+<LI>+!
+<LI>+! !REVISION HISTORY:
+<LI>+! 2009.1.8    A Tawfik Revised to work with RegCM
+<LI>+!
+<LI>+!EOP
+<LI>+!
+<LI>+! !LOCAL VARIABLES:
+<LI>+  integer :: n,ni,nj,nt,nn         ! loop counter
+<LI>+  integer :: nlon,nlat,ntot,ierr   ! abt grid values
+<LI>+  integer :: nclumps               ! field index
+<LI>+  integer :: nflds,nc              ! number of fields to be mapped
+<LI>+  integer :: nradflds              ! size of 2nd dim in arrays
+<LI>+  integer :: begg_s,endg_s         ! beg,end of input grid
+<LI>+  integer :: begg_d,endg_d         ! beg,end of output grid
+<LI>+  integer :: begg,endg,begc,endc   ! beg and end of grid and column
+<LI>+  integer :: begl,endl,begp,endp
+<LI>+  real(r8),allocatable :: c2r_all(:)    ! used to capture all c2r vars 
+<LI>+  integer ,allocatable :: displace(:)   ! used for gathering
+<LI>+  integer :: numg,numl,numc,nump        ! proc totals
+<LI>+  integer :: nout                       ! number of vars going to regcm
+<LI>+!------------------------------------------------------------------------------
+<LI>+
+<LI>+    ! Determine clump bounds for this processor
+<LI>+
+<LI>+    nclumps = get_proc_clumps()
+<LI>+    if(nclumps.gt.1) then
+<LI>+      write(6,*) "ERROR: not formatted for more than 1 clump per processor"
+<LI>+      call endrun()
+<LI>+    endif
+<LI>+
+<LI>+    ! Loop over clumps on this processor
+<LI>+
+<LI>+    do nc = 1,nclumps
+<LI>+
+<LI>+     call get_clump_bounds(nc, begg, endg, begl, endl, begc, endc, begp, endp)
+<LI>+     call get_proc_global(numg,numl,numc,nump) 
+<LI>+
+<LI>+#ifdef MPP1
+<LI>+     nt = endg-begg+1
+<LI>+     if(AERTYP.ne.'AER00D0') then  !Aerosol scheme on
+<LI>+       nout = 22
+<LI>+       allocate(c2r_all(nt*nout))
+<LI>+       allocate(c2r_allout(numg*nout))
+<LI>+     else
+<LI>+       nout = 20
+<LI>+       allocate(c2r_all(nt*nout))
+<LI>+       allocate(c2r_allout(numg*nout))
+<LI>+     end if
+<LI>+     allocate(displace(npes))
+<LI>+
+<LI>+!!!!!! below is transfering variables from CLM to RegCM !!!
+<LI>+!!!!!!!!!!!!!!!!!!! by c2r* variables !!!!!!!!!!!!!!!!!!!!!
+<LI>+!!!!!! rest of the transfer from clm to regcm is in !!!!!!!
+<LI>+!!!!!! interf_clm(para/ser).F for inout = 2 !!!!!!!!!!!!!!!
+<LI>+!!!!!! below merely stores all output into one array for !!
+<LI>+!!!!!! quicker gathering                                 !!
+<LI>+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+<LI>+     nn = 0   
+<LI>+     do n  = begg,endg   
+<LI>+ 
+<LI>+        nn = nn + 1
+<LI>+        c2r_all(nn)       = clm_l2a%tgrnd(n)
+<LI>+        c2r_all(nn+nt)    = clm_l2a%h2osno(n)
+<LI>+        c2r_all(nn+nt*2)  = clm_l2a%eflx_sh_tot(n)
+<LI>+        c2r_all(nn+3*nt)  = clm_l2a%qflx_evap_tot(n)
+<LI>+        c2r_all(nn+4*nt)  = clm_l2a%uvdrag(n)
+<LI>+        c2r_all(nn+5*nt)  = clm_l2a%albd(n,1)
+<LI>+        c2r_all(nn+6*nt)  = clm_l2a%albd(n,2)
+<LI>+        c2r_all(nn+7*nt)  = clm_l2a%albi(n,1)
+<LI>+        c2r_all(nn+8*nt)  = clm_l2a%albi(n,2)
+<LI>+        c2r_all(nn+9*nt)  = clm_l2a%t_rad(n)
+<LI>+        c2r_all(nn+10*nt) = clm_l2a%t_ref2m(n)
+<LI>+        c2r_all(nn+11*nt) = clm_l2a%q_ref2m(n)
+<LI>+        c2r_all(nn+12*nt) = clm_l2a%u10(n)
+<LI>+        c2r_all(nn+13*nt) = clm_l2a%tlef(n)
+<LI>+        c2r_all(nn+14*nt) = clm_l2a%sm10cm(n)
+<LI>+        c2r_all(nn+15*nt) = clm_l2a%sm1m(n)
+<LI>+        c2r_all(nn+16*nt) = clm_l2a%smtot(n)
+<LI>+        c2r_all(nn+17*nt) = clm_l2a%qflx_infl(n)*(24._r8 * 3600._r8)
+<LI>+        c2r_all(nn+18*nt) = clm_l2a%qflx_surf(n)*(24._r8 * 3600._r8)
+<LI>+        c2r_all(nn+19*nt) = clm_l2a%qflx_drain(n)*(24._r8 * 3600._r8)
+<LI>+        if(AERTYP.ne.'AER00D0') then  !Aerosol scheme on
+<LI>+          c2r_all(nn+20*nt) = clm_l2a%frac_sno(n)
+<LI>+          c2r_all(nn+21*nt) = clm_l2a%frac_veg_nosno(n)
+<LI>+        end if
+<LI>+        
+<LI>+    enddo !gridcell
+<LI>+    enddo !nclumps
+<LI>+
+<LI>+    do nc = 1,npes
+<LI>+      if(nc.eq.1) then
+<LI>+        displace(nc) = 0
+<LI>+      else
+<LI>+        displace(nc) = displace(nc-1) + c2rngc(nc-1)*nout
+<LI>+      endif
+<LI>+    enddo  
+<LI>+
+<LI>+    if(nn .ne. nt) then
+<LI>+      write(6,*) "ERROR: nn not equal to nt"
+<LI>+      call endrun()
+<LI>+    endif
+<LI>+
+<LI>+    call mpi_allgatherv(c2r_all(1),nn*nout,MPI_REAL8,c2r_allout, &
+<LI>+                        c2rngc*nout,displace,MPI_REAL8,mpicom,ierr)     
+<LI>+    
+<LI>+    deallocate(c2r_all,displace)        
+<LI>+!!!!!!!new code above
+<LI>+
+<LI>+#else
+<LI>+!!!!!!below is for serial runs
+<LI>+        do nt = begg,endg
+<LI>+           ni = ldecomp%gdc2i(nt)
+<LI>+           nj = ldecomp%gdc2j(nt)
+<LI>+
+<LI>+!!!! ground temp
+<LI>+          c2rtgb(ni,nj)    = clm_l2a%tgrnd(nt)          
+<LI>+
+<LI>+!!!! snow depth in liquid water equiv [mm]
+<LI>+          c2rsnowc(ni,nj)  = clm_l2a%h2osno(nt)
+<LI>+
+<LI>+!!!! sensible heat (FSH) [watt/m^2]
+<LI>+          c2rsenht(ni,nj)  = clm_l2a%eflx_sh_tot(nt)
+<LI>+
+<LI>+!!!! evaporation rate [mm/day]
+<LI>+          c2rlatht(ni,nj)  = clm_l2a%qflx_evap_tot(nt)
+<LI>+
+<LI>+!!!! Surface drag stress
+<LI>+          c2ruvdrag(ni,nj) = clm_l2a%uvdrag(nt)
+<LI>+
+<LI>+!!!! land sea mask [0 = ocean, 1 = land, no sea-ice]
+<LI>+          c2rlsmask(ni,nj) = landmask(ni,nj)
+<LI>+
+<LI>+!!!! surface albedos
+<LI>+          c2ralbdirs(ni,nj) = clm_l2a%albd(nt,1)
+<LI>+          c2ralbdirl(ni,nj) = clm_l2a%albd(nt,2)
+<LI>+          c2ralbdifs(ni,nj) = clm_l2a%albi(nt,1)
+<LI>+          c2ralbdifl(ni,nj) = clm_l2a%albi(nt,2)
+<LI>+
+<LI>+!!!! tgbb use radiative temperature or outgoing LW ???
+<LI>+          c2rtgbb(ni,nj)    = clm_l2a%t_rad(nt)
+<LI>+
+<LI>+          c2r2mt(ni,nj)    = clm_l2a%t_ref2m(nt)
+<LI>+          c2r2mq(ni,nj)    = clm_l2a%q_ref2m(nt)
+<LI>+          c2ru10(ni,nj)    = clm_l2a%u10(nt)
+<LI>+          c2rtlef(ni,nj)   = clm_l2a%tlef(nt)
+<LI>+          c2rsm10cm(ni,nj) = clm_l2a%sm10cm(nt)
+<LI>+          c2rsm1m(ni,nj)   = clm_l2a%sm1m(nt)
+<LI>+          c2rsmtot(ni,nj)  = clm_l2a%smtot(nt)
+<LI>+          c2rinfl(ni,nj)   = clm_l2a%qflx_infl(nt)*(24._r8 * 3600._r8)
+<LI>+          c2rro_sur(ni,nj) = clm_l2a%qflx_surf(nt)*(24._r8 * 3600._r8)
+<LI>+          c2rro_sub(ni,nj) = clm_l2a%qflx_drain(nt)*(24._r8 * 3600._r8)
+<LI>+
+<LI>+          if(AERTYP.ne.'AER00D0') then  !Aerosol scheme on
+<LI>+             !!!! fraction of ground covered by snow
+<LI>+             c2rfracsno(ni,nj) = clm_l2a%frac_sno(nt)
+<LI>+             !!!! fraction of vegetation not covered by snow
+<LI>+             c2rfvegnosno(ni,nj) = clm_l2a%frac_veg_nosno(nt)
+<LI>+          end if
+<LI>+
+<LI>+        enddo !begg/endg loop
+<LI>+
+<LI>+    enddo !nclump loop
+<LI>+#endif
+<LI>+
+<LI>+end subroutine clm2rcm
+<LI>+
+<LI>+
+<LI>+!!!!!! abt rcm above
+<LI>+
+<LI>+
+<LI>+
+<LI> !------------------------------------------------------------------------
+<LI> !------------------------------------------------------------------------
+<LI> end module clm_atmlnd
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

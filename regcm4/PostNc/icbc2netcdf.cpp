@@ -204,7 +204,9 @@ int main(int argc, char *argv[])
 
     regcmout outnc;
     outnc.experiment = experiment;
-    outnc.fname = "ICBC_"+outnc.experiment+".nc";
+    char oname[PATH_MAX];
+    snprintf(oname, PATH_MAX, "ICBC_%s_%d-%d.nc", experiment, b.date0, b.date1);
+    outnc.fname = oname;
     if (lgrads)
     {
       char ctlname[PATH_MAX];

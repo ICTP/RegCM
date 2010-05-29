@@ -1,0 +1,115 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_aero_param.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_aero_param.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_aero_param.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: !
+<p><a name=mod_aero_param><H3>mod_aero_param</H3></a></p>20:       module mod_aero_param
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a> , only : nveg
+23: 
+24:       implicit none
+25: !
+26:       integer , parameter :: isize = 12
+27: 
+28: !     Basic aerosol density (ACE-2 ?) in kg/m^3
+29:       real(8) , parameter :: rhop = 2650.0
+30: 
+31: !     Dynamic Viscosity Parameters
+32:       real(8) , parameter :: a1 = 145.8
+33:       real(8) , parameter :: a2 = 1.5
+34:       real(8) , parameter :: a3 = 110.4
+35: 
+36: !     Molecular Free Path calculation parameters
+37:       real(8) , parameter :: c1 = 6.54E-8
+38:       real(8) , parameter :: c2 = 1.818E-5
+39:       real(8) , parameter :: c3 = 1.013E5
+40:       real(8) , parameter :: c4 = 293.15
+41: 
+42: !     Cunningham slip correction factor parameters
+43:       real(8) , parameter :: aa1 = 1.257
+44:       real(8) , parameter :: aa2 = 0.4
+45:       real(8) , parameter :: aa3 = 1.1
+46: 
+47: !     Aerosol Dry radius
+48:       real(8) , dimension(2,isize) :: aerosize
+49:       real(8) , dimension(isize) :: avesize
+50: !     Stokes parameter
+51:       real(8) , dimension(20) :: aest_bats
+52:       real(8) , dimension(20) :: arye_bats
+53:       real(8) , allocatable , dimension(:) :: aest
+54:       real(8) , allocatable , dimension(:) :: arye
+55: !
+56: ! DATA SECTION
+57: !
+58:       data aerosize/1.0E-08 , 2.0E-08 , 2.0E-08 , 4.0E-08 , 4.0E-08 ,   &
+59:          & 8.0E-08 , 8.0E-08 , 1.6E-07 , 1.6E-07 , 3.2E-07 , 3.2E-07 ,  &
+60:          & 6.4E-07 , 6.4E-07 , 1.28E-06 , 1.28E-06 , 2.56E-06 ,         &
+61:          & 2.56E-06 , 5.12E-06 , 5.12E-06 , 10.4E-06 , 10.24E-06 ,      &
+62:          & 20.48E-06 , 20.48E-06 , 40.6E-06/
+63: 
+64:       data aest_bats/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,&
+65:          & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
+66:          & 1.2 , 1.2 , 1.2/
+67: 
+68:       data arye_bats/0.5 , 5.0 , 0.5 , 5.0 , 1.0 , 1.0 , 0.0001 , 5.0 , &
+69:          & 10.0 , 10.0 , 0.0001 , 0.0001 , 0.56 , 0.56 , 0.56 , 0.56 ,  &
+70:          & 0.56 , 0.56 , 0.56 , 0.56/
+71: 
+72:        contains
+73: 
+<p><a name=allocate_mod_aero_param><H3>allocate_mod_aero_param</H3></a></p> Click <a href="./callingtree/allocate_mod_aero_param_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_aero_param is used.
+<hr>
+74:        subroutine allocate_mod_aero_param
+75:        use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+76:        implicit none
+77:        allocate(aest(nveg))
+78:        allocate(arye(nveg))
+79: 
+80:        if ( nveg==20 ) then
+81:          aest = aest_bats
+82:          arye = arye_bats
+83:        else
+84:          print *, 'Undefined stokes parameters for non bats'
+85:          print *, 'Please define them in mod_aero_param'
+86:          call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'STOKES UNDEF IN MOD_AERO_PARAM')
+87:        end if
+88:        end subroutine allocate_mod_aero_param
+89: 
+90:       end module mod_aero_param
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

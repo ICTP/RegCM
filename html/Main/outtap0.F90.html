@@ -1,0 +1,204 @@
+<HTML>
+
+<HEAD>
+<TITLE>outtap0.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>outtap0.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>outtap0.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=outtap0><H3>outtap0</H3></a></p> Click <a href="./callingtree/outtap0_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where outtap0 is used.
+<hr>
+20:       subroutine outtap0
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine writes the model output to tape or disk for use c
+25: !     in dataflow analyses.                                           c
+26: !                                                                     c
+27: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+28: 
+29:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+30:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+31:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : sigma
+32:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+33:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+34:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : mdate0
+35:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : rgti
+36: #ifdef MPP1
+37:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+38: #endif
+39:       implicit none
+40: !
+41: ! Local variables
+42: !
+43:       real(4) :: dtb , dtc , dto , dtr
+44:       integer :: i , j , k
+45:       real(4) , dimension(kzp1) :: sp1d
+46:       real(4) , dimension(jxm2,iym2) :: fout
+47: !
+48: !-----output large-domain variables:
+49: !
+50:       open (20,file=trim(dirout)//pthsep//'OUT_HEAD',                   &
+51:           & form='unformatted',recl=iym2*jxm2*ibyte,access='direct')
+52:       do k = 1 , kzp1
+53:         sp1d(k) = sigma(kzp1-k+1)
+54:       end do
+55:       dto = tapfrq
+56:       dtb = batfrq
+57:       dtr = radisp
+58:       dtc = chemfrq
+59:       write (20,rec=1) mdate0 , ibltyp , icup , ipptls , iboudy , iy ,  &
+60:                      & jx , kz , sp1d , ds , ptop , clat , clon ,       &
+61:                      & plat , plon , iproj , dto , dtb , dtr , dtc ,    &
+62:                      & iotyp, truelatl, truelath
+63: 
+64:       do i = 1 , iym2
+65:         do j = 1 , jxm2
+66: #ifdef MPP1
+67:           fout(j,i) = ht_io(i+1,j+1)*rgti
+68: #else
+69:           fout(j,i) = ht(i+1,j+1)*rgti
+70: #endif
+71:         end do
+72:       end do
+73:       write (20,rec=2) fout
+74:       do i = 1 , iym2
+75:         do j = 1 , jxm2
+76: #ifdef MPP1
+77:           fout(j,i) = htsd_io(i+1,j+1)
+78: #else
+79:           fout(j,i) = htsd(i+1,j+1)
+80: #endif
+81:         end do
+82:       end do
+83:       write (20,rec=3) fout
+84:       do i = 1 , iym2
+85:         do j = 1 , jxm2
+86: #ifdef MPP1
+87:           fout(j,i) = veg2d_io(i+1,j+1)
+88: #else
+89:           fout(j,i) = veg2d(i+1,j+1)
+90: #endif
+91:         end do
+92:       end do
+93:       write (20,rec=4) fout
+94:       do i = 1 , iym2
+95:         do j = 1 , jxm2
+96: #ifdef MPP1
+97:           fout(j,i) = satbrt_io(i+1,j+1)
+98: #else
+99:           fout(j,i) = satbrt(i+1,j+1)
+100: #endif
+101:         end do
+102:       end do
+103:       write (20,rec=5) fout
+104:       do i = 1 , iym2
+105: #ifdef MPP1
+106:         do j = 1 , jxm2
+107:           fout(j,i) = xlat_io(i+1,j+1)
+108:         end do
+109: #else
+110:         do j = 1 , jxm2
+111:           fout(j,i) = xlat(i+1,j+1)
+112:         end do
+113: #endif
+114:       end do
+115:       write (20,rec=6) fout
+116:       do i = 1 , iym2
+117:         do j = 1 , jxm2
+118: #ifdef MPP1
+119:           fout(j,i) = xlong_io(i+1,j+1)
+120: #else
+121:           fout(j,i) = xlong(i+1,j+1)
+122: #endif
+123:         end do
+124:       end do
+125:       write (20,rec=7) fout
+126:       do i = 1 , iym2
+127:         do j = 1 , jxm2
+128: #ifdef MPP1
+129:           fout(j,i) = 1./msfx_io(i+1,j+1)
+130: #else
+131:           fout(j,i) = 1./msfx(i+1,j+1)
+132: #endif
+133:         end do
+134:       end do
+135:       write (20,rec=8) fout
+136:       do i = 1 , iym2
+137:         do j = 1 , jxm2
+138: #ifdef MPP1
+139:           fout(j,i) = 1./msfd_io(i+1,j+1)
+140: #else
+141:           fout(j,i) = 1./msfd(i+1,j+1)
+142: #endif
+143:         end do
+144:       end do
+145:       write (20,rec=9) fout
+146:       do i = 1 , iym2
+147:         do j = 1 , jxm2
+148: #ifdef MPP1
+149:           fout(j,i) = f_io(i+1,j+1)
+150: #else
+151:           fout(j,i) = f(i+1,j+1)
+152: #endif
+153:         end do
+154:       end do
+155:       write (20,rec=10) fout
+156:       do i = 1 , iym2
+157:         do j = 1 , jxm2
+158: #ifdef MPP1
+159:           if ( satbrt_io(i+1,j+1).gt.13.5 .and. satbrt_io(i+1,j+1)      &
+160:              & .lt.15.5 ) then
+161:             fout(j,i) = 0.
+162:           else
+163:             fout(j,i) = 2.
+164:           end if
+165: #else
+166:           if ( satbrt(i+1,j+1).gt.13.5 .and. satbrt(i+1,j+1).lt.15.5 )  &
+167:              & then
+168:             fout(j,i) = 0.
+169:           else
+170:             fout(j,i) = 2.
+171:           end if
+172: #endif
+173:         end do
+174:       end do
+175:       write (20,rec=11) fout
+176:  
+177:       close (20)
+178: !
+179:       end subroutine outtap0
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

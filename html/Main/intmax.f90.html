@@ -1,0 +1,68 @@
+<HTML>
+
+<HEAD>
+<TITLE>intmax.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>intmax.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>intmax.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=intmax><H3>intmax</H3></a></p> Click <a href="./callingtree/intmax_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where intmax is used.
+<hr>
+20:       function intmax(n,iy,inc)
+21: !
+22:       implicit none
+23: !
+24: ! Dummy arguments
+25: !
+26:       integer :: inc , n
+27:       integer :: <a href="./intmax.f90.html#intmax" TARGET=CENT_PANEL>intmax</a>
+28:       integer , dimension(*) :: iy
+29:       intent (in) inc , iy , n
+30: !
+31: ! Local variables
+32: !
+33:       integer :: i , mx
+34: !
+35:       mx = iy(1)
+36:       <a href="./intmax.f90.html#intmax" TARGET=CENT_PANEL>intmax</a> = 1
+37:       do i = 1 + inc , inc*n , inc
+38:         if ( iy(i).gt.mx ) then
+39:           mx = iy(i)
+40:           <a href="./intmax.f90.html#intmax" TARGET=CENT_PANEL>intmax</a> = i
+41:         end if
+42:       end do
+43:       end function intmax
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

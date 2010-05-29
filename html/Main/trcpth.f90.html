@@ -1,0 +1,199 @@
+<HTML>
+
+<HEAD>
+<TITLE>trcpth.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>trcpth.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>trcpth.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=trcpth><H3>trcpth</H3></a></p> Click <a href="./callingtree/trcpth_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where trcpth is used.
+<hr>
+20:       subroutine trcpth(tnm,pnm,cfc11,cfc12,n2o,ch4,qnm,ucfc11,ucfc12,  &
+21:                       & un2o0,un2o1,uch4,uco211,uco212,uco213,uco221,   &
+22:                       & uco222,uco223,bn2o0,bn2o1,bch4,uptype)
+23: !
+24:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+25:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : rga , sslp
+26:       use <a href="./mod_tracer.f90.html#mod_tracer" TARGET=CENT_PANEL>mod_tracer</a>
+27:       implicit none
+28: !
+29: !----------------------------------------------------------------------
+30: ! Calculate path lengths and pressure factors for CH4, N2O, CFC11
+31: ! and CFC12.
+32: !           Coded by J.T. Kiehl, November 21, 1994.
+33: !
+34: !-----------------------------------------------------------------------
+35: !
+36: !------------------------------Arguments--------------------------------
+37: !
+38: ! Input arguments
+39: !
+40: ! tnm    - Model level temperatures
+41: ! pnm    - Pressure at model interfaces (dynes/cm2)
+42: ! qmn    - h2o specific humidity
+43: ! cfc11  - CFC11 mass mixing ratio
+44: ! cfc12  - CFC12 mass mixing ratio
+45: ! n2o    - N2O mass mixing ratio
+46: ! ch4    - CH4 mass mixing ratio
+47: !
+48: ! Output arguments
+49: !
+50: ! ucfc11 - CFC11 path length
+51: ! ucfc12 - CFC12 path length
+52: ! un2o0  - N2O path length
+53: ! un2o1  - N2O path length (hot band)
+54: ! uch4   - CH4 path length
+55: ! uco211 - CO2 9.4 micron band path length
+56: ! uco212 - CO2 9.4 micron band path length
+57: ! uco213 - CO2 9.4 micron band path length
+58: ! uco221 - CO2 10.4 micron band path length
+59: ! uco222 - CO2 10.4 micron band path length
+60: ! uco223 - CO2 10.4 micron band path length
+61: ! bn2o0  - pressure factor for n2o
+62: ! bn2o1  - pressure factor for n2o
+63: ! bch4   - pressure factor for ch4
+64: ! uptype - p-type continuum path length
+65: !
+66: !-----------------------------------------------------------------------
+67: !
+68: ! Dummy arguments
+69: !
+70:       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
+71:            & ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,        &
+72:            & uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
+73:       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
+74:            & qnm , tnm
+75:       intent (in) cfc11 , cfc12 , ch4 , n2o , pnm , qnm , tnm
+76:       intent (inout) bch4 , bn2o0 , bn2o1 , ucfc11 , ucfc12 , uch4 ,    &
+77:                    & uco211 , uco212 , uco213 , uco221 , uco222 ,       &
+78:                    & uco223 , un2o0 , un2o1 , uptype
+79: !
+80: ! Local variables
+81: !
+82: ! i      - Longitude index
+83: ! k      - Level index
+84: ! co2fac - co2 factor
+85: ! alpha1 - stimulated emission term
+86: ! alpha2 - stimulated emission term
+87: ! rt     - reciprocal of local temperature
+88: ! rsqrt  - reciprocal of sqrt of temp
+89: ! pbar   - mean pressure
+90: ! dpnm   - difference in pressure
+91: !
+92:       real(8) , dimension(iym1) :: alpha1 , alpha2 , dpnm , pbar ,     &
+93:                                   & rsqrt , rt
+94:       real(8) , dimension(iym1,1) :: co2fac
+95:       real(8) :: diff
+96:       integer :: i , k
+97:       data diff/1.66/           ! diffusivity factor
+98: 
+99: !-----------------------------------------------------------------------
+100: !     Calculate path lengths for the trace gases
+101: !-----------------------------------------------------------------------
+102:       do i = 1 , iym1
+103:         ucfc11(i,1) = 1.8*cfc11(i,1)*pnm(i,1)*rga
+104:         ucfc12(i,1) = 1.8*cfc12(i,1)*pnm(i,1)*rga
+105:         un2o0(i,1) = diff*1.02346E5*n2o(i,1)*pnm(i,1)                   &
+106:                    & *rga/dsqrt(tnm(i,1))
+107:         un2o1(i,1) = diff*2.01909*un2o0(i,1)*dexp(-847.36/tnm(i,1))
+108:         uch4(i,1) = diff*8.60957E4*ch4(i,1)*pnm(i,1)*rga/dsqrt(tnm(i,1))
+109:         co2fac(i,1) = diff*co2mmr*pnm(i,1)*rga
+110:         alpha1(i) = (1.0-dexp(-1540.0/tnm(i,1)))**3.0/dsqrt(tnm(i,1))
+111:         alpha2(i) = (1.0-dexp(-1360.0/tnm(i,1)))**3.0/dsqrt(tnm(i,1))
+112:         uco211(i,1) = 3.42217E3*co2fac(i,1)*alpha1(i)                   &
+113:                     & *dexp(-1849.7/tnm(i,1))
+114:         uco212(i,1) = 6.02454E3*co2fac(i,1)*alpha1(i)                   &
+115:                     & *dexp(-2782.1/tnm(i,1))
+116:         uco213(i,1) = 5.53143E3*co2fac(i,1)*alpha1(i)                   &
+117:                     & *dexp(-3723.2/tnm(i,1))
+118:         uco221(i,1) = 3.88984E3*co2fac(i,1)*alpha2(i)                   &
+119:                     & *dexp(-1997.6/tnm(i,1))
+120:         uco222(i,1) = 3.67108E3*co2fac(i,1)*alpha2(i)                   &
+121:                     & *dexp(-3843.8/tnm(i,1))
+122:         uco223(i,1) = 6.50642E3*co2fac(i,1)*alpha2(i)                   &
+123:                     & *dexp(-2989.7/tnm(i,1))
+124:         bn2o0(i,1) = diff*19.399*pnm(i,1)**2.0*n2o(i,1)                 &
+125:                    & *1.02346E5*rga/(sslp*tnm(i,1))
+126:         bn2o1(i,1) = bn2o0(i,1)*dexp(-847.36/tnm(i,1))*2.06646E5
+127:         bch4(i,1) = diff*2.94449*ch4(i,1)*pnm(i,1)                      &
+128:                   & **2.0*rga*8.60957E4/(sslp*tnm(i,1))
+129:         uptype(i,1) = diff*qnm(i,1)*pnm(i,1)                            &
+130:                     & **2.0*dexp(1800.0*(1.0/tnm(i,1)-1.0/296.0))       &
+131:                     & *rga/sslp
+132:       end do
+133:       do k = 1 , kz
+134:         do i = 1 , iym1
+135:           rt(i) = 1./tnm(i,k)
+136:           rsqrt(i) = dsqrt(rt(i))
+137:           pbar(i) = 0.5*(pnm(i,k+1)+pnm(i,k))/sslp
+138:           dpnm(i) = (pnm(i,k+1)-pnm(i,k))*rga
+139:           alpha1(i) = diff*rsqrt(i)*(1.0-dexp(-1540.0/tnm(i,k)))**3.0
+140:           alpha2(i) = diff*rsqrt(i)*(1.0-dexp(-1360.0/tnm(i,k)))**3.0
+141:           ucfc11(i,k+1) = ucfc11(i,k) + 1.8*cfc11(i,k)*dpnm(i)
+142:           ucfc12(i,k+1) = ucfc12(i,k) + 1.8*cfc12(i,k)*dpnm(i)
+143:           un2o0(i,k+1) = un2o0(i,k) + diff*1.02346E5*n2o(i,k)*rsqrt(i)  &
+144:                        & *dpnm(i)
+145:           un2o1(i,k+1) = un2o1(i,k) + diff*2.06646E5*n2o(i,k)*rsqrt(i)  &
+146:                        & *dexp(-847.36/tnm(i,k))*dpnm(i)
+147:           uch4(i,k+1) = uch4(i,k) + diff*8.60957E4*ch4(i,k)*rsqrt(i)    &
+148:                       & *dpnm(i)
+149:           uco211(i,k+1) = uco211(i,k) + 1.15*3.42217E3*alpha1(i)        &
+150:                         & *co2mmr*dexp(-1849.7/tnm(i,k))*dpnm(i)
+151:           uco212(i,k+1) = uco212(i,k) + 1.15*6.02454E3*alpha1(i)        &
+152:                         & *co2mmr*dexp(-2782.1/tnm(i,k))*dpnm(i)
+153:           uco213(i,k+1) = uco213(i,k) + 1.15*5.53143E3*alpha1(i)        &
+154:                         & *co2mmr*dexp(-3723.2/tnm(i,k))*dpnm(i)
+155:           uco221(i,k+1) = uco221(i,k) + 1.15*3.88984E3*alpha2(i)        &
+156:                         & *co2mmr*dexp(-1997.6/tnm(i,k))*dpnm(i)
+157:           uco222(i,k+1) = uco222(i,k) + 1.15*3.67108E3*alpha2(i)        &
+158:                         & *co2mmr*dexp(-3843.8/tnm(i,k))*dpnm(i)
+159:           uco223(i,k+1) = uco223(i,k) + 1.15*6.50642E3*alpha2(i)        &
+160:                         & *co2mmr*dexp(-2989.7/tnm(i,k))*dpnm(i)
+161:           bn2o0(i,k+1) = bn2o0(i,k) + diff*19.399*pbar(i)*rt(i)         &
+162:                        & *1.02346E5*n2o(i,k)*dpnm(i)
+163:           bn2o1(i,k+1) = bn2o1(i,k) + diff*19.399*pbar(i)*rt(i)         &
+164:                        & *2.06646E5*dexp(-847.36/tnm(i,k))*n2o(i,k)     &
+165:                        & *dpnm(i)
+166:           bch4(i,k+1) = bch4(i,k) + diff*2.94449*rt(i)*pbar(i)          &
+167:                       & *8.60957E4*ch4(i,k)*dpnm(i)
+168:           uptype(i,k+1) = uptype(i,k) + diff*qnm(i,k)                   &
+169:                         & *dexp(1800.0*(1.0/tnm(i,k)-1.0/296.0))*pbar(i)&
+170:                         & *dpnm(i)
+171:         end do
+172:       end do
+173: 
+174:       end subroutine trcpth
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

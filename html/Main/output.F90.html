@@ -1,0 +1,1360 @@
+<HTML>
+
+<HEAD>
+<TITLE>output.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>output.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>output.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=output><H3>output</H3></a></p> Click <a href="./callingtree/output_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where output is used.
+<hr>
+20:       subroutine output(iexec)
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine handles all of the output                       c
+25: !                                                                     c
+26: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+27:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+28:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+29:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+30:       use <a href="./mod_iunits.f90.html#mod_iunits" TARGET=CENT_PANEL>mod_iunits</a>
+31:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+32:       use <a href="./mod_mainchem.F90.html#mod_mainchem" TARGET=CENT_PANEL>mod_mainchem</a>
+33:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+34:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+35:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a>
+36:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+37:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+38:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a>
+39:       use <a href="./mod_trachem.F90.html#mod_trachem" TARGET=CENT_PANEL>mod_trachem</a>
+40:       use <a href="./mod_cvaria.F90.html#mod_cvaria" TARGET=CENT_PANEL>mod_cvaria</a>
+41:       use <a href="./mod_outrad.F90.html#mod_outrad" TARGET=CENT_PANEL>mod_outrad</a>
+42:       use <a href="./mod_tmpsav.F90.html#mod_tmpsav" TARGET=CENT_PANEL>mod_tmpsav</a>
+43:       use <a href="./mod_radbuf.F90.html#mod_radbuf" TARGET=CENT_PANEL>mod_radbuf</a>
+44:       use <a href="./mod_split.F90.html#mod_split" TARGET=CENT_PANEL>mod_split</a>
+45: #ifdef MPP1
+46:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+47:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+48: #ifdef CLM
+49:       use <a href="#" TARGET=CENT_PANEL>restFileMod</a>, only : restFile_write, restFile_write_binary
+50:       use <a href="#" TARGET=CENT_PANEL>restFileMod</a>, only : restFile_filename
+51:       use <a href="#" TARGET=CENT_PANEL>clm_varctl</a> , only : filer_rest
+52:       use <a href="#" TARGET=CENT_PANEL>clm_time_manager</a>, only : get_step_size
+53: #endif
+54: #else
+55:       use <a href="./mod_outprt.F90.html#mod_outprt" TARGET=CENT_PANEL>mod_outprt</a> , only : outprt
+56: #endif
+57:       implicit none
+58: !
+59: ! Dummy arguments
+60: !
+61:       integer :: iexec
+62:       intent (in) iexec
+63: !
+64: ! Local variables
+65: !
+66:       integer :: i , j
+67:       logical :: there
+68:       character(3) :: itype
+69:       character(14) :: newfil
+70:       character(17) :: tmpfil
+71: #ifdef MPP1
+72:       integer :: allrec , idum , ierr , l , k , n
+73: #ifdef CLM
+74:       real(8) :: cdtime
+75: #endif
+76: #endif
+77: !
+78: !----------------------------------------------------------------------
+79: !
+80:       if ( jyear.ne.jyear0 .or. ktau.ne.0 ) then
+81:         if ( mod(nint(xtime),60).lt.mod(nint(xtime-dtmin),60) )         &
+82:            & idatex = idatex + 1
+83:         if ( dabs(xtime).lt.0.00001 ) idatex = ldatez
+84:       end if
+85:  
+86: #ifdef MPP1
+87:       if ( myid.eq.0 ) then
+88:         if ( jyear.eq.jyearr .and. ktau.eq.ktaur ) then
+89:           if ( iotyp.eq.1 ) then
+90:             print * , 'Writing output files in direct access format'
+91:           else if ( iotyp.eq.2 ) then
+92:             print * , 'Writing output files in sequential format'
+93:           else
+94:             write (aline,*) 'iotyp = ' , iotyp
+95:             call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+96:             call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'Output format does not exist')
+97:           end if
+98:           nrcout = 0
+99:           call <a href="./mkfile.F90.html#mkfile" TARGET=CENT_PANEL>mkfile</a>
+100:  
+101:         end if
+102:       end if
+103:  
+104:       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+105: !=======================================================================
+106: !       among    ht,htsd,veg2d,satbrt,xlat,xlong,msfx,msfd,f
+107: !       we just need gather                      msfx,msfd
+108:         do j = 1 , jendl
+109:           do i = 1 , iym1
+110:             out0(i,1,j) = veg2d(i,j)
+111:           end do
+112:         end do
+113:         do j = 1 , jendl
+114:           do i = 1 , iy
+115:             out0(i,2,j) = msfx(i,j)
+116:             out0(i,3,j) = msfd(i,j)
+117:           end do
+118:         end do
+119:         call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(out0(1,1,1), iy*3*jxp,mpi_real8,                &
+120:                       & out_0(1,1,1),iy*3*jxp,mpi_real8,                &
+121:                       & 0,mpi_comm_world,ierr)
+122:         if ( myid.eq.0 ) then
+123:           do j = 1 , jxm1
+124:             do i = 1 , iym1
+125:               veg2d_io(i,j) = out_0(i,1,j)
+126:             end do
+127:           end do
+128:           do j = 1 , jx
+129:             do i = 1 , iy
+130:               msfx_io(i,j) = out_0(i,2,j)
+131:               msfd_io(i,j) = out_0(i,3,j)
+132:             end do
+133:           end do
+134:           call <a href="./outtap0.F90.html#outtap0" TARGET=CENT_PANEL>outtap0</a>
+135:           call <a href="./grads_stuf.F90.html#gradsctl" TARGET=CENT_PANEL>gradsctl</a>('OUT_HEAD.CTL')
+136:         end if
+137:       end if
+138:  
+139: !
+140: !-----output for dataflow analyses:
+141: !
+142:       if ( iftape ) then
+143:         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
+144:            & (mod(ntime,ntapfrq).eq.0 .and.                             &
+145:            & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) then
+146: !=======================================================================
+147: !         gather  ua,va,ta,qva,qca,rainc,rainnc,tgb2d,swt2d,olcd2d,rno2d
+148:           do j = 1 , jendl
+149:             do k = 1 , kz
+150:               do i = 1 , iy
+151:                 atm0(i,k,j) = ua(i,k,j)
+152:                 atm0(i,k+kz,j) = va(i,k,j)
+153:                 atm0(i,k+kz*2,j) = omega(i,k,j)
+154:                 atm0(i,k+kz*3,j) = ta(i,k,j)
+155:                 atm0(i,k+kz*4,j) = qva(i,k,j)
+156:                 atm0(i,k+kz*5,j) = qca(i,k,j)
+157:               end do
+158:             end do
+159:             do i = 1 , iy
+160:               atm0(i,1+kz*6,j) = psa(i,j)
+161:               atm0(i,2+kz*6,j) = rainc(i,j)
+162:               atm0(i,3+kz*6,j) = rainnc(i,j)
+163:             end do
+164:           end do
+165:           do j = 1 , jendx
+166:             do n = 1 , nnsg
+167:               do i = 1 , iym1
+168:                 atm0(i,3+kz*6+n,j) = ocld2d(n,i,j)
+169:                 atm0(i,3+kz*6+n+nnsg,j) = tgb2d(n,i,j)
+170:                 atm0(i,3+kz*6+n+nnsg*2,j) = swt2d(n,i,j)
+171:                 atm0(i,3+kz*6+n+nnsg*3,j) = rno2d(n,i,j)
+172:               end do
+173:             end do
+174:           end do
+175:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(atm0(1,1,1), iy*(kz*6+3+nnsg*4)*jxp,mpi_real8,&
+176:                         & atm_0(1,1,1),iy*(kz*6+3+nnsg*4)*jxp,mpi_real8,&
+177:                         & 0,mpi_comm_world,ierr)
+178:           if ( myid.eq.0 ) then
+179:             do j = 1 , jx
+180:               do k = 1 , kz
+181:                 do i = 1 , iy
+182:                   ua_io(i,k,j) = atm_0(i,k,j)
+183:                   va_io(i,k,j) = atm_0(i,k+kz,j)
+184:                   omega_io(i,k,j) = atm_0(i,k+kz*2,j)
+185:                   ta_io(i,k,j) = atm_0(i,k+kz*3,j)
+186:                   qva_io(i,k,j) = atm_0(i,k+kz*4,j)
+187:                   qca_io(i,k,j) = atm_0(i,k+kz*5,j)
+188:                 end do
+189:               end do
+190:               do i = 1 , iy
+191:                 psa_io(i,j) = atm_0(i,1+kz*6,j)
+192:                 rainc_io(i,j) = atm_0(i,2+kz*6,j)
+193:                 rainnc_io(i,j) = atm_0(i,3+kz*6,j)
+194:               end do
+195:             end do
+196:             do j = 1 , jxm1
+197:               do n = 1 , nnsg
+198:                 do i = 1 , iym1
+199:                   ocld2d_io(n,i,j) = atm_0(i,3+kz*6+n,j)
+200:                   tgb2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg,j)
+201:                   swt2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*2,j)
+202:                   rno2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*3,j)
+203:                 end do
+204:               end do
+205:             end do
+206:             call <a href="./outtap.F90.html#outtap" TARGET=CENT_PANEL>outtap</a>
+207:           end if
+208:           do j = 1 , jendx
+209:             do i = 1 , iym1
+210:               do n = 1 , nnsg
+211:                 rno2d(n,i,j) = 0.
+212:               end do
+213:               rainc(i,j) = 0.
+214:               rainnc(i,j) = 0.
+215:             end do
+216:           end do
+217:         end if
+218:       end if
+219:  
+220: !     Call surface output
+221:  
+222:       if ( ifbat ) then
+223:         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
+224:            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
+225:            & then
+226: 
+227:           do j = 1 , jendx
+228:             do l = 1 , numbat
+229:               do i = 1 , iym2
+230:                 bat0(i,l,j) = fbat(j,i,l)
+231:               end do
+232:             end do
+233:           end do
+234:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(bat0(1,1,1), iym2*numbat*jxp,mpi_real4,       &
+235:                         & bat_0(1,1,1),iym2*numbat*jxp,mpi_real4,       &
+236:                         & 0,mpi_comm_world,ierr)
+237:           if ( myid.eq.0 ) then
+238:             do l = 1 , numbat
+239:               do i = 1 , iym2
+240:                 do j = 1 , jxm2
+241:                   fbat_io(j,i,l) = bat_0(i,l,j+1)
+242:                 end do
+243:               end do
+244:             end do
+245:             call <a href="./outsrf.F90.html#outsrf" TARGET=CENT_PANEL>outsrf</a>
+246:           end if
+247: 
+248:           do i = 1 , iym2
+249:             do j = 1 , jxp
+250:               tgmx_o(j,i) = -1.E30
+251:               t2mx_o(j,i) = -1.E30
+252:               tgmn_o(j,i) = 1.E30
+253:               t2mn_o(j,i) = 1.E30
+254:               w10x_o(j,i) = -1.E30
+255:               psmn_o(j,i) = 1.E30
+256:             end do
+257:           end do
+258: 
+259: 
+260:           if ( ifsub .and. nsg.gt.1 ) then
+261: 
+262:             do j = 1 , jxp
+263:               do l = 1 , numsub
+264:                 do n = 1 , nnsg
+265:                   do i = 1 , iym2
+266:                     sub0(i,n,l,j) = fsub(n,j,i,l)
+267:                   end do
+268:                 end do
+269:               end do
+270:             end do
+271:             call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sub0(1,1,1,1), iym2*nnsg*numsub*jxp,        &
+272:                           & mpi_real4,                                  &
+273:                           & sub_0(1,1,1,1),iym2*nnsg*numsub*jxp,        &
+274:                           & mpi_real4,                                  &
+275:                           & 0,mpi_comm_world,ierr)
+276: 
+277:             if ( myid.eq.0 ) then
+278:               do l = 1 , numsub
+279:                 do j = 1 , jxm2
+280:                   do n = 1 , nnsg
+281:                     do i = 1 , iym2
+282:                       fsub_io(n,j,i,l) = sub_0(i,n,l,j+1)
+283:                     end do
+284:                   end do
+285:                 end do
+286:               end do
+287:               call <a href="./outsub.F90.html#outsub" TARGET=CENT_PANEL>outsub</a>
+288:             end if
+289:           end if
+290: 
+291:         end if
+292:       end if
+293:  
+294: !     Call radiation output
+295:       if ( ifrad ) then
+296:         if ( (mod(ntime,nradisp).eq.0 .and. (.not.(jyear.eq.jyearr.and. &
+297:            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
+298:            & then
+299: !=======================================================================
+300: !         frad2d, frad3d , psa
+301:           do n = 1 , nrad2d
+302:             do j = 1 , jxp
+303:               do i = 1 , iym2
+304:                 rad0(i,n,j) = frad2d(j,i,n)
+305:               end do
+306:             end do
+307:           end do
+308:           do n = 1 , nrad3d
+309:             do k = 1 , kz
+310:               do j = 1 , jxp
+311:                 do i = 1 , iym2
+312:                   rad0(i,nrad2d+(n-1)*kz+k,j) = frad3d(j,i,k,n)
+313:                 end do
+314:               end do
+315:             end do
+316:           end do
+317:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(rad0(1,1,1),iym2*(nrad3d*kz+nrad2d)*jxp,      &
+318:                         & mpi_real4,rad_0(1,1,1),(iym2)                 &
+319:                         & *(nrad3d*kz+nrad2d)*jxp,mpi_real4,0,          &
+320:                         & mpi_comm_world,ierr)
+321:          call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(psa(1,1), iy*jxp,mpi_real8,                    &
+322:                         & psa_io(1,1),iy*jxp,mpi_real8,                 &
+323:                         & 0,mpi_comm_world,ierr)
+324:           if ( myid.eq.0 ) then
+325:             do n = 1 , nrad2d
+326:               do j = 1 , jxm2
+327:                 do i = 1 , iym2
+328:                   frad2d_io(j,i,n) = rad_0(i,n,j+1)
+329:                 end do
+330:               end do
+331:             end do
+332:             do n = 1 , nrad3d
+333:               do k = 1 , kz
+334:                 do j = 1 , jxm2
+335:                   do i = 1 , iym2
+336:                     frad3d_io(j,i,k,n) = rad_0(i,nrad2d+(n-1)*kz+k,j+1)
+337:                   end do
+338:                 end do
+339:               end do
+340:             end do
+341:             call <a href="./radtap.F90.html#radtap" TARGET=CENT_PANEL>radtap</a>
+342:           end if
+343:         end if
+344:       end if
+345:  
+346: !chem2
+347: !     Call chem output
+348:       if ( ifchem ) then
+349:         if ( (jyear.eq.jyear0 .and. ktau.eq.1) .or.                     &
+350:            & (mod(ntime,kchem).eq.0 .and.                               &
+351:            & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) then
+352:           do j = 1 , jendl
+353:             do n = 1 , ntr
+354:               do k = 1 , kz
+355:                 do i = 1 , iy
+356:                   chem0(i,(n-1)*kz+k,j) = chia(i,k,j,n)
+357:                 end do
+358:               end do
+359:             end do
+360:           end do
+361:           do j = 1 , jendx
+362:             do k = 1 , kz
+363:               do i = 1 , iym1
+364:                 chem0(i,ntr*kz+k,j) = aerext(i,k,j)
+365:                 chem0(i,ntr*kz+kz+k,j) = aerssa(i,k,j)
+366:                 chem0(i,ntr*kz+kz*2+k,j) = aerasp(i,k,j)
+367:               end do
+368:             end do
+369:           end do
+370:           do j = 1 , jendl
+371:             do n = 1 , ntr
+372:               do i = 1 , iy
+373:                 chem0(i,(ntr+3)*kz+n,j) = dtrace(i,j,n)
+374:                 chem0(i,(ntr+3)*kz+ntr+n,j) = wdlsc(i,j,n)
+375:                 chem0(i,(ntr+3)*kz+ntr*2+n,j) = wdcvc(i,j,n)
+376:                 chem0(i,(ntr+3)*kz+ntr*3+n,j) = ddsfc(i,j,n)
+377:                 chem0(i,(ntr+3)*kz+ntr*4+n,j) = wxsg(i,j,n)
+378:                 chem0(i,(ntr+3)*kz+ntr*5+n,j) = wxaq(i,j,n)
+379:                 chem0(i,(ntr+3)*kz+ntr*6+n,j) = cemtrac(i,j,n)
+380:               end do
+381:             end do
+382:           end do
+383:           do j = 1 , jendx
+384:             do i = 1 , iym1
+385:               chem0(i,(ntr+3)*kz+ntr*7+1,j) = aertarf(i,j)
+386:               chem0(i,(ntr+3)*kz+ntr*7+2,j) = aersrrf(i,j)
+387:               chem0(i,(ntr+3)*kz+ntr*7+3,j) = aertalwrf(i,j)
+388:               chem0(i,(ntr+3)*kz+ntr*7+4,j) = aersrlwrf(i,j)             
+389: 
+390:             end do
+391:           end do
+392:           do j = 1 , jendl
+393:             do i = 1 , iy
+394:               chem0(i,(ntr+3)*kz+ntr*7+5,j) = psa(i,j)
+395:             end do
+396:           end do
+397:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(chem0(1,1,1),iy*((ntr+3)*kz+ntr*7+5)*jxp,     &
+398:                         & mpi_real8,chem_0(1,1,1),                      &
+399:                         & iy*((ntr+3)*kz+ntr*7+5)*jxp,                  &
+400:                         & mpi_real8,0,mpi_comm_world,ierr)
+401:           if ( myid.eq.0 ) then
+402:             do j = 1 , jx
+403:               do n = 1 , ntr
+404:                 do k = 1 , kz
+405:                   do i = 1 , iy
+406:                     chia_io(i,k,j,n) = chem_0(i,(n-1)*kz+k,j)
+407:                   end do
+408:                 end do
+409:               end do
+410:             end do
+411:             do j = 1 , jxm1
+412:               do k = 1 , kz
+413:                 do i = 1 , iym1
+414:                   aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j+1)
+415:                   aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j+1)
+416:                   aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j+1)
+417:                 end do
+418:               end do
+419:             end do
+420:             do j = 1 , jx
+421:               do n = 1 , ntr
+422:                 do i = 1 , iy
+423:                   dtrace_io(i,j,n) = chem_0(i,(ntr+3)*kz+n,j)
+424:                   wdlsc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr+n,j)
+425:                   wdcvc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*2+n,j)
+426:                   ddsfc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*3+n,j)
+427:                   wxsg_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*4+n,j)
+428:                   wxaq_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*5+n,j)
+429:                   cemtrac_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*6+n,j)
+430:                 end do
+431:               end do
+432:             end do
+433:            do j = 1 , jxm1
+434:               do i = 1 , iym1
+435:                 aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j+1)
+436:                 aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j+1)
+437:                 aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j+1)
+438:                 aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j+1)
+439:               end do
+440:             end do
+441:             do j = 1 , jx
+442:               do i = 1 , iy
+443:                 psa_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+5,j)
+444:               end do
+445:             end do
+446:             call <a href="./chemtap.F90.html#chemtap" TARGET=CENT_PANEL>chemtap</a>
+447:           end if
+448:           do n = 1 , ntr
+449:             do j = 1 , jendl
+450:               do k = 1 , kz
+451:                 do i = 1 , iy
+452:                   remlsc(i,k,j,n) = 0.
+453:                   remcvc(i,k,j,n) = 0.
+454:                   rxsg(i,k,j,n) = 0.
+455:                   rxsaq1(i,k,j,n) = 0.
+456:                   rxsaq2(i,k,j,n) = 0.
+457:                 end do
+458:               end do
+459:             end do
+460:           end do
+461:           do n = 1 , ntr
+462:             do j = 1 , jendl
+463:               do i = 1 , iy
+464:                 cemtr(i,j,n) = 0.
+465:                 remdrd(i,j,n) = 0.
+466:                 wdlsc(i,j,n) = 0.
+467:                 wdcvc(i,j,n) = 0.
+468:                 ddsfc(i,j,n) = 0.
+469:                 wxsg(i,j,n) = 0.
+470:                 wxaq(i,j,n) = 0.
+471:                 cemtrac(i,j,n) = 0.
+472:               end do
+473:             end do
+474:           end do
+475:           do j = 1 , jendl
+476:             do i = 1 , iym1
+477:               aertarf(i,j) = 0.
+478:               aersrrf(i,j) = 0.
+479:               aertalwrf(i,j) = 0.              
+480:               aersrlwrf(i,j) = 0.
+481:             end do
+482:           end do
+483:         end if
+484:       end if
+485: !chem2
+486: !
+487: !-----output for restart:
+488: !
+489:       if ( ifsave ) then
+490:         if ( ((lday.eq.1 .and. lhour.eq.0 .and. dabs(xtime).lt.0.00001) &
+491:            & .and. ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
+492:           do j = 1 , jendl
+493:             do k = 1 , kz
+494:               do i = 1 , iy
+495:                 sav0(i,k,j) = ub0(i,k,j)
+496:                 sav0(i,kz+k,j) = vb0(i,k,j)
+497:                 sav0(i,kz*2+k,j) = qb0(i,k,j)
+498:                 sav0(i,kz*3+k,j) = tb0(i,k,j)
+499:               end do
+500:             end do
+501:             do i = 1 , iy
+502:               sav0(i,kz*4+1,j) = ps0(i,j)
+503:               sav0(i,kz*4+2,j) = ts0(i,j)
+504:             end do
+505:           end do
+506:           allrec = kz*4 + 2
+507:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0(1,1,1), iy*allrec*jxp,mpi_real8,         &
+508:                         & sav_0(1,1,1),iy*allrec*jxp,mpi_real8,         &
+509:                         & 0,mpi_comm_world,ierr)
+510:           if ( myid.eq.0 ) then
+511:             do j = 1 , jx
+512:               do k = 1 , kz
+513:                 do i = 1 , iy
+514:                   ub0_io(i,k,j) = sav_0(i,k,j)
+515:                   vb0_io(i,k,j) = sav_0(i,kz+k,j)
+516:                   qb0_io(i,k,j) = sav_0(i,kz*2+k,j)
+517:                   tb0_io(i,k,j) = sav_0(i,kz*3+k,j)
+518:                 end do
+519:               end do
+520:               do i = 1 , iy
+521:                 ps0_io(i,j) = sav_0(i,kz*4+1,j)
+522:                 ts0_io(i,j) = sav_0(i,kz*4+2,j)
+523:               end do
+524:             end do
+525:           end if
+526:           if ( ehso4 ) then
+527:             do j = 1 , jendl
+528:               do k = 1 , kz
+529:                 do i = 1 , iy
+530:                   sav0s(i,k,j) = so0(i,k,j)
+531:                 end do
+532:               end do
+533:             end do
+534:             call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0s(1,1,1), iy*kz*jxp,mpi_real8,          &
+535:                           & sav_0s(1,1,1),iy*kz*jxp,mpi_real8,          &
+536:                           & 0,mpi_comm_world,ierr)
+537:             if ( myid.eq.0 ) then
+538:               do j = 1 , jx
+539:                 do k = 1 , kz
+540:                   do i = 1 , iy
+541:                     so0_io(i,k,j) = sav_0s(i,k,j)
+542:                   end do
+543:                 end do
+544:               end do
+545:             end if
+546:           end if
+547:           do j = 1 , jendl
+548:             do k = 1 , kz
+549:               do i = 1 , iy
+550:                 sav0(i,k,j) = ua(i,k,j)
+551:                 sav0(i,kz+k,j) = ub(i,k,j)
+552:                 sav0(i,kz*2+k,j) = va(i,k,j)
+553:                 sav0(i,kz*3+k,j) = vb(i,k,j)
+554:               end do
+555:             end do
+556:             do i = 1 , iy
+557:               sav0(i,kz*4+1,j) = psa(i,j)
+558:               sav0(i,kz*4+2,j) = psb(i,j)
+559:             end do
+560:           end do
+561:           allrec = kz*4 + 2
+562:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0(1,1,1), iy*allrec*jxp,mpi_real8,         &
+563:                         & sav_0(1,1,1),iy*allrec*jxp,mpi_real8,         &
+564:                         & 0,mpi_comm_world,ierr)
+565:           if ( myid.eq.0 ) then
+566:             do j = 1 , jx
+567:               do k = 1 , kz
+568:                 do i = 1 , iy
+569:                   ua_io(i,k,j) = sav_0(i,k,j)
+570:                   ub_io(i,k,j) = sav_0(i,kz+k,j)
+571:                   va_io(i,k,j) = sav_0(i,kz*2+k,j)
+572:                   vb_io(i,k,j) = sav_0(i,kz*3+k,j)
+573:                 end do
+574:               end do
+575:               do i = 1 , iy
+576:                 psa_io(i,j) = sav_0(i,kz*4+1,j)
+577:                 psb_io(i,j) = sav_0(i,kz*4+2,j)
+578:               end do
+579:             end do
+580:           end if
+581:           do j = 1 , jendl
+582:             do k = 1 , kz
+583:               do i = 1 , iy
+584:                 sav0(i,k,j) = ta(i,k,j)
+585:                 sav0(i,kz+k,j) = tb(i,k,j)
+586:                 sav0(i,kz*2+k,j) = qva(i,k,j)
+587:                 sav0(i,kz*3+k,j) = qvb(i,k,j)
+588:               end do
+589:             end do
+590:             do i = 1 , iy
+591:               sav0(i,kz*4+1,j) = tga(i,j)
+592:               sav0(i,kz*4+2,j) = tgb(i,j)
+593:             end do
+594:           end do
+595:           allrec = kz*4 + 2
+596:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0(1,1,1), iy*allrec*jxp,mpi_real8,         &
+597:                         & sav_0(1,1,1),iy*allrec*jxp,mpi_real8,         &
+598:                         & 0,mpi_comm_world,ierr)
+599:           if ( myid.eq.0 ) then
+600:             do j = 1 , jx
+601:               do k = 1 , kz
+602:                 do i = 1 , iy
+603:                   ta_io(i,k,j) = sav_0(i,k,j)
+604:                   tb_io(i,k,j) = sav_0(i,kz+k,j)
+605:                   qva_io(i,k,j) = sav_0(i,kz*2+k,j)
+606:                   qvb_io(i,k,j) = sav_0(i,kz*3+k,j)
+607:                 end do
+608:               end do
+609:               do i = 1 , iy
+610:                 tga_io(i,j) = sav_0(i,kz*4+1,j)
+611:                 tgb_io(i,j) = sav_0(i,kz*4+2,j)
+612:               end do
+613:             end do
+614:           end if
+615:           do j = 1 , jendl
+616:             do k = 1 , kz
+617:               do i = 1 , iy
+618:                 sav0(i,k,j) = qca(i,k,j)
+619:                 sav0(i,kz+k,j) = qcb(i,k,j)
+620:                 sav0(i,kz*2+k,j) = fcc(i,k,j)
+621:               end do
+622:             end do
+623:             do i = 1 , iy
+624:               sav0(i,kz*4+1,j) = rainc(i,j)
+625:               sav0(i,kz*4+2,j) = rainnc(i,j)
+626:             end do
+627:           end do
+628:           do j = 1 , jendx
+629:             do k = 1 , kz
+630:               do i = 1 , iym1
+631:                 sav0(i,kz*3+k,j) = heatrt(i,k,j)
+632:               end do
+633:             end do
+634:           end do
+635:           allrec = kz*4 + 2
+636:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0(1,1,1), iy*allrec*jxp,mpi_real8,         &
+637:                         & sav_0(1,1,1),iy*allrec*jxp,mpi_real8,         &
+638:                         & 0,mpi_comm_world,ierr)
+639:           if ( myid.eq.0 ) then
+640:             do j = 1 , jx
+641:               do k = 1 , kz
+642:                 do i = 1 , iy
+643:                   qca_io(i,k,j) = sav_0(i,k,j)
+644:                   qcb_io(i,k,j) = sav_0(i,kz+k,j)
+645:                   fcc_io(i,k,j) = sav_0(i,kz*2+k,j)
+646:                 end do
+647:               end do
+648:               do i = 1 , iy
+649:                 rainc_io(i,j) = sav_0(i,kz*4+1,j)
+650:                 rainnc_io(i,j) = sav_0(i,kz*4+2,j)
+651:               end do
+652:             end do
+653:             do j = 1 , jxm1
+654:               do k = 1 , kz
+655:                 do i = 1 , iym1
+656:                   heatrt_io(i,k,j) = sav_0(i,kz*3+k,j)
+657:                 end do
+658:               end do
+659:             end do
+660:           end if
+661:           do j = 1 , jendl
+662:             do i = 1 , iy
+663:               sav0a(i,1,j) = hfx(i,j)
+664:               sav0a(i,2,j) = qfx(i,j)
+665:               sav0a(i,3,j) = uvdrag(i,j)
+666:               sav0a(i,4,j) = tgbb(i,j)
+667:             end do
+668:             do n = 1 , nnsg
+669:               do i = 1 , iy
+670:                 sav0a(i,4+n,j) = snowc(n,i,j)
+671:               end do
+672:             end do
+673:           end do
+674:           do j = 1 , jendx
+675:             do k = 1 , kzp1
+676:               do i = 1 , iym1
+677:                 sav0a(i,nnsg+4+k,j) = o3prof(i,k,j)
+678:               end do
+679:             end do
+680:           end do
+681:           allrec = 5 + nnsg + kz
+682:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0a(1,1,1), iy*allrec*jxp,mpi_real8,        &
+683:                         & sav_0a(1,1,1),iy*allrec*jxp,mpi_real8,        &
+684:                         & 0,mpi_comm_world,ierr)
+685:           if ( myid.eq.0 ) then
+686:             do j = 1 , jx
+687:               do i = 1 , iy
+688:                 hfx_io(i,j) = sav_0a(i,1,j)
+689:                 qfx_io(i,j) = sav_0a(i,2,j)
+690:                 uvdrag_io(i,j) = sav_0a(i,3,j)
+691:                 tgbb_io(i,j) = sav_0a(i,4,j)
+692:               end do
+693:               do n = 1 , nnsg
+694:                 do i = 1 , iy
+695:                   snowc_io(n,i,j) = sav_0a(i,4+n,j)
+696:                 end do
+697:               end do
+698:             end do
+699:             do j = 1 , jxm1
+700:               do k = 1 , kzp1
+701:                 do i = 1 , iym1
+702:                   o3prof_io(i,k,j) = sav_0a(i,4+nnsg+k,j)
+703:                 end do
+704:               end do
+705:             end do
+706:           end if
+707:           if ( iocnflx.eq.2 )                                           &
+708:              & call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(zpbl(1,1),   iy*jxp,mpi_real8,           &
+709:              &                 zpbl_io(1,1),iy*jxp,mpi_real8,           &
+710:              &                 0,mpi_comm_world,ierr)
+711:           if ( icup.eq.1 ) then
+712:             do j = 1 , jendl
+713:               do k = 1 , kz
+714:                 do i = 1 , iy
+715:                   sav0c(i,k,j) = rsheat(i,k,j)
+716:                   sav0c(i,kz+k,j) = rswat(i,k,j)
+717:                 end do
+718:               end do
+719:             end do
+720:             allrec = kz*2
+721:             call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0c(1,1,1), iy*allrec*jxp,mpi_real8,      &
+722:                           & sav_0c(1,1,1),iy*allrec*jxp,mpi_real8,      &
+723:                           & 0,mpi_comm_world,ierr)
+724:             if ( myid.eq.0 ) then
+725:               do j = 1 , jx
+726:                 do k = 1 , kz
+727:                   do i = 1 , iy
+728:                     rsheat_io(i,k,j) = sav_0c(i,k,j)
+729:                     rswat_io(i,k,j) = sav_0c(i,kz+k,j)
+730:                   end do
+731:                 end do
+732:               end do
+733:             end if
+734:           else if ( icup.eq.3 ) then
+735:             do j = 1 , jendl
+736:               do k = 1 , kz
+737:                 do i = 1 , iy
+738:                   sav0b(i,k,j) = tbase(i,k,j)
+739:                 end do
+740:               end do
+741:               do i = 1 , iy
+742:                 sav0b(i,kzp1,j) = cldefi(i,j)
+743:               end do
+744:             end do
+745:             allrec = kzp1
+746:             call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0b(1,1,1), iy*allrec*jxp,mpi_real8,      &
+747:                           & sav_0b(1,1,1),iy*allrec*jxp,mpi_real8,      &
+748:                           & 0,mpi_comm_world,ierr)
+749:             if ( myid.eq.0 ) then
+750:               do j = 1 , jx
+751:                 do k = 1 , kz
+752:                   do i = 1 , iy
+753:                     tbase_io(i,k,j) = sav_0b(i,k,j)
+754:                   end do
+755:                 end do
+756:                 do i = 1 , iy
+757:                   cldefi_io(i,j) = sav_0b(i,kzp1,j)
+758:                 end do
+759:               end do
+760:             end if
+761:           else if ( icup.eq.4 ) then
+762:             call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(cbmf2d(1,1),   iy*jxp,mpi_real8,            &
+763:                           & cbmf2d_io(1,1),iy*jxp,mpi_real8,            &
+764:                           & 0,mpi_comm_world,ierr)
+765:           else
+766:           end if
+767:           do j = 1 , jendx
+768:             do l = 1 , 4
+769:               do k = 1 , kz
+770:                 do i = 1 , iym1
+771:                   sav1(i,(l-1)*kz+k,j) = absnxt(i,k,l,j)
+772:                 end do
+773:               end do
+774:             end do
+775:           end do
+776:           allrec = kz*4
+777:           do j = 1 , jendx
+778:             do l = 1 , kzp1
+779:               do k = 1 , kzp1
+780:                 do i = 1 , iym1
+781:                   sav1(i,allrec+(l-1)*(kzp1)+k,j) = abstot(i,k,l,j)
+782:                 end do
+783:               end do
+784:             end do
+785:           end do
+786:           allrec = allrec + (kzp1)*(kz+1)
+787:           do j = 1 , jendx
+788:             do k = 1 , kzp1
+789:               do i = 1 , iym1
+790:                 sav1(i,allrec+k,j) = emstot(i,k,j)
+791:               end do
+792:             end do
+793:           end do
+794:           allrec = kz*4+(kzp1*kzp2)
+795:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav1(1,1,1), iym1*allrec*jxp,mpi_real8,       &
+796:                         & sav_1(1,1,1),iym1*allrec*jxp,mpi_real8,       &
+797:                         & 0,mpi_comm_world,ierr)
+798:           if ( myid.eq.0 ) then
+799:             do j = 1 , jxm1
+800:               do l = 1 , 4
+801:                 do k = 1 , kz
+802:                   do i = 1 , iym1
+803:                     absnxt_io(i,k,l,j) = sav_1(i,(l-1)*kz+k,j)
+804:                   end do
+805:                 end do
+806:               end do
+807:             end do
+808:             allrec = kz*4
+809:             do j = 1 , jxm1
+810:               do l = 1 , kzp1
+811:                 do k = 1 , kzp1
+812:                   do i = 1 , iym1
+813:                     abstot_io(i,k,l,j)                                  &
+814:                     & = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
+815:                   end do
+816:                 end do
+817:               end do
+818:             end do
+819:             allrec = allrec + (kzp1)*(kz+1)
+820:             do j = 1 , jxm1
+821:               do k = 1 , kzp1
+822:                 do i = 1 , iym1
+823:                   emstot_io(i,k,j) = sav_1(i,allrec+k,j)
+824:                 end do
+825:               end do
+826:             end do
+827:           end if
+828:           do j = 1 , jendx
+829:             do n = 1 , nnsg
+830:               do i = 1 , iym1
+831:                 sav2(i,n,j) = taf2d(n,i,j)
+832:                 sav2(i,nnsg+n,j) = tlef2d(n,i,j)
+833:                 sav2(i,nnsg*2+n,j) = ssw2d(n,i,j)
+834:                 sav2(i,nnsg*3+n,j) = srw2d(n,i,j)
+835:               end do
+836:             end do
+837:             do i = 1 , iym1
+838:               sav2(i,nnsg*4+1,j) = sol2d(i,j)
+839:               sav2(i,nnsg*4+2,j) = solvd2d(i,j)
+840:               sav2(i,nnsg*4+3,j) = solvs2d(i,j)
+841:               sav2(i,nnsg*4+4,j) = flw2d(i,j)
+842:             end do
+843:           end do
+844:           allrec = nnsg*4 + 4
+845:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav2(1,1,1), iym1*allrec*jxp,mpi_real8,       &
+846:                         & sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,       &
+847:                         & 0,mpi_comm_world,ierr)
+848:           if ( myid.eq.0 ) then
+849:             do j = 1 , jxm1
+850:               do n = 1 , nnsg
+851:                 do i = 1 , iym1
+852:                   taf2d_io(n,i,j) = sav_2(i,n,j)
+853:                   tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
+854:                   ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+855:                   srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+856:                 end do
+857:               end do
+858:               do i = 1 , iym1
+859:                 sol2d_io(i,j) = sav_2(i,nnsg*4+1,j)
+860:                 solvd2d_io(i,j) = sav_2(i,nnsg*4+2,j)
+861:                 solvs2d_io(i,j) = sav_2(i,nnsg*4+3,j)
+862:                 flw2d_io(i,j) = sav_2(i,nnsg*4+4,j)
+863:               end do
+864:             end do
+865:           end if
+866: #ifdef CLM
+867:           do j = 1 , jendx
+868:             do i = 1 , iym1
+869:               sav_clmin(i,1,j) = sols2d(i,j)
+870:               sav_clmin(i,2,j) = soll2d(i,j)
+871:               sav_clmin(i,3,j) = solsd2d(i,j)
+872:               sav_clmin(i,4,j) = solld2d(i,j)
+873:               sav_clmin(i,5,j) = aldirs2d(i,j)
+874:               sav_clmin(i,6,j) = aldirl2d(i,j)
+875:               sav_clmin(i,7,j) = aldifs2d(i,j)
+876:               sav_clmin(i,8,j) = aldifl2d(i,j)
+877:               sav_clmin(i,9,j) = coszrs2d(i,j)
+878:             end do
+879:           end do
+880:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav_clmin(1,1,1), iym1*9*jxp,mpi_real8,       &
+881:                         & sav_clmout(1,1,1),iym1*9*jxp,mpi_real8,       &
+882:                         & 0,mpi_comm_world,ierr)
+883:           if ( myid.eq.0 ) then
+884:             do j = 1 , jxm1
+885:               do i = 1 , iym1
+886:                 sols2d_io(i,j) = sav_clmout(i,1,j)
+887:                 soll2d_io(i,j) = sav_clmout(i,2,j)
+888:                 solsd2d_io(i,j) = sav_clmout(i,3,j)
+889:                 solld2d_io(i,j) = sav_clmout(i,4,j)
+890:                 aldirs2d_io(i,j) = sav_clmout(i,5,j)
+891:                 aldirl2d_io(i,j) = sav_clmout(i,6,j)
+892:                 aldifs2d_io(i,j) = sav_clmout(i,7,j)
+893:                 aldifl2d_io(i,j) = sav_clmout(i,8,j)
+894:                 coszrs2d_io(i,j) = sav_clmout(i,9,j)
+895:               end do
+896:             end do
+897:           end if
+898: #endif
+899:           do j = 1 , jendx
+900:             do n = 1 , nnsg
+901:               do i = 1 , iym1
+902:                 sav2(i,n,j) = tgb2d(n,i,j)
+903:                 sav2(i,nnsg+n,j) = swt2d(n,i,j)
+904:                 sav2(i,nnsg*2+n,j) = scv2d(n,i,j)
+905:                 sav2(i,nnsg*3+n,j) = gwet2d(n,i,j)
+906:               end do
+907:             end do
+908:             do i = 1 , iym1
+909:               sav2(i,nnsg*4+1,j) = flwd2d(i,j)
+910:               sav2(i,nnsg*4+2,j) = fsw2d(i,j)
+911:               sav2(i,nnsg*4+3,j) = sabv2d(i,j)
+912:               sav2(i,nnsg*4+4,j) = sinc2d(i,j)
+913:             end do
+914:           end do
+915:           allrec = nnsg*4 + 4
+916:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav2(1,1,1), iym1*allrec*jxp,mpi_real8,       &
+917:                         & sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,       &
+918:                         & 0,mpi_comm_world,ierr)
+919:           if ( myid.eq.0 ) then
+920:             do j = 1 , jxm1
+921:               do n = 1 , nnsg
+922:                 do i = 1 , iym1
+923:                   tgb2d_io(n,i,j) = sav_2(i,n,j)
+924:                   swt2d_io(n,i,j) = sav_2(i,nnsg+n,j)
+925:                   scv2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+926:                   gwet2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+927:                 end do
+928:               end do
+929:               do i = 1 , iym1
+930:                 flwd2d_io(i,j) = sav_2(i,nnsg*4+1,j)
+931:                 fsw2d_io(i,j) = sav_2(i,nnsg*4+2,j)
+932:                 sabv2d_io(i,j) = sav_2(i,nnsg*4+3,j)
+933:                 sinc2d_io(i,j) = sav_2(i,nnsg*4+4,j)
+934:               end do
+935:             end do
+936:           end if
+937:           do j = 1 , jendx
+938:             do n = 1 , nnsg
+939:               do i = 1 , iym1
+940:                 sav2(i,n,j) = veg2d1(n,i,j)
+941:                 sav2(i,nnsg+n,j) = sag2d(n,i,j)
+942:                 sav2(i,nnsg*2+n,j) = sice2d(n,i,j)
+943:                 sav2(i,nnsg*3+n,j) = dew2d(n,i,j)
+944:               end do
+945:             end do
+946:             do i = 1 , iym1
+947:               sav2(i,nnsg*4+1,j) = pptnc(i,j)
+948:               sav2(i,nnsg*4+2,j) = pptc(i,j)
+949:               sav2(i,nnsg*4+3,j) = prca2d(i,j)
+950:               sav2(i,nnsg*4+4,j) = prnca2d(i,j)
+951:             end do
+952:           end do
+953:           allrec = nnsg*4 + 4
+954:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav2(1,1,1), iym1*allrec*jxp,mpi_real8,       &
+955:                         & sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,       &
+956:                         & 0,mpi_comm_world,ierr)
+957:           if ( myid.eq.0 ) then
+958:             do j = 1 , jxm1
+959:               do n = 1 , nnsg
+960:                 do i = 1 , iym1
+961:                   veg2d1_io(n,i,j) = sav_2(i,n,j)
+962:                   sag2d_io(n,i,j) = sav_2(i,nnsg+n,j)
+963:                   sice2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+964:                   dew2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+965:                 end do
+966:               end do
+967:               do i = 1 , iym1
+968:                 pptnc_io(i,j) = sav_2(i,nnsg*4+1,j)
+969:                 pptc_io(i,j) = sav_2(i,nnsg*4+2,j)
+970:                 prca2d_io(i,j) = sav_2(i,nnsg*4+3,j)
+971:                 prnca2d_io(i,j) = sav_2(i,nnsg*4+4,j)
+972:               end do
+973:             end do
+974:           end if
+975:           do j = 1 , jendx
+976:             do n = 1 , nnsg
+977:               do i = 1 , iym1
+978:                 sav2a(i,n,j) = ircp2d(n,i,j)
+979:                 sav2a(i,nnsg+n,j) = text2d(n,i,j)
+980:                 sav2a(i,nnsg*2+n,j) = col2d(n,i,j)
+981:                 sav2a(i,nnsg*3+n,j) = ocld2d(n,i,j)
+982:                 sav2a(i,nnsg*4+n,j) = tg2d(n,i,j)
+983:               end do
+984:             end do
+985:             do i = 1 , iym1
+986:               sav2a(i,nnsg*5+1,j) = veg2d(i,j)
+987:             end do
+988:           end do
+989:           allrec = nnsg*5 + 1
+990:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav2a(1,1,1), iym1*allrec*jxp,mpi_real8,      &
+991:                         & sav_2a(1,1,1),iym1*allrec*jxp,mpi_real8,      &
+992:                         & 0,mpi_comm_world,ierr)
+993:           if ( myid.eq.0 ) then
+994:             do j = 1 , jxm1
+995:               do n = 1 , nnsg
+996:                 do i = 1 , iym1
+997:                   ircp2d_io(n,i,j) = sav_2a(i,n,j)
+998:                   text2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
+999:                   col2d_io(n,i,j) = sav_2a(i,nnsg*2+n,j)
+1000:                   ocld2d_io(n,i,j) = sav_2a(i,nnsg*3+n,j)
+1001:                   tg2d_io(n,i,j) = sav_2a(i,nnsg*4+n,j)
+1002:                 end do
+1003:               end do
+1004:               do i = 1 , iym1
+1005:                 veg2d_io(i,j) = sav_2a(i,nnsg*5+1,j)
+1006:               end do
+1007:             end do
+1008:           end if
+1009:  
+1010:           if ( ichem.eq.1 ) then
+1011:             do j = 1 , jendl
+1012:               do n = 1 , ntr
+1013:                 do k = 1 , kz
+1014:                   do i = 1 , iy
+1015:                     sav4(i,(n-1)*kz+k,j) = chia(i,k,j,n)
+1016:                     sav4(i,ntr*kz+(n-1)*kz+k,j) = chib(i,k,j,n)
+1017:                     sav4(i,ntr*kz*2+(n-1)*kz+k,j) = remlsc(i,k,j,n)
+1018:                     sav4(i,ntr*kz*3+(n-1)*kz+k,j) = remcvc(i,k,j,n)
+1019:                   end do
+1020:                 end do
+1021:               end do
+1022:             end do
+1023:             allrec = 4*ntr*kz
+1024:             do j = 1 , jendl
+1025:               do n = 1 , ntr
+1026:                 do i = 1 , iy
+1027:                   sav4(i,allrec+n,j) = remdrd(i,j,n)
+1028:                 end do
+1029:               end do
+1030:             end do
+1031:             allrec = ntr*(kz*4+1)
+1032:             call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav4(1,1,1), iy*allrec*jxp,mpi_real8,       &
+1033:                           & sav_4(1,1,1),iy*allrec*jxp,mpi_real8,       &
+1034:                           & 0,mpi_comm_world,ierr)
+1035:             if ( myid.eq.0 ) then
+1036:               do j = 1 , jx
+1037:                 do n = 1 , ntr
+1038:                   do k = 1 , kz
+1039:                     do i = 1 , iy
+1040:                       chia_io(i,k,j,n) = sav_4(i,(n-1)*kz+k,j)
+1041:                       chib_io(i,k,j,n) = sav_4(i,ntr*kz+(n-1)*kz+k,j)
+1042:                       remlsc_io(i,k,j,n)                                &
+1043:                       & = sav_4(i,ntr*kz*2+(n-1)*kz+k,j)
+1044:                       remcvc_io(i,k,j,n)                                &
+1045:                       & = sav_4(i,ntr*kz*3+(n-1)*kz+k,j)
+1046:                     end do
+1047:                   end do
+1048:                 end do
+1049:               end do
+1050:               allrec = 4*ntr*kz
+1051:               do j = 1 , jx
+1052:                 do n = 1 , ntr
+1053:                   do i = 1 , iy
+1054:                     remdrd_io(i,j,n) = sav_4(i,allrec+n,j)
+1055:                   end do
+1056:                 end do
+1057:               end do
+1058:             end if
+1059:             do j = 1 , jendx
+1060:               do i = 1 , iym1
+1061:                 sav4a(i,1,j) = ssw2da(i,j)
+1062:                 sav4a(i,2,j) = sdeltk2d(i,j)
+1063:                 sav4a(i,3,j) = sdelqk2d(i,j)
+1064:                 sav4a(i,4,j) = sfracv2d(i,j)
+1065:                 sav4a(i,5,j) = sfracb2d(i,j)
+1066:                 sav4a(i,6,j) = sfracs2d(i,j)
+1067:                 sav4a(i,7,j) = svegfrac2d(i,j)
+1068:               end do
+1069:             end do
+1070:             call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav4a, iym1*7*jxp,mpi_real8,                &
+1071:                           & sav_4a,iym1*7*jxp,mpi_real8,                &
+1072:                           & 0,mpi_comm_world,ierr)
+1073:             if ( myid.eq.0 ) then
+1074:               do j = 1 , jxm1
+1075:                 do i = 1 , iym1
+1076:                   ssw2da_io(i,j) = sav_4a(i,1,j)
+1077:                   sdeltk2d_io(i,j) = sav_4a(i,2,j)
+1078:                   sdelqk2d_io(i,j) = sav_4a(i,3,j)
+1079:                   sfracv2d_io(i,j) = sav_4a(i,4,j)
+1080:                   sfracb2d_io(i,j) = sav_4a(i,5,j)
+1081:                   sfracs2d_io(i,j) = sav_4a(i,6,j)
+1082:                   svegfrac2d_io(i,j) = sav_4a(i,7,j)
+1083:                 end do
+1084:               end do
+1085:             end if
+1086:           end if
+1087:           do j = 1 , jendl
+1088:             do n = 1 , nsplit
+1089:               do i = 1 , iy
+1090:                 sav0d(i,n,j) = dstor(i,j,n)
+1091:                 sav0d(i,n+nsplit,j) = hstor(i,j,n)
+1092:               end do
+1093:             end do
+1094:           end do
+1095:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav0d(1,1,1), iy*nsplit*2*jxp,mpi_real8,      &
+1096:                         & sav_0d(1,1,1),iy*nsplit*2*jxp,mpi_real8,      &
+1097:                         & 0,mpi_comm_world,ierr)
+1098:           if ( myid.eq.0 ) then
+1099:             do j = 1 , jx
+1100:               do n = 1 , nsplit
+1101:                 do i = 1 , iy
+1102:                   dstor_io(i,j,n) = sav_0d(i,n,j)
+1103:                   hstor_io(i,j,n) = sav_0d(i,n+nsplit,j)
+1104:                 end do
+1105:               end do
+1106:             end do
+1107:           end if
+1108:           do j = 1 , jendl
+1109:             do k = 1 , kz
+1110:               sav6(k,1,j) = ui1(k,j)
+1111:               sav6(k,2,j) = ui2(k,j)
+1112:               sav6(k,3,j) = uilx(k,j)
+1113:               sav6(k,4,j) = uil(k,j)
+1114:               sav6(k,5,j) = vi1(k,j)
+1115:               sav6(k,6,j) = vi2(k,j)
+1116:               sav6(k,7,j) = vilx(k,j)
+1117:               sav6(k,8,j) = vil(k,j)
+1118:             end do
+1119:           end do
+1120:           call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(sav6(1,1,1), kz*8*jxp,mpi_real8,              &
+1121:                         & sav_6(1,1,1),kz*8*jxp,mpi_real8,              &
+1122:                         & 0,mpi_comm_world,ierr)
+1123:           if ( myid.eq.0 ) then
+1124:             do j = 1 , jx
+1125:               do k = 1 , kz
+1126:                 ui1_io(k,j) = sav_6(k,1,j)
+1127:                 ui2_io(k,j) = sav_6(k,2,j)
+1128:                 uilx_io(k,j) = sav_6(k,3,j)
+1129:                 uil_io(k,j) = sav_6(k,4,j)
+1130:                 vi1_io(k,j) = sav_6(k,5,j)
+1131:                 vi2_io(k,j) = sav_6(k,6,j)
+1132:                 vilx_io(k,j) = sav_6(k,7,j)
+1133:                 vil_io(k,j) = sav_6(k,8,j)
+1134:               end do
+1135:             end do
+1136:           end if
+1137:           call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ujlx(1,1),iy*kz,mpi_real8,nproc-1,             &
+1138:                        & mpi_comm_world,ierr)
+1139:           call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ujl(1,1),iy*kz,mpi_real8,nproc-1,              &
+1140:                        & mpi_comm_world,ierr)
+1141:           call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(vjlx(1,1),iy*kz,mpi_real8,nproc-1,             &
+1142:                        & mpi_comm_world,ierr)
+1143:           call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(vjl(1,1),iy*kz,mpi_real8,nproc-1,              &
+1144:                        & mpi_comm_world,ierr)
+1145:           if ( myid.eq.0 ) then
+1146:             close (iutsav)
+1147:             itype = 'SAV'
+1148:             write (newfil,99001) itype , idatex
+1149:             open (iutsav,file=trim(dirout)//pthsep//newfil,             &
+1150:                 & status='replace',form='unformatted')
+1151:             print * , 'OPENING NEW SAV FILE: ',trim(dirout),'/',newfil
+1152:             call <a href="./outsav.F90.html#outsav" TARGET=CENT_PANEL>outsav</a>(iutsav)
+1153:             print * , 'restart written date = ' , ldatez + xtime/1440.
+1154:             close (iutsav)
+1155:           end if
+1156:         else if ( mod(ntime,nsavfrq).eq.0 .and.                         &
+1157:                 & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) ) then
+1158:           if ( myid.eq.0 ) then
+1159:             close (iutsav)
+1160:             itype = 'SAV'
+1161:             write (tmpfil,99002) itype , idatex
+1162:             open (iutsav,file=trim(dirout)//pthsep//tmpfil,             &
+1163:                 & status='replace',form='unformatted')
+1164:             call <a href="./outsav.F90.html#outsav" TARGET=CENT_PANEL>outsav</a>(iutsav)
+1165:             close (iutsav)
+1166:             print * , 'SAVTMP RESTART WRITTEN: idatex=' , idatex ,      &
+1167:                  &'ktau=' , ktau
+1168:             if ( oldsav(1:3).eq.'SAV' ) then
+1169:               inquire (file=trim(dirout)//pthsep//oldsav,exist=there)
+1170:               if ( there ) then
+1171:                 call <a href="#" TARGET=CENT_PANEL>unlink</a>(trim(dirout)//pthsep//oldsav)
+1172:               end if
+1173:             end if
+1174:             oldsav = tmpfil
+1175:           end if
+1176:         else
+1177:         end if
+1178:       end if
+1179: !
+1180: !-----printer output:
+1181: !
+1182:       if ( myid.eq.0 ) then
+1183:         if ( ifprt ) then
+1184:           if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ntime,nprtfrq)&
+1185:              & .eq.0 ) then
+1186:             write (*,*) 'outprt is not available for parallel code'
+1187:             idum = iexec
+1188:           end if
+1189:         end if
+1190:  
+1191:         if ( lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0 .and.    &
+1192:            & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.         &
+1193:            & nnnnnn.ne.nnnend ) call <a href="./mkfile.F90.html#mkfile" TARGET=CENT_PANEL>mkfile</a>
+1194:       end if
+1195: 
+1196: #ifdef CLM
+1197:       if ( ifsave ) then
+1198:         if ( ( ( lday.eq.1 .and. lhour.eq.0 .and.                       &
+1199:            &     dabs(xtime).lt.0.00001 )   .and.                       &
+1200:            &     ldatez.ne.IDATE1 ) .or. nnnnnn.eq.nnnend ) then
+1201:           cdtime = get_step_size()
+1202:           filer_rest = restFile_filename(type='netcdf',                 &
+1203:                      &                   offset=-int(cdtime))
+1204:           inquire(file=filer_rest,exist=there)
+1205:           if (.not. there) then
+1206:             call <a href="#" TARGET=CENT_PANEL>restFile_write</a>( filer_rest )
+1207:             filer_rest = restFile_filename(type='binary',               &
+1208:                      &                     offset=-int(cdtime))
+1209:             call <a href="#" TARGET=CENT_PANEL>restFile_write_binary</a>( filer_rest )
+1210:           endif
+1211:         endif
+1212:       endif
+1213: #endif
+1214: 
+1215: #else
+1216: 
+1217:       if ( jyear.eq.jyearr .and. ktau.eq.ktaur ) then
+1218:         if ( iotyp.eq.1 ) then
+1219:           print * , 'Writing output files in direct access format'
+1220:         else if ( iotyp.eq.2 ) then
+1221:           print * , 'Writing output files in sequential format'
+1222:         else
+1223:           write (aline,*) 'iotyp = ' , iotyp
+1224:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+1225:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'Output format does not exist')
+1226:         end if
+1227:         nrcout = 0
+1228:         call <a href="./mkfile.F90.html#mkfile" TARGET=CENT_PANEL>mkfile</a>
+1229:       end if
+1230:  
+1231:       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+1232:         call <a href="./outtap0.F90.html#outtap0" TARGET=CENT_PANEL>outtap0</a>
+1233:         call <a href="./grads_stuf.F90.html#gradsctl" TARGET=CENT_PANEL>gradsctl</a>('OUT_HEAD.CTL')
+1234:       end if
+1235:  
+1236: !
+1237: !-----output for dataflow analyses:
+1238: !
+1239:       if ( iftape ) then
+1240:         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
+1241:            & (mod(ntime,ntapfrq).eq.0 .and.                             &
+1242:            & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) call <a href="./outtap.F90.html#outtap" TARGET=CENT_PANEL>outtap</a>
+1243:       end if
+1244:  
+1245:  
+1246: !     Call surface output
+1247:       if ( ifbat ) then
+1248:         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
+1249:            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
+1250:            & then
+1251:           call <a href="./outsrf.F90.html#outsrf" TARGET=CENT_PANEL>outsrf</a>
+1252:           do i = 1 , iym2
+1253:             do j = 1 , jxm2
+1254:               tgmx_o(j,i) = -1.E30
+1255:               t2mx_o(j,i) = -1.E30
+1256:               tgmn_o(j,i) = 1.E30
+1257:               t2mn_o(j,i) = 1.E30
+1258:               w10x_o(j,i) = -1.E30
+1259:               psmn_o(j,i) = 1.E30
+1260:             end do
+1261:           end do
+1262:           if ( ifsub .and. nsg.gt.1 ) then
+1263:             call <a href="./outsub.F90.html#outsub" TARGET=CENT_PANEL>outsub</a>
+1264:           end if
+1265:         end if
+1266:       end if
+1267:  
+1268: !     Call radiation output
+1269:       if ( ifrad ) then
+1270:         if ( (mod(ntime,nradisp).eq.0 .and. (.not.(jyear.eq.jyearr.and. &
+1271:            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
+1272:            & call <a href="./radtap.F90.html#radtap" TARGET=CENT_PANEL>radtap</a>
+1273:       end if
+1274:  
+1275: !chem2
+1276: !     Call chem output
+1277:       if ( ifchem ) then
+1278:         if ( (jyear.eq.jyear0 .and. ktau.eq.1) .or.                     &
+1279:            & (mod(ntime,kchem).eq.0 .and.                               &
+1280:            & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) call <a href="./chemtap.F90.html#chemtap" TARGET=CENT_PANEL>chemtap</a>
+1281:       end if
+1282: !chem2
+1283: !
+1284: !-----output for restart:
+1285: !
+1286:       if ( ifsave ) then
+1287:         if ( ((lday.eq.1 .and. lhour.eq.0 .and. dabs(xtime).lt.0.00001) &
+1288:            & .and. ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
+1289:           close (iutsav)
+1290:           itype = 'SAV'
+1291:           write (newfil,99001) itype , idatex
+1292:           open (iutsav,file=trim(dirout)//newfil,status='replace',      &
+1293:                &form='unformatted')
+1294:           print * , 'OPENING NEW SAV FILE: ' , newfil
+1295:           call <a href="./outsav.F90.html#outsav" TARGET=CENT_PANEL>outsav</a>(iutsav)
+1296:           print * , 'restart written date = ' , ldatez + xtime/1440.
+1297:           close (iutsav)
+1298:         else if ( mod(ntime,nsavfrq).eq.0 .and.                         &
+1299:                 & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) ) then
+1300:           close (iutsav)
+1301:           itype = 'SAV'
+1302:           write (tmpfil,99002) itype , idatex
+1303:           open (iutsav,file=trim(dirout)//pthsep//tmpfil,               &
+1304:                 & status='replace',form='unformatted')
+1305:           call <a href="./outsav.F90.html#outsav" TARGET=CENT_PANEL>outsav</a>(iutsav)
+1306:           close (iutsav)
+1307:           print * , 'SAVTMP RESTART WRITTEN: idatex=' , idatex ,        &
+1308:               & 'ktau=' , ktau
+1309:           if ( oldsav(1:3).eq.'SAV' ) then
+1310:             inquire (file=trim(dirout)//pthsep//oldsav,exist=there)
+1311:             if ( there ) then
+1312:               call <a href="#" TARGET=CENT_PANEL>unlink</a>(trim(dirout)//pthsep//oldsav)
+1313:             end if
+1314:           end if
+1315:           oldsav = tmpfil
+1316:         else
+1317:         end if
+1318:       end if
+1319: !
+1320: !-----printer output:
+1321: !
+1322:       if ( ifprt ) then
+1323:         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ntime,nprtfrq)  &
+1324:            & .eq.0 ) call <a href="./mod_outprt.F90.html#outprt" TARGET=CENT_PANEL>outprt</a>(iexec)
+1325:       end if
+1326:  
+1327:       if ( lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0 .and.      &
+1328:          & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.           &
+1329:          & nnnnnn.ne.nnnend ) call <a href="./mkfile.F90.html#mkfile" TARGET=CENT_PANEL>mkfile</a>
+1330: #endif
+1331: 
+1332: 99001 format (a3,'.',i10)
+1333: 99002 format (a3,'TMP.',i10)
+1334:  
+1335:       end subroutine output
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

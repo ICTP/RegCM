@@ -1,0 +1,150 @@
+<HTML>
+
+<HEAD>
+<TITLE>bilinx4d.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>bilinx4d.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>bilinx4d.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=bilinx4d><H3>bilinx4d</H3></a></p> Click <a href="./callingtree/bilinx4d_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where bilinx4d is used.
+<hr>
+20:       subroutine bilinx4d(mti,loni,lati,nloni,nlati,mto,lono,lato,iy,jx,&
+21:                         & nz,nt,xming,vmisdat)
+22: !
+23: !  PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A BIGGER
+24: !  RECTANGULAR GRID TO A GRID DESCRIBED BY XLONS AND XLATS OF GRID2.
+25: !  A POINT ON GRID2 IS TRAPPED WITHIN FOUR GRID POINTS ON GRID4.THE
+26: !  GRID POINTS ARE ALWAYS TO THE NORTH AND EAST OF THE TRAPPED POINT.
+27: !  THE ALGORITHM COMPUTES THE FRACTIONAL DISTANCES IN BOTH X AND Y
+28: !  DIRECTION OF THE TRAPPED GRID POINT AND USES THE INFORMATION
+29: !  AS WEIGHTING FACTORS IN THE INTERPOLATION.
+30: !  THERE IS ONE LESS ROW AND COLUMN WHEN THE SCALAR FIELDS ARE
+31: !  INTERPOLATED BECAUSE XLATS AND XLONS ARE NOT DEFINED FOR
+32: !  THE CROSS POINTS IN THE RCM MODEL.
+33: !
+34: !  IN(NLONI,NLATI,NZ)  IS THE INPUT FIELD ON REGULAR LAT/LON GRID.
+35: !  OUT(NLATO,NLONO,NZ) IS THE OUTPUT FIELD ON LAMBERT CONFORMAL GRID.
+36: !  LONI.....LONGITUDE VALUES IN DEGREES OF THE LAT-LON GRID.
+37: !  LATI.....LATITUDE VALUES IN DEGREES OF THE LAT-LON GRID.
+38: !  P.........EAST-WEST WEIGHTING FACTOR.
+39: !  Q.........NORTH-SOUTH WEIGHTING FACTOR.
+40: !  IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
+41: !  IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
+42:  
+43:       implicit none
+44: !
+45: ! Dummy arguments
+46: !
+47:       integer :: iy , jx , nlati , nloni , nt , nz
+48:       real(4) :: vmisdat , xming
+49:       real(4) , dimension(nloni,nlati,nz,nt) :: mti
+50:       real(4) , dimension(nlati) :: lati
+51:       real(4) , dimension(iy,jx) :: lato , lono
+52:       real(4) , dimension(nloni) :: loni
+53:       real(4) , dimension(iy,jx,nz,nt) :: mto
+54:       intent (in) mti , iy , jx , lati , lato , loni , lono , nlati ,   &
+55:                 & nloni , nt , nz , vmisdat , xming
+56:       intent (out) mto
+57: !
+58: ! Local variables
+59: !
+60:       integer :: i , ip , ipp1 , j , jq , jqp1 , k , l
+61:       real(4) :: lon360 , p , q , temp1 , temp2 , xind , yind
+62: !
+63:       do j = 1 , jx
+64:         do i = 1 , iy
+65:  
+66:           yind = (((lato(i,j)-lati(1))/(lati(nlati)-lati(1)))           &
+67:                & *float(nlati-1)) + 1.
+68:           jq = int(yind)
+69:           jqp1 = min0(jq+1,nlati)
+70:           q = yind - jq
+71:  
+72:           lon360 = lono(i,j)
+73:           xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))              &
+74:                & *float(nloni-1)) + 1.
+75:           ip = int(xind)
+76:           ipp1 = min0(ip+1,nloni)
+77:           p = xind - ip
+78:  
+79:           do l = 1 , nt
+80:             do k = 1 , nz
+81:  
+82:               if ( mti(ip,jq,k,l)<=xming .and. mti(ipp1,jq,k,l)>xming ) &
+83:                  & then
+84:                 temp1 = mti(ipp1,jq,k,l)
+85:               else if ( mti(ip,jq,k,l)<=xming .and. mti(ipp1,jq,k,l)    &
+86:                       & <=xming ) then
+87:                 temp1 = vmisdat
+88:               else if ( mti(ip,jq,k,l)>xming .and. mti(ipp1,jq,k,l)     &
+89:                       & <=xming ) then
+90:                 temp1 = mti(ip,jq,k,l)
+91:               else
+92:                 temp1 = (1.0-p)*mti(ip,jq,k,l) + p*mti(ipp1,jq,k,l)
+93:               end if
+94:  
+95:               if ( mti(ipp1,jqp1,k,l)<=xming .and. mti(ip,jqp1,k,l)     &
+96:                  & >xming ) then
+97:                 temp2 = mti(ip,jqp1,k,l)
+98:               else if ( mti(ipp1,jqp1,k,l)<=xming .and. mti(ip,jqp1,k,l)&
+99:                       & <=xming ) then
+100:                 temp2 = vmisdat
+101:               else if ( mti(ipp1,jqp1,k,l)>xming .and. mti(ip,jqp1,k,l) &
+102:                       & <=xming ) then
+103:                 temp2 = mti(ipp1,jqp1,k,l)
+104:               else
+105:                 temp2 = p*mti(ipp1,jqp1,k,l) + (1.0-p)*mti(ip,jqp1,k,l)
+106:               end if
+107:  
+108:               if ( temp1<=xming .and. temp2>xming ) then
+109:                 mto(i,j,k,l) = temp2
+110:               else if ( temp1<=xming .and. temp2<=xming ) then
+111:                 mto(i,j,k,l) = vmisdat
+112:               else if ( temp1>xming .and. temp2<=xming ) then
+113:                 mto(i,j,k,l) = temp1
+114:               else
+115:                 mto(i,j,k,l) = (1.-q)*temp1 + q*temp2
+116:               end if
+117:  
+118:             end do
+119:           end do
+120:  
+121:         end do
+122:  
+123:       end do
+124:  
+125:       end subroutine bilinx4d
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

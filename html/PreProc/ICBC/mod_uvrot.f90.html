@@ -1,0 +1,262 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_uvrot.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_uvrot.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_uvrot.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_uvrot><H3>mod_uvrot</H3></a></p>20:       module mod_uvrot
+21: 
+22:       contains
+23: 
+<p><a name=uvrot4><H3>uvrot4</H3></a></p> Click <a href="./callingtree/uvrot4_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where uvrot4 is used.
+<hr>
+24:       subroutine uvrot4(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,pollon, &
+25:                       & pollat,lgtype)
+26: 
+27:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : degrad
+28: 
+29:       implicit none
+30: !
+31: ! Dummy arguments
+32: !
+33:       real(4) :: clat , clon , gridfc , pollat , pollon
+34:       integer :: iy , jx , ll
+35:       character(6) :: lgtype
+36:       real(4) , dimension(jx,iy) :: dlat , dlon
+37:       real(4) , dimension(jx,iy,ll) :: u , v
+38:       intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,        &
+39:                 & lgtype , ll , pollat , pollon
+40:       intent (inout) u , v
+41: !
+42: ! Local variables
+43: !
+44:       real(4) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
+45:             & sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
+46:             & zphi , zrla , zrlap
+47:       integer :: i , j , l
+48: !
+49: !     CHANGE U AND V FROM TRUE (N,E) TO MAP VALUES (X,Y)
+50: !
+51: !     FOR ROTATED MERCATOR PROJECTION
+52: !UVUSVS   -   ROTATES THE TWO WINDCOMPONENTS U AND V AT POINT
+53: !     DLON,DLAT TO THE WINDCOMPONENTS US AND VS IN A
+54: !     ROTATED POLE GRID WHERE THE ORIGIN IS LOCATED
+55: !     AT POLLON,POLLAT
+56: !**   CALL  :   CALL UVUSVS(U,V,US,VS,DLON,DLAT,POLLON,POLLAT)
+57: !**   AUTHOR:   D.MAJEWSKI
+58: !
+59:       if ( lgtype=='ROTMER' ) then
+60:         if ( pollat>0. ) then
+61:           pollam = pollon + 180.
+62:           polphi = 90. - pollat
+63:         else
+64:           polphi = 90. + pollat
+65:           pollam = pollon
+66:         end if
+67:         if ( pollam>180. ) pollam = pollam - 360.
+68:  
+69:         polcphi = cos(degrad*polphi)
+70:         polsphi = sin(degrad*polphi)
+71:  
+72:         do j = 1 , iy
+73:           do i = 1 , jx
+74:             zphi = dlat(i,j)*degrad
+75:             zrla = dlon(i,j)*degrad
+76:             if ( dlat(i,j)>89.999999 ) zrla = 0.0
+77:             zrlap = pollam*degrad - zrla
+78:             zarg1 = polcphi*sin(zrlap)
+79:             zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
+80:             znorm = 1.0/sqrt(zarg1**2+zarg2**2)
+81:             sindel = zarg1*znorm
+82:             cosdel = zarg2*znorm
+83:             do l = 1 , ll
+84:               us = u(i,j,l)*cosdel - v(i,j,l)*sindel
+85:               vs = u(i,j,l)*sindel + v(i,j,l)*cosdel
+86:               u(i,j,l) = us
+87:               v(i,j,l) = vs
+88:             end do
+89:           end do
+90:         end do
+91:       else
+92:         do j = 1 , iy
+93:           do i = 1 , jx
+94:             if ( (clon>=0.0 .and. dlon(i,j)>=0.) .or.                   &
+95:                & (clon<0.0 .and. dlon(i,j)<0.) ) then
+96:               x = (clon-dlon(i,j))*degrad*gridfc
+97:             else if ( clon>=0.0 ) then
+98:               if ( abs(clon-(dlon(i,j)+360.))<abs(clon-dlon(i,j)) ) then
+99:                 x = (clon-(dlon(i,j)+360.))*degrad*gridfc
+100:               else
+101:                 x = (clon-dlon(i,j))*degrad*gridfc
+102:               end if
+103:             else if ( abs(clon-(dlon(i,j)-360.))<abs(clon-dlon(i,j)) )  &
+104:                     & then
+105:               x = (clon-(dlon(i,j)-360.))*degrad*gridfc
+106:             else
+107:               x = (clon-dlon(i,j))*degrad*gridfc
+108:             end if
+109:             xs = sin(x)
+110:             xc = cos(x)
+111:             if ( clat>=0. ) then
+112:               do l = 1 , ll
+113:                 d = v(i,j,l)*xs + u(i,j,l)*xc
+114:                 v(i,j,l) = v(i,j,l)*xc - u(i,j,l)*xs
+115:                 u(i,j,l) = d
+116:               end do
+117:             else
+118:               do l = 1 , ll
+119:                 d = -v(i,j,l)*xs + u(i,j,l)*xc
+120:                 v(i,j,l) = v(i,j,l)*xc + u(i,j,l)*xs
+121:                 u(i,j,l) = d
+122:               end do
+123:             end if
+124:           end do
+125:         end do
+126:       end if
+127:       end subroutine uvrot4
+128: !
+129: !-----------------------------------------------------------------------
+130: !
+<p><a name=uvrot4nx><H3>uvrot4nx</H3></a></p> Click <a href="./callingtree/uvrot4nx_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where uvrot4nx is used.
+<hr>
+131:       subroutine uvrot4nx(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,      &
+132:                         & pollon,pollat,lgtype)
+133: 
+134:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : degrad
+135:       implicit none
+136: !
+137: ! Dummy arguments
+138: !
+139:       real(4) :: clat , clon , gridfc , pollat , pollon
+140:       integer :: iy , jx , ll
+141:       character(6) :: lgtype
+142:       real(4) , dimension(jx,iy) :: dlat , dlon
+143:       real(4) , dimension(jx,iy,ll) :: u , v
+144:       intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,        &
+145:                 & lgtype , ll , pollat , pollon
+146:       intent (inout) u , v
+147: !
+148: ! Local variables
+149: !
+150:       real(4) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
+151:             & sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
+152:             & zphi , zrla , zrlap
+153:       integer :: i , j , l
+154: !
+155: !     CHANGE U AND V FROM TRUE (N,E) TO MAP VALUES (X,Y)
+156: !
+157: !     FOR ROTATED MERCATOR PROJECTION
+158: !UVUSVS   -   ROTATES THE TWO WINDCOMPONENTS U AND V AT POINT
+159: !     DLON,DLAT TO THE WINDCOMPONENTS US AND VS IN A
+160: !     ROTATED POLE GRID WHERE THE ORIGIN IS LOCATED
+161: !     AT POLLON,POLLAT
+162: !**   CALL  :   CALL UVUSVS(U,V,US,VS,DLON,DLAT,POLLON,POLLAT)
+163: !**   AUTHOR:   D.MAJEWSKI
+164: !
+165:       if ( lgtype=='ROTMER' ) then
+166:         if ( pollat>0. ) then
+167:           pollam = pollon + 180.
+168:           polphi = 90. - pollat
+169:         else
+170:           polphi = 90. + pollat
+171:           pollam = pollon
+172:         end if
+173:         if ( pollam>180. ) pollam = pollam - 360.
+174:  
+175:         polcphi = cos(degrad*polphi)
+176:         polsphi = sin(degrad*polphi)
+177:  
+178:         do j = 1 , iy
+179:           do i = 1 , jx
+180:             zphi = dlat(i,j)*degrad
+181:             zrla = dlon(i,j)*degrad
+182:             if ( dlat(i,j)>89.999999 ) zrla = 0.0
+183:             zrlap = pollam*degrad - zrla
+184:             zarg1 = polcphi*sin(zrlap)
+185:             zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
+186:             znorm = 1.0/sqrt(zarg1**2+zarg2**2)
+187:             sindel = zarg1*znorm
+188:             cosdel = zarg2*znorm
+189:             do l = 1 , ll
+190:               us = u(i,j,l)*cosdel + v(i,j,l)*sindel
+191:               vs = -u(i,j,l)*sindel + v(i,j,l)*cosdel
+192:               u(i,j,l) = us
+193:               v(i,j,l) = vs
+194:             end do
+195:           end do
+196:         end do
+197:       else
+198:         do j = 1 , iy
+199:           do i = 1 , jx
+200:             if ( (clon>=0.0 .and. dlon(i,j)>=0.) .or.                   &
+201:                & (clon<0.0 .and. dlon(i,j)<0.) ) then
+202:               x = (clon-dlon(i,j))*degrad*gridfc
+203:             else if ( clon>=0.0 ) then
+204:               if ( abs(clon-(dlon(i,j)+360.))<abs(clon-dlon(i,j)) ) then
+205:                 x = (clon-(dlon(i,j)+360.))*degrad*gridfc
+206:               else
+207:                 x = (clon-dlon(i,j))*degrad*gridfc
+208:               end if
+209:             else if ( abs(clon-(dlon(i,j)-360.))<abs(clon-dlon(i,j)) )  &
+210:                     & then
+211:               x = (clon-(dlon(i,j)-360.))*degrad*gridfc
+212:             else
+213:               x = (clon-dlon(i,j))*degrad*gridfc
+214:             end if
+215:             xs = sin(x)
+216:             xc = cos(x)
+217:             if ( clat>=0. ) then
+218:               do l = 1 , ll
+219:                 d = u(i,j,l)*xc - v(i,j,l)*xs
+220:                 v(i,j,l) = u(i,j,l)*xs + v(i,j,l)*xc
+221:                 u(i,j,l) = d
+222:               end do
+223:             else
+224:               do l = 1 , ll
+225:                 d = u(i,j,l)*xc + v(i,j,l)*xs
+226:                 v(i,j,l) = v(i,j,l)*xc - u(i,j,l)*xs
+227:                 u(i,j,l) = d
+228:               end do
+229:             end if
+230:           end do
+231:         end do
+232:       end if
+233:       end subroutine uvrot4nx
+234: !
+235:       end module mod_uvrot
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

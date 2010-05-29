@@ -1,0 +1,287 @@
+<HTML>
+
+<HEAD>
+<TITLE>radout.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>radout.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>radout.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=radout><H3>radout</H3></a></p> Click <a href="./callingtree/radout_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where radout is used.
+<hr>
+20:       subroutine radout(solin,sabtp,frsa,clrst,clrss,qrs,firtp,frla,    &
+21:                       & clrlt,clrls,qrl,slwd,srfrad,sols,soll,solsd,    &
+22:                       & solld,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,jslc,&
+23:                       & h2ommr,cld,clwp)
+24: !
+25: ! copy radiation output quantities to model buffer
+26: !
+27: ! change units of the radiative fluxes from cgs to mks
+28: !
+29: ! compute the total radiative heat flux at the surface for
+30: ! the surface temperature computation
+31: !
+32:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+33:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : dtmin
+34:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a> , only : nradisp
+35:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+36:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a>
+37:       use <a href="./mod_outrad.F90.html#mod_outrad" TARGET=CENT_PANEL>mod_outrad</a>
+38:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : jyear , jyearr , ntime , ktau , ktaur
+39:       implicit none
+40: !
+41: !     input/output arguments
+42: !
+43: ! solin  - instantaneous incident solar
+44: ! sabtp  - total column absorbed solar flux
+45: ! frsa   - surface absorbed solar flux
+46: ! clrst  - clear sky total column abs solar flux
+47: ! clrss  - clear sky surface absorbed solar flux
+48: ! qrs    - solar heating rate
+49: ! firtp  - net up flux top of model (up-dwn flx)
+50: ! frla   - longwave cooling of surface (up-dwn flx)
+51: ! clrlt  - clr sky net up flx top of model (up-dwn f
+52: ! clrls  - clr sky lw cooling of srf (up-dwn flx)
+53: ! qrl    - longwave cooling rate
+54: ! slwd   - surface longwave down flux
+55: ! srfrad - surface radiative heat flux (frsa+slwd)
+56: ! h2ommr - ozone mixing ratio
+57: ! cld    - cloud fractional cover
+58: ! clwp   - cloud liquid water path
+59: ! soll   - Downward solar rad onto surface (lw direct)
+60: ! solld  - Downward solar rad onto surface (lw diffuse)
+61: ! sols   - Downward solar rad onto surface (sw direct)
+62: ! solsd  - Downward solar rad onto surface (sw diffuse)
+63: !
+64: !EES  next 3 added, they are calculated in radcsw
+65: ! fsnirt   - Near-IR flux absorbed at toa
+66: ! fsnrtc   - Clear sky near-IR flux absorbed at toa
+67: ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
+68: ! fsds     - Flux Shortwave Downwelling Surface
+69: !
+70:  
+71: !
+72: ! Dummy arguments
+73: !
+74:       integer :: jslc
+75:       real(8) , dimension(iym1) :: alb , albc , clrls , clrlt , clrss , &
+76:                                   & clrst , firtp , frla , frsa , fsds ,&
+77:                                   & fsnirt , fsnirtsq , fsnrtc , sabtp ,&
+78:                                   & slwd , solin , soll , solld , sols ,&
+79:                                   & solsd , srfrad
+80:       real(8) , dimension(iym1,kz) :: cld , clwp , h2ommr , qrl , qrs
+81:       intent (in) alb , albc , cld , clrls , clrlt , clrss , clrst ,    &
+82:                 & clwp , firtp , frla , frsa , fsds , fsnirt ,          &
+83:                 & fsnirtsq , fsnrtc , h2ommr , jslc , qrl , qrs ,       &
+84:                 & sabtp , slwd , solin , soll , solld , sols , solsd
+85:       intent (out) srfrad
+86: !
+87: ! Local variables
+88: !
+89:       integer :: i , k , n , nll
+90: !
+91: !     compute total radiative heating flux for the surface,
+92: !     converting units from cgs to mks:
+93: !
+94:       do i = 1 , iym1    ! level index
+95: !KN     srfrad(i) = (frsa(i) + slwd(i)) * cgsmks
+96:         srfrad(i) = frsa(i) + slwd(i)
+97:       end do
+98: !
+99: !     convert units from cgs to mks in solar fluxes:
+100: !
+101: !KN   do 20 i=1,iym1
+102: !KN   solin(i) = solin(i) * cgsmks
+103: !KN   sabtp(i) = sabtp(i) * cgsmks
+104: !KN   frsa(i)  = frsa(i)  * cgsmks
+105: !KN   clrst(i) = clrst(i) * cgsmks
+106: !KN   clrss(i) = clrss(i) * cgsmks
+107: !KN20 continue
+108: !
+109: !     convert units from cgs to mks in longwave fluxes:
+110: !
+111: !KN   do 30 i=1,iym1
+112: !KN   firtp(i) = firtp(i) * cgsmks
+113: !KN   frla(i)  = frla(i)  * cgsmks
+114: !KN   clrlt(i) = clrlt(i) * cgsmks
+115: !KN   clrls(i) = clrls(i) * cgsmks
+116: !KN30 continue
+117: !------
+118: !------total heating rate in deg/s
+119: !------
+120:       do nll = 1 , kz
+121:         do n = 1 , iym1
+122:           heatrt(n,nll,jslc) = qrs(n,nll) + qrl(n,nll)
+123:         end do
+124:       end do
+125: !------
+126: !------surface absorbed solar flux in watts/m2
+127: !------
+128:       do n = 1 , iym1
+129:         fsw2d(n,jslc) = frsa(n)
+130:       end do
+131: !------
+132: !------net up longwave flux at the surface
+133: !------
+134:       do n = 1 , iym1
+135:         flw2d(n,jslc) = frla(n)
+136:         flwd2d(n,jslc) = slwd(n)                        ! BATS Output
+137:       end do
+138: !------
+139: !------for coupling with bats
+140: !------
+141: !     for now assume sabveg (solar absorbed by vegetation) is equal
+142: !     to frsa (solar absorbed by surface). possible problems are
+143: !     over sparsely vegetated areas in which vegetation and ground
+144: !     albedo are significantly different
+145:       do n = 1 , iym1
+146:         sabv2d(n,jslc) = sabveg(n)
+147:         sol2d(n,jslc) = solis(n)
+148:         sinc2d(n,jslc) = soll(n) + sols(n) + solsd(n) + solld(n)
+149:         solvs2d(n,jslc) = solvs(n)
+150:         solvd2d(n,jslc) = solvd(n)
+151: !       sinc2d(n,jslc)=solin(n)
+152: #ifdef CLM
+153:         sols2d(n,jslc) = sols(n)
+154:         soll2d(n,jslc) = soll(n)
+155:         solsd2d(n,jslc) = solsd(n)
+156:         solld2d(n,jslc) = solld(n)
+157: #endif
+158:       end do
+159: !
+160:       if ( ifrad ) then
+161:         if ( mod(ntime+nint(dtmin*60.),nradisp).eq.0 .or.               &
+162:            & (jyear.eq.jyearr .and. ktau.eq.ktaur) ) then
+163:           do k = 1 , kz
+164:             do i = 2 , iym1
+165: #ifdef MPP1
+166:               frad3d(jslc,i-1,k,1) = h2ommr(i,k)
+167:               frad3d(jslc,i-1,k,2) = cld(i,k)
+168:               frad3d(jslc,i-1,k,3) = clwp(i,k)
+169:               frad3d(jslc,i-1,k,4) = qrs(i,k)
+170:               frad3d(jslc,i-1,k,5) = qrl(i,k)
+171: #else
+172:               frad3d(jslc-1,i-1,k,1) = h2ommr(i,k)
+173:               frad3d(jslc-1,i-1,k,2) = cld(i,k)
+174:               frad3d(jslc-1,i-1,k,3) = clwp(i,k)
+175:               frad3d(jslc-1,i-1,k,4) = qrs(i,k)
+176:               frad3d(jslc-1,i-1,k,5) = qrl(i,k)
+177: #endif
+178:             end do
+179:           end do
+180:  
+181:           do i = 2 , iym1
+182: #ifdef MPP1
+183:             frad2d(jslc,i-1,1) = frsa(i)      ! write
+184:             frad2d(jslc,i-1,2) = frla(i)      ! write
+185:             frad2d(jslc,i-1,3) = clrst(i)     ! write
+186:             frad2d(jslc,i-1,4) = clrss(i)     ! write
+187:             frad2d(jslc,i-1,5) = clrlt(i)     ! write
+188:             frad2d(jslc,i-1,6) = clrls(i)     ! write
+189:             frad2d(jslc,i-1,7) = solin(i)     ! write
+190:             frad2d(jslc,i-1,8) = sabtp(i)     ! write
+191:             frad2d(jslc,i-1,9) = firtp(i)     ! write
+192:             frad2d(jslc,i-1,10) = alb(i)      ! skip
+193:             frad2d(jslc,i-1,11) = albc(i)     ! skip
+194:             frad2d(jslc,i-1,12) = fsds(i)     ! skip
+195:             frad2d(jslc,i-1,13) = fsnirt(i)   ! skip
+196:             frad2d(jslc,i-1,14) = fsnrtc(i)   ! skip
+197:             frad2d(jslc,i-1,15) = fsnirtsq(i) ! skip
+198:             if ( soll(i) .lt. 1E-30 ) then
+199:               frad2d(jslc,i-1,16) = 0.0
+200:             else
+201:               frad2d(jslc,i-1,16) = soll(i)     ! skip
+202:             end if
+203:             if ( sols(i) .lt. 1E-30 ) then
+204:               frad2d(jslc,i-1,17) = 0.0
+205:             else
+206:               frad2d(jslc,i-1,17) = sols(i)     ! skip
+207:             end if
+208:             if ( solsd(i) .lt. 1E-30 ) then
+209:               frad2d(jslc,i-1,18) = 0.0
+210:             else
+211:               frad2d(jslc,i-1,18) = solsd(i)     ! skip
+212:             end if
+213:             if ( solld(i) .lt. 1E-30 ) then
+214:               frad2d(jslc,i-1,19) = 0.0
+215:             else
+216:               frad2d(jslc,i-1,19) = solld(i)     ! skip
+217:             end if
+218:             frad2d(jslc,i-1,20) = solis(i)    ! skip
+219:             frad2d(jslc,i-1,21) = sabveg(i)   ! skip
+220: #else
+221:             frad2d(jslc-1,i-1,1) = frsa(i)      ! write
+222:             frad2d(jslc-1,i-1,2) = frla(i)      ! write
+223:             frad2d(jslc-1,i-1,3) = clrst(i)     ! write
+224:             frad2d(jslc-1,i-1,4) = clrss(i)     ! write
+225:             frad2d(jslc-1,i-1,5) = clrlt(i)     ! write
+226:             frad2d(jslc-1,i-1,6) = clrls(i)     ! write
+227:             frad2d(jslc-1,i-1,7) = solin(i)     ! write
+228:             frad2d(jslc-1,i-1,8) = sabtp(i)     ! write
+229:             frad2d(jslc-1,i-1,9) = firtp(i)     ! write
+230:             frad2d(jslc-1,i-1,10) = alb(i)      ! skip
+231:             frad2d(jslc-1,i-1,11) = albc(i)     ! skip
+232:             frad2d(jslc-1,i-1,12) = fsds(i)     ! skip
+233:             frad2d(jslc-1,i-1,13) = fsnirt(i)   ! skip
+234:             frad2d(jslc-1,i-1,14) = fsnrtc(i)   ! skip
+235:             frad2d(jslc-1,i-1,15) = fsnirtsq(i) ! skip
+236:             if ( soll(i) .lt. 1E-30 ) then
+237:               frad2d(jslc-1,i-1,16) = 0.0
+238:             else
+239:               frad2d(jslc-1,i-1,16) = soll(i)     ! skip
+240:             end if
+241:             if ( sols(i) .lt. 1E-30 ) then
+242:               frad2d(jslc-1,i-1,17) = 0.0
+243:             else
+244:               frad2d(jslc-1,i-1,17) = sols(i)     ! skip
+245:             end if
+246:             if ( solsd(i) .lt. 1E-30 ) then
+247:               frad2d(jslc-1,i-1,18) = 0.0
+248:             else
+249:               frad2d(jslc-1,i-1,18) = solsd(i)     ! skip
+250:             end if
+251:             if ( solld(i) .lt. 1E-30 ) then
+252:               frad2d(jslc-1,i-1,19) = 0.0
+253:             else
+254:               frad2d(jslc-1,i-1,19) = solld(i)     ! skip
+255:             end if
+256:             frad2d(jslc-1,i-1,20) = solis(i)    ! skip
+257:             frad2d(jslc-1,i-1,21) = sabveg(i)   ! skip
+258: #endif
+259:           end do
+260:         end if
+261:       end if
+262:       end subroutine radout
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

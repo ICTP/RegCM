@@ -1,0 +1,659 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_lake.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_lake.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_lake.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+20: !
+21: !     LAKE MODEL
+22: !
+<p><a name=mod_lake><H3>mod_lake</H3></a></p>23:       module mod_lake
+24: 
+25:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a> , only : lkpts
+26: 
+27:       implicit none
+28: 
+29:       private
+30: 
+31:       public :: lakedrv , initlk
+32: 
+33:       integer :: iin , iout , lcount
+34: 
+35:       contains
+36: 
+<p><a name=lakedrv><H3>lakedrv</H3></a></p> Click <a href="./callingtree/lakedrv_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where lakedrv is used.
+<hr>
+37:       subroutine lakedrv(jslc)
+38:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+39:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+40:       use <a href="./mod_iunits.f90.html#mod_iunits" TARGET=CENT_PANEL>mod_iunits</a>
+41:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+42:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+43:       implicit none
+44: !
+45: ! Dummy arguments
+46: !
+47:       integer :: jslc
+48:       intent (in) jslc
+49: !
+50: ! Local variables
+51: !
+52:       real(8) :: aveice , dayl , evl , flw , fsw , hlat , hsen , prec , &
+53:                & ql , hsnow , tgl , tl , vl , zl
+54:       integer :: ilake , n
+55: !
+56:       do ilake = 1 , iym1
+57:         do n = 1 , nnsg
+58:           if ( veg2d1(n,ilake,jslc).eq.14. ) then
+59:             dayl = (nnnnnn-nstrt0)/4. + (xtime+dtmin)/1440.
+60:             tl = ts1d(n,ilake)
+61:             vl = dsqrt(us1d(ilake)**2+vs1d(ilake)**2)
+62:             zl = z1d(n,ilake)
+63:             ql = qs1d(n,ilake)
+64:             fsw = fsw1d(ilake)
+65:             flw = -1.*flw1d(ilake)
+66:             prec = prca2d(ilake,jslc)      !  units of prec = mm
+67:             hsen = -1.*sent1d(n,ilake)
+68:             hlat = -1.*evpr1d(n,ilake)
+69: 
+70:             call <a href="./mod_lake.f90.html#lake" TARGET=CENT_PANEL>lake</a>(iutlak,dayl,dt<a href="./mod_lake.f90.html#lake" TARGET=CENT_PANEL>lake</a>,tl,vl,zl,ql,fsw,flw,hsen,hlat, &
+71:                     & tgl,evl,prec,aveice,hsnow)
+72:  
+73:             tg1d(n,ilake) = tgl
+74:             tgb1d(n,ilake) = tgl
+75:             if ( aveice.le.10. ) then
+76:               ldoc1d(n,ilake) = 0.
+77:               sice1d(n,ilake) = 0.
+78:               scv1d(n,ilake) = 0.
+79:               sag1d(n,ilake) = 0.
+80:             else
+81:               ldoc1d(n,ilake) = 2.
+82:               sice1d(n,ilake) = aveice  !  units of ice = mm
+83:               scv1d(n,ilake) = hsnow   !  units of snow = mm h2o
+84:             end if
+85:  
+86:           end if
+87:         end do
+88:       end do
+89:  
+90:       end subroutine lakedrv
+91: 
+92: !
+93: !-----------------------------------------------------------------------
+94: !
+<p><a name=initlk><H3>initlk</H3></a></p> Click <a href="./callingtree/initlk_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where initlk is used.
+<hr>
+95:       subroutine initlk(veg2d,ix1,jx1)
+96:  
+97:       implicit none
+98: !
+99: ! Dummy arguments
+100: !
+101:       integer :: ix1 , jx1
+102:       real(8) , dimension(ix1,jx1) :: veg2d
+103:       intent (in) ix1 , jx1
+104:       intent (out) veg2d
+105: !
+106: ! Local variables
+107: !
+108:       integer :: depth , freeze , idata , ilake , j , jlake , lakeset , &
+109:                & n
+110:       real(8) :: eta , hi , hice , hsnow
+111:       real(8) , dimension(400) :: t
+112: !
+113:  
+114: !     ******  lkpts = number of lake points desired
+115: 
+116:       data hi , hice , hsnow , eta/.01 , 0. , 0. , .5/
+117:  
+118: !     ******  unit number containing lake pt locations, depths
+119:       idata = 40
+120:  
+121:       lcount = 0
+122:       iin = 41
+123:       iout = 42
+124:  
+125: !     read in vegetation type desired for lake points
+126: !     (18 = mixed woodland (no lake model);  14 = inland water (lake
+127: !     model)
+128:       read (idata,99001) lakeset
+129:       print * , '*** lake points set to bats surface type ' , lakeset
+130:  
+131: !     initialize data for lake model
+132:       do n = 1 , lkpts
+133:         read (idata,99002) ilake , jlake , depth
+134:         freeze = 1
+135:  
+136: !       ******     Initially set eta to mean values
+137:         if ( depth.lt.50 ) then
+138:           eta = .7
+139:         else if ( depth.gt.100 ) then
+140:           eta = .3
+141:         else
+142:           eta = .5
+143:         end if
+144:  
+145: !       ******     Initially set lake points isothermal at 6.0 C (June)
+146:         do j = 1 , depth
+147:           t(j) = 6.0
+148:         end do
+149:  
+150:         veg2d(ilake,jlake) = dble(lakeset)
+151:         write (iin) ilake , jlake , depth , freeze , hi , hice , hsnow ,&
+152:                   & eta , (t(j),j=1,depth)
+153:         print * , ilake , jlake , depth , freeze
+154:  
+155:       end do
+156:  
+157:       rewind (iin)
+158: 99001 format (i2)
+159: 99002 format (3I4)
+160:  
+161:       end subroutine initlk
+162: !
+163: !-----------------------------------------------------------------------
+164: !
+<p><a name=lake><H3>lake</H3></a></p> Click <a href="./callingtree/lake_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where lake is used.
+<hr>
+165:       subroutine lake(iutlak,day,dt,ta,ua,za,q,sw,lnet,hsen,hlat,ts,    &
+166:                     & evap,prec,hice,hsnow)
+167:  
+168:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : ep2 , tzero , sigm , wlhv , vonkar
+169:       implicit none
+170: !
+171: ! PARAMETER definitions
+172: !
+173:       integer , parameter :: depmax = 400
+174: !
+175: ! Dummy arguments
+176: !
+177:       real(8) :: day , dt , evap , hice , hlat , hsen , hsnow , lnet ,  &
+178:                & prec , q , sw , ta , ts , ua , za
+179:       integer :: iutlak
+180:       intent (in) day , hlat , hsen , iutlak , q , ta , ua , za
+181:       intent (out) ts
+182:       intent (inout) evap , hice , hsnow
+183: !
+184: ! Local variables
+185: !
+186:       real(8) , dimension(depmax) :: de , dnsty
+187:       real(8) , dimension(depmax,2) :: t
+188:       integer :: depth , freeze , ilake , j , jlake , k , kmin
+189:       real(8) :: ea , eta , hi , hs , ld , lu , qe , qh , tac , surf ,  &
+190:               &  tcutoff , tk , u2
+191: !
+192: !***  dt:  time step in seconds
+193: !***  surf:surface thickness
+194: !***  dz:  vertical grid spacing in m
+195: !***  zo:  surface roughness length
+196:       real(8) , parameter :: dz = 1.0
+197:       real(8) , parameter :: zo = 0.001
+198:       real(8) , parameter :: z2 = 2.0
+199: !
+200:       surf = 1.0
+201: !
+202: !     interpolate winds at z1 m to 2m via log wind profile
+203:       u2 = ua*dlog(z2/zo)/dlog(za/zo)
+204:  
+205: !******    depth: 1-m slices of lake depth
+206:       read (iin) ilake , jlake , depth , freeze , hi , hice , hsnow ,   &
+207:                & eta , (t(j,1),j=1,depth)
+208:       do k = 1 , depth
+209:         t(k,2) = t(k,1)
+210:       end do
+211:  
+212:       tac = ta - tzero
+213:       tk = tzero + t(1,1)
+214:       lu = -0.97*sigm*tk**4
+215:       ld = lnet - lu
+216:       qe = hlat*wlhv
+217:       qh = hsen
+218:  
+219: !     convert mixing ratio to air vapor pressure
+220:       ea = q*88.0/(ep2+0.378*q)
+221:  
+222: !     ******    Check if conditions exist for lake ice
+223:       tcutoff = -0.001
+224:       if ( (hice.eq.0.0) .and. (t(1,1).gt.tcutoff) ) then
+225:  
+226: !       ******    Calculate eddy diffusivities
+227:         call <a href="./mod_lake.f90.html#eddy" TARGET=CENT_PANEL>eddy</a>(dt,surf,dz,vonkar,u2,t,dnsty,de,depth)
+228:  
+229: !       ******    Lake temperature calc using BATS sensible and latent
+230: !       heats
+231:         call <a href="./mod_lake.f90.html#temp" TARGET=CENT_PANEL>temp</a>(dt,surf,dz,t,sw,lnet,qe,qh,dnsty,de,eta,depmax,depth)
+232:  
+233: !       ******    Convective mixer
+234:         kmin = 1
+235:         call <a href="./mod_lake.f90.html#mixer" TARGET=CENT_PANEL>mixer</a>(kmin,surf,dz,t,dnsty,depmax,depth)
+236:  
+237:       else
+238:  
+239:         call <a href="./mod_lake.f90.html#ice" TARGET=CENT_PANEL>ice</a>(sw,ld,tac,u2,ea,hs,hi,h<a href="./mod_lake.f90.html#ice" TARGET=CENT_PANEL>ice</a>,evap,t,depth,prec)
+240:         if ( freeze.eq.0 ) t(1,1) = t(1,2)
+241:  
+242:       end if
+243:  
+244:       write (iout) ilake , jlake , depth , freeze , hi , hice , hsnow , &
+245:                  & eta , (t(j,1),j=1,depth)
+246:  
+247:       write (iutlak) day , ilake , jlake , depth , evap , hi , hice ,   &
+248:                    & hsnow , (t(j,1),j=1,depth)
+249:  
+250:       ts = t(1,1) + tzero
+251:       evap = evap/3600.          !  convert evap from mm/hr to mm/sec
+252:       hice = hice*1000.          !  convert ice  from m to mm
+253:       hsnow = hsnow*100.         !  convert snow from m depth to mm h20
+254:  
+255:       lcount = lcount + 1
+256:       if ( lcount.eq.lkpts ) then
+257:         lcount = 0
+258:         iin = 83 - iin
+259:         iout = 83 - iout
+260:         rewind (iin)
+261:         rewind (iout)
+262:       end if
+263:  
+264:       end subroutine lake
+265: !
+266: !-----------------------------------------------------------------------
+267: !
+<p><a name=eddy><H3>eddy</H3></a></p> Click <a href="./callingtree/eddy_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where eddy is used.
+<hr>
+268:       subroutine eddy(dt,surf,dz,kv,u2,t,dnsty,de,depth)
+269:  
+270: ! Computes density, eddy diffusivity and variable time step
+271:  
+272:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti , tzero
+273:       implicit none
+274: !
+275: ! PARAMETER definitions
+276: !
+277: !cc   dm=5.148e-04       ! value used in prev simulations
+278:       real(8) , parameter :: dm = 1.38889E-07
+279: !
+280: ! Dummy arguments
+281: !
+282:       integer :: depth
+283:       real(8) :: dt , dz , kv , surf , u2
+284:       real(8) , dimension(depth) :: de , dnsty
+285:       real(8) , dimension(depth,2) :: t
+286:       intent (in) depth , dt , dz , kv , surf , t
+287:       intent (inout) de , dnsty , u2
+288: !
+289: ! Local variables
+290: !
+291:       real(8) :: demax , dpdz , ks , n2 , po , rad , ri , rimax , ws , z
+292:       integer :: k
+293: !
+294:       demax = .5*dz**2/dt
+295:       demax = .99*demax
+296:       rimax = 0.0
+297:       do k = 1 , depth
+298:         dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,1)+tzero)-277.0))  &
+299:                  & **1.68)
+300:       end do
+301:  
+302:       if ( u2.lt.0.5 ) u2 = 0.5
+303:  
+304: !******     compute eddy diffusion profile
+305: !     N2 Brunt-Vaisala number
+306: !     Ri gradient Richardson number
+307: !     dm molecular diffusion of water
+308: !******     compute eddy diffusion profile
+309:  
+310:       ks = 0.745*u2**(-1.84)
+311:       ws = 0.0012*u2
+312:       po = 1.0
+313:  
+314:       do k = 1 , depth - 1
+315:         dpdz = (dnsty(k+1)-dnsty(k))/dz   ! gtb removed /2.0
+316:         n2 = dpdz/dnsty(k)*gti            ! gtb removed minus
+317:         z = surf + dble(k-1)              ! gtb: k was k-1
+318:         rad = 1. + 40.*n2*(kv*z*dexp(ks*z)/ws)**2
+319:         if ( rad.lt.0 ) rad = 0.0
+320:         ri = (-1.0+dsqrt(rad))/20.0
+321:         de(k) = dm + kv*ws*z*po*dexp(-ks*z)/(1.0+37.0*ri**2)
+322:         if ( de(k).gt.demax ) de(k) = demax
+323:         if ( dabs(ri).gt.rimax ) rimax = dabs(ri)
+324:       end do
+325:       de(depth) = 0.0
+326:  
+327:       end subroutine eddy
+328: !
+329: !-----------------------------------------------------------------------
+330: !
+<p><a name=temp><H3>temp</H3></a></p> Click <a href="./callingtree/temp_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where temp is used.
+<hr>
+331:       subroutine temp(dt,surf,dz,t,sw,lnet,qe,qh,dnsty,de,eta,depmax,   &
+332:                     & depth)
+333: !*****************BEGIN SUBROUTINE TEMP********************
+334: !             COMPUTES TEMPERATURE PROFILE                *
+335: !**********************************************************
+336:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero , cpw
+337:       implicit none
+338: !
+339: ! Dummy arguments
+340: !
+341:       integer :: depmax , depth
+342:       real(8) :: dt , dz , eta , lnet , qe , qh , surf , sw
+343:       real(8) , dimension(depmax) :: de , dnsty
+344:       real(8) , dimension(depmax,2) :: t
+345:       intent (in) de , depmax , depth , dt , dz , eta , lnet , qe , qh ,&
+346:                 & sw
+347:       intent (inout) dnsty , surf , t
+348: !
+349: ! Local variables
+350: !
+351:       real(8) :: bot , t1 , t2 , tdiff , top
+352:       integer :: k
+353:  
+354:       surf = 1.0
+355:  
+356: !******    solve differential equations of heat transfer
+357:       do k = 1 , depth
+358:         t(k,2) = t(k,1)
+359:       end do
+360:  
+361:       k = 1
+362:       t1 = sw*(1.-dexp(-eta*surf))/(surf*dnsty(k)*cpw) + (lnet+qe+qh)   &
+363:          & /(surf*dnsty(k)*cpw)
+364:       t2 = -de(k)*(t(k,1)-t(k+1,1))/surf
+365:       t(k,2) = t(k,2) + (t1+t2)*dt
+366:  
+367:       do k = 2 , depth - 1
+368:         top = (surf+(k-2)*dz)
+369:         bot = (surf+(k-1)*dz)
+370:         t1 = sw*(dexp(-eta*top)-dexp(-eta*bot))/(dz*dnsty(k)*cpw)
+371:         t2 = (de(k-1)*(t(k-1,1)-t(k,1))-de(k)*(t(k,1)-t(k+1,1)))/dz
+372:         t(k,2) = t(k,2) + (t1+t2)*dt
+373:       end do
+374:  
+375:       k = depth
+376:       top = (surf+(k-2)*dz)
+377:       t1 = sw*dexp(-eta*top)/(dz*dnsty(k)*cpw)
+378:       t2 = de(k-1)*(t(depth-1,1)-t(depth,1))/dz
+379:       t(k,2) = t(k,2) + (t1+t2)*dt
+380:  
+381:       tdiff = 0.
+382:       do k = 1 , depth
+383:         tdiff = tdiff + t(k,2) - t(k,1)
+384:         if ( k.eq.1 ) tdiff = tdiff*surf
+385:         t(k,1) = t(k,2)
+386:         dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,2)+tzero)-277.0))  &
+387:                  & **1.68)
+388:       end do
+389: 
+390: !sb   print *, 'TEMP: Total temp change = ', tdiff
+391:  
+392:       end subroutine temp
+393: !
+394: !-----------------------------------------------------------------------
+395: !
+<p><a name=mixer><H3>mixer</H3></a></p> Click <a href="./callingtree/mixer_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where mixer is used.
+<hr>
+396:       subroutine mixer(kmin,surf,dz,t,dnsty,depmax,depth)
+397: !
+398: ! Simulates convective mixing
+399: !
+400:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero
+401:       implicit none
+402: !
+403: ! Dummy arguments
+404: !
+405:       integer :: depmax , depth , kmin
+406:       real(8) :: dz , surf
+407:       real(8) , dimension(depmax) :: dnsty
+408:       real(8) , dimension(depmax,2) :: t
+409:       intent (in) depmax , depth , dz , kmin , surf
+410:       intent (inout) dnsty , t
+411: !
+412: ! Local variables
+413: !
+414:       real(8) :: avet , avev , tav , tdiff , vol
+415:       integer :: k , k2 , m
+416: ! 
+417:       do k = kmin , depth - 1
+418:         avet = 0.0
+419:         avev = 0.0
+420:  
+421:         if ( dnsty(k).gt.dnsty(k+1) ) then
+422:  
+423:           do m = kmin , k + 1
+424:             if ( m.eq.1 ) then
+425:               vol = surf
+426:             else
+427:               vol = dz
+428:             end if
+429:             avet = avet + t(m,2)*vol
+430:             avev = avev + vol
+431:           end do
+432:  
+433:           tav = avet/avev
+434:           do k2 = kmin , k + 1
+435:             t(k2,2) = tav
+436:             dnsty(k2) = 1000.0*(1.0-1.9549E-05*(dabs((t(k2,2)+tzero)-   &
+437:                       & 277.0))**1.68)
+438:           end do
+439:         end if
+440:  
+441:       end do ! K loop
+442:  
+443:       tdiff = 0.0
+444:       do k = kmin , depth
+445:         tdiff = tdiff + t(k,2) - t(k,1)
+446:         if ( k.eq.1 ) tdiff = tdiff*surf
+447:         t(k,1) = t(k,2)
+448:       end do
+449:  
+450:       end subroutine mixer
+451: !
+452: ! Computes air vapor pressure as a function of temp (in K)
+453: !
+<p><a name=eomb><H3>eomb</H3></a></p> Click <a href="./callingtree/eomb_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where eomb is used.
+<hr>
+454:       function eomb(x) result(e)
+455: 
+456:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : stdpmb , tboil , tzero
+457:       implicit none
+458: !
+459: ! Dummy arguments
+460: !
+461:       real(8) :: x
+462:       intent (in) x
+463:       real(8) :: e
+464: !
+465: ! Local variables
+466: !
+467:       real(8) :: tr1
+468: !
+469:       tr1 = 1.0 - (tboil/(x+tzero))
+470:       e = stdpmb*dexp(13.3185*tr1-1.976*tr1**2-0.6445*tr1**3-       &
+471:            & 0.1299*tr1**4)
+472:       end function eomb
+473: 
+474: !	
+475: !
+476: !       function t4(x) result(t4) 
+477: !       use mod_constants , only :: tzero
+478: !       implicit none 
+479: !       real(8), intent(in) :: x 
+480: !       real(8) :: t4 
+481: 
+482: !        t4 = (x+tzero)**4
+483: !       end function t4
+484: 
+485: !       function f(x) result(f)
+486: !       use mod_constants , only :: tzero
+487: !       real(8), intent(in) :: x 
+488: !       real(8) :: f
+489: 
+490:  
+491: !-----------------------------------------------------------------------
+492: !
+<p><a name=ice><H3>ice</H3></a></p> Click <a href="./callingtree/ice_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where ice is used.
+<hr>
+493:       subroutine ice(kd,ld,ta,u2,ea,hs,hi,hii,evap,t,depth,precip)
+494: 
+495:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : ep2 , tzero , sigm , wlhv,stdpmb,tboil
+496:       implicit none
+497: !
+498: ! PARAMETER definitions
+499: !
+500:       real(8) , parameter :: surf = 0.6 , lami1 = 1.5 , lami2 = 20 ,    &
+501:                            & lams1 = 6.0 , lams2 = 20.0 , ki = 2.3 ,    &
+502:                            & ks = 0.31 , rhoi = 917.0 , atm = 950 ,     &
+503:                            & qw = 1.389 , rhos = 330.0 , li = 334.0E03 ,&
+504:                            & cd = 0.001 , cp = 1000.0 , rho = 1.0 ,     &
+505:                            & sec = 3600
+506: !
+507: ! Dummy arguments
+508: !
+509:       integer :: depth
+510:       real(8) :: ea , evap , hi , hii , hs , kd , ld , precip , ta , u2
+511:       real(8) , dimension(depth,2) :: t
+512:       intent (in) depth , ea , ld , precip , ta , u2
+513:       intent (out) evap
+514:       intent (inout) hi , hii , hs , kd , t
+515: !
+516: ! Local variables
+517: !
+518:       real(8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
+519:                & t2 , tf , theta , x
+520:       real(8) :: f , t4 ,tr1,eomb
+521:       integer :: nits
+522: !
+523: !****************************SUBROUINE ICE*****************************
+524: !     SIMULATES LAKE ICE                           *
+525: !***********************************************************************
+526:  
+527:       t4(x) = (x+tzero)**4
+528:  
+529:       tr1(x) = 1.0 - (tboil/(x+tzero))
+530:       <a href="./mod_lake.f90.html#eomb" TARGET=CENT_PANEL>eomb</a>(x) = stdpmb*dexp(13.3185*tr1(x)-1.976*tr1(x)**2-0.6445*tr1(x)**3-       &
+531:            & 0.1299*tr1(x)**4)
+532: 
+533: !     ****** g. bates changed air to ta, qpen1 to qpen (4/92)
+534:       f(x) = (-ld+0.97*sigm*t4(x)+<a href="./mod_zengocn.F90.html#psi" TARGET=CENT_PANEL>psi</a>*(eomb(x)-ea)+theta*(x-ta)-kd)    &
+535:            & - 1./khat*(qpen+tf-x)
+536:  
+537: !CC   f(x)=(-ld+0.97*sigm*t4(x)+psi*(eomb(x)-ea)+theta
+538: !CC   +      *(x-air)-kd)-1/khat*(qpen1+tf-x)
+539:  
+540:       if ( (ta.le.0.0) .and. (hii.gt.0.0) ) hs = hs + precip*10./1000.
+541:                                      ! convert precip(mm) to depth(m)
+542:  
+543:       t0 = t(1,1)
+544:       tf = 0.0
+545:  
+546:       khat = (ki*hs+ks*hi)/(ki*ks)
+547:       theta = cp*rho*cd*u2
+548:       <a href="./mod_zengocn.F90.html#psi" TARGET=CENT_PANEL>psi</a> = wlhv*rho*cd*u2*ep2/atm
+549:       evap = 100.*<a href="./mod_zengocn.F90.html#psi" TARGET=CENT_PANEL>psi</a>*(eomb(t0)-ea)/(wlhv*rho)
+550:       qpen = kd*0.7*((1.0-dexp(-lams1*hs))/(ks*lams1)+(dexp(-lams1*hs)) &
+551:            & *(1.0-dexp(-lami1*hi))/(ki*lami1))                         &
+552:            & + kd*0.3*((1.0-dexp(-lams2))/(ks*lams2)+(-lams2*hs)        &
+553:            & *(1.0-dexp(-lami2*hi))/(ki*lami2))
+554:       kd = kd - qpen
+555:  
+556:       nits = 0
+557:       t1 = -50
+558:       f0 = f(t0)
+559:       f1 = f(t1)
+560:       do
+561:         nits = nits + 1
+562:         t2 = t1 - (t1-t0)*f1/(f1-f0)
+563:         if ( dabs((t2-t1)/t1).ge.0.001 ) then
+564:           t0 = t1
+565:           t1 = t2
+566:           f0 = f1
+567:           f1 = f(t1)
+568:           cycle
+569:         end if
+570:  
+571:         t0 = t2
+572:         if ( t0.ge.tf ) then
+573:  
+574:           if ( hs.gt.0. ) then
+575:             ds = sec*                                                   &
+576:                & ((-ld+0.97*sigm*t4(tf)+<a href="./mod_zengocn.F90.html#psi" TARGET=CENT_PANEL>psi</a>*(eomb(tf)-ea)+theta*(tf-ta)&
+577:                & -kd)-1/khat*(t0-tf+qpen))/(rhos*li)
+578:             if ( ds.gt.0.0 ) ds = 0.0
+579:             hs = hs + ds
+580:             if ( hs.lt.0 ) then
+581:               hs = 0.0
+582:               t(1,1) = (hii*t0+(surf-hii)*t(2,1))/surf
+583:             end if
+584:           end if
+585:           if ( (hs.eq.0.) .and. (hii.gt.0.0) ) then
+586:             di = sec*                                                   &
+587:                & ((-ld+0.97*sigm*t4(tf)+<a href="./mod_zengocn.F90.html#psi" TARGET=CENT_PANEL>psi</a>*(eomb(tf)-ea)+theta*(tf-ta)&
+588:                & -kd)-1/khat*(t0-tf+qpen))/(rhoi*li)
+589:             if ( di.gt.0 ) di = 0.0
+590:             hi = hi + di
+591:           end if
+592:  
+593:         else if ( t0.lt.tf ) then
+594:  
+595:           q0 = -ld + 0.97*sigm*t4(t0) + <a href="./mod_zengocn.F90.html#psi" TARGET=CENT_PANEL>psi</a>*(eomb(t0)-ea)              &
+596:              & + theta*(t0-ta) - kd
+597:           qpen = kd*0.7*(1.0-dexp(-(lams1*hs+lami1*hi)))                &
+598:                & + kd*0.3*(1.0-dexp(-(lams2*hs+lami2*hi)))
+599:           di = sec*(q0-qw-qpen)/(rhoi*li)
+600:  
+601:           hi = hi + di
+602:  
+603:         else
+604:         end if
+605:  
+606:         if ( hi.le.0.01 ) then
+607:           hi = 0.01
+608:           hii = 0.0
+609:           hs = 0.0
+610:           t(1,1) = (hi*t0+(surf-hi)*t(2,1))/surf
+611:         else
+612:           hii = hi
+613:           t(1,1) = t0
+614:         end if
+615:         exit
+616:       end do
+617:  
+618:       end subroutine ice
+619: !
+620:       end module mod_lake
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

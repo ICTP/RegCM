@@ -1,0 +1,129 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_split.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_split.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_split.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_split><H3>mod_split</H3></a></p>20:       module mod_split
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: 
+26:       integer , allocatable , dimension(:) :: m
+27:       real(8) , allocatable , dimension(:,:) :: a , a1 , a2 , a3 , a4 , &
+28:                & d1 , d2 , e1 , e2 , e3 , g1 , g2 , g3 , s1 , s2 , w1 , &
+29:                & w2 , x1
+30:       integer , allocatable , dimension(:) :: iw2
+31:       real(8) , allocatable , dimension(:) :: tbarf , thetaf
+32:       real(8) , allocatable , dimension(:) :: thetah , tweigh
+33:       real(8) , allocatable , dimension(:,:) :: w3
+34: !
+35:       real(8) :: alpha1 , alpha2 , pd , ps
+36:       real(8) , allocatable , dimension(:) :: cpfac , dsigma , hbar ,   &
+37:                & hweigh , tbarh
+38:       real(8) , allocatable , dimension(:,:) :: hydroc , varpa1
+39:       real(8) , allocatable , dimension(:,:) :: hydror , hydros , tau , &
+40:                & zmatx , zmatxr
+41:       real(8) , allocatable , dimension(:) :: sigmah
+42:       real(8) , allocatable , dimension(:,:) :: varpa2
+43: !
+44:       real(8) , allocatable , dimension(:,:) :: am
+45:       real(8) , allocatable , dimension(:) :: an
+46: 
+47:       real(8) , allocatable, dimension(:,:,:) :: dstor , hstor
+48: 
+49:       contains 
+50: 
+<p><a name=allocate_mod_split><H3>allocate_mod_split</H3></a></p> Click <a href="./callingtree/allocate_mod_split_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_split is used.
+<hr>
+51:       subroutine allocate_mod_split
+52:         implicit none
+53: #ifdef MPP1
+54:         allocate(dstor(iy,0:jxp+1,nsplit))
+55:         allocate(hstor(iy,0:jxp+1,nsplit))
+56: #else
+57:         allocate(dstor(iy,jx,nsplit))
+58:         allocate(hstor(iy,jx,nsplit))
+59: #endif 
+60:         allocate(m(nsplit))
+61:         allocate(a(kz,kz))
+62:         allocate(a1(kz,kz))
+63:         allocate(a2(kz,kz))
+64:         allocate(a3(kz,kz))
+65:         allocate(a4(kz,kz))
+66:         allocate(d1(kz,kz))
+67:         allocate(d2(kz,kz))
+68:         allocate(e1(kz,kz))
+69:         allocate(e2(kz,kz))
+70:         allocate(e3(kz,kz))
+71:         allocate(g1(kz,kz))
+72:         allocate(g2(kz,kz))
+73:         allocate(g3(kz,kz))
+74:         allocate(s1(kz,kz))
+75:         allocate(s2(kz,kz))
+76:         allocate(w1(kz,kz))
+77:         allocate(w2(kz,kz))
+78:         allocate(x1(kz,kz))
+79:         allocate(iw2(kz))
+80:         allocate(thetah(kz))
+81:         allocate(tweigh(kz))
+82:         allocate(tbarf(kzp1))
+83:         allocate(thetaf(kzp1))
+84:         allocate(w3(kzp1,kz))
+85:         allocate(cpfac(kz))
+86:         allocate(dsigma(kz))
+87:         allocate(hbar(kz))
+88:         allocate(hweigh(kz))
+89:         allocate(tbarh(kz))
+90:         allocate(hydroc(kz,kzp1))
+91:         allocate(varpa1(kz,kzp1))
+92:         allocate(hydror(kz,kz))
+93:         allocate(hydros(kz,kz))
+94:         allocate(tau(kz,kz))
+95:         allocate(zmatx(kz,kz))
+96:         allocate(zmatxr(kz,kz))
+97:         allocate(sigmah(kzp1))
+98:         allocate(varpa2(kzp1,kzp1))
+99:         allocate(am(kz,nsplit))
+100:         allocate(an(nsplit))
+101: !
+102:         end subroutine allocate_mod_split
+103: !
+104:       end module mod_split
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

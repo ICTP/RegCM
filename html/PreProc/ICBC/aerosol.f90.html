@@ -1,0 +1,482 @@
+<HTML>
+
+<HEAD>
+<TITLE>aerosol.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>aerosol.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>aerosol.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=aerosol><H3>aerosol</H3></a></p>20:       program aerosol
+21: 
+22: !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: ! Comments on dataset sources and location:                          c
+24: !                                                                    c
+25: ! EDGAR                                                              c
+26: !                                                                    c
+27: ! LIOUSSE96                                                          c
+28: !                                                                    c
+29: ! BOND                                                               c
+30: !                                                                    c
+31: ! GEIA                                                               c
+32: !                                                                    c
+33: !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+34: 
+35:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+36: 
+37:       implicit none
+38: !
+39: ! PARAMETER definitions
+40: !
+41:       integer , parameter :: ilon = 360 , jlat = 180
+42: !
+43: ! Local variables
+44: !
+45:       logical :: there
+46:       integer :: i , j , nrec , ierr
+47:       real(4) , dimension(jlat) :: lati
+48:       real(4) , dimension(ilon) :: loni
+49:       real(4) , dimension(ilon,jlat) :: aer2
+50:       real(4) , allocatable , dimension(:,:) :: aermm , xlat , xlon
+51:       character(256) :: namelistfile, prgname , terfile , aerofile
+52: !
+53: !     Read input global namelist
+54: !
+55:       call <a href="#" TARGET=CENT_PANEL>getarg</a>(0, prgname)
+56:       call <a href="#" TARGET=CENT_PANEL>getarg</a>(1, namelistfile)
+57:       call <a href="./mod_dynparam.F90.html#initparam" TARGET=CENT_PANEL>initparam</a>(namelistfile, ierr)
+58:       if ( ierr/=0 ) then
+59:         write ( 6, * ) 'Parameter initialization not completed'
+60:         write ( 6, * ) 'Usage : '
+61:         write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+62:         write ( 6, * ) ' '
+63:         write ( 6, * ) 'Check argument and namelist syntax'
+64:         stop
+65:       end if
+66: !
+67:       allocate(aermm(iy,jx))
+68:       allocate(xlat(iy,jx))
+69:       allocate(xlon(iy,jx))
+70: 
+71:       inquire (file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',exist=there)
+72:       if ( .not.there ) print * , 'AEROSOL.dat is not available' ,      &
+73:                              &' under ',trim(inpglob),'/AERGLOB/'
+74:       open (11,file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',              &
+75:           & form='unformatted',recl=ilon*jlat*ibyte,access='direct',    &
+76:           & status='old',err=100)
+77: 
+78:       write (aerofile,99001)                                            &
+79:         & trim(dirglob), pthsep, trim(domname), '_AERO.dat'
+80:       open (25,file=aerofile,form='unformatted',                        &
+81:           & recl=iy*jx*ibyte,access='direct',status='replace')
+82:       if ( igrads==1 ) then
+83:         write (aerofile,99001)                                          &
+84:           & trim(dirglob), pthsep, trim(domname), '_AERO.ctl'
+85:         open (31,file=aerofile,status='replace')
+86:         write (31,'(a,a,a)') 'dset ^',trim(domname),'_AERO.dat'
+87:       end if
+88:  
+89: !     ******    ON WHAT RegCM GRID ARE AEROSOL DESIRED?
+90: 
+91:       write (terfile,99001)                                             &
+92:         & trim(dirter), pthsep, trim(domname), '.INFO'
+93:       open (10,file=terfile,form='unformatted',                         &
+94:           & recl=iy*jx*ibyte,access='direct',status='unknown',err=200)
+95: !
+96:       call <a href="./aerosol.f90.html#gridml" TARGET=CENT_PANEL>gridml</a>(xlon,xlat,iy,jx,ibyte)
+97: !
+98:  
+99: !     ******    SET UP LONGITUDES AND LATITUDES FOR AEROSOL DATA
+100:       do i = 1 , ilon
+101:         loni(i) = -179.5 + float(i-1)
+102:       end do
+103:       do j = 1 , jlat
+104:         lati(j) = -89.5 + 1.*float(j-1)
+105:       end do
+106:  
+107: !     ****** ALL AEROSOL DATA, 1 Deg data, Climate value
+108:       do nrec = 1 , 39
+109:         read (11,rec=nrec) aer2
+110:  
+111:         call <a href="./aerosol.f90.html#bilinx" TARGET=CENT_PANEL>bilinx</a>(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+112:  
+113: !       ******           WRITE OUT AEROSOL DATA ON RegCM GRID
+114:         write (25,rec=nrec) ((aermm(i,j),j=1,jx),i=1,iy)
+115:       end do
+116:  
+117:       deallocate(aermm)
+118:       deallocate(xlat)
+119:       deallocate(xlon)
+120: 
+121:       print *, 'Successfully built aerosol data for domain'
+122:       stop
+123: 
+124:  100  continue
+125:       print * , 'ERROR OPENING AEROSOL FILE'
+126:       stop '4810 IN PROGRAM AEROSOL'
+127:  200  continue
+128:       print * , 'ERROR OPENING DOMAIN HEADER FILE'
+129:       stop '4830 IN PROGRAM RDSST'
+130: 99001 format (a,a,a,a)
+131:       end program aerosol
+132: !
+133: !-----------------------------------------------------------------------
+134: !
+<p><a name=gridml><H3>gridml</H3></a></p> Click <a href="./callingtree/gridml_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gridml is used.
+<hr>
+135:       subroutine gridml(xlon,xlat,iy,jx,ibyte)
+136:       implicit none
+137: !
+138: ! Dummy arguments
+139: !
+140:       integer :: ibyte , iy , jx
+141:       real(4) , dimension(iy,jx) :: xlat , xlon
+142:       intent (in) ibyte , iy , jx
+143:       intent (out) xlat , xlon
+144: !
+145: ! Local variables
+146: !
+147:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+148:             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
+149:             & ptop , rlatinc , rloninc, th, tl
+150:       character(3) , dimension(12) :: cmonth
+151:       integer :: i , ibigend , ierr , igrads , iyy , j , jxx ,          &
+152:                & k , kz , month , nx , ny , period
+153:       character(6) :: iproj
+154:       real(4) , dimension(30) :: sigmaf
+155: !
+156:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+157:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+158: !
+159:       alatmin = 999999.
+160:       alatmax = -999999.
+161:       alonmin = 999999.
+162:       alonmax = -999999.
+163:       nx = 0
+164:       ny = 0
+165:       read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
+166:                                 & plat , plon , grdfac , iproj ,        &
+167:                                 & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
+168:                                 & ibigend ,tl , th
+169:       if ( iyy/=iy .or. jxx/=jx ) then
+170:         print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'
+171:         print * , '  icbc.param: ' , iy , jx
+172:         print * , '  DOMAIN.INFO: ' , iyy , jxx
+173:         print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
+174:         stop 'Dimensions (subroutine gridml)'
+175:       end if
+176:       read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,jx),i=1,iy)
+177:       read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,jx),i=1,iy)
+178:       if ( ierr/=0 ) then
+179:         print * , 'END OF FILE REACHED (AEROSOL.f)'
+180:         print * , '  Check ibyte in icbc.param: ibyte= ' , ibyte
+181:         stop 'EOF (subroutine gridml)'
+182:       end if
+183: !
+184:       if ( igrads==1 ) then
+185:         write (31,'(a)')                                                &
+186:                      &'title AEROSOL fields for RegCM domain, kg/m2/sec'
+187:         if ( ibigend==1 ) then
+188:           write (31,'(a)') 'options big_endian'
+189:         else
+190:           write (31,'(a)') 'options little_endian'
+191:         end if
+192:         write (31,'(a)') 'undef -9999.'
+193:         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
+194:           do j = 1 , jx
+195:             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
+196:             if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
+197:           end do
+198:           do i = 1 , iy
+199:             do j = 1 , jx
+200:               if ( clon>=0.0 ) then
+201:                 if ( xlon(i,j)>=0.0 ) then
+202:                   alonmin = amin1(alonmin,xlon(i,j))
+203:                   alonmax = amax1(alonmax,xlon(i,j))
+204:                 else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)+360.))&
+205:                         & ) then
+206:                   alonmin = amin1(alonmin,xlon(i,j))
+207:                   alonmax = amax1(alonmax,xlon(i,j))
+208:                 else
+209:                   alonmin = amin1(alonmin,xlon(i,j)+360.)
+210:                   alonmax = amax1(alonmax,xlon(i,j)+360.)
+211:                 end if
+212:               else if ( xlon(i,j)<0.0 ) then
+213:                 alonmin = amin1(alonmin,xlon(i,j))
+214:                 alonmax = amax1(alonmax,xlon(i,j))
+215:               else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)-360.)) )&
+216:                       & then
+217:                 alonmin = amin1(alonmin,xlon(i,j))
+218:                 alonmax = amax1(alonmax,xlon(i,j))
+219:               else
+220:                 alonmin = amin1(alonmin,xlon(i,j)-360.)
+221:                 alonmax = amax1(alonmax,xlon(i,j)-360.)
+222:               end if
+223:             end do
+224:           end do
+225:           rlatinc = dsinm*0.001/111./2.
+226:           rloninc = dsinm*0.001/111./2.
+227:           ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+228:           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+229:  
+230:           centerj = jx/2.
+231:           centeri = iy/2.
+232:         end if
+233:         if ( iproj=='LAMCON' ) then        ! Lambert projection
+234:           write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
+235:                          & tl , th , clon , dsinm , dsinm
+236:           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
+237:           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+238:         else if ( iproj=='POLSTR' ) then   !
+239:         else if ( iproj=='NORMER' ) then
+240:           write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
+241:           write (31,99005) iy
+242:           write (31,99006) (xlat(i,1),i=1,iy)
+243:         else if ( iproj=='ROTMER' ) then
+244:           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
+245:                      &' projections are not supported by GrADS.'
+246:           write (*,*) '  Although not exact, the eta.u projection' ,    &
+247:                      &' in GrADS is somewhat similar.'
+248:           write (*,*) ' FERRET, however, does support this projection.'
+249:           write (31,99007) jx , iy , plon , plat , dsinm/111000. ,      &
+250:                          & dsinm/111000.*.95238
+251:           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
+252:           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+253:         else
+254:           write (*,*) 'Are you sure your map projection is correct ?'
+255:           stop
+256:         end if
+257:         write (31,99008) 1 , 1000.
+258:         month = 1
+259:         period = 1
+260:         write (31,99009) period , cmonth(month) , 2001
+261:         write (31,99010) 39
+262:         write (31,99011) 'so2   ' ,                                     &
+263:                         &'Anthropogenic SO2 emission, EDGAR       '
+264:         write (31,99011) 'bc    ' ,                                     &
+265:                         &'Anthropogenic Black Carbon (BC), EDGAR  '
+266:         write (31,99011) 'oc    ' ,                                     &
+267:                         &'Anthropogenic Organic Carbon (OC), EDGAR'
+268:         write (31,99011) 'so201 ' ,                                     &
+269:                         &'Biomass SO2 emission, EDGAR, January    '
+270:         write (31,99011) 'so202 ' ,                                     &
+271:                         &'Biomass SO2 emission, EDGAR, February   '
+272:         write (31,99011) 'so203 ' ,                                     &
+273:                         &'Biomass SO2 emission, EDGAR, March      '
+274:         write (31,99011) 'so204 ' ,                                     &
+275:                         &'Biomass SO2 emission, EDGAR, April      '
+276:         write (31,99011) 'so205 ' ,                                     &
+277:                         &'Biomass SO2 emission, EDGAR, May        '
+278:         write (31,99011) 'so206 ' ,                                     &
+279:                         &'Biomass SO2 emission, EDGAR, June       '
+280:         write (31,99011) 'so207 ' ,                                     &
+281:                         &'Biomass SO2 emission, EDGAR, July       '
+282:         write (31,99011) 'so208 ' ,                                     &
+283:                         &'Biomass SO2 emission, EDGAR, August     '
+284:         write (31,99011) 'so209 ' ,                                     &
+285:                         &'Biomass SO2 emission, EDGAR, September  '
+286:         write (31,99011) 'so210 ' ,                                     &
+287:                         &'Biomass SO2 emission, EDGAR, October    '
+288:         write (31,99011) 'so211 ' ,                                     &
+289:                         &'Biomass SO2 emission, EDGAR, November   '
+290:         write (31,99011) 'so212 ' ,                                     &
+291:                         &'Biomass SO2 emission, EDGAR, December   '
+292:         write (31,99011) 'bc_01 ' ,                                     &
+293:                         &'Biomass BC emission, LIOUSSE, January   '
+294:         write (31,99011) 'bc_02 ' ,                                     &
+295:                         &'Biomass BC emission, LIOUSSE, February  '
+296:         write (31,99011) 'bc_03 ' ,                                     &
+297:                         &'Biomass BC emission, LIOUSSE, March     '
+298:         write (31,99011) 'bc_04 ' ,                                     &
+299:                         &'Biomass BC emission, LIOUSSE, April     '
+300:         write (31,99011) 'bc_05 ' ,                                     &
+301:                         &'Biomass BC emission, LIOUSSE, May       '
+302:         write (31,99011) 'bc_06 ' ,                                     &
+303:                         &'Biomass BC emission, LIOUSSE, June      '
+304:         write (31,99011) 'bc_07 ' ,                                     &
+305:                         &'Biomass BC emission, LIOUSSE, July      '
+306:         write (31,99011) 'bc_08 ' ,                                     &
+307:                         &'Biomass BC emission, LIOUSSE, August    '
+308:         write (31,99011) 'bc_09 ' ,                                     &
+309:                         &'Biomass BC emission, LIOUSSE, September '
+310:         write (31,99011) 'bc_10 ' ,                                     &
+311:                         &'Biomass BC emission, LIOUSSE, October   '
+312:         write (31,99011) 'bc_11 ' ,                                     &
+313:                         &'Biomass BC emission, LIOUSSE, November  '
+314:         write (31,99011) 'bc_12 ' ,                                     &
+315:                         &'Biomass BC emission, LIOUSSE, December  '
+316:         write (31,99011) 'oc_01 ' ,                                     &
+317:                         &'Biomass OC emission, LIOUSSE, January   '
+318:         write (31,99011) 'oc_02 ' ,                                     &
+319:                         &'Biomass OC emission, LIOUSSE, February  '
+320:         write (31,99011) 'oc_03 ' ,                                     &
+321:                         &'Biomass OC emission, LIOUSSE, March     '
+322:         write (31,99011) 'oc_04 ' ,                                     &
+323:                         &'Biomass OC emission, LIOUSSE, April     '
+324:         write (31,99011) 'oc_05 ' ,                                     &
+325:                         &'Biomass OC emission, LIOUSSE, May       '
+326:         write (31,99011) 'oc_06 ' ,                                     &
+327:                         &'Biomass OC emission, LIOUSSE, June      '
+328:         write (31,99011) 'oc_07 ' ,                                     &
+329:                         &'Biomass OC emission, LIOUSSE, July      '
+330:         write (31,99011) 'oc_08 ' ,                                     &
+331:                         &'Biomass OC emission, LIOUSSE, August    '
+332:         write (31,99011) 'oc_09 ' ,                                     &
+333:                         &'Biomass OC emission, LIOUSSE, September '
+334:         write (31,99011) 'oc_10 ' ,                                     &
+335:                         &'Biomass OC emission, LIOUSSE, October   '
+336:         write (31,99011) 'oc_11 ' ,                                     &
+337:                         &'Biomass OC emission, LIOUSSE, November  '
+338:         write (31,99011) 'oc_12 ' ,                                     &
+339:                         &'Biomass OC emission, LIOUSSE, December  '
+340:  
+341:         write (31,'(a)') 'endvars'
+342:         close (31)
+343:       end if
+344: 99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
+345: 99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+346: 99003 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+347: 99004 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+348: 99005 format ('ydef ',i3,' levels')
+349: 99006 format (10F7.2)
+350: 99007 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+351: 99008 format ('zdef ',i1,' levels ',f7.2)
+352: 99009 format ('tdef ',i4,' linear 00z16',a3,i4,' 1mo')
+353: 99010 format ('vars ',i2)
+354: 99011 format (a6,'0 99 ',a40)
+355: !
+356:       end subroutine gridml
+357: !
+358: !
+359: !
+<p><a name=bilinx><H3>bilinx</H3></a></p> Click <a href="./callingtree/bilinx_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where bilinx is used.
+<hr>
+360:       subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx, &
+361:                       & nflds)
+362:       implicit none
+363: !
+364: ! Dummy arguments
+365: !
+366:       integer :: iy , jx , nflds , nlati , nloni
+367:       real(4) , dimension(nloni,nlati,nflds) :: fin
+368:       real(4) , dimension(nlati) :: lati
+369:       real(4) , dimension(iy,jx) :: lato , lono
+370:       real(4) , dimension(nloni) :: loni
+371:       real(4) , dimension(iy,jx,nflds) :: fout
+372:       intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
+373:                 & nlati , nloni
+374:       intent (out) fout
+375: !
+376: ! Local variables
+377: !
+378:       real(4) :: bas , lon180 , p , q , xsum , xind , yind
+379:       integer :: i , ip , ipp1 , j , jq , jqp1 , l
+380: !
+381: !
+382: !     PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
+383: !     BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY XLONS AND XLATS OF
+384: !     GRID2. A POINT ON GRID2 IS TRAPPED WITHIN FOUR GRID POINTS ON
+385: !     GRID4.THE GRID POINTS ARE ALWAYS TO THE NORTH AND EAST OF THE
+386: !     TRAPPED POINT.. THE ALGORITHM COMPUTES THE FRACTIONAL DISTANCES
+387: !     IN BOTH X AND Y DIRECTION OF THE TRAPPED GRID POINT AND USES THE
+388: !     INFORMATION AS WEIGHTING FACTORS IN THE INTERPOLATION.
+389: !     THERE IS ONE LESS ROW AND COLUMN WHEN THE SCALAR FIELDS ARE
+390: !     INTERPOLATED BECAUSE XLATS AND XLONS ARE NOT DEFINED FOR
+391: !     THE CROSS POINTS IN THE MM4 MODEL.
+392: !
+393: !     IN(NLONI,NLATI,NFLDS)  IS THE INPUT FIELD ON REGULAR LAT/LON GRID.
+394: !     OUT(NLATO,NLONO,NFLDS) IS THE OUTPUT FIELD ON LAMBERT CONFORMAL
+395: !     GRID. LONI.....LONGITUDE VALUES IN DEGREES OF THE LAT-LON GRID.
+396: !     LATI.....LATITUDE VALUES IN DEGREES OF THE LAT-LON GRID.
+397: !     P.........EAST-WEST WEIGHTING FACTOR.
+398: !     Q.........NORTH-SOUTH WEIGHTING FACTOR.
+399: !     IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
+400: !     IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID
+401:  
+402: !     POINT.
+403:  
+404:       do j = 1 , jx
+405:         do i = 1 , iy
+406:  
+407:           yind = (((lato(i,j)-lati(1))/(lati(nlati)-lati(1)))           &
+408:                & *float(nlati-1)) + 1.
+409:           jq = int(yind)
+410:           jq = max0(jq,1)
+411:           jqp1 = min0(jq+1,nlati)
+412:           q = yind - jq
+413:  
+414:           lon180 = lono(i,j)
+415:           if ( lono(i,j)<-180. ) lon180 = lono(i,j) + 360.
+416:           if ( lono(i,j)>180. ) lon180 = lono(i,j) - 360.
+417:           xind = (((lon180-loni(1))/(loni(nloni)-loni(1)))              &
+418:                & *float(nloni-1)) + 1.
+419:           ip = int(xind)
+420:           ip = max0(ip,1)
+421:           ipp1 = min0(ip+1,nloni)
+422:           p = xind - ip
+423:  
+424:           do l = 1 , nflds
+425:             xsum = 0.0
+426:             bas = 0.0
+427:             if ( fin(ip,jq,l)<-9990.0 .and. fin(ipp1,jq,l)<-9990.0 .and.&
+428:                & fin(ipp1,jqp1,l)<-9990.0 .and. fin(ip,jqp1,l)<-9990.0 )&
+429:                & then
+430:               fout(i,j,l) = -9999.
+431:             else
+432:               if ( fin(ip,jq,l)>-9990.0 ) then
+433:                 xsum = xsum + (1.-q)*(1.-p)*fin(ip,jq,l)
+434:                 bas = bas + (1.-q)*(1.-p)
+435:               end if
+436:               if ( fin(ipp1,jq,l)>-9990.0 ) then
+437:                 xsum = xsum + (1.-q)*p*fin(ipp1,jq,l)
+438:                 bas = bas + (1.-q)*p
+439:               end if
+440:               if ( fin(ipp1,jqp1,l)>-9990.0 ) then
+441:                 xsum = xsum + q*p*fin(ipp1,jqp1,l)
+442:                 bas = bas + q*p
+443:               end if
+444:               if ( fin(ip,jqp1,l)>-9990.0 ) then
+445:                 xsum = xsum + q*(1.-p)*fin(ip,jqp1,l)
+446:                 bas = bas + q*(1.-p)
+447:               end if
+448:               fout(i,j,l) = xsum/bas
+449:             end if
+450:           end do
+451:         end do
+452:  
+453:       end do
+454:  
+455:       end subroutine bilinx
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

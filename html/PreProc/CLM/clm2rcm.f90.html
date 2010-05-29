@@ -1,0 +1,416 @@
+<HTML>
+
+<HEAD>
+<TITLE>clm2rcm.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clm2rcm.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>clm2rcm.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=clmproc><H3>clmproc</H3></a></p>20:       program clmproc
+21:  
+22:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+23:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+24:       use <a href="./mod_param_clm.f90.html#mod_param_clm" TARGET=CENT_PANEL>mod_param_clm</a>
+25: 
+26:       implicit none
+27: !
+28:       real(4) , parameter :: vmisdat=-9999
+29:       integer , parameter :: ndim = 3
+30:       logical , parameter :: bvoc = .false.
+31: !
+32: ! Local variables
+33: !
+34:       real(4) :: clatx , clonx , dsx , grdfacx , offset ,               &
+35:            & perr , platx , plonx , pmax , ptopx , xscale , xlatmax ,   &
+36:            & xlatmin , xlonmax , xlonmin
+37:       integer :: i , ibigendx , idatex , idin , idout , idy , ierr ,    &
+38:                & ifield , ifld , igradsx , ihr , imap , imo , jotyp ,   &
+39:                & irec , iyr , iyy , j , julnc , jxx , kmax , kzz , l
+40:       integer :: k
+41:       integer :: iunout , iunctl
+42:       integer , dimension(4) :: icount , istart
+43:       integer , dimension(3) :: iadim
+44:       character(6) :: iprojx
+45:       character(64) , dimension(nfld) :: lnam
+46:       character(256) :: outfil_ctl , outfil_gr , outfil_nc
+47:       logical :: there
+48:       character(64) , dimension(nfld) :: units
+49:       real(4) , dimension(3) :: varmax , varmin
+50:       character(64) , dimension(nfld) :: vnam_o
+51:       real(8) :: xhr
+52:       real(4) , allocatable , dimension(:) :: glat , glon , zlat ,      &
+53:                &                           zlev , zlon
+54:       real(4) , allocatable , dimension(:,:,:) :: regxyz
+55:       real(4) , allocatable , dimension(:,:,:,:) :: regyxzt , zoom
+56:       real(4) , allocatable , dimension(:,:) :: landmask , regxy ,      &
+57:                &                             sandclay
+58:       real(4) , allocatable , dimension(:,:) :: xlat , xlon
+59:       real(4) , allocatable , dimension(:) :: xlat1d
+60:       real(4) , allocatable , dimension(:) :: xlon1d
+61:       real(4) , allocatable , dimension(:) :: sigx
+62:       integer :: ipathdiv
+63:       character(256) :: namelistfile, prgname
+64:       character(256) :: terfile , inpfile
+65: !
+66: !     Read input global namelist
+67: !
+68:       call <a href="#" TARGET=CENT_PANEL>getarg</a>(0, prgname)
+69:       call <a href="#" TARGET=CENT_PANEL>getarg</a>(1, namelistfile)
+70:       call <a href="./mod_dynparam.F90.html#initparam" TARGET=CENT_PANEL>initparam</a>(namelistfile, ierr)
+71:       if ( ierr/=0 ) then
+72:         write ( 6, * ) 'Parameter initialization not completed'
+73:         write ( 6, * ) 'Usage : '
+74:         write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+75:         write ( 6, * ) ' '
+76:         write ( 6, * ) 'Check argument and namelist syntax'
+77:         stop
+78:       end if
+79: !
+80:       if ( nsg/=1 ) then
+81:         write ( 6,* ) 'CLM does not work with subgridding enable.'
+82:         write ( 6,* ) 'Please set nsg=1 in regcm.in'
+83:         stop
+84:       end if
+85: 
+86:       allocate(xlat(iy,jx))
+87:       allocate(xlon(iy,jx))
+88:       allocate(xlat1d(iy))
+89:       allocate(xlon1d(jx))
+90:       allocate(sigx(kz+1))
+91: !
+92: !     ** Get latitudes and longitudes from DOMAIN.INFO
+93: !
+94:       write (terfile,99001)                                             &
+95:         & trim(dirter), pthsep, trim(domname), '.INFO'
+96:       open (unit=10,file=terfile,status='old',form='unformatted',       &
+97:           & recl=iy*jx*ibyte,access='direct')
+98:       read (10,rec=1) iyy , jxx , kzz , dsx , clatx , clonx , platx ,   &
+99:                     & plonx , grdfacx , iprojx , sigx , ptopx ,         &
+100:                     & igradsx , ibigendx
+101:       if ( iyy/=iy .or. jxx/=jx ) then
+102:         print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+103:         print * , '  namelist       :    iy=' , iy , '   jx=' , jx
+104:         print * , '  DOMAIN.INFO    :    iy=' , iyy , '   jx=' , jxx
+105:         stop 780
+106:       end if
+107:       if ( abs(ds*1000.-dsx)>0.01 ) then
+108:         print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+109:         print * , '  namelist       : ds=' , ds*1000.
+110:         print * , '  DOMAIN.INFO    : ds=' , dsx
+111:         stop 781
+112:       end if
+113:       if ( clatx/=clat .or. clonx/=clon .or. platx/=plat .or.           &
+114:          & plonx/=plon ) then
+115:         print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+116:         print * , '  namelist       :  clat=' , clat , ' clon=' , clon
+117:         print * , '  DOMAIN.INFO    :  clat=' , clatx , ' clon=' , clonx
+118:         print * , '  namelist       :  plat=' , plat , ' plon=' , plon
+119:         print * , '  DOMAIN.INFO    :  plat=' , platx , ' plon=' , plonx
+120:         stop 782
+121:       end if
+122:       if ( iprojx/=iproj ) then
+123:         print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+124:         print * , '  namelist       : iproj=' , iproj
+125:         print * , '  DOMAIN.INFO    : iproj=' , iprojx
+126:         stop 783
+127:       end if
+128:       read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
+129:       read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
+130:       close (10)
+131:  
+132: !     ** Set output variables
+133:       jotyp = 2
+134:       xscale = 1.
+135:       offset = 0.
+136:       iunout = 101
+137:       iunctl = 102
+138:  
+139: !     ** Open direct access CLM3/RegCM3 output file
+140:       outfil_gr = trim(dirglob)//pthsep//trim(domname)//'_CLM3.INFO'
+141:       call <a href="./fexist.f90.html#fexist" TARGET=CENT_PANEL>fexist</a>(outfil_gr)
+142:       print *, 'Open ', trim(outfil_gr)
+143:       open (iunout,file=outfil_gr,status='replace',                     &
+144:           & form='unformatted',recl=jx*iy*ibyte,access='direct')
+145:       irec = 1
+146:       write (iunout,rec=irec) iyy , jxx , npft , nsoi , dsx , clatx ,   &
+147:                             & clonx , platx , plonx , grdfacx , iprojx
+148: !abt  added below
+149: !     ** determine which files to create (emission factor map or not)
+150:       call <a href="./comp.f90.html#comp" TARGET=CENT_PANEL>comp</a>(ifield,bvoc)
+151: !abt  added above
+152:  
+153: !     ** Loop over the fields defined in clm.param
+154: !     do ifld=1,nfld
+155:       do ifld = 1 , ifield
+156:  
+157: !       ** Open input and output files
+158: !       **   Some files have more than one required variable. 
+159: !       Therefore, **   the output file should only be opened once.
+160:         inpfile = trim(inpglob)//infil(ifld)
+161:         inquire (file=inpfile,exist=there)
+162:         if ( .not.there ) then
+163:           print * , 'CLM Input file does not exist: ', trim(inpfile)
+164:           stop 'NON-EXISTENT FILE'
+165:         end if
+166:         if ( ifld==ipft .or. ifld==ilai .or. ifld==ilak .or.            &
+167:            & ifld==iglc .or. ifld==iurb .or. ifld==isnd .or.            &
+168:            & ifld==icol .or. ifld==ioro .or. ifld==iiso .or.            &
+169:            & ifld==ifma .or. ifld==imbo .or. ifld==ibpin .or.           &
+170:            & ifld==iapin ) then
+171: !         ************************ CHANGED LINE ABOVE to include iiso
+172: !         ************************
+173:           print * , 'OPENING Input NetCDF FILE: ' , trim(inpfile)
+174:           ierr = nf90_open(inpfile,nf90_nowrite,idin)
+175:           if ( ierr/=nf90_noerr ) then
+176:             write (6,*) 'Cannot open input file ', trim(inpfile)
+177:             stop 'INPUT NOT READY'
+178:           end if
+179:           ipathdiv = scan(inpfile, pthsep, .true.)
+180:           if ( ipathdiv/=0 ) then
+181:             outfil_nc = trim(dirglob)//pthsep//trim(domname)//          &
+182:                    &  '_RCM'//inpfile(ipathdiv+7:)
+183:           else
+184:             outfil_nc = trim(dirglob)//pthsep//trim(domname)//          &
+185:                    & '_RCM'//inpfile(7:)
+186:           endif
+187: !         CALL FEXIST(outfil_nc)
+188:           print * , 'OPENING Output NetCDF FILE: ' , trim(outfil_nc)
+189:           call <a href="./nclib.f90.html#rcrecdf" TARGET=CENT_PANEL>rcrecdf</a>(outfil_nc,idout,varmin,varmax,3,ierr)
+190:         end if
+191:  
+192: !       ** Setup RegCM3 grid variables
+193:         call <a href="./param.f90.html#param" TARGET=CENT_PANEL>param</a>(jx,iy,nlev(ifld),xlat,xlon,varmin,varmax,            &
+194:                  & xlat1d,xlon1d,xlonmin,xlonmax,xlatmin,xlatmax,       &
+195:                  & iadim,ndim)
+196:  
+197: !       ** Setup CLM3 grid variables, including subgrid region
+198:         allocate(glon(nlon(ifld)))
+199:         allocate(glat(nlat(ifld)))
+200:  
+201:         call <a href="./clm3grid1.f90.html#clm3grid1" TARGET=CENT_PANEL>clm3grid1</a>(nlon(ifld),nlat(ifld),nlev(ifld),ntim(ifld),     &
+202:                      & glon1(ifld),glon2(ifld),glat1(ifld),glat2(ifld), &
+203:                      & xlonmin,xlonmax,xlatmin,xlatmax,glon,glat,istart,&
+204:                      & icount)
+205:  
+206:         if ( ifld==isnd .or. ifld==icly ) then
+207:           istart(4) = 1
+208:           icount(4) = 1
+209:         end if
+210:  
+211:         allocate(zoom(icount(1),icount(2),icount(3),icount(4)))
+212:         allocate(zlon(icount(1)))
+213:         allocate(zlat(icount(2)))
+214:         allocate(zlev(icount(3)))
+215:         allocate(landmask(icount(1),icount(2)))
+216: !
+217:         call <a href="./clm3grid2.f90.html#clm3grid2" TARGET=CENT_PANEL>clm3grid2</a>(nlon(ifld),nlat(ifld),glon,glat,istart,          &
+218:                      & icount,zlon,zlat,zlev)
+219: !
+220:         print *, 'Reading variables from input file'
+221: !
+222: !       ** Read in the variables.
+223: !       In some cases, special reads need to be performed:
+224: !       - Sand/clay fractions need a mapping variable
+225: !       - Lakes, wetlands, soil color, and orography need a
+226: !       180 degree longitiude shift.
+227: !       - Soil color and Orography do not have landmasks (must be made)
+228:         if ( ifld==isnd .or. ifld==icly ) then
+229:           allocate(sandclay(ntim(ifld),nlev(ifld)))
+230:           call <a href="./readcdfr4.f90.html#readcdfr4" TARGET=CENT_PANEL>readcdfr4</a>(idin,vnam(ifld),lnam(ifld),units(ifld),1,      &
+231:                        & ntim(ifld),1,nlev(ifld),1,1,1,1,sandclay)
+232:           print *, 'Read ', trim(lnam(ifld))
+233:           call <a href="./readcdfr4.f90.html#readcdfr4" TARGET=CENT_PANEL>readcdfr4</a>(idin,vnam_lm,lnam(ifld),units(ifld),istart(1), &
+234:                        & icount(1),istart(2),icount(2),1,1,1,1,landmask)
+235:           print *, 'Read ', trim(lnam(ifld))
+236:           call <a href="./readcdfr4.f90.html#readcdfr4" TARGET=CENT_PANEL>readcdfr4</a>(idin,vnam_st,lnam(ifld),units(ifld),istart(1), &
+237:                        & icount(1),istart(2),icount(2),1,1,1,1,zoom)
+238:           print *, 'Read ', trim(lnam(ifld))
+239:           do j = 1 , icount(2)
+240:             do i = 1 , icount(1)
+241:               imap = nint(zoom(i,j,1,1))
+242:               do k = 1 , icount(3)
+243:                 if ( imap>0 .and. landmask(i,j)>0.5 ) then
+244:                   zoom(i,j,k,1) = sandclay(imap,k)
+245:                 else
+246:                   zoom(i,j,k,1) = vmisdat
+247:                 end if
+248:               end do
+249:             end do
+250:           end do
+251:           do k = 1 , icount(3)
+252:             zlev(k) = glev_st(k)
+253:           end do
+254:           ntim(ifld) = 1
+255:  
+256:         else if ( ifld==iiso .or. ifld==ibpin .or. ifld==iapin .or.     &
+257:                 & ifld==imbo ) then
+258:           call <a href="./readcdfr4_iso.f90.html#readcdfr4_iso" TARGET=CENT_PANEL>readcdfr4_iso</a>(idin,vnam(ifld),lnam(ifld),units(ifld),    &
+259:                            & istart(1),icount(1),istart(2),icount(2),   &
+260:                            & istart(3),icount(3),istart(4),icount(4),   &
+261:                            & zoom)
+262:           print *, 'Read ', trim(lnam(ifld))
+263:         else
+264:           if ( ifld/=icol ) then
+265:             call <a href="./readcdfr4.f90.html#readcdfr4" TARGET=CENT_PANEL>readcdfr4</a>(idin,vnam_lm,lnam(ifld),units(ifld),         &
+266:                  & istart(1),icount(1),istart(2),icount(2),1,1,1,1,     &
+267:                  & landmask)
+268:             print *, 'Read ', trim(lnam(ifld))
+269:           end if
+270:           call <a href="./readcdfr4.f90.html#readcdfr4" TARGET=CENT_PANEL>readcdfr4</a>(idin,vnam(ifld),lnam(ifld),units(ifld),        &
+271:                        & istart(1),icount(1),istart(2),icount(2),       &
+272:                        & istart(3),icount(3),istart(4),icount(4),zoom)
+273:           print *, 'Read ', trim(lnam(ifld))
+274:         end if
+275:  
+276:         if ( ifld==icol .or. ifld==iiso .or. ifld==ibpin .or.           &
+277:            & ifld==imbo .or. ifld==iapin ) then
+278:           print *, 'Adjusting landmask'
+279:           do j = 1 , icount(2)
+280:             do i = 1 , icount(1)
+281:               if ( zoom(i,j,1,1)>vmin(ifld) ) then
+282:                 landmask(i,j) = 1.0
+283:               else
+284:                 landmask(i,j) = vmisdat
+285:               end if
+286:             end do
+287:           end do
+288:         end if
+289:         print * , 'READ/WRITE: ' , vnam(ifld) , lnam(ifld) , units(ifld)
+290:  
+291: !       ** Set the non-land values to missing for interpolation purposes
+292:         if ( ifld/=ioro ) call <a href="./maskme.f90.html#maskme" TARGET=CENT_PANEL>maskme</a>(landmask,zoom,vmisdat,icount(1),  &
+293:                                     & icount(2),icount(3),icount(4))
+294:  
+295: !       ** Interpolate data to RegCM3 grid
+296:         allocate(regyxzt(iy,jx,nlev(ifld),ntim(ifld)))
+297:         allocate(regxyz(jx,iy,nlev(ifld)))
+298:         allocate(regxy(jx,iy))
+299: 
+300:         call <a href="./bilinx4d.f90.html#bilinx4d" TARGET=CENT_PANEL>bilinx4d</a>(zoom,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
+301:                     & xlat,iy,jx,icount(3),icount(4),vmin(ifld),vmisdat)
+302:  
+303: !       ** Write the interpolated data to NetCDF and direct-access
+304: !       output
+305:         do l = 1 , ntim(ifld)
+306:           idatex = 1900000000 + l*10000 + 1500
+307:           call <a href="./julian.f90.html#julian" TARGET=CENT_PANEL>julian</a>(idatex,julnc,iyr,imo,idy,ihr,xhr)
+308:           if ( ifld==ipft ) then
+309:             do j = 1 , iy
+310:               do i = 1 , jx
+311:                 if ( regyxzt(j,i,1,l)>-99. ) then
+312:                   do k = 1 , nlev(ifld)
+313:                     regyxzt(j,i,k,l) = nint(regyxzt(j,i,k,l))
+314:                   end do
+315:                   perr = 100.
+316:                   kmax = -1
+317:                   pmax = -99.
+318:                   do k = 1 , nlev(ifld)
+319:                     perr = perr - regyxzt(j,i,k,l)
+320:                     if ( regyxzt(j,i,k,l)>pmax ) then
+321:                       pmax = regyxzt(j,i,k,l)
+322:                       kmax = k
+323:                     end if
+324:                   end do
+325:                   regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + perr
+326: !                 print*,i,j,perr,pmax,regyxzt(j,i,kmax,l)
+327:                 end if
+328:               end do
+329:             end do
+330:           end if
+331:           do k = 1 , nlev(ifld)
+332:             do j = 1 , iy
+333:               do i = 1 , jx
+334:                 if ( ifld==icol ) regyxzt(j,i,k,l)                      &
+335:                    & = float(nint(regyxzt(j,i,k,l)))
+336:                 if ( regyxzt(j,i,k,l)>vmin(ifld) ) then
+337:                   regxyz(i,j,k) = regyxzt(j,i,k,l)
+338:                   regxy(i,j) = regyxzt(j,i,k,l)
+339:                 else
+340:                   regxyz(i,j,k) = 0
+341:                   regxy(i,j) = 0
+342:                 end if
+343:               end do
+344:             end do
+345:             irec = irec + 1
+346:             write (iunout,rec=irec) regxy
+347:           end do
+348:  
+349:           call <a href="./nclib.f90.html#writecdf" TARGET=CENT_PANEL>writecdf</a>(idout,vnam(ifld),regxyz,jx,iy,nlev(ifld),iadim, &
+350:                       & xhr,lnam(ifld),units(ifld),xscale,offset,varmin,&
+351:                       & varmax,xlat1d,xlon1d,zlev,0,vmisdat,jotyp)
+352:         end do
+353:  
+354: !       ** Deallocate variables for next CLM3 field
+355:         deallocate(glon)
+356:         deallocate(glat)
+357:         deallocate(zoom)
+358:         deallocate(zlon)
+359:         deallocate(zlat)
+360:         deallocate(zlev)
+361:         deallocate(landmask)
+362:         deallocate(regyxzt)
+363:         deallocate(regxyz)
+364:         deallocate(regxy)
+365:         if ( ifld==isnd .or. ifld==icly ) deallocate(sandclay)
+366:  
+367:       end do  ! End nfld loop
+368: 
+369:       deallocate(xlat)
+370:       deallocate(xlon)
+371:       deallocate(xlat1d)
+372:       deallocate(xlon1d)
+373:       deallocate(sigx)
+374:  
+375: !     ** Make GrADS CTL file
+376:       outfil_ctl = trim(dirglob)//pthsep//trim(domname)//'_CLM3.CTL'
+377:       open (iunctl,file=outfil_ctl,status='unknown')
+378: !     do ifld=1,nfld
+379:       do ifld = 1 , ifield
+380:         vnam_o(ifld) = vnam(ifld)
+381:       end do
+382:       call <a href="./makectl.f90.html#makectl" TARGET=CENT_PANEL>makectl</a>(iunctl,domname,jx,iy,npft,ifield,dsx,clatx,clonx,    &
+383:                  & platx,plonx,iprojx,ibigendx,truelatl,truelath,       &
+384:                  & vmisdat,vnam_o,lnam,nlev,ntim,varmin,varmax)
+385: !     ** Close files
+386:       call <a href="./nclib.f90.html#clscdf" TARGET=CENT_PANEL>clscdf</a>(idin,ierr)
+387:       call <a href="./nclib.f90.html#clscdf" TARGET=CENT_PANEL>clscdf</a>(idout,ierr)
+388:       close (iunout)
+389:       close (iunctl)
+390:       print *, 'Successfully completed CLM preprocessing.'
+391:  
+392: 99001 format (a,a,a,a)
+393:       end program clmproc
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,96 @@
+<HTML>
+
+<HEAD>
+<TITLE>mtrxclm.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mtrxclm.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mtrxclm.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mtrxclm><H3>mtrxclm</H3></a></p> Click <a href="./callingtree/mtrxclm_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where mtrxclm is used.
+<hr>
+20:       subroutine mtrxclm
+21: !
+22: !=======================================================================
+23: !  based on: clm version 3.5
+24: !=======================================================================
+25: ! Matrix CLM was written by Jason Bell for coupling the clm3.0 land
+26: ! surface model to RegCM3.
+27: !! 2008.5.8    A Tawfik Revised to work with RegCM3 and clm3.5
+28: !
+29: ! mtrxclm must be called outside of the jslc loop. CLM is passed full
+30: ! arrays of variables and returns likewise. This is done to avoid
+31: ! altering the functionality of CLM as much as possible.
+32: !=======================================================================
+33: !=======================================================================
+34: !  si version  - water fluxes are generally calculated in kg/m**2/s.
+35: !  1000 kg/m**2/s = 1 m/s  - converted to energy units for display:
+36: !                            1 kg/m**2/s = 2.5 x 10.e6  watts/m**2.
+37: !  note also  1 kg/m**2/s = 1 mm/m**2/s so fluxes can be thought of
+38: !                            in mm/s.
+39: !=======================================================================
+40: ! include clm modules
+41:       use <a href="#" TARGET=CENT_PANEL>atmdrvMod</a>       , only : rcmdrv
+42:       use <a href="#" TARGET=CENT_PANEL>clm_comp</a>        , only : clm_run1, clm_run2
+<p><a name=only : r8><H3>only : r8</H3></a></p> Click <a href="./callingtree/only : r8_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where only : r8 is used.
+<hr>
+43:       use shr_kind_mod    , only : r8 => <a href="#" TARGET=CENT_PANEL>shr_kind_r8</a>
+44: !
+45:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a>
+46:       use <a href="./mod_clm.F90.html#mod_clm" TARGET=CENT_PANEL>mod_clm</a>
+47:       implicit none
+48: 
+49: !---------------------------------------------------------------------
+50:  
+51: #ifdef MPP1
+52:       call <a href="./interfclm.F90.html#interfclm" TARGET=CENT_PANEL>interfclm</a>(1)
+53: #else
+54:       write (*,*) 'CLM not implemented for serial run'
+55:       call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__, 'CLM not implemented')
+56: #endif
+57: 
+58:       call <a href="#" TARGET=CENT_PANEL>rcmdrv</a>()
+59:       call <a href="#" TARGET=CENT_PANEL>clm_run1</a>(r2cdoalb,r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
+60:       call <a href="#" TARGET=CENT_PANEL>clm_run2</a>(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
+61:  
+62: #ifdef MPP1
+63:       call <a href="./interfclm.F90.html#interfclm" TARGET=CENT_PANEL>interfclm</a>(2)
+64: #else
+65:       write (*,*) 'CLM not implemented for serial run'
+66:       call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__, 'CLM not implemented')
+67: #endif
+68: 
+69:       end subroutine mtrxclm
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

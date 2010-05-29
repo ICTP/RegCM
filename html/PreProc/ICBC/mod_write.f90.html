@@ -1,0 +1,629 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_write.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_write.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_write.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_write><H3>mod_write</H3></a></p>20:       module mod_write
+21: 
+22:       implicit none
+23: 
+24:       integer :: noutrec
+25:       integer :: iny , jnx , knz
+26: 
+27:       real(4) , allocatable , dimension(:,:) :: ps4 , ts4
+28:       real(4) , allocatable , dimension(:,:,:) :: c4 , h4 , q4
+29:       real(4) , allocatable , dimension(:,:,:) :: t4 , u4 , v4
+30: 
+31:       data noutrec /0/
+32: 
+33:       contains
+34: 
+<p><a name=init_output><H3>init_output</H3></a></p> Click <a href="./callingtree/init_output_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where init_output is used.
+<hr>
+35:       subroutine init_output(jx,iy,kz)
+36:       implicit none
+37:       integer , intent(in) :: jx , iy , kz
+38:       iny = iy
+39:       jnx = jx
+40:       knz = kz
+41:       allocate(ps4(jnx,iny))
+42:       allocate(ts4(jnx,iny))
+43:       allocate(c4(jnx,iny,knz))
+44:       allocate(h4(jnx,iny,knz))
+45:       allocate(q4(jnx,iny,knz))
+46:       allocate(t4(jnx,iny,knz))
+47:       allocate(u4(jnx,iny,knz))
+48:       allocate(v4(jnx,iny,knz))
+49:       end subroutine init_output
+50: 
+<p><a name=free_output><H3>free_output</H3></a></p> Click <a href="./callingtree/free_output_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where free_output is used.
+<hr>
+51:       subroutine free_output
+52:       implicit none
+53:       deallocate(ps4)
+54:       deallocate(ts4)
+55:       deallocate(c4)
+56:       deallocate(h4)
+57:       deallocate(q4)
+58:       deallocate(t4)
+59:       deallocate(u4)
+60:       deallocate(v4)
+61:       end subroutine free_output
+62: 
+<p><a name=writef><H3>writef</H3></a></p> Click <a href="./callingtree/writef_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where writef is used.
+<hr>
+63:       subroutine writef(ptop,idate)
+64:       implicit none
+65: !
+66: ! Dummy arguments
+67: !
+68:       integer :: idate
+69:       real(4) :: ptop
+70:       intent (in) idate , ptop
+71: !
+72: ! Local variables
+73: !
+74:       integer :: i , j , k
+75: !
+76: !     THIS ROUTINE WRITES OUT AN INPUT FILE FOR THE RCM
+77: !
+78: !     PRINT *,'WRITING OUTPUT:  IDATE= ',IDATE
+79:       noutrec = noutrec + 1
+80:       write (64,rec=noutrec) idate , jnx , iny , knz
+81:       do k = knz , 1 , -1
+82:         noutrec = noutrec + 1
+83:         write (64,rec=noutrec) ((u4(i,j,k),i=1,jnx),j=1,iny)
+84:       end do
+85:       do k = knz , 1 , -1
+86:         noutrec = noutrec + 1
+87:         write (64,rec=noutrec) ((v4(i,j,k),i=1,jnx),j=1,iny)
+88:       end do
+89:       do k = knz , 1 , -1
+90:         noutrec = noutrec + 1
+91:         write (64,rec=noutrec) ((t4(i,j,k),i=1,jnx),j=1,iny)
+92:       end do
+93:       do k = knz , 1 , -1
+94:         noutrec = noutrec + 1
+95:         write (64,rec=noutrec) ((q4(i,j,k),i=1,jnx),j=1,iny)
+96:       end do
+97:       noutrec = noutrec + 1
+98:       write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jnx),j=1,iny)
+99:       noutrec = noutrec + 1
+100:       write (64,rec=noutrec) ts4
+101: !
+102:       end subroutine writef
+103: 
+<p><a name=writef2><H3>writef2</H3></a></p> Click <a href="./callingtree/writef2_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where writef2 is used.
+<hr>
+104:       subroutine writef2(ptop,idate)
+105:       implicit none
+106: !
+107: ! Dummy arguments
+108: !
+109:       integer :: idate
+110:       real(4) :: ptop
+111:       intent (in) idate , ptop
+112: !
+113: ! Local variables
+114: !
+115:       integer :: i , j , k
+116: !
+117: !     THIS ROUTINE WRITES OUT AN INPUT FILE FOR THE RCM
+118: !
+119: !     PRINT *,'WRITING OUTPUT:  IDATE= ',IDATE
+120:       noutrec = noutrec + 1
+121:       write (64,rec=noutrec) idate , jnx , iny , knz
+122:       do k = knz , 1 , -1
+123:         noutrec = noutrec + 1
+124:         write (64,rec=noutrec) ((u4(i,j,k),i=1,jnx),j=1,iny)
+125:       end do
+126:       do k = knz , 1 , -1
+127:         noutrec = noutrec + 1
+128:         write (64,rec=noutrec) ((v4(i,j,k),i=1,jnx),j=1,iny)
+129:       end do
+130:       do k = knz , 1 , -1
+131:         noutrec = noutrec + 1
+132:         write (64,rec=noutrec) ((t4(i,j,k),i=1,jnx),j=1,iny)
+133:       end do
+134:       do k = knz , 1 , -1
+135:         noutrec = noutrec + 1
+136:         write (64,rec=noutrec) ((q4(i,j,k),i=1,jnx),j=1,iny)
+137:       end do
+138:       noutrec = noutrec + 1
+139:       write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jnx),j=1,iny)
+140:       noutrec = noutrec + 1
+141:       write (64,rec=noutrec) ts4
+142: !
+143:       end subroutine writef2
+144: 
+<p><a name=writefs><H3>writefs</H3></a></p> Click <a href="./callingtree/writefs_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where writefs is used.
+<hr>
+145:       subroutine writefs(qs3,ti3,ts3,snow,ptop,idate,lsmtyp)
+146:       implicit none
+147: !
+148: ! Dummy arguments
+149: !
+150:       integer :: idate
+151:       character(4) :: lsmtyp
+152:       real(4) :: ptop
+153:       real(4) , dimension(jnx,iny,4) :: qs3 , ti3 , ts3
+154:       real(4) , dimension(jnx,iny) :: snow
+155:       intent (in) idate , lsmtyp , ptop , snow , ti3 , ts3 , qs3
+156: !
+157: ! Local variables
+158: !
+159:       integer :: i , j , k
+160: !
+161: !     THIS ROUTINE WRITES OUT AN INPUT FILE FOR THE RCM
+162: !
+163:       noutrec = noutrec + 1
+164:       write (64,rec=noutrec) idate , jnx , iny , knz
+165:       do k = knz , 1 , -1
+166:         noutrec = noutrec + 1
+167:         write (64,rec=noutrec) ((u4(i,j,k),i=1,jnx),j=1,iny)
+168:       end do
+169:       do k = knz , 1 , -1
+170:         noutrec = noutrec + 1
+171:         write (64,rec=noutrec) ((v4(i,j,k),i=1,jnx),j=1,iny)
+172:       end do
+173:       do k = knz , 1 , -1
+174:         noutrec = noutrec + 1
+175:         write (64,rec=noutrec) ((t4(i,j,k),i=1,jnx),j=1,iny)
+176:       end do
+177:       do k = knz , 1 , -1
+178:         noutrec = noutrec + 1
+179:         write (64,rec=noutrec) ((q4(i,j,k),i=1,jnx),j=1,iny)
+180:       end do
+181:       noutrec = noutrec + 1
+182:       write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jnx),j=1,iny)
+183:       noutrec = noutrec + 1
+184:       write (64,rec=noutrec) ts4
+185:  
+186:       if ( lsmtyp=='USGS' ) then
+187:         do k = 1 , 4
+188:           noutrec = noutrec + 1
+189:           write (64,rec=noutrec) ((qs3(i,j,k),i=1,jnx),j=1,iny)
+190:         end do
+191:         do k = 1 , 4
+192:           noutrec = noutrec + 1
+193:           write (64,rec=noutrec) ((ti3(i,j,k),i=1,jnx),j=1,iny)
+194:         end do
+195:         do k = 1 , 4
+196:           noutrec = noutrec + 1
+197:           write (64,rec=noutrec) ((ts3(i,j,k),i=1,jnx),j=1,iny)
+198:         end do
+199:         noutrec = noutrec + 1
+200:         write (64,rec=noutrec) ((snow(i,j),i=1,jnx),j=1,iny)
+201:       end if
+202: !
+203:       end subroutine writefs
+204: !
+<p><a name=gradsctl><H3>gradsctl</H3></a></p> Click <a href="./callingtree/gradsctl_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gradsctl is used.
+<hr>
+205:       subroutine gradsctl(finame,idate,inumber)
+206:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+207:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+208:       implicit none
+209: !
+210: ! Dummy arguments
+211: !
+212:       character(*) :: finame
+213:       integer :: idate , inumber
+214:       intent (in) finame , idate , inumber
+215: !
+216: ! Local variables
+217: !
+218:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+219:                & centerj , rlatinc , rloninc
+220:       character(2) , dimension(31) :: cday
+221:       character(3) , dimension(12) :: cmonth
+222:       integer :: i , j , k , month , nday , nhour , nx , ny , nyear
+223: !
+224: !
+225:       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
+226:           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+227:          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
+228:          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
+229:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+230:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+231: !
+232: !
+233: !     DOMAIN VARIABLES FOR RCM HORIZONTAL GRID
+234: !
+235:       alatmin = 999999.
+236:       alatmax = -999999.
+237:       alonmin = 999999.
+238:       alonmax = -999999.
+239:       nx = 0
+240:       ny = 0
+241:       open (71,file=trim(finame)//'.CTL',status='replace')
+242:       write (71,'(a,a,a,i10)') 'dset ^',trim(domname),'_ICBC',idate
+243:       write (71,'(a)') 'title ICBC fields for RegCM domain'
+244:       if ( ibigend==1 ) then
+245:         write (71,'(a)') 'options big_endian'
+246:       else
+247:         write (71,'(a)') 'options little_endian'
+248:       end if
+249:       write (71,'(a)') 'undef -9999.'
+250:       if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
+251:         do j = 1 , jx
+252:           if ( xlat(j,1)<alatmin ) alatmin = xlat(j,1)
+253:           if ( xlat(j,iy)>alatmax ) alatmax = xlat(j,iy)
+254:         end do
+255:         do i = 1 , iy
+256:           do j = 1 , jx
+257:             if ( clon>=0.0 ) then
+258:               if ( xlon(j,i)>=0.0 ) then
+259:                 alonmin = amin1(alonmin,xlon(j,i))
+260:                 alonmax = amax1(alonmax,xlon(j,i))
+261:               else if ( abs(clon-xlon(j,i))<abs(clon-(xlon(j,i)+360.)) )&
+262:                       & then
+263:                 alonmin = amin1(alonmin,xlon(j,i))
+264:                 alonmax = amax1(alonmax,xlon(j,i))
+265:               else
+266:                 alonmin = amin1(alonmin,xlon(j,i)+360.)
+267:                 alonmax = amax1(alonmax,xlon(j,i)+360.)
+268:               end if
+269:             else if ( xlon(j,i)<0.0 ) then
+270:               alonmin = amin1(alonmin,xlon(j,i))
+271:               alonmax = amax1(alonmax,xlon(j,i))
+272:             else if ( abs(clon-xlon(j,i))<abs(clon-(xlon(j,i)-360.)) )  &
+273:                     & then
+274:               alonmin = amin1(alonmin,xlon(j,i))
+275:               alonmax = amax1(alonmax,xlon(j,i))
+276:             else
+277:               alonmin = amin1(alonmin,xlon(j,i)-360.)
+278:               alonmax = amax1(alonmax,xlon(j,i)-360.)
+279:             end if
+280:           end do
+281:         end do
+282:         rlatinc = delx*0.001/111./2.
+283:         rloninc = delx*0.001/111./2.
+284:         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+285:         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+286:  
+287:         centerj = jx/2.
+288:         centeri = iy/2.
+289:       end if
+290:       if ( iproj=='LAMCON' ) then       ! Lambert projection
+291:         write (71,99001) jx , iy , clat , clon , centerj , centeri ,    &
+292:                        & truelatl , truelath , clon , delx , delx
+293:         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
+294:         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc
+295:       else if ( iproj=='POLSTR' ) then  !
+296:       else if ( iproj=='NORMER' ) then
+297:         write (71,99004) jx , xlon(1,1) , xlon(2,1) - xlon(1,1)
+298:         write (71,99005) iy
+299:         write (71,99006) (xlat(1,i),i=1,iy)
+300:       else if ( iproj=='ROTMER' ) then
+301:         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
+302:                    &' projections are not supported by GrADS.'
+303:         write (*,*) '  Although not exact, the eta.u projection' ,      &
+304:                    &' in GrADS is somewhat similar.'
+305:         write (*,*) ' FERRET, however, does support this projection.'
+306:         write (71,99007) jx , iy , plon , plat , delx/111000. ,         &
+307:                        & delx/111000.*.95238
+308:         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
+309:         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc
+310:       else
+311:         write (*,*) 'Are you sure your map projection is correct ?'
+312:         stop
+313:       end if
+314:       write (71,99008) kz , ((1013.25-ptop*10.)*sigma2(k)+ptop*10.,k=kz,&
+315:                      & 1,-1)
+316:       nyear = idate/1000000
+317:       month = (idate-nyear*1000000)/10000
+318:       nday = (idate-nyear*1000000-month*10000)/100
+319:       nhour = mod(idate,100)
+320:       write (71,99009) inumber , nhour , cday(nday) , cmonth(month) ,    &
+321:                      & nyear
+322:       if ( dattyp=='EH5OM' ) then
+323:         if ( ehso4 ) then
+324:           if ( lsmtyp=='USGS' ) then
+325:             write (71,99011) 21
+326:           else
+327:             write (71,99010) 8
+328:           end if
+329:         else if ( lsmtyp=='USGS' ) then
+330:           write (71,99011) 20
+331:         else
+332:           write (71,99010) 7
+333:         end if
+334:       else if ( lsmtyp=='USGS' ) then
+335:         write (71,99011) 20
+336:       else
+337:         write (71,99010) 7
+338:       end if
+339:       write (71,'(a)') 'date 0 99 header information'
+340:       if ( iproj=='LAMCON' ) then       ! Lambert projection
+341:         write (71,99013) 'u   ' , kz , 'westerly wind    '
+342:         write (71,99014) 'v   ' , kz , 'southerly wind   '
+343:       else
+344:         write (71,99012) 'u   ' , kz , 'westerly wind    '
+345:         write (71,99012) 'v   ' , kz , 'southerly wind   '
+346:       end if
+347:       write (71,99012) 't   ' , kz , 'air temperature  '
+348:       write (71,99012) 'q   ' , kz , 'specific moisture'
+349:       write (71,99015) 'px  ' , 'surface pressure           '
+350:       write (71,99015) 'ts  ' , 'surface air temperature    '
+351:       if ( dattyp=='EH5OM' .and. ehso4 ) write (71,99012) 'so4 ' , kz , &
+352:           &'sulfate amount   '
+353:       if ( lsmtyp=='USGS' ) then
+354:         write (71,99015) 'qs1 ' , 'soil moisture level 1      '
+355:         write (71,99015) 'qs2 ' , 'soil moisture level 2      '
+356:         write (71,99015) 'qs3 ' , 'soil moisture level 3      '
+357:         write (71,99015) 'qs4 ' , 'soil moisture level 4      '
+358:         write (71,99015) 'ti1 ' , 'ice  temperature level 1   '
+359:         write (71,99015) 'ti2 ' , 'ice  temperature level 2   '
+360:         write (71,99015) 'ti3 ' , 'ice  temperature level 3   '
+361:         write (71,99015) 'ti4 ' , 'ice  temperature level 4   '
+362:         write (71,99015) 'ts1 ' , 'soil temperature level 1   '
+363:         write (71,99015) 'ts2 ' , 'soil temperature level 2   '
+364:         write (71,99015) 'ts3 ' , 'soil temperature level 3   '
+365:         write (71,99015) 'ts4 ' , 'soil temperature level 4   '
+366:         write (71,99015) 'snd ' , 'snow depth (in metre)      '
+367:       end if
+368:       write (71,'(a)') 'endvars'
+369:       close (71)
+370: 99001 format ('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
+371: 99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+372: 99003 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+373: 99004 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+374: 99005 format ('ydef ',i3,' levels')
+375: 99006 format (10F7.2)
+376: 99007 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+377: 99008 format ('zdef ',i2,' levels ',30F7.2)
+378: 99009 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' 6hr')
+379: 99010 format ('vars ',i1)
+380: 99011 format ('vars ',i2)
+381: 99012 format (a4,i2,' 0 ',a17)
+382: 99013 format (a4,i2,' 33,100 ',a17)
+383: 99014 format (a4,i2,' 34,100 ',a17)
+384: 99015 format (a4,'0 99 ',a26)
+385: !
+386:       end subroutine gradsctl
+387: !
+<p><a name=gradsctlb><H3>gradsctlb</H3></a></p> Click <a href="./callingtree/gradsctlb_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gradsctlb is used.
+<hr>
+388:       subroutine gradsctlb(finame,idate,inumber)
+389:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+390:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+391:       implicit none
+392: !
+393: ! Dummy arguments
+394: !
+395:       character(*) :: finame
+396:       integer :: idate , inumber
+397:       intent (in) finame , idate , inumber
+398: !
+399: ! Local variables
+400: !
+401:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+402:                & centerj , rlatinc , rloninc
+403:       character(2) , dimension(31) :: cday
+404:       character(3) , dimension(12) :: cmonth
+405:       integer :: i , j , k , month , nday , nhour , nx , ny , nyear
+406: !
+407: !
+408:       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
+409:           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+410:          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
+411:          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
+412:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+413:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+414: !
+415: !
+416: !     DOMAIN VARIABLES FOR RCM HORIZONTAL GRID
+417: !
+418:       alatmin = 999999.
+419:       alatmax = -999999.
+420:       alonmin = 999999.
+421:       alonmax = -999999.
+422:       nx = 0
+423:       ny = 0
+424: !
+425:       open (71,file=finame//'.CTL',status='replace')
+426:       write (71,'(a,a,a,i10)') 'dset ^',trim(domname),'_ICBC',idate
+427:       write (71,'(a)') 'title ICBC fields for RegCM domain'
+428:       if ( ibigend==1 ) then
+429:         write (71,'(a)') 'options big_endian'
+430:       else
+431:         write (71,'(a)') 'options little_endian'
+432:       end if
+433:       write (71,'(a)') 'undef -9999.'
+434:       if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
+435:         do j = 1 , jx
+436:           if ( xlat(j,1)<alatmin ) alatmin = xlat(j,1)
+437:           if ( xlat(j,iy)>alatmax ) alatmax = xlat(j,iy)
+438:         end do
+439:         do i = 1 , iy
+440:           do j = 1 , jx
+441:             if ( clon>=0.0 ) then
+442:               if ( xlon(j,i)>=0.0 ) then
+443:                 alonmin = amin1(alonmin,xlon(j,i))
+444:                 alonmax = amax1(alonmax,xlon(j,i))
+445:               else if ( abs(clon-xlon(j,i))<abs(clon-(xlon(j,i)+360.)) )&
+446:                       & then
+447:                 alonmin = amin1(alonmin,xlon(j,i))
+448:                 alonmax = amax1(alonmax,xlon(j,i))
+449:               else
+450:                 alonmin = amin1(alonmin,xlon(j,i)+360.)
+451:                 alonmax = amax1(alonmax,xlon(j,i)+360.)
+452:               end if
+453:             else if ( xlon(j,i)<0.0 ) then
+454:               alonmin = amin1(alonmin,xlon(j,i))
+455:               alonmax = amax1(alonmax,xlon(j,i))
+456:             else if ( abs(clon-xlon(j,i))<abs(clon-(xlon(j,i)-360.)) )  &
+457:                     & then
+458:               alonmin = amin1(alonmin,xlon(j,i))
+459:               alonmax = amax1(alonmax,xlon(j,i))
+460:             else
+461:               alonmin = amin1(alonmin,xlon(j,i)-360.)
+462:               alonmax = amax1(alonmax,xlon(j,i)-360.)
+463:             end if
+464:           end do
+465:         end do
+466:         rlatinc = delx*0.001/111./2.
+467:         rloninc = delx*0.001/111./2.
+468:         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+469:         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+470:  
+471:         centerj = jx/2.
+472:         centeri = iy/2.
+473:       end if
+474:       if ( iproj=='LAMCON' ) then       ! Lambert projection
+475:         write (71,99001) jx , iy , clat , clon , centerj , centeri ,    &
+476:                        & truelatl , truelath , clon , delx , delx
+477:         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
+478:         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc
+479:       else if ( iproj=='POLSTR' ) then  !
+480:       else if ( iproj=='NORMER' ) then
+481:         write (71,99004) jx , xlon(1,1) , xlon(2,1) - xlon(1,1)
+482:         write (71,99005) iy
+483:         write (71,99006) (xlat(1,i),i=1,iy)
+484:       else if ( iproj=='ROTMER' ) then
+485:         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
+486:                    &' projections are not supported by GrADS.'
+487:         write (*,*) '  Although not exact, the eta.u projection' ,      &
+488:                    &' in GrADS is somewhat similar.'
+489:         write (*,*) ' FERRET, however, does support this projection.'
+490:         write (71,99007) jx , iy , plon , plat , delx/111000. ,         &
+491:                        & delx/111000.*.95238
+492:         write (71,99002) nx + 2 , alonmin - rloninc , rloninc
+493:         write (71,99003) ny + 2 , alatmin - rlatinc , rlatinc
+494:       else
+495:         write (*,*) 'Are you sure your map projection is correct ?'
+496:         stop
+497:       end if
+498:       write (71,99008) kz , ((1013.25-ptop*10.)*sigma2(k)+ptop*10.,k=kz,&
+499:                      & 1,-1)
+500:       nyear = idate/1000000
+501:       month = (idate-nyear*1000000)/10000
+502:       nday = (idate-nyear*1000000-month*10000)/100
+503:       nhour = mod(idate,100)
+504:       write (71,99009) inumber , nhour , cday(nday) , cmonth(month) ,    &
+505:                      & nyear
+506:       if ( lsmtyp=='USGS' ) then
+507:         write (71,99011) 20
+508:       else
+509:         write (71,99010) 7
+510:       end if
+511:       write (71,'(a)') 'date 0 99 header information'
+512:       write (71,99012) 'u   ' , kz , 'westerly wind    '
+513:       write (71,99012) 'v   ' , kz , 'southerly wind   '
+514:       write (71,99012) 't   ' , kz , 'air temperature  '
+515:       write (71,99012) 'q   ' , kz , 'specific moisture'
+516:       write (71,99013) 'px  ' , 'surface pressure           '
+517:       write (71,99013) 'ts  ' , 'surface air temperature    '
+518:       if ( lsmtyp=='USGS' ) then
+519:         write (71,99013) 'qs1 ' , 'soil moisture level 1      '
+520:         write (71,99013) 'qs2 ' , 'soil moisture level 2      '
+521:         write (71,99013) 'qs3 ' , 'soil moisture level 3      '
+522:         write (71,99013) 'qs4 ' , 'soil moisture level 4      '
+523:         write (71,99013) 'ti1 ' , 'ice  temperature level 1   '
+524:         write (71,99013) 'ti2 ' , 'ice  temperature level 2   '
+525:         write (71,99013) 'ti3 ' , 'ice  temperature level 3   '
+526:         write (71,99013) 'ti4 ' , 'ice  temperature level 4   '
+527:         write (71,99013) 'ts1 ' , 'soil temperature level 1   '
+528:         write (71,99013) 'ts2 ' , 'soil temperature level 2   '
+529:         write (71,99013) 'ts3 ' , 'soil temperature level 3   '
+530:         write (71,99013) 'ts4 ' , 'soil temperature level 4   '
+531:         write (71,99013) 'snd ' , 'snow depth (in metre)      '
+532:       end if
+533:       write (71,'(a)') 'endvars'
+534:       close (71)
+535: 99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
+536: 99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+537: 99003 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+538: 99004 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+539: 99005 format ('ydef ',i3,' levels')
+540: 99006 format (10F7.2)
+541: 99007 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+542: 99008 format ('zdef ',i2,' levels ',30F7.2)
+543: 99009 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' 6hr')
+544: 99010 format ('vars ',i1)
+545: 99011 format ('vars ',i2)
+546: 99012 format (a4,i2,' 0 ',a17)
+547: 99013 format (a4,'0 99 ',a26)
+548: !
+549:       end subroutine gradsctlb
+550: !
+551: !-----------------------------------------------------------------------
+552: !
+<p><a name=fexist><H3>fexist</H3></a></p> Click <a href="./callingtree/fexist_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where fexist is used.
+<hr>
+553:       subroutine fexist(filnam)
+554:       implicit none
+555: !
+556: ! Dummy arguments
+557: !
+558:       character(*) :: filnam
+559:       intent (inout) filnam
+560: !
+561: ! Local variables
+562: !
+563:       logical :: there
+564:       character(1) :: yesno
+565:  
+566:  100  continue
+567:       inquire (file=filnam,exist=there)
+568:       if ( there ) then
+569:  150    continue
+570:         print * , ' '
+571:         print * , ' '
+572:         print * , '**************************************************'
+573:         print * , 'FILE ALREADY EXISTS:  ' , filnam
+574:         print * , 'Do you want to overwrite the existing file? [y/n/q]'
+575:         read (*,*) yesno
+576:         if ( yesno=='y' ) then
+577:           return
+578:         else if ( yesno=='n' ) then
+579:           print * , 'ENTER NEW FILE NAME'
+580:           read (*,'(a)') filnam
+581:           go to 100
+582:         else if ( yesno=='q' ) then
+583:           stop 999
+584:         else
+585:           go to 150
+586:         end if
+587:       end if
+588:  
+589:       end subroutine fexist
+590:       end module mod_write
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

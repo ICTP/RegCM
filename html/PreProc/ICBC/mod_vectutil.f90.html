@@ -1,0 +1,158 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_vectutil.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_vectutil.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_vectutil.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_vectutil><H3>mod_vectutil</H3></a></p>20:       module mod_vectutil
+21: 
+22:       contains
+23: 
+<p><a name=mxmn3d><H3>mxmn3d</H3></a></p> Click <a href="./callingtree/mxmn3d_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where mxmn3d is used.
+<hr>
+24:       subroutine mxmn3d(var,cvar,jx,iy,np)
+25:       implicit none
+26: !
+27: ! Dummy arguments
+28: !
+29:       character(2) :: cvar
+30:       integer :: iy , jx , np
+31:       real(4) , dimension(jx,iy,np) :: var
+32:       intent (in) cvar , iy , jx , np , var
+33: !
+34: ! Local variables
+35: !
+36:       integer :: i , j , k
+37:       real(4) :: smax , smin
+38: !
+39:       do k = 1 , np
+40:         smax = -1.E8
+41:         smin = 1.E8
+42:         do j = 1 , iy
+43:           do i = 1 , jx
+44:             if ( smax<var(i,j,k) ) smax = var(i,j,k)
+45:             if ( smin>var(i,j,k) ) smin = var(i,j,k)
+46:           end do
+47:         end do
+48:         write (*,*) cvar , k , smax , smin
+49:       end do
+50:       end subroutine mxmn3d
+51: !
+52: !-----------------------------------------------------------------------
+53: !
+<p><a name=p1p2><H3>p1p2</H3></a></p> Click <a href="./callingtree/p1p2_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where p1p2 is used.
+<hr>
+54:       subroutine p1p2(pd,px,ni,nj)
+55:       implicit none
+56: !
+57: ! Dummy arguments
+58: !
+59:       integer :: ni , nj
+60:       real(4) , dimension(ni,nj) :: pd , px
+61:       intent (in) ni , nj , px
+62:       intent (out) pd
+63: !
+64: ! Local variables
+65: !
+66:       integer :: i , j , ni1 , nj1
+67: !
+68: !     THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
+69: !     ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
+70: !     SATISFY P(0,J)=P(1,J); P(NI,J)=P(NI-1,J); AND SIMILARLY FOR THE
+71: !     I'S.
+72: !
+73:       ni1 = ni - 1
+74:       nj1 = nj - 1
+75: !
+76:       do j = 2 , nj1
+77:         do i = 2 , ni1
+78:           pd(i,j) = 0.25*(px(i,j)+px(i-1,j)+px(i,j-1)+px(i-1,j-1))
+79:         end do
+80:       end do
+81: !
+82:       do i = 2 , ni1
+83:         pd(i,1) = 0.5*(px(i,1)+px(i-1,1))
+84:         pd(i,nj) = 0.5*(px(i,nj1)+px(i-1,nj1))
+85:       end do
+86: !
+87:       do j = 2 , nj1
+88:         pd(1,j) = 0.5*(px(1,j)+px(1,j-1))
+89:         pd(ni,j) = 0.5*(px(ni1,j)+px(ni1,j-1))
+90:       end do
+91: !
+92:       pd(1,1) = px(1,1)
+93:       pd(1,nj) = px(1,nj1)
+94:       pd(ni,1) = px(ni1,1)
+95:       pd(ni,nj) = px(ni1,nj1)
+96: !
+97:       end subroutine p1p2
+98: !
+99: !-----------------------------------------------------------------------
+100: !
+<p><a name=top2btm><H3>top2btm</H3></a></p> Click <a href="./callingtree/top2btm_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where top2btm is used.
+<hr>
+101:       subroutine top2btm(x,nlon1,nlat1,nlev1)
+102:       implicit none
+103: !
+104: ! Dummy arguments
+105: !
+106:       integer :: nlat1 , nlev1 , nlon1
+107:       real(4) , dimension(nlon1,nlat1,nlev1) :: x
+108:       intent (in) nlat1 , nlev1 , nlon1
+109:       intent (inout) x
+110: !
+111: ! Local variables
+112: !
+113:       integer :: i , j , k , kr
+114:       real(4) , dimension(nlev1) :: work
+115: !
+116:       do i = 1 , nlon1
+117:         do j = 1 , nlat1
+118:           do k = 1 , nlev1
+119:             work(k) = x(i,j,k)
+120:           end do
+121:           do k = 1 , nlev1
+122:             kr = nlev1 - k + 1
+123:             x(i,j,k) = work(kr)
+124:           end do
+125:         end do
+126:       end do
+127:       end subroutine top2btm
+128: !
+129:       end module mod_vectutil
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,109 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_header.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_header.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_header.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_header><H3>mod_header</H3></a></p>20:       module mod_header
+21: 
+22:       contains
+23: 
+<p><a name=header><H3>header</H3></a></p> Click <a href="./callingtree/header_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where header is used.
+<hr>
+24:       subroutine header(myid)
+25:       implicit none 
+26:       integer , intent(in) :: myid
+27:       integer :: ihost , idir
+28:       integer :: hostnm
+29:       integer :: getcwd
+30:       character (len=24) :: cdata='?'
+31:       character (len=32) :: hostname='?' 
+32:       character (len=32) :: user='?' 
+33:       character (len=256) :: directory='?'
+34:       integer , parameter :: nrite=6
+35:   
+36:       if ( myid.eq.0 )  then 
+37: 
+38:         write (nrite,                                                   &
+39:            &   "(/,2x,'This is ICBC part of the RegCM version 4 ')")
+40:         write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
+41: 
+42: #ifdef IBM
+43:         hostname='ibm platform '
+44:         user= 'Unknown'
+45:         call <a href="#" TARGET=CENT_PANEL>fdate_</a>(cdata)
+46: #else
+47:         ihost = hostnm(hostname)
+48:         call <a href="#" TARGET=CENT_PANEL>getlog</a>(user)
+49:         call <a href="#" TARGET=CENT_PANEL>fdate</a>(cdata)
+50: #endif 
+51: 
+52:         idir = getcwd(directory)
+53: 
+54:         write (nrite,*) ": this run start at    : ",cdata
+55:         write (nrite,*) ": it is submitted by   : ",trim(user)
+56:         write (nrite,*) ": it is running on     : ",trim(hostname)
+57:         write (nrite,*) ": in directory         : ",trim(directory)
+58:         write (nrite,*) "                      " 
+59:       end if 
+60:       return 
+61: 99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,          &
+62:         &    '  time: ',A,/)
+63:       end subroutine header
+64: 
+<p><a name=finaltime><H3>finaltime</H3></a></p> Click <a href="./callingtree/finaltime_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where finaltime is used.
+<hr>
+65:       subroutine finaltime(myid)
+66:         implicit none
+67:         integer , intent (in) :: myid
+68:         character (len=24) :: cdata='?'
+69: 
+70:         if ( myid.eq. 0 ) then
+71: #ifdef IBM
+72:           call <a href="#" TARGET=CENT_PANEL>fdate_</a>(cdata)
+73: #else
+74:           call <a href="#" TARGET=CENT_PANEL>fdate</a>(cdata)
+75: #endif 
+76:           write ( 6,* ) 'Input ready at : ', cdata
+77:         end if
+78: 
+79:         return
+80:       end subroutine finaltime
+81: 
+82:       end module mod_header
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

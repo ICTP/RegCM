@@ -1,0 +1,263 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_constants.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_constants.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_constants.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_constants><H3>mod_constants</H3></a></p>20:       module mod_constants
+21: 
+22:       implicit none
+23: 
+24:       ! Standard Gravity (m/sec**2) 3rd CGPM
+25:       real(8) , parameter :: gti = 9.80665D+00
+26: 
+27:       ! Gas constant for dry air in Joules/kg/K
+28:       real(8) , parameter :: rgas = 287.0058D+00
+29:       ! Gas constant for water vapor in Joules/kg/K
+30:       real(8) , parameter :: rwat = 461.90D+00
+31: 
+32:       ! Specific heat at constant pressure for dry air J/kg/K
+33:       real(8) , parameter :: cpd = 1005.46D+00
+34:       ! Specific heat at constant pressure for moist air J/kg/K
+35:       real(8) , parameter :: cpv = 1869.46D+00
+36:       ! Specific heat of water at 15 Celsius J/kg/K
+37:       real(8) , parameter :: cpw = 4186.95D+00
+38:       ! Specific heat of water at 0 Celsius J/kg/K
+39:       real(8) , parameter :: cpw0 = 4218.0D+00
+40: 
+41:       ! Specific heats per m**3  (joules/m**3/k)
+42:       real(8) , parameter :: ch2o = 4.186D+06
+43:       real(8) , parameter :: cice = 0.45D+00*ch2o
+44:       real(8) , parameter :: cwi = 1.0D+00/0.45D+00
+45:       real(8) , parameter :: csnw = 0.49D+00*ch2o
+46:       real(8) , parameter :: cws = 1.0D+00/0.49D+00
+47: 
+48:       ! Latent heats (Joules/kg)
+49:       real(8) , parameter :: wlhf = 0.3336D+06
+50:       real(8) , parameter :: wlhv = 2.51040D+06
+51:       real(8) , parameter :: wlhs = wlhv + wlhf
+52: 
+53:       ! Various utility terms used in calculations
+54:       real(8) , parameter :: rgti = 1.0D+00/gti
+55:       real(8) , parameter :: rcpd = 1.0D+00/cpd
+56:       real(8) , parameter :: rovcp = rgas*rcpd
+57:       real(8) , parameter :: rovg  = rgas/gti
+58:       real(8) , parameter :: govr  = gti/rgas
+59:       real(8) , parameter :: vtmpc1 = rwat/rgas - 1.0D+00
+60:       real(8) , parameter :: vtmpc2 = cpv*rcpd - 1.0D+00
+61:       real(8) , parameter :: rhoh2o = 1000.0D+00
+62:       real(8) , parameter :: tzero = 273.15D+00
+63:       real(8) , parameter :: rtzero = 1.0D+00/tzero
+64:       real(8) , parameter :: wattp = 273.16D+00
+65:       real(8) , parameter :: tboil = 373.1339D+00
+66:       real(8) , parameter :: c1es = 610.78D+00
+67:       real(8) , parameter :: c2es = c1es*rgas/rwat
+68:       real(8) , parameter :: c3les = 17.2693882D+00
+69:       real(8) , parameter :: c3ies = 21.875D+00
+70:       real(8) , parameter :: c4les = 35.86D+00
+71:       real(8) , parameter :: c4ies = 7.66D+00
+72:       real(8) , parameter :: c5les = c3les*(tzero-c4les)
+73:       real(8) , parameter :: c5ies = c3ies*(tzero-c4ies)
+74:       real(8) , parameter :: c5alvcp = c5les*wlhv*rcpd
+75:       real(8) , parameter :: c5alscp = c5ies*wlhs*rcpd
+76:       real(8) , parameter :: wlhvocp = wlhv*rcpd
+77:       real(8) , parameter :: wlhsocp = wlhs*rcpd
+78:       real(8) , parameter :: pq0 = 379.90516D+00
+79:       ! value used for the latent heat term in the exponent for
+80:       ! calculating equivalent potential temperature
+81:       real(8) , parameter :: eliwv = 2.72D+06
+82: 
+83:       ! Standard atmosphere ICAO 1993
+84:       real(8) , parameter :: stdp = 1.013250D+05
+85:       real(8) , parameter :: stdpmb = 1013.250D+00
+86:       real(8) , parameter :: stdt = 288.15D+00
+87:       real(8) , parameter :: lrate = 0.00649D+00 ! K/km from MSL up to 11 km
+88:       real(8) , parameter :: bltop = 0.960D+00
+89:  
+90:       ! Stefan-Boltzmann  constant CODATA 2007
+91:       real(8) , parameter :: sigm = 5.670400D-08
+92:       ! Boltzman Constant k CODATA 2007
+93:       real(8) , parameter :: boltzk = 1.3806504D-23
+94: 
+95:       ! Fixed emissivity of water
+96:       real(8) , parameter :: emsw = 0.97D+00
+97: 
+98:       ! Trigonometric constants. 
+99:       real(8) , parameter :: mathpi =                                   &
+100:                           &   3.1415926535897932384626433832795029D+00
+101:       real(8) , parameter :: invpi = 1.0D+00/mathpi
+102:       real(8) , parameter :: halfpi = mathpi*0.5D+00
+103:       real(8) , parameter :: twopi = mathpi*2.0D+00
+104:       real(8) , parameter :: degrad = mathpi/180.0D+00
+105:       real(8) , parameter :: raddeg = 180.0D+00/mathpi
+106: 
+107:       ! Maximum stomatl resistance (s/m)
+108:       real(8) , parameter :: rmax0 = 2.0D+04
+109: 
+110:       ! Maximum allowed dew(mm) and inverse (dewmxi)
+111:       real(8) , parameter :: dewmx = 0.1D+00
+112:       real(8) , parameter :: dewmxi = 1.0D+00/dewmx
+113: 
+114:       ! Maximum rate of transpiration with saturated soil (kg/m**2/s)
+115:       real(8) , parameter :: trsmx0 = 2.D-04
+116: 
+117:       ! Drainage out of 10m layer bottom (mm/s)
+118:       ! drain is set fairly large to prevent swamping the soil
+119:       real(8) , parameter :: drain = 1.D-04
+120: 
+121:       ! Earth radius in meters
+122:       real(8) , parameter :: earthrad = 6.371229D+06
+123:       real(8) , parameter :: erkm = earthrad/1000.0D+00
+124:       ! Length of day in seconds
+125:       real(8) , parameter :: tau1 = 8.64D+04
+126:       ! Days per year
+127:       real(8) , parameter :: dayspy = 365.2422D+00
+128:       ! Degrees per day
+129:       real(8) , parameter :: dpd = 360.0/dayspy
+130:       ! Angular velocity of rotation of Earth
+131:       real(8) , parameter :: eomeg = 7.2921159D-05
+132:       real(8) , parameter :: eomeg2 = 2.0D0*eomeg
+133:       ! Solar Constant in W/m**2
+134:       real(8) , parameter :: solcon = 1367.0D+00
+135:       ! Solar Constant in erg/cm**2/sec
+136:       real(8) , parameter :: scon = solcon*1000.0D+00
+137: 
+138:       ! Soil roughness length
+139:       real(8) , parameter :: zlnd = 0.01D+00
+140:       ! Ocean roughness length
+141:       real(8) , parameter :: zoce = 0.00040D+00
+142:       ! Snow roughness length
+143: #ifdef CLM
+144:       real(8) , parameter :: zsno = 0.00240D+00
+145: #else
+146:       real(8) , parameter :: zsno = 0.00040D+00
+147: #endif
+148:       ! Von Karman constant
+149:       real(8) , parameter :: vonkar = 0.4D+00
+150:       ! Drag coefficient for soil under canopy
+151:       real(8) , parameter :: csoilc = 4.0D-03
+152:       ! Turbulent wind for stable conditions (m/sec)
+153:       real(8) , parameter :: wtur = 0.1D+00
+154: 
+155:       ! Constant used in computing virture temperature.
+156:       real(8) , parameter :: ep1 = 0.608D+00
+157:       ! Constant used in computing saturation mixing ratio.
+158:       ! Ratio of mean molecular weight of water (18.016 g/mole)
+159:       ! to that of dry air (28.966 g/mole)
+160:       real(8) , parameter :: ep2 = 0.62197D+00
+161:       ! Constants used in computing saturation vapor pressure.
+162:       real(8) , parameter :: svp1 = 0.6112D+00
+163:       real(8) , parameter :: svp2 = 17.67D+00
+164:       real(8) , parameter :: svp3 = 29.65D+00
+165:       real(8) , parameter :: svp4 = 0.611D+00
+166:       real(8) , parameter :: svp5 = 22.514D+00
+167:       real(8) , parameter :: svp6 = 6.15D+03
+168:       ! Constants used in computing evaporation latent heat.
+169:       real(8) , parameter :: lh0 = 597.3D+00
+170:       real(8) , parameter :: lh1 = 0.566D+00
+171:       ! Constants from latent heat and temperature to saturation vapor p.
+172:       real(8) , parameter :: lsvp1 = 6.11D+00
+173:       real(8) , parameter :: lsvp2 = 9.045D+00
+174: 
+175:       ! Terminal velocity constants
+176:       real(8) , parameter :: avt = 841.99667D+00
+177:       real(8) , parameter :: bvt = 0.8D+00
+178:       real(8) , parameter :: g4pb = 17.837825D+00
+179:       real(8) , parameter :: g3pb = g4pb/(3.0D+00+bvt)
+180:       real(8) , parameter :: g5pb = 1.8273D+00
+181:       real(8) , parameter :: vtc = avt*g4pb/6.0D+00
+182:       real(8) , parameter :: trel = 3000.0D+00
+183: 
+184:       ! Dynamic parameters
+185:       ! alpha = .2495 in brown-campana; = 0. in split explicit
+186:       real(8) , parameter :: alpha = 0.0D+00
+187:       real(8) , parameter :: beta = 1.0D+00 - 2.0D+00*alpha
+188:       real(8) , parameter :: gnu = 0.10D+00
+189:       real(8) , parameter :: omu = 1.0D+00 - 2.0D+00*gnu
+190:       real(8) , parameter :: gnuhf = 0.5D+00*gnu
+191:       real(8) , parameter :: omuhf = 1.0D+00 - 2.0D+00*gnuhf
+192: 
+193:       ! Cumulous parameters
+194:       real(8) , parameter :: tauht = 7200.0D+00
+195: 
+196:       ! Aerosol densities
+197:       real(8) , parameter :: rhoso4 = 1.76D+00
+198:       real(8) , parameter :: rhobc = 1.D+00
+199:       real(8) , parameter :: rhooc = 1.D+00
+200:       real(8) , parameter :: rhodust = 2.5D+00
+201: 
+202:       ! Constants used in Betts Miller
+203:       real(8) , parameter :: aliq = 613.3D+00
+204:       real(8) , parameter :: bliq = 17.502D+00
+205:       real(8) , parameter :: cliq = 4780.8D+00
+206:       real(8) , parameter :: dliq = 32.19D+00
+207:       real(8) , parameter :: aice = 613.2D+00
+208:       real(8) , parameter :: bice = 22.452D+00
+209:       real(8) , parameter :: cice1 = 6133.0D+00
+210:       real(8) , parameter :: dice = 0.61D+00
+211:       real(8) , parameter :: xls0 = 2.905D+06
+212:       real(8) , parameter :: xls1 = 259.532D+00
+213: 
+214:       ! GTS system constants
+215:       real(8) , parameter :: gtigts = gti*100.0D+00
+216:       real(8) , parameter :: rga = 1.0D+00/gtigts
+217:       real(8) , parameter :: cpdgts = cpd*1.0D+04
+218:       real(8) , parameter :: gocp = gtigts/cpdgts
+219:       real(8) , parameter :: sslp = stdp*10.0D+00 ! dynes/cm^2
+220:       real(8) , parameter :: rsslp = 1.0D+00/sslp
+221:       real(8) , parameter :: stebol = sigm*1.0D+03
+222:       real(8) , parameter :: rgsslp = 0.5D+00/(gtigts*sslp)
+223:       ! Effective molecular weight of dry air (g/mol)
+224:       real(8) , parameter :: amd = 28.9644D+00
+225:       ! Molecular weight of ozone (g/mol)
+226:       real(8) , parameter :: amo = 48.0D+00
+227:       ! Molecular weight of co2 (g/mol)
+228:       real(8) , parameter :: amco2 = 44.0D+00
+229: 
+230:       ! Radiation constants
+231:       real(8) , parameter :: dpfco2 = 5.0D-03
+232:       real(8) , parameter :: dpfo3 = 2.5D-03
+233: 
+234:       ! Pressure gradient force calculations (Why not standard atmosphere?)
+235:       real(8) , parameter :: t00pg = 287.0D+00       ! stdt ?
+236:       real(8) , parameter :: p00pg = 101.325D+00     ! stdp ?
+237:       real(8) , parameter :: alam  = 6.5D-03         ! Lapse rate ?
+238:       real(8) , parameter :: pgfaa1 = alam*rgas*rgti ! Utility constant
+239: 
+240:       end module mod_constants
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

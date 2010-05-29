@@ -1,0 +1,86 @@
+<HTML>
+
+<HEAD>
+<TITLE>frawat.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>frawat.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>frawat.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=frawat><H3>frawat</H3></a></p> Click <a href="./callingtree/frawat_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where frawat is used.
+<hr>
+20:       subroutine frawat
+21: 
+22: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+23: !
+24: !  **** determines fraction of foliage covered by water fwet, and
+25: !  **** the fraction of foliage that is dry transpiring leaf fdry.
+26: !  note: their defns differ - fwet is the fraction of all veg surfaces
+27: !  which are wet because mod_stems can evaporate, fdry is the fraction
+28: !  of lai which is dry because only leaves can transpire
+29: !
+30: !  ldew1d(i) is in kg/m**2/s
+31: !  fwet   = ratio of dew to max value to 2/3 power
+32: !           ( 2/3 power comes from deardorff (1978) )
+33: !              ** keep fwet le 1.0 **
+34: !  dewmxi = inverse of max allowed dew depth on leaf in mm
+35: !
+36:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+37:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : xlai , ldoc1d , sigf , ldew1d , fwet ,      &
+38:                    & xlsai , fdry , vegt
+39:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : dewmxi
+40:       implicit none
+41: !
+42: ! Local variables
+43: !
+44:       integer :: n , i
+45: !
+46:       do i = 2 , iym1
+47:         do n = 1 , nnsg
+48:           if ( ldoc1d(n,i).gt.0.5 ) then
+49:             if ( sigf(n,i).gt.0.001 ) then
+50:               fwet(n,i) = 0.
+51:               if ( ldew1d(n,i).gt.0. ) then
+52:                 fwet(n,i) = ((dewmxi/vegt(n,i))*ldew1d(n,i))**(2.0/3.0)
+53:                 fwet(n,i) = dmin1(fwet(n,i),1.D0)
+54:               end if
+55:               fdry(n,i) = (1.-fwet(n,i))*xlai(n,i)/xlsai(n,i)
+56:             end if
+57:           end if
+58:         end do
+59:       end do
+60:  
+61:       end subroutine frawat
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

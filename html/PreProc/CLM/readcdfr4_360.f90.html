@@ -1,0 +1,144 @@
+<HTML>
+
+<HEAD>
+<TITLE>readcdfr4_360.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>readcdfr4_360.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>readcdfr4_360.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=readcdfr4_360><H3>readcdfr4_360</H3></a></p> Click <a href="./callingtree/readcdfr4_360_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where readcdfr4_360 is used.
+<hr>
+20:       subroutine readcdfr4_360(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
+21:                              & nlat,nlev1,nlev,ntim1,ntim,nglon,nglat,  &
+22:                              & nglev,ngtim,vals)
+23:  
+24:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+25:       implicit none
+26: !
+27: ! Dummy arguments
+28: !
+29:       integer :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
+30:                & nlev , nlev1 , nlon , nlon1 , ntim , ntim1
+31:       character(64) :: lnam , units , vnam
+32:       real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
+33:       intent (in) nglat , nglev , nglon , ngtim , nlat , nlat1 , nlev , &
+34:                 & nlev1 , nlon , nlon1 , ntim , ntim1
+35:       intent (out) vals
+36: !
+37: ! Local variables
+38: !
+39:       integer :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
+40:                & l , ll , nlat2 , nlev2 , nlon2 , ntim2
+41:       integer , dimension(4) :: icount , istart
+42:       real(4) , allocatable , dimension(:,:,:,:) :: vals1 , vals2
+43: ! 
+44:       istart(1) = 1
+45:       icount(1) = nglon
+46:       istart(2) = 1
+47:       icount(2) = nglat
+48:       istart(3) = 1
+49:       icount(3) = nglev
+50:       istart(4) = 1
+51:       icount(4) = ngtim
+52: !     /*get variable and attributes*/
+53:       ilon5 = nglon/2
+54:       allocate(vals1(nglon,nglat,nglev,ngtim))
+55:       allocate(vals2(nglon,nglat,nglev,ngtim))
+56: 
+57:       iflag = nf90_inq_varid(idcdf,vnam,invarid)
+58:       if (iflag /= nf90_noerr) go to 920
+59: 
+60:       iflag = nf90_get_var(idcdf,invarid,vals1,istart,icount)
+61:       if (iflag /= nf90_noerr) go to 920
+62: 
+63:       do l = 1 , ngtim
+64:         do k = 1 , nglev
+65:           do j = 1 , nglat
+66:             do i = 1 , nglon
+67:               vals2(i,j,k,l) = vals1(i,j,k,l)
+68:             end do
+69:           end do
+70:         end do
+71:       end do
+72:       do l = 1 , ngtim
+73:         do k = 1 , nglev
+74:           do j = 1 , nglat
+75:             do i = 1 , nglon
+76:               ii = ilon5 + i
+77:               if ( ii>nglon ) ii = ii - nglon
+78:               vals1(ii,j,k,l) = vals2(i,j,k,l)
+79:             end do
+80:           end do
+81:         end do
+82:       end do
+83:  
+84:       ntim2 = ntim1 + ntim - 1
+85:       nlev2 = nlev1 + nlev - 1
+86:       nlat2 = nlat1 + nlat - 1
+87:       nlon2 = nlon1 + nlon - 1
+88:       do l = ntim1 , ntim2
+89:         do k = nlev1 , nlev2
+90:           do j = nlat1 , nlat2
+91:             do i = nlon1 , nlon2
+92:               ll = l - ntim1 + 1
+93:               kk = k - nlev1 + 1
+94:               jj = j - nlat1 + 1
+95:               ii = i - nlon1 + 1
+96:               vals(ii,jj,kk,ll) = vals1(i,j,k,l)
+97:             end do
+98:           end do
+99:         end do
+100:       end do
+101:  
+102:       deallocate(vals1)
+103:       deallocate(vals2)
+104:  
+105:       iflag = nf90_get_att(idcdf,invarid,'long_name',lnam)
+106:       if (iflag /= nf90_noerr) go to 920
+107: 
+108:       iflag = nf90_get_att(idcdf,invarid,'units',units)
+109:       if (iflag /= nf90_noerr) go to 920
+110:  
+111:       return
+112: 
+113:  920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+114:             &      'read variable ', vnam , ' at time ', ntim1
+115:       write (6, *) nf90_strerror(iflag)
+116: 
+117:       stop 'READ ERROR'
+118: 
+119:       end subroutine readcdfr4_360
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

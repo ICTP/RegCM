@@ -1,0 +1,100 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_mainchem.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_mainchem.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_mainchem.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_mainchem><H3>mod_mainchem</H3></a></p>20:       module mod_mainchem
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: !
+26:       real(8) , allocatable, dimension(:,:,:,:) :: chemsrc
+27:       real(8) , allocatable, dimension(:,:,:,:) :: chia , chib
+28:       real(8) , allocatable, dimension(:,:,:) :: srclp2
+29: !
+30:       real(8) , allocatable , dimension(:,:,:) :: ddsfc , dtrace ,      &
+31:                                        & wdcvc , wdlsc , wxaq , wxsg
+32: 
+33:       real(4) , allocatable , dimension(:,:) :: fchem
+34: 
+35: #ifdef MPP1
+36:       real(8) , allocatable , dimension(:,:,:,:) :: src0
+37:       real(8) , allocatable , dimension(:,:,:,:) :: src_0
+38: #endif
+39: 
+40:       contains 
+41: 
+<p><a name=allocate_mod_mainchem><H3>allocate_mod_mainchem</H3></a></p> Click <a href="./callingtree/allocate_mod_mainchem_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_mainchem is used.
+<hr>
+42:         subroutine allocate_mod_mainchem
+43:         use <a href="./mod_dust.F90.html#mod_dust" TARGET=CENT_PANEL>mod_dust</a> , only : nats
+44:         implicit none
+45: #ifdef MPP1
+46:         allocate(chemsrc(iy,jxp,nats,ntr))
+47:         allocate(chia(iy,kz,-1:jxp+2,ntr))
+48:         allocate(chib(iy,kz,-1:jxp+2,ntr))
+49:         allocate(srclp2(iy,jxp,ntr))
+50:         allocate(ddsfc(iy,jxp,ntr)) 
+51:         allocate(dtrace(iy,jxp,ntr))
+52:         allocate(wdcvc(iy,jxp,ntr))
+53:         allocate(wdlsc(iy,jxp,ntr))
+54:         allocate(wxaq(iy,jxp,ntr))
+55:         allocate(wxsg(iy,jxp,ntr))
+56:         allocate(src0(iy,nats,ntr,jxp))
+57:         allocate(src_0(iy,nats,ntr,jx))
+58: #else
+59:         allocate(chemsrc(iy,jx,nats,ntr))
+60:         allocate(chia(iy,kz,jx,ntr))
+61:         allocate(chib(iy,kz,jx,ntr))
+62:         allocate(srclp2(iy,jx,ntr))
+63:         allocate(ddsfc(iy,jx,ntr))
+64:         allocate(dtrace(iy,jx,ntr))
+65:         allocate(wdcvc(iy,jx,ntr))
+66:         allocate(wdlsc(iy,jx,ntr))
+67:         allocate(wxaq(iy,jx,ntr))
+68:         allocate(wxsg(iy,jx,ntr))
+69: #endif 
+70:         allocate(fchem(jxm2,iym2))
+71:        
+72:        end subroutine allocate_mod_mainchem
+73:  
+74: 
+75:       end module mod_mainchem
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

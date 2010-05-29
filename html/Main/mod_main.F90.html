@@ -1,0 +1,147 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_main.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_main.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_main.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_main><H3>mod_main</H3></a></p>20:       module mod_main
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: !
+26:       real(8) , allocatable, dimension(:,:) :: rainp
+27:       real(8) , allocatable, dimension(:,:) :: cldefi , f , hfx ,       &
+28:                                    & hgfact , htsd ,                    &
+29:                                    & qfx , rainc , rainnc , tgb , tgbb ,&
+30:                                    & xlat , xlong , zpbl
+31:       real(8) , allocatable, dimension(:,:) :: ht
+32:       real(8) , allocatable, dimension(:,:) :: msfd , msfx , pdotb , psa
+33:       real(8) , allocatable, dimension(:,:) :: psb
+34:       real(8) , allocatable, dimension(:,:,:) :: qca , qcb , qva , qvb ,    &
+35:                                    & ta , tb , ua , ub , va , vb
+36:       real(8) , allocatable, dimension(:,:) :: satbrt , tga
+37:       real(8) , allocatable, dimension(:,:,:) :: snowc
+38:       real(8) , allocatable, dimension(:,:,:) :: so4 , tbase
+39:       real(8) , allocatable, dimension(:,:) :: uvdrag
+40: 
+41:       contains 
+42: 
+<p><a name=allocate_mod_main><H3>allocate_mod_main</H3></a></p> Click <a href="./callingtree/allocate_mod_main_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_main is used.
+<hr>
+43:         subroutine allocate_mod_main
+44:         implicit none
+45: #ifdef MPP1
+46:         allocate(cldefi(iy,jxp))
+47:         allocate(f(iy,jxp))
+48:         allocate(hfx(iy,jxp))
+49:         allocate(hgfact(iy,jxp))
+50:         allocate(htsd(iy,jxp))
+51:         allocate(qfx(iy,jxp))
+52:         allocate(rainc(iy,jxp))
+53:         allocate(rainnc(iy,jxp))
+54:         allocate(tgb(iy,jxp))
+55:         allocate(tgbb(iy,jxp))
+56:         allocate(xlat(iy,jxp))
+57:         allocate(xlong(iy,jxp))
+58:         allocate(zpbl(iy,jxp))
+59:         allocate(ht(iy,0:jxp+1))
+60:         allocate(msfd(iy,-1:jxp+2))
+61:         allocate(msfx(iy,-1:jxp+2))
+62:         allocate(pdotb(iy,-1:jxp+2))
+63:         allocate(psa(iy,-1:jxp+2))
+64:         allocate(rainp(iy,-1:jxp+2)) 
+65:         allocate(psb(iy,0:jxp+2))
+66:         allocate(qca(iy,kz,-1:jxp+2))
+67:         allocate(qcb(iy,kz,-1:jxp+2))
+68:         allocate(qva(iy,kz,-1:jxp+2))
+69:         allocate(qvb(iy,kz,-1:jxp+2))
+70:         allocate(ta(iy,kz,-1:jxp+2))
+71:         allocate(tb(iy,kz,-1:jxp+2))
+72:         allocate(ua(iy,kz,-1:jxp+2))
+73:         allocate(ub(iy,kz,-1:jxp+2))
+74:         allocate(va(iy,kz,-1:jxp+2))
+75:         allocate(vb(iy,kz,-1:jxp+2))
+76:         allocate(satbrt(iy,jxp+1)) 
+77:         allocate(tga(iy,jxp+1)) 
+78:         allocate(snowc(nnsg,iy,jxp)) 
+79:         allocate(so4(iy,kz,jxp))
+80:         allocate(tbase(iy,kz,jxp)) 
+81:         allocate(uvdrag(iy,0:jxp))
+82: #else
+83:         allocate(cldefi(iy,jx))
+84:         allocate(f(iy,jx))
+85:         allocate(hfx(iy,jx))
+86:         allocate(hgfact(iy,jx))
+87:         allocate(htsd(iy,jx))
+88:         allocate(qfx(iy,jx))
+89:         allocate(rainc(iy,jx))
+90:         allocate(rainnc(iy,jx))
+91:         allocate(tgb(iy,jx))
+92:         allocate(tgbb(iy,jx))
+93:         allocate(xlat(iy,jx))
+94:         allocate(xlong(iy,jx))
+95:         allocate(zpbl(iy,jx))
+96:         allocate(ht(iy,jx))
+97:         allocate(msfd(iy,jx))
+98:         allocate(msfx(iy,jx))
+99:         allocate(pdotb(iy,jx))
+100:         allocate(psa(iy,jx))
+101:         allocate(psb(iy,jx))
+102:         allocate(rainp(iy,jx)) 
+103:         allocate(qca(iy,kz,jx))
+104:         allocate(qcb(iy,kz,jx))
+105:         allocate(qva(iy,kz,jx))
+106:         allocate(qvb(iy,kz,jx))
+107:         allocate(ta(iy,kz,jx))
+108:         allocate(tb(iy,kz,jx))
+109:         allocate(ua(iy,kz,jx))
+110:         allocate(ub(iy,kz,jx))
+111:         allocate(va(iy,kz,jx))
+112:         allocate(vb(iy,kz,jx))
+113:         allocate(satbrt(iy,jx)) 
+114:         allocate(tga(iy,jx)) 
+115:         allocate(snowc(nnsg,iy,jx)) 
+116:         allocate(so4(iy,kz,jx))
+117:         allocate(tbase(iy,kz,jx)) 
+118:         allocate(uvdrag(iy,jx))
+119: #endif
+120:         end subroutine allocate_mod_main 
+121: 
+122:  end module mod_main
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

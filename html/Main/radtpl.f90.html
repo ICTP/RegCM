@@ -1,0 +1,189 @@
+<HTML>
+
+<HEAD>
+<TITLE>radtpl.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>radtpl.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>radtpl.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=radtpl><H3>radtpl</H3></a></p> Click <a href="./callingtree/radtpl_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where radtpl is used.
+<hr>
+20:       subroutine radtpl(tnm,ts,qnm,pnm,plh2o,tplnka,s2c,s2t,w,tplnke,   &
+21:                       & tint,tint4,tlayr,tlayr4,pmln,piln)
+22: !-----------------------------------------------------------------------
+23: !
+24: ! Compute temperatures and path lengths for longwave radiation
+25: !
+26: !---------------------------Code history--------------------------------
+27: !
+28: ! Original version:  CCM1
+29: ! Standardized:      L. Buja, June 1992
+30: ! Reviewed:          J. Kiehl, B. Briegleb, August 1992
+31: !
+32: !-----------------------------------------------------------------------
+33: !
+34:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+35:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : ep2 , rga , sslp , rgsslp
+36:       implicit none
+37: !
+38: !     Input arguments
+39: !
+40: ! tnm    - Model level temperatures
+41: ! ts     - Surface skin temperature
+42: ! qnm    - Model level specific humidity
+43: ! pnm    - Pressure at model interfaces (dynes/cm2)
+44: ! plh2o  - Pressure weighted h2o path
+45: !
+46: !     Output arguments
+47: !
+48: ! tplnka - Level temperature from interface temperatures
+49: ! s2c    - H2o continuum path length
+50: ! s2t    - H2o tmp and prs wghtd path length
+51: ! w      - H2o path length
+52: ! tplnke - Equal to tplnka
+53: ! tint   - Layer interface temperature
+54: ! tint4  - Tint to the 4th power
+55: ! tlayr  - K-1 level temperature
+56: ! tlayr4 - Tlayr to the 4th power
+57: ! pmln   - Ln(pmidm1)
+58: ! piln   - Ln(pintm1)
+59: !
+60: !
+61: ! Dummy arguments
+62: !
+63:       real(8) , dimension(iym1,kzp1) :: piln , plh2o , pnm , s2c ,    &
+64:            & s2t , tint , tint4 , tlayr , tlayr4 , tplnka , w
+65:       real(8) , dimension(iym1,kz) :: pmln , qnm , tnm
+66:       real(8) , dimension(iym1) :: tplnke , ts
+67:       intent (in) piln , plh2o , pmln , pnm , qnm , tnm , ts
+68:       intent (out) tint4 , tplnke
+69:       intent (inout) s2c , s2t , tint , tlayr , tlayr4 , tplnka , w
+70: !
+71: !---------------------------Local variables-----------------------------
+72: !
+73: ! i      - Longitude index
+74: ! k      - Level index
+75: ! r296   - Inverse stand temp for h2o continuum
+76: ! repsil - Inver ratio mol weight h2o to dry air
+77: ! dy     - Thickness of layer for tmp interp
+78: ! dpnm   - Pressure thickness of layer
+79: ! dpnmsq - Prs squared difference across layer
+80: ! rtnm   - Inverse level temperature
+81: !
+82: !-----------------------------------------------------------------------
+83: !
+84: ! Local variables
+85: !
+86:       real(8) :: dpnm , dpnmsq , dy , r296 , repsil , rtnm
+87:       integer :: i , k
+88: !
+89:       r296 = 1./296.D0
+90:       repsil = 1./ep2
+91: !
+92: !     Set the top and bottom intermediate level temperatures,
+93: !     top level planck temperature and top layer temp**4.
+94: !
+95: !     Tint is lower interface temperature
+96: !     (not available for bottom layer, so use ground temperature)
+97: !
+98:       do i = 1 , iym1
+99:         tint(i,kzp1) = ts(i)
+100:         tint4(i,kzp1) = tint(i,kz + 1)**4
+101:         tplnka(i,1) = tnm(i,1)
+102:         tint(i,1) = tplnka(i,1)
+103:         tlayr4(i,1) = tplnka(i,1)**4
+104:         tint4(i,1) = tlayr4(i,1)
+105:       end do
+106: !
+107: !     Intermediate level temperatures are computed using temperature
+108: !     at the full level below less dy*delta t,between the full level
+109: !
+110:       do k = 2 , kz
+111:         do i = 1 , iym1
+112:           dy = (piln(i,k)-pmln(i,k))/(pmln(i,k-1)-pmln(i,k))
+113:           tint(i,k) = tnm(i,k) - dy*(tnm(i,k)-tnm(i,k-1))
+114:           tint4(i,k) = tint(i,k)**4
+115:         end do
+116:       end do
+117: !
+118: !     Now set the layer temp=full level temperatures and establish a
+119: !     planck temperature for absorption (tplnka) which is the average
+120: !     the intermediate level temperatures.  Note that tplnka is not
+121: !     equal to the full level temperatures.
+122: !
+123:       do k = 2 , kzp1
+124:         do i = 1 , iym1
+125:           tlayr(i,k) = tnm(i,k-1)
+126:           tlayr4(i,k) = tlayr(i,k)**4
+127:           tplnka(i,k) = .5*(tint(i,k)+tint(i,k-1))
+128:         end do
+129:       end do
+130: !
+131: !     Calculate tplank for emissivity calculation.
+132: !     Assume isothermal tplnke i.e. all levels=ttop.
+133: !
+134:       do i = 1 , iym1
+135:         tplnke(i) = tplnka(i,1)
+136:         tlayr(i,1) = tint(i,1)
+137:       end do
+138: !
+139: !     Now compute h2o path fields:
+140: !
+141:       do i = 1 , iym1
+142:         s2t(i,1) = plh2o(i,1)*tnm(i,1)
+143: !       ccm3.2
+144: !       w(i,1)   = (plh2o(i,1)*2.) / pnm(i,1)
+145: !       s2c(i,1) = plh2o(i,1) * qnm(i,1) * repsil
+146:  
+147: !       ccm3.6.6
+148:         w(i,1) = sslp*(plh2o(i,1)*2.)/pnm(i,1)
+149:         rtnm = 1./tnm(i,1)
+150:         s2c(i,1) = plh2o(i,1)*exp(1800.*(rtnm-r296))*qnm(i,1)*repsil
+151:       end do
+152:       do k = 1 , kz
+153:         do i = 1 , iym1
+154:           dpnm = pnm(i,k+1) - pnm(i,k)
+155:           dpnmsq = pnm(i,k+1)**2 - pnm(i,k)**2
+156:           rtnm = 1./tnm(i,k)
+157:           s2t(i,k+1) = s2t(i,k) + rgsslp*dpnmsq*qnm(i,k)*tnm(i,k)
+158:           w(i,k+1) = w(i,k) + rga*qnm(i,k)*dpnm
+159:           s2c(i,k+1) = s2c(i,k) + rgsslp*dpnmsq*qnm(i,k)                &
+160:                      & *dexp(1800.*(rtnm-r296))*qnm(i,k)*repsil
+161:         end do
+162:       end do
+163: !
+164:       end subroutine radtpl
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

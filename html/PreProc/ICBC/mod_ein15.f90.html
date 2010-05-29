@@ -1,0 +1,620 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_ein15.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_ein15.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_ein15.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_ein15><H3>mod_ein15</H3></a></p>20:       module mod_ein15
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: 
+26:       private
+27: 
+28:       integer , parameter :: klev = 23 , jlat = 121 , ilon = 240
+29: 
+30:       real(4) , target , dimension(ilon,jlat,klev*3) :: b2
+31:       real(4) , target , dimension(ilon,jlat,klev*2) :: d2
+32:       real(4) , allocatable , target , dimension(:,:,:) :: b3
+33:       real(4) , allocatable , target , dimension(:,:,:) :: d3
+34: 
+35:       real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
+36:       real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+37:       real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+38:       real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+39: 
+40:       real(4) , dimension(jlat) :: glat
+41:       real(4) , dimension(ilon) :: glon
+42:       real(4) , dimension(klev) :: sigma1 , sigmar
+43: 
+44:       integer , dimension(5,4) :: inet5
+45:       integer , dimension(5,4) :: ivar5
+46:       real(8) , dimension(5,4) :: xoff , xscl
+47: 
+48:       public :: getein15 , headerein15
+49: 
+50:       contains
+51: 
+<p><a name=getein15><H3>getein15</H3></a></p> Click <a href="./callingtree/getein15_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where getein15 is used.
+<hr>
+52:       subroutine getein15(idate)
+53:       use <a href="./mod_date.f90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : julian
+54:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+55:       use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+56:       use <a href="./mod_interp.f90.html#mod_interp" TARGET=CENT_PANEL>mod_interp</a> , only : bilinx2
+57:       use <a href="./mod_vertint.f90.html#mod_vertint" TARGET=CENT_PANEL>mod_vertint</a>
+58:       use <a href="./mod_hgt.f90.html#mod_hgt" TARGET=CENT_PANEL>mod_hgt</a>
+59:       use <a href="./mod_humid.f90.html#mod_humid" TARGET=CENT_PANEL>mod_humid</a>
+60:       use <a href="./mod_mksst.f90.html#mod_mksst" TARGET=CENT_PANEL>mod_mksst</a>
+61:       use <a href="./mod_uvrot.f90.html#mod_uvrot" TARGET=CENT_PANEL>mod_uvrot</a>
+62:       use <a href="./mod_vectutil.f90.html#mod_vectutil" TARGET=CENT_PANEL>mod_vectutil</a>
+63:       implicit none
+64: !
+65: ! Dummy arguments
+66: !
+67:       integer :: idate
+68: !
+69: ! Local variables
+70: !
+71:       integer :: nmop , nyrp
+72:       real(4) :: wt
+73: !
+74: !
+75: !     READ DATA AT IDATE
+76: !
+77:       call <a href="./mod_ein15.f90.html#ein156hour" TARGET=CENT_PANEL>ein156hour</a>(dattyp,idate,globidate1)
+78: 
+79:       write (*,*) 'READ IN fields at DATE:' , idate
+80: !
+81: !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+82: !
+83:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+84:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+85: !
+86: !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+87: !
+88:       call <a href="./mod_uvrot.f90.html#uvrot4" TARGET=CENT_PANEL>uvrot4</a>(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,&
+89:                 & iproj)
+90: !
+91: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+92: !     X X
+93: !     V E R T I C A L   I N T E R P O L A T I O N
+94: !
+95: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+96: !     X X
+97: !HH:  CHANGE THE VERTICAL ORDER.
+98:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(t3,jx,iy,klev)
+99:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(q3,jx,iy,klev)
+100:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(h3,jx,iy,klev)
+101:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(u3,jx,iy,klev)
+102:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(v3,jx,iy,klev)
+103: !HH:OVER
+104: !
+105: !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+106: !
+107:       call <a href="./mod_vertint.f90.html#intgtb" TARGET=CENT_PANEL>intgtb</a>(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
+108:  
+109:       call <a href="./mod_vertint.f90.html#intpsn" TARGET=CENT_PANEL>intpsn</a>(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+110:       call <a href="./mod_vectutil.f90.html#p1p2" TARGET=CENT_PANEL>p1p2</a>(b3pd,ps4,jx,iy)
+111:  
+112: !     INTERPOLATION FROM PRESSURE LEVELS
+113:       call <a href="./mod_vertint.f90.html#intv3" TARGET=CENT_PANEL>intv3</a>(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
+114: 
+115:       if ( ssttyp=='OI_WK' ) then
+116:         call <a href="./mod_mksst.f90.html#mksst2" TARGET=CENT_PANEL>mksst2</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
+117:       else if ( ssttyp=='OI2WK' ) then
+118:         call <a href="./mod_mksst.f90.html#mksst2a" TARGET=CENT_PANEL>mksst2a</a>(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,       &
+119:               &      idate/100)
+120:       else if ( ssttyp=='ERSST' .or. ssttyp=='ERSKT' ) then
+121:         call <a href="./mod_mksst.f90.html#mksst3" TARGET=CENT_PANEL>mksst3</a>(ts4,sst1,topogm,xlandu,jx,iy,idate)
+122:       else
+123: !       F1  CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
+124:         print * , 'INPUT DAY FOR SST DATA ACQUISITION:' , idate
+125:         call <a href="./mod_date.f90.html#julian" TARGET=CENT_PANEL>julian</a>(idate,nyrp,nmop,wt)
+126: !
+127:         if ( ssttyp=='OI2ST' ) then
+128:           call <a href="./mod_mksst.f90.html#mkssta" TARGET=CENT_PANEL>mkssta</a>(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &
+129:                    &  nmop,wt)
+130:         else
+131:           call <a href="./mod_mksst.f90.html#mksst" TARGET=CENT_PANEL>mksst</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+132:         end if 
+133:       end if
+134:  
+135: !     F3  INTERPOLATE U, V, T, AND Q.
+136: 
+137:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+138:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+139:       call <a href="./mod_vertint.f90.html#intv2" TARGET=CENT_PANEL>intv2</a>(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+140:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+141: ! 
+142:       call <a href="./mod_humid.f90.html#humid2" TARGET=CENT_PANEL>humid2</a>(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+143: !
+144: !     F4  DETERMINE H
+145:       call <a href="./mod_hgt.f90.html#hydrost" TARGET=CENT_PANEL>hydrost</a>(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
+146: !
+147: !     G   WRITE AN INITIAL FILE FOR THE RegCM
+148:       call <a href="./mod_write.f90.html#writef" TARGET=CENT_PANEL>writef</a>(ptop,idate)
+149: !
+150:       end subroutine getein15
+151: !
+152: !-----------------------------------------------------------------------
+153: !
+<p><a name=ein156hour><H3>ein156hour</H3></a></p> Click <a href="./callingtree/ein156hour_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where ein156hour is used.
+<hr>
+154:       subroutine ein156hour(dattyp,idate,idate0)
+155:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+156:       implicit none
+157: !
+158: ! Dummy arguments
+159: !
+160:       character(5) :: dattyp
+161:       integer :: idate , idate0
+162:       intent (in) dattyp , idate , idate0
+163: !
+164: ! Local variables
+165: !
+166:       integer :: i , inet , it , j , k , k4 , kkrec , month , nday ,    &
+167:                & nhour , nyear , istatus , ivar
+168:       character(24) :: inname
+169:       character(256) :: pathaddname
+170:       logical :: there
+171:       character(1) , dimension(5) :: varname
+172:       real(8) :: xadd , xscale
+173:       integer , dimension(10) :: icount , istart
+174:       integer(2) , dimension(ilon,jlat,37) :: work
+175: !
+176: !     This is the latitude, longitude dimension of the grid to be read.
+177: !     This corresponds to the lat and lon dimension variables in the
+178: !     netCDF file.
+179: !
+180: !     The data are packed into short integers (INTEGER*2).  The array
+181: !     work will be used to hold the packed integers.  The array 'x'
+182: !     will contain the unpacked data.
+183: !
+184: !     DATA ARRAY AND WORK ARRAY
+185: !bxq
+186: !bxq_
+187:       data varname/'t' , 'z' , 'r' , 'u' , 'v'/
+188: !
+189: !     Below in the ncopen call is the file name of the netCDF file.
+190: !     You may want to add code to read in the file name and the
+191: !     variable name.
+192: !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
+193: !
+194: !bxq
+195:       if ( idate<1989010100 .or. idate>2009053118 ) then
+196:         write (*,*) 'EIN15 datasets is just available from' ,           &
+197:                    &' 1989010100 to 2009053118'
+198:         stop
+199:       end if
+200:  
+201:       nyear = idate/1000000
+202:       month = idate/10000 - nyear*100
+203:       nday = idate/100 - nyear*10000 - month*100
+204:       nhour = idate - nyear*1000000 - month*10000 - nday*100
+205:       if ( idate==idate0 .or.                                           &
+206:          & (mod(idate,100000)==10100 .and. mod(idate,1000000)/=110100) )&
+207:          & then
+208:         do k4 = 1 , 4
+209:           do kkrec = 1 , 5
+210:             if ( kkrec==1 ) then
+211:               if ( k4==1 ) then
+212:                 write (inname,99001) nyear , 'air.' , nyear
+213:               else if ( k4==2 ) then
+214:                 write (inname,99002) nyear , 'air.' , nyear
+215:               else if ( k4==3 ) then
+216:                 write (inname,99003) nyear , 'air.' , nyear
+217:               else if ( k4==4 ) then
+218:                 write (inname,99004) nyear , 'air.' , nyear
+219:               else
+220:               end if
+221:             else if ( kkrec==2 ) then
+222:               if ( k4==1 ) then
+223:                 write (inname,99001) nyear , 'hgt.' , nyear
+224:               else if ( k4==2 ) then
+225:                 write (inname,99002) nyear , 'hgt.' , nyear
+226:               else if ( k4==3 ) then
+227:                 write (inname,99003) nyear , 'hgt.' , nyear
+228:               else if ( k4==4 ) then
+229:                 write (inname,99004) nyear , 'hgt.' , nyear
+230:               else
+231:               end if
+232:             else if ( kkrec==3 ) then
+233:               if ( k4==1 ) then
+234:                 write (inname,99005) nyear , 'rhum.' , nyear
+235:               else if ( k4==2 ) then
+236:                 write (inname,99006) nyear , 'rhum.' , nyear
+237:               else if ( k4==3 ) then
+238:                 write (inname,99007) nyear , 'rhum.' , nyear
+239:               else if ( k4==4 ) then
+240:                 write (inname,99008) nyear , 'rhum.' , nyear
+241:               else
+242:               end if
+243:             else if ( kkrec==4 ) then
+244:               if ( k4==1 ) then
+245:                 write (inname,99005) nyear , 'uwnd.' , nyear
+246:               else if ( k4==2 ) then
+247:                 write (inname,99006) nyear , 'uwnd.' , nyear
+248:               else if ( k4==3 ) then
+249:                 write (inname,99007) nyear , 'uwnd.' , nyear
+250:               else if ( k4==4 ) then
+251:                 write (inname,99008) nyear , 'uwnd.' , nyear
+252:               else
+253:               end if
+254:             else if ( kkrec==5 ) then
+255:               if ( k4==1 ) then
+256:                 write (inname,99005) nyear , 'vwnd.' , nyear
+257:               else if ( k4==2 ) then
+258:                 write (inname,99006) nyear , 'vwnd.' , nyear
+259:               else if ( k4==3 ) then
+260:                 write (inname,99007) nyear , 'vwnd.' , nyear
+261:               else if ( k4==4 ) then
+262:                 write (inname,99008) nyear , 'vwnd.' , nyear
+263:               else
+264:               end if
+265:             else
+266:             end if
+267:  
+268:             pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
+269:             inquire (file=pathaddname,exist=there)
+270:             if ( .not.there ) then
+271:               print * , trim(pathaddname) , ' is not available'
+272:               stop
+273:             end if
+274:             istatus = nf90_open(pathaddname,nf90_nowrite,               &
+275:                    & inet5(kkrec,k4))
+276:             if ( istatus /= nf90_noerr) then
+277:               write (*,*) 'Error opening ' , trim(pathaddname)
+278:               stop
+279:             end if
+280:             istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec),    &
+281:                    & ivar5(kkrec,k4))
+282:             if ( istatus /= nf90_noerr) then
+283:               write (*,*) 'Error searching var ' , varname(kkrec)
+284:               stop
+285:             end if
+286:             istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
+287:                    & 'scale_factor',xscl(kkrec,k4))
+288:             if ( istatus /= nf90_noerr) then
+289:               write (*,*) 'Error attribure scale_factor for var ' ,     &
+290:                      &     varname(kkrec)
+291:               stop
+292:             end if
+293:             istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
+294:                    & 'add_offset',xoff(kkrec,k4))
+295:             if ( istatus /= nf90_noerr) then
+296:               write (*,*) 'Error attribure add_offset for var ' ,       &
+297:                      &     varname(kkrec)
+298:               stop
+299:             end if
+300:             write (*,*) inet5(kkrec,k4) , trim(pathaddname) ,           &
+301:                        &  xscl(kkrec,k4) , xoff(kkrec,k4)
+302:           end do
+303:         end do
+304:  
+305:       end if
+306:  
+307:       k4 = nhour/6 + 1
+308:       it = nday
+309:       if ( month==2 ) it = it + 31
+310:       if ( month==3 ) it = it + 59
+311:       if ( month==4 ) it = it + 90
+312:       if ( month==5 ) it = it + 120
+313:       if ( month==6 ) it = it + 151
+314:       if ( month==7 ) it = it + 181
+315:       if ( month==8 ) it = it + 212
+316:       if ( month==9 ) it = it + 243
+317:       if ( month==10 ) it = it + 273
+318:       if ( month==11 ) it = it + 304
+319:       if ( month==12 ) it = it + 334
+320:       if ( mod(nyear,4)==0 .and. month>2 ) it = it + 1
+321:       if ( mod(nyear,100)==0 .and. month>2 ) it = it - 1
+322:       if ( mod(nyear,400)==0 .and. month>2 ) it = it + 1
+323:       do k = 1 , 4
+324:         istart(k) = 1
+325:       end do
+326:       do k = 5 , 10
+327:         istart(k) = 0
+328:         icount(k) = 0
+329:       end do
+330:       icount(1) = ilon
+331:       icount(2) = jlat
+332:       icount(3) = 37
+333:       icount(4) = 365
+334:       if ( mod(nyear,4)==0 ) icount(4) = 366
+335:       if ( mod(nyear,100)==0 ) icount(4) = 365
+336:       if ( mod(nyear,400)==0 ) icount(4) = 366
+337:       istart(4) = it
+338:       icount(4) = 1
+339: !bxq_
+340:       do kkrec = 1 , 5
+341:         inet = inet5(kkrec,k4)
+342:         ivar = ivar5(kkrec,k4)
+343:         istatus = nf90_get_var(inet,ivar,work,istart,icount)
+344:         if (istatus /= nf90_noerr) then
+345:           write (*,*) 'Error reading variable ' , varname(kkrec) ,      &
+346:               & ' at ' , istart , ' for ' , icount
+347:           stop
+348:         end if
+349:         xscale = xscl(kkrec,k4)
+350:         xadd = xoff(kkrec,k4)
+351:         if ( kkrec==1 ) then
+352:           do j = 1 , jlat
+353:             do i = 1 , ilon
+354: !             Tvar(i,jlat+1-j,k)=work(i,j,k)*xscale+xadd
+355:               tvar(i,jlat+1-j,1) = work(i,j,1)*xscale + xadd
+356:               tvar(i,jlat+1-j,2) = work(i,j,2)*xscale + xadd
+357:               tvar(i,jlat+1-j,3) = work(i,j,3)*xscale + xadd
+358:               tvar(i,jlat+1-j,4) = work(i,j,4)*xscale + xadd
+359:               tvar(i,jlat+1-j,5) = work(i,j,5)*xscale + xadd
+360:               tvar(i,jlat+1-j,6) = work(i,j,6)*xscale + xadd
+361:               tvar(i,jlat+1-j,7) = work(i,j,7)*xscale + xadd
+362:               tvar(i,jlat+1-j,8) = work(i,j,8)*xscale + xadd
+363:               tvar(i,jlat+1-j,9) = work(i,j,9)*xscale + xadd
+364:               tvar(i,jlat+1-j,10) = work(i,j,10)*xscale + xadd
+365:               tvar(i,jlat+1-j,11) = work(i,j,11)*xscale + xadd
+366:               tvar(i,jlat+1-j,12) = work(i,j,13)*xscale + xadd
+367:               tvar(i,jlat+1-j,13) = work(i,j,15)*xscale + xadd
+368:               tvar(i,jlat+1-j,14) = work(i,j,17)*xscale + xadd
+369:               tvar(i,jlat+1-j,15) = work(i,j,18)*xscale + xadd
+370:               tvar(i,jlat+1-j,16) = work(i,j,20)*xscale + xadd
+371:               tvar(i,jlat+1-j,17) = work(i,j,22)*xscale + xadd
+372:               tvar(i,jlat+1-j,18) = work(i,j,24)*xscale + xadd
+373:               tvar(i,jlat+1-j,19) = work(i,j,26)*xscale + xadd
+374:               tvar(i,jlat+1-j,20) = work(i,j,28)*xscale + xadd
+375:               tvar(i,jlat+1-j,21) = work(i,j,31)*xscale + xadd
+376:               tvar(i,jlat+1-j,22) = work(i,j,34)*xscale + xadd
+377:               tvar(i,jlat+1-j,23) = work(i,j,37)*xscale + xadd
+378:             end do
+379:           end do
+380:         else if ( kkrec==2 ) then
+381:           do j = 1 , jlat
+382:             do i = 1 , ilon
+383: !             Hvar(i,jlat+1-j,k)=work(i,j,k)*xscale+xadd
+384:               hvar(i,jlat+1-j,1) = work(i,j,1)*xscale + xadd
+385:               hvar(i,jlat+1-j,2) = work(i,j,2)*xscale + xadd
+386:               hvar(i,jlat+1-j,3) = work(i,j,3)*xscale + xadd
+387:               hvar(i,jlat+1-j,4) = work(i,j,4)*xscale + xadd
+388:               hvar(i,jlat+1-j,5) = work(i,j,5)*xscale + xadd
+389:               hvar(i,jlat+1-j,6) = work(i,j,6)*xscale + xadd
+390:               hvar(i,jlat+1-j,7) = work(i,j,7)*xscale + xadd
+391:               hvar(i,jlat+1-j,8) = work(i,j,8)*xscale + xadd
+392:               hvar(i,jlat+1-j,9) = work(i,j,9)*xscale + xadd
+393:               hvar(i,jlat+1-j,10) = work(i,j,10)*xscale + xadd
+394:               hvar(i,jlat+1-j,11) = work(i,j,11)*xscale + xadd
+395:               hvar(i,jlat+1-j,12) = work(i,j,13)*xscale + xadd
+396:               hvar(i,jlat+1-j,13) = work(i,j,15)*xscale + xadd
+397:               hvar(i,jlat+1-j,14) = work(i,j,17)*xscale + xadd
+398:               hvar(i,jlat+1-j,15) = work(i,j,18)*xscale + xadd
+399:               hvar(i,jlat+1-j,16) = work(i,j,20)*xscale + xadd
+400:               hvar(i,jlat+1-j,17) = work(i,j,22)*xscale + xadd
+401:               hvar(i,jlat+1-j,18) = work(i,j,24)*xscale + xadd
+402:               hvar(i,jlat+1-j,19) = work(i,j,26)*xscale + xadd
+403:               hvar(i,jlat+1-j,20) = work(i,j,28)*xscale + xadd
+404:               hvar(i,jlat+1-j,21) = work(i,j,31)*xscale + xadd
+405:               hvar(i,jlat+1-j,22) = work(i,j,34)*xscale + xadd
+406:               hvar(i,jlat+1-j,23) = work(i,j,37)*xscale + xadd
+407:             end do
+408:           end do
+409:           do k = 1 , klev
+410:             do j = 1 , jlat
+411:               do i = 1 , ilon
+412:                 hvar(i,j,k) = hvar(i,j,k)/9.80616
+413:               end do
+414:             end do
+415:           end do
+416:         else if ( kkrec==3 ) then
+417:           do j = 1 , jlat
+418:             do i = 1 , ilon
+419: !             RHvar(i,jlat+1-j,k)=work(i,j,k)*xscale+xadd
+420:               rhvar(i,jlat+1-j,1) = work(i,j,1)*xscale + xadd
+421:               rhvar(i,jlat+1-j,2) = work(i,j,2)*xscale + xadd
+422:               rhvar(i,jlat+1-j,3) = work(i,j,3)*xscale + xadd
+423:               rhvar(i,jlat+1-j,4) = work(i,j,4)*xscale + xadd
+424:               rhvar(i,jlat+1-j,5) = work(i,j,5)*xscale + xadd
+425:               rhvar(i,jlat+1-j,6) = work(i,j,6)*xscale + xadd
+426:               rhvar(i,jlat+1-j,7) = work(i,j,7)*xscale + xadd
+427:               rhvar(i,jlat+1-j,8) = work(i,j,8)*xscale + xadd
+428:               rhvar(i,jlat+1-j,9) = work(i,j,9)*xscale + xadd
+429:               rhvar(i,jlat+1-j,10) = work(i,j,10)*xscale + xadd
+430:               rhvar(i,jlat+1-j,11) = work(i,j,11)*xscale + xadd
+431:               rhvar(i,jlat+1-j,12) = work(i,j,13)*xscale + xadd
+432:               rhvar(i,jlat+1-j,13) = work(i,j,15)*xscale + xadd
+433:               rhvar(i,jlat+1-j,14) = work(i,j,17)*xscale + xadd
+434:               rhvar(i,jlat+1-j,15) = work(i,j,18)*xscale + xadd
+435:               rhvar(i,jlat+1-j,16) = work(i,j,20)*xscale + xadd
+436:               rhvar(i,jlat+1-j,17) = work(i,j,22)*xscale + xadd
+437:               rhvar(i,jlat+1-j,18) = work(i,j,24)*xscale + xadd
+438:               rhvar(i,jlat+1-j,19) = work(i,j,26)*xscale + xadd
+439:               rhvar(i,jlat+1-j,20) = work(i,j,28)*xscale + xadd
+440:               rhvar(i,jlat+1-j,21) = work(i,j,31)*xscale + xadd
+441:               rhvar(i,jlat+1-j,22) = work(i,j,34)*xscale + xadd
+442:               rhvar(i,jlat+1-j,23) = work(i,j,37)*xscale + xadd
+443:             end do
+444:           end do
+445:           do k = 1 , 23
+446:             do j = 1 , jlat
+447:               do i = 1 , ilon
+448:                 rhvar(i,j,k) = amax1(rhvar(i,j,k)*0.01,0.00)
+449:               end do
+450:             end do
+451:           end do
+452:         else if ( kkrec==4 ) then
+453:           do j = 1 , jlat
+454:             do i = 1 , ilon
+455: !             Uvar(i,jlat+1-j,k)=work(i,j,k)*xscale+xadd
+456:               uvar(i,jlat+1-j,1) = work(i,j,1)*xscale + xadd
+457:               uvar(i,jlat+1-j,2) = work(i,j,2)*xscale + xadd
+458:               uvar(i,jlat+1-j,3) = work(i,j,3)*xscale + xadd
+459:               uvar(i,jlat+1-j,4) = work(i,j,4)*xscale + xadd
+460:               uvar(i,jlat+1-j,5) = work(i,j,5)*xscale + xadd
+461:               uvar(i,jlat+1-j,6) = work(i,j,6)*xscale + xadd
+462:               uvar(i,jlat+1-j,7) = work(i,j,7)*xscale + xadd
+463:               uvar(i,jlat+1-j,8) = work(i,j,8)*xscale + xadd
+464:               uvar(i,jlat+1-j,9) = work(i,j,9)*xscale + xadd
+465:               uvar(i,jlat+1-j,10) = work(i,j,10)*xscale + xadd
+466:               uvar(i,jlat+1-j,11) = work(i,j,11)*xscale + xadd
+467:               uvar(i,jlat+1-j,12) = work(i,j,13)*xscale + xadd
+468:               uvar(i,jlat+1-j,13) = work(i,j,15)*xscale + xadd
+469:               uvar(i,jlat+1-j,14) = work(i,j,17)*xscale + xadd
+470:               uvar(i,jlat+1-j,15) = work(i,j,18)*xscale + xadd
+471:               uvar(i,jlat+1-j,16) = work(i,j,20)*xscale + xadd
+472:               uvar(i,jlat+1-j,17) = work(i,j,22)*xscale + xadd
+473:               uvar(i,jlat+1-j,18) = work(i,j,24)*xscale + xadd
+474:               uvar(i,jlat+1-j,19) = work(i,j,26)*xscale + xadd
+475:               uvar(i,jlat+1-j,20) = work(i,j,28)*xscale + xadd
+476:               uvar(i,jlat+1-j,21) = work(i,j,31)*xscale + xadd
+477:               uvar(i,jlat+1-j,22) = work(i,j,34)*xscale + xadd
+478:               uvar(i,jlat+1-j,23) = work(i,j,37)*xscale + xadd
+479:             end do
+480:           end do
+481:         else if ( kkrec==5 ) then
+482:           do j = 1 , jlat
+483:             do i = 1 , ilon
+484: !             Vvar(i,jlat+1-j,k) =work(i,j,k)*xscale+xadd
+485:               vvar(i,jlat+1-j,1) = work(i,j,1)*xscale + xadd
+486:               vvar(i,jlat+1-j,2) = work(i,j,2)*xscale + xadd
+487:               vvar(i,jlat+1-j,3) = work(i,j,3)*xscale + xadd
+488:               vvar(i,jlat+1-j,4) = work(i,j,4)*xscale + xadd
+489:               vvar(i,jlat+1-j,5) = work(i,j,5)*xscale + xadd
+490:               vvar(i,jlat+1-j,6) = work(i,j,6)*xscale + xadd
+491:               vvar(i,jlat+1-j,7) = work(i,j,7)*xscale + xadd
+492:               vvar(i,jlat+1-j,8) = work(i,j,8)*xscale + xadd
+493:               vvar(i,jlat+1-j,9) = work(i,j,9)*xscale + xadd
+494:               vvar(i,jlat+1-j,10) = work(i,j,10)*xscale + xadd
+495:               vvar(i,jlat+1-j,11) = work(i,j,11)*xscale + xadd
+496:               vvar(i,jlat+1-j,12) = work(i,j,13)*xscale + xadd
+497:               vvar(i,jlat+1-j,13) = work(i,j,15)*xscale + xadd
+498:               vvar(i,jlat+1-j,14) = work(i,j,17)*xscale + xadd
+499:               vvar(i,jlat+1-j,15) = work(i,j,18)*xscale + xadd
+500:               vvar(i,jlat+1-j,16) = work(i,j,20)*xscale + xadd
+501:               vvar(i,jlat+1-j,17) = work(i,j,22)*xscale + xadd
+502:               vvar(i,jlat+1-j,18) = work(i,j,24)*xscale + xadd
+503:               vvar(i,jlat+1-j,19) = work(i,j,26)*xscale + xadd
+504:               vvar(i,jlat+1-j,20) = work(i,j,28)*xscale + xadd
+505:               vvar(i,jlat+1-j,21) = work(i,j,31)*xscale + xadd
+506:               vvar(i,jlat+1-j,22) = work(i,j,34)*xscale + xadd
+507:               vvar(i,jlat+1-j,23) = work(i,j,37)*xscale + xadd
+508:             end do
+509:           end do
+510:         else
+511:         end if
+512:       end do
+513: 99001 format (i4,'/',a4,i4,'.00.nc')
+514: 99002 format (i4,'/',a4,i4,'.06.nc')
+515: 99003 format (i4,'/',a4,i4,'.12.nc')
+516: 99004 format (i4,'/',a4,i4,'.18.nc')
+517: 99005 format (i4,'/',a5,i4,'.00.nc')
+518: 99006 format (i4,'/',a5,i4,'.06.nc')
+519: 99007 format (i4,'/',a5,i4,'.12.nc')
+520: 99008 format (i4,'/',a5,i4,'.18.nc')
+521: !
+522:       end subroutine ein156hour
+523: !
+524: !-----------------------------------------------------------------------
+525: !
+<p><a name=headerein15><H3>headerein15</H3></a></p> Click <a href="./callingtree/headerein15_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where headerein15 is used.
+<hr>
+526:       subroutine headerein15
+527:       implicit none
+528: !
+529: ! Local variables
+530: !
+531:       integer :: i , j , k , kr
+532: !
+533:       sigmar(1) = .001
+534:       sigmar(2) = .002
+535:       sigmar(3) = .003
+536:       sigmar(4) = .005
+537:       sigmar(5) = .007
+538:       sigmar(6) = .01
+539:       sigmar(7) = .02
+540:       sigmar(8) = .03
+541:       sigmar(9) = .05
+542:       sigmar(10) = .07
+543:       sigmar(11) = .1
+544:       sigmar(12) = .15
+545:       sigmar(13) = .2
+546:       sigmar(14) = .25
+547:       sigmar(15) = .3
+548:       sigmar(16) = .4
+549:       sigmar(17) = .5
+550:       sigmar(18) = .6
+551:       sigmar(19) = .7
+552:       sigmar(20) = .775
+553:       sigmar(21) = .85
+554:       sigmar(22) = .925
+555:       sigmar(23) = 1.00
+556: !
+557: !     INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
+558: !
+559:       do i = 1 , ilon
+560:         glon(i) = float(i-1)*1.50
+561:       end do
+562:       do j = 1 , jlat
+563:         glat(j) = -90.0 + float(j-1)*1.50
+564:       end do
+565: !HH:OVER
+566: !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
+567: !
+568:       do k = 1 , klev
+569:         kr = klev - k + 1
+570:         sigma1(k) = sigmar(kr)
+571:       end do
+572:  
+573:       allocate(b3(jx,iy,klev*3))
+574:       allocate(d3(jx,iy,klev*2))
+575: 
+576: !     Set up pointers
+577: 
+578:       u3 => d3(:,:,1:klev)
+579:       v3 => d3(:,:,klev+1:2*klev)
+580:       t3 => b3(:,:,1:klev)
+581:       h3 => b3(:,:,klev+1:2*klev)
+582:       q3 => b3(:,:,2*klev+1:3*klev)
+583:       uvar => d2(:,:,1:klev)
+584:       vvar => d2(:,:,klev+1:2*klev)
+585:       tvar => b2(:,:,1:klev)
+586:       hvar => b2(:,:,klev+1:2*klev)
+587:       rhvar => b2(:,:,2*klev+1:3*klev)
+588: 
+589:       end subroutine headerein15
+590: 
+591:       end module mod_ein15
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

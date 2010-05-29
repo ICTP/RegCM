@@ -1,0 +1,259 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_humid.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_humid.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_humid.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_humid><H3>mod_humid</H3></a></p>20:       module mod_humid
+21: 
+22:       contains
+23: 
+<p><a name=humid1><H3>humid1</H3></a></p> Click <a href="./callingtree/humid1_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where humid1 is used.
+<hr>
+24:       subroutine humid1(t,q,ps,pt,sigma,ni,nj,nk)
+25:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero , ep2 , lh0 , lh1 , lsvp1 , lsvp2
+26:       implicit none
+27: !
+28: ! PARAMETER definitions
+29: !
+30:       real(4) , parameter :: tr = 1./tzero
+31: !
+32: ! Dummy arguments
+33: !
+34:       integer :: ni , nj , nk
+35:       real(4) :: ps , pt
+36:       real(4) , dimension(ni,nj,nk) :: q , t
+37:       real(4) , dimension(nk) :: sigma
+38:       intent (in) ni , nj , nk , ps , pt , sigma , t
+39:       intent (inout) q
+40: !
+41: ! Local variables
+42: !
+43:       real(4) :: lh , p , qs , satvp
+44:       integer :: i , j , k
+45: !
+46: !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
+47: !
+48:       do i = 1 , ni
+49:         do j = 1 , nj
+50:           do k = 1 , nk
+51:             p = (pt+sigma(k)*ps)*10.        ! PRESSURE AT LEVEL K
+52:             lh = lh0 - lh1*(t(i,j,k)-tzero)
+53:             satvp = lsvp1*dexp(lsvp2*lh*(1./tzero-1./t(i,j,k)))
+54:             qs = ep2*satvp/(p-satvp)        ! SAT. MIXING RATIO
+55:             q(i,j,k) = amax1(q(i,j,k)/qs,0.0)
+56:           end do
+57:         end do
+58:       end do
+59:       end subroutine humid1
+60: !
+61: !-----------------------------------------------------------------------
+62: !
+<p><a name=humid1_o><H3>humid1_o</H3></a></p> Click <a href="./callingtree/humid1_o_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where humid1_o is used.
+<hr>
+63:       subroutine humid1_o(t,q,ps,sigma,ptop,im,jm,km)
+64:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero , ep2 , lh0 , lh1 , lsvp1 , lsvp2
+65:       implicit none
+66: !
+67: ! PARAMETER definitions
+68: !
+69:       real(4) , parameter :: tr = 1./tzero
+70: !
+71: ! Dummy arguments
+72: !
+73:       integer :: im , jm , km
+74:       real(4) :: ptop
+75:       real(4) , dimension(im,jm) :: ps
+76:       real(4) , dimension(im,jm,km) :: q , t
+77:       real(4) , dimension(km) :: sigma
+78:       intent (in) im , jm , km , ps , ptop , sigma , t
+79:       intent (inout) q
+80: !
+81: ! Local variables
+82: !
+83:       real(4) :: hl , p , qs , satvp
+84:       integer :: i , j , k
+85: !
+86: !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
+87: !     DATA ON SIGMA LEVELS
+88: !
+89:       do k = 1 , km
+90:         do j = 1 , jm
+91:           do i = 1 , im
+92:             p = sigma(k)*(ps(i,j)-ptop) + ptop
+93:             hl = lh0 - lh1*(t(i,j,k)-tzero)       ! LATENT HEAT OF EVAP.
+94:             satvp = lsvp1*exp(lsvp2*hl*(tr-1./t(i,j,k)))
+95:                                                       ! SATURATION VAP PRESS.
+96:             qs = ep2*satvp/(p-satvp)                 ! SAT. MIXING RATIO
+97:             q(i,j,k) = amax1(q(i,j,k)/qs,0.0)
+98:           end do
+99:         end do
+100:       end do
+101:       end subroutine humid1_o
+102: !
+103: !-----------------------------------------------------------------------
+104: !
+<p><a name=humid1fv><H3>humid1fv</H3></a></p> Click <a href="./callingtree/humid1fv_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where humid1fv is used.
+<hr>
+105:       subroutine humid1fv(t,q,p3d,ni,nj,nk)
+106:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero , ep2 , lh0 , lh1 , lsvp1 , lsvp2
+107:       implicit none
+108: !
+109: ! PARAMETER definitions
+110: !
+111:       real(4) , parameter :: tr = 1./tzero
+112: !
+113: ! Dummy arguments
+114: !
+115:       integer :: ni , nj , nk
+116:       real(4) , dimension(ni,nj,nk) :: p3d , q , t
+117:       intent (in) ni , nj , nk , p3d , t
+118:       intent (inout) q
+119: !
+120: ! Local variables
+121: !
+122:       real(4) :: hl , qs , satvp
+123:       integer :: i , j , k
+124: !
+125: !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
+126: !
+127:       do i = 1 , ni
+128:         do j = 1 , nj
+129:           do k = 1 , nk
+130:             if ( p3d(i,j,k)>-9990. ) then
+131:               hl = lh0 - lh1*(t(i,j,k)-tzero)  ! LATENT HEAT OF EVAP.
+132:               satvp = lsvp1*exp(lsvp2*hl*(tr-1./t(i,j,k)))
+133:                                                    ! SATURATION VAP PRESS.
+134:               qs = ep2*satvp/(p3d(i,j,k)-satvp)   ! SAT. MIXING RATIO
+135:               q(i,j,k) = amax1(q(i,j,k)/qs,0.0)    !ALREADY MIXING RATIO
+136:             else
+137:               q(i,j,k) = -9999.
+138:             end if
+139:           end do
+140:         end do
+141:       end do
+142:       end subroutine humid1fv
+143: !
+144: !-----------------------------------------------------------------------
+145: !
+<p><a name=humid2><H3>humid2</H3></a></p> Click <a href="./callingtree/humid2_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where humid2 is used.
+<hr>
+146:       subroutine humid2(t,q,ps,pt,sigma,ni,nj,nk)
+147:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero , ep2 , lh0 , lh1 , lsvp1 , lsvp2
+148:       implicit none
+149: !
+150: ! PARAMETER definitions
+151: !
+152:       real(4) , parameter :: tr = 1./tzero
+153: !
+154: ! Dummy arguments
+155: !
+156:       integer :: ni , nj , nk
+157:       real(4) :: pt
+158:       real(4) , dimension(ni,nj) :: ps
+159:       real(4) , dimension(ni,nj,nk) :: q , t
+160:       real(4) , dimension(nk) :: sigma
+161:       intent (in) ni , nj , nk , ps , pt , sigma , t
+162:       intent (inout) q
+163: !
+164: ! Local variables
+165: !
+166:       real(4) :: hl , p , qs , satvp
+167:       integer :: i , j , k
+168: !
+169: !     THIS ROUTINE REPLACES RELATIVE HUMIDITY BY SPECIFIC HUMIDITY
+170: !
+171:       do i = 1 , ni
+172:         do j = 1 , nj
+173:           do k = 1 , nk
+174:             p = (pt+sigma(k)*ps(i,j))*10.
+175:             hl = lh0 - lh1*(t(i,j,k)-tzero)
+176:             satvp = lsvp1*exp(lsvp2*hl*(tr-1./t(i,j,k)))
+177:             qs = ep2*satvp/(p-satvp)
+178:             q(i,j,k) = amax1(q(i,j,k)*qs,0.0)
+179:           end do
+180:         end do
+181:       end do
+182: !
+183:       end subroutine humid2
+184: !
+185: !-----------------------------------------------------------------------
+186: !
+<p><a name=humid2fv><H3>humid2fv</H3></a></p> Click <a href="./callingtree/humid2fv_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where humid2fv is used.
+<hr>
+187:       subroutine humid2fv(t,q,ps,pt,sigma,ni,nj,nk)
+188:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero , lh0 , lh1 , lsvp1 , lsvp2 , ep2
+189:       implicit none
+190: !
+191: ! PARAMETER definitions
+192: !
+193:       real(4) , parameter :: tr = 1./tzero
+194: !
+195: ! Dummy arguments
+196: !
+197:       integer :: ni , nj , nk
+198:       real(4) :: pt
+199:       real(4) , dimension(ni,nj) :: ps
+200:       real(4) , dimension(ni,nj,nk) :: q , t
+201:       real(4) , dimension(nk) :: sigma
+202:       intent (in) ni , nj , nk , ps , pt , sigma , t
+203:       intent (inout) q
+204: !
+205: ! Local variables
+206: !
+207:       real(4) :: hl , p , qs , satvp
+208:       integer :: i , j , k
+209: !
+210: !     THIS ROUTINE REPLACES RELATIVE HUMIDITY BY SPECIFIC HUMIDITY
+211: !
+212:       do i = 1 , ni
+213:         do j = 1 , nj
+214:           do k = 1 , nk
+215:             p = (pt+sigma(k)*ps(i,j))*10.
+216:             hl = lh0 - lh1*(t(i,j,k)-tzero)
+217:             satvp = lsvp1*exp(lsvp2*hl*(tr-1./t(i,j,k)))
+218:             qs = ep2*satvp/(p-satvp)
+219:             q(i,j,k) = amax1(q(i,j,k)*qs,0.0)
+220:           end do
+221:         end do
+222:       end do
+223: !
+224:       end subroutine humid2fv
+225: !
+226:       end module mod_humid
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

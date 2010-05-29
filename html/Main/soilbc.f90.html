@@ -1,0 +1,111 @@
+<HTML>
+
+<HEAD>
+<TITLE>soilbc.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>soilbc.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>soilbc.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=soilbc><H3>soilbc</H3></a></p> Click <a href="./callingtree/soilbc_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where soilbc is used.
+<hr>
+20:       subroutine soilbc
+21: 
+22: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+23: !
+24: !   this subrout overwrites many of the soil constants
+25: !   as a function of location(jlon,jlat)
+26: !
+27:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+28:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+29:       implicit none
+30: !
+31: ! Local variables
+32: !
+33:       real(8) :: ck , dmax , dmin , dmnor , phi0 , tweak1
+34:       integer :: itex , n , i
+35: !
+36: !     ================================================================
+37: !     new soils data as a fn of texture make porosity, soil suction,
+38: !     hydraul conduc, wilting frac variables rather than consts
+39: !
+40: !     for explanation of params set here see block data
+41: !
+42: !     relfc is the ratio of field capacity to saturated water content,
+43: !     defined so the rate of gravitational drainage at field
+44: !     capacity is assumed to be 2 mm/day (baver et al., 1972)
+45: !     ===============================================================
+46: !
+47:  
+48:       do i = 2 , iym1
+49:         do n = 1 , nnsg
+50:  
+51:           if ( lveg(n,i).ne.0 ) then
+52:  
+53: !           **********            lveg is set in subr. interf
+54:             freza(lveg(n,i)) = 0.15*deprv(lveg(n,i))
+55:             frezu(lveg(n,i)) = 0.15*depuv(lveg(n,i))
+56:             itex = iexsol(lveg(n,i))
+57:             texrat(n,i) = skrat(itex)
+58:             porsl(n,i) = xmopor(itex)
+59:             xkmx(n,i) = xmohyd(itex)
+60:             bsw(n,i) = bee(itex)
+61:             bfc(n,i) = 5.8 - bsw(n,i)*(0.8+0.12*(bsw(n,i)-4.)*          &
+62:                       & dlog10(1.E2*xkmx(n,i)))
+63:  
+64:             phi0 = xmosuc(itex)
+65:             dmax = bsw(n,i)*phi0*xkmx(n,i)/porsl(n,i)
+66:             dmin = 1.E-3
+67:             dmnor = 1550.*dmin/dmax
+68:             tweak1 = (bsw(n,i)*(bsw(n,i)-6.)+10.3)                      &
+69:                    & /(bsw(n,i)*bsw(n,i)+40.*bsw(n,i))
+70:             ck = (1.+dmnor)*tweak1*0.23/0.02356
+71:             evmx0(n,i) = 1.02*dmax*ck/dsqrt(depuv(lveg(n,i))*           &
+72:                         & deprv(lveg(n,i)))
+73:             gwmx0(n,i) = depuv(lveg(n,i))*porsl(n,i)
+74:             gwmx1(n,i) = deprv(lveg(n,i))*porsl(n,i)
+75:             gwmx2(n,i) = deptv(lveg(n,i))*porsl(n,i)
+76:             wiltr(n,i) = xmowil(itex)
+77: !           **********            force irrigated crop to be at field
+78: !           capacity
+79:             relfc(n,i) = xmofc(itex)
+80:  
+81:           end if
+82:  
+83:         end do
+84:       end do
+85:  
+86:       end subroutine soilbc
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

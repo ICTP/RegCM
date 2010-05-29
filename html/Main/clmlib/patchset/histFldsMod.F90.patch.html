@@ -1,0 +1,130 @@
+<HTML>
+
+<HEAD>
+<TITLE>histFldsMod.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/histFldsMod.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>histFldsMod.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/histFldsMod.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/histFldsMod.F90	2010-03-10 16:19:07.000000000 +0100
+<LI>@@ -322,29 +322,88 @@
+<LI> #endif
+<LI> 
+<LI> #if (defined VOC)
+<LI>-    call add_fld1d (fname='VOCFLXT', units='uG/M2/H',  &
+<LI>-         avgflag='A', long_name='total VOC flux into atmosphere', &
+<LI>-         ptr_pft=clm3%g%l%c%p%pvf%vocflx_tot, set_lake=0._r8)
+<LI>+!abt removed this    call add_fld1d (fname='VOCFLXT', units='uG/M2/H',  &
+<LI>+!         avgflag='A', long_name='total VOC flux into atmosphere', &
+<LI>+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_tot, set_lake=0._r8)
+<LI> 
+<LI>     call add_fld1d (fname='ISOPRENE', units='uG/M2/H',  &
+<LI>          avgflag='A', long_name='isoprene flux', &
+<LI>          ptr_pft=clm3%g%l%c%p%pvf%vocflx_1, set_lake=0._r8)
+<LI>-
+<LI>-    call add_fld1d (fname='MONOTERP', units='uG/M2/H',  &
+<LI>-         avgflag='A', long_name='monoterpene flux', &
+<LI>+!abt added below
+<LI>+    call add_fld1d (fname='METHYLBUT', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='methylbutenol flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_6, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='APINE', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='alpha-pinene flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_7, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='BPINE', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='beta-pinene flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_8, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='MYRCENE', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='myrcene flux', &
+<LI>          ptr_pft=clm3%g%l%c%p%pvf%vocflx_2, set_lake=0._r8)
+<LI>-
+<LI>-    call add_fld1d (fname='OVOC', units='uG/M2/H',  &
+<LI>-         avgflag='A', long_name='other VOC flux', &
+<LI>+    call add_fld1d (fname='SABINENE', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='sabinene flux', &
+<LI>          ptr_pft=clm3%g%l%c%p%pvf%vocflx_3, set_lake=0._r8)
+<LI>-
+<LI>-    call add_fld1d (fname='ORVOC', units='uG/M2/H',  &
+<LI>-         avgflag='A', long_name='other reactive VOC flux', &
+<LI>+    call add_fld1d (fname='LIMONENE', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='limonene flux', &
+<LI>          ptr_pft=clm3%g%l%c%p%pvf%vocflx_4, set_lake=0._r8)
+<LI>-
+<LI>     call add_fld1d (fname='BIOGENCO', units='uG/M2/H',  &
+<LI>-         avgflag='A', long_name='biogenic CO flux', &
+<LI>+         avgflag='A', long_name='biogenic co flux', &
+<LI>          ptr_pft=clm3%g%l%c%p%pvf%vocflx_5, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='OCIMENE', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='ocimene flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_9, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='ACAR', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='A-3carene flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_10, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='OMTP', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='other monoterpenes flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_11, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='FARN', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='farnicene flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_12, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='BCAR', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='b-caryophyllene flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_13, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='OSQT', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='other sesquiterpenes flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_14, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='METHANOL', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='biogenic methanol flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_15, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='ACETONE', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='acetone flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_16, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='BIOGENMETH', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='biogenic methane flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_17, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='BIOGENNOS', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='NO2/N2O/NH3 flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_18, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='BIOGENACTA', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='biogenic ethanol/acetaldehyde flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_19, set_lake=0._r8)
+<LI>+    call add_fld1d (fname='BIOGENFORM', units='uG/M2/H',  &
+<LI>+         avgflag='A', long_name='biogenic formic acid/acetic acid/formaldehyde flux', &
+<LI>+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_20, set_lake=0._r8)
+<LI>+
+<LI>+!abt removed below    call add_fld1d (fname='MONOTERP', units='uG/M2/H',  &
+<LI>+!         avgflag='A', long_name='monoterpene flux', &
+<LI>+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_2, set_lake=0._r8)
+<LI>+!
+<LI>+!    call add_fld1d (fname='OVOC', units='uG/M2/H',  &
+<LI>+!         avgflag='A', long_name='other VOC flux', &
+<LI>+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_3, set_lake=0._r8)
+<LI>+!
+<LI>+!    call add_fld1d (fname='ORVOC', units='uG/M2/H',  &
+<LI>+!         avgflag='A', long_name='other reactive VOC flux', &
+<LI>+!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_4, set_lake=0._r8)
+<LI>+!
+<LI>+!    call add_fld1d (fname='BIOGENCO', units='uG/M2/H',  &
+<LI>+!         avgflag='A', long_name='biogenic CO flux', &
+<LI>+!abt removed above         ptr_pft=clm3%g%l%c%p%pvf%vocflx_5, set_lake=0._r8)
+<LI>+!!!!abt added above
+<LI> #endif
+<LI> 
+<LI>     ! Hydrology
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

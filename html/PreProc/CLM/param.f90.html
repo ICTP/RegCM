@@ -1,0 +1,87 @@
+<HTML>
+
+<HEAD>
+<TITLE>param.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>param.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>param.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=param><H3>param</H3></a></p> Click <a href="./callingtree/param_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where param is used.
+<hr>
+20:       subroutine param(nx,ny,kz,xlat,xlon,varmin,varmax,xlat1d,xlon1d,  &
+21:                      & xlonmin,xlonmax,xlatmin,xlatmax,iadim,ndim)
+22:  
+23:       implicit none
+24: !
+25: ! Dummy arguments
+26: !
+27:       real(4) :: xlatmax , xlatmin , xlonmax , xlonmin
+28:       integer :: kz , ndim , nx , ny
+29:       integer , dimension(ndim) :: iadim
+30:       real(4) , dimension(ndim) :: varmax , varmin
+31:       real(4) , dimension(ny,nx) :: xlat , xlon
+32:       real(4) , dimension(ny) :: xlat1d
+33:       real(4) , dimension(nx) :: xlon1d
+34:       intent (in) kz , ndim , nx , ny , xlat , xlon
+35:       intent (out) iadim , varmax , varmin , xlat1d , xlatmax , xlatmin ,&
+36:                  & xlon1d , xlonmax , xlonmin
+37: !
+38: ! Local variables
+39: !
+40:       integer :: i , j
+41: !
+42:       varmin(1) = minval(xlon)
+43:       varmin(2) = minval(xlat)
+44:       varmin(3) = 1 !1050.
+45:       varmax(1) = maxval(xlon)
+46:       varmax(2) = maxval(xlat)
+47:       varmax(3) = kz !1050.
+48:       iadim(1) = nx
+49:       iadim(2) = ny
+50:       iadim(3) = kz
+51:       do i = 1 , nx
+52:         xlon1d(i) = xlon(ny/2,i)
+53:       end do
+54:       do j = 1 , ny
+55:         xlat1d(j) = xlat(j,nx/2)
+56:       end do
+57:       xlonmin = minval(xlon)
+58:       xlonmax = maxval(xlon)
+59:       xlatmin = minval(xlat)
+60:       xlatmax = maxval(xlat)
+61:  
+62:       end subroutine param
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,508 @@
+<HTML>
+
+<HEAD>
+<TITLE>chdrydep.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>chdrydep.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>chdrydep.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=chdrydep><H3>chdrydep</H3></a></p> Click <a href="./callingtree/chdrydep_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where chdrydep is used.
+<hr>
+20:       subroutine chdrydep(ilg,il1,il2,ilev,luc,nbin,ivegcov,throw,      &
+21:                         & roarow,shj,pressg,temp2,sutemp,srad,rh10,     &
+22:                         & wind10,zeff,trsize,pdepv)
+23: 
+24: !**************************************************************
+25: !  dry depostion scheme for dust particles                *****
+26: !  this scheme based on :                                 *****
+27: ! - zhang et al,(2001) : a size-segregated particle       *****
+28: !   dry deposition scheme for an atmospheric aerosol      *****
+29: !   module, atmos. env. 35, 549-560                       *****
+30: !                                                         *****
+31: ! - giorgi, f. (1986): a particle dry deposition          *****
+32: !      parameterization scheme for use in tracer          *****
+33: !      transport models. jgr,91, 9794-9806                *****
+34: !                                                         *****
+35: !  input:                                                 *****
+36: !  =====                                                  *****
+37: ! - throw : temperature in k                              *****
+38: ! - roarow : air density                                  *****
+39: ! - shj    : local mid-layer sigma value                  *****
+40: ! - pressg : grid row of surface pressure [pa]            *****
+41: ! - temp2  : temperature at 10m. (deg k)                  *****
+42: ! - sutemp : surface temperature (deg k)                  *****
+43: ! - srad   : solar irradiance at the ground(w/m**2)       *****
+44: ! - rh10   : relative humidity of air at 10m.             *****
+45: ! -vegcover: vegetation cover                             *****
+46: ! - wind10 : wind at 10 m                                 *****
+47: ! - xrow   : dust concentration      [kg/kg]              *****
+48: ! - ustar  : u*                                           *****
+49: ! - ilev   : number of model level                        *****
+50: !                                                         *****
+51: ! output                                                  *****
+52: ! ======                                                  *****
+53: ! - rtdry  : dry deposition tendency                      *****
+54: !                                                         *****
+55: !**************************************************************
+56: 
+57:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : ep2 , gti , rgti , vonkar , mathpi ,   &
+58:                                & tzero , boltzk , stdpmb
+59:       use <a href="./mod_aero_param.F90.html#mod_aero_param" TARGET=CENT_PANEL>mod_aero_param</a>
+60: 
+61:       implicit none
+62: !
+63: ! Dummy arguments
+64: !
+65:       integer :: il1 , il2 , ilev , ilg , luc , nbin
+66:       integer , dimension(ilg) :: ivegcov
+67:       real(8) , dimension(ilg,ilev,nbin) :: pdepv
+68:       real(8) , dimension(ilg) :: pressg , rh10 , srad , sutemp ,       &
+69:                                 & temp2 , wind10 , zeff
+70:       real(8) , dimension(ilg,ilev) :: roarow , throw
+71:       real(8) , dimension(ilev) :: shj
+72:       real(8) , dimension(nbin,2) :: trsize
+73:       intent (in) il1 , il2 , ilev , ilg , ivegcov , luc , nbin ,       &
+74:                 & pressg , rh10 , roarow , shj , srad , sutemp , temp2 ,&
+75:                 & throw , trsize , wind10 , zeff
+76:       intent (inout) pdepv
+77: !
+78: ! Local variables
+79: !
+80:       real(8) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
+81:                & eim , ein , es , fh , fm , frx1 , kui , logratio ,     &
+82:                & mol , pre , prii , priiv , psit , psiu , ptemp2 , qs , &
+83:                & r1 , ratioz , aa , rib , st , tbar , thstar , tsv ,    &
+84:                & tsw , ustarsq , utstar , vp , vptemp , wvpm , ww , x , &
+85:                & y , z , z0water , zdl , zl
+86:       real(8) , dimension(ilg,ilev) :: amu
+87:       real(8) , dimension(ilg) :: anu , schm , zz0
+88:       real(8) , dimension(ilg,ilev,isize) :: cfac , pdepvsub , pdiff ,  &
+89:            & rhsize , taurel
+90:       integer :: i , j , jc , k , kcov , l , lev , n , tot
+91:       real(8) , dimension(ilg,luc) :: ra , ustar , vegcover
+92:       real(8) , dimension(ilg,luc,isize) :: rs
+93:  
+94:       real(8) , parameter :: z10 = 10.0
+95: 
+96:       i = 0
+97:       do n = 1 , isize
+98:         avesize(n) = (aerosize(1,n)+aerosize(2,n))/2.0
+99:       end do
+100:  
+101: !======================================================================
+102: !     ********************************************************
+103: !     *   aerosize - dry radius                           ****
+104: !     *   rhop  - density for each aerosol type           ****
+105: !     ********************************************************
+106:       do n = 1 , isize
+107:         do l = 1 , ilev
+108:           do i = il1 , il2
+109:  
+110: !           ********************************************************
+111: !           *  aerosol gravitational settling velocity          ****
+112: !           *  and diffusion coefficient                        ****
+113: !           *                                                   ****
+114: !           * air's dynamic viscosity                           ****
+115: !           ********************************************************
+116:  
+117:             amu(i,l) = a1*1.E-8*throw(i,l)**a2/(throw(i,l)+a3)
+118:  
+119: !           . . . . mid layer pressure in [pascal].
+120:             pre = pressg(i)*shj(l)
+121: !           ********************************************************
+122: !           * mean molecular free path.                         ****
+123: !           *     k.v. beard [1976], j atm. sci., 33            ****
+124: !           ********************************************************
+125:  
+126:             amfp = c1*(amu(i,l)/c2)*(c3/pre)*(throw(i,l)/c4)**(1./2.)
+127:             prii = 2./9.*gti/amu(i,l)
+128:             priiv = prii*(rhop-roarow(i,l))
+129:  
+130: !           ********************************************************
+131: !           * cunningham slip correction factor and             ****
+132: !           * relaxation time = vg/grav.                        ****
+133: !           ********************************************************
+134:  
+135:             cfac(i,l,n) = 1. + amfp/avesize(n)                          &
+136:                         & *(aa1+aa2*exp(-aa3*avesize(n)/amfp))
+137:             taurel(i,l,n) = dmax1(priiv*avesize(n)**2*cfac(i,l,n)*rgti, &
+138:                           & 0.D0)
+139:  
+140: !           ********************************************************
+141: !           * stokes friction                                  *****
+142: !           pdepvsub(i,l,n) ' sellting dep. velocity = '
+143: !           ********************************************************
+144:  
+145:             pdepvsub(i,l,n) = taurel(i,l,n)*gti
+146:           end do
+147:         end do
+148:       end do
+149: !======================================================================
+150:  
+151: !======================================================================
+152: !     ****************************************************
+153: !     * ra : is the aerodynamic resistance above the  ****
+154: !     *      canopy and it is function in u* and      ****
+155: !     *      z0: roughness length and the stability   ****
+156: !     *      function                                 ****
+157: !     * mol  - monin obukhov length (m) - calculated  ****
+158: !     *           for each land use category          ****
+159: !     * ptemp2 -potential temperature at z2  (deg. k) ****
+160: !     * temp2 - temperature at 10m. (deg k)           ****
+161: !     * z10   - 10 m.                                 ****
+162: !     * sutemp -surface temperature (deg k)           ****
+163: !     * srad   -solar irradiance at the ground(w/m**2)****
+164: !     * rh10  - relative humidity of air at 10m.      ****
+165: !     *           (0.0-1.0)                           ****
+166: !     * stdpmb - sea level pressure (mb)               ****
+167: !     ****************************************************
+168:       do j = 1 , luc
+169:         do i = il1 , il2
+170:           ww = dmax1(wind10(i),1.0D0)
+171:           zz0(i) = zeff(i)
+172:  
+173: ! ***************************************************************
+174: !         *  potential temperature at z2  (deg. k)                 
+175: !         *****
+176:  
+177: ! ***************************************************************
+178:           ptemp2 = temp2(i) + z10*0.0098
+179:  
+180: ! ***************************************************************
+181: !         * for calculations over water compute values of critical 
+182: !         ***** * profile variables: l and ustar                       
+183: !         ***** *           ******begin for water***                   
+184: !         *****
+185:  
+186: ! ***************************************************************
+187:           if ( ivegcov(i).eq.0 ) then
+188:  
+189: ! **************************************************************
+190: !           *  vp  - vapour pressure at z2                          
+191: !           ***** *  wvpm- water vapour mixing ratio at  z2            
+192: !           ***** *  vptemp- virtual potential temperature at z2 (deg.
+193: !           k)  *****
+194: ! **************************************************************
+195:             es = 6.108*exp(17.27*(temp2(i)-tzero)/(temp2(i)-35.86))
+196:             vp = rh10(i)*es
+197:             wvpm = ep2*vp/(stdpmb-vp)
+198:             vptemp = ptemp2*(1.0+0.61*wvpm)
+199:  
+200: ! **************************************************************
+201: !           *  assume rh10 at water surface is 100%                 
+202: !           ***** *   vp = es(tsw-tzero) !sat. vap press at surface   
+203: !           ***** *   saturated vapour pressure at surface             
+204: !           ***** *   saturated mixing ratio at surface                
+205: !           ***** *   tsv - virtual potential temperature at surface   
+206: !           ***** *           (deg. k)                                 
+207: !           *****
+208:  
+209: ! **************************************************************
+210:             tsw = sutemp(i)
+211:             vp = 6.108*exp(17.27*(tsw-tzero)/(tsw-35.86))
+212:             qs = ep2*vp/(stdpmb-vp)
+213:             tsv = tsw*(1.+0.61*qs)
+214:             z0water = 1.0E-4
+215: ! **************************************************************
+216: !           * scalet  :  not required if  z2 = 10m                  
+217: !           *****
+218: ! **************************************************************
+219:             dthv = (vptemp-tsv)
+220: ! **************************************************************
+221: !           * calculate drag coefficient cun with neutral condition 
+222: !           ***** * assumption  garratt (1977)                         
+223: !           *****
+224:  
+225: ! **************************************************************
+226:             cun = 7.5E-4 + 6.7E-5*ww
+227:             mol = 9999.0
+228:  
+229:             if ( abs(dthv).gt.1.0E-6 )                                  &
+230:                & mol = vptemp*cun**1.5*ww**2/(5.096E-3*dthv)
+231:             if ( mol.gt.0. .and. mol.lt.5.0 ) mol = 5.0
+232:             if ( mol.gt.-5.0 .and. mol.lt.0 ) mol = -5.0
+233:             zdl = z10/mol
+234: !
+235:             if ( zdl.lt.0.0 ) then
+236:  
+237: ! **************************************************************
+238: !             *                        wind speed                     
+239: !             *****
+240:  
+241: ! **************************************************************
+242:               x = (1.0-15.0*zdl)**0.25
+243:               psiu = 2.*dlog(0.5*(1.0+x)) + dlog(0.5*(1.0+x*x))         &
+244:                    & - 2.0*atan(x) + 0.5*mathpi
+245:  
+246: ! **************************************************************
+247: !             *                       pot temp                        
+248: !             *****
+249: ! **************************************************************
+250:               y = sqrt(1.-9.*zdl)
+251:               psit = 2.*0.74*dlog((1+y)/2.0)
+252:             else
+253:               psiu = -4.7*zdl
+254:               psit = psiu
+255:             end if
+256:             z0water = 0.000002*ww**2.5
+257: !
+258:             ustar(i,j) = vonkar*ww/(dlog(z10/z0water)-psiu)
+259:             thstar = vonkar*(ptemp2-sutemp(i))                          &
+260:                    & /(0.74*dlog(z10/z0water)-psit)
+261:             zz0(i) = z0water
+262: !
+263:           else
+264:  
+265: ! **************************************************************
+266: !           * compute ustar and l for land use categories other than 
+267: !           **** * water use louis method. !pkk 7/16/85, find bulk     
+268: !           **** * richardson number.                                  
+269: !           ****
+270:  
+271: ! **************************************************************
+272:             rib = gti*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2)
+273:  
+274: ! ***************************************************************
+275: !           * ensure that conditions over land are never stable when 
+276: !           ***** * there is incoming solar radiatiom                  
+277: !           *****
+278: ! ***************************************************************
+279:             if ( srad(i).gt.0.0 .and. rib.gt.0.0 ) rib = 1.E-15
+280: !
+281:             dtemp = ptemp2 - sutemp(i)
+282:             if ( dabs(dtemp).lt.1.E-10 ) dtemp = dsign(1.D-10,dtemp)
+283:             tbar = 0.5*(ptemp2+sutemp(i))
+284: !
+285:             ratioz = z10/zz0(i)
+286:             logratio = dlog(ratioz)
+287:             asq = 0.16/(logratio**2)
+288: !
+289:             if ( rib.le.0.0 ) then
+290:               aa = asq*9.4*sqrt(ratioz)
+291:               cm = 7.4*aa
+292:               ch = 5.3*aa
+293:               fm = 1. - (9.4*rib/(1.+cm*sqrt(abs(rib))))
+294:               fh = 1. - (9.4*rib/(1.+ch*sqrt(abs(rib))))
+295:             else
+296:               fm = 1./((1.+4.7*rib)**2)
+297:               fh = fm
+298:             end if
+299: !
+300:             ustarsq = asq*ww**2*fm
+301:             utstar = asq*ww*dtemp*fh/0.74
+302:             ustar(i,j) = sqrt(ustarsq)
+303:             thstar = utstar/ustar(i,j)
+304: !
+305:             mol = tbar*ustarsq/(vonkar*gti*thstar)
+306:           end if
+307:  
+308:           kui = 1.0/(vonkar*ustar(i,j))
+309:  
+310: !         **************************************************************
+311: !         * compute the values of  ra                            *******
+312: !         **************************************************************
+313:  
+314:           z = z10
+315:           zl = z/mol
+316:  
+317:           if ( zl.ge.0. ) then
+318:             ra(i,j) = kui*(0.74*dlog(z/zz0(i))+4.7*zl)
+319:           else
+320:             ra(i,j) = kui*0.74*(dlog(z/zz0(i))-2.0*dlog((1+sqrt(1-9.*zl)&
+321:                     & )*0.5))
+322:           end if
+323:           ra(i,j) = dmax1(ra(i,j),0.99D0)
+324:           ra(i,j) = dmin1(ra(i,j),999.9D0)
+325:         end do
+326:       end do
+327: !======================================================================
+328:  
+329: !     *****************************************************
+330: !     * the schmidt number is the ratio of the         ****
+331: !     * kinematic viscosity of air to the particle     ****
+332: !     * brownian diffusivity ===> sc=v/d               ****
+333: !     *****************************************************
+334:  
+335:       do n = 1 , isize
+336:         do l = 1 , ilev
+337:           do i = il1 , il2
+338:  
+339: !           *****************************************************
+340: !           * for now we will not consider the humidity      ****
+341: !           * impact so we will set the variable frx1=1.0    ****
+342: !           * i.e. only dry particles                        ****
+343: !           *****************************************************
+344:  
+345:             frx1 = 1.0
+346:             rhsize(i,l,n) = avesize(n)*frx1
+347:             anu(i) = amu(i,l)/roarow(i,l)
+348:             amob = 6.*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
+349:             pdiff(i,l,n) = boltzk*throw(i,l)/amob
+350:             schm(i) = anu(i)/pdiff(i,l,n)
+351:  
+352: !           ******************************************************
+353: !           * for brownian diffusion, there is evidence that  ****
+354: !           * its fromula depend on schmidt number as :       ****
+355: !           * eb= schm x c^gama                               ****
+356: !           * where gama is efficiency factor and its value   ****
+357: !           * between 1/2 and 2/3 with larger values for      ****
+358: !           * rougher surfaces                                ****
+359: !           * ****************************************************
+360:  
+361:           end do
+362:           if ( l.eq.ilev ) then
+363:             do k = 1 , luc ! luc  = 1 for the moment
+364:               do i = il1 , il2
+365: 
+366: !======================================================================
+367: !     find the right table index for the cell cover ( ocean and lake
+368: !     are 0 in the ivegcov and 14-15 in the table )
+369: 
+370:                 if ( ivegcov(i).eq.0 ) then
+371:                   kcov = 14
+372:                 else
+373:                   kcov = ivegcov(i)
+374:                 end if
+375: 
+376:  
+377: !               ******************************************************
+378: !               * the parameter governing impaction processes is *****
+379: !               * the stokes number,st, which has the form of    *****
+380: !               * 1) st = vg x u* /g a for vegetated surefaces   *****
+381: !               *    (slinn, 1982)                               *****
+382: !               * 2) st = vg x u*2/anu for smothed surfaces or   *****
+383: !               *    surfaces with bluff roughness elements      *****
+384: !               *    (giorgi,1988)                               *****
+385: !               ******************************************************
+386:  
+387:                 st = taurel(i,l,n)*ustar(i,k)*ustar(i,k)/anu(i)
+388:  
+389:                 eb = schm(i)**(-0.666667)
+390: !               eim=(st/(st+aest(k)))**2
+391:                 eim = (st/(st+aest(kcov)))**2
+392:  
+393:  
+394:                 eim = dmin1(eim,0.6D0)
+395:                 ein = 0.0
+396: !               if (arye(k) .gt. 0.0001) then
+397: !               ein = (1000.0*2.0*avesize(n)/arye(k))**1.5
+398: !               end if
+399:  
+400:                 if ( arye(kcov).gt.0.0001 )                             &
+401:                    & ein = (1000.0*2.0*avesize(n)/arye(kcov))**1.5
+402:  
+403:                 ein = dmin1(ein,0.5D0)
+404:  
+405: !               *****************************************************
+406: !               * partickes larger than 5 micro may rebounded   *****
+407: !               * after hitting a surface,this process may be   *****
+408: !               * included by modifying the total collection    *****
+409: !               * by the factor of r1, which represents the     *****
+410: !               * fraction of particles sticking to the surface *****
+411: !               * slinn (1982) suggested the following:         *****
+412: !               * r = exp (- st^0.2)                            *****
+413: !               *****************************************************
+414:  
+415: !               r1 = exp (-st**0.5)
+416:                 r1 = dmax1(0.5D0,exp(-st**0.5))
+417: !               if (k .ge. 11 .and. r1 .lt. 0.5 ) r1=0.5
+418:                 if ( kcov.ge.11 .and. r1.lt.0.5 ) r1 = 0.5
+419:                 if ( r1.lt.0.4 ) r1 = 0.4
+420:  
+421: !               ***************************************************
+422: !               * calculation of rs: the surface resistance   *****
+423: !               * which depends on the collection efficiency  *****
+424: !               * of the surface and is determined by the     *****
+425: !               * various deposition processes                *****
+426: !               ***************************************************
+427:  
+428: !               rs= 1.0/ustar(i,k)/(eb+eim+ein)/r1
+429:                 rs(i,k,n) = 1.0/3.0/ustar(i,k)/(eb+eim+ein)/r1
+430:               end do
+431:             end do
+432:           end if
+433:         end do
+434:       end do
+435: !======================================================================
+436:  
+437: !     note for the moment vegcover = 1 ( one type of cover ivegcov per
+438:  
+439: !     gride cell)
+440:       do n = 1 , isize
+441:         do jc = 1 , luc
+442:           do i = il1 , il2
+443:  
+444: !           modify the surface layer
+445:  
+446:             vegcover(i,jc) = 1.
+447:             pdepvsub(i,ilev,n) = pdepvsub(i,ilev,n) + vegcover(i,jc)    &
+448:                                & *1.0/(ra(i,jc)+rs(i,jc,n))
+449:  
+450:           end do
+451:         end do
+452:  
+453:       end do  ! end nsize loop
+454:  
+455: !     average deposition velocities on bin
+456:       do k = 1 , nbin
+457:         tot = 0
+458:         do lev = 1 , ilev
+459:           do i = 1 , ilg
+460:             pdepv(i,lev,k) = 0.
+461:           end do
+462:         end do
+463:         do n = 1 , isize
+464:           if ( avesize(n)*1.E6.ge.trsize(k,1) .and. avesize(n)          &
+465:              & *1.E6.lt.trsize(k,2) ) then
+466:             do lev = 1 , ilev
+467:               do i = 1 , ilg
+468:                 pdepv(i,lev,k) = pdepv(i,lev,k) + pdepvsub(i,lev,n)
+469:               end do
+470:             end do
+471:             tot = tot + 1
+472:           end if
+473:         end do
+474:         if ( tot.gt.0 ) then
+475:           do lev = 1 , ilev
+476:             do i = 1 , ilg
+477:               pdepv(i,lev,k) = pdepv(i,lev,k)/tot
+478:             end do
+479:           end do
+480:         end if
+481:       end do
+482:  
+483:       end subroutine chdrydep
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

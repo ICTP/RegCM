@@ -1,0 +1,749 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_era40.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_era40.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_era40.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_era40><H3>mod_era40</H3></a></p>20:       module mod_era40
+21:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+22: 
+23:       implicit none
+24: 
+25:       private
+26: 
+27:       integer , parameter :: klev = 23 , jlat = 73 , ilon = 144
+28: 
+29:       real(4) , target , dimension(ilon,jlat,klev*3) :: b2
+30:       real(4) , target , dimension(ilon,jlat,klev*2) :: d2
+31:       real(4) , target , dimension(ilon,jlat,4*3+1) :: s2
+32:       real(4) , allocatable , target , dimension(:,:,:) :: b3
+33:       real(4) , allocatable , target , dimension(:,:,:) :: d3
+34:       real(4) , allocatable , target , dimension(:,:,:) :: s3
+35: 
+36:       real(4) , dimension(ilon,jlat,klev) :: wvar
+37: 
+38:       real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
+39:       real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+40:       real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+41:       real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+42:       real(4) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
+43:       real(4) , pointer , dimension(:,:) :: snw
+44:       real(4) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
+45:       real(4) , pointer , dimension(:,:) :: snow
+46: 
+47:       real(4) , dimension(jlat) :: glat
+48:       real(4) , dimension(ilon) :: glon
+49:       real(4) , dimension(klev) :: sigma1 , sigmar
+50: 
+51:       public :: getera40 , headerera
+52: 
+53:       contains
+54: 
+<p><a name=getera40><H3>getera40</H3></a></p> Click <a href="./callingtree/getera40_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where getera40 is used.
+<hr>
+55:       subroutine getera40(idate)
+56:       use <a href="./mod_date.f90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : julian
+57:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+58:       use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+59:       use <a href="./mod_interp.f90.html#mod_interp" TARGET=CENT_PANEL>mod_interp</a> , only : bilinx2
+60:       use <a href="./mod_vertint.f90.html#mod_vertint" TARGET=CENT_PANEL>mod_vertint</a>
+61:       use <a href="./mod_hgt.f90.html#mod_hgt" TARGET=CENT_PANEL>mod_hgt</a>
+62:       use <a href="./mod_humid.f90.html#mod_humid" TARGET=CENT_PANEL>mod_humid</a>
+63:       use <a href="./mod_mksst.f90.html#mod_mksst" TARGET=CENT_PANEL>mod_mksst</a>
+64:       use <a href="./mod_uvrot.f90.html#mod_uvrot" TARGET=CENT_PANEL>mod_uvrot</a>
+65:       use <a href="./mod_vectutil.f90.html#mod_vectutil" TARGET=CENT_PANEL>mod_vectutil</a>
+66:       implicit none
+67: !
+68: ! Dummy arguments
+69: !
+70:       integer :: idate
+71: !
+72: ! Local variables
+73: !
+74:       integer :: nmop , nyrp
+75:       real(4) :: wt
+76: !
+77: !     D      BEGIN LOOP OVER NTIMES
+78: !
+79:       call <a href="./mod_era40.f90.html#era6hour" TARGET=CENT_PANEL>era6hour</a>(dattyp,lsmtyp,idate,globidate1)
+80:       write (*,*) 'READ IN fields at DATE:' , idate
+81: !
+82: !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+83: !
+84:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+85:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+86:       if ( lsmtyp=='USGS' ) call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(s3,s2,xlon,xlat,glon,glat,ilon,&
+87:                                       & jlat,jx,iy,4*3+1)
+88: !
+89: !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+90: !
+91:       call <a href="./mod_uvrot.f90.html#uvrot4" TARGET=CENT_PANEL>uvrot4</a>(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,&
+92:                 & iproj)
+93: !
+94: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+95: !     X X
+96: !     V E R T I C A L   I N T E R P O L A T I O N
+97: !
+98: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+99: !     X X
+100: !HH:  CHANGE THE VERTICAL ORDER.
+101:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(t3,jx,iy,klev)
+102:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(q3,jx,iy,klev)
+103:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(h3,jx,iy,klev)
+104:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(u3,jx,iy,klev)
+105:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(v3,jx,iy,klev)
+106: !HH:OVER
+107: !
+108: !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+109:       call <a href="./mod_vertint.f90.html#intgtb" TARGET=CENT_PANEL>intgtb</a>(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
+110:  
+111:       call <a href="./mod_vertint.f90.html#intpsn" TARGET=CENT_PANEL>intpsn</a>(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+112:       call <a href="./mod_vectutil.f90.html#p1p2" TARGET=CENT_PANEL>p1p2</a>(b3pd,ps4,jx,iy)
+113:  
+114: !
+115: !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
+116: !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
+117:       call <a href="./mod_vertint.f90.html#intv3" TARGET=CENT_PANEL>intv3</a>(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
+118:  
+119:       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
+120: !       F1  CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
+121:         print * , 'INPUT DAY FOR SST DATA ACQUISITION:' , idate
+122:         call <a href="./mod_date.f90.html#julian" TARGET=CENT_PANEL>julian</a>(idate,nyrp,nmop,wt)
+123: !
+124:         if ( ssttyp=='OI2ST' ) then
+125:           call <a href="./mod_mksst.f90.html#mkssta" TARGET=CENT_PANEL>mkssta</a>(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,      &
+126:                  &    nyrp,nmop,wt)
+127:         else
+128:           call <a href="./mod_mksst.f90.html#mksst" TARGET=CENT_PANEL>mksst</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+129:         end if
+130:       else
+131:         if ( ssttyp=='OI2WK' ) then
+132:           call <a href="./mod_mksst.f90.html#mksst2a" TARGET=CENT_PANEL>mksst2a</a>(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,     &
+133:                    &   idate/100)
+134:         else
+135:           call <a href="./mod_mksst.f90.html#mksst2" TARGET=CENT_PANEL>mksst2</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
+136:         end if
+137:       end if
+138:  
+139: !     F2  DETERMINE P* AND HEIGHT.
+140: !
+141: !     F3  INTERPOLATE U, V, T, AND Q.
+142:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+143:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+144: !
+145:       call <a href="./mod_vertint.f90.html#intv2" TARGET=CENT_PANEL>intv2</a>(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+146:  
+147:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+148:       call <a href="./mod_humid.f90.html#humid2" TARGET=CENT_PANEL>humid2</a>(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+149: !
+150: !     F4  DETERMINE H
+151:       call <a href="./mod_hgt.f90.html#hydrost" TARGET=CENT_PANEL>hydrost</a>(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
+152: !
+153: !     G   WRITE AN INITIAL FILE FOR THE RCM
+154:       call <a href="./mod_write.f90.html#writefs" TARGET=CENT_PANEL>writefs</a>(qs3,ti3,ts3,snow,ptop,idate,lsmtyp)
+155: !
+156:       end subroutine getera40
+157: 
+<p><a name=era6hour><H3>era6hour</H3></a></p> Click <a href="./callingtree/era6hour_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where era6hour is used.
+<hr>
+158:       subroutine era6hour(dattyp,lsmtyp,idate,idate0)
+159:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+160:       implicit none
+161: !
+162: ! Dummy arguments
+163: !
+164:       character(5) :: dattyp
+165:       integer :: idate , idate0
+166:       character(4) :: lsmtyp
+167:       intent (in) dattyp , idate , idate0 , lsmtyp
+168: !
+169: ! Local variables
+170: !
+171:       integer :: i , inet , it , j , k , k4 , kkrec , l4 , month ,      &
+172:                & nday , nhour , nyear , istatus
+173:       character(24) :: inname
+174:       character(256) :: pathaddname
+175: !     character(5) , dimension(3,4) :: sarname
+176: !     character(2) :: snownm
+177:       logical :: there
+178: !     character(5) , dimension(6) :: varname
+179:       integer(2) , dimension(ilon,jlat,klev) :: work
+180:       integer(2) , dimension(ilon,jlat) :: work2d
+181:       real(8) :: xadd , xscale
+182: 
+183:       integer , dimension(10) , save :: icount , istart
+184:       real(8) , dimension(5,4) , save :: xoff , xscl
+185:       real(8) , dimension(3,4,4) , save :: xoff_s , xscl_s
+186:       real(8) , dimension(4) , save :: xoff_sn , xscl_sn
+187:       integer , dimension(5,4) , save :: inet6
+188:       integer , dimension(3,4,4) , save :: isnet3
+189:       integer , dimension(4) , save :: isnow
+190: !
+191: !     This is the latitude, longitude dimension of the grid to be read.
+192: !     This corresponds to the lat and lon dimension variables in the
+193: !     netCDF file.
+194: !
+195: !     The data are packed into short integers (INTEGER*2).  The array
+196: !     work will be used to hold the packed integers.  The array 'x'
+197: !     will contain the unpacked data.
+198: !
+199: !     DATA ARRAY AND WORK ARRAY
+200: !
+201: !     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega'/
+202: !     data sarname/'swvl1' , 'istl1' , 'stl1' , 'swvl2' , 'istl2' ,     &
+203: !         &'stl2' , 'swvl3' , 'istl3' , 'stl3' , 'swvl4' , 'istl4' ,    &
+204: !         &'stl4'/
+205: !     data snownm/'sd'/
+206: !
+207: !     Below in the ncopen call is the file name of the netCDF file.
+208: !     You may want to add code to read in the file name and the
+209: !     variable name.
+210: !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
+211: !
+212: !bxq
+213:       if ( idate<1957090100 .or. idate>2002083118 ) then
+214:         write (*,*) 'ERA40 datasets is just available from' ,           &
+215:                    &' 1957090100 to 2002083118'
+216:         stop
+217:       end if
+218:  
+219:       nyear = idate/1000000
+220:       month = idate/10000 - nyear*100
+221:       nday = idate/100 - nyear*10000 - month*100
+222:       nhour = idate - nyear*1000000 - month*10000 - nday*100
+223:       if ( idate==idate0 .or.                                           &
+224:          & (mod(idate,100000)==10100 .and. mod(idate,1000000)/=110100) )&
+225:          & then
+226:         do k4 = 1 , 4
+227:           do kkrec = 1 , 5
+228:             if ( kkrec==1 ) then
+229:               if ( k4==1 ) then
+230:                 write (inname,99001) nyear , 'air.' , nyear
+231:               else if ( k4==2 ) then
+232:                 write (inname,99002) nyear , 'air.' , nyear
+233:               else if ( k4==3 ) then
+234:                 write (inname,99003) nyear , 'air.' , nyear
+235:               else if ( k4==4 ) then
+236:                 write (inname,99004) nyear , 'air.' , nyear
+237:               else
+238:               end if
+239:             else if ( kkrec==2 ) then
+240:               if ( k4==1 ) then
+241:                 write (inname,99001) nyear , 'hgt.' , nyear
+242:               else if ( k4==2 ) then
+243:                 write (inname,99002) nyear , 'hgt.' , nyear
+244:               else if ( k4==3 ) then
+245:                 write (inname,99003) nyear , 'hgt.' , nyear
+246:               else if ( k4==4 ) then
+247:                 write (inname,99004) nyear , 'hgt.' , nyear
+248:               else
+249:               end if
+250:             else if ( kkrec==3 ) then
+251:               if ( k4==1 ) then
+252:                 write (inname,99005) nyear , 'rhum.' , nyear
+253:               else if ( k4==2 ) then
+254:                 write (inname,99006) nyear , 'rhum.' , nyear
+255:               else if ( k4==3 ) then
+256:                 write (inname,99007) nyear , 'rhum.' , nyear
+257:               else if ( k4==4 ) then
+258:                 write (inname,99008) nyear , 'rhum.' , nyear
+259:               else
+260:               end if
+261:             else if ( kkrec==4 ) then
+262:               if ( k4==1 ) then
+263:                 write (inname,99005) nyear , 'uwnd.' , nyear
+264:               else if ( k4==2 ) then
+265:                 write (inname,99006) nyear , 'uwnd.' , nyear
+266:               else if ( k4==3 ) then
+267:                 write (inname,99007) nyear , 'uwnd.' , nyear
+268:               else if ( k4==4 ) then
+269:                 write (inname,99008) nyear , 'uwnd.' , nyear
+270:               else
+271:               end if
+272:             else if ( kkrec==5 ) then
+273:               if ( k4==1 ) then
+274:                 write (inname,99005) nyear , 'vwnd.' , nyear
+275:               else if ( k4==2 ) then
+276:                 write (inname,99006) nyear , 'vwnd.' , nyear
+277:               else if ( k4==3 ) then
+278:                 write (inname,99007) nyear , 'vwnd.' , nyear
+279:               else if ( k4==4 ) then
+280:                 write (inname,99008) nyear , 'vwnd.' , nyear
+281:               else
+282:               end if
+283:             else if ( kkrec==6 ) then
+284:               if ( k4==1 ) then
+285:                 write (inname,99009) nyear , 'omega.' , nyear
+286:               else if ( k4==2 ) then
+287:                 write (inname,99010) nyear , 'omega.' , nyear
+288:               else if ( k4==3 ) then
+289:                 write (inname,99011) nyear , 'omega.' , nyear
+290:               else if ( k4==4 ) then
+291:                 write (inname,99012) nyear , 'omega.' , nyear
+292:               else
+293:               end if
+294:             else
+295:             end if
+296:  
+297:             pathaddname = trim(inpglob)//dattyp//'/'//inname
+298:             inquire (file=pathaddname,exist=there)
+299:             if ( .not.there ) then
+300:               print * , trim(pathaddname) , ' is not available'
+301:               stop
+302:             end if
+303:             istatus = nf90_open(pathaddname,nf90_nowrite,               &
+304:                    & inet6(kkrec,k4))
+305:             if ( istatus/=nf90_noerr ) then
+306:               write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
+307:               stop 'INPUT FILE OPEN ERROR'
+308:             end if
+309:             istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',    &
+310:                    & xscl(kkrec,k4))
+311:             if ( istatus/=nf90_noerr ) then
+312:               write ( 6,* ) 'Variable has not scale_factor'
+313:               stop 'ATTRIBUTE ERROR'
+314:             end if
+315:             istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
+316:                    & xoff(kkrec,k4))
+317:             if ( istatus/=nf90_noerr ) then
+318:               write ( 6,* ) 'Variable has not add_offset'
+319:               stop 'ATTRIBUTE ERROR'
+320:             end if
+321:             write (*,*) inet6(kkrec,k4) , trim(pathaddname) ,           &
+322:                       & xscl(kkrec,k4) , xoff(kkrec,k4)
+323:           end do
+324:         end do
+325:  
+326:         if ( lsmtyp=='USGS' ) then
+327:           do k4 = 1 , 4
+328:             do l4 = 1 , 4
+329:               do kkrec = 1 , 3
+330:                 if ( kkrec==1 ) then
+331:                   if ( k4==1 ) then
+332:                     write (inname,99013) 'Qsoil_' , l4
+333:                   else if ( k4==2 ) then
+334:                     write (inname,99014) 'Qsoil_' , l4
+335:                   else if ( k4==3 ) then
+336:                     write (inname,99015) 'Qsoil_' , l4
+337:                   else if ( k4==4 ) then
+338:                     write (inname,99016) 'Qsoil_' , l4
+339:                   else
+340:                   end if
+341:                 else if ( kkrec==2 ) then
+342:                   if ( k4==1 ) then
+343:                     write (inname,99017) 'Tice_' , l4
+344:                   else if ( k4==2 ) then
+345:                     write (inname,99018) 'Tice_' , l4
+346:                   else if ( k4==3 ) then
+347:                     write (inname,99019) 'Tice_' , l4
+348:                   else if ( k4==4 ) then
+349:                     write (inname,99020) 'Tice_' , l4
+350:                   else
+351:                   end if
+352:                 else if ( kkrec==3 ) then
+353:                   if ( k4==1 ) then
+354:                     write (inname,99013) 'Tsoil_' , l4
+355:                   else if ( k4==2 ) then
+356:                     write (inname,99014) 'Tsoil_' , l4
+357:                   else if ( k4==3 ) then
+358:                     write (inname,99015) 'Tsoil_' , l4
+359:                   else if ( k4==4 ) then
+360:                     write (inname,99016) 'Tsoil_' , l4
+361:                   else
+362:                   end if
+363:                 else
+364:                 end if
+365:  
+366:                 pathaddname = trim(inpglob)//dattyp//'/0surface/'//     &
+367:                             & inname
+368:                 inquire (file=pathaddname,exist=there)
+369:                 if ( .not.there ) then
+370:                   print * , trim(pathaddname) , ' is not available'
+371:                   stop
+372:                 end if
+373:                 istatus = nf90_open(pathaddname,nf90_nowrite,           &
+374:                        & isnet3(kkrec,l4,k4))
+375:                 if ( istatus/=nf90_noerr ) then
+376:                   write ( 6,* ) 'Cannot open input file ',              &
+377:                          &      trim(pathaddname)
+378:                   stop 'INPUT FILE OPEN ERROR'
+379:                 end if
+380:                 istatus = nf90_get_att(isnet3(kkrec,l4,k4),4,           &
+381:                         &'scale_factor',xscl_s(kkrec,l4,k4))
+382:                 if ( istatus/=nf90_noerr ) then
+383:                   write ( 6,* ) 'Variable has not scale_factor'
+384:                   stop 'ATTRIBUTE ERROR'
+385:                 end if
+386:                 istatus = nf90_get_att(isnet3(kkrec,l4,k4),4,           &
+387:                         &'add_offset',xoff_s(kkrec,l4,k4))
+388:                 if ( istatus/=nf90_noerr ) then
+389:                   write ( 6,* ) 'Variable has not add_offset'
+390:                   stop 'ATTRIBUTE ERROR'
+391:                 end if
+392:                 write (*,*) isnet3(kkrec,l4,k4) , trim(pathaddname) ,   &
+393:                           & xscl_s(kkrec,l4,k4) , xoff_s(kkrec,l4,k4)
+394:               end do
+395:             end do
+396:  
+397:             if ( k4==1 ) then
+398:               write (inname,99021) 'snowdpth'
+399:             else if ( k4==2 ) then
+400:               write (inname,99022) 'snowdpth'
+401:             else if ( k4==3 ) then
+402:               write (inname,99023) 'snowdpth'
+403:             else if ( k4==4 ) then
+404:               write (inname,99024) 'snowdpth'
+405:             else
+406:             end if
+407:             pathaddname = trim(inpglob)//dattyp//'/0surface/'//inname
+408:             inquire (file=pathaddname,exist=there)
+409:             if ( .not.there ) then
+410:               print * , pathaddname , ' is not available'
+411:               stop
+412:             end if
+413:             istatus = nf90_open(pathaddname,nf90_nowrite,isnow(k4))
+414:             if ( istatus/=nf90_noerr ) then
+415:               write ( 6,* ) 'Cannot open input file ',              &
+416:                       &      trim(pathaddname)
+417:               stop 'INPUT FILE OPEN ERROR'
+418:             end if
+419:             istatus = nf90_get_att(isnow(k4),4,'scale_factor',          &
+420:                    & xscl_sn(k4))
+421:             if ( istatus/=nf90_noerr ) then
+422:               write ( 6,* ) 'Variable has not scale_factor'
+423:               stop 'ATTRIBUTE ERROR'
+424:             end if
+425:             istatus = nf90_get_att(isnow(k4),4,'add_offset',            &
+426:                    & xoff_sn(k4))
+427:             if ( istatus/=nf90_noerr ) then
+428:               write ( 6,* ) 'Variable has not scale_factor'
+429:               stop 'ATTRIBUTE ERROR'
+430:             end if
+431:             write (*,*) isnow(k4) , trim(pathaddname) ,                 &
+432:                      &  xscl_sn(k4) , xoff_sn(k4)
+433:  
+434:           end do
+435:         end if
+436:       end if
+437:  
+438:       k4 = nhour/6 + 1
+439:       it = nday
+440:       if ( month==2 ) it = it + 31
+441:       if ( month==3 ) it = it + 59
+442:       if ( month==4 ) it = it + 90
+443:       if ( month==5 ) it = it + 120
+444:       if ( month==6 ) it = it + 151
+445:       if ( month==7 ) it = it + 181
+446:       if ( month==8 ) it = it + 212
+447:       if ( month==9 ) it = it + 243
+448:       if ( month==10 ) it = it + 273
+449:       if ( month==11 ) it = it + 304
+450:       if ( month==12 ) it = it + 334
+451:       if ( mod(nyear,4)==0 .and. month>2 ) it = it + 1
+452:       if ( mod(nyear,100)==0 .and. month>2 ) it = it - 1
+453:       if ( mod(nyear,400)==0 .and. month>2 ) it = it + 1
+454:       do k = 1 , 4
+455:         istart(k) = 1
+456:       end do
+457:       do k = 5 , 10
+458:         istart(k) = 0
+459:         icount(k) = 0
+460:       end do
+461:       icount(1) = ilon
+462:       icount(2) = jlat
+463:       icount(3) = klev
+464:       icount(4) = 365
+465:       if ( mod(nyear,4)==0 ) icount(4) = 366
+466:       if ( mod(nyear,100)==0 ) icount(4) = 365
+467:       if ( mod(nyear,400)==0 ) icount(4) = 366
+468:       if ( nyear==2002 ) icount(4) = 243
+469:       if ( nyear==1957 ) icount(4) = 122
+470:       if ( nyear==1957 ) it = it - 243
+471:       istart(4) = it
+472:       icount(4) = 1
+473: !bxq_
+474:       do kkrec = 1 , 5
+475:         inet = inet6(kkrec,k4)
+476:         istatus = nf90_get_var(inet,5,work,istart,icount)
+477:         if ( istatus/=nf90_noerr ) then
+478:           write ( 6,* ) 'Read Variable error at ', istart 
+479:           stop 'NetCDF READ ERROR'
+480:         end if
+481:         xscale = xscl(kkrec,k4)
+482:         xadd = xoff(kkrec,k4)
+483:         if ( kkrec==1 ) then
+484:           do k = 1 , klev
+485:             do j = 1 , jlat
+486:               do i = 1 , ilon
+487:                 tvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+488:               end do
+489:             end do
+490:           end do
+491:         else if ( kkrec==2 ) then
+492:           do k = 1 , klev
+493:             do j = 1 , jlat
+494:               do i = 1 , ilon
+495:                 hvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+496:                 hvar(i,jlat+1-j,k) = hvar(i,jlat+1-j,k)/9.80616
+497:               end do
+498:             end do
+499:           end do
+500:         else if ( kkrec==3 ) then
+501:           do k = 1 , klev
+502:             do j = 1 , jlat
+503:               do i = 1 , ilon
+504:                 rhvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+505:                 rhvar(i,jlat+1-j,k) = rhvar(i,jlat+1-j,k)*0.01
+506: !               RHvar(i,jlat+1-j,k)=amax1(RHvar(i,jlat+1-j,k),1.05)
+507:               end do
+508:             end do
+509:           end do
+510:         else if ( kkrec==4 ) then
+511:           do k = 1 , klev
+512:             do j = 1 , jlat
+513:               do i = 1 , ilon
+514:                 uvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+515:               end do
+516:             end do
+517:           end do
+518:         else if ( kkrec==5 ) then
+519:           do k = 1 , klev
+520:             do j = 1 , jlat
+521:               do i = 1 , ilon
+522:                 vvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+523:               end do
+524:             end do
+525:           end do
+526:         else if ( kkrec==6 ) then
+527:           do k = 1 , klev
+528:             do j = 1 , jlat
+529:               do i = 1 , ilon
+530:                 wvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+531:               end do
+532:             end do
+533:           end do
+534:         else
+535:         end if
+536:       end do
+537:  
+538:       if ( lsmtyp=='USGS' ) then
+539:         k4 = nhour/6 + 1
+540:         it = nday
+541:         if ( month==2 ) it = it + 31
+542:         if ( month==3 ) it = it + 59
+543:         if ( month==4 ) it = it + 90
+544:         if ( month==5 ) it = it + 120
+545:         if ( month==6 ) it = it + 151
+546:         if ( month==7 ) it = it + 181
+547:         if ( month==8 ) it = it + 212
+548:         if ( month==9 ) it = it + 243
+549:         if ( month==10 ) it = it + 273
+550:         if ( month==11 ) it = it + 304
+551:         if ( month==12 ) it = it + 334
+552:         if ( mod(nyear,4)==0 .and. month>2 ) it = it + 1
+553:         if ( mod(nyear,100)==0 .and. month>2 ) it = it - 1
+554:         if ( mod(nyear,400)==0 .and. month>2 ) it = it + 1
+555:         do k = 1957 , nyear - 1
+556:           it = it + 365
+557:           if ( mod(k,4)==0 ) it = it + 1
+558:         end do
+559:         it = it - 243
+560:  
+561:         do k = 1 , 3
+562:           istart(k) = 1
+563:         end do
+564:         do k = 4 , 10
+565:           istart(k) = 0
+566:           icount(k) = 0
+567:         end do
+568:         icount(1) = ilon
+569:         icount(2) = jlat
+570:         istart(3) = it
+571:         icount(3) = 1
+572: !bxq_
+573:         do l4 = 1 , 4
+574:           do kkrec = 1 , 3
+575:             inet = isnet3(kkrec,l4,k4)
+576:             istatus = nf90_get_var(inet,4,work2d,istart,icount)
+577:             if ( istatus/=nf90_noerr ) then
+578:               write ( 6,* ) 'Read Variable error at ', istart 
+579:               stop 'NetCDF READ ERROR'
+580:             end if
+581:             xscale = xscl_s(kkrec,l4,k4)
+582:             xadd = xoff_s(kkrec,l4,k4)
+583:             if ( kkrec==1 ) then
+584:               do j = 1 , jlat
+585:                 do i = 1 , ilon
+586:                   qsoil(i,jlat+1-j,l4) = work2d(i,j)*xscale + xadd
+587:                 end do
+588:               end do
+589:             else if ( kkrec==2 ) then
+590:               do j = 1 , jlat
+591:                 do i = 1 , ilon
+592:                   tsice(i,jlat+1-j,l4) = work2d(i,j)*xscale + xadd
+593:                 end do
+594:               end do
+595:             else if ( kkrec==3 ) then
+596:               do j = 1 , jlat
+597:                 do i = 1 , ilon
+598:                   tsoil(i,jlat+1-j,l4) = work2d(i,j)*xscale + xadd
+599:                 end do
+600:               end do
+601:             else
+602:             end if
+603:           end do
+604:         end do
+605:         inet = isnow(k4)
+606:         istatus = nf90_get_var(inet,4,work2d,istart,icount)
+607:         if ( istatus/=nf90_noerr ) then
+608:           write ( 6,* ) 'Read Variable error at ', istart 
+609:           stop 'NetCDF READ ERROR'
+610:         end if
+611:         xscale = xscl_sn(k4)
+612:         xadd = xoff_sn(k4)
+613:         do j = 1 , jlat
+614:           do i = 1 , ilon
+615:             snw(i,jlat+1-j) = work2d(i,j)*xscale + xadd
+616:           end do
+617:         end do
+618:       end if
+619: 99001 format (i4,'/',a4,i4,'.00.nc')
+620: 99002 format (i4,'/',a4,i4,'.06.nc')
+621: 99003 format (i4,'/',a4,i4,'.12.nc')
+622: 99004 format (i4,'/',a4,i4,'.18.nc')
+623: 99005 format (i4,'/',a5,i4,'.00.nc')
+624: 99006 format (i4,'/',a5,i4,'.06.nc')
+625: 99007 format (i4,'/',a5,i4,'.12.nc')
+626: 99008 format (i4,'/',a5,i4,'.18.nc')
+627: 99009 format (i4,'/',a6,i4,'.00.nc')
+628: 99010 format (i4,'/',a6,i4,'.06.nc')
+629: 99011 format (i4,'/',a6,i4,'.12.nc')
+630: 99012 format (i4,'/',a6,i4,'.18.nc')
+631: 99013 format (a6,i1,'L.00.nc')
+632: 99014 format (a6,i1,'L.06.nc')
+633: 99015 format (a6,i1,'L.12.nc')
+634: 99016 format (a6,i1,'L.18.nc')
+635: 99017 format (a5,i1,'L.00.nc')
+636: 99018 format (a5,i1,'L.06.nc')
+637: 99019 format (a5,i1,'L.12.nc')
+638: 99020 format (a5,i1,'L.18.nc')
+639: 99021 format (a8,'.00.nc')
+640: 99022 format (a8,'.06.nc')
+641: 99023 format (a8,'.12.nc')
+642: 99024 format (a8,'.18.nc')
+643: !
+644:       end subroutine era6hour
+645: 
+<p><a name=headerera><H3>headerera</H3></a></p> Click <a href="./callingtree/headerera_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where headerera is used.
+<hr>
+646:       subroutine headerera
+647:       implicit none
+648: !
+649: ! Local variables
+650: !
+651:       integer :: i , j , k , kr
+652: !
+653:       sigmar(1) = .001
+654:       sigmar(2) = .002
+655:       sigmar(3) = .003
+656:       sigmar(4) = .005
+657:       sigmar(5) = .007
+658:       sigmar(6) = .01
+659:       sigmar(7) = .02
+660:       sigmar(8) = .03
+661:       sigmar(9) = .05
+662:       sigmar(10) = .07
+663:       sigmar(11) = .1
+664:       sigmar(12) = .15
+665:       sigmar(13) = .2
+666:       sigmar(14) = .25
+667:       sigmar(15) = .3
+668:       sigmar(16) = .4
+669:       sigmar(17) = .5
+670:       sigmar(18) = .6
+671:       sigmar(19) = .7
+672:       sigmar(20) = .775
+673:       sigmar(21) = .85
+674:       sigmar(22) = .925
+675:       sigmar(23) = 1.00
+676: !
+677: !     INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
+678: !
+679:       do i = 1 , ilon
+680:         glon(i) = float(i-1)*2.5
+681:       end do
+682:       do j = 1 , jlat
+683:         glat(j) = -90.0 + float(j-1)*2.5
+684:       end do
+685: !HH:OVER
+686: !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
+687: !
+688:       do k = 1 , klev
+689:         kr = klev - k + 1
+690:         sigma1(k) = sigmar(kr)
+691:       end do
+692:  
+693:       allocate(b3(jx,iy,klev*3))
+694:       allocate(d3(jx,iy,klev*2))
+695:       allocate(s3(jx,iy,4*3+1))
+696: 
+697: !     Set up pointers
+698: 
+699:       u3 => d3(:,:,1:klev)
+700:       v3 => d3(:,:,klev+1:2*klev)
+701:       t3 => b3(:,:,1:klev)
+702:       h3 => b3(:,:,klev+1:2*klev)
+703:       q3 => b3(:,:,2*klev+1:3*klev)
+704:       qs3 => s3(:,:,1:4)
+705:       ti3 => s3(:,:,5:8)
+706:       ts3 => s3(:,:,9:12)
+707:       snow => s3(:,:,13)
+708:       uvar => d2(:,:,1:klev)
+709:       vvar => d2(:,:,klev+1:2*klev)
+710:       tvar => b2(:,:,1:klev)
+711:       hvar => b2(:,:,klev+1:2*klev)
+712:       rhvar => b2(:,:,2*klev+1:3*klev)
+713:       qsoil => s2(:,:,1:4)
+714:       tsice => s2(:,:,5:8)
+715:       tsoil => s2(:,:,9:12)
+716:       snw => s2(:,:,13)
+717: 
+718:       end subroutine headerera
+719: 
+720:       end module mod_era40
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

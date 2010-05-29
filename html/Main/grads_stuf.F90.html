@@ -1,0 +1,1515 @@
+<HTML>
+
+<HEAD>
+<TITLE>grads_stuf.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>grads_stuf.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>grads_stuf.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=gradsbat><H3>gradsbat</H3></a></p> Click <a href="./callingtree/gradsbat_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gradsbat is used.
+<hr>
+20:       subroutine gradsbat(ctlname)
+21:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+22:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+23:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+24:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+25:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+26:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : r8pt , a
+27: !#ifdef INTEL
+28: !  include 'ifport.f90'
+29: !#endif
+30:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+31: #ifdef MPP1
+32:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+33: #endif
+34:       implicit none
+35: !
+36: ! Dummy arguments
+37: !
+38:       character(18) :: ctlname
+39: !
+40: ! Local variables
+41: !
+42:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+43:                & centerj , rlatinc , rloninc
+44:       character(2) , dimension(31) :: cday
+45:       character(3) , dimension(12) :: cmonth
+46:       integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
+47:                & nday , nhour , nnumb , nx , ny
+48: !
+49:       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
+50:           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+51:          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
+52:          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
+53:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+54:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+55: !
+56:       alatmin = 999999.
+57:       alatmax = -999999.
+58:       alonmin = 999999.
+59:       alonmax = -999999.
+60:       nx = 0
+61:       ny = 0
+62:       centerj = (jxm2)/2.
+63:       centeri = (iym2)/2.
+64: 
+65:       open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
+66:       write (31,99001) ctlname(1:14)
+67:       write (31,99002)
+68:       if ( ibigend.eq.1 ) then
+69:         write (31,99003)
+70:       else if ( ibigend.eq.0 ) then
+71:         write (31,99004)
+72:       else
+73:       end if
+74:       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
+75:       write (31,99005)
+76:       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+77:         do j = 2 , jx-1
+78: #ifdef MPP1
+79:           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+80:           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
+81: #else
+82:           if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+83:           if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
+84: #endif
+85:         end do
+86:         do i = 2 , iy-1
+87:           do j = 2 , jx-1
+88: #ifdef MPP1
+89:             if ( clon.ge.0.0 ) then
+90:               if ( xlong_io(i,j).ge.0.0 ) then
+91:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+92:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+93:               else if ( abs(clon-xlong_io(i,j))                         &
+94:                       & .lt.abs(clon-(xlong_io(i,j)+360.)) ) then
+95:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+96:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+97:               else
+98:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j))+360.)
+99:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j))+360.)
+100:               end if
+101:             else if ( xlong_io(i,j).lt.0.0 ) then
+102:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+103:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+104:             else if ( abs(clon-xlong_io(i,j))                           &
+105:                     & .lt.abs(clon-(xlong_io(i,j)-360.)) ) then
+106:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+107:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+108:             else
+109:               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
+110:               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
+111:             end if
+112: #else
+113:             if ( clon.ge.0.0 ) then
+114:               if ( xlong(i,j).ge.0.0 ) then
+115:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+116:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+117:               else if ( abs(clon-xlong(i,j))                            &
+118:                       & .lt.abs(clon-(xlong(i,j)+360.)) ) then
+119:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+120:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+121:               else
+122:                 alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
+123:                 alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
+124:               end if
+125:             else if ( xlong(i,j).lt.0.0 ) then
+126:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+127:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+128:             else if ( abs(clon-xlong(i,j))                              &
+129:                     & .lt.abs(clon-(xlong(i,j)-360.)) ) then
+130:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+131:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+132:             else
+133:               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
+134:               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
+135:             end if
+136: #endif
+137:           end do
+138:         end do
+139:         rlatinc = dx*0.001/111./2.
+140:         rloninc = dx*0.001/111./2.
+141:         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+142:         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+143:       end if
+144:       if ( iotyp.eq.1 ) then
+145:         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+146:           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
+147:                          & centeri , truelatl , truelath , clon , dx ,&
+148:                          & dx
+149:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+150:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+151:         else if ( iproj.eq.'POLSTR' ) then
+152:                                         !
+153:         else if ( iproj.eq.'NORMER' ) then
+154: #ifdef MPP1
+155:           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
+156:                          & - xlong_io(2,2)
+157:           write (31,99010) iym2
+158:           write (31,99011) (xlat_io(i,2),i=2,iym1)
+159: #else
+160:           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+161:           write (31,99010) iym2
+162:           write (31,99011) (xlat(i,2),i=2,iym1)
+163: #endif
+164:         else if ( iproj.eq.'ROTMER' ) then
+165:           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
+166:                      &' projections are not supported by GrADS.'
+167:           write (*,*) '  Although not exact, the eta.u projection' ,    &
+168:                      &' in GrADS is somewhat similar.'
+169:           write (*,*) ' FERRET, however, does support this projection.'
+170:           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
+171:                          & dx/111000. , dx/111000.*.95238
+172:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+173:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+174:         else
+175:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'INVALID MAP PROJECTION')
+176:         end if
+177:       else if ( iotyp.eq.2 ) then
+178: #ifdef MPP1
+179:         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
+180:                        & - xlong_io(2,2)
+181:         write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
+182:                        & - xlat_io(2,2)
+183: #else
+184:         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+185:         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+186: #endif
+187:       else
+188:       end if
+189:       write (31,99014) (1013.25-r8pt*10.)*a(kz) + r8pt*10.
+190:       myear = ldatez/1000000
+191:       month = (ldatez-myear*1000000)/10000
+192:       nday = (ldatez-myear*1000000-month*10000)/100
+193:       nhour = mod(ldatez,100)
+194:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(nbase,ldatez)
+195:       if ( month.eq.12 ) then
+196:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+1010100)
+197:       else
+198:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+month*10000+10100)
+199:       end if
+200:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(jbend,idate2)
+201:       if ( ldatez.eq.idate0 ) then
+202:         nnumb = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
+203:       else
+204:         nnumb = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)
+205:       end if
+206:       ifrq = batfrq + 0.00001
+207:       if ( ldatez.eq.idate0 ) then
+208:         write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+209:                        & myear , ifrq
+210:       else
+211:         write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+212:                        & cmonth(month) , myear , ifrq
+213:       end if
+214:       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
+215:       write (31,99016) 21 + 6
+216:       if ( iproj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
+217:         write (31,99018) 'u10m    ' ,                                   &
+218:                         &'westerly  wind at 10m (m/s)          '
+219:         write (31,99019) 'v10m    ' ,                                   &
+220:                         &'southerly wind at 10m (m/s)          '
+221:       else
+222:         write (31,99017) 'u10m    ' ,                                   &
+223:                         &'westerly  wind at 10m (m/s)          '
+224:         write (31,99017) 'v10m    ' ,                                   &
+225:                         &'southerly wind at 10m (m/s)          '
+226:       end if
+227:       write (31,99017) 'uvdrag  ' ,                                     &
+228:                       &'surface drag stress                  '
+229:       write (31,99017) 'tg      ' ,                                     &
+230:                       &'ground temperature (degree)          '
+231:       write (31,99017) 'tlef    ' ,                                     &
+232:                       &'temperature of foliage               '
+233:       write (31,99017) 't2m     ' ,                                     &
+234:                       &'air temperature at 2m (K)            '
+235:       write (31,99017) 'q2m     ' ,                                     &
+236:                       &'water vapor mixing ratio at 2m(kg/kg)'
+237:       write (31,99017) 'ssw     ' ,                                     &
+238:                       &'upper layer soil water               '
+239:       write (31,99017) 'rsw     ' ,                                     &
+240:                       &'root zone soil water                 '
+241:       write (31,99017) 'tpr     ' ,                                     &
+242:                       &'total precipitation (mm/day)         '
+243:       write (31,99017) 'evp     ' ,                                     &
+244:                       &'evapotranspiration (mm/day)          '
+245:       write (31,99017) 'runoff  ' ,                                     &
+246:                       &'surface runoff (mm/day)              '
+247:       write (31,99017) 'scv     ' ,                                     &
+248:                       &'snow amount (mm, water equivalent)   '
+249:       write (31,99017) 'sena    ' ,                                     &
+250:                       &'sensible heat flux (W/m2)            '
+251:       write (31,99017) 'flw     ' ,                                     &
+252:                       &'net infrared energy flux (W/m2)      '
+253:       write (31,99017) 'fsw     ' ,                                     &
+254:                       &'net absorbed solar energy flux (W/m2)'
+255:       write (31,99017) 'flwd    ' ,                                     &
+256:                       &'downward infrared energy flux (W/m2) '
+257:       write (31,99017) 'sina    ' ,                                     &
+258:                       &'incident solar energy flux (W/m2)    '
+259:       write (31,99017) 'prcv    ' ,                                     &
+260:                       &'convective precipitation (mm/day)    '
+261:       write (31,99017) 'psb     ' ,                                     &
+262:                       &'surface pressure (hPa)               '
+263:       write (31,99017) 'zpbl    ' ,                                     &
+264:                       &'PBL layer height                     '
+265:       write (31,99017) 'tgmax   ' ,                                     &
+266:                       &'maximum ground temperature (K)       '
+267:       write (31,99017) 'tgmin   ' ,                                     &
+268:                       &'minimum ground temperature (K)       '
+269:       write (31,99017) 't2max   ' ,                                     &
+270:                       &'maximum 2m air temperature (K)       '
+271:       write (31,99017) 't2min   ' ,                                     &
+272:                       &'minimum 2m air temperature (K)       '
+273:       write (31,99017) 'w10max  ' ,                                     &
+274:                       &'maximum 10m wind speed (m/s)         '
+275:       write (31,99017) 'ps_min  ' ,                                     &
+276:                       &'minimum surface pressure (hPa)       '
+277:       write (31,99020)
+278:       close (31)
+279: 99001 format ('dset ^',a14)
+280: 99002 format ('title RegCM normal output variables')
+281: 99003 format ('options big_endian')
+282: 99004 format ('options little_endian')
+283: 99005 format ('undef -1.e34')
+284: 99006 format ('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
+285: 99007 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+286: 99008 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+287: 99009 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+288: 99010 format ('ydef ',i3,' levels')
+289: 99011 format (10F7.2)
+290: 99012 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+291: 99013 format ('ydef ',i3,' linear ',f9.4,' ',f9.4)
+292: 99014 format ('zdef 1',' levels ',f7.2)
+293: 99015 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' ',i2,'hr')
+294: 99016 format ('vars ',i2)
+295: 99017 format (a8,'0 99 ',a36)
+296: 99018 format (a8,'0 33,105 ',a36)
+297: 99019 format (a8,'0 34,105 ',a36)
+298: 99020 format ('endvars')
+299:       end subroutine gradsbat
+300: !
+<p><a name=gradssub><H3>gradssub</H3></a></p> Click <a href="./callingtree/gradssub_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gradssub is used.
+<hr>
+301:       subroutine gradssub(ctlname)
+302:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+303:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+304:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+305:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+306:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+307:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a>
+308:       use <a href="./mod_iunits.f90.html#mod_iunits" TARGET=CENT_PANEL>mod_iunits</a>
+309:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+310: #ifdef MPP1
+311:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+312: #endif
+313:       implicit none
+314: !
+315: ! Dummy arguments
+316: !
+317:       character(18) :: ctlname
+318: !
+319: ! Local variables
+320: !
+321:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+322:                & centerj , rlatinc , rloninc
+323:       character(2) , dimension(31) :: cday
+324:       character(3) , dimension(12) :: cmonth
+325:       integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
+326:                & nday , nhour , nnumb , nx , ny
+327: #ifdef MPP1
+328:       real(4) , dimension(jxsg,iysg) :: xlat_s_io , xlon_s_io
+329: #else
+330:       real(4) , dimension(jxsg,iysg) :: xlat_s , xlon_s
+331: #endif
+332: !
+333:       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
+334:           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+335:          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
+336:          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
+337:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+338:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+339: !
+340:       alatmin = 999999.
+341:       alatmax = -999999.
+342:       alonmin = 999999.
+343:       alonmax = -999999.
+344:       nx = 0
+345:       ny = 0
+346:       centerj = (jxm2)/2.
+347:       centeri = (iym2)/2.
+348: 
+349:       open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
+350:       write (31,99001) ctlname(1:14)
+351:       write (31,99002)
+352:       if ( ibigend.eq.1 ) then
+353:         write (31,99003)
+354:       else if ( ibigend.eq.0 ) then
+355:         write (31,99004)
+356:       else
+357:       end if
+358:       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
+359:       write (31,99005)
+360:       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+361:         do j = 2 , jx-1
+362: #ifdef MPP1
+363:           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+364:           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
+365: #else
+366:           if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+367:           if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
+368: #endif
+369:         end do
+370:         do i = 2 , iy-1
+371:           do j = 2 , jx-1
+372: #ifdef MPP1
+373:             if ( clon.ge.0.0 ) then
+374:               if ( xlong_io(i,j).ge.0.0 ) then
+375:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+376:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+377:               else if ( abs(clon-xlong_io(i,j))                         &
+378:                       & .lt.abs(clon-(xlong_io(i,j)+360.)) ) then
+379:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+380:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+381:               else
+382:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j))+360.)
+383:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j))+360.)
+384:               end if
+385:             else if ( xlong_io(i,j).lt.0.0 ) then
+386:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+387:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+388:             else if ( abs(clon-xlong_io(i,j))                           &
+389:                     & .lt.abs(clon-(xlong_io(i,j)-360.)) ) then
+390:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+391:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+392:             else
+393:               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
+394:               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
+395:             end if
+396: #else
+397:             if ( clon.ge.0.0 ) then
+398:               if ( xlong(i,j).ge.0.0 ) then
+399:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+400:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+401:               else if ( abs(clon-xlong(i,j))                            &
+402:                       & .lt.abs(clon-(xlong(i,j)+360.)) ) then
+403:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+404:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+405:               else
+406:                 alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
+407:                 alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
+408:               end if
+409:             else if ( xlong(i,j).lt.0.0 ) then
+410:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+411:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+412:             else if ( abs(clon-xlong(i,j))                              &
+413:                     & .lt.abs(clon-(xlong(i,j)-360.)) ) then
+414:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+415:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+416:             else
+417:               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
+418:               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
+419:             end if
+420: #endif
+421:           end do
+422:         end do
+423:         rlatinc = dx*0.001/111./2.
+424:         rloninc = dx*0.001/111./2.
+425:         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+426:         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+427:       end if
+428:       if ( iotyp.eq.1 ) then
+429:         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+430:           write (31,99006) jxm2sg , iym2sg , clat , clon ,              &
+431:                          & centerj*nsg , centeri*nsg , truelatl ,       &
+432:                          & truelath , clon , dx/nsg , dx/nsg
+433:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+434:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+435:         else if ( iproj.eq.'POLSTR' ) then
+436:                                         !
+437:         else if ( iproj.eq.'NORMER' ) then
+438: #ifdef MPP1
+439:           read (iutin1,rec=5) xlat_s_io
+440:           read (iutin1,rec=6) xlon_s_io
+441:           write (31,99009) jxm2sg , xlon_s_io(nsg,nsg) ,                &
+442:                          & xlon_s_io(nsg+1,nsg) - xlon_s_io(nsg,nsg)
+443:           write (31,99010) iym2sg
+444:           write (31,99011) (xlat_s_io(nsg+1,i),i=nsg+1,iym1sg)
+445: #else
+446:           read (iutin1,rec=5) xlat_s
+447:           read (iutin1,rec=6) xlon_s
+448:           write (31,99009) jxm2sg , xlon_s(nsg,nsg) ,                   &
+449:                          & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
+450:           write (31,99010) iym2sg
+451:           write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,iym1sg)
+452: #endif
+453:         else if ( iproj.eq.'ROTMER' ) then
+454:           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
+455:                      &' projections are not supported by GrADS.'
+456:           write (*,*) '  Although not exact, the eta.u projection' ,    &
+457:                      &' in GrADS is somewhat similar.'
+458:           write (*,*) ' FERRET, however, does support this projection.'
+459:           write (31,99012) jxm2sg , iym2sg , plon , plat ,              &
+460:                          & dx/111000./nsg , dx/111000.*.95238/nsg
+461:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+462:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+463:         else
+464:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'INVALID MAP PROJECTION')
+465:         end if
+466:       else if ( iotyp.eq.2 ) then
+467: #ifdef MPP1
+468:         write (31,99009) jxm2sg , xlong_io(2,2) ,                       &
+469:                        & (xlong_io(2,3)-xlong_io(2,2))/nsg
+470:         write (31,99013) iym2sg , xlat_io(2,2) ,                        &
+471:                        & (xlat_io(3,2)-xlat_io(2,2))/nsg
+472: #else
+473:         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+474:         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+475: #endif
+476:       else
+477:       end if
+478:       write (31,99014) 1 , (1013.25-r8pt*10.)*a(kz) + r8pt*10.
+479:       myear = ldatez/1000000
+480:       month = (ldatez-myear*1000000)/10000
+481:       nday = (ldatez-myear*1000000-month*10000)/100
+482:       nhour = mod(ldatez,100)
+483:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(nbase,ldatez)
+484:       if ( month.eq.12 ) then
+485:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+1010100)
+486:       else
+487:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+month*10000+10100)
+488:       end if
+489:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(jbend,idate2)
+490:       if ( ldatez.eq.idate0 ) then
+491:         nnumb = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
+492:       else
+493:         nnumb = (ibdyfrq/batfrq+0.00001)*(min0(jbend,mnend)-nbase)
+494:       end if
+495:       ifrq = batfrq + 0.00001
+496:       if ( ldatez.eq.idate0 ) then
+497:         write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+498:                        & myear , ifrq
+499:       else
+500:         write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+501:                        & cmonth(month) , myear , ifrq
+502:       end if
+503:       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
+504:       write (31,99016) 16
+505:       if ( iproj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
+506:         write (31,99018) 'u10m    ' ,                                   &
+507:                         &'westerly  wind at 10m (m/s)          '
+508:         write (31,99019) 'v10m    ' ,                                   &
+509:                         &'southerly wind at 10m (m/s)          '
+510:       else
+511:         write (31,99017) 'u10m    ' ,                                   &
+512:                         &'westerly  wind at 10m (m/s)          '
+513:         write (31,99017) 'v10m    ' ,                                   &
+514:                         &'southerly wind at 10m (m/s)          '
+515:       end if
+516:       write (31,99017) 'uvdrag  ' ,                                     &
+517:                       &'surface drag stress                  '
+518:       write (31,99017) 'tg      ' ,                                     &
+519:                       &'ground temperature (degree)          '
+520:       write (31,99017) 'tlef    ' ,                                     &
+521:                       &'temperature of foliage               '
+522:       write (31,99017) 't2m     ' ,                                     &
+523:                       &'air temperature at 2m (K)            '
+524:       write (31,99017) 'q2m     ' ,                                     &
+525:                       &'water vapor mixing ratio at 2m(kg/kg)'
+526:       write (31,99017) 'ssw     ' ,                                     &
+527:                       &'upper layer soil water               '
+528:       write (31,99017) 'rsw     ' ,                                     &
+529:                       &'root zone soil water                 '
+530:       write (31,99017) 'tpr     ' ,                                     &
+531:                       &'total precipitation (mm/day)         '
+532:       write (31,99017) 'evp     ' ,                                     &
+533:                       &'evapotranspiration (mm/day)          '
+534:       write (31,99017) 'runoff  ' ,                                     &
+535:                       &'surface runoff (mm/day)              '
+536:       write (31,99017) 'scv     ' ,                                     &
+537:                       &'snow amount (mm, water equivalent)   '
+538:       write (31,99017) 'sena    ' ,                                     &
+539:                       &'sensible heat flux (W/m2)            '
+540:       write (31,99017) 'prcv    ' ,                                     &
+541:                       &'convective precipitation (mm/day)    '
+542:       write (31,99017) 'ps      ' ,                                     &
+543:                       &'surface pressure (hPa)               '
+544:       write (31,99020)
+545:       close (31)
+546: 99001 format ('dset ^',a14)
+547: 99002 format ('title RegCM normal output variables')
+548: 99003 format ('options big_endian')
+549: 99004 format ('options little_endian')
+550: 99005 format ('undef -1.e34')
+551: 99006 format ('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
+552: 99007 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+553: 99008 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+554: 99009 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+555: 99010 format ('ydef ',i3,' levels')
+556: 99011 format (10F7.2)
+557: 99012 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+558: 99013 format ('ydef ',i3,' linear ',f9.4,' ',f9.4)
+559: 99014 format ('zdef ',i2,' levels ',30F7.2)
+560: 99015 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' ',i2,'hr')
+561: 99016 format ('vars ',i2)
+562: 99017 format (a8,'0 99 ',a36)
+563: 99018 format (a8,'0 33,105 ',a36)
+564: 99019 format (a8,'0 34,105 ',a36)
+565: 99020 format ('endvars')
+566:       end subroutine gradssub
+567: !
+<p><a name=gradschem><H3>gradschem</H3></a></p> Click <a href="./callingtree/gradschem_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gradschem is used.
+<hr>
+568:       subroutine gradschem(ctlname)
+569:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+570:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+571:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+572:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+573:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+574:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a>
+575:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+576: #ifdef MPP1
+577:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+578: #endif
+579:       implicit none
+580: !
+581: ! Dummy arguments
+582: !
+583:       character(18) :: ctlname
+584: !
+585: ! Local variables
+586: !
+587:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+588:                & centerj , rlatinc , rloninc
+589:       character(2) , dimension(31) :: cday
+590:       character(3) , dimension(12) :: cmonth
+591:       integer :: i , ifrq , itr , j , jbend , k , mnend , month ,       &
+592:                & myear , nbase , nday , nhour , nnumb , nx , ny
+593: !
+594:       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
+595:           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+596:          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
+597:          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
+598:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+599:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+600: !
+601:       alatmin = 999999.
+602:       alatmax = -999999.
+603:       alonmin = 999999.
+604:       alonmax = -999999.
+605:       nx = 0
+606:       ny = 0
+607:       centerj = (jxm2)/2.
+608:       centeri = (iym2)/2.
+609: 
+610:       open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
+611:       write (31,99001) ctlname(1:14)
+612:       write (31,99002)
+613:       if ( ibigend.eq.1 ) then
+614:         write (31,99003)
+615:       else if ( ibigend.eq.0 ) then
+616:         write (31,99004)
+617:       else
+618:       end if
+619:       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
+620:       write (31,99005)
+621:       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+622:         do j = 2 , jx-1
+623: #ifdef MPP1
+624:           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+625:           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
+626: #else
+627:           if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+628:           if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
+629: #endif
+630:         end do
+631:         do i = 2 , iy-1
+632:           do j = 2 , jx-1
+633: #ifdef MPP1
+634:             if ( clon.ge.0.0 ) then
+635:               if ( xlong_io(i,j).ge.0.0 ) then
+636:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+637:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+638:               else if ( abs(clon-xlong_io(i,j))                         &
+639:                       & .lt.abs(clon-(xlong_io(i,j)+360.)) ) then
+640:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+641:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+642:               else
+643:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j))+360.)
+644:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j))+360.)
+645:               end if
+646:             else if ( xlong_io(i,j).lt.0.0 ) then
+647:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+648:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+649:             else if ( abs(clon-xlong_io(i,j))                           &
+650:                     & .lt.abs(clon-(xlong_io(i,j)-360.)) ) then
+651:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+652:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+653:             else
+654:               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
+655:               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
+656:             end if
+657: #else
+658:             if ( clon.ge.0.0 ) then
+659:               if ( xlong(i,j).ge.0.0 ) then
+660:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+661:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+662:               else if ( abs(clon-xlong(i,j))                            &
+663:                       & .lt.abs(clon-(xlong(i,j)+360.)) ) then
+664:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+665:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+666:               else
+667:                 alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
+668:                 alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
+669:               end if
+670:             else if ( xlong(i,j).lt.0.0 ) then
+671:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+672:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+673:             else if ( abs(clon-xlong(i,j))                              &
+674:                     & .lt.abs(clon-(xlong(i,j)-360.)) ) then
+675:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+676:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+677:             else
+678:               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
+679:               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
+680:               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
+681:             end if
+682: #endif
+683:           end do
+684:         end do
+685:         rlatinc = dx*0.001/111./2.
+686:         rloninc = dx*0.001/111./2.
+687:         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+688:         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+689:       end if
+690:       if ( iotyp.eq.1 ) then
+691:         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+692:           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
+693:                          & centeri , truelatl , truelath , clon , dx ,&
+694:                          & dx
+695:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+696:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+697:         else if ( iproj.eq.'POLSTR' ) then
+698:                                         !
+699:         else if ( iproj.eq.'NORMER' ) then
+700: #ifdef MPP1
+701:           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
+702:                          & - xlong_io(2,2)
+703:           write (31,99010) iym2
+704:           write (31,99011) (xlat_io(i,2),i=2,iym1)
+705: #else
+706:           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+707:           write (31,99010) iym2
+708:           write (31,99011) (xlat(i,2),i=2,iym1)
+709: #endif
+710:         else if ( iproj.eq.'ROTMER' ) then
+711:           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
+712:                      &' projections are not supported by GrADS.'
+713:           write (*,*) '  Although not exact, the eta.u projection' ,    &
+714:                      &' in GrADS is somewhat similar.'
+715:           write (*,*) ' FERRET, however, does support this projection.'
+716:           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
+717:                          & dx/111000. , dx/111000.*.95238
+718:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+719:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+720:         else
+721:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'INVALID MAP PROJECTION')
+722:         end if
+723:       else if ( iotyp.eq.2 ) then
+724: #ifdef MPP1
+725:         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
+726:                        & - xlong_io(2,2)
+727:         write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
+728:                        & - xlat_io(2,2)
+729: #else
+730:         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+731:         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+732: #endif
+733:       else
+734:       end if
+735:       write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
+736:       myear = ldatez/1000000
+737:       month = (ldatez-myear*1000000)/10000
+738:       nday = (ldatez-myear*1000000-month*10000)/100
+739:       nhour = mod(ldatez,100)
+740:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(nbase,ldatez)
+741:       if ( month.eq.12 ) then
+742:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+1010100)
+743:       else
+744:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+month*10000+10100)
+745:       end if
+746:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(jbend,idate2)
+747:       if ( ldatez.eq.idate0 ) then
+748:         nnumb = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
+749:       else
+750:         nnumb = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)
+751:       end if
+752:       ifrq = chemfrq + 0.00001
+753:       if ( ldatez.eq.idate0 ) then
+754:         write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+755:                        & myear , ifrq
+756:       else
+757:         write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+758:                        & cmonth(month) , myear , ifrq
+759:       end if
+760:       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
+761:       write (31,99016) ntr + 3 + 7*ntr + 4 + 1
+762:  
+763:       do itr = 1 , ntr
+764:         if ( itr.lt.10 ) then
+765:           write (31,99018) 'trac' , itr , kz ,                          &
+766:                           &'tracer mix. rat  (Kg/Kg)'
+767:         else
+768:           write (31,99019) 'trac' , itr , kz ,                          &
+769:                           &'tracer mix. rat  (Kg/Kg)'
+770:         end if
+771:       end do
+772:       write (31,99018) 'aext' , 8 , kz , 'aer mix. ext. coef      '
+773:       write (31,99018) 'assa' , 8 , kz , 'aer mix. sin. scat. alb '
+774:       write (31,99018) 'agfu' , 8 , kz , 'aer mix. ass. par       '
+775:  
+776:       do itr = 1 , ntr
+777:         if ( itr.lt.10 ) then
+778:           write (31,99020) 'colb__tr' , itr , 'columnburden inst(mg/m2)'
+779:           write (31,99020) 'wdlsc_tr' , itr , 'wet dep lgscale(mg/m2/d)'
+780:           write (31,99020) 'wdcvc_tr' , itr , 'wet dep convect(mg/m2/d)'
+781:           write (31,99020) 'sdrdp_tr' , itr , 'surf dry depos.(mg/m2/d)'
+782:           write (31,99020) 'xgasc_tr' , itr , 'chem gas conv. (mg/m2/d)'
+783:           write (31,99020) 'xaquc_tr' , itr , 'chem aqu conv. (mg/m2/d)'
+784:           write (31,99020) 'emiss_tr' , itr , 'surf emission  (mg/m2/d)'
+785:         else
+786:           write (31,99021) 'colb__tr' , itr , 'columnburden inst(mg/m2)'
+787:           write (31,99021) 'wdlsc_tr' , itr , 'wet dep lgscale(mg/m2/d)'
+788:           write (31,99021) 'wdcvc_tr' , itr , 'wet dep convect(mg/m2/d)'
+789:           write (31,99021) 'sdrdp_tr' , itr , 'surf dry depos.(mg/m2/d)'
+790:           write (31,99021) 'xgasc_tr' , itr , 'chem gas conv. (mg/m2/d)'
+791:           write (31,99021) 'xaquc_tr' , itr , 'chem aqu conv. (mg/m2/d)'
+792:           write (31,99021) 'emiss_tr' , itr , 'surf emission  (mg/m2/d)'
+793:         end if
+794:       end do
+795:       write (31,99017) 'acstoarf' , ' TOAswd forcing av.(W/m2)'
+796:       write (31,99017) 'acstsrrf' , ' SRFswd forcing av.(W/m2)'
+797:       write (31,99017) 'acstalrf' , ' TOAlwr forcing av.(W/m2)'
+798:       write (31,99017) 'acssrlrf' , ' SRFlwr forcing av.(W/m2)'
+799: 
+800:       write (31,99017) 'psa' , ' Surface Pressure (hPa)'
+801:  
+802:       write (31,99022)
+803:       close (31)
+804: 99001 format ('dset ^',a14)
+805: 99002 format ('title RegCM chemistry/tracor variables')
+806: 99003 format ('options big_endian')
+807: 99004 format ('options little_endian')
+808: 99005 format ('undef -1.e34')
+809: 99006 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
+810: 99007 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+811: 99008 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+812: 99009 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+813: 99010 format ('ydef ',i3,' levels')
+814: 99011 format (10F7.2)
+815: 99012 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+816: 99013 format ('ydef ',i3,' linear ',f9.4,' ',f9.4)
+817: 99014 format ('zdef ',i2,' levels ',30F7.2)
+818: 99015 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' ',i2,'hr')
+819: 99016 format ('vars ',i2)
+820: 99017 format (a8,' 0 99 ',a26)
+821: 99018 format (a4,i1,' ',i2,' 0 ',a26)
+822: 99019 format (a4,i2,' ',i2,' 0 ',a26)
+823: 99020 format (a8,i1,' 0 99 ',a26)
+824: 99021 format (a8,i2,' 0 99 ',a26)
+825: 99022 format ('endvars')
+826:       end subroutine gradschem
+827: !
+<p><a name=gradsctl><H3>gradsctl</H3></a></p> Click <a href="./callingtree/gradsctl_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gradsctl is used.
+<hr>
+828:       subroutine gradsctl(ctlname)
+829:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+830:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+831:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+832:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+833:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+834:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+835: #ifdef MPP1
+836:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+837: #endif
+838:       implicit none
+839: !
+840: ! Dummy arguments
+841: !
+842:       character(12) :: ctlname
+843: !
+844: ! Local variables
+845: !
+846:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+847:                & centerj , rlatinc , rloninc
+848:       integer :: i , j , nx , ny
+849: !
+850:       alatmin = 999999.
+851:       alatmax = -999999.
+852:       alonmin = 999999.
+853:       alonmax = -999999.
+854:       nx = 0
+855:       ny = 0
+856:       centerj = (jxm2)/2.
+857:       centeri = (iym2)/2.
+858: 
+859:       open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
+860:       write (31,99001)
+861:       write (31,99002)
+862:       if ( ibigend.eq.1 ) then
+863:         write (31,99003)
+864:       else if ( ibigend.eq.0 ) then
+865:         write (31,99004)
+866:       else
+867:       end if
+868:       write (31,99005)
+869:       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+870:         do j = 2 , jx-1
+871: #ifdef MPP1
+872:           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+873:           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
+874: #else
+875:           if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+876:           if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
+877: #endif
+878:         end do
+879:         do i = 2 , iy-1
+880:           do j = 2 , jx-1
+881: #ifdef MPP1
+882:             if ( clon.ge.0.0 ) then
+883:               if ( xlong_io(i,j).ge.0.0 ) then
+884:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+885:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+886:               else if ( abs(clon-xlong_io(i,j))                         &
+887:                       & .lt.abs(clon-(xlong_io(i,j)+360.)) ) then
+888:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+889:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+890:               else
+891:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j))+360.)
+892:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j))+360.)
+893:               end if
+894:             else if ( xlong_io(i,j).lt.0.0 ) then
+895:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+896:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+897:             else if ( abs(clon-xlong_io(i,j))                           &
+898:                     & .lt.abs(clon-(xlong_io(i,j)-360.)) ) then
+899:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+900:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+901:             else
+902:               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
+903:               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
+904:             end if
+905: #else
+906:             if ( clon.ge.0.0 ) then
+907:               if ( xlong(i,j).ge.0.0 ) then
+908:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+909:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+910:               else if ( abs(clon-xlong(i,j))                            &
+911:                       & .lt.abs(clon-(xlong(i,j)+360.)) ) then
+912:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+913:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+914:               else
+915:                 alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
+916:                 alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
+917:               end if
+918:             else if ( xlong(i,j).lt.0.0 ) then
+919:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+920:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+921:             else if ( abs(clon-xlong(i,j))                              &
+922:                     & .lt.abs(clon-(xlong(i,j)-360.)) ) then
+923:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+924:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+925:             else
+926:               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
+927:               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
+928:             end if
+929: #endif
+930:           end do
+931:         end do
+932:         rlatinc = dx*0.001/111./2.
+933:         rloninc = dx*0.001/111./2.
+934:         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+935:         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+936:       end if
+937:       if ( iproj.eq.'LAMCON' ) then     ! Lambert projection
+938:         write (31,99006) jxm2 , iym2 , clat , clon , centerj ,          &
+939:                        & centeri , truelatl , truelath , clon , dx ,  &
+940:                        & dx
+941:         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+942:         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+943:       else if ( iproj.eq.'POLSTR' ) then !
+944:       else if ( iproj.eq.'NORMER' ) then
+945: #ifdef MPP1
+946:         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
+947:                        & - xlong_io(2,2)
+948:         write (31,99010) iym2
+949:         write (31,99011) (xlat_io(i,2),i=2,iym1)
+950: #else
+951:         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+952:         write (31,99010) iym2
+953:         write (31,99011) (xlat(i,2),i=2,iym1)
+954: #endif
+955:       else if ( iproj.eq.'ROTMER' ) then
+956:         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
+957:                    &' projections are not supported by GrADS.'
+958:         write (*,*) '  Although not exact, the eta.u projection' ,      &
+959:                    &' in GrADS is somewhat similar.'
+960:         write (*,*) ' FERRET, however, does support this projection.'
+961:        write (31,99012) jxm2 , iym2 , plon , plat , dx/111000. ,      &
+962:                        & dx/111000.*.95238
+963:         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+964:         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+965: 
+966:       else
+967:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'INVALID MAP PROJECTION')
+968:       end if
+969:       write (31,99013) 1 , 1000.
+970:       write (31,99014) 1
+971:       write (31,99015) 11
+972:       write (31,99016) 'head    ' , 'header information         '
+973:       write (31,99016) 'ht      ' , 'surface elevation          '
+974:       write (31,99016) 'htsd    ' , 'surface elevation std dev  '
+975:       write (31,99016) 'veg2d   ' , 'vegetation type in BATS    '
+976:       write (31,99016) 'landuse ' , 'surface landuse mod_type       '
+977:       write (31,99016) 'xlat    ' , 'latitude  of cross points  '
+978:       write (31,99016) 'xlong   ' , 'longitude of cross points  '
+979:       write (31,99016) 'xmap    ' , 'map factors of cross points'
+980:       write (31,99016) 'dmap    ' , 'map factors of dot points  '
+981:       write (31,99016) 'coriol  ' , 'coriol force               '
+982:       write (31,99016) 'mask    ' , 'land/sea mask              '
+983:       write (31,99017)
+984:       close (31)
+985: 99001 format ('dset ^OUT_HEAD')
+986: 99002 format ('title RegCM domain information')
+987: 99003 format ('options big_endian')
+988: 99004 format ('options little_endian')
+989: 99005 format ('undef -1.e34')
+990: 99006 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
+991: 99007 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+992: 99008 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+993: 99009 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+994: 99010 format ('ydef ',i3,' levels')
+995: 99011 format (10F7.2)
+996: 99012 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+997: 99013 format ('zdef ',i1,' levels ',f7.2)
+998: 99014 format ('tdef ',i1,' linear 00z01Jan2001 1mo')
+999: 99015 format ('vars ',i2)
+1000: 99016 format (a8,'0 99 ',a26)
+1001: 99017 format ('endvars')
+1002:       end subroutine gradsctl
+1003: !
+<p><a name=gradsout><H3>gradsout</H3></a></p> Click <a href="./callingtree/gradsout_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gradsout is used.
+<hr>
+1004:       subroutine gradsout(ctlname)
+1005:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+1006:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+1007:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+1008:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+1009:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+1010:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a>
+1011:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+1012: #ifdef MPP1
+1013:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+1014: #endif
+1015:       implicit none
+1016: !
+1017: ! Dummy arguments
+1018: !
+1019:       character(18) :: ctlname
+1020: !
+1021: ! Local variables
+1022: !
+1023:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+1024:                & centerj , rlatinc , rloninc
+1025:       character(2) , dimension(31) :: cday
+1026:       character(3) , dimension(12) :: cmonth
+1027:       integer :: i , ifrq , j , jbend , k , mnend , month , myear ,     &
+1028:                & nbase , nday , nhour , nnumb , nx , ny
+1029: !
+1030:       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
+1031:           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+1032:          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
+1033:          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
+1034:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+1035:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+1036: !
+1037:       alatmin = 999999.
+1038:       alatmax = -999999.
+1039:       alonmin = 999999.
+1040:       alonmax = -999999.
+1041:       nx = 0
+1042:       ny = 0
+1043:       centerj = (jxm2)/2.
+1044:       centeri = (iym2)/2.
+1045: 
+1046:       open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
+1047:       write (31,99001) ctlname(1:14)
+1048:       write (31,99002)
+1049:       if ( ibigend.eq.1 ) then
+1050:         write (31,99003)
+1051:       else if ( ibigend.eq.0 ) then
+1052:         write (31,99004)
+1053:       else
+1054:       end if
+1055:       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
+1056:       write (31,99005)
+1057:       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+1058:         do j = 2 , jx-1
+1059: #ifdef MPP1
+1060:           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+1061:           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
+1062: #else
+1063:           if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+1064:           if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
+1065: #endif
+1066:         end do
+1067:         do i = 2 , iy-1
+1068:           do j = 2 , jx-1
+1069: #ifdef MPP1
+1070:             if ( clon.ge.0.0 ) then
+1071:               if ( xlong_io(i,j).ge.0.0 ) then
+1072:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+1073:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+1074:               else if ( abs(clon-xlong_io(i,j))                         &
+1075:                       & .lt.abs(clon-(xlong_io(i,j)+360.)) ) then
+1076:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+1077:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+1078:               else
+1079:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j))+360.)
+1080:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j))+360.)
+1081:               end if
+1082:             else if ( xlong_io(i,j).lt.0.0 ) then
+1083:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+1084:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+1085:             else if ( abs(clon-xlong_io(i,j))                           &
+1086:                     & .lt.abs(clon-(xlong_io(i,j)-360.)) ) then
+1087:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+1088:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+1089:             else
+1090:               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
+1091:               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
+1092:             end if
+1093: #else
+1094:             if ( clon.ge.0.0 ) then
+1095:               if ( xlong(i,j).ge.0.0 ) then
+1096:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+1097:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+1098:               else if ( abs(clon-xlong(i,j))                            &
+1099:                       & .lt.abs(clon-(xlong(i,j)+360.)) ) then
+1100:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+1101:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+1102:               else
+1103:                 alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
+1104:                 alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
+1105:               end if
+1106:             else if ( xlong(i,j).lt.0.0 ) then
+1107:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+1108:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+1109:             else if ( abs(clon-xlong(i,j))                              &
+1110:                     & .lt.abs(clon-(xlong(i,j)-360.)) ) then
+1111:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+1112:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+1113:             else
+1114:               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
+1115:               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
+1116:             end if
+1117: #endif
+1118:           end do
+1119:         end do
+1120:         rlatinc = dx*0.001/111./2.
+1121:         rloninc = dx*0.001/111./2.
+1122:         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+1123:         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+1124:       end if
+1125:       if ( iotyp.eq.1 ) then
+1126:         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+1127:           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
+1128:                          & centeri , truelatl , truelath , clon , dx ,&
+1129:                          & dx
+1130:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+1131:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+1132:         else if ( iproj.eq.'POLSTR' ) then
+1133:                                         !
+1134:         else if ( iproj.eq.'NORMER' ) then
+1135: #ifdef MPP1
+1136:           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
+1137:                          & - xlong_io(2,2)
+1138:           write (31,99010) iym2
+1139:           write (31,99011) (xlat_io(i,2),i=2,iym1)
+1140: #else
+1141:           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+1142:           write (31,99010) iym2
+1143:           write (31,99011) (xlat(i,2),i=2,iym1)
+1144: #endif
+1145:         else if ( iproj.eq.'ROTMER' ) then
+1146:           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
+1147:                      &' projections are not supported by GrADS.'
+1148:           write (*,*) '  Although not exact, the eta.u projection' ,    &
+1149:                      &' in GrADS is somewhat similar.'
+1150:           write (*,*) ' FERRET, however, does support this projection.'
+1151:           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
+1152:                          & dx/111000. , dx/111000.*.95238
+1153:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+1154:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+1155:         else
+1156:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'INVALID MAP PROJECTION')
+1157:         end if
+1158:       else if ( iotyp.eq.2 ) then
+1159: #ifdef MPP1
+1160:         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
+1161:                        & - xlong_io(2,2)
+1162:         write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
+1163:                        & - xlat_io(2,2)
+1164: #else
+1165:         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+1166:         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+1167: #endif
+1168:       else
+1169:       end if
+1170:       write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
+1171:       myear = ldatez/1000000
+1172:       month = (ldatez-myear*1000000)/10000
+1173:       nday = (ldatez-myear*1000000-month*10000)/100
+1174:       nhour = mod(ldatez,100)
+1175:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(nbase,ldatez)
+1176:       if ( month.eq.12 ) then
+1177:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+1010100)
+1178:       else
+1179:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+month*10000+10100)
+1180:       end if
+1181:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(jbend,idate2)
+1182:       if ( ldatez.eq.idate0 ) then
+1183:         nnumb = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase) + 1
+1184:       else
+1185:         nnumb = (ibdyfrq/tapfrq+0.00001)*(min0(jbend,mnend)-nbase)
+1186:       end if
+1187:       ifrq = tapfrq + 0.00001
+1188:       if ( ldatez.eq.idate0 ) then
+1189:         write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+1190:                        & myear , ifrq
+1191:       else
+1192:         write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+1193:                        & cmonth(month) , myear , ifrq
+1194:       end if
+1195:       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
+1196:       write (31,99016) 10 + 1
+1197:       if ( iproj.eq.'LAMCON' .and. iotyp.eq.1 ) then   ! Lambert projection
+1198:         write (31,99019) 'u       ' , kz , 'westerly wind (m/s)        '
+1199:         write (31,99020) 'v       ' , kz , 'southerly wind (m/s)       '
+1200:       else
+1201:         write (31,99018) 'u       ' , kz , 'westerly wind (m/s)        '
+1202:         write (31,99018) 'v       ' , kz , 'southerly wind (m/s)       '
+1203:       end if
+1204:       write (31,99018) 'w       ' , kz , 'omega (hPa/s)   p-velocity '
+1205:       write (31,99018) 't       ' , kz , 'air temperature (degree)   '
+1206:       write (31,99018) 'qv      ' , kz , 'water vapor mixing ratio   '
+1207:       write (31,99018) 'qc      ' , kz , 'cloud water mixing ratio   '
+1208:       write (31,99017) 'psa     ' , 'surface pressure (hPa)     '
+1209:       write (31,99017) 'tpr     ' , 'total precipitation(mm/day)'
+1210:       write (31,99017) 'tgb     ' , 'lower groud temp. in BATS  '
+1211:       write (31,99017) 'swt     ' , 'total soil water in mm H2O '
+1212:       write (31,99017) 'rno     ' , 'accumulated infiltration   '
+1213:       write (31,99021)
+1214:       close (31)
+1215: 99001 format ('dset ^',a14)
+1216: 99002 format ('title RegCM normal output variables')
+1217: 99003 format ('options big_endian')
+1218: 99004 format ('options little_endian')
+1219: 99005 format ('undef -1.e34')
+1220: 99006 format ('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
+1221: 99007 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+1222: 99008 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+1223: 99009 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+1224: 99010 format ('ydef ',i3,' levels')
+1225: 99011 format (10F7.2)
+1226: 99012 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+1227: 99013 format ('ydef ',i3,' linear ',f9.4,' ',f9.4)
+1228: 99014 format ('zdef ',i2,' levels ',30F7.2)
+1229: 99015 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' ',i2,'hr')
+1230: 99016 format ('vars ',i2)
+1231: 99017 format (a8,'0 99 ',a26)
+1232: 99018 format (a8,i2,' 0 ',a26)
+1233: 99019 format (a8,i2,' 33,100 ',a36)
+1234: 99020 format (a8,i2,' 34,100 ',a36)
+1235: 99021 format ('endvars')
+1236:       end subroutine gradsout
+1237: !
+<p><a name=gradsrad><H3>gradsrad</H3></a></p> Click <a href="./callingtree/gradsrad_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gradsrad is used.
+<hr>
+1238:       subroutine gradsrad(ctlname)
+1239:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+1240:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+1241:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+1242:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+1243:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+1244:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a>
+1245:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+1246: #ifdef MPP1
+1247:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+1248: #endif
+1249:       implicit none
+1250: !
+1251: ! Dummy arguments
+1252: !
+1253:       character(18) :: ctlname
+1254: !
+1255: ! Local variables
+1256: !
+1257:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+1258:                & centerj , rlatinc , rloninc
+1259:       character(2) , dimension(31) :: cday
+1260:       character(3) , dimension(12) :: cmonth
+1261:       integer :: i , ifrq , j , jbend , k , mnend , month , myear ,     &
+1262:                & nbase , nday , nhour , nnumb , nx , ny
+1263: !
+1264:       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
+1265:           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+1266:          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
+1267:          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
+1268:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+1269:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+1270: !
+1271:       alatmin = 999999.
+1272:       alatmax = -999999.
+1273:       alonmin = 999999.
+1274:       alonmax = -999999.
+1275:       nx = 0
+1276:       ny = 0
+1277:       centerj = (jxm2)/2.
+1278:       centeri = (iym2)/2.
+1279: 
+1280:       open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
+1281:       write (31,99001) ctlname(1:14)
+1282:       write (31,99002)
+1283:       if ( ibigend.eq.1 ) then
+1284:         write (31,99003)
+1285:       else if ( ibigend.eq.0 ) then
+1286:         write (31,99004)
+1287:       else
+1288:       end if
+1289:       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
+1290:       write (31,99005)
+1291:       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+1292:         do j = 2 , jx-1
+1293: #ifdef MPP1
+1294:           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
+1295:           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
+1296: #else
+1297:           if ( xlat(2,j).lt.alatmin ) alatmin = xlat(2,j)
+1298:           if ( xlat(iy-1,j).gt.alatmax ) alatmax = xlat(iy-1,j)
+1299: #endif
+1300:         end do
+1301:         do i = 2 , iy-1
+1302:           do j = 2 , jx-1
+1303: #ifdef MPP1
+1304:             if ( clon.ge.0.0 ) then
+1305:               if ( xlong_io(i,j).ge.0.0 ) then
+1306:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+1307:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+1308:               else if ( abs(clon-xlong_io(i,j))                         &
+1309:                       & .lt.abs(clon-(xlong_io(i,j)+360.)) ) then
+1310:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+1311:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+1312:               else
+1313:                 alonmin = amin1(alonmin,sngl(xlong_io(i,j))+360.)
+1314:                 alonmax = amax1(alonmax,sngl(xlong_io(i,j))+360.)
+1315:               end if
+1316:             else if ( xlong_io(i,j).lt.0.0 ) then
+1317:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+1318:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+1319:             else if ( abs(clon-xlong_io(i,j))                           &
+1320:                     & .lt.abs(clon-(xlong_io(i,j)-360.)) ) then
+1321:               alonmin = amin1(alonmin,sngl(xlong_io(i,j)))
+1322:               alonmax = amax1(alonmax,sngl(xlong_io(i,j)))
+1323:             else
+1324:               alonmin = amin1(alonmin,sngl(xlong_io(i,j))-360.)
+1325:               alonmax = amax1(alonmax,sngl(xlong_io(i,j))-360.)
+1326:             end if
+1327: #else
+1328:             if ( clon.ge.0.0 ) then
+1329:               if ( xlong(i,j).ge.0.0 ) then
+1330:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+1331:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+1332:               else if ( abs(clon-xlong(i,j))                            &
+1333:                       & .lt.abs(clon-(xlong(i,j)+360.)) ) then
+1334:                 alonmin = amin1(alonmin,sngl(xlong(i,j)))
+1335:                 alonmax = amax1(alonmax,sngl(xlong(i,j)))
+1336:               else
+1337:                 alonmin = amin1(alonmin,sngl(xlong(i,j))+360.)
+1338:                 alonmax = amax1(alonmax,sngl(xlong(i,j))+360.)
+1339:               end if
+1340:             else if ( xlong(i,j).lt.0.0 ) then
+1341:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+1342:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+1343:             else if ( abs(clon-xlong(i,j))                              &
+1344:                     & .lt.abs(clon-(xlong(i,j)-360.)) ) then
+1345:               alonmin = amin1(alonmin,sngl(xlong(i,j)))
+1346:               alonmax = amax1(alonmax,sngl(xlong(i,j)))
+1347:             else
+1348:               alonmin = amin1(alonmin,sngl(xlong(i,j))-360.)
+1349:               alonmax = amax1(alonmax,sngl(xlong(i,j))-360.)
+1350:             end if
+1351: #endif
+1352:           end do
+1353:         end do
+1354:         rlatinc = dx*0.001/111./2.
+1355:         rloninc = dx*0.001/111./2.
+1356:         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+1357:         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+1358:       end if
+1359:       if ( iotyp.eq.1 ) then
+1360:         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+1361:           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
+1362:                          & centeri , truelatl , truelath , clon , dx ,&
+1363:                          & dx
+1364:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+1365:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+1366:         else if ( iproj.eq.'POLSTR' ) then
+1367:                                         !
+1368:         else if ( iproj.eq.'NORMER' ) then
+1369: #ifdef MPP1
+1370:           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
+1371:                          & - xlong_io(2,2)
+1372:           write (31,99010) iym2
+1373:           write (31,99011) (xlat_io(i,2),i=2,iym1)
+1374: #else
+1375:           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+1376:           write (31,99010) iym2
+1377:           write (31,99011) (xlat(i,2),i=2,iym1)
+1378: #endif
+1379:         else if ( iproj.eq.'ROTMER' ) then
+1380:           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
+1381:                      &' projections are not supported by GrADS.'
+1382:           write (*,*) '  Although not exact, the eta.u projection' ,    &
+1383:                      &' in GrADS is somewhat similar.'
+1384:           write (*,*) ' FERRET, however, does support this projection.'
+1385:           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
+1386:                          & dx/111000. , dx/111000.*.95238
+1387:           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
+1388:           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
+1389:         else
+1390:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'INVALID MAP PROJECTION')
+1391:         end if
+1392:       else if ( iotyp.eq.2 ) then
+1393: #ifdef MPP1
+1394:         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
+1395:                        & - xlong_io(2,2)
+1396:         write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
+1397:                        & - xlat_io(2,2)
+1398: #else
+1399:         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+1400:         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+1401: #endif
+1402:       else
+1403:       end if
+1404:       write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
+1405:       myear = ldatez/1000000
+1406:       month = (ldatez-myear*1000000)/10000
+1407:       nday = (ldatez-myear*1000000-month*10000)/100
+1408:       nhour = mod(ldatez,100)
+1409:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(nbase,ldatez)
+1410:       if ( month.eq.12 ) then
+1411:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+1010100)
+1412:       else
+1413:         call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(mnend,myear*1000000+month*10000+10100)
+1414:       end if
+1415:       call <a href="./mod_date.F90.html#finddate" TARGET=CENT_PANEL>finddate</a>(jbend,idate2)
+1416:       if ( ldatez.eq.idate0 ) then
+1417:         nnumb = (ibdyfrq/radisp+0.00001)*(min0(jbend,mnend)-nbase) + 1
+1418:       else
+1419:         nnumb = (ibdyfrq/radisp+0.00001)*(min0(jbend,mnend)-nbase)
+1420:       end if
+1421:       ifrq = radisp + 0.00001
+1422:       if ( ldatez.eq.idate0 ) then
+1423:         write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+1424:                        & myear , ifrq
+1425:       else
+1426:         write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+1427:                        & cmonth(month) , myear , ifrq
+1428:       end if
+1429:       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
+1430:       write (31,99016) 14
+1431:       write (31,99018) 'cld   ' , kz ,                                  &
+1432:                       &'cloud fractional cover               '
+1433:       write (31,99018) 'clwp  ' , kz ,                                  &
+1434:                       &'cloud liquid water path              '
+1435:       write (31,99018) 'qrs   ' , kz ,                                  &
+1436:                       &'solar heating rate                   '
+1437:       write (31,99018) 'qrl   ' , kz ,                                  &
+1438:                       &'longwave cooling rate                '
+1439:       write (31,99017) 'frsa  ' ,                                       &
+1440:                       &'surface absorbed solar flux          '
+1441:       write (31,99017) 'frla  ' ,                                       &
+1442:                       &'longwave cooling of surface          '
+1443:       write (31,99017) 'clrst ' ,                                       &
+1444:                       &'clearsky total column abs solar flux '
+1445:       write (31,99017) 'clrss ' ,                                       &
+1446:                       &'clearsky surface absorbed solar flux '
+1447:       write (31,99017) 'clrlt ' ,                                       &
+1448:                       &'clearsky net upward LW flux at TOA   '
+1449:       write (31,99017) 'clrls ' ,                                       &
+1450:                       &'clearsky LW cooling at surface (W/m2)'
+1451:       write (31,99017) 'solin ' ,                                       &
+1452:                       &'instantaneous incident solar (W/m2)  '
+1453:       write (31,99017) 'sabtp ' ,                                       &
+1454:                       &'total column absorbed solar flux W/m2'
+1455:       write (31,99017) 'firtp ' ,                                       &
+1456:                       &'net upward LW flux at TOA (W/m2)     '
+1457:       write (31,99017) 'psa   ' ,                                       &
+1458:                       &'Surface pressure (hPa)               '
+1459:       write (31,99019)
+1460:       close (31)
+1461: 99001 format ('dset ^',a14)
+1462: 99002 format ('title RegCM normal output variables')
+1463: 99003 format ('options big_endian')
+1464: 99004 format ('options little_endian')
+1465: 99005 format ('undef -1.34')
+1466: 99006 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
+1467: 99007 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+1468: 99008 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+1469: 99009 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+1470: 99010 format ('ydef ',i3,' levels')
+1471: 99011 format (10F7.2)
+1472: 99012 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+1473: 99013 format ('ydef ',i3,' linear ',f9.4,' ',f9.4)
+1474: 99014 format ('zdef ',i2,' levels ',30F7.2)
+1475: 99015 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' ',i2,'hr')
+1476: 99016 format ('vars ',i2)
+1477: 99017 format (a6,'0 99 ',a36)
+1478: 99018 format (a6,i2,' 0 ',a36)
+1479: 99019 format ('endvars')
+1480:       end subroutine gradsrad
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

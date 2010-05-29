@@ -1,0 +1,373 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_interp.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_interp.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_interp.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_interp><H3>mod_interp</H3></a></p>20:       module mod_interp
+21: 
+22:       implicit none
+23: 
+24:       contains
+25: 
+<p><a name=interp><H3>interp</H3></a></p> Click <a href="./callingtree/interp_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where interp is used.
+<hr>
+26:       subroutine interp(nx, ny, alat, alon, htg, htsdg, ntypec)
+27:  
+28:       use <a href="./mod_block.f90.html#mod_block" TARGET=CENT_PANEL>mod_block</a>
+29:       use <a href="./mod_maps.f90.html#mod_maps" TARGET=CENT_PANEL>mod_maps</a>
+30:       implicit none
+31: !
+32: ! Dummy arguments
+33: !
+34:       integer :: nx , ny , ntypec
+35:       real(4) , dimension(nx, ny) :: alat , alon , htg , htsdg
+36:       intent(in) nx , ny , alat , ntypec
+37:       intent(inout) alon
+38:       intent(out) htg , htsdg
+39: !
+40: ! Local variables
+41: !
+42:       real(4) :: dsgrid
+43:       logical :: flag
+44:       real(8) :: h1 , h2 , v21 , xx , yy
+45:       integer :: i , ii , iindex , j , jindex
+46:       real(8) , dimension(iter,jter) :: xin1 , xin2
+47: !
+48:       do i = 1 , iter
+49:         do j = 1 , jter
+50:           xin1(i,j) = 0.0
+51:           xin2(i,j) = 0.0
+52:         end do
+53:       end do
+54:       do ii = 1 , nobs
+55:         jindex = (xobs(ii)-grdlnmn)*nnc + 1.1
+56:         iindex = (yobs(ii)-grdltmn)*nnc + 1.1
+57:         if ( iindex>iter .or. jindex>jter ) then
+58:           print 99001 , ii , xobs(ii) , nnc , yobs(ii) , iindex , jindex
+59:           stop 400
+60:         end if
+61:         h1 = max(ht(ii),0.0)
+62:         xin1(iindex,jindex) = h1/100.
+63:         h2 = max(ht2(ii),0.0)
+64:         xin2(iindex,jindex) = h2/100000.
+65:       end do
+66:  
+67:       flag = .false.
+68:       dsgrid = float(ntypec)/60.
+69:  
+70:       do i = 1 , ny - 1
+71:         do j = 1 , nx - 1
+72:  
+73:           yy = -(grdltmn-alat(i,j))/dsgrid + 1.0
+74:           if ( grdlnmn<=-180.0 .and. alon(i,j)>0.0 ) alon(i,j)          &
+75:              & = alon(i,j) - 360.
+76:           xx = -(grdlnmn-alon(i,j))/dsgrid + 1.0
+77:  
+78: !         yy and xx are the exact index values of a point i,j of the
+79: !         mesoscale mesh when projected onto an earth-grid of lat_s
+80: !         and lon_s for which terrain observations are available.  it
+81: !         is assumed that the earth grid has equal spacing in both
+82: !         latitude and longitude.
+83:  
+84:           h1 = max(<a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a>(yy,xx,xin1,iter,jter,flag),0.D0)*100.
+85:           h2 = max(<a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a>(yy,xx,xin2,iter,jter,flag),0.D0)*100000.
+86:           htg(i,j) = h1
+87:           v21 = h2 - h1**2
+88:           htsdg(i,j) = sqrt(max(v21,0.D0))
+89:  
+90:         end do
+91:       end do
+92:  
+93: 99001 format (1x,'ii = ',i6,' xobs(ii) = ',f10.4,' incr = ',i3,         &
+94:              &'yobs(ii) = ',f10.4,' iindex = ',i10,'  jindex = ',i10)
+95:  
+96:       end subroutine interp
+97: 
+<p><a name=bint><H3>bint</H3></a></p> Click <a href="./callingtree/bint_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where bint is used.
+<hr>
+98:       function bint(xx,yy,list,iii,jjj,flag)
+99: 
+100:       implicit none
+101: !
+102: ! Dummy arguments
+103: !
+104:       logical :: flag
+105:       integer :: iii , jjj
+106:       real(8) :: xx , yy
+107:       real(8) :: bint
+108:       real(8) , dimension(iii,jjj) :: list
+109:       intent (in) flag , iii , jjj , list , xx , yy
+110: !
+111: ! Local variables
+112: !
+113:       real(8) :: a , b , c , d , e , f , g , h , x , y
+114:       integer :: i , j , k , kk , knear , l , ll , lnear , n
+115:       real(8) , dimension(4,4) :: stl
+116: !
+117: !-----bilinear interpolation among four grid values
+118: !
+119:       <a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a> = 0.0
+120:       n = 0
+121:       i = int(xx+0.00001)
+122:       j = int(yy+0.00001)
+123:       x = xx - i
+124:       y = yy - j
+125:       if ( abs(x)>0.0001 .or. abs(y)>0.0001 ) then
+126:         do k = 1 , 4
+127:           kk = i + k - 2
+128:           do l = 1 , 4
+129:             stl(k,l) = 0.
+130:             if ( .not.(flag .and. (l==1)) ) then
+131:               if ( .not.(flag .and. (l==4)) ) then
+132:                 if ( .not.(flag .and. (k==1)) ) then
+133:                   if ( .not.(flag .and. (k==4)) ) then
+134:                     ll = j + l - 2
+135:                     if ( kk>=1 .and. kk<=iii ) then
+136:                       if ( ll<=jjj .and. ll>=1 ) then
+137:                         stl(k,l) = list(kk,ll)
+138:                         n = n + 1
+139:                         if ( stl(k,l)<=0.0 ) stl(k,l) = -1.E-20
+140:                       end if
+141:                     end if
+142:                   end if
+143:                 end if
+144:               end if
+145:             end if
+146:           end do
+147:         end do
+148: !
+149: !-----find index of closest point to xx,yy.
+150: !
+151:         knear = float(2) + x + 0.5
+152:         lnear = float(2) + y + 0.5
+153:         a = <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a>(x,stl(1,1),stl(2,1),stl(3,1),stl(4,1))
+154:         b = <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a>(x,stl(1,2),stl(2,2),stl(3,2),stl(4,2))
+155:         c = oned(x,stl(1,3),stl(2,3),stl(3,3),stl(4,3))
+156:         d = <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a>(x,stl(1,4),stl(2,4),stl(3,4),stl(4,4))
+157:         <a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a> = oned(y,a,b,c,d)
+158: !
+159: !--------if closest point is ocean, automatically reset terrain to
+160: !--------preserve coastline.
+161: !
+162:         if ( .not.flag .and. stl(knear,lnear)<=0.001 ) <a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a> = -0.00001
+163:         if ( n==16 ) return
+164:         if ( flag .and. n==4 ) return
+165:         e = <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a>(y,stl(1,1),stl(1,2),stl(1,3),stl(1,4))
+166:         f = <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a>(y,stl(2,1),stl(2,2),stl(2,3),stl(2,4))
+167:         g = <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a>(y,stl(3,1),stl(3,2),stl(3,3),stl(3,4))
+168:         h = <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a>(y,stl(4,1),stl(4,2),stl(4,3),stl(4,4))
+169:         <a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a> = (<a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a>+oned(x,e,f,g,h))/2.
+170:         if ( .not.flag .and. stl(knear,lnear)<=0.001 ) <a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a> = -0.00001
+171:         go to 99999
+172:       end if
+173:       <a href="./mod_interp.f90.html#bint" TARGET=CENT_PANEL>bint</a> = list(i,j)
+174:       return
+175: 99999 continue
+176:       end function bint
+177: 
+<p><a name=oned><H3>oned</H3></a></p> Click <a href="./callingtree/oned_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where oned is used.
+<hr>
+178:       function oned(x,a,b,c,d)
+179:       implicit none
+180: !
+181: ! Dummy arguments
+182: !
+183:       real(8) :: a , b , c , d , x
+184:       real(8) :: oned
+185:       intent (in) a , b , c , d , x
+186: !
+187:       <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a> = 0.
+188:       if ( x==0. ) <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a> = b
+189:       if ( x==1. ) <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a> = c
+190:       if ( b*c==0. ) return
+191:       if ( a*d==0. ) then
+192:         <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a> = b*(1.0-x) + c*x
+193:         if ( a/=0.0 ) <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a> = b + x*(0.5*(c-a)+x*(0.5*(c+a)-b))
+194:         if ( d/=0.0 ) <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a> = c + (1.0-x)                                &
+195:                            & *(0.5*(b-d)+(1.0-x)*(0.5*(b+d)-c))
+196:         go to 99999
+197:       end if
+198:       <a href="./mod_interp.f90.html#oned" TARGET=CENT_PANEL>oned</a> = (1.0-x)*(b+x*(0.5*(c-a)+x*(0.5*(c+a)-b)))                  &
+199:            & + x*(c+(1.0-x)*(0.5*(b-d)+(1.0-x)*(0.5*(b+d)-c)))
+200:       return
+201: 99999 continue
+202:       end function oned
+203: 
+<p><a name=anal2><H3>anal2</H3></a></p> Click <a href="./callingtree/anal2_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where anal2 is used.
+<hr>
+204:       subroutine anal2(a2,asta,nsta,iy,jx,cor,xsum,ns,wtmax,htsav)
+205: 
+206:       use <a href="./mod_block.f90.html#mod_block" TARGET=CENT_PANEL>mod_block</a>
+207: 
+208:       implicit none
+209: !
+210: ! Dummy arguments
+211: !
+212:       integer :: iy , jx , nsta
+213:       real(4) , dimension(iy,jx) :: a2 , cor , htsav , xsum , wtmax
+214:       real(4) , dimension(nsta) :: asta
+215:       integer , dimension(iy,jx) :: ns
+216:       intent (in) asta , iy , jx , nsta
+217:       intent (out) a2 , htsav
+218:       intent (inout) cor , ns , xsum , wtmax
+219: !
+220: ! Local variables
+221: !
+222:       real(4) :: deltas , dx , dxobs , dy , dyobs , riobs , ris , ris2 ,&
+223:                & rjobs , rsq , rx , ry , wt , x , xcntr , xmaxj ,       &
+224:                & xminj , y , ycntr , ymaxi , ymini
+225:       integer :: i , ie , j , je , kk , maxi , maxj , mini , minj ,     &
+226:                & nscan , nskip
+227: !
+228: !     objective analysis to fill a grid based on observations
+229: !     xobs and yobs are x and y positions on observations, not
+230: !     necessarily grid points.
+231: !
+232:       ie = iy - 1
+233:       je = jx - 1
+234:       nscan = 1
+235:       deltas = dsinm
+236:       print 99001 , rin , deltas
+237: !
+238: !-----grid lengths in x and y directions are unity.
+239: !
+240:       xcntr = jx/2.
+241:       ycntr = iy/2.
+242:       dy = deltas
+243:       dx = deltas
+244:       ris = rin**2
+245: !-----rin is radius of influence in grid units
+246:       ris2 = 2.*ris
+247: !
+248:       nskip = 1
+249:       do j = 1 , jx
+250:         do i = 1 , iy
+251:           cor(i,j) = 0.0
+252:           xsum(i,j) = 0.0
+253:           ns(i,j) = 0
+254:           wtmax(i,j) = 0.0
+255:           htsav(i,j) = 0.0
+256:         end do
+257:       end do
+258: !
+259: !-----begin to process the nobs observations with loop 22
+260: !
+261:       do kk = 1 , nobs , nskip
+262:         if ( asta(kk)<=400. ) then
+263: !
+264: !-----define max and min i and j values to limit the number of points
+265: !-----must be considered.
+266: !
+267: !-----dind obs. location in terms of dx and dy
+268: !
+269:           dxobs = xobs(kk)/dx
+270:           dyobs = yobs(kk)/dy
+271: !-----convert obs. location to grid increment values of i and j
+272:           rjobs = dxobs + xcntr - dxcen
+273:           riobs = dyobs + ycntr - dycen
+274: !
+275:           ymaxi = riobs + rin
+276:           maxi = int(ymaxi+0.99)
+277:           maxi = min0(maxi,ie)
+278: !
+279:           ymini = riobs - rin
+280:           mini = int(ymini)
+281:           mini = max0(mini,1)
+282: !
+283:           xmaxj = rjobs + rin
+284:           maxj = int(xmaxj+0.99)
+285:           maxj = min0(maxj,je)
+286: !
+287:           xminj = rjobs - rin
+288:           minj = int(xminj)
+289:           minj = max0(minj,1)
+290: !
+291:           do i = mini , maxi
+292:             do j = minj , maxj
+293:               x = j - xcntr + dxcen
+294:               y = i - ycntr + dycen
+295: !-----compute distance of k_th station from i,jth grid point
+296:               rx = x - xobs(kk)/dx
+297:               ry = y - yobs(kk)/dy
+298:               rsq = rx**2 + ry**2
+299:               if ( rsq<ris2 ) then
+300:                 wt = (ris-rsq)/(ris+rsq)
+301: !               60    continue
+302: !
+303: !-----save      max. weighting factor and terrain height to check if
+304: !-----point     grid should be treated as a land or sea point.
+305: !
+306:                 if ( wt>0.0 ) then
+307:                   wtmax(i,j) = amax1(wt,wtmax(i,j))
+308:                   if ( (wt-wtmax(i,j))==0.0 ) htsav(i,j) = asta(kk)
+309:                   cor(i,j) = cor(i,j) + wt*asta(kk)
+310:                   xsum(i,j) = xsum(i,j) + wt
+311:                   ns(i,j) = ns(i,j) + 1
+312:                 end if
+313:               end if
+314:             end do
+315:           end do
+316:         end if
+317:       end do
+318: !
+319: !-----now apply summed weights and weighted observations to determine
+320: !-----terrain value at i,j points
+321: !
+322:       do i = 1 , ie
+323:         do j = 1 , je
+324:           if ( ns(i,j)/=0 ) then
+325:             cor(i,j) = cor(i,j)/xsum(i,j)
+326:             a2(i,j) = cor(i,j)
+327: !--------if closest observation to i,j is ocean, override a2(i,j) to
+328: !--------preserve the coastline.
+329:            if (htsav(i,j) .le. 0.001) a2(i,j) = htsav(i,j)
+330:           end if
+331:         end do
+332:       end do
+333: 
+334: !-----may want to smooth final field a2 here
+335: 
+336: 99001 format (1x,' rin,ds(m) =',2E12.3)
+337: !     26 format(' no observations are within rin=',f7.2,
+338: !     & ' grid lengths of i=',i3,' j=',i3)
+339:  
+340:       end subroutine anal2
+341: 
+342:       end module mod_interp
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,966 @@
+<HTML>
+
+<HEAD>
+<TITLE>bdyin.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>bdyin.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>bdyin.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=bdyin><H3>bdyin</H3></a></p> Click <a href="./callingtree/bdyin_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where bdyin is used.
+<hr>
+20:       subroutine bdyin
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine reads in the boundary conditions.               c
+25: !                                                                     c
+26: !        iunit : is the unit number from which the data are read in.  c
+27: !                                                                     c
+28: !        xtime : is the time in minutes into the forecast.            c
+29: !                                                                     c
+30: !        bdytim : is the time in minutes after which the boundary     c
+31: !                 conditions are needed.                              c
+32: !                                                                     c
+33: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+34: 
+35:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+36:       use <a href="./mod_iunits.f90.html#mod_iunits" TARGET=CENT_PANEL>mod_iunits</a>
+37:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+38:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : r8pt
+39:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+40:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+41:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : veg2d , ocld2d , sice2d , ocld2d , sice2d
+42:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> 
+43: #ifdef DCSST
+44:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : dtskin
+45: #endif
+46:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : idatex , ldatez , mmrec , ndate0 , ndate1 , &
+47:                    & nmonth , nnbase , nnnnnn , nyear , nnnchk , mdate ,&
+48:                    & xtime
+49:       use <a href="./mod_tmpsav.F90.html#mod_tmpsav" TARGET=CENT_PANEL>mod_tmpsav</a>
+50: #ifdef MPP1
+51:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+52: #ifndef IBM
+53:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+54: #else
+55:       include 'mpif.h'
+56: #endif
+57: #endif
+58:       implicit none
+59: !
+60: ! Local variables
+61: !
+62:       real(8) :: dtbdys
+63:       character(256) :: finm
+64:       integer :: i , ierr1 , j , k , nn , nnb
+65:       real(4) , dimension(iy,jx) :: io2d
+66: #ifdef MPP1
+67:       integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
+68:       real(8) , dimension(iy,jxp) :: psdot , tdum
+69:       logical :: existing = .false. 
+70: #else
+71:       real(8) , dimension(iy,jx) :: psdot , tdum
+72: #endif
+73: #ifdef SEAICE
+74:       integer :: n
+75: #endif
+76: !
+77:       if ( dabs(xtime).gt.0.0001 ) return
+78: 
+79: #ifdef MPP1
+80:       do
+81: !
+82:         dtbdys = ibdyfrq*60.*60.
+83:         if ( myid.eq.0 ) then
+84:           do
+85:             if ( ehso4 ) then
+86:               do k = 1 , kz
+87:                 do j = 1 , jendl
+88:                   do i = 1 , iy
+89:                     so4(i,k,j) = so0(i,k,j)
+90:                   end do
+91:                 end do
+92:               end do
+93:             end if
+94:             mmrec = mmrec + 1
+95:             read (iutbc,rec=mmrec,iostat=ierr1) ndate1
+96:             if ( ierr1.ne.0 ) then
+97:               close (iutbc)
+98:               iutbc = iutbc + 1
+99:               write (finm,99001) trim(dirglob),pthsep,trim(domname),    &
+100:                    &             '_ICBC',((ndate1/10000)*100+1)*100
+101:               inquire(file=finm,exist=existing)
+102:               if ( .not.existing ) then
+103:                 write (aline,*)                                         &
+104:                    & 'The following IBC File does not exist: ' ,        &
+105:                    & trim(finm), 'please check location'
+106:                  call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,aline) 
+107:               else 
+108:                  open (iutbc,file=finm,form='unformatted',status='old', &
+109:                   & access='direct',recl=iy*jx*ibyte)
+110:               endif  
+111:               mmrec = 0
+112:               print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
+113:               if ( iutbc.gt.999 )                                       &
+114:                  & call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
+115:               cycle
+116:             end if
+117:             if ( ndate1.lt.mdatez(nnnchk+1) ) then
+118:               if ( ndate1.lt.mdatez(nnnchk+1) ) then
+119:                 print * , 'Searching for proper date: ' , ndate1 ,      &
+120:                     & mdatez(nnnchk+1)
+121:                 print * , 'read in datasets at :' , ndate0
+122:                 if ( ehso4 ) then
+123:                   if ( lsmtyp.ne.'USGS' ) then
+124:                     mmrec = mmrec + kz*5 + 2
+125:                   else
+126:                     mmrec = mmrec + kz*5 + 2 + 13
+127:                   end if
+128:                 else if ( lsmtyp.ne.'USGS' ) then
+129:                   mmrec = mmrec + kz*4 + 2
+130:                 else
+131:                   mmrec = mmrec + kz*4 + 2 + 13
+132:                 end if
+133:                 cycle
+134:               end if
+135:             else if ( ndate1.gt.mdatez(nnnchk+1) ) then
+136:               print * , 'DATE IN BC FILE EXCEEDED DATE IN RegCM'
+137:               print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
+138:               call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'ICBC date')
+139:             else
+140:             end if
+141:             exit
+142:           end do
+143:         end if
+144: 
+145:         if ( myid.eq.0 ) then
+146: !           print*,'UB1'
+147:             do k = kz , 1 , -1
+148:               mmrec = mmrec + 1
+149:               read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+150:               do j = 1 , jx
+151:                 do i = 1 , iy
+152:                   ub1_io(i,k,j) = dble(io2d(i,j))
+153:                 end do
+154:               end do
+155:             end do
+156: !           print*,'VB1'
+157:             do k = kz , 1 , -1
+158:               mmrec = mmrec + 1
+159:               read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+160:               do j = 1 , jx
+161:                 do i = 1 , iy
+162:                   vb1_io(i,k,j) = dble(io2d(i,j))
+163:                 end do
+164:               end do
+165:             end do
+166: !           print*,'TB1'
+167:             do k = kz , 1 , -1
+168:               mmrec = mmrec + 1
+169:               read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+170:               do j = 1 , jx
+171:                 do i = 1 , iy
+172:                   tb1_io(i,k,j) = dble(io2d(i,j))
+173:                 end do
+174:               end do
+175:             end do
+176: !           print*,'QB1'
+177:             do k = kz , 1 , -1
+178:               mmrec = mmrec + 1
+179:               read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+180:               do j = 1 , jx
+181:                 do i = 1 , iy
+182:                   qb1_io(i,k,j) = dble(io2d(i,j))
+183:                 end do
+184:               end do
+185:             end do
+186: !           print*,'PS1'
+187:             mmrec = mmrec + 1
+188:             read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+189:             do j = 1 , jx
+190:               do i = 1 , iy
+191:                 ps1_io(i,j) = dble(io2d(i,j))
+192:               end do
+193:             end do
+194: !           print*,'TS1'
+195:             mmrec = mmrec + 1
+196:             read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+197:             do j = 1 , jx
+198:               do i = 1 , iy
+199:                 ts1_io(i,j) = dble(io2d(i,j))
+200:               end do
+201:             end do
+202:             if ( ehso4 ) then
+203: !             print*,'SO1'
+204:               do k = kz , 1 , -1
+205:                 mmrec = mmrec + 1
+206:                 read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+207:                 do j = 1 , jx
+208:                   do i = 1 , iy
+209:                     so1_io(i,k,j) = dble(io2d(i,j))
+210:                   end do
+211:                 end do
+212:               end do
+213:             end if
+214:             if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
+215:             do j = 1 , jx
+216:               do k = 1 , kz
+217:                 do i = 1 , iy
+218:                   sav_0(i,k,j) = ub1_io(i,k,j)
+219:                   sav_0(i,kz+k,j) = vb1_io(i,k,j)
+220:                   sav_0(i,kz*2+k,j) = qb1_io(i,k,j)
+221:                   sav_0(i,kz*3+k,j) = tb1_io(i,k,j)
+222:                 end do
+223:               end do
+224:               do i = 1 , iy
+225:                 sav_0(i,kz*4+1,j) = ps1_io(i,j)
+226:                 sav_0(i,kz*4+2,j) = ts1_io(i,j)
+227:               end do
+228:             end do
+229:             if ( ehso4 ) then
+230:               do j = 1 , jx
+231:                 do k = 1 , kz
+232:                   do i = 1 , iy
+233:                     sav_0s(i,k,j) = so1_io(i,k,j)
+234:                   end do
+235:                 end do
+236:               end do
+237:             end if
+238:         end if
+239:         call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(ndate1,1,mpi_integer,0,mpi_comm_world,ierr)
+240:         call <a href="#" TARGET=CENT_PANEL>mpi_scatter</a>(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
+241:                        & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
+242:                        & 0,mpi_comm_world,ierr)
+243:         do j = 1 , jendl
+244:           do k = 1 , kz
+245:             do i = 1 , iy
+246:               ub1(i,k,j) = sav0(i,k,j)
+247:               vb1(i,k,j) = sav0(i,kz+k,j)
+248:               qb1(i,k,j) = sav0(i,kz*2+k,j)
+249:               tb1(i,k,j) = sav0(i,kz*3+k,j)
+250:             end do
+251:           end do
+252:           do i = 1 , iy
+253:             ps1(i,j) = sav0(i,kz*4+1,j)
+254:             ts1(i,j) = sav0(i,kz*4+2,j)
+255:           end do
+256:         end do
+257:         if ( ehso4 ) then
+258:           call <a href="#" TARGET=CENT_PANEL>mpi_scatter</a>(sav_0s(1,1,1),iy*kz*jxp,mpi_real8,           &
+259:                          & sav0s(1,1,1),iy*kz*jxp,mpi_real8,            &
+260:                          & 0,mpi_comm_world,ierr)
+261:           do j = 1 , jendl
+262:             do k = 1 , kz
+263:               do i = 1 , iy
+264:                 so1(i,k,j) = sav0s(i,k,j)
+265:               end do
+266:             end do
+267:           end do
+268:         end if
+269: !       Convert surface pressure to pstar
+270:         do j = 1 , jendl
+271:           do i = 1 , iy
+272:             ps1(i,j) = ps1(i,j) - r8pt
+273:           end do
+274:         end do
+275: !=======================================================================
+276: !
+277: !       this routine determines p(.) from p(x) by a 4-point
+278: !       interpolation. on the x-grid, a p(x) point outside the grid
+279: !       domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
+280: !       and similarly for the i's.
+281:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(ps1(1,jxp),iy,mpi_real8,ieast,1,              &
+282:                         & ps1(1,0),iy,mpi_real8,iwest,1,                &
+283:                         & mpi_comm_world,mpi_status_ignore,ierr)
+284:         do j = jbegin , jendx
+285:           do i = 2 , iym1
+286:             psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
+287:                        &       ps1(i,j-1)+ps1(i-1,j-1))
+288:           end do
+289:         end do
+290: !
+291:         do i = 2 , iym1
+292:           if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
+293:           if ( myid.eq.nproc-1 )                                        &
+294:              & psdot(i,jendl) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
+295:         end do
+296: !
+297:         do j = jbegin , jendx
+298:           psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
+299:           psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
+300:         end do
+301: !
+302:         if ( myid.eq.0 ) then
+303:           psdot(1,1) = ps1(1,1)
+304:           psdot(iy,1) = ps1(iym1,1)
+305:         end if
+306:         if ( myid.eq.nproc-1 ) then
+307:           psdot(1,jendl) = ps1(1,jendx)
+308:           psdot(iy,jendl) = ps1(iym1,jendx)
+309:         end if
+310: !
+311: !=======================================================================
+312: !       Couple pressure u,v,t,q
+313:         do k = 1 , kz
+314:           do j = 1 , jendl
+315:             do i = 1 , iy
+316:               ub1(i,k,j) = ub1(i,k,j)*psdot(i,j)
+317:               vb1(i,k,j) = vb1(i,k,j)*psdot(i,j)
+318:               tb1(i,k,j) = tb1(i,k,j)*ps1(i,j)
+319:               qb1(i,k,j) = qb1(i,k,j)*ps1(i,j)
+320:             end do
+321:           end do
+322:         end do
+323:  
+324:         mdate = ndate0
+325:         nnnchk = nnnchk + 1
+326:  
+327: !       print*,'read in datasets at :',ndate1
+328: !
+329: !-----compute boundary conditions for p*:
+330: !
+331:  
+332:         if ( nspgx.le.jxp ) then
+333:           nxwb = nspgx
+334:         else
+335:           nkk = nspgx/jxp
+336:           if ( nspgx.eq.nkk*jxp ) then
+337:             nxwb = jxp
+338:           else
+339:             nxwb = nspgx - nkk*jxp
+340:           end if
+341:         end if
+342:         if ( nxwb+myid*jxp.gt.nspgx ) then
+343:           nxwb = 0
+344:         else if ( nxwb+myid*jxp.lt.nspgx ) then
+345:           nxwb = jxp
+346:         else
+347:         end if
+348: !
+349:         if ( nspgx.le.jxp-1 ) then
+350:           nxeb = nspgx
+351:         else
+352:           nkk = (nspgx-jxp+1)/jxp
+353:           if ( (nspgx-jxp+1).eq.nkk*jxp ) then
+354:             nxeb = jxp
+355:           else
+356:             nxeb = (nspgx-jxp+1) - nkk*jxp
+357:           end if
+358:         end if
+359:         if ( jxm1-(myid*jxp+jxp-nxeb).gt.nspgx ) then
+360:           nxeb = 0
+361:         else if ( jxm1-(myid*jxp+jxp-nxeb).lt.nspgx ) then
+362:           nxeb = min(jendx,jxp)
+363:         else
+364:         end if
+365:         do nn = 1 , nxwb
+366:           do i = 1 , iym1
+367:             pwb(i,nn) = ps0(i,nn)
+368:             pwbt(i,nn) = (ps1(i,nn)-ps0(i,nn))/dtbdys
+369:           end do
+370:         end do
+371:         do nn = 1 , nxeb
+372:           nnb = min(jendx,jxp) - nn + 1
+373:           do i = 1 , iym1
+374:             peb(i,nn) = ps0(i,nnb)
+375:             pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
+376:           end do
+377:         end do
+378:         do nn = 1 , nspgx
+379:           nnb = iym1 - nn + 1
+380:           do j = 1 , jendx
+381:             pnb(nn,j) = ps0(nnb,j)
+382:             pss(nn,j) = ps0(nn,j)
+383:             pnbt(nn,j) = (ps1(nnb,j)-ps0(nnb,j))/dtbdys
+384:             psbt(nn,j) = (ps1(nn,j)-ps0(nn,j))/dtbdys
+385:           end do
+386:         end do
+387: !
+388: !-----compute boundary conditions for p*u and p*v:
+389: !
+390:         if ( nspgd.le.jxp ) then
+391:           ndwb = nspgd
+392:         else
+393:           nkk = nspgd/jxp
+394:           if ( nspgd.eq.nkk*jxp ) then
+395:             ndwb = jxp
+396:           else
+397:             ndwb = nspgd - nkk*jxp
+398:           end if
+399:         end if
+400:         if ( ndwb+myid*jxp.gt.nspgd ) then
+401:           ndwb = 0
+402:         else if ( ndwb+myid*jxp.lt.nspgd ) then
+403:           ndwb = jxp
+404:         else
+405:         end if
+406: !
+407:         if ( nspgd.le.jendl ) then
+408:           ndeb = nspgd
+409:         else
+410:           nkk = nspgd/jxp
+411:           if ( nspgd.eq.nkk*jxp ) then
+412:             ndeb = jxp
+413:           else
+414:             ndeb = nspgd - nkk*jxp
+415:           end if
+416:         end if
+417:         if ( jx-(myid*jxp+jxp-ndeb).gt.nspgd ) then
+418:           ndeb = 0
+419:         else if ( jx-(myid*jxp+jxp-ndeb).lt.nspgd ) then
+420:           ndeb = jxp
+421:         else
+422:         end if
+423:         do nn = 1 , ndwb
+424:           do k = 1 , kz
+425:             do i = 1 , iy
+426:               uwb(i,k,nn) = ub0(i,k,nn)
+427:               vwb(i,k,nn) = vb0(i,k,nn)
+428:               uwbt(i,k,nn) = (ub1(i,k,nn)-ub0(i,k,nn))/dtbdys
+429:               vwbt(i,k,nn) = (vb1(i,k,nn)-vb0(i,k,nn))/dtbdys
+430:             end do
+431:           end do
+432:         end do
+433:         do nn = 1 , ndeb
+434:           nnb = min(jendl,jxp) - nn + 1
+435:           do k = 1 , kz
+436:             do i = 1 , iy
+437:               ueb(i,k,nn) = ub0(i,k,nnb)
+438:               veb(i,k,nn) = vb0(i,k,nnb)
+439:               uebt(i,k,nn) = (ub1(i,k,nnb)-ub0(i,k,nnb))/dtbdys
+440:               vebt(i,k,nn) = (vb1(i,k,nnb)-vb0(i,k,nnb))/dtbdys
+441:             end do
+442:           end do
+443:         end do
+444:         do nn = 1 , nspgd
+445:           nnb = iy - nn + 1
+446:           do k = 1 , kz
+447:             do j = 1 , jendl
+448:               unb(nn,k,j) = ub0(nnb,k,j)
+449:               usb(nn,k,j) = ub0(nn,k,j)
+450:               vnb(nn,k,j) = vb0(nnb,k,j)
+451:               vsb(nn,k,j) = vb0(nn,k,j)
+452:               unbt(nn,k,j) = (ub1(nnb,k,j)-ub0(nnb,k,j))/dtbdys
+453:               usbt(nn,k,j) = (ub1(nn,k,j)-ub0(nn,k,j))/dtbdys
+454:               vnbt(nn,k,j) = (vb1(nnb,k,j)-vb0(nnb,k,j))/dtbdys
+455:               vsbt(nn,k,j) = (vb1(nn,k,j)-vb0(nn,k,j))/dtbdys
+456:             end do
+457:           end do
+458:         end do
+459: !
+460: !-----compute boundary conditions for p*t and p*qv:
+461: !
+462:         do nn = 1 , nxwb
+463:           do k = 1 , kz
+464:             do i = 1 , iym1
+465:               twb(i,k,nn) = tb0(i,k,nn)
+466:               qwb(i,k,nn) = qb0(i,k,nn)
+467:               twbt(i,k,nn) = (tb1(i,k,nn)-tb0(i,k,nn))/dtbdys
+468:               qwbt(i,k,nn) = (qb1(i,k,nn)-qb0(i,k,nn))/dtbdys
+469:             end do
+470:           end do
+471:         end do
+472:         do nn = 1 , nxeb
+473:           nnb = min(jendx,jxp) - nn + 1
+474:           do k = 1 , kz
+475:             do i = 1 , iym1
+476:               teb(i,k,nn) = tb0(i,k,nnb)
+477:               qeb(i,k,nn) = qb0(i,k,nnb)
+478:               tebt(i,k,nn) = (tb1(i,k,nnb)-tb0(i,k,nnb))/dtbdys
+479:               qebt(i,k,nn) = (qb1(i,k,nnb)-qb0(i,k,nnb))/dtbdys
+480:             end do
+481:           end do
+482:         end do
+483:         do nn = 1 , nspgx
+484:           nnb = iym1 - nn + 1
+485:           do k = 1 , kz
+486:             do j = 1 , jendx
+487:               tnb(nn,k,j) = tb0(nnb,k,j)
+488:               tsb(nn,k,j) = tb0(nn,k,j)
+489:               qnb(nn,k,j) = qb0(nnb,k,j)
+490:               qsb(nn,k,j) = qb0(nn,k,j)
+491:               tnbt(nn,k,j) = (tb1(nnb,k,j)-tb0(nnb,k,j))/dtbdys
+492:               tsbt(nn,k,j) = (tb1(nn,k,j)-tb0(nn,k,j))/dtbdys
+493:               qnbt(nn,k,j) = (qb1(nnb,k,j)-qb0(nnb,k,j))/dtbdys
+494:               qsbt(nn,k,j) = (qb1(nn,k,j)-qb0(nn,k,j))/dtbdys
+495:             end do
+496:           end do
+497:         end do
+498:         if ( myid.eq.0 ) print * , 'BCs are ready from ' , ndate0 ,     &
+499:                               &'  to ' , ndate1
+500:         idatex = ndate0
+501:         ndate0 = ndate1
+502:         do j = 1 , jendx
+503:           do i = 1 , iym1
+504:             tdum(i,j) = ts1(i,j)
+505:           end do
+506:         end do
+507:         do k = 1 , kz
+508:           do j = 1 , jendl
+509:             do i = 1 , iy
+510:               ub0(i,k,j) = ub1(i,k,j)
+511:               vb0(i,k,j) = vb1(i,k,j)
+512:               qb0(i,k,j) = qb1(i,k,j)
+513:               tb0(i,k,j) = tb1(i,k,j)
+514:             end do
+515:           end do
+516:         end do
+517:         do j = 1 , jendl
+518:           do i = 1 , iy
+519:             ps0(i,j) = ps1(i,j)
+520:             ts0(i,j) = ts1(i,j)
+521:           end do
+522:         end do
+523:         if ( ehso4 ) then
+524:           do k = 1 , kz
+525:             do j = 1 , jendl
+526:               do i = 1 , iy
+527:                 so0(i,k,j) = so1(i,k,j)
+528:               end do
+529:             end do
+530:           end do
+531:         end if
+532: !bxqOCT2001_
+533:  
+534:         nnbase = nnnnnn
+535:         nyear = mdate/1000000
+536:         nmonth = (mdate-nyear*1000000)/10000
+537:  
+538: !-----------------------------------------------------------------------
+539:         if ( ldatez.lt.ndate1 ) then
+540:  
+541:           do j = 1 , jendx
+542:             do i = 1 , iym1
+543: #ifdef CLM
+544: ! manuaully setting ocld2d subgrid to 1 (regcm_clm does not support subgridding)
+545:               if ( ocld2d(1,i,j).le.0.00001 ) then
+546: #else
+547:               if ( veg2d(i,j).le.0.00001 ) then
+548: #endif
+549: #ifdef DCSST
+550:                 tga(i,j) = tdum(i,j) + dtskin(i,j)
+551:                 tgb(i,j) = tdum(i,j) + dtskin(i,j)
+552: #else
+553:                 tga(i,j) = tdum(i,j)
+554:                 tgb(i,j) = tdum(i,j)
+555: #endif
+556: #ifdef SEAICE
+557:                 if ( tdum(i,j).le.271.38 ) then
+558:                   print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
+559:                         & ' t=',tdum(i,j)
+560:                   tga(i,j) = 271.38
+561:                   tgb(i,j) = 271.38
+562:                   tdum(i,j) = 271.38
+563:                   do n = 1, nnsg
+564:                     ocld2d(n,i,j) = 2.
+565: !                   sice2d(n,i,j)=1000.
+566:                     sice2d(n,i,j) = 0.
+567:                   end do
+568:                 else
+569:                  do n = 1, nnsg
+570:                    ocld2d(n,i,j) = 0.
+571:                    sice2d(n,i,j) = 0.
+572:                  end do
+573:                end if
+574: #endif
+575:               end if
+576:             end do
+577:           end do
+578:           exit
+579:         end if
+580:       end do
+581: #else
+582:       do      
+583:         dtbdys = ibdyfrq*60.*60.
+584:         do
+585:           if ( ehso4 ) then
+586:             do k = 1 , kz
+587:               do j = 1 , jx
+588:                 do i = 1 , iy
+589:                   so4(i,k,j) = so0(i,k,j)
+590:                 end do
+591:               end do
+592:             end do
+593:           end if
+594:           mmrec = mmrec + 1
+595:           read (iutbc,rec=mmrec,iostat=ierr1) ndate1
+596:           if ( ierr1.ne.0 ) then
+597:             close (iutbc)
+598:             iutbc = iutbc + 1
+599:             write (finm,99001) trim(dirglob),pthsep,trim(domname),      &
+600:                    &           '_ICBC',((ndate1/10000)*100+1)*100
+601:             open (iutbc,file=finm,form='unformatted',status='old',      &
+602:                 & access='direct',recl=iy*jx*ibyte)
+603:             mmrec = 0
+604:             print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
+605:             if ( iutbc.gt.999 )                                         &
+606:                 & call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
+607:             cycle
+608:           end if
+609:           if ( ndate1.lt.mdatez(nnnchk+1) ) then
+610:             if ( ndate1.lt.mdatez(nnnchk+1) ) then
+611:               print * , 'Searching for proper date: ' , ndate1 ,        &
+612:                   & mdatez(nnnchk+1)
+613:               print * , 'read in datasets at :' , ndate0
+614:               if ( ehso4 ) then
+615:                 if ( lsmtyp.ne.'USGS' ) then
+616:                   mmrec = mmrec + kz*5 + 2
+617:                 else
+618:                   mmrec = mmrec + kz*5 + 2 + 13
+619:                 end if
+620:               else if ( lsmtyp.ne.'USGS' ) then
+621:                 mmrec = mmrec + kz*4 + 2
+622:               else
+623:                 mmrec = mmrec + kz*4 + 2 + 13
+624:               end if
+625:               cycle
+626:             end if
+627:           else if ( ndate1.gt.mdatez(nnnchk+1) ) then
+628:             print * , 'DATE IN BC FILE EXCEEDED DATE IN RegCM'
+629:             print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
+630:             call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'ICBC date')
+631:           else
+632:           end if
+633:           exit
+634:         end do
+635: 
+636: !     print*,'UB1'
+637:         do k = kz , 1 , -1
+638:           mmrec = mmrec + 1
+639:           read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+640:           do j = 1 , jx
+641:             do i = 1 , iy
+642:               ub1(i,k,j) = dble(io2d(i,j))
+643:             end do
+644:           end do
+645:         end do
+646: !     print*,'VB1'
+647:         do k = kz , 1 , -1
+648:           mmrec = mmrec + 1
+649:           read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+650:           do j = 1 , jx
+651:             do i = 1 , iy
+652:               vb1(i,k,j) = dble(io2d(i,j))
+653:             end do
+654:           end do
+655:         end do
+656: !     print*,'TB1'
+657:         do k = kz , 1 , -1
+658:           mmrec = mmrec + 1
+659:           read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+660:           do j = 1 , jx
+661:             do i = 1 , iy
+662:               tb1(i,k,j) = dble(io2d(i,j))
+663:             end do
+664:           end do
+665:         end do
+666: !     print*,'QB1'
+667:         do k = kz , 1 , -1
+668:           mmrec = mmrec + 1
+669:           read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+670:           do j = 1 , jx
+671:             do i = 1 , iy
+672:               qb1(i,k,j) = dble(io2d(i,j))
+673:             end do
+674:           end do
+675:         end do
+676: !     print*,'PS1'
+677:         mmrec = mmrec + 1
+678:         read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+679:         do j = 1 , jx
+680:           do i = 1 , iy
+681:             ps1(i,j) = dble(io2d(i,j))
+682:           end do
+683:         end do
+684: !     print*,'TS1'
+685:         mmrec = mmrec + 1
+686:         read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+687:         do j = 1 , jx
+688:           do i = 1 , iy
+689:             ts1(i,j) = dble(io2d(i,j))
+690:           end do
+691:         end do
+692:         if ( ehso4 ) then
+693: !       print*,'SO1'
+694:           do k = kz , 1 , -1
+695:             mmrec = mmrec + 1
+696:             read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
+697:             do j = 1 , jx
+698:               do i = 1 , iy
+699:                 so1(i,k,j) = dble(io2d(i,j))
+700:               end do
+701:             end do
+702:           end do
+703:         end if
+704:         if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
+705: !     Convert surface pressure to pstar
+706:         do j = 1 , jx
+707:           do i = 1 , iy
+708:             ps1(i,j) = ps1(i,j) - r8pt
+709:           end do
+710:         end do
+711: !=======================================================================
+712: !
+713: !     this routine determines p(.) from p(x) by a 4-point
+714: !     interpolation. on the x-grid, a p(x) point outside the grid
+715: !     domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
+716: !     and similarly for the i's.
+717:         do j = 2 , jxm1
+718:           do i = 2 , iym1
+719:             psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
+720:                        &       ps1(i,j-1)+ps1(i-1,j-1))
+721:           end do
+722:         end do
+723: !
+724:         do i = 2 , iym1
+725:           psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
+726:           psdot(i,jx) = 0.5*(ps1(i,jxm1)+ps1(i-1,jxm1))
+727:         end do
+728: !
+729:         do j = 2 , jxm1
+730:           psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
+731:           psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
+732:         end do
+733: !
+734:         psdot(1,1) = ps1(1,1)
+735:         psdot(iy,1) = ps1(iym1,1)
+736:         psdot(1,jx) = ps1(1,jxm1)
+737:         psdot(iy,jx) = ps1(iym1,jxm1)
+738: !
+739: !=======================================================================
+740: !     Couple pressure u,v,t,q
+741:         do k = 1 , kz
+742:           do j = 1 , jx
+743:             do i = 1 , iy
+744:               ub1(i,k,j) = ub1(i,k,j)*psdot(i,j)
+745:               vb1(i,k,j) = vb1(i,k,j)*psdot(i,j)
+746:               tb1(i,k,j) = tb1(i,k,j)*ps1(i,j)
+747:               qb1(i,k,j) = qb1(i,k,j)*ps1(i,j)
+748:             end do
+749:           end do
+750:         end do
+751:  
+752:         mdate = ndate0
+753:         nnnchk = nnnchk + 1
+754:  
+755: !     print*,'read in datasets at :',ndate1
+756: !
+757: !-----compute boundary conditions for p*:
+758: !
+759:  
+760:         do nn = 1 , nspgx
+761:           do i = 1 , iym1
+762:             pwb(i,nn) = ps0(i,nn)
+763:             pwbt(i,nn) = (ps1(i,nn)-ps0(i,nn))/dtbdys
+764:           end do
+765:         end do
+766:         do nn = 1 , nspgx
+767:           nnb = jxm1 - nn + 1
+768:           do i = 1 , iym1
+769:             peb(i,nn) = ps0(i,nnb)
+770:             pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
+771:           end do
+772:         end do
+773:         do nn = 1 , nspgx
+774:           nnb = iym1 - nn + 1
+775:           do j = 1 , jxm1
+776:             pnb(nn,j) = ps0(nnb,j)
+777:             pss(nn,j) = ps0(nn,j)
+778:             pnbt(nn,j) = (ps1(nnb,j)-ps0(nnb,j))/dtbdys
+779:             psbt(nn,j) = (ps1(nn,j)-ps0(nn,j))/dtbdys
+780:           end do
+781:         end do
+782: !
+783: !-----compute boundary conditions for p*u and p*v:
+784: !
+785:         do nn = 1 , nspgd
+786:           do k = 1 , kz
+787:             do i = 1 , iy
+788:               uwb(i,k,nn) = ub0(i,k,nn)
+789:               vwb(i,k,nn) = vb0(i,k,nn)
+790:               uwbt(i,k,nn) = (ub1(i,k,nn)-ub0(i,k,nn))/dtbdys
+791:               vwbt(i,k,nn) = (vb1(i,k,nn)-vb0(i,k,nn))/dtbdys
+792:             end do
+793:           end do
+794:         end do
+795:         do nn = 1 , nspgd
+796:           nnb = jx - nn + 1
+797:           do k = 1 , kz
+798:             do i = 1 , iy
+799:               ueb(i,k,nn) = ub0(i,k,nnb)
+800:               veb(i,k,nn) = vb0(i,k,nnb)
+801:               uebt(i,k,nn) = (ub1(i,k,nnb)-ub0(i,k,nnb))/dtbdys
+802:               vebt(i,k,nn) = (vb1(i,k,nnb)-vb0(i,k,nnb))/dtbdys
+803:             end do
+804:           end do
+805:         end do
+806:         do nn = 1 , nspgd
+807:           nnb = iy - nn + 1
+808:           do k = 1 , kz
+809:             do j = 1 , jx
+810:               unb(nn,k,j) = ub0(nnb,k,j)
+811:               usb(nn,k,j) = ub0(nn,k,j)
+812:               vnb(nn,k,j) = vb0(nnb,k,j)
+813:               vsb(nn,k,j) = vb0(nn,k,j)
+814:               unbt(nn,k,j) = (ub1(nnb,k,j)-ub0(nnb,k,j))/dtbdys
+815:               usbt(nn,k,j) = (ub1(nn,k,j)-ub0(nn,k,j))/dtbdys
+816:               vnbt(nn,k,j) = (vb1(nnb,k,j)-vb0(nnb,k,j))/dtbdys
+817:               vsbt(nn,k,j) = (vb1(nn,k,j)-vb0(nn,k,j))/dtbdys
+818:             end do
+819:           end do
+820:         end do
+821: !
+822: !-----compute boundary conditions for p*t and p*qv:
+823: !
+824:         do nn = 1 , nspgx
+825:           do k = 1 , kz
+826:             do i = 1 , iym1
+827:               twb(i,k,nn) = tb0(i,k,nn)
+828:               qwb(i,k,nn) = qb0(i,k,nn)
+829:               twbt(i,k,nn) = (tb1(i,k,nn)-tb0(i,k,nn))/dtbdys
+830:               qwbt(i,k,nn) = (qb1(i,k,nn)-qb0(i,k,nn))/dtbdys
+831:             end do
+832:           end do
+833:         end do
+834:         do nn = 1 , nspgx
+835:           nnb = jxm1 - nn + 1
+836:           do k = 1 , kz
+837:             do i = 1 , iym1
+838:               teb(i,k,nn) = tb0(i,k,nnb)
+839:               qeb(i,k,nn) = qb0(i,k,nnb)
+840:               tebt(i,k,nn) = (tb1(i,k,nnb)-tb0(i,k,nnb))/dtbdys
+841:               qebt(i,k,nn) = (qb1(i,k,nnb)-qb0(i,k,nnb))/dtbdys
+842:             end do
+843:           end do
+844:         end do
+845:         do nn = 1 , nspgx
+846:           nnb = iym1 - nn + 1
+847:           do k = 1 , kz
+848:             do j = 1 , jxm1
+849:               tnb(nn,k,j) = tb0(nnb,k,j)
+850:               tsb(nn,k,j) = tb0(nn,k,j)
+851:               qnb(nn,k,j) = qb0(nnb,k,j)
+852:               qsb(nn,k,j) = qb0(nn,k,j)
+853:               tnbt(nn,k,j) = (tb1(nnb,k,j)-tb0(nnb,k,j))/dtbdys
+854:               tsbt(nn,k,j) = (tb1(nn,k,j)-tb0(nn,k,j))/dtbdys
+855:               qnbt(nn,k,j) = (qb1(nnb,k,j)-qb0(nnb,k,j))/dtbdys
+856:               qsbt(nn,k,j) = (qb1(nn,k,j)-qb0(nn,k,j))/dtbdys
+857:             end do
+858:           end do
+859:         end do
+860:         print * , 'BCs are ready from ' , ndate0 , '  to ' , ndate1
+861:         idatex = ndate0
+862:         ndate0 = ndate1
+863:         do j = 1 , jxm1
+864:           do i = 1 , iym1
+865:             tdum(i,j) = ts1(i,j)
+866:           end do
+867:         end do
+868:         do k = 1 , kz
+869:           do j = 1 , jx
+870:             do i = 1 , iy
+871:               ub0(i,k,j) = ub1(i,k,j)
+872:               vb0(i,k,j) = vb1(i,k,j)
+873:               qb0(i,k,j) = qb1(i,k,j)
+874:               tb0(i,k,j) = tb1(i,k,j)
+875:             end do
+876:           end do
+877:         end do
+878:         do j = 1 , jx
+879:           do i = 1 , iy
+880:             ps0(i,j) = ps1(i,j)
+881:             ts0(i,j) = ts1(i,j)
+882:           end do
+883:         end do
+884:         if ( ehso4 ) then
+885:           do k = 1 , kz
+886:             do j = 1 , jx
+887:               do i = 1 , iy
+888:                 so0(i,k,j) = so1(i,k,j)
+889:               end do
+890:             end do
+891:           end do
+892:         end if
+893: !bxqOCT2001_
+894:  
+895:         nnbase = nnnnnn
+896:         nyear = mdate/1000000
+897:         nmonth = (mdate-nyear*1000000)/10000
+898:  
+899: !-----------------------------------------------------------------------
+900:         if ( ldatez.lt.ndate1 ) then
+901:  
+902:           do j = 1 , jxm1
+903:             do i = 1 , iym1
+904:               if ( veg2d(i,j).le.0.00001 ) then
+905: #ifdef DCSST
+906:                 tga(i,j) = tdum(i,j) + dtskin(i,j)
+907:                 tgb(i,j) = tdum(i,j) + dtskin(i,j)
+908: #else
+909:                 tga(i,j) = tdum(i,j)
+910:                 tgb(i,j) = tdum(i,j)
+911: #endif
+912: #ifdef SEAICE
+913:                 if ( tdum(i,j).le.271.38 ) then
+914:                   print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
+915:                         & ' t=',tdum(i,j)
+916:                   tga(i,j) = 271.38
+917:                   tgb(i,j) = 271.38
+918:                   tdum(i,j) = 271.38
+919:                   do n = 1, nnsg
+920:                     ocld2d(n,i,j) = 2.
+921: !                   sice2d(n,i,j)=1000.
+922:                     sice2d(n,i,j) = 0.
+923:                   end do
+924:                 else
+925:                  do n = 1, nnsg
+926:                    ocld2d(n,i,j) = 0.
+927:                    sice2d(n,i,j) = 0.
+928:                  end do
+929:                end if
+930: #endif
+931:               end if
+932:             end do
+933:           end do
+934:           exit
+935:         end if
+936:       end do
+937: #endif
+938: 
+939: 99001 format (a,a,a,a,i0.10)
+940:  
+941:       end subroutine bdyin
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

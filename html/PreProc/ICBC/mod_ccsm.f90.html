@@ -1,0 +1,1528 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_ccsm.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_ccsm.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_ccsm.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_ccsm><H3>mod_ccsm</H3></a></p>20:       module mod_ccsm
+21: 
+22: !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+23: !
+24: ! This is a package of subroutines to read CCSM T85 and T42 L26 data in
+25: ! NETCDF format and to prepare Initial and boundary conditions for RegCM3.
+26: ! Both Global and Window of CCSM data are acceptable.
+27: ! Written By Moetasim Ashfaq Dec-2005 @ PURDUE.EDU
+28: !
+29: !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+30: !
+31: !  SUBROUTINE CAM85
+32: !  Read unpacked CCSM NETCDF T85 L26 (six hourly) data and save into data
+33: !    arrays. Each varaible is read in seperate monthly data files.
+34: !
+35: !  SUBROUTINE CAM42
+36: !  Read unpacked CCSM NETCDF T42 L26 (six hourly) data and save into data
+37: !     arrays. Each varaible is read in seperate yearly data files.
+38: !
+39: !  SUBROUTINE HEADER_CAM85 & HEADER_CAM42
+40: !  Define pressure levels, Ak and Bk coeffcients and global grid dimensions
+41: !     In CCSM, the vertical coordinate is a hybrid sigma-pressure system
+42: !     The pressure is defined as:
+43: !     P=Ak*Po+Bk*PS(i,j)
+44: !     All 3D fields required for ICBC are at mid-points, so
+45: !     Ak refers to hyam, the hybrid A coefficient at midpoints, and
+46: !     Bk refers to hybm, the hybrid B coefficient at midpoints
+47: !     Po=1000mb
+48: !
+49: !  SUBROUTINE GET_CAM85
+50: !  Main subroutine to read data arrays from CAM85 and prepare ICBCs at RCM Grid
+51: !
+52: !  SUBROUTINE GET_CAM42
+53: !  Main subroutine to read data arrays from CAM42 and prepare ICBCs at RCM Grid
+54: !
+55: !  SUBROUTINE INITDATE3
+56: !  Initialize CCSM 365 days calendar (No leap years)
+57: !
+58: !  SUBROUTINE CAMCLNDR
+59: !  Subroutine for SST preparation with No leap year
+60: !
+61: !  SUBROUTINE HANDLE_ERR
+62: !  Handle error for NETCDF calls
+63: !
+64: !  SUBROUTINES CALLED FROM ICBC.f
+65: !     1) INTLIN
+66: !     2) INTLOG
+67: !     3) HUMIF1FV
+68: !     3) BILINX2CR
+69: !     4) BILINX2DT
+70: !     5) TOP2BTM
+71: !     6) UVROT4
+72: !     7) INTGTB
+73: !     8) P1P2
+74: !     8) INTPSN
+75: !     9) INTV3
+76: !     10) MKSST
+77: !     10) HUMID2FV
+78: !     10) INTV1
+79: !     11) WRITEF
+80: !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+81: !  DATA PREPARATION
+82: !  Dataset required to use this code can be preapred using NCO utilitiles
+83: !     such as NCKS, NCRCAT etc.
+84: !  Prepare:
+85: !     Monthly data files for CAM85
+86: !     Yearly data files for CAM42
+87: !  For example:
+88: !     To extract global data of CAM42 for Specific Humidity
+89: !     ncks -v Q input.nc ccsm.shum.nyear.nc    ,and
+90: !     to extract a subset (window) of CAM85 data for Specific Humidity
+91: !     ncks -d lat,min,max -d lon,min,max -v Q input.nc ccsm.shumJAN.nyear.nc
+92: !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+93: !  NAMING CONVENTION (Global Data Files) CAM85
+94: !  (MONTH) = JAN/FEB/MAR/APR/MAY/JUN/JUL/AUG/SEP/OCT/NOV/DEC
+95: !
+96: !  ccsm.air(MONTH).nyear.nc     for 'T'     (Temperature)
+97: !  ccsm.hgt(MONTH).nyear.nc     for 'Z3'    (Geopotential Height)
+98: !  ccsm.shum(MONTH).nyear.nc    for 'Q'     (Specific Humidity)
+99: !  ccsm.uwnd(MONTH).nyear.nc    for 'U'     (Zonal Wind)
+100: !  ccsm.vwnd(MONTH).nyear.nc    for 'V'     (Meridonial Wind)
+101: !  ccsm.pres(MONTH).nyear.nc    for 'PS'    (Surface Pressure)
+102: !
+103: !  PATH /DATA/CAM85/NYEAR/
+104: !  ccsm_ht.nc      for 'PHIS'  (Surface Geopotential-static field)
+105: !
+106: !  PATH /DATA/CAM85/
+107: !
+108: !  NAMING CONVENTION (Global Data Files) CAM42
+109: !  ccsm.air.nyear        for 'T'   (Temperature)
+110: !  ccsm.hgt.nyear.nc     for 'Z3'  (Geopotential Height)
+111: !  ccsm.shum.nyear.nc    for 'Q'   (Specific Humidity)
+112: !  ccsm.uwnd.nyear.nc    for 'U'   (Zonal Wind)
+113: !  ccsm.vwnd.nyear.nc    for 'V'   (Meridonial Wind)
+114: !  ccsm.pres.nyear.nc    for 'PS'  (Surface Pressure)
+115: !
+116: !  PATH /DATA/CAM42/NYEAR/
+117: !  ccsm_ht.nc      for 'PHIS'  (Surface Geopotential-static field)
+118: !
+119: !  PATH /DATA/CAM42/
+120: !
+121: !
+122: !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+123: 
+124:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+125: 
+126:       implicit none
+127: 
+128:       private
+129: 
+130:       ! CAM58
+131:       integer , parameter :: ilon = 256 , jlat = 128
+132:       ! CAM42
+133:       integer , parameter :: ilonh = 128 , jlath = 64
+134: 
+135:       integer , parameter :: klev = 26 , npl = 18
+136: 
+137:       ! Whole space
+138:       real(4) , target , dimension(ilon,jlat,npl*3) :: b2
+139:       real(4) , target , dimension(ilon,jlat,npl*2) :: d2
+140:       real(4) , allocatable , target , dimension(:,:,:) :: b3
+141:       real(4) , allocatable , target , dimension(:,:,:) :: d3
+142:       real(4) , allocatable , dimension(:,:,:) :: dum1
+143:       real(4) , allocatable , dimension(:,:,:,:) :: dum2
+144: 
+145:       ! Shared by netcdf I/O routines
+146:       integer , dimension(10) :: icount , istart
+147:       integer :: inet1 , ivar1
+148:       integer , dimension(6) :: inet6 , ivar6
+149: 
+150:       real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
+151:       real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+152:       real(4) , pointer :: up(:,:,:) , vp(:,:,:)
+153:       real(4) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
+154: 
+155:       real(4) , dimension(ilon,jlat,klev) :: pp3d
+156:       real(4) , dimension(ilon,jlat,klev) :: hvar , qvar , tvar , uvar ,&
+157:                                         & vvar
+158:       real(4) , dimension(ilon,jlat) :: psvar , zsvar
+159:       real(4) , dimension(klev+1) :: ak , bk
+160:       real(4) , dimension(jlat) :: glat
+161:       real(4) , dimension(ilon) :: glon
+162:       real(4) , dimension(npl) :: pplev , sigma1 , sigmar
+163: 
+164:       public :: get_cam42 , head_cam42
+165:       public :: get_cam85 , head_cam85
+166: 
+167:       contains
+168: 
+<p><a name=get_cam42><H3>get_cam42</H3></a></p> Click <a href="./callingtree/get_cam42_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where get_cam42 is used.
+<hr>
+169:       subroutine get_cam42(idate)
+170: 
+171:         use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+172:         use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+173:         use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+174:         use <a href="./mod_interp.f90.html#mod_interp" TARGET=CENT_PANEL>mod_interp</a> , only : bilinx2
+175:         use <a href="./mod_vertint.f90.html#mod_vertint" TARGET=CENT_PANEL>mod_vertint</a>
+176:         use <a href="./mod_hgt.f90.html#mod_hgt" TARGET=CENT_PANEL>mod_hgt</a>
+177:         use <a href="./mod_humid.f90.html#mod_humid" TARGET=CENT_PANEL>mod_humid</a>
+178:         use <a href="./mod_mksst.f90.html#mod_mksst" TARGET=CENT_PANEL>mod_mksst</a>
+179:         use <a href="./mod_uvrot.f90.html#mod_uvrot" TARGET=CENT_PANEL>mod_uvrot</a>
+180:         use <a href="./mod_vectutil.f90.html#mod_vectutil" TARGET=CENT_PANEL>mod_vectutil</a>
+181: 
+182:         implicit none
+183: !
+184: ! Dummy arguments
+185: !
+186:         integer :: idate
+187: !
+188: ! Local variables
+189: !
+190:         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
+191:                 & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
+192:                 & istatus
+193:         real(4) :: wt
+194:         character(256) :: pathaddname
+195:         logical :: there
+196:         character(4) :: varname
+197:         real(4) , allocatable , dimension(:,:) :: work
+198: 
+199:         data varname/'PHIS'/
+200:  
+201:         call <a href="./mod_ccsm.f90.html#cam42" TARGET=CENT_PANEL>cam42</a>(idate,globidate1,glat)
+202: 
+203:         if ( idate==globidate1 ) then
+204:           pathaddname = trim(inpglob)//'/CAM42/ccsm_ht.nc'
+205:           inquire (file=pathaddname,exist=there)
+206:           if ( .not.there ) then
+207:             print * , pathaddname , 'is not available'
+208:             stop
+209:           end if
+210:           istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+211:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+212:           istatus = nf90_inq_varid(inet1,varname,ivar1)
+213:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+214:           write (*,*) inet1 , pathaddname , ivar1 , varname
+215:           istatus = nf90_inq_dimid(inet1,'lon',lonid)
+216:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+217:           istatus = nf90_inq_dimid(inet1,'lat',latid)
+218:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+219:           istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
+220:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+221:           istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
+222:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+223:           imin = i0
+224:           imax = i1
+225:           if ( i0>i1 ) imax = i1 + ilonh
+226:           checklon = (imax-imin) + 1
+227:           checklat = (j1-j0) + 1
+228:           print * , 'i0,i1' , i0 , i1
+229:           if ( checklon/=lonlen .or. checklat/=latlen ) then
+230:             print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
+231:             print * , 'LAT for 3D Variables = ' , checklat
+232:             print * , 'LAT for' , varname , '= ' , latlen
+233:             print * , 'LON for 3D Variables = ' , checklon
+234:             print * , 'LON for' , varname , '= ' , lonlen
+235:             stop 'Check Dimensions in CCSM Data Files'
+236:           end if
+237:           allocate (work(lonlen,latlen))
+238:           icount(1) = lonlen
+239:           icount(2) = latlen
+240:           icount(3) = 1
+241:           istart(1) = 1
+242:           istart(2) = 1
+243:           istart(3) = 1
+244:           istatus = nf90_get_var(inet1,ivar1,work,istart,icount)
+245:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+246:           istatus = nf90_close(inet1)
+247:           do jj = j0 , j1
+248:             j = jj - j0 + 1
+249:             if ( i0>i1 ) then
+250:               do ii = i0 , ilonh
+251:                 i = ii - i0 + 1
+252:                 zsvar(ii,jj) = work(i,j)/9.80665
+253:               end do
+254:               do ii = 1 , i1
+255:                 i = ii + (ilonh-i0)
+256:                 zsvar(ii,jj) = work(i,j)/9.80665
+257:               end do
+258:             else
+259:               do ii = i0 , i1
+260:                 i = ii - i0 + 1
+261:                 zsvar(ii,jj) = work(i,j)/9.80665
+262:               end do
+263:             end if
+264:           end do
+265:         end if
+266:         write (*,*) 'Read in fields at Date: ' , idate
+267:  
+268:         do k = 1 , klev
+269:           do j = 1 , jlath
+270:             do i = 1 , ilonh
+271:               if ( psvar(i,j)>-9995. ) then
+272:                 pp3d(i,j,k) = psvar(i,j)*0.5*(bk(k)+bk(k+1))            &
+273:                           & + 0.5*(ak(k)+ak(k+1))
+274:               else
+275:                 pp3d(i,j,k) = -9999.0
+276:               end if
+277:             end do
+278:           end do
+279:         end do
+280:  
+281:         call <a href="./mod_hgt.f90.html#height" TARGET=CENT_PANEL>height</a>(hp,hvar,tvar,psvar,pp3d,zsvar,                      &
+282:                   & ilonh,jlath,klev,pplev,npl)
+283:  
+284:         call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(up,uvar,psvar,pp3d,ilonh,jlath,klev,pplev,npl)
+285:         call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(vp,vvar,psvar,pp3d,ilonh,jlath,klev,pplev,npl)
+286:  
+287:         call <a href="./mod_vertint.f90.html#intlog" TARGET=CENT_PANEL>intlog</a>(tp,tvar,psvar,pp3d,ilonh,jlath,klev,pplev,npl)
+288:  
+289:         call <a href="./mod_humid.f90.html#humid1fv" TARGET=CENT_PANEL>humid1fv</a>(tvar,qvar,pp3d,ilonh,jlath,klev)
+290:         call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(qp,qvar,psvar,pp3d,ilonh,jlath,klev,pplev,npl)
+291:  
+292:         call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(b3,b2,xlon,xlat,glon,glat,jx,iy,ilonh,jlath,npl)
+293:         call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(d3,d2,dlon,dlat,glon,glat,jx,iy,ilonh,jlath,npl)
+294:         call <a href="./mod_uvrot.f90.html#uvrot4" TARGET=CENT_PANEL>uvrot4</a>(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,             &
+295:                 &   npl,plon,plat,iproj)
+296:  
+297:         call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(t3,jx,iy,npl)
+298:         call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(q3,jx,iy,npl)
+299:         call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(h3,jx,iy,npl)
+300:         call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(u3,jx,iy,npl)
+301:         call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(v3,jx,iy,npl)
+302:  
+303:         call <a href="./mod_vertint.f90.html#intgtb" TARGET=CENT_PANEL>intgtb</a>(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
+304:  
+305:         call <a href="./mod_vertint.f90.html#intpsn" TARGET=CENT_PANEL>intpsn</a>(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+306:         call <a href="./mod_vectutil.f90.html#p1p2" TARGET=CENT_PANEL>p1p2</a>(b3pd,ps4,jx,iy)
+307:  
+308:         call <a href="./mod_vertint.f90.html#intv3" TARGET=CENT_PANEL>intv3</a>(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
+309:         call <a href="./mod_ccsm.f90.html#camclndr" TARGET=CENT_PANEL>camclndr</a>(idate,nyrp,nmop,wt)
+310:         call <a href="./mod_mksst.f90.html#mksst" TARGET=CENT_PANEL>mksst</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+311:         call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
+312:         call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
+313:         call <a href="./mod_vertint.f90.html#intv2" TARGET=CENT_PANEL>intv2</a>(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
+314:  
+315:         call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
+316:         call <a href="./mod_humid.f90.html#humid2fv" TARGET=CENT_PANEL>humid2fv</a>(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+317:  
+318:         call <a href="./mod_hgt.f90.html#hydrost" TARGET=CENT_PANEL>hydrost</a>(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,               &
+319:                &     dsigma,jx,iy,kz)
+320:  
+321:         call <a href="./mod_write.f90.html#writef" TARGET=CENT_PANEL>writef</a>(ptop,idate)
+322: 
+323:         deallocate(work)
+324:       end subroutine get_cam42
+325: !
+326: !-----------------------------------------------------------------------
+327: ! 
+<p><a name=head_cam42><H3>head_cam42</H3></a></p> Click <a href="./callingtree/head_cam42_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where head_cam42 is used.
+<hr>
+328:       subroutine head_cam42
+329:         implicit none
+330: !
+331: ! Local variables
+332: !
+333:         integer :: i , k , kr
+334:         real(4) , dimension(jlath) :: fixlat
+335: !
+336:         data fixlat/ - 87.8638 , -85.0965 , -82.3129 , -79.5256 ,       &
+337:          & -76.7369 ,                                                   &
+338:          & -73.9475 , -71.1578 , -68.3678 , -65.5776 , -62.7874 ,       &
+339:          & -59.9970 , -57.2066 , -54.4162 , -51.6257 , -48.8352 ,       &
+340:          & -46.0447 , -43.2542 , -40.4636 , -37.6731 , -34.8825 ,       &
+341:          & -32.0919 , -29.3014 , -26.5108 , -23.7202 , -20.9296 ,       &
+342:          & -18.1390 , -15.3484 , -12.5578 , -9.76715 , -6.97653 ,       &
+343:          & -4.18592 , -1.39531 , 1.39531 , 4.18592 , 6.97653 , 9.76715 ,&
+344:          & 12.5578 , 15.3484 , 18.1390 , 20.9296 , 23.7202 , 26.5108 ,  &
+345:          & 29.3014 , 32.0919 , 34.8825 , 37.6731 , 40.4636 , 43.2542 ,  &
+346:          & 46.0447 , 48.8352 , 51.6257 , 54.4162 , 57.2066 , 59.9970 ,  &
+347:          & 62.7874 , 65.5776 , 68.3678 , 71.1578 , 73.9475 , 76.7369 ,  &
+348:          & 79.5256 , 82.3129 , 85.0965 , 87.8638/
+349: 
+350:         do i = 1 , ilonh
+351:           glon(i) = float(i-1)*2.8125
+352:         end do
+353:         do i = 1 , jlath
+354:           glat(i) = fixlat(i)
+355:         end do
+356:  
+357:         pplev(1) = 30.
+358:         pplev(2) = 50.
+359:         pplev(3) = 70.
+360:         pplev(4) = 100.
+361:         pplev(5) = 150.
+362:         pplev(6) = 200.
+363:         pplev(7) = 250.
+364:         pplev(8) = 300.
+365:         pplev(9) = 350.
+366:         pplev(10) = 420.
+367:         pplev(11) = 500.
+368:         pplev(12) = 600.
+369:         pplev(13) = 700.
+370:         pplev(14) = 780.
+371:         pplev(15) = 850.
+372:         pplev(16) = 920.
+373:         pplev(17) = 960.
+374:         pplev(18) = 1000.
+375:  
+376: !
+377:         do k = 1 , npl
+378:           sigmar(k) = pplev(k)*0.001
+379:         end do
+380:  
+381:         do k = 1 , npl
+382:           kr = npl - k + 1
+383:           sigma1(k) = sigmar(kr)
+384:         end do
+385:  
+386: !       Ak is acatually Ak*Po
+387:  
+388:         ak(1) = 2.194067
+389:         ak(2) = 4.895209
+390:         ak(3) = 9.882418
+391:         ak(4) = 18.05201
+392:         ak(5) = 29.83724
+393:         ak(6) = 44.62334
+394:         ak(7) = 61.60587
+395:         ak(8) = 78.51243
+396:         ak(9) = 77.31271
+397:         ak(10) = 75.90131
+398:         ak(11) = 74.24086
+399:         ak(12) = 72.28744
+400:         ak(13) = 69.98932
+401:         ak(14) = 67.28574
+402:         ak(15) = 64.10509
+403:         ak(16) = 60.36322
+404:         ak(17) = 55.96111
+405:         ak(18) = 50.78225
+406:         ak(19) = 44.68960
+407:         ak(20) = 37.52190
+408:         ak(21) = 29.08949
+409:         ak(22) = 20.84739
+410:         ak(23) = 13.34443
+411:         ak(24) = 7.084990
+412:         ak(25) = 2.521360
+413:         ak(26) = 0.0
+414:         ak(27) = 0.0
+415:  
+416:         bk(1) = 0.0
+417:         bk(2) = 0.0
+418:         bk(3) = 0.0
+419:         bk(4) = 0.0
+420:         bk(5) = 0.0
+421:         bk(6) = 0.0
+422:         bk(7) = 0.0
+423:         bk(8) = 0.0
+424:         bk(9) = 0.0150530
+425:         bk(10) = 0.0327622
+426:         bk(11) = 0.0535962
+427:         bk(12) = 0.0781062
+428:         bk(13) = 0.1069411
+429:         bk(14) = 0.1408637
+430:         bk(15) = 0.1807720
+431:         bk(16) = 0.2277220
+432:         bk(17) = 0.2829562
+433:         bk(18) = 0.3479364
+434:         bk(19) = 0.4243822
+435:         bk(20) = 0.5143168
+436:         bk(21) = 0.6201202
+437:         bk(22) = 0.7235355
+438:         bk(23) = 0.8176768
+439:         bk(24) = 0.8962153
+440:         bk(25) = 0.9534761
+441:         bk(26) = 0.9851122
+442:         bk(27) = 1.
+443:  
+444:         allocate(b3(jx,iy,klev*3))
+445:         allocate(d3(jx,iy,npl*2))
+446:         allocate(dum1(jx,iy,npl))
+447:         allocate(dum2(jx,iy,npl,2))
+448: 
+449: !       Set up pointers
+450:  
+451:         u3 => d3(:,:,1:npl)
+452:         v3 => d3(:,:,npl+1:2*npl)
+453:         t3 => b3(:,:,1:npl)
+454:         h3 => b3(:,:,npl+1:2*npl)
+455:         q3 => b3(:,:,2*npl+1:3*npl)
+456:         up => d2(1:ilonh,1:jlath,1:npl)
+457:         vp => d2(1:ilonh,1:jlath,npl+1:2*npl)
+458:         tp => b2(1:ilonh,1:jlath,1:npl)
+459:         hp => b2(1:ilonh,1:jlath,npl+1:2*npl)
+460:         qp => b2(1:ilonh,1:jlath,2*npl+1:3*npl)
+461: 
+462:       end subroutine head_cam42
+463: !
+464: !-----------------------------------------------------------------------
+465: ! 
+<p><a name=cam42><H3>cam42</H3></a></p> Click <a href="./callingtree/cam42_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where cam42 is used.
+<hr>
+466:       subroutine cam42(idate,idate0,glat)
+467:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+468:       use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+469:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+470:       implicit none
+471: !
+472: ! Dummy arguments
+473: !
+474:       integer :: idate , idate0
+475:       real(4) , dimension(jlath) :: glat
+476:       intent (in) glat , idate , idate0
+477: !
+478: ! Local variables
+479: !
+480:       integer :: i , ii , ilev , inet , it , ivar , j , jj ,            &
+481:                & jmax , jmin , kkrec , latid , latlen , lonid ,         &
+482:                & lonlen , month , nday , nhour , nlev , nyear ,         &
+483:                & istatus , timid , timlen
+484:       character(25) :: inname
+485:       real(4) :: nlat0 , nlat1 , nlon0 , nlon1
+486:       character(256) :: pathaddname
+487:       logical :: there
+488:       real(4) , dimension(6) :: checklat , checklon , checktim
+489:       character(2) , dimension(6) :: varname
+490:       real(4) , allocatable , dimension(:,:,:) :: work
+491:       real(4) , allocatable , dimension(:) :: work1 , work2
+492: !
+493:       data varname/'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
+494: !
+495:       nyear = idate/1000000
+496:       month = idate/10000 - nyear*100
+497:       nday = idate/100 - nyear*10000 - month*100
+498:       nhour = idate - nyear*1000000 - month*10000 - nday*100
+499:       nlev = 0
+500:       do kkrec = 1 , 6
+501:         if ( kkrec<=5 ) nlev = klev
+502:         if ( kkrec==6 ) nlev = 0
+503:         if ( idate==idate0 .or.                                         &
+504:            & ((mod(idate,100000)==10100) .and. mod(idate,1000000)       &
+505:            & /=110100) ) then
+506:           if ( kkrec==1 ) then
+507:             write (inname,99001) nyear , 'air.' , nyear
+508:           else if ( kkrec==2 ) then
+509:             write (inname,99001) nyear , 'hgt.' , nyear
+510:           else if ( kkrec==3 ) then
+511:             write (inname,99002) nyear , 'shum.' , nyear
+512:           else if ( kkrec==4 ) then
+513:             write (inname,99002) nyear , 'uwnd.' , nyear
+514:           else if ( kkrec==5 ) then
+515:             write (inname,99002) nyear , 'vwnd.' , nyear
+516:           else if ( kkrec==6 ) then
+517:             write (inname,99002) nyear , 'pres.' , nyear
+518:           else
+519:           end if
+520:  
+521:           pathaddname = trim(inpglob)//'/CAM42/'//inname
+522:           inquire (file=pathaddname,exist=there)
+523:           if ( .not.there ) then
+524:             print * , pathaddname , ' is not available'
+525:             stop
+526:           end if
+527:  
+528:           istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
+529:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+530:           istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec),         &
+531:                   &                ivar6(kkrec))
+532:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+533:           write (*,*) inet6(kkrec) , pathaddname , ivar6(kkrec) ,       &
+534:                     & varname(kkrec)
+535:         end if
+536:  
+537:         istatus = nf90_inq_dimid(inet6(kkrec),'lon',lonid)
+538:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+539:         istatus = nf90_inq_dimid(inet6(kkrec),'lat',latid)
+540:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+541:         istatus = nf90_inq_dimid(inet6(kkrec),'time',timid)
+542:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+543:         istatus = nf90_inquire_dimension(inet6(kkrec),lonid,len=lonlen)
+544:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+545:         istatus = nf90_inquire_dimension(inet6(kkrec),latid,len=latlen)
+546:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+547:         istatus = nf90_inquire_dimension(inet6(kkrec),timid,len=timlen)
+548:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+549:  
+550:  
+551:         checklon(kkrec) = lonlen
+552:         checklat(kkrec) = latlen
+553:         checktim(kkrec) = timlen
+554:         if ( kkrec>1 ) then
+555:           if ( checklat(kkrec)/=checklat(kkrec-1) .or. checklon(kkrec)  &
+556:              & /=checklon(kkrec-1) .or. checktim(kkrec)                 &
+557:              & /=checktim(kkrec-1) ) then
+558:             print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
+559:             print * , 'LAT for' , varname(kkrec+1) , '=' ,              &
+560:                 & checklat(kkrec)
+561:             print * , 'LAT for' , varname(kkrec) , '=' , checklat(kkrec)
+562:             print * , 'LON for' , varname(kkrec+1) , '=' ,              &
+563:                 & checklon(kkrec)
+564:             print * , 'LON for' , varname(kkrec) , '=' , checklon(kkrec)
+565:             print * , 'TIME for' , varname(kkrec+1) , '=' ,             &
+566:                 & checktim(kkrec)
+567:             print * , 'TIME for' , varname(kkrec) , '=' ,               &
+568:                 & checktim(kkrec)
+569:             stop 'Check CCSM Data Files'
+570:           end if
+571:         end if
+572:         if ( kkrec==1 ) then
+573:             allocate (work(lonlen,latlen,klev))
+574:             allocate (work1(lonlen))
+575:             allocate (work2(latlen))
+576:         end if
+577:         if ( xlon(1,1)<0.0 ) then
+578:           nlon0 = xlon(1,1) + 360.
+579:         else
+580:           nlon0 = xlon(1,1)
+581:         end if
+582:         if ( xlon(jx,1)<0.0 ) then
+583:           nlon1 = xlon(jx,1) + 360.
+584:         else
+585:           nlon1 = xlon(jx,1)
+586:         end if
+587:         nlat0 = xlat(1,1)
+588:         nlat1 = xlat(1,iy)
+589:         istart(1) = 1
+590:         icount(1) = lonlen
+591:         istatus = nf90_inq_varid(inet6(kkrec),'lon',lonid)
+592:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+593:         istatus = nf90_inq_varid(inet6(kkrec),'lat',latid)
+594:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+595:         istatus = nf90_get_var(inet6(kkrec),lonid,work1,istart,icount)
+596:         icount(1) = latlen
+597:         istatus = nf90_get_var(inet6(kkrec),latid,work2,istart,icount)
+598:  
+599:         if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. nlat0<work2(1)&
+600:            & .or. nlat1>work2(latlen) ) then
+601:           print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
+602:           print * , 'CCSM Window LON min=' , work1(1) , 'max=' ,        &
+603:               & work1(lonlen)
+604:           print * , 'RCM  Domain LON min=' , nlon0 , 'max=' , nlon1
+605:           print * , 'CCSM Window LAT min=' , work2(1) , 'max=' ,        &
+606:               & work2(latlen)
+607:           print * , 'RCM  Domain LAT min=' , nlat0 , 'max=' , nlat1
+608:           stop 'Correct Domain Parameters in mod_preproc_param.f90'
+609:         end if
+610:  
+611:         if ( idate==idate0 ) then
+612:           i0 = work1(1)/2.8125 + 1
+613:           i1 = work1(lonlen)/2.8125 + 1
+614:           do i = 1 , jlath
+615:             jmin = nint(glat(i)-work2(1))
+616:             jmax = nint(glat(i)-work2(latlen))
+617:             if ( jmin==0 ) j0 = i
+618:             if ( jmax==0 ) j1 = i
+619:           end do
+620:         end if
+621:  
+622:         it = (nday-1)*4 + nhour/6 + 1
+623:         if ( month==2 ) it = it + 31*4
+624:         if ( month==3 ) it = it + 59*4
+625:         if ( month==4 ) it = it + 90*4
+626:         if ( month==5 ) it = it + 120*4
+627:         if ( month==6 ) it = it + 151*4
+628:         if ( month==7 ) it = it + 181*4
+629:         if ( month==8 ) it = it + 212*4
+630:         if ( month==9 ) it = it + 243*4
+631:         if ( month==10 ) it = it + 273*4
+632:         if ( month==11 ) it = it + 304*4
+633:         if ( month==12 ) it = it + 334*4
+634:  
+635:         icount(1) = lonlen
+636:         icount(2) = latlen
+637:         icount(3) = klev
+638:         icount(4) = 1
+639:         istart(1) = 1
+640:         istart(2) = 1
+641:         istart(3) = 1
+642:         istart(4) = it
+643:         inet = inet6(kkrec)
+644:         ivar = ivar6(kkrec)
+645:         if ( nlev>0 ) then
+646:           icount(3) = nlev
+647:           istatus = nf90_get_var(inet,ivar,work,istart,icount)
+648:           do ilev = 1 , nlev
+649:             if ( kkrec==1 ) then
+650:               do jj = j0 , j1
+651:                 j = jj - j0 + 1
+652:                 if ( i0>i1 ) then
+653:                   do ii = i0 , ilonh
+654:                     i = ii - i0 + 1
+655:                     tvar(ii,jj,ilev) = work(i,j,ilev)
+656:                   end do
+657:                   do ii = 1 , i1
+658:                     i = ii + (ilonh-i0) + 1
+659:                     tvar(ii,jj,ilev) = work(i,j,ilev)
+660:                   end do
+661:                 else
+662:                   do ii = i0 , i1
+663:                     i = ii - i0 + 1
+664:                     tvar(ii,jj,ilev) = work(i,j,ilev)
+665:                   end do
+666:                 end if
+667:               end do
+668: !
+669:             else if ( kkrec==2 ) then
+670:               do jj = j0 , j1
+671:                 j = jj - j0 + 1
+672:                 if ( i0>i1 ) then
+673:                   do ii = i0 , ilonh
+674:                     i = ii - i0 + 1
+675:                     hvar(ii,jj,ilev) = work(i,j,ilev)
+676:                   end do
+677:                   do ii = 1 , i1
+678:                     i = ii + (ilonh-i0) + 1
+679:                     hvar(ii,jj,ilev) = work(i,j,ilev)
+680:                   end do
+681:                 else
+682:                   do ii = i0 , i1
+683:                     i = ii - i0 + 1
+684:                     hvar(ii,jj,ilev) = work(i,j,ilev)
+685:                   end do
+686:                 end if
+687:               end do
+688:             else if ( kkrec==3 ) then
+689:               do jj = j0 , j1
+690:                 j = jj - j0 + 1
+691:                 if ( i0>i1 ) then
+692:                   do ii = i0 , ilonh
+693:                     i = ii - i0 + 1
+694:                     qvar(ii,jj,ilev) = work(i,j,ilev)
+695:                   end do
+696:                   do ii = 1 , i1
+697:                     i = ii + (ilonh-i0) + 1
+698:                     qvar(ii,jj,ilev) = work(i,j,ilev)
+699:                   end do
+700:                 else
+701:                   do ii = i0 , i1
+702:                     i = ii - i0 + 1
+703:                     qvar(ii,jj,ilev) = work(i,j,ilev)
+704:                   end do
+705:                 end if
+706:               end do
+707:             else if ( kkrec==4 ) then
+708:               do jj = j0 , j1
+709:                 j = jj - j0 + 1
+710:                 if ( i0>i1 ) then
+711:                   do ii = i0 , ilonh
+712:                     i = ii - i0 + 1
+713:                     uvar(ii,jj,ilev) = work(i,j,ilev)
+714:                   end do
+715:                   do ii = 1 , i1
+716:                     i = ii + (ilonh-i0) + 1
+717:                     uvar(ii,jj,ilev) = work(i,j,ilev)
+718:                   end do
+719:                 else
+720:                   do ii = i0 , i1
+721:                     i = ii - i0 + 1
+722:                     uvar(ii,jj,ilev) = work(i,j,ilev)
+723:                   end do
+724:                 end if
+725:               end do
+726:             else if ( kkrec==5 ) then
+727:               do jj = j0 , j1
+728:                 j = jj - j0 + 1
+729:                 if ( i0>i1 ) then
+730:                   do ii = i0 , ilonh
+731:                     i = ii - i0 + 1
+732:                     vvar(ii,jj,ilev) = work(i,j,ilev)
+733:                   end do
+734:                   do ii = 1 , i1
+735:                     i = ii + (ilonh-i0) + 1
+736:                     vvar(ii,jj,ilev) = work(i,j,ilev)
+737:                   end do
+738:                 else
+739:                   do ii = i0 , i1
+740:                     i = ii - i0 + 1
+741:                     vvar(ii,jj,ilev) = work(i,j,ilev)
+742:                   end do
+743:                 end if
+744:               end do
+745:             else
+746:             end if
+747:           end do
+748:         else if ( nlev==0 ) then
+749:           icount(3) = 1
+750:           istart(3) = it
+751:           istatus = nf90_get_var(inet,ivar,work,istart,icount)
+752:           if ( kkrec==6 ) then
+753:             do jj = j0 , j1
+754:               j = jj - j0 + 1
+755:               if ( i0>i1 ) then
+756:                 do ii = i0 , ilonh
+757:                   i = ii - i0 + 1
+758:                   psvar(ii,jj) = work(i,j,1)*0.01
+759:                 end do
+760:                 do ii = 1 , i1
+761:                   i = ii + (ilonh-i0) + 1
+762:                   psvar(ii,jj) = work(i,j,1)*0.01
+763:                 end do
+764:               else
+765:                 do ii = i0 , i1
+766:                   i = ii - i0 + 1
+767:                   psvar(ii,jj) = work(i,j,1)*0.01
+768:                 end do
+769:               end if
+770:             end do
+771:           end if
+772:         else
+773:         end if
+774:       end do
+775:       do kkrec = 1 , 6
+776:         istatus = nf90_close(inet6(kkrec))
+777:       end do
+778:       deallocate(work)
+779:       deallocate(work1)
+780:       deallocate(work2)
+781: 99001 format (i4,'/','ccsm.',a4,i4,'.nc')
+782: 99002 format (i4,'/','ccsm.',a5,i4,'.nc')
+783:       end subroutine cam42
+784: !
+785: !-----------------------------------------------------------------------
+786: ! 
+<p><a name=get_cam85><H3>get_cam85</H3></a></p> Click <a href="./callingtree/get_cam85_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where get_cam85 is used.
+<hr>
+787:       subroutine get_cam85(idate)
+788: 
+789:         use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+790:         use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+791:         use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+792:         use <a href="./mod_interp.f90.html#mod_interp" TARGET=CENT_PANEL>mod_interp</a> , only : bilinx2
+793:         use <a href="./mod_vertint.f90.html#mod_vertint" TARGET=CENT_PANEL>mod_vertint</a>
+794:         use <a href="./mod_hgt.f90.html#mod_hgt" TARGET=CENT_PANEL>mod_hgt</a>
+795:         use <a href="./mod_humid.f90.html#mod_humid" TARGET=CENT_PANEL>mod_humid</a>
+796:         use <a href="./mod_mksst.f90.html#mod_mksst" TARGET=CENT_PANEL>mod_mksst</a>
+797:         use <a href="./mod_uvrot.f90.html#mod_uvrot" TARGET=CENT_PANEL>mod_uvrot</a>
+798:         use <a href="./mod_vectutil.f90.html#mod_vectutil" TARGET=CENT_PANEL>mod_vectutil</a>
+799: 
+800:         implicit none
+801: !
+802: ! Dummy arguments
+803: !
+804:         integer :: idate
+805: !
+806: ! Local variables
+807: !
+808:       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
+809:                & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
+810:                & istatus
+811:       real(4) :: wt
+812:       character(256) :: pathaddname
+813:       logical :: there
+814:       character(4) :: varname
+815:       real(4) , allocatable , dimension(:,:) :: work
+816: !
+817:       data varname/'PHIS'/
+818:  
+819:       call <a href="./mod_ccsm.f90.html#cam85" TARGET=CENT_PANEL>cam85</a>(idate,globidate1,glat)
+820: 
+821:       if ( idate==globidate1 ) then
+822:         pathaddname = trim(inpglob)//'/CAM85/ccsm_ht.nc'
+823:         inquire (file=pathaddname,exist=there)
+824:         if ( .not.there ) then
+825:           print * , pathaddname , 'is not available'
+826:           stop
+827:         end if
+828:         istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+829:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+830:         istatus = nf90_inq_varid(inet1,varname,ivar1)
+831:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+832:         write (*,*) inet1 , ivar1 , pathaddname , ivar1 , varname
+833:         istatus = nf90_inq_dimid(inet1,'lon',lonid)
+834:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+835:         istatus = nf90_inq_dimid(inet1,'lat',latid)
+836:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+837:         istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
+838:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+839:         istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
+840:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+841:         imin = i0
+842:         imax = i1
+843:         if ( i0>i1 ) imax = i1 + ilon
+844:         checklon = (imax-imin) + 1
+845:         checklat = (j1-j0) + 1
+846:         if ( checklon/=lonlen .or. checklat/=latlen ) then
+847:           print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
+848:           print * , 'LAT for 3D Variables = ' , checklat
+849:           print * , 'LAT for' , varname , '= ' , latlen
+850:           print * , 'LON for 3D Variables = ' , checklon
+851:           print * , 'LON for' , varname , '= ' , lonlen
+852:           stop 'Check Dimensions in CCSM Data Files'
+853:         end if
+854:         allocate (work(lonlen,latlen))
+855:         icount(1) = lonlen
+856:         icount(2) = latlen
+857:         icount(3) = 1
+858:         istart(1) = 1
+859:         istart(2) = 1
+860:         istart(3) = 1
+861:         istatus = nf90_get_var(inet1,ivar1,work,istart,icount)
+862:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+863:         istatus = nf90_close(inet1)
+864:         do jj = j0 , j1
+865:           j = jj - j0 + 1
+866:           if ( i0>i1 ) then
+867:             do ii = i0 , ilon
+868:               i = ii - i0 + 1
+869:               zsvar(ii,jj) = work(i,j)/9.80665
+870:             end do
+871:             do ii = 1 , i1
+872:               i = ii + (ilon-i0)
+873:               zsvar(ii,jj) = work(i,j)/9.80665
+874:             end do
+875:           else
+876:             do ii = i0 , i1
+877:               i = ii - i0 + 1
+878:               zsvar(ii,jj) = work(i,j)/9.80665
+879:             end do
+880:           end if
+881:         end do
+882:       end if
+883:       write (*,*) 'Read in fields at Date: ' , idate
+884:  
+885:       do k = 1 , klev
+886:         do j = 1 , jlat
+887:           do i = 1 , ilon
+888:             if ( psvar(i,j)>-9995. ) then
+889:               pp3d(i,j,k) = psvar(i,j)*0.5*(ak(k)+bk(k+1))              &
+890:                           & + 0.5*(ak(k)+bk(k+1))
+891:             else
+892:               pp3d(i,j,k) = -9999.0
+893:             end if
+894:           end do
+895:         end do
+896:       end do
+897:  
+898:       call <a href="./mod_hgt.f90.html#height" TARGET=CENT_PANEL>height</a>(hp,hvar,tvar,psvar,pp3d,zsvar,ilon,jlat,klev,pplev,   &
+899:                 & npl)
+900:  
+901:       call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(up,uvar,psvar,pp3d,ilon,jlat,klev,pplev,npl)
+902:       call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(vp,vvar,psvar,pp3d,ilon,jlat,klev,pplev,npl)
+903:  
+904:       call <a href="./mod_vertint.f90.html#intlog" TARGET=CENT_PANEL>intlog</a>(tp,tvar,psvar,pp3d,ilon,jlat,klev,pplev,npl)
+905:  
+906:       call <a href="./mod_humid.f90.html#humid1fv" TARGET=CENT_PANEL>humid1fv</a>(tvar,qvar,pp3d,ilon,jlat,klev)
+907:       call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(qp,qvar,psvar,pp3d,ilon,jlat,klev,pplev,npl)
+908:  
+909:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(b3,b2,xlon,xlat,glon,glat,jx,iy,ilon,jlat,npl)
+910:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(d3,d2,dlon,dlat,glon,glat,jx,iy,ilon,jlat,npl)
+911:       call <a href="./mod_uvrot.f90.html#uvrot4" TARGET=CENT_PANEL>uvrot4</a>(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,npl,plon,plat, &
+912:                 & iproj)
+913:  
+914:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(t3,jx,iy,npl)
+915:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(q3,jx,iy,npl)
+916:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(h3,jx,iy,npl)
+917:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(u3,jx,iy,npl)
+918:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(v3,jx,iy,npl)
+919:  
+920:       call <a href="./mod_vertint.f90.html#intgtb" TARGET=CENT_PANEL>intgtb</a>(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
+921:  
+922:       call <a href="./mod_vertint.f90.html#intpsn" TARGET=CENT_PANEL>intpsn</a>(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+923:       call <a href="./mod_vectutil.f90.html#p1p2" TARGET=CENT_PANEL>p1p2</a>(b3pd,ps4,jx,iy)
+924:  
+925:       call <a href="./mod_vertint.f90.html#intv3" TARGET=CENT_PANEL>intv3</a>(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
+926:       call <a href="./mod_ccsm.f90.html#camclndr" TARGET=CENT_PANEL>camclndr</a>(idate,nyrp,nmop,wt)
+927:       call <a href="./mod_mksst.f90.html#mksst" TARGET=CENT_PANEL>mksst</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+928:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
+929:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
+930:       call <a href="./mod_vertint.f90.html#intv2" TARGET=CENT_PANEL>intv2</a>(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
+931:  
+932:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
+933:       call <a href="./mod_humid.f90.html#humid2fv" TARGET=CENT_PANEL>humid2fv</a>(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+934:  
+935:       call <a href="./mod_hgt.f90.html#hydrost" TARGET=CENT_PANEL>hydrost</a>(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
+936:  
+937:       call <a href="./mod_write.f90.html#writef" TARGET=CENT_PANEL>writef</a>(ptop,idate)
+938:  
+939:       deallocate(work)
+940:       end subroutine get_cam85
+941: !
+942: !-----------------------------------------------------------------------
+943: ! 
+<p><a name=head_cam85><H3>head_cam85</H3></a></p> Click <a href="./callingtree/head_cam85_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where head_cam85 is used.
+<hr>
+944:       subroutine head_cam85
+945:       implicit none
+946: !
+947: ! Local variables
+948: !
+949:       integer :: i , k , kr
+950:       real(4) , dimension(jlat) :: fixlat
+951: !
+952:       data fixlat/ - 88.928 , -87.539 , -86.141 , -84.742 , -83.343 ,   &
+953:          & -81.942 , -80.543 , -79.142 , -77.742 , -76.341 , -74.941 ,  &
+954:          & -73.539 , -72.139 , -70.739 , -69.338 , -67.937 , -66.536 ,  &
+955:          & -65.136 , -63.735 , -62.334 , -60.934 , -59.534 , -58.132 ,  &
+956:          & -56.731 , -55.331 , -53.930 , -52.529 , -51.128 , -49.728 ,  &
+957:          & -48.327 , -46.926 , -45.525 , -44.125 , -42.724 , -41.323 ,  &
+958:          & -39.922 , -38.522 , -37.121 , -35.720 , -34.319 , -32.919 ,  &
+959:          & -31.518 , -30.117 , -28.716 , -27.315 , -25.915 , -24.514 ,  &
+960:          & -23.113 , -21.712 , -20.312 , -18.911 , -17.510 , -16.109 ,  &
+961:          & -14.709 , -13.308 , -11.907 , -10.506 , -9.105 , -7.705 ,    &
+962:          & -6.304 , -4.903 , -3.502 , -2.102 , -0.701 , 0.701 , 2.102 , &
+963:          & 3.502 , 4.903 , 6.304 , 7.705 , 9.105 , 10.506 , 11.907 ,    &
+964:          & 13.308 , 14.709 , 16.109 , 17.510 , 18.911 , 20.312 ,        &
+965:          & 21.712 , 23.113 , 24.514 , 25.915 , 27.315 , 28.716 ,        &
+966:          & 30.117 , 31.518 , 32.919 , 34.319 , 35.720 , 37.121 ,        &
+967:          & 38.522 , 39.922 , 41.323 , 42.724 , 44.125 , 45.525 ,        &
+968:          & 46.926 , 48.327 , 49.728 , 51.128 , 52.529 , 53.930 ,        &
+969:          & 55.331 , 56.731 , 58.132 , 59.533 , 60.934 , 62.334 ,        &
+970:          & 63.735 , 65.136 , 66.536 , 67.937 , 69.338 , 70.739 ,        &
+971:          & 72.139 , 73.539 , 74.941 , 76.341 , 77.742 , 79.142 ,        &
+972:          & 80.543 , 81.942 , 83.343 , 84.742 , 86.141 , 87.539 , 88.928/
+973:  
+974:       do i = 1 , ilon
+975:         glon(i) = float(i-1)*1.40625
+976:       end do
+977:       do i = 1 , jlat
+978:         glat(i) = fixlat(i)
+979:       end do
+980:  
+981:       pplev(1) = 30.
+982:       pplev(2) = 50.
+983:       pplev(3) = 70.
+984:       pplev(4) = 100.
+985:       pplev(5) = 150.
+986:       pplev(6) = 200.
+987:       pplev(7) = 250.
+988:       pplev(8) = 300.
+989:       pplev(9) = 350.
+990:       pplev(10) = 420.
+991:       pplev(11) = 500.
+992:       pplev(12) = 600.
+993:       pplev(13) = 700.
+994:       pplev(14) = 780.
+995:       pplev(15) = 850.
+996:       pplev(16) = 920.
+997:       pplev(17) = 960.
+998:       pplev(18) = 1000.
+999:  
+1000: !
+1001:       do k = 1 , npl
+1002:         sigmar(k) = pplev(k)*0.001
+1003:       end do
+1004:  
+1005:       do k = 1 , npl
+1006:         kr = npl - k + 1
+1007:         sigma1(k) = sigmar(kr)
+1008:       end do
+1009:  
+1010: !     Ak is acatually Ak*Po
+1011:  
+1012:       ak(1) = 2.194067
+1013:       ak(2) = 4.895209
+1014:       ak(3) = 9.882418
+1015:       ak(4) = 18.05201
+1016:       ak(5) = 29.83724
+1017:       ak(6) = 44.62334
+1018:       ak(7) = 61.60587
+1019:       ak(8) = 78.51243
+1020:       ak(9) = 77.31271
+1021:       ak(10) = 75.90131
+1022:       ak(11) = 74.24086
+1023:       ak(12) = 72.28744
+1024:       ak(13) = 69.98932
+1025:       ak(14) = 67.28574
+1026:       ak(15) = 64.10509
+1027:       ak(16) = 60.36322
+1028:       ak(17) = 55.96111
+1029:       ak(18) = 50.78225
+1030:       ak(19) = 44.68960
+1031:       ak(20) = 37.52190
+1032:       ak(21) = 29.08949
+1033:       ak(22) = 20.84739
+1034:       ak(23) = 13.34443
+1035:       ak(24) = 7.084990
+1036:       ak(25) = 2.521360
+1037:       ak(26) = 0.0
+1038:       ak(27) = 0.0
+1039:  
+1040:       bk(1) = 0.0
+1041:       bk(2) = 0.0
+1042:       bk(3) = 0.0
+1043:       bk(4) = 0.0
+1044:       bk(5) = 0.0
+1045:       bk(6) = 0.0
+1046:       bk(7) = 0.0
+1047:       bk(8) = 0.0
+1048:       bk(9) = 0.0150530
+1049:       bk(10) = 0.0327622
+1050:       bk(11) = 0.0535962
+1051:       bk(12) = 0.0781062
+1052:       bk(13) = 0.1069411
+1053:       bk(14) = 0.1408637
+1054:       bk(15) = 0.1807720
+1055:       bk(16) = 0.2277220
+1056:       bk(17) = 0.2829562
+1057:       bk(18) = 0.3479364
+1058:       bk(19) = 0.4243822
+1059:       bk(20) = 0.5143168
+1060:       bk(21) = 0.6201202
+1061:       bk(22) = 0.7235355
+1062:       bk(23) = 0.8176768
+1063:       bk(24) = 0.8962153
+1064:       bk(25) = 0.9534761
+1065:       bk(26) = 0.9851122
+1066:       bk(27) = 1.
+1067:  
+1068:       allocate(b3(jx,iy,klev*3))
+1069:       allocate(d3(jx,iy,npl*2))
+1070:       allocate(dum1(jx,iy,npl))
+1071:       allocate(dum2(jx,iy,npl,2))
+1072: 
+1073: !     Set up pointers
+1074: 
+1075:       u3 => d3(:,:,1:npl)
+1076:       v3 => d3(:,:,npl+1:2*npl)
+1077:       t3 => b3(:,:,1:npl)
+1078:       h3 => b3(:,:,npl+1:2*npl)
+1079:       q3 => b3(:,:,2*npl+1:3*npl)
+1080:       up => d2(1:ilon,1:jlat,1:npl)
+1081:       vp => d2(1:ilon,1:jlat,npl+1:2*npl)
+1082:       tp => b2(1:ilon,1:jlat,1:npl)
+1083:       hp => b2(1:ilon,1:jlat,npl+1:2*npl)
+1084:       qp => b2(1:ilon,1:jlat,2*npl+1:3*npl)
+1085:  
+1086:       end subroutine head_cam85
+1087: !
+1088: !-----------------------------------------------------------------------
+1089: ! 
+<p><a name=cam85><H3>cam85</H3></a></p> Click <a href="./callingtree/cam85_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where cam85 is used.
+<hr>
+1090:       subroutine cam85(idate,idate0,glat)
+1091:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+1092:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+1093:       use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+1094:       implicit none
+1095: !
+1096: ! Dummy arguments
+1097: !
+1098:       integer :: idate , idate0
+1099:       real(4) , dimension(jlat) :: glat
+1100:       intent (in) glat , idate , idate0
+1101: !
+1102: ! Local variables
+1103: !
+1104:       integer :: i , ii , ilev , inet , it , ivar , j , jj , jmax ,     &
+1105:                & jmin , kkrec , latid , latlen , lonid , lonlen ,       &
+1106:                & month , nday , nhour , nlev , nyear , istatus ,        &
+1107:                & timid , timlen
+1108:       character(25) :: inname
+1109:       real(4) :: nlat0 , nlat1 , nlon0 , nlon1
+1110:       character(3) , dimension(12) :: nmonth
+1111:       character(256) :: pathaddname
+1112:       logical :: there
+1113:       character(2) , dimension(6) :: varname
+1114:       real(4) , allocatable , dimension(:,:,:) :: work
+1115:       real(4) , allocatable , dimension(:) :: work1 , work2
+1116:       real(4) , dimension(6) :: checklat , checklon , checktim
+1117: !
+1118:       data nmonth/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' ,       &
+1119:          & 'JUL' , 'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
+1120:  
+1121:       data varname/'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
+1122:  
+1123:       nyear = idate/1000000
+1124:       month = idate/10000 - nyear*100
+1125:       nday = idate/100 - nyear*10000 - month*100
+1126:       nhour = idate - nyear*1000000 - month*10000 - nday*100
+1127:       nlev = 0
+1128:       do kkrec = 1 , 6
+1129:         if ( kkrec<=5 ) nlev = klev
+1130:         if ( kkrec==6 ) nlev = 0
+1131:         if ( idate==idate0 .or.                                         &
+1132:            & ((mod(idate,100000)==10100 .and. mod(idate,1000000)        &
+1133:            & /=110100)) .or. mod(idate,10000)==100 ) then
+1134:           if ( kkrec==1 ) then
+1135:             write (inname,99001) nyear , 'air' , nmonth(month) , nyear
+1136:           else if ( kkrec==2 ) then
+1137:             write (inname,99001) nyear , 'hgt' , nmonth(month) , nyear
+1138:           else if ( kkrec==3 ) then
+1139:             write (inname,99002) nyear , 'shum' , nmonth(month) , nyear
+1140:           else if ( kkrec==4 ) then
+1141:             write (inname,99002) nyear , 'uwnd' , nmonth(month) , nyear
+1142:           else if ( kkrec==5 ) then
+1143:             write (inname,99002) nyear , 'vwnd' , nmonth(month) , nyear
+1144:           else if ( kkrec==6 ) then
+1145:             write (inname,99002) nyear , 'pres' , nmonth(month) , nyear
+1146:           else
+1147:           end if
+1148:  
+1149:           pathaddname = trim(inpglob)//'/CAM85/'//inname
+1150:           inquire (file=pathaddname,exist=there)
+1151:           if ( .not.there ) then
+1152:             print * , pathaddname , ' is not available'
+1153:             stop
+1154:           end if
+1155:  
+1156:           istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
+1157:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1158:           istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec),         &
+1159:                  &                 ivar6(kkrec))
+1160:           if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1161:           write (*,*) inet6(kkrec) , pathaddname , ivar6(kkrec) ,       &
+1162:                     & varname(kkrec)
+1163:         end if
+1164:  
+1165:         istatus = nf90_inq_dimid(inet6(kkrec),'lon',lonid)
+1166:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1167:         istatus = nf90_inq_dimid(inet6(kkrec),'lat',latid)
+1168:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1169:         istatus = nf90_inq_dimid(inet6(kkrec),'time',timid)
+1170:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1171:         istatus = nf90_inquire_dimension(inet6(kkrec),lonid,len=lonlen)
+1172:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1173:         istatus = nf90_inquire_dimension(inet6(kkrec),latid,len=latlen)
+1174:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1175:         istatus = nf90_inquire_dimension(inet6(kkrec),timid,len=timlen)
+1176:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1177:  
+1178:         checklon(kkrec) = lonlen
+1179:         checklat(kkrec) = latlen
+1180:         checktim(kkrec) = timlen
+1181:         if ( kkrec>1 ) then
+1182:           if ( checklat(kkrec)/=checklat(kkrec-1) .or. checklon(kkrec)  &
+1183:              & /=checklon(kkrec-1) .or. checktim(kkrec)                 &
+1184:              & /=checktim(kkrec-1) ) then
+1185:             print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
+1186:             print * , 'LAT for' , varname(kkrec+1) , '=' ,              &
+1187:                 & checklat(kkrec)
+1188:             print * , 'LAT for' , varname(kkrec) , '=' , checklat(kkrec)
+1189:             print * , 'LON for' , varname(kkrec+1) , '=' ,              &
+1190:                 & checklon(kkrec)
+1191:             print * , 'LON for' , varname(kkrec) , '=' , checklon(kkrec)
+1192:             print * , 'TIME for' , varname(kkrec+1) , '=' ,             &
+1193:                 & checktim(kkrec)
+1194:             print * , 'TIME for' , varname(kkrec) , '=' ,               &
+1195:                 & checktim(kkrec)
+1196:             stop 'Check CCSM Data Files'
+1197:           end if
+1198:         end if
+1199:         if ( kkrec==1 ) then
+1200:             allocate (work(lonlen,latlen,klev))
+1201:             allocate (work1(lonlen))
+1202:             allocate (work2(latlen))
+1203:         end if
+1204:         if ( xlon(1,1)<0.0 ) then
+1205:           nlon0 = xlon(1,1) + 360.
+1206:         else
+1207:           nlon0 = xlon(1,1)
+1208:         end if
+1209:         if ( xlon(jx,1)<0.0 ) then
+1210:           nlon1 = xlon(jx,1) + 360.
+1211:         else
+1212:           nlon1 = xlon(jx,1)
+1213:         end if
+1214:         nlat0 = xlat(1,1)
+1215:         nlat1 = xlat(1,iy)
+1216:         istart(1) = 1
+1217:         icount(1) = lonlen
+1218:         istatus = nf90_inq_varid(inet6(kkrec),'lon',lonid)
+1219:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1220:         istatus = nf90_inq_varid(inet6(kkrec),'lat',latid)
+1221:         if ( istatus/=nf90_noerr ) call <a href="./mod_ccsm.f90.html#handle_err" TARGET=CENT_PANEL>handle_err</a>(istatus)
+1222:         istatus = nf90_get_var(inet6(kkrec),lonid,work1,istart,icount)
+1223:         icount(1) = latlen
+1224:         istatus = nf90_get_var(inet6(kkrec),latid,work2,istart,icount)
+1225:  
+1226:         if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. nlat0<work2(1)&
+1227:            & .or. nlat1>work2(latlen) ) then
+1228:           print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
+1229:           print * , 'CCSM Window LON min=' , work1(1) , 'max=' ,        &
+1230:               & work1(lonlen)
+1231:           print * , 'RCM  Domain LON min=' , nlon0 , 'max=' , nlon1
+1232:           print * , 'CCSM Window LAT min=' , work2(1) , 'max=' ,        &
+1233:               & work2(latlen)
+1234:           print * , 'RCM  Domain LAT min=' , nlat0 , 'max=' , nlat1
+1235:           stop 'Correct Domain Parameters in mod_preproc_param.f90'
+1236:         end if
+1237:  
+1238:         if ( idate==idate0 ) then
+1239:           i0 = work1(1)/1.40625 + 1
+1240:           i1 = work1(lonlen)/1.40625 + 1
+1241:           do i = 1 , jlat
+1242:             jmin = nint(glat(i)-work2(1))
+1243:             jmax = nint(glat(i)-work2(latlen))
+1244:             if ( jmin==0 ) j0 = i
+1245:             if ( jmax==0 ) j1 = i
+1246:           end do
+1247:         end if
+1248:  
+1249:         it = (nday-1)*4 + nhour/6 + 1
+1250:         if ( month==2 ) it = it + 31*4
+1251:         if ( month==3 ) it = it + 59*4
+1252:         if ( month==4 ) it = it + 90*4
+1253:         if ( month==5 ) it = it + 120*4
+1254:         if ( month==6 ) it = it + 151*4
+1255:         if ( month==7 ) it = it + 181*4
+1256:         if ( month==8 ) it = it + 212*4
+1257:         if ( month==9 ) it = it + 243*4
+1258:         if ( month==10 ) it = it + 273*4
+1259:         if ( month==11 ) it = it + 304*4
+1260:         if ( month==12 ) it = it + 334*4
+1261:  
+1262:         icount(1) = lonlen
+1263:         icount(2) = latlen
+1264:         icount(3) = klev
+1265:         icount(4) = 1
+1266:         istart(1) = 1
+1267:         istart(2) = 1
+1268:         istart(3) = 1
+1269:         istart(4) = it
+1270:         inet = inet6(kkrec)
+1271:         ivar = ivar6(kkrec)
+1272:         if ( nlev>0 ) then
+1273:           icount(3) = nlev
+1274:           istatus = nf90_get_var(inet,ivar,work,istart,icount)
+1275:           do ilev = 1 , nlev
+1276:             if ( kkrec==1 ) then
+1277:               do jj = j0 , j1
+1278:                 j = jj - j0 + 1
+1279:                 if ( i0>i1 ) then
+1280:                   do ii = i0 , ilon
+1281:                     i = ii - i0 + 1
+1282:                     tvar(ii,jj,ilev) = work(i,j,ilev)
+1283:                   end do
+1284:                   do ii = 1 , i1
+1285:                     i = ii + (ilon-i0) + 1
+1286:                     tvar(ii,jj,ilev) = work(i,j,ilev)
+1287:                   end do
+1288:                 else
+1289:                   do ii = i0 , i1
+1290:                     i = ii - i0 + 1
+1291:                     tvar(ii,jj,ilev) = work(i,j,ilev)
+1292:                   end do
+1293:                 end if
+1294:               end do
+1295:             else if ( kkrec==2 ) then
+1296:               do jj = j0 , j1
+1297:                 j = jj - j0 + 1
+1298:                 if ( i0>i1 ) then
+1299:                   do ii = i0 , ilon
+1300:                     i = ii - i0 + 1
+1301:                     hvar(ii,jj,ilev) = work(i,j,ilev)
+1302:                   end do
+1303:                   do ii = 1 , i1
+1304:                     i = ii + (ilon-i0) + 1
+1305:                     hvar(ii,jj,ilev) = work(i,j,ilev)
+1306:                   end do
+1307:                 else
+1308:                   do ii = i0 , i1
+1309:                     i = ii - i0 + 1
+1310:                     hvar(ii,jj,ilev) = work(i,j,ilev)
+1311:                   end do
+1312:                 end if
+1313:               end do
+1314:             else if ( kkrec==3 ) then
+1315:               do jj = j0 , j1
+1316:                 j = jj - j0 + 1
+1317:                 if ( i0>i1 ) then
+1318:                   do ii = i0 , ilon
+1319:                     i = ii - i0 + 1
+1320:                     qvar(ii,jj,ilev) = work(i,j,ilev)
+1321:                   end do
+1322:                   do ii = 1 , i1
+1323:                     i = ii + (ilon-i0) + 1
+1324:                     qvar(ii,jj,ilev) = work(i,j,ilev)
+1325:                   end do
+1326:                 else
+1327:                   do ii = i0 , i1
+1328:                     i = ii - i0 + 1
+1329:                     qvar(ii,jj,ilev) = work(i,j,ilev)
+1330:                   end do
+1331:                 end if
+1332:               end do
+1333:             else if ( kkrec==4 ) then
+1334:               do jj = j0 , j1
+1335:                 j = jj - j0 + 1
+1336:                 if ( i0>i1 ) then
+1337:                   do ii = i0 , ilon
+1338:                     i = ii - i0 + 1
+1339:                     uvar(ii,jj,ilev) = work(i,j,ilev)
+1340:                   end do
+1341:                   do ii = 1 , i1
+1342:                     i = ii + (ilon-i0) + 1
+1343:                     uvar(ii,jj,ilev) = work(i,j,ilev)
+1344:                   end do
+1345:                 else
+1346:                   do ii = i0 , i1
+1347:                     i = ii - i0 + 1
+1348:                     uvar(ii,jj,ilev) = work(i,j,ilev)
+1349:                   end do
+1350:                 end if
+1351:               end do
+1352:             else if ( kkrec==5 ) then
+1353:               do jj = j0 , j1
+1354:                 j = jj - j0 + 1
+1355:                 if ( i0>i1 ) then
+1356:                   do ii = i0 , ilon
+1357:                     i = ii - i0 + 1
+1358:                     vvar(ii,jj,ilev) = work(i,j,ilev)
+1359:                   end do
+1360:                   do ii = 1 , i1
+1361:                     i = ii + (ilon-i0) + 1
+1362:                     vvar(ii,jj,ilev) = work(i,j,ilev)
+1363:                   end do
+1364:                 else
+1365:                   do ii = i0 , i1
+1366:                     i = ii - i0 + 1
+1367:                     vvar(ii,jj,ilev) = work(i,j,ilev)
+1368:                   end do
+1369:                 end if
+1370:               end do
+1371:             else
+1372:             end if
+1373:           end do
+1374:  
+1375:         else if ( nlev==0 ) then
+1376:           icount(3) = 1
+1377:           istart(3) = it
+1378:           istatus = nf90_get_var(inet,ivar,work,istart,icount)
+1379:           if ( kkrec==6 ) then
+1380:             do jj = j0 , j1
+1381:               j = jj - j0 + 1
+1382:               if ( i0>i1 ) then
+1383:                 do ii = i0 , ilon
+1384:                   i = ii - i0 + 1
+1385:                   psvar(ii,jj) = work(i,j,1)*0.01
+1386:                 end do
+1387:                 do ii = 1 , i1
+1388:                   i = ii + (ilon-i0) + 1
+1389:                   psvar(ii,jj) = work(i,j,1)*0.01
+1390:                 end do
+1391:               else
+1392:                 do ii = i0 , i1
+1393:                   i = ii - i0 + 1
+1394:                   psvar(ii,jj) = work(i,j,1)*0.01
+1395:                 end do
+1396:               end if
+1397:             end do
+1398:           end if
+1399:         else
+1400:         end if
+1401:       end do
+1402:       do kkrec = 1 , 6
+1403:         istatus = nf90_close(inet6(kkrec))
+1404:       end do
+1405:       deallocate (work)
+1406:       deallocate (work1)
+1407:       deallocate (work2)
+1408: 99001 format (i4,'/','ccsm.',a3,a3,'.',i4,'.nc')
+1409: 99002 format (i4,'/','ccsm.',a4,a3,'.',i4,'.nc')
+1410:       end subroutine cam85
+1411: !
+1412: !-----------------------------------------------------------------------
+1413: !
+<p><a name=camclndr><H3>camclndr</H3></a></p> Click <a href="./callingtree/camclndr_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where camclndr is used.
+<hr>
+1414:       subroutine camclndr(mdate,nyrp,nmop,wt)
+1415:         implicit none
+1416: !
+1417: ! Dummy arguments
+1418: !
+1419:         integer :: mdate , nmop , nyrp
+1420:         real(4) :: wt
+1421:         intent (in) mdate
+1422:         intent (out) nyrp , wt
+1423:         intent (inout) nmop
+1424: !
+1425: ! Local variables
+1426: !
+1427:         real(4) :: fdemon , fnumer
+1428:         integer :: idate , iday , imo , iyr , j , julday , nmo , nyr
+1429:         integer , dimension(12) :: jprev , julmid , lenmon , midmon
+1430: !
+1431:         data lenmon/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 ,   &
+1432:                   & 30 , 31/
+1433:         data midmon/16 , 14 , 16 , 15 , 16 , 15 , 16 , 16 , 15 , 16 ,   &
+1434:                   & 15 , 16/
+1435: 
+1436: !       Initialize nmop, nyrp
+1437: 
+1438:         nmop = 1
+1439:         nyrp = 0
+1440:  
+1441:         idate = mdate/100
+1442:         iyr = idate/10000
+1443:         imo = (idate-iyr*10000)/100
+1444:         iday = mod(idate,100)
+1445:  
+1446:         jprev(1) = 0
+1447:         do j = 2 , 12
+1448:           jprev(j) = jprev(j-1) + lenmon(j-1)
+1449:         end do
+1450:         do j = 1 , 12
+1451:           julmid(j) = jprev(j) + midmon(j)
+1452:         end do
+1453:         julday = iday + jprev(imo)
+1454:  
+1455:         do nyr = 1000 , 2100
+1456:           do nmo = 1 , 12
+1457:             if ( (nyr==iyr) .and. (julmid(nmo)>julday) ) go to 100
+1458:             if ( nyr>iyr ) go to 100
+1459:             nmop = nmo
+1460:             nyrp = nyr
+1461:           end do
+1462:         end do
+1463:  
+1464:  100    continue
+1465:         fnumer = float(julday-julmid(nmop))
+1466:         if ( fnumer<0. ) fnumer = fnumer + 365.
+1467:         fdemon = float(julmid(nmo)-julmid(nmop))
+1468:         if ( fdemon<=0. ) fdemon = fdemon + 365.
+1469:         wt = fnumer/fdemon
+1470:  
+1471:       end subroutine camclndr
+1472: !
+1473: !     Error Handler for NETCDF Calls
+1474: !
+<p><a name=handle_err><H3>handle_err</H3></a></p> Click <a href="./callingtree/handle_err_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where handle_err is used.
+<hr>
+1475:       subroutine handle_err(istatus)
+1476:         use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+1477:         implicit none
+1478: !
+1479: ! Dummy arguments
+1480: !
+1481:         integer :: istatus
+1482:         intent (in) :: istatus
+1483: !
+1484:         print * , nf90_strerror(istatus)
+1485:         stop 'Netcdf Error'
+1486: 
+1487:       end subroutine handle_err
+1488: !
+1489:       end module mod_ccsm
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

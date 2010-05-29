@@ -1,0 +1,625 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_outprt.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_outprt.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_outprt.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=mod_outprt><H3>mod_outprt</H3></a></p>20:       module mod_outprt
+21: 
+22:       implicit none
+23: 
+24:       private
+25: 
+26:       public :: outprt
+27: 
+28:       contains
+29: 
+30: #ifdef MPP1
+<p><a name=outprt><H3>outprt</H3></a></p> Click <a href="./callingtree/outprt_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where outprt is used.
+<hr>
+31:       subroutine outprt(iexec)
+32: 
+33:       implicit none
+34: !
+35: ! Dummy arguments
+36: !
+37:       integer :: iexec
+38:       intent (in) iexec
+39: !
+40: ! Local variables
+41: !
+42:       integer dum
+43: !
+44:       dum = iexec
+45:       return
+46:       end subroutine outprt
+47: 
+48: #else
+49: 
+<p><a name=outprt><H3>outprt</H3></a></p> Click <a href="./callingtree/outprt_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where outprt is used.
+<hr>
+50:       subroutine outprt(iexec)
+51: 
+52: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+53: !                                                                     c
+54: !     this subroutine creates the printer output for a quick check.   c
+55: !     the complete analysis is handled by other program "dataflow"    c
+56: !     later.                                                          c
+57: !                                                                     c
+58: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+59: 
+60:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+61:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+62:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+63:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : jxsex , kxout , r8pt , a
+64:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+65:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+66:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+67:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+68:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero , ep2 , svp1 , svp2 , svp3 ,     &
+69:                       &          svp4 , svp5 , svp6 , gti
+70:       implicit none
+71: !
+72: ! Dummy arguments
+73: !
+74:       integer :: iexec
+75:       intent (in) iexec
+76: !
+77: ! Local variables
+78: !
+79:       character(40) :: c40nam
+80:       real(8) :: const , pres , psab1 , psab2 , psabar , qvs , satvp ,  &
+81:                & xth
+82:       real(8) , dimension(jx,iy) :: fr , hscr1r , hscr2r , msfdr ,      &
+83:                                   & psar , raincr , rainncr , tgar ,    &
+84:                                   & xlatr , xlongr
+85:       real(8) , dimension(iy,jx) :: hscr1 , hscr2
+86:       integer :: i , iyn , j , jcx , jxn , k , kout , kxn
+87:       real(8) , dimension(kz,iy) :: scrx1 , scrx2
+88:       real(8) , dimension(iy,kz) :: scrx1r , scrx2r
+89: !
+90:       data iyn , jxn , kxn/2 , 2 , 1/
+91: !
+92: !----------------------------------------------------------------------
+93: !
+94:       xth = xtime/60.
+95:       jcx = jxsex
+96:       kout = kxout
+97:       print 99001 , ldatez + xtime/1440. , ktau , jyear
+98: !
+99: !-----north-south cross sections:
+100: !
+101: !.....u and v:
+102: !
+103:       if ( iexec.eq.1 ) then
+104: !
+105: !.....first time :
+106: !
+107:         if ( jcx.eq.1 ) then
+108: !......for jcx = 1:
+109:           do i = 2 , iym1
+110:             do k = 1 , kz
+111:               psabar = 0.5*(psa(i,jcx)+psa(i-1,jcx))
+112:               scrx1(k,i) = ua(i,k,jcx)/psabar
+113:               scrx2(k,i) = va(i,k,jcx)/psabar
+114:             end do
+115:           end do
+116:           do k = 1 , kz
+117:             scrx1(k,1) = ua(1,k,jcx)/psa(1,jcx)
+118:             scrx1(k,iy) = ua(iy,k,jcx)/psa(iym1,jcx)
+119:             scrx2(k,1) = va(1,k,jcx)/psa(1,jcx)
+120:             scrx2(k,iy) = va(iy,k,jcx)/psa(iym1,jcx)
+121:           end do
+122:         else if ( jcx.eq.jx ) then
+123: !......for jcx = jx:
+124:           do i = 2 , iym1
+125:             do k = 1 , kz
+126:               psabar = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
+127:               scrx1(k,i) = ua(i,k,jcx)/psabar
+128:               scrx2(k,i) = va(i,k,jcx)/psabar
+129:             end do
+130:           end do
+131:           do k = 1 , kz
+132:             scrx1(k,1) = ua(1,k,jcx)/psa(1,jxm1)
+133:             scrx1(k,iy) = ua(iy,k,jcx)/psa(iym1,jxm1)
+134:             scrx2(k,1) = va(1,k,jcx)/psa(1,jxm1)
+135:             scrx2(k,iy) = va(iy,k,jcx)/psa(iym1,jxm1)
+136:           end do
+137:         else
+138: !......interior slice:
+139:           do i = 2 , iym1
+140:             do k = 1 , kz
+141:               psabar = 0.25*(psa(i,jcx)+psa(i,jcx-1)+psa(i-1,jcx)       &
+142:                      & +psa(i-1,jcx-1))
+143:               scrx1(k,i) = ua(i,k,jcx)/psabar
+144:               scrx2(k,i) = va(i,k,jcx)/psabar
+145:             end do
+146:           end do
+147:           do k = 1 , kz
+148:             psab1 = 0.5*(psa(1,jcx-1)+psa(1,jcx))
+149:             psab2 = 0.5*(psa(iym1,jcx-1)+psa(iym1,jcx))
+150:             scrx1(k,1) = ua(1,k,jcx)/psab1
+151:             scrx1(k,iy) = ua(iy,k,jcx)/psab2
+152:             scrx2(k,1) = va(1,k,jcx)/psab1
+153:             scrx2(k,iy) = va(iy,k,jcx)/psab2
+154:           end do
+155:         end if
+156: !
+157:       else if ( iexec.gt.1 ) then
+158: !
+159: !.....subsequent calls:
+160: !
+161:         if ( jcx.eq.1 ) then
+162: !......for jcx = 1:
+163:           do i = 1 , iy
+164:             do k = 1 , kz
+165:               scrx1(k,i) = uj1(i,k)
+166:               scrx2(k,i) = vj1(i,k)
+167:             end do
+168:           end do
+169:         else if ( jcx.eq.jx ) then
+170: !......for jcx = jx:
+171:           do i = 1 , iy
+172:             do k = 1 , kz
+173:               scrx1(k,i) = ujl(i,k)
+174:               scrx2(k,i) = vjl(i,k)
+175:             end do
+176:           end do
+177:         else
+178: !......interior slice:
+179:           do i = 2 , iym1
+180:             do k = 1 , kz
+181:               psabar = 0.25*(psa(i,jcx)+psa(i,jcx-1)+psa(i-1,jcx)       &
+182:                      & +psa(i-1,jcx-1))
+183:               scrx1(k,i) = ua(i,k,jcx)/psabar
+184:               scrx2(k,i) = va(i,k,jcx)/psabar
+185:             end do
+186:           end do
+187:           do k = 1 , kz
+188:             scrx1(k,1) = ui1(k,jcx)
+189:             scrx1(k,iy) = uil(k,jcx)
+190:             scrx2(k,1) = vi1(k,jcx)
+191:             scrx2(k,iy) = vil(k,jcx)
+192:           end do
+193:         end if
+194: !
+195:       else        !end iexec test
+196:       end if
+197: !
+198:       write (c40nam,99002) jcx
+199:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(scrx1,scrx1r,kz,iy,1,kz,kxn,1,iy,iyn,0.D0,-1,c40nam,  &
+200:                 & xth)
+201:       write (c40nam,99003) jcx
+202:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(scrx2,scrx2r,kz,iy,1,kz,kxn,1,iy,iyn,0.D0,-1,c40nam,  &
+203:                 & xth)
+204: !
+205: !.....t:
+206: !
+207:       do i = 1 , iym1
+208:         do k = 1 , kz
+209:           scrx1(k,i) = ta(i,k,jcx)/psa(i,jcx)
+210:         end do
+211:       end do
+212:       write (c40nam,99004) jcx
+213:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(scrx1,scrx1r,kz,iy,1,kz,kxn,1,iym1,iyn,tzero,-1,      &
+214:                 & c40nam,xth)
+215: !
+216: !.....qv:
+217: !
+218:       do i = 1 , iym1
+219:         do k = 1 , kz
+220:           scrx1(k,i) = qva(i,k,jcx)/psa(i,jcx)
+221:         end do
+222:       end do
+223:  
+224:       write (c40nam,99005) jcx
+225:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(scrx1,scrx1r,kz,iy,1,kz,kxn,1,iym1,iyn,0.D0,-1,c40nam,&
+226:                 & xth)
+227: !
+228: !....qc and qr:
+229: !
+230:       do i = 1 , iym1
+231:         do k = 1 , kz
+232:           scrx1(k,i) = qca(i,k,jcx)/psa(i,jcx)
+233:         end do
+234:       end do
+235:       write (c40nam,99006) jcx
+236:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(scrx1,scrx1r,kz,iy,1,kz,kxn,1,iym1,iyn,0.D0,-1,c40nam,&
+237:                 & xth)
+238: !
+239: !-----horizontal slices:
+240: !
+241:       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+242:         c40nam = '       latitude at cross points        '
+243:         call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(xlat,xlatr,iy,jx,1,iym1,5,1,jxm1,5,0.D0,1,c40nam,   &
+244:                     & xth)
+245:         c40nam = '       longitude at cross points       '
+246:         call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(xlong,xlongr,iy,jx,1,iym1,5,1,jxm1,5,0.D0,1,c40nam, &
+247:                   & xth)
+248:         do j = 1 , jxm1
+249:           do i = 1 , iym1
+250:             hscr1(i,j) = ht(i,j)/gti
+251:           end do
+252:         end do
+253:         c40nam = '     terrain height at cross points     '
+254:         call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(hscr1,hscr1r,iy,jx,1,iym1,5,1,jxm1,5,0.D0,1,c40nam, &
+255:                   & xth)
+256:         c40nam = '    coriolis parameter at dot points    '
+257:         call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(f,fr,iy,jx,1,iy,5,1,jx,5,0.D0,1,c40nam,xth)
+258:         c40nam = '    map scale factor at dot points     '
+259:         call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(msfd,msfdr,iy,jx,1,iy,5,1,jx,5,0.D0,1,c40nam,xth)
+260:       end if
+261: !
+262: !....surface pressure
+263: !
+264:       const = -r8pt
+265:       c40nam = '         surface pressure (cb)         '
+266:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(psa,psar,iy,jx,1,iym1,iyn,1,jxm1,jxn,const,1,c40nam,  &
+267:                   & xth)
+268: !
+269: !.....u and v:
+270: !
+271:       do j = 2 , jxm1
+272:         do i = 2 , iym1
+273:           psabar = 0.25*(psa(i,j)+psa(i,j-1)+psa(i-1,j)+psa(i-1,j-1))
+274:           hscr1(i,j) = ua(i,kout,j)/psabar
+275:           hscr2(i,j) = va(i,kout,j)/psabar
+276:         end do
+277:       end do
+278: !
+279:       if ( iexec.eq.1 ) then
+280: !
+281: !.....first time:
+282: !
+283:         do i = 2 , iym1
+284:           psab1 = 0.5*(psa(i,1)+psa(i-1,1))
+285:           psab2 = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
+286:           hscr1(i,1) = ua(i,kout,1)/psab1
+287:           hscr1(i,jx) = ua(i,kout,jx)/psab2
+288:           hscr2(i,1) = va(i,kout,1)/psab1
+289:           hscr2(i,jx) = va(i,kout,jx)/psab2
+290:         end do
+291:         do j = 2 , jxm1
+292:           psab1 = 0.5*(psa(1,j)+psa(1,j-1))
+293:           psab2 = 0.5*(psa(iym1,j)+psa(iym1,j-1))
+294:           hscr1(1,j) = ua(1,kout,j)/psab1
+295:           hscr1(iy,j) = ua(iy,kout,j)/psab2
+296:           hscr2(1,j) = va(1,kout,j)/psab1
+297:           hscr2(iy,j) = va(iy,kout,j)/psab2
+298:         end do
+299:         hscr1(1,1) = ua(1,kout,1)/psa(1,1)
+300:         hscr1(1,jx) = ua(1,kout,jx)/psa(1,jxm1)
+301:         hscr1(iy,1) = ua(iy,kout,1)/psa(iym1,1)
+302:         hscr1(iy,jx) = ua(iy,kout,jx)/psa(iym1,jxm1)
+303:         hscr2(1,1) = va(1,kout,1)/psa(1,1)
+304:         hscr2(1,jx) = va(1,kout,jx)/psa(1,jxm1)
+305:         hscr2(iy,1) = va(iy,kout,1)/psa(iym1,1)
+306:         hscr2(iy,jx) = va(iy,kout,jx)/psa(iym1,jxm1)
+307: !
+308:       else if ( iexec.gt.1 ) then
+309: !
+310:         do i = 1 , iy
+311:           hscr1(i,1) = uj1(i,kout)
+312:           hscr1(i,jx) = ujl(i,kout)
+313:           hscr2(i,1) = vj1(i,kout)
+314:           hscr2(i,jx) = vjl(i,kout)
+315:         end do
+316:         do j = 2 , jxm1
+317:           hscr1(1,j) = ui1(kout,j)
+318:           hscr1(iy,j) = uil(kout,j)
+319:           hscr2(1,j) = vi1(kout,j)
+320:           hscr2(iy,j) = vil(kout,j)
+321:         end do
+322: !
+323:       else        !end 2nd iexec test
+324:       end if
+325:  
+326:       write (c40nam,99007) kout
+327:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(hscr1,hscr1r,iy,jx,1,iy,iyn,1,jx,jxn,0.D0,1,c40nam,   &
+328:                 & xth)
+329:       write (c40nam,99008) kout
+330:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(hscr2,hscr2r,iy,jx,1,iy,iyn,1,jx,jxn,0.D0,1,c40nam,   &
+331:                 & xth)
+332: !
+333: !.....t:
+334: !
+335:       do j = 1 , jxm1
+336:         do i = 1 , iym1
+337:           hscr1(i,j) = ta(i,kout,j)/psa(i,j)
+338:         end do
+339:       end do
+340:       write (c40nam,99009) kout
+341:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(hscr1,hscr1r,iy,jx,1,iym1,iyn,1,jxm1,jxn,tzero,1,     &
+342:                 & c40nam,xth)
+343: !
+344: !.....relative humidity:
+345: !
+346:       do j = 1 , jxm1
+347:         do i = 1 , iym1
+348:           pres = a(kout)*psa(i,j) + r8pt
+349:           if ( hscr1(i,j).gt.tzero ) then
+350: !           v8 svp formula
+351:             satvp = svp1*dexp(svp2*(hscr1(i,j)-tzero)/(hscr1(i,j)-svp3))
+352:           else
+353:             satvp = svp4*dexp(svp5-svp6/hscr1(i,j))
+354:           end if
+355:  
+356:           qvs = ep2*satvp/(pres-satvp)
+357:           hscr2(i,j) = (qva(i,kout,j)/psa(i,j))/qvs
+358:         end do
+359:       end do
+360:       write (c40nam,99010) kout
+361:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(hscr2,hscr2r,iy,jx,1,iym1,iyn,1,jxm1,jxn,0.D0,1,      &
+362:                 & c40nam,xth)
+363: !
+364: !.....qc and qr:
+365: !
+366:       do j = 1 , jxm1
+367:         do i = 1 , iym1
+368:           hscr1(i,j) = qca(i,kout,j)/psa(i,j)
+369:         end do
+370:       end do
+371:       write (c40nam,99011) kout
+372:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(hscr1,hscr1r,iy,jx,1,iym1,iyn,1,jxm1,jxn,0.D0,1,      &
+373:                 & c40nam,xth)
+374: !
+375: !.....surface temperature:
+376: !
+377:       if ( ibltyp.ne.0 ) then
+378:         const = tzero
+379:         c40nam = ' ground temperature (c)    '
+380:         call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(tga,tgar,iy,jx,1,iym1,iyn,1,jxm1,jxn,const,1,c40nam,&
+381:                   & xth)
+382:       end if
+383: !
+384: !.....precipitation:
+385: !
+386:       c40nam = '   convective rainfall (mm)          '
+387:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(rainc,raincr,iy,jx,1,iym1,iyn,1,jxm1,jxn,0.D0,1,      &
+388:                   & c40nam,xth)
+389:       c40nam = '  nonconvective rainfall (mm)      '
+390:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(rainnc,rainncr,iy,jx,1,iym1,iyn,1,jxm1,jxn,0.D0,1,    &
+391:                 & c40nam,xth)
+392:       do j = 1 , jxm1
+393:         do i = 1 , iym1
+394:           hscr1(i,j) = rainc(i,j) + rainnc(i,j)
+395:         end do
+396:       end do
+397:       c40nam = '  total rainfall (mm)        '
+398:       call <a href="./mod_outprt.F90.html#mapsmp" TARGET=CENT_PANEL>mapsmp</a>(hscr1,hscr1r,iy,jx,1,iym1,iyn,1,jxm1,jxn,0.D0,1,      &
+399:                   & c40nam,xth)
+400: 99001 format (///1x,'--------------------------------------------------'&
+401:             & ,/1x,'*****',4x,'large domain at t = ',f17.5,             &
+402:              &' minutes, ktau = ',i7,' in year=',i4,3x,'*****'/1x,      &
+403:          &'------------------------------------------------------------'&
+404:         & ///)
+405: 99002 format ('  u  cross-section at j = ',i3,8x)
+406: 99003 format ('  v  cross-section at j = ',i3,8x)
+407: 99004 format ('  t  cross-section at j = ',i3,8x)
+408: 99005 format ('  qv  cross-section at j = ',i3,7x)
+409: 99006 format ('  qc  cross-section at j = ',i3,7x)
+410: 99007 format ('  u   at k = ',i3,24x)
+411: 99008 format ('  v   at k = ',i3,24x)
+412: 99009 format ('  t (c)  at k = ',i3,21x)
+413: 99010 format ('  relative humidity at k = ',i3,10x)
+414: 99011 format ('  qc  at k = ',i3,24x)
+415: !
+416:       end subroutine outprt
+417: 
+418: #endif
+419: !
+420: !
+421: !
+<p><a name=mapsmp><H3>mapsmp</H3></a></p> Click <a href="./callingtree/mapsmp_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where mapsmp is used.
+<hr>
+422:       subroutine mapsmp(fld,fldr,iyy,jxx,ia,ib,iny,ja,jb,jnx,const,     &
+423:                       & ichos,c40nam,time)
+424: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+425: !                                                                     c
+426: !                                                                     c
+427: !     this subroutine prints a sample of a two-dimensional data field c
+428: !     on the line printer with 5 significant digits.                  c
+429: !                                                                     c
+430: !     *** note *** the values of fld(i,j) should be limited within    c
+431: !                  1.e30 --- 1.e-30. if the value outside this        c
+432: !                  range is desired, the program should be changed    c
+433: !                  accordingly (in do loop 20).                       c
+434: !                                                                     c
+435: !                                                                     c
+436: !     fld    : a two-dimensional array to hold the data field to be   c
+437: !              sampled and printed. fld could be a horizontal slice,  c
+438: !              fld(i,j), or a vertical slice fld(k,i) or fld(k,j).    c
+439: !
+440: !     fldr   : reverse array of fld; i.e., fldr(j,i)=fld(i,j)
+441: !                                                                     c
+442: !     iyy    : the first dimension of fld.                            c
+443: !              for the horizontal slice, iyy is the dimension in the  c
+444: !                                        y direction.                 c
+445: !              for the vertical slice, iyy is the dimension in the    c
+446: !                                      z direction.                   c
+447: !                                                                     c
+448: !     jxx    : the second dimension of fld.                           c
+449: !              for the horizontal slice, jxx is the dimension in the  c
+450: !                                        x direction.                 c
+451: !              for the vertical slice, jxx is the dimension in either c
+452: !                                      the x or y direction.          c
+453: !                                                                     c
+454: !     ia     : initial sampling point in the first dimension.         c
+455: !                                                                     c
+456: !     ib     : final sampling point in the first dimension.           c
+457: !                                                                     c
+458: !     iny    : sampling interval in the first dimension.              c
+459: !                                                                     c
+460: !     ja     : initial sampling point in the second dimension.        c
+461: !                                                                     c
+462: !     jb     : final sampling point in the second dimension.          c
+463: !                                                                     c
+464: !     jnx    : sampling interval in the second dimension.             c
+465: !                                                                     c
+466: !     const  : constant used to be subtracted from fldr.              c
+467: !                                                                     c
+468: !     ichos > 0 : for horizontal array fld(y,x)                       c
+469: !           < 0 : for vertical cross section fld(z,y) or fld(z,x)     c
+470: !                                                                     c
+471: !                                                                     c
+472: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+473: !
+474:       implicit none
+475: !
+476: ! Dummy arguments
+477: !
+478:       character(40) :: c40nam
+479:       real(8) :: const , time
+480:       integer :: ia , ib , ichos , iny , iyy , ja , jb , jnx , jxx
+481:       real(8) , dimension(iyy,jxx) :: fld
+482:       real(8) , dimension(jxx,iyy) :: fldr
+483:       intent (in) c40nam , const , fld , ia , ib , ichos , iny , iyy ,  &
+484:                 & ja , jb , jnx , jxx , time
+485:       intent (inout) fldr
+486: !
+487: ! Local variables
+488: !
+489:       real(8) :: fldl , fldmax , fldmin , fldu
+490:       integer :: i , i1 , i2 , iexp , ir , it , iy , j , j1 , j2 , j2n ,&
+491:                & j3 , jj , jl , jn , jn1 , jt , jtn , k1 , k2 , k3 ,    &
+492:                & k4 , ksigt , n , n1
+493:       character(24) :: ifmt1 , ifmt2
+494:       integer , dimension(100) :: jm
+495: !
+496:       data ksigt/5/
+497: !
+498:       do i = 1 , iyy
+499:         do j = 1 , jxx
+500:           fldr(j,i) = fld(i,j)
+501:         end do
+502:       end do
+503: !
+504:       n = 6
+505:       k1 = ksigt + 2
+506:       k2 = 124/k1
+507:       k3 = ksigt/2
+508:       k4 = ksigt - k3
+509: !
+510:       do i = ia , ib , iny
+511:         do j = ja , jb , jnx
+512:           fldr(j,i) = fldr(j,i) - const
+513:         end do
+514:       end do
+515: !
+516:       fldmax = fldr(ja,ia)
+517:       fldmin = fldr(ja,ia)
+518:       fldu = 10.**ksigt
+519:       fldl = 10.**(ksigt-1)
+520:       do i = ia , ib , iny
+521:         do j = ja , jb , jnx
+522:           if ( dabs(fldr(j,i)).le.1.E30 .and. dabs(fldr(j,i))           &
+523:              & .ge.1.E-30 ) then
+524:             if ( dabs(fldr(j,i)).gt.fldmax ) fldmax = dabs(fldr(j,i))
+525:             if ( dabs(fldr(j,i)).lt.fldmin ) fldmin = dabs(fldr(j,i))
+526:           end if
+527:         end do
+528:       end do
+529: !
+530:       if ( fldmax.ne.fldmin ) then
+531:         iexp = 0
+532:         do n1 = 1 , 500
+533:           if ( fldmax.ge.fldu ) then
+534:             fldmax = fldmax/10.
+535:             iexp = iexp - 1
+536:           else if ( fldmax.lt.fldl ) then
+537:             fldmax = fldmax*10.
+538:             iexp = iexp + 1
+539:           else
+540:             exit
+541:           end if
+542:         end do
+543:         do i = ia , ib , iny
+544:           do j = ja , jb , jnx
+545:             fldr(j,i) = fldr(j,i)*10.**iexp
+546:           end do
+547:         end do
+548:         iy = ib - ia + 1
+549:         jn = k2*jnx
+550:         jn1 = jn - 1
+551:         write (n,99001) c40nam , iexp , time
+552:         do j1 = ja , jb , jn
+553:           jl = min0(j1+jn1,jb)
+554:           jt = jl - j1 + 1
+555:           jtn = (jt-1)/jnx + 1
+556:           j2n = 0
+557:           do j2 = 1 , jt , jnx
+558:             j2n = j2n + 1
+559:             jm(j2n) = j1 + j2 - 1
+560:           end do
+561:           write (ifmt1,99002) jtn , k4 , k3
+562:           write (n,ifmt1) (jm(jj),jj=1,j2n)
+563:           write (ifmt2,99003) jtn , k1
+564: !110      format(1x,i2,1x,i2)
+565:           it = (iy-1)/iny
+566:           ir = iy - it*iny
+567:           do i2 = ia , ib , iny
+568:             i1 = ib + ia - i2 - ir + 1
+569:             if ( ichos.lt.0 ) i1 = i2
+570:             write (n,ifmt2) i1 , (fldr(j3,i1),j3=j1,jl,jnx) , i1
+571:           end do
+572:           write (n,ifmt1) (jm(jj),jj=1,j2n)
+573:         end do
+574:         do i = ia , ib , iny
+575:           do j = ja , jb , jnx
+576:             fldr(j,i) = fldr(j,i)/(10.**iexp) + const
+577:           end do
+578:         end do
+579:       else
+580:         do i = ia , ib , iny
+581:           do j = ja , jb , jnx
+582:             fldr(j,i) = fldr(j,i) + const
+583:           end do
+584:         end do
+585:         write (n,99004) c40nam , fldmax , time
+586:       end if      !end if(fldmax.ne.fldmin)test
+587: 99001 format (////' this is a list of  ',a40,'  ,scaled by  1.e',i3,5x, &
+588:              &'at time = ',f10.3)
+589: 99002 format ('(/4x,',i2,'(',i2,'x,i2,',i2,'x)/)')
+590: 99003 format ('(1x,i2,',i2,'f',i2,'.0,2x,i2)')
+591: 99004 format (/'   all of the values of ',a40,' are equal to ',e15.5,5x,&
+592:              &'at time = ',f10.3)
+593: !
+594:       end subroutine mapsmp
+595: !
+596:       end module mod_outprt
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,67 @@
+<HTML>
+
+<HEAD>
+<TITLE>for_next.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>for_next.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>for_next.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=for_next><H3>for_next</H3></a></p> Click <a href="./callingtree/for_next_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where for_next is used.
+<hr>
+20:       subroutine for_next
+21:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+22:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : nslice
+23:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+24: ! 
+25:       open(99, file='restparam.nl')
+26:       write (99,99001) '&restartparam'
+27:       if ( idate1.lt.globidate2 ) then
+28:         write (99,99001) 'ifrest  = .true. '
+29:       else
+30:         write (99,99001) 'ifrest  = .false.'
+31:       end if
+32:       write (99,99002) 'idate0  = ' , idate0
+33:       write (99,99002) 'idate1  = ' , idate1
+34:       write (99,99002) 'idate2  = ' , globidate2
+35:       write (99,99002) 'nslice  = ' , nslice
+36:       write (99,99002) '/'
+37:       close (99)
+38: 
+39: 99001 format (1x,a)
+40: 99002 format (1x,a,i10,',')
+41: 
+42:       end subroutine for_next
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

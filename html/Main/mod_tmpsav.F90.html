@@ -1,0 +1,120 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_tmpsav.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_tmpsav.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_tmpsav.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_tmpsav><H3>mod_tmpsav</H3></a></p>20:       module mod_tmpsav
+21:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+22:       implicit none
+23: 
+24: #ifdef MPP1
+25:       real(8) , allocatable , dimension(:,:,:) :: sav0
+26:       real(8) , allocatable , dimension(:,:,:) :: sav_0
+27:       real(8) , allocatable , dimension(:,:,:) :: sav0a
+28:       real(8) , allocatable , dimension(:,:,:) :: sav_0a
+29:       real(8) , allocatable , dimension(:,:,:) :: sav0b
+30:       real(8) , allocatable , dimension(:,:,:) :: sav_0b
+31:       real(8) , allocatable , dimension(:,:,:) :: sav0c
+32:       real(8) , allocatable , dimension(:,:,:) :: sav_0c
+33:       real(8) , allocatable , dimension(:,:,:) :: sav0s
+34:       real(8) , allocatable , dimension(:,:,:) :: sav_0s
+35:       real(8) , allocatable , dimension(:,:,:) :: sav0d
+36:       real(8) , allocatable , dimension(:,:,:) :: sav_0d
+37:       real(8) , allocatable , dimension(:,:,:) :: sav1
+38:       real(8) , allocatable , dimension(:,:,:) :: sav_1
+39:       real(8) , allocatable , dimension(:,:,:) :: sav2
+40:       real(8) , allocatable , dimension(:,:,:) :: sav_2
+41:       real(8) , allocatable , dimension(:,:,:) :: sav2a
+42:       real(8) , allocatable , dimension(:,:,:) :: sav_2a
+43:       real(8) , allocatable , dimension(:,:,:) :: sav4
+44:       real(8) , allocatable , dimension(:,:,:) :: sav_4
+45:       real(8) , allocatable , dimension(:,:,:) :: sav4a
+46:       real(8) , allocatable , dimension(:,:,:) :: sav_4a
+47:       real(8) , allocatable , dimension(:,:,:) :: sav6
+48:       real(8) , allocatable , dimension(:,:,:) :: sav_6
+49: #ifdef CLM
+50:       real(8) , allocatable , dimension(:,:,:) :: sav_clmout
+51:       real(8) , allocatable , dimension(:,:,:) :: sav_clmin
+52: #endif
+53: 
+54: #endif
+55: 
+56: !---------- DATA init section--------------------------------------------
+57: 
+58:       contains 
+59: 
+<p><a name=allocate_mod_tmpsav><H3>allocate_mod_tmpsav</H3></a></p> Click <a href="./callingtree/allocate_mod_tmpsav_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_tmpsav is used.
+<hr>
+60:         subroutine allocate_mod_tmpsav 
+61:         implicit none
+62: #ifdef MPP1
+63:         allocate(sav0(iy,kz*4+2,jxp))
+64:         allocate(sav_0(iy,kz*4+2,jx))
+65:         allocate(sav0a(iy,kz+nnsg+5,jxp) )
+66:         allocate(sav_0a(iy,kz+nnsg+5,jx) )
+67:         allocate(sav0b(iy,kzp1,jxp))
+68:         allocate(sav_0b(iy,kzp1,jx))
+69:         allocate(sav0c(iy,kz*2,jxp))
+70:         allocate(sav_0c(iy,kz*2,jx))
+71:         allocate(sav0s(iy,kz,jxp))
+72:         allocate(sav_0s(iy,kz,jx))
+73:         allocate(sav0d(iy,nsplit*2,jxp))
+74:         allocate(sav_0d(iy,nsplit*2,jx))
+75:         allocate(sav1(iym1,kz*4+(kzp1*kzp2),jxp))
+76:         allocate(sav_1(iym1,kz*4+(kzp1*kzp2),jx))
+77:         allocate(sav2(iym1,nnsg*4+4,jxp))
+78:         allocate(sav_2(iym1,nnsg*4+4,jx))
+79:         allocate(sav2a(iym1,nnsg*5+1,jxp))
+80:         allocate(sav_2a(iym1,nnsg*5+1,jx))
+81:         allocate(sav4(iy,ntr*(kz*4+1),jxp))
+82:         allocate(sav_4(iy,ntr*(kz*4+1),jx))
+83:         allocate(sav4a(iym1,7,jxp))
+84:         allocate(sav_4a(iym1,7,jx))
+85:         allocate(sav6(kz,8,jxp))
+86:         allocate(sav_6(kz,8,jx))
+87: #ifdef CLM
+88:         allocate(sav_clmout(iym1,9,jx))
+89:         allocate(sav_clmin(iym1,9,jxp))
+90: #endif 
+91: 
+92: #endif 
+93:         end  subroutine allocate_mod_tmpsav
+94: 
+95:       end module mod_tmpsav
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,439 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_gfs11.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_gfs11.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_gfs11.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_gfs11><H3>mod_gfs11</H3></a></p>20:       module mod_gfs11
+21:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+22: 
+23:       implicit none
+24: 
+25:       private
+26: 
+27:       integer , parameter :: klev = 26 , jlat = 181 , ilon = 360
+28: 
+29:       real(4) , target , dimension(ilon,jlat,klev*3) :: b2
+30:       real(4) , target , dimension(ilon,jlat,klev*2) :: d2
+31:       real(4) , allocatable , target , dimension(:,:,:) :: b3
+32:       real(4) , allocatable , target , dimension(:,:,:) :: d3
+33: 
+34:       real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
+35:       real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+36:       real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+37:       real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+38: 
+39:       real(4) , dimension(jlat) :: glat
+40:       real(4) , dimension(ilon) :: glon
+41:       real(4) , dimension(klev) :: sigma1 , sigmar
+42: 
+43:       public :: getgfs11 , headergfs
+44: 
+45:       contains
+46: 
+<p><a name=getgfs11><H3>getgfs11</H3></a></p> Click <a href="./callingtree/getgfs11_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where getgfs11 is used.
+<hr>
+47:       subroutine getgfs11(idate)
+48:       use <a href="./mod_date.f90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : julian
+49:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+50:       use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+51:       use <a href="./mod_interp.f90.html#mod_interp" TARGET=CENT_PANEL>mod_interp</a> , only : bilinx2
+52:       use <a href="./mod_vertint.f90.html#mod_vertint" TARGET=CENT_PANEL>mod_vertint</a>
+53:       use <a href="./mod_hgt.f90.html#mod_hgt" TARGET=CENT_PANEL>mod_hgt</a>
+54:       use <a href="./mod_humid.f90.html#mod_humid" TARGET=CENT_PANEL>mod_humid</a>
+55:       use <a href="./mod_mksst.f90.html#mod_mksst" TARGET=CENT_PANEL>mod_mksst</a>
+56:       use <a href="./mod_uvrot.f90.html#mod_uvrot" TARGET=CENT_PANEL>mod_uvrot</a>
+57:       use <a href="./mod_vectutil.f90.html#mod_vectutil" TARGET=CENT_PANEL>mod_vectutil</a>
+58:       implicit none
+59: !
+60: ! Dummy arguments
+61: !
+62:       integer :: idate
+63: !
+64: ! Local variables
+65: !
+66:       character(3) , dimension(12) :: chmon
+67:       character(17) :: finm
+68:       integer :: i , i2 , ii , j , j2 , k , month , nday , nhour ,      &
+69:                & nmop , nrec , numx , numy , nyear , nyrp
+70:       integer(2) , dimension(360,181) :: itmp
+71:       real(8) :: offset , xscale
+72:       logical :: there
+73:       real(4) :: wt
+74:       character(4) , dimension(9) :: yrgfs
+75: !
+76: !     DIMENSION SURFACE TEMPERATURE ON RCM SURFACE; NOT GIVEN BY ECMWF
+77: !     DATA READ FROM THE OUTPUT OF SST STEP
+78: !
+79:       data yrgfs/'2000' , '2001' , '2002' , '2003' , '2004' , '2005' ,  &
+80:           &'2006' , '2007' , '2008'/
+81:       data chmon/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' , 'JUL' ,&
+82:           &'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
+83: !
+84: !     D      BEGIN LOOP OVER NTIMES
+85: !
+86:       nyear = idate/1000000
+87:       month = idate/10000 - nyear*100
+88:       nday = idate/100 - (idate/10000)*100
+89:       nhour = mod(idate,100)
+90:       if ( idate<2000010106 ) then
+91:         write (*,*) 'GFS 1x1 datasets is just avaiable from 2000010106'
+92:         stop
+93:       end if
+94: !     IF(IDATE.GT.2008060100) THEN
+95: !     WRITE(*,*) 'GFS 1x1 datasets is just avaiable to 2008060100'
+96: !     STOP
+97: !     ENDIF
+98:       numx = nint((lon1-lon0)/1.0) + 1
+99:       numy = nint((lat1-lat0)/1.0) + 1
+100:       if ( numx/=360 .or. numy/=181 ) then
+101:         if ( nday/=1 .or. nhour/=0 ) then
+102:           finm = yrgfs(nyear-1999)//'/'//'GFS__'//yrgfs(nyear-1999)     &
+103:                & //chmon(month)
+104:         else if ( month/=1 ) then
+105:           finm = yrgfs(nyear-1999)//'/'//'GFS__'//yrgfs(nyear-1999)     &
+106:                & //chmon(month-1)
+107:         else
+108:           finm = yrgfs(nyear-2000)//'/'//'GFS__'//yrgfs(nyear-2000)     &
+109:                & //chmon(12)
+110:         end if
+111:       else if ( nday/=1 .or. nhour/=0 ) then
+112:         finm = yrgfs(nyear-1999)//'/'//'GFSg_'//yrgfs(nyear-1999)       &
+113:              & //chmon(month)
+114:       else if ( month/=1 ) then
+115:         finm = yrgfs(nyear-1999)//'/'//'GFSg_'//yrgfs(nyear-1999)       &
+116:              & //chmon(month-1)
+117:       else
+118:         finm = yrgfs(nyear-2000)//'/'//'GFSg_'//yrgfs(nyear-2000)       &
+119:              & //chmon(12)
+120:       end if
+121:       do k = 1 , klev*3
+122:         do j = 1 , jlat
+123:           do i = 1 , ilon
+124:             b2(i,j,k) = -9999.
+125:           end do
+126:         end do
+127:       end do
+128:       do k = 1 , klev*2
+129:         do j = 1 , jlat
+130:           do i = 1 , ilon
+131:             d2(i,j,k) = -9999.
+132:           end do
+133:         end do
+134:       end do
+135:       inquire (file=trim(inpglob)//'/GFS11/'//finm,exist=there)
+136:       if ( .not.there ) then
+137:         write (*,*) trim(inpglob)//'/GFS11/'//finm , ' is not available'
+138:         write (*,*) 'please copy GFS11 datasets under ',                &
+139:               &     trim(inpglob)//'/GFS11/'
+140:         stop
+141:       end if
+142:       open (63,file=trim(inpglob)//'/GFS11/'//finm,form='unformatted',  &
+143:           & recl=(numx*numy*2+16)/4*ibyte,access='direct')
+144:       if ( nday/=1 .or. nhour/=0 ) then
+145:         nrec = ((nday-1)*4+nhour/6-1)*127
+146:       else if ( month==1 .or. month==2 .or. month==4 .or. month==6 .or. &
+147:               & month==8 .or. month==9 .or. month==11 ) then
+148:         nrec = (31*4-1)*127
+149:       else if ( month==5 .or. month==7 .or. month==10 .or. month==12 )  &
+150:               & then
+151:         nrec = (30*4-1)*127
+152:       else if ( mod(nyear,4)==0 ) then
+153:         nrec = (29*4-1)*127
+154:       else
+155:         nrec = (28*4-1)*127
+156:       end if
+157:       do k = klev , 1 , -1
+158:         nrec = nrec + 1
+159:         read (63,rec=nrec) offset , xscale ,                             &
+160:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+161:         do j = nint(lat0/1.0) , nint(lat1/1.0)
+162:           do i = nint(lon0/1.0) , nint(lon1/1.0)
+163:             ii = i + 1
+164:             if ( ii<=0 ) ii = ii + 360
+165:             if ( ii>360 ) ii = ii - 360
+166:             i2 = i - nint(lon0/1.0) + 1
+167:             j2 = j - nint(lat0/1.0) + 1
+168:             if ( numx==360 .and. numy==181 ) then
+169:               hvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+170:             else
+171:               hvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+172:             end if
+173:           end do
+174:         end do
+175:       end do
+176:       do k = klev , 1 , -1
+177:         nrec = nrec + 1
+178:         read (63,rec=nrec) offset , xscale ,                             &
+179:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+180:         do j = nint(lat0/1.0) , nint(lat1/1.0)
+181:           do i = nint(lon0/1.0) , nint(lon1/1.0)
+182:             ii = i + 1
+183:             if ( ii<=0 ) ii = ii + 360
+184:             if ( ii>360 ) ii = ii - 360
+185:             i2 = i - nint(lon0/1.0) + 1
+186:             j2 = j - nint(lat0/1.0) + 1
+187:             if ( numx==360 .and. numy==181 ) then
+188:               tvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+189:             else
+190:               tvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+191:             end if
+192:           end do
+193:         end do
+194:       end do
+195:       do k = klev , 6 , -1
+196:         nrec = nrec + 1
+197:         read (63,rec=nrec) offset , xscale ,                             &
+198:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+199:         do j = nint(lat0/1.0) , nint(lat1/1.0)
+200:           do i = nint(lon0/1.0) , nint(lon1/1.0)
+201:             ii = i + 1
+202:             if ( ii<=0 ) ii = ii + 360
+203:             if ( ii>360 ) ii = ii - 360
+204:             i2 = i - nint(lon0/1.0) + 1
+205:             j2 = j - nint(lat0/1.0) + 1
+206:             if ( numx==360 .and. numy==181 ) then
+207:               rhvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+208:             else
+209:               rhvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+210:             end if
+211:           end do
+212:         end do
+213:       end do
+214:       do k = 5 , 1 , -1
+215:         do j = 1 , jlat
+216:           do i = 1 , ilon
+217:             rhvar(i,j,k) = rhvar(i,j,k+1)
+218:           end do
+219:         end do
+220:       end do
+221:       do k = 1 , klev
+222:         do j = 1 , jlat
+223:           do i = 1 , ilon
+224:             rhvar(i,j,k) = amax1(rhvar(i,j,k)*0.01,1.0)
+225:           end do
+226:         end do
+227:       end do
+228:       do k = klev , 1 , -1
+229:         nrec = nrec + 1
+230:         read (63,rec=nrec) offset , xscale ,                             &
+231:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+232:         do j = nint(lat0/1.0) , nint(lat1/1.0)
+233:           do i = nint(lon0/1.0) , nint(lon1/1.0)
+234:             ii = i + 1
+235:             if ( ii<=0 ) ii = ii + 360
+236:             if ( ii>360 ) ii = ii - 360
+237:             i2 = i - nint(lon0/1.0) + 1
+238:             j2 = j - nint(lat0/1.0) + 1
+239:             if ( numx==360 .and. numy==181 ) then
+240:               uvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+241:             else
+242:               uvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+243:             end if
+244:           end do
+245:         end do
+246:       end do
+247:       do k = klev , 1 , -1
+248:         nrec = nrec + 1
+249:         read (63,rec=nrec) offset , xscale ,                             &
+250:                          & ((itmp(i,j),i=1,numx),j=1,numy)
+251:         do j = nint(lat0/1.0) , nint(lat1/1.0)
+252:           do i = nint(lon0/1.0) , nint(lon1/1.0)
+253:             ii = i + 1
+254:             if ( ii<=0 ) ii = ii + 360
+255:             if ( ii>360 ) ii = ii - 360
+256:             i2 = i - nint(lon0/1.0) + 1
+257:             j2 = j - nint(lat0/1.0) + 1
+258:             if ( numx==360 .and. numy==181 ) then
+259:               vvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+260:             else
+261:               vvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+262:             end if
+263:           end do
+264:         end do
+265:       end do
+266:       close (63)
+267:  
+268:       write (*,*) 'READ IN fields at DATE:' , idate
+269: !
+270: !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+271: !
+272:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+273:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+274: !
+275: !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+276: !
+277:       call <a href="./mod_uvrot.f90.html#uvrot4" TARGET=CENT_PANEL>uvrot4</a>(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,&
+278:                 & iproj)
+279: !
+280: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+281: !     X X
+282: !     V E R T I C A L   I N T E R P O L A T I O N
+283: !
+284: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+285: !     X X
+286: !HH:  CHANGE THE VERTICAL ORDER.
+287:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(t3,jx,iy,klev)
+288:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(q3,jx,iy,klev)
+289:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(h3,jx,iy,klev)
+290:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(u3,jx,iy,klev)
+291:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(v3,jx,iy,klev)
+292: !HH:OVER
+293: !
+294: !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+295:       call <a href="./mod_vertint.f90.html#intgtb" TARGET=CENT_PANEL>intgtb</a>(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
+296:  
+297:       call <a href="./mod_vertint.f90.html#intpsn" TARGET=CENT_PANEL>intpsn</a>(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+298:       call <a href="./mod_vectutil.f90.html#p1p2" TARGET=CENT_PANEL>p1p2</a>(b3pd,ps4,jx,iy)
+299:  
+300: !
+301: !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
+302: !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
+303:       call <a href="./mod_vertint.f90.html#intv3" TARGET=CENT_PANEL>intv3</a>(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
+304:  
+305:       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
+306: !       F1  CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
+307:         print * , 'INPUT DAY FOR SST DATA ACQUISITION:' , idate
+308:         call <a href="./mod_date.f90.html#julian" TARGET=CENT_PANEL>julian</a>(idate,nyrp,nmop,wt)
+309: !
+310:         if ( ssttyp=='OI2ST' ) then
+311:           call <a href="./mod_mksst.f90.html#mkssta" TARGET=CENT_PANEL>mkssta</a>(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &
+312:                   &   nmop,wt)
+313:         else
+314:           call <a href="./mod_mksst.f90.html#mksst" TARGET=CENT_PANEL>mksst</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+315:         end if
+316:       else
+317:         if ( ssttyp=='OI2WK' ) then
+318:           call <a href="./mod_mksst.f90.html#mksst2a" TARGET=CENT_PANEL>mksst2a</a>(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,     &
+319:               &        idate/100)
+320:         else
+321:           call <a href="./mod_mksst.f90.html#mksst2" TARGET=CENT_PANEL>mksst2</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
+322:         end if
+323:       end if
+324:  
+325: !     F2  DETERMINE P* AND HEIGHT.
+326: !
+327: !     F3  INTERPOLATE U, V, T, AND Q.
+328:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+329:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
+330: !
+331:       call <a href="./mod_vertint.f90.html#intv2" TARGET=CENT_PANEL>intv2</a>(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+332:  
+333:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+334:       call <a href="./mod_humid.f90.html#humid2" TARGET=CENT_PANEL>humid2</a>(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+335: !
+336: !     F4  DETERMINE H
+337:       call <a href="./mod_hgt.f90.html#hydrost" TARGET=CENT_PANEL>hydrost</a>(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
+338: !
+339: !     G   WRITE AN INITIAL FILE FOR THE RCM
+340:       call <a href="./mod_write.f90.html#writef" TARGET=CENT_PANEL>writef</a>(ptop,idate)
+341: !
+342:       end subroutine getgfs11
+343: !
+<p><a name=headergfs><H3>headergfs</H3></a></p> Click <a href="./callingtree/headergfs_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where headergfs is used.
+<hr>
+344:       subroutine headergfs
+345:       implicit none
+346: !
+347: ! Local variables
+348: !
+349:       integer :: i , j , k , kr
+350: !
+351:       sigmar(1) = .01
+352:       sigmar(2) = .02
+353:       sigmar(3) = .03
+354:       sigmar(4) = .05
+355:       sigmar(5) = .07
+356:       sigmar(6) = .1
+357:       sigmar(7) = .15
+358:       sigmar(8) = .2
+359:       sigmar(9) = .25
+360:       sigmar(10) = .3
+361:       sigmar(11) = .35
+362:       sigmar(12) = .4
+363:       sigmar(13) = .45
+364:       sigmar(14) = .5
+365:       sigmar(15) = .55
+366:       sigmar(16) = .6
+367:       sigmar(17) = .65
+368:       sigmar(18) = .7
+369:       sigmar(19) = .75
+370:       sigmar(20) = .8
+371:       sigmar(21) = .85
+372:       sigmar(22) = .9
+373:       sigmar(23) = .925
+374:       sigmar(24) = .95
+375:       sigmar(25) = .975
+376:       sigmar(26) = 1.00
+377: !
+378: !     INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
+379: !
+380:       do i = 1 , ilon
+381:         glon(i) = float(i-1)*1.0
+382:       end do
+383:       do j = 1 , jlat
+384:         glat(j) = -90.0 + float(j-1)*1.0
+385:       end do
+386: !HH:OVER
+387: !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
+388: !
+389:       do k = 1 , klev
+390:         kr = klev - k + 1
+391:         sigma1(k) = sigmar(kr)
+392:       end do
+393:  
+394:       allocate(b3(jx,iy,klev*3))
+395:       allocate(d3(jx,iy,klev*2))
+396: 
+397: !     Set up pointers
+398: 
+399:       u3 => d3(:,:,1:klev)
+400:       v3 => d3(:,:,klev+1:2*klev)
+401:       t3 => b3(:,:,1:klev)
+402:       h3 => b3(:,:,klev+1:2*klev)
+403:       q3 => b3(:,:,2*klev+1:3*klev)
+404:       uvar => d2(:,:,1:klev)
+405:       vvar => d2(:,:,klev+1:2*klev)
+406:       tvar => b2(:,:,1:klev)
+407:       hvar => b2(:,:,klev+1:2*klev)
+408:       rhvar => b2(:,:,2*klev+1:3*klev)
+409: !
+410:       end subroutine headergfs
+411: 
+412:       end module mod_gfs11
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

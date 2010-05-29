@@ -1,0 +1,139 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_cvaria.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_cvaria.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_cvaria.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_cvaria><H3>mod_cvaria</H3></a></p>20:       module mod_cvaria
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: !
+26:       real(8) , allocatable , dimension(:,:,:) :: diffq , difft ,       &
+27:                                       & difuu , difuv ,                 &
+28:                                       & omega , qcc , qcten , qvc ,     &
+29:                                       & qvten , tc , td , tten , uc ,   &
+30:                                       & uten , vc , vten , xkc
+31:       real(8) , allocatable , dimension(:,:) :: pdota , psc , pten
+32:       real(8) , allocatable , dimension(:,:,:) :: phi
+33:       real(8) , allocatable , dimension(:,:) :: psd
+34:       real(8) , allocatable , dimension(:,:,:) :: qc , qv , t , u , v
+35:       real(8) , allocatable , dimension(:,:,:) :: qdot
+36:       real(8) , allocatable , dimension(:,:) :: qvcs
+37: !
+38:       real(8) , allocatable , dimension(:,:,:,:) :: chi
+39:       real(8) , allocatable , dimension(:,:,:,:) :: chic , chiten
+40: 
+41:       contains 
+42: 
+<p><a name=allocate_mod_cvaria><H3>allocate_mod_cvaria</H3></a></p> Click <a href="./callingtree/allocate_mod_cvaria_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_cvaria is used.
+<hr>
+43:         subroutine allocate_mod_cvaria
+44:         implicit none
+45: #ifdef MPP1
+46:         allocate(diffq(iy,kz,jxp))
+47:         allocate(difft(iy,kz,jxp))
+48:         allocate(difuu(iy,kz,jxp))
+49:         allocate(difuv(iy,kz,jxp))
+50:         allocate(omega(iy,kz,jxp))
+51:         allocate(qcc(iy,kz,jxp))
+52:         allocate(qcten(iy,kz,jxp))
+53:         allocate(qvc(iy,kz,jxp))
+54:         allocate(qvten(iy,kz,jxp))
+55:         allocate(tc(iy,kz,jxp))
+56:         allocate(td(iy,kz,jxp))
+57:         allocate(tten(iy,kz,jxp))
+58:         allocate(uc(iy,kz,jxp))
+59:         allocate(uten(iy,kz,jxp))
+60:         allocate(vc(iy,kz,jxp))
+61:         allocate(vten(iy,kz,jxp))
+62:         allocate(xkc(iy,kz,jxp))
+63:         allocate(pdota(iy,jxp))
+64:         allocate(psc(iy,jxp))
+65:         allocate(pten(iy,jxp))
+66:         allocate(phi(iy,kz,0:jxp))
+67:         allocate(psd(iy,0:jxp+1))
+68:         allocate(qc(iy,kz,0:jxp+1))
+69:         allocate(qv(iy,kz,0:jxp+1))
+70:         allocate(t(iy,kz,0:jxp+1))
+71:         allocate(u(iy,kz,0:jxp+1))
+72:         allocate(v(iy,kz,0:jxp+1))
+73:         allocate(qdot(iy,kzp1,0:jxp+1))
+74:         allocate(chi(iy,kz,0:jxp+1,ntr))
+75:         allocate(chic(iy,kz,jxp,ntr))
+76:         allocate(chiten(iy,kz,jxp,ntr))
+77: #else
+78:         allocate(diffq(iy,kz,jx))
+79:         allocate(difft(iy,kz,jx))
+80:         allocate(difuu(iy,kz,jx))
+81:         allocate(difuv(iy,kz,jx))
+82:         allocate(omega(iy,kz,jx))
+83:         allocate(qcc(iy,kz,jx))
+84:         allocate(qcten(iy,kz,jx))
+85:         allocate(qvc(iy,kz,jx))
+86:         allocate(qvten(iy,kz,jx))
+87:         allocate(tc(iy,kz,jx))
+88:         allocate(td(iy,kz,jx))
+89:         allocate(tten(iy,kz,jx))
+90:         allocate(uc(iy,kz,jx))
+91:         allocate(uten(iy,kz,jx))
+92:         allocate(vc(iy,kz,jx))
+93:         allocate(vten(iy,kz,jx))
+94:         allocate(xkc(iy,kz,jx))
+95:         allocate(pdota(iy,jx))
+96:         allocate(psc(iy,jx))
+97:         allocate(pten(iy,jx))
+98:         allocate(phi(iy,kz,jx))
+99:         allocate(psd(iy,jx))
+100:         allocate(qc(iy,kz,jx))
+101:         allocate(qv(iy,kz,jx))
+102:         allocate(t(iy,kz,jx))
+103:         allocate(u(iy,kz,jx))
+104:         allocate(v(iy,kz,jx))
+105:         allocate(chi(iy,kz,jx,ntr))
+106:         allocate(chic(iy,kz,jx,ntr))
+107:         allocate(chiten(iy,kz,jx,ntr))
+108:         allocate(qdot(iy,kzp1,jx))
+109: #endif
+110:         allocate(qvcs(iy,kz))
+111: !
+112:       end  subroutine allocate_mod_cvaria
+113: !
+114:       end module mod_cvaria
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

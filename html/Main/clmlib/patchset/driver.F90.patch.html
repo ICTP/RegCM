@@ -1,0 +1,226 @@
+<HTML>
+
+<HEAD>
+<TITLE>driver.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/driver.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>driver.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/driver.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/driver.F90	2010-03-10 16:29:27.219685091 +0100
+<LI>@@ -97,7 +97,8 @@
+<LI>   use pftdynMod           , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal 
+<LI>   use clm_varcon          , only : zlnd
+<LI>   use clm_time_manager        , only : get_step_size, get_curr_calday, &
+<LI>-                                   get_curr_date, get_ref_date, get_nstep, is_perpetual
+<LI>+                                   get_curr_date, get_ref_date, get_nstep, is_perpetual, &
+<LI>+                                   advance_timestep
+<LI>   use histFileMod         , only : update_hbuf, htapes_wrapup
+<LI>   use restFileMod         , only : restFile_write, restFile_write_binary, restFile_filename
+<LI>   use inicFileMod         , only : inicfile_perp  
+<LI>@@ -142,7 +143,6 @@
+<LI> #endif
+<LI>   use abortutils          , only : endrun
+<LI>   use perf_mod
+<LI>-
+<LI> !
+<LI> ! !PUBLIC TYPES:
+<LI>   implicit none
+<LI>@@ -307,6 +307,7 @@
+<LI> 
+<LI>      call get_clump_bounds(nc, begg, endg, begl, endl, begc, endc, begp, endp)
+<LI> 
+<LI>+
+<LI>      ! ============================================================================
+<LI>      ! Initialize variables from previous time step and
+<LI>      ! Determine canopy interception and precipitation onto ground surface.
+<LI>@@ -330,6 +331,7 @@
+<LI>                      filter(nc)%num_nolakep, filter(nc)%nolakep)
+<LI>      call t_stopf('hydro1')
+<LI> 
+<LI>+
+<LI>      ! ============================================================================
+<LI>      ! Surface Radiation
+<LI>      ! ============================================================================
+<LI>@@ -338,6 +340,7 @@
+<LI>      call SurfaceRadiation(begp, endp)
+<LI>      call t_stopf('surfrad')
+<LI> 
+<LI>+
+<LI>      ! ============================================================================
+<LI>      ! Determine leaf temperature and surface fluxes based on ground
+<LI>      ! temperature from previous time step.
+<LI>@@ -349,6 +352,8 @@
+<LI>                          filter(nc)%num_nolakep, filter(nc)%nolakep)
+<LI>      call t_stopf('bgp1')
+<LI> 
+<LI>+
+<LI>+
+<LI>      ! ============================================================================
+<LI>      ! Determine bare soil or snow-covered vegetation surface temperature and fluxes
+<LI>      ! Calculate Ground fluxes (frac_veg_nosno is either 1 or 0)
+<LI>@@ -359,6 +364,8 @@
+<LI>                            filter(nc)%num_nolakep, filter(nc)%nolakep)
+<LI>      call t_stopf('bgflux')
+<LI> 
+<LI>+
+<LI>+
+<LI>      ! ============================================================================
+<LI>      ! Determine non snow-covered vegetation surface temperature and fluxes
+<LI>      ! Calculate canopy temperature, latent and sensible fluxes from the canopy,
+<LI>@@ -370,6 +377,7 @@
+<LI>                        filter(nc)%num_nolakep, filter(nc)%nolakep)
+<LI>      call t_stopf('canflux')
+<LI> 
+<LI>+
+<LI>      ! ============================================================================
+<LI>      ! Determine lake temperature and surface fluxes
+<LI>      ! ============================================================================
+<LI>@@ -380,6 +388,7 @@
+<LI>                             filter(nc)%num_lakep, filter(nc)%lakep)
+<LI>      call t_stopf('bgplake')
+<LI> 
+<LI>+
+<LI>      ! ============================================================================
+<LI>      ! Determine VOC, DUST and DGVM Respiration if appropriate
+<LI>      ! ============================================================================
+<LI>@@ -401,13 +410,13 @@
+<LI>                       filter(nc)%num_nolakep, filter(nc)%nolakep)
+<LI> #endif
+<LI> 
+<LI>+
+<LI>      call t_stopf('bgc')
+<LI> 
+<LI>      ! ============================================================================
+<LI>      ! Determine soil/snow temperatures including ground temperature and
+<LI>      ! update surface fluxes for new ground temperature.
+<LI>      ! ============================================================================
+<LI>-
+<LI>      call t_startf('bgp2')
+<LI>      call Biogeophysics2(begc, endc, begp, endp, &
+<LI>                          filter(nc)%num_nolakec, filter(nc)%nolakec, &
+<LI>@@ -525,9 +534,9 @@
+<LI>      ! ============================================================================
+<LI>      ! Determine albedos for next time step
+<LI>      ! ============================================================================
+<LI>-
+<LI>      if (doalb) then
+<LI>         call t_startf('surfalb')
+<LI>+
+<LI>         call SurfaceAlbedo(begg, endg, begc, endc, begp, endp, &
+<LI>                            caldayp1, declinp1)
+<LI>         call t_stopf('surfalb')
+<LI>@@ -547,6 +556,8 @@
+<LI> !
+<LI> ! !INTERFACE:
+<LI> subroutine driver2(caldayp1, declinp1, rstwr)
+<LI>+  use mod_clm
+<LI>+  use mod_dynparam
+<LI> !
+<LI> ! !ARGUMENTS:
+<LI>   implicit none
+<LI>@@ -647,6 +658,8 @@
+<LI> #if (defined DGVM)
+<LI>   call t_startf('d2dgvm')
+<LI>   dtime = get_step_size()
+<LI>+!  dtime = r2cdtime
+<LI>+
+<LI>   call get_curr_date(yrp1, monp1, dayp1, secp1, offset=int(dtime))
+<LI>   if (monp1==1 .and. dayp1==1 .and. secp1==dtime .and. nstep>0)  then
+<LI> 
+<LI>@@ -685,7 +698,9 @@
+<LI>   ! ============================================================================
+<LI>   ! Create history and write history tapes if appropriate
+<LI>   ! ============================================================================
+<LI>+
+<LI>   call t_startf('clm_driver_io')
+<LI>+!abt  if(nstep > 0) call htapes_wrapup()
+<LI>   call htapes_wrapup()
+<LI> 
+<LI>   ! ============================================================================
+<LI>@@ -709,18 +724,23 @@
+<LI>      write_restart = do_restwrite()
+<LI>   end if
+<LI>      
+<LI>-  if (write_restart) then
+<LI>-     filer = restFile_filename(type='netcdf')
+<LI>-     call restFile_write( filer )
+<LI>-     filer = restFile_filename(type='binary')
+<LI>-     call restFile_write_binary( filer )
+<LI>-  else if (do_inicwrite()) then
+<LI>-     dtime = get_step_size()
+<LI>-     filer = restFile_filename(type='netcdf', offset=int(dtime))
+<LI>-     call restFile_write( filer )
+<LI>-  end if
+<LI>+!abt commented below
+<LI>+!  if (write_restart) then
+<LI>+!     filer = restFile_filename(type='netcdf')
+<LI>+!     call restFile_write( filer )
+<LI>+!     filer = restFile_filename(type='binary')
+<LI>+!     call restFile_write_binary( filer )
+<LI>+!  else if (do_inicwrite()) then
+<LI>+!     dtime = get_step_size()
+<LI>+!     filer = restFile_filename(type='netcdf', offset=int(dtime))
+<LI>+!     call restFile_write( filer )
+<LI>+!  end if
+<LI>   call t_stopf('clm_driver_io')
+<LI> 
+<LI>+!abt rcm below
+<LI>+  call advance_timestep()
+<LI>+!rcm above
+<LI>+
+<LI> 
+<LI> end subroutine driver2
+<LI> 
+<LI>@@ -800,7 +820,7 @@
+<LI>      end if
+<LI>      if (masterproc) then
+<LI>         tsxyav = tsum / numg
+<LI>-        write (6,1000) nstep, tsxyav
+<LI>+! abt       write (6,1000) nstep, tsxyav
+<LI> #ifndef UNICOSMP
+<LI>         call shr_sys_flush(6)
+<LI> #endif
+<LI>@@ -809,7 +829,7 @@
+<LI>   else
+<LI> 
+<LI>      if (masterproc) then
+<LI>-        write(6,*)'clm2: completed timestep ',nstep
+<LI>+!abt        write(6,*)'clm2: completed timestep ',nstep
+<LI> #ifndef UNICOSMP
+<LI>         call shr_sys_flush(6)
+<LI> #endif
+<LI>@@ -887,6 +907,8 @@
+<LI> ! !USES:
+<LI>     use clm_time_manager, only : get_curr_date, get_prev_date, get_step_size
+<LI>     use clm_varctl  , only : hist_crtinic
+<LI>+    use mod_clm
+<LI>+    use mod_dynparam
+<LI> !
+<LI> ! !ARGUMENTS:
+<LI>     implicit none
+<LI>@@ -918,6 +940,7 @@
+<LI>     ! Set calendar for current, previous, and next time steps
+<LI> 
+<LI>     dtime = get_step_size()
+<LI>+
+<LI>     call get_curr_date (yr  , mon  , day  , mcsec  )
+<LI>     call get_prev_date (yrm1, monm1, daym1, mcsecm1)
+<LI>     call get_curr_date (yrp1, monp1, dayp1, mcsecp1, offset=dtime)
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

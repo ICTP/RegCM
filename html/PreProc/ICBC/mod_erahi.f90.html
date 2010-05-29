@@ -1,0 +1,607 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_erahi.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_erahi.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_erahi.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_erahi><H3>mod_erahi</H3></a></p>20:       module mod_erahi
+21:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+22: 
+23:       implicit none
+24: 
+25:       private
+26: 
+27:       integer , parameter :: nlevs = 60 , nlats = 160 , nlons = 320 ,   &
+28:                            & nlev2 = 18
+29: 
+30:       real(4) , dimension(nlevs+1) :: ak , bk
+31:       real(4) , dimension(nlev2) :: pplev , sigma1 , sigmar
+32:       real(4) , dimension(nlats) :: slat
+33:       real(4) , dimension(nlons) :: slon
+34: 
+35:       real(4) , dimension(nlons,nlats) :: lsm , ps2 , zs2
+36:       real(4) , dimension(nlons,nlats,nlevs) :: q2 , t2 , u2 , v2
+37:       real(4) , dimension(nlons,nlats,nlevs) :: pp3d , z1
+38: 
+39:       real(4) , target , dimension(nlons,nlats,nlev2*3) :: b2
+40:       real(4) , target , dimension(nlons,nlats,nlev2*2) :: d2
+41:       real(4) , allocatable , target , dimension(:,:,:) :: b3
+42:       real(4) , allocatable , target , dimension(:,:,:) :: d3
+43:       real(4) , allocatable , target , dimension(:,:,:) :: w3
+44:       real(4) , allocatable , dimension(:,:) :: b3pd
+45: 
+46:       real(4) , pointer , dimension(:,:,:) :: tp , qp , hp
+47:       real(4) , pointer , dimension(:,:,:) :: up , vp
+48:       real(4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+49:       real(4) , pointer , dimension(:,:,:) :: u3 , v3
+50: 
+51:       public :: geterahi , headerehi
+52: 
+53:       contains
+54: 
+<p><a name=geterahi><H3>geterahi</H3></a></p> Click <a href="./callingtree/geterahi_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where geterahi is used.
+<hr>
+55:       subroutine geterahi(idate)
+56:       use <a href="./mod_date.f90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : julian
+57:       use <a href="./mod_grid.f90.html#mod_grid" TARGET=CENT_PANEL>mod_grid</a>
+58:       use <a href="./mod_write.f90.html#mod_write" TARGET=CENT_PANEL>mod_write</a>
+59:       use <a href="./mod_interp.f90.html#mod_interp" TARGET=CENT_PANEL>mod_interp</a> , only : bilinx2
+60:       use <a href="./mod_vertint.f90.html#mod_vertint" TARGET=CENT_PANEL>mod_vertint</a>
+61:       use <a href="./mod_hgt.f90.html#mod_hgt" TARGET=CENT_PANEL>mod_hgt</a>
+62:       use <a href="./mod_humid.f90.html#mod_humid" TARGET=CENT_PANEL>mod_humid</a>
+63:       use <a href="./mod_mksst.f90.html#mod_mksst" TARGET=CENT_PANEL>mod_mksst</a>
+64:       use <a href="./mod_uvrot.f90.html#mod_uvrot" TARGET=CENT_PANEL>mod_uvrot</a>
+65:       use <a href="./mod_vectutil.f90.html#mod_vectutil" TARGET=CENT_PANEL>mod_vectutil</a>
+66:       implicit none
+67: !
+68: ! Dummy arguments
+69: !
+70:       integer :: idate
+71: !
+72: ! Local variables
+73: !
+74:       character(14) :: finame
+75:       integer :: i , j , k , nmop , nrec , nyrp
+76:       real(4) :: slonmax , slonmin , wt , xlonmax , xlonmin
+77: !
+78:       if ( idate==globidate1 ) then
+79:                   !,lrec
+80:         xlonmin = 400.
+81:         xlonmax = -400.
+82:         do j = 1 , iy
+83:           do i = 1 , jx
+84:             if ( xlon(i,j)<xlonmin ) xlonmin = xlon(i,j)
+85:             if ( xlon(i,j)>xlonmax ) xlonmax = xlon(i,j)
+86:           end do
+87:         end do
+88:         write (*,*) 'XLONMIN,XLONMAX= ' , xlonmin , xlonmax
+89:         slonmin = 400.
+90:         slonmax = -400.
+91:         do i = 1 , nlons
+92:           if ( slon(i)<slonmin ) slonmin = slon(i)
+93:           if ( slon(i)>slonmax ) slonmax = slon(i)
+94:         end do
+95:         write (*,*) 'SLONMIN,SLONMAX= ' , slonmin , slonmax
+96:       end if
+97:       write (finame,99001) idate
+98:       open (61,file=finame,form='unformatted',recl=nlons*nlats*ibyte,   &
+99:            &access='direct')
+100:       nrec = 0
+101:       nrec = nrec + 1
+102:       read (61,rec=nrec) zs2
+103:       nrec = nrec + 1
+104:       read (61,rec=nrec) lsm
+105:       nrec = nrec + 1
+106:       read (61,rec=nrec) ps2
+107:       do j = 1 , nlats
+108:         do i = 1 , nlons
+109:           if ( lsm(i,j)<0.5 ) zs2(i,j) = 0.000
+110:         end do
+111:       end do
+112:       do k = 1 , nlevs
+113:         nrec = nrec + 1
+114:         read (61,rec=nrec) ((t2(i,j,k),i=1,nlons),j=1,nlats)
+115:       end do
+116:       do k = 1 , nlevs
+117:         nrec = nrec + 1
+118:         read (61,rec=nrec) ((q2(i,j,k),i=1,nlons),j=1,nlats)
+119:       end do
+120:       do k = 1 , nlevs
+121:         nrec = nrec + 1
+122:         read (61,rec=nrec) ((u2(i,j,k),i=1,nlons),j=1,nlats)
+123:       end do
+124:       do k = 1 , nlevs
+125:         nrec = nrec + 1
+126:         read (61,rec=nrec) ((v2(i,j,k),i=1,nlons),j=1,nlats)
+127:       end do
+128:  
+129:       write (*,*) 'READ IN fields at DATE:' , idate
+130:       do k = 1 , nlevs
+131:         do j = 1 , nlats
+132:           do i = 1 , nlons
+133:             if ( ps2(i,j)>-9995. ) then
+134:               pp3d(i,j,k) = ps2(i,j)*0.5*(bk(k)+bk(k+1))                &
+135:                           & + 0.5*(ak(k)+ak(k+1))
+136:             else
+137:               pp3d(i,j,k) = -9999.0
+138:             end if
+139:           end do
+140:         end do
+141:       end do
+142: !
+143: !     to calculate Heights on sigma surfaces.
+144:       call <a href="./mod_hgt.f90.html#htsig" TARGET=CENT_PANEL>htsig</a>(t2,z1,pp3d,ps2,zs2,nlons,nlats,nlevs)
+145: !
+146: !     to interpolate H,U,V,T,Q and QC
+147: !     1. For Heights
+148:       call <a href="./mod_hgt.f90.html#height" TARGET=CENT_PANEL>height</a>(hp,z1,t2,ps2,pp3d,zs2,nlons,nlats,nlevs,pplev,nlev2)
+149: !     2. For Zonal and Meridional Winds
+150:       call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(up,u2,ps2,pp3d,nlons,nlats,nlevs,pplev,nlev2)
+151:       call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(vp,v2,ps2,pp3d,nlons,nlats,nlevs,pplev,nlev2)
+152: !     3. For Temperatures
+153:       call <a href="./mod_vertint.f90.html#intlog" TARGET=CENT_PANEL>intlog</a>(tp,t2,ps2,pp3d,nlons,nlats,nlevs,pplev,nlev2)
+154: !     4. For Moisture qva & qca
+155:       call <a href="./mod_humid.f90.html#humid1fv" TARGET=CENT_PANEL>humid1fv</a>(t2,q2,pp3d,nlons,nlats,nlevs)
+156:       call <a href="./mod_vertint.f90.html#intlin" TARGET=CENT_PANEL>intlin</a>(qp,q2,ps2,pp3d,nlons,nlats,nlevs,pplev,nlev2)
+157: !
+158: !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+159: !
+160:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(b3,b2,xlon,xlat,slon,slat,nlons,nlats,jx,iy,nlev2*3)
+161:       call <a href="./mod_interp.f90.html#bilinx2" TARGET=CENT_PANEL>bilinx2</a>(d3,d2,dlon,dlat,slon,slat,nlons,nlats,jx,iy,nlev2*2)
+162: !
+163: !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+164: !
+165:       call <a href="./mod_uvrot.f90.html#uvrot4" TARGET=CENT_PANEL>uvrot4</a>(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,nlev2,plon,    &
+166:                 & plat,iproj)
+167: !
+168: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+169: !     X X
+170: !     V E R T I C A L   I N T E R P O L A T I O N
+171: !
+172: !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+173: !     X X
+174: !HH:  CHANGE THE VERTICAL ORDER.
+175:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(t3,jx,iy,nlev2)
+176:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(q3,jx,iy,nlev2)
+177:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(h3,jx,iy,nlev2)
+178:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(u3,jx,iy,nlev2)
+179:       call <a href="./mod_vectutil.f90.html#top2btm" TARGET=CENT_PANEL>top2btm</a>(v3,jx,iy,nlev2)
+180: !HH:OVER
+181: !
+182: !     ******           NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
+183:       call <a href="./mod_vertint.f90.html#intgtb" TARGET=CENT_PANEL>intgtb</a>(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev2)
+184:  
+185:       call <a href="./mod_vertint.f90.html#intpsn" TARGET=CENT_PANEL>intpsn</a>(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+186:       call <a href="./mod_vectutil.f90.html#p1p2" TARGET=CENT_PANEL>p1p2</a>(b3pd,ps4,jx,iy)
+187: !
+188: !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
+189: !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
+190:       call <a href="./mod_vertint.f90.html#intv3" TARGET=CENT_PANEL>intv3</a>(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev2)
+191:  
+192:       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
+193: !       F1    CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
+194: !       PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
+195:         call <a href="./mod_date.f90.html#julian" TARGET=CENT_PANEL>julian</a>(idate,nyrp,nmop,wt)
+196: !
+197:         if ( ssttyp=='OI2ST' ) then
+198:           call <a href="./mod_mksst.f90.html#mkssta" TARGET=CENT_PANEL>mkssta</a>(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &
+199:                 &     nmop,wt)
+200:         else
+201:           call <a href="./mod_mksst.f90.html#mksst" TARGET=CENT_PANEL>mksst</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+202:         end if
+203:       else
+204:         if ( ssttyp=='OI2WK' ) then
+205:           call <a href="./mod_mksst.f90.html#mksst2a" TARGET=CENT_PANEL>mksst2a</a>(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,     &
+206:                 &      idate/100)
+207:         else
+208:           call <a href="./mod_mksst.f90.html#mksst2" TARGET=CENT_PANEL>mksst2</a>(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
+209:         end if
+210:       end if
+211:  
+212: !     F2     DETERMINE P* AND HEIGHT.
+213: !
+214: !     F3     INTERPOLATE U, V, T, AND Q.
+215:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+216:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+217: !
+218:       call <a href="./mod_vertint.f90.html#intv2" TARGET=CENT_PANEL>intv2</a>(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+219:  
+220:       call <a href="./mod_vertint.f90.html#intv1" TARGET=CENT_PANEL>intv1</a>(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+221:       call <a href="./mod_humid.f90.html#humid2fv" TARGET=CENT_PANEL>humid2fv</a>(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+222: !
+223: !     F4     DETERMINE H
+224:       call <a href="./mod_hgt.f90.html#hydrost" TARGET=CENT_PANEL>hydrost</a>(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
+225: !
+226: !     G      WRITE AN INITIAL FILE FOR THE RegCM
+227:       call <a href="./mod_write.f90.html#writef" TARGET=CENT_PANEL>writef</a>(ptop,idate)
+228: 
+229: 99001 format ('EHI_',i10)
+230: !
+231:       end subroutine geterahi
+232: 
+233: !
+<p><a name=headerehi><H3>headerehi</H3></a></p> Click <a href="./callingtree/headerehi_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where headerehi is used.
+<hr>
+234:       subroutine headerehi
+235:       implicit none
+236: !
+237: ! Local variables
+238: !
+239:       integer :: i , k , kr
+240: !
+241:       slat(1) = -89.142
+242:       slat(2) = -88.029
+243:       slat(3) = -86.911
+244:       slat(4) = -85.791
+245:       slat(5) = -84.670
+246:       slat(6) = -83.549
+247:       slat(7) = -82.428
+248:       slat(8) = -81.307
+249:       slat(9) = -80.185
+250:       slat(10) = -79.064
+251:       slat(11) = -77.943
+252:       slat(12) = -76.821
+253:       slat(13) = -75.700
+254:       slat(14) = -74.578
+255:       slat(15) = -73.457
+256:       slat(16) = -72.336
+257:       slat(17) = -71.214
+258:       slat(18) = -70.093
+259:       slat(19) = -68.971
+260:       slat(20) = -67.850
+261:       slat(21) = -66.728
+262:       slat(22) = -65.607
+263:       slat(23) = -64.485
+264:       slat(24) = -63.364
+265:       slat(25) = -62.242
+266:       slat(26) = -61.121
+267:       slat(27) = -60.000
+268:       slat(28) = -58.878
+269:       slat(29) = -57.757
+270:       slat(30) = -56.635
+271:       slat(31) = -55.514
+272:       slat(32) = -54.392
+273:       slat(33) = -53.271
+274:       slat(34) = -52.149
+275:       slat(35) = -51.028
+276:       slat(36) = -49.906
+277:       slat(37) = -48.785
+278:       slat(38) = -47.663
+279:       slat(39) = -46.542
+280:       slat(40) = -45.420
+281:       slat(41) = -44.299
+282:       slat(42) = -43.177
+283:       slat(43) = -42.056
+284:       slat(44) = -40.934
+285:       slat(45) = -39.813
+286:       slat(46) = -38.691
+287:       slat(47) = -37.570
+288:       slat(48) = -36.448
+289:       slat(49) = -35.327
+290:       slat(50) = -34.205
+291:       slat(51) = -33.084
+292:       slat(52) = -31.962
+293:       slat(53) = -30.841
+294:       slat(54) = -29.719
+295:       slat(55) = -28.598
+296:       slat(56) = -27.476
+297:       slat(57) = -26.355
+298:       slat(58) = -25.234
+299:       slat(59) = -24.112
+300:       slat(60) = -22.991
+301:       slat(61) = -21.869
+302:       slat(62) = -20.748
+303:       slat(63) = -19.626
+304:       slat(64) = -18.505
+305:       slat(65) = -17.383
+306:       slat(66) = -16.262
+307:       slat(67) = -15.140
+308:       slat(68) = -14.019
+309:       slat(69) = -12.897
+310:       slat(70) = -11.776
+311:       slat(71) = -10.654
+312:       slat(72) = -9.533
+313:       slat(73) = -8.411
+314:       slat(74) = -7.290
+315:       slat(75) = -6.168
+316:       slat(76) = -5.047
+317:       slat(77) = -3.925
+318:       slat(78) = -2.804
+319:       slat(79) = -1.682
+320:       slat(80) = -0.561
+321:       slat(81) = 0.561
+322:       slat(82) = 1.682
+323:       slat(83) = 2.804
+324:       slat(84) = 3.925
+325:       slat(85) = 5.047
+326:       slat(86) = 6.168
+327:       slat(87) = 7.290
+328:       slat(88) = 8.411
+329:       slat(89) = 9.533
+330:       slat(90) = 10.654
+331:       slat(91) = 11.776
+332:       slat(92) = 12.897
+333:       slat(93) = 14.019
+334:       slat(94) = 15.140
+335:       slat(95) = 16.262
+336:       slat(96) = 17.383
+337:       slat(97) = 18.505
+338:       slat(98) = 19.626
+339:       slat(99) = 20.748
+340:       slat(100) = 21.869
+341:       slat(101) = 22.991
+342:       slat(102) = 24.112
+343:       slat(103) = 25.234
+344:       slat(104) = 26.355
+345:       slat(105) = 27.476
+346:       slat(106) = 28.598
+347:       slat(107) = 29.719
+348:       slat(108) = 30.841
+349:       slat(109) = 31.962
+350:       slat(110) = 33.084
+351:       slat(111) = 34.205
+352:       slat(112) = 35.327
+353:       slat(113) = 36.448
+354:       slat(114) = 37.570
+355:       slat(115) = 38.691
+356:       slat(116) = 39.813
+357:       slat(117) = 40.934
+358:       slat(118) = 42.056
+359:       slat(119) = 43.177
+360:       slat(120) = 44.299
+361:       slat(121) = 45.420
+362:       slat(122) = 46.542
+363:       slat(123) = 47.663
+364:       slat(124) = 48.785
+365:       slat(125) = 49.906
+366:       slat(126) = 51.028
+367:       slat(127) = 52.149
+368:       slat(128) = 53.271
+369:       slat(129) = 54.392
+370:       slat(130) = 55.514
+371:       slat(131) = 56.635
+372:       slat(132) = 57.757
+373:       slat(133) = 58.878
+374:       slat(134) = 60.000
+375:       slat(135) = 61.121
+376:       slat(136) = 62.242
+377:       slat(137) = 63.364
+378:       slat(138) = 64.485
+379:       slat(139) = 65.607
+380:       slat(140) = 66.728
+381:       slat(141) = 67.850
+382:       slat(142) = 68.971
+383:       slat(143) = 70.093
+384:       slat(144) = 71.214
+385:       slat(145) = 72.336
+386:       slat(146) = 73.457
+387:       slat(147) = 74.578
+388:       slat(148) = 75.700
+389:       slat(149) = 76.821
+390:       slat(150) = 77.943
+391:       slat(151) = 79.064
+392:       slat(152) = 80.185
+393:       slat(153) = 81.307
+394:       slat(154) = 82.428
+395:       slat(155) = 83.549
+396:       slat(156) = 84.670
+397:       slat(157) = 85.791
+398:       slat(158) = 86.911
+399:       slat(159) = 88.029
+400:       slat(160) = 89.142
+401:  
+402:       do i = 1 , nlons
+403:         slon(i) = float(i-1)*1.125
+404:       end do
+405:  
+406:       pplev(1) = 30.
+407:       pplev(2) = 50.
+408:       pplev(3) = 70.
+409:       pplev(4) = 100.
+410:       pplev(5) = 150.
+411:       pplev(6) = 200.
+412:       pplev(7) = 250.
+413:       pplev(8) = 300.
+414:       pplev(9) = 350.
+415:       pplev(10) = 420.
+416:       pplev(11) = 500.
+417:       pplev(12) = 600.
+418:       pplev(13) = 700.
+419:       pplev(14) = 780.
+420:       pplev(15) = 850.
+421:       pplev(16) = 920.
+422:       pplev(17) = 960.
+423:       pplev(18) = 1000.
+424:  
+425:       do k = 1 , nlev2
+426:         sigmar(k) = pplev(k)*0.001
+427:       end do
+428: !HH:OVER
+429: !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
+430: !
+431:       do k = 1 , nlev2
+432:         kr = nlev2 - k + 1
+433:         sigma1(k) = sigmar(kr)
+434:       end do
+435:  
+436:       ak(1) = 0.00000000
+437:       ak(2) = 0.20000000
+438:       ak(3) = 0.38425343
+439:       ak(4) = 0.63647804
+440:       ak(5) = 0.95636963
+441:       ak(6) = 1.34483307
+442:       ak(7) = 1.80584351
+443:       ak(8) = 2.34779053
+444:       ak(9) = 2.98495789
+445:       ak(10) = 3.73971924
+446:       ak(11) = 4.64618134
+447:       ak(12) = 5.75651001
+448:       ak(13) = 7.13218079
+449:       ak(14) = 8.83660522
+450:       ak(15) = 10.94834717
+451:       ak(16) = 13.56474609
+452:       ak(17) = 16.80640259
+453:       ak(18) = 20.82273926
+454:       ak(19) = 25.79888672
+455:       ak(20) = 31.96421631
+456:       ak(21) = 39.60291504
+457:       ak(22) = 49.06708496
+458:       ak(23) = 60.18019531
+459:       ak(24) = 73.06631348
+460:       ak(25) = 87.65053711
+461:       ak(26) = 103.76126953
+462:       ak(27) = 120.77446289
+463:       ak(28) = 137.75325195
+464:       ak(29) = 153.79805664
+465:       ak(30) = 168.19474609
+466:       ak(31) = 180.45183594
+467:       ak(32) = 190.27695313
+468:       ak(33) = 197.55109375
+469:       ak(34) = 202.22205078
+470:       ak(35) = 204.29863281
+471:       ak(36) = 203.84480469
+472:       ak(37) = 200.97402344
+473:       ak(38) = 195.84330078
+474:       ak(39) = 188.64750000
+475:       ak(40) = 179.61357422
+476:       ak(41) = 168.99468750
+477:       ak(42) = 157.06447266
+478:       ak(43) = 144.11124023
+479:       ak(44) = 130.43218750
+480:       ak(45) = 116.32758789
+481:       ak(46) = 102.09500977
+482:       ak(47) = 88.02356445
+483:       ak(48) = 74.38803223
+484:       ak(49) = 61.44314941
+485:       ak(50) = 49.41778320
+486:       ak(51) = 38.50913330
+487:       ak(52) = 28.87696533
+488:       ak(53) = 20.63779785
+489:       ak(54) = 13.85912598
+490:       ak(55) = 8.55361755
+491:       ak(56) = 4.67333588
+492:       ak(57) = 2.10393890
+493:       ak(58) = 0.65889244
+494:       ak(59) = 0.07367743
+495:       ak(60) = 0.00000000
+496:       ak(61) = 0.00000000
+497:  
+498:       bk(1) = 0.00000000
+499:       bk(2) = 0.00000000
+500:       bk(3) = 0.00000000
+501:       bk(4) = 0.00000000
+502:       bk(5) = 0.00000000
+503:       bk(6) = 0.00000000
+504:       bk(7) = 0.00000000
+505:       bk(8) = 0.00000000
+506:       bk(9) = 0.00000000
+507:       bk(10) = 0.00000000
+508:       bk(11) = 0.00000000
+509:       bk(12) = 0.00000000
+510:       bk(13) = 0.00000000
+511:       bk(14) = 0.00000000
+512:       bk(15) = 0.00000000
+513:       bk(16) = 0.00000000
+514:       bk(17) = 0.00000000
+515:       bk(18) = 0.00000000
+516:       bk(19) = 0.00000000
+517:       bk(20) = 0.00000000
+518:       bk(21) = 0.00000000
+519:       bk(22) = 0.00000000
+520:       bk(23) = 0.00000000
+521:       bk(24) = 0.00000000
+522:       bk(25) = 0.00007582
+523:       bk(26) = 0.00046139
+524:       bk(27) = 0.00181516
+525:       bk(28) = 0.00508112
+526:       bk(29) = 0.01114291
+527:       bk(30) = 0.02067788
+528:       bk(31) = 0.03412116
+529:       bk(32) = 0.05169041
+530:       bk(33) = 0.07353383
+531:       bk(34) = 0.09967469
+532:       bk(35) = 0.13002251
+533:       bk(36) = 0.16438432
+534:       bk(37) = 0.20247594
+535:       bk(38) = 0.24393314
+536:       bk(39) = 0.28832296
+537:       bk(40) = 0.33515489
+538:       bk(41) = 0.38389215
+539:       bk(42) = 0.43396294
+540:       bk(43) = 0.48477158
+541:       bk(44) = 0.53570992
+542:       bk(45) = 0.58616841
+543:       bk(46) = 0.63554746
+544:       bk(47) = 0.68326861
+545:       bk(48) = 0.72878581
+546:       bk(49) = 0.77159661
+547:       bk(50) = 0.81125343
+548:       bk(51) = 0.84737492
+549:       bk(52) = 0.87965691
+550:       bk(53) = 0.90788388
+551:       bk(54) = 0.93194032
+552:       bk(55) = 0.95182151
+553:       bk(56) = 0.96764523
+554:       bk(57) = 0.97966272
+555:       bk(58) = 0.98827010
+556:       bk(59) = 0.99401945
+557:       bk(60) = 0.99763012
+558:       bk(61) = 1.00000000
+559:  
+560:       allocate(b3(jx,iy,nlev2*3))
+561:       allocate(d3(jx,iy,nlev2*2))
+562:       allocate(b3pd(jx,iy))
+563:       allocate(w3(jx,iy,nlev2))
+564: 
+565: !     Set up pointers
+566: 
+567:       tp => b2(:,:,1:nlev2)
+568:       qp => b2(:,:,nlev2+1:2*nlev2)
+569:       hp => b2(:,:,2*nlev2+1:3*nlev2)
+570:       up => d2(:,:,1:nlev2)
+571:       vp => d2(:,:,nlev2+1:2*nlev2)
+572:       t3 => b3(:,:,1:nlev2)
+573:       q3 => b3(:,:,nlev2+1:2*nlev2)
+574:       h3 => b3(:,:,2*nlev2+1:3*nlev2)
+575:       u3 => d3(:,:,1:nlev2)
+576:       v3 => d3(:,:,nlev2+1:2*nlev2)
+577: 
+578:       end subroutine headerehi
+579: 
+580:       end module mod_erahi
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

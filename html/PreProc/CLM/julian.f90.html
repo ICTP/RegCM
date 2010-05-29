@@ -1,0 +1,102 @@
+<HTML>
+
+<HEAD>
+<TITLE>julian.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>julian.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>julian.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=julian><H3>julian</H3></a></p> Click <a href="./callingtree/julian_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where julian is used.
+<hr>
+20:       subroutine julian(idate,julnc,iyr,imo,idy,ihr,xhr)
+21:  
+22:       implicit none
+23: !
+24: ! Dummy arguments
+25: !
+26:       integer :: idate , idy , ihr , imo , iyr , julnc
+27:       real(8) :: xhr
+28:       intent (out) xhr
+29:       intent (inout) idate , idy , ihr , imo , iyr , julnc
+30: !
+31: ! Local variables
+32: !
+33:       integer :: ileap , iyrm1 , j , julday
+34:       integer , dimension(12) :: jprev , lenmon
+35: !
+36:       data lenmon/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 , 30 ,&
+37:          & 31/
+38:  
+39:       iyr = idate/1000000
+40:       imo = idate/10000 - iyr*100
+41:       idy = idate/100 - iyr*10000 - imo*100
+42:       ihr = idate - idate/100*100
+43:       ileap = mod(iyr,4)
+44:       if ( ileap==0 ) then
+45:         lenmon(2) = 29
+46:       else
+47:         lenmon(2) = 28
+48:       end if
+49:  
+50:       if ( ihr>23 ) then
+51:         ihr = ihr - 24
+52:         idy = idy + 1
+53:       end if
+54:       if ( idy>lenmon(imo) ) then
+55:         idy = 1
+56:         imo = imo + 1
+57:       end if
+58:       if ( imo>12 ) then
+59:         imo = 1
+60:         iyr = iyr + 1
+61:       end if
+62:       idate = iyr*1000000 + imo*10000 + idy*100 + ihr
+63:  
+64:       iyrm1 = iyr - 1
+65:  
+66:  
+67:       jprev(1) = 0
+68:       do j = 2 , 12
+69:         jprev(j) = jprev(j-1) + lenmon(j-1)
+70:       end do
+71:  
+72:       julday = idy + jprev(imo) - 1
+73:  
+74:       julnc = ((iyr-1900)*365+julday+int((iyrm1-1900)/4))*24 + ihr
+75:       xhr = float(julnc)
+76:  
+77:       end subroutine julian
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

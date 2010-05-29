@@ -1,0 +1,48 @@
+<HTML>
+
+<HEAD>
+<TITLE>clm_varpar.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/clm_varpar.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>clm_varpar.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/clm_varpar.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/clm_varpar.F90	2010-03-10 16:19:07.000000000 +0100
+<LI>@@ -41,7 +41,8 @@
+<LI>   integer, parameter :: ndst        =   4   ! number of dust size classes (BGC only)
+<LI>   integer, parameter :: dst_src_nbr =   3   ! number of size distns in src soil (BGC only)
+<LI>   integer, parameter :: sz_nbr      = 200   ! number of sub-grid bins in large bin of dust size distribution (BGC only)
+<LI>-  integer, parameter :: nvoc        =   5   ! number of voc categories (BGC only)
+<LI>+!original abt  integer, parameter :: nvoc        =   5   ! number of voc categories (BGC only)
+<LI>+  integer, parameter :: nvoc        =  20   ! number of voc categories (BGC only)
+<LI> 
+<LI> ! Define parameters for RTM river routing model
+<LI> 
+<LI>@@ -102,8 +103,8 @@
+<LI> !
+<LI> !------------------------------------------------------------------------------
+<LI> 
+<LI>-  lsmlon         = LSMLON
+<LI>-  lsmlat         = LSMLAT
+<LI>+! abt  lsmlon         = LSMLON
+<LI>+!  lsmlat         = LSMLAT
+<LI>   maxpatch_pft   = MAXPATCH_PFT
+<LI>   npatch_urban   = maxpatch_pft + 1
+<LI>   npatch_lake    = npatch_urban + 1
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

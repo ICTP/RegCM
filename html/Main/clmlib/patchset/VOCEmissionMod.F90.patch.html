@@ -1,0 +1,1226 @@
+<HTML>
+
+<HEAD>
+<TITLE>VOCEmissionMod.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/VOCEmissionMod.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>VOCEmissionMod.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/VOCEmissionMod.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/VOCEmissionMod.F90	2010-03-10 16:32:39.978596192 +0100
+<LI>@@ -22,6 +22,9 @@
+<LI> !
+<LI> ! !PUBLIC MEMBER FUNCTIONS:
+<LI>   public :: VOCEmission
+<LI>+!abt add below
+<LI>+  private :: gamma_calc
+<LI>+!abt above
+<LI> !
+<LI> ! !REVISION HISTORY:
+<LI> ! Created by Mariana Vertenstein
+<LI>@@ -55,14 +58,20 @@
+<LI> ! IN FINAL IMPLEMENTATION, REMEMBER:
+<LI> ! 1. may wish to call this routine only as freq. as rad. calculations
+<LI> ! 2. may wish to place epsilon values directly in pft-physiology file
+<LI>-! Output: vocflx(nvoc) !VOC flux [ug C m-2 h-1]
+<LI>+! Output: vocflx(nvoc) !VOC flux [ug m-2 h-1]
+<LI> !
+<LI> ! !USES:
+<LI>     use shr_kind_mod , only : r8 => shr_kind_r8
+<LI>     use clmtype
+<LI>-    use clm_varpar   , only : nvoc
+<LI>+    use clm_varpar   , only : nvoc,nlevsoi
+<LI>     use clm_atmlnd   , only : clm_a2l
+<LI>     use shr_const_mod, only : SHR_CONST_RGAS
+<LI>+!abt added below
+<LI>+    use clm_varvoc   , only : n24,n240,c24,c240,r2cefmap
+<LI>+    use clm_time_manager, only : get_step_size, get_curr_calday, get_curr_date
+<LI>+    use clm_time_manager, only : get_nstep
+<LI>+    use clm_varctl      , only : nsrest
+<LI>+!abt added above
+<LI> !
+<LI> ! !ARGUMENTS:
+<LI>     implicit none
+<LI>@@ -89,15 +98,55 @@
+<LI>     real(r8), pointer :: forc_solai(:,:)  ! diffuse radiation     (visible only)
+<LI>     real(r8), pointer :: sla(:)           ! ecophys constant - specific leaf area [m2 leaf g-1 carbon]
+<LI> !
+<LI>+!!!abt rcm below
+<LI>+    real(r8), pointer :: epsilon_iso(:)   ! emission factor map for isoprene
+<LI>+    real(r8), pointer :: epsilon_apin(:)  ! emission factor map for a-pinene
+<LI>+    real(r8), pointer :: epsilon_bpin(:)  ! emission factor map for b-pinene
+<LI>+    real(r8), pointer :: epsilon_mbo(:)   ! emission factor map for methylbutenol
+<LI>+    real(r8), pointer :: epsilon_myrc(:)  ! emission factor map for myrcene
+<LI>+    real(r8), pointer :: epsilon_sabi(:)  ! emission factor map for sabinene
+<LI>+    real(r8), pointer :: epsilon_limo(:)  ! emission factor map for limonene
+<LI>+    real(r8), pointer :: epsilon_acar(:)  ! emission factor map for a-3carene
+<LI>+    real(r8), pointer :: epsilon_ocim(:)  ! emission factor map for ocimene
+<LI>+    real(r8), pointer :: epsilon_omtp(:)  ! emission factor map for other monoterps
+<LI>+    real(r8), pointer :: epsilon_farn(:)  ! emission factor map for farnicene
+<LI>+    real(r8), pointer :: epsilon_bcar(:)  ! emission factor map for b-caryophyllene
+<LI>+    real(r8), pointer :: epsilon_osqt(:)  ! emission factor map for other sesquiterps
+<LI>+    real(r8), pointer :: epsilon_meoh(:)  ! emission factor map for methanol
+<LI>+    real(r8), pointer :: epsilon_acto(:)  ! emission factor map for acetone
+<LI>+    real(r8), pointer :: epsilon_meth(:)  ! emission factor map for methane
+<LI>+    real(r8), pointer :: epsilon_no(:)    ! emission factor map for no,n2o,nh3
+<LI>+    real(r8), pointer :: epsilon_acta(:)  ! emission factor map for acetaldehyde etc
+<LI>+    real(r8), pointer :: epsilon_form(:)  ! emission factor map for formaldehyde formic acid
+<LI>+    real(r8), pointer :: epsilon_co(:)    ! emission factor map for carbonmoxide
+<LI>+!!!abt rcm above
+<LI>+!
+<LI> ! local pointers to original implicit out arrays
+<LI> !
+<LI>-    real(r8), pointer :: vocflx(:,:)      ! VOC flux [ug C m-2 h-1]
+<LI>-    real(r8), pointer :: vocflx_tot(:)    ! VOC flux [ug C m-2 h-1]
+<LI>-    real(r8), pointer :: vocflx_1(:)      ! VOC flux(1) [ug C m-2 h-1]
+<LI>-    real(r8), pointer :: vocflx_2(:)      ! VOC flux(2) [ug C m-2 h-1]
+<LI>-    real(r8), pointer :: vocflx_3(:)      ! VOC flux(3) [ug C m-2 h-1]
+<LI>-    real(r8), pointer :: vocflx_4(:)      ! VOC flux(4) [ug C m-2 h-1]
+<LI>-    real(r8), pointer :: vocflx_5(:)      ! VOC flux(5) [ug C m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx(:,:)      ! VOC flux [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_tot(:)    ! VOC flux [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_1(:)      ! VOC flux(1) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_2(:)      ! VOC flux(2) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_3(:)      ! VOC flux(3) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_4(:)      ! VOC flux(4) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_5(:)      ! VOC flux(5) [ug m-2 h-1]
+<LI>+!abt added below
+<LI>+    real(r8), pointer :: vocflx_6(:)      ! VOC flux(6) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_7(:)      ! VOC flux(7) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_8(:)      ! VOC flux(8) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_9(:)      ! VOC flux(9) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_10(:)     ! VOC flux(10) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_11(:)     ! VOC flux(11) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_12(:)     ! VOC flux(12) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_13(:)     ! VOC flux(13) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_14(:)     ! VOC flux(14) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_15(:)     ! VOC flux(15) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_16(:)     ! VOC flux(16) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_17(:)     ! VOC flux(17) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_18(:)     ! VOC flux(18) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_19(:)     ! VOC flux(19) [ug m-2 h-1]
+<LI>+    real(r8), pointer :: vocflx_20(:)     ! VOC flux(20) [ug m-2 h-1]
+<LI>+!abt added above
+<LI> !
+<LI> !EOP
+<LI> !
+<LI>@@ -111,7 +160,11 @@
+<LI>     real(r8) :: ct               ! temporary
+<LI>     real(r8) :: par              ! temporary
+<LI>     real(r8) :: reciprod         ! temporary
+<LI>-
+<LI>+!abt below added
+<LI>+    real(r8) :: gamma_ce(lbp:ubp,nvoc)         ! activation factor for LAI,temp,humidity,& light in canopy (abt)
+<LI>+    real(r8) :: gamma_age(lbp:ubp,nvoc)        ! activation factor for leaf age (abt)
+<LI>+    real(r8) :: gamma_sm(lbp:ubp)              ! activation factor for soil moisture (abt)
+<LI>+!abt above added
+<LI> ! Constants
+<LI> 
+<LI>     real(r8), parameter :: R   = SHR_CONST_RGAS*0.001_r8 ! univ. gas constant [J K-1 mol-1]
+<LI>@@ -137,6 +190,27 @@
+<LI>     forc_solad => clm_a2l%forc_solad
+<LI>     forc_solai => clm_a2l%forc_solai
+<LI> 
+<LI>+    epsilon_iso  => clm3%g%gem%epsilon_iso     !abt
+<LI>+    epsilon_bpin => clm3%g%gem%epsilon_bpin    !abt
+<LI>+    epsilon_apin => clm3%g%gem%epsilon_apin    !abt
+<LI>+    epsilon_mbo  => clm3%g%gem%epsilon_mbo     !abt
+<LI>+    epsilon_sabi => clm3%g%gem%epsilon_sabi    !abt
+<LI>+    epsilon_limo => clm3%g%gem%epsilon_limo    !abt
+<LI>+    epsilon_myrc => clm3%g%gem%epsilon_myrc    !abt
+<LI>+    epsilon_acar => clm3%g%gem%epsilon_acar    !abt
+<LI>+    epsilon_ocim => clm3%g%gem%epsilon_ocim    !abt
+<LI>+    epsilon_omtp => clm3%g%gem%epsilon_omtp    !abt
+<LI>+    epsilon_farn => clm3%g%gem%epsilon_farn    !abt
+<LI>+    epsilon_bcar => clm3%g%gem%epsilon_bcar    !abt
+<LI>+    epsilon_osqt => clm3%g%gem%epsilon_osqt    !abt
+<LI>+    epsilon_meoh => clm3%g%gem%epsilon_meoh    !abt
+<LI>+    epsilon_acto => clm3%g%gem%epsilon_acto    !abt
+<LI>+    epsilon_meth => clm3%g%gem%epsilon_meth    !abt
+<LI>+    epsilon_no   => clm3%g%gem%epsilon_no      !abt
+<LI>+    epsilon_acta => clm3%g%gem%epsilon_acta    !abt
+<LI>+    epsilon_form => clm3%g%gem%epsilon_form    !abt
+<LI>+    epsilon_co   => clm3%g%gem%epsilon_co      !abt
+<LI>+
+<LI>     ! Assign local pointers to derived subtypes components (pft-level)
+<LI> 
+<LI>     pgridcell  => clm3%g%l%c%p%gridcell
+<LI>@@ -151,6 +225,21 @@
+<LI>     vocflx_3   => clm3%g%l%c%p%pvf%vocflx_3
+<LI>     vocflx_4   => clm3%g%l%c%p%pvf%vocflx_4
+<LI>     vocflx_5   => clm3%g%l%c%p%pvf%vocflx_5
+<LI>+    vocflx_6   => clm3%g%l%c%p%pvf%vocflx_6     !abt
+<LI>+    vocflx_7   => clm3%g%l%c%p%pvf%vocflx_7     !abt
+<LI>+    vocflx_8   => clm3%g%l%c%p%pvf%vocflx_8     !abt
+<LI>+    vocflx_9   => clm3%g%l%c%p%pvf%vocflx_9     !abt
+<LI>+    vocflx_10  => clm3%g%l%c%p%pvf%vocflx_10    !abt
+<LI>+    vocflx_11  => clm3%g%l%c%p%pvf%vocflx_11    !abt
+<LI>+    vocflx_12  => clm3%g%l%c%p%pvf%vocflx_12    !abt
+<LI>+    vocflx_13  => clm3%g%l%c%p%pvf%vocflx_13    !abt
+<LI>+    vocflx_14  => clm3%g%l%c%p%pvf%vocflx_14    !abt
+<LI>+    vocflx_15  => clm3%g%l%c%p%pvf%vocflx_15    !abt
+<LI>+    vocflx_16  => clm3%g%l%c%p%pvf%vocflx_16    !abt
+<LI>+    vocflx_17  => clm3%g%l%c%p%pvf%vocflx_17    !abt
+<LI>+    vocflx_18  => clm3%g%l%c%p%pvf%vocflx_18    !abt
+<LI>+    vocflx_19  => clm3%g%l%c%p%pvf%vocflx_19    !abt
+<LI>+    vocflx_20  => clm3%g%l%c%p%pvf%vocflx_20    !abt
+<LI>     sla        => pftcon%sla
+<LI> 
+<LI> #if (!defined DGVM)
+<LI>@@ -173,6 +262,23 @@
+<LI>     hardwire_sla(16) = 0.0200_r8 !numpft = 16
+<LI> #endif
+<LI> 
+<LI>+!!!abt added below
+<LI>+!!!! To calculate indices used in accumulating PPFD and !!!!
+<LI>+!!!!      vegetation temperature during gamma calc      !!!!         
+<LI>+
+<LI>+  ! Get indices to be used for time accumulation variables
+<LI>+    c24  = c24 + 1
+<LI>+    if(c24 > n24) c24 = 1
+<LI>+    c240 = c240 + 1
+<LI>+    if(c240 > n240) c240 = 1
+<LI>+
+<LI>+  ! calculate the gamma factors for each compound
+<LI>+    call gamma_calc (lbp,ubp,num_nolakep,filter_nolakep,gamma_ce,gamma_age,gamma_sm)
+<LI>+
+<LI>+!!!abt added above
+<LI>+
+<LI>+
+<LI>+
+<LI>     ! Determine specific leaf array
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>@@ -185,196 +291,905 @@
+<LI> #else
+<LI>        slarea(p) = sla(ivt(p))
+<LI> #endif
+<LI>+       vocflx_tot(p) = 0._r8
+<LI>     end do
+<LI> 
+<LI>+
+<LI>     ! Begin loop through voc species
+<LI> 
+<LI>     do n = 1, nvoc
+<LI>-       select case (n)
+<LI> 
+<LI>-       case (1)
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>           do fp = 1,num_nolakep
+<LI>              p = filter_nolakep(fp)
+<LI>              g = pgridcell(p)
+<LI> 
+<LI>-             ! epsilon: use values from table 3 in Guenther (1997) which originate in
+<LI>-             ! -------  Guenther et al. (1995). In the comments below, I mention the pft
+<LI>-             !          category as described in table 3. Some values were taken directly
+<LI>-             !          from Guenther et al. (1995). Units: [ug g-1 h-1]
+<LI>-             !          Values were updated on 1/2002 (Guenther, personal communication)
+<LI>+
+<LI>+             if(n.eq.1) then
+<LI>+             ! isoprenes: (values received from C. Wiedinmyer)
+<LI> 
+<LI>              epsilon(p) = 0._r8
+<LI>+               if(r2cefmap(n) == 1) then
+<LI>+                  epsilon(p) = epsilon_iso(g)
+<LI>+               else
+<LI>+                  if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 2000._r8
+<LI>+                  else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 13000._r8
+<LI>+                  else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 11000._r8
+<LI>+                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 400._r8
+<LI>+                  end if
+<LI>+               endif
+<LI> 
+<LI>-             ! isoprenes:
+<LI>-             if (ivt(p) == 1) then       !needleleaf evergreen temperate
+<LI>-                epsilon(p) = 2._r8
+<LI>-             else if (ivt(p) == 2) then  !needleleaf evergreen boreal
+<LI>-                epsilon(p) = 4._r8
+<LI>-             else if (ivt(p) == 4) then  !broadleaf evergreen tropical
+<LI>-                epsilon(p) = 24._r8
+<LI>-             else if (ivt(p) >= 5 .and. ivt(p) <= 11) then !other woody veg
+<LI>-                epsilon(p) = 24._r8
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI>+
+<LI>+             ! Myrcene: (values received from C. Wiedinmyer)
+<LI>+             elseif(n.eq.2) then    
+<LI>+
+<LI>+               epsilon(p) = 0._r8
+<LI>+!             epsilon(p) = 1.0_r8                 !Guenther (personal communication)
+<LI>+
+<LI>+               if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_myrc(g)
+<LI>+               else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 75._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 20._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 22._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 0.3_r8
+<LI>              end if
+<LI>-          end do
+<LI>+               endif 
+<LI>+
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI>+
+<LI>+            ! Sabinene: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.3) then
+<LI>+
+<LI>+!             epsilon(p) = 1.0_r8                 !Guenther (personal communication)
+<LI>+              epsilon(p) = 0._r8                 !Guenther (personal communication)
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_sabi(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 70._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 45._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 50._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 0.7_r8
+<LI>+                 end if
+<LI>+              endif
+<LI>+
+<LI> 
+<LI>-       case (2)
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-          do fp = 1,num_nolakep
+<LI>-             p = filter_nolakep(fp)
+<LI>-             g = pgridcell(p)
+<LI> 
+<LI>+
+<LI>+            ! Limonene: (values received from C. Wiedinmyer)
+<LI>+             elseif(n.eq.4) then
+<LI>+
+<LI>+!             epsilon(p) = 1.0_r8                 !Guenther (personal communication)
+<LI>              epsilon(p) = 0._r8
+<LI>-             ! monoterpenes:
+<LI>-             if (ivt(p) >= 1 .and. ivt(p) <= 2) then        !needleleaf evergreen
+<LI>-                epsilon(p) = 2.0_r8
+<LI>-             else if (ivt(p) == 3) then                     !needleleaf deciduous
+<LI>-                epsilon(p) = 1.6_r8
+<LI>-             else if (ivt(p) == 4) then                     !broadleaf everg trop
+<LI>-                epsilon(p) = 0.4_r8
+<LI>-             else if (ivt(p) >= 5 .and. ivt(p) <= 11) then  !other woody veg
+<LI>-                epsilon(p) = 0.8_r8
+<LI>-             else if (ivt(p) >= 12 .and. ivt(p) <= 17) then !grass & crop
+<LI>+
+<LI>+               if(r2cefmap(n) == 1) then
+<LI>+                  epsilon(p) = epsilon_limo(g)
+<LI>+               else
+<LI>+                  if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                     epsilon(p) = 100._r8
+<LI>+                  else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                     epsilon(p) = 45._r8
+<LI>+                  else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                     epsilon(p) = 52._r8
+<LI>+                  else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                     epsilon(p) = 0.7_r8
+<LI>+                  end if
+<LI>+               endif 
+<LI>+
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI>+
+<LI>+             ! CO
+<LI>+             elseif(n.eq.5) then
+<LI>+
+<LI>+!             epsilon(p) = 0.3_r8                 !Guenther (personal communication)
+<LI>+               epsilon(p) = 0._r8  
+<LI>+
+<LI>+               if(r2cefmap(n) == 1) then
+<LI>+                  epsilon(p) = epsilon_co(g)    
+<LI>+               else
+<LI>+                  epsilon(p) = 1000._r8      !Wiedinmyer (personal communication)
+<LI>+               endif
+<LI>+
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI>+
+<LI>+
+<LI>+            ! methylbutenol: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.6) then
+<LI>+
+<LI>+              ! epsilon:  for methylbutenol
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_mbo(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 100._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>                 epsilon(p) = 0.1_r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 1._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 0.01_r8
+<LI>              end if
+<LI>-          end do
+<LI>+              endif 
+<LI> 
+<LI>-       case (3)
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-          do fp = 1,num_nolakep
+<LI>-             p = filter_nolakep(fp)
+<LI>-             g = pgridcell(p)
+<LI> 
+<LI>-             ! other VOCs (OVOCs)
+<LI>-             epsilon(p) = 1.0_r8                 !Guenther (personal communication)
+<LI>-          end do
+<LI>+             ! a-pinene: (values received from C. Wiedinmyer)
+<LI>+             elseif(n.eq.7) then
+<LI>+
+<LI>+               ! epsilon:  for a-pinene
+<LI>+               epsilon(p) = 0._r8
+<LI>+
+<LI>+               if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_apin(g)
+<LI>+               else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                  epsilon(p) = 450._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 180._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 200._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 2._r8
+<LI>+                 end if
+<LI>+               endif 
+<LI> 
+<LI>-       case (4)
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-          do fp = 1,num_nolakep
+<LI>-             p = filter_nolakep(fp)
+<LI>-             g = pgridcell(p)
+<LI> 
+<LI>-             ! other reactive VOCs (ORVOCs)
+<LI>-             epsilon(p) = 1.0_r8                 !Guenther (personal communication)
+<LI>-          end do
+<LI> 
+<LI>-       case (5)
+<LI>+            ! b-pinene: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.8) then
+<LI>+
+<LI>+              ! epsilon: for b-pinene
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_bpin(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 300._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 90._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 100._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 1.5_r8
+<LI>+                 end if
+<LI>+              endif 
+<LI>+
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-          do fp = 1,num_nolakep
+<LI>-             p = filter_nolakep(fp)
+<LI>-             g = pgridcell(p)
+<LI> 
+<LI>-             ! CO
+<LI>-             epsilon(p) = 0.3_r8                 !Guenther (personal communication)
+<LI>-          end do
+<LI>+            ! ocimene: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.9) then
+<LI> 
+<LI>-       case default
+<LI>+              ! epsilon: for ocimene
+<LI>+              epsilon(p) = 0._r8
+<LI> 
+<LI>-          write(6,*)'only nvocs up to index 5 are currently supported'
+<LI>-          call endrun()
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_ocim(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 90._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 60._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 85._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 1._r8
+<LI>+                 end if
+<LI>+              endif
+<LI>+
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI> 
+<LI>-       end select
+<LI>+            ! a-3carene: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.10) then
+<LI> 
+<LI>-       select case (n)
+<LI>+              ! epsilon: for a-3carene
+<LI>+              epsilon(p) = 0._r8
+<LI> 
+<LI>-       case (1)
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_acar(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 18._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 160._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 25._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 0.3_r8
+<LI>+                 end if
+<LI>+              endif
+<LI> 
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-          do fp = 1,num_nolakep
+<LI>-             p = filter_nolakep(fp)
+<LI>-             g = pgridcell(p)
+<LI> 
+<LI>-             ! gamma: Activity factor. Units [dimensionless]
+<LI> 
+<LI>-             ! isoprenes:
+<LI>-             ! scale total incident par by fraction of sunlit leaves (added on 1/2002)
+<LI>-             ! multiply w/m2 by 4.6 to get umol/m2/s for par (added 8/14/02)
+<LI>-             ! got this value from subr. Stomata
+<LI>+            ! other monoterpenes: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.11) then
+<LI> 
+<LI>-             reciprod = 1._r8 / (R * t_veg(p) * tstd)
+<LI>-             ct = exp(ct1 * (t_veg(p) - tstd) * reciprod) / &
+<LI>-                  (ct3 + exp(ct2 * (t_veg(p) - tm) * reciprod))
+<LI>+              ! epsilon: for other monoterpenes
+<LI>+              epsilon(p) = 0._r8
+<LI> 
+<LI>-             par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+<LI>-             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
+<LI>-             gamma(p) = cl * ct !gamma = 1 under std temp & light condns
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_omtp(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 90._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 180._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 110._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 4.8_r8
+<LI>+                 end if
+<LI>+              endif
+<LI> 
+<LI>-             par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+<LI>-             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
+<LI>-             gamma(p) = gamma(p) + cl * ct !gamma(sun) + gamma(sha)
+<LI>-          end do
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI> 
+<LI>-       case (2,3,4,5)
+<LI>+            ! farnicene: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.12) then
+<LI>+
+<LI>+              ! epsilon: for farnicene
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_farn(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 35._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 30._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 30._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 0.5_r8
+<LI>+                 end if
+<LI>+              endif
+<LI> 
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-          do fp = 1,num_nolakep
+<LI>-             p = filter_nolakep(fp)
+<LI>-             g = pgridcell(p)
+<LI> 
+<LI>-             ! monoterpenes, OVOCs, and ORVOCs (Guenther, 1999 and 1995):
+<LI>-             gamma(p) = exp(bet * (t_veg(p) - tstd))
+<LI>-          end do
+<LI>+            ! b-caryophyllene: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.13) then
+<LI> 
+<LI>-       end select
+<LI>+              ! epsilon: for b-caryophyllene
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_bcar(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 30._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 60._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 45._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 0.9_r8
+<LI>+                 end if
+<LI>+              endif
+<LI> 
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-       do fp = 1,num_nolakep
+<LI>-          p = filter_nolakep(fp)
+<LI>-          g = pgridcell(p)
+<LI> 
+<LI>-          ! density: Source density factor [g dry weight foliar mass m-2 ground]
+<LI> 
+<LI>-          if (ivt(p) > 0) then
+<LI>-             density = elai(p) / (slarea(p) * 0.5_r8)
+<LI>+            ! other sesquiterpenes: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.14) then
+<LI>+
+<LI>+              ! epsilon: for other sesquiterpenes
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_osqt(g)
+<LI>           else
+<LI>-             density = 0._r8
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 75._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 110._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 85._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 1.4_r8
+<LI>           end if
+<LI>+              endif
+<LI> 
+<LI>-          ! calculate the voc flux
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI> 
+<LI>-          vocflx(p,n) = epsilon(p) * gamma(p) * density
+<LI>-       end do   ! end pft loop
+<LI>+            ! methanol: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.15) then
+<LI> 
+<LI>-    end do   ! end voc species loop
+<LI>+              ! epsilon: for methanol
+<LI>+              epsilon(p) = 0._r8
+<LI> 
+<LI>-    ! Calculate total voc flux and individual components for history output
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_meoh(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 800._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 800._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 800._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 800._r8
+<LI>+                 end if
+<LI>+              endif
+<LI> 
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-    do fp = 1,num_nolakep
+<LI>-       p = filter_nolakep(fp)
+<LI>-       vocflx_tot(p) = 0._r8
+<LI>-    end do
+<LI>-    do n = 1, nvoc
+<LI>+
+<LI>+
+<LI>+            ! acetone: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.16) then
+<LI>+
+<LI>+              ! epsilon: for acetone
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_acto(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 240._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 240._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 240._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 80._r8
+<LI>+                 end if
+<LI>+              endif
+<LI>+
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-       do fp = 1,num_nolakep
+<LI>-          p = filter_nolakep(fp)
+<LI>-          vocflx_tot(p) = vocflx_tot(p) + vocflx(p,n)
+<LI>-       end do
+<LI>-    end do
+<LI>+
+<LI>+
+<LI>+            ! methane: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.17) then
+<LI>+
+<LI>+              ! epsilon: for methane
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_meth(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 30._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 30._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 30._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 30._r8
+<LI>+                 end if
+<LI>+              endif
+<LI>+
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>-    do fp = 1,num_nolakep
+<LI>-       p = filter_nolakep(fp)
+<LI>+
+<LI>+
+<LI>+            ! no2/n2o/nh3: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.18) then
+<LI>+
+<LI>+              ! epsilon: for no2/n2o/nh3
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_no(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 5._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 6._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 30._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 70._r8
+<LI>+                 end if
+<LI>+              endif
+<LI>+
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI>+
+<LI>+
+<LI>+            ! acetaldehyde/ethanol: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.19) then
+<LI>+
+<LI>+              ! epsilon: for acetaldehyde/ethanol
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_acta(g)
+<LI>+              else
+<LI>+                 if (ivt(p) >= 1 .and. ivt(p) <= 3) then         !needleleaf
+<LI>+                    epsilon(p) = 240._r8
+<LI>+                 else if (ivt(p) >= 4 .and. ivt(p) <= 8) then    !broadleaf
+<LI>+                    epsilon(p) = 240._r8
+<LI>+                 else if (ivt(p) >= 9 .and. ivt(p) <= 11) then   !shrub
+<LI>+                    epsilon(p) = 240._r8
+<LI>+                 else if (ivt(p) >= 12 .and. ivt(p) <= 16) then  !herbaceous
+<LI>+                    epsilon(p) = 80._r8
+<LI>+                 end if
+<LI>+              endif
+<LI>+
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI>+
+<LI>+
+<LI>+            ! formic acid/formaldehyde/acetic acid: (values received from C. Wiedinmyer)
+<LI>+            elseif(n.eq.20) then
+<LI>+
+<LI>+              ! epsilon: for formic acid/formaldehyde/acetic acid
+<LI>+              epsilon(p) = 0._r8
+<LI>+
+<LI>+              if(r2cefmap(n) == 1) then
+<LI>+                 epsilon(p) = epsilon_form(g)
+<LI>+              else
+<LI>+                 epsilon(p) = 70._r8
+<LI>+              endif
+<LI>+
+<LI>+            else
+<LI>+              write(*,*) "ERROR: voc number exceeds available" ; call endrun()
+<LI>+            endif  !end storing of epsilon values
+<LI>+
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI>+
+<LI>+             ! gamma: Activity factor. Units [dimensionless]
+<LI>+
+<LI>+             ! isoprenes:
+<LI>+             ! scale total incident par by fraction of sunlit leaves (added on 1/2002)
+<LI>+             ! multiply w/m2 by 4.6 to get umol/m2/s for par (added 8/14/02)
+<LI>+             ! got this value from subr. Stomata
+<LI>+
+<LI>+!abt original below
+<LI>+!             reciprod = 1._r8 / (R * t_veg(p) * tstd)
+<LI>+!             ct = exp(ct1 * (t_veg(p) - tstd) * reciprod) / &
+<LI>+!                 (ct3 + exp(ct2 * (t_veg(p) - tm) * reciprod))
+<LI>+
+<LI>+!             par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+<LI>+!             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
+<LI>+!             gamma(p) = cl * ct !gamma = 1 under std temp & light condns
+<LI>+
+<LI>+!             par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+<LI>+!             cl = alpha * cl1 * par * (1._r8 + alpha * alpha * par * par)**(-0.5_r8)
+<LI>+!             gamma(p) = gamma(p) + cl * ct !gamma(sun) + gamma(sha)
+<LI>+!abt original above
+<LI>+
+<LI>+!             call gamma_calc (n,p,g,gamma_ce,gamma_age,gamma_sm)
+<LI>+             gamma(p) = gamma_ce(p,n) * gamma_age(p,n) * gamma_sm(p)
+<LI>+
+<LI>+!dir$ concurrent
+<LI>+!cdir nodep
+<LI>+
+<LI>+
+<LI>+          if(r2cefmap(n) <= 2) then
+<LI>+             ! density here refers to the production/loss rate within canopy (dimensionless)  !abt
+<LI>+             ! currently all density values will be set to 1 except isoprene
+<LI>+             if(n.eq.1) then
+<LI>+               density = 0.96_r8   !***NOTE: density here refers to amount lost or gained within the canopy
+<LI>+             else                  !         not the source density factor described above
+<LI>+               density = 1._r8
+<LI>+             endif                 
+<LI>+
+<LI>+          else
+<LI>+             ! density: Source density factor [g dry weight foliar mass m-2 ground]
+<LI>+             if (ivt(p) > 0) then
+<LI>+               density = elai(p) / (slarea(p) * 0.5_r8)
+<LI>+             else
+<LI>+               density = 0._r8
+<LI>+             end if
+<LI>+          endif
+<LI>+
+<LI>+          ! calculate the voc flux
+<LI>+
+<LI>+          vocflx(p,n) = epsilon(p) * gamma(p) * density
+<LI>+
+<LI>+          vocflx_tot(p) = vocflx_tot(p) + vocflx(p,n)
+<LI>+
+<LI>+          if(n.eq.nvoc) then
+<LI>        vocflx_1(p) = vocflx(p,1)
+<LI>        vocflx_2(p) = vocflx(p,2)
+<LI>        vocflx_3(p) = vocflx(p,3)
+<LI>        vocflx_4(p) = vocflx(p,4)
+<LI>        vocflx_5(p) = vocflx(p,5)
+<LI>-    end do
+<LI>+             vocflx_6(p) = vocflx(p,6)    !abt added
+<LI>+             vocflx_7(p) = vocflx(p,7)    !abt added
+<LI>+             vocflx_8(p) = vocflx(p,8)    !abt added
+<LI>+             vocflx_9(p) = vocflx(p,9)    !abt added
+<LI>+             vocflx_10(p) = vocflx(p,10)  !abt added
+<LI>+             vocflx_11(p) = vocflx(p,11)  !abt added
+<LI>+             vocflx_12(p) = vocflx(p,12)  !abt added
+<LI>+             vocflx_13(p) = vocflx(p,13)  !abt added
+<LI>+             vocflx_14(p) = vocflx(p,14)  !abt added
+<LI>+             vocflx_15(p) = vocflx(p,15)  !abt added
+<LI>+             vocflx_16(p) = vocflx(p,16)  !abt added
+<LI>+             vocflx_17(p) = vocflx(p,17)  !abt added
+<LI>+             vocflx_18(p) = vocflx(p,18)  !abt added
+<LI>+             vocflx_19(p) = vocflx(p,19)  !abt added
+<LI>+             vocflx_20(p) = vocflx(p,20)  !abt added
+<LI>+          endif
+<LI>+
+<LI>+
+<LI>+       end do   ! end pft loop
+<LI>+
+<LI>+
+<LI>+    end do   ! end voc species loop
+<LI>+
+<LI>+    ! Calculate total voc flux and individual components for history output
+<LI>+
+<LI>+!!dir$ concurrent
+<LI>+!!cdir nodep
+<LI>+!    do fp = 1,num_nolakep
+<LI>+!       p = filter_nolakep(fp)
+<LI>+!       vocflx_tot(p) = 0._r8
+<LI>+!    end do
+<LI>+!    do n = 1, nvoc
+<LI>+!!dir$ concurrent
+<LI>+!!cdir nodep
+<LI>+!       do fp = 1,num_nolakep
+<LI>+!          p = filter_nolakep(fp)
+<LI>+!          vocflx_tot(p) = vocflx_tot(p) + vocflx(p,n)
+<LI>+!       end do
+<LI>+!    end do
+<LI>+!!dir$ concurrent
+<LI>+!!cdir nodep
+<LI>+!    do fp = 1,num_nolakep
+<LI>+!       p = filter_nolakep(fp)
+<LI>+!       vocflx_1(p) = vocflx(p,1)
+<LI>+!       vocflx_2(p) = vocflx(p,2)
+<LI>+!       vocflx_3(p) = vocflx(p,3)
+<LI>+!       vocflx_4(p) = vocflx(p,4)
+<LI>+!       vocflx_5(p) = vocflx(p,5)
+<LI>+!       vocflx_6(p) = vocflx(p,6)    !abt added
+<LI>+!       vocflx_7(p) = vocflx(p,7)    !abt added
+<LI>+!       vocflx_8(p) = vocflx(p,8)    !abt added
+<LI>+!       vocflx_9(p) = vocflx(p,9)    !abt added
+<LI>+!       vocflx_10(p) = vocflx(p,10)  !abt added
+<LI>+!       vocflx_11(p) = vocflx(p,11)  !abt added
+<LI>+!       vocflx_12(p) = vocflx(p,12)  !abt added
+<LI>+!       vocflx_13(p) = vocflx(p,13)  !abt added
+<LI>+!       vocflx_14(p) = vocflx(p,14)  !abt added
+<LI>+!       vocflx_15(p) = vocflx(p,15)  !abt added
+<LI>+!       vocflx_16(p) = vocflx(p,16)  !abt added
+<LI>+!       vocflx_17(p) = vocflx(p,17)  !abt added
+<LI>+!       vocflx_18(p) = vocflx(p,18)  !abt added
+<LI>+!       vocflx_19(p) = vocflx(p,19)  !abt added
+<LI>+!       vocflx_20(p) = vocflx(p,20)  !abt added
+<LI>+!    end do
+<LI> 
+<LI>   end subroutine VOCEmission
+<LI> 
+<LI>+  
+<LI>+!-----------------------------------------------------------------------
+<LI>+!BOP
+<LI>+!
+<LI>+! !IROUTINE: gamma_calc
+<LI>+!
+<LI>+! !INTERFACE:
+<LI>+  subroutine gamma_calc (lbp,ubp,num_nolakep,filter_nolakep,gamma_ce,gamma_age,gamma_sm)
+<LI>+!
+<LI>+! !DESCRIPTION:
+<LI>+! Calculates the gamma factors described in Guenther et al 2006
+<LI>+! Uses constant values for empirical values such as Epot,Topt, and alpha
+<LI>+! until there is enough past model information to calculate these 
+<LI>+! values directly.
+<LI>+! EXAMPLE: Topt = 312.5 K from Guenther 1999 until average leaf temperature
+<LI>+!          from the past 240hrs,T240, is calculated.  At which time this eq 
+<LI>+!          will be used:
+<LI>+!          Topt = 313 + (0.6 Å∑ (T240úÙ¯≤297))   (Guenther 2006)
+<LI>+!
+<LI>+! !USES:
+<LI>+    use shr_kind_mod , only : r8 => shr_kind_r8
+<LI>+    use clmtype
+<LI>+    use clm_varpar   , only : nvoc,nlevsoi
+<LI>+    use clm_atmlnd   , only : clm_a2l
+<LI>+    use shr_const_mod, only : SHR_CONST_RGAS
+<LI>+    use clm_time_manager, only : get_step_size, get_curr_calday, get_curr_date
+<LI>+    use clm_time_manager, only : get_nstep
+<LI>+!    use clm_varsur   , only : monlai
+<LI>+    use clm_varvoc   , only : n24,n240,c24,c240,n_start
+<LI>+    use clm_varvoc   , only : LDF,beta,Anew,Agro,Amat,Aold
+<LI>+    use clm_varctl   , only : nsrest
+<LI>+!
+<LI>+! !ARGUMENTS:
+<LI>+    implicit none
+<LI>+    integer , intent(in) :: num_nolakep                    ! indices
+<LI>+    integer , intent(in) :: lbp,ubp                        ! indices
+<LI>+    integer , intent(in) :: filter_nolakep(num_nolakep)    ! indices
+<LI>+    real(r8), intent(inout) :: gamma_ce(lbp:ubp,nvoc)      ! activation factor for LAI,temp,humidity,& light in canopy
+<LI>+    real(r8), intent(inout) :: gamma_age(lbp:ubp,nvoc)     ! activation factor for leaf age
+<LI>+    real(r8), intent(inout) :: gamma_sm(lbp:ubp)           ! activation factor for soil moisture
+<LI>+!
+<LI>+! !CALLED FROM: VOCEmission
+<LI>+!
+<LI>+! !REVISION HISTORY:
+<LI>+! Author: Ahmed Tawfik
+<LI>+!
+<LI>+! !LOCAL VARIABLES:
+<LI>+!
+<LI>+! local pointers to implicit in arguments
+<LI>+!
+<LI>+    real(r8), pointer :: h2osoi_vol(:,:)  ! volumetric soil water (0<=h2osoi_vol<=watsat [m3/m3]
+<LI>+    real(r8), pointer :: sucsat(:,:)      ! minimum soil suction (mm) (nlevsoi)
+<LI>+    real(r8), pointer :: bsw(:,:)         ! Clapp and Hornberger "b" (nlevsoi)
+<LI>+    real(r8), pointer :: rootfr(:,:)      ! fraction of roots in each soil layer  
+<LI>+    real(r8), pointer :: watsat(:,:)      ! volumetric soil water at saturation (porosity) (nlevsoi)
+<LI>+    integer , pointer :: pcolumn(:)       ! column index of corresponding pft
+<LI>+    integer , pointer :: pgridcell(:)     ! gridcell index of corresponding pft
+<LI>+    real(r8), pointer :: t_veg(:)         ! pft vegetation temperature (Kelvin)
+<LI>+    real(r8), pointer :: fsun(:)          ! sunlit fraction of canopy
+<LI>+    real(r8), pointer :: forc_solad(:,:)  ! direct beam radiation (visible only)
+<LI>+    real(r8), pointer :: forc_solai(:,:)  ! diffuse radiation     (visible only)
+<LI>+    real(r8), pointer :: t_sum24(:,:)     ! pft vegetation temperature (Kelvin)
+<LI>+    real(r8), pointer :: t_sum240(:,:)    ! pft vegetation temperature (Kelvin)
+<LI>+    real(r8), pointer :: p_sum24su(:,:)   ! pft PPFD (sunlit)
+<LI>+    real(r8), pointer :: p_sum240su(:,:)  ! pft PPFD (sunlit)
+<LI>+    real(r8), pointer :: p_sum24sh(:,:)   ! pft PPFD (shaded)
+<LI>+    real(r8), pointer :: p_sum240sh(:,:)  ! pft PPFD (shaded)
+<LI>+    real(r8), pointer :: monlai(:,:)  ! monthly lai
+<LI>+!
+<LI>+!EOP
+<LI>+!
+<LI>+! !OTHER LOCAL VARIABLES:
+<LI>+!
+<LI>+    integer  :: fp,c          ! indices
+<LI>+    integer  :: p,g,n         ! indices
+<LI>+    real(r8) :: cl            ! temporary
+<LI>+    real(r8) :: ct            ! temporary
+<LI>+    real(r8) :: par           ! temporary
+<LI>+    real(r8) :: x             ! temporary
+<LI>+    real(r8) :: upper,lower   !numerator and denomenator for ct calc
+<LI>+    real(r8) :: calday        !calendar day at Greenwich (1.00 -> 365.99)
+<LI>+    real(r8) :: calday1st     !calendar day for 1st timestep at Greenwich (1.00 -> 365.99)
+<LI>+    integer  :: kda           !day (1 -> 31)
+<LI>+    integer  :: kmo           !month (1 -> 12)
+<LI>+    integer  :: kyr           !year (0 -> ...)
+<LI>+    integer  :: pda           !day (1 -> 31) for previous timestep
+<LI>+    integer  :: pmo           !month (1 -> 12) for previous timestep
+<LI>+    integer  :: pyr           !year (0 -> ...) for previous timestep
+<LI>+    integer  :: ksec          !current seconds of current date (0 -> 86400)
+<LI>+    integer  :: mcdate        !current date in integer format [yyyymmdd]
+<LI>+    integer  :: mcsec         !current time of day [seconds]
+<LI>+    real(r8) :: alpha_sh      ! empirical coefficient (shade)
+<LI>+    real(r8) :: Cp_sh         ! empirical coefficient (shade)
+<LI>+    real(r8) :: alpha_su      ! empirical coefficient (in the sun)
+<LI>+    real(r8) :: Cp_su         ! empirical coefficient (in the sun)
+<LI>+    real(r8) :: Eopt          ! empirical coefficient
+<LI>+    real(r8) :: Topt          ! empirical coefficient
+<LI>+    real(r8) :: t_24,t_240    ! average temp over 24h and 240h
+<LI>+    real(r8) :: p_240sh,p_240su         ! average PPFD over 24h and 240h
+<LI>+    real(r8) :: p_24su,p_24sh           ! average PPFD over 24h and 240h 
+<LI>+    real(r8) :: p_24,p_240
+<LI>+    integer  :: counter,lev
+<LI>+    integer  :: nstep,dtime             ! step size and timestep number in CLM
+<LI>+!    real(r8) :: Aold,Agro,Amat,Anew   ! relative emission rate to each canopy fraction (old,grow,mature,new)
+<LI>+    real(r8) :: Fold,Fgro,Fmat,Fnew     ! canopy fraction (old,grow,mature,new)
+<LI>+    real(r8) :: gamma_pt,gamma_sun,gamma_shade
+<LI>+    real(r8) :: gamma_lai,gamma_t,gamma_p
+<LI>+    real(r8) :: wilt(nlevsoi),wilt1(nlevsoi),sm_sum(nlevsoi) ! wilting point,wilt point + del_vol and
+<LI>+                                                     ! sum of gamma_sm over all soil levels
+<LI>+
+<LI>+! Constants
+<LI>+    real(r8), parameter :: R    = SHR_CONST_RGAS*0.001_r8 ! univ. gas constant [J K-1 mol-1]
+<LI>+    real(r8), parameter :: ct1  = 95.0_r8     ! empirical coefficient [J mol-1]
+<LI>+    real(r8), parameter :: ct2  = 230.0_r8    ! empirical coefficient [J mol-1]
+<LI>+    real(r8), parameter :: ct3  = 0.961_r8    ! empirical coefficient
+<LI>+    real(r8), parameter :: tm   = 314.0_r8    ! empirical coefficient [K]
+<LI>+    real(r8), parameter :: tstd = 303.0_r8    ! std temperature [K]
+<LI>+    real(r8), parameter :: bet  = 0.09_r8     ! beta empirical coefficient [K-1]
+<LI>+    real(r8), parameter :: Cce  = 0.57_r8     ! sets emission activity to unity at std conditions
+<LI>+    real(r8), parameter :: Psun = 200.0_r8    ! std PPFD for sun portion [umol/m2/s]
+<LI>+    real(r8), parameter :: Psha = 50.0_r8     ! std PPFD for shaded portion [umol/m2/s]
+<LI>+    real(r8), parameter :: del_vol = 0.06     ! empirical paramter
+<LI>+
+<LI>+!-----------------------------------------------------------------------
+<LI>+
+<LI>+
+<LI>+  ! Get time variables
+<LI>+    dtime    = get_step_size()
+<LI>+    nstep    = get_nstep()
+<LI>+    calday1st = get_curr_calday(offset=-int(dtime*nstep))
+<LI>+    calday   = get_curr_calday()
+<LI>+    call get_curr_date(kyr, kmo, kda, mcsec)
+<LI>+    call get_curr_date(pyr, pmo, pda, mcsec,offset=-int(dtime))
+<LI>+
+<LI>+  ! Assign local pointers to derived type members (gridcell-level)
+<LI>+    forc_solad => clm_a2l%forc_solad
+<LI>+    forc_solai => clm_a2l%forc_solai
+<LI>+
+<LI>+  ! Assign local pointers to derived subtypes components (column-level)
+<LI>+    bsw        => clm3%g%l%c%cps%bsw
+<LI>+    watsat     => clm3%g%l%c%cps%watsat
+<LI>+    sucsat     => clm3%g%l%c%cps%sucsat
+<LI>+    h2osoi_vol => clm3%g%l%c%cws%h2osoi_vol
+<LI>+  
+<LI>+  ! Assign local pointers to derived subtypes components (pft-level)
+<LI>+    pgridcell  => clm3%g%l%c%p%gridcell
+<LI>+    t_veg      => clm3%g%l%c%p%pes%t_veg
+<LI>+    fsun       => clm3%g%l%c%p%pps%fsun
+<LI>+    rootfr     => clm3%g%l%c%p%pps%rootfr
+<LI>+    pcolumn    => clm3%g%l%c%p%column
+<LI>+    t_sum24    => clm3%g%l%c%p%pva%t_sum24
+<LI>+    t_sum240   => clm3%g%l%c%p%pva%t_sum240
+<LI>+    p_sum24su  => clm3%g%l%c%p%pva%p_sum24su
+<LI>+    p_sum240su => clm3%g%l%c%p%pva%p_sum240su
+<LI>+    p_sum24sh  => clm3%g%l%c%p%pva%p_sum24sh
+<LI>+    p_sum240sh => clm3%g%l%c%p%pva%p_sum240sh
+<LI>+    monlai     => clm3%g%l%c%p%pva%monlai
+<LI>+
+<LI>+  ! Set some constants (note these are only constant when there isn't enough info)    
+<LI>+    alpha_su = 0.0027_r8 
+<LI>+    Cp_su    = 1.066_r8  
+<LI>+    alpha_sh = 0.0027_r8 
+<LI>+    Cp_sh    = 1.066_r8 
+<LI>+    Eopt     = 1.9_r8    
+<LI>+    Topt     = 312.5_r8   
+<LI>+
+<LI>+  ! Initialize
+<LI>+    gamma_ce(:,:)  = 0._r8
+<LI>+    gamma_age(:,:) = 0._r8
+<LI>+    gamma_sm(:)    = 0._r8
+<LI>+    t_24      = 0._r8
+<LI>+    t_240     = 0._r8
+<LI>+    p_24su    = 0._r8
+<LI>+    p_240su   = 0._r8
+<LI>+    p_24sh    = 0._r8
+<LI>+    p_240sh   = 0._r8
+<LI>+
+<LI>+  do fp = 1,num_nolakep           !pft loop
+<LI>+      p = filter_nolakep(fp)
+<LI>+      g = pgridcell(p)
+<LI>+      c = pcolumn(p)
+<LI>+
+<LI>+  ! calculate gamma_ce:  gamma_ce = gamma_pt * LAI * Cce (immediately below if statements
+<LI>+  ! are for calculating temp & light effects on emissions over last 1 and 10 days)
+<LI>+
+<LI>+    if(nstep .lt. n240+n_start) then
+<LI>+      t_sum240(c240,p)    = t_veg(p)
+<LI>+      t_sum24(c24,p)      = t_veg(p)
+<LI>+      p_sum24sh(c24,p)    = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+<LI>+      p_sum24su(c24,p)    = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+<LI>+      p_sum240sh(c240,p)  = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+<LI>+      p_sum240su(c240,p)  = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+<LI>+    elseif(nstep .ge. n240+n_start) then
+<LI>+      t_sum240(c240,p)    = t_veg(p)
+<LI>+      t_sum24(c24,p)      = t_veg(p)
+<LI>+      p_sum24sh(c24,p)    = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+<LI>+      p_sum24su(c24,p)    = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+<LI>+      p_sum240sh(c240,p)  = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+<LI>+      p_sum240su(c240,p)  = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+<LI>+
+<LI>+      t_240   = sum(t_sum240(:,p))/real(n240) 
+<LI>+      t_24    = sum(t_sum24(:,p))/real(n24)  
+<LI>+      p_240sh = sum(p_sum240sh(:,p))/real(n240) 
+<LI>+      p_240su = sum(p_sum240su(:,p))/real(n240) 
+<LI>+      p_24sh  = sum(p_sum24sh(:,p))/real(n24) 
+<LI>+      p_24su  = sum(p_sum24su(:,p))/real(n24) 
+<LI>+
+<LI>+      alpha_sh = 0.004_r8 - 0.0005_r8*log(p_240sh)
+<LI>+      alpha_su = 0.004_r8 - 0.0005_r8*log(p_240su)
+<LI>+      Cp_su    = 0.0468_r8*exp(0.0005_r8*(p_24su - Psun))*(p_240su)**(0.6_r8)
+<LI>+      Cp_sh    = 0.0468_r8*exp(0.0005_r8*(p_24sh - Psha))*(p_240sh)**(0.6_r8)
+<LI>+      Topt     = 313._r8 + (0.6_r8*(t_240 - 297._r8))
+<LI>+      Eopt     = 2.034_r8*exp(0.05_r8*(t_24 - 297._r8))*exp(0.05_r8*(t_240 - 297._r8))
+<LI>+    endif
+<LI>+
+<LI>+
+<LI>+  ! calculate gamma_sm: gamma_sm varies depending on the soil moisture and wilting point
+<LI>+  ! wilting point calculation from Chen and Dudhia 2001
+<LI>+    sm_sum(:) = 0._r8    
+<LI>+    counter   = 0
+<LI>+    do lev = 1,nlevsoi
+<LI>+      wilt(lev)  = 0.5_r8*watsat(c,lev)*(200._r8/sucsat(c,lev))**(-1._r8/bsw(c,lev)) 
+<LI>+      wilt1(lev) = del_vol + wilt(lev)
+<LI>+
+<LI>+      if(rootfr(p,lev) > 0._r8) then
+<LI>+         counter = counter + 1
+<LI>+         if(h2osoi_vol(c,lev) > wilt1(lev)) then
+<LI>+            sm_sum(lev) = 1.0
+<LI>+         elseif(h2osoi_vol(c,lev).lt.wilt1(lev) .and. h2osoi_vol(c,lev).gt.wilt(lev)) then
+<LI>+            sm_sum(lev) = (h2osoi_vol(c,lev) - wilt(lev))/del_vol
+<LI>+         elseif(h2osoi_vol(c,lev) < wilt(lev)) then
+<LI>+            sm_sum(lev) = 0.0
+<LI>+         endif
+<LI>+      else
+<LI>+         sm_sum(lev)   = 0.0
+<LI>+         gamma_sm(p) = 0.0
+<LI>+      endif
+<LI>+    enddo
+<LI>+    if(sum(rootfr(p,:)) > 0._r8) gamma_sm(p) = sum(sm_sum(:))/counter
+<LI>+
+<LI>+  ! calculate gamma_age: gamma_age = FnewAnew + FoldAold + FmatAmat + FgroAgro
+<LI>+  ! eqs below hold assuming that timestep in days is less than or equal to the number of days
+<LI>+  ! between budbreak and induction of emission (Guenther 2006)
+<LI>+    if(pmo == kmo) then
+<LI>+      Fnew = 0.0_r8
+<LI>+      Fgro = 0.1_r8
+<LI>+      Fmat = 0.8_r8
+<LI>+      Fold = 0.1_r8
+<LI>+    elseif(pmo /= kmo) then
+<LI>+      if(monlai(p,1) > monlai(p,2)) then
+<LI>+        Fnew = 0.0_r8
+<LI>+        Fgro = 0.0_r8
+<LI>+        Fold = (monlai(p,1)-monlai(p,2))/monlai(p,1)
+<LI>+        Fmat = 1._r8 - Fold
+<LI>+      elseif(monlai(p,1) < monlai(p,2)) then 
+<LI>+        Fnew = 1._r8 - (monlai(p,1)/monlai(p,2))
+<LI>+        Fmat = monlai(p,1)/monlai(p,2)
+<LI>+        Fgro = 1._r8 - Fnew - Fmat
+<LI>+        Fold = 0.0_r8
+<LI>+      endif
+<LI>+    endif
+<LI>+
+<LI>+
+<LI>+  do  n = 1,nvoc                  !begin voc loop
+<LI>+
+<LI>+  !Calculate light and temperature dependency factor
+<LI>+    if(n.eq.1) then  !isoprene  (Guenther 2006)
+<LI>+      x     = ((1._r8 /Topt) - (1._r8/t_veg(p))) / 0.00831_r8
+<LI>+      upper = exp(ct1*x)*ct2*Eopt
+<LI>+      lower = ct2 - ct1*(1._r8 - exp(ct2*x))
+<LI>+      ct    = upper/lower
+<LI>+      par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+<LI>+      cl  = alpha_su * Cp_su * par * (1._r8 + alpha_su * alpha_su * par * par)**(-0.5_r8)
+<LI>+      gamma_sun = cl * ct !gamma = 1 under std temp & light condns
+<LI>+      par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+<LI>+      cl = alpha_sh * Cp_sh * par * (1._r8 + alpha_sh * alpha_sh * par * par)**(-0.5_r8)
+<LI>+      gamma_shade = ct * cl
+<LI>+      gamma_pt      = gamma_sun + gamma_shade !gamma(sun) + gamma(sha)
+<LI>+      gamma_ce(p,n) = Cce * monlai(p,2) * gamma_pt
+<LI>+
+<LI>+    else ! non-isoprene (Guenther 2006 and MEGANv2.03)
+<LI>+      gamma_t   = exp(beta(n) * (t_veg(p) - tstd))
+<LI>+      par = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_r8
+<LI>+      cl  = alpha_su * Cp_su * par * (1._r8 + alpha_su * alpha_su * par * par)**(-0.5_r8)
+<LI>+      gamma_sun = cl !gamma = 1 under std temp & light condns
+<LI>+      par = ((1._r8 - fsun(p)) * forc_solai(g,1)) * 4.6_r8
+<LI>+      cl = alpha_sh * Cp_sh * par * (1._r8 + alpha_sh * alpha_sh * par * par)**(-0.5_r8)
+<LI>+      gamma_shade = cl
+<LI>+      gamma_p = gamma_sun + gamma_shade !gamma(sun) + gamma(shade)
+<LI>+      gamma_lai = (0.49*monlai(p,2))/(1+0.2*monlai(p,2)**2)**(0.5_r8)     
+<LI>+      gamma_ce(p,n) = gamma_lai*gamma_t*((1-LDF(n))+ LDF(n)*gamma_p)
+<LI>+    endif
+<LI>+
+<LI>+  ! Calculate Leaf Age Factor    
+<LI>+    gamma_age(p,n) = Fnew*Anew(n) + Fold*Aold(n) + Fmat*Amat(n) + Fgro*Agro(n)
+<LI>+
+<LI>+  enddo    !end nvoc loop
+<LI>+  enddo    !end pft loop  
+<LI>+
+<LI>+  end subroutine gamma_calc
+<LI>+
+<LI>+
+<LI> #endif
+<LI> 
+<LI> end module VOCEmissionMod
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

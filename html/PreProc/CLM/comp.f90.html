@@ -1,0 +1,79 @@
+<HTML>
+
+<HEAD>
+<TITLE>comp.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>comp.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>comp.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=comp><H3>comp</H3></a></p> Click <a href="./callingtree/comp_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where comp is used.
+<hr>
+20:       subroutine comp(fields,bvoc)
+21:       implicit none
+22: !
+23: ! Dummy arguments
+24: !
+25:       integer :: fields
+26:       logical :: bvoc
+27:       intent (in) bvoc
+28:       intent (out) fields
+29: !
+30: ! Local variables
+31: !
+32:       integer :: numcompounds
+33:  
+34:       if ( bvoc ) then
+35:  50     continue
+36:         print * , ' '
+37:         print * , ' '
+38:         print * , '********************************************'
+39:         print * , 'Creating biogenic emissions files'
+40:         print * , 'ENTER NUMBER OF SPECIES'
+41:         read (*,*) numcompounds
+42:         fields = 14 + numcompounds
+43:         if ( fields>50 ) then
+44:           stop 999
+45:         else if ( fields<14 ) then
+46:           go to 50
+47:         else
+48:         end if
+49:       else
+50:         fields = 14
+51:       end if
+52:  
+53:       print * , 'producing ' , fields , ' files'
+54:       end subroutine comp
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

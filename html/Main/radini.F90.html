@@ -1,0 +1,181 @@
+<HTML>
+
+<HEAD>
+<TITLE>radini.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>radini.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>radini.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=radini><H3>radini</H3></a></p> Click <a href="./callingtree/radini_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where radini is used.
+<hr>
+20:       subroutine radini
+21: 
+22: !-----------------------------------------------------------------------
+23: !
+24: ! Initialize various constants for radiation scheme; note that
+25: ! the radiation scheme uses cgs units.
+26: !
+27: !---------------------------Code history--------------------------------
+28: !
+29: ! Original version:  CCM1
+30: ! Standardized:      J. Rosinski, June 1992
+31: ! Reviewed:          J. Kiehl, B. Briegleb, August 1992
+32: !
+33: !-----------------------------------------------------------------------
+34: !
+35:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+36:       use <a href="./mod_comozp.f90.html#mod_comozp" TARGET=CENT_PANEL>mod_comozp</a>
+37:       use <a href="./mod_crdcae.f90.html#mod_crdcae" TARGET=CENT_PANEL>mod_crdcae</a>
+38:       use <a href="./mod_tracer0.F90.html#mod_tracer0" TARGET=CENT_PANEL>mod_tracer0</a>
+39:       use <a href="./mod_tracer.f90.html#mod_tracer" TARGET=CENT_PANEL>mod_tracer</a>
+40:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+41:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a>
+42:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti , gtigts , cpd , stebol , sslp
+43:       implicit none
+44: !
+45: !---------------------------Local variables-----------------------------
+46: !
+47: ! iband  - H2O band index
+48: ! v0     - Volume of a gas at stp (m**3/kmol)
+49: ! p0     - Standard pressure (pascals)
+50: ! amd    - Effective molecular weight of dry air (kg/kmol)
+51: !
+52: ! Local variables
+53: !
+54:       real(8) :: amd , p0 , v0
+55:       integer :: iband
+56: !
+57: !     Set general radiation consts; convert to cgs units where
+58: !     appropriate:
+59: !
+60: !IPCC
+61: !1991-1995
+62: !     co2vmr  =  3.55e-4
+63: !     ch40 = 0.55241 * 1.714e-6
+64: !     n2o0 = 1.51913 * 0.311e-6
+65: !1961-1965
+66: !     co2vmr  =  3.10e-4
+67: !     ch40 = 0.55241 * 1.414e-6
+68: !     n2o0 = 1.51913 * 0.287e-6
+69:  
+70: !     cfc110 = 4.69548 * 0.280e-9
+71: !     cfc120 = 4.14307 * 0.503e-9
+72: !     co2mmr = 1.51913 * co2vmr
+73:       if ( lyear.ge.1750 .and. lyear.le.2100 ) then
+74:         co2vmr = cgas(2,lyear)*1.E-6
+75:         co2mmr = co2vmr*44.0/28.9644
+76:         ch40 = cgas(3,lyear)*1.E-9*0.55241
+77:         n2o0 = cgas(4,lyear)*1.E-9*1.51913
+78:         cfc110 = cgas(5,lyear)*1.E-12*4.69548
+79:         cfc120 = cgas(6,lyear)*1.E-12*4.14307
+80:       else
+81:         write (aline,*) '  Simulation date:  ' , lyear
+82:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+83:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                                   &
+84:                &'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)'&
+85:               & )
+86:       end if
+87: !     print*,'IN RADINI (TOP)'
+88: !     print*,'  co2vmr= ',co2vmr
+89: !     print*,'  co2mmr= ',co2mmr
+90: !     print*,'  ch40  = ',ch40
+91: !     print*,'  n2o0  = ',n2o0
+92: !     print*,'  cfc110= ',cfc110
+93: !     print*,'  cfc120= ',cfc120
+94: !
+95: !     Coefficients for h2o emissivity and absorptivity.
+96: !
+97:       do iband = 1 , 4
+98:         c1(iband) = coefe(3,iband)/coefe(2,iband)
+99:         c2(iband) = coefb(3,iband)/coefb(2,iband)
+100:         c3(iband) = coefb(4,iband)/coefb(3,iband)
+101:         c4(iband) = coefd(3,iband)/coefd(2,iband)
+102:         c5(iband) = coefd(4,iband)/coefd(3,iband)
+103:         c6(iband) = coefa(3,iband)/coefa(2,iband)
+104:         c7(iband) = coefc(3,iband)/coefc(2,iband)
+105:       end do
+106:       c8 = coeff(3,1)/coeff(2,1)
+107:       c9 = coeff(3,2)/coeff(2,2)
+108:       c10 = coeff(4,1)/coeff(3,1)
+109:       c11 = coeff(4,2)/coeff(3,2)
+110:       c12 = coeff(5,1)/coeff(4,1)
+111:       c13 = coeff(5,2)/coeff(4,2)
+112:       c14 = coeff(6,1)/coeff(5,1)
+113:       c15 = coeff(6,2)/coeff(5,2)
+114:       c16 = coefj(3,1)/coefj(2,1)
+115:       c17 = coefk(3,1)/coefk(2,1)
+116:       c18 = coefi(3,1)/coefi(2,1)
+117:       c19 = coefi(3,2)/coefi(2,2)
+118:       c20 = coefi(4,1)/coefi(3,1)
+119:       c21 = coefi(4,2)/coefi(3,2)
+120:       c22 = coefi(5,1)/coefi(4,1)
+121:       c23 = coefi(5,2)/coefi(4,2)
+122:       c24 = coefi(6,1)/coefi(5,1)
+123:       c25 = coefi(6,2)/coefi(5,2)
+124:       c26 = coefj(3,2)/coefj(2,2)
+125:       c27 = coefk(3,2)/coefk(2,2)
+126:       c28 = .5
+127:       c29 = .002053
+128:       c30 = .1
+129:       c31 = 3.0E-5
+130:       cfa1 = .61
+131: !
+132: !     Initialize further longwave constants referring to far wing
+133: !     correction; R&D refers to:
+134: !
+135: !     Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
+136: !     Emissivity and Absorptivity Formulation for Water Vapor
+137: !     Journal of Geophysical Research, vol. 91., D8, pp 8649-8666
+138: !
+139:       fwcoef = .1           ! See eq(33) R&D
+140:       fwc1 = .30            ! See eq(33) R&D
+141:       fwc2 = 4.5            ! See eq(33) and eq(34) in R&D
+142:       fc1 = 2.6             ! See eq(34) R&D
+143: !
+144: !     Initialize ozone data.
+145: !
+146:       v0 = 22.4136          ! Volume of a gas at stp (m**3/kmol)
+147:       p0 = 0.1*sslp         ! Standard pressure (pascals)
+148:       amd = 28.9644         ! Molecular weight of dry air (kg/kmol)
+149: !
+150: !     Constants for ozone path integrals (multiplication by 100 for unit
+151: !     conversion to cgs from mks):
+152: !
+153:       cplos = v0/(amd*gti)*100.0
+154:       cplol = v0/(amd*gti*p0)*0.5*100.0
+155: !
+156:       end subroutine radini
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

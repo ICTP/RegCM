@@ -1,0 +1,90 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_slice.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_slice.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_slice.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_slice><H3>mod_slice</H3></a></p>20:       module mod_slice
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: 
+26:       real(8) ,allocatable, dimension(:,:,:,:) :: chib3d
+27:       real(8) ,allocatable, dimension(:,:,:) :: pb3d , qsb3d , rhb3d ,  &
+28:                                       & rhob3d , ubx3d , vbx3d
+29:       real(8) ,allocatable, dimension(:,:,:) :: qcb3d , qvb3d , tb3d ,  &
+30:                                       & ubd3d , vbd3d
+31:       contains 
+<p><a name=allocate_mod_slice><H3>allocate_mod_slice</H3></a></p> Click <a href="./callingtree/allocate_mod_slice_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_slice is used.
+<hr>
+32:         subroutine allocate_mod_slice
+33:         implicit none   
+34: #ifdef MPP1
+35:         allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
+36:         allocate(pb3d(iy,kz,jxp))
+37:         allocate(qsb3d(iy,kz,jxp))
+38:         allocate(rhb3d(iy,kz,jxp))
+39:         allocate(rhob3d(iy,kz,jxp))
+40:         allocate(ubx3d(iy,kz,jxp))
+41:         allocate(vbx3d(iy,kz,jxp))
+42:         allocate(qcb3d(iy,kz,-1:jxp+2))
+43:         allocate(qvb3d(iy,kz,-1:jxp+2))
+44:         allocate(tb3d(iy,kz,-1:jxp+2))
+45:         allocate(ubd3d(iy,kz,-1:jxp+2))
+46:         allocate(vbd3d(iy,kz,-1:jxp+2))
+47: #else
+48:         allocate(chib3d(iy,kz,jx,ntr))      
+49:         allocate(pb3d(iy,kz,jx))
+50:         allocate(qsb3d(iy,kz,jx))
+51:         allocate(rhb3d(iy,kz,jx))
+52:         allocate(rhob3d(iy,kz,jx))
+53:         allocate(ubx3d(iy,kz,jx))
+54:         allocate(vbx3d(iy,kz,jx))
+55:         allocate(qcb3d(iy,kz,jx))
+56:         allocate(qvb3d(iy,kz,jx))
+57:         allocate(tb3d(iy,kz,jx))
+58:         allocate(ubd3d(iy,kz,jx))
+59:         allocate(vbd3d(iy,kz,jx))
+60: 
+61: #endif
+62: 
+63:        end subroutine allocate_mod_slice
+64: 
+65:       end module mod_slice
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

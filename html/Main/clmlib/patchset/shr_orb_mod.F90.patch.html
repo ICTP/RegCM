@@ -1,0 +1,59 @@
+<HTML>
+
+<HEAD>
+<TITLE>shr_orb_mod.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/shr_orb_mod.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>shr_orb_mod.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/shr_orb_mod.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/shr_orb_mod.F90	2010-03-10 16:19:07.000000000 +0100
+<LI>@@ -8,7 +8,9 @@
+<LI>    use shr_kind_mod
+<LI>    use shr_sys_mod
+<LI>    use shr_const_mod
+<LI>-
+<LI>+!abt added below
+<LI>+   use clm_varsur, only: numdays
+<LI>+!abt added above
+<LI>    IMPLICIT none
+<LI> 
+<LI>    !----------------------------------------------------------------------------
+<LI>@@ -548,7 +550,8 @@
+<LI>    real   (SHR_KIND_R8),intent(out) :: eccf   ! Earth-sun distance factor (ie. (1/r)**2)
+<LI>  
+<LI>    !---------------------------Local variables-----------------------------
+<LI>-   real   (SHR_KIND_R8),parameter :: dayspy = 365.0_SHR_KIND_R8  ! days per year
+<LI>+!abt commented   real   (SHR_KIND_R8),parameter :: dayspy = 365.0_SHR_KIND_R8  ! days per year
+<LI>+   real   (SHR_KIND_R8)           :: dayspy                      ! days per year
+<LI>    real   (SHR_KIND_R8),parameter :: ve     = 80.5_SHR_KIND_R8   ! Calday of vernal equinox
+<LI>                                                      ! assumes Jan 1 = calday 1
+<LI>  
+<LI>@@ -574,7 +577,9 @@
+<LI>    ! an increment (delta lambda m in Berger 1978) that is the number of
+<LI>    ! days past or before (a negative increment) the vernal equinox divided by
+<LI>    ! the days in a model year times the 2*pi radians in a complete orbit.
+<LI>- 
+<LI>+!abt added below
+<LI>+   dayspy = numdays
+<LI>+!abt added above 
+<LI>    lambm = lambm0 + (calday - ve)*2._SHR_KIND_R8*pi/dayspy
+<LI>    lmm   = lambm  - mvelpp
+<LI>  
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

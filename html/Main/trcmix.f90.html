@@ -1,0 +1,139 @@
+<HTML>
+
+<HEAD>
+<TITLE>trcmix.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>trcmix.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>trcmix.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=trcmix><H3>trcmix</H3></a></p> Click <a href="./callingtree/trcmix_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where trcmix is used.
+<hr>
+20:       subroutine trcmix(pmid,alat,coslat,n2o,ch4,cfc11,cfc12)
+21: !
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23:       use <a href="./mod_tracer.f90.html#mod_tracer" TARGET=CENT_PANEL>mod_tracer</a>
+24:       implicit none
+25: !
+26: !-----------------------------------------------------------------------
+27: !
+28: ! Specify zonal mean mass mixing ratios of CH4, N2O, CFC11 and
+29: ! CFC12
+30: !          Code: J.T.Kiehl November 21, 1994
+31: !
+32: !-----------------------------------------------------------------------
+33: !
+34: !------------------------------input------------------------------------
+35: !
+36: ! pmid   - model pressures
+37: ! alat   - current latitude in radians
+38: ! coslat - cosine of latitude
+39: !
+40: !------------------------------output-----------------------------------
+41: !
+42: ! n2o    - nitrous oxide mass mixing ratio
+43: ! ch4    - methane mass mixing ratio
+44: ! cfc11  - cfc11 mass mixing ratio
+45: ! cfc12  - cfc12 mass mixing ratio
+46: !
+47: !-----------------------------------------------------------------------
+48: !
+49: ! Dummy arguments
+50: !
+51:       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
+52:            & pmid
+53:       real(8) , dimension(iym1) :: alat , coslat
+54:       intent (in) alat , coslat , pmid
+55:       intent (out) cfc11 , cfc12 , ch4 , n2o
+56: !
+57: ! Local variables
+58: !
+59: ! i      - longitude loop index
+60: ! k      - level index
+61: ! dlat   - latitude in degrees
+62: ! xn2o   - pressure scale height for n2o
+63: ! xch4   - pressure scale height for ch4
+64: ! xcfc11 - pressure scale height for cfc11
+65: ! xcfc12 - pressure scale height for cfc12
+66: ! ptrop  - pressure level of tropopause
+67: ! pratio - pressure divided by ptrop
+68: !
+69:       real(8) :: dlat , pratio , xcfc11 , xcfc12 , xch4 , xn2o
+70:       integer :: i , k
+71:       real(8) , dimension(iym1) :: ptrop
+72: !
+73:       xcfc11 = 0.0
+74:       xcfc12 = 0.0
+75:       xch4 = 0.0
+76:       xn2o = 0.0
+77:       do i = 1 , iym1
+78: !       set stratospheric scale height factor for gases
+79:         dlat = dabs(57.2958*alat(i))
+80:         if ( dlat.le.45.0 ) then
+81:           xn2o = 0.3478 + 0.00116*dlat
+82:           xch4 = 0.2353
+83:           xcfc11 = 0.7273 + 0.00606*dlat
+84:           xcfc12 = 0.4000 + 0.00222*dlat
+85:         else
+86:           xn2o = 0.4000 + 0.013333*(dlat-45)
+87:           xch4 = 0.2353 + 0.0225489*(dlat-45)
+88:           xcfc11 = 1.00 + 0.013333*(dlat-45)
+89:           xcfc12 = 0.50 + 0.024444*(dlat-45)
+90:         end if
+91: !
+92: !       pressure of tropopause
+93:         ptrop(i) = 250.0E2 - 150.0E2*coslat(i)**2.0
+94: !
+95:       end do
+96: !
+97:       do k = 1 , kz
+98:         do i = 1 , iym1
+99:           if ( pmid(i,k).ge.ptrop(i) ) then
+100:             ch4(i,k) = ch40
+101:             n2o(i,k) = n2o0
+102:             cfc11(i,k) = cfc110
+103:             cfc12(i,k) = cfc120
+104:           else
+105:             pratio = pmid(i,k)/ptrop(i)
+106:             ch4(i,k) = ch40*(pratio)**xch4
+107:             n2o(i,k) = n2o0*(pratio)**xn2o
+108:             cfc11(i,k) = cfc110*(pratio)**xcfc11
+109:             cfc12(i,k) = cfc120*(pratio)**xcfc12
+110:           end if
+111:         end do
+112:       end do
+113: 
+114:       end subroutine trcmix
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

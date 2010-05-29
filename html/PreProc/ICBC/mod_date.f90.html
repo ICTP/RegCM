@@ -1,0 +1,531 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_date.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_date.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_date.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_date><H3>mod_date</H3></a></p>20:       module mod_date
+21: 
+22:       implicit none
+23: 
+24:       integer , dimension(300000) :: mdate
+25:       integer , dimension(427+1097) :: wkday
+26: 
+27:       contains
+28: 
+<p><a name=initdate_era><H3>initdate_era</H3></a></p> Click <a href="./callingtree/initdate_era_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where initdate_era is used.
+<hr>
+29:       subroutine initdate_era
+30:         implicit none
+31: !
+32: ! Local variables
+33: !
+34:       integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
+35: !
+36:         nrec = 0
+37:         do nyear = 1989 , 2009
+38:           mbase = nyear*1000000
+39:           do mon = 1 , 12
+40:             mbase = mbase + 10000
+41:             if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.        &
+42:                & mon==8 .or. mon==10 .or. mon==12 ) then
+43:               nday = 31
+44:             else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
+45:               nday = 30
+46:             else if ( mod(nyear,400).eq.0 .or.                          &
+47:                & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
+48:               nday = 29
+49:             else
+50:               nday = 28
+51:             end if
+52:             nbase = mbase
+53:             do i = 1 , nday
+54:               nbase = nbase + 100
+55:               do m = 1 , 4
+56:                 nrec = nrec + 1
+57:                 if ( nrec>29824 ) go to 99999
+58:                 if ( m==1 ) then
+59:                   mdate(nrec) = nbase
+60:                 else if ( m==2 ) then
+61:                   mdate(nrec) = nbase + 6
+62:                 else if ( m==3 ) then
+63:                   mdate(nrec) = nbase + 12
+64:                 else
+65:                   mdate(nrec) = nbase + 18
+66:                 end if
+67:               end do
+68:             end do
+69:           end do
+70:         end do
+71: 99999   continue
+72:       end subroutine initdate_era
+73: 
+<p><a name=finddate_era><H3>finddate_era</H3></a></p> Click <a href="./callingtree/finddate_era_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where finddate_era is used.
+<hr>
+74:       subroutine finddate_era(npos,idate)
+75:         implicit none
+76: !
+77: !       Dummy arguments
+78: !
+79:         integer :: idate , npos
+80:         intent (in) idate
+81:         intent (out) npos
+82: !
+83: !       Local variables
+84: !
+85:         integer :: i
+86: !
+87:         i = 0
+88:  100    continue
+89:         i = i + 1
+90:         if ( mdate(i)==idate ) then
+91:           npos = i
+92:           go to 99999
+93:         end if
+94:         if ( i<=29824 ) go to 100
+95:         write (*,*) 'ERROR IN FINDDATE'
+96:         stop
+97: 99999   continue
+98:       end subroutine finddate_era
+99: 
+<p><a name=initdate_eh50><H3>initdate_eh50</H3></a></p> Click <a href="./callingtree/initdate_eh50_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where initdate_eh50 is used.
+<hr>
+100:       subroutine initdate_eh50(ssttyp)
+101:         implicit none
+102: !
+103: !       Dummy arguments
+104: !
+105:         character(5) :: ssttyp
+106:         intent (in) ssttyp
+107: !
+108: !       Local variables
+109: !
+110:         integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
+111: !
+112:         nrec = 0
+113:         if ( ssttyp=='EH5RF' ) then
+114:           do nyear = 1941 , 2000
+115:             mbase = nyear*1000000
+116:             do mon = 1 , 12
+117:               mbase = mbase + 10000
+118:               if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.      &
+119:                  & mon==8 .or. mon==10 .or. mon==12 ) then
+120:                 nday = 31
+121:               else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
+122:                 nday = 30
+123:               else if ( mod(nyear,400).eq.0 .or.                        &
+124:                &   ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
+125:                 nday = 29
+126:               else
+127:                 nday = 28
+128:               end if
+129:               nbase = mbase
+130:               do i = 1 , nday
+131:                 nbase = nbase + 100
+132:                 do m = 1 , 4
+133:                   nrec = nrec + 1
+134:                   if ( m==1 ) then
+135:                     mdate(nrec) = nbase
+136:                   else if ( m==2 ) then
+137:                     mdate(nrec) = nbase + 6
+138:                   else if ( m==3 ) then
+139:                     mdate(nrec) = nbase + 12
+140:                   else
+141:                     mdate(nrec) = nbase + 18
+142:                   end if
+143:                 end do
+144:               end do
+145:             end do
+146:           end do
+147:           mdate(87661) = 2001010100
+148:         else if ( ssttyp=='EH5A2' .or. ssttyp=='EH5B1' .or.             &
+149:                  &ssttyp=='EHA1B' ) then
+150:           do nyear = 2001 , 2100
+151:             mbase = nyear*1000000
+152:             do mon = 1 , 12
+153:               mbase = mbase + 10000
+154:               if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.      &
+155:                  & mon==8 .or. mon==10 .or. mon==12 ) then
+156:                 nday = 31
+157:               else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
+158:                 nday = 30
+159:               else if ( mod(nyear,400).eq.0 .or.                        &
+160:                & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
+161:                 nday = 29
+162:               else
+163:                 nday = 28
+164:               end if
+165:               nbase = mbase
+166:               do i = 1 , nday
+167:                 nbase = nbase + 100
+168:                 do m = 1 , 4
+169:                   nrec = nrec + 1
+170:                   if ( m==1 ) then
+171:                     mdate(nrec) = nbase
+172:                   else if ( m==2 ) then
+173:                     mdate(nrec) = nbase + 6
+174:                   else if ( m==3 ) then
+175:                     mdate(nrec) = nbase + 12
+176:                   else
+177:                     mdate(nrec) = nbase + 18
+178:                   end if
+179:                 end do
+180:               end do
+181:             end do
+182:           end do
+183:         else
+184:         end if
+185:       end subroutine initdate_eh50
+186: 
+<p><a name=finddate_eh50><H3>finddate_eh50</H3></a></p> Click <a href="./callingtree/finddate_eh50_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where finddate_eh50 is used.
+<hr>
+187:       subroutine finddate_eh50(npos,idate)
+188:         implicit none
+189: !
+190: !       Dummy arguments
+191: !
+192:         integer :: idate , npos
+193:         intent (in) idate
+194:         intent (out) npos
+195: !
+196: !       Local variables
+197: !
+198:         integer :: i
+199: !
+200:         i = 0
+201:  100    continue
+202:         i = i + 1
+203:         if ( mdate(i)==idate ) then
+204:           npos = i
+205:           go to 99999
+206:         end if
+207:         if ( i<=146096 ) go to 100
+208:         write (*,*) 'ERROR IN FINDDATE'
+209:         stop
+210: 99999   continue
+211:       end subroutine finddate_eh50
+212: !
+213: !-----------------------------------------------------------------------
+214: !
+<p><a name=initdate_ccsm><H3>initdate_ccsm</H3></a></p> Click <a href="./callingtree/initdate_ccsm_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where initdate_ccsm is used.
+<hr>
+215:       subroutine initdate_ccsm
+216:         implicit none
+217: !
+218: !       Local variables
+219: !
+220:         integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
+221: !
+222:         nrec = 0
+223:         do nyear = 1948 , 2045
+224:           mbase = nyear*1000000
+225:           do mon = 1 , 12
+226:             mbase = mbase + 10000
+227:             if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.        &
+228:                & mon==8 .or. mon==10 .or. mon==12 ) then
+229:               nday = 31
+230:             else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
+231:               nday = 30
+232:             else
+233:               nday = 28
+234:             end if
+235:             nbase = mbase
+236:             do i = 1 , nday
+237:               nbase = nbase + 100
+238:               do m = 1 , 4
+239:                 nrec = nrec + 1
+240:                 if ( m==1 ) then
+241:                   mdate(nrec) = nbase
+242:                 else if ( m==2 ) then
+243:                   mdate(nrec) = nbase + 6
+244:                 else if ( m==3 ) then
+245:                   mdate(nrec) = nbase + 12
+246:                 else
+247:                   mdate(nrec) = nbase + 18
+248:                 end if
+249:               end do
+250:             end do
+251:           end do
+252:         end do
+253:         write (*,*) 'nrec = ' , nrec
+254:       end subroutine initdate_ccsm
+255: 
+<p><a name=initdate_icbc><H3>initdate_icbc</H3></a></p> Click <a href="./callingtree/initdate_icbc_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where initdate_icbc is used.
+<hr>
+256:       subroutine initdate_icbc
+257:         implicit none
+258: !
+259: ! Local variables
+260: !
+261:         integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
+262: !
+263:         nrec = 0
+264:         do nyear = 1941 , 2145
+265:           mbase = nyear*1000000
+266:           do mon = 1 , 12
+267:             mbase = mbase + 10000
+268:             if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.        &
+269:                & mon==8 .or. mon==10 .or. mon==12 ) then
+270:               nday = 31
+271:             else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
+272:               nday = 30
+273:             else if ( mod(nyear,400).eq.0 .or.                          &
+274:                & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
+275:               nday = 29
+276:             else
+277:               nday = 28
+278:             end if
+279:             nbase = mbase
+280:             do i = 1 , nday
+281:               nbase = nbase + 100
+282:               do m = 1 , 4
+283:                 nrec = nrec + 1
+284:                 if ( m==1 ) then
+285:                   mdate(nrec) = nbase
+286:                 else if ( m==2 ) then
+287:                   mdate(nrec) = nbase + 6
+288:                 else if ( m==3 ) then
+289:                   mdate(nrec) = nbase + 12
+290:                 else
+291:                   mdate(nrec) = nbase + 18
+292:                 end if
+293:               end do
+294:             end do
+295:           end do
+296:         end do
+297:         write (*,*) 'NREC = ' , nrec
+298:       end subroutine initdate_icbc
+299: 
+<p><a name=finddate_icbc><H3>finddate_icbc</H3></a></p> Click <a href="./callingtree/finddate_icbc_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where finddate_icbc is used.
+<hr>
+300:       subroutine finddate_icbc(npos,idate)
+301:         implicit none
+302: !
+303: ! Dummy arguments
+304: !
+305:         integer :: idate , npos
+306:         intent (in) idate
+307:         intent (out) npos
+308: !
+309: ! Local variables
+310: !
+311:         integer :: i
+312: !
+313:         i = 0
+314:  100    continue
+315:         i = i + 1
+316:         if ( mdate(i)==idate ) then
+317:           npos = i
+318:           go to 99999
+319:         end if
+320:         if ( i<=299500 ) go to 100
+321:         write (*,*) 'ERROR IN FINDDATE'
+322:         stop
+323: 99999   continue
+324:       end subroutine finddate_icbc
+325: !
+326: !-----------------------------------------------------------------------
+327: !
+<p><a name=headwk><H3>headwk</H3></a></p> Click <a href="./callingtree/headwk_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where headwk is used.
+<hr>
+328:       subroutine headwk
+329:       implicit none
+330: !
+331: ! Local variables
+332: !
+333:       integer :: i , mday , month , myear
+334: !
+335:       wkday(1) = 19811029
+336:       do i = 2 , 427
+337:         wkday(i) = wkday(i-1) + 7
+338:         myear = wkday(i)/10000
+339:         month = wkday(i)/100 - myear*100
+340:         mday = mod(wkday(i),10000) - month*100
+341:         if ( month==1 .or. month==3 .or. month==5 .or. month==7 .or.    &
+342:            & month==8 .or. month==10 ) then
+343:           if ( mday>31 ) then
+344:             mday = mday - 31
+345:             month = month + 1
+346:           end if
+347:         else if ( month==12 ) then
+348:           if ( mday>31 ) then
+349:             mday = mday - 31
+350:             month = 1
+351:             myear = myear + 1
+352:           end if
+353:         else if ( month==4 .or. month==6 .or. month==9 .or. month==11 ) &
+354:                 & then
+355:           if ( mday>30 ) then
+356:             mday = mday - 30
+357:             month = month + 1
+358:           end if
+359:         else if ( mod(myear,400).eq.0 .or.                              &
+360:            & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) then
+361:           if ( mday>29 ) then
+362:             mday = mday - 29
+363:             month = month + 1
+364:           end if
+365:         else
+366:           if ( mday>28 ) then
+367:             mday = mday - 28
+368:             month = month + 1
+369:           end if
+370:         end if
+371:         wkday(i) = myear*10000 + month*100 + mday
+372:       end do
+373: !
+374:       wkday(428) = 19891231
+375:       do i = 429 , 427 + 1097
+376:         wkday(i) = wkday(i-1) + 7
+377:         myear = wkday(i)/10000
+378:         month = wkday(i)/100 - myear*100
+379:         mday = mod(wkday(i),10000) - month*100
+380:         if ( month==1 .or. month==3 .or. month==5 .or. month==7 .or.    &
+381:            & month==8 .or. month==10 ) then
+382:           if ( mday>31 ) then
+383:             mday = mday - 31
+384:             month = month + 1
+385:           end if
+386:         else if ( month==12 ) then
+387:           if ( mday>31 ) then
+388:             mday = mday - 31
+389:             month = 1
+390:             myear = myear + 1
+391:           end if
+392:         else if ( month==4 .or. month==6 .or. month==9 .or. month==11 ) &
+393:                 & then
+394:           if ( mday>30 ) then
+395:             mday = mday - 30
+396:             month = month + 1
+397:           end if
+398:         else if ( mod(myear,400).eq.0 .or.                              &
+399:            & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) then
+400:           if ( mday>29 ) then
+401:             mday = mday - 29
+402:             month = month + 1
+403:           end if
+404:         else
+405:           if ( mday>28 ) then
+406:             mday = mday - 28
+407:             month = month + 1
+408:           end if
+409:         end if
+410:         wkday(i) = myear*10000 + month*100 + mday
+411:       end do
+412: !
+413:       end subroutine headwk
+414: !
+415: !-----------------------------------------------------------------------
+416: !
+<p><a name=julian><H3>julian</H3></a></p> Click <a href="./callingtree/julian_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where julian is used.
+<hr>
+417:       subroutine julian(mdate,nyrp,nmop,wt)
+418:       implicit none
+419: !
+420: ! Dummy arguments
+421: !
+422:       integer :: mdate , nmop , nyrp
+423:       real(4) :: wt
+424:       intent (in) mdate
+425:       intent (out) nyrp , wt
+426:       intent (inout) nmop
+427: !
+428: ! Local variables
+429: !
+430:       real(4) :: fdenom , fnumer
+431:       integer :: idate , iday , ileap , imo , iyr , j , julday , nmo ,  &
+432:                & nyr
+433:       integer , dimension(12) :: jprev , julmid , lenmon , midmon
+434: ! 
+435:       data lenmon/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 , 30 ,&
+436:          & 31/
+437:       data midmon/16 , 14 , 16 , 15 , 16 , 15 , 16 , 16 , 15 , 16 , 15 ,&
+438:          & 16/
+439:  
+440: !     ******           INITIALIZE NMOP, NYRP
+441: 
+442:       nmop = 1
+443:       nyrp = 0
+444:  
+445:       idate = mdate/100
+446:       iyr = idate/10000
+447:       imo = (idate-iyr*10000)/100
+448:       iday = mod(idate,100)
+449:  
+450:       ileap = mod(iyr,4)
+451:       lenmon(2) = 28
+452:       if ( ileap==0 ) lenmon(2) = 29
+453:  
+454:       jprev(1) = 0
+455:       do j = 2 , 12
+456:         jprev(j) = jprev(j-1) + lenmon(j-1)
+457:       end do
+458:       do j = 1 , 12
+459:         julmid(j) = jprev(j) + midmon(j)
+460:       end do
+461:       julday = iday + jprev(imo)
+462:  
+463: !     PRINT *, 'MDATE, IYR, IMO, IDAY, JULDAY = '
+464: !     A       ,  MDATE, IYR, IMO, IDAY, JULDAY
+465:  
+466:       do nyr = 1948 , 2145  !94
+467:         do nmo = 1 , 12
+468:  
+469:           if ( (nyr==iyr) .and. (julmid(nmo)>julday) ) go to 100
+470:           if ( nyr>iyr ) go to 100
+471:  
+472:           nmop = nmo
+473:           nyrp = nyr
+474:  
+475:         end do
+476:       end do
+477:  
+478:  100  continue
+479:       fnumer = float(julday-julmid(nmop))
+480:       if ( fnumer<0. ) fnumer = fnumer + 365.
+481:       fdenom = float(julmid(nmo)-julmid(nmop))
+482:       if ( fdenom<=0. ) fdenom = fdenom + 365.
+483:       wt = fnumer/fdenom
+484:  
+485: !     PRINT *, 'JULMID(NMOP), JULDAY, JULMID(NMO), WT ='
+486: !     A       ,  JULMID(NMOP), JULDAY, JULMID(NMO), WT
+487:  
+488:       end subroutine julian
+489: !
+490:       end module mod_date
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

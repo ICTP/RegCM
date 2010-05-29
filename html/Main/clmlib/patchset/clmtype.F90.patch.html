@@ -1,0 +1,156 @@
+<HTML>
+
+<HEAD>
+<TITLE>clmtype.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/clmtype.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>clmtype.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/clmtype.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/clmtype.F90	2010-03-10 16:27:39.088598717 +0100
+<LI>@@ -160,7 +160,7 @@
+<LI>    real(r8), pointer :: sun_faii(:,:) !fraction sun canopy absorbed indirect from indirect
+<LI>    real(r8), pointer :: sha_faid(:,:) !fraction shade canopy absorbed indirect from direct
+<LI>    real(r8), pointer :: sha_faii(:,:) !fraction shade canopy absorbed indirect from indirect
+<LI>-	! 4/14/05: PET
+<LI>+! 4/14/05: PET
+<LI>    ! Adding isotope code
+<LI>    real(r8), pointer :: cisun(:) 		!sunlit intracellular CO2 (Pa)
+<LI>    real(r8), pointer :: cisha(:) 		!shaded intracellular CO2 (Pa)
+<LI>@@ -551,6 +551,9 @@
+<LI> 	real(r8), pointer :: sha_alf(:,:)   !shade canopy total absored by leaves (W/m**2)
+<LI> 	real(r8), pointer :: sun_aperlai(:,:) !sun canopy total absorbed per unit LAI (W/m**2)
+<LI> 	real(r8), pointer :: sha_aperlai(:,:) !shade canopy total absorbed per unit LAI (W/m**2)
+<LI>+!abt rcm below
+<LI>+   real(r8), pointer :: uvdrag(:)           !surface drag stress
+<LI>+!abt rcm above
+<LI> end type pft_eflux_type
+<LI> 
+<LI> !----------------------------------------------------
+<LI>@@ -832,15 +835,43 @@
+<LI> ! pft VOC flux variables structure
+<LI> !----------------------------------------------------
+<LI> type, public :: pft_vflux_type
+<LI>-   real(r8), pointer :: vocflx_tot(:)     !total VOC flux into atmosphere [ug C m-2 h-1]
+<LI>-   real(r8), pointer :: vocflx(:,:)       !(nvoc) VOC flux [ug C m-2 h-1]
+<LI>-   real(r8), pointer :: vocflx_1(:)       !vocflx(1) (for history output) [ug C m-2 h-1]
+<LI>-   real(r8), pointer :: vocflx_2(:)       !vocflx(2) (for history output) [ug C m-2 h-1]
+<LI>-   real(r8), pointer :: vocflx_3(:)       !vocflx(3) (for history output) [ug C m-2 h-1]
+<LI>-   real(r8), pointer :: vocflx_4(:)       !vocflx(4) (for history output) [ug C m-2 h-1]
+<LI>-   real(r8), pointer :: vocflx_5(:)       !vocflx(5) (for history output) [ug C m-2 h-1]
+<LI>+   real(r8), pointer :: vocflx_tot(:)     !total VOC flux into atmosphere [ug  m-2 h-1]
+<LI>+   real(r8), pointer :: vocflx(:,:)       !(nvoc) VOC flux [ug  m-2 h-1]
+<LI>+   real(r8), pointer :: vocflx_1(:)       !vocflx(1) (for history output) [ug  m-2 h-1]
+<LI>+   real(r8), pointer :: vocflx_2(:)       !vocflx(2) (for history output) [ug  m-2 h-1]
+<LI>+   real(r8), pointer :: vocflx_3(:)       !vocflx(3) (for history output) [ug  m-2 h-1]
+<LI>+   real(r8), pointer :: vocflx_4(:)       !vocflx(4) (for history output) [ug  m-2 h-1]
+<LI>+   real(r8), pointer :: vocflx_5(:)       !vocflx(5) (for history output) [ug  m-2 h-1]
+<LI>+   real(r8), pointer :: vocflx_6(:)       !vocflx(6) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_7(:)       !vocflx(7) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_8(:)       !vocflx(8) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_9(:)       !vocflx(6) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_10(:)      !vocflx(7) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_11(:)      !vocflx(8) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_12(:)      !vocflx(6) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_13(:)      !vocflx(7) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_14(:)      !vocflx(8) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_15(:)      !vocflx(6) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_16(:)      !vocflx(7) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_17(:)      !vocflx(8) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_18(:)      !vocflx(6) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_19(:)      !vocflx(7) (for history output) [ug  m-2 h-1] abt added
+<LI>+   real(r8), pointer :: vocflx_20(:)      !vocflx(8) (for history output) [ug  m-2 h-1] abt added
+<LI> end type pft_vflux_type
+<LI> 
+<LI>+!---------------------------------------------------
+<LI>+!  Accumulation variables for VOC calc  added abt  !
+<LI>+!---------------------------------------------------
+<LI>+type, public :: voc_accum_type
+<LI>+   real(r8), pointer :: t_sum24(:,:)      !vegetation temperature from past 24hours (K)
+<LI>+   real(r8), pointer :: t_sum240(:,:)     !vegetation temperature from past 240hours(K)
+<LI>+   real(r8), pointer :: p_sum24su(:,:)    !PPFD from past 24hours (sunlit)
+<LI>+   real(r8), pointer :: p_sum240su(:,:)   !PPFD from past 240hours(sunlit)
+<LI>+   real(r8), pointer :: p_sum24sh(:,:)    !PPFD from past 24hours (shaded)
+<LI>+   real(r8), pointer :: p_sum240sh(:,:)   !PPFD from past 240hours(shaded)
+<LI>+   real(r8), pointer :: monlai(:,:)       ! LAI for current and previous month (gridcell,month)
+<LI>+end type voc_accum_type
+<LI>+
+<LI> !----------------------------------------------------
+<LI> ! pft dust flux variables structure
+<LI> !----------------------------------------------------
+<LI>@@ -1245,6 +1276,7 @@
+<LI> type, public :: column_dflux_type	
+<LI>    type(pft_dflux_type):: pdf_a		!pft-level dust flux variables averaged to the column
+<LI> end type column_dflux_type
+<LI>+
+<LI> !----------------------------------------------------
+<LI> ! End definition of structures defined at the column_type level
+<LI> !----------------------------------------------------
+<LI>@@ -1376,6 +1408,32 @@
+<LI>    type(column_pstate_type):: cps_a   !column-level physical state variables averaged to gridcell
+<LI> end type gridcell_pstate_type
+<LI> 
+<LI>+!---------------------------------------------------
+<LI>+!          VOC emission factor map      added abt  !
+<LI>+!---------------------------------------------------
+<LI>+type, public :: gridcell_ef_map_type
+<LI>+   real(r8), pointer :: epsilon_iso(:)   !emission factor map of isoprene from RCMiso.nc abt
+<LI>+   real(r8), pointer :: epsilon_mbo(:)   !emission factor map of methylbutenol
+<LI>+   real(r8), pointer :: epsilon_bpin(:)  !emission factor map of b-pinene
+<LI>+   real(r8), pointer :: epsilon_apin(:)  !emission factor map of a-pinene
+<LI>+   real(r8), pointer :: epsilon_myrc(:)  !emission factor map of myrcene
+<LI>+   real(r8), pointer :: epsilon_sabi(:)  !emission factor map of sabinene
+<LI>+   real(r8), pointer :: epsilon_limo(:)  !emission factor map of limonene
+<LI>+   real(r8), pointer :: epsilon_acar(:)  !emission factor map of a-3carene
+<LI>+   real(r8), pointer :: epsilon_ocim(:)  !emission factor map of ocimene
+<LI>+   real(r8), pointer :: epsilon_omtp(:)  !emission factor map of other monoterpenes
+<LI>+   real(r8), pointer :: epsilon_farn(:)  !emission factor map of farnicene
+<LI>+   real(r8), pointer :: epsilon_bcar(:)  !emission factor map of b-caryophyllene
+<LI>+   real(r8), pointer :: epsilon_osqt(:)  !emission factor map of other sesquiterpenes
+<LI>+   real(r8), pointer :: epsilon_meoh(:)  !emission factor map of methanol
+<LI>+   real(r8), pointer :: epsilon_acto(:)  !emission factor map of acetone
+<LI>+   real(r8), pointer :: epsilon_meth(:)  !emission factor map of methane
+<LI>+   real(r8), pointer :: epsilon_no(:)    !emission factor map of no,n2o,nh3
+<LI>+   real(r8), pointer :: epsilon_acta(:)  !emission factor map of acetaldehyde/ethanol
+<LI>+   real(r8), pointer :: epsilon_form(:)  !emission factor map of form
+<LI>+   real(r8), pointer :: epsilon_co(:)    !emission factor map of co
+<LI>+end type gridcell_ef_map_type
+<LI>+
+<LI> !----------------------------------------------------
+<LI> ! gridcell energy state variables structure
+<LI> !----------------------------------------------------
+<LI>@@ -1652,6 +1710,9 @@
+<LI>    type(pft_cstate_type) :: pc13s       !pft carbon-13 state
+<LI>    type(pft_cflux_type)  :: pc13f       !pft carbon-13 flux
+<LI>    
+<LI>+   ! voc accumulation vars !!abt added!!
+<LI>+   type(voc_accum_type)  :: pva         !accumulation variables from VOC calc
+<LI>+
+<LI> end type pft_type
+<LI> 
+<LI> !----------------------------------------------------
+<LI>@@ -1812,6 +1873,7 @@
+<LI>    type(gridcell_vflux_type) :: gvf	!average of VOC fluxes all landunits
+<LI>    type(gridcell_dflux_type) :: gdf	!average of dust fluxes all landunits
+<LI> 
+<LI>+   type(gridcell_ef_map_type):: gem     !Emission factor map at grid level (epsilon) abt added
+<LI> end type gridcell_type
+<LI> 
+<LI> !----------------------------------------------------
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

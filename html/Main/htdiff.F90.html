@@ -1,0 +1,181 @@
+<HTML>
+
+<HEAD>
+<TITLE>htdiff.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>htdiff.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>htdiff.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=htdiff><H3>htdiff</H3></a></p> Click <a href="./callingtree/htdiff_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where htdiff is used.
+<hr>
+20:       subroutine htdiff(dto2,dxsq,akht1)
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+24: #ifdef MPP1
+25:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+26: #ifndef IBM
+27:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+28: #else 
+29:       include 'mpif.h'
+30: #endif 
+31: #endif
+32:       implicit none
+33: !
+34: ! Dummy arguments
+35: !
+36:       real(8) :: akht1 , dto2 , dxsq
+37:       intent (in) akht1 , dto2 , dxsq
+38: !
+39: ! Local variables
+40: !
+41:       integer :: i , im1 , ip1 , j , jm1 , jp1 , k
+42: #ifdef MPP1
+43:       integer :: ierr
+44:       real(8) , dimension(iy,0:jxp+1) :: wr
+45: #else
+46:       real(8) , dimension(iy,jx) :: wr
+47: #endif
+48: !
+49: #ifdef MPP1
+50:       do k = 1 , kz
+51:         do j = 1 , jendl
+52:           do i = 1 , iy
+53:             wr(i,j) = rsheat(i,k,j)
+54:           end do
+55:         end do
+56:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(wr(1,jxp),iy,mpi_real8,ieast,1,               &
+57:                         & wr(1,0),iy,mpi_real8,iwest,1,                 &
+58:                         & mpi_comm_world,mpi_status_ignore,ierr)
+59:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(wr(1,1),iy,mpi_real8,iwest,2,                 &
+60:                         & wr(1,jxp+1),iy,mpi_real8,ieast,2,             &
+61:                         & mpi_comm_world,mpi_status_ignore,ierr)
+62:         do j = jbegin , jendm
+63:           if ( myid.eq.0 ) then
+64:             jm1 = max0(j-1,2)
+65:           else
+66:             jm1 = j - 1
+67:           end if
+68:           if ( myid.eq.nproc-1 ) then
+69:             jp1 = min0(j+1,jxp-2)
+70:           else
+71:             jp1 = j + 1
+72:           end if
+73:           do i = 2 , iym2
+74:             im1 = max0(i-1,2)
+75:             ip1 = min0(i+1,iym2)
+76:             rsheat(i,k,j) = rsheat(i,k,j)                               &
+77:                           & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
+78:                           & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
+79:           end do
+80:         end do
+81:       end do
+82: #else
+83:       do k = 1 , kz
+84:         do j = 1 , jx
+85:           do i = 1 , iy
+86:             wr(i,j) = rsheat(i,k,j)
+87:           end do
+88:         end do
+89:         do j = 2 , jxm2
+90:           jm1 = max0(j-1,2)
+91:           jp1 = min0(j+1,jxm2)
+92:           do i = 2 , iym2
+93:             im1 = max0(i-1,2)
+94:             ip1 = min0(i+1,iym2)
+95:             rsheat(i,k,j) = rsheat(i,k,j)                               &
+96:                           & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
+97:                           & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
+98:           end do
+99:         end do
+100:       end do
+101: #endif
+102: !
+103: #ifdef MPP1
+104:       do k = 1 , kz
+105:         do j = 1 , jendl
+106:           do i = 1 , iy
+107:             wr(i,j) = rswat(i,k,j)
+108:           end do
+109:         end do
+110:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(wr(1,jxp),iy,mpi_real8,ieast,1,               &
+111:                         & wr(1,0),iy,mpi_real8,iwest,1,                 &
+112:                         & mpi_comm_world,mpi_status_ignore,ierr)
+113:         call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(wr(1,1),iy,mpi_real8,iwest,2,                 &
+114:                         & wr(1,jxp+1),iy,mpi_real8,ieast,2,             &
+115:                         & mpi_comm_world,mpi_status_ignore,ierr)
+116:         do j = jbegin , jendm
+117:           if ( myid.eq.0 ) then
+118:             jm1 = max0(j-1,2)
+119:           else
+120:             jm1 = j - 1
+121:           end if
+122:           if ( myid.eq.nproc-1 ) then
+123:             jp1 = min0(j+1,jxp-2)
+124:           else
+125:             jp1 = j + 1
+126:           end if
+127:           do i = 2 , iym2
+128:             im1 = max0(i-1,2)
+129:             ip1 = min0(i+1,iym2)
+130:             rswat(i,k,j) = rswat(i,k,j)                                 &
+131:                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
+132:                          & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
+133:           end do
+134:         end do
+135:       end do
+136: #else
+137:       do k = 1 , kz
+138:         do j = 1 , jx
+139:           do i = 1 , iy
+140:             wr(i,j) = rswat(i,k,j)
+141:           end do
+142:         end do
+143:         do j = 2 , jxm2
+144:           jm1 = max0(j-1,2)
+145:           jp1 = min0(j+1,jxm2)
+146:           do i = 2 , iym2
+147:             im1 = max0(i-1,2)
+148:             ip1 = min0(i+1,iym2)
+149:             rswat(i,k,j) = rswat(i,k,j)                                 &
+150:                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
+151:                          & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
+152:           end do
+153:         end do
+154:       end do
+155: #endif
+156:       end subroutine htdiff
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

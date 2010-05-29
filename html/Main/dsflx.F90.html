@@ -1,0 +1,600 @@
+<HTML>
+
+<HEAD>
+<TITLE>dsflx.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>dsflx.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>dsflx.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=sfflux><H3>sfflux</H3></a></p> Click <a href="./callingtree/sfflux_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where sfflux is used.
+<hr>
+20:       subroutine sfflux(ilg,il1,il2,jloop,luc,ivegcov,vegfrac,isoiltex, &
+21:                       & ustarnd,z0,soilw,surfwd,roarow,trsize,rsfrow)
+22:  
+23: !  **********************************************************
+24: !  *  dust emission scheme                             ******
+25: !  *                                                   ******
+26: !  * this scheme based on marticorena and bergametti,  ******
+27: !  * 1995; gong et al.,(2003); alfaro et al.,(1997)    ******
+28: !  *                                                   ******
+29: !  * the modification coded by:                        ******
+30: !  * ashraf s. zakey                                   ******
+31: !  **********************************************************
+32:  
+33:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+34:       use <a href="./mod_dust.F90.html#mod_dust" TARGET=CENT_PANEL>mod_dust</a>
+35:       implicit none
+36: !
+37: ! Dummy arguments
+38: !
+39:       integer :: il1 , il2 , ilg , jloop , luc
+40:       integer , dimension(ilg) :: isoiltex , ivegcov
+41:       real(8) , dimension(ilg) :: roarow , soilw , surfwd , vegfrac ,   &
+42:                        &          z0 , ustarnd
+43:       real(8) , dimension(ilg,nbin) :: rsfrow
+44:       real(8) , dimension(nbin,2) :: trsize
+45:       intent (in) il1 , il2 , isoiltex , ivegcov , jloop , roarow ,     &
+46:                 & soilw , surfwd , vegfrac , z0 , ustarnd
+47:       intent (out) rsfrow
+48: !
+49: ! Local variables
+50: !
+51:       integer :: i , ieff , ieffmax , n , ns
+52:       real(8) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
+53:                                 & xsurfwd , xvegfrac , xz0 , xustarnd
+54:       real(8) , dimension(ilg,20) :: xfland
+55:       integer , dimension(ilg) :: xisoiltex
+56:       real(8) , dimension(ilg,nbin) :: xrsfrow
+57:       real(8) , dimension(ilg,nats) :: xsand2row
+58:       real(8) , dimension(ilg,nsoil,nats) :: xsrel2d
+59: ! 
+60:       rsfrow = 0.0
+61: !     effective emitter cell ( depending on ivegcov)
+62:       xvegfrac = 0.
+63:       xisoiltex = 0.
+64:       xsoilw = 0.
+65:       xsurfwd = 0.
+66:       xz0 = 0.
+67:       xclayrow = 0.
+68:       xroarow = 0.
+69:       xsrel2d = 0.
+70:       xsand2row = 0.
+71:       xustarnd=0.
+72:       xfland = 0.0
+73:       xrsfrow = 0.
+74:  
+75:       ieff = 0
+76:       ieffmax = 0
+77:       do i = il1 , il2
+78:         if ( (ivegcov(i).eq.8 .or. ivegcov(i).eq.11) .and.              &
+79:            & (isoiltex(i).gt.0 .and. isoiltex(i).le.12) ) then
+80:           ieff = ieff + 1
+81:           xvegfrac(ieff) = vegfrac(i)
+82:           xisoiltex(ieff) = isoiltex(i)
+83:           xsoilw(ieff) = soilw(i)
+84:           xsurfwd(ieff) = surfwd(i)
+85:           xz0(ieff) = z0(i)
+86:           xroarow(ieff) = roarow(i)
+87:           xustarnd(ieff) = ustarnd(i) 
+88: !         soil parameters
+89: !         ok if one texture per grid cell
+90:           do ns = 1 , nsoil
+91:             xsrel2d(ieff,ns,xisoiltex(ieff)) = srel2d(i,jloop,ns)
+92:           end do
+93:  
+94:           xclayrow(ieff) = clayrow2(i,jloop)
+95:           do n = 1 , nats
+96:             xsand2row(ieff,n) = sand2row2(i,n,jloop)
+97:           end do
+98:           do n = 1 , 20
+99:             xfland(ieff,n) = 1
+100:           end do
+101:         end if
+102:       end do
+103:  
+104:       ieffmax = ieff
+105: 
+106: !     if ( ieffmax>0. ) print *, maxval(xustarnd)
+107: 
+108:       if ( ieffmax.gt.0 ) call <a href="./dsflx.F90.html#dust_module" TARGET=CENT_PANEL>dust_module</a>(1,ieffmax,ilg,trsize,xsoilw, &
+109:          & xvegfrac,xsurfwd,xfland,xclayrow,xsand2row,xroarow,xz0,      &
+110:          & xsrel2d,xustarnd,xrsfrow,luc)
+111:         
+112: !     if ( ieffmax>0. ) print *, 'FLUX : ' , maxval(xrsfrow)
+113: !     put back the dust flux on the right grid
+114:  
+115:       ieff = 0
+116:  
+117:       do i = il1 , il2
+118:         if ( (ivegcov(i).eq.8 .or. ivegcov(i).eq.11) .and.              &
+119:            & (isoiltex(i).gt.0 .and. isoiltex(i).le.12) ) then
+120:           ieff = ieff + 1
+121:           do n = 1 , nbin
+122:             rsfrow(i,n) = xrsfrow(ieff,n)
+123:           end do
+124:         end if
+125:       end do
+126:  
+127:       end subroutine sfflux
+128: ! 
+<p><a name=dust_module><H3>dust_module</H3></a></p> Click <a href="./callingtree/dust_module_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where dust_module is used.
+<hr>
+129:       subroutine dust_module(il1,il2,ilg,trsize,soilw,vegfrac,surfwd,   &
+130:                            & fland,clayrow,sand2row,roarow,z0,srel,     &
+131:                            & ustarnd,rsfrow,luc)
+132:  
+133:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+134:       use <a href="./mod_dust.F90.html#mod_dust" TARGET=CENT_PANEL>mod_dust</a>
+135:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a>
+136:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : vonkar
+137:       use <a href="./mod_aero_param.F90.html#mod_aero_param" TARGET=CENT_PANEL>mod_aero_param</a> , only : rhop
+138:       implicit none
+139: !
+140: ! Dummy arguments
+141: !
+142:       integer :: il1 , il2 , ilg , luc
+143:       real(8) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
+144:                                 & vegfrac , z0 , ustarnd
+145:       real(8) , dimension(ilg,20) :: fland
+146:       real(8) , dimension(ilg,nbin) :: rsfrow
+147:       real(8) , dimension(ilg,nats) :: sand2row
+148:       real(8) , dimension(ilg,nsoil,nats) :: srel
+149:       real(8) , dimension(nbin,2) :: trsize
+150:       intent (in) clayrow , soilw , surfwd , z0 , ustarnd
+151: !
+152: ! Local variables
+153: !
+154:       real(8) , dimension(ilg) :: alamda , hc , rc , srl , wprim
+155:       real(8) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,        &
+156:                & umin , ustarns , uth , utmin , x , xz , ym , z0s
+157:       integer :: i
+158:       real(8) , dimension(ilg,nats) :: ustar
+159:       real(8) , dimension(ilg,nsoil) :: utheff
+160: !
+161:       data umin/15./
+162:       data xz/0.25/ , br/202.0/ , ym/0.16/ , sigr/1.45/
+163:       data z0s/3.E-3/ , x/10./
+164: 
+165:       do i = il1 , il2
+166:  
+167:         srl(i) = z0(i)*100.0
+168:         rc(i) = 1.0
+169:  
+170:         if ( jfs.eq.0 ) then
+171:  
+172: ! *****************************************************************
+173: !         * raupach et al. (1993)                                     
+174: !         ****
+175: ! *****************************************************************
+176:           if ( vegfrac(i).lt.1.0 ) then
+177:             alamda(i) = xz*(log(1.0-vegfrac(i)))*(-1.0)
+178:             arc1 = sigr*ym*alamda(i)
+179:             arc2 = br*ym*alamda(i)
+180:             if ( arc1.le.1.0 .and. arc2.le.1.0 ) rc(i)                  &
+181:                & = (sqrt(1.0-arc1)*sqrt(1.0+arc2))
+182:           end if
+183:  
+184:         else if ( jfs.eq.1 ) then
+185: !
+186: !         Marticorena et al., 1997: correction factor for non erodible elements
+187: !  
+188:           rc(i) = 1 - (dlog(0.5E-2/z0s)/(dlog(0.35*(x/z0s)**0.8)))
+189:  
+190:         end if
+191:  
+192: !       *************************************************************
+193: !       threshold velocity correction for soil humidity hc
+194: !***************************************************************
+195:  
+196:         if ( jsoilm.eq.0 ) then
+197:  
+198:           if ( soilw(i).lt.0.0 ) then
+199:             write (aline,*) 'hc, rc =' , soilw(i) , ' less than zero'
+200:             call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+201:             call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'NEGATIVE SOILW')
+202:           else if ( soilw(i).lt.0.03 ) then
+203:             hc(i) = exp(22.7*soilw(i))
+204:           else if ( soilw(i).ge.0.03 ) then
+205:             hc(i) = exp(95.3*soilw(i)-2.029)
+206:           else
+207:             hc(i) = 1.0
+208:           end if
+209:  
+210:         else if ( jsoilm.eq.1 ) then
+211:  
+212:           cly1 = clayrow(i)
+213:           cly2 = cly1*cly1
+214:           wprim(i) = 0.0014*cly2 + 0.17*cly1
+215:           if ( soilw(i).lt.wprim(i) ) then
+216:             hc(i) = sqrt(1.0+1.21*tempd**0.68)
+217:           else
+218:             hc(i) = 1.0
+219:           end if
+220:  
+221: !       no soil humidity correction facor if jsoilm > 1
+222:         else
+223:           hc(i)=1.0
+224:         end if
+225:  
+226: ! *****************************************************************
+227: !       * total correction factor for both hc and rc                
+228: !       ****
+229: ! *****************************************************************
+230:         rc(i) = rc(i)/hc(i)
+231:  
+232: ! *******************************************************************
+233: !       *     computation of the wind friction velocity              
+234: !       ***** *     accounting for the increase of the roughness length
+235: !       ***** *     due to the saltation layer (gillette etal. jgr 103,
+236: !       ***** *     no. d6, p6203-6209, 1998                           
+237: !       *****
+238: ! *******************************************************************
+239: !       ustarns = (vonkar*100.*surfwd(i))/(log(1000./srl(i)))
+240: 
+241:         ustarns = ustarnd(i)*100 !cm.s-1
+242:         utmin = (umin/(100.*vonkar*rc(i)))*log(1000./srl(i))
+243:  
+244: ! *******************************************************************
+245: !       *     vonkar=karman constant, and 1000 cm =10 m:            
+246: !       ***** *     the height of wind defined level. umin: 21 cm/s:   
+247: !       ***** *    the minimal threshold wind friction velocity.       
+248: !       *****
+249:  
+250: ! *******************************************************************
+251:         if ( surfwd(i).ge.utmin ) then
+252:           ustar(i,:) = ustarns + 0.3*(surfwd(i)-utmin)*(surfwd(i)-utmin)
+253:         else
+254:           ustar(i,:) = ustarns
+255:         end if
+256:  
+257:       end do       ! end i loop
+258:  
+259:       call <a href="./dsflx.F90.html#uthefft" TARGET=CENT_PANEL>uthefft</a>(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop,dp)
+260:  
+261:       call <a href="./dsflx.F90.html#emission" TARGET=CENT_PANEL>emission</a>(ilg,il1,il2,luc,rhop,nsoil,nbin,nats,fland,uth,     &
+262:                   & roarow,dp,rc,utheff,ustar,srel,rsfrow,trsize,       &
+263:                   & sand2row,vegfrac)
+264:  
+265:       end subroutine dust_module
+266: ! 
+<p><a name=uthefft><H3>uthefft</H3></a></p> Click <a href="./callingtree/uthefft_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where uthefft is used.
+<hr>
+267:       subroutine uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop,dp)
+268:       implicit none
+269: !
+270: ! Dummy arguments
+271: !
+272:       integer :: il1 , il2 , ilg , nsoil , ust
+273:       real(8) :: rhop
+274:       real(8) , dimension(nsoil) :: dp
+275:       real(8) , dimension(ilg) :: roarow
+276:       real(8) , dimension(ilg,nsoil) :: utheff
+277:       intent (in) il1 , il2 , ilg , nsoil , ust
+278:       intent (out) utheff
+279: !
+280: ! Local variables
+281: !
+282:       integer :: i , j
+283:       real(8) , external :: ustart0, ustart01
+284: !
+285:       do i = 1 , nsoil
+286:         do j = il1 , il2
+287:           if ( ust.eq.0 ) utheff(j,i) = <a href="./dsflx.F90.html#ustart0" TARGET=CENT_PANEL>ustart0</a>(rhop,dp(i),roarow(j))
+288:           if ( ust.eq.1 ) utheff(j,i) = <a href="./dsflx.F90.html#ustart01" TARGET=CENT_PANEL>ustart01</a>(rhop,dp(i),roarow(j))
+289:         end do
+290:       end do
+291:  
+292:       end subroutine uthefft
+293: ! 
+<p><a name=ustart01><H3>ustart01</H3></a></p> Click <a href="./callingtree/ustart01_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where ustart01 is used.
+<hr>
+294:       function ustart01(rhop,dum,rhair)
+295:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti
+296:       implicit none
+297: !
+298: ! PARAMETER definitions
+299: !
+300:       real(8) , parameter :: a2 = 0.129 , c1 = 0.006 , c2 = 1.928 ,     &
+301:                            & c3 = 0.0858 , c4 = -0.0617 , c5 = 2.5 ,    &
+302:                            & y1 = 1331.647 , y2 = 1.561228 ,            &
+303:                            & y3 = 0.38194
+304: !
+305: ! Dummy arguments
+306: !
+307:       real(8) :: dum , rhair , rhop
+308:       real(8) :: ustart01
+309:       intent (in) dum , rhair , rhop
+310: !
+311: ! Local variables
+312: !
+313:       real(8) :: dm , rep , term , term1 , term2
+314:       real(8) , external :: cvmgt
+315: !
+316: !     *****************************************************************
+317: !     * calculate of ustar01(d) using iversen and white (1982)     ****
+318: !     * for smoth surface:                                         ****
+319: !     * coded by :                                                 ****
+320: !     * ashraf s. zakey, 2003                                      ****
+321: !     * dum    : particle diameter [um]                            ****
+322: !     * ustar0 : threshold frication velocity [m/s]                ****
+323: !     *****************************************************************
+324:  
+325:       dm = dum  !* 1.0e-4      ! cm
+326:       rep = y1*(dm**y2) + y3
+327:       term1 = sqrt(1.0+(c1/(rhop*gti*0.1*(dm**c5))))
+328:       term2 = sqrt(rhop*gti*100.0*dm/rhair)
+329:       term = term1*term2
+330:       <a href="./dsflx.F90.html#ustart01" TARGET=CENT_PANEL>ustart01</a> = cvmgt(a2*term*(1.0-c3*exp(c4*(rep-10.0))),             &
+331:                & a2*term/sqrt(c2*(rep**0.092)-1.0),rep.gt.10.0)
+332:  
+333:       end function ustart01
+334: ! 
+<p><a name=ustart0><H3>ustart0</H3></a></p> Click <a href="./callingtree/ustart0_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where ustart0 is used.
+<hr>
+335:       function ustart0(rhop,dum,rhoa)
+336:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti
+337:       implicit none
+338: !
+339: ! PARAMETER definitions
+340: !
+341:       real(8) , parameter :: agamma = 3.0E-4 , f = 0.0123
+342: !
+343: ! Dummy arguments
+344: !
+345:       real(8) :: dum , rhoa , rhop
+346:       real(8) :: ustart0
+347:       intent (in) dum , rhoa , rhop
+348: !
+349: ! Local variables
+350: !
+351:       real(8) :: dm , sigma
+352: !
+353: !     *****************************************************************
+354: !     *                                                            ****
+355: !     * modified by a.s.zakey, nov.2003                            ****
+356: !     * y. shao, 13 june 2000                                      ****
+357: !     * calculate ustar0(d) using shao and lu (2000) for uncovered ****
+358: !     * dry surface                                                ****
+359: !     * dum:    particle diameter                   [um]           ****
+360: !     * ustar0: threshold friction velocity       [cm/s]           ****
+361: !     *****************************************************************
+362:                                    ! a constant
+363:  
+364:       sigma = rhop/rhoa        ! gravity parameter    [m s^-2]
+365:       dm = dum*1.0E-2    !* 1.0e-6
+366:       <a href="./dsflx.F90.html#ustart0" TARGET=CENT_PANEL>ustart0</a> = f*(sigma*gti*dm+agamma/(rhoa*dm))
+367:       <a href="./dsflx.F90.html#ustart0" TARGET=CENT_PANEL>ustart0</a> = sqrt(<a href="./dsflx.F90.html#ustart0" TARGET=CENT_PANEL>ustart0</a>)
+368:       <a href="./dsflx.F90.html#ustart0" TARGET=CENT_PANEL>ustart0</a> = <a href="./dsflx.F90.html#ustart0" TARGET=CENT_PANEL>ustart0</a>*100.0
+369:       end function ustart0
+370: ! 
+<p><a name=cvmgt><H3>cvmgt</H3></a></p> Click <a href="./callingtree/cvmgt_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where cvmgt is used.
+<hr>
+371:       function cvmgt(val1,val2,cond)
+372:       implicit none
+373: !
+374: ! Dummy arguments
+375: !
+376:       logical :: cond
+377:       real(8) :: val1 , val2
+378:       real(8) :: cvmgt
+379:       intent (in) cond , val1 , val2
+380: !
+381:       if ( cond ) then
+382:         <a href="./dsflx.F90.html#cvmgt" TARGET=CENT_PANEL>cvmgt</a> = val1
+383:       else
+384:         <a href="./dsflx.F90.html#cvmgt" TARGET=CENT_PANEL>cvmgt</a> = val2
+385:       end if
+386: !
+387:       end function cvmgt
+388: !
+<p><a name=emission><H3>emission</H3></a></p> Click <a href="./callingtree/emission_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where emission is used.
+<hr>
+389:       subroutine emission(ilg,il1,il2,luc,rhop,nsoil,nbin,nats,fland,   &
+390:                         & uth,roarow,dp,rc,utheff,ustar,srel,rsfrow,    &
+391:                         & trsize,sand2row,vegfrac)
+392:  
+393:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : rgti , mathpi
+394:       implicit none
+395: !
+396: ! PARAMETER definitions
+397: !
+398:       integer , parameter :: isize = 12
+399: !
+400: ! Dummy arguments
+401: !
+402:       integer :: il1 , il2 , ilg , luc , nats , nbin , nsoil
+403:       real(8) :: rhop , uth
+404:       real(8) , dimension(nsoil) :: dp
+405:       real(8) , dimension(ilg,luc) :: fland
+406:       real(8) , dimension(ilg) :: rc , roarow , vegfrac
+407:       real(8) , dimension(ilg,nbin) :: rsfrow
+408:       real(8) , dimension(ilg,nats) :: sand2row , ustar
+409:       real(8) , dimension(ilg,nsoil,nats) :: srel
+410:       real(8) , dimension(nbin,2) :: trsize
+411:       real(8) , dimension(ilg,nsoil) :: utheff
+412:       intent (in) dp , fland , il1 , il2 , ilg , luc , nats , nbin ,    &
+413:                 & nsoil , rc , rhop , roarow , sand2row , srel ,        &
+414:                 & trsize , ustar , utheff , vegfrac
+415:       intent (inout) rsfrow , uth
+416: !
+417: ! Local variables
+418: !
+419:       real(8) :: aeffect , alogdi , amean1 , amean2 , amean3 , asigma1 ,&
+420:                & asigma2 , asigma3 , beffect , beta , const , d1 , d2 , &
+421:                & d3 , dec , e1 , e2 , e3 , ec , f , fdp1 , fdp2 , p1 ,  &
+422:                & p2 , p3 , rwi , sigma1 , sigma2 , sigma3 , totv1 ,     &
+423:                & totv2 , totv3
+424:       real(8) , dimension(2,isize) :: aerosize
+425:       real(8) , dimension(isize) :: frac1 , frac2 , frac3
+426:       real(8) , dimension(ilg) :: fsoil , fsoil1 , fsoil2 , fsoil3
+427:       integer :: i , j , k , n
+428:       real(8) , dimension(ilg,isize) :: rsfrowsub
+429: !
+430:       data const/2.3/ , beta/16300./
+431: !     alfaro 's values
+432:       data e1/3.61/ , e2/3.52/ , e3/3.46/
+433:       data d1/1.5/ , d2/6.7/ , d3/14.2/
+434:       data sigma1/1.7/ , sigma2/1.6/ , sigma3/1.5/
+435:  
+436: !     emissions  bins (sub-bins)
+437:       data aerosize/1.0E-08 , 2.0E-08 , 2.0E-08 , 4.0E-08 , 4.0E-08 ,   &
+438:          & 8.0E-08 , 8.0E-08 , 1.6E-07 , 1.6E-07 , 3.2E-07 , 3.2E-07 ,  &
+439:          & 6.4E-07 , 6.4E-07 , 1.28E-06 , 1.28E-06 , 2.56E-06 ,         &
+440:          & 2.56E-06 , 5.12E-06 , 5.12E-06 , 10.4E-06 , 10.24E-06 ,      &
+441:          & 20.48E-06 , 20.48E-06 , 40.6E-06/
+442:  
+443:       p1 = 0.0
+444:       p2 = 0.0
+445:       p3 = 0.0
+446:       fsoil(:) = 0.
+447:       fsoil1(:) = 0.
+448:       fsoil2(:) = 0.
+449:       fsoil3(:) = 0.
+450:  
+451:       do i = 1 , nats
+452:         do j = 1 , nsoil
+453:           do k = il1 , il2
+454:  
+455:             if ( rc(k).gt.0.0 .and. ustar(k,i).ne.0. ) then
+456:               uth = utheff(k,j)/(rc(k)*ustar(k,i))
+457:  
+458:               if ( uth.le.1.0 ) then
+459:  
+460:                 fdp1 = ustar(k,i)**3*(1.0-uth*uth)
+461:                 fdp2 = (1.0+uth)*const*(1.E-5)*roarow(k)*rgti
+462:  
+463:                 if ( fdp2.le.0.0 ) fdp2 = 0.
+464:  
+465:                 f = 0.0D0
+466:                 aeffect = (1-f)*(1-vegfrac(k))
+467:                 beffect = 0.01*fland(k,i)*sand2row(k,i)
+468:  
+469: ! FAB 
+470: !               fsoil(k) = srel(k,j,i)*fdp1*fdp2*aeffect*beffect
+471: ! FAB 
+472:                 fsoil(k) = srel(k,j,i)*fdp1*fdp2 
+473:  
+474: !               size-distributed kinetic energy flux
+475:                 dec = fsoil(k)*beta
+476: !               individual kinetic energy for an aggregate of size dp (
+477: !               g cm2 s-2) cf alfaro (dp) is in cm
+478: !               ec=(pi/3.)*1.e-1*rhop*(dp(j)**3.0)*(ustar(k,i)**2.0)
+479:                 ec = (mathpi/12)*rhop*1E-3*(dp(j)**3.0)*                &
+480:                     & (20*ustar(k,i))**2.0
+481:  
+482:                 if ( ec.gt.e1 ) then
+483:                   p1 = (ec-e1)/(ec-e3)
+484:                   p2 = (1-p1)*(ec-e2)/(ec-e3)
+485:                   p3 = 1 - p1 - p2
+486:                 else if ( ec.gt.e2 .and. ec.le.e1 ) then
+487:                   p1 = 0.
+488:                   p2 = (ec-e2)/(ec-e3)
+489:                   p3 = 1 - p2
+490:                 else if ( ec.gt.e3 .and. ec.le.e2 ) then
+491:                   p1 = 0.
+492:                   p2 = 0.
+493:                   p3 = 1.
+494:                 else if ( ec.le.e3 ) then
+495:                   p1 = 0.
+496:                   p2 = 0.
+497:                   p3 = 0.
+498:                 else
+499:                 end if
+500:  
+501:                 fsoil1(k) = fsoil1(k) + 1.E-2*p1*(dec/e1)*(mathpi/6.)   &
+502:                           & *rhop*((d1*1.E-04)**3.)
+503:                 fsoil2(k) = fsoil2(k) + 1.E-2*p2*(dec/e2)*(mathpi/6.)   &
+504:                           & *rhop*((d2*1.E-04)**3.)
+505:                 fsoil3(k) = fsoil3(k) + 1.E-2*p3*(dec/e3)*(mathpi/6.)   &
+506:                           & *rhop*((d3*1.E-04)**3.)
+507:               end if
+508:             end if
+509:           end do
+510:         end do
+511:       end do
+512: 
+513:       totv1 = 0.0
+514:       totv2 = 0.0
+515:       totv3 = 0.0
+516:  
+517:       do n = 1 , isize
+518:         rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
+519:         alogdi = log10(rwi)
+520:         amean1 = log10(d1)
+521:         amean2 = log10(d2)
+522:         amean3 = log10(d3)
+523:  
+524:         asigma1 = log10(sigma1)
+525:         asigma2 = log10(sigma2)
+526:         asigma3 = log10(sigma3)
+527:  
+528:         frac1(n) = exp(-(alogdi-amean1)**2./(2*asigma1**2))
+529:         frac2(n) = exp(-(alogdi-amean2)**2./(2*asigma2**2))
+530:         frac3(n) = exp(-(alogdi-amean3)**2./(2*asigma3**2))
+531:  
+532:         totv1 = totv1 + frac1(n)
+533:         totv2 = totv2 + frac2(n)
+534:         totv3 = totv3 + frac3(n)
+535:       end do
+536: 
+537:       do n = 1 , isize
+538:         frac1(n) = frac1(n)/totv1
+539:         frac2(n) = frac2(n)/totv2
+540:         frac3(n) = frac3(n)/totv3
+541:         if ( frac1(n).lt.1.E-9 ) frac1(n) = 0.0
+542:         if ( frac2(n).lt.1.E-9 ) frac2(n) = 0.0
+543:         if ( frac3(n).lt.1.E-9 ) frac3(n) = 0.0
+544:       end do
+545: 
+546:       do n = 1 , isize
+547:         do i = il1 , il2
+548:  
+549: !         discretisation of the modal emission in isize emission sub bin
+550:           rsfrowsub(i,n) = fsoil1(i)*frac1(n) + fsoil2(i)*frac2(n)      &
+551:                          & + fsoil3(i)*frac3(n)
+552:  
+553: !         and in tranport bins (nbin)
+554:           rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
+555: 
+556:           do k = 1 , nbin
+557:             if ( rwi.ge.trsize(k,1) .and. rwi.lt.trsize(k,2) )          &
+558:                & rsfrow(i,k) = rsfrow(i,k) + rsfrowsub(i,n)
+559:           end do
+560:         end do
+561:       end do
+562:  
+563:       end subroutine emission
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

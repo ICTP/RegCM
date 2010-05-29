@@ -1,0 +1,244 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_date.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_date.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_date.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_date><H3>mod_date</H3></a></p>20:       module mod_date
+21:       implicit none
+22:  
+23:       integer :: ntimax
+24:       integer :: nnnnnn , nnnchk , nnnend , nstart , nstrt0 , nnbase
+25:       integer :: ldatez , lyear , lmonth , lday , lhour
+26:       integer :: jyear , jyear0 , jyearr , ntime
+27: 
+28:       integer :: mdate , mdate0 , moutdate
+29:       integer :: nmonth , nyear
+30: 
+31:       integer :: mmrec , ndate0 , ndate1
+32:       integer :: idate0 , idate1 , idate2 , idatee , idates , idatex
+33: 
+34:       integer :: julday , julian
+35:       real(8) :: declin , dectim , deltmx , gmt
+36:       real(8) :: xtime
+37:       integer :: ktau , ktaur
+38: 
+39:       real(8) :: calday , dtime , twodt
+40:       logical :: doabsems , dolw , dosw
+41:       integer :: mbdate , mbsec , mcdate , mcsec , mdbase , mdcur ,     &
+42:                & msbase , mscur , nelapse , nestep , nnbdat , nnbsec ,  &
+43:                & nndbas , nnsbas , nrstrt , nstep , nstepr , nstop
+44: 
+45:       contains
+46: 
+<p><a name=initdate><H3>initdate</H3></a></p> Click <a href="./callingtree/initdate_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where initdate is used.
+<hr>
+47:       subroutine initdate
+48:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+49:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+50:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a>
+51:       implicit none
+52: !
+53: ! Local variables
+54: !
+55:       integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
+56: !
+57:       if ( ibdyfrq.eq.6 ) then
+58:         nrec = 0
+59:         do nyear = 1948 , 2145
+60:           mbase = nyear*1000000
+61:           do mon = 1 , 12
+62:             mbase = mbase + 10000
+63:             if ( mon.eq.1 .or. mon.eq.3 .or. mon.eq.5 .or. mon.eq.7 .or.&
+64:                & mon.eq.8 .or. mon.eq.10 .or. mon.eq.12 ) then
+65:               nday = 31
+66:             else if ( mon.eq.4 .or. mon.eq.6 .or. mon.eq.9 .or.         &
+67:                     & mon.eq.11 ) then
+68:               nday = 30
+69:             else
+70:               nday = 28
+71:               if ( mod(nyear,400).eq.0 .or.                             &
+72:                & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) )      &
+73:                &  nday = nday + 1
+74:             end if
+75:             nbase = mbase
+76:             do i = 1 , nday
+77:               nbase = nbase + 100
+78:               do m = 1 , 4
+79:                 nrec = nrec + 1
+80:                 if ( m.eq.1 ) then
+81:                   mdatez(nrec) = nbase
+82:                 else if ( m.eq.2 ) then
+83:                   mdatez(nrec) = nbase + 6
+84:                 else if ( m.eq.3 ) then
+85:                   mdatez(nrec) = nbase + 12
+86:                 else
+87:                   mdatez(nrec) = nbase + 18
+88:                 end if
+89:               end do
+90:             end do
+91:           end do
+92:         end do
+93:       else if ( ibdyfrq.eq.3 ) then
+94:         nrec = 0
+95:         do nyear = 1948 , 2046
+96:           mbase = nyear*1000000
+97:           do mon = 1 , 12
+98:             mbase = mbase + 10000
+99:             if ( mon.eq.1 .or. mon.eq.3 .or. mon.eq.5 .or. mon.eq.7 .or.&
+100:                & mon.eq.8 .or. mon.eq.10 .or. mon.eq.12 ) then
+101:               nday = 31
+102:             else if ( mon.eq.4 .or. mon.eq.6 .or. mon.eq.9 .or.         &
+103:                     & mon.eq.11 ) then
+104:               nday = 30
+105:             else
+106:               nday = 28
+107:               if ( mod(nyear,400).eq.0 .or.                             &
+108:                & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) )      &
+109:                &  nday = nday + 1
+110:             end if
+111:             nbase = mbase
+112:             do i = 1 , nday
+113:               nbase = nbase + 100
+114:               do m = 1 , 8
+115:                 nrec = nrec + 1
+116:                 if ( m.eq.1 ) then
+117:                   mdatez(nrec) = nbase
+118:                 else if ( m.eq.2 ) then
+119:                   mdatez(nrec) = nbase + 3
+120:                 else if ( m.eq.3 ) then
+121:                   mdatez(nrec) = nbase + 6
+122:                 else if ( m.eq.4 ) then
+123:                   mdatez(nrec) = nbase + 9
+124:                 else if ( m.eq.5 ) then
+125:                   mdatez(nrec) = nbase + 12
+126:                 else if ( m.eq.6 ) then
+127:                   mdatez(nrec) = nbase + 15
+128:                 else if ( m.eq.7 ) then
+129:                   mdatez(nrec) = nbase + 18
+130:                 else
+131:                   mdatez(nrec) = nbase + 21
+132:                 end if
+133:               end do
+134:             end do
+135:           end do
+136:         end do
+137:       else if ( ibdyfrq.eq.12 ) then
+138:         nrec = 0
+139:         do nyear = 1948 , 2145
+140:           mbase = nyear*1000000
+141:           do mon = 1 , 12
+142:             mbase = mbase + 10000
+143:             if ( mon.eq.1 .or. mon.eq.3 .or. mon.eq.5 .or. mon.eq.7 .or.&
+144:                & mon.eq.8 .or. mon.eq.10 .or. mon.eq.12 ) then
+145:               nday = 31
+146:             else if ( mon.eq.4 .or. mon.eq.6 .or. mon.eq.9 .or.         &
+147:                     & mon.eq.11 ) then
+148:               nday = 30
+149:             else
+150:               nday = 28
+151:               if ( mod(nyear,400).eq.0 .or.                             &
+152:                & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) )      &
+153:                &  nday = nday + 1
+154:             end if
+155:             nbase = mbase
+156:             do i = 1 , nday
+157:               nbase = nbase + 100
+158:               do m = 1 , 2
+159:                 nrec = nrec + 1
+160:                 if ( m.eq.1 ) then
+161:                   mdatez(nrec) = nbase
+162:                 else if ( m.eq.2 ) then
+163:                   mdatez(nrec) = nbase + 12
+164:                 else
+165:                 end if
+166:               end do
+167:             end do
+168:           end do
+169:         end do
+170:       else
+171:         write (aline,*) 'please double check your ibdyfrq'
+172:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+173:         write (aline,*) 'we only support ibdyfrq = 3, 6, or 12'
+174:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+175:         write (aline,*) 'and we use ibdyfrq = 6 as the default'
+176:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+177:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'UNSUPPORTED BOUNDARY FREQUENCY')
+178:       end if
+179:       write (aline,*) 'nrec = ' , nrec
+180:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+181:       end subroutine initdate
+182: !
+183: !
+184: !
+<p><a name=finddate><H3>finddate</H3></a></p> Click <a href="./callingtree/finddate_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where finddate is used.
+<hr>
+185:       subroutine finddate(npos,idate)
+186:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+187:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a>
+188:       implicit none
+189: !
+190: ! Dummy arguments
+191: !
+192:       integer :: idate , npos
+193:       intent (in) idate
+194:       intent (inout) npos
+195: !
+196: ! Local variables
+197: !
+198:       integer :: i
+199: !
+200:       i = 0
+201:       do
+202:         i = i + 1
+203:         if ( mdatez(i).eq.idate ) then
+204:           npos = i
+205:           exit
+206:         end if
+207:         if ( i.gt.289276 ) then
+208:  
+209:           write (aline,*) 'error in finddate : ' , npos , idate
+210:           call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+211:           call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'Date not found')
+212:           exit
+213:         end if
+214:       end do
+215:       end subroutine finddate
+216: 
+217:       end module mod_date
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,280 @@
+<HTML>
+
+<HEAD>
+<TITLE>conmas.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>conmas.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>conmas.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=conmas><H3>conmas</H3></a></p> Click <a href="./callingtree/conmas_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where conmas is used.
+<hr>
+20:       subroutine conmas
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine computes the total dry air and water substance  c
+25: !     within the domain and compares with the initial values.         c
+26: !                                                                     c
+27: !     ---the unit used in all the calculation is "kg".                c
+28: !                                                                     c
+29: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+30:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+31:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+32:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+33:       use <a href="./mod_diagnosis.f90.html#mod_diagnosis" TARGET=CENT_PANEL>mod_diagnosis</a>
+34:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+35:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : dsigma
+36:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+37:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+38:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : rgti
+39: #ifdef MPP1
+40:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+41:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+42: #endif
+43:       implicit none
+44: !
+45: ! Local variables
+46: !
+47:       real(8) :: error1 , error2 , tcmass , tcrai , tdrym , tncrai ,    &
+48:                & tqmass , tttmp , tvmass , xh
+49:       integer :: i , j , k
+50: #ifdef MPP1
+51:       integer :: ierr
+52: #endif
+53: !
+54: !----------------------------------------------------------------------
+55: !
+56:       error1 = 0.
+57:       error2 = 0.
+58: !
+59: !-----compute the total dry air and water substance in the model at
+60: !     this time:
+61: !
+62: !=======================================================================
+63: !
+64: !-----dry air (unit = kg):
+65: !
+66:       tdrym = 0.
+67: #ifdef MPP1
+68:       call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(psa(1,1),   iy*jxp,mpi_real8,                     &
+69:                     & psa_io(1,1),iy*jxp,mpi_real8,                     &
+70:                     & 0,mpi_comm_world,ierr)
+71:       if ( myid.eq.0 ) then
+72:         do k = 1 , kz
+73:           tttmp = 0.
+74:           do j = 1 , jxm1
+75:             do i = 1 , iym1
+76:               tttmp = tttmp + psa_io(i,j)
+77:             end do
+78:           end do
+79:           tdrym = tdrym + tttmp*dsigma(k)
+80:         end do
+81:         tdrym = tdrym*dx*dx*1000.*rgti
+82:       end if
+83:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(tdrym,1,mpi_real8,0,mpi_comm_world,ierr)
+84: #else
+85:       do k = 1 , kz
+86:         tttmp = 0.
+87:         do j = 1 , jxm1
+88:           do i = 1 , iym1
+89:             tttmp = tttmp + psa(i,j)
+90:           end do
+91:         end do
+92:         tdrym = tdrym + tttmp*dsigma(k)
+93:       end do
+94:       tdrym = tdrym*dx*dx*1000.*rgti
+95: #endif
+96: !
+97: !-----water substance (unit = kg):
+98: !
+99:       tvmass = 0.
+100: #ifdef MPP1
+101:       call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(qva(1,1,1),   iy*kz*jxp,mpi_real8,                &
+102:                     & qva_io(1,1,1),iy*kz*jxp,mpi_real8,                &
+103:                     & 0,mpi_comm_world,ierr)
+104:       if ( myid.eq.0 ) then
+105:         do k = 1 , kz
+106:           tttmp = 0.
+107:           do j = 1 , jxm1
+108:             do i = 1 , iym1
+109:               tttmp = tttmp + qva_io(i,k,j)
+110:             end do
+111:           end do
+112:           tvmass = tvmass + tttmp*dsigma(k)
+113:         end do
+114:         tvmass = tvmass*dx*dx*1000.*rgti
+115:       end if
+116:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(tvmass,1,mpi_real8,0,mpi_comm_world,               &
+117:                    & ierr)
+118: #else
+119:       do k = 1 , kz
+120:         tttmp = 0.
+121:         do j = 1 , jxm1
+122:           do i = 1 , iym1
+123:             tttmp = tttmp + qva(i,k,j)
+124:           end do
+125:         end do
+126:         tvmass = tvmass + tttmp*dsigma(k)
+127:       end do
+128:       tvmass = tvmass*dx*dx*1000.*rgti
+129: #endif
+130: !
+131:       tcmass = 0.
+132: 
+133: #ifdef MPP1
+134:       call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(qca(1,1,1),   iy*kz*jxp,mpi_real8,                &
+135:                     & qca_io(1,1,1),iy*kz*jxp,mpi_real8,                &
+136:                     & 0,mpi_comm_world,ierr)
+137:       if ( myid.eq.0 ) then
+138:         do k = 1 , kz
+139:           tttmp = 0.
+140:           do j = 1 , jxm1
+141:             do i = 1 , iym1
+142:               tttmp = tttmp + qca_io(i,k,j)
+143:             end do
+144:           end do
+145:           tcmass = tcmass + tttmp*dsigma(k)
+146:         end do
+147:         tcmass = tcmass*dx*dx*1000.*rgti
+148:       end if
+149:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(tcmass,1,mpi_real8,0,mpi_comm_world,               &
+150:                    & ierr)
+151: #else
+152:       do k = 1 , kz
+153:         tttmp = 0.
+154:         do j = 1 , jxm1
+155:           do i = 1 , iym1
+156:             tttmp = tttmp + qca(i,k,j)
+157:           end do
+158:         end do
+159:         tcmass = tcmass + tttmp*dsigma(k)
+160:       end do
+161:       tcmass = tcmass*dx*dx*1000.*rgti
+162: #endif
+163: 
+164:       tqmass = tvmass + tcmass
+165: 
+166: !=======================================================================
+167: !
+168: !-----conservation of dry air:
+169: !
+170:       tdrym = tdrym - tdadv
+171:       error1 = (tdrym-tdini)/tdini*100.
+172: !
+173: !-----conservation of water substance:
+174: !
+175: !-----total raifall at this time:
+176: !
+177: #ifdef MPP1
+178:       call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(rainc(1,1),   iy*jxp,mpi_real8,                   &
+179:                     & rainc_io(1,1),iy*jxp,mpi_real8,                   &
+180:                     & 0,mpi_comm_world,ierr)
+181:       call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(rainnc(1,1),   iy*jxp,mpi_real8,                  &
+182:                     & rainnc_io(1,1),iy*jxp,mpi_real8,                  &
+183:                     & 0,mpi_comm_world,ierr)
+184:       if ( myid.eq.0 ) then
+185:         tcrai = 0.
+186:         tncrai = 0.
+187:         do j = 1 , jxm1
+188:           do i = 1 , iym1
+189:             tcrai = tcrai + rainc_io(i,j)*dxsq
+190:             tncrai = tncrai + rainnc_io(i,j)*dxsq
+191:           end do
+192:         end do
+193:         tqrai = tcrai + tncrai
+194:       end if
+195:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
+196: #else
+197:       tcrai = 0.
+198:       tncrai = 0.
+199:       do j = 1 , jxm1
+200:         do i = 1 , iym1
+201:           tcrai = tcrai + rainc(i,j)*dxsq
+202:           tncrai = tncrai + rainnc(i,j)*dxsq
+203:         end do
+204:       end do
+205:       tqrai = tcrai + tncrai
+206: #endif
+207: !
+208:       tqmass = tqmass + tqrai - tqeva - tqadv
+209:       error2 = (tqmass-tqini)/tqini*100.
+210: !
+211: !-----print out the information:
+212: !
+213: #ifdef MPP1
+214:       if ( myid.eq.0 ) then
+215:         if ( ifprt .and. mod(ntime,nprtfrq).eq.0 ) then
+216:           xh = xtime/1440.
+217:           print * , '***** day = ' , ldatez + xh , ' *****'
+218:           print 99001 , tdrym , error1
+219:           print 99002 , tdadv
+220:           print 99003 , tqmass , error2
+221:           print 99004 , tvmass
+222:           print 99005 , tcmass
+223:           print 99006 , tqadv
+224:           print 99007 , tcrai
+225:           print 99008 , tncrai
+226:           print 99009 , tqeva
+227:         end if
+228:       end if
+229: #else
+230:       if ( ifprt .and. mod(ntime,nprtfrq).eq.0 ) then
+231:         xh = xtime/1440.
+232:         print * , '***** day = ' , ldatez + xh , ' *****'
+233:         print 99001 , tdrym , error1
+234:         print 99002 , tdadv
+235:         print 99003 , tqmass , error2
+236:         print 99004 , tvmass
+237:         print 99005 , tcmass
+238:         print 99006 , tqadv
+239:         print 99007 , tcrai
+240:         print 99008 , tncrai
+241:         print 99009 , tqeva
+242:       end if
+243: #endif
+244: 
+245: 99001 format ('   total air =',e12.5,' kg, error = ',e12.5)
+246: 99002 format ('   horizontal advection = ',e12.5,' kg.')
+247: 99003 format ('   total water =',e12.5,' kg, error = ',e12.5)
+248: 99004 format ('   qv                      = ',e12.5,' kg.')
+249: 99005 format ('   qc                      = ',e12.5,' kg.')
+250: 99006 format ('   horizontal advection    = ',e12.5,' kg.')
+251: 99007 format ('   convective railfall     = ',e12.5,' kg.')
+252: 99008 format ('   nonconvective rainfall  = ',e12.5,' kg.')
+253: 99009 format ('   evaporation from ground = ',e12.5,' kg.')
+254:  
+255:       end subroutine conmas
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

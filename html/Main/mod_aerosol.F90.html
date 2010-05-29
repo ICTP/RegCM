@@ -1,0 +1,1030 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_aerosol.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_aerosol.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_aerosol.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_aerosol><H3>mod_aerosol</H3></a></p>20:       module mod_aerosol
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: 
+26: !     MODIF 16/09/2005 IBRAH Internal mixing
+27: 
+28: !
+29: ! PARAMETER definitions
+30: !
+31: !      Num of spctrl intervals across solar spectrum
+32: !
+33:       integer , parameter :: nspi = 19   ! Spectral index
+34: !
+35:       integer , parameter :: ncoefs = 5  ! Number of coefficients
+36: !
+37: ! kscoef  - specific extinction (m2/g)
+38: ! wscoef  - single partical albedo
+39: ! gscoef  - asymmetry parameter
+40: ! ksbase  - specific extinction (m2/g) base
+41: ! wsbase  - single partical albedo base
+42: ! gsbase  - asymmetry parameter base
+43: ! ksdust  - specific extinction (m2/g) dust
+44: ! wsdust  - single partical albedo dust
+45: ! gsdust  - asymmetry parameter dust
+46: !
+47:       integer , private :: ii , jj ! coefficient index
+48: !
+49:       real(8) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl ,         &
+50:                                  & gsoc_hb , gsoc_hl , ksbase ,         &
+51:                                  & ksbc_hb , ksbc_hl , ksoc_hb ,        &
+52:                                  & ksoc_hl , wsbase , wsbc_hb ,         &
+53:                                  & wsbc_hl , wsoc_hb , wsoc_hl
+54:       real(8) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
+55:       real(8) , dimension(nspi,4) :: gsdust , ksdust , wsdust
+56:       real(4) , dimension(4,19,11,11,11,11) :: dextmix , dgmix , dssamix
+57: 
+58: !
+59: !     Aerosol mass mixing ratio
+60: !
+61:       real(8) , allocatable , dimension(:,:,:) :: aermm
+62: !
+63: !     Background aerosol mass mixing ratio
+64: !
+65:       real(8) , allocatable , dimension(:,:) :: aermmb
+66: 
+67: !
+68: !     Radiation level aerosol mass mixing ratio
+69: !
+70:       real(8) , allocatable , dimension(:,:,:) :: aermmr
+71: !
+72: !     Aerosol optical properties (for the mixing) 
+73: !
+74:       real(8) , allocatable , dimension(:,:,:) :: ftota_mix ,           &
+75:                  & gtota_mix , tauasc_mix , tauxar_mix
+76: !
+77:       real(8) , allocatable , dimension(:,:) :: ftota_mix_cs ,          &
+78:                  & gtota_mix_cs , tauasc_mix_cs , tauxar_mix_cs
+79: !
+80: !     Work arrays for aeroppt (aerosol individual optical properties SW)
+81: !
+82:       real(8) , allocatable , dimension(:,:) :: aermtot , aervtot
+83:       real(8) , allocatable , dimension(:,:,:) :: fa , ga , tauxar ,    &
+84:                               &                   uaer , wa
+85:       real(8) , allocatable , dimension(:,:) :: faer , gaer , tauaer ,  &
+86:                               &   utaer , waer
+87:       real(8) , dimension(4) :: frac , prop
+88: !
+89: !   Aersol LW optical properties
+90:       real(8) ,allocatable, dimension(:,:,:) ::  aerlwtr 
+91: !------------------------------------------------------------------------------
+92: !                  DATA SECTION
+93: !------------------------------------------------------------------------------
+94: 
+95:       data ksbase/5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 ,     &
+96:          & 5.206D0 , 5.206D0 , 3.203D0 , 3.203D0 , 1.302D0 , 5.992D-01 ,&
+97:          & 2.948D-01 , 1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 ,  &
+98:          & 5.770D-02 , 2.290D-01 , 2.270D-01/
+99: !
+100:       data ((kscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/1.126D+01 ,          &
+101:           & -2.502D-01 , -1.087D+00 , -1.794D+02 , 1.556D+01 ,          &
+102:           & 1.126D+01 , -2.502D-01 , -1.087D+00 , -1.794D+02 ,          &
+103:           & 1.556D+01 , 1.126D+01 , -2.502D-01 , -1.087D+00 ,           &
+104:           & -1.794D+02 , 1.556D+01 , 1.126D+01 , -2.502D-01 ,           &
+105:           & -1.087D+00 , -1.794D+02 , 1.556D+01 , 1.126D+01 ,           &
+106:           & -2.502D-01 , -1.087D+00 , -1.794D+02 , 1.556D+01 ,          &
+107:           & 1.126D+01 , -2.502D-01 , -1.087D+00 , -1.794D+02 ,          &
+108:           & 1.556D+01 , 1.126D+01 , -2.502D-01 , -1.087D+00 ,           &
+109:           & -1.794D+02 , 1.556D+01 , 1.124D+01 , -3.040D-01 ,           &
+110:           & -1.088D+00 , -1.776D+02 , 1.537D+01 , 1.124D+01 ,           &
+111:           & -3.040D-01 , -1.088D+00 , -1.776D+02 , 1.537D+01 ,          &
+112:           & 1.222D+01 , -3.770D-01 , -1.089D+00 , -1.898D+02 ,          &
+113:           & 1.504D+01 , 1.357D+01 , -4.190D-01 , -1.087D+00 ,           &
+114:           & -2.070D+02 , 1.478D+01 , 1.557D+01 , -4.353D-01 ,           &
+115:           & -1.083D+00 , -2.382D+02 , 1.486D+01 , 1.758D+01 ,           &
+116:           & -4.389D-01 , -1.078D+00 , -2.716D+02 , 1.505D+01 ,          &
+117:           & 1.597D+01 , -4.337D-01 , -1.073D+00 , -2.510D+02 ,          &
+118:           & 1.527D+01 , 2.107D+01 , -3.041D-01 , -1.067D+00 ,           &
+119:           & -2.494D+02 , 1.166D+01 , -2.424D-01 , -1.770D-01 ,          &
+120:           & -1.032D+00 , 1.469D-01 , 1.947D+00 , 2.535D+01 ,            &
+121:           & -2.270D-01 , -1.052D+00 , -2.528D+02 , 9.888D+00 ,          &
+122:           & -1.545D-01 , -1.661D-01 , -1.030D+00 , -4.698D-04 ,         &
+123:           & 7.275D-02 , 8.835D-01 , -1.590D-01 , -1.029D+00 ,           &
+124:           & -2.838D+01 , 2.734D+01/
+125: !
+126:       data wsbase/7.371D-08 , 7.371D-08 , 7.371D-08 , 7.371D-08 ,       &
+127:          & 7.371D-08 , 7.371D-08 , 7.371D-08 , 6.583D-08 , 6.583D-08 ,  &
+128:          & 3.656D-06 , 4.919D-05 , 3.539D-03 , 2.855D-02 , 2.126D-01 ,  &
+129:          & 8.433D-01 , 9.653D-01 , 6.198D-01 , 9.642D-01 , 9.699D-01/
+130: !
+131:       data ((wscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/2.492D+00 ,          &
+132:           & -5.210D-02 , -1.036D+00 , -4.398D+01 , 1.724D+01 ,          &
+133:           & 2.492D+00 , -5.210D-02 , -1.036D+00 , -4.398D+01 ,          &
+134:           & 1.724D+01 , 2.492D+00 , -5.210D-02 , -1.036D+00 ,           &
+135:           & -4.398D+01 , 1.724D+01 , 2.492D+00 , -5.210D-02 ,           &
+136:           & -1.036D+00 , -4.398D+01 , 1.724D+01 , 2.492D+00 ,           &
+137:           & -5.210D-02 , -1.036D+00 , -4.398D+01 , 1.724D+01 ,          &
+138:           & 2.492D+00 , -5.210D-02 , -1.036D+00 , -4.398D+01 ,          &
+139:           & 1.724D+01 , 2.492D+00 , -5.210D-02 , -1.036D+00 ,           &
+140:           & -4.398D+01 , 1.724D+01 , 1.139D+00 , -1.110D-02 ,           &
+141:           & -1.011D+00 , -7.754D+00 , 6.737D+00 , 1.139D+00 ,           &
+142:           & -1.110D-02 , -1.011D+00 , -7.754D+00 , 6.737D+00 ,          &
+143:           & 1.848D+00 , -3.920D-04 , -9.924D-01 , -1.607D+00 ,          &
+144:           & 8.587D-01 , 5.459D+00 , 9.357D-01 , -1.626D+00 ,            &
+145:           & -5.282D+00 , 1.066D+00 , 1.187D+00 , 2.241D-01 ,            &
+146:           & -1.226D+00 , 1.442D+01 , -1.402D+01 , -3.640D+00 ,          &
+147:           & 2.552D-01 , -1.168D+00 , 4.458D+01 , 1.152D+01 ,            &
+148:           & -5.634D+00 , 2.068D-01 , -1.122D+00 , 7.528D+01 ,           &
+149:           & 1.290D+01 , 1.826D-01 , 6.588D-02 , -1.098D+00 ,            &
+150:           & -1.996D-02 , 1.618D-01 , 2.164D+00 , 1.194D-01 ,            &
+151:           & -1.044D+00 , -3.221D+01 , 1.564D+01 , 2.268D-01 ,           &
+152:           & 3.266D-02 , -1.064D+00 , -2.677D-02 , 1.309D-01 ,           &
+153:           & 2.178D+00 , 1.151D-01 , -1.042D+00 , -3.325D+01 ,           &
+154:           & 1.600D+01 , 1.713D+00 , 9.166D-02 , -1.039D+00 ,            &
+155:           & -2.660D+01 , 1.629D+01/
+156: !
+157:       data gsbase/6.899D-01 , 6.899D-01 , 6.899D-01 , 6.899D-01 ,       &
+158:          & 6.899D-01 , 6.899D-01 , 6.899D-01 , 6.632D-01 , 6.632D-01 ,  &
+159:          & 5.912D-01 , 5.111D-01 , 4.269D-01 , 3.321D-01 , 2.197D-01 ,  &
+160:          & 1.305D-01 , 7.356D-02 , 1.602D-01 , 6.883D-02 , 6.304D-02/
+161: !
+162:       data ((gscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/ -9.874D-01 ,        &
+163:           & -3.033D+01 , -2.138D+01 , -2.265D+00 , 5.238D+00 ,          &
+164:           & -9.874D-01 , -3.033D+01 , -2.138D+01 , -2.265D+00 ,         &
+165:           & 5.238D+00 , -9.874D-01 , -3.033D+01 , -2.138D+01 ,          &
+166:           & -2.265D+00 , 5.238D+00 , -9.874D-01 , -3.033D+01 ,          &
+167:           & -2.138D+01 , -2.265D+00 , 5.238D+00 , -9.874D-01 ,          &
+168:           & -3.033D+01 , -2.138D+01 , -2.265D+00 , 5.238D+00 ,          &
+169:           & -9.874D-01 , -3.033D+01 , -2.138D+01 , -2.265D+00 ,         &
+170:           & 5.238D+00 , -9.874D-01 , -3.033D+01 , -2.138D+01 ,          &
+171:           & -2.265D+00 , 5.238D+00 , -3.666D-01 , -1.319D+00 ,          &
+172:           & -3.311D+00 , -2.821D-02 , 8.844D-01 , -3.666D-01 ,          &
+173:           & -1.319D+00 , -3.311D+00 , -2.821D-02 , 8.844D-01 ,          &
+174:           & 5.824D-01 , -1.875D-01 , -1.567D+00 , -4.402D+00 ,          &
+175:           & 6.268D+00 , 1.238D+00 , -1.550D-01 , -1.368D+00 ,           &
+176:           & -1.127D+01 , 8.334D+00 , 2.299D+00 , -1.686D-01 ,           &
+177:           & -1.304D+00 , -2.677D+01 , 1.101D+01 , 3.037D+00 ,           &
+178:           & -1.447D-01 , -1.223D+00 , -2.609D+01 , 8.267D+00 ,          &
+179:           & 4.683D+00 , -2.307D-01 , -1.241D+00 , -4.312D+01 ,          &
+180:           & 8.838D+00 , 3.842D+00 , -6.301D-01 , -1.367D+00 ,           &
+181:           & -4.144D+01 , 9.620D+00 , 3.237D+00 , -4.530D-01 ,           &
+182:           & -1.204D+00 , -3.234D+01 , 8.946D+00 , 4.181D+00 ,           &
+183:           & -4.140D-01 , -1.284D+00 , -4.489D+01 , 9.950D+00 ,          &
+184:           & 3.378D+00 , -4.334D-01 , -1.188D+00 , -3.664D+01 ,          &
+185:           & 9.786D+00 , 3.943D+00 , -3.952D-01 , -1.170D+00 ,           &
+186:           & -4.415D+01 , 1.031D+01/
+187: !
+188: !-----------------------------------------------------------------------
+189: !
+190:       data ksbc_hb/20.783 , 17.212 , 15.864 , 15.053 , 14.304 , 13.613 ,&
+191:          & 11.966 , 6.5782 , 4.3961 , 4.38 , 2.11 , 2.11 , 2.11 , 2.11 ,&
+192:          & 1.40 , 1.40 , 1.40 , 1.40 , 1.40/
+193:  
+194:       data wsbc_hb/0.24524 , 0.20962 , 0.195 , 0.18586 , 0.17719 ,      &
+195:          & 0.16897 , 0.14849 , 0.071748 , 0.037536 , .089 , .025 ,      &
+196:          & .025 , .025 , .025 , .009 , .009 , .009 , .009 , .009/
+197:  
+198:       data gsbc_hb/0.21387 , 0.17154 , 0.15564 , 0.1461 , 0.13732 ,     &
+199:          & 0.12923 , 0.11006 , 0.049175 , 0.026638 , .220 , .123 ,      &
+200:          & .123 , .123 , .123 , .073 , .073 , .073 , .073 , .073/
+201:  
+202: !----------------------------------------------------------------------
+203: 
+204:       data ksbc_hl/14.851 , 14.258 , 13.943 , 13.724 , 13.507 , 13.295 ,&
+205:          & 12.722 , 9.4434 , 6.9653 , 4.38 , 2.11 , 2.11 , 2.11 , 2.11 ,&
+206:          & 1.40 , 1.40 , 1.40 , 1.40 , 1.40/
+207:  
+208:       data wsbc_hl/0.46081 , 0.44933 , 0.44397 , 0.44065 , 0.43737 ,    &
+209:          & 0.43394 , 0.42346 , 0.35913 , 0.29579 , .089 , .025 , .025 , &
+210:          & .025 , .025 , .009 , .009 , .009 , .009 , .009/
+211:  
+212:       data gsbc_hl/0.69038 , 0.65449 , 0.63711 , 0.62542 , 0.61407 ,    &
+213:          & 0.60319 , 0.57467 , 0.4205 , 0.3066 , .220 , .123 , .123 ,   &
+214:          & .123 , .123 , .073 , .073 , .073 , .073 , .073/
+215:  
+216: !---------------------------------------------------------------------
+217: 
+218:       data ksoc_hb/6.0584 , 6.0654 , 6.1179 , 6.0102 , 5.8 , 5.6957 ,   &
+219:          & 5.6494 , 4.3283 , 3.1485 , 1.302 , 5.992D-01 , 2.948D-01 ,   &
+220:          & 1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 , 5.770D-02 ,  &
+221:          & 2.290D-01 , 2.270D-01/
+222:  
+223:       data wsoc_hb/0.91735 , 0.92365 , 0.92941 , 0.93067 , 0.93311 ,    &
+224:          & 0.93766 , 0.94042 , 0.95343 , 0.9548 , 0.70566 , 0.70566 ,   &
+225:          & 0.70566 , 0.70566 , 0.70566 , 0.70566 , 0.70566 , 0.70566 ,  &
+226:          & 0.70566 , 0.70566/
+227:  
+228:       data gsoc_hb/0.67489 , 0.67003 , 0.67725 , 0.65487 , 0.65117 ,    &
+229:          & 0.66116 , 0.64547 , 0.60033 , 0.55389 , 5.912D-01 ,          &
+230:          & 5.111D-01 , 4.269D-01 , 3.321D-01 , 2.197D-01 , 1.305D-01 ,  &
+231:          & 7.356D-02 , 1.602D-01 , 6.883D-02 , 6.304D-02/
+232:  
+233: !---------------------------------------------------------------------
+234: 
+235:       data ksoc_hl/3.543 , 3.623 , 3.7155 , 3.712 , 3.6451 , 3.6376 ,   &
+236:          & 3.6844 , 3.4588 , 2.9846 , 1.302 , 5.992D-01 , 2.948D-01 ,   &
+237:          & 1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 , 5.770D-02 ,  &
+238:          & 2.290D-01 , 2.270D-01/
+239:  
+240:       data wsoc_hl/0.87931 , 0.88292 , 0.89214 , 0.89631 , 0.89996 ,    &
+241:          & 0.9054 , 0.90805 , 0.93423 , 0.95012 , 0.85546 , 0.85546 ,   &
+242:          & 0.85546 , 0.85546 , 0.85546 , 0.85546 , 0.85546 , 0.85546 ,  &
+243:          & 0.85546 , 0.85546/
+244:  
+245:       data gsoc_hl/0.73126 , 0.71089 , 0.72042 , 0.69924 , 0.69908 ,    &
+246:          & 0.70696 , 0.68479 , 0.64879 , 0.63433 , 5.912D-01 ,          &
+247:          & 5.111D-01 , 4.269D-01 , 3.321D-01 , 2.197D-01 , 1.305D-01 ,  &
+248:          & 7.356D-02 , 1.602D-01 , 6.883D-02 , 6.304D-02/
+249:  
+250: !     DUST OP data base for external mixing : maximum of 4 bin for the
+251: !     momeent , determined from Zender et al.
+252:  
+253:       data ((ksdust(ii,jj),jj=1,4),ii=1,nspi)/1.8801 , 0.76017 ,        &
+254:           & 0.36681 , 0.16933 , 2.0254 , 0.78378 , 0.36845 , 0.17002 ,  &
+255:           & 1.9547 , 0.76389 , 0.37119 , 0.17032 , 1.8996 , 0.74916 ,   &
+256:           & 0.3722 , 0.17052 , 1.7946 , 0.74044 , 0.36984 , 0.17072 ,   &
+257:           & 1.7149 , 0.75401 , 0.36892 , 0.1709 , 1.5431 , 0.82322 ,    &
+258:           & 0.37505 , 0.17143 , 2.4482 , 0.8568 , 0.38078 , 0.17396 ,   &
+259:           & 3.1067 , 0.74488 , 0.43688 , 0.18104 , 0.50391 , 0.67245 ,  &
+260:           & 0.53605 , 0.20599 , 0.50391 , 0.67245 , 0.53605 , 0.20599 , &
+261:           & 0.50391 , 0.67245 , 0.53605 , 0.20599 , 0.50391 , 0.67245 , &
+262:           & 0.53605 , 0.20599 , 0.50391 , 0.67245 , 0.53605 , 0.20599 , &
+263:           & 0.50391 , 0.67245 , 0.53605 , 0.20599 , 0.50391 , 0.67245 , &
+264:           & 0.53605 , 0.20599 , 0.50391 , 0.67245 , 0.53605 , 0.20599 , &
+265:           & 0.50391 , 0.67245 , 0.53605 , 0.20599 , 0.50391 , 0.67245 , &
+266:           & 0.53605 , 0.20599/
+267:  
+268:       data ((wsdust(ii,jj),jj=1,4),ii=1,nspi)/0.64328 , 0.55196 ,       &
+269:           & 0.53748 , 0.54342 , 0.67757 , 0.56909 , 0.53639 , 0.54232 , &
+270:           & 0.67316 , 0.56027 , 0.53875 , 0.54181 , 0.66245 , 0.55338 , &
+271:           & 0.53947 , 0.54149 , 0.68132 , 0.5744 , 0.54328 , 0.54143 ,  &
+272:           & 0.6796 , 0.58467 , 0.54242 , 0.54113 , 0.72679 , 0.68744 ,  &
+273:           & 0.58564 , 0.54576 , 0.9473 , 0.88181 , 0.80761 , 0.70455 ,  &
+274:           & 0.97536 , 0.89161 , 0.86378 , 0.758 , 0.89568 , 0.96322 ,   &
+275:           & 0.95008 , 0.89293 , 0.89568 , 0.96322 , 0.95008 , 0.89293 , &
+276:           & 0.89568 , 0.96322 , 0.95008 , 0.89293 , 0.89568 , 0.96322 , &
+277:           & 0.95008 , 0.89293 , 0.89568 , 0.96322 , 0.95008 , 0.89293 , &
+278:           & 0.89568 , 0.96322 , 0.95008 , 0.89293 , 0.89568 , 0.96322 , &
+279:           & 0.95008 , 0.89293 , 0.89568 , 0.96322 , 0.95008 , 0.89293 , &
+280:           & 0.89568 , 0.96322 , 0.95008 , 0.89293 , 0.89568 , 0.96322 , &
+281:           & 0.95008 , 0.89293/
+282:  
+283:       data ((gsdust(ii,jj),jj=1,4),ii=1,nspi)/0.87114 , 0.92556 ,       &
+284:           & 0.94542 , 0.94831 , 0.86127 , 0.921 , 0.94355 , 0.94813 ,   &
+285:           & 0.838 , 0.91194 , 0.94304 , 0.94803 , 0.8176 , 0.90442 ,    &
+286:           & 0.94239 , 0.94796 , 0.77088 , 0.88517 , 0.9371 , 0.94775 ,  &
+287:           & 0.73925 , 0.88364 , 0.93548 , 0.94763 , 0.60695 , 0.86086 , &
+288:           & 0.91824 , 0.94473 , 0.64393 , 0.76457 , 0.8133 , 0.87784 ,  &
+289:           & 0.7476 , 0.62041 , 0.80665 , 0.85974 , 0.26761 , 0.56045 ,  &
+290:           & 0.68897 , 0.68174 , 0.26761 , 0.56045 , 0.68897 , 0.68174 , &
+291:           & 0.26761 , 0.56045 , 0.68897 , 0.68174 , 0.26761 , 0.56045 , &
+292:           & 0.68897 , 0.68174 , 0.26761 , 0.56045 , 0.68897 , 0.68174 , &
+293:           & 0.26761 , 0.56045 , 0.68897 , 0.68174 , 0.26761 , 0.56045 , &
+294:           & 0.68897 , 0.68174 , 0.26761 , 0.56045 , 0.68897 , 0.68174 , &
+295:           & 0.26761 , 0.56045 , 0.68897 , 0.68174 , 0.26761 , 0.56045 , &
+296:           & 0.68897 , 0.68174/
+297: !
+298:       contains
+299: 
+300: ! 
+<p><a name=allocate_mod_aerosol><H3>allocate_mod_aerosol</H3></a></p> Click <a href="./callingtree/allocate_mod_aerosol_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_aerosol is used.
+<hr>
+301:       subroutine allocate_mod_aerosol
+302:       implicit none   
+303: #ifdef MPP1
+304:       allocate(aermm(iym1,kz,jxp))
+305: #else
+306:       allocate(aermm(iym1,kz,jxm1))
+307: #endif 
+308:       allocate(aermmb(iym1,kz))
+309:       allocate(aermmr(iym1,kz,ntr))
+310:       allocate(ftota_mix(iym1,0:kz,nspi))
+311:       allocate(gtota_mix(iym1,0:kz,nspi))
+312:       allocate(tauasc_mix(iym1,0:kz,nspi))
+313:       allocate(tauxar_mix(iym1,0:kz,nspi))
+314:       allocate(ftota_mix_cs(iym1,nspi))
+315:       allocate(gtota_mix_cs(iym1,nspi))
+316:       allocate(tauasc_mix_cs(iym1,nspi))
+317:       allocate(tauxar_mix_cs(iym1,nspi))
+318:       allocate(aermtot(iym1,kz))
+319:       allocate(aervtot(iym1,kz))
+320:       allocate(fa(iym1,0:kz,ntr))
+321:       allocate(ga(iym1,0:kz,ntr))
+322:       allocate(tauxar(iym1,0:kz,ntr))
+323:       allocate(uaer(iym1,0:kz,ntr))
+324:       allocate(wa(iym1,0:kz,ntr))
+325:       allocate(faer(iym1,ntr))
+326:       allocate(gaer(iym1,ntr))
+327:       allocate(tauaer(iym1,ntr))
+328:       allocate(utaer(iym1,ntr))
+329:       allocate(waer(iym1,ntr))
+330:       allocate(aerlwtr(iym1,kzp1,kzp1))
+331:       end subroutine allocate_mod_aerosol
+332: 
+333: !
+334: ! SUBROUTINE AERMIX
+335: !
+<p><a name=aermix><H3>aermix</H3></a></p> Click <a href="./callingtree/aermix_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where aermix is used.
+<hr>
+336:       subroutine aermix(pint , rh , j , istart , iend , nx , nk , ntrac)
+337:  
+338: !-----------------------------------------------------------------------
+339: ! Set global mean tropospheric aerosol
+340: !
+341: ! Specify aerosol mixing ratio and compute relative humidity for later
+342: ! adjustment of aerosol optical properties. Aerosol mass mixing ratio
+343: ! is specified so that the column visible aerosol optical depth is a
+344: ! specified global number (tauvis). This means that the actual mixing
+345: ! ratio depends on pressure thickness of the lowest three atmospheric
+346: ! layers near the surface.
+347: !
+348: ! Optical properties and relative humidity parameterization are from:
+349: !
+350: ! J.T. Kiehl and B.P. Briegleb  "The Relative Roles of Sulfate Aerosols
+351: ! and Greenhouse Gases in Climate Forcing"  Science  260  pp311-314
+352: ! 16 April 1993
+353: !
+354: ! Visible (vis) here means 0.5-0.7 micro-meters
+355: ! Forward scattering fraction is taken as asymmetry parameter squared
+356: !
+357: !---------------------------Code history--------------------------------
+358: !
+359: ! Original version:  B. Briegleb  March 1995
+360: ! Standarized:       L. Buja,     Feb 1996
+361: ! Reviewed:          B. Briegleb, Mar 1996
+362: !
+363: !-----------------------------------------------------------------------
+364:  
+365:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a> , only : ichem
+366:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a> , only : rhb3d
+367:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a> , only : psa
+368:       use <a href="./mod_mainchem.F90.html#mod_mainchem" TARGET=CENT_PANEL>mod_mainchem</a> , only : chia
+369:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gtigts
+370:       implicit none
+371: !
+372: ! Dummy arguments
+373: !
+374:       integer :: j , istart , iend , nx , nk , ntrac
+375: !     Radiation level interface pressures (dynes/cm2)
+376:       real(8) , dimension(nx,nk+1) :: pint
+377: !     Radiation level relative humidity (fraction)
+378:       real(8) , dimension(nx,nk) :: rh
+379: !
+380:       intent (in) j , pint , istart , iend , nk , ntrac
+381:       intent (out) rh
+382: !
+383: !---------------------------Local variables-----------------------------
+384: !
+385: ! i      - longitude index
+386: ! k      - level index
+387: ! mxaerl - max nmbr aerosol levels counting up from surface
+388: ! tauvis - visible optical depth
+389: ! kaervs - visible extinction coefficiant of aerosol (m2/g)
+390: ! omgvis - visible omega0
+391: ! gvis   - visible forward scattering asymmetry parameter
+392: !
+393: !-----------------------------------------------------------------------
+394:  
+395:       real(8) :: gvis , kaervs , omgvis , rhfac , tauvis
+396:       integer :: i , itr , k , mxaerl
+397: !
+398:       data kaervs/5.3012D0/         ! multiplication factor for kaer
+399:       data omgvis/0.999999D0/
+400:       data gvis/0.694889D0/
+401:       data rhfac/1.6718D0/          ! EES added for efficiency
+402: !
+403: !--------------------------------------------------------------------------
+404: !
+405:       mxaerl = 4
+406: !
+407: !fil  tauvis = 0.01D0
+408:       tauvis = 0.04D0
+409: !
+410: !     Set relative humidity and factor; then aerosol amount:
+411: !
+412:       do k = 1 , nk
+413:         do i = istart , iend
+414:  
+415: !added    July 13, 2000: needed for aerosols in radiation
+416:           rh(i,k) = dmin1(rhb3d(i,k,j),0.99D0)
+417: !EES:     do not change to 1.00:  wscoef(3,10) in radcsw = .9924 and is
+418: !         divided by RH.  rh is limited to .99 to avoid dividing by zero
+419: !added
+420:  
+421: !
+422: !         Define background aerosol
+423: !         Find constant aerosol mass mixing ratio for specified levels
+424: !         in the column, converting units where appropriate
+425: !         for the moment no more used
+426: !
+427:           if ( k.ge.nk + 1 - mxaerl ) then
+428:             aermmb(i,k) = gtigts*tauvis/(1.0D4*kaervs*rhfac*(1.-omgvis* &
+429:                         & gvis*gvis)                                    &
+430:                         & *(pint(i,kzp1)-pint(i,kz + 1 - mxaerl)))
+431:           else
+432:             aermmb(i,k) = 0.0D0
+433:           end if
+434:  
+435: !         if(ichem .eq. 1 .and. idirect .eq. 1) then
+436:           if ( ichem.eq.1 ) then
+437:             do itr = 1 , ntrac
+438: !             aermmr(i,k,itr)= dmax1( chia(i,k,j,itr)/psa(i,j)
+439: !             $                               ,aermmb(i,k) )
+440:               aermmr(i,k,itr) = chia(i,k,j,itr)/psa(i,j)
+441:             end do
+442:           else if ( ehso4 ) then
+443:             do itr = 1 , ntrac
+444: !             aermmr(i,k,itr) = aermmb(i,k) + aermm(i,k,j)
+445: !Dec.11       aermmr(i,k,itr) = aermm(i,k,j)
+446:               aermmr(i,k,itr) = 0.0D0
+447: !Dec.11_
+448:             end do
+449:           else
+450:             do itr = 1 , ntrac
+451: !             aermmr(i,k,itr)= 0.0D0
+452:               aermmr(i,k,itr) = aermmb(i,k)
+453:             end do
+454:           end if
+455:         end do
+456:       end do
+457: !
+458:       end subroutine aermix
+459: !
+460: ! SUBROUTINE AEROPPT
+461: !
+<p><a name=aeroppt><H3>aeroppt</H3></a></p> Click <a href="./callingtree/aeroppt_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where aeroppt is used.
+<hr>
+462:       subroutine aeroppt(rh,pint)
+463: !
+464:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a> , only : ichem , idirect
+465:       use <a href="./mod_trachem.F90.html#mod_trachem" TARGET=CENT_PANEL>mod_trachem</a> , only : mixtype , chtrname , iso4 , ibchl ,      &
+466:                     &          iochl , idust
+467:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+468:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : rhoso4 , rhobc, rhooc, rhodust , gtigts
+469:       implicit none
+470: !
+471: ! Dummy arguments
+472: !
+473: !     Interface pressure, relative humidity
+474: !
+475:       real(8) , dimension(iym1,kzp1) :: pint
+476:       real(8) , dimension(iym1,kz) :: rh
+477:       intent (in) pint , rh
+478: !
+479: ! Local variables
+480: !
+481:       integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k , k1, k2 , ns
+482:       real(8) :: path , uaerdust , qabslw
+483: !
+484: ! uaer, tauxar  - Aerosol radiative properties (local arrays)
+485: ! wa            - Aerosol single scattering albedo
+486: ! ga            - Aerosol asimmetry parameter
+487: ! fa            - Aerosol forward scattered fraction
+488: ! utaer, tauaer - Total column aerosol extinction
+489: ! waer          - Aerosol single scattering albedo
+490: ! gaer          - Aerosol asymmetry parameter
+491: ! faer          - Aerosol forward scattered fraction
+492: !
+493:       if ( ichem.ne.1 ) then
+494:         tauxar_mix_cs(:,:) = 0.0
+495:         tauasc_mix_cs(:,:) = 0.0
+496:         gtota_mix_cs(:,:) = 0.0
+497:         ftota_mix_cs(:,:) = 0.0
+498:         tauxar_mix(:,:,:) = 0.0
+499:         tauasc_mix(:,:,:) = 0.0
+500:         gtota_mix(:,:,:) = 0.0
+501:         ftota_mix(:,:,:) = 0.0
+502:         return
+503:       end if
+504: 
+505:       if ( idirect.ge.1 ) then
+506:         tauxar = 0.0
+507:         wa = 0.0
+508:         ga = 0.0
+509:         fa = 0.0
+510:       else
+511: !       Nothing to do for this
+512:         tauxar_mix_cs(:,:) = 0.0
+513:         tauasc_mix_cs(:,:) = 0.0
+514:         gtota_mix_cs(:,:) = 0.0
+515:         ftota_mix_cs(:,:) = 0.0
+516:         tauxar_mix(:,:,:) = 0.0
+517:         tauasc_mix(:,:,:) = 0.0
+518:         gtota_mix(:,:,:) = 0.0
+519:         ftota_mix(:,:,:) = 0.0
+520:         return
+521:       end if
+522:  
+523: !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+524: !
+525: !       Option 1  melange externe
+526: !
+527: !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+528: 
+529:       if ( mixtype.eq.1 ) then
+530: !
+531: !       Spectral loop
+532: !
+533:         do ns = 1 , nspi
+534: 
+535:           tauxar_mix_cs(:,ns) = 0.0
+536:           tauasc_mix_cs(:,ns) = 0.0
+537:           gtota_mix_cs(:,ns) = 0.0
+538:           ftota_mix_cs(:,ns) = 0.0
+539: 
+540:           tauxar_mix(:,:,ns) = 0.0
+541:           tauasc_mix(:,:,ns) = 0.0
+542:           gtota_mix(:,:,ns) = 0.0
+543:           ftota_mix(:,:,ns) = 0.0
+544: 
+545:           uaer(:,0,:) = 0.0
+546:           tauxar(:,0,:) = 0.0
+547:           wa(:,0,:) = 0.0
+548:           ga(:,0,:) = 0.0
+549:           fa(:,0,:) = 0.0
+550:           utaer(:,:) = 0.0
+551:           tauaer(:,:) = 0.0
+552:           waer(:,:) = 0.0
+553:           gaer(:,:) = 0.0
+554:           faer(:,:) = 0.0
+555:  
+556: !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+557: !
+558: !         calculate optical properties of each aerosol component
+559: !
+560: 
+561:           do k = 1 , kz
+562:             do i = 1 , iym1
+563:               path = (pint(i,k+1)-pint(i,k))/gtigts
+564:               ibin = 0
+565:               do itr = 1 , ntr
+566:                 uaer(i,k,itr) = 0.
+567:                 if ( rh(i,k).lt.0.0 .or. rh(i,k).gt.1.0 ) print * ,     &
+568:                    & i , k , rh(i,k) , '  RH WARNING !!!!!'
+569: 
+570:                 if ( chtrname(itr).eq.'XXXXX') then
+571:                   continue
+572:                 end if
+573: 
+574:                 if ( chtrname(itr).eq.'DUST' ) then
+575:                   uaer(i,k,itr) = aermmr(i,k,itr)*path
+576: !                 gaffe au facteur !!
+577: !                 gaffe au ntr/bins
+578:                   ibin = ibin + 1
+579:                   if ( ibin.gt.4 ) print * , 'DUST OP PBLEME !!!!'
+580: 
+581:                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksdust(ns,ibin)
+582:                   wa(i,k,itr) = wsdust(ns,ibin)
+583:                   ga(i,k,itr) = gsdust(ns,ibin)
+584:                   fa(i,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
+585:  
+586:                 else if ( chtrname(itr).eq.'SO4' ) then
+587:                   uaer(i,k,itr) = aermmr(i,k,itr)*path
+588:                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbase(ns)       &
+589:                                   & *exp(kscoef(ns,1)+kscoef(ns,2)      &
+590:                                   & /(rh(i,k)+kscoef(ns,3))             &
+591:                                   & +kscoef(ns,4)                       &
+592:                                   & /(rh(i,k)+kscoef(ns,5)))
+593: !
+594:                   wa(i,k,itr) = 1.0 - wsbase(ns)                        &
+595:                               & *exp(wscoef(ns,1)+wscoef(ns,2)          &
+596:                               & /(rh(i,k)+wscoef(ns,3))+wscoef(ns,4)    &
+597:                               & /(rh(i,k)+wscoef(ns,5)))
+598: !
+599:                   ga(i,k,itr) = gsbase(ns)                              &
+600:                               & *exp(gscoef(ns,1)+gscoef(ns,2)          &
+601:                               & /(rh(i,k)+gscoef(ns,3))+gscoef(ns,4)    &
+602:                               & /(rh(i,k)+gscoef(ns,5)))
+603: !
+604:                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+605:  
+606:                 else if ( chtrname(itr).eq.'OC_HL' ) then
+607:                   uaer(i,k,itr) = aermmr(i,k,itr)*path
+608: !                 Humidity effect !
+609:                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hl(ns)      &
+610:                                   & *(1-rh(i,k))**(-0.2)
+611:                   wa(i,k,itr) = wsoc_hl(ns)
+612:                   ga(i,k,itr) = gsoc_hl(ns)
+613:                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+614:                 else if ( chtrname(itr).eq.'BC_HL' ) then
+615:                   uaer(i,k,itr) = aermmr(i,k,itr)*path
+616: !                 Humidity effect !
+617:                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hl(ns)      &
+618:                                   & *(1-rh(i,k))**(-0.25)
+619:                   wa(i,k,itr) = wsbc_hl(ns)
+620:                   ga(i,k,itr) = gsbc_hl(ns)
+621:                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+622:                 else if ( chtrname(itr).eq.'OC_HB' ) then
+623:                   uaer(i,k,itr) = aermmr(i,k,itr)*path
+624:                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hb(ns)
+625:                   wa(i,k,itr) = wsoc_hb(ns)
+626:                   ga(i,k,itr) = gsoc_hb(ns)
+627:                   fa(i,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
+628:                 else if ( chtrname(itr).eq.'BC_HB' ) then
+629:                   uaer(i,k,itr) = aermmr(i,k,itr)*path
+630: !                 Absorbing aerosols (soot type)
+631:                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hb(ns)
+632:                   wa(i,k,itr) = wsbc_hb(ns)
+633:                   ga(i,k,itr) = gsbc_hb(ns)
+634:                   fa(i,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
+635:                 else
+636:                 end if
+637:               end do  ! end tracer loop
+638:             end do
+639:           end do
+640: 
+641: !         optical properties for the clear sky diagnostic
+642: !
+643:           do i = 1 , iym1
+644:             do itr = 1 , ntr
+645:               do k = 1 , kz
+646:                 utaer(i,itr) = utaer(i,itr) + uaer(i,k,itr)
+647:                 tauaer(i,itr) = tauaer(i,itr) + tauxar(i,k,itr)
+648:                 waer(i,itr) = waer(i,itr) + wa(i,k,itr)*uaer(i,k,itr)
+649:                 gaer(i,itr) = gaer(i,itr) + ga(i,k,itr)*uaer(i,k,itr)
+650:                 faer(i,itr) = faer(i,itr) + fa(i,k,itr)*uaer(i,k,itr)
+651:               end do
+652:               if ( utaer(i,itr).le.1.D-10 ) utaer(i,itr) = 1.D-10
+653:               waer(i,itr) = waer(i,itr)/utaer(i,itr)
+654:               gaer(i,itr) = gaer(i,itr)/utaer(i,itr)
+655:               faer(i,itr) = faer(i,itr)/utaer(i,itr)
+656:             end do
+657:           end do
+658: !
+659: !         Calculate the EXTERNAL Mixing of aerosols
+660: !         melange externe
+661: !
+662:           do i = 1 , iym1
+663:             do itr = 1 , ntr
+664: !             only for climatic feedback allowed
+665:               do k = 0 , kz
+666:                 tauxar_mix(i,k,ns) = tauxar_mix(i,k,ns)               &
+667:                                    & + tauxar(i,k,itr)
+668:                 tauasc_mix(i,k,ns) = tauasc_mix(i,k,ns)               &
+669:                                    & + tauxar(i,k,itr)*wa(i,k,itr)
+670:                 gtota_mix(i,k,ns) = gtota_mix(i,k,ns) + ga(i,k,itr)   &
+671:                                   & *tauxar(i,k,itr)*wa(i,k,itr)
+672:                 ftota_mix(i,k,ns) = ftota_mix(i,k,ns) + fa(i,k,itr)   &
+673:                                   & *tauxar(i,k,itr)*wa(i,k,itr)
+674:               end do
+675: !
+676: !             Clear sky (always calcuated if idirect >=1 for
+677: !             diagnostic radiative forcing)
+678: !
+679:               tauxar_mix_cs(i,ns) = tauxar_mix_cs(i,ns)               &
+680:                                   & + tauaer(i,itr)
+681:               tauasc_mix_cs(i,ns) = tauasc_mix_cs(i,ns)               &
+682:                                   & + tauaer(i,itr)*waer(i,itr)
+683:               gtota_mix_cs(i,ns) = gtota_mix_cs(i,ns) + gaer(i,itr)   &
+684:                                  & *tauaer(i,itr)*waer(i,itr)
+685:               ftota_mix_cs(i,ns) = ftota_mix_cs(i,ns) + faer(i,itr)   &
+686:                                  & *tauaer(i,itr)*waer(i,itr)
+687:             end do
+688:           end do
+689: !
+690:         end do ! end spectral loop
+691: 
+692: !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+693: !
+694: !         Option 2  melange interne
+695: !
+696: !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+697: 
+698:       else if ( mixtype.eq.2 ) then
+699: 
+700: !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+701: !
+702: !     Spectral loop
+703: !
+704:         do ns = 1 , nspi
+705: 
+706:           tauxar_mix_cs(:,ns) = 0.0
+707:           tauasc_mix_cs(:,ns) = 0.0
+708:           gtota_mix_cs(:,ns) = 0.0
+709:           ftota_mix_cs(:,ns) = 0.0
+710:           tauxar_mix(:,:,ns) = 0.0
+711:           tauasc_mix(:,:,ns) = 0.0
+712:           gtota_mix(:,:,ns) = 0.0
+713:           ftota_mix(:,:,ns) = 0.0
+714:  
+715:           uaer(:,0,:) = 0.0
+716:           tauxar(:,0,:) = 0.0
+717:           wa(:,0,:) = 0.0
+718:           ga(:,0,:) = 0.0
+719:           fa(:,0,:) = 0.0
+720:           utaer(:,:) = 0.0
+721:           tauaer(:,:) = 0.0
+722:           waer(:,:) = 0.0
+723:           gaer(:,:) = 0.0
+724:           faer(:,:) = 0.0
+725:  
+726: !
+727: !         calculate optical properties of each aerosol component
+728: !
+729:           do i = 1 , iym1
+730:             do k = 1 , kz
+731:               path = (pint(i,k+1)-pint(i,k))/gtigts
+732:               if ( rh(i,k).lt.0.0 .or. rh(i,k).gt.1.0 )                 &
+733:                 write ( 6,* ) 'WARNING RH : ' , i , k , rh(i,k)
+734:  
+735: !             sum of hydrophilic aerosols
+736:               aervtot(i,k) = 0.
+737:               aermtot(i,k) = 0.
+738:  
+739:               if ( iso4.ne.0 ) then
+740:                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iso4)/rhoso4
+741:                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,iso4)
+742:               end if
+743:  
+744:               if ( ibchl.ne.0 ) then
+745:                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ibchl)/rhobc
+746:                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ibchl)
+747:               end if
+748:  
+749:               if ( iochl.ne.0 ) then
+750:                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iochl)/rhooc
+751:                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,iochl)
+752:               end if
+753:  
+754:               if ( idust(1).ne.0 ) then
+755:                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,idust(1))    &
+756:                              & /rhodust
+757:                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,idust(1))
+758:               end if
+759:  
+760: !             minimum quantity of total aerosol
+761:  
+762:               if ( aermtot(i,k).gt.1.D-14 ) then
+763: !               indexes in the internal mixing table
+764:                 prop(1) = (aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)
+765:                 prop(2) = (aermmr(i,k,ibchl)/rhobc)/aervtot(i,k)
+766:                 prop(3) = (aermmr(i,k,iochl)/rhooc)/aervtot(i,k)
+767:                 prop(4) = (aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
+768:                 frac(1) = fraction(prop(1))
+769:                 frac(2) = fraction(prop(2))
+770:                 frac(3) = fraction(prop(3))
+771:                 frac(4) = fraction(prop(4))
+772: !               FIND THE GREATEST FRACTIONAL PART
+773:  
+774:                 if ( iso4.ne.0 ) then
+775:                   i1 = nint(10*prop(1)) + 1
+776:                 else
+777:                   i1 = 0 + 1
+778:                 end if
+779:  
+780:                 if ( ibchl.ne.0 ) then
+781:                   i2 = nint(10*prop(2)) + 1
+782:                 else
+783:                   i2 = 0 + 1
+784:                 end if
+785:  
+786:                 if ( iochl.ne.0 ) then
+787:                   i3 = nint(10*prop(3)) + 1
+788:                 else
+789:                   i3 = 0 + 1
+790:                 end if
+791:  
+792:                 if ( idust(1).ne.0 ) then
+793:                   i4 = nint(10*prop(4)) + 1
+794:                 else
+795:                   i4 = 0 + 1
+796:                 end if
+797: !
+798: !               final optical parameters
+799: !
+800:                 if ( i1+i2+i3+i4.eq.13 ) i4 = i4 + 1
+801:                 if ( i1+i2+i3+i4.eq.15 ) then
+802:                   if ( i4.ne.1 ) i4 = i4 - 1
+803:                 end if
+804:  
+805:                 if ( i1+i2+i3+i4.eq.15 ) then
+806:                   if ( i1.ne.1 ) i1 = i1 - 1
+807:                 end if
+808:  
+809:                 if ( i1+i2+i3+i4.eq.15 ) then
+810:                   if ( i3.ne.1 ) i3 = i3 - 1
+811:                 end if
+812:  
+813:                 if ( i1+i2+i3+i4.eq.15 ) call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,&
+814:                     &'WRONG COMBINATION. SHOULD NEVER HAPPEN')
+815:  
+816:                 if ( i1+i2+i3+i4.ne.14 ) then
+817:                   print * , i1 , i2 , i3 , i4 , i1 + i2 + i3 + i4
+818:                   print * , idust(1) , iochl , ibchl , iso4
+819:                   print * , 'OC HL' , aermmr(i,k,iochl)/rhooc
+820:                   print * , 'BC HL' , aermmr(i,k,ibchl)/rhobc
+821:                   print * , 'SO4' , aermmr(i,k,iso4)/rhoso4
+822:                   print * , 'DUST' , aermmr(i,k,idust(1))/rhodust
+823:                   print * , 'VOL TOT' , aervtot(i,k)
+824:                   print * , 'OC HL%' , 10*(aermmr(i,k,iochl)/rhooc)   &
+825:                       & /aervtot(i,k)
+826:                   print * , 'BC HL%' , 10*(aermmr(i,k,ibchl)/rhobc)   &
+827:                       & /aervtot(i,k)
+828:                   print * , 'SO4 %' , 10*(aermmr(i,k,iso4)/rhoso4)    &
+829:                       & /aervtot(i,k)
+830:                   print * , 'SO4 %' ,                                 &
+831:                       & nint(10*(aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)&
+832:                       & )
+833:                   print * , 'DUST %' ,                                &
+834:                       & 10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
+835:                   print * , 'DUST %' ,                                &
+836:                       & nint(10*(aermmr(i,k,idust(1))/rhodust)        &
+837:                       & /aervtot(i,k))
+838:                   call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                       &
+839:                             &'SOMETHING WRONG ON SPECIES ABUNDANCE')
+840:                 end if
+841: 
+842:                 tauxar_mix(i,k,ns) = dextmix(1,ns,i4,i2,i3,i1)        &
+843:                                    & *aermtot(i,k)*path*1D5
+844:                 tauasc_mix(i,k,ns) = dssamix(1,ns,i4,i2,i3,i1)        &
+845:                                    & *tauxar_mix(i,k,ns)
+846:                 gtota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)           &
+847:                                   & *tauasc_mix(i,k,ns)               &
+848:                                   & *tauxar_mix(i,k,ns)
+849:                 ftota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)           &
+850:                                   & *dgmix(1,ns,i4,i2,i3,i1)          &
+851:                                   & *tauasc_mix(i,k,ns)               &
+852:                                   & *tauxar_mix(i,k,ns)
+853:  
+854: !               clear sky dignostic
+855:                 utaer(i,1) = utaer(i,1) + aermtot(i,k)*path
+856:  
+857:                 tauaer(i,1) = tauaer(i,1) + dextmix(1,ns,i4,i2,i3,i1) &
+858:                             & *aermtot(i,k)*path*1D5
+859:                 waer(i,1) = waer(i,1) + dssamix(1,ns,i4,i2,i3,i1)     &
+860:                           & *aermtot(i,k)*path
+861:                 gaer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1)       &
+862:                           & *aermtot(i,k)*path
+863:                 faer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1)       &
+864:                           & *dgmix(1,ns,i4,i2,i3,i1)*aermtot(i,k)*path
+865:  
+866:               end if ! end minimum concentration conditions
+867:             end do ! end k loop
+868:  
+869:             if ( utaer(i,1).gt.1.D-12 ) then
+870:               waer(i,1) = waer(i,1)/utaer(i,1)
+871:               gaer(i,1) = gaer(i,1)/utaer(i,1)
+872:               faer(i,1) = faer(i,1)/utaer(i,1)
+873:             end if
+874: !           clear sky final effective optical properties
+875:  
+876:             tauxar_mix_cs(i,ns) = tauaer(i,1)
+877:             tauasc_mix_cs(i,ns) = waer(i,1)*tauaer(i,1)
+878:             gtota_mix_cs(i,ns) = gaer(i,1)*waer(i,1)*tauaer(i,1)
+879:             ftota_mix_cs(i,ns) = faer(i,1)*waer(i,1)*tauaer(i,1)
+880:           end do ! end i loop
+881:         end do ! end spectral loop
+882: !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+883:       else
+884:         write ( 6,* ) 'MIXTYPE = ', mixtype
+885:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'UNSUPPORTED MIXTYPE IN AEROPPT')
+886:       end if
+887: !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+888: 
+889: ! FAB 
+890: ! DUST LW emissivity 
+891: ! qabslw = absorption coefficient between k1 and  k2 (m2.g-1) in the LW : 
+892:       qabslw = 0.1
+893: 
+894: 
+895: !     initialisation à 1 = perfect transmittivity
+896: !
+897:       aerlwtr (:,:,:) = 1.
+898: 
+899:       if ( idirect.ge.1 ) then
+900: 
+901:         do k1 = 1 , kzp1
+902:           do k2 = 1 , kzp1
+903:             do i = 1 , iym1
+904:               if ( k1==k2 ) aerlwtr(i,k1,k2) = 1.   
+905: 
+906: !             aerosol path btw k1 and k2 flux level
+907: 
+908:               ibin = 0
+909:               uaerdust = 0.
+910:               do itr = 1 , ntr     
+911:                 if ( chtrname(itr).eq.'DUST' ) then
+912:                   ibin = ibin+1
+913:                   if ( k1<k2 ) then
+914:                     uaerdust =  uaerdust + 1.E5 *                       &
+915:                             &   (sum(uaer(i,k1:k2-1,itr)))
+916:                     aerlwtr(i,k1,k2) = exp(-1.66 * qabslw * uaerdust)
+917:                   else if ( k1>k2 ) then
+918:                     uaerdust =  uaerdust + 1.E5 *                       &
+919:                             &   (sum(uaer(i,k2:k1-1,itr)))
+920:                     aerlwtr(i,k1,k2) = exp(-1.66 * qabslw * uaerdust)
+921:                   end if
+922:                 end if
+923:               end do
+924:               
+925:             end do
+926:           end do
+927:         end do
+928: 
+929:       end if
+930: !     
+931:       end subroutine aeroppt
+932: !
+933: ! SUBROUTINE AEROUT
+934: !
+<p><a name=aerout><H3>aerout</H3></a></p> Click <a href="./callingtree/aerout_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where aerout is used.
+<hr>
+935:       subroutine aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
+936: !
+937:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a> , only : chemfrq
+938:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a> , only : radfrq
+939:       use <a href="./mod_trachem.F90.html#mod_trachem" TARGET=CENT_PANEL>mod_trachem</a> , only : aerext , aerssa , aerasp , aertarf ,     &
+940:                       &        aersrrf , aertalwrf , aersrlwrf
+941:       implicit none
+942: !
+943: ! Dummy arguments
+944: !
+945:       integer :: jslc
+946:       real(8) , dimension(iym1) :: aeradfo , aeradfos, aerlwfo ,        &
+947:                                  & aerlwfos
+948:       intent (in) aeradfo , aeradfos, aerlwfo , aerlwfos
+949: !
+950: ! Local variables
+951: !
+952:       integer :: i , k , ntim
+953: ! 
+954:       do k = 1 , kz
+955:         do i = 2 , iym1
+956: #ifdef MPP1
+957:           aerext(i-1,k,jslc) = tauxar_mix(i,k,8)
+958:           aerssa(i-1,k,jslc) = tauasc_mix(i,k,8)
+959:           aerasp(i-1,k,jslc) = gtota_mix(i,k,8)
+960: #else
+961:           aerext(i-1,k,jslc-1) = tauxar_mix(i,k,8)
+962:           aerssa(i-1,k,jslc-1) = tauasc_mix(i,k,8)
+963:           aerasp(i-1,k,jslc-1) = gtota_mix(i,k,8)
+964: #endif
+965:         end do
+966:       end do
+967: !
+968: !     CARE :Average the radiative forcing between chem output time
+969: !     steps (in hour) according to radfrq (in min), aertarf is reset to
+970: !     0 at each chem output (cf output.f)
+971: !
+972:       ntim = 60*chemfrq/radfrq
+973: !
+974: !     aersol radative forcing (care cgs to mks after radiation scheme !)
+975: !
+976:       do i = 2 , iym1
+977: #ifdef MPP1
+978:         aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)*1.E-3/ntim
+979:         aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)*1.E-3/ntim
+980:         aertalwrf(i-1,jslc) = aertalwrf(i-1,jslc) +                     &
+981:                             & aerlwfo(i)*1.E-3/ntim
+982:         aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +                     &
+983:                             & aerlwfos(i)*1.E-3/ntim
+984: #else
+985:         aertarf(i-1,jslc-1) = aertarf(i-1,jslc-1) + aeradfo(i)          &
+986:                             & *1.E-3/ntim
+987:         aersrrf(i-1,jslc-1) = aersrrf(i-1,jslc-1) + aeradfos(i)         &
+988:                             & *1.E-3/ntim
+989:         aertalwrf(i-1,jslc-1) = aertalwrf(i-1,jslc-1) +                 &
+990:                               & aerlwfo(i) * 1.E-3/ntim
+991:         aersrlwrf(i-1,jslc-1) = aersrlwrf(i-1,jslc-1) +                 &
+992:                               & aerlwfos(i) * 1.E-3/ntim
+993: #endif
+994: 
+995:       end do
+996:  
+997:       end subroutine aerout
+998: 
+999:       end module mod_aerosol
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

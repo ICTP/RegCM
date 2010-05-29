@@ -1,0 +1,287 @@
+<HTML>
+
+<HEAD>
+<TITLE>bndry.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>bndry.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>bndry.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=bndry><H3>bndry</H3></a></p> Click <a href="./callingtree/bndry_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where bndry is used.
+<hr>
+20:       subroutine bndry(iemiss)
+21: 
+22: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+23: !
+24: !     this is the main routine when interfacing with a
+25: !     meteorological model
+26: !
+27: !
+28: !                f l o w   d i a g r a m   f o r   b n d r y
+29: !
+30: !                bndry ===>    drag ===> dragdn ===> depth
+31: !                             satur
+32: !                            vcover
+33: !                              drip
+34: !                            lftemp ======================> stomat
+35: !                               co2 ===> carbon             frawat
+36: !                            tseice                           root
+37: !                            tgrund                          satur
+38: !                              snow                         lfdrag
+39: !                             water                         condch
+40: !                                                           condcq
+41: !                                                            deriv
+42: !
+43: !
+44: !  **  type1  = crop
+45: !  **  type2  = short grass
+46: !  **  type3  = evergreen needle leaf tree
+47: !  **  type4  = deciduous needle leaf tree
+48: !  **  type5  = deciduous broadleaf tree
+49: !  **  type6  = evergreen brodaleaf tree
+50: !  **  type7  = tall grass
+51: !  **  type8  = desert
+52: !  **  type9  = tundra
+53: !  **  type10 = irrig crop
+54: !  **  type11 = semi-desert
+55: !  **  type12 = ice
+56: !  **  type13 = bog or marsh
+57: !  **  type14 = inland water
+58: !  **  type15 = sea
+59: !  **  type16 = evgr shrub
+60: !  **  type17 = decid shrub
+61: !  **  type18 = mixed tree
+62: !
+63: !  ** note: water and soil parameters are in mm
+64: !
+65:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+66:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : dtbat
+67:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : htvp , sdrop , etrrun , flnet , fevpg ,     &
+68:                   & fseng , vegt , efpr , etr , ts1d , ssw1d , tm ,     &
+69:                   & watu , watr , watt , gwmx0 , gwmx1 , gwmx2 ,        &
+70:                   & cgrnds , cgrndl , cgrnd , tg1d , delq1d , delt1d ,  &
+71:                   & evpr1d , sent1d , tlef1d , uaf , vspda , ldew1d ,   &
+72:                   & scv1d , sag1d , gwet1d , drag1d , rhs1d , qs1d ,    &
+73:                   & taf1d , p1d , ldoc1d , lveg , rsw1d , tsw1d , qg1d ,&
+74:                   & sigf , cdrx , prcp1d , vcover , snow , water
+75:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : tzero , wlhv , wlhs , cpd
+76:       use <a href="./mod_ictp01.F90.html#mod_ictp01" TARGET=CENT_PANEL>mod_ictp01</a>
+77:       implicit none
+78: !
+79: ! Dummy arguments
+80: !
+81:       integer :: iemiss
+82: !
+83: ! Local variables
+84: !
+85:       real(8) :: fact , qsatd , rai
+86:       integer :: n , i
+87:  
+88: !=======================================================================
+89: !l    1.   initialize
+90: !=======================================================================
+91:  
+92:       do i = 2 , iym1
+93:         do n = 1 , nnsg
+94:  
+95:           htvp(n,i) = wlhv
+96:           if ( (tg1d(n,i).lt.tzero .and. ldoc1d(n,i).gt.0.5) .or.       &
+97:              & scv1d(n,i).gt.0. ) htvp(n,i) = wlhs
+98:           sdrop(n,i) = 0.
+99:           etrrun(n,i) = 0.
+100:           flnet(n,i) = 0.
+101:           fevpg(n,i) = 0.
+102:           fseng(n,i) = 0.
+103:           vegt(n,i) = 0.
+104:           efpr(n,i) = 0.
+105:           etr(n,i) = 0.
+106: !         **********            switch between rain and snow /tm is
+107: !         ref. temp set= anemom temp -2.2
+108:           tm(n,i) = ts1d(n,i) - 2.2
+109:  
+110: !*        soil moisture ratio (to max) as used in subrouts tgrund,
+111: !*        water, and root (called by lftemp): watu=upper, watr=root,
+112:  
+113: !         watt=total
+114:           if ( lveg(n,i).ge.1 ) then
+115:             watu(n,i) = ssw1d(n,i)/gwmx0(n,i)
+116:             watr(n,i) = rsw1d(n,i)/gwmx1(n,i)
+117:             watt(n,i) = tsw1d(n,i)/gwmx2(n,i)
+118:             watu(n,i) = dmin1(watu(n,i),1.D0)
+119:             watr(n,i) = dmin1(watr(n,i),1.D0)
+120:             watt(n,i) = dmin1(watt(n,i),1.D0)
+121:             watr(n,i) = dmax1(watr(n,i),1.D-4)
+122:             watu(n,i) = dmax1(watu(n,i),1.D-4)
+123:           end if
+124:  
+125:         end do
+126:       end do
+127:  
+128: !=======================================================================
+129: !l    2.  calculate transfer coefficients at layer 1
+130: !=======================================================================
+131: !     2.1  sigf corrected in drag: remove snow-covered veg
+132:       call <a href="./drag.f90.html#drag" TARGET=CENT_PANEL>drag</a>
+133:  
+134: !     2.2  get saturation vapor pressure of soil surface
+135:       call <a href="./satur.f90.html#satur" TARGET=CENT_PANEL>satur</a>(qg1d,tg1d,p1d)
+136:  
+137: !=======================================================================
+138: !l    3.   bare land
+139: !=======================================================================
+140: !l    3.1  get derivative of fluxes with repect to tg
+141:  
+142:       do i = 2 , iym1
+143:         do n = 1 , nnsg
+144:           if ( ldoc1d(n,i).gt.0.5 ) then
+145:             if ( sigf(n,i).le.0.001 .and. ldoc1d(n,i).lt.1.5 ) then
+146:               qsatd = qg1d(n,i)*gwet1d(n,i)*a(n,i)*(tzero-b(n,i))       &
+147:                     & *(1./(tg1d(n,i)-b(n,i)))**2
+148:               rai = cdrx(n,i)*vspda(n,i)*rhs1d(n,i)
+149:               cgrnds(n,i) = rai*cpd
+150:               cgrndl(n,i) = rai*qsatd
+151:               cgrnd(n,i) = cgrnds(n,i) + cgrndl(n,i)*htvp(n,i)
+152:  
+153: !l            3.2  sensible and latent fluxes using soil temperatures
+154: !l            from previous time step
+155:               delq1d(n,i) = (qs1d(n,i)-qg1d(n,i))*gwet1d(n,i)
+156:               delt1d(n,i) = ts1d(n,i) - tg1d(n,i)
+157:               evpr1d(n,i) = -rai*delq1d(n,i)
+158:               sent1d(n,i) = -cgrnds(n,i)*delt1d(n,i)
+159:  
+160: !l            3.3  fluxes to subrout tgrund (evap is in kg/m**2/s)
+161:               fseng(n,i) = sent1d(n,i)
+162:               fevpg(n,i) = evpr1d(n,i)
+163:  
+164: !l            3.4  equate canopy to air, for temp, wind over bare grnd;
+165: !l            needed as factors of sigf(=0) in subr water (uaf) and
+166: !l            subr drag (tlef1d(n,i) carried over to next tstep).
+167:               tlef1d(n,i) = ts1d(n,i)
+168:               uaf(n,i) = vspda(n,i)
+169:             end if
+170:           end if
+171:         end do
+172:       end do
+173:  
+174:       do i = 2 , iym1
+175:         do n = 1 , nnsg
+176:           if ( ldoc1d(n,i).gt.0.5 ) then
+177:             if ( sigf(n,i).gt.0.001 ) then   !  check each point
+178: !=======================================================================
+179: !l            4.   vegetation
+180: !=======================================================================
+181: !l            4.1  add precipitation to leaf water
+182:               ldew1d(n,i) = ldew1d(n,i)+dtbat*sigf(n,i)*prcp1d(n,i)
+183:               ldew1d(n,i) = dmax1(ldew1d(n,i),0.D0)
+184:             end if
+185:           end if
+186:         end do
+187:       end do
+188: !
+189: !l    4.2  distribute excess leaf water to soil
+190:       call <a href="./mod_bats.F90.html#vcover" TARGET=CENT_PANEL>vcover</a>
+191:       call <a href="./drip.f90.html#drip" TARGET=CENT_PANEL>drip</a>
+192: !
+193: !l    4.3  calculate canopy temperature, soil and total fluxes,
+194: !l    and leaf water change by evapotranspiration
+195:       call <a href="./lftemp.f90.html#lftemp" TARGET=CENT_PANEL>lftemp</a>(iemiss)
+196: !
+197: !l    4.4  calculate carbon sources and sinks
+198: !cc   call co2
+199: !=======================================================================
+200: !l    5.   back to any surface but ocean
+201: !=======================================================================
+202: !
+203: !l    5.1  over sea ice
+204:       call <a href="./tseaice.F90.html#tseice" TARGET=CENT_PANEL>tseice</a>
+205: !
+206: !l    5.2  over land, calculate soil temp and surface hydrology
+207:       call <a href="./tgrund.F90.html#tgrund" TARGET=CENT_PANEL>tgrund</a>
+208:       call <a href="./mod_bats.F90.html#snow" TARGET=CENT_PANEL>snow</a>
+209:       call <a href="./mod_bats.F90.html#water" TARGET=CENT_PANEL>water</a>
+210: !
+211: !l    5.3  over ocean
+212: !l    set snow cover to zero in case it was previously sea ice
+213:       do i = 2 , iym1
+214:         do n = 1 , nnsg
+215:           if ( ldoc1d(n,i).lt.0.5 ) then
+216:             scv1d(n,i) = 0.
+217:             sag1d(n,i) = 0.
+218:           end if
+219:         end do
+220:       end do
+221:  
+222: !=======================================================================
+223: !l    6.   linkage to meteorological model
+224: !=======================================================================
+225:  
+226:       do i = 2 , iym1
+227:         do n = 1 , nnsg
+228:  
+229:           if ( ldoc1d(n,i).lt.0.5 .or. lveg(n,i).eq.14 .or. lveg(n,i)   &
+230:              & .eq.15 ) gwet1d(n,i) = 1.
+231:  
+232: !l        6.1  rate of momentum transfer per velocity
+233:           drag1d(n,i) = -cdrx(n,i)*vspda(n,i)*rhs1d(n,i)
+234:           drag1d(n,i) = -drag1d(n,i)        ! for coupling with mm4
+235:  
+236: !l        6.3  latent and heat fluxes over ocean, plus a dummy taf
+237:           if ( ldoc1d(n,i).lt.0.5 ) then
+238:             tlef1d(n,i) = ts1d(n,i)
+239:             fact = -rhs1d(n,i)*cdrx(n,i)*vspda(n,i)
+240:             delq1d(n,i) = (qs1d(n,i)-qg1d(n,i))*gwet1d(n,i)
+241:             delt1d(n,i) = ts1d(n,i) - tg1d(n,i)
+242: !           evaporation is in kg/m**2/s
+243:             evpr1d(n,i) = fact*delq1d(n,i)
+244:             sent1d(n,i) = fact*cpd*delt1d(n,i)
+245:           end if
+246:           if ( sigf(n,i).lt.0.001 ) taf1d(n,i) = tg1d(n,i)
+247:  
+248: !l        6.2  parameters for temperature difference at anemometer level
+249: !cc       zdelt(i) = zdelt(i)*delt1d(n,i)
+250:  
+251: !l        6.4  evaporative flux, accounting for sublimation
+252: !cc       evprr(i) = wlhv*(evpr1d(n,i)-fevpg) + htvp(n,i)*fevpg
+253:  
+254: !l        6.5  nondimensional equivalent bucket capacity for comparisons
+255: !l        with bucket models; usually 1 or less, except where
+256: !l        saturated (then around 2)
+257: !cc       rh2ox(i) = (watr-wiltr)/(relfc-wiltr)
+258:  
+259:         end do
+260:       end do
+261:  
+262:       end subroutine bndry
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

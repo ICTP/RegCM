@@ -1,0 +1,219 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_smooth.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_smooth.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_smooth.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_smooth><H3>mod_smooth</H3></a></p>20:       module mod_smooth
+21: 
+22:       contains
+23: 
+<p><a name=smth121><H3>smth121</H3></a></p> Click <a href="./callingtree/smth121_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where smth121 is used.
+<hr>
+24:       subroutine smth121(htgrid,iy,jx,hscr1)
+25:       implicit none
+26: !
+27: ! Dummy arguments
+28: !
+29:       integer :: iy , jx
+30:       real(4) , dimension(iy,jx) :: hscr1 , htgrid
+31:       intent (in) iy , jx
+32:       intent (inout) hscr1 , htgrid
+33: !
+34: ! Local variables
+35: !
+36:       integer :: i , j
+37: !
+38: !     PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
+39: !     2DX WAVES FROM THE FIELDS htgrid
+40: !
+41:       do j = 1 , jx
+42:         do i = 1 , iy
+43:           hscr1(i,j) = htgrid(i,j)
+44:         end do
+45:       end do
+46:       do i = 1 , iy
+47:         do j = 2 , jx - 1
+48:           if ( (htgrid(i,j)<=-.1) .or. (htgrid(i,j)>0.) ) hscr1(i,j)    &
+49:              & = .25*(2.*htgrid(i,j)+htgrid(i,j+1)+htgrid(i,j-1))
+50:         end do
+51:       end do
+52:       do j = 1 , jx
+53:         do i = 2 , iy - 1
+54:           if ( (hscr1(i,j)<=-.1) .or. (hscr1(i,j)>0.) ) htgrid(i,j)     &
+55:              & = .25*(2.*hscr1(i,j)+hscr1(i+1,j)+hscr1(i-1,j))
+56:         end do
+57:       end do
+58:       end subroutine smth121
+59: 
+<p><a name=smther><H3>smther</H3></a></p> Click <a href="./callingtree/smther_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where smther is used.
+<hr>
+60:       subroutine smther(slab,is1,is2,npass,point,iflg)
+61: 
+62:       implicit none
+63: !
+64: ! Dummy arguments
+65: !
+66:       integer :: iflg , is1 , is2 , npass
+67:       character(5) :: point
+68:       real(4) , dimension(is1,is2) :: slab
+69:       intent (in) iflg , is1 , is2 , npass , point
+70:       intent (inout) slab
+71: !
+72: ! Local variables
+73: !
+74:       real(4) :: aplus , asv , cell
+75:       integer :: i , icross , ie , iem , j , je , jem , k , kp
+76:       real(4) , dimension(2) :: xnu
+77: !
+78: !     purpose: spatially smooth data in slab to dampen short
+79: !     wavelength components
+80: !
+81:       icross = 0
+82:       if ( point=='cross' ) icross = 1
+83:       ie = is1
+84:       je = is2
+85:       iem = ie - 5
+86:       jem = je - 5
+87:       xnu(1) = 0.5
+88:       xnu(2) = -.50
+89:       do k = 1 , npass
+90:         do kp = 1 , 2
+91: !         first smooth in the is1 direction
+92:           do i = 1 , ie
+93:             asv = slab(i,1)
+94:             do j = 2 , je - 1
+95:               aplus = slab(i,j+1)
+96:               cell = slab(i,j)
+97:               slab(i,j) = slab(i,j) + xnu(kp)                           &
+98:                         & *((asv+aplus)/2.0-slab(i,j))
+99:               if ( iflg==0 ) then
+100:                 if ( (i>6) .and. (i<iem) .and. (j>6) .and. (j<jem) )    &
+101:                    & slab(i,j) = cell
+102:               else if ( iflg==1 ) then
+103:                 if ( i>20 ) slab(i,j) = cell
+104:               else
+105:               end if
+106:               asv = cell
+107:             end do
+108:           end do
+109: !         smooth in the is2 direction
+110:           do j = 1 , je
+111:             asv = slab(1,j)
+112:             do i = 2 , ie - 1
+113:               aplus = slab(i+1,j)
+114:               cell = slab(i,j)
+115:               slab(i,j) = slab(i,j) + xnu(kp)                           &
+116:                         & *((asv+aplus)/2.0-slab(i,j))
+117:               if ( iflg==0 ) then
+118:                 if ( (i>6) .and. (i<iem) .and. (j>6) .and. (j<jem) )    &
+119:                    & slab(i,j) = cell
+120:               else if ( iflg==1 ) then
+121:                 if ( i>20 ) slab(i,j) = cell
+122:               else
+123:               end if
+124:               asv = cell
+125:             end do
+126:           end do
+127: !         40 continue
+128:         end do
+129:       end do
+130:       end subroutine smther
+131: 
+<p><a name=smthtr><H3>smthtr</H3></a></p> Click <a href="./callingtree/smthtr_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where smthtr is used.
+<hr>
+132:       subroutine smthtr(slab1,is1,is2)
+133: 
+134:       implicit none
+135: !
+136: ! PARAMETER definitions
+137: !
+138:       integer , parameter :: nocean = 20000
+139: !
+140: ! Dummy arguments
+141: !
+142:       integer :: is1 , is2
+143:       real(4) , dimension(is1,is2) :: slab1
+144:       intent (inout) slab1
+145: !
+146: ! Local variables
+147: !
+148:       integer :: i , iflg , j , k , n , n1 , npass
+149:       integer , dimension(nocean) :: ii , jj
+150:       character(5) :: point
+151: !
+152: !     smooth terrain arrays
+153: !
+154:       n = 1
+155:       do i = 1 , is1
+156:         do j = 1 , is2
+157:           if ( slab1(i,j)<0.0 ) then
+158:             ii(n) = i
+159:             jj(n) = j
+160:             slab1(i,j) = 0.0
+161:             n = n + 1
+162:           end if
+163:         end do
+164:       end do
+165:       n1 = n - 1
+166:       print 99001 , n1
+167:       if ( n>nocean ) print 99002
+168:       point = 'cross'
+169:       npass = 10
+170:       iflg = 0          ! 0 = smoothing only at boundary
+171:       call <a href="./mod_smooth.f90.html#smther" TARGET=CENT_PANEL>smther</a>(slab1,is1,is2,npass,point,iflg)
+172: !     npass = 2000
+173: !     iflg = 0          ! 1 = extensive smoothing over south boundary
+174: !     call smther( slab1, is1, is2, npass, point, iflg )
+175:       do i = 1 , is1
+176:         do j = 1 , is2
+177:           slab1(i,j) = slab1(i,j)
+178:           if ( slab1(i,j)<0.0 ) slab1(i,j) = 0.0
+179:         end do
+180:       end do
+181:       do k = 1 , n - 1
+182:         i = ii(k)
+183:         j = jj(k)
+184:         slab1(i,j) = -0.001
+185:       end do
+186: 99001 format (5x,'  there are a total of ',i5,' points of ocean')
+187: 99002 format ('0',2x,'dimension exceeded in subr smthtr')
+188:       end subroutine smthtr
+189: 
+190:       end module mod_smooth
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

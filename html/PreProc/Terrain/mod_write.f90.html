@@ -1,0 +1,458 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_write.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_write.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_write.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_write><H3>mod_write</H3></a></p>20:       module mod_write
+21: 
+22:       contains
+23: 
+<p><a name=setup><H3>setup</H3></a></p> Click <a href="./callingtree/setup_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where setup is used.
+<hr>
+24:       subroutine setup(nunit,unctl,iy,jx,ntypec,iproj,ds,clat,clon,     &
+25:                      & igrads,ibyte,filout,filctl)
+26:       use <a href="./mod_block.f90.html#mod_block" TARGET=CENT_PANEL>mod_block</a>
+27:       implicit none
+28: !
+29: ! Dummy arguments
+30: !
+31:       real(4) :: clat , clon , ds
+32:       character(256) :: filctl , filout
+33:       integer :: ibyte , igrads , iy , jx , ntypec , nunit , unctl
+34:       character(6) :: iproj
+35:       intent (in) clat , clon , ds , ibyte , igrads , iproj , iy , jx , &
+36:                 & ntypec , nunit , unctl
+37:       intent(inout) :: filctl , filout
+38: !
+39:       rin = 1.5          ! 1.5 rad of influence-coarse mesh
+40:  
+41:       write (6,*) ' '
+42:       write (6,*) 'Doing Domain Setup with following parameters'
+43:       write (6,*) ' '
+44:       write (6,*) 'ntypec = ' , ntypec
+45:       write (6,*) 'iy     = ' , iy
+46:       write (6,*) 'jx     = ' , jx
+47:       write (6,*) 'ds     = ' , ds
+48:       write (6,*) 'clat   = ' , clat
+49:       write (6,*) 'clon   = ' , clon
+50:       write (6,*) 'rin    = ' , rin
+51:       write (6,*) 'iproj  = ' , iproj
+52:       write (6,*) ' '
+53: !
+54:       call <a href="./mod_write.f90.html#fexist" TARGET=CENT_PANEL>fexist</a>(filout)
+55:       open (nunit,file=filout,status='unknown',form='unformatted',      &
+56:           & access='direct',recl=iy*jx*ibyte)
+57:       if ( igrads==1 ) then
+58:         call <a href="./mod_write.f90.html#fexist" TARGET=CENT_PANEL>fexist</a>(filctl)
+59:         open (unctl,file=filctl,status='unknown')
+60:       end if
+61: !
+62:       dsinm = ds*1000.
+63: !
+64:       nnc = nint(60./float(ntypec))
+65:       xnc = float(ntypec)/60.
+66:       print * , '***** Terrain resolution (min): ' , xnc*60.
+67: !
+68:       end subroutine setup
+69: 
+<p><a name=fexist><H3>fexist</H3></a></p> Click <a href="./callingtree/fexist_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where fexist is used.
+<hr>
+70:       subroutine fexist(filnam)
+71:       implicit none
+72: !
+73: ! Dummy arguments
+74: !
+75:       character(256) :: filnam
+76:       intent (inout) filnam
+77: !
+78: ! Local variables
+79: !
+80:       logical :: there
+81:       character(1) :: yesno
+82: 
+83:  100  continue
+84:       inquire (file=filnam,exist=there)
+85:       if ( there ) then
+86:  150    continue
+87:         print * , ' '
+88:         print * , ' '
+89:         print * , '**************************************************'
+90:         print * , 'FILE ALREADY EXISTS:  ' , trim(filnam)
+91:         print * , 'Do you want to overwrite the existing file? [y/n/q]'
+92:         read (*,*) yesno
+93:         if ( yesno=='y' ) then
+94:           return
+95:         else if ( yesno=='n' ) then
+96:           print * , 'ENTER NEW FILE NAME'
+97:           read (*,'(a)') filnam
+98:           print * , 'USING ', trim(filnam)
+99:           goto 100
+100:         else if ( yesno=='q' ) then
+101:           stop 999
+102:         else
+103:           go to 150
+104:         end if
+105:       end if
+106:  
+107:       end subroutine fexist
+108: !
+109: !
+110: !
+<p><a name=output><H3>output</H3></a></p> Click <a href="./callingtree/output_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where output is used.
+<hr>
+111:       subroutine output(nunitc,iunc,iy,jx,dsinm,clat,clon,plat,plon,    &
+112:                       & iproj,htgrid,htsdgrid,lndout,xlat,xlon,dlat,    &
+113:                       & dlon,xmap,dattyp,dmap,coriol,snowam,igrads,     &
+114:                       & ibigend,kz,sigma,mask,ptop,nsg,truelatl,        &
+115:                       & truelath,grdfac,filout,lsmtyp,sanda,sandb,claya,&
+116:                       & clayb,frac_lnd,nveg,aertyp,texout,frac_tex,ntex,&
+117:                       & lcoarse)
+118: 
+119:       implicit none
+120: !
+121: ! Dummy arguments
+122: !
+123:       character(7) :: aertyp
+124:       real(4) :: clat , clon , dsinm , grdfac , plat , plon , ptop ,    &
+125:                & truelath , truelatl
+126:       character(5) :: dattyp
+127:       character(*) :: filout
+128:       integer :: ibigend , igrads , iy , jx , kz , nsg , ntex ,         &
+129:                & nunitc , nveg , iunc
+130:       character(6) :: iproj
+131:       character(4) :: lsmtyp
+132:       real(4) , dimension(iy,jx) :: claya , clayb , coriol , dlat ,     &
+133:                                   & dlon , dmap , htgrid , htsdgrid ,   &
+134:                                   & lndout , mask , sanda , sandb ,     &
+135:                                   & snowam , texout , xlat , xlon , xmap
+136:       real(4) , dimension(iy,jx,nveg) :: frac_lnd
+137:       real(4) , dimension(iy,jx,ntex) :: frac_tex
+138:       real(4) , dimension(kz+1) :: sigma
+139:       logical :: lcoarse
+140:       intent (in) aertyp , clat , claya , clayb , clon , coriol ,       &
+141:                 & dattyp , dlat , dlon , dmap , dsinm , filout ,        &
+142:                 & frac_lnd , frac_tex , grdfac , htgrid , htsdgrid ,    &
+143:                 & ibigend , igrads , iproj , iy , jx , kz ,             &
+144:                 & lndout , lsmtyp , nsg , ntex , nunitc , nveg ,        &
+145:                 & plat , plon , ptop , sanda , sandb , snowam , texout ,&
+146:                 & truelath , truelatl , xlat , xlon , xmap , lcoarse ,  &
+147:                 & sigma , iunc
+148:       intent (inout) mask
+149: !
+150: ! Local variables
+151: !
+152:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+153:                & centerj , lat0 , lat1 , lon0 , lon1 , rlatinc , rloninc
+154:       integer :: i , j , k , nx , ny
+155: !
+156:       alatmin = 999999.
+157:       alatmax = -999999.
+158:       alonmin = 999999.
+159:       alonmax = -999999.
+160:       nx = 0
+161:       ny = 0
+162: 
+163:       do i = 1 , iy
+164:         do j = 1 , jx
+165:           if ( (lsmtyp=='BATS' .and.                                    &
+166:              &  (lndout(i,j)>20. .or. lndout(i,j)<0.)) .or.             &
+167:              & (lsmtyp=='USGS' .and.                                    &
+168:              &  (lndout(i,j)>25. .or. lndout(i,j)<0.)) ) then
+169:             print * , i , j , lndout(i,j)
+170:             stop 999
+171:           end if
+172:         end do
+173:       end do
+174: 
+175:       if ( .not. lcoarse .or.                                           &
+176:          & ( dattyp/='FVGCM' .and. dattyp/='NRP2W' .and.  &
+177:          &   dattyp/='GFS11' .and. dattyp/='EH5OM') ) then
+178:         write (nunitc,rec=1) iy , jx , kz , dsinm , clat , clon , plat ,&
+179:                            & plon , grdfac , iproj , (sigma(k),k=1,kz+1)&
+180:                            & , ptop , igrads , ibigend , truelatl ,     &
+181:                            & truelath
+182:       else
+183:         write (*,*) 'please input lon0,lon1,lat0,lat1'
+184:         write (*,*) 'Note: lon0 < lon1, and lat0 < lat1'
+185:         read (*,*) lon0 , lon1 , lat0 , lat1
+186:         write (nunitc,rec=1) iy , jx , kz , dsinm , clat , clon , plat ,&
+187:                            & plon , grdfac , iproj , (sigma(k),k=1,kz+1)&
+188:                            & , ptop , igrads , ibigend , truelatl ,     &
+189:                            & truelath , lon0 , lon1 , lat0 , lat1
+190:       end if
+191: 
+192:       write (nunitc,rec=2) ((htgrid(i,j),j=1,jx),i=1,iy)
+193:       write (nunitc,rec=3) ((htsdgrid(i,j),j=1,jx),i=1,iy)
+194:       write (nunitc,rec=4) ((lndout(i,j),j=1,jx),i=1,iy)
+195:       write (nunitc,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
+196:       write (nunitc,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
+197:       write (nunitc,rec=7) ((dlat(i,j),j=1,jx),i=1,iy)
+198:       write (nunitc,rec=8) ((dlon(i,j),j=1,jx),i=1,iy)
+199:       write (nunitc,rec=9) ((xmap(i,j),j=1,jx),i=1,iy)
+200:       write (nunitc,rec=10) ((dmap(i,j),j=1,jx),i=1,iy)
+201:       write (nunitc,rec=11) ((coriol(i,j),j=1,jx),i=1,iy)
+202:       write (nunitc,rec=12) ((snowam(i,j),j=1,jx),i=1,iy)
+203:       do i = 1 , iy
+204:         do j = 1 , jx
+205:           if ( lsmtyp=='BATS' ) then
+206:             if ( lndout(i,j)>13.5 .and. lndout(i,j)<15.5 ) then
+207:               mask(i,j) = 0.0
+208:             else
+209:               mask(i,j) = 2.0
+210:             end if
+211:           else if ( lsmtyp=='USGS' ) then
+212:             if ( lndout(i,j)>24.5 ) then
+213:               mask(i,j) = 0.0
+214:             else
+215:               mask(i,j) = 2.0
+216:             end if
+217:           else
+218:           end if
+219:         end do
+220:       end do
+221:       write (nunitc,rec=13) ((mask(i,j),j=1,jx),i=1,iy)
+222:       if ( lsmtyp=='USGS' ) then
+223:         write (nunitc,rec=14) ((sanda(i,j),j=1,jx),i=1,iy)
+224:         write (nunitc,rec=15) ((sandb(i,j),j=1,jx),i=1,iy)
+225:         write (nunitc,rec=16) ((claya(i,j),j=1,jx),i=1,iy)
+226:         write (nunitc,rec=17) ((clayb(i,j),j=1,jx),i=1,iy)
+227:         do k = 1 , nveg
+228:           write (nunitc,rec=17+k) ((frac_lnd(i,j,k),j=1,jx),i=1,iy)
+229:         end do
+230:       end if
+231:       if ( aertyp(7:7)=='1' ) then
+232:         if ( lsmtyp=='BATS' ) then
+233:           write (nunitc,rec=14) ((texout(i,j),j=1,jx),i=1,iy)
+234:           do k = 1 , ntex
+235:             write (nunitc,rec=14+k) ((frac_tex(i,j,k),j=1,jx),i=1,iy)
+236:           end do
+237:         else if ( lsmtyp=='USGS' ) then
+238:           write (nunitc,rec=18+nveg) ((texout(i,j),j=1,jx),i=1,iy)
+239:           do k = 1 , ntex
+240:             write (nunitc,rec=18+nveg+k)                                &
+241:                  & ((frac_tex(i,j,k),j=1,jx),i=1,iy)
+242:           end do
+243:         else
+244:         end if
+245:       end if
+246:       close (nunitc)
+247:  
+248:       if ( igrads==1 ) then
+249:         if ( lcoarse ) then
+250:           write (iunc,99004) trim(filout), '.INFO'
+251:         else if ( nsg>1 ) then
+252:           write (iunc,99005) trim(filout), nsg , '.INFO'
+253:         end if
+254:         write (iunc,99007)
+255:         if ( ibigend==1 ) then
+256:           write (iunc,99008)
+257:         else
+258:           write (iunc,99009)
+259:         end if
+260:         write (iunc,99010)
+261:         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
+262:           do j = 1 , jx
+263:             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
+264:             if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
+265:           end do
+266:           do i = 1 , iy
+267:             do j = 1 , jx
+268:               if ( clon>=0.0 ) then
+269:                 if ( xlon(i,j)>=0.0 ) then
+270:                   alonmin = amin1(alonmin,xlon(i,j))
+271:                   alonmax = amax1(alonmax,xlon(i,j))
+272:                 else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)+360.))&
+273:                         & ) then
+274:                   alonmin = amin1(alonmin,xlon(i,j))
+275:                   alonmax = amax1(alonmax,xlon(i,j))
+276:                 else
+277:                   alonmin = amin1(alonmin,xlon(i,j)+360.)
+278:                   alonmax = amax1(alonmax,xlon(i,j)+360.)
+279:                 end if
+280:               else if ( xlon(i,j)<0.0 ) then
+281:                 alonmin = amin1(alonmin,xlon(i,j))
+282:                 alonmax = amax1(alonmax,xlon(i,j))
+283:               else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)-360.)) )&
+284:                       & then
+285:                 alonmin = amin1(alonmin,xlon(i,j))
+286:                 alonmax = amax1(alonmax,xlon(i,j))
+287:               else
+288:                 alonmin = amin1(alonmin,xlon(i,j)-360.)
+289:                 alonmax = amax1(alonmax,xlon(i,j)-360.)
+290:               end if
+291:             end do
+292:           end do
+293:           rlatinc = dsinm*0.001/111./2.
+294:           rloninc = dsinm*0.001/111./2.
+295:           ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+296:           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+297:  
+298:           centerj = jx/2.
+299:           centeri = iy/2.
+300:         end if
+301:         if ( iproj=='LAMCON' ) then        ! Lambert projection
+302:           write (iunc,99011) jx , iy , clat , clon , centerj , centeri ,&
+303:                          & truelatl , truelath , clon , dsinm , dsinm
+304:           write (iunc,99012) nx + 2 , alonmin - rloninc , rloninc
+305:           write (iunc,99013) ny + 2 , alatmin - rlatinc , rlatinc
+306:         else if ( iproj=='POLSTR' ) then   !
+307:         else if ( iproj=='NORMER' ) then
+308:           write (iunc,99014) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
+309:           write (iunc,99015) iy
+310:           write (iunc,99016) (xlat(i,1),i=1,iy)
+311:         else if ( iproj=='ROTMER' ) then
+312:           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
+313:                      &' projections are not supported by GrADS.'
+314:           write (*,*) '  Although not exact, the eta.u projection' ,    &
+315:                      &' in GrADS is somewhat similar.'
+316:           write (*,*) ' FERRET, however, does support this projection.'
+317:           write (iunc,99017) jx , iy , plon , plat , dsinm/111000. ,    &
+318:                          & dsinm/111000.*.95238
+319:           write (iunc,99012) nx + 2 , alonmin - rloninc , rloninc
+320:           write (iunc,99013) ny + 2 , alatmin - rlatinc , rlatinc
+321:         else
+322:           write (*,*) 'Are you sure your map projection is right ?'
+323:           stop
+324:         end if
+325:         write (iunc,99018) 1 , 1000.
+326:         write (iunc,99019) 1
+327:         if ( lsmtyp=='BATS' ) then
+328:           if ( aertyp(7:7)=='1' ) then
+329:             write (iunc,99020) 13 + ntex + 1
+330:           else
+331:             write (iunc,99020) 13
+332:           end if
+333:         else if ( lsmtyp=='USGS' ) then
+334:           if ( aertyp(7:7)=='1' ) then
+335:             write (iunc,99020) 42 + ntex + 1
+336:           else
+337:             write (iunc,99020) 42
+338:           end if
+339:         else
+340:         end if
+341:         write (iunc,99021) 'head    ' , 'header information         '
+342:         write (iunc,99021) 'ht      ' , 'surface elevation          '
+343:         write (iunc,99021) 'htsd    ' , 'surface elevation std. dev.'
+344:         write (iunc,99021) 'landuse ' , 'surface landuse type       '
+345:         write (iunc,99021) 'xlat    ' , 'latitude  of cross points  '
+346:         write (iunc,99021) 'xlon    ' , 'longitude of cross points  '
+347:         write (iunc,99021) 'dlat    ' , 'latitude  of dot points    '
+348:         write (iunc,99021) 'dlon    ' , 'longitude of dot points    '
+349:         write (iunc,99021) 'xmap    ' , 'map factors of cross points'
+350:         write (iunc,99021) 'dmap    ' , 'map factors of dot points  '
+351:         write (iunc,99021) 'coriol  ' , 'coriol force               '
+352:         write (iunc,99021) 'snowam  ' , 'initial snow amount        '
+353:         write (iunc,99021) 'mask    ' , 'land/sea mask              '
+354:         if ( lsmtyp=='USGS' ) then
+355:           write (iunc,99021) 'sanda   ' , 'sand percentage (0-30cm)   '
+356:           write (iunc,99021) 'sandb   ' , 'sand percentage (30-100cm) '
+357:           write (iunc,99021) 'claya   ' , 'clay percentage (0-30cm)   '
+358:           write (iunc,99021) 'clayb   ' , 'clay percentage (30-100cm) '
+359:           write (iunc,99021) 'per1    ' , 'percentage landuse type 1  '
+360:           write (iunc,99021) 'per2    ' , 'percentage landuse type 2  '
+361:           write (iunc,99021) 'per3    ' , 'percentage landuse type 3  '
+362:           write (iunc,99021) 'per4    ' , 'percentage landuse type 4  '
+363:           write (iunc,99021) 'per5    ' , 'percentage landuse type 5  '
+364:           write (iunc,99021) 'per6    ' , 'percentage landuse type 6  '
+365:           write (iunc,99021) 'per7    ' , 'percentage landuse type 7  '
+366:           write (iunc,99021) 'per8    ' , 'percentage landuse type 8  '
+367:           write (iunc,99021) 'per9    ' , 'percentage landuse type 9  '
+368:           write (iunc,99021) 'per10   ' , 'percentage landuse type 10 '
+369:           write (iunc,99021) 'per11   ' , 'percentage landuse type 11 '
+370:           write (iunc,99021) 'per12   ' , 'percentage landuse type 12 '
+371:           write (iunc,99021) 'per13   ' , 'percentage landuse type 13 '
+372:           write (iunc,99021) 'per14   ' , 'percentage landuse type 14 '
+373:           write (iunc,99021) 'per15   ' , 'percentage landuse type 15 '
+374:           write (iunc,99021) 'per16   ' , 'percentage landuse type 16 '
+375:           write (iunc,99021) 'per17   ' , 'percentage landuse type 17 '
+376:           write (iunc,99021) 'per18   ' , 'percentage landuse type 18 '
+377:           write (iunc,99021) 'per19   ' , 'percentage landuse type 19 '
+378:           write (iunc,99021) 'per20   ' , 'percentage landuse type 20 '
+379:           write (iunc,99021) 'per21   ' , 'percentage landuse type 21 '
+380:           write (iunc,99021) 'per22   ' , 'percentage landuse type 22 '
+381:           write (iunc,99021) 'per23   ' , 'percentage landuse type 23 '
+382:           write (iunc,99021) 'per24   ' , 'percentage landuse type 24 '
+383:           write (iunc,99021) 'per25   ' , 'percentage landuse type 24 '
+384:         end if
+385:         if ( aertyp(7:7)=='1' ) then
+386:           write (iunc,99021) 'texture ' , 'soil texture               '
+387:           write (iunc,99021) 'text01  ' , 'Sand              frac.    '
+388:           write (iunc,99021) 'text02  ' , 'Loamy Sand        frac.    '
+389:           write (iunc,99021) 'text03  ' , 'Sandy Loam        frac.    '
+390:           write (iunc,99021) 'text04  ' , 'Silt Loam         frac.    '
+391:           write (iunc,99021) 'text05  ' , 'Silt              frac.    '
+392:           write (iunc,99021) 'text06  ' , 'Loam              frac.    '
+393:           write (iunc,99021) 'text07  ' , 'Sandy Clay Loam   frac.    '
+394:           write (iunc,99021) 'text08  ' , 'Silty Clay Loam   frac.    '
+395:           write (iunc,99021) 'text09  ' , 'Clay Loam         frac.    '
+396:           write (iunc,99021) 'text10  ' , 'Sandy Clay        frac.    '
+397:           write (iunc,99021) 'text11  ' , 'Silty Clay        frac.    '
+398:           write (iunc,99021) 'text12  ' , 'Clay              frac.    '
+399:           write (iunc,99021) 'text13  ' , 'OM                frac.    '
+400:           write (iunc,99021) 'text14  ' , 'Water             frac.    '
+401:           write (iunc,99021) 'text15  ' , 'Bedrock           frac.    '
+402:           write (iunc,99021) 'text16  ' , 'Other             frac.    '
+403:           write (iunc,99021) 'text17  ' , 'No data           frac.    '
+404:         end if
+405:         write (iunc,99022)
+406:         close (iunc)
+407:       end if
+408: 99004 format ('dset ^',a,a)
+409: 99005 format ('dset ^',a,i0.3,a)
+410: 99007 format ('title RegCM domain information')
+411: 99008 format ('options big_endian')
+412: 99009 format ('options little_endian')
+413: 99010 format ('undef -9999.')
+414: 99011 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
+415: 99012 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+416: 99013 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+417: 99014 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+418: 99015 format ('ydef ',i3,' levels')
+419: 99016 format (10F7.2)
+420: 99017 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+421: 99018 format ('zdef ',i1,' levels ',f7.2)
+422: 99019 format ('tdef ',i1,' linear 00z01Jan2001 1mo')
+423: 99020 format ('vars ',i2)
+424: 99021 format (a8,'0 99 ',a26)
+425: 99022 format ('endvars')
+426: !
+427:       end subroutine output
+428: 
+429:       end module mod_write
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

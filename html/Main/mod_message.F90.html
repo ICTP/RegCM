@@ -1,0 +1,132 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_message.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_message.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_message.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_message><H3>mod_message</H3></a></p>20:       module mod_message
+21: 
+22: #ifdef MPP1
+23:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a> , only : myid
+24: #endif
+25:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a> , only : debug_level
+26: 
+27:       implicit none
+28: !
+29:       character(512) :: aline
+30: 
+31:       contains
+32: 
+<p><a name=active><H3>active</H3></a></p> Click <a href="./callingtree/active_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where active is used.
+<hr>
+33:       function active(level)
+34:       implicit none
+35: !
+36: ! Dummy arguments
+37: !
+38:       integer :: level
+39:       logical :: <a href="./mod_message.F90.html#active" TARGET=CENT_PANEL>active</a>
+40:       intent (in) level
+41: !
+42:       <a href="./mod_message.F90.html#active" TARGET=CENT_PANEL>active</a> = (level.le.debug_level)
+43:       end function active
+44:  
+<p><a name=say><H3>say</H3></a></p> Click <a href="./callingtree/say_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where say is used.
+<hr>
+45:       subroutine say
+46:       implicit none
+47: #ifdef MPP1
+48:       if ( myid.eq.0 ) print * , trim(aline)
+49: #else
+50:       print * , trim(aline)
+51: #endif
+52:       end subroutine say
+53:  
+<p><a name=warning><H3>warning</H3></a></p> Click <a href="./callingtree/warning_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where warning is used.
+<hr>
+54:       subroutine warning
+55:       implicit none
+56: #ifdef MPP1
+57:       print * , ' Processor ' , myid , ' : ' , trim(aline)
+58: #else
+59:       print * , trim(aline)
+60: #endif
+61:       end subroutine warning
+62:  
+<p><a name=fatal><H3>fatal</H3></a></p> Click <a href="./callingtree/fatal_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where fatal is used.
+<hr>
+63:       subroutine fatal(filename,line,str)
+64: #ifdef MPP1
+65:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+66: #endif
+67:       implicit none
+68: !
+69: ! Dummy arguments
+70: !
+71:       character(*) :: filename , str
+72:       integer :: line
+73:       intent (in) filename , line , str
+74: !
+75: ! Local variables
+76: !
+77:       character(8) :: cline
+78: #ifdef MPP1
+79:       integer :: ierr
+80: #endif
+81: !
+82:       write (cline,'(i6)') line
+83:       write (aline,*) '-------------- FATAL CALLED ---------------'
+84:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+85:       if ( line.gt.0 ) then
+86:         write (aline,*) 'Fatal in file: '//filename//' at line: '//     &
+87:                       & trim(cline)
+88:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+89:       end if
+90:       write (aline,*) str
+91:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+92:       write (aline,*) '-------------------------------------------'
+93:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+94: #ifdef MPP1
+95:       call <a href="#" TARGET=CENT_PANEL>mpi_abort</a>(mpi_comm_world,1,ierr)
+96: #else
+97:       call <a href="#" TARGET=CENT_PANEL>abort</a>
+98: #endif
+99:       end subroutine fatal
+100: 
+101:       end module mod_message
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

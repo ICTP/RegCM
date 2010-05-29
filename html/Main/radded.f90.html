@@ -1,0 +1,439 @@
+<HTML>
+
+<HEAD>
+<TITLE>radded.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>radded.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>radded.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=radded><H3>radded</H3></a></p> Click <a href="./callingtree/radded_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where radded is used.
+<hr>
+20:       subroutine radded(coszrs,trayoslp,pflx,abh2o,abo3,abco2,abo2,uh2o,&
+21:                       & uo3,uco2,uo2,tauxcl,wcl,gcl,fcl,tauxci,wci,gci, &
+22:                       & fci,tauxar_mixs,tauasc_mixs,gtota_mixs,         &
+23:                       & ftota_mixs,nloop,is,ie,rdir,rdif,tdir,tdif,     &
+24:                       & explay,exptdn,rdndif,tottrn)
+25: 
+26: !-----------------------------------------------------------------------
+27: !
+28: ! Computes layer reflectivities and transmissivities, from the top down
+29: ! to the surface using the delta-Eddington solutions for each layer;
+30: ! adds layers from top down to surface as well.
+31: !
+32: ! If total transmission to the interface above a particular layer is
+33: ! less than trmin, then no further delta-Eddington solutions are
+34: ! evaluated for layers below
+35: !
+36: ! For more details , see Briegleb, Bruce P., 1992: Delta-Eddington
+37: ! Approximation for Solar Radiation in the NCAR Community Climate Model,
+38: ! Journal of Geophysical Research, Vol 97, D7, pp7603-7612).
+39: !
+40: !---------------------------Code history--------------------------------
+41: !
+42: ! Original version:  B. Briegleb
+43: ! Standardized:      J. Rosinski, June 1992
+44: ! Reviewed:          J. Kiehl, B. Briegleb, August 1992
+45: !
+46: !-----------------------------------------------------------------------
+47: !
+48:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+49:       use <a href="./mod_when.f90.html#mod_when" TARGET=CENT_PANEL>mod_when</a> , only : whenfgt
+50:       implicit none
+51: !
+52: ! PARAMETER definitions
+53: !
+54: !     Minimum total transmission below which no layer computation are
+55: !     done:
+56: !
+57: ! trmin  - Minimum total transmission allowed
+58: ! wray   - Rayleigh single scatter albedo
+59: ! gray   - Rayleigh asymetry parameter
+60: ! fray   - Rayleigh forward scattered fraction
+61: !
+62:       real(8) , parameter :: trmin = 1.E-3 , wray = 0.999999 ,          &
+63:                            & gray = 0.0 , fray = 0.1
+64: !
+65: !------------------------------Arguments--------------------------------
+66: !
+67: !     Input arguments
+68: !
+69: ! coszrs   - Cosine zenith angle
+70: ! trayoslp - Tray/sslp
+71: ! pflx     - Interface pressure
+72: ! abh2o    - Absorption coefficiant for h2o
+73: ! abo3     - Absorption coefficiant for o3
+74: ! abco2    - Absorption coefficiant for co2
+75: ! abo2     - Absorption coefficiant for o2
+76: ! uh2o     - Layer absorber amount of h2o
+77: ! uo3      - Layer absorber amount of  o3
+78: ! uco2     - Layer absorber amount of co2
+79: ! uo2      - Layer absorber amount of  o2
+80: ! tauxcl   - Cloud extinction optical depth
+81: ! wcl      - Cloud single scattering albedo
+82: ! gcl      - Cloud assymetry parameter
+83: ! fcl      - Cloud forward scattered fraction
+84: ! tauxci   - Cloud extinction optical depth
+85: ! wci      - Cloud single scattering albedo
+86: ! gci      - Cloud assymetry parameter
+87: ! fci      - Cloud forward scattered fraction
+88: ! nloop    - Number of loops (1 or 2)
+89: ! is       - Starting index for 1 or 2 loops
+90: ! ie       - Ending index for 1 or 2 loops
+91: !
+92: !     Input/Output arguments
+93: !
+94: !     Following variables are defined for each layer; 0 refers to extra
+95: !     layer above top of model:
+96: !
+97: ! rdir     - Layer reflectivity to direct rad
+98: ! rdif     - Layer refflectivity to diffuse mod_rad
+99: ! tdir     - Layer transmission to direct rad
+100: ! tdif     - Layer transmission to diffuse mod_rad
+101: ! explay   - Solar beam exp transm for layer
+102: !
+103: !     (Note that the following variables are defined on interfaces,
+104: !     with the index k referring to the top interface of the kth layer:
+105: !     exptdn,rdndif,tottrn; for example, tottrn(k=5) refers to the total
+106: !     transmission to the top interface of the 5th layer; kzp1 refers
+107: !     to the earth surface)
+108: !
+109: ! rdndif   - Added dif ref for layers above
+110: ! exptdn   - Solar beam exp down transm from top
+111: ! tottrn   - Total transmission for layers above
+112: !
+113: !
+114: ! Dummy arguments
+115: !
+116:       real(8) :: abco2 , abh2o , abo2 , abo3 , trayoslp
+117:       integer :: nloop
+118:       real(8) , dimension(iym1) :: coszrs
+119:       real(8) , dimension(iym1,0:kz) :: explay , fci , fcl ,         &
+120:            & ftota_mixs , gci , gcl , gtota_mixs , rdif , rdir ,        &
+121:            & tauasc_mixs , tauxar_mixs , tauxci , tauxcl , tdif , tdir ,&
+122:            & uco2 , uh2o , uo2 , uo3 , wci , wcl
+123:       real(8) , dimension(iym1,0:kzp1) :: exptdn , pflx , rdndif ,    &
+124:            & tottrn
+125:       integer , dimension(2) :: ie , is
+126:       intent (in) abco2 , abh2o , abo2 , abo3 , coszrs , fci , fcl ,    &
+127:                 & ftota_mixs , gci , gcl , gtota_mixs , ie , is ,       &
+128:                 & nloop , pflx , tauasc_mixs , tauxar_mixs , tauxci ,   &
+129:                 & tauxcl , trayoslp , uco2 , uh2o , uo2 , uo3 , wci ,   &
+130:                 & wcl
+131:       intent (inout) explay , exptdn , rdif , rdir , rdndif , tdif ,    &
+132:                    & tdir , tottrn
+133: !
+134: !---------------------------Local variables-----------------------------
+135: !
+136: ! i        - Longitude index
+137: ! k        - Level index
+138: ! nn       - Index of longitude loops (max=nloop)
+139: ! ii       - Longitude index
+140: ! nval     - Number of long values satisfying criteria
+141: ! indx     - Array of longitude indices
+142: ! taugab   - Layer total gas absorption optical depth
+143: ! tauray   - Layer rayleigh optical depth
+144: ! taucsc   - Layer cloud scattering optical depth
+145: ! tautot   - Total layer optical depth
+146: ! wtot     - Total layer single scatter albedo
+147: ! gtot     - Total layer asymmetry parameter
+148: ! ftot     - Total layer forward scatter fraction
+149: ! wtau     - rayleigh layer scattering optical depth
+150: ! wt       - layer total single scattering albedo
+151: ! ts       - layer scaled extinction optical depth
+152: ! ws       - layer scaled single scattering albedo
+153: ! gs       - layer scaled asymmetry parameter
+154: ! rdenom   - mulitiple scattering term
+155: ! rdirexp  - layer direct ref times exp transmission
+156: ! tdnmexp  - total transmission minus exp transmission
+157: !
+158: !---------------------------Statement functions-------------------------
+159: !
+160: !     Statement functions and other local variables
+161: !
+162: ! alpha    - Term in direct reflect and transmissivity
+163: ! xgamm    - Term in direct reflect and transmissivity
+164: ! el       - Term in alpha,xgamm,n,u
+165: ! taus     - Scaled extinction optical depth
+166: ! omgs     - Scaled single particle scattering albedo
+167: ! asys     - Scaled asymmetry parameter
+168: ! u        - Term in diffuse reflect and transmissivity
+169: ! n        - Term in diffuse reflect and transmissivity
+170: ! lm       - Temporary for el
+171: ! ne       - Temporary for n
+172: ! w        - Dummy argument for statement function
+173: ! uu       - Dummy argument for statement function
+174: ! g        - Dummy argument for statement function
+175: ! e        - Dummy argument for statement function
+176: ! f        - Dummy argument for statement function
+177: ! t        - Dummy argument for statement function
+178: ! et       - Dummy argument for statement function
+179: !
+180: !     Intermediate terms for delta-eddington solution
+181: !
+182: ! alp      - Temporary for alpha
+183: ! gam      - Temporary for xgamm
+184: ! ue       - Temporary for u
+185: ! arg      - Exponential argument
+186: ! extins   - Extinction
+187: ! amg      - Alp - gam
+188: ! apg      - Alp + gam
+189: !
+190: ! Local variables
+191: !
+192:       real(8) :: alp , amg , apg , arg , e , et , extins , f , ftot ,   &
+193:                & g , gam , gs , gtot , lm , ne , rdenom , rdirexp , t , &
+194:                & taucsc , tautot , tdnmexp , ts , ue , uu , w , ws ,    &
+195:                & wt , wtau , wtot
+196:       real(8) :: alpha , asys , el , xgamm , n , omgs , taus , u
+197:       integer :: i , ii , k , nn , nval
+198:       integer , dimension(iym1) :: indx
+199:       real(8) , dimension(iym1) :: taugab , tauray
+200: !
+201:       alpha(w,uu,g,e) = .75*w*uu*((1.+g*(1-w))/(1.-e*e*uu*uu))
+202:       xgamm(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu+1.)/(1.-e*e*uu*uu))
+203:       el(w,g) = dsqrt(3.*(1-w)*(1.-w*g))
+204:       taus(w,f,t) = (1.-w*f)*t
+205:       omgs(w,f) = (1.-f)*w/(1.-w*f)
+206:       asys(g,f) = (g-f)/(1.-f)
+207:       u(w,g,e) = 1.5*(1.-w*g)/e
+208:       n(uu,et) = ((uu+1.)*(uu+1.)/et) - ((uu-1.)*(uu-1.)*et)
+209: !
+210: !-----------------------------------------------------------------------
+211: !
+212: !     Initialize all total transmission values to 0, so that nighttime
+213: !     values from previous computations are not used:
+214: !
+215:       tottrn = 0.D0
+216: !
+217: !     Compute total direct beam transmission, total transmission, and
+218: !     reflectivity for diffuse mod_radiation (from below) for all layers
+219: !     above each interface by starting from the top and adding layers
+220: !     down:
+221: !     For the extra layer above model top:
+222: !
+223:       do nn = 1 , nloop
+224:         do i = is(nn) , ie(nn)
+225: !
+226:           tauray(i) = trayoslp*(pflx(i,1)-pflx(i,0))
+227:           taugab(i) = abh2o*uh2o(i,0) + abo3*uo3(i,0) + abco2*uco2(i,0) &
+228:                     & + abo2*uo2(i,0)
+229: !
+230:           tautot = tauxcl(i,0) + tauxci(i,0) + tauray(i) + taugab(i)    &
+231:                  & + tauxar_mixs(i,0)
+232:           taucsc = tauxcl(i,0)*wcl(i,0) + tauxci(i,0)*wci(i,0)          &
+233:                  & + tauasc_mixs(i,0)
+234:           wtau = wray*tauray(i)
+235:           wt = wtau + taucsc
+236:           wtot = wt/tautot
+237:           gtot = (wtau*gray+gcl(i,0)*tauxcl(i,0)*wcl(i,0)+gci(i,0)      &
+238:                & *tauxci(i,0)*wci(i,0)+gtota_mixs(i,0))/wt
+239:           ftot = (wtau*fray+fcl(i,0)*tauxcl(i,0)*wcl(i,0)+fci(i,0)      &
+240:                & *tauxci(i,0)*wci(i,0)+ftota_mixs(i,0))/wt
+241: !
+242:           ts = taus(wtot,ftot,tautot)
+243:           ws = omgs(wtot,ftot)
+244:           gs = asys(gtot,ftot)
+245:           lm = el(ws,gs)
+246:           alp = alpha(ws,coszrs(i),gs,lm)
+247:           gam = xgamm(ws,coszrs(i),gs,lm)
+248:           ue = u(ws,gs,lm)
+249: !
+250: !         Limit argument of exponential to 25, in case lm*ts very large:
+251: !
+252:           arg = dmin1(lm*ts,25.D0)
+253:           extins = dexp(-arg)
+254:           ne = n(ue,extins)
+255: !
+256:           rdif(i,0) = (ue+1.)*(ue-1.)*(1./extins-extins)/ne
+257:           tdif(i,0) = 4.*ue/ne
+258: !
+259: !         Limit argument of exponential to 25, in case coszrs is very
+260: !         small:
+261:           arg = dmin1(ts/coszrs(i),25.D0)
+262:           explay(i,0) = dexp(-arg)
+263: !
+264:           apg = alp + gam
+265:           amg = alp - gam
+266:           rdir(i,0) = amg*(tdif(i,0)*explay(i,0)-1.) + apg*rdif(i,0)
+267:           tdir(i,0) = apg*tdif(i,0) + (amg*rdif(i,0)-(apg-1.))          &
+268:                     & *explay(i,0)
+269: !
+270: !         Under rare conditions, reflectivies and transmissivities can
+271: !         be negative; zero out any negative values
+272: !
+273:           rdir(i,0) = dmax1(rdir(i,0),0.D0)
+274:           tdir(i,0) = dmax1(tdir(i,0),0.D0)
+275:           rdif(i,0) = dmax1(rdif(i,0),0.D0)
+276:           tdif(i,0) = dmax1(tdif(i,0),0.D0)
+277: !
+278: !         Initialize top interface of extra layer:
+279: !
+280:           exptdn(i,0) = 1.0
+281:           rdndif(i,0) = 0.0
+282:           tottrn(i,0) = 1.0
+283: !
+284:           rdndif(i,1) = rdif(i,0)
+285:           tottrn(i,1) = tdir(i,0)
+286: !
+287:         end do
+288:       end do
+289: !
+290: !     Now, continue down one layer at a time; if the total transmission
+291: !     to the interface just above a given layer is less than trmin,
+292: !     then no delta-eddington computation for that layer is done:
+293: !
+294:       do k = 1 , kz
+295: !
+296: !       Initialize current layer properties to zero; only if total
+297: !       transmission to the top interface of the current layer exceeds
+298: !       the minimum, will these values be computed below:
+299: !
+300:         do nn = 1 , nloop
+301:           do i = is(nn) , ie(nn)
+302: !
+303:             rdir(i,k) = 0.0
+304:             rdif(i,k) = 0.0
+305:             tdir(i,k) = 0.0
+306:             tdif(i,k) = 0.0
+307:             explay(i,k) = 0.0
+308: !
+309: !           Calculates the solar beam transmission, total transmission,
+310: !           and reflectivity for diffuse mod_radiation from below at the
+311: !           top of the current layer:
+312: !
+313:             exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
+314: !KN         modified below (for computational stability)
+315: !           rdenom      = 1./(1. - rdif(i,k-1)*rdndif(i,k-1))
+316:             rdenom = 1./(1.-dmin1(rdif(i,k-1)*rdndif(i,k-1),0.999999D0))
+317: !KN         modified above
+318:             rdirexp = rdir(i,k-1)*exptdn(i,k-1)
+319:             tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
+320:             tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)       &
+321:                         & *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+322:             rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
+323:                         & *(tdif(i,k-1)*rdenom)
+324: !
+325:           end do
+326:         end do
+327: !
+328: !       Compute next layer delta-eddington solution only if total
+329: !       transmission of radiation to the interface just above the layer
+330: !       exceeds trmin.
+331:         call <a href="./mod_when.f90.html#whenfgt" TARGET=CENT_PANEL>whenfgt</a>(iym1,tottrn(1,k),1,trmin,indx,nval)
+332:         if ( nval.gt.0 ) then
+333: !CDIR$    IVDEP
+334:           do ii = 1 , nval
+335:             i = indx(ii)
+336: !
+337:             tauray(i) = trayoslp*(pflx(i,k+1)-pflx(i,k))
+338:             taugab(i) = abh2o*uh2o(i,k) + abo3*uo3(i,k)                 &
+339:                       & + abco2*uco2(i,k) + abo2*uo2(i,k)
+340: !
+341:             tautot = tauxcl(i,k) + tauxci(i,k) + tauray(i) + taugab(i)  &
+342:                    & + tauxar_mixs(i,k)
+343:             taucsc = tauxcl(i,k)*wcl(i,k) + tauxci(i,k)*wci(i,k)        &
+344:                    & + tauasc_mixs(i,k)
+345:             wtau = wray*tauray(i)
+346:             wt = wtau + taucsc
+347:             wtot = wt/tautot
+348:             gtot = (wtau*gray+gcl(i,k)*wcl(i,k)*tauxcl(i,k)+gci(i,k)    &
+349:                  & *wci(i,k)*tauxci(i,k)+gtota_mixs(i,k))/wt
+350:             ftot = (wtau*fray+fcl(i,k)*wcl(i,k)*tauxcl(i,k)+fci(i,k)    &
+351:                  & *wci(i,k)*tauxci(i,k)+ftota_mixs(i,k))/wt
+352: !
+353:             ts = taus(wtot,ftot,tautot)
+354:             ws = omgs(wtot,ftot)
+355:             gs = asys(gtot,ftot)
+356:             lm = el(ws,gs)
+357:             alp = alpha(ws,coszrs(i),gs,lm)
+358:             gam = xgamm(ws,coszrs(i),gs,lm)
+359:             ue = u(ws,gs,lm)
+360: !
+361: !           Limit argument of exponential to 25, in case lm very large:
+362: !
+363:             arg = dmin1(lm*ts,25.D0)
+364:             extins = dexp(-arg)
+365:             ne = n(ue,extins)
+366: !
+367:             rdif(i,k) = (ue+1.)*(ue-1.)*(1./extins-extins)/ne
+368:             tdif(i,k) = 4.*ue/ne
+369: !
+370: !           Limit argument of exponential to 25, in case coszrs is very
+371: !           small:
+372:             arg = dmin1(ts/coszrs(i),25.D0)
+373:             explay(i,k) = dexp(-arg)
+374: !
+375:             apg = alp + gam
+376:             amg = alp - gam
+377:             rdir(i,k) = amg*(tdif(i,k)*explay(i,k)-1.) + apg*rdif(i,k)
+378:             tdir(i,k) = apg*tdif(i,k) + (amg*rdif(i,k)-(apg-1.))        &
+379:                       & *explay(i,k)
+380: !
+381: !           Under rare conditions, reflectivies and transmissivities
+382: !           can be negative; zero out any negative values
+383: !
+384:             rdir(i,k) = dmax1(rdir(i,k),0.D0)
+385:             tdir(i,k) = dmax1(tdir(i,k),0.D0)
+386:             rdif(i,k) = dmax1(rdif(i,k),0.D0)
+387:             tdif(i,k) = dmax1(tdif(i,k),0.D0)
+388:           end do
+389:         end if
+390: !
+391:       end do
+392: !
+393: !     Compute total direct beam transmission, total transmission, and
+394: !     reflectivity for diffuse mod_radiation (from below) for all layers
+395: !     above the surface:
+396: !
+397:       k = kzp1
+398:       do nn = 1 , nloop
+399:         do i = is(nn) , ie(nn)
+400:           exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
+401: !KN       modified below (for computational stability)
+402: !         rdenom = 1./(1. - rdif(i,k-1)*rdndif(i,k-1))
+403:           rdenom = 1./(1.-dmin1(rdif(i,k-1)*rdndif(i,k-1),0.999999D0))
+404: !KN       modified above
+405:           rdirexp = rdir(i,k-1)*exptdn(i,k-1)
+406:           tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
+407:           tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)         &
+408:                       & *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+409:           rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
+410:                       & *(tdif(i,k-1)*rdenom)
+411:         end do
+412:       end do
+413: !
+414:       end subroutine radded
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

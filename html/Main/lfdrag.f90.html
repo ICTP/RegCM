@@ -1,0 +1,114 @@
+<HTML>
+
+<HEAD>
+<TITLE>lfdrag.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>lfdrag.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>lfdrag.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=lfdrag><H3>lfdrag</H3></a></p> Click <a href="./callingtree/lfdrag_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where lfdrag is used.
+<hr>
+20:       subroutine lfdrag
+21: 
+22: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+23: !
+24: !     recalculate stability dependent drag coefficient for vegetation,
+25: !     given the neutral drag coefficient.
+26: !
+27:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+28:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+29:       use <a href="./mod_ictp01.F90.html#mod_ictp01" TARGET=CENT_PANEL>mod_ictp01</a>
+30:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti , wtur
+31:       implicit none
+32: !
+33: ! Local variables
+34: !
+35:       real(8) , dimension(nnsg,iym1) :: cdrmin , dlstaf , rib , rib1
+36:       real(8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
+37:       integer :: n , i
+38: !
+39:       do i = 2 , iym1
+40:         do n = 1 , nnsg
+41:           if ( ldoc1d(n,i).gt.0.5 ) then
+42:             if ( sigf(n,i).gt.0.001 ) then
+43:               tkb = wta0(n,i)*ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)         &
+44:                   & + wtg0(n,i)*tg1d(n,i)
+45:               dlstaf(n,i) = ts1d(n,i) - sigf(n,i)                       &
+46:                            & *tkb - (1.-sigf(n,i))*tg1d(n,i)
+47:               if ( dlstaf(n,i).le.0 ) then
+48:                 dthdz = (1.-sigf(n,i))*tg1d(n,i) + sigf(n,i)            &
+49:                       & *tkb - ts1d(n,i)
+50:                 u1 = wtur + 2.*dsqrt(dthdz)
+51:                 ribd(n,i) = us1d(i)**2 + vs1d(i)**2 + u1**2
+52:               else
+53:                 u2 = wtur
+54:                 ribd(n,i) = us1d(i)**2 + vs1d(i)**2 + u2**2
+55:               end if
+56:               vspda(n,i) = dsqrt(ribd(n,i))
+57:               if ( vspda(n,i).lt.1. ) then
+58:                 vspda(n,i) = 1.
+59:                 ribd(n,i) = 1.
+60:               end if
+61:               zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i)            &
+62:                      & + z1(n,i)*(1.-sigf(n,i))
+63:               rib1(n,i) = gti*zatild/(ribd(n,i)*ts1d(n,i))
+64:               rib(n,i) = rib1(n,i)*dlstaf(n,i)
+65:               if ( rib(n,i).lt.0. ) then
+66:                 cdr(n,i) = cdrn(n,i)*(1.+24.5*dsqrt(-cdrn(n,i)*         &
+67:                       & rib(n,i)))
+68:                 sqrtf = dmin1(dsqrt(-cdrn(n,i)/rib(n,i)),11.5D0/12.25D0)
+69:                 cdrd(n,i) = cdrn(n,i)*12.25*wtl0(n,i)*rib1(n,i)         &
+70:                            & *sigf(n,i)*sqrtf
+71:               else
+72:                 ribi = 1./(1.+11.5*rib(n,i))
+73:                 cdr(n,i) = cdrn(n,i)*ribi
+74:                 cdrd(n,i) = cdr(n,i)*ribi*11.5*rib1(n,i)*wtl0(n,i)      &
+75:                            & *sigf(n,i)
+76:                 cdrmin(n,i) = dmax1(0.25*cdrn(n,i),6.D-4)
+77:               end if
+78:               if ( (rib(n,i).ge.0.) ) then
+79:                 if ( (cdr(n,i).lt.cdrmin(n,i)) ) then
+80:                   cdr(n,i) = cdrmin(n,i)
+81:                   cdrd(n,i) = 0.
+82:                 end if
+83:               end if
+84:             end if
+85:           end if
+86:         end do
+87:       end do
+88:  
+89:       end subroutine lfdrag
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

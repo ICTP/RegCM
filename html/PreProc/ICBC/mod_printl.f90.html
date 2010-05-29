@@ -1,0 +1,72 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_printl.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_printl.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_printl.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_printl><H3>mod_printl</H3></a></p>20:       module mod_printl
+21: 
+22:       contains
+23: 
+<p><a name=printl><H3>printl</H3></a></p> Click <a href="./callingtree/printl_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where printl is used.
+<hr>
+24:       subroutine printl(a,n1,n2)
+25:       implicit none
+26: !
+27: ! Dummy arguments
+28: !
+29:       integer :: n1 , n2
+30:       real(4) , dimension(n1,n2) :: a
+31:       intent (in) a , n1 , n2
+32: !
+33: ! Local variables
+34: !
+35:       integer :: inc1 , inc2 , k , l
+36: !
+37:       inc2 = -1
+38:       inc1 = 1
+39:  
+40:       do l = n2 , 1 , inc2
+41:         print 99001 , l , (a(k,l),k=1,17,inc1)
+42:       end do
+43: 99001 format (1x,i3,2x,17F7.2)
+44:  
+45:       end subroutine printl
+46: 
+47:       end module mod_printl
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,292 @@
+<HTML>
+
+<HEAD>
+<TITLE>trcab.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>trcab.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>trcab.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=trcab><H3>trcab</H3></a></p> Click <a href="./callingtree/trcab_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where trcab is used.
+<hr>
+20:       subroutine trcab(k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,     &
+21:                      & uco212,uco213,uco221,uco222,uco223,bn2o0,bn2o1,  &
+22:                      & bch4,to3co2,pnm,dw,pnew,s2c,uptype,dplh2o,       &
+23:                      & abplnk1,tco2,th2o,to3,abstrc)
+24: !
+25:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+26:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : sslp
+27:       implicit none
+28: !
+29: !----------------------------------------------------------------------
+30: ! Calculate absorptivity for non nearest layers for CH4, N2O, CFC11 and
+31: ! CFC12.
+32: !
+33: !             Coded by J.T. Kiehl November 21, 1994
+34: !-----------------------------------------------------------------------
+35: !
+36: !------------------------------Arguments--------------------------------
+37: ! to3co2  - pressure weighted temperature
+38: ! pnm     - interface pressures
+39: ! ucfc11  - CFC11 path length
+40: ! ucfc12  - CFC12 path length
+41: ! un2o0   - N2O path length
+42: ! un2o1   - N2O path length (hot band)
+43: ! uch4    - CH4 path length
+44: ! uco211  - CO2 9.4 micron band path length
+45: ! uco212  - CO2 9.4 micron band path length
+46: ! uco213  - CO2 9.4 micron band path length
+47: ! uco221  - CO2 10.4 micron band path length
+48: ! uco222  - CO2 10.4 micron band path length
+49: ! uco223  - CO2 10.4 micron band path length
+50: ! bn2o0   - pressure factor for n2o
+51: ! bn2o1   - pressure factor for n2o
+52: ! bch4    - pressure factor for ch4
+53: ! dw      - h2o path length
+54: ! pnew    - pressure
+55: ! s2c     - continuum path length
+56: ! uptype  - p-type h2o path length
+57: ! dplh2o  - p squared h2o path length
+58: ! abplnk1 - Planck factor
+59: ! tco2    - co2 transmission factor
+60: ! th2o    - h2o transmission factor
+61: ! to3     - o3 transmission factor
+62: !
+63: !------------------------------Output Arguments-------------------------
+64: !
+65: ! abstrc  - total trace gas absorptivity
+66: !
+67: !-----------------------------------------------------------------------
+68: !
+69: ! Dummy arguments
+70: !
+71:       integer :: k1 , k2
+72:       real(8) , dimension(14,iym1,kzp1) :: abplnk1
+73:       real(8) , dimension(iym1) :: abstrc , dplh2o , dw , pnew , tco2 ,&
+74:                                   & th2o , to3 , to3co2
+75:       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
+76:            & s2c , ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,  &
+77:            & uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
+78:       intent (in) abplnk1 , bch4 , bn2o0 , bn2o1 , dplh2o , dw , k1 ,   &
+79:                 & k2 , pnew , pnm , s2c , tco2 , th2o , to3 , to3co2 ,  &
+80:                 & ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,   &
+81:                 & uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
+82:       intent (out) abstrc
+83: !
+84: !     Local Variables
+85: !
+86: !-----------------------------------------------------------------------
+87: !
+88: ! sqti    - square root of mean temp
+89: ! du1     - cfc11 path length
+90: ! du2     - cfc12 path length
+91: ! acfc1   - cfc11 absorptivity 798 cm-1
+92: ! acfc2   - cfc11 absorptivity 846 cm-1
+93: ! acfc3   - cfc11 absorptivity 933 cm-1
+94: ! acfc4   - cfc11 absorptivity 1085 cm-1
+95: ! acfc5   - cfc12 absorptivity 889 cm-1
+96: ! acfc6   - cfc12 absorptivity 923 cm-1
+97: ! acfc7   - cfc12 absorptivity 1102 cm-1
+98: ! acfc8   - cfc12 absorptivity 1161 cm-1
+99: ! du01    - n2o path length
+100: ! dbeta01 - n2o pressure factor
+101: ! dbeta11 -        "
+102: ! an2o1   - absorptivity of 1285 cm-1 n2o band
+103: ! du02    - n2o path length
+104: ! dbeta02 - n2o pressure factor
+105: ! an2o2   - absorptivity of 589 cm-1 n2o band
+106: ! du03    - n2o path length
+107: ! dbeta03 - n2o pressure factor
+108: ! an2o3   - absorptivity of 1168 cm-1 n2o band
+109: ! duch4   - ch4 path length
+110: ! dbetac  - ch4 pressure factor
+111: ! ach4    - absorptivity of 1306 cm-1 ch4 band
+112: ! du11    - co2 path length
+113: ! du12    -       "
+114: ! du13    -       "
+115: ! dbetc1  - co2 pressure factor
+116: ! dbetc2  - co2 pressure factor
+117: ! aco21   - absorptivity of 1064 cm-1 band
+118: ! du21    - co2 path length
+119: ! du22    -       "
+120: ! du23    -       "
+121: ! aco22   - absorptivity of 961 cm-1 band
+122: ! tt      - temp. factor for h2o overlap factor
+123: ! psi1    -                 "
+124: ! phi1    -                 "
+125: ! p1      - h2o overlap factor
+126: ! w1      -        "
+127: ! ds2c    - continuum path length
+128: ! duptyp  - p-type path length
+129: ! tw      - h2o transmission factor
+130: ! g1      -         "
+131: ! g2      -         "
+132: ! g3      -         "
+133: ! g4      -         "
+134: ! ab      - h2o temp. factor
+135: ! bb      -         "
+136: ! abp     -         "
+137: ! bbp     -         "
+138: ! tcfc3   - transmission for cfc11 band
+139: ! tcfc4   - transmission for cfc11 band
+140: ! tcfc6   - transmission for cfc12 band
+141: ! tcfc7   - transmission for cfc12 band
+142: ! tcfc8   - transmission for cfc12 band
+143: ! tlw     - h2o transmission
+144: ! tch4    - ch4 transmission
+145: !
+146: !-----------------------------------------------------------------------
+147: !
+148:       real(8) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4
+149:       real(8) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
+150:                & acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
+151:                & b , dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,   &
+152:                & dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
+153:                & du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
+154:                & phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
+155:                & tch4 , tlw , u , w1
+156:       real(8) , dimension(iym1) :: ds2c , duptyp , sqti , tt
+157:       real(8) :: func
+158:       integer :: i , l
+159:       real(8) , dimension(iym1,6) :: tw
+160: !
+161:       data g1/0.0468556 , 0.0397454 , 0.0407664 , 0.0304380 ,           &
+162:          & 0.0540398 , 0.0321962/
+163:       data g2/14.4832 , 4.30242 , 5.23523 , 3.25342 , 0.698935 ,        &
+164:          & 16.5599/
+165:       data g3/26.1898 , 18.4476 , 15.3633 , 12.1927 , 9.14992 , 8.07092/
+166:       data g4/0.0261782 , 0.0369516 , 0.0307266 , 0.0243854 ,           &
+167:          & 0.0182932 , 0.0161418/
+168:       data ab/3.0857E-2 , 2.3524E-2 , 1.7310E-2 , 2.6661E-2 ,           &
+169:          & 2.8074E-2 , 2.2915E-2/
+170:       data bb/ - 1.3512E-4 , -6.8320E-5 , -3.2609E-5 , -1.0228E-5 ,     &
+171:          & -9.5743E-5 , -1.0304E-4/
+172:       data abp/2.9129E-2 , 2.4101E-2 , 1.9821E-2 , 2.6904E-2 ,          &
+173:          & 2.9458E-2 , 1.9892E-2/
+174:       data bbp/ - 1.3139E-4 , -5.5688E-5 , -4.6380E-5 , -8.0362E-5 ,    &
+175:          & -1.0115E-4 , -8.8061E-5/
+176: !------------------------------------------------------------------
+177:       func(u,b) = u/dsqrt(4.0+u*(1.0+1.0/b))
+178: !
+179:       do i = 1 , iym1
+180:         sqti(i) = dsqrt(to3co2(i))
+181: !       h2o transmission
+182:         tt(i) = dabs(to3co2(i)-250.0)
+183:         ds2c(i) = dabs(s2c(i,k1)-s2c(i,k2))
+184:         duptyp(i) = dabs(uptype(i,k1)-uptype(i,k2))
+185:       end do
+186: !
+187:       do l = 1 , 6
+188:         do i = 1 , iym1
+189:           psi1 = dexp(abp(l)*tt(i)+bbp(l)*tt(i)*tt(i))
+190:           phi1 = dexp(ab(l)*tt(i)+bb(l)*tt(i)*tt(i))
+191:           p1 = pnew(i)*(psi1/phi1)/sslp
+192:           w1 = dw(i)*phi1
+193:           tw(i,l) = dexp(-g1(l)*p1*(dsqrt(1.0+g2(l)*(w1/p1))-1.0)-g3(l) &
+194:                   & *ds2c(i)-g4(l)*duptyp(i))
+195:         end do
+196:       end do
+197: !
+198:       do i = 1 , iym1
+199:         du1 = dabs(ucfc11(i,k1)-ucfc11(i,k2))
+200:         du2 = dabs(ucfc12(i,k1)-ucfc12(i,k2))
+201: !       cfc transmissions
+202:         tcfc3 = dexp(-175.005*du1)
+203:         tcfc4 = dexp(-1202.18*du1)
+204:         tcfc6 = dexp(-5786.73*du2)
+205:         tcfc7 = dexp(-2873.51*du2)
+206:         tcfc8 = dexp(-2085.59*du2)
+207: !       Absorptivity for CFC11 bands
+208:         acfc1 = 50.0*(1.0-dexp(-54.09*du1))*tw(i,1)*abplnk1(7,i,k2)
+209:         acfc2 = 60.0*(1.0-dexp(-5130.03*du1))*tw(i,2)*abplnk1(8,i,k2)
+210:         acfc3 = 60.0*(1.0-tcfc3)*tw(i,4)*tcfc6*abplnk1(9,i,k2)
+211:         acfc4 = 100.0*(1.0-tcfc4)*tw(i,5)*abplnk1(10,i,k2)
+212: !       Absorptivity for CFC12 bands
+213:         acfc5 = 45.0*(1.0-dexp(-1272.35*du2))*tw(i,3)*abplnk1(11,i,k2)
+214:         acfc6 = 50.0*(1.0-tcfc6)*tw(i,4)*abplnk1(12,i,k2)
+215:         acfc7 = 80.0*(1.0-tcfc7)*tw(i,5)*tcfc4*abplnk1(13,i,k2)
+216:         acfc8 = 70.0*(1.0-tcfc8)*tw(i,6)*abplnk1(14,i,k2)
+217: !       Emissivity for CH4 band 1306 cm-1
+218:         tlw = dexp(-1.0*dsqrt(dplh2o(i)))
+219:         duch4 = dabs(uch4(i,k1)-uch4(i,k2))
+220:         dbetac = dabs(bch4(i,k1)-bch4(i,k2))/duch4
+221:         ach4 = 6.00444*sqti(i)*dlog(1.0+func(duch4,dbetac))             &
+222:              & *tlw*abplnk1(3,i,k2)
+223:         tch4 = 1.0/(1.0+0.02*func(duch4,dbetac))
+224: !       Absorptivity for N2O bands
+225:         du01 = dabs(un2o0(i,k1)-un2o0(i,k2))
+226:         du11 = dabs(un2o1(i,k1)-un2o1(i,k2))
+227:         dbeta01 = dabs(bn2o0(i,k1)-bn2o0(i,k2))/du01
+228:         dbeta11 = dabs(bn2o1(i,k1)-bn2o1(i,k2))/du11
+229: !       1285 cm-1 band
+230:         an2o1 = 2.35558*sqti(i)                                         &
+231:               & *dlog(1.0+func(du01,dbeta01)+func(du11,dbeta11))        &
+232:               & *tlw*tch4*abplnk1(4,i,k2)
+233:         du02 = 0.100090*du01
+234:         du12 = 0.0992746*du11
+235:         dbeta02 = 0.964282*dbeta01
+236: !       589 cm-1 band
+237:         an2o2 = 2.65581*sqti(i)                                         &
+238:               & *dlog(1.0+func(du02,dbeta02)+func(du12,dbeta02))*th2o(i)&
+239:               & *tco2(i)*abplnk1(5,i,k2)
+240:         du03 = 0.0333767*du01
+241:         dbeta03 = 0.982143*dbeta01
+242: !       1168 cm-1 band
+243:         an2o3 = 2.54034*sqti(i)*dlog(1.0+func(du03,dbeta03))*tw(i,6)    &
+244:               & *tcfc8*abplnk1(6,i,k2)
+245: !       Emissivity for 1064 cm-1 band of CO2
+246:         du11 = dabs(uco211(i,k1)-uco211(i,k2))
+247:         du12 = dabs(uco212(i,k1)-uco212(i,k2))
+248:         du13 = dabs(uco213(i,k1)-uco213(i,k2))
+249:         dbetc1 = 2.97558*dabs(pnm(i,k1)+pnm(i,k2))/(2.0*sslp*sqti(i))
+250:         dbetc2 = 2.0*dbetc1
+251:         aco21 = 3.7571*sqti(i)                                          &
+252:               & *dlog(1.0+func(du11,dbetc1)+func(du12,dbetc2)           &
+253:               & +func(du13,dbetc2))*to3(i)*tw(i,5)                      &
+254:               & *tcfc4*tcfc7*abplnk1(2,i,k2)
+255: !       Emissivity for 961 cm-1 band
+256:         du21 = dabs(uco221(i,k1)-uco221(i,k2))
+257:         du22 = dabs(uco222(i,k1)-uco222(i,k2))
+258:         du23 = dabs(uco223(i,k1)-uco223(i,k2))
+259:         aco22 = 3.8443*sqti(i)                                          &
+260:               & *dlog(1.0+func(du21,dbetc1)+func(du22,dbetc1)           &
+261:               & +func(du23,dbetc2))*tw(i,4)*tcfc3*tcfc6*abplnk1(1,i,k2)
+262: !       total trace gas absorptivity
+263:         abstrc(i) = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 +     &
+264:                   & acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +      &
+265:                   & aco21 + aco22
+266:       end do
+267:       end subroutine trcab
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

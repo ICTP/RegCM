@@ -1,0 +1,126 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_pmoist.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_pmoist.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_pmoist.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_pmoist><H3>mod_pmoist</H3></a></p>20:       module mod_pmoist
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: 
+24:       implicit none
+25: !
+26:       real(8) :: caccr , cevap , clfrcv , clfrcvmax , cllwcv , conf ,   &
+27:                & dtauc , edtmax , edtmaxo , edtmaxx , edtmin , edtmino ,&
+28:                & edtminx , fcmax , gulland , guloce , htmax , htmin ,   &
+29:                & mincld , pbcmax , qck10 , qck1land , qck1oce , qcth ,  &
+30:                & qdcrit , rh0land , rh0oce , rhmax , shrmax , tc0 ,     &
+31:                & shrmin , skbmax
+32:       real(8) , allocatable , dimension(:,:) :: cbmf2d , cgul ,         &
+33:                & dtauc2d , edtmax2d , edtmaxo2d , edtmaxx2d ,           &
+34:                                    & edtmin2d , edtmino2d , edtminx2d , &
+35:                                    & htmax2d , htmin2d , mincld2d ,     &
+36:                                    & pbcmax2d , qck1 , rh0 , shrmax2d , &
+37:                                    & shrmin2d
+38:       real(8) , allocatable , dimension(:,:,:) :: fcc , rsheat , rswat
+39:       real(8) , allocatable , dimension(:) :: qwght
+40:       real(8) , allocatable , dimension(:,:,:) :: twght , vqflx
+41:       integer ,allocatable, dimension(:) :: icon
+42:       integer ,allocatable, dimension(:,:) :: kbmax2d
+43:       integer :: kbmax
+44: 
+45:       contains
+46: 
+<p><a name=allocate_mod_pmoist><H3>allocate_mod_pmoist</H3></a></p> Click <a href="./callingtree/allocate_mod_pmoist_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where allocate_mod_pmoist is used.
+<hr>
+47:       subroutine allocate_mod_pmoist
+48:       implicit none
+49: #ifdef MPP1
+50:       allocate(cbmf2d(iy,jxp))
+51:       allocate(cgul(iy,jxp))
+52:       allocate(dtauc2d(iy,jxp))
+53:       allocate(edtmax2d(iy,jxp))
+54:       allocate(edtmaxo2d(iy,jxp))
+55:       allocate(edtmaxx2d(iy,jxp))
+56:       allocate(edtmin2d(iy,jxp))
+57:       allocate(edtmino2d(iy,jxp))
+58:       allocate(edtminx2d(iy,jxp))
+59:       allocate(htmax2d(iy,jxp))
+60:       allocate(htmin2d(iy,jxp))
+61:       allocate(mincld2d(iy,jxp))
+62:       allocate(pbcmax2d(iy,jxp))
+63:       allocate(qck1(iy,jxp))
+64:       allocate(rh0(iy,jxp))
+65:       allocate(shrmax2d(iy,jxp))
+66:       allocate(shrmin2d(iy,jxp))
+67:       allocate(fcc(iy,kz,jxp))
+68:       allocate(rsheat(iy,kz,jxp))
+69:       allocate(rswat(iy,kz,jxp))
+70:       allocate(icon(jxp))
+71:       allocate(kbmax2d(iy,jxp))
+72: #else
+73:       allocate(cbmf2d(iy,jx))
+74:       allocate(cgul(iy,jx))
+75:       allocate(dtauc2d(iy,jx))
+76:       allocate(edtmax2d(iy,jx))
+77:       allocate(edtmaxo2d(iy,jx))
+78:       allocate(edtmaxx2d(iy,jx))
+79:       allocate(edtmin2d(iy,jx))
+80:       allocate(edtmino2d(iy,jx))
+81:       allocate(edtminx2d(iy,jx))
+82:       allocate(htmax2d(iy,jx))
+83:       allocate(htmin2d(iy,jx))
+84:       allocate(mincld2d(iy,jx))
+85:       allocate(pbcmax2d(iy,jx))
+86:       allocate(qck1(iy,jx))
+87:       allocate(rh0(iy,jx))
+88:       allocate(shrmax2d(iy,jx))
+89:       allocate(shrmin2d(iy,jx))
+90:       allocate(fcc(iy,kz,jx))
+91:       allocate(rsheat(iy,kz,jx))
+92:       allocate(rswat(iy,kz,jx))
+93:       allocate(icon(jx))
+94:       allocate(kbmax2d(iy,jx))
+95: #endif
+96:       allocate(qwght(kz))
+97:       allocate(twght(kz,5:kz,1:kz-3))
+98:       allocate(vqflx(kz,5:kz,1:kz-3))
+99:       end subroutine allocate_mod_pmoist
+100: 
+101:       end module mod_pmoist
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

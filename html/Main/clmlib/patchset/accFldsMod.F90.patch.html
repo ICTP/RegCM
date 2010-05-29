@@ -1,0 +1,73 @@
+<HTML>
+
+<HEAD>
+<TITLE>accFldsMod.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/accFldsMod.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>accFldsMod.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/accFldsMod.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/accFldsMod.F90	2010-03-10 16:19:07.000000000 +0100
+<LI>@@ -30,6 +30,8 @@
+<LI> ! !USES:
+<LI>   use shr_kind_mod, only: r8 => shr_kind_r8
+<LI>   use abortutils,   only: endrun
+<LI>+  use mod_clm
+<LI>+  use mod_dynparam
+<LI> !
+<LI> ! !PUBLIC TYPES:
+<LI>   implicit none
+<LI>@@ -80,7 +82,9 @@
+<LI> 
+<LI>     ! Hourly average of 2m temperature.
+<LI> 
+<LI>-    dtime = get_step_size()
+<LI>+!    dtime = get_step_size()
+<LI>+    dtime = r2cdtime
+<LI>+
+<LI>     call init_accum_field(name='TREFAV', units='K', &
+<LI>          desc='average over an hour of 2-m temperature', &
+<LI>          accum_type='timeavg', accum_period=nint(3600._r8/dtime), &
+<LI>@@ -253,8 +257,12 @@
+<LI> 
+<LI>     ! Determine calendar information
+<LI> 
+<LI>-    dtime = get_step_size()
+<LI>-    nstep = get_nstep()
+<LI>+!abt rcm    dtime = get_step_size()
+<LI>+!           nstep = get_nstep()
+<LI>+
+<LI>+    dtime = r2cdtime
+<LI>+    nstep = r2cnstep
+<LI>+
+<LI>     call get_curr_date (year, month, day, secs)
+<LI> 
+<LI>     ! Don't do any accumulation if nstep is zero
+<LI>@@ -494,7 +502,9 @@
+<LI> 
+<LI>     ! Determine time step
+<LI> 
+<LI>-    nstep = get_nstep()
+<LI>+!abt rcm    nstep = get_nstep()
+<LI>+    nstep = r2cdtime
+<LI>+
+<LI> 
+<LI>     ! Initialize 2m ref temperature max and min values
+<LI> 
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

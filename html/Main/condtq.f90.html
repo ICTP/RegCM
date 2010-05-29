@@ -1,0 +1,172 @@
+<HTML>
+
+<HEAD>
+<TITLE>condtq.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>condtq.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>condtq.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=condtq><H3>condtq</H3></a></p> Click <a href="./callingtree/condtq_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where condtq is used.
+<hr>
+20:       subroutine condtq(j)
+21:  
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine computes the condensational or evaporational    c
+25: !     heating term and the fallout term of precipitation from the     c
+26: !     explicit moisture scheme.                                       c
+27: !                                                                     c
+28: !     ---the condensational or evaporational term are one step        c
+29: !        adjustment based on asai (1965, j. meteo. soc. japan).       c
+30: !                                                                     c
+31: !     ---modified to include the effects of partial cloud cover       c
+32: !        (see Pal et al 2000).  When partial clouds exist, the qvten  c
+33: !        in/out of the clear and cloudy portions of the grid cell is  c
+34: !        assumed to be at the same rate (i.e., if there is 80% cloud  c
+35: !        cover, .2 of qvten goes to raising qv in the clear region    c
+36: !        and .8 goes to condensation or evaporation of qc in the      c
+37: !        cloudy portion).                                             c
+38: !                                                                     c
+39: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+40:  
+41:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+42:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+43:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : r8pt , a
+44:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+45:       use <a href="./mod_cvaria.F90.html#mod_cvaria" TARGET=CENT_PANEL>mod_cvaria</a>
+46:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+47:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+48:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
+49:                                & svp2 , svp3 , svp4 , svp5 , svp6 ,     &
+50:                                & tzero , rwat
+51:       implicit none
+52: !
+53: ! Dummy arguments
+54: !
+55:       integer :: j
+56:       intent (in) j
+57: !
+58: ! Local variables
+59: !
+60: ! rhc    - Relative humidity at ktau+1
+61: ! rh0adj - Adjusted relative humidity threshold at ktau+1
+62: ! fccc   - Cloud fraction at ktau+1
+63: !
+64:       real(8) :: dqv , exces , fccc , pres , qvc_cld , qvs , r1 ,       &
+65:                & rh0adj , rhc , satvp
+66:       integer :: i , k
+67:       real(8) , dimension(iy,kz) :: qccs , tmp1 , tmp2 , tmp3
+68: !
+69:  
+70: !---------------------------------------------------------------------
+71: !     1.  Compute t, qv, and qc at tau+1 without condensational term
+72: !---------------------------------------------------------------------
+73:       do k = 1 , kz
+74:         do i = 2 , iym2
+75:           tmp3(i,k) = (tb(i,k,j)+dt*tten(i,k,j))/psc(i,j)
+76:           qvcs(i,k) = dmax1((qvb(i,k,j)+dt*qvten(i,k,j))/psc(i,j),      &
+77:                     & 1.D-30)
+78:           qccs(i,k) = dmax1((qcb(i,k,j)+dt*qcten(i,k,j))/psc(i,j),      &
+79:                     & 1.D-30)
+80:         end do
+81:       end do
+82:  
+83: !---------------------------------------------------------------------
+84: !     2.  Compute the cloud condensation/evaporation term.
+85: !---------------------------------------------------------------------
+86:       do k = 1 , kz
+87:         do i = 2 , iym2
+88:  
+89: !         2a. Calculate the saturation mixing ratio and relative
+90: !         humidity
+91:           pres = (a(k)*psc(i,j)+r8pt)*1000.
+92:           if ( tmp3(i,k).gt.tzero ) then
+93:             satvp = svp1*1.E3*dexp(svp2*(tmp3(i,k)-tzero)               &
+94:                   & /(tmp3(i,k)-svp3))
+95:           else
+96:             satvp = svp4*1.E3*dexp(svp5-svp6/tmp3(i,k))
+97:           end if
+98:           qvs = dmax1(ep2*satvp/(pres-satvp),1.D-30)
+99:           rhc = dmax1(qvcs(i,k)/qvs,1.D-30)
+100: 
+101:           r1 = 1./(1.+wlhv*wlhv*qvs/(rwat*cpd*tmp3(i,k)*tmp3(i,k)))
+102:  
+103: !         2b. Compute the relative humidity threshold at ktau+1
+104:           if ( tmp3(i,k).gt.tc0 ) then
+105:             rh0adj = rh0(i,j)
+106:           else ! high cloud (less subgrid variability)
+107:             rh0adj = rhmax - (rhmax-rh0(i,j))/(1.0+0.15*(tc0-tmp3(i,k)))
+108:           end if
+109:  
+110: !         2c. Compute the water vapor in excess of saturation
+111:           if ( rhc.ge.rhmax .or. rhc.lt.rh0adj ) then
+112:                                                    ! Full or no cloud cover
+113:             dqv = qvcs(i,k) - qvs*conf ! Water vapor in excess of sat
+114:             tmp1(i,k) = r1*dqv
+115:           else                                     ! Partial cloud cover
+116:             fccc = 1. - sqrt(1.-(rhc-rh0adj)/(rhmax-rh0adj))
+117:             fccc = dmin1(dmax1(fccc,0.01D0),1.0D0)
+118:             qvc_cld = dmax1((qsb3d(i,k,j)+dt*qvten(i,k,j)/psc(i,j)),    &
+119:                     & 0.0D0)
+120:             dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
+121:             tmp1(i,k) = r1*dqv*fccc        ! grid cell average
+122:           end if
+123:  
+124: !         2d. Compute the new cloud water + old cloud water
+125:           exces = qccs(i,k) + tmp1(i,k)
+126:           if ( exces.ge.0. ) then
+127:                               ! Some cloud is left
+128:             tmp2(i,k) = tmp1(i,k)/dt
+129:           else                ! The cloud evaporates
+130:             tmp2(i,k) = -qccs(i,k)/dt
+131:           end if
+132:  
+133:         end do
+134:       end do
+135:  
+136: !---------------------------------------------------------------------
+137: !     3.  Compute the tendencies.
+138: !---------------------------------------------------------------------
+139:       do k = 1 , kz
+140:         do i = 2 , iym2
+141:           qvten(i,k,j) = qvten(i,k,j) - psc(i,j)*tmp2(i,k)
+142:           qcten(i,k,j) = qcten(i,k,j) + psc(i,j)*tmp2(i,k)
+143:           tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2(i,k)*wlhvocp
+144:         end do
+145:       end do
+146:  
+147:       end subroutine condtq
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

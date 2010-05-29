@@ -1,0 +1,107 @@
+<HTML>
+
+<HEAD>
+<TITLE>inirad.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>inirad.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>inirad.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=inirad><H3>inirad</H3></a></p> Click <a href="./callingtree/inirad_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where inirad is used.
+<hr>
+20:       subroutine inirad
+21:  
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23:       use <a href="./mod_o3blk.F90.html#mod_o3blk" TARGET=CENT_PANEL>mod_o3blk</a> , only : o3data
+24:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a> , only : o3prof , heatrt
+25:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : jyear , jyear0 , ktau
+26:       implicit none
+27: !
+28: ! Local variables
+29: !
+30:       integer :: i , j , k
+31: !
+32: !     compute ozone mixing ratio distribution
+33: !
+34:       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+35:         do k = 1 , kz
+36: #ifdef MPP1
+37:           do j = 1 , jendl
+38:             do i = 1 , iym1
+39:               heatrt(i,k,j) = 0.
+40:               o3prof(i,k,j) = 0.
+41:             end do
+42:           end do
+43: #else
+44:           do j = 1 , jxm1
+45:             do i = 1 , iym1
+46:               heatrt(i,k,j) = 0.
+47:               o3prof(i,k,j) = 0.
+48:             end do
+49:           end do
+50: #endif
+51:         end do
+52: #ifdef MPP1
+53:         do j = 1 , jendl
+54:           do i = 1 , iym1
+55:             o3prof(i,kzp1,j) = 0.
+56:           end do
+57:         end do
+58: #else
+59:         do j = 1 , jxm1
+60:           do i = 1 , iym1
+61:             o3prof(i,kzp1,j) = 0.
+62:           end do
+63:         end do
+64: #endif
+65:         call <a href="./mod_o3blk.F90.html#o3data" TARGET=CENT_PANEL>o3data</a>
+66: #ifdef MPP1
+67:         if ( myid.eq.0 ) then
+68:           print * , 'ozone profiles'
+69:           do k = 1 , kzp1
+70:             write (6,99001) o3prof(3,k,jxp)
+71:           end do
+72:         end if
+73: #else
+74:         print * , 'ozone profiles'
+75:         do k = 1 , kzp1
+76:           write (6,99001) o3prof(3,k,3)
+77:         end do
+78: #endif
+79:       end if
+80: 99001 format (1x,7E12.4)
+81:  
+82:       end subroutine inirad
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

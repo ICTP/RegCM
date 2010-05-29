@@ -1,0 +1,443 @@
+<HTML>
+
+<HEAD>
+<TITLE>diffut.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>diffut.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>diffut.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=diffut_t><H3>diffut_t</H3></a></p> Click <a href="./callingtree/diffut_t_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where diffut_t is used.
+<hr>
+20:       subroutine diffut_t(ften,xkc,c203,j)
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine computes the diffusion term for cross-point     c
+25: !     variable 'f' on a constant sigma surface.                       c
+26: !                                                                     c
+27: !     ---fourth-order diffusion scheme is applied for the interior    c
+28: !        and second-order scheme is applied for the boundary.         c
+29: !                                                                     c
+30: !     ften   : tendency for variable f                                c
+31: !                                                                     c
+32: !     tb3d   : variable f at t-1 time step                            c
+33: !                                                                     c
+34: !     psb    : p* at t-1 time step                                    c
+35: !                                                                     c
+36: !     xkc    : horizontal diffusion coefficient                       c
+37: !                                                                     c
+38: !     c203   : = c203 defined in 'param'                              c
+39: !     c203   : = (100.-ptop)/(dx*dx), defined in 'param'              c
+40: !                                                                     c
+41: !     j      : j'th slice of variable tb3d                            c
+42: !                                                                     c
+43: !     iend   : = iym2 for cross-point variables                       c
+44: !              = iym1  for dot-point   variables                       c
+45: !                                                                     c
+46: !     jend   : = jxm2 for cross-point variables                       c
+47: !              = jlx  for dot-point   variables                       c
+48: !                                                                     c
+49: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+50: 
+51:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+52:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+53:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+54:       implicit none
+55: !
+56: ! Dummy arguments
+57: !
+58:       real(8) :: c203
+59:       integer :: j
+60:       real(8) , dimension(iy,kz) :: ften , xkc
+61:       intent (in) c203 , j , xkc
+62:       intent (inout) ften
+63: !
+64: ! Local variables
+65: !
+66:       integer :: i , k
+67: !
+68: !----------------------------------------------------------------------
+69: !-----compute the diffusion term for t:
+70: !
+71: #ifdef MPP1
+72:       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
+73:          & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
+74: #else
+75:       if ( j.eq.2 .or. j.eq.jxm2 ) then
+76: #endif
+77: !
+78: !......second-order scheme for east or west boundary:
+79:         do k = 1 , kz
+80:           do i = 2 , iym2
+81:             ften(i,k) = ften(i,k) + xkc(i,k)                            &
+82:                       & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)&
+83:                       & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+84:           end do
+85:         end do
+86: !
+87:       else
+88: !
+89: !......fourth-order scheme for interior:
+90:         do k = 1 , kz
+91:           do i = 3 , iym3
+92:             ften(i,k) = ften(i,k) - xkc(i,k)                            &
+93:                       & *c203*(tb3d(i,k,j+2)+tb3d(i,k,j-2)+tb3d(i+2,k,j)&
+94:                       & +tb3d(i-2,k,j)                                  &
+95:                       & -4.*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+96:                       & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+97:           end do
+98:         end do
+99: !......second-order scheme for north and south boundaries:
+100:         i = 2
+101:         do k = 1 , kz
+102:           ften(i,k) = ften(i,k) + xkc(i,k)                              &
+103:                     & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+104:                     & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+105:         end do
+106:         i = iym2
+107:         do k = 1 , kz
+108:           ften(i,k) = ften(i,k) + xkc(i,k)                              &
+109:                     & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+110:                     & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+111:         end do
+112: !
+113:       end if
+114: !
+115:       end subroutine diffut_t
+116: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+<p><a name=diffutqv><H3>diffutqv</H3></a></p> Click <a href="./callingtree/diffutqv_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where diffutqv is used.
+<hr>
+117:       subroutine diffutqv(ften,xkc,c203,j)
+118: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+119: !                                                                     c
+120: !     this subroutine computes the diffusion term for cross-point     c
+121: !     variable 'f' on a constant sigma surface.                       c
+122: !                                                                     c
+123: !     ---fourth-order diffusion scheme is applied for the interior    c
+124: !        and second-order scheme is applied for the boundary.         c
+125: !                                                                     c
+126: !     ften   : tendency for variable f                                c
+127: !                                                                     c
+128: !     qvb3d  : variable f at t-1 time step                            c
+129: !                                                                     c
+130: !     psb    : p* at t-1 time step                                    c
+131: !                                                                     c
+132: !     xkc    : horizontal diffusion coefficient                       c
+133: !                                                                     c
+134: !     c203   : = c203 defined in 'param'                              c
+135: !     c203   : = (100.-ptop)/(dx*dx), defined in 'param'              c
+136: !                                                                     c
+137: !     j      : j'th slice of variable qvb3d                           c
+138: !                                                                     c
+139: !     iend   : = iym2 for cross-point variables                       c
+140: !              = iym1  for dot-point   variables                       c
+141: !                                                                     c
+142: !     jend   : = jxm2 for cross-point variables                       c
+143: !              = jlx  for dot-point   variables                       c
+144: !                                                                     c
+145: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+146:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+147:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+148:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+149:       implicit none
+150: !
+151: ! Dummy arguments
+152: !
+153:       real(8) :: c203
+154:       integer :: j
+155:       real(8) , dimension(iy,kz) :: ften , xkc
+156:       intent (in) c203 , j , xkc
+157:       intent (inout) ften
+158: !
+159: ! Local variables
+160: !
+161:       integer :: i , k
+162: !
+163: !----------------------------------------------------------------------
+164: !-----compute the diffusion term for t:
+165: !
+166: #ifdef MPP1
+167:       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
+168:          & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
+169: #else
+170:       if ( j.eq.2 .or. j.eq.jxm2 ) then
+171: #endif
+172: !
+173: !......second-order scheme for east or west boundary:
+174:         do k = 1 , kz
+175:           do i = 2 , iym2
+176:             ften(i,k) = ften(i,k) + xkc(i,k)                            &
+177:                       & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)            &
+178:                       & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j)) &
+179:                       & *psb(i,j)
+180:           end do
+181:         end do
+182: !
+183:       else
+184: !
+185: !......fourth-order scheme for interior:
+186:         do k = 1 , kz
+187:           do i = 3 , iym3
+188:             ften(i,k) = ften(i,k) - xkc(i,k)                            &
+189:                       & *c203*(qvb3d(i,k,j+2)+qvb3d(i,k,j-2)            &
+190:                       & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
+191:                       & -4.*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+192:                       & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
+193:                       & )*psb(i,j)
+194:           end do
+195:         end do
+196: !......second-order scheme for north and south boundaries:
+197:         i = 2
+198:         do k = 1 , kz
+199:           ften(i,k) = ften(i,k) + xkc(i,k)                              &
+200:                     & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+201:                     & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+202:                     & *psb(i,j)
+203:         end do
+204:         i = iym2
+205:         do k = 1 , kz
+206:           ften(i,k) = ften(i,k) + xkc(i,k)                              &
+207:                     & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+208:                     & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+209:                     & *psb(i,j)
+210:         end do
+211: !
+212:       end if
+213: !
+214:       end subroutine diffutqv
+215: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+<p><a name=diffutqc><H3>diffutqc</H3></a></p> Click <a href="./callingtree/diffutqc_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where diffutqc is used.
+<hr>
+216:       subroutine diffutqc(ften,xkc,c203,j)
+217: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+218: !                                                                     c
+219: !     this subroutine computes the diffusion term for cross-point     c
+220: !     variable 'f' on a constant sigma surface.                       c
+221: !                                                                     c
+222: !     ---fourth-order diffusion scheme is applied for the interior    c
+223: !        and second-order scheme is applied for the boundary.         c
+224: !                                                                     c
+225: !     ften   : tendency for variable f                                c
+226: !                                                                     c
+227: !     qcb3d  : variable f at t-1 time step                            c
+228: !                                                                     c
+229: !     psb    : p* at t-1 time step                                    c
+230: !                                                                     c
+231: !     xkc    : horizontal diffusion coefficient                       c
+232: !                                                                     c
+233: !     c203   : = c203 defined in 'param'                              c
+234: !     c203   : = (100.-ptop)/(dx*dx), defined in 'param'              c
+235: !                                                                     c
+236: !     j      : j'th slice of variable qcb3d                           c
+237: !                                                                     c
+238: !     iend   : = iym2 for cross-point variables                       c
+239: !              = iym1  for dot-point   variables                       c
+240: !                                                                     c
+241: !     jend   : = jxm2 for cross-point variables                       c
+242: !              = jlx  for dot-point   variables                       c
+243: !                                                                     c
+244: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+245:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+246:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+247:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+248:       implicit none
+249: !
+250: ! Dummy arguments
+251: !
+252:       real(8) :: c203
+253:       integer :: j
+254:       real(8) , dimension(iy,kz) :: ften , xkc
+255:       intent (in) c203 , j , xkc
+256:       intent (inout) ften
+257: !
+258: ! Local variables
+259: !
+260:       integer :: i , k
+261: !
+262: !----------------------------------------------------------------------
+263: !-----compute the diffusion term for t:
+264: !
+265: #ifdef MPP1
+266:       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
+267:          & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
+268: #else
+269:       if ( j.eq.2 .or. j.eq.jxm2 ) then
+270: #endif
+271: !
+272: !......second-order scheme for east or west boundary:
+273:         do k = 1 , kz
+274:           do i = 2 , iym2
+275:             ften(i,k) = ften(i,k) + xkc(i,k)                            &
+276:                       & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)            &
+277:                       & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j)) &
+278:                       & *psb(i,j)
+279:           end do
+280:         end do
+281: !
+282:       else
+283: !
+284: !......fourth-order scheme for interior:
+285:         do k = 1 , kz
+286:           do i = 3 , iym3
+287:             ften(i,k) = ften(i,k) - xkc(i,k)                            &
+288:                       & *c203*(qcb3d(i,k,j+2)+qcb3d(i,k,j-2)            &
+289:                       & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
+290:                       & -4.*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+291:                       & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
+292:                       & )*psb(i,j)
+293:           end do
+294:         end do
+295: !......second-order scheme for north and south boundaries:
+296:         i = 2
+297:         do k = 1 , kz
+298:           ften(i,k) = ften(i,k) + xkc(i,k)                              &
+299:                     & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+300:                     & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+301:                     & *psb(i,j)
+302:         end do
+303:         i = iym2
+304:         do k = 1 , kz
+305:           ften(i,k) = ften(i,k) + xkc(i,k)                              &
+306:                     & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+307:                     & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+308:                     & *psb(i,j)
+309:         end do
+310: !
+311:       end if
+312: !
+313:       end subroutine diffutqc
+314: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+<p><a name=diffutch><H3>diffutch</H3></a></p> Click <a href="./callingtree/diffutch_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where diffutch is used.
+<hr>
+315:       subroutine diffutch(ften,xkc,c203,n,j)
+316: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+317: !                                                                     c
+318: !     this subroutine computes the diffusion term for cross-point     c
+319: !     variable 'f' on a constant sigma surface.                       c
+320: !                                                                     c
+321: !     ---fourth-order diffusion scheme is applied for the interior    c
+322: !        and second-order scheme is applied for the boundary.         c
+323: !                                                                     c
+324: !     ften   : tendency for variable f                                c
+325: !                                                                     c
+326: !     chib3d : variable f at t-1 time step                            c
+327: !                                                                     c
+328: !     psb    : p* at t-1 time step                                    c
+329: !                                                                     c
+330: !     xkc    : horizontal diffusion coefficient                       c
+331: !                                                                     c
+332: !     c203   : = c203 defined in 'param'                              c
+333: !     c203   : = (100.-ptop)/(dx*dx), defined in 'param'              c
+334: !                                                                     c
+335: !     j      : j'th slice of variable chib3d                          c
+336: !                                                                     c
+337: !     iend   : = iym2 for cross-point variables                       c
+338: !              = iym1  for dot-point   variables                       c
+339: !                                                                     c
+340: !     jend   : = jxm2 for cross-point variables                       c
+341: !              = jlx  for dot-point   variables                       c
+342: !                                                                     c
+343: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+344:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+345:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+346:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+347:       implicit none
+348: !
+349: ! Dummy arguments
+350: !
+351:       real(8) :: c203
+352:       integer :: j , n
+353:       real(8) , dimension(iy,kz) :: ften , xkc
+354:       intent (in) c203 , j , n , xkc
+355:       intent (inout) ften
+356: !
+357: ! Local variables
+358: !
+359:       integer :: i , k
+360: !
+361: !----------------------------------------------------------------------
+362: !-----compute the diffusion term for t:
+363: !
+364: #ifdef MPP1
+365:       if ( (myid.eq.0 .and. j.eq.2) .or.                                &
+366:          & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
+367: #else
+368:       if ( j.eq.2 .or. j.eq.jxm2 ) then
+369: #endif
+370: !
+371: !......second-order scheme for east or west boundary:
+372:         do k = 1 , kz
+373:           do i = 2 , iym2
+374:             ften(i,k) = ften(i,k) + xkc(i,k)                            &
+375:                       & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)      &
+376:                       & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)            &
+377:                       & -4.*chib3d(i,k,j,n))*psb(i,j)
+378:           end do
+379:         end do
+380: !
+381:       else
+382: !
+383: !......fourth-order scheme for interior:
+384:         do k = 1 , kz
+385:           do i = 3 , iym3
+386:             ften(i,k) = ften(i,k) - xkc(i,k)                            &
+387:                       & *c203*(chib3d(i,k,j+2,n)+chib3d(i,k,j-2,n)      &
+388:                       & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
+389:                       & -4.*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+390:                       & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
+391:                       & +12.*chib3d(i,k,j,n))*psb(i,j)
+392:           end do
+393:         end do
+394: !......second-order scheme for north and south boundaries:
+395:         i = 2
+396:         do k = 1 , kz
+397:           ften(i,k) = ften(i,k) + xkc(i,k)                              &
+398:                     & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+399:                     & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+400:                     & -4.*chib3d(i,k,j,n))*psb(i,j)
+401:         end do
+402:         i = iym2
+403:         do k = 1 , kz
+404:           ften(i,k) = ften(i,k) + xkc(i,k)                              &
+405:                     & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+406:                     & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+407:                     & -4.*chib3d(i,k,j,n))*psb(i,j)
+408:         end do
+409: !
+410:       end if
+411: !
+412:       end subroutine diffutch
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

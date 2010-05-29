@@ -1,0 +1,220 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_co2.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_co2.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_co2.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=mod_co2><H3>mod_co2</H3></a></p>20:       module mod_co2
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23: !
+24:       contains
+25: !
+<p><a name=co2><H3>co2</H3></a></p> Click <a href="./callingtree/co2_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where co2 is used.
+<hr>
+26:       subroutine co2
+27: 
+28: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+29: !
+30: !     model for plant carbon uptake and dead carbon decomposition
+31: !
+32: !            dtbat = surface output interval
+33: !            cari = rate of carbon uptake by plants
+34: !       pbp1d(n,i) = accumulated primary biomass
+35: !      resp1d(n,i) = carbon in soil and in veg (kg c / m**2 / sec)
+36: !              ra = leaf aerodynamic resistance factor
+37: !             rap = leaf boundary layer resistance to co2
+38: !           resps = soil respiration
+39: !             rmp = physical mesophyllic resistance
+40: !              rs = stomatal resistance
+41: !             rsp = stomatal resistance to co2
+42: !              rt = total mechanical resistance to co2
+43: !
+44: !     0.33 pptv co2 = 0.30 pptm dry matter in plants
+45: !
+46: !     decomposable soil carbon assumed incremented by npp-soil resp.
+47: !
+48: !     resistances for co2 are larger than those for h2o due to
+49: !                    difference in molecular weight
+50: !
+51:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+52:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : dtbat
+53:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : fdry , pbp1d , resp1d , ldoc1d , sigf ,     &
+54:                    & rlai , gwmx0, solis , tlef1d , ssw1d , tg1d ,      &
+55:                    & xlai , xlsai
+56:       use <a href="./mod_ictp01.F90.html#mod_ictp01" TARGET=CENT_PANEL>mod_ictp01</a>
+57:       implicit none
+58: !
+59: ! Local variables
+60: !
+61:       real(8) , dimension(nnsg,iym1) :: cari
+62:       integer :: n , i
+63:       real(8) :: rap , resps , rmp , rsp , rt
+64: ! 
+65:       rmp = 800.0
+66:       do i = 2 , iym1
+67:         do n = 1 , nnsg
+68:           if ( ldoc1d(n,i).gt.0.5 ) then
+69:             if ( sigf(n,i).gt.0.001 ) then
+70:               rsp = rs(n,i)*1.7
+71:               rap = ra(n,i)*1.5
+72:               rt = rsp + rap + rmp
+73:               cari(n,i) = sigf(n,i)*xlsai(n,i)*fdry(n,i)                &
+74:                          & *<a href="./mod_co2.f90.html#carbon" TARGET=CENT_PANEL>carbon</a>(solis(i)*rlai(n,i),tlef1d(n,i),rt,   &
+75:                          & tg1d(n,i),xlai(n,i),xlsai(n,i))
+76:               pbp1d(n,i) = pbp1d(n,i) + cari(n,i)*dtbat
+77:             end if
+78:           end if
+79:         end do
+80:       end do
+81:  
+82:       do i = 2 , iym1
+83:         do n = 1 , nnsg
+84:           if ( ldoc1d(n,i).gt.0.5 ) then
+85:             if ( sigf(n,i).gt.0.001 ) then
+86:               if ( pbp1d(n,i).lt.0 ) pbp1d(n,i) = 0.
+87:               resps = 0.7E-7*resp1d(n,i)*dexp(0.1*(tg1d(n,i)-300.))     &
+88:                     & *dmin1(1.D0,ssw1d(n,i)/(0.6*gwmx0(n,i)))
+89:               resp1d(n,i) = resp1d(n,i) + (cari(n,i)-resps)*dtbat
+90:               if ( resp1d(n,i).lt.0.0 ) resp1d(n,i) = 0.
+91:             end if
+92:           end if
+93:         end do
+94:       end do
+95:       end subroutine co2
+96: !
+97: !
+98: !
+<p><a name=carbon><H3>carbon</H3></a></p> Click <a href="./callingtree/carbon_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where carbon is used.
+<hr>
+99:       function carbon(vf,t,rm,tg,xlai,xlsai)
+100:       implicit none
+101: !
+102: ! Dummy arguments
+103: !
+104:       real(8) :: rm , t , tg , vf , xlai , xlsai
+105:       real(8) :: carbon
+106:       intent (in) rm , tg , vf , xlai , xlsai
+107: !
+108: ! Local variables
+109: !
+110:       real(8) :: a , ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
+111:                & cco2i , ccold , gt , p , pm , pml , rt , sl , tmx , w ,&
+112:                & wd , wp , xk , xkb , xl
+113:       real(8) :: e , g , r
+114:       integer :: it
+115: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+116: !     ***  a model for whole leaf photosynthesis based on that derived
+117: !     *** by tenhunen as summarized in the text of d gates
+118: !
+119: !     function g represents temperature dependence of photosynthesis
+120: !======================================================================
+121: !     still to improve:
+122: !     parameter for different vegetation types, now wheat only
+123: !     correct initial values for resp must be set in initb
+124: !     parameterisation of resps for cultivated land ok ?
+125: !     betatl = rai/lai  (must be set reasonably)
+126: !====================================================================
+127: !     this fn is not in si - vf (radn) and rm (res) handed in are in si
+128: !     result of fn (carbon) is handed back in si (kg/m**2/s)
+129: !======================================================================
+130:       g(t,tmx,sl) = dexp(sl*(1./tmx-1./t))                              &
+131:                   & /(1.+(dexp(sl*(1./tmx-1./t)*6)))*5.E-3*t
+132: !     ***  temperature dependence of dark respiration
+133:       r(t) = dexp(30.-9.E3/t)
+134: !     ****  light dependence of photosynthesis
+135:       e(xl,a,pml) = a*xl/(1.+(a*xl/pml)**2)**0.5
+136:  
+137:       p = 0
+138:       rt = r(t)
+139: !     ****    alphtl=sai/lai     betatl=rai/lai  (rai=root area index)
+140:       alphtl = (xlsai-xlai)/xlai
+141:       betatl = 0.5
+142:       if ( vf.lt.2. ) then
+143:  
+144: !       ***   nighttime maintenance respiration only
+145:         <a href="./mod_co2.f90.html#carbon" TARGET=CENT_PANEL>carbon</a> = -0.36E-8*((1.+alphtl)*0.877*rt+betatl*(r(tg)-0.123*rt))
+146:       else
+147: !       **** convert lambda less than 0.7 micron solar into photon units
+148: !       *****  light intensity (e/m2)
+149:         xl = 4.6E-3*vf
+150: !       *** co2 external concentration(mm/m3)
+151: !       ****    335ppm/v
+152:         cco2 = 13.5
+153: !       ***initial guess for co2 concentration inside chloroplast
+154:         cco2i = cco2
+155: !       ****  co2 half max in absence of oxygen  (mm/m3)
+156:         xk = 0.5
+157: !       ****  oxygen inhibition factor
+158:         b = 3.56
+159:         xkb = xk*b
+160: !       ****  maximum temperature optimum light saturated photosynthesis
+161:         pml = 0.050
+162: !       ****    quantum yield(mm/e)
+163:         al = 0.05
+164:         gt = g(t,320.D0,4.D3)
+165: !       ****  maximum photosynthesis
+166:         pm = e(xl,al,pml*gt)
+167: !       ******   iterate
+168:  
+169:         do it = 1 , 30
+170: !         ****  photorespiration
+171:           wp = pm/(1.+0.4*(1.+cco2i/xk))
+172: !         ****    total respiration
+173: !         ****dark respiration within daytime leaves
+174:           wd = 3.E-4*rt + 0.14*p
+175:           w = wp + wd
+176: !         *****    carbon uptake factors
+177:           ac = cco2 + xkb + rm*(pm-w)
+178:           bc = 4.*rm*(cco2*(pm-w)-xkb*w)
+179:           ab = dsqrt(ac**2-bc)
+180:           p = 0.5*(ac-ab)/rm
+181:           ccold = cco2i
+182:           cco2i = cco2 - p*rm
+183:           if ( dabs(cco2i-ccold).le.0.05 .and. it.gt.9 ) exit
+184:         end do
+185: !       **** respiration outside leaves
+186:         <a href="./mod_co2.f90.html#carbon" TARGET=CENT_PANEL>carbon</a> = 1.2E-5*((1.-0.14*(alphtl+betatl))                      &
+187:                & *p-3.0E-4*(alphtl*rt+betatl*r(tg)))
+188:         return
+189:       end if
+190:  
+191:       end function carbon
+192: !
+193:       end module mod_co2
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

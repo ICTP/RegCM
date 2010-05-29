@@ -1,0 +1,536 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_sst_ersst.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_sst_ersst.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_sst_ersst.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=mod_sst_ersst><H3>mod_sst_ersst</H3></a></p>20:       module mod_sst_ersst
+21: 
+22:       contains
+23: 
+<p><a name=sst_ersst><H3>sst_ersst</H3></a></p> Click <a href="./callingtree/sst_ersst_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where sst_ersst is used.
+<hr>
+24:       subroutine sst_ersst
+25: 
+26: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+27: ! Comments on dataset sources and location:                          !
+28: !                                                                    !
+29: ! ERAIN    ERAIN_SST is provided by ERA-Interim project              !
+30: !          6 hourly frequncy, 1.5x1.5 degree resolution              !
+31: !          from 1989010100 to 2009053118.                            !
+32: !          'ERSST' for using the sea surface temperature;            !
+33: !          'ERSKT' for using the skin temperature.                   !
+34: !                                                                    !
+35: !          ML= 1 is   0.0; ML= 2 is   1.5; => ML=240 is 358.5E       !
+36: !          NL= 1 is  90.0; ML= 2 is  88.5; => ML=121 is -90.         !
+37: !                                                                    !
+38: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+39:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+40:       use <a href="./mod_date.f90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+41:       use <a href="./mod_interp.f90.html#mod_interp" TARGET=CENT_PANEL>mod_interp</a> , only : bilinx
+42:       use <a href="./mod_printl.f90.html#mod_printl" TARGET=CENT_PANEL>mod_printl</a>
+43: 
+44:       implicit none
+45: !
+46: ! PARAMETERS
+47: !
+48:       integer , parameter :: ilon = 240 , jlat = 121
+49: !
+50: ! Local variables
+51: !
+52:       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
+53:       real(4) , dimension(jlat) :: lati
+54:       real(4) , dimension(ilon) :: loni
+55:       integer :: idate
+56:       logical :: there
+57:       integer :: nnnend , nstart
+58:       real(4) , dimension(ilon,jlat) :: sst
+59:       real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
+60:       character(256) :: terfile , sstfile , inpfile
+61: !
+62:       allocate(lu(iy,jx))
+63:       allocate(sstmm(iy,jx))
+64:       allocate(xlat(iy,jx))
+65:       allocate(xlon(iy,jx))
+66: !
+67:       if ( ssttyp=='ERSST' ) then
+68:         there = .false.
+69:         if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
+70:            & (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
+71:           inquire (file=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc',    &
+72:             &      exist=there)
+73:           if ( .not.there ) then
+74:             print * , 'sstERAIN.1989-2009.nc is not available' ,        &
+75:                  &' under ',trim(inpglob),'/SST/'
+76:             stop
+77:           end if
+78:         end if
+79:         if ( .not.there ) then
+80:           print * , 'ERSST Sea Surface Temperature is just available' , &
+81:                &' from 1989010100 to 2009053118'
+82:           stop
+83:         end if
+84:       else if ( ssttyp=='ERSKT' ) then
+85:         there = .false.
+86:         if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
+87:            & (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
+88:           inquire (file=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc',  &
+89:                  & exist=there)
+90:           if ( .not.there ) then
+91:             print * , 'tskinERAIN.1989-2009.nc is not available' ,      &
+92:                  &' under ',trim(inpglob),'/SST/'
+93:             stop
+94:           end if
+95:         end if
+96:         if ( .not.there ) then
+97:           print * , 'ERSKT Skin Temperature is just available' ,        &
+98:                &' from 1989010100 to 2009053118'
+99:           stop
+100:         end if
+101:       else
+102:         write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
+103:         write (*,*) 'Supported types are ERSST ERSKT'
+104:         stop
+105:       end if
+106:       write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
+107:           &  '_SST.RCM'
+108:       open (21,file=sstfile,form='unformatted',status='replace')
+109:  
+110: !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
+111:       write (terfile,99001)                                             &
+112:         & trim(dirter), pthsep, trim(domname) , '.INFO'
+113:       open (10,file=terfile,form='unformatted',recl=iy*jx*ibyte,        &
+114:          &  access='direct',status='unknown',err=100)
+115:       call <a href="./mod_date.f90.html#initdate_era" TARGET=CENT_PANEL>initdate_era</a>
+116:       call <a href="./mod_date.f90.html#finddate_era" TARGET=CENT_PANEL>finddate_era</a>(nstart,globidate1)
+117:       call <a href="./mod_date.f90.html#finddate_era" TARGET=CENT_PANEL>finddate_era</a>(nnnend,globidate2)
+118:       write (*,*) nstart , nnnend
+119:       print * , globidate1 , nnnend - nstart + 1
+120:       write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
+121:            & '_RCM_SST.dat'
+122:       open (25,file=sstfile,status='unknown',form='unformatted',        &
+123:           & recl=iy*jx*ibyte,access='direct')
+124:       if ( igrads==1 ) then
+125:         write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,    &
+126:           &  '_RCM_SST.ctl'
+127:         open (31,file=sstfile,status='replace')
+128:         write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
+129:       end if
+130:       call <a href="./mod_sst_ersst.f90.html#gridmle" TARGET=CENT_PANEL>gridmle</a>(xlon,xlat,lu,iy,jx,globidate1,nnnend-nstart+1)
+131:       mrec = 0
+132:  
+133: !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
+134:       do i = 1 , ilon
+135:         loni(i) = float(i-1)*1.5
+136:       end do
+137:       do j = 1 , jlat
+138:         lati(j) = -90. + 1.5*float(j-1)
+139:       end do
+140:  
+141:       do it = nstart , nnnend
+142:         idate = mdate(it)
+143:         if ( ssttyp=='ERSST' ) then
+144:           inpfile = trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
+145:           call <a href="./mod_sst_ersst.f90.html#sst_erain" TARGET=CENT_PANEL>sst_erain</a>(it,nstart,ilon,jlat,sst,inpfile)
+146:         else if ( ssttyp=='ERSKT' ) then
+147:           inpfile = trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
+148:           call <a href="./mod_sst_ersst.f90.html#skt_erain" TARGET=CENT_PANEL>skt_erain</a>(it,nstart,ilon,jlat,sst,inpfile)
+149:         else
+150:         end if
+151:         nyear = idate/1000000
+152:         nmo = (idate-nyear*1000000)/10000
+153:         nday = (idate-nyear*1000000-nmo*10000)/100
+154:         nhour = idate - nyear*1000000 - nmo*10000 - nday*100
+155:  
+156: !       ******           PRINT OUT DATA AS A CHECK
+157:         if ( nmo==1 ) call <a href="./mod_printl.f90.html#printl" TARGET=CENT_PANEL>printl</a>(sst,ilon,jlat)
+158:  
+159:         call <a href="./aerosol.f90.html#bilinx" TARGET=CENT_PANEL>bilinx</a>(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+160:         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
+161:  
+162: !       ******           WRITE OUT SST DATA ON MM4 GRID
+163:         write (21) nhour , nday , nmo , nyear , sstmm
+164:         print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
+165:         mrec = mrec + 1
+166:         write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
+167:       end do
+168:  
+169:       deallocate(lu)
+170:       deallocate(sstmm)
+171:       deallocate(xlat)
+172:       deallocate(xlon)
+173: 
+174:       return
+175: 
+176: !     4810 PRINT *,'ERROR OPENING GISST FILE'
+177: !     STOP '4810 IN PROGRAM RDSST'
+178:  100  continue
+179:       print * , 'ERROR OPENING DOMAIN HEADER FILE'
+180:       stop '4830 IN PROGRAM RDSST'
+181: 
+182: 99001 format (a,a,a,a)
+183:       end subroutine sst_ersst
+184: !
+185: !-----------------------------------------------------------------------
+186: !
+<p><a name=gridmle><H3>gridmle</H3></a></p> Click <a href="./callingtree/gridmle_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where gridmle is used.
+<hr>
+187:       subroutine gridmle(xlon,xlat,lu,iy,jx,idate1,numrec)
+188:       implicit none
+189: !
+190: ! Dummy arguments
+191: !
+192:       integer :: idate1 , iy , jx , numrec
+193:       real(4) , dimension(iy,jx) :: lu , xlat , xlon
+194:       intent (in) idate1 , iy , jx , numrec
+195:       intent (out) lu , xlat , xlon
+196: !
+197: ! Local variables
+198: !
+199:       real(4) :: truelath , truelatl
+200:       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
+201:             & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
+202:             & ptop , rlatinc , rloninc
+203:       character(2) , dimension(31) :: cday
+204:       character(3) , dimension(12) :: cmonth
+205:       integer :: i , ibigend , igrads , iyy , j , jxx , k , kz ,        &
+206:                & month , nday , nhour , nx , ny , nyear , period
+207:       character(6) :: iproj
+208:       real(4) , dimension(30) :: sigmaf
+209: !
+210:       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
+211:           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
+212:          & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
+213:          & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
+214:       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
+215:          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
+216: !
+217:       alatmin = 999999.
+218:       alatmax = -999999.
+219:       alonmin = 999999.
+220:       alonmax = -999999.
+221:       nx = 0
+222:       ny = 0
+223:       read (10,rec=1) iyy , jxx , kz , dsinm , clat , clon , plat ,     &
+224:                     & plon , grdfac , iproj , (sigmaf(k),k=1,kz+1) ,    &
+225:                     & ptop , igrads , ibigend , truelatl , truelath
+226:       if ( iyy/=iy .or. jxx/=jx ) then
+227:         write (*,*) 'IY,JX,IYY,JXX' , iy , jx , iyy , jxx
+228:         stop
+229:       end if
+230:       read (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
+231:       read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
+232:       read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
+233: !
+234:       if ( igrads==1 ) then
+235:         write (31,'(a)') 'title SST fields for RegCM domain'
+236:         if ( ibigend==1 ) then
+237:           write (31,'(a)') 'options big_endian'
+238:         else
+239:           write (31,'(a)') 'options little_endian'
+240:         end if
+241:         write (31,'(a)') 'undef -9999.'
+242:         if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
+243:           do j = 1 , jx
+244:             if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
+245:             if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
+246:           end do
+247:           do i = 1 , iy
+248:             do j = 1 , jx
+249:               if ( clon>=0.0 ) then
+250:                 if ( xlon(i,j)>=0.0 ) then
+251:                   alonmin = amin1(alonmin,xlon(i,j))
+252:                   alonmax = amax1(alonmax,xlon(i,j))
+253:                 else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)+360.))&
+254:                         & ) then
+255:                   alonmin = amin1(alonmin,xlon(i,j))
+256:                   alonmax = amax1(alonmax,xlon(i,j))
+257:                 else
+258:                   alonmin = amin1(alonmin,xlon(i,j)+360.)
+259:                   alonmax = amax1(alonmax,xlon(i,j)+360.)
+260:                 end if
+261:               else if ( xlon(i,j)<0.0 ) then
+262:                 alonmin = amin1(alonmin,xlon(i,j))
+263:                 alonmax = amax1(alonmax,xlon(i,j))
+264:               else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)-360.)) )&
+265:                       & then
+266:                 alonmin = amin1(alonmin,xlon(i,j))
+267:                 alonmax = amax1(alonmax,xlon(i,j))
+268:               else
+269:                 alonmin = amin1(alonmin,xlon(i,j)-360.)
+270:                 alonmax = amax1(alonmax,xlon(i,j)-360.)
+271:               end if
+272:             end do
+273:           end do
+274:           rlatinc = dsinm*0.001/111./2.
+275:           rloninc = dsinm*0.001/111./2.
+276:           ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
+277:           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
+278:  
+279:           centerj = jx/2.
+280:           centeri = iy/2.
+281:         end if
+282:         if ( iproj=='LAMCON' ) then        ! Lambert projection
+283:           write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
+284:                          & truelatl , truelath , clon , dsinm , dsinm
+285:           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
+286:           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+287:         else if ( iproj=='POLSTR' ) then   !
+288:         else if ( iproj=='NORMER' ) then
+289:           write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
+290:           write (31,99005) iy
+291:           write (31,99006) (xlat(i,1),i=1,iy)
+292:         else if ( iproj=='ROTMER' ) then
+293:           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
+294:                      &' projections are not supported by GrADS.'
+295:           write (*,*) '  Although not exact, the eta.u projection' ,    &
+296:                      &' in GrADS is somewhat similar.'
+297:           write (*,*) ' FERRET, however, does support this projection.'
+298:           write (31,99007) jx , iy , plon , plat , dsinm/111000. ,      &
+299:                          & dsinm/111000.*.95238
+300:           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
+301:           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
+302:         else
+303:           write (*,*) 'Are you sure your map projection is correct ?'
+304:           stop
+305:         end if
+306:         write (31,99008) 1 , 1000.
+307:         period = numrec
+308:         nyear = idate1/1000000
+309:         month = (idate1-nyear*1000000)/10000
+310:         nday = (idate1-nyear*1000000-month*10000)/100
+311:         nhour = mod(idate1,100)
+312:         write (31,99009) period , nhour , cday(nday) , cmonth(month) ,  &
+313:                        & nyear
+314:         write (31,99010) 1
+315:         write (31,99011) 'sst ' , 'surface elevation          '
+316:         write (31,'(a)') 'endvars'
+317:         close (31)
+318:       end if
+319: 99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
+320: 99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
+321: 99003 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
+322: 99004 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
+323: 99005 format ('ydef ',i3,' levels')
+324: 99006 format (10F7.2)
+325: 99007 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+326: 99008 format ('zdef ',i1,' levels ',f7.2)
+327: 99009 format ('tdef ',i6,' linear ',i2,'z',a2,a3,i4,' 6hr')
+328: 99010 format ('vars ',i1)
+329: 99011 format (a4,'0 99 ',a26)
+330: !
+331:       end subroutine gridmle
+332: !
+333: !-----------------------------------------------------------------------
+334: !
+<p><a name=skt_erain><H3>skt_erain</H3></a></p> Click <a href="./callingtree/skt_erain_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where skt_erain is used.
+<hr>
+335:       subroutine skt_erain(it,it0,ilon,jlat,sst,pathaddname)
+336:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+337:       implicit none
+338: !
+339: ! Dummy arguments
+340: !
+341:       integer :: it , it0 , ilon , jlat
+342:       character(256) :: pathaddname
+343:       intent (in) it , it0 , ilon , jlat , pathaddname
+344:       real(4) , dimension(ilon,jlat) :: sst
+345:       intent (out) :: sst
+346: !
+347: ! Local variables
+348: !
+349:       integer :: i , j , n
+350:       logical :: there
+351:       character(5) :: varname
+352:       integer(2) , dimension(ilon,jlat) :: work
+353:       integer :: istatus
+354: !
+355:       integer , dimension(10) , save :: icount , istart
+356:       integer , save :: inet , ivar
+357:       real(8) , save :: xadd , xscale
+358: !
+359: !     This is the latitude, longitude dimension of the grid to be read.
+360: !     This corresponds to the lat and lon dimension variables in the
+361: !     netCDF file.
+362: !
+363: !     The data are packed into short integers (INTEGER*2).  The array
+364: !     work will be used to hold the packed integers. The array 'sst'
+365: !     will contain the unpacked data.
+366: !
+367: !     DATA ARRAY AND WORK ARRAY
+368: !
+369:       data varname/'skt'/
+370: !
+371:       if ( it==it0 ) then
+372:         inquire (file=pathaddname,exist=there)
+373:         if ( .not.there ) then
+374:           write (*,*) trim(pathaddname) , ' is not available'
+375:           stop
+376:         end if
+377:         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
+378:         if ( istatus/=nf90_noerr ) then
+379:           write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
+380:           stop 'INPUT FILE OPEN ERROR'
+381:         end if
+382:         istatus = nf90_inq_varid(inet,varname,ivar)
+383:         if ( istatus/=nf90_noerr ) then
+384:           write ( 6,* ) 'Cannot find variable ', varname,               &
+385:                &        ' in input file ', trim(pathaddname)
+386:           stop 'INPUT FILE ERROR'
+387:         end if
+388:         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+389:         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+390:         istart(1) = 1
+391:         istart(2) = 1
+392:         icount(1) = 240
+393:         icount(2) = 121
+394:         do n = 4 , 10
+395:           istart(n) = 0
+396:           icount(n) = 0
+397:         end do
+398:       end if
+399:  
+400: !bxq
+401:       istart(3) = it
+402:       icount(3) = 1
+403:       istatus = nf90_get_var(inet,ivar,work,istart,icount)
+404:       if ( istatus/=nf90_noerr ) then
+405:         write ( 6,* ) 'Cannot get ', varname, ' from file'
+406:         write ( 6,* ) nf90_strerror(istatus)
+407:         stop 'ERROR READ SST'
+408:       end if
+409: !bxq_
+410: !
+411:       do j = 1 , jlat
+412:         do i = 1 , ilon
+413:           sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+414:         end do
+415:       end do
+416: !
+417:       end subroutine skt_erain
+418: !
+419: !-----------------------------------------------------------------------
+420: !
+<p><a name=sst_erain><H3>sst_erain</H3></a></p> Click <a href="./callingtree/sst_erain_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where sst_erain is used.
+<hr>
+421:       subroutine sst_erain(it,it0,ilon,jlat,sst,pathaddname)
+422:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+423:       implicit none
+424: !
+425: ! Dummy arguments
+426: !
+427:       integer :: it , it0 , ilon , jlat
+428:       character(256) :: pathaddname
+429:       intent (in) it , it0 , ilon , jlat , pathaddname
+430:       real(4) , dimension(ilon,jlat) :: sst
+431:       intent (out) :: sst
+432: !
+433: ! Local variables
+434: !
+435:       integer :: i , j , n
+436:       logical :: there
+437:       character(5) :: varname
+438:       integer(2) , dimension(ilon,jlat) :: work
+439:       integer :: istatus
+440: !
+441:       integer , save :: inet , ivar
+442:       real(8) , save :: xadd , xscale
+443:       integer , dimension(10) , save :: icount , istart
+444: !
+445: !     This is the latitude, longitude dimension of the grid to be read.
+446: !     This corresponds to the lat and lon dimension variables in the
+447: !     netCDF file.
+448: !
+449: !     The data are packed into short integers (INTEGER*2).  The array
+450: !     work will be used to hold the packed integers. The array 'sst'
+451: !     will contain the unpacked data.
+452: !
+453: !     DATA ARRAY AND WORK ARRAY
+454: !
+455:       data varname/'sst'/
+456: !
+457:       if ( it==it0 ) then
+458:         inquire (file=pathaddname,exist=there)
+459:         if ( .not.there ) then
+460:           write (*,*) trim(pathaddname) , ' is not available'
+461:           stop
+462:         end if
+463:         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
+464:         if ( istatus/=nf90_noerr ) then
+465:           write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
+466:           stop 'INPUT FILE OPEN ERROR'
+467:         end if
+468:         istatus = nf90_inq_varid(inet,varname,ivar)
+469:         if ( istatus/=nf90_noerr ) then
+470:           write ( 6,* ) 'Cannot find variable ', varname,               &
+471:                &        ' in input file ', trim(pathaddname)
+472:           stop 'INPUT FILE ERROR'
+473:         end if
+474:         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+475:         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+476:         istart(1) = 1
+477:         istart(2) = 1
+478:         icount(1) = 240
+479:         icount(2) = 121
+480:         do n = 4 , 10
+481:           istart(n) = 0
+482:           icount(n) = 0
+483:         end do
+484:       end if
+485:  
+486: !bxq
+487:       istart(3) = it
+488:       icount(3) = 1
+489:       istatus = nf90_get_var(inet,ivar,work,istart,icount)
+490:       if ( istatus/=nf90_noerr ) then
+491:         write ( 6,* ) 'Cannot get ', varname, ' from file'
+492:         write ( 6,* ) nf90_strerror(istatus)
+493:         stop 'ERROR READ SST'
+494:       end if
+495: !bxq_
+496: !
+497:       do j = 1 , jlat
+498:         do i = 1 , ilon
+499:           sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+500:         end do
+501:       end do
+502: !
+503:       end subroutine sst_erain
+504: !
+505:       end module mod_sst_ersst
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

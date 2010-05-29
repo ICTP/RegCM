@@ -1,0 +1,1087 @@
+<HTML>
+
+<HEAD>
+<TITLE>radcsw.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>radcsw.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>radcsw.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=radcsw><H3>radcsw</H3></a></p> Click <a href="./callingtree/radcsw_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where radcsw is used.
+<hr>
+20:       subroutine radcsw(pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,   &
+21:                       & asdir,asdif,aldir,aldif,solin,qrs,fsns,fsnt,    &
+22:                       & fsds,fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,  &
+23:                       & fsnrtc,fsnirtsq,aeradfo,aeradfos)
+24:  
+25: !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+26: !qian 30/06/99,  csm new scheme: hygroscopic growth effect of
+27: !qian            sulfate has been included
+28: !qian            main changed codes: radcsw,
+29:  
+30: !-----------------------------------------------------------------------
+31: !
+32: ! Solar radiation code
+33: !
+34: ! Basic method is Delta-Eddington as described in:
+35: !
+36: !    Briegleb, Bruce P., 1992: Delta-Eddington
+37: !    Approximation for Solar Radiation in the NCAR Community Climate Model,
+38: !    Journal of Geophysical Research, Vol 97, D7, pp7603-7612).
+39: !
+40: ! Two changes to the basic method described above are: (1) the distinction
+41: ! between liquid and ice particle clouds, and (2) the addition of an
+42: ! aerosol with sulfate radiative properties.
+43: !
+44: ! Divides solar spectrum into 18 intervals from 0.2-5.0 micro-meters.
+45: ! solar flux fractions specified for each interval. allows for
+46: ! seasonally and diurnally varying solar input.  Includes molecular,
+47: ! cloud, aerosol, and surface scattering, along with h2o,o3,co2,o2,cloud,
+48: ! and surface absorption. Computes delta-eddington reflections and
+49: ! transmissions assuming homogeneously mixed layers. Adds the layers
+50: ! assuming scattering between layers to be isotropic, and distinguishes
+51: ! direct solar beam from scattered radiation.
+52: !
+53: ! Longitude loops are broken into 1 or 2 sections, so that only daylight
+54: ! (i.e. coszrs > 0) computations are done.
+55: !
+56: ! Note that an extra layer above the model top layer is added.
+57: !
+58: ! cgs units are used.
+59: !
+60: ! Special diagnostic calculation of the clear sky surface and total column
+61: ! absorbed flux is also done for cloud forcing diagnostics.
+62: !
+63: !
+64: !---------------------------Code history--------------------------------
+65: !
+66: ! Modified March 1995 to add aerosols
+67: ! Original version:  B. Briegleb
+68: ! Standardized:      J. Rosinski, June 1992
+69: ! Reviewed:          J. Kiehl, B. Briegleb, August 1992
+70: ! Reviewed:          J. Kiehl, April 1996
+71: ! Reviewed:          B. Briegleb, May 1996
+72: ! 19th Band Added:   W. Collins March 1997
+73: ! Merge Wong optics: T. Schneider, Mar 1998
+74: !
+75: !-----------------------------------------------------------------------
+76: !
+77:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+78:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+79:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+80:       use <a href="./mod_tracer.f90.html#mod_tracer" TARGET=CENT_PANEL>mod_tracer</a>
+81:       use <a href="./mod_aerosol.F90.html#mod_aerosol" TARGET=CENT_PANEL>mod_aerosol</a> , only : nspi , tauxar_mix , tauasc_mix ,         &
+82:                &     gtota_mix , ftota_mix , tauxar_mix_cs ,            &
+83:                &     tauasc_mix_cs , gtota_mix_cs , ftota_mix_cs
+84:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gocp , gtigts , sslp , rga , scon
+85:       use <a href="./mod_isrchf.f90.html#mod_isrchf" TARGET=CENT_PANEL>mod_isrchf</a> , only : isrchfgt , isrchfle
+86:       implicit none
+87: !
+88: ! PARAMETER definitions
+89: !
+90: ! v_raytau_xx - Constants for new bands
+91: ! v_abo3_xx   - Constants for new bands
+92: !
+93:       real(8) , parameter :: v_raytau_35 = 0.155208 ,                   &
+94:                            & v_raytau_64 = 0.0392 ,                     &
+95:                            & v_abo3_35 = 2.4058030E+01 ,                &
+96:                            & v_abo3_64 = 2.210E+01
+97: !
+98: !     Input arguments
+99: !
+100: ! pint    - Interface pressure
+101: ! h2ommr  - Specific humidity (h2o mass mix ratio)
+102: ! o3mmr   - Ozone mass mixing ratio
+103: ! cld     - Fractional cloud cover
+104: ! clwp    - Layer liquid water path
+105: ! rel     - Liquid effective drop size (microns)
+106: ! rei     - Ice effective drop size (microns)
+107: ! fice    - Fractional ice content within cloud
+108: ! eccf    - Eccentricity factor (1./earth-sun dist ** 2)
+109: ! asdir   - 0.2-0.7 micro-meter srfc alb to direct rad
+110: ! aldir   - 0.7-5.0 micro-meter srfc alb to direct rad
+111: ! asdif   - 0.2-0.7 micro-meter srfc alb to diffuse mod_rad
+112: ! aldif   - 0.7-5.0 micro-meter srfc alb to diffuse mod_rad
+113: !
+114: !     Output arguments
+115: !
+116: ! solin    - Incident solar flux
+117: ! qrs      - Solar heating rate
+118: ! fsns     - Surface absorbed solar flux
+119: ! fsnt     - Total column absorbed solar flux
+120: ! fsds     - Flux Shortwave Downwelling Surface
+121: ! fsnsc    - Clear sky surface absorbed solar flux
+122: ! fsntc    - Clear sky total column absorbed solar flx
+123: ! sols     - Direct solar rad incident on surface (< 0.7)
+124: ! soll     - Direct solar rad incident on surface (>= 0.7)
+125: ! solsd    - Diffuse mod_solar rad incident on surface (< 0.7)
+126: ! solld    - Diffuse mod_solar rad incident on surface (>= 0.7)
+127: ! fsnirt   - Near-IR flux absorbed at toa
+128: ! fsnrtc   - Clear sky near-IR flux absorbed at toa
+129: ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
+130: !
+131: !
+132: ! Dummy arguments
+133: !
+134:       real(8) :: eccf
+135:       real(8) , dimension(iym1) :: aeradfo , aeradfos , aldif , aldir ,&
+136:                                   & asdif , asdir , fsds , fsnirt ,     &
+137:                                   & fsnirtsq , fsnrtc , fsns , fsnsc ,  &
+138:                                   & fsnt , fsntc , solin , soll ,       &
+139:                                   & solld , sols , solsd
+140:       real(8) , dimension(iym1,kzp1) :: cld , pint
+141:       real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , o3mmr , &
+142:            & qrs , rei , rel
+143:       intent (in) aldif , aldir , asdif , asdir , cld , clwp , eccf ,   &
+144:                 & fice , h2ommr , o3mmr , pint , rei , rel
+145:       intent (out) aeradfo , aeradfos , fsds , qrs
+146:       intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
+147:                    & fsntc , solin , soll , solld , sols , solsd
+148: !
+149: !---------------------------Local variables-----------------------------
+150: !
+151: ! ns       - Spectral loop index
+152: ! i        - Longitude loop index
+153: ! k        - Level loop index
+154: ! n        - Loop index for daylight
+155: ! nloop    - Number of daylight loops
+156: ! is       - Daytime start indices
+157: ! ie       - Daytime end indices
+158: ! indxsl   - Index for cloud particle properties
+159: !
+160: !     A. Slingo's data for cloud particle radiative properties (from 'A
+161: !     GCM Parameterization for the Shortwave Properties of Water
+162: !     Clouds' JAS vol. 46 may 1989 pp 1419-1427)
+163: !
+164: ! abarl    - A coefficient for extinction optical depth
+165: ! bbarl    - B coefficient for extinction optical depth
+166: ! cbarl    - C coefficient for single particle scat albedo
+167: ! dbarl    - D coefficient for single particle scat albedo
+168: ! ebarl    - E coefficient for asymmetry parameter
+169: ! fbarl    - F coefficient for asymmetry parameter
+170: ! abarli   - A coefficient for current spectral interval
+171: ! bbarli   - B coefficient for current spectral interval
+172: ! cbarli   - C coefficient for current spectral interval
+173: ! dbarli   - D coefficient for current spectral interval
+174: ! ebarli   - E coefficient for current spectral interval
+175: ! fbarli   - F coefficient for current spectral interval
+176: !
+177: !     Caution... A. Slingo recommends no less than 4.0 micro-meters nor
+178: !     greater than 20 micro-meters
+179: !
+180: !     ice water coefficients (Ebert and Curry,1992, JGR, 97, 3831-3836)
+181: !
+182: ! abari    - a coefficient for extinction optical depth
+183: ! bbari    - b coefficient for extinction optical depth
+184: ! cbari    - c coefficient for single particle scat albedo
+185: ! dbari    - d coefficient for single particle scat albedo
+186: ! ebari    - e coefficient for asymmetry parameter
+187: ! fbari    - f coefficient for asymmetry parameter
+188: ! abarii   - A coefficient for current spectral interval
+189: ! bbarii   - B coefficient for current spectral interval
+190: ! cbarii   - C coefficient for current spectral interval
+191: ! dbarii   - D coefficient for current spectral interval
+192: ! ebarii   - E coefficient for current spectral interval
+193: ! fbarii   - F coefficient for current spectral interval
+194: ! delta    - Pressure (atmospheres) for stratos. h2o limit
+195: ! o2mmr    - O2 mass mixing ratio
+196: !
+197: !     Next series depends on spectral interval
+198: !
+199: ! frcsol   - Fraction of solar flux in each spectral interval
+200: ! wavmin   - Min wavelength (micro-meters) of interval
+201: ! wavmax   - Max wavelength (micro-meters) of interval
+202: ! raytau   - Rayleigh scattering optical depth
+203: ! abh2o    - Absorption coefficiant for h2o (cm2/g)
+204: ! abo3     - Absorption coefficiant for o3  (cm2/g)
+205: ! abco2    - Absorption coefficiant for co2 (cm2/g)
+206: ! abo2     - Absorption coefficiant for o2  (cm2/g)
+207: ! ph2o     - Weight of h2o in spectral interval
+208: ! pco2     - Weight of co2 in spectral interval
+209: ! po2      - Weight of o2  in spectral interval
+210: ! nirwgt   - Weight for intervals to simulate satellite filter
+211: ! wgtint   - Weight for specific spectral interval
+212: !
+213: !     Diagnostic and accumulation arrays; note that sfltot, fswup, and
+214: !     fswdn are not used in the computation,but are retained for future
+215: !     use.
+216: !
+217: ! solflx   - Solar flux in current interval
+218: ! sfltot   - Spectrally summed total solar flux
+219: ! totfld   - Spectrally summed flux divergence
+220: ! fswup    - Spectrally summed up flux
+221: ! fswdn    - Spectrally summed down flux
+222: !
+223: !     Cloud radiative property arrays
+224: !
+225: ! tauxcl   - water cloud extinction optical depth
+226: ! tauxci   - ice cloud extinction optical depth
+227: ! wcl      - liquid cloud single scattering albedo
+228: ! gcl      - liquid cloud asymmetry parameter
+229: ! fcl      - liquid cloud forward scattered fraction
+230: ! wci      - ice cloud single scattering albedo
+231: ! gci      - ice cloud asymmetry parameter
+232: ! fci      - ice cloud forward scattered fraction
+233: !
+234: !     Various arrays and other constants:
+235: !
+236: ! pflx     - Interface press, including extra layer
+237: ! zenfac   - Square root of cos solar zenith angle
+238: ! sqrco2   - Square root of the co2 mass mixg ratio
+239: ! tmp1     - Temporary constant array
+240: ! tmp2     - Temporary constant array
+241: ! pdel     - Pressure difference across layer
+242: ! path     - Mass path of layer
+243: ! xptop    - Lower interface pressure of extra layer
+244: ! ptho2    - Used to compute mass path of o2
+245: ! ptho3    - Used to compute mass path of o3
+246: ! pthco2   - Used to compute mass path of co2
+247: ! pthh2o   - Used to compute mass path of h2o
+248: ! h2ostr   - Inverse square root h2o mass mixing ratio
+249: ! wavmid   - Spectral interval middle wavelength
+250: ! trayoslp - Rayleigh optical depth/standard pressure
+251: ! tmp1l    - Temporary constant array
+252: ! tmp2l    - Temporary constant array
+253: ! tmp3l    - Temporary constant array
+254: ! tmp1i    - Temporary constant array
+255: ! tmp2i    - Temporary constant array
+256: ! tmp3i    - Temporary constant array
+257: ! rdenom   - Multiple scattering term
+258: ! psf      - Frac of solar flux in spect interval
+259: !
+260: !     Layer absorber amounts; note that 0 refers to the extra layer
+261: !     added above the top model layer
+262: !
+263: ! uh2o     - Layer absorber amount of h2o
+264: ! uo3      - Layer absorber amount of  o3
+265: ! uco2     - Layer absorber amount of co2
+266: ! uo2      - Layer absorber amount of  o2
+267: !
+268: !     Total column absorber amounts:
+269: !
+270: ! uth2o    - Total column  absorber amount of h2o
+271: ! uto3     - Total column  absorber amount of  o3
+272: ! utco2    - Total column  absorber amount of co2
+273: ! uto2     - Total column  absorber amount of  o2
+274: !
+275: !     These arrays are defined for kz model layers; 0 refers to the
+276: !     extra layer on top:
+277: !
+278: ! rdir     - Layer reflectivity to direct rad
+279: ! rdif     - Layer reflectivity to diffuse mod_rad
+280: ! tdir     - Layer transmission to direct rad
+281: ! tdif     - Layer transmission to diffuse mod_rad
+282: ! explay   - Solar beam exp transmission for layer
+283: ! flxdiv   - Flux divergence for layer
+284: !
+285: !     These arrays are defined at model interfaces; 0 is the top of the
+286: !     extra layer above the model top; kzp1 is the earth surface:
+287: !
+288: ! rupdir   - Ref to dir rad for layers below
+289: ! rupdif   - Ref to dif rad for layers below
+290: ! rdndif   - Ref to dif rad for layers above
+291: ! exptdn   - Solar beam exp down transm from top
+292: ! tottrn   - Total transmission for layers above
+293: ! fluxup   - Up   flux at model interface
+294: ! fluxdn   - Down flux at model interface
+295: !
+296: ! wkaer    - works table
+297: ! aeradfo  - spectrally integrated aerosol radiative forcing ( TOA)
+298: !-----------------------------------------------------------------------
+299: !
+300: ! Local variables
+301: !
+302:       real(8) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
+303:                               & cbarl , dbari , dbarl , ebari , ebarl , &
+304:                               & fbari , fbarl
+305:       real(8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli ,  &
+306:                & dbarii , dbarli , delta , ebarii , ebarli , fbarii ,   &
+307:                & fbarli , h2ostr , o2mmr , path , pdel , psf ,          &
+308:                & pthco2 , pthh2o , ptho2 , ptho3 , xptop , rdenom ,     &
+309:                & sqrco2 , tmp1 , tmp1i , tmp1l , tmp2 , tmp2i , tmp2l , &
+310:                & tmp3i , tmp3l , trayoslp , wavmid , wgtint
+311:       real(8) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,        &
+312:                                    & frcsol , nirwgt , pco2 , ph2o ,    &
+313:                                    & po2 , raytau , wavmax , wavmin
+314:       real(8) , dimension(iym1,0:kz) :: explay , fci , fcl , flxdiv ,&
+315:            & gci , gcl , rdif , rdir , tauxci , tauxcl , tdif , tdir ,  &
+316:            & totfld , uco2 , uh2o , uo2 , uo3 , wci , wcl
+317:       real(8) , dimension(iym1,0:kzp1) :: exptdn , fluxdn , fluxup ,  &
+318:            & fswdn , fswup , pflx , rdndif , rupdif , rupdir , tottrn
+319:       integer :: i , indxsl , k , n , nloop , ns
+320:       integer , dimension(2) :: ie , is
+321:       real(8) , dimension(iym1) :: sfltot , solflx , utco2 , uth2o ,   &
+322:                                   & uto2 , uto3 , x0fsnrtc , x0fsnsc ,  &
+323:                                   & x0fsntc , zenfac
+324:       real(8) , dimension(iym1,0:kz,4) :: wkaer
+325:       real(8) , dimension(iym1,4) :: zero
+326: !
+327:       data abarl/2.817E-02 , 2.682E-02 , 2.264E-02 , 1.281E-02/
+328:       data bbarl/1.305 , 1.346 , 1.454 , 1.641/
+329:       data cbarl/ - 5.62E-08 , -6.94E-06 , 4.64E-04 , 0.201/
+330:       data dbarl/1.63E-07 , 2.35E-05 , 1.24E-03 , 7.56E-03/
+331:       data ebarl/0.829 , 0.794 , 0.754 , 0.826/
+332:       data fbarl/2.482E-03 , 4.226E-03 , 6.560E-03 , 4.353E-03/
+333:  
+334:       data abari/3.448E-03 , 3.448E-03 , 3.448E-03 , 3.448E-03/
+335:       data bbari/2.431 , 2.431 , 2.431 , 2.431/
+336:       data cbari/1.00E-05 , 1.10E-04 , 1.861E-02 , .46658/
+337:       data dbari/0.0 , 1.405E-05 , 8.328E-04 , 2.05E-05/
+338:       data ebari/0.7661 , 0.7730 , 0.794 , 0.9595/
+339:       data fbari/5.851E-04 , 5.665E-04 , 7.267E-04 , 1.076E-04/
+340:       data delta/1.70E-3/
+341:       data o2mmr/.23143/
+342:  
+343:       data frcsol/.001488 , .001389 , .001290 , .001686 , .002877 ,     &
+344:          & .003869 , .026336 , .360739 , .065392 , .526861 , .526861 ,  &
+345:          & .526861 , .526861 , .526861 , .526861 , .526861 , .006239 ,  &
+346:          & .001834 , .001834/
+347: 
+348: ! weight for 0.64 - 0.7 microns  appropriate to clear skies over oceans
+349: 
+350:       data nirwgt/0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 ,       &
+351:          & 0.320518 , 1.0 , 1.0 , 1.0 , 1.0 , 1.0 , 1.0 , 1.0 , 1.0 ,   &
+352:          & 1.0 , 1.0/
+353:  
+354:       data wavmin/.200 , .245 , .265 , .275 , .285 , .295 , .305 ,      &
+355:          & .350 , .640 , .700 , .701 , .701 , .701 , .701 , .702 ,      &
+356:          & .702 , 2.630 , 4.160 , 4.160/
+357:  
+358:       data wavmax/.245 , .265 , .275 , .285 , .295 , .305 , .350 ,      &
+359:          & .640 , .700 , 5.000 , 5.000 , 5.000 , 5.000 , 5.000 , 5.000 ,&
+360:          & 5.000 , 2.860 , 4.550 , 4.550/
+361:  
+362:       data raytau/4.020 , 2.180 , 1.700 , 1.450 , 1.250 , 1.085 ,       &
+363:          & 0.730 , v_raytau_35 , v_raytau_64 , 0.020 , .0001 , .0001 ,  &
+364:          & .0001 , .0001 , .0001 , .0001 , .0001 , .0001 , .0001/
+365: !
+366: !     Absorption coefficients
+367: !
+368:       data abh2o/.000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 ,&
+369:          & .000 , .002 , .035 , .377 , 1.950 , 9.400 , 44.600 ,         &
+370:          & 190.000 , .000 , .000 , .000/
+371:  
+372:       data abo3/5.370E+04 , 13.080E+04 , 9.292E+04 , 4.530E+04 ,        &
+373:          & 1.616E+04 , 4.441E+03 , 1.775E+02 , v_abo3_35 , v_abo3_64 ,  &
+374:          & .000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 ,      &
+375:          & .000 , .000/
+376:  
+377:       data abco2/.000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 ,&
+378:          & .000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 ,      &
+379:          & .094 , .196 , 1.963/
+380:  
+381:       data abo2/.000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 , &
+382:          & 1.11E-05 , 6.69E-05 , .000 , .000 , .000 , .000 , .000 ,     &
+383:          & .000 , .000 , .000 , .000/
+384: !
+385: !     Spectral interval weights
+386: !
+387:       data ph2o/.000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 , &
+388:          & .000 , .505 , .210 , .120 , .070 , .048 , .029 , .018 ,      &
+389:          & .000 , .000 , .000/
+390:  
+391:       data pco2/.000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 , &
+392:          & .000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 ,      &
+393:          & 1.000 , .640 , .360/
+394:  
+395:       data po2/.000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 ,  &
+396:          & 1.000 , 1.000 , .000 , .000 , .000 , .000 , .000 , .000 ,    &
+397:          & .000 , .000 , .000/
+398: !
+399: !     Initialize output fields:
+400: !
+401:       fsds(:) = 0.0
+402:       fsnirt(:) = 0.0
+403:       fsnrtc(:) = 0.0
+404:       fsnirtsq(:) = 0.0
+405:       fsnt(:) = 0.0
+406:       fsns(:) = 0.0
+407:       solin(:) = 0.0
+408:       fsnsc(:) = 0.0
+409:       fsntc(:) = 0.0
+410:       sols(:) = 0.0
+411:       soll(:) = 0.0
+412:       solsd(:) = 0.0
+413:       solld(:) = 0.0
+414:       sabveg(:) = 0.0
+415:       solis(:) = 0.0
+416:       solvs(:) = 0.0
+417:       solvd(:) = 0.0
+418: !
+419:       aeradfo(:) = 0.0
+420:       aeradfos(:) = 0.0
+421:       x0fsntc(:) = 0.0
+422:       x0fsnsc(:) = 0.0
+423:       x0fsnrtc(:) = 0.0
+424: !
+425:       qrs(:,:) = 0.0
+426: !
+427:       do k = 1 , kz
+428:         do i = 1 , iym1
+429:           pdel = pint(i,k+1) - pint(i,k)
+430:           path = pdel*rga
+431:         end do
+432:       end do
+433: !
+434: !     Compute starting, ending daytime loop indices:
+435: !
+436:       nloop = 0
+437:       is = 0
+438:       ie = 0
+439:       is(1) = <a href="./mod_isrchf.f90.html#isrchfgt" TARGET=CENT_PANEL>isrchfgt</a>(iym1,coszrs,1,0.D0)
+440: !
+441: !     If night everywhere, return:
+442: !
+443:       if ( is(1).gt.iym1 ) return
+444:       ie(1) = <a href="./mod_isrchf.f90.html#isrchfle" TARGET=CENT_PANEL>isrchfle</a>(iym1-is(1),coszrs(is(1)+1),1,0.D0) + is(1) - 1
+445:       nloop = 1
+446: !
+447: !     Possibly 2 daytime loops needed:
+448: !
+449:       if ( ie(1).ne.iym1 ) then
+450:         is(2) = <a href="./mod_isrchf.f90.html#isrchfgt" TARGET=CENT_PANEL>isrchfgt</a>(iym1-ie(1),coszrs(ie(1)+1),1,0.D0) + ie(1)
+451:         if ( is(2).le.iym1 ) then
+452:           nloop = 2
+453:           ie(2) = iym1
+454:         end if
+455:       end if
+456: !
+457: !     Define solar incident radiation and interface pressures:
+458: !
+459:       do n = 1 , nloop
+460:         do i = is(n) , ie(n)
+461:           solin(i) = scon*eccf*coszrs(i)
+462:           pflx(i,0) = 0.
+463:         end do
+464:       end do
+465:       do k = 1 , kzp1
+466:         do n = 1 , nloop
+467:           do i = is(n) , ie(n)
+468:             pflx(i,k) = pint(i,k)
+469:           end do
+470:         end do
+471:       end do
+472: !
+473: !     Compute optical paths:
+474: !     CO2, use old scheme(as constant)
+475: !
+476:       tmp1 = 0.5/(gtigts*sslp)
+477: !     co2mmr = co2vmr*(mmwco2/mmwair)
+478:  
+479:       sqrco2 = sqrt(co2mmr)
+480:       do n = 1 , nloop
+481:         do i = is(n) , ie(n)
+482:           xptop = pflx(i,1)
+483:           ptho2 = o2mmr*xptop*rga
+484:           ptho3 = o3mmr(i,1)*xptop*rga
+485:           pthco2 = sqrco2*(xptop*rga)
+486:           h2ostr = sqrt(1./h2ommr(i,1))
+487:           zenfac(i) = sqrt(coszrs(i))
+488:           pthh2o = xptop**2*tmp1 + (xptop*rga)*(h2ostr*zenfac(i)*delta)
+489:           uh2o(i,0) = h2ommr(i,1)*pthh2o
+490:           uco2(i,0) = zenfac(i)*pthco2
+491:           uo2(i,0) = zenfac(i)*ptho2
+492:           uo3(i,0) = ptho3
+493:         end do
+494:       end do
+495: !
+496:       tmp2 = delta*rga
+497:       do k = 1 , kz
+498:         do n = 1 , nloop
+499:           do i = is(n) , ie(n)
+500:             pdel = pflx(i,k+1) - pflx(i,k)
+501:             path = pdel*rga
+502:             ptho2 = o2mmr*path
+503:             ptho3 = o3mmr(i,k)*path
+504:             pthco2 = sqrco2*path
+505:             h2ostr = sqrt(1.0/h2ommr(i,k))
+506:             pthh2o = (pflx(i,k+1)**2-pflx(i,k)**2)                      &
+507:                    & *tmp1 + pdel*h2ostr*zenfac(i)*tmp2
+508:             uh2o(i,k) = h2ommr(i,k)*pthh2o
+509:             uco2(i,k) = zenfac(i)*pthco2
+510:             uo2(i,k) = zenfac(i)*ptho2
+511:             uo3(i,k) = ptho3
+512:           end do
+513:         end do
+514:       end do
+515: !
+516: !     Compute column absorber amounts for the clear sky computation:
+517: !
+518:       do n = 1 , nloop
+519:         do i = is(n) , ie(n)
+520:           uth2o(i) = 0.0
+521:           uto3(i) = 0.0
+522:           utco2(i) = 0.0
+523:           uto2(i) = 0.0
+524:         end do
+525:       end do
+526:       do k = 1 , kz
+527:         do n = 1 , nloop
+528:           do i = is(n) , ie(n)
+529:             uth2o(i) = uth2o(i) + uh2o(i,k)
+530:             uto3(i) = uto3(i) + uo3(i,k)
+531:             utco2(i) = utco2(i) + uco2(i,k)
+532:             uto2(i) = uto2(i) + uo2(i,k)
+533:           end do
+534:         end do
+535:       end do
+536: !
+537: !     Initialize spectrally integrated totals:
+538: !
+539:       do k = 0 , kz
+540:         do i = 1 , iym1
+541:           totfld(i,k) = 0.0
+542:           fswup(i,k) = 0.0
+543:           fswdn(i,k) = 0.0
+544:         end do
+545:       end do
+546:       do i = 1 , iym1
+547:         sfltot(i) = 0.0
+548:         fswup(i,kzp1) = 0.0
+549:         fswdn(i,kzp1) = 0.0
+550:       end do
+551: !
+552: !     Set cloud properties for top (0) layer; so long as tauxcl is zero,
+553: !     there is no cloud above top of model; the other cloud properties
+554: !     are arbitrary:
+555: !
+556:       do n = 1 , nloop
+557:         do i = is(n) , ie(n)
+558:           tauxcl(i,0) = 0.
+559:           wcl(i,0) = 0.999999
+560:           gcl(i,0) = 0.85
+561:           fcl(i,0) = 0.725
+562:           tauxci(i,0) = 0.
+563:           wci(i,0) = 0.999999
+564:           gci(i,0) = 0.85
+565:           fci(i,0) = 0.725
+566:         end do
+567:       end do
+568: !
+569: !     Begin spectral loop
+570: !
+571:       do ns = 1 , nspi
+572:         wgtint = nirwgt(ns)
+573: !
+574: !       Set index for cloud particle properties based on the wavelength,
+575: !       according to A. Slingo (1989) equations 1-3:
+576: !       Use index 1 (0.25 to 0.69 micrometers) for visible
+577: !       Use index 2 (0.69 - 1.19 micrometers) for near-infrared
+578: !       Use index 3 (1.19 to 2.38 micrometers) for near-infrared
+579: !       Use index 4 (2.38 to 4.00 micrometers) for near-infrared
+580: !
+581: !       Note that the minimum wavelength is encoded (with .001, .002,
+582: !       .003) in order to specify the index appropriate for the
+583: !       near-infrared cloud absorption properties
+584: !
+585:         indxsl = 0
+586:         if ( wavmax(ns).le.0.7 ) then
+587:           indxsl = 1
+588:         else if ( wavmin(ns).eq.0.700 ) then
+589:           indxsl = 2
+590:         else if ( wavmin(ns).eq.0.701 ) then
+591:           indxsl = 3
+592:         else if ( wavmin(ns).eq.0.702 .or. wavmin(ns).gt.2.38 ) then
+593:           indxsl = 4
+594:         else
+595:         end if
+596: !
+597: !       Set cloud extinction optical depth, single scatter albedo,
+598: !       asymmetry parameter, and forward scattered fraction:
+599: !
+600:         abarli = abarl(indxsl)
+601:         bbarli = bbarl(indxsl)
+602:         cbarli = cbarl(indxsl)
+603:         dbarli = dbarl(indxsl)
+604:         ebarli = ebarl(indxsl)
+605:         fbarli = fbarl(indxsl)
+606: !
+607:         abarii = abari(indxsl)
+608:         bbarii = bbari(indxsl)
+609:         cbarii = cbari(indxsl)
+610:         dbarii = dbari(indxsl)
+611:         ebarii = ebari(indxsl)
+612:         fbarii = fbari(indxsl)
+613: !
+614:         do k = 1 , kz
+615:           do n = 1 , nloop
+616:             do i = is(n) , ie(n)
+617: !
+618: !             liquid
+619: !
+620:               tmp1l = abarli + bbarli/rel(i,k)
+621:               tmp2l = 1. - cbarli - dbarli*rel(i,k)
+622:               tmp3l = fbarli*rel(i,k)
+623: !
+624: !             ice
+625: !
+626:               tmp1i = abarii + bbarii/rei(i,k)
+627:               tmp2i = 1. - cbarii - dbarii*rei(i,k)
+628:               tmp3i = fbarii*rei(i,k)
+629: !
+630: !             Cloud fraction incorporated into cloud extinction optical
+631: !             depth
+632: !found
+633: !             April 12 2000, Filippo found the different scheme here:
+634:  
+635: !scheme       1
+636: !ccm3.6.6
+637: !             tauxcl(i,k) = clwp(i,k)*tmp1l*(1.-fice(i,k))
+638: !             $                     *cld(i,k)*sqrt(cld(i,k))
+639: !             tauxci(i,k) = clwp(i,k)*tmp1i*fice(i,k)
+640: !             $                     *cld(i,k)*sqrt(cld(i,k))
+641: !
+642: !scheme       2
+643: !KN
+644:               tauxcl(i,k) = clwp(i,k)*tmp1l*(1.-fice(i,k))*cld(i,k)     &
+645:                           & /(1.+(1.-0.85)*(1.-cld(i,k))*clwp(i,k)      &
+646:                           & *tmp1l*(1.-fice(i,k)))
+647:               tauxci(i,k) = clwp(i,k)*tmp1i*fice(i,k)*cld(i,k)          &
+648:                           & /(1.+(1.-0.78)*(1.-cld(i,k))*clwp(i,k)      &
+649:                           & *tmp1i*fice(i,k))
+650:  
+651: !scheme       3
+652: !EES          below replaced
+653: !             tauxcl(i,k) = clwp(i,k)*tmp1l*(1.-fice(i,k))
+654: !             $                     *cld(i,k)**0.85
+655: !             tauxci(i,k) = clwp(i,k)*tmp1i*fice(i,k)
+656: !             $                     *cld(i,k)**0.85
+657: !found_
+658:  
+659: !
+660: !             Do not let single scatter albedo be 1; delta-eddington
+661: !             solution for non-conservative case:
+662: !
+663: !qian         30/06/99        wcl(i,k) = dmin1(tmp2l,.999999)
+664:               wcl(i,k) = dmin1(tmp2l,.999999D0)
+665:               gcl(i,k) = ebarli + tmp3l
+666:               fcl(i,k) = gcl(i,k)*gcl(i,k)
+667: !
+668:               wci(i,k) = dmin1(tmp2i,.999999D0)
+669:               gci(i,k) = ebarii + tmp3i
+670:               fci(i,k) = gci(i,k)*gci(i,k)
+671: !
+672:             end do
+673:           end do
+674:         end do
+675: !
+676: !       Set reflectivities for surface based on mid-point wavelength
+677: !
+678:         wavmid = 0.5*(wavmin(ns)+wavmax(ns))
+679: !
+680: !       Wavelength less  than 0.7 micro-meter
+681: !
+682:         if ( wavmid.lt.0.7 ) then
+683:           do n = 1 , nloop
+684:             do i = is(n) , ie(n)
+685:               albdir(i) = asdir(i)
+686:               albdif(i) = asdif(i)
+687:             end do
+688:           end do
+689: !
+690: !         Wavelength greater than 0.7 micro-meter
+691: !
+692:         else
+693:           do n = 1 , nloop
+694:             do i = is(n) , ie(n)
+695:               albdir(i) = aldir(i)
+696:               albdif(i) = aldif(i)
+697:             end do
+698:           end do
+699:         end if
+700:         trayoslp = raytau(ns)/sslp
+701: !
+702: !       Layer input properties now completely specified; compute the
+703: !       delta-Eddington solution reflectivities and transmissivities
+704: !       for each layer, starting from the top and working downwards:
+705:  
+706: !       options for aerosol: no climatic feedback if idirect .eq. 1
+707:         if ( idirect.eq.2 ) then
+708:           do k = 0 , kz
+709:             do i = 1 , iym1
+710:               wkaer(i,k,1) = tauxar_mix(i,k,ns)
+711:               wkaer(i,k,2) = tauasc_mix(i,k,ns)
+712:               wkaer(i,k,3) = gtota_mix(i,k,ns)
+713:               wkaer(i,k,4) = ftota_mix(i,k,ns)
+714:             end do
+715:           end do
+716:         else if ( idirect.eq.1 ) then
+717:           do k = 0 , kz
+718:             do i = 1 , iym1
+719:               wkaer(i,k,1) = 0.
+720:               wkaer(i,k,2) = 0.
+721:               wkaer(i,k,3) = 0.
+722:               wkaer(i,k,4) = 0.
+723:             end do
+724:           end do
+725:         else
+726:         end if
+727:  
+728:         call <a href="./radded.f90.html#radded" TARGET=CENT_PANEL>radded</a>(coszrs,trayoslp,pflx,abh2o(ns),abo3(ns),abco2(ns),  &
+729:                   & abo2(ns),uh2o,uo3,uco2,uo2,tauxcl,wcl,gcl,fcl,      &
+730:                   & tauxci,wci,gci,fci,wkaer(1,0,1),wkaer(1,0,2),       &
+731:                   & wkaer(1,0,3),wkaer(1,0,4),nloop,is,ie,rdir,rdif,    &
+732:                   & tdir,tdif,explay,exptdn,rdndif,tottrn)
+733: !
+734: !       Compute reflectivity to direct and diffuse mod_radiation for layers
+735: !       below by adding succesive layers starting from the surface and
+736: !       working upwards:
+737: !
+738:         do n = 1 , nloop
+739:           do i = is(n) , ie(n)
+740:             rupdir(i,kzp1) = albdir(i)
+741:             rupdif(i,kzp1) = albdif(i)
+742:           end do
+743:         end do
+744:         do k = kz , 0 , -1
+745:           do n = 1 , nloop
+746:             do i = is(n) , ie(n)
+747:               rdenom = 1./(1.-rdif(i,k)*rupdif(i,k+1))
+748:               rupdir(i,k) = rdir(i,k) + tdif(i,k)                       &
+749:                           & *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
+750:                           & *(tdir(i,k)-explay(i,k)))*rdenom
+751:               rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
+752:                           & **2*rdenom
+753:             end do
+754:           end do
+755:         end do
+756: !
+757: !       Compute up and down fluxes for each interface, using the added
+758: !       atmospheric layer properties at each interface:
+759: !
+760:         do k = 0 , kzp1
+761:           do n = 1 , nloop
+762:             do i = is(n) , ie(n)
+763:               rdenom = 1./(1.-rdndif(i,k)*rupdif(i,k))
+764:               fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+                   &
+765:                           & (tottrn(i,k)-exptdn(i,k))*rupdif(i,k))*     &
+766:                           & rdenom
+767:               fluxdn(i,k) = exptdn(i,k)                                 &
+768:                           & + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
+769:                           & *rupdir(i,k)*rdndif(i,k))*rdenom
+770:             end do
+771:           end do
+772:         end do
+773: !
+774: !       Compute flux divergence in each layer using the interface up
+775: !       and down fluxes:
+776: !
+777:         do k = 0 , kz
+778:           do n = 1 , nloop
+779:             do i = is(n) , ie(n)
+780:               flxdiv(i,k) = (fluxdn(i,k)-fluxdn(i,k+1))                 &
+781:                           & + (fluxup(i,k+1)-fluxup(i,k))
+782:             end do
+783:           end do
+784:         end do
+785: !
+786: !       Monochromatic computation completed; accumulate in totals;
+787: !       adjust fraction within spectral interval to allow for the
+788: !       possibility of sub-divisions within a particular interval:
+789: !
+790:         psf = 1.0
+791:         if ( ph2o(ns).ne.0. ) psf = psf*ph2o(ns)
+792:         if ( pco2(ns).ne.0. ) psf = psf*pco2(ns)
+793:         if ( po2(ns).ne.0. ) psf = psf*po2(ns)
+794:         do n = 1 , nloop
+795:           do i = is(n) , ie(n)
+796:             solflx(i) = solin(i)*frcsol(ns)*psf
+797:             fsnt(i) = fsnt(i) + solflx(i)*(fluxdn(i,1)-fluxup(i,1))
+798:  
+799:             fsns(i) = fsns(i) + solflx(i)                               &
+800:                     & *(fluxdn(i,kzp1)-fluxup(i,kz + 1))
+801:  
+802:             sfltot(i) = sfltot(i) + solflx(i)
+803:             fswup(i,0) = fswup(i,0) + solflx(i)*fluxup(i,0)
+804:             fswdn(i,0) = fswdn(i,0) + solflx(i)*fluxdn(i,0)
+805: !
+806: !           Down spectral fluxes need to be in mks; thus the .001
+807: !           conversion factors
+808:             if ( wavmid.lt.0.7 ) then
+809:               sols(i) = sols(i) + exptdn(i,kzp1)*solflx(i)*0.001
+810:               solsd(i) = solsd(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))   &
+811:                        & *solflx(i)*0.001
+812: !KN           added below
+813:               sabveg(i) = sabveg(i)                                     &
+814:                         & + (solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1))&
+815:                         & )*(1.-albvs(i))/(1.-albdir(i))*0.001
+816: !KN           added above
+817:             else
+818:               soll(i) = soll(i) + exptdn(i,kzp1)*solflx(i)*0.001
+819:               solld(i) = solld(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))   &
+820:                        & *solflx(i)*0.001
+821:               fsnirtsq(i) = fsnirtsq(i) + solflx(i)                     &
+822:                           & *(fluxdn(i,0)-fluxup(i,0))
+823: !KN           added below
+824:               sabveg(i) = sabveg(i)                                     &
+825:                         & + (solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1))&
+826:                         & )*(1.-albvl(i))/(1.-albdir(i))*0.001
+827: !KN           added above
+828:             end if
+829:             fsnirt(i) = fsnirt(i) + wgtint*solflx(i)                    &
+830:                       & *(fluxdn(i,0)-fluxup(i,0))
+831:  
+832: !
+833:           end do
+834:         end do
+835:         do k = 0 , kz
+836:           do n = 1 , nloop
+837:             do i = is(n) , ie(n)
+838:               totfld(i,k) = totfld(i,k) + solflx(i)*flxdiv(i,k)
+839:               fswup(i,k+1) = fswup(i,k+1) + solflx(i)*fluxup(i,k+1)
+840:               fswdn(i,k+1) = fswdn(i,k+1) + solflx(i)*fluxdn(i,k+1)
+841:             end do
+842:           end do
+843:         end do
+844:  
+845: !       solis is incident visible solar radiation
+846:         if ( ns.eq.8 ) then
+847: !         -trapuv
+848: !         do i=1,iym1
+849: !         solis(i)=solflx(i)*0.001*fluxdn(i,kzp1)
+850: !         end do
+851: !         -trapuv_
+852:           do n = 1 , nloop
+853:             do i = is(n) , ie(n)
+854:               solvs(i) = exptdn(i,kzp1)*solflx(i)*0.001
+855:               solvd(i) = (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)    &
+856:                        & *0.001
+857:               solis(i) = solflx(i)*0.001*fluxdn(i,kzp1)
+858:             end do
+859:           end do
+860:         end if
+861: !EES    apr 20
+862:  
+863: !FAB
+864: !       CLEAR SKY CALCULATION PLUS AUTOMATCI CALCULATEION OF AEROSOL
+865: !       FORCING RAD CLR is called 2 times , one with O aerosol OP , and
+866: !       one with actual aerosol. DIFFERENCE  in net TOA SW for the two
+867: !       case is saved as one more variable in the rad file. The
+868: !       outputed TOASW ( fsntc, clrst) is accounting for aerosol.
+869:         if ( idirect.ge.1 ) then
+870:  
+871:           do i = 1 , iym1
+872:             zero(i,1) = 0.
+873:             zero(i,2) = 0.
+874:             zero(i,3) = 0.
+875:             zero(i,4) = 0.
+876:           end do
+877:  
+878: !         Following code is the diagnostic clear sky computation:
+879: !
+880: !         Compute delta-Eddington solution reflectivities and
+881: !         transmissivities for the entire column; note, for
+882: !         convenience, we use mod_the same reflectivity and transmissivity
+883: !         arrays as for the full calculation above, where 0 for layer
+884: !         quantities refers to the entire atmospheric column, and where
+885: !         0 for interface quantities refers to top of atmos- phere,
+886: !         while 1 refers to the surface:
+887:           call <a href="./radclr.f90.html#radclr" TARGET=CENT_PANEL>radclr</a>(coszrs,trayoslp,pflx,abh2o(ns),abo3(ns),abco2(ns),&
+888:                     & abo2(ns),uth2o,uto3,utco2,uto2,zero(1,1),zero(1,2)&
+889:                     & ,zero(1,3),zero(1,4),nloop,is,ie,rdir,rdif,tdir,  &
+890:                     & tdif,explay,exptdn,rdndif,tottrn)
+891:  
+892:  
+893: !
+894: !         Compute reflectivity to direct and diffuse mod_radiation for
+895: !         entire column; 0,1 on layer quantities refers to two
+896: !         effective layers overlying surface; 0 on interface quantities
+897: !         refers to top of column; 2 on interface quantities refers to
+898: !         the surface:
+899:           do n = 1 , nloop
+900:             do i = is(n) , ie(n)
+901:               rupdir(i,2) = albdir(i)
+902:               rupdif(i,2) = albdif(i)
+903:             end do
+904:           end do
+905: !
+906:           do k = 1 , 0 , -1
+907:             do n = 1 , nloop
+908:               do i = is(n) , ie(n)
+909:                 rdenom = 1./(1.-rdif(i,k)*rupdif(i,k+1))
+910:                 rupdir(i,k) = rdir(i,k) + tdif(i,k)                     &
+911:                             & *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1) &
+912:                             & *(tdir(i,k)-explay(i,k)))*rdenom
+913:                 rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)       &
+914:                             & **2*rdenom
+915:               end do
+916:             end do
+917:           end do
+918: !
+919: !         Compute up and down fluxes for each interface, using the added
+920: !         atmospheric layer properties at each interface:
+921: !
+922:           do k = 0 , 2
+923:             do n = 1 , nloop
+924:               do i = is(n) , ie(n)
+925:                 rdenom = 1./(1.-rdndif(i,k)*rupdif(i,k))
+926:                 fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-    &
+927:                             & exptdn(i,k))*rupdif(i,k))*rdenom
+928:                 fluxdn(i,k) = exptdn(i,k)                               &
+929:                             & + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)    &
+930:                             & *rupdir(i,k)*rdndif(i,k))*rdenom
+931:               end do
+932:             end do
+933:           end do
+934: !
+935:           do n = 1 , nloop
+936:             do i = is(n) , ie(n)
+937:               x0fsntc(i) = x0fsntc(i) + solflx(i)                       &
+938:                          & *(fluxdn(i,0)-fluxup(i,0))
+939:               x0fsnsc(i) = x0fsnsc(i) + solflx(i)                       &
+940:                          & *(fluxdn(i,2)-fluxup(i,2))
+941:               x0fsnrtc(i) = x0fsnrtc(i) + wgtint*solflx(i)              &
+942:                           & *(fluxdn(i,0)-fluxup(i,0))
+943:  
+944: !             SAVE the ref net TOA flux ( and put back the cumul
+945:  
+946: !             variables to 0.)
+947:             end do
+948:           end do
+949: !         if(ns==8)  print *,'DANS radscw FUPav',
+950: !         &    maxval(fluxup(:,0)* solflx(:)*1.E-3)
+951: !
+952: !         End of clear sky calculation with O aerosol OP
+953: !
+954:         end if
+955: !
+956: !       Following code is the diagnostic clear sky computation:
+957: !
+958: !       Compute delta-Eddington solution reflectivities and
+959: !       transmissivities for the entire column; note, for convenience,
+960: !       we use mod_the same reflectivity and transmissivity arrays as for
+961: !       the full calculation above, where 0 for layer quantities refers
+962: !       to the entire atmospheric column, and where 0 for interface
+963: !       quantities refers to top of atmos- phere, while 1 refers to the
+964: !       surface:
+965:         call <a href="./radclr.f90.html#radclr" TARGET=CENT_PANEL>radclr</a>(coszrs,trayoslp,pflx,abh2o(ns),abo3(ns),abco2(ns),  &
+966:                   & abo2(ns),uth2o,uto3,utco2,uto2,tauxar_mix_cs(1,ns), &
+967:                   & tauasc_mix_cs(1,ns),gtota_mix_cs(1,ns),             &
+968:                   & ftota_mix_cs(1,ns),nloop,is,ie,rdir,rdif,tdir,tdif, &
+969:                   & explay,exptdn,rdndif,tottrn)
+970:  
+971: !
+972: !       Compute reflectivity to direct and diffuse mod_radiation for entire
+973: !       column; 0,1 on layer quantities refers to two effective layers
+974: !       overlying surface; 0 on interface quantities refers to top of
+975: !       column; 2 on interface quantities refers to the surface:
+976: !
+977:  
+978:         do n = 1 , nloop
+979:           do i = is(n) , ie(n)
+980:  
+981:             rupdir(i,2) = albdir(i)
+982:             rupdif(i,2) = albdif(i)
+983:  
+984:           end do
+985:         end do
+986: !
+987:         do k = 1 , 0 , -1
+988:           do n = 1 , nloop
+989:             do i = is(n) , ie(n)
+990:               rdenom = 1./(1.-rdif(i,k)*rupdif(i,k+1))
+991:               rupdir(i,k) = rdir(i,k) + tdif(i,k)                       &
+992:                           & *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
+993:                           & *(tdir(i,k)-explay(i,k)))*rdenom
+994:               rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
+995:                           & **2*rdenom
+996:             end do
+997:           end do
+998:         end do
+999: !
+1000: !       Compute up and down fluxes for each interface, using the added
+1001: !       atmospheric layer properties at each interface:
+1002: !
+1003:         do k = 0 , 2
+1004:           do n = 1 , nloop
+1005:             do i = is(n) , ie(n)
+1006:               rdenom = 1./(1.-rdndif(i,k)*rupdif(i,k))
+1007:               fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-exptdn&
+1008:                           & (i,k))*rupdif(i,k))*rdenom
+1009:               fluxdn(i,k) = exptdn(i,k)                                 &
+1010:                           & + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
+1011:                           & *rupdir(i,k)*rdndif(i,k))*rdenom
+1012:             end do
+1013:           end do
+1014:         end do
+1015: !
+1016:         do n = 1 , nloop
+1017:           do i = is(n) , ie(n)
+1018:             fsntc(i) = fsntc(i) + solflx(i)*(fluxdn(i,0)-fluxup(i,0))
+1019:             fsnsc(i) = fsnsc(i) + solflx(i)*(fluxdn(i,2)-fluxup(i,2))
+1020:             fsnrtc(i) = fsnrtc(i) + wgtint*solflx(i)                    &
+1021:                       & *(fluxdn(i,0)-fluxup(i,0))
+1022:  
+1023:           end do
+1024:         end do
+1025:  
+1026: !       if(ns==8)  print *,'DANS radscw FUPav',
+1027: !       &    maxval(fluxup(:,0)* solflx(:)*1.E-3)
+1028:  
+1029: !
+1030: !       End of clear sky calculation
+1031: !
+1032:       end do                    ! End of spectral interval loop
+1033:  
+1034: !     FAB calculation of TOA aerosol radiative forcing
+1035:       if ( idirect.ge.1 ) then
+1036:         do n = 1 , nloop
+1037:           do i = is(n) , ie(n)
+1038: !           test
+1039:             aeradfo(i) = -(x0fsntc(i)-fsntc(i))
+1040:             aeradfos(i) = -(x0fsnsc(i)-fsnsc(i))
+1041:           end do
+1042:         end do
+1043: !TEST
+1044:       end if
+1045: !
+1046: !     Compute solar heating rate (k/s)
+1047: !
+1048:       do k = 1 , kz
+1049:         do n = 1 , nloop
+1050:           do i = is(n) , ie(n)
+1051:             qrs(i,k) = -gocp*totfld(i,k)/(pint(i,k)-pint(i,k+1))
+1052:           end do
+1053:         end do
+1054:       end do
+1055: !
+1056: !     Set the downwelling flux at the surface
+1057: !
+1058:       do i = 1 , iym1
+1059:         fsds(i) = fswdn(i,kzp1)
+1060:       end do
+1061: !
+1062:       end subroutine radcsw
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

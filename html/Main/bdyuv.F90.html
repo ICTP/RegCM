@@ -1,0 +1,409 @@
+<HTML>
+
+<HEAD>
+<TITLE>bdyuv.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>bdyuv.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>bdyuv.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=bdyuv><H3>bdyuv</H3></a></p> Click <a href="./callingtree/bdyuv_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where bdyuv is used.
+<hr>
+20:       subroutine bdyuv(ib,dtb)
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !                                                                     c
+24: !     this subroutine sets the boundary values of u and v according   c
+25: !     to the boundary conditions specified.                           c
+26: !                                                                     c
+27: !     ua, va, and psa : variables needed                              c
+28: !                                                                     c
+29: !     ib = 0 : fixed                                                  c
+30: !        = 1 : relaxation, linear technique                           c
+31: !        = 2 : time dependent                                         c
+32: !        = 3 : time dependent and inflow/outflow dependent            c
+33: !        = 4 : sponge                                                 c
+34: !        = 5 : relaxation, exponential technique                      c
+35: !                                                                     c
+36: !     dtb    : elapsed time from the initial boundary values.         c
+37: !                                                                     c
+38: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+39: 
+40:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+41:       use <a href="./mod_bdycod.F90.html#mod_bdycod" TARGET=CENT_PANEL>mod_bdycod</a>
+42:       use <a href="./mod_cvaria.F90.html#mod_cvaria" TARGET=CENT_PANEL>mod_cvaria</a>
+43:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+44: #ifdef MPP1
+45:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+46: #ifndef IBM
+47:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+48: #else 
+49:       include 'mpif.h'
+50: #endif 
+51: #endif
+52:       implicit none
+53: !
+54: ! Dummy arguments
+55: !
+56:       real(8) :: dtb
+57:       integer :: ib
+58:       intent (in) dtb , ib
+59: !
+60: ! Local variables
+61: !
+62:       integer :: i , j , k
+63: #ifdef MPP1
+64:       integer :: ierr
+65: #endif
+66: !
+67: #ifdef MPP1
+68: !----------------------------------------------------------------------
+69: !-----compute the p* at dot points:
+70: !
+71: !=======================================================================
+72:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(psa(1,jxp),iy,mpi_real8,ieast,1,                &
+73:                       & psa(1,0),iy,mpi_real8,iwest,1,                  &
+74:                       & mpi_comm_world,mpi_status_ignore,ierr)
+75: #endif
+76: !=======================================================================
+77: !
+78: !-----interior points:
+79: !
+80: #ifdef MPP1
+81:       do j = jbegin , jendx
+82:         do i = 2 , iym1
+83:           pdota(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
+84:                      & )
+85:         end do
+86:       end do
+87: #else
+88:       do j = 2 , jxm1
+89:         do i = 2 , iym1
+90:           pdota(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
+91:                      & )
+92:         end do
+93:       end do
+94: #endif
+95: !
+96: !-----east and west boundaries:
+97: !
+98:       do i = 2 , iym1
+99: #ifdef MPP1
+100:         if ( myid.eq.0 ) pdota(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
+101:         if ( myid.eq.nproc-1 ) pdota(i,jendl)                           &
+102:            & = 0.5*(psa(i,jendx)+psa(i-1,jendx))
+103: #else
+104:         pdota(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
+105:         pdota(i,jx) = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
+106: #endif
+107:       end do
+108: !
+109: !-----north and south boundaries:
+110: !
+111: #ifdef MPP1
+112:       do j = jbegin , jendx
+113:         pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
+114:         pdota(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
+115:       end do
+116: #else
+117:       do j = 2 , jxm1
+118:         pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
+119:         pdota(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
+120:       end do
+121: #endif
+122: !
+123: !-----corner points:
+124: !
+125: #ifdef MPP1
+126:       if ( myid.eq.0 ) then
+127:         pdota(1,1) = psa(1,1)
+128:         pdota(iy,1) = psa(iym1,1)
+129:       end if
+130:       if ( myid.eq.nproc-1 ) then
+131:         pdota(1,jendl) = psa(1,jendx)
+132:         pdota(iy,jendl) = psa(iym1,jendx)
+133:       end if
+134: #else
+135:       pdota(1,1) = psa(1,1)
+136:       pdota(iy,1) = psa(iym1,1)
+137:       pdota(1,jx) = psa(1,jxm1)
+138:       pdota(iy,jx) = psa(iym1,jxm1)
+139: #endif
+140: !=======================================================================
+141: !
+142: !-----interior silces:
+143: !
+144:       do k = 1 , kz
+145: !
+146: !.....for j = 2 and j = jlx :
+147: !
+148:         do i = 2 , iym1
+149: #ifdef MPP1
+150:           if ( myid.eq.0 ) then
+151:             uj2(i,k) = ua(i,k,2)/pdota(i,2)
+152:             vj2(i,k) = va(i,k,2)/pdota(i,2)
+153:           end if
+154:           if ( myid.eq.nproc-1 ) then
+155:             ujlx(i,k) = ua(i,k,jendx)/pdota(i,jendx)
+156:             vjlx(i,k) = va(i,k,jendx)/pdota(i,jendx)
+157:           end if
+158: #else
+159:           uj2(i,k) = ua(i,k,2)/pdota(i,2)
+160:           vj2(i,k) = va(i,k,2)/pdota(i,2)
+161:           ujlx(i,k) = ua(i,k,jxm1)/pdota(i,jxm1)
+162:           vjlx(i,k) = va(i,k,jxm1)/pdota(i,jxm1)
+163: #endif
+164:         end do
+165: !
+166: !.....for i = 2 and i = iym1 :
+167: !
+168: #ifdef MPP1
+169:         do j = jbegin , jendx
+170:           ui2(k,j) = ua(2,k,j)/pdota(2,j)
+171:           vi2(k,j) = va(2,k,j)/pdota(2,j)
+172:           uilx(k,j) = ua(iym1,k,j)/pdota(iym1,j)
+173:           vilx(k,j) = va(iym1,k,j)/pdota(iym1,j)
+174:         end do
+175: #else
+176:         do j = 2 , jxm1
+177:           ui2(k,j) = ua(2,k,j)/pdota(2,j)
+178:           vi2(k,j) = va(2,k,j)/pdota(2,j)
+179:           uilx(k,j) = ua(iym1,k,j)/pdota(iym1,j)
+180:           vilx(k,j) = va(iym1,k,j)/pdota(iym1,j)
+181:         end do
+182: #endif
+183: !
+184:       end do
+185: !
+186: !----------------------------------------------------------------------
+187: !-----boundary silces:
+188: !
+189:       if ( ib.eq.0 ) then
+190: !
+191: !-----fixed boundary conditions:
+192: !
+193:         do k = 1 , kz
+194: !
+195: !.....west (j = 1) and east (j = jx) boundaries:
+196: !
+197:           do i = 1 , iy
+198: #ifdef MPP1
+199:             if ( myid.eq.0 ) then
+200:               uj1(i,k) = uwb(i,k,1)/pdota(i,1)
+201:               vj1(i,k) = vwb(i,k,1)/pdota(i,1)
+202:             end if
+203:             if ( myid.eq.nproc-1 ) then
+204:               ujl(i,k) = ueb(i,k,1)/pdota(i,jendl)
+205:               vjl(i,k) = veb(i,k,1)/pdota(i,jendl)
+206:             end if
+207: #else
+208:             uj1(i,k) = uwb(i,k,1)/pdota(i,1)
+209:             vj1(i,k) = vwb(i,k,1)/pdota(i,1)
+210:             ujl(i,k) = ueb(i,k,1)/pdota(i,jx)
+211:             vjl(i,k) = veb(i,k,1)/pdota(i,jx)
+212: #endif
+213:           end do
+214: !
+215: !.....south (i = 1) and north (i = iy) boundaries:
+216: !
+217: #ifdef MPP1
+218:           do j = 1 , jendl
+219:             ui1(k,j) = usb(1,k,j)/pdota(1,j)
+220:             vi1(k,j) = vsb(1,k,j)/pdota(1,j)
+221:             uil(k,j) = unb(1,k,j)/pdota(iy,j)
+222:             vil(k,j) = vnb(1,k,j)/pdota(iy,j)
+223:           end do
+224: #else
+225:           do j = 1 , jx
+226:             ui1(k,j) = usb(1,k,j)/pdota(1,j)
+227:             vi1(k,j) = vsb(1,k,j)/pdota(1,j)
+228:             uil(k,j) = unb(1,k,j)/pdota(iy,j)
+229:             vil(k,j) = vnb(1,k,j)/pdota(iy,j)
+230:           end do
+231: #endif
+232:         end do
+233:         go to 100
+234: !
+235:       end if
+236: !
+237: !-----time-dependent boundary conditions:
+238: !
+239:       do k = 1 , kz
+240: !
+241: !.....west (j = 1) and east (j = jx) boundaries:
+242: !
+243:         do i = 1 , iy
+244: #ifdef MPP1
+245:           if ( myid.eq.0 ) then
+246:             uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
+247:             vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/pdota(i,1)
+248:           end if
+249:           if ( myid.eq.nproc-1 ) then
+250:             ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jendl)
+251:             vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jendl)
+252:           end if
+253: #else
+254:           uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
+255:           vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/pdota(i,1)
+256:           ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jx)
+257:           vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jx)
+258: #endif
+259:         end do
+260: !
+261: !.....south (i = 1) and north (i = iy) boundaries:
+262: !
+263: #ifdef MPP1
+264:         do j = 1 , jendl
+265:           ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
+266:           vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
+267:           uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
+268:           vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
+269:         end do
+270: #else
+271:         do j = 1 , jx
+272:           ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
+273:           vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
+274:           uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
+275:           vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
+276:         end do
+277: #endif
+278: !
+279:       end do
+280: !
+281: !-----fill up the interior silces:
+282: !
+283:  100  continue
+284: 
+285: #ifdef MPP1
+286:       do k = 1 , kz
+287:         if ( myid.eq.0 ) then
+288:           uj2(1,k) = ui1(k,2)
+289:           uj2(iy,k) = uil(k,2)
+290:           ui2(k,1) = uj1(2,k)
+291:           uilx(k,1) = uj1(iym1,k)
+292:           vj2(1,k) = vi1(k,2)
+293:           vj2(iy,k) = vil(k,2)
+294:           vi2(k,1) = vj1(2,k)
+295:           vilx(k,1) = vj1(iym1,k)
+296:         end if
+297:         if ( myid.eq.nproc-1 ) then
+298:           ujlx(1,k) = ui1(k,jendx)
+299:           ujlx(iy,k) = uil(k,jendx)
+300:           ui2(k,jendl) = ujl(2,k)
+301:           uilx(k,jendl) = ujl(iym1,k)
+302:           vjlx(1,k) = vi1(k,jendx)
+303:           vjlx(iy,k) = vil(k,jendx)
+304:           vi2(k,jendl) = vjl(2,k)
+305:           vilx(k,jendl) = vjl(iym1,k)
+306:         end if
+307:       end do
+308:       if ( myid.ne.nproc-1 ) then
+309:         do k = 1 , kz
+310:           var1snd(k,1) = ui1(k,jxp)
+311:           var1snd(k,2) = vi1(k,jxp)
+312:           var1snd(k,3) = ui2(k,jxp)
+313:           var1snd(k,4) = vi2(k,jxp)
+314:           var1snd(k,5) = uilx(k,jxp)
+315:           var1snd(k,6) = vilx(k,jxp)
+316:           var1snd(k,7) = uil(k,jxp)
+317:           var1snd(k,8) = vil(k,jxp)
+318:         end do
+319:       end if
+320:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(var1snd(1,1),kz*8,mpi_real8,ieast,1,            &
+321:                       & var1rcv(1,1),kz*8,mpi_real8,iwest,1,            &
+322:                       & mpi_comm_world,mpi_status_ignore,ierr)
+323:       if ( myid.ne.0 ) then
+324:         do k = 1 , kz
+325:           ui1(k,0) = var1rcv(k,1)
+326:           vi1(k,0) = var1rcv(k,2)
+327:           ui2(k,0) = var1rcv(k,3)
+328:           vi2(k,0) = var1rcv(k,4)
+329:           uilx(k,0) = var1rcv(k,5)
+330:           vilx(k,0) = var1rcv(k,6)
+331:           uil(k,0) = var1rcv(k,7)
+332:           vil(k,0) = var1rcv(k,8)
+333:         end do
+334:       end if
+335: !
+336:       if ( myid.ne.0 ) then
+337:         do k = 1 , kz
+338:           var1snd(k,1) = ui1(k,1)
+339:           var1snd(k,2) = vi1(k,1)
+340:           var1snd(k,3) = ui2(k,1)
+341:           var1snd(k,4) = vi2(k,1)
+342:           var1snd(k,5) = uilx(k,1)
+343:           var1snd(k,6) = vilx(k,1)
+344:           var1snd(k,7) = uil(k,1)
+345:           var1snd(k,8) = vil(k,1)
+346:         end do
+347:       end if
+348:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(var1snd(1,1),kz*8,mpi_real8,iwest,2,            &
+349:                       & var1rcv(1,1),kz*8,mpi_real8,ieast,2,            &
+350:                       & mpi_comm_world,mpi_status_ignore,ierr)
+351:       if ( myid.ne.nproc-1 ) then
+352:         do k = 1 , kz
+353:           ui1(k,jxp+1) = var1rcv(k,1)
+354:           vi1(k,jxp+1) = var1rcv(k,2)
+355:           ui2(k,jxp+1) = var1rcv(k,3)
+356:           vi2(k,jxp+1) = var1rcv(k,4)
+357:           uilx(k,jxp+1) = var1rcv(k,5)
+358:           vilx(k,jxp+1) = var1rcv(k,6)
+359:           uil(k,jxp+1) = var1rcv(k,7)
+360:           vil(k,jxp+1) = var1rcv(k,8)
+361:         end do
+362:       end if
+363: #else
+364:       do k = 1 , kz
+365:         uj2(1,k) = ui1(k,2)
+366:         uj2(iy,k) = uil(k,2)
+367:         ui2(k,1) = uj1(2,k)
+368:         uilx(k,1) = uj1(iym1,k)
+369:         vj2(1,k) = vi1(k,2)
+370:         vj2(iy,k) = vil(k,2)
+371:         vi2(k,1) = vj1(2,k)
+372:         vilx(k,1) = vj1(iym1,k)
+373:         ujlx(1,k) = ui1(k,jxm1)
+374:         ujlx(iy,k) = uil(k,jxm1)
+375:         ui2(k,jx) = ujl(2,k)
+376:         uilx(k,jx) = ujl(iym1,k)
+377:         vjlx(1,k) = vi1(k,jxm1)
+378:         vjlx(iy,k) = vil(k,jxm1)
+379:         vi2(k,jx) = vjl(2,k)
+380:         vilx(k,jx) = vjl(iym1,k)
+381:       end do
+382: #endif
+383: !
+384:       end subroutine bdyuv
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

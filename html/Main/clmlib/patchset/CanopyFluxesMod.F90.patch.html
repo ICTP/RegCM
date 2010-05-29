@@ -1,0 +1,76 @@
+<HTML>
+
+<HEAD>
+<TITLE>CanopyFluxesMod.F90.patch</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>clmlib/patchset/CanopyFluxesMod.F90.patch</H1>
+<HR>
+<H2 ALIGN=CENTER>CanopyFluxesMod.F90.patch</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+<OL>
+<LI>--- orig/CanopyFluxesMod.F90	2010-03-10 16:34:21.000000000 +0100
+<LI>+++ patchd/CanopyFluxesMod.F90	2010-03-10 16:21:11.638595868 +0100
+<LI>@@ -210,6 +210,9 @@
+<LI>    real(r8), pointer :: fpsn(:)            ! photosynthesis (umol CO2 /m**2 /s)
+<LI>    real(r8), pointer :: rootr(:,:)         ! effective fraction of roots in each soil layer
+<LI>    real(r8), pointer :: rresis(:,:)        ! root resistance by layer (0-1)  (nlevsoi)	
+<LI>+!abt rcm below
+<LI>+   real(r8), pointer :: uvdrag(:)          ! surface wind drag
+<LI>+!abt rcm above
+<LI> !
+<LI> !EOP
+<LI> !
+<LI>@@ -329,6 +332,7 @@
+<LI>    integer  :: index                 ! pft index for error
+<LI>    real(r8) :: www                   ! surface soil wetness [-]
+<LI>    real(r8) :: rsoil                 ! Sellers (1996) soil evaporation resistance [s/m]
+<LI>+
+<LI> !------------------------------------------------------------------------------
+<LI> 
+<LI>    ! Assign local pointers to derived type members (gridcell-level)
+<LI>@@ -390,6 +394,11 @@
+<LI>    cisha          => clm3%g%l%c%p%pps%cisha
+<LI>    psnsun         => clm3%g%l%c%p%pcf%psnsun
+<LI>    psnsha         => clm3%g%l%c%p%pcf%psnsha
+<LI>+!abt rcm below
+<LI>+   uvdrag         => clm3%g%l%c%p%pef%uvdrag
+<LI>+!abt rcm above
+<LI>+
+<LI>+
+<LI>    ! 4/14/05: PET
+<LI>    ! Adding isotope code
+<LI>    c13_psnsun     => clm3%g%l%c%p%pc13f%psnsun
+<LI>@@ -510,6 +519,7 @@
+<LI>    found = .false.
+<LI> !dir$ concurrent
+<LI> !cdir nodep
+<LI>+
+<LI>    do f = 1, fn
+<LI>       p = filterp(f)
+<LI>       c = pcolumn(p)
+<LI>@@ -870,6 +880,10 @@
+<LI>       eflx_sh_grnd(p) = cpair*forc_rho(g)*wtg(p)*delt
+<LI>       qflx_evap_soi(p) = forc_rho(g)*wtgq(p)*delq(p)
+<LI> 
+<LI>+!abt rcm below
+<LI>+      uvdrag(p) = frac_veg_nosno(p)*forc_rho(g)/ram1(p)
+<LI>+!abt rcm above
+<LI>+
+<LI>       ! 2 m height air temperature
+<LI> 
+<LI>       t_ref2m(p) = thm(c) + temp1(p)*dth(p)*(1._r8/temp12m(p) - 1._r8/temp1(p))
+</OL>
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,1279 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_cu_em.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_cu_em.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_cu_em.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=mod_cu_em><H3>mod_cu_em</H3></a></p>20:       module mod_cu_em
+21: 
+22: !
+23:       real(8) :: alphae , betae , coeffr , coeffs , cu , damp , dtmax , &
+24:                & elcrit , entp , minsig , omtrain , omtsnow , sigd ,    &
+25:                & sigs , tlcrit
+26: !
+27:       integer :: minorig
+28: !
+29:       contains
+30: 
+<p><a name=cupemandrv><H3>cupemandrv</H3></a></p> Click <a href="./callingtree/cupemandrv_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where cupemandrv is used.
+<hr>
+31:       subroutine cupemandrv(j)
+32:  
+33: ! **********************************************
+34: ! **** Driver for Emanuel Convection Scheme ****
+35: ! **********************************************
+36:  
+37:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+38:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : dt , nbatst
+39:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : r8pt , sigma
+40:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+41:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+42:       use <a href="./mod_cvaria.F90.html#mod_cvaria" TARGET=CENT_PANEL>mod_cvaria</a>
+43:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+44:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a>
+45:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : pptc
+46:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : jyear , jyear0 , ktau
+47:       implicit none
+48: !
+49: ! PARAMETER definitions
+50: !
+51:       integer , parameter :: ntra = 0
+52: !
+53: ! Dummy arguments
+54: !
+55:       integer :: j
+56:       intent (in) j
+57: !
+58: ! Local variables
+59: !
+60:       real(8) :: akclth , aprdiv , cbmf , dtime , fppt , qprime ,       &
+61:                & tprime , uconv , wd
+62:       real(8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
+63:                                & qscup , tcup , ucup , vcup
+64:       real(8) , dimension(kz,1) :: ftra , tra
+65:       integer :: i , iconj , iflag , k , kbase , kclth , kk , ktop
+66:       real(8) , dimension(kzp1) :: phcup
+67: !
+68:       dtime = dt
+69:       uconv = 0.5*dt
+70:       aprdiv = 1.0/float(nbatst)
+71:       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
+72:       iconj = 0
+73:       do i = 2 , iym2
+74:         do k = 1 , kz
+75:           kk = kzp1 - k
+76:           cldlwc(i,k) = 0.          ! Zero out cloud water content
+77:           cldfra(i,k) = 0.          ! Zero out cloud fraction coverage
+78:           tcup(k) = tb3d(i,kk,j)                          ! [k]
+79:           qcup(k) = qvb3d(i,kk,j)/(1.+qvb3d(i,kk,j))      ! [kg/kg]
+80:           qscup(k) = qsb3d(i,kk,j)/(1.+qsb3d(i,kk,j))     ! [kg/kg]
+81:           ucup(k) = ubx3d(i,kk,j)                         ! [m/s]
+82:           vcup(k) = vbx3d(i,kk,j)                         ! [m/s]
+83:           pcup(k) = pb3d(i,kk,j)*10.                      ! [hPa]
+84:         end do
+85:         do k = 1 , kzp1
+86:           kk = kzp1 - k + 1
+87:           phcup(k) = (sigma(kk)*psb(i,j)+r8pt)*10.        ! [hPa]
+88:         end do
+89:         cbmf = cbmf2d(i,j)                                ! [(kg/m**2)/s]
+90:  
+91:         call <a href="./mod_cu_em.f90.html#cupeman" TARGET=CENT_PANEL>cupeman</a>(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
+92:                    & kzm1,ntra,dtime,iflag,ft,fq,fu,fv,ftra,fppt,wd,    &
+93:                    & tprime,qprime,cbmf,kbase,ktop)
+94:  
+95:         cbmf2d(i,j) = cbmf
+96:  
+97: !       iflag=0: No moist convection; atmosphere stable or surface
+98: !       temperature < 250K or surface humidity is negative.
+99: !       iflag=1: Moist convection occurs.
+100: !       iflag=2: No moist convection: lifted condensation level above
+101: !       200 mb. iflag=3: No moist convection: cloud base higher than
+102: !       level kzm2. iflag=4: Moist convection occurs, but CFL condition
+103: !       on the subsidence warming is violated. (Does not terminate
+104: !       scheme.)
+105:         if ( iflag.eq.1 .or. iflag.eq.4 ) then
+106:                                               ! If moist convection
+107:  
+108: !         if (iflag.eq.4) then                ! If CFL violation
+109: !         print*,'EMAN CFL VIOLATION: ',i,j,cbmf
+110: !         end if
+111:  
+112: !         **** Tendencies
+113:           do k = 1 , kz
+114:             kk = kzp1 - k
+115:             tten(i,kk,j) = ft(k)*psb(i,j) + tten(i,kk,j)
+116:             qvten(i,kk,j) = fq(k)/(1.-fq(k))*psb(i,j) + qvten(i,kk,j)
+117: !           There is a bit of an inconsistency here...  The wind
+118: !           tendencies from convection are on cross points, but the
+119: !           model wants them on dot points.
+120:             uten(i,kk,j) = fu(k)*psb(i,j) + uten(i,kk,j)
+121:             vten(i,kk,j) = fv(k)*psb(i,j) + vten(i,kk,j)
+122:           end do
+123:  
+124: !         **** Cloud fraction and cloud water
+125:           kclth = ktop - kbase + 1
+126:           akclth = 1./float(kclth)
+127:           do k = kbase , ktop
+128:             kk = kzp1 - k
+129:             cldlwc(i,kk) = cllwcv
+130:             cldfra(i,kk) = 1. - (1.-clfrcv)**akclth
+131:           end do
+132:  
+133: !         **** Precipitation
+134:           if ( fppt.gt.0. ) then
+135:             rainc(i,j) = rainc(i,j) + fppt*uconv ! mm
+136:             pptc(i,j) = pptc(i,j) + fppt*aprdiv  ! mm/s
+137:             iconj = iconj + 1
+138:           end if
+139:  
+140:         end if
+141:  
+142:       end do
+143:  
+144:       icon(j) = iconj
+145:  
+146:       end subroutine cupemandrv
+147: !
+148: !
+149: !
+<p><a name=cupeman><H3>cupeman</H3></a></p> Click <a href="./callingtree/cupeman_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where cupeman is used.
+<hr>
+150:       subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,delt,iflag,  &
+151:                        & ft,fq,fu,fv,ftra,precip,wd,tprime,qprime,cbmf, &
+152:                        & icb,inb)
+153: !
+154: !**************************************************************************
+155: !****                       subroutine cupeman (formerly convect)     *****
+156: !****                          version 4.3c                           *****
+157: !****                          20 may, 2002                           *****
+158: !****                          kerry emanuel                          *****
+159: !**************************************************************************
+160: !
+161: !-----------------------------------------------------------------------------
+162: !    *** on input:      ***
+163: !
+164: !     t:   array of absolute temperature (k) of dimension nd, with first
+165: !           index corresponding to lowest model level. note that this array
+166: !           will be altered by the subroutine if dry convective adjustment
+167: !           occurs and if ipbl is not equal to 0.
+168: !
+169: !     q:   array of specific humidity (gm/gm) of dimension nd, with first
+170: !            index corresponding to lowest model level. must be defined
+171: !            at same grid levels as t. note that this array will be altered
+172: !            if dry convective adjustment occurs and if ipbl is not equal to 0.
+173: !
+174: !     qs:  array of saturation specific humidity of dimension nd, with first
+175: !            index corresponding to lowest model level. must be defined
+176: !            at same grid levels as t. note that this array will be altered
+177: !            if dry convective adjustment occurs and if ipbl is not equal to 0.
+178: !
+179: !     u:   array of zonal wind velocity (m/s) of dimension nd, witth first
+180: !            index corresponding with the lowest model level. defined at
+181: !            same levels as t. note that this array will be altered if
+182: !            dry convective adjustment occurs and if ipbl is not equal to 0.
+183: !
+184: !     v:   same as u but for meridional velocity.
+185: !
+186: !     tra: array of passive tracer mixing ratio, of dimensions (nd,ntra),
+187: !            where ntra is the number of different tracers. if no
+188: !            convective tracer transport is needed, define a dummy
+189: !            input array of dimension (nd,1). tracers are defined at
+190: !            same vertical levels as t. note that this array will be altered
+191: !            if dry convective adjustment occurs and if ipbl is not equal to 0.
+192: !
+193: !     p:   array of pressure (mb) of dimension nd, with first
+194: !            index corresponding to lowest model level. must be defined
+195: !            at same grid levels as t.
+196: !
+197: !     ph:  array of pressure (mb) of dimension nd+1, with first index
+198: !            corresponding to lowest level. these pressures are defined at
+199: !            levels intermediate between those of p, t, q and qs. the first
+200: !            value of ph should be greater than (i.e. at a lower level than)
+201: !            the first value of the array p.
+202: !
+203: !     nd:  the dimension of the arrays t,q,qs,p,ph,ft and fq
+204: !
+205: !     nl:  the maximum number of levels to which convection can
+206: !            penetrate, plus 1.
+207: !            nl must be less than or equal to nd-1.
+208: !
+209: !     ntra:the number of different tracers. if no tracer transport
+210: !            is needed, set this equal to 1. (on most compilers, setting
+211: !            ntra to 0 will bypass tracer calculation, saving some cpu.)
+212: !
+213: !     delt: the model time step (sec) between calls to convect
+214: !
+215: !----------------------------------------------------------------------------
+216: !    ***   on output:         ***
+217: !
+218: !     iflag: an output integer whose value denotes the following:
+219: !
+220: !                value                        interpretation
+221: !                -----                        --------------
+222: !                  0               no moist convection; atmosphere is not
+223: !                                  unstable, or surface temperature is less
+224: !                                  than 250 k or surface specific humidity
+225: !                                  is non-positive.
+226: !
+227: !                  1               moist convection occurs.
+228: !
+229: !                  2               no moist convection: lifted condensation
+230: !                                  level is above the 200 mb level.
+231: !
+232: !                  3               no moist convection: cloud base is higher
+233: !                                  then the level nl-1.
+234: !
+235: !                  4               moist convection occurs, but a cfl condition
+236: !                                  on the subsidence warming is violated. this
+237: !                                  does not cause mod_the scheme to terminate.
+238: !
+239: !     ft:   array of temperature tendency (k/s) of dimension nd, defined at same
+240: !             grid levels as t, q, qs and p.
+241: !
+242: !     fq:   array of specific humidity tendencies ((gm/gm)/s) of dimension nd,
+243: !             defined at same grid levels as t, q, qs and p.
+244: !
+245: !     fu:   array of forcing of zonal velocity (m/s^2) of dimension nd,
+246: !             defined at same grid levels as t.
+247: !
+248: !     fv:   same as fu, but for forcing of meridional velocity.
+249: !
+250: !     ftra: array of forcing of tracer content, in tracer mixing ratio per
+251: !             second, defined at same levels as t. dimensioned (nd,ntra).
+252: !
+253: !     precip: scalar convective precipitation rate (mm/s).
+254: !
+255: !     wd:    a convective downdraft velocity scale. for use in surface
+256: !             flux parameterizations. see convect.ps file for details.
+257: !
+258: !     tprime: a convective downdraft temperature perturbation scale (k).
+259: !              for use in surface flux parameterizations. see convect.ps
+260: !              file for details.
+261: !
+262: !     qprime: a convective downdraft specific humidity
+263: !              perturbation scale (gm/gm).
+264: !              for use in surface flux parameterizations. see convect.ps
+265: !              file for details.
+266: !
+267: !     cbmf:   the cloud base mass flux ((kg/m**2)/s). this scalar value must
+268: !              be stored by the calling program and returned to convect at
+269: !              its next call. that is, the value of cbmf must be "remembered"
+270: !              by the calling program between calls to convect.
+271: !
+272: !------------------------------------------------------------------------------
+273: !
+274: !    ***  the parameter na should in general be greater than   ***
+275: !    ***                or equal to  nd + 1                    ***
+276: !
+277: !------------------------------------------------------------------------------
+278: ! modifications for regcm:
+279: !   1. units for precipitation were change from mm/day to mm/s
+280: !   2. the thermodynamic constants were made consistent with those
+281: !      of regcm.
+282: !   3. dependence of latent heat of vaporization on tempertature
+283: !      removed because it is neglected in regcm. this is done by
+284: !      setting cpv equal to cl and setting wlhv to the regcm value.
+285: !   4. added cloud base (icb) and cloud top (inb) to the output to
+286: !      compute the cloud fraction and cloud liquid water content.
+287: !   5. each variable is now explicitly declared.  that is, the
+288: !      "implicit none" option was added.
+289: !   6. the value minorig is increased because mod_the thickness of the
+290: !      lowest layer(s) is(are) too small. if the thickness is too
+291: !      small for the given timestep, the mass of the layer is likely
+292: !      to be evacuated.
+293: !   7. a maximum value to the cloud base mass flux has been added.
+294: !
+295:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti , rgti , cpd , rcpd , cpv , rgas , &
+296:                                & rwat , wlhv , tzero
+297:       implicit none
+298: !
+299: !
+300: ! Dummy arguments
+301: !
+302:       real(8) :: cbmf , delt , precip , qprime , tprime , wd
+303:       integer :: icb , iflag , inb , na , nd , nl , ntra
+304:       real(8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
+305:                                & t , u , v
+306:       real(8) , dimension(nd,1) :: ftra , tra
+307:       intent (in) delt , na , ntra , ph
+308:       intent (out) tprime , wd
+309:       intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
+310:                    & inb , precip , q , qprime , qs , t , tra , u , v
+311: !
+312: ! Local variables
+313: !
+314:       real(8) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
+315:                & alv , alvnew , am , amp1 , anum , asij , asum , awat , &
+316:                & b6 , bf2 , bsum , by , byp , c6 , cape , capem ,       &
+317:                & cbmfold , chi , cl , coeff , cpinv ,                   &
+318:                & cpvmcl , cwat , damps , dbo , dbosum , defrac , dei ,  &
+319:                & delm , delp , delt0 , delti , denom , dhdp , dphinv ,  &
+320:                & dpinv , dtma , dtmin , dtpbl , elacrit , ents , epmax ,&
+321:                & eps , epsi , fac , fqold , frac , ftold , ftraold ,    &
+322:                & fuold , fvold , plcl , qnew , qp1 ,                    &
+323:                & qsm , qstm , qti , rat , rdcp , revap , rh , rm ,      &
+324:                & rowl , scrit , sigt
+325:       real(8) , dimension(na) :: clw , cpn , ep , evap , gz , h , hm ,  &
+326:                                & hp , lv , lvcp , m , mp , qp , sigp ,  &
+327:                                & th , told , tp , tratm , tv , tvp ,    &
+328:                                & up , vp , water , wt
+329:       real(8) , dimension(na,na) :: elij , ment , qent , sij , uent ,   &
+330:                                   & vent
+331:       integer :: i , ihmin , inb1 , ipbl , j , jc , jn , jtt , k , nk
+332:       integer , dimension(na) :: nent
+333:       real(8) :: sjmax , sjmin , smid , smin , stemp , tc , tca ,       &
+334:                & thbar , tnew , traav , tvaplcl , tvpplcl , tvx , tvy , &
+335:                & uav , um , vav , vm , wdtrain , x
+336:       real(8) , dimension(na,na,ntra) :: traent
+337:       real(8) , dimension(na,ntra) :: trap
+338: !
+339: ! ----------------------------------------------------------------------
+340: !
+341: !     ***                     specify switches                        
+342: !     ***
+343: !     ***   ipbl: set to zero to bypass dry adiabatic adjustment      
+344: !     *** ***    any other value results in dry adiabatic adjustment   
+345: !     *** ***     (zero value recommended for use in models with       
+346: !     *** ***                   boundary layer schemes)                
+347: !     ***
+348: !     ***   minorig: lowest level from which convection may originate 
+349: !     *** ***     (should be first model level at which t is defined   
+350: !     *** ***      for models using bulk pbl schemes; otherwise, it
+351: !     should *** ***      be the first model level at which t is
+352: !     defined above    *** ***                      the surface layer) 
+353: !     ***
+354:       ipbl = 0
+355: !
+356: !     ***        assign values of thermodynamic constants,        ***
+357: !     ***            gravity, and liquid water density.           ***
+358: !     ***             these should be consistent with             ***
+359: !     ***              those used in calling program              ***
+360: !     ***     note: these are also specified in subroutine tlift  ***
+361: !
+362:       cl = 2500.0
+363:       rowl = 1000.0
+364: !
+365:       cpvmcl = cl - cpv
+366:       eps = rgas/rwat
+367:       epsi = 1./eps
+368:       delti = 1.0/delt
+369: !
+370: !     ***  initialize output arrays and parameters  ***
+371: !
+372:       do i = 1 , nd
+373:         ft(i) = 0.0
+374:         fq(i) = 0.0
+375:         fu(i) = 0.0
+376:         fv(i) = 0.0
+377:         do j = 1 , ntra
+378:           ftra(i,j) = 0.0
+379:         end do
+380:       end do
+381:       do i = 1 , nl + 1
+382:         rdcp = (rgas*(1.-q(i))+q(i)*rwat)/(cpd*(1.-q(i))+q(i)*cpv)
+383:         th(i) = t(i)*(1000.0/p(i))**rdcp
+384:       end do
+385:       precip = 0.0
+386:       wd = 0.0
+387:       tprime = 0.0
+388:       qprime = 0.0
+389:       iflag = 0
+390: !
+391:       if ( ipbl.ne.0 ) then
+392: !
+393: !       ***            perform dry adiabatic adjustment            ***
+394: !
+395:         jc = 0
+396:         do i = nl - 1 , 1 , -1
+397:           jn = 0
+398:           asum = th(i)*(1.+q(i)*epsi-q(i))
+399:           do j = i + 1 , nl
+400:             asum = asum + th(j)*(1.+q(j)*epsi-q(j))
+401:             thbar = asum/float(j+1-i)
+402:             if ( (th(j)*(1.+q(j)*epsi-q(j))).lt.thbar ) jn = j
+403:           end do
+404:           if ( i.eq.1 ) jn = max(jn,2)
+405:           if ( jn.ne.0 ) then
+406:             do
+407:               ahm = 0.0
+408:               rm = 0.0
+409:               um = 0.0
+410:               vm = 0.0
+411:               do k = 1 , ntra
+412:                 tratm(k) = 0.0
+413:               end do
+414:               do j = i , jn
+415:                 ahm = ahm + (cpd*(1.-q(j))+q(j)*cpv)*t(j)               &
+416:                     & *(ph(j)-ph(j+1))
+417:                 rm = rm + q(j)*(ph(j)-ph(j+1))
+418:                 um = um + u(j)*(ph(j)-ph(j+1))
+419:                 vm = vm + v(j)*(ph(j)-ph(j+1))
+420:                 do k = 1 , ntra
+421:                   tratm(k) = tratm(k) + tra(j,k)*(ph(j)-ph(j+1))
+422:                 end do
+423:               end do
+424:               dphinv = 1./(ph(i)-ph(jn+1))
+425:               rm = rm*dphinv
+426:               um = um*dphinv
+427:               vm = vm*dphinv
+428:               do k = 1 , ntra
+429:                 tratm(k) = tratm(k)*dphinv
+430:               end do
+431:               a2 = 0.0
+432:               do j = i , jn
+433:                 q(j) = rm
+434:                 u(j) = um
+435:                 v(j) = vm
+436:                 do k = 1 , ntra
+437:                   tra(j,k) = tratm(k)
+438:                 end do
+439:                 rdcp = (rgas*(1.-q(j))+q(j)*rwat)/                      &
+440:                      & (cpd*(1.-q(j))+q(j)*cpv)
+441:                 x = (0.001*p(j))**rdcp
+442:                 told(j) = t(j)
+443:                 t(j) = x
+444:                 a2 = a2 + (cpd*(1.-q(j))+q(j)*cpv)*x*(ph(j)-ph(j+1))
+445:               end do
+446:               do j = i , jn
+447:                 th(j) = ahm/a2
+448:                 t(j) = t(j)*th(j)
+449:                 tc = told(j) - tzero
+450:                 alv = wlhv - cpvmcl*tc
+451:                 qs(j) = qs(j) + qs(j)*(1.+qs(j)*(epsi-1.))              &
+452:                       & *alv*(t(j)-told(j))/(rwat*told(j)*told(j))
+453:               end do
+454:               if ( ((th(jn+1)*(1.+q(jn+1)*epsi-q(jn+1))).lt.(th(jn)*(1.+&
+455:                  & q(jn)*epsi-q(jn)))) ) then
+456:                 jn = jn + 1
+457:                 cycle
+458:               end if
+459:               if ( i.eq.1 ) jc = jn
+460:               exit
+461:             end do
+462:           end if
+463:         end do
+464: !
+465: !       ***   remove any supersaturation that results from adjustment
+466: !       ***
+467:         if ( jc.gt.1 ) then
+468:           do j = 1 , jc
+469:             if ( qs(j).lt.q(j) ) then
+470:               alv = wlhv - cpvmcl*(t(j)-tzero)
+471:               tnew = t(j) + alv*(q(j)-qs(j))                            &
+472:                    & /(cpd*(1.-q(j))+cl*q(j)+qs(j)                      &
+473:                    & *(cpv-cl+alv*alv/(rwat*t(j)*t(j))))
+474:               alvnew = wlhv - cpvmcl*(tnew-tzero)
+475:               qnew = (alv*q(j)-(tnew-t(j))*(cpd*(1.-q(j))+cl*q(j)))     &
+476:                    & /alvnew
+477: !rcm          precip=precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
+478:               precip = precip + 1.0E5*(ph(j)-ph(j+1))*(q(j)-qnew)*rgti  &
+479:                      & /(delt*rowl)                         ! mm/s
+480:               t(j) = tnew
+481:               q(j) = qnew
+482:               qs(j) = qnew
+483:             end if
+484:           end do
+485:         end if
+486: !
+487:       end if
+488: !
+489: !     *** calculate arrays of geopotential, heat capacity and static
+490: !     energy
+491:       gz(1) = 0.0
+492:       cpn(1) = cpd*(1.-q(1)) + q(1)*cpv
+493:       h(1) = t(1)*cpn(1)
+494:       lv(1) = wlhv - cpvmcl*(t(1)-tzero)
+495:       hm(1) = lv(1)*q(1)
+496:       tv(1) = t(1)*(1.+q(1)*epsi-q(1))
+497:       ahmin = 1.0E12
+498:       ihmin = nl
+499:       do i = 2 , nl + 1
+500:         tvx = t(i)*(1.+q(i)*epsi-q(i))
+501:         tvy = t(i-1)*(1.+q(i-1)*epsi-q(i-1))
+502:         gz(i) = gz(i-1) + 0.5*rgas*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
+503:         cpn(i) = cpd*(1.-q(i)) + cpv*q(i)
+504:         h(i) = t(i)*cpn(i) + gz(i)
+505:         lv(i) = wlhv - cpvmcl*(t(i)-tzero)
+506:         hm(i) = (cpd*(1.-q(i))+cl*q(i))*(t(i)-t(1)) + lv(i)*q(i) + gz(i)
+507:         tv(i) = t(i)*(1.+q(i)*epsi-q(i))
+508: !
+509: !       ***  find level of minimum moist static energy    ***
+510: !
+511:         if ( i.ge.minorig .and. hm(i).lt.ahmin .and. hm(i).lt.hm(i-1) ) &
+512:            & then
+513:           ahmin = hm(i)
+514:           ihmin = i
+515:         end if
+516:       end do
+517:       ihmin = min(ihmin,nl-1)
+518: !
+519: !     ***     find that model level below the level of minimum moist   
+520: !     *** ***  static energy that has the maximum value of moist static
+521: !     energy ***
+522:       ahmax = 0.0
+523:       nk = nl
+524:       do i = minorig , ihmin
+525:         if ( hm(i).gt.ahmax ) then
+526:           nk = i
+527:           ahmax = hm(i)
+528:         end if
+529:       end do
+530: !
+531: !     ***  check whether parcel level temperature and specific humidity
+532: !     *** ***                          are reasonable                  
+533: !     *** ***      skip convection if hm increases monotonically upward
+534: !     ***
+535:       if ( t(nk).lt.250.0 .or. q(nk).le.0.0 .or. ihmin.eq.(nl-1) ) then
+536:         iflag = 0
+537:         cbmf = 0.0
+538:         return
+539:       end if
+540: !
+541: !     ***  calculate lifted condensation level of air at parcel origin
+542: !     level *** ***       (within 0.2% of formula of bolton, mon. wea.
+543: !     rev.,1980)      ***
+544:       rh = q(nk)/qs(nk)
+545:       chi = t(nk)/(1669.0-122.0*rh-t(nk))
+546:       plcl = p(nk)*(rh**chi)
+547:       if ( plcl.lt.200.0 .or. plcl.ge.2000.0 ) then
+548:         iflag = 2
+549:         cbmf = 0.0
+550:         return
+551:       end if
+552: !
+553: !     ***  calculate first level above lcl (=icb)  ***
+554: !
+555:       icb = nl - 1
+556:       do i = nk + 1 , nl
+557:         if ( p(i).lt.plcl ) icb = min(icb,i)
+558:       end do
+559:       if ( icb.ge.(nl-1) ) then
+560:         iflag = 3
+561:         cbmf = 0.0
+562:         return
+563:       end if
+564: !
+565: !     *** find temperature up through icb and test for instability     
+566: !     ***
+567: !     *** subroutine tlift calculates part of the lifted parcel virtual
+568: !     *** ***  temperature, the actual temperature and the adiabatic   
+569: !     *** ***                   liquid water content                   
+570: !     ***
+571:       call <a href="./mod_cu_em.f90.html#tlift" TARGET=CENT_PANEL>tlift</a>(p,t,q,qs,gz,icb,nk,tvp,tp,clw,nd,nl,1)
+572:       do i = nk , icb
+573:         tvp(i) = tvp(i) - tp(i)*q(nk)
+574:       end do
+575: !
+576: !     ***  if there was no convection at last time step and parcel   
+577: !     *** ***       is stable at icb then skip rest of calculation     
+578: !     ***
+579:       if ( cbmf.eq.0.0 .and. tvp(icb).le.(tv(icb)-dtmax) ) then
+580:         iflag = 0
+581:         return
+582:       end if
+583: !
+584: !     ***  if this point is reached, moist convective adjustment is
+585: !     necessary ***
+586:       if ( iflag.ne.4 ) iflag = 1
+587: !
+588: !     ***  find the rest of the lifted parcel temperatures          ***
+589: !
+590:       call <a href="./mod_cu_em.f90.html#tlift" TARGET=CENT_PANEL>tlift</a>(p,t,q,qs,gz,icb,nk,tvp,tp,clw,nd,nl,2)
+591: !
+592: !     ***  set the precipitation efficiencies and the fraction of   ***
+593: !     ***          precipitation falling outside of cloud           ***
+594: !     ***      these may be functions of tp(i), p(i) and clw(i)     ***
+595: !
+596:       do i = 1 , nk
+597:         ep(i) = 0.0
+598:         sigp(i) = sigs
+599:       end do
+600:       do i = nk + 1 , nl
+601:         tca = tp(i) - tzero
+602:         if ( tca.ge.0.0 ) then
+603:           elacrit = elcrit
+604:         else
+605:           elacrit = elcrit*(1.0-tca/tlcrit)
+606:         end if
+607:         elacrit = max(elacrit,0.0D0)
+608:         epmax = 0.999
+609:         ep(i) = epmax*(1.0-elacrit/max(clw(i),1.0D-8))
+610:         ep(i) = max(ep(i),0.0D0)
+611:         ep(i) = min(ep(i),epmax)
+612:         sigp(i) = sigs
+613:       end do
+614: !
+615: !     ***       calculate virtual temperature and lifted parcel     ***
+616: !     ***                    virtual temperature                    ***
+617: !
+618:       do i = icb + 1 , nl
+619:         tvp(i) = tvp(i) - tp(i)*q(nk)
+620:       end do
+621:       tvp(nl+1) = tvp(nl) - (gz(nl+1)-gz(nl))*rcpd
+622: !
+623: !     ***        now initialize various arrays used in the computations
+624: !     ***
+625:       do i = 1 , nl + 1
+626:         hp(i) = h(i)
+627:         nent(i) = 0
+628:         water(i) = 0.0
+629:         evap(i) = 0.0
+630:         wt(i) = omtsnow
+631:         mp(i) = 0.0
+632:         m(i) = 0.0
+633:         lvcp(i) = lv(i)/cpn(i)
+634:         do j = 1 , nl + 1
+635:           qent(i,j) = q(j)
+636:           elij(i,j) = 0.0
+637:           ment(i,j) = 0.0
+638:           sij(i,j) = 0.0
+639:           uent(i,j) = u(j)
+640:           vent(i,j) = v(j)
+641:           do k = 1 , ntra
+642:             traent(i,j,k) = tra(j,k)
+643:           end do
+644:         end do
+645:       end do
+646:       qp(1) = q(1)
+647:       up(1) = u(1)
+648:       vp(1) = v(1)
+649:       do i = 1 , ntra
+650:         trap(1,i) = tra(1,i)
+651:       end do
+652:       do i = 2 , nl + 1
+653:         qp(i) = q(i-1)
+654:         up(i) = u(i-1)
+655:         vp(i) = v(i-1)
+656:         do j = 1 , ntra
+657:           trap(i,j) = tra(i-1,j)
+658:         end do
+659:       end do
+660: !
+661: !     ***  find the first model level (inb1) above the parcel's      ***
+662: !     ***          highest level of neutral buoyancy                 ***
+663: !     ***     and the highest level of positive cape (inb)           ***
+664: !
+665:       cape = 0.0
+666:       capem = 0.0
+667:       inb = icb + 1
+668:       inb1 = inb
+669:       byp = 0.0
+670:       do i = icb + 1 , nl - 1
+671:         by = (tvp(i)-tv(i))*(ph(i)-ph(i+1))/p(i)
+672:         cape = cape + by
+673:         if ( by.ge.0.0 ) inb1 = i + 1
+674:         if ( cape.gt.0.0 ) then
+675:           inb = i + 1
+676:           byp = (tvp(i+1)-tv(i+1))*(ph(i+1)-ph(i+2))/p(i+1)
+677:           capem = cape
+678:         end if
+679:       end do
+680:       inb = max(inb,inb1)
+681:       cape = capem + byp
+682:       defrac = capem - cape
+683:       defrac = max(defrac,0.001D0)
+684:       frac = -cape/defrac
+685:       frac = min(frac,1.0D0)
+686:       frac = max(frac,0.0D0)
+687: !
+688: !     ***   calculate liquid water static energy of lifted parcel   ***
+689: !
+690:       do i = icb , inb
+691:         hp(i) = h(nk) + (lv(i)+(cpd-cpv)*t(i))*ep(i)*clw(i)
+692:       end do
+693: !
+694: !     ***  calculate cloud base mass flux and rates of mixing, m(i), 
+695: !     *** ***                   at each model level                    
+696: !     ***
+697:       dbosum = 0.0
+698: !
+699: !     ***     interpolate difference between lifted parcel and      ***
+700: !     ***  environmental temperatures to lifted condensation level  ***
+701: !
+702:       tvpplcl = tvp(icb-1) - rgas*tvp(icb-1)*(p(icb-1)-plcl)            &
+703:               & /(cpn(icb-1)*p(icb-1))
+704:       tvaplcl = tv(icb) + (tvp(icb)-tvp(icb+1))*(plcl-p(icb))           &
+705:               & /(p(icb)-p(icb+1))
+706:       dtpbl = 0.0
+707:       do i = nk , icb - 1
+708:         dtpbl = dtpbl + (tvp(i)-tv(i))*(ph(i)-ph(i+1))
+709:       end do
+710:       dtpbl = dtpbl/(ph(nk)-ph(icb))
+711:       dtmin = tvpplcl - tvaplcl + dtmax + dtpbl
+712:       dtma = dtmin
+713: !
+714: !     ***  adjust cloud base mass flux   ***
+715: !
+716:       cbmfold = cbmf
+717:       delt0 = 300.0
+718:       damps = damp*delt/delt0
+719:       cbmf = (1.-damps)*cbmf + 0.1*alphae*dtma
+720:       cbmf = max(cbmf,0.0D0)
+721: !rcm  addin
+722: !     cbmfmax = delti*rgti*(ph(minorig)-ph(minorig+1))/(0.01*2.)
+723: !     cbmfmax = delti*rgti*(ph(1)-ph(2))/(0.01*2.)
+724: !     cbmf=min(cbmf,0.75*cbmfmax)
+725: !rcm  end addin
+726: !
+727: !     *** if cloud base mass flux is zero, skip rest of calculation  ***
+728: !
+729:       if ( cbmf.eq.0.0 .and. cbmfold.eq.0.0 ) return
+730: !
+731: !     ***   calculate rates of mixing,  m(i)   ***
+732: !
+733:       m(icb) = 0.0
+734:       do i = icb + 1 , inb
+735:         k = min(i,inb1)
+736:         dbo = abs(tv(k)-tvp(k)) + entp*0.02*(ph(k)-ph(k+1))
+737:         dbosum = dbosum + dbo
+738:         m(i) = cbmf*dbo
+739:       end do
+740:       do i = icb + 1 , inb
+741:         m(i) = m(i)/dbosum
+742:       end do
+743: !
+744: !     ***  calculate entrained air mass flux (ment), total water mixing
+745: !     *** ***     ratio (qent), total condensed water (elij), and
+746: !     mixing     *** ***                        fraction (sij)         
+747: !     ***
+748:       do i = icb + 1 , inb
+749:         qti = q(nk) - ep(i)*clw(i)
+750:         do j = icb , inb
+751:           bf2 = 1. + lv(j)*lv(j)*qs(j)/(rwat*t(j)*t(j)*cpd)
+752:           anum = h(j) - hp(i) + (cpv-cpd)*t(j)*(qti-q(j))
+753:           denom = h(i) - hp(i) + (cpd-cpv)*(q(i)-qti)*t(j)
+754:           dei = denom
+755:           if ( abs(dei).lt.0.01 ) dei = 0.01
+756:           sij(i,j) = anum/dei
+757:           sij(i,i) = 1.0
+758:           altem = sij(i,j)*q(i) + (1.-sij(i,j))*qti - qs(j)
+759:           altem = altem/bf2
+760:           cwat = clw(j)*(1.-ep(j))
+761:           stemp = sij(i,j)
+762:           if ( (stemp.lt.0.0 .or. stemp.gt.1.0 .or. altem.gt.cwat) .and.&
+763:              & j.gt.i ) then
+764:             anum = anum - lv(j)*(qti-qs(j)-cwat*bf2)
+765:             denom = denom + lv(j)*(q(i)-qti)
+766:             if ( abs(denom).lt.0.01 ) denom = 0.01
+767:             sij(i,j) = anum/denom
+768:             altem = sij(i,j)*q(i) + (1.-sij(i,j))*qti - qs(j)
+769:             altem = altem - (bf2-1.)*cwat
+770:           end if
+771:           if ( sij(i,j).gt.0.0 .and. sij(i,j).lt.0.9 ) then
+772:             qent(i,j) = sij(i,j)*q(i) + (1.-sij(i,j))*qti
+773:             uent(i,j) = sij(i,j)*u(i) + (1.-sij(i,j))*u(nk)
+774:             vent(i,j) = sij(i,j)*v(i) + (1.-sij(i,j))*v(nk)
+775:             do k = 1 , ntra
+776:               traent(i,j,k) = sij(i,j)*tra(i,k) + (1.-sij(i,j))         &
+777:                             & *tra(nk,k)
+778:             end do
+779:             elij(i,j) = altem
+780:             elij(i,j) = max(0.0D0,elij(i,j))
+781:             ment(i,j) = m(i)/(1.-sij(i,j))
+782:             nent(i) = nent(i) + 1
+783:           end if
+784:           sij(i,j) = max(0.0D0,sij(i,j))
+785:           sij(i,j) = min(1.0D0,sij(i,j))
+786:         end do
+787: !
+788: !       ***   if no air can entrain at level i assume that updraft
+789: !       detrains  *** ***   at that level and calculate detrained air
+790: !       flux and properties  ***
+791:         if ( nent(i).eq.0 ) then
+792:           ment(i,i) = m(i)
+793:           qent(i,i) = q(nk) - ep(i)*clw(i)
+794:           uent(i,i) = u(nk)
+795:           vent(i,i) = v(nk)
+796:           do j = 1 , ntra
+797:             traent(i,i,j) = tra(nk,j)
+798:           end do
+799:           elij(i,i) = clw(i)
+800:           sij(i,i) = 1.0
+801:         end if
+802:       end do
+803:       sij(inb,inb) = 1.0
+804: !
+805: !     ***  normalize entrained air mass fluxes to represent equal  ***
+806: !     ***              probabilities of mixing                     ***
+807: !
+808:       do i = icb + 1 , inb
+809:         if ( nent(i).ne.0 ) then
+810:           qp1 = q(nk) - ep(i)*clw(i)
+811:           anum = h(i) - hp(i) - lv(i)*(qp1-qs(i))
+812:           denom = h(i) - hp(i) + lv(i)*(q(i)-qp1)
+813:           if ( abs(denom).lt.0.01 ) denom = 0.01
+814:           scrit = anum/denom
+815:           alt = qp1 - qs(i) + scrit*(q(i)-qp1)
+816:           if ( alt.lt.0.0 ) scrit = 1.0
+817:           scrit = max(scrit,0.0D0)
+818:           asij = 0.0
+819:           smin = 1.0
+820:           do j = icb , inb
+821:             if ( sij(i,j).gt.0.0 .and. sij(i,j).lt.0.9 ) then
+822:               if ( j.gt.i ) then
+823:                 smid = min(sij(i,j),scrit)
+824:                 sjmax = smid
+825:                 sjmin = smid
+826:                 if ( smid.lt.smin .and. sij(i,j+1).lt.smid ) then
+827:                   smin = smid
+828:                   sjmax = min(sij(i,j+1),sij(i,j),scrit)
+829:                   sjmin = max(sij(i,j-1),sij(i,j))
+830:                   sjmin = min(sjmin,scrit)
+831:                 end if
+832:               else
+833:                 sjmax = max(sij(i,j+1),scrit)
+834:                 smid = max(sij(i,j),scrit)
+835:                 sjmin = 0.0
+836:                 if ( j.gt.1 ) sjmin = sij(i,j-1)
+837:                 sjmin = max(sjmin,scrit)
+838:               end if
+839:               delp = abs(sjmax-smid)
+840:               delm = abs(sjmin-smid)
+841:               asij = asij + (delp+delm)*(ph(j)-ph(j+1))
+842:               ment(i,j) = ment(i,j)*(delp+delm)*(ph(j)-ph(j+1))
+843:             end if
+844:           end do
+845:           asij = max(1.0D-21,asij)
+846:           asij = 1.0/asij
+847:           do j = icb , inb
+848:             ment(i,j) = ment(i,j)*asij
+849:           end do
+850:           bsum = 0.0
+851:           do j = icb , inb
+852:             bsum = bsum + ment(i,j)
+853:           end do
+854:           if ( bsum.lt.1.0E-18 ) then
+855:             nent(i) = 0
+856:             ment(i,i) = m(i)
+857:             qent(i,i) = q(nk) - ep(i)*clw(i)
+858:             uent(i,i) = u(nk)
+859:             vent(i,i) = v(nk)
+860:             do j = 1 , ntra
+861:               traent(i,i,j) = tra(nk,j)
+862:             end do
+863:             elij(i,i) = clw(i)
+864:             sij(i,i) = 1.0
+865:           end if
+866:         end if
+867:       end do
+868: !
+869: !     ***  check whether ep(inb)=0, if so, skip precipitating    ***
+870: !     ***             downdraft calculation                      ***
+871: !
+872:       if ( ep(inb).ge.0.0001 ) then
+873: !
+874: !       ***  integrate liquid water equation to find condensed water  
+875: !       *** ***                and condensed water flux                
+876: !       ***
+877:         jtt = 2
+878: !
+879: !       ***                    begin downdraft loop                   
+880: !       ***
+881:         do i = inb , 1 , -1
+882: !
+883: !         ***              calculate detrained precipitation           
+884: !         ***
+885:           wdtrain = gti*ep(i)*m(i)*clw(i)
+886:           if ( i.gt.1 ) then
+887:             do j = 1 , i - 1
+888:               awat = elij(j,i) - (1.-ep(i))*clw(i)
+889:               awat = max(0.0D0,awat)
+890:               wdtrain = wdtrain + gti*awat*ment(j,i)
+891:             end do
+892:           end if
+893: !
+894: !         ***    find rain water and evaporation using provisional   ***
+895: !         ***              estimates of qp(i)and qp(i-1)             ***
+896: !
+897: !
+898: !         ***  value of terminal velocity and coefficient of
+899: !         evaporation for snow   ***
+900:           coeff = coeffs
+901:           wt(i) = omtsnow
+902: !
+903: !         ***  value of terminal velocity and coefficient of
+904: !         evaporation for rain   ***
+905:           if ( t(i).gt.tzero) then
+906:             coeff = coeffr
+907:             wt(i) = omtrain
+908:           end if
+909:           qsm = 0.5*(q(i)+qp(i+1))
+910:           afac = coeff*ph(i)*(qs(i)-qsm)/(1.0E4+2.0E3*ph(i)*qs(i))
+911:           afac = max(afac,0.0D0)
+912:           sigt = sigp(i)
+913:           sigt = max(0.0D0,sigt)
+914:           sigt = min(1.0D0,sigt)
+915:           b6 = 100.*(ph(i)-ph(i+1))*sigt*afac/wt(i)
+916:           c6 = (water(i+1)*wt(i+1)+wdtrain/sigd)/wt(i)
+917:           revap = 0.5*(-b6+sqrt(b6*b6+4.*c6))
+918:           evap(i) = sigt*afac*revap
+919:           water(i) = revap*revap
+920: !
+921: !         ***  calculate precipitating downdraft mass flux under     ***
+922: !         ***              hydrostatic approximation                 ***
+923: !
+924:           if ( i.ne.1 ) then
+925:             dhdp = (h(i)-h(i-1))/(p(i-1)-p(i))
+926:             dhdp = max(dhdp,10.0D0)
+927:             mp(i) = 100.*rgti*lv(i)*sigd*evap(i)/dhdp
+928:             mp(i) = max(mp(i),0.0D0)
+929: !
+930: !           ***   add small amount of inertia to downdraft             
+931: !           ***
+932:             fac = 20.0/(ph(i-1)-ph(i))
+933:             mp(i) = (fac*mp(i+1)+mp(i))/(1.+fac)
+934: !
+935: !           ***      force mp to decrease linearly to zero             
+936: !           *** ***      between about 950 mb and the surface          
+937: !           ***
+938:             if ( p(i).gt.(0.949*p(1)) ) then
+939:               jtt = max(jtt,i)
+940:               mp(i) = mp(jtt)*(p(1)-p(i))/(p(1)-p(jtt))
+941:             end if
+942:           end if
+943: !
+944: !         ***       find mixing ratio of precipitating downdraft     ***
+945: !
+946:           if ( i.ne.inb ) then
+947:             if ( i.eq.1 ) then
+948:               qstm = qs(1)
+949:             else
+950:               qstm = qs(i-1)
+951:             end if
+952:             if ( mp(i).gt.mp(i+1) ) then
+953:               rat = mp(i+1)/mp(i)
+954:               qp(i) = qp(i+1)*rat + q(i)*(1.0-rat)                      &
+955:                     & + 100.*rgti*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
+956:               up(i) = up(i+1)*rat + u(i)*(1.-rat)
+957:               vp(i) = vp(i+1)*rat + v(i)*(1.-rat)
+958:               do j = 1 , ntra
+959:                 trap(i,j) = trap(i+1,j)*rat + trap(i,j)*(1.-rat)
+960:               end do
+961:             else if ( mp(i+1).gt.0.0 ) then
+962:               qp(i) = (gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(i+1)*(cl-cpd))  &
+963:                     & +cpd*(t(i+1)-t(i)))/(lv(i)+t(i)*(cl-cpd))
+964:               up(i) = up(i+1)
+965:               vp(i) = vp(i+1)
+966:               do j = 1 , ntra
+967:                 trap(i,j) = trap(i+1,j)
+968:               end do
+969:             else
+970:             end if
+971:             qp(i) = min(qp(i),qstm)
+972:             qp(i) = max(qp(i),0.0D0)
+973:           end if
+974:         end do
+975: !
+976: !       ***  calculate surface precipitation in mm/s     ***
+977: !
+978: !rcm    precip=precip+wt(1)*sigd*water(1)*3600.*24000./(rowl*g)  ! mm/d
+979:         precip = precip + wt(1)*sigd*water(1)*1000./(rowl*gti)
+980:                                                         ! mm/s
+981:       end if
+982: !
+983: !
+984: !     ***  calculate downdraft velocity scale and surface temperature
+985: !     and  *** ***                    water vapor fluctuations         
+986: !     ***
+987:       wd = betae*abs(mp(icb))*0.01*rgas*t(icb)/(sigd*p(icb))
+988:       qprime = 0.5*(qp(1)-q(1))
+989:       tprime = wlhv*qprime*rcpd
+990: !
+991: !     ***  calculate tendencies of lowest level potential temperature 
+992: !     *** ***                      and mixing ratio                    
+993: !     ***
+994:       dpinv = 0.01/(ph(1)-ph(2))
+995:       am = 0.0
+996:       if ( nk.eq.1 ) then
+997:         do k = 2 , inb
+998:           am = am + m(k)
+999:         end do
+1000:       end if
+1001:       if ( (2.*gti*dpinv*am).ge.delti ) iflag = 4
+1002:       ft(1) = ft(1) + gti*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
+1003:       ft(1) = ft(1) - lvcp(1)*sigd*evap(1)
+1004:       ft(1) = ft(1) + sigd*wt(2)*(cl-cpd)*water(2)*(t(2)-t(1))          &
+1005:             & *dpinv/cpn(1)
+1006:       fq(1) = fq(1) + gti*mp(2)*(qp(2)-q(1))*dpinv + sigd*evap(1)
+1007:       fq(1) = fq(1) + gti*am*(q(2)-q(1))*dpinv
+1008:       fu(1) = fu(1) + gti*dpinv*(mp(2)*(up(2)-u(1))+am*(u(2)-u(1)))
+1009:       fv(1) = fv(1) + gti*dpinv*(mp(2)*(vp(2)-v(1))+am*(v(2)-v(1)))
+1010:       do j = 1 , ntra
+1011:         ftra(1,j) = ftra(1,j)                                           &
+1012:                   & + gti*dpinv*(mp(2)*(trap(2,j)-tra(1,j))+am*(tra(2,j)&
+1013:                   & -tra(1,j)))
+1014:       end do
+1015:       do j = 2 , inb
+1016:         fq(1) = fq(1) + gti*dpinv*ment(j,1)*(qent(j,1)-q(1))
+1017:         fu(1) = fu(1) + gti*dpinv*ment(j,1)*(uent(j,1)-u(1))
+1018:         fv(1) = fv(1) + gti*dpinv*ment(j,1)*(vent(j,1)-v(1))
+1019:         do k = 1 , ntra
+1020:           ftra(1,k) = ftra(1,k) + gti*dpinv*ment(j,1)                   &
+1021:                     & *(traent(j,1,k)-tra(1,k))
+1022:         end do
+1023:       end do
+1024: !
+1025: !     ***  calculate tendencies of potential temperature and mixing
+1026: !     ratio  *** ***               at levels above the lowest level    
+1027: !     ***
+1028: !     ***  first find the net saturated updraft and downdraft mass
+1029: !     fluxes  *** ***                      through each level          
+1030: !     ***
+1031:       do i = 2 , inb
+1032:         dpinv = 0.01/(ph(i)-ph(i+1))
+1033:         cpinv = 1.0/cpn(i)
+1034:         amp1 = 0.0
+1035:         ad = 0.0
+1036:         if ( i.ge.nk ) then
+1037:           do k = i + 1 , inb + 1
+1038:             amp1 = amp1 + m(k)
+1039:           end do
+1040:         end if
+1041:         do k = 1 , i
+1042:           do j = i + 1 , inb + 1
+1043:             amp1 = amp1 + ment(k,j)
+1044:           end do
+1045:         end do
+1046:         if ( (2.*gti*dpinv*amp1).ge.delti ) iflag = 4
+1047:         do k = 1 , i - 1
+1048:           do j = i , inb
+1049:             ad = ad + ment(j,k)
+1050:           end do
+1051:         end do
+1052:         ft(i) = ft(i)                                                   &
+1053:               & + gti*dpinv*(amp1*(t(i+1)-t(i)+(gz(i+1)-gz(i))*cpinv)   &
+1054:               & -ad*(t(i)-t(i-1)+(gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i) &
+1055:               & *evap(i)
+1056:         ft(i) = ft(i) + gti*dpinv*ment(i,i)                             &
+1057:               & *(hp(i)-h(i)+t(i)*(cpv-cpd)*(q(i)-qent(i,i)))*cpinv
+1058:         ft(i) = ft(i) + sigd*wt(i+1)*(cl-cpd)*water(i+1)*(t(i+1)-t(i))  &
+1059:               & *dpinv*cpinv
+1060:         fq(i) = fq(i) + gti*dpinv*(amp1*(q(i+1)-q(i))-ad*(q(i)-q(i-1)))
+1061:         fu(i) = fu(i) + gti*dpinv*(amp1*(u(i+1)-u(i))-ad*(u(i)-u(i-1)))
+1062:         fv(i) = fv(i) + gti*dpinv*(amp1*(v(i+1)-v(i))-ad*(v(i)-v(i-1)))
+1063:         do k = 1 , ntra
+1064:           ftra(i,k) = ftra(i,k)                                         &
+1065:                     & + gti*dpinv*(amp1*(tra(i+1,k)-tra(i,k))-ad*       &
+1066:                     & (tra(i,k)-tra(i-1,k)))
+1067:         end do
+1068:         do k = 1 , i - 1
+1069:           awat = elij(k,i) - (1.-ep(i))*clw(i)
+1070:           awat = max(awat,0.0D0)
+1071:           fq(i) = fq(i) + gti*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
+1072:           fu(i) = fu(i) + gti*dpinv*ment(k,i)*(uent(k,i)-u(i))
+1073:           fv(i) = fv(i) + gti*dpinv*ment(k,i)*(vent(k,i)-v(i))
+1074:           do j = 1 , ntra
+1075:             ftra(i,j) = ftra(i,j) + gti*dpinv*ment(k,i)                 &
+1076:                       & *(traent(k,i,j)-tra(i,j))
+1077:           end do
+1078:         end do
+1079:         do k = i , inb
+1080:           fq(i) = fq(i) + gti*dpinv*ment(k,i)*(qent(k,i)-q(i))
+1081:           fu(i) = fu(i) + gti*dpinv*ment(k,i)*(uent(k,i)-u(i))
+1082:           fv(i) = fv(i) + gti*dpinv*ment(k,i)*(vent(k,i)-v(i))
+1083:           do j = 1 , ntra
+1084:             ftra(i,j) = ftra(i,j) + gti*dpinv*ment(k,i)                 &
+1085:                       & *(traent(k,i,j)-tra(i,j))
+1086:           end do
+1087:         end do
+1088:         fq(i) = fq(i) + sigd*evap(i)+ gti*(mp(i+1)                      &
+1089:               & *(qp(i+1)-q(i))-mp(i)*(qp(i)-q(i-1)))*dpinv
+1090:         fu(i) = fu(i) + gti*(mp(i+1)*(up(i+1)-u(i))-mp(i)*              &
+1091:               & (up(i)-u(i-1)))*dpinv
+1092:         fv(i) = fv(i) + gti*(mp(i+1)*(vp(i+1)-v(i))-mp(i)*              &
+1093:               & (vp(i)-v(i-1)))*dpinv
+1094:         do j = 1 , ntra
+1095:           ftra(i,j) = ftra(i,j)                                         &
+1096:                     & + gti*dpinv*(mp(i+1)*(trap(i+1,j)-tra(i,j))-mp(i) &
+1097:                     & *(trap(i,j)-trap(i-1,j)))
+1098:         end do
+1099:       end do
+1100: !
+1101: !     *** adjust tendencies at top of convection layer to reflect  ***
+1102: !     ***       actual position of the level zero cape             ***
+1103: !
+1104:       fqold = fq(inb)
+1105:       fq(inb) = fq(inb)*(1.-frac)
+1106:       fq(inb-1) = fq(inb-1)                                             &
+1107:                 & + frac*fqold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))&
+1108:                 & *lv(inb)/lv(inb-1)
+1109:       ftold = ft(inb)
+1110:       ft(inb) = ft(inb)*(1.-frac)
+1111:       ft(inb-1) = ft(inb-1)                                             &
+1112:                 & + frac*ftold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))&
+1113:                 & *cpn(inb)/cpn(inb-1)
+1114:       fuold = fu(inb)
+1115:       fu(inb) = fu(inb)*(1.-frac)
+1116:       fu(inb-1) = fu(inb-1)                                             &
+1117:                 & + frac*fuold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))
+1118:       fvold = fv(inb)
+1119:       fv(inb) = fv(inb)*(1.-frac)
+1120:       fv(inb-1) = fv(inb-1)                                             &
+1121:                 & + frac*fvold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))
+1122:       do k = 1 , ntra
+1123:         ftraold = ftra(inb,k)
+1124:         ftra(inb,k) = ftra(inb,k)*(1.-frac)
+1125:         ftra(inb-1,k) = ftra(inb-1,k) + frac*ftraold*(ph(inb)-ph(inb+1))&
+1126:                       & /(ph(inb-1)-ph(inb))
+1127:       end do
+1128: !
+1129: !     ***   very slightly adjust tendencies to force exact   ***
+1130: !     ***     enthalpy, momentum and tracer conservation     ***
+1131: !
+1132:       ents = 0.0
+1133:       uav = 0.0
+1134:       vav = 0.0
+1135:       do i = 1 , inb
+1136:         ents = ents + (cpn(i)*ft(i)+lv(i)*fq(i))*(ph(i)-ph(i+1))
+1137:         uav = uav + fu(i)*(ph(i)-ph(i+1))
+1138:         vav = vav + fv(i)*(ph(i)-ph(i+1))
+1139:       end do
+1140:       ents = ents/(ph(1)-ph(inb+1))
+1141:       uav = uav/(ph(1)-ph(inb+1))
+1142:       vav = vav/(ph(1)-ph(inb+1))
+1143:       do i = 1 , inb
+1144:         ft(i) = ft(i) - ents/cpn(i)
+1145:         fu(i) = (1.-cu)*(fu(i)-uav)
+1146:         fv(i) = (1.-cu)*(fv(i)-vav)
+1147:       end do
+1148:       do k = 1 , ntra
+1149:         traav = 0.0
+1150:         do i = 1 , inb
+1151:           traav = traav + ftra(i,k)*(ph(i)-ph(i+1))
+1152:         end do
+1153:         traav = traav/(ph(1)-ph(inb+1))
+1154:         do i = 1 , inb
+1155:           ftra(i,k) = ftra(i,k) - traav
+1156:         end do
+1157:       end do
+1158: !
+1159: !     ***           return           ***
+1160: !
+1161:       end subroutine cupeman
+1162: !
+1163: ! ---------------------------------------------------------------------------
+1164: !
+<p><a name=tlift><H3>tlift</H3></a></p> Click <a href="./callingtree/tlift_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where tlift is used.
+<hr>
+1165:       subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
+1166: 
+1167:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : rgas , rwat , cpd , cpv , rcpd ,       &
+1168:                                & wlhv , tzero
+1169:       implicit none
+1170: !
+1171: ! Dummy arguments
+1172: !
+1173:       integer :: icb , kk , nd , nk , nl
+1174:       real(8) , dimension(nd) :: clw , gz , p , q , qs , t , tpk , tvp
+1175:       intent (in) gz , icb , kk , nd , nk , nl , p , q , qs , t
+1176:       intent (out) tvp
+1177:       intent (inout) clw , tpk
+1178: !
+1179: ! Local variables
+1180: !
+1181:       real(8) :: ah0 , ahg , alv , cl , cpinv , cpp ,                   &
+1182:                & cpvmcl , denom , eps , epsi , es , qg , rg ,           &
+1183:                & s , tc , tg
+1184:       integer :: i , j , nsb , nst
+1185: !
+1186: !     ***   assign values of thermodynamic constants     ***
+1187: !
+1188:       cl = 2500.0
+1189: !
+1190:       cpvmcl = cl - cpv
+1191:       eps = rgas/rwat
+1192:       epsi = 1./eps
+1193: !
+1194: !     ***  calculate certain parcel quantities, including static energy
+1195: !     ***
+1196:       ah0 = (cpd*(1.-q(nk))+cl*q(nk))*t(nk) + q(nk)                     &
+1197:           & *(wlhv-cpvmcl*(t(nk)-tzero)) + gz(nk)
+1198:       cpp = cpd*(1.-q(nk)) + q(nk)*cpv
+1199:       cpinv = 1./cpp
+1200: !
+1201:       if ( kk.eq.1 ) then
+1202: !
+1203: !       ***   calculate lifted parcel quantities below cloud base   ***
+1204: !
+1205:         do i = 1 , icb - 1
+1206:           clw(i) = 0.0
+1207:         end do
+1208:         do i = nk , icb - 1
+1209:           tpk(i) = t(nk) - (gz(i)-gz(nk))*cpinv
+1210:           tvp(i) = tpk(i)*(1.+q(nk)*epsi)
+1211:         end do
+1212:       end if
+1213: !
+1214: !     ***  find lifted parcel quantities above cloud base    ***
+1215: !
+1216:       nst = icb
+1217:       nsb = icb
+1218:       if ( kk.eq.2 ) then
+1219:         nst = nl
+1220:         nsb = icb + 1
+1221:       end if
+1222:       do i = nsb , nst
+1223:         tg = t(i)
+1224:         qg = qs(i)
+1225:         alv = wlhv - cpvmcl*(t(i)-tzero)
+1226:         do j = 1 , 2
+1227:           s = cpd + alv*alv*qg/(rwat*t(i)*t(i))
+1228:           s = 1./s
+1229:           ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
+1230:           tg = tg + s*(ah0-ahg)
+1231:           tg = max(tg,35.0D0)
+1232:           tc = tg - tzero
+1233:           denom = 243.5 + tc
+1234:           if ( tc.ge.0.0 ) then
+1235:             es = 6.112*exp(17.67*tc/denom)
+1236:           else
+1237:             es = exp(23.33086-6111.72784/tg+0.15215*log(tg))
+1238:           end if
+1239:           qg = eps*es/(p(i)-es*(1.-eps))
+1240:         end do
+1241:         alv = wlhv - cpvmcl*(t(i)-tzero)
+1242:         tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
+1243:         clw(i) = q(nk) - qg
+1244:         clw(i) = max(0.0D0,clw(i))
+1245:         rg = qg/(1.-q(nk))
+1246:         tvp(i) = tpk(i)*(1.+rg*epsi)
+1247:       end do
+1248:       end subroutine tlift
+1249: 
+1250:       end module mod_cu_em
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

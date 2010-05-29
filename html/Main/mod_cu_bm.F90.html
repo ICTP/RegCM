@@ -1,0 +1,1235 @@
+<HTML>
+
+<HEAD>
+<TITLE>mod_cu_bm.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>mod_cu_bm.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>mod_cu_bm.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=mod_cu_bm><H3>mod_cu_bm</H3></a></p>20:       module mod_cu_bm
+21: 
+22:       implicit none
+23: 
+24:       private
+25: 
+26:       integer , parameter :: itb = 100
+27:       integer , parameter :: jtb = 150
+28: 
+29:       real(8) :: pl , rdp , rdq , rdth , rdthe , thl
+30:       real(8) , dimension(itb,jtb) :: ptbl
+31:       real(8) , dimension(jtb) :: qs0 , sqs , sthe , the0
+32:       real(8) , dimension(jtb,itb) :: ttbl
+33: 
+34:       public :: bmpara , lutbl
+35: 
+36:       contains
+37: 
+<p><a name=bmpara><H3>bmpara</H3></a></p> Click <a href="./callingtree/bmpara_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where bmpara is used.
+<hr>
+38:       subroutine bmpara(tten,qten,j)
+39: !
+40: ! modified by jack kain of penn state to replace the look-up tabl
+41: !  by calculations.
+42: !
+43: !*****************************************************************
+44: !                                                                *
+45: !  convective adjustment for deep or shallow convection          *
+46: !                                                                *
+47: !  references:                                                   *
+48: !                                                                *
+49: !  betts, a.k., 1986:  a new convective adjustment scheme.       *
+50: !    part i: observational and theoretical basis.  quart. j. r.  *
+51: !    met. soc., 112, 677-691.                                    *
+52: !                                                                *
+53: !  betts, a.k., and m.j. miller, 1986:  a new convective         *
+54: !    adjustment scheme.  part ii: single column tests using      *
+55: !    gate wave, bomex, atex and arctic air mass data sets.       *
+56: !    quart. j. r. met. soc., 112, 693-709.                       *
+57: !                                                                *
+58: !  n.b.  part of the code is scalar.  in global models           *
+59: !  convection occurs in less than 30/100 points.  with           *
+60: !  simulataneous vector processing for both deep and shallow     *
+61: !  convection, there would be a lot of redundant vector          *
+62: !  computations.  if vector processing is 10 times faster        *
+63: !  than scalar, one might hope that the cpu time will be about   *
+64: !  the same for both scalar and vector code.                     *
+65: !                                                                *
+66: !*****************************************************************
+67: ! *** warning: this subroutine will not work if kz.lt.12;
+68: !
+69:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+70:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : nbatst , dt2 , dtmin
+71:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+72:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : r8pt , sigma , a , dsigma
+73:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : jyear , jyear0 , ktau
+74:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+75:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+76:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a>
+77:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : pptc , veg2d , ocld2d
+78:       use <a href="./mod_trachem.F90.html#mod_trachem" TARGET=CENT_PANEL>mod_trachem</a>
+79:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : rgas , gti , rovg , cpd , rcpd , ep2 , &
+80:                                & trel , tzero , wlhv , c4les , c3les ,  &
+81:                                & pq0 , aliq , bliq , cliq , dliq ,      &
+82:                                & aice , bice , cice1 , dice , xls0 ,    &
+83:                                & xls1 , rwat
+84:       implicit none
+85: !
+86: ! PARAMETER definitions
+87: !
+88:       real(8) , parameter :: h1 = 1.E0 , h3000 = 3000.E0 ,              &
+89:                            & h10e5 = 100000.E0 , d00 = 0.E0 ,           &
+90:                            & d608 = 0.608E0 , dm2859 = -rgas/cpd ,      &
+91:                            & epsq = 2.E-12 , row = 1.E3 ,               &
+92:                            & t1 = tzero+1.D0, d273 = 1./tzero ,         &
+93:                            & stresh = 1.10E0 ,                          &
+94:                            & stabs = 1.0E0 , stabd = 0.90E0 ,           &
+95:                            & rhf = 0.20 , pmn = 6500.0 , epsdn = 1.05 , &
+96:                            & epsth = 6.0 , pbm = 30000.0 ,              &
+97:                            & pqm = 20000.0 , pone = 2500.0 ,            &
+98:                            & pfrz = 15000.0 , pshu = 45000.0 ,          &
+99:                            & zno = 750.0 , zsh = 3999.0
+100:       logical , parameter :: unis = .false. , unil = .true. ,           &
+101:                            & oct90 = .true.
+102:       real(8) , parameter :: fss = 0.60E0 , efimn = 0.20E0 ,            &
+103:                            & efmnt = 0.70E0 , fcc1 = 0.50 ,             &
+104:                            & fcp = h1 - fcc1 , dspbfl = -3875.E0 ,      &
+105:                            & dsp0fl = -5875.E0 , dsptfl = -1875.E0 ,    &
+106:                            & fsl = 1.0E0 , dspbfs = -3875.E0 ,          &
+107:                            & dsp0fs = -5875.E0 , dsptfs = -1875.E0 ,    &
+108:                            & dspbsl = dspbfl*fsl , dsp0sl = dsp0fl*fsl ,&
+109:                            & dsptsl = dsptfl*fsl , dspbss = dspbfs*fss ,&
+110:                            & dsp0ss = dsp0fs*fss , dsptss = dsptfs*fss ,&
+111:                            & epsntp = 0.0010E0 , efifc = 5.0E0 ,        &
+112:                            & avgefi = (efimn+1.E0)*.5E0 ,               &
+113:                            & dspc = -3000.E0 , epsp = 1.E-7 ,           &
+114:                            & stefi = avgefi , slopbl = (dspbfl-dspbsl)  &
+115:                            & /(h1-efimn) , slop0l = (dsp0fl-dsp0sl)     &
+116:                            & /(h1-efimn) , sloptl = (dsptfl-dsptsl)     &
+117:                            & /(h1-efimn) , slopbs = (dspbfs-dspbss)     &
+118:                            & /(h1-efimn) , slop0s = (dsp0fs-dsp0ss)     &
+119:                            & /(h1-efimn) , slopts = (dsptfs-dsptss)     &
+120:                            & /(h1-efimn) , slope = (h1-efmnt)/(h1-efimn)&
+121:                            & , a23m4l = c3les*(tzero-c4les)*wlhv ,      &
+122:                            & cporng = 1./dm2859 , elocp = wlhv/cpd ,    &
+123:                            & cprlg = cpd/(row*gti*wlhv)
+124:       integer :: lp1 , lm1
+125: !
+126: ! Dummy arguments
+127: !
+128:       integer :: j
+129:       real(8) , dimension(iy,kz) :: qten , tten
+130:       intent (in) j
+131:       intent (inout) qten , tten
+132: !
+133: ! Local variables
+134: !
+135:       real(8) :: ak , akclth , apekl , aprdiv , avrgt , avrgtl , cell , &
+136:                & cthrs , den , dentpy , dhdt , difql , diftl , dpkl ,   &
+137:                & dpmix , dqref , drheat , dsp , dsp0k , dspbk , dsptk , &
+138:                & dst , dstq , dtdeta , dthem , ee , efi , es , fefi ,   &
+139:                & fptk , hcorr , otsum , pdiff , pdiffk , pflag , pk0 ,  &
+140:                & pkb , pkl , pkt , potsum , pppk , prainx , preck ,     &
+141:                & psfck , psum , pthrs , ptpk , qkl , qnew , qotsum ,    &
+142:                & qrfkl , qrftp , qs , qsum , qu , rdp0t , rdpsum , rhh ,&
+143:                & rhl , rotsum , rtbar , smix , stabdl , sumde , sumdp , &
+144:                & sumdt , tauk , tcorr , tdpt , thskl , thtpk , thvmkl , &
+145:                & tkl , tlcl , trfkl , tskl , ztop
+146:       real(8) , dimension(iy,kz) :: ape , q , qqmod , t , tmod , tref , &
+147:                                   & z0
+148:       real(8) , dimension(kz) :: apek , apesk , difq , dift , dzq ,     &
+149:                                & fpk , pdp , pk , psk , qk , qrefk ,    &
+150:                                & qsatk , therk , thsk , thvref , tk ,   &
+151:                                & trefk
+152:       real(8) , dimension(iy) :: cldhgt , dsp0 , dspb , dspt , p ,      &
+153:                                & pbot , prtop , psp , xsm , thbt ,      &
+154:                                & thesp , ths , tthbt , tthes
+155:       integer :: i , icond , iconss , iter , ivi , k , kb , kbaseb ,    &
+156:                & kclth , khdeep , khshal , kk , l , l0 , l0m1 , lb ,    &
+157:                & lbm1 , lbtk , lcor , lqm , lshu , ltp1 , ltpk , ltsh , &
+158:                & n , ndeep , ndepth , ndstn , ndstp , nshal , nswap , ll
+159:       integer , dimension(iy) :: ifbuoy , ip300 , kdeep , kshal , lbot ,&
+160:                                & ltop , ml
+161:       integer , dimension(kz) :: kdp , nbotd , nbots , ndpthd , ndpths ,&
+162:                                & ntopd , ntops
+163: !
+164: !-----------------------------------------------------------------------
+165: !
+166:       lqm = 0.0
+167:       lshu = 0.0
+168:       lp1 = kzp1
+169:       lm1 = kz - 1
+170: !
+171:       do k = 1 , kz
+172:         do i = 1 , iym1
+173:           cldlwc(i,k) = 0.
+174:           cldfra(i,k) = 0.
+175:         end do
+176:       end do
+177:       if ( ichem.eq.1 ) then
+178: !
+179: !       icumtop = top level of cumulus clouds
+180: !       icumbot = bottom level of cumulus clouds
+181: !       (calculated in cupara and stored for tractend)
+182: !       before do 100 put
+183:         do i = 2 , iym2
+184:           icumtop(i,j) = 0
+185:           icumbot(i,j) = 0
+186:         end do
+187:       end if
+188:       icond = 0
+189:       iconss = 0
+190:       tauk = dt2/trel
+191:       cthrs = (0.006350/86400.)*dt2/cprlg
+192: !-----------------------------------------------------------------------
+193: !
+194: !...  xsm is surface mask: =1 water; =0 land
+195:       do i = 2 , iym2
+196: #ifdef CLM
+197:         if ( ocld2d(1,i,j).ge.0.5 ) then
+198: #else
+199:         if ( veg2d(i,j).ge.0.002 ) then
+200: #endif
+201:           xsm(i) = 0.
+202:         else
+203:           xsm(i) = 1.
+204:         end if
+205:       end do
+206:       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+207:         do i = 2 , iym2
+208:           cldefi(i,j) = avgefi*xsm(i) + stefi*(h1-xsm(i))
+209:         end do
+210:       end if
+211: !...lb is currently set to kz-1
+212:       lb = kz - 1
+213:       do k = 1 , kz
+214:         ntopd(k) = 0
+215:         nbotd(k) = 0
+216:         ntops(k) = 0
+217:         nbots(k) = 0
+218:         ndpths(k) = 0
+219:         ndpthd(k) = 0
+220:       end do
+221: !...find melting level...
+222:       do i = 2 , iym2
+223:         ml(i) = kzp1
+224:       end do
+225:       do i = 2 , iym2
+226:         do k = 1 , kz
+227:           t(i,k) = tb(i,k,j)/psb(i,j)
+228:           if ( t(i,k).gt.tzero .and. ml(i).eq.kzp1 ) ml(i) = k
+229:           q(i,k) = qvb(i,k,j)/psb(i,j)
+230:           pppk = (a(k)*psb(i,j)+r8pt)*1000.
+231:           ape(i,k) = (pppk/h10e5)**dm2859
+232:         end do
+233:         lbot(i) = kz
+234:         thesp(i) = d00
+235:         thbt(i) = d00
+236:         psp(i) = 9.5E4
+237:         tref(i,1) = t(i,1)
+238: !...ifbuoy = 0 means no positive buoyancy; ifbuoy(i) means yes...
+239: !...ip300 is the highest model level in the lowest 300 mb...
+240:         ifbuoy(i) = 0
+241:         ip300(i) = 0
+242:         cell = r8pt/psb(i,j)
+243:         do k = 1 , kz
+244:           dzq(k) = rovg*tbase(i,k,j)                                    &
+245:                  & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))
+246:         end do
+247:         z0(i,kz) = 0.5*dzq(kz)
+248:         do k = kz - 1 , 1 , -1
+249:           z0(i,k) = z0(i,k+1) + 0.5*(dzq(k)+dzq(k+1))
+250:         end do
+251:       end do
+252: !--------------padding specific humidity if too small-------------------
+253:       do k = 1 , kz
+254:         do i = 2 , iym2
+255:           if ( q(i,k).lt.epsq ) q(i,k) = epsq
+256:           pdiff = (1.-a(k))*psb(i,j)
+257:           if ( pdiff.lt.30. .and. ip300(i).eq.0 ) ip300(i) = k
+258:         end do
+259:       end do
+260: !--------------search for maximum buoyancy level------------------------
+261:       do kb = 1 , kz
+262:         do i = 2 , iym2
+263:           pkl = (a(kb)*psb(i,j)+r8pt)*1000.
+264:           psfck = (a(kz)*psb(i,j)+r8pt)*1000.
+265:           if ( pkl.ge.psfck-pbm ) then
+266:             tthbt(i) = t(i,kb)*ape(i,kb)
+267:             ee = pkl*q(i,kb)/(ep2+q(i,kb))
+268:             tdpt = 1./(d273-rwat/wlhv*dlog(ee/611.))
+269:             tdpt = dmin1(tdpt,t(i,kb))
+270:             tlcl = tdpt - (.212+1.571E-3*(tdpt-tzero)-4.36E-4*(t(i,kb)- &
+271:                  & tzero))*(t(i,kb)-tdpt)
+272:             tthes(i) = tthbt(i)*exp(elocp*q(i,kb)/tlcl)
+273: !--------------check for maximum buoyancy-------------------------------
+274:             if ( tthes(i).gt.thesp(i) ) then
+275:               psp(i) = h10e5*(tthbt(i)/tlcl)**cporng
+276:               thbt(i) = tthbt(i)
+277:               thesp(i) = tthes(i)
+278:             end if
+279:           end if
+280: !-----------------------------------------------------------------------
+281:         end do
+282:       end do
+283: !---------choose cloud base as model level just below psp--------------
+284:       do k = 1 , lm1
+285:         ak = a(k)
+286:         do i = 2 , iym2
+287:           p(i) = (ak*psb(i,j)+r8pt)*1000.
+288: !         cloud bottom cannot be above 200 mb
+289:           if ( p(i).lt.psp(i) .and. p(i).ge.pqm ) lbot(i) = k + 1
+290:         end do
+291:       end do
+292: !***  warning: lbot must not be gt kz-1 in shallow convection
+293: !***  make sure the cloud base is at least 25 mb above the surface
+294:       do i = 2 , iym2
+295:         pbot(i) = (a(lbot(i))*psb(i,j)+r8pt)*1000.
+296:         psfck = (a(kz)*psb(i,j)+r8pt)*1000.
+297:         if ( pbot(i).ge.psfck-pone .or. lbot(i).ge.kz ) then
+298: !***      cloud bottom is at the surface so recalculate cloud bottom
+299:           do k = 1 , lm1
+300:             p(i) = (a(kz)*psb(i,j)+r8pt)*1000.
+301:             if ( p(i).lt.psfck-pone ) lbot(i) = k
+302:           end do
+303:           pbot(i) = (a(lbot(i))*psb(i,j)+r8pt)*1000.
+304:         end if
+305:       end do
+306: !--------------cloud top computation------------------------------------
+307:       do i = 2 , iym2
+308:         prtop(i) = pbot(i)
+309:         ltop(i) = lbot(i)
+310:       end do
+311:       do ivi = 1 , kz
+312:         l = lp1 - ivi
+313: !--------------find environmental saturation equiv pot temp...
+314:         do i = 2 , iym2
+315:           p(i) = (a(l)*psb(i,j)+r8pt)*1000.
+316:           es = aliq*exp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
+317:           qs = ep2*es/(p(i)-es)
+318:           ths(i) = t(i,l)*ape(i,l)*exp(elocp*qs/t(i,l))
+319:         end do
+320: !--------------buoyancy check-------------------------------------------
+321:         do i = 2 , iym2
+322:           if ( l.le.lbot(i) ) then
+323:             if ( thesp(i).gt.ths(i) ) ifbuoy(i) = 1
+324:             if ( thesp(i).gt.ths(i)-1.5 .and. ifbuoy(i).eq.1 ) ltop(i)  &
+325:                & = l + 1
+326:           end if
+327:         end do
+328: !------------------------------------------------
+329:       end do
+330: !--------------cloud top pressure---------------------------------------
+331:       do i = 2 , iym2
+332: !       if(kf(i).eq.1) goto 275
+333:         prtop(i) = (a(ltop(i))*psb(i,j)+r8pt)*1000.
+334:       end do
+335: !-----------------------------------------------------------------------
+336: !--------------define and smooth dsps and cldefi------------------------
+337:       if ( unis ) then
+338:         do i = 2 , iym2
+339:           efi = cldefi(i,j)
+340:           dspb(i) = (efi-efimn)*slopbs + dspbss
+341:           dsp0(i) = (efi-efimn)*slop0s + dsp0ss
+342:           dspt(i) = (efi-efimn)*slopts + dsptss
+343:         end do
+344:       else if ( .not.unil ) then
+345:         do i = 2 , iym2
+346:           efi = cldefi(i,j)
+347:           dspb(i) = ((efi-efimn)*slopbs+dspbss)*xsm(i)                  &
+348:                   & + ((efi-efimn)*slopbl+dspbsl)*(h1-xsm(i))
+349:           dsp0(i) = ((efi-efimn)*slop0s+dsp0ss)*xsm(i)                  &
+350:                   & + ((efi-efimn)*slop0l+dsp0sl)*(h1-xsm(i))
+351:           dspt(i) = ((efi-efimn)*slopts+dsptss)*xsm(i)                  &
+352:                   & + ((efi-efimn)*sloptl+dsptsl)*(h1-xsm(i))
+353:         end do
+354:       else
+355:         do i = 2 , iym2
+356:           efi = cldefi(i,j)
+357:           dspb(i) = ((efi-efimn)*slopbl+dspbsl)
+358:           dsp0(i) = ((efi-efimn)*slop0l+dsp0sl)
+359:           dspt(i) = ((efi-efimn)*sloptl+dsptsl)
+360:         end do
+361:       end if
+362: !--------------initialize changes of t and q due to convection----------
+363:       do k = 1 , kz
+364:         do i = 2 , iym2
+365:           tmod(i,k) = d00
+366:           qqmod(i,k) = d00
+367:         end do
+368:       end do
+369: !--------------clean up and gather deep convection points---------------
+370:       khdeep = 0
+371:       nswap = 0
+372:       do i = 2 , iym2
+373:         if ( ltop(i).gt.lbot(i) ) then
+374:           ltop(i) = lbot(i)
+375:           prtop(i) = pbot(i)
+376:         end if
+377:         cldhgt(i) = z0(i,ltop(i)) - z0(i,lbot(i))
+378: !       cloud is less than 90 mb deep or less than 3 sigma layers deep
+379:         if ( cldhgt(i).lt.zno ) cldefi(i,j) = avgefi*xsm(i)             &
+380:            & + stefi*(h1-xsm(i))
+381: !       cloud has to be at least 290 mb deep
+382:         if ( cldhgt(i).ge.zsh ) then
+383:           khdeep = khdeep + 1
+384:           kdeep(khdeep) = i
+385:         end if
+386:       end do
+387: !************* horizontal loop for deep convection *********************
+388:       do n = 1 , khdeep
+389:         i = kdeep(n)
+390:         dentpy = d00
+391:         avrgt = d00
+392:         preck = d00
+393:         ltpk = ltop(i)
+394:         lbtk = lbot(i)
+395: !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+396: !dcdcdcdcdcdc  deep convection   dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+397: !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+398:         efi = cldefi(i,j)
+399:         dspbk = dspb(i)
+400:         dsp0k = dsp0(i)
+401:         dsptk = dspt(i)
+402: !--------------initialize variables in the convective column------------
+403:         do k = 1 , kz
+404:           dift(k) = d00
+405:           difq(k) = d00
+406:           tkl = t(i,k)
+407:           tk(k) = tkl
+408:           trefk(k) = tkl
+409:           qkl = q(i,k)
+410:           qk(k) = qkl
+411:           qrefk(k) = qkl
+412:           pkl = (a(k)*psb(i,j)+r8pt)*1000.
+413: !**************
+414:           tref(i,k) = <a href="./mod_cu_bm.F90.html#tpfc" TARGET=CENT_PANEL>tpfc</a>(pkl,thesp(i),t(i,k),d273,wlhv,qu,ape(i,k))
+415: !***************
+416:           pk(k) = pkl
+417:           psk(k) = pkl
+418:           apekl = ape(i,k)
+419:           apek(k) = apekl
+420:           therk(k) = tref(i,k)*apekl
+421:         end do
+422: !--------------deep convection reference temperature profile------------
+423:         ltp1 = ltpk + 1
+424:         lbm1 = lb - 1
+425:         pkb = pk(lb)
+426:         pkt = pk(ltpk)
+427: !--------------temperature reference profile below freezing level-------
+428:         l0 = lb
+429:         pk0 = pk(lb)
+430:         do l = ltpk , lbm1
+431:           ivi = ltpk + lbm1 - l
+432:           if ( trefk(ivi+1).le.t1 ) then
+433: !--------------temperature reference profile above freezing level-------
+434:             l0m1 = l0 - 1
+435:             rdp0t = h1/(pk0-pkt)
+436:             dthem = therk(l0) - trefk(l0)*apek(l0)
+437:             do ll = ltpk , l0m1
+438:               trefk(l) = (therk(l)-(pk(l)-pkt)*dthem*rdp0t)/apek(l)
+439:             end do
+440:             go to 50
+441:           else
+442:             stabdl = stabd
+443:             trefk(ivi) = ((therk(ivi)-therk(ivi+1))*stabdl+trefk(ivi+1) &
+444:                        & *apek(ivi+1))/apek(ivi)
+445:             l0 = ivi
+446:             pk0 = pk(l0)
+447:           end if
+448:         end do
+449: !--------------freezing level at or above the cloud top-----------------
+450:         l0m1 = l0 - 1
+451: !--------------deep convection reference humidity profile---------------
+452:  50     continue
+453:         do l = ltpk , lb
+454: !--------------saturation pressure difference---------------------------
+455:           if ( pkb-pk0.lt.pfrz ) then
+456:             dsp = dspc
+457:           else if ( l.lt.l0 ) then
+458:             dsp = ((pk0-pk(l))*dsptk+(pk(l)-pkt)*dsp0k)/(pk0-pkt)
+459:           else
+460:             dsp = ((pkb-pk(l))*dsp0k+(pk(l)-pk0)*dspbk)/(pkb-pk0)
+461:           end if
+462: !--------------humidity profile-----------------------------------------
+463:           if ( pk(l).gt.pqm ) then
+464: !           pressure must be below 200 mb
+465:             psk(l) = pk(l) + dsp
+466:             apesk(l) = (psk(l)/h10e5)**dm2859
+467:             thsk(l) = trefk(l)*apek(l)
+468:             qrefk(l) = pq0/psk(l)                                       &
+469:                      & *exp(c3les*(thsk(l)-tzero*apesk(l))/(thsk(l)-    &
+470:                      & c4les*apesk(l)))
+471:           else
+472:             qrefk(l) = q(i,l)
+473:           end if
+474:         end do
+475: !--------------enthalpy conservation integral--------------------------
+476:         do iter = 1 , 2
+477: !-----------------------------------------------------------------------
+478:           sumde = d00
+479:           sumdp = d00
+480:           do l = ltpk , lb
+481:             sumde = ((tk(l)-trefk(l))*cpd+(qk(l)-qrefk(l))*wlhv)        &
+482:                   & *dsigma(l) + sumde
+483:             sumdp = sumdp + dsigma(l)
+484:           end do
+485:           hcorr = sumde/(sumdp-dsigma(ltpk))
+486:           lcor = ltpk + 1
+487: !--------------find lqm-------------------------------------------------
+488:           do l = 1 , lb
+489:             if ( pk(l).le.pqm ) lqm = l
+490:           end do
+491: !--------------above lqm correct temperature only-----------------------
+492:           if ( lcor.le.lqm ) then
+493:             do l = lcor , lqm
+494:               trefk(l) = trefk(l) + hcorr*rcpd
+495:             end do
+496:             lcor = lqm + 1
+497:           end if
+498: !--------------below lqm correct both temperature and moisture----------
+499:           do l = lcor , lb
+500:             tskl = trefk(l)*apek(l)/apesk(l)
+501:             dhdt = qrefk(l)*a23m4l/(tskl-c4les)**2 + cpd
+502:             trefk(l) = hcorr/dhdt + trefk(l)
+503:             thskl = trefk(l)*apek(l)
+504:             qrefk(l) = pq0/psk(l)                                       &
+505:                      & *exp(c3les*(thskl-tzero*apesk(l))/               &
+506:                      & (thskl-c4les*apesk(l)))
+507:           end do
+508: !-----------------------------------------------------------------------
+509:         end do
+510:         do l = 1 , kz
+511:           thvref(l) = trefk(l)*apek(l)*(qrefk(l)*d608+h1)
+512:         end do
+513: !--------------heating, moistening, precipitation-----------------------
+514:         do l = ltpk , lb
+515:           tkl = tk(l)
+516:           diftl = (trefk(l)-tkl)*tauk
+517:           difql = (qrefk(l)-qk(l))*tauk
+518:           avrgtl = (tkl+tkl+diftl)
+519:           dentpy = (diftl*cpd+difql*wlhv)*dsigma(l)/avrgtl + dentpy
+520:           avrgt = avrgtl*dsigma(l) + avrgt
+521:           preck = dsigma(l)*diftl + preck
+522:           dift(l) = diftl
+523:           difq(l) = difql
+524:         end do
+525:         dentpy = dentpy + dentpy
+526:         avrgt = avrgt/(sumdp+sumdp)
+527:         if ( dentpy.lt.epsntp .or. preck.le.d00 ) then
+528:           if ( oct90 ) then
+529:             cldefi(i,j) = efimn
+530:           else
+531:             cldefi(i,j) = efimn*xsm(i) + stefi*(h1-xsm(i))
+532:           end if
+533:           ztop = z0(i,lbot(i)) + zsh - 0.000001
+534:           do l = 1 , lb
+535:             if ( z0(i,l).ge.ztop ) ltop(i) = l + 1
+536:           end do
+537:           prtop(i) = pk(ltop(i))
+538: !------------cloud must be at least 2 layers thick---------------------
+539:           if ( lbot(i)-ltop(i).lt.2 ) ltop(i) = lbot(i) - 2
+540:           prtop(i) = pk(ltop(i))
+541:           cldhgt(i) = z0(i,ltop(i)) - z0(i,lbot(i))
+542:           nswap = nswap + 1
+543:           cycle
+544:         end if
+545: !--------------... deep convection otherwise----------------------------
+546:         icond = icond + 1
+547: !***    keep the land value of efi equal to 1 until precip surpasses
+548: !***    a threshold value, currently set to 0.25 inches per 24 hrs
+549:         pthrs = cthrs/psb(i,j)
+550:         drheat = (preck*xsm(i)+dmax1(epsp,preck-pthrs)*(h1-xsm(i)))     &
+551:                & *cpd/avrgt
+552:         efi = efifc*dentpy/drheat
+553: !vvvvv  unified or separate land/sea conv.
+554:         if ( .not.(oct90) ) then
+555:           efi = cldefi(i,j)*fcp + efi*fcc1
+556:         else if ( unis ) then
+557:           efi = cldefi(i,j)*fcp + efi*fcc1
+558:         else if ( .not.unil ) then
+559:           efi = (cldefi(i,j)*fcp+efi*fcc1)*xsm(i) + h1 - xsm(i)
+560:         else
+561:           efi = h1
+562:         end if
+563: !aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+564:         if ( efi.gt.h1 ) efi = h1
+565:         if ( efi.lt.efimn ) efi = efimn
+566:         cldefi(i,j) = efi
+567: !vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+568:         fefi = efmnt + slope*(efi-efimn)
+569: !aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+570:         preck = preck*fefi
+571: !--------------update precipitation, temperature & moisture-------------
+572:         prainx = 0.5*((psb(i,j)*1000.*preck*cprlg)*100.)
+573:         rainc(i,j) = prainx + rainc(i,j)
+574: !.....................precipitation rate for bats (mm/s)
+575:         aprdiv = dble(nbatst)
+576:         if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
+577:         pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.)/aprdiv
+578:         do l = ltpk , lb
+579:           tmod(i,l) = dift(l)*fefi/dt2
+580:           qqmod(i,l) = difq(l)*fefi/dt2
+581:         end do
+582: !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+583: !dcdcdcdcdcdc  end of deep convection  dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+584: !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+585: !-----------------------------------------------------------------------
+586:       end do
+587:       ndeep = 0
+588:       do i = 2 , iym2
+589:         ltpk = ltop(i)
+590:         lbtk = lbot(i)
+591:         ptpk = prtop(i)
+592:         if ( cldhgt(i).ge.zsh ) then
+593:           ndeep = ndeep + 1
+594:           ndepth = lb - ltpk
+595:           ntopd(ltpk) = ntopd(ltpk) + 1
+596:           nbotd(lb) = nbotd(lb) + 1
+597:           if ( ndepth.gt.0 ) ndpthd(ndepth) = ndpthd(ndepth) + 1
+598:         end if
+599:       end do
+600: !--------------gather shallow convection points-------------------------
+601:       khshal = 0
+602:       ndstn = 0
+603:       ndstp = 0
+604:       do i = 2 , iym2
+605:         if ( cldhgt(i).ge.zno .and. ltop(i).le.lbot(i)-2 ) then
+606:           if ( cldhgt(i).lt.zsh ) then
+607:             khshal = khshal + 1
+608:             kshal(khshal) = i
+609:           end if
+610:         end if
+611:       end do
+612: !************* horizontal loop for shallow convection ******************
+613: !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+614: !scscscscscsc  shallow convection  cscscscscscscscscscscscscscscscscscsc
+615: !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+616: !-----------------------------------------------------------------------
+617:       do n = 1 , khshal
+618:         i = kshal(n)
+619:         do k = 1 , kz
+620:           tkl = t(i,k)
+621:           tk(k) = tkl
+622:           trefk(k) = tkl
+623:           qkl = q(i,k)
+624:           qk(k) = qkl
+625:           qrefk(k) = qkl
+626:           qsatk(k) = qkl
+627:           pkl = (a(k)*psb(i,j)+r8pt)*1000.
+628:           pk(k) = pkl
+629:           apekl = ape(i,k)
+630:           apek(k) = apekl
+631:           thvmkl = tkl*apekl*(qkl*d608+h1)
+632:           thvref(k) = thvmkl
+633:           pdp(k) = pk(k) - pmn
+634:         end do
+635: !
+636: !...find kdp...kdp(k) is the model level closest to 65 mb (pmn) above k;
+637: !...this is the depth over which relative humidity drop is measured to
+638: !...estimate shallow cloud top... see do 545...
+639: !
+640:         do kk = kz , 1 , -1
+641:           pflag = abs(pk(kz)-pdp(kk))
+642:           do k = kz - 1 , 1 , -1
+643:             pdiffk = abs(pk(k)-pdp(kk))
+644:             if ( pdiffk.lt.pflag ) then
+645:               pflag = pdiffk
+646:               if ( kk.eq.k ) then
+647:                 kdp(kk) = k - 1
+648:               else
+649:                 kdp(kk) = k
+650:               end if
+651:             end if
+652:           end do
+653:           kdp(kk) = max(1,kdp(kk))
+654:         end do
+655: !--------------search for shallow cloud top-----------------------------
+656:         lbtk = lbot(i)
+657:         ltsh = lbtk
+658:         lbm1 = lbtk - 1
+659:         ztop = z0(i,lbot(i)) + zsh - 0.000001
+660: !--------------cloud top is level just above pbtk-psh ------------------
+661:         do l = 1 , kz
+662:           if ( z0(i,l).ge.ztop ) ltpk = l
+663:         end do
+664:         ptpk = pk(ltpk)
+665: !--------------highest level allowed is level just below pshu-----------
+666:         if ( ptpk.le.pshu ) then
+667:           do l = 1 , kz
+668:             if ( pk(l).le.pshu ) lshu = l + 1
+669:           end do
+670:           ltpk = lshu
+671:           ptpk = pk(ltpk)
+672:         end if
+673:         ltp1 = ltpk + 1
+674: !-----------------------------------------------------------------------
+675:         do l = ltpk , lbtk
+676:           if ( l.ge.ml(i) ) then
+677:             es = aliq*exp((bliq*tk(l)-cliq)/(tk(l)-dliq))
+678:           else
+679:             es = aice*exp((bice*tk(l)-cice1)/(tk(l)-dice))
+680:           end if
+681:           qsatk(l) = ep2*es/(pk(l)-es)
+682:         end do
+683: !-----------------------------------------------------------------------
+684:         do l = ltp1 , lbm1
+685:           rhl = qk(l)/qsatk(l)
+686:           rhh = qk(kdp(l))/qsatk(kdp(l))
+687:           if ( rhh+rhf.lt.rhl ) ltsh = l
+688:         end do
+689: !
+690:         ltop(i) = ltsh
+691:         prtop(i) = pk(ltsh)
+692:         ltp1 = ltsh
+693:         ltpk = ltsh - 1
+694:         cldhgt(i) = z0(i,ltop(i)) - z0(i,lbot(i))
+695: !       if cloud is not at least 90 mb or 3 sigma layers deep, then no
+696: !       cloud
+697:         if ( cldhgt(i).lt.zno .or. ltop(i).gt.lbot(i)-2 ) then
+698:           ltop(i) = lbot(i)
+699:           prtop(i) = pbot(i)
+700:           cycle
+701:         end if
+702: !--------------scaling potential temperature & table index at top-------
+703:         thtpk = t(i,ltp1)*ape(i,ltp1)
+704:         pkl = (a(ltp1)*psb(i,j)+r8pt)*1000.
+705:         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
+706:         tdpt = 1./(d273-rwat/wlhv*dlog(ee/611.))
+707:         tdpt = dmin1(tdpt,t(i,ltp1))
+708:         tlcl = tdpt - (.212+1.571E-3*(tdpt-tzero)-4.36E-4*              &
+709:              & (t(i,ltp1)-tzero))*(t(i,ltp1)-tdpt)
+710:         ptpk = h10e5*(thtpk/tlcl)**cporng
+711:         dpmix = ptpk - psp(i)
+712:         if ( abs(dpmix).lt.h3000 ) dpmix = -h3000
+713: !--------------temperature propfile slope-------------------------------
+714:         smix = (thtpk-thbt(i))/dpmix*stabs
+715:         do l = ltp1 , lbtk
+716:           ivi = ltp1 + lbtk - l
+717:           trefk(ivi) = ((pk(ivi)-pk(ivi+1))*smix+trefk(ivi+1)           &
+718:                      & *apek(ivi+1))/apek(ivi)
+719:         end do
+720: !--------------temperature reference profile correction-----------------
+721:         sumdt = d00
+722:         sumdp = d00
+723:         do l = ltp1 , lbtk
+724:           sumdt = (tk(l)-trefk(l))*dsigma(l) + sumdt
+725:           sumdp = sumdp + dsigma(l)
+726:         end do
+727: !
+728:         rdpsum = 1./sumdp
+729:         fpk(lbtk) = trefk(lbtk)
+730:         tcorr = sumdt*rdpsum
+731:         do l = ltp1 , lbtk
+732:           trfkl = trefk(l) + tcorr
+733:           trefk(l) = trfkl
+734:           fpk(l) = trfkl
+735:         end do
+736: !--------------humidity profile equations-------------------------------
+737:         psum = 0.0
+738:         qsum = 0.0
+739:         potsum = 0.0
+740:         qotsum = 0.0
+741:         otsum = 0.0
+742:         dst = 0.0
+743:         fptk = fpk(ltp1)
+744:         do l = ltp1 , lbtk
+745:           dpkl = fpk(l) - fptk
+746:           psum = dpkl*dsigma(l) + psum
+747:           qsum = qk(l)*dsigma(l) + qsum
+748:           rtbar = 2./(trefk(l)+tk(l))
+749:           otsum = dsigma(l)*rtbar + otsum
+750:           potsum = dpkl*rtbar*dsigma(l) + potsum
+751:           qotsum = qk(l)*rtbar*dsigma(l) + qotsum
+752:           dst = (trefk(l)-tk(l))*rtbar*dsigma(l) + dst
+753:         end do
+754: !
+755:         psum = psum*rdpsum
+756:         qsum = qsum*rdpsum
+757:         rotsum = 1./otsum
+758:         potsum = potsum*rotsum
+759:         qotsum = qotsum*rotsum
+760:         dst = dst*rotsum*cpd/wlhv
+761: !--------------ensure positive entropy change---------------------------
+762:         if ( dst.gt.0. ) then
+763:           prtop(i) = pbot(i)
+764:           ltop(i) = lbot(i)
+765:           ndstp = ndstp + 1
+766:           cycle
+767:         else
+768:           dstq = dst*epsdn
+769:         end if
+770: !--------------check for isothermal atmosphere--------------------------
+771:         den = potsum - psum
+772:         if ( -den/psum.lt.0.00005 ) then
+773:           ltop(i) = lbot(i)
+774:           prtop(i) = pbot(i)
+775:           cycle
+776:         else
+777: !--------------slope of the reference humidity profile------------------
+778:           dqref = (qotsum-dstq-qsum)/den
+779:         end if
+780: !--------------humidity doesn`t increase with height--------------------
+781:         if ( dqref.lt.0.0 ) then
+782:           ltop(i) = lbot(i)
+783:           prtop(i) = pbot(i)
+784:           cycle
+785:         end if
+786: !--------------humidity at the cloud top--------------------------------
+787:         qrftp = qsum - dqref*psum
+788: !--------------humidity profile-----------------------------------------
+789:         do l = ltp1 , lbtk
+790:           qrfkl = (fpk(l)-fptk)*dqref + qrftp
+791: !--------------supersaturation not allowed------------------------------
+792:           qnew = (qrfkl-qk(l))*tauk + qk(l)
+793:           if ( qnew.gt.qsatk(l)*stresh ) then
+794:             ltop(i) = lbot(i)
+795:             prtop(i) = pbot(i)
+796:             go to 100
+797:           end if
+798: !-----------------------------------------------------------------------
+799:           thvref(l) = trefk(l)*apek(l)*(qrfkl*d608+h1)
+800:           qrefk(l) = qrfkl
+801:         end do
+802: !--------------eliminate impossible slopes (betts, dtheta/dq)-----------
+803:         do l = ltp1 , lbtk
+804:           dtdeta = (thvref(l-1)-thvref(l))/(a(l)-a(l-1))
+805:           if ( dtdeta.lt.epsth ) then
+806:             ltop(i) = lbot(i)
+807:             prtop(i) = pbot(i)
+808:             go to 100
+809:           end if
+810:         end do
+811:         if ( dst.gt.0. ) then
+812:           ndstp = ndstp + 1
+813:         else
+814:           ndstn = ndstn + 1
+815:         end if
+816:         dentpy = d00
+817:         do l = ltp1 , lbtk
+818:           dentpy = ((trefk(l)-tk(l))*cpd+(qrefk(l)-qk(l))*wlhv)         &
+819:                  & /(tk(l)+trefk(l))*dsigma(l) + dentpy
+820:         end do
+821: !--------------relaxation towards reference profiles--------------------
+822:         iconss = iconss + 1
+823:         do l = ltp1 , lbtk
+824:           tmod(i,l) = (trefk(l)-tk(l))/trel
+825:           qqmod(i,l) = (qrefk(l)-qk(l))/trel
+826:         end do
+827: !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+828: !scscscscscsc  end of shallow convection   scscscscscscscscscscscscscscs
+829: !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+830: !-----------------------------------------------------------------------
+831:       end do
+832:  100  continue
+833:       nshal = 0
+834:       do i = 2 , iym2
+835:         ltpk = ltop(i)
+836:         lbtk = lbot(i)
+837:         ptpk = prtop(i)
+838: !       no shallow convection if cloud is not at least 90 mb or 3 sigma
+839: !       layers deep
+840:         if ( cldhgt(i).ge.zno ) then
+841:           if ( cldhgt(i).lt.zsh ) then
+842:             nshal = nshal + 1
+843:             ntops(ltpk) = ntops(ltpk) + 1
+844:             nbots(lbtk) = nbots(lbtk) + 1
+845:             ndepth = lbtk - ltpk
+846:             if ( ndepth.gt.0 ) ndpths(ndepth) = ndpths(ndepth) + 1
+847:           end if
+848: !         find cloud fractional cover and liquid water content
+849:           kbaseb = min0(lbtk,kzm2)
+850:           if ( ltpk.le.kbaseb ) then
+851:             kclth = kbaseb - ltpk + 1
+852:             akclth = 1./dble(kclth)
+853:             do k = ltpk , kbaseb
+854:               cldlwc(i,k) = cllwcv
+855:               cldfra(i,k) = 1. - (1.-clfrcv)**akclth
+856:             end do
+857:           end if
+858:           if ( ichem.eq.1 ) then
+859:             icumtop(i,j) = ltpk
+860:             icumbot(i,j) = kbaseb
+861:           end if
+862:         end if
+863:       end do
+864: !-----------------------------------------------------------------------
+865:       do k = 1 , kz
+866:         do i = 2 , iym2
+867:           tten(i,k) = tten(i,k) + tmod(i,k)*psb(i,j)
+868:           qten(i,k) = qten(i,k) + qqmod(i,k)*psb(i,j)
+869:         end do
+870:       end do
+871:       icon(j) = icond
+872: 
+873:       end subroutine bmpara
+874: !
+875: !
+876: !
+<p><a name=lutbl><H3>lutbl</H3></a></p> Click <a href="./callingtree/lutbl_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where lutbl is used.
+<hr>
+877:       subroutine lutbl(ptop)
+878: !
+879:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : cpd , rgas , rovcp , tzero , c3les ,   &
+880:                                & c4les , eliwv , pq0
+881:       implicit none
+882: !
+883: ! PARAMETER definitions
+884: !
+885:       real(8) , parameter :: eps = 2.D-12 ! little number
+886: 
+887: !
+888: ! Dummy arguments
+889: !
+890:       real(8) :: ptop
+891:       intent (in) ptop
+892: !
+893: ! Local variables
+894: !
+895:       real(8) :: ape , dp , dqs , dth , dthe , p , ph , pt , qs , qs0k ,&
+896:                & sqsk , sthek , th , the0k , thh
+897:       real(8) , dimension(jtb) :: pnew , pold , &
+898:                                 & qsnew , qsold , thenew , theold ,     &
+899:                                 & tnew , told , y2p , y2t
+900:       integer :: kp , kpm , kpm1 , kth , kthm , kthm1
+901: !
+902: !--------------coarse look-up table for saturation point----------------
+903: !
+904:       pt = ptop*1000.0D0
+905: !     ptop in pascal
+906:  
+907:       kthm = jtb
+908:       kpm = itb
+909:       kthm1 = kthm - 1
+910:       kpm1 = kpm - 1
+911: !
+912:       thl = 210.0D0
+913:       thh = 385.0D0
+914:       pl = pt
+915:       ph = 105000.0D0
+916: !
+917:       dth = (thh-thl)/dble(kthm-1)
+918:       dp = (ph-pl)/dble(kpm-1)
+919: !
+920:       rdth = 1.0D0/dth
+921:       rdp = 1.0D0/dp
+922:       rdq = kpm - 1
+923: !
+924:       th = thl - dth
+925:  
+926: !-----------------------------------------------------------------------
+927:  
+928:       do kth = 1 , kthm
+929:         th = th + dth
+930:         p = pl - dp
+931:         do kp = 1 , kpm
+932:           p = p + dp
+933:           ape = (100000.D0/p)**(rovcp)
+934:           qsold(kp) = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
+935:           pold(kp) = p
+936:         end do
+937: !
+938:         qs0k = qsold(1)
+939:         sqsk = qsold(kpm) - qsold(1)
+940:         qsold(1) = 0.0D0
+941:         qsold(kpm) = 1.0D0
+942: !
+943:         do kp = 2 , kpm1
+944:           qsold(kp) = (qsold(kp)-qs0k)/sqsk
+945: !wwwwwwwwwwwwww fix due to cyber half prec. limitation wwwwwwwwwwwwwwwww
+946:           if ( (qsold(kp)-qsold(kp-1)).lt.eps ) qsold(kp) = qsold(kp-1) &
+947:              & + eps
+948: !wwwwwwwwwwwwww fix due to cyber half prec. limitation wwwwwwwwwwwwwwwww
+949: 
+950:         end do
+951: !
+952:         qs0(kth) = qs0k
+953:         sqs(kth) = sqsk
+954: !-----------------------------------------------------------------------
+955:         qsnew(1) = 0.0D0
+956:         qsnew(kpm) = 1.0D0
+957:         dqs = 1.0D0/dble(kpm-1)
+958: !
+959:         do kp = 2 , kpm1
+960:           qsnew(kp) = qsnew(kp-1) + dqs
+961:         end do
+962: !
+963:         y2p(1) = 0.0D0
+964:         y2p(kpm) = 0.0D0
+965: !
+966:         call <a href="./mod_cu_bm.F90.html#spline" TARGET=CENT_PANEL>spline</a>(kpm,qsold,pold,y2p,kpm,qsnew,pnew)
+967: !
+968:         do kp = 1 , kpm
+969:           ptbl(kp,kth) = pnew(kp)
+970:         end do
+971: !-----------------------------------------------------------------------
+972:       end do
+973: !-----------------------------------------------------------------------
+974:  
+975: !--------------coarse look-up table for t(p) from constant the----------
+976:       p = pl - dp
+977:       do kp = 1 , kpm
+978:         p = p + dp
+979:         th = thl - dth
+980:         do kth = 1 , kthm
+981:           th = th + dth
+982:           ape = (100000.D0/p)**(rovcp)
+983:           qs = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
+984:           told(kth) = th/ape
+985:           theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
+986:         end do
+987: !
+988:         the0k = theold(1)
+989:         sthek = theold(kthm) - theold(1)
+990:         theold(1) = 0.0D0
+991:         theold(kthm) = 1.0D0
+992: !
+993:         do kth = 2 , kthm1
+994:           theold(kth) = (theold(kth)-the0k)/sthek
+995: !wwwwwwwwwwwwww fix due to cyber half prec. limitation wwwwwwwwwwwwwwwww
+996:           if ( (theold(kth)-theold(kth-1)).lt.eps ) theold(kth)         &
+997:              & = theold(kth-1) + eps
+998: !mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+999:         end do
+1000: !
+1001:         the0(kp) = the0k
+1002:         sthe(kp) = sthek
+1003: !-----------------------------------------------------------------------
+1004:         thenew(1) = 0.0D0
+1005:         thenew(kthm) = 1.0D0
+1006:         dthe = 1.0D0/dble(kthm-1)
+1007:         rdthe = 1.0D0/dthe
+1008: !
+1009:         do kth = 2 , kthm1
+1010:           thenew(kth) = thenew(kth-1) + dthe
+1011:         end do
+1012: !
+1013:         y2t(1) = 0.0D0
+1014:         y2t(kthm) = 0.0D0
+1015: !
+1016:         call <a href="./mod_cu_bm.F90.html#spline" TARGET=CENT_PANEL>spline</a>(kthm,theold,told,y2t,kthm,thenew,tnew)
+1017: !
+1018:         do kth = 1 , kthm
+1019:           ttbl(kth,kp) = tnew(kth)
+1020:         end do
+1021: !-----------------------------------------------------------------------
+1022:       end do
+1023: !-----------------------------------------------------------------------
+1024: !
+1025:       end subroutine lutbl
+1026: !
+1027: !
+1028: !
+<p><a name=spline><H3>spline</H3></a></p> Click <a href="./callingtree/spline_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where spline is used.
+<hr>
+1029:       subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew)
+1030:  
+1031:       implicit none
+1032: !
+1033: !*****************************************************************
+1034: !                                                                *
+1035: !  this is a one-dimensional cubic spline fitting routine        *
+1036: !  programed for a small scalar machine.                         *
+1037: !                                                                *
+1038: !  programer\ z. janjic, yugoslav fed. hydromet. inst., beograd  *
+1039: !                                                                *
+1040: !  nold - number of given values of the function.  must be ge 3. *
+1041: !  xold - locations of the points at which the values of the     *
+1042: !         function are given.  must be in ascending order.       *
+1043: !  yold - the given values of the function at the points xold.   *
+1044: !  y2   - the second derivatives at the points xold.  if natural *
+1045: !         spline is fitted y2(1)=0. and y2(nold)=0. must be      *
+1046: !         specified.                                             *
+1047: !  nnew - number of values of the function to be calculated.     *
+1048: !  xnew - locations of the points at which the values of the     *
+1049: !         function are calculated.  xnew(k) must be ge xold(1)   *
+1050: !         and le xold(nold).                                     *
+1051: !  ynew - the values of the function to be calculated.           *
+1052: !  p, q - auxiliary vectors of the length nold-2.                *
+1053: !                                                                *
+1054: !*****************************************************************
+1055: !
+1056: ! Dummy arguments
+1057: !
+1058:       integer :: nnew , nold
+1059:       real(8) , dimension(nold) :: xold , yold , y2
+1060:       real(8) , dimension(nnew) :: xnew, ynew
+1061:       intent (in) nnew , nold , xnew , xold , yold
+1062:       intent (out) ynew
+1063:       intent (inout) y2
+1064: !
+1065: ! Local variables
+1066: !
+1067:       real(8) , dimension(nold-2) :: p , q
+1068:       real(8) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
+1069:                & dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
+1070:       integer :: k , k1 , k2 , kold , noldm1
+1071: !-----------------------------------------------------------------------
+1072:       ak = 0.0
+1073:       bk = 0.0
+1074:       ck = 0.0
+1075:       noldm1 = nold - 1
+1076: !
+1077:       dxl = xold(2) - xold(1)
+1078:       dxr = xold(3) - xold(2)
+1079:       dydxl = (yold(2)-yold(1))/dxl
+1080:       dydxr = (yold(3)-yold(2))/dxr
+1081:       rtdxc = .5/(dxl+dxr)
+1082: !
+1083:       p(1) = rtdxc*(6.*(dydxr-dydxl)-dxl*y2(1))
+1084:       q(1) = -rtdxc*dxr
+1085: !
+1086:       if ( nold.eq.3 ) then
+1087: !-----------------------------------------------------------------------
+1088:         k = noldm1
+1089:       else
+1090: !-----------------------------------------------------------------------
+1091:         k = 3
+1092:         do
+1093: !
+1094:           dxl = dxr
+1095:           dydxl = dydxr
+1096:           dxr = xold(k+1) - xold(k)
+1097:           dydxr = (yold(k+1)-yold(k))/dxr
+1098:           dxc = dxl + dxr
+1099:           den = 1./(dxl*q(k-2)+dxc+dxc)
+1100: !
+1101:           p(k-1) = den*(6.*(dydxr-dydxl)-dxl*p(k-2))
+1102:           q(k-1) = -den*dxr
+1103: !
+1104:           k = k + 1
+1105:           if ( k.ge.nold ) then
+1106:             k = noldm1
+1107:             exit
+1108:           end if
+1109:         end do
+1110:       end if
+1111:       do
+1112: !
+1113:         y2(k) = p(k-1) + q(k-1)*y2(k+1)
+1114: !
+1115:         k = k - 1
+1116:         if ( k.le.1 ) then
+1117: !-----------------------------------------------------------------------
+1118:           k1 = 1
+1119:           exit
+1120:         end if
+1121:       end do
+1122: !
+1123:  100  continue
+1124:       xk = xnew(k1)
+1125: !
+1126:       do k2 = 2 , nold
+1127:         if ( xold(k2).gt.xk ) then
+1128:           kold = k2 - 1
+1129: !
+1130:           if ( k1.eq.1 ) go to 200
+1131:           if ( k.ne.kold ) go to 200
+1132:           go to 300
+1133:         end if
+1134:       end do
+1135:       ynew(k1) = yold(nold)
+1136:       go to 400
+1137: !
+1138:  200  continue
+1139:       k = kold
+1140: !
+1141:       y2k = y2(k)
+1142:       y2kp1 = y2(k+1)
+1143:       dx = xold(k+1) - xold(k)
+1144:       rdx = 1./dx
+1145:       ak = .1666667*rdx*(y2kp1-y2k)
+1146:       bk = .5*y2k
+1147:       ck = rdx*(yold(k+1)-yold(k)) - .1666667*dx*(y2kp1+y2k+y2k)
+1148: !
+1149:  300  continue
+1150:       x = xk - xold(k)
+1151:       xsq = x*x
+1152: !
+1153:       ynew(k1) = ak*xsq*x + bk*xsq + ck*x + yold(k)
+1154: !
+1155:  400  continue
+1156:       k1 = k1 + 1
+1157:       if ( k1.le.nnew ) go to 100
+1158: !-----------------------------------------------------------------------
+1159:       end subroutine spline
+1160: !
+1161: !
+1162: !
+<p><a name=tpfc><H3>tpfc</H3></a></p> Click <a href="./callingtree/tpfc_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where tpfc is used.
+<hr>
+1163:       function tpfc(press,thetae,tgs,d273,rl,qs,pi)
+1164:  
+1165:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : rcpd , ep2 , rwat
+1166:       implicit none
+1167: !
+1168: ! Dummy arguments
+1169: !
+1170:       real(8) :: d273 , pi , press , qs , rl , tgs , thetae
+1171:       real(8) :: tpfc
+1172:       intent (in) d273 , pi , press , rl , tgs , thetae
+1173:       intent (inout) qs
+1174: !
+1175: ! Local variables
+1176: !
+1177:       real(8) :: dt , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
+1178: !
+1179: !...iteratively extract temperature from equivalent potential
+1180: !...temperature.
+1181: !
+1182:       rlorw = rl/rwat
+1183:       rlocpd = rl*rcpd
+1184:       rp = thetae/pi
+1185:       es = 611.*dexp(rlorw*(d273-1./tgs))
+1186:       qs = ep2*es/(press-es)
+1187:       fo = tgs*dexp(rlocpd*qs/tgs) - rp
+1188:       t1 = tgs - 0.5*fo
+1189:       tguess = tgs
+1190:  100  es = 611.*dexp(rlorw*(d273-1./t1))
+1191:       qs = ep2*es/(press-es)
+1192:       f1 = t1*exp(rlocpd*qs/t1) - rp
+1193:       if ( abs(f1).lt..1 ) then
+1194: !
+1195:         <a href="./mod_cu_bm.F90.html#tpfc" TARGET=CENT_PANEL>tpfc</a> = t1
+1196:       else
+1197:         dt = f1*(t1-tguess)/(f1-fo)
+1198:         tguess = t1
+1199:         fo = f1
+1200:         t1 = t1 - dt
+1201:         go to 100
+1202:       end if
+1203:       end function tpfc
+1204:       end module mod_cu_bm
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

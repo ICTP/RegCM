@@ -1,0 +1,86 @@
+<HTML>
+
+<HEAD>
+<TITLE>outsrf.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>outsrf.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>outsrf.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=outsrf><H3>outsrf</H3></a></p> Click <a href="./callingtree/outsrf_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where outsrf is used.
+<hr>
+20:       subroutine outsrf
+21:  
+22: ! ******    write bats fields to unit iutbat
+23:  
+24:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+25:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+26:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+27:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+28:       use <a href="./mod_iunits.f90.html#mod_iunits" TARGET=CENT_PANEL>mod_iunits</a>
+29:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+30: #ifdef MPP1
+31:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+32: #endif
+33:       implicit none
+34: !
+35: ! Local variables
+36: !
+37:       integer :: i , j , n
+38: !
+39: !     ****** check if at desired output time for bats variables
+40:       write (*,*) 'BATS variables written at ' , idatex , xtime
+41:       if ( iotyp.eq.2 ) write (iutbat) idatex
+42:       do n = 1 , numbat
+43:         if ( iotyp.eq.1 ) then
+44:           nrcbat = nrcbat + 1
+45: #ifdef MPP1
+46:           write (iutbat,rec=nrcbat)                                     &
+47:                 & ((fbat_io(j,i,n),j=1,jxm2),i=1,iym2)
+48: #else
+49:           write (iutbat,rec=nrcbat) ((fbat(j,i,n),j=1,jxm2),i=1,iym2)
+50: #endif
+51:         else if ( iotyp.eq.2 ) then
+52: #ifdef MPP1
+53:           write (iutbat) ((fbat_io(j,i,n),j=1,jxm2),i=1,iym2)
+54: #else
+55:           write (iutbat) ((fbat(j,i,n),j=1,jxm2),i=1,iym2)
+56: #endif
+57:         else
+58:         end if
+59:       end do
+60:  
+61:       end subroutine outsrf
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

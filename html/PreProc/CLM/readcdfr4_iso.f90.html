@@ -1,0 +1,103 @@
+<HTML>
+
+<HEAD>
+<TITLE>readcdfr4_iso.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>readcdfr4_iso.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>readcdfr4_iso.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=readcdfr4_iso><H3>readcdfr4_iso</H3></a></p> Click <a href="./callingtree/readcdfr4_iso_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where readcdfr4_iso is used.
+<hr>
+20:       subroutine readcdfr4_iso(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
+21:                              & nlat,nlev1,nlev,ntim1,ntim,vals)
+22:  
+23:       use <a href="#" TARGET=CENT_PANEL>netcdf</a>
+24:       implicit none
+25: !
+26: ! Dummy arguments
+27: !
+28:       integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
+29:                & ntim , ntim1
+30:       character(64) :: lnam
+31:       character(64) :: units
+32:       character(64) :: vnam
+33:       real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
+34:       intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
+35:                 & ntim1
+36:       intent (out) vals
+37: !
+38: ! Local variables
+39: !
+40:       integer , dimension(4) :: icount , istart
+41:       integer , dimension(2) :: icount1 , istart1
+42:       integer :: iflag , invarid
+43: !
+44:       istart1(1) = nlon1
+45:       icount1(1) = nlon
+46:       istart1(2) = nlat1
+47:       icount1(2) = nlat
+48:  
+49:       istart(1) = nlon1
+50:       icount(1) = nlon
+51:       istart(2) = nlat1
+52:       icount(2) = nlat
+53:       istart(3) = nlev1
+54:       icount(3) = nlev
+55:       istart(4) = ntim1
+56:       icount(4) = ntim
+57:  
+58:       iflag = nf90_inq_varid(idcdf,vnam,invarid)
+59:       if (iflag /= nf90_noerr) go to 920
+60: 
+61:       iflag = nf90_get_var(idcdf,invarid,vals,istart,icount)
+62:       if (iflag /= nf90_noerr) go to 920
+63: 
+64:       iflag = nf90_get_att(idcdf,invarid,'long_name',lnam)
+65:       if (iflag /= nf90_noerr) go to 920
+66: 
+67:       iflag = nf90_get_att(idcdf,invarid,'units',units)
+68:       if (iflag /= nf90_noerr) go to 920
+69:  
+70:       return
+71: 
+72:  920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+73:             &      'read variable ', vnam , ' at time ', ntim1
+74:       write (6, *) nf90_strerror(iflag)
+75: 
+76:       stop 'READ ERROR'
+77: 
+78:       end subroutine readcdfr4_iso
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

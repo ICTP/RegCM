@@ -1,0 +1,400 @@
+<HTML>
+
+<HEAD>
+<TITLE>regcm.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>regcm.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>regcm.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=regcm><H3>regcm</H3></a></p>20:       program regcm
+21: !
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a> , only : deltmx , idate1 , idate2 , nnbase ,         &
+24:                      & nnnend , nnnnnn , jyear , jyear0 , ktau , xtime
+25:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : nslice , dt , dt2 , dtmin
+26:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a> , only : ichem , ifrest , rfstrt
+27:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : r8pt , sigma
+28:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : aline , say
+29: #ifdef MPP1
+30:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+31:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+32: #ifdef CLM
+33:       use <a href="#" TARGET=CENT_PANEL>perf_mod</a>
+34:       use <a href="#" TARGET=CENT_PANEL>spmdMod</a>, only: mpicom
+35: #endif
+36: #endif
+37:       implicit none
+38: !
+39: ! Local variables
+40: !
+41:       real(8) :: dtinc , extime
+42:       integer :: iexec , iexecn
+43:       integer :: ierr
+44: #ifdef MPP1
+45:       integer :: ncpu
+46: #else
+47:       integer :: myid , nproc
+48: #endif
+49:       character(256) :: namelistfile, prgname
+50: !
+51: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+52: !
+53: !
+54: !     ---before runing this model, the following data sets must be
+55: !     prepared:
+56: !     1. initial data -- output from "ccm to mm4" routine,
+57: !     2. lateral boundary data
+58: !
+59: !     ---for each forecast, the parameters needed to be changed are
+60: !     in include file "parame", and namelist "mm4.in".
+61: !     information on data disposal set in inlcude file "dispose.f"
+62: !
+63: !
+64: !     parameters :
+65: !
+66: !     iy, jx, kz : dimensions of arrays in y, x, z directions
+67: !     for large domain.
+68: !
+69: !     nx (=7) : seven "j" (north-south) slices are needed for
+70: !     tau+1 variables.
+71: !
+72: !     nspgx (=6) : number of cross-point slices on the boundary
+73: !     affected by sponge boundary conditions.
+74: !
+75: !     nspgd (=6) : number of dot-point slices on the boundary
+76: !     affected by sponge boundary conditions.
+77: !
+78: !     common blocks :
+79: !
+80: !     /main/    : stores all the 3d prognostic variables in two
+81: !     timesteps and all the 2d variavles and constants
+82: !
+83: !     /bdycod/  : stores boundary values and tendencies of p*u,
+84: !     p*v, p*t, p*qv and p*, and outmost 2 slices of
+85: !     u and v for large domain.
+86: !
+87: !
+88: !     /cvaria/  : stores the prognostic variables at tau+1,
+89: !     decoupled variables, diagnostic variables and
+90: !     working spaces needed in the model.
+91: !
+92: !     /param1/  : stores the parameters specified in subroutine
+93: !     "param" for large domain only.
+94: !
+95: !
+96: !     /param2/  : stores the logicals and constants specified in
+97: !     subroutine "param".
+98: !
+99: !     /param3/  : stores the indexes and constants specified in
+100: !     subroutine "param".
+101: !
+102: !     /iunits/  : stores the input/output unit numbers specified in
+103: !     subroutine "param".
+104: !
+105: !     /pmoist/  : stores the parameters and constants related to
+106: !     moisture calculations.
+107: !
+108: !     /pbldim/  : stores the parameters and constants related to
+109: !     the boundary layer
+110: !
+111: !     *** comments ***
+112: !     1. all the variables stored in main common
+113: !     block must be saved for restart.
+114: !     2. the variables stored in common blocks:
+115: !     main   ,
+116: !     /bdycod/, /param1/
+117: !     are equivalent to large arrays for simplicity
+118: !     to transfer the variables through arguments.
+119: !
+120: !     references :
+121: !
+122: !     1. model:
+123: !
+124: !     Anthes, R. A., and T. T. Warner, 1978: Development of
+125: !     hydrodynamic models suitable for air pollution and
+126: !     other mesometeorological studies. Mon. Wea. Rev.,
+127: !     106, 1045-1078.
+128: !
+129: !     2. cumulus parameterization :
+130: !
+131: !     Anthes, R. A., 1977: A cumulus parameterization scheme
+132: !     utilizing a one-dimensional cloud model. Mon. Wea.
+133: !     Rev., 105, 270-286.
+134: !
+135: !     Kuo, Y.-H., 1983: A diagnostic case study of the effects
+136: !     of deep extratropical convection on the large-scale
+137: !     temperature and moisture structure. PH.D. thesis,
+138: !     Department of Meteorology, the Pennsylvania State
+139: !     University, 222 pp.
+140: !
+141: !     Grell,
+142: !
+143: !     3. explicit moisture :
+144: !
+145: !     Hsie, E.-Y., 1983: Frontogenesis in a moist atmosphere.
+146: !     PH.D. thesis, Department of Meteorology, the
+147: !     Pennsylvania State University, 251 pp.
+148: !
+149: !     4. pbl parameterization :
+150: !
+151: !     Holtslag, De Bruijn and Pan - MWR - 8/90
+152: !
+153: !     5. radiation parameterization :
+154: !
+155: !     CCM2 radiation column model, bruce briegleb, jan '92
+156: !
+157: !     CCM3 radiation column model, NCAR/TN-422+PPR, Description
+158: !     of the NCAR CCM,      J. T. Kiehl, J. Hack et al.,
+159: !     introduced by   Filippo Giorgi, N. Keiichi, Yun Qian
+160: !
+161: !     CCM3.6.6 code introduced by Xunqiang Bi, 2000
+162: !
+163: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+164:  
+165: #ifdef MPP1
+166: !**********************************************************************
+167: !
+168: !     MPI Initialization
+169: !
+170:       call <a href="#" TARGET=CENT_PANEL>mpi_init</a>(ierr)
+171:       call <a href="#" TARGET=CENT_PANEL>mpi_comm_rank</a>(mpi_comm_world,myid,ierr)
+172:       call <a href="#" TARGET=CENT_PANEL>mpi_comm_size</a>(mpi_comm_world,ncpu,ierr)
+173: 
+174: #endif
+175: 
+176: !**********************************************************************
+177: !
+178: !     Read input global namelist
+179: !
+180: #ifdef MPP1
+181:       if ( myid.eq.0 ) then
+182: #endif
+183: 
+184:       call <a href="#" TARGET=CENT_PANEL>getarg</a>(0, prgname)
+185:       call <a href="#" TARGET=CENT_PANEL>getarg</a>(1, namelistfile)
+186:       call <a href="./mod_dynparam.F90.html#initparam" TARGET=CENT_PANEL>initparam</a>(namelistfile, ierr)
+187:       if ( ierr/=0 ) then
+188:         write ( 6, * ) 'Parameter initialization not completed'
+189:         write ( 6, * ) 'Usage : '
+190:         write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+191:         write ( 6, * ) ' '
+192:         write ( 6, * ) 'Check argument and namelist syntax'
+193:         stop
+194:       end if
+195: 
+196: #ifdef MPP1
+197:       end if
+198: #endif
+199: 
+200: #ifdef MPP1
+201: !**********************************************************************
+202: !
+203: !     MPI Initialization for model
+204: !
+205: 
+206:       call <a href="./mod_dynparam.F90.html#broadcast_params" TARGET=CENT_PANEL>broadcast_params</a>
+207: 
+208:       call <a href="./mod_dynparam.F90.html#set_nproc" TARGET=CENT_PANEL>set_nproc</a>(ncpu)
+209: 
+210:       if ( ncpu.ne.nproc ) then
+211:         write (aline,*) 'The number of CPU is not well set'
+212:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+213:         write (aline,*) 'NCPU = ' , ncpu , '    nproc =' , nproc
+214:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+215:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'CPU Count mismatch')
+216:       end if
+217: !      print * , "process" , myid , "of" , nproc
+218:       call <a href="#" TARGET=CENT_PANEL>mpi_barrier</a>(mpi_comm_world,ierr)
+219: !     starttime= MPI_WTIME()
+220:       if ( myid.gt.0 ) then
+221:         iwest = myid - 1
+222:       else
+223:         iwest = mpi_proc_null
+224:       end if
+225:       if ( myid.lt.nproc-1 ) then
+226:         ieast = myid + 1
+227:       else
+228:         ieast = mpi_proc_null
+229:       end if
+230:       if ( jxp.lt.2 ) then
+231:         write (aline,*) 'The number of jxp must be greater than 1'
+232:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+233:         write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
+234:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+235:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'Domain too small')
+236:       end if
+237:       if ( jxp*nproc.ne.jx ) then
+238:         write (aline,*) 'jx should be divided by nproc'
+239:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+240:         write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
+241:         call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+242:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,                                   &
+243:                  & 'Domain dimension not multiple of'//                 &
+244:                   &' processor number')
+245:       end if
+246:       jbegin = 1
+247:       jendl = jxp
+248:       jendx = jxp
+249:       jendm = jxp
+250:       if ( myid.eq.0 ) jbegin = 2
+251:       if ( myid.eq.nproc-1 ) then
+252:         jendx = jxp - 1
+253:         jendm = jxp - 2
+254:       end if
+255: #else
+256:       myid = 0
+257:       nproc= 1 
+258: #endif
+259: 
+260: !**********************************************************************
+261: !
+262: !     RegCM V4 printout header
+263: !
+264:       call <a href="./header.F90.html#header" TARGET=CENT_PANEL>header</a>(myid,nproc)
+265: 
+266: !**********************************************************************
+267: !
+268: !     Parameter Setup
+269: !
+270:       extime = 0.
+271:       dtinc  = 0.
+272:       iexec  = 1
+273:       iexecn = 1
+274:       call <a href="./param.F90.html#param" TARGET=CENT_PANEL>param</a>
+275: 
+276: !**********************************************************************
+277: !
+278: !     Read initial data and setup boundary condition
+279: !
+280:       call <a href="./init.F90.html#init" TARGET=CENT_PANEL>init</a>
+281:  
+282:       call <a href="./bdyin.F90.html#bdyin" TARGET=CENT_PANEL>bdyin</a>
+283:  
+284:       call <a href="./spinit.F90.html#spinit" TARGET=CENT_PANEL>spinit</a>(sigma,kzp1)
+285:  
+286:       if ( ichem.eq.1 ) call <a href="./chsrfem.F90.html#chsrfem" TARGET=CENT_PANEL>chsrfem</a>
+287:  
+288: !**********************************************************************
+289: !
+290: !     Write initial state to output
+291: !
+292:       call <a href="./output.F90.html#output" TARGET=CENT_PANEL>output</a>(iexec)
+293: 
+294: !**********************************************************************
+295: !
+296: !     Time Loop : begin Forecast
+297: !
+298:       do while ( nnnnnn.lt.nnnend )
+299: !
+300: !       Read in boundary conditions if needed
+301: !
+302:         if ( nnnnnn.gt.nnbase ) call <a href="./bdyin.F90.html#bdyin" TARGET=CENT_PANEL>bdyin</a>
+303: !
+304: !       Refined start
+305: !
+306:         if ( .not.ifrest ) then
+307:           if ( rfstrt ) then
+308:             if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                 &
+309:                & dtinc.ne.deltmx ) then
+310:               call <a href="./tstep.f90.html#tstep" TARGET=CENT_PANEL>tstep</a>(extime,dtinc,deltmx)
+311:               write (aline, 99001) extime , dtinc , dt , dt2 ,          &
+312:                                    & dtmin , ktau , jyear
+313:               call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+314:             end if
+315:           end if
+316:         end if
+317: !
+318: !       Compute tendencies
+319: !
+320:         call <a href="./tend.F90.html#tend" TARGET=CENT_PANEL>tend</a>(iexec)
+321: !
+322: !       Split modes
+323: !
+324:         call <a href="./splitf.F90.html#splitf" TARGET=CENT_PANEL>splitf</a>
+325: !
+326: !       Write output for this timestep
+327: !
+328:         call <a href="./output.F90.html#output" TARGET=CENT_PANEL>output</a>(iexec)
+329: !
+330: !       Increment time
+331: !
+332:         extime = extime + dtinc
+333: 
+334:       end do
+335: 
+336: !
+337: !     Simulation completed
+338: !
+339:       write (aline, 99002) xtime , ktau , jyear
+340:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+341: !
+342: !     Set length of next run (auto-restart option)
+343: !
+344:       idate1 = idate2
+345:       idate2 = mdatez(nnnend+nslice)
+346:       write (aline, *) ' *** new max DATE will be ' , idate2
+347:       call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+348: 
+349: #ifdef MPP1
+350:       if ( myid.eq.0 ) then
+351:         call <a href="./for_next.F90.html#for_next" TARGET=CENT_PANEL>for_next</a>
+352:       end if
+353:       call <a href="#" TARGET=CENT_PANEL>mpi_finalize</a>(ierr)
+354: #else
+355:       call <a href="./for_next.F90.html#for_next" TARGET=CENT_PANEL>for_next</a>
+356: #endif
+357: !     endtime = MPI_WTIME()
+358: !     print *,"The Program took  ",endtime-starttime," secondes"
+359: #ifdef CLM
+360:       call <a href="#" TARGET=CENT_PANEL>t_prf</a>('timing_all',mpicom)
+361:       call <a href="#" TARGET=CENT_PANEL>t_finalizef</a>()
+362: #endif
+363: 
+364:       call <a href="./header.F90.html#finaltime" TARGET=CENT_PANEL>finaltime</a>(myid)
+365: 
+366:       if ( myid.eq.0 ) then
+367:         print *, 'RegCM V4 simulation successfully reached end'
+368:       end if
+369: 
+370: 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
+371:             & ' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
+372:             & i7,' in year ',i4)
+373: 99002 format (                                                          &
+374:          & ' ***** restart file for next run is written at time     = ',&
+375:          & f10.2,' minutes, ktau = ',i7,' in year ',i4)
+376: 
+377:       end program regcm
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

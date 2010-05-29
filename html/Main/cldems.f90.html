@@ -1,0 +1,108 @@
+<HTML>
+
+<HEAD>
+<TITLE>cldems.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>cldems.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>cldems.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=cldems><H3>cldems</H3></a></p> Click <a href="./callingtree/cldems_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where cldems is used.
+<hr>
+20:       subroutine cldems(clwp,fice,rei,emis)
+21: 
+22: !-----------------------------------------------------------------------
+23: !
+24: ! Compute cloud emissivity using cloud liquid water path (g/m**2)
+25: !
+26: !---------------------------Code history--------------------------------
+27: !
+28: ! Original version:  J. Kiehl
+29: ! Standardized:      J. Rosinski, June 1992
+30: ! Reviewed:          J. Hack, J. Kiehl, August 1992
+31: !
+32: !-----------------------------------------------------------------------
+33: !
+34:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+35:       implicit none
+36: !
+37: ! PARAMETER definitions
+38: !
+39: !     longwave absorption coeff (m**2/g)
+40:       real(8) , parameter :: kabsl = 0.090361
+41: !
+42: !------------------------------Arguments--------------------------------
+43: !
+44: !     Input arguments
+45: !
+46: ! clwp    - cloud liquid water path (g/m**2)
+47: ! rei     - ice effective drop size (microns)
+48: ! fice    - fractional ice content within cloud
+49: !
+50: !     Output arguments
+51: !
+52: ! emis    - cloud emissivity (fraction)
+53: !
+54: !-----------------------------------------------------------------------
+55: !
+56: ! Dummy arguments
+57: !
+58:       real(8) , dimension(iym1,kz) :: clwp , emis , fice , rei
+59:       intent (in) clwp , fice , rei
+60:       intent (out) emis
+61: !
+62: ! Local variables
+63: !
+64: !-----------------------------------------------------------------------
+65: !
+66: ! i, k    - longitude, level indices
+67: ! kabs    - longwave absorption coeff (m**2/g)
+68: ! kabsi   - ice absorption coefficient
+69: !
+70: !-----------------------------------------------------------------------
+71: !
+72:       integer :: i , k
+73:       real(8) :: kabs , kabsi
+74: !
+75:       do k = 1 , kz
+76:         do i = 1 , iym1
+77:           kabsi = 0.005 + 1./rei(i,k)
+78:           kabs = kabsl*(1.-fice(i,k)) + kabsi*fice(i,k)
+79:           emis(i,k) = 1. - dexp(-1.66*kabs*clwp(i,k))
+80:         end do
+81:       end do
+82: !
+83:       end subroutine cldems
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

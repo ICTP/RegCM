@@ -1,0 +1,165 @@
+<HTML>
+
+<HEAD>
+<TITLE>tseaice.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>tseaice.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>tseaice.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=tseice><H3>tseice</H3></a></p> Click <a href="./callingtree/tseice_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where tseice is used.
+<hr>
+20:       subroutine tseice
+21: 
+22:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+23:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : dtbat
+24:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+25:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : ch2o , cice , csnw , tzero , stdp ,    &
+26:                                & wlhf , wlhs , cpd
+27:       implicit none
+28: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+29: ! 
+30: !     routine provides sensible and latent fluxes
+31: !             and snow melt over ice
+32: !
+33: !     fss = conductive heat flow through ice
+34: !     hrl = latent heat through leads
+35: !     hsl = sensible heat through leads
+36: !     hs  = heat energy balance at surface of ice
+37: !
+38: !         sea-ice mask could be reset in here with "imelt" - but not
+39: !                  done at present
+40: !
+41: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+42: !
+43: ! Local variables
+44: !
+45:       real(8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
+46:                & rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss ,  &
+47:                & wtt
+48:       integer :: n , i
+49: !
+50:       do i = 2 , iym1
+51:         do n = 1 , nnsg
+52:  
+53:           if ( lveg(n,i).eq.14 ) exit   ! lake model handles this case
+54:  
+55:           if ( ldoc1d(n,i).gt.1.5 ) then
+56: #ifdef SEAICE
+57:             if ( sice1d(n,i).lt.1000. ) sice1d(n,i) = 1000.0
+58: #endif
+59:  
+60: ! ******                rhosw = density of snow relative to water
+61:             rhosw3 = rhosw(n,i)**3
+62:             imelt(n,i) = 0
+63: ! ******                cice = specific heat of sea-ice per unit volume
+64:             rsd1 = cice*sice1d(n,i)/1000.0
+65:             if ( scv1d(n,i).gt.0.0 ) then
+66:               rss = csnw*scv1d(n,i)/1000.0
+67:               ratsi = scv1d(n,i)/(1.4*rhosw3*sice1d(n,i))
+68:               wtt = 1./(1.+ratsi)
+69:               wss = (scv1d(n,i)+2.8*rhosw3*sice1d(n,i))                 &
+70:                   & /(scv1d(n,i)+1.4*rhosw3*sice1d(n,i))
+71: ! ******                include snow heat capacity
+72:               rsd1 = 0.5*(wss*rss+wtt*rsd1)
+73:             end if
+74:             tgb1d(n,i) = -2.0 + tzero
+75: ! ******                subsurface heat flux through ice
+76:             fss = 7.E-4*(tgb1d(n,i)-tg1d(n,i))                          &
+77:                 & *ch2o*rhosw3/(scv1d(n,i)+1.4*rhosw3*sice1d(n,i))
+78:             sice1d(n,i) = sice1d(n,i) + fss*dtbat/wlhf*1.087
+79:  
+80: ! ******                set sea ice parameter for melting and return
+81:             if ( sice1d(n,i).le.0.0 ) then
+82:               imelt(n,i) = 1
+83:               exit
+84:             end if
+85: ! ******                assume lead ocean temp is -1.8c
+86: ! ******                flux of heat and moisture through leads
+87: ! ******                sat. mixing ratio at t=-1.8c is 3.3e-3
+88:             qice(n,i) = 3.3E-3*stdp/p1d(n,i)
+89: !
+90: !  determine effective surface fluxes over ice, allowing for leads;
+91: !  aarea(n,i) is set in subroutine drag.
+92: !
+93:             tlef1d(n,i) = ts1d(n,i)
+94:             qgrnd = ((1.-aarea(n,i))*cdr(n,i)*qg1d(n,i)+aarea(n,i)      &
+95:                   & *clead(n,i)*qice(n,i))/cdrx(n,i)
+96:             tgrnd = ((1.-aarea(n,i))*cdr(n,i)*tg1d(n,i)+aarea(n,i)      &
+97:                   & *clead(n,i)*(tzero-1.8))/cdrx(n,i)
+98:             fact = -rhs1d(n,i)*cdrx(n,i)*vspda(n,i)
+99:             delq1d(n,i) = (qs1d(n,i)-qgrnd)*gwet1d(n,i)
+100:             delt1d(n,i) = ts1d(n,i) - tgrnd
+101: ! ******           output fluxes, averaged over leads and ice
+102:             evpr1d(n,i) = fact*delq1d(n,i)
+103:             sent1d(n,i) = fact*cpd*delt1d(n,i)
+104:             hrl = rhs1d(n,i)*vspda(n,i)*clead(n,i)*(qice(n,i)-qs1d(n,i))
+105:             hsl = rhs1d(n,i)*vspda(n,i)*clead(n,i)                      &
+106:                 & *(tzero-1.8-ts1d(n,i))*cpd
+107: ! ******           get fluxes over ice for sublimation (subrout snow)
+108: ! ******              and melt (below) calculation
+109:             fseng(n,i) = (sent1d(n,i)-aarea(n,i)*hsl)/(1.-aarea(n,i))
+110:             fevpg(n,i) = (evpr1d(n,i)-aarea(n,i)*hrl)/(1.-aarea(n,i))
+111:             hs = fsw1d(i) - flw1d(i) - fseng(n,i) - wlhs*fevpg(n,i)
+112:             bb = dtbat*(hs+fss)/rsd1
+113: ! ******           snow melt
+114:             sm(n,i) = 0.
+115:             if ( tg1d(n,i).ge.tzero ) sm(n,i) = (hs+fss)/wlhf
+116:             if ( sm(n,i).le.0. ) sm(n,i) = 0.
+117:             smc4 = sm(n,i)*dtbat
+118:             if ( scv1d(n,i).lt.smc4 ) then
+119: ! ******                all snow removed, melt ice
+120:               smt = (scv1d(n,i)/dtbat)
+121: ! ******                rho(h2o)/rho(ice) = 1.087
+122:               sice1d(n,i) = sice1d(n,i) + dtbat*(smt-sm(n,i))*1.087
+123:               sm(n,i) = smt
+124:               tg1d(n,i) = tzero
+125: ! ******                set sea ice parameter for melting and return
+126:               if ( sice1d(n,i).le.0.0 ) then
+127:                 imelt(n,i) = 1
+128:                 exit
+129:               end if
+130:             else
+131: !  **********             snow or ice with no snow melting
+132:               tg = tg1d(n,i) + bb
+133:               if ( tg.ge.tzero ) tg1d(n,i) = tzero
+134:               if ( tg.lt.tzero ) tg1d(n,i) = tg
+135:             end if
+136:           end if
+137:         end do
+138:       end do
+139:  
+140:       end subroutine tseice
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

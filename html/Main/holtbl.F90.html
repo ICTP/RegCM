@@ -1,0 +1,938 @@
+<HTML>
+
+<HEAD>
+<TITLE>holtbl.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>holtbl.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>holtbl.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=holtbl><H3>holtbl</H3></a></p> Click <a href="./callingtree/holtbl_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where holtbl is used.
+<hr>
+20:       subroutine holtbl
+21: 
+22: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+23: !
+24:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+25:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+26:       use <a href="./mod_param2.F90.html#mod_param2" TARGET=CENT_PANEL>mod_param2</a>
+27:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : dsigma , r8pt , a
+28:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+29:       use <a href="./mod_mainchem.F90.html#mod_mainchem" TARGET=CENT_PANEL>mod_mainchem</a>
+30:       use <a href="./mod_pbldim.F90.html#mod_pbldim" TARGET=CENT_PANEL>mod_pbldim</a>
+31:       use <a href="./mod_cvaria.F90.html#mod_cvaria" TARGET=CENT_PANEL>mod_cvaria</a>
+32:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+33:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : veg2d , ocld2d
+34:       use <a href="./mod_slice.F90.html#mod_slice" TARGET=CENT_PANEL>mod_slice</a>
+35:       use <a href="./mod_trachem.F90.html#mod_trachem" TARGET=CENT_PANEL>mod_trachem</a>
+36:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti , vonkar , cpd , rcpd , ep1
+37: #ifdef DIAG
+38:       use <a href="./mod_diagnosis.f90.html#mod_diagnosis" TARGET=CENT_PANEL>mod_diagnosis</a>
+39: #endif
+40:       use <a href="./mod_blh_tmp.F90.html#mod_blh_tmp" TARGET=CENT_PANEL>mod_blh_tmp</a>
+41: #ifdef MPP1
+42:       use <a href="./mod_mppio.F90.html#mod_mppio" TARGET=CENT_PANEL>mod_mppio</a>
+43: #ifndef IBM
+44:       use <a href="#" TARGET=CENT_PANEL>mpi</a>
+45: #else 
+46:       include 'mpif.h'
+47: #endif 
+48: #endif
+49:       implicit none
+50: !
+51: ! Local variables
+52: !
+53:       real(8) , dimension(iy,kz) :: alphak , betak , chix , coef1 ,     &
+54:                                   & coef2 , coef3 , coefe , coeff1 ,    &
+55:                                   & coeff2 , tpred1 , tpred2
+56:       real(8) :: drgdot , dumr , kzmax , kzo , oblen , xps , ps2 , ri , &
+57:                & sf , sh10 , ss , szkm , tvcon , uflxsf , uflxsfx ,     &
+58:                & vflxsf , vflxsfx
+59:       real(8) , dimension(iym1) :: govrth
+60:       integer :: i , idx , idxm1 , itr , j , jdx , jdxm1 , k
+61:       real(8) , dimension(iym1,kz) :: kzm , rc , ttnp
+62:       real(8) , dimension(iym1,ntr) :: vdep
+63: #ifdef MPP1
+64:       integer :: ierr , ii
+65:       real(8) , dimension(iym1,kz,jxp) :: auxx , avxx , dza , qcx
+66:       real(8) , dimension(iym1,kz,0:jxp+1) :: akzz1 , akzz2
+67:       real(8) , dimension(2*(iym2)*kz) :: wkrecv , wksend
+68:       real(8) , dimension(iy,kz,jxp) :: rhohf
+69: #else
+70:       real(8) , dimension(iym1,kz,jxm1) :: auxx , avxx , dza , qcx
+71:       real(8) , dimension(iym1,kz,0:jxm1) :: akzz1 , akzz2
+72:       real(8) , dimension(iy,kz,jxm1) :: rhohf
+73: #endif
+74: !
+75:       data kzo/1./
+76:       data szkm/1600./
+77: !
+78: ! *********************************************************************
+79: !
+80: !     diagnostic on total evaporation
+81: !
+82: #ifdef DIAG
+83: #ifdef MPP1
+84:       call <a href="#" TARGET=CENT_PANEL>mpi_gather</a>(qfx(1,1),   iy*jxp,mpi_real8,                     &
+85:                     & qfx_io(1,1),iy*jxp,mpi_real8,                     &
+86:                     & 0,mpi_comm_world,ierr)
+87:       if ( myid.eq.0 ) then
+88:         do j = 2 , jxm2
+89:           do i = 2 , iym2
+90:             tqeva = tqeva + qfx_io(i,j)*dx*dx*dtmin*60.
+91:           end do
+92:         end do
+93:       end if
+94:       call <a href="#" TARGET=CENT_PANEL>mpi_bcast</a>(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
+95: #else
+96:       do j = 2 , jxm2
+97:         do i = 2 , iym2
+98:           tqeva = tqeva + qfx(i,j)*dx*dx*dtmin*60.
+99:         end do
+100:       end do
+101: #endif
+102: #endif
+103: 
+104: !----------------------------------------------------------------------
+105: !-----some of the storage spaces for high-resolution pbl
+106: !     are use mod_to store the variables in this subroutine.
+107: !     difft(i,k,j)   : temperature tendency (tten)
+108: !     diffq(i,k,j)   : water vapor tendency (qvten)
+109: !
+110: !-----decouple flux-form variables to give u,v,t,theta,theta-vir.,
+111: !     t-vir., qv, and qc at cross points and at ktau-1.
+112: !
+113: !     *** note ***
+114: !     the boundary winds may not be adequately affected by friction,
+115: !     so use only interior values of ubx3d and vbx3d to calculate
+116: !     tendencies.
+117: !
+118: #ifdef MPP1
+119:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(psb(1,jxp),iy,mpi_real8,ieast,1,                &
+120:                       & psb(1,0),iy,mpi_real8,iwest,1,                  &
+121:                       & mpi_comm_world,mpi_status_ignore,ierr)
+122:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(uvdrag(1,jxp),iy,mpi_real8,ieast,1,             &
+123:                       & uvdrag(1,0),iy,mpi_real8,iwest,1,               &
+124:                       & mpi_comm_world,mpi_status_ignore,ierr)
+125:       do j = jbegin , jendx
+126:         do k = 1 , kz
+127:           do i = 2 , iym1
+128:             dumr = 4./(psb(i,j)+psb(i,j-1)+psb(i-1,j)+psb(i-1,j-1))
+129:             auxx(i,k,j) = ub(i,k,j)*dumr
+130:             avxx(i,k,j) = vb(i,k,j)*dumr
+131:           end do
+132:         end do
+133: #else
+134:       do j = 2 , jxm1
+135:         do k = 1 , kz
+136:           do i = 2 , iym1
+137:             dumr = 4./(psb(i,j)+psb(i,j-1)+psb(i-1,j)+psb(i-1,j-1))
+138:             auxx(i,k,j) = ub(i,k,j)*dumr
+139:             avxx(i,k,j) = vb(i,k,j)*dumr
+140:           end do
+141:         end do
+142: #endif 
+143: !
+144:         do k = 1 , kz
+145:           do i = 2 , iym1
+146:             tvcon = (1.+ep1*qvb3d(i,k,j))
+147:             thvx(i,k,j) = thx3d(i,k,j)*tvcon
+148:           end do
+149:         end do
+150: !
+151:         do k = 1 , kz
+152:           do i = 2 , iym1
+153:             qcx(i,k,j) = qcb(i,k,j)/psb(i,j)
+154:           end do
+155:         end do
+156: !
+157: !.....density at surface is stored in rhox2d(i,j), at half levels in
+158: !       rhohf(i,k,j).
+159: !
+160:         do k = 1 , kzm1
+161:           do i = 2 , iym1
+162:             dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
+163:             xps = (a(k)*psb(i,j)+r8pt)*1000.
+164:             ps2 = (a(k+1)*psb(i,j)+r8pt)*1000.
+165:             rhohf(i,k,j) = (ps2-xps)/(gti*dza(i,k,j))
+166:           end do
+167:         end do
+168: !
+169:         do i = 2 , iym1
+170:           govrth(i) = gti/thx3d(i,kz,j)
+171:         end do
+172: !
+173: ! *********************************************************************
+174: !
+175: !-----compute the vertical diffusion term:
+176: !
+177:         do k = 2 , kz
+178:           do i = 2 , iym1
+179:             rc(i,k) = 0.257*dzq(i,k,j)**0.175
+180:           end do
+181:         end do
+182: !
+183: !-----compute the diffusion coefficient:
+184: !
+185: !       blackadar scheme above boundary layer top
+186: !
+187:         do k = 2 , kz
+188:           do i = 2 , iym1
+189:             kzmax = 0.8*dza(i,k-1,j)*dzq(i,k,j)/dt
+190:             ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))                         &
+191:                & *(ubx3d(i,k-1,j)-ubx3d(i,k,j))                         &
+192:                & +(vbx3d(i,k-1,j)-vbx3d(i,k,j))                         &
+193:                & *(vbx3d(i,k-1,j)-vbx3d(i,k,j)))                        &
+194:                & /(dza(i,k-1,j)*dza(i,k-1,j)) + 1.E-9
+195:             ri = govrth(i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(i,k-1,j))
+196:             if ( (ri-rc(i,k)).ge.0. ) then
+197:               kzm(i,k) = kzo
+198:             else
+199:               kzm(i,k) = kzo + dsqrt(ss)*(rc(i,k)-ri)*szkm/rc(i,k)
+200:             end if
+201:             kzm(i,k) = dmin1(kzm(i,k),kzmax)
+202:           end do
+203:         end do
+204: !
+205: ! *********************************************************************
+206: !
+207: !       holtslag pbl
+208: !
+209: !       initialize bl diffusion coefficients and counter-gradient terms
+210: !       with free atmosphere values and make specific humidity
+211: !
+212:         do k = 2 , kz
+213:           do i = 2 , iym1
+214: !           eddy diffusivities for momentum, heat and moisture
+215:             kvm(i,k,j) = kzm(i,k)
+216:             kvh(i,k,j) = kzm(i,k)
+217:             kvq(i,k,j) = kzm(i,k)
+218: !chem
+219:             if ( ichem.eq.1 ) kvc(i,k,j) = kzm(i,k)
+220: !chem_
+221: !           counter gradient terms for heat and moisture
+222:             cgh(i,k,j) = 0.0
+223:           end do
+224:         end do
+225:  
+226:         do i = 2 , iym1
+227: !         compute friction velocity
+228:           idx = i
+229:           idx = min0(idx,iym1)
+230:           idxm1 = i - 1
+231:           idxm1 = max0(idxm1,2)
+232:           jdx = j
+233:           jdxm1 = j - 1
+234: #ifdef MPP1
+235:           if ( myid.eq.nproc-1 ) jdx = min0(jdx,jendx)
+236:           if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
+237: #else
+238:           jdx = min0(jdx,jxm1)
+239:           jdxm1 = max0(jdxm1,2)
+240: #endif
+241:           uflxsfx = uvdrag(idx,jdx)*ubx3d(i,kz,j)
+242:           vflxsfx = uvdrag(idx,jdx)*vbx3d(i,kz,j)
+243:           ustr(i,j) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)      &
+244:                     & /rhox2d(i,j))
+245:  
+246: !         convert surface fluxes to kinematic units
+247:           xhfx(i,j) = hfx(i,j)/(cpd*rhox2d(i,j))
+248:           xqfx(i,j) = qfx(i,j)/rhox2d(i,j)
+249: !         compute virtual heat flux at surface
+250:           hfxv(i,j) = xhfx(i,j) + 0.61*thx3d(i,kz,j)*xqfx(i,j)
+251:         end do
+252: !
+253: !       estimate potential temperature at 10m via log temperature
+254: !       profile in the surface layer (brutsaert, p. 63).
+255: !       calculate mixing ratio at 10m by assuming a constant
+256: !       value from the surface to the lowest model level.
+257: !
+258:  
+259:         do i = 2 , iym1
+260:           sh10 = qvb3d(i,kz,j)/(qvb3d(i,kz,j)+1)
+261: !         th10(i,j) = ((thx3d(i,kz,j)+tgb(i,j))/2.0)*(1.0+0.61*sh10)
+262: !         th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))
+263: !         1            *dlog(za(i,kz,j)/10.)
+264:  
+265: !         "virtual" potential temperature
+266:           if ( hfxv(i,j).ge.0. ) then
+267:             th10(i,j) = thvx(i,kz,j)
+268:           else
+269: !           th10(i,j) =
+270: !----       (0.25*thx3d(i,kz,j)+0.75*tgb(i,j))*(1.0+0.61*sh10) first
+271: !           approximation for obhukov length
+272:             oblen = -0.5*(thx3d(i,kz,j)+tgb(i,j))*(1.0+0.61*sh10)       &
+273:                   & *ustr(i,j)                                          &
+274:                   & **3/(gti*vonkar*(hfxv(i,j)+dsign(1.D-10,hfxv(i,j))))
+275:             if ( oblen.ge.za(i,kz,j) ) then
+276:               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
+277:                         & *(dlog(za(i,kz,j)/10.)                        &
+278:                         & +5./oblen*(za(i,kz,j)-10.))
+279:             else if ( oblen.lt.za(i,kz,j) .and. oblen.gt.10. ) then
+280:               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
+281:                         & *(dlog(oblen/10.)+5./oblen*(oblen-10.)        &
+282:                         & +6*dlog(za(i,kz,j)/oblen))
+283:             else if ( oblen.le.10. ) then
+284:               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
+285:                         & *6*dlog(za(i,kz,j)/10.)
+286:             else
+287:             end if
+288:             th10(i,j) = dmax1(th10(i,j),tgb(i,j))
+289:           end if
+290: !gtb      th10(i,j) = dmin1(th10(i,j),tgb(i,j))  ! gtb add to minimize
+291:  
+292: !         obklen compute obukhov length
+293:           obklen(i,j) = -th10(i,j)*ustr(i,j)                            &
+294:                       & **3/(gti*vonkar*(hfxv(i,j)+dsign(1.D-10,        &
+295:                       & hfxv(i,j))))
+296:         end do
+297: !
+298: !       compute diffusivities and counter gradient terms
+299: !
+300:       end do
+301:       call <a href="./blhnew.F90.html#blhnew" TARGET=CENT_PANEL>blhnew</a>
+302: #ifdef MPP1
+303:       do j = jbegin , jendx
+304:         if ( (myid.ne.nproc-1) .or. (myid.eq.nproc-1 .and. j.lt.jendx) )&
+305:            & then
+306:           do k = 1 , kz
+307:             do i = 2 , iym1
+308:               if ( k.gt.1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)    &
+309:                  & /dza(i,k-1,j)
+310:               akzz2(i,k,j) = gti/(psb(i,j)*1000.)/dsigma(k)
+311:             end do
+312:           end do
+313:         end if
+314:       end do
+315:       ii = 0
+316:       do k = 1 , kz
+317:         do i = 2 , iym1
+318:           ii = ii + 1
+319:           wksend(ii) = akzz1(i,k,jxp)
+320:         end do
+321:       end do
+322:       do k = 1 , kz
+323:         do i = 2 , iym1
+324:           ii = ii + 1
+325:           wksend(ii) = akzz2(i,k,jxp)
+326:         end do
+327:       end do
+328:       call <a href="#" TARGET=CENT_PANEL>mpi_sendrecv</a>(wksend(1),(iym2)*kz*2,mpi_real8,                &
+329:                       & ieast,1,wkrecv(1),(iym2)*kz*2,                  &
+330:                       & mpi_real8,iwest,1,mpi_comm_world,               &
+331:                       & mpi_status_ignore,ierr)
+332:       ii = 0
+333:       do k = 1 , kz
+334:         do i = 2 , iym1
+335:           ii = ii + 1
+336:           akzz1(i,k,0) = wkrecv(ii)
+337:         end do
+338:       end do
+339:       do k = 1 , kz
+340:         do i = 2 , iym1
+341:           ii = ii + 1
+342:           akzz2(i,k,0) = wkrecv(ii)
+343:         end do
+344:       end do
+345: #else
+346:       do j = 2 , jxm2
+347:         do k = 1 , kz
+348:           do i = 2 , iym1
+349:             if ( k.gt.1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)      &
+350:                & /dza(i,k-1,j)
+351:             akzz2(i,k,j) = gti/(psb(i,j)*1000.)/dsigma(k)
+352:           end do
+353:         end do
+354:       end do
+355: #endif
+356: 
+357: #ifdef MPP1
+358:       do j = jbegin , jendx
+359: #else
+360:       do j = 2 , jxm1
+361: #endif
+362:  
+363: !       calculate coefficients at dot points for u and v wind
+364:  
+365: #ifdef MPP1
+366:         if ( myid.eq.0 .and. j.eq.2 ) then
+367: #else
+368:         if ( j.eq.2 ) then
+369: #endif
+370:           do k = 1 , kz
+371:             do i = 2 , iym1
+372:               idx = i
+373:               idx = min0(idx,iym2)
+374:               idxm1 = i - 1
+375:               idxm1 = max0(idxm1,2)
+376:               if ( k.gt.1 )                                             &
+377:                  & betak(i,k) = 0.5*(akzz1(idx,k,j)+akzz1(idxm1,k,j))
+378:               alphak(i,k) = 0.5*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
+379:             end do
+380:           end do
+381: #ifdef MPP1
+382:         else if ( myid.eq.nproc-1 .and. j.eq.jendx ) then
+383: #else
+384:         else if ( j.eq.jxm1 ) then
+385: #endif
+386:           do k = 1 , kz
+387:             do i = 2 , iym1
+388:               idx = i
+389:               idx = min0(idx,iym2)
+390:               idxm1 = i - 1
+391:               idxm1 = max0(idxm1,2)
+392:               if ( k.gt.1 )                                             &
+393:                  & betak(i,k) = 0.5*(akzz1(idx,k,j-1)+                  &
+394:                  &                   akzz1(idxm1,k,j-1))
+395:               alphak(i,k) = 0.5*(akzz2(idx,k,j-1)+akzz2(idxm1,k,j-1))
+396:             end do
+397:           end do
+398:         else
+399:           do k = 1 , kz
+400:             do i = 2 , iym1
+401:               idx = i
+402:               idx = min0(idx,iym2)
+403:               idxm1 = i - 1
+404:               idxm1 = max0(idxm1,2)
+405:               if ( k.gt.1 )                                             &
+406:                  & betak(i,k) = 0.25*(akzz1(idx,k,j-1)+                 &
+407:                  &                    akzz1(idxm1,k,j-1)+               &
+408:                  &                    akzz1(idx,k,j)+akzz1(idxm1,k,j))
+409:               alphak(i,k) = 0.25*(akzz2(idx,k,j-1)+akzz2(idxm1,k,j-1)+  &
+410:                           &       akzz2(idx,k,j)+akzz2(idxm1,k,j))
+411:             end do
+412:           end do
+413:         end if
+414: !
+415: ! **********************************************************************
+416: !
+417: !       start now procedure for implicit diffusion calculations
+418: !       performed separately for wind (dot points)
+419: !       and temperature and water vapor (cross points)
+420: !       countergradient term is not included in the implicit diffusion
+421: !       scheme its effect is included as in the old explicit scheme
+422: !       calculations assume fluxes positive upward, so the sign in front
+423: !       of uflxsf and vflxsf has been changed in the various terms
+424: !
+425:  
+426: !
+427: !       wind components
+428: !
+429:  
+430: !
+431: !       first compute coefficients of the tridiagonal matrix
+432: !
+433:  
+434:         do k = 2 , kz - 1
+435:           do i = 2 , iym1
+436:             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
+437:             coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
+438:             coef3(i,k) = dt*alphak(i,k)*betak(i,k)
+439:           end do
+440:         end do
+441:  
+442:         do i = 2 , iym1
+443:           coef1(i,1) = dt*alphak(i,1)*betak(i,2)
+444:           coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
+445:           coef3(i,1) = 0.
+446:           coef1(i,kz) = 0.
+447:           coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+448:           coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
+449:         end do
+450:  
+451:         do i = 2 , iym1
+452:           coefe(i,1) = coef1(i,1)/coef2(i,1)
+453:           coeff1(i,1) = auxx(i,1,j)/coef2(i,1)
+454:           coeff2(i,1) = avxx(i,1,j)/coef2(i,1)
+455:         end do
+456:  
+457:         do k = 2 , kz - 1
+458:           do i = 2 , iym1
+459:             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+460:             coeff1(i,k) = (auxx(i,k,j)+coef3(i,k)*coeff1(i,k-1))        &
+461:                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+462:             coeff2(i,k) = (avxx(i,k,j)+coef3(i,k)*coeff2(i,k-1))        &
+463:                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+464:           end do
+465:         end do
+466:  
+467:         do i = 2 , iym1
+468:           idx = i
+469:           idx = min0(idx,iym1)
+470:           idxm1 = i - 1
+471:           idxm1 = max0(idxm1,2)
+472:           jdx = j
+473:           jdxm1 = j - 1
+474: #ifdef MPP1
+475:           if ( myid.eq.nproc-1 ) jdx = min0(jdx,jendx)
+476:           if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
+477: #else
+478:           jdx = min0(jdx,jxm1)
+479:           jdxm1 = max0(jdxm1,2)
+480: #endif
+481:           drgdot = 0.25*(uvdrag(idxm1,jdxm1)+uvdrag(idxm1,jdx)          &
+482:                  & +uvdrag(idx,jdxm1)+uvdrag(idx,jdx))
+483:           uflxsf = drgdot*auxx(i,kz,j)
+484:           vflxsf = drgdot*avxx(i,kz,j)
+485:  
+486:           coefe(i,kz) = 0.
+487:           coeff1(i,kz) = (auxx(i,kz,j)-dt*alphak(i,kz)*uflxsf+          &
+488:                           coef3(i,kz)*coeff1(i,kz-1))                   &
+489:                        & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+490:           coeff2(i,kz) = (avxx(i,kz,j)-dt*alphak(i,kz)*vflxsf+          &
+491:                        &  coef3(i,kz)*coeff2(i,kz-1))                   &
+492:                        & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+493:  
+494:         end do
+495: !
+496: !       all coefficients have been computed, predict field and put it in
+497: !       temporary work space tpred
+498: !
+499:         do i = 2 , iym1
+500:           tpred1(i,kz) = coeff1(i,kz)
+501:           tpred2(i,kz) = coeff2(i,kz)
+502:         end do
+503:  
+504:         do k = kz - 1 , 1 , -1
+505:           do i = 2 , iym1
+506:             tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+507:             tpred2(i,k) = coefe(i,k)*tpred2(i,k+1) + coeff2(i,k)
+508:           end do
+509:         end do
+510:  
+511: !
+512: !       calculate tendency due to vertical diffusion using temporary
+513: !       predicted field
+514: !
+515:         do k = 1 , kz
+516:           do i = 2 , iym1
+517:             dumr = 0.25*(psb(i,j)+psb(i,j-1)+psb(i-1,j)+psb(i-1,j-1))
+518:             uten(i,k,j) = uten(i,k,j) + (tpred1(i,k)-auxx(i,k,j))       &
+519:                         & /dt*dumr
+520:             vten(i,k,j) = vten(i,k,j) + (tpred2(i,k)-avxx(i,k,j))       &
+521:                         & /dt*dumr
+522:           end do
+523:         end do
+524:  
+525: !       temperature
+526: !
+527:  
+528: !       calculate coefficients at cross points for temperature
+529:  
+530:         do k = 1 , kz
+531:           do i = 2 , iym1
+532:             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)        &
+533:                                      & /dza(i,k-1,j)
+534:             alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
+535:           end do
+536:         end do
+537:  
+538:         do k = 2 , kz - 1
+539:           do i = 2 , iym1
+540:             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
+541:             coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
+542:             coef3(i,k) = dt*alphak(i,k)*betak(i,k)
+543:           end do
+544:         end do
+545:  
+546:         do i = 2 , iym1
+547:           coef1(i,1) = dt*alphak(i,1)*betak(i,2)
+548:           coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
+549:           coef3(i,1) = 0.
+550:           coef1(i,kz) = 0.
+551:           coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+552:           coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
+553:         end do
+554:  
+555:         do i = 2 , iym1
+556:           coefe(i,1) = coef1(i,1)/coef2(i,1)
+557:           coeff1(i,1) = thx3d(i,1,j)/coef2(i,1)
+558:         end do
+559:  
+560:         do k = 2 , kz - 1
+561:           do i = 2 , iym1
+562:             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+563:             coeff1(i,k) = (thx3d(i,k,j)+coef3(i,k)*coeff1(i,k-1))       &
+564:                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+565:           end do
+566:         end do
+567:  
+568:         do i = 2 , iym1
+569:           coefe(i,kz) = 0.
+570:           coeff1(i,kz) = (thx3d(i,kz,j)+dt*alphak(i,kz)*hfx(i,j)        &
+571:                        & *rcpd+coef3(i,kz)*coeff1(i,kz-1))              &
+572:                        & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+573:         end do
+574:  
+575: !
+576: !       all coefficients have been computed, predict field and put it in
+577: !       temporary work space tpred
+578: !
+579:  
+580:         do i = 2 , iym1
+581:           tpred1(i,kz) = coeff1(i,kz)
+582:         end do
+583:  
+584:         do k = kz - 1 , 1 , -1
+585:           do i = 2 , iym1
+586:             tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+587:           end do
+588:         end do
+589:  
+590: !
+591: !       calculate tendency due to vertical diffusion using temporary
+592: !       predicted field
+593: !
+594:         do k = 1 , kz
+595:           do i = 2 , iym1
+596:             sf = tb(i,k,j)/thx3d(i,k,j)
+597:             difft(i,k,j) = difft(i,k,j) + (tpred1(i,k)-thx3d(i,k,j))    &
+598:                          & /dt*sf
+599:           end do
+600:         end do
+601: !
+602: !       water vapor
+603: !
+604:  
+605: !       calculate coefficients at cross points for water vapor
+606:  
+607:         do k = 1 , kz
+608:           do i = 2 , iym1
+609:             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
+610:                                      & /dza(i,k-1,j)
+611:             alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
+612:           end do
+613:         end do
+614:  
+615:         do k = 2 , kz - 1
+616:           do i = 2 , iym1
+617:             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
+618:             coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
+619:             coef3(i,k) = dt*alphak(i,k)*betak(i,k)
+620:           end do
+621:         end do
+622:  
+623:         do i = 2 , iym1
+624:           coef1(i,1) = dt*alphak(i,1)*betak(i,2)
+625:           coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
+626:           coef3(i,1) = 0.
+627:           coef1(i,kz) = 0.
+628:           coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+629:           coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
+630:         end do
+631:  
+632:         do i = 2 , iym1
+633:           coefe(i,1) = coef1(i,1)/coef2(i,1)
+634:           coeff1(i,1) = qvb3d(i,1,j)/coef2(i,1)
+635:         end do
+636:  
+637:         do k = 2 , kz - 1
+638:           do i = 2 , iym1
+639:             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+640:             coeff1(i,k) = (qvb3d(i,k,j)+coef3(i,k)*coeff1(i,k-1))       &
+641:                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+642:           end do
+643:         end do
+644:  
+645:         do i = 2 , iym1
+646:           coefe(i,kz) = 0.
+647:           coeff1(i,kz) = (qvb3d(i,kz,j)+dt*alphak(i,kz)*qfx(i,j)        &
+648:                        & +coef3(i,kz)*coeff1(i,kz-1))                   &
+649:                        & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+650:         end do
+651:  
+652: !
+653: !       all coefficients have been computed, predict field and put it in
+654: !       temporary work space tpred
+655:  
+656:         do i = 2 , iym1
+657:           tpred1(i,kz) = coeff1(i,kz)
+658:         end do
+659:  
+660:         do k = kz - 1 , 1 , -1
+661:           do i = 2 , iym1
+662:             tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+663:           end do
+664:         end do
+665:  
+666: !
+667: !       calculate tendency due to vertical diffusion using temporary
+668: !       predicted field
+669: !
+670:         do k = 1 , kz
+671:           do i = 2 , iym1
+672:             diffq(i,k,j) = diffq(i,k,j)                                 &
+673:                          & + (tpred1(i,k)-qvb(i,k,j)/psb(i,j))          &
+674:                          & /dt*psb(i,j)
+675:           end do
+676:         end do
+677:  
+678: !       calculate coefficients at cross points for cloud vater
+679:  
+680:         do k = 1 , kz
+681:           do i = 2 , iym1
+682:             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
+683:                                      & /dza(i,k-1,j)
+684:             alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
+685:           end do
+686:         end do
+687:  
+688:         do k = 2 , kz - 1
+689:           do i = 2 , iym1
+690:             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
+691:             coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
+692:             coef3(i,k) = dt*alphak(i,k)*betak(i,k)
+693:           end do
+694:         end do
+695:  
+696:         do i = 2 , iym1
+697:           coef1(i,1) = dt*alphak(i,1)*betak(i,2)
+698:           coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
+699:           coef3(i,1) = 0.
+700:           coef1(i,kz) = 0.
+701:           coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+702:           coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
+703:         end do
+704:  
+705:         do i = 2 , iym1
+706:           coefe(i,1) = coef1(i,1)/coef2(i,1)
+707:           coeff1(i,1) = qcx(i,1,j)/coef2(i,1)
+708:         end do
+709:  
+710:         do k = 2 , kz - 1
+711:           do i = 2 , iym1
+712:             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+713:             coeff1(i,k) = (qcx(i,k,j)+coef3(i,k)*coeff1(i,k-1))         &
+714:                         & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+715:           end do
+716:         end do
+717:  
+718:         do i = 2 , iym1
+719:           coefe(i,kz) = 0.
+720:           coeff1(i,kz) = (qcx(i,kz,j)+coef3(i,kz)*coeff1(i,kz-1))       &
+721:                        & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+722:         end do
+723:  
+724: !
+725: !       all coefficients have been computed, predict field and put it in
+726: !       temporary work space tpred
+727: !
+728:  
+729:         do i = 2 , iym1
+730:           tpred1(i,kz) = coeff1(i,kz)
+731:         end do
+732:  
+733:         do k = kz - 1 , 1 , -1
+734:           do i = 2 , iym1
+735:             tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+736:           end do
+737:         end do
+738:  
+739: !
+740: !       calculate tendency due to vertical diffusion using temporary
+741: !       predicted field
+742: !
+743:         do k = 1 , kz
+744:           do i = 2 , iym1
+745:             qcten(i,k,j) = qcten(i,k,j)                                 &
+746:                          & + (tpred1(i,k)-qcb(i,k,j)/psb(i,j))          &
+747:                          & /dt*psb(i,j)
+748:           end do
+749:         end do
+750:  
+751: !
+752: ! **********************************************************************
+753: !
+754: !       now add countergradient term to temperature and water vapor
+755: !       equation
+756: !trapuv
+757:         do i = 2 , iym1
+758:           ttnp(i,1) = 0.0D0
+759:         end do
+760: !trapuv_
+761:         do k = 2 , kz
+762:           do i = 2 , iym1
+763:             sf = tb(i,k,j)/(psb(i,j)*thx3d(i,k,j))
+764:             ttnp(i,k) = sf*cpd*rhohf(i,k-1,j)*kvh(i,k,j)*cgh(i,k,j)
+765:           end do
+766:         end do
+767: !
+768: !-----compute the tendencies:
+769: !
+770:         do i = 2 , iym1
+771:           difft(i,kz,j) = difft(i,kz,j) - gti*ttnp(i,kz)                &
+772:                         & /(1000.*cpd*dsigma(kz))
+773:         end do
+774: !
+775:         do k = 1 , kzm1
+776:           do i = 2 , iym1
+777:             difft(i,k,j) = difft(i,k,j) + gti*(ttnp(i,k+1)-ttnp(i,k))   &
+778:                          & /(1000.*cpd*dsigma(k))
+779:           end do
+780:         end do
+781:  
+782: !
+783: !chem2
+784:         if ( ichem.eq.1 .and. ichdrdepo.eq.1 ) then
+785: !
+786: !         coef1, coef2, coef3 and coefe are the same as for water vapor
+787: !         and cloud water so they do not need to be recalculated
+788:  
+789: !
+790: !         recalculation of coef1,2,3  with tracer diffusivity kvc
+791:  
+792:           do k = 1 , kz
+793:             do i = 2 , iym1
+794:               if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvc(i,k,j)      &
+795:                  & /dza(i,k-1,j)
+796:               alphak(i,k) = gti/(psb(i,j)*1000.)/dsigma(k)
+797:             end do
+798:           end do
+799:  
+800:           do k = 2 , kz - 1
+801:             do i = 2 , iym1
+802:               coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
+803:               coef2(i,k) = 1. + dt*alphak(i,k)*(betak(i,k+1)+betak(i,k))
+804:               coef3(i,k) = dt*alphak(i,k)*betak(i,k)
+805:             end do
+806:           end do
+807:  
+808:           do i = 2 , iym1
+809:             coef1(i,1) = dt*alphak(i,1)*betak(i,2)
+810:             coef2(i,1) = 1. + dt*alphak(i,1)*betak(i,2)
+811:             coef3(i,1) = 0.
+812:             coef1(i,kz) = 0.
+813:             coef2(i,kz) = 1. + dt*alphak(i,kz)*betak(i,kz)
+814:             coef3(i,kz) = dt*alphak(i,kz)*betak(i,kz)
+815:           end do
+816: !
+817: !         set the Vd for in case of prescribed deposition velocities
+818: !
+819:  
+820:           do itr = 1 , ntr
+821:             do i = 2 , iym1
+822: #ifdef CLM
+823:               if ( ocld2d(1,i,j).le.0.00001 ) then
+824: #else
+825:               if ( veg2d(i,j).le.0.00001 ) then
+826: #endif
+827:                 vdep(i,itr) = chtrdpv(itr,2)
+828:               else
+829:                 vdep(i,itr) = chtrdpv(itr,1)
+830:               end if
+831: !             provisoire test de la routine chdrydep pour les dust
+832:  
+833:               if ( chtrname(itr).eq.'DUST' ) vdep(i,itr) = 0.
+834:             end do
+835:           end do
+836: !
+837:           do itr = 1 , ntr
+838: !
+839:             do k = 1 , kz
+840:               do i = 2 , iym1
+841:                 chix(i,k) = chib(i,k,j,itr)/psb(i,j)
+842:               end do
+843:             end do
+844: !
+845:             do i = 2 , iym1
+846:               coefe(i,1) = coef1(i,1)/coef2(i,1)
+847:               coeff1(i,1) = chix(i,1)/coef2(i,1)
+848:             end do
+849: !
+850:             do k = 2 , kz - 1
+851:               do i = 2 , iym1
+852:                 coefe(i,k) = coef1(i,k)                                 &
+853:                            & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+854:                 coeff1(i,k) = (chix(i,k)+coef3(i,k)*coeff1(i,k-1))      &
+855:                             & /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+856:               end do
+857:             end do
+858:  
+859:             do i = 2 , iym1
+860:               coefe(i,kz) = 0.
+861:  
+862: !             add dry deposition option1
+863:               coeff1(i,kz) = (chix(i,kz)-dt*alphak(i,kz)*chix(i,kz)     &
+864:                            & *vdep(i,itr)*rhox2d(i,j)+coef3(i,kz)       &
+865:                            & *coeff1(i,kz-1))                           &
+866:                            & /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+867:             end do
+868: !
+869: !           all coefficients have been computed, predict field and put
+870: !           it in temporary work space tpred1
+871: !
+872:             do i = 2 , iym1
+873:               tpred1(i,kz) = coeff1(i,kz)
+874:             end do
+875: !
+876:             do k = kz - 1 , 1 , -1
+877:               do i = 2 , iym1
+878:                 tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
+879:               end do
+880:             end do
+881: !
+882: !
+883: !           calculate tendency due to vertical diffusion using temporary
+884: !           predicted field
+885: !           Dry deposition option 1 is included
+886:  
+887: !
+888:             do k = 1 , kz
+889:               do i = 2 , iym1
+890: !qian           chiten(i,k,j,itr)=chiten(i,k,j,itr)
+891: !CGAFFE         TEST diffusion/10
+892:                 chiten(i,k,j,itr) = chiten(i,k,j,itr)                   &
+893:                                   & + (tpred1(i,k)-chix(i,k))           &
+894:                                   & /dt*psb(i,j)
+895: !               chiten(i,k,j,itr)=chiten(i,k,j,itr)+0.1 *(tpred1(i,k)-
+896: !               1  chix(i,k))/dt *psb(i,j)
+897:  
+898:               end do
+899:             end do
+900:             do i = 2 , iym1
+901:  
+902:               if ( chtrname(itr).ne.'DUST' ) remdrd(i,j,itr)            &
+903:                  & = remdrd(i,j,itr) + chix(i,kz)*vdep(i,itr)*psb(i,j)  &
+904:                  & *dt/2.*rhox2d(i,j)*gti/(psb(i,j)*1000.*dsigma(kz))
+905:  
+906:             end do
+907:           end do
+908:         end if
+909: !chem2_
+910:  
+911:       end do
+912: !
+913:       end subroutine holtbl
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

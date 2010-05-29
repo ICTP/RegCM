@@ -1,0 +1,96 @@
+<HTML>
+
+<HEAD>
+<TITLE>condch.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>condch.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>condch.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=condch><H3>condch</H3></a></p> Click <a href="./callingtree/condch_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where condch is used.
+<hr>
+20:       subroutine condch
+21: 
+22: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+23: !
+24: !     dimensional and non-dimensional sensible heat conductances
+25: !               for canopy and soil flux calculations
+26: !
+27:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+28:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a> , only : vegt , vspda , cdr , lveg , sigf , uaf ,    &
+29:                     & cf , wta , wtlh , wtg , wtshi , wtl0 , wtg0 ,     &
+30:                     & wtgl , wta0 , wtga , ldoc1d , sqrtdi
+31:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : csoilc
+32:       implicit none
+33: !
+34: ! Local variables
+35: !
+36:       integer :: n , i
+37: !
+38: !     csoilc = constant drag coefficient for soil under canopy;
+39: !     prescribed in subroutine bconst.
+40: !
+41: !     symbols used for weights are:   wt : weight
+42: !     a : air
+43: !     l : leaf
+44: !     i : inverse
+45: !     s : sum
+46: !     h : sensible heat
+47: !     q : water vapor
+48: !     0 : normalized (sums to one)
+49: !     g : ground
+50: !
+51:       do i = 2 , iym1
+52:         do n = 1 , nnsg
+53:           if ( ldoc1d(n,i).gt.0.5 ) then
+54:             if ( sigf(n,i).gt.0.001 ) then
+55:               uaf(n,i) = vspda(n,i)*dsqrt(cdr(n,i))
+56:               cf(n,i) = 0.01*sqrtdi(lveg(n,i))/dsqrt(uaf(n,i))
+57:               wta(n,i) = sigf(n,i)*cdr(n,i)*vspda(n,i)
+58:               wtlh(n,i) = cf(n,i)*uaf(n,i)*vegt(n,i)
+59:               wtg(n,i) = csoilc*uaf(n,i)*sigf(n,i)
+60:               wtshi(n,i) = 1./(wta(n,i)+wtlh(n,i)+wtg(n,i))
+61:               wtl0(n,i) = wtlh(n,i)*wtshi(n,i)
+62:               wtg0(n,i) = wtg(n,i)*wtshi(n,i)
+63:               wtgl(n,i) = wtl0(n,i) + wtg0(n,i)
+64:               wta0(n,i) = 1. - wtgl(n,i)
+65:               wtga(n,i) = wta0(n,i) + wtg0(n,i)
+66:             end if
+67:           end if
+68:         end do
+69:       end do
+70: !
+71:       end subroutine condch
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

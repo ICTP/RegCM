@@ -1,0 +1,106 @@
+<HTML>
+
+<HEAD>
+<TITLE>lshfch.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>lshfch.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>lshfch.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=lshfch><H3>lshfch</H3></a></p> Click <a href="./callingtree/lshfch_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where lshfch is used.
+<hr>
+20:       subroutine lshfch(ixchar,lchar,ioff,iflg)
+21: !
+22: !****     this routine shifts the characters in ixchar ioff characters
+23: !****     to the left.  the right side off ixchar is either blank
+24: !****     or cnull filled depending on iflg.  for example, if ixchar
+25: !****     is to start with the 3rd character instead of the 1st ioff
+26: !****     would be set to 2 shifting ixchar to the left.
+27: !
+28: !****     on input-
+29: !****         ixchar  - character input data. (character)
+30: !****         lchar  - number of characters in ixchar. (integer)
+31: !****         ioff   - number of characters ioff is to be offset to
+32: !****                  left. (integer)
+33: !****         iflg   - flag specifying type of fill to be used for
+34: !****                  the ioff rightmost characters in ixchar.  if
+35: !****                      0 - blank fill is used
+36: !****                      1 - cnull fill is used
+37: !
+38: !****     on output-
+39: !****         ixchar  - ixchar is retured shifted ioff characters to the
+40: !****                  left with the ioff rightmost characters filled
+41: !****                  in accordance with iflg.
+42: !
+43:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a> , only : fatal
+44:       implicit none
+45: !
+46: ! Dummy arguments
+47: !
+48:       integer :: iflg , ioff , lchar
+49:       character(*) :: ixchar
+50:       intent (in) iflg , ioff , lchar
+51:       intent (inout) ixchar
+52: !
+53: ! Local variables
+54: !
+55:       integer :: cnull , i , iblnk , ifill , ipc
+56:       character(1) :: temp
+57: !
+58:       data iblnk/32/
+59:       data cnull/0/
+60: !
+61:       ifill = 0
+62:       ipc = 1
+63:       do i = ioff + 1 , lchar
+64:         temp = ixchar(i:i)
+65:         ixchar(ipc:ipc) = temp
+66:         ipc = ipc + 1
+67:       end do
+68: !
+69:       if ( iflg.eq.0 ) then
+70:         ifill = iblnk
+71:       else if ( iflg.eq.1 ) then
+72:         ifill = cnull
+73:       else
+74:         call <a href="./mod_message.F90.html#fatal" TARGET=CENT_PANEL>fatal</a>(__FILE__,__LINE__,'iflg out of range')
+75:       end if
+76: !
+77:       do i = ipc , lchar
+78:         ixchar(i:i) = char(ifill)
+79:       end do
+80:  
+81:       end subroutine lshfch
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,164 @@
+<HTML>
+
+<HEAD>
+<TITLE>makectl.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>makectl.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>makectl.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19: 
+<p><a name=makectl><H3>makectl</H3></a></p> Click <a href="./callingtree/makectl_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where makectl is used.
+<hr>
+20:       subroutine makectl(iunctl,domname,nx,ny,nzmax,nfld,dsm,clat,clon, &
+21:                        & plat,plon,iproj,ibigend,truelatl,truelath,     &
+22:                        & vmisdat,vnam,lnam,nlev,ntim,varmin,varmax)
+23:       implicit none
+24: !
+25: ! Dummy arguments
+26: !
+27:       real(4) :: clat , clon , dsm , plat , plon , truelath ,           &
+28:             & truelatl , vmisdat
+29:       integer :: ibigend , iunctl , nfld , nx , ny , nzmax
+30:       character(6) :: iproj
+31:       character(256) :: domname
+32:       character(64) , dimension(nfld) :: vnam
+33:       character(64) , dimension(nfld) :: lnam
+34:       integer , dimension(nfld) :: nlev , ntim
+35:       real(4) , dimension(3) :: varmax , varmin
+36:       intent (in) clat , clon , dsm , ibigend , iproj , iunctl , lnam , &
+37:                 & nfld , nlev , ntim , nx , ny , nzmax , domname ,      &
+38:                 & plon , truelath , truelatl , varmax , varmin , plat , &
+39:                 & vmisdat , vnam
+40: !
+41: ! Local variables
+42: !
+43:       character(2) , dimension(12) :: amonth
+44:       real(4) :: ddeg , dlat , dlon , lon1 , lat1
+45:       integer :: i , ifld , itim , nlat , nlon , nvars
+46:       character(64) :: vnam_ctl
+47:       integer :: imi
+48: !
+49:       data (amonth(i),i=1,12)/'01' , '02' , '03' , '04' , '05' , '06' , &
+50:            &'07' , '08' , '09' , '10' , '11' , '12'/
+51:  
+52:       ddeg = (dsm/1000.)*(45./atan(1.))/6371229.
+53:  
+54:       write (iunctl,99001) domname//'_CLM3.INFO'
+55:  
+56:       write (iunctl,99002)
+57:  
+58:       if ( ibigend==1 ) then
+59:         write (iunctl,99003)
+60:       else
+61:         write (iunctl,99004)
+62:       end if
+63:  
+64:       write (iunctl,99005) vmisdat
+65:  
+66:       if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
+67:  
+68:         if ( iproj=='LAMCON' ) then
+69:           write (iunctl,99006) nx , ny , clat , clon , nx/2 , ny/2 ,    &
+70:                              & truelatl , truelath , clon , dsm , dsm
+71:         else
+72:           write (iunctl,99007) nx , ny , plon , plat , ddeg ,           &
+73:                              & ddeg*0.95238
+74:         end if
+75:  
+76:         lon1 = varmin(1)
+77:         dlon = dsm*0.001/111./2.
+78:         nlon = 0.5 + nint(abs((varmax(1)-varmin(1))/dlon))
+79:         write (iunctl,99008) nlon , lon1 , dlon
+80:  
+81:         lat1 = varmin(2)
+82:         dlat = dsm*0.001/111./2.
+83:         nlat = 2 + nint(abs(varmax(2)-varmin(2))/dlat)
+84:         write (iunctl,99009) nlat , lat1 , dlat
+85:  
+86:       else
+87:  
+88:         dlon = (varmax(1)-varmin(1))/nx
+89:         write (iunctl,99010) nx , varmin(1) , dlon
+90:  
+91:         dlat = (varmax(2)-varmin(2))/ny
+92:         write (iunctl,99011) ny , varmin(2) , dlat
+93:  
+94:       end if
+95:  
+96:       write (iunctl,99012) nzmax
+97:  
+98:       write (iunctl,99013)
+99:  
+100:       nvars = 1
+101:       do ifld = 1 , nfld
+102:         nvars = nvars + ntim(ifld)
+103:       end do
+104:       write (iunctl,99014) nvars
+105:  
+106:       write (iunctl,99015)
+107:       do ifld = 1 , nfld
+108:         do itim = 1 , ntim(ifld)
+109: !         print*,ifld,nfld,itim,ntim(nfld)
+110:           imi = index(vnam(ifld),'MONTHLY')
+111:           if (imi == 0) then
+112:             vnam_ctl = vnam(ifld)
+113:           else
+114:             vnam_ctl = vnam(ifld)(imi+8:)
+115:           end if
+116:           vnam_ctl = trim(vnam_ctl)//trim(amonth(itim))
+117:           write (iunctl,99016) vnam_ctl,nlev(ifld),lnam(ifld)
+118:         end do
+119:       end do
+120:       write (iunctl,99017)
+121: 99001 format ('dset ^',a30)
+122: 99002 format ('title CLM3/RegCM information')
+123: 99003 format ('options big_endian')
+124: 99004 format ('options little_endian')
+125: 99005 format ('undef ',f8.1)
+126: 99006 format ('pdef ',2(i4,1x),'lcc ',2(f9.3,1x),2(i4,1x),5(f9.3,1x))
+127: 99007 format ('pdef ',2(i4,1x),'eta.u',2(1x,f9.3),2(1x,f9.3))
+128: 99008 format ('xdef ',i3,' linear ',f10.5,1x,f10.5)
+129: 99009 format ('ydef ',i3,' linear ',f10.5,1x,f10.5)
+130: 99010 format ('xdef ',i3,' linear',2(1x,f10.5))
+131: 99011 format ('ydef ',i3,' linear',2(1x,f10.5))
+132: 99012 format ('zdef ',i3,' linear 1 1')
+133: 99013 format ('tdef   1 linear 00z15Jan1900 1mo')
+134: 99014 format ('vars ',i3)
+135: 99015 format (' HEAD                  1 0 header information')
+136: 99016 format (a15,1x,i2,' 0 ',a40)
+137: 99017 format ('endvars')
+138:  
+139:       end subroutine makectl
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

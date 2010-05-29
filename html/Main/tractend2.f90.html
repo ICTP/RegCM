@@ -1,0 +1,698 @@
+<HTML>
+
+<HEAD>
+<TITLE>tractend2.f90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>tractend2.f90</H1>
+<HR>
+<H2 ALIGN=CENTER>tractend2.f90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=tractend2><H3>tractend2</H3></a></p> Click <a href="./callingtree/tractend2_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where tractend2 is used.
+<hr>
+20:       subroutine tractend2(j)
+21: !
+22: !     This subroutine computes the tendencies for tracer transport and
+23: !     chemistry
+24: !
+25: !     ntr:           dimension of tracer arrays in species index
+26: !     j:             index of j slice in current computation
+27: !
+28: !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+29:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+30:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a>
+31:       use <a href="./mod_param3.f90.html#mod_param3" TARGET=CENT_PANEL>mod_param3</a> , only : dsigma , twt , r8pt , kt , a , sigma
+32:       use <a href="./mod_main.F90.html#mod_main" TARGET=CENT_PANEL>mod_main</a>
+33:       use <a href="./mod_mainchem.F90.html#mod_mainchem" TARGET=CENT_PANEL>mod_mainchem</a>
+34:       use <a href="./mod_cvaria.F90.html#mod_cvaria" TARGET=CENT_PANEL>mod_cvaria</a>
+35:       use <a href="./mod_trachem.F90.html#mod_trachem" TARGET=CENT_PANEL>mod_trachem</a>
+36:       use <a href="./mod_pbldim.F90.html#mod_pbldim" TARGET=CENT_PANEL>mod_pbldim</a>
+37:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+38:       use <a href="./mod_rad.F90.html#mod_rad" TARGET=CENT_PANEL>mod_rad</a>
+39:       use <a href="./mod_pmoist.F90.html#mod_pmoist" TARGET=CENT_PANEL>mod_pmoist</a>
+40:       use <a href="./mod_dust.F90.html#mod_dust" TARGET=CENT_PANEL>mod_dust</a>
+41:       use <a href="./mod_date.F90.html#mod_date" TARGET=CENT_PANEL>mod_date</a>
+42:       use <a href="./mod_message.F90.html#mod_message" TARGET=CENT_PANEL>mod_message</a>
+43:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : gti , zlnd , zoce , zsno , ep2 , svp1 ,&
+44:                                & svp2 , svp3 , svp4 , svp5 , svp6 ,     &
+45:                                & tzero
+46:       implicit none
+47: !
+48: ! Dummy arguments
+49: !
+50:       integer :: j
+51: !
+52: ! Local variables
+53: !
+54:       real(8) :: agct , ak00t , ak0tm , akval , chimol , cldno , clmin ,&
+55:                & facb , facs , fact , facv , oh1 , pres10 , qsat10 ,    &
+56:                & remcum , rxs1 , rxs11 , rxs2 , rxs21 , satvp , shu10 , &
+57:                & u10 , v10
+58:       real(8) , dimension(ntr) :: agingtend , wetrem , wetrem_cvc
+59:       real(8) , dimension(iy,kz) :: concmin , cutend_dwd , cutend_up ,  &
+60:                                   & fracloud , fracum , rho , settend , &
+61:                                   & ttb , wk , wl
+62:       logical :: gfcall , gfcall2 , gfcall3 , gfcall4
+63:       integer :: i , ibin , itr , k , kb , kdwd
+64:       integer , dimension(iy) :: ivegcov , soilt
+65:       real(8) , dimension(iy,kz,nbin) :: pdepv
+66:       real(8) , dimension(iy) :: psurf , rh10 , soilw , srad ,  &
+67:                                & temp10 , tsurf , vegfrac , wid10 ,     &
+68:                                & zeff , ustar
+69:       real(8) , dimension(iy,nbin) :: rsfrow
+70: !
+71: !bxq  real(kind=8)  h2o2mol
+72: !     real(kind=8)  ustar(iy)
+73: !     real(kind=8)  zza(iy,kz)
+74: !
+75: !     clmin = non-precipitating cloud conversion threshold,
+76: !     clmin=0.01g/m3
+77:       clmin = 0.01
+78: !     remcum= removal rate for cumulus cloud scavenging (s-1)
+79:       remcum = 1.E-3
+80: !
+81: !     Preliminary calculations independant of tracer nature
+82:  
+83: !     the unit: rho - kg/m3, wl - g/m3
+84:       do k = 1 , kz
+85:         do i = 2 , iym2
+86:           rho(i,k) = (psb(i,j)*a(k)+r8pt)*1000./287./tb(i,k,j)*psb(i,j)
+87:           wl(i,k) = qcb(i,k,j)/psb(i,j)*1000.*rho(i,k)
+88:         end do
+89:       end do
+90:  
+91:       ivegcov = 0
+92:  
+93: !     cloud fractionnal cover for wet deposition
+94: !     large scale : fracloud, calculated from fcc coming from pcp.f
+95:  
+96: !     cumulus scale : fracum, calculated from the total cloud fraction
+97:  
+98: !     (as defined for the radiation scheme in cldfrac.f routine)
+99:       do i = 2 , iym2
+100:         do k = 1 , kz
+101:           fracloud(i,k) = dmin1(fcc(i,k,j),fcmax)
+102:           fracum(i,k) = 0.
+103:         end do
+104:         if ( icumtop(i,j).ne.0 ) then
+105:           do k = icumtop(i,j) , kz
+106:             fracum(i,k) = cldfra(i,k) - fracloud(i,k)
+107:           end do
+108:         end if
+109:       end do
+110:  
+111:  
+112: !     TRANSPORT OF TRACERS
+113: !----initialize tracer tendencies, and scratch arrays
+114:       do itr = 1 , ntr
+115:         do k = 1 , kz
+116:           do i = 1 , iym1
+117:             chiten(i,k,j,itr) = 0.
+118:           end do
+119:         end do
+120:       end do
+121:  
+122: !-----horizontal and vertical advection
+123:  
+124:       do itr = 1 , ntr
+125: !
+126:         call <a href="./hadv.F90.html#hadvch" TARGET=CENT_PANEL>hadvch</a>(chiten(1,1,j,itr),dx,itr,j,2)
+127:  
+128:         call <a href="./vadv.f90.html#vadv" TARGET=CENT_PANEL>vadv</a>(chiten(1,1,j,itr),chia(1,1,j,itr),j,5)
+129:  
+130: !       call vadv(chiten(1,1,j,itr),chia(1,1,j,itr),j,3)
+131:  
+132: !----horizontal diffusion: initialize scratch vars to 0.
+133: !       need to compute tracer tendencies due to diffusion
+134:         call <a href="./diffut.F90.html#diffutch" TARGET=CENT_PANEL>diffutch</a>(chiten(1,1,j,itr),xkc(1,1,j),c203,itr,j)
+135:  
+136:       end do ! end tracer loop
+137:  
+138: !     subgrid vertical transport by convective mass flux : a modifier !
+139:  
+140:       if ( ichcumtra.eq.2 ) then
+141:         do k = 2 , kz
+142:           do i = 2 , iym2
+143:             wk(i,k) = (1./psa(i,j))                                     &
+144:                     & *(twt(k,1)*chib(i,k,j,itr)+twt(k,2)*chib(i,k-1,j, &
+145:                     & itr))
+146:  
+147:             cutend_up(i,k) = 0.
+148:             cutend_dwd(i,k) = 0.
+149:           end do
+150:         end do
+151:  
+152:         do i = 2 , iym2
+153:  
+154:           if ( icumtop(i,j).ne.0 ) then
+155:  
+156:             kt = max0(icumtop(i,j),3)
+157:             kb = icumbot(i,j)
+158:             kdwd = icumdwd(i,j)
+159:  
+160: !           cutend(i,kt) =  mflx(i) * g * 1.e-3*
+161: !           &               (wk(i,kb)-wk(i,kt))/(sigma(kb)-sigma(kt))
+162:  
+163: !           transport linked to updraft
+164: !           betwwen kt et kdwd , the tendancy is averaged (mixing)
+165:  
+166:             if ( kdwd.lt.kt ) then
+167:               write (aline, *) 'Problem in tractend2 !'
+168:               call <a href="./mod_message.F90.html#say" TARGET=CENT_PANEL>say</a>
+169:             end if
+170:             do k = kt , kdwd
+171:               cutend_up(i,k) = mflx(i,1)*gti*1.E-3*wk(i,kb)             &
+172:                              & /(sigma(kdwd)-sigma(kt))
+173:             end do
+174:  
+175:             cutend_up(i,kb) = -mflx(i,1)*gti*1.E-3*wk(i,kb)/(dsigma(kb))
+176: !           transport linked to downdraft
+177:  
+178:             cutend_dwd(i,kdwd) = -mflx(i,2)*gti*1.E-3*wk(i,kdwd)        &
+179:                                & /(dsigma(kdwd))
+180:  
+181:             cutend_dwd(i,kz) = +mflx(i,2)*gti*1.E-3*wk(i,kdwd)          &
+182:                              & /(dsigma(kz))
+183:  
+184:             do k = kt , kz
+185:               chiten(i,k,j,itr) = chiten(i,k,j,itr) + cutend_up(i,k)    &
+186:                                 & + cutend_dwd(i,k)
+187:             end do
+188:           end if
+189:         end do
+190:       end if
+191:  
+192: !
+193: !     SOURCE AND SINKS TERMS ( dependant on the nature of tracers)
+194:       gfcall = .true.  ! logical call for SOx
+195:       gfcall2 = .true. ! logical for DUST
+196:       gfcall3 = .true. ! logical for BC aging
+197:       gfcall4 = .true. ! logical for OC aging
+198:  
+199:       ibin = 0
+200: !*******************************************
+201: !     begining of tracer loop
+202: !*******************************************
+203:       do itr = 1 , ntr
+204: !****************************
+205: !       print*,'gfcall', itr, gfcall
+206:  
+207: !
+208: !---------------------------------------------
+209: !       SOX CHEMSITRY / IN-CLOUD PROCESS
+210: !--------------------------------------------
+211:         if ( gfcall .and. (chtrname(itr).eq.'SO2' .and. iso4.gt.0) )    &
+212:            & then
+213:           gfcall = .false.
+214:  
+215: !
+216: !         GAZEOUS CONVERSION
+217:  
+218: !         calculate the k value for the gaseous conversion by OH
+219:  
+220: !         ohconc
+221:  
+222:           do k = 1 , kz
+223:             do i = 2 , iym2
+224:               cldno = 1.    ! no cloud fraction
+225:  
+226: !             if(coszrs(i,j).lt.0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
+227: !             oh1=ohconc(i,j,k)*rho(i,k)*2.084e13             !
+228: !             molecules/cm3 test j eprends directement une valeur de oh1
+229:  
+230:               oh1 = 15.E5                                ! molecules/cm3
+231:               if ( coszrs(i).lt.0.001 ) oh1 = oh1*0.01   ! diurnal evolution
+232:  
+233:               ak0tm = 3.E-31*(ta(i,k,j)/psa(i,j)/300.)**(-3.3)*rho(i,k) &
+234:                     & *2.084E19                          ! k0(T)*[M]
+235:               ak00t = 1.5E-12                            ! K00(T)
+236:               akval = ak0tm/(1.+ak0tm/ak00t)                            &
+237:                     & *0.6**(1./(1.+(dlog10(ak0tm/ak00t))**2.))
+238:  
+239: !             tendencies
+240: !             here p1 unit: s^-1  and the ratio of molar mass of SO4 to
+241:  
+242: !             SO2 is 96/64 = 1.5
+243:               chiten(i,k,j,iso2) = chiten(i,k,j,iso2) - chib(i,k,j,iso2)&
+244:                                  & *akval*oh1*cldno
+245:               chiten(i,k,j,iso4) = chiten(i,k,j,iso4) + chib(i,k,j,iso2)&
+246:                                  & *akval*oh1*cldno*1.5
+247:  
+248: !             gazeous conversion diagnostic
+249:  
+250:               rxsg(i,k,j,iso2) = rxsg(i,k,j,iso2) + chib(i,k,j,iso2)    &
+251:                                & *akval*oh1*cldno*dt/2.
+252:               rxsg(i,k,j,iso4) = rxsg(i,k,j,iso4) + chib(i,k,j,iso2)    &
+253:                                & *akval*oh1*cldno*1.5*dt/2.
+254:  
+255:             end do
+256:           end do
+257:  
+258: !         AQUEOUS CONVERSION IN CLOUDS AND WET REMOVAL
+259:  
+260: !         Aqueous conversion from so2 to so4 ;control by h2o2
+261:  
+262:           do k = 1 , kz
+263:             do i = 2 , iym2
+264: !bxq          h2o2mol = 1.e-6 * h2o2conc(i,j,k)
+265:               chimol = 28.9/64.*chib(i,k,j,iso2)/psb(i,j)      ! kg/kg to mole
+266: !             concmin(i,k)=dmin1(h2o2mol,chimol)*64./28.9*psb(i,j)  !
+267: !             cb*kg/kg do tests, suppose h2o2 always enough
+268:               concmin(i,k) = chimol*64./28.9*psb(i,j)       ! cb*kg/kg
+269:             end do
+270:           end do
+271:  
+272: !         Large scale clouds
+273:  
+274:           do k = 1 , kz
+275:             do i = 2 , iym2
+276:               rxs1 = 0.0
+277:               rxs11 = 0.0      ! fraction of conversion, not removed, as SO4 src
+278:               wetrem(iso2) = 0.
+279:                                ! scavenging for SO2, below lsc
+280:               wetrem(iso4) = 0.
+281:  
+282:               if ( wl(i,k).gt.clmin ) then
+283: !               conversion from so2 to so4
+284:                 rxs1 = fracloud(i,k)*chtrsol(iso2)*concmin(i,k)         &
+285:                      & *(dexp(-wl(i,k)/360.*dt)-1.)
+286:  
+287:                 rxs11 = rxs1*1.5
+288:                                 ! SO4 src term and the ratio of molar
+289:                                 ! mass of SO4 to SO2 is 96/64 = 1.5
+290:  
+291: !               if removal occurs, a fraction of SO4 src term is also
+292: !               removed and accounted for in the term  wetrem(iso4)
+293:  
+294:                 if ( remrat(i,k).gt.0. ) wetrem(iso4)                   &
+295:                    & = (fracloud(i,k)*chtrsol(iso4)*chib(i,k,j,iso4)    &
+296:                    & -rxs11)*(dexp(-remrat(i,k)*dt)-1.)
+297:               end if
+298:  
+299: !             Below cloud scavenging only for SO2
+300:  
+301:               if ( rembc(i,k).gt.0. ) wetrem(iso2) = fracloud(i,k)      &
+302:                  & *chtrsol(iso2)*concmin(i,k)*(dexp(-rembc(i,k)*dt)-1.)
+303:  
+304: !             Tendancies large scale cloud
+305:               chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + rxs1/dt +       &
+306:                                  & wetrem(iso2)/dt
+307:               chiten(i,k,j,iso4) = chiten(i,k,j,iso4) - rxs11/dt +      &
+308:                                  & wetrem(iso4)/dt
+309:  
+310: !             and wetdep diagnostics
+311:               remlsc(i,k,j,iso2) = remlsc(i,k,j,iso2) - wetrem(iso2)/2.
+312:               remlsc(i,k,j,iso4) = remlsc(i,k,j,iso4) - wetrem(iso4)/2.
+313:  
+314: !             chemical aqueous conversion diagnostic
+315:               rxsaq1(i,k,j,iso2) = rxsaq1(i,k,j,iso2) - rxs1/2.
+316:               rxsaq1(i,k,j,iso4) = rxsaq1(i,k,j,iso4) - rxs11/2.
+317:  
+318:             end do
+319:           end do
+320:  
+321: !         cumulus clouds
+322: !         wet removal by cumulus clouds (over the fraction of grid box
+323: !         fracum) assume the cloud water content = 2 g/m3  (ref.
+324:  
+325:  
+326: !         Kasibhatla )
+327:           do i = 2 , iym2
+328:             if ( icumtop(i,j).ne.0 ) then
+329:               do k = icumtop(i,j) , kz
+330:                 rxs2 = 0.0
+331:                 rxs21 = 0.0    ! fraction of conversion, not removed, as SO4 src
+332:                 wetrem_cvc(iso2) = 0.   ! scavenging for SO2, below lsc
+333:                 wetrem_cvc(iso4) = 0.
+334:  
+335: !               conversion from so2 to so4
+336:                 rxs2 = fracum(i,k)*chtrsol(iso2)*concmin(i,k)           &
+337:                      & *(dexp(-2./360.*dt)-1.)
+338:                 rxs21 = rxs2*1.5
+339:  
+340: !               removal (including theremoval on the rxs21 term)
+341:                 wetrem_cvc(iso4) = (fracum(i,k)*chtrsol(iso4)*chib(i,k,j&
+342:                                  & ,iso4)-rxs21)*(dexp(-remcum*dt)-1.)
+343:  
+344: !               tendancies due to convective processes
+345:                 chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + rxs2/dt
+346:                 chiten(i,k,j,iso4) = chiten(i,k,j,iso4)                 &
+347:                                    & + wetrem_cvc(iso4)/dt - rxs21/dt
+348:  
+349: !               diagnostic of wet deposition
+350: !               remcvc(i,k,j,1) = remcvc(i,k,j,1) - wetrem_cvc(iso2)/2.
+351:                 remcvc(i,k,j,iso4) = remcvc(i,k,j,iso4)                 &
+352:                                    & - wetrem_cvc(iso4)/2.
+353: !               chemical aquesous conversion diagnostic
+354:                 rxsaq2(i,k,j,iso2) = rxsaq2(i,k,j,iso2) - rxs2/2.
+355:                 rxsaq2(i,k,j,iso4) = rxsaq2(i,k,j,iso4) - rxs21/2.
+356:  
+357:               end do
+358:             end if
+359:           end do
+360:  
+361:         end if ! end of SOX chemistry
+362:  
+363: !---------------------------------------
+364: !       Other than sulfate CARBON AEROSOL, DUST
+365: !----------------------------------------
+366:         if ( chtrname(itr).eq.'BC_HB' .or. chtrname(itr).eq.'BC_HL' .or.&
+367:            & chtrname(itr).eq.'OC_HB' .or. chtrname(itr).eq.'OC_HL' .or.&
+368:            & chtrname(itr).eq.'DUST' ) then
+369:  
+370: !         wet deposition term
+371:  
+372:           if ( ichremlsc.eq.1 ) then
+373: !           Wet removal at resolvable scale (fcc)
+374: !           add non-precipitating cloud conversion (threshold
+375: !           clmin=0.01g/m3) the same as that in subroutine exmois
+376: !           clmin = 0.01
+377:  
+378:             do k = 1 , kz
+379:               do i = 2 , iym2
+380:                 if ( wl(i,k).gt.clmin ) then
+381:                   wetrem(itr) = 0.
+382:                   if ( remrat(i,k).gt.0. ) then
+383:                     wetrem(itr) = fracloud(i,k)*chtrsol(itr)            &
+384:                                 & *chib(i,k,j,itr)                      &
+385:                                 & *(dexp(-remrat(i,k)*dt)-1.)
+386:                     chiten(i,k,j,itr) = chiten(i,k,j,itr) + wetrem(itr) &
+387:                                       & /dt
+388:                     remlsc(i,k,j,itr) = remlsc(i,k,j,itr) - wetrem(itr) &
+389:                                       & /2.
+390:                   end if
+391:                 end if
+392:               end do
+393:             end do
+394:           end if
+395:  
+396:           if ( ichremcvc.eq.1 ) then
+397: !           sub-scale wet removal, cumulus cloud (fracum)
+398: !           remcum = removal rate for cumulus cloud scavenging (s-1)
+399: !           remcum = 1.e-3
+400:             do i = 2 , iym2
+401:               if ( icumtop(i,j).ne.0 ) then
+402:                 do k = icumtop(i,j) , kz
+403:                   wetrem_cvc(itr) = fracum(i,k)*chtrsol(itr)            &
+404:                                   & *chib(i,k,j,itr)                    &
+405:                                   & *(dexp(-remcum*dt)-1.)
+406:                   chiten(i,k,j,itr) = chiten(i,k,j,itr)                 &
+407:                                     & + wetrem_cvc(itr)/dt
+408:                   remcvc(i,k,j,itr) = remcvc(i,k,j,itr)                 &
+409:                                     & - wetrem_cvc(itr)/2.
+410:                 end do
+411:               end if
+412:             end do
+413:           end if
+414:  
+415:         end if ! end wet removal DUST, CARBON
+416:  
+417: !       Conversion from hydrophobic to hydrophilic: Carbonaceopus
+418: !       species time constant ( 1.15 day cooke et al.,1999)
+419:  
+420:         if ( gfcall3 .and. chtrname(itr).eq.'BC_HB' .and. ibchl.gt.0 )  &
+421:            & then
+422:           gfcall3 = .false.
+423:           agct = 1.15*86400
+424: !         agct = 2.30 *86400
+425: !bxq      do itr=1,ntr
+426: !bxq      agingtend(itr) = 0.
+427: !bxq      end do
+428:  
+429:           do k = 1 , kz
+430:             do i = 2 , iym2
+431:               agingtend(ibchb) = -chib(i,k,j,ibchb)*(1.-dexp(-dt/agct)) &
+432:                                & /dt
+433:               agingtend(ibchl) = -agingtend(ibchb)
+434:  
+435:               chiten(i,k,j,ibchb) = chiten(i,k,j,ibchb)                 &
+436:                                   & + agingtend(ibchb)
+437:               chiten(i,k,j,ibchl) = chiten(i,k,j,ibchl)                 &
+438:                                   & + agingtend(ibchl)
+439:             end do
+440:           end do
+441:         end if
+442:  
+443:  
+444:         if ( gfcall4 .and. chtrname(itr).eq.'OC_HB' .and. iochl.gt.0 )  &
+445:            & then
+446:  
+447:           gfcall4 = .false.
+448:           agct = 1.15*86400
+449: !         agct = 2.30 *86400
+450: !bxq      do itr=1,ntr
+451: !bxq      agingtend(itr) = 0.
+452: !bxq      end do
+453:  
+454:           do k = 1 , kz
+455:             do i = 2 , iym2
+456:               agingtend(iochb) = -chib(i,k,j,iochb)*(1-dexp(-dt/agct))  &
+457:                                & /dt
+458:               agingtend(iochl) = -agingtend(iochb)
+459:  
+460:               chiten(i,k,j,iochb) = chiten(i,k,j,iochb)                 &
+461:                                   & + agingtend(iochb)
+462:               chiten(i,k,j,iochl) = chiten(i,k,j,iochl)                 &
+463:                                   & + agingtend(iochl)
+464:             end do
+465:           end do
+466:  
+467:         end if ! end aging
+468:  
+469: !*********************************
+470: !       SURFACE source terms
+471: !********************************
+472:  
+473: !       care chiten must be consistent with chia,b,c (= chi * pstar i.e)
+474: !       1.e3 comes from Psurf/Pstar
+475:  
+476: !       en chantier DUST
+477: !
+478: !       print*,'before SFLUX',j,maxval(SFLT)
+479: !       calculation of 10m wind ggaffe au facteur sur le vent
+480: !       gaffe au kl ??
+481:  
+482: !       1 wind at 10 m
+483:  
+484: !       define the bin size
+485:  
+486:         if ( chtrname(itr).eq.'DUST' .and. gfcall2 ) then
+487:  
+488:           do i = 2 , iym2
+489:             ivegcov(i) = nint(veg2d(i,j))
+490:             psurf(i) = psb(i,j)*1000. + r8pt
+491:  
+492:             do k = 1 , kz
+493:               ttb(i,k) = tb(i,k,j)/psb(i,j)
+494: !             zza(i,k) = za(i,k,j)
+495:             end do
+496:  
+497: !           calculate 10 M input for wind erosion and dry deposition
+498: !           method based on bats diagnostic in routine interf.
+499:  
+500:             if ( (ivegcov(i).ne.0) ) then
+501:               facv = dlog(za(i,kz,j)/10.)                               &
+502:                    & /dlog(za(i,kz,j)/rough(ivegcov(i)))
+503:               facb = dlog(za(i,kz,j)/10.)/dlog(za(i,kz,j)/zlnd)
+504:               facs = dlog(za(i,kz,j)/10.)/dlog(za(i,kz,j)/zsno)
+505:  
+506:               fact = sfracv2d(i,j)*facv + sfracb2d(i,j)                 &
+507:                    & *facb + sfracs2d(i,j)*facs
+508:  
+509: !             grid level effective roughness lenght
+510: !                (linear averaging for now)
+511: 
+512:               zeff(i) = rough(ivegcov(i))*sfracv2d(i,j)                 &
+513:                       & + zlnd * sfracb2d(i,j) + zsno * sfracs2d(i,j)
+514: 
+515:             else
+516: !             water surface
+517:               fact = dlog(za(i,kz,j)/10.)/dlog(za(i,kz,j)/zoce)
+518:  
+519:               zeff(i) = zoce
+520:             end if
+521:  
+522: !           10 m wind
+523:             u10 = (ub(i,kz,j)/psb(i,j))*(1-fact)
+524:             v10 = (vb(i,kz,j)/psb(i,j))*(1-fact)
+525:             wid10(i) = sqrt(u10**2+v10**2)
+526: !           wid10(5) = 15
+527: !           10 m air temperature
+528:  
+529:             temp10(i) = ttb(i,kz) - sdeltk2d(i,j)*fact
+530:  
+531: !           specific  humidity at 10m
+532:             shu10 = (qvb(i,kz,j)/psb(i,j))/(1.+qvb(i,kz,j)/psb(i,j))    &
+533:                   & - sdelqk2d(i,j)*fact
+534:  
+535: !           retransform in mixing ratio
+536:  
+537:             shu10 = shu10/(1-shu10)
+538:  
+539: !           saturation mixing ratio at 10m
+540:             if ( temp10(i).gt.tzero ) then
+541:               satvp = svp1*1.E3*dexp(svp2*(temp10(i)-tzero)             &
+542:                     & /(temp10(i)-svp3))
+543:             else
+544:               satvp = svp4*1.E3*dexp(svp5-svp6/temp10(i))
+545:             end if
+546:             pres10 = psurf(i) - 98
+547:             qsat10 = ep2*satvp/(pres10-satvp)
+548:  
+549: !           relative humidity at 10m
+550:             rh10(i) = 0.
+551:             if ( qsat10.gt.0. ) rh10(i) = shu10/qsat10
+552: !
+553: !           friction velocity ( not used fo the moment)
+554: !
+555:             ustar(i) = sqrt ( uvdrag(i,j)                 *             &
+556:            &           sqrt ( (ub(i,kz,j)/psb(i,j) )**2   +             &
+557:            &                  (vb(i,kz,j)/psb(i,j) )**2 ) / rho(i,kz) )
+558:  
+559: !           soil wetness
+560:             soilw(i) = ssw2da(i,j)                                      &
+561:                      & /(xmopor(iexsol(nint(satbrt(i,j))))*depuv        &
+562:                      & (nint(satbrt(i,j))))
+563:  
+564: !           soilw(i) = ssw2da(i,j) /(xmopor(iexsol(ivegcov(i)) )
+565: !           &                            * depuv(ivegcov(i))      )
+566:  
+567: !           fraction of vegetation
+568:             vegfrac(i) = svegfrac2d(i,j)
+569:  
+570: !           soil texture ( from external preoproc)
+571:             soilt(i) = nint(dustsotex(i,j))
+572:  
+573: !           surface temperature
+574: !           over land recalculated from the BATS  deltk air/ surface
+575: !           temperature account for a composite temperature between
+576:  
+577: !           bare ground and vegetation
+578:             if ( ivegcov(i).ne.0 ) then
+579:               tsurf(i) = ttb(i,kz) - sdeltk2d(i,j)
+580:             else
+581: !             ocean temperature in this case
+582:               tsurf(i) = tgb(i,j)
+583:             end if
+584:  
+585: !           aborbed solar radiation ( for stb criteria)
+586:  
+587:             srad(i) = sol2d(i,j)
+588:  
+589:           end do
+590: 
+591:           call <a href="./dsflx.F90.html#sfflux" TARGET=CENT_PANEL>sfflux</a>(iy,2,iym2,j,20,ivegcov,vegfrac,soilt,ustar,       &
+592:                     & zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)
+593:  
+594:           call <a href="./chdrydep.f90.html#chdrydep" TARGET=CENT_PANEL>chdrydep</a>(iy,2,iym2,kz,1,nbin,ivegcov,ttb,rho,a,psurf,    &
+595:                       & temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,     &
+596:                       & pdepv)
+597:  
+598:  
+599:           gfcall2 = .false.
+600:         end if ! end dust flux and deposition calculated for bins
+601: !       just calculated for the first case of itr = DUST (save time man)
+602:  
+603:         if ( chtrname(itr).eq.'DUST' ) then
+604: !         define the corresponding index between itr and DUST bins
+605: !         (can be different if we use DUST + other particles)
+606:  
+607:           ibin = ibin + 1
+608:  
+609: !         calculate the source tendancy
+610:           do i = 2 , iym2
+611:             chemsrc(i,j,lmonth,itr) = rsfrow(i,ibin)
+612:             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + rsfrow(i,ibin)    &
+613:                                & *gti/(dsigma(kz)*1.E3)
+614: !           diagnostique source
+615:             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
+616:                            & *dt/2.
+617:           end do
+618:  
+619: !         calculate the tendancy du to gravitationnal settling and dry
+620:  
+621: !         deposition
+622:           do k = 2 , kz
+623:             do i = 2 , iym2
+624:               wk(i,k) = (1./psb(i,j))                                   &
+625:                       & *(twt(k,1)*chib(i,k,j,itr)+twt(k,2)*chib(i,k-1, &
+626:                       & j,itr))
+627:             end do
+628:           end do
+629:  
+630: !         remember PDEPV is defined for ibin which is not necessarly itr
+631:  
+632:           do i = 2 , iym2
+633:             do k = 2 , kz - 1
+634:                         ! do not apply to the first level
+635:               settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,ibin)-wk(i,k)*pdepv(&
+636:                            & i,k,ibin))*gti*1.E-3/dsigma(k)
+637:               chiten(i,k,j,itr) = chiten(i,k,j,itr) - settend(i,k)
+638:             end do
+639: !
+640:             settend(i,kz) = -(wk(i,kz)*pdepv(i,kz,ibin)*gti*1.E-3)      &
+641:                           & /dsigma(kz)
+642:             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + settend(i,kz)
+643:  
+644: !           dignoctic for dry deposition
+645:             remdrd(i,j,itr) = remdrd(i,j,itr) - settend(i,kz)*dt/2.
+646:           end do
+647:        
+648:         end if !( end calculation of dust tendancies)
+649:  
+650: !CCCC   Source tendenciesCCCC
+651:  
+652:         do i = 2 , iym2
+653:           if ( chtrname(itr).ne.'DUST' ) then
+654:             chiten(i,kz,j,itr) = chiten(i,kz,j,itr)                     &
+655:                                & + chemsrc(i,j,lmonth,itr)              &
+656:                                & *gti*0.7/(dsigma(kz)*1.E3)
+657:             chiten(i,kz-1,j,itr) = chiten(i,kz-1,j,itr)                 &
+658:                                  & + chemsrc(i,j,lmonth,itr)            &
+659:                                  & *gti*0.15/(dsigma(kz-1)*1.E3)
+660:             chiten(i,kzm2,j,itr) = chiten(i,kzm2,j,itr)                 &
+661:                                  & + chemsrc(i,j,lmonth,itr)            &
+662:                                  & *gti*0.15/(dsigma(kzm2)*1.E3)
+663: !           diagnostic for source, cumul
+664:             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
+665:                            & *dt/2.
+666:           end if
+667:         end do
+668:  
+669: !       end loop on tracers
+670: !******************
+671:       end do
+672: !*******************
+673:       end subroutine tractend2
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>

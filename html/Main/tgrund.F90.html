@@ -1,0 +1,260 @@
+<HTML>
+
+<HEAD>
+<TITLE>tgrund.F90</TITLE>
+</HEAD>
+
+<BODY background="back_granite.gif">
+<FONT COLOR="#000000" FACE="Times">
+<H1 ALIGN=CENTER>tgrund.F90</H1>
+<HR>
+<H2 ALIGN=CENTER>tgrund.F90</H2>
+<HR>
+</FONT>
+
+<HR>
+
+<PRE>
+1: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2: !
+3: !    This file is part of ICTP RegCM.
+4: !
+5: !    ICTP RegCM is free software: you can redistribute it and/or modify
+6: !    it under the terms of the GNU General Public License as published by
+7: !    the Free Software Foundation, either version 3 of the License, or
+8: !    (at your option) any later version.
+9: !
+10: !    ICTP RegCM is distributed in the hope that it will be useful,
+11: !    but WITHOUT ANY WARRANTY; without even the implied warranty of
+12: !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+13: !    GNU General Public License for more details.
+14: !
+15: !    You should have received a copy of the GNU General Public License
+16: !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+17: !
+18: !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+19:  
+<p><a name=tgrund><H3>tgrund</H3></a></p> Click <a href="./callingtree/tgrund_rite.html" TARGET=RITE_PANEL>HERE</a> to see the where tgrund is used.
+<hr>
+20:       subroutine tgrund
+21: !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+22: ! 
+23: !     present version of diurnal and seasonal force restore (red 7-88)
+24: !     based on dickinson (1988) force restore paper in j. climate.
+25: !     in particular, shows that a 0.1 m or thicker surface layer will
+26: !     dominate thermal conductivity for surface temperature over the
+27: !     diurnal cycle, and the first 1 m gives appropriate conductivity
+28: !     over annual cycle.
+29: !
+30: !     for snow cover, use weighted average of soil and snow properties.
+31: !     asymptotes to snow values for snow depth large compared to
+32: !     daily and annual temperature waves, respectively.
+33: !
+34: !     the term fct2 provides latent heat for the freezing or
+35: !     thawing of ground over temperatures between -4 and 0 deg c;
+36: !     this range may be changed if the 0.25 in the arithmetic fcn
+37: !     fct1=1/range and the range for subsoil temperature freezing
+38: !     are correspondingly changed.
+39: !
+40: !       tau1 = seconds in a day
+41: !       wlhv = latent heat of vaporization of water
+42: !       wlhs = latent heat of sublimation of water
+43: !       wlhf = latent heat of freezing of water
+44: !       htvp =  wlhv or = wlhs if snow or tg<zero
+45: !     depsnw = depth of snow
+46: !     dtime  = nondimensional diurnal time step
+47: !     dtimea = nondimensional annual time step
+48: !     fsk(x) = soil conductivity fcn (x = v(h2o)/v(soil+pores))
+49: !     fsc(x) = soil heat capacity fcn (x = v(h2o)/v(soil+pores))
+50: !         hs = net energy flux into the surface
+51: !         sg = solar flux absorbed by bare ground
+52: !     skd,ska= diurnal and annual thermal diffusivities
+53: !
+54:       use <a href="./mod_dynparam.F90.html#mod_dynparam" TARGET=CENT_PANEL>mod_dynparam</a>
+55:       use <a href="./mod_bats.F90.html#mod_bats" TARGET=CENT_PANEL>mod_bats</a>
+56:       use <a href="./mod_param1.f90.html#mod_param1" TARGET=CENT_PANEL>mod_param1</a> , only : dtbat
+57:       use <a href="./mod_constants.F90.html#mod_constants" TARGET=CENT_PANEL>mod_constants</a> , only : mathpi , csnw , cws , tau1 , tzero ,   &
+58:                                & wlhf
+59:       implicit none
+60: !
+61: ! Local variables
+62: !
+63:       real(8) , dimension(nnsg,iym1) :: bb , bcoef , cc , depann ,      &
+64:            & depdiu , deprat , fct2 , hs , rscsa , rscsd , ska , skd ,  &
+65:            & sks , swtrta , swtrtd
+66:       real(8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
+67:                & depu , dt2 , dtime , dtimea , froze2 , frozen , rscss ,&
+68:                & t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds , x , &
+69:                & xkperi , xnu , xnua
+70:       real(8) :: fct1 , fsc , fsk
+71:       real(8) :: dtbat2 , rdtbat2
+72:       integer :: n , i
+73:  
+74:       fsk(x) = (2.9E-7*x+4.E-9)/(((1.-0.6*x)*x+0.09)*(0.23+x))
+75:       fsc(x) = (0.23+x)*4.186E6
+76:       fct1(x) = wlhf*0.25*1.414/x
+77:  
+78:       dtbat2 = dtbat*2.
+79:       rdtbat2 = 1./dtbat2
+80: 
+81: !=======================================================================
+82: !l    1.   define thermal conductivity, heat capacity,
+83: !l    and other force restore parameters
+84: !=======================================================================
+85:       xnu = 2.*mathpi/tau1
+86:       xnua = xnu/365.
+87:       dtime = dtbat*xnu
+88:       dtimea = dtbat*xnua
+89:       dt2 = 0.5*dtime
+90:       xkperi = 1.4E-6
+91:  
+92: !l    3.4  permafrost temperature
+93:       t3 = 271.
+94:  
+95:       do i = 2 , iym1
+96:         do n = 1 , nnsg
+97:           if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
+98:  
+99: !l          1.1  frozen ground values using 44 m2/yr for frozen ground
+100: !l          thermal diffusion coefficient, based on the values of
+101: !l          50 and 38 quoted by osterkamp; ice contribution to
+102: !l          specific heat only o.49 that of water
+103:  
+104:             swtrtd(n,i) = watu(n,i)*porsl(n,i)
+105:             if ( tg1d(n,i).lt.tzero ) then
+106:               frozen = 0.85*dmin1(1.D0,.25*(tzero-tg1d(n,i)))
+107:               skd(n,i) = xkperi
+108:               rscsd(n,i) = fsc(swtrtd(n,i)*(1.-0.51*frozen))
+109:             else
+110:               skd(n,i) = fsk(swtrtd(n,i))*texrat(n,i)
+111:               rscsd(n,i) = fsc(swtrtd(n,i))
+112:             end if
+113:             swtrta(n,i) = watr(n,i)*porsl(n,i)
+114:             if ( tgb1d(n,i).lt.tzero ) then
+115:               froze2 = 0.85*dmin1(1.D0,.25*(tzero-tgb1d(n,i)))
+116:               ska(n,i) = xkperi
+117:               rscsa(n,i) = fsc(swtrta(n,i)*(1.-0.51*froze2))
+118:             else
+119:               ska(n,i) = fsk(swtrta(n,i))*texrat(n,i)
+120:               rscsa(n,i) = fsc(swtrta(n,i))
+121:             end if
+122:  
+123: !l          1.2  correct for snow cover, if significant
+124:             depdiu(n,i) = dsqrt(2.*skd(n,i)/xnu)
+125:             bcoef(n,i) = dtime*depdiu(n,i)/(rscsd(n,i)*skd(n,i))
+126:             if ( scv1d(n,i).gt.1.0 ) then
+127:               wtd = dexp(-2.*scrat(n,i)/depdiu(n,i))
+128:               rscss = csnw*rhosw(n,i)
+129:               sks(n,i) = 7.E-7*cws*rhosw(n,i)
+130:               bcoefs = dsqrt(2.*sks(n,i)/xnu)/(rscss*sks(n,i))
+131:               wtds = (1.-wtd)*scvk(n,i)
+132:               bcoefd = dsqrt(2.*skd(n,i)/xnu)/(rscsd(n,i)*skd(n,i))
+133:               bcoef(n,i) = dtime*(wtds*bcoefs+(1.-wtds)*bcoefd)
+134:               depdiu(n,i) = wtds*dsqrt(2.*sks(n,i)/xnu) + (1.-wtds)     &
+135:                            & *depdiu(n,i)
+136:             end if
+137:             depann(n,i) = dsqrt(2.*ska(n,i)/xnua)
+138:             if ( scv1d(n,i).gt.20. ) then
+139:               wtax = dexp(-2.*scrat(n,i)/depann(n,i))
+140:               wtas = (1.-wtax)*scvk(n,i)
+141:               depann(n,i) = wtas*dsqrt(2.*sks(n,i)/xnua) + (1.-wtas)    &
+142:                            & *depann(n,i)
+143:             end if
+144:             deprat(n,i) = depann(n,i)/depdiu(n,i)
+145:  
+146: !=======================================================================
+147: !l          2.   collect force restore terms
+148: !=======================================================================
+149:             cc(n,i) = 1.0
+150:             fct2(n,i) = 0.
+151: !
+152: !l          2.1  add freezing thermal inertia
+153:             if ( (tg1d(n,i).lt.tzero) .and. (tg1d(n,i).gt.(tzero-4.))   &
+154:                & .and. (sice1d(n,i).le.1.E-22) ) then
+155:               depu = depuv(lveg(n,i))*1.E-3
+156:               cc(n,i) = 1. + dmax1(ssw1d(n,i)-frezu(lveg(n,i)),0.D0)    &
+157:                        & *fct1(depu*rscsd(n,i))
+158:             end if
+159:             if ( (tgb1d(n,i).lt.tzero) .and.                            &
+160:                & (tgb1d(n,i).gt.(tzero-4.)) .and.                       &
+161:                & (sice1d(n,i).le.1.E-22) ) then
+162:               depr = deprv(lveg(n,i))*1.E-3
+163:               fct2(n,i) = dmax1(rsw1d(n,i)-freza(lveg(n,i)),0.D0)       &
+164:                          & *fct1(depr*rscsa(n,i))
+165:             end if
+166:  
+167: !l          2.2  large thermal inertial for permanent ice cap
+168:             if ( lveg(n,i).eq.12 ) fct2(n,i) = 1.E3*fct2(n,i)
+169:  
+170: !l          2.3  collect energy flux terms
+171:             rnet(n,i) = fsw1d(i) - sigf(n,i)*(sabveg(i)-flnet(n,i))     &
+172:                        & - (1.-sigf(n,i))                               &
+173:                        & *(flw1d(i)-sigf(n,i)*flneto(n,i))
+174:             hs(n,i) = rnet(n,i) - fseng(n,i) - fevpg(n,i)*htvp(n,i)
+175:             bb(n,i) = bcoef(n,i)*hs(n,i) + dtime*tgb1d(n,i)
+176:  
+177: !l          2.4  add in snowmelt (melt enough snow to reach freezing
+178: !           temp)
+179:             sm(n,i) = 0.0
+180:             if ( scv1d(n,i).gt.0.0 ) then
+181:               cder = bcoef(n,i)*cgrnd(n,i)
+182:               sm(n,i) = (bb(n,i)+(cc(n,i)-dt2+cder)*tg1d(n,i)-tzero     &
+183:                        & *(cc(n,i)+dt2+cder))/(bcoef(n,i)*wlhf)
+184: !             **********              snow melt always between 0 and
+185: !             total snow
+186:               sm(n,i) = dmax1(0.D0,dmin1(sm(n,i),scv1d(n,i)*2.*         &
+187:                        & rdtbat2))
+188:               bb(n,i) = bb(n,i) - bcoef(n,i)*wlhf*sm(n,i)
+189:             end if
+190:           end if
+191:         end do
+192:       end do
+193:  
+194: !=======================================================================
+195: !l    3.   update soil temperatures
+196: !=======================================================================
+197: !l    3.1  update surface soil temperature
+198:       do i = 2 , iym1
+199:         do n = 1 , nnsg
+200:           if ( ldoc1d(n,i).gt.0.5 .and. ldoc1d(n,i).lt.1.5 ) then
+201:             tbef = tg1d(n,i)
+202:             cder = bcoef(n,i)*cgrnd(n,i)
+203:             tg = (bb(n,i)+(cc(n,i)-dt2+cder)*tg1d(n,i))/(cc(n,i)+       &
+204:                    & dt2+cder)
+205:             tg1d(n,i) = tg
+206:  
+207: !l          3.2  put brakes on large temperature excursions
+208:             tg1d(n,i) = dmin1(tbef+10.,tg1d(n,i))
+209:             tg1d(n,i) = dmax1(tbef-10.,tg1d(n,i))
+210:  
+211: !l          3.3  correct fluxes to present soil temperature
+212:             tinc = tg1d(n,i) - tbef
+213:             sent1d(n,i) = sent1d(n,i) + tinc*cgrnds(n,i)
+214:             evpr1d(n,i) = evpr1d(n,i) + tinc*cgrndl(n,i)
+215:             fseng(n,i) = fseng(n,i) + tinc*cgrnds(n,i)
+216:             fevpg(n,i) = fevpg(n,i) + tinc*cgrndl(n,i)
+217: !
+218: !l          3.5  couple to deep temperature in permafrost
+219: !l          3.6  update subsoil temperature
+220:             if ( lveg(n,i).eq.9 .or. lveg(n,i).eq.12 ) then
+221:               c31 = 0.5*dtimea*(1.+deprat(n,i))
+222:               c41 = dtimea*deprat(n,i)
+223:               tgb1d(n,i) = ((1.-c31+fct2(n,i))*tgb1d(n,i)+c41*tg1d(n,i)+&
+224:                     & dtimea*t3)/(1.+c31+fct2(n,i))
+225:             else
+226:               c3t = 0.5*dtimea*deprat(n,i)
+227:               c4t = dtimea*deprat(n,i)
+228:               tgb1d(n,i) = ((1.-c3t+fct2(n,i))*tgb1d(n,i)+c4t*tg1d(n,i))&
+229:                      & /(1.+c3t+fct2(n,i))
+230:             end if
+231:           end if
+232:         end do
+233:       end do
+234:  
+235:       end subroutine tgrund
+</PRE>
+
+<HR>
+
+</BODY>
+</HTML>
