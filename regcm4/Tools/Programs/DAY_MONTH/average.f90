@@ -22,61 +22,90 @@
 !
       program average
       implicit none
-      integer iy,jx,kz,np,nsg,ntr,ibyte
+      integer iy,jx,kz,nsg,ntr,ibyte,igrads
       logical day_ICBC,day_ATM,day_RAD,day_SRF,day_SUB,day_CHE
+      logical day_ICBC_P,day_ATM_P
       logical mon_ICBC,mon_ATM,mon_RAD,mon_SRF,mon_SUB,mon_CHE
+      logical mon_ICBC_P,mon_ATM_P
       integer idate0,idate1,idate2
       character*128 Path_Input,Path_Output
       character*20 DomainName
+      integer np
+      real*4, save ::  plev(11)
+      logical s2p_ICBC,s2p_ATM
 
-      namelist /shareparam/iy,jx,kz,np,nsg,ntr,ibyte &
+      namelist /shareparam/iy,jx,kz,nsg,ntr,ibyte,igrads &
                           ,Path_Input,DomainName,Path_Output
+      namelist /sigma2p_param/ np,plev,s2p_ICBC,s2p_ATM
       namelist /dateparam/ idate0,idate1,idate2
       namelist /averageparam/ &
                 day_ICBC,day_ATM,day_RAD,day_SRF,day_SUB,day_CHE &
-               ,mon_ICBC,mon_ATM,mon_RAD,mon_SRF,mon_SUB,mon_CHE
+               ,day_ICBC_P,day_ATM_P &
+               ,mon_ICBC,mon_ATM,mon_RAD,mon_SRF,mon_SUB,mon_CHE &
+               ,mon_ICBC_P,mon_ATM_P
 
       read(*,shareparam)
+
+      read(*,sigma2p_param)
+      if(np.ne.11) then
+         write(*,*) 'Number of pressure levels does not equal to 11'
+         write(*,*) 'Please reset np, or reset plev in average.f90'
+         stop
+      endif
+
       read(*,dateparam)
+
       read(*,averageparam)
 
       if(day_ICBC) call day2('ICBC',iy,jx,kz,ibyte, Path_Input &
-                            ,DomainName,idate0,idate1,idate2)
+                         ,DomainName,idate0,idate1,idate2,igrads)
+      if(day_ICBC_P) call day2p('ICBC_P',iy,jx,kz,np,plev,ibyte &
+                     ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
+
       if(day_ATM)call day('ATM',iy,jx,kz,ntr,ibyte, Path_Output &
-                          ,idate0,idate1,idate2)
+                          ,idate0,idate1,idate2,igrads)
       if(day_RAD)call day('RAD',iy,jx,kz,ntr,ibyte, Path_Output &
-                          ,idate0,idate1,idate2)
+                          ,idate0,idate1,idate2,igrads)
       if(day_SRF)call day('SRF',iy,jx,kz,ntr,ibyte, Path_Output &
-                          ,idate0,idate1,idate2)
+                          ,idate0,idate1,idate2,igrads)
       if(nsg.gt.1.and.day_SUB) &
                 call day3('SUB',iy,jx,kz,nsg,ibyte, Path_Input &
-                         ,DomainName,Path_Output,idate0,idate1,idate2)
+                    ,DomainName,Path_Output,idate0,idate1,idate2,igrads)
       if(day_CHE)call day('CHE',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2)
+                         ,idate0,idate1,idate2,igrads)
+
+      if(day_ATM_P)call dayp('ATM_P',iy,jx,kz,np,plev,ibyte  &
+                            ,Path_Output,idate0,idate1,idate2)
 
       if(mon_ICBC) call mon2('ICBC',iy,jx,kz,ibyte, Path_Input &
-                            ,DomainName,idate0,idate1,idate2)
+                            ,DomainName,idate0,idate1,idate2,igrads)
+      if(mon_ICBC_P)call mon2p('ICBC_P',iy,jx,kz,np,plev,ibyte  &
+                     ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
+
       if(mon_ATM)call mon('ATM',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2)
+                         ,idate0,idate1,idate2,igrads)
       if(mon_RAD)call mon('RAD',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2)
+                         ,idate0,idate1,idate2,igrads)
       if(mon_SRF)call mon('SRF',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2)
+                         ,idate0,idate1,idate2,igrads)
       if(nsg.gt.1.and.mon_SUB) &
                 call mon3('SUB',iy,jx,kz,nsg,ibyte, Path_Input &
-                         ,DomainName,Path_Output,idate0,idate1,idate2)
+                   ,DomainName,Path_Output,idate0,idate1,idate2,igrads)
       if(mon_CHE)call mon('CHE',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2)
+                         ,idate0,idate1,idate2,igrads)
+
+      if(mon_ATM_P)call monp('ATM_P',iy,jx,kz,np,plev,ibyte  &
+                           ,Path_Output,idate0,idate1,idate2,igrads)
 
       stop
       end
 
       subroutine day(filename,iy,jx,kz,ntr,ibyte, Path_Output &
-                    ,idate0,idate1,idate2)
+                    ,idate0,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Output
-      integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  truelatL,truelatH
@@ -212,6 +241,7 @@
             fileout= 'CHE.'//chy//chm(month)//'01'
          endif
 
+         IF(igrads.eq.1) THEN
          inquire(file=trim(Path_Output)//fileout//'.ctl',exist=there)
          if(there) then
            open(31,file=trim(Path_Output)//fileout//'.ctl'  &
@@ -318,7 +348,7 @@
          endif
  300  format('zdef 1',' levels ',f7.2)
  318  format('zdef ',I2,' levels ',30f7.2)
-         if(nfile.eq.1) then
+         if(nfile.eq.1.and.idate1.eq.idate0) then
             nday=mod(idate1,10000)/100
             nrecord = nrecord+1-nday 
             write(31,400)nrecord,cday(nday),chmc(month),nyear
@@ -451,6 +481,7 @@
       write(31,700)
  700  format('endvars')
       close(31)
+         ENDIF
 
          inquire(file=trim(Path_Output)//filein,exist=there)
          if(.not.there) then
@@ -604,17 +635,330 @@
       return
       end
 
+      subroutine dayp(filename,iy,jx,kz,np,plev,ibyte  &
+                     ,Path_Output,idate0,idate1,idate2,igrads)
+      implicit none
+      character*5 filename
+      character*128 Path_Output
+      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
+      real*4  plev(np)
+      integer iiy,jjx,kkz
+      integer mdate0,ibltyp,icup,ipptls,iboudy
+      real*4  truelatL,truelatH
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc
+      integer iotyp
+      character*6 iproj
+      real*4, allocatable ::  sigma(:)
+      character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      character*2 chm(12)
+      data chm/'01','02','03','04','05','06','07','08','09','10', &
+               '11','12'/
+      character*3 chmc(12)
+      data chmc/'jan','feb','mar','apr','may','jun'  &
+               ,'jul','aug','sep','oct','nov','dec'/
+      character*16 filein
+      character*14 fileout
+      integer ntype,nfile,nyear,month,n_slice,mrec,nrec
+      logical there
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
+      integer ny,nx
+      integer i,j,k,l,m,n,itr
+      integer number,nvar,n_month,nrecord,nday,mday
+      integer idatex
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      allocate(sigma(kz+1))
+      allocate(b(jx-2,iy-2))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
+
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
+             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+      read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
+                    ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
+                    ,dxsp,ptsp,clat,clon,plat,plon     &
+                    ,iproj,dto,dtb,dtr,dtc,iotyp,truelatL,truelatH
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
+         write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
+         write(*,*) 'They are not consistent'
+         stop
+      endif
+      read(10,rec=6) xlat
+      read(10,rec=7) xlon
+      close(10)
+
+      if(filename.eq.'ATM_P') then
+         nvar = np*8+6
+      else
+         write(*,*) 'filename is not correct'
+         stop
+      endif
+      allocate(c(jx-2,iy-2,nvar))
+
+      if(idate1.ge.1000010100) then        ! original file
+         n_month = (idate2/1000000-idate1/1000000)*12 &
+                 + (mod(idate2/10000,100)-mod(idate1/10000,100))
+         if(mod(idate2,10000).gt.0100) n_month = n_month+1
+         ntype = 0
+      else
+         write(*,*) 'date should be in 10 digit'
+         stop
+      endif
+
+      do nfile=1,n_month
+         nyear = idate1/1000000
+         month = idate1/10000-nyear*100 +nfile-1
+         nyear = nyear + (month-1)/12
+         month = mod(month,12)
+         if(month.eq.0) month = 12
+
+         if(nfile.eq.1.or.month.eq.1) then
+         write(*,*) 'Calculate the daily mean of ',filename,nyear,month
+         else
+         write(*,*) '                            ',filename,nyear,month
+         endif
+
+         nrec = 0
+         if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+            month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+            month.eq.12) then
+            nrecord = 31
+         else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                 month.eq.11) then
+            nrecord = 30
+         else
+            nrecord = 28
+            if(mod(nyear,4).eq.0) nrecord = 29
+            if(mod(nyear,100).eq.0) nrecord = 28
+            if(mod(nyear,400).eq.0) nrecord = 29
+         endif
+         if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
+            nrecord = min(nrecord,mod(idate2/100-1,100))
+         if(nfile.eq.1.and.idate0.eq.idate1) nrec = nvar
+         n_slice = nint(24./dto)
+
+         write(chy,199) nyear
+         filein = 'ATM_P.'//chy//chm(month)//'0100'
+         fileout= 'ATM_P.'//chy//chm(month)//'01'
+
+         IF(igrads.eq.1) THEN
+         inquire(file=trim(Path_Output)//fileout//'.ctl',exist=there)
+         if(there) then
+           open(31,file=trim(Path_Output)//fileout//'.ctl'  &
+                  ,status='replace')
+         else
+           open(31,file=trim(Path_Output)//fileout//'.ctl',status='new')
+         endif
+         write(31,10) fileout
+  10     format('dset ^',A14)
+         write(31,20)
+  20     format('title RegCM daily pressure level output variables')
+         write(31,30)
+  30     format('options big_endian')
+         write(31,50)
+  50     format('undef -1.e34')
+         if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
+            alatmin= 999999.
+            alatmax=-999999.
+            do j=1,jx-2
+               if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
+               if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
+            enddo
+            alonmin= 999999.
+            alonmax=-999999.
+            do i=1,iy-2
+            do j=1,jx-2
+               if(clon.ge.0.0) then
+                  if(xlon(j,i).ge.0.0) then
+                     alonmin = amin1(alonmin,xlon(j,i))
+                     alonmax = amax1(alonmax,xlon(j,i))
+                  else
+                     if(abs(clon-xlon(j,i)).lt. &
+                        abs(clon-(xlon(j,i)+360.))) then
+                        alonmin = amin1(alonmin,xlon(j,i))
+                        alonmax = amax1(alonmax,xlon(j,i))
+                     else
+                        alonmin = amin1(alonmin,xlon(j,i)+360.)
+                        alonmax = amax1(alonmax,xlon(j,i)+360.)
+                     endif
+                  endif
+               else
+                  if(xlon(j,i).lt.0.0) then
+                     alonmin = amin1(alonmin,xlon(j,i))
+                     alonmax = amax1(alonmax,xlon(j,i))
+                  else
+                     if(abs(clon-xlon(j,i)).lt. &
+                        abs(clon-(xlon(j,i)-360.))) then
+                        alonmin = amin1(alonmin,xlon(j,i))
+                        alonmax = amax1(alonmax,xlon(j,i))
+                     else
+                        alonmin = amin1(alonmin,xlon(j,i)-360.)
+                        alonmax = amax1(alonmax,xlon(j,i)-360.)
+                     endif
+                  endif
+               endif
+            enddo
+            enddo
+            rlatinc=dxsp/111./2.
+            rloninc=dxsp/111./2.
+            ny=2+nint(abs(alatmax-alatmin)/rlatinc)
+            nx=1+nint(abs((alonmax-alonmin)/rloninc))
+            centerj=(jx-2)/2.
+            centeri=(iy-2)/2.
+         endif
+
+         if(iproj.eq.'LAMCON') then        ! Lambert projection
+            write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+                          truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
+ 100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
+            write(31,110) nx+2,alonmin-rloninc,rloninc
+ 110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
+            write(31,120) ny+2,alatmin-rlatinc,rlatinc
+ 120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
+         elseif(iproj.eq.'POLSTR') then    !
+         elseif(iproj.eq.'NORMER') then
+            write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+ 200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
+            write(31,210) iy-2
+ 210  format('ydef ',I3,' levels')
+            write(31,220) (xlat(1,i),i=1,iy-2)
+ 220  format(10f7.2)
+         elseif(iproj.eq.'ROTMER') then
+         if(nfile.eq.1.or.month.eq.1) then
+            write(*,*) 'Note that rotated Mercartor (ROTMER)' &
+                   ,' projections are not supported by GrADS.'
+            write(*,*) '  Although not exact, the eta.u projection' &
+                   ,' in GrADS is somewhat similar.'
+            write(*,*) ' FERRET, however, does support this projection.'
+         endif
+            write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
+                                          ,dxsp/111.*.95238
+ 230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+            write(31,110) nx+2,alonmin-rloninc,rloninc
+            write(31,120) ny+2,alatmin-rlatinc,rlatinc
+         else
+            write(*,*) 'Are you sure your map projection is right ?'
+            stop
+         endif
+      write(31,318) np,(plev(k),k=1,np)
+ 300  format('zdef 1',' levels ',f7.2)
+ 318  format('zdef ',I2,' levels ',30f7.2)
+         if(nfile.eq.1.and.idate1.eq.idate0) then
+            nday=mod(idate1,10000)/100
+            nrecord = nrecord+1-nday 
+            write(31,400)nrecord,cday(nday),chmc(month),nyear
+         else if(nfile.eq.n_month) then
+            nday=mod(idate2,10000)/100
+            if(nday.ne.1) nrecord = nday
+            write(31,400)nrecord,cday(1),chmc(month),nyear
+         else
+            write(31,400)nrecord,cday(1),chmc(month),nyear
+         endif
+ 400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1dy')
+         write(31,500) 8+6
+ 500  format('vars ',I3)
+ 600  format(A8,'0 99 ',A36)
+ 660  format(A8,I2,' 0 ',A36)
+ 661  format(A8,I2,' 33,100 ',A36)
+ 662  format(A8,I2,' 34,100 ',A36)
+        if(iproj.eq.'LAMCON') then
+           write(31,661) 'u       ',np,'westerly wind (m/s)         '
+           write(31,662) 'v       ',np,'southerly wind (m/s)        '
+        else
+           write(31,660) 'u       ',np,'westerly wind (m/s)         '
+           write(31,660) 'v       ',np,'southerly wind (m/s)        '
+        endif
+        write(31,660) 'omega   ',np,'omega (hPa/s)   p-velocity  '
+        write(31,660) 'h       ',np,'geopotential height (m)     '
+        write(31,660) 't       ',np,'air temperature (deg, K)    '
+        write(31,660) 'rh      ',np,'relative moisture (%)       '
+        write(31,660) 'qv      ',np,'water vapor mixing ratio    '
+        write(31,660) 'qc      ',np,'cloud water mixing ratio    '
+        write(31,600) 'ps      ',   'surface pressure (hPa)      '
+        write(31,600) 'slp     ',   'sea level pressure (hPa)    '
+        write(31,600) 'tpr     ',   'total precipitation(mm/day) '
+        write(31,600) 'tgb     ',   'lower groud temp. in BATS   '
+        write(31,600) 'swt     ',   'total soil water in mm H2O  '
+        write(31,600) 'rno     ',   'accumulated infiltration    '
+        write(31,700)
+ 700  format('endvars')
+        close(31)
+         ENDIF
+
+         inquire(file=trim(Path_Output)//filein,exist=there)
+         if(.not.there) then
+            write(*,*) trim(Path_Output)//filein,' is not avaiable'
+            stop
+         endif
+         open(10,file=trim(Path_Output)//filein,form='unformatted' &
+                ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+         open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+                ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+         mrec = 0
+         do nday=1,nrecord
+            do n=1,nvar
+               do i=1,iy-2
+               do j=1,jx-2
+                  c(j,i,n) = 0.0
+               enddo
+               enddo
+            enddo
+            do mday = 1,n_slice
+               do n=1,nvar
+                  nrec=nrec+1
+                  read(10,rec=nrec) b
+                  do i=1,iy-2
+                  do j=1,jx-2
+                     c(j,i,n) = c(j,i,n)+b(j,i)
+                  enddo
+                  enddo
+               enddo
+            enddo
+            do n=1,nvar
+               do i=1,iy-2
+               do j=1,jx-2
+                  c(j,i,n) = c(j,i,n)/float(n_slice)
+               enddo
+               enddo
+               mrec=mrec+1
+               write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+            enddo
+         enddo
+         close(10)
+         close(20)
+      enddo
+      deallocate(sigma)
+      deallocate(b)
+      deallocate(xlat)
+      deallocate(xlon)
+      deallocate(c)
+ 199  format(I4)
+      return
+      end
+
       subroutine day2(filename,iy,jx,kz,ibyte, Path_Input,DomainName &
-                     ,idate0,idate1,idate2)
+                     ,idate0,idate1,idate2,igrads)
       implicit none
       character*4 filename
       character*128 Path_Input
       character*20 DomainName
-      integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       real*4  truelatL,truelatH
       real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
-      integer igrads,ibigend
+      integer jgrads,ibigend
       integer iotyp
       character*6 iproj
       real*4, allocatable ::  sigma(:)
@@ -658,7 +1002,7 @@
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
-                    ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,jgrads,ibigend &
                     ,truelatL,truelatH
       if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
          write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
@@ -735,6 +1079,7 @@
             fileout= 'ICBC'//chy//chm(month)//'01'
          endif
 
+         IF(igrads.eq.1) THEN
          inquire(file= &
         trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl'  &
                 ,exist=there)
@@ -841,7 +1186,7 @@
       write(31,318) kz,((1013.25-ptop*10.)*(sigma(k)+sigma(k+1))*.5 &
                        +ptop*10.,k=kz,1,-1)
  318  format('zdef ',I2,' levels ',30f7.2)
-         if(nfile.eq.1) then
+         if(nfile.eq.1.and.idate1.eq.idate0) then
             nday=mod(idate1,10000)/100
             nrecord = nrecord+1-nday 
             write(31,400)nrecord,cday(nday),chmc(month),nyear
@@ -870,13 +1215,14 @@
            write(31,660) 'v       ',kz,'southerly wind (m/s)        '
         endif
         write(31,660) 't       ',kz,'air temperature (degree)    '
-        write(31,660) 'q       ',kz,'specific moisture (kg/kg)   '
+        write(31,660) 'qv      ',kz,'specific moisture (kg/kg)   '
         write(31,600) 'ps      ',   'surface pressure (hPa)      '
         write(31,600) 'ts      ',   'surface air temperature     '
       endif
       write(31,700)
  700  format('endvars')
       close(31)
+         ENDIF
 
          inquire(file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
              ,exist=there)
@@ -933,13 +1279,346 @@
       return
       end
 
+      subroutine day2p(filename,iy,jx,kz,np,plev,ibyte &
+                      ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
+      implicit none
+      character*6 filename
+      character*128 Path_Input
+      character*20 DomainName
+      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
+      real*4  plev(np)
+      integer iiy,jjx,kkz
+      real*4  truelatL,truelatH
+      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      integer jgrads,ibigend
+      integer iotyp
+      character*6 iproj
+      real*4, allocatable ::  sigma(:)
+      character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      character*2 chm(12)
+      data chm/'01','02','03','04','05','06','07','08','09','10', &
+               '11','12'/
+      character*3 chmc(12)
+      data chmc/'jan','feb','mar','apr','may','jun'  &
+               ,'jul','aug','sep','oct','nov','dec'/
+      character*16 filein
+      character*14 fileout
+      integer ntype,nfile,nyear,month,n_slice,mrec,nrec
+      logical there
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
+      integer ny,nx
+      integer i,j,k,l,m,n,itr
+      integer number,nvar,n_month,nrecord,nday,mday
+      integer idatex
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  a(:,:)
+
+      allocate(sigma(kz+1))
+      allocate(b(jx,iy))
+
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
+
+      inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
+             ,exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO' &
+                   ,' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
+             ,form='unformatted',recl=jx*iy*ibyte,access='direct')
+      read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,jgrads,ibigend &
+                    ,truelatL,truelatH
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
+         write(*,*) 'iy,jx,kz in DOMAIN.INFO ',iiy,jjx,kkz
+         write(*,*) 'They are not consistent'
+         stop
+      endif
+      read(10,rec=5) b
+      do i=1,iy-2
+      do j=1,jx-2
+         xlat(j,i) = b(j+1,i+1)
+      enddo
+      enddo
+      read(10,rec=6) b
+      do i=1,iy-2
+      do j=1,jx-2
+         xlon(j,i) = b(j+1,i+1)
+      enddo
+      enddo
+      close(10)
+      deallocate(b)
+      allocate(b(jx-2,iy-2))
+
+      if(filename.eq.'ICBC_P') then
+         nvar = np*6+2
+      else
+         write(*,*) 'filename is not correct'
+         stop
+      endif
+      allocate(c(jx-2,iy-2,nvar))
+
+      if(idate1.ge.1000010100) then        ! original file
+         n_month = (idate2/1000000-idate1/1000000)*12 &
+                 + (mod(idate2/10000,100)-mod(idate1/10000,100))
+         if(mod(idate2,10000).gt.0100) n_month = n_month+1
+         ntype = 0
+      else
+         write(*,*) 'date should be in 10 digit'
+         stop
+      endif
+
+      do nfile=1,n_month
+         nyear = idate1/1000000
+         month = idate1/10000-nyear*100 +nfile-1
+         nyear = nyear + (month-1)/12
+         month = mod(month,12)
+         if(month.eq.0) month = 12
+
+         if(nfile.eq.1.or.month.eq.1) then
+         write(*,*) 'Calculate the daily mean of ',filename,nyear,month
+         else
+         write(*,*) '                            ',filename,nyear,month
+         endif
+
+         if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+            month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+            month.eq.12) then
+            nrecord = 31
+         else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                 month.eq.11) then
+            nrecord = 30
+         else
+            nrecord = 28
+            if(mod(nyear,4).eq.0) nrecord = 29
+            if(mod(nyear,100).eq.0) nrecord = 28
+            if(mod(nyear,400).eq.0) nrecord = 29
+         endif
+         if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
+            nrecord = min(nrecord,mod(idate2/100-1,100))
+         nrec = nvar
+         n_slice = 24/6
+
+         write(chy,199) nyear
+         if(filename.eq.'ICBC_P') then
+            filein = 'ICBC_P'//chy//chm(month)//'0100'
+            fileout= 'ICBC_P'//chy//chm(month)//'01'
+         endif
+
+         IF(igrads.eq.1) THEN
+         inquire(file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl'  &
+                ,exist=there)
+         if(there) then
+            open(31,file= &
+         trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                                                  ,status='replace')
+         else
+            open(31,file= &
+         trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                                                      ,status='new')
+         endif
+         write(31,10) '^'//trim(DomainName)//'_'//fileout
+  10     format('dset ',A34)
+         write(31,20)
+  20     format('title RegCM daily pressure level ICBC variables')
+         write(31,30)
+  30     format('options big_endian')
+         write(31,50)
+  50     format('undef -1.e34')
+         if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
+            alatmin= 999999.
+            alatmax=-999999.
+            do j=1,jx-2
+               if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
+               if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
+            enddo
+            alonmin= 999999.
+            alonmax=-999999.
+            do i=1,iy-2
+            do j=1,jx-2
+               if(clon.ge.0.0) then
+                  if(xlon(j,i).ge.0.0) then
+                     alonmin = amin1(alonmin,xlon(j,i))
+                     alonmax = amax1(alonmax,xlon(j,i))
+                  else
+                     if(abs(clon-xlon(j,i)).lt. &
+                        abs(clon-(xlon(j,i)+360.))) then
+                        alonmin = amin1(alonmin,xlon(j,i))
+                        alonmax = amax1(alonmax,xlon(j,i))
+                     else
+                        alonmin = amin1(alonmin,xlon(j,i)+360.)
+                        alonmax = amax1(alonmax,xlon(j,i)+360.)
+                     endif
+                  endif
+               else
+                  if(xlon(j,i).lt.0.0) then
+                     alonmin = amin1(alonmin,xlon(j,i))
+                     alonmax = amax1(alonmax,xlon(j,i))
+                  else
+                     if(abs(clon-xlon(j,i)).lt. &
+                        abs(clon-(xlon(j,i)-360.))) then
+                        alonmin = amin1(alonmin,xlon(j,i))
+                        alonmax = amax1(alonmax,xlon(j,i))
+                     else
+                        alonmin = amin1(alonmin,xlon(j,i)-360.)
+                        alonmax = amax1(alonmax,xlon(j,i)-360.)
+                     endif
+                  endif
+               endif
+            enddo
+            enddo
+            rlatinc=dsinm*0.001/111./2.
+            rloninc=dsinm*0.001/111./2.
+            ny=2+nint(abs(alatmax-alatmin)/rlatinc)
+            nx=1+nint(abs((alonmax-alonmin)/rloninc))
+            centerj=(jx-2)/2.
+            centeri=(iy-2)/2.
+         endif
+
+         if(iproj.eq.'LAMCON') then        ! Lambert projection
+            write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+                          truelatL,truelatH,clon,dsinm,dsinm
+ 100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
+            write(31,110) nx+2,alonmin-rloninc,rloninc
+ 110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
+            write(31,120) ny+2,alatmin-rlatinc,rlatinc
+ 120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
+         elseif(iproj.eq.'POLSTR') then    !
+         elseif(iproj.eq.'NORMER') then
+            write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+ 200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
+            write(31,210) iy-2
+ 210  format('ydef ',I3,' levels')
+            write(31,220) (xlat(1,i),i=1,iy-2)
+ 220  format(10f7.2)
+         elseif(iproj.eq.'ROTMER') then
+         if(nfile.eq.1.or.month.eq.1) then
+            write(*,*) 'Note that rotated Mercartor (ROTMER)' &
+                   ,' projections are not supported by GrADS.'
+            write(*,*) '  Although not exact, the eta.u projection' &
+                   ,' in GrADS is somewhat similar.'
+            write(*,*) ' FERRET, however, does support this projection.'
+         endif
+            write(31,230) jx-2,iy-2,plon,plat,dsinm/111000. &
+                                          ,dsinm/111000.*.95238
+ 230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+            write(31,110) nx+2,alonmin-rloninc,rloninc
+            write(31,120) ny+2,alatmin-rlatinc,rlatinc
+         else
+            write(*,*) 'Are you sure your map projection is right ?'
+            stop
+         endif
+      write(31,318) np,(plev(k),k=1,np)
+ 318  format('zdef ',I2,' levels ',30f7.2)
+         if(nfile.eq.1.and.idate1.eq.idate0) then
+            nday=mod(idate1,10000)/100
+            nrecord = nrecord+1-nday 
+            write(31,400)nrecord,cday(nday),chmc(month),nyear
+         else if(nfile.eq.n_month) then
+            nday=mod(idate2,10000)/100
+            if(nday.ne.1) nrecord = nday
+            write(31,400)nrecord,cday(1),chmc(month),nyear
+         else
+            write(31,400)nrecord,cday(1),chmc(month),nyear
+         endif
+ 400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1dy')
+      write(31,500) 6+2
+ 500  format('vars ',I3)
+ 600  format(A8,'0 99 ',A36)
+ 611  format(A8,'0 33,105 ',A36)
+ 612  format(A8,'0 34,105 ',A36)
+      if(filename.eq.'ICBC_P') then
+ 660  format(A8,I2,' 0 ',A36)
+ 661  format(A8,I2,' 33,100 ',A36)
+ 662  format(A8,I2,' 34,100 ',A36)
+        if(iproj.eq.'LAMCON') then
+           write(31,661) 'u       ',np,'westerly wind (m/s)         '
+           write(31,662) 'v       ',np,'southerly wind (m/s)        '
+        else
+           write(31,660) 'u       ',np,'westerly wind (m/s)         '
+           write(31,660) 'v       ',np,'southerly wind (m/s)        '
+        endif
+        write(31,660) 'h       ',np,'geopotential height (m)     '
+        write(31,660) 't       ',np,'air temperature (degree)    '
+        write(31,660) 'rh      ',np,'relative moisture (%)       '
+        write(31,660) 'qv      ',np,'specific moisture (kg/kg)   '
+        write(31,600) 'ps      ',   'surface pressure (hPa)      '
+        write(31,600) 'slp     ',   'sea level pressure (hPa)    '
+      endif
+      write(31,700)
+ 700  format('endvars')
+      close(31)
+         ENDIF
+
+         inquire(file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
+             ,exist=there)
+         if(.not.there) then
+            write(*,*) trim(Path_Input)//trim(DomainName)//'_'//filein &
+                      ,' is not avaiable'
+            stop
+         endif
+         open(10,file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
+          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+         open(20,file=trim(Path_Input)//trim(DomainName)//'_'//fileout &
+          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+         mrec = 0
+         do nday=1,nrecord
+            do n=1,nvar
+               do i=1,iy-2
+               do j=1,jx-2
+                  c(j,i,n) = 0.0
+               enddo
+               enddo
+            enddo
+            do mday = 1,n_slice
+               do n=1,nvar
+                  nrec=nrec+1
+                  read(10,rec=nrec) b
+                  do i=1,iy-2
+                  do j=1,jx-2
+                     c(j,i,n) = c(j,i,n)+b(j,i)
+                  enddo
+                  enddo
+               enddo
+            enddo
+            do n=1,nvar
+               do i=1,iy-2
+               do j=1,jx-2
+                  c(j,i,n) = c(j,i,n)/float(n_slice)
+               enddo
+               enddo
+               mrec=mrec+1
+               write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+            enddo
+         enddo
+         close(10)
+         close(20)
+      enddo
+      deallocate(sigma)
+      deallocate(b)
+      deallocate(xlat)
+      deallocate(xlon)
+      deallocate(c)
+ 199  format(I4)
+      return
+      end
+
       subroutine day3(filename,iy,jx,kz,nsg,ibyte, Path_Input &
-                     ,DomainName,Path_Output ,idate0,idate1,idate2)
+                    ,DomainName,Path_Output,idate0,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Input,Path_Output
       character*20 DomainName
-      integer iy,jx,kz,nsg,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,nsg,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  truelatL,truelatH
@@ -1094,6 +1773,7 @@
             fileout= 'SUB.'//chy//chm(month)//'01'
          endif
 
+         IF(igrads.eq.1) THEN
          inquire(file=trim(Path_Output)//fileout//'.ctl',exist=there)
          if(there) then
            open(31,file=trim(Path_Output)//fileout//'.ctl' &
@@ -1195,7 +1875,7 @@
          endif
       write(31,300) (1013.25-ptsp*10.)*(sigma(1)+sigma(2))*.5+ptsp*10.
  300  format('zdef 1',' levels ',f7.2)
-         if(nfile.eq.1) then
+         if(nfile.eq.1.and.idate1.eq.idate0) then
             nday=mod(idate1,10000)/100
             nrecord = nrecord+1-nday 
             write(31,400)nrecord,cday(nday),chmc(month),nyear
@@ -1236,6 +1916,7 @@
          write(31,700)
  700  format('endvars')
          close(31)
+         ENDIF
 
          inquire(file=trim(Path_Output)//filein,exist=there)
          if(.not.there) then
@@ -1303,11 +1984,11 @@
       end
 
       subroutine mon(filename,iy,jx,kz,ntr,ibyte, Path_Output &
-                    ,idate0,idate1,idate2)
+                    ,idate0,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Output
-      integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  truelatL,truelatH
@@ -1413,6 +2094,7 @@
              ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
       mrec = 0
 
+      IF(igrads.eq.1) THEN
       inquire(file=trim(Path_Output)//fileout//'.ctl',exist=there)
       if(there) then
        open(31,file=trim(Path_Output)//fileout//'.ctl',status='replace')
@@ -1642,6 +2324,7 @@
       write(31,700)
  700  format('endvars')
       close(31)
+      ENDIF
 
       do nfile=1,n_month
          if(ntype.eq.0) then
@@ -1743,17 +2426,339 @@
       return
       end
 
+      subroutine monp(filename,iy,jx,kz,np,plev,ibyte, Path_Output &
+                    ,idate0,idate1,idate2,igrads)
+      implicit none
+      character*5 filename
+      character*128 Path_Output
+      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
+      real*4  plev(np)
+      integer iiy,jjx,kkz
+      integer mdate0,ibltyp,icup,ipptls,iboudy
+      real*4  truelatL,truelatH
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc
+      integer iotyp
+      character*6 iproj
+      real*4, allocatable ::  sigma(:)
+      character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      character*2 chm(12)
+      data chm/'01','02','03','04','05','06','07','08','09','10', &
+               '11','12'/
+      character*3 chmc(12)
+      data chmc/'jan','feb','mar','apr','may','jun'  &
+               ,'jul','aug','sep','oct','nov','dec'/
+      character*14 filein
+      character*9 fileout
+      integer ntype,nfile,nyear,month,mrec,nrec
+      integer i,j,k,l,m,n,itr
+      integer number,nvar,n_month,nrecord,nday,mday
+      logical there
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
+      integer ny,nx
+
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      allocate(sigma(kz+1))
+      allocate(b(jx-2,iy-2))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
+
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
+             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+      read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
+                    ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
+                    ,dxsp,ptsp,clat,clon,plat,plon     &
+                    ,iproj,dto,dtb,dtr,dtc,iotyp,truelatL,truelatH
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
+         write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
+         write(*,*) 'They are not consistent'
+         stop
+      endif
+      read(10,rec=6) xlat
+      read(10,rec=7) xlon
+      close(10)
+
+      if(filename.eq.'ATM_P') then
+         nvar = np*8+6
+      else
+         write(*,*) 'filename is not correct'
+         stop
+      endif
+      allocate(c(jx-2,iy-2,nvar))
+
+      if(idate1.ge.1000010100) then        ! original file
+         n_month = (idate2/1000000-idate1/1000000)*12 &
+                 + (mod(idate2/10000,100)-mod(idate1/10000,100))
+         if(mod(idate2,10000).gt.0100) n_month = n_month+1
+         ntype = 0
+         month = mod(idate1/10000,100)
+         nyear = idate1/1000000
+      else if(idate1.ge.10000101) then     ! daily mean file
+         n_month = (idate2/10000-idate1/10000)*12 &
+                 + (mod(idate2/100,100)-mod(idate1/100,100))
+         if(mod(idate2,100).gt.01) n_month = n_month+1
+         ntype = 1
+         month = mod(idate1/100,100)
+         nyear = idate1/10000
+      else
+         write(*,*) 'date should be in 10 digits, or 8 digits'
+         stop
+      endif
+
+      fileout= 'ATM_P.mon'
+
+      open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+             ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+      mrec = 0
+
+      IF(igrads.eq.1) THEN
+      inquire(file=trim(Path_Output)//fileout//'.ctl',exist=there)
+      if(there) then
+       open(31,file=trim(Path_Output)//fileout//'.ctl',status='replace')
+      else
+         open(31,file=trim(Path_Output)//fileout//'.ctl',status='new')
+      endif
+      write(31,10) fileout
+  10  format('dset ^',A9)
+      write(31,20)
+  20  format('title RegCM monthly pressure level output variables')
+      write(31,30)
+  30  format('options big_endian')
+      write(31,50)
+  50  format('undef -1.e34')
+      if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
+         alatmin= 999999.
+         alatmax=-999999.
+         do j=1,jx-2
+            if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
+            if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
+         enddo
+         alonmin= 999999.
+         alonmax=-999999.
+         do i=1,iy-2
+         do j=1,jx-2
+            if(clon.ge.0.0) then
+               if(xlon(j,i).ge.0.0) then
+                  alonmin = amin1(alonmin,xlon(j,i))
+                  alonmax = amax1(alonmax,xlon(j,i))
+               else
+                  if(abs(clon-xlon(j,i)).lt. &
+                     abs(clon-(xlon(j,i)+360.))) then
+                     alonmin = amin1(alonmin,xlon(j,i))
+                     alonmax = amax1(alonmax,xlon(j,i))
+                  else
+                     alonmin = amin1(alonmin,xlon(j,i)+360.)
+                     alonmax = amax1(alonmax,xlon(j,i)+360.)
+                  endif
+               endif
+            else
+               if(xlon(j,i).lt.0.0) then
+                  alonmin = amin1(alonmin,xlon(j,i))
+                  alonmax = amax1(alonmax,xlon(j,i))
+               else
+                  if(abs(clon-xlon(j,i)).lt. &
+                     abs(clon-(xlon(j,i)-360.))) then
+                     alonmin = amin1(alonmin,xlon(j,i))
+                     alonmax = amax1(alonmax,xlon(j,i))
+                  else
+                     alonmin = amin1(alonmin,xlon(j,i)-360.)
+                     alonmax = amax1(alonmax,xlon(j,i)-360.)
+                  endif
+               endif
+            endif
+         enddo
+         enddo
+         rlatinc=dxsp/111./2.
+         rloninc=dxsp/111./2.
+         ny=2+nint(abs(alatmax-alatmin)/rlatinc)
+         nx=1+nint(abs((alonmax-alonmin)/rloninc))
+         centerj=(jx-2)/2.
+         centeri=(iy-2)/2.
+      endif
+
+      if(iproj.eq.'LAMCON') then        ! Lambert projection
+         write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+                       truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
+ 100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
+         write(31,110) nx+2,alonmin-rloninc,rloninc
+ 110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
+         write(31,120) ny+2,alatmin-rlatinc,rlatinc
+ 120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
+      elseif(iproj.eq.'POLSTR') then    !
+      elseif(iproj.eq.'NORMER') then
+         write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+ 200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
+         write(31,210) iy-2
+ 210  format('ydef ',I3,' levels')
+         write(31,220) (xlat(1,i),i=1,iy-2)
+ 220  format(10f7.2)
+      elseif(iproj.eq.'ROTMER') then
+         write(*,*) 'Note that rotated Mercartor (ROTMER)' &
+                   ,' projections are not supported by GrADS.'
+         write(*,*) '  Although not exact, the eta.u projection' &
+                   ,' in GrADS is somewhat similar.'
+         write(*,*) ' FERRET, however, does support this projection.'
+         write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
+                                          ,dxsp/111.*.95238
+ 230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+         write(31,110) nx+2,alonmin-rloninc,rloninc
+         write(31,120) ny+2,alatmin-rlatinc,rlatinc
+      else
+         write(*,*) 'Are you sure your map projection is right ?'
+         stop
+      endif
+      write(31,318) np,(plev(k),k=1,np)
+ 318  format('zdef ',I2,' levels ',30f7.2)
+      nyear=idate1/1000000
+      month=(idate1-nyear*1000000)/10000
+      nday =(idate1-nyear*1000000-month*10000)/100
+      write(31,400)n_month,cday(16),chmc(month),nyear
+ 400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
+      write(31,500) 8+6
+ 500  format('vars ',I3)
+ 600  format(A8,'0 99 ',A36)
+ 660  format(A8,I2,' 0 ',A36)
+ 661  format(A8,I2,' 33,100 ',A36)
+ 662  format(A8,I2,' 34,100 ',A36)
+      if(iproj.eq.'LAMCON') then
+         write(31,661) 'u       ',np,'westerly wind (m/s)         '
+         write(31,662) 'v       ',np,'southerly wind (m/s)        '
+      else
+         write(31,660) 'u       ',np,'westerly wind (m/s)         '
+         write(31,660) 'v       ',np,'southerly wind (m/s)        '
+      endif
+      write(31,660) 'omega   ',np,'omega (hPa/s)   p-velocity  '
+      write(31,660) 'h       ',np,'geopotential height (m)     '
+      write(31,660) 't       ',np,'air temperature (deg, K)    '
+      write(31,660) 'rh      ',np,'relative moisture (%)       '
+      write(31,660) 'qv      ',np,'water vapor mixing ratio    '
+      write(31,660) 'qc      ',np,'cloud water mixing ratio    '
+      write(31,600) 'ps      ',   'surface pressure (hPa)      '
+      write(31,600) 'slp     ',   'sea level pressure (hPa)    '
+      write(31,600) 'tpr     ',   'total precipitation(mm/day) '
+      write(31,600) 'tgb     ',   'lower groud temp. in BATS   '
+      write(31,600) 'swt     ',   'total soil water in mm H2O  '
+      write(31,600) 'rno     ',   'accumulated infiltration    '
+      write(31,700)
+ 700  format('endvars')
+      close(31)
+      ENDIF
+
+      do nfile=1,n_month
+         if(ntype.eq.0) then
+            nyear = idate1/1000000
+            month = idate1/10000-nyear*100 +nfile-1
+         else if(ntype.eq.1) then
+            nyear = idate1/10000
+            month = idate1/100-nyear*100 +nfile-1
+         endif
+
+         nyear = nyear + (month-1)/12
+         month = mod(month,12)
+         if(month.eq.0) month = 12
+
+         if(nfile.eq.1.or.month.eq.1) then
+         write(*,*)'Calculate the monthly mean of ',filename,nyear,month
+         else
+         write(*,*)'                              ',filename,nyear,month
+         endif
+
+         if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+            month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+            month.eq.12) then
+            nrecord = 31
+         else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                 month.eq.11) then
+            nrecord = 30
+         else
+            nrecord = 28
+            if(mod(nyear,4).eq.0) nrecord = 29
+            if(mod(nyear,100).eq.0) nrecord = 28
+            if(mod(nyear,400).eq.0) nrecord = 29
+         endif
+         if(ntype.eq.0) then
+            if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
+               nrecord = min(nrecord,mod(idate2/100-1,100))
+         else if(ntype.eq.1) then
+            if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
+               nrecord = min(nrecord,mod(idate2-1,100)+1)
+         endif
+
+         write(chy,199) nyear
+         filein = 'ATM_P.'//chy//chm(month)//'01'
+         inquire(file=trim(Path_Output)//filein,exist=there)
+         if(.not.there) then
+            write(*,*) trim(Path_Output)//filein,' is not avaiable'
+            write(*,*) 'Note: Daily mean files are required.'
+            stop
+         endif
+         open(10,file=trim(Path_Output)//filein,form='unformatted' &
+                ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+         nrec = 0
+
+         do n=1,nvar
+            do i=1,iy-2
+            do j=1,jx-2
+               c(j,i,n) = 0.0
+            enddo
+            enddo
+         enddo
+
+         do nday=1,nrecord
+            do n=1,nvar
+               nrec=nrec+1
+               read(10,rec=nrec) b
+               do i=1,iy-2
+               do j=1,jx-2
+                  c(j,i,n) = c(j,i,n)+b(j,i)
+               enddo
+               enddo
+            enddo
+         enddo
+         do n=1,nvar
+            do i=1,iy-2
+            do j=1,jx-2
+               c(j,i,n) = c(j,i,n)/float(nrecord)
+            enddo
+            enddo
+            mrec=mrec+1
+            write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+         enddo
+         close(10)
+      enddo
+      close(20)
+      deallocate(sigma)
+      deallocate(b)
+      deallocate(xlat)
+      deallocate(xlon)
+      deallocate(c)
+ 199  format(I4)
+      return
+      end
+
       subroutine mon2(filename,iy,jx,kz,ibyte, Path_Input,DomainName &
-                     ,idate0,idate1,idate2)
+                     ,idate0,idate1,idate2,igrads)
       implicit none
       character*4 filename
       character*128 Path_Input
       character*20 DomainName
-      integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       real*4  truelatL,truelatH
       real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
-      integer igrads,ibigend
+      integer jgrads,ibigend
       character*6 iproj
       real*4, allocatable ::  sigma(:)
       character*4 :: chy
@@ -1794,7 +2799,7 @@
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
-                    ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,jgrads,ibigend &
                     ,truelatL,truelatH
       if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
          write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
@@ -1854,6 +2859,7 @@
           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
       mrec = 0
 
+      IF(igrads.eq.1) THEN
       inquire(file= &
             trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
              ,exist=there)
@@ -1869,7 +2875,7 @@
       write(31,10) '^'//trim(DomainName)//'_'//fileout
   10  format('dset ',A30)
       write(31,20)
-  20  format('title RegCM daily input variables')
+  20  format('title RegCM monthly mean model level ICBC variables')
       write(31,30)
   30  format('options big_endian')
       write(31,50)
@@ -1977,13 +2983,14 @@
            write(31,660) 'v       ',kz,'southerly wind (m/s)        '
         endif
         write(31,660) 't       ',kz,'air temperature (degree)    '
-        write(31,660) 'q       ',kz,'specific moisture (kg/kg)   '
+        write(31,660) 'qv      ',kz,'specific moisture (kg/kg)   '
         write(31,600) 'ps      ',   'surface pressure (hPa)      '
         write(31,600) 'ts      ',   'surface air temperature     '
       endif
       write(31,700)
  700  format('endvars')
       close(31)
+      ENDIF
 
       do nfile=1,n_month
          nrec = 0
@@ -2076,13 +3083,345 @@
       return
       end
 
+      subroutine mon2p(filename,iy,jx,kz,np,plev,ibyte  &
+                     ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
+      implicit none
+      character*6 filename
+      character*128 Path_Input
+      character*20 DomainName
+      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
+      real*4  plev(np)
+      integer iiy,jjx,kkz
+      real*4  truelatL,truelatH
+      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      integer jgrads,ibigend
+      character*6 iproj
+      real*4, allocatable ::  sigma(:)
+      character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      character*2 chm(12)
+      data chm/'01','02','03','04','05','06','07','08','09','10', &
+               '11','12'/
+      character*3 chmc(12)
+      data chmc/'jan','feb','mar','apr','may','jun'  &
+               ,'jul','aug','sep','oct','nov','dec'/
+      character*14 filein
+      character*10 fileout
+      integer ntype,nfile,nyear,month,mrec,nrec
+      logical there
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
+      integer ny,nx
+      integer i,j,k,l,m,n
+      integer number,nvar,n_month,nrecord,nday,mday
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      allocate(sigma(kz+1))
+      allocate(b(jx,iy))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
+
+      inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
+             ,exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO'  &
+                   ,' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
+             ,form='unformatted',recl=jx*iy*ibyte,access='direct')
+      read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,jgrads,ibigend &
+                    ,truelatL,truelatH
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
+         write(*,*) 'iy,jx,kz in DOMAIN.INFO ',iiy,jjx,kkz
+         write(*,*) 'They are not consistent'
+         stop
+      endif
+      read(10,rec=5) b
+      do i=1,iy-2
+      do j=1,jx-2
+         xlat(j,i) = b(j+1,i+1)
+      enddo
+      enddo
+      read(10,rec=6) b
+      do i=1,iy-2
+      do j=1,jx-2
+         xlon(j,i) = b(j+1,i+1)
+      enddo
+      enddo
+      close(10)
+
+      deallocate(b)
+      allocate(b(jx-2,iy-2))
+
+      if(filename.eq.'ICBC_P') then
+         nvar = np*6+2
+      else
+         write(*,*) 'filename is not correct'
+         stop
+      endif
+      allocate(c(jx-2,iy-2,nvar))
+
+      if(idate1.ge.1000010100) then        ! original file
+         n_month = (idate2/1000000-idate1/1000000)*12 &
+                 + (mod(idate2/10000,100)-mod(idate1/10000,100))
+         if(mod(idate2,10000).gt.0100) n_month = n_month+1
+         ntype = 0
+         month = mod(idate1/10000,100)
+         nyear = idate1/1000000
+      else if(idate1.ge.10000101) then     ! daily mean file
+         n_month = (idate2/10000-idate1/10000)*12 &
+                 + (mod(idate2/100,100)-mod(idate1/100,100))
+         if(mod(idate2,100).gt.01) n_month = n_month+1
+         ntype = 1
+         month = mod(idate1/100,100)
+         nyear = idate1/10000
+      else
+         write(*,*) 'date should be in 10 digits, or 8 digits'
+         stop
+      endif
+
+      fileout= 'ICBC_P.mon'
+
+      open(20,file=trim(Path_Input)//trim(DomainName)//'_'//fileout  &
+          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+      mrec = 0
+
+      IF(igrads.eq.1) THEN
+      inquire(file= &
+            trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+             ,exist=there)
+      if(there) then
+         open(31,file= &
+             trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                                                   ,status='replace')
+      else
+         open(31,file= &
+             trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                                                       ,status='new')
+      endif
+      write(31,10) '^'//trim(DomainName)//'_'//fileout
+  10  format('dset ',A30)
+      write(31,20)
+  20  format('title RegCM monthly mean pressure level ICBC variables')
+      write(31,30)
+  30  format('options big_endian')
+      write(31,50)
+  50  format('undef -1.e34')
+      if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
+         alatmin= 999999.
+         alatmax=-999999.
+         do j=1,jx-2
+            if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
+            if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
+         enddo
+         alonmin= 999999.
+         alonmax=-999999.
+         do i=1,iy-2
+         do j=1,jx-2
+            if(clon.ge.0.0) then
+               if(xlon(j,i).ge.0.0) then
+                  alonmin = amin1(alonmin,xlon(j,i))
+                  alonmax = amax1(alonmax,xlon(j,i))
+               else
+                  if(abs(clon-xlon(j,i)).lt. &
+                     abs(clon-(xlon(j,i)+360.))) then
+                     alonmin = amin1(alonmin,xlon(j,i))
+                     alonmax = amax1(alonmax,xlon(j,i))
+                  else
+                     alonmin = amin1(alonmin,xlon(j,i)+360.)
+                     alonmax = amax1(alonmax,xlon(j,i)+360.)
+                  endif
+               endif
+            else
+               if(xlon(j,i).lt.0.0) then
+                  alonmin = amin1(alonmin,xlon(j,i))
+                  alonmax = amax1(alonmax,xlon(j,i))
+               else
+                  if(abs(clon-xlon(j,i)).lt. &
+                     abs(clon-(xlon(j,i)-360.))) then
+                     alonmin = amin1(alonmin,xlon(j,i))
+                     alonmax = amax1(alonmax,xlon(j,i))
+                  else
+                     alonmin = amin1(alonmin,xlon(j,i)-360.)
+                     alonmax = amax1(alonmax,xlon(j,i)-360.)
+                  endif
+               endif
+            endif
+         enddo
+         enddo
+         rlatinc=dsinm*0.001/111./2.
+         rloninc=dsinm*0.001/111./2.
+         ny=2+nint(abs(alatmax-alatmin)/rlatinc)
+         nx=1+nint(abs((alonmax-alonmin)/rloninc))
+         centerj=(jx-2)/2.
+         centeri=(iy-2)/2.
+      endif
+
+      if(iproj.eq.'LAMCON') then        ! Lambert projection
+         write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+                       truelatL,truelatH,clon,dsinm,dsinm
+ 100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
+         write(31,110) nx+2,alonmin-rloninc,rloninc
+ 110  format('xdef ',i4,' linear ',f7.2,1x,f7.4)
+         write(31,120) ny+2,alatmin-rlatinc,rlatinc
+ 120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
+      elseif(iproj.eq.'POLSTR') then    !
+      elseif(iproj.eq.'NORMER') then
+         write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+ 200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
+         write(31,210) iy-2
+ 210  format('ydef ',I3,' levels')
+         write(31,220) (xlat(1,i),i=1,iy-2)
+ 220  format(10f7.2)
+      elseif(iproj.eq.'ROTMER') then
+         write(*,*) 'Note that rotated Mercartor (ROTMER)' &
+                   ,' projections are not supported by GrADS.'
+         write(*,*) '  Although not exact, the eta.u projection' &
+                   ,' in GrADS is somewhat similar.'
+         write(*,*) ' FERRET, however, does support this projection.'
+         write(31,230) jx-2,iy-2,plon,plat,dsinm/111000. &
+                                          ,dsinm/111000.*.95238
+ 230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
+         write(31,110) nx+2,alonmin-rloninc,rloninc
+         write(31,120) ny+2,alatmin-rlatinc,rlatinc
+      else
+         write(*,*) 'Are you sure your map projection is right ?'
+         stop
+      endif
+      write(31,318) np,(plev(k),k=1,np)
+ 318  format('zdef ',I2,' levels ',30f7.2)
+      write(31,400)n_month,cday(16),chmc(month),nyear
+ 400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
+      write(31,500) 6+2
+ 500  format('vars ',I3)
+ 600  format(A8,'0 99 ',A36)
+ 611  format(A8,'0 33,105 ',A36)
+ 612  format(A8,'0 34,105 ',A36)
+      if(filename.eq.'ICBC_P') then
+ 660  format(A8,I2,' 0 ',A36)
+ 661  format(A8,I2,' 33,100 ',A36)
+ 662  format(A8,I2,' 34,100 ',A36)
+        if(iproj.eq.'LAMCON') then
+           write(31,661) 'u       ',np,'westerly wind (m/s)         '
+           write(31,662) 'v       ',np,'southerly wind (m/s)        '
+        else
+           write(31,660) 'u       ',np,'westerly wind (m/s)         '
+           write(31,660) 'v       ',np,'southerly wind (m/s)        '
+        endif
+        write(31,660) 'h       ',np,'geopotential height (m)     '
+        write(31,660) 't       ',np,'air temperature (degree)    '
+        write(31,660) 'rh      ',np,'relative moisture (%)       '
+        write(31,660) 'qv      ',np,'specific moisture (kg/kg)   '
+        write(31,600) 'ps      ',   'surface pressure (hPa)      '
+        write(31,600) 'slp     ',   'sea level pressure (hPa)    '
+      endif
+      write(31,700)
+ 700  format('endvars')
+      close(31)
+      ENDIF
+
+      do nfile=1,n_month
+         nrec = 0
+         if(ntype.eq.0) then
+            nyear = idate1/1000000
+            month = idate1/10000-nyear*100 +nfile-1
+         else if(ntype.eq.1) then
+            nyear = idate1/10000
+            month = idate1/100-nyear*100 +nfile-1
+         endif
+
+         nyear = nyear + (month-1)/12
+         month = mod(month,12)
+         if(month.eq.0) month = 12
+
+         if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+            month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+            month.eq.12) then
+            nrecord = 31
+         else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                 month.eq.11) then
+            nrecord = 30
+         else
+            nrecord = 28
+            if(mod(nyear,4).eq.0) nrecord = 29
+            if(mod(nyear,100).eq.0) nrecord = 28
+            if(mod(nyear,400).eq.0) nrecord = 29
+         endif
+         if(ntype.eq.0) then
+            if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
+               nrecord = min(nrecord,mod(idate2/100-1,100))
+         else if(ntype.eq.1) then
+            if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
+               nrecord = min(nrecord,mod(idate2-1,100)+1)
+         endif
+
+         write(chy,199) nyear
+         filein = 'ICBC_P'//chy//chm(month)//'01'
+         inquire(file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
+                ,exist=there)
+         if(.not.there) then
+            write(*,*) trim(Path_Input)//trim(DomainName)//'_'//filein &
+                      ,' is not avaiable'
+            write(*,*) 'Note: Daily mean files are required.'
+            stop
+         endif
+         open(10,file=trim(Path_Input)//trim(DomainName)//'_'//filein &
+           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+
+         if(nfile.eq.1.or.month.eq.1) then
+         write(*,*)'Calculate the monthly mean of ',filename,nyear,month
+         else
+         write(*,*)'                              ',filename,nyear,month
+         endif
+
+         do n=1,nvar
+            do i=1,iy-2
+            do j=1,jx-2
+               c(j,i,n) = 0.0
+            enddo
+            enddo
+         enddo
+
+         do nday=1,nrecord
+            do n=1,nvar
+               nrec=nrec+1
+               read(10,rec=nrec) b
+               do i=1,iy-2
+               do j=1,jx-2
+                  c(j,i,n) = c(j,i,n)+b(j,i)
+               enddo
+               enddo
+            enddo
+         enddo
+         do n=1,nvar
+            do i=1,iy-2
+            do j=1,jx-2
+               c(j,i,n) = c(j,i,n)/float(nrecord)
+            enddo
+            enddo
+            mrec=mrec+1
+            write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+         enddo
+         close(10)
+      enddo
+      close(20)
+ 199  format(I4)
+      return
+      end
+
       subroutine mon3(filename,iy,jx,kz,nsg,ibyte, Path_Input &
-                     ,DomainName,Path_Output,idate0,idate1,idate2)
+                   ,DomainName,Path_Output,idate0,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Input,Path_Output
       character*20 DomainName
-      integer iy,jx,kz,nsg,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,nsg,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  truelatL,truelatH
@@ -2215,6 +3554,7 @@
              ,recl=(iy-2)*nsg*(jx-2)*nsg*ibyte,access='direct')
       mrec = 0
 
+      IF(igrads.eq.1) THEN
       inquire(file=trim(Path_Output)//fileout//'.ctl',exist=there)
       if(there) then
        open(31,file=trim(Path_Output)//fileout//'.ctl',status='replace')
@@ -2349,6 +3689,7 @@
  700  format('endvars')
       endif
       close(31)
+      ENDIF
 
       do nfile=1,n_month
          if(ntype.eq.0) then

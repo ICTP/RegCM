@@ -23,20 +23,25 @@
 !
       program regrid
       implicit none
-      integer iy,jx,kz,np,nsg,ntr,ibyte
+      integer iy,jx,kz,nsg,ntr,ibyte,igrads
       logical regDOMAIN,regICBC,regOUT_HEAD,regATM,regSRF,regRAD
+      logical regICBC_P,regATM_P
       integer idate0,idate1,idate2
       character*128 Path_Input,Path_Output
       character*20 DomainName
+      integer np
+      real*4, save ::  plev(11)
+      logical s2p_ICBC,s2p_ATM
 
       real*4  xminlon,xmaxlon,xminlat,xmaxlat,ddeg
       COMMON /WINDOW/ xminlon,xmaxlon,xminlat,xmaxlat,ddeg
 
-      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,ibyte,Path_Input &
-                           ,DomainName,Path_Output
+      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,ibyte,igrads &
+                           ,Path_Input,DomainName,Path_Output
+      namelist /sigma2p_param/ np,plev,s2p_ICBC,s2p_ATM
       namelist /dateparam/ idate0,idate1,idate2
-      namelist /regridparam/ & 
-                regDOMAIN,regICBC,regOUT_HEAD,regATM,regSRF,regRAD  &
+      namelist /regridparam/ regDOMAIN,regICBC,regICBC_P &
+               ,regOUT_HEAD,regATM,regSRF,regRAD,regATM_P &
                ,xminlon,xmaxlon,xminlat,xmaxlat,ddeg
 
       xminlon  = -9999.
@@ -46,39 +51,56 @@
       ddeg     = 0.5
 
       read(*,shareparam) 
+
+      read(*,sigma2p_param)
+      if(np.ne.11) then
+         write(*,*) 'Number of pressure levels does not equal to 11'
+         write(*,*) 'Please reset np, or reset plev in average.f90'
+         stop
+      endif
+
       read(*,dateparam) 
+
       read(*,regridparam) 
 
       if(regDOMAIN) call regrid_DOMAIN(iy,jx,kz,ibyte &
-                                      ,Path_Input,DomainName)
+                                      ,Path_Input,DomainName,igrads)
 
       if(regICBC) call regrid_ICBC(iy,jx,kz,ibyte,idate0,idate1,idate2 &
-                                  ,Path_Input,DomainName)
+                                  ,Path_Input,DomainName,igrads)
 
-      if(regOUT_HEAD) call regrid_OUT_HEAD(iy,jx,kz,ibyte,Path_Output)
+      if(regICBC_P) call regrid_ICBC_P(iy,jx,kz,np,plev,ibyte  &
+                     ,idate0,idate1,idate2,Path_Input,DomainName,igrads)
+
+      if(regOUT_HEAD) call regrid_OUT_HEAD(iy,jx,kz,ibyte &
+                                ,Path_Output,igrads)
 
       if(regATM) call regrid_ATM(iy,jx,kz,ibyte,idate0,idate1,idate2 &
-                                ,Path_Output)
+                                ,Path_Output,igrads)
 
       if(regSRF) call regrid_SRF(iy,jx,kz,ibyte,idate0,idate1,idate2 &
-                                ,Path_Output)
+                                ,Path_Output,igrads)
 
       if(regRAD) call regrid_RAD(iy,jx,kz,ibyte,idate0,idate1,idate2 &
-                                ,Path_Output)
+                                ,Path_Output,igrads)
+
+      if(regATM_P) call regrid_ATM_P(iy,jx,kz,np,plev,ibyte  &
+                          ,idate0,idate1,idate2,Path_Output,igrads)
 
       stop
       end
 
-      subroutine regrid_DOMAIN(iy,jx,kz,ibyte,Path_Input,DomainName)
+      subroutine regrid_DOMAIN(iy,jx,kz,ibyte &
+                              ,Path_Input,DomainName,igrads)
       implicit none
-      integer iy,jx,kz,ibyte
+      integer iy,jx,kz,ibyte,igrads
       character*128 Path_Input
       character*20 DomainName
       integer iiy,jjx,kkz
       real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
       real*4, allocatable ::  sigma(:)
-      integer igrads,ibigend
+      integer jgrads,ibigend
       real*4  truelatL,truelatH
 
       integer i,j,k,l,m,n
@@ -122,7 +144,7 @@
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO' &
           ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
-                    ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,jgrads,ibigend &
                     ,truelatL,truelatH
       if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
          write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
@@ -378,7 +400,7 @@
       deallocate(xlat)
       deallocate(xlon)
 
-      if(igrads.eq.1) then
+      IF(igrads.eq.1) THEN
          inquire(file=trim(Path_Input)//trim(DomainName)//'_LL.ctl' &
                 ,exist=there)
          if(there) then
@@ -424,13 +446,13 @@
          write(31,700)
  700  format('endvars')
          close(31)
-      endif
+      ENDIF
       return
       end
 
-      subroutine regrid_OUT_HEAD(iy,jx,kz,ibyte,Path_Output)
+      subroutine regrid_OUT_HEAD(iy,jx,kz,ibyte,Path_Output,igrads)
       implicit none
-      integer iy,jx,kz,ibyte
+      integer iy,jx,kz,ibyte,igrads
       character*128 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -441,7 +463,7 @@
       real*4, allocatable ::  sigma(:)
 
       integer i,j,k,l,m,n
-      integer igrads,ibigend
+      integer jgrads,ibigend
 
       real*4  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
@@ -465,7 +487,6 @@
       real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
       real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
-      igrads = 1
       ibigend= 1
 
       PI = atan(1.)*4.
@@ -738,7 +759,7 @@
       deallocate(xlat)
       deallocate(xlon)
 
-      if(igrads.eq.1) then
+      IF(igrads.eq.1) THEN
          inquire(file=trim(Path_Output)//'OUTHEAD_LL.ctl' &
                 ,exist=there)
          if(there) then
@@ -782,23 +803,28 @@
          write(31,700)
  700  format('endvars')
          close(31)
-      endif
+      ENDIF
       return
       end
 
       subroutine regrid_ICBC(iy,jx,kz,ibyte,idate0,idate1,idate2 &
-                            ,Path_Input,DomainName)
+                            ,Path_Input,DomainName,igrads)
       implicit none
-      integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
       character*128 Path_Input
       character*20 DomainName
       integer iiy,jjx,kkz
       real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
       real*4, allocatable ::  sigma(:)
-      integer igrads,ibigend
+      integer jgrads,ibigend
       real*4  truelatL,truelatH
       character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      integer nday
       character*2 chm(12)
       data chm/'01','02','03','04','05','06','07','08','09','10', &
                '11','12'/
@@ -866,7 +892,7 @@
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
-                    ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,jgrads,ibigend &
                     ,truelatL,truelatH
       if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
          write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
@@ -1153,8 +1179,9 @@
             enddo
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
-            if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.nfile.eq.1))) then
+            IF(igrads.eq.1)THEN
+            if(ntype.eq.0.or.ntype.eq.1.or.  &
+               (ntype.eq.2.and.nfile.eq.1)) then
                if(ntype.eq.0) then
                   inquire(file= &
         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
@@ -1210,9 +1237,19 @@
                write(31,300) kz, &
        ((1013.25-ptop*10.)*(sigma(k)+sigma(k+1))*0.5+ptop*10.,k=kz,1,-1)
                if(ntype.eq.0) then
-                  write(31,400) n_slice,0,'01',chmc(month),nyear,6
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+                  write(31,400)n_slice,0,cday(nday),chmc(month),nyear,6
+                  else
+                     write(31,400) n_slice,0,'01',chmc(month),nyear,6
+                  endif
                else if(ntype.eq.1) then
-                  write(31,401) n_slice,'01',chmc(month),nyear
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
@@ -1226,6 +1263,7 @@
                write(31,700)
                close(31)
             endif
+            ENDIF
          enddo
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
@@ -1758,8 +1796,10 @@
             enddo
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
-            if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.nfile.eq.1))) then
+
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
                if(ntype.eq.0) then
                   inquire(file= &
         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
@@ -1815,9 +1855,19 @@
                write(31,300) kz, &
        ((1013.25-ptop*10.)*(sigma(k)+sigma(k+1))*0.5+ptop*10.,k=kz,1,-1)
                if(ntype.eq.0) then
-                  write(31,400) n_slice,0,'01',chmc(month),nyear,6
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+                  write(31,400)n_slice,0,cday(nday),chmc(month),nyear,6
+                  else
+                     write(31,400) n_slice,0,'01',chmc(month),nyear,6
+                  endif
                else if(ntype.eq.1) then
-                  write(31,401) n_slice,'01',chmc(month),nyear
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
@@ -1831,6 +1881,7 @@
                write(31,700)
                close(31)
             endif
+            ENDIF
          enddo
             
          deallocate(I1UR)
@@ -1876,7 +1927,1126 @@
   10  format('dset ',A38)
   11  format('dset ',A36)
   12  format('dset ',A32)
-  20  format('title RegCM domain information')
+  20  format('title RegCM model level ICBC variables')
+  30  format('options big_endian')
+  40  format('options little_endian')
+  50  format('undef -9999.')
+ 200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
+ 210  format('ydef ',I3,' linear ',f9.4,' ',f9.4)
+ 300  format('zdef ',I2,' levels ',30f7.2)
+ 400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
+ 401  format('tdef ',I4,' linear ',A2,A3,I4,' ','1dy')
+ 402  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
+ 500  format('vars ',I2)
+ 600  format(A8,'0 99 ',A26)           
+ 650  format(A8,I2,' 0 ',A26)
+ 700  format('endvars')
+      return
+      end
+
+      subroutine regrid_ICBC_P(iy,jx,kz,np,plev,ibyte  &
+                    ,idate0,idate1,idate2,Path_Input,DomainName,igrads)
+      implicit none
+      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
+      real*4  plev(np)
+      character*128 Path_Input
+      character*20 DomainName
+      integer iiy,jjx,kkz
+      real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
+      character*6 iproj
+      real*4, allocatable ::  sigma(:)
+      integer jgrads,ibigend
+      real*4  truelatL,truelatH
+      character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      integer nday
+      character*2 chm(12)
+      data chm/'01','02','03','04','05','06','07','08','09','10', &
+               '11','12'/
+      character*3 chmc(12)
+      data chmc/'jan','feb','mar','apr','may','jun'  &
+               ,'jul','aug','sep','oct','nov','dec'/
+      character*16 filein
+      character*20 fileout
+      integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
+
+      integer i,j,k,l,m,n
+
+      real*4  size_2d(4),ddeg
+      COMMON /WINDOW/ size_2d,ddeg
+
+      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::           dlat(:,:),dlon(:,:)
+      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+
+      integer mlat,nlat,mlon,nlon
+      integer n_month
+      logical there
+
+      integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
+      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      integer IDATE
+      real*4  PI,PIR180
+      real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
+      real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
+      real*4  SIGN0,GRIDFC
+      real*4, allocatable :: out(:,:)
+      real*4, allocatable :: olat(:),olon(:)
+
+      integer, allocatable :: I1UR(:,:), J1UR(:,:)
+      integer, allocatable :: I1UL(:,:), J1UL(:,:)
+      integer, allocatable :: I1DR(:,:), J1DR(:,:)
+      integer, allocatable :: I1DL(:,:), J1DL(:,:)
+      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+
+      integer, allocatable :: I2UR(:,:), J2UR(:,:)
+      integer, allocatable :: I2UL(:,:), J2UL(:,:)
+      integer, allocatable :: I2DR(:,:), J2DR(:,:)
+      integer, allocatable :: I2DL(:,:), J2DL(:,:)
+      real*4, allocatable :: D2XT(:,:), D2Xa(:,:), D2Xb(:,:)
+      real*4, allocatable ::            D2Xc(:,:), D2Xd(:,:)
+
+      PI = atan(1.)*4.
+      PIR180 = atan(1.)/45.
+
+      allocate(sigma(kz+1))
+      allocate(o(jx,iy,np*6+2))
+      allocate(xlat(jx,iy))
+      allocate(xlon(jx,iy))
+      allocate(dlat(jx,iy))
+      allocate(dlon(jx,iy))
+
+      inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
+             ,exist=there)
+      if(.not.there) then
+              write(*,*) trim(Path_Input)//trim(DomainName)//'.INFO' &
+                        ,' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
+             ,form='unformatted',recl=jx*iy*ibyte,access='direct')
+      read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,jgrads,ibigend &
+                    ,truelatL,truelatH
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
+         write(*,*) 'iy,jx,kz in DOMAIN.INFO ',iiy,jjx,kkz
+         write(*,*) 'They are not consistent'
+         stop
+      endif
+
+      read(10,rec=5) xlat         ! xlat
+      if(size_2d(3).gt.-9990.) then
+         xminlat = size_2d(3)
+         xmaxlat = size_2d(4)
+      else
+         xmaxlat = -1.e10
+         xminlat =  1.e10
+         do i=2,iy-1
+         do j=2,jx-1
+            if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
+            if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
+         enddo
+         enddo
+      endif
+      read(10,rec=6) xlon         ! xlon
+      if(size_2d(1).gt.-9990.) then
+         xminlon=size_2d(1)
+         xmaxlon=size_2d(2)
+      else
+         xmaxlon = -1.e10
+         xminlon =  1.e10
+         do i=2,iy-1
+         do j=2,jx-1
+            if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
+            if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
+         enddo
+         enddo
+      endif
+      read(10,rec=7) dlat         ! dlat
+      read(10,rec=8) dlon         ! dlon
+      close(10)
+      
+      mlat = xmaxlat/ddeg - 1
+      nlat = xminlat/ddeg + 1
+      mlon = xmaxlon/ddeg - 1
+      nlon = xminlon/ddeg + 2
+
+      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+
+      allocate(out(nlon:mlon,nlat:mlat))
+      allocate(olat(nlat:mlat))
+      allocate(olon(nlon:mlon))
+      do n=nlat,mlat
+         olat(n) = real(n-1)*ddeg
+      enddo
+      do m=nlon,mlon
+         olon(m) = real(m-1)*ddeg
+      enddo
+
+      if(idate1.ge.1000010100) then        ! original file
+         n_month = (idate2/1000000-idate1/1000000)*12 &
+                 + (mod(idate2/10000,100)-mod(idate1/10000,100))   
+         if(mod(idate2,10000).gt.0100) n_month = n_month+1
+         ntype = 0
+      else if(idate1.ge.10000101) then     ! daily mean file
+         n_month = (idate2/10000-idate1/10000)*12 &
+                 + (mod(idate2/100,100)-mod(idate1/100,100))   
+         if(mod(idate2,100).gt.01) n_month = n_month+1
+         ntype = 1
+      else if(idate1.ge.100001) then       ! monthly mean file
+         n_month = (idate2/100-idate1/100)*12 &
+                 + (mod(idate2,100)-mod(idate1,100))+1 
+         ntype = 2
+      endif
+
+      if(iproj.eq.'NORMER') then
+         do nfile=1,n_month
+            if(ntype.eq.0) then
+               nyear = idate1/1000000
+               month = idate1/10000-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER ICBC_P Orig.',nyear,month
+               else
+                  write(*,*)'                           ',nyear,month
+               endif
+
+               if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+                  month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+                  month.eq.12) then
+                  n_slice = 31*24/6+1
+               else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                       month.eq.11) then
+                  n_slice = 30*24/6+1
+               else
+                  n_slice = 28*24/6+1
+                  if(mod(nyear,4).eq.0) n_slice = 29*24/6+1
+                  if(mod(nyear,100).eq.0) n_slice = 28*24/6+1
+                  if(mod(nyear,400).eq.0) n_slice = 29*24/6+1
+               endif
+               if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
+               n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./6))+1
+               write(chy,199) nyear
+               filein = 'ICBC_P'//chy//chm(month)//'0100'
+               fileout= 'ICBC_P_LL.'//chy//chm(month)//'0100'
+
+               inquire(file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein &
+                      ,exist=there)
+               if(.not.there) then
+                  write(*,*) &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein &
+                        ,' is not avaiable'
+                  stop
+               endif
+               open(10,file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein  &
+          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               mrec = 0
+               open(20,file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//fileout &
+                   ,form='unformatted' &
+               ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               nrec = 0
+            else if(ntype.eq.1) then
+               nyear = idate1/10000
+               month = idate1/100-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER ICBC_P Daily',nyear,month
+               else
+                  write(*,*)'                           ',nyear,month
+               endif
+
+               if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+                  month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+                  month.eq.12) then
+                  n_slice = 31
+               else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                       month.eq.11) then
+                  n_slice = 30
+               else
+                  n_slice = 28
+                  if(mod(nyear,4).eq.0) n_slice = 29
+                  if(mod(nyear,100).eq.0) n_slice = 28
+                  if(mod(nyear,400).eq.0) n_slice = 29
+               endif
+               if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
+               n_slice=min(n_slice,mod(idate2-1,100)+1)
+               write(chy,199) nyear
+               filein = 'ICBC_P'//chy//chm(month)//'01'
+               fileout= 'ICBC_P_LL.'//chy//chm(month)//'01'
+
+               inquire(file= &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:14) &
+                      ,exist=there)
+               if(.not.there) then
+                  write(*,*) &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:14) &
+                        ,' is not avaiable'
+                  stop
+               endif
+               open(10,file= &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:14) &
+                   ,form='unformatted' &
+                   ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               mrec = 0
+               open(20,file= &
+                trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18) &
+                ,form='unformatted' &
+                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               nrec = 0
+            else if(ntype.eq.2) then
+               nyear = idate1/100
+               month = idate1-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(month.eq.1.or.nfile.eq.1) then
+                  write(*,*)'regrid: NORMER ICBC_P Month',nyear,month
+               else
+                  write(*,*)'                           ',nyear,month
+               endif
+
+               n_slice = 1
+
+               if(nfile.eq.1) then
+                  filein = 'ICBC_P'
+                  fileout= 'ICBC_P_LL'
+
+                  inquire(file= &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:6)//'.mon' &
+                         ,exist=there)
+                  if(.not.there) then
+                  write(*,*) &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:9)//'.mon' &
+                        ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file= &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:9)//'.mon' &
+                      ,form='unformatted' &
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  nrec=0
+                  open(20,file= &
+         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:9)//'.mon' &
+                ,form='unformatted' &
+                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec=0
+               endif
+            endif
+
+            do nnn=1,n_slice
+               do l=1,np*6+2
+                  mrec = mrec+1
+                  read(10,rec=mrec) ((o(j,i,l),j=2,jx-1),i=2,iy-1)
+               enddo
+               do l=1,np*2
+                  do n=nlat,mlat
+                  do m=nlon,mlon
+                     out(m,n) = -9999.
+
+                     do i=2,iy-2
+                     do j=2,jx-2
+                        if((dlat(j,i).lt.olat(n).and.      &
+                            dlon(j,i).lt.olon(m))          &
+                      .and.(dlat(j+1,i+1).ge.olat(n).and.  &
+                            dlon(j+1,i+1).ge.olon(m))) then
+                            out(m,n) = &
+       ( o(j,i,l)*(dlon(j+1,i+1)-olon(m))*(dlat(j+1,i+1)-olat(n)) &
+       + o(j+1,i,l)*(olon(m)-dlon(j,i+1))*(dlat(j+1,i+1)-olat(n)) &
+       + o(j,i+1,l)*(dlon(j+1,i)-olon(m))*(olat(n)-dlat(j+1,i)) &
+       + o(j+1,i+1,l)*(olon(m)-dlon(j,i))*(olat(n)-dlat(j,i)) ) &
+       / ( (dlon(j+1,i+1)-dlon(j,i))*(dlat(j+1,i+1)-dlat(j,i)) )
+                        endif
+                     enddo
+                     enddo
+                  enddo
+                  enddo
+                  nrec = nrec+1
+                  write(20,rec=nrec)((out(m,n),m=nlon,mlon),n=nlat,mlat)
+               enddo
+               do l=np*2+1,np*6+2
+                  do n=nlat,mlat
+                  do m=nlon,mlon
+                     out(m,n) = -9999.
+
+                     do i=2,iy-2
+                     do j=2,jx-2
+                        if((xlat(j,i).lt.olat(n).and.      &
+                            xlon(j,i).lt.olon(m))          &
+                      .and.(xlat(j+1,i+1).ge.olat(n).and.  &
+                            xlon(j+1,i+1).ge.olon(m))) then
+                            out(m,n) = &
+       ( o(j,i,l)*(xlon(j+1,i+1)-olon(m))*(xlat(j+1,i+1)-olat(n)) &
+       + o(j+1,i,l)*(olon(m)-xlon(j,i+1))*(xlat(j+1,i+1)-olat(n)) &
+       + o(j,i+1,l)*(xlon(j+1,i)-olon(m))*(olat(n)-xlat(j+1,i)) &
+       + o(j+1,i+1,l)*(olon(m)-xlon(j,i))*(olat(n)-xlat(j,i)) ) &
+       / ( (xlon(j+1,i+1)-xlon(j,i))*(xlat(j+1,i+1)-xlat(j,i)) )
+                        endif
+                     enddo
+                     enddo
+                  enddo
+                  enddo
+                  nrec = nrec+1
+                  write(20,rec=nrec)((out(m,n),m=nlon,mlon),n=nlat,mlat)
+               enddo
+            enddo
+            if(.not.ntype.eq.2) close(20)
+            if(.not.ntype.eq.2) close(10)
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
+               if(ntype.eq.0) then
+                  inquire(file= &
+              trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+              trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+              trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
+                  write(31,10) '^'//trim(DomainName)//'_'//fileout
+               else if(ntype.eq.1) then
+                  inquire(file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
+                  write(31,11) '^'//trim(DomainName)//'_'//fileout(1:18)
+               else if(ntype.eq.2.and.nfile.eq.1) then
+                  inquire(file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:9)//'.ctl' &
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:9)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:9)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
+          write(31,12) '^'//trim(DomainName)//'_'//fileout(1:9)//'.mon'
+               endif
+               write(31,20)
+               if(ibigend.eq.1) then
+                  write(31,30)
+               else
+                  write(31,40)
+               endif
+               write(31,50)
+               write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
+               write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
+               write(31,300) np,(plev(k),k=1,np)
+               if(ntype.eq.0) then
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+                  write(31,400)n_slice,0,cday(nday),chmc(month),nyear,6
+                  else
+                     write(31,400) n_slice,0,'01',chmc(month),nyear,6
+                  endif
+               else if(ntype.eq.1) then
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
+               else if(ntype.eq.2) then
+                  write(31,402) n_month,'16',chmc(month),nyear
+               endif
+               write(31,500) 8
+               write(31,650) 'u       ',np,'westerly wind (m/s)        '
+               write(31,650) 'v       ',np,'southerly wind (m/s)       '
+               write(31,650) 'h       ',np,'geopotential height (m)    '
+               write(31,650) 't       ',np,'air temperature (degree)   '
+               write(31,650) 'rh      ',np,'relative moisture (%)      '
+               write(31,650) 'q       ',np,'water vapor mixing ratio   '
+               write(31,600) 'ps      ',   'surface pressure (hPa)     '
+               write(31,600) 'slp     ',   'sea level pressure (hPa)   '
+               write(31,700)
+               close(31)
+            endif
+            ENDIF
+         enddo
+
+      else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
+
+         allocate(I1UR(nlon:mlon,nlat:mlat))
+         allocate(J1UR(nlon:mlon,nlat:mlat))
+         allocate(I1UL(nlon:mlon,nlat:mlat))
+         allocate(J1UL(nlon:mlon,nlat:mlat))
+         allocate(I1DR(nlon:mlon,nlat:mlat))
+         allocate(J1DR(nlon:mlon,nlat:mlat))
+         allocate(I1DL(nlon:mlon,nlat:mlat))
+         allocate(J1DL(nlon:mlon,nlat:mlat))
+         allocate(D1XT(nlon:mlon,nlat:mlat))
+         allocate(D1Xa(nlon:mlon,nlat:mlat))
+         allocate(D1Xb(nlon:mlon,nlat:mlat))
+         allocate(D1Xc(nlon:mlon,nlat:mlat))
+         allocate(D1Xd(nlon:mlon,nlat:mlat))
+
+         do n=nlat,mlat
+         do m=nlon,mlon
+
+            MUR=1000
+            NUR=1000
+            MUL=1000
+            NUL=1000
+            MDR=1000
+            NDR=1000
+            MDL=1000
+            NDL=1000
+            DISTa=1.E8
+            DISTb=1.E8
+            DISTc=1.E8
+            DISTd=1.E8
+
+            do i=2,iy-1
+            do j=2,jx-1
+         IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
+            (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
+             AAA = ((xlon(j,i)-olon(m)) &
+                 *cos((xlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(xlat(j,i)-olat(n))**2
+             if(DISTa.gt.AAA) then
+                DISTa = AAA
+                MUR = j
+                NUR = i
+             endif
+         ENDIF
+         IF((xlon(j,i).lt.olon(m).and.olon(m)-xlon(j,i).lt.10.) .and. &
+            (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
+             AAA = ((xlon(j,i)-olon(m)) &
+                 *cos((xlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(xlat(j,i)-olat(n))**2
+             if(DISTb.gt.AAA) then
+                DISTb = AAA
+                MUL = j
+                NUL = i
+             endif
+         ENDIF
+         IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
+            (xlat(j,i).lt.olat(n).and.olat(n)-xlat(j,i).lt.10.)) then
+             AAA = ((xlon(j,i)-olon(m)) &
+                 *cos((xlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(xlat(j,i)-olat(n))**2
+             if(DISTc.gt.AAA) then
+                DISTc = AAA
+                MDR = j
+                NDR = i
+             endif
+         ENDIF
+         IF((xlon(j,i).lt.olon(m).and.olon(m)-xlon(j,i).lt.10.) .and. &
+            (xlat(j,i).lt.olat(n).and.olat(n)-xlat(j,i).lt.10.)) then
+             AAA = ((xlon(j,i)-olon(m)) &
+                 *cos((xlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(xlat(j,i)-olat(n))**2
+             if(DISTd.gt.AAA) then
+                DISTd = AAA
+                MDL = j
+                NDL = i
+             endif
+         ENDIF
+            enddo
+            enddo
+            
+            DIST=amin1(DISTa,DISTb,DISTc,DISTd)
+            I1UR(m,n) = MUR
+            J1UR(m,n) = NUR
+            I1UL(m,n) = MUL
+            J1UL(m,n) = NUL
+            I1DR(m,n) = MDR
+            J1DR(m,n) = NDR
+            I1DL(m,n) = MDL
+            J1DL(m,n) = NDL
+            D1XT(m,n) = DIST
+            D1Xa(m,n) = DISTa
+            D1Xb(m,n) = DISTb
+            D1Xc(m,n) = DISTc
+            D1Xd(m,n) = DISTd
+         enddo
+         enddo
+
+         allocate(I2UR(nlon:mlon,nlat:mlat))
+         allocate(J2UR(nlon:mlon,nlat:mlat))
+         allocate(I2UL(nlon:mlon,nlat:mlat))
+         allocate(J2UL(nlon:mlon,nlat:mlat))
+         allocate(I2DR(nlon:mlon,nlat:mlat))
+         allocate(J2DR(nlon:mlon,nlat:mlat))
+         allocate(I2DL(nlon:mlon,nlat:mlat))
+         allocate(J2DL(nlon:mlon,nlat:mlat))
+         allocate(D2XT(nlon:mlon,nlat:mlat))
+         allocate(D2Xa(nlon:mlon,nlat:mlat))
+         allocate(D2Xb(nlon:mlon,nlat:mlat))
+         allocate(D2Xc(nlon:mlon,nlat:mlat))
+         allocate(D2Xd(nlon:mlon,nlat:mlat))
+
+         do n=nlat,mlat
+         do m=nlon,mlon
+
+            MUR=1000
+            NUR=1000
+            MUL=1000
+            NUL=1000
+            MDR=1000
+            NDR=1000
+            MDL=1000
+            NDL=1000
+            DISTa=1.E8
+            DISTb=1.E8
+            DISTc=1.E8
+            DISTd=1.E8
+
+            do i=2,iy-1
+            do j=2,jx-1
+         IF((dlon(j,i).ge.olon(m).and.dlon(j,i)-olon(m).lt.10.) .and. &
+            (dlat(j,i).ge.olat(n).and.dlat(j,i)-olat(n).lt.10.)) then
+             AAA = ((dlon(j,i)-olon(m)) &
+                 *cos((dlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(dlat(j,i)-olat(n))**2
+             if(DISTa.gt.AAA) then
+                DISTa = AAA
+                MUR = j
+                NUR = i
+             endif
+         ENDIF
+         IF((dlon(j,i).lt.olon(m).and.olon(m)-dlon(j,i).lt.10.) .and. &
+            (dlat(j,i).ge.olat(n).and.dlat(j,i)-olat(n).lt.10.)) then
+             AAA = ((dlon(j,i)-olon(m)) &
+                 *cos((dlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(dlat(j,i)-olat(n))**2
+             if(DISTb.gt.AAA) then
+                DISTb = AAA
+                MUL = j
+                NUL = i
+             endif
+         ENDIF
+         IF((dlon(j,i).ge.olon(m).and.dlon(j,i)-olon(m).lt.10.) .and. &
+            (dlat(j,i).lt.olat(n).and.olat(n)-dlat(j,i).lt.10.)) then
+             AAA = ((dlon(j,i)-olon(m)) &
+                 *cos((dlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(dlat(j,i)-olat(n))**2
+             if(DISTc.gt.AAA) then
+                DISTc = AAA
+                MDR = j
+                NDR = i
+             endif
+         ENDIF
+         IF((dlon(j,i).lt.olon(m).and.olon(m)-dlon(j,i).lt.10.) .and. &
+            (dlat(j,i).lt.olat(n).and.olat(n)-dlat(j,i).lt.10.)) then
+             AAA = ((dlon(j,i)-olon(m)) &
+                 *cos((dlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(dlat(j,i)-olat(n))**2
+             if(DISTd.gt.AAA) then
+                DISTd = AAA
+                MDL = j
+                NDL = i
+             endif
+         ENDIF
+            enddo
+            enddo
+            
+            DIST=amin1(DISTa,DISTb,DISTc,DISTd)
+            I2UR(m,n) = MUR
+            J2UR(m,n) = NUR
+            I2UL(m,n) = MUL
+            J2UL(m,n) = NUL
+            I2DR(m,n) = MDR
+            J2DR(m,n) = NDR
+            I2DL(m,n) = MDL
+            J2DL(m,n) = NDL
+            D2XT(m,n) = DIST
+            D2Xa(m,n) = DISTa
+            D2Xb(m,n) = DISTb
+            D2Xc(m,n) = DISTc
+            D2Xd(m,n) = DISTd
+         enddo
+         enddo
+
+         do nfile=1,n_month
+            if(ntype.eq.0) then
+               nyear = idate1/1000000
+               month = idate1/10000-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON ICBC_P Orig.',nyear,month
+                  else
+                     write(*,*)'                           ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER ICBC_P Orig.',nyear,month
+                  else
+                     write(*,*)'                           ',nyear,month
+                  endif
+               endif
+
+               if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+                  month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+                  month.eq.12) then
+                  n_slice = 31*24/6+1
+               else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                       month.eq.11) then
+                  n_slice = 30*24/6+1
+               else
+                  n_slice = 28*24/6+1
+                  if(mod(nyear,4).eq.0) n_slice = 29*24/6+1
+                  if(mod(nyear,100).eq.0) n_slice = 28*24/6+1
+                  if(mod(nyear,400).eq.0) n_slice = 29*24/6+1
+               endif
+               if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
+               n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./6))+1
+               write(chy,199) nyear
+               filein = 'ICBC_P'//chy//chm(month)//'0100'
+               fileout= 'ICBC_P_LL.'//chy//chm(month)//'0100'
+
+               inquire(file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein &
+                      ,exist=there)
+               if(.not.there) then
+                  write(*,*) &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein &
+                        ,' is not avaiable'
+                  stop
+               endif
+               open(10,file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//filein  &
+          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               mrec = 0
+               open(20,file= &
+                    trim(Path_Input)//trim(DomainName)//'_'//fileout &
+                   ,form='unformatted' &
+               ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               nrec = 0
+            else if(ntype.eq.1) then
+               nyear = idate1/10000
+               month = idate1/100-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON ICBC_P Daily',nyear,month
+                  else
+                     write(*,*)'                           ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER ICBC_P Daily',nyear,month
+                  else
+                     write(*,*)'                           ',nyear,month
+                  endif
+               endif
+
+               if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+                  month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+                  month.eq.12) then
+                  n_slice = 31
+               else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                       month.eq.11) then
+                  n_slice = 30
+               else
+                  n_slice = 28
+                  if(mod(nyear,4).eq.0) n_slice = 29
+                  if(mod(nyear,100).eq.0) n_slice = 28
+                  if(mod(nyear,400).eq.0) n_slice = 29
+               endif
+               if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
+               n_slice=min(n_slice,mod(idate2-1,100)+1)
+               write(chy,199) nyear
+               filein = 'ICBC_P'//chy//chm(month)//'01'
+               fileout= 'ICBC_P_LL.'//chy//chm(month)//'01'
+
+               inquire(file= &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:14) &
+                      ,exist=there)
+               if(.not.there) then
+                  write(*,*) &
+                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:14) &
+                        ,' is not avaiable'
+                  stop
+               endif
+               open(10,file= &
+                trim(Path_Input)//trim(DomainName)//'_'//filein(1:14) &
+                   ,form='unformatted' &
+                   ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               mrec = 0
+               open(20,file= &
+                trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18) &
+                   ,form='unformatted' &
+               ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               nrec = 0
+            else if(ntype.eq.2) then
+               nyear = idate1/100
+               month = idate1-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: LAMCON ICBC_P Month',nyear,month
+                  else
+                     write(*,*)'                           ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: ROTMER ICBC_P Month',nyear,month
+                  else
+                     write(*,*)'                           ',nyear,month
+                  endif
+               endif
+
+               n_slice = 1
+
+               if(nfile.eq.1) then
+                  filein = 'ICBC_P'
+                  fileout= 'ICBC_P_LL'
+
+                  inquire(file= &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:6)//'.mon' &
+                         ,exist=there)
+                  if(.not.there) then
+                  write(*,*) &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:6)//'.mon' &
+                        ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file= &
+          trim(Path_Input)//trim(DomainName)//'_'//filein(1:6)//'.mon' &
+                      ,form='unformatted' &
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  mrec = 0
+                open(20,file= &
+         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:9)//'.mon' &
+                    ,form='unformatted' &
+                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  nrec = 0
+               endif
+            endif
+
+            do nnn=1,n_slice
+               do l=1,np*6+2
+                  mrec = mrec+1
+                  read(10,rec=mrec) ((o(j,i,l),j=2,jx-1),i=2,iy-1)
+               enddo
+               IF(iproj.eq.'ROTMER') THEN
+                  IF(PLAT.GT.0.) THEN
+                     POLLAM = PLON + 180.
+                     POLPHI = 90. - PLAT
+                  ELSE
+                     POLLAM = PLON
+                     POLPHI = 90. + PLAT
+                  ENDIF
+                  IF(POLLAM.GT.180.) POLLAM = POLLAM - 360.
+                  POLCPHI = cos(PIR180*POLPHI)
+                  POLSPHI = sin(PIR180*POLPHI)
+                  do i=2,iy-1
+                  do j=2,jx-1
+                     ZPHI = DLAT(j,i)*PIR180
+                     ZRLA = DLON(j,i)*PIR180
+                     IF(DLAT(j,i).gt.89.999999) ZRLA = 0.0
+                     ZRLAP = POLLAM*PIR180 - ZRLA
+                     ZARG1  = POLCPHI*sin(ZRLAP)
+                     ZARG2  = POLSPHI*cos(ZPHI)  &
+                            - POLCPHI*sin(ZPHI)*cos(ZRLAP)
+                     ZNORM  = 1.0/sqrt(ZARG1**2+ZARG2**2)
+                     SINDEL = ZARG1*ZNORM
+                     COSDEL = ZARG2*ZNORM
+                     do k=1,np
+                        US =  o(j,i,k)*COSDEL + o(j,i,k+np)*SINDEL
+                        VS = -o(j,i,k)*SINDEL + o(j,i,k+np)*COSDEL
+                        o(j,i,k) = US
+                        o(j,i,k+np) = VS
+                     enddo
+                  enddo
+                  enddo
+               ELSE IF(iproj.eq.'LAMCON') THEN
+                  IF(CLAT.lt.0.) THEN
+                     SIGN0= -1.           ! SOUTH HEMESPHERE
+                  ELSE
+                     SIGN0=  1.           ! NORTH HEMESPHERE
+                  ENDIF
+                  IF(abs(truelatL-truelatH).gt.0.1) THEN
+                     GRIDFC=(alog10(cos(truelatL*PIR180)) &
+                            -alog10(cos(truelatH*PIR180)))  &
+               /(alog10(tan(45.0-SIGN0*truelatL/2.0*PIR180))  &
+                -alog10(tan(45.0-SIGN0*truelatH/2.0*PIR180)))
+                  ELSE
+                     GRIDFC=SIGN0*sin(truelatL*PIR180)
+                  ENDIF
+                  do i=2,iy-1
+                  do j=2,jx-1
+                     IF((CLON.ge.0.0.and.DLON(j,i).ge.0.).or. &
+                        (CLON.lt.0.0.and.DLON(j,i).lt.0.)) THEN
+                        X=(CLON-DLON(j,i))*PIR180*GRIDFC
+                     ELSE
+                        IF(CLON.ge.0.0) THEN
+                           IF(abs(CLON-(DLON(j,i)+360.)).lt.   &
+                              abs(CLON- DLON(j,i)) ) THEN
+                              X=(CLON-(DLON(j,i)+360.))*PIR180*GRIDFC
+                           ELSE
+                              X=(CLON-DLON(j,i))*PIR180*GRIDFC
+                           ENDIF
+                        ELSE
+                           IF(abs(CLON-(DLON(j,i)-360.)).LT. &
+                              abs(CLON- DLON(j,i)) ) THEN
+                              X=(CLON-(DLON(j,i)-360.))*PIR180*GRIDFC
+                           ELSE
+                              X=(CLON-DLON(j,i))*PIR180*GRIDFC
+                           ENDIF
+                        ENDIF
+                     ENDIF
+                     SINDEL=sin(X)
+                     COSDEL=cos(X)
+                     IF(CLAT.ge.0.) THEN
+                        do k=1,np
+                           US= o(j,i,k)*COSDEL - o(j,i,k+np)*SINDEL
+                           VS=-o(j,i,k)*SINDEL + o(j,i,k+np)*COSDEL
+                           o(j,i,k) = US
+                           o(j,i,k+np) = VS
+                        enddo
+                     ELSE
+                        do k=1,np
+                           US= o(j,i,k)*COSDEL + o(j,i,k+np)*SINDEL
+                           VS=-o(j,i,k)*SINDEL + o(j,i,k+np)*COSDEL
+                           o(j,i,k) = US
+                           o(j,i,k+np) = VS
+                        enddo
+                     ENDIF
+                  enddo
+                  enddo
+               ENDIF
+               do l=1,np*2
+                  do n=nlat,mlat
+                  do m=nlon,mlon
+                     out(m,n) = -9999.
+
+            if(I2UR(m,n).lt.999.and.J2UR(m,n).lt.999.and. &
+               I2UL(m,n).lt.999.and.J2UL(m,n).lt.999.and. &
+               I2DR(m,n).lt.999.and.J2DR(m,n).lt.999.and. &
+               I2DL(m,n).lt.999.and.J2DL(m,n).lt.999) then
+               if(D2XT(m,n).gt.0.0001) then
+      out(m,n) = ( o(I2UR(m,n),J2UR(m,n),l)/D2Xa(m,n) &
+                  +o(I2UL(m,n),J2UL(m,n),l)/D2Xb(m,n) &
+                  +o(I2DR(m,n),J2DR(m,n),l)/D2Xc(m,n) &
+                  +o(I2DL(m,n),J2DL(m,n),l)/D2Xd(m,n) )  &
+          /( 1./D2Xa(m,n)+1./D2Xb(m,n)+1./D2Xc(m,n)+1./D2Xd(m,n) )
+               else
+                  if(D2Xa(m,n).eq.D2XT(m,n)) then
+                     out(m,n) = o(I2UR(m,n),J2UR(m,n),l)
+                  else if(D2Xb(m,n).eq.D2XT(m,n)) then
+                     out(m,n) = o(I2UL(m,n),J2UL(m,n),l)
+                  else if(D2Xc(m,n).eq.D2XT(m,n)) then
+                     out(m,n) = o(I2DR(m,n),J2DR(m,n),l)
+                  else if(D2Xd(m,n).eq.D2XT(m,n)) then
+                     out(m,n) = o(I2DL(m,n),J2DL(m,n),l)
+                  endif
+               endif
+            endif
+                  enddo
+                  enddo
+                  nrec=nrec+1
+                  write(20,rec=nrec)((out(m,n),m=nlon,mlon),n=nlat,mlat)
+               enddo
+               do l=np*2+1,np*6+2
+                  do n=nlat,mlat
+                  do m=nlon,mlon
+                     out(m,n) = -9999.
+
+            if(I1UR(m,n).lt.999.and.J1UR(m,n).lt.999.and. &
+               I1UL(m,n).lt.999.and.J1UL(m,n).lt.999.and. &
+               I1DR(m,n).lt.999.and.J1DR(m,n).lt.999.and. &
+               I1DL(m,n).lt.999.and.J1DL(m,n).lt.999) then
+               if(D1XT(m,n).gt.0.0001) then
+      out(m,n) = ( o(I1UR(m,n),J1UR(m,n),l)/D1Xa(m,n) &
+                  +o(I1UL(m,n),J1UL(m,n),l)/D1Xb(m,n) &
+                  +o(I1DR(m,n),J1DR(m,n),l)/D1Xc(m,n) &
+                  +o(I1DL(m,n),J1DL(m,n),l)/D1Xd(m,n) )  &
+          /( 1./D1Xa(m,n)+1./D1Xb(m,n)+1./D1Xc(m,n)+1./D1Xd(m,n) )
+               else
+                  if(D1Xa(m,n).eq.D1XT(m,n)) then
+                     out(m,n) = o(I1UR(m,n),J1UR(m,n),l)
+                  else if(D1Xb(m,n).eq.D1XT(m,n)) then
+                     out(m,n) = o(I1UL(m,n),J1UL(m,n),l)
+                  else if(D1Xc(m,n).eq.D1XT(m,n)) then
+                     out(m,n) = o(I1DR(m,n),J1DR(m,n),l)
+                  else if(D1Xd(m,n).eq.D1XT(m,n)) then
+                     out(m,n) = o(I1DL(m,n),J1DL(m,n),l)
+                  endif
+               endif
+            endif
+                  enddo
+                  enddo
+                  nrec=nrec+1
+                  write(20,rec=nrec)((out(m,n),m=nlon,mlon),n=nlat,mlat)
+               enddo
+            enddo
+            if(.not.ntype.eq.2) close(20)
+            if(.not.ntype.eq.2) close(10)
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
+               if(ntype.eq.0) then
+                  inquire(file= &
+              trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+              trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+              trim(Path_Input)//trim(DomainName)//'_'//fileout//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
+                  write(31,10) '^'//trim(DomainName)//'_'//fileout
+               else if(ntype.eq.1) then
+                  inquire(file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:18)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
+                  write(31,11) '^'//trim(DomainName)//'_'//fileout(1:18)
+               else if(ntype.eq.2) then
+                  inquire(file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:9)//'.ctl' &
+                         ,exist=there)
+                  if(there) then
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:9)//'.ctl' &
+                      ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+        trim(Path_Input)//trim(DomainName)//'_'//fileout(1:9)//'.ctl' &
+                      ,form='formatted',status='new')
+                  endif
+          write(31,12) '^'//trim(DomainName)//'_'//fileout(1:9)//'.mon'
+               endif
+               write(31,20)
+               if(ibigend.eq.1) then
+                  write(31,30)
+               else
+                  write(31,40)
+               endif
+               write(31,50)
+               write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
+               write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
+               write(31,300) np,(plev(k),k=1,np)
+               if(ntype.eq.0) then
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+                  write(31,400)n_slice,0,cday(nday),chmc(month),nyear,6
+                  else
+                     write(31,400) n_slice,0,'01',chmc(month),nyear,6
+                  endif
+               else if(ntype.eq.1) then
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
+               else if(ntype.eq.2) then
+                  write(31,402) n_month,'16',chmc(month),nyear
+               endif
+               write(31,500) 8
+               write(31,650) 'u       ',np,'westerly wind (m/s)        '
+               write(31,650) 'v       ',np,'southerly wind (m/s)       '
+               write(31,650) 'h       ',np,'geopotential height (m)    '
+               write(31,650) 't       ',np,'air temperature (degree)   '
+               write(31,650) 'rh      ',np,'relative moisture (%)      '
+               write(31,650) 'q       ',np,'water vapor mixing ratio   '
+               write(31,600) 'ps      ',   'surface pressure (hPa)     '
+               write(31,600) 'slp     ',   'sea level pressure (hPa)   '
+               write(31,700)
+               close(31)
+            endif
+            ENDIF
+         enddo
+            
+         deallocate(I1UR)
+         deallocate(J1UR)
+         deallocate(I1UL)
+         deallocate(J1UL)
+         deallocate(I1DR)
+         deallocate(J1DR)
+         deallocate(I1DL)
+         deallocate(J1DL)
+         deallocate(D1XT)
+         deallocate(D1Xa)
+         deallocate(D1Xb)
+         deallocate(D1Xc)
+         deallocate(D1Xd)
+            
+         deallocate(I2UR)
+         deallocate(J2UR)
+         deallocate(I2UL)
+         deallocate(J2UL)
+         deallocate(I2DR)
+         deallocate(J2DR)
+         deallocate(I2DL)
+         deallocate(J2DL)
+         deallocate(D2XT)
+         deallocate(D2Xa)
+         deallocate(D2Xb)
+         deallocate(D2Xc)
+         deallocate(D2Xd)
+      endif
+      deallocate(out)
+      deallocate(olat)
+      deallocate(olon)
+
+      deallocate(sigma)
+      deallocate(o)
+      deallocate(xlat)
+      deallocate(xlon)
+      deallocate(dlat)
+      deallocate(dlon)
+
+ 199  format(I4)
+  10  format('dset ',A38)
+  11  format('dset ',A36)
+  12  format('dset ',A32)
+  20  format('title RegCM pressure level ICBC variables')
   30  format('options big_endian')
   40  format('options little_endian')
   50  format('undef -9999.')
@@ -1894,9 +3064,9 @@
       end
 
       subroutine regrid_ATM(iy,jx,kz,ibyte,idate0,idate1,idate2 &
-                           ,Path_Output)
+                           ,Path_Output,igrads)
       implicit none
-      integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
       character*128 Path_Output
       real*4  truelatL,truelatH
       integer iiy,jjx,kkz
@@ -1907,6 +3077,11 @@
       character*6 iproj
       real*4, allocatable ::  sigma(:)
       character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      integer nday
       character*2 chm(12)
       data chm/'01','02','03','04','05','06','07','08','09','10', &
                '11','12'/
@@ -1918,7 +3093,7 @@
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
 
       integer i,j,k,l,m,n
-      integer igrads,ibigend
+      integer jgrads,ibigend
 
       real*4  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
@@ -1946,7 +3121,6 @@
       real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
       real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
-      igrads = 1
       ibigend= 1
 
       PI = atan(1.)*4.
@@ -2146,15 +3320,19 @@
                if(nfile.eq.1) then
                   filein = 'ATM.mon'
                   fileout= 'ATM_LL.mon'
-                  inquire(file=trim(Path_Output)//filein(1:7),exist=there)
+                  inquire(file=  &
+                          trim(Path_Output)//filein(1:7),exist=there)
                   if(.not.there) then
-                     write(*,*) trim(Path_Output)//filein(1:7),' is not avaiable'
+                     write(*,*) trim(Path_Output)//filein(1:7)  &
+                              ,' is not avaiable'
                      stop
                   endif
-             open(10,file=trim(Path_Output)//filein(1:7),form='unformatted' &
+                  open(10,file=trim(Path_Output)//filein(1:7)  &
+                      ,form='unformatted' &
                       ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
                   nrec = 0
-            open(20,file=trim(Path_Output)//fileout(1:10),form='unformatted' &
+                  open(20,file=trim(Path_Output)//fileout(1:10)  &
+                      ,form='unformatted' &
                 ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
                   mrec = 0
                endif
@@ -2193,8 +3371,9 @@
             enddo
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
-            if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.nfile.eq.1))) then
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
                if(ntype.eq.0) then
                  inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
                         ,exist=there)
@@ -2247,13 +3426,19 @@
                write(31,300) kz, &
           ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kz)
                if(ntype.eq.0) then
-               if(nfile.eq.1.and.idate0.eq.idate1) then
-               write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dto)
-               else
-       write(31,400) n_slice,nint(dto),'01',chmc(month),nyear,nint(dto)
-               endif
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+           write(31,400)n_slice,0,cday(nday),chmc(month),nyear,nint(dto)
+                  else
+        write(31,400) n_slice,nint(dto),'01',chmc(month),nyear,nint(dto)
+                  endif
                else if(ntype.eq.1) then
-                  write(31,401) n_slice,'01',chmc(month),nyear
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
@@ -2272,6 +3457,7 @@
                write(31,700)
                close(31)
             endif
+            ENDIF
          enddo
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
@@ -2650,8 +3836,9 @@
             enddo
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
-            if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.nfile.eq.1))) then
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
                if(ntype.eq.0) then
                  inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
                         ,exist=there)
@@ -2704,13 +3891,19 @@
                write(31,300) kz, &
           ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kz)
                if(ntype.eq.0) then
-               if(nfile.eq.1.and.idate0.eq.idate1) then
-               write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dto)
-               else
-       write(31,400) n_slice,nint(dto),'01',chmc(month),nyear,nint(dto)
-               endif
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+           write(31,400)n_slice,0,cday(nday),chmc(month),nyear,nint(dto)
+                  else
+        write(31,400) n_slice,nint(dto),'01',chmc(month),nyear,nint(dto)
+                  endif
                else if(ntype.eq.1) then
-                  write(31,401) n_slice,'01',chmc(month),nyear
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
@@ -2729,6 +3922,7 @@
                write(31,700)
                close(31)
             endif
+            ENDIF
          enddo
             
          deallocate(I1UR)
@@ -2758,7 +3952,914 @@
   10  format('dset ^',A17)
   11  format('dset ^',A15)
   12  format('dset ^',A10)
-  20  format('title RegCM domain information')
+  20  format('title RegCM model level ATM variables')
+  30  format('options big_endian')
+  40  format('options little_endian')
+  50  format('undef -9999.')
+ 200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
+ 210  format('ydef ',I3,' linear ',f9.4,' ',f9.4)
+ 300  format('zdef ',I2,' levels ',30f7.2)
+ 400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
+ 401  format('tdef ',I4,' linear ',A2,A3,I4,' ','1dy')
+ 402  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
+ 500  format('vars ',I2)
+ 600  format(A8,'0 99 ',A26)           
+ 650  format(A8,I2,' 0 ',A26)
+ 700  format('endvars')
+      return
+      end
+
+      subroutine regrid_ATM_P(iy,jx,kz,np,plev,ibyte  &
+                             ,idate0,idate1,idate2,Path_Output,igrads)
+      implicit none
+      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
+      real*4  plev(np)
+      character*128 Path_Output
+      real*4  truelatL,truelatH
+      integer iiy,jjx,kkz
+      integer mdate0,ibltyp,icup,ipptls,iboudy
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc
+      integer iotyp
+      character*6 iproj
+      real*4, allocatable ::  sigma(:)
+      character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      integer nday
+      character*2 chm(12)
+      data chm/'01','02','03','04','05','06','07','08','09','10', &
+               '11','12'/
+      character*3 chmc(12)
+      data chmc/'jan','feb','mar','apr','may','jun'  &
+               ,'jul','aug','sep','oct','nov','dec'/
+      character*16 filein
+      character*19 fileout
+      integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
+
+      integer i,j,k,l,m,n
+      integer ibigend
+
+      real*4  size_2d(4),ddeg
+      COMMON /WINDOW/ size_2d,ddeg
+
+      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+
+      integer mlat,nlat,mlon,nlon
+      integer n_month
+      logical there
+
+      integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
+      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real*4  PI,PIR180
+      real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
+      real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
+      real*4  SIGN0,GRIDFC
+      real*4, allocatable :: out(:,:)
+      real*4, allocatable :: olat(:),olon(:)
+
+      integer, allocatable :: I1UR(:,:), J1UR(:,:)
+      integer, allocatable :: I1UL(:,:), J1UL(:,:)
+      integer, allocatable :: I1DR(:,:), J1DR(:,:)
+      integer, allocatable :: I1DL(:,:), J1DL(:,:)
+      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+
+      ibigend= 1
+
+      PI = atan(1.)*4.
+      PIR180 = atan(1.)/45.
+
+      allocate(sigma(kz+1))
+      allocate(o(jx-2,iy-2,np*8+6))
+      allocate(xlat(jx-2,iy-2))
+      allocate(xlon(jx-2,iy-2))
+
+      inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
+      if(.not.there) then
+         write(*,*) trim(Path_Output)//'OUT_HEAD',' is not avaiable'
+         stop
+      endif
+      open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
+             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+      read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
+                    ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
+                    ,dxsp,ptsp,clat,clon,plat,plon          &
+                    ,iproj,dto,dtb,dtr,dtc,iotyp,truelatL,truelatH
+      if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
+         write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
+         write(*,*) 'iy,jx,kz in OUT_HEAD ',iiy,jjx,kkz
+         write(*,*) 'They are not consistent'
+         stop
+      endif
+      read(10,rec=6) xlat         ! xlat
+      if(size_2d(3).gt.-9990.) then
+         xminlat = size_2d(3)
+         xmaxlat = size_2d(4)
+      else
+         xmaxlat = -1.e10
+         xminlat =  1.e10
+         do i=1,iy-2
+         do j=1,jx-2
+            if(xlat(j,i).gt.xmaxlat) xmaxlat=xlat(j,i)
+            if(xlat(j,i).lt.xminlat) xminlat=xlat(j,i)
+         enddo
+         enddo
+      endif
+      read(10,rec=7) xlon         ! xlon
+      if(size_2d(1).gt.-9990.) then
+         xminlon=size_2d(1)
+         xmaxlon=size_2d(2)
+      else
+         xmaxlon = -1.e10
+         xminlon =  1.e10
+         do i=1,iy-2
+         do j=1,jx-2
+            if(xlon(j,i).gt.xmaxlon) xmaxlon=xlon(j,i)
+            if(xlon(j,i).lt.xminlon) xminlon=xlon(j,i)
+         enddo
+         enddo
+      endif
+      close(10)
+      
+      mlat = xmaxlat/ddeg - 1
+      nlat = xminlat/ddeg + 1
+      mlon = xmaxlon/ddeg - 1
+      nlon = xminlon/ddeg + 2
+
+      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+
+      allocate(out(nlon:mlon,nlat:mlat))
+      allocate(olat(nlat:mlat))
+      allocate(olon(nlon:mlon))
+      do n=nlat,mlat
+         olat(n) = real(n-1)*ddeg
+      enddo
+      do m=nlon,mlon
+         olon(m) = real(m-1)*ddeg
+      enddo
+
+      if(idate1.ge.1000010100) then        ! original file
+         n_month = (idate2/1000000-idate1/1000000)*12 &
+                 + (mod(idate2/10000,100)-mod(idate1/10000,100))   
+         if(mod(idate2,10000).gt.0100) n_month = n_month+1
+         ntype = 0
+      else if(idate1.ge.10000101) then     ! daily mean file
+         n_month = (idate2/10000-idate1/10000)*12 &
+                 + (mod(idate2/100,100)-mod(idate1/100,100))   
+         if(mod(idate2,100).gt.01) n_month = n_month+1
+         ntype = 1
+      else if(idate1.ge.100001) then       ! monthly mean file
+         n_month = (idate2/100-idate1/100)*12 &
+                 + (mod(idate2,100)-mod(idate1,100))+1
+         ntype = 2
+      endif
+
+      if(iproj.eq.'NORMER') then
+         do nfile=1,n_month
+            if(ntype.eq.0) then
+               nyear = idate1/1000000
+               month = idate1/10000-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER ATM_P Orig.',nyear,month
+               else
+                  write(*,*)'                          ',nyear,month
+               endif
+
+               if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+                  month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+                  month.eq.12) then
+                  n_slice = 31*24/dto
+               else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                       month.eq.11) then
+                  n_slice = 30*24/dto
+               else
+                  n_slice = 28*24/dto
+                  if(mod(nyear,4).eq.0) n_slice = 29*24/dto
+                  if(mod(nyear,100).eq.0) n_slice = 28*24/dto
+                  if(mod(nyear,400).eq.0) n_slice = 29*24/dto
+               endif
+               if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
+               n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./dto))
+               if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
+               write(chy,199) nyear
+               filein = 'ATM_P.'//chy//chm(month)//'0100'
+               fileout= 'ATM_P_LL.'//chy//chm(month)//'0100'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                 write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                 stop
+               endif
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               mrec = 0
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+               ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               nrec = 0
+            else if(ntype.eq.1) then
+               nyear = idate1/10000
+               month = idate1/100-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(nfile.eq.1.or.month.eq.1) then
+                  write(*,*)'regrid: NORMER ATM_P Daily',nyear,month
+               else
+                  write(*,*)'                          ',nyear,month
+               endif
+               if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+                  month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+                  month.eq.12) then
+                  n_slice = 31
+               else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                       month.eq.11) then
+                  n_slice = 30
+               else
+                  n_slice = 28
+                  if(mod(nyear,4).eq.0) n_slice = 29
+                  if(mod(nyear,100).eq.0) n_slice = 28
+                  if(mod(nyear,400).eq.0) n_slice = 29
+               endif
+               if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
+               n_slice=min(n_slice,mod(idate2-1,100)+1)
+               write(chy,199) nyear
+               filein = 'ATM_P.'//chy//chm(month)//'01'
+               fileout= 'ATM_P_LL.'//chy//chm(month)//'01'
+               inquire(file=trim(Path_Output)//filein(1:14),exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein(1:14)  &
+                            ,' is not avaiable'
+                  stop
+               endif
+             open(10,file=trim(Path_Output)//filein(1:14)  &
+                    ,form='unformatted' &
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               mrec = 0
+            open(20,file=trim(Path_Output)//fileout(1:17)  &
+                   ,form='unformatted' &
+               ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               nrec = 0
+
+            else if(ntype.eq.2) then
+               nyear = idate1/100
+               month = idate1-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(month.eq.1.or.nfile.eq.1) then
+                  write(*,*)'regrid: NORMER ATM_P Month',nyear,month
+               else
+                  write(*,*)'                          ',nyear,month
+               endif
+
+               n_slice = 1
+
+               if(nfile.eq.1) then
+                  filein = 'ATM_P.mon'
+                  fileout= 'ATM_P_LL.mon'
+                  inquire(file=  &
+                          trim(Path_Output)//filein(1:9),exist=there)
+                  if(.not.there) then
+                     write(*,*) trim(Path_Output)//filein(1:9)  &
+                              ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file=trim(Path_Output)//filein(1:9)  &
+                      ,form='unformatted' &
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  nrec = 0
+                  open(20,file=trim(Path_Output)//fileout(1:12)  &
+                      ,form='unformatted' &
+                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec = 0
+               endif
+            endif
+
+            do nnn=1,n_slice
+               do l=1,np*8+6
+                  mrec = mrec+1
+                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
+               enddo
+               do l=1,np*8+6
+                  do n=nlat,mlat
+                  do m=nlon,mlon
+                     out(m,n) = -9999.
+
+                     do i=1,iy-3
+                     do j=1,jx-3
+                        if((xlat(j,i).lt.olat(n).and.      &
+                            xlon(j,i).lt.olon(m))          &
+                      .and.(xlat(j+1,i+1).ge.olat(n).and.  &
+                            xlon(j+1,i+1).ge.olon(m))) then
+                            out(m,n) = &
+       ( o(j,i,l)*(xlon(j+1,i+1)-olon(m))*(xlat(j+1,i+1)-olat(n)) &
+       + o(j+1,i,l)*(olon(m)-xlon(j,i+1))*(xlat(j+1,i+1)-olat(n)) &
+       + o(j,i+1,l)*(xlon(j+1,i)-olon(m))*(olat(n)-xlat(j+1,i)) &
+       + o(j+1,i+1,l)*(olon(m)-xlon(j,i))*(olat(n)-xlat(j,i)) ) &
+       / ( (xlon(j+1,i+1)-xlon(j,i))*(xlat(j+1,i+1)-xlat(j,i)) )
+                        endif
+                     enddo
+                     enddo
+                  enddo
+                  enddo
+                  nrec = nrec+1
+                  write(20,rec=nrec)((out(m,n),m=nlon,mlon),n=nlat,mlat)
+               enddo
+            enddo
+            if(.not.ntype.eq.2) close(20)
+            if(.not.ntype.eq.2) close(10)
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
+               if(ntype.eq.0) then
+                 inquire(file=trim(Path_Output)//fileout//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file=trim(Path_Output)//fileout//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file=trim(Path_Output)//fileout//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,10) fileout
+               else if(ntype.eq.1) then
+                 inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,11) fileout(1:17)
+               else if(ntype.eq.2) then
+                 inquire(file=trim(Path_Output)//fileout(1:12)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:12)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:12)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,12) fileout(1:12)
+               endif
+               write(31,20)
+               if(ibigend.eq.1) then
+                  write(31,30)
+               else
+                  write(31,40)
+               endif
+               write(31,50)
+               write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
+               write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
+               write(31,300) np,(plev(k),k=1,np) 
+               if(ntype.eq.0) then
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+           write(31,400)n_slice,0,cday(nday),chmc(month),nyear,nint(dto)
+                  else
+        write(31,400) n_slice,nint(dto),'01',chmc(month),nyear,nint(dto)
+                  endif
+               else if(ntype.eq.1) then
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
+               else if(ntype.eq.2) then
+                  write(31,402) n_month,'16',chmc(month),nyear
+               endif
+               write(31,500) 14
+               write(31,650) 'u       ',np,'westerly wind (m/s)        '
+               write(31,650) 'v       ',np,'southerly wind (m/s)       '
+               write(31,650) 'w       ',np,'omega (hPa/s)   p-velocity '
+               write(31,650) 'h       ',np,'geopotential height (m)    '
+               write(31,650) 't       ',np,'air temperature (degree)   '
+               write(31,650) 'rh      ',np,'relative moisture (%)      '
+               write(31,650) 'qv      ',np,'water vapor mixing ratio   '
+               write(31,650) 'qc      ',np,'cloud water mixing ratio   '
+               write(31,600) 'ps      ',   'surface pressure (hPa)     '
+               write(31,600) 'slp     ',   'sea level pressure (hPa)   '
+               write(31,600) 'tpr     ',   'total precipitation(mm/day)'
+               write(31,600) 'tgb     ',   'lower groud temp. in BATS  '
+               write(31,600) 'swt     ',   'total soil water in mm H2O '
+               write(31,600) 'rno     ',   'accumulated infiltration   '
+               write(31,700)
+               close(31)
+            endif
+            ENDIF
+         enddo
+
+      else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
+
+         allocate(I1UR(nlon:mlon,nlat:mlat))
+         allocate(J1UR(nlon:mlon,nlat:mlat))
+         allocate(I1UL(nlon:mlon,nlat:mlat))
+         allocate(J1UL(nlon:mlon,nlat:mlat))
+         allocate(I1DR(nlon:mlon,nlat:mlat))
+         allocate(J1DR(nlon:mlon,nlat:mlat))
+         allocate(I1DL(nlon:mlon,nlat:mlat))
+         allocate(J1DL(nlon:mlon,nlat:mlat))
+         allocate(D1XT(nlon:mlon,nlat:mlat))
+         allocate(D1Xa(nlon:mlon,nlat:mlat))
+         allocate(D1Xb(nlon:mlon,nlat:mlat))
+         allocate(D1Xc(nlon:mlon,nlat:mlat))
+         allocate(D1Xd(nlon:mlon,nlat:mlat))
+
+         do n=nlat,mlat
+         do m=nlon,mlon
+
+            MUR=1000
+            NUR=1000
+            MUL=1000
+            NUL=1000
+            MDR=1000
+            NDR=1000
+            MDL=1000
+            NDL=1000
+            DISTa=1.E8
+            DISTb=1.E8
+            DISTc=1.E8
+            DISTd=1.E8
+
+            do i=1,iy-2
+            do j=1,jx-2
+         IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
+            (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
+             AAA = ((xlon(j,i)-olon(m)) &
+                 *cos((xlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(xlat(j,i)-olat(n))**2
+             if(DISTa.gt.AAA) then
+                DISTa = AAA
+                MUR = j
+                NUR = i
+             endif
+         ENDIF
+         IF((xlon(j,i).lt.olon(m).and.olon(m)-xlon(j,i).lt.10.) .and. &
+            (xlat(j,i).ge.olat(n).and.xlat(j,i)-olat(n).lt.10.)) then
+             AAA = ((xlon(j,i)-olon(m)) &
+                 *cos((xlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(xlat(j,i)-olat(n))**2
+             if(DISTb.gt.AAA) then
+                DISTb = AAA
+                MUL = j
+                NUL = i
+             endif
+         ENDIF
+         IF((xlon(j,i).ge.olon(m).and.xlon(j,i)-olon(m).lt.10.) .and. &
+            (xlat(j,i).lt.olat(n).and.olat(n)-xlat(j,i).lt.10.)) then
+             AAA = ((xlon(j,i)-olon(m)) &
+                 *cos((xlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(xlat(j,i)-olat(n))**2
+             if(DISTc.gt.AAA) then
+                DISTc = AAA
+                MDR = j
+                NDR = i
+             endif
+         ENDIF
+         IF((xlon(j,i).lt.olon(m).and.olon(m)-xlon(j,i).lt.10.) .and. &
+            (xlat(j,i).lt.olat(n).and.olat(n)-xlat(j,i).lt.10.)) then
+             AAA = ((xlon(j,i)-olon(m)) &
+                 *cos((xlat(j,i)+olat(n))/360.*pi))**2 &
+                 +(xlat(j,i)-olat(n))**2
+             if(DISTd.gt.AAA) then
+                DISTd = AAA
+                MDL = j
+                NDL = i
+             endif
+         ENDIF
+            enddo
+            enddo
+            
+            DIST=amin1(DISTa,DISTb,DISTc,DISTd)
+            I1UR(m,n) = MUR
+            J1UR(m,n) = NUR
+            I1UL(m,n) = MUL
+            J1UL(m,n) = NUL
+            I1DR(m,n) = MDR
+            J1DR(m,n) = NDR
+            I1DL(m,n) = MDL
+            J1DL(m,n) = NDL
+            D1XT(m,n) = DIST
+            D1Xa(m,n) = DISTa
+            D1Xb(m,n) = DISTb
+            D1Xc(m,n) = DISTc
+            D1Xd(m,n) = DISTd
+         enddo
+         enddo
+
+         do nfile=1,n_month
+            if(ntype.eq.0) then
+               nyear = idate1/1000000
+               month = idate1/10000-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON ATM_P Orig.',nyear,month
+                  else
+                     write(*,*)'                          ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER ATM_P Orig.',nyear,month
+                  else
+                     write(*,*)'                          ',nyear,month
+                  endif
+               endif
+
+               if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+                  month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+                  month.eq.12) then
+                  n_slice = 31*24/dto
+               else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                       month.eq.11) then
+                  n_slice = 30*24/dto
+               else
+                  n_slice = 28*24/dto
+                  if(mod(nyear,4).eq.0) n_slice = 29*24/dto
+                  if(mod(nyear,100).eq.0) n_slice = 28*24/dto
+                  if(mod(nyear,400).eq.0) n_slice = 29*24/dto
+               endif
+               if(nfile.eq.n_month.and.mod(idate2/100-1,100).ne.0) &
+               n_slice=min(n_slice,nint(mod(idate2/100-1,100)*24./dto))
+               if(nfile.eq.1.and.idate0.eq.idate1) n_slice=n_slice+1
+               write(chy,199) nyear
+               filein = 'ATM_P.'//chy//chm(month)//'0100'
+               fileout= 'ATM_P_LL.'//chy//chm(month)//'0100'
+               inquire(file=trim(Path_Output)//filein,exist=there)
+               if(.not.there) then
+                 write(*,*) trim(Path_Output)//filein,' is not avaiable'
+                 stop
+               endif
+             open(10,file=trim(Path_Output)//filein,form='unformatted' &
+                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               mrec = 0
+            open(20,file=trim(Path_Output)//fileout,form='unformatted' &
+               ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               nrec = 0
+            else if(ntype.eq.1) then
+               nyear = idate1/10000
+               month = idate1/100-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: LAMCON ATM_P Daily',nyear,month
+                  else
+                     write(*,*)'                          ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(nfile.eq.1.or.month.eq.1) then
+                     write(*,*)'regrid: ROTMER ATM_P Daily',nyear,month
+                  else
+                     write(*,*)'                          ',nyear,month
+                  endif
+               endif
+
+               if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
+                  month.eq.7.or.month.eq.8.or.month.eq.10.or. &
+                  month.eq.12) then
+                  n_slice = 31
+               else if(month.eq.4.or.month.eq.6.or.month.eq.9.or. &
+                       month.eq.11) then
+                  n_slice = 30
+               else
+                  n_slice = 28
+                  if(mod(nyear,4).eq.0) n_slice = 29
+                  if(mod(nyear,100).eq.0) n_slice = 28
+                  if(mod(nyear,400).eq.0) n_slice = 29
+               endif
+               if(nfile.eq.n_month.and.mod(idate2-1,100).ne.0) &
+               n_slice=min(n_slice,mod(idate2-1,100)+1)
+               write(chy,199) nyear
+               filein = 'ATM_P.'//chy//chm(month)//'01'
+               fileout= 'ATM_P_LL.'//chy//chm(month)//'01'
+               inquire(file=trim(Path_Output)//filein(1:14),exist=there)
+               if(.not.there) then
+                  write(*,*) trim(Path_Output)//filein(1:14)  &
+                            ,' is not avaiable'
+                  stop
+               endif
+             open(10,file=trim(Path_Output)//filein(1:14)  &
+                    ,form='unformatted' &
+                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+               mrec = 0
+            open(20,file=trim(Path_Output)//fileout(1:17)  &
+                   ,form='unformatted' &
+               ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+               nrec = 0
+            else if(ntype.eq.2) then
+               nyear = idate1/100
+               month = idate1-nyear*100 +nfile-1
+               nyear = nyear + (month-1)/12
+               month = mod(month,12)
+               if(month.eq.0) month = 12
+
+               if(iproj.eq.'LAMCON') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: LAMCON ATM_P Month',nyear,month
+                  else
+                     write(*,*)'                          ',nyear,month
+                  endif
+               else if(iproj.eq.'ROTMER') then
+                  if(month.eq.1.or.nfile.eq.1) then
+                     write(*,*)'regrid: ROTMER ATM_P Month',nyear,month
+                  else
+                     write(*,*)'                          ',nyear,month
+                  endif
+               endif
+
+               n_slice = 1
+
+               if(nfile.eq.1) then
+                  filein = 'ATM_P.mon'
+                  fileout= 'ATM_P_LL.mon'
+                  inquire(file=trim(Path_Output)//filein(1:9)  &
+                         ,exist=there)
+                  if(.not.there) then
+                     write(*,*) trim(Path_Output)//filein(1:9)  &
+                              ,' is not avaiable'
+                     stop
+                  endif
+                  open(10,file=trim(Path_Output)//filein(1:9)  &
+                         ,form='unformatted' &
+                         ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                  nrec = 0
+                  open(20,file=trim(Path_Output)//fileout(1:12)  &
+                         ,form='unformatted' &
+                ,recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte,access='direct')
+                  mrec = 0
+               endif
+            endif
+
+            do nnn=1,n_slice
+               do l=1,np*8+6
+                  mrec = mrec+1
+                  read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
+               enddo
+               
+               IF(iproj.eq.'ROTMER') THEN
+                  IF(PLAT.GT.0.) THEN
+                     POLLAM = PLON + 180.
+                     POLPHI = 90. - PLAT
+                  ELSE
+                     POLLAM = PLON
+                     POLPHI = 90. + PLAT
+                  ENDIF
+                  IF(POLLAM.GT.180.) POLLAM = POLLAM - 360.
+                  POLCPHI = cos(PIR180*POLPHI)
+                  POLSPHI = sin(PIR180*POLPHI)
+                  do i=1,iy-2
+                  do j=1,jx-2
+                     ZPHI = XLAT(j,i)*PIR180
+                     ZRLA = XLON(j,i)*PIR180
+                     IF(XLAT(j,i).gt.89.999999) ZRLA = 0.0
+                     ZRLAP = POLLAM*PIR180 - ZRLA
+                     ZARG1  = POLCPHI*sin(ZRLAP)
+                     ZARG2  = POLSPHI*cos(ZPHI)  &
+                            - POLCPHI*sin(ZPHI)*cos(ZRLAP)
+                     ZNORM  = 1.0/sqrt(ZARG1**2+ZARG2**2)
+                     SINDEL = ZARG1*ZNORM
+                     COSDEL = ZARG2*ZNORM
+                     do k=1,np
+                        US =  o(j,i,k)*COSDEL + o(j,i,k+np)*SINDEL
+                        VS = -o(j,i,k)*SINDEL + o(j,i,k+np)*COSDEL
+                        o(j,i,k) = US
+                        o(j,i,k+np) = VS
+                     enddo
+                  enddo
+                  enddo
+               ELSE IF(iproj.eq.'LAMCON') THEN
+                  IF(CLAT.lt.0.) THEN
+                     SIGN0= -1.           ! SOUTH HEMESPHERE
+                  ELSE
+                     SIGN0=  1.           ! NORTH HEMESPHERE
+                  ENDIF
+                  IF(abs(truelatL-truelatH).gt.0.1) THEN
+                     GRIDFC=(alog10(cos(truelatL*PIR180)) &
+                            -alog10(cos(truelatH*PIR180)))  &
+               /(alog10(tan(45.0-SIGN0*truelatL/2.0*PIR180))  &
+                -alog10(tan(45.0-SIGN0*truelatH/2.0*PIR180)))
+                  ELSE
+                     GRIDFC=SIGN0*sin(truelatL*PIR180)
+                  ENDIF
+                  do i=1,iy-2
+                  do j=1,jx-2
+                     IF((CLON.ge.0.0.and.XLON(j,i).ge.0.).or. &
+                        (CLON.lt.0.0.and.XLON(j,i).lt.0.)) THEN
+                        X=(CLON-XLON(j,i))*PIR180*GRIDFC
+                     ELSE
+                        IF(CLON.ge.0.0) THEN
+                           IF(abs(CLON-(XLON(j,i)+360.)).lt.   &
+                              abs(CLON- XLON(j,i)) ) THEN
+                              X=(CLON-(XLON(j,i)+360.))*PIR180*GRIDFC
+                           ELSE
+                              X=(CLON-XLON(j,i))*PIR180*GRIDFC
+                           ENDIF
+                        ELSE
+                           IF(abs(CLON-(XLON(j,i)-360.)).LT. &
+                              abs(CLON- XLON(j,i)) ) THEN
+                              X=(CLON-(XLON(j,i)-360.))*PIR180*GRIDFC
+                           ELSE
+                              X=(CLON-XLON(j,i))*PIR180*GRIDFC
+                           ENDIF
+                        ENDIF
+                     ENDIF
+                     SINDEL=sin(X)
+                     COSDEL=cos(X)
+                     IF(CLAT.ge.0.) THEN
+                        do k=1,np
+                           US= o(j,i,k)*COSDEL - o(j,i,k+np)*SINDEL
+                           VS=-o(j,i,k)*SINDEL + o(j,i,k+np)*COSDEL
+                           o(j,i,k) = US
+                           o(j,i,k+np) = VS
+                        enddo
+                     ELSE
+                        do k=1,np
+                           US= o(j,i,k)*COSDEL + o(j,i,k+np)*SINDEL
+                           VS=-o(j,i,k)*SINDEL + o(j,i,k+np)*COSDEL
+                           o(j,i,k) = US
+                           o(j,i,k+np) = VS
+                        enddo
+                     ENDIF
+                  enddo
+                  enddo
+               ENDIF
+
+               do l=1,np*8+6
+                  do n=nlat,mlat
+                  do m=nlon,mlon
+                     out(m,n) = -9999.
+
+            if(I1UR(m,n).lt.999.and.J1UR(m,n).lt.999.and. &
+               I1UL(m,n).lt.999.and.J1UL(m,n).lt.999.and. &
+               I1DR(m,n).lt.999.and.J1DR(m,n).lt.999.and. &
+               I1DL(m,n).lt.999.and.J1DL(m,n).lt.999) then
+               if(D1XT(m,n).gt.0.0001) then
+      out(m,n) = ( o(I1UR(m,n),J1UR(m,n),l)/D1Xa(m,n) &
+                  +o(I1UL(m,n),J1UL(m,n),l)/D1Xb(m,n) &
+                  +o(I1DR(m,n),J1DR(m,n),l)/D1Xc(m,n) &
+                  +o(I1DL(m,n),J1DL(m,n),l)/D1Xd(m,n) )  &
+          /( 1./D1Xa(m,n)+1./D1Xb(m,n)+1./D1Xc(m,n)+1./D1Xd(m,n) )
+               else
+                  if(D1Xa(m,n).eq.D1XT(m,n)) then
+                     out(m,n) = o(I1UR(m,n),J1UR(m,n),l)
+                  else if(D1Xb(m,n).eq.D1XT(m,n)) then
+                     out(m,n) = o(I1UL(m,n),J1UL(m,n),l)
+                  else if(D1Xc(m,n).eq.D1XT(m,n)) then
+                     out(m,n) = o(I1DR(m,n),J1DR(m,n),l)
+                  else if(D1Xd(m,n).eq.D1XT(m,n)) then
+                     out(m,n) = o(I1DL(m,n),J1DL(m,n),l)
+                  endif
+               endif
+            endif
+                  enddo
+                  enddo
+                  nrec=nrec+1
+                  write(20,rec=nrec)((out(m,n),m=nlon,mlon),n=nlat,mlat)
+               enddo
+            enddo
+            if(.not.ntype.eq.2) close(20)
+            if(.not.ntype.eq.2) close(10)
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
+               if(ntype.eq.0) then
+                 inquire(file=trim(Path_Output)//fileout//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file=trim(Path_Output)//fileout//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file=trim(Path_Output)//fileout//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,10) fileout
+               else if(ntype.eq.1) then
+                 inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:17)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,11) fileout(1:17)
+               else if(ntype.eq.2) then
+                 inquire(file=trim(Path_Output)//fileout(1:12)//'.ctl' &
+                        ,exist=there)
+                  if(there) then
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:12)//'.ctl' &
+                         ,form='formatted',status='replace')
+                  else
+                     open(31,file= &
+                          trim(Path_Output)//fileout(1:12)//'.ctl' &
+                         ,form='formatted',status='new')
+                  endif
+                  write(31,12) fileout(1:12)
+               endif
+               write(31,20)
+               if(ibigend.eq.1) then
+                  write(31,30)
+               else
+                  write(31,40)
+               endif
+               write(31,50)
+               write(31,200) mlon-nlon+1,(nlon-1)*ddeg,ddeg
+               write(31,210) mlat-nlat+1,(nlat-1)*ddeg,ddeg
+               write(31,300) np,(plev(k),k=1,np)
+               if(ntype.eq.0) then
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+           write(31,400)n_slice,0,cday(nday),chmc(month),nyear,nint(dto)
+                  else
+        write(31,400) n_slice,nint(dto),'01',chmc(month),nyear,nint(dto)
+                  endif
+               else if(ntype.eq.1) then
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
+               else if(ntype.eq.2) then
+                  write(31,402) n_month,'16',chmc(month),nyear
+               endif
+               write(31,500) 14
+               write(31,650) 'u       ',np,'westerly wind (m/s)        '
+               write(31,650) 'v       ',np,'southerly wind (m/s)       '
+               write(31,650) 'w       ',np,'omega (hPa/s)   p-velocity '
+               write(31,650) 'h       ',np,'geopotential height (m)    '
+               write(31,650) 't       ',np,'air temperature (degree)   '
+               write(31,650) 'rh      ',np,'relative moisture (%)      '
+               write(31,650) 'qv      ',np,'water vapor mixing ratio   '
+               write(31,650) 'qc      ',np,'cloud water mixing ratio   '
+               write(31,600) 'ps      ',   'surface pressure (hPa)     '
+               write(31,600) 'slp     ',   'sea level pressure (hPa)   '
+               write(31,600) 'tpr     ',   'total precipitation(mm/day)'
+               write(31,600) 'tgb     ',   'lower groud temp. in BATS  '
+               write(31,600) 'swt     ',   'total soil water in mm H2O '
+               write(31,600) 'rno     ',   'accumulated infiltration   '
+               write(31,700)
+               close(31)
+            endif
+            ENDIF
+         enddo
+            
+         deallocate(I1UR)
+         deallocate(J1UR)
+         deallocate(I1UL)
+         deallocate(J1UL)
+         deallocate(I1DR)
+         deallocate(J1DR)
+         deallocate(I1DL)
+         deallocate(J1DL)
+         deallocate(D1XT)
+         deallocate(D1Xa)
+         deallocate(D1Xb)
+         deallocate(D1Xc)
+         deallocate(D1Xd)
+      endif
+      deallocate(out)
+      deallocate(olat)
+      deallocate(olon)
+
+      deallocate(sigma)
+      deallocate(o)
+      deallocate(xlat)
+      deallocate(xlon)
+
+ 199  format(I4)
+  10  format('dset ^',A17)
+  11  format('dset ^',A15)
+  12  format('dset ^',A10)
+  20  format('title RegCM pressure level ATM variables')
   30  format('options big_endian')
   40  format('options little_endian')
   50  format('undef -9999.')
@@ -2776,9 +4877,9 @@
       end
 
       subroutine regrid_SRF(iy,jx,kz,ibyte,idate0,idate1,idate2 &
-                           ,Path_Output)
+                           ,Path_Output,igrads)
       implicit none
-      integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
       character*128 Path_Output
       real*4  truelatL,truelatH
       integer iiy,jjx,kkz
@@ -2789,6 +4890,11 @@
       character*6 iproj
       real*4, allocatable ::  sigma(:)
       character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      integer nday
       character*2 chm(12)
       data chm/'01','02','03','04','05','06','07','08','09','10', &
                '11','12'/
@@ -2800,7 +4906,7 @@
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
 
       integer i,j,k,l,m,n
-      integer igrads,ibigend
+      integer ibigend
 
       real*4  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
@@ -2829,7 +4935,6 @@
       real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
       real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
-      igrads = 1
       ibigend= 1
 
       PI = atan(1.)*4.
@@ -3101,8 +5206,9 @@
             enddo
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
-            if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.nfile.eq.1))) then
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
                if(ntype.eq.0) then
                  inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
                         ,exist=there)
@@ -3155,13 +5261,19 @@
                write(31,300) &
             (1013.25-ptsp*10.)*(sigma(kz)+sigma(kz+1))*0.5+ptsp*10.
                if(ntype.eq.0) then
-               if(nfile.eq.1.and.idate0.eq.idate1) then
-               write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dtb)
-               else
-       write(31,400) n_slice,nint(dtb),'01',chmc(month),nyear,nint(dtb)
-               endif
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+           write(31,400)n_slice,0,cday(nday),chmc(month),nyear,nint(dtb)
+                  else
+        write(31,400) n_slice,nint(dtb),'01',chmc(month),nyear,nint(dtb)
+                  endif
                else if(ntype.eq.1) then
-                  write(31,401) n_slice,'01',chmc(month),nyear
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
@@ -3196,6 +5308,7 @@
                write(31,700)
                close(31)
             endif
+            ENDIF
          enddo
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
@@ -3585,8 +5698,9 @@
             enddo
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
-            if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.nfile.eq.1))) then
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
                if(ntype.eq.0) then
                  inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
                         ,exist=there)
@@ -3639,13 +5753,19 @@
                write(31,300) &
             (1013.25-ptsp*10.)*(sigma(kz)+sigma(kz+1))*0.5+ptsp*10.
                if(ntype.eq.0) then
-               if(nfile.eq.1.and.idate0.eq.idate1) then
-               write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dtb)
-               else
-       write(31,400) n_slice,nint(dtb),'01',chmc(month),nyear,nint(dtb)
-               endif
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+           write(31,400)n_slice,0,cday(nday),chmc(month),nyear,nint(dtb)
+                  else
+        write(31,400) n_slice,nint(dtb),'01',chmc(month),nyear,nint(dtb)
+                  endif
                else if(ntype.eq.1) then
-                  write(31,401) n_slice,'01',chmc(month),nyear
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
@@ -3680,6 +5800,7 @@
                write(31,700)
                close(31)
             endif
+            ENDIF
          enddo
             
          deallocate(I1UR)
@@ -3709,7 +5830,7 @@
   10  format('dset ^',A17)
   11  format('dset ^',A15)
   12  format('dset ^',A10)
-  20  format('title RegCM domain information')
+  20  format('title RegCM SRF surface variables')
   30  format('options big_endian')
   40  format('options little_endian')
   50  format('undef -9999.')
@@ -3726,9 +5847,9 @@
       end
 
       subroutine regrid_RAD(iy,jx,kz,ibyte,idate0,idate1,idate2 &
-                           ,Path_Output)
+                           ,Path_Output,igrads)
       implicit none
-      integer iy,jx,kz,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
       character*128 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -3738,6 +5859,11 @@
       character*6 iproj
       real*4, allocatable ::  sigma(:)
       character*4 :: chy
+      character*2 cday(31)
+      data cday/'01','02','03','04','05','06','07','08','09','10', &
+                '11','12','13','14','15','16','17','18','19','20', &
+                '21','22','23','24','25','26','27','28','29','30','31'/
+      integer nday
       character*2 chm(12)
       data chm/'01','02','03','04','05','06','07','08','09','10', &
                '11','12'/
@@ -3749,7 +5875,7 @@
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
 
       integer i,j,k,l,m,n
-      integer igrads,ibigend
+      integer ibigend
 
       real*4  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
@@ -3774,7 +5900,6 @@
       real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
       real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
-      igrads = 1
       ibigend= 1
 
       PI = atan(1.)*4.
@@ -4024,8 +6149,9 @@
             enddo
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
-            if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.nfile.eq.1))) then
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
                if(ntype.eq.0) then
                  inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
                         ,exist=there)
@@ -4078,13 +6204,19 @@
                write(31,300) kz, &
           ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kz)
                if(ntype.eq.0) then
-               if(nfile.eq.1.and.idate0.eq.idate1) then
-               write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dtr)
-               else
-       write(31,400) n_slice,nint(dtr),'01',chmc(month),nyear,nint(dtr)
-               endif
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+           write(31,400)n_slice,0,cday(nday),chmc(month),nyear,nint(dtr)
+                  else
+        write(31,400) n_slice,nint(dtr),'01',chmc(month),nyear,nint(dtr)
+                  endif
                else if(ntype.eq.1) then
-                  write(31,401) n_slice,'01',chmc(month),nyear
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
@@ -4105,6 +6237,7 @@
                write(31,700)
                close(31)
             endif
+            ENDIF
          enddo
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
@@ -4394,8 +6527,9 @@
             enddo
             if(.not.ntype.eq.2) close(20)
             if(.not.ntype.eq.2) close(10)
-            if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-               (ntype.eq.2.and.nfile.eq.1))) then
+            IF(igrads.eq.1) THEN
+            if(ntype.eq.0.or.ntype.eq.1.or. &
+               (ntype.eq.2.and.nfile.eq.1)) then
                if(ntype.eq.0) then
                  inquire(file=trim(Path_Output)//fileout(1:17)//'.ctl' &
                         ,exist=there)
@@ -4448,13 +6582,19 @@
                write(31,300) kz, &
           ((1013.25-ptsp*10.)*(sigma(k)+sigma(k+1))*0.5+ptsp*10.,k=1,kz)
                if(ntype.eq.0) then
-               if(nfile.eq.1.and.idate0.eq.idate1) then
-               write(31,400) n_slice,0,'01',chmc(month),nyear,nint(dtr)
-               else
-       write(31,400) n_slice,nint(dtr),'01',chmc(month),nyear,nint(dtr)
-               endif
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,10000)/100
+           write(31,400)n_slice,0,cday(nday),chmc(month),nyear,nint(dtr)
+                  else
+        write(31,400) n_slice,nint(dtr),'01',chmc(month),nyear,nint(dtr)
+                  endif
                else if(ntype.eq.1) then
-                  write(31,401) n_slice,'01',chmc(month),nyear
+                  if(nfile.eq.1.and.idate1.eq.idate0) then
+                     nday = mod(idate1,100)
+                     write(31,401) n_slice,cday(nday),chmc(month),nyear
+                  else
+                     write(31,401) n_slice,'01',chmc(month),nyear
+                  endif
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
@@ -4475,6 +6615,7 @@
                write(31,700)
                close(31)
             endif
+            ENDIF
          enddo
             
          deallocate(I1UR)
@@ -4504,7 +6645,7 @@
   10  format('dset ^',A17)
   11  format('dset ^',A15)
   12  format('dset ^',A10)
-  20  format('title RegCM domain information')
+  20  format('title RegCM model level RAD variables')
   30  format('options big_endian')
   40  format('options little_endian')
   50  format('undef -9999.')

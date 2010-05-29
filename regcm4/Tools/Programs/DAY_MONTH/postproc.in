@@ -2,15 +2,16 @@
  iy = 80,
  jx =108,
  kz = 18,
- np = 11,
  nsg = 1,
  ntr = 1,
  ibyte = 4,
+ igrads = 1,
  Path_Input = '/home/bixq/BENCHMARK/regcm4_851/Input/',
  DomainName = 'China'
  Path_Output = '/home/bixq/BENCHMARK/regcm4_851/Run/output/',
 /
 &sigma2p_param
+ np = 11,
  plev = 1000.,925.,850.,700.,500.,400.,300.,250.,200.,150.,100.,
  s2p_ICBC = .ture.,
  s2p_ATM  = .true.,
@@ -27,12 +28,16 @@
  day_SRF = .true.,
  day_SUB = .false.,
  day_CHE = .false.,
+ day_ICBC_P = .true.,
+ day_ATM_P = .true.,
  mon_ICBC = .true.,
  mon_ATM = .true.,
  mon_RAD = .true.,
  mon_SRF = .true.,
  mon_SUB = .false.,
  mon_CHE = .false.,
+ mon_ICBC_P = .true.,
+ mon_ATM_P = .true.,
 /
 &regridparam
  regDOMAIN = .true. ,
@@ -41,6 +46,8 @@
  regATM = .true.,
  regSRF = .true.,
  regRAD = .true.,
+ regICBC_P = .true.,
+ regATM_P = .true.,
  xminlon = -9999.0,
  xmaxlon = -9999.0,
  xminlat = -9999.0,

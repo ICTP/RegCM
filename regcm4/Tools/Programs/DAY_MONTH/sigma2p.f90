@@ -24,40 +24,43 @@
 !
       program sigma2p
       implicit none
-      integer iy,jx,kz,np,nsg,ntr,ibyte
+      integer iy,jx,kz,nsg,ntr,ibyte,igrads
       integer idate0,idate1,idate2
+      integer np
       real*4, save ::  plev(11)
       logical s2p_ICBC,s2p_ATM
       character*128 Path_Input,Path_Output
       character*20 DomainName
 
-      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,ibyte,Path_Input &
-                           ,DomainName,Path_Output
+      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,ibyte,igrads &
+                           ,Path_Input,DomainName,Path_Output
       namelist /dateparam/ idate0,idate1,idate2
-      namelist /sigma2p_param/ plev,s2p_ICBC,s2p_ATM
+      namelist /sigma2p_param/ np,plev,s2p_ICBC,s2p_ATM
 
       read(*,shareparam) 
+
+      read(*,sigma2p_param) 
       if(np.ne.11) then
          write(*,*) 'Number of pressure levels does not equal to 11'
-         write(*,*) 'Please reset np, or reset plev'
+         write(*,*) 'Please reset np, or reset plev in sigma2p.f90'
+         stop
       endif
 
       read(*,dateparam) 
-      read(*,sigma2p_param) 
 
       if(s2p_ICBC) call sigma2p_ICBC(iy,jx,kz,np,plev,ibyte &
-                        ,idate0,idate1,idate2,Path_Input,DomainName)
+                     ,idate0,idate1,idate2,Path_Input,DomainName,igrads)
 
       if(s2p_ATM) call sigma2p_ATM(iy,jx,kz,np,plev,ibyte &
-                                  ,idate0,idate1,idate2,Path_Output)
+                               ,idate0,idate1,idate2,Path_Output,igrads)
 
       stop
       end
 
       subroutine sigma2p_ICBC(iy,jx,kz,np,plev,ibyte &
-                 ,idate0,idate1,idate2,Path_Input,DomainName)
+                 ,idate0,idate1,idate2,Path_Input,DomainName,igrads)
       implicit none
-      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
       real*4  plev(np)
       character*128 Path_Input
       character*20 DomainName
@@ -65,7 +68,7 @@
       real*4  dsinm,clat,clon,plat,plon,GRDFAC
       character*6 iproj
       real*4, allocatable,save ::  sigma(:),sig(:)
-      integer igrads,ibigend
+      integer jgrads,ibigend
       real*4  truelatL,truelatH
       character*4 :: chy
       character*2 cday(31)
@@ -142,7 +145,7 @@
       open(10,file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,form='unformatted',recl=jx*iy*ibyte,access='direct')
       read(10,rec=1) iiy,jjx,kkz,dsinm,clat,clon,plat,plon,GRDFAC  &
-                    ,iproj,(sigma(k),k=1,kz+1),ptop,igrads,ibigend &
+                    ,iproj,(sigma(k),k=1,kz+1),ptop,jgrads,ibigend &
                     ,truelatL,truelatH
       if(iiy.ne.iy.or.jjx.ne.jx.or.kkz.ne.kz) then
          write(*,*) 'iy,jx,kz in parameter = ',iy,jx,kz
@@ -435,10 +438,6 @@
           !  1. For Heights
             call height(hp,h,t,ps,ht,sig,jx-2,iy-2,kz,plev,np &
                        ,PTOP,RGAS,GRAV,BLTOP,TLAPSE)
-            do k=1,np
-               nrec=nrec+1
-               write(20,rec=nrec)((hp(j,i,k),j=1,jx-2),i=1,iy-2)
-            enddo
           !  2. For Zonal and Meridional Winds
             call intlin(up,u,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
             call intlin(vp,v,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
@@ -447,15 +446,19 @@
                        ,PTOP,RGAS,GRAV,BLTOP,TLAPSE)
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((tp(j,i,k),j=1,jx-2),i=1,iy-2)
-            enddo
-            do k=1,np
-               nrec=nrec+1
                write(20,rec=nrec)((up(j,i,k),j=1,jx-2),i=1,iy-2)
             enddo
             do k=1,np
                nrec=nrec+1
                write(20,rec=nrec)((vp(j,i,k),j=1,jx-2),i=1,iy-2)
+            enddo
+            do k=1,np
+               nrec=nrec+1
+               write(20,rec=nrec)((hp(j,i,k),j=1,jx-2),i=1,iy-2)
+            enddo
+            do k=1,np
+               nrec=nrec+1
+               write(20,rec=nrec)((tp(j,i,k),j=1,jx-2),i=1,iy-2)
             enddo
           !  4. For Moisture qv
             call humid1(t,q,ps,sig,jx-2,iy-2,kz,ptop)
@@ -477,8 +480,8 @@
          enddo
          if(.not.ntype.eq.2) close(20)
          if(.not.ntype.eq.2) close(10)
-         if(igrads.eq.1.and.(ntype.eq.0.or.ntype.eq.1.or. &
-            (ntype.eq.2.and.nfile.eq.1))) then
+         if(igrads.eq.1) then
+         if(ntype.eq.0.or.ntype.eq.1.or.(ntype.eq.2.and.nfile.eq.1)) then
             if(ntype.eq.0) then
                inquire(file= &
         trim(Path_Input)//trim(DomainName)//'_'//fileout(1:16)//'.ctl' &
@@ -613,20 +616,23 @@
             endif
             write(31,300) np, (plev(k),k=1,np)
             if(ntype.eq.0) then
-               if(nfile.eq.1) then
+               if(nfile.eq.1.and.idate1.eq.idate0) then
                   nday = mod(idate1,10000)/100
                   write(31,400) n_slice,0,cday(nday),chmc(month),nyear,6
                else
                   write(31,400) n_slice,0,'01',chmc(month),nyear,6
                endif
             else if(ntype.eq.1) then
-               write(31,401) n_slice,'01',chmc(month),nyear
+               if(nfile.eq.1.and.idate1.eq.idate0) then
+                  nday = mod(idate1,100)
+                  write(31,401) n_slice,cday(nday),chmc(month),nyear
+               else
+                  write(31,401) n_slice,'01',chmc(month),nyear
+               endif
             else if(ntype.eq.2) then
                write(31,402) n_month,'16',chmc(month),nyear
             endif
             write(31,500) 8
-            write(31,650) 'h       ',np,'geopotential height (m)   '
-            write(31,650) 't       ',np,'air temperature (deg, K)  '
             if(iproj.eq.'LAMCON') then
                write(31,651) 'u       ',np,'westerly wind (m/s)       '
                write(31,652) 'v       ',np,'southerly wind (m/s)      '
@@ -634,12 +640,15 @@
                write(31,650) 'u       ',np,'westerly wind (m/s)       '
                write(31,650) 'v       ',np,'southerly wind (m/s)      '
             endif
+            write(31,650) 'h       ',np,'geopotential height (m)   '
+            write(31,650) 't       ',np,'air temperature (deg, K)  '
             write(31,650) 'rh      ',np,'relative moisture (%)     '
             write(31,650) 'q       ',np,'specific moisture (kg/kg) '
             write(31,600) 'ps      ',   'surface pressure (hPa)    '
             write(31,600) 'slp     ',   'sea level pressure (hPa)  '
             write(31,700)
             close(31)
+         endif
          endif
       enddo
             
@@ -667,7 +676,7 @@
   10  format('dset ',A38)
   11  format('dset ',A36)
   12  format('dset ',A32)
-  20  format('title RegCM domain information')
+  20  format('title RegCM pressure level ICBC variables')
   30  format('options big_endian')
   40  format('options little_endian')
   50  format('undef -9999.')
@@ -685,9 +694,9 @@
       end
 
       subroutine sigma2p_ATM(iy,jx,kz,np,plev,ibyte &
-                 ,idate0,idate1,idate2,Path_Output)
+                 ,idate0,idate1,idate2,Path_Output,igrads)
       implicit none
-      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2
+      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
       real*4  plev(np)
       character*128 Path_Output
       integer iiy,jjx,kkz
@@ -1059,10 +1068,6 @@
           !  1. For Heights
             call height(hp,h,t,ps,ht,sig,jx-2,iy-2,kz,plev,np &
                        ,PTOP,RGAS,GRAV,BLTOP,TLAPSE)
-            do k=1,np
-               nrec=nrec+1
-               write(20,rec=nrec)((hp(j,i,k),j=1,jx-2),i=1,iy-2)
-            enddo
           !  2. For Zonal and Meridional Winds
             call intlin(up,u,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
             call intlin(vp,v,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
@@ -1070,10 +1075,6 @@
           !  3. For Temperatures
             call intlog(tp,t,ps,sig,jx-2,iy-2,kz,plev,np &
                        ,PTOP,RGAS,GRAV,BLTOP,TLAPSE)
-            do k=1,np
-               nrec=nrec+1
-               write(20,rec=nrec)((tp(j,i,k),j=1,jx-2),i=1,iy-2)
-            enddo
             do k=1,np
                nrec=nrec+1
                write(20,rec=nrec)((up(j,i,k),j=1,jx-2),i=1,iy-2)
@@ -1085,6 +1086,14 @@
             do k=1,np
                nrec=nrec+1
                write(20,rec=nrec)((wp(j,i,k),j=1,jx-2),i=1,iy-2)
+            enddo
+            do k=1,np
+               nrec=nrec+1
+               write(20,rec=nrec)((hp(j,i,k),j=1,jx-2),i=1,iy-2)
+            enddo
+            do k=1,np
+               nrec=nrec+1
+               write(20,rec=nrec)((tp(j,i,k),j=1,jx-2),i=1,iy-2)
             enddo
           !  4. For Moisture qv
             call humid1(t,q,ps,sig,jx-2,iy-2,kz,ptop)
@@ -1119,6 +1128,7 @@
          enddo
          if(.not.ntype.eq.2) close(20)
          if(.not.ntype.eq.2) close(10)
+         if(igrads.eq.1) then
          if(ntype.eq.0.or.ntype.eq.1.or.(ntype.eq.2.and.nfile.eq.1))then
             if(ntype.eq.0) then
                inquire(file=trim(Path_Output)//fileout(1:16)//'.ctl' &
@@ -1241,27 +1251,25 @@
             endif
             write(31,300) np, (plev(k),k=1,np)
             if(ntype.eq.0) then
-               if(nfile.eq.1) then
+               if(nfile.eq.1.and.idate1.eq.idate0) then
                   nday = mod(idate1,10000)/100
-                  if(idate0.eq.idate1) then
-                     write(31,400) &
-                     n_slice,0,'01',chmc(month),nyear,nint(dto)
-                  else
-                     write(31,400) n_slice, &
-               nint(dto),cday(nday),chmc(month),nyear,nint(dto)
-                  endif
+                  write(31,400) n_slice, &
+                       0,cday(nday),chmc(month),nyear,nint(dto)
                else
                   write(31,400) n_slice &
                     ,nint(dto),'01',chmc(month),nyear,nint(dto)
                endif
             else if(ntype.eq.1) then
-               write(31,401) n_slice,'01',chmc(month),nyear
+               if(nfile.eq.1.and.idate1.eq.idate0) then
+                  nday = mod(idate1,100)
+                  write(31,401) n_slice,cday(nday),chmc(month),nyear
+               else
+                  write(31,401) n_slice,'01',chmc(month),nyear
+               endif
             else if(ntype.eq.2) then
                write(31,402) n_month,'16',chmc(month),nyear
             endif
             write(31,500) 14
-            write(31,650) 'h       ',np,'geopotential height (m)   '
-            write(31,650) 't       ',np,'air temperature (deg, K)  '
             if(iproj.eq.'LAMCON') then
                write(31,651) 'u       ',np,'westerly wind (m/s)       '
                write(31,652) 'v       ',np,'southerly wind (m/s)      '
@@ -1270,17 +1278,20 @@
                write(31,650) 'v       ',np,'southerly wind (m/s)      '
             endif
             write(31,650) 'omega   ',np,'vertical velocity of p    '
+            write(31,650) 'h       ',np,'geopotential height (m)   '
+            write(31,650) 't       ',np,'air temperature (deg, K)  '
             write(31,650) 'rh      ',np,'relative moisture (%)     '
-            write(31,650) 'q       ',np,'specific moisture (kg/kg) '
-            write(31,650) 'qc      ',np,'cloud water       (kg/kg) '
+            write(31,650) 'q       ',np,'water vapor mixing ratio  '
+            write(31,650) 'qc      ',np,'cloud water mixing ratio  '
             write(31,600) 'ps      ',   'surface pressure (hPa)    '
             write(31,600) 'slp     ',   'sea level pressure (hPa)  '
-            write(31,600) 'tpr     ',   'precipitation, (mm/day)   '
-            write(31,600) 'tgb     ',   'lower soil temperture, K  '
+            write(31,600) 'tpr     ',   'total precipitation(mm/day'
+            write(31,600) 'tgb     ',   'lower groud temp. in BATS '
             write(31,600) 'swt     ',   'total soil water in mm H2O'
             write(31,600) 'rno     ',   'accumulated infiltration  '
             write(31,700)
             close(31)
+         endif
          endif
       enddo
             
@@ -1314,7 +1325,7 @@
   10  format('dset ',A38)
   11  format('dset ',A36)
   12  format('dset ',A32)
-  20  format('title RegCM domain information')
+  20  format('title RegCM pressure level model output variables')
   30  format('options big_endian')
   40  format('options little_endian')
   50  format('undef -9999.')
