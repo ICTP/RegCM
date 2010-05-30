@@ -31,6 +31,7 @@
       logical s2p_ICBC,s2p_ATM
       character*128 Path_Input,Path_Output
       character*20 DomainName
+      integer len_path
 
       namelist /shareparam/ iy,jx,kz,np,nsg,ntr,ibyte,igrads &
                            ,Path_Input,DomainName,Path_Output
@@ -38,6 +39,13 @@
       namelist /sigma2p_param/ np,plev,s2p_ICBC,s2p_ATM
 
       read(*,shareparam) 
+
+      len_path = len(trim(Path_Input))
+      if(Path_Input(len_path:len_path).ne.'/') &
+         Path_Input=trim(Path_Input)//'/'
+      len_path = len(trim(Path_Output))
+      if(Path_Output(len_path:len_path).ne.'/') &
+         Path_Output=trim(Path_Output)//'/'
 
       read(*,sigma2p_param) 
       if(np.ne.11) then
@@ -100,10 +108,10 @@
       real*4, allocatable,save :: qp(:,:,:),hp(:,:,:)
 
       real*4, save :: ptop
-      real*4, parameter, save :: rgas = 287.04
-      real*4, parameter, save :: grav = 9.80616
-      real*4, parameter, save :: bltop = 0.96
-      real*4, parameter, save :: tlapse = -6.5E-3
+      real*4, parameter :: rgas = 287.04
+      real*4, parameter :: grav = 9.80616
+      real*4, parameter :: bltop = 0.96
+      real*4, parameter :: tlapse = -6.5E-3
 
       integer n_month
       logical there
@@ -161,19 +169,19 @@
 
       read(10,rec=2) fin          ! ht
       do i=1,iy-2
-      do j=1,jx-1
+      do j=1,jx-2
          ht(j,i) = fin(j+1,i+1)
       enddo
       enddo
       read(10,rec=5) fin          ! xlat
       do i=1,iy-2
-      do j=1,jx-1
+      do j=1,jx-2
          xlat(j,i) = fin(j+1,i+1)
       enddo
       enddo
       read(10,rec=6) fin          ! xlon
       do i=1,iy-2
-      do j=1,jx-1
+      do j=1,jx-2
          xlon(j,i) = fin(j+1,i+1)
       enddo
       enddo
@@ -651,6 +659,8 @@
          endif
          endif
       enddo
+      if(ntype.eq.2) close(20)
+      if(ntype.eq.2) close(10)
             
       deallocate(sigma)
       deallocate(sig)
@@ -679,7 +689,7 @@
   20  format('title RegCM pressure level ICBC variables')
   30  format('options big_endian')
   40  format('options little_endian')
-  50  format('undef -9999.')
+  50  format('undef -1e+34')
  300  format('zdef ',I2,' levels ',30f7.2)
  400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
  401  format('tdef ',I4,' linear ',A2,A3,I4,' ','1dy')
@@ -737,10 +747,10 @@
       real*4, allocatable,save :: cp(:,:,:)
 
       real*4, save :: ptop
-      real*4, parameter, save :: rgas = 287.04
-      real*4, parameter, save :: grav = 9.80616
-      real*4, parameter, save :: bltop = 0.96
-      real*4, parameter, save :: tlapse = -6.5E-3
+      real*4, parameter :: rgas = 287.04
+      real*4, parameter :: grav = 9.80616
+      real*4, parameter :: bltop = 0.96
+      real*4, parameter :: tlapse = -6.5E-3
 
       integer n_month
       logical there
@@ -832,9 +842,9 @@
             if(month.eq.0) month = 12
 
             if(nfile.eq.1.or.month.eq.1) then
-               write(*,*)'sigma2p: ATM Orig.',nyear,month
+               write(*,*)'sigma2p:  ATM Orig.',nyear,month
             else
-               write(*,*)'                  ',nyear,month
+               write(*,*)'                   ',nyear,month
             endif
 
             if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -881,9 +891,9 @@
             if(month.eq.0) month = 12
 
             if(nfile.eq.1.or.month.eq.1) then
-               write(*,*)'sigma2p: ATM Daily',nyear,month
+               write(*,*)'sigma2p:  ATM Daily',nyear,month
             else
-               write(*,*)'                  ',nyear,month
+               write(*,*)'                   ',nyear,month
             endif
 
             if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -925,9 +935,9 @@
             if(month.eq.0) month = 12
 
             if(nfile.eq.1.or.month.eq.1) then
-               write(*,*)'sigma2p: ATM Month',nyear,month
+               write(*,*)'sigma2p:  ATM Month',nyear,month
             else
-               write(*,*)'                  ',nyear,month
+               write(*,*)'                   ',nyear,month
             endif
 
             n_slice = 1
@@ -1294,6 +1304,8 @@
          endif
          endif
       enddo
+      if(ntype.eq.2) close(20)
+      if(ntype.eq.2) close(10)
             
       deallocate(sigma)
       deallocate(sig)
@@ -1328,7 +1340,7 @@
   20  format('title RegCM pressure level model output variables')
   30  format('options big_endian')
   40  format('options little_endian')
-  50  format('undef -9999.')
+  50  format('undef -1e+34')
  300  format('zdef ',I2,' levels ',30f7.2)
  400  format('tdef ',I4,' linear ',I2,'z',A2,A3,I4,' ',I2,'hr')
  401  format('tdef ',I4,' linear ',A2,A3,I4,' ','1dy')

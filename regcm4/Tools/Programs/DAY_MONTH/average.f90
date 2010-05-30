@@ -30,6 +30,7 @@
       integer idate0,idate1,idate2
       character*128 Path_Input,Path_Output
       character*20 DomainName
+      integer len_path
       integer np
       real*4, save ::  plev(11)
       logical s2p_ICBC,s2p_ATM
@@ -45,6 +46,13 @@
                ,mon_ICBC_P,mon_ATM_P
 
       read(*,shareparam)
+
+      len_path = len(trim(Path_Input))
+      if(Path_Input(len_path:len_path).ne.'/') &
+         Path_Input=trim(Path_Input)//'/'
+      len_path = len(trim(Path_Output))
+      if(Path_Output(len_path:len_path).ne.'/') &
+         Path_Output=trim(Path_Output)//'/'
 
       read(*,sigma2p_param)
       if(np.ne.11) then
@@ -75,7 +83,7 @@
                          ,idate0,idate1,idate2,igrads)
 
       if(day_ATM_P)call dayp('ATM_P',iy,jx,kz,np,plev,ibyte  &
-                            ,Path_Output,idate0,idate1,idate2)
+                        ,Path_Output,idate0,idate1,idate2,igrads)
 
       if(mon_ICBC) call mon2('ICBC',iy,jx,kz,ibyte, Path_Input &
                             ,DomainName,idate0,idate1,idate2,igrads)
@@ -202,9 +210,9 @@
          if(month.eq.0) month = 12
 
          if(nfile.eq.1.or.month.eq.1) then
-         write(*,*) 'Calculate the daily mean of ',filename,nyear,month
+      write(*,*) 'Calculate the daily mean of    ',filename,nyear,month
          else
-         write(*,*) '                            ',filename,nyear,month
+      write(*,*) '                               ',filename,nyear,month
          endif
 
          nrec = 0
@@ -725,9 +733,9 @@
          if(month.eq.0) month = 12
 
          if(nfile.eq.1.or.month.eq.1) then
-         write(*,*) 'Calculate the daily mean of ',filename,nyear,month
+         write(*,*) 'Calculate the daily mean of  ',filename,nyear,month
          else
-         write(*,*) '                            ',filename,nyear,month
+         write(*,*) '                             ',filename,nyear,month
          endif
 
          nrec = 0
@@ -1050,9 +1058,9 @@
          if(month.eq.0) month = 12
 
          if(nfile.eq.1.or.month.eq.1) then
-         write(*,*) 'Calculate the daily mean of ',filename,nyear,month
+       write(*,*) 'Calculate the daily mean of   ',filename,nyear,month
          else
-         write(*,*) '                            ',filename,nyear,month
+       write(*,*) '                              ',filename,nyear,month
          endif
 
          if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -1280,7 +1288,7 @@
       end
 
       subroutine day2p(filename,iy,jx,kz,np,plev,ibyte &
-                      ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
+                    ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
       implicit none
       character*6 filename
       character*128 Path_Input
@@ -1743,9 +1751,9 @@
          if(month.eq.0) month = 12
 
          if(nfile.eq.1.or.month.eq.1) then
-         write(*,*) 'Calculate the daily mean of ',filename,nyear,month
+      write(*,*) 'Calculate the daily mean of    ',filename,nyear,month
          else
-         write(*,*) '                            ',filename,nyear,month
+      write(*,*) '                               ',filename,nyear,month
          endif
 
          nrec = 0
@@ -2340,9 +2348,9 @@
          if(month.eq.0) month = 12
 
          if(nfile.eq.1.or.month.eq.1) then
-         write(*,*)'Calculate the monthly mean of ',filename,nyear,month
+      write(*,*)'Calculate the monthly mean of    ',filename,nyear,month
          else
-         write(*,*)'                              ',filename,nyear,month
+      write(*,*)'                                 ',filename,nyear,month
          endif
 
          if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -2670,9 +2678,9 @@
          if(month.eq.0) month = 12
 
          if(nfile.eq.1.or.month.eq.1) then
-         write(*,*)'Calculate the monthly mean of ',filename,nyear,month
+       write(*,*)'Calculate the monthly mean of  ',filename,nyear,month
          else
-         write(*,*)'                              ',filename,nyear,month
+       write(*,*)'                               ',filename,nyear,month
          endif
 
          if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -3043,9 +3051,9 @@
            ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
 
          if(nfile.eq.1.or.month.eq.1) then
-         write(*,*)'Calculate the monthly mean of ',filename,nyear,month
+      write(*,*)'Calculate the monthly mean of   ',filename,nyear,month
          else
-         write(*,*)'                              ',filename,nyear,month
+      write(*,*)'                                ',filename,nyear,month
          endif
 
          do n=1,nvar
@@ -3705,9 +3713,9 @@
          if(month.eq.0) month = 12
 
          if(nfile.eq.1.or.month.eq.1) then
-         write(*,*)'Calculate the monthly mean of ',filename,nyear,month
+      write(*,*)'Calculate the monthly mean of    ',filename,nyear,month
          else
-         write(*,*)'                              ',filename,nyear,month
+      write(*,*)'                                 ',filename,nyear,month
          endif
 
          if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &

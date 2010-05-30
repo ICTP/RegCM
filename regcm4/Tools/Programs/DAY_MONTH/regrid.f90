@@ -29,6 +29,7 @@
       integer idate0,idate1,idate2
       character*128 Path_Input,Path_Output
       character*20 DomainName
+      integer len_path
       integer np
       real*4, save ::  plev(11)
       logical s2p_ICBC,s2p_ATM
@@ -51,6 +52,13 @@
       ddeg     = 0.5
 
       read(*,shareparam) 
+
+      len_path = len(trim(Path_Input))
+      if(Path_Input(len_path:len_path).ne.'/') &
+         Path_Input=trim(Path_Input)//'/'
+      len_path = len(trim(Path_Output))
+      if(Path_Output(len_path:len_path).ne.'/') &
+         Path_Output=trim(Path_Output)//'/'
 
       read(*,sigma2p_param)
       if(np.ne.11) then
@@ -186,8 +194,8 @@
       mlon = xmaxlon/ddeg - 1
       nlon = xminlon/ddeg + 2
 
-      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
-      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+!     write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+!     write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
       open(20,file=trim(Path_Input)//trim(DomainName)//'_LL.dat' &
          ,form='unformatted',recl=(mlon-nlon+1)*(mlat-nlat+1)*ibyte &
@@ -547,8 +555,8 @@
       mlon = xmaxlon/ddeg - 1
       nlon = xminlon/ddeg + 2
 
-      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
-      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+!     write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+!     write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
       open(20,file=trim(Path_Output)//'OUTHEAD_LL.dat' &
              ,form='unformatted' &
@@ -938,8 +946,8 @@
       mlon = xmaxlon/ddeg - 1
       nlon = xminlon/ddeg + 2
 
-      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
-      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+!     write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+!     write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
       allocate(out(nlon:mlon,nlat:mlat))
       allocate(olat(nlat:mlat))
@@ -977,9 +985,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER ICBC Orig.',nyear,month
+                  write(*,*)'regrid: NORMER   ICBC Orig.',nyear,month
                else
-                  write(*,*)'                         ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -1027,9 +1035,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER ICBC Daily',nyear,month
+                  write(*,*)'regrid: NORMER   ICBC Daily',nyear,month
                else
-                  write(*,*)'                         ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -1078,9 +1086,9 @@
                if(month.eq.0) month = 12
 
                if(month.eq.1.or.nfile.eq.1) then
-                  write(*,*)'regrid: NORMER ICBC Month',nyear,month
+                  write(*,*)'regrid: NORMER   ICBC Month',nyear,month
                else
-                  write(*,*)'                         ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                n_slice = 1
@@ -1265,6 +1273,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
 
@@ -1470,15 +1480,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON ICBC Orig.',nyear,month
+                     write(*,*)'regrid: LAMCON   ICBC Orig.',nyear,month
                   else
-                     write(*,*)'                         ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER ICBC Orig.',nyear,month
+                     write(*,*)'regrid: ROTMER   ICBC Orig.',nyear,month
                   else
-                     write(*,*)'                         ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -1528,15 +1538,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON ICBC Daily',nyear,month
+                     write(*,*)'regrid: LAMCON   ICBC Daily',nyear,month
                   else
-                     write(*,*)'                         ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER ICBC Daily',nyear,month
+                     write(*,*)'regrid: ROTMER   ICBC Daily',nyear,month
                   else
-                     write(*,*)'                         ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -1587,15 +1597,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: LAMCON ICBC Month',nyear,month
+                     write(*,*)'regrid: LAMCON   ICBC Month',nyear,month
                   else
-                     write(*,*)'                         ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: ROTMER ICBC Month',nyear,month
+                     write(*,*)'regrid: ROTMER   ICBC Month',nyear,month
                   else
-                     write(*,*)'                         ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -1883,6 +1893,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
             
          deallocate(I1UR)
          deallocate(J1UR)
@@ -2076,8 +2088,8 @@
       mlon = xmaxlon/ddeg - 1
       nlon = xminlon/ddeg + 2
 
-      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
-      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+!     write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+!     write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
       allocate(out(nlon:mlon,nlat:mlat))
       allocate(olat(nlat:mlat))
@@ -2394,6 +2406,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
 
@@ -3002,6 +3016,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
             
          deallocate(I1UR)
          deallocate(J1UR)
@@ -3111,6 +3127,7 @@
       real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
       real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
       real*4  SIGN0,GRIDFC
+      real*4  sum0,weight
       real*4, allocatable :: out(:,:)
       real*4, allocatable :: olat(:),olon(:)
 
@@ -3183,8 +3200,8 @@
       mlon = xmaxlon/ddeg - 1
       nlon = xminlon/ddeg + 2
 
-      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
-      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+!     write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+!     write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
       allocate(out(nlon:mlon,nlat:mlat))
       allocate(olat(nlat:mlat))
@@ -3222,9 +3239,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER ATM Orig.',nyear,month
+                  write(*,*)'regrid: NORMER    ATM Orig.',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -3265,9 +3282,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER ATM Daily',nyear,month
+                  write(*,*)'regrid: NORMER    ATM Daily',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -3310,9 +3327,9 @@
                if(month.eq.0) month = 12
 
                if(month.eq.1.or.nfile.eq.1) then
-                  write(*,*)'regrid: NORMER ATM Month',nyear,month
+                  write(*,*)'regrid: NORMER    ATM Month',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                n_slice = 1
@@ -3354,12 +3371,35 @@
                             xlon(j,i).lt.olon(m))          &
                       .and.(xlat(j+1,i+1).ge.olat(n).and.  &
                             xlon(j+1,i+1).ge.olon(m))) then
-                            out(m,n) = &
-       ( o(j,i,l)*(xlon(j+1,i+1)-olon(m))*(xlat(j+1,i+1)-olat(n)) &
-       + o(j+1,i,l)*(olon(m)-xlon(j,i+1))*(xlat(j+1,i+1)-olat(n)) &
-       + o(j,i+1,l)*(xlon(j+1,i)-olon(m))*(olat(n)-xlat(j+1,i)) &
-       + o(j+1,i+1,l)*(olon(m)-xlon(j,i))*(olat(n)-xlat(j,i)) ) &
-       / ( (xlon(j+1,i+1)-xlon(j,i))*(xlat(j+1,i+1)-xlat(j,i)) )
+                      sum0 = 0.0
+                      weight = 0.0
+                      if(o(j,i,l).gt.-9990.) then
+            sum0 = sum0       &
+            + o(j,i,l)*(xlon(j+1,i+1)-olon(m))*(xlat(j+1,i+1)-olat(n))
+            weight = weight   &
+            + (xlon(j+1,i+1)-olon(m))*(xlat(j+1,i+1)-olat(n))
+                      endif
+                      if(o(j+1,i,l).gt.-9990.) then
+            sum0 = sum0       &
+            + o(j+1,i,l)*(olon(m)-xlon(j,i+1))*(xlat(j+1,i+1)-olat(n))
+            weight = weight   &
+            + (olon(m)-xlon(j,i+1))*(xlat(j+1,i+1)-olat(n))
+                      endif
+                      if(o(j,i+1,l).gt.-9990.) then
+            sum0 = sum0       &
+            + o(j,i+1,l)*(xlon(j+1,i)-olon(m))*(olat(n)-xlat(j+1,i))
+            weight = weight   &
+            + (xlon(j+1,i)-olon(m))*(olat(n)-xlat(j+1,i))
+                      endif
+                      if(o(j,i,l).gt.-9990.) then
+            sum0 = sum0       &
+            + o(j+1,i+1,l)*(olon(m)-xlon(j,i))*(olat(n)-xlat(j,i))
+            weight = weight   &
+            + (olon(m)-xlon(j,i))*(olat(n)-xlat(j,i))
+                      endif
+                           if(weight.gt.1.e-10) then
+                              out(m,n) = sum0/weight
+                           endif
                         endif
                      enddo
                      enddo
@@ -3459,6 +3499,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
 
@@ -3568,15 +3610,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON ATM Orig.',nyear,month
+                     write(*,*)'regrid: LAMCON    ATM Orig.',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER ATM Orig.',nyear,month
+                     write(*,*)'regrid: ROTMER    ATM Orig.',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -3619,15 +3661,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON ATM Daily',nyear,month
+                     write(*,*)'regrid: LAMCON    ATM Daily',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER ATM Daily',nyear,month
+                     write(*,*)'regrid: ROTMER    ATM Daily',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -3672,15 +3714,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: LAMCON ATM Month',nyear,month
+                     write(*,*)'regrid: LAMCON    ATM Month',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: ROTMER ATM Month',nyear,month
+                     write(*,*)'regrid: ROTMER    ATM Month',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -3811,19 +3853,39 @@
                I1DR(m,n).lt.999.and.J1DR(m,n).lt.999.and. &
                I1DL(m,n).lt.999.and.J1DL(m,n).lt.999) then
                if(D1XT(m,n).gt.0.0001) then
-      out(m,n) = ( o(I1UR(m,n),J1UR(m,n),l)/D1Xa(m,n) &
-                  +o(I1UL(m,n),J1UL(m,n),l)/D1Xb(m,n) &
-                  +o(I1DR(m,n),J1DR(m,n),l)/D1Xc(m,n) &
-                  +o(I1DL(m,n),J1DL(m,n),l)/D1Xd(m,n) )  &
-          /( 1./D1Xa(m,n)+1./D1Xb(m,n)+1./D1Xc(m,n)+1./D1Xd(m,n) )
+                  sum0=0.0
+                  weight = 0.0
+                  if(o(I1UR(m,n),J1UR(m,n),l).gt.-9990.) then
+                     sum0 = sum0 + o(I1UR(m,n),J1UR(m,n),l)/D1Xa(m,n)
+                     weight = weight + 1./D1Xa(m,n)
+                  endif
+                  if(o(I1UL(m,n),J1UL(m,n),l).gt.-9990.) then
+                     sum0 = sum0 + o(I1UL(m,n),J1UL(m,n),l)/D1Xb(m,n)
+                     weight = weight + 1./D1Xb(m,n)
+                  endif
+                  if(o(I1DR(m,n),J1DR(m,n),l).gt.-9990.) then
+                     sum0 = sum0 + o(I1DR(m,n),J1DR(m,n),l)/D1Xc(m,n)
+                     weight = weight + 1./D1Xc(m,n)
+                  endif
+                  if(o(I1DL(m,n),J1DL(m,n),l).gt.-9990.) then
+                     sum0 = sum0 + o(I1DL(m,n),J1DL(m,n),l)/D1Xd(m,n)
+                     weight = weight + 1./D1Xd(m,n)
+                  endif
+                  if(weight.gt.1.e-10) then
+                     out(m,n) = sum0/weight
+                  endif
                else
-                  if(D1Xa(m,n).eq.D1XT(m,n)) then
+                  if(D1Xa(m,n).eq.D1XT(m,n).and. &
+                     o(I1UR(m,n),J1UR(m,n),l).gt.-9990.) then
                      out(m,n) = o(I1UR(m,n),J1UR(m,n),l)
-                  else if(D1Xb(m,n).eq.D1XT(m,n)) then
+                  else if(D1Xb(m,n).eq.D1XT(m,n).and. &
+                          o(I1UL(m,n),J1UL(m,n),l).gt.-9990.) then
                      out(m,n) = o(I1UL(m,n),J1UL(m,n),l)
-                  else if(D1Xc(m,n).eq.D1XT(m,n)) then
+                  else if(D1Xc(m,n).eq.D1XT(m,n).and. &
+                          o(I1DR(m,n),J1DR(m,n),l).gt.-9990.) then
                      out(m,n) = o(I1DR(m,n),J1DR(m,n),l)
-                  else if(D1Xd(m,n).eq.D1XT(m,n)) then
+                  else if(D1Xd(m,n).eq.D1XT(m,n).and. &
+                          o(I1DL(m,n),J1DL(m,n),l).gt.-9990.) then
                      out(m,n) = o(I1DL(m,n),J1DL(m,n),l)
                   endif
                endif
@@ -3924,6 +3986,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
             
          deallocate(I1UR)
          deallocate(J1UR)
@@ -4018,6 +4082,7 @@
       real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
       real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
       real*4  SIGN0,GRIDFC
+      real*4  sum0,weight
       real*4, allocatable :: out(:,:)
       real*4, allocatable :: olat(:),olon(:)
 
@@ -4090,8 +4155,8 @@
       mlon = xmaxlon/ddeg - 1
       nlon = xminlon/ddeg + 2
 
-      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
-      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+!     write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+!     write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
       allocate(out(nlon:mlon,nlat:mlat))
       allocate(olat(nlat:mlat))
@@ -4129,9 +4194,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER ATM_P Orig.',nyear,month
+                  write(*,*)'regrid: NORMER  ATM_P Orig.',nyear,month
                else
-                  write(*,*)'                          ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -4172,9 +4237,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER ATM_P Daily',nyear,month
+                  write(*,*)'regrid: NORMER  ATM_P Daily',nyear,month
                else
-                  write(*,*)'                          ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -4217,9 +4282,9 @@
                if(month.eq.0) month = 12
 
                if(month.eq.1.or.nfile.eq.1) then
-                  write(*,*)'regrid: NORMER ATM_P Month',nyear,month
+                  write(*,*)'regrid: NORMER  ATM_P Month',nyear,month
                else
-                  write(*,*)'                          ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                n_slice = 1
@@ -4261,12 +4326,35 @@
                             xlon(j,i).lt.olon(m))          &
                       .and.(xlat(j+1,i+1).ge.olat(n).and.  &
                             xlon(j+1,i+1).ge.olon(m))) then
-                            out(m,n) = &
-       ( o(j,i,l)*(xlon(j+1,i+1)-olon(m))*(xlat(j+1,i+1)-olat(n)) &
-       + o(j+1,i,l)*(olon(m)-xlon(j,i+1))*(xlat(j+1,i+1)-olat(n)) &
-       + o(j,i+1,l)*(xlon(j+1,i)-olon(m))*(olat(n)-xlat(j+1,i)) &
-       + o(j+1,i+1,l)*(olon(m)-xlon(j,i))*(olat(n)-xlat(j,i)) ) &
-       / ( (xlon(j+1,i+1)-xlon(j,i))*(xlat(j+1,i+1)-xlat(j,i)) )
+                      sum0 = 0.0
+                      weight = 0.0
+                      if(o(j,i,l).gt.-9990.) then
+            sum0 = sum0       &
+            + o(j,i,l)*(xlon(j+1,i+1)-olon(m))*(xlat(j+1,i+1)-olat(n))
+            weight = weight   &
+            + (xlon(j+1,i+1)-olon(m))*(xlat(j+1,i+1)-olat(n))
+                      endif
+                      if(o(j+1,i,l).gt.-9990.) then
+            sum0 = sum0       &
+            + o(j+1,i,l)*(olon(m)-xlon(j,i+1))*(xlat(j+1,i+1)-olat(n))
+            weight = weight   &
+            + (olon(m)-xlon(j,i+1))*(xlat(j+1,i+1)-olat(n))
+                      endif
+                      if(o(j,i+1,l).gt.-9990.) then
+            sum0 = sum0       &
+            + o(j,i+1,l)*(xlon(j+1,i)-olon(m))*(olat(n)-xlat(j+1,i))
+            weight = weight   &
+            + (xlon(j+1,i)-olon(m))*(olat(n)-xlat(j+1,i))
+                      endif
+                      if(o(j,i,l).gt.-9990.) then
+            sum0 = sum0       &
+            + o(j+1,i+1,l)*(olon(m)-xlon(j,i))*(olat(n)-xlat(j,i))
+            weight = weight   &
+            + (olon(m)-xlon(j,i))*(olat(n)-xlat(j,i))
+                      endif
+                           if(weight.gt.1.e-10) then
+                              out(m,n) = sum0/weight
+                           endif
                         endif
                      enddo
                      enddo
@@ -4366,6 +4454,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
 
@@ -4475,15 +4565,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON ATM_P Orig.',nyear,month
+                     write(*,*)'regrid: LAMCON  ATM_P Orig.',nyear,month
                   else
-                     write(*,*)'                          ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER ATM_P Orig.',nyear,month
+                     write(*,*)'regrid: ROTMER  ATM_P Orig.',nyear,month
                   else
-                     write(*,*)'                          ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -4526,15 +4616,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON ATM_P Daily',nyear,month
+                     write(*,*)'regrid: LAMCON  ATM_P Daily',nyear,month
                   else
-                     write(*,*)'                          ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER ATM_P Daily',nyear,month
+                     write(*,*)'regrid: ROTMER  ATM_P Daily',nyear,month
                   else
-                     write(*,*)'                          ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -4579,15 +4669,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: LAMCON ATM_P Month',nyear,month
+                     write(*,*)'regrid: LAMCON  ATM_P Month',nyear,month
                   else
-                     write(*,*)'                          ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: ROTMER ATM_P Month',nyear,month
+                     write(*,*)'regrid: ROTMER  ATM_P Month',nyear,month
                   else
-                     write(*,*)'                          ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -4718,19 +4808,39 @@
                I1DR(m,n).lt.999.and.J1DR(m,n).lt.999.and. &
                I1DL(m,n).lt.999.and.J1DL(m,n).lt.999) then
                if(D1XT(m,n).gt.0.0001) then
-      out(m,n) = ( o(I1UR(m,n),J1UR(m,n),l)/D1Xa(m,n) &
-                  +o(I1UL(m,n),J1UL(m,n),l)/D1Xb(m,n) &
-                  +o(I1DR(m,n),J1DR(m,n),l)/D1Xc(m,n) &
-                  +o(I1DL(m,n),J1DL(m,n),l)/D1Xd(m,n) )  &
-          /( 1./D1Xa(m,n)+1./D1Xb(m,n)+1./D1Xc(m,n)+1./D1Xd(m,n) )
+                  sum0=0.0
+                  weight = 0.0
+                  if(o(I1UR(m,n),J1UR(m,n),l).gt.-9990.) then
+                     sum0 = sum0 + o(I1UR(m,n),J1UR(m,n),l)/D1Xa(m,n)
+                     weight = weight + 1./D1Xa(m,n)
+                  endif
+                  if(o(I1UL(m,n),J1UL(m,n),l).gt.-9990.) then
+                     sum0 = sum0 + o(I1UL(m,n),J1UL(m,n),l)/D1Xb(m,n)
+                     weight = weight + 1./D1Xb(m,n)
+                  endif
+                  if(o(I1DR(m,n),J1DR(m,n),l).gt.-9990.) then
+                     sum0 = sum0 + o(I1DR(m,n),J1DR(m,n),l)/D1Xc(m,n)
+                     weight = weight + 1./D1Xc(m,n)
+                  endif
+                  if(o(I1DL(m,n),J1DL(m,n),l).gt.-9990.) then
+                     sum0 = sum0 + o(I1DL(m,n),J1DL(m,n),l)/D1Xd(m,n)
+                     weight = weight + 1./D1Xd(m,n)
+                  endif
+                  if(weight.gt.1.e-10) then
+                     out(m,n) = sum0/weight
+                  endif
                else
-                  if(D1Xa(m,n).eq.D1XT(m,n)) then
+                  if(D1Xa(m,n).eq.D1XT(m,n).and. &
+                     o(I1UR(m,n),J1UR(m,n),l).gt.-9990.) then
                      out(m,n) = o(I1UR(m,n),J1UR(m,n),l)
-                  else if(D1Xb(m,n).eq.D1XT(m,n)) then
+                  else if(D1Xb(m,n).eq.D1XT(m,n).and. &
+                          o(I1UL(m,n),J1UL(m,n),l).gt.-9990.) then
                      out(m,n) = o(I1UL(m,n),J1UL(m,n),l)
-                  else if(D1Xc(m,n).eq.D1XT(m,n)) then
+                  else if(D1Xc(m,n).eq.D1XT(m,n).and. &
+                          o(I1DR(m,n),J1DR(m,n),l).gt.-9990.) then
                      out(m,n) = o(I1DR(m,n),J1DR(m,n),l)
-                  else if(D1Xd(m,n).eq.D1XT(m,n)) then
+                  else if(D1Xd(m,n).eq.D1XT(m,n).and. &
+                          o(I1DL(m,n),J1DL(m,n),l).gt.-9990.) then
                      out(m,n) = o(I1DL(m,n),J1DL(m,n),l)
                   endif
                endif
@@ -4831,6 +4941,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
             
          deallocate(I1UR)
          deallocate(J1UR)
@@ -4856,9 +4968,9 @@
       deallocate(xlon)
 
  199  format(I4)
-  10  format('dset ^',A17)
-  11  format('dset ^',A15)
-  12  format('dset ^',A10)
+  10  format('dset ^',A19)
+  11  format('dset ^',A17)
+  12  format('dset ^',A12)
   20  format('title RegCM pressure level ATM variables')
   30  format('options big_endian')
   40  format('options little_endian')
@@ -4997,8 +5109,8 @@
       mlon = xmaxlon/ddeg - 1
       nlon = xminlon/ddeg + 2
 
-      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
-      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+!     write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+!     write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
       allocate(out(nlon:mlon,nlat:mlat))
       allocate(olat(nlat:mlat))
@@ -5036,9 +5148,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER SRF Orig.',nyear,month
+                  write(*,*)'regrid: NORMER    SRF Orig.',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -5079,9 +5191,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER SRF Daily',nyear,month
+                  write(*,*)'regrid: NORMER    SRF Daily',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
                   month.eq.7.or.month.eq.8.or.month.eq.10.or. &
@@ -5123,9 +5235,9 @@
                if(month.eq.0) month = 12
 
                if(month.eq.1.or.nfile.eq.1) then
-                  write(*,*)'regrid: NORMER SRF Month',nyear,month
+                  write(*,*)'regrid: NORMER    SRF Month',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                n_slice = 1
@@ -5310,6 +5422,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
 
@@ -5419,15 +5533,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON SRF Orig.',nyear,month
+                     write(*,*)'regrid: LAMCON    SRF Orig.',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER SRF Orig.',nyear,month
+                     write(*,*)'regrid: ROTMER    SRF Orig.',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -5470,15 +5584,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON SRF Daily',nyear,month
+                     write(*,*)'regrid: LAMCON    SRF Daily',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER SRF Daily',nyear,month
+                     write(*,*)'regrid: ROTMER    SRF Daily',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -5523,15 +5637,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: LAMCON SRF Month',nyear,month
+                     write(*,*)'regrid: LAMCON    SRF Month',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: ROTMER SRF Month',nyear,month
+                     write(*,*)'regrid: ROTMER    SRF Month',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -5802,6 +5916,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
             
          deallocate(I1UR)
          deallocate(J1UR)
@@ -5961,8 +6077,8 @@
       mlon = xmaxlon/ddeg - 1
       nlon = xminlon/ddeg + 2
 
-      write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
-      write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
+!     write(*,*) xminlat,mlat-nlat+1,(nlat-1)*ddeg
+!     write(*,*) xminlon,mlon-nlon+1,(nlon-1)*ddeg
 
       allocate(out(nlon:mlon,nlat:mlat))
       allocate(olat(nlat:mlat))
@@ -6000,9 +6116,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER RAD Orig.',nyear,month
+                  write(*,*)'regrid: NORMER    RAD Orig.',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -6043,9 +6159,9 @@
                if(month.eq.0) month = 12
 
                if(nfile.eq.1.or.month.eq.1) then
-                  write(*,*)'regrid: NORMER RAD Daily',nyear,month
+                  write(*,*)'regrid: NORMER    RAD Daily',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                if(month.eq.1.or.month.eq.3.or.month.eq.5.or.  &
@@ -6088,9 +6204,9 @@
                if(month.eq.0) month = 12
 
                if(month.eq.1.or.nfile.eq.1) then
-                  write(*,*)'regrid: NORMER RAD Month',nyear,month
+                  write(*,*)'regrid: NORMER    RAD Month',nyear,month
                else
-                  write(*,*)'                        ',nyear,month
+                  write(*,*)'                           ',nyear,month
                endif
 
                n_slice = 1
@@ -6239,6 +6355,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
 
       else if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
 
@@ -6348,15 +6466,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON RAD Orig.',nyear,month
+                     write(*,*)'regrid: LAMCON    RAD Orig.',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER RAD Orig.',nyear,month
+                     write(*,*)'regrid: ROTMER    RAD Orig.',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -6399,15 +6517,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: LAMCON RAD Daily',nyear,month
+                     write(*,*)'regrid: LAMCON    RAD Daily',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(nfile.eq.1.or.month.eq.1) then
-                     write(*,*)'regrid: ROTMER RAD Daily',nyear,month
+                     write(*,*)'regrid: ROTMER    RAD Daily',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -6452,15 +6570,15 @@
 
                if(iproj.eq.'LAMCON') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: LAMCON RAD Month',nyear,month
+                     write(*,*)'regrid: LAMCON    RAD Month',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                else if(iproj.eq.'ROTMER') then
                   if(month.eq.1.or.nfile.eq.1) then
-                     write(*,*)'regrid: ROTMER RAD Month',nyear,month
+                     write(*,*)'regrid: ROTMER    RAD Month',nyear,month
                   else
-                     write(*,*)'                        ',nyear,month
+                     write(*,*)'                           ',nyear,month
                   endif
                endif
 
@@ -6617,6 +6735,8 @@
             endif
             ENDIF
          enddo
+         if(ntype.eq.2) close(20)
+         if(ntype.eq.2) close(10)
             
          deallocate(I1UR)
          deallocate(J1UR)
