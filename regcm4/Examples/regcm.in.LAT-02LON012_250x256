@@ -56,7 +56,7 @@
  dattyp = 'EIN15',
  ehso4 = .false.,
  globidate1 = 1989010100,
- globidate2 = 1990010200,
+ globidate2 = 1989020100,
  dirglob = '/set/this/to/where/your/icbc/for/model/is',
  inpglob = '/set/this/to/where/your/input/global/data/is',
  /
@@ -79,7 +79,7 @@
  radfrq  =    30.,
  abemh   =    18.,
  abatm   =   600.,
- dt      =   150.,
+ dt      =   100.,
  ibdyfrq =          6,
  /
  &outparam
