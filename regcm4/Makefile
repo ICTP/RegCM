@@ -8,7 +8,7 @@ printall::
 	@echo ' this is Makefile for Regcm4 package: supported actions are: '
 	@echo '  --- make terrain: to compile terrain' 
 	@echo '  --- make icbc: to compile icbc codes'
-	@echo '  --- make clm2rcm: to compile clm24cm code'
+	@echo '  --- make clm2rcm: to compile clm2rcm code'
 	@echo '  ----make regcm:  to compile regcm code' 
 	@echo '  ----make postnc:  to compile C++ NetCDF postprocessing code' 
 	@echo '  ----make postproc:  to compile F90 postprocessing code' 
