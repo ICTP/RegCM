@@ -1,0 +1,91 @@
+# Model flags
+
+# Set to 1 to enable CLM coupling
+USECLM = !CLM
+# Set to 1 to enable daily cycle SST
+USEDCSST = !DCSST
+# Set to 1 to enable Sea Ice effects
+USESEAICE = !SEAICE
+
+# GENERAL FLAGS: these should be always defined!  
+
+# Base directory:
+
+REGCM_BASE_DIR = !REGCM_ROOT
+
+BINDIR = !BIN_DIR
+
+# NetCDF library:
+# The NetCDF library is needed to run RegCM, 
+# RegCM V4 was successfuly tested with NetCDF 4.0.1
+# In NETCDFINC you should define the path to NetCDF include files
+# In NETCDFLIB you should define the path and the name of the NetCDF library
+
+NETCDFINC = !NETCDFINC
+NETCDFLIB = !NETCDFLIB 
+CXXNETCDF = !NETCDFC++
+
+# PREPROCESSOR AND COMPILER OPTIONS
+
+# Use this variable to enable the parallel version of the code
+# Serial version   : leave commented
+# parallel version : uncomment the line
+
+# PARALLEL = MPP1
+
+# Add further preprocessor flags, if necessary. Those available are:
+# -DIBM : to compile using IBM xlf compiler
+# -DDIAG : to compile enabling Diagnostic capabilities (?)
+
+CPPFLAGS = -WF,-DIBM
+
+# Automatically added flags
+
+ifneq ($(origin PARALLEL), undefined)
+CPPFLAGS += -WF,-D$(PARALLEL)
+endif
+
+ifeq ($(USECLM),1)
+  CPPFLAGS += -WF,-DCLM
+endif
+
+ifeq ($(USESEAICE),1)
+  CPPFLAGS += -WF,-DSEAICE
+endif
+
+ifeq ($(USEDCSST),1)
+  CPPFLAGS += -WF,-DDCSST
+endif
+
+# Specific compiler flags (eg.: optimization / debugging) 
+# IMPORTANT : Check that your compiler complies with this RegCM features:
+# - RegCM expects the output to be written in big endian format
+# - RegCM expects Fortran records to be measured in bytes
+
+F90FLAGS = -O0 -qsuppress=1501-245 -bnoquiet -qcheck -qffltrap=nanq,overflow -qintlog \
+           -qmaxmem=-1 -qzerosize
+
+MAKE = gmake
+
+# Set the Fortran 90 compiler here
+F90 = xlf90
+
+# Set the C++ compiler here 
+CXX = xlC
+AIXSP6 = 1
+
+# Compilation flags for C++
+CXXFLAGS = -O0 -g  
+
+# Set the MPI Fortran 90 compiler here
+MPIF90 = !MPIF90
+
+# Set the linker here
+# Modify this variable only if you really know what you are doing !!!
+LD =$(F90)
+LDFLAGS =
+
+# You should not change the lines below unless you are a developer
+
+SVNDEF := -WF,-D'SVN_REV="$(shell svnversion -n .)"'
+CXXSVN := -D'SVN_REV="$(shell svnversion -n .)"'
