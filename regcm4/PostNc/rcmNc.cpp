@@ -912,11 +912,11 @@ rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h, t_time_interval &t)
     ctl->add_var(gv);
     if (varmask[1] || varmask[2])
     {
-      ctl->addentry("vectorpairs u10,v10");
-      gv.set("u10","u10","10m U component (westerly) of wind (m s-1)",0,true);
-      ctl->add_var(gv);
-      gv.set("v10","v10","10m V component (southerly) of wind (m s-1)",0,true);
-      ctl->add_var(gv);
+      std::cout << std::endl
+                << "Warning: Variables u10,v10 does not fit in GrADS model."
+                << std::endl
+                << "Are not added to CTL file, albeit present in NetCDF"
+                << std::endl;
     }
     if (varmask[2])
     {
@@ -935,18 +935,27 @@ rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h, t_time_interval &t)
     }
     if (varmask[5])
     {
-      gv.set("t2m","t2m","2m air temperature (K)",0,true);
-      ctl->add_var(gv);
+      std::cout << std::endl
+                << "Warning: Variable t2m does not fit in GrADS model."
+                << std::endl
+                << "Are not added to CTL file, albeit present in NetCDF"
+                << std::endl;
     }
     if (varmask[6])
     {
-      gv.set("r2m","r2m","2m relative humidity (1)",0,true);
-      ctl->add_var(gv);
+      std::cout << std::endl
+                << "Warning: Variable r2m does not fit in GrADS model."
+                << std::endl
+                << "Are not added to CTL file, albeit present in NetCDF"
+                << std::endl;
     }
     if (varmask[7])
     {
-      gv.set("q2m","q2m","2m vapor mixing ratio (kg kg-1)",0,true);
-      ctl->add_var(gv);
+      std::cout << std::endl
+                << "Warning: Variable q2m does not fit in GrADS model."
+                << std::endl
+                << "Are not added to CTL file, albeit present in NetCDF"
+                << std::endl;
     }
     if (varmask[8])
     {
@@ -1938,11 +1947,11 @@ rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s,
     gradsvar gv;
     if (varmask[1] || varmask[2])
     {
-      ctl->addentry("vectorpairs u10,v10");
-      gv.set("u10","u10","10m U component (westerly) of wind (m s-1)",0,true);
-      ctl->add_var(gv);
-      gv.set("v10","v10","10m V component (southerly) of wind (m s-1)",0,true);
-      ctl->add_var(gv);
+      std::cout << std::endl
+                << "Warning: Variables u10,v10 does not fit in GrADS data model"
+                << std::endl
+                << "Is not added to CTL file, albeit present in NetCDF"
+                << std::endl;
     }
     if (varmask[2])
     {
@@ -1961,18 +1970,27 @@ rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s,
     }
     if (varmask[5])
     {
-      gv.set("t2m","t2m","2m air temperature (K)",0,true);
-      ctl->add_var(gv);
+      std::cout << std::endl
+                << "Warning: Variable t2m does not fit in GrADS data model"
+                << std::endl
+                << "Is not added to CTL file, albeit present in NetCDF"
+                << std::endl;
     }
     if (varmask[6])
     {
-      gv.set("r2m","r2m","2m relative humidity (1)",0,true);
-      ctl->add_var(gv);
+      std::cout << std::endl
+                << "Warning: Variable r2m does not fit in GrADS data model"
+                << std::endl
+                << "Is not added to CTL file, albeit present in NetCDF"
+                << std::endl;
     }
     if (varmask[7])
     {
-      gv.set("q2m","q2m","2m vapor mixing ratio (kg kg-1)",0,true);
-      ctl->add_var(gv);
+      std::cout << std::endl
+                << "Warning: Variable q2m does not fit in GrADS data model"
+                << std::endl
+                << "Is not added to CTL file, albeit present in NetCDF"
+                << std::endl;
     }
     if (varmask[8])
     {
@@ -2564,7 +2582,7 @@ void bcNc::put_rec(bcdata &b)
       ctl->add_var(gv);
       if (varmask[0] || varmask[1])
       {
-        ctl->addentry("vectorpais u,v");
+        ctl->addentry("vectorpairs u,v");
         gv.set("u","u","U component (westerly) of wind (m s-1)",b.nz,true);
         ctl->add_var(gv);
         gv.set("v","v","V component (southerly) of wind (m s-1)",b.nz,true);
