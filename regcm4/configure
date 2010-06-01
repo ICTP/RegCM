@@ -57,6 +57,8 @@ def main():
     
     nclib,ncinc = netcdf_search(nclib,ncinc)
 
+    print "\n  !!!!  The following options are all documented in detail \n\ton the eForge wiki page and in the RegCM Users' Guide,\n\tso please check there for more information."
+
     print "\n  ****  Do you want a debug - 0 or a production - 1  binary? \n\t[1]"
     dbg=raw_input("\tdbg = ")
     if len(dbg) == 0 :

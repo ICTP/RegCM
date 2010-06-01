@@ -93,6 +93,9 @@ def main():
     simdir = options.simdir
     namelist = options.namelist
 
+    datadir = os.path.abspath(datadir)
+    simdir = os.path.abspath(simdir)
+
     # create simulation directory tree
     if not os.path.isdir(simdir+"/input"):
         os.mkdir(simdir+"/input")

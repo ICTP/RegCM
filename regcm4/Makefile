@@ -8,16 +8,16 @@ printall::
 	@echo ' this is Makefile for Regcm4 package: supported actions are: '
 	@echo '  --- make terrain: to compile terrain' 
 	@echo '  --- make icbc: to compile icbc codes'
-	@echo '  --- make clm2rcm: to compile clm2rcm code'
-	@echo '  ----make regcm:  to compile regcm code' 
-	@echo '  ----make postnc:  to compile C++ NetCDF postprocessing code' 
-	@echo '  ----make postproc:  to compile F90 postprocessing code' 
-	@echo '  ----make clean:  to clean all ' 
-	@echo '  ----make all: to compile all the codes and tools'
+	@echo '  --- make clm2rcm: to compile clm24cm code'
+	@echo '  --- make regcm:  to compile main regcm code' 
+	@echo '  --- make postnc:  to compile C++ NetCDF postprocessing code' 
+	@echo '  --- make postproc:  to compile F90 postprocessing code' 
+	@echo '  --- make clean:  to clean all ' 
+	@echo '  --- make all: to compile all the codes and tools'
 
 all: terrain icbc clm2rcm regcm postnc postproc
 	@echo "##############################################################"
-	@echo "YOU HAVE DONE IT! YOU HAVE THE MODEL COMPILED AND READY TO GO!"
+	@echo "YOU HAVE DONE IT! YOU HAVE COMPILED THE MODEL!"
 	@echo "LET'S START PLAYING WITH THE BEAST....                        "
 	@echo "##############################################################"
 
@@ -40,7 +40,7 @@ ifeq ($(USECLM),1)
 	@echo "SUCCESSFULLY CREATED clm2rcm BINARY FILES"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 else
-	@echo "CLM option is not activated.  Skipping creation of clm2rcm."
+	@echo "CLM option is not activated. Skipping creation of clm2rcm."
 endif
 
 regcm:
