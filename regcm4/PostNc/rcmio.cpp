@@ -330,8 +330,8 @@ bcdata::bcdata(domain_data &d, rcminp &in, t_time_interval &t)
   rdate = date0;
   if (t.idate0 < date0)
   {
-    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
-              << date0 << std::endl;
+    std::cerr << std::endl << "Warning: requested from " << t.idate0
+              << ", will start at " << date0 << std::endl;
   }
   else if (t.idate0 > date0)
   {
@@ -343,8 +343,8 @@ bcdata::bcdata(domain_data &d, rcminp &in, t_time_interval &t)
   if (t.idate1 < date1) date1 = t.idate1;
   else if (t.idate1 > date1)
   {
-    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
-              << date1 << std::endl;
+    std::cerr << std::endl << "Warning: requested up to " << t.idate1
+              << ", will stop at " << date1 << std::endl;
   }
   nfiles = calcnfiles(date0, date1);
   nsteps = calcnsteps(date0, date1, (int) dt);
@@ -377,8 +377,8 @@ atmodata::atmodata(header_data &h, t_time_interval &t)
   rdate = date0;
   if (t.idate0 < date0)
   {
-    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
-              << date0 << std::endl;
+    std::cerr << std::endl << "Warning: requested from " << t.idate0
+              << ", will start at " << date0 << std::endl;
   }
   else if (t.idate0 > date0)
   {
@@ -390,8 +390,8 @@ atmodata::atmodata(header_data &h, t_time_interval &t)
   if (t.idate1 < date1) date1 = t.idate1;
   else if (t.idate1 > date1)
   {
-    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
-              << date1 << std::endl;
+    std::cerr << std::endl << "Warning: requested up to " << t.idate1
+              << ", will stop at " << date1 << std::endl;
   }
   nfiles = calcnfiles(date0, date1);
   nsteps = calcnsteps(date0, date1, (int) dt);
@@ -431,8 +431,8 @@ raddata::raddata(header_data &h, t_time_interval &t)
   rdate = date0;
   if (t.idate0 < date0)
   {
-    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
-              << date0 << std::endl;
+    std::cerr << std::endl << "Warning: requested from " << t.idate0
+              << ", will start at " << date0 << std::endl;
   }
   else if (t.idate0 > date0)
   {
@@ -444,8 +444,8 @@ raddata::raddata(header_data &h, t_time_interval &t)
   if (t.idate1 < date1) date1 = t.idate1;
   else if (t.idate1 > date1)
   {
-    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
-              << date1 << std::endl;
+    std::cerr << std::endl << "Warning: requested up to " << t.idate1
+              << ", will stop at " << date1 << std::endl;
   }
   nfiles = calcnfiles(date0, date1);
   nsteps = calcnsteps(date0, date1, (int) dt);
@@ -488,8 +488,8 @@ chedata::chedata(header_data &h, t_time_interval &t)
   rdate = date0;
   if (t.idate0 < date0)
   {
-    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
-              << date0 << std::endl;
+    std::cerr << std::endl << "Warning: requested from " << t.idate0
+              << ", will start at " << date0 << std::endl;
   }
   else if (t.idate0 > date0)
   {
@@ -501,8 +501,8 @@ chedata::chedata(header_data &h, t_time_interval &t)
   if (t.idate1 < date1) date1 = t.idate1;
   else if (t.idate1 > date1)
   {
-    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
-              << date1 << std::endl;
+    std::cerr << std::endl << "Warning: requested up to " << t.idate1
+              << ", will stop at " << date1 << std::endl;
   }
   nfiles = calcnfiles(date0, date1);
   nsteps = calcnsteps(date0, date1, (int) dt);
@@ -542,8 +542,8 @@ srfdata::srfdata(header_data &h, t_time_interval &t)
   rdate = date0;
   if (t.idate0 < date0)
   {
-    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
-              << date0 << std::endl;
+    std::cerr << std::endl << "Warning: requested from " << t.idate0
+              << ", will start at " << date0 << std::endl;
   }
   else if (t.idate0 > date0)
   {
@@ -555,8 +555,8 @@ srfdata::srfdata(header_data &h, t_time_interval &t)
   if (t.idate1 < date1) date1 = t.idate1;
   else if (t.idate1 > date1)
   {
-    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
-              << date1 << std::endl;
+    std::cerr << std::endl << "Warning: requested up to " << t.idate1
+              << ", will stop at " << date1 << std::endl;
   }
   nfiles = calcnfiles(date0, date1);
   nsteps = calcnsteps(date0, date1, (int) dt);
@@ -633,8 +633,8 @@ subdata::subdata(header_data &h, subdom_data &s, t_time_interval &t)
   rdate = date0;
   if (t.idate0 < date0)
   {
-    std::cerr << "Warning: requested from " << t.idate0 << ", will start at "
-              << date0 << std::endl;
+    std::cerr << std::endl << "Warning: requested from " << t.idate0
+              << ", will start at " << date0 << std::endl;
   }
   else if (t.idate0 > date0)
   {
@@ -646,8 +646,8 @@ subdata::subdata(header_data &h, subdom_data &s, t_time_interval &t)
   if (t.idate1 < date1) date1 = t.idate1;
   else if (t.idate1 > date1)
   {
-    std::cerr << "Warning: requested up to " << t.idate1 << ", will stop at "
-              << date1 << std::endl;
+    std::cerr << std::endl << "Warning: requested up to " << t.idate1
+              << ", will stop at " << date1 << std::endl;
   }
   nfiles = calcnfiles(date0, date1);
   nsteps = calcnsteps(date0, date1, (int) dt);
@@ -1229,7 +1229,7 @@ int rcmio::atmo_read_tstep(atmodata &a)
     else
       readsize = a.datasize;
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sATM.%d", outdir, separator, a.date0);
+    sprintf(fname, "%s%sATM.%d", outdir, separator, a.rdate);
     atmf.open(fname, std::ios::binary);
     if (! atmf.good()) return -1;
     storage = new char[readsize];
@@ -1238,6 +1238,7 @@ int rcmio::atmo_read_tstep(atmodata &a)
     rcmdate df(a.rdate);
     int ss = df.datediffh(a.date0)/a.dt;
     atmf.seekg (ss*readsize, std::ios::beg);
+    a.rdate = a.date0;
     initatm = true;
   }
   size_t pos = atmf.tellg( );
@@ -1318,7 +1319,7 @@ int rcmio::srf_read_tstep(srfdata &s)
     else
       readsize = s.datasize;
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sSRF.%d", outdir, separator, s.date0);
+    sprintf(fname, "%s%sSRF.%d", outdir, separator, s.rdate);
     srff.open(fname, std::ios::binary);
     if (! srff.good()) return -1;
     storage = new char[readsize];
@@ -1327,6 +1328,7 @@ int rcmio::srf_read_tstep(srfdata &s)
     rcmdate df(s.rdate);
     int ss = df.datediffh(s.date0)/s.dt;
     srff.seekg (ss*readsize, std::ios::beg);
+    s.rdate = s.date0;
     initsrf = true;
   }
   size_t pos = srff.tellg( );
@@ -1399,7 +1401,7 @@ int rcmio::sub_read_tstep(subdata &u)
     else
       readsize = u.datasize;
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sSUB.%d", outdir, separator, u.date0);
+    sprintf(fname, "%s%sSUB.%d", outdir, separator, u.rdate);
     subf.open(fname, std::ios::binary);
     if (! subf.good()) return -1;
     storage = new char[readsize];
@@ -1408,6 +1410,7 @@ int rcmio::sub_read_tstep(subdata &u)
     rcmdate df(u.rdate);
     int ss = df.datediffh(u.date0)/u.dt;
     subf.seekg (ss*readsize, std::ios::beg);
+    u.rdate = u.date0;
     initsub = true;
   }
   size_t pos = subf.tellg( );
@@ -1481,7 +1484,7 @@ int rcmio::rad_read_tstep(raddata &r)
       readsize = r.datasize;
 
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sRAD.%d", outdir, separator, r.date0);
+    sprintf(fname, "%s%sRAD.%d", outdir, separator, r.rdate);
     radf.open(fname, std::ios::binary);
     if (! radf.good()) return -1;
     storage = new char[readsize];
@@ -1490,6 +1493,7 @@ int rcmio::rad_read_tstep(raddata &r)
     rcmdate df(r.rdate);
     int ss = df.datediffh(r.date0)/r.dt;
     radf.seekg (ss*readsize, std::ios::beg);
+    r.rdate = r.date0;
     initrad = true;
   }
   size_t pos = radf.tellg( );
@@ -1569,7 +1573,7 @@ int rcmio::che_read_tstep(chedata &c)
     else
       readsize = c.datasize;
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sCHE.%d", outdir, separator, c.date0);
+    sprintf(fname, "%s%sCHE.%d", outdir, separator, c.rdate);
     chef.open(fname, std::ios::binary);
     if (! chef.good()) return -1;
     storage = new char[readsize];
@@ -1578,6 +1582,7 @@ int rcmio::che_read_tstep(chedata &c)
     rcmdate df(c.rdate);
     int ss = df.datediffh(c.date0)/c.dt;
     chef.seekg (ss*readsize, std::ios::beg);
+    c.rdate = c.date0;
     initche = true;
   }
   size_t pos = chef.tellg( );

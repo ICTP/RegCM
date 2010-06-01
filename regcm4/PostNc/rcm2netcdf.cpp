@@ -314,8 +314,8 @@ int main(int argc, char *argv[])
     rcmout.read_header(outhead);
 
     char fname[PATH_MAX];
-    if (date1 < 1) date1 = inpf.valuei("date1");
-    if (date2 < 1) date2 = inpf.valuei("date2");
+    if (date1 < 1) date1 = inpf.valuei("idate1");
+    if (date2 < 1) date2 = inpf.valuei("idate2");
     // Year only
     if (date1 < 10000) date1 = date1*1000000+10100;
     if (date2 < 10000) date2 = date2*1000000+10100;
@@ -343,10 +343,11 @@ int main(int argc, char *argv[])
         char ctlname[PATH_MAX];
         sprintf(ctlname, "ATM_%s_%d-%d.ctl", experiment, a.date0, a.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+	outnc.ctl.doit = true;
       }
       outnc.vl.addvar(vnames);
 
-      rcmNcAtmo atmnc(outnc, outhead);
+      rcmNcAtmo atmnc(outnc, outhead, t);
       atmcalc c(outhead);
       t_atm_deriv d;
       // Add Atmospheric variables
@@ -375,10 +376,11 @@ int main(int argc, char *argv[])
         char ctlname[PATH_MAX];
         sprintf(ctlname, "SRF_%s_%d-%d.ctl", experiment, s.date0, s.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+	outnc.ctl.doit = true;
       }
       outnc.vl.addvar(vnames);
 
-      rcmNcSrf srfnc(outnc, outhead);
+      rcmNcSrf srfnc(outnc, outhead, t);
       // Add Surface variables
       srfcalc c(outhead);
       t_srf_deriv d;
@@ -407,10 +409,11 @@ int main(int argc, char *argv[])
         char ctlname[PATH_MAX];
         sprintf(ctlname, "RAD_%s_%d-%d.ctl", experiment, r.date0, r.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+	outnc.ctl.doit = true;
       }
       outnc.vl.addvar(vnames);
 
-      rcmNcRad radnc(outnc, outhead);
+      rcmNcRad radnc(outnc, outhead, t);
       // Add Radiation variables
       while ((rcmout.rad_read_tstep(r)) == 0)
       {
@@ -436,10 +439,11 @@ int main(int argc, char *argv[])
         char ctlname[PATH_MAX];
         sprintf(ctlname, "CHE_%s_%d-%d.ctl", experiment, c.date0, c.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+	outnc.ctl.doit = true;
       }
       outnc.vl.addvar(vnames);
 
-      rcmNcChe chenc(outnc, outhead);
+      rcmNcChe chenc(outnc, outhead, t);
       // Add Chemical tracers variables
       while ((rcmout.che_read_tstep(c)) == 0)
       {
@@ -469,10 +473,11 @@ int main(int argc, char *argv[])
         char ctlname[PATH_MAX];
         sprintf(ctlname, "SUB_%s_%d-%d.ctl", experiment, s.date0, s.date1);
         outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+	outnc.ctl.doit = true;
       }
       outnc.vl.addvar(vnames);
 
-      rcmNcSub subnc(outnc, outhead, subdom);
+      rcmNcSub subnc(outnc, outhead, subdom, t);
       subcalc c(subdom);
       t_srf_deriv d;
       // Add Subgrid variables

@@ -120,7 +120,7 @@ namespace rcm
 
   class rcmNcAtmo : public rcmNc {
     public:
-      rcmNcAtmo(regcmout &fnc, header_data &h);
+      rcmNcAtmo(regcmout &fnc, header_data &h, t_time_interval &t);
       void put_rec(atmodata &a, t_atm_deriv &d);
     private:
       NcVar *psvar;
@@ -146,7 +146,7 @@ namespace rcm
 
   class rcmNcSrf : public rcmNc {
     public:
-      rcmNcSrf(regcmout &fnc, header_data &h);
+      rcmNcSrf(regcmout &fnc, header_data &h, t_time_interval &t);
       void put_rec(srfdata &s, t_srf_deriv &d);
     private:
       NcVar *psbvar;
@@ -183,7 +183,7 @@ namespace rcm
 
   class rcmNcRad : public rcmNc {
     public:
-      rcmNcRad(regcmout &fnc, header_data &h);
+      rcmNcRad(regcmout &fnc, header_data &h, t_time_interval &t);
       void put_rec(raddata &r);
     private:
       NcVar *psvar;
@@ -205,7 +205,7 @@ namespace rcm
 
   class rcmNcChe : public rcmNc {
     public:
-      rcmNcChe(regcmout &fnc, header_data &h);
+      rcmNcChe(regcmout &fnc, header_data &h, t_time_interval &t);
       void put_rec(chedata &r);
     private:
       NcDim *trc;
@@ -231,7 +231,8 @@ namespace rcm
 
   class rcmNcSub : public rcmNc {
     public:
-      rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s);
+      rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s,
+               t_time_interval &t);
       void put_rec(subdata &s, t_srf_deriv &d);
     private:
       NcVar *psbvar;

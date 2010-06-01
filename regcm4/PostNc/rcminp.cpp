@@ -73,7 +73,11 @@ rcminp::rcminp(char *fname)
 const char *rcminp::valuec(const char *key)
 {
   std::map<std::string, std::string>::iterator iter = items.find(key);
-  if (iter == items.end()) throw "Item not found";
+  if (iter == items.end())
+  {
+    std::cerr << key << std::endl;
+    throw "Item not found";
+  }
   size_t found;
   while ( (found = iter->second.find("'")) != std::string::npos)
     iter->second.erase(found, 1);
@@ -83,7 +87,11 @@ const char *rcminp::valuec(const char *key)
 int rcminp::valuei(const char *key)
 {
   std::map<std::string, std::string>::iterator iter = items.find(key);
-  if (iter == items.end()) throw "Item not found";
+  if (iter == items.end())
+  {
+    std::cerr << key << std::endl;
+    throw "Item not found";
+  }
   int vl;
   if (sscanf(iter->second.c_str(), "%d", &vl) != 1)
     throw "rcminp::value_int : cannot parse to integer";
@@ -93,7 +101,11 @@ int rcminp::valuei(const char *key)
 float rcminp::valuef(const char *key)
 {
   std::map<std::string, std::string>::iterator iter = items.find(key);
-  if (iter == items.end()) throw "Item not found";
+  if (iter == items.end())
+  {
+    std::cerr << key << std::endl;
+    throw "Item not found";
+  }
   float vl;
   if (sscanf(iter->second.c_str(), "%f", &vl) != 1)
     throw "rcminp::value_real : cannot parse to real";
@@ -103,7 +115,11 @@ float rcminp::valuef(const char *key)
 bool rcminp::valueb(const char *key)
 {
   std::map<std::string, std::string>::iterator iter = items.find(key);
-  if (iter == items.end()) throw "Item not found";
+  if (iter == items.end())
+  {
+    std::cerr << key << std::endl;
+    throw "Item not found";
+  }
   if (strstr(iter->second.c_str(), "false") != NULL) return false;
   return true;
 }

@@ -279,7 +279,7 @@ rcmNc::~rcmNc( )
   delete f;
 }
 
-rcmNcAtmo::rcmNcAtmo(regcmout &fnc, header_data &h)
+rcmNcAtmo::rcmNcAtmo(regcmout &fnc, header_data &h, t_time_interval &t)
   : rcmNc(fnc, h, true)
 {
   // Check if var is on wanted list
@@ -313,7 +313,7 @@ rcmNcAtmo::rcmNcAtmo(regcmout &fnc, header_data &h)
   }
 
   // Manage time setup
-  rcmdate d(h.idate1);
+  rcmdate d(t.idate0);
   reference_time = d.unixtime( );
   if (ctl->doit)
     ctl->set_time(ctl->gradstime(d.basey,d.basem,d.based,d.baseh,(int) h.dto));
@@ -584,7 +584,7 @@ void rcmNcAtmo::put_rec(atmodata &a, t_atm_deriv &d)
   return;
 }
 
-rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h)
+rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h, t_time_interval &t)
   : rcmNc(fnc, h, true)
 {
   // Check if var is on wanted list
@@ -627,7 +627,7 @@ rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h)
   }
 
   // Manage time setup
-  rcmdate d(h.idate1);
+  rcmdate d(t.idate0);
   reference_time = d.unixtime( );
   if (ctl->doit)
     ctl->set_time(ctl->gradstime(d.basey,d.basem,d.based,d.baseh,(int) h.dtb));
@@ -950,7 +950,8 @@ rcmNcSrf::rcmNcSrf(regcmout &fnc, header_data &h)
     }
     if (varmask[8])
     {
-      std::cout << "Warning: Variable smw is not plottable by GrADS."
+      std::cout << std::endl
+                << "Warning: Variable smw is not plottable by GrADS."
                 << std::endl
                 << "Is not added to CTL file, albeit present in NetCDF"
                 << std::endl;
@@ -1088,7 +1089,7 @@ void rcmNcSrf::put_rec(srfdata &s, t_srf_deriv &d)
   return;
 }
 
-rcmNcRad::rcmNcRad(regcmout &fnc, header_data &h)
+rcmNcRad::rcmNcRad(regcmout &fnc, header_data &h, t_time_interval &t)
   : rcmNc(fnc, h, true)
 {
   // Check if var is on wanted list
@@ -1118,7 +1119,7 @@ rcmNcRad::rcmNcRad(regcmout &fnc, header_data &h)
   }
 
   // Manage time setup
-  rcmdate d(h.idate1);
+  rcmdate d(t.idate0);
   reference_time = d.unixtime( );
   if (ctl->doit)
     ctl->set_time(ctl->gradstime(d.basey,d.basem,d.based,d.baseh,(int) h.dtr));
@@ -1342,7 +1343,7 @@ void rcmNcRad::put_rec(raddata &r)
   return;
 }
 
-rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
+rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h, t_time_interval &t)
   : rcmNc(fnc, h, true)
 {
   // Check if var is on wanted list
@@ -1374,7 +1375,7 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
   }
 
   // Manage time setup
-  rcmdate d(h.idate1);
+  rcmdate d(t.idate0);
   reference_time = d.unixtime( );
   if (ctl->doit)
     ctl->set_time(ctl->gradstime(d.basey,d.basem,d.based,d.baseh,(int) h.dtc));
@@ -1532,7 +1533,8 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h)
     if (varmask[0] || varmask[1] || varmask[2] || varmask[3] ||
         varmask[4] || varmask[5] || varmask[6] || varmask[7] ||
         varmask[8] || varmask[9] || varmask[10])
-      std::cout << "Warning: Tracer dimension is not representable by GrADS."
+      std::cout << std::endl
+                << "Warning: Tracer dimension is not representable by GrADS."
                 << std::endl << "Variables not included in CTL file."
                 << std::endl;
     if (varmask[11])
@@ -1633,7 +1635,8 @@ void rcmNcChe::put_rec(chedata &c)
   return;
 }
 
-rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s)
+rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s,
+                   t_time_interval &t)
   : rcmNc(fnc, h, false)
 {
   // Check if var is on wanted list
@@ -1665,7 +1668,7 @@ rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s)
   }
 
   // Manage time setup
-  rcmdate d(h.idate1);
+  rcmdate d(t.idate0);
   reference_time = d.unixtime( );
   if (ctl->doit)
     ctl->set_time(ctl->gradstime(d.basey,d.basem,d.based,d.baseh,(int) h.dtb));
@@ -1973,7 +1976,8 @@ rcmNcSub::rcmNcSub(regcmout &fnc, header_data &h, subdom_data &s)
     }
     if (varmask[8])
     {
-      std::cout << "Warning: Variable smw is not plottable by GrADS."
+      std::cout << std::endl
+                << "Warning: Variable smw is not plottable by GrADS."
                 << std::endl
                 << "Is not added to CTL file, albeit present in NetCDF"
                 << std::endl;
@@ -2635,7 +2639,7 @@ void bcNc::put_rec(bcdata &b)
       }
       if (ctl->doit)
       {
-        std::cout <<
+        std::cout << std::endl <<
           "Warning: Soil levels variables will not be included in CTL file." <<
           std::endl << "GrADS is unable to plot different verical levels."  <<
           std::endl;

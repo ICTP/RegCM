@@ -1045,7 +1045,7 @@
           if (ndate0.eq.idate0 .or.                                     &
              (((ndate0/10000)*100+1)*100 .eq.                           &
              ((idate0/10000)*100+1)*100 ) ) then
-            write (finm,99002) trim(dirout),pthsep,'SAV.',idate0
+            write (finm,99002) trim(dirout),pthsep,'SAV.',ndate0
           else
             write (finm,99002) trim(dirout),pthsep,'SAV.',              &
               &    ((ndate0/10000)*100+1)*100
