@@ -6,14 +6,14 @@
  ntr  =   1,
  ibyte  = 4,
  igrads = 1,
- Path_Input  = '/home/bixq/BENCHMARK/regcm4_884/input',
+ Path_Input  = '/scratch/bixq/input',
  DomainName = 'China'
- Path_Output = '/home/bixq/BENCHMARK/regcm4_884/output/',
+ Path_Output = '/scratch/bixq/output/',
 /
 &sigma2p_param
  np = 11,
  plev = 1000.,925.,850.,700.,500.,400.,300.,250.,200.,150.,100.,
- s2p_ICBC = .ture.,
+ s2p_ICBC = .true.,
  s2p_ATM  = .true.,
 /
 &dateparam
