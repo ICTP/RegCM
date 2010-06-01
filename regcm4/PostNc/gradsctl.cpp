@@ -117,7 +117,7 @@ void gradsctl::set_grid(header_data &d)
     ctlf << "pdef " << d.ny << " " << d.nx << " "
          << "lcc " << d.clat << " " << d.clon << " "
          << ci << " " << cj << " " << d.trlat1 << " " << d.trlat2 << " "
-         << d.clon << " " << d.ds << " " << d.ds << std::endl
+         << d.clon << " " << d.ds*1000.0 << " " << d.ds*1000.0 << std::endl
          << "xdef " << nlon << " linear " << minlon - rloninc << " "
          << rloninc << std::endl
          << "ydef " << nlat << " linear " << minlat - rlatinc << " "

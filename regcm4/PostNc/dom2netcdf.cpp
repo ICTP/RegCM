@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
       char ctlname[PATH_MAX];
       sprintf(ctlname, "DOMAIN_%s.ctl", experiment);
       outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+      outnc.ctl.doit = true;
     }
 
     domNc dnc(outnc);
