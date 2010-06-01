@@ -1887,15 +1887,15 @@ int rcmdate::hour_adder(int nh)
   baseh = baseh+nh;
   if (baseh < 24) return idatei(basey, basem, based, baseh);
   based = based + 1;
-  baseh = baseh - 24;
+  baseh = 0;
   int nmd = mdays(basey, basem);
   if (based < nmd)
     return idatei(basey, basem, based, baseh);
-  based = based-nmd;
   basem = basem + 1;
+  based = 1;
   if (basem < 12) return idatei(basey, basem, based, baseh);
-  basem = basem - 12;
   basey = basey + 1;
+  basem = 1;
   return idatei(basey, basem, based, baseh);
 }
 
