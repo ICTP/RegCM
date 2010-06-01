@@ -77,6 +77,8 @@ def edit_namelist(namelist,datadir,simdir):
 
         line = line.replace("/set/this/to/where/your/output/files/will/be/written",simdir+"/output")
 
+        line = line.replace("/set/this/to/where/your/input/clm/data/are",simdir+"/input")
+
         print line.rstrip()
         
     fileinput.close()
