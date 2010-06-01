@@ -24,7 +24,81 @@
       integer , dimension(300000) :: mdate
       integer , dimension(427+1097) :: wkday
 
+      integer , dimension(12) :: mlen
+      data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
       contains
+
+      function lleap(iyear)
+        implicit none
+        logical :: lleap
+        integer , intent(in) :: iyear
+        if ( mod(iyear,400).eq.0 .or.                                   &
+          & ( mod(iyear,4).eq.0 .and. mod(iyear,100).ne.0 ) ) then
+          lleap = .true.
+        else
+          lleap = .false.
+        end if
+      end function lleap
+
+      function mdays(iyear, imon)
+        implicit none
+        integer :: mdays
+        integer , intent(in) :: iyear , imon
+        if (imon /= 2) then
+          mdays = mlen(imon)
+        else
+          mdays = mlen(2)
+          if (lleap(iyear)) then
+            mdays = mdays + 1
+          end if
+        end if
+      end function mdays
+
+      function iidate(iy, im, id, ih)
+        implicit none
+        integer :: iidate
+        integer , intent(in) :: iy , im , id , ih
+        iidate = iy*1000000+im*10000+id*100+ih;
+      end function iidate
+
+      subroutine split_idate(idate, iy, im, id, ih)
+        implicit none
+        integer , intent(in) :: idate
+        integer , intent(out) :: iy , im , id , ih
+        integer :: base
+        base = idate
+        iy = base/1000000
+        base = base-iy*1000000
+        im = base/10000
+        base = base-im*10000
+        id = base/100
+        base = base-id*100
+        ih = base
+      end subroutine
+
+      subroutine addhours(idate, ihours)
+        implicit none
+        integer , intent(in) :: ihours
+        integer , intent(inout) :: idate
+        integer :: basey , basem , based , baseh , nmd
+
+        call split_idate(idate, basey, basem, based, baseh)
+        baseh = baseh + ihours
+        if (baseh > 23) then
+          based = based + 1
+          baseh = 0
+          nmd = mdays(basey, basem)
+          if (based > nmd) then
+            based = 1
+            basem = basem + 1
+            if (basem > 12) then
+              basem = 1
+              basey = basey + 1
+            end if
+          end if
+        end if
+        idate = iidate(basey, basem, based, baseh)
+      end subroutine addhours
 
       subroutine initdate_era
         implicit none
