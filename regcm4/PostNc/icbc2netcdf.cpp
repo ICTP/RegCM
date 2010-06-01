@@ -210,8 +210,9 @@ int main(int argc, char *argv[])
     if (lgrads)
     {
       char ctlname[PATH_MAX];
-      sprintf(ctlname, "ICBC_%s.ctl", experiment);
+      sprintf(ctlname, "ICBC_%s_%d-%d.ctl", experiment, b.date0, b.date1);
       outnc.ctl.open(ctlname, (char *) outnc.fname.c_str());
+      outnc.ctl.doit = true;
     }
     outnc.vl.addvar(vnames);
 
