@@ -86,10 +86,14 @@ int calcnfiles(int date0, int date1)
 
 int nextmonth(int rdate)
 {
-  rdate = (rdate/10000*10000+100) + 10000;
-  if ( (rdate-(rdate/1000000*1000000)>120000) )
-    rdate = rdate+1000000-120000;
-  return rdate;
+  rcmdate d(rdate);
+  d.basem += 1;
+  if (d.basem > 12)
+  {
+    d.basey += 1;
+    d.basem = 1;
+  }
+  return d.idate( );
 }
 
 int calcnsteps(int date0, int date1, int dt)
@@ -1887,7 +1891,7 @@ int rcmdate::hour_adder(int nh)
   int nlast = nh % 23;
   for (int n = 0; n < nsum; n ++)
   {
-    baseh = baseh+23;
+    baseh = baseh + 23;
     if (baseh > 23)
     {
       based = based + 1;
@@ -1896,11 +1900,11 @@ int rcmdate::hour_adder(int nh)
       if (based > nmd)
       {
         basem = basem + 1;
-        based = 1;
+        based = based - nmd;
         if (basem > 12)
         {
           basey = basey + 1;
-          basem = 1;
+          basem = basem - 12;
         }
       }
     }
@@ -1914,11 +1918,11 @@ int rcmdate::hour_adder(int nh)
     if (based > nmd)
     {
       basem = basem + 1;
-      based = 1;
+      based = based - nmd;
       if (basem > 12)
       {
         basey = basey + 1;
-        basem = 1;
+        basem = basem - 12;
       }
     }
   }
