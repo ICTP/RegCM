@@ -176,48 +176,31 @@
 !
 ! Local variables
 !
-      integer :: i , j , k , kdate1 , kdate2 , ks , ks1 , ks2 , lat ,   &
-               & lon , nday , nmo , nyear
+      integer :: i , j , k , kdate1 , kdate2 , ks1 , ks2 , nday , nmo , &
+               & nyear , ikdate , idiff
       real(4) :: wt
 !
-      ks = 427 + 1097
-      do k = 427 + 1097 , 1 , -1
-        if ( wkday(k)<=kdate ) then
-          ks = k
-          exit
-        end if
-      end do
-      kdate1 = wkday(ks)
-!
-      do k = 1 , 427 + 1097
-        if ( wkday(k)>kdate ) then
-          ks = k
-          exit
-        end if
-      end do
-      kdate2 = wkday(ks)
-      call finddate_icbc(ks1,kdate1*100)
-      call finddate_icbc(ks,kdate*100)
-      call finddate_icbc(ks2,kdate2*100)
-      wt = float(ks-ks1)/float(ks2-ks1)
- 
 !     ******           INITIALIZE SST1, SST2 (NEEDED FOR 82 JAN CASE)
-      do lon = 1 , jx
-        do lat = 1 , iy
-          sst1(lon,lat) = 0.
-          sst2(lon,lat) = 0.
-        end do
+!
+      sst1 = 0.0
+      sst2 = 0.0
+!
+!     ******           READ IN RCM MONTHLY SST DATASET
+!
+      ikdate = kdate*100
+      do
+        read (60,end=200) nday , nmo , nyear ,                          &
+             &           ((sst1(i,j),j=1,iy),i=1,jx)
+        kdate1 = iidate(nyear,nmo,nday,0)
+        idiff = idatediff(ikdate, kdate1)
+        if (idiff >= 0 .and. idiff < 161) exit
       end do
- 
-!     ******           READ IN RCM MONTHLY SST DATASET
- 100  continue
-      read (60,end=200) nday , nmo , nyear , ((sst1(i,j),j=1,iy),i=1,jx)
-      if ( nyear*10000+nmo*100+nday/=kdate1 ) go to 100
-!     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
- 
-!     ******           READ IN RCM MONTHLY SST DATASET
       read (60,end=200) nday , nmo , nyear , ((sst2(i,j),j=1,iy),i=1,jx)
-!     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
+      kdate2 = iidate(nyear,nmo,nday,0)
+
+      ks1 = idatediff(kdate1,kdate*100)
+      ks2 = idatediff(kdate1,kdate2)
+      wt = float(ks1)/float(ks2)
  
       do i = 1 , jx
         do j = 1 , iy

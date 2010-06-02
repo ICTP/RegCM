@@ -254,7 +254,7 @@
         integer :: iy , im , id , ih , jd
         call split_idate(idate, iy, im, id, ih)
         jd = julianday(iy, im, id)
-        idayofweek = ceiling(mod(jd+1.5D+00, 7.0))
+        idayofweek = ceiling(mod(jd+1.5D+00, 7.0))+1
       end function idayofweek
 
       function lsame_week(idate1, idate2)
@@ -266,14 +266,15 @@
         lsame_week = .false.
         iidate1 = idate1/100*100
         iidate2 = idate2/100*100
-        idatewk1 = idayofweek(iidate1)
-        ieofweek = 7-idatewk1
         idist = idatediff(iidate2, iidate1)
-        print *, idatewk1
-        print *, ieofweek
-        print *, idist
-        if (idist > 0 .and. idist/24 <= ieofweek) lsame_week = .true.
-        if (idist < 0 .and. idist/24 >= -idatewk1) lsame_week = .true.
+        if (idist == 0) then
+          lsame_week = .true.
+        else
+          idatewk1 = idayofweek(iidate1)
+          ieofweek = 7-idatewk1
+          if (idist > 0 .and. idist/24 <=  ieofweek) lsame_week = .true.
+          if (idist < 0 .and. idist/24 >= -idatewk1) lsame_week = .true.
+        end if
       end function lsame_week
       
       subroutine initdate_era
