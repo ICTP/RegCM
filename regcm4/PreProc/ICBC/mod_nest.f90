@@ -64,7 +64,7 @@
 
       subroutine get_nest(idate,ncr)
       use mod_grid
-      use mod_date
+      use mod_date , only : julian
       use mod_write
       use mod_interp , only : cressmcr , cressmdt
       use mod_vertint

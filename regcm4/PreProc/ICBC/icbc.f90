@@ -114,9 +114,10 @@
 !
 ! Local variables
 !
-      integer :: idate , idatef , iday , ifile , imon , imonnew ,       &
-               & imonold , isize , iyr , nnn , inmber , numfile
-      integer :: nnnend , nstart
+      integer :: idate , iday , ifile , imon , iyr , ihr , nnn ,&
+               & inmber , iodate
+      integer :: nsteps
+      integer , parameter :: idtbc = 6
       integer :: ierr
       character(256) :: namelistfile, prgname
       character(256) :: sstfile , finame
@@ -140,16 +141,13 @@
 !
       call init_grid(iy,jx,kz)
       call init_output(jx,iy,kz)
-      call initdate_icbc
-      call finddate_icbc(nstart,globidate1)
-      call finddate_icbc(nnnend,globidate2)
 
-      write (*,*) 'NSTART,NNNEND: ' , nstart , nnnend
-      write (*,*) 'IDATE1,IDATE2: ' , globidate1 , globidate2
- 
-      isize = jx*iy*4*(kz*4+3)
-      numfile = 2100000000/isize
-      numfile = (numfile/20)*20
+      nsteps = idatediff(globidate2,globidate1)/idtbc + 1
+      call initdate_icbc
+
+      write (*,*) 'GLOBIDATE1 : ' , globidate1
+      write (*,*) 'GLOBIDATE2 : ' , globidate2
+      write (*,*) 'NSTEPS     : ' , nsteps
  
       write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
           & '_SST.RCM'
@@ -186,21 +184,19 @@
       end if
       if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) call headwk
  
-      imonold = 0
       ifile = 101
-      do nnn = nstart , nnnend
-        idate = mdate(nnn)
-        iyr = idate/1000000
-        imon = idate/10000 - iyr*100
-!       IF(MOD(NNN-NSTART,NUMFILE).EQ.0 .or.
-!       &     (imon.ne.imonold.and.nnn.lt.nnnend.and.nnn.gt.nstart))
-!       THEN
-        if ( nnn==nstart .or.                                           &
-           & (imon/=imonold .and. nnn<nnnend .and. nnn>nstart) ) then
-          iday = idate/100 - iyr*10000 - imon*100
+
+      idate = globidate1
+      iodate = idate
+
+      do nnn = 1 , nsteps
+
+        call split_idate(idate, iyr, imon, iday, ihr)
+
+        if ( nnn == 1 .or. .not. lsame_month(idate, iodate) ) then
           write (finame,99002) trim(dirglob), pthsep, trim(domname),    &
               '_ICBC', idate
-          if ( nnn>nstart ) then
+          if ( nnn>1 ) then
             if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
               call getncep(idate)
             else if ( dattyp=='NRP2W' ) then
@@ -228,32 +224,15 @@
             else
             end if
           end if
-          imonnew = imon + 1
-          if ( imon>=12 ) then
-            imonnew = 1
-            iyr = iyr + 1
-          end if
-          idatef = iyr*1000000 + imonnew*10000 + 100
-          if ( imon==1 .or. imon==3 .or. imon==5 .or. imon==7 .or.      &
-             & imon==8 .or. imon==10 .or. imon==12 ) then
-            inmber = (32-iday)*4 + 1
-          else if ( imon==4 .or. imon==6 .or. imon==9 .or. imon==11 )   &
-                  & then
-            inmber = (31-iday)*4 + 1
+          if ( lsame_month(idate, globidate2) ) then
+            inmber = idatediff(globidate2, idate)
           else
-            if ( mod(iyr,4)==0 ) then
-              inmber = (30-iday)*4 + 1
-            else
-              inmber = (29-iday)*4 + 1
-            end if
-            if ( mod(iyr,100)==0 ) inmber = (29-iday)*4 + 1
-            if ( mod(iyr,400)==0 ) inmber = (30-iday)*4 + 1
+            inmber = mdays(iyr, imon) * 24
           end if
           if ( igrads==1 ) call gradsctl(finame,idate,inmber)
           call fexist(finame)
           open (64,file=finame,form='unformatted',status='unknown',     &
               & recl=jx*iy*ibyte,access='direct')
-          imonold = imon
           ifile = ifile + 1
           noutrec = 0
         end if
@@ -283,6 +262,10 @@
           call get_nest(idate,1)
         else
         end if
+
+        iodate = idate
+        call addhours(idate, idtbc)
+
       end do
 
       call free_output

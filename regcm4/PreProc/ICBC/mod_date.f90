@@ -74,16 +74,53 @@
         id = base/100
         base = base-id*100
         ih = base
-      end subroutine
+      end subroutine split_idate
+
+      subroutine addweek(idate)
+        implicit none
+        integer , intent(inout) :: idate
+         integer :: nmd , basey , basem , based , baseh
+        call split_idate(idate, basey, basem, based, baseh)
+        based = based + 7
+        nmd = mdays(basey, basem)
+        if (based > nmd) then
+          based = 1
+          basem = basem + 1
+          if (basem > 12) then
+            basem = 1
+            basey = basey + 1
+          end if
+        end if
+        idate = iidate(basey, basem, based, baseh)
+      end subroutine addweek
 
       subroutine addhours(idate, ihours)
         implicit none
         integer , intent(in) :: ihours
         integer , intent(inout) :: idate
         integer :: basey , basem , based , baseh , nmd
+        integer :: nsum , isum , ilast
 
         call split_idate(idate, basey, basem, based, baseh)
-        baseh = baseh + ihours
+        nsum  = ihours / 23
+        ilast = ihours - nsum*23;
+        do isum = 1 , nsum
+          baseh = baseh + 23
+          if (baseh > 23) then
+            based = based + 1
+            baseh = baseh - 24
+            nmd = mdays(basey, basem)
+            if (based > nmd) then
+              based = 1
+              basem = basem + 1
+              if (basem > 12) then
+                basem = 1
+                basey = basey + 1
+              end if
+            end if
+          end if
+        end do
+        baseh = baseh + ilast
         if (baseh > 23) then
           based = based + 1
           baseh = 0
@@ -147,7 +184,7 @@
 
       function julianday(iy, im, id)
         implicit none
-        integer :: julianday
+        real(8) :: julianday
         integer , intent(in) :: iy , im , id
         integer :: ia , ib , iiy , iim
         iiy = iy
@@ -162,8 +199,9 @@
         else
           ib = 0
         end if
-        julianday = int(365.25D0*(iiy+4716)) + int(30.6001D0*(iim+1)) + &
-          &         id + ib - 1524.5D0
+        julianday = int(365.25D+00*(iiy+4716)) +                        &
+          &         int(30.6001D+00*(iim+1))   +                        &
+          &         id + ib - 1524.5D+00
       end function julianday
 
       function idatediff(idate2, idate1)
@@ -201,6 +239,43 @@
         idatediff = (jd2-jd1)*24+(ih2-ih1)
       end function idatediff
 
+      function lsame_month(idate1, idate2)
+        implicit none
+        logical :: lsame_month
+        integer , intent(in) :: idate1 , idate2
+        lsame_month = .false.
+        if (abs(idate1-idate2) < 10000) lsame_month = .true.
+      end function
+
+      function idayofweek(idate)
+        implicit none
+        integer :: idayofweek
+        integer , intent(in) :: idate
+        integer :: iy , im , id , ih , jd
+        call split_idate(idate, iy, im, id, ih)
+        jd = julianday(iy, im, id)
+        idayofweek = ceiling(mod(jd+1.5D+00, 7.0))
+      end function idayofweek
+
+      function lsame_week(idate1, idate2)
+        implicit none
+        logical :: lsame_week
+        integer , intent(in) :: idate1 , idate2
+        integer :: iidate1 , iidate2
+        integer :: idatewk1, ieofweek, idist
+        lsame_week = .false.
+        iidate1 = idate1/100*100
+        iidate2 = idate2/100*100
+        idatewk1 = idayofweek(iidate1)
+        ieofweek = 7-idatewk1
+        idist = idatediff(iidate2, iidate1)
+        print *, idatewk1
+        print *, ieofweek
+        print *, idist
+        if (idist > 0 .and. idist/24 <= ieofweek) lsame_week = .true.
+        if (idist < 0 .and. idist/24 >= -idatewk1) lsame_week = .true.
+      end function lsame_week
+      
       subroutine initdate_era
         implicit none
 !
