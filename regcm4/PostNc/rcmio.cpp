@@ -414,7 +414,6 @@ atmodata::atmodata(header_data &h, t_time_interval &t)
   tgb = tpr + size2D;
   swt = tgb + size2D;
   rno = swt + size2D;
-  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 atmodata::~atmodata( )
@@ -471,7 +470,6 @@ raddata::raddata(header_data &h, t_time_interval &t)
   sabtp = solin + size2D;
   firtp = sabtp + size2D;
   ps = firtp + size2D;
-  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 raddata::~raddata( )
@@ -525,7 +523,6 @@ chedata::chedata(header_data &h, t_time_interval &t)
   acstalrf = acstsrrf + size2D;
   acssrlrf = acstalrf + size2D;
   ps = acssrlrf + size2D;
-  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 chedata::~chedata( )
@@ -592,7 +589,6 @@ srfdata::srfdata(header_data &h, t_time_interval &t)
   t2min = t2max + size2D;
   w10max = t2min + size2D;
   ps_min = w10max + size2D;
-  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 srfdata::~srfdata( )
@@ -672,7 +668,6 @@ subdata::subdata(header_data &h, subdom_data &s, t_time_interval &t)
   sena = scv + size2D;
   prcv = sena + size2D;
   psb = prcv + size2D;
-  nsteps = calcnsteps(date0, date1, (int) dt);
 }
 
 subdata::~subdata( )
@@ -1887,18 +1882,46 @@ int rcmdate::idatendh( )
 
 int rcmdate::hour_adder(int nh)
 {
-  baseh = baseh+nh;
-  if (baseh < 24) return idatei(basey, basem, based, baseh);
-  based = based + 1;
-  baseh = 0;
-  int nmd = mdays(basey, basem);
-  if (based < nmd)
-    return idatei(basey, basem, based, baseh);
-  basem = basem + 1;
-  based = 1;
-  if (basem < 12) return idatei(basey, basem, based, baseh);
-  basey = basey + 1;
-  basem = 1;
+  int nmd;
+  int nsum  = nh / 23;
+  int nlast = nh % 23;
+  for (int n = 0; n < nsum; n ++)
+  {
+    baseh = baseh+23;
+    if (baseh > 23)
+    {
+      based = based + 1;
+      baseh = baseh - 24;
+      nmd = mdays(basey, basem);
+      if (based > nmd)
+      {
+        basem = basem + 1;
+        based = 1;
+        if (basem > 12)
+        {
+          basey = basey + 1;
+          basem = 1;
+        }
+      }
+    }
+  }
+  baseh = baseh+nlast;
+  if (baseh > 23)
+  {
+    based = based + 1;
+    baseh = baseh - 24;
+    nmd = mdays(basey, basem);
+    if (based > nmd)
+    {
+      basem = basem + 1;
+      based = 1;
+      if (basem > 12)
+      {
+        basey = basey + 1;
+        basem = 1;
+      }
+    }
+  }
   return idatei(basey, basem, based, baseh);
 }
 
