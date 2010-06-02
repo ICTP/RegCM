@@ -46,15 +46,15 @@
 ! PARAMETERS
 !
       integer , parameter :: ilon = 240 , jlat = 121
+      integer , parameter :: idtbc = 6
 !
 ! Local variables
 !
       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
-      integer :: idate
+      integer :: idate , ierastart , ierrec , nsteps
       logical :: there
-      integer :: nnnend , nstart
       real(4) , dimension(ilon,jlat) :: sst
       real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
       character(256) :: terfile , sstfile , inpfile
@@ -107,16 +107,17 @@
           &  '_SST.RCM'
       open (21,file=sstfile,form='unformatted',status='replace')
  
+      nsteps = idatediff(globidate2,globidate1)/idtbc + 1
+
+      write (*,*) 'GLOBIDATE1 : ' , globidate1
+      write (*,*) 'GLOBIDATE2 : ' , globidate2
+      write (*,*) 'NSTEPS     : ' , nsteps
+
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
       write (terfile,99001)                                             &
         & trim(dirter), pthsep, trim(domname) , '.INFO'
       open (10,file=terfile,form='unformatted',recl=iy*jx*ibyte,        &
          &  access='direct',status='unknown',err=100)
-      call initdate_era
-      call finddate_era(nstart,globidate1)
-      call finddate_era(nnnend,globidate2)
-      write (*,*) nstart , nnnend
-      print * , globidate1 , nnnend - nstart + 1
       write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
            & '_RCM_SST.dat'
       open (25,file=sstfile,status='unknown',form='unformatted',        &
@@ -127,7 +128,7 @@
         open (31,file=sstfile,status='replace')
         write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
       end if
-      call gridmle(xlon,xlat,lu,iy,jx,globidate1,nnnend-nstart+1)
+      call gridmle(xlon,xlat,lu,iy,jx,globidate1,nsteps)
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -138,20 +139,22 @@
         lati(j) = -90. + 1.5*float(j-1)
       end do
  
-      do it = nstart , nnnend
-        idate = mdate(it)
+      idate = globidate1
+      ierastart = 1989010100
+      do it = 1 , nsteps
+
+        ierrec = idatediff(idate,ierastart)/idtbc+1
+
         if ( ssttyp=='ERSST' ) then
           inpfile = trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
-          call sst_erain(it,nstart,ilon,jlat,sst,inpfile)
+          call sst_erain(ierrec,ilon,jlat,sst,inpfile)
         else if ( ssttyp=='ERSKT' ) then
           inpfile = trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
-          call skt_erain(it,nstart,ilon,jlat,sst,inpfile)
+          call skt_erain(ierrec,ilon,jlat,sst,inpfile)
         else
         end if
-        nyear = idate/1000000
-        nmo = (idate-nyear*1000000)/10000
-        nday = (idate-nyear*1000000-nmo*10000)/100
-        nhour = idate - nyear*1000000 - nmo*10000 - nday*100
+
+        call split_idate(idate, nyear, nmo, nday, nhour)
  
 !       ******           PRINT OUT DATA AS A CHECK
         if ( nmo==1 ) call printl(sst,ilon,jlat)
@@ -164,6 +167,9 @@
         print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
         mrec = mrec + 1
         write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
+
+        call addhours(idate, idtbc)
+
       end do
  
       deallocate(lu)
@@ -332,15 +338,15 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine skt_erain(it,it0,ilon,jlat,sst,pathaddname)
+      subroutine skt_erain(it,ilon,jlat,sst,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: it , it0 , ilon , jlat
+      integer :: it , ilon , jlat
       character(256) :: pathaddname
-      intent (in) it , it0 , ilon , jlat , pathaddname
+      intent (in) it , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
@@ -368,7 +374,7 @@
 !
       data varname/'skt'/
 !
-      if ( it==it0 ) then
+      if ( it==1 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) trim(pathaddname) , ' is not available'
@@ -418,15 +424,15 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine sst_erain(it,it0,ilon,jlat,sst,pathaddname)
+      subroutine sst_erain(it,ilon,jlat,sst,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: it , it0 , ilon , jlat
+      integer :: it , ilon , jlat
       character(256) :: pathaddname
-      intent (in) it , it0 , ilon , jlat , pathaddname
+      intent (in) it , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
@@ -454,7 +460,7 @@
 !
       data varname/'sst'/
 !
-      if ( it==it0 ) then
+      if ( it==1 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) trim(pathaddname) , ' is not available'

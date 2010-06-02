@@ -143,7 +143,6 @@
       call init_output(jx,iy,kz)
 
       nsteps = idatediff(globidate2,globidate1)/idtbc + 1
-      call initdate_icbc
 
       write (*,*) 'GLOBIDATE1 : ' , globidate1
       write (*,*) 'GLOBIDATE2 : ' , globidate2
@@ -182,7 +181,6 @@
         write ( 6,* ) 'Unknown dattyp'
         stop
       end if
-      if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) call headwk
  
       ifile = 101
 

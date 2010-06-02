@@ -46,6 +46,7 @@
 ! PARAMETER definitions
 !
       integer , parameter :: ilon = 192 , jlat = 96
+      integer , parameter :: idtbc = 6
 !
 ! Local variables
 !
@@ -53,8 +54,7 @@
       integer(2) , dimension(ilon,jlat) :: ivar
       real(8) :: offset , xscale
       real(4) , dimension(ilon,jlat) :: sst
-      integer :: idate
-      integer :: nnnend , nstart
+      integer :: idate , ieh5ostart , ieh5orec, nsteps
       integer :: i , it , j , mrec , nday , nhour , nmo , nyear
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
@@ -256,16 +256,16 @@
          &   '_SST.RCM'
       open (21,file=sstfile,form='unformatted',status='replace')
  
+      nsteps = idatediff(globidate2,globidate1)/idtbc + 1
+      write (*,*) 'GLOBIDATE1 : ' , globidate1
+      write (*,*) 'GLOBIDATE2 : ' , globidate2
+      write (*,*) 'NSTEPS     : ' , nsteps
+
 !     ******    ON WHAT RegCM GRID ARE SST DESIRED?
       write (terfile,99001)                                             &
         & trim(dirter), pthsep, trim(domname) , '.INFO'
       open (10,file=terfile,form='unformatted',recl=iy*jx*ibyte,        &
          &  access='direct',status='unknown',err=100)
-      call initdate_eh50(ssttyp)
-      call finddate_eh50(nstart,globidate1)
-      call finddate_eh50(nnnend,globidate2)
-      write (*,*) nstart , nnnend
-      print * , globidate1 , nnnend - nstart + 1
       write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
           &  '_RCM_SST.dat'
       open (25,file=sstfile,status='unknown',form='unformatted',        &
@@ -276,7 +276,7 @@
         open (31,file=sstfile,status='replace')
         write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
       end if
-      call gridmlo(xlon,xlat,lu,iy,jx,globidate1,nnnend-nstart+1)
+      call gridmlo(xlon,xlat,lu,iy,jx,globidate1,nsteps)
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -290,8 +290,14 @@
 !     **  REF  SST DATA, 1.875x1.1.25, AVAILABLE FROM 16/1/1959 TO
 !     16/1/1991 ** A2&B2 SST DATA, 1.875x1.1.25, AVAILABLE FROM
 !     16/1/2069 TO 16/1/2101
-      do it = nstart , nnnend
-        idate = mdate(it)
+      idate = globidate1
+      if ( ssttyp=='EH5RF' ) then
+        ieh5ostart = 1989010100
+      else
+        ieh5ostart = 2001010100
+      end if
+      do it = 1 , nsteps
+        
         if ( ssttyp=='EH5RF' ) then
           if ( idate>=1941010106 .and. idate<=1961123118 ) then
             open (11,file=trim(inpglob)//                               &
@@ -396,11 +402,9 @@
           end if
         else
         end if
-        nyear = idate/1000000
-        nmo = (idate-nyear*1000000)/10000
-        nday = (idate-nyear*1000000-nmo*10000)/100
-        nhour = idate - nyear*1000000 - nmo*10000 - nday*100
-        read (11,rec=it-it_base) offset , xscale , ivar
+        call split_idate(idate, nyear, nmo, nday, nhour)
+        ieh5orec = idatediff(idate, ieh5ostart)
+        read (11,rec=ieh5orec-it_base) offset , xscale , ivar
         write (*,*) offset , xscale
         do j = 1 , jlat
           do i = 1 , ilon
@@ -420,6 +424,9 @@
         print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
         mrec = mrec + 1
         write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
+
+        call addhours(idate, idtbc)
+
       end do
  
       deallocate(lu)

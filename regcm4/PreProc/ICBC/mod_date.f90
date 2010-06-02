@@ -21,12 +21,17 @@
 
       implicit none
 
-      integer , dimension(300000) :: mdate
-      integer , dimension(427+1097) :: wkday
-
       integer , dimension(12) :: mlen
       data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
       contains
+
+      subroutine normidate(idate)
+        implicit none
+        integer , intent(inout) :: idate
+        if (idate < 10000) idate = idate*1000000+10100
+        if (idate < 1000000) idate = idate*10000+100
+        if (idate < 100000000) idate = idate*100
+      end subroutine normidate
 
       function lleap(iyear)
         implicit none
@@ -54,19 +59,21 @@
         end if
       end function mdays
 
-      function iidate(iy, im, id, ih)
+      function mkidate(iy, im, id, ih)
         implicit none
-        integer :: iidate
+        integer :: mkidate
         integer , intent(in) :: iy , im , id , ih
-        iidate = iy*1000000+im*10000+id*100+ih;
-      end function iidate
+        mkidate = iy*1000000+im*10000+id*100+ih;
+      end function mkidate
 
       subroutine split_idate(idate, iy, im, id, ih)
         implicit none
         integer , intent(in) :: idate
         integer , intent(out) :: iy , im , id , ih
-        integer :: base
-        base = idate
+        integer :: base , iidate
+        iidate = idate
+        call normidate(iidate)
+        base = iidate
         iy = base/1000000
         base = base-iy*1000000
         im = base/10000
@@ -76,9 +83,10 @@
         ih = base
       end subroutine split_idate
 
-      subroutine addweek(idate)
+      function inextwk(idate)
         implicit none
-        integer , intent(inout) :: idate
+        integer :: inextwk
+        integer , intent(in) :: idate
          integer :: nmd , basey , basem , based , baseh
         call split_idate(idate, basey, basem, based, baseh)
         based = based + 7
@@ -91,8 +99,8 @@
             basey = basey + 1
           end if
         end if
-        idate = iidate(basey, basem, based, baseh)
-      end subroutine addweek
+        inextwk = mkidate(basey, basem, based, baseh)
+      end function inextwk
 
       subroutine addhours(idate, ihours)
         implicit none
@@ -111,10 +119,10 @@
             baseh = baseh - 24
             nmd = mdays(basey, basem)
             if (based > nmd) then
-              based = 1
+              based = based - nmd
               basem = basem + 1
               if (basem > 12) then
-                basem = 1
+                basem = basem - 12
                 basey = basey + 1
               end if
             end if
@@ -126,15 +134,15 @@
           baseh = 0
           nmd = mdays(basey, basem)
           if (based > nmd) then
-            based = 1
+            based = based - nmd
             basem = basem + 1
             if (basem > 12) then
-              basem = 1
+              basem = basem - 12
               basey = basey + 1
             end if
           end if
         end if
-        idate = iidate(basey, basem, based, baseh)
+        idate = mkidate(basey, basem, based, baseh)
       end subroutine addhours
 
       function lcaltype(iy, im, id)
@@ -220,20 +228,11 @@
         implicit none
         integer :: idatediff
         integer , intent(in) :: idate2 , idate1
-        integer :: iidate1 , iidate2
         integer :: iy1 , im1 , id1 , ih1
         integer :: iy2 , im2 , id2 , ih2
         integer :: jd1 , jd2
-        iidate1 = idate1
-        iidate2 = idate2
-        if (iidate1 < 10000) iidate1 = iidate1*1000000+10100
-        if (iidate2 < 10000) iidate2 = iidate2*1000000+10100
-        if (iidate1 < 1000000) iidate1 = iidate1*10000+100
-        if (iidate2 < 1000000) iidate2 = iidate2*10000+100
-        if (iidate1 < 100000000) iidate1 = iidate1*100
-        if (iidate2 < 100000000) iidate2 = iidate2*100
-        call split_idate(iidate2, iy2, im2, id2, ih2)
-        call split_idate(iidate1, iy1, im1, id1, ih1)
+        call split_idate(idate2, iy2, im2, id2, ih2)
+        call split_idate(idate1, iy1, im1, id1, ih1)
         jd2 = julianday(iy2, im2, id2)
         jd1 = julianday(iy1, im1, id1)
         idatediff = (jd2-jd1)*24+(ih2-ih1)
@@ -246,6 +245,17 @@
         lsame_month = .false.
         if (abs(idate1-idate2) < 10000) lsame_month = .true.
       end function
+
+      function imondiff(idate2, idate1)
+        implicit none
+        integer :: imondiff
+        integer , intent(in) :: idate2 , idate1
+        integer :: iy1 , im1 , id1 , ih1
+        integer :: iy2 , im2 , id2 , ih2
+        call split_idate(idate2, iy2, im2, id2, ih2)
+        call split_idate(idate1, iy1, im1, id1, ih1)
+        imondiff = (iy2-iy1)*12+(im2-im1)
+      end function imondiff
 
       function idayofweek(idate)
         ! Sun Mon Tue Wed Thu Fri Sat
@@ -279,393 +289,87 @@
           if (idist < 0 .and. idist/24 >= -idatewk1) lsame_week = .true.
         end if
       end function lsame_week
-      
-      subroutine initdate_era
-        implicit none
-!
-! Local variables
-!
-      integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
-!
-        nrec = 0
-        do nyear = 1989 , 2009
-          mbase = nyear*1000000
-          do mon = 1 , 12
-            mbase = mbase + 10000
-            if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.        &
-               & mon==8 .or. mon==10 .or. mon==12 ) then
-              nday = 31
-            else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
-              nday = 30
-            else if ( mod(nyear,400).eq.0 .or.                          &
-               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
-              nday = 29
-            else
-              nday = 28
-            end if
-            nbase = mbase
-            do i = 1 , nday
-              nbase = nbase + 100
-              do m = 1 , 4
-                nrec = nrec + 1
-                if ( nrec>29824 ) go to 99999
-                if ( m==1 ) then
-                  mdate(nrec) = nbase
-                else if ( m==2 ) then
-                  mdate(nrec) = nbase + 6
-                else if ( m==3 ) then
-                  mdate(nrec) = nbase + 12
-                else
-                  mdate(nrec) = nbase + 18
-                end if
-              end do
-            end do
-          end do
-        end do
-99999   continue
-      end subroutine initdate_era
 
-      subroutine finddate_era(npos,idate)
+      function ifodweek(idate)
         implicit none
-!
-!       Dummy arguments
-!
-        integer :: idate , npos
-        intent (in) idate
-        intent (out) npos
-!
-!       Local variables
-!
-        integer :: i
-!
-        i = 0
- 100    continue
-        i = i + 1
-        if ( mdate(i)==idate ) then
-          npos = i
-          go to 99999
+        integer :: ifodweek
+        integer , intent(in) :: idate
+        integer :: iwkday
+        integer :: iy , im , id , ih
+        call split_idate(idate, iy, im, id, ih)
+        iwkday = idayofweek(idate) - 1
+        id = id - iwkday
+        if (id < 1) then
+          im = im - 1
+          id =  mdays(iy, im) + id
         end if
-        if ( i<=29824 ) go to 100
-        write (*,*) 'ERROR IN FINDDATE'
-        stop
-99999   continue
-      end subroutine finddate_era
+        ifodweek = mkidate(iy, im, id, 0)
+      end function ifodweek
 
-      subroutine initdate_eh50(ssttyp)
+      function iladweek(idate)
         implicit none
-!
-!       Dummy arguments
-!
-        character(5) :: ssttyp
-        intent (in) ssttyp
-!
-!       Local variables
-!
-        integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
-!
-        nrec = 0
-        if ( ssttyp=='EH5RF' ) then
-          do nyear = 1941 , 2000
-            mbase = nyear*1000000
-            do mon = 1 , 12
-              mbase = mbase + 10000
-              if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.      &
-                 & mon==8 .or. mon==10 .or. mon==12 ) then
-                nday = 31
-              else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
-                nday = 30
-              else if ( mod(nyear,400).eq.0 .or.                        &
-               &   ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
-                nday = 29
-              else
-                nday = 28
-              end if
-              nbase = mbase
-              do i = 1 , nday
-                nbase = nbase + 100
-                do m = 1 , 4
-                  nrec = nrec + 1
-                  if ( m==1 ) then
-                    mdate(nrec) = nbase
-                  else if ( m==2 ) then
-                    mdate(nrec) = nbase + 6
-                  else if ( m==3 ) then
-                    mdate(nrec) = nbase + 12
-                  else
-                    mdate(nrec) = nbase + 18
-                  end if
-                end do
-              end do
-            end do
-          end do
-          mdate(87661) = 2001010100
-        else if ( ssttyp=='EH5A2' .or. ssttyp=='EH5B1' .or.             &
-                 &ssttyp=='EHA1B' ) then
-          do nyear = 2001 , 2100
-            mbase = nyear*1000000
-            do mon = 1 , 12
-              mbase = mbase + 10000
-              if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.      &
-                 & mon==8 .or. mon==10 .or. mon==12 ) then
-                nday = 31
-              else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
-                nday = 30
-              else if ( mod(nyear,400).eq.0 .or.                        &
-               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
-                nday = 29
-              else
-                nday = 28
-              end if
-              nbase = mbase
-              do i = 1 , nday
-                nbase = nbase + 100
-                do m = 1 , 4
-                  nrec = nrec + 1
-                  if ( m==1 ) then
-                    mdate(nrec) = nbase
-                  else if ( m==2 ) then
-                    mdate(nrec) = nbase + 6
-                  else if ( m==3 ) then
-                    mdate(nrec) = nbase + 12
-                  else
-                    mdate(nrec) = nbase + 18
-                  end if
-                end do
-              end do
-            end do
-          end do
+        integer :: iladweek
+        integer , intent(in) :: idate
+        integer :: iwkday
+        integer :: iy , im , id , ih
+        call split_idate(idate, iy, im, id, ih)
+        iwkday = idayofweek(idate)
+        id = id + (7-iwkday)
+        if (id > mdays(iy, im)) then
+          im = im + 1
+          id =  id - mdays(iy, im)
+        end if
+        iladweek = mkidate(iy, im, id, 0)
+      end function iladweek
+
+      function iwkdiff(idate2, idate1)
+        implicit none
+        integer :: iwkdiff
+        integer , intent(in) :: idate2 , idate1
+        if (lsame_week(idate2, idate1)) then
+          iwkdiff = 0
         else
+          iwkdiff = idatediff(idate2, idate1)/161 + 1
         end if
-      end subroutine initdate_eh50
+      end function iwkdiff
 
-      subroutine finddate_eh50(npos,idate)
+      function imonfirst(idate)
         implicit none
-!
-!       Dummy arguments
-!
-        integer :: idate , npos
-        intent (in) idate
-        intent (out) npos
-!
-!       Local variables
-!
-        integer :: i
-!
-        i = 0
- 100    continue
-        i = i + 1
-        if ( mdate(i)==idate ) then
-          npos = i
-          go to 99999
-        end if
-        if ( i<=146096 ) go to 100
-        write (*,*) 'ERROR IN FINDDATE'
-        stop
-99999   continue
-      end subroutine finddate_eh50
-!
-!-----------------------------------------------------------------------
-!
-      subroutine initdate_ccsm
-        implicit none
-!
-!       Local variables
-!
-        integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
-!
-        nrec = 0
-        do nyear = 1948 , 2045
-          mbase = nyear*1000000
-          do mon = 1 , 12
-            mbase = mbase + 10000
-            if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.        &
-               & mon==8 .or. mon==10 .or. mon==12 ) then
-              nday = 31
-            else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
-              nday = 30
-            else
-              nday = 28
-            end if
-            nbase = mbase
-            do i = 1 , nday
-              nbase = nbase + 100
-              do m = 1 , 4
-                nrec = nrec + 1
-                if ( m==1 ) then
-                  mdate(nrec) = nbase
-                else if ( m==2 ) then
-                  mdate(nrec) = nbase + 6
-                else if ( m==3 ) then
-                  mdate(nrec) = nbase + 12
-                else
-                  mdate(nrec) = nbase + 18
-                end if
-              end do
-            end do
-          end do
-        end do
-        write (*,*) 'nrec = ' , nrec
-      end subroutine initdate_ccsm
+        integer :: imonfirst
+        integer , intent(in) :: idate
+        integer :: iy , im , id , ih
+        call split_idate(idate, iy, im, id, ih)
+        imonfirst = mkidate(iy, im, 1, 0)
+      end function imonfirst
 
-      subroutine initdate_icbc
+      function inextmon(idate)
         implicit none
-!
-! Local variables
-!
-        integer :: i , m , mbase , mon , nbase , nday , nrec , nyear
-!
-        nrec = 0
-        do nyear = 1941 , 2145
-          mbase = nyear*1000000
-          do mon = 1 , 12
-            mbase = mbase + 10000
-            if ( mon==1 .or. mon==3 .or. mon==5 .or. mon==7 .or.        &
-               & mon==8 .or. mon==10 .or. mon==12 ) then
-              nday = 31
-            else if ( mon==4 .or. mon==6 .or. mon==9 .or. mon==11 ) then
-              nday = 30
-            else if ( mod(nyear,400).eq.0 .or.                          &
-               & ( mod(nyear,4).eq.0 .and. mod(nyear,100).ne.0 ) ) then
-              nday = 29
-            else
-              nday = 28
-            end if
-            nbase = mbase
-            do i = 1 , nday
-              nbase = nbase + 100
-              do m = 1 , 4
-                nrec = nrec + 1
-                if ( m==1 ) then
-                  mdate(nrec) = nbase
-                else if ( m==2 ) then
-                  mdate(nrec) = nbase + 6
-                else if ( m==3 ) then
-                  mdate(nrec) = nbase + 12
-                else
-                  mdate(nrec) = nbase + 18
-                end if
-              end do
-            end do
-          end do
-        end do
-        write (*,*) 'NREC = ' , nrec
-      end subroutine initdate_icbc
+        integer :: inextmon
+        integer , intent(in) :: idate
+        integer :: iy , im , id , ih
+        call split_idate(idate, iy, im, id, ih)
+        im = im + 1
+        if (im > 12) then
+          iy = iy + 1
+          im = 1
+        end if
+        inextmon = mkidate(iy, im, 1, 0)
+      end function
 
-      subroutine finddate_icbc(npos,idate)
+      function iprevmon(idate)
         implicit none
-!
-! Dummy arguments
-!
-        integer :: idate , npos
-        intent (in) idate
-        intent (out) npos
-!
-! Local variables
-!
-        integer :: i
-!
-        i = 0
- 100    continue
-        i = i + 1
-        if ( mdate(i)==idate ) then
-          npos = i
-          go to 99999
+        integer :: iprevmon
+        integer , intent(in) :: idate
+        integer :: iy , im , id , ih
+        call split_idate(idate, iy, im, id, ih)
+        im = im - 1
+        if (im < 1) then
+          iy = iy - 1
+          im = 12
         end if
-        if ( i<=299500 ) go to 100
-        write (*,*) 'ERROR IN FINDDATE'
-        stop
-99999   continue
-      end subroutine finddate_icbc
-!
-!-----------------------------------------------------------------------
-!
-      subroutine headwk
-      implicit none
-!
-! Local variables
-!
-      integer :: i , mday , month , myear
-!
-      wkday(1) = 19811029
-      do i = 2 , 427
-        wkday(i) = wkday(i-1) + 7
-        myear = wkday(i)/10000
-        month = wkday(i)/100 - myear*100
-        mday = mod(wkday(i),10000) - month*100
-        if ( month==1 .or. month==3 .or. month==5 .or. month==7 .or.    &
-           & month==8 .or. month==10 ) then
-          if ( mday>31 ) then
-            mday = mday - 31
-            month = month + 1
-          end if
-        else if ( month==12 ) then
-          if ( mday>31 ) then
-            mday = mday - 31
-            month = 1
-            myear = myear + 1
-          end if
-        else if ( month==4 .or. month==6 .or. month==9 .or. month==11 ) &
-                & then
-          if ( mday>30 ) then
-            mday = mday - 30
-            month = month + 1
-          end if
-        else if ( mod(myear,400).eq.0 .or.                              &
-           & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) then
-          if ( mday>29 ) then
-            mday = mday - 29
-            month = month + 1
-          end if
-        else
-          if ( mday>28 ) then
-            mday = mday - 28
-            month = month + 1
-          end if
-        end if
-        wkday(i) = myear*10000 + month*100 + mday
-      end do
-!
-      wkday(428) = 19891231
-      do i = 429 , 427 + 1097
-        wkday(i) = wkday(i-1) + 7
-        myear = wkday(i)/10000
-        month = wkday(i)/100 - myear*100
-        mday = mod(wkday(i),10000) - month*100
-        if ( month==1 .or. month==3 .or. month==5 .or. month==7 .or.    &
-           & month==8 .or. month==10 ) then
-          if ( mday>31 ) then
-            mday = mday - 31
-            month = month + 1
-          end if
-        else if ( month==12 ) then
-          if ( mday>31 ) then
-            mday = mday - 31
-            month = 1
-            myear = myear + 1
-          end if
-        else if ( month==4 .or. month==6 .or. month==9 .or. month==11 ) &
-                & then
-          if ( mday>30 ) then
-            mday = mday - 30
-            month = month + 1
-          end if
-        else if ( mod(myear,400).eq.0 .or.                              &
-           & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) then
-          if ( mday>29 ) then
-            mday = mday - 29
-            month = month + 1
-          end if
-        else
-          if ( mday>28 ) then
-            mday = mday - 28
-            month = month + 1
-          end if
-        end if
-        wkday(i) = myear*10000 + month*100 + mday
-      end do
-!
-      end subroutine headwk
-!
+        iprevmon = mkidate(iy, im, 1, 0)
+      end function
+!      
 !-----------------------------------------------------------------------
 !
       subroutine julian(mdate,nyrp,nmop,wt)

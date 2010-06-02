@@ -164,6 +164,8 @@
       public :: get_cam42 , head_cam42
       public :: get_cam85 , head_cam85
 
+      integer , parameter :: iccsmstart = 1948010100
+
       contains
 
       subroutine get_cam42(idate)
