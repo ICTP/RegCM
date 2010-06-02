@@ -163,18 +163,39 @@
           ib = 0
         end if
         julianday = int(365.25D0*(iiy+4716)) + int(30.6001D0*(iim+1)) + &
-                    id + ib - 1524.5D0
+          &         id + ib - 1524.5D0
       end function julianday
 
       function idatediff(idate2, idate1)
+        !
+        ! Returns number of hours between to integer dates in the format
+        !
+        !                      YYYYMMDDHH
+        !
+        ! If just YYYY is passed, difference is
+        !                      from jan, 01 00:00:00 UTC
+        ! If just YYYYMM is passed, difference is
+        !                      from first day of month, 00:00:00 UTC
+        ! If just YYYYMMDD is passed, difference is
+        !                      from 00:00:00 UTC
+        !
         implicit none
         integer :: idatediff
         integer , intent(in) :: idate2 , idate1
+        integer :: iidate1 , iidate2
         integer :: iy1 , im1 , id1 , ih1
         integer :: iy2 , im2 , id2 , ih2
         integer :: jd1 , jd2
-        call split_idate(idate2, iy2, im2, id2, ih2)
-        call split_idate(idate1, iy1, im1, id1, ih1)
+        iidate1 = idate1
+        iidate2 = idate2
+        if (iidate1 < 10000) iidate1 = iidate1*1000000+10100
+        if (iidate2 < 10000) iidate2 = iidate2*1000000+10100
+        if (iidate1 < 1000000) iidate1 = iidate1*10000+100
+        if (iidate2 < 1000000) iidate2 = iidate2*10000+100
+        if (iidate1 < 100000000) iidate1 = iidate1*100
+        if (iidate2 < 100000000) iidate2 = iidate2*100
+        call split_idate(iidate2, iy2, im2, id2, ih2)
+        call split_idate(iidate1, iy1, im1, id1, ih1)
         jd2 = julianday(iy2, im2, id2)
         jd1 = julianday(iy1, im1, id1)
         idatediff = (jd2-jd1)*24+(ih2-ih1)
