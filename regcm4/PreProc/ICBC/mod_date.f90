@@ -100,6 +100,86 @@
         idate = iidate(basey, basem, based, baseh)
       end subroutine addhours
 
+      function lcaltype(iy, im, id)
+        implicit none
+        logical :: lcaltype
+        integer :: icaltype
+        integer , intent(in) :: iy , im , id
+        ! Standard Julian/Gregorian switch
+        ! Return true  if before 1582-10-04
+        !        false if after  1582-10-15
+        icaltype = 0
+        if (iy < 1582) then
+          icaltype = 1
+        else if (iy == 1582) then
+          if (im < 10) then
+            icaltype = 1
+          else if (im == 10) then
+            if (id <= 4) then
+              icaltype = 1
+            end if
+          end if
+        end if
+        if (iy > 1582) then
+          icaltype = 2
+        else if (iy == 1582) then
+          if (im > 10) then
+            icaltype = 2
+          else if (im == 10) then
+            if (id >= 15) then
+              icaltype = 2
+            end if
+          end if
+        end if
+        if (icaltype == 0) then
+          write (6, *) 'year  = ', iy
+          write (6, *) 'month = ', im
+          write (6, *) 'day   = ', id
+          write (6, *) 'Day non existent, inside Julian/Gregorian jump'
+          stop
+        end if
+        if (icaltype == 1) then
+          lcaltype = .false.
+        else
+          lcaltype = .true.
+        end if
+      end function lcaltype
+
+      function julianday(iy, im, id)
+        implicit none
+        integer :: julianday
+        integer , intent(in) :: iy , im , id
+        integer :: ia , ib , iiy , iim
+        iiy = iy
+        iim = im
+        if (iim <= 2) then
+          iiy = iiy - 1
+          iim = iim + 12
+        end if
+        if (lcaltype(iy,im,id)) then
+          ia = iiy/100
+          ib = 2 - ia + ia / 4
+        else
+          ib = 0
+        end if
+        julianday = int(365.25D0*(iiy+4716)) + int(30.6001D0*(iim+1)) + &
+                    id + ib - 1524.5D0
+      end function julianday
+
+      function idatediff(idate2, idate1)
+        implicit none
+        integer :: idatediff
+        integer , intent(in) :: idate2 , idate1
+        integer :: iy1 , im1 , id1 , ih1
+        integer :: iy2 , im2 , id2 , ih2
+        integer :: jd1 , jd2
+        call split_idate(idate2, iy2, im2, id2, ih2)
+        call split_idate(idate1, iy1, im1, id1, ih1)
+        jd2 = julianday(iy2, im2, id2)
+        jd1 = julianday(iy1, im1, id1)
+        idatediff = (jd2-jd1)*24+(ih2-ih1)
+      end function idatediff
+
       subroutine initdate_era
         implicit none
 !
