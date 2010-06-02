@@ -2206,9 +2206,13 @@
       endif
  300  format('zdef 1',' levels ',f7.2)
  318  format('zdef ',I2,' levels ',30f7.2)
-      nyear=idate1/1000000
-      month=(idate1-nyear*1000000)/10000
-      nday =(idate1-nyear*1000000-month*10000)/100
+      if(ntype.eq.0) then
+         nyear=idate1/1000000
+         month=(idate1-nyear*1000000)/10000
+      else if(ntype.eq.1) then
+         nyear=idate1/10000
+         month=(idate1-nyear*10000)/100
+      endif
       write(31,400)n_month,cday(16),chmc(month),nyear
  400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
       if(filename.eq.'ATM') then
@@ -2629,9 +2633,13 @@
       endif
       write(31,318) np,(plev(k),k=1,np)
  318  format('zdef ',I2,' levels ',30f7.2)
-      nyear=idate1/1000000
-      month=(idate1-nyear*1000000)/10000
-      nday =(idate1-nyear*1000000-month*10000)/100
+      if(ntype.eq.0) then
+         nyear=idate1/1000000
+         month=(idate1-nyear*1000000)/10000
+      else if(ntype.eq.1) then
+         nyear=idate1/10000
+         month=(idate1-nyear*10000)/100
+      endif
       write(31,400)n_month,cday(16),chmc(month),nyear
  400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
       write(31,500) 8+6
@@ -2972,6 +2980,13 @@
       write(31,318) kz,((1013.25-ptop*10.)*(sigma(k)+sigma(k+1))*.5 &
                        +ptop*10.,k=kz,1,-1)
  318  format('zdef ',I2,' levels ',30f7.2)
+      if(ntype.eq.0) then
+         nyear=idate1/1000000
+         month=(idate1-nyear*1000000)/10000
+      else if(ntype.eq.1) then
+         nyear=idate1/10000
+         month=(idate1-nyear*10000)/100
+      endif
       write(31,400)n_month,cday(16),chmc(month),nyear
  400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
       write(31,500) 4+2
@@ -3304,6 +3319,13 @@
       endif
       write(31,318) np,(plev(k),k=1,np)
  318  format('zdef ',I2,' levels ',30f7.2)
+      if(ntype.eq.0) then
+         nyear=idate1/1000000
+         month=(idate1-nyear*1000000)/10000
+      else if(ntype.eq.1) then
+         nyear=idate1/10000
+         month=(idate1-nyear*10000)/100
+      endif
       write(31,400)n_month,cday(16),chmc(month),nyear
  400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
       write(31,500) 6+2
@@ -3661,9 +3683,13 @@
       endif
       write(31,300) (1013.25-ptsp*10.)*(sigma(1)+sigma(2))*.5+ptsp*10.
  300  format('zdef 1',' levels ',f7.2)
-      nyear=idate1/1000000
-      month=(idate1-nyear*1000000)/10000
-      nday =(idate1-nyear*1000000-month*10000)/100
+      if(ntype.eq.0) then
+         nyear=idate1/1000000
+         month=(idate1-nyear*1000000)/10000
+      else if(ntype.eq.1) then
+         nyear=idate1/10000
+         month=(idate1-nyear*10000)/100
+      endif
       write(31,400)n_month,cday(16),chmc(month),nyear
  400  format('tdef ',I4,' linear ',A2,A3,I4,' ','1mo')
       write(31,500) nvar
