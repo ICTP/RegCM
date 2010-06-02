@@ -248,13 +248,16 @@
       end function
 
       function idayofweek(idate)
+        ! Sun Mon Tue Wed Thu Fri Sat
+        ! 1   2   3   4   5   6   7
         implicit none
         integer :: idayofweek
         integer , intent(in) :: idate
-        integer :: iy , im , id , ih , jd
+        integer :: iy , im , id , ih
+        real(8) :: jd
         call split_idate(idate, iy, im, id, ih)
         jd = julianday(iy, im, id)
-        idayofweek = ceiling(mod(jd+1.5D+00, 7.0))+1
+        idayofweek = int(mod(jd+1.5D+00, 7.0))+1
       end function idayofweek
 
       function lsame_week(idate1, idate2)
