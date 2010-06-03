@@ -325,9 +325,7 @@ const char *header_data::chems( )
 
 bcdata::bcdata(domain_data &d, rcminp &in, t_time_interval &t)
 {
-  // HARDCODING 
-  dt = 6;
-  // HARDCODING 
+  dt = in.valuei("ibdyfrq");
   date0 = in.valuei("globidate1");
   date1 = in.valuei("globidate2");
   rcmdate d1(date0);

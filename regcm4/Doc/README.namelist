@@ -110,6 +110,7 @@
 ! ICBC Global data input control
 !
  &globdatparam
+ ibdyfrq =     6,            ! boundary condition interval (hours)
  ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_RF, FV_A2, FV_B2,
@@ -171,7 +172,6 @@
  abemh   =    18.,   ! time interval at which bats is called (secs)
  abatm   =   600.,   ! time interval absorption-emission calculated (hours)
  dt      =   150.,   ! time step in seconds
- ibdyfrq =     6,    ! boundary condition interval (hours)
  /
 !
 ! Model Output control

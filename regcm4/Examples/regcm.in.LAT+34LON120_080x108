@@ -52,6 +52,7 @@
  lkpts  = 10,
  /
  &globdatparam
+ ibdyfrq = 6,
  ssttyp = 'OI_WK',
  dattyp = 'ERA40',
  ehso4 = .false.,
@@ -80,7 +81,6 @@
    abemh   =    18.,
  abatm   =   600.,
  dt      =   120.,
- ibdyfrq =          6,
  /
  &outparam
  ifsave  = .true. ,

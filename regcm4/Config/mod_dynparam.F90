@@ -319,6 +319,8 @@
       logical :: ifchem
       real(8) :: chemfrq
 
+      integer :: ibdyfrq
+
       contains
 
       subroutine initparam(filename, ierr)
@@ -339,7 +341,7 @@
         namelist /modesparam/ nsplit
         namelist /lakemodparam/ lkpts
         namelist /globdatparam/ dattyp , ssttyp , ehso4 , globidate1 ,  &
-                     & globidate2 , dirglob , inpglob
+                     & globidate2 , dirglob , inpglob , ibdyfrq
         namelist /lsmparam/ lsmtyp
         namelist /aerosolparam/ aertyp , ntr, nbin
 
@@ -392,6 +394,9 @@
 
         read(ipunit, modesparam, err=107)
         read(ipunit, lakemodparam, err=108)
+
+        ibdyfrq = 6 ! Convenient default
+
         read(ipunit, globdatparam, err=109)
         read(ipunit, lsmparam, err=110)
 
@@ -531,6 +536,8 @@
         call mpi_bcast(aertyp,7,mpi_character,0,mpi_comm_world,ierr)
         call mpi_bcast(ntr,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(nbin,1,mpi_integer,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(ibdyfrq,1,mpi_integer,0,mpi_comm_world,ierr)
 
 !       Setup all convenience dimensions
 
