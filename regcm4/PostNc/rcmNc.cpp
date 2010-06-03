@@ -1527,12 +1527,12 @@ rcmNcChe::rcmNcChe(regcmout &fnc, header_data &h, t_time_interval &t)
   }
   if (varmask[14])
   {
-    acstalrfvar = f->add_var("acssrlrf", ncFloat, tt, iy, jx);
-    acstalrfvar->add_att("standard_name",
+    acssrlrfvar = f->add_var("acssrlrf", ncFloat, tt, iy, jx);
+    acssrlrfvar->add_att("standard_name",
                          "surface_instantaneous_longwave_radiative_forcing");
-    acstalrfvar->add_att("long_name", "SRFrad LW forcing av.");
-    acstalrfvar->add_att("coordinates", "xlon xlat");
-    acstalrfvar->add_att("units", "W m-2");
+    acssrlrfvar->add_att("long_name", "SRFrad LW forcing av.");
+    acssrlrfvar->add_att("coordinates", "xlon xlat");
+    acssrlrfvar->add_att("units", "W m-2");
   }
   if (ctl->doit)
   {

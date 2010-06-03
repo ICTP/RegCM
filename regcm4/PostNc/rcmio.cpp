@@ -131,7 +131,7 @@ header_data::header_data(rcminp &in)
   {
     ntr = in.valuei("ntr");
     nbin = in.valuei("nbin");
-    trnames = in.valuec("chtrname");
+    trnames = in.valuec("inpchtrname");
   }
 }
 
@@ -325,7 +325,16 @@ const char *header_data::chems( )
 
 bcdata::bcdata(domain_data &d, rcminp &in, t_time_interval &t)
 {
-  dt = in.valuei("ibdyfrq");
+  try
+  {
+    dt = in.valuei("ibdyfrq");
+  }
+  catch (...)
+  {
+    std::cout << std::endl << "Boundary frequency not specified." << std::endl
+              << "Defaulting to 6 hours" << std::endl;
+    dt = 6;
+  }
   date0 = in.valuei("globidate1");
   date1 = in.valuei("globidate2");
   rcmdate d1(date0);
