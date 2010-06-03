@@ -131,7 +131,7 @@
 !
       namelist /restartparam/ ifrest , idate0 , idate1 , idate2 , nslice
  
-      namelist /timeparam/ radfrq , abatm , abemh , dt , ibdyfrq
+      namelist /timeparam/ radfrq , abatm , abemh , dt
  
 !chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
@@ -356,7 +356,6 @@
       abatm = 600.    ! time interval at which bats is called (secs)
       abemh = 12.     ! time interval absorption-emission calculated (hours)
       dt = 200.       ! time step in seconds
-      ibdyfrq = 6     ! boundary condition interval (hours)
  
 !-----namelist outparam:       note: * signifies currently not in namelist
 !
@@ -529,7 +528,6 @@
       call mpi_bcast(abemh,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(abatm,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(dt,1,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(ibdyfrq,1,mpi_integer,0,mpi_comm_world,ierr)
  
       call mpi_bcast(ifsave,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(savfrq,1,mpi_real8,0,mpi_comm_world,ierr)

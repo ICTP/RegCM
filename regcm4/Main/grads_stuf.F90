@@ -44,7 +44,7 @@
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
       integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
-               & nday , nhour , nnumb , nx , ny
+               & mday , mhour , nnumb , nx , ny
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -189,8 +189,8 @@
       write (31,99014) (1013.25-r8pt*10.)*a(kz) + r8pt*10.
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
-      nday = (ldatez-myear*1000000-month*10000)/100
-      nhour = mod(ldatez,100)
+      mday = (ldatez-myear*1000000-month*10000)/100
+      mhour = mod(ldatez,100)
       call finddate(nbase,ldatez)
       if ( month.eq.12 ) then
         call finddate(mnend,myear*1000000+1010100)
@@ -205,10 +205,10 @@
       end if
       ifrq = batfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+        write (31,99015) nnumb , mhour , cday(mday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+        write (31,99015) nnumb , mhour + ifrq , cday(mday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -323,7 +323,7 @@
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
       integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
-               & nday , nhour , nnumb , nx , ny
+               & mday , mhour , nnumb , nx , ny
 #ifdef MPP1
       real(4) , dimension(jxsg,iysg) :: xlat_s_io , xlon_s_io
 #else
@@ -478,8 +478,8 @@
       write (31,99014) 1 , (1013.25-r8pt*10.)*a(kz) + r8pt*10.
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
-      nday = (ldatez-myear*1000000-month*10000)/100
-      nhour = mod(ldatez,100)
+      mday = (ldatez-myear*1000000-month*10000)/100
+      mhour = mod(ldatez,100)
       call finddate(nbase,ldatez)
       if ( month.eq.12 ) then
         call finddate(mnend,myear*1000000+1010100)
@@ -494,10 +494,10 @@
       end if
       ifrq = batfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+        write (31,99015) nnumb , mhour , cday(mday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+        write (31,99015) nnumb , mhour + ifrq , cday(mday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -589,7 +589,7 @@
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
       integer :: i , ifrq , itr , j , jbend , k , mnend , month ,       &
-               & myear , nbase , nday , nhour , nnumb , nx , ny
+               & myear , nbase , mday , mhour , nnumb , nx , ny
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -735,8 +735,8 @@
       write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
-      nday = (ldatez-myear*1000000-month*10000)/100
-      nhour = mod(ldatez,100)
+      mday = (ldatez-myear*1000000-month*10000)/100
+      mhour = mod(ldatez,100)
       call finddate(nbase,ldatez)
       if ( month.eq.12 ) then
         call finddate(mnend,myear*1000000+1010100)
@@ -751,10 +751,10 @@
       end if
       ifrq = chemfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+        write (31,99015) nnumb , mhour , cday(mday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+        write (31,99015) nnumb , mhour + ifrq , cday(mday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -1025,7 +1025,7 @@
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
       integer :: i , ifrq , j , jbend , k , mnend , month , myear ,     &
-               & nbase , nday , nhour , nnumb , nx , ny
+               & nbase , mday , mhour , nnumb , nx , ny
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -1170,8 +1170,8 @@
       write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
-      nday = (ldatez-myear*1000000-month*10000)/100
-      nhour = mod(ldatez,100)
+      mday = (ldatez-myear*1000000-month*10000)/100
+      mhour = mod(ldatez,100)
       call finddate(nbase,ldatez)
       if ( month.eq.12 ) then
         call finddate(mnend,myear*1000000+1010100)
@@ -1186,10 +1186,10 @@
       end if
       ifrq = tapfrq + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+        write (31,99015) nnumb , mhour , cday(mday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+        write (31,99015) nnumb , mhour + ifrq , cday(mday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
@@ -1259,7 +1259,7 @@
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
       integer :: i , ifrq , j , jbend , k , mnend , month , myear ,     &
-               & nbase , nday , nhour , nnumb , nx , ny
+               & nbase , mday , mhour , nnumb , nx , ny
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -1404,8 +1404,8 @@
       write (31,99014) kz , ((1013.25-r8pt*10.)*a(k)+r8pt*10.,k=kz,1,-1)
       myear = ldatez/1000000
       month = (ldatez-myear*1000000)/10000
-      nday = (ldatez-myear*1000000-month*10000)/100
-      nhour = mod(ldatez,100)
+      mday = (ldatez-myear*1000000-month*10000)/100
+      mhour = mod(ldatez,100)
       call finddate(nbase,ldatez)
       if ( month.eq.12 ) then
         call finddate(mnend,myear*1000000+1010100)
@@ -1420,10 +1420,10 @@
       end if
       ifrq = radisp + 0.00001
       if ( ldatez.eq.idate0 ) then
-        write (31,99015) nnumb , nhour , cday(nday) , cmonth(month) ,   &
+        write (31,99015) nnumb , mhour , cday(mday) , cmonth(month) ,   &
                        & myear , ifrq
       else
-        write (31,99015) nnumb , nhour + ifrq , cday(nday) ,            &
+        write (31,99015) nnumb , mhour + ifrq , cday(mday) ,            &
                        & cmonth(month) , myear , ifrq
       end if
       if ( iotyp.eq.2 ) write (31,'(a)') 'theader 4'
