@@ -22,7 +22,9 @@
       implicit none
 
       integer , dimension(12) :: mlen
+      integer , dimension(12) :: mmid
       data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
+      data mmid /16, 14, 16, 15, 16, 15, 16, 16, 15, 16, 15, 16/
       contains
 
       subroutine normidate(idate)
@@ -369,10 +371,23 @@
         end if
         iprevmon = mkidate(iy, im, 1, 0)
       end function
+
+      function idayofyear(idate)
+        implicit none
+        integer :: idayofyear
+        integer , intent(in) :: idate
+        integer :: iy , im , id , ih
+        integer :: i
+        call split_idate(idate, iy, im, id, ih)
+        idayofyear = id
+        do i = 1 , im-1
+          idayofyear = idayofyear + mdays(iy, i)
+        end do
+      end function
 !      
 !-----------------------------------------------------------------------
 !
-      subroutine julian(mdate,nyrp,nmop,wt)
+      subroutine julianwt(mdate,nyrp,nmop,wt)
       implicit none
 !
 ! Dummy arguments
@@ -387,34 +402,26 @@
 !
       real(4) :: fdenom , fnumer
       integer :: idate , iday , ileap , imo , iyr , j , julday , nmo ,  &
-               & nyr
-      integer , dimension(12) :: jprev , julmid , lenmon , midmon
+               & nyr , ihr
+      integer , dimension(12) :: mond , jprev , julmid
 ! 
-      data lenmon/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 , 30 ,&
-         & 31/
-      data midmon/16 , 14 , 16 , 15 , 16 , 15 , 16 , 16 , 15 , 16 , 15 ,&
-         & 16/
  
 !     ******           INITIALIZE NMOP, NYRP
 
       nmop = 1
       nyrp = 0
  
-      idate = mdate/100
-      iyr = idate/10000
-      imo = (idate-iyr*10000)/100
-      iday = mod(idate,100)
- 
-      ileap = mod(iyr,4)
-      lenmon(2) = 28
-      if ( ileap==0 ) lenmon(2) = 29
+      call split_idate(mdate, iyr, imo, iday, ihr)
+
+      mond = mlen
+      if (lleap(iyr)) mond(2) = 29
  
       jprev(1) = 0
       do j = 2 , 12
-        jprev(j) = jprev(j-1) + lenmon(j-1)
+        jprev(j) = jprev(j-1) + mlen(j-1)
       end do
       do j = 1 , 12
-        julmid(j) = jprev(j) + midmon(j)
+        julmid(j) = jprev(j) + mmid(j)
       end do
       julday = iday + jprev(imo)
  
@@ -443,6 +450,6 @@
 !     PRINT *, 'JULMID(NMOP), JULDAY, JULMID(NMO), WT ='
 !     A       ,  JULMID(NMOP), JULDAY, JULMID(NMO), WT
  
-      end subroutine julian
+      end subroutine julianwt
 !
       end module mod_date

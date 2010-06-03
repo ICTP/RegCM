@@ -45,7 +45,7 @@
       contains
 
       subroutine getein25(idate)
-      use mod_date , only : julian
+      use mod_date , only : julianwt
       use mod_grid
       use mod_write
       use mod_interp , only : bilinx2
@@ -110,7 +110,7 @@
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !       F1  CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
         print * , 'INPUT DAY FOR SST DATA ACQUISITION:' , idate
-        call julian(idate,nyrp,nmop,wt)
+        call julianwt(idate,nyrp,nmop,wt)
 !
         if ( ssttyp=='OI2ST' ) then
           call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &

@@ -265,7 +265,7 @@
            &            ((ice2(i,j),j=1,iy),i=1,jx)
       kdate2 = mkidate(nyear,nmo,nday,0)
 
-      ks1 = idatediff(kdate1,kdate*100)
+      ks1 = idatediff(kdate1,ikdate)
       ks2 = idatediff(kdate1,kdate2)
       wt = float(ks1)/float(ks2)
  

@@ -117,7 +117,6 @@
       integer :: idate , iday , ifile , imon , iyr , ihr , nnn ,&
                & inmber , iodate
       integer :: nsteps
-      integer , parameter :: idtbc = 6
       integer :: ierr
       character(256) :: namelistfile, prgname
       character(256) :: sstfile , finame
@@ -142,7 +141,7 @@
       call init_grid(iy,jx,kz)
       call init_output(jx,iy,kz)
 
-      nsteps = idatediff(globidate2,globidate1)/idtbc + 1
+      nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
 
       write (*,*) 'GLOBIDATE1 : ' , globidate1
       write (*,*) 'GLOBIDATE2 : ' , globidate2
@@ -262,7 +261,7 @@
         end if
 
         iodate = idate
-        call addhours(idate, idtbc)
+        call addhours(idate, ibdyfrq)
 
       end do
 
