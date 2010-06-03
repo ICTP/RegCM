@@ -28,7 +28,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_message
-      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0
+      use mod_date , only : declin , ldatez , yeardayfrac
       use mod_constants , only : mathpi , degrad , dayspy
       implicit none
 !
@@ -43,24 +43,7 @@
 !
 !----------------------------------------------------------------------
 !
-!-----obecl : obliquity = 23.5 degree.
-!
-!KN   obecl=23.5*degrad
-!KN   sinob=dsin(obecl)
-!
-!-----calculate longitude of the sun from vernal equinox:
-!
-!KN   julian=julday+nint((xtime/60.+gmt)/24.)
-!KN   if (julian .ge. 81) xlong=dpd*dble(julian-81)
-!KN   if (julian .lt. 81) xlong=dpd*dble(julian+284)
-!KN   xlong=xlong*degrad
-!KN   arg=sinob*dsin(xlong)
-!KN   declin=dasin(arg)
- 
-!KN   added below
-!KN   to take the earth's orbital eccentricity into consideration
-!
-      calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+      calday = yeardayfrac(ldatez)
       theta = 2.*mathpi*calday/dayspy
 !
 !     Solar declination in radians:
@@ -70,13 +53,11 @@
             & - .002697*dcos(3.*theta) + .001480*dsin(3.*theta)
 !
       declin = delta
-!
-!KN   added above
- 
       decdeg = declin/degrad
 !
-      write (aline, 99001) decdeg
+      write (aline, 99001) calday, decdeg
       call say
-99001 format (11x,'*** solar declination angle = ',f6.2,' degrees.')
+99001 format (11x,'*** Day ',f6.2,' solar declination angle = ',f6.2,   &
+          &   ' degrees.')
 !
       end subroutine solar1

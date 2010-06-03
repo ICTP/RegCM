@@ -409,7 +409,19 @@
         do i = 1 , im-1
           idayofyear = idayofyear + mdays(iy, i)
         end do
-      end function
+      end function idayofyear
+
+      function yeardayfrac(idate)
+        implicit none
+        real(8) :: yeardayfrac
+        integer , intent(in) :: idate
+        integer :: iy , im , id , ih
+        integer :: i , iday
+
+        call split_idate(idate, iy, im, id, ih)
+        iday = idayofyear(idate)
+        yeardayfrac = dble(iday) + dble(ih)/24.0D+00
+      end function yeardayfrac
 
       subroutine initdate
       use mod_dynparam

@@ -46,8 +46,7 @@
       use mod_clm , only : r2ceccen , r2cobliqr , r2clambm0 ,           &
              &             r2cmvelpp , r2ceccf
       use mod_message , only : aline , say
-      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0 ,   &
-             &              idate1
+      use mod_date , only : declin , ldatez , yeardayfrac , idate1
       use mod_constants , only : degrad , dayspy
 
       implicit none
@@ -86,8 +85,8 @@
 !     Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
       call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
                         & r2clambm0,r2cmvelpp,log_print)
- 
-      calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+!
+      calday = yeardayfrac(ldatez)
  
 !     Get delta,eccf
       call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &

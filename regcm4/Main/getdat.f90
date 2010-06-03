@@ -249,10 +249,8 @@
           if ( cld(i,k).gt.0.999 ) cld(i,k) = .999
         end do
 !
-!KN     added below
         rlat(i) = xlat(i,jslc)
-        calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
-!KN     added above
+        calday = yeardayfrac(ldatez)
 !
         loctim(i) = (calday-aint(calday))*24.
         alat(i) = rlat(i)*degrad
