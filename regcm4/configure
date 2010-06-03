@@ -298,8 +298,12 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,clm,dcsst,seai
                 line=line.replace("!NETCDFINC","-I"+ncinc+" -M"+ncinc)
             else :
                 line=line.replace("!NETCDFINC","-I"+ncinc)
-        
-            line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf")
+
+            if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
+                line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf")
+            else :
+                line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf")
+                
             line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
 
         if mpi == 1 :
