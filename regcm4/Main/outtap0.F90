@@ -47,7 +47,7 @@
 !
 !-----output large-domain variables:
 !
-      open (20,file=trim(dirout)//pthsep//'OUT_HEAD',                   &
+      open (20,file=trim(dirout)//pthsep//'OUT_HEAD',status='replace',  &
           & form='unformatted',recl=iym2*jxm2*ibyte,access='direct')
       do k = 1 , kzp1
         sp1d(k) = sigma(kzp1-k+1)

@@ -516,7 +516,7 @@ chedata::chedata(header_data &h, t_time_interval &t)
   nfiles = calcnfiles(date0, date1);
   nsteps = calcnsteps(date0, date1, (int) dt);
 
-  ntr = 10;
+  ntr = h.ntr;
   n3D = 13;
   n2D = 75;
   size2D = h.nx*h.ny;
@@ -1098,6 +1098,10 @@ void rcmio::read_header(header_data &h)
   if (doseq) chk += 22*sizeof(int);
   if (chk != header.len)
   {
+    std::cerr << "CHK : " << chk << std::endl;
+    std::cerr << "EXP : " << header.len << std::endl;
+    std::cerr << "JX  : " << h.jx << std::endl;
+    std::cerr << "IY  : " << h.iy << std::endl;
     delete [] header.data;
     throw "ERROR IN READING HEADER DATA";
   }
