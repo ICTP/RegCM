@@ -89,7 +89,7 @@ namespace rcm
       std::string trnames;
       // Geolocation
       char proj[7];
-      float clat, clon, ds, dskm, xplat, xplon, trlat1, trlat2;
+      float clat, clon, ds, dsmeters, xplat, xplon, trlat1, trlat2;
       // Timesteps for output
       float dto, dtb, dtr, dtc;
       // Vertical sigma levels ant top pressure
@@ -117,7 +117,7 @@ namespace rcm
       unsigned int nx, ny, nz;
       // Geolocation
       char proj[7];
-      float clat, clon, ds, dskm, xplat, xplon, grdfac, trlat1, trlat2;
+      float clat, clon, ds, dsmeters, xplat, xplon, grdfac, trlat1, trlat2;
       // Vertical sigma levels ant top pressure
       float ptop;
       int n2D;
@@ -192,7 +192,7 @@ namespace rcm
       ~subdom_data( );
       unsigned int nsg;
       unsigned int nx, ny;
-      float ds, dskm, clat, clon, xplat, xplon, trlat1, trlat2;
+      float ds, dsmeters, clat, clon, xplat, xplon, trlat1, trlat2;
       char proj[7];
       float *ht;
       float *htsd;
