@@ -773,7 +773,7 @@ void rcmio::read_domain(char *name, domain_data &d)
   // Now I have record len of fortran I/O
   int nvals = d.nx*d.ny;
   d.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
-  d.dskm = d.ds;
+  d.dsmeters = d.ds;
   d.clat = rvalfrombuf(buf); buf = buf + sizeof(float);
   d.clon = rvalfrombuf(buf); buf = buf + sizeof(float);
   d.xplat = rvalfrombuf(buf); buf = buf + sizeof(float);
@@ -934,7 +934,7 @@ void rcmio::read_subdom(header_data &h, subdom_data &s, char *fname)
   }
   // We will take projection informations from here
   s.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
-  s.dskm = s.ds;
+  s.dsmeters = s.ds;
   s.clat = rvalfrombuf(buf); buf = buf + sizeof(float);
   s.clon = rvalfrombuf(buf); buf = buf + sizeof(float);
   s.xplat = rvalfrombuf(buf); buf = buf + sizeof(float);
@@ -1118,7 +1118,7 @@ void rcmio::read_header(header_data &h)
   for (unsigned int i = 0; i < h.kz; i ++)
     h.hsigm[i] = h.hsigf[i]+0.5f*(h.hsigf[i+1]-h.hsigf[i]);
   h.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
-  h.dskm = h.ds*1000.0;
+  h.dsmeters = h.ds*1000.0;
   h.ptop = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.ptop *= 10.0; // Put in hPa from cbar
   h.clat = rvalfrombuf(buf); buf = buf + sizeof(float);
