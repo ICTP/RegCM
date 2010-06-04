@@ -380,11 +380,17 @@
           end do
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
-          write (21) nday , nmo , nyear , sstmm
+          if(ssttyp.eq.'OI_WK') then
+             write (21) nday , nmo , nyear , sstmm
+          else
+             write (21) nday , nmo , nyear , sstmm,icemm
+          endif
           idate = wkday(k)
           print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear , idate
           mrec = mrec + 1
           write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
+          if(ssttyp.eq.'OI2WK') &
+          write (26,rec=mrec) ((icemm(i,j),j=1,jx),i=1,iy)
         end do
  
 !#####
