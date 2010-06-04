@@ -102,6 +102,7 @@
       real(8) , dimension(maxntr,2) :: inpchtrdpv
       real(8) , dimension(maxnbin,2) :: inpdustbsiz
       character(256) :: domfile , subdom
+      integer :: len_path
 
 #ifdef MPP1
       integer :: ierr
@@ -481,6 +482,8 @@
       print * , 'param: TIMEPARAM READ IN'
       read (ipunit, outparam)
       print * , 'param: OUTPARAM READ IN'
+      len_path = len(trim(dirout))
+      if(dirout(len_path:len_path).ne.'/') dirout=trim(dirout)//'/'
       read (ipunit, physicsparam)
       print * , 'param: PHYSICSPARAM READ IN'
       if ( ipptls.eq.1 ) then
