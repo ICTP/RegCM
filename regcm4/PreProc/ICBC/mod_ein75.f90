@@ -164,12 +164,15 @@
       character(24) :: inname
       character(256) :: pathaddname
       logical :: there
-!     character(1) , dimension(5) :: varname
+      character(1) , dimension(5) :: varname
       real(8) :: xadd , xscale
 !
       integer , dimension(10) , save :: icount , istart
-      integer , dimension(5,4) , save :: inet6
+      integer , dimension(5,4) , save :: inet5
+      integer , dimension(5,4) , save :: ivar5
       real(8) , dimension(5,4) , save :: xoff , xscl
+!
+      data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -181,14 +184,11 @@
 !
 !     DATA ARRAY AND WORK ARRAY
 !
-!     data varname/'t' , 'z' , 'r' , 'u' , 'v'/
-!
 !     Below in the ncopen call is the file name of the netCDF file.
 !     You may want to add code to read in the file name and the
 !     variable name.
 !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
 !
-!bxq
       if ( idate<1989010100 .or. idate>2007123118 ) then
         write (*,*) 'EIN75 datasets is just available from' ,           &
                    &' 1989010100 to 2007123118'
@@ -269,12 +269,32 @@
               stop
             end if
             istatus = nf90_open(pathaddname,nf90_nowrite,               &
-                   & inet6(kkrec,k4))
-            istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',    &
-                   & xscl(kkrec,k4))
-            istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
+                   & inet5(kkrec,k4))
+            if ( istatus /= nf90_noerr) then
+              write (*,*) 'Error opening ' , trim(pathaddname)
+              stop
+            end if
+            istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec),    &
+                   & ivar5(kkrec,k4))
+            if ( istatus /= nf90_noerr) then
+              write (*,*) 'Error searching var ' , varname(kkrec)
+              stop
+            end if
+            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
+                   &               'scale_factor',xscl(kkrec,k4))
+            if ( istatus /= nf90_noerr) then
+              write (*,*) 'Error attribure scale_factor for var ' ,     &
+                     &     varname(kkrec)
+              stop
+            end if
+            istatus = nf90_get_att(inet5(kkrec,k4),5,'add_offset',      &
                    & xoff(kkrec,k4))
-            write (*,*) inet6(kkrec,k4) , trim(pathaddname) ,           &
+            if ( istatus /= nf90_noerr) then
+              write (*,*) 'Error attribure add_offset for var ' ,       &
+                     &     varname(kkrec)
+              stop
+            end if
+            write (*,*) inet5(kkrec,k4) , trim(pathaddname) ,           &
                       & xscl(kkrec,k4) , xoff(kkrec,k4)
           end do
         end do
@@ -315,8 +335,13 @@
       icount(4) = 1
 !bxq_
       do kkrec = 1 , 5
-        inet = inet6(kkrec,k4)
+        inet = inet5(kkrec,k4)
         istatus = nf90_get_var(inet,5,work,istart,icount)
+        if (istatus /= nf90_noerr) then
+          write (*,*) 'Error reading variable ' , varname(kkrec) ,      &
+              & ' at ' , istart , ' for ' , icount
+          stop
+        end if
         xscale = xscl(kkrec,k4)
         xadd = xoff(kkrec,k4)
         if ( kkrec==1 ) then

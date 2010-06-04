@@ -269,7 +269,7 @@
         real(8) :: jd
         call split_idate(idate, iy, im, id, ih)
         jd = julianday(iy, im, id)
-        idayofweek = int(mod(jd+1.5D+00, 7.0))+1
+        idayofweek = int(mod(jd+1.5D+00, 7.0D+00))+1
       end function idayofweek
 
       function lsame_week(idate1, idate2)
@@ -401,8 +401,7 @@
 ! Local variables
 !
       real(4) :: fdenom , fnumer
-      integer :: idate , iday , ileap , imo , iyr , j , julday , nmo ,  &
-               & nyr , ihr
+      integer :: iday , imo , iyr , j , julday , nmo , nyr , ihr
       integer , dimension(12) :: mond , jprev , julmid
 ! 
  

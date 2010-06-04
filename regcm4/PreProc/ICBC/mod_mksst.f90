@@ -176,7 +176,7 @@
 !
 ! Local variables
 !
-      integer :: i , j , k , kdate1 , kdate2 , ks1 , ks2 , nday , nmo , &
+      integer :: i , j , kdate1 , kdate2 , ks1 , ks2 , nday , nmo ,     &
                & nyear , ikdate , idiff
       real(4) :: wt
 !
@@ -238,7 +238,7 @@
 !
 ! Local variables
 !
-      integer :: i , j , k , kdate1 , kdate2 , ks1 , ks2 , nday , nmo , &
+      integer :: i , j , kdate1 , kdate2 , ks1 , ks2 , nday , nmo ,     &
                & nyear , ikdate , idiff
       real(4) :: wt
 !
