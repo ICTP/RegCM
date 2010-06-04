@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine solar1(xtime)
+      subroutine solar1
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -31,11 +31,6 @@
       use mod_date , only : declin , ldatez , yeardayfrac
       use mod_constants , only : mathpi , degrad , dayspy
       implicit none
-!
-! Dummy arguments
-!
-      real(8) :: xtime
-      intent (in) xtime
 !
 ! Local variables
 !

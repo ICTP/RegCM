@@ -295,7 +295,7 @@
         real(8) :: jd
         call split_idate(idate, iy, im, id, ih)
         jd = julianday(iy, im, id)
-        idayofweek = int(mod(jd+1.5D+00, 7.0))+1
+        idayofweek = int(mod(jd+1.5D+00, 7.0D0))+1
       end function idayofweek
 
       function lsame_week(idate1, idate2)
@@ -416,7 +416,7 @@
         real(8) :: yeardayfrac
         integer , intent(in) :: idate
         integer :: iy , im , id , ih
-        integer :: i , iday
+        integer :: iday
 
         call split_idate(idate, iy, im, id, ih)
         iday = idayofyear(idate)

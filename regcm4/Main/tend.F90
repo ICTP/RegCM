@@ -1955,6 +1955,22 @@
                          & mpi_comm_world,ierr)
 #endif
         xday = ((nnnnnn-nstrt0)*ibdyfrq*60.+xtime-dtmin)/1440.
+        ! Added a check for nan...
+        if ((ptnbar/=ptnbar) .or. ((ptnbar>0.0).eqv.(ptnbar<=0.0))) then
+#ifdef MPP1
+          if ( myid.eq.0 ) then
+#endif
+          write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
+          write (*,*) 'No more atmosphere here....'
+          write (*,*) 'CFL violation detected, so model STOP'
+          write (*,*) '#####################################'
+          write (*,*) '#            DECREASE DT !!!!       #'
+          write (*,*) '#####################################'
+          call fatal(__FILE__,__LINE__,'CFL VIOLATION')
+#ifdef MPP1
+        end if
+#endif
+        end if
 #ifdef MPP1
         if ( myid.eq.0 ) then
           if ( mod(ktau,50).eq.0 ) print 99001 , xday , ktau , ptnbar , &
@@ -1976,9 +1992,9 @@
 !
       if ( dabs(xtime).lt.0.00001 .and. ldatez.ne.idate1 ) then
 #ifdef CLM
-        call solar1clm(xtime)
+        call solar1clm
 #else
-        call solar1(xtime)
+        call solar1
 #endif
         dectim = anint(1440.+dectim)
 #ifdef MPP1

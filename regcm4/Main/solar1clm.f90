@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine solar1clm(xtime)
+      subroutine solar1clm
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -34,7 +34,6 @@
 !     eccf    : Earth-sun distance factor ((1/r)**2)                  c
 !                                                                     c
 !     Input Variables:                                                c
-!     xtime   : forecast time in minutes.                             c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
@@ -50,11 +49,6 @@
       use mod_constants , only : degrad , dayspy
 
       implicit none
-!
-! Dummy arguments
-!
-      real(8) :: xtime
-      intent (in) xtime
 !
 ! Local variables
 !

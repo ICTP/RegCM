@@ -70,7 +70,7 @@ rcmNc::rcmNc(regcmout &fnc, header_data &outhead, bool full)
   snprintf(buffer, 256, "Experiment Name is : %s", fnc.experiment.c_str());
   f->add_att("comment", buffer);
   f->add_att("projection", outhead.proj);
-  f->add_att("grid_size_in_meters", outhead.ds);
+  f->add_att("grid_size_in_meters", outhead.dskm);
   f->add_att("latitude_of_projection_origin", outhead.clat);
   f->add_att("longitude_of_projection_origin", outhead.clon);
   if (strcmp(outhead.proj, "POLSTR") == 0)
@@ -2094,7 +2094,7 @@ domNc::~domNc()
 void domNc::write(domain_data &d)
 {
   f->add_att("projection", d.proj);
-  f->add_att("grid_size_in_meters", d.ds);
+  f->add_att("grid_size_in_meters", d.dskm);
   f->add_att("latitude_of_projection_origin", d.clat);
   f->add_att("longitude_of_projection_origin", d.clon);
   if (strcmp(d.proj, "POLSTR") == 0)
@@ -2316,7 +2316,7 @@ bcNc::bcNc(regcmout &fnc, domain_data &d)
   snprintf(buffer, 256, "Experiment Name is : %s", fnc.experiment.c_str());
   f->add_att("comment", buffer);
   f->add_att("projection", d.proj);
-  f->add_att("grid_size_in_meters", d.ds);
+  f->add_att("grid_size_in_meters", d.dskm);
   f->add_att("latitude_of_projection_origin", d.clat);
   f->add_att("longitude_of_projection_origin", d.clon);
   if (strcmp(d.proj, "POLSTR") == 0)

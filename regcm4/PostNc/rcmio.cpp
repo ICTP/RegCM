@@ -1118,7 +1118,7 @@ void rcmio::read_header(header_data &h)
   for (unsigned int i = 0; i < h.kz; i ++)
     h.hsigm[i] = h.hsigf[i]+0.5f*(h.hsigf[i+1]-h.hsigf[i]);
   h.ds = rvalfrombuf(buf); buf = buf + sizeof(float);
-  h.dskm = h.ds;
+  h.dskm = h.ds*1000.0;
   h.ptop = rvalfrombuf(buf); buf = buf + sizeof(float);
   h.ptop *= 10.0; // Put in hPa from cbar
   h.clat = rvalfrombuf(buf); buf = buf + sizeof(float);
