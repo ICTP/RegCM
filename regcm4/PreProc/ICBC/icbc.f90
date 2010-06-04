@@ -228,7 +228,7 @@
           end if
           if ( igrads==1 ) call gradsctl(finame,idate,inmber)
           call fexist(finame)
-          open (64,file=finame,form='unformatted',status='repalce',     &
+          open (64,file=finame,form='unformatted',status='replace',     &
               & recl=jx*iy*ibyte,access='direct')
           ifile = ifile + 1
           noutrec = 0
