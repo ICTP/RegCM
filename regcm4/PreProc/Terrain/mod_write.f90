@@ -52,7 +52,7 @@
       write (6,*) ' '
 !
       call fexist(filout)
-      open (nunit,file=filout,status='unknown',form='unformatted',      &
+      open (nunit,file=filout,status='replace',form='unformatted',      &
           & access='direct',recl=iy*jx*ibyte)
       if ( igrads==1 ) then
         call fexist(filctl)

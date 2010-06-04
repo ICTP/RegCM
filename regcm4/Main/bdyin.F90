@@ -103,9 +103,10 @@
                 write (aline,*)                                         &
                    & 'The following IBC File does not exist: ' ,        &
                    & trim(finm), 'please check location'
-                 call fatal(__FILE__,__LINE__,aline) 
+                call say
+                call fatal(__FILE__,__LINE__,aline) 
               else 
-                 open (iutbc,file=finm,form='unformatted',status='old', &
+                open (iutbc,file=finm,form='unformatted',status='old', &
                   & access='direct',recl=iy*jx*ibyte)
               endif  
               mmrec = 0

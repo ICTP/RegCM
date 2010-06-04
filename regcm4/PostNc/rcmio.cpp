@@ -1096,7 +1096,7 @@ void rcmio::read_header(header_data &h)
   // Double check file size if correct before memcopy
   size_t chk = nvals*11*sizeof(float);
   if (doseq) chk += 22*sizeof(int);
-  if (chk != header.len)
+  if (chk > header.len)
   {
     std::cerr << "CHK : " << chk << std::endl;
     std::cerr << "EXP : " << header.len << std::endl;
@@ -1209,14 +1209,6 @@ void rcmio::read_header(header_data &h)
   buf += nvals*sizeof(float);
   if (doseq) buf = buf + 2*sizeof(int);
 
-  // Last check
-  if (((size_t) (buf-header.data)) != header.len)
-  {
-    h.free_space();
-    delete [] header.data;
-    throw "READ error in file: size mismatch";
-  }
-
   delete [] header.data;
 
   // Check what output is present for that header
@@ -1270,7 +1262,7 @@ int rcmio::atmo_read_tstep(atmodata &a)
 
       atmf.seekg (0, std::ios::end);
       atmsize = atmf.tellg();
-      atmf.seekg (0, std::ios::beg);
+      atmf.seekg (readsize, std::ios::beg);
 
       if (atmsize < readsize)
       {
@@ -1360,7 +1352,8 @@ int rcmio::srf_read_tstep(srfdata &s)
 
       srff.seekg (0, std::ios::end);
       srfsize = srff.tellg();
-      srff.seekg (0, std::ios::beg);
+      srff.seekg (readsize, std::ios::beg);
+
       if (srfsize < readsize)
       {
         s.nfiles = 0;
@@ -1442,7 +1435,8 @@ int rcmio::sub_read_tstep(subdata &u)
 
       subf.seekg (0, std::ios::end);
       subsize = subf.tellg();
-      subf.seekg (0, std::ios::beg);
+      subf.seekg (readsize, std::ios::beg);
+
       if (subsize < readsize)
       {
         u.nfiles = 0;
@@ -1525,7 +1519,8 @@ int rcmio::rad_read_tstep(raddata &r)
 
       radf.seekg (0, std::ios::end);
       radsize = radf.tellg();
-      radf.seekg (0, std::ios::beg);
+      radf.seekg (readsize, std::ios::beg);
+
       if (radsize < readsize)
       {
         r.nfiles = 0;
@@ -1614,7 +1609,8 @@ int rcmio::che_read_tstep(chedata &c)
 
       chef.seekg (0, std::ios::end);
       chesize = chef.tellg();
-      chef.seekg (0, std::ios::beg);
+      chef.seekg (readsize, std::ios::beg);
+
       if (chesize < readsize)
       {
         c.nfiles = 0; 
@@ -1802,8 +1798,8 @@ int rcmio::bc_read_tstep(bcdata &b)
 
       bcf.seekg (0, std::ios::end);
       bcsize = bcf.tellg();
-      bcf.seekg (0, std::ios::beg);
       bcf.seekg (readsize, std::ios::beg);
+
       b.nfiles--;
     }
     else
