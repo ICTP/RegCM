@@ -192,7 +192,7 @@
 
         if ( nnn == 1 .or. .not. lsame_month(idate, iodate) ) then
           write (finame,99002) trim(dirglob), pthsep, trim(domname),    &
-              '_ICBC', idate
+              '_ICBC.', idate
           if ( nnn>1 ) then
             if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
               call getncep(idate)
