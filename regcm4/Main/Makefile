@@ -69,10 +69,10 @@ chdrydep.o   inirad.o      condtq.o    reorder.o   sponge.o     \
 chemtap.o    for_next.o    tracbud.o   vtlaps.o    outsrf.o     \
 condcq.o     frawat.o      splitf.o    satur.o     outsav.o     \
 chsrfem.o    getdat.o      tgrund.o    slice1D.o   tracdiag.o   \
-cldefr.o     grads_stuf.o  mkfile.o    slice3D.o   pcp.o        \
+cldefr.o     grads_stuf.o  holtbl.o    slice3D.o   pcp.o        \
 cldems.o     hadv.o        condch.o    solar1.o    output.o     \
 cldfrac.o    header.o      nudge.o     soilbc.o    conadv.o     \
-spinit.o     holtbl.o
+spinit.o
 
 NETLIBOBJS = linpack.o eispack.o
 
@@ -167,7 +167,8 @@ mod_date.o: mod_date.F90 mod_message.o mod_param1.o mod_dynparam.o
 mod_diagnosis.o: mod_diagnosis.f90 mod_dynparam.o
 mod_dust.o: mod_dust.F90 mod_dynparam.o mod_constants.o
 mod_ictp01.o: mod_ictp01.F90 mod_dynparam.o
-mod_iunits.o: mod_iunits.f90
+mod_iunits.o: mod_iunits.f90 mod_bats.o mod_date.o mod_mainchem.o \
+              mod_outrad.o mod_param1.o mod_param2.o mod_dynparam.o
 mod_isrchf.o: mod_isrchf.f90
 mod_lake.o: mod_lake.f90 mod_bats.o mod_date.o mod_iunits.o mod_param1.o \
             mod_dynparam.o
@@ -297,8 +298,6 @@ lftemp.o: lftemp.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_param1.o \
 linpack.o: linpack.f90
 ljchrn.o: ljchrn.f90
 lshfch.o: lshfch.F90 mod_message.o
-mkfile.o: mkfile.F90 mod_bats.o mod_date.o mod_iunits.o mod_mainchem.o \
-          mod_outrad.o mod_param1.o mod_param2.o mod_dynparam.o
 nconvp.o: nconvp.F90 mod_constants.o mod_param3.o mod_pmoist.o mod_dynparam.o
 nudge.o: nudge.F90 mod_bdycod.o mod_main.o mod_param3.o mod_dynparam.o
 ifeq ($(USECLM),1)

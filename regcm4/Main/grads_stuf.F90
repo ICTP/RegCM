@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine gradsbat(ctlname)
+      subroutine gradsbat(datname)
       use mod_dynparam
       use mod_message , only : fatal
       use mod_date
@@ -35,7 +35,7 @@
 !
 ! Dummy arguments
 !
-      character(18) :: ctlname
+      character(*) :: datname
 !
 ! Local variables
 !
@@ -62,8 +62,8 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
-      write (31,99001) ctlname(1:14)
+      open (31,file=datname//'.ctl',status='replace')
+      write (31,99001) datname
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -276,7 +276,7 @@
                       &'minimum surface pressure (hPa)       '
       write (31,99020)
       close (31)
-99001 format ('dset ^',a14)
+99001 format ('dset ^',a)
 99002 format ('title RegCM normal output variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -298,7 +298,7 @@
 99020 format ('endvars')
       end subroutine gradsbat
 !
-      subroutine gradssub(ctlname)
+      subroutine gradssub(datname)
       use mod_dynparam
       use mod_message , only : fatal
       use mod_date
@@ -314,7 +314,7 @@
 !
 ! Dummy arguments
 !
-      character(18) :: ctlname
+      character(*) :: datname
 !
 ! Local variables
 !
@@ -346,8 +346,8 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
-      write (31,99001) ctlname(1:14)
+      open (31,file=datname//'.ctl',status='replace')
+      write (31,99001) datname
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -543,7 +543,7 @@
                       &'surface pressure (hPa)               '
       write (31,99020)
       close (31)
-99001 format ('dset ^',a14)
+99001 format ('dset ^',a)
 99002 format ('title RegCM normal output variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -565,7 +565,7 @@
 99020 format ('endvars')
       end subroutine gradssub
 !
-      subroutine gradschem(ctlname)
+      subroutine gradschem(datname)
       use mod_dynparam
       use mod_message , only : fatal
       use mod_date
@@ -580,7 +580,7 @@
 !
 ! Dummy arguments
 !
-      character(18) :: ctlname
+      character(*) :: datname
 !
 ! Local variables
 !
@@ -607,8 +607,8 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
-      write (31,99001) ctlname(1:14)
+      open (31,file=datname//'.ctl',status='replace')
+      write (31,99001) datname
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -801,7 +801,7 @@
  
       write (31,99022)
       close (31)
-99001 format ('dset ^',a14)
+99001 format ('dset ^',a)
 99002 format ('title RegCM chemistry/tracor variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -825,7 +825,7 @@
 99022 format ('endvars')
       end subroutine gradschem
 !
-      subroutine gradsctl(ctlname)
+      subroutine gradsctl(datname)
       use mod_dynparam
       use mod_message , only : fatal
       use mod_date
@@ -839,7 +839,7 @@
 !
 ! Dummy arguments
 !
-      character(12) :: ctlname
+      character(*) :: datname
 !
 ! Local variables
 !
@@ -856,8 +856,8 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
-      write (31,99001)
+      open (31,file=datname//'.ctl',status='replace')
+      write (31,99001) datname
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -982,7 +982,7 @@
       write (31,99016) 'mask    ' , 'land/sea mask              '
       write (31,99017)
       close (31)
-99001 format ('dset ^OUT_HEAD')
+99001 format ('dset ^',a)
 99002 format ('title RegCM domain information')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -1001,7 +1001,7 @@
 99017 format ('endvars')
       end subroutine gradsctl
 !
-      subroutine gradsout(ctlname)
+      subroutine gradsout(datname)
       use mod_dynparam
       use mod_message , only : fatal
       use mod_date
@@ -1016,7 +1016,7 @@
 !
 ! Dummy arguments
 !
-      character(18) :: ctlname
+      character(*) :: datname
 !
 ! Local variables
 !
@@ -1043,8 +1043,8 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
-      write (31,99001) ctlname(1:14)
+      open (31,file=datname//'.ctl',status='replace')
+      write (31,99001) datname
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -1212,7 +1212,7 @@
       write (31,99017) 'rno     ' , 'accumulated infiltration   '
       write (31,99021)
       close (31)
-99001 format ('dset ^',a14)
+99001 format ('dset ^',a)
 99002 format ('title RegCM normal output variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -1235,7 +1235,7 @@
 99021 format ('endvars')
       end subroutine gradsout
 !
-      subroutine gradsrad(ctlname)
+      subroutine gradsrad(datname)
       use mod_dynparam
       use mod_message , only : fatal
       use mod_date
@@ -1250,7 +1250,7 @@
 !
 ! Dummy arguments
 !
-      character(18) :: ctlname
+      character(*) :: datname
 !
 ! Local variables
 !
@@ -1277,8 +1277,8 @@
       centerj = (jxm2)/2.
       centeri = (iym2)/2.
 
-      open (31,file=trim(dirout)//pthsep//ctlname,status='replace')
-      write (31,99001) ctlname(1:14)
+      open (31,file=datname//'.ctl',status='replace')
+      write (31,99001) datname
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -1458,7 +1458,7 @@
                       &'Surface pressure (hPa)               '
       write (31,99019)
       close (31)
-99001 format ('dset ^',a14)
+99001 format ('dset ^',a)
 99002 format ('title RegCM normal output variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')

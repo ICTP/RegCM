@@ -87,6 +87,7 @@ namespace rcm
       unsigned int nx, ny, nz;
       unsigned int ntr, nbin;
       std::string trnames;
+      char name[256];
       // Geolocation
       char proj[7];
       float clat, clon, ds, dsmeters, xplat, xplon, trlat1, trlat2;
@@ -236,6 +237,7 @@ namespace rcm
       int nvals;
       char *buffer;
       int rdate;
+      char *name;
   };
 
   class raddata {
@@ -269,6 +271,7 @@ namespace rcm
       size_t size3D;
       int nvals;
       char *buffer;
+      char *name;
   };
 
   class chedata {
@@ -299,6 +302,7 @@ namespace rcm
       char *buffer;
       int nfiles;
       int nsteps;
+      char *name;
   };
 
   class subdata {
@@ -331,6 +335,7 @@ namespace rcm
       size_t size2D;
       int nvals;
       char *buffer;
+      char *name;
   };
 
   class srfdata {
@@ -374,6 +379,7 @@ namespace rcm
       size_t size2D;
       int nvals;
       char *buffer;
+      char *name;
   };
 
   class rcmdate {

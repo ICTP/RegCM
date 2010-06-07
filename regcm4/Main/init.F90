@@ -86,7 +86,6 @@
       real(8) :: eta , hg1 , hg2 , hg3 , hg4 , hgmax , hi , hii , hs ,  &
                & tlp , ts00
       real(4) , dimension(iy,jx) :: io2d
-      character(256) :: finm
 #ifdef MPP1
       real(8) , dimension(iy,jxp) :: psdot
       integer :: allrec , ierr , l
@@ -161,21 +160,19 @@
         if (ndate0.eq.globidate1 .or.                                   &
            (((ndate0/10000)*100+1)*100 .eq.                             &
            ((globidate1/10000)*100+1)*100 ) ) then
-          write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',&
-               & globidate1
+          call inname('ICBC',globidate1)
         else
-          write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',&
-               & ((ndate0/10000)*100+1)*100
+          call inname('ICBC',((ndate0/10000)*100+1)*100)
         end if
-        inquire (file=finm,exist=existing)
+        inquire (file=ffin,exist=existing)
         if (.not.existing) then
           write (aline,*) 'The following ICBC File does not exist: ' ,  &
-              &            trim(finm), 'please check location'
+              &            trim(ffin), 'please check location'
           call say
           call fatal(__FILE__,__LINE__, 'ICBC FILE NOT FOUND')
         else
-          open (iutbc,file=finm,form='unformatted',status='old',        &
-          & access='direct',recl=iy*jx*ibyte)
+          open (iutbc,file=ffin,form='unformatted',status='old',        &
+          &     access='direct',recl=iy*jx*ibyte)
         endif  
         mmrec = 0
       end if
@@ -183,20 +180,18 @@
       if (ndate0.eq.globidate1 .or.                                     &
          (((ndate0/10000)*100+1)*100 .eq.                               &
          ((globidate1/10000)*100+1)*100 ) ) then
-        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
-             & globidate1
+        call inname('ICBC',globidate1)
       else
-        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
-             & ((ndate0/10000)*100+1)*100
+        call inname('ICBC',((ndate0/10000)*100+1)*100)
       end if
-      inquire(file=finm,exist=existing)
+      inquire(file=ffin,exist=existing)
         if (.not.existing) then
           write (aline,*) 'The following IBC File does not exist: ' ,   &
-              &            trim(finm), 'please check location'
+              &            trim(ffin), 'please check location'
           call say
           call fatal(__FILE__,__LINE__,' ICBC FILE NOT FOUND')
         else 
-           open (iutbc,file=finm,form='unformatted',status='old',       &
+           open (iutbc,file=ffin,form='unformatted',status='old',       &
            &access='direct',recl=iy*jx*ibyte)
            mmrec = 0
         endif 
@@ -1045,19 +1040,18 @@
           if (ndate0.eq.idate0 .or.                                     &
              (((ndate0/10000)*100+1)*100 .eq.                           &
              ((idate0/10000)*100+1)*100 ) ) then
-            write (finm,99002) trim(dirout),pthsep,'SAV.',ndate0
+            call outname('SAV', ndate0)
           else
-            write (finm,99002) trim(dirout),pthsep,'SAV.',              &
-              &    ((ndate0/10000)*100+1)*100
+            call outname('SAV', ((ndate0/10000)*100+1)*100)
           end if
-          inquire (file=finm,exist=existing)
+          inquire (file=ffout,exist=existing)
           if ( .not.existing ) then
             write (aline,*) 'The following SAV File does not exist: ' , &
-                &            trim(finm), 'please check location'
+                &            trim(ffout), ' please check location'
             call say
             call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
           else
-            open (iutrs,file=finm,form='unformatted',status='old')
+            open (iutrs,file=ffout,form='unformatted',status='old')
           end if
           do ! Loop while ldatez.ne.idate1
             read (iutrs) mdate0
@@ -1182,7 +1176,7 @@
             do k = 1 , kzp1
               write (6,99004) o3prof_io(3,3,k)
             end do
-            print 99005 , xtime , ktau , jyear , finm
+            print 99005 , xtime , ktau , jyear , ffin
 !
             if ( ldatez.ne.idate1 ) then
               write (*,*) 'INIT: ldatez, idate1=' , ldatez , idate1
@@ -1879,17 +1873,23 @@
         dt = dt2 ! First timestep successfully read in
 
 #else
-        write (finm,99002) trim(dirout),pthsep,'SAV.',                  &
-          &    ((ndate0/10000)*100+1)*100
-        inquire (file=finm,exist=existing)
+        if (ndate0.eq.idate0 .or.                                       &
+           (((ndate0/10000)*100+1)*100 .eq.                             &
+           ((idate0/10000)*100+1)*100 ) ) then
+          call outname('SAV', ndate0)
+        else
+          call outname('SAV', ((ndate0/10000)*100+1)*100)
+        end if
+        inquire (file=ffout,exist=existing)
         if ( .not.existing ) then
           write (aline,*) 'The following SAV File does not exist: ' ,   &
-              &            trim(finm), 'please check location'
+              &            trim(ffout), ' please check location'
           call say
           call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
         else
-          open (iutrs,file=finm,form='unformatted',status='old')
+          open (iutrs,file=ffout,form='unformatted',status='old')
         end if
+
         do ! Loop while ldatez.ne.idate1
 !
 !-----when ifrest=.true., read in the data saved from previous run
@@ -2194,8 +2194,6 @@
       write (aline, *) 'dectim = ' , dectim
       call say
 
-99001 format (a,a,a,a,i0.10)
-99002 format (a,a,a,i0.10)
 #ifdef DIAG
 99003 format (' *** initial total air = ',e12.5,' kg, total water = ',  &
             & e12.5,' kg in large domain.')

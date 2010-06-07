@@ -133,6 +133,7 @@ header_data::header_data(rcminp &in)
     nbin = in.valuei("nbin");
     trnames = in.valuec("inpchtrname");
   }
+  strncpy(name, in.valuec("domname"), 256);
 }
 
 header_data::~header_data( )
@@ -425,6 +426,7 @@ atmodata::atmodata(header_data &h, t_time_interval &t)
   tgb = tpr + size2D;
   swt = tgb + size2D;
   rno = swt + size2D;
+  name = h.name;
 }
 
 atmodata::~atmodata( )
@@ -481,6 +483,7 @@ raddata::raddata(header_data &h, t_time_interval &t)
   sabtp = solin + size2D;
   firtp = sabtp + size2D;
   ps = firtp + size2D;
+  name = h.name;
 }
 
 raddata::~raddata( )
@@ -534,6 +537,7 @@ chedata::chedata(header_data &h, t_time_interval &t)
   acstalrf = acstsrrf + size2D;
   acssrlrf = acstalrf + size2D;
   ps = acssrlrf + size2D;
+  name = h.name;
 }
 
 chedata::~chedata( )
@@ -600,6 +604,7 @@ srfdata::srfdata(header_data &h, t_time_interval &t)
   t2min = t2max + size2D;
   w10max = t2min + size2D;
   ps_min = w10max + size2D;
+  name = h.name;
 }
 
 srfdata::~srfdata( )
@@ -679,6 +684,7 @@ subdata::subdata(header_data &h, subdom_data &s, t_time_interval &t)
   sena = scv + size2D;
   prcv = sena + size2D;
   psb = prcv + size2D;
+  name = h.name;
 }
 
 subdata::~subdata( )
@@ -1045,7 +1051,7 @@ void rcmio::read_subdom(header_data &h, subdom_data &s, char *fname)
 void rcmio::read_header(header_data &h)
 {
   char fname[PATH_MAX];
-  sprintf(fname, "%s%s%s", outdir, separator, "OUT_HEAD");
+  sprintf(fname, "%s%s%s%s", outdir, separator, h.name, "_OUT_HEAD");
 
   std::ifstream rcmf;
   rcmf.open(fname, std::ios::binary);
@@ -1212,15 +1218,15 @@ void rcmio::read_header(header_data &h)
   delete [] header.data;
 
   // Check what output is present for that header
-  sprintf(fname, "%s%sATM.%d", outdir, separator, h.idate1);
+  sprintf(fname, "%s%s%s_ATM.%d", outdir, separator, h.name, h.idate1);
   has_atm = fexist(fname);
-  sprintf(fname, "%s%sSRF.%d", outdir, separator, h.idate1);
+  sprintf(fname, "%s%s%s_SRF.%d", outdir, separator, h.name, h.idate1);
   has_srf = fexist(fname);
-  sprintf(fname, "%s%sCHE.%d", outdir, separator, h.idate1);
+  sprintf(fname, "%s%s%s_CHE.%d", outdir, separator, h.name, h.idate1);
   has_che = fexist(fname);
-  sprintf(fname, "%s%sRAD.%d", outdir, separator, h.idate1);
+  sprintf(fname, "%s%s%s_RAD.%d", outdir, separator, h.name, h.idate1);
   has_rad = fexist(fname);
-  sprintf(fname, "%s%sSUB.%d", outdir, separator, h.idate1);
+  sprintf(fname, "%s%s%s_SUB.%d", outdir, separator, h.name, h.idate1);
   has_sub = fexist(fname);
 }
 
@@ -1234,7 +1240,7 @@ int rcmio::atmo_read_tstep(atmodata &a)
     else
       readsize = a.datasize;
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sATM.%d", outdir, separator, a.rdate);
+    sprintf(fname, "%s%s%s_ATM.%d", outdir, separator, a.name, a.rdate);
     atmf.open(fname, std::ios::binary);
     if (! atmf.good()) return -1;
     storage = new char[readsize];
@@ -1256,7 +1262,7 @@ int rcmio::atmo_read_tstep(atmodata &a)
       a.rdate = nextmonth(a.rdate);
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sATM.%d", outdir, separator, a.rdate);
+      sprintf(fname, "%s%s%s_ATM.%d", outdir, separator, a.name, a.rdate);
       atmf.open(fname, std::ios::binary);
       if (! atmf.good()) return -1;
 
@@ -1324,7 +1330,7 @@ int rcmio::srf_read_tstep(srfdata &s)
     else
       readsize = s.datasize;
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sSRF.%d", outdir, separator, s.rdate);
+    sprintf(fname, "%s%s%s_SRF.%d", outdir, separator, s.name, s.rdate);
     srff.open(fname, std::ios::binary);
     if (! srff.good()) return -1;
     storage = new char[readsize];
@@ -1346,7 +1352,7 @@ int rcmio::srf_read_tstep(srfdata &s)
       s.rdate = nextmonth(s.rdate);
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sSRF.%d", outdir, separator, s.rdate);
+      sprintf(fname, "%s%s%s_SRF.%d", outdir, separator, s.name, s.rdate);
       srff.open(fname, std::ios::binary);
       if (! srff.good()) return -1;
 
@@ -1407,7 +1413,7 @@ int rcmio::sub_read_tstep(subdata &u)
     else
       readsize = u.datasize;
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sSUB.%d", outdir, separator, u.rdate);
+    sprintf(fname, "%s%s%s_SUB.%d", outdir, separator, u.name, u.rdate);
     subf.open(fname, std::ios::binary);
     if (! subf.good()) return -1;
     storage = new char[readsize];
@@ -1429,7 +1435,7 @@ int rcmio::sub_read_tstep(subdata &u)
       u.rdate = nextmonth(u.rdate);
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sSUB.%d", outdir, separator, u.rdate);
+      sprintf(fname, "%s%s%s_SUB.%d", outdir, separator, u.name, u.rdate);
       subf.open(fname, std::ios::binary);
       if (! subf.good()) return -1;
 
@@ -1491,7 +1497,7 @@ int rcmio::rad_read_tstep(raddata &r)
       readsize = r.datasize;
 
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sRAD.%d", outdir, separator, r.rdate);
+    sprintf(fname, "%s%s%s_RAD.%d", outdir, separator, r.name, r.rdate);
     radf.open(fname, std::ios::binary);
     if (! radf.good()) return -1;
     storage = new char[readsize];
@@ -1513,7 +1519,7 @@ int rcmio::rad_read_tstep(raddata &r)
       r.rdate = nextmonth(r.rdate);
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sRAD.%d", outdir, separator, r.rdate);
+      sprintf(fname, "%s%s%s_RAD.%d", outdir, separator, r.name, r.rdate);
       radf.open(fname, std::ios::binary);
       if (! radf.good()) return -1;
 
@@ -1581,7 +1587,7 @@ int rcmio::che_read_tstep(chedata &c)
     else
       readsize = c.datasize;
     char fname[PATH_MAX];
-    sprintf(fname, "%s%sCHE.%d", outdir, separator, c.rdate);
+    sprintf(fname, "%s%s%s_CHE.%d", outdir, separator, c.name, c.rdate);
     chef.open(fname, std::ios::binary);
     if (! chef.good()) return -1;
     storage = new char[readsize];
@@ -1603,7 +1609,7 @@ int rcmio::che_read_tstep(chedata &c)
       c.rdate = nextmonth(c.rdate);
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%sCHE.%d", outdir, separator, c.rdate);
+      sprintf(fname, "%s%s%s_CHE.%d", outdir, separator, c.name, c.rdate);
       chef.open(fname, std::ios::binary);
       if (! chef.good()) return -1;
 

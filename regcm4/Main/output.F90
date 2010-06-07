@@ -65,9 +65,7 @@
 !
       integer :: i , j
       logical :: there
-      character(3) :: itype
-      character(14) :: newfil
-      character(17) :: tmpfil
+      character(256) , save :: oldsav
 #ifdef MPP1
       integer :: allrec , idum , ierr , l , k , n
 #ifdef CLM
@@ -132,10 +130,10 @@
             end do
           end do
           call outtap0
-          call gradsctl('OUT_HEAD.CTL')
+          call outheadname
+          call gradsctl(trim(ffout))
         end if
       end if
- 
 !
 !-----output for dataflow analyses:
 !
@@ -1144,11 +1142,9 @@
                        & mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             close (iutsav)
-            itype = 'SAV'
-            write (newfil,99001) itype , idatex
-            open (iutsav,file=trim(dirout)//pthsep//newfil,             &
-                & status='replace',form='unformatted')
-            print * , 'OPENING NEW SAV FILE: ',trim(dirout),'/',newfil
+            call outname('SAV', idatex)
+            open (iutsav,file=ffout,status='replace',form='unformatted')
+            print * , 'OPENING NEW SAV FILE: ', trim(ffout)
             call outsav(iutsav)
             print * , 'restart written date = ' , ldatez + xtime/1440.
             close (iutsav)
@@ -1157,21 +1153,17 @@
                 & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) ) then
           if ( myid.eq.0 ) then
             close (iutsav)
-            itype = 'SAV'
-            write (tmpfil,99002) itype , idatex
-            open (iutsav,file=trim(dirout)//pthsep//tmpfil,             &
-                & status='replace',form='unformatted')
+            call outname('SAVTMP', idatex)
+            open (iutsav,file=ffout,status='replace',form='unformatted')
             call outsav(iutsav)
             close (iutsav)
             print * , 'SAVTMP RESTART WRITTEN: idatex=' , idatex ,      &
                  &'ktau=' , ktau
-            if ( oldsav(1:3).eq.'SAV' ) then
-              inquire (file=trim(dirout)//pthsep//oldsav,exist=there)
-              if ( there ) then
-                call unlink(trim(dirout)//pthsep//oldsav)
-              end if
+            inquire (file=oldsav,exist=there)
+            if ( there ) then
+              call unlink(oldsav)
             end if
-            oldsav = tmpfil
+            oldsav = ffout
           end if
         else
         end if
@@ -1287,32 +1279,26 @@
         if ( ((lday.eq.1 .and. lhour.eq.0 .and. dabs(xtime).lt.0.00001) &
            & .and. ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
           close (iutsav)
-          itype = 'SAV'
-          write (newfil,99001) itype , idatex
-          open (iutsav,file=trim(dirout)//newfil,status='replace',      &
-               &form='unformatted')
-          print * , 'OPENING NEW SAV FILE: ' , newfil
+          call outname('SAV', idatex)
+          open (iutsav,file=ffout,status='replace',form='unformatted')
+          print * , 'OPENING NEW SAV FILE: ' , trim(ffout)
           call outsav(iutsav)
           print * , 'restart written date = ' , ldatez + xtime/1440.
           close (iutsav)
         else if ( mod(ntime,nsavfrq).eq.0 .and.                         &
                 & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) ) then
           close (iutsav)
-          itype = 'SAV'
-          write (tmpfil,99002) itype , idatex
-          open (iutsav,file=trim(dirout)//pthsep//tmpfil,               &
-                & status='replace',form='unformatted')
+          call outname('SAVTMP', idatex)
+          open (iutsav,file=ffout,status='replace',form='unformatted')
           call outsav(iutsav)
           close (iutsav)
           print * , 'SAVTMP RESTART WRITTEN: idatex=' , idatex ,        &
               & 'ktau=' , ktau
-          if ( oldsav(1:3).eq.'SAV' ) then
-            inquire (file=trim(dirout)//pthsep//oldsav,exist=there)
-            if ( there ) then
-              call unlink(trim(dirout)//pthsep//oldsav)
-            end if
+          inquire (file=oldsav,exist=there)
+          if ( there ) then
+            call unlink(oldsav)
           end if
-          oldsav = tmpfil
+          oldsav = ffout
         else
         end if
       end if
@@ -1329,7 +1315,4 @@
          & nnnnnn.ne.nnnend ) call mkfile
 #endif
 
-99001 format (a3,'.',i10)
-99002 format (a3,'TMP.',i10)
- 
       end subroutine output

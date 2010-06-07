@@ -101,7 +101,6 @@
       real(8) , dimension(maxntr) :: inpchtrsol
       real(8) , dimension(maxntr,2) :: inpchtrdpv
       real(8) , dimension(maxnbin,2) :: inpdustbsiz
-      character(256) :: domfile , subdom
       integer :: len_path
 
 #ifdef MPP1
@@ -483,7 +482,7 @@
       read (ipunit, outparam)
       print * , 'param: OUTPARAM READ IN'
       len_path = len(trim(dirout))
-      if(dirout(len_path:len_path).ne.'/') dirout=trim(dirout)//'/'
+      if ( dirout(len_path:len_path).ne.'/' ) dirout = trim(dirout)//'/'
       read (ipunit, physicsparam)
       print * , 'param: PHYSICSPARAM READ IN'
       if ( ipptls.eq.1 ) then
@@ -738,15 +737,14 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
 #endif              
-        domfile = trim(dirter)//pthsep//trim(domname)//'.INFO'
-        print * , 'READING HEADER FILE:',domfile
-        open (iutin,file=domfile,form='unformatted',status='old',       &
+        call indomain
+        print * , 'READING HEADER FILE:',ffin
+        open (iutin,file=ffin,form='unformatted',status='old',          &
             & access='direct',recl=iy*jx*ibyte)
         if ( nsg.gt.1 ) then
-          write (subdom,99001)                                          &
-             &   trim(dirter),pthsep,trim(domname),nsg,'.INFO'
-          print * , 'READING HEADER FILE for subdomain:',subdom
-          open (iutin1,file=subdom,form='unformatted',status='old',     &
+          call insubdom
+          print * , 'READING HEADER FILE for subdomain:',ffin
+          open (iutin1,file=ffin,form='unformatted',status='old',       &
              &  access='direct',recl=iysg*jxsg*ibyte)
         end if
         read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dsx , iclat , &
@@ -1721,7 +1719,6 @@
       print 99018 , xkhz
       print 99019 , xkhmax
 #endif
-99001 format (a,a,a,i0.3,a)
 99002 format (/'   frictionless and insulated for the lower boundary.')
 99003 format (                                                          &
      &'     the surface energy budget is used to calculate the ground te&

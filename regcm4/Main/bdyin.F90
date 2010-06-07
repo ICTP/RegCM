@@ -60,13 +60,12 @@
 ! Local variables
 !
       real(8) :: dtbdys
-      character(256) :: finm
       integer :: i , ierr1 , j , k , nn , nnb
       real(4) , dimension(iy,jx) :: io2d
+      logical :: existing = .false. 
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
       real(8) , dimension(iy,jxp) :: psdot , tdum
-      logical :: existing = .false. 
 #else
       real(8) , dimension(iy,jx) :: psdot , tdum
 #endif
@@ -96,17 +95,16 @@
             if ( ierr1.ne.0 ) then
               close (iutbc)
               iutbc = iutbc + 1
-              write (finm,99001) trim(dirglob),pthsep,trim(domname),    &
-                   &             '_ICBC',((ndate1/10000)*100+1)*100
-              inquire(file=finm,exist=existing)
+              call inname('ICBC',((ndate1/10000)*100+1)*100)
+              inquire(file=ffin,exist=existing)
               if ( .not.existing ) then
                 write (aline,*)                                         &
                    & 'The following IBC File does not exist: ' ,        &
-                   & trim(finm), 'please check location'
+                   & trim(ffin), 'please check location'
                 call say
                 call fatal(__FILE__,__LINE__,aline) 
               else 
-                open (iutbc,file=finm,form='unformatted',status='old', &
+                open (iutbc,file=ffin,form='unformatted',status='old',  &
                   & access='direct',recl=iy*jx*ibyte)
               endif  
               mmrec = 0
@@ -597,10 +595,18 @@
           if ( ierr1.ne.0 ) then
             close (iutbc)
             iutbc = iutbc + 1
-            write (finm,99001) trim(dirglob),pthsep,trim(domname),      &
-                   &           '_ICBC',((ndate1/10000)*100+1)*100
-            open (iutbc,file=finm,form='unformatted',status='old',      &
+            call inname('ICBC',((ndate1/10000)*100+1)*100)
+            inquire(file=ffin,exist=existing)
+            if ( .not.existing ) then
+              write (aline,*)                                           &
+                 & 'The following IBC File does not exist: ' ,          &
+                 & trim(ffin), 'please check location'
+              call say
+              call fatal(__FILE__,__LINE__,aline) 
+            else 
+              open (iutbc,file=ffin,form='unformatted',status='old',    &
                 & access='direct',recl=iy*jx*ibyte)
+            endif  
             mmrec = 0
             print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
             if ( iutbc.gt.999 )                                         &
@@ -937,6 +943,4 @@
       end do
 #endif
 
-99001 format (a,a,a,a,i0.10)
- 
       end subroutine bdyin
