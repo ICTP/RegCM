@@ -28,7 +28,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_message
-      use mod_date , only : declin , ldatez , yeardayfrac
+      use mod_date , only : declin , ldatez , yeardayfrac , xtime , gmt
       use mod_constants , only : mathpi , degrad , dayspy
       implicit none
 !
@@ -38,7 +38,7 @@
 !
 !----------------------------------------------------------------------
 !
-      calday = yeardayfrac(ldatez)
+      calday = yeardayfrac(ldatez) + (xtime/60.+gmt)/24.
       theta = 2.*mathpi*calday/dayspy
 !
 !     Solar declination in radians:
@@ -52,7 +52,7 @@
 !
       write (aline, 99001) calday, decdeg
       call say
-99001 format (11x,'*** Day ',f6.2,' solar declination angle = ',f6.2,   &
+99001 format (11x,'*** Day ',f12.8,' solar declination angle = ',f12.8,&
           &   ' degrees.')
 !
       end subroutine solar1
