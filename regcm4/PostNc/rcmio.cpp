@@ -1268,7 +1268,7 @@ int rcmio::atmo_read_tstep(atmodata &a)
 
       atmf.seekg (0, std::ios::end);
       atmsize = atmf.tellg();
-      atmf.seekg (readsize, std::ios::beg);
+      atmf.seekg (0, std::ios::beg);
 
       if (atmsize < readsize)
       {
@@ -1358,7 +1358,7 @@ int rcmio::srf_read_tstep(srfdata &s)
 
       srff.seekg (0, std::ios::end);
       srfsize = srff.tellg();
-      srff.seekg (readsize, std::ios::beg);
+      srff.seekg (0, std::ios::beg);
 
       if (srfsize < readsize)
       {
@@ -1441,7 +1441,7 @@ int rcmio::sub_read_tstep(subdata &u)
 
       subf.seekg (0, std::ios::end);
       subsize = subf.tellg();
-      subf.seekg (readsize, std::ios::beg);
+      subf.seekg (0, std::ios::beg);
 
       if (subsize < readsize)
       {
@@ -1525,7 +1525,7 @@ int rcmio::rad_read_tstep(raddata &r)
 
       radf.seekg (0, std::ios::end);
       radsize = radf.tellg();
-      radf.seekg (readsize, std::ios::beg);
+      radf.seekg (0, std::ios::beg);
 
       if (radsize < readsize)
       {
@@ -1615,7 +1615,7 @@ int rcmio::che_read_tstep(chedata &c)
 
       chef.seekg (0, std::ios::end);
       chesize = chef.tellg();
-      chef.seekg (readsize, std::ios::beg);
+      chef.seekg (0, std::ios::beg);
 
       if (chesize < readsize)
       {
