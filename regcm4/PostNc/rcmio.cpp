@@ -1712,7 +1712,7 @@ int rcmio::bc_read_tstep(bcdata &b)
   {
     // Open BC file
     char fname[PATH_MAX];
-    sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, b.rdate);
+    sprintf(fname, "%s%s%s_ICBC.%d", outdir, separator, b.name, b.rdate);
     bcf.open(fname, std::ios::binary);
     if (! bcf.good()) return -1;
 
@@ -1798,7 +1798,7 @@ int rcmio::bc_read_tstep(bcdata &b)
       b.rdate = nextmonth(b.rdate);
       // Open BC file
       char fname[PATH_MAX];
-      sprintf(fname, "%s%s%s_ICBC%d", outdir, separator, b.name, b.rdate);
+      sprintf(fname, "%s%s%s_ICBC.%d", outdir, separator, b.name, b.rdate);
       bcf.open(fname, std::ios::binary);
       if (! bcf.good()) return -1;
 
