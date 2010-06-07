@@ -94,7 +94,7 @@
       character*16 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
 
-      integer i,j,k,l,m,n
+      integer i,j,k,l
 
       real*4, allocatable,save ::  xlat(:,:),xlon(:,:)
 
@@ -733,7 +733,7 @@
       character*16 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
 
-      integer i,j,k,l,m,n
+      integer i,j,k,l
 
       real*4, allocatable,save ::  xlat(:,:),xlon(:,:)
 

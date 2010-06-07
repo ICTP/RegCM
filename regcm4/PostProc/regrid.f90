@@ -471,7 +471,7 @@
       real*4, allocatable ::  sigma(:)
 
       integer i,j,k,l,m,n
-      integer jgrads,ibigend
+      integer ibigend
 
       real*4  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
@@ -2000,7 +2000,6 @@
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
       real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
-      integer IDATE
       real*4  PI,PIR180
       real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
       real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
@@ -3109,7 +3108,7 @@
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
 
       integer i,j,k,l,m,n
-      integer jgrads,ibigend
+      integer ibigend
 
       real*4  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg

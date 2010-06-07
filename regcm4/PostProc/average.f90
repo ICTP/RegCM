@@ -86,24 +86,24 @@
                         ,Path_Output,idate0,idate1,idate2,igrads)
 
       if(mon_ICBC) call mon2('ICBC',iy,jx,kz,ibyte, Path_Input &
-                            ,DomainName,idate0,idate1,idate2,igrads)
+                            ,DomainName,idate1,idate2,igrads)
       if(mon_ICBC_P)call mon2p('ICBC_P',iy,jx,kz,np,plev,ibyte  &
-                     ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
+                     ,Path_Input,DomainName,idate1,idate2,igrads)
 
       if(mon_ATM)call mon('ATM',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2,igrads)
+                         ,idate1,idate2,igrads)
       if(mon_RAD)call mon('RAD',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2,igrads)
+                         ,idate1,idate2,igrads)
       if(mon_SRF)call mon('SRF',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2,igrads)
+                         ,idate1,idate2,igrads)
       if(nsg.gt.1.and.mon_SUB) &
                 call mon3('SUB',iy,jx,kz,nsg,ibyte, Path_Input &
-                   ,DomainName,Path_Output,idate0,idate1,idate2,igrads)
+                   ,DomainName,Path_Output,idate1,idate2,igrads)
       if(mon_CHE)call mon('CHE',iy,jx,kz,ntr,ibyte, Path_Output &
-                         ,idate0,idate1,idate2,igrads)
+                         ,idate1,idate2,igrads)
 
       if(mon_ATM_P)call monp('ATM_P',iy,jx,kz,np,plev,ibyte  &
-                           ,Path_Output,idate0,idate1,idate2,igrads)
+                           ,Path_Output,idate1,idate2,igrads)
 
       stop
       end
@@ -140,8 +140,8 @@
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
       integer ny,nx
-      integer i,j,k,l,m,n,itr
-      integer number,nvar,mvar,n_month,nrecord,nday,mday
+      integer i,j,k,n,itr
+      integer nvar,mvar,n_month,nrecord,nday,mday
       integer idatex
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
@@ -676,9 +676,8 @@
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
       integer ny,nx
-      integer i,j,k,l,m,n,itr
-      integer number,nvar,n_month,nrecord,nday,mday
-      integer idatex
+      integer i,j,k,n
+      integer nvar,n_month,nrecord,nday,mday
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       allocate(sigma(kz+1))
@@ -967,7 +966,6 @@
       real*4  truelatL,truelatH
       real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
-      integer iotyp
       character*6 iproj
       real*4, allocatable ::  sigma(:)
       character*4 :: chy
@@ -988,11 +986,10 @@
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
       integer ny,nx
-      integer i,j,k,l,m,n,itr
-      integer number,nvar,n_month,nrecord,nday,mday
+      integer i,j,k,n
+      integer nvar,n_month,nrecord,nday,mday
       integer idatex
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
-      real*4, allocatable ::  a(:,:)
 
       allocate(sigma(kz+1))
       allocate(b(jx,iy))
@@ -1299,7 +1296,6 @@
       real*4  truelatL,truelatH
       real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
-      integer iotyp
       character*6 iproj
       real*4, allocatable ::  sigma(:)
       character*4 :: chy
@@ -1320,11 +1316,9 @@
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
       integer ny,nx
-      integer i,j,k,l,m,n,itr
-      integer number,nvar,n_month,nrecord,nday,mday
-      integer idatex
+      integer i,j,k,n
+      integer nvar,n_month,nrecord,nday,mday
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
-      real*4, allocatable ::  a(:,:)
 
       allocate(sigma(kz+1))
       allocate(b(jx,iy))
@@ -1654,8 +1648,8 @@
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
       integer ny,nx
-      integer i,j,k,l,m,n,itr
-      integer number,nvar,n_month,nrecord,nday,mday
+      integer i,j,k,n
+      integer nvar,n_month,nrecord,nday,mday
       integer idatex
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
       real*4, allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
@@ -1992,11 +1986,11 @@
       end
 
       subroutine mon(filename,iy,jx,kz,ntr,ibyte, Path_Output &
-                    ,idate0,idate1,idate2,igrads)
+                    ,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Output
-      integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2,igrads
+      integer iy,jx,kz,ntr,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  truelatL,truelatH
@@ -2019,8 +2013,8 @@
       character*12 filein
       character*7 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
-      integer i,j,k,l,m,n,itr
-      integer number,nvar,n_month,nrecord,nday,mday
+      integer i,j,k,n,itr
+      integer nvar,n_month,nrecord,nday
       logical there
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
@@ -2439,11 +2433,11 @@
       end
 
       subroutine monp(filename,iy,jx,kz,np,plev,ibyte, Path_Output &
-                    ,idate0,idate1,idate2,igrads)
+                    ,idate1,idate2,igrads)
       implicit none
       character*5 filename
       character*128 Path_Output
-      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
+      integer iy,jx,kz,np,ibyte,idate1,idate2,igrads
       real*4  plev(np)
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
@@ -2467,8 +2461,8 @@
       character*14 filein
       character*9 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
-      integer i,j,k,l,m,n,itr
-      integer number,nvar,n_month,nrecord,nday,mday
+      integer i,j,k,n
+      integer nvar,n_month,nrecord,nday
       logical there
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
@@ -2765,12 +2759,12 @@
       end
 
       subroutine mon2(filename,iy,jx,kz,ibyte, Path_Input,DomainName &
-                     ,idate0,idate1,idate2,igrads)
+                     ,idate1,idate2,igrads)
       implicit none
       character*4 filename
       character*128 Path_Input
       character*20 DomainName
-      integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
+      integer iy,jx,kz,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
       real*4  truelatL,truelatH
       real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
@@ -2795,8 +2789,8 @@
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
       integer ny,nx
-      integer i,j,k,l,m,n
-      integer number,nvar,n_month,nrecord,nday,mday
+      integer i,j,k,n
+      integer nvar,n_month,nrecord,nday
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       allocate(sigma(kz+1))
@@ -3107,12 +3101,12 @@
       end
 
       subroutine mon2p(filename,iy,jx,kz,np,plev,ibyte  &
-                     ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
+                     ,Path_Input,DomainName,idate1,idate2,igrads)
       implicit none
       character*6 filename
       character*128 Path_Input
       character*20 DomainName
-      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
+      integer iy,jx,kz,np,ibyte,idate1,idate2,igrads
       real*4  plev(np)
       integer iiy,jjx,kkz
       real*4  truelatL,truelatH
@@ -3138,8 +3132,8 @@
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
       integer ny,nx
-      integer i,j,k,l,m,n
-      integer number,nvar,n_month,nrecord,nday,mday
+      integer i,j,k,n
+      integer nvar,n_month,nrecord,nday
       real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       allocate(sigma(kz+1))
@@ -3446,12 +3440,12 @@
       end
 
       subroutine mon3(filename,iy,jx,kz,nsg,ibyte, Path_Input &
-                   ,DomainName,Path_Output,idate0,idate1,idate2,igrads)
+                   ,DomainName,Path_Output,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Input,Path_Output
       character*20 DomainName
-      integer iy,jx,kz,nsg,ibyte,idate0,idate1,idate2,igrads
+      integer iy,jx,kz,nsg,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
       real*4  truelatL,truelatH
@@ -3475,8 +3469,8 @@
       character*12 filein
       character*7 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
-      integer i,j,k,l,m,n,itr
-      integer number,nvar,n_month,nrecord,nday,mday
+      integer i,j,k,n
+      integer nvar,n_month,nrecord,nday
       logical there
       real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
       real*4  centerj,centeri
