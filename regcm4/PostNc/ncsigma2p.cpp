@@ -399,6 +399,13 @@ int main(int argc, char *argv[])
     presslevs pint(fplev, np, ptop);
     pint.setup_dims(nx, ny, nz, sigma);
 
+    NcVar *slp = fout->add_var("slp", ncFloat, fout->get_dim("time"),
+                          fout->get_dim("iy"), fout->get_dim("jx"));
+    slp->add_att("standard_name", "air_pressure_at_sea_level");
+    slp->add_att("long_name", "Mean Sea Level pressure");
+    slp->add_att("units", "Pa");
+    slp->add_att("coordinates", "xlon xlat");
+
     // Write out time independent data
     for (int i = 0, io = 0; i < nvars; i ++, io ++)
     {

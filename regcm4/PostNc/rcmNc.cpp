@@ -122,16 +122,6 @@ rcmNc::rcmNc(regcmout &fnc, header_data &outhead, bool full)
   timevar->add_att("units", "hours since 1970-01-01 00:00:00 UTC");
 
   // Add time independent variables and time itself
-  NcVar *iyvar = f->add_var("iy", ncFloat, iy);
-  iyvar->add_att("long_name", "y-coordinate in Cartesian system");
-  iyvar->add_att("standard_name", "projection_y_coordinate");
-  iyvar->add_att("axis", "Y");
-  iyvar->add_att("units", "km");
-  NcVar *jxvar = f->add_var("jx", ncFloat, jx);
-  jxvar->add_att("long_name", "x-coordinate in Cartesian system");
-  jxvar->add_att("standard_name", "projection_x_coordinate");
-  jxvar->add_att("axis", "X");
-  jxvar->add_att("units", "km");
   NcVar *sigfvar = f->add_var("level", ncFloat, kz);
   sigfvar->add_att("standard_name", "atmosphere_sigma_coordinate");
   sigfvar->add_att("long_name", "Sigma at model layer midpoints");
@@ -151,6 +141,16 @@ rcmNc::rcmNc(regcmout &fnc, header_data &outhead, bool full)
 
   if (full)
   {
+    NcVar *iyvar = f->add_var("iy", ncFloat, iy);
+    iyvar->add_att("long_name", "y-coordinate in Cartesian system");
+    iyvar->add_att("standard_name", "projection_y_coordinate");
+    iyvar->add_att("axis", "Y");
+    iyvar->add_att("units", "km");
+    NcVar *jxvar = f->add_var("jx", ncFloat, jx);
+    jxvar->add_att("long_name", "x-coordinate in Cartesian system");
+    jxvar->add_att("standard_name", "projection_x_coordinate");
+    jxvar->add_att("axis", "X");
+    jxvar->add_att("units", "km");
     NcVar *xlatvar = f->add_var("xlat", ncFloat, iy, jx);
     xlatvar->add_att("standard_name", "latitude");
     xlatvar->add_att("long_name", "Latitude");
@@ -217,6 +217,18 @@ rcmNc::rcmNc(regcmout &fnc, header_data &outhead, bool full)
     dmapvar->put(outhead.dmap, outhead.nx, outhead.ny);
     coriolvar->put(outhead.coriol, outhead.nx, outhead.ny);
     maskvar->put(outhead.mask, outhead.nx, outhead.ny);
+    float *tmp = new float[outhead.nx];
+    tmp[0] = -(((float) outhead.nx-1)/2.0f) * outhead.ds;
+    for (unsigned int i = 1; i < outhead.nx; i ++)
+      tmp[i] = tmp[i-1] + outhead.ds;
+    iyvar->put(tmp, outhead.nx);
+    delete [] tmp;
+    tmp = new float[outhead.ny];
+    tmp[0] = -(((float) outhead.ny-1)/2.0f) * outhead.ds;
+    for (unsigned int i = 1; i < outhead.ny; i ++)
+      tmp[i] = tmp[i-1] + outhead.ds;
+    jxvar->put(tmp, outhead.ny);
+    delete [] tmp;
     if (ctl->doit)
     {
       ctl->set_grid(outhead);
@@ -254,18 +266,6 @@ rcmNc::rcmNc(regcmout &fnc, header_data &outhead, bool full)
     delete [] tmp;
   }
   ptopvar->put(&outhead.ptop, 1);
-  tmp = new float[outhead.nx];
-  tmp[0] = -(((float) outhead.nx-1)/2.0f) * outhead.ds;
-  for (unsigned int i = 1; i < outhead.nx; i ++)
-    tmp[i] = tmp[i-1] + outhead.ds;
-  iyvar->put(tmp, outhead.nx);
-  delete [] tmp;
-  tmp = new float[outhead.ny];
-  tmp[0] = -(((float) outhead.ny-1)/2.0f) * outhead.ds;
-  for (unsigned int i = 1; i < outhead.ny; i ++)
-    tmp[i] = tmp[i-1] + outhead.ds;
-  jxvar->put(tmp, outhead.ny);
-  delete [] tmp;
 
   f->sync();
 

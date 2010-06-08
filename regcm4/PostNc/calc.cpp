@@ -279,6 +279,9 @@ void presslevs::setup_dims(int nx, int ny, int nz, float *sigma)
     sig[k] = sigma[k];
   for (int k = 0; k < nz; k ++)
     if (sig[k]>bltop) kbc = k;
+  kbc++;
+  sigmax = sig[0];
+  sigmin = sig[km];
   dimsok = true;
 }
 
@@ -291,19 +294,19 @@ void presslevs::intlin(float *fp, float *f, float *pstar)
     for (int ip = 0; ip < np; ip ++)
     {
       sigp = (plevs[ip]-ptop)/(pstar[i]-ptop);
-      if (sigp >= sig[0])
+      if (sigp <= sigmin)
+        fp[ip*n2D+i] = f[km*n2D+i];
+      else if (sigp >= sigmax)
         fp[ip*n2D+i] = f[i];
-      else if ( (sigp<sig[0]) && (sigp>sig[km]) )
+      else if ( (sigp < sigmax) && (sigp > sigmin) )
       {
         k1 = 0;
-        for (int k = 0; k < nz; k ++)
-          if (sigp<sig[k]) k1 = k;
+        for (int k = 0; k < km; k ++)
+          if (sigp < sig[k] && sigp > sig[k+1]) { k1 = k; break; }
         k1p = k1 + 1;
-        wp = (sigp-sig[k1])/(sig[k1p]-sig[k1]);
+        wp = (sigp-sig[k1p])/(sig[k1]-sig[k1p]);
         fp[ip*n2D+i] = (1.0f-wp)*f[k1*n2D+i] + wp*f[k1p*n2D+i];
       }
-      else if (sigp<sig[km])
-        fp[ip*n2D+i] = f[km*n2D+i];
       else
         throw "GOOSH in intlin";
     }
@@ -320,22 +323,22 @@ void presslevs::intlog(float *fp, float *f, float *pstar)
     for (int ip = 0; ip < np; ip ++)
     {
       sigp = (plevs[ip]-ptop)/(pstar[i]-ptop);
-      if (sigp >= sig[0] && sigp < 1.0f)
+      if (sigp <= sigmin)
+        fp[ip*n2D+i] = f[km*n2D+i];
+      else if (sigp >= sigmax && sigp <= 1.0f)
         fp[ip*n2D+i] = f[i];
-      else if ( (sigp<sig[0]) && (sigp>sig[km]) )
+      else if (sigp > 1.0f)
+        fp[ip*n2D+i] = f[kbc*n2D+i] *
+            expf(-rgas*lrate*logf(sig[kbc]/sigp)*rgti);
+      else if ( (sigp < sigmax) && (sigp > sigmin) )
       {
         k1 = 0;
-        for (int k = 0; k < nz; k ++)
-          if (sigp<sig[k]) k1 = k;
+        for (int k = 0; k < km; k ++)
+          if (sigp < sig[k] && sigp > sig[k+1]) { k1 = k; break; }
         k1p = k1 + 1;
-        wp = logf(sig[k1]-sigp)/logf(sig[k1]-sig[k1p]);
+        wp = logf(sigp/sig[k1])/logf(sig[k1p]/sig[k1]);
         fp[ip*n2D+i] = (1.0f-wp)*f[k1*n2D+i] + wp*f[k1p*n2D+i];
       }
-      else if (sigp<sig[km])
-        fp[ip*n2D+i] = f[km*n2D+i];
-      else if (sigp>1.0f)
-        fp[ip*n2D+i] = f[kbc*n2D+i] *
-            expf(-rgas*lrate*logf(sigp/sig[kbc])*rgti);
       else
         throw "GOOSH in intlog";
     }

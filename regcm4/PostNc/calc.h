@@ -120,6 +120,9 @@ namespace rcm {
       float *plevs;
       float ptop;
       float *sig;
+      float sigmax;
+      float sigmin;
+      float *pmsl;
   };
 
 }
