@@ -499,6 +499,7 @@
         tauasc_mix(:,:,:) = 0.0
         gtota_mix(:,:,:) = 0.0
         ftota_mix(:,:,:) = 0.0
+        aerlwtr (:,:,:) = 1.
         return
       end if
 
@@ -517,6 +518,7 @@
         tauasc_mix(:,:,:) = 0.0
         gtota_mix(:,:,:) = 0.0
         ftota_mix(:,:,:) = 0.0
+        aerlwtr (:,:,:) = 1.
         return
       end if
  
