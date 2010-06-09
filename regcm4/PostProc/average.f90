@@ -179,7 +179,7 @@
          nvar = 27
       else if(filename.eq.'RAD') then
          dt = dtr
-         nvar = kz*4+9
+         nvar = kz*4+10
       else if(filename.eq.'CHE') then
          dt = dtc
          nvar = ntr*kz+kz*3+ntr*7+3
@@ -371,7 +371,7 @@
       if(filename.eq.'ATM') then
          write(31,500) 6+5
       else if(filename.eq.'RAD') then
-         write(31,500) 4+9
+         write(31,500) 4+10
       else if(filename.eq.'SRF') then
          write(31,500) nvar
       else if(filename.eq.'CHE') then
@@ -448,6 +448,7 @@
         write(31,600)'solin ',   'instantaneous incident solar (W/m2)  '
         write(31,600)'sabtp ',   'total column absorbed solar flux W/m2'
         write(31,600)'firtp ',   'net upward LW flux at TOA (W/m2)     '
+        write(31,600)'ps    ',   'surface pressure (hPa)               '
       else if(filename.eq.'CHE') then
        do itr=1,ntr
          if(itr.lt.10) then
@@ -2053,7 +2054,7 @@
       else if(filename.eq.'SRF') then
          nvar = 27
       else if(filename.eq.'RAD') then
-         nvar = kz*4+9
+         nvar = kz*4+10
       else if(filename.eq.'CHE') then
          nvar = ntr*kz+kz*3+ntr*7+3
 !        nvar = ntr*kz+kz*3+ntr*7+2      ! for RegCM3, one record less
@@ -2212,7 +2213,7 @@
       if(filename.eq.'ATM') then
          write(31,500) 6+5
       else if(filename.eq.'RAD') then
-         write(31,500) 4+9
+         write(31,500) 4+10
       else if(filename.eq.'SRF') then
          write(31,500) nvar
       else if(filename.eq.'CHE') then
@@ -2289,6 +2290,7 @@
         write(31,600)'solin ',   'instantaneous incident solar (W/m2)  '
         write(31,600)'sabtp ',   'total column absorbed solar flux W/m2'
         write(31,600)'firtp ',   'net upward LW flux at TOA (W/m2)     '
+        write(31,600)'ps    ',   'surface pressure (hPa)               '
       else if(filename.eq.'CHE') then
        do itr=1,ntr
          if(itr.lt.10) then

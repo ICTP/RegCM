@@ -4433,7 +4433,7 @@
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
-               write(31,500) 14
+               write(31,500) 8+6
                write(31,650) 'u       ',np,'westerly wind (m/s)        '
                write(31,650) 'v       ',np,'southerly wind (m/s)       '
                write(31,650) 'w       ',np,'omega (hPa/s)   p-velocity '
@@ -4920,7 +4920,7 @@
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
-               write(31,500) 14
+               write(31,500) 8+6
                write(31,650) 'u       ',np,'westerly wind (m/s)        '
                write(31,650) 'v       ',np,'southerly wind (m/s)       '
                write(31,650) 'w       ',np,'omega (hPa/s)   p-velocity '
@@ -6020,7 +6020,7 @@
       PI = atan(1.)*4.
 
       allocate(sigma(kz+1))
-      allocate(o(jx-2,iy-2,kz*4+9))
+      allocate(o(jx-2,iy-2,kz*4+10))
       allocate(xlat(jx-2,iy-2))
       allocate(xlon(jx-2,iy-2))
 
@@ -6232,11 +6232,11 @@
             endif
 
             do nnn=1,n_slice
-               do l=1,kz*4+9
+               do l=1,kz*4+10
                   mrec = mrec+1
                   read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
                enddo
-               do l=1,kz*4+9
+               do l=1,kz*4+10
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
@@ -6335,7 +6335,7 @@
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
-               write(31,500) 13
+               write(31,500) 4+10
         write(31,650)'cld   ',kz,'cloud fractional cover               '
         write(31,650)'clwp  ',kz,'cloud liquid water path              '
         write(31,650)'qrs   ',kz,'solar heating rate                   '
@@ -6349,6 +6349,7 @@
         write(31,600)'solin ',   'instantaneous incident solar (W/m2)  '
         write(31,600)'sabtp ',   'total column absorbed solar flux W/m2'
         write(31,600)'firtp ',   'net upward LW flux at TOA (W/m2)     '
+        write(31,600)'ps    ',   'surface pressure (hPa)               '
                write(31,700)
                close(31)
             endif
@@ -6605,11 +6606,11 @@
             endif
 
             do nnn=1,n_slice
-               do l=1,kz*4+9
+               do l=1,kz*4+10
                   mrec = mrec+1
                   read(10,rec=mrec) ((o(j,i,l),j=1,jx-2),i=1,iy-2)
                enddo
-               do l=1,kz*4+9
+               do l=1,kz*4+10
                   do n=nlat,mlat
                   do m=nlon,mlon
                      out(m,n) = -9999.
@@ -6715,7 +6716,7 @@
                else if(ntype.eq.2) then
                   write(31,402) n_month,'16',chmc(month),nyear
                endif
-               write(31,500) 13
+               write(31,500) 4+10
         write(31,650)'cld   ',kz,'cloud fractional cover               '
         write(31,650)'clwp  ',kz,'cloud liquid water path              '
         write(31,650)'qrs   ',kz,'solar heating rate                   '
@@ -6729,6 +6730,7 @@
         write(31,600)'solin ',   'instantaneous incident solar (W/m2)  '
         write(31,600)'sabtp ',   'total column absorbed solar flux W/m2'
         write(31,600)'firtp ',   'net upward LW flux at TOA (W/m2)     '
+        write(31,600)'ps    ',   'surface pressure (hPa)               '
                write(31,700)
                close(31)
             endif
