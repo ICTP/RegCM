@@ -23,7 +23,7 @@
 
       implicit none
  
-      integer :: ifrabe , klake , nbatst , nslice
+      integer :: ifrabe , klake , nbatst
 !
       real(8) :: dt , dt0 , dt2 , dtbat , dtlake , dtmin
       real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq

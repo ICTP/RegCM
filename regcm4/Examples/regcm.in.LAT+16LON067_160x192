@@ -74,7 +74,6 @@
  idate0  = 1989050100,
  idate1  = 1989050100,
  idate2  = 1989060100,
- nslice  =        120,
  /
  &timeparam
  radfrq  =    30.,

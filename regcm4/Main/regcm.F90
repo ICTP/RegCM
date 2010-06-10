@@ -20,9 +20,8 @@
       program regcm
 !
       use mod_dynparam
-      use mod_date , only : deltmx , idate1 , idate2 , nnbase ,         &
-                     & nnnend , nnnnnn , jyear , jyear0 , ktau , xtime
-      use mod_param1 , only : nslice , dt , dt2 , dtmin
+      use mod_date
+      use mod_param1 , only : dt , dt2 , dtmin
       use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : r8pt , sigma
       use mod_message , only : aline , say
@@ -40,6 +39,7 @@
 !
       real(8) :: dtinc , extime
       integer :: iexec , iexecn
+      integer :: nhours
       integer :: ierr
 #ifdef MPP1
       integer :: ncpu
@@ -240,8 +240,8 @@
         write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
         call say
         call fatal(__FILE__,__LINE__,                                   &
-                 & 'Domain dimension not multiple of'//                 &
-                  &' processor number')
+                 & 'Domain dimension not multiple of' //                &
+                 & ' processor number')
       end if
       jbegin = 1
       jendl = jxp
@@ -341,8 +341,9 @@
 !
 !     Set length of next run (auto-restart option)
 !
+      nhours = idatediff(idate2,idate1)
       idate1 = idate2
-      idate2 = mdatez(nnnend+nslice)
+      call addhours(idate2,nhours)
       write (aline, *) ' *** new max DATE will be ' , idate2
       call say
 

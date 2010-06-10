@@ -129,7 +129,7 @@
 !----------------------------------------------------------------------
 !-----namelist:
 !
-      namelist /restartparam/ ifrest , idate0 , idate1 , idate2 , nslice
+      namelist /restartparam/ ifrest , idate0 , idate1 , idate2
  
       namelist /timeparam/ radfrq , abatm , abemh , dt
  
@@ -347,7 +347,6 @@
       idate0 = 1993063000  ! Start date of the initial simulation
       idate1 = 1993063000  ! Start date of this simulation
       idate2 = 1993080100  ! End Date this simulation
-      nslice = 4      ! # of days for next model run (used with restart)
       ! note: beginning/end forecast time set in restart.mm4
  
 !------namelist timeparam:
@@ -524,7 +523,6 @@
       call mpi_bcast(idate0,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(idate1,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(idate2,1,mpi_integer,0,mpi_comm_world,ierr)
-      call mpi_bcast(nslice,1,mpi_integer,0,mpi_comm_world,ierr)
  
       call mpi_bcast(radfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(abemh,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -841,8 +839,8 @@
              &' ifprt  = ' , ifprt , ' prtfrq = ' , prtfrq ,            &
              &' kxout  = ' , kxout , ' jxsex  = ' , jxsex ,             &
              &' radisp = ' , radisp , ' batfrq = ' , batfrq ,           &
-             &' nslice = ' , nslice , ' ifchem = ' , ifchem ,           &
-             &' chemfrq =' , chemfrq, ' clmfrq = ', clmfrq
+             &' ifchem = ' , ifchem , ' chemfrq =' , chemfrq,           &
+             &' clmfrq = ', clmfrq
       call say
       write (aline, *) ' '
       call say

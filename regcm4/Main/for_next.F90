@@ -19,7 +19,6 @@
  
       subroutine for_next
       use mod_dynparam
-      use mod_param1 , only : nslice
       use mod_date
 ! 
       open(99, file='restparam.nl')
@@ -32,7 +31,6 @@
       write (99,99002) 'idate0  = ' , idate0
       write (99,99002) 'idate1  = ' , idate1
       write (99,99002) 'idate2  = ' , globidate2
-      write (99,99002) 'nslice  = ' , nslice
       write (99,99002) '/'
       close (99)
 

@@ -162,7 +162,6 @@
  idate0  = 1990060100, ! Global start (is globidate1)
  idate1  = 1990060100, ! Start date of this run
  idate2  = 1990060200, ! End date for this run
- nslice  =        120, ! # of days for next model run (used with restart)
  /
 !
 ! Model timing parameters

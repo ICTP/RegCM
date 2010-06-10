@@ -259,8 +259,7 @@ drip.o: drip.f90 mod_constants.o mod_bats.o mod_dynparam.o
 dsflx.o: dsflx.F90 mod_constants.o mod_dust.o mod_message.o mod_dynparam.o \
          mod_aero_param.o
 eispack.o: eispack.f90
-for_next.o: for_next.F90 mod_cu_em.o mod_date.o mod_param1.o mod_param2.o \
-            mod_param3.o mod_pmoist.o mod_dynparam.o mod_trachem.o
+for_next.o: for_next.F90 mod_date.o mod_dynparam.o
 frawat.o: frawat.f90 mod_constants.o mod_bats.o mod_dynparam.o
 getdat.o: getdat.f90 mod_constants.o mod_date.o \
           mod_main.o mod_param1.o mod_param3.o mod_rad.o mod_dynparam.o
