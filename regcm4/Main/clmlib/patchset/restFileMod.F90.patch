@@ -1,5 +1,6 @@
---- orig/restFileMod.F90	2010-03-10 16:34:21.000000000 +0100
-+++ patchd/restFileMod.F90	2010-03-10 16:19:07.000000000 +0100
+diff -Naurb orig/restFileMod.F90 patch/restFileMod.F90
+--- orig/restFileMod.F90	2010-06-10 18:28:06.000000000 +0200
++++ patch/restFileMod.F90	2010-06-10 18:30:12.316997178 +0200
 @@ -587,6 +587,7 @@
         call opnfil( filename, nio, 'f' )
         
@@ -8,12 +9,20 @@
            write(nio,'(a)') fnamer
         else
            rem_dir = trim(archive_dir) // '/rest/'
-@@ -688,15 +689,15 @@
+@@ -650,6 +651,7 @@
+ ! !USES:
+     use clm_varctl  , only : caseid
+     use clm_time_manager, only : get_curr_date, get_step_size
++    use mod_dynparam , only : dirout
+ !
+ ! !ARGUMENTS:
+     implicit none
+@@ -688,15 +690,15 @@
         write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
         
         if (trim(type) == 'binary') then
 -          restFile_filename = "./"//trim(caseid)//".clm2.r."//trim(cdate)
-+          restFile_filename = "./output/"//trim(caseid)//".clm2.r."//trim(cdate)
++          restFile_filename = trim(dirout)//trim(caseid)//".clm2.r."//trim(cdate)
         else if (trim(type) == 'netcdf') then
 -          if (present(offset)) then
 -             restFile_filename = "./"//trim(caseid)//".clm2.i."//trim(cdate)//".nc"
@@ -24,14 +33,14 @@
 +!             restFile_filename = "./"//trim(caseid)//".clm2.i."//trim(cdate)//".nc"
 +!             write(6,*)'writing initial file ',trim(restFile_filename),' for model date = ',cdate
 +!          else
-+             restFile_filename = "./output/"//trim(caseid)//".clm2.r."//trim(cdate)//".nc"
++             restFile_filename = trim(dirout)//trim(caseid)//".clm2.r."//trim(cdate)//".nc"
               write(6,*)'writing restart file ',trim(restFile_filename),' for model date = ',cdate
 -          end if
 +!          end if
         else
            write(6,*)'restart file type ',trim(type),' is not supported'; call endrun()
         end if
-@@ -793,7 +794,6 @@
+@@ -793,7 +795,6 @@
         call check_ret( nf_def_dim(ncid, 'rtmlat'  , rtmlat         , dimid), subname )
  #endif
         call check_ret( nf_def_dim(ncid, 'string_length', 64        , dimid), subname)

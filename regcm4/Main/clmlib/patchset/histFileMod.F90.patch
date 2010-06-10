@@ -1,5 +1,6 @@
---- orig/histFileMod.F90	2010-03-10 16:34:21.000000000 +0100
-+++ patchd/histFileMod.F90	2010-03-10 16:29:37.408601048 +0100
+diff -Naurb orig/histFileMod.F90 patch/histFileMod.F90
+--- orig/histFileMod.F90	2010-06-10 17:42:33.000000000 +0200
++++ patch/histFileMod.F90	2010-06-10 17:45:11.704413679 +0200
 @@ -2010,6 +2010,9 @@
      use clm_varpar   , only : lsmlon, lsmlat, nlevsoi
      use ncdio
@@ -50,12 +51,20 @@
             call mpi_bcast (tape(t)%nflds     , 1, MPI_INTEGER, 0, mpicom, ier)
             call mpi_bcast (tape(t)%ntimes    , 1, MPI_INTEGER, 0, mpicom, ier)
             call mpi_bcast (tape(t)%nhtfrq    , 1, MPI_INTEGER, 0 ,mpicom, ier)
-@@ -3616,7 +3633,7 @@
+@@ -3586,6 +3603,7 @@
+ ! Determine history dataset filenames.
+ !
+ ! !USES:
++    use mod_dynparam , only : dirout
+     use clm_varctl, only : caseid
+     use clm_time_manager, only : get_curr_date, get_prev_date
+ !
+@@ -3616,7 +3634,7 @@
        write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
     endif
     write(hist_index,'(i1.1)') hist_file - 1
 -   set_hist_filename = "./"//trim(caseid)//".clm2.h"//hist_index//"."//&
-+   set_hist_filename = "./output/"//trim(caseid)//".clm2.h"//hist_index//"."//&
++   set_hist_filename = trim(dirout)//trim(caseid)//".clm2.h"//hist_index//"."//&
          trim(cdate)//".nc"
  
    end function set_hist_filename

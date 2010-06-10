@@ -210,7 +210,7 @@ $(BSP)/driver.F90: $(BSP)/patchset/driver.F90.patch CASAPhenologyMod.o SurfaceAl
 	cp -f $(CLMSRC)/src/main/driver.F90 .
 	patch -p1 -i $(BSP)/patchset/driver.F90.patch
 
-$(BSP)/histFileMod.F90: $(BSP)/patchset/histFileMod.F90.patch subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o iobinary.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o shr_kind_mod.o CASAMod.o spmdGathScatMod.o shr_const_mod.o decompMod.o domainMod.o clm_time_manager.o ncdio.o misc.h preproc.h
+$(BSP)/histFileMod.F90: $(BSP)/patchset/histFileMod.F90.patch subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o iobinary.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o shr_kind_mod.o CASAMod.o spmdGathScatMod.o shr_const_mod.o decompMod.o domainMod.o clm_time_manager.o ncdio.o misc.h preproc.h $(REGCMSRC)/mod_dynparam.o
 	cp -f $(CLMSRC)/src/main/histFileMod.F90 .
 	patch -p1 -i $(BSP)/patchset/histFileMod.F90.patch
 
@@ -234,7 +234,7 @@ $(BSP)/perf_mod.F90: $(BSP)/patchset/perf_mod.F90.patch shr_sys_mod.o shr_file_m
 	cp -f $(CLMSRC)/src/utils/timing/perf_mod.F90 .
 	patch -p1 -i $(BSP)/patchset/perf_mod.F90.patch
 
-$(BSP)/restFileMod.F90: $(BSP)/patchset/restFileMod.F90.patch spmdMod.o clm_varpar.o shr_sys_mod.o histFileMod.o clm_csmMod.o RtmMod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o subgridRestMod.o shr_kind_mod.o CASAMod.o decompMod.o CNrestMod.o DGVMRestMod.o clm_time_manager.o accumulMod.o BiogeophysRestMod.o ncdio.o misc.h preproc.h
+$(BSP)/restFileMod.F90: $(BSP)/patchset/restFileMod.F90.patch spmdMod.o clm_varpar.o shr_sys_mod.o histFileMod.o clm_csmMod.o RtmMod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o subgridRestMod.o shr_kind_mod.o CASAMod.o decompMod.o CNrestMod.o DGVMRestMod.o clm_time_manager.o accumulMod.o BiogeophysRestMod.o ncdio.o misc.h preproc.h $(REGCMSRC)/mod_dynparam.o
 	cp -f $(CLMSRC)/src/main/restFileMod.F90 .
 	patch -p1 -i $(BSP)/patchset/restFileMod.F90.patch
 
