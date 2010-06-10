@@ -141,66 +141,6 @@
       write (64,rec=noutrec) ts4
 !
       end subroutine writef2
-
-      subroutine writefs(qs3,ti3,ts3,snow,ptop,idate,lsmtyp)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: idate
-      character(4) :: lsmtyp
-      real(4) :: ptop
-      real(4) , dimension(jnx,iny,4) :: qs3 , ti3 , ts3
-      real(4) , dimension(jnx,iny) :: snow
-      intent (in) idate , lsmtyp , ptop , snow , ti3 , ts3 , qs3
-!
-! Local variables
-!
-      integer :: i , j , k
-!
-!     THIS ROUTINE WRITES OUT AN INPUT FILE FOR THE RCM
-!
-      noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , jnx , iny , knz
-      do k = knz , 1 , -1
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((u4(i,j,k),i=1,jnx),j=1,iny)
-      end do
-      do k = knz , 1 , -1
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((v4(i,j,k),i=1,jnx),j=1,iny)
-      end do
-      do k = knz , 1 , -1
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((t4(i,j,k),i=1,jnx),j=1,iny)
-      end do
-      do k = knz , 1 , -1
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((q4(i,j,k),i=1,jnx),j=1,iny)
-      end do
-      noutrec = noutrec + 1
-      write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jnx),j=1,iny)
-      noutrec = noutrec + 1
-      write (64,rec=noutrec) ts4
- 
-      if ( lsmtyp=='USGS' ) then
-        do k = 1 , 4
-          noutrec = noutrec + 1
-          write (64,rec=noutrec) ((qs3(i,j,k),i=1,jnx),j=1,iny)
-        end do
-        do k = 1 , 4
-          noutrec = noutrec + 1
-          write (64,rec=noutrec) ((ti3(i,j,k),i=1,jnx),j=1,iny)
-        end do
-        do k = 1 , 4
-          noutrec = noutrec + 1
-          write (64,rec=noutrec) ((ts3(i,j,k),i=1,jnx),j=1,iny)
-        end do
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((snow(i,j),i=1,jnx),j=1,iny)
-      end if
-!
-      end subroutine writefs
 !
       subroutine gradsctl(finame,idate,inumber)
       use mod_dynparam
@@ -321,18 +261,10 @@
                      & nyear
       if ( dattyp=='EH5OM' ) then
         if ( ehso4 ) then
-          if ( lsmtyp=='USGS' ) then
-            write (71,99011) 21
-          else
-            write (71,99010) 8
-          end if
-        else if ( lsmtyp=='USGS' ) then
-          write (71,99011) 20
+          write (71,99010) 8
         else
           write (71,99010) 7
         end if
-      else if ( lsmtyp=='USGS' ) then
-        write (71,99011) 20
       else
         write (71,99010) 7
       end if
@@ -350,21 +282,6 @@
       write (71,99015) 'ts  ' , 'surface air temperature    '
       if ( dattyp=='EH5OM' .and. ehso4 ) write (71,99012) 'so4 ' , kz , &
           &'sulfate amount   '
-      if ( lsmtyp=='USGS' ) then
-        write (71,99015) 'qs1 ' , 'soil moisture level 1      '
-        write (71,99015) 'qs2 ' , 'soil moisture level 2      '
-        write (71,99015) 'qs3 ' , 'soil moisture level 3      '
-        write (71,99015) 'qs4 ' , 'soil moisture level 4      '
-        write (71,99015) 'ti1 ' , 'ice  temperature level 1   '
-        write (71,99015) 'ti2 ' , 'ice  temperature level 2   '
-        write (71,99015) 'ti3 ' , 'ice  temperature level 3   '
-        write (71,99015) 'ti4 ' , 'ice  temperature level 4   '
-        write (71,99015) 'ts1 ' , 'soil temperature level 1   '
-        write (71,99015) 'ts2 ' , 'soil temperature level 2   '
-        write (71,99015) 'ts3 ' , 'soil temperature level 3   '
-        write (71,99015) 'ts4 ' , 'soil temperature level 4   '
-        write (71,99015) 'snd ' , 'snow depth (in metre)      '
-      end if
       write (71,'(a)') 'endvars'
       close (71)
 99001 format ('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
@@ -377,7 +294,6 @@
 99008 format ('zdef ',i2,' levels ',30F7.2)
 99009 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' 6hr')
 99010 format ('vars ',i1)
-99011 format ('vars ',i2)
 99012 format (a4,i2,' 0 ',a17)
 99013 format (a4,i2,' 33,100 ',a17)
 99014 format (a4,i2,' 34,100 ',a17)
@@ -503,11 +419,7 @@
       nhour = mod(idate,100)
       write (71,99009) inumber , nhour , cday(nday) , cmonth(month) ,    &
                      & nyear
-      if ( lsmtyp=='USGS' ) then
-        write (71,99011) 20
-      else
-        write (71,99010) 7
-      end if
+      write (71,99010) 7
       write (71,'(a)') 'date 0 99 header information'
       write (71,99012) 'u   ' , kz , 'westerly wind    '
       write (71,99012) 'v   ' , kz , 'southerly wind   '
@@ -515,21 +427,6 @@
       write (71,99012) 'q   ' , kz , 'specific moisture'
       write (71,99013) 'px  ' , 'surface pressure           '
       write (71,99013) 'ts  ' , 'surface air temperature    '
-      if ( lsmtyp=='USGS' ) then
-        write (71,99013) 'qs1 ' , 'soil moisture level 1      '
-        write (71,99013) 'qs2 ' , 'soil moisture level 2      '
-        write (71,99013) 'qs3 ' , 'soil moisture level 3      '
-        write (71,99013) 'qs4 ' , 'soil moisture level 4      '
-        write (71,99013) 'ti1 ' , 'ice  temperature level 1   '
-        write (71,99013) 'ti2 ' , 'ice  temperature level 2   '
-        write (71,99013) 'ti3 ' , 'ice  temperature level 3   '
-        write (71,99013) 'ti4 ' , 'ice  temperature level 4   '
-        write (71,99013) 'ts1 ' , 'soil temperature level 1   '
-        write (71,99013) 'ts2 ' , 'soil temperature level 2   '
-        write (71,99013) 'ts3 ' , 'soil temperature level 3   '
-        write (71,99013) 'ts4 ' , 'soil temperature level 4   '
-        write (71,99013) 'snd ' , 'snow depth (in metre)      '
-      end if
       write (71,'(a)') 'endvars'
       close (71)
 99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
@@ -542,7 +439,6 @@
 99008 format ('zdef ',i2,' levels ',30F7.2)
 99009 format ('tdef ',i4,' linear ',i2,'z',a2,a3,i4,' 6hr')
 99010 format ('vars ',i1)
-99011 format ('vars ',i2)
 99012 format (a4,i2,' 0 ',a17)
 99013 format (a4,'0 99 ',a26)
 !

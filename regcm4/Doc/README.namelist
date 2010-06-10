@@ -129,15 +129,6 @@
                              ! on how to download them.
  /
 !
-! LSM data generation
-!
- &lsmparam
- lsmtyp = 'BATS', ! Land Surface Legend type
-                  ! One in : BATS, USGS
-                  ! Note that in model only BATS is supported, You should check
-                  ! any data array with nveg dimension to enable USGS.
- /
-!
 ! Aerosol dataset creation and use
 !
  &aerosolparam

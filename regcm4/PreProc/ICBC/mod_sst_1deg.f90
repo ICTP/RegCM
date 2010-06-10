@@ -266,8 +266,8 @@
               & loni,lati,ilon,jlat,iy,jx,1)
           do j = 1 , jx
             do i = 1 , iy
-              if ( lsmtyp=='BATS' .and. sstmm(i,j)<-5000. .and.         &
-                 & (lu(i,j)>13.5 .and. lu(i,j)<15.5) ) then
+              if ( sstmm(i,j)<-5000. .and. (lu(i,j)>13.5 .and.          &
+                &  lu(i,j)<15.5) ) then
                 do k = 1 , 20
                   lund(k) = 0.0
                 end do
@@ -291,30 +291,6 @@
                 end do
                 lu(i,j) = float(ludom)
                 print * , ludom , sstmm(i,j)
-              else if ( lsmtyp=='USGS' .and. sstmm(i,j)<-5000. .and.    &
-                      & lu(i,j)>24.5 ) then
-                do k = 1 , 25
-                  lund(k) = 0.0
-                end do
-                lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
-                lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
-                lund(nint(lu(i-1,j+1))) = lund(nint(lu(i-1,j+1))) + 2
-                lund(nint(lu(i,j-1))) = lund(nint(lu(i,j-1))) + 3
-                lund(nint(lu(i,j+1))) = lund(nint(lu(i,j+1))) + 3
-                lund(nint(lu(i+1,j-1))) = lund(nint(lu(i+1,j-1))) + 2
-                lund(nint(lu(i+1,j))) = lund(nint(lu(i+1,j))) + 3
-                lund(nint(lu(i+1,j+1))) = lund(nint(lu(i+1,j+1))) + 2
-                ludom = 13
-                lumax = 0
-                do k = 1 , 24
-                  if ( lund(k)>lumax ) then
-                    ludom = k
-                    lumax = lund(k)
-                  end if
-                end do
-                lu(i,j) = float(ludom)
-                print * , ludom , sstmm(i,j)
-              else
               end if
               if ( sstmm(i,j)>-100. ) then
                 sstmm(i,j) = sstmm(i,j) + 273.15

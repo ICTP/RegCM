@@ -143,11 +143,8 @@
 
       logical :: ehso4
 
-! Land Surface Legend type
-!
-! One in : BATS,USGS
+! Land Surface Legend number
 
-      character(4) :: lsmtyp
       integer :: nveg
 
 ! Aerosol dataset used
@@ -342,7 +339,6 @@
         namelist /lakemodparam/ lkpts
         namelist /globdatparam/ dattyp , ssttyp , ehso4 , globidate1 ,  &
                      & globidate2 , dirglob , inpglob , ibdyfrq
-        namelist /lsmparam/ lsmtyp
         namelist /aerosolparam/ aertyp , ntr, nbin
 
         open(ipunit, file=filename, status='old', &
@@ -371,6 +367,7 @@
         iym2sg = (iy-2) * nsg
         jxm2sg = (jx-2) * nsg
         nnsg = nsg*nsg
+        nveg = 20
 
         read(ipunit, geoparam, err=102)
 
@@ -398,17 +395,6 @@
         ibdyfrq = 6 ! Convenient default
 
         read(ipunit, globdatparam, err=109)
-        read(ipunit, lsmparam, err=110)
-
-        if (lsmtyp == 'BATS') then
-          nveg = 20
-        else if (lsmtyp == 'USGS') then
-          nveg = 25
-        else
-          write ( 6 , * ) 'Unknown LSM data type. Use BATS or USGS'
-          stop
-        end if
-
         read(ipunit, aerosolparam, err=111)
 
         ierr = 0
@@ -450,10 +436,6 @@
         ierr = 1
         return
   109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ',  &
-            & trim(filename)
-        ierr = 1
-        return
-  110   write ( 6, * ) 'Cannot read namelist stanza: lsmparam       ',  &
             & trim(filename)
         ierr = 1
         return
@@ -502,6 +484,7 @@
         call mpi_bcast(jx,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(kz,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(nsg,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(nveg,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(iproj,6,mpi_character,0,mpi_comm_world,ierr)
         call mpi_bcast(ds,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -514,7 +497,6 @@
         call mpi_bcast(truelath,1,mpi_real8,0,mpi_comm_world,ierr)
 
         call mpi_bcast(domname,64,mpi_character,0,mpi_comm_world,ierr)
-        call mpi_bcast(nveg,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(igrads,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ibigend,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -530,7 +512,6 @@
 
         call mpi_bcast(lkpts,1,mpi_integer,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(lsmtyp,4,mpi_character,0,mpi_comm_world,ierr)
         call mpi_bcast(ehso4,1,mpi_logical,0,mpi_comm_world,ierr)
 
         call mpi_bcast(aertyp,7,mpi_character,0,mpi_comm_world,ierr)

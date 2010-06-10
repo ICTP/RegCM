@@ -119,15 +119,9 @@
                     & mdatez(nnnchk+1)
                 print * , 'read in datasets at :' , ndate0
                 if ( ehso4 ) then
-                  if ( lsmtyp.ne.'USGS' ) then
-                    mmrec = mmrec + kz*5 + 2
-                  else
-                    mmrec = mmrec + kz*5 + 2 + 13
-                  end if
-                else if ( lsmtyp.ne.'USGS' ) then
-                  mmrec = mmrec + kz*4 + 2
+                  mmrec = mmrec + kz*5 + 2
                 else
-                  mmrec = mmrec + kz*4 + 2 + 13
+                  mmrec = mmrec + kz*4 + 2
                 end if
                 cycle
               end if
@@ -210,7 +204,6 @@
                 end do
               end do
             end if
-            if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -619,15 +612,9 @@
                   & mdatez(nnnchk+1)
               print * , 'read in datasets at :' , ndate0
               if ( ehso4 ) then
-                if ( lsmtyp.ne.'USGS' ) then
-                  mmrec = mmrec + kz*5 + 2
-                else
-                  mmrec = mmrec + kz*5 + 2 + 13
-                end if
-              else if ( lsmtyp.ne.'USGS' ) then
-                mmrec = mmrec + kz*4 + 2
+                mmrec = mmrec + kz*5 + 2
               else
-                mmrec = mmrec + kz*4 + 2 + 13
+                mmrec = mmrec + kz*4 + 2
               end if
               cycle
             end if
@@ -708,7 +695,6 @@
             end do
           end do
         end if
-        if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
 !     Convert surface pressure to pstar
         do j = 1 , jx
           do i = 1 , iy

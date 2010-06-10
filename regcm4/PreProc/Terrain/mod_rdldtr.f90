@@ -23,17 +23,16 @@
 
       contains
 
-      subroutine rdldtr(inpter,ntypec,nveg,ntex,lsmtyp,aertyp,ibyte)
+      subroutine rdldtr(inpter,ntypec,nveg,ntex,aertyp,ibyte)
 
       implicit none
 !
 ! Dummy arguments
 !
       integer :: ntypec , ibyte , nveg , ntex
-      character(4) :: lsmtyp
       character(7) :: aertyp
       character(*) :: inpter
-      intent(in) inpter , ntypec , ibyte , nveg , ntex , lsmtyp , aertyp
+      intent(in) inpter , ntypec , ibyte , nveg , ntex , aertyp
 !
 ! Local variables
 !
@@ -41,9 +40,7 @@
       real(4) :: center , rlat , rlon
       character(2) :: char_2
       character(256) :: filcat , filelev
-      character(256) :: filclay , filsand
       character(256) :: filtext
-      character(256) :: filusgs
       integer :: ihmax , ilat1 , ilat2 , irec , irect , j , jhmax , k , &
                & lrec
       logical :: there
@@ -81,91 +78,23 @@
       open (46,file=filelev,form='unformatted',recl=nxmax*ibyte/2,      &
           & access='direct')
  
-      if ( lsmtyp=='BATS' ) then
-        if ( ntypec<10 ) then
-          write (filcat,99003) trim(inpter) , ntypec
-        else if ( ntypec<100 ) then
-          write (filcat,99004) trim(inpter) , ntypec
-        else
-          write (*,*) 'For landuse, ntypec is not set correctly ' ,     &
-                    & ntypec
-          stop 'subroutine RDLDTR'
-        end if
-        inquire (file=filcat,exist=there)
-        if ( .not.there ) then
-          print * , 'ERROR OPENING ' , filcat ,                         &
-               &' FILE:  FILE DOES NOT EXIST'
-          stop '4820 IN SUBROUTINE RDLDTR'
-        end if
-        open (47,file=filcat,form='unformatted',recl=nxmax*nveg*ibyte/4,&
-            & access='direct')
-      else if ( lsmtyp=='USGS' ) then
-        if ( ntypec<10 ) then
-          write (filusgs,99005) trim(inpter) , ntypec
-          write (filsand,99006) trim(inpter) , ntypec
-          write (filclay,99007) trim(inpter) , ntypec
-        else if ( ntypec<100 ) then
-          write (filusgs,99008) trim(inpter) , ntypec
-          write (filsand,99009) trim(inpter) , ntypec
-          write (filclay,99010) trim(inpter) , ntypec
-        else
-          write (*,*) 'Error input of ntypec: ' , ntypec
-        end if
-        if ( ntypec==2 ) then
-          inquire (file=trim(inpter)//'/SURFACE/'//filusgs//'A',        &
-            & exist=there)
-          if ( .not.there ) then
-            print * , 'ERROR OPENING ' ,                                &
-                 & trim(inpter)//'/SURFACE/'//filusgs ,                 &
-                 & ' FILE: FILE DOES NOT EXIST'
-            stop '4820 IN SUBROUTINE RDLDTR'
-          end if
-          inquire (file=trim(inpter)//'/SURFACE/'//filusgs//'B',        &
-                 & exist=there)
-          if ( .not.there ) then
-            print * , 'ERROR OPENING ' ,                                &
-                 & trim(inpter)//'/SURFACE/'//filusgs ,                 &
-                 & ' FILE: FILE DOES NOT EXIST'
-            stop '4820 IN SUBROUTINE RDLDTR'
-          end if
-        else
-          inquire (file=trim(inpter)//'/SURFACE/'//filusgs,exist=there)
-          if ( .not.there ) then
-            print * , 'ERROR OPENING ' ,                                &
-               & trim(inpter)//'/SURFACE/'//filusgs ,                   &
-               & ' FILE: FILE DOES NOT EXIST'
-            stop '4820 IN SUBROUTINE RDLDTR'
-          end if
-        end if
-        inquire (file=trim(inpter)//'/SURFACE/'//filsand,exist=there)
-        if ( .not.there ) then
-          print * , 'ERROR OPENING ' ,                                  &
-               & trim(inpter)//'/SURFACE/'//filsand ,                   &
-               & ' FILE: FILE DOES NOT EXIST'
-          stop '4820 IN SUBROUTINE RDLDTR'
-        end if
-        inquire (file=trim(inpter)//'/SURFACE/'//filclay,exist=there)
-        if ( .not.there ) then
-          print * , 'ERROR OPENING ' ,                                  &
-               & trim(inpter)//'/SURFACE/'//filclay ,                   &
-               & ' FILE: FILE DOES NOT EXIST'
-          stop '4820 IN SUBROUTINE RDLDTR'
-        end if
-        if ( ntypec==2 ) then
-          open (41,file=trim(inpter)//'/SURFACE/'//filusgs//'A',        &
-               &form='unformatted',recl=nxmax*ibyte/2,access='direct')
-          open (44,file=trim(inpter)//'/SURFACE/'//filusgs//'B',        &
-               &form='unformatted',recl=nxmax*ibyte/2,access='direct')
-        else
-          open (41,file=trim(inpter)//'/SURFACE/'//filusgs,             &
-               &form='unformatted',recl=nxmax*ibyte/2,access='direct')
-        end if
-        open (42,file=trim(inpter)//'/SURFACE/'//filsand,               &
-            & form='unformatted',recl=nxmax*ibyte/2,access='direct')
-        open (43,file=trim(inpter)//'/SURFACE/'//filclay,               &
-            & form='unformatted',recl=nxmax*ibyte/2,access='direct')
+      if ( ntypec<10 ) then
+        write (filcat,99003) trim(inpter) , ntypec
+      else if ( ntypec<100 ) then
+        write (filcat,99004) trim(inpter) , ntypec
       else
+        write (*,*) 'For landuse, ntypec is not set correctly ' ,     &
+                  & ntypec
+        stop 'subroutine RDLDTR'
       end if
+      inquire (file=filcat,exist=there)
+      if ( .not.there ) then
+        print * , 'ERROR OPENING ' , filcat ,                         &
+             &' FILE:  FILE DOES NOT EXIST'
+        stop '4820 IN SUBROUTINE RDLDTR'
+      end if
+      open (47,file=filcat,form='unformatted',recl=nxmax*nveg*ibyte/4,&
+          & access='direct')
       if ( aertyp(7:7)=='1' ) then
         if ( ntypec<10 ) then
           write (filtext,99011) ntypec
@@ -199,27 +128,7 @@
 !       print*,'   ELEVATION READ IN', ilat1,ilat2,irec
         read (46,rec=nymax+irect) (ch_htsd(j),j=1,nxmax)
 !       print*,'   ELEVATION STD DEV READ IN', ilat1,ilat2,irec
-        if ( lsmtyp=='BATS' ) then
-          read (47,rec=irect) ((ch_cat(j,k),k=1,nveg),j=1,nxmax)
-        else if ( lsmtyp=='USGS' ) then
-          if ( ntypec==2 ) then
-            do k = 1 , 13
-              read (41,rec=nymax*(k-1)+irec) (iusgs(j,k),j=1,nxmax)
-            end do
-            do k = 14 , nveg
-              read (44,rec=nymax*(k-14)+irec) (iusgs(j,k),j=1,nxmax)
-            end do
-          else
-            do k = 1 , nveg
-              read (41,rec=nymax*(k-1)+irec) (iusgs(j,k),j=1,nxmax)
-            end do
-          end if
-          read (42,rec=irec) (isand(j,1),j=1,nxmax)
-          read (42,rec=nymax+irec) (isand(j,2),j=1,nxmax)
-          read (43,rec=irec) (iclay(j,1),j=1,nxmax)
-          read (43,rec=nymax+irec) (iclay(j,2),j=1,nxmax)
-        else
-        end if
+        read (47,rec=irect) ((ch_cat(j,k),k=1,nveg),j=1,nxmax)
         if ( aertyp(7:7)=='1' ) read (45,rec=irec)                      &
                                     & ((ch_tex(j,k),k=1,ntex),j=1,nxmax)
 !       print*,'   LANDUSE READ IN', ilat1,ilat2,irec
@@ -242,31 +151,13 @@
             end if
             char_2 = ch_htsd(j)
             stores(4) = ichar(char_2(1:1))*256 + ichar(char_2(2:2))
-            if ( lsmtyp=='BATS' ) then
-              do k = 1 , nveg
-                stores(k+4) = float(ichar(ch_cat(j,k)))
-              end do
-            else if ( lsmtyp=='USGS' ) then
-              do k = 1 , nveg
-                stores(k+4) = iusgs(j,k)*50./32767. + 50.
-              end do
-              stores(nveg+5) = (isand(j,1))*50./32767. + 50.
-              stores(nveg+6) = (isand(j,2))*50./32767. + 50.
-              stores(nveg+7) = (iclay(j,1))*50./32767. + 50.
-              stores(nveg+8) = (iclay(j,2))*50./32767. + 50.
-            else
-            end if
+            do k = 1 , nveg
+              stores(k+4) = float(ichar(ch_cat(j,k)))
+            end do
             if ( aertyp(7:7)=='1' ) then
-              if ( lsmtyp=='BATS' ) then
-                do k = 1 , ntex
-                  stores(nveg+4+k) = float(ichar(ch_tex(j,k)))
-                end do
-              else if ( lsmtyp=='USGS' ) then
-                do k = 1 , ntex
-                  stores(nveg+8+k) = float(ichar(ch_tex(j,k)))
-                end do
-              else
-              end if
+              do k = 1 , ntex
+                stores(nveg+4+k) = float(ichar(ch_tex(j,k)))
+              end do
             end if
             write (48) stores
 !add
@@ -285,15 +176,7 @@
       end do
  
       close (46)
-      if ( lsmtyp=='BATS' ) then
-        close (47)
-      else if ( lsmtyp=='USGS' ) then
-        close (41)
-        close (42)
-        close (43)
-        if ( ntypec==2 ) close (44)
-      else
-      end if
+      close (47)
 !
       print 99013 , lrec
       ihmax = (xmaxlat-xminlat)/xnc
@@ -318,12 +201,6 @@
 99002 format (a,'/SURFACE/GTOPO30_',i2,'MIN.dat')
 99003 format (a,'/SURFACE/GLCC',i1,'MIN_BATS.dat')
 99004 format (a,'/SURFACE/GLCC',i2,'MIN_BATS.dat')
-99005 format ('VEG-USGS.0',i1)
-99006 format ('SAND.0',i1)
-99007 format ('CLAY.0',i1)
-99008 format ('VEG-USGS.',i2)
-99009 format ('SAND.',i2)
-99010 format ('CLAY.',i2)
 99011 format ('SOILCAT.0',i1)
 99012 format ('SOILCAT.',i2)
 99013 format (1x,i10,' terrain heights read from land use volume')
@@ -334,7 +211,7 @@
              &' must be greater than ',i8,10x,'iblk = ',i8)
       end subroutine rdldtr
 
-      subroutine rdldtr_nc(inpter,ntypec,nveg,ntex,lsmtyp,aertyp)
+      subroutine rdldtr_nc(inpter,ntypec,nveg,ntex,aertyp)
 
       use netcdf
 
@@ -343,22 +220,20 @@
 ! Dummy arguments
 !
       integer :: ntypec , nveg , ntex
-      character(4) :: lsmtyp
       character(7) :: aertyp
       character(*) :: inpter
-      intent(in) inpter , ntypec , nveg , ntex , lsmtyp , aertyp
+      intent(in) inpter , ntypec , nveg , ntex , aertyp
 !
 ! Local variables
 !
       integer :: nxmax , nymax
       real(4) :: center , rlat , rlon
-      character(256) :: filcat , filsandclay , filusgs
+      character(256) :: filcat
       character(256) :: filelev , filtext
       integer , dimension(3) :: icount3 , istart3
       integer , dimension(4) :: icount4 , istart4
       integer :: ihmax , ilat1 , ilat2 , irec , istat ,  j , jhmax , k ,&
-               & lrec , ncid_cat , ncid_lev , ncid_sandclay , ncid_tex ,&
-               & ncid_usgs
+               & lrec , ncid_cat , ncid_lev , ncid_tex
       integer :: idtopo , idhtsd , idlufrac
       logical :: there
       integer(1) , allocatable , dimension(:,:) :: icat , iusgs
@@ -410,69 +285,32 @@
         stop
       end if
  
-      if ( lsmtyp=='BATS' ) then
-        if ( ntypec<10 ) then
-          write (filcat,99003) trim(inpter), ntypec
-        else if ( ntypec<100 ) then
-          write (filcat,99004) trim(inpter), ntypec
-        else
-          write (*,*) 'For landuse, ntypec is not set correctly ' ,     &
-                    & ntypec
-          stop 'subroutine RDLDTR_nc'
-        end if
-        inquire (file=filcat,exist=there)
-        if ( .not.there ) then
-          print * , 'ERROR OPENING ' , filcat ,                         &
-               &' FILE:  FILE DOES NOT EXIST'
-          stop '4820 IN SUBROUTINE RDLDTR_nc'
-        end if
-        istat = nf90_open(filcat,nf90_nowrite,ncid_cat)
-        if ( istat /= nf90_noerr ) then
-          write (6, *) 'Error opening ', filcat
-          write (6, *) nf90_strerror(istat)
-          stop
-        end if
-        istat = nf90_inq_varid(ncid_cat, 'lufrac', idlufrac)
-        if ( istat /= nf90_noerr ) then
-          write (6, *) 'Var lufrac not found'
-          write (6, *) nf90_strerror(istat)
-          stop
-        end if
-      else if ( lsmtyp=='USGS' ) then
-        if ( ntypec<10 ) then
-          write (filusgs,99005) ntypec
-          write (filsandclay,99006) ntypec
-        else if ( ntypec<100 ) then
-          write (filusgs,99007) ntypec
-          write (filsandclay,99008) ntypec
-        else
-          write (*,*) 'Error input of ntypec: ' , ntypec
-        end if
-        inquire (file=filusgs,exist=there)
-        if ( .not.there ) then
-          print * , 'ERROR OPENING ' , filusgs ,                        &
-               &' FILE: FILE DOES NOT EXIST'
-          stop '4820 IN SUBROUTINE RDLDTR_nc'
-        end if
-        inquire (file=filsandclay,exist=there)
-        if ( .not.there ) then
-          print * , 'ERROR OPENING ' , filsandclay ,                    &
-               &' FILE: FILE DOES NOT EXIST'
-          stop '4820 IN SUBROUTINE RDLDTR_nc'
-        end if
-        istat = nf90_open(filusgs,nf90_nowrite,ncid_usgs)
-        if ( istat /= nf90_noerr ) then
-          write (6, *) 'Error opening ', filusgs
-          write (6, *) nf90_strerror(istat)
-          stop
-        end if
-        istat = nf90_open(filsandclay,nf90_nowrite,ncid_sandclay)
-        if ( istat /= nf90_noerr ) then
-          write (6, *) 'Error opening ', filsandclay
-          write (6, *) nf90_strerror(istat)
-          stop
-        end if
+      if ( ntypec<10 ) then
+        write (filcat,99003) trim(inpter), ntypec
+      else if ( ntypec<100 ) then
+        write (filcat,99004) trim(inpter), ntypec
       else
+        write (*,*) 'For landuse, ntypec is not set correctly ' ,     &
+                  & ntypec
+        stop 'subroutine RDLDTR_nc'
+      end if
+      inquire (file=filcat,exist=there)
+      if ( .not.there ) then
+        print * , 'ERROR OPENING ' , filcat ,                         &
+             &' FILE:  FILE DOES NOT EXIST'
+        stop '4820 IN SUBROUTINE RDLDTR_nc'
+      end if
+      istat = nf90_open(filcat,nf90_nowrite,ncid_cat)
+      if ( istat /= nf90_noerr ) then
+        write (6, *) 'Error opening ', filcat
+        write (6, *) nf90_strerror(istat)
+        stop
+      end if
+      istat = nf90_inq_varid(ncid_cat, 'lufrac', idlufrac)
+      if ( istat /= nf90_noerr ) then
+        write (6, *) 'Var lufrac not found'
+        write (6, *) nf90_strerror(istat)
+        stop
       end if
       if ( aertyp(7:7)=='1' ) then
         if ( ntypec<10 ) then
@@ -530,39 +368,13 @@
           stop
         end if
  
-        if ( lsmtyp=='BATS' ) then
-          istart4(3) = 1
-          icount4(3) = nveg
-          istat = nf90_get_var(ncid_cat,idlufrac,icat,istart4,icount4)
-          if ( istat /= nf90_noerr ) then
-            write (6, *) 'Error reading var icat'
-            write (6, *) nf90_strerror(istat)
-            stop
-          end if
-        else if ( lsmtyp=='USGS' ) then
-          istart3(3) = 1
-          icount3(3) = nveg
-          istat = nf90_get_var(ncid_usgs,4,iusgs,istart3,icount3)
-          if ( istat /= nf90_noerr ) then
-            write (6, *) 'Error reading var iusgs'
-            write (6, *) nf90_strerror(istat)
-            stop
-          end if
-          istart3(3) = 1
-          icount3(3) = 2
-          istat = nf90_get_var(ncid_sandclay,4,isand,istart3,icount3)
-          if ( istat /= nf90_noerr ) then
-            write (6, *) 'Error reading var isand'
-            write (6, *) nf90_strerror(istat)
-            stop
-          end if
-          istat = nf90_get_var(ncid_sandclay,5,iclay,istart3,icount3)
-          if ( istat /= nf90_noerr ) then
-            write (6, *) 'Error reading var iclay'
-            write (6, *) nf90_strerror(istat)
-            stop
-          end if
-        else
+        istart4(3) = 1
+        icount4(3) = nveg
+        istat = nf90_get_var(ncid_cat,idlufrac,icat,istart4,icount4)
+        if ( istat /= nf90_noerr ) then
+          write (6, *) 'Error reading var icat'
+          write (6, *) nf90_strerror(istat)
+          stop
         end if
         if ( aertyp(7:7)=='1' ) then
           istart3(3) = 1
@@ -586,31 +398,13 @@
             stores(2) = rlon
             stores(3) = itopo(j)*1.0
             stores(4) = ihtsd(j)*1.0
-            if ( lsmtyp=='BATS' ) then
-              do k = 1 , nveg
-                stores(k+4) = icat(j,k)*1.0
-              end do
-            else if ( lsmtyp=='USGS' ) then
-              do k = 1 , nveg
-                stores(k+4) = iusgs(j,k)*1.0
-              end do
-              stores(nveg+5) = isand(j,1)*1.0
-              stores(nveg+6) = isand(j,2)*1.0
-              stores(nveg+7) = iclay(j,1)*1.0
-              stores(nveg+8) = iclay(j,2)*1.0
-            else
-            end if
+            do k = 1 , nveg
+              stores(k+4) = icat(j,k)*1.0
+            end do
             if ( aertyp(7:7)=='1' ) then
-              if ( lsmtyp=='BATS' ) then
-                do k = 1 , ntex
-                  stores(nveg+4+k) = itex(j,k)*1.0
-                end do
-              else if ( lsmtyp=='USGS' ) then
-                do k = 1 , ntex
-                  stores(nveg+8+k) = itex(j,k)*1.0
-                end do
-              else
-              end if
+              do k = 1 , ntex
+                stores(nveg+4+k) = itex(j,k)*1.0
+              end do
             end if
             write (48) stores
 !add
@@ -634,27 +428,11 @@
         write (6, *) nf90_strerror(istat)
         stop
       end if
-      if ( lsmtyp=='BATS' ) then
-        istat = nf90_close(ncid_cat)
-        if ( istat /= nf90_noerr ) then
-          write (6, *) 'Error close'
-          write (6, *) nf90_strerror(istat)
-          stop
-        end if
-      else if ( lsmtyp=='USGS' ) then
-        istat = nf90_close(ncid_usgs)
-        if ( istat /= nf90_noerr ) then
-          write (6, *) 'Error close'
-          write (6, *) nf90_strerror(istat)
-          stop
-        end if
-        istat = nf90_close(ncid_sandclay)
-        if ( istat /= nf90_noerr ) then
-          write (6, *) 'Error close'
-          write (6, *) nf90_strerror(istat)
-          stop
-        end if
-      else
+      istat = nf90_close(ncid_cat)
+      if ( istat /= nf90_noerr ) then
+        write (6, *) 'Error close'
+        write (6, *) nf90_strerror(istat)
+        stop
       end if
       if ( aertyp(7:7)=='1' ) then
         istat = nf90_close(ncid_tex)
@@ -688,10 +466,6 @@
 99002 format (a,'/SURFACE/GTOPO30_',i2,'min.nc')
 99003 format (a,'/SURFACE/GLCC_BATS_',i1,'min.nc')
 99004 format (a,'/SURFACE/GLCC_BATS_',i2,'min.nc')
-99005 format (a,'/SURFACE/GLCC_USGS_',i1,'min.nc')
-99006 format (a,'/SURFACE/SAND_CLAY_',i1,'min.nc')
-99007 format (a,'/SURFACE/GLCC_USGS_',i2,'min.nc')
-99008 format (a,'/SURFACE/SAND_CLAY_',i2,'min.nc')
 99009 format (a,'/SURFACE/SOILCAT_',i1,'min.nc')
 99010 format (a,'/SURFACE/SOILCAT_',i2,'min.nc')
 99011 format (1x,i10,' terrain heights read from land use volume')

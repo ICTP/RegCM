@@ -112,9 +112,8 @@
                       & iproj,htgrid,htsdgrid,lndout,xlat,xlon,dlat,    &
                       & dlon,xmap,dattyp,dmap,coriol,snowam,igrads,     &
                       & ibigend,kz,sigma,mask,ptop,nsg,truelatl,        &
-                      & truelath,grdfac,filout,lsmtyp,sanda,sandb,claya,&
-                      & clayb,frac_lnd,nveg,aertyp,texout,frac_tex,ntex,&
-                      & lcoarse)
+                      & truelath,grdfac,filout,aertyp,texout,frac_tex,  &
+                      & ntex,lcoarse)
 
       implicit none
 !
@@ -126,25 +125,20 @@
       character(5) :: dattyp
       character(*) :: filout
       integer :: ibigend , igrads , iy , jx , kz , nsg , ntex ,         &
-               & nunitc , nveg , iunc
+               & nunitc , iunc
       character(6) :: iproj
-      character(4) :: lsmtyp
-      real(4) , dimension(iy,jx) :: claya , clayb , coriol , dlat ,     &
-                                  & dlon , dmap , htgrid , htsdgrid ,   &
-                                  & lndout , mask , sanda , sandb ,     &
+      real(4) , dimension(iy,jx) :: coriol , dlat , dlon , dmap ,       &
+                                  & htgrid , htsdgrid , lndout , mask , &
                                   & snowam , texout , xlat , xlon , xmap
-      real(4) , dimension(iy,jx,nveg) :: frac_lnd
       real(4) , dimension(iy,jx,ntex) :: frac_tex
       real(4) , dimension(kz+1) :: sigma
       logical :: lcoarse
-      intent (in) aertyp , clat , claya , clayb , clon , coriol ,       &
-                & dattyp , dlat , dlon , dmap , dsinm , filout ,        &
-                & frac_lnd , frac_tex , grdfac , htgrid , htsdgrid ,    &
-                & ibigend , igrads , iproj , iy , jx , kz ,             &
-                & lndout , lsmtyp , nsg , ntex , nunitc , nveg ,        &
-                & plat , plon , ptop , sanda , sandb , snowam , texout ,&
-                & truelath , truelatl , xlat , xlon , xmap , lcoarse ,  &
-                & sigma , iunc
+      intent (in) aertyp , clat , clon , coriol , dattyp , dlat , dlon ,&
+                & dmap , dsinm , filout , frac_tex , grdfac ,           &
+                & htgrid , htsdgrid , ibigend , igrads , iproj , iy ,   &
+                & jx , kz , lndout , nsg , ntex , nunitc , plat , plon ,&
+                & ptop , snowam , texout , truelath , truelatl , xlat , &
+                & xlon , xmap , lcoarse , sigma , iunc
       intent (inout) mask
 !
 ! Local variables
@@ -162,10 +156,7 @@
 
       do i = 1 , iy
         do j = 1 , jx
-          if ( (lsmtyp=='BATS' .and.                                    &
-             &  (lndout(i,j)>20. .or. lndout(i,j)<0.)) .or.             &
-             & (lsmtyp=='USGS' .and.                                    &
-             &  (lndout(i,j)>25. .or. lndout(i,j)<0.)) ) then
+          if ( ((lndout(i,j)>20. .or. lndout(i,j)<0.)) ) then
             print * , i , j , lndout(i,j)
             stop 999
           end if
@@ -202,46 +193,19 @@
       write (nunitc,rec=12) ((snowam(i,j),j=1,jx),i=1,iy)
       do i = 1 , iy
         do j = 1 , jx
-          if ( lsmtyp=='BATS' ) then
-            if ( lndout(i,j)>13.5 .and. lndout(i,j)<15.5 ) then
-              mask(i,j) = 0.0
-            else
-              mask(i,j) = 2.0
-            end if
-          else if ( lsmtyp=='USGS' ) then
-            if ( lndout(i,j)>24.5 ) then
-              mask(i,j) = 0.0
-            else
-              mask(i,j) = 2.0
-            end if
+          if ( lndout(i,j)>13.5 .and. lndout(i,j)<15.5 ) then
+            mask(i,j) = 0.0
           else
+            mask(i,j) = 2.0
           end if
         end do
       end do
       write (nunitc,rec=13) ((mask(i,j),j=1,jx),i=1,iy)
-      if ( lsmtyp=='USGS' ) then
-        write (nunitc,rec=14) ((sanda(i,j),j=1,jx),i=1,iy)
-        write (nunitc,rec=15) ((sandb(i,j),j=1,jx),i=1,iy)
-        write (nunitc,rec=16) ((claya(i,j),j=1,jx),i=1,iy)
-        write (nunitc,rec=17) ((clayb(i,j),j=1,jx),i=1,iy)
-        do k = 1 , nveg
-          write (nunitc,rec=17+k) ((frac_lnd(i,j,k),j=1,jx),i=1,iy)
-        end do
-      end if
       if ( aertyp(7:7)=='1' ) then
-        if ( lsmtyp=='BATS' ) then
-          write (nunitc,rec=14) ((texout(i,j),j=1,jx),i=1,iy)
-          do k = 1 , ntex
-            write (nunitc,rec=14+k) ((frac_tex(i,j,k),j=1,jx),i=1,iy)
-          end do
-        else if ( lsmtyp=='USGS' ) then
-          write (nunitc,rec=18+nveg) ((texout(i,j),j=1,jx),i=1,iy)
-          do k = 1 , ntex
-            write (nunitc,rec=18+nveg+k)                                &
-                 & ((frac_tex(i,j,k),j=1,jx),i=1,iy)
-          end do
-        else
-        end if
+        write (nunitc,rec=14) ((texout(i,j),j=1,jx),i=1,iy)
+        do k = 1 , ntex
+          write (nunitc,rec=14+k) ((frac_tex(i,j,k),j=1,jx),i=1,iy)
+        end do
       end if
       close (nunitc)
  
@@ -324,19 +288,10 @@
         end if
         write (iunc,99018) 1 , 1000.
         write (iunc,99019) 1
-        if ( lsmtyp=='BATS' ) then
-          if ( aertyp(7:7)=='1' ) then
-            write (iunc,99020) 13 + ntex + 1
-          else
-            write (iunc,99020) 13
-          end if
-        else if ( lsmtyp=='USGS' ) then
-          if ( aertyp(7:7)=='1' ) then
-            write (iunc,99020) 42 + ntex + 1
-          else
-            write (iunc,99020) 42
-          end if
+        if ( aertyp(7:7)=='1' ) then
+          write (iunc,99020) 13 + ntex + 1
         else
+          write (iunc,99020) 13
         end if
         write (iunc,99021) 'head    ' , 'header information         '
         write (iunc,99021) 'ht      ' , 'surface elevation          '
@@ -351,37 +306,6 @@
         write (iunc,99021) 'coriol  ' , 'coriol force               '
         write (iunc,99021) 'snowam  ' , 'initial snow amount        '
         write (iunc,99021) 'mask    ' , 'land/sea mask              '
-        if ( lsmtyp=='USGS' ) then
-          write (iunc,99021) 'sanda   ' , 'sand percentage (0-30cm)   '
-          write (iunc,99021) 'sandb   ' , 'sand percentage (30-100cm) '
-          write (iunc,99021) 'claya   ' , 'clay percentage (0-30cm)   '
-          write (iunc,99021) 'clayb   ' , 'clay percentage (30-100cm) '
-          write (iunc,99021) 'per1    ' , 'percentage landuse type 1  '
-          write (iunc,99021) 'per2    ' , 'percentage landuse type 2  '
-          write (iunc,99021) 'per3    ' , 'percentage landuse type 3  '
-          write (iunc,99021) 'per4    ' , 'percentage landuse type 4  '
-          write (iunc,99021) 'per5    ' , 'percentage landuse type 5  '
-          write (iunc,99021) 'per6    ' , 'percentage landuse type 6  '
-          write (iunc,99021) 'per7    ' , 'percentage landuse type 7  '
-          write (iunc,99021) 'per8    ' , 'percentage landuse type 8  '
-          write (iunc,99021) 'per9    ' , 'percentage landuse type 9  '
-          write (iunc,99021) 'per10   ' , 'percentage landuse type 10 '
-          write (iunc,99021) 'per11   ' , 'percentage landuse type 11 '
-          write (iunc,99021) 'per12   ' , 'percentage landuse type 12 '
-          write (iunc,99021) 'per13   ' , 'percentage landuse type 13 '
-          write (iunc,99021) 'per14   ' , 'percentage landuse type 14 '
-          write (iunc,99021) 'per15   ' , 'percentage landuse type 15 '
-          write (iunc,99021) 'per16   ' , 'percentage landuse type 16 '
-          write (iunc,99021) 'per17   ' , 'percentage landuse type 17 '
-          write (iunc,99021) 'per18   ' , 'percentage landuse type 18 '
-          write (iunc,99021) 'per19   ' , 'percentage landuse type 19 '
-          write (iunc,99021) 'per20   ' , 'percentage landuse type 20 '
-          write (iunc,99021) 'per21   ' , 'percentage landuse type 21 '
-          write (iunc,99021) 'per22   ' , 'percentage landuse type 22 '
-          write (iunc,99021) 'per23   ' , 'percentage landuse type 23 '
-          write (iunc,99021) 'per24   ' , 'percentage landuse type 24 '
-          write (iunc,99021) 'per25   ' , 'percentage landuse type 24 '
-        end if
         if ( aertyp(7:7)=='1' ) then
           write (iunc,99021) 'texture ' , 'soil texture               '
           write (iunc,99021) 'text01  ' , 'Sand              frac.    '

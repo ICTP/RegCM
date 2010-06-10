@@ -276,15 +276,9 @@
               print * , ndate0 , mdatez(nnnchk) , nnnchk
               print * , 'read in datasets at :' , ndate0
               if ( ehso4 ) then
-                if ( lsmtyp.ne.'USGS' ) then
-                  mmrec = mmrec + kz*5 + 2
-                else
-                  mmrec = mmrec + kz*5 + 2 + 13
-                end if
-              else if ( lsmtyp.ne.'USGS' ) then
-                mmrec = mmrec + kz*4 + 2
+                mmrec = mmrec + kz*5 + 2
               else
-                mmrec = mmrec + kz*4 + 2 + 13
+                mmrec = mmrec + kz*4 + 2
               end if
               print * , 'Searching for proper date: ' , ndate1 ,        &
                   & mdatez(nnnchk+1)
@@ -370,7 +364,6 @@
               end do
             end do
           end if
-          if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
 
           do j = 1 , jx
             do k = 1 , kz
@@ -619,15 +612,9 @@
             print * , ndate0 , mdatez(nnnchk) , nnnchk
             print * , 'read in datasets at :' , ndate0
             if ( ehso4 ) then
-              if ( lsmtyp.ne.'USGS' ) then
-                mmrec = mmrec + kz*5 + 2
-              else
-                mmrec = mmrec + kz*5 + 2 + 13
-              end if
-            else if ( lsmtyp.ne.'USGS' ) then
-              mmrec = mmrec + kz*4 + 2
+              mmrec = mmrec + kz*5 + 2
             else
-              mmrec = mmrec + kz*4 + 2 + 13
+              mmrec = mmrec + kz*4 + 2
             end if
             print * , 'Searching for proper date: ' , ndate1 ,          &
                 & mdatez(nnnchk+1)
@@ -711,7 +698,6 @@
             end do
           end do
         end if
-        if ( lsmtyp.eq.'USGS' ) mmrec = mmrec + 13
 !
 !       Convert surface pressure to pstar
 !

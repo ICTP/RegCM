@@ -61,9 +61,6 @@
  dirglob = '/lustre/fsolmon/regcm/branches/regcm4/Input',
  inpglob = '/scratch/esp/RCM3DATA',
  /
- &lsmparam
- lsmtyp = 'BATS',
- /
  &aerosolparam
  aertyp = 'AER00D1'
  ntr = 4,

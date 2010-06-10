@@ -22,8 +22,8 @@
       contains
 
       subroutine surf(xlat,xlon,lnduse,iy,jx,incr,dsgrid,lndout,land,   &
-                    & nrec,h2opct,lsmtyp,sanda,sandb,claya,clayb,       &
-                    & frac_lnd,nveg,aertyp,intext,texout,frac_tex,ntex)
+                    & nrec,h2opct,nveg,aertyp,intext,texout,frac_tex,   &
+                    & ntex)
       use mod_block
       use mod_interp , only : bint
       implicit none
@@ -33,17 +33,13 @@
       character(7) :: aertyp
       real(4) :: dsgrid , h2opct
       integer :: incr , iy , jx , nrec , ntex , nveg
-      character(4) :: lsmtyp
-      real(4) , dimension(iy,jx) :: claya , clayb , lndout , sanda ,    &
-                                  & sandb , texout , xlat , xlon
-      real(4) , dimension(iy,jx,nveg) :: frac_lnd
+      real(4) , dimension(iy,jx) :: lndout , texout , xlat , xlon
       real(4) , dimension(iy,jx,ntex) :: frac_tex
       integer , dimension(iy,jx) :: intext , lnduse
       real(4) , dimension(iy,jx,2) :: land
       intent (in) aertyp , dsgrid , h2opct , incr , &
-                & iy , jx , lsmtyp , nrec , ntex , nveg , xlat
-      intent (out) claya , clayb , frac_lnd , frac_tex , intext ,       &
-                 & lnduse , sanda , sandb
+                & iy , jx , nrec , ntex , nveg , xlat
+      intent (out) frac_tex , intext , lnduse
       intent (inout) land , lndout , texout , xlon
 !
 ! Local variables
@@ -73,17 +69,9 @@
       end do
 !
       if ( aertyp(7:7)=='1' ) then
-        if ( lsmtyp=='BATS' ) then
-          lengdo = nveg + ntex
-        else if ( lsmtyp=='USGS' ) then
-          lengdo = nveg + 4 + ntex
-        else
-        end if
-      else if ( lsmtyp=='BATS' ) then
-        lengdo = nveg
-      else if ( lsmtyp=='USGS' ) then
-        lengdo = nveg + 4
+        lengdo = nveg + ntex
       else
+        lengdo = nveg
       end if
       do ilev = 1 , lengdo
         rewind (48)
@@ -107,17 +95,14 @@
                  & = xlon(ii,jj) - 360.
               xx = -(grdlnmn-xlon(ii,jj))/dsgrid + 1.0
               lndout(ii,jj) = bint(yy,xx,lnd8,iter,jter,flag)
-              frac_lnd(ii,jj,ilev) = lndout(ii,jj)
 !
 !             note: it is desirable to force grid boxes with less
 !             than 75 percent water to be a land category,
 !             even if water is the largest single category.
 !
-              if ( .not.(lsmtyp=='BATS' .and. (ilev==14 .or. ilev==15)  &
-                 & .and. lndout(ii,jj)<h2opct) ) then
-                if ( lsmtyp/='USGS' .or. ilev/=25 .or. lndout(ii,jj)    &
-                   & >=h2opct ) then
- 
+              if ( .not.((ilev==14 .or. ilev==15) .and.                 &
+                     &    lndout(ii,jj)<h2opct) ) then
+                if ( ilev/=25 .or. lndout(ii,jj) >=h2opct ) then
                   if ( lndout(ii,jj)>land(ii,jj,1) ) then
                     land(ii,jj,1) = lndout(ii,jj)
                     land(ii,jj,2) = ilev
@@ -126,15 +111,8 @@
               end if
             end do
           end do
-        else if ( ((lsmtyp=='USGS' .and. ilev>nveg+4) .or.              &
-                 &(lsmtyp=='BATS' .and. ilev>nveg)) .and. aertyp(7:7)   &
-                 &=='1' ) then
-          if ( lsmtyp=='BATS' ) then
-            nbase = nveg
-          else if ( lsmtyp=='USGS' ) then
-            nbase = nveg + 4
-          else
-          end if
+        else if ( ilev>nveg .and. aertyp(7:7) == '1' ) then
+          nbase = nveg
           do ii = 1 , iy
             do jj = 1 , jx
               yy = -(grdltmn-xlat(ii,jj))/dsgrid + 1.0
@@ -148,43 +126,16 @@
 !             than 75 percent water to be a land category,
 !             even if water is the largest single category.
 !
-              if ( lsmtyp/='BATS' .or. ilev/=nveg+14 .or. texout(ii,jj) &
-                 & >=h2opct ) then
-                if ( lsmtyp/='USGS' .or. ilev/=nveg+18 .or.             &
-                   & texout(ii,jj)>=h2opct ) then
+              if ( ilev/=nveg+14 .or. texout(ii,jj) >=h2opct ) then
+                if ( ilev/=nveg+18 .or. texout(ii,jj)>=h2opct ) then
                   if ( texout(ii,jj)>itex(ii,jj,1) ) then
                     itex(ii,jj,1) = texout(ii,jj)
-                    if ( lsmtyp=='BATS' ) then
-                      itex(ii,jj,2) = ilev - nbase
-                    else if ( lsmtyp=='USGS' ) then
-                      itex(ii,jj,2) = ilev - nbase
-                    else
-                    end if
+                    itex(ii,jj,2) = ilev - nbase
                   end if
                 end if
               end if
             end do
           end do
-        else if ( lsmtyp=='USGS' ) then
-          do ii = 1 , iy
-            do jj = 1 , jx
-              yy = -(grdltmn-xlat(ii,jj))/dsgrid + 1.0
-              if ( grdlnmn<=-180.0 .and. xlon(ii,jj)>0.0 ) xlon(ii,jj)  &
-                 & = xlon(ii,jj) - 360.
-              xx = -(grdlnmn-xlon(ii,jj))/dsgrid + 1.0
-              if ( ilev==nveg+1 ) then
-                sanda(ii,jj) = bint(yy,xx,lnd8,iter,jter,flag)
-              else if ( ilev==nveg+2 ) then
-                sandb(ii,jj) = bint(yy,xx,lnd8,iter,jter,flag)
-              else if ( ilev==nveg+3 ) then
-                claya(ii,jj) = bint(yy,xx,lnd8,iter,jter,flag)
-              else if ( ilev==nveg+4 ) then
-                clayb(ii,jj) = bint(yy,xx,lnd8,iter,jter,flag)
-              else
-              end if
-            end do
-          end do
-        else
         end if
       end do
 !

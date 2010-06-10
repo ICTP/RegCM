@@ -253,10 +253,10 @@
 !
 !       read in the terrain & landuse data
         if ( itype_in==1 ) then
-          call rdldtr(inpter,ntypec_s,nveg,ntex,lsmtyp,aertyp,ibyte)
+          call rdldtr(inpter,ntypec_s,nveg,ntex,aertyp,ibyte)
           print * , 'after calling RDLDTR_s, for subgrid'
         else if ( itype_in==2 ) then
-          call rdldtr_nc(inpter,ntypec_s,nveg,ntex,lsmtyp,aertyp)
+          call rdldtr_nc(inpter,ntypec_s,nveg,ntex,aertyp)
           print * , 'after calling RDLDTR_nc, for subgrid'
         else
           print * , 'Unknown Itype for input'
@@ -290,17 +290,15 @@
 !         print*, '  underestimated using INTERP. (I dont know why?)'
         end if
 !       create surface landuse types
-        call surf(xlat_s,xlon_s,lnduse_s,iysg,jxsg,nnc,       &
-                & xnc,lndout_s,land_s,nobs,h2opct, &
-                & lsmtyp,sanda_s,sandb_s,claya_s,clayb_s,frac_lnd_s,    &
-                & nveg,aertyp,intext_s,texout_s,frac_tex_s,ntex)
+        call surf(xlat_s,xlon_s,lnduse_s,iysg,jxsg,nnc,xnc,lndout_s,    &
+                & land_s,nobs,h2opct,nveg,aertyp,intext_s,texout_s,     &
+                & frac_tex_s,ntex)
         print * , 'after calling SURF, for subgrid'
 !       **** Adjust the Great Lake Heights to their actual values.
         if ( lakadj ) then
           print * ,                                                     &
                &'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
-          call lakeadj(lsmtyp,lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,     &
-                     & jxsg)
+          call lakeadj(lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,jxsg)
           print * , 'after calling LAKEADJ, for subgrid'
         end if
         call smth121(htgrid_s,iysg,jxsg,hscr1_s)
@@ -310,8 +308,7 @@
         if ( lakadj ) then
           print * ,                                                     &
                &'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
-          call lakeadj(lsmtyp,lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,     &
-                     & jxsg)
+          call lakeadj(lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,jxsg)
           print * , 'after calling LAKEADJ, for subgrid'
         end if
         ibndry = .true.
@@ -324,20 +321,6 @@
             lndout_s(1,j) = lndout_s(2,j)
             lndout_s(iysg,j) = lndout_s(iysg-1,j)
  
-            if ( lsmtyp=='USGS' ) then
-              sanda_s(1,j) = sanda_s(2,j)
-              sanda_s(iysg,j) = sanda_s(iysg-1,j)
-              sandb_s(1,j) = sandb_s(2,j)
-              sandb_s(iysg,j) = sandb_s(iysg-1,j)
-              claya_s(1,j) = claya_s(2,j)
-              claya_s(iysg,j) = claya_s(iysg-1,j)
-              clayb_s(1,j) = clayb_s(2,j)
-              clayb_s(iysg,j) = clayb_s(iysg-1,j)
-              do k = 1 , nveg
-                frac_lnd_s(1,j,k) = frac_lnd_s(2,j,k)
-                frac_lnd_s(iysg,j,k) = frac_lnd_s(iysg-1,j,k)
-              end do
-            end if
             if ( aertyp(7:7)=='1' ) then
               intext_s(1,j) = intext_s(2,j)
               intext_s(iysg,j) = intext_s(iysg-1,j)
@@ -357,20 +340,6 @@
             lndout_s(i,1) = lndout_s(i,2)
             lndout_s(i,jxsg) = lndout_s(i,jxsg-1)
  
-            if ( lsmtyp=='USGS' ) then
-              sanda_s(i,1) = sanda_s(i,2)
-              sanda_s(i,jxsg) = sanda_s(i,jxsg-1)
-              sandb_s(i,1) = sandb_s(i,2)
-              sandb_s(i,jxsg) = sandb_s(i,jxsg-1)
-              claya_s(i,1) = claya_s(i,2)
-              claya_s(i,jxsg) = claya_s(i,jxsg-1)
-              clayb_s(i,1) = clayb_s(i,2)
-              clayb_s(i,jxsg) = clayb_s(i,jxsg-1)
-              do k = 1 , nveg
-                frac_lnd_s(i,1,k) = frac_lnd_s(i,2,k)
-                frac_lnd_s(i,jxsg,k) = frac_lnd_s(i,jxsg-1,k)
-              end do
-            end if
             if ( aertyp(7:7)=='1' ) then
               intext_s(i,1) = intext_s(i,2)
               intext_s(i,jxsg) = intext_s(i,jxsg-1)
@@ -394,7 +363,7 @@
         write (char_tex,99003) trim(dirter), pthsep, trim(domname),     &
            &   'TEXTURE_' , nsg
         call lndfudge(fudge_lnd_s,ch_s,lndout_s,htgrid_s,iysg,jxsg,     &
-                    & lsmtyp,trim(char_lnd))
+                    & trim(char_lnd))
         if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex_s,ch_s,texout_s,&
            & htgrid_s,iysg,jxsg,trim(char_tex))
         print * , 'after calling FUDGE, for subgrid'
@@ -459,10 +428,10 @@
 !
 !     read in the terrain & landuse data
       if ( itype_in==1 ) then
-        call rdldtr(inpter,ntypec,nveg,ntex,lsmtyp,aertyp,ibyte)
+        call rdldtr(inpter,ntypec,nveg,ntex,aertyp,ibyte)
         print * , 'after calling RDLDTR'
       else if (itype_in==2 ) then
-        call rdldtr_nc(inpter,ntypec,nveg,ntex,lsmtyp,aertyp)
+        call rdldtr_nc(inpter,ntypec,nveg,ntex,aertyp)
         print * , 'after calling RDLDTR_nc'
       else
       endif
@@ -498,16 +467,14 @@
  
  
 !     create surface landuse types
-      call surf(xlat,xlon,lnduse,iy,jx,nnc,xnc,lndout,land,   &
-              & nobs,h2opct,lsmtyp,sanda,sandb,    &
-              & claya,clayb,frac_lnd,nveg,aertyp,intext,texout,frac_tex,&
-              & ntex)
+      call surf(xlat,xlon,lnduse,iy,jx,nnc,xnc,lndout,land,nobs,h2opct, &
+             & nveg,aertyp,intext,texout,frac_tex,ntex)
       print * , 'after calling SURF'
  
 !     **** Adjust the Great Lake Heights to their actual values.
       if ( lakadj ) then
         print * , 'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
-        call lakeadj(lsmtyp,lnduse,htgrid,xlat,xlon,iy,jx)
+        call lakeadj(lnduse,htgrid,xlat,xlon,iy,jx)
         print * , 'after calling LAKEADJ'
       end if
  
@@ -521,7 +488,7 @@
 !     **** Readjust the Great Lake Heights to their actual values again.
       if ( lakadj ) then
         print * , 'CALLING LAKEADJ FOR THE SECOND TIME (after 2dx pass)'
-        call lakeadj(lsmtyp,lnduse,htgrid,xlat,xlon,iy,jx)
+        call lakeadj(lnduse,htgrid,xlat,xlon,iy,jx)
       end if
  
       ibndry = .true.
@@ -534,20 +501,6 @@
           lndout(1,j) = lndout(2,j)
           lndout(iy,j) = lndout(iy-1,j)
  
-          if ( lsmtyp=='USGS' ) then
-            sanda(1,j) = sanda(2,j)
-            sanda(iy,j) = sanda(iy-1,j)
-            sandb(1,j) = sandb(2,j)
-            sandb(iy,j) = sandb(iy-1,j)
-            claya(1,j) = claya(2,j)
-            claya(iy,j) = claya(iy-1,j)
-            clayb(1,j) = clayb(2,j)
-            clayb(iy,j) = clayb(iy-1,j)
-            do k = 1 , nveg
-              frac_lnd(1,j,k) = frac_lnd(2,j,k)
-              frac_lnd(iy,j,k) = frac_lnd(iy-1,j,k)
-            end do
-          end if
           if ( aertyp(7:7)=='1' ) then
             intext(1,j) = intext(2,j)
             intext(iy,j) = intext(iy-1,j)
@@ -567,20 +520,6 @@
           lndout(i,1) = lndout(i,2)
           lndout(i,jx) = lndout(i,jx-1)
  
-          if ( lsmtyp=='USGS' ) then
-            sanda(i,1) = sanda(i,2)
-            sanda(i,jx) = sanda(i,jx-1)
-            sandb(i,1) = sandb(i,2)
-            sandb(i,jx) = sandb(i,jx-1)
-            claya(i,1) = claya(i,2)
-            claya(i,jx) = claya(i,jx-1)
-            clayb(i,1) = clayb(i,2)
-            clayb(i,jx) = clayb(i,jx-1)
-            do k = 1 , nveg
-              frac_lnd(i,1,k) = frac_lnd(i,2,k)
-              frac_lnd(i,jx,k) = frac_lnd(i,jx-1,k)
-            end do
-          end if
           if ( aertyp(7:7)=='1' ) then
             intext(i,1) = intext(i,2)
             intext(i,jx) = intext(i,jx-1)
@@ -604,8 +543,7 @@
            &   '_LANDUSE'
       write (char_tex,99004) trim(dirter), pthsep, trim(domname),       &
            &   '_TEXTURE'
-      call lndfudge(fudge_lnd,ch,lndout,htgrid,iy,jx,lsmtyp,            &
-         & trim(char_lnd))
+      call lndfudge(fudge_lnd,ch,lndout,htgrid,iy,jx,trim(char_lnd))
       if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex,ch,texout,htgrid, &
          & iy,jx,trim(char_tex))
       print * , 'after calling FUDGE'
@@ -622,18 +560,10 @@
             htave = 0.0
             do m = 1 , nsg
               do n = 1 , nsg
-                if ( lsmtyp=='BATS' ) then
-                  if ( htgrid(i,j)<0.1 .and.                            &
-                     & (lndout(i,j)>14.5 .and. lndout(i,j)<15.5) ) then
-                    htgrid_s(i0+m,j0+n) = 0.0
-                    lndout_s(i0+m,j0+n) = 15.
-                  end if
-                else if ( lsmtyp=='USGS' ) then
-                  if ( htgrid(i,j)<0.1 .and. lndout(i,j)>24.5 ) then
-                    htgrid_s(i0+m,j0+n) = 0.0
-                    lndout_s(i0+m,j0+n) = 25.
-                  end if
-                else
+                if ( htgrid(i,j)<0.1 .and.(lndout(i,j)>14.5 .and.       &
+                   & lndout(i,j)<15.5) ) then
+                  htgrid_s(i0+m,j0+n) = 0.0
+                  lndout_s(i0+m,j0+n) = 15.
                 end if
                 htave = htave + htgrid_s(i0+m,j0+n)
               end do
@@ -651,8 +581,7 @@
                   & plat,plon,iproj,htgrid_s,htsdgrid_s,lndout_s,       &
                   & xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,dattyp,dmap_s,   &
                   & coriol_s,snowam_s,igrads,ibigend,kz,sigma,mask_s,   &
-                  & ptop,nsg,truelatl,truelath,xn,domname,lsmtyp,       &
-                  & sanda_s,sandb_s,claya_s,clayb_s,frac_lnd_s,nveg,    &
+                  & ptop,nsg,truelatl,truelath,xn,domname,              &
                   & aertyp,texout_s,frac_tex_s,ntex,.false.)
         print * , 'after calling OUTPUT, for subgrid'
         call free_subgrid
@@ -662,8 +591,7 @@
                 & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,xmap,      &
                 & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
                 & mask,ptop,nsg,truelatl,truelath,xn,domname,           &
-                & lsmtyp,sanda,sandb,claya,clayb,frac_lnd,nveg,aertyp,  &
-                & texout,frac_tex,ntex,.true.)
+                & aertyp,texout,frac_tex,ntex,.true.)
       print * , 'after calling OUTPUT'
       call free_grid
 

@@ -76,15 +76,13 @@
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-      call era6hour(dattyp,lsmtyp,idate,globidate1)
+      call era6hour(dattyp,idate,globidate1)
       write (*,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
       call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
       call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
-      if ( lsmtyp=='USGS' ) call bilinx2(s3,s2,xlon,xlat,glon,glat,ilon,&
-                                      & jlat,jx,iy,4*3+1)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
@@ -151,11 +149,11 @@
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
-      call writefs(qs3,ti3,ts3,snow,ptop,idate,lsmtyp)
+      call writef2(ptop,idate)
 !
       end subroutine getera40
 
-      subroutine era6hour(dattyp,lsmtyp,idate,idate0)
+      subroutine era6hour(dattyp,idate,idate0)
       use netcdf
       implicit none
 !
@@ -163,13 +161,12 @@
 !
       character(5) :: dattyp
       integer :: idate , idate0
-      character(4) :: lsmtyp
-      intent (in) dattyp , idate , idate0 , lsmtyp
+      intent (in) dattyp , idate , idate0
 !
 ! Local variables
 !
-      integer :: i , inet , it , j , k , k4 , kkrec , l4 , month ,      &
-               & nday , nhour , nyear , istatus
+      integer :: i , inet , it , j , k , k4 , kkrec , month , nday ,    &
+              &  nhour , nyear , istatus
       character(24) :: inname
       character(256) :: pathaddname
 !     character(5) , dimension(3,4) :: sarname
@@ -177,16 +174,11 @@
       logical :: there
 !     character(5) , dimension(6) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
-      integer(2) , dimension(ilon,jlat) :: work2d
       real(8) :: xadd , xscale
 
       integer , dimension(10) , save :: icount , istart
       real(8) , dimension(5,4) , save :: xoff , xscl
-      real(8) , dimension(3,4,4) , save :: xoff_s , xscl_s
-      real(8) , dimension(4) , save :: xoff_sn , xscl_sn
       integer , dimension(5,4) , save :: inet6
-      integer , dimension(3,4,4) , save :: isnet3
-      integer , dimension(4) , save :: isnow
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -323,116 +315,6 @@
           end do
         end do
  
-        if ( lsmtyp=='USGS' ) then
-          do k4 = 1 , 4
-            do l4 = 1 , 4
-              do kkrec = 1 , 3
-                if ( kkrec==1 ) then
-                  if ( k4==1 ) then
-                    write (inname,99013) 'Qsoil_' , l4
-                  else if ( k4==2 ) then
-                    write (inname,99014) 'Qsoil_' , l4
-                  else if ( k4==3 ) then
-                    write (inname,99015) 'Qsoil_' , l4
-                  else if ( k4==4 ) then
-                    write (inname,99016) 'Qsoil_' , l4
-                  else
-                  end if
-                else if ( kkrec==2 ) then
-                  if ( k4==1 ) then
-                    write (inname,99017) 'Tice_' , l4
-                  else if ( k4==2 ) then
-                    write (inname,99018) 'Tice_' , l4
-                  else if ( k4==3 ) then
-                    write (inname,99019) 'Tice_' , l4
-                  else if ( k4==4 ) then
-                    write (inname,99020) 'Tice_' , l4
-                  else
-                  end if
-                else if ( kkrec==3 ) then
-                  if ( k4==1 ) then
-                    write (inname,99013) 'Tsoil_' , l4
-                  else if ( k4==2 ) then
-                    write (inname,99014) 'Tsoil_' , l4
-                  else if ( k4==3 ) then
-                    write (inname,99015) 'Tsoil_' , l4
-                  else if ( k4==4 ) then
-                    write (inname,99016) 'Tsoil_' , l4
-                  else
-                  end if
-                else
-                end if
- 
-                pathaddname = trim(inpglob)//dattyp//'/0surface/'//     &
-                            & inname
-                inquire (file=pathaddname,exist=there)
-                if ( .not.there ) then
-                  print * , trim(pathaddname) , ' is not available'
-                  stop
-                end if
-                istatus = nf90_open(pathaddname,nf90_nowrite,           &
-                       & isnet3(kkrec,l4,k4))
-                if ( istatus/=nf90_noerr ) then
-                  write ( 6,* ) 'Cannot open input file ',              &
-                         &      trim(pathaddname)
-                  stop 'INPUT FILE OPEN ERROR'
-                end if
-                istatus = nf90_get_att(isnet3(kkrec,l4,k4),4,           &
-                        &'scale_factor',xscl_s(kkrec,l4,k4))
-                if ( istatus/=nf90_noerr ) then
-                  write ( 6,* ) 'Variable has not scale_factor'
-                  stop 'ATTRIBUTE ERROR'
-                end if
-                istatus = nf90_get_att(isnet3(kkrec,l4,k4),4,           &
-                        &'add_offset',xoff_s(kkrec,l4,k4))
-                if ( istatus/=nf90_noerr ) then
-                  write ( 6,* ) 'Variable has not add_offset'
-                  stop 'ATTRIBUTE ERROR'
-                end if
-                write (*,*) isnet3(kkrec,l4,k4) , trim(pathaddname) ,   &
-                          & xscl_s(kkrec,l4,k4) , xoff_s(kkrec,l4,k4)
-              end do
-            end do
- 
-            if ( k4==1 ) then
-              write (inname,99021) 'snowdpth'
-            else if ( k4==2 ) then
-              write (inname,99022) 'snowdpth'
-            else if ( k4==3 ) then
-              write (inname,99023) 'snowdpth'
-            else if ( k4==4 ) then
-              write (inname,99024) 'snowdpth'
-            else
-            end if
-            pathaddname = trim(inpglob)//dattyp//'/0surface/'//inname
-            inquire (file=pathaddname,exist=there)
-            if ( .not.there ) then
-              print * , pathaddname , ' is not available'
-              stop
-            end if
-            istatus = nf90_open(pathaddname,nf90_nowrite,isnow(k4))
-            if ( istatus/=nf90_noerr ) then
-              write ( 6,* ) 'Cannot open input file ',              &
-                      &      trim(pathaddname)
-              stop 'INPUT FILE OPEN ERROR'
-            end if
-            istatus = nf90_get_att(isnow(k4),4,'scale_factor',          &
-                   & xscl_sn(k4))
-            if ( istatus/=nf90_noerr ) then
-              write ( 6,* ) 'Variable has not scale_factor'
-              stop 'ATTRIBUTE ERROR'
-            end if
-            istatus = nf90_get_att(isnow(k4),4,'add_offset',            &
-                   & xoff_sn(k4))
-            if ( istatus/=nf90_noerr ) then
-              write ( 6,* ) 'Variable has not scale_factor'
-              stop 'ATTRIBUTE ERROR'
-            end if
-            write (*,*) isnow(k4) , trim(pathaddname) ,                 &
-                     &  xscl_sn(k4) , xoff_sn(k4)
- 
-          end do
-        end if
       end if
  
       k4 = nhour/6 + 1
@@ -535,87 +417,6 @@
         end if
       end do
  
-      if ( lsmtyp=='USGS' ) then
-        k4 = nhour/6 + 1
-        it = nday
-        if ( month==2 ) it = it + 31
-        if ( month==3 ) it = it + 59
-        if ( month==4 ) it = it + 90
-        if ( month==5 ) it = it + 120
-        if ( month==6 ) it = it + 151
-        if ( month==7 ) it = it + 181
-        if ( month==8 ) it = it + 212
-        if ( month==9 ) it = it + 243
-        if ( month==10 ) it = it + 273
-        if ( month==11 ) it = it + 304
-        if ( month==12 ) it = it + 334
-        if ( mod(nyear,4)==0 .and. month>2 ) it = it + 1
-        if ( mod(nyear,100)==0 .and. month>2 ) it = it - 1
-        if ( mod(nyear,400)==0 .and. month>2 ) it = it + 1
-        do k = 1957 , nyear - 1
-          it = it + 365
-          if ( mod(k,4)==0 ) it = it + 1
-        end do
-        it = it - 243
- 
-        do k = 1 , 3
-          istart(k) = 1
-        end do
-        do k = 4 , 10
-          istart(k) = 0
-          icount(k) = 0
-        end do
-        icount(1) = ilon
-        icount(2) = jlat
-        istart(3) = it
-        icount(3) = 1
-!bxq_
-        do l4 = 1 , 4
-          do kkrec = 1 , 3
-            inet = isnet3(kkrec,l4,k4)
-            istatus = nf90_get_var(inet,4,work2d,istart,icount)
-            if ( istatus/=nf90_noerr ) then
-              write ( 6,* ) 'Read Variable error at ', istart 
-              stop 'NetCDF READ ERROR'
-            end if
-            xscale = xscl_s(kkrec,l4,k4)
-            xadd = xoff_s(kkrec,l4,k4)
-            if ( kkrec==1 ) then
-              do j = 1 , jlat
-                do i = 1 , ilon
-                  qsoil(i,jlat+1-j,l4) = work2d(i,j)*xscale + xadd
-                end do
-              end do
-            else if ( kkrec==2 ) then
-              do j = 1 , jlat
-                do i = 1 , ilon
-                  tsice(i,jlat+1-j,l4) = work2d(i,j)*xscale + xadd
-                end do
-              end do
-            else if ( kkrec==3 ) then
-              do j = 1 , jlat
-                do i = 1 , ilon
-                  tsoil(i,jlat+1-j,l4) = work2d(i,j)*xscale + xadd
-                end do
-              end do
-            else
-            end if
-          end do
-        end do
-        inet = isnow(k4)
-        istatus = nf90_get_var(inet,4,work2d,istart,icount)
-        if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Read Variable error at ', istart 
-          stop 'NetCDF READ ERROR'
-        end if
-        xscale = xscl_sn(k4)
-        xadd = xoff_sn(k4)
-        do j = 1 , jlat
-          do i = 1 , ilon
-            snw(i,jlat+1-j) = work2d(i,j)*xscale + xadd
-          end do
-        end do
-      end if
 99001 format (i4,'/',a4,i4,'.00.nc')
 99002 format (i4,'/',a4,i4,'.06.nc')
 99003 format (i4,'/',a4,i4,'.12.nc')
@@ -628,18 +429,6 @@
 99010 format (i4,'/',a6,i4,'.06.nc')
 99011 format (i4,'/',a6,i4,'.12.nc')
 99012 format (i4,'/',a6,i4,'.18.nc')
-99013 format (a6,i1,'L.00.nc')
-99014 format (a6,i1,'L.06.nc')
-99015 format (a6,i1,'L.12.nc')
-99016 format (a6,i1,'L.18.nc')
-99017 format (a5,i1,'L.00.nc')
-99018 format (a5,i1,'L.06.nc')
-99019 format (a5,i1,'L.12.nc')
-99020 format (a5,i1,'L.18.nc')
-99021 format (a8,'.00.nc')
-99022 format (a8,'.06.nc')
-99023 format (a8,'.12.nc')
-99024 format (a8,'.18.nc')
 !
       end subroutine era6hour
 

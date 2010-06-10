@@ -61,9 +61,6 @@
  dirglob = '/set/this/to/where/your/icbc/for/model/is',
  inpglob = '/set/this/to/where/your/input/global/data/is',
  /
- &lsmparam
- lsmtyp = 'BATS',
- /
  &aerosolparam
  aertyp = 'AER00D0'
  ntr = 10,

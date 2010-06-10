@@ -317,12 +317,7 @@
 #else
       if ( myid.eq.0 ) then
         if ( rd_tex ) then
-          if ( lsmtyp.eq.'BATS' ) then
-            read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,iy)
-          else if ( lsmtyp.eq.'USGS' ) then
-            read (iutin,rec=43) ((toto(i,j),j=1,jx),i=1,iy)
-          else
-          end if
+          read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,iy)
           close (iutin)
           do j = 1 , jx
             do i = 1 , iy
@@ -338,12 +333,7 @@
                      & mpi_comm_world,ierr)
 #else
       if ( rd_tex ) then
-        if ( lsmtyp.eq.'BATS' ) then
-          read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,iy)
-        else if ( lsmtyp.eq.'USGS' ) then
-          read (iutin,rec=43) ((toto(i,j),j=1,jx),i=1,iy)
-        else
-        end if
+        read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,iy)
         close (iutin)
         do j = 1 , jx
           do i = 1 , iy
