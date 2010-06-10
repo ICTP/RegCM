@@ -1023,13 +1023,7 @@
 !
 #ifdef MPP1
         if ( myid.eq.0 ) then
-          if (ndate0.eq.idate0 .or.                                     &
-             (((ndate0/10000)*100+1)*100 .eq.                           &
-             ((idate0/10000)*100+1)*100 ) ) then
-            call outname('SAV', ndate0)
-          else
-            call outname('SAV', ((ndate0/10000)*100+1)*100)
-          end if
+          call outname('SAV', ndate0)
           inquire (file=ffout,exist=existing)
           if ( .not.existing ) then
             write (aline,*) 'The following SAV File does not exist: ' , &
@@ -1859,13 +1853,7 @@
         dt = dt2 ! First timestep successfully read in
 
 #else
-        if (ndate0.eq.idate0 .or.                                       &
-           (((ndate0/10000)*100+1)*100 .eq.                             &
-           ((idate0/10000)*100+1)*100 ) ) then
-          call outname('SAV', ndate0)
-        else
-          call outname('SAV', ((ndate0/10000)*100+1)*100)
-        end if
+        call outname('SAV', ndate0)
         inquire (file=ffout,exist=existing)
         if ( .not.existing ) then
           write (aline,*) 'The following SAV File does not exist: ' ,   &
