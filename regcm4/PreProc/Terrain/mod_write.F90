@@ -361,6 +361,8 @@
         integer :: istatus , i , j
         integer :: incout
         integer , dimension(3) :: idims
+        integer , dimension(3) :: istart
+        integer , dimension(3) :: icount
         integer , dimension(12) :: ivar
         integer , dimension(2) :: itvar
         integer , dimension(2) :: ivdim
@@ -377,23 +379,23 @@
         if (lsub) then
           allocate(yiy(iysg))
           allocate(xjx(jxsg))
-          yiy(1) = -(dble(iysg)/2.0) * ds
-          xjx(1) = -(dble(jxsg)/2.0) * ds
+          yiy(1) = -(dble(iysg-1)/2.0) * ds
+          xjx(1) = -(dble(jxsg-1)/2.0) * ds
           do i = 2 , iysg
             yiy(i) = yiy(i-1)+ds
           end do
-          do j = 1 , jxsg
+          do j = 2 , jxsg
             xjx(j) = xjx(j-1)+ds
           end do
         else
           allocate(yiy(iy))
           allocate(xjx(jx))
-          yiy(1) = -(dble(iy)/2.0) * ds
-          xjx(1) = -(dble(jx)/2.0) * ds
+          yiy(1) = -(dble(iy-1)/2.0) * ds
+          xjx(1) = -(dble(jx-1)/2.0) * ds
           do i = 2 , iy
             yiy(i) = yiy(i-1)+ds
           end do
-          do j = 1 , jx
+          do j = 2 , jx
             xjx(j) = xjx(j-1)+ds
           end do
         end if
@@ -406,7 +408,11 @@
           fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
         end if
 
+#ifdef NETCDF4_HDF5
+        istatus = nf90_create(fname, nf90_clobber.or.nf90_hdf5, incout)
+#else
         istatus = nf90_create(fname, nf90_clobber, incout)
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error creating NetCDF output ', trim(fname)
           write (6,*) nf90_strerror(istatus)
@@ -638,7 +644,7 @@
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_def_dim(incout, 'JX', jxsg, idims(3))
+          istatus = nf90_def_dim(incout, 'JX', jxsg, idims(1))
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error creating dimension JX'
             write (6,*) nf90_strerror(istatus)
@@ -651,7 +657,7 @@
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_def_dim(incout, 'JX', jx, idims(3))
+          istatus = nf90_def_dim(incout, 'JX', jx, idims(1))
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error creating dimension JX'
             write (6,*) nf90_strerror(istatus)
@@ -659,7 +665,7 @@
           end if
         end if
         if ( aertyp(7:7)=='1' ) then
-          istatus = nf90_def_dim(incout, 'NTEX', ntex, idims(1))
+          istatus = nf90_def_dim(incout, 'NTEX', ntex, idims(3))
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error creating dimension NVEG'
             write (6,*) nf90_strerror(istatus)
@@ -667,8 +673,13 @@
           end if
         end if
 
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'IY', nf90_float, idims(2),      &
+                            &  ivdim(1), deflate_level=9)
+#else
         istatus = nf90_def_var(incout, 'IY', nf90_float, idims(2),      &
                             &  ivdim(1))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable iy definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -694,8 +705,13 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
-        istatus = nf90_def_var(incout, 'JX', nf90_float, idims(3),      &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'JX', nf90_float, idims(1),      &
+                            &  ivdim(2), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'JX', nf90_float, idims(1),      &
                             &  ivdim(2))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable jx definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -723,8 +739,13 @@
         end if
 
         ! XLAT
-        istatus = nf90_def_var(incout, 'xlat', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'xlat', nf90_float, idims(1:2),  &
+                            &  ivar(1), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'xlat', nf90_float, idims(1:2),  &
                             &  ivar(1))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable xlat definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -754,8 +775,13 @@
         ! XLAT
 
         ! XLON
-        istatus = nf90_def_var(incout, 'xlon', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'xlon', nf90_float, idims(1:2),  &
+                            &  ivar(2), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'xlon', nf90_float, idims(1:2),  &
                             &  ivar(2))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable xlon definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -785,8 +811,13 @@
         ! XLON
 
         ! DLAT
-        istatus = nf90_def_var(incout, 'dlat', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'dlat', nf90_float, idims(1:2),  &
+                            &  ivar(3), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'dlat', nf90_float, idims(1:2),  &
                             &  ivar(3))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable dlat definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -816,8 +847,13 @@
         ! DLAT
 
         ! DLON
-        istatus = nf90_def_var(incout, 'dlon', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'dlon', nf90_float, idims(1:2),  &
+                            &  ivar(4), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'dlon', nf90_float, idims(1:2),  &
                             &  ivar(4))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable dlon definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -846,8 +882,13 @@
         end if
         ! DLON
 
-        istatus = nf90_def_var(incout, 'topo', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'topo', nf90_float, idims(1:2),  &
+                            &  ivar(5), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'topo', nf90_float, idims(1:2),  &
                             &  ivar(5))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable ht definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -881,8 +922,13 @@
           stop
         end if
 
-        istatus = nf90_def_var(incout, 'htsd', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'htsd', nf90_float, idims(1:2),  &
+                            &  ivar(6), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'htsd', nf90_float, idims(1:2),  &
                             &  ivar(6))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable htsd definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -923,33 +969,38 @@
           stop
         end if
 
-        istatus = nf90_def_var(incout, 'landuse', nf90_float,idims(2:3),&
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'landuse', nf90_float,idims(1:2),&
+                            &  ivar(7), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'landuse', nf90_float,idims(1:2),&
                             &  ivar(7))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable landuse def in NetCDF output'
           write (6,*) nf90_strerror(istatus)
           stop
         end if
         istatus = nf90_put_att(incout, ivar(7), 'legend',               &
-                & '1  => Crop/mixed farming\n'//                        &
-                & '2  => Short grass\n'//                               &
-                & '3  => Evergreen needleleaf tree\n'//                 &
-                & '4  => Deciduous needleleaf tree\n'//                 &
-                & '5  => Deciduous broadleaf tree\n'//                  &
-                & '6  => Evergreen broadleaf tree\n'//                  &
-                & '7  => Tall grass\n'//                                &
-                & '8  => Desert\n'//                                    &
-                & '9  => Tundra\n'//                                    &
-                & '10 => Irrigated Crop\n'//                            &
-                & '11 => Semi-desert\n'//                               &
-                & '12 => Ice cap/glacier\n'//                           &
-                & '13 => Bog or marsh\n'//                              &
-                & '14 => Inland water\n'//                              &
-                & '15 => Ocean\n'//                                     &
-                & '16 => Evergreen shrub\n'//                           &
-                & '17 => Deciduous shrub\n'//                           &
-                & '18 => Mixed Woodland\n'//                            &
-                & '19 => Forest/Field mosaic\n'//                       &
+                & '1  => Crop/mixed farming'//char(10)//                &
+                & '2  => Short grass'//char(10)//                       &
+                & '3  => Evergreen needleleaf tree'//char(10)//         &
+                & '4  => Deciduous needleleaf tree'//char(10)//         &
+                & '5  => Deciduous broadleaf tree'//char(10)//          &
+                & '6  => Evergreen broadleaf tree'//char(10)//          &
+                & '7  => Tall grass'//char(10)//                        &
+                & '8  => Desert'//char(10)//                            &
+                & '9  => Tundra'//char(10)//                            &
+                & '10 => Irrigated Crop'//char(10)//                    &
+                & '11 => Semi-desert'//char(10)//                       &
+                & '12 => Ice cap/glacier'//char(10)//                   &
+                & '13 => Bog or marsh'//char(10)//                      &
+                & '14 => Inland water'//char(10)//                      &
+                & '15 => Ocean'//char(10)//                             &
+                & '16 => Evergreen shrub'//char(10)//                   &
+                & '17 => Deciduous shrub'//char(10)//                   &
+                & '18 => Mixed Woodland'//char(10)//                    &
+                & '19 => Forest/Field mosaic'//char(10)//               &
                 & '20 => Water and Land mixture')
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable landuse legend attribute'
@@ -984,8 +1035,13 @@
           stop
         end if
 
-        istatus = nf90_def_var(incout, 'xmap', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'xmap', nf90_float, idims(1:2),  &
+                            &  ivar(8), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'xmap', nf90_float, idims(1:2),  &
                             &  ivar(8))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable xmap definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -1019,8 +1075,13 @@
           stop
         end if
 
-        istatus = nf90_def_var(incout, 'dmap', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'dmap', nf90_float, idims(1:2),  &
+                            &  ivar(9), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'dmap', nf90_float, idims(1:2),  &
                             &  ivar(9))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable dmap definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -1054,8 +1115,13 @@
           stop
         end if
 
-        istatus = nf90_def_var(incout, 'coriol', nf90_float, idims(2:3),&
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'coriol', nf90_float, idims(1:2),&
+                            &  ivar(10), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'coriol', nf90_float, idims(1:2),&
                             &  ivar(10))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable coriol def in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -1089,8 +1155,13 @@
           stop
         end if
 
-        istatus = nf90_def_var(incout, 'snowam', nf90_float, idims(2:3),&
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'snowam', nf90_float, idims(1:2),&
+                            &  ivar(11), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'snowam', nf90_float, idims(1:2),&
                             &  ivar(11))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable snowam def in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -1124,8 +1195,13 @@
           stop
         end if
 
-        istatus = nf90_def_var(incout, 'mask', nf90_float, idims(2:3),  &
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(incout, 'mask', nf90_float, idims(1:2),  &
+                            &  ivar(12), deflate_level=9)
+#else
+        istatus = nf90_def_var(incout, 'mask', nf90_float, idims(1:2),  &
                             &  ivar(12))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable mask def in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -1160,30 +1236,35 @@
         end if
 
         if ( aertyp(7:7)=='1' ) then
+#ifdef NETCDF4_HDF5
           istatus = nf90_def_var(incout, 'texture', nf90_float,         &
-                              & idims(2:3), itvar(1))
+                              & idims(1:2), itvar(1), deflate_level=9)
+#else
+          istatus = nf90_def_var(incout, 'texture', nf90_float,         &
+                              & idims(1:2), itvar(1))
+#endif
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error Variable texture def in NetCDF output'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
           istatus = nf90_put_att(incout, itvar(1), 'legend',            &
-                & '1  => Sand'//                                        &
-                & '2  => Loamy Sand\n'//                                &
-                & '3  => Sandy Loam\n'//                                &
-                & '4  => Silt Loam\n'//                                 &
-                & '5  => Silt\n'//                                      &
-                & '6  => Loam\n'//                                      &
-                & '7  => Sandy Clay Loam\n'//                           &
-                & '8  => Silty Clay Loam\n'//                           &
-                & '9  => Clay Loam\n'//                                 &
-                & '10 => Sandy Clay\n'//                                &
-                & '11 => Silty Clay\n'//                                &
-                & '12 => Clay\n'//                                      &
-                & '13 => OM\n'//                                        &
-                & '14 => Water\n'//                                     &
-                & '15 => Bedrock\n'//                                   &
-                & '16 => Other\n'//                                     &
+                & '1  => Sand'//char(10)//                              &
+                & '2  => Loamy Sand'//char(10)//                        &
+                & '3  => Sandy Loam'//char(10)//                        &
+                & '4  => Silt Loam'//char(10)//                         &
+                & '5  => Silt'//char(10)//                              &
+                & '6  => Loam'//char(10)//                              &
+                & '7  => Sandy Clay Loam'//char(10)//                   &
+                & '8  => Silty Clay Loam'//char(10)//                   &
+                & '9  => Clay Loam'//char(10)//                         &
+                & '10 => Sandy Clay'//char(10)//                        &
+                & '11 => Silty Clay'//char(10)//                        &
+                & '12 => Clay'//char(10)//                              &
+                & '13 => OM'//char(10)//                                &
+                & '14 => Water'//char(10)//                             &
+                & '15 => Bedrock'//char(10)//                           &
+                & '16 => Other'//char(10)//                             &
                 & '17 => No data')
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error Variable texture legend attribute'
@@ -1218,8 +1299,13 @@
             stop
           end if
 
+#ifdef NETCDF4_HDF5
+          istatus = nf90_def_var(incout, 'texture_fraction', nf90_float,&
+                              & idims, itvar(2), deflate_level=9)
+#else
           istatus = nf90_def_var(incout, 'texture_fraction', nf90_float,&
                               & idims, itvar(2))
+#endif
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error Variable texture_fraction def in NetCDF'
             write (6,*) nf90_strerror(istatus)
@@ -1279,9 +1365,9 @@
         end if
 
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(1), xlat_s)
+          istatus = nf90_put_var(incout, ivar(1), transpose(xlat_s))
         else
-          istatus = nf90_put_var(incout, ivar(1), xlat)
+          istatus = nf90_put_var(incout, ivar(1), transpose(xlat))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable xlat write in NetCDF output'
@@ -1289,9 +1375,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(2), xlon_s)
+          istatus = nf90_put_var(incout, ivar(2), transpose(xlon_s))
         else
-          istatus = nf90_put_var(incout, ivar(2), xlon)
+          istatus = nf90_put_var(incout, ivar(2), transpose(xlon))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable xlon write in NetCDF output'
@@ -1299,9 +1385,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(3), dlat_s)
+          istatus = nf90_put_var(incout, ivar(3), transpose(dlat_s))
         else
-          istatus = nf90_put_var(incout, ivar(3), dlat)
+          istatus = nf90_put_var(incout, ivar(3), transpose(dlat))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable dlat write in NetCDF output'
@@ -1309,9 +1395,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(4), dlon_s)
+          istatus = nf90_put_var(incout, ivar(4), transpose(dlon_s))
         else
-          istatus = nf90_put_var(incout, ivar(4), dlon)
+          istatus = nf90_put_var(incout, ivar(4), transpose(dlon))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable dlon write in NetCDF output'
@@ -1319,9 +1405,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(5), htgrid_s)
+          istatus = nf90_put_var(incout, ivar(5), transpose(htgrid_s))
         else
-          istatus = nf90_put_var(incout, ivar(5), htgrid)
+          istatus = nf90_put_var(incout, ivar(5), transpose(htgrid))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable ht write in NetCDF output'
@@ -1329,9 +1415,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(6), htsdgrid_s)
+          istatus = nf90_put_var(incout, ivar(6), transpose(htsdgrid_s))
         else
-          istatus = nf90_put_var(incout, ivar(6), htsdgrid)
+          istatus = nf90_put_var(incout, ivar(6), transpose(htsdgrid))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable htsd write in NetCDF output'
@@ -1339,9 +1425,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(7), lndout_s)
+          istatus = nf90_put_var(incout, ivar(7), transpose(lndout_s))
         else
-          istatus = nf90_put_var(incout, ivar(7), lndout)
+          istatus = nf90_put_var(incout, ivar(7), transpose(lndout))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable landuse write in NetCDF output'
@@ -1349,9 +1435,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(8), xmap_s)
+          istatus = nf90_put_var(incout, ivar(8), transpose(xmap_s))
         else
-          istatus = nf90_put_var(incout, ivar(8), xmap)
+          istatus = nf90_put_var(incout, ivar(8), transpose(xmap))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable xmap write in NetCDF output'
@@ -1359,9 +1445,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(9), dmap_s)
+          istatus = nf90_put_var(incout, ivar(9), transpose(dmap_s))
         else
-          istatus = nf90_put_var(incout, ivar(9), dmap)
+          istatus = nf90_put_var(incout, ivar(9), transpose(dmap))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable dmap write in NetCDF output'
@@ -1369,9 +1455,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(10), coriol_s)
+          istatus = nf90_put_var(incout, ivar(10), transpose(coriol_s))
         else
-          istatus = nf90_put_var(incout, ivar(10), coriol)
+          istatus = nf90_put_var(incout, ivar(10), transpose(coriol))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable coriol write in NetCDF output'
@@ -1379,9 +1465,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(11), snowam_s)
+          istatus = nf90_put_var(incout, ivar(11), transpose(snowam_s))
         else
-          istatus = nf90_put_var(incout, ivar(11), snowam)
+          istatus = nf90_put_var(incout, ivar(11), transpose(snowam))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable snowam write in NetCDF output'
@@ -1389,9 +1475,9 @@
           stop
         end if
         if (lsub) then
-          istatus = nf90_put_var(incout, ivar(12), mask_s)
+          istatus = nf90_put_var(incout, ivar(12), transpose(mask_s))
         else
-          istatus = nf90_put_var(incout, ivar(12), mask)
+          istatus = nf90_put_var(incout, ivar(12), transpose(mask))
         end if
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable mask write in NetCDF output'
@@ -1401,25 +1487,35 @@
 
         if ( aertyp(7:7)=='1' ) then
           if (lsub) then
-            istatus = nf90_put_var(incout, itvar(1), texout_s)
+            istatus = nf90_put_var(incout, itvar(1), transpose(texout_s))
           else
-            istatus = nf90_put_var(incout, itvar(1), texout)
+            istatus = nf90_put_var(incout, itvar(1), transpose(texout))
           end if
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error Variable texture write in NetCDF output'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          if (lsub) then
-            istatus = nf90_put_var(incout, itvar(2), frac_tex_s)
-          else
-            istatus = nf90_put_var(incout, itvar(2), frac_tex)
-          end if
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error Variable texture_frac write in NetCDF'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          istart(1) = 1
+          istart(2) = 1
+          icount(3) = 1
+          icount(2) = iy
+          icount(1) = jx
+          do i = 1 , ntex
+            istart(3) = i
+            if (lsub) then
+              istatus = nf90_put_var(incout, itvar(2),                  &
+                         & transpose(frac_tex_s(:,:,i)),istart,icount)
+            else
+              istatus = nf90_put_var(incout, itvar(2),                  &
+                         & transpose(frac_tex(:,:,i)),istart,icount)
+            end if
+            if (istatus /= nf90_noerr) then
+              write (6,*) 'Error Variable texture_frac write in NetCDF'
+              write (6,*) nf90_strerror(istatus)
+              stop
+            end if
+          end do
         end if
 
         istatus = nf90_close(incout)

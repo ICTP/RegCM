@@ -359,9 +359,9 @@
         end do
 !       land/sea mask fudging
         write (char_lnd,99003) trim(dirter), pthsep, trim(domname),     &
-           &   '_LANDUSE_' , nsg
+           &   '_LANDUSE' , nsg
         write (char_tex,99003) trim(dirter), pthsep, trim(domname),     &
-           &   'TEXTURE_' , nsg
+           &   '_TEXTURE' , nsg
         call lndfudge(fudge_lnd_s,ch_s,lndout_s,htgrid_s,iysg,jxsg,     &
                     & trim(char_lnd))
         if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex_s,ch_s,texout_s,&
