@@ -409,7 +409,8 @@
         end if
 
 #ifdef NETCDF4_HDF5
-        istatus = nf90_create(fname, nf90_clobber.or.nf90_hdf5, incout)
+        istatus = nf90_create(fname, ior(nf90_clobber,nf90_hdf5),       &
+                         &    incout)
 #else
         istatus = nf90_create(fname, nf90_clobber, incout)
 #endif

@@ -3,6 +3,7 @@
   
 include ../../Makefile.inc
 
+CPPFLAGS += -DNETCDF4_HDF5
 
 all: terrain install
 
