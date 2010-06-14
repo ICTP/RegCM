@@ -47,16 +47,11 @@
       character(1) , allocatable , dimension(:,:) :: ch_cat
       character(2) , allocatable , dimension(:) :: ch_htsd , ch_topo
       character(1) , allocatable , dimension(:,:) :: ch_tex
-      integer(2) , allocatable , dimension(:,:) :: iclay , isand
-      integer(2) , allocatable , dimension(:,:) :: iusgs
 !
       nxmax = 21600/ntypec
       nymax = nxmax/2
 
       allocate(ch_cat(nxmax,nveg))
-      allocate(iusgs(nxmax,nveg))
-      allocate(iclay(nxmax,2))
-      allocate(isand(nxmax,2))
       allocate(ch_tex(nxmax,ntex))
       allocate(ch_topo(nxmax))
       allocate(ch_htsd(nxmax))
@@ -190,9 +185,6 @@
       rewind (48)
 
       deallocate(ch_cat)
-      deallocate(iusgs)
-      deallocate(iclay)
-      deallocate(isand)
       deallocate(ch_tex)
       deallocate(ch_topo)
       deallocate(ch_htsd)
@@ -236,8 +228,7 @@
                & lrec , ncid_cat , ncid_lev , ncid_tex
       integer :: idtopo , idhtsd , idlufrac
       logical :: there
-      integer(1) , allocatable , dimension(:,:) :: icat , iusgs
-      integer(1) , allocatable , dimension(:,:) :: iclay , isand
+      integer(1) , allocatable , dimension(:,:) :: icat
       integer(1) , allocatable , dimension(:,:) :: itex
       integer(2) , allocatable , dimension(:) :: ihtsd , itopo
 !
@@ -245,9 +236,6 @@
       nymax = nxmax/2
 
       allocate(icat(nxmax,nveg))
-      allocate(iusgs(nxmax,nveg))
-      allocate(iclay(nxmax,2))
-      allocate(isand(nxmax,2))
       allocate(itex(nxmax,ntex))
       allocate(itopo(nxmax))
       allocate(ihtsd(nxmax))
@@ -455,9 +443,6 @@
       rewind (48)
 
       deallocate(icat)
-      deallocate(iusgs)
-      deallocate(iclay)
-      deallocate(isand)
       deallocate(itex)
       deallocate(itopo)
       deallocate(ihtsd)

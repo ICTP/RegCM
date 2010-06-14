@@ -21,11 +21,9 @@
 
       implicit none
 
-      real(4) , allocatable , dimension(:,:) :: claya , clayb , coriol ,&
-                     & dlat , dlon , dmap , htgrid , htsdgrid ,         &
-                     & lndout , mask , sanda , sandb , snowam , texout ,&
-                     & xlat , xlon , xmap
-      real(4) , allocatable , dimension(:,:,:) :: frac_lnd
+      real(4) , allocatable , dimension(:,:) :: coriol , dlat , dlon ,  &
+                     & dmap , htgrid , htsdgrid , lndout , mask ,       &
+                     & snowam , texout , xlat , xlon , xmap
       real(4) , allocatable , dimension(:,:,:) :: frac_tex
       integer , allocatable , dimension(:,:) :: intext , lnduse , nsc
       real(4) , allocatable , dimension(:,:) :: corc , hscr1 , htsavc , &
@@ -33,11 +31,9 @@
       character(1) , allocatable , dimension(:,:) :: ch
       real(4) , allocatable , dimension(:,:,:) :: itex , land
 
-      real(4) , allocatable , dimension(:,:) :: claya_s , clayb_s ,     &
-           & coriol_s , dlat_s , dlon_s , dmap_s , htgrid_s ,           &
-           & htsdgrid_s , lndout_s , mask_s , sanda_s , sandb_s ,       &
-           & snowam_s , texout_s , xlat_s , xlon_s , xmap_s
-      real(4) , allocatable , dimension(:,:,:) :: frac_lnd_s
+      real(4) , allocatable , dimension(:,:) :: coriol_s , dlat_s ,     &
+           & dlon_s , dmap_s , htgrid_s , htsdgrid_s , lndout_s ,       &
+           & mask_s , snowam_s , texout_s , xlat_s , xlon_s , xmap_s
       real(4) , allocatable , dimension(:,:,:) :: frac_tex_s
       integer , allocatable , dimension(:,:) :: intext_s , lnduse_s ,   &
                      & nsc_s
@@ -50,9 +46,9 @@
 
       contains
 
-      subroutine allocate_grid(iy,jx,kz,nveg,ntex)
+      subroutine allocate_grid(iy,jx,kz,ntex)
         implicit none
-        integer , intent(in) :: iy,jx,kz,nveg,ntex
+        integer , intent(in) :: iy,jx,kz,ntex
         allocate(sigma(kz+1))
         allocate(ch(iy,jx))
         allocate(corc(iy,jx))
@@ -63,8 +59,6 @@
         allocate(wtmaxc(iy,jx))
         allocate(itex(iy,jx,2))
         allocate(land(iy,jx,2))
-        allocate(claya(iy,jx))
-        allocate(clayb(iy,jx))
         allocate(coriol(iy,jx))
         allocate(xlat(iy,jx))
         allocate(xlon(iy,jx))
@@ -76,19 +70,16 @@
         allocate(htsdgrid(iy,jx))
         allocate(lndout(iy,jx))
         allocate(mask(iy,jx))
-        allocate(sanda(iy,jx))
-        allocate(sandb(iy,jx))
         allocate(snowam(iy,jx))
         allocate(texout(iy,jx))
         allocate(intext(iy,jx))
         allocate(lnduse(iy,jx))
-        allocate(frac_lnd(iy,jx,nveg))
         allocate(frac_tex(iy,jx,ntex))
       end subroutine allocate_grid
 
-      subroutine allocate_subgrid(iysg,jxsg,nveg,ntex)
+      subroutine allocate_subgrid(iysg,jxsg,ntex)
         implicit none
-        integer , intent(in) :: iysg,jxsg,nveg,ntex
+        integer , intent(in) :: iysg,jxsg,ntex
         allocate(ch_s(iysg,jxsg))
         allocate(corc_s(iysg,jxsg))
         allocate(nsc_s(iysg,jxsg))
@@ -98,8 +89,6 @@
         allocate(wtmaxc_s(iysg,jxsg))
         allocate(itex_s(iysg,jxsg,2))
         allocate(land_s(iysg,jxsg,2))
-        allocate(claya_s(iysg,jxsg))
-        allocate(clayb_s(iysg,jxsg))
         allocate(coriol_s(iysg,jxsg))
         allocate(xlat_s(iysg,jxsg))
         allocate(xlon_s(iysg,jxsg))
@@ -111,13 +100,10 @@
         allocate(htsdgrid_s(iysg,jxsg))
         allocate(lndout_s(iysg,jxsg))
         allocate(mask_s(iysg,jxsg))
-        allocate(sanda_s(iysg,jxsg))
-        allocate(sandb_s(iysg,jxsg))
         allocate(snowam_s(iysg,jxsg))
         allocate(texout_s(iysg,jxsg))
         allocate(intext_s(iysg,jxsg))
         allocate(lnduse_s(iysg,jxsg))
-        allocate(frac_lnd_s(iysg,jxsg,nveg))
         allocate(frac_tex_s(iysg,jxsg,ntex))
       end subroutine allocate_subgrid
 
@@ -133,8 +119,6 @@
         deallocate(wtmaxc)
         deallocate(itex)
         deallocate(land)
-        deallocate(claya)
-        deallocate(clayb)
         deallocate(coriol)
         deallocate(xlat)
         deallocate(xlon)
@@ -146,13 +130,10 @@
         deallocate(htsdgrid)
         deallocate(lndout)
         deallocate(mask)
-        deallocate(sanda)
-        deallocate(sandb)
         deallocate(snowam)
         deallocate(texout)
         deallocate(intext)
         deallocate(lnduse)
-        deallocate(frac_lnd)
         deallocate(frac_tex)
       end subroutine free_grid
 
@@ -167,8 +148,6 @@
         deallocate(wtmaxc_s)
         deallocate(itex_s)
         deallocate(land_s)
-        deallocate(claya_s)
-        deallocate(clayb_s)
         deallocate(coriol_s)
         deallocate(xlat_s)
         deallocate(xlon_s)
@@ -180,13 +159,10 @@
         deallocate(htsdgrid_s)
         deallocate(lndout_s)
         deallocate(mask_s)
-        deallocate(sanda_s)
-        deallocate(sandb_s)
         deallocate(snowam_s)
         deallocate(texout_s)
         deallocate(intext_s)
         deallocate(lnduse_s)
-        deallocate(frac_lnd_s)
         deallocate(frac_tex_s)
       end subroutine free_subgrid
 

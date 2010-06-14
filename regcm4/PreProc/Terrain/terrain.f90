@@ -61,7 +61,7 @@
       use mod_interp , only : anal2 , interp
       use mod_fudge , only : lndfudge , texfudge , lakeadj
       use mod_rdldtr , only : rdldtr , rdldtr_nc
-      use mod_write , only : setup , output
+      use mod_write , only : setup , output , write_domain
       use mod_header , only : header
       use mod_surf , only : surf
       implicit none
@@ -103,8 +103,8 @@
         call abort
       end if
 
-      call allocate_grid(iy,jx,kz,nveg,ntex)
-      if ( nsg>1 ) call allocate_subgrid(iysg,jxsg,nveg,ntex)
+      call allocate_grid(iy,jx,kz,ntex)
+      if ( nsg>1 ) call allocate_subgrid(iysg,jxsg,ntex)
 !
 !     Setup hardcoded sigma levels
 
@@ -583,6 +583,7 @@
                   & coriol_s,snowam_s,igrads,ibigend,kz,sigma,mask_s,   &
                   & ptop,nsg,truelatl,truelath,xn,domname,              &
                   & aertyp,texout_s,frac_tex_s,ntex,.false.)
+        call write_domain(.true.)
         print * , 'after calling OUTPUT, for subgrid'
         call free_subgrid
       end if
@@ -592,6 +593,7 @@
                 & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
                 & mask,ptop,nsg,truelatl,truelath,xn,domname,           &
                 & aertyp,texout,frac_tex,ntex,.true.)
+      call write_domain(.false.)
       print * , 'after calling OUTPUT'
       call free_grid
 
