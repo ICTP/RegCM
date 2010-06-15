@@ -144,7 +144,7 @@
 ! Local variables
 !
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
-               & centerj , lat0 , lat1 , lon0 , lon1 , rlatinc , rloninc
+               & centerj , rlatinc , rloninc
       integer :: i , j , k , nx , ny
 !
       alatmin = 999999.
@@ -163,23 +163,10 @@
         end do
       end do
 
-      if ( .not. lcoarse .or.                                           &
-         & ( dattyp/='FVGCM' .and. dattyp/='NRP2W' .and.  &
-         &   dattyp/='GFS11' .and. dattyp/='EH5OM') ) then
-        write (nunitc,rec=1) iy , jx , kz , dsinm , clat , clon , plat ,&
-                           & plon , grdfac , iproj , (sigma(k),k=1,kz+1)&
-                           & , ptop , igrads , ibigend , truelatl ,     &
-                           & truelath
-      else
-        write (*,*) 'please input lon0,lon1,lat0,lat1'
-        write (*,*) 'Note: lon0 < lon1, and lat0 < lat1'
-        read (*,*) lon0 , lon1 , lat0 , lat1
-        write (nunitc,rec=1) iy , jx , kz , dsinm , clat , clon , plat ,&
-                           & plon , grdfac , iproj , (sigma(k),k=1,kz+1)&
-                           & , ptop , igrads , ibigend , truelatl ,     &
-                           & truelath , lon0 , lon1 , lat0 , lat1
-      end if
-
+      write (nunitc,rec=1) iy , jx , kz , dsinm , clat , clon , plat ,  &
+                         & plon , grdfac , iproj , (sigma(k),k=1,kz+1)  &
+                         & , ptop , igrads , ibigend , truelatl ,       &
+                         & truelath
       write (nunitc,rec=2) ((htgrid(i,j),j=1,jx),i=1,iy)
       write (nunitc,rec=3) ((htsdgrid(i,j),j=1,jx),i=1,iy)
       write (nunitc,rec=4) ((lndout(i,j),j=1,jx),i=1,iy)
@@ -360,12 +347,13 @@
 
         integer :: istatus , i , j
         integer :: incout
-        integer , dimension(3) :: idims
+        integer , dimension(4) :: idims
         integer , dimension(3) :: istart
         integer , dimension(3) :: icount
         integer , dimension(12) :: ivar
         integer , dimension(2) :: itvar
         integer , dimension(2) :: ivdim
+        integer , dimension(2) :: izdim
         integer , dimension(8) :: tvals
         character(256) :: fname , history
         character(3) :: cnsg
@@ -638,49 +626,130 @@
           end if
         end if
 
+        istatus = nf90_put_att(incout, nf90_global, 'grid_factor', xn)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error adding global grid_factor attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+
         if (lsub) then
-          istatus = nf90_def_dim(incout, 'IY', iysg, idims(2))
+          istatus = nf90_def_dim(incout, 'iy', iysg, idims(2))
           if (istatus /= nf90_noerr) then
-            write (6,*) 'Error creating dimension IY'
+            write (6,*) 'Error creating dimension iy'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_def_dim(incout, 'JX', jxsg, idims(1))
+          istatus = nf90_def_dim(incout, 'jx', jxsg, idims(1))
           if (istatus /= nf90_noerr) then
-            write (6,*) 'Error creating dimension JX'
+            write (6,*) 'Error creating dimension jx'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
         else
-          istatus = nf90_def_dim(incout, 'IY', iy, idims(2))
+          istatus = nf90_def_dim(incout, 'iy', iy, idims(2))
           if (istatus /= nf90_noerr) then
-            write (6,*) 'Error creating dimension IY'
+            write (6,*) 'Error creating dimension iy'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_def_dim(incout, 'JX', jx, idims(1))
+          istatus = nf90_def_dim(incout, 'jx', jx, idims(1))
           if (istatus /= nf90_noerr) then
-            write (6,*) 'Error creating dimension JX'
+            write (6,*) 'Error creating dimension jx'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
         end if
         if ( aertyp(7:7)=='1' ) then
-          istatus = nf90_def_dim(incout, 'NTEX', ntex, idims(3))
+          istatus = nf90_def_dim(incout, 'ntex', ntex, idims(3))
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error creating dimension NVEG'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
         end if
+        istatus = nf90_def_dim(incout, 'kz', kz+1, idims(4))
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error creating dimension kz'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'IY', nf90_float, idims(2),      &
-                            &  ivdim(1), deflate_level=9)
-#else
-        istatus = nf90_def_var(incout, 'IY', nf90_float, idims(2),      &
+        istatus = nf90_def_var(incout, 'sigma', nf90_float, idims(4),   &
+                            &  izdim(1))
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma definition in NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(1), 'standard_name',       &
+                            &  'atmosphere_sigma_coordinate')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma standard_name attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(1), 'long_name',           &
+                            &  'Sigma at model layer midpoints')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma long_name attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(1), 'units', '1')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma units attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(1), 'axis', 'Z')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma axis attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(1), 'positive', 'down')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma positive attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(1), 'formula_terms',       &
+                     &         'sigma: sigma ps: ps ptop: ptop')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma formula_terms attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_def_var(incout, 'ptop', nf90_float,              &
+                           &   varid=izdim(2))
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ptop definition in NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(2), 'standard_name',       &
+                            &  'air_pressure')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ptop standard_name attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(2), 'long_name',           &
+                            &  'Pressure at model top')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ptop long_name attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(incout, izdim(2), 'units', 'hPa')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ptop units attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_def_var(incout, 'iy', nf90_float, idims(2),      &
                             &  ivdim(1))
-#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable iy definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -706,13 +775,8 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'JX', nf90_float, idims(1),      &
-                            &  ivdim(2), deflate_level=9)
-#else
-        istatus = nf90_def_var(incout, 'JX', nf90_float, idims(1),      &
+        istatus = nf90_def_var(incout, 'jx', nf90_float, idims(1),      &
                             &  ivdim(2))
-#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable jx definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -1302,10 +1366,10 @@
 
 #ifdef NETCDF4_HDF5
           istatus = nf90_def_var(incout, 'texture_fraction', nf90_float,&
-                              & idims, itvar(2), deflate_level=9)
+                              & idims(1:3), itvar(2), deflate_level=9)
 #else
           istatus = nf90_def_var(incout, 'texture_fraction', nf90_float,&
-                              & idims, itvar(2))
+                              & idims(1:3), itvar(2))
 #endif
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error Variable texture_fraction def in NetCDF'
@@ -1352,6 +1416,18 @@
 !
 !-----------------------------------------------------------------------
 !
+        istatus = nf90_put_var(incout, izdim(1), sigma)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma write in NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_var(incout, izdim(2), ptop)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ptop write in NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
         istatus = nf90_put_var(incout, ivdim(1), yiy)
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable iy write in NetCDF output'

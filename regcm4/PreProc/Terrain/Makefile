@@ -52,7 +52,7 @@ mod_fudge.o: mod_fudge.f90
 mod_maps.o: mod_maps.f90
 mod_write.o: mod_write.F90 mod_block.o mod_maps.o mod_dynparam.o
 mod_smooth.o: mod_smooth.f90
-mod_projections.o: mod_projections.f90 mod_constants.o mod_block.o
+mod_projections.o: mod_projections.f90 mod_constants.o mod_block.o mod_maps.o
 mod_interp.o: mod_interp.f90 mod_block.o mod_maps.o
 mod_rdldtr.o: mod_rdldtr.f90 mod_block.o
 mod_surf.o: mod_surf.f90 mod_block.o mod_interp.o

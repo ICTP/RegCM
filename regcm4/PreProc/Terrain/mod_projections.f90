@@ -505,6 +505,7 @@
       end subroutine nrot2rot
 
       subroutine xyobsll(iy,jx,iproj,clat,clon,plat,plon,truelath)
+      use mod_maps
       use mod_block
       use mod_constants , only : raddeg , degrad , erkm
       implicit none

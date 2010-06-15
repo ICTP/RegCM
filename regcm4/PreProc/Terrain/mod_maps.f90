@@ -43,6 +43,7 @@
       real(4) , allocatable , dimension(:,:,:) :: itex_s , land_s
 
       real(4) , allocatable , dimension(:) :: sigma
+      real(4) :: xn
 
       contains
 

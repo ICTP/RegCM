@@ -28,7 +28,7 @@
       real(4) , dimension(50) :: stores
       real(4) :: grdlnmn , grdltmn
       real(4) :: xmaxlat , xmaxlon , xminlat , xminlon
-      real(4) :: dsinm , rin , xn , xnc
+      real(4) :: dsinm , rin , xnc
       real(4) :: dxcen , dycen
 
       contains
