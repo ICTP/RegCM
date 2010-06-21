@@ -33,6 +33,7 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
+      use netcdf
 
       implicit none
 !
@@ -44,10 +45,13 @@
 !
       logical :: there
       integer :: i , j , nrec , ierr
+      integer :: iyy , jxx
+      integer :: istatus , incin , idimid , ivarid
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       real(4) , dimension(ilon,jlat) :: aer2
       real(4) , allocatable , dimension(:,:) :: aermm , xlat , xlon
+      real(4) , allocatable , dimension(:,:) :: finmat
       character(256) :: namelistfile, prgname , terfile , aerofile
 !
 !     Read input global namelist
@@ -67,6 +71,7 @@
       allocate(aermm(iy,jx))
       allocate(xlat(iy,jx))
       allocate(xlon(iy,jx))
+      allocate(finmat(jx,iy))
 
       inquire (file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',exist=there)
       if ( .not.there ) print * , 'AEROSOL.dat is not available' ,      &
@@ -86,12 +91,78 @@
         write (31,'(a,a,a)') 'dset ^',trim(domname),'_AERO.dat'
       end if
  
-!     ******    ON WHAT RegCM GRID ARE AEROSOL DESIRED?
+      terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+      istatus = nf90_open(terfile, nf90_nowrite, incin)
+      if ( istatus /= nf90_noerr) then
+        write (6,*) 'Error Opening Domain file ', trim(terfile)
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
 
-      write (terfile,99001)                                             &
-        & trim(dirter), pthsep, trim(domname), '.INFO'
-      open (10,file=terfile,form='unformatted',                         &
-          & recl=iy*jx*ibyte,access='direct',status='unknown',err=200)
+      istatus = nf90_inq_dimid(incin, "iy", idimid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Dimension iy missing'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_inquire_dimension(incin, idimid, len=iyy)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error dimension iy'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_inq_dimid(incin, "jx", idimid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Dimension jx missing'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_inquire_dimension(incin, idimid, len=jxx)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error dimension jx'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      if ( iyy/=iy .or. jxx/=jx ) then
+        print * , 'IMPROPER DIMENSION SPECIFICATION'
+        print * , '  namelist   : ' , iy , jx
+        print * , '  DOMAIN     : ' , iyy , jxx
+        stop 'Dimensions mismatch'
+      end if
+      istatus = nf90_inq_varid(incin, "xlat", ivarid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error xlat variable undefined'
+        write (6,*) nf90_strerror(istatus)
+        stop
+       end if
+      istatus = nf90_get_var(incin, ivarid, finmat)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error reading xlat variable'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      xlat = transpose(finmat)
+      istatus = nf90_inq_varid(incin, "xlon", ivarid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error xlon variable undefined'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_get_var(incin, ivarid, finmat)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error reading xlon variable'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      xlon = transpose(finmat)
+      istatus = nf90_close(incin)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error closing Domain file ', trim(terfile)
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+!
+      deallocate(finmat)
 !
       call gridml(xlon,xlat,iy,jx,ibyte)
 !
@@ -124,34 +195,26 @@
  100  continue
       print * , 'ERROR OPENING AEROSOL FILE'
       stop '4810 IN PROGRAM AEROSOL'
- 200  continue
-      print * , 'ERROR OPENING DOMAIN HEADER FILE'
-      stop '4830 IN PROGRAM RDSST'
 99001 format (a,a,a,a)
       end program aerosol
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridml(xlon,xlat,iy,jx,ibyte)
+      subroutine gridml(xlon,xlat)
+      use mod_dynparam
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: ibyte , iy , jx
       real(4) , dimension(iy,jx) :: xlat , xlon
-      intent (in) ibyte , iy , jx
-      intent (out) xlat , xlon
+      intent (in) xlat , xlon
 !
 ! Local variables
 !
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
-            & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
-            & ptop , rlatinc , rloninc, th, tl
+            & centerj , dsinm , rlatinc , rloninc
       character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , ierr , igrads , iyy , j , jxx ,          &
-               & k , kz , month , nx , ny , period
-      character(6) :: iproj
-      real(4) , dimension(30) :: sigmaf
+      integer :: i , j , month , nx , ny , period
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
@@ -162,24 +225,7 @@
       alonmax = -999999.
       nx = 0
       ny = 0
-      read (10,rec=1,iostat=ierr) iyy , jxx , kz , dsinm , clat , clon ,&
-                                & plat , plon , grdfac , iproj ,        &
-                                & (sigmaf(k),k=1,kz+1) , ptop , igrads ,&
-                                & ibigend ,tl , th
-      if ( iyy/=iy .or. jxx/=jx ) then
-        print * , 'IMPROPER DIMENSION SPECIFICATION (AEROSOL.f)'
-        print * , '  icbc.param: ' , iy , jx
-        print * , '  DOMAIN.INFO: ' , iyy , jxx
-        print * , '  Also check ibyte in icbc.param: ibyte= ' , ibyte
-        stop 'Dimensions (subroutine gridml)'
-      end if
-      read (10,rec=5,iostat=ierr) ((xlat(i,j),j=1,jx),i=1,iy)
-      read (10,rec=6,iostat=ierr) ((xlon(i,j),j=1,jx),i=1,iy)
-      if ( ierr/=0 ) then
-        print * , 'END OF FILE REACHED (AEROSOL.f)'
-        print * , '  Check ibyte in icbc.param: ibyte= ' , ibyte
-        stop 'EOF (subroutine gridml)'
-      end if
+      dsinm = ds* 1000.0
 !
       if ( igrads==1 ) then
         write (31,'(a)')                                                &
@@ -222,8 +268,8 @@
               end if
             end do
           end do
-          rlatinc = dsinm*0.001/111./2.
-          rloninc = dsinm*0.001/111./2.
+          rlatinc = ds/111./2.
+          rloninc = ds/111./2.
           ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
@@ -232,7 +278,7 @@
         end if
         if ( iproj=='LAMCON' ) then        ! Lambert projection
           write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
-                         & tl , th , clon , dsinm , dsinm
+                         & truelatl , truelath , clon , dsinm , dsinm
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj=='POLSTR' ) then   !
@@ -246,8 +292,8 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , iy , plon , plat , dsinm/111000. ,      &
-                         & dsinm/111000.*.95238
+          write (31,99007) jx , iy , plon , plat , ds/111. ,            &
+                         & ds/111.*.95238
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else
