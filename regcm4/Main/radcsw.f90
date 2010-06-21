@@ -704,16 +704,29 @@
 !       for each layer, starting from the top and working downwards:
  
 !       options for aerosol: no climatic feedback if idirect .eq. 1
-        if ( idirect.eq.2 ) then
-          do k = 0 , kz
-            do i = 1 , iym1
-              wkaer(i,k,1) = tauxar_mix(i,k,ns)
-              wkaer(i,k,2) = tauasc_mix(i,k,ns)
-              wkaer(i,k,3) = gtota_mix(i,k,ns)
-              wkaer(i,k,4) = ftota_mix(i,k,ns)
+!       should be consistent with aeroppt routine
+
+        if (ichem==1 ) then
+          if ( idirect.eq.2 ) then
+            do k = 0 , kz
+              do i = 1 , iym1
+                wkaer(i,k,1) = tauxar_mix(i,k,ns)
+                wkaer(i,k,2) = tauasc_mix(i,k,ns)
+                wkaer(i,k,3) = gtota_mix(i,k,ns)
+                wkaer(i,k,4) = ftota_mix(i,k,ns)
+              end do
             end do
-          end do
-        else if ( idirect.eq.1 ) then
+          else if ( idirect.eq.1 ) then
+            do k = 0 , kz
+              do i = 1 , iym1
+                wkaer(i,k,1) = 0.
+                wkaer(i,k,2) = 0.
+                wkaer(i,k,3) = 0.
+                wkaer(i,k,4) = 0.
+              end do
+            end do
+          end if
+        else
           do k = 0 , kz
             do i = 1 , iym1
               wkaer(i,k,1) = 0.
@@ -722,7 +735,6 @@
               wkaer(i,k,4) = 0.
             end do
           end do
-        else
         end if
  
         call radded(coszrs,trayoslp,pflx,abh2o(ns),abo3(ns),abco2(ns),  &
@@ -861,12 +873,12 @@
 !EES    apr 20
  
 !FAB
-!       CLEAR SKY CALCULATION PLUS AUTOMATCI CALCULATEION OF AEROSOL
+!       CLEAR SKY CALCULATION PLUS AEROSOL
 !       FORCING RAD CLR is called 2 times , one with O aerosol OP , and
 !       one with actual aerosol. DIFFERENCE  in net TOA SW for the two
 !       case is saved as one more variable in the rad file. The
 !       outputed TOASW ( fsntc, clrst) is accounting for aerosol.
-        if ( idirect.ge.1 ) then
+        if ( ichem==1 .and. idirect.ge.1 ) then
  
           do i = 1 , iym1
             zero(i,1) = 0.
@@ -946,8 +958,6 @@
 !             variables to 0.)
             end do
           end do
-!         if(ns==8)  print *,'DANS radscw FUPav',
-!         &    maxval(fluxup(:,0)* solflx(:)*1.E-3)
 !
 !         End of clear sky calculation with O aerosol OP
 !
@@ -1022,25 +1032,19 @@
  
           end do
         end do
- 
-!       if(ns==8)  print *,'DANS radscw FUPav',
-!       &    maxval(fluxup(:,0)* solflx(:)*1.E-3)
- 
 !
 !       End of clear sky calculation
 !
       end do                    ! End of spectral interval loop
  
 !     FAB calculation of TOA aerosol radiative forcing
-      if ( idirect.ge.1 ) then
+      if ( ichem==1 .and. idirect.ge.1 ) then
         do n = 1 , nloop
           do i = is(n) , ie(n)
-!           test
             aeradfo(i) = -(x0fsntc(i)-fsntc(i))
             aeradfos(i) = -(x0fsnsc(i)-fsnsc(i))
           end do
         end do
-!TEST
       end if
 !
 !     Compute solar heating rate (k/s)

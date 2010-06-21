@@ -47,7 +47,7 @@
 !
       use mod_dynparam
       use mod_param1 , only : ifrabe
-      use mod_param2 , only : iemiss , idirect
+      use mod_param2 , only : iemiss , ichem , idirect
       use mod_radbuf
       use mod_aerosol, only : aerlwtr
       use mod_date , only : jyear , jyear0 , ktau
@@ -184,14 +184,14 @@
            & rtclrsf , s2c , s2t , tint , tint4 , tlayr , tlayr4 ,      &
            & tplnka , ucfc11 , ucfc12 , uch4 , uco211 , uco212 ,        &
            & uco213 , uco221 , uco222 , uco223 , un2o0 , un2o1 ,        &
-           & uptype , w , fsul0 , fsdl0
+           & uptype , w , fsul0 , fsdl0 , ful0 , fdl0
       real(8) , dimension(iym1,kz) :: co2eml , fclb4 , fclt4
       logical , dimension(iym1) :: done , start
       real(8) :: tmp1
       integer :: i , ii , k , k1 , k2 , k3 , khighest , km , km1 , km2 ,&
-               & km3 , km4 , iym1c , rad , n
+               & km3 , km4 , iym1c , rad , n , nradaer
       integer , dimension(iym1) :: indx , khiv , khivm , klov
-      real(8) , dimension(iym1,kzp1,kzp1) :: s
+      real(8) , dimension(iym1,kzp1,kzp1) :: s , s0
       real(8) , dimension(iym1,kzp1,kzp1) :: tone
 !
       integer , external :: intmax
@@ -251,10 +251,11 @@
                   & uco222,uco223,uptype,bn2o0,bn2o1,bch4,abplnk1,      &
                   & abplnk2,jslc)
 
-         abstot0(:,:,:,jslc) = abstot(:,:,:,jslc)
-         emstot0(:,:,jslc) = emstot(:,:,jslc)
-         absnxt0(:,:,:,jslc) = absnxt(:,:,:,jslc)   
- 
+         if (ichem .ne. 0 .and. idirect > 0) then
+           abstot0(:,:,:,jslc) = abstot(:,:,:,jslc)
+           emstot0(:,:,jslc) = emstot(:,:,jslc)
+           absnxt0(:,:,:,jslc) = absnxt(:,:,:,jslc)   
+        end if
       end if
 !
 !     Find the lowest and highest level cloud for each grid point
@@ -303,32 +304,29 @@
 !
 ! option to calculate LW aerosol radiative forcing
 
-!     CCFAB LW radiative forcing ( rad=1 : avec dust)
-      fsul0(:,:) = 0.
-      fsdl0(:,:) = 0.
-      abstot(:,:,:,jslc) = abstot0(:,:,:,jslc)
-      emstot(:,:,jslc) = emstot0(:,:,jslc)
-      absnxt(:,:,:,jslc) = absnxt0(:,:,:,jslc)
+! FAB LW radiative forcing ( rad=1 : avec dust)
+      if (ichem .ne. 0 .and. idirect > 0) then
+        nradaer = 2
+        fsul0(:,:) = 0.
+        fsdl0(:,:) = 0.
+        abstot(:,:,:,jslc) = abstot0(:,:,:,jslc)
+        emstot(:,:,jslc) = emstot0(:,:,jslc)
+        absnxt(:,:,:,jslc) = absnxt0(:,:,:,jslc)
+      else
+        nradaer = 1
+      end if
 
-      do rad = 1 , 2
-        if ( rad==2 ) then
+      do rad = 1 , nradaer
 
+        if (ichem==1 .and. idirect > 0 .and. rad==2 ) then
           abstot(:,:,:,jslc) = 1-(1-abstot0(:,:,:,jslc))*aerlwtr(:,:,:)
-
           emstot(:,:,jslc) = 1-(1-emstot0(:,:,jslc))*aerlwtr(:,:,1)
-       
           do k = 1 , kz  ! aerlwtr defined on plev levels
             do n = 1 , 4
               absnxt(:,k,n,jslc) = 1-(1-absnxt0(:,k,n,jslc))*           &
                                 & (aerlwtr(:,k,k+1)**xuinpl(:,k,n,jslc))
-!             print* , 'z' , jslc , xuinpl(:,k,n,jslc)
             end do
           end do
-      
-!         print * , jslc, minval(absnxt(:,:,:,jslc)),                   &
-!        &   maxval(absnxt(:,:,:,jslc)), minval(absnxt0(:,:,:,jslc)),   &
-!        &   maxval(absnxt0(:,:,:,jslc))
-
         end if
 !
 !     Compute sums used in integrals (all longitude points)
@@ -434,9 +432,12 @@
 
 !     FAB radiative forcing sur fsul
 
-        if ( rad==1 ) then
+        if (ichem==1 .and. idirect > 0 .and. rad==1 ) then
           fsul0(:,:) = fsul(:,:)! save fsul0 = no dust
           fsdl0(:,:) = fsdl(:,:)!
+          ful0(:,:) = ful(:,:)
+          fdl0(:,:) = fdl(:,:)
+          s0(:,:,:) = s(:,:,:)
         end if
 
       end do ! end rad loop
@@ -444,18 +445,25 @@
 !     FAB after this DO loop fsul account for dust LW effect
 !     which is OK in case of idirect=2
 
-      aerlwfo(:) = fsul0(:,1) - fsul(:,1)
+      if (ichem ==1 .and. idirect > 0 ) then
 
-!     surface lw net ! fsul(i,plevp) - fsdl(i,plevp)
-!     aerlwfos(:)= fsdl0(:,kz)-fsdl(:,kz)
-      aerlwfos(:) = (fsul0(:,kzp1)-fsdl0(:,kzp1))-                      &
-               &    (fsul(:,kzp1) - fsdl(:,kzp1))
+        aerlwfo(:) = fsul0(:,1) - fsul(:,1)
+
+!       surface lw net ! fsul(i,plevp) - fsdl(i,plevp)
+!       aerlwfos(:)= fsdl0(:,kz)-fsdl(:,kz)
+        aerlwfos(:) = (fsul0(:,kzp1)-fsdl0(:,kzp1))-                    &
+                 &    (fsul(:,kzp1) - fsdl(:,kzp1))
          
-!     return to no aerosol LW effect  situation if idirect ==1
-      if ( idirect==1 ) then
-        fsul(:,:) = fsul0(:,:)
-        fsdl(:,:) = fsdl0(:,:)
-      end if 
+!       return to no aerosol LW effect  situation if idirect ==1
+        if ( idirect==1 ) then
+          fsul(:,:) = fsul0(:,:)
+          fsdl(:,:) = fsdl0(:,:)
+          ful(:,:) = ful0(:,:)
+          fdl(:,:) = fdl0(:,:)
+          s(:,:,:) = s0(:,:,:)
+        end if 
+
+      end if ! end aersol rad diagnostic
 
 !
 !     Modifications for clouds

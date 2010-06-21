@@ -272,8 +272,6 @@
         end do
       end do
 #endif
-      print *, 'MAXVAL srel2d    : ' , maxval(srel2d)
-      print *, 'MAXVAL dustsotex : ' , maxval(dustsotex)
 
       end subroutine inidust
 
