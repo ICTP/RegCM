@@ -49,8 +49,6 @@
 !  GLCC landuse data (Loveland et al 1999) and analyzes heights and/or
 !  landuse values to a given grid.
 !
-!  terrain will be read from unit 12, landuse from unit 10 or 11,
-!  output variables unit 9.
 !---------------------------------------------------------------------
       use mod_dynparam
       use mod_maps
@@ -61,7 +59,7 @@
       use mod_interp , only : anal2 , interp
       use mod_fudge , only : lndfudge , texfudge , lakeadj
       use mod_rdldtr , only : rdldtr , rdldtr_nc
-      use mod_write , only : setup , output , write_domain
+      use mod_write , only : setup , write_domain
       use mod_header , only : header
       use mod_surf , only : surf
       implicit none
@@ -206,8 +204,7 @@
               & trim(dirter), pthsep, trim(domname) , nsg , '.INFO'
         write (ctlfile_s,99001)                                         &
               & trim(dirter), pthsep, trim(domname) , nsg , '.CTL'
-        call setup(nunitc_s,ctlunit_s,iysg,jxsg,ntypec_s,iproj,ds/nsg,  &
-                 & clat,clong,igrads,ibyte,datafile_s,ctlfile_s)
+        call setup(iysg,jxsg,ntypec_s,iproj,ds/nsg,clat,clong)
         if ( iproj=='LAMCON' ) then
           call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,0,xn,truelatl,truelath)
@@ -383,8 +380,7 @@
            & trim(dirter), pthsep, trim(domname) , '.INFO'
       write (ctlfile,99002)                                             &
            & trim(dirter), pthsep, trim(domname) , '.CTL'
-      call setup(nunitc,ctlunit,iy,jx,ntypec,iproj,ds,clat,clong,igrads,&
-               & ibyte,datafile,ctlfile)
+      call setup(iy,jx,ntypec,iproj,ds,clat,clong)
       print * , 'after calling SETUP'
 !
 !-----calling the map projection subroutine
@@ -577,22 +573,11 @@
             end do
           end do
         end do
-        call output(nunitc_s,ctlunit_s,iysg,jxsg,dsx_s,clat,clong,      &
-                  & plat,plon,iproj,htgrid_s,htsdgrid_s,lndout_s,       &
-                  & xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,dattyp,dmap_s,   &
-                  & coriol_s,snowam_s,igrads,ibigend,kz,sigma,mask_s,   &
-                  & ptop,nsg,truelatl,truelath,xn,domname,              &
-                  & aertyp,texout_s,frac_tex_s,ntex,.false.)
         call write_domain(.true.)
         print * , 'after calling OUTPUT, for subgrid'
         call free_subgrid
       end if
 
-      call output(nunitc,ctlunit,iy,jx,dsx,clat,clong,plat,plon,iproj,  &
-                & htgrid,htsdgrid,lndout,xlat,xlon,dlat,dlon,xmap,      &
-                & dattyp,dmap,coriol,snowam,igrads,ibigend,kz,sigma,    &
-                & mask,ptop,nsg,truelatl,truelath,xn,domname,           &
-                & aertyp,texout,frac_tex,ntex,.true.)
       call write_domain(.false.)
       print * , 'after calling OUTPUT'
       call free_grid
