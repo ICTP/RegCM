@@ -36,10 +36,11 @@
 !          NL= 1 is  90.0; ML= 2 is  88.5; => ML=121 is -90.         !
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      use mod_dynparam
+      use mod_sst_grid
       use mod_date
       use mod_interp , only : bilinx
       use mod_printl
+      use netcdf
 
       implicit none
 !
@@ -56,13 +57,7 @@
       integer :: idate , ierastart , ierrec , nsteps
       logical :: there
       real(4) , dimension(ilon,jlat) :: sst
-      real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
-      character(256) :: terfile , sstfile , inpfile
-!
-      allocate(lu(iy,jx))
-      allocate(sstmm(iy,jx))
-      allocate(xlat(iy,jx))
-      allocate(xlon(iy,jx))
+      character(256) :: sstfile , inpfile
 !
       if ( ssttyp=='ERSST' ) then
         there = .false.
@@ -113,11 +108,6 @@
       write (*,*) 'GLOBIDATE2 : ' , globidate2
       write (*,*) 'NSTEPS     : ' , nsteps
 
-!     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      write (terfile,99001)                                             &
-        & trim(dirter), pthsep, trim(domname) , '.INFO'
-      open (10,file=terfile,form='unformatted',recl=iy*jx*ibyte,        &
-         &  access='direct',status='unknown',err=100)
       write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
            & '_RCM_SST.dat'
       open (25,file=sstfile,status='unknown',form='unformatted',        &
@@ -128,7 +118,7 @@
         open (31,file=sstfile,status='replace')
         write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
       end if
-      call gridmle(xlon,xlat,lu,iy,jx,globidate1,nsteps)
+      call setup_sstfile(globidate1,nsteps)
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -172,11 +162,6 @@
 
       end do
  
-      deallocate(lu)
-      deallocate(sstmm)
-      deallocate(xlat)
-      deallocate(xlon)
-
       return
 
 !     4810 PRINT *,'ERROR OPENING GISST FILE'
@@ -187,154 +172,6 @@
 
 99001 format (a,a,a,a)
       end subroutine sst_ersst
-!
-!-----------------------------------------------------------------------
-!
-      subroutine gridmle(xlon,xlat,lu,iy,jx,idate1,numrec)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: idate1 , iy , jx , numrec
-      real(4) , dimension(iy,jx) :: lu , xlat , xlon
-      intent (in) idate1 , iy , jx , numrec
-      intent (out) lu , xlat , xlon
-!
-! Local variables
-!
-      real(4) :: truelath , truelatl
-      real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
-            & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
-            & ptop , rlatinc , rloninc
-      character(2) , dimension(31) :: cday
-      character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , igrads , iyy , j , jxx , k , kz ,        &
-               & month , nday , nhour , nx , ny , nyear , period
-      character(6) :: iproj
-      real(4) , dimension(30) :: sigmaf
-!
-      data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
-          &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
-         & '17' , '18' , '19' , '20' , '21' , '22' , '23' , '24' ,      &
-         & '25' , '26' , '27' , '28' , '29' , '30' , '31'/
-      data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
-         & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
-!
-      alatmin = 999999.
-      alatmax = -999999.
-      alonmin = 999999.
-      alonmax = -999999.
-      nx = 0
-      ny = 0
-      read (10,rec=1) iyy , jxx , kz , dsinm , clat , clon , plat ,     &
-                    & plon , grdfac , iproj , (sigmaf(k),k=1,kz+1) ,    &
-                    & ptop , igrads , ibigend , truelatl , truelath
-      if ( iyy/=iy .or. jxx/=jx ) then
-        write (*,*) 'IY,JX,IYY,JXX' , iy , jx , iyy , jxx
-        stop
-      end if
-      read (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
-      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
-      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
-!
-      if ( igrads==1 ) then
-        write (31,'(a)') 'title SST fields for RegCM domain'
-        if ( ibigend==1 ) then
-          write (31,'(a)') 'options big_endian'
-        else
-          write (31,'(a)') 'options little_endian'
-        end if
-        write (31,'(a)') 'undef -9999.'
-        if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
-          do j = 1 , jx
-            if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
-            if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
-          end do
-          do i = 1 , iy
-            do j = 1 , jx
-              if ( clon>=0.0 ) then
-                if ( xlon(i,j)>=0.0 ) then
-                  alonmin = amin1(alonmin,xlon(i,j))
-                  alonmax = amax1(alonmax,xlon(i,j))
-                else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)+360.))&
-                        & ) then
-                  alonmin = amin1(alonmin,xlon(i,j))
-                  alonmax = amax1(alonmax,xlon(i,j))
-                else
-                  alonmin = amin1(alonmin,xlon(i,j)+360.)
-                  alonmax = amax1(alonmax,xlon(i,j)+360.)
-                end if
-              else if ( xlon(i,j)<0.0 ) then
-                alonmin = amin1(alonmin,xlon(i,j))
-                alonmax = amax1(alonmax,xlon(i,j))
-              else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)-360.)) )&
-                      & then
-                alonmin = amin1(alonmin,xlon(i,j))
-                alonmax = amax1(alonmax,xlon(i,j))
-              else
-                alonmin = amin1(alonmin,xlon(i,j)-360.)
-                alonmax = amax1(alonmax,xlon(i,j)-360.)
-              end if
-            end do
-          end do
-          rlatinc = dsinm*0.001/111./2.
-          rloninc = dsinm*0.001/111./2.
-          ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
-          nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
- 
-          centerj = jx/2.
-          centeri = iy/2.
-        end if
-        if ( iproj=='LAMCON' ) then        ! Lambert projection
-          write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
-                         & truelatl , truelath , clon , dsinm , dsinm
-          write (31,99002) nx + 2 , alonmin - rloninc , rloninc
-          write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
-        else if ( iproj=='POLSTR' ) then   !
-        else if ( iproj=='NORMER' ) then
-          write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
-          write (31,99005) iy
-          write (31,99006) (xlat(i,1),i=1,iy)
-        else if ( iproj=='ROTMER' ) then
-          write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
-                     &' projections are not supported by GrADS.'
-          write (*,*) '  Although not exact, the eta.u projection' ,    &
-                     &' in GrADS is somewhat similar.'
-          write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , iy , plon , plat , dsinm/111000. ,      &
-                         & dsinm/111000.*.95238
-          write (31,99002) nx + 2 , alonmin - rloninc , rloninc
-          write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
-        else
-          write (*,*) 'Are you sure your map projection is correct ?'
-          stop
-        end if
-        write (31,99008) 1 , 1000.
-        period = numrec
-        nyear = idate1/1000000
-        month = (idate1-nyear*1000000)/10000
-        nday = (idate1-nyear*1000000-month*10000)/100
-        nhour = mod(idate1,100)
-        write (31,99009) period , nhour , cday(nday) , cmonth(month) ,  &
-                       & nyear
-        write (31,99010) 1
-        write (31,99011) 'sst ' , 'surface elevation          '
-        write (31,'(a)') 'endvars'
-        close (31)
-      end if
-99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
-99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
-99003 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
-99004 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
-99005 format ('ydef ',i3,' levels')
-99006 format (10F7.2)
-99007 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
-99008 format ('zdef ',i1,' levels ',f7.2)
-99009 format ('tdef ',i6,' linear ',i2,'z',a2,a3,i4,' 6hr')
-99010 format ('vars ',i1)
-99011 format (a4,'0 99 ',a26)
-!
-      end subroutine gridmle
 !
 !-----------------------------------------------------------------------
 !

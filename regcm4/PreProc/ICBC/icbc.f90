@@ -128,6 +128,11 @@
       call getarg(0, prgname)
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
+      if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.                    &
+       &   dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
+        call init_globwindow(lat0,lon0,lat1,lon1)
+      end if
+
       if ( ierr/=0 ) then
         write ( 6, * ) 'Parameter initialization not completed'
         write ( 6, * ) 'Usage : '
@@ -150,8 +155,6 @@
           & '_SST.RCM'
       open (60,file=sstfile,form='unformatted',status='old',err=100)
  
-      call commhead
-
       if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
          & then
         call headernc

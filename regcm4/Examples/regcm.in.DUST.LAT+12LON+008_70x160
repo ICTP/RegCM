@@ -61,6 +61,12 @@
  dirglob = '/lustre/fsolmon/regcm/branches/regcm4/Input',
  inpglob = '/scratch/esp/RCM3DATA',
  /
+ &globwindow
+ lat0 = 0.0
+ lat1 = 0.0
+ lon0 = 0.0
+ lon1 = 0.0
+ /
  &aerosolparam
  aertyp = 'AER00D1'
  ntr = 4,

@@ -36,10 +36,11 @@
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      use mod_dynparam
+      use mod_sst_grid
       use mod_date
       use mod_interp , only : bilinx
       use mod_printl
+      use netcdf
 
       implicit none
 !
@@ -59,14 +60,9 @@
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       logical :: there
-      real(4) , allocatable , dimension(:,:) :: lu , sstmm , xlat , xlon
-      character(256) :: terfile , sstfile
+      character(256) :: sstfile
 !
       it_base = 0
-      allocate(lu(iy,jx))
-      allocate(sstmm(iy,jx))
-      allocate(xlat(iy,jx))
-      allocate(xlon(iy,jx))
 
       if ( ssttyp=='EH5RF' ) then
         there = .false.
@@ -261,11 +257,6 @@
       write (*,*) 'GLOBIDATE2 : ' , globidate2
       write (*,*) 'NSTEPS     : ' , nsteps
 
-!     ******    ON WHAT RegCM GRID ARE SST DESIRED?
-      write (terfile,99001)                                             &
-        & trim(dirter), pthsep, trim(domname) , '.INFO'
-      open (10,file=terfile,form='unformatted',recl=iy*jx*ibyte,        &
-         &  access='direct',status='unknown',err=100)
       write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
           &  '_RCM_SST.dat'
       open (25,file=sstfile,status='unknown',form='unformatted',        &
@@ -276,7 +267,7 @@
         open (31,file=sstfile,status='replace')
         write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
       end if
-      call gridmlo(xlon,xlat,lu,iy,jx,globidate1,nsteps)
+      call setup_sstfile(globidate1,nsteps)
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -447,28 +438,22 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine gridmlo(xlon,xlat,lu,iy,jx,idate1,numrec)
+      subroutine gridmlo(idate1,numrec)
+      use mod_sst_grid
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate1 , iy , jx , numrec
-      real(4) , dimension(iy,jx) :: lu , xlat , xlon
-      intent (in) idate1 , iy , jx , numrec
-      intent (out) lu , xlat , xlon
+      integer :: idate1 , numrec
+      intent (in) idate1 , numrec
 !
 ! Local variables
 !
-      real(4) :: truelath , truelatl
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
-            & centerj , clat , clon , dsinm , grdfac , plat , plon ,    &
-            & ptop , rlatinc , rloninc
+            & centerj , dsinm , rlatinc , rloninc
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: i , ibigend , igrads , iyy , j , jxx , k , kz ,        &
-               & month , nday , nhour , nx , ny , nyear , period
-      character(6) :: iproj
-      real(4) , dimension(30) :: sigmaf
+      integer :: i , j , month , nday , nhour , nx , ny , nyear , period
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -483,17 +468,7 @@
       alonmax = -999999.
       nx = 0
       ny = 0
-
-      read (10,rec=1) iyy , jxx , kz , dsinm , clat , clon , plat ,     &
-                    & plon , grdfac , iproj , (sigmaf(k),k=1,kz+1) ,    &
-                    & ptop , igrads , ibigend , truelatl , truelath
-      if ( iyy/=iy .or. jxx/=jx ) then
-        write (*,*) 'IY,JX,IYY,JXX' , iy , jx , iyy , jxx
-        stop
-      end if
-      read (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
-      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
-      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
+      dsinm = ds*1000.0
 !
       if ( igrads==1 ) then
         open (31,file='RCM_SST.ctl',status='replace')
@@ -536,8 +511,8 @@
               end if
             end do
           end do
-          rlatinc = dsinm*0.001/111./2.
-          rloninc = dsinm*0.001/111./2.
+          rlatinc = ds/111./2.
+          rloninc = ds/111./2.
           ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
           nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
  
@@ -560,8 +535,8 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , iy , plon , plat , dsinm/111000. ,      &
-                         & dsinm/111000.*.95238
+          write (31,99007) jx , iy , plon , plat , ds/111. ,            &
+                         & ds/111.*.95238
           write (31,99002) nx + 2 , alonmin - rloninc , rloninc
           write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
         else

@@ -20,6 +20,7 @@
       program sst
 
       use mod_dynparam
+      use mod_sst_grid
       use mod_sst_1deg
       use mod_sst_eh5om
       use mod_sst_ersst
@@ -28,6 +29,7 @@
       implicit none
       integer :: ierr
       character(256) :: namelistfile , prgname
+      character(256) :: terfile
 !
 !     Read input global namelist
 !
@@ -42,6 +44,9 @@
         write ( 6, * ) 'Check argument and namelist syntax'
         stop
       end if
+
+      call init_grid
+      call read_domain(terfile)
 
       if ( ssttyp=='GISST' .or. ssttyp=='OISST' .or.                    &
        &   ssttyp=='OI_NC' .or. ssttyp=='OI2ST' .or.                    &
@@ -60,6 +65,8 @@
               & trim(namelistfile)
         stop
       end if
+
+      call free_grid
 
       print *, 'Successfully generated SST'
 

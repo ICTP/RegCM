@@ -7,7 +7,7 @@ all: aerosol sst icbc install
 
 AEROSOLOBJ = aerosol.o
 SSTOBJ = sst.o mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_1deg.o \
-         mod_sst_ccsm.o mod_interp.o mod_printl.o mod_date.o
+         mod_sst_ccsm.o mod_interp.o mod_printl.o mod_date.o mod_sst_grid.o
 
 SHRMOD = mod_dynparam.o mod_constants.o
 
@@ -104,14 +104,17 @@ mod_write.o: mod_write.f90
 mod_printl.o: mod_printl.f90
 aerosol.o: aerosol.f90 mod_dynparam.o
 mod_sst_1deg.o: mod_sst_1deg.f90 mod_dynparam.o mod_interp.o mod_printl.o \
-                mod_date.o
-mod_sst_ccsm.o: mod_sst_ccsm.f90 mod_dynparam.o mod_interp.o mod_printl.o
+                mod_date.o mod_sst_grid.o
+mod_sst_ccsm.o: mod_sst_ccsm.f90 mod_dynparam.o mod_interp.o mod_printl.o \
+                mod_sst_grid.o
 mod_sst_eh5om.o: mod_sst_eh5om.f90 mod_dynparam.o mod_date.o mod_interp.o \
-                 mod_printl.o
+                 mod_printl.o mod_sst_grid.o
 mod_sst_ersst.o: mod_sst_ersst.f90 mod_dynparam.o mod_date.o mod_interp.o \
-                 mod_printl.o
-mod_sst_fvgcm.o: mod_sst_fvgcm.f90 mod_dynparam.o mod_interp.o mod_printl.o
+                 mod_printl.o mod_sst_grid.o
+mod_sst_fvgcm.o: mod_sst_fvgcm.f90 mod_dynparam.o mod_interp.o mod_printl.o \
+                 mod_sst_grid.o
+mod_sst_grid.o: mod_sst_grid.f90 mod_dynparam.o
 sst.o: mod_dynparam.o mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o \
-       mod_sst_fvgcm.o mod_sst_ccsm.o
+       mod_sst_fvgcm.o mod_sst_ccsm.o mod_sst_grid.o
 icbc.o: icbc.f90 mod_dynparam.o mod_date.o mod_grid.o mod_write.o \
         mod_ein15.o mod_interp.o mod_header.o
