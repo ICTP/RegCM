@@ -420,19 +420,6 @@
 
       end do
  
-      deallocate(lu)
-      deallocate(sstmm)
-      deallocate(xlat)
-      deallocate(xlon)
-
-      return
-
-!     4810 PRINT *,'ERROR OPENING GISST FILE'
-!     STOP '4810 IN PROGRAM RDSST'
- 100  continue
-      print * , 'ERROR OPENING DOMAIN HEADER FILE'
-      stop '4830 IN PROGRAM RDSST'
-
 99001 format (a,a,a,a)
       end subroutine sst_eh5om
 !

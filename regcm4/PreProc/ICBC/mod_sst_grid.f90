@@ -155,7 +155,7 @@
       real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
             & centerj , rlatinc , rloninc , dsinm
       character(3) , dimension(12) :: cmonth
-      integer :: i , ierr , j , nx , ny
+      integer :: i , j , nx , ny
       integer :: nyear , nmonth , nday , nhour
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
@@ -326,7 +326,7 @@
             & centerj , rlatinc , rloninc , dsinm
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
-      integer :: day , i , ierr , j , month , nx , ny
+      integer :: day , i , j , month , nx , ny
 !
       data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
          & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/

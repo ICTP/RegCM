@@ -81,7 +81,7 @@
         end if
         open (11,file=trim(inpglob)//'/SST/GISST_194712_200209',        &
              &form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
-            & status='old',err=100)
+            & status='old')
       else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.               &
             &   ssttyp=='OI2ST' ) then
         if ( globidate1<1981121512 .or. globidate2<1981121512 ) then
@@ -361,18 +361,7 @@
           if(ssttyp.eq.'OI2WK') &
           write (26,rec=mrec) ((icemm(i,j),j=1,jx),i=1,iy)
         end do
- 
-!#####
       end if
-!#####
-      return
-
- 100  continue
-      print * , 'ERROR OPENING GISST FILE'
-      stop '4810 IN PROGRAM RDSST'
- 200  continue
-      print * , 'ERROR OPENING DOMAIN HEADER FILE'
-      stop '4830 IN PROGRAM RDSST'
 
 99001 format (a,a,a,a)
       end subroutine sst_1deg

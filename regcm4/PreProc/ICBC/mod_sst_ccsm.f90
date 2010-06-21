@@ -168,10 +168,6 @@
  
       return
 
- 100  continue
-      print * , 'ERROR OPENING DOMAIN HEADER FILE'
-      stop '4830 in PROGRAM RDSST'
-
 99001 format (a,a,a,a)
       end subroutine sst_ccsm
 !
