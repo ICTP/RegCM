@@ -443,7 +443,23 @@
             & trim(filename)
         ierr = 1
 
-      end subroutine
+      end subroutine initparam
+
+      subroutine init_globwindow(lat0,lon0,lat1,lon1)
+        implicit none
+        real(4) , intent(out) :: lat0 , lat1 , lon0 , lon1
+        namelist /globwindow/ lat0 , lat1 , lon0 , lon1
+
+        lat0 = 0.0
+        lon0 = 0.0
+        lat1 = 0.0
+        lon1 = 0.0
+
+        read(ipunit, globwindow,err=101)
+        return
+  101   print *, 'Globwindow not present: Assuming Global data input'
+        return
+      end subroutine init_globwindow
 
       subroutine init_outparam
         implicit none
