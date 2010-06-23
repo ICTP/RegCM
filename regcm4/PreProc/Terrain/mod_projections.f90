@@ -153,76 +153,46 @@
 !
 ! Local variables
 !
-      real(4) :: cell , cell1 , cell2 , cntri , cntrj , flp , flpp ,    &
-               & pole , psi1 , psix , psx , r , x , xcntr , xn , y ,    &
-               & ycntr
-      integer :: i , ii1 , j , jj1
+      real(8) :: ala1 , alo1 , x , y , hemi , rebydx , reflon
+      real(8) :: scale_top , rsw , polei , polej
+      real(8) :: r2 , gi2 , arcc , cntrj , cntri
+      integer :: i , j
 !
-!     XN IS CONE FACTOR FOR THE PROJECTION (FROM PROGRAM TERRAIN).
-!     PSI1 IS THE COLATITUDE OF TRUELAT 1, IN RADIANS.
-!     PI IS PI.
-!
-!---------------------------------------------------------------------
- 
-!     COMPUTE LATS, LONS, AND MAP-SCALE FACTORS FOR
-!     LAMBERT CONFORMAL MAP CENTERED AT CLON,CLAT. TRUE AT 30.N AND
- 
-!     60.N. IY IS NUMBER OF N-S POINTS.  JX IS NUMBER OF E-W POINTS.
-!     CLON, CLAT IS LAT, LON OF CENTER OF GRID (DEGREES EAST, NORTH).
-!     DELX IS GRID SPACING IN METERS.
-!     ALWAYS FOR CROSS GRID.
- 
-!
-      xn = 1.0
-!
-      pole = 90.
-      psi1 = 30.
-      psi1 = psi1*degrad
-      if ( clat<0.0 ) then
-        pole = -90.0
-        psi1 = -30.
-        psi1 = psi1*degrad
-      end if
       cntrj = float(jx+idot)/2.
       cntri = float(iy+idot)/2.
+      rebydx = earthrad / delx
+      if (clat > 0.0) then
+        hemi = 1.0
+      else
+        hemi = -1.0
+      end if
+      reflon = clon + 90.0
+      ala1 = clat*degrad
+      alo1 = (clon-reflon)*degrad
+      scale_top = 1. + hemi * sin(ala1)
+      rsw = rebydx*cos(ala1)*scale_top/(1.0+hemi*sin(ala1))
+      polei = cntri - hemi * rsw * sin(alo1)
+      polej = cntrj - rsw * cos(alo1)
 !
-      psx = (pole-clat)*degrad
-      cell = earthrad*sin(psx)/xn
-      cell2 = (1.+cos(psi1))/(1.+cos(psx))
-      r = cell*(cell2)**xn
-      xcntr = 0.
-      ycntr = -r
-!
-      ii1 = iy
-      jj1 = jx
-      do i = 1 , ii1
-        y = ycntr + (i-cntri)*delx
-        do j = 1 , jj1
-          x = xcntr + (j-cntrj)*delx
-          r = sqrt(x*x+y*y)
-          if ( y==0. ) then
-            if ( x>=0. ) then
-              flp = 90.*degrad
-            else
-              flp = -90.*degrad
-            end if
-          else if ( clat<0.0 ) then
-            flp = atan2(x,y)
+      do i = 1 , iy
+        y = (i - polei) * hemi
+        do j = 1 , jx
+          x = j - polej
+          r2 = x**2 + y**2
+          if (abs(r2) < 1e-30) then
+            xlat(i,j) = hemi*90.0
+            xlon(i,j) = reflon
           else
-            flp = atan2(x,-y)
+            gi2 = (rebydx * scale_top)**2.
+            xlat(i,j) = raddeg * hemi * asin((gi2-r2)/(gi2+r2))
+            arcc = acos(x/sqrt(r2))
+            if (y > 0) then
+              xlon(i,j) = reflon + raddeg * arcc
+            else
+              xlon(i,j) = reflon - raddeg * arcc
+            end if
           end if
-          flpp = flp/xn/degrad + clon
-!         IF (FLPP.GT.180.0) FLPP = FLPP-360.0
-!         IF (FLPP.LT.-180.0) FLPP = FLPP+360.0
-          xlon(i,j) = flpp
-          if ( clat<0.0 ) r = -r
-          cell = r/earthrad
-          cell1 = cell/(1.0+cos(psi1))
-          cell2 = atan(cell1)
-          psx = 2.*cell2/degrad
-          xlat(i,j) = pole - psx
-          psix = psx*degrad
-          xmap(i,j) = ((1.0+cos(psi1))/(1.0+cos(psix)))**xn
+          xmap(i,j) = scale_top/(1. + hemi * sin(xlat(i,j)*degrad))
         end do
       end do
  
