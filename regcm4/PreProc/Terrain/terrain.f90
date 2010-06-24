@@ -69,8 +69,6 @@
       integer :: maxiter , maxjter , maxdim
       character(256) :: char_lnd , char_tex
       character(256) :: namelistfile , prgname
-      character(256) :: ctlfile_s , datafile_s
-      character(256) :: ctlfile , datafile
       integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
       logical :: ibndry
       integer :: nunitc , nunitc_s , ctlunit , ctlunit_s
@@ -200,10 +198,6 @@
       if ( nsg>1 ) then
         nunitc_s  = 119
         ctlunit_s = 120
-        write (datafile_s,99001)                                        &
-              & trim(dirter), pthsep, trim(domname) , nsg , '.INFO'
-        write (ctlfile_s,99001)                                         &
-              & trim(dirter), pthsep, trim(domname) , nsg , '.CTL'
         call setup(iysg,jxsg,ntypec_s,iproj,ds/nsg,clat,clong)
         if ( iproj=='LAMCON' ) then
           call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
@@ -355,9 +349,9 @@
           end do
         end do
 !       land/sea mask fudging
-        write (char_lnd,99003) trim(dirter), pthsep, trim(domname),     &
+        write (char_lnd,99001) trim(dirter), pthsep, trim(domname),     &
            &   '_LANDUSE' , nsg
-        write (char_tex,99003) trim(dirter), pthsep, trim(domname),     &
+        write (char_tex,99001) trim(dirter), pthsep, trim(domname),     &
            &   '_TEXTURE' , nsg
         call lndfudge(fudge_lnd_s,ch_s,lndout_s,htgrid_s,iysg,jxsg,     &
                     & trim(char_lnd))
@@ -376,10 +370,6 @@
       dycen = 0.0
 !
 !     set up the parameters and constants
-      write (datafile,99002)                                            &
-           & trim(dirter), pthsep, trim(domname) , '.INFO'
-      write (ctlfile,99002)                                             &
-           & trim(dirter), pthsep, trim(domname) , '.CTL'
       call setup(iy,jx,ntypec,iproj,ds,clat,clong)
       print * , 'after calling SETUP'
 !
@@ -535,9 +525,9 @@
         end do
       end do
 !     land/sea mask fudging
-      write (char_lnd,99004) trim(dirter), pthsep, trim(domname),       &
+      write (char_lnd,99002) trim(dirter), pthsep, trim(domname),       &
            &   '_LANDUSE'
-      write (char_tex,99004) trim(dirter), pthsep, trim(domname),       &
+      write (char_tex,99002) trim(dirter), pthsep, trim(domname),       &
            &   '_TEXTURE'
       call lndfudge(fudge_lnd,ch,lndout,htgrid,iy,jx,trim(char_lnd))
       if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex,ch,texout,htgrid, &
@@ -573,11 +563,30 @@
             end do
           end do
         end do
+        do i = 1 , iy
+          do j = 1 , jx
+            if ( lndout_s(i,j)>13.5 .and. lndout_s(i,j)<15.5 ) then
+              mask_s(i,j) = 0.0
+            else
+              mask_s(i,j) = 2.0
+            end if
+          end do
+        end do
+
         call write_domain(.true.)
         print * , 'after calling OUTPUT, for subgrid'
         call free_subgrid
       end if
 
+      do i = 1 , iy
+        do j = 1 , jx
+          if ( lndout(i,j)>13.5 .and. lndout(i,j)<15.5 ) then
+            mask(i,j) = 0.0
+          else
+            mask(i,j) = 2.0
+          end if
+        end do
+      end do
       call write_domain(.false.)
       print * , 'after calling OUTPUT'
       call free_grid
@@ -588,8 +597,6 @@
  
 !     stop 9999
 !
-99001 format (a,a,a,i0.3,a)
-99002 format (a,a,a,a)
-99003 format (a,a,a,a8,i0.3)
-99004 format (a,a,a,a8)
+99001 format (a,a,a,a8,i0.3)
+99002 format (a,a,a,a8)
       end program terrain

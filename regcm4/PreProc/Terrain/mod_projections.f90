@@ -219,46 +219,29 @@
 !
 ! Local variables
 !
-      real(4) :: c2 , cell , cntri , cntrj , deglat , phi1 , phictr ,   &
-               & pole , x , xcntr , y , ycntr
-      integer :: i , ii1 , j , jj1
+      real(8) :: clain , cntri , cntrj , deglat , dlon , rsw , x , y
+      integer :: i , j
 !
-!     COMPUTE LATS, LONS, AND MAP-SCALE FACTORS FOR
-!     LAMBERT CONFORMAL MAP CENTERED AT CLON,CLAT. TRUE AT 30.N AND
-!     60.N. IY IS NUMBER OF N-S POINTS.  JX IS NUMBER OF E-W POINTS.
-!     CLON, CLAT IS LAT, LON OF CENTER OF GRID (DEGREES EAST, NORTH).
-!     DELX IS GRID SPACING IN METERS.
-!     ALWAYS FOR CROSS GRID.
+!     COMPUTE LATS, LONS, AND MAP-SCALE FACTORS FOR MERCATOR
  
-      pole = 90.
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
-      if ( clat<0.0 ) pole = -90.0
 !
-!     FOR MERCATOR PROJECTION TRUE AT PHI1
+      clain = cos(clat*degrad)
+      dlon = delx / (earthrad * clain)
+      rsw = 0.0
+      if (abs(clat) > 1e-30) then
+        rsw = (log(tan(0.5*((clat+90.)*degrad))))/dlon
+      end if
 !
-      phi1 = 0.
-      phi1 = phi1*degrad
-      c2 = earthrad*cos(phi1)
-      xcntr = 0.
-      phictr = clat*degrad
-      cell = cos(phictr)/(1.+sin(phictr))
-      ycntr = -c2*log(cell)
-!
-      ii1 = iy
-      jj1 = jx
-      do i = 1 , ii1
-        y = ycntr + (i-cntri)*delx
-        do j = 1 , jj1
-          x = xcntr + (j-cntrj)*delx
-!
-!         CALCULATIONS FOR MERCATOR
-!
-          xlon(i,j) = clon + ((x-xcntr)/c2)/degrad
-          cell = exp(y/c2)
-          xlat(i,j) = 2.*(atan(cell)/degrad) - 90.
+      do i = 1 , iy
+        y = i
+        do j = 1 , jx
+          x = j
+          xlon(i,j) = (j-cntrj)*dlon*raddeg + clon
+          xlat(i,j) = 2.0*atan(exp(dlon*(rsw + i-cntri)))*raddeg - 90.
           deglat = xlat(i,j)*degrad
-          xmap(i,j) = cos(phi1)/cos(deglat)
+          xmap(i,j) = 1.0/cos(deglat)
         end do
       end do
  
