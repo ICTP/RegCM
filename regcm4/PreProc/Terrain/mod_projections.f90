@@ -826,8 +826,6 @@
         ht(ii) = ht(ii)/100.
         ht2(ii) = ht2(ii)/100000.
       end do
-      print *, minval(xobs), ' : ' , maxval(xobs)
-      print *, minval(yobs), ' : ' , maxval(yobs)
 
       end subroutine xyobsll
 !
