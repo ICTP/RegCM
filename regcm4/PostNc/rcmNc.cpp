@@ -73,7 +73,7 @@ rcmNc::rcmNc(regcmout &fnc, header_data &outhead, bool full)
   f->add_att("grid_size_in_meters", outhead.dsmeters);
   f->add_att("latitude_of_projection_origin", outhead.clat);
   f->add_att("longitude_of_projection_origin", outhead.clon);
-  if (strcmp(outhead.proj, "POLSTR") == 0)
+  if (strcmp(outhead.proj, "ROTMER") == 0)
   {
     f->add_att("latitude_of_projection_pole", outhead.xplat);
     f->add_att("longitude_of_projection_pole", outhead.xplon);
