@@ -774,7 +774,7 @@
  
       end subroutine nrot2rot
 
-      subroutine xyobsll(iy,jx,iproj,clat,clon,plat,plon,ds,truelatl,   &
+      subroutine xyobsll(iy,jx,iproj,clat,clon,plat,plon,truelatl,      &
                        & truelath)
       use mod_maps
       use mod_block
@@ -782,11 +782,11 @@
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , plat , plon , truelath , truelatl , ds
+      real(4) :: clat , clon , plat , plon , truelath , truelatl
       character(6) :: iproj
       integer :: iy , jx
       intent (in) iy , jx
-      intent (in) clat , clon , iproj , truelath , truelatl , ds
+      intent (in) clat , clon , iproj , truelath , truelatl
       real(4) :: cntrj , cntri , alon , alat
       integer :: ii
 !
