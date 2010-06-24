@@ -256,7 +256,7 @@
         if ( ifanal ) then
 !         convert xobs and yobs from LON and LAT to x and y in mesh
           call xyobsll(iysg,jxsg,iproj,clat,clong,plat,plon,        &
-                     & truelath)
+                     & ds,truelatl,truelath)
           print * , 'after calling XYOBSLL, for subgrid'
 !
 !         create the terrain height fields
@@ -429,7 +429,8 @@
  
       if ( ifanal ) then
 !       convert xobs and yobs from LON and LAT to x and y in mesh
-        call xyobsll(iy,jx,iproj,clat,clong,plat,plon,truelath)
+        call xyobsll(iy,jx,iproj,clat,clong,plat,plon,ds,truelatl,      &
+                  &  truelath)
         print * , 'after calling XYOBSLL'
  
 !       create the terrain height fields

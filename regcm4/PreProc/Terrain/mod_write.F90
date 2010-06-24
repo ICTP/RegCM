@@ -46,7 +46,7 @@
       write (6,*) ' '
 !
       rin = 1.5          ! 1.5 rad of influence-coarse mesh
- 
+!
       dsinm = ds*1000.
 !
       nnc = nint(60./float(ntypec))
