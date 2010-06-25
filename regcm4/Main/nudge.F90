@@ -76,11 +76,135 @@
 #ifdef MPP1
       integer :: jwb , jeb
 #endif
+#ifdef BAND
+      integer :: jm1 , jp1
+#endif
 !
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+      dtb = xt*60.
+!
+!-----determine which relaxation method to use:linear/expon.
+!
+      if ( iboudy.eq.1 ) then
+!
+!---------use linear method
+!
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+!.......south boundary:
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            pten(i) = pten(i) + fcx*fls0 -                              &
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            pten(ii) = pten(ii) + fcx*fls0 -                            &
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+!.......south boundary:
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
+            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - psb(i,jm1)
+            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - psb(i,jp1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            pten(i) = pten(i) + fcx*fls0 -                              &
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
+            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - psb(ii,jm1)
+            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - psb(ii,jp1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            pten(ii) = pten(ii) + fcx*fls0 -                            &
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+         end do
+#endif
+!
+      else if ( iboudy.eq.5 ) then
+ 
+!----------use exponential method
+ 
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            fcx = fcoef*xfune(i,kz)
+            gcx = gcoef*xfune(i,kz)
+!........south boundary:
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            pten(i) = pten(i) + fcx*fls0 -                              &
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            pten(ii) = pten(ii) + fcx*fls0 -                            &
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            fcx = fcoef*xfune(i,kz)
+            gcx = gcoef*xfune(i,kz)
+!........south boundary:
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
+            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - psb(i,jm1)
+            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - psb(i,jp1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            pten(i) = pten(i) + fcx*fls0 -                              &
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
+            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - psb(ii,jm1)
+            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - psb(ii,jp1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            pten(ii) = pten(ii) + fcx*fls0 -                            &
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+         end do
+#endif
+      else
+      end if
+#else
 !----------------------------------------------------------------------
 !
       dtb = xt*60.
@@ -318,6 +442,7 @@
 !
       else
       end if
+#endif
       end subroutine nudge_p
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -380,10 +505,141 @@
 #ifdef MPP1
       integer jwb , jeb
 #endif
+#ifdef BAND
+      integer :: jm1 , jp1
+#endif
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+      dtb = xt*60.
+!
+!-----determine which relaxation method to use:linear/expon.
+!
+      if ( iboudy.eq.1 ) then
+!
+!---------use linear method
+!
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+            do k = 1 , kz
+!.......south boundary:
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
+              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
+              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
+              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
+              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+            do k = 1 , kz
+!.......south boundary:
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
+              fls1 = (tsb(i,k,jm1)+dtb*tsbt(i,k,jm1)) - tb(i,k,jm1)
+              fls2 = (tsb(i,k,jp1)+dtb*tsbt(i,k,jp1)) - tb(i,k,jp1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
+              fls1 = (tnb(i,k,jm1)+dtb*tnbt(i,k,jm1)) - tb(ii,k,jm1)
+              fls2 = (tnb(i,k,jp1)+dtb*tnbt(i,k,jp1)) - tb(ii,k,jp1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+          end do
+#endif
+      else if ( iboudy.eq.5 ) then
+ 
+!----------use exponential method
+ 
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            do k = 1 , kz
+              fcx = fcoef*xfune(i,k)
+              gcx = gcoef*xfune(i,k)
+!........south boundary:
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
+              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
+              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
+              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
+              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            do k = 1 , kz
+              fcx = fcoef*xfune(i,k)
+              gcx = gcoef*xfune(i,k)
+!........south boundary:
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
+              fls1 = (tsb(i,k,jm1)+dtb*tsbt(i,k,jm1)) - tb(i,k,jm1)
+              fls2 = (tsb(i,k,jp1)+dtb*tsbt(i,k,jp1)) - tb(i,k,jp1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
+              fls1 = (tnb(i,k,jm1)+dtb*tnbt(i,k,jm1)) - tb(ii,k,jm1)
+              fls2 = (tnb(i,k,jp1)+dtb*tnbt(i,k,jp1)) - tb(ii,k,jp1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#endif
+      else
+      end if
+#else
 !----------------------------------------------------------------------
 !
       dtb = xt*60.
@@ -669,6 +925,7 @@
 !
       else
       end if
+#endif
       end subroutine nudge_t
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -730,10 +987,141 @@
 #ifdef MPP1
       integer :: jeb , jwb
 #endif
+#ifdef BAND
+      integer :: jm1 , jp1
+#endif
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+      dtb = xt*60.
+!
+!-----determine which relaxation method to use:linear/expon.
+!
+      if ( iboudy.eq.1 ) then
+!
+!---------use linear method
+!
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+            do k = 1 , kz
+!.......south boundary:
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
+              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
+              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
+              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
+              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+            do k = 1 , kz
+!.......south boundary:
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
+              fls1 = (qsb(i,k,jm1)+dtb*qsbt(i,k,jm1)) - qvb(i,k,jm1)
+              fls2 = (qsb(i,k,jp1)+dtb*qsbt(i,k,jp1)) - qvb(i,k,jp1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
+              fls1 = (qnb(i,k,jm1)+dtb*qnbt(i,k,jm1)) - qvb(ii,k,jm1)
+              fls2 = (qnb(i,k,jp1)+dtb*qnbt(i,k,jp1)) - qvb(ii,k,jp1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#endif
+      else if ( iboudy.eq.5 ) then
+ 
+!----------use exponential method
+ 
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            do k = 1 , kz
+              fcx = fcoef*xfune(i,k)
+              gcx = gcoef*xfune(i,k)
+!........south boundary:
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
+              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
+              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
+              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
+              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iym1 - i + 1
+            do k = 1 , kz
+              fcx = fcoef*xfune(i,k)
+              gcx = gcoef*xfune(i,k)
+!........south boundary:
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
+              fls1 = (qsb(i,k,jm1)+dtb*qsbt(i,k,jm1)) - qvb(i,k,jm1)
+              fls2 = (qsb(i,k,jp1)+dtb*qsbt(i,k,jp1)) - qvb(i,k,jp1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
+              fls1 = (qnb(i,k,jm1)+dtb*qnbt(i,k,jm1)) - qvb(ii,k,jm1)
+              fls2 = (qnb(i,k,jp1)+dtb*qnbt(i,k,jp1)) - qvb(ii,k,jp1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#endif
+      else
+      end if
+#else
 !----------------------------------------------------------------------
 !
       dtb = xt*60.
@@ -1019,6 +1407,7 @@
 !
       else
       end if
+#endif
       end subroutine nudgeqv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1081,10 +1470,140 @@
 #ifdef MPP1
       integer :: jew
 #endif
+#ifdef BAND
+      integer :: jm1 , jp1
+#endif
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+      dtb = xt*60.
+!
+!-----determine which relaxation method to use:linear/expon.
+!
+      if ( iboudy.eq.1 ) then
+!
+!---------use linear method
+!
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iy - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+            do k = 1 , kz
+!.......south boundary:
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
+              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
+              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
+              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
+              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iy - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+            do k = 1 , kz
+!.......south boundary:
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
+              fls1 = (usb(i,k,jm1)+dtb*usbt(i,k,jm1)) - ub(i,k,jm1)
+              fls2 = (usb(i,k,jp1)+dtb*usbt(i,k,jp1)) - ub(i,k,jp1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
+              fls1 = (unb(i,k,jm1)+dtb*unbt(i,k,jm1)) - ub(ii,k,jm1)
+              fls2 = (unb(i,k,jp1)+dtb*unbt(i,k,jp1)) - ub(ii,k,jp1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#endif
+      else if ( iboudy.eq.5 ) then
+ 
+!----------use exponential method
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iy - i + 1
+            do k = 1 , kz
+              fcx = fcoef*xfune(i,k)
+              gcx = gcoef*xfune(i,k)
+!........south boundary:
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
+              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
+              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
+              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
+              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iy - i + 1
+            do k = 1 , kz
+              fcx = fcoef*xfune(i,k)
+              gcx = gcoef*xfune(i,k)
+!........south boundary:
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
+              fls1 = (usb(i,k,jm1)+dtb*usbt(i,k,jm1)) - ub(i,k,jm1)
+              fls2 = (usb(i,k,jp1)+dtb*usbt(i,k,jp1)) - ub(i,k,jp1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
+              fls1 = (unb(i,k,jm1)+dtb*unbt(i,k,jm1)) - ub(ii,k,jm1)
+              fls2 = (unb(i,k,jp1)+dtb*unbt(i,k,jp1)) - ub(ii,k,jp1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#endif
+      else
+      end if
+#else
 !----------------------------------------------------------------------
 !
       dtb = xt*60.
@@ -1363,6 +1882,7 @@
 !
       else
       end if
+#endif
       end subroutine nudge_u
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1425,10 +1945,140 @@
 #ifdef MPP1
       integer :: jew
 #endif
+#ifdef BAND
+      integer :: jm1 , jp1
+#endif
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+      dtb = xt*60.
+!
+!-----determine which relaxation method to use:linear/expon.
+!
+      if ( iboudy.eq.1 ) then
+!
+!---------use linear method
+!
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iy - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+            do k = 1 , kz
+!.......south boundary:
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
+              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
+              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
+              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
+              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iy - i + 1
+            fcx = fcoef*xfun(i)
+            gcx = gcoef*xfun(i)
+            do k = 1 , kz
+!.......south boundary:
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
+              fls1 = (vsb(i,k,jm1)+dtb*vsbt(i,k,jm1)) - vb(i,k,jm1)
+              fls2 = (vsb(i,k,jp1)+dtb*vsbt(i,k,jp1)) - vb(i,k,jp1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
+              fls1 = (vnb(i,k,jm1)+dtb*vnbt(i,k,jm1)) - vb(ii,k,jm1)
+              fls2 = (vnb(i,k,jp1)+dtb*vnbt(i,k,jp1)) - vb(ii,k,jp1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#endif
+      else if ( iboudy.eq.5 ) then
+ 
+!----------use exponential method
+#ifdef MPP1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iy - i + 1
+            do k = 1 , kz
+              fcx = fcoef*xfune(i,k)
+              gcx = gcoef*xfune(i,k)
+!........south boundary:
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
+              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
+              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
+              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
+              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#else
+         jm1 = j-1
+         jp1 = j+1
+         if(jm1.eq.0) jm1 = jx
+         if(jp1.eq.jx+1) jp1 = 1
+!------interior j slices:
+         do i = 2 , ip
+            ii = iy - i + 1
+            do k = 1 , kz
+              fcx = fcoef*xfune(i,k)
+              gcx = gcoef*xfune(i,k)
+!........south boundary:
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
+              fls1 = (vsb(i,k,jm1)+dtb*vsbt(i,k,jm1)) - vb(i,k,jm1)
+              fls2 = (vsb(i,k,jp1)+dtb*vsbt(i,k,jp1)) - vb(i,k,jp1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              ften(i,k) = ften(i,k) + fcx*fls0 -                        &
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+!........north boundary:
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
+              fls1 = (vnb(i,k,jm1)+dtb*vnbt(i,k,jm1)) - vb(ii,k,jm1)
+              fls2 = (vnb(i,k,jp1)+dtb*vnbt(i,k,jp1)) - vb(ii,k,jp1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+            end do
+         end do
+#endif
+      else
+      end if
+#else
 !----------------------------------------------------------------------
 !
       dtb = xt*60.
@@ -1707,4 +2357,5 @@
 !
       else
       end if
+#endif
       end subroutine nudge_v

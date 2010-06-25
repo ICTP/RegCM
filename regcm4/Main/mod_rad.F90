@@ -38,8 +38,13 @@
         allocate(heatrt(iym1,kz,jxp))
         allocate(o3prof(iym1,kzp1,jxp))
 #else
+#ifdef BAND
+        allocate(heatrt(iym1,kz,jx))
+        allocate(o3prof(iym1,kzp1,jx))
+#else
         allocate(heatrt(iym1,kz,jxm1))
         allocate(o3prof(iym1,kzp1,jxm1))
+#endif
 #endif 
         end subroutine  allocate_mod_rad
 

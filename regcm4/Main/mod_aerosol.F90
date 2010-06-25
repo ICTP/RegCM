@@ -303,7 +303,11 @@
 #ifdef MPP1
       allocate(aermm(iym1,kz,jxp))
 #else
+#ifdef BAND
+      allocate(aermm(iym1,kz,jx))
+#else
       allocate(aermm(iym1,kz,jxm1))
+#endif 
 #endif 
       allocate(aermmb(iym1,kz))
       allocate(aermmr(iym1,kz,ntr))
@@ -960,9 +964,15 @@
           aerssa(i-1,k,jslc) = tauasc_mix(i,k,8)
           aerasp(i-1,k,jslc) = gtota_mix(i,k,8)
 #else
+#ifdef BAND
+          aerext(i-1,k,jslc) = tauxar_mix(i,k,8)
+          aerssa(i-1,k,jslc) = tauasc_mix(i,k,8)
+          aerasp(i-1,k,jslc) = gtota_mix(i,k,8)
+#else
           aerext(i-1,k,jslc-1) = tauxar_mix(i,k,8)
           aerssa(i-1,k,jslc-1) = tauasc_mix(i,k,8)
           aerasp(i-1,k,jslc-1) = gtota_mix(i,k,8)
+#endif
 #endif
         end do
       end do
@@ -984,6 +994,16 @@
         aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +                     &
                             & aerlwfos(i)*1.E-3/ntim
 #else
+#ifdef BAND
+        aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)          &
+                            & *1.E-3/ntim
+        aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)         &
+                            & *1.E-3/ntim
+        aertalwrf(i-1,jslc) = aertalwrf(i-1,jslc) +                 &
+                              & aerlwfo(i) * 1.E-3/ntim
+        aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +                 &
+                              & aerlwfos(i) * 1.E-3/ntim
+#else
         aertarf(i-1,jslc-1) = aertarf(i-1,jslc-1) + aeradfo(i)          &
                             & *1.E-3/ntim
         aersrrf(i-1,jslc-1) = aersrrf(i-1,jslc-1) + aeradfos(i)         &
@@ -992,6 +1012,7 @@
                               & aerlwfo(i) * 1.E-3/ntim
         aersrlwrf(i-1,jslc-1) = aersrlwrf(i-1,jslc-1) +                 &
                               & aerlwfos(i) * 1.E-3/ntim
+#endif
 #endif
 
       end do

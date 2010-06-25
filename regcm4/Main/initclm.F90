@@ -209,6 +209,9 @@
 !         i=ilx to i=iy. For myid = 0, copy j=2 to j=1. For myid =
 !         nproc-1, copy j=jendx to j=jxp.
 
+#ifdef BAND
+          cj = j
+#else
           if ( myid==0 .and. j==1 ) then
             cj = 2
           else if ( myid==(nproc-1) .and. j==jxp ) then
@@ -216,6 +219,7 @@
           else
             cj = j
           end if
+#endif
           if ( i==1 ) then
             ci = 2
           else if ( i==iy ) then

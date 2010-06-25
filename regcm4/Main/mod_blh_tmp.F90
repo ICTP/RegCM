@@ -47,11 +47,19 @@
 
 #else 
 
+#ifdef BAND
+      allocate(cgh(iy,kz,jx))        
+      allocate(kvc(iy,kz,jx))        
+      allocate(kvh(iy,kz,jx))        
+      allocate(kvm(iy,kz,jx))        
+      allocate(kvq(iy,kz,jx))
+#else
       allocate(cgh(iy,kz,jxm1))        
       allocate(kvc(iy,kz,jxm1))        
       allocate(kvh(iy,kz,jxm1))        
       allocate(kvm(iy,kz,jxm1))        
       allocate(kvq(iy,kz,jxm1))
+#endif
 
       allocate(hfxv(iy,jx))        
       allocate(obklen(iy,jx))        

@@ -57,6 +57,9 @@
 #ifdef MPP1
       integer :: ierr
 #endif
+#ifdef BAND
+      integer :: jp1
+#endif
 !
 !     lstand = .true. if standard atmosphere t to be used (ignore input
 !     tbarh and ps in that case).  otherwise, ps and tbarh must
@@ -97,8 +100,13 @@
         end do
       end do
 #else
+#ifdef BAND
+      ijlx = iym1*jx
+      do j = 1 , jx
+#else
       ijlx = iym1*jxm1
       do j = 1 , jxm1
+#endif
         do i = 1 , iym1
           ps = ps + psa(i,j)/ijlx
         end do
@@ -112,7 +120,11 @@
           end do
         end do
 #else
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
           end do
@@ -181,9 +193,13 @@
         if ( myid.eq.0 ) then
           read (iutrs) dstor_io
           read (iutrs) hstor_io
+#ifndef BAND
           read (iutrs) uj1 , uj2 , ujlx , ujl
+#endif
           read (iutrs) ui1_io , ui2_io , uilx_io , uil_io
+#ifndef BAND
           read (iutrs) vj1 , vj2 , vjlx , vjl
+#endif
           read (iutrs) vi1_io , vi2_io , vilx_io , vil_io
           do j = 1 , jx
             do n = 1 , nsplit
@@ -232,6 +248,7 @@
             vil(k,j) = sav6(k,8,j)
           end do
         end do
+#ifndef BAND
         call mpi_bcast(uj1,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(uj2,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(vj1,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
@@ -241,6 +258,7 @@
         call mpi_bcast(vjlx,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(vjl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
         if ( myid.ne.nproc-1 ) then
+#endif
           do k = 1 , kz
             var1snd(k,1) = ui1(k,jxp)
             var1snd(k,2) = vi1(k,jxp)
@@ -251,11 +269,15 @@
             var1snd(k,7) = uil(k,jxp)
             var1snd(k,8) = vil(k,jxp)
           end do
+#ifndef BAND
         end if
+#endif
         call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,ieast,            &
                         & 1,var1rcv(1,1),kz*8,mpi_real8,                &
                         & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
+#ifndef BAND
         if ( myid.ne.0 ) then
+#endif
           do k = 1 , kz
             ui1(k,0) = var1rcv(k,1)
             vi1(k,0) = var1rcv(k,2)
@@ -266,8 +288,10 @@
             uil(k,0) = var1rcv(k,7)
             vil(k,0) = var1rcv(k,8)
           end do
+#ifndef BAND
         end if
         if ( myid.ne.0 ) then
+#endif
           do k = 1 , kz
             var1snd(k,1) = ui1(k,1)
             var1snd(k,2) = vi1(k,1)
@@ -278,11 +302,15 @@
             var1snd(k,7) = uil(k,1)
             var1snd(k,8) = vil(k,1)
           end do
+#ifndef BAND
         end if
+#endif
         call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,iwest,            &
                         & 2,var1rcv(1,1),kz*8,mpi_real8,                &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
+#ifndef BAND
         if ( myid.ne.nproc-1 ) then
+#endif
           do k = 1 , kz
             ui1(k,jxp+1) = var1rcv(k,1)
             vi1(k,jxp+1) = var1rcv(k,2)
@@ -293,13 +321,19 @@
             uil(k,jxp+1) = var1rcv(k,7)
             vil(k,jxp+1) = var1rcv(k,8)
           end do
+#ifndef BAND
         end if
+#endif
 #else
         read (iutrs) dstor
         read (iutrs) hstor
+#ifndef BAND
         read (iutrs) uj1 , uj2 , ujlx , ujl
+#endif
         read (iutrs) ui1 , ui2 , uilx , uil
+#ifndef BAND
         read (iutrs) vj1 , vj2 , vjlx , vjl
+#endif
         read (iutrs) vi1 , vi2 , vilx , vil
 #endif
       else
@@ -365,6 +399,17 @@
               end do
             end do
 #else
+#ifdef BAND
+            do j = 1 , jx
+              jp1 = j+1
+              if(jp1.eq.jx+1) jp1 = 1
+              do i = 1 , iym1
+                fac = dx2*msfx(i,j)*msfx(i,j)
+                dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k) &
+                             & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j)&
+                             & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1)&
+                             & -vvv(i,k,j)-vvv(i,k,jp1))/fac
+#else
             do j = 1 , jxm1
               do i = 1 , iym1
                 fac = dx2*msfx(i,j)*msfx(i,j)
@@ -372,6 +417,7 @@
                              & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)&
                              & +uuu(i,k,j+1)+vvv(i+1,k,j)+vvv(i+1,k,j+1)&
                              & -vvv(i,k,j)-vvv(i,k,j+1))/fac
+#endif
               end do
             end do
 #endif
@@ -392,7 +438,11 @@
             end do
           end do
 #else
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do i = 1 , iym1
               eps = eps1*(psb(i,j)-pd)
               hstor(i,j,l) = pdlog + eps
@@ -411,7 +461,11 @@
               end do
             end do
 #else
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do i = 1 , iym1
                 eps = eps1*(psb(i,j)-pd)
                 hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&

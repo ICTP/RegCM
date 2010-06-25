@@ -89,6 +89,7 @@
 !
       data iyn , jxn , kxn/2 , 2 , 1/
 !
+#ifndef BAND
 !----------------------------------------------------------------------
 !
       xth = xtime/60.
@@ -412,6 +413,7 @@
 99009 format ('  t (c)  at k = ',i3,21x)
 99010 format ('  relative humidity at k = ',i3,10x)
 99011 format ('  qc  at k = ',i3,24x)
+#endif
 !
       end subroutine outprt
 

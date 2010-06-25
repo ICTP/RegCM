@@ -156,7 +156,11 @@
       implicit none
 
 #ifdef MPP1
+#ifdef BAND
+      allocate(spacesubm1(nnsg,iym1,jx,21))
+#else
       allocate(spacesubm1(nnsg,iym1,jxm1,21))
+#endif
       col2d_io  => spacesubm1(:,:,:,1)
       dew2d_io  => spacesubm1(:,:,:,2)
       evpa2d_io => spacesubm1(:,:,:,3)
@@ -182,7 +186,11 @@
       ht1_io     => spacesub(:,:,:,1)
       satbrt1_io => spacesub(:,:,:,2)
       snowc_io   => spacesub(:,:,:,3)
+#ifdef BAND
+      allocate(spacebat(iym1,jx,16))
+#else
       allocate(spacebat(iym1,jxm1,16))
+#endif
       flw2d_io      => spacebat(:,:,1)
       flwd2d_io     => spacebat(:,:,2)
       fsw2d_io      => spacebat(:,:,3)
@@ -199,21 +207,42 @@
       ssw2da_io     => spacebat(:,:,14)
       svegfrac2d_io => spacebat(:,:,15)
       veg2d_io      => spacebat(:,:,16)
+#ifdef BAND
+      allocate(fbat_io(jx,iym2,numbat))
+      allocate(fsub_io(nnsg,jx,iym2,numsub)) 
+      allocate(frad2d_io(jx,iym2,nrad2d))
+      allocate(frad3d_io(jx,iym2,kz,nrad3d))
+#else
       allocate(fbat_io(jxm2,iym2,numbat))
       allocate(fsub_io(nnsg,jxm2,iym2,numsub)) 
       allocate(frad2d_io(jxm2,iym2,nrad2d))
       allocate(frad3d_io(jxm2,iym2,kz,nrad3d))
+#endif
       allocate(cbmf2d_io(iy,jx))
       allocate(fcc_io(iy,kz,jx))
       allocate(rsheat_io(iy,kz,jx))
       allocate(rswat_io(iy,kz,jx))
+      allocate(dstor_io(iy,jx,nsplit))
+      allocate(hstor_io(iy,jx,nsplit))
+#ifdef BAND
+      allocate(absnxt_io(iym1,kz,4,jx))
+      allocate(abstot_io(iym1,kzp1,kz + 1,jx))
+      allocate(emstot_io(iym1,kzp1,jx))
+      allocate(heatrt_io(iym1,kz,jx))
+      allocate(o3prof_io(iym1,kzp1,jx))
+      allocate(aerasp_io(iym1,kz,jx))
+      allocate(aerext_io(iym1,kz,jx))
+      allocate(aerssa_io(iym1,kz,jx))
+      allocate(aersrrf_io(iym1,jx))
+      allocate(aertarf_io(iym1,jx))
+      allocate(aertalwrf_io(iym1,jx))
+      allocate(aersrlwrf_io(iym1,jx))
+#else
       allocate(absnxt_io(iym1,kz,4,jxm1))
       allocate(abstot_io(iym1,kzp1,kz + 1,jxm1))
       allocate(emstot_io(iym1,kzp1,jxm1))
       allocate(heatrt_io(iym1,kz,jxm1))
       allocate(o3prof_io(iym1,kzp1,jxm1))
-      allocate(dstor_io(iy,jx,nsplit))
-      allocate(hstor_io(iy,jx,nsplit))
       allocate(aerasp_io(iym1,kz,jxm1))
       allocate(aerext_io(iym1,kz,jxm1))
       allocate(aerssa_io(iym1,kz,jxm1))
@@ -221,6 +250,7 @@
       allocate(aertarf_io(iym1,jxm1))
       allocate(aertalwrf_io(iym1,jxm1))
       allocate(aersrlwrf_io(iym1,jxm1))
+#endif
       allocate(cemtrac_io(iy,jx,ntr))
       allocate(cemtr_io(iy,jx,ntr))
       allocate(wxaq_io(iy,jx,ntr))
@@ -262,10 +292,17 @@
       allocate(dtrace_io(iy,jx,ntr))
       allocate(wdcvc_io(iy,jx,ntr))
       allocate(wdlsc_io(iy,jx,ntr))
+#ifdef BAND
+      allocate(pptc_io(iym1,jx))
+      allocate(pptnc_io(iym1,jx))
+      allocate(prca2d_io(iym1,jx))
+      allocate(prnca2d_io(iym1,jx))
+#else
       allocate(pptc_io(iym1,jxm1))
       allocate(pptnc_io(iym1,jxm1))
       allocate(prca2d_io(iym1,jxm1))
       allocate(prnca2d_io(iym1,jxm1))
+#endif
       allocate(chia_io(iy,kz,jx,ntr))
       allocate(chib_io(iy,kz,jx,ntr))
       allocate(spacesurf(iy,jx,20))
@@ -319,7 +356,11 @@
       allocate(chem0(iy,ntr*kz+kz*3+ntr*7+5,jxp))
       allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+5,jx))
 #ifdef CLM
+#ifdef BAND
+      allocate(spaceclm(iym1,jx,9))
+#else
       allocate(spaceclm(iym1,jxm1,9))
+#endif
       sols2d_io   => spaceclm(:,:,1)
       soll2d_io   => spaceclm(:,:,2)
       solsd2d_io  => spaceclm(:,:,3)

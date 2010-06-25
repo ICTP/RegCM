@@ -37,7 +37,11 @@
 ! Local variables
 !
       integer :: i , j , k , n
+#ifdef BAND
+      real(4) , dimension(jx,iym2) :: radpsa
+#else
       real(4) , dimension(jxm2,iym2) :: radpsa
+#endif
 !
 !
 !     Radiation resolution and I/O parameters
@@ -47,11 +51,20 @@
 !
       print * , 'Writing rad fields at ktau = ' , ktau , idatex
       do i = 1 , iym2
+#ifdef BAND
+        do j = 1 , jx
+#ifdef MPP1
+          radpsa(j,i) = (psa_io(i+1,j)+r8pt)*10.
+#else
+          radpsa(j,i) = (psa(i+1,j)+r8pt)*10.
+#endif
+#else
         do j = 1 , jxm2
 #ifdef MPP1
           radpsa(j,i) = (psa_io(i+1,j+1)+r8pt)*10.
 #else
           radpsa(j,i) = (psa(i+1,j+1)+r8pt)*10.
+#endif
 #endif
         end do
       end do
@@ -62,12 +75,20 @@
           if ( n.ne.1 ) then
             do k = kz , 1 , -1
               nrcrad = nrcrad + 1
+#ifdef BAND
+#ifdef MPP1
+        write (iutrad,rec=nrcrad) ((frad3d_io(j,i,k,n),j=1,jx),i=1,iym2)
+#else
+        write (iutrad,rec=nrcrad) ((frad3d(j,i,k,n),j=1,jx),i=1,iym2)
+#endif
+#else
 #ifdef MPP1
               write (iutrad,rec=nrcrad) ((frad3d_io(j,i,k,n),j=1,jxm2), &
                                       & i=1,iym2)
 #else
               write (iutrad,rec=nrcrad) ((frad3d(j,i,k,n),j=1,jxm2),i=1,&
                                       & iym2)
+#endif
 #endif
             end do
           end if
@@ -76,6 +97,13 @@
           if ( n.lt.10 .or. n .eq. 22 ) then
                             ! skip everything from alb (10 to 21)
             nrcrad = nrcrad + 1
+#ifdef BAND
+#ifdef MPP1
+        write (iutrad,rec=nrcrad) ((frad2d_io(j,i,n),j=1,jx),i=1,iym2)
+#else
+        write (iutrad,rec=nrcrad) ((frad2d(j,i,n),j=1,jx),i=1,iym2)
+#endif
+#else
 #ifdef MPP1
             write (iutrad,rec=nrcrad) ((frad2d_io(j,i,n),j=1,jxm2),i=1, &
                                     & iym2)
@@ -83,24 +111,46 @@
             write (iutrad,rec=nrcrad) ((frad2d(j,i,n),j=1,jxm2),i=1,iym2&
                                     & )
 #endif
+#endif
           end if
         end do
         nrcrad = nrcrad + 1
+#ifdef BAND
+        write (iutrad,rec=nrcrad) ((radpsa(j,i),j=1,jx),i=1,iym2)
+#else
         write (iutrad,rec=nrcrad) ((radpsa(j,i),j=1,jxm2),i=1,iym2)
+#endif
       else if ( iotyp.eq.2 ) then
         write (iutrad) idatex
         do n = 1 , nrad3d
           if ( n.ne.1 ) then
             do k = kz , 1 , -1
+#ifdef BAND
+#ifdef MPP1
+              write (iutrad) ((frad3d_io(j,i,k,n),j=1,jx),i=1,iym2)
+#else
+              write (iutrad) ((frad3d(j,i,k,n),j=1,jx),i=1,iym2)
+#endif
+#else
 #ifdef MPP1
               write (iutrad) ((frad3d_io(j,i,k,n),j=1,jxm2),i=1,iym2)
 #else
               write (iutrad) ((frad3d(j,i,k,n),j=1,jxm2),i=1,iym2)
 #endif
+#endif
             end do
           end if
         end do
         do n = 1 , nrad2d
+#ifdef BAND
+#ifdef MPP1
+          if ( n.lt.10 )                                                &
+            write (iutrad) ((frad2d_io(j,i,n),j=1,jx),i=1,iym2)
+#else
+          if ( n.lt.10 )                                                &
+            write (iutrad) ((frad2d(j,i,n),j=1,jx),i=1,iym2)
+#endif
+#else
 #ifdef MPP1
           if ( n.lt.10 )                                                &
             write (iutrad) ((frad2d_io(j,i,n),j=1,jxm2),i=1,iym2)
@@ -108,9 +158,14 @@
           if ( n.lt.10 )                                                &
             write (iutrad) ((frad2d(j,i,n),j=1,jxm2),i=1,iym2)
 #endif
+#endif
                             ! skip everything from alb (10 to 21)
         end do
+#ifdef BAND
+        write (iutrad) ((radpsa(j,i),j=1,jx),i=1,iym2)
+#else
         write (iutrad) ((radpsa(j,i),j=1,jxm2),i=1,iym2)
+#endif
       else
       end if
  

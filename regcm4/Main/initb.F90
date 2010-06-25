@@ -89,7 +89,11 @@
         end do
       end do
 #else
+#ifdef BAND
+      do jll = 1 , jx
+#else
       do jll = 1 , jxm1
+#endif
         do ill = 1 , iym1
           pptnc(ill,jll) = 0.
           pptc(ill,jll) = 0.
@@ -106,7 +110,11 @@
              & veg2d(ill,jll) = 0.
         end do
       end do
+#ifdef BAND
+      do jll = 1 , jx
+#else
       do jll = 1 , jxm1
+#endif
         do ill = 1 , iym1
           do k = 1 , nnsg
             veg2d1(k,ill,jll) = satbrt1(k,ill,jll)
@@ -162,9 +170,17 @@
         end do
       end do
 #else
+#ifdef BAND
+      if ( lakemod.eq.1 ) call initlk(veg2d1,iym1sg,jxsg)
+#else
       if ( lakemod.eq.1 ) call initlk(veg2d1,iym1sg,jxm1sg)
+#endif
 
+#ifdef BAND
+      do jll = 1 , jx
+#else
       do jll = 1 , jxm1
+#endif
         do ill = 1 , iym1
           do k = 1 , nnsg
             if ( veg2d1(k,ill,jll).lt.0.5 ) then
@@ -223,7 +239,11 @@
         end do
       end do
 #else
+#ifdef BAND
+      do jll = 1 , jx
+#else
       do jll = 1 , jxm1
+#endif
         do ill = 1 , iym1
           fsw2d(ill,jll) = 0.
           flw2d(ill,jll) = 0.

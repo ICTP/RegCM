@@ -58,6 +58,19 @@
       integer :: jwb , jeb
 #endif
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i
+!.......south boundary:
+         ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
+!.......north boundary:
+         ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
+      end do
+
+#else
 !----------------------------------------------------------------------
 !
 #ifdef MPP1
@@ -131,6 +144,7 @@
       else
       end if
 
+#endif
       end subroutine sponge_p
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -177,6 +191,21 @@
       integer :: jwb , jeb
 #endif
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i
+         do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*tnbt(i,k,j)
+         end do
+      end do
+
+#else
 !----------------------------------------------------------------------
 !
 #ifdef MPP1
@@ -259,6 +288,7 @@
 !
       else
       end if
+#endif
 
       end subroutine sponge_t
 !
@@ -306,6 +336,20 @@
       integer :: jwb , jeb
 #endif
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i
+         do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*qnbt(i,k,j)
+         end do
+      end do
+#else
 !----------------------------------------------------------------------
 !
 #ifdef MPP1
@@ -388,6 +432,7 @@
 !
       else
       end if
+#endif
       end subroutine spongeqv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -435,6 +480,20 @@
 #endif
 
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i + 1
+         do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*unbt(i,k,j)
+         end do
+      end do
+#else
 !----------------------------------------------------------------------
 !
 #ifdef MPP1
@@ -510,6 +569,7 @@
 !
       else
       end if
+#endif
       end subroutine sponge_u
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -556,6 +616,20 @@
       integer :: jew
 #endif
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i + 1
+         do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*vnbt(i,k,j)
+         end do
+      end do
+#else
 !----------------------------------------------------------------------
 !
 #ifdef MPP1
@@ -631,4 +705,5 @@
 !
       else
       end if
+#endif
       end subroutine sponge_v

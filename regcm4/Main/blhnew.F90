@@ -100,7 +100,11 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 2 , jxm1
+#endif
 #endif
  
 !       ****note: kt, max no. of pbl levels, calculated in param

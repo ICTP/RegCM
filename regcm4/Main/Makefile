@@ -167,7 +167,7 @@ mod_date.o: mod_date.F90 mod_message.o mod_param1.o mod_dynparam.o
 mod_diagnosis.o: mod_diagnosis.f90 mod_dynparam.o
 mod_dust.o: mod_dust.F90 mod_dynparam.o mod_constants.o
 mod_ictp01.o: mod_ictp01.F90 mod_dynparam.o
-mod_iunits.o: mod_iunits.f90 mod_bats.o mod_date.o mod_mainchem.o \
+mod_iunits.o: mod_iunits.F90 mod_bats.o mod_date.o mod_mainchem.o \
               mod_outrad.o mod_param1.o mod_param2.o mod_dynparam.o
 mod_isrchf.o: mod_isrchf.f90
 mod_lake.o: mod_lake.f90 mod_bats.o mod_date.o mod_iunits.o mod_param1.o \
@@ -414,7 +414,7 @@ trcplk.o: trcplk.f90 mod_constants.o mod_dynparam.o
 trcpth.o: trcpth.f90 mod_constants.o mod_dynparam.o mod_tracer.o
 tseaice.o: tseaice.F90 mod_constants.o mod_bats.o mod_param1.o mod_dynparam.o
 tstep.o: tstep.f90 mod_date.o mod_param1.o mod_dynparam.o
-vadv.o: vadv.f90 mod_cvaria.o mod_main.o mod_param3.o mod_dynparam.o
+vadv.o: vadv.F90 mod_cvaria.o mod_main.o mod_param3.o mod_dynparam.o
 vecbats.o: vecbats.F90 mod_date.o mod_param1.o mod_param2.o mod_bats.o \
            mod_lake.o
 vtlaps.o: vtlaps.f90 mod_constants.o

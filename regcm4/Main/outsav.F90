@@ -99,7 +99,9 @@
       end if
       write (iutl) hfx_io , qfx_io , snowc_io , uvdrag_io
 #ifdef DIAG
+#ifndef BAND
       write (iutl) tdini , tdadv , tqini , tqadv , tqeva , tqrai
+#endif
 #endif
       write (iutl) absnxt_io , abstot_io , emstot_io
       if ( ipptls.eq.1 ) write (iutl) fcc_io
@@ -148,9 +150,11 @@
         write (iutl) sfracs2d_io
         write (iutl) svegfrac2d_io
 #ifdef DIAG
+#ifndef BAND
         write (iutl) tchiad
         write (iutl) tchitb
         write (iutl) tchie
+#endif
 #endif
       end if
 #else
@@ -182,7 +186,9 @@
       end if
       write (iutl) hfx , qfx , snowc , uvdrag
 #ifdef DIAG
+#ifndef BAND
       write (iutl) tdini , tdadv , tqini , tqadv , tqeva , tqrai
+#endif
 #endif
       write (iutl) absnxt , abstot , emstot
       if ( ipptls.eq.1 ) write (iutl) fcc
@@ -212,10 +218,12 @@
         write (iutl) sfracs2d
         write (iutl) svegfrac2d
 !       cumul ad, dif, emis terms ( scalar)
-#ifdef  DIAG
+#ifdef DIAG
+#ifndef BAND
         write (iutl) tchiad
         write (iutl) tchitb
         write (iutl) tchie
+#endif
 #endif
       end if
 !chem2_
@@ -240,16 +248,24 @@
 #ifdef MPP1
       write (iutl) dstor_io
       write (iutl) hstor_io
+#ifndef BAND
       write (iutl) uj1 , uj2 , ujlx , ujl
+#endif
       write (iutl) ui1_io , ui2_io , uilx_io , uil_io
+#ifndef BAND
       write (iutl) vj1 , vj2 , vjlx , vjl
+#endif
       write (iutl) vi1_io , vi2_io , vilx_io , vil_io
 #else
       write (iutl) dstor
       write (iutl) hstor
+#ifndef BAND
       write (iutl) uj1 , uj2 , ujlx , ujl
+#endif
       write (iutl) ui1 , ui2 , uilx , uil
+#ifndef BAND
       write (iutl) vj1 , vj2 , vjlx , vjl
+#endif
       write (iutl) vi1 , vi2 , vilx , vil
 #endif
       end subroutine outsav

@@ -144,7 +144,11 @@
         end do
       end do
 #else
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 2 , jxm2
+#endif
         do i = 2 , iym2
           itex = nint(dustsotex(i,j))
           if ( itex.ge.1 .and. itex.le.nats ) then
@@ -220,7 +224,11 @@
         end do
       end do
 #else 
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 2 , jxm2
+#endif
         do n = 1 , nats
           do ns = 1 , nsoil
             do i = 1 , iy

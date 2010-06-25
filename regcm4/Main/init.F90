@@ -55,7 +55,9 @@
       use mod_tmpsav
       use mod_constants , only : rgti
 #ifdef DIAG
+#ifndef BAND
       use mod_diagnosis
+#endif
 #endif
 #ifdef MPP1
       use mod_mppio
@@ -82,7 +84,7 @@
 !
       integer :: depth , freeze , i , ibdydiff , ibdyhr0 , nxxx , nyyy ,&
                & ibdyhr1 , ibin , ilake , im1h , ip1h , ist , jlake ,   &
-               & itr , j , jm1h , jp1h , k , kzzz , n 
+               & itr , j , jm1h , jp1h , k , kzzz , n , jm1 , jp1
       real(8) :: eta , hg1 , hg2 , hg3 , hg4 , hgmax , hi , hii , hs ,  &
                & tlp , ts00
       real(4) , dimension(iy,jx) :: io2d
@@ -107,6 +109,7 @@
 !
       existing = .false.
 #ifdef MPP1
+#ifndef BAND
       peb  = 0.0
       pwb  = 0.0
       pebt = 0.0
@@ -127,6 +130,7 @@
       vwb  = 0.0
       vebt = 0.0
       vwbt = 0.0
+#endif
       pnb  = 0.0
       pss  = 0.0
       pnbt = 0.0
@@ -206,6 +210,7 @@
         qcb = 0.0
 !
 #ifdef DIAG
+#ifndef BAND
         tdini = 0.
         tdadv = 0.
         tqini = 0.
@@ -213,11 +218,13 @@
         tqeva = 0.
         tqrai = 0.
 #endif
+#endif
 !
 !chem2
         if ( ichem.eq.1 ) then
 !-----    total tracer concs (initial, emission, advected)
 #ifdef DIAG
+#ifndef BAND
           do itr = 1 , ntr
             ttrace(itr,1) = 0.
             ttrace(itr,2) = 0.
@@ -225,6 +232,7 @@
             tchiad(itr) = 0.
             tchitb(itr) = 0.
           end do
+#endif
 #endif
 !qhy      tchie, tchitb(replace tchidp:deposition)
 !         initialize removal terms
@@ -449,17 +457,20 @@
           end do
         end do
 !
+#ifndef BAND
         do i = 2 , iym1
           if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps0(i,1)+ps0(i-1,1))
           if ( myid.eq.nproc-1 ) psdot(i,jendl)                         &
              & = 0.5*(ps0(i,jendx)+ps0(i-1,jendx))
         end do
+#endif
 !
         do j = jbegin , jendx
           psdot(1,j) = 0.5*(ps0(1,j)+ps0(1,j-1))
           psdot(iy,j) = 0.5*(ps0(iym1,j)+ps0(iym1,j-1))
         end do
 !
+#ifndef BAND
         if ( myid.eq.0 ) then
           psdot(1,1) = ps0(1,1)
           psdot(iy,1) = ps0(iym1,1)
@@ -468,6 +479,7 @@
           psdot(1,jendl) = ps0(1,jendx)
           psdot(iy,jendl) = ps0(iym1,jendx)
         end if
+#endif
 !
 !=======================================================================
 !       Couple pressure u,v,t,q
@@ -713,27 +725,45 @@
 !       domain is assumed to satisfy p(0,j)=p(1,j);
 !       p(iy,j)=p(iym1,j); and similarly for the i's.
 !
+#ifdef BAND
+        do j = 1 , jx
+        jm1 = j-1
+        if(jm1.eq.0) jm1=jx
+#else
         do j = 2 , jxm1
+        jm1 = j-1
+#endif
           do i = 2 , iym1
             psdot(i,j) = 0.25*(ps0(i,j)+ps0(i-1,j)+                     &
-                       &       ps0(i,j-1)+ps0(i-1,j-1))
+                       &       ps0(i,jm1)+ps0(i-1,jm1))
           end do
         end do
 !
+#ifndef BAND
         do i = 2 , iym1
           psdot(i,1) = 0.5*(ps0(i,1)+ps0(i-1,1))
           psdot(i,jx) = 0.5*(ps0(i,jxm1)+ps0(i-1,jxm1))
         end do
+#endif
 !
+#ifdef BAND
+        do j = 1 , jx
+        jm1 = j-1
+        if(jm1.eq.0) jm1=jx
+#else
         do j = 2 , jxm1
-          psdot(1,j) = 0.5*(ps0(1,j)+ps0(1,j-1))
-          psdot(iy,j) = 0.5*(ps0(iym1,j)+ps0(iym1,j-1))
+        jm1 = j-1
+#endif
+          psdot(1,j) = 0.5*(ps0(1,j)+ps0(1,jm1))
+          psdot(iy,j) = 0.5*(ps0(iym1,j)+ps0(iym1,jm1))
         end do
 !
+#ifndef BAND
         psdot(1,1) = ps0(1,1)
         psdot(iy,1) = ps0(iym1,1)
         psdot(1,jx) = ps0(1,jxm1)
         psdot(iy,jx) = ps0(iym1,jxm1)
+#endif
 !
 !=======================================================================
 !       Couple pressure u,v,t,q
@@ -795,7 +825,11 @@
           end do
         end do
 #ifdef SEAICE
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             if ( veg2d(i,j).le.0.00001 ) then
               if ( ts0(i,j).le.271.38 ) then
@@ -834,7 +868,11 @@
           end do
         end if
 !
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             tga(i,j) = ta(i,kz,j)/psa(i,j)
             tgb(i,j) = tb(i,kz,j)/psb(i,j)
@@ -843,7 +881,11 @@
                        ! For Zeng Ocean Flux Scheme
           end do
         end do
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             do k = 1 , nnsg
               snowc(k,i,j) = 0.
@@ -862,6 +904,7 @@
 #endif
 
 #ifdef DIAG
+#ifndef BAND
 #ifdef MPP1
 !=======================================================================
 !
@@ -972,6 +1015,7 @@
         print 99003 , tdini , tqini
 #endif
 #endif
+#endif
 !
 !chem2
         if ( ichem.eq.1 ) then
@@ -993,7 +1037,11 @@
                 end do
               end do
 #else
+#ifdef BAND
+              do j = 1 , jx
+#else
               do j = 1 , jxm1
+#endif
                 do i = 1 , iym1
                   chia(i,k,j,itr) = psa(i,j)*0.0D0
                   chib(i,k,j,itr) = psb(i,j)*0.0D0
@@ -1072,7 +1120,9 @@
             end if
             read (iutrs) hfx_io , qfx_io , snowc_io , uvdrag_io
 #ifdef DIAG
+#ifndef BAND
             read (iutrs) tdini , tdadv , tqini , tqadv , tqeva , tqrai
+#endif
 #endif
             read (iutrs) absnxt_io , abstot_io , emstot_io
             if ( ipptls.eq.1 ) read (iutrs) fcc_io
@@ -1125,9 +1175,11 @@
               read (iutrs) svegfrac2d_io
 !             cumul ad, dif, emis terms ( scalar)
 #ifdef DIAG
+#ifndef BAND
               read (iutrs) tchiad
               read (iutrs) tchitb
               read (iutrs) tchie
+#endif
 #endif
             end if
  
@@ -1343,7 +1395,11 @@
               sav_0(i,kz*4+2,j) = rainnc_io(i,j)
             end do
           end do
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do k = 1 , kz
               do i = 1 , iym1
                 sav_0(i,kz*3+k,j) = heatrt_io(i,k,j)
@@ -1388,7 +1444,11 @@
               end do
             end do
           end do
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do k = 1 , kzp1
               do i = 1 , iym1
                 sav_0a(i,nnsg+4+k,j) = o3prof_io(i,k,j)
@@ -1479,7 +1539,11 @@
         else
         end if
         if ( myid.eq.0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do l = 1 , 4
               do k = 1 , kz
                 do i = 1 , iym1
@@ -1489,7 +1553,11 @@
             end do
           end do
           allrec = kz*4
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do l = 1 , kzp1
               do k = 1 , kzp1
                 do i = 1 , iym1
@@ -1499,7 +1567,11 @@
             end do
           end do
           allrec = allrec + (kzp1)*(kz+1)
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do k = 1 , kzp1
               do i = 1 , iym1
                 sav_1(i,allrec+k,j) = emstot_io(i,k,j)
@@ -1540,7 +1612,11 @@
           end do
         end do
         if ( myid.eq.0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do n = 1 , nnsg
               do i = 1 , iym1
                 sav_2(i,n,j) = taf2d_io(n,i,j)
@@ -1578,7 +1654,11 @@
           end do
         end do
         if ( myid.eq.0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do n = 1 , nnsg
               do i = 1 , iym1
                 sav_2(i,n,j) = tgb2d_io(n,i,j)
@@ -1616,7 +1696,11 @@
           end do
         end do
         if ( myid.eq.0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do n = 1 , nnsg
               do i = 1 , iym1
                 sav_2(i,n,j) = veg2d1_io(n,i,j)
@@ -1654,7 +1738,11 @@
           end do
         end do
         if ( myid.eq.0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do n = 1 , nnsg
               do i = 1 , iym1
                 sav_2a(i,n,j) = ircp2d_io(n,i,j)
@@ -1736,7 +1824,11 @@
             end do
           end do
           if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do i = 1 , iym1
                 sav_4a(i,1,j) = ssw2da_io(i,j)
                 sav_4a(i,2,j) = sdeltk2d_io(i,j)
@@ -1764,7 +1856,11 @@
           end do
 #ifdef CLM
           if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do i = 1 , iym1
                 sav_clmout(i,1,j) = sols2d_io(i,j)
                 sav_clmout(i,2,j) = soll2d_io(i,j)
@@ -1810,6 +1906,7 @@
         call mpi_bcast(jyearr,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ktaur,1,mpi_integer,0,mpi_comm_world,ierr)
 #ifdef DIAG
+#ifndef BAND
         call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tdadv,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tqini,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -1821,6 +1918,7 @@
           call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
           call mpi_bcast(tchie,ntr,mpi_real8,0,mpi_comm_world,ierr)
         end if
+#endif
 #endif
 !------lake model
         if ( lakemod.eq.1 ) then
@@ -1903,8 +2001,10 @@
           else
           end if
           read (iutrs) hfx , qfx , snowc , uvdrag
-#ifdef    DIAG
+#ifdef DIAG
+#ifndef BAND
           read (iutrs) tdini , tdadv , tqini , tqadv , tqeva , tqrai
+#endif
 #endif
           read (iutrs) absnxt , abstot , emstot
           if ( ipptls.eq.1 ) read (iutrs) fcc
@@ -1934,9 +2034,11 @@
             read (iutrs) svegfrac2d
 !           cumul ad, dif, emis terms ( scalar)
 #ifdef DIAG
+#ifndef BAND
             read (iutrs) tchiad
             read (iutrs) tchitb
             read (iutrs) tchie
+#endif
 #endif
           end if
 !chem2_
@@ -2004,7 +2106,11 @@
           end do
         end do
 #else
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             if ( satbrt(i,j).gt.13.9 .and. satbrt(i,j).lt.15.1 ) then
               qck1(i,j) = qck1oce  ! OCEAN
@@ -2069,7 +2175,11 @@
           end do
         end do
 #else
-        do j = 1 , jxm1
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             do n = 1 , nnsg
               ist = nint(veg2d1(n,i,j))
@@ -2111,6 +2221,49 @@
       call inirad
 !
 !-----calculating topographical correction to diffusion coefficient
+#ifdef BAND
+#ifdef MPP1
+      do j = 1 , jendl
+        do i = 1 , iy
+          hgfact(i,j) = 1.
+        end do
+      end do
+      do j = jbegin , jendm
+        do i = 2 , iym2
+          im1h = max0(i-1,2)
+          ip1h = min0(i+1,iym2)
+          hg1 = dabs((ht(i,j)-ht(im1h,j))/dx)
+          hg2 = dabs((ht(i,j)-ht(ip1h,j))/dx)
+          hg3 = dabs((ht(i,j)-ht(i,j-1))/dx)
+          hg4 = dabs((ht(i,j)-ht(i,j+1))/dx)
+          hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
+          hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
+        end do
+      end do
+#else
+      do j = 1 , jx
+        do i = 1 , iy
+          hgfact(i,j) = 1.
+        end do
+      end do
+      do j = 1 , jx
+        jm1 = j-1
+        jp1 = j+1
+        if(jm1.eq.0) jm1 = jx
+        if(jp1.eq.jx+1) jp1 = 1
+        do i = 2 , iym2
+          im1h = max0(i-1,2)
+          ip1h = min0(i+1,iym2)
+          hg1 = dabs((ht(i,j)-ht(im1h,j))/dx)
+          hg2 = dabs((ht(i,j)-ht(ip1h,j))/dx)
+          hg3 = dabs((ht(i,j)-ht(i,jm1))/dx)
+          hg4 = dabs((ht(i,j)-ht(i,jp1))/dx)
+          hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
+          hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
+        end do
+      end do
+#endif
+#else
 #ifdef MPP1
       do j = 1 , jendl
         do i = 1 , iy
@@ -2160,6 +2313,7 @@
         end do
       end do
 #endif
+#endif
 !
 !-----set up output time:
 !
@@ -2169,8 +2323,10 @@
       call say
 
 #ifdef DIAG
+#ifndef BAND
 99003 format (' *** initial total air = ',e12.5,' kg, total water = ',  &
             & e12.5,' kg in large domain.')
+#endif
 #endif
 99004 format (1x,7E12.4)
 99005 format (' ***** restart file for large domain at time = ',f8.0,   &

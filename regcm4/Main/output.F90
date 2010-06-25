@@ -118,7 +118,11 @@
                       & out_0(1,1,1),iy*3*jxp,mpi_real8,                &
                       & 0,mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do i = 1 , iym1
               veg2d_io(i,j) = out_0(i,1,j)
             end do
@@ -191,7 +195,11 @@
                 rainnc_io(i,j) = atm_0(i,3+kz*6,j)
               end do
             end do
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do n = 1 , nnsg
                 do i = 1 , iym1
                   ocld2d_io(n,i,j) = atm_0(i,3+kz*6+n,j)
@@ -235,8 +243,13 @@
           if ( myid.eq.0 ) then
             do l = 1 , numbat
               do i = 1 , iym2
+#ifdef BAND
+                do j = 1 , jx
+                  fbat_io(j,i,l) = bat_0(i,l,j)
+#else
                 do j = 1 , jxm2
                   fbat_io(j,i,l) = bat_0(i,l,j+1)
+#endif
                 end do
               end do
             end do
@@ -274,10 +287,17 @@
 
             if ( myid.eq.0 ) then
               do l = 1 , numsub
+#ifdef BAND
+                do j = 1 , jx
+                  do n = 1 , nnsg
+                    do i = 1 , iym2
+                      fsub_io(n,j,i,l) = sub_0(i,n,l,j)
+#else
                 do j = 1 , jxm2
                   do n = 1 , nnsg
                     do i = 1 , iym2
                       fsub_io(n,j,i,l) = sub_0(i,n,l,j+1)
+#endif
                     end do
                   end do
                 end do
@@ -321,17 +341,29 @@
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do n = 1 , nrad2d
+#ifdef BAND
+              do j = 1 , jx
+                do i = 1 , iym2
+                  frad2d_io(j,i,n) = rad_0(i,n,j)
+#else
               do j = 1 , jxm2
                 do i = 1 , iym2
                   frad2d_io(j,i,n) = rad_0(i,n,j+1)
+#endif
                 end do
               end do
             end do
             do n = 1 , nrad3d
               do k = 1 , kz
+#ifdef BAND
+                do j = 1 , jx
+                  do i = 1 , iym2
+                    frad3d_io(j,i,k,n) = rad_0(i,nrad2d+(n-1)*kz+k,j)
+#else
                 do j = 1 , jxm2
                   do i = 1 , iym2
                     frad3d_io(j,i,k,n) = rad_0(i,nrad2d+(n-1)*kz+k,j+1)
+#endif
                   end do
                 end do
               end do
@@ -406,12 +438,21 @@
                 end do
               end do
             end do
+#ifdef BAND
+            do j = 1 , jx
+              do k = 1 , kz
+                do i = 1 , iym1
+                  aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j)
+                  aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j)
+                  aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j)
+#else
             do j = 1 , jxm1
               do k = 1 , kz
                 do i = 1 , iym1
                   aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j+1)
                   aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j+1)
                   aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j+1)
+#endif
                 end do
               end do
             end do
@@ -428,12 +469,21 @@
                 end do
               end do
             end do
-           do j = 1 , jxm1
+#ifdef BAND
+            do j = 1 , jx
+              do i = 1 , iym1
+                aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j)
+                aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j)
+                aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j)
+                aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j)
+#else
+            do j = 1 , jxm1
               do i = 1 , iym1
                 aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j+1)
                 aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j+1)
                 aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j+1)
                 aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j+1)
+#endif
               end do
             end do
             do j = 1 , jx
@@ -648,7 +698,11 @@
                 rainnc_io(i,j) = sav_0(i,kz*4+2,j)
               end do
             end do
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do k = 1 , kz
                 do i = 1 , iym1
                   heatrt_io(i,k,j) = sav_0(i,kz*3+k,j)
@@ -694,7 +748,11 @@
                 end do
               end do
             end do
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do k = 1 , kzp1
                 do i = 1 , iym1
                   o3prof_io(i,k,j) = sav_0a(i,4+nnsg+k,j)
@@ -794,7 +852,11 @@
                         & sav_1(1,1,1),iym1*allrec*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do l = 1 , 4
                 do k = 1 , kz
                   do i = 1 , iym1
@@ -804,7 +866,11 @@
               end do
             end do
             allrec = kz*4
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do l = 1 , kzp1
                 do k = 1 , kzp1
                   do i = 1 , iym1
@@ -815,7 +881,11 @@
               end do
             end do
             allrec = allrec + (kzp1)*(kz+1)
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do k = 1 , kzp1
                 do i = 1 , iym1
                   emstot_io(i,k,j) = sav_1(i,allrec+k,j)
@@ -844,7 +914,11 @@
                         & sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do n = 1 , nnsg
                 do i = 1 , iym1
                   taf2d_io(n,i,j) = sav_2(i,n,j)
@@ -879,7 +953,11 @@
                         & sav_clmout(1,1,1),iym1*9*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do i = 1 , iym1
                 sols2d_io(i,j) = sav_clmout(i,1,j)
                 soll2d_io(i,j) = sav_clmout(i,2,j)
@@ -915,7 +993,11 @@
                         & sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do n = 1 , nnsg
                 do i = 1 , iym1
                   tgb2d_io(n,i,j) = sav_2(i,n,j)
@@ -953,7 +1035,11 @@
                         & sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do n = 1 , nnsg
                 do i = 1 , iym1
                   veg2d1_io(n,i,j) = sav_2(i,n,j)
@@ -989,7 +1075,11 @@
                         & sav_2a(1,1,1),iym1*allrec*jxp,mpi_real8,      &
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               do n = 1 , nnsg
                 do i = 1 , iym1
                   ircp2d_io(n,i,j) = sav_2a(i,n,j)
@@ -1069,7 +1159,11 @@
                           & sav_4a,iym1*7*jxp,mpi_real8,                &
                           & 0,mpi_comm_world,ierr)
             if ( myid.eq.0 ) then
+#ifdef BAND
+              do j = 1 , jx
+#else
               do j = 1 , jxm1
+#endif
                 do i = 1 , iym1
                   ssw2da_io(i,j) = sav_4a(i,1,j)
                   sdeltk2d_io(i,j) = sav_4a(i,2,j)
@@ -1132,6 +1226,7 @@
               end do
             end do
           end if
+#ifndef BAND
           call mpi_bcast(ujlx(1,1),iy*kz,mpi_real8,nproc-1,             &
                        & mpi_comm_world,ierr)
           call mpi_bcast(ujl(1,1),iy*kz,mpi_real8,nproc-1,              &
@@ -1140,6 +1235,7 @@
                        & mpi_comm_world,ierr)
           call mpi_bcast(vjl(1,1),iy*kz,mpi_real8,nproc-1,              &
                        & mpi_comm_world,ierr)
+#endif
           if ( myid.eq.0 ) then
             close (iutsav)
             call outname('SAV', idatex)
@@ -1242,7 +1338,11 @@
            & then
           call outsrf
           do i = 1 , iym2
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm2
+#endif
               tgmx_o(j,i) = -1.E30
               t2mx_o(j,i) = -1.E30
               tgmn_o(j,i) = 1.E30
@@ -1305,10 +1405,12 @@
 !
 !-----printer output:
 !
+#ifndef BAND
       if ( ifprt ) then
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ntime,nprtfrq)  &
            & .eq.0 ) call outprt(iexec)
       end if
+#endif
  
       if ( lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0 .and.      &
          & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.           &

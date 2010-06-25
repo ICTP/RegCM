@@ -59,7 +59,11 @@
       alonmax = -999999.
       nx = 0
       ny = 0
+#ifdef BAND
+      centerj = (jx)/2.
+#else
       centerj = (jxm2)/2.
+#endif
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
@@ -74,7 +78,11 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jx-1
+#endif
 #ifdef MPP1
           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
@@ -84,7 +92,11 @@
 #endif
         end do
         do i = 2 , iy-1
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jx-1
+#endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -143,23 +155,42 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+#ifdef BAND
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
                          & centeri , truelatl , truelath , clon , dx ,&
                          & dx
+#else
+          write (31,99006) jx , iym2 , clat , clon , centerj ,          &
+                         & centeri , truelatl , truelath , clon , dx ,&
+                         & dx
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
+#ifdef BAND
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)           &
+                         & - xlong_io(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,1),i=2,iym1)
+#else
           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
           write (31,99010) iym2
           write (31,99011) (xlat_io(i,2),i=2,iym1)
+#endif
+#else
+#ifdef BAND
+          write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat(i,1),i=2,iym1)
 #else
           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) iym2
           write (31,99011) (xlat(i,2),i=2,iym1)
+#endif
 #endif
         else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -167,8 +198,13 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
+#ifdef BAND
+          write (31,99012) jx , iym2 , plon , plat ,                    &
+                         & dx/111000. , dx/111000.*.95238
+#else
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
                          & dx/111000. , dx/111000.*.95238
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -176,13 +212,25 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
+#ifdef BAND
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
+                       & - xlong_io(2,1)
+        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1)             &
+                       & - xlat_io(2,1)
+#else
         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
         write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
                        & - xlat_io(2,2)
+#endif
+#else
+#ifdef BAND
+        write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+        write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+#endif
 #endif
       else
       end if
@@ -343,7 +391,11 @@
       alonmax = -999999.
       nx = 0
       ny = 0
+#ifdef BAND
+      centerj = (jx)/2.
+#else
       centerj = (jxm2)/2.
+#endif
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
@@ -358,7 +410,11 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jx-1
+#endif
 #ifdef MPP1
           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
@@ -368,7 +424,11 @@
 #endif
         end do
         do i = 2 , iy-1
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jx-1
+#endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -427,9 +487,15 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+#ifdef BAND
+          write (31,99006) jxsg , iym2sg , clat , clon ,                &
+                         & centerj*nsg , centeri*nsg , truelatl ,       &
+                         & truelath , clon , dx/nsg , dx/nsg
+#else
           write (31,99006) jxm2sg , iym2sg , clat , clon ,              &
                          & centerj*nsg , centeri*nsg , truelatl ,       &
                          & truelath , clon , dx/nsg , dx/nsg
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
@@ -438,15 +504,25 @@
 #ifdef MPP1
           read (iutin1,rec=5) xlat_s_io
           read (iutin1,rec=6) xlon_s_io
+#ifdef BAND
+          write (31,99009) jxsg , xlon_s_io(nsg,nsg) ,                  &
+                         & xlon_s_io(nsg+1,nsg) - xlon_s_io(nsg,nsg)
+#else
           write (31,99009) jxm2sg , xlon_s_io(nsg,nsg) ,                &
                          & xlon_s_io(nsg+1,nsg) - xlon_s_io(nsg,nsg)
+#endif
           write (31,99010) iym2sg
           write (31,99011) (xlat_s_io(nsg+1,i),i=nsg+1,iym1sg)
 #else
           read (iutin1,rec=5) xlat_s
           read (iutin1,rec=6) xlon_s
+#ifdef BAND
+          write (31,99009) jxsg , xlon_s(nsg,nsg) ,                     &
+                         & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
+#else
           write (31,99009) jxm2sg , xlon_s(nsg,nsg) ,                   &
                          & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
+#endif
           write (31,99010) iym2sg
           write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,iym1sg)
 #endif
@@ -456,8 +532,13 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
+#ifdef BAND
+          write (31,99012) jxsg , iym2sg , plon , plat ,                &
+                         & dx/111000./nsg , dx/111000.*.95238/nsg
+#else
           write (31,99012) jxm2sg , iym2sg , plon , plat ,              &
                          & dx/111000./nsg , dx/111000.*.95238/nsg
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -465,13 +546,25 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
+#ifdef BAND
+        write (31,99009) jxsg , xlong_io(2,1) ,                         &
+                       & (xlong_io(2,2)-xlong_io(2,1))/nsg
+        write (31,99013) iym2sg , xlat_io(2,1) ,                        &
+                       & (xlat_io(3,1)-xlat_io(2,1))/nsg
+#else
         write (31,99009) jxm2sg , xlong_io(2,2) ,                       &
                        & (xlong_io(2,3)-xlong_io(2,2))/nsg
         write (31,99013) iym2sg , xlat_io(2,2) ,                        &
                        & (xlat_io(3,2)-xlat_io(2,2))/nsg
+#endif
+#else
+#ifdef BAND
+        write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+        write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+#endif
 #endif
       else
       end if
@@ -604,7 +697,11 @@
       alonmax = -999999.
       nx = 0
       ny = 0
+#ifdef BAND
+      centerj = (jx)/2.
+#else
       centerj = (jxm2)/2.
+#endif
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
@@ -619,7 +716,11 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jx-1
+#endif
 #ifdef MPP1
           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
@@ -629,7 +730,11 @@
 #endif
         end do
         do i = 2 , iy-1
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jx-1
+#endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -689,23 +794,42 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+#ifdef BAND
+          write (31,99006) jx , iym2 , clat , clon , centerj ,          &
+                         & centeri , truelatl , truelath , clon , dx ,&
+                         & dx
+#else
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
                          & centeri , truelatl , truelath , clon , dx ,&
                          & dx
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
+#ifdef BAND
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)           &
+                         & - xlong_io(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,1),i=2,iym1)
+#else
           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
           write (31,99010) iym2
           write (31,99011) (xlat_io(i,2),i=2,iym1)
+#endif
+#else
+#ifdef BAND
+          write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat(i,1),i=2,iym1)
 #else
           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) iym2
           write (31,99011) (xlat(i,2),i=2,iym1)
+#endif
 #endif
         else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -713,8 +837,13 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
+#ifdef BAND
+          write (31,99012) jx , iym2 , plon , plat ,                    &
+                         & dx/111000. , dx/111000.*.95238
+#else
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
                          & dx/111000. , dx/111000.*.95238
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -722,13 +851,25 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
+#ifdef BAND
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
+                       & - xlong_io(2,1)
+        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1)             &
+                       & - xlat_io(2,1)
+#else
         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
         write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
                        & - xlat_io(2,2)
+#endif
+#else
+#ifdef BAND
+        write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+        write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+#endif
 #endif
       else
       end if
@@ -853,7 +994,11 @@
       alonmax = -999999.
       nx = 0
       ny = 0
+#ifdef BAND
+      centerj = (jx)/2.
+#else
       centerj = (jxm2)/2.
+#endif
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
@@ -867,7 +1012,11 @@
       end if
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jx-1
+#endif
 #ifdef MPP1
           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
@@ -877,7 +1026,11 @@
 #endif
         end do
         do i = 2 , iy-1
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jx-1
+#endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -935,22 +1088,39 @@
         nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
       end if
       if ( iproj.eq.'LAMCON' ) then     ! Lambert projection
+#ifdef BAND
+        write (31,99006) jx , iym2 , clat , clon , centerj ,            &
+                       & centeri , truelatl , truelath , clon , dx , dx
+#else
         write (31,99006) jxm2 , iym2 , clat , clon , centerj ,          &
-                       & centeri , truelatl , truelath , clon , dx ,  &
-                       & dx
+                       & centeri , truelatl , truelath , clon , dx , dx
+#endif
         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
       else if ( iproj.eq.'POLSTR' ) then !
       else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
+#ifdef BAND
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
+                       & - xlong_io(2,1)
+        write (31,99010) iym2
+        write (31,99011) (xlat_io(i,1),i=2,iym1)
+#else
         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
         write (31,99010) iym2
         write (31,99011) (xlat_io(i,2),i=2,iym1)
+#endif
+#else
+#ifdef BAND
+        write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+        write (31,99010) iym2
+        write (31,99011) (xlat(i,1),i=2,iym1)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99010) iym2
         write (31,99011) (xlat(i,2),i=2,iym1)
+#endif
 #endif
       else if ( iproj.eq.'ROTMER' ) then
         write (*,*) 'Note that rotated Mercartor (ROTMER)' ,            &
@@ -958,8 +1128,13 @@
         write (*,*) '  Although not exact, the eta.u projection' ,      &
                    &' in GrADS is somewhat similar.'
         write (*,*) ' FERRET, however, does support this projection.'
-       write (31,99012) jxm2 , iym2 , plon , plat , dx/111000. ,      &
+#ifdef BAND
+       write (31,99012) jx , iym2 , plon , plat , dx/111000. ,          &
                        & dx/111000.*.95238
+#else
+       write (31,99012) jxm2 , iym2 , plon , plat , dx/111000. ,        &
+                       & dx/111000.*.95238
+#endif
         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
 
@@ -1040,7 +1215,11 @@
       alonmax = -999999.
       nx = 0
       ny = 0
+#ifdef BAND
+      centerj = (jx)/2.
+#else
       centerj = (jxm2)/2.
+#endif
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
@@ -1055,7 +1234,11 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jx-1
+#endif
 #ifdef MPP1
           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
@@ -1065,7 +1248,11 @@
 #endif
         end do
         do i = 2 , iy-1
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jx-1
+#endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -1124,23 +1311,42 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
-          write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
-                         & centeri , truelatl , truelath , clon , dx ,&
+#ifdef BAND
+          write (31,99006) jx , iym2 , clat , clon , centerj ,          &
+                         & centeri , truelatl , truelath , clon , dx ,  &
                          & dx
+#else
+          write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
+                         & centeri , truelatl , truelath , clon , dx ,  &
+                         & dx
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
+#ifdef BAND
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)           &
+                         & - xlong_io(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,1),i=2,iym1)
+#else
           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
           write (31,99010) iym2
           write (31,99011) (xlat_io(i,2),i=2,iym1)
+#endif
+#else
+#ifdef BAND
+          write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat(i,1),i=2,iym1)
 #else
           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) iym2
           write (31,99011) (xlat(i,2),i=2,iym1)
+#endif
 #endif
         else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -1148,8 +1354,13 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
+#ifdef BAND
+          write (31,99012) jx , iym2 , plon , plat ,                    &
+                         & dx/111000. , dx/111000.*.95238
+#else
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
                          & dx/111000. , dx/111000.*.95238
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -1157,13 +1368,25 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
+#ifdef BAND
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
+                       & - xlong_io(2,1)
+        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1)             &
+                       & - xlat_io(2,1)
+#else
         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
         write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
                        & - xlat_io(2,2)
+#endif
+#else
+#ifdef BAND
+        write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+        write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+#endif
 #endif
       else
       end if
@@ -1274,7 +1497,11 @@
       alonmax = -999999.
       nx = 0
       ny = 0
+#ifdef BAND
+      centerj = (jx)/2.
+#else
       centerj = (jxm2)/2.
+#endif
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
@@ -1289,7 +1516,11 @@
       if ( iotyp.eq.2 ) write (31,'(a)') 'options sequential'
       write (31,99005)
       if ( iproj.eq.'LAMCON' .or. iproj.eq.'ROTMER' ) then
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jx-1
+#endif
 #ifdef MPP1
           if ( xlat_io(2,j).lt.alatmin ) alatmin = xlat_io(2,j)
           if ( xlat_io(iy-1,j).gt.alatmax ) alatmax = xlat_io(iy-1,j)
@@ -1299,7 +1530,11 @@
 #endif
         end do
         do i = 2 , iy-1
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jx-1
+#endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
               if ( xlong_io(i,j).ge.0.0 ) then
@@ -1358,23 +1593,42 @@
       end if
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
+#ifdef BAND
+          write (31,99006) jx , iym2 , clat , clon , centerj ,          &
+                         & centeri , truelatl , truelath , clon , dx ,  &
+                         & dx
+#else
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
                          & centeri , truelatl , truelath , clon , dx ,&
                          & dx
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
+#ifdef BAND
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)           &
+                         & - xlong_io(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,1),i=2,iym1)
+#else
           write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
                          & - xlong_io(2,2)
           write (31,99010) iym2
           write (31,99011) (xlat_io(i,2),i=2,iym1)
+#endif
+#else
+#ifdef BAND
+          write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat(i,1),i=2,iym1)
 #else
           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) iym2
           write (31,99011) (xlat(i,2),i=2,iym1)
+#endif
 #endif
         else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
@@ -1382,8 +1636,13 @@
           write (*,*) '  Although not exact, the eta.u projection' ,    &
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
+#ifdef BAND
+          write (31,99012) jx , iym2 , plon , plat ,                    &
+                         & dx/111000. , dx/111000.*.95238
+#else
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
                          & dx/111000. , dx/111000.*.95238
+#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -1391,13 +1650,25 @@
         end if
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
+#ifdef BAND
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
+                       & - xlong_io(2,1)
+        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1)             &
+                       & - xlat_io(2,1)
+#else
         write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
                        & - xlong_io(2,2)
         write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
                        & - xlat_io(2,2)
+#endif
+#else
+#ifdef BAND
+        write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+        write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
+#endif
 #endif
       else
       end if

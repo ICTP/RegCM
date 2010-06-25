@@ -23,18 +23,24 @@
 
       implicit none
 !
+#ifndef BAND
       real(8) , allocatable , dimension(:,:) :: uj1 , uj2 , ujl , ujlx ,&
                       &  vj1 , vj2 , vjl , vjlx
+#endif
       real(8) , allocatable , dimension(:,:) :: ps0 , ps1
       real(8) , allocatable , dimension(:,:,:) :: qb0 , qb1 , so0 ,     &
                       & so1 , tb0 , tb1 , ub0 , ub1 , vb0 , vb1
       real(8) , allocatable , dimension(:,:) :: ts0 , ts1
 !
+#ifndef BAND
       real(8) , allocatable , dimension(:,:) :: peb , pebt , pwb , pwbt
+#endif
       real(8) , allocatable , dimension(:,:) :: pnb , pnbt , psbt , pss
+#ifndef BAND
       real(8) , allocatable , dimension(:,:,:) :: qeb , qebt , qwb ,    &
            & qwbt , teb , tebt , twb , twbt , ueb , uebt , uwb , uwbt , &
            & veb , vebt , vwb , vwbt
+#endif
       real(8) , allocatable , dimension(:,:,:) :: qnb , qnbt , qsb ,    &
            & qsbt , tnb , tnbt , tsb , tsbt
       real(8) , allocatable , dimension(:,:) :: ui1 , ui2 , uil , uilx ,&
@@ -63,15 +69,19 @@
         allocate(vb0(iy,kz,jxp))
         allocate(vb1(iy,kz,jxp))
 
+#ifndef BAND
         allocate(peb(iy,0:jxp+1))
         allocate(pebt(iy,0:jxp+1))
         allocate(pwb(iy,0:jxp+1))
         allocate(pwbt(iy,0:jxp+1))
+#endif
 
         allocate(pnb(nspgx,0:jxp+1))
         allocate(pnbt(nspgx,0:jxp+1))
         allocate(psbt(nspgx,0:jxp+1))
         allocate(pss(nspgx,0:jxp+1))
+
+#ifndef BAND
         allocate(qeb(iy,kz,0:jxp+1))
         allocate(qebt(iy,kz,0:jxp+1))
         allocate(qwb(iy,kz,0:jxp+1))
@@ -88,6 +98,7 @@
         allocate(vebt(iy,kz,0:jxp+1))
         allocate(vwb(iy,kz,0:jxp+1))
         allocate(vwbt(iy,kz,0:jxp+1))
+#endif
 
         allocate(qnb(nspgx,kz,0:jxp+1))
         allocate(qnbt(nspgx,kz,0:jxp+1))
@@ -97,7 +108,6 @@
         allocate(tnbt(nspgx,kz,0:jxp+1))
         allocate(tsb(nspgx,kz,0:jxp+1))
         allocate(tsbt(nspgx,kz,0:jxp+1))
-
 
         allocate(ui1(kz,0:jxp+1))
         allocate(ui2(kz,0:jxp+1))
@@ -132,14 +142,19 @@
         allocate(vb0(iy,kz,jx))
         allocate(vb1(iy,kz,jx))
 
+#ifndef BAND
         allocate(peb(iy,nspgx))
         allocate(pebt(iy,nspgx))
         allocate(pwb(iy,nspgx))
         allocate(pwbt(iy,nspgx))
+#endif
+
         allocate(pnb(nspgx,jx))
         allocate(pnbt(nspgx,jx))
         allocate(psbt(nspgx,jx))
         allocate(pss(nspgx,jx))
+
+#ifndef BAND
         allocate(qeb(iy,kz,nspgx))
         allocate(qebt(iy,kz,nspgx))
         allocate(qwb(iy,kz,nspgx))
@@ -148,6 +163,8 @@
         allocate(tebt(iy,kz,nspgx))
         allocate(twb(iy,kz,nspgx))
         allocate(twbt(iy,kz,nspgx))
+#endif
+
         allocate(qnb(nspgx,kz,jx))
         allocate(qnbt(nspgx,kz,jx))
         allocate(qsb(nspgx,kz,jx))
@@ -156,6 +173,8 @@
         allocate(tnbt(nspgx,kz,jx))
         allocate(tsb(nspgx,kz,jx))
         allocate(tsbt(nspgx,kz,jx))
+
+#ifndef BAND
         allocate(ueb(iy,kz,nspgd))
         allocate(uebt(iy,kz,nspgd))
         allocate(uwb(iy,kz,nspgd))
@@ -164,6 +183,8 @@
         allocate(vebt(iy,kz,nspgd))
         allocate(vwb(iy,kz,nspgd))
         allocate(vwbt(iy,kz,nspgd))
+#endif
+
         allocate(ui1(kz,jx))
         allocate(ui2(kz,jx))
         allocate(uil(kz,jx))
@@ -181,6 +202,7 @@
         allocate(vsb(nspgd,kz,jx))
         allocate(vsbt(nspgd,kz,jx))
 #endif 
+#ifndef BAND
         allocate(uj1(iy,kz))
         allocate(uj2(iy,kz))
         allocate(ujl(iy,kz))
@@ -189,6 +211,7 @@
         allocate(vj2(iy,kz))
         allocate(vjl(iy,kz))
         allocate(vjlx(iy,kz))
+#endif
 
         end subroutine allocate_mod_bdycon
 

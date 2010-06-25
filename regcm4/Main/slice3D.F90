@@ -39,7 +39,11 @@
 #ifdef MPP1
       do j = 1 , jendx
 #else
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 1 , jxm1
+#endif
 #endif
         do k = 1 , kz
           do i = 1 , iym1
@@ -54,7 +58,18 @@
           end do
         end do
       end do
- 
+#ifdef BAND
+#ifdef MPP1
+      do j = jbegin , jendx
+        jdx = j
+        jdxp1 = j + 1
+#else
+      do j = 1 , jx
+        jdx = j
+        jdxp1 = j+1
+        if(jdxp1.eq.jx+1) jdxp1 = 1
+#endif
+#else
 #ifdef MPP1
       do j = jbegin , jendx
         jdx = j
@@ -65,6 +80,7 @@
       do j = 2 , jxm1
         jdx = max0(j,2)
         jdxp1 = min0(j+1,jxm1)
+#endif
 #endif
         do k = 1 , kz
           do i = 1 , iym1
@@ -94,7 +110,11 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 2 , jxm1
+#endif
 #endif
         do k = 1 , kz
           do i = 2 , iym1
@@ -110,7 +130,11 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #else
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 2 , jxm1
+#endif
 #endif
         do i = 2 , iym1
           zq(i,kzp1) = 0.

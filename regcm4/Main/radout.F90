@@ -169,17 +169,64 @@
               frad3d(jslc,i-1,k,4) = qrs(i,k)
               frad3d(jslc,i-1,k,5) = qrl(i,k)
 #else
+#ifdef BAND
+              frad3d(jslc,i-1,k,1) = h2ommr(i,k)
+              frad3d(jslc,i-1,k,2) = cld(i,k)
+              frad3d(jslc,i-1,k,3) = clwp(i,k)
+              frad3d(jslc,i-1,k,4) = qrs(i,k)
+              frad3d(jslc,i-1,k,5) = qrl(i,k)
+#else
               frad3d(jslc-1,i-1,k,1) = h2ommr(i,k)
               frad3d(jslc-1,i-1,k,2) = cld(i,k)
               frad3d(jslc-1,i-1,k,3) = clwp(i,k)
               frad3d(jslc-1,i-1,k,4) = qrs(i,k)
               frad3d(jslc-1,i-1,k,5) = qrl(i,k)
 #endif
+#endif
             end do
           end do
  
           do i = 2 , iym1
 #ifdef MPP1
+            frad2d(jslc,i-1,1) = frsa(i)      ! write
+            frad2d(jslc,i-1,2) = frla(i)      ! write
+            frad2d(jslc,i-1,3) = clrst(i)     ! write
+            frad2d(jslc,i-1,4) = clrss(i)     ! write
+            frad2d(jslc,i-1,5) = clrlt(i)     ! write
+            frad2d(jslc,i-1,6) = clrls(i)     ! write
+            frad2d(jslc,i-1,7) = solin(i)     ! write
+            frad2d(jslc,i-1,8) = sabtp(i)     ! write
+            frad2d(jslc,i-1,9) = firtp(i)     ! write
+            frad2d(jslc,i-1,10) = alb(i)      ! skip
+            frad2d(jslc,i-1,11) = albc(i)     ! skip
+            frad2d(jslc,i-1,12) = fsds(i)     ! skip
+            frad2d(jslc,i-1,13) = fsnirt(i)   ! skip
+            frad2d(jslc,i-1,14) = fsnrtc(i)   ! skip
+            frad2d(jslc,i-1,15) = fsnirtsq(i) ! skip
+            if ( soll(i) .lt. 1E-30 ) then
+              frad2d(jslc,i-1,16) = 0.0
+            else
+              frad2d(jslc,i-1,16) = soll(i)     ! skip
+            end if
+            if ( sols(i) .lt. 1E-30 ) then
+              frad2d(jslc,i-1,17) = 0.0
+            else
+              frad2d(jslc,i-1,17) = sols(i)     ! skip
+            end if
+            if ( solsd(i) .lt. 1E-30 ) then
+              frad2d(jslc,i-1,18) = 0.0
+            else
+              frad2d(jslc,i-1,18) = solsd(i)     ! skip
+            end if
+            if ( solld(i) .lt. 1E-30 ) then
+              frad2d(jslc,i-1,19) = 0.0
+            else
+              frad2d(jslc,i-1,19) = solld(i)     ! skip
+            end if
+            frad2d(jslc,i-1,20) = solis(i)    ! skip
+            frad2d(jslc,i-1,21) = sabveg(i)   ! skip
+#else
+#ifdef BAND
             frad2d(jslc,i-1,1) = frsa(i)      ! write
             frad2d(jslc,i-1,2) = frla(i)      ! write
             frad2d(jslc,i-1,3) = clrst(i)     ! write
@@ -255,6 +302,7 @@
             end if
             frad2d(jslc-1,i-1,20) = solis(i)    ! skip
             frad2d(jslc-1,i-1,21) = sabveg(i)   ! skip
+#endif
 #endif
           end do
         end if

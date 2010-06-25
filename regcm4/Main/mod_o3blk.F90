@@ -101,7 +101,11 @@
 #ifdef MPP1
       do j = 1 , jendx
 #else
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 1 , jxm1
+#endif
 #endif
         do i = 1 , iym1
           do k = klevp1 , 1 , -1

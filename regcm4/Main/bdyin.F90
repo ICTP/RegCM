@@ -38,7 +38,7 @@
       use mod_param3 , only : r8pt
       use mod_main
       use mod_bdycod
-      use mod_bats , only : veg2d , ocld2d , sice2d , ocld2d , sice2d
+      use mod_bats , only : veg2d , ocld2d , sice2d
       use mod_message 
 #ifdef DCSST
       use mod_bats , only : dtskin
@@ -279,6 +279,12 @@
                        &       ps1(i,j-1)+ps1(i-1,j-1))
           end do
         end do
+#ifdef BAND
+        do j = jbegin , jendx
+          psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
+          psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
+        enddo
+#else
 !
         do i = 2 , iym1
           if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
@@ -300,6 +306,7 @@
           psdot(iy,jendl) = ps1(iym1,jendx)
         end if
 !
+#endif
 !=======================================================================
 !       Couple pressure u,v,t,q
         do k = 1 , kz
@@ -320,7 +327,10 @@
 !
 !-----compute boundary conditions for p*:
 !
- 
+#ifdef BAND
+        nxwb=0
+        nxeb=0
+#else
         if ( nspgx.le.jxp ) then
           nxwb = nspgx
         else
@@ -367,6 +377,7 @@
             pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
           end do
         end do
+#endif
         do nn = 1 , nspgx
           nnb = iym1 - nn + 1
           do j = 1 , jendx
@@ -379,6 +390,10 @@
 !
 !-----compute boundary conditions for p*u and p*v:
 !
+#ifdef BAND
+        ndwb = 0
+        ndeb = 0
+#else
         if ( nspgd.le.jxp ) then
           ndwb = nspgd
         else
@@ -433,6 +448,7 @@
             end do
           end do
         end do
+#endif
         do nn = 1 , nspgd
           nnb = iy - nn + 1
           do k = 1 , kz
@@ -451,6 +467,7 @@
 !
 !-----compute boundary conditions for p*t and p*qv:
 !
+#ifndef BAND
         do nn = 1 , nxwb
           do k = 1 , kz
             do i = 1 , iym1
@@ -472,6 +489,7 @@
             end do
           end do
         end do
+#endif
         do nn = 1 , nspgx
           nnb = iym1 - nn + 1
           do k = 1 , kz
@@ -547,8 +565,8 @@
 #endif
 #ifdef SEAICE
                 if ( tdum(i,j).le.271.38 ) then
-                  print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
-                        & ' t=',tdum(i,j)
+!                 print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
+!                       & ' t=',tdum(i,j)
                   tga(i,j) = 271.38
                   tgb(i,j) = 271.38
                   tdum(i,j) = 271.38
@@ -707,6 +725,29 @@
 !     interpolation. on the x-grid, a p(x) point outside the grid
 !     domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
 !     and similarly for the i's.
+
+#ifdef BAND
+        do j = 2 , jx
+          do i = 2 , iym1
+            psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +               &
+                       &       ps1(i,j-1)+ps1(i-1,j-1))
+          end do
+        end do
+!
+        do i = 2 , iym1
+          psdot(i,1) = 0.25*(ps1(i,1)+ps1(i-1,1) +                 &
+                     &       ps1(i,jx)+ps1(i-1,jx))
+        end do
+!
+        do j = 2 , jx
+          psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
+          psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
+        end do
+!
+        psdot(1,1) = 0.5*(ps1(1,1)+ps1(1,jx))
+        psdot(iy,1) = 0.5*(ps1(iym1,1)+ps1(iym1,jx))
+!
+#else
         do j = 2 , jxm1
           do i = 2 , iym1
             psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
@@ -729,6 +770,7 @@
         psdot(1,jx) = ps1(1,jxm1)
         psdot(iy,jx) = ps1(iym1,jxm1)
 !
+#endif
 !=======================================================================
 !     Couple pressure u,v,t,q
         do k = 1 , kz
@@ -750,6 +792,7 @@
 !-----compute boundary conditions for p*:
 !
  
+#ifndef BAND
         do nn = 1 , nspgx
           do i = 1 , iym1
             pwb(i,nn) = ps0(i,nn)
@@ -763,9 +806,14 @@
             pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
           end do
         end do
+#endif
         do nn = 1 , nspgx
           nnb = iym1 - nn + 1
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             pnb(nn,j) = ps0(nnb,j)
             pss(nn,j) = ps0(nn,j)
             pnbt(nn,j) = (ps1(nnb,j)-ps0(nnb,j))/dtbdys
@@ -775,6 +823,8 @@
 !
 !-----compute boundary conditions for p*u and p*v:
 !
+#ifdef BAND
+#else
         do nn = 1 , nspgd
           do k = 1 , kz
             do i = 1 , iy
@@ -796,6 +846,7 @@
             end do
           end do
         end do
+#endif
         do nn = 1 , nspgd
           nnb = iy - nn + 1
           do k = 1 , kz
@@ -814,6 +865,7 @@
 !
 !-----compute boundary conditions for p*t and p*qv:
 !
+#ifndef BAND
         do nn = 1 , nspgx
           do k = 1 , kz
             do i = 1 , iym1
@@ -835,10 +887,15 @@
             end do
           end do
         end do
+#endif
         do nn = 1 , nspgx
           nnb = iym1 - nn + 1
           do k = 1 , kz
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 1 , jxm1
+#endif
               tnb(nn,k,j) = tb0(nnb,k,j)
               tsb(nn,k,j) = tb0(nn,k,j)
               qnb(nn,k,j) = qb0(nnb,k,j)
@@ -853,7 +910,11 @@
         print * , 'BCs are ready from ' , ndate0 , '  to ' , ndate1
         idatex = ndate0
         ndate0 = ndate1
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             tdum(i,j) = ts1(i,j)
           end do
@@ -892,7 +953,11 @@
 !-----------------------------------------------------------------------
         if ( ldatez.lt.ndate1 ) then
  
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do i = 1 , iym1
               if ( veg2d(i,j).le.0.00001 ) then
 #ifdef DCSST

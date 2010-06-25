@@ -42,6 +42,20 @@
       do n = 1 , numbat
         if ( iotyp.eq.1 ) then
           nrcbat = nrcbat + 1
+#ifdef BAND
+#ifdef MPP1
+          write (iutbat,rec=nrcbat)                                     &
+                & ((fbat_io(j,i,n),j=1,jx),i=1,iym2)
+#else
+          write (iutbat,rec=nrcbat) ((fbat(j,i,n),j=1,jx),i=1,iym2)
+#endif
+        else if ( iotyp.eq.2 ) then
+#ifdef MPP1
+          write (iutbat) ((fbat_io(j,i,n),j=1,jx),i=1,iym2)
+#else
+          write (iutbat) ((fbat(j,i,n),j=1,jx),i=1,iym2)
+#endif
+#else
 #ifdef MPP1
           write (iutbat,rec=nrcbat)                                     &
                 & ((fbat_io(j,i,n),j=1,jxm2),i=1,iym2)
@@ -53,6 +67,7 @@
           write (iutbat) ((fbat_io(j,i,n),j=1,jxm2),i=1,iym2)
 #else
           write (iutbat) ((fbat(j,i,n),j=1,jxm2),i=1,iym2)
+#endif
 #endif
         else
         end if

@@ -59,7 +59,7 @@
 !
       real(8) :: chix , chix1 , chix2 , dtb , qcx , qcx2 , qvx , qvx1 , &
                & qvx2 , uavg , vavg
-      integer :: i , itr , j , k
+      integer :: i , itr , j , k, jp1
 !
 !*********************************************************************
 !*****fill up the boundary value for xxb variables from xxa variables:
@@ -71,10 +71,12 @@
 !
 !-----for p*:
 !
+#ifndef BAND
         do i = 1 , iym1
           if ( myid.eq.0 ) psb(i,1) = psa(i,1)
           if ( myid.eq.nproc-1 ) psb(i,jendx) = psa(i,jendx)
         end do
+#endif
         do j = jbegin , jendm
           psb(1,j) = psa(1,j)
           psb(iym1,j) = psa(iym1,j)
@@ -83,6 +85,7 @@
 !-----for p*u and p*v:
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iy
             if ( myid.eq.0 ) then
               ub(i,k,1) = ua(i,k,1)/msfd(i,1)
@@ -93,6 +96,7 @@
               vb(i,k,jendl) = va(i,k,jendl)/msfd(i,jendl)
             end if
           end do
+#endif
           do j = jbegin , jendx
             ub(1,k,j) = ua(1,k,j)/msfd(1,j)
             ub(iy,k,j) = ua(iy,k,j)/msfd(iy,j)
@@ -104,10 +108,12 @@
 !-----for p*t:
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             if ( myid.eq.0 ) tb(i,k,1) = ta(i,k,1)
             if ( myid.eq.nproc-1 ) tb(i,k,jendx) = ta(i,k,jendx)
           end do
+#endif
           do j = jbegin , jendm
             tb(1,k,j) = ta(1,k,j)
             tb(iym1,k,j) = ta(iym1,k,j)
@@ -117,10 +123,12 @@
 !-----for p*qv:
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             if ( myid.eq.0 ) qvb(i,k,1) = qva(i,k,1)
             if ( myid.eq.nproc-1 ) qvb(i,k,jendx) = qva(i,k,jendx)
           end do
+#endif
           do j = jbegin , jendm
             qvb(1,k,j) = qva(1,k,j)
             qvb(iym1,k,j) = qva(iym1,k,j)
@@ -133,11 +141,13 @@
 !-----for p*chi (tracers)
           do itr = 1 , ntr
             do k = 1 , kz
+#ifndef BAND
               do i = 1 , iym1
                 if ( myid.eq.0 ) chib(i,k,1,itr) = chia(i,k,1,itr)
                 if ( myid.eq.nproc-1 ) chib(i,k,jendx,itr)              &
                    & = chia(i,k,jendx,itr)
               end do
+#endif
               do j = jbegin , jendm
                 chib(1,k,j,itr) = chia(1,k,j,itr)
                 chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
@@ -150,10 +160,12 @@
 !-----for p*qc:
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             if ( myid.eq.0 ) qcb(i,k,1) = qca(i,k,1)
             if ( myid.eq.nproc-1 ) qcb(i,k,jendx) = qca(i,k,jendx)
           end do
+#endif
           do j = jbegin , jendm
             qcb(1,k,j) = qca(1,k,j)
             qcb(iym1,k,j) = qca(iym1,k,j)
@@ -177,16 +189,19 @@
 !
         if ( iboudy.eq.0 ) then
 !.....fixed boundary conditions:
+#ifndef BAND
           do i = 1 , iym1
             if ( myid.eq.0 ) psa(i,1) = pwb(i,1)
             if ( myid.eq.nproc-1 ) psa(i,jendx) = peb(i,1)
           end do
+#endif
           do j = jbegin , jendm
             psa(1,j) = pss(1,j)
             psa(iym1,j) = pnb(1,j)
           end do
 !
           do k = 1 , kz
+#ifndef BAND
             do i = 1 , iy
               if ( myid.eq.0 ) then
                 ua(i,k,1) = uwb(i,k,1)
@@ -197,6 +212,7 @@
                 va(i,k,jendl) = veb(i,k,1)
               end if
             end do
+#endif
             do j = jbegin , jendx
               ua(1,k,j) = usb(1,k,j)
               ua(iy,k,j) = unb(1,k,j)
@@ -208,16 +224,19 @@
 !
 !.....time-dependent boundary conditions:
 !
+#ifndef BAND
         do i = 1 , iym1
           if ( myid.eq.0 ) psa(i,1) = pwb(i,1) + dtb*pwbt(i,1)
           if ( myid.eq.nproc-1 ) psa(i,jendx) = peb(i,1) + dtb*pebt(i,1)
         end do
+#endif
         do j = jbegin , jendm
           psa(1,j) = pss(1,j) + dtb*psbt(1,j)
           psa(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
         end do
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iy
             if ( myid.eq.0 ) then
               ua(i,k,1) = uwb(i,k,1) + dtb*uwbt(i,k,1)
@@ -228,6 +247,7 @@
               va(i,k,jendl) = veb(i,k,1) + dtb*vebt(i,k,1)
             end if
           end do
+#endif
           do j = jbegin , jendx
             ua(1,k,j) = usb(1,k,j) + dtb*usbt(1,k,j)
             ua(iy,k,j) = unb(1,k,j) + dtb*unbt(1,k,j)
@@ -249,20 +269,24 @@
       if ( iboudy.eq.0 ) then
 !.....fixed boundary conditions:
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             if ( myid.eq.0 ) ta(i,k,1) = twb(i,k,1)
             if ( myid.eq.nproc-1 ) ta(i,k,jendx) = teb(i,k,1)
           end do
+#endif
           do j = jbegin , jendm
             ta(1,k,j) = tsb(1,k,j)
             ta(iym1,k,j) = tnb(1,k,j)
           end do
         end do
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             if ( myid.eq.0 ) qva(i,k,1) = qwb(i,k,1)
             if ( myid.eq.nproc-1 ) qva(i,k,jendx) = qeb(i,k,1)
           end do
+#endif
           do j = jbegin , jendm
             qva(1,k,j) = qsb(1,k,j)
             qva(iym1,k,j) = qnb(1,k,j)
@@ -273,22 +297,26 @@
 !.....time-dependent boundary conditions:
 !
       do k = 1 , kz
+#ifndef BAND
         do i = 1 , iym1
           if ( myid.eq.0 ) ta(i,k,1) = twb(i,k,1) + dtb*twbt(i,k,1)
           if ( myid.eq.nproc-1 ) ta(i,k,jendx) = teb(i,k,1)             &
              & + dtb*tebt(i,k,1)
         end do
+#endif
         do j = jbegin , jendm
           ta(1,k,j) = tsb(1,k,j) + dtb*tsbt(1,k,j)
           ta(iym1,k,j) = tnb(1,k,j) + dtb*tnbt(1,k,j)
         end do
       end do
       do k = 1 , kz
+#ifndef BAND
         do i = 1 , iym1
           if ( myid.eq.0 ) qva(i,k,1) = qwb(i,k,1) + dtb*qwbt(i,k,1)
           if ( myid.eq.nproc-1 ) qva(i,k,jendx) = qeb(i,k,1)            &
              & + dtb*qebt(i,k,1)
         end do
+#endif
         do j = jbegin , jendm
           qva(1,k,j) = qsb(1,k,j) + dtb*qsbt(1,k,j)
           qva(iym1,k,j) = qnb(1,k,j) + dtb*qnbt(1,k,j)
@@ -300,6 +328,7 @@
 !-----determine boundary values depends on inflow/outflow:
 !
         do k = 1 , kz
+#ifndef BAND
 !
 !.....west boundary:
 !
@@ -332,6 +361,7 @@
               qva(i,k,jendx) = qvx*psa(i,jendx)
             end do
           end if
+#endif
 !
 !.....south boundary:
 !
@@ -376,6 +406,7 @@
 !     outflow : get from interior point.
 !
       do k = 1 , kz
+#ifndef BAND
 !
 !.....west boundary:
 !
@@ -406,6 +437,7 @@
             qca(i,k,jendx) = qcx*psa(i,jendx)
           end do
         end if
+#endif
 !
 !.....south boundary:
 !
@@ -442,10 +474,10 @@
 !
         do itr = 1 , ntr
           do k = 1 , kz
+#ifndef BAND
 !
 !.....west  boundary:
 !
- 
             if ( myid.eq.0 ) then
               do i = 1 , iym1
                 chix1 = chia(i,k,1,itr)/psa(i,1)
@@ -475,6 +507,7 @@
                 chia(i,k,jendx,itr) = chix*psa(i,jendx)
               end do
             end if
+#endif
 !
 !.....south boundary:
 !
@@ -511,11 +544,17 @@
 !
 !-----for p*:
 !
+#ifndef BAND
         do i = 1 , iym1
           psb(i,1) = psa(i,1)
           psb(i,jxm1) = psa(i,jxm1)
         end do
+#endif
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jxm2
+#endif
           psb(1,j) = psa(1,j)
           psb(iym1,j) = psa(iym1,j)
         end do
@@ -523,13 +562,19 @@
 !-----for p*u and p*v:
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iy
             ub(i,k,1) = ua(i,k,1)/msfd(i,1)
             vb(i,k,1) = va(i,k,1)/msfd(i,1)
             ub(i,k,jx) = ua(i,k,jx)/msfd(i,jx)
             vb(i,k,jx) = va(i,k,jx)/msfd(i,jx)
           end do
+#endif
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jxm1
+#endif
             ub(1,k,j) = ua(1,k,j)/msfd(1,j)
             ub(iy,k,j) = ua(iy,k,j)/msfd(iy,j)
             vb(1,k,j) = va(1,k,j)/msfd(1,j)
@@ -540,11 +585,17 @@
 !-----for p*t:
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             tb(i,k,1) = ta(i,k,1)
             tb(i,k,jxm1) = ta(i,k,jxm1)
           end do
+#endif
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jxm2
+#endif
             tb(1,k,j) = ta(1,k,j)
             tb(iym1,k,j) = ta(iym1,k,j)
           end do
@@ -553,11 +604,17 @@
 !-----for p*qv:
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             qvb(i,k,1) = qva(i,k,1)
             qvb(i,k,jxm1) = qva(i,k,jxm1)
           end do
+#endif
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jxm2
+#endif
             qvb(1,k,j) = qva(1,k,j)
             qvb(iym1,k,j) = qva(iym1,k,j)
           end do
@@ -569,11 +626,17 @@
 !-----for p*chi (tracers)
           do itr = 1 , ntr
             do k = 1 , kz
+#ifndef BAND
               do i = 1 , iym1
                 chib(i,k,1,itr) = chia(i,k,1,itr)
                 chib(i,k,jxm1,itr) = chia(i,k,jxm1,itr)
               end do
+#endif
+#ifdef BAND
+              do j = 1 , jx
+#else
               do j = 2 , jxm2
+#endif
                 chib(1,k,j,itr) = chia(1,k,j,itr)
                 chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
               end do
@@ -585,11 +648,17 @@
 !-----for p*qc:
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             qcb(i,k,1) = qca(i,k,1)
             qcb(i,k,jxm1) = qca(i,k,jxm1)
           end do
+#endif
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jxm2
+#endif
             qcb(1,k,j) = qca(1,k,j)
             qcb(iym1,k,j) = qca(iym1,k,j)
           end do
@@ -612,23 +681,35 @@
 !
         if ( iboudy.eq.0 ) then
 !.....fixed boundary conditions:
+#ifndef BAND
           do i = 1 , iym1
             psa(i,1) = pwb(i,1)
             psa(i,jxm1) = peb(i,1)
           end do
+#endif
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jxm2
+#endif
             psa(1,j) = pss(1,j)
             psa(iym1,j) = pnb(1,j)
           end do
 !
           do k = 1 , kz
+#ifndef BAND
             do i = 1 , iy
               ua(i,k,1) = uwb(i,k,1)
               va(i,k,1) = vwb(i,k,1)
               ua(i,k,jx) = ueb(i,k,1)
               va(i,k,jx) = veb(i,k,1)
             end do
+#endif
+#ifdef BAND
+            do j = 1 , jx
+#else
             do j = 2 , jxm1
+#endif
               ua(1,k,j) = usb(1,k,j)
               ua(iy,k,j) = unb(1,k,j)
               va(1,k,j) = vsb(1,k,j)
@@ -639,23 +720,35 @@
 !
 !.....time-dependent boundary conditions:
 !
+#ifndef BAND
         do i = 1 , iym1
           psa(i,1) = pwb(i,1) + dtb*pwbt(i,1)
           psa(i,jxm1) = peb(i,1) + dtb*pebt(i,1)
         end do
+#endif
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jxm2
+#endif
           psa(1,j) = pss(1,j) + dtb*psbt(1,j)
           psa(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
         end do
 !
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iy
             ua(i,k,1) = uwb(i,k,1) + dtb*uwbt(i,k,1)
             va(i,k,1) = vwb(i,k,1) + dtb*vwbt(i,k,1)
             ua(i,k,jx) = ueb(i,k,1) + dtb*uebt(i,k,1)
             va(i,k,jx) = veb(i,k,1) + dtb*vebt(i,k,1)
           end do
+#endif
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jxm1
+#endif
             ua(1,k,j) = usb(1,k,j) + dtb*usbt(1,k,j)
             ua(iy,k,j) = unb(1,k,j) + dtb*unbt(1,k,j)
             va(1,k,j) = vsb(1,k,j) + dtb*vsbt(1,k,j)
@@ -676,21 +769,33 @@
       if ( iboudy.eq.0 ) then
 !.....fixed boundary conditions:
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             ta(i,k,1) = twb(i,k,1)
             ta(i,k,jxm1) = teb(i,k,1)
           end do
+#endif
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jxm2
+#endif
             ta(1,k,j) = tsb(1,k,j)
             ta(iym1,k,j) = tnb(1,k,j)
           end do
         end do
         do k = 1 , kz
+#ifndef BAND
           do i = 1 , iym1
             qva(i,k,1) = qwb(i,k,1)
             qva(i,k,jxm1) = qeb(i,k,1)
           end do
+#endif
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 2 , jxm2
+#endif
             qva(1,k,j) = qsb(1,k,j)
             qva(iym1,k,j) = qnb(1,k,j)
           end do
@@ -700,21 +805,33 @@
 !.....time-dependent boundary conditions:
 !
       do k = 1 , kz
+#ifndef BAND
         do i = 1 , iym1
           ta(i,k,1) = twb(i,k,1) + dtb*twbt(i,k,1)
           ta(i,k,jxm1) = teb(i,k,1) + dtb*tebt(i,k,1)
         end do
+#endif
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jxm2
+#endif
           ta(1,k,j) = tsb(1,k,j) + dtb*tsbt(1,k,j)
           ta(iym1,k,j) = tnb(1,k,j) + dtb*tnbt(1,k,j)
         end do
       end do
       do k = 1 , kz
+#ifndef BAND
         do i = 1 , iym1
           qva(i,k,1) = qwb(i,k,1) + dtb*qwbt(i,k,1)
           qva(i,k,jxm1) = qeb(i,k,1) + dtb*qebt(i,k,1)
         end do
+#endif
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jxm2
+#endif
           qva(1,k,j) = qsb(1,k,j) + dtb*qsbt(1,k,j)
           qva(iym1,k,j) = qnb(1,k,j) + dtb*qnbt(1,k,j)
         end do
@@ -725,6 +842,7 @@
 !-----determine boundary values depends on inflow/outflow:
 !
         do k = 1 , kz
+#ifndef BAND
 !
 !.....west boundary:
 !
@@ -753,13 +871,23 @@
             end if
             qva(i,k,jxm1) = qvx*psa(i,jxm1)
           end do
+#endif
 !
 !.....south boundary:
 !
+#ifdef BAND
+          do j = 1 , jx
+            jp1 = j+1
+            if(jp1.eq.jx+1) jp1=1
+            qvx1 = qva(1,k,j)/psa(1,j)
+            qvx2 = qva(2,k,j)/psa(2,j)
+            vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
+#else
           do j = 2 , jxm2
             qvx1 = qva(1,k,j)/psa(1,j)
             qvx2 = qva(2,k,j)/psa(2,j)
             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+#endif
             if ( vavg.ge.0. ) then
               qvx = qvx1
             else
@@ -770,10 +898,19 @@
 !
 !.....north boundary:
 !
+#ifdef BAND
+          do j = 1 , jx
+            jp1 = j+1
+            if(jp1.eq.jx+1) jp1=1
+            qvx1 = qva(iym1,k,j)/psa(iym1,j)
+            qvx2 = qva(iym2,k,j)/psa(iym2,j)
+            vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
+#else
           do j = 2 , jxm2
             qvx1 = qva(iym1,k,j)/psa(iym1,j)
             qvx2 = qva(iym2,k,j)/psa(iym2,j)
             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+#endif
             if ( vavg.lt.0. ) then
               qvx = qvx1
             else
@@ -797,6 +934,7 @@
 !     outflow : get from interior point.
 !
       do k = 1 , kz
+#ifndef BAND
 !
 !.....west boundary:
 !
@@ -823,12 +961,21 @@
           end if
           qca(i,k,jxm1) = qcx*psa(i,jxm1)
         end do
+#endif
 !
 !.....south boundary:
 !
+#ifdef BAND
+        do j = 1 , jx
+          jp1 = j+1
+          if(jp1.eq.jx+1) jp1=1
+          qcx2 = qca(2,k,j)/psa(2,j)
+          vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
+#else
         do j = 2 , jxm2
           qcx2 = qca(2,k,j)/psa(2,j)
           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+#endif
           if ( vavg.ge.0. ) then
             qcx = 0.
           else
@@ -839,9 +986,17 @@
 !
 !.....north boundary:
 !
+#ifdef BAND
+        do j = 1 , jx
+          jp1 = j+1
+          if(jp1.eq.jx+1) jp1=1
+          qcx2 = qca(iym2,k,j)/psa(iym2,j)
+          vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
+#else
         do j = 2 , jxm2
           qcx2 = qca(iym2,k,j)/psa(iym2,j)
           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+#endif
           if ( vavg.lt.0. ) then
             qcx = 0.
           else
@@ -859,6 +1014,7 @@
 !
         do itr = 1 , ntr
           do k = 1 , kz
+#ifndef BAND
 !
 !.....west  boundary:
 !
@@ -891,14 +1047,24 @@
               end if
               chia(i,k,jxm1,itr) = chix*psa(i,jxm1)
             end do
+#endif
 !
 !.....south boundary:
 !
+#ifdef BAND
+            do j = 1 , jx
+              jp1 = j+1
+              if(jp1.eq.jx+1) jp1=1
+              chix1 = 0.
+              chix2 = chia(2,k,j,itr)/psa(2,j)
+              vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
+#else
             do j = 2 , jxm2
 !             chix1 = chia(1,k,j,itr)/psa(1,j)
               chix1 = 0.
               chix2 = chia(2,k,j,itr)/psa(2,j)
               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
+#endif
               if ( vavg.ge.0. ) then
                 chix = chix1
               else
@@ -909,11 +1075,21 @@
 !
 !.....north boundary:
 !
+#ifdef BAND
+            do j = 1 , jx
+              jp1 = j+1
+              if(jp1.eq.jx+1) jp1=1
+!             chix1 = chia(iym1,k,j,itr)/psa(iym1,j)
+              chix1 = 0.
+              chix2 = chia(iym2,k,j,itr)/psa(iym2,j)
+              vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
+#else
             do j = 2 , jxm2
 !             chix1 = chia(iym1,k,j,itr)/psa(iym1,j)
               chix1 = 0.
               chix2 = chia(iym2,k,j,itr)/psa(iym2,j)
               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
+#endif
               if ( vavg.lt.0. ) then
                 chix = chix1
               else

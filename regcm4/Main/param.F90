@@ -1480,7 +1480,11 @@
           end do
         end do
 #else
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             shrmax2d(i,j) = shrmax
             shrmin2d(i,j) = shrmin

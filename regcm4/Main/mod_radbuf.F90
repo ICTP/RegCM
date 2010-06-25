@@ -44,6 +44,15 @@
         allocate(emstot0(iym1,kzp1,jxp))
         allocate(xuinpl(iym1,kzp1,4,jxp))
 #else
+#ifdef BAND
+        allocate(absnxt(iym1,kz,4,jx))
+        allocate(abstot(iym1,kzp1,kzp1,jx))
+        allocate(emstot(iym1,kzp1,jx))
+        allocate(absnxt0(iym1,kz,4,jx))
+        allocate(abstot0(iym1,kzp1,kzp1,jx))
+        allocate(emstot0(iym1,kzp1,jx))
+        allocate(xuinpl(iym1,kzp1,4,jx))       
+#else
         allocate(absnxt(iym1,kz,4,jxm1))
         allocate(abstot(iym1,kzp1,kzp1,jxm1))
         allocate(emstot(iym1,kzp1,jxm1))
@@ -51,6 +60,7 @@
         allocate(abstot0(iym1,kzp1,kzp1,jxm1))
         allocate(emstot0(iym1,kzp1,jxm1))
         allocate(xuinpl(iym1,kzp1,4,jxm1))       
+#endif 
 
 #endif 
         end subroutine allocate_mod_radbuf 

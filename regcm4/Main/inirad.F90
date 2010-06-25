@@ -41,7 +41,11 @@
             end do
           end do
 #else
+#ifdef BAND
+          do j = 1 , jx
+#else
           do j = 1 , jxm1
+#endif
             do i = 1 , iym1
               heatrt(i,k,j) = 0.
               o3prof(i,k,j) = 0.
@@ -56,7 +60,11 @@
           end do
         end do
 #else
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
           do i = 1 , iym1
             o3prof(i,kzp1,j) = 0.
           end do
@@ -67,13 +75,13 @@
         if ( myid.eq.0 ) then
           print * , 'ozone profiles'
           do k = 1 , kzp1
-            write (6,99001) o3prof(3,k,jxp)
+            write (6,99001) o3prof(3,k,2)
           end do
         end if
 #else
         print * , 'ozone profiles'
         do k = 1 , kzp1
-          write (6,99001) o3prof(3,k,3)
+          write (6,99001) o3prof(3,k,2)
         end do
 #endif
       end if

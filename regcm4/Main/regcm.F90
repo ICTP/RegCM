@@ -220,12 +220,20 @@
       if ( myid.gt.0 ) then
         iwest = myid - 1
       else
+#ifdef BAND
+        iwest = nproc-1
+#else
         iwest = mpi_proc_null
+#endif
       end if
       if ( myid.lt.nproc-1 ) then
         ieast = myid + 1
       else
+#ifdef BAND
+        ieast = 0
+#else
         ieast = mpi_proc_null
+#endif
       end if
       if ( jxp.lt.2 ) then
         write (aline,*) 'The number of jxp must be greater than 1'
@@ -247,11 +255,13 @@
       jendl = jxp
       jendx = jxp
       jendm = jxp
+#ifndef BAND
       if ( myid.eq.0 ) jbegin = 2
       if ( myid.eq.nproc-1 ) then
         jendx = jxp - 1
         jendm = jxp - 2
       end if
+#endif
 #else
       myid = 0
       nproc= 1 

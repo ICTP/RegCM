@@ -109,8 +109,13 @@
         close (iutdat)
         call outname('ATM',idatex)
         if ( iotyp.eq.1 ) then
+#ifdef BAND
+          open (iutdat,file=ffout,status='replace',form='unformatted',  &
+              & recl=iym2*jx*ibyte,access='direct')
+#else
           open (iutdat,file=ffout,status='replace',form='unformatted',  &
               & recl=iym2*jxm2*ibyte,access='direct')
+#endif
           nrcout = 0
         else if ( iotyp.eq.2 ) then
           open (iutdat,file=ffout,status='replace',form='unformatted')
@@ -124,8 +129,13 @@
         close (iutbat)
         call outname('SRF',idatex)
         if ( iotyp.eq.1 ) then
+#ifdef BAND
+          open (iutbat,file=ffout,status='replace',form='unformatted',  &
+              & recl=iym2*jx*ibyte,access='direct')
+#else
           open (iutbat,file=ffout,status='replace',form='unformatted',  &
               & recl=iym2*jxm2*ibyte,access='direct')
+#endif
           nrcbat = 0
         else if ( iotyp.eq.2 ) then
           open (iutbat,file=ffout,status='replace',form='unformatted')
@@ -139,8 +149,13 @@
         close (iutsub)
         call outname('SUB',idatex)
         if ( iotyp.eq.1 ) then
+#ifdef BAND
+          open (iutsub,file=ffout,status='replace',form='unformatted',  &
+              & recl=iym2*jx*nnsg*ibyte,access='direct')
+#else
           open (iutsub,file=ffout,status='replace',form='unformatted',  &
               & recl=iym2*jxm2*nnsg*ibyte,access='direct')
+#endif
           nrcsub = 0
         else if ( iotyp.eq.2 ) then
           open (iutsub,file=ffout,status='replace',form='unformatted')
@@ -154,8 +169,13 @@
         close (iutrad)
         call outname('RAD',idatex)
         if ( iotyp.eq.1 ) then
+#ifdef BAND
+          open (iutrad,file=ffout,status='replace',form='unformatted',  &
+              & recl=iym2*jx*ibyte,access='direct')
+#else
           open (iutrad,file=ffout,status='replace',form='unformatted',  &
               & recl=iym2*jxm2*ibyte,access='direct')
+#endif
           nrcrad = 0
         else if ( iotyp.eq.2 ) then
           open (iutrad,file=ffout,status='replace',form='unformatted')
@@ -170,8 +190,13 @@
           close (iutchem)
           call outname('CHE',idatex)
           if ( iotyp.eq.1 ) then
+#ifdef BAND
+            open (iutchem,file=ffout,status='replace',access='direct',  &
+                & form='unformatted',recl=iym2*jx*ibyte)
+#else
             open (iutchem,file=ffout,status='replace',access='direct',  &
                 & form='unformatted',recl=iym2*jxm2*ibyte)
+#endif
             nrcchem = 0
           else if ( iotyp.eq.2 ) then
             open (iutchem,file=ffout,status='replace',                  &

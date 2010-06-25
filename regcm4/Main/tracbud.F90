@@ -59,6 +59,7 @@
       do itr = 1 , ntr
 !
 #ifdef DIAG
+#ifndef BAND
         ttrace(itr,1) = 0.
         tremlsc(itr,1) = 0.
         tremcvc(itr,1) = 0.
@@ -67,11 +68,16 @@
         trxsaq2(itr,1) = 0.
         tremdrd(itr,1) = 0.
 #endif
+#endif
 !
 #ifdef MPP1
         do j = 1 , jendx
 #else
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
 #endif
           do i = 1 , iym1
             dtrace(i,j,itr) = 0.0
@@ -90,7 +96,11 @@
 #ifdef MPP1
         do j = 1 , jendx
 #else
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
 #endif
           do i = 1 , iym1
             do k = 1 , kz
@@ -114,6 +124,7 @@
       end do
  
 #ifdef DIAG
+#ifndef BAND
 #ifdef MPP1
       do itr = 1 , ntr
         call mpi_gather(chia(1,1,1,itr),   iy*kz*jxp,mpi_real8,         &
@@ -304,9 +315,11 @@
       end do
 #endif
 #endif
+#endif
  
       do itr = 1 , ntr
 #ifdef DIAG
+#ifndef BAND
         ttrace(itr,1) = ttrace(itr,1)*1000.*rgti
         tremlsc(itr,1) = tremlsc(itr,1)*1000.*rgti
         tremcvc(itr,1) = tremcvc(itr,1)*1000.*rgti
@@ -315,11 +328,16 @@
         trxsaq1(itr,1) = trxsaq1(itr,1)*1000.*rgti
         trxsaq2(itr,1) = trxsaq2(itr,1)*1000.*rgti
 #endif
+#endif
 !
 #ifdef MPP1
         do j = 1 , jendx
 #else
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 1 , jxm1
+#endif
 #endif
           do i = 1 , iym1
             dtrace(i,j,itr) = 1.E6*dtrace(i,j,itr)*1000.*rgti
@@ -339,6 +357,7 @@
  
 !-----print out the information:
 #ifdef DIAG
+#ifndef BAND
 #ifdef MPP1
       if ( myid.eq.0 ) then
  
@@ -410,6 +429,7 @@
                   & ' kg')
 99007       format ('total mass (at ktau), tracer',i1,':',e12.5,' kg')
 !99008       format('error trac',I1,':',e12.5,' % ')
+#endif
 #endif
 
       end subroutine tracbud

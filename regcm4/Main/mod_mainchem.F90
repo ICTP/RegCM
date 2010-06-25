@@ -67,7 +67,11 @@
         allocate(wxaq(iy,jx,ntr))
         allocate(wxsg(iy,jx,ntr))
 #endif 
+#ifdef BAND
+        allocate(fchem(jx,iym2))
+#else
         allocate(fchem(jxm2,iym2))
+#endif 
        
        end subroutine allocate_mod_mainchem
  

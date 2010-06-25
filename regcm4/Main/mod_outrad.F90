@@ -32,8 +32,13 @@
         allocate(frad2d(jxp,iym2,nrad2d))
         allocate(frad3d(jxp,iym2,kz,nrad3d))
 #else
+#ifdef BAND
+        allocate(frad2d(jx,iym2,nrad2d))
+        allocate(frad3d(jx,iym2,kz,nrad3d))
+#else
         allocate(frad2d(jxm2,iym2,nrad2d))
         allocate(frad3d(jxm2,iym2,kz,nrad3d))
+#endif
 #endif
 
         end subroutine allocate_mod_outrad

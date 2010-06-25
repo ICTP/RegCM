@@ -94,6 +94,15 @@
         allocate(icumbot(iy,jx))
         allocate(icumdwd(iy,jx))
         allocate(icumtop(iy,jx))
+#ifdef BAND
+        allocate(aerasp(iym1,kz,jx))
+        allocate(aerext(iym1,kz,jx))
+        allocate(aerssa(iym1,kz,jx))
+        allocate(aersrrf(iym1,jx))
+        allocate(aertarf(iym1,jx))
+        allocate(aertalwrf(iym1,jx))
+        allocate(aersrlwrf(iym1,jx))
+#else
         allocate(aerasp(iym1,kz,jxm1))
         allocate(aerext(iym1,kz,jxm1))
         allocate(aerssa(iym1,kz,jxm1))
@@ -101,6 +110,7 @@
         allocate(aertarf(iym1,jxm1))
         allocate(aertalwrf(iym1,jxm1))
         allocate(aersrlwrf(iym1,jxm1))
+#endif
 
         allocate(cemtr(iy,jx,ntr))
         allocate(cemtrac(iy,jx,ntr))

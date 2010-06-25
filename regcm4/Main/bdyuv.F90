@@ -85,16 +85,26 @@
         end do
       end do
 #else
+#ifdef BAND
+      do j = 2 , jx
+#else
       do j = 2 , jxm1
+#endif
         do i = 2 , iym1
           pdota(i,j) = 0.25*(psa(i,j)+psa(i-1,j)+psa(i,j-1)+psa(i-1,j-1)&
                      & )
         end do
       end do
+#ifdef BAND
+      do i = 2 , iym1
+        pdota(i,1) = 0.25*(psa(i,1)+psa(i-1,1)+psa(i,jx)+psa(i-1,jx))
+      enddo
+#endif
 #endif
 !
 !-----east and west boundaries:
 !
+#ifndef BAND
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid.eq.0 ) pdota(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
@@ -105,6 +115,7 @@
         pdota(i,jx) = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
 #endif
       end do
+#endif
 !
 !-----north and south boundaries:
 !
@@ -114,14 +125,24 @@
         pdota(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
       end do
 #else
+#ifdef BAND
+      do j = 2 , jx
+        pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
+        pdota(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
+      end do
+      pdota(1,1) = 0.5*(psa(1,1)++psa(1,jx))
+      pdota(iy,1) = 0.5*(psa(iym1,1)+psa(iym1,jx))
+#else
       do j = 2 , jxm1
         pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
         pdota(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
       end do
 #endif
+#endif
 !
 !-----corner points:
 !
+#ifndef BAND
 #ifdef MPP1
       if ( myid.eq.0 ) then
         pdota(1,1) = psa(1,1)
@@ -137,11 +158,13 @@
       pdota(1,jx) = psa(1,jxm1)
       pdota(iy,jx) = psa(iym1,jxm1)
 #endif
+#endif
 !=======================================================================
 !
 !-----interior silces:
 !
       do k = 1 , kz
+#ifndef BAND
 !
 !.....for j = 2 and j = jlx :
 !
@@ -162,18 +185,27 @@
           vjlx(i,k) = va(i,k,jxm1)/pdota(i,jxm1)
 #endif
         end do
+#endif
 !
 !.....for i = 2 and i = iym1 :
 !
 #ifdef MPP1
+#ifdef BAND
+        do j = 1 , jendl
+#else
         do j = jbegin , jendx
+#endif
           ui2(k,j) = ua(2,k,j)/pdota(2,j)
           vi2(k,j) = va(2,k,j)/pdota(2,j)
           uilx(k,j) = ua(iym1,k,j)/pdota(iym1,j)
           vilx(k,j) = va(iym1,k,j)/pdota(iym1,j)
         end do
 #else
+#ifdef BAND
+        do j = 1 , jx
+#else
         do j = 2 , jxm1
+#endif
           ui2(k,j) = ua(2,k,j)/pdota(2,j)
           vi2(k,j) = va(2,k,j)/pdota(2,j)
           uilx(k,j) = ua(iym1,k,j)/pdota(iym1,j)
@@ -191,6 +223,7 @@
 !-----fixed boundary conditions:
 !
         do k = 1 , kz
+#ifndef BAND
 !
 !.....west (j = 1) and east (j = jx) boundaries:
 !
@@ -211,6 +244,7 @@
             vjl(i,k) = veb(i,k,1)/pdota(i,jx)
 #endif
           end do
+#endif
 !
 !.....south (i = 1) and north (i = iy) boundaries:
 !
@@ -237,6 +271,7 @@
 !-----time-dependent boundary conditions:
 !
       do k = 1 , kz
+#ifndef BAND
 !
 !.....west (j = 1) and east (j = jx) boundaries:
 !
@@ -257,6 +292,7 @@
           vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jx)
 #endif
         end do
+#endif
 !
 !.....south (i = 1) and north (i = iy) boundaries:
 !
@@ -283,6 +319,8 @@
  100  continue
 
 #ifdef MPP1
+
+#ifndef BAND
       do k = 1 , kz
         if ( myid.eq.0 ) then
           uj2(1,k) = ui1(k,2)
@@ -305,7 +343,10 @@
           vilx(k,jendl) = vjl(iym1,k)
         end if
       end do
+#endif
+#ifndef BAND
       if ( myid.ne.nproc-1 ) then
+#endif
         do k = 1 , kz
           var1snd(k,1) = ui1(k,jxp)
           var1snd(k,2) = vi1(k,jxp)
@@ -316,11 +357,15 @@
           var1snd(k,7) = uil(k,jxp)
           var1snd(k,8) = vil(k,jxp)
         end do
+#ifndef BAND
       end if
+#endif
       call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,ieast,1,            &
                       & var1rcv(1,1),kz*8,mpi_real8,iwest,1,            &
                       & mpi_comm_world,mpi_status_ignore,ierr)
+#ifndef BAND
       if ( myid.ne.0 ) then
+#endif
         do k = 1 , kz
           ui1(k,0) = var1rcv(k,1)
           vi1(k,0) = var1rcv(k,2)
@@ -331,9 +376,13 @@
           uil(k,0) = var1rcv(k,7)
           vil(k,0) = var1rcv(k,8)
         end do
+#ifndef BAND
       end if
+#endif
 !
+#ifndef BAND
       if ( myid.ne.0 ) then
+#endif
         do k = 1 , kz
           var1snd(k,1) = ui1(k,1)
           var1snd(k,2) = vi1(k,1)
@@ -344,11 +393,15 @@
           var1snd(k,7) = uil(k,1)
           var1snd(k,8) = vil(k,1)
         end do
+#ifndef BAND
       end if
+#endif
       call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,iwest,2,            &
                       & var1rcv(1,1),kz*8,mpi_real8,ieast,2,            &
                       & mpi_comm_world,mpi_status_ignore,ierr)
+#ifndef BAND
       if ( myid.ne.nproc-1 ) then
+#endif
         do k = 1 , kz
           ui1(k,jxp+1) = var1rcv(k,1)
           vi1(k,jxp+1) = var1rcv(k,2)
@@ -359,8 +412,13 @@
           uil(k,jxp+1) = var1rcv(k,7)
           vil(k,jxp+1) = var1rcv(k,8)
         end do
+#ifndef BAND
       end if
+#endif
+
 #else
+
+#ifndef BAND
       do k = 1 , kz
         uj2(1,k) = ui1(k,2)
         uj2(iy,k) = uil(k,2)
@@ -379,6 +437,8 @@
         vi2(k,jx) = vjl(2,k)
         vilx(k,jx) = vjl(iym1,k)
       end do
+#endif
+
 #endif
 !
       end subroutine bdyuv

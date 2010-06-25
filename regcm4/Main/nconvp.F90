@@ -62,7 +62,11 @@
 #ifdef MPP1
       do j = 1 , jxp
 #else
+#ifdef BAND
+      do j = 1 , jx
+#else
       do j = 1 , jxm1
+#endif
 #endif
         do k = 1 , kz
           do i = 1 , iym1
@@ -114,11 +118,13 @@
 !       scheme is used (i.e. im = 1).
 !       unit for precipitation is cm.
 !
+#ifndef BAND
 #ifdef MPP1
         if ( .not.((myid.eq.0 .and. j.eq.1) .or. (myid.eq.nproc-1 .and. &
            & j.eq.jxp-1)) ) then
 #else
         if ( j.ne.1 .and. j.ne.jxm1 ) then
+#endif
 #endif
 !
           do k = 1 , kz
@@ -128,7 +134,9 @@
               tb(i,k,j) = tb(i,k,j) + wlhvocp*scr(i,k)*psb(i,j)*ex
             end do
           end do
+#ifndef BAND
         end if
+#endif
 !
       end do     !end j=1,jxm1 loop
 !

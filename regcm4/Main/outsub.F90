@@ -34,20 +34,32 @@
 !
 ! Local variables
 !
+#ifdef BAND
+      real(4) , dimension(jxsg,iym2sg) :: v2b
+#else
       real(4) , dimension(jxm2sg,iym2sg) :: v2b
+#endif
       integer :: n
 
 #ifdef MPP1
       if ( iotyp.eq.1 ) then
         do n = 1 , numsub
           nrcsub = nrcsub + 1
+#ifdef BAND
+          call reorder(fsub_io(1,1,1,n),v2b,jx,iym2,nsg)
+#else
           call reorder(fsub_io(1,1,1,n),v2b,jxm2,iym2,nsg)
+#endif
           write (iutsub,rec=nrcsub) v2b
         end do
       else
         write (iutsub) idatex
         do n = 1 , numsub
+#ifdef BAND
+          call reorder(fsub_io(1,1,1,n),v2b,jx,iym2,nsg)
+#else
           call reorder(fsub_io(1,1,1,n),v2b,jxm2,iym2,nsg)
+#endif
           write (iutsub) v2b
         end do
       end if
@@ -55,13 +67,21 @@
       if ( iotyp.eq.1 ) then
         do n = 1 , numsub
           nrcsub = nrcsub + 1
+#ifdef BAND
+          call reorder(fsub(1,1,1,n),v2b,jx,iym2,nsg)
+#else
           call reorder(fsub(1,1,1,n),v2b,jxm2,iym2,nsg)
+#endif
           write (iutsub,rec=nrcsub) v2b
         end do
       else
         write (iutsub) idatex
         do n = 1 , numsub
+#ifdef BAND
+          call reorder(fsub(1,1,1,n),v2b,jx,iym2,nsg)
+#else
           call reorder(fsub(1,1,1,n),v2b,jxm2,iym2,nsg)
+#endif
           write (iutsub) v2b
         end do
       end if

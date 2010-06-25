@@ -65,6 +65,170 @@
 !
       integer :: i , k
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!-----compute the diffusion term for t:
+!
+#ifdef MPP1
+!
+!......fourth-order scheme for interior:
+      do k = 1 , kz
+        do i = 3 , iym3
+          ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                    & *c203*(tb3d(i,k,j+2)+tb3d(i,k,j-2)+tb3d(i+2,k,j)&
+                    & +tb3d(i-2,k,j)                                  &
+                    & -4.*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                    & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+        end do
+      end do
+!......second-order scheme for north and south boundaries:
+      i = 2
+      do k = 1 , kz
+        ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                  & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                  & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+      end do
+      i = iym2
+      do k = 1 , kz
+        ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                  & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                  & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+      end do
+!
+#else
+      if(j.gt.2.and.j.lt.jx-1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(tb3d(i,k,j+2)+tb3d(i,k,j-2)+tb3d(i+2,k,j)&
+                      & +tb3d(i-2,k,j)                                  &
+                      & -4.*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                      & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+!
+      else if(j.eq.1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(tb3d(i,k,j+2)+tb3d(i,k,jx-1)+tb3d(i+2,k,j)&
+                      & +tb3d(i-2,k,j)                                  &
+                      & -4.*(tb3d(i,k,j+1)+tb3d(i,k,jx)+tb3d(i+1,k,j)   &
+                      & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,j+1)+tb3d(i,k,jx)+tb3d(i+1,k,j)   &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,j+1)+tb3d(i,k,jx)+tb3d(i+1,k,j)   &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+!
+      else if(j.eq.2) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(tb3d(i,k,j+2)+tb3d(i,k,jx)+tb3d(i+2,k,j) &
+                      & +tb3d(i-2,k,j)                                  &
+                      & -4.*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                      & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+!
+      else if(j.eq.jx-1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(tb3d(i,k,1)+tb3d(i,k,j-2)+tb3d(i+2,k,j)  &
+                      & +tb3d(i-2,k,j)                                  &
+                      & -4.*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                      & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,j+1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)  &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+!
+      else if(j.eq.jx) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(tb3d(i,k,2)+tb3d(i,k,j-2)+tb3d(i+2,k,j)  &
+                      & +tb3d(i-2,k,j)                                  &
+                      & -4.*(tb3d(i,k,1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)    &
+                      & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)    &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(tb3d(i,k,1)+tb3d(i,k,j-1)+tb3d(i+1,k,j)    &
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+        end do
+!
+      endif
+#endif
+#else
 !----------------------------------------------------------------------
 !-----compute the diffusion term for t:
 !
@@ -112,6 +276,7 @@
 !
       end if
 !
+#endif
       end subroutine diffut_t
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffutqv(ften,xkc,c203,j)
@@ -160,6 +325,188 @@
 !
       integer :: i , k
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!-----compute the diffusion term for t:
+!
+#ifdef MPP1
+!
+!......fourth-order scheme for interior:
+      do k = 1 , kz
+        do i = 3 , iym3
+          ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                    & *c203*(qvb3d(i,k,j+2)+qvb3d(i,k,j-2)            &
+                    & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
+                    & -4.*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
+                    & )*psb(i,j)
+        end do
+      end do
+!......second-order scheme for north and south boundaries:
+      i = 2
+      do k = 1 , kz
+        ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                  & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                  & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                  & *psb(i,j)
+      end do
+      i = iym2
+      do k = 1 , kz
+        ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                  & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                  & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                  & *psb(i,j)
+      end do
+!
+#else
+      if(j.gt.2.and.j.lt.jx-1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qvb3d(i,k,j+2)+qvb3d(i,k,j-2)            &
+                      & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
+                      & -4.*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      else if(j.eq.1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qvb3d(i,k,j+2)+qvb3d(i,k,jx-1)           &
+                      & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
+                      & -4.*(qvb3d(i,k,j+1)+qvb3d(i,k,jx)               &
+                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,jx)               &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,jx)               &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      else if(j.eq.2) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qvb3d(i,k,j+2)+qvb3d(i,k,jx)             &
+                      & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
+                      & -4.*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      else if(j.eq.jx-1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qvb3d(i,k,1)+qvb3d(i,k,j-2)              &
+                      & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
+                      & -4.*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,j+1)+qvb3d(i,k,j-1)              &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      else if(j.eq.jx) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qvb3d(i,k,2)+qvb3d(i,k,j-2)              &
+                      & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
+                      & -4.*(qvb3d(i,k,1)+qvb3d(i,k,j-1)                &
+                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,1)+qvb3d(i,k,j-1)                &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qvb3d(i,k,1)+qvb3d(i,k,j-1)                &
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      endif
+#endif
+#else
 !----------------------------------------------------------------------
 !-----compute the diffusion term for t:
 !
@@ -211,6 +558,7 @@
 !
       end if
 !
+#endif
       end subroutine diffutqv
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffutqc(ften,xkc,c203,j)
@@ -259,6 +607,189 @@
 !
       integer :: i , k
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!-----compute the diffusion term for t:
+!
+#ifdef MPP1
+!
+!......fourth-order scheme for interior:
+      do k = 1 , kz
+        do i = 3 , iym3
+          ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                    & *c203*(qcb3d(i,k,j+2)+qcb3d(i,k,j-2)            &
+                    & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
+                    & -4.*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
+                    & )*psb(i,j)
+        end do
+      end do
+!......second-order scheme for north and south boundaries:
+      i = 2
+      do k = 1 , kz
+        ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                  & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                  & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                  & *psb(i,j)
+      end do
+      i = iym2
+      do k = 1 , kz
+        ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                  & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                  & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                  & *psb(i,j)
+      end do
+!
+#else
+      if(j.gt.2.and.j.lt.jx-1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qcb3d(i,k,j+2)+qcb3d(i,k,j-2)            &
+                      & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
+                      & -4.*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      else if(j.eq.1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qcb3d(i,k,j+2)+qcb3d(i,k,jx-1)           &
+                      & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
+                      & -4.*(qcb3d(i,k,j+1)+qcb3d(i,k,jx)               &
+                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,jx)               &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,jx)               &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      else if(j.eq.2) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qcb3d(i,k,j+2)+qcb3d(i,k,jx)             &
+                      & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
+                      & -4.*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      else if(j.eq.jx-1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qcb3d(i,k,1)+qcb3d(i,k,j-2)              &
+                      & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
+                      & -4.*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,j+1)+qcb3d(i,k,j-1)              &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      else if(j.eq.jx) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(qcb3d(i,k,2)+qcb3d(i,k,j-2)              &
+                      & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
+                      & -4.*(qcb3d(i,k,1)+qcb3d(i,k,j-1)                &
+                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
+                      & )*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,1)+qcb3d(i,k,j-1)                &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(qcb3d(i,k,1)+qcb3d(i,k,j-1)                &
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
+                    & *psb(i,j)
+        end do
+!
+      endif
+#endif
+!
+#else
 !----------------------------------------------------------------------
 !-----compute the diffusion term for t:
 !
@@ -310,6 +841,7 @@
 !
       end if
 !
+#endif
       end subroutine diffutqc
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine diffutch(ften,xkc,c203,n,j)
@@ -358,6 +890,188 @@
 !
       integer :: i , k
 !
+#ifdef BAND
+!----------------------------------------------------------------------
+!-----compute the diffusion term for t:
+!
+#ifdef MPP1
+!
+!......fourth-order scheme for interior:
+      do k = 1 , kz
+        do i = 3 , iym3
+          ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                    & *c203*(chib3d(i,k,j+2,n)+chib3d(i,k,j-2,n)      &
+                    & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
+                    & -4.*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
+                    & +12.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+      end do
+!......second-order scheme for north and south boundaries:
+      i = 2
+      do k = 1 , kz
+        ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                  & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                  & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                  & -4.*chib3d(i,k,j,n))*psb(i,j)
+      end do
+      i = iym2
+      do k = 1 , kz
+        ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                  & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                  & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                  & -4.*chib3d(i,k,j,n))*psb(i,j)
+      end do
+!
+#else
+      if(j.gt.2.and.j.lt.jx-1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(chib3d(i,k,j+2,n)+chib3d(i,k,j-2,n)      &
+                      & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
+                      & -4.*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                      & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
+                      & +12.*chib3d(i,k,j,n))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+!
+      else if(j.eq.1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(chib3d(i,k,j+2,n)+chib3d(i,k,jx-1,n)     &
+                      & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
+                      & -4.*(chib3d(i,k,j+1,n)+chib3d(i,k,jx,n)         &
+                      & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
+                      & +12.*chib3d(i,k,j,n))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,jx,n)         &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,jx,n)         &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+!
+      else if(j.eq.2) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(chib3d(i,k,j+2,n)+chib3d(i,k,jx,n)       &
+                      & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
+                      & -4.*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                      & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
+                      & +12.*chib3d(i,k,j,n))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+!
+      else if(j.eq.jx-1) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(chib3d(i,k,1,n)+chib3d(i,k,j-2,n)        &
+                      & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
+                      & -4.*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                      & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
+                      & +12.*chib3d(i,k,j,n))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,j+1,n)+chib3d(i,k,j-1,n)        &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+!
+      else if(j.eq.jx) then
+!
+!......fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym3
+            ften(i,k) = ften(i,k) - xkc(i,k)                            &
+                      & *c203*(chib3d(i,k,2,n)+chib3d(i,k,j-2,n)        &
+                      & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
+                      & -4.*(chib3d(i,k,1,n)+chib3d(i,k,j-1,n)          &
+                      & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
+                      & +12.*chib3d(i,k,j,n))*psb(i,j)
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        i = 2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,1,n)+chib3d(i,k,j-1,n)          &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+        i = iym2
+        do k = 1 , kz
+          ften(i,k) = ften(i,k) + xkc(i,k)                              &
+                    & *c203*(chib3d(i,k,1,n)+chib3d(i,k,j-1,n)          &
+                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
+                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+        end do
+!
+      endif
+#endif
+#else
 !----------------------------------------------------------------------
 !-----compute the diffusion term for t:
 !
@@ -409,4 +1123,5 @@
 !
       end if
 !
+#endif
       end subroutine diffutch
