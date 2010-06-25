@@ -334,7 +334,7 @@
             else
              inpfile = trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
             end if
-            call ice_wk(idate*100,idate0,k,ilon,jlat,sst,inpfile)
+            call ice_wk(idate*100,idate0,k,ilon,jlat,ice,inpfile)
             call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           end if 
 
