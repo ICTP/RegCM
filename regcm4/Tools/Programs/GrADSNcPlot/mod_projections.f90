@@ -26,7 +26,7 @@ module mod_projections
   real(8) , private :: reflon , dlon , scale_top
   real(8) , private :: polei , polej
   real(8) , private :: polelon , polelat , xoff , yoff
-  real(8) , private :: zsinpol , zcospol , zlampol
+  real(8) , private :: zsinpol , zcospol , zlampol , zphipol
 
   contains
 
@@ -257,12 +257,18 @@ module mod_projections
     yoff = clat - plat
     polei = ci
     polej = cj
-    pphi = 90. - plat
-    plam = plon + 180.
+    if (polelat > 0.0) then
+      pphi = 90. - plat
+      plam = plon + 180.
+    else
+      pphi = 90. + plat
+      plam = plon
+    end if
     if ( plam>180. ) plam = plam - 360.
-    zsinpol = sin(degrad*pphi)
-    zcospol = cos(degrad*pphi)
     zlampol = degrad*plam
+    zphipol = degrad*pphi
+    zsinpol = sin(zphipol)
+    zcospol = cos(zphipol)
   end subroutine setup_rmc
 
   subroutine llij_rc(lat,lon,i,j)
@@ -326,6 +332,21 @@ module mod_projections
     if (lon < -180.) lon = lon + 360.0
   end subroutine ijll_rc
  
+  subroutine uvrot_rc(lat, lon, alpha)
+    implicit none
+    real(4) , intent(in) :: lon , lat
+    real(4) , intent(out) :: alpha
+    real(8) :: zphi , zrla , zrlap , zarg1 , zarg2 , znorm
+    zphi = lat*degrad
+    zrla = lon*degrad
+    if (lat > 89.999999) zrla = 0.0
+    zrlap = zlampol - zrla
+    zarg1 = zcospol*sin(zrlap)
+    zarg2 = zsinpol*cos(zphi) - zcospol*sin(zphi)*cos(zrlap)
+    znorm = 1.0/sqrt(zarg1**2+zarg2**2)
+    alpha = acos(zarg2*znorm)
+  end subroutine uvrot_rc
+
   function rounder(value,ltop)
     implicit none
     real(4) , intent(in) :: value

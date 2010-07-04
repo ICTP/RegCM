@@ -44,9 +44,10 @@ program ncplot
   integer :: ndims , nvars , natts , udimid , totvars
   integer :: ivarid , idimid , xtype
   integer :: jxdimid , iydimid , kzdimid , itdimid
-  integer :: jx , iy , kz, nt , nlat , nlon , ilat , ilon
+  integer :: jx , iy , kz, nt , nlat , nlon , ilat , ilon , isplit
   real(4) :: alat , alon , angle
-  integer :: i
+  integer :: i , j
+  logical :: lvarsplit
 
   call getarg(0, prgname)
   numarg = iargc( )
@@ -284,7 +285,8 @@ program ncplot
       do ilat = 1 , nlat
         alat = minlat + (ilat-1) * rlatinc
         call llij_rc(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
-        ruv(ilon,ilat) = 1.0
+        call uvrot_rc(alat,alon,angle)
+        ruv(ilon,ilat) = angle
       end do
     end do
   else
@@ -352,20 +354,55 @@ program ncplot
     end if
   else
     write (11, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'
-  endif
+  end if
 
   totvars = 0
   do i = 1 , nvars
     lvarflag(i) = .false.
-    istatus = nf90_inquire_variable(ncid,i,xtype=xtype,ndims=idimid)
+    istatus = nf90_inquire_variable(ncid,i,xtype=xtype,ndims=idimid, &
+                                    dimids=dimids)
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error inquire variable ', i
       write (6,*) nf90_strerror(istatus)
       stop
     end if
     if (idimid > 1) then
-      totvars = totvars + 1
       lvarflag(i) = .true.
+      if (idimid == 2) then
+        totvars = totvars + 1
+      else if (idimid == 3) then
+        if (dimids(3) == kzdimid .and. dimids(2) == iydimid) then
+          totvars = totvars + 1
+        else if (dimids(3) == itdimid .and. dimids(2) == iydimid) then
+          totvars = totvars + 1
+        else if (dimids(2) == iydimid .and. dimids(1) == jxdimid) then
+          istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error dimension splitting'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          totvars = totvars + isplit
+        else
+          lvarflag(i) = .false.
+        end if
+      else if (idimid == 4) then
+        if (dimids(4) == itdimid .and. dimids(3) == kzdimid) then
+          totvars = totvars + 1
+        else if (dimids(4) == itdimid .and. dimids(2) == iydimid) then
+          istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error dimension splitting'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          totvars = totvars + isplit
+        else
+          lvarflag(i) = .false.
+        end if
+      else
+        lvarflag(i) = .false.
+      end if
     end if
   end do
 
@@ -373,23 +410,41 @@ program ncplot
 
   do i = 1 , nvars
     if (lvarflag(i) .eqv. .false.) cycle
-    istatus = nf90_inquire_variable(ncid,i,name=varname,dimids=dimids)
+    lvarsplit = .false.
+    istatus = nf90_inquire_variable(ncid,i,name=varname,ndims=idimid, &
+                                    dimids=dimids)
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error inquire variable ', i
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    if (dimids(2) == iydimid .and. dimids(1) == jxdimid) then
-      dimdesc = ' 0 y,x'
-    else if (dimids(2) == kzdimid .and. dimids(1) == iydimid) then
-      write (dimdesc, '(a,i4,a)') ' ', kz, ' z,y,x'
-    else if (dimids(2) == itdimid .and. dimids(1) == iydimid) then
-      dimdesc = ' 0 t,y,x'
-    else if (dimids(2) == itdimid .and. dimids(1) == kzdimid) then
-      write (dimdesc, '(a,i4,a)') ' ', kz, ' t,z,y,x'
+    if (idimid == 2) then
+      if (dimids(2) == iydimid .and. dimids(1) == jxdimid) then
+        dimdesc = ' 0 y,x'
+      else
+        cycle
+      end if
+    else if (idimid == 3) then
+      if (dimids(3) == kzdimid .and. dimids(2) == iydimid) then
+        write (dimdesc, '(a,i4,a)') ' ', kz, ' z,y,x'
+      else if (dimids(3) == itdimid .and. dimids(2) == iydimid) then
+        dimdesc = ' 0 t,y,x'
+      else if (dimids(2) == iydimid) then
+        lvarsplit = .true.
+      else
+        cycle
+      end if
+    else if (idimid == 4) then
+      if (dimids(4) == itdimid .and. dimids(3) == kzdimid) then
+        write (dimdesc, '(a,i4,a)') ' ', kz, ' t,z,y,x'
+      else if (dimids(4) == itdimid .and. dimids(2) == iydimid) then
+        lvarsplit = .true.
+      else
+        cycle
+      end if
     else
       cycle
-    endif
+    end if
     istatus = nf90_get_att(ncid,i,'long_name', vardesc)
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error variable ', i, ' : missing long_name attribute'
@@ -403,9 +458,25 @@ program ncplot
       stop
     end if
 
-    write (11, '(a,a,a,a,a,a,a,a,a)') trim(varname),'=>',trim(varname), &
-                            trim(dimdesc), ' ', trim(vardesc) , ' (',   &
-                            trim(varunit), ')'
+    if (.not. lvarsplit) then
+      write (11, '(a,a,a,a,a,a,a,a,a)') trim(varname),'=>',trim(varname), &
+                              trim(dimdesc), ' ', trim(vardesc) , ' (',   &
+                              trim(varunit), ')'
+    else if (idimid <= 4 .and. lvarsplit) then
+      istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error dimension splitting'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      do j = 1 , isplit
+        write (11, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+                              j, trim(varname), ' 0 ', j-1, ',y,x ',   &
+                              trim(vardesc) , ' (', trim(varunit), ')'
+      end do
+    else
+      cycle
+    end if
   end do
 
   deallocate(lvarflag)
