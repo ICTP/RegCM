@@ -55,7 +55,7 @@
       use mod_pbldim, only : allocate_mod_pbldim    
       use mod_outrad, only : allocate_mod_outrad  
       use mod_blh_tmp, only : allocate_mod_blh_tmp
-      use mod_aero_param, only : allocate_mod_aero_param
+      use mod_aero_sett_ddep, only : allocate_mod_aero_sett_ddep
       use mod_aerosol, only : allocate_mod_aerosol
       use mod_radbuf, only : allocate_mod_radbuf
       use mod_dust, only : allocate_mod_dust
@@ -92,7 +92,7 @@
       real(4) :: grdfac
       integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
                & kbase , ktop , kzz , m , mdate1 , mday , mmon , myear ,&
-               & n , ns , jxx , iyy , itr
+               & n , ns , jxx , iyy
       integer , dimension(12) :: mmd
       real(4) , dimension(kzp1) :: sp1d
       real(4) , dimension(iy,jx) :: sp2d
@@ -168,7 +168,7 @@
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
-      call allocate_mod_aero_param
+      call allocate_mod_aero_sett_ddep
       call allocate_mod_aerosol
       call allocate_mod_bats
       call allocate_mod_bdycon
@@ -504,9 +504,7 @@
         dustbsiz = inpdustbsiz(1:nbin,:)
         chtrsol = inpchtrsol(1:ntr)
       else
-        do itr = 1 , ntr
-          chtrname(itr) = 'XXXXX'
-        end do
+        ntr = 0
       end if
 #ifdef CLM
       read (ipunit , clmparam)

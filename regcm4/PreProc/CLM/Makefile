@@ -16,11 +16,15 @@ CLM2RCMOBJ = clm2rcm.o bilinx4d.o clm3grid1.o clm3grid2.o comp.o \
 SHRMOD = mod_dynparam.o
 
 clm2rcm: $(SHRMOD) $(MODOBJ) $(CLM2RCMOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(CLM2RCMOBJ) $(LIB) \
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(CLM2RCMOBJ) \
                $(MODOBJ) $(SHRMOD) $(NETCDFLIB)
 	@cp $@ $(BINDIR)
 
-mod_dynparam.o: ../../Config/mod_dynparam.F90
+mod_constants.o: ../../Config/mod_constants.F90
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+            $(USCORING) -c -o $@ $<
+
+mod_dynparam.o: ../../Config/mod_dynparam.F90 mod_constants.o
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
 

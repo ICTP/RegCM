@@ -22,7 +22,7 @@
 !
       program average
       implicit none
-      integer iy,jx,kz,nsg,ntr,ibyte,igrads
+      integer iy,jx,kz,nsg,ntr,i_band,ibyte,igrads
       logical day_ICBC,day_ATM,day_RAD,day_SRF,day_SUB,day_CHE
       logical day_ICBC_P,day_ATM_P
       logical mon_ICBC,mon_ATM,mon_RAD,mon_SRF,mon_SUB,mon_CHE
@@ -32,10 +32,10 @@
       character*20 DomainName
       integer len_path
       integer np
-      real*4, save ::  plev(11)
+      real(4), save ::  plev(11)
       logical s2p_ICBC,s2p_ATM
 
-      namelist /shareparam/iy,jx,kz,nsg,ntr,ibyte,igrads &
+      namelist /shareparam/iy,jx,kz,nsg,ntr,i_band,ibyte,igrads &
                           ,Path_Input,DomainName,Path_Output
       namelist /sigma2p_param/ np,plev,s2p_ICBC,s2p_ATM
       namelist /dateparam/ idate0,idate1,idate2
@@ -45,6 +45,7 @@
                ,mon_ICBC,mon_ATM,mon_RAD,mon_SRF,mon_SUB,mon_CHE &
                ,mon_ICBC_P,mon_ATM_P
 
+      i_band = 0
       read(*,shareparam)
 
       len_path = len(trim(Path_Input))
@@ -65,41 +66,41 @@
 
       read(*,averageparam)
 
-      if(day_ICBC) call day2('ICBC',iy,jx,kz,ibyte, Path_Input &
+      if(day_ICBC) call day2('ICBC',iy,jx,kz,i_band,ibyte, Path_Input &
                          ,DomainName,idate0,idate1,idate2,igrads)
       if(day_ICBC_P) call day2p('ICBC_P',iy,jx,kz,np,plev,ibyte &
                      ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
 
-      if(day_ATM)call day('ATM',iy,jx,kz,ntr,ibyte, Path_Output &
+      if(day_ATM)call day('ATM',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                           ,idate0,idate1,idate2,igrads)
-      if(day_RAD)call day('RAD',iy,jx,kz,ntr,ibyte, Path_Output &
+      if(day_RAD)call day('RAD',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                           ,idate0,idate1,idate2,igrads)
-      if(day_SRF)call day('SRF',iy,jx,kz,ntr,ibyte, Path_Output &
+      if(day_SRF)call day('SRF',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                           ,idate0,idate1,idate2,igrads)
       if(nsg.gt.1.and.day_SUB) &
-                call day3('SUB',iy,jx,kz,nsg,ibyte, Path_Input &
+                call day3('SUB',iy,jx,kz,nsg,i_band,ibyte, Path_Input &
                     ,DomainName,Path_Output,idate0,idate1,idate2,igrads)
-      if(day_CHE)call day('CHE',iy,jx,kz,ntr,ibyte, Path_Output &
+      if(day_CHE)call day('CHE',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                          ,idate0,idate1,idate2,igrads)
 
       if(day_ATM_P)call dayp('ATM_P',iy,jx,kz,np,plev,ibyte  &
                         ,Path_Output,idate0,idate1,idate2,igrads)
 
-      if(mon_ICBC) call mon2('ICBC',iy,jx,kz,ibyte, Path_Input &
+      if(mon_ICBC) call mon2('ICBC',iy,jx,kz,i_band,ibyte, Path_Input &
                             ,DomainName,idate1,idate2,igrads)
       if(mon_ICBC_P)call mon2p('ICBC_P',iy,jx,kz,np,plev,ibyte  &
                      ,Path_Input,DomainName,idate1,idate2,igrads)
 
-      if(mon_ATM)call mon('ATM',iy,jx,kz,ntr,ibyte, Path_Output &
+      if(mon_ATM)call mon('ATM',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                          ,idate1,idate2,igrads)
-      if(mon_RAD)call mon('RAD',iy,jx,kz,ntr,ibyte, Path_Output &
+      if(mon_RAD)call mon('RAD',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                          ,idate1,idate2,igrads)
-      if(mon_SRF)call mon('SRF',iy,jx,kz,ntr,ibyte, Path_Output &
+      if(mon_SRF)call mon('SRF',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                          ,idate1,idate2,igrads)
       if(nsg.gt.1.and.mon_SUB) &
-                call mon3('SUB',iy,jx,kz,nsg,ibyte, Path_Input &
+                call mon3('SUB',iy,jx,kz,nsg,i_band,ibyte, Path_Input &
                    ,DomainName,Path_Output,idate1,idate2,igrads)
-      if(mon_CHE)call mon('CHE',iy,jx,kz,ntr,ibyte, Path_Output &
+      if(mon_CHE)call mon('CHE',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                          ,idate1,idate2,igrads)
 
       if(mon_ATM_P)call monp('ATM_P',iy,jx,kz,np,plev,ibyte  &
@@ -108,20 +109,20 @@
       stop
       end
 
-      subroutine day(filename,iy,jx,kz,ntr,ibyte, Path_Output &
+      subroutine day(filename,iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                     ,idate0,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Output
-      integer iy,jx,kz,ntr,ibyte,idate0,idate1,idate2,igrads
+      integer iy,jx,kz,ntr,i_band,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  truelatL,truelatH
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc,dt
+      real(4)  truelatL,truelatH
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc,dt
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -137,18 +138,24 @@
       character*12 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
-      integer i,j,k,n,itr
+      integer i,j,k,n,itr,jx_len
       integer nvar,mvar,n_month,nrecord,nday,mday
       integer idatex
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
-      allocate(b(jx-2,iy-2))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(b(jx_len,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
       if(.not.there) then
@@ -156,7 +163,7 @@
          stop
       endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+             ,recl=jx_len*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon     &
@@ -188,7 +195,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c(jx-2,iy-2,nvar))
+      allocate(c(jx_len,iy-2,nvar))
       mvar = nvar
       if(filename.eq.'SRF') mvar = mvar -6
 
@@ -268,14 +275,14 @@
          if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
             alatmin= 999999.
             alatmax=-999999.
-            do j=1,jx-2
+            do j=1,jx_len
                if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
                if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
             enddo
             alonmin= 999999.
             alonmax=-999999.
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                if(clon.ge.0.0) then
                   if(xlon(j,i).ge.0.0) then
                      alonmin = amin1(alonmin,xlon(j,i))
@@ -311,12 +318,12 @@
             rloninc=dxsp/111./2.
             ny=2+nint(abs(alatmax-alatmin)/rlatinc)
             nx=1+nint(abs((alonmax-alonmin)/rloninc))
-            centerj=(jx-2)/2.
+            centerj=jx_len/2.
             centeri=(iy-2)/2.
          endif
 
          if(iproj.eq.'LAMCON') then        ! Lambert projection
-            write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+            write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                           truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -325,7 +332,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
          elseif(iproj.eq.'POLSTR') then    !
          elseif(iproj.eq.'NORMER') then
-            write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+            write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
             write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -339,7 +346,7 @@
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
          endif
-            write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
+            write(31,230) jx_len,iy-2,plon,plat,dxsp/111. &
                                           ,dxsp/111.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -499,17 +506,17 @@
          endif
          if(iotyp.eq.1) then
             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                   ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                   ,recl=(iy-2)*jx_len*ibyte,access='direct')
          else if(iotyp.eq.2) then
             open(10,file=trim(Path_Output)//filein,form='unformatted')
          endif
          open(20,file=trim(Path_Output)//fileout,form='unformatted' &
-                ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                ,recl=(iy-2)*jx_len*ibyte,access='direct')
          mrec = 0
          do nday=1,nrecord
             do n=1,mvar
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = 0.0
                enddo
                enddo
@@ -517,7 +524,7 @@
             if(iotyp.eq.2) read(10) idatex
             if(filename.eq.'SRF') then
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,nvar-5)= -1.e20
                   c(j,i,nvar-4)=  1.e20
                   c(j,i,nvar-3)= -1.e20
@@ -536,7 +543,7 @@
                      read(10) b
                   endif
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      c(j,i,n) = c(j,i,n)+b(j,i)
                   enddo
                   enddo
@@ -549,7 +556,7 @@
                      read(10) b
                   endif
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      if(c(j,i,nvar-5).lt.b(j,i)) &
                         c(j,i,nvar-5) =  b(j,i)
                   enddo
@@ -561,7 +568,7 @@
                      read(10) b
                   endif
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      if(c(j,i,nvar-4).gt.b(j,i)) &
                         c(j,i,nvar-4) =  b(j,i)
                   enddo
@@ -573,7 +580,7 @@
                      read(10) b
                   endif
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      if(c(j,i,nvar-3).lt.b(j,i)) &
                         c(j,i,nvar-3) =  b(j,i)
                   enddo
@@ -585,7 +592,7 @@
                      read(10) b
                   endif
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      if(c(j,i,nvar-2).gt.b(j,i)) &
                         c(j,i,nvar-2) =  b(j,i)
                   enddo
@@ -597,7 +604,7 @@
                      read(10) b
                   endif
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      if(c(j,i,nvar-1).lt.b(j,i)) &
                         c(j,i,nvar-1) =  b(j,i)
                   enddo
@@ -609,7 +616,7 @@
                      read(10) b
                   endif
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      if(c(j,i,nvar).gt.b(j,i)) &
                         c(j,i,nvar) =  b(j,i)
                   enddo
@@ -618,17 +625,17 @@
             enddo
             do n=1,mvar
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = c(j,i,n)/float(n_slice)
                enddo
                enddo
                mrec=mrec+1
-               write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+               write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
             enddo
             if(filename.eq.'SRF') then
                do n=nvar-5,nvar
                   mrec=mrec+1
-                  write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+                  write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
                enddo
             endif
          enddo
@@ -644,21 +651,21 @@
       return
       end
 
-      subroutine dayp(filename,iy,jx,kz,np,plev,ibyte  &
+      subroutine dayp(filename,iy,jx,kz,np,plev,i_band,ibyte  &
                      ,Path_Output,idate0,idate1,idate2,igrads)
       implicit none
       character*5 filename
       character*128 Path_Output
-      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
-      real*4  plev(np)
+      integer iy,jx,kz,np,i_band,ibyte,idate0,idate1,idate2,igrads
+      real(4)  plev(np)
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  truelatL,truelatH
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  truelatL,truelatH
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -674,17 +681,23 @@
       character*14 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
-      integer i,j,k,n
+      integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday,mday
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
-      allocate(b(jx-2,iy-2))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(b(jx_len,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
       if(.not.there) then
@@ -692,7 +705,7 @@
          stop
       endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+             ,recl=jx_len*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon     &
@@ -713,7 +726,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c(jx-2,iy-2,nvar))
+      allocate(c(jx_len,iy-2,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -780,14 +793,14 @@
          if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
             alatmin= 999999.
             alatmax=-999999.
-            do j=1,jx-2
+            do j=1,jx_len
                if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
                if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
             enddo
             alonmin= 999999.
             alonmax=-999999.
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                if(clon.ge.0.0) then
                   if(xlon(j,i).ge.0.0) then
                      alonmin = amin1(alonmin,xlon(j,i))
@@ -823,12 +836,12 @@
             rloninc=dxsp/111./2.
             ny=2+nint(abs(alatmax-alatmin)/rlatinc)
             nx=1+nint(abs((alonmax-alonmin)/rloninc))
-            centerj=(jx-2)/2.
+            centerj=jx_len/2.
             centeri=(iy-2)/2.
          endif
 
          if(iproj.eq.'LAMCON') then        ! Lambert projection
-            write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+            write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                           truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -837,7 +850,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
          elseif(iproj.eq.'POLSTR') then    !
          elseif(iproj.eq.'NORMER') then
-            write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+            write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
             write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -851,7 +864,7 @@
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
          endif
-            write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
+            write(31,230) jx_len,iy-2,plon,plat,dxsp/111. &
                                           ,dxsp/111.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -911,14 +924,14 @@
             stop
          endif
          open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                ,recl=(iy-2)*jx_len*ibyte,access='direct')
          open(20,file=trim(Path_Output)//fileout,form='unformatted' &
-                ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                ,recl=(iy-2)*jx_len*ibyte,access='direct')
          mrec = 0
          do nday=1,nrecord
             do n=1,nvar
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = 0.0
                enddo
                enddo
@@ -928,7 +941,7 @@
                   nrec=nrec+1
                   read(10,rec=nrec) b
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      c(j,i,n) = c(j,i,n)+b(j,i)
                   enddo
                   enddo
@@ -936,12 +949,12 @@
             enddo
             do n=1,nvar
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = c(j,i,n)/float(n_slice)
                enddo
                enddo
                mrec=mrec+1
-               write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+               write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
             enddo
          enddo
          close(10)
@@ -956,19 +969,19 @@
       return
       end
 
-      subroutine day2(filename,iy,jx,kz,ibyte, Path_Input,DomainName &
-                     ,idate0,idate1,idate2,igrads)
+      subroutine day2(filename,iy,jx,kz,i_band,ibyte, Path_Input &
+                     ,DomainName,idate0,idate1,idate2,igrads)
       implicit none
       character*4 filename
       character*128 Path_Input
       character*20 DomainName
-      integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
+      integer iy,jx,kz,i_band,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
-      real*4  truelatL,truelatH
-      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      real(4)  truelatL,truelatH
+      real(4)  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -984,19 +997,25 @@
       character*12 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
-      integer i,j,k,n
+      integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday,mday
       integer idatex
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
       allocate(b(jx,iy))
 
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
       inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
              ,exist=there)
@@ -1018,14 +1037,22 @@
       endif
       read(10,rec=5) b
       do i=1,iy-2
-      do j=1,jx-2
-         xlat(j,i) = b(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlat(j,i) = b(j,i+1)
+         else
+            xlat(j,i) = b(j+1,i+1)
+         endif
       enddo
       enddo
       read(10,rec=6) b
       do i=1,iy-2
-      do j=1,jx-2
-         xlon(j,i) = b(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlon(j,i) = b(j,i+1)
+         else
+            xlon(j,i) = b(j+1,i+1)
+         endif
       enddo
       enddo
       close(10)
@@ -1036,7 +1063,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c(jx-2,iy-2,nvar))
+      allocate(c(jx_len,iy-2,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -1109,14 +1136,14 @@
          if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
             alatmin= 999999.
             alatmax=-999999.
-            do j=1,jx-2
+            do j=1,jx_len
                if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
                if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
             enddo
             alonmin= 999999.
             alonmax=-999999.
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                if(clon.ge.0.0) then
                   if(xlon(j,i).ge.0.0) then
                      alonmin = amin1(alonmin,xlon(j,i))
@@ -1152,12 +1179,12 @@
             rloninc=dsinm*0.001/111./2.
             ny=2+nint(abs(alatmax-alatmin)/rlatinc)
             nx=1+nint(abs((alonmax-alonmin)/rloninc))
-            centerj=(jx-2)/2.
+            centerj=jx_len/2.
             centeri=(iy-2)/2.
          endif
 
          if(iproj.eq.'LAMCON') then        ! Lambert projection
-            write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+            write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                           truelatL,truelatH,clon,dsinm,dsinm
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -1166,7 +1193,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
          elseif(iproj.eq.'POLSTR') then    !
          elseif(iproj.eq.'NORMER') then
-            write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+            write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
             write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -1180,7 +1207,7 @@
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
          endif
-            write(31,230) jx-2,iy-2,plon,plat,dsinm/111000. &
+            write(31,230) jx_len,iy-2,plon,plat,dsinm/111000. &
                                           ,dsinm/111000.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -1240,12 +1267,12 @@
          open(10,file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
                 ,form='unformatted',recl=iy*jx*ibyte,access='direct')
          open(20,file=trim(Path_Input)//trim(DomainName)//'_'//fileout &
-          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+          ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
          mrec = 0
          do nday=1,nrecord
             do n=1,nvar
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = 0.0
                enddo
                enddo
@@ -1257,20 +1284,24 @@
                   nrec=nrec+1
                   read(10,rec=nrec) b
                   do i=1,iy-2
-                  do j=1,jx-2
-                     c(j,i,n) = c(j,i,n)+b(j+1,i+1)
+                  do j=1,jx_len
+                     if(i_band.eq.1) then
+                        c(j,i,n) = c(j,i,n)+b(j,i+1)
+                     else
+                        c(j,i,n) = c(j,i,n)+b(j+1,i+1)
+                     endif
                   enddo
                   enddo
                enddo
             enddo
             do n=1,nvar
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = c(j,i,n)/float(n_slice)
                enddo
                enddo
                mrec=mrec+1
-               write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+               write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
             enddo
          enddo
          close(10)
@@ -1285,20 +1316,20 @@
       return
       end
 
-      subroutine day2p(filename,iy,jx,kz,np,plev,ibyte &
+      subroutine day2p(filename,iy,jx,kz,np,plev,i_band,ibyte &
                     ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
       implicit none
       character*6 filename
       character*128 Path_Input
       character*20 DomainName
-      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
-      real*4  plev(np)
+      integer iy,jx,kz,np,i_band,ibyte,idate0,idate1,idate2,igrads
+      real(4)  plev(np)
       integer iiy,jjx,kkz
-      real*4  truelatL,truelatH
-      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      real(4)  truelatL,truelatH
+      real(4)  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -1314,18 +1345,24 @@
       character*14 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
-      integer i,j,k,n
+      integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday,mday
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
       allocate(b(jx,iy))
 
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
       inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
              ,exist=there)
@@ -1347,19 +1384,27 @@
       endif
       read(10,rec=5) b
       do i=1,iy-2
-      do j=1,jx-2
-         xlat(j,i) = b(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlat(j,i) = b(j,i+1)
+         else
+            xlat(j,i) = b(j+1,i+1)
+         endif
       enddo
       enddo
       read(10,rec=6) b
       do i=1,iy-2
-      do j=1,jx-2
-         xlon(j,i) = b(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlon(j,i) = b(j,i+1)
+         else
+            xlon(j,i) = b(j+1,i+1)
+         endif
       enddo
       enddo
       close(10)
       deallocate(b)
-      allocate(b(jx-2,iy-2))
+      allocate(b(jx_len,iy-2))
 
       if(filename.eq.'ICBC_P') then
          nvar = np*6+2
@@ -1367,7 +1412,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c(jx-2,iy-2,nvar))
+      allocate(c(jx_len,iy-2,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -1440,14 +1485,14 @@
          if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
             alatmin= 999999.
             alatmax=-999999.
-            do j=1,jx-2
+            do j=1,jx_len
                if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
                if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
             enddo
             alonmin= 999999.
             alonmax=-999999.
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                if(clon.ge.0.0) then
                   if(xlon(j,i).ge.0.0) then
                      alonmin = amin1(alonmin,xlon(j,i))
@@ -1483,12 +1528,12 @@
             rloninc=dsinm*0.001/111./2.
             ny=2+nint(abs(alatmax-alatmin)/rlatinc)
             nx=1+nint(abs((alonmax-alonmin)/rloninc))
-            centerj=(jx-2)/2.
+            centerj=jx_len/2.
             centeri=(iy-2)/2.
          endif
 
          if(iproj.eq.'LAMCON') then        ! Lambert projection
-            write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+            write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                           truelatL,truelatH,clon,dsinm,dsinm
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -1497,7 +1542,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
          elseif(iproj.eq.'POLSTR') then    !
          elseif(iproj.eq.'NORMER') then
-            write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+            write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
             write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -1511,7 +1556,7 @@
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
          endif
-            write(31,230) jx-2,iy-2,plon,plat,dsinm/111000. &
+            write(31,230) jx_len,iy-2,plon,plat,dsinm/111000. &
                                           ,dsinm/111000.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -1570,14 +1615,14 @@
             stop
          endif
          open(10,file=trim(Path_Input)//trim(DomainName)//'_'//filein  &
-          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+          ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
          open(20,file=trim(Path_Input)//trim(DomainName)//'_'//fileout &
-          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+          ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
          mrec = 0
          do nday=1,nrecord
             do n=1,nvar
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = 0.0
                enddo
                enddo
@@ -1587,7 +1632,7 @@
                   nrec=nrec+1
                   read(10,rec=nrec) b
                   do i=1,iy-2
-                  do j=1,jx-2
+                  do j=1,jx_len
                      c(j,i,n) = c(j,i,n)+b(j,i)
                   enddo
                   enddo
@@ -1595,12 +1640,12 @@
             enddo
             do n=1,nvar
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = c(j,i,n)/float(n_slice)
                enddo
                enddo
                mrec=mrec+1
-               write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+               write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
             enddo
          enddo
          close(10)
@@ -1615,21 +1660,21 @@
       return
       end
 
-      subroutine day3(filename,iy,jx,kz,nsg,ibyte, Path_Input &
+      subroutine day3(filename,iy,jx,kz,nsg,i_band,ibyte, Path_Input &
                     ,DomainName,Path_Output,idate0,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Input,Path_Output
       character*20 DomainName
-      integer iy,jx,kz,nsg,ibyte,idate0,idate1,idate2,igrads
+      integer iy,jx,kz,nsg,i_band,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  truelatL,truelatH
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc,dt
+      real(4)  truelatL,truelatH
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc,dt
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -1646,22 +1691,28 @@
       character*12 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
-      integer i,j,k,n
+      integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday,mday
       integer idatex
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
-      real*4, allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
-      allocate(b((jx-2)*nsg,(iy-2)*nsg))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(b(jx_len*nsg,(iy-2)*nsg))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
-      allocate(xlat_s((jx-2)*nsg,(iy-2)*nsg))
-      allocate(xlon_s((jx-2)*nsg,(iy-2)*nsg))
+      allocate(xlat_s(jx_len*nsg,(iy-2)*nsg))
+      allocate(xlon_s(jx_len*nsg,(iy-2)*nsg))
       allocate(a(jx*nsg,iy*nsg))
 
       if(nsg.lt.10) then
@@ -1704,7 +1755,7 @@
          stop
       endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+             ,recl=jx_len*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon     &
@@ -1726,7 +1777,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c((jx-2)*nsg,(iy-2)*nsg,nvar))
+      allocate(c(jx_len*nsg,(iy-2)*nsg,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -1795,14 +1846,14 @@
          if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
             alatmin= 999999.
             alatmax=-999999.
-            do j=1,jx-2
+            do j=1,jx_len
                if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
                if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
             enddo
             alonmin= 999999.
             alonmax=-999999.
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                if(clon.ge.0.0) then
                   if(xlon(j,i).ge.0.0) then
                      alonmin = amin1(alonmin,xlon(j,i))
@@ -1838,12 +1889,12 @@
             rloninc=dxsp/111./2.
             ny=2+nint(abs(alatmax-alatmin)/rlatinc)
             nx=1+nint(abs((alonmax-alonmin)/rloninc))
-            centerj=(jx-2)/2.
+            centerj=jx_len/2.
             centeri=(iy-2)/2.
          endif
 
          if(iproj.eq.'LAMCON') then        ! Lambert projection
-            write(31,100) (jx-2)*nsg,(iy-2)*nsg,clat,clon, &
+            write(31,100) jx_len*nsg,(iy-2)*nsg,clat,clon, &
                           centerj*nsg,centeri*nsg, &
                  truelatL,truelatH,clon,dxsp/nsg*1000.,dxsp/nsg*1000.
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
@@ -1853,7 +1904,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
          elseif(iproj.eq.'POLSTR') then    !
          elseif(iproj.eq.'NORMER') then
-            write(31,200) (jx-2)*nsg,xlon_s(1,1),xlon_s(2,1)-xlon_s(1,1)
+            write(31,200) jx_len*nsg,xlon_s(1,1),xlon_s(2,1)-xlon_s(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
             write(31,210) (iy-2)*nsg
  210  format('ydef ',I3,' levels')
@@ -1867,7 +1918,7 @@
                    ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
          endif
-            write(31,230) (jx-2)*nsg,(iy-2)*nsg,plon,plat, &
+            write(31,230) jx_len*nsg,(iy-2)*nsg,plon,plat, &
                           dxsp/111./nsg ,dxsp/111.*.95238/nsg
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
             write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -1928,17 +1979,17 @@
          endif
          if(iotyp.eq.1) then
             open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                   ,recl=(iy-2)*nsg*(jx-2)*nsg*ibyte,access='direct')
+                   ,recl=(iy-2)*nsg*jx_len*nsg*ibyte,access='direct')
          else if(iotyp.eq.2) then
             open(10,file=trim(Path_Output)//filein,form='unformatted')
          endif
          open(20,file=trim(Path_Output)//fileout,form='unformatted' &
-                ,recl=(iy-2)*nsg*(jx-2)*nsg*ibyte,access='direct')
+                ,recl=(iy-2)*nsg*jx_len*nsg*ibyte,access='direct')
          mrec = 0
          do nday=1,nrecord
             do n=1,nvar
                do i=1,(iy-2)*nsg
-               do j=1,(jx-2)*nsg
+               do j=1,jx_len*nsg
                   c(j,i,n) = 0.0
                enddo
                enddo
@@ -1953,7 +2004,7 @@
                      read(10) b
                   endif
                   do i=1,(iy-2)*nsg
-                  do j=1,(jx-2)*nsg
+                  do j=1,jx_len*nsg
                      c(j,i,n) = c(j,i,n)+b(j,i)
                   enddo
                   enddo
@@ -1961,12 +2012,12 @@
             enddo
             do n=1,nvar
                do i=1,(iy-2)*nsg
-               do j=1,(jx-2)*nsg
+               do j=1,jx_len*nsg
                   c(j,i,n) = c(j,i,n)/float(n_slice)
                enddo
                enddo
                mrec=mrec+1
-               write(20,rec=mrec) ((c(j,i,n),j=1,(jx-2)*nsg)  &
+               write(20,rec=mrec) ((c(j,i,n),j=1,jx_len*nsg)  &
                                             ,i=1,(iy-2)*nsg)
             enddo
          enddo
@@ -1986,20 +2037,20 @@
       return
       end
 
-      subroutine mon(filename,iy,jx,kz,ntr,ibyte, Path_Output &
+      subroutine mon(filename,iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                     ,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Output
-      integer iy,jx,kz,ntr,ibyte,idate1,idate2,igrads
+      integer iy,jx,kz,ntr,i_band,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  truelatL,truelatH
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  truelatL,truelatH
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -2014,19 +2065,25 @@
       character*12 filein
       character*7 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
-      integer i,j,k,n,itr
+      integer i,j,k,n,itr,jx_len
       integer nvar,n_month,nrecord,nday
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
 
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
-      allocate(b(jx-2,iy-2))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(b(jx_len,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
       if(.not.there) then
@@ -2034,7 +2091,7 @@
          stop
       endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+             ,recl=jx_len*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon     &
@@ -2062,7 +2119,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c(jx-2,iy-2,nvar))
+      allocate(c(jx_len,iy-2,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -2094,7 +2151,7 @@
       endif
 
       open(20,file=trim(Path_Output)//fileout,form='unformatted' &
-             ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+             ,recl=(iy-2)*jx_len*ibyte,access='direct')
       mrec = 0
 
       IF(igrads.eq.1) THEN
@@ -2115,14 +2172,14 @@
       if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
          alatmin= 999999.
          alatmax=-999999.
-         do j=1,jx-2
+         do j=1,jx_len
             if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
             if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
          enddo
          alonmin= 999999.
          alonmax=-999999.
          do i=1,iy-2
-         do j=1,jx-2
+         do j=1,jx_len
             if(clon.ge.0.0) then
                if(xlon(j,i).ge.0.0) then
                   alonmin = amin1(alonmin,xlon(j,i))
@@ -2158,12 +2215,12 @@
          rloninc=dxsp/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
          nx=1+nint(abs((alonmax-alonmin)/rloninc))
-         centerj=(jx-2)/2.
+         centerj=jx_len/2.
          centeri=(iy-2)/2.
       endif
 
       if(iproj.eq.'LAMCON') then        ! Lambert projection
-         write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+         write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                        truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -2172,7 +2229,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
       elseif(iproj.eq.'POLSTR') then    !
       elseif(iproj.eq.'NORMER') then
-         write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+         write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
          write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -2184,7 +2241,7 @@
          write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
          write(*,*) ' FERRET, however, does support this projection.'
-         write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
+         write(31,230) jx_len,iy-2,plon,plat,dxsp/111. &
                                           ,dxsp/111.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -2391,12 +2448,12 @@
             stop
          endif
          open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                ,recl=(iy-2)*jx_len*ibyte,access='direct')
          nrec = 0
 
          do n=1,nvar
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                c(j,i,n) = 0.0
             enddo
             enddo
@@ -2407,7 +2464,7 @@
                nrec=nrec+1
                read(10,rec=nrec) b
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = c(j,i,n)+b(j,i)
                enddo
                enddo
@@ -2415,12 +2472,12 @@
          enddo
          do n=1,nvar
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                c(j,i,n) = c(j,i,n)/float(nrecord)
             enddo
             enddo
             mrec=mrec+1
-            write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+            write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
          enddo
          close(10)
       enddo
@@ -2434,21 +2491,21 @@
       return
       end
 
-      subroutine monp(filename,iy,jx,kz,np,plev,ibyte, Path_Output &
+      subroutine monp(filename,iy,jx,kz,np,plev,i_band,ibyte, Path_Output &
                     ,idate1,idate2,igrads)
       implicit none
       character*5 filename
       character*128 Path_Output
-      integer iy,jx,kz,np,ibyte,idate1,idate2,igrads
-      real*4  plev(np)
+      integer iy,jx,kz,np,i_band,ibyte,idate1,idate2,igrads
+      real(4)  plev(np)
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  truelatL,truelatH
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  truelatL,truelatH
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -2463,19 +2520,25 @@
       character*14 filein
       character*9 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
-      integer i,j,k,n
+      integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
 
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
-      allocate(b(jx-2,iy-2))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(b(jx_len,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
       if(.not.there) then
@@ -2483,7 +2546,7 @@
          stop
       endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+             ,recl=jx_len*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon     &
@@ -2504,7 +2567,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c(jx-2,iy-2,nvar))
+      allocate(c(jx_len,iy-2,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -2528,7 +2591,7 @@
       fileout= 'ATM_P.mon'
 
       open(20,file=trim(Path_Output)//fileout,form='unformatted' &
-             ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+             ,recl=(iy-2)*jx_len*ibyte,access='direct')
       mrec = 0
 
       IF(igrads.eq.1) THEN
@@ -2549,14 +2612,14 @@
       if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
          alatmin= 999999.
          alatmax=-999999.
-         do j=1,jx-2
+         do j=1,jx_len
             if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
             if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
          enddo
          alonmin= 999999.
          alonmax=-999999.
          do i=1,iy-2
-         do j=1,jx-2
+         do j=1,jx_len
             if(clon.ge.0.0) then
                if(xlon(j,i).ge.0.0) then
                   alonmin = amin1(alonmin,xlon(j,i))
@@ -2592,12 +2655,12 @@
          rloninc=dxsp/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
          nx=1+nint(abs((alonmax-alonmin)/rloninc))
-         centerj=(jx-2)/2.
+         centerj=jx_len/2.
          centeri=(iy-2)/2.
       endif
 
       if(iproj.eq.'LAMCON') then        ! Lambert projection
-         write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+         write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                        truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -2606,7 +2669,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
       elseif(iproj.eq.'POLSTR') then    !
       elseif(iproj.eq.'NORMER') then
-         write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+         write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
          write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -2618,7 +2681,7 @@
          write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
          write(*,*) ' FERRET, however, does support this projection.'
-         write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
+         write(31,230) jx_len,iy-2,plon,plat,dxsp/111. &
                                           ,dxsp/111.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -2717,12 +2780,12 @@
             stop
          endif
          open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                ,recl=(iy-2)*jx_len*ibyte,access='direct')
          nrec = 0
 
          do n=1,nvar
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                c(j,i,n) = 0.0
             enddo
             enddo
@@ -2733,7 +2796,7 @@
                nrec=nrec+1
                read(10,rec=nrec) b
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = c(j,i,n)+b(j,i)
                enddo
                enddo
@@ -2741,12 +2804,12 @@
          enddo
          do n=1,nvar
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                c(j,i,n) = c(j,i,n)/float(nrecord)
             enddo
             enddo
             mrec=mrec+1
-            write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+            write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
          enddo
          close(10)
       enddo
@@ -2760,19 +2823,19 @@
       return
       end
 
-      subroutine mon2(filename,iy,jx,kz,ibyte, Path_Input,DomainName &
+      subroutine mon2(filename,iy,jx,kz,i_band,ibyte, Path_Input,DomainName &
                      ,idate1,idate2,igrads)
       implicit none
       character*4 filename
       character*128 Path_Input
       character*20 DomainName
-      integer iy,jx,kz,ibyte,idate1,idate2,igrads
+      integer iy,jx,kz,i_band,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
-      real*4  truelatL,truelatH
-      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      real(4)  truelatL,truelatH
+      real(4)  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -2788,17 +2851,23 @@
       character*8 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
-      integer i,j,k,n
+      integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
       allocate(b(jx,iy))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
 
       inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
@@ -2821,20 +2890,28 @@
       endif
       read(10,rec=5) b
       do i=1,iy-2
-      do j=1,jx-2
-         xlat(j,i) = b(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlat(j,i) = b(j,i+1)
+         else
+            xlat(j,i) = b(j+1,i+1)
+         endif
       enddo
       enddo
       read(10,rec=6) b
       do i=1,iy-2
-      do j=1,jx-2
-         xlon(j,i) = b(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlon(j,i) = b(j,i+1)
+         else
+            xlon(j,i) = b(j+1,i+1)
+         endif
       enddo
       enddo
       close(10)
 
       deallocate(b)
-      allocate(b(jx-2,iy-2))
+      allocate(b(jx_len,iy-2))
 
       if(filename.eq.'ICBC') then
          nvar = kz*4+2
@@ -2842,7 +2919,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c(jx-2,iy-2,nvar))
+      allocate(c(jx_len,iy-2,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -2868,7 +2945,7 @@
       endif
 
       open(20,file=trim(Path_Input)//trim(DomainName)//'_'//fileout  &
-          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+          ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
       mrec = 0
 
       IF(igrads.eq.1) THEN
@@ -2895,14 +2972,14 @@
       if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
          alatmin= 999999.
          alatmax=-999999.
-         do j=1,jx-2
+         do j=1,jx_len
             if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
             if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
          enddo
          alonmin= 999999.
          alonmax=-999999.
          do i=1,iy-2
-         do j=1,jx-2
+         do j=1,jx_len
             if(clon.ge.0.0) then
                if(xlon(j,i).ge.0.0) then
                   alonmin = amin1(alonmin,xlon(j,i))
@@ -2938,12 +3015,12 @@
          rloninc=dsinm*0.001/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
          nx=1+nint(abs((alonmax-alonmin)/rloninc))
-         centerj=(jx-2)/2.
+         centerj=jx_len/2.
          centeri=(iy-2)/2.
       endif
 
       if(iproj.eq.'LAMCON') then        ! Lambert projection
-         write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+         write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                        truelatL,truelatH,clon,dsinm,dsinm
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -2952,7 +3029,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
       elseif(iproj.eq.'POLSTR') then    !
       elseif(iproj.eq.'NORMER') then
-         write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+         write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
          write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -2964,7 +3041,7 @@
          write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
          write(*,*) ' FERRET, however, does support this projection.'
-         write(31,230) jx-2,iy-2,plon,plat,dsinm/111000. &
+         write(31,230) jx_len,iy-2,plon,plat,dsinm/111000. &
                                           ,dsinm/111000.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -3059,7 +3136,7 @@
             stop
          endif
          open(10,file=trim(Path_Input)//trim(DomainName)//'_'//filein &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
 
          if(nfile.eq.1.or.month.eq.1) then
       write(*,*)'Calculate the monthly mean of   ',filename,nyear,month
@@ -3069,7 +3146,7 @@
 
          do n=1,nvar
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                c(j,i,n) = 0.0
             enddo
             enddo
@@ -3080,7 +3157,7 @@
                nrec=nrec+1
                read(10,rec=nrec) b
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = c(j,i,n)+b(j,i)
                enddo
                enddo
@@ -3088,12 +3165,12 @@
          enddo
          do n=1,nvar
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                c(j,i,n) = c(j,i,n)/float(nrecord)
             enddo
             enddo
             mrec=mrec+1
-            write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+            write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
          enddo
          close(10)
       enddo
@@ -3102,20 +3179,20 @@
       return
       end
 
-      subroutine mon2p(filename,iy,jx,kz,np,plev,ibyte  &
+      subroutine mon2p(filename,iy,jx,kz,np,plev,i_band,ibyte  &
                      ,Path_Input,DomainName,idate1,idate2,igrads)
       implicit none
       character*6 filename
       character*128 Path_Input
       character*20 DomainName
-      integer iy,jx,kz,np,ibyte,idate1,idate2,igrads
-      real*4  plev(np)
+      integer iy,jx,kz,np,i_band,ibyte,idate1,idate2,igrads
+      real(4)  plev(np)
       integer iiy,jjx,kkz
-      real*4  truelatL,truelatH
-      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      real(4)  truelatL,truelatH
+      real(4)  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -3131,17 +3208,23 @@
       character*10 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
-      integer i,j,k,n
+      integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
       allocate(b(jx,iy))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
       inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO'  &
              ,exist=there)
@@ -3163,20 +3246,28 @@
       endif
       read(10,rec=5) b
       do i=1,iy-2
-      do j=1,jx-2
-         xlat(j,i) = b(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlat(j,i) = b(j,i+1)
+         else
+            xlat(j,i) = b(j+1,i+1)
+         endif
       enddo
       enddo
       read(10,rec=6) b
       do i=1,iy-2
-      do j=1,jx-2
-         xlon(j,i) = b(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlon(j,i) = b(j,i+1)
+         else
+            xlon(j,i) = b(j+1,i+1)
+         endif
       enddo
       enddo
       close(10)
 
       deallocate(b)
-      allocate(b(jx-2,iy-2))
+      allocate(b(jx_len,iy-2))
 
       if(filename.eq.'ICBC_P') then
          nvar = np*6+2
@@ -3184,7 +3275,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c(jx-2,iy-2,nvar))
+      allocate(c(jx_len,iy-2,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -3208,7 +3299,7 @@
       fileout= 'ICBC_P.mon'
 
       open(20,file=trim(Path_Input)//trim(DomainName)//'_'//fileout  &
-          ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+          ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
       mrec = 0
 
       IF(igrads.eq.1) THEN
@@ -3235,14 +3326,14 @@
       if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
          alatmin= 999999.
          alatmax=-999999.
-         do j=1,jx-2
+         do j=1,jx_len
             if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
             if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
          enddo
          alonmin= 999999.
          alonmax=-999999.
          do i=1,iy-2
-         do j=1,jx-2
+         do j=1,jx_len
             if(clon.ge.0.0) then
                if(xlon(j,i).ge.0.0) then
                   alonmin = amin1(alonmin,xlon(j,i))
@@ -3278,12 +3369,12 @@
          rloninc=dsinm*0.001/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
          nx=1+nint(abs((alonmax-alonmin)/rloninc))
-         centerj=(jx-2)/2.
+         centerj=jx_len/2.
          centeri=(iy-2)/2.
       endif
 
       if(iproj.eq.'LAMCON') then        ! Lambert projection
-         write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+         write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                        truelatL,truelatH,clon,dsinm,dsinm
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -3292,7 +3383,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
       elseif(iproj.eq.'POLSTR') then    !
       elseif(iproj.eq.'NORMER') then
-         write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+         write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
          write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -3304,7 +3395,7 @@
          write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
          write(*,*) ' FERRET, however, does support this projection.'
-         write(31,230) jx-2,iy-2,plon,plat,dsinm/111000. &
+         write(31,230) jx_len,iy-2,plon,plat,dsinm/111000. &
                                           ,dsinm/111000.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -3398,7 +3489,7 @@
             stop
          endif
          open(10,file=trim(Path_Input)//trim(DomainName)//'_'//filein &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
 
          if(nfile.eq.1.or.month.eq.1) then
          write(*,*)'Calculate the monthly mean of ',filename,nyear,month
@@ -3408,7 +3499,7 @@
 
          do n=1,nvar
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                c(j,i,n) = 0.0
             enddo
             enddo
@@ -3419,7 +3510,7 @@
                nrec=nrec+1
                read(10,rec=nrec) b
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   c(j,i,n) = c(j,i,n)+b(j,i)
                enddo
                enddo
@@ -3427,12 +3518,12 @@
          enddo
          do n=1,nvar
             do i=1,iy-2
-            do j=1,jx-2
+            do j=1,jx_len
                c(j,i,n) = c(j,i,n)/float(nrecord)
             enddo
             enddo
             mrec=mrec+1
-            write(20,rec=mrec) ((c(j,i,n),j=1,jx-2),i=1,iy-2)
+            write(20,rec=mrec) ((c(j,i,n),j=1,jx_len),i=1,iy-2)
          enddo
          close(10)
       enddo
@@ -3441,21 +3532,21 @@
       return
       end
 
-      subroutine mon3(filename,iy,jx,kz,nsg,ibyte, Path_Input &
+      subroutine mon3(filename,iy,jx,kz,nsg,i_band,ibyte, Path_Input &
                    ,DomainName,Path_Output,idate1,idate2,igrads)
       implicit none
       character*3 filename
       character*128 Path_Input,Path_Output
       character*20 DomainName
-      integer iy,jx,kz,nsg,ibyte,idate1,idate2,igrads
+      integer iy,jx,kz,nsg,i_band,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  truelatL,truelatH
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  truelatL,truelatH
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -3471,23 +3562,29 @@
       character*12 filein
       character*7 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
-      integer i,j,k,n
+      integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
 
-      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
-      real*4, allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
+      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
-      allocate(b((jx-2)*nsg,(iy-2)*nsg))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(b(jx_len*nsg,(iy-2)*nsg))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
-      allocate(xlat_s((jx-2)*nsg,(iy-2)*nsg))
-      allocate(xlon_s((jx-2)*nsg,(iy-2)*nsg))
+      allocate(xlat_s(jx_len*nsg,(iy-2)*nsg))
+      allocate(xlon_s(jx_len*nsg,(iy-2)*nsg))
       allocate(a(jx*nsg,iy*nsg))
 
       if(nsg.lt.10) then
@@ -3530,7 +3627,7 @@
          stop
       endif
       open(10,file=trim(Path_Output)//'OUT_HEAD',form='unformatted' &
-             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+             ,recl=jx_len*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=1,kz+1)   &
                     ,dxsp,ptsp,clat,clon,plat,plon     &
@@ -3551,7 +3648,7 @@
          write(*,*) 'filename is not correct'
          stop
       endif
-      allocate(c((jx-2)*nsg,(iy-2)*nsg,nvar))
+      allocate(c(jx_len*nsg,(iy-2)*nsg,nvar))
 
       if(idate1.ge.1000010100) then        ! original file
          n_month = (idate2/1000000-idate1/1000000)*12 &
@@ -3577,7 +3674,7 @@
       endif
 
       open(20,file=trim(Path_Output)//fileout,form='unformatted' &
-             ,recl=(iy-2)*nsg*(jx-2)*nsg*ibyte,access='direct')
+             ,recl=(iy-2)*nsg*jx_len*nsg*ibyte,access='direct')
       mrec = 0
 
       IF(igrads.eq.1) THEN
@@ -3598,14 +3695,14 @@
       if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
          alatmin= 999999.
          alatmax=-999999.
-         do j=1,jx-2
+         do j=1,jx_len
             if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
             if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
          enddo
          alonmin= 999999.
          alonmax=-999999.
          do i=1,iy-2
-         do j=1,jx-2
+         do j=1,jx_len
             if(clon.ge.0.0) then
                if(xlon(j,i).ge.0.0) then
                   alonmin = amin1(alonmin,xlon(j,i))
@@ -3641,12 +3738,12 @@
          rloninc=dxsp/111./2.
          ny=2+nint(abs(alatmax-alatmin)/rlatinc)
          nx=1+nint(abs((alonmax-alonmin)/rloninc))
-         centerj=(jx-2)/2.
+         centerj=jx_len/2.
          centeri=(iy-2)/2.
       endif
 
       if(iproj.eq.'LAMCON') then        ! Lambert projection
-         write(31,100) (jx-2)*nsg,(iy-2)*nsg,clat,clon,  &
+         write(31,100) jx_len*nsg,(iy-2)*nsg,clat,clon,  &
                        centerj*nsg,centeri*nsg, &
                truelatL,truelatH,clon,dxsp*1000./nsg,dxsp*1000./nsg
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
@@ -3656,7 +3753,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
       elseif(iproj.eq.'POLSTR') then    !
       elseif(iproj.eq.'NORMER') then
-         write(31,200)  (jx-2)*nsg,xlon_s(1,1),xlon_s(2,1)-xlon_s(1,1)
+         write(31,200)  jx_len*nsg,xlon_s(1,1),xlon_s(2,1)-xlon_s(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
          write(31,210) (iy-2)
  210  format('ydef ',I3,' levels')
@@ -3668,7 +3765,7 @@
          write(*,*) '  Although not exact, the eta.u projection' &
                    ,' in GrADS is somewhat similar.'
          write(*,*) ' FERRET, however, does support this projection.'
-         write(31,230) (jx-2)*nsg,(iy-2)*nsg,plon,plat, &
+         write(31,230) jx_len*nsg,(iy-2)*nsg,plon,plat, &
                        dxsp/111./nsg ,dxsp/111.*.95238/nsg
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
          write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -3772,12 +3869,12 @@
             stop
          endif
          open(10,file=trim(Path_Output)//filein,form='unformatted' &
-                ,recl=(iy-2)*nsg*(jx-2)*nsg*ibyte,access='direct')
+                ,recl=(iy-2)*nsg*jx_len*nsg*ibyte,access='direct')
          nrec = 0
 
          do n=1,nvar
             do i=1,(iy-2)*nsg
-            do j=1,(jx-2)*nsg
+            do j=1,jx_len*nsg
                c(j,i,n) = 0.0
             enddo
             enddo
@@ -3788,7 +3885,7 @@
                nrec=nrec+1
                read(10,rec=nrec) b
                do i=1,(iy-2)*nsg
-               do j=1,(jx-2)*nsg
+               do j=1,jx_len*nsg
                   c(j,i,n) = c(j,i,n)+b(j,i)
                enddo
                enddo
@@ -3796,12 +3893,12 @@
          enddo
          do n=1,nvar
             do i=1,(iy-2)*nsg
-            do j=1,(jx-2)*nsg
+            do j=1,jx_len*nsg
                c(j,i,n) = c(j,i,n)/float(nrecord)
             enddo
             enddo
             mrec=mrec+1
-            write(20,rec=mrec)((c(j,i,n),j=1,(jx-2)*nsg),i=1,(iy-2)*nsg)
+            write(20,rec=mrec)((c(j,i,n),j=1,jx_len*nsg),i=1,(iy-2)*nsg)
          enddo
          close(10)
       enddo

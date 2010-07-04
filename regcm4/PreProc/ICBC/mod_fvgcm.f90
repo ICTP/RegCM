@@ -352,7 +352,11 @@
       call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev2)
  
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-      call p1p2(b3pd,ps4,jx,iy)
+      if(i_band.eq.1) then
+         call p1p2_band(b3pd,ps4,jx,iy)
+      else
+         call p1p2(b3pd,ps4,jx,iy)
+      endif
 !
 !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2

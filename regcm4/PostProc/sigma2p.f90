@@ -24,20 +24,21 @@
 !
       program sigma2p
       implicit none
-      integer iy,jx,kz,nsg,ntr,ibyte,igrads
+      integer iy,jx,kz,nsg,ntr,i_band,ibyte,igrads
       integer idate0,idate1,idate2
       integer np
-      real*4, save ::  plev(11)
+      real(4), save ::  plev(11)
       logical s2p_ICBC,s2p_ATM
       character*128 Path_Input,Path_Output
       character*20 DomainName
       integer len_path
 
-      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,ibyte,igrads &
+      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,i_band,ibyte,igrads &
                            ,Path_Input,DomainName,Path_Output
       namelist /dateparam/ idate0,idate1,idate2
       namelist /sigma2p_param/ np,plev,s2p_ICBC,s2p_ATM
 
+      i_band = 0
       read(*,shareparam) 
 
       len_path = len(trim(Path_Input))
@@ -56,28 +57,28 @@
 
       read(*,dateparam) 
 
-      if(s2p_ICBC) call sigma2p_ICBC(iy,jx,kz,np,plev,ibyte &
+      if(s2p_ICBC) call sigma2p_ICBC(iy,jx,kz,np,plev,i_band,ibyte &
                      ,idate0,idate1,idate2,Path_Input,DomainName,igrads)
 
-      if(s2p_ATM) call sigma2p_ATM(iy,jx,kz,np,plev,ibyte &
+      if(s2p_ATM) call sigma2p_ATM(iy,jx,kz,np,plev,i_band,ibyte &
                                ,idate0,idate1,idate2,Path_Output,igrads)
 
       stop
       end
 
-      subroutine sigma2p_ICBC(iy,jx,kz,np,plev,ibyte &
+      subroutine sigma2p_ICBC(iy,jx,kz,np,plev,i_band,ibyte &
                  ,idate0,idate1,idate2,Path_Input,DomainName,igrads)
       implicit none
-      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
-      real*4  plev(np)
+      integer iy,jx,kz,np,i_band,ibyte,idate0,idate1,idate2,igrads
+      real(4)  plev(np)
       character*128 Path_Input
       character*20 DomainName
       integer iiy,jjx,kkz
-      real*4  dsinm,clat,clon,plat,plon,GRDFAC
+      real(4)  dsinm,clat,clon,plat,plon,GRDFAC
       character*6 iproj
-      real*4, allocatable,save ::  sigma(:),sig(:)
+      real(4), allocatable,save ::  sigma(:),sig(:)
       integer jgrads,ibigend
-      real*4  truelatL,truelatH
+      real(4)  truelatL,truelatH
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -94,54 +95,60 @@
       character*16 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
 
-      integer i,j,k,l
+      integer i,j,k,l,jx_len
 
-      real*4, allocatable,save ::  xlat(:,:),xlon(:,:)
+      real(4), allocatable,save ::  xlat(:,:),xlon(:,:)
 
-      real*4, allocatable ::  fin(:,:)
+      real(4), allocatable ::  fin(:,:)
 
-      real*4, allocatable,save :: u(:,:,:),v(:,:,:),t(:,:,:),q(:,:,:)
-      real*4, allocatable,save :: ps(:,:),tgb(:,:),ht(:,:),h(:,:,:)
-      real*4, allocatable,save :: slp(:,:)
+      real(4), allocatable,save :: u(:,:,:),v(:,:,:),t(:,:,:),q(:,:,:)
+      real(4), allocatable,save :: ps(:,:),tgb(:,:),ht(:,:),h(:,:,:)
+      real(4), allocatable,save :: slp(:,:)
 
-      real*4, allocatable,save :: up(:,:,:),vp(:,:,:),tp(:,:,:)
-      real*4, allocatable,save :: qp(:,:,:),hp(:,:,:)
+      real(4), allocatable,save :: up(:,:,:),vp(:,:,:),tp(:,:,:)
+      real(4), allocatable,save :: qp(:,:,:),hp(:,:,:)
 
-      real*4, save :: ptop
-      real*4, parameter :: rgas = 287.04
-      real*4, parameter :: grav = 9.80616
-      real*4, parameter :: bltop = 0.96
-      real*4, parameter :: tlapse = -6.5E-3
+      real(4), save :: ptop
+      real(4), parameter :: rgas = 287.0058
+      real(4), parameter :: grav = 9.80665
+      real(4), parameter :: bltop = 0.96
+      real(4), parameter :: tlapse = -6.5E-3
 
       integer n_month
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
 
       integer IDATE
+
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
 
       allocate(sigma(kz+1))
       allocate(sig(kz))
       allocate(fin(jx,iy))
 
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
-      allocate(u(jx-2,iy-2,kz))
-      allocate(v(jx-2,iy-2,kz))
-      allocate(t(jx-2,iy-2,kz))
-      allocate(q(jx-2,iy-2,kz))
-      allocate(h(jx-2,iy-2,kz))
-      allocate(ps(jx-2,iy-2))
-      allocate(tgb(jx-2,iy-2))
-      allocate(ht(jx-2,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
+      allocate(u(jx_len,iy-2,kz))
+      allocate(v(jx_len,iy-2,kz))
+      allocate(t(jx_len,iy-2,kz))
+      allocate(q(jx_len,iy-2,kz))
+      allocate(h(jx_len,iy-2,kz))
+      allocate(ps(jx_len,iy-2))
+      allocate(tgb(jx_len,iy-2))
+      allocate(ht(jx_len,iy-2))
 
-      allocate(slp(jx-2,iy-2))
-      allocate(up(jx-2,iy-2,np))
-      allocate(vp(jx-2,iy-2,np))
-      allocate(tp(jx-2,iy-2,np))
-      allocate(qp(jx-2,iy-2,np))
-      allocate(hp(jx-2,iy-2,np))
+      allocate(slp(jx_len,iy-2))
+      allocate(up(jx_len,iy-2,np))
+      allocate(vp(jx_len,iy-2,np))
+      allocate(tp(jx_len,iy-2,np))
+      allocate(qp(jx_len,iy-2,np))
+      allocate(hp(jx_len,iy-2,np))
 
       inquire(file=trim(Path_Input)//trim(DomainName)//'.INFO' &
              ,exist=there)
@@ -169,20 +176,32 @@
 
       read(10,rec=2) fin          ! ht
       do i=1,iy-2
-      do j=1,jx-2
-         ht(j,i) = fin(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            ht(j,i) = fin(j,i+1)
+         else
+            ht(j,i) = fin(j+1,i+1)
+         endif
       enddo
       enddo
       read(10,rec=5) fin          ! xlat
       do i=1,iy-2
-      do j=1,jx-2
-         xlat(j,i) = fin(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlat(j,i) = fin(j,i+1)
+         else
+            xlat(j,i) = fin(j+1,i+1)
+         endif
       enddo
       enddo
       read(10,rec=6) fin          ! xlon
       do i=1,iy-2
-      do j=1,jx-2
-         xlon(j,i) = fin(j+1,i+1)
+      do j=1,jx_len
+         if(i_band.eq.1) then
+            xlon(j,i) = fin(j,i+1)
+         else
+            xlon(j,i) = fin(j+1,i+1)
+         endif
       enddo
       enddo
       close(10)
@@ -251,7 +270,7 @@
             mrec = 0
             open(20,file= &
                     trim(Path_Input)//trim(DomainName)//'_'//fileout &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
             nrec = 0
          else if(ntype.eq.1) then
             nyear = idate1/10000
@@ -296,11 +315,11 @@
             endif
             open(10,file= &
                 trim(Path_Input)//trim(DomainName)//'_'//filein(1:12) &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
             mrec = 0
             open(20,file= &
                 trim(Path_Input)//trim(DomainName)//'_'//fileout(1:14) &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
             nrec = 0
          else if(ntype.eq.2) then
             nyear = idate1/100
@@ -333,12 +352,12 @@
                open(10,file= &
           trim(Path_Input)//trim(DomainName)//'_'//filein(1:4)//'.mon' &
                       ,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*jx_len*ibyte,access='direct')
                mrec = 0
                open(20,file= &
          trim(Path_Input)//trim(DomainName)//'_'//fileout(1:6)//'.mon' &
                     ,form='unformatted' &
-                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                    ,recl=(iy-2)*jx_len*ibyte,access='direct')
                nrec = 0
             endif
          endif
@@ -352,8 +371,12 @@
                   mrec = mrec+1
                   read(10,rec=mrec) fin
                   do i=1,iy-2
-                  do j=1,jx-2
-                     u(j,i,l) = fin(j+1,i+1)
+                  do j=1,jx_len
+                     if(i_band.eq.1) then
+                        u(j,i,l) = fin(j,i+1)
+                     else
+                        u(j,i,l) = fin(j+1,i+1)
+                     endif
                   enddo
                   enddo
                enddo
@@ -361,8 +384,12 @@
                   mrec = mrec+1
                   read(10,rec=mrec) fin
                   do i=1,iy-2
-                  do j=1,jx-2
-                     v(j,i,l) = fin(j+1,i+1)
+                  do j=1,jx_len
+                     if(i_band.eq.1) then
+                        v(j,i,l) = fin(j,i+1)
+                     else
+                        v(j,i,l) = fin(j+1,i+1)
+                     endif
                   enddo
                   enddo
                enddo
@@ -370,8 +397,12 @@
                   mrec = mrec+1
                   read(10,rec=mrec) fin
                   do i=1,iy-2
-                  do j=1,jx-2
-                     t(j,i,l) = fin(j+1,i+1)
+                  do j=1,jx_len
+                     if(i_band.eq.1) then
+                        t(j,i,l) = fin(j,i+1)
+                     else
+                        t(j,i,l) = fin(j+1,i+1)
+                     endif
                   enddo
                   enddo
                enddo
@@ -379,107 +410,121 @@
                   mrec = mrec+1
                   read(10,rec=mrec) fin
                   do i=1,iy-2
-                  do j=1,jx-2
-                     q(j,i,l) = fin(j+1,i+1)
+                  do j=1,jx_len
+                     if(i_band.eq.1) then
+                        q(j,i,l) = fin(j,i+1)
+                     else
+                        q(j,i,l) = fin(j+1,i+1)
+                     endif
                   enddo
                   enddo
                enddo
                mrec = mrec+1
                read(10,rec=mrec) fin
                do i=1,iy-2
-               do j=1,jx-2
-                  ps(j,i) = fin(j+1,i+1)*10.
+               do j=1,jx_len
+                  if(i_band.eq.1) then
+                     ps(j,i) = fin(j,i+1)*10.
+                  else
+                     ps(j,i) = fin(j+1,i+1)*10.
+                  endif
                enddo
                enddo
                mrec = mrec+1
                read(10,rec=mrec) fin
                do i=1,iy-2
-               do j=1,jx-2
-                  tgb(j,i) = fin(j+1,i+1)
+               do j=1,jx_len
+                  if(i_band.eq.1) then
+                     tgb(j,i) = fin(j,i+1)
+                  else
+                     tgb(j,i) = fin(j+1,i+1)
+                  endif
                   tgb(j,i) = t(j,i,kz)
                enddo
                enddo
             else
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((u(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((u(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((v(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((v(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((t(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((t(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((q(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((q(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                mrec = mrec+1
-               read(10,rec=mrec) ((ps(j,i),j=1,jx-2),i=1,iy-2)
+               read(10,rec=mrec) ((ps(j,i),j=1,jx_len),i=1,iy-2)
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   ps(j,i) = ps(j,i)*10.
                enddo
                enddo
                mrec = mrec+1
-               read(10,rec=mrec) ((tgb(j,i),j=1,jx-2),i=1,iy-2)
+               read(10,rec=mrec) ((tgb(j,i),j=1,jx_len),i=1,iy-2)
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   tgb(j,i) = t(j,i,kz)
                enddo
                enddo
             endif
 
           ! to calculate Heights on sigma surfaces.
-            call htsig(t,h,ps,ht,sig,jx-2,iy-2,kz,PTOP,RGAS,GRAV)
+            call htsig(t,h,ps,ht,sig,jx_len,iy-2,kz,PTOP,RGAS,GRAV)
 
           ! to calculate Sea-Level Pressure using
           !  1. ERRICO's solution described in height
           !  2. a simple formulae
           !  3. MM5 method
-            call slpres(h,t,ps,ht,tgb,slp,sig,jx-2,iy-2,kz  &
+!           call slpres(h,t,ps,ht,tgb,slp,sig,jx_len,iy-2,kz  &
+!                      ,RGAS,GRAV,BLTOP,TLAPSE)
+            call slpres(h,t,ps,ht,slp,sig,jx_len,iy-2,kz  &
                        ,RGAS,GRAV,BLTOP,TLAPSE)
 
           ! to interpolate H,U,V,T,Q and QC
           !  1. For Heights
-            call height(hp,h,t,ps,ht,sig,jx-2,iy-2,kz,plev,np &
+            call height(hp,h,t,ps,ht,sig,jx_len,iy-2,kz,plev,np &
                        ,PTOP,RGAS,GRAV,BLTOP,TLAPSE)
           !  2. For Zonal and Meridional Winds
-            call intlin(up,u,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
-            call intlin(vp,v,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
+            call intlin(up,u,ps,sig,jx_len,iy-2,kz,plev,np,PTOP)
+            call intlin(vp,v,ps,sig,jx_len,iy-2,kz,plev,np,PTOP)
           !  3. For Temperatures
-            call intlog(tp,t,ps,sig,jx-2,iy-2,kz,plev,np &
+            call intlog(tp,t,ps,sig,jx_len,iy-2,kz,plev,np &
                        ,PTOP,RGAS,GRAV,BLTOP,TLAPSE)
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((up(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((up(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((vp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((vp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((hp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((hp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((tp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((tp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
           !  4. For Moisture qv
-            call humid1(t,q,ps,sig,jx-2,iy-2,kz,ptop)
-            call intlin(qp,q,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
+            call humid1(t,q,ps,sig,jx_len,iy-2,kz,ptop)
+            call intlin(qp,q,ps,sig,jx_len,iy-2,kz,plev,np,PTOP)
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((qp(j,i,k)*100.,j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((qp(j,i,k)*100.,j=1,jx_len),i=1,iy-2)
             enddo
 
-            call humid2(tp,qp,plev,jx-2,iy-2,np)
+            call humid2(tp,qp,plev,jx_len,iy-2,np)
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((qp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((qp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             nrec=nrec+1
             write(20,rec=nrec) ps
@@ -543,14 +588,14 @@
             if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
                alatmin= 999999.
                alatmax=-999999.
-               do j=1,jx-2
+               do j=1,jx_len
                   if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
                   if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
                enddo
                alonmin= 999999.
                alonmax=-999999.
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   if(clon.ge.0.0) then
                      if(xlon(j,i).ge.0.0) then
                         alonmin = amin1(alonmin,xlon(j,i))
@@ -586,11 +631,11 @@
                rloninc=dsinm*0.001/111./2.
                ny=2+nint(abs(alatmax-alatmin)/rlatinc)
                nx=1+nint(abs((alonmax-alonmin)/rloninc))
-               centerj=(jx-2)/2.
+               centerj=jx_len/2.
                centeri=(iy-2)/2.
             endif
             if(iproj.eq.'LAMCON') then        ! Lambert projection
-               write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+               write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                              truelatL,truelatH,clon,dsinm,dsinm
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
                write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -599,7 +644,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
             elseif(iproj.eq.'POLSTR') then    !
             elseif(iproj.eq.'NORMER') then
-               write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+               write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
                write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -613,7 +658,7 @@
                         ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
             endif
-               write(31,230) jx-2,iy-2,plon,plat,dsinm/111000. &
+               write(31,230) jx_len,iy-2,plon,plat,dsinm/111000. &
                                            ,dsinm/111000.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
                write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -703,20 +748,20 @@
       return
       end
 
-      subroutine sigma2p_ATM(iy,jx,kz,np,plev,ibyte &
+      subroutine sigma2p_ATM(iy,jx,kz,np,plev,i_band,ibyte &
                  ,idate0,idate1,idate2,Path_Output,igrads)
       implicit none
-      integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
-      real*4  plev(np)
+      integer iy,jx,kz,np,i_band,ibyte,idate0,idate1,idate2,igrads
+      real(4)  plev(np)
       character*128 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  truelatL,truelatH
-      real*4  dxsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  truelatL,truelatH
+      real(4)  dxsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable,save ::  sigma(:),sig(:)
+      real(4), allocatable,save ::  sigma(:),sig(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -733,61 +778,67 @@
       character*16 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec,nnn
 
-      integer i,j,k,l
+      integer i,j,k,l,jx_len
 
-      real*4, allocatable,save ::  xlat(:,:),xlon(:,:)
+      real(4), allocatable,save ::  xlat(:,:),xlon(:,:)
 
-      real*4, allocatable,save :: u(:,:,:),v(:,:,:),t(:,:,:),q(:,:,:)
-      real*4, allocatable,save :: w(:,:,:),c(:,:,:),h(:,:,:)
-      real*4, allocatable,save :: ps(:,:),tgb(:,:),ht(:,:)
-      real*4, allocatable,save :: slp(:,:),tpr(:,:),swt(:,:),rno(:,:)
+      real(4), allocatable,save :: u(:,:,:),v(:,:,:),t(:,:,:),q(:,:,:)
+      real(4), allocatable,save :: w(:,:,:),c(:,:,:),h(:,:,:)
+      real(4), allocatable,save :: ps(:,:),tgb(:,:),ht(:,:)
+      real(4), allocatable,save :: slp(:,:),tpr(:,:),swt(:,:),rno(:,:)
 
-      real*4, allocatable,save :: up(:,:,:),vp(:,:,:),tp(:,:,:)
-      real*4, allocatable,save :: qp(:,:,:),hp(:,:,:),wp(:,:,:)
-      real*4, allocatable,save :: cp(:,:,:)
+      real(4), allocatable,save :: up(:,:,:),vp(:,:,:),tp(:,:,:)
+      real(4), allocatable,save :: qp(:,:,:),hp(:,:,:),wp(:,:,:)
+      real(4), allocatable,save :: cp(:,:,:)
 
-      real*4, save :: ptop
-      real*4, parameter :: rgas = 287.04
-      real*4, parameter :: grav = 9.80616
-      real*4, parameter :: bltop = 0.96
-      real*4, parameter :: tlapse = -6.5E-3
+      real(4), save :: ptop
+      real(4), parameter :: rgas = 287.0058
+      real(4), parameter :: grav = 9.80665
+      real(4), parameter :: bltop = 0.96
+      real(4), parameter :: tlapse = -6.5E-3
 
       integer n_month
       logical there
-      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real*4  centerj,centeri
+      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real(4)  centerj,centeri
       integer ny,nx
 
       integer IDATE
 
+      if(i_band.eq.1) then
+         jx_len = jx
+      else
+         jx_len = jx-2
+      endif
+
       allocate(sigma(kz+1))
       allocate(sig(kz))
-      allocate(xlat(jx-2,iy-2))
-      allocate(xlon(jx-2,iy-2))
+      allocate(xlat(jx_len,iy-2))
+      allocate(xlon(jx_len,iy-2))
 
-      allocate(u(jx-2,iy-2,kz))
-      allocate(v(jx-2,iy-2,kz))
-      allocate(t(jx-2,iy-2,kz))
-      allocate(q(jx-2,iy-2,kz))
-      allocate(w(jx-2,iy-2,kz))
-      allocate(c(jx-2,iy-2,kz))
-      allocate(h(jx-2,iy-2,kz))
+      allocate(u(jx_len,iy-2,kz))
+      allocate(v(jx_len,iy-2,kz))
+      allocate(t(jx_len,iy-2,kz))
+      allocate(q(jx_len,iy-2,kz))
+      allocate(w(jx_len,iy-2,kz))
+      allocate(c(jx_len,iy-2,kz))
+      allocate(h(jx_len,iy-2,kz))
 
-      allocate(ps(jx-2,iy-2))
-      allocate(tgb(jx-2,iy-2))
-      allocate(ht(jx-2,iy-2))
-      allocate(slp(jx-2,iy-2))
-      allocate(tpr(jx-2,iy-2))   ! 
-      allocate(swt(jx-2,iy-2))
-      allocate(rno(jx-2,iy-2))
+      allocate(ps(jx_len,iy-2))
+      allocate(tgb(jx_len,iy-2))
+      allocate(ht(jx_len,iy-2))
+      allocate(slp(jx_len,iy-2))
+      allocate(tpr(jx_len,iy-2))   ! 
+      allocate(swt(jx_len,iy-2))
+      allocate(rno(jx_len,iy-2))
 
-      allocate(up(jx-2,iy-2,np))
-      allocate(vp(jx-2,iy-2,np))
-      allocate(tp(jx-2,iy-2,np))
-      allocate(qp(jx-2,iy-2,np))
-      allocate(wp(jx-2,iy-2,np))
-      allocate(cp(jx-2,iy-2,np))
-      allocate(hp(jx-2,iy-2,np))
+      allocate(up(jx_len,iy-2,np))
+      allocate(vp(jx_len,iy-2,np))
+      allocate(tp(jx_len,iy-2,np))
+      allocate(qp(jx_len,iy-2,np))
+      allocate(wp(jx_len,iy-2,np))
+      allocate(cp(jx_len,iy-2,np))
+      allocate(hp(jx_len,iy-2,np))
 
       inquire(file=trim(Path_Output)//'OUT_HEAD',exist=there)
       if(.not.there) then
@@ -795,7 +846,7 @@
          stop
       endif
       open(10,file=trim(Path_Output)//'OUT_HEAD' &
-             ,recl=(jx-2)*(iy-2)*ibyte,access='direct')
+             ,recl=jx_len*(iy-2)*ibyte,access='direct')
       read(10,rec=1) mdate0,ibltyp,icup,ipptls,iboudy  &
                     ,iiy,jjx,kkz,(sigma(k),k=kz+1,1,-1)   &
                     ,dxsp,ptop,clat,clon,plat,plon     &
@@ -875,13 +926,13 @@
             endif
             if(iotyp.eq.1) then
                open(10,file=trim(Path_Output)//filein  &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
                mrec = 0
             else
               open(10,file=trim(Path_Output)//filein,form='unformatted')
             endif
             open(20,file=trim(Path_Output)//fileout &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
             nrec = 0
          else if(ntype.eq.1) then
             nyear = idate1/10000
@@ -922,10 +973,10 @@
                stop
             endif
             open(10,file=trim(Path_Output)//filein(1:12) &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
             mrec = 0
             open(20,file=trim(Path_Output)//'_'//fileout(1:14) &
-           ,form='unformatted',recl=(iy-2)*(jx-2)*ibyte,access='direct')
+           ,form='unformatted',recl=(iy-2)*jx_len*ibyte,access='direct')
             nrec = 0
          else if(ntype.eq.2) then
             nyear = idate1/100
@@ -954,11 +1005,11 @@
                endif
                open(10,file=trim(Path_Output)//filein(1:7) &
                       ,form='unformatted' &
-                      ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                      ,recl=(iy-2)*jx_len*ibyte,access='direct')
                mrec = 0
                open(20,file=trim(Path_Output)//fileout(1:9) &
                     ,form='unformatted' &
-                    ,recl=(iy-2)*(jx-2)*ibyte,access='direct')
+                    ,recl=(iy-2)*jx_len*ibyte,access='direct')
                nrec = 0
             endif
          endif
@@ -968,27 +1019,27 @@
                if(iotyp.eq.1) then
                   do l=kz,1,-1
                      mrec = mrec+1
-                     read(10,rec=mrec) ((u(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10,rec=mrec) ((u(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
                      mrec = mrec+1
-                     read(10,rec=mrec) ((v(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10,rec=mrec) ((v(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
                      mrec = mrec+1
-                     read(10,rec=mrec) ((w(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10,rec=mrec) ((w(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
                      mrec = mrec+1
-                     read(10,rec=mrec) ((t(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10,rec=mrec) ((t(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
                      mrec = mrec+1
-                     read(10,rec=mrec) ((q(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10,rec=mrec) ((q(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
                      mrec = mrec+1
-                     read(10,rec=mrec) ((c(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10,rec=mrec) ((c(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   mrec = mrec+1
                   read(10,rec=mrec) ps
@@ -1004,22 +1055,22 @@
                   read(10) IDATE
 !                 write(*,*) 'IDATE = ',IDATE
                   do l=kz,1,-1
-                     read(10) ((u(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10) ((u(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
-                     read(10) ((v(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10) ((v(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
-                     read(10) ((w(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10) ((w(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
-                     read(10) ((t(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10) ((t(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
-                     read(10) ((q(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10) ((q(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   do l=kz,1,-1
-                     read(10) ((c(j,i,l),j=1,jx-2),i=1,iy-2)
+                     read(10) ((c(j,i,l),j=1,jx_len),i=1,iy-2)
                   enddo
                   read(10) ps
                   read(10) tpr
@@ -1030,27 +1081,27 @@
             else
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((u(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((u(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((v(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((v(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((w(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((w(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((t(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((t(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((q(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((q(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                do l=kz,1,-1
                   mrec = mrec+1
-                  read(10,rec=mrec) ((c(j,i,l),j=1,jx-2),i=1,iy-2)
+                  read(10,rec=mrec) ((c(j,i,l),j=1,jx_len),i=1,iy-2)
                enddo
                mrec = mrec+1
                read(10,rec=mrec) ps
@@ -1065,63 +1116,65 @@
             endif
 
           ! to calculate Heights on sigma surfaces.
-            call htsig(t,h,ps,ht,sig,jx-2,iy-2,kz,PTOP,RGAS,GRAV)
+            call htsig(t,h,ps,ht,sig,jx_len,iy-2,kz,PTOP,RGAS,GRAV)
 
           ! to calculate Sea-Level Pressure using
           !  1. ERRICO's solution described in height
           !  2. a simple formulae
           !  3. MM5 method
-            call slpres(h,t,ps,ht,tgb,slp,sig,jx-2,iy-2,kz  &
+!           call slpres(h,t,ps,ht,tgb,slp,sig,jx_len,iy-2,kz  &
+!                      ,RGAS,GRAV,BLTOP,TLAPSE)
+            call slpres(h,t,ps,ht,slp,sig,jx_len,iy-2,kz  &
                        ,RGAS,GRAV,BLTOP,TLAPSE)
 
           ! to interpolate H,U,V,T,Q and QC
           !  1. For Heights
-            call height(hp,h,t,ps,ht,sig,jx-2,iy-2,kz,plev,np &
+            call height(hp,h,t,ps,ht,sig,jx_len,iy-2,kz,plev,np &
                        ,PTOP,RGAS,GRAV,BLTOP,TLAPSE)
           !  2. For Zonal and Meridional Winds
-            call intlin(up,u,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
-            call intlin(vp,v,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
-            call intlin(wp,w,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
+            call intlin(up,u,ps,sig,jx_len,iy-2,kz,plev,np,PTOP)
+            call intlin(vp,v,ps,sig,jx_len,iy-2,kz,plev,np,PTOP)
+            call intlin(wp,w,ps,sig,jx_len,iy-2,kz,plev,np,PTOP)
           !  3. For Temperatures
-            call intlog(tp,t,ps,sig,jx-2,iy-2,kz,plev,np &
+            call intlog(tp,t,ps,sig,jx_len,iy-2,kz,plev,np &
                        ,PTOP,RGAS,GRAV,BLTOP,TLAPSE)
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((up(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((up(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((vp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((vp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((wp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((wp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((hp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((hp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((tp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((tp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
           !  4. For Moisture qv
-            call humid1(t,q,ps,sig,jx-2,iy-2,kz,ptop)
-            call intlin(qp,q,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
+            call humid1(t,q,ps,sig,jx_len,iy-2,kz,ptop)
+            call intlin(qp,q,ps,sig,jx_len,iy-2,kz,plev,np,PTOP)
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((qp(j,i,k)*100.,j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((qp(j,i,k)*100.,j=1,jx_len),i=1,iy-2)
             enddo
 
-            call humid2(tp,qp,plev,jx-2,iy-2,np)
+            call humid2(tp,qp,plev,jx_len,iy-2,np)
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((qp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((qp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
-            call intlin(cp,c,ps,sig,jx-2,iy-2,kz,plev,np,PTOP)
+            call intlin(cp,c,ps,sig,jx_len,iy-2,kz,plev,np,PTOP)
             do k=1,np
                nrec=nrec+1
-               write(20,rec=nrec)((cp(j,i,k),j=1,jx-2),i=1,iy-2)
+               write(20,rec=nrec)((cp(j,i,k),j=1,jx_len),i=1,iy-2)
             enddo
             nrec=nrec+1
             write(20,rec=nrec) ps
@@ -1180,14 +1233,14 @@
             if(iproj.eq.'LAMCON'.or.iproj.eq.'ROTMER') then
                alatmin= 999999.
                alatmax=-999999.
-               do j=1,jx-2
+               do j=1,jx_len
                   if(xlat(j,1).lt.alatmin) alatmin=xlat(j,1)
                   if(xlat(j,iy-2).gt.alatmax) alatmax=xlat(j,iy-2)
                enddo
                alonmin= 999999.
                alonmax=-999999.
                do i=1,iy-2
-               do j=1,jx-2
+               do j=1,jx_len
                   if(clon.ge.0.0) then
                      if(xlon(j,i).ge.0.0) then
                         alonmin = amin1(alonmin,xlon(j,i))
@@ -1223,11 +1276,11 @@
                rloninc=dxsp/111./2.
                ny=2+nint(abs(alatmax-alatmin)/rlatinc)
                nx=1+nint(abs((alonmax-alonmin)/rloninc))
-               centerj=(jx-2)/2.
+               centerj=jx_len/2.
                centeri=(iy-2)/2.
             endif
             if(iproj.eq.'LAMCON') then        ! Lambert projection
-               write(31,100) jx-2,iy-2,clat,clon,centerj,centeri, &
+               write(31,100) jx_len,iy-2,clat,clon,centerj,centeri, &
                       truelatL,truelatH,clon,dxsp*1000.,dxsp*1000.
  100  format('pdef ',i4,1x,i4,1x,'lccr',7(1x,f7.2),1x,2(f7.0,1x))
                write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -1236,7 +1289,7 @@
  120  format('ydef ',i4,' linear ',f7.2,1x,f7.4)
             elseif(iproj.eq.'POLSTR') then    !
             elseif(iproj.eq.'NORMER') then
-               write(31,200)  jx-2,xlon(1,1),xlon(2,1)-xlon(1,1)
+               write(31,200)  jx_len,xlon(1,1),xlon(2,1)-xlon(1,1)
  200  format('xdef ',I3,' linear ',f9.4,' ',f9.4)
                write(31,210) iy-2
  210  format('ydef ',I3,' levels')
@@ -1250,7 +1303,7 @@
                         ,' in GrADS is somewhat similar.'
             write(*,*) ' FERRET, however, does support this projection.'
             endif
-               write(31,230) jx-2,iy-2,plon,plat,dxsp/111. &
+               write(31,230) jx_len,iy-2,plon,plat,dxsp/111. &
                                            ,dxsp/111.*.95238
  230  format('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
                write(31,110) nx+2,alonmin-rloninc,rloninc
@@ -1578,12 +1631,14 @@
       RETURN
       END
 !
-      SUBROUTINE SLPRES(H,T,PSTAR,HT,TG,SLP,SIG,IM,JM,KM  &
+!     SUBROUTINE SLPRES(H,T,PSTAR,HT,TG,SLP,SIG,IM,JM,KM  &
+!                      ,RGAS,GRAV,BLTOP,TLAPSE)
+      SUBROUTINE SLPRES(H,T,PSTAR,HT,SLP,SIG,IM,JM,KM  &
                        ,RGAS,GRAV,BLTOP,TLAPSE)
       implicit none
       INTEGER IM,JM,KM
-      REAL    T(IM,JM,KM),H(IM,JM,KM)
-      REAL    PSTAR(IM,JM),HT(IM,JM),TG(IM,JM)
+      REAL    T(IM,JM,KM),H(IM,JM,KM),PSTAR(IM,JM),HT(IM,JM)
+!     REAL    TG(IM,JM)
       REAL    SLP(IM,JM)
       REAL    SIG(KM)
       REAL    RGAS,GRAV,BLTOP,TLAPSE

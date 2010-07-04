@@ -8,13 +8,13 @@ all: average regrid sigma2p
 	@echo "Programs all installed in $(BINDIR)"
 
 average: average.f90
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $< $(LIB)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $<
 
 regrid: regrid.f90
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $< $(LIB)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $<
 
 sigma2p: sigma2p.f90
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $< $(LIB)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $<
 
 clean:
 	rm -f average regrid sigma2p *.mod

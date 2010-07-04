@@ -305,7 +305,11 @@
         call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
  
         call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-        call p1p2(b3pd,ps4,jx,iy)
+        if(i_band.eq.1) then
+           call p1p2_band(b3pd,ps4,jx,iy)
+        else
+           call p1p2(b3pd,ps4,jx,iy)
+        endif
  
         call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
         call camclndr(idate,nyrp,nmop,wt)
@@ -922,7 +926,11 @@
       call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
  
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-      call p1p2(b3pd,ps4,jx,iy)
+      if(i_band.eq.1) then
+         call p1p2_band(b3pd,ps4,jx,iy)
+      else
+         call p1p2(b3pd,ps4,jx,iy)
+      endif
  
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
       call camclndr(idate,nyrp,nmop,wt)

@@ -23,7 +23,7 @@
 !
       program regrid
       implicit none
-      integer iy,jx,kz,nsg,ntr,ibyte,igrads
+      integer iy,jx,kz,nsg,ntr,i_band,ibyte,igrads
       logical regDOMAIN,regICBC,regOUT_HEAD,regATM,regSRF,regRAD
       logical regICBC_P,regATM_P
       integer idate0,idate1,idate2
@@ -31,13 +31,13 @@
       character*20 DomainName
       integer len_path
       integer np
-      real*4, save ::  plev(11)
+      real(4), save ::  plev(11)
       logical s2p_ICBC,s2p_ATM
 
-      real*4  xminlon,xmaxlon,xminlat,xmaxlat,ddeg
+      real(4)  xminlon,xmaxlon,xminlat,xmaxlat,ddeg
       COMMON /WINDOW/ xminlon,xmaxlon,xminlat,xmaxlat,ddeg
 
-      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,ibyte,igrads &
+      namelist /shareparam/ iy,jx,kz,np,nsg,ntr,i_band,ibyte,igrads &
                            ,Path_Input,DomainName,Path_Output
       namelist /sigma2p_param/ np,plev,s2p_ICBC,s2p_ATM
       namelist /dateparam/ idate0,idate1,idate2
@@ -51,6 +51,7 @@
       xmaxlat  = -9999.      
       ddeg     = 0.5
 
+      i_band = 0
       read(*,shareparam) 
 
       len_path = len(trim(Path_Input))
@@ -105,35 +106,35 @@
       character*128 Path_Input
       character*20 DomainName
       integer iiy,jjx,kkz
-      real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
+      real(4)  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       integer jgrads,ibigend
-      real*4  truelatL,truelatH
+      real(4)  truelatL,truelatH
 
       integer i,j,k,l,m,n
 
-      real*4  size_2d(4),ddeg
+      real(4)  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
 
-      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
-      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+      real(4), allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real(4)  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
       logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
-      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
-      real*4  PI
-      real*4, allocatable :: out(:,:)
-      real*4, allocatable :: olat(:),olon(:)
+      real(4)  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real(4)  PI
+      real(4), allocatable :: out(:,:)
+      real(4), allocatable :: olat(:),olon(:)
 
       integer, allocatable :: I1UR(:,:), J1UR(:,:)
       integer, allocatable :: I1UL(:,:), J1UL(:,:)
       integer, allocatable :: I1DR(:,:), J1DR(:,:)
       integer, allocatable :: I1DL(:,:), J1DL(:,:)
-      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
-      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+      real(4), allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real(4), allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
       PI = atan(1.)*4.
 
@@ -464,36 +465,36 @@
       character*128 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
 
       integer i,j,k,l,m,n
       integer ibigend
 
-      real*4  size_2d(4),ddeg
+      real(4)  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
 
-      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
-      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+      real(4), allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real(4)  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
       logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
-      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
-      real*4  PI
-      real*4, allocatable :: out(:,:)
-      real*4, allocatable :: olat(:),olon(:)
+      real(4)  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real(4)  PI
+      real(4), allocatable :: out(:,:)
+      real(4), allocatable :: olat(:),olon(:)
 
       integer, allocatable :: I1UR(:,:), J1UR(:,:)
       integer, allocatable :: I1UL(:,:), J1UL(:,:)
       integer, allocatable :: I1DR(:,:), J1DR(:,:)
       integer, allocatable :: I1DL(:,:), J1DL(:,:)
-      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
-      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+      real(4), allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real(4), allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
       ibigend= 1
 
@@ -822,11 +823,11 @@
       character*128 Path_Input
       character*20 DomainName
       integer iiy,jjx,kkz
-      real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
+      real(4)  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       integer jgrads,ibigend
-      real*4  truelatL,truelatH
+      real(4)  truelatL,truelatH
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -845,40 +846,40 @@
 
       integer i,j,k,l,m,n
 
-      real*4  size_2d(4),ddeg
+      real(4)  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
 
-      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
-      real*4, allocatable ::           dlat(:,:),dlon(:,:)
-      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+      real(4), allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::           dlat(:,:),dlon(:,:)
+      real(4)  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
       integer n_month
       logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
-      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real(4)  DISTa,DISTb,DISTc,DISTd,AAA,DIST
       integer IDATE
-      real*4  PI,PIR180
-      real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
-      real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
-      real*4  SIGN0,GRIDFC
-      real*4, allocatable :: out(:,:)
-      real*4, allocatable :: olat(:),olon(:)
+      real(4)  PI,PIR180
+      real(4)  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
+      real(4)  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
+      real(4)  SIGN0,GRIDFC
+      real(4), allocatable :: out(:,:)
+      real(4), allocatable :: olat(:),olon(:)
 
       integer, allocatable :: I1UR(:,:), J1UR(:,:)
       integer, allocatable :: I1UL(:,:), J1UL(:,:)
       integer, allocatable :: I1DR(:,:), J1DR(:,:)
       integer, allocatable :: I1DL(:,:), J1DL(:,:)
-      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
-      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+      real(4), allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real(4), allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
       integer, allocatable :: I2UR(:,:), J2UR(:,:)
       integer, allocatable :: I2UL(:,:), J2UL(:,:)
       integer, allocatable :: I2DR(:,:), J2DR(:,:)
       integer, allocatable :: I2DL(:,:), J2DL(:,:)
-      real*4, allocatable :: D2XT(:,:), D2Xa(:,:), D2Xb(:,:)
-      real*4, allocatable ::            D2Xc(:,:), D2Xd(:,:)
+      real(4), allocatable :: D2XT(:,:), D2Xa(:,:), D2Xb(:,:)
+      real(4), allocatable ::            D2Xc(:,:), D2Xd(:,:)
 
       PI = atan(1.)*4.
       PIR180 = atan(1.)/45.
@@ -1960,15 +1961,15 @@
                     ,idate0,idate1,idate2,Path_Input,DomainName,igrads)
       implicit none
       integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
-      real*4  plev(np)
+      real(4)  plev(np)
       character*128 Path_Input
       character*20 DomainName
       integer iiy,jjx,kkz
-      real*4  dsinm,clat,clon,plat,plon,GRDFAC,ptop
+      real(4)  dsinm,clat,clon,plat,plon,GRDFAC,ptop
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       integer jgrads,ibigend
-      real*4  truelatL,truelatH
+      real(4)  truelatL,truelatH
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -1987,39 +1988,39 @@
 
       integer i,j,k,l,m,n
 
-      real*4  size_2d(4),ddeg
+      real(4)  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
 
-      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
-      real*4, allocatable ::           dlat(:,:),dlon(:,:)
-      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+      real(4), allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real(4), allocatable ::           dlat(:,:),dlon(:,:)
+      real(4)  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
       integer n_month
       logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
-      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
-      real*4  PI,PIR180
-      real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
-      real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
-      real*4  SIGN0,GRIDFC
-      real*4, allocatable :: out(:,:)
-      real*4, allocatable :: olat(:),olon(:)
+      real(4)  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real(4)  PI,PIR180
+      real(4)  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
+      real(4)  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
+      real(4)  SIGN0,GRIDFC
+      real(4), allocatable :: out(:,:)
+      real(4), allocatable :: olat(:),olon(:)
 
       integer, allocatable :: I1UR(:,:), J1UR(:,:)
       integer, allocatable :: I1UL(:,:), J1UL(:,:)
       integer, allocatable :: I1DR(:,:), J1DR(:,:)
       integer, allocatable :: I1DL(:,:), J1DL(:,:)
-      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
-      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+      real(4), allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real(4), allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
       integer, allocatable :: I2UR(:,:), J2UR(:,:)
       integer, allocatable :: I2UL(:,:), J2UL(:,:)
       integer, allocatable :: I2DR(:,:), J2DR(:,:)
       integer, allocatable :: I2DL(:,:), J2DL(:,:)
-      real*4, allocatable :: D2XT(:,:), D2Xa(:,:), D2Xb(:,:)
-      real*4, allocatable ::            D2Xc(:,:), D2Xd(:,:)
+      real(4), allocatable :: D2XT(:,:), D2Xa(:,:), D2Xb(:,:)
+      real(4), allocatable ::            D2Xc(:,:), D2Xd(:,:)
 
       PI = atan(1.)*4.
       PIR180 = atan(1.)/45.
@@ -3083,14 +3084,14 @@
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
       character*128 Path_Output
-      real*4  truelatL,truelatH
+      real(4)  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -3110,32 +3111,32 @@
       integer i,j,k,l,m,n
       integer ibigend
 
-      real*4  size_2d(4),ddeg
+      real(4)  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
 
-      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
-      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+      real(4), allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real(4)  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
       integer n_month
       logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
-      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
-      real*4  PI,PIR180
-      real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
-      real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
-      real*4  SIGN0,GRIDFC
-      real*4  sum0,weight
-      real*4, allocatable :: out(:,:)
-      real*4, allocatable :: olat(:),olon(:)
+      real(4)  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real(4)  PI,PIR180
+      real(4)  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
+      real(4)  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
+      real(4)  SIGN0,GRIDFC
+      real(4)  sum0,weight
+      real(4), allocatable :: out(:,:)
+      real(4), allocatable :: olat(:),olon(:)
 
       integer, allocatable :: I1UR(:,:), J1UR(:,:)
       integer, allocatable :: I1UL(:,:), J1UL(:,:)
       integer, allocatable :: I1DR(:,:), J1DR(:,:)
       integer, allocatable :: I1DL(:,:), J1DL(:,:)
-      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
-      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+      real(4), allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real(4), allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
       ibigend= 1
 
@@ -4036,16 +4037,16 @@
                              ,idate0,idate1,idate2,Path_Output,igrads)
       implicit none
       integer iy,jx,kz,np,ibyte,idate0,idate1,idate2,igrads
-      real*4  plev(np)
+      real(4)  plev(np)
       character*128 Path_Output
-      real*4  truelatL,truelatH
+      real(4)  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -4065,32 +4066,32 @@
       integer i,j,k,l,m,n
       integer ibigend
 
-      real*4  size_2d(4),ddeg
+      real(4)  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
 
-      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
-      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+      real(4), allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real(4)  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
       integer n_month
       logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
-      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
-      real*4  PI,PIR180
-      real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
-      real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
-      real*4  SIGN0,GRIDFC
-      real*4  sum0,weight
-      real*4, allocatable :: out(:,:)
-      real*4, allocatable :: olat(:),olon(:)
+      real(4)  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real(4)  PI,PIR180
+      real(4)  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
+      real(4)  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
+      real(4)  SIGN0,GRIDFC
+      real(4)  sum0,weight
+      real(4), allocatable :: out(:,:)
+      real(4), allocatable :: olat(:),olon(:)
 
       integer, allocatable :: I1UR(:,:), J1UR(:,:)
       integer, allocatable :: I1UL(:,:), J1UL(:,:)
       integer, allocatable :: I1DR(:,:), J1DR(:,:)
       integer, allocatable :: I1DL(:,:), J1DL(:,:)
-      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
-      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+      real(4), allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real(4), allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
       ibigend= 1
 
@@ -4992,14 +4993,14 @@
       implicit none
       integer iy,jx,kz,ibyte,idate0,idate1,idate2,igrads
       character*128 Path_Output
-      real*4  truelatL,truelatH
+      real(4)  truelatL,truelatH
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -5019,32 +5020,32 @@
       integer i,j,k,l,m,n
       integer ibigend
 
-      real*4  size_2d(4),ddeg
+      real(4)  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
 
-      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
-      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+      real(4), allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real(4)  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
       integer n_month
       logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
-      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
-      real*4  PI,PIR180
-      real*4  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
-      real*4  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
-      real*4  SIGN0,GRIDFC
-      real*4  sum0,weight
-      real*4, allocatable :: out(:,:)
-      real*4, allocatable :: olat(:),olon(:)
+      real(4)  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real(4)  PI,PIR180
+      real(4)  POLLAM,POLPHI,POLCPHI,POLSPHI,ZPHI,ZRLA,ZRLAP
+      real(4)  ZARG1,ZARG2,ZNORM,SINDEL,COSDEL,US,VS,X
+      real(4)  SIGN0,GRIDFC
+      real(4)  sum0,weight
+      real(4), allocatable :: out(:,:)
+      real(4), allocatable :: olat(:),olon(:)
 
       integer, allocatable :: I1UR(:,:), J1UR(:,:)
       integer, allocatable :: I1UL(:,:), J1UL(:,:)
       integer, allocatable :: I1DR(:,:), J1DR(:,:)
       integer, allocatable :: I1DL(:,:), J1DL(:,:)
-      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
-      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+      real(4), allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real(4), allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
       ibigend= 1
 
@@ -5968,11 +5969,11 @@
       character*128 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real*4  dxsp,ptsp,clat,clon,plat,plon
-      real*4  dto,dtb,dtr,dtc
+      real(4)  dxsp,ptsp,clat,clon,plat,plon
+      real(4)  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real*4, allocatable ::  sigma(:)
+      real(4), allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -5992,28 +5993,28 @@
       integer i,j,k,l,m,n
       integer ibigend
 
-      real*4  size_2d(4),ddeg
+      real(4)  size_2d(4),ddeg
       COMMON /WINDOW/ size_2d,ddeg
 
-      real*4, allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
-      real*4  xmaxlat,xminlat,xmaxlon,xminlon
+      real(4), allocatable ::  o(:,:,:),xlat(:,:),xlon(:,:)
+      real(4)  xmaxlat,xminlat,xmaxlon,xminlon
 
       integer mlat,nlat,mlon,nlon
       integer n_month
       logical there
 
       integer MUR,NUR,MUL,NUL,MDR,NDR,MDL,NDL
-      real*4  DISTa,DISTb,DISTc,DISTd,AAA,DIST
-      real*4  PI
-      real*4, allocatable :: out(:,:)
-      real*4, allocatable :: olat(:),olon(:)
+      real(4)  DISTa,DISTb,DISTc,DISTd,AAA,DIST
+      real(4)  PI
+      real(4), allocatable :: out(:,:)
+      real(4), allocatable :: olat(:),olon(:)
 
       integer, allocatable :: I1UR(:,:), J1UR(:,:)
       integer, allocatable :: I1UL(:,:), J1UL(:,:)
       integer, allocatable :: I1DR(:,:), J1DR(:,:)
       integer, allocatable :: I1DL(:,:), J1DL(:,:)
-      real*4, allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
-      real*4, allocatable ::            D1Xc(:,:), D1Xd(:,:)
+      real(4), allocatable :: D1XT(:,:), D1Xa(:,:), D1Xb(:,:)
+      real(4), allocatable ::            D1Xc(:,:), D1Xd(:,:)
 
       ibigend= 1
 

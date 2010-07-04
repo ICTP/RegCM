@@ -44,35 +44,20 @@
 !
       character(5) :: aerctl
       integer :: i , itr , j , k , l , m , n
-      logical :: rd_tex , there
+      logical :: there
       real(4) , dimension(iy,jx) :: toto
 #ifdef MPP1
       integer :: ierr
 #endif
 !
-      rd_tex = .false.
-#ifdef MPP1
-      if ( myid.eq.0 ) then
-        do itr = 1 , ntr
-          aerctl = chtrname(itr)
-          if ( aerctl(1:4).eq.'DUST' ) then
-            rd_tex = .true.
-            exit
-          end if
-        end do
-      end if
-#else
-      do itr = 1 , ntr
-        aerctl = chtrname(itr)
-        if ( aerctl(1:4).eq.'DUST' ) then
-          rd_tex = .true.
-          exit
-        end if
-      end do
-#endif
+
+
+! fisrt activate dust initialization
+     call inidust
+     print*, 'CALL inidust'
+! read the monthly aerosol emission files
 
 #ifdef MPP1
-      call mpi_bcast(rd_tex,1,mpi_logical,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do itr = 1 , ntr
           aerctl = chtrname(itr)
@@ -299,53 +284,8 @@
       end do
 #endif
  
-!     modification dust : read the soil texture type
-
-#ifdef MPP1
-#ifdef CLM
-!      if ( myid.eq.0 ) then
-!        if ( rd_tex ) then
-!          call clm_getsoitex()
-!          do j = 1 , jx
-!            do i = 1 , iy
-!              dustsotex_io(i,j) = clm_soitex(i,j)
-!            end do
-!          end do
-!        end if
-!      end if
-!      if ( allocated(clm_soitex) ) deallocate(clm_soitex)
-#else
-      if ( myid.eq.0 ) then
-        if ( rd_tex ) then
-          read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,iy)
-          close (iutin)
-          do j = 1 , jx
-            do i = 1 , iy
-              dustsotex_io(i,j) = dble(toto(i,j))
-            end do
-          end do
-        end if
-      end if
-!     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-#endif
-      call mpi_scatter(dustsotex_io(1,1),iy*jxp,mpi_real8,              &
-                     & dustsotex(1,1),iy*jxp,mpi_real8,0,               &
-                     & mpi_comm_world,ierr)
-#else
-      if ( rd_tex ) then
-        read (iutin,rec=14) ((toto(i,j),j=1,jx),i=1,iy)
-        close (iutin)
-        do j = 1 , jx
-          do i = 1 , iy
-            dustsotex(i,j) = dble(toto(i,j))
-          end do
-        end do
-      end if
-#endif
-
-      if ( rd_tex ) call inidust
- 
 !     sulfates sources
+
       do m = 1 , 12
 #ifdef MPP1
         do j = 1 , jendl

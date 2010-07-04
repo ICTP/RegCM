@@ -40,6 +40,7 @@
       use mod_dust
       use mod_date
       use mod_message
+      use mod_aero_sett_ddep
       use mod_constants , only : gti , zlnd , zoce , zsno , ep2 , svp1 ,&
                                & svp2 , svp3 , svp4 , svp5 , svp6 ,     &
                                & tzero
@@ -61,7 +62,7 @@
                                   & ttb , wk , wl
       logical :: gfcall , gfcall2 , gfcall3 , gfcall4
       integer :: i , ibin , itr , k , kb , kdwd
-      integer , dimension(iy) :: ivegcov , soilt
+      integer , dimension(iy) :: ivegcov
       real(8) , dimension(iy,kz,nbin) :: pdepv
       real(8) , dimension(iy) :: psurf , rh10 , soilw , srad ,  &
                                & temp10 , tsurf , vegfrac , wid10 ,     &
@@ -567,9 +568,6 @@
 !           fraction of vegetation
             vegfrac(i) = svegfrac2d(i,j)
  
-!           soil texture ( from external preoproc)
-            soilt(i) = nint(dustsotex(i,j))
- 
 !           surface temperature
 !           over land recalculated from the BATS  deltk air/ surface
 !           temperature account for a composite temperature between
@@ -588,7 +586,7 @@
  
           end do
 
-          call sfflux(iy,2,iym2,j,20,ivegcov,vegfrac,soilt,ustar,       &
+          call sfflux(iy,2,iym2,j,20,ivegcov,vegfrac,ustar,       &
                     & zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)
  
           call chdrydep(iy,2,iym2,kz,1,nbin,ivegcov,ttb,rho,a,psurf,    &

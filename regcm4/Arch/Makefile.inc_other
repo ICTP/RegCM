@@ -40,6 +40,10 @@ ifneq ($(origin PARALLEL), undefined)
 CPPFLAGS += -D$(PARALLEL)
 endif
 
+ifeq ($(USEBAND),1)
+  CPPFLAGS += -DBAND
+endif
+
 ifeq ($(USECLM),1)
   CPPFLAGS += -DCLM
 endif

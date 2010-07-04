@@ -23,6 +23,8 @@
 
       implicit none
 !
+      integer, parameter  :: nmonth = 12
+    
       real(8) , allocatable, dimension(:,:,:,:) :: chemsrc
       real(8) , allocatable, dimension(:,:,:,:) :: chia , chib
       real(8) , allocatable, dimension(:,:,:) :: srclp2
@@ -40,10 +42,9 @@
       contains 
 
         subroutine allocate_mod_mainchem
-        use mod_dust , only : nats
         implicit none
 #ifdef MPP1
-        allocate(chemsrc(iy,jxp,nats,ntr))
+        allocate(chemsrc(iy,jxp,nmonth,ntr))
         allocate(chia(iy,kz,-1:jxp+2,ntr))
         allocate(chib(iy,kz,-1:jxp+2,ntr))
         allocate(srclp2(iy,jxp,ntr))
@@ -53,10 +54,10 @@
         allocate(wdlsc(iy,jxp,ntr))
         allocate(wxaq(iy,jxp,ntr))
         allocate(wxsg(iy,jxp,ntr))
-        allocate(src0(iy,nats,ntr,jxp))
-        allocate(src_0(iy,nats,ntr,jx))
+        allocate(src0(iy,nmonth,ntr,jxp))
+        allocate(src_0(iy,nmonth,ntr,jx))
 #else
-        allocate(chemsrc(iy,jx,nats,ntr))
+        allocate(chemsrc(iy,jx,nmonth,ntr))
         allocate(chia(iy,kz,jx,ntr))
         allocate(chib(iy,kz,jx,ntr))
         allocate(srclp2(iy,jx,ntr))

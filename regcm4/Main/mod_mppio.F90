@@ -83,7 +83,6 @@
                               & aertalwrf_io , aersrlwrf_io
       real(8) , allocatable , dimension(:,:,:) :: cemtrac_io ,          &
                                 & cemtr_io , wxaq_io , wxsg_io
-      real(8) , allocatable , dimension(:,:) :: dustsotex_io
       real(8) , allocatable , dimension(:,:,:,:) :: rxsaq1_io ,         &
                                 & rxsaq2_io , rxsg_io
 
@@ -255,7 +254,6 @@
       allocate(cemtr_io(iy,jx,ntr))
       allocate(wxaq_io(iy,jx,ntr))
       allocate(wxsg_io(iy,jx,ntr))
-      allocate(dustsotex_io(iy,jx))
       allocate(rxsaq1_io(iy,kz,jx,ntr))
       allocate(rxsaq2_io(iy,kz,jx,ntr))
       allocate(rxsg_io(iy,kz,jx,ntr))

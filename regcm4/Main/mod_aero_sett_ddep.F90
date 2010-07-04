@@ -16,7 +16,78 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+!
+      module mod_aero_sett_ddep
+
+      use mod_dynparam , only : nveg
+
+      implicit none
+!
+      integer , parameter :: isize = 12
+
+!     Basic aerosol density (ACE-2 ?) in kg/m^3
+      real(8) , parameter :: rhop = 2650.0
+
+!     Dynamic Viscosity Parameters
+      real(8) , parameter :: a1 = 145.8
+      real(8) , parameter :: a2 = 1.5
+      real(8) , parameter :: a3 = 110.4
+
+!     Molecular Free Path calculation parameters
+      real(8) , parameter :: c1 = 6.54E-8
+      real(8) , parameter :: c2 = 1.818E-5
+      real(8) , parameter :: c3 = 1.013E5
+      real(8) , parameter :: c4 = 293.15
+
+!     Cunningham slip correction factor parameters
+      real(8) , parameter :: aa1 = 1.257
+      real(8) , parameter :: aa2 = 0.4
+      real(8) , parameter :: aa3 = 1.1
+
+!     Aerosol Dry radius
+      real(8) , dimension(2,isize) :: aerosize
+      real(8) , dimension(isize) :: avesize
+!     Stokes parameter
+      real(8) , dimension(20) :: aest_bats
+      real(8) , dimension(20) :: arye_bats
+      real(8) , allocatable , dimension(:) :: aest
+      real(8) , allocatable , dimension(:) :: arye
+!
+! DATA SECTION
+!
+      data aerosize/1.0E-08 , 2.0E-08 , 2.0E-08 , 4.0E-08 , 4.0E-08 ,   &
+         & 8.0E-08 , 8.0E-08 , 1.6E-07 , 1.6E-07 , 3.2E-07 , 3.2E-07 ,  &
+         & 6.4E-07 , 6.4E-07 , 1.28E-06 , 1.28E-06 , 2.56E-06 ,         &
+         & 2.56E-06 , 5.12E-06 , 5.12E-06 , 10.4E-06 , 10.24E-06 ,      &
+         & 20.48E-06 , 20.48E-06 , 40.6E-06/
+
+      data aest_bats/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,&
+         & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
+         & 1.2 , 1.2 , 1.2/
+
+      data arye_bats/0.5 , 5.0 , 0.5 , 5.0 , 1.0 , 1.0 , 0.0001 , 5.0 , &
+         & 10.0 , 10.0 , 0.0001 , 0.0001 , 0.56 , 0.56 , 0.56 , 0.56 ,  &
+         & 0.56 , 0.56 , 0.56 , 0.56/
+
+      contains
+
+      subroutine allocate_mod_aero_sett_ddep
+        use mod_message , only : fatal
+        implicit none
+        allocate(aest(nveg))
+        allocate(arye(nveg))
+
+        if ( nveg==20 ) then
+          aest = aest_bats
+          arye = arye_bats
+        else
+          print *, 'Undefined stokes parameters for non bats'
+          print *, 'Please define them in mod_aero_sett_ddep'
+          call fatal(__FILE__,__LINE__,                                 &
+                 &  'STOKES UNDEF IN MOD_AERO_SETT_DDEP')
+        end if
+      end subroutine allocate_mod_aero_sett_ddep
+!
       subroutine chdrydep(ilg,il1,il2,ilev,luc,nbin,ivegcov,throw,      &
                         & roarow,shj,pressg,temp2,sutemp,srad,rh10,     &
                         & wind10,zeff,trsize,pdepv)
@@ -56,7 +127,6 @@
 
       use mod_constants , only : ep2 , gti , rgti , vonkar , mathpi ,   &
                                & tzero , boltzk , stdpmb
-      use mod_aero_param
 
       implicit none
 !
@@ -481,3 +551,5 @@
       end do
  
       end subroutine chdrydep
+
+      end module mod_aero_sett_ddep

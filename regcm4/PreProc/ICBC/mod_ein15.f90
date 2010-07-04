@@ -107,7 +107,11 @@
       call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
  
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-      call p1p2(b3pd,ps4,jx,iy)
+      if(i_band.eq.1) then
+         call p1p2_band(b3pd,ps4,jx,iy)
+      else
+         call p1p2(b3pd,ps4,jx,iy)
+      endif
  
 !     INTERPOLATION FROM PRESSURE LEVELS
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
@@ -192,9 +196,9 @@
 !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
 !
 !bxq
-      if ( idate<1989010100 .or. idate>2009053118 ) then
+      if ( idate<1989010100 .or. idate>2010033118 ) then
         write (*,*) 'EIN15 datasets is just available from' ,           &
-                   &' 1989010100 to 2009053118'
+                   &' 1989010100 to 2010033118'
         stop
       end if
  

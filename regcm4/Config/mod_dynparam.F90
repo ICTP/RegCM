@@ -52,6 +52,10 @@
 !          'ROTMER', Rotated Mercator
 !
       character(6) :: iproj
+ 
+! Control flag for tropical band option.
+ 
+      integer :: i_band
 
 ! Grid point horizontal resolution in km
 
@@ -321,12 +325,13 @@
       contains
 
       subroutine initparam(filename, ierr)
+        use mod_constants
         implicit none
         character (len=*) , intent(in) :: filename
         integer , intent(out) :: ierr
 
         namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-                     & plon , truelatl, truelath
+                     & plon , truelatl, truelath , i_band
         namelist /terrainparam/ domname , itype_in , ntypec , ntypec_s ,&
                      &  ifanal , smthbdy , lakadj , fudge_lnd ,         &
                      & fudge_lnd_s , fudge_tex , fudge_tex_s , ntex ,   &
@@ -369,7 +374,16 @@
         nnsg = nsg*nsg
         nveg = 20
 
+        i_band = 0
+
         read(ipunit, geoparam, err=102)
+
+        if ( i_band.eq.1 ) then
+          ds = (2.0D0*mathpi*earthrad)/dble(jx)
+          iproj = 'NORMER'
+          clat  =   0.0
+          clon  = 180.0
+        end if
 
         ! Defaults to have SAME behaviour of V3 if not specified
         inpter  = '../DATA'

@@ -21,28 +21,28 @@ ICBCOBJ = icbc.o
 
 aerosol: $(AEROSOLOBJ) $(SHRMOD)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(SHRMOD) \
-               $(LIB) $(NETCDFLIB)
+               $(NETCDFLIB)
 
 sst: $(SHRMOD) $(SSTOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SSTOBJ) $(SHRMOD) \
-               $(LIB) $(NETCDFLIB)
+               $(NETCDFLIB)
 
 icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMOD) $(MODOBJ) $(ICBCOBJ) \
-               $(LIB) $(NETCDFLIB)
+               $(NETCDFLIB)
 
 install: aerosol icbc sst
 	@cp aerosol icbc sst $(BINDIR)
 	@chmod 755 $(BINDIR)/aerosol $(BINDIR)/icbc $(BINDIR)/sst
 	@echo "Programs all installed in $(BINDIR)" 
 
-mod_dynparam.o: ../../Config/mod_dynparam.F90
-	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
-               $(USCORING) -c -o $@ $<
-
 mod_constants.o: ../../Config/mod_constants.F90
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
+
+mod_dynparam.o: ../../Config/mod_dynparam.F90 mod_constants.o
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+               $(USCORING) -c -o $@ $<
 
 mod_header.o: mod_header.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) $(USCORING) -c $<

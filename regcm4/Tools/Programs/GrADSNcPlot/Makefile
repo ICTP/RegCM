@@ -10,7 +10,7 @@ OBJS = mod_projections.o mod_constants.o
 
 GrADSNcPlot: GrADSNcPlot.f90 $(OBJS)
 	$(F90) $(LDFLAGS) $(NETCDFINC) $(F90FLAGS) -o $@ $< $(OBJS) \
-               $(LIB) $(NETCDFLIB)
+               $(NETCDFLIB)
 
 mod_constants.o: ../../../Config/mod_constants.F90
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \

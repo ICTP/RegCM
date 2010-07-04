@@ -16,14 +16,18 @@ REPORTOBJ = report.o bilinxo.o julian2.o
 SHRMOD = mod_dynparam.o
 
 report: $(SHRMOD) $(MODOBJ) $(REPORTOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(REPORTOBJ) $(LIB) \
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(REPORTOBJ) \
                $(MODOBJ) $(SHRMOD) $(NETCDFLIB)
 
 emission: $(SHRMOD) $(MODOBJ) $(EMISSOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(EMISSOBJ) $(LIB) \
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(EMISSOBJ) \
                $(MODOBJ) $(SHRMOD) $(NETCDFLIB)
 
-mod_dynparam.o: ../../Config/mod_dynparam.F90
+mod_constants.o: ../../Config/mod_constants.F90
+	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+            $(USCORING) -c -o $@ $<
+
+mod_dynparam.o: ../../Config/mod_dynparam.F90 mod_constants.o
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
             $(USCORING) -c -o $@ $<
 

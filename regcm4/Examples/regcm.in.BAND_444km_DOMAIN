@@ -1,22 +1,25 @@
+! This is a simple demo input file for regcm4.0 
+! used in the RegCM Workshop in june 2010 
  &dimparam
- iy     = 70,
- jx     = 160,
+ iy     = 30,
+ jx     = 90,
  kz     = 18,
  nsg    = 1,
  /
  &geoparam
- iproj = 'ROTMER',
- ds = 60.0,
+ iproj = 'NORMER',
+ i_band = 1,
+ ds = 444.79574,
  ptop = 5.0,
- clat = 12.,
- clon = 8.,
- plat = 12.,
- plon = 8.,
+ clat = 0.0,
+ clon = 180.00,
+ plat = 45.39,
+ plon = 13.48,
  truelatl = 30.0,
  truelath = 60,
  /
  &terrainparam
- domname = 'WAFDUST',
+ domname = 'BAND',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
@@ -29,8 +32,8 @@
  fudge_tex_s = .false.,
  ntex = 17,
  h2opct = 75.,
- dirter = '/lustre/fsolmon/regcm/branches/regcm4/Input',
- inpter = '/scratch/fsolmon/RCM3DATA',
+ dirter = '/set/this/to/where/your/domain/file/is',
+ inpter = '/set/this/to/where/your/surface/dataset/is',
  /
  &ioparam
  igrads = 1,
@@ -42,8 +45,8 @@
  debug_level = 1
  /
  &boundaryparam
- nspgx  = 12,
- nspgd  = 12,
+ nspgx  = 5,
+ nspgd  = 5,
  /
  &modesparam
  nsplit = 2,
@@ -52,14 +55,14 @@
  lkpts  = 10,
  /
  &globdatparam
- ibdyfrq = 6,
  ssttyp = 'OI_WK',
- dattyp = 'NNRP2',
+ dattyp = 'EIN15',
  ehso4 = .false.,
- globidate1 = 2006060100,
- globidate2 = 2006090100,
- dirglob = '/lustre/fsolmon/regcm/branches/regcm4/Input',
- inpglob = '/scratch/esp/RCM3DATA',
+ globidate1 = 1990060100,
+ globidate2 = 1990070100,
+ ibdyfrq = 6,
+ dirglob = '/set/this/to/where/your/icbc/for/model/is',
+ inpglob = '/set/this/to/where/your/input/global/data/is',
  /
  &globwindow
  lat0 = 0.0
@@ -68,51 +71,51 @@
  lon1 = 0.0
  /
  &aerosolparam
- aertyp = 'AER00D1'
- ntr = 4,
+ aertyp = 'AER00D0'
+ ntr = 10,
  nbin = 4,
  /
  &restartparam
  ifrest  = .false. ,
- idate0  = 2006051500,
- idate1  = 2006051500,
- idate2  = 2006070100,
+ idate0  = 1990060100,
+ idate1  = 1990060100,
+ idate2  = 1990070100,
  /
  &timeparam
  radfrq  =    30.,
  abemh   =    18.,
  abatm   =   600.,
- dt      =   120.,
+ dt      =   150.,
  /
  &outparam
  ifsave  = .true. ,
-   savfrq  =    48.,
+   savfrq  =  7200.,
  iftape  = .true. ,
    tapfrq  =     6.,
  ifrad   = .true. ,
    radisp  =     6.,
  ifbat   = .true. ,
  ifsub   = .true. ,
-   batfrq  =     6.,
+   batfrq  =     3.,
  ifprt   = .false.,
    prtfrq  =    12.,
    kxout   =          6,
    jxsex   =         40,
- ifchem  = .true.,
+ ifchem  = .false.,
    chemfrq =     6.,
- dirout='/set/this/to/where/your/output/files/will/be/written',
+ dirout='/set/this/to/where/your/output/files/will/be/written'
  /
  &physicsparam
  iboudy  =          5,
  ibltyp  =          1,
  icup    =          2,
-   igcc    =          2,
+ igcc    =          2,
  ipptls  =          1,
  iocnflx =          2,
  ipgf    =          0,
  iemiss  =          0,
  lakemod =          0,
- ichem   =          1,
+ ichem   =          0,
  /
  &subexparam
  qck1land=   .250E-03,
@@ -124,16 +127,17 @@
  /
  &emanparam
  /
- &chemparam
- idirect   =    2,
- inpchtrname  =   'DUST','DUST','DUST','DUST',
- inpchtrsol   =  0.10, 0.10, 0.10, 0.10 
- inpchtrdpv   = 0.00000,0.00000,0.00000,0.00000,0.00000,0.00000,0.00000,0.00000, 
+  &chemparam
+ idirect   =    1,
+ inpchtrname  = 'DUST','DUST','DUST','DUST', 'SO2','SO4','BC_HB','BC_HL','OC_HB','OC_HL',
+ inpchtrsol   =  0.10, 0.10, 0.10, 0.10, 0.20, 0.80, 0.05, 0.80, 0.05, 0.80
+ inpchtrdpv(:,1) =0.,0.,0.,0., 0.00300,0.00200,0.00025,0.00025,0.00025,0.00025
+ inpchtrdpv(:,2) = 0.,0.,0.,0., 0.00800,0.0020 ,0,0.00025,0.00250,0.00025,0.00250
  inpdustbsiz(:,1)  = 0.01, 1.00, 2.50, 5.00
- inpdustbsiz(:,2)= 1.00, 2.50, 5.00,20.00 
+ inpdustbsiz(:,2)= 1.00, 2.50, 5.00,20.00
  /
  &clmparam
- dirclm = '/home/graziano/Software/regcm/branches/regcm4/Input',
+ dirclm = '/set/this/to/where/your/input/clm/data/are',
  imask  = 1,
- clmfrq = 12.,
+ clmfrq = 24.,
  /

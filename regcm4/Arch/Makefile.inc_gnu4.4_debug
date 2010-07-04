@@ -3,6 +3,8 @@
 
 # Model flags
 
+# Set to 1 to enable the tropical band (belt) version
+USEBAND = !BAND
 # Set to 1 to enable CLM coupling
 USECLM = !CLM
 # Set to 1 to enable daily cycle SST
@@ -45,6 +47,10 @@ CPPFLAGS =
 
 ifneq ($(origin PARALLEL), undefined)
 CPPFLAGS += -D$(PARALLEL)
+endif
+
+ifeq ($(USEBAND),1)
+  CPPFLAGS += -DBAND
 endif
 
 ifeq ($(USECLM),1)

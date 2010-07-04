@@ -15,17 +15,17 @@ MODOBJS =  mod_block.o     mod_interp.o    mod_maps.o        mod_rdldtr.o \
 
 OBJS =     terrain.o
 
-mod_dynparam.o: ../../Config/mod_dynparam.F90
+mod_constants.o: ../../Config/mod_constants.F90
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
-mod_constants.o: ../../Config/mod_constants.F90
+mod_dynparam.o: ../../Config/mod_dynparam.F90 mod_constants.o
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
 terrain: $(SHRMODS) $(MODOBJS) $(OBJS)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMODS) $(MODOBJS) $(OBJS) \
-               $(LIB) $(NETCDFLIB)
+               $(NETCDFLIB)
 
 install: terrain 
 	@cp terrain $(BINDIR)

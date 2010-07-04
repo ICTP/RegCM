@@ -96,6 +96,45 @@
 !
       end subroutine p1p2
 !
+!
+      subroutine p1p2_band(pd,px,ni,nj)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: ni , nj
+      real(4) , dimension(ni,nj) :: pd , px
+      intent (in) ni , nj , px
+      intent (out) pd
+!
+! Local variables
+!
+      integer :: i , j , nj1 , im1
+!
+!     THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
+!     ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
+!     SATISFY P(0,J)=P(1,J); P(NI,J)=P(NI-1,J); AND SIMILARLY FOR THE
+!     I'S.
+!
+      nj1 = nj - 1
+!
+      do j = 2 , nj1
+        do i = 1 , ni
+          im1=i-1
+          if(im1.eq.0) im1=ni
+          pd(i,j) = 0.25*(px(i,j)+px(im1,j)+px(i,j-1)+px(im1,j-1))
+        end do
+      end do
+!
+      do i = 1 , ni
+        im1=i-1
+        if(im1.eq.0) im1=ni
+        pd(i,1) = 0.5*(px(i,1)+px(im1,1))
+        pd(i,nj) = 0.5*(px(i,nj1)+px(im1,nj1))
+      end do
+!
+      end subroutine p1p2_band
+!
 !-----------------------------------------------------------------------
 !
       subroutine top2btm(x,nlon1,nlat1,nlev1)

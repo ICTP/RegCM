@@ -88,6 +88,18 @@ def main():
     if mpi == 1 :
         mpi_compiler="mpif90"
 
+    print "\n  ****  Do you want to run the tropical band version, BAND  - 1 or not - 0? \n\t[0]"
+    band=raw_input("\tBAND = ")
+    if len(band) == 0 :
+        band = int(0)
+    else:
+        try :
+            band = int(band)
+            if not 0<=band<=1:
+                band = int(0)
+        except :
+            band = int(0)
+
     print "\n  ****  Do you want to enable the DCSST  - 1 or not - 0? \n\t[0]"
     dcsst=raw_input("\tDCSST = ")
     if len(dcsst) == 0 :
@@ -154,6 +166,7 @@ def main():
     #print ncpath
     #print dbg
     #print mpi
+    #print band
     #print dcsst
     #print seaice
     #print clm
@@ -170,9 +183,9 @@ def main():
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
     if mpi == 1 :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,clm,dcsst,seaice,compiler)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,dcsst,seaice,compiler)
     else :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",clm,dcsst,seaice,compiler)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,dcsst,seaice,compiler)
 
     #If the user has chosen the Sun compilers:
     #Write a note to the user indicating that the -M line will need to be
@@ -280,10 +293,11 @@ def choose_template(regcm_root,compiler,dbg):
 
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
-def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,clm,dcsst,seaice,compiler) :
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,dcsst,seaice,compiler) :
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
 
+        line=line.replace("!BAND",str(band))
         line=line.replace("!CLM",str(clm))
         line=line.replace("!DCSST",str(dcsst))
         line=line.replace("!SEAICE",str(seaice))
