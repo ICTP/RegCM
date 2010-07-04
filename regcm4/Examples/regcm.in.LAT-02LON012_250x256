@@ -86,7 +86,7 @@
  /
  &outparam
  ifsave  = .true. ,
-   savfrq  =    48.,
+   savfrq  =    7200.,
  iftape  = .true. ,
    tapfrq  =     6.,
  ifrad   = .true. ,
