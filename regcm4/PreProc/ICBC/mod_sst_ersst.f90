@@ -189,7 +189,7 @@
 !
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
-      real(8) , save :: xadd , xscale
+      real(8) , save :: xadd , xscale , xmiss
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -222,6 +222,7 @@
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+        istatus = nf90_get_att(inet,ivar,'_FillValue',xmiss)
         istart(1) = 1
         istart(2) = 1
         icount(1) = 240
@@ -231,8 +232,7 @@
           icount(n) = 0
         end do
       end if
- 
-!bxq
+! 
       istart(3) = it
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
@@ -241,11 +241,14 @@
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
-!bxq_
 !
       do j = 1 , jlat
         do i = 1 , ilon
-          sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+          if (work(i,j)/=xmiss) then
+            sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+          else
+            sst(i,jlat+1-j)=-9999
+          end if
         end do
       end do
 !
@@ -274,7 +277,7 @@
       integer :: istatus
 !
       integer , save :: inet , ivar
-      real(8) , save :: xadd , xscale
+      real(8) , save :: xadd , xscale , xmiss
       integer , dimension(10) , save :: icount , istart
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -308,6 +311,7 @@
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+        istatus = nf90_get_att(inet,ivar,'_FillValue',xmiss)
         istart(1) = 1
         istart(2) = 1
         icount(1) = 240
@@ -317,8 +321,7 @@
           icount(n) = 0
         end do
       end if
- 
-!bxq
+!
       istart(3) = it
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
@@ -327,11 +330,14 @@
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
-!bxq_
 !
       do j = 1 , jlat
         do i = 1 , ilon
-          sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+          if (work(i,j)/=xmiss) then
+            sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+          else
+            sst(i,jlat+1-j)=-9999
+          end if
         end do
       end do
 !
