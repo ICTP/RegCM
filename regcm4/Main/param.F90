@@ -89,10 +89,9 @@
                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
                & wkp1 , xbot , xtop , xx , yy
       real(8) , dimension(nsplit) :: dtsplit
-      real(4) :: grdfac
-      integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
-               & kbase , ktop , kzz , m , mdate1 , mday , mmon , myear ,&
-               & n , ns , jxx , iyy , istatus , idimid , ivarid
+      integer :: i , ii , j , jj , k , kbase , ktop , kzz , m , mdate1 ,&
+               & mday , mmon , myear , n , ns , jxx , iyy , istatus ,   &
+               & idimid , ivarid
       integer , dimension(12) :: mmd
       real(4) , dimension(kzp1) :: sp1d
       real(4) , dimension(jx,iy) :: sp2d
