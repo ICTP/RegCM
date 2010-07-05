@@ -1373,7 +1373,9 @@
 #else
       do j = 2 , jxm1
 #endif
+#ifndef BAND
         if ( j.ne.jxm1 ) then
+#endif
           if ( jyear.ne.jyear0 .or. ktau.ne.0 ) then
             do i = 2 , iym2
               iptn = iptn + 1
@@ -1382,7 +1384,9 @@
                      & /(0.25*dt*dt))
             end do
           end if
+#ifndef BAND
         end if
+#endif
       end do
 #endif
 !
