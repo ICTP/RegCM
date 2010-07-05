@@ -49,7 +49,7 @@
 ! Local variables
 !
       integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
-             &   mrec , nday , nmo , nyear , nsteps
+             &   nday , nmo , nyear , nsteps
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(20) :: lund
@@ -108,21 +108,9 @@
       end if
       idatef = idate
       print * , globidate1 , globidate2 , idateo , idatef
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
-          &  '_RCM_SST.dat'
-      open (25,file=sstfile,status='unknown',form='unformatted',        &
-          & recl=iy*jx*ibyte,access='direct')
-      if ( igrads==1 ) then
-        write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,    &
-         &   '_RCM_SST.ctl'
-        open (31,file=sstfile,status='replace')
-        write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
-      end if
       nsteps = (idatef/100-idateo/100)*12 + (idatef-(idatef/100)*100)   &
                & - (idateo-(idateo/100)*100) + 1
-      call setup_sstfile(idateo,nsteps)
       call open_sstfile(idateo)
-      mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
       do i = 1 , ilon
@@ -205,13 +193,11 @@
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
         write (21) nday , nmo , nyear , sstmm
+        call writerec(idate)
         print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
         idate = idate + 1
         if ( nmo==12 ) idate = idate + 88
-        mrec = mrec + 1
-        write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
       end do
-      write (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
  
 99001 format (a,a,a,a)
       end subroutine sst_fvgcm

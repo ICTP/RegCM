@@ -61,7 +61,7 @@
       real(4) , dimension(ilon) :: glon
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate , idate0
-      integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
+      integer :: i , idatef , idateo , j , k , ludom , lumax , &
                & nday , nmo , nyear
       integer , dimension(20) :: lund
       character(256) :: sstfile , inpfile
@@ -94,19 +94,7 @@
       idatef = idate
       print * , globidate1 , globidate2 , idateo , idatef
  
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
-         &  '_RCM_SST.dat'
-      open (25,file=sstfile,status='unknown',form='unformatted',        &
-          & recl=iy*jx*ibyte,access='direct')
-      if ( igrads==1 ) then
-        write (sstfile,99001) trim(dirglob), pthsep, trim(domname),     &
-          & '_RCM_SST.ctl'
-        open (31,file=sstfile,status='replace')
-        write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
-      end if
-      call setup_sstfile(idateo,idatef)
       call open_sstfile(idateo)
-      mrec = 0
  
       idate = idateo
       do while ( idate<=idatef )
@@ -158,14 +146,11 @@
           end do
         end do
         write (21) nday , nmo , nyear , sstmm
+        call writerec(idate)
         print * , 'WRITING OUT CCSM SST DATA:' , nmo , nyear
         idate = idate + 1
         if ( nmo==12 ) idate = idate + 88
-        mrec = mrec + 1
-        write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
-!       print*, sstmm
       end do
-      write (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
  
       return
 

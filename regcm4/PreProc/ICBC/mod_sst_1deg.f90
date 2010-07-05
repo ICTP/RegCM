@@ -62,7 +62,7 @@
       real(4) , dimension(ilon,jlat) :: sst , ice
       integer :: idate , idate0 , kend , kstart
       integer , dimension(427+1097) :: wkday
-      integer :: i , idatef , idateo , j , k , ludom , lumax , mrec ,   &
+      integer :: i , idatef , idateo , j , k , ludom , lumax , &
                & nday , nmo , nrec , nyear , nsteps
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
@@ -139,29 +139,7 @@
       write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
              & '_SST.RCM'
       open (21,file=sstfile,form='unformatted',status='replace')
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
-          & '_RCM_SST.dat'
-      open (25,file=sstfile,status='unknown',form='unformatted',        &
-          & recl=iy*jx*ibyte,access='direct')
 
-      if ( igrads==1 ) then
-        write (sstfile,99001) trim(dirglob), pthsep, trim(domname),     &
-           &  '_RCM_SST.ctl'
-        open (31,file=sstfile,status='replace')
-        write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
-      end if
-      if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
-        write (sstfile,99001) trim(dirglob), pthsep, trim(domname),     &
-           &  '_RCM_ICE.dat'
-        open (26,file=sstfile,status='unknown',form='unformatted',      &
-          & recl=iy*jx*ibyte,access='direct')
-        if ( igrads==1 ) then
-          write (sstfile,99001) trim(dirglob), pthsep, trim(domname),   &
-            & '_RCM_ICE.ctl'
-          open ( 32,file=sstfile,status='replace')
-          write (32,'(a,a,a)') 'dset ^',trim(domname),'_RCM_ICE.dat'
-        end if
-      end if
 !#####
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 !#####
@@ -186,7 +164,6 @@
         write (*,*) 'GLOBIDATE2 : ' , globidate2
         write (*,*) 'NSTEPS     : ' , nsteps
 
-        call setup_sstfile(idateo,nsteps)
 !#####
       else
 !#####
@@ -209,12 +186,11 @@
         idatef = wkday(kend)
         print * , globidate1 , globidate2 , idateo , idatef ,           &
                 &  kend - kstart + 1
-        call setup_sst_ice_file(idateo,kend-kstart+1)
 !#####
       end if
+
       call open_sstfile(idateo)
 !#####
-      mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
       do i = 1 , ilon
@@ -298,18 +274,15 @@
           nday = 1
           if ( ssttyp/='OI2ST' ) then
             write (21) nday , nmo , nyear , sstmm
+            call writerec(idate)
           else
             write (21) nday , nmo , nyear , sstmm , icemm
+            call writerec(idate,.true.)
           end if
           print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
           idate = idate + 1
           if ( nmo==12 ) idate = idate + 88
-          mrec = mrec + 1
-          write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
-          if ( ssttyp=='OI2ST' )                                        &
-           &    write (26,rec=mrec) ((icemm(i,j),j=1,jx),i=1,iy)
         end do
-        write (10,rec=4) ((lu(i,j),j=1,jx),i=1,iy)
 !#####
       else
 !#####
@@ -350,17 +323,15 @@
           end do
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
-          if(ssttyp.eq.'OI_WK') then
+          if (ssttyp.eq.'OI_WK') then
              write (21) nday , nmo , nyear , sstmm
+             call writerec(idate*100)
           else
              write (21) nday , nmo , nyear , sstmm,icemm
+             call writerec(idate*100,.true.)
           endif
           idate = wkday(k)
           print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear , idate
-          mrec = mrec + 1
-          write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
-          if(ssttyp.eq.'OI2WK') &
-          write (26,rec=mrec) ((icemm(i,j),j=1,jx),i=1,iy)
         end do
       end if
 

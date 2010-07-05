@@ -51,7 +51,7 @@
 !
 ! Local variables
 !
-      integer :: i , it , j , mrec , nday , nhour , nmo , nyear
+      integer :: i , it , j , nday , nhour , nmo , nyear
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer :: idate , ierastart , ierrec , nsteps
@@ -108,19 +108,7 @@
       write (*,*) 'GLOBIDATE2 : ' , globidate2
       write (*,*) 'NSTEPS     : ' , nsteps
 
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
-           & '_RCM_SST.dat'
-      open (25,file=sstfile,status='unknown',form='unformatted',        &
-          & recl=iy*jx*ibyte,access='direct')
-      if ( igrads==1 ) then
-        write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,    &
-          &  '_RCM_SST.ctl'
-        open (31,file=sstfile,status='replace')
-        write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
-      end if
-      call setup_sstfile(globidate1,nsteps)
       call open_sstfile(globidate1)
-      mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
       do i = 1 , ilon
@@ -155,9 +143,8 @@
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
         write (21) nhour , nday , nmo , nyear , sstmm
+        call writerec(idate)
         print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
-        mrec = mrec + 1
-        write (25,rec=mrec) ((sstmm(i,j),j=1,jx),i=1,iy)
 
         call addhours(idate, idtbc)
 
