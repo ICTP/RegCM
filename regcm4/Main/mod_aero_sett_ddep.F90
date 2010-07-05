@@ -22,11 +22,6 @@
       use mod_dynparam , only : nveg
 
       implicit none
-!
-      integer , parameter :: isize = 12
-
-!     Basic aerosol density (ACE-2 ?) in kg/m^3
-      real(8) , parameter :: rhop = 2650.0
 
 !     Dynamic Viscosity Parameters
       real(8) , parameter :: a1 = 145.8
@@ -44,9 +39,6 @@
       real(8) , parameter :: aa2 = 0.4
       real(8) , parameter :: aa3 = 1.1
 
-!     Aerosol Dry radius
-      real(8) , dimension(2,isize) :: aerosize
-      real(8) , dimension(isize) :: avesize
 !     Stokes parameter
       real(8) , dimension(20) :: aest_bats
       real(8) , dimension(20) :: arye_bats
@@ -55,12 +47,6 @@
 !
 ! DATA SECTION
 !
-      data aerosize/1.0E-08 , 2.0E-08 , 2.0E-08 , 4.0E-08 , 4.0E-08 ,   &
-         & 8.0E-08 , 8.0E-08 , 1.6E-07 , 1.6E-07 , 3.2E-07 , 3.2E-07 ,  &
-         & 6.4E-07 , 6.4E-07 , 1.28E-06 , 1.28E-06 , 2.56E-06 ,         &
-         & 2.56E-06 , 5.12E-06 , 5.12E-06 , 10.4E-06 , 10.24E-06 ,      &
-         & 20.48E-06 , 20.48E-06 , 40.6E-06/
-
       data aest_bats/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,&
          & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
          & 1.2 , 1.2 , 1.2/
@@ -127,6 +113,7 @@
 
       use mod_constants , only : ep2 , gti , rgti , vonkar , mathpi ,   &
                                & tzero , boltzk , stdpmb
+      use mod_dust, only : isize, aerosize, rhop
 
       implicit none
 !
@@ -162,6 +149,7 @@
       real(8) , dimension(ilg,luc,isize) :: rs
  
       real(8) , parameter :: z10 = 10.0
+      real(8) , dimension(isize) :: avesize
 
       i = 0
       do n = 1 , isize
