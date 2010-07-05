@@ -347,6 +347,7 @@
       end subroutine gradsbat
 !
       subroutine gradssub(datname)
+      use netcdf
       use mod_dynparam
       use mod_message , only : fatal
       use mod_date
@@ -372,11 +373,8 @@
       character(3) , dimension(12) :: cmonth
       integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
                & mday , mhour , nnumb , nx , ny
-#ifdef MPP1
-      real(4) , dimension(jxsg,iysg) :: xlat_s_io , xlon_s_io
-#else
+      integer :: iutin1 , istatus , ivarid
       real(4) , dimension(jxsg,iysg) :: xlat_s , xlon_s
-#endif
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
           &'09' , '10' , '11' , '12' , '13' , '14' , '15' , '16' ,      &
@@ -501,21 +499,43 @@
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
-#ifdef MPP1
-          read (iutin1,rec=5) xlat_s_io
-          read (iutin1,rec=6) xlon_s_io
-#ifdef BAND
-          write (31,99009) jxsg , xlon_s_io(nsg,nsg) ,                  &
-                         & xlon_s_io(nsg+1,nsg) - xlon_s_io(nsg,nsg)
-#else
-          write (31,99009) jxm2sg , xlon_s_io(nsg,nsg) ,                &
-                         & xlon_s_io(nsg+1,nsg) - xlon_s_io(nsg,nsg)
-#endif
-          write (31,99010) iym2sg
-          write (31,99011) (xlat_s_io(nsg+1,i),i=nsg+1,iym1sg)
-#else
-          read (iutin1,rec=5) xlat_s
-          read (iutin1,rec=6) xlon_s
+          call insubdom
+          istatus = nf90_open(ffin, nf90_nowrite, iutin1)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error Opening SubDomain file ', trim(ffin)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'CANNOT OPEN SUBDOMAIN FILE')
+          end if
+          istatus = nf90_inq_varid(iutin1, "xlat", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error xlat variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin1, ivarid, xlat_s)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading xlat variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_inq_varid(iutin1, "xlon", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error xlon variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin1, ivarid, xlon_s)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading xlon variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_close(iutin1)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error closing file ', trim(ffin)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
 #ifdef BAND
           write (31,99009) jxsg , xlon_s(nsg,nsg) ,                     &
                          & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
@@ -525,7 +545,6 @@
 #endif
           write (31,99010) iym2sg
           write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,iym1sg)
-#endif
         else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'

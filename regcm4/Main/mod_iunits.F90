@@ -25,8 +25,8 @@
       character(256) :: ffout
       character(256) :: ffin
 !
-      integer :: iutbat , iutbc , iutchem , iutchsrc , iutdat , iutin , &
-               & iutin1 , iutlak , iutopt , iutrad , iutrs , iutsav ,   &
+      integer :: iutbat , iutbc , iutchem , iutchsrc , iutdat , &
+               & iutlak , iutopt , iutrad , iutrs , iutsav ,   &
                & iutsub , mindisp
 !
       integer :: iin , iout , lcount , numpts

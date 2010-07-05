@@ -91,7 +91,7 @@
       real(8) , dimension(nsplit) :: dtsplit
       integer :: i , ii , j , jj , k , kbase , ktop , kzz , m , mdate1 ,&
                & mday , mmon , myear , n , ns , jxx , iyy , istatus ,   &
-               & idimid , ivarid
+               & idimid , ivarid , iutin , iutin1
       integer , dimension(12) :: mmd
       real(4) , dimension(kzp1) :: sp1d
       real(4) , dimension(jx,iy) :: sp2d
@@ -202,7 +202,6 @@
 !----------------------------------------------------------------------
 !-----specify unit numbers for input/output.
 !     units 10,101,14  are input.
-!     iutin : input initial data for large domain.
 !     iutbc : input slab temperature for large domain ,
 !     boundary values and tendencies for large doamin.
 !     iutrs : input saved file for large domain for restart from
@@ -1203,6 +1202,13 @@
               end do
             end do
           end do
+          istatus = nf90_close(iutin)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error File close'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+
           do j = 1 , jx
             do i = 1 , iy
               inisrf_0(i,1,j) = ht_io(i,j)
@@ -1533,6 +1539,13 @@
             end do
           end do
         end do
+        istatus = nf90_close(iutin)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error File close'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+
 !------invert mapscale factors:
         do j = 1 , jx
           do i = 1 , iy

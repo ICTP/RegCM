@@ -26,7 +26,7 @@
 ! PARAMETER definitions
 !
       integer , parameter :: nsoil = 152
-      integer , parameter :: nats = 12
+      integer , parameter :: nats = 12 ! ntex - 5
       integer , parameter :: mode = 3
       integer , parameter :: jsoilm = 2 
       integer , parameter :: jfs =1 
@@ -136,9 +136,11 @@
 !  * 12        clay                   fine               *****
 !  ***********************************************************
  
+      use netcdf
       use mod_constants , only : twopi
       use mod_trachem, only :chtrname
       use mod_iunits
+      use mod_message
 #ifdef MPP1
 #ifdef IBM
       include 'mpif.h'
@@ -157,18 +159,17 @@
 !
       real(8) , dimension(nats) :: bcly , bslt , bsnd
       real(8) :: deldp , eps , rhop , stotal , xk , xl , xm , xn
-      integer :: i , j , n , nm , ns , nt , itr
+      integer :: i , j , n , nm , ns , nt , itr , iutin , istatus ,     &
+                 ivarid
+      integer , dimension(3) :: istart , icount
       real(8) , dimension(3,12) :: mmd , pcent , sigma
       real(8) , dimension(iy,nsoil,nats) :: srel
       real(8) , dimension(nsoil) :: ss
-      integer ::  nrcoutg
       logical :: rd_tex 
       character(5) :: aerctl
-      real(4), dimension(iy,jx) ::  toto
-      real(8) :: alogdi , amean1 , amean2 , amean3 , asigma1 ,&
-               & asigma2 , asigma3 ,                           & 
-               & rwi , totv1 ,     &
-               & totv2 , totv3
+      real(4), dimension(jx,iy) ::  toto
+      real(8) :: alogdi , amean1 , amean2 , amean3 , asigma1 ,          &
+               & asigma2 , asigma3 , rwi , totv1 , totv2 , totv3
 
 ! Fab update 
 ! change type 1 and 2 and 3 to Laurent et al., 2008, marticorena et al., 1997
@@ -246,20 +247,47 @@
 #else
       if ( myid.eq.0 ) then
         if ( rd_tex ) then
-          nrcoutg = 15
-          do n=1,nats
-            read (iutin,rec=nrcoutg) ((toto(i,j),j=1,jx),i=1,iy)
+          call indomain
+          istatus = nf90_open(ffin, nf90_nowrite, iutin)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error Opening Domain file ', trim(ffin)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'CANNOT OPEN DOMAIN FILE')
+          end if
+          istatus = nf90_inq_varid(iutin, "texture_fraction", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error texture_fraction variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istart(2) = 1
+          istart(1) = 1
+          icount(3) = 1
+          icount(2) = iy
+          icount(1) = jx
+          do n = 1 , nats
+            istart(3) = n
+            istatus = nf90_get_var(iutin, ivarid, toto, istart, icount)
+            if (istatus /= nf90_noerr) then
+              write (6,*) 'Error reading texture_fraction variable'
+              write (6,*) nf90_strerror(istatus)
+              call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+            end if
             do j = 1 , jx
               do i = 1 , iy
-                dustsotex_io(i,j,n) = dble(toto(i,j))*0.01
+                dustsotex_io(i,j,n) = dble(toto(j,i))*0.01
                 if (dustsotex_io(i,j,n)<0.) dustsotex_io(i,j,n)=0.
               end do
             end do
-            nrcoutg = nrcoutg+1
           end do ! end texture loop
+          istatus = nf90_close(iutin)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error File close'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
         end if
       end if
-      close (iutin)
 #endif
       do j=1,jx
         do n=1,nats
@@ -284,18 +312,45 @@
 
 #else
       if ( rd_tex ) then
+        call indomain
+        istatus = nf90_open(ffin, nf90_nowrite, iutin)
+        if ( istatus /= nf90_noerr) then
+          write (6,*) 'Error Opening Domain file ', trim(ffin)
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'CANNOT OPEN DOMAIN FILE')
+        end if
+        istatus = nf90_inq_varid(iutin, "texture_fraction", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error texture_fraction variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istart(2) = 1
+        istart(1) = 1
+        icount(3) = 1
+        icount(2) = iy
+        icount(1) = jx
         do n = 1 , nats
-          nrcoutg = 15
-          read (iutin,rec=nrcoutg ) ((toto(i,j),j=1,jx),i=1,iy)
+          istart(3) = n
+          istatus = nf90_get_var(iutin, ivarid, toto, istart, icount)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading texture_fraction variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              dustsotex(i,j,n) = dble(toto(i,j))
+              dustsotex(i,j,n) = dble(toto(j,i))
             end do
           end do
-          nrcoutg = nrcoutg+1
         end do
+        istatus = nf90_close(iutin)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error File close'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
       end if
-      close (iutin)
 #endif
     
 ! end texture file reading
