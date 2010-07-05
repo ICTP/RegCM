@@ -25,10 +25,13 @@ program ncplot
   character(256) :: prgname , ncfile , tmpctl , tmpcoord
   character(512) :: command , levels
   character(32) :: lvformat , varname
-  character(64) :: vardesc
+  character(64) :: vardesc , timeunit
   character(16) :: varunit
   character(16) :: dimdesc
   integer :: numarg , istatus , ncid
+  integer :: year , month , day , hour , delta
+  character(3) , dimension(12) :: cmon
+  character(12) :: cdum
 
   character(256) :: charatt
   character(6) :: iproj
@@ -48,6 +51,9 @@ program ncplot
   real(4) :: alat , alon , angle
   integer :: i , j
   logical :: lvarsplit
+
+  data cmon/'jan','feb','mar','apr','may','jun', &
+            'jul','aug','sep','oct','nov','dec'/
 
   call getarg(0, prgname)
   numarg = iargc( )
@@ -346,11 +352,42 @@ program ncplot
       write (6,*) nf90_strerror(istatus)
       stop
     end if
+    istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error reading time variable'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
+    read (timeunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
+            cdum, month, cdum, day, cdum, hour
     istatus = nf90_get_var(ncid, ivarid, times)
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error reading time variable'
       write (6,*) nf90_strerror(istatus)
       stop
+    end if
+    delta = nint(times(2)-times(1))
+    deallocate(times)
+    if (delta == 24) then
+      write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
+             year , ' 1dy'
+    else if (delta == 168) then
+      write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
+             year , ' 7dy'
+    else if (delta > 672 .and. delta < 744) then
+      write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
+             year , ' 1mo'
+    else if (delta > 8640) then
+      write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
+             year , ' 1yr'
+    else
+      write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
+             year , nint(times(2)-times(1)), 'hr'
     end if
   else
     write (11, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'

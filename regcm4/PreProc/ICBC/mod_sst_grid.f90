@@ -180,6 +180,7 @@
 
         irefdate = idate1
         itime = 1
+
         call split_idate(idate1,iyy,im,id,ih)
         write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
                 & iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
@@ -288,6 +289,8 @@
             stop
           end if
         else if (iproj == 'LAMCON') then
+          trlat(1) = truelatl
+          trlat(2) = truelath
           istatus = nf90_put_att(ncid, nf90_global, &
                    &   'standard_parallel', trlat)
           if (istatus /= nf90_noerr) then
