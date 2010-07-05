@@ -121,6 +121,7 @@
       nsteps = (idatef/100-idateo/100)*12 + (idatef-(idatef/100)*100)   &
                & - (idateo-(idateo/100)*100) + 1
       call setup_sstfile(idateo,nsteps)
+      call open_sstfile(idateo)
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA

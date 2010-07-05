@@ -212,6 +212,7 @@
         call setup_sst_ice_file(idateo,kend-kstart+1)
 !#####
       end if
+      call open_sstfile(idateo)
 !#####
       mrec = 0
  

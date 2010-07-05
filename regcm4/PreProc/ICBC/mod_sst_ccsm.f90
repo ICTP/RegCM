@@ -105,6 +105,7 @@
         write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
       end if
       call setup_sstfile(idateo,idatef)
+      call open_sstfile(idateo)
       mrec = 0
  
       idate = idateo

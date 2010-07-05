@@ -119,6 +119,7 @@
         write (31,'(a,a,a)') 'dset ^',trim(domname),'_RCM_SST.dat'
       end if
       call setup_sstfile(globidate1,nsteps)
+      call open_sstfile(globidate1)
       mrec = 0
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA

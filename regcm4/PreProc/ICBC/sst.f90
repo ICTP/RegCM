@@ -68,6 +68,7 @@
       end if
 
       call free_grid
+      call close_sstfile
 
       print *, 'Successfully generated SST'
 
