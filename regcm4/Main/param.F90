@@ -1208,6 +1208,14 @@
             write (6,*) nf90_strerror(istatus)
             call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
           end if
+          if ( nsg>1 ) then
+            istatus = nf90_close(iutin1)
+            if (istatus /= nf90_noerr) then
+              write (6,*) 'Error File close'
+              write (6,*) nf90_strerror(istatus)
+              call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+            end if
+          end if
 
           do j = 1 , jx
             do i = 1 , iy
@@ -1544,6 +1552,14 @@
           write (6,*) 'Error File close'
           write (6,*) nf90_strerror(istatus)
           call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        if ( nsg>1 ) then
+          istatus = nf90_close(iutin1)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error File close'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
         end if
 
 !------invert mapscale factors:
