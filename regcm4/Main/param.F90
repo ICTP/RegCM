@@ -24,7 +24,7 @@
 !     this subroutine defines various model parameters.               c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
+      use netcdf
       use mod_dynparam
       use mod_param1
       use mod_param2
@@ -82,7 +82,7 @@
 !
 ! Local variables
 !
-      real(4) :: dsx , iclat , iclon , iplat , iplon , ptsp , trl , trh
+      real(4) :: dsx , iclat , iclon , ptsp
       character(6) :: proj
       real(8) :: afracl , afracs , bb , cc , chibot , daymax , delsig , &
                & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
@@ -92,11 +92,11 @@
       real(4) :: grdfac
       integer :: i , ibig , ierr1 , igra , ii , j , jj , k ,            &
                & kbase , ktop , kzz , m , mdate1 , mday , mmon , myear ,&
-               & n , ns , jxx , iyy
+               & n , ns , jxx , iyy , istatus , idimid , ivarid
       integer , dimension(12) :: mmd
       real(4) , dimension(kzp1) :: sp1d
-      real(4) , dimension(iy,jx) :: sp2d
-      real(4) , dimension(iysg,jxsg) :: sp2d1
+      real(4) , dimension(jx,iy) :: sp2d
+      real(4) , dimension(jxsg,iysg) :: sp2d1
       character(5) , dimension(maxntr) :: inpchtrname
       real(8) , dimension(maxntr) :: inpchtrsol
       real(8) , dimension(maxntr,2) :: inpchtrdpv
@@ -212,8 +212,6 @@
 !     iutsav: output saved file for restart, if ifsave=.true. or
 !
       qdcrit = 3.0E-7                      ! real*4 for compact input
-      iutin = 10
-      iutin1 = 11
       iutbc = 101
 !_sgi iutbc = 71
       iutrs = 14
@@ -734,40 +732,126 @@
       if ( myid.eq.0 ) then
 #endif              
         call indomain
-        print * , 'READING HEADER FILE:',ffin
-        open (iutin,file=ffin,form='unformatted',status='old',          &
-            & access='direct',recl=iy*jx*ibyte)
+        print * , 'READING HEADER FILE:', ffin
+        istatus = nf90_open(ffin, nf90_nowrite, iutin)
+        if ( istatus /= nf90_noerr) then
+          write (6,*) 'Error Opening Domain file ', trim(ffin)
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'CANNOT OPEN DOMAIN FILE')
+        end if
         if ( nsg.gt.1 ) then
           call insubdom
           print * , 'READING HEADER FILE for subdomain:',ffin
-          open (iutin1,file=ffin,form='unformatted',status='old',       &
-             &  access='direct',recl=iysg*jxsg*ibyte)
+          istatus = nf90_open(ffin, nf90_nowrite, iutin1)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error Opening SubDomain file ', trim(ffin)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'CANNOT OPEN SUBDOMAIN FILE')
+          end if
         end if
-        read (iutin,rec=1,iostat=ierr1) iyy , jxx , kzz , dsx , iclat , &
-                                      & iclon , iplat , iplon , grdfac ,&
-                                      & proj , sp1d , ptsp , igra ,     &
-                                      & ibig , trl , trh
+        istatus = nf90_inq_dimid(iutin, "iy", idimid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Dimension iy missing'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_inquire_dimension(iutin, idimid, len=iyy)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error dimension iy'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_inq_dimid(iutin, "jx", idimid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Dimension jx missing'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_inquire_dimension(iutin, idimid, len=jxx)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error dimension jx'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_inq_dimid(iutin, "kz", idimid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Dimension kz missing'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_inquire_dimension(iutin, idimid, len=kzz)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error dimension kz'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kzp1 ) then
+          write (aline,*) 'param:  SET IN regcm.in   :  IY=' , iy ,     &
+                 & '  JX=' ,  jx , '  KX=' , kz
+          call say
+          write (aline,*) 'param:  SET IN DOMAIN file: IYY=' , iyy ,    &
+                 & ' JXX=' , jxx , ' KZZ=' , kzz
+          call say
+          call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
+        end if
+        istatus = nf90_inq_varid(iutin, "sigma", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error sigma variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp1d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading sigma variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_inq_varid(iutin, "ptop", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error ptop variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, ptsp)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading ptop variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_att(iutin, nf90_global, 'projection', proj)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading projection attribute'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_att(iutin, nf90_global,                      &
+                     &         'grid_size_in_meters', dsx)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading grid_size_in_meters attribute'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_att(iutin, nf90_global,                      &
+                     &         'latitude_of_projection_origin', iclat)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading latitude_of_projection_origin'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_att(iutin, nf90_global,                      &
+                     &         'longitude_of_projection_origin', iclon)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading longitude_of_projection_origin'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         print * , 'param: DIMS' , iyy , jxx , kzz
-        print * , 'param: DOMAIN' , dsx , iclat , iclon , iplat ,       &
-                  & iplon ,  grdfac
+        print * , 'param: DOMAIN' , dsx , iclat , iclon
         print * , 'param: PROJ' , proj
         print * , 'param: SIGMA' , sp1d
         print * , 'param: PTOP' , ptsp
-        print * , 'param: OUTPUT' , igra , ibig
         r8pt = ptsp
         dx = dsx
-        if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
-          write (aline,*) 'param:  SET IN regcm.in:  IY=' , iy ,     &
-                 & ' JX=' ,  jx , ' KX=' , kz
-          call say
-          write (aline,*) 'param:  SET IN TERRAIN: IYY=' , iyy ,        &
-                 & ' JXX=' , jxx , ' KZZ=' , kzz
-          call say
-          write (aline,*) '  Also check ibyte in regcm.in: ibyte = ' &
-                        & , ibyte
-          call fatal(__FILE__,__LINE__,                                 &
-                    &'IMPROPER DIMENSION SPECIFICATION')
-        end if
         do k = 1 , kzp1
           sigma(k) = dble(sp1d(k))
         end do
@@ -896,17 +980,40 @@
       call allocate_mod_mppio
 
       if ( .not.ifrest ) then
+        write (aline, *) 'Reading in DOMAIN data'
+        call say
+
         if ( myid.eq.0 ) then
-          print * , 'HT'
-          read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "topo", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error topo variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading topo variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              ht_io(i,j) = dble(sp2d(i,j))
+              ht_io(i,j) = dble(sp2d(j,i))
             end do
           end do
           if ( nsg.gt.1 ) then
-            read (iutin1,rec=2,iostat=ierr1)                            &
-                & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
+            istatus = nf90_inq_varid(iutin1, "topo", ivarid)
+            if (istatus /= nf90_noerr) then
+              write (6,*) 'Error topo variable undefined'
+              write (6,*) nf90_strerror(istatus)
+              call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+            end if
+            istatus = nf90_get_var(iutin1, ivarid, sp2d1)
+            if (istatus /= nf90_noerr) then
+              write (6,*) 'Error reading topo variable'
+              write (6,*) nf90_strerror(istatus)
+              call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+            end if
             do j = 1 , jxsg
               do i = 1 , iysg
                 jj = mod(j,nsg)
@@ -916,34 +1023,64 @@
                 k = (jj-1)*nsg + ii
                 jj = (j+nsg-1)/nsg
                 ii = (i+nsg-1)/nsg
-                ht1_io(k,ii,jj) = sp2d1(i,j)*gti
+                ht1_io(k,ii,jj) = sp2d1(j,i)*gti
               end do
             end do
           else
             do j = 1 , jx
               do i = 1 , iy
-                ht1_io(1,i,j) = sp2d(i,j)*gti
+                ht1_io(1,i,j) = sp2d(j,i)*gti
               end do
             end do
           end if
  
-          print * , 'HTSD'
-          read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "htsd", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error htsd variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading htsd variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              htsd_io(i,j) = dble(sp2d(i,j))
+              htsd_io(i,j) = dble(sp2d(j,i))
             end do
           end do
-          print * , 'SATBRT'
-          read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "landuse", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error landuse variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading landuse variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              satbrt_io(i,j) = dble(sp2d(i,j))
+              satbrt_io(i,j) = dble(sp2d(j,i))
             end do
           end do
           if ( nsg.gt.1 ) then
-            read (iutin1,rec=4,iostat=ierr1)                            &
-                & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
+            istatus = nf90_inq_varid(iutin1, "landuse", ivarid)
+            if (istatus /= nf90_noerr) then
+              write (6,*) 'Error landuse variable undefined'
+              write (6,*) nf90_strerror(istatus)
+              call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+            end if
+            istatus = nf90_get_var(iutin1, ivarid, sp2d1)
+            if (istatus /= nf90_noerr) then
+              write (6,*) 'Error reading landuse variable'
+              write (6,*) nf90_strerror(istatus)
+              call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+            end if
             do j = 1 , jxsg
               do i = 1 , iysg
                 jj = mod(j,nsg)
@@ -953,7 +1090,7 @@
                 k = (jj-1)*nsg + ii
                 jj = (j+nsg-1)/nsg
                 ii = (i+nsg-1)/nsg
-                satbrt1_io(k,ii,jj) = sp2d1(i,j)
+                satbrt1_io(k,ii,jj) = sp2d1(j,i)
               end do
             end do
           else
@@ -963,56 +1100,110 @@
               end do
             end do
           end if
-          print * , 'XLAT'
-          read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "xlat", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error xlat variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading xlat variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              xlat_io(i,j) = dble(sp2d(i,j))
+              xlat_io(i,j) = dble(sp2d(j,i))
             end do
           end do
-          print * , 'XLONG'
-          read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "xlon", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error xlon variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading xlon variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              xlong_io(i,j) = dble(sp2d(i,j))
+              xlong_io(i,j) = dble(sp2d(j,i))
             end do
           end do
-          print * , 'MSFX'
-          read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "xmap", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error xmap variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading xmap variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              msfx_io(i,j) = dble(sp2d(i,j))
+              msfx_io(i,j) = dble(sp2d(j,i))
             end do
           end do
-          print * , 'MSFD'
-          read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "dmap", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error dmap variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading dmap variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              msfd_io(i,j) = dble(sp2d(i,j))
+              msfd_io(i,j) = dble(sp2d(j,i))
             end do
           end do
-          print * , 'F'
-          read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "coriol", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error coriol variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading coriol variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
-              f_io(i,j) = dble(sp2d(i,j))
+              f_io(i,j) = dble(sp2d(j,i))
             end do
           end do
-          print * , 'SNOWC'
-          read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+          istatus = nf90_inq_varid(iutin, "snowam", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error snowam variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading snowam variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
           do j = 1 , jx
             do i = 1 , iy
               do n = 1 , nnsg
-                snowc_io(n,i,j) = dble(sp2d(i,j))
+                snowc_io(n,i,j) = dble(sp2d(j,i))
               end do
             end do
           end do
-          if ( ierr1.ne.0 ) then
-            write (aline,*)                                             &
-             &  '  Check ibyte in  mod_dynparam.F90  ibyte = ' ,        &
-             & ibyte
-            call fatal(__FILE__,__LINE__,'REACHED EOF')
-          end if
           do j = 1 , jx
             do i = 1 , iy
               inisrf_0(i,1,j) = ht_io(i,j)
@@ -1121,16 +1312,38 @@
       end if
 #else
       if ( .not.ifrest ) then
-        print * , 'HT'
-        read (iutin,rec=2,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        write (aline, *) 'Reading in DOMAIN data'
+        call (say)
+        istatus = nf90_inq_varid(iutin, "topo", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error topo variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading topo variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
-            ht(i,j) = dble(sp2d(i,j))
+            ht(i,j) = dble(sp2d(j,i))
           end do
         end do
         if ( nsg.gt.1 ) then
-          read (iutin1,rec=2,iostat=ierr1)                              &
-              & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
+          istatus = nf90_inq_varid(iutini1, "topo", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error topo variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin1, ivarid, sp2d1)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading topo variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
@@ -1140,34 +1353,64 @@
               k = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              ht1(k,ii,jj) = sp2d1(i,j)*gti
+              ht1(k,ii,jj) = sp2d1(j,i)*gti
             end do
           end do
         else
           do j = 1 , jx
             do i = 1 , iy
-              ht1(1,i,j) = sp2d(i,j)*gti
+              ht1(1,i,j) = sp2d(j,i)*gti
             end do
           end do
         end if
 
-        print * , 'HTSD'
-        read (iutin,rec=3,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_inq_varid(iutin, "htsd", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error htsd variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading htsd variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
-            htsd(i,j) = dble(sp2d(i,j))
+            htsd(i,j) = dble(sp2d(j,i))
           end do
         end do
-        print * , 'SATBRT'
-        read (iutin,rec=4,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_inq_varid(iutin, "landuse", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error landuse variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading landuse variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
-            satbrt(i,j) = dble(sp2d(i,j))
+            satbrt(i,j) = dble(sp2d(j,i))
           end do
         end do
         if ( nsg.gt.1 ) then
-          read (iutin1,rec=4,iostat=ierr1)                              &
-              & ((sp2d1(i,j),j=1,jxsg),i=1,iysg)
+          istatus = nf90_inq_varid(iutin1, "landuse", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error landuse variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(iutin1, ivarid, sp2d1)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading landuse variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
@@ -1177,7 +1420,7 @@
               k = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              satbrt1(k,ii,jj) = sp2d1(i,j)
+              satbrt1(k,ii,jj) = sp2d1(j,i)
             end do
           end do
         else
@@ -1187,55 +1430,110 @@
             end do
           end do
         end if
-        print * , 'XLAT'
-        read (iutin,rec=5,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_inq_varid(iutin, "xlat", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error xlat variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading xlat variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
-            xlat(i,j) = dble(sp2d(i,j))
+            xlat(i,j) = dble(sp2d(j,i))
           end do
         end do
-        print * , 'XLONG'
-        read (iutin,rec=6,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_inq_varid(iutin, "xlon", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error xlon variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading xlon variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
-            xlong(i,j) = dble(sp2d(i,j))
+            xlong(i,j) = dble(sp2d(j,i))
           end do
         end do
-        print * , 'MSFX'
-        read (iutin,rec=9,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_inq_varid(iutin, "xmap", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error xmap variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading xmap variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
-            msfx(i,j) = dble(sp2d(i,j))
+            msfx(i,j) = dble(sp2d(j,i))
           end do
         end do
-        print * , 'MSFD'
-        read (iutin,rec=10,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_inq_varid(iutin, "dmap", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error dmap variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading dmap variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
-            msfd(i,j) = dble(sp2d(i,j))
+            msfd(i,j) = dble(sp2d(j,i))
           end do
         end do
-        print * , 'F'
-        read (iutin,rec=11,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_inq_varid(iutin, "coriol", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error coriol variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading coriol variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
-            f(i,j) = dble(sp2d(i,j))
+            f(i,j) = dble(sp2d(j,i))
           end do
         end do
-        print * , 'SNOWC'
-        read (iutin,rec=12,iostat=ierr1) ((sp2d(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_inq_varid(iutin, "snowam", ivarid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error snowam variable undefined'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
+        istatus = nf90_get_var(iutin, ivarid, sp2d)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading snowam variable'
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+        end if
         do j = 1 , jx
           do i = 1 , iy
             do n = 1 , nnsg
-              snowc(n,i,j) = dble(sp2d(i,j))
+              snowc(n,i,j) = dble(sp2d(j,i))
             end do
           end do
         end do
-        if ( ierr1.ne.0 ) then
-          write (aline,*) '  Check ibyte in parameter.inc: ibyte = ' ,  &
-                        & ibyte
-          call fatal(__FILE__,__LINE__,'REACHED EOF')
-        end if
 !------invert mapscale factors:
         do j = 1 , jx
           do i = 1 , iy

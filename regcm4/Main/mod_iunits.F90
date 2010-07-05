@@ -48,7 +48,7 @@
       subroutine indomain
         use mod_dynparam
         implicit none
-        ffin = trim(dirter)//pthsep//trim(domname)//'.INFO'
+        ffin = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       end subroutine indomain
 
       subroutine insubdom
@@ -56,7 +56,8 @@
         implicit none
         character(3) :: sbstring
         write (sbstring,'(i0.3)') nsg
-        ffin = trim(dirter)//pthsep//trim(domname)//sbstring//'.INFO'
+        ffin = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'//         &
+              & sbstring//'.nc'
       end subroutine insubdom
 
       subroutine inaero

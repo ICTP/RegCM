@@ -121,10 +121,10 @@ mod_bats_param.o: ../Config/mod_bats_param.F90
 	$(F90) $(CPPFLAGS) $(F90FLAGS)  -c -o $@ $<
 
 %.o: %.F90
-	$(F90) -c $(CPPFLAGS) $(F90FLAGS)  -c $<
+	$(F90) -c $(NETCDFINC) $(CPPFLAGS) $(F90FLAGS)  -c $<
 
 %.o: %.f90
-	$(F90) -c $(F90FLAGS)  -c $<
+	$(F90) -c $(NETCDFINC) $(F90FLAGS)  -c $<
 
 ifeq ($(USECLM),1)
 clean:
