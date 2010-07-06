@@ -98,8 +98,8 @@
         write (*,*) 'Supported types are ERSST ERSKT'
         stop
       end if
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
-          &  '_SST.RCM'
+
+      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.RCM'
       open (21,file=sstfile,form='unformatted',status='replace')
  
       nsteps = idatediff(globidate2,globidate1)/idtbc + 1
@@ -150,7 +150,6 @@
 
       end do
  
-99001 format (a,a,a,a)
       end subroutine sst_ersst
 !
 !-----------------------------------------------------------------------

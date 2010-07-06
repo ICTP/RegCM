@@ -46,8 +46,8 @@
 !
 !******************************************************************************
       use mod_sst_grid
+      use mod_date
       use mod_interp , only : bilinx
-      use mod_printl
 
       implicit none
 !
@@ -60,9 +60,9 @@
       real(4) , dimension(jlat) :: glat
       real(4) , dimension(ilon) :: glon
       real(4) , dimension(ilon,jlat) :: sst
-      integer :: idate , idate0
+      integer :: idate
       integer :: i , idatef , idateo , j , k , ludom , lumax , &
-               & nday , nmo , nyear
+               & nday , nmo , nyear , nho , iv , nsteps
       integer , dimension(20) :: lund
       character(256) :: sstfile , inpfile
 !
@@ -73,40 +73,28 @@
         glat(j) = -89.5 + 1.*float(j-1)
       end do
  
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
-           & '_SST.RCM'
+      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.RCM'
       open (21,file=sstfile,form='unformatted',status='replace')
  
-      idate = globidate1/10000
-      if ( idate-(idate/100)*100==1 ) then
-        idate = idate - 89
-      else
-        idate = idate - 1
+      idateo = imonfirst(globidate1)
+      idatef = imonfirst(globidate2)
+      if (idatef < globidate2) then
+        idatef = inextmon(idatef)
       end if
-      idateo = idate
-      idate0 = idateo*10000 + 100
-      idate = globidate2/10000
-      if ( idate-(idate/100)*100==12 ) then
-        idate = idate + 89
-      else
-        idate = idate + 1
-      end if
-      idatef = idate
-      print * , globidate1 , globidate2 , idateo , idatef
+      nsteps = imondiff(idatef,idateo) + 1
  
       call open_sstfile(idateo)
  
       idate = idateo
-      do while ( idate<=idatef )
-        nyear = idate/100
-        nmo = idate - nyear*100
+      do k = 1 , nsteps
+
+        call split_idate(idate, nyear, nmo, nday, nho)
  
         inpfile = trim(inpglob)//'/SST/ccsm_mn.sst.nc'
-        call ccsm_sst(idate*10000+100,idate0,ilon,jlat,sst,inpfile)
- 
-!       ******           PRINT OUT DATA AS A CHECK
-        if ( nmo==1 ) call printl(sst,jlat,ilon)
+
+        call ccsm_sst(idate,idateo,ilon,jlat,sst,inpfile)
         call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
+
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1) &
             & + 273.
  
@@ -114,8 +102,8 @@
           do i = 1 , iy
             if ( sstmm(i,j)<-5000 .and.                                 &
                & (lu(i,j)>13.5 .and. lu(i,j)<15.5) ) then
-              do k = 1 , 20
-                lund(k) = 0.0
+              do iv = 1 , 20
+                lund(iv) = 0.0
               end do
               lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
               lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
@@ -127,11 +115,11 @@
               lund(nint(lu(i+1,j+1))) = lund(nint(lu(i+1,j+1))) + 2
               ludom = 18
               lumax = 0
-              do k = 1 , 20
-                if ( k<=13 .or. k>=16 ) then
-                  if ( lund(k)>lumax ) then
+              do iv = 1 , 20
+                if ( iv<=13 .or. iv>=16 ) then
+                  if ( lund(iv)>lumax ) then
                     ludom = k
-                    lumax = lund(k)
+                    lumax = lund(iv)
                   end if
                 end if
               end do
@@ -147,14 +135,15 @@
         end do
         write (21) nday , nmo , nyear , sstmm
         call writerec(idate)
-        print * , 'WRITING OUT CCSM SST DATA:' , nmo , nyear
-        idate = idate + 1
-        if ( nmo==12 ) idate = idate + 88
+
+        print * , 'WRITEN OUT SST DATA : ' , idate
+
+        idate = inextmon(idate)
+
       end do
  
       return
 
-99001 format (a,a,a,a)
       end subroutine sst_ccsm
 !
 !-----------------------------------------------------------------------

@@ -137,7 +137,10 @@
       ! Montly dataset
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
         idateo = imonfirst(globidate1)
-        idatef = inextmon(globidate2)
+        idatef = imonfirst(globidate2)
+        if (idatef < globidate2) then
+          idatef = inextmon(idatef)
+        end if
         nsteps = imondiff(idatef,idateo) + 1
       ! Weekly dataset
       else
@@ -637,7 +640,7 @@
       integer :: i , j , n
       logical :: there
       character(4) :: varname
-      integer(2) , dimension(ilon,jlat) :: work
+      integer(2) , dimension(ilon,jlat) :: work , work1
       integer :: istatus
 !
       integer , dimension(10) , save :: icount , istart
@@ -702,7 +705,19 @@
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
-!bxq_
+      if (idate < 1989123100) then
+        istart(3) = kkk-1
+        icount(3) = 1
+        istatus = nf90_get_var(inet,ivar,work1,istart,icount)
+        if ( istatus/=nf90_noerr ) then
+          write ( 6,* ) 'Cannot get ', varname, ' from file'
+          write ( 6,* ) istart
+          write ( 6,* ) icount
+          write ( 6,* ) nf90_strerror(istatus)
+          stop 'ERROR READ SST'
+        end if
+      end if
+
       do j = 1 , jlat
         do i = 1 , ilon
           if ( work(i,j)==32767 ) then
@@ -712,6 +727,19 @@
           end if
         end do
       end do
+
+      if (idate < 1989123100) then
+        do j = 1 , jlat
+          do i = 1 , ilon
+            if ( work1(i,j)==32767 ) then
+               ice(i,jlat+1-j) = -9999.
+            else
+               ice(i,jlat+1-j) = (ice(i,jlat+1-j)+work1(i,j)*xscale     &
+                     &            + xadd)*0.5
+            end if
+          end do
+        end do
+      end if
 
       end subroutine ice_wk
 !

@@ -37,8 +37,7 @@
 
       use mod_sst_grid
       use mod_interp , only : bilinx
-      use mod_printl
-      use netcdf
+      use mod_date
 
       implicit none
 !
@@ -49,13 +48,13 @@
 ! Local variables
 !
       integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
-             &   nday , nmo , nyear , nsteps
+             &   nday , nmo , nho , nyear , nsteps , iv
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(20) :: lund
       real(4) , dimension(ilon,jlat) :: temp
       real(4) , dimension(ilon,jlat) :: sst
-      integer :: idate , idate0
+      integer :: idate
       logical :: there
       character(256) :: sstfile
 !
@@ -88,28 +87,17 @@
         write (*,*) 'Supported types are FV_RF FV_A2 FV_B2'
         stop
       end if
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname) ,      &
-        &  '_SST.RCM'
+
+      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.RCM'
       open (21,file=sstfile,form='unformatted',status='replace')
  
-      idate = globidate1/10000
-      if ( idate-(idate/100)*100==1 ) then
-        idate = idate - 89
-      else
-        idate = idate - 1
+      idateo = imonfirst(globidate1)
+      idatef = imonfirst(globidate2)
+      if (idatef < globidate2) then
+        idatef = inextmon(idatef)
       end if
-      idateo = idate
-      idate0 = idateo*10000 + 100
-      idate = globidate2/10000
-      if ( idate-(idate/100)*100==12 ) then
-        idate = idate + 89
-      else
-        idate = idate + 1
-      end if
-      idatef = idate
-      print * , globidate1 , globidate2 , idateo , idatef
-      nsteps = (idatef/100-idateo/100)*12 + (idatef-(idatef/100)*100)   &
-               & - (idateo-(idateo/100)*100) + 1
+      nsteps = imondiff(idatef,idateo) + 1
+
       call open_sstfile(idateo)
  
 !     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -120,27 +108,21 @@
         lati(j) = -90. + 1.25*float(j-1)
       end do
  
-!     **  REF  SST DATA, 1.875x1.1.25, AVAILABLE FROM 16/1/1959 TO
-!     16/1/1991 ** A2&B2 SST DATA, 1.875x1.1.25, AVAILABLE FROM
-!     16/1/2069 TO 16/1/2101
       idate = idateo
-      do while ( idate<=idatef )
-        nyear = idate/100
-        nmo = idate - nyear*100
-        nday = 16
-        write (*,*) idate*10000 + 100 , idate0
-!       IF(IDATE*10000+100.EQ.IDATE0) CALL SST_MN(SSTTYP)
+      do k = 1 , nsteps
+
+        call split_idate(idate, nyear, nmo, nday, nho)
+
         if ( ssttyp=='FV_RF' ) then
           it = (nyear-1959)*12 + nmo
         else
           it = (nyear-2069)*12 + nmo
         end if
+
         read (11,rec=it) temp
+
         do j = 1 , jlat
           do i = 1 , ilon
-!           if(temp(I,NLAT+1-J).gt.-9000.0.and.
-!           &         temp(I,NLAT+1-J).lt.10000.0) then
-!           SST2(I,J)=temp(I,NLAT+1-J)
             if ( temp(i,j)>-9000.0 .and. temp(i,j)<10000.0 ) then
               sst(i,j) = temp(i,j)
             else
@@ -149,9 +131,6 @@
           end do
         end do
  
-!       ******           PRINT OUT DATA AS A CHECK
-        if ( nmo==1 ) call printl(sst,ilon,jlat)
- 
         call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
@@ -159,8 +138,8 @@
           do i = 1 , iy
             if ( sstmm(i,j)<-5000. .and.                                &
                & (lu(i,j)>13.5 .and. lu(i,j)<15.5) ) then
-              do k = 1 , 20
-                lund(k) = 0.0
+              do iv = 1 , 20
+                lund(iv) = 0.0
               end do
               lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
               lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
@@ -172,10 +151,10 @@
               lund(nint(lu(i+1,j+1))) = lund(nint(lu(i+1,j+1))) + 2
               ludom = 18
               lumax = 0
-              do k = 1 , 20
-                if ( k<=13 .or. k>=16 ) then
-                  if ( lund(k)>lumax ) then
-                    ludom = k
+              do iv = 1 , 20
+                if ( iv<=13 .or. iv>=16 ) then
+                  if ( lund(iv)>lumax ) then
+                    ludom = iv
                     lumax = lund(k)
                   end if
                 end if
@@ -191,15 +170,14 @@
           end do
         end do
  
-!       ******           WRITE OUT SST DATA ON MM4 GRID
-        write (21) nday , nmo , nyear , sstmm
+        write (21) 16 , nmo , nyear , sstmm
         call writerec(idate)
-        print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
-        idate = idate + 1
-        if ( nmo==12 ) idate = idate + 88
+
+        print * , 'WRITTEN OUT SST DATA : ' , idate
+        idate = inextmon(idate)
+
       end do
  
-99001 format (a,a,a,a)
       end subroutine sst_fvgcm
 !
       end module mod_sst_fvgcm
