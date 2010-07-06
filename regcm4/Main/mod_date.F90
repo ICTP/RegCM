@@ -438,6 +438,36 @@
         iprevmon = mkidate(iy, im, 1, 0)
       end function iprevmon
 
+      function timeval2idate(xval,cunit)
+        implicit none
+        integer :: timeval2idate
+        real(8) , intent(in) :: xval
+        character(*) , intent(in) :: cunit
+        character(25) , save :: csave
+        integer :: year , month , day , hour
+        integer , save :: iref
+        character(12) :: cdum
+
+        data csave/'none'/
+
+        if (csave == cunit) then
+          call addhours(iref,nint(xval))
+          timeval2idate = iref
+        else
+          if (len_trim(cunit) < 25) then
+            timeval2idate = 0
+          else
+            read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
+              cdum, month, cdum, day, cdum, hour
+            timeval2idate = mkidate(year,month,day,hour)
+            iref = timeval2idate
+            csave = cunit
+            call addhours(timeval2idate,nint(xval))
+          end if
+        end if
+
+      end function timeval2idate
+
       function idayofyear(idate)
         implicit none
         integer :: idayofyear
