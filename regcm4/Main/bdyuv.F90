@@ -130,7 +130,7 @@
         pdota(1,j) = 0.5*(psa(1,j)+psa(1,j-1))
         pdota(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,j-1))
       end do
-      pdota(1,1) = 0.5*(psa(1,1)++psa(1,jx))
+      pdota(1,1) = 0.5*(psa(1,1)+psa(1,jx))
       pdota(iy,1) = 0.5*(psa(iym1,1)+psa(iym1,jx))
 #else
       do j = 2 , jxm1
