@@ -93,6 +93,7 @@
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       use mod_dynparam
+      use mod_mksst
       use mod_date
       use mod_grid
       use mod_date
@@ -150,10 +151,6 @@
       write (*,*) 'GLOBIDATE1 : ' , globidate1
       write (*,*) 'GLOBIDATE2 : ' , globidate2
       write (*,*) 'NSTEPS     : ' , nsteps
- 
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
-          & '_SST.RCM'
-      open (60,file=sstfile,form='unformatted',status='old',err=100)
  
       if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
          & then
@@ -269,6 +266,7 @@
 
       call free_output
       call free_grid
+      call closesst
  
       call finaltime(0)
       print *, 'Successfully completed ICBC'

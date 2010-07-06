@@ -424,71 +424,35 @@
           idayofyear = idayofyear + mdays(iy, i)
         end do
       end function
+
+      function timeval2idate(xval,cunit)
+        implicit none
+        integer :: timeval2idate
+        real(8) , intent(in) :: xval
+        character(*) , intent(in) :: cunit
+        character(25) , save :: csave
+        integer :: year , month , day , hour
+        integer , save :: iref
+        character(12) :: cdum
+
+        data csave/'none'/
+
+        if (csave == cunit) then
+          timeval2idate = iref
+          call addhours(timeval2idate,nint(xval))
+        else
+          if (len_trim(cunit) < 25) then
+            timeval2idate = 0
+          else
+            read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
+              cdum, month, cdum, day, cdum, hour
+            timeval2idate = mkidate(year,month,day,hour)
+            iref = timeval2idate
+            csave = cunit
+            call addhours(timeval2idate,nint(xval))
+          end if
+        end if
+
+      end function timeval2idate
 !      
-!-----------------------------------------------------------------------
-!
-      subroutine julianwt(mdate,nyrp,nmop,wt)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: mdate , nmop , nyrp
-      real(4) :: wt
-      intent (in) mdate
-      intent (out) nyrp , wt
-      intent (inout) nmop
-!
-! Local variables
-!
-      real(4) :: fdenom , fnumer
-      integer :: iday , imo , iyr , j , julday , nmo , nyr , ihr
-      integer , dimension(12) :: mond , jprev , julmid
-! 
- 
-!     ******           INITIALIZE NMOP, NYRP
-
-      nmop = 1
-      nyrp = 0
- 
-      call split_idate(mdate, iyr, imo, iday, ihr)
-
-      mond = mlen
-      if (lleap(iyr)) mond(2) = 29
- 
-      jprev(1) = 0
-      do j = 2 , 12
-        jprev(j) = jprev(j-1) + mlen(j-1)
-      end do
-      do j = 1 , 12
-        julmid(j) = jprev(j) + mmid(j)
-      end do
-      julday = iday + jprev(imo)
- 
-!     PRINT *, 'MDATE, IYR, IMO, IDAY, JULDAY = '
-!     A       ,  MDATE, IYR, IMO, IDAY, JULDAY
- 
-      do nyr = 1948 , 2145  !94
-        do nmo = 1 , 12
- 
-          if ( (nyr==iyr) .and. (julmid(nmo)>julday) ) go to 100
-          if ( nyr>iyr ) go to 100
- 
-          nmop = nmo
-          nyrp = nyr
- 
-        end do
-      end do
- 
- 100  continue
-      fnumer = float(julday-julmid(nmop))
-      if ( fnumer<0. ) fnumer = fnumer + 365.
-      fdenom = float(julmid(nmo)-julmid(nmop))
-      if ( fdenom<=0. ) fdenom = fdenom + 365.
-      wt = fnumer/fdenom
- 
-!     PRINT *, 'JULMID(NMOP), JULDAY, JULMID(NMO), WT ='
-!     A       ,  JULMID(NMOP), JULDAY, JULMID(NMO), WT
- 
-      end subroutine julianwt
-!
       end module mod_date

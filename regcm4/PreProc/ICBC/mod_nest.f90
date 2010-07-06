@@ -64,7 +64,6 @@
 
       subroutine get_nest(idate,ncr)
       use mod_grid
-      use mod_date , only : julianwt
       use mod_write
       use mod_interp , only : cressmcr , cressmdt
       use mod_vertint
@@ -381,29 +380,8 @@
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,np)
  
-      if ( ssttyp=='EH5RF' .or. ssttyp=='EH5A2' .or.                    &
-         & ssttyp=='EH5B1' .or. ssttyp=='EHA1B' ) then
-        call mksst3(ts4,sst1,topogm,xlandu,jx,iy,idate)
-      else if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
-!       F1    CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
-!       PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
-        call julianwt(idate,nyrp,nmop,wt)
-!
-        if ( ssttyp=='OI2ST' ) then
-          call mkssta(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,nyrp, &
-               &      nmop,wt)
-        else
-          call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
-        end if
-      else
-        if ( ssttyp=='OI2WK' ) then
-          call mksst2a(ts4,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,    &
-               &       idate/100)
-        else
-          call mksst2(ts4,sst1,sst2,topogm,xlandu,jx,iy,idate/100)
-        end if
-      end if
- 
+      call readsst(ts4,topogm,idate)
+
 !     F2     DETERMINE P* AND HEIGHT.
 !
 !     F3     INTERPOLATE U, V, T, AND Q.

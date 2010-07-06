@@ -66,7 +66,7 @@
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
-      character(256) :: sstfile , inpfile
+      character(256) :: inpfile
       logical :: there
 !
       if ( ssttyp=='GISST' ) then
@@ -130,9 +130,6 @@
         write (*,*) 'Supported are GISST OISST OI_NC OI2ST OI_WK OI2WK'
         stop
       end if
-
-      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.RCM'
-      open (21,file=sstfile,form='unformatted',status='replace')
 
       ! Montly dataset
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
@@ -236,10 +233,8 @@
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
           if ( ssttyp/='OI2ST' ) then
-            write (21) nday , nmo , nyear , sstmm
-            call writerec(idate)
+            call writerec(idate,.false.)
           else
-            write (21) nday , nmo , nyear , sstmm , icemm
             call writerec(idate,.true.)
           end if
 
@@ -293,11 +288,9 @@
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
           if (ssttyp.eq.'OI_WK') then
-             write (21) nday , nmo , nyear , sstmm
-             call writerec(idate*100)
+            call writerec(idate,.false.)
           else
-             write (21) nday , nmo , nyear , sstmm,icemm
-             call writerec(idate*100,.true.)
+            call writerec(idate,.true.)
           endif
 
           print * , 'WRITTEN OUT SST DATA : ' , idate

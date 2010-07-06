@@ -745,16 +745,11 @@
         use mod_date , only : idatediff
         implicit none
         integer , intent(in) :: idate
-        logical , intent(in) , optional :: lice
+        logical , intent(in) :: lice
         integer :: istatus
-        logical :: ladd
         integer , dimension(1) :: istart1 , icount1
         integer , dimension(3) :: istart , icount
         real(8) , dimension(1) :: xdate
-        ladd = .false.
-        if (present(lice)) then
-          ladd = lice
-        end if
         istart(3) = itime
         istart(2) = 1
         istart(1) = 1
@@ -777,7 +772,7 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
-        if (ladd) then
+        if (lice) then
           istatus = nf90_put_var(ncid, ivar(3), transpose(icemm), &
                                  istart, icount)
           if (istatus /= nf90_noerr) then

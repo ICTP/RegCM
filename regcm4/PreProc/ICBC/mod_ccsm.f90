@@ -312,8 +312,8 @@
         endif
  
         call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
-        call camclndr(idate,nyrp,nmop,wt)
-        call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+        call readsst(ts4,topogm,idate)
+
         call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
         call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
         call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
@@ -933,8 +933,7 @@
       endif
  
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
-      call camclndr(idate,nyrp,nmop,wt)
-      call mksst(ts4,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
+      call readsst(ts4,topogm,idate)
       call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
       call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
       call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
@@ -1420,65 +1419,6 @@
       end subroutine cam85
 !
 !-----------------------------------------------------------------------
-!
-      subroutine camclndr(mdate,nyrp,nmop,wt)
-        implicit none
-!
-! Dummy arguments
-!
-        integer :: mdate , nmop , nyrp
-        real(4) :: wt
-        intent (in) mdate
-        intent (out) nyrp , wt
-        intent (inout) nmop
-!
-! Local variables
-!
-        real(4) :: fdemon , fnumer
-        integer :: idate , iday , imo , iyr , j , julday , nmo , nyr
-        integer , dimension(12) :: jprev , julmid , lenmon , midmon
-!
-        data lenmon/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 ,   &
-                  & 30 , 31/
-        data midmon/16 , 14 , 16 , 15 , 16 , 15 , 16 , 16 , 15 , 16 ,   &
-                  & 15 , 16/
-
-!       Initialize nmop, nyrp
-
-        nmop = 1
-        nyrp = 0
- 
-        idate = mdate/100
-        iyr = idate/10000
-        imo = (idate-iyr*10000)/100
-        iday = mod(idate,100)
- 
-        jprev(1) = 0
-        do j = 2 , 12
-          jprev(j) = jprev(j-1) + lenmon(j-1)
-        end do
-        do j = 1 , 12
-          julmid(j) = jprev(j) + midmon(j)
-        end do
-        julday = iday + jprev(imo)
- 
-        do nyr = 1000 , 2100
-          do nmo = 1 , 12
-            if ( (nyr==iyr) .and. (julmid(nmo)>julday) ) go to 100
-            if ( nyr>iyr ) go to 100
-            nmop = nmo
-            nyrp = nyr
-          end do
-        end do
- 
- 100    continue
-        fnumer = float(julday-julmid(nmop))
-        if ( fnumer<0. ) fnumer = fnumer + 365.
-        fdemon = float(julmid(nmo)-julmid(nmop))
-        if ( fdemon<=0. ) fdemon = fdemon + 365.
-        wt = fnumer/fdemon
- 
-      end subroutine camclndr
 !
 !     Error Handler for NETCDF Calls
 !

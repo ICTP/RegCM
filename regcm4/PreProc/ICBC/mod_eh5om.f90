@@ -610,12 +610,7 @@
 !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
- 
-!     F1  CALCULATE SSTS FOR DATE FROM OBSERVED SSTS
-!     PRINT *, 'INPUT DAY FOR SST DATA ACQUISITION:', IDATE
-      call mksst3(ts4,sst1,topogm,xlandu,jx,iy,idate)
- 
-!     F2  DETERMINE P* AND HEIGHT.
+      call readsst(ts4,topogm,idate)
 !
 !     F3  INTERPOLATE U, V, T, AND Q.
       call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)

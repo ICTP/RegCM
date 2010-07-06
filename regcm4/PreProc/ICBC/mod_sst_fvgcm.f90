@@ -56,7 +56,6 @@
       real(4) , dimension(ilon,jlat) :: sst
       integer :: idate
       logical :: there
-      character(256) :: sstfile
 !
       if ( ssttyp=='FV_RF' ) then
         inquire (file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',       &
@@ -88,9 +87,6 @@
         stop
       end if
 
-      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.RCM'
-      open (21,file=sstfile,form='unformatted',status='replace')
- 
       idateo = imonfirst(globidate1)
       idatef = imonfirst(globidate2)
       if (idatef < globidate2) then
@@ -170,8 +166,7 @@
           end do
         end do
  
-        write (21) 16 , nmo , nyear , sstmm
-        call writerec(idate)
+        call writerec(idate,.false.)
 
         print * , 'WRITTEN OUT SST DATA : ' , idate
         idate = inextmon(idate)

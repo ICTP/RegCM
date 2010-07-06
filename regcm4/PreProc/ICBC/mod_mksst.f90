@@ -19,322 +19,209 @@
 
       module mod_mksst
 
+      logical , private :: lopen , lhasice
+      integer , private :: ncid , ntime
+      integer , dimension(3) , private :: ivar
+      character(32) , private :: timeunits
+      integer , dimension(:) , allocatable , private :: itime
+      real(4) , dimension(:,:) , allocatable , private :: xlandu
+      real(4) , dimension(:,:) , allocatable , private :: work1 , work2
+      real(4) , dimension(:,:) , allocatable , private :: work3 , work4
+
+      data lopen/.false./
+
       contains
 !
 !-----------------------------------------------------------------------
 !
-      subroutine mksst(tsccm,sst1,sst2,topogm,xlandu,jx,iy,nyrp,nmop,wt)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: iy , jx , nmop , nyrp
-      real(4) :: wt
-      real(4) , dimension(jx,iy) :: sst1 , sst2 , topogm , tsccm ,      &
-                                 &  xlandu
-      intent (in) iy , jx , nmop , nyrp , topogm , xlandu
-      intent (out) tsccm
-      intent (inout) sst1 , sst2 , wt
-!
-! Local variables
-!
-      integer :: i , j , lat , lon , nday , nmo , nyear
-!
-!     ******           INITIALIZE SST1, SST2 (NEEDED FOR 82 JAN CASE)
-!
-      do lon = 1 , jx
-        do lat = 1 , iy
-          sst1(lon,lat) = 0.
-          sst2(lon,lat) = 0.
+      subroutine readsst(tsccm, topogm, idate)
+        use netcdf
+        use mod_dynparam        
+        use mod_date
+        implicit none
+        real(4) , dimension(jx,iy) , intent(in) :: topogm
+        real(4) , dimension(jx,iy) , intent(inout) :: tsccm
+        integer , intent(in) :: idate
+        real(8) , dimension(:) , allocatable :: xtime
+        integer :: ifdate , istatus , idimid , itvar
+        integer , dimension(3) :: istart , icount
+        character(256) :: sstfile
+        integer :: i , j , irec , ks1 , ks2
+        real(4) :: wt
+        if (.not. lopen) then
+          sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
+          istatus = nf90_open(sstfile, nf90_nowrite, ncid)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error Opening SST file ', trim(sstfile)
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_inq_dimid(ncid, 'time', idimid)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error time dimension not present'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_inquire_dimension(ncid, idimid, len=ntime)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error time dimension not present'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_inq_varid(ncid, "time", itvar)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable time'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_inq_varid(ncid, "landuse", ivar(1))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable landuse'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_inq_varid(ncid, "sst", ivar(2))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable landuse'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_inq_varid(ncid, "ice", ivar(3))
+          if ( istatus /= nf90_noerr) then
+            lhasice = .false.
+          end if
+          istatus = nf90_get_att(ncid, itvar, "units", timeunits)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable time attribute units'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          allocate(xlandu(jx,iy))
+          allocate(work1(jx,iy))
+          allocate(work2(jx,iy))
+          if (lhasice) then
+            allocate(work3(jx,iy))
+            allocate(work4(jx,iy))
+          end if
+          allocate(xtime(ntime))
+          allocate(itime(ntime))
+          istatus = nf90_get_var(ncid, itvar, xtime)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading time variable'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          do i = 1 , ntime
+            itime(i) = timeval2idate(xtime(i), timeunits)
+          end do
+          deallocate(xtime)
+          lopen = .true.
+        end if
+
+        if (idate > itime(ntime) .or. idate < itime(1)) then
+          print *, 'Cannot find ', idate, ' in SST file'
+          print *, 'Range is : ', itime(1) , '-', itime(ntime)
+          stop
+        end if
+
+        do i = 1 , ntime
+          if (idate < itime(i)) then
+            irec = i
+            exit
+           end if
         end do
-      end do
- 
-      if ( nyrp==0 ) then
-        wt = 1.
-        go to 200
-      end if
- 
-!     ******           READ IN RCM MONTHLY SST DATASET
- 100  continue
-      read (60,end=300) nday , nmo , nyear , ((sst1(i,j),j=1,iy),i=1,jx)
-      if ( nyear<100 ) nyear = nyear + 1900
-      if ( (nyear/=nyrp) .or. (nmo/=nmop) ) go to 100
-!     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
- 
-!     ******           READ IN RCM MONTHLY SST DATASET
- 200  continue
-      read (60,end=300) nday , nmo , nyear , ((sst2(i,j),j=1,iy),i=1,jx)
-      if ( nyear<100 ) nyear = nyear + 1900
-!     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
-      rewind (60)
- 
-      do i = 1 , jx
-        do j = 1 , iy
-          if ( (topogm(i,j)<=1.) .and.                                  &
-             & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.          &
-             & (sst1(i,j)>-900.0 .and. sst2(i,j)>-900.0) ) tsccm(i,j)   &
-             & = (1.-wt)*sst1(i,j) + wt*sst2(i,j)
-        end do
-      end do
- 
-      rewind (60)
- 
-      return
- 300  continue
-      print * , 'SST file is not the right one'
-      stop 12
-      end subroutine mksst
-!
-!-----------------------------------------------------------------------
-!
-      subroutine mkssta(tsccm,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy,  &
-                      & nyrp,nmop,wt)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: iy , jx , nmop , nyrp
-      real(4) :: wt
-      real(4) , dimension(jx,iy) :: ice1 , ice2 , sst1 , sst2 , topogm ,&
-                               & tsccm , xlandu
-      intent (in) iy , jx , nmop , nyrp , topogm , xlandu
-      intent (out) tsccm
-      intent (inout) ice1 , ice2 , sst1 , sst2 , wt
-!
-! Local variables
-!
-      integer :: i , j , lat , lon , nday , nmo , nyear
- 
-!     ******           INITIALIZE SST1, SST2 (NEEDED FOR 82 JAN CASE)
-      do lon = 1 , jx
-        do lat = 1 , iy
-          sst1(lon,lat) = 0.
-          sst2(lon,lat) = 0.
-          ice1(lon,lat) = 0.
-          ice2(lon,lat) = 0.
-        end do
-      end do
- 
-      if ( nyrp==0 ) then
-        wt = 1.
-        go to 200
-      end if
- 
-!     ******           READ IN RCM MONTHLY SST DATASET
- 100  continue
-      read (60,end=300) nday , nmo , nyear , ((sst1(i,j),j=1,iy),i=1,jx)&
-                      & , ((ice1(i,j),j=1,iy),i=1,jx)
-      if ( nyear<100 ) nyear = nyear + 1900
-      if ( (nyear/=nyrp) .or. (nmo/=nmop) ) go to 100
-!     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
- 
-!     ******           READ IN RCM MONTHLY SST DATASET
- 200  continue
-      read (60,end=300) nday , nmo , nyear , ((sst2(i,j),j=1,iy),i=1,jx)&
-                      & , ((ice2(i,j),j=1,iy),i=1,jx)
-      if ( nyear<100 ) nyear = nyear + 1900
-!     PRINT *, 'READING RCM SST DATA:', NMO, NYEAR
-      rewind (60)
- 
-      do i = 1 , jx
-        do j = 1 , iy
-          if ( (topogm(i,j)<=1.) .and.                                  &
-             & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.          &
-             & (sst1(i,j)>-900.0 .and. sst2(i,j)>-900.0) ) then
-            tsccm(i,j) = (1.-wt)*sst1(i,j) + wt*sst2(i,j)
-            if ( ice1(i,j)>-900.0 .and. ice2(i,j)>-900.0 ) then
-              if ( (1.-wt)*ice1(i,j)+wt*ice2(i,j)>35. ) tsccm(i,j)      &
-                 & = 273.15 - 2.15
+
+        istart(3) = irec
+        istart(2) = 1
+        istart(1) = 1
+        icount(3) = 1
+        icount(2) = iy
+        icount(1) = jx
+        istatus = nf90_get_var(ncid, ivar(1), xlandu, istart, icount)
+        if ( istatus /= nf90_noerr) then
+          write (6,*) 'Error reading landuse variable'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_get_var(ncid, ivar(2), work1, istart, icount)
+        if ( istatus /= nf90_noerr) then
+          write (6,*) 'Error reading sst variable'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        if (lhasice) then
+          istatus = nf90_get_var(ncid, ivar(3), work3, istart, icount)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading ice variable'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+        end if
+        if (idate == itime(irec)) then
+          do i = 1 , jx
+            do j = 1 , iy
+              if ( (topogm(i,j)<=1.) .and.                              &
+             &     (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.      &
+             &     (work1(i,j)>-900.0) ) tsccm(i,j) = work1(i,j)
+            end do
+          end do
+          if (lhasice) then
+            if ( work3(i,j)>-900.0) then
+              if ( work3(i,j)>35. ) tsccm(i,j) = 273.15 - 2.15
             end if
           end if
-        end do
-      end do
- 
-      rewind (60)
- 
-      return
- 300  continue
-      print * , 'SST&SeaIce file is not the right one'
-      stop 12
-      end subroutine mkssta
-!
-!-----------------------------------------------------------------------
-!
-      subroutine mksst2(tsccm,sst1,sst2,topogm,xlandu,jx,iy,kdate)
-      use mod_date
-      use mod_date
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: iy , jx , kdate
-      real(4) , dimension(jx,iy) :: sst1 , sst2 , topogm , tsccm ,      &
-                                 &  xlandu
-      intent (in) iy , jx , kdate , topogm , xlandu
-      intent (out) tsccm
-      intent (inout) sst1 , sst2
-!
-! Local variables
-!
-      integer :: i , j , kdate1 , kdate2 , ks1 , ks2 , nday , nmo ,     &
-               & nyear , ikdate , idiff
-      real(4) :: wt
-!
-!     ******           INITIALIZE SST1, SST2 (NEEDED FOR 82 JAN CASE)
-!
-      sst1 = 0.0
-      sst2 = 0.0
-!
-!     ******           READ IN RCM MONTHLY SST DATASET
-!
-      ikdate = kdate*100
-      do
-        read (60,end=200) nday , nmo , nyear ,                          &
-             &           ((sst1(i,j),j=1,iy),i=1,jx)
-        kdate1 = mkidate(nyear,nmo,nday,0)
-        idiff = idatediff(ikdate, kdate1)
-        if (idiff >= 0 .and. idiff < 161) exit
-      end do
-      read (60,end=200) nday , nmo , nyear , ((sst2(i,j),j=1,iy),i=1,jx)
-      kdate2 = mkidate(nyear,nmo,nday,0)
-
-      ks1 = idatediff(kdate1,kdate*100)
-      ks2 = idatediff(kdate1,kdate2)
-      wt = float(ks1)/float(ks2)
- 
-      do i = 1 , jx
-        do j = 1 , iy
-          if ( (topogm(i,j)<=1.) .and.                                  &
-             & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.          &
-             & (sst1(i,j)>-900.0 .and. sst2(i,j)>-900.0) ) tsccm(i,j)   &
-             & = (1.-wt)*sst1(i,j) + wt*sst2(i,j)
-        end do
-      end do
- 
-      rewind (60)
- 
-      return
- 200  continue
-      print * , 'SST file is not the right one'
-      stop 12
-      end subroutine mksst2
-!
-!-----------------------------------------------------------------------
-!
-      subroutine mksst2a(tsccm,sst1,sst2,ice1,ice2,topogm,xlandu,jx,iy, &
-                       & kdate)
-      use mod_date
-      use mod_date
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: iy , jx , kdate
-      real(4) , dimension(jx,iy) :: ice1 , ice2 , sst1 , sst2 , topogm ,&
-                               & tsccm , xlandu
-      intent (in) iy , jx , kdate , topogm , xlandu
-      intent (out) tsccm
-      intent (inout) ice1 , ice2 , sst1 , sst2
-!
-! Local variables
-!
-      integer :: i , j , kdate1 , kdate2 , ks1 , ks2 , nday , nmo ,     &
-               & nyear , ikdate , idiff
-      real(4) :: wt
-!
-!     ******           INITIALIZE SST1, SST2 (NEEDED FOR 82 JAN CASE)
-!
-      sst1 = 0.0
-      sst2 = 0.0
-      ice1 = 0.0
-      ice2 = 0.0
-!
-!     ******           READ IN RCM MONTHLY SST DATASET
-!
-      ikdate = kdate*100
-      do
-        read (60,end=200) nday , nmo , nyear ,                          &
-             &           ((sst1(i,j),j=1,iy),i=1,jx),                   &
-             &           ((ice1(i,j),j=1,iy),i=1,jx)
-        kdate1 = mkidate(nyear,nmo,nday,0)
-        idiff = idatediff(ikdate, kdate1)
-        if (idiff >= 0 .and. idiff < 161) exit
-      end do
-      read (60,end=200) nday , nmo , nyear ,                            &
-           &            ((sst2(i,j),j=1,iy),i=1,jx),                    &
-           &            ((ice2(i,j),j=1,iy),i=1,jx)
-      kdate2 = mkidate(nyear,nmo,nday,0)
-
-      ks1 = idatediff(kdate1,ikdate)
-      ks2 = idatediff(kdate1,kdate2)
-      wt = float(ks1)/float(ks2)
- 
-      do i = 1 , jx
-        do j = 1 , iy
-          if ( (topogm(i,j)<=1.) .and.                                  &
-             & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.          &
-             & (sst1(i,j)>-900.0 .and. sst2(i,j)>-900.0) ) then
-            tsccm(i,j) = (1.-wt)*sst1(i,j) + wt*sst2(i,j)
-            if ( (1.-wt)*ice1(i,j)+wt*ice2(i,j)>35. ) tsccm(i,j)        &
-               & = 273.15 - 2.15
+        else
+          istart(3) = irec-1
+          istart(2) = 1
+          istart(1) = 1
+          icount(3) = 1
+          icount(2) = iy
+          icount(1) = jx
+          istatus = nf90_get_var(ncid, ivar(2), work2, istart, icount)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading sst variable'
+            write (6,*) nf90_strerror(istatus)
+            stop
           end if
-        end do
-      end do
- 
-      rewind (60)
- 
-      return
- 200  continue
-      print * , 'SST&SeaIce file is not the right one'
-      stop 12
-      end subroutine mksst2a
-!
-!-----------------------------------------------------------------------
-!
-      subroutine mksst3(tsccm,sst1,topogm,xlandu,jx,iy,kdate)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: iy , jx , kdate
-      real(4) , dimension(jx,iy) :: sst1 , topogm , tsccm , xlandu
-      intent (in) iy , jx , kdate , topogm , xlandu
-      intent (out) tsccm
-      intent (inout) sst1
-!
-! Local variables
-!
-      integer :: i , j , mday , mhour , mmo , myear , nday , nhour ,    &
-               & nmo , nyear
-!
-      nyear = kdate/1000000
-      nmo = (kdate-nyear*1000000)/10000
-      nday = (kdate-nyear*1000000-nmo*10000)/100
-      nhour = kdate - nyear*1000000 - nmo*10000 - nday*100
-!
-!     ******           INITIALIZE SST1, SST2 (NEEDED FOR 82 JAN CASE)
- 
-!     ******           READ IN RCM 6 HOUR SST DATASET
- 100  continue
-      read (60,end=200) mhour , mday , mmo , myear ,                    &
-                      & ((sst1(i,j),j=1,iy),i=1,jx)
-      if ( nyear/=myear .or. nmo/=mmo .or. nday/=mday .or.              &
-         & nhour/=mhour ) go to 100
- 
-      do i = 1 , jx
-        do j = 1 , iy
-          if ( (topogm(i,j)<=1.) .and.                                  &
-             & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.          &
-             & (sst1(i,j)>-900.0) ) tsccm(i,j) = sst1(i,j)
-        end do
-      end do
- 
-      rewind (60)
- 
-      return
- 200  continue
-      print * , 'SST file is not the right one'
-      stop 12
-      end subroutine mksst3
-!
+          if (lhasice) then
+            istatus = nf90_get_var(ncid, ivar(3), work4, istart, icount)
+            if ( istatus /= nf90_noerr) then
+              write (6,*) 'Error reading ice variable'
+              write (6,*) nf90_strerror(istatus)
+              stop
+            end if
+          end if
+          ks1 = idatediff(itime(irec),idate)
+          ks2 = idatediff(itime(irec),itime(irec-1))
+          wt = float(ks1)/float(ks2)
+          do i = 1 , jx
+            do j = 1 , iy
+              if ( (topogm(i,j)<=1.) .and.                              &
+                 & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.      &
+                 & (work1(i,j)>-900.0 .and. work2(i,j)>-900.0) )        &
+                tsccm(i,j) = (1.-wt)*work1(i,j) + wt*work2(i,j)
+            end do
+          end do
+          if (lhasice) then
+            if ( work3(i,j)>-900.0 .and. work4(i,j)>-900.0 ) then
+              if ( (1.-wt)*work3(i,j)+wt*work4(i,j)>35. )               &
+                tsccm(i,j) = 273.15 - 2.15
+            end if
+          end if
+        end if
+      end subroutine readsst
+
+      subroutine closesst
+        use netcdf
+        implicit none
+        integer :: istatus
+        istatus = nf90_close(ncid)
+        if (allocated(itime)) deallocate(itime)
+        if (allocated(work1)) deallocate(work1)
+        if (allocated(work2)) deallocate(work2)
+        if (allocated(work3)) deallocate(work3)
+        if (allocated(work4)) deallocate(work4)
+        if (allocated(xlandu)) deallocate(xlandu)
+      end subroutine closesst
+
       end module mod_mksst

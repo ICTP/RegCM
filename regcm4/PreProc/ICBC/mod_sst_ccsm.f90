@@ -64,7 +64,7 @@
       integer :: i , idatef , idateo , j , k , ludom , lumax , &
                & nday , nmo , nyear , nho , iv , nsteps
       integer , dimension(20) :: lund
-      character(256) :: sstfile , inpfile
+      character(256) :: inpfile
 !
       do i = 1 , ilon
         glon(i) = 0.5 + float(i-1)
@@ -72,9 +72,6 @@
       do j = 1 , jlat
         glat(j) = -89.5 + 1.*float(j-1)
       end do
- 
-      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.RCM'
-      open (21,file=sstfile,form='unformatted',status='replace')
  
       idateo = imonfirst(globidate1)
       idatef = imonfirst(globidate2)
@@ -133,9 +130,8 @@
             end if
           end do
         end do
-        write (21) nday , nmo , nyear , sstmm
-        call writerec(idate)
 
+        call writerec(idate,.false.)
         print * , 'WRITEN OUT SST DATA : ' , idate
 
         idate = inextmon(idate)

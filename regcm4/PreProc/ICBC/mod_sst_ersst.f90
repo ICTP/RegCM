@@ -39,7 +39,6 @@
       use mod_sst_grid
       use mod_date
       use mod_interp , only : bilinx
-      use mod_printl
       use netcdf
 
       implicit none
@@ -57,7 +56,7 @@
       integer :: idate , ierastart , ierrec , nsteps
       logical :: there
       real(4) , dimension(ilon,jlat) :: sst
-      character(256) :: sstfile , inpfile
+      character(256) :: inpfile
 !
       if ( ssttyp=='ERSST' ) then
         there = .false.
@@ -99,9 +98,6 @@
         stop
       end if
 
-      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.RCM'
-      open (21,file=sstfile,form='unformatted',status='replace')
- 
       nsteps = idatediff(globidate2,globidate1)/idtbc + 1
 
       write (*,*) 'GLOBIDATE1 : ' , globidate1
@@ -135,15 +131,11 @@
 
         call split_idate(idate, nyear, nmo, nday, nhour)
  
-!       ******           PRINT OUT DATA AS A CHECK
-        if ( nmo==1 ) call printl(sst,ilon,jlat)
- 
         call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
         print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
-        write (21) nhour , nday , nmo , nyear , sstmm
-        call writerec(idate)
+        call writerec(idate,.false.)
         print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
 
         call addhours(idate, idtbc)
