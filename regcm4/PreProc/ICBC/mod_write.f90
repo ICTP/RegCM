@@ -219,6 +219,7 @@
             end if
           end do
         end do
+        delx = ds*1000.0
         rlatinc = delx*0.001/111./2.
         rloninc = delx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
@@ -379,6 +380,7 @@
             end if
           end do
         end do
+        delx = ds*1000.0
         rlatinc = delx*0.001/111./2.
         rloninc = delx*0.001/111./2.
         ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
