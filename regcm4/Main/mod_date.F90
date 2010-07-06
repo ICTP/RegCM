@@ -451,8 +451,8 @@
         data csave/'none'/
 
         if (csave == cunit) then
-          call addhours(iref,nint(xval))
           timeval2idate = iref
+          call addhours(timeval2idate,nint(xval))
         else
           if (len_trim(cunit) < 25) then
             timeval2idate = 0
