@@ -48,6 +48,7 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_sst_grid
+      use mod_date
       use mod_interp , only : bilinx
       use mod_printl
 
@@ -60,18 +61,14 @@
 ! Local variables
 !
       real(4) , dimension(ilon,jlat) :: sst , ice
-      integer :: idate , idate0 , kend , kstart
-      integer , dimension(427+1097) :: wkday
-      integer :: i , idatef , idateo , j , k , ludom , lumax , &
-               & nday , nmo , nrec , nyear , nsteps
+      integer :: i , j , k , iv, ludom , lumax , nrec
+      integer :: idate , idateo , idatef , nsteps
+      integer :: nyear , nmo , nday , nho
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
       character(256) :: sstfile , inpfile
       logical :: there
-!
-      kstart = 0
-      kend = 0
 !
       if ( ssttyp=='GISST' ) then
         if ( globidate1<1947121512 .or. globidate2>2002091512 ) then
@@ -115,7 +112,6 @@
         if ( .not.there ) print * ,                                     &
                           &'sst.wkmean.1990-present.nc is not available'&
                          & , ' under ',trim(inpglob),'/SST/'
-        call headwk(wkday)
         if ( ssttyp=='OI2WK' ) then
           inquire (file=trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc', &
                 & exist=there)
@@ -136,63 +132,24 @@
         stop
       end if
 
-      write (sstfile,99001) trim(dirglob), pthsep, trim(domname),       &
-             & '_SST.RCM'
+      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.RCM'
       open (21,file=sstfile,form='unformatted',status='replace')
 
-!#####
+      ! Montly dataset
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
-!#####
-        idate = globidate1/10000
-        if ( idate-(idate/100)*100==1 ) then
-          idate = idate - 89
-        else
-          idate = idate - 1
-        end if
-        idateo = idate
-        idate0 = idateo*10000 + 100
-        idate = globidate2/10000
-        if ( idate-(idate/100)*100==12 ) then
-          idate = idate + 89
-        else
-          idate = idate + 1
-        end if
-        idatef = idate
-        nsteps = (idatef/100-idateo/100)*12 + (idatef-(idatef/100)*100) &
-               & - (idateo-(idateo/100)*100) + 1
-        write (*,*) 'GLOBIDATE1 : ' , globidate1
-        write (*,*) 'GLOBIDATE2 : ' , globidate2
-        write (*,*) 'NSTEPS     : ' , nsteps
-
-!#####
+        idateo = imonfirst(globidate1)
+        idatef = inextmon(globidate2)
+        nsteps = imondiff(idatef,idateo)
+      ! Weekly dataset
       else
-!#####
-        idate = globidate1/100
-        do k = 427 + 1097 , 1 , -1
-          if ( wkday(k)<=idate ) then
-            kstart = k
-            exit
-          end if
-        end do
-        idate = globidate2/100
-        do k = 1 , 427 + 1097
-          if ( wkday(k)>idate ) then
-            kend = k
-            exit
-          end if
-        end do
-        idateo = wkday(kstart)
-        idate0 = wkday(kstart)*100
-        idatef = wkday(kend)
-        print * , globidate1 , globidate2 , idateo , idatef ,           &
-                &  kend - kstart + 1
-!#####
+        idateo = ifodweek(globidate1)
+        idatef = inextwk(globidate2)
+        nsteps = iwkdiff(idatef,idateo)
       end if
 
       call open_sstfile(idateo)
-!#####
  
-!     ******    SET UP LONGITUDES AND LATITUDES FOR SST DATA
+      ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
       do i = 1 , ilon
         loni(i) = .5 + float(i-1)
       end do
@@ -200,46 +157,48 @@
         lati(j) = -89.5 + 1.*float(j-1)
       end do
  
-!#####
-      if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
-!#####
 !       ****** OISST SST DATA, 1 Deg data, AVAILABLE FROM 12/1981 TO
 !       PRESENT ****** GISST SST DATA, 1 Deg data, AVAILABLE FROM
 !       12/1947 TO 9/2002
+
+      if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
+
         idate = idateo
-        do while ( idate<=idatef )
-          nyear = idate/100
-          nmo = idate - nyear*100
+
+        do k = 1 , nsteps
+
+          call split_idate(idate, nyear, nmo, nday, nho)
+
           if ( ssttyp=='GISST' ) then
             nrec = (nyear-1947)*12 + nmo - 11
             read (11,rec=nrec) sst
           else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.           &
                     ssttyp=='OI2ST') then
-            write (*,*) idate*10000 + 100 , idate0
             inpfile = trim(inpglob)//'/SST/sst.mnmean.nc'
-            call sst_mn(idate*10000+100,idate0,ilon,jlat,sst,inpfile)
+            call sst_mn(idate,idateo,ilon,jlat,sst,inpfile)
             if ( ssttyp=='OI2ST' ) then
               inpfile = trim(inpglob)//'/SST/icec.mnmean.nc'
-              call ice_mn(idate*10000+100,idate0,ilon,jlat,ice,inpfile)
+              call ice_mn(idate,idateo,ilon,jlat,ice,inpfile)
             end if
-          else
           end if
  
 !         ******           PRINT OUT DATA AS A CHECK
           if ( nmo==1 ) call printl(sst,ilon,jlat)
  
           call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+          if ( ssttyp=='OI2ST' ) then
+            call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+          end if
+
           print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
               & sstmm(1,1)
  
-          if ( ssttyp=='OI2ST' ) call bilinx(ice,icemm,xlon,xlat,       &
-              & loni,lati,ilon,jlat,iy,jx,1)
           do j = 1 , jx
             do i = 1 , iy
               if ( sstmm(i,j)<-5000. .and. (lu(i,j)>13.5 .and.          &
                 &  lu(i,j)<15.5) ) then
-                do k = 1 , 20
-                  lund(k) = 0.0
+                do iv = 1 , 20
+                  lund(iv) = 0.0
                 end do
                 lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
                 lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
@@ -251,11 +210,11 @@
                 lund(nint(lu(i+1,j+1))) = lund(nint(lu(i+1,j+1))) + 2
                 ludom = 18
                 lumax = 0
-                do k = 1 , 20
-                  if ( k<=13 .or. k>=16 ) then
-                    if ( lund(k)>lumax ) then
-                      ludom = k
-                      lumax = lund(k)
+                do iv = 1 , 20
+                  if ( iv<=13 .or. iv>=16 ) then
+                    if ( lund(iv)>lumax ) then
+                      ludom = iv
+                      lumax = lund(iv)
                     end if
                   end if
                 end do
@@ -271,7 +230,6 @@
           end do
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
-          nday = 1
           if ( ssttyp/='OI2ST' ) then
             write (21) nday , nmo , nyear , sstmm
             call writerec(idate)
@@ -279,38 +237,42 @@
             write (21) nday , nmo , nyear , sstmm , icemm
             call writerec(idate,.true.)
           end if
-          print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
-          idate = idate + 1
-          if ( nmo==12 ) idate = idate + 88
+
+          print * , 'WRITTEN OUT SST DATA:' , nmo , nyear
+
+          idate = inextmon(idate)
+
         end do
-!#####
+
+      ! Weekly data
       else
-!#####
-        do k = kstart , kend
-          idate = wkday(k)
-          nyear = idate/10000
-          nmo = idate/100 - nyear*100
-          nday = mod(idate,100)
-          write (*,*) idate*100 , idate0 , k
-          if ( idate<19891231 ) then
+
+        do k = 1 , nsteps
+
+          call split_idate(idate, nyear, nmo, nday, nho)
+
+          if ( idate<1989123100 ) then
             inpfile = trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
           else
             inpfile = trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
           end if
-          call sst_wk(idate*100,idate0,k,ilon,jlat,sst,inpfile)
- 
+
+          call sst_wk(idate,idateo,k,ilon,jlat,sst,inpfile)
           call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
-          print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
-              & sstmm(1,1)
+ 
           if ( ssttyp=='OI2WK') then
             if ( idate<19891231 ) then
               inpfile = trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc'
             else
-             inpfile = trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
+              inpfile = trim(inpglob)// &
+                        & '/SST/icec.wkmean.1990-present.nc'
             end if
-            call ice_wk(idate*100,idate0,k,ilon,jlat,ice,inpfile)
+            call ice_wk(idate,idateo,k,ilon,jlat,ice,inpfile)
             call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           end if 
+
+          print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
+              & sstmm(1,1)
 
           do j = 1 , jx
             do i = 1 , iy
@@ -330,122 +292,15 @@
              write (21) nday , nmo , nyear , sstmm,icemm
              call writerec(idate*100,.true.)
           endif
-          idate = wkday(k)
-          print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear , idate
+
+          print * , 'WRITTEN OUT SST DATA:' , idate
+
+          idate = inextwk(idate)
+
         end do
       end if
 
-99001 format (a,a,a,a)
       end subroutine sst_1deg
-!
-!-----------------------------------------------------------------------
-!
-      subroutine headwk(wkday)
-      implicit none
-!
-! Dummy arguments
-!
-      integer , intent(out) , dimension(427+1097) :: wkday
-!
-! Local variables
-!
-      integer :: i , mday , month , myear
-!
-      wkday(1) = 19811029
-      do i = 2 , 427
-        wkday(i) = wkday(i-1) + 7
-        myear = wkday(i)/10000
-        month = wkday(i)/100 - myear*100
-        mday = mod(wkday(i),10000) - month*100
-        if ( month==1 .or. month==3 .or. month==5 .or. month==7 .or.    &
-           & month==8 .or. month==10 ) then
-          if ( mday>31 ) then
-            mday = mday - 31
-            month = month + 1
-          end if
-        else if ( month==12 ) then
-          if ( mday>31 ) then
-            mday = mday - 31
-            month = 1
-            myear = myear + 1
-          end if
-        else if ( month==4 .or. month==6 .or. month==9 .or. month==11 ) &
-                & then
-          if ( mday>30 ) then
-            mday = mday - 30
-            month = month + 1
-          end if
-        else if ( mod(myear,4)/=0 ) then
-          if ( mday>28 ) then
-            mday = mday - 28
-            month = month + 1
-          end if
-        else if ( mod(myear,400)==0 ) then
-          if ( mday>29 ) then
-            mday = mday - 29
-            month = month + 1
-          end if
-        else if ( mod(myear,100)==0 ) then
-          if ( mday>28 ) then
-            mday = mday - 28
-            month = month + 1
-          end if
-        else if ( mday>29 ) then
-          mday = mday - 29
-          month = month + 1
-        else
-        end if
-        wkday(i) = myear*10000 + month*100 + mday
-      end do
-!
-      wkday(428) = 19891231
-      do i = 429 , 427 + 1097
-        wkday(i) = wkday(i-1) + 7
-        myear = wkday(i)/10000
-        month = wkday(i)/100 - myear*100
-        mday = mod(wkday(i),10000) - month*100
-        if ( month==1 .or. month==3 .or. month==5 .or. month==7 .or.    &
-           & month==8 .or. month==10 ) then
-          if ( mday>31 ) then
-            mday = mday - 31
-            month = month + 1
-          end if
-        else if ( month==12 ) then
-          if ( mday>31 ) then
-            mday = mday - 31
-            month = 1
-            myear = myear + 1
-          end if
-        else if ( month==4 .or. month==6 .or. month==9 .or. month==11 ) &
-                & then
-          if ( mday>30 ) then
-            mday = mday - 30
-            month = month + 1
-          end if
-        else if ( mod(myear,4)/=0 ) then
-          if ( mday>28 ) then
-            mday = mday - 28
-            month = month + 1
-          end if
-        else if ( mod(myear,400)==0 ) then
-          if ( mday>29 ) then
-            mday = mday - 29
-            month = month + 1
-          end if
-        else if ( mod(myear,100)==0 ) then
-          if ( mday>28 ) then
-            mday = mday - 28
-            month = month + 1
-          end if
-        else if ( mday>29 ) then
-          mday = mday - 29
-          month = month + 1
-        else
-        end if
-        wkday(i) = myear*10000 + month*100 + mday
-      end do
-!
-      end subroutine headwk
 !
 !-----------------------------------------------------------------------
 !

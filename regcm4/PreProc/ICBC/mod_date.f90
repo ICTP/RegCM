@@ -331,7 +331,7 @@
         if (lsame_week(idate2, idate1)) then
           iwkdiff = 0
         else
-          iwkdiff = idatediff(idate2, idate1)/161 + 1
+          iwkdiff = idatediff(idate2, idate1)/168 + 1
         end if
       end function iwkdiff
 
@@ -343,6 +343,15 @@
         call split_idate(idate, iy, im, id, ih)
         imonfirst = mkidate(iy, im, 1, 0)
       end function imonfirst
+
+      function imonlast(idate)
+        implicit none
+        integer :: imonlast
+        integer , intent(in) :: idate
+        integer :: iy , im , id , ih
+        call split_idate(idate, iy, im, id, ih)
+        imonlast = mkidate(iy, im, mdays(iy, im), 0)
+      end function imonlast
 
       function inextmon(idate)
         implicit none
@@ -356,7 +365,7 @@
           im = 1
         end if
         inextmon = mkidate(iy, im, 1, 0)
-      end function
+      end function inextmon
 
       function iprevmon(idate)
         implicit none
@@ -370,7 +379,7 @@
           im = 12
         end if
         iprevmon = mkidate(iy, im, 1, 0)
-      end function
+      end function iprevmon
 
       function idayofyear(idate)
         implicit none
