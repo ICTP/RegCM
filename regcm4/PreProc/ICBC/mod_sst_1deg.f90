@@ -50,7 +50,6 @@
       use mod_sst_grid
       use mod_date
       use mod_interp , only : bilinx
-      use mod_printl
 
       implicit none
 !
@@ -61,7 +60,7 @@
 ! Local variables
 !
       real(4) , dimension(ilon,jlat) :: sst , ice
-      integer :: i , j , k , iv, ludom , lumax , nrec
+      integer :: i , j , k , iwk , iv , ludom , lumax , nrec
       integer :: idate , idateo , idatef , nsteps
       integer :: nyear , nmo , nday , nho
       real(4) , dimension(jlat) :: lati
@@ -139,12 +138,18 @@
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
         idateo = imonfirst(globidate1)
         idatef = inextmon(globidate2)
-        nsteps = imondiff(idatef,idateo)
+        nsteps = imondiff(idatef,idateo) + 1
       ! Weekly dataset
       else
         idateo = ifodweek(globidate1)
-        idatef = inextwk(globidate2)
-        nsteps = iwkdiff(idatef,idateo)
+        if (idateo > globidate1) then
+          idateo = iprevwk(idateo)
+        end if
+        idatef = ifodweek(globidate2)
+        if (idatef < globidate2) then
+          idatef = inextwk(idatef)
+        end if
+        nsteps = iwkdiff(idatef,idateo) + 1
       end if
 
       call open_sstfile(idateo)
@@ -161,9 +166,9 @@
 !       PRESENT ****** GISST SST DATA, 1 Deg data, AVAILABLE FROM
 !       12/1947 TO 9/2002
 
-      if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
+      idate = idateo
 
-        idate = idateo
+      if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
 
         do k = 1 , nsteps
 
@@ -181,9 +186,6 @@
               call ice_mn(idate,idateo,ilon,jlat,ice,inpfile)
             end if
           end if
- 
-!         ******           PRINT OUT DATA AS A CHECK
-          if ( nmo==1 ) call printl(sst,ilon,jlat)
  
           call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           if ( ssttyp=='OI2ST' ) then
@@ -238,7 +240,7 @@
             call writerec(idate,.true.)
           end if
 
-          print * , 'WRITTEN OUT SST DATA:' , nmo , nyear
+          print * , 'WRITTEN OUT SST DATA : ' , idate
 
           idate = inextmon(idate)
 
@@ -253,11 +255,13 @@
 
           if ( idate<1989123100 ) then
             inpfile = trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
+            iwk = iwkdiff(idate,1981110100) + 1
           else
             inpfile = trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
+            iwk = iwkdiff(idate,1989123100) + 1
           end if
 
-          call sst_wk(idate,idateo,k,ilon,jlat,sst,inpfile)
+          call sst_wk(idate,iwk,ilon,jlat,sst,inpfile)
           call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
  
           if ( ssttyp=='OI2WK') then
@@ -267,7 +271,7 @@
               inpfile = trim(inpglob)// &
                         & '/SST/icec.wkmean.1990-present.nc'
             end if
-            call ice_wk(idate,idateo,k,ilon,jlat,ice,inpfile)
+            call ice_wk(idate,iwk,ilon,jlat,ice,inpfile)
             call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           end if 
 
@@ -293,7 +297,7 @@
              call writerec(idate*100,.true.)
           endif
 
-          print * , 'WRITTEN OUT SST DATA:' , idate
+          print * , 'WRITTEN OUT SST DATA : ' , idate
 
           idate = inextwk(idate)
 
@@ -306,6 +310,7 @@
 !
       subroutine sst_mn(idate,idate0,ilon,jlat,sst,pathaddname)
       use netcdf
+      use mod_date , only : split_idate
       implicit none
 !
 ! Dummy arguments
@@ -369,16 +374,12 @@
         end do
       end if
  
-!bxq
-      nyear = idate/1000000
-      month = idate/10000 - nyear*100
-      nday = idate/100 - nyear*10000 - month*100
-      nhour = idate - nyear*1000000 - month*10000 - nday*100
- 
+      call split_idate(idate, nyear, month, nday, nhour)
       it = (nyear-1981)*12 + month - 11
  
       istart(3) = it
       icount(3) = 1
+
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
         write ( 6,* ) 'Cannot get ', varname, ' from file'
@@ -387,7 +388,6 @@
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
-!bxq_
 !
       do j = 1 , jlat
         do i = 1 , ilon
@@ -405,6 +405,7 @@
 !
       subroutine ice_mn(idate,idate0,ilon,jlat,ice,pathaddname)
       use netcdf
+      use mod_date , only : split_idate
       implicit none
 !
 ! Dummy arguments
@@ -468,12 +469,7 @@
         end do
       end if
  
-!bxq
-      nyear = idate/1000000
-      month = idate/10000 - nyear*100
-      nday = idate/100 - nyear*10000 - month*100
-      nhour = idate - nyear*1000000 - month*10000 - nday*100
- 
+      call split_idate(idate, nyear, month, nday, nhour)
       it = (nyear-1981)*12 + month - 11
  
       istart(3) = it
@@ -502,29 +498,30 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine sst_wk(idate,idate0,kkk,ilon,jlat,sst,pathaddname)
+      subroutine sst_wk(idate,kkk,ilon,jlat,sst,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate , idate0 , kkk , ilon , jlat
+      integer :: idate , kkk , ilon , jlat
       character(256) :: pathaddname
-      intent (in) idate , idate0 , kkk , ilon , jlat , pathaddname
+      intent (in) idate , kkk , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
 !
-      integer :: i , it , j , month , n , nday , nhour , nyear
+      integer :: i , j , n
       logical :: there
       character(3) :: varname
       integer :: istatus
-      integer(2) , dimension(ilon,jlat) :: work
+      integer(2) , dimension(ilon,jlat) :: work , work1
 !
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
       real(8) , save :: xadd , xscale
+      character(256) , save :: usename
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -537,8 +534,13 @@
 !     DATA ARRAY AND WORK ARRAY
 !
       data varname/'sst'/
+      data usename/'none'/
+      data inet/-1/
 !
-      if ( idate==idate0 ) then
+      if ( pathaddname /= usename ) then
+        if (inet >= 0) then
+          istatus = nf90_close(inet)
+        end if
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) trim(pathaddname) , ' is not available'
@@ -565,46 +567,10 @@
           istart(n) = 0
           icount(n) = 0
         end do
+        usename = pathaddname
       end if
-      if ( idate0<1989123100 .and. idate==1989123100 ) then
-        istatus = nf90_close(inet)
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
-        end if
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-        if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-          stop 'INPUT FILE OPEN ERROR'
-        end if
-        istatus = nf90_inq_varid(inet,varname,ivar)
-        if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', trim(pathaddname)
-          stop 'INPUT FILE ERROR'
-        end if
-        istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-        istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-        istart(1) = 1
-        istart(2) = 1
-        icount(1) = ilon
-        icount(2) = jlat
-        do n = 4 , 10
-          istart(n) = 0
-          icount(n) = 0
-        end do
-      end if
-!bxq
-      nyear = idate/1000000
-      month = idate/10000 - nyear*100
-      nday = idate/100 - nyear*10000 - month*100
-      nhour = idate - nyear*1000000 - month*10000 - nday*100
- 
-      it = kkk
-      if ( kkk>427 ) it = kkk - 427
- 
-      istart(3) = it
+
+      istart(3) = kkk
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
@@ -614,7 +580,19 @@
         write ( 6,* ) nf90_strerror(istatus)
         stop 'ERROR READ SST'
       end if
-!bxq_
+      if (idate < 1989123100) then
+        istart(3) = kkk-1
+        icount(3) = 1
+        istatus = nf90_get_var(inet,ivar,work1,istart,icount)
+        if ( istatus/=nf90_noerr ) then
+          write ( 6,* ) 'Cannot get ', varname, ' from file'
+          write ( 6,* ) istart
+          write ( 6,* ) icount
+          write ( 6,* ) nf90_strerror(istatus)
+          stop 'ERROR READ SST'
+        end if
+      end if
+
       do j = 1 , jlat
         do i = 1 , ilon
           if ( work(i,j)==32767 ) then
@@ -625,25 +603,38 @@
         end do
       end do
 
+      if (idate < 1989123100) then
+        do j = 1 , jlat
+          do i = 1 , ilon
+            if ( work1(i,j)==32767 ) then
+               sst(i,jlat+1-j) = -9999.
+            else
+               sst(i,jlat+1-j) = (sst(i,jlat+1-j)+work1(i,j)*xscale     &
+                     &            + xadd)*0.5
+            end if
+          end do
+        end do
+      end if
+
       end subroutine sst_wk
 !
 !-----------------------------------------------------------------------
 !
-      subroutine ice_wk(idate,idate0,kkk,ilon,jlat,ice,pathaddname)
+      subroutine ice_wk(idate,kkk,ilon,jlat,ice,pathaddname)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: idate , idate0 , kkk , ilon , jlat
+      integer :: idate , kkk , ilon , jlat
       character(256) :: pathaddname
-      intent (in) idate , idate0 , kkk , ilon , jlat , pathaddname
+      intent (in) idate , kkk , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
 !
 ! Local variables
 !
-      integer :: i , it , j , month , n , nday , nhour , nyear
+      integer :: i , j , n
       logical :: there
       character(4) :: varname
       integer(2) , dimension(ilon,jlat) :: work
@@ -652,6 +643,7 @@
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
       real(8) , save :: xadd , xscale
+      character(256) , save :: usename
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -664,8 +656,13 @@
 !     DATA ARRAY AND WORK ARRAY
 !
       data varname/'icec'/
+      data usename/'none'/
+      data inet/-1/
 !
-      if ( idate==idate0 ) then
+      if ( pathaddname /= usename ) then
+        if (inet >= 0) then
+          istatus = nf90_close(inet)
+        end if
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
           write (*,*) trim(pathaddname) , ' is not available'
@@ -692,46 +689,10 @@
           istart(n) = 0
           icount(n) = 0
         end do
+        usename = pathaddname
       end if
-      if ( idate0<1989123100 .and. idate==1989123100 ) then
-        istatus = nf90_close(inet)
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
-        end if
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-        if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-          stop 'INPUT FILE OPEN ERROR'
-        end if
-        istatus = nf90_inq_varid(inet,varname,ivar)
-        if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', trim(pathaddname)
-          stop 'INPUT FILE ERROR'
-        end if
-        istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-        istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-        istart(1) = 1
-        istart(2) = 1
-        icount(1) = ilon
-        icount(2) = jlat
-        do n = 4 , 10
-          istart(n) = 0
-          icount(n) = 0
-        end do
-      end if
-!bxq
-      nyear = idate/1000000
-      month = idate/10000 - nyear*100
-      nday = idate/100 - nyear*10000 - month*100
-      nhour = idate - nyear*1000000 - month*10000 - nday*100
- 
-      it = kkk
-      if ( kkk>427 ) it = kkk - 427
- 
-      istart(3) = it
+
+      istart(3) = kkk
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
