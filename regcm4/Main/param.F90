@@ -1993,21 +1993,6 @@
 !
       daymax = ntimax/1440.
 
-      istatus = nf90_close(iutin)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error closing DOMAIN file'
-        write (6,*) nf90_strerror(istatus)
-        call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-      end if
-      if (nsg > 1) then
-        istatus = nf90_close(iutin1)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error closing SUBDOMAIN file'
-          write (6,*) nf90_strerror(istatus)
-          call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-        end if
-      end if
-
 #ifdef MPP1
       if ( myid.eq.0 ) then
         if ( ibltyp.eq.0 ) print 99002
