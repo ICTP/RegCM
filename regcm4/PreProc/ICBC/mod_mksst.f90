@@ -131,6 +131,10 @@
            end if
         end do
 
+        if (idate == itime(irec-1)) then
+          irec = irec-1
+        end if
+
         istart(3) = irec
         istart(2) = 1
         istart(1) = 1
