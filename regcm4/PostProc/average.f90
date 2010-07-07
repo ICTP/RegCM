@@ -32,7 +32,7 @@
       character*20 DomainName
       integer len_path
       integer np
-      real(4), save ::  plev(11)
+      real*4, save ::  plev(11)
       logical s2p_ICBC,s2p_ATM
 
       namelist /shareparam/iy,jx,kz,nsg,ntr,i_band,ibyte,igrads &
@@ -68,7 +68,7 @@
 
       if(day_ICBC) call day2('ICBC',iy,jx,kz,i_band,ibyte, Path_Input &
                          ,DomainName,idate0,idate1,idate2,igrads)
-      if(day_ICBC_P) call day2p('ICBC_P',iy,jx,kz,np,plev,ibyte &
+      if(day_ICBC_P) call day2p('ICBC_P',iy,jx,kz,np,plev,i_band,ibyte &
                      ,Path_Input,DomainName,idate0,idate1,idate2,igrads)
 
       if(day_ATM)call day('ATM',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
@@ -83,12 +83,12 @@
       if(day_CHE)call day('CHE',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                          ,idate0,idate1,idate2,igrads)
 
-      if(day_ATM_P)call dayp('ATM_P',iy,jx,kz,np,plev,ibyte  &
+      if(day_ATM_P)call dayp('ATM_P',iy,jx,kz,np,plev,i_band,ibyte  &
                         ,Path_Output,idate0,idate1,idate2,igrads)
 
       if(mon_ICBC) call mon2('ICBC',iy,jx,kz,i_band,ibyte, Path_Input &
                             ,DomainName,idate1,idate2,igrads)
-      if(mon_ICBC_P)call mon2p('ICBC_P',iy,jx,kz,np,plev,ibyte  &
+      if(mon_ICBC_P)call mon2p('ICBC_P',iy,jx,kz,np,plev,i_band,ibyte  &
                      ,Path_Input,DomainName,idate1,idate2,igrads)
 
       if(mon_ATM)call mon('ATM',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
@@ -103,7 +103,7 @@
       if(mon_CHE)call mon('CHE',iy,jx,kz,ntr,i_band,ibyte, Path_Output &
                          ,idate1,idate2,igrads)
 
-      if(mon_ATM_P)call monp('ATM_P',iy,jx,kz,np,plev,ibyte  &
+      if(mon_ATM_P)call monp('ATM_P',iy,jx,kz,np,plev,i_band,ibyte  &
                            ,Path_Output,idate1,idate2,igrads)
 
       stop
@@ -117,12 +117,12 @@
       integer iy,jx,kz,ntr,i_band,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real(4)  truelatL,truelatH
-      real(4)  dxsp,ptsp,clat,clon,plat,plon
-      real(4)  dto,dtb,dtr,dtc,dt
+      real*4  truelatL,truelatH
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc,dt
       integer iotyp
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -138,13 +138,13 @@
       character*12 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
       integer i,j,k,n,itr,jx_len
       integer nvar,mvar,n_month,nrecord,nday,mday
       integer idatex
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -657,15 +657,15 @@
       character*5 filename
       character*128 Path_Output
       integer iy,jx,kz,np,i_band,ibyte,idate0,idate1,idate2,igrads
-      real(4)  plev(np)
+      real*4  plev(np)
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real(4)  truelatL,truelatH
-      real(4)  dxsp,ptsp,clat,clon,plat,plon
-      real(4)  dto,dtb,dtr,dtc
+      real*4  truelatL,truelatH
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -681,12 +681,12 @@
       character*14 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
       integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday,mday
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -977,11 +977,11 @@
       character*20 DomainName
       integer iy,jx,kz,i_band,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
-      real(4)  truelatL,truelatH
-      real(4)  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      real*4  truelatL,truelatH
+      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -997,13 +997,13 @@
       character*12 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
       integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday,mday
       integer idatex
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -1323,13 +1323,13 @@
       character*128 Path_Input
       character*20 DomainName
       integer iy,jx,kz,np,i_band,ibyte,idate0,idate1,idate2,igrads
-      real(4)  plev(np)
+      real*4  plev(np)
       integer iiy,jjx,kkz
-      real(4)  truelatL,truelatH
-      real(4)  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      real*4  truelatL,truelatH
+      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -1345,12 +1345,12 @@
       character*14 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
       integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday,mday
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -1669,12 +1669,12 @@
       integer iy,jx,kz,nsg,i_band,ibyte,idate0,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real(4)  truelatL,truelatH
-      real(4)  dxsp,ptsp,clat,clon,plat,plon
-      real(4)  dto,dtb,dtr,dtc,dt
+      real*4  truelatL,truelatH
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc,dt
       integer iotyp
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -1691,14 +1691,14 @@
       character*12 fileout
       integer ntype,nfile,nyear,month,n_slice,mrec,nrec
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
       integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday,mday
       integer idatex
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
-      real(4), allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -2045,12 +2045,12 @@
       integer iy,jx,kz,ntr,i_band,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real(4)  truelatL,truelatH
-      real(4)  dxsp,ptsp,clat,clon,plat,plon
-      real(4)  dto,dtb,dtr,dtc
+      real*4  truelatL,truelatH
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -2068,11 +2068,11 @@
       integer i,j,k,n,itr,jx_len
       integer nvar,n_month,nrecord,nday
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
 
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -2497,15 +2497,15 @@
       character*5 filename
       character*128 Path_Output
       integer iy,jx,kz,np,i_band,ibyte,idate1,idate2,igrads
-      real(4)  plev(np)
+      real*4  plev(np)
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real(4)  truelatL,truelatH
-      real(4)  dxsp,ptsp,clat,clon,plat,plon
-      real(4)  dto,dtb,dtr,dtc
+      real*4  truelatL,truelatH
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -2523,11 +2523,11 @@
       integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
 
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -2831,11 +2831,11 @@
       character*20 DomainName
       integer iy,jx,kz,i_band,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
-      real(4)  truelatL,truelatH
-      real(4)  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      real*4  truelatL,truelatH
+      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -2851,12 +2851,12 @@
       character*8 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
       integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -3186,13 +3186,13 @@
       character*128 Path_Input
       character*20 DomainName
       integer iy,jx,kz,np,i_band,ibyte,idate1,idate2,igrads
-      real(4)  plev(np)
+      real*4  plev(np)
       integer iiy,jjx,kkz
-      real(4)  truelatL,truelatH
-      real(4)  dsinm,ptop,clat,clon,plat,plon,GRDFAC
+      real*4  truelatL,truelatH
+      real*4  dsinm,ptop,clat,clon,plat,plon,GRDFAC
       integer jgrads,ibigend
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -3208,12 +3208,12 @@
       character*10 fileout
       integer ntype,nfile,nyear,month,mrec,nrec
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
       integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx
@@ -3541,12 +3541,12 @@
       integer iy,jx,kz,nsg,i_band,ibyte,idate1,idate2,igrads
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real(4)  truelatL,truelatH
-      real(4)  dxsp,ptsp,clat,clon,plat,plon
-      real(4)  dto,dtb,dtr,dtc
+      real*4  truelatL,truelatH
+      real*4  dxsp,ptsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real(4), allocatable ::  sigma(:)
+      real*4, allocatable ::  sigma(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -3565,12 +3565,12 @@
       integer i,j,k,n,jx_len
       integer nvar,n_month,nrecord,nday
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
 
-      real(4), allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
-      real(4), allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
+      real*4, allocatable ::  c(:,:,:),b(:,:),xlat(:,:),xlon(:,:)
+      real*4, allocatable ::  xlat_s(:,:),xlon_s(:,:),a(:,:)
 
       if(i_band.eq.1) then
          jx_len = jx

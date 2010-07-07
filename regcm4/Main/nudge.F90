@@ -70,8 +70,11 @@
 ! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ibeg , iend , ii , jj , jsls , kk , mm
+      integer :: i , ii , kk , mm
       real(8) :: xfun , xfune
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 !
 #ifdef MPP1
       integer :: jwb , jeb
@@ -500,8 +503,11 @@
 ! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ibeg , iend , ii , jj , jsls , k , kk , mm
+      integer :: i , ii , k , kk , mm
       real(8) :: xfun , xfune
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer jwb , jeb
 #endif
@@ -982,8 +988,11 @@
 ! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ibeg , iend , ii , jj , jsls , k , kk , mm
+      integer :: i , ii , k , kk , mm
       real(8) :: xfun , xfune
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer :: jeb , jwb
 #endif
@@ -1465,8 +1474,11 @@
 ! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ibeg , iend , ii , jj , jsls , k , kk , mm
+      integer :: i , ii , k , kk , mm
       real(8) :: xfun , xfune
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer :: jew
 #endif
@@ -1940,8 +1952,11 @@
 ! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ibeg , iend , ii , jj , jsls , k , kk , mm
+      integer :: i , ii , k , kk , mm
       real(8) :: xfun , xfune
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer :: jew
 #endif

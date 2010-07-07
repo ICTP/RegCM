@@ -58,10 +58,13 @@
 ! Local variables
 !
       real(8) :: chix , chix1 , chix2 , dtb , qcx , qcx2 , qvx , qvx1 , &
-               & qvx2 , uavg , vavg
-      integer :: i , itr , j , k
+               & qvx2 , vavg
+      integer :: itr , j , k
 #ifdef BAND
       integer :: jp1
+#else
+      integer :: i
+      real(8) :: uavg
 #endif
 !
 !*********************************************************************

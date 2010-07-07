@@ -84,7 +84,7 @@
 !
       integer :: depth , freeze , i , ibdydiff , ibdyhr0 , nxxx , nyyy ,&
                & ibdyhr1 , ibin , ilake , im1h , ip1h , ist , jlake ,   &
-               & itr , j , jm1h , jp1h , k , kzzz , n
+               & itr , j , k , kzzz , n
       real(8) :: eta , hg1 , hg2 , hg3 , hg4 , hgmax , hi , hii , hs ,  &
                & tlp , ts00
       real(4) , dimension(iy,jx) :: io2d
@@ -93,6 +93,8 @@
       integer :: allrec , ierr , l
 #ifdef BAND
       integer :: jp1
+#else
+      integer :: jm1h , jp1h
 #endif
 #else
       integer :: jm1

@@ -58,10 +58,13 @@
 !
 ! Local variables
 !
+#ifndef BAND
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & ucmona , ucmonb , ucmonc , vavg1 , vavg2 , vcmona ,    &
                & vcmonb , vcmonc
-      integer :: i , idx , idxm1 , idxp1 , jdx , jdxm1 , jdxp1 , k
+      integer :: idx , idxm1 , idxp1, jdx , jdxm1 , jdxp1
+#endif
+      integer :: i , k
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -282,10 +285,13 @@
 !
 ! Local variables
 !
+#ifndef BAND
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & ucmona , ucmonb , ucmonc , vavg1 , vavg2 , vcmona ,    &
-               & vcmonb , vcmonc
-      integer :: i , idx , idxm1 , idxp1 , jdx , jdxm1 , jdxp1 , k
+               & vavg1 , vavg2
+      integer :: jdx , jdxm1 , jdxp1
+#endif
+      integer :: i , k , idx , idxm1 , idxp1
+      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -562,10 +568,13 @@
 !
 ! Local variables
 !
+#ifndef BAND
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & ucmona , ucmonb , ucmonc , vavg1 , vavg2 , vcmona ,    &
-               & vcmonb , vcmonc
-      integer :: i , idx , idxm1 , idxp1 , jdx , jdxm1 , jdxp1 , k
+               & vavg1 , vavg2
+      integer :: jdx , jdxm1 , jdxp1
+#endif
+      integer :: i , k , idx , idxm1 , idxp1
+      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -842,10 +851,13 @@
 !
 ! Local variables
 !
+#ifndef BAND
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & ucmona , ucmonb , ucmonc , vavg1 , vavg2 , vcmona ,    &
-               & vcmonb , vcmonc
-      integer :: i , idx , idxm1 , idxp1 , jdx , jdxm1 , jdxp1 , k
+               & vavg1 , vavg2
+      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
+      integer :: idx , idxm1 , idxp1, jdx , jdxm1 , jdxp1
+#endif
+      integer :: i , k
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -1066,10 +1078,13 @@
 !
 ! Local variables
 !
+#ifndef BAND
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & ucmona , ucmonb , ucmonc , vavg1 , vavg2 , vcmona ,    &
-               & vcmonb , vcmonc
-      integer :: i , idx , idxm1 , idxp1 , jdx , jdxm1 , jdxp1 , k
+               & vavg1 , vavg2
+      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
+      integer :: idx , idxm1 , idxp1, jdx , jdxm1 , jdxp1
+#endif
+      integer :: i , k
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -1290,10 +1305,13 @@
 !
 ! Local variables
 !
+#ifndef BAND
+      integer :: idx , idxm1 , idxp1, jdx , jdxm1 , jdxp1
+      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
+#endif
+      integer :: i , k
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & ucmona , ucmonb , ucmonc , vavg1 , vavg2 , vcmona ,    &
-               & vcmonb , vcmonc
-      integer :: i , idx , idxm1 , idxp1 , jdx , jdxm1 , jdxp1 , k
+               & vavg1 , vavg2
 !
 #ifdef BAND
 !----------------------------------------------------------------------

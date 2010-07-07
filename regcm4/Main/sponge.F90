@@ -53,7 +53,10 @@
 !
 ! Local variables
 !
-      integer :: i , ibeg , iend , ii , jj , jsls
+      integer :: i , ii
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer :: jwb , jeb
 #endif
@@ -186,7 +189,10 @@
 !
 ! Local variables
 !
-      integer :: i , ibeg , iend , ii , jj , jsls , k
+      integer :: i , ii , k
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer :: jwb , jeb
 #endif
@@ -331,7 +337,10 @@
 !
 ! Local variables
 !
-      integer :: i , ibeg , iend , ii , jj , jsls , k
+      integer :: i , ii , k
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer :: jwb , jeb
 #endif
@@ -474,7 +483,10 @@
 !
 ! Local variables
 !
-      integer :: i , ibeg , iend , ii , jj , jsls , k
+      integer :: i , ii , k
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer :: jew
 #endif
@@ -611,7 +623,10 @@
 !
 ! Local variables
 !
-      integer :: i , ibeg , iend , ii , jj , jsls , k
+      integer :: i , ii , k
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
 #ifdef MPP1
       integer :: jew
 #endif

@@ -39,9 +39,28 @@
 !
 ! Local variables
 !
-      integer dum
+      integer idum
 !
-      dum = iexec
+      idum = iexec
+      return
+      end subroutine outprt
+
+#else
+#ifdef BAND
+      subroutine outprt(iexec)
+
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: iexec
+      intent (in) iexec
+!
+! Local variables
+!
+      integer idum
+!
+      idum = iexec
       return
       end subroutine outprt
 
@@ -89,7 +108,6 @@
 !
       data iyn , jxn , kxn/2 , 2 , 1/
 !
-#ifndef BAND
 !----------------------------------------------------------------------
 !
       xth = xtime/60.
@@ -413,13 +431,11 @@
 99009 format ('  t (c)  at k = ',i3,21x)
 99010 format ('  relative humidity at k = ',i3,10x)
 99011 format ('  qc  at k = ',i3,24x)
-#endif
 !
       end subroutine outprt
 
 #endif
-!
-!
+#endif
 !
       subroutine mapsmp(fld,fldr,iyy,jxx,ia,ib,iny,ja,jb,jnx,const,     &
                       & ichos,c40nam,time)
