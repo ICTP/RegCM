@@ -1522,6 +1522,23 @@
           if ( icup.eq.1 ) then
             call cupara(j)
           else if ( icup.eq.2 ) then
+
+!! the following part moved from subroutine cuparan
+            do k=1,kz
+            do i=2,iym2
+               jp1 = j+1
+#if defined(BAND) || (!defined(MPP1))
+               if(jp1.eq.jx+1) jp1 = 1
+#endif
+!              usk(i,k) = ua(i,kk,j)/psb(i,j)
+!              vsk(i,k) = va(i,kk,j)/psb(i,j)
+          usk(i,k) = 0.25*(ua(i,k,j)/psb(i,j)+ua(i+1,k,j)/psb(i+1,j) &
+                 & +ua(i,k,jp1)/psb(i,jp1)+ua(i+1,k,jp1)/psb(i+1,jp1))
+          vsk(i,k) = 0.25*(va(i,k,j)/psb(i,j)+va(i+1,k,j)/psb(i+1,j) &
+                 & +va(i,k,jp1)/psb(i,jp1)+va(i+1,k,jp1)/psb(i+1,jp1))
+            enddo
+            enddo
+!!
             call cuparan(tten(1,1,j),qvten(1,1,j),j)
           else if ( icup.eq.3 ) then
             write (aline,*)                                             &

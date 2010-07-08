@@ -73,12 +73,18 @@
       do k = 1 , kz
         do i = 2 + icut , iym2 - icut
           kk = kz - k + 1
-          us = ua(i,kk,j)/psb(i,j)
-          vs = va(i,kk,j)/psb(i,j)
-          us = 0.25*(ua(i,kk,j)/psb(i,j)+ua(i+1,kk,j)/psb(i+1,j)        &
-             & +ua(i,kk,j+1)/psb(i,j+1)+ua(i+1,kk,j+1)/psb(i+1,j+1))
-          vs = 0.25*(va(i,kk,j)/psb(i,j)+va(i+1,kk,j)/psb(i+1,j)        &
-             & +va(i,kk,j+1)/psb(i,j+1)+va(i+1,kk,j+1)/psb(i+1,j+1))
+
+!! move to sunroutinr tend
+!         us = ua(i,kk,j)/psb(i,j)
+!         vs = va(i,kk,j)/psb(i,j)
+!         us = 0.25*(ua(i,kk,j)/psb(i,j)+ua(i+1,kk,j)/psb(i+1,j)        &
+!            & +ua(i,kk,j+1)/psb(i,j+1)+ua(i+1,kk,j+1)/psb(i+1,j+1))
+!         vs = 0.25*(va(i,kk,j)/psb(i,j)+va(i+1,kk,j)/psb(i+1,j)        &
+!            & +va(i,kk,j+1)/psb(i,j+1)+va(i+1,kk,j+1)/psb(i+1,j+1))
+
+          us = usk(i,kk)
+          vs = vsk(i,kk)
+
           t(i,k) = tb(i,kk,j)/psb(i,j)
           q(i,k) = qvb(i,kk,j)/psb(i,j)
           if ( q(i,k).lt.1.E-08 ) q(i,k) = 1.E-08

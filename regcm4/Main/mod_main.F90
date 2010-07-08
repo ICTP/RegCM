@@ -38,6 +38,8 @@
       real(8) , allocatable, dimension(:,:,:) :: so4 , tbase
       real(8) , allocatable, dimension(:,:) :: uvdrag
 
+      real(8) , allocatable, dimension(:,:) :: usk,vsk
+
       contains 
 
         subroutine allocate_mod_main
@@ -117,6 +119,8 @@
         allocate(tbase(iy,kz,jx)) 
         allocate(uvdrag(iy,jx))
 #endif
+        allocate(usk(iy,kz))
+        allocate(vsk(iy,kz))
         end subroutine allocate_mod_main 
 
  end module mod_main
