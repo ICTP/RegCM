@@ -1693,8 +1693,9 @@
       call say
 !
       if ( ipptls.eq.1 ) then
-        write (aline, '(a,f11.6,a,f11.6)') 'AUTO-CONVERSION RATE:  LAND=' , qck1land ,    &
-               &'                      OCEAN=' , qck1oce
+        write (aline, '(a,f11.6,a,f11.6)')                              &
+               & 'AUTO-CONVERSION RATE:  LAND=' , qck1land ,    &
+               & '                      OCEAN=' , qck1oce
         call say
         write (aline, *) 'RELATIVE HUMIDITY THRESHOLDS:  LAND=' ,       &
                & rh0land , '                              OCEAN=' ,     &

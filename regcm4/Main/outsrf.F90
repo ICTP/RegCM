@@ -37,7 +37,7 @@
       integer :: i , j , n
 !
 !     ****** check if at desired output time for bats variables
-      write (*,*) 'BATS variables written at ' , idatex , xtime
+      write (*,*) 'LAND variables written at ' , idatex , xtime
       if ( iotyp.eq.2 ) write (iutbat) idatex
       do n = 1 , numbat
         if ( iotyp.eq.1 ) then

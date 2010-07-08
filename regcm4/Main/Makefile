@@ -216,7 +216,7 @@ albedoclm.o: albedoclm.F90 mod_bats.o mod_dynparam.o \
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 albedov.o: albedov.F90 mod_constants.o mod_bats.o mod_dynparam.o
 bdyin.o: bdyin.F90 mod_bats.o mod_bdycod.o mod_date.o mod_iunits.o mod_main.o \
-         mod_param1.o mod_param3.o mod_dynparam.o mod_tmpsav.o
+         mod_param1.o mod_param3.o mod_dynparam.o mod_tmpsav.o mod_mppio.o
 bdyuv.o: bdyuv.F90 mod_bdycod.o mod_cvaria.o mod_main.o mod_dynparam.o
 bdyval.o: bdyval.F90 mod_bdycod.o mod_date.o mod_main.o mod_mainchem.o \
           mod_param1.o mod_param2.o mod_dynparam.o

@@ -1984,7 +1984,7 @@
       if ( ifsave ) then
         if ( ( ( lday.eq.1 .and. lhour.eq.0 .and.                       &
            &     dabs(xtime).lt.0.00001 )   .and.                       &
-           &     ldatez.ne.IDATE1 ) .or. nnnnnn.eq.nnnend ) then
+           &     ldatez.ne.idate1 ) .or. nnnnnn.eq.nnnend ) then
           cdtime = get_step_size()
           filer_rest = restFile_filename(type='netcdf',                 &
                      &                   offset=-int(cdtime))

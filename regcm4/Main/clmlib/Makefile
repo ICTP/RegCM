@@ -1,4 +1,9 @@
 include ../../Makefile.inc
+# Set up special characters
+null  :=
+
+# Determine platform 
+UNAMES := $(shell uname -s)
 
 all:: libclm.a
 
@@ -16,18 +21,29 @@ ESMF_INCLUDE = $(CLMSRC)/src/utils/esmf_wrf_timemgr
 UTIL_INCLUDE = $(CLMSRC)/src/utils/timing/
 GLOB_INCLUDE = .
 
-CC = mpicc
-CFLAGS = -O2 -g
+CPPFLAGS += -DMAXPATCH_PFT=4 -DOFFLINE
+ifeq ($(UNAMES),AIX)
+CPPFLAGS += -DAIX -DFORTRAN_SAME
+DEFFLAGS = -DAIX -DFORTRAN_SAME
+cpre = $(null)-WF,-D$(null)
+FPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
+else
+CPPFLAGS += -DLINUX -DFORTRANUNDERSCORE
+FPPFLAGS = $(CPPFLAGS)
+DEFFLAGS = $(CPPFLAGS)
+endif
 
-CPPFLAGS += -DMAXPATCH_PFT=4 -DOFFLINE -DFORTRANUNDERSCORE -DLINUX
 F90FLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
             -I$(REGCMSRC) $(NETCDFINC)
 
 %.o: %.F90
-	$(MPIF90) -c -o $@ $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c $<
+	$(MPIF90) -c -o $@ $(FPPFLAGS) $(F90FLAGS)  -c $<
 
 %.o: %.f90
-	$(MPIF90) -c -o $@ $(F90FLAGS) $(USCORING) -c $<
+	$(MPIF90) -c -o $@ $(F90FLAGS) -c $<
+
+%.o: %.c
+	$(CC) -c -o $@ $(CFLAGS) $(DEFFLAGS) -c $<
 
 SRCS =  \
 BalanceCheckMod.F90 BareGroundFluxesMod.F90 BiogeophysRestMod.F90 \

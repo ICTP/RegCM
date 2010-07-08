@@ -98,9 +98,7 @@
                & xday , xmsf , xtm1
       real(8) , dimension(iy,kz) :: divl
       integer :: i , icons , iptn , itr , j , k , lev , n
-#ifdef BAND
       integer :: jm1, jp1
-#endif
 #ifdef MPP1
       integer :: ierr , icons_mpi , numrec
       real(8) , dimension(iy,kz,jxp) :: ttld
@@ -153,61 +151,7 @@
 !
 !-----decouple u, v, t, qv, and qc
 !
-#ifdef BAND
-#ifdef MPP1
-      do j = 1 , jendl
-      jm1 = j-1
-#else
-      do j = 1 , jx
-      jm1 = j-1
-      if(jm1.eq.0) jm1=jx
-#endif
-!
-!-----interior slice:
-!-----interior points:
-!
-          do k = 1 , kz
-            do i = 3 , iym2
-              psabar = 0.25*(psa(i,j)+psa(i,jm1)+                       &
-                     &       psa(i-1,j)+psa(i-1,jm1))
-              xmsf = msfd(i,j)
-              u(i,k,j) = ua(i,k,j)/(psabar*xmsf)
-              v(i,k,j) = va(i,k,j)/(psabar*xmsf)
-            end do
-          end do
-!
-!-----------north/south boundary points:
-!...........no inflow/outflow dependence:
-!
-          do k = 1 , kz
-!..............for i=2 and i=iym1:
-            u(2,k,j) = ui2(k,j)
-            u(iym1,k,j) = uilx(k,j)
-            v(2,k,j) = vi2(k,j)
-            v(iym1,k,j) = vilx(k,j)
-!..............for i=1 and i=ix:
-            u(1,k,j) = ui1(k,j)
-            u(iy,k,j) = uil(k,j)
-            v(1,k,j) = vi1(k,j)
-            v(iy,k,j) = vil(k,j)
-          end do
-          if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
-!..............inflow/outflow dependence:
-            do k = 1 , kz
-!.................south boundary:
-              if ( v(1,k,j).lt.0. ) then
-                v(1,k,j) = v(2,k,j)
-                u(1,k,j) = u(2,k,j)
-              end if
-!.................north boundary:
-              if ( v(iy,k,j).ge.0. ) then
-                v(iy,k,j) = v(iym1,k,j)
-                u(iy,k,j) = u(iym1,k,j)
-              end if
-            end do
-          end if
-      end do
-#else
+#ifndef BAND
 #ifdef MPP1
       do j = 1 , jendl
         if ( myid.eq.0 .and. j.eq.1 ) then
@@ -313,14 +257,34 @@
             end do
           end if
         else
+        end if
+      end do
+#endif
+
+#ifdef MPP1
+      do j = 1 , jendl
+#else
+      do j = 1 , jx
+#endif
+        jm1 = j-1
+#if defined(BAND) && (!defined(MPP1))
+        if(jm1.eq.0) jm1=jx
+#endif
 !
 !-----interior slice:
 !-----interior points:
 !
+#ifndef BAND
+#ifdef MPP1
+        if((.not.(myid.eq.0 .and. (j.eq.1 .or. j.eq.2))) .and. &
+           (.not.(myid.eq.nproc-1 .and. (j.eq.jendl-1 .or. j.eq.jendl))) ) then
+#else
+        if(.not.(j.eq.1 .or. j.eq.2 .or. j.eq.jxm1 .or. j.eq.jx) ) then
+#endif
+#endif
           do k = 1 , kz
             do i = 3 , iym2
-              psabar = 0.25*(psa(i,j)+psa(i,j-1)+                       &
-                     &       psa(i-1,j)+psa(i-1,j-1))
+              psabar=0.25*(psa(i,j)+psa(i,jm1)+psa(i-1,j)+psa(i-1,jm1))
               xmsf = msfd(i,j)
               u(i,k,j) = ua(i,k,j)/(psabar*xmsf)
               v(i,k,j) = va(i,k,j)/(psabar*xmsf)
@@ -357,9 +321,10 @@
               end if
             end do
           end if
+#ifndef BAND
         end if
-      end do
 #endif
+      end do
 !
 #ifdef MPP1
       do j = 1 , jendx
@@ -555,27 +520,21 @@
 !
 #ifdef MPP1
       do j = jbegin , jendx
-        do i = 2 , iym1
-          pdotb(i,j) = 0.25*(psb(i,j)+psb(i-1,j)+                       &
-                     &       psb(i,j-1)+psb(i-1,j-1))
-        end do
-      end do
 #else
 #ifdef BAND
       do j = 1 , jx
-      jm1 = j-1
-      if(jm1.eq.0) jm1=jx
-        do i = 2 , iym1
-          pdotb(i,j)=0.25*(psb(i,j)+psb(i-1,j)+psb(i,jm1)+psb(i-1,jm1))
 #else
       do j = 2 , jxm1
-        do i = 2 , iym1
-          pdotb(i,j) = 0.25*(psb(i,j)+psb(i-1,j)+                       &
-                     &       psb(i,j-1)+psb(i-1,j-1))
 #endif
+#endif
+         jm1 = j-1
+#if defined(BAND) && (!defined(MPP1))
+         if(jm1.eq.0) jm1=jx
+#endif
+        do i = 2 , iym1
+          pdotb(i,j)=0.25*(psb(i,j)+psb(i-1,j)+psb(i,jm1)+psb(i-1,jm1))
         end do
       end do
-#endif
 !
 !-----east and west boundaries:
 !
@@ -596,23 +555,20 @@
 !
 #ifdef MPP1
       do j = jbegin , jendx
-        pdotb(1,j) = 0.5*(psb(1,j)+psb(1,j-1))
-        pdotb(iy,j) = 0.5*(psb(iym1,j)+psb(iym1,j-1))
-      end do
 #else
 #ifdef BAND
       do j = 1 , jx
-        jm1=j-1
-        if(jm1.eq.0) jm1=jx
-        pdotb(1,j) = 0.5*(psb(1,j)+psb(1,jm1))
-        pdotb(iy,j) = 0.5*(psb(iym1,j)+psb(iym1,jm1))
 #else
       do j = 2 , jxm1
-        pdotb(1,j) = 0.5*(psb(1,j)+psb(1,j-1))
-        pdotb(iy,j) = 0.5*(psb(iym1,j)+psb(iym1,j-1))
 #endif
+#endif
+         jm1 = j-1
+#if defined(BAND) && (!defined(MPP1))
+         if(jm1.eq.0) jm1=jx
+#endif
+        pdotb(1,j) = 0.5*(psb(1,j)+psb(1,jm1))
+        pdotb(iy,j) = 0.5*(psb(iym1,j)+psb(iym1,jm1))
       end do
-#endif
 !
 !-----corner points:
 !
@@ -784,16 +740,52 @@
 !**********************************************************************
 !***** "j" loop begins here:
 !
-#ifdef BAND
+#ifndef BAND
 #ifdef MPP1
       do j = 1 , jendx
-      jp1 = j+1
+        if ( (myid.eq.0 .and. j.eq.1) .or.                              &
+           & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
 #else
+      do j = 1 , jxm1
+        if ( j.eq.1 .or. j.eq.jxm1 ) then
+#endif
+          icon(j) = 0
+          do k = 1 , kzp1
+            do i = 1 , iym1
+              qdot(i,k,j) = 0.
+            end do
+          end do
+          do k = 1 , kz
+            do i = 1 , iym1
+              omega(i,k,j) = 0.
+            end do
+          end do
+        endif
+      enddo
+#endif
+
+#ifdef MPP1
+      do j = 1 , jendx
+#else
+#ifdef BAND
       do j = 1 , jx
-      jp1 = j+1
-      if(jp1.eq.jx+1) jp1 = 1
+#else
+      do j = 1 , jxm1
+#endif
+#endif
+        jp1 = j+1
+#if defined(BAND) && (!defined(MPP1))
+        if(jp1.eq.jx+1) jp1 = 1
 #endif
 !
+#ifndef BAND
+#ifdef MPP1
+        if((.not.(myid.eq.0 .and. j.eq.1)) .and. &
+           (.not.(myid.eq.nproc-1 .and. j.eq.jendx)) ) then
+#else
+        if( .not.(j.eq.1 .or. j.eq.jxm1) ) then
+#endif
+#endif
         icon(j) = 0
 !
 !----------------------------------------------------------------------
@@ -827,62 +819,10 @@
                           & *msfx(i,j)))*dsigma(k-1)/psa(i,j)
            end do
         end do
-      end do
-#else
-#ifdef MPP1
-      do j = 1 , jendx
-#else
-      do j = 1 , jxm1
-#endif
-!
-        icon(j) = 0
-#ifdef MPP1
-        if ( (myid.eq.0 .and. j.eq.1) .or.                              &
-           & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
-#else
-        if ( j.eq.1 .or. j.eq.jxm1 ) then
-#endif
-          do k = 1 , kzp1
-            do i = 1 , iym1
-              qdot(i,k,j) = 0.
-            end do
-          end do
-        else
-!
-!----------------------------------------------------------------------
-!**p**compute the pressure tendency:
-!
-          do i = 2 , iym2
-            pten(i,j) = 0.
-          end do
-          do k = 1 , kz
-            do i = 2 , iym2
-              divl(i,k) = (ua(i+1,k,j+1)+ua(i,k,j+1)-ua(i+1,k,j)        &
-                        & -ua(i,k,j))                                   &
-                        & + (va(i+1,k,j+1)+va(i+1,k,j)-va(i,k,j+1)      &
-                        & -va(i,k,j))
-              pten(i,j) = pten(i,j) - divl(i,k)*dsigma(k)               &
-                        & /(dx2*msfx(i,j)*msfx(i,j))
-            end do
-          end do
-!
-!..p..compute vertical sigma-velocity (qdot):
-!
-          do k = 1 , kzp1
-            do i = 1 , iym1
-              qdot(i,k,j) = 0.
-            end do
-          end do
-          do k = 2 , kz
-            do i = 2 , iym2
-              qdot(i,k,j) = qdot(i,k-1,j)                               &
-                          & - (pten(i,j)+divl(i,k-1)/(dx2*msfx(i,j)     &
-                          & *msfx(i,j)))*dsigma(k-1)/psa(i,j)
-            end do
-          end do
+#ifndef BAND
         end if
-      end do
 #endif
+      end do
 #ifdef MPP1
       call mpi_sendrecv(qdot(1,1,jxp),iy*kzp1,mpi_real8,                &
                       & ieast,1,qdot(1,1,0),iy*kzp1,                    &
@@ -895,59 +835,45 @@
 !
 !..p..compute omega
 !
-#ifdef BAND
 #ifdef MPP1
       do j = 1 , jendx
-        jp1 = j+1
-        jm1 = j-1
 #else
+#ifdef BAND
       do j = 1 , jx
+#else
+      do j = 1 , jxm1
+#endif
+#endif
         jp1 = j+1
-        if(jp1.eq.jx+1) jp1=1
         jm1 = j-1
+#if defined(BAND) && (!defined(MPP1))
+        if(jp1.eq.jx+1) jp1 = 1
         if(jm1.eq.0) jm1=jx
+#endif
+#ifndef BAND
+#ifdef MPP1
+        if((.not.(myid.eq.0 .and. j.eq.1)) .and. &
+           (.not.(myid.eq.nproc-1 .and. j.eq.jendx)) ) then
+#else
+        if( .not.(j.eq.1 .or. j.eq.jxm1) ) then
+#endif
 #endif
         do k = 1 , kz
            do i = 2 , iym2
-              omega(i,k,j) = 0.5*psa(i,j)*(qdot(i,k+1,j)+qdot(i,k,j))+  &
-                           & a(k)*(pten(i,j)+((u(i,k,j)+u(i+1,k,j)+     &
-                           & u(i+1,k,jp1)+u(i,k,jp1))*(psa(i,jp1)-      &
-                           & psa(i,jm1))+(v(i,k,j)+v(i+1,k,j)+          &
-                           & v(i+1,k,jp1)+v(i,k,jp1))*                  &
+              omega(i,k,j) = 0.5*psa(i,j)*(qdot(i,k+1,j)+qdot(i,k,j))+ &
+                           & a(k)*(pten(i,j)+((u(i,k,j)+u(i+1,k,j)+    &
+                           & u(i+1,k,jp1)+u(i,k,jp1))*(psa(i,jp1)-     &
+                           & psa(i,jm1))+(v(i,k,j)+v(i+1,k,j)+         &
+                           & v(i+1,k,jp1)+v(i,k,jp1))*                 &
                            & (psa(i+1,j)-psa(i-1,j)))/(dx8*msfx(i,j)))
            end do
         end do
-      end do
-#else
-#ifdef MPP1
-      do j = 1 , jendx
-        if ( (myid.eq.0 .and. j.eq.1) .or.                              &
-           & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
-#else
-      do j = 1 , jxm1
-        if ( j.eq.1 .or. j.eq.jxm1 ) then
-#endif
-          do k = 1 , kz
-            do i = 1 , iym1
-              omega(i,k,j) = 0.
-            end do
-          end do
-        else
-          do k = 1 , kz
-            do i = 2 , iym2
-              omega(i,k,j) = 0.5*psa(i,j)*(qdot(i,k+1,j)+qdot(i,k,j))+  &
-                           & a(k)*(pten(i,j)+((u(i,k,j)+u(i+1,k,j)+     &
-                           & u(i+1,k,j+1)+u(i,k,j+1))*(psa(i,j+1)-      &
-                           & psa(i,j-1))+(v(i,k,j)+v(i+1,k,j)+          &
-                           & v(i+1,k,j+1)+v(i,k,j+1))*                  &
-                           & (psa(i+1,j)-psa(i-1,j)))/(dx8*msfx(i,j)))
-            end do
-          end do
+#ifndef BAND
         end if
-      end do
 #endif
-#ifdef MPP1
+      end do
 
+#ifdef MPP1
 #ifndef BAND
       if ( nspgx.ge.jxp ) then
         do i = 1 , iy
@@ -976,9 +902,9 @@
             bdyewsnd(i,4+kz*15+k) = vwbt(i,k,jxp)
           end do
         end do
-        call mpi_sendrecv(bdyewsnd(1,1),iy*(kz*16+4),                   &
-                        & mpi_real8,ieast,1,bdyewrcv(1,1),              &
-                        & iy*(kz*16+4),mpi_real8,iwest,1,               &
+        call mpi_sendrecv(bdyewsnd(1,1),iy*(kz*16+4),                &
+                        & mpi_real8,ieast,1,bdyewrcv(1,1),           &
+                        & iy*(kz*16+4),mpi_real8,iwest,1,            &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do i = 1 , iy
           if ( myid.eq.nproc-1 ) then
@@ -1056,9 +982,9 @@
             bdyewsnd(i,4+kz*15+k) = vwbt(i,k,1)
           end do
         end do
-        call mpi_sendrecv(bdyewsnd(1,1),iy*(kz*16+4),                   &
-                        & mpi_real8,iwest,2,bdyewrcv(1,1),              &
-                        & iy*(kz*16+4),mpi_real8,ieast,2,               &
+        call mpi_sendrecv(bdyewsnd(1,1),iy*(kz*16+4),                &
+                        & mpi_real8,iwest,2,bdyewrcv(1,1),           &
+                        & iy*(kz*16+4),mpi_real8,ieast,2,            &
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do i = 1 , iy
           peb(i,0) = bdyewrcv(i,1)
@@ -1121,9 +1047,9 @@
 #ifndef BAND
       end if
 #endif
-      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kz*16+4),                  &
-                      & mpi_real8,ieast,1,bdynsrcv(1,1),                &
-                      & nspgx*(kz*16+4),mpi_real8,iwest,1,              &
+      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kz*16+4),               &
+                      & mpi_real8,ieast,1,bdynsrcv(1,1),             &
+                      & nspgx*(kz*16+4),mpi_real8,iwest,1,           &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid.ne.0 ) then
@@ -1187,9 +1113,9 @@
 #ifndef BAND
       end if
 #endif
-      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kz*16+4),                  &
-                      & mpi_real8,iwest,2,bdynsrcv(1,1),                &
-                      & nspgx*(kz*16+4),mpi_real8,ieast,2,              &
+      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kz*16+4),               &
+                      & mpi_real8,iwest,2,bdynsrcv(1,1),             &
+                      & nspgx*(kz*16+4),mpi_real8,ieast,2,           &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid.ne.nproc-1 ) then
@@ -1247,9 +1173,9 @@
 !....apply  the nudging boundary conditions:
           else if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
             xtm1 = xtime - dtmin
-            if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )        &
+            if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )     &
                & xtm1 = -dtmin
-            call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(1,j),c203,j,     &
+            call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(1,j),c203,j,  &
                        & iboudy)
           else
           end if
@@ -1257,31 +1183,8 @@
         end if     !end if(j.ne.jxm1) test
 #endif
       end do
-#ifdef BAND
-#ifdef MPP1
-      do j = 1 , jendx
-#else
-      do j = 1 , jx
-#endif
-!
-!..p..forecast pressure:
-!
-         do i = 2 , iym2
-            psc(i,j) = psb(i,j) + pten(i,j)*dt
-         end do
-!
-!..p..weighted p* (psd)
-!
-         do i = 2 , iym2
-            psd(i,j) = psa(i,j)
-         end do
-!
-         psc(1,j) = psb(1,j) + dt*psbt(1,j)
-         psc(iym1,j) = psb(iym1,j) + dt*pnbt(1,j)
-         psd(1,j) = psa(1,j)
-         psd(iym1,j) = psa(iym1,j)
-      end do
-#else
+
+#ifndef BAND
 #ifdef MPP1
       do j = 1 , jendx
         if ( myid.eq.0 .and. j.eq.1 ) then
@@ -1302,26 +1205,48 @@
             psd(i,j) = psa(i,j)
           end do
         else
+        end if
+      enddo
+#endif
+
+#ifdef MPP1
+      do j = 1 , jendx
+#else
+#ifdef BAND
+      do j = 1 , jx
+#else
+      do j = 1 , jxm1
+#endif
+#endif
+#ifndef BAND
+#ifdef MPP1
+        if((.not.(myid.eq.0 .and. j.eq.1)) .and. &
+           (.not.(myid.eq.nproc-1 .and. j.eq.jendx)) ) then
+#else
+        if( .not.(j.eq.1 .or. j.eq.jxm1) ) then
+#endif
+#endif
 !
 !..p..forecast pressure:
 !
-          do i = 2 , iym2
+         do i = 2 , iym2
             psc(i,j) = psb(i,j) + pten(i,j)*dt
-          end do
+         end do
 !
 !..p..weighted p* (psd)
 !
-          do i = 2 , iym2
+         do i = 2 , iym2
             psd(i,j) = psa(i,j)
-          end do
+         end do
 !
-          psc(1,j) = psb(1,j) + dt*psbt(1,j)
-          psc(iym1,j) = psb(iym1,j) + dt*pnbt(1,j)
-          psd(1,j) = psa(1,j)
-          psd(iym1,j) = psa(iym1,j)
+         psc(1,j) = psb(1,j) + dt*psbt(1,j)
+         psc(iym1,j) = psb(iym1,j) + dt*pnbt(1,j)
+         psd(1,j) = psa(1,j)
+         psd(iym1,j) = psa(iym1,j)
+#ifndef BAND
         end if
-      end do
 #endif
+      end do
 #ifdef MPP1
       call mpi_sendrecv(psd(1,jxp),iy,mpi_real8,ieast,1,                &
                       & psd(1,0),iy,mpi_real8,iwest,1,                  &
@@ -1390,16 +1315,19 @@
       end do
 #endif
 !
-#ifdef BAND
 #ifdef MPP1
       do j = jbegin , jendx
-      jp1 = j+1
 #else
+#ifdef BAND
       do j = 1 , jx
-      jp1 = j+1
-      if(jp1.eq.jx+1) jp1=1
+#else
+      do j = 2 , jxm1
 #endif
-
+#endif
+        jp1 = j+1
+#if defined(BAND) && (!defined(MPP1))
+        if(jp1.eq.jx+1) jp1 = 1
+#endif
 !
 !------compute the horizontal diffusion coefficient and stored in xkc:
 !       the values are calculated at cross points, but they also used
@@ -1420,34 +1348,6 @@
           end do
         end do
       end do
-#else
-#ifdef MPP1
-      do j = jbegin , jendx
-#else
-      do j = 2 , jxm1
-#endif
-
-!
-!------compute the horizontal diffusion coefficient and stored in xkc:
-!       the values are calculated at cross points, but they also used
-!       for dot-point variables.
- 
-        do k = 1 , kz
-          do i = 2 , iym1
-            dudx = ub(i,k,j+1) + ub(i+1,k,j+1) - ub(i,k,j) - ub(i+1,k,j)
-            dvdx = vb(i,k,j+1) + vb(i+1,k,j+1) - vb(i,k,j) - vb(i+1,k,j)
-            dudy = ub(i+1,k,j) + ub(i+1,k,j+1) - ub(i,k,j) - ub(i,k,j+1)
-            dvdy = vb(i+1,k,j) + vb(i+1,k,j+1) - vb(i,k,j) - vb(i,k,j+1)
-!fil        cell=(xkhz*hgfact(i,j)/5.+c200*dsqrt((dudx-dvdy)*(dudx-dvdy)
-            cell = (xkhz*hgfact(i,j)                                    &
-                 & +c200*dsqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)      &
-                 & *(dvdx+dudy)))
-            xkc(i,k,j) = dmin1(cell,xkhmax)
- 
-          end do
-        end do
-      end do
-#endif
 !
 
 #ifdef MPP1
@@ -1491,7 +1391,7 @@
             do i = 2 , iym2
               rovcpm = rgas/(cpd*(1.+0.8*(qv(i,k,j))))
               tv = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              tten(i,k,j) = tten(i,k,j) + (omega(i,k,j)*rovcpm*tv)      &
+              tten(i,k,j) = tten(i,k,j) + (omega(i,k,j)*rovcpm*tv)   &
                           & /(r8pt/psa(i,j)+a(k))
             end do
           end do
@@ -1530,8 +1430,8 @@
 #if defined(BAND) || (!defined(MPP1))
                if(jp1.eq.jx+1) jp1 = 1
 #endif
-!              usk(i,k) = ua(i,kk,j)/psb(i,j)
-!              vsk(i,k) = va(i,kk,j)/psb(i,j)
+!              usk(i,k) = ua(i,k,j)/psb(i,j)
+!              vsk(i,k) = va(i,k,j)/psb(i,j)
           usk(i,k) = 0.25*(ua(i,k,j)/psb(i,j)+ua(i+1,k,j)/psb(i+1,j) &
                  & +ua(i,k,jp1)/psb(i,jp1)+ua(i+1,k,jp1)/psb(i+1,jp1))
           vsk(i,k) = 0.25*(va(i,k,j)/psb(i,j)+va(i+1,k,j)/psb(i+1,j) &
@@ -1610,7 +1510,17 @@
 !       ****** calculate albedo
 #ifdef CLM
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
-           & .eq.0 ) call albedoclm(j,iemiss)
+           & .eq.0 ) then
+            do i = 1 , iym1
+               aldirs(i) = aldirs2d(i,j)
+               aldirl(i) = aldirl2d(i,j)
+               aldifs(i) = aldifs2d(i,j)
+               aldifl(i) = aldifl2d(i,j)
+               albvs(i)  = aldirs2d(i,j)
+               albvl(i)  = aldirl2d(i,j)
+            end do
+            call albedoclm(j,iemiss)
+        endif
 #else
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
            & .eq.0 ) call albedov(j,iemiss)
@@ -1790,56 +1700,7 @@
 #endif
       end do
 !
-#ifdef BAND
-#ifdef MPP1
-      do j = 1 , jendx
-#else
-      do j = 1 , jx
-#endif
-!
-!..t..compute weighted p*t (td) for use in ssi:
-!
-        if ( ipgf.eq.1 ) then
-!
-          do k = 1 , kz
-            do i = 2 , iym2
-              tvc = tc(i,k,j)*(1.+ep1*(qvc(i,k,j))/psc(i,j))
-              tva = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              tvb = tb(i,k,j)*(1.+ep1*(qvb(i,k,j))/psb(i,j))
-              td(i,k,j) = alpha*(tvc+tvb) + beta*tva
-              ttld(i,k,j) = td(i,k,j) - psd(i,j)                        &
-                          & *t00pg*((a(k)*psd(i,j)+r8pt)/p00pg)**pgfaa1
-            end do
-          end do
-          do k = 1 , kz
-            td(1,k,j) = ta(1,k,j)*(1.+ep1*(qv(1,k,j)))
-            ttld(1,k,j) = td(1,k,j) - psa(1,j)                          &
-                        & *t00pg*((a(k)*psa(1,j)+r8pt)/p00pg)**pgfaa1
-            td(iym1,k,j) = ta(iym1,k,j)*(1.+ep1*(qv(iym1,k,j)))
-            ttld(iym1,k,j) = td(iym1,k,j) - psa(iym1,j)                 &
-                          & *t00pg*((a(k)*psa(iym1,j)+r8pt)/p00pg)      &
-                          & **pgfaa1
-          end do
-!
-        else if ( ipgf.eq.0 ) then
-!
-          do k = 1 , kz
-            do i = 2 , iym2
-              tvc = tc(i,k,j)*(1.+ep1*(qvc(i,k,j))/psc(i,j))
-              tva = ta(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              tvb = tb(i,k,j)*(1.+ep1*(qvb(i,k,j))/psb(i,j))
-              td(i,k,j) = alpha*(tvc+tvb) + beta*tva
-            end do
-          end do
-          do k = 1 , kz
-            td(1,k,j) = ta(1,k,j)*(1.+ep1*(qv(1,k,j)))
-            td(iym1,k,j) = ta(iym1,k,j)*(1.+ep1*(qv(iym1,k,j)))
-          end do
- 
-        end if
-!
-      end do
-#else
+#ifndef BAND
 #ifdef MPP1
       do j = 1 , jendx
         if ( myid.eq.0 .and. j.eq.1 ) then
@@ -1894,7 +1755,32 @@
 !
 !..t..compute weighted p*t (td) for use in ssi:
 !
-        else if ( ipgf.eq.1 ) then
+        else
+        endif
+      enddo
+#endif
+
+#ifdef MPP1
+      do j = 1 , jendx
+#else
+#ifdef BAND
+      do j = 1 , jx
+#else
+      do j = 1 , jxm1
+#endif
+#endif
+#ifndef BAND
+#ifdef MPP1
+        if((.not.(myid.eq.0 .and. j.eq.1)) .and. &
+           (.not.(myid.eq.nproc-1 .and. j.eq.jendx)) ) then
+#else
+        if( .not.(j.eq.1 .or. j.eq.jxm1) ) then
+#endif
+#endif
+!
+!..t..compute weighted p*t (td) for use in ssi:
+!
+        if ( ipgf.eq.1 ) then
 !
           do k = 1 , kz
             do i = 2 , iym2
@@ -1931,11 +1817,12 @@
             td(iym1,k,j) = ta(iym1,k,j)*(1.+ep1*(qv(iym1,k,j)))
           end do
  
-        else         !end if(j.ne.jxm1),else test
         end if
-!
-      end do
+#ifndef BAND
+        end if
 #endif
+      end do
+!
 !----------------------------------------------------------------------
 !**uv*compute the u and v tendencies:
 #ifdef MPP1
@@ -1983,14 +1870,18 @@
         end do
       end do
 !
-#ifdef BAND
 #ifdef MPP1
       do j = jbegin , jendx
-      jm1 = j-1
 #else
+#ifdef BAND
       do j = 1 , jx
-      jm1 = j-1
-      if(jm1.eq.0) jm1 = jx
+#else
+      do j = 2 , jxm1
+#endif
+#endif
+        jm1 = j-1
+#if defined(BAND) && (!defined(MPP1))
+        if(jm1.eq.0) jm1 = jx
 #endif
 !
 !..uv.compute pressure gradient terms:
@@ -2044,65 +1935,6 @@
         else   ! ipgf if block
         end if
       end do
-#else
-#ifdef MPP1
-      do j = jbegin , jendx
-#else
-      do j = 2 , jxm1
-#endif
-!
-!..uv.compute pressure gradient terms:
-!
-        if ( ipgf.eq.1 ) then
-          do k = 1 , kz
-            do i = 2 , iym1
-              psasum = psd(i,j) + psd(i-1,j) + psd(i,j-1) + psd(i-1,j-1)
-              sigpsa = psasum
-              tv1 = t(i-1,k,j-1)*(1.+ep1*(qv(i-1,k,j-1)))
-              tv2 = t(i,k,j-1)*(1.+ep1*(qv(i,k,j-1)))
-              tv3 = t(i-1,k,j)*(1.+ep1*(qv(i-1,k,j)))
-              tv4 = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              rtbar = tv1 + tv2 + tv3 + tv4 -                           &
-                    & 4.*t00pg*((a(k)*psasum/4.+r8pt)/p00pg)**pgfaa1
-              rtbar = rgas*rtbar*sigpsa/16.
-              uten(i,k,j) = uten(i,k,j)                                 &
-                          & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
-                          & +r8pt)                                      &
-                          & -dlog(0.5*(psd(i,j-1)+psd(i-1,j-1))*a(k)    &
-                          & +r8pt))/(dx*msfd(i,j))
-              vten(i,k,j) = vten(i,k,j)                                 &
-                          & - rtbar*(dlog(0.5*(psd(i,j)+psd(i,j-1))*a(k)&
-                          & +r8pt)                                      &
-                          & -dlog(0.5*(psd(i-1,j-1)+psd(i-1,j))*a(k)    &
-                          & +r8pt))/(dx*msfd(i,j))
-            end do
-          end do
-        else if ( ipgf.eq.0 ) then
-          do k = 1 , kz
-            do i = 2 , iym1
-              psasum = psd(i,j) + psd(i-1,j) + psd(i,j-1) + psd(i-1,j-1)
-              sigpsa = psasum
-              tv1 = t(i-1,k,j-1)*(1.+ep1*(qv(i-1,k,j-1)))
-              tv2 = t(i,k,j-1)*(1.+ep1*(qv(i,k,j-1)))
-              tv3 = t(i-1,k,j)*(1.+ep1*(qv(i-1,k,j)))
-              tv4 = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.
-              uten(i,k,j) = uten(i,k,j)                                 &
-                          & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
-                          & +r8pt)                                      &
-                          & -dlog(0.5*(psd(i,j-1)+psd(i-1,j-1))*a(k)    &
-                          & +r8pt))/(dx*msfd(i,j))
-              vten(i,k,j) = vten(i,k,j)                                 &
-                          & - rtbar*(dlog(0.5*(psd(i,j)+psd(i,j-1))*a(k)&
-                          & +r8pt)                                      &
-                          & -dlog(0.5*(psd(i-1,j-1)+psd(i-1,j))*a(k)    &
-                          & +r8pt))/(dx*msfd(i,j))
-            end do
-          end do
-        else
-        end if
-      end do
-#endif
 !
 #ifdef MPP1
       do j = 1 , jendx
@@ -2169,14 +2001,18 @@
                       & phi(1,1,0),iy*kz,mpi_real8,iwest,1,             &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
-#ifdef BAND
 #ifdef MPP1
       do j = jbegin , jendx
-      jm1 = j-1
 #else
+#ifdef BAND
       do j = 1 , jx
-      jm1 = j-1
-      if(jm1.eq.0) jm1 = jx
+#else
+      do j = 2 , jxm1
+#endif
+#endif
+        jm1 = j-1
+#if defined(BAND) && (!defined(MPP1))
+        if(jm1.eq.0) jm1 = jx
 #endif
 !
 !..uv.compute the geopotential gradient terms:
@@ -2194,29 +2030,6 @@
           end do
         end do
       end do
-#else
-#ifdef MPP1
-      do j = jbegin , jendx
-#else
-      do j = 2 , jxm1
-#endif
-!
-!..uv.compute the geopotential gradient terms:
-!
-        do k = 1 , kz
-          do i = 2 , iym1
-            uten(i,k,j) = uten(i,k,j)                                   &
-                        & -(psd(i-1,j-1)+psd(i,j-1)+psd(i-1,j)+psd(i,j))&
-                        & *(phi(i,k,j)+phi(i-1,k,j)-phi(i,k,j-1)-       &
-                        & phi(i-1,k,j-1))/(dx8*msfd(i,j))
-            vten(i,k,j) = vten(i,k,j)                                   &
-                        & -(psd(i-1,j-1)+psd(i,j-1)+psd(i-1,j)+psd(i,j))&
-                        & *(phi(i,k,j)+phi(i,k,j-1)-phi(i-1,k,j)-       &
-                        & phi(i-1,k,j-1))/(dx8*msfd(i,j))
-          end do
-        end do
-      end do
-#endif
 !
 #ifdef MPP1
       do j = jbegin , jendx

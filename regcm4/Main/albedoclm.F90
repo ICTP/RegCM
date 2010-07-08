@@ -20,12 +20,12 @@
       subroutine albedoclm(j,iemiss)
  
       use mod_dynparam
-      use mod_bats , only : albvs , albvl  , aldirs , aldirl , ssw1d ,   &
+      use mod_bats , only : albvs , albvl  , aldirs , aldirl , ssw1d ,  &
                   & aldifs , aldifl , czen , sice1d , emiss1d , coszrs ,&
-                  & ldoc1d , tgb1d , lveg  , ts1d , scv1d , sag1d , wt , &
+                  & ldoc1d , tgb1d , lveg  , ts1d , scv1d , sag1d , wt ,&
                   & scvk , veg1d , emiss2d , albvgs , albvgl , kolsol , &
-                  & depuv , solour, ocld2d , aldirs2d, aldirl2d, aldifs2d, &
-                  & aldifl2d
+                  & depuv , solour, ocld2d , aldirs2d, aldirl2d,        &
+                  & aldifs2d , aldifl2d
       use mod_constants , only : tzero
       use clm_varsur,     only : landfrac
       implicit none
@@ -335,17 +335,20 @@
         jj = j
 #endif
         if(ocld2d(1,i,j)>=1 .and. aldirs2d(i,j)/=1.) then
-           aldirs(i) = aldirs2d(i,j)*landfrac(jj,i) + aldirs(i)*(1-landfrac(jj,i))
-           aldirl(i) = aldirl2d(i,j)*landfrac(jj,i) + aldirl(i)*(1-landfrac(jj,i))
-           aldifs(i) = aldifs2d(i,j)*landfrac(jj,i) + aldifs(i)*(1-landfrac(jj,i))
-           aldifl(i) = aldifl2d(i,j)*landfrac(jj,i) + aldifl(i)*(1-landfrac(jj,i))
-           albvs(i)  = aldirs2d(i,j)*landfrac(jj,i) + albvs(i) *(1-landfrac(jj,i))
-           albvl(i)  = aldirl2d(i,j)*landfrac(jj,i) + albvl(i) *(1-landfrac(jj,i)) 
+           aldirs(i) = aldirs2d(i,j)*landfrac(jj,i) +                   &
+                       aldirs(i)*(1-landfrac(jj,i))
+           aldirl(i) = aldirl2d(i,j)*landfrac(jj,i) +                   &
+                       aldirl(i)*(1-landfrac(jj,i))
+           aldifs(i) = aldifs2d(i,j)*landfrac(jj,i) +                   &
+                       aldifs(i)*(1-landfrac(jj,i))
+           aldifl(i) = aldifl2d(i,j)*landfrac(jj,i) +                   &
+                       aldifl(i)*(1-landfrac(jj,i))
+           albvs(i)  = aldirs2d(i,j)*landfrac(jj,i) +                   &
+                       albvs(i) *(1-landfrac(jj,i))
+           albvl(i)  = aldirl2d(i,j)*landfrac(jj,i) +                   &
+                       albvl(i) *(1-landfrac(jj,i)) 
         end if
 
-
-
- 
       end do   ! end of i loop
   
       end subroutine albedoclm
