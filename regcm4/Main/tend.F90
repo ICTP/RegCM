@@ -1427,7 +1427,7 @@
             do k=1,kz
             do i=2,iym2
                jp1 = j+1
-#if defined(BAND) || (!defined(MPP1))
+#if defined(BAND) && (!defined(MPP1))
                if(jp1.eq.jx+1) jp1 = 1
 #endif
 !              usk(i,k) = ua(i,k,j)/psb(i,j)
@@ -2219,8 +2219,6 @@
       call bdyval(xtime,iexec)
 !
 !-----compute the nonconvective precipitation:
-!
-!???  call nconvp(psa,psb,ta,tb,qva,qvb,qca,qcb)
 !
 !chem2_
 !     do cumulus transport of tracers

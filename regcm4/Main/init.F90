@@ -87,17 +87,12 @@
                & itr , j , k , kzzz , n
       real(8) :: eta , hg1 , hg2 , hg3 , hg4 , hgmax , hi , hii , hs ,  &
                & tlp , ts00
+      integer :: jp1 , jm1
       real(4) , dimension(iy,jx) :: io2d
 #ifdef MPP1
       real(8) , dimension(iy,jxp) :: psdot
       integer :: allrec , ierr , l
-#ifdef BAND
-      integer :: jp1
 #else
-      integer :: jm1h , jp1h
-#endif
-#else
-      integer :: jm1
       real(8) , dimension(iy,jx) :: psdot
 #endif
       real(8) , dimension(400) :: tlake
@@ -733,11 +728,12 @@
 !
 #ifdef BAND
         do j = 1 , jx
-        jm1 = j-1
-        if(jm1.eq.0) jm1=jx
 #else
         do j = 2 , jxm1
-        jm1 = j-1
+#endif
+          jm1 = j-1
+#if defined(BAND) && (!defined(MPP1))
+          if(jm1.eq.0) jm1=jx
 #endif
           do i = 2 , iym1
             psdot(i,j) = 0.25*(ps0(i,j)+ps0(i-1,j)+                     &
@@ -754,11 +750,12 @@
 !
 #ifdef BAND
         do j = 1 , jx
-        jm1 = j-1
-        if(jm1.eq.0) jm1=jx
 #else
         do j = 2 , jxm1
-        jm1 = j-1
+#endif
+          jm1 = j-1
+#if defined(BAND) && (!defined(MPP1))
+          if(jm1.eq.0) jm1=jx
 #endif
           psdot(1,j) = 0.5*(ps0(1,j)+ps0(1,jm1))
           psdot(iy,j) = 0.5*(ps0(iym1,j)+ps0(iym1,jm1))
@@ -2161,31 +2158,13 @@
       if ( iemiss.eq.1 ) then
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , iym1
-            do n = 1 , nnsg
-              ist = nint(veg2d1(n,i,j))
-              if ( ist.eq.0 ) then
-                emiss2d(n,i,j) = 0.955D0
-              else if ( ist.eq.8 ) then
-                emiss2d(n,i,j) = 0.76D0
-              else if ( ist.eq.11 ) then
-                emiss2d(n,i,j) = 0.85D0
-              else if ( ist.eq.12 ) then
-                emiss2d(n,i,j) = 0.97D0
-              else
-                emiss2d(n,i,j) = 0.99D0 - (albvgs(ist)+albvgl(ist))     &
-                               & *0.1D0
-              end if
-!             emiss2d(n,i,j) = 1.0d0
-            end do
-          end do
-        end do
 #else
 #ifdef BAND
           do j = 1 , jx
 #else
           do j = 1 , jxm1
 #endif
+#endif
           do i = 1 , iym1
             do n = 1 , nnsg
               ist = nint(veg2d1(n,i,j))
@@ -2205,7 +2184,6 @@
             end do
           end do
         end do
-#endif
       end if
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -2227,36 +2205,46 @@
       call inirad
 !
 !-----calculating topographical correction to diffusion coefficient
-#ifdef BAND
 #ifdef MPP1
       do j = 1 , jendl
-        do i = 1 , iy
-          hgfact(i,j) = 1.
-        end do
-      end do
-      do j = jbegin , jendm
-        do i = 2 , iym2
-          im1h = max0(i-1,2)
-          ip1h = min0(i+1,iym2)
-          hg1 = dabs((ht(i,j)-ht(im1h,j))/dx)
-          hg2 = dabs((ht(i,j)-ht(ip1h,j))/dx)
-          hg3 = dabs((ht(i,j)-ht(i,j-1))/dx)
-          hg4 = dabs((ht(i,j)-ht(i,j+1))/dx)
-          hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
-          hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
-        end do
-      end do
 #else
       do j = 1 , jx
+#endif
         do i = 1 , iy
           hgfact(i,j) = 1.
         end do
       end do
+#ifdef BAND
+#ifdef MPP1
+      do j = jbegin , jendm
+#else
       do j = 1 , jx
+#endif
         jm1 = j-1
         jp1 = j+1
+#if defined(BAND) && (!defined(MPP1))
         if(jm1.eq.0) jm1 = jx
         if(jp1.eq.jx+1) jp1 = 1
+#endif
+#else
+#ifdef MPP1
+      do j = jbegin , jendm
+        if ( myid.eq.0 ) then
+          jm1 = max0(j-1,2)
+        else
+          jm1 = j - 1
+        end if
+        if ( myid.eq.nproc-1 ) then
+          jp1 = min0(j+1,jxp-2)
+        else
+          jp1 = j + 1
+        end if
+#else
+      do j = 2 , jxm2
+        jm1 = max0(j-1,2)
+        jp1 = min0(j+1,jxm2)
+#endif
+#endif
         do i = 2 , iym2
           im1h = max0(i-1,2)
           ip1h = min0(i+1,iym2)
@@ -2268,58 +2256,6 @@
           hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
         end do
       end do
-#endif
-#else
-#ifdef MPP1
-      do j = 1 , jendl
-        do i = 1 , iy
-          hgfact(i,j) = 1.
-        end do
-      end do
-      do j = jbegin , jendm
-        if ( myid.eq.0 ) then
-          jm1h = max0(j-1,2)
-        else
-          jm1h = j - 1
-        end if
-        if ( myid.eq.nproc-1 ) then
-          jp1h = min0(j+1,jxp-2)
-        else
-          jp1h = j + 1
-        end if
-        do i = 2 , iym2
-          im1h = max0(i-1,2)
-          ip1h = min0(i+1,iym2)
-          hg1 = dabs((ht(i,j)-ht(im1h,j))/dx)
-          hg2 = dabs((ht(i,j)-ht(ip1h,j))/dx)
-          hg3 = dabs((ht(i,j)-ht(i,jm1h))/dx)
-          hg4 = dabs((ht(i,j)-ht(i,jp1h))/dx)
-          hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
-          hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
-        end do
-      end do
-#else
-      do j = 1 , jx
-        do i = 1 , iy
-          hgfact(i,j) = 1.
-        end do
-      end do
-      do j = 2 , jxm2
-        jm1h = max0(j-1,2)
-        jp1h = min0(j+1,jxm2)
-        do i = 2 , iym2
-          im1h = max0(i-1,2)
-          ip1h = min0(i+1,iym2)
-          hg1 = dabs((ht(i,j)-ht(im1h,j))/dx)
-          hg2 = dabs((ht(i,j)-ht(ip1h,j))/dx)
-          hg3 = dabs((ht(i,j)-ht(i,jm1h))/dx)
-          hg4 = dabs((ht(i,j)-ht(i,jp1h))/dx)
-          hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
-          hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
-        end do
-      end do
-#endif
-#endif
 !
 !-----set up output time:
 !

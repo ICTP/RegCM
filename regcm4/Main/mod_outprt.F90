@@ -27,26 +27,7 @@
 
       contains
 
-#ifdef MPP1
-      subroutine outprt(iexec)
-
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: iexec
-      intent (in) iexec
-!
-! Local variables
-!
-      integer idum
-!
-      idum = iexec
-      return
-      end subroutine outprt
-
-#else
-#ifdef BAND
+#if defined(MPP1) || defined(BAND)
       subroutine outprt(iexec)
 
       implicit none
@@ -434,7 +415,6 @@
 !
       end subroutine outprt
 
-#endif
 #endif
 !
       subroutine mapsmp(fld,fldr,iyy,jxx,ia,ib,iny,ja,jb,jnx,const,     &

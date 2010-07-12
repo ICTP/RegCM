@@ -57,9 +57,7 @@
 #ifdef MPP1
       integer :: ierr
 #endif
-#ifdef BAND
       integer :: jp1
-#endif
 !
 !     lstand = .true. if standard atmosphere t to be used (ignore input
 !     tbarh and ps in that case).  otherwise, ps and tbarh must
@@ -95,10 +93,6 @@
 #ifdef MPP1
       ijlx = iym1*jendx
       do j = 1 , jendx
-        do i = 1 , iym1
-          ps = ps + psa(i,j)/ijlx
-        end do
-      end do
 #else
 #ifdef BAND
       ijlx = iym1*jx
@@ -107,29 +101,26 @@
       ijlx = iym1*jxm1
       do j = 1 , jxm1
 #endif
+#endif
         do i = 1 , iym1
           ps = ps + psa(i,j)/ijlx
         end do
       end do
-#endif
+
       do k = 1 , kz
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , iym1
-            tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
-          end do
-        end do
 #else
 #ifdef BAND
         do j = 1 , jx
 #else
         do j = 1 , jxm1
 #endif
+#endif
           do i = 1 , iym1
             tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
           end do
         end do
-#endif
       end do
 !
 !**   compute vertical modes.
@@ -390,37 +381,25 @@
           do k = 1 , kz
 #ifdef MPP1
             do j = 1 , jendx
-              do i = 1 , iym1
-                fac = dx2*msfx(i,j)*msfx(i,j)
-                dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k)               &
-                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)&
-                             & +uuu(i,k,j+1)+vvv(i+1,k,j)+vvv(i+1,k,j+1)&
-                             & -vvv(i,k,j)-vvv(i,k,j+1))/fac
-              end do
-            end do
 #else
 #ifdef BAND
             do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+#endif
               jp1 = j+1
+#if defined(BAND) && (!defined(MPP1))
               if(jp1.eq.jx+1) jp1 = 1
+#endif
               do i = 1 , iym1
                 fac = dx2*msfx(i,j)*msfx(i,j)
                 dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k) &
                              & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j)&
                              & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1)&
                              & -vvv(i,k,j)-vvv(i,k,jp1))/fac
-#else
-            do j = 1 , jxm1
-              do i = 1 , iym1
-                fac = dx2*msfx(i,j)*msfx(i,j)
-                dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k)               &
-                             & *(-uuu(i+1,k,j)+uuu(i+1,k,j+1)-uuu(i,k,j)&
-                             & +uuu(i,k,j+1)+vvv(i+1,k,j)+vvv(i+1,k,j+1)&
-                             & -vvv(i,k,j)-vvv(i,k,j+1))/fac
-#endif
               end do
             end do
-#endif
           end do
         end do
 !
@@ -432,47 +411,37 @@
           eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
 #ifdef MPP1
           do j = 1 , jendx
-            do i = 1 , iym1
-              eps = eps1*(psb(i,j)-pd)
-              hstor(i,j,l) = pdlog + eps
-            end do
-          end do
 #else
 #ifdef BAND
           do j = 1 , jx
 #else
           do j = 1 , jxm1
 #endif
+#endif
             do i = 1 , iym1
               eps = eps1*(psb(i,j)-pd)
               hstor(i,j,l) = pdlog + eps
             end do
           end do
-#endif
+
           do k = 1 , kz
             pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
             eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
 #ifdef MPP1
             do j = 1 , jendx
-              do i = 1 , iym1
-                eps = eps1*(psb(i,j)-pd)
-                hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&
-                             & /psb(i,j) + eps
-              end do
-            end do
 #else
 #ifdef BAND
             do j = 1 , jx
 #else
             do j = 1 , jxm1
 #endif
+#endif
               do i = 1 , iym1
                 eps = eps1*(psb(i,j)-pd)
                 hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&
                              & /psb(i,j) + eps
               end do
             end do
-#endif
           end do
         end do
       end if

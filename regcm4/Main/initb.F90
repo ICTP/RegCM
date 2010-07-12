@@ -63,36 +63,12 @@
 !
 #ifdef MPP1
       do jll = 1 , jendx
-        do ill = 1 , iym1
-          pptnc(ill,jll) = 0.
-          pptc(ill,jll) = 0.
-!MM4      ist=nint(satbrt(ill,jll))
-!MM4      if(ist.le.13)then
-!MM4      ist=ist
-!MM4      else
-!MM4      ist=7
-!MM4      end if
-!MM4      veg2d(ill,jll)=vgtran(ist)
-!eros     note:  when using bats dataset comment line above
-          veg2d(ill,jll) = satbrt(ill,jll)
-          if ( satbrt(ill,jll).gt.13.9 .and. satbrt(ill,jll).lt.15.1 )  &
-             & veg2d(ill,jll) = 0.
-        end do
-      end do
-      do jll = 1 , jendx
-        do ill = 1 , iym1
-          do k = 1 , nnsg
-            veg2d1(k,ill,jll) = satbrt1(k,ill,jll)
-            if ( satbrt1(k,ill,jll).gt.13.9 .and. satbrt1(k,ill,jll)    &
-               & .lt.15.1 ) veg2d1(k,ill,jll) = 0.
-          end do
-        end do
-      end do
 #else
 #ifdef BAND
       do jll = 1 , jx
 #else
       do jll = 1 , jxm1
+#endif
 #endif
         do ill = 1 , iym1
           pptnc(ill,jll) = 0.
@@ -109,12 +85,6 @@
           if ( satbrt(ill,jll).gt.13.9 .and. satbrt(ill,jll).lt.15.1 )  &
              & veg2d(ill,jll) = 0.
         end do
-      end do
-#ifdef BAND
-      do jll = 1 , jx
-#else
-      do jll = 1 , jxm1
-#endif
         do ill = 1 , iym1
           do k = 1 , nnsg
             veg2d1(k,ill,jll) = satbrt1(k,ill,jll)
@@ -123,63 +93,25 @@
           end do
         end do
       end do
-#endif
  
 !     ******  initialize hostetler lake model
 #ifdef MPP1
       if ( lakemod.eq.1 ) call initlk(veg2d1,iym1sg,jxpsg)
-      do jll = 1 , jendx
-        do ill = 1 , iym1
-          do k = 1 , nnsg
-            if ( veg2d1(k,ill,jll).lt.0.5 ) then
-              ocld2d(k,ill,jll) = 0.
-            else
-              ocld2d(k,ill,jll) = 1.
-            end if
-            nlveg = nint(veg2d1(k,ill,jll))
-            if ( nlveg.eq.0 ) then
-              nlveg = 15
-            else
-              nlveg = nlveg
-            end if
-!sol        itex=int(text2d(k,ill,jll))
-            itex = iexsol(nlveg)
-            tg2d(k,ill,jll) = tgb(ill,jll)
-            tgb2d(k,ill,jll) = tgb(ill,jll)
-            taf2d(k,ill,jll) = tgb(ill,jll)
-            tlef2d(k,ill,jll) = tgb(ill,jll)
- 
-!           ******  initialize soil moisture in the 3 layers
-            is = nint(satbrt1(k,ill,jll))
-            swt2d(k,ill,jll) = deptv(nlveg)*xmopor(itex)*slmo(is)
-            srw2d(k,ill,jll) = deprv(nlveg)*xmopor(itex)*slmo(is)
-            ssw2d(k,ill,jll) = depuv(nlveg)*xmopor(itex)*slmo(is)
- 
-            dew2d(k,ill,jll) = 0.
-            sag2d(k,ill,jll) = 0.
-            scv2d(k,ill,jll) = dmax1(snowc(k,ill,jll),0.D0)
-            sice2d(k,ill,jll) = 0.
-            gwet2d(k,ill,jll) = 0.5
-            sena2d(k,ill,jll) = 0.
-            evpa2d(k,ill,jll) = 0.
-            rnos2d(k,ill,jll) = 0.
-            rno2d(k,ill,jll) = 0.
-            if ( sice2d(k,ill,jll).gt.0. ) ocld2d(k,ill,jll) = 2.
-            ircp2d(k,ill,jll) = 0.
-          end do
-        end do
-      end do
 #else
 #ifdef BAND
       if ( lakemod.eq.1 ) call initlk(veg2d1,iym1sg,jxsg)
 #else
       if ( lakemod.eq.1 ) call initlk(veg2d1,iym1sg,jxm1sg)
 #endif
-
+#endif
+#ifdef MPP1
+      do jll = 1 , jendx
+#else
 #ifdef BAND
       do jll = 1 , jx
 #else
       do jll = 1 , jxm1
+#endif
 #endif
         do ill = 1 , iym1
           do k = 1 , nnsg
@@ -221,29 +153,16 @@
           end do
         end do
       end do
-#endif
  
 #ifdef MPP1
       do jll = 1 , jendx
-        do ill = 1 , iym1
-          fsw2d(ill,jll) = 0.
-          flw2d(ill,jll) = 0.
-          sabv2d(ill,jll) = 0.
-          sol2d(ill,jll) = 0.
-          fswa2d(ill,jll) = 0.
-          flwa2d(ill,jll) = 0.
-          prca2d(ill,jll) = 0.
-          prnca2d(ill,jll) = 0.
-          svga2d(ill,jll) = 0.
-          sina2d(ill,jll) = 0.
-        end do
-      end do
 #else
 #ifdef BAND
       do jll = 1 , jx
 #else
       do jll = 1 , jxm1
 #endif
+#endif
         do ill = 1 , iym1
           fsw2d(ill,jll) = 0.
           flw2d(ill,jll) = 0.
@@ -257,6 +176,5 @@
           sina2d(ill,jll) = 0.
         end do
       end do
-#endif
  
       end subroutine initb

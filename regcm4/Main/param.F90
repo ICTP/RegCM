@@ -1787,29 +1787,13 @@
         call say
 #ifdef MPP1
         do j = 1 , jendx
-          do i = 1 , iym1
-            shrmax2d(i,j) = shrmax
-            shrmin2d(i,j) = shrmin
-            edtmax2d(i,j) = edtmax
-            edtmin2d(i,j) = edtmin
-            edtmaxo2d(i,j) = edtmaxo
-            edtmino2d(i,j) = edtmino
-            edtmaxx2d(i,j) = edtmaxx
-            edtminx2d(i,j) = edtminx
-            pbcmax2d(i,j) = pbcmax
-            mincld2d(i,j) = mincld
-            kbmax2d(i,j) = kbmax
-            htmax2d(i,j) = htmax
-            htmin2d(i,j) = htmin
-            dtauc2d(i,j) = dtauc*60.
-          end do
-        end do
 #else
 #ifdef BAND
         do j = 1 , jx
 #else
         do j = 1 , jxm1
 #endif
+#endif
           do i = 1 , iym1
             shrmax2d(i,j) = shrmax
             shrmin2d(i,j) = shrmin
@@ -1827,7 +1811,6 @@
             dtauc2d(i,j) = dtauc*60.
           end do
         end do
-#endif
       else if ( icup.eq.3 ) then
         write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
                        &' properly implemented'

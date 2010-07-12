@@ -35,54 +35,42 @@
         do k = 1 , kz
 #ifdef MPP1
           do j = 1 , jendl
-            do i = 1 , iym1
-              heatrt(i,k,j) = 0.
-              o3prof(i,k,j) = 0.
-            end do
-          end do
 #else
 #ifdef BAND
           do j = 1 , jx
 #else
           do j = 1 , jxm1
 #endif
+#endif
             do i = 1 , iym1
               heatrt(i,k,j) = 0.
               o3prof(i,k,j) = 0.
             end do
           end do
-#endif
         end do
 #ifdef MPP1
         do j = 1 , jendl
-          do i = 1 , iym1
-            o3prof(i,kzp1,j) = 0.
-          end do
-        end do
 #else
 #ifdef BAND
         do j = 1 , jx
 #else
         do j = 1 , jxm1
 #endif
+#endif
           do i = 1 , iym1
             o3prof(i,kzp1,j) = 0.
           end do
         end do
-#endif
         call o3data
 #ifdef MPP1
         if ( myid.eq.0 ) then
+#endif
           print * , 'ozone profiles'
           do k = 1 , kzp1
             write (6,99001) o3prof(3,k,2)
           end do
+#ifdef MPP1
         end if
-#else
-        print * , 'ozone profiles'
-        do k = 1 , kzp1
-          write (6,99001) o3prof(3,k,2)
-        end do
 #endif
       end if
 99001 format (1x,7E12.4)

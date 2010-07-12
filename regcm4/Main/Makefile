@@ -76,7 +76,7 @@ spinit.o
 
 NETLIBOBJS = linpack.o eispack.o
 
-EXTRAOBJS = mod_culookup.o mod_co2.o printsp.o nconvp.o
+EXTRAOBJS = mod_culookup.o mod_co2.o printsp.o
 
 ifeq ($(USECLM),1)
 #  CPPFLAGS += -DCLM
@@ -296,7 +296,6 @@ lftemp.o: lftemp.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_param1.o \
 linpack.o: linpack.f90
 ljchrn.o: ljchrn.f90
 lshfch.o: lshfch.F90 mod_message.o
-nconvp.o: nconvp.F90 mod_constants.o mod_param3.o mod_pmoist.o mod_dynparam.o
 nudge.o: nudge.F90 mod_bdycod.o mod_main.o mod_param3.o mod_dynparam.o
 ifeq ($(USECLM),1)
 output.o: output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
@@ -395,7 +394,7 @@ tend.o: tend.F90 mod_aerosol.o mod_bats.o mod_bdycod.o mod_constants.o \
         mod_dynparam.o mod_slice.o mod_trachem.o mod_cu_grell.o \
         mod_cu_kuo.o mod_cu_bm.o mod_cu_em.o mod_zengocn.o
 endif
-tgrund.o: tgrund.F90 mod_constants.o mod_bats.o mod_param1.o mod_dynparam.o
+tgrund.o: tgrund.f90 mod_constants.o mod_bats.o mod_param1.o mod_dynparam.o
 tracbud.o: tracbud.F90 mod_constants.o mod_date.o mod_diagnosis.o mod_main.o \
            mod_mainchem.o mod_param1.o mod_param2.o mod_param3.o \
            mod_dynparam.o mod_trachem.o
