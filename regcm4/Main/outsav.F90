@@ -116,6 +116,7 @@
       write(iutl) aldifs2d_io
       write(iutl) aldifl2d_io
       write(iutl) coszrs2d_io
+      write(iutl) q2m_io
       write(iutl) ocld2d_io
       write(iutl) heatrt_io
       write(iutl) o3prof_io
