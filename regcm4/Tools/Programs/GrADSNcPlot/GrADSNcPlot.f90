@@ -376,7 +376,7 @@ program ncplot
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
              'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
              year , ' 7dy'
-    else if (delta > 672 .and. delta < 744) then
+    else if (delta >= 672 .and. delta <= 744) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
              'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
              year , ' 1mo'
@@ -387,7 +387,7 @@ program ncplot
     else
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
              'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
-             year , nint(times(2)-times(1)), 'hr'
+             year , delta, 'hr'
     end if
   else
     write (11, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'

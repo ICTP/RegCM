@@ -76,6 +76,7 @@
         character(256) :: fname , history
         character(3) :: cnsg
         real(4) , dimension(2) :: trlat
+        real(4) :: hptop
         real(4) , allocatable , dimension(:) :: yiy
         real(4) , allocatable , dimension(:) :: xjx
 
@@ -1140,7 +1141,8 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
-        istatus = nf90_put_var(incout, izdim(2), ptop)
+        hptop = ptop * 10.0
+        istatus = nf90_put_var(incout, izdim(2), hptop)
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable ptop write in NetCDF output'
           write (6,*) nf90_strerror(istatus)

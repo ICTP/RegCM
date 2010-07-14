@@ -60,6 +60,7 @@
       integer , dimension(7) :: ivar
       integer :: irefdate , imondate , year , month , day , hour , imon
       real(4) , dimension(2) :: trlat
+      real(4) :: hptop
       real(4) , allocatable , dimension(:) :: yiy
       real(4) , allocatable , dimension(:) :: xjx
       integer , dimension(2) :: ivvar
@@ -318,7 +319,7 @@
       else if (aertyp == 'AER10D1') then
         aerdesc = 'Fossil fuel, SO2 + BC + OC, with dust'
       else if (aertyp == 'AER11D1') then
-        aerdesc = 'Fossil fuel +Biomass burning, SO2 + BC'// &
+        aerdesc = 'Fossil fuel + Biomass burning, SO2 + BC'// &
                   & ' + OC, with dust'
       end if
 
@@ -772,7 +773,8 @@
         stop
       end if
       deallocate(sigma)
-      istatus = nf90_put_var(ncid, izvar(2), ptop)
+      hptop = ptop * 10.0
+      istatus = nf90_put_var(ncid, izvar(2), hptop)
       if (istatus /= nf90_noerr) then
         write (6,*) 'Error Variable ptop write in NetCDF output'
         write (6,*) nf90_strerror(istatus)
