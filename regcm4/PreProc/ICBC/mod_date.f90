@@ -395,7 +395,7 @@
           iy = iy + 1
           im = 1
         end if
-        inextmon = mkidate(iy, im, 1, 0)
+        inextmon = mkidate(iy, im, id, ih)
       end function inextmon
 
       function iprevmon(idate)
@@ -409,7 +409,7 @@
           iy = iy - 1
           im = 12
         end if
-        iprevmon = mkidate(iy, im, 1, 0)
+        iprevmon = mkidate(iy, im, id, ih)
       end function iprevmon
 
       function idayofyear(idate)

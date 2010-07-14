@@ -65,12 +65,6 @@
 !
       integer :: idate
 !
-! Local variables
-!
-      integer :: nmop , nyrp
-      real(4) :: wt
-
-!
 !     D      BEGIN LOOP OVER NTIMES
 !
       call cdc6hour(idate,globidate1)
@@ -373,12 +367,6 @@
 ! Dummy arguments
 !
       integer :: idate
-!
-! Local variables
-!
-      integer :: nmop , nyrp
-      real(4) :: wt
-
 !
 !     D      BEGIN LOOP OVER NTIMES
 !

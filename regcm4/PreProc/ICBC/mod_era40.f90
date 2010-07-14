@@ -68,11 +68,6 @@
 !
       integer :: idate
 !
-! Local variables
-!
-      integer :: nmop , nyrp
-      real(4) :: wt
-!
 !     D      BEGIN LOOP OVER NTIMES
 !
       call era6hour(dattyp,idate,globidate1)

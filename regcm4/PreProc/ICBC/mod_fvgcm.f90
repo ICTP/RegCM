@@ -75,12 +75,11 @@
       character(20) :: finm , fips
       character(5) :: fn_a2 , fn_rf , pn_a2 , pn_rf
       integer :: i , i2 , ii , j , j2 , k , month , mrec , nday ,       &
-               & nhour , nmop , nrec , numx , numy , nyear , nyrp
+               & nhour , nrec , numx , numy , nyear
       integer(2) , dimension(288,181) :: itmp
       real(8) :: offset , xscale
       real(4) , dimension(288,181) :: temp
       logical :: there
-      real(4) :: wt
       character(4) , dimension(30) :: yr_a2 , yr_rf
 !
       data fn_rf/'FV_RF'/ , fn_a2/'FV_A2'/

@@ -29,8 +29,8 @@
  fudge_tex_s = .false.,
  ntex = 17,
  h2opct = 75.,
- dirter = '/lustre/fsolmon/regcm/branches/regcm4/Input',
- inpter = '/scratch/fsolmon/RCM3DATA',
+ dirter = '/set/this/to/where/your/domain/file/is',
+ inpter = '/set/this/to/where/your/surface/dataset/is',
  /
  &ioparam
  igrads = 1,
@@ -58,8 +58,8 @@
  ehso4 = .false.,
  globidate1 = 2006060100,
  globidate2 = 2006090100,
- dirglob = '/lustre/fsolmon/regcm/branches/regcm4/Input',
- inpglob = '/scratch/esp/RCM3DATA',
+ dirglob = '/set/this/to/where/your/icbc/for/model/is',
+ inpglob = '/set/this/to/where/your/input/global/data/is'
  /
  &globwindow
  lat0 = 0.0
@@ -133,7 +133,7 @@
  inpdustbsiz(:,2)= 1.00, 2.50, 5.00,20.00 
  /
  &clmparam
- dirclm = '/home/graziano/Software/regcm/branches/regcm4/Input',
+ dirclm = '/set/this/to/where/your/output/files/will/be/written',
  imask  = 1,
  clmfrq = 12.,
  /

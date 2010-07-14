@@ -71,8 +71,8 @@
 ! Local variables
 !
       character(14) :: finame
-      integer :: i , j , k , nmop , nrec , nyrp
-      real(4) :: slonmax , slonmin , wt , xlonmax , xlonmin
+      integer :: i , j , k , nrec
+      real(4) :: slonmax , slonmin , xlonmax , xlonmin
 !
       if ( idate==globidate1 ) then
                   !,lrec

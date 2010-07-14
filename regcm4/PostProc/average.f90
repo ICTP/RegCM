@@ -189,7 +189,7 @@
          nvar = kz*4+10
       else if(filename.eq.'CHE') then
          dt = dtc
-         nvar = ntr*kz+kz*3+ntr*7+3
+         nvar = ntr*kz+kz*3+ntr*7+5
 !        nvar = ntr*kz+kz*3+ntr*7+2      ! for RegCM3, one record less
       else
          write(*,*) 'filename is not correct'
@@ -382,7 +382,7 @@
       else if(filename.eq.'SRF') then
          write(31,500) nvar
       else if(filename.eq.'CHE') then
-         write(31,500) ntr*8+5
+         write(31,500) ntr*8+8
       endif
  500  format('vars ',I3)
  600  format(A8,'0 99 ',A36)
@@ -492,6 +492,8 @@
        enddo
        write(31,600) 'acstoarf',' TOArad forcing av.(W/m2)            '
        write(31,600) 'acstsrrf',' SRFrad forcing av.(W/m2)            '
+       write(31,600) 'acstalrf',' TOAlwr forcing av.(W/m2)            '
+       write(31,600) 'acssrlrf',' SRFlwr forcing av.(W/m2)            '
        write(31,600) 'ps      ','surface pressure (hPa)               '
       endif
       write(31,700)
@@ -2113,7 +2115,7 @@
       else if(filename.eq.'RAD') then
          nvar = kz*4+10
       else if(filename.eq.'CHE') then
-         nvar = ntr*kz+kz*3+ntr*7+3
+         nvar = ntr*kz+kz*3+ntr*7+5
 !        nvar = ntr*kz+kz*3+ntr*7+2      ! for RegCM3, one record less
       else
          write(*,*) 'filename is not correct'
@@ -2274,7 +2276,7 @@
       else if(filename.eq.'SRF') then
          write(31,500) nvar
       else if(filename.eq.'CHE') then
-         write(31,500) ntr*8+5
+         write(31,500) ntr*8+8
       endif
  500  format('vars ',I3)
  600  format(A8,'0 99 ',A36)
@@ -2384,6 +2386,8 @@
        enddo
        write(31,600) 'acstoarf',' TOArad forcing av.(W/m2)            '
        write(31,600) 'acstsrrf',' SRFrad forcing av.(W/m2)            '
+       write(31,600) 'acstalrf',' TOAlwr forcing av.(W/m2)            '
+       write(31,600) 'acssrlrf',' SRFlwr forcing av.(W/m2)            '
        write(31,600) 'ps      ','surface pressure (hPa)               '
       endif
       write(31,700)

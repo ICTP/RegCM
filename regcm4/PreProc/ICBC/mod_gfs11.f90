@@ -65,11 +65,10 @@
       character(3) , dimension(12) :: chmon
       character(17) :: finm
       integer :: i , i2 , ii , j , j2 , k , month , nday , nhour ,      &
-               & nmop , nrec , numx , numy , nyear , nyrp
+               & nrec , numx , numy , nyear
       integer(2) , dimension(360,181) :: itmp
       real(8) :: offset , xscale
       logical :: there
-      real(4) :: wt
       character(4) , dimension(9) :: yrgfs
 !
 !     DIMENSION SURFACE TEMPERATURE ON RCM SURFACE; NOT GIVEN BY ECMWF

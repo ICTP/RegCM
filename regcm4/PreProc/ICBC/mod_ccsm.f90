@@ -190,9 +190,7 @@
 ! Local variables
 !
         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
-                & k , latid ,latlen , lonid , lonlen , nmop , nyrp ,    &
-                & istatus
-        real(4) :: wt
+                & k , latid ,latlen , lonid , lonlen , istatus
         character(256) :: pathaddname
         logical :: there
         character(4) :: varname
@@ -812,9 +810,7 @@
 ! Local variables
 !
       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
-               & k , latid ,  latlen , lonid , lonlen , nmop , nyrp ,   &
-               & istatus
-      real(4) :: wt
+               & k , latid ,  latlen , lonid , lonlen , istatus
       character(256) :: pathaddname
       logical :: there
       character(4) :: varname

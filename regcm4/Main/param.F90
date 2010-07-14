@@ -228,7 +228,6 @@
 !chem2
 !     emission file
       iutopt = 12
-      iutchsrc = 13
 !     out file
       iutchem = 60
 !chem2_

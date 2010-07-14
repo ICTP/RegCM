@@ -66,10 +66,8 @@
 ! Local variables
 !
       character(12) , dimension(12,5) :: finm
-      integer :: i , j , k , month , nday , nhour , nmop , nrec ,       &
-               & nyear , nyrp
+      integer :: i , j , k , month , nday , nhour , nrec , nyear
       logical :: there
-      real(4) :: wt
 !
       data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,      &
           &'ECT421993APR' , 'ECT421993MAY' , 'ECT421993JUN' ,           &

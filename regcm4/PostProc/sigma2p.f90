@@ -27,7 +27,7 @@
       integer iy,jx,kz,nsg,ntr,i_band,ibyte,igrads
       integer idate0,idate1,idate2
       integer np
-      real(4), save ::  plev(11)
+      real*4, save ::  plev(11)
       logical s2p_ICBC,s2p_ATM
       character*128 Path_Input,Path_Output
       character*20 DomainName
@@ -70,15 +70,15 @@
                  ,idate0,idate1,idate2,Path_Input,DomainName,igrads)
       implicit none
       integer iy,jx,kz,np,i_band,ibyte,idate0,idate1,idate2,igrads
-      real(4)  plev(np)
+      real*4  plev(np)
       character*128 Path_Input
       character*20 DomainName
       integer iiy,jjx,kkz
-      real(4)  dsinm,clat,clon,plat,plon,GRDFAC
+      real*4  dsinm,clat,clon,plat,plon,GRDFAC
       character*6 iproj
-      real(4), allocatable,save ::  sigma(:),sig(:)
+      real*4, allocatable,save ::  sigma(:),sig(:)
       integer jgrads,ibigend
-      real(4)  truelatL,truelatH
+      real*4  truelatL,truelatH
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -97,27 +97,27 @@
 
       integer i,j,k,l,jx_len
 
-      real(4), allocatable,save ::  xlat(:,:),xlon(:,:)
+      real*4, allocatable,save ::  xlat(:,:),xlon(:,:)
 
-      real(4), allocatable ::  fin(:,:)
+      real*4, allocatable ::  fin(:,:)
 
-      real(4), allocatable,save :: u(:,:,:),v(:,:,:),t(:,:,:),q(:,:,:)
-      real(4), allocatable,save :: ps(:,:),tgb(:,:),ht(:,:),h(:,:,:)
-      real(4), allocatable,save :: slp(:,:)
+      real*4, allocatable,save :: u(:,:,:),v(:,:,:),t(:,:,:),q(:,:,:)
+      real*4, allocatable,save :: ps(:,:),tgb(:,:),ht(:,:),h(:,:,:)
+      real*4, allocatable,save :: slp(:,:)
 
-      real(4), allocatable,save :: up(:,:,:),vp(:,:,:),tp(:,:,:)
-      real(4), allocatable,save :: qp(:,:,:),hp(:,:,:)
+      real*4, allocatable,save :: up(:,:,:),vp(:,:,:),tp(:,:,:)
+      real*4, allocatable,save :: qp(:,:,:),hp(:,:,:)
 
-      real(4), save :: ptop
-      real(4), parameter :: rgas = 287.0058
-      real(4), parameter :: grav = 9.80665
-      real(4), parameter :: bltop = 0.96
-      real(4), parameter :: tlapse = -6.5E-3
+      real*4, save :: ptop
+      real*4, parameter :: rgas = 287.0058
+      real*4, parameter :: grav = 9.80665
+      real*4, parameter :: bltop = 0.96
+      real*4, parameter :: tlapse = -6.5E-3
 
       integer n_month
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
 
       integer IDATE
@@ -752,16 +752,16 @@
                  ,idate0,idate1,idate2,Path_Output,igrads)
       implicit none
       integer iy,jx,kz,np,i_band,ibyte,idate0,idate1,idate2,igrads
-      real(4)  plev(np)
+      real*4  plev(np)
       character*128 Path_Output
       integer iiy,jjx,kkz
       integer mdate0,ibltyp,icup,ipptls,iboudy
-      real(4)  truelatL,truelatH
-      real(4)  dxsp,clat,clon,plat,plon
-      real(4)  dto,dtb,dtr,dtc
+      real*4  truelatL,truelatH
+      real*4  dxsp,clat,clon,plat,plon
+      real*4  dto,dtb,dtr,dtc
       integer iotyp
       character*6 iproj
-      real(4), allocatable,save ::  sigma(:),sig(:)
+      real*4, allocatable,save ::  sigma(:),sig(:)
       character*4 :: chy
       character*2 cday(31)
       data cday/'01','02','03','04','05','06','07','08','09','10', &
@@ -780,27 +780,27 @@
 
       integer i,j,k,l,jx_len
 
-      real(4), allocatable,save ::  xlat(:,:),xlon(:,:)
+      real*4, allocatable,save ::  xlat(:,:),xlon(:,:)
 
-      real(4), allocatable,save :: u(:,:,:),v(:,:,:),t(:,:,:),q(:,:,:)
-      real(4), allocatable,save :: w(:,:,:),c(:,:,:),h(:,:,:)
-      real(4), allocatable,save :: ps(:,:),tgb(:,:),ht(:,:)
-      real(4), allocatable,save :: slp(:,:),tpr(:,:),swt(:,:),rno(:,:)
+      real*4, allocatable,save :: u(:,:,:),v(:,:,:),t(:,:,:),q(:,:,:)
+      real*4, allocatable,save :: w(:,:,:),c(:,:,:),h(:,:,:)
+      real*4, allocatable,save :: ps(:,:),tgb(:,:),ht(:,:)
+      real*4, allocatable,save :: slp(:,:),tpr(:,:),swt(:,:),rno(:,:)
 
-      real(4), allocatable,save :: up(:,:,:),vp(:,:,:),tp(:,:,:)
-      real(4), allocatable,save :: qp(:,:,:),hp(:,:,:),wp(:,:,:)
-      real(4), allocatable,save :: cp(:,:,:)
+      real*4, allocatable,save :: up(:,:,:),vp(:,:,:),tp(:,:,:)
+      real*4, allocatable,save :: qp(:,:,:),hp(:,:,:),wp(:,:,:)
+      real*4, allocatable,save :: cp(:,:,:)
 
-      real(4), save :: ptop
-      real(4), parameter :: rgas = 287.0058
-      real(4), parameter :: grav = 9.80665
-      real(4), parameter :: bltop = 0.96
-      real(4), parameter :: tlapse = -6.5E-3
+      real*4, save :: ptop
+      real*4, parameter :: rgas = 287.0058
+      real*4, parameter :: grav = 9.80665
+      real*4, parameter :: bltop = 0.96
+      real*4, parameter :: tlapse = -6.5E-3
 
       integer n_month
       logical there
-      real(4)  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
-      real(4)  centerj,centeri
+      real*4  alatmin,alatmax,alonmin,alonmax,rlatinc,rloninc
+      real*4  centerj,centeri
       integer ny,nx
 
       integer IDATE

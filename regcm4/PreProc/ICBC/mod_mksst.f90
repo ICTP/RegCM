@@ -43,7 +43,7 @@
         real(4) , dimension(jx,iy) , intent(inout) :: tsccm
         integer , intent(in) :: idate
         real(8) , dimension(:) , allocatable :: xtime
-        integer :: ifdate , istatus , idimid , itvar
+        integer :: istatus , idimid , itvar
         integer , dimension(3) :: istart , icount
         character(256) :: sstfile
         integer :: i , j , irec , ks1 , ks2

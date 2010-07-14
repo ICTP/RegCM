@@ -65,12 +65,6 @@
 !
       integer :: idate
 !
-! Local variables
-!
-      integer :: nmop , nyrp
-      real(4) :: wt
-!
-!
 !     READ DATA AT IDATE
 !
       call ein156hour(dattyp,idate,globidate1)

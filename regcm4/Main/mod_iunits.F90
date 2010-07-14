@@ -25,7 +25,7 @@
       character(256) :: ffout
       character(256) :: ffin
 !
-      integer :: iutbat , iutbc , iutchem , iutchsrc , iutdat , &
+      integer :: iutbat , iutbc , iutchem , iutdat , &
                & iutlak , iutopt , iutrad , iutrs , iutsav ,   &
                & iutsub , mindisp
 !
@@ -63,7 +63,7 @@
       subroutine inaero
         use mod_dynparam
         implicit none
-        ffin = trim(dirglob)//pthsep//trim(domname)//'_AERO.dat'
+        ffin = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
       end subroutine inaero
 
       subroutine outname(ctype,idate)

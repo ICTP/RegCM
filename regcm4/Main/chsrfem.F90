@@ -19,6 +19,7 @@
  
       subroutine chsrfem
 
+      use netcdf
       use mod_dynparam
       use mod_mainchem
       use mod_trachem
@@ -44,35 +45,57 @@
 !
       character(5) :: aerctl
       integer :: i , itr , j , k , l , m , n
+      integer :: istatus , ncid , ivarid
+      integer , dimension(3) :: istart , icount
       logical :: there
-      real(4) , dimension(iy,jx) :: toto
+      real(4) , dimension(jx,iy) :: toto
 #ifdef MPP1
       integer :: ierr
 #endif
 !
 
-
 ! fisrt activate dust initialization
+
+     write (aline, *) 'Calling inidust'
+     call say
      call inidust
-     print*, 'CALL inidust'
+
 ! read the monthly aerosol emission files
 
 #ifdef MPP1
       if ( myid.eq.0 ) then
+        if (aertyp(4:5).ne.'00') then
+          call inaero
+          istatus = nf90_open(ffin, nf90_nowrite, ncid)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error Opening Aerosol file ', trim(ffin)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'AEROSOL FILE OPEN ERROR')
+          end if
+        end if
         do itr = 1 , ntr
           aerctl = chtrname(itr)
-          print * , itr , aerctl
+          write (aline, *) itr , aerctl
+          call say
           if ( aerctl(1:4).ne.'DUST' .and. aertyp(4:5).ne.'00' ) then
-            call inaero
-            open (unit=iutchsrc,file=ffin,status='old',                 &
-                & form='unformatted',access='direct',recl=iy*jx*ibyte)
             if ( aerctl(1:3).eq.'SO2' ) then
               if ( aertyp(4:4).eq.'1' ) then
-                read (iutchsrc,rec=1) ((toto(i,j),j=1,jx),i=1,iy)
+                istatus = nf90_inq_varid(ncid, "so2", ivarid)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error so2 variable undefined'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL SO2 FIND ERROR')
+                end if
+                istatus = nf90_get_var(ncid, ivarid, toto)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error reading so2 variable'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL SO2 READ ERROR')
+                end if
                 do m = 1 , 12
                   do j = 1 , jx
                     do i = 1 , iy
-                      chemsrc_io(i,j,m,itr) = toto(i,j)
+                      chemsrc_io(i,j,m,itr) = toto(j,i)
                     end do
                   end do
                 end do
@@ -86,23 +109,52 @@
                 end do
               end if
               if ( aertyp(5:5).eq.'1' ) then
+                istatus = nf90_inq_varid(ncid, "so2_monthly", ivarid)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error so2_monthly variable undefined'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL VAR FIND ERROR')
+                end if
+                istart(1) = 1
+                istart(2) = 1
+                icount(1) = jx
+                icount(2) = iy
+                icount(3) = 1
                 do m = 1 , 12
-                  read (iutchsrc,rec=3+m) ((toto(i,j),j=1,jx),i=1,iy)
+                  istart(3) = m
+                  istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                  if (istatus /= nf90_noerr) then
+                    write (6,*) 'Error reading so2_monthly variable'
+                    write (6,*) nf90_strerror(istatus)
+                    call fatal(__FILE__,__LINE__,                       &
+                             & 'AEROSOL VAR READ ERROR')
+                  end if
                   do j = 1 , jx
                     do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)     &
-                      & + toto(i,j)
+                      & + toto(j,i)
                     end do
                   end do
                 end do
               end if
             else if ( aerctl(1:2).eq.'BC' ) then
               if ( aertyp(4:4).eq.'1' ) then
-                read (iutchsrc,rec=2) ((toto(i,j),j=1,jx),i=1,iy)
+                istatus = nf90_inq_varid(ncid, "bc", ivarid)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error bc variable undefined'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL BC FIND ERROR')
+                end if
+                istatus = nf90_get_var(ncid, ivarid, toto)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error reading bc variable'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL BC READ ERROR')
+                end if
                 do m = 1 , 12
                   do j = 1 , jx
                     do i = 1 , iy
-                      chemsrc_io(i,j,m,itr) = toto(i,j)
+                      chemsrc_io(i,j,m,itr) = toto(j,i)
                     end do
                   end do
                 end do
@@ -116,23 +168,52 @@
                 end do
               end if
               if ( aertyp(5:5).eq.'1' ) then
+                istatus = nf90_inq_varid(ncid, "bc_monthly", ivarid)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error bc_monthly variable undefined'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL VAR FIND ERROR')
+                end if
+                istart(1) = 1
+                istart(2) = 1
+                icount(1) = jx
+                icount(2) = iy
+                icount(3) = 1
                 do m = 1 , 12
-                  read (iutchsrc,rec=15+m) ((toto(i,j),j=1,jx),i=1,iy)
+                  istart(3) = m
+                  istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                  if (istatus /= nf90_noerr) then
+                    write (6,*) 'Error reading bc_monthly variable'
+                    write (6,*) nf90_strerror(istatus)
+                    call fatal(__FILE__,__LINE__,                       &
+                             & 'AEROSOL VAR READ ERROR')
+                  end if
                   do j = 1 , jx
                     do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)     &
-                      & + toto(i,j)
+                      & + toto(j,i)
                     end do
                   end do
                 end do
               end if
             else if ( aerctl(1:2).eq.'OC' ) then
               if ( aertyp(4:4).eq.'1' ) then
-                read (iutchsrc,rec=3) ((toto(i,j),j=1,jx),i=1,iy)
+                istatus = nf90_inq_varid(ncid, "oc", ivarid)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error oc variable undefined'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL OC FIND ERROR')
+                end if
+                istatus = nf90_get_var(ncid, ivarid, toto)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error reading oc variable'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL OC READ ERROR')
+                end if
                 do m = 1 , 12
                   do j = 1 , jx
                     do i = 1 , iy
-                      chemsrc_io(i,j,m,itr) = toto(i,j)
+                      chemsrc_io(i,j,m,itr) = toto(j,i)
                     end do
                   end do
                 end do
@@ -146,17 +227,34 @@
                 end do
               end if
               if ( aertyp(5:5).eq.'1' ) then
+                istatus = nf90_inq_varid(ncid, "oc_monthly", ivarid)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error oc_monthly variable undefined'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL VAR FIND ERROR')
+                end if
+                istart(1) = 1
+                istart(2) = 1
+                icount(1) = jx
+                icount(2) = iy
+                icount(3) = 1
                 do m = 1 , 12
-                  read (iutchsrc,rec=27+m) ((toto(i,j),j=1,jx),i=1,iy)
+                  istart(3) = m
+                  istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                  if (istatus /= nf90_noerr) then
+                    write (6,*) 'Error reading oc_monthly variable'
+                    write (6,*) nf90_strerror(istatus)
+                    call fatal(__FILE__,__LINE__,                       &
+                             & 'AEROSOL VAR READ ERROR')
+                  end if
                   do j = 1 , jx
                     do i = 1 , iy
                       chemsrc_io(i,j,m,itr) = chemsrc_io(i,j,m,itr)     &
-                      & + toto(i,j)
+                      & + toto(j,i)
                     end do
                   end do
                 end do
               end if
-            else
             end if
           end if
         end do
@@ -183,21 +281,49 @@
           end do
         end do
       end do
+      if (myid == 0) then
+        if (aertyp(4:5).ne.'00') then
+          istatus = nf90_close(ncid)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error Closing Aerosol file ', trim(ffin)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'AEROSOL FILE CLOSE ERROR')
+          end if
+        end if
+      end if
 #else
+      if (aertyp(4:5).ne.'00') then
+        call inaero
+        istatus = nf90_open(ffin, nf90_nowrite, ncid)
+        if ( istatus /= nf90_noerr) then
+          write (6,*) 'Error Opening Aerosol file ', trim(ffin)
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'AEROSOL FILE OPEN ERROR')
+        end if
+      end if
       do itr = 1 , ntr
         aerctl = chtrname(itr)
-        print * , itr , aerctl
+        write (aline, *) itr , aerctl
+        call say
         if ( aerctl(1:4).ne.'DUST' .and. aertyp(4:5).ne.'00' ) then
-          call inaero
-          open (unit=iutchsrc,file=ffin,status='old',                   &
-              & form='unformatted',access='direct',recl=iy*jx*ibyte)
           if ( aerctl(1:3).eq.'SO2' ) then
             if ( aertyp(4:4).eq.'1' ) then
-              read (iutchsrc,rec=1) ((toto(i,j),j=1,jx),i=1,iy)
+              istatus = nf90_inq_varid(ncid, "so2", ivarid)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error so2 variable undefined'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL SO2 FIND ERROR')
+              end if
+              istatus = nf90_get_var(ncid, ivarid, toto)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error reading so2 variable'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL SO2 READ ERROR')
+              end if
               do m = 1 , 12
                 do j = 1 , jx
                   do i = 1 , iy
-                    chemsrc(i,j,m,itr) = toto(i,j)
+                    chemsrc(i,j,m,itr) = toto(j,i)
                   end do
                 end do
               end do
@@ -211,22 +337,50 @@
               end do
             end if
             if ( aertyp(5:5).eq.'1' ) then
+              istatus = nf90_inq_varid(ncid, "so2_monthly", ivarid)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error so2_monthly variable undefined'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL VAR FIND ERROR')
+              end if
+              istart(1) = 1
+              istart(2) = 1
+              icount(1) = jx
+              icount(2) = iy
+              icount(3) = 1
               do m = 1 , 12
-                read (iutchsrc,rec=3+m) ((toto(i,j),j=1,jx),i=1,iy)
+                istart(3) = m
+                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error reading so2_monthly variable'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL VAR READ ERROR')
+                end if
                 do j = 1 , jx
                   do i = 1 , iy
-                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(i,j)
+                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(j,i)
                   end do
                 end do
               end do
             end if
           else if ( aerctl(1:2).eq.'BC' ) then
             if ( aertyp(4:4).eq.'1' ) then
-              read (iutchsrc,rec=2) ((toto(i,j),j=1,jx),i=1,iy)
+              istatus = nf90_inq_varid(ncid, "bc", ivarid)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error bc variable undefined'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL BC FIND ERROR')
+              end if
+              istatus = nf90_get_var(ncid, ivarid, toto)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error reading bc variable'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL BC READ ERROR')
+              end if
               do m = 1 , 12
                 do j = 1 , jx
                   do i = 1 , iy
-                    chemsrc(i,j,m,itr) = toto(i,j)
+                    chemsrc(i,j,m,itr) = toto(j,i)
                   end do
                 end do
               end do
@@ -240,22 +394,50 @@
               end do
             end if
             if ( aertyp(5:5).eq.'1' ) then
+              istatus = nf90_inq_varid(ncid, "bc_monthly", ivarid)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error bc_monthly variable undefined'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL VAR FIND ERROR')
+              end if
+              istart(1) = 1
+              istart(2) = 1
+              icount(1) = jx
+              icount(2) = iy
+              icount(3) = 1
               do m = 1 , 12
-                read (iutchsrc,rec=15+m) ((toto(i,j),j=1,jx),i=1,iy)
+                istart(3) = m
+                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error reading bc_monthly variable'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL VAR READ ERROR')
+                end if
                 do j = 1 , jx
                   do i = 1 , iy
-                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(i,j)
+                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(j,i)
                   end do
                 end do
               end do
             end if
           else if ( aerctl(1:2).eq.'OC' ) then
             if ( aertyp(4:4).eq.'1' ) then
-              read (iutchsrc,rec=3) ((toto(i,j),j=1,jx),i=1,iy)
+              istatus = nf90_inq_varid(ncid, "oc", ivarid)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error oc variable undefined'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL OC FIND ERROR')
+              end if
+              istatus = nf90_get_var(ncid, ivarid, toto)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error reading oc variable'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL OC READ ERROR')
+              end if
               do m = 1 , 12
                 do j = 1 , jx
                   do i = 1 , iy
-                    chemsrc(i,j,m,itr) = toto(i,j)
+                    chemsrc(i,j,m,itr) = toto(j,i)
                   end do
                 end do
               end do
@@ -269,11 +451,28 @@
               end do
             end if
             if ( aertyp(5:5).eq.'1' ) then
+              istatus = nf90_inq_varid(ncid, "oc_monthly", ivarid)
+              if (istatus /= nf90_noerr) then
+                write (6,*) 'Error oc_monthly variable undefined'
+                write (6,*) nf90_strerror(istatus)
+                call fatal(__FILE__,__LINE__,'AEROSOL VAR FIND ERROR')
+              end if
+              istart(1) = 1
+              istart(2) = 1
+              icount(1) = jx
+              icount(2) = iy
+              icount(3) = 1
               do m = 1 , 12
-                read (iutchsrc,rec=27+m) ((toto(i,j),j=1,jx),i=1,iy)
+                istart(3) = m
+                istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
+                if (istatus /= nf90_noerr) then
+                  write (6,*) 'Error reading oc_monthly variable'
+                  write (6,*) nf90_strerror(istatus)
+                  call fatal(__FILE__,__LINE__,'AEROSOL VAR READ ERROR')
+                end if
                 do j = 1 , jx
                   do i = 1 , iy
-                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(i,j)
+                    chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + toto(j,i)
                   end do
                 end do
               end do
@@ -282,6 +481,14 @@
           end if
         end if
       end do
+      if (aertyp(4:5).ne.'00') then
+        istatus = nf90_close(ncid)
+        if ( istatus /= nf90_noerr) then
+          write (6,*) 'Error Closing Aerosol file ', trim(ffin)
+          write (6,*) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'AEROSOL FILE CLOSE ERROR')
+        end if
+      end if
 #endif
  
 !     sulfates sources

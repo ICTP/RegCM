@@ -119,7 +119,7 @@
       integer :: nsteps
       integer :: ierr
       character(256) :: namelistfile, prgname
-      character(256) :: sstfile , finame
+      character(256) :: finame
 !
       call header(0)
 !
@@ -190,7 +190,7 @@
         call split_idate(idate, iyr, imon, iday, ihr)
 
         if ( nnn == 1 .or. .not. lsame_month(idate, iodate) ) then
-          write (finame,99002) trim(dirglob), pthsep, trim(domname),    &
+          write (finame,99001) trim(dirglob), pthsep, trim(domname),    &
               '_ICBC.', idate
           if ( nnn>1 ) then
             if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
@@ -272,9 +272,6 @@
       print *, 'Successfully completed ICBC'
 
       stop
- 100  continue
-      print * , 'ERROR OPENING ', trim(sstfile)
-      stop '4810 IN PROGRAM ICBC'
-99001 format (a,a,a,a)
-99002 format (a,a,a,a,i10)
+
+99001 format (a,a,a,a,i10)
       end program icbc

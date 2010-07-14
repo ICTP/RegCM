@@ -33,6 +33,7 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
+      use mod_date
       use netcdf
 
       implicit none
@@ -45,14 +46,29 @@
 !
       logical :: there
       integer :: i , j , nrec , ierr
-      integer :: iyy , jxx
-      integer :: istatus , incin , idimid , ivarid
+      integer :: iyy , jxx , kzz
+      integer :: istatus , incin , ncid , idimid , ivarid
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       real(4) , dimension(ilon,jlat) :: aer2
       real(4) , allocatable , dimension(:,:) :: aermm , xlat , xlon
       real(4) , allocatable , dimension(:,:) :: finmat
+      real(4) , allocatable , dimension(:) :: sigma
       character(256) :: namelistfile, prgname , terfile , aerofile
+      character(64) :: history , csdate , aerdesc
+      integer , dimension(4) :: idims
+      integer , dimension(7) :: ivar
+      integer :: irefdate , imondate , year , month , day , hour , imon
+      real(4) , dimension(2) :: trlat
+      real(4) , allocatable , dimension(:) :: yiy
+      real(4) , allocatable , dimension(:) :: xjx
+      integer , dimension(2) :: ivvar
+      integer , dimension(2) :: illvar
+      integer , dimension(2) :: izvar
+      integer , dimension(8) :: tvals
+      integer , dimension(1) :: istart1 , icount1
+      integer , dimension(3) :: istart , icount
+      real(8) , dimension(1) :: xdate
 !
 !     Read input global namelist
 !
@@ -80,17 +96,14 @@
           & form='unformatted',recl=ilon*jlat*ibyte,access='direct',    &
           & status='old',err=100)
 
-      write (aerofile,99001)                                            &
-        & trim(dirglob), pthsep, trim(domname), '_AERO.dat'
-      open (25,file=aerofile,form='unformatted',                        &
-          & recl=iy*jx*ibyte,access='direct',status='replace')
-      if ( igrads==1 ) then
-        write (aerofile,99001)                                          &
-          & trim(dirglob), pthsep, trim(domname), '_AERO.ctl'
-        open (31,file=aerofile,status='replace')
-        write (31,'(a,a,a)') 'dset ^',trim(domname),'_AERO.dat'
+      aerofile = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
+      istatus = nf90_create(aerofile, nf90_clobber, ncid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating NetCDF output ', trim(aerofile)
+        write (6,*) nf90_strerror(istatus)
+        stop
       end if
- 
+
       terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       istatus = nf90_open(terfile, nf90_nowrite, incin)
       if ( istatus /= nf90_noerr) then
@@ -123,11 +136,36 @@
         write (6,*) nf90_strerror(istatus)
         stop
       end if
-      if ( iyy/=iy .or. jxx/=jx ) then
+      istatus = nf90_inq_dimid(incin, "kz", idimid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Dimension kz missing'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_inquire_dimension(incin, idimid, len=kzz)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error dimension kz'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      if ( iyy/=iy .or. jxx/=jx .or. kzz/=kz+1) then
         print * , 'IMPROPER DIMENSION SPECIFICATION'
-        print * , '  namelist   : ' , iy , jx
-        print * , '  DOMAIN     : ' , iyy , jxx
+        print * , '  namelist   : ' , iy , jx , kz
+        print * , '  DOMAIN     : ' , iyy , jxx , kzz-1
         stop 'Dimensions mismatch'
+      end if
+      allocate(sigma(kzp1))
+      istatus = nf90_inq_varid(incin, "sigma", ivarid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error sigma variable undefined'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_get_var(incin, ivarid, sigma)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error reading sigma variable'
+        write (6,*) nf90_strerror(istatus)
+        stop
       end if
       istatus = nf90_inq_varid(incin, "xlat", ivarid)
       if (istatus /= nf90_noerr) then
@@ -161,247 +199,698 @@
         write (6,*) nf90_strerror(istatus)
         stop
       end if
-!
       deallocate(finmat)
 !
-      call gridml(xlon,xlat,iy,jx,ibyte)
+      istatus = nf90_put_att(ncid, nf90_global, 'title',  &
+           & 'ICTP Regional Climatic model V4 Aerosol program output')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global title'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'institution', &
+               & 'ICTP')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global institution'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'Conventions', &
+               & 'CF-1.4')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global Conventions'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      call date_and_time(values=tvals)
+      write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
+           tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
+           tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
+           ' : Created by RegCM aerosol program'
+      istatus = nf90_put_att(ncid, nf90_global, 'history', history)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global history'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
+      istatus = nf90_put_att(ncid, nf90_global, 'references', &
+               & 'http://eforge.escience-lab.org/gf/project/regcm')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global references'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'experiment', &
+               & domname)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global experiment'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global projection'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
+      istatus = nf90_put_att(ncid, nf90_global,   &
+               &   'grid_size_in_meters', ds*1000.0)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global gridsize'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global,   &
+               &   'latitude_of_projection_origin', clat)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global clat'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global,   &
+               &   'longitude_of_projection_origin', clon)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global clon'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      if (iproj == 'ROTMER') then
+      istatus = nf90_put_att(ncid, nf90_global, &
+               &   'latitude_of_projection_pole', plat)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global plat'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, &
+               &   'longitude_of_projection_pole', plon)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global plon'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      else if (iproj == 'LAMCON') then
+        trlat(1) = truelatl
+        trlat(2) = truelath
+        istatus = nf90_put_att(ncid, nf90_global, &
+                 &   'standard_parallel', trlat)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error adding global truelat'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+      end if
+      if (aertyp == 'AER00D0') then
+        aerdesc = 'Neither aerosol, nor dust used'
+      else if (aertyp == 'AER01D0') then
+        aerdesc = 'Biomass burning, SO2 + BC + OC, no dust.'
+      else if (aertyp == 'AER10D0') then
+        aerdesc = 'Fossil fuel burning, SO2 + BC + OC, no dust'
+      else if (aertyp == 'AER11D0') then
+        aerdesc = 'Fossil fuel + Biomass burning, SO2 + BC'// &
+                  & ' + OC, no dust'
+      else if (aertyp == 'AER00D1') then
+        aerdesc = 'Dust only'
+      else if (aertyp == 'AER01D1') then
+        aerdesc = 'Biomass, SO2 + BC + OC, with dust'
+      else if (aertyp == 'AER10D1') then
+        aerdesc = 'Fossil fuel, SO2 + BC + OC, with dust'
+      else if (aertyp == 'AER11D1') then
+        aerdesc = 'Fossil fuel +Biomass burning, SO2 + BC'// &
+                  & ' + OC, with dust'
+      end if
+
+      istatus = nf90_put_att(ncid, nf90_global,  &
+                         &   'aerosol_type', aerdesc)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding aerosol_type'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_dim(ncid, 'iy', iy, idims(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating dimension iy'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_dim(ncid, 'jx', jx, idims(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating dimension jx'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating dimension time'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_dim(ncid, 'kz', kz+1, idims(4))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating dimension kz'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'sigma', nf90_float, idims(4),   &
+                          &  izvar(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'long_name',      &
+                          &  'Sigma at model layer midpoints')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'units', '1')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma axis attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'positive', 'down')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma positive attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
+                   &         'sigma: sigma ps: ps ptop: ptop')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma formula_terms attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'ptop', nf90_float,         &
+                         &   varid=izvar(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(2), 'standard_name',  &
+                          &  'air_pressure')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(2), 'long_name',      &
+                          &  'Pressure at model top')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), &
+                          &  ivvar(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
+                          &  'projection_y_coordinate')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(1), 'long_name',      &
+                          &  'y-coordinate in Cartesian system')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), &
+                          &  ivvar(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
+                          &  'projection_x_coordinate')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(2), 'long_name',    &
+                          &  'x-coordinate in Cartesian system')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2),  &
+                          &  illvar(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(1), 'standard_name', &
+                          &  'latitude')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(1), 'long_name',     &
+                          &  'Latitude at cross points')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(1), 'units',         &
+                          &  'degrees_north')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2),  &
+                          &  illvar(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(2), 'standard_name', &
+                          &  'longitude')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(2), 'long_name',     &
+                          &  'Longitude at cross points')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(2), 'units',         &
+                          &  'degrees_east')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3),  &
+                          &  ivar(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable time definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
+      irefdate = globidate1
+      call split_idate(irefdate, year, month, day, hour)
+      write (csdate, '(i0.4,a)') year,'-01-16 00:00:00'
+      irefdate = mkidate(year, 1, 16, 0)
+
+      istatus = nf90_put_att(ncid, ivar(1), 'units', &
+                     &   'hours since '//csdate)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable time units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'so2', nf90_float, idims(1:2),  &
+                          &  ivar(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2 definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(2), 'standard_name', &
+                          &  'atmosphere_mass_content_of_sulfur_dioxide')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2 standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(2), 'long_name',     &
+                          &  'Anthropogenic SO2 emission, EDGAR')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2 long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(2), 'units', 'kg m-2')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2 units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(2), 'coordinates', &
+                          &  'xlon xlat')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2 coordinates attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'bc', nf90_float, idims(1:2),  &
+                          &  ivar(3))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(3), 'standard_name', &
+             &  'atmosphere_mass_content_of_black_carbon_dry_aerosol')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(3), 'long_name',     &
+                          &  'Anthropogenic Black Carbon (BC), EDGAR')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(3), 'units', 'kg m-2')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(3), 'coordinates', &
+                          &  'xlon xlat')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc coordinates attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'oc', nf90_float, idims(1:2),  &
+                          &  ivar(4))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(4), 'standard_name', &
+             &  'atmosphere_mass_content_of_organic_carbon_dry_aerosol')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(4), 'long_name',     &
+                          &  'Anthropogenic Organic Carbon (OC), EDGAR')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(4), 'units', 'kg m-2')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(4), 'coordinates', &
+                          &  'xlon xlat')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc coordinates attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'so2_montly', nf90_float, idims(1:3),&
+                          &  ivar(5))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2_monthly in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(5), 'standard_name', &
+                         &  'atmosphere_mass_content_of_sulfur_dioxide')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2_monthly standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(5), 'long_name',     &
+                         &  'Anthropogenic SO2 emission monthly, EDGAR')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2_monthly long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(5), 'units', 'kg m-2')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2_monthly units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(5), 'coordinates', &
+                          &  'xlon xlat')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable so2_monthly coordinates attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'bc_monthly', nf90_float, idims(1:3),&
+                          &  ivar(6))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc_monthly in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(6), 'standard_name', &
+             &  'atmosphere_mass_content_of_black_carbon_dry_aerosol')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc_monthly standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(6), 'long_name',     &
+                     &  'Anthropogenic Black Carbon (BC), LIOUSSE')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc_montly long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(6), 'units', 'kg m-2')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc_montly units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(6), 'coordinates', &
+                          &  'xlon xlat')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable bc_montly coordinates attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'oc_monthly', nf90_float, idims(1:3),&
+                          &  ivar(7))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc_monthly in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(7), 'standard_name', &
+             &  'atmosphere_mass_content_of_organic_carbon_dry_aerosol')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc_monthly standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(7), 'long_name',     &
+                       &  'Anthropogenic Organic Carbon (OC), LIOUSSE')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc_monthly long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(7), 'units', 'kg m-2')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc_monthly units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivar(7), 'coordinates', &
+                          &  'xlon xlat')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable oc_monthly coordinates attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
 !
- 
+!
+!
+      istatus = nf90_enddef(ncid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error End Definitions NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+!
+!
+!
+      istatus = nf90_put_var(ncid, izvar(1), sigma)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      deallocate(sigma)
+      istatus = nf90_put_var(ncid, izvar(2), ptop)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      allocate(yiy(iy))
+      allocate(xjx(jx))
+      yiy(1) = -(dble(iy-1)/2.0) * ds
+      xjx(1) = -(dble(jx-1)/2.0) * ds
+      do i = 2 , iy
+        yiy(i) = yiy(i-1)+ds
+      end do
+      do j = 2 , jx
+        xjx(j) = xjx(j-1)+ds
+      end do
+      istatus = nf90_put_var(ncid, ivvar(1), yiy)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_var(ncid, ivvar(2), xjx)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      deallocate(yiy)
+      deallocate(xjx)
+      istatus = nf90_put_var(ncid, illvar(1), transpose(xlat))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+!
 !     ******    SET UP LONGITUDES AND LATITUDES FOR AEROSOL DATA
+!
       do i = 1 , ilon
         loni(i) = -179.5 + float(i-1)
       end do
       do j = 1 , jlat
         lati(j) = -89.5 + 1.*float(j-1)
       end do
- 
+! 
 !     ****** ALL AEROSOL DATA, 1 Deg data, Climate value
-      do nrec = 1 , 39
+! 
+      do nrec = 1 , 3
         read (11,rec=nrec) aer2
- 
         call bilinx(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
- 
-!       ******           WRITE OUT AEROSOL DATA ON RegCM GRID
-        write (25,rec=nrec) ((aermm(i,j),j=1,jx),i=1,iy)
+        istatus = nf90_put_var(ncid, ivar(1+nrec), transpose(aermm))
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable write in NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+      end do
+
+      imondate = irefdate
+      do imon = 1 , 12
+        istart1(1) = imon
+        icount1(1) = 1
+        xdate(1) = dble(idatediff(imondate,irefdate))
+        istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable time write in NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        imondate = inextmon(imondate)
+      end do
+
+      nrec = 4
+      do i = 1 , 3
+        do imon = 1, 12
+          read (11,rec=nrec) aer2
+          nrec = nrec + 1
+          call bilinx(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
+          istart(3) = imon
+          istart(2) = 1
+          istart(1) = 1
+          icount(3) = 1
+          icount(2) = iy
+          icount(1) = jx
+          istatus = nf90_put_var(ncid, ivar(4+i), transpose(aermm),     &
+                                 istart, icount)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error Variable write in NetCDF output'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+        end do
       end do
  
       deallocate(aermm)
       deallocate(xlat)
       deallocate(xlon)
 
+      istatus = nf90_close(ncid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Closing output sst file'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
       print *, 'Successfully built aerosol data for domain'
       stop
 
  100  continue
       print * , 'ERROR OPENING AEROSOL FILE'
-      stop '4810 IN PROGRAM AEROSOL'
-99001 format (a,a,a,a)
+      stop
       end program aerosol
-!
-!-----------------------------------------------------------------------
-!
-      subroutine gridml(xlon,xlat)
-      use mod_dynparam
-      implicit none
-!
-! Dummy arguments
-!
-      real(4) , dimension(iy,jx) :: xlat , xlon
-      intent (in) xlat , xlon
-!
-! Local variables
-!
-      real(4) :: alatmax , alatmin , alonmax , alonmin , centeri ,      &
-            & centerj , dsinm , rlatinc , rloninc
-      character(3) , dimension(12) :: cmonth
-      integer :: i , j , month , nx , ny , period
-!
-      data cmonth/'jan' , 'feb' , 'mar' , 'apr' , 'may' , 'jun' ,       &
-         & 'jul' , 'aug' , 'sep' , 'oct' , 'nov' , 'dec'/
-!
-      alatmin = 999999.
-      alatmax = -999999.
-      alonmin = 999999.
-      alonmax = -999999.
-      nx = 0
-      ny = 0
-      dsinm = ds* 1000.0
-!
-      if ( igrads==1 ) then
-        write (31,'(a)')                                                &
-                     &'title AEROSOL fields for RegCM domain, kg/m2/sec'
-        if ( ibigend==1 ) then
-          write (31,'(a)') 'options big_endian'
-        else
-          write (31,'(a)') 'options little_endian'
-        end if
-        write (31,'(a)') 'undef -9999.'
-        if ( iproj=='LAMCON' .or. iproj=='ROTMER' ) then
-          do j = 1 , jx
-            if ( xlat(1,j)<alatmin ) alatmin = xlat(1,j)
-            if ( xlat(iy,j)>alatmax ) alatmax = xlat(iy,j)
-          end do
-          do i = 1 , iy
-            do j = 1 , jx
-              if ( clon>=0.0 ) then
-                if ( xlon(i,j)>=0.0 ) then
-                  alonmin = amin1(alonmin,xlon(i,j))
-                  alonmax = amax1(alonmax,xlon(i,j))
-                else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)+360.))&
-                        & ) then
-                  alonmin = amin1(alonmin,xlon(i,j))
-                  alonmax = amax1(alonmax,xlon(i,j))
-                else
-                  alonmin = amin1(alonmin,xlon(i,j)+360.)
-                  alonmax = amax1(alonmax,xlon(i,j)+360.)
-                end if
-              else if ( xlon(i,j)<0.0 ) then
-                alonmin = amin1(alonmin,xlon(i,j))
-                alonmax = amax1(alonmax,xlon(i,j))
-              else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)-360.)) )&
-                      & then
-                alonmin = amin1(alonmin,xlon(i,j))
-                alonmax = amax1(alonmax,xlon(i,j))
-              else
-                alonmin = amin1(alonmin,xlon(i,j)-360.)
-                alonmax = amax1(alonmax,xlon(i,j)-360.)
-              end if
-            end do
-          end do
-          rlatinc = ds/111./2.
-          rloninc = ds/111./2.
-          ny = 2 + nint(abs(alatmax-alatmin)/rlatinc)
-          nx = 1 + nint(abs((alonmax-alonmin)/rloninc))
- 
-          centerj = jx/2.
-          centeri = iy/2.
-        end if
-        if ( iproj=='LAMCON' ) then        ! Lambert projection
-          write (31,99001) jx , iy , clat , clon , centerj , centeri ,  &
-                         & truelatl , truelath , clon , dsinm , dsinm
-          write (31,99002) nx + 2 , alonmin - rloninc , rloninc
-          write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
-        else if ( iproj=='POLSTR' ) then   !
-        else if ( iproj=='NORMER' ) then
-          write (31,99004) jx , xlon(1,1) , xlon(1,2) - xlon(1,1)
-          write (31,99005) iy
-          write (31,99006) (xlat(i,1),i=1,iy)
-        else if ( iproj=='ROTMER' ) then
-          write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
-                     &' projections are not supported by GrADS.'
-          write (*,*) '  Although not exact, the eta.u projection' ,    &
-                     &' in GrADS is somewhat similar.'
-          write (*,*) ' FERRET, however, does support this projection.'
-          write (31,99007) jx , iy , plon , plat , ds/111. ,            &
-                         & ds/111.*.95238
-          write (31,99002) nx + 2 , alonmin - rloninc , rloninc
-          write (31,99003) ny + 2 , alatmin - rlatinc , rlatinc
-        else
-          write (*,*) 'Are you sure your map projection is correct ?'
-          stop
-        end if
-        write (31,99008) 1 , 1000.
-        month = 1
-        period = 1
-        write (31,99009) period , cmonth(month) , 2001
-        write (31,99010) 39
-        write (31,99011) 'so2   ' ,                                     &
-                        &'Anthropogenic SO2 emission, EDGAR       '
-        write (31,99011) 'bc    ' ,                                     &
-                        &'Anthropogenic Black Carbon (BC), EDGAR  '
-        write (31,99011) 'oc    ' ,                                     &
-                        &'Anthropogenic Organic Carbon (OC), EDGAR'
-        write (31,99011) 'so201 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, January    '
-        write (31,99011) 'so202 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, February   '
-        write (31,99011) 'so203 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, March      '
-        write (31,99011) 'so204 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, April      '
-        write (31,99011) 'so205 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, May        '
-        write (31,99011) 'so206 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, June       '
-        write (31,99011) 'so207 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, July       '
-        write (31,99011) 'so208 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, August     '
-        write (31,99011) 'so209 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, September  '
-        write (31,99011) 'so210 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, October    '
-        write (31,99011) 'so211 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, November   '
-        write (31,99011) 'so212 ' ,                                     &
-                        &'Biomass SO2 emission, EDGAR, December   '
-        write (31,99011) 'bc_01 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, January   '
-        write (31,99011) 'bc_02 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, February  '
-        write (31,99011) 'bc_03 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, March     '
-        write (31,99011) 'bc_04 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, April     '
-        write (31,99011) 'bc_05 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, May       '
-        write (31,99011) 'bc_06 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, June      '
-        write (31,99011) 'bc_07 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, July      '
-        write (31,99011) 'bc_08 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, August    '
-        write (31,99011) 'bc_09 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, September '
-        write (31,99011) 'bc_10 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, October   '
-        write (31,99011) 'bc_11 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, November  '
-        write (31,99011) 'bc_12 ' ,                                     &
-                        &'Biomass BC emission, LIOUSSE, December  '
-        write (31,99011) 'oc_01 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, January   '
-        write (31,99011) 'oc_02 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, February  '
-        write (31,99011) 'oc_03 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, March     '
-        write (31,99011) 'oc_04 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, April     '
-        write (31,99011) 'oc_05 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, May       '
-        write (31,99011) 'oc_06 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, June      '
-        write (31,99011) 'oc_07 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, July      '
-        write (31,99011) 'oc_08 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, August    '
-        write (31,99011) 'oc_09 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, September '
-        write (31,99011) 'oc_10 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, October   '
-        write (31,99011) 'oc_11 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, November  '
-        write (31,99011) 'oc_12 ' ,                                     &
-                        &'Biomass OC emission, LIOUSSE, December  '
- 
-        write (31,'(a)') 'endvars'
-        close (31)
-      end if
-99001 format ('pdef ',i4,1x,i4,1x,'lcc',7(1x,f7.2),1x,2(f7.0,1x))
-99002 format ('xdef ',i4,' linear ',f7.2,1x,f7.4)
-99003 format ('ydef ',i4,' linear ',f7.2,1x,f7.4)
-99004 format ('xdef ',i3,' linear ',f9.4,' ',f9.4)
-99005 format ('ydef ',i3,' levels')
-99006 format (10F7.2)
-99007 format ('pdef ',i4,1x,i4,1x,'eta.u',2(1x,f7.3),2(1x,f9.5))
-99008 format ('zdef ',i1,' levels ',f7.2)
-99009 format ('tdef ',i4,' linear 00z16',a3,i4,' 1mo')
-99010 format ('vars ',i2)
-99011 format (a6,'0 99 ',a40)
-!
-      end subroutine gridml
-!
-!
 !
       subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx, &
                       & nflds)

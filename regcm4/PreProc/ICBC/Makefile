@@ -5,7 +5,7 @@ include ../../Makefile.inc
 
 all: aerosol sst icbc install
 
-AEROSOLOBJ = aerosol.o
+AEROSOLOBJ = aerosol.o mod_date.o
 SSTOBJ = sst.o mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_1deg.o \
          mod_sst_ccsm.o mod_interp.o mod_printl.o mod_date.o mod_sst_grid.o
 

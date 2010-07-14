@@ -60,11 +60,6 @@
 !
       integer :: idate
 !
-! Local variables
-!
-      integer :: nmop , nyrp
-      real(4) :: wt
-!
 !     D      BEGIN LOOP OVER NTIMES
 !
       call ein256hour(dattyp,idate,globidate1)

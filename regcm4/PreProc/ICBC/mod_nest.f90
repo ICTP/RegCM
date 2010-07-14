@@ -84,9 +84,8 @@
       character(14) :: fillin
       character(256) :: inpfile
       integer :: i , idatek , j , k , mn0 , mn1 , nd0 , nd1 , nh0 ,     &
-               & nh1 , nmop , ny0 , ny1 , nyrp
+               & nh1 , ny0 , ny1
       logical :: there
-      real(4) :: wt
 !
       if (.not. allocated(b2)) then
         write (*,*) 'Called get_nest before headnest !'
