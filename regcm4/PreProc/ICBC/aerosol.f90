@@ -652,8 +652,8 @@
         write (6,*) nf90_strerror(istatus)
         stop
       end if
-      istatus = nf90_def_var(ncid, 'so2_montly', nf90_float, idims(1:3),&
-                          &  ivar(5))
+      istatus = nf90_def_var(ncid, 'so2_monthly', nf90_float,           &
+                          &  idims(1:3), ivar(5))
       if (istatus /= nf90_noerr) then
         write (6,*) 'Error Variable so2_monthly in NetCDF output'
         write (6,*) nf90_strerror(istatus)

@@ -842,12 +842,12 @@
           write (6,*) nf90_strerror(istatus)
           call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
         end if
+        r8pt = ptsp/10.0
         print * , 'param: DIMS' , iyy , jxx , kzz
         print * , 'param: DOMAIN' , dsx , iclat , iclon
         print * , 'param: PROJ' , proj
         print * , 'param: SIGMA' , sp1d
-        print * , 'param: PTOP' , ptsp
-        r8pt = ptsp
+        print * , 'param: PTOP' , r8pt
         dx = dsx
         do k = 1 , kzp1
           sigma(k) = dble(sp1d(k))
@@ -1292,7 +1292,7 @@
                &'                ****'
           print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
                &'             ****'
-          print * , '****     PTOP=' , ptsp , ' DX=' , dsx ,            &
+          print * , '****     PTOP=' , r8pt , ' DX=' , dsx ,            &
                &'       ****'
           print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
                &'    ****'
@@ -1581,7 +1581,7 @@
              &'                ****'
         print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
              &'             ****'
-        print * , '****     PTOP=' , ptsp , ' DX=' , dsx ,              &
+        print * , '****     PTOP=' , r8pt , ' DX=' , dsx ,              &
              &'       ****'
         print * , '****     CLAT= ' , clat , ' CLON=' , clon ,          &
              &'    ****'
