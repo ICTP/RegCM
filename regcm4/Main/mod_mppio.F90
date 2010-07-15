@@ -39,54 +39,24 @@
       real(8) , allocatable , target , dimension(:,:,:) :: spaceclm
       private :: spaceclm
 #endif
-      real(8) , pointer , dimension(:,:,:) :: col2d_io
-      real(8) , pointer , dimension(:,:,:) :: dew2d_io
-      real(8) , pointer , dimension(:,:,:) :: evpa2d_io
-      real(8) , pointer , dimension(:,:,:) :: gwet2d_io 
-      real(8) , pointer , dimension(:,:,:) :: ircp2d_io
-      ! ocean/land mask
-      real(8) , pointer , dimension(:,:,:) :: ocld2d_io
-      real(8) , pointer , dimension(:,:,:) :: rno2d_io
-      real(8) , pointer , dimension(:,:,:) :: rnos2d_io
-      real(8) , pointer , dimension(:,:,:) :: sag2d_io
-      real(8) , pointer , dimension(:,:,:) :: scv2d_io
-      real(8) , pointer , dimension(:,:,:) :: sena2d_io
-      real(8) , pointer , dimension(:,:,:) :: sice2d_io
-      real(8) , pointer , dimension(:,:,:) :: srw2d_io
-      real(8) , pointer , dimension(:,:,:) :: ssw2d_io
-      ! total soil wetness of column
-      real(8) , pointer , dimension(:,:,:) :: swt2d_io
-      ! 2-m air temperature
-      real(8) , pointer , dimension(:,:,:) :: taf2d_io
-      real(8) , pointer , dimension(:,:,:) :: text2d_io
-      real(8) , pointer , dimension(:,:,:) :: tg2d_io
-      real(8) , pointer , dimension(:,:,:) :: tgb2d_io
-      real(8) , pointer , dimension(:,:,:) :: tlef2d_io
-      real(8) , pointer , dimension(:,:,:) :: veg2d1_io
+
+      real(8) , pointer , dimension(:,:,:) :: col2d_io , dew2d_io ,     &
+           & evpa2d_io , gwet2d_io , ircp2d_io , ocld2d_io , rno2d_io , &
+           & rnos2d_io , sag2d_io , scv2d_io , sena2d_io , sice2d_io ,  &
+           & srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
+           & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io
 
       real(8) , pointer , dimension(:,:,:) :: ht1_io , satbrt1_io ,     &
                                          &    snowc_io
 !
-      ! Downward Longwave radiation
-      real(8) , pointer , dimension(:,:) :: flwd2d_io
-      ! Net Surface Longwave
-      real(8) , pointer , dimension(:,:) :: flw2d_io
-      ! surface absorbed radiation
-      real(8) , pointer , dimension(:,:) :: fsw2d_io
-      real(8) , pointer , dimension(:,:) :: sabv2d_io
-      real(8) , pointer , dimension(:,:) :: sdelqk2d_io
-      real(8) , pointer , dimension(:,:) :: sdeltk2d_io
-      real(8) , pointer , dimension(:,:) :: sfracb2d_io
-      real(8) , pointer , dimension(:,:) :: sfracs2d_io
-      real(8) , pointer , dimension(:,:) :: sfracv2d_io
-      ! total incident solar radiation
-      real(8) , pointer , dimension(:,:) :: sinc2d_io
-      real(8) , pointer , dimension(:,:) :: sol2d_io
-      real(8) , pointer , dimension(:,:) :: solvd2d_io
-      real(8) , pointer , dimension(:,:) :: solvs2d_io
-      real(8) , pointer , dimension(:,:) :: ssw2da_io
-      real(8) , pointer , dimension(:,:) :: svegfrac2d_io
-      real(8) , pointer , dimension(:,:) :: veg2d_io
+      real(8) , pointer , dimension(:,:) :: flw2d_io , flwd2d_io ,      &
+                          & fsw2d_io , sabv2d_io , sdelqk2d_io ,        &
+                                     & sdeltk2d_io , sfracb2d_io ,      &
+                                     & sfracs2d_io , sfracv2d_io ,      &
+                                     & sinc2d_io , sol2d_io ,           &
+                                     & solvd2d_io , solvs2d_io ,        &
+                                     & ssw2da_io , svegfrac2d_io ,      &
+                                     & veg2d_io
       
       real(4) , allocatable , dimension(:,:,:) :: fbat_io
       real(4) , allocatable , dimension(:,:,:,:) :: fsub_io
@@ -102,9 +72,7 @@
       real(8) , allocatable , dimension(:,:,:,:) :: abstot_io
       real(8) , allocatable , dimension(:,:,:) :: emstot_io
 
-      ! residual heat
       real(8) , allocatable , dimension(:,:,:) :: heatrt_io
-      ! ozone profile
       real(8) , allocatable , dimension(:,:,:) :: o3prof_io
 
       real(8) , allocatable , dimension(:,:,:) :: dstor_io , hstor_io
@@ -140,28 +108,13 @@
 
       real(8) , allocatable , dimension(:,:,:,:) :: chia_io , chib_io
 
-      real(8) , pointer , dimension(:,:) :: cldefi_io
-      real(8) , pointer , dimension(:,:) :: f_io
-      real(8) , pointer , dimension(:,:) :: hfx_io
-      real(8) , pointer , dimension(:,:) :: htsd_io
-      real(8) , pointer , dimension(:,:) :: ht_io
-      real(8) , pointer , dimension(:,:) :: msfd_io
-      real(8) , pointer , dimension(:,:) :: msfx_io
-      real(8) , pointer , dimension(:,:) :: psa_io
-      real(8) , pointer , dimension(:,:) :: psb_io
-      real(8) , pointer , dimension(:,:) :: qfx_io
-      real(8) , pointer , dimension(:,:) :: rainc_io
-      real(8) , pointer , dimension(:,:) :: rainnc_io
-      real(8) , pointer , dimension(:,:) :: satbrt_io
-      real(8) , pointer , dimension(:,:) :: tga_io
-      ! ground blackbody temperature
-      real(8) , pointer , dimension(:,:) :: tgbb_io
-      real(8) , pointer , dimension(:,:) :: tgb_io
-      real(8) , pointer , dimension(:,:) :: uvdrag_io
-      real(8) , pointer , dimension(:,:) :: xlat_io
-      real(8) , pointer , dimension(:,:) :: xlong_io
-      real(8) , pointer , dimension(:,:) :: zpbl_io
-
+      real(8) , pointer , dimension(:,:) :: cldefi_io , f_io , hfx_io , &
+                                   & htsd_io , ht_io , msfd_io ,        &
+                                   & msfx_io , psa_io , psb_io ,        &
+                                   & qfx_io , rainc_io , rainnc_io ,    &
+                                   & satbrt_io , tga_io , tgbb_io ,     &
+                                   & tgb_io , uvdrag_io , xlat_io ,     &
+                                   & xlong_io , zpbl_io
       real(8) , pointer , dimension(:,:,:) :: omega_io , qca_io ,       &
                               & qcb_io , qva_io , qvb_io , ta_io ,      &
                                       & tbase_io , tb_io , ua_io ,      &
@@ -186,26 +139,10 @@
       real(8) , allocatable , dimension(:,:,:) :: chem_0
 
 #ifdef CLM
-      ! Direct Shortwave radiation
-      real(8) , pointer , dimension(:,:) :: sols2d_io
-      ! Direct Longwave radiation
-      real(8) , pointer , dimension(:,:) :: soll2d_io
-      ! Diffuse Shortwave radiation
-      real(8) , pointer , dimension(:,:) :: solsd2d_io
-      ! Diffuse Longwave radiation
-      real(8) , pointer , dimension(:,:) :: solld2d_io
-      ! Albedo of Direct Shortwave radiation
-      real(8) , pointer , dimension(:,:) :: aldirs2d_io
-      ! Albedo of Direct Longwave radiation
-      real(8) , pointer , dimension(:,:) :: aldirl2d_io
-      ! Albedo of Diffuse Shortwave radiation
-      real(8) , pointer , dimension(:,:) :: aldifs2d_io
-      ! Albedo of Diffuse Longwave radiation
-      real(8) , pointer , dimension(:,:) :: aldifl2d_io
-      ! cosine of solar zenith angle
-      real(8) , pointer , dimension(:,:) :: coszrs2d_io
-      ! 2-m mixing ratio
-      real(8) , pointer , dimension(:,:) :: q2m_io
+      real(8) , pointer , dimension(:,:) :: sols2d_io , soll2d_io ,     &
+                   &      solsd2d_io , solld2d_io , aldifl2d_io ,       &
+                   &      aldirs2d_io , aldirl2d_io , aldifs2d_io ,     &
+                   &      coszrs2d_io
 #endif
 #endif
 
@@ -420,7 +357,7 @@
 #ifdef BAND
       allocate(spaceclm(iym1,jx,9))
 #else
-      allocate(spaceclm(iym1,jxm1,10))
+      allocate(spaceclm(iym1,jxm1,9))
 #endif
       sols2d_io   => spaceclm(:,:,1)
       soll2d_io   => spaceclm(:,:,2)
@@ -431,7 +368,6 @@
       aldirl2d_io => spaceclm(:,:,7)
       aldifs2d_io => spaceclm(:,:,8)
       coszrs2d_io => spaceclm(:,:,9)
-      q2m_io      => spaceclm(:,:,10)
 #endif       
 #endif       
       end subroutine allocate_mod_mppio

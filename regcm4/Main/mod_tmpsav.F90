@@ -85,8 +85,8 @@
         allocate(sav6(kz,8,jxp))
         allocate(sav_6(kz,8,jx))
 #ifdef CLM
-        allocate(sav_clmout(iym1,10,jx))
-        allocate(sav_clmin(iym1,10,jxp))
+        allocate(sav_clmout(iym1,9,jx))
+        allocate(sav_clmin(iym1,9,jxp))
 #endif 
 
 #endif 

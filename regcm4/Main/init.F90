@@ -66,7 +66,7 @@
       use clm_varsur , only : init_tgb , init_grid
       use mod_bats , only : sols2d , soll2d , solsd2d , solld2d ,       &
                    &        aldirs2d, aldirl2d , aldifs2d , aldifl2d ,  &
-                   &        coszrs2d , q2d
+                   &        coszrs2d
 #endif
 #ifndef IBM
       use mpi
@@ -1140,7 +1140,6 @@
             read (iutrs) aldifs2d_io
             read (iutrs) aldifl2d_io
             read (iutrs) coszrs2d_io
-            read (iutrs) q2m_io
             read (iutrs) ocld2d_io
             read (iutrs) heatrt_io
             read (iutrs) o3prof_io
@@ -1875,12 +1874,11 @@
                 sav_clmout(i,7,j)  = aldifs2d_io(i,j)
                 sav_clmout(i,8,j)  = aldifl2d_io(i,j)
                 sav_clmout(i,9,j)  = coszrs2d_io(i,j)
-                sav_clmout(i,10,j) = q2m_io(i,j)
               end do
             end do
           end if
-          call mpi_scatter(sav_clmout,iym1*10*jxp,mpi_real8,            &
-                         & sav_clmin, iym1*10*jxp,mpi_real8,            &
+          call mpi_scatter(sav_clmout,iym1*9*jxp,mpi_real8,             &
+                         & sav_clmin, iym1*9*jxp,mpi_real8,             &
                          & 0,mpi_comm_world,ierr)
           do j = 1 , jendx
             do i = 1 , iym1
@@ -1893,7 +1891,6 @@
               aldifs2d(i,j) = sav_clmin(i,7,j)
               aldifl2d(i,j) = sav_clmin(i,8,j)
               coszrs2d(i,j) = sav_clmin(i,9,j)
-              q2d(i,j)      = sav_clmin(i,10,j)
             end do
           end do
 #endif

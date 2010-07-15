@@ -165,6 +165,11 @@ subgridMod.o: $(BSP)/subgridMod.F90
 SurfaceAlbedoMod.o: $(BSP)/SurfaceAlbedoMod.F90
 surfrdMod.o: $(BSP)/surfrdMod.F90
 VOCEmissionMod.o: $(BSP)/VOCEmissionMod.F90
+clm_time_manager.o: $(BSP)/clm_time_manager.F90
+
+$(BSP)/clm_time_manager.F90: $(BSP)/patchset/clm_time_manager.F90.patch shr_kind_mod.o spmdMod.o ESMF_Mod.o clm_varctl.o abortutils.o ncdio.o misc.h preproc.h
+	cp -f $(CLMSRC)/src/main/clm_time_manager.F90 .
+	patch -p1 -i $(BSP)/patchset/clm_time_manager.F90.patch
 
 $(BSP)/accFldsMod.F90: $(BSP)/patchset/accFldsMod.F90.patch shr_kind_mod.o clm_varcon.o clmtype.o shr_const_mod.o decompMod.o clm_varctl.o clm_time_manager.o clm_atmlnd.o abortutils.o pftvarcon.o accumulMod.o nanMod.o misc.h preproc.h $(REGCMSRC)/mod_clm.o $(REGCMSRC)/mod_dynparam.o
 	cp -f $(CLMSRC)/src/main/accFldsMod.F90 .
@@ -357,7 +362,6 @@ accumulMod.o: accumulMod.F90 shr_kind_mod.o spmdMod.o clm_varcon.o shr_const_mod
 areaMod.o: areaMod.F90 clm_varsur.o shr_kind_mod.o clm_mct_mod.o spmdMod.o clm_varcon.o shr_const_mod.o decompMod.o clm_varpar.o domainMod.o abortutils.o nanMod.o misc.h preproc.h
 clm_csmMod.o: clm_csmMod.F90 shr_kind_mod.o subgridAveMod.o perf_mod.o spmdGathScatMod.o spmdMod.o clmtype.o clm_varcon.o shr_const_mod.o decompMod.o clm_varpar.o shr_sys_mod.o domainMod.o clm_time_manager.o clm_varctl.o RunoffMod.o clm_atmlnd.o abortutils.o ncdio.o nanMod.o misc.h preproc.h
 clm_mct_mod.o: clm_mct_mod.F90 shr_kind_mod.o m_stdio.o m_AttrVect.o m_SparseMatrixPlus.o m_String.o m_SparseMatrixComms.o m_SparseMatrix.o m_List.o m_Rearranger.o m_GlobalSegMap.o shr_const_mod.o m_MatAttrVectMul.o m_GeneralGridComms.o shr_sys_mod.o m_AttrVectComms.o m_GlobalToLocal.o shr_mpi_mod.o m_GeneralGrid.o m_SparseMatrixToMaps.o m_MCTWorld.o m_die.o m_Permuter.o m_MergeSorts.o 
-clm_time_manager.o: clm_time_manager.F90 shr_kind_mod.o spmdMod.o ESMF_Mod.o clm_varctl.o abortutils.o ncdio.o misc.h preproc.h
 clm_varcon.o: clm_varcon.F90 shr_kind_mod.o shr_const_mod.o clm_varpar.o misc.h preproc.h
 clm_varorb.o: clm_varorb.F90 shr_kind_mod.o misc.h preproc.h
 clm_varvoc.o: clm_varvoc.F90 shr_kind_mod.o clm_varpar.o misc.h preproc.h
