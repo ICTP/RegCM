@@ -558,9 +558,12 @@
            &                  (vb(i,kz,j)/psb(i,j) )**2 ) / rho(i,kz) )
  
 !           soil wetness
-            soilw(i) = ssw2da(i,j)                                      &
-                     & /(xmopor(iexsol(nint(satbrt(i,j))))*depuv        &
-                     & (nint(satbrt(i,j))))
+!           soilw(i) = ssw2da(i,j)                                      &
+!                    & /(xmopor(iexsol(nint(satbrt(i,j))))*depuv        &
+!                    & (nint(satbrt(i,j))))
+ 
+            soilw(i) = ssw2da(i,j)/depuv(nint(satbrt(i,j)))             &
+                  & / (2650. * (1 - xmopor(iexsol(nint(satbrt(i,j))))))
  
 !           soilw(i) = ssw2da(i,j) /(xmopor(iexsol(ivegcov(i)) )
 !           &                            * depuv(ivegcov(i))      )

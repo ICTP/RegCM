@@ -723,7 +723,7 @@
           end do
           if ( landfrac(j,i).ne.1 .and. landfrac(j,i).ne.0 ) then
             landmask(j,i) = 3
-          endif
+          end if
         end do
       end do
  

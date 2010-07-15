@@ -624,8 +624,6 @@
       end if
 #endif
  
-      if ( ichem.eq.0 ) ifchem = .false.
-
 !first checks 
 !as
       if ( mod(anint(radfrq*60.),anint(dt)).ne.0 ) then
@@ -658,7 +656,14 @@
                   &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
                   &' TIMESTEPS SPECIFIED')
       end if
- 
+
+      if ( ichem.eq.0 ) ifchem = .false.
+      if ( ichem.eq.1 .and. chemfrq.eq. 0.) then
+        write (aline,*) 'CHEMFRQ=' ,chemfrq
+        call say
+        call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
+      end if
+!
 !-----reset the options/calculate variables using namelist info:
 !
       ndate0 = idate1

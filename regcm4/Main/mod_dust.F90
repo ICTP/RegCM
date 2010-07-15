@@ -28,7 +28,7 @@
       integer , parameter :: nsoil = 152
       integer , parameter :: nats = 12 ! ntex - 5
       integer , parameter :: mode = 3
-      integer , parameter :: jsoilm = 2 
+      integer , parameter :: jsoilm = 1 
       integer , parameter :: jfs =1 
       integer , parameter :: ust = 1
 !
@@ -293,9 +293,9 @@
         do n=1,nats
             do i=1,iy
               src_1(i,n,j)=dustsotex_io(i,j,n)
-            enddo
-        enddo
-      enddo
+            end do
+        end do
+      end do
 
       call mpi_scatter(src_1(1,1,1),iy*jxp*nats,mpi_real8, &
                      & src1(1,1,1),iy*jxp*nats,mpi_real8,0,  &
@@ -306,9 +306,9 @@
           do n=1,nats
             do i=1,iy
               dustsotex(i,j,n)=src1(i,n,j)
-            enddo
-        enddo
-      enddo
+            end do
+        end do
+      end do
 
 #else
       if ( rd_tex ) then

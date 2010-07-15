@@ -1994,9 +1994,9 @@
             filer_rest = restFile_filename(type='binary',               &
                      &                     offset=-int(cdtime))
             call restFile_write_binary( filer_rest )
-          endif
-        endif
-      endif
+          end if
+        end if
+      end if
 #endif
 
 #else

@@ -178,7 +178,7 @@
         else
           open (iutbc,file=ffin,form='unformatted',status='old',        &
           &     access='direct',recl=iy*jx*ibyte)
-        endif  
+        end if  
         mmrec = 0
       end if
 #else
@@ -199,7 +199,7 @@
            open (iutbc,file=ffin,form='unformatted',status='old',       &
            &access='direct',recl=iy*jx*ibyte)
            mmrec = 0
-        endif 
+        end if
 #endif
 !
       if ( .not.ifrest ) then

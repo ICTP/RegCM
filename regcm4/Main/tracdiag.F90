@@ -244,7 +244,7 @@
             end do
           end do
         end do
-      endif
+      end if
       call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do n = 1 , ntr

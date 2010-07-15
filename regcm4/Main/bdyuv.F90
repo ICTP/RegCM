@@ -264,60 +264,58 @@
           end do
 #endif
         end do
-        go to 100
-!
-      end if
+      else
 !
 !-----time-dependent boundary conditions:
 !
-      do k = 1 , kz
+        do k = 1 , kz
 #ifndef BAND
 !
 !.....west (j = 1) and east (j = jx) boundaries:
 !
-        do i = 1 , iy
+          do i = 1 , iy
 #ifdef MPP1
-          if ( myid.eq.0 ) then
+            if ( myid.eq.0 ) then
+              uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
+              vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/pdota(i,1)
+            end if
+            if ( myid.eq.nproc-1 ) then
+              ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jendl)
+              vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jendl)
+            end if
+#else
             uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
             vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/pdota(i,1)
-          end if
-          if ( myid.eq.nproc-1 ) then
-            ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jendl)
-            vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jendl)
-          end if
-#else
-          uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
-          vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/pdota(i,1)
-          ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jx)
-          vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jx)
+            ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jx)
+            vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jx)
 #endif
-        end do
+          end do
 #endif
 !
 !.....south (i = 1) and north (i = iy) boundaries:
 !
 #ifdef MPP1
-        do j = 1 , jendl
-          ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
-          vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
-          uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
-          vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
-        end do
+          do j = 1 , jendl
+            ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
+            vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
+            uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
+            vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
+          end do
 #else
-        do j = 1 , jx
-          ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
-          vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
-          uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
-          vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
-        end do
+          do j = 1 , jx
+            ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
+            vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
+            uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
+            vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
+          end do
 #endif
 !
-      end do
+        end do
+!
+      end if
 !
 !-----fill up the interior silces:
 !
- 100  continue
-
 #ifdef MPP1
 
 #ifndef BAND

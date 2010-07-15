@@ -760,8 +760,8 @@
               omega(i,k,j) = 0.
             end do
           end do
-        endif
-      enddo
+        end if
+      end do
 #endif
 
 #ifdef MPP1
@@ -1206,7 +1206,7 @@
           end do
         else
         end if
-      enddo
+      end do
 #endif
 
 #ifdef MPP1
@@ -1424,20 +1424,24 @@
           else if ( icup.eq.2 ) then
 
 !! the following part moved from subroutine cuparan
-            do k=1,kz
-            do i=2,iym2
-               jp1 = j+1
+            do k = 1 , kz
+              do i = 2 , iym2
+                jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-               if(jp1.eq.jx+1) jp1 = 1
+                if ( jp1.eq.jx+1 ) jp1 = 1
 #endif
-!              usk(i,k) = ua(i,k,j)/psb(i,j)
-!              vsk(i,k) = va(i,k,j)/psb(i,j)
-          usk(i,k) = 0.25*(ua(i,k,j)/psb(i,j)+ua(i+1,k,j)/psb(i+1,j) &
-                 & +ua(i,k,jp1)/psb(i,jp1)+ua(i+1,k,jp1)/psb(i+1,jp1))
-          vsk(i,k) = 0.25*(va(i,k,j)/psb(i,j)+va(i+1,k,j)/psb(i+1,j) &
-                 & +va(i,k,jp1)/psb(i,jp1)+va(i+1,k,jp1)/psb(i+1,jp1))
-            enddo
-            enddo
+!               usk(i,k) = ua(i,k,j)/psb(i,j)
+!               vsk(i,k) = va(i,k,j)/psb(i,j)
+                usk(i,k) = 0.25*(ua(i,k,j)/psb(i,j)+                    &
+                          &      ua(i+1,k,j)/psb(i+1,j)+                &
+                          &      ua(i,k,jp1)/psb(i,jp1)+                &
+                          &      ua(i+1,k,jp1)/psb(i+1,jp1))
+                vsk(i,k) = 0.25*(va(i,k,j)/psb(i,j)+                    &
+                          &      va(i+1,k,j)/psb(i+1,j)+                &
+                          &      va(i,k,jp1)/psb(i,jp1)+                &
+                          &      va(i+1,k,jp1)/psb(i+1,jp1))
+              end do
+            end do
 !!
             call cuparan(tten(1,1,j),qvten(1,1,j),j)
           else if ( icup.eq.3 ) then
@@ -1471,7 +1475,7 @@
 !-----compute the diffusion terms:
 !           the diffusion term for qv is stored in diffq. before
 !           completing qvten computation, do not use diffq for other
- 
+
 !           purpose.
             call diffutqv(diffq(1,1,j),xkc(1,1,j),c203,j)
             call diffutqc(qcten(1,1,j),xkc(1,1,j),c203,j)
@@ -1520,7 +1524,7 @@
                albvl(i)  = aldirl2d(i,j)
             end do
             call albedoclm(j,iemiss)
-        endif
+        end if
 #else
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
            & .eq.0 ) call albedov(j,iemiss)
@@ -1756,8 +1760,8 @@
 !..t..compute weighted p*t (td) for use in ssi:
 !
         else
-        endif
-      enddo
+        end if
+      end do
 #endif
 
 #ifdef MPP1

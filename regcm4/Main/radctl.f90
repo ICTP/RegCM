@@ -60,6 +60,7 @@
 !
       use mod_dynparam
       use mod_date
+      use mod_param2 , only : ichem
       use mod_aerosol , only : aermix , aeroppt , aerout
       implicit none
 !
@@ -238,7 +239,8 @@
       end if
 
 !     aersols diagnostics
+      if ( ichem==1 ) then
+        call aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
+      end if   
 
-      call aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
-        
       end subroutine radctl

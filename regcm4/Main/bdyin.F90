@@ -106,7 +106,7 @@
               else 
                 open (iutbc,file=ffin,form='unformatted',status='old',  &
                   & access='direct',recl=iy*jx*ibyte)
-              endif  
+              end if
               mmrec = 0
               print * , 'CHANGING BDY UNIT NUMBER:  iutbc=' , iutbc
               if ( iutbc.gt.999 )                                       &
@@ -283,7 +283,7 @@
         do j = jbegin , jendx
           psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
           psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
-        enddo
+        end do
 #else
 !
         do i = 2 , iym1
