@@ -6,6 +6,7 @@
 # module load szlib
 # module load hdf5
 # module load netcdf
+# module load patch 
 #
 
 # Model flags
@@ -62,7 +63,7 @@ CPPFLAGS += -WF,-D$(PARALLEL)
 endif
 
 ifeq ($(USEBAND),1)
-  CPPFLAGS += -DBAND
+  CPPFLAGS += -WF,-DBAND
 endif
 
 ifeq ($(USECLM),1)

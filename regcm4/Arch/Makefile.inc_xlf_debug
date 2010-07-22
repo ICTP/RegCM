@@ -48,7 +48,7 @@ CPPFLAGS += -WF,-D$(PARALLEL)
 endif
 
 ifeq ($(USEBAND),1)
-  CPPFLAGS += -DBAND
+  CPPFLAGS += -WF,-DBAND
 endif
 
 ifeq ($(USECLM),1)

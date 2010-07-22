@@ -93,11 +93,15 @@ ifeq ($(USEDCSST),1)
 #  CPPFLAGS += -DDCSST
   dcsstsuffix = _ds
 endif
+ifeq ($(USEBAND),1)
+#  CPPFLAGS += -DDCSST
+  bandsuffix = _band
+endif
 
 program: regcm
 	@cp regcm \
-          $(destdir)/regcm$(prgsuffix)$(dcsstsuffix)$(seaicesuffix)
-	@chmod 755  $(destdir)/regcm$(prgsuffix)$(dcsstsuffix)$(seaicesuffix) 
+          $(destdir)/regcm$(prgsuffix)$(dcsstsuffix)$(seaicesuffix)$(bandsuffix)
+	@chmod 755  $(destdir)/regcm$(prgsuffix)$(dcsstsuffix)$(seaicesuffix)$(bandsuffix) 
 	@echo "Executable is installed now in $(destdir)"
 
 $(CLMPTH)/libclm.a: mod_dynparam.o mod_clm.o
