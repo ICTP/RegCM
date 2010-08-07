@@ -57,11 +57,11 @@
                & sf , sh10 , ss , szkm , tvcon , uflxsf , uflxsfx ,     &
                & vflxsf , vflxsfx
       real(8) , dimension(iym1) :: govrth
-      integer :: i , idx , idxm1 , itr , j , k
       integer :: jdx , jm1
 #ifndef BAND
       integer :: jdxm1
 #endif
+      integer :: i , idx , idxm1 , itr , j , k
       real(8) , dimension(iym1,kz) :: kzm , rc , ttnp
       real(8) , dimension(iym1,ntr) :: vdep
 #ifdef MPP1

@@ -50,88 +50,23 @@
 !
 ! Dummy arguments
 !
-      real(8) :: dxx
-      integer :: ind , j
-      real(8) , dimension(iy,kz) :: ften
-      intent (in) dxx , ind , j
-      intent (inout) ften
+      real(8) ,intent (in) :: dxx
+      integer ,intent (in) :: ind , j
+      real(8) ,intent (inout), dimension(iy,kz) :: ften
 !
 ! Local variables
 !
-#ifndef BAND
+      integer :: jm1 , jp1
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & ucmona , ucmonb , ucmonc , vavg1 , vavg2 , vcmona ,    &
-               & vcmonb , vcmonc
-      integer :: idx , idxm1 , idxp1, jdx , jdxm1 , jdxp1
-#endif
+               & vavg1 , vavg2
       integer :: i , k
 !
-#ifdef BAND
-!----------------------------------------------------------------------
-!
-      if ( ind.eq.1 ) then
-!
-!-----for t and qv:
-!
-#ifdef MPP1
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(t(i,k,j+1)      &
-                      & +t(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
-                      & *(t(i,k,j)+t(i,k,j-1))                          &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(t(i+1,k,j)+t(i,k,j))-(va(i,k,j+1)+va(i,k,j))  &
-                      & *(t(i-1,k,j)+t(i,k,j)))                         &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-#else
-        if(j.gt.1.and.j.lt.jx) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(t(i,k,j+1)      &
-                      & +t(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
-                      & *(t(i,k,j)+t(i,k,j-1))                          &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(t(i+1,k,j)+t(i,k,j))-(va(i,k,j+1)+va(i,k,j))  &
-                      & *(t(i-1,k,j)+t(i,k,j)))                         &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        else if(j.eq.1) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(t(i,k,j+1)      &
-                      & +t(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
-                      & *(t(i,k,j)+t(i,k,jx))                          &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(t(i+1,k,j)+t(i,k,j))-(va(i,k,j+1)+va(i,k,j))  &
-                      & *(t(i-1,k,j)+t(i,k,j)))                         &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        else if(j.eq.jx) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                     &
-                      & - ((ua(i+1,k,1)+ua(i,k,1))*(t(i,k,1)          &
-                      & +t(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))            &
-                      & *(t(i,k,j)+t(i,k,j-1))                        &
-                      & +(va(i+1,k,1)+va(i+1,k,j))                    &
-                      & *(t(i+1,k,j)+t(i,k,j))-(va(i,k,1)+va(i,k,j))  &
-                      & *(t(i-1,k,j)+t(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        endif
+      jm1 = j - 1
+      jp1 = j + 1
+#if defined(BAND) && (!defined(MPP1))
+      if(jm1.eq.0) jm1 = jx
+      if(jp1.eq.jx+1) jp1 = 1
 #endif
-      else
-      end if
-!
-#else
 !----------------------------------------------------------------------
 !
       if ( ind.eq.1 ) then
@@ -141,11 +76,11 @@
         do k = 1 , kz
           do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(t(i,k,j+1)      &
+                      & - ((ua(i+1,k,jp1)+ua(i,k,jp1))*(t(i,k,jp1)      &
                       & +t(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
-                      & *(t(i,k,j)+t(i,k,j-1))                          &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(t(i+1,k,j)+t(i,k,j))-(va(i,k,j+1)+va(i,k,j))  &
+                      & *(t(i,k,j)+t(i,k,jm1))                          &
+                      & +(va(i+1,k,jp1)+va(i+1,k,j))                    &
+                      & *(t(i+1,k,j)+t(i,k,j))-(va(i,k,jp1)+va(i,k,j))  &
                       & *(t(i-1,k,j)+t(i,k,j)))                         &
                       & /(dxx*msfx(i,j)*msfx(i,j))
           end do
@@ -164,20 +99,20 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
+            uavg2 = 0.5*(ua(i+1,k,jp1)+ua(i,k,jp1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
-              fx2 = fact1*t(i,k,j) + fact2*t(i,k,j+1)
+              fx2 = fact1*t(i,k,j) + fact2*t(i,k,jp1)
             else
-              fx2 = fact1*t(i,k,j+1) + fact2*t(i,k,j)
+              fx2 = fact1*t(i,k,jp1) + fact2*t(i,k,j)
             end if
             if ( uavg1.ge.0. ) then
-              fx1 = fact1*t(i,k,j-1) + fact2*t(i,k,j)
+              fx1 = fact1*t(i,k,jm1) + fact2*t(i,k,j)
             else
-              fx1 = fact1*t(i,k,j) + fact2*t(i,k,j-1)
+              fx1 = fact1*t(i,k,j) + fact2*t(i,k,jm1)
             end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
+            vavg2 = 0.5*(va(i+1,k,jp1)+va(i+1,k,j))
+            vavg1 = 0.5*(va(i,k,jp1)+va(i,k,j))
             if ( vavg2.ge.0. ) then
               fy2 = fact1*t(i,k,j) + fact2*t(i+1,k,j)
             else
@@ -193,53 +128,11 @@
                       & /(dxx*msfx(i,j)*msfx(i,j))
           end do
         end do
-!
-      else if ( ind.eq.3 ) then
-!
-!-----for u and v:
-!
-        jdx = j
-        jdxp1 = j + 1
-        jdxm1 = j - 1
-#ifdef MPP1
-        if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
-        if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
-#else
-        jdxp1 = min0(jdxp1,jxm1)
-        jdxm1 = max0(jdxm1,2)
-#endif
-!
-        do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
-                   & + ua(idxm1,k,jdx)
-            vcmona = va(idx,k,jdxp1) + 2.*va(idx,k,jdx)                 &
-                   & + va(idx,k,jdxm1)
-            ucmonb = ua(idxp1,k,jdxp1) + 2.*ua(idx,k,jdxp1)             &
-                   & + ua(idxm1,k,jdxp1) + ucmona
-            vcmonb = va(idxp1,k,jdxp1) + 2.*va(idxp1,k,jdx)             &
-                   & + va(idxp1,k,jdxm1) + vcmona
-            ucmonc = ua(idxp1,k,jdxm1) + 2.*ua(idx,k,jdxm1)             &
-                   & + ua(idxm1,k,jdxm1) + ucmona
-            vcmonc = va(idxm1,k,jdxp1) + 2.*va(idxm1,k,jdx)             &
-                   & + va(idxm1,k,jdxm1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((t(i,k,j+1)+t(i,k,j))*ucmonb-(t(i,k,j)       &
-                      & +t(i,k,j-1))*ucmonc+(t(i+1,k,j)+t(i,k,j))       &
-                      & *vcmonb-(t(i,k,j)+t(i-1,k,j))*vcmonc)           &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-!
       else
+        write(*,*) 'The T advection scheme ',ind, &
+                 & ' you required is not available.'
+        stop
       end if
-!
-#endif
       end subroutine hadv_t
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -277,30 +170,32 @@
 !
 ! Dummy arguments
 !
-      real(8) :: dxx
-      integer :: ind , j
-      real(8) , dimension(iy,kz) :: ften
-      intent (in) dxx , ind , j
-      intent (inout) ften
+      real(8) ,intent (in) :: dxx
+      integer ,intent (in) :: ind , j
+      real(8) ,intent (inout), dimension(iy,kz) :: ften
 !
 ! Local variables
 !
+      integer :: jm1 , jp1
 #ifndef BAND
-      real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & vavg1 , vavg2
-      integer :: jdx , jdxm1 , jdxp1
+      integer :: jdm1 , jdp1
 #endif
       integer :: i , k , idx , idxm1 , idxp1
       real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
 !
-#ifdef BAND
+      jm1 = j - 1
+      jp1 = j + 1
 !----------------------------------------------------------------------
 !
       if ( ind.eq.3 ) then
 !
 !-----for u and v:
 !
-#ifdef MPP1
+#ifdef BAND
+#if defined(BAND) && (!defined(MPP1))
+        if(jm1.eq.0) jm1 = jx
+        if(jp1.eq.jx+1) jp1 = 1
+#endif
 !
         do k = 1 , kz
           do i = 2 , iym1
@@ -310,186 +205,33 @@
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-            vcmona = va(idx,k,j+1) + 2.*va(idx,k,j) + va(idx,k,j-1)
-            ucmonb = ua(idxp1,k,j+1) + 2.*ua(idx,k,j+1)             &
-                   & + ua(idxm1,k,j+1) + ucmona
-            vcmonb = va(idxp1,k,j+1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,j-1) + vcmona
-            ucmonc = ua(idxp1,k,j-1) + 2.*ua(idx,k,j-1)             &
-                   & + ua(idxm1,k,j-1) + ucmona
-            vcmonc = va(idxm1,k,j+1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,j-1) + vcmona
+            vcmona = va(idx,k,jp1) + 2.*va(idx,k,j) + va(idx,k,jm1)
+            ucmonb = ua(idxp1,k,jp1) + 2.*ua(idx,k,jp1)             &
+                   & + ua(idxm1,k,jp1) + ucmona
+            vcmonb = va(idxp1,k,jp1) + 2.*va(idxp1,k,j)             &
+                   & + va(idxp1,k,jm1) + vcmona
+            ucmonc = ua(idxp1,k,jm1) + 2.*ua(idx,k,jm1)             &
+                   & + ua(idxm1,k,jm1) + ucmona
+            vcmonc = va(idxm1,k,jp1) + 2.*va(idxm1,k,j)             &
+                   & + va(idxm1,k,jm1) + vcmona
             ften(i,k) = ften(i,k)                                       &
-                      & - ((u(i,k,j+1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
-                      & +u(i,k,j-1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
+                      & - ((u(i,k,jp1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
+                      & +u(i,k,jm1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
                       & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)           &
                       & /(dxx*msfd(i,j)*msfd(i,j))
           end do
         end do
 !
-#else
-        if(j.gt.1.and.j.lt.jx) then
-!
-          do k = 1 , kz
-            do i = 2 , iym1
-              idx = i
-              idxp1 = i + 1
-              idxp1 = min0(idxp1,iym1)
-              idxm1 = i - 1
-              idxm1 = max0(idxm1,2)
-              ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-              vcmona = va(idx,k,j+1) + 2.*va(idx,k,j) + va(idx,k,j-1)
-              ucmonb = ua(idxp1,k,j+1) + 2.*ua(idx,k,j+1)             &
-                     & + ua(idxm1,k,j+1) + ucmona
-              vcmonb = va(idxp1,k,j+1) + 2.*va(idxp1,k,j)             &
-                     & + va(idxp1,k,j-1) + vcmona
-              ucmonc = ua(idxp1,k,j-1) + 2.*ua(idx,k,j-1)             &
-                     & + ua(idxm1,k,j-1) + ucmona
-              vcmonc = va(idxm1,k,j+1) + 2.*va(idxm1,k,j)             &
-                     & + va(idxm1,k,j-1) + vcmona
-              ften(i,k) = ften(i,k)                                       &
-                        & - ((u(i,k,j+1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
-                        & +u(i,k,j-1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
-                        & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)           &
-                        & /(dxx*msfd(i,j)*msfd(i,j))
-            end do
-          end do
-!
-        else if(j.eq.1) then
-!
-          do k = 1 , kz
-            do i = 2 , iym1
-              idx = i
-              idxp1 = i + 1
-              idxp1 = min0(idxp1,iym1)
-              idxm1 = i - 1
-              idxm1 = max0(idxm1,2)
-              ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-              vcmona = va(idx,k,j+1) + 2.*va(idx,k,j) + va(idx,k,jx)
-              ucmonb = ua(idxp1,k,j+1) + 2.*ua(idx,k,j+1)             &
-                     & + ua(idxm1,k,j+1) + ucmona
-              vcmonb = va(idxp1,k,j+1) + 2.*va(idxp1,k,j)             &
-                     & + va(idxp1,k,jx) + vcmona
-              ucmonc = ua(idxp1,k,jx) + 2.*ua(idx,k,jx)               &
-                     & + ua(idxm1,k,jx) + ucmona
-              vcmonc = va(idxm1,k,j+1) + 2.*va(idxm1,k,j)             &
-                     & + va(idxm1,k,jx) + vcmona
-              ften(i,k) = ften(i,k)                                    &
-                        & - ((u(i,k,j+1)+u(i,k,j))*ucmonb-(u(i,k,j)    &
-                        & +u(i,k,jx))*ucmonc+(u(i+1,k,j)+u(i,k,j))     &
-                        & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)        &
-                        & /(dxx*msfd(i,j)*msfd(i,j))
-            end do
-          end do
-!
-        else if(j.eq.jx) then
-!
-          do k = 1 , kz
-            do i = 2 , iym1
-              idx = i
-              idxp1 = i + 1
-              idxp1 = min0(idxp1,iym1)
-              idxm1 = i - 1
-              idxm1 = max0(idxm1,2)
-              ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-              vcmona = va(idx,k,1) + 2.*va(idx,k,j) + va(idx,k,j-1)
-              ucmonb = ua(idxp1,k,1) + 2.*ua(idx,k,1)             &
-                     & + ua(idxm1,k,1) + ucmona
-              vcmonb = va(idxp1,k,1) + 2.*va(idxp1,k,j)             &
-                     & + va(idxp1,k,j-1) + vcmona
-              ucmonc = ua(idxp1,k,j-1) + 2.*ua(idx,k,j-1)             &
-                     & + ua(idxm1,k,j-1) + ucmona
-              vcmonc = va(idxm1,k,1) + 2.*va(idxm1,k,j)             &
-                     & + va(idxm1,k,j-1) + vcmona
-              ften(i,k) = ften(i,k)                                       &
-                        & - ((u(i,k,1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
-                        & +u(i,k,j-1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
-                        & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)           &
-                        & /(dxx*msfd(i,j)*msfd(i,j))
-            end do
-          end do
-!
-        endif
-#endif
-      else
-      end if
-!
-#else
 !----------------------------------------------------------------------
-!
-      if ( ind.eq.1 ) then
-!
-!-----for t and qv:
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(u(i,k,j+1)      &
-                      & +u(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
-                      & *(u(i,k,j)+u(i,k,j-1))                          &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(u(i+1,k,j)+u(i,k,j))-(va(i,k,j+1)+va(i,k,j))  &
-                      & *(u(i-1,k,j)+u(i,k,j)))                         &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
-          end do
-        end do
-!
-      else if ( ind.eq.2 ) then
-!
-!       implement a "relaxed" upstream scheme
-!
-!hy     fact1=0.75
-        fact1 = 0.60
-        fact2 = 1. - fact1
-!
-!-----for qc and qr:
-!       up-wind values of qc and qr are used.
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*u(i,k,j) + fact2*u(i,k,j+1)
-            else
-              fx2 = fact1*u(i,k,j+1) + fact2*u(i,k,j)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*u(i,k,j-1) + fact2*u(i,k,j)
-            else
-              fx1 = fact1*u(i,k,j) + fact2*u(i,k,j-1)
-            end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*u(i,k,j) + fact2*u(i+1,k,j)
-            else
-              fy2 = fact1*u(i+1,k,j) + fact2*u(i,k,j)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*u(i-1,k,j) + fact2*u(i,k,j)
-            else
-              fy1 = fact1*u(i,k,j) + fact2*u(i-1,k,j)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
-          end do
-        end do
-!
-      else if ( ind.eq.3 ) then
-!
-!-----for u and v:
-!
-        jdx = j
-        jdxp1 = j + 1
-        jdxm1 = j - 1
-#ifdef MPP1
-        if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
-        if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
 #else
-        jdxp1 = min0(jdxp1,jxm1)
-        jdxm1 = max0(jdxm1,2)
+        jdp1 = j + 1
+        jdm1 = j - 1
+#ifdef MPP1
+        if ( myid.eq.0 ) jdm1 = max0(jdm1,2)
+        if ( myid.eq.nproc-1 ) jdp1 = min0(jdp1,jendl-1)
+#else
+        jdp1 = min0(jdp1,jxm1)
+        jdm1 = max0(jdm1,2)
 #endif
 !
         do k = 1 , kz
@@ -499,30 +241,32 @@
             idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
-                   & + ua(idxm1,k,jdx)
-            vcmona = va(idx,k,jdxp1) + 2.*va(idx,k,jdx)                 &
-                   & + va(idx,k,jdxm1)
-            ucmonb = ua(idxp1,k,jdxp1) + 2.*ua(idx,k,jdxp1)             &
-                   & + ua(idxm1,k,jdxp1) + ucmona
-            vcmonb = va(idxp1,k,jdxp1) + 2.*va(idxp1,k,jdx)             &
-                   & + va(idxp1,k,jdxm1) + vcmona
-            ucmonc = ua(idxp1,k,jdxm1) + 2.*ua(idx,k,jdxm1)             &
-                   & + ua(idxm1,k,jdxm1) + ucmona
-            vcmonc = va(idxm1,k,jdxp1) + 2.*va(idxm1,k,jdx)             &
-                   & + va(idxm1,k,jdxm1) + vcmona
+            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j)                 &
+                   & + ua(idxm1,k,j)
+            vcmona = va(idx,k,jdp1) + 2.*va(idx,k,j)                 &
+                   & + va(idx,k,jdm1)
+            ucmonb = ua(idxp1,k,jdp1) + 2.*ua(idx,k,jdp1)             &
+                   & + ua(idxm1,k,jdp1) + ucmona
+            vcmonb = va(idxp1,k,jdp1) + 2.*va(idxp1,k,j)             &
+                   & + va(idxp1,k,jdm1) + vcmona
+            ucmonc = ua(idxp1,k,jdm1) + 2.*ua(idx,k,jdm1)             &
+                   & + ua(idxm1,k,jdm1) + ucmona
+            vcmonc = va(idxm1,k,jdp1) + 2.*va(idxm1,k,j)             &
+                   & + va(idxm1,k,jdm1) + vcmona
             ften(i,k) = ften(i,k)                                       &
-                      & - ((u(i,k,j+1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
-                      & +u(i,k,j-1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
+                      & - ((u(i,k,jp1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
+                      & +u(i,k,jm1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
                       & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)           &
                       & /(dxx*msfd(i,j)*msfd(i,j))
           end do
         end do
+#endif
 !
       else
+        write(*,*) 'The U advection scheme ',ind, &
+                 & ' you required is not available.'
+        stop
       end if
-!
-#endif
       end subroutine hadv_u
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -560,30 +304,32 @@
 !
 ! Dummy arguments
 !
-      real(8) :: dxx
-      integer :: ind , j
-      real(8) , dimension(iy,kz) :: ften
-      intent (in) dxx , ind , j
-      intent (inout) ften
+      real(8) ,intent (in) :: dxx
+      integer ,intent (in) :: ind , j
+      real(8) ,intent (inout), dimension(iy,kz) :: ften
 !
 ! Local variables
 !
+      integer :: jm1 , jp1
 #ifndef BAND
-      real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & vavg1 , vavg2
-      integer :: jdx , jdxm1 , jdxp1
+      integer :: jdm1 , jdp1
 #endif
       integer :: i , k , idx , idxm1 , idxp1
       real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
 !
-#ifdef BAND
+      jm1 = j - 1
+      jp1 = j + 1
 !----------------------------------------------------------------------
 !
       if ( ind.eq.3 ) then
 !
 !-----for u and v:
 !
-#ifdef MPP1
+#ifdef BAND
+#if defined(BAND) && (!defined(MPP1))
+        if(jm1.eq.0) jm1 = jx
+        if(jp1.eq.jx+1) jp1 = 1
+#endif
 !
         do k = 1 , kz
           do i = 2 , iym1
@@ -593,186 +339,33 @@
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-            vcmona = va(idx,k,j+1) + 2.*va(idx,k,j) + va(idx,k,j-1)
-            ucmonb = ua(idxp1,k,j+1) + 2.*ua(idx,k,j+1)             &
-                   & + ua(idxm1,k,j+1) + ucmona
-            vcmonb = va(idxp1,k,j+1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,j-1) + vcmona
-            ucmonc = ua(idxp1,k,j-1) + 2.*ua(idx,k,j-1)             &
-                   & + ua(idxm1,k,j-1) + ucmona
-            vcmonc = va(idxm1,k,j+1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,j-1) + vcmona
+            vcmona = va(idx,k,jp1) + 2.*va(idx,k,j) + va(idx,k,jm1)
+            ucmonb = ua(idxp1,k,jp1) + 2.*ua(idx,k,jp1)             &
+                   & + ua(idxm1,k,jp1) + ucmona
+            vcmonb = va(idxp1,k,jp1) + 2.*va(idxp1,k,j)             &
+                   & + va(idxp1,k,jm1) + vcmona
+            ucmonc = ua(idxp1,k,jm1) + 2.*ua(idx,k,jm1)             &
+                   & + ua(idxm1,k,jm1) + ucmona
+            vcmonc = va(idxm1,k,jp1) + 2.*va(idxm1,k,j)             &
+                   & + va(idxm1,k,jm1) + vcmona
             ften(i,k) = ften(i,k)                                       &
-                      & - ((v(i,k,j+1)+v(i,k,j))*ucmonb-(v(i,k,j)       &
-                      & +v(i,k,j-1))*ucmonc+(v(i+1,k,j)+v(i,k,j))       &
+                      & - ((v(i,k,jp1)+v(i,k,j))*ucmonb-(v(i,k,j)       &
+                      & +v(i,k,jm1))*ucmonc+(v(i+1,k,j)+v(i,k,j))       &
                       & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)           &
                       & /(dxx*msfd(i,j)*msfd(i,j))
           end do
         end do
 !
-#else
-        if(j.gt.1.and.j.lt.jx) then
-!
-          do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-            vcmona = va(idx,k,j+1) + 2.*va(idx,k,j) + va(idx,k,j-1)
-            ucmonb = ua(idxp1,k,j+1) + 2.*ua(idx,k,j+1)             &
-                   & + ua(idxm1,k,j+1) + ucmona
-            vcmonb = va(idxp1,k,j+1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,j-1) + vcmona
-            ucmonc = ua(idxp1,k,j-1) + 2.*ua(idx,k,j-1)             &
-                   & + ua(idxm1,k,j-1) + ucmona
-            vcmonc = va(idxm1,k,j+1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,j-1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((v(i,k,j+1)+v(i,k,j))*ucmonb-(v(i,k,j)       &
-                      & +v(i,k,j-1))*ucmonc+(v(i+1,k,j)+v(i,k,j))       &
-                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)           &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
-          end do
-          end do
-!
-        else if(j.eq.1) then
-!
-          do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-            vcmona = va(idx,k,j+1) + 2.*va(idx,k,j) + va(idx,k,jx)
-            ucmonb = ua(idxp1,k,j+1) + 2.*ua(idx,k,j+1)             &
-                   & + ua(idxm1,k,j+1) + ucmona
-            vcmonb = va(idxp1,k,j+1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,jx) + vcmona
-            ucmonc = ua(idxp1,k,jx) + 2.*ua(idx,k,jx)               &
-                   & + ua(idxm1,k,jx) + ucmona
-            vcmonc = va(idxm1,k,j+1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,jx) + vcmona
-            ften(i,k) = ften(i,k)                                      &
-                      & - ((v(i,k,j+1)+v(i,k,j))*ucmonb-(v(i,k,j)      &
-                      & +v(i,k,jx))*ucmonc+(v(i+1,k,j)+v(i,k,j))       &
-                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)          &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
-          end do
-          end do
-!
-        else if(j.eq.jx) then
-!
-          do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-            vcmona = va(idx,k,1) + 2.*va(idx,k,j) + va(idx,k,j-1)
-            ucmonb = ua(idxp1,k,1) + 2.*ua(idx,k,1)               &
-                   & + ua(idxm1,k,1) + ucmona
-            vcmonb = va(idxp1,k,1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,j-1) + vcmona
-            ucmonc = ua(idxp1,k,j-1) + 2.*ua(idx,k,j-1)           &
-                   & + ua(idxm1,k,j-1) + ucmona
-            vcmonc = va(idxm1,k,1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,j-1) + vcmona
-            ften(i,k) = ften(i,k)                                     &
-                      & - ((v(i,k,1)+v(i,k,j))*ucmonb-(v(i,k,j)       &
-                      & +v(i,k,j-1))*ucmonc+(v(i+1,k,j)+v(i,k,j))     &
-                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)         &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
-          end do
-          end do
-!
-        endif
-#endif
-      else
-      end if
-!
-#else
 !----------------------------------------------------------------------
-!
-      if ( ind.eq.1 ) then
-!
-!-----for t and qv:
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(v(i,k,j+1)      &
-                      & +v(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
-                      & *(v(i,k,j)+v(i,k,j-1))                          &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(v(i+1,k,j)+v(i,k,j))-(va(i,k,j+1)+va(i,k,j))  &
-                      & *(v(i-1,k,j)+v(i,k,j)))                         &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
-          end do
-        end do
-!
-      else if ( ind.eq.2 ) then
-!
-!       implement a "relaxed" upstream scheme
-!
-!hy     fact1=0.75
-        fact1 = 0.60
-        fact2 = 1. - fact1
-!
-!-----for qc and qr:
-!       up-wind values of qc and qr are used.
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*v(i,k,j) + fact2*v(i,k,j+1)
-            else
-              fx2 = fact1*v(i,k,j+1) + fact2*v(i,k,j)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*v(i,k,j-1) + fact2*v(i,k,j)
-            else
-              fx1 = fact1*v(i,k,j) + fact2*v(i,k,j-1)
-            end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*v(i,k,j) + fact2*v(i+1,k,j)
-            else
-              fy2 = fact1*v(i+1,k,j) + fact2*v(i,k,j)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*v(i-1,k,j) + fact2*v(i,k,j)
-            else
-              fy1 = fact1*v(i,k,j) + fact2*v(i-1,k,j)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
-          end do
-        end do
-!
-      else if ( ind.eq.3 ) then
-!
-!-----for u and v:
-!
-        jdx = j
-        jdxp1 = j + 1
-        jdxm1 = j - 1
-#ifdef MPP1
-        if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
-        if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
 #else
-        jdxp1 = min0(jdxp1,jxm1)
-        jdxm1 = max0(jdxm1,2)
+        jdp1 = j + 1
+        jdm1 = j - 1
+#ifdef MPP1
+        if ( myid.eq.0 ) jdm1 = max0(jdm1,2)
+        if ( myid.eq.nproc-1 ) jdp1 = min0(jdp1,jendl-1)
+#else
+        jdp1 = min0(jdp1,jxm1)
+        jdm1 = max0(jdm1,2)
 #endif
 !
         do k = 1 , kz
@@ -782,30 +375,32 @@
             idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
-                   & + ua(idxm1,k,jdx)
-            vcmona = va(idx,k,jdxp1) + 2.*va(idx,k,jdx)                 &
-                   & + va(idx,k,jdxm1)
-            ucmonb = ua(idxp1,k,jdxp1) + 2.*ua(idx,k,jdxp1)             &
-                   & + ua(idxm1,k,jdxp1) + ucmona
-            vcmonb = va(idxp1,k,jdxp1) + 2.*va(idxp1,k,jdx)             &
-                   & + va(idxp1,k,jdxm1) + vcmona
-            ucmonc = ua(idxp1,k,jdxm1) + 2.*ua(idx,k,jdxm1)             &
-                   & + ua(idxm1,k,jdxm1) + ucmona
-            vcmonc = va(idxm1,k,jdxp1) + 2.*va(idxm1,k,jdx)             &
-                   & + va(idxm1,k,jdxm1) + vcmona
+            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j)                 &
+                   & + ua(idxm1,k,j)
+            vcmona = va(idx,k,jdp1) + 2.*va(idx,k,j)                 &
+                   & + va(idx,k,jdm1)
+            ucmonb = ua(idxp1,k,jdp1) + 2.*ua(idx,k,jdp1)             &
+                   & + ua(idxm1,k,jdp1) + ucmona
+            vcmonb = va(idxp1,k,jdp1) + 2.*va(idxp1,k,j)             &
+                   & + va(idxp1,k,jdm1) + vcmona
+            ucmonc = ua(idxp1,k,jdm1) + 2.*ua(idx,k,jdm1)             &
+                   & + ua(idxm1,k,jdm1) + ucmona
+            vcmonc = va(idxm1,k,jdp1) + 2.*va(idxm1,k,j)             &
+                   & + va(idxm1,k,jdm1) + vcmona
             ften(i,k) = ften(i,k)                                       &
-                      & - ((v(i,k,j+1)+v(i,k,j))*ucmonb-(v(i,k,j)       &
-                      & +v(i,k,j-1))*ucmonc+(v(i+1,k,j)+v(i,k,j))       &
+                      & - ((v(i,k,jp1)+v(i,k,j))*ucmonb-(v(i,k,j)       &
+                      & +v(i,k,jm1))*ucmonc+(v(i+1,k,j)+v(i,k,j))       &
                       & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)           &
                       & /(dxx*msfd(i,j)*msfd(i,j))
           end do
         end do
+#endif
 !
       else
+        write(*,*) 'The V advection scheme ',ind, &
+                 & ' you required is not available.'
+        stop
       end if
-!
-#endif
       end subroutine hadv_v
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -843,88 +438,23 @@
 !
 ! Dummy arguments
 !
-      real(8) :: dxx
-      integer :: ind , j
-      real(8) , dimension(iy,kz) :: ften
-      intent (in) dxx , ind , j
-      intent (inout) ften
+      real(8) ,intent (in) :: dxx
+      integer ,intent (in) :: ind , j
+      real(8) ,intent (inout), dimension(iy,kz) :: ften
 !
 ! Local variables
 !
-#ifndef BAND
+      integer :: jm1 , jp1
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
-      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-      integer :: idx , idxm1 , idxp1, jdx , jdxm1 , jdxp1
-#endif
       integer :: i , k
 !
-#ifdef BAND
-!----------------------------------------------------------------------
-!
-      if ( ind.eq.1 ) then
-!
-!-----for t and qv:
-!
-#ifdef MPP1
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qv(i,k,j+1)     &
-                      & +qv(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qv(i,k,j)+qv(i,k,j-1))                        &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(qv(i+1,k,j)+qv(i,k,j))-(va(i,k,j+1)+va(i,k,j))&
-                      & *(qv(i-1,k,j)+qv(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-#else
-        if(j.gt.1.and.j.lt.jx) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qv(i,k,j+1)     &
-                      & +qv(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qv(i,k,j)+qv(i,k,j-1))                        &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(qv(i+1,k,j)+qv(i,k,j))-(va(i,k,j+1)+va(i,k,j))&
-                      & *(qv(i-1,k,j)+qv(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        else if(j.eq.1) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qv(i,k,j+1)     &
-                      & +qv(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qv(i,k,j)+qv(i,k,jx))                         &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(qv(i+1,k,j)+qv(i,k,j))-(va(i,k,j+1)+va(i,k,j))&
-                      & *(qv(i-1,k,j)+qv(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        else if(j.eq.jx) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                      &
-                      & - ((ua(i+1,k,1)+ua(i,k,1))*(qv(i,k,1)          &
-                      & +qv(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))            &
-                      & *(qv(i,k,j)+qv(i,k,j-1))                       &
-                      & +(va(i+1,k,1)+va(i+1,k,j))                     &
-                      & *(qv(i+1,k,j)+qv(i,k,j))-(va(i,k,1)+va(i,k,j)) &
-                      & *(qv(i-1,k,j)+qv(i,k,j)))                      &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        endif
+      jm1 = j - 1
+      jp1 = j + 1
+#if defined(BAND) && (!defined(MPP1))
+      if(jm1.eq.0) jm1 = jx
+      if(jp1.eq.jx+1) jp1 = 1
 #endif
-      else
-      end if
-!
-#else
 !----------------------------------------------------------------------
 !
       if ( ind.eq.1 ) then
@@ -934,16 +464,15 @@
         do k = 1 , kz
           do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qv(i,k,j+1)     &
+                      & - ((ua(i+1,k,jp1)+ua(i,k,jp1))*(qv(i,k,jp1)     &
                       & +qv(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qv(i,k,j)+qv(i,k,j-1))                        &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(qv(i+1,k,j)+qv(i,k,j))-(va(i,k,j+1)+va(i,k,j))&
+                      & *(qv(i,k,j)+qv(i,k,jm1))                        &
+                      & +(va(i+1,k,jp1)+va(i+1,k,j))                    &
+                      & *(qv(i+1,k,j)+qv(i,k,j))-(va(i,k,jp1)+va(i,k,j))&
                       & *(qv(i-1,k,j)+qv(i,k,j)))                       &
                       & /(dxx*msfx(i,j)*msfx(i,j))
           end do
         end do
-!
       else if ( ind.eq.2 ) then
 !
 !       implement a "relaxed" upstream scheme
@@ -957,20 +486,20 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
+            uavg2 = 0.5*(ua(i+1,k,jp1)+ua(i,k,jp1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
-              fx2 = fact1*qv(i,k,j) + fact2*qv(i,k,j+1)
+              fx2 = fact1*qv(i,k,j) + fact2*qv(i,k,jp1)
             else
-              fx2 = fact1*qv(i,k,j+1) + fact2*qv(i,k,j)
+              fx2 = fact1*qv(i,k,jp1) + fact2*qv(i,k,j)
             end if
             if ( uavg1.ge.0. ) then
-              fx1 = fact1*qv(i,k,j-1) + fact2*qv(i,k,j)
+              fx1 = fact1*qv(i,k,jm1) + fact2*qv(i,k,j)
             else
-              fx1 = fact1*qv(i,k,j) + fact2*qv(i,k,j-1)
+              fx1 = fact1*qv(i,k,j) + fact2*qv(i,k,jm1)
             end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
+            vavg2 = 0.5*(va(i+1,k,jp1)+va(i+1,k,j))
+            vavg1 = 0.5*(va(i,k,jp1)+va(i,k,j))
             if ( vavg2.ge.0. ) then
               fy2 = fact1*qv(i,k,j) + fact2*qv(i+1,k,j)
             else
@@ -986,53 +515,11 @@
                       & /(dxx*msfx(i,j)*msfx(i,j))
           end do
         end do
-!
-      else if ( ind.eq.3 ) then
-!
-!-----for u and v:
-!
-        jdx = j
-        jdxp1 = j + 1
-        jdxm1 = j - 1
-#ifdef MPP1
-        if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
-        if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
-#else
-        jdxp1 = min0(jdxp1,jxm1)
-        jdxm1 = max0(jdxm1,2)
-#endif
-!
-        do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
-                   & + ua(idxm1,k,jdx)
-            vcmona = va(idx,k,jdxp1) + 2.*va(idx,k,jdx)                 &
-                   & + va(idx,k,jdxm1)
-            ucmonb = ua(idxp1,k,jdxp1) + 2.*ua(idx,k,jdxp1)             &
-                   & + ua(idxm1,k,jdxp1) + ucmona
-            vcmonb = va(idxp1,k,jdxp1) + 2.*va(idxp1,k,jdx)             &
-                   & + va(idxp1,k,jdxm1) + vcmona
-            ucmonc = ua(idxp1,k,jdxm1) + 2.*ua(idx,k,jdxm1)             &
-                   & + ua(idxm1,k,jdxm1) + ucmona
-            vcmonc = va(idxm1,k,jdxp1) + 2.*va(idxm1,k,jdx)             &
-                   & + va(idxm1,k,jdxm1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((qv(i,k,j+1)+qv(i,k,j))*ucmonb-(qv(i,k,j)    &
-                      & +qv(i,k,j-1))*ucmonc+(qv(i+1,k,j)+qv(i,k,j))    &
-                      & *vcmonb-(qv(i,k,j)+qv(i-1,k,j))*vcmonc)         &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-!
       else
+        write(*,*) 'The QV advection scheme ',ind, &
+                 & ' you required is not available.'
+        stop
       end if
-!
-#endif
       end subroutine hadvqv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1070,88 +557,23 @@
 !
 ! Dummy arguments
 !
-      real(8) :: dxx
-      integer :: ind , j
-      real(8) , dimension(iy,kz) :: ften
-      intent (in) dxx , ind , j
-      intent (inout) ften
+      real(8) ,intent (in) :: dxx
+      integer ,intent (in) :: ind , j
+      real(8) ,intent (inout), dimension(iy,kz) :: ften
 !
 ! Local variables
 !
-#ifndef BAND
+      integer :: jm1 , jp1
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
-      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-      integer :: idx , idxm1 , idxp1, jdx , jdxm1 , jdxp1
-#endif
       integer :: i , k
 !
-#ifdef BAND
-!----------------------------------------------------------------------
-!
-      if ( ind.eq.1 ) then
-!
-!-----for t and qv:
-!
-#ifdef MPP1
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qc(i,k,j+1)     &
-                      & +qc(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qc(i,k,j)+qc(i,k,j-1))                        &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(qc(i+1,k,j)+qc(i,k,j))-(va(i,k,j+1)+va(i,k,j))&
-                      & *(qc(i-1,k,j)+qc(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-#else
-        if(j.gt.1.and.j.lt.jx) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qc(i,k,j+1)     &
-                      & +qc(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qc(i,k,j)+qc(i,k,j-1))                        &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(qc(i+1,k,j)+qc(i,k,j))-(va(i,k,j+1)+va(i,k,j))&
-                      & *(qc(i-1,k,j)+qc(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        else if(j.eq.1) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qc(i,k,j+1)     &
-                      & +qc(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qc(i,k,j)+qc(i,k,jx))                         &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(qc(i+1,k,j)+qc(i,k,j))-(va(i,k,j+1)+va(i,k,j))&
-                      & *(qc(i-1,k,j)+qc(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        else if(j.eq.jx) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                      &
-                      & - ((ua(i+1,k,1)+ua(i,k,1))*(qc(i,k,1)          &
-                      & +qc(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))            &
-                      & *(qc(i,k,j)+qc(i,k,j-1))                       &
-                      & +(va(i+1,k,1)+va(i+1,k,j))                     &
-                      & *(qc(i+1,k,j)+qc(i,k,j))-(va(i,k,1)+va(i,k,j)) &
-                      & *(qc(i-1,k,j)+qc(i,k,j)))                      &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        endif
+      jm1 = j - 1
+      jp1 = j + 1
+#if defined(BAND) && (!defined(MPP1))
+      if(jm1.eq.0) jm1 = jx
+      if(jp1.eq.jx+1) jp1 = 1
 #endif
-      else
-      end if
-!
-#else
 !----------------------------------------------------------------------
 !
       if ( ind.eq.1 ) then
@@ -1161,16 +583,15 @@
         do k = 1 , kz
           do i = 2 , iym2
             ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(qc(i,k,j+1)     &
+                      & - ((ua(i+1,k,jp1)+ua(i,k,jp1))*(qc(i,k,jp1)     &
                       & +qc(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qc(i,k,j)+qc(i,k,j-1))                        &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(qc(i+1,k,j)+qc(i,k,j))-(va(i,k,j+1)+va(i,k,j))&
+                      & *(qc(i,k,j)+qc(i,k,jm1))                        &
+                      & +(va(i+1,k,jp1)+va(i+1,k,j))                    &
+                      & *(qc(i+1,k,j)+qc(i,k,j))-(va(i,k,jp1)+va(i,k,j))&
                       & *(qc(i-1,k,j)+qc(i,k,j)))                       &
                       & /(dxx*msfx(i,j)*msfx(i,j))
           end do
         end do
-!
       else if ( ind.eq.2 ) then
 !
 !       implement a "relaxed" upstream scheme
@@ -1184,20 +605,20 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
+            uavg2 = 0.5*(ua(i+1,k,jp1)+ua(i,k,jp1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
-              fx2 = fact1*qc(i,k,j) + fact2*qc(i,k,j+1)
+              fx2 = fact1*qc(i,k,j) + fact2*qc(i,k,jp1)
             else
-              fx2 = fact1*qc(i,k,j+1) + fact2*qc(i,k,j)
+              fx2 = fact1*qc(i,k,jp1) + fact2*qc(i,k,j)
             end if
             if ( uavg1.ge.0. ) then
-              fx1 = fact1*qc(i,k,j-1) + fact2*qc(i,k,j)
+              fx1 = fact1*qc(i,k,jm1) + fact2*qc(i,k,j)
             else
-              fx1 = fact1*qc(i,k,j) + fact2*qc(i,k,j-1)
+              fx1 = fact1*qc(i,k,j) + fact2*qc(i,k,jm1)
             end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
+            vavg2 = 0.5*(va(i+1,k,jp1)+va(i+1,k,j))
+            vavg1 = 0.5*(va(i,k,jp1)+va(i,k,j))
             if ( vavg2.ge.0. ) then
               fy2 = fact1*qc(i,k,j) + fact2*qc(i+1,k,j)
             else
@@ -1213,53 +634,11 @@
                       & /(dxx*msfx(i,j)*msfx(i,j))
           end do
         end do
-!
-      else if ( ind.eq.3 ) then
-!
-!-----for u and v:
-!
-        jdx = j
-        jdxp1 = j + 1
-        jdxm1 = j - 1
-#ifdef MPP1
-        if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
-        if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
-#else
-        jdxp1 = min0(jdxp1,jxm1)
-        jdxm1 = max0(jdxm1,2)
-#endif
-!
-        do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
-                   & + ua(idxm1,k,jdx)
-            vcmona = va(idx,k,jdxp1) + 2.*va(idx,k,jdx)                 &
-                   & + va(idx,k,jdxm1)
-            ucmonb = ua(idxp1,k,jdxp1) + 2.*ua(idx,k,jdxp1)             &
-                   & + ua(idxm1,k,jdxp1) + ucmona
-            vcmonb = va(idxp1,k,jdxp1) + 2.*va(idxp1,k,jdx)             &
-                   & + va(idxp1,k,jdxm1) + vcmona
-            ucmonc = ua(idxp1,k,jdxm1) + 2.*ua(idx,k,jdxm1)             &
-                   & + ua(idxm1,k,jdxm1) + ucmona
-            vcmonc = va(idxm1,k,jdxp1) + 2.*va(idxm1,k,jdx)             &
-                   & + va(idxm1,k,jdxm1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((qc(i,k,j+1)+qc(i,k,j))*ucmonb-(qc(i,k,j)    &
-                      & +qc(i,k,j-1))*ucmonc+(qc(i+1,k,j)+qc(i,k,j))    &
-                      & *vcmonb-(qc(i,k,j)+qc(i-1,k,j))*vcmonc)         &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-!
       else
+        write(*,*) 'The QC advection scheme ',ind, &
+                 & ' you required is not available.'
+        stop
       end if
-!
-#endif
       end subroutine hadvqc
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1297,23 +676,23 @@
 !
 ! Dummy arguments
 !
-      real(8) :: dxx
-      integer :: ind , j , n
-      real(8) , dimension(iy,kz) :: ften
-      intent (in) dxx , ind , j , n
-      intent (inout) ften
+      real(8) ,intent (in) :: dxx
+      integer ,intent (in) :: ind , j , n
+      real(8) ,intent (inout), dimension(iy,kz) :: ften
 !
 ! Local variables
 !
-#ifndef BAND
-      integer :: idx , idxm1 , idxp1, jdx , jdxm1 , jdxp1
-      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-#endif
+      integer :: jm1 , jp1
       integer :: i , k
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
 !
-#ifdef BAND
+      jm1 = j - 1
+      jp1 = j + 1
+#if defined(BAND) && (!defined(MPP1))
+      if(jm1.eq.0) jm1 = jx
+      if(jp1.eq.jx+1) jp1 = 1
+#endif
 !----------------------------------------------------------------------
 !
       if ( ind.eq.2 ) then
@@ -1327,23 +706,22 @@
 !-----for qc and qr:
 !       up-wind values of qc and qr are used.
 !
-#ifdef MPP1
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
+            uavg2 = 0.5*(ua(i+1,k,jp1)+ua(i,k,jp1))
             uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
             if ( uavg2.ge.0. ) then
-              fx2 = fact1*chi(i,k,j,n) + fact2*chi(i,k,j+1,n)
+              fx2 = fact1*chi(i,k,j,n) + fact2*chi(i,k,jp1,n)
             else
-              fx2 = fact1*chi(i,k,j+1,n) + fact2*chi(i,k,j,n)
+              fx2 = fact1*chi(i,k,jp1,n) + fact2*chi(i,k,j,n)
             end if
             if ( uavg1.ge.0. ) then
-              fx1 = fact1*chi(i,k,j-1,n) + fact2*chi(i,k,j,n)
+              fx1 = fact1*chi(i,k,jm1,n) + fact2*chi(i,k,j,n)
             else
-              fx1 = fact1*chi(i,k,j,n) + fact2*chi(i,k,j-1,n)
+              fx1 = fact1*chi(i,k,j,n) + fact2*chi(i,k,jm1,n)
             end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
+            vavg2 = 0.5*(va(i+1,k,jp1)+va(i+1,k,j))
+            vavg1 = 0.5*(va(i,k,jp1)+va(i,k,j))
             if ( vavg2.ge.0. ) then
               fy2 = fact1*chi(i,k,j,n) + fact2*chi(i+1,k,j,n)
             else
@@ -1359,217 +737,9 @@
                       & /(dxx*msfx(i,j)*msfx(i,j))
           end do
         end do
-#else
-        if(j.gt.1.and.j.lt.jx) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*chi(i,k,j,n) + fact2*chi(i,k,j+1,n)
-            else
-              fx2 = fact1*chi(i,k,j+1,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*chi(i,k,j-1,n) + fact2*chi(i,k,j,n)
-            else
-              fx1 = fact1*chi(i,k,j,n) + fact2*chi(i,k,j-1,n)
-            end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*chi(i,k,j,n) + fact2*chi(i+1,k,j,n)
-            else
-              fy2 = fact1*chi(i+1,k,j,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*chi(i-1,k,j,n) + fact2*chi(i,k,j,n)
-            else
-              fy1 = fact1*chi(i,k,j,n) + fact2*chi(i-1,k,j,n)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        else if(j.eq.1) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*chi(i,k,j,n) + fact2*chi(i,k,j+1,n)
-            else
-              fx2 = fact1*chi(i,k,j+1,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*chi(i,k,jx,n) + fact2*chi(i,k,j,n)
-            else
-              fx1 = fact1*chi(i,k,j,n) + fact2*chi(i,k,jx,n)
-            end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*chi(i,k,j,n) + fact2*chi(i+1,k,j,n)
-            else
-              fy2 = fact1*chi(i+1,k,j,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*chi(i-1,k,j,n) + fact2*chi(i,k,j,n)
-            else
-              fy1 = fact1*chi(i,k,j,n) + fact2*chi(i-1,k,j,n)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        else if(j.eq.jx) then
-          do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,1)+ua(i,k,1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*chi(i,k,j,n) + fact2*chi(i,k,1,n)
-            else
-              fx2 = fact1*chi(i,k,1,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*chi(i,k,j-1,n) + fact2*chi(i,k,j,n)
-            else
-              fx1 = fact1*chi(i,k,j,n) + fact2*chi(i,k,j-1,n)
-            end if
-            vavg2 = 0.5*(va(i+1,k,1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,1)+va(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*chi(i,k,j,n) + fact2*chi(i+1,k,j,n)
-            else
-              fy2 = fact1*chi(i+1,k,j,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*chi(i-1,k,j,n) + fact2*chi(i,k,j,n)
-            else
-              fy1 = fact1*chi(i,k,j,n) + fact2*chi(i-1,k,j,n)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-          end do
-        endif
-#endif
       else
+        write(*,*) 'The CH advection scheme ',ind, &
+                 & ' you required is not available.'
+        stop
       end if
-!
-#else
-!----------------------------------------------------------------------
-!
-      if ( ind.eq.1 ) then
-!
-!-----for t and qv:
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,j+1)+ua(i,k,j+1))*(chi(i,k,j+1,n)  &
-                      & +chi(i,k,j,n))-(ua(i+1,k,j)+ua(i,k,j))          &
-                      & *(chi(i,k,j,n)+chi(i,k,j-1,n))                  &
-                      & +(va(i+1,k,j+1)+va(i+1,k,j))                    &
-                      & *(chi(i+1,k,j,n)+chi(i,k,j,n))                  &
-                      & -(va(i,k,j+1)+va(i,k,j))                        &
-                      & *(chi(i-1,k,j,n)+chi(i,k,j,n)))                 &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-!
-      else if ( ind.eq.2 ) then
-!
-!       implement a "relaxed" upstream scheme
-!
-!hy     fact1=0.75
-        fact1 = 0.60
-        fact2 = 1. - fact1
-!
-!-----for qc and qr:
-!       up-wind values of qc and qr are used.
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,j+1)+ua(i,k,j+1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*chi(i,k,j,n) + fact2*chi(i,k,j+1,n)
-            else
-              fx2 = fact1*chi(i,k,j+1,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*chi(i,k,j-1,n) + fact2*chi(i,k,j,n)
-            else
-              fx1 = fact1*chi(i,k,j,n) + fact2*chi(i,k,j-1,n)
-            end if
-            vavg2 = 0.5*(va(i+1,k,j+1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,j+1)+va(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*chi(i,k,j,n) + fact2*chi(i+1,k,j,n)
-            else
-              fy2 = fact1*chi(i+1,k,j,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*chi(i-1,k,j,n) + fact2*chi(i,k,j,n)
-            else
-              fy1 = fact1*chi(i,k,j,n) + fact2*chi(i-1,k,j,n)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-!
-      else if ( ind.eq.3 ) then
-!
-!-----for u and v:
-!
-        jdx = j
-        jdxp1 = j + 1
-        jdxm1 = j - 1
-#ifdef MPP1
-        if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
-        if ( myid.eq.nproc-1 ) jdxp1 = min0(jdxp1,jendl-1)
-#else
-        jdxp1 = min0(jdxp1,jxm1)
-        jdxm1 = max0(jdxm1,2)
-#endif
-!
-        do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,jdx) + 2.*ua(idx,k,jdx)                 &
-                   & + ua(idxm1,k,jdx)
-            vcmona = va(idx,k,jdxp1) + 2.*va(idx,k,jdx)                 &
-                   & + va(idx,k,jdxm1)
-            ucmonb = ua(idxp1,k,jdxp1) + 2.*ua(idx,k,jdxp1)             &
-                   & + ua(idxm1,k,jdxp1) + ucmona
-            vcmonb = va(idxp1,k,jdxp1) + 2.*va(idxp1,k,jdx)             &
-                   & + va(idxp1,k,jdxm1) + vcmona
-            ucmonc = ua(idxp1,k,jdxm1) + 2.*ua(idx,k,jdxm1)             &
-                   & + ua(idxm1,k,jdxm1) + ucmona
-            vcmonc = va(idxm1,k,jdxp1) + 2.*va(idxm1,k,jdx)             &
-                   & + va(idxm1,k,jdxm1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((chi(i,k,j+1,n)+chi(i,k,j,n))*ucmonb-        &
-                      & (chi(i,k,j,n)+chi(i,k,j-1,n))                   &
-                      & *ucmonc+(chi(i+1,k,j,n)+chi(i,k,j,n))           &
-                      & *vcmonb-(chi(i,k,j,n)+chi(i-1,k,j,n))*vcmonc)   &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
-          end do
-        end do
-!
-      else
-      end if
-!
-#endif
       end subroutine hadvch
