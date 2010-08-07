@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine solar1
+      subroutine solar1(xtime)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -28,9 +28,14 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_message
-      use mod_date , only : declin , ldatez , yeardayfrac , xtime , gmt
+      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0
       use mod_constants , only : mathpi , degrad , dayspy
       implicit none
+!
+! Dummy arguments
+!
+      real(8) :: xtime
+      intent (in) xtime
 !
 ! Local variables
 !
@@ -38,7 +43,7 @@
 !
 !----------------------------------------------------------------------
 !
-      calday = yeardayfrac(ldatez) + (xtime/60.+gmt)/24.
+      calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
       theta = 2.*mathpi*calday/dayspy
 !
 !     Solar declination in radians:

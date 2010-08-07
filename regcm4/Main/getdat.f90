@@ -250,7 +250,7 @@
         end do
 !
         rlat(i) = xlat(i,jslc)
-        calday = yeardayfrac(ldatez) + (xtime/60.+gmt)/24.
+        calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
 !
         loctim(i) = (calday-aint(calday))*24.
         alat(i) = rlat(i)*degrad

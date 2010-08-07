@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine solar1clm
+      subroutine solar1clm(xtime)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -45,11 +45,16 @@
       use mod_clm , only : r2ceccen , r2cobliqr , r2clambm0 ,           &
              &             r2cmvelpp , r2ceccf
       use mod_message , only : aline , say
-      use mod_date , only : declin , ldatez , yeardayfrac , idate1 ,    &
-                     &      xtime , gmt
+      use mod_date , only : declin , julday , gmt , nnnnnn , nstrt0 ,   &
+             &              idate1
       use mod_constants , only : degrad , dayspy
 
       implicit none
+!
+! Dummy arguments
+!
+      real(8) :: xtime
+      intent (in) xtime
 !
 ! Local variables
 !
@@ -81,7 +86,7 @@
       call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
                         & r2clambm0,r2cmvelpp,log_print)
 !
-      calday = yeardayfrac(ldatez) + (xtime/60.+gmt)/24.
+      calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
  
 !     Get delta,eccf
       call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &

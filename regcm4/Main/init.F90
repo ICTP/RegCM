@@ -2192,7 +2192,7 @@
 !-----compute the solar declination angle:
 !
 #ifdef CLM
-      call solar1clm
+      call solar1clm(xtime)
       if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                     &
          & ( ktau.eq.ktaur ) ) then
         init_grid = .true.
@@ -2200,7 +2200,7 @@
         init_grid = .false.
       end if
 #else
-      call solar1
+      call solar1(xtime)
 #endif
       call inirad
 !

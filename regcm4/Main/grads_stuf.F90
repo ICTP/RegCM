@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
       subroutine gradsbat(datname)
       use mod_dynparam
       use mod_message , only : fatal
@@ -64,7 +64,7 @@
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
-      write (31,99001) datname
+      write (31,99001) trim(datname)
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -90,9 +90,9 @@
         end do
         do i = 2 , iy-1
 #ifdef BAND
-          do j = 1 , jx
+        do j = 1 , jx
 #else
-          do j = 2 , jx-1
+        do j = 2 , jx-1
 #endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
@@ -153,36 +153,32 @@
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef BAND
-          write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
-                         & centeri , truelatl , truelath , clon , dx ,&
-                         & dx
+          write (31,99006) jx , iym2 , clat , clon , centerj ,        &
 #else
-          write (31,99006) jx , iym2 , clat , clon , centerj ,          &
+          write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
+#endif
                          & centeri , truelatl , truelath , clon , dx ,&
                          & dx
-#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
-#ifdef MPP1
 #ifdef BAND
-          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)           &
-                         & - xlong_io(2,1)
+#ifdef MPP1
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
           write (31,99010) iym2
           write (31,99011) (xlat_io(i,1),i=2,iym1)
 #else
-          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
-                         & - xlong_io(2,2)
-          write (31,99010) iym2
-          write (31,99011) (xlat_io(i,2),i=2,iym1)
-#endif
-#else
-#ifdef BAND
           write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
           write (31,99010) iym2
           write (31,99011) (xlat(i,1),i=2,iym1)
+#endif
+#else
+#ifdef MPP1
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,2),i=2,iym1)
 #else
           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) iym2
@@ -196,34 +192,29 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef BAND
-          write (31,99012) jx , iym2 , plon , plat ,                    &
-                         & dx/111000. , dx/111000.*.95238
+          write (31,99012) jx , iym2 , plon , plat ,                  &
 #else
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
-                         & dx/111000. , dx/111000.*.95238
 #endif
+                         & dx/111000. , dx/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
           call fatal(__FILE__,__LINE__,'INVALID MAP PROJECTION')
         end if
       else if ( iotyp.eq.2 ) then
+#ifdef BAND
 #ifdef MPP1
-#ifdef BAND
-        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
-                       & - xlong_io(2,1)
-        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1)             &
-                       & - xlat_io(2,1)
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
+        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1) - xlat_io(2,1)
 #else
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
-                       & - xlong_io(2,2)
-        write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
-                       & - xlat_io(2,2)
-#endif
-#else
-#ifdef BAND
         write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
         write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
+#endif
+#else
+#ifdef MPP1
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+        write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2) - xlat_io(2,2)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
@@ -321,7 +312,7 @@
                       &'minimum surface pressure (hPa)       '
       write (31,99020)
       close (31)
-99001 format ('dset ^',a)
+99001 format ('dset ',a)
 99002 format ('title RegCM normal output variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -369,8 +360,8 @@
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
       integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
-               & mday , mhour , nnumb , nx , ny
-      integer :: iutin1 , istatus , ivarid
+               & mday , mhour , nnumb , nx , ny , ncid , ivarid ,       &
+               & istatus
       real(4) , dimension(jxsg,iysg) :: xlat_s , xlon_s
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
@@ -394,7 +385,7 @@
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
-      write (31,99001) datname
+      write (31,99001) trim(datname)
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -420,9 +411,9 @@
         end do
         do i = 2 , iy-1
 #ifdef BAND
-          do j = 1 , jx
+        do j = 1 , jx
 #else
-          do j = 2 , jx-1
+        do j = 2 , jx-1
 #endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
@@ -483,65 +474,110 @@
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef BAND
-          write (31,99006) jxsg , iym2sg , clat , clon ,                &
-                         & centerj*nsg , centeri*nsg , truelatl ,       &
-                         & truelath , clon , dx/nsg , dx/nsg
+          write (31,99006) jxsg , iym2sg , clat , clon ,              &
 #else
           write (31,99006) jxm2sg , iym2sg , clat , clon ,              &
+#endif
                          & centerj*nsg , centeri*nsg , truelatl ,       &
                          & truelath , clon , dx/nsg , dx/nsg
-#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
+#ifdef MPP1
           call insubdom
-          istatus = nf90_open(ffin, nf90_nowrite, iutin1)
+          istatus = nf90_open(ffin, nf90_nowrite, ncid)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error Opening SubDomain file ', trim(ffin)
             write (6,*) nf90_strerror(istatus)
             call fatal(__FILE__,__LINE__, 'CANNOT OPEN SUBDOMAIN FILE')
           end if
-          istatus = nf90_inq_varid(iutin1, "xlat", ivarid)
+          istatus = nf90_inq_varid(ncid, "xlat", ivarid)
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error xlat variable undefined'
             write (6,*) nf90_strerror(istatus)
             call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
           end if
-          istatus = nf90_get_var(iutin1, ivarid, xlat_s)
+          istatus = nf90_get_var(ncid, ivarid, xlat_s)
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error reading xlat variable'
             write (6,*) nf90_strerror(istatus)
             call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
           end if
-          istatus = nf90_inq_varid(iutin1, "xlon", ivarid)
+          istatus = nf90_inq_varid(ncid, "xlon", ivarid)
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error xlon variable undefined'
             write (6,*) nf90_strerror(istatus)
             call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
           end if
-          istatus = nf90_get_var(iutin1, ivarid, xlon_s)
+          istatus = nf90_get_var(ncid, ivarid, xlon_s)
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error reading xlon variable'
             write (6,*) nf90_strerror(istatus)
             call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
           end if
-          istatus = nf90_close(iutin1)
+          istatus = nf90_close(ncid)
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error closing file ', trim(ffin)
             write (6,*) nf90_strerror(istatus)
             call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
           end if
 #ifdef BAND
-          write (31,99009) jxsg , xlon_s(nsg,nsg) ,                     &
-                         & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
+          write (31,99009) jxsg , xlon_s(nsg,nsg) ,                &
 #else
-          write (31,99009) jxm2sg , xlon_s(nsg,nsg) ,                   &
-                         & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
+          write (31,99009) jxm2sg , xlon_s(nsg,nsg) ,                &
 #endif
+                         & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
           write (31,99010) iym2sg
           write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,iym1sg)
+#else
+          call insubdom
+          istatus = nf90_open(ffin, nf90_nowrite, ncid)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error Opening SubDomain file ', trim(ffin)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'CANNOT OPEN SUBDOMAIN FILE')
+          end if
+          istatus = nf90_inq_varid(ncid, "xlat", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error xlat variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(ncid, ivarid, xlat_s)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading xlat variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_inq_varid(ncid, "xlon", ivarid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error xlon variable undefined'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_get_var(ncid, ivarid, xlon_s)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error reading xlon variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+          istatus = nf90_close(ncid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error closing file ', trim(ffin)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
+          end if
+#ifdef BAND
+          write (31,99009) jxsg , xlon_s(nsg,nsg) ,                   &
+#else
+          write (31,99009) jxm2sg , xlon_s(nsg,nsg) ,                   &
+#endif
+                         & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
+          write (31,99010) iym2sg
+          write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,iym1sg)
+#endif
         else if ( iproj.eq.'ROTMER' ) then
           write (*,*) 'Note that rotated Mercartor (ROTMER)' ,          &
                      &' projections are not supported by GrADS.'
@@ -549,12 +585,11 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef BAND
-          write (31,99012) jxsg , iym2sg , plon , plat ,                &
-                         & dx/111000./nsg , dx/111000.*.95238/nsg
+          write (31,99012) jxsg , iym2sg , plon , plat ,              &
 #else
           write (31,99012) jxm2sg , iym2sg , plon , plat ,              &
-                         & dx/111000./nsg , dx/111000.*.95238/nsg
 #endif
+                         & dx/111000./nsg , dx/111000.*.95238/nsg
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
@@ -563,7 +598,7 @@
       else if ( iotyp.eq.2 ) then
 #ifdef MPP1
 #ifdef BAND
-        write (31,99009) jxsg , xlong_io(2,1) ,                         &
+        write (31,99009) jxsg , xlong_io(2,1) ,                       &
                        & (xlong_io(2,2)-xlong_io(2,1))/nsg
         write (31,99013) iym2sg , xlat_io(2,1) ,                        &
                        & (xlat_io(3,1)-xlat_io(2,1))/nsg
@@ -652,7 +687,7 @@
                       &'surface pressure (hPa)               '
       write (31,99020)
       close (31)
-99001 format ('dset ^',a)
+99001 format ('dset ',a)
 99002 format ('title RegCM normal output variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -721,7 +756,7 @@
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
-      write (31,99001) datname
+      write (31,99001) trim(datname)
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -747,9 +782,9 @@
         end do
         do i = 2 , iy-1
 #ifdef BAND
-          do j = 1 , jx
+        do j = 1 , jx
 #else
-          do j = 2 , jx-1
+        do j = 2 , jx-1
 #endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
@@ -811,36 +846,32 @@
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef BAND
-          write (31,99006) jx , iym2 , clat , clon , centerj ,          &
-                         & centeri , truelatl , truelath , clon , dx ,&
-                         & dx
+          write (31,99006) jx , iym2 , clat , clon , centerj ,        &
 #else
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
+#endif
                          & centeri , truelatl , truelath , clon , dx ,&
                          & dx
-#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
-#ifdef MPP1
 #ifdef BAND
-          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)           &
-                         & - xlong_io(2,1)
+#ifdef MPP1
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
           write (31,99010) iym2
           write (31,99011) (xlat_io(i,1),i=2,iym1)
 #else
-          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
-                         & - xlong_io(2,2)
-          write (31,99010) iym2
-          write (31,99011) (xlat_io(i,2),i=2,iym1)
-#endif
-#else
-#ifdef BAND
           write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
           write (31,99010) iym2
           write (31,99011) (xlat(i,1),i=2,iym1)
+#endif
+#else
+#ifdef MPP1
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,2),i=2,iym1)
 #else
           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) iym2
@@ -854,34 +885,29 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef BAND
-          write (31,99012) jx , iym2 , plon , plat ,                    &
-                         & dx/111000. , dx/111000.*.95238
+          write (31,99012) jx , iym2 , plon , plat ,                  &
 #else
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
-                         & dx/111000. , dx/111000.*.95238
 #endif
+                         & dx/111000. , dx/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
           call fatal(__FILE__,__LINE__,'INVALID MAP PROJECTION')
         end if
       else if ( iotyp.eq.2 ) then
+#ifdef BAND
 #ifdef MPP1
-#ifdef BAND
-        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
-                       & - xlong_io(2,1)
-        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1)             &
-                       & - xlat_io(2,1)
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
+        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1) - xlat_io(2,1)
 #else
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
-                       & - xlong_io(2,2)
-        write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
-                       & - xlat_io(2,2)
-#endif
-#else
-#ifdef BAND
         write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
         write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
+#endif
+#else
+#ifdef MPP1
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+        write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2) - xlat_io(2,2)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
@@ -958,7 +984,7 @@
  
       write (31,99022)
       close (31)
-99001 format ('dset ^',a)
+99001 format ('dset ',a)
 99002 format ('title RegCM chemistry/tracor variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -1018,7 +1044,7 @@
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
-      write (31,99001) datname
+      write (31,99001) trim(datname)
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -1043,9 +1069,9 @@
         end do
         do i = 2 , iy-1
 #ifdef BAND
-          do j = 1 , jx
+        do j = 1 , jx
 #else
-          do j = 2 , jx-1
+        do j = 2 , jx-1
 #endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
@@ -1105,37 +1131,35 @@
       end if
       if ( iproj.eq.'LAMCON' ) then     ! Lambert projection
 #ifdef BAND
-        write (31,99006) jx , iym2 , clat , clon , centerj ,            &
-                       & centeri , truelatl , truelath , clon , dx , dx
+          write (31,99006) jx , iym2 , clat , clon , centerj ,        &
 #else
-        write (31,99006) jxm2 , iym2 , clat , clon , centerj ,          &
-                       & centeri , truelatl , truelath , clon , dx , dx
+          write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
 #endif
+                       & centeri , truelatl , truelath , clon , dx ,  &
+                       & dx
         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
       else if ( iproj.eq.'POLSTR' ) then !
       else if ( iproj.eq.'NORMER' ) then
-#ifdef MPP1
 #ifdef BAND
-        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
-                       & - xlong_io(2,1)
-        write (31,99010) iym2
-        write (31,99011) (xlat_io(i,1),i=2,iym1)
+#ifdef MPP1
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,1),i=2,iym1)
 #else
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
-                       & - xlong_io(2,2)
-        write (31,99010) iym2
-        write (31,99011) (xlat_io(i,2),i=2,iym1)
+          write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
+          write (31,99010) iym2
+          write (31,99011) (xlat(i,1),i=2,iym1)
 #endif
 #else
-#ifdef BAND
-        write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
-        write (31,99010) iym2
-        write (31,99011) (xlat(i,1),i=2,iym1)
+#ifdef MPP1
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,2),i=2,iym1)
 #else
-        write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
-        write (31,99010) iym2
-        write (31,99011) (xlat(i,2),i=2,iym1)
+          write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
+          write (31,99010) iym2
+          write (31,99011) (xlat(i,2),i=2,iym1)
 #endif
 #endif
       else if ( iproj.eq.'ROTMER' ) then
@@ -1145,12 +1169,11 @@
                    &' in GrADS is somewhat similar.'
         write (*,*) ' FERRET, however, does support this projection.'
 #ifdef BAND
-       write (31,99012) jx , iym2 , plon , plat , dx/111000. ,          &
-                       & dx/111000.*.95238
+          write (31,99012) jx , iym2 , plon , plat ,                  &
 #else
-       write (31,99012) jxm2 , iym2 , plon , plat , dx/111000. ,        &
-                       & dx/111000.*.95238
+          write (31,99012) jxm2 , iym2 , plon , plat ,                  &
 #endif
+                         & dx/111000. , dx/111000.*.95238
         write (31,99007) nx + 2 , alonmin - rloninc , rloninc
         write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
 
@@ -1173,7 +1196,7 @@
       write (31,99016) 'mask    ' , 'land/sea mask              '
       write (31,99017)
       close (31)
-99001 format ('dset ^',a)
+99001 format ('dset ',a)
 99002 format ('title RegCM domain information')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -1239,7 +1262,7 @@
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
-      write (31,99001) datname
+      write (31,99001) trim(datname)
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -1265,9 +1288,9 @@
         end do
         do i = 2 , iy-1
 #ifdef BAND
-          do j = 1 , jx
+        do j = 1 , jx
 #else
-          do j = 2 , jx-1
+        do j = 2 , jx-1
 #endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
@@ -1328,36 +1351,32 @@
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef BAND
-          write (31,99006) jx , iym2 , clat , clon , centerj ,          &
-                         & centeri , truelatl , truelath , clon , dx ,  &
-                         & dx
+          write (31,99006) jx , iym2 , clat , clon , centerj ,        &
 #else
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
-                         & centeri , truelatl , truelath , clon , dx ,  &
-                         & dx
 #endif
+                         & centeri , truelatl , truelath , clon , dx ,&
+                         & dx
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
-#ifdef MPP1
 #ifdef BAND
-          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)           &
-                         & - xlong_io(2,1)
+#ifdef MPP1
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
           write (31,99010) iym2
           write (31,99011) (xlat_io(i,1),i=2,iym1)
 #else
-          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
-                         & - xlong_io(2,2)
-          write (31,99010) iym2
-          write (31,99011) (xlat_io(i,2),i=2,iym1)
-#endif
-#else
-#ifdef BAND
           write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
           write (31,99010) iym2
           write (31,99011) (xlat(i,1),i=2,iym1)
+#endif
+#else
+#ifdef MPP1
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,2),i=2,iym1)
 #else
           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) iym2
@@ -1371,34 +1390,29 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef BAND
-          write (31,99012) jx , iym2 , plon , plat ,                    &
-                         & dx/111000. , dx/111000.*.95238
+          write (31,99012) jx , iym2 , plon , plat ,                  &
 #else
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
-                         & dx/111000. , dx/111000.*.95238
 #endif
+                         & dx/111000. , dx/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
           call fatal(__FILE__,__LINE__,'INVALID MAP PROJECTION')
         end if
       else if ( iotyp.eq.2 ) then
+#ifdef BAND
 #ifdef MPP1
-#ifdef BAND
-        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
-                       & - xlong_io(2,1)
-        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1)             &
-                       & - xlat_io(2,1)
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
+        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1) - xlat_io(2,1)
 #else
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
-                       & - xlong_io(2,2)
-        write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
-                       & - xlat_io(2,2)
-#endif
-#else
-#ifdef BAND
         write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
         write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
+#endif
+#else
+#ifdef MPP1
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+        write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2) - xlat_io(2,2)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
@@ -1451,7 +1465,7 @@
       write (31,99017) 'rno     ' , 'accumulated infiltration   '
       write (31,99021)
       close (31)
-99001 format ('dset ^',a)
+99001 format ('dset ',a)
 99002 format ('title RegCM normal output variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
@@ -1521,7 +1535,7 @@
       centeri = (iym2)/2.
 
       open (31,file=datname//'.ctl',status='replace')
-      write (31,99001) datname
+      write (31,99001) trim(datname)
       write (31,99002)
       if ( ibigend.eq.1 ) then
         write (31,99003)
@@ -1547,9 +1561,9 @@
         end do
         do i = 2 , iy-1
 #ifdef BAND
-          do j = 1 , jx
+        do j = 1 , jx
 #else
-          do j = 2 , jx-1
+        do j = 2 , jx-1
 #endif
 #ifdef MPP1
             if ( clon.ge.0.0 ) then
@@ -1610,36 +1624,32 @@
       if ( iotyp.eq.1 ) then
         if ( iproj.eq.'LAMCON' ) then   ! Lambert projection
 #ifdef BAND
-          write (31,99006) jx , iym2 , clat , clon , centerj ,          &
-                         & centeri , truelatl , truelath , clon , dx ,  &
-                         & dx
+          write (31,99006) jx , iym2 , clat , clon , centerj ,        &
 #else
           write (31,99006) jxm2 , iym2 , clat , clon , centerj ,        &
+#endif
                          & centeri , truelatl , truelath , clon , dx ,&
                          & dx
-#endif
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else if ( iproj.eq.'POLSTR' ) then
                                         !
         else if ( iproj.eq.'NORMER' ) then
-#ifdef MPP1
 #ifdef BAND
-          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)           &
-                         & - xlong_io(2,1)
+#ifdef MPP1
+          write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
           write (31,99010) iym2
           write (31,99011) (xlat_io(i,1),i=2,iym1)
 #else
-          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)         &
-                         & - xlong_io(2,2)
-          write (31,99010) iym2
-          write (31,99011) (xlat_io(i,2),i=2,iym1)
-#endif
-#else
-#ifdef BAND
           write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
           write (31,99010) iym2
           write (31,99011) (xlat(i,1),i=2,iym1)
+#endif
+#else
+#ifdef MPP1
+          write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+          write (31,99010) iym2
+          write (31,99011) (xlat_io(i,2),i=2,iym1)
 #else
           write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
           write (31,99010) iym2
@@ -1653,34 +1663,29 @@
                      &' in GrADS is somewhat similar.'
           write (*,*) ' FERRET, however, does support this projection.'
 #ifdef BAND
-          write (31,99012) jx , iym2 , plon , plat ,                    &
-                         & dx/111000. , dx/111000.*.95238
+          write (31,99012) jx , iym2 , plon , plat ,                  &
 #else
           write (31,99012) jxm2 , iym2 , plon , plat ,                  &
-                         & dx/111000. , dx/111000.*.95238
 #endif
+                         & dx/111000. , dx/111000.*.95238
           write (31,99007) nx + 2 , alonmin - rloninc , rloninc
           write (31,99008) ny + 2 , alatmin - rlatinc , rlatinc
         else
           call fatal(__FILE__,__LINE__,'INVALID MAP PROJECTION')
         end if
       else if ( iotyp.eq.2 ) then
+#ifdef BAND
 #ifdef MPP1
-#ifdef BAND
-        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2)             &
-                       & - xlong_io(2,1)
-        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1)             &
-                       & - xlat_io(2,1)
+        write (31,99009) jx , xlong_io(2,1) , xlong_io(2,2) - xlong_io(2,1)
+        write (31,99013) iym2 , xlat_io(2,1) , xlat_io(3,1) - xlat_io(2,1)
 #else
-        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3)           &
-                       & - xlong_io(2,2)
-        write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2)             &
-                       & - xlat_io(2,2)
-#endif
-#else
-#ifdef BAND
         write (31,99009) jx , xlong(2,1) , xlong(2,2) - xlong(2,1)
         write (31,99013) iym2 , xlat(2,1) , xlat(3,1) - xlat(2,1)
+#endif
+#else
+#ifdef MPP1
+        write (31,99009) jxm2 , xlong_io(2,2) , xlong_io(2,3) - xlong_io(2,2)
+        write (31,99013) iym2 , xlat_io(2,2) , xlat_io(3,2) - xlat_io(2,2)
 #else
         write (31,99009) jxm2 , xlong(2,2) , xlong(2,3) - xlong(2,2)
         write (31,99013) iym2 , xlat(2,2) , xlat(3,2) - xlat(2,2)
@@ -1745,7 +1750,7 @@
                       &'Surface pressure (hPa)               '
       write (31,99019)
       close (31)
-99001 format ('dset ^',a)
+99001 format ('dset ',a)
 99002 format ('title RegCM normal output variables')
 99003 format ('options big_endian')
 99004 format ('options little_endian')

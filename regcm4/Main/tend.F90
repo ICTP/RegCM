@@ -2303,9 +2303,9 @@
 !
       if ( dabs(xtime).lt.0.00001 .and. ldatez.ne.idate1 ) then
 #ifdef CLM
-        call solar1clm
+        call solar1clm(xtime)
 #else
-        call solar1
+        call solar1(xtime)
 #endif
         dectim = anint(1440.+dectim)
 #ifdef MPP1

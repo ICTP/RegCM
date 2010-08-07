@@ -2056,7 +2056,7 @@
 99013 format (//' maximum time = ',f8.3,' days.')
 99014 format (' time step = ',f7.2,' seconds')
 99015 format (' dx = ',f7.0,' meters')
-99016 format (' grid points (x,y) = (',i3,',',i3,')')
+99016 format (' grid points (x,y) = (',i4,',',i4,')')
 99017 format (' number of levels = ',i2)
 99018 format (' constant hor. diff. coef. = ',e12.5,' m*m/s')
 99019 format (' maximum  hor. diff. coef. = ',e12.5,' m*m/s')
