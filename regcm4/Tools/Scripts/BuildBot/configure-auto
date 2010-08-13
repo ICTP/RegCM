@@ -1,0 +1,222 @@
+#!/usr/bin/python
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Configuration script for the RegCM distribution by M. Scarcia
+
+import os,sys,shutil,fileinput
+
+def main(argv):
+
+    numargs = 4
+
+    if (len(sys.argv) < numargs+1 ):
+        print "Not enough command line arguments!!"
+        sys.exit(1)
+    
+    os.system("clear")
+    print "\tAutomatically configuring the RegCM distribution"
+    print "\n\tConfiguration pattern",sys.argv[1]
+    
+    print "\tAssuming CWD as RegCM root..."
+    regcm_root = os.getcwd()
+
+    print "\tAssuming CWD/Bin for RegCM binaries..."
+    bin_dir=regcm_root+"/Bin"
+
+    if not os.path.isdir(bin_dir):
+        try :
+            os.mkdir(bin_dir)
+        except OSError :
+            print "\tCannot create",bin_dir,"! Aborting..."
+            sys.exit(1)
+
+    nclib = ""
+    ncinc = ""
+    
+    nclib,ncinc = netcdf_search(nclib,ncinc)
+
+    # Defaults to 0 (it can still be set manually to 1)
+    dbg = int(0)
+
+    # Parallel or serial?
+    mpi = int(sys.argv[2])
+
+    # Let's assume that the compiler is always mpif90
+    # We can change that later
+    if mpi == 1 :
+        mpi_compiler="mpif90"
+
+    # Band yes or no?
+    band = int(sys.argv[3])
+
+    # Disabled by default (will be included in regcm.in)
+    dcsst = int(0)    
+    seaice = int(0)
+
+    # CLM yes or no?
+    clm = int(sys.argv[4])
+
+    # just a guideline to know what numbers mean...
+    #print "\n  ****  The following compiler/architecture combinations \n\tare tested and known to work, please choose one:\n\n\t\t1. GNU Fortran v. 4.4 (Linux x86-64)\n\t\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t\t3. PGI Fortran v. 9 (Linux x86-64)\n\t\t4. IBM Xlf Compiler (generic AIX)\n\t\t5. IBM Xlf Compiler (Cineca SP6)\n\t\t6. Sun Ceres Fortran 95 v 8.3 r2008/01/28 (Linux x86-64)\n\t\t7. GNU+g95 Fortran compiler (Linux x86-64)\n\t\t8. Other"
+
+    compiler = int(sys.argv[1])
+
+    print "root =",regcm_root
+    print "compiler =",compiler
+    print "debug =",dbg
+
+    # Start real stuff
+
+    choose_template(regcm_root,compiler,dbg)
+
+    if compiler == 4 or compiler == 5 :
+        mpi_compiler = "mpxlf90"
+
+#TAO: compiler was added as an argument to makefile_edit() so that a -M line
+#could be added to the NetCDF include line for the Sun compilers
+    if mpi == 1 :
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,dcsst,seaice,compiler)
+    else :
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,dcsst,seaice,compiler)
+
+    print "\n\t###################################################################"
+    print "\t# Configuration complete! You should now be able to compile RegCM #"
+    print "\t###################################################################\n"
+
+def netcdf_search(nclib,ncinc):
+
+    ncok=True
+
+    # check for path in env variables
+    try :
+        path_a=os.environ['NETCDF']
+        if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+            nclib = path_a+"/lib"
+            ncinc = path_a+"/include"
+        else :
+            ncok=False
+    except KeyError :
+        ncok=False
+
+    if not ncok:
+        try :
+            path_lib=os.environ['NETCDF_LIB']
+            path_inc=os.environ['NETCDF_INC']
+            if (os.path.isfile(path_lib+"/libnetcdf.a") or os.path.isfile(path_lib+"/libnetcdf.so")) and (os.path.isfile(path_inc+"/netcdf.mod")):
+                nclib = path_lib
+                ncinc = path_inc
+                ncok=True
+                if not(os.path.isfile(path_lib+"/libnetcdf_c++.a") or os.path.isfile(path_lib+"/libnetcdf_c++.so")):
+                    print "\tWarning! NetCDF C++ interface not found, you won't be able to compile PostNC!"
+            else :
+                ncok=False
+        except KeyError :
+            ncok=False
+    if ncok:
+        print "\tNetCDF library found..."
+        return nclib,ncinc
+    else:
+        print "\tNetCDF not found! Cannot continue. Please provide a working NetCDF library."
+        os.sys.exit(1)
+
+def choose_template(regcm_root,compiler,dbg):
+
+    choices = 8
+    
+    #print "chose template gets: ",compiler,dbg
+    if dbg == 1 and compiler < choices :
+        if compiler == 1 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_gnu4.4",regcm_root+"/Makefile.inc")
+        elif compiler == 2 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_intel10+",regcm_root+"/Makefile.inc")
+        elif compiler == 3 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_pgi9",regcm_root+"/Makefile.inc")
+        elif compiler == 4 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf",regcm_root+"/Makefile.inc")
+        elif compiler == 5 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sp6",regcm_root+"/Makefile.inc")
+        elif compiler == 6 :   
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sun8.3",regcm_root+"/Makefile.inc")
+        elif compiler == 7 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_g95",regcm_root+"/Makefile.inc")
+    elif dbg == 0 and compiler < choices :
+        if compiler == 1 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_gnu4.4_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 2 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_intel10+_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 3 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_pgi9_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 4 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 5 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sp6_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 6 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sun8.3_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 7 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_g95_debug",regcm_root+"/Makefile.inc")
+    else :
+        shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
+    return
+
+
+#TAO: compiler was added as an argument to makefile_edit() so that a -M line
+#could be added to the NetCDF include line for the Sun compilers
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,dcsst,seaice,compiler) :
+
+    for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
+
+        line=line.replace("!BAND",str(band))
+        line=line.replace("!CLM",str(clm))
+        line=line.replace("!DCSST",str(dcsst))
+        line=line.replace("!SEAICE",str(seaice))
+        
+        line=line.replace("!REGCM_ROOT",regcm_root)
+        line=line.replace("!BIN_DIR",bin_dir)
+
+        #If the sun compilers are being used, also indicate the path
+        #of the file netcdf.mod
+        if not compiler == 5 :
+            if compiler == 6 :
+                line=line.replace("!NETCDFINC","-I"+ncinc+" -M"+ncinc)
+            else :
+                line=line.replace("!NETCDFINC","-I"+ncinc)
+
+            if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
+                line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf")
+            else :
+                line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf")
+                
+            line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
+
+        if mpi == 1 :
+            line=line.replace("# PARALLEL = MPP1","PARALLEL = MPP1")
+            
+        line=line.replace("!MPIF90",mpi_compiler)
+    
+        print line.rstrip()
+
+    fileinput.close()
+
+if __name__ == "__main__":
+    #try:
+    main(sys.argv[1:])
+    #except:
+    #    print "Error! Missing argument!"
