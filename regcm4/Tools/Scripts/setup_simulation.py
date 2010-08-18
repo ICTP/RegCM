@@ -20,6 +20,7 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # Helper script for setting up a RegCM simulation by M. Scarcia
+#
 
 import os,sys,shutil,fileinput
 from optparse import OptionParser
