@@ -24,7 +24,7 @@
 # improvements: check against a well defined list of directories
 
 # written by S.Cozzini, improved by A.Messina 
-#
+##
    
 import os
 import sys
