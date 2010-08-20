@@ -81,24 +81,21 @@
       allocate(xlat_dum(jx,iy))
       allocate(xlon_dum(jx,iy))
 !
-!     ** Get latitudes and longitudes from DOMAIN.INFO
+!     ** Get latitudes and longitudes from DOMAIN file
 !
       terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       call read_domain
 
-      if ( clatx/=clat .or. clonx/=clon .or. platx/=plat .or.           &
-         & plonx/=plon ) then
-        print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+      if ( clatx/=clat .or. clonx/=clon) then
+        print * , 'DOMAIN file is inconsistent with regcm.in'
         print * , '  namelist       :  clat=' , clat , ' clon=' , clon
-        print * , '  DOMAIN.INFO    :  clat=' , clatx , ' clon=' , clonx
-        print * , '  namelist       :  plat=' , plat , ' plon=' , plon
-        print * , '  DOMAIN.INFO    :  plat=' , platx , ' plon=' , plonx
+        print * , '  DOMAIN file    :  clat=' , clatx , ' clon=' , clonx
         stop 782
       end if
       if ( iprojx/=iproj ) then
-        print * , 'DOMAIN.INFO is inconsistent with regcm.in'
+        print * , 'DOMAIN file is inconsistent with regcm.in'
         print * , '  namelist       : iproj=' , iproj
-        print * , '  DOMAIN.INFO    : iproj=' , iprojx
+        print * , '  DOMAIN file    : iproj=' , iprojx
         stop 783
       end if
  
