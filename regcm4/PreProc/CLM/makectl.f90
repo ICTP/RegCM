@@ -51,7 +51,7 @@
  
       ddeg = (dsm/1000.)*(45./atan(1.))/6371229.
  
-      write (iunctl,99001) domname//'_CLM3.INFO'
+      write (iunctl,99001) trim(domname)//'_CLM3.INFO'
  
       write (iunctl,99002)
  
@@ -118,17 +118,17 @@
         end do
       end do
       write (iunctl,99017)
-99001 format ('dset ^',a30)
+99001 format ('dset ^',a)
 99002 format ('title CLM3/RegCM information')
 99003 format ('options big_endian')
 99004 format ('options little_endian')
 99005 format ('undef ',f8.1)
 99006 format ('pdef ',2(i4,1x),'lcc ',2(f9.3,1x),2(i4,1x),5(f9.3,1x))
 99007 format ('pdef ',2(i4,1x),'eta.u',2(1x,f9.3),2(1x,f9.3))
-99008 format ('xdef ',i3,' linear ',f10.5,1x,f10.5)
-99009 format ('ydef ',i3,' linear ',f10.5,1x,f10.5)
-99010 format ('xdef ',i3,' linear',2(1x,f10.5))
-99011 format ('ydef ',i3,' linear',2(1x,f10.5))
+99008 format ('xdef ',i4,' linear ',f10.5,1x,f10.5)
+99009 format ('ydef ',i4,' linear ',f10.5,1x,f10.5)
+99010 format ('xdef ',i4,' linear',2(1x,f10.5))
+99011 format ('ydef ',i4,' linear',2(1x,f10.5))
 99012 format ('zdef ',i3,' linear 1 1')
 99013 format ('tdef   1 linear 00z15Jan1900 1mo')
 99014 format ('vars ',i3)

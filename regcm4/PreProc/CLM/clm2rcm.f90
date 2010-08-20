@@ -85,6 +85,8 @@
 !
       terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       call read_domain
+      deallocate(xlat_dum)
+      deallocate(xlon_dum)
 
       if ( clatx/=clat .or. clonx/=clon) then
         print * , 'DOMAIN file is inconsistent with regcm.in'
@@ -121,7 +123,6 @@
 !abt  added above
  
 !     ** Loop over the fields defined in clm.param
-!     do ifld=1,nfld
       do ifld = 1 , ifield
  
 !       ** Open input and output files
@@ -349,8 +350,8 @@
       do ifld = 1 , ifield
         vnam_o(ifld) = vnam(ifld)
       end do
-      call makectl(iunctl,domname,jx,iy,npft,ifield,dsx,clatx,clonx,    &
-                 & platx,plonx,iprojx,ibigendx,truelatl,truelath,       &
+      call makectl(iunctl,domname,jx,iy,npft,ifield,dsx*1000.0,clatx,   &
+                 & clonx,platx,plonx,iprojx,ibigendx,truelatl,truelath, &
                  & vmisdat,vnam_o,lnam,nlev,ntim,varmin,varmax)
 !     ** Close files
       call clscdf(idin,ierr)
