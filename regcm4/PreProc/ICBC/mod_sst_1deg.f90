@@ -62,11 +62,10 @@
       real(4) , dimension(ilon,jlat) :: sst , ice
       integer :: i , j , k , iwk , iv , ludom , lumax , nrec
       integer :: idate , idateo , idatef , idatem , nsteps
-      integer :: nyear , nmo , nday , nho , ihom
+      integer :: nyear , nmo , nday , nho
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
-      real(4) :: rhom
       character(256) :: inpfile
       logical :: there
 !

@@ -102,7 +102,7 @@ mod_vectutil.o: mod_vectutil.f90
 mod_vertint.o: mod_vertint.f90 mod_constants.o
 mod_write.o: mod_write.f90
 mod_printl.o: mod_printl.f90
-aerosol.o: aerosol.f90 mod_dynparam.o
+aerosol.o: aerosol.f90 mod_dynparam.o mod_date.o
 mod_sst_1deg.o: mod_sst_1deg.f90 mod_dynparam.o mod_interp.o \
                 mod_date.o mod_sst_grid.o
 mod_sst_ccsm.o: mod_sst_ccsm.f90 mod_dynparam.o mod_interp.o  \
