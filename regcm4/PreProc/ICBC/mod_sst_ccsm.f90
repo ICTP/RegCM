@@ -74,6 +74,9 @@
       end do
  
       idateo = imonfirst(globidate1)
+      if (lfhomonth(globidate1)) then
+        idateo = iprevmon(globidate1)
+      end if
       idatef = imonfirst(globidate2)
       if (idatef < globidate2) then
         idatef = inextmon(idatef)

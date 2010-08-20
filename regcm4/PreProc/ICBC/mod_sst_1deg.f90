@@ -61,11 +61,12 @@
 !
       real(4) , dimension(ilon,jlat) :: sst , ice
       integer :: i , j , k , iwk , iv , ludom , lumax , nrec
-      integer :: idate , idateo , idatef , nsteps
-      integer :: nyear , nmo , nday , nho
+      integer :: idate , idateo , idatef , idatem , nsteps
+      integer :: nyear , nmo , nday , nho , ihom
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
+      real(4) :: rhom
       character(256) :: inpfile
       logical :: there
 !
@@ -134,11 +135,16 @@
       ! Montly dataset
       if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
         idateo = imonfirst(globidate1)
+        if (lfhomonth(globidate1)) then
+          idateo = iprevmon(globidate1)
+        end if
         idatef = imonfirst(globidate2)
         if (idatef < globidate2) then
           idatef = inextmon(idatef)
         end if
         nsteps = imondiff(idatef,idateo) + 1
+        idatem = imonmiddle(idateo)
+        call open_sstfile(idatem)
       ! Weekly dataset
       else
         idateo = ifodweek(globidate1)
@@ -150,10 +156,10 @@
           idatef = inextwk(idatef)
         end if
         nsteps = iwkdiff(idatef,idateo) + 1
+        call open_sstfile(idateo)
       end if
 
-      call open_sstfile(idateo)
- 
+
       ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
       do i = 1 , ilon
         loni(i) = .5 + float(i-1)
@@ -233,14 +239,15 @@
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
           if ( ssttyp/='OI2ST' ) then
-            call writerec(idate,.false.)
+            call writerec(idatem,.false.)
           else
-            call writerec(idate,.true.)
+            call writerec(idatem,.true.)
           end if
 
           print * , 'WRITTEN OUT SST DATA : ' , idate
 
           idate = inextmon(idate)
+          idatem = imonmiddle(idate)
 
         end do
 
@@ -605,8 +612,8 @@
             if ( work1(i,j)==32767 ) then
                sst(i,jlat+1-j) = -9999.
             else
-               sst(i,jlat+1-j) = (sst(i,jlat+1-j)+work1(i,j)*xscale     &
-                     &            + xadd)*0.5
+               sst(i,jlat+1-j) = (sst(i,jlat+1-j)+(work1(i,j)*xscale    &
+                     &            + xadd))*0.5
             end if
           end do
         end do
@@ -727,8 +734,8 @@
             if ( work1(i,j)==32767 ) then
                ice(i,jlat+1-j) = -9999.
             else
-               ice(i,jlat+1-j) = (ice(i,jlat+1-j)+work1(i,j)*xscale     &
-                     &            + xadd)*0.5
+               ice(i,jlat+1-j) = (ice(i,jlat+1-j)+(work1(i,j)*xscale    &
+                     &            + xadd))*0.5
             end if
           end do
         end do

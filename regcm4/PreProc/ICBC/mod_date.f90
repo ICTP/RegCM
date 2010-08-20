@@ -278,6 +278,17 @@
         imondiff = (iy2-iy1)*12+(im2-im1)
       end function imondiff
 
+      function lfhomonth(idate)
+        implicit none
+        logical :: lfhomonth
+        real(4) :: rmomonth
+        integer , intent(in) :: idate
+        integer :: iy , im , id , ih
+        call split_idate(idate, iy, im, id, ih)
+        rmomonth = real(mdays(iy, im)) / 2.0
+        lfhomonth = (id < rmomonth)
+      end function lfhomonth
+
       function idayofweek(idate)
         ! Sun Mon Tue Wed Thu Fri Sat
         ! 1   2   3   4   5   6   7
@@ -383,6 +394,19 @@
         call split_idate(idate, iy, im, id, ih)
         imonlast = mkidate(iy, im, mdays(iy, im), 0)
       end function imonlast
+
+      function imonmiddle(idate)
+        implicit none
+        integer imonmiddle
+        integer , intent(in) :: idate
+        real(4) :: rmom
+        integer :: iy , im , id , ih , imom
+        call split_idate(idate, iy, im, id, ih)
+        rmom = real(mdays(iy, im))/2.0
+        imom = int(rmom)
+        ih = int((rmom-real(imom))*24.0)
+        imonmiddle = mkidate(iy, im, imom, ih)
+      end function imonmiddle
 
       function inextmon(idate)
         implicit none
