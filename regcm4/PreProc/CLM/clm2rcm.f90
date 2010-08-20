@@ -21,6 +21,7 @@
  
       use netcdf
       use mod_dynparam
+      use mod_read_domain
       use mod_param_clm
 
       implicit none
@@ -31,17 +32,10 @@
 !
 ! Local variables
 !
-      real(4) :: clatx , clonx , dsx , grdfacx , offset ,               &
-           & perr , platx , plonx , pmax , ptopx , xscale , xlatmax ,   &
-           & xlatmin , xlonmax , xlonmin
-      integer :: i , ibigendx , idatex , idin , idout , idy , ierr ,    &
-               & ifield , ifld , igradsx , ihr , imap , imo , jotyp ,   &
-               & irec , iyr , iyy , j , julnc , jxx , kmax , kzz , l
       integer :: k
       integer :: iunout , iunctl
       integer , dimension(4) :: icount , istart
       integer , dimension(3) :: iadim
-      character(6) :: iprojx
       character(64) , dimension(nfld) :: lnam
       character(256) :: outfil_ctl , outfil_gr , outfil_nc
       logical :: there
@@ -55,13 +49,9 @@
       real(4) , allocatable , dimension(:,:,:,:) :: regyxzt , zoom
       real(4) , allocatable , dimension(:,:) :: landmask , regxy ,      &
                &                             sandclay
-      real(4) , allocatable , dimension(:,:) :: xlat , xlon
-      real(4) , allocatable , dimension(:) :: xlat1d
-      real(4) , allocatable , dimension(:) :: xlon1d
-      real(4) , allocatable , dimension(:) :: sigx
       integer :: ipathdiv
-      character(256) :: namelistfile, prgname
-      character(256) :: terfile , inpfile
+      character(256) :: namelistfile , prgname
+      character(256) :: inpfile
 !
 !     Read input global namelist
 !
@@ -88,28 +78,14 @@
       allocate(xlat1d(iy))
       allocate(xlon1d(jx))
       allocate(sigx(kz+1))
+      allocate(xlat_dum(jx,iy))
+      allocate(xlon_dum(jx,iy))
 !
 !     ** Get latitudes and longitudes from DOMAIN.INFO
 !
-      write (terfile,99001)                                             &
-        & trim(dirter), pthsep, trim(domname), '.INFO'
-      open (unit=10,file=terfile,status='old',form='unformatted',       &
-          & recl=iy*jx*ibyte,access='direct')
-      read (10,rec=1) iyy , jxx , kzz , dsx , clatx , clonx , platx ,   &
-                    & plonx , grdfacx , iprojx , sigx , ptopx ,         &
-                    & igradsx , ibigendx
-      if ( iyy/=iy .or. jxx/=jx ) then
-        print * , 'DOMAIN.INFO is inconsistent with regcm.in'
-        print * , '  namelist       :    iy=' , iy , '   jx=' , jx
-        print * , '  DOMAIN.INFO    :    iy=' , iyy , '   jx=' , jxx
-        stop 780
-      end if
-      if ( abs(ds*1000.-dsx)>0.01 ) then
-        print * , 'DOMAIN.INFO is inconsistent with regcm.in'
-        print * , '  namelist       : ds=' , ds*1000.
-        print * , '  DOMAIN.INFO    : ds=' , dsx
-        stop 781
-      end if
+      terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+      call read_domain
+
       if ( clatx/=clat .or. clonx/=clon .or. platx/=plat .or.           &
          & plonx/=plon ) then
         print * , 'DOMAIN.INFO is inconsistent with regcm.in'
@@ -125,9 +101,6 @@
         print * , '  DOMAIN.INFO    : iproj=' , iprojx
         stop 783
       end if
-      read (10,rec=5) ((xlat(i,j),j=1,jx),i=1,iy)
-      read (10,rec=6) ((xlon(i,j),j=1,jx),i=1,iy)
-      close (10)
  
 !     ** Set output variables
       jotyp = 2
@@ -389,5 +362,4 @@
       close (iunctl)
       print *, 'Successfully completed CLM preprocessing.'
  
-99001 format (a,a,a,a)
       end program clmproc

@@ -7,7 +7,7 @@ SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
 
 all: clm2rcm
 
-MODOBJ = mod_param_clm.o
+MODOBJ = mod_param_clm.o mod_read_domain.o
 
 CLM2RCMOBJ = clm2rcm.o bilinx4d.o clm3grid1.o clm3grid2.o comp.o \
              fexist.o julian.o makectl.o maskme.o param.o readcdfr4_360.o \
@@ -47,6 +47,7 @@ julian.o: julian.f90
 makectl.o: makectl.f90
 maskme.o: maskme.f90
 mod_param_clm.o: mod_param_clm.f90
+mod_read_domain.o: mod_read_domain.f90
 nclib.o: nclib.f90
 param.o: param.f90
 readcdfr4_360.o: readcdfr4_360.f90
