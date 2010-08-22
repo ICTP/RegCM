@@ -17,6 +17,111 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_clm3grid
+
+      contains
+
+      subroutine clm3grid1(nlon,nlat,nlev,ntim,glon1,glon2,glat1,glat2, &
+                         & xlonmin,xlonmax,xlatmin,xlatmax,glon,glat,   &
+                         & istart,icount)
+      implicit none
+!
+! Dummy arguments
+!
+      real(4) :: glat1 , glat2 , glon1 , glon2 , xlatmax , xlatmin ,    &
+            & xlonmax , xlonmin
+      integer :: nlat , nlev , nlon , ntim
+      real(4) , dimension(nlat) :: glat
+      real(4) , dimension(nlon) :: glon
+      integer , dimension(4) :: icount , istart
+      intent (in) glat1 , glat2 , nlat , nlev , nlon , ntim
+      intent (out) glat , glon , icount , istart
+      intent (inout) glon1 , glon2 , xlatmax , xlatmin , xlonmax ,      &
+                   & xlonmin
+!
+! Local variables
+!
+      integer :: corrlatn , corrlats , i , ilatmax , ilatmin , ilonmax ,&
+               & ilonmin , j
+      real(4) :: dlat , dlon
+ 
+!     dlon = 360./nlon
+!     dlat = 180./nlat
+
+!     ABT added to get mksrf dependent resolution
+      dlon = (glon2+abs(glon1)+0.5)/nlon
+      dlat = (glat2+abs(glat1)+0.5)/nlat
+!     ABT correction terms in case the grid is not from 90S to 90N 
+      corrlatn = 90 - nint(glat2)
+      corrlats = -90 - nint(glat1)
+ 
+      if ( glon1>=0. ) then
+        glon1 = glon1 - 180.
+        glon2 = glon2 - 180.
+      end if
+      do i = 1 , nlon
+        glon(i) = glon1 + dlon*float(i-1)
+      end do
+      do j = 1 , nlat
+        glat(j) = glat1 + dlat*float(j-1)
+      end do
+ 
+      xlonmin = max(xlonmin-dlon,glon1)
+      xlonmax = min(xlonmax+dlon,glon2)
+      xlatmin = max(xlatmin-dlat,glat1)
+      xlatmax = min(xlatmax+dlat,glat2)
+      ilonmin = max(min(nint((glon2+xlonmin)/dlon)-1,nlon),1)
+      ilonmax = max(min(nint((glon2+xlonmax)/dlon)+1,nlon),1)
+!     abt ilatmin = max(min(nint((glat2+xlatmin)/dlat)-1,nlat),1)
+!     abt ilatmax = max(min(nint((glat2+xlatmax)/dlat)+1,nlat),1)
+      ilatmin = max(min(nint((glat2+xlatmin+corrlatn+corrlats)/dlat)-1, &
+              & nlat),1)   ! ABT added corrlat terms
+      ilatmax = max(min(nint((glat2+xlatmax+corrlatn+corrlats)/dlat)+1, &
+              & nlat),1)   ! ABT added corrlat terms
+      istart(1) = ilonmin
+      icount(1) = ilonmax - ilonmin + 1
+      istart(2) = ilatmin
+      icount(2) = ilatmax - ilatmin + 1
+      istart(3) = 1
+      icount(3) = nlev
+      istart(4) = 1
+      icount(4) = ntim
+ 
+      end subroutine clm3grid1
+
+      subroutine clm3grid2(nlon,nlat,glon,glat,istart,icount,zlon,      &
+                  &        zlat,zlev)
+ 
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: nlat , nlon
+      real(4) , dimension(nlat) :: glat
+      real(4) , dimension(nlon) :: glon
+      integer , dimension(4) :: icount , istart
+      real(4) , dimension(icount(2)) :: zlat
+      real(4) , dimension(icount(3)) :: zlev
+      real(4) , dimension(icount(1)) :: zlon
+      intent (in) glat , glon , icount , istart , nlat , nlon
+      intent (out) zlat , zlev , zlon
+!
+! Local variables
+!
+      integer :: i , j , k
+! 
+      do i = 1 , icount(1)
+        zlon(i) = glon(i+istart(1)-1)
+      end do
+      do j = 1 , icount(2)
+        zlat(j) = glat(j+istart(2)-1)
+      end do
+      do k = 1 , icount(3)
+        zlev(k) = icount(3) - k + 1
+      end do
+ 
+      end subroutine clm3grid2
+
       subroutine bilinx4d(mti,loni,lati,nloni,nlati,mto,lono,lato,iy,jx,&
                         & nz,nt,xming,vmisdat)
 !
@@ -117,9 +222,44 @@
  
             end do
           end do
- 
         end do
+      end do
+
+      end subroutine bilinx4d
+
+      subroutine maskme(landmask,vals,vmisdat,nlon,nlat,nlev,ntim)
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: nlat , nlev , nlon , ntim
+      real(4) :: vmisdat
+      real(4) , dimension(nlon,nlat) :: landmask
+      real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
+      intent (in) landmask , nlat , nlev , nlon , ntim , vmisdat
+      intent (inout) vals
+!
+! Local variables
+!
+      integer :: i , j , k , l
+!
+!     ** Variables Passed in
+!     ** Local variables
  
+      do l = 1 , ntim
+        do k = 1 , nlev
+          do j = 1 , nlat
+            do i = 1 , nlon
+              if ( landmask(i,j)>0.5 ) then
+                vals(i,j,k,l) = vals(i,j,k,l)
+              else
+                vals(i,j,k,l) = vmisdat
+              end if
+            end do
+          end do
+        end do
       end do
  
-      end subroutine bilinx4d
+      end subroutine maskme
+
+      end module mod_clm3grid

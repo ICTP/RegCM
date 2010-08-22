@@ -17,34 +17,23 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_nclib
+
+      contains
+
 !-----------------------------------------------------------------------
 !     Purpose:
-!        This routine is called to create a netCDF file for use with 
-!        the UWGAP plotting package.
-!           Any netCDF file written to must be closed with the call
-!        'call clscdf(cdfid,ierr)', where cdfid and ierr are
-!        as in the argumentlist below. 
-!     Arguments:
-!        filnam  char  input   the user-supplied netCDF file name.
-!        cdfid   int   output  the file-identifier
-!        phymin  real  input   the minimum physical dimension of the
-!                              entire physical domain along each axis.
-!                              phymin is dimensioned (ndim)
-!        phymax  real  input   the maximum physical dimension of the
-!                              entire physical domain along each axis.
-!                              phymax is dimensioned (ndim)
-!        ndim    int   input   the number of dimensions in the file
-!                              (i.e. number of elements in phymin,
-!                              phymax)
-!        ierr   int   output  indicates possible ierrs found in this
-!                              routine.
-!                              ierr = 0   no ierrs detected.
-!                              ierr = 1   ierr detected.
+!        This routine creates a netCDF file.
+!     Aguments :
+!        filnam  char  input   input file name
+!        cdfid  int  input   the id of the file to be closed.
+!        ierr  int  output  indicates possible ierrs found in this
+!                            routine.
+!                            ierr = 0   no ierrs detected.
+!                            ierr = 1   ierr detected.
 !     History:
-!        Nov. 91  PPM  UW  Created cr3df.
-!        Jan. 92  CS   UW  Created crecdf.
+!        Nov. 91  PPM  UW  Created.
 !-----------------------------------------------------------------------
-
       subroutine crecdf (filnam, cdfid, phymin, phymax, ndim, ierr) 
 
       use netcdf
@@ -100,7 +89,6 @@
       ierr = 1
 
       end subroutine crecdf
-
 
       subroutine rcrecdf (filnam,cdfid,varmin,varmax,ndim,ierr)
 
@@ -1088,3 +1076,217 @@
       ierr = 1
 
       end subroutine getdefcdfr4
+
+      subroutine readcdfr4(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,nlat, &
+                         & nlev1,nlev,ntim1,ntim,vals)
+ 
+      use netcdf
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
+               & ntim , ntim1
+      character(64) :: lnam , units , vnam
+      real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
+      intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
+                & ntim1
+!
+! Local variables
+!
+      integer , dimension(4) :: icount , istart
+      integer :: iflag , invarid
+!     /*get variable and attributes*/
+      istart(1) = nlon1
+      icount(1) = nlon
+      istart(2) = nlat1
+      icount(2) = nlat
+      istart(3) = nlev1
+      icount(3) = nlev
+      istart(4) = ntim1
+      icount(4) = ntim
+ 
+      iflag = nf90_inq_varid(idcdf,vnam,invarid)
+      if (iflag /= nf90_noerr) go to 920
+
+      iflag = nf90_get_var(idcdf,invarid,vals,istart,icount)
+      if (iflag /= nf90_noerr) go to 920
+
+      iflag = nf90_get_att(idcdf,invarid,'long_name',lnam)
+      if (iflag /= nf90_noerr) go to 920
+
+      iflag = nf90_get_att(idcdf,invarid,'units',units)
+      if (iflag /= nf90_noerr) go to 920
+ 
+      return
+
+ 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+            &      'read variable ', vnam , ' at time ', ntim1
+      write (6, *) nf90_strerror(iflag)
+
+      stop 'READ ERROR'
+
+      end subroutine readcdfr4
+
+      subroutine readcdfr4_360(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
+                             & nlat,nlev1,nlev,ntim1,ntim,nglon,nglat,  &
+                             & nglev,ngtim,vals)
+ 
+      use netcdf
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
+               & nlev , nlev1 , nlon , nlon1 , ntim , ntim1
+      character(64) :: lnam , units , vnam
+      real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
+      intent (in) nglat , nglev , nglon , ngtim , nlat , nlat1 , nlev , &
+                & nlev1 , nlon , nlon1 , ntim , ntim1
+      intent (out) vals
+!
+! Local variables
+!
+      integer :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
+               & l , ll , nlat2 , nlev2 , nlon2 , ntim2
+      integer , dimension(4) :: icount , istart
+      real(4) , allocatable , dimension(:,:,:,:) :: vals1 , vals2
+! 
+      istart(1) = 1
+      icount(1) = nglon
+      istart(2) = 1
+      icount(2) = nglat
+      istart(3) = 1
+      icount(3) = nglev
+      istart(4) = 1
+      icount(4) = ngtim
+!     /*get variable and attributes*/
+      ilon5 = nglon/2
+      allocate(vals1(nglon,nglat,nglev,ngtim))
+      allocate(vals2(nglon,nglat,nglev,ngtim))
+
+      iflag = nf90_inq_varid(idcdf,vnam,invarid)
+      if (iflag /= nf90_noerr) go to 920
+
+      iflag = nf90_get_var(idcdf,invarid,vals1,istart,icount)
+      if (iflag /= nf90_noerr) go to 920
+
+      do l = 1 , ngtim
+        do k = 1 , nglev
+          do j = 1 , nglat
+            do i = 1 , nglon
+              vals2(i,j,k,l) = vals1(i,j,k,l)
+            end do
+          end do
+        end do
+      end do
+      do l = 1 , ngtim
+        do k = 1 , nglev
+          do j = 1 , nglat
+            do i = 1 , nglon
+              ii = ilon5 + i
+              if ( ii>nglon ) ii = ii - nglon
+              vals1(ii,j,k,l) = vals2(i,j,k,l)
+            end do
+          end do
+        end do
+      end do
+ 
+      ntim2 = ntim1 + ntim - 1
+      nlev2 = nlev1 + nlev - 1
+      nlat2 = nlat1 + nlat - 1
+      nlon2 = nlon1 + nlon - 1
+      do l = ntim1 , ntim2
+        do k = nlev1 , nlev2
+          do j = nlat1 , nlat2
+            do i = nlon1 , nlon2
+              ll = l - ntim1 + 1
+              kk = k - nlev1 + 1
+              jj = j - nlat1 + 1
+              ii = i - nlon1 + 1
+              vals(ii,jj,kk,ll) = vals1(i,j,k,l)
+            end do
+          end do
+        end do
+      end do
+ 
+      deallocate(vals1)
+      deallocate(vals2)
+ 
+      iflag = nf90_get_att(idcdf,invarid,'long_name',lnam)
+      if (iflag /= nf90_noerr) go to 920
+
+      iflag = nf90_get_att(idcdf,invarid,'units',units)
+      if (iflag /= nf90_noerr) go to 920
+ 
+      return
+
+ 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+            &      'read variable ', vnam , ' at time ', ntim1
+      write (6, *) nf90_strerror(iflag)
+
+      stop 'READ ERROR'
+
+      end subroutine readcdfr4_360
+
+      subroutine readcdfr4_iso(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
+                             & nlat,nlev1,nlev,ntim1,ntim,vals)
+ 
+      use netcdf
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
+               & ntim , ntim1
+      character(64) :: lnam
+      character(64) :: units
+      character(64) :: vnam
+      real(4) , dimension(nlon,nlat,nlev,ntim) :: vals
+      intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
+                & ntim1
+      intent (out) vals
+!
+! Local variables
+!
+      integer , dimension(4) :: icount , istart
+      integer , dimension(2) :: icount1 , istart1
+      integer :: iflag , invarid
+!
+      istart1(1) = nlon1
+      icount1(1) = nlon
+      istart1(2) = nlat1
+      icount1(2) = nlat
+ 
+      istart(1) = nlon1
+      icount(1) = nlon
+      istart(2) = nlat1
+      icount(2) = nlat
+      istart(3) = nlev1
+      icount(3) = nlev
+      istart(4) = ntim1
+      icount(4) = ntim
+ 
+      iflag = nf90_inq_varid(idcdf,vnam,invarid)
+      if (iflag /= nf90_noerr) go to 920
+
+      iflag = nf90_get_var(idcdf,invarid,vals,istart,icount)
+      if (iflag /= nf90_noerr) go to 920
+
+      iflag = nf90_get_att(idcdf,invarid,'long_name',lnam)
+      if (iflag /= nf90_noerr) go to 920
+
+      iflag = nf90_get_att(idcdf,invarid,'units',units)
+      if (iflag /= nf90_noerr) go to 920
+ 
+      return
+
+ 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+            &      'read variable ', vnam , ' at time ', ntim1
+      write (6, *) nf90_strerror(iflag)
+
+      stop 'READ ERROR'
+
+      end subroutine readcdfr4_iso
+
+      end module mod_nclib
