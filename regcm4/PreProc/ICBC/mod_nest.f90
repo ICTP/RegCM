@@ -397,7 +397,7 @@
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G      WRITE AN INITIAL FILE FOR THE RegCM
-      call writef2(ptop,idate)
+      call writef(ptop,idate)
 !
 99001 format ('ATM.',i10)
 !

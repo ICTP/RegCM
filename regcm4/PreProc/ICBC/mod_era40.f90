@@ -129,7 +129,7 @@
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
-      call writef2(ptop,idate)
+      call writef(ptop,idate)
 !
       end subroutine getera40
 

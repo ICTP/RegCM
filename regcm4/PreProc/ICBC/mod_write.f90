@@ -101,47 +101,6 @@
 !
       end subroutine writef
 
-      subroutine writef2(ptop,idate)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: idate
-      real(4) :: ptop
-      intent (in) idate , ptop
-!
-! Local variables
-!
-      integer :: i , j , k
-!
-!     THIS ROUTINE WRITES OUT AN INPUT FILE FOR THE RCM
-!
-!     PRINT *,'WRITING OUTPUT:  IDATE= ',IDATE
-      noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , jnx , iny , knz
-      do k = knz , 1 , -1
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((u4(i,j,k),i=1,jnx),j=1,iny)
-      end do
-      do k = knz , 1 , -1
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((v4(i,j,k),i=1,jnx),j=1,iny)
-      end do
-      do k = knz , 1 , -1
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((t4(i,j,k),i=1,jnx),j=1,iny)
-      end do
-      do k = knz , 1 , -1
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((q4(i,j,k),i=1,jnx),j=1,iny)
-      end do
-      noutrec = noutrec + 1
-      write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jnx),j=1,iny)
-      noutrec = noutrec + 1
-      write (64,rec=noutrec) ts4
-!
-      end subroutine writef2
-!
       subroutine gradsctl(finame,idate,inumber)
       use mod_dynparam
       use mod_grid
