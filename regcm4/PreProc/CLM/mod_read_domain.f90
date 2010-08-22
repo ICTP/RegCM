@@ -24,30 +24,46 @@
 
     implicit none
 
-    real(4) :: clatx , clonx , dsx , grdfacx , offset ,               &
-         & perr , platx , plonx , pmax , ptopx , xscale , xlatmax ,   &
-         & xlatmin , xlonmax , xlonmin
-    integer :: i , ibigendx , idatex , idin , idout , idy , ierr ,    &
-             & ifield , ifld , igradsx , ihr , imap , imo , jotyp ,   &
-             & irec , iyr , iyy , j , julnc , jxx , kmax , kzz , l
-    character(256) :: terfile
+    real(4) :: clatx , clonx , dsx , grdfacx , platx , plonx , ptopx
+    integer :: iyy , jxx , kzz
+
     character(6) :: iprojx
 
-    real(4) , allocatable , dimension(:,:) :: xlat , xlon, xlat_dum, xlon_dum
+    real(4) , allocatable , dimension(:,:) :: xlat, xlon
     real(4) , allocatable , dimension(:) :: xlat1d
     real(4) , allocatable , dimension(:) :: xlon1d
     real(4) , allocatable , dimension(:) :: sigx
 
-    integer :: istatus
-    integer :: incin
-    integer :: idimid
-    integer :: ivarid
-
-
     contains
 
-    subroutine read_domain()
+    subroutine allocate_domain
       implicit none
+      allocate(xlat(iy,jx))
+      allocate(xlon(iy,jx))
+      allocate(xlat1d(iy))
+      allocate(xlon1d(jx))
+      allocate(sigx(kz+1))
+    end subroutine allocate_domain
+
+    subroutine free_domain
+      implicit none
+      deallocate(xlat)
+      deallocate(xlon)
+      deallocate(xlat1d)
+      deallocate(xlon1d)
+      deallocate(sigx)
+    end subroutine free_domain
+
+    subroutine read_domain(terfile)
+
+      implicit none
+
+      character(256) , intent(in) :: terfile
+      integer :: istatus
+      integer :: incin
+      integer :: idimid
+      integer :: ivarid
+      real(4) , allocatable , dimension(:,:) :: xlat_dum, xlon_dum
 
         !Open the netcdf file
         call handle_nc_err( nf90_open(terfile, nf90_nowrite, incin),   &
@@ -76,6 +92,9 @@
           print * , "  DOMAIN    : " , iyy , jxx , kzz
           stop "Dimension mismatch"
         end if
+
+        allocate(xlat_dum(jx,iy))
+        allocate(xlon_dum(jx,iy))
 
         !Read ds
         call handle_nc_err(  &
@@ -128,11 +147,6 @@
            nf90_get_att(incin, NF90_GLOBAL,"grid_factor",grdfacx), &
           "Reading","projection")
 
-        !Assume big endian for now
-        !TODO: Endianness should be deleted as a variable when the model deals
-        !full in netcdf
-        ibigendx = 1
-
         !Read sigx
         call handle_nc_err(  &
           nf90_inq_varid(incin,"sigma",ivarid), &
@@ -174,12 +188,11 @@
           "Reading","xlon")
 
         !Set xlat and xlon, swapping the i/j indicies of what was read in
-        do i = 1,iy
-        do j = 1,jx
-          xlat(i,j) = xlat_dum(j,i)
-          xlon(i,j) = xlon_dum(j,i)
-        enddo
-        enddo
+        xlat = transpose(xlat_dum)
+        xlon = transpose(xlon_dum)
+
+        deallocate(xlat_dum)
+        deallocate(xlon_dum)
 
         !Close the netcdf flie
         istatus = nf90_close(incin)

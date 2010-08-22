@@ -23,6 +23,7 @@
       use mod_dynparam
       use mod_read_domain
       use mod_param_clm
+      use mod_date
 
       implicit none
 !
@@ -32,26 +33,49 @@
 !
 ! Local variables
 !
-      integer :: k
-      integer :: iunout , iunctl
+      integer :: istatus , ncid , idum
+      integer , dimension(4) :: idims
+      integer , dimension(4) :: ivdims
+      integer :: irefdate , imondate , ldim , ivar
+      real(4) , dimension(2) :: trlat
+      real(4) , allocatable , dimension(:) :: yiy
+      real(4) , allocatable , dimension(:) :: xjx
+      integer , dimension(8) :: tvals
+      real(4) :: hptop , xmiss
+      real(8) , dimension(1) :: xdate
+      integer , dimension(2) :: ivvar
+      integer , dimension(2) :: illvar
+      integer , dimension(2) :: izvar
       integer , dimension(4) :: icount , istart
+      integer , dimension(1) :: istart1 , icount1
       integer , dimension(3) :: iadim
       character(64) , dimension(nfld) :: lnam
-      character(256) :: outfil_ctl , outfil_gr , outfil_nc
+      character(64) :: cdum
       logical :: there
       character(64) , dimension(nfld) :: units
       real(4) , dimension(3) :: varmax , varmin
-      character(64) , dimension(nfld) :: vnam_o
       real(8) :: xhr
+      real(4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
+      real(4) :: perr , pmax
       real(4) , allocatable , dimension(:) :: glat , glon , zlat ,      &
                &                           zlev , zlon
+      real(4) , allocatable , dimension(:,:) :: mpu
       real(4) , allocatable , dimension(:,:,:) :: regxyz
-      real(4) , allocatable , dimension(:,:,:,:) :: regyxzt , zoom
-      real(4) , allocatable , dimension(:,:) :: landmask , regxy ,      &
-               &                             sandclay
-      integer :: ipathdiv
+      real(4) , allocatable , dimension(:,:,:,:) :: regyxzt , zoom ,    &
+                                         & dumw
+      real(4) , allocatable , dimension(:,:) :: landmask , sandclay
+      integer :: ipathdiv , ierr
+      integer :: i , iz , it , j , k , l , kmax
+      integer :: jotyp , idin , idout , ifield , ifld , imap
+      integer :: idatex , iyr , imo , idy , ihr , julnc
       character(256) :: namelistfile , prgname
-      character(256) :: inpfile
+      character(256) :: inpfile , terfile , checkfile
+      character(256) :: outfil_nc
+      character(64) :: history , csdate , cldim
+      integer , dimension(8) :: ilevs
+!
+      data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
+      data xmiss /-9999.0/
 !
 !     Read input global namelist
 !
@@ -73,20 +97,12 @@
         stop
       end if
 
-      allocate(xlat(iy,jx))
-      allocate(xlon(iy,jx))
-      allocate(xlat1d(iy))
-      allocate(xlon1d(jx))
-      allocate(sigx(kz+1))
-      allocate(xlat_dum(jx,iy))
-      allocate(xlon_dum(jx,iy))
+      call allocate_domain
 !
 !     ** Get latitudes and longitudes from DOMAIN file
 !
       terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-      call read_domain
-      deallocate(xlat_dum)
-      deallocate(xlon_dum)
+      call read_domain(terfile)
 
       if ( clatx/=clat .or. clonx/=clon) then
         print * , 'DOMAIN file is inconsistent with regcm.in'
@@ -105,22 +121,413 @@
       jotyp = 2
       xscale = 1.
       offset = 0.
-      iunout = 101
-      iunctl = 102
  
-!     ** Open direct access CLM3/RegCM3 output file
-      outfil_gr = trim(dirglob)//pthsep//trim(domname)//'_CLM3.INFO'
-      call fexist(outfil_gr)
-      print *, 'Open ', trim(outfil_gr)
-      open (iunout,file=outfil_gr,status='replace',                     &
-          & form='unformatted',recl=jx*iy*ibyte,access='direct')
-      irec = 1
-      write (iunout,rec=irec) iyy , jxx , npft , nsoi , dsx , clatx ,   &
-                            & clonx , platx , plonx , grdfacx , iprojx
-!abt  added below
+!     ** Open Output checkfile in NetCDF format
+
+      checkfile = trim(dirglob)//pthsep//trim(domname)//'_CLM3.nc'
+      istatus = nf90_create(checkfile, nf90_clobber, ncid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating NetCDF output ', trim(checkfile)
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
+      istatus = nf90_put_att(ncid, nf90_global, 'title',  &
+           & 'ICTP Regional Climatic model V4 clm2rcm program output')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global title'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'institution', &
+               & 'ICTP')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global institution'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'Conventions', &
+               & 'None')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global Conventions'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      call date_and_time(values=tvals)
+      write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
+           tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
+           tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
+           ' : Created by RegCM aerosol program'
+      istatus = nf90_put_att(ncid, nf90_global, 'history', history)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global history'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'references', &
+               & 'http://eforge.escience-lab.org/gf/project/regcm')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global references'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'experiment', &
+               & domname)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global experiment'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global projection'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global,   &
+               &   'grid_size_in_meters', ds*1000.0)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global gridsize'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global,   &
+               &   'latitude_of_projection_origin', clat)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global clat'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, nf90_global,   &
+               &   'longitude_of_projection_origin', clon)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error adding global clon'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      if (iproj == 'ROTMER') then
+        istatus = nf90_put_att(ncid, nf90_global, &
+                 &   'latitude_of_projection_pole', plat)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error adding global plat'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(ncid, nf90_global, &
+                 &   'longitude_of_projection_pole', plon)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error adding global plon'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+      else if (iproj == 'LAMCON') then
+        trlat(1) = truelatl
+        trlat(2) = truelath
+        istatus = nf90_put_att(ncid, nf90_global, &
+                 &   'standard_parallel', trlat)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error adding global truelat'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+      end if
+      istatus = nf90_def_dim(ncid, 'iy', iy, idims(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating dimension iy'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_dim(ncid, 'jx', jx, idims(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating dimension jx'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating dimension time'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_dim(ncid, 'kz', kz+1, idims(4))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error creating dimension kz'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'sigma', nf90_float, idims(4),   &
+                          &  izvar(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'long_name',      &
+                          &  'Sigma at model layer midpoints')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'units', '1')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma axis attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'positive', 'down')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma positive attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
+                   &         'sigma: sigma ps: ps ptop: ptop')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma formula_terms attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'ptop', nf90_float,         &
+                         &   varid=izvar(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(2), 'standard_name',  &
+                          &  'air_pressure')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(2), 'long_name',      &
+                          &  'Pressure at model top')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), &
+                          &  ivvar(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
+                          &  'projection_y_coordinate')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(1), 'long_name',      &
+                          &  'y-coordinate in Cartesian system')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), &
+                          &  ivvar(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
+                          &  'projection_x_coordinate')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(2), 'long_name',    &
+                          &  'x-coordinate in Cartesian system')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2),  &
+                          &  illvar(1))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(1), 'standard_name', &
+                          &  'latitude')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(1), 'long_name',     &
+                          &  'Latitude at cross points')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(1), 'units',         &
+                          &  'degrees_north')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2),  &
+                          &  illvar(2))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(2), 'standard_name', &
+                          &  'longitude')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon standard_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(2), 'long_name',     &
+                          &  'Longitude at cross points')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon long_name attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_att(ncid, illvar(2), 'units',         &
+                          &  'degrees_east')
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3),  &
+                          &  ivar)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable time definition in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
+      irefdate = globidate1
+      call split_idate(irefdate, iyr , imo , idy , ihr)
+      irefdate = imonmiddle(mkidate(iyr, 1, 1, 0))
+      call split_idate(irefdate, iyr , imo , idy , ihr)
+      write (csdate, '(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') iyr, '-', imo, &
+           & '-', idy, ' ', ihr, ':00:00 UTC'
+      istatus = nf90_put_att(ncid, ivar, 'units', &
+                     &   'hours since '//csdate)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable time units attribute'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
+      istatus = nf90_enddef(ncid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error End Definitions NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
+      istatus = nf90_put_var(ncid, izvar(1), sigx)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable sigma write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      hptop = ptop * 10.0
+      istatus = nf90_put_var(ncid, izvar(2), hptop)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable ptop write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      allocate(yiy(iy))
+      allocate(xjx(jx))
+      yiy(1) = -(dble(iy-1)/2.0) * ds
+      xjx(1) = -(dble(jx-1)/2.0) * ds
+      do i = 2 , iy
+        yiy(i) = yiy(i-1)+ds
+      end do
+      do j = 2 , jx
+        xjx(j) = xjx(j-1)+ds
+      end do
+      istatus = nf90_put_var(ncid, ivvar(1), yiy)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable iy write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_var(ncid, ivvar(2), xjx)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable jx write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      deallocate(yiy)
+      deallocate(xjx)
+      istatus = nf90_put_var(ncid, illvar(1), transpose(xlat))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlat write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Variable xlon write in NetCDF output'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
+      ! Pre-allocate a twelve month for monthly vars
+      imondate = irefdate
+      do it = 1 , 12
+        istart1(1) = it
+        icount1(1) = 1
+        xdate(1) = dble(idatediff(imondate,irefdate))
+        istatus = nf90_put_var(ncid, ivar, xdate, istart1, icount1)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable time write in NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        imondate = inextmon(imondate)
+        imondate = imonmiddle(imondate)
+      end do
+
 !     ** determine which files to create (emission factor map or not)
       call comp(ifield,bvoc)
-!abt  added above
  
 !     ** Loop over the fields defined in clm.param
       do ifld = 1 , ifield
@@ -198,18 +605,17 @@
 !       - Soil color and Orography do not have landmasks (must be made)
         if ( ifld==isnd .or. ifld==icly ) then
           allocate(sandclay(ntim(ifld),nlev(ifld)))
+          allocate(mpu(icount(1),icount(2)))
           call readcdfr4(idin,vnam(ifld),lnam(ifld),units(ifld),1,      &
                        & ntim(ifld),1,nlev(ifld),1,1,1,1,sandclay)
           print *, 'Read ', trim(lnam(ifld))
-          call readcdfr4(idin,vnam_lm,lnam(ifld),units(ifld),istart(1), &
+          call readcdfr4(idin,vnam_lm,cdum,cdum,istart(1),              &
                        & icount(1),istart(2),icount(2),1,1,1,1,landmask)
-          print *, 'Read ', trim(lnam(ifld))
-          call readcdfr4(idin,vnam_st,lnam(ifld),units(ifld),istart(1), &
-                       & icount(1),istart(2),icount(2),1,1,1,1,zoom)
-          print *, 'Read ', trim(lnam(ifld))
+          call readcdfr4(idin,vnam_st,cdum,cdum,istart(1),              &
+                       & icount(1),istart(2),icount(2),1,1,1,1,mpu)
           do j = 1 , icount(2)
             do i = 1 , icount(1)
-              imap = nint(zoom(i,j,1,1))
+              imap = nint(mpu(i,j))
               do k = 1 , icount(3)
                 if ( imap>0 .and. landmask(i,j)>0.5 ) then
                   zoom(i,j,k,1) = sandclay(imap,k)
@@ -219,6 +625,8 @@
               end do
             end do
           end do
+          deallocate(mpu)
+          deallocate(sandclay)
           do k = 1 , icount(3)
             zlev(k) = glev_st(k)
           end do
@@ -257,22 +665,24 @@
             end do
           end do
         end if
+
         print * , 'READ/WRITE: ' , vnam(ifld) , lnam(ifld) , units(ifld)
  
 !       ** Set the non-land values to missing for interpolation purposes
+
         if ( ifld/=ioro ) call maskme(landmask,zoom,vmisdat,icount(1),  &
                                     & icount(2),icount(3),icount(4))
  
 !       ** Interpolate data to RegCM3 grid
+
         allocate(regyxzt(iy,jx,nlev(ifld),ntim(ifld)))
         allocate(regxyz(jx,iy,nlev(ifld)))
-        allocate(regxy(jx,iy))
 
         call bilinx4d(zoom,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
                     & xlat,iy,jx,icount(3),icount(4),vmin(ifld),vmisdat)
  
-!       ** Write the interpolated data to NetCDF and direct-access
-!       output
+!       ** Write the interpolated data to NetCDF for CLM and checkfile
+
         do l = 1 , ntim(ifld)
           idatex = 1900000000 + l*10000 + 1500
           call julian(idatex,julnc,iyr,imo,idy,ihr,xhr)
@@ -306,15 +716,11 @@
                    & = float(nint(regyxzt(j,i,k,l)))
                 if ( regyxzt(j,i,k,l)>vmin(ifld) ) then
                   regxyz(i,j,k) = regyxzt(j,i,k,l)
-                  regxy(i,j) = regyxzt(j,i,k,l)
                 else
                   regxyz(i,j,k) = 0
-                  regxy(i,j) = 0
                 end if
               end do
             end do
-            irec = irec + 1
-            write (iunout,rec=irec) regxy
           end do
  
           call writecdf(idout,vnam(ifld),regxyz,jx,iy,nlev(ifld),iadim, &
@@ -322,6 +728,132 @@
                       & varmax,xlat1d,xlon1d,zlev,0,vmisdat,jotyp)
         end do
  
+        istatus = nf90_redef(ncid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Redef in file ', trim(checkfile)
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+
+        if (nlev(ifld) > 1) then
+          ldim = -1
+          do iz = 1 , 8
+            if (ilevs(iz) < 0) then
+              ldim = -iz
+              exit
+            end if
+            if (nlev(ifld) == ilevs(iz)) then
+              ldim = iz
+              exit
+            end if
+          end do
+          if (ldim < 0) then
+            ldim = -ldim
+            ilevs(ldim) = nlev(ifld)
+            write (cldim,'(a,i0.3)') 'level_', nlev(ifld)
+            istatus = nf90_def_dim(ncid, cldim, nlev(ifld), idum)
+            if (istatus /= nf90_noerr) then
+              write (6,*) 'Error creating dimension ', trim(cldim)
+              write (6,*) nf90_strerror(istatus)
+              stop
+            end if
+          end if
+        end if
+
+        if (vnam(ifld)(1:8) == 'MONTHLY_') then
+          vnam(ifld) = vnam(ifld)(9:)
+        end if
+
+        if (ntim(ifld) > 1) then
+          if (nlev(ifld) > 1) then
+            ivdims(1) = idims(1)
+            ivdims(2) = idims(2)
+            ivdims(3) = idims(4)+ldim
+            ivdims(4) = idims(3)
+            istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, &
+                                   ivdims, ivar)
+          else
+            ivdims(1) = idims(1)
+            ivdims(2) = idims(2)
+            ivdims(3) = idims(3)
+            istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, &
+                                   ivdims(1:3), ivar)
+          end if
+        else
+          if (nlev(ifld) > 1) then
+            ivdims(1) = idims(1)
+            ivdims(2) = idims(2)
+            ivdims(3) = idims(4)+ldim
+            istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, &
+                               &   ivdims(1:3), ivar)
+          else
+            ivdims(1) = idims(1)
+            ivdims(2) = idims(2)
+            istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, &
+                               &   ivdims(1:2), ivar)
+          end if
+        end if
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error creating variable ', trim(vnam(ifld))
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        idum = len_trim(lnam(ifld))
+        istatus = nf90_put_att(ncid, ivar, 'long_name', &
+                             & lnam(ifld)(1:idum))
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ', trim(vnam(ifld)), &
+                      ' long_name attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        idum = len_trim(units(ifld))
+        istatus = nf90_put_att(ncid, ivar, 'units', & 
+                             & units(ifld)(1:idum))
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ', trim(vnam(ifld)), &
+                      ' units attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(ncid, ivar, '_FillValue', xmiss)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ', trim(vnam(ifld)), &
+                      ' _FillValue attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        istatus = nf90_put_att(ncid, ivar, 'coordinates', &
+                            &  'xlon xlat')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ', trim(vnam(ifld)), &
+                      ' coordinates attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+
+        istatus = nf90_enddef(ncid)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error End Definitions NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+
+        allocate(dumw(jx,iy,nlev(ifld),ntim(ifld)))
+        do j = 1 , iy
+          do i = 1 , jx
+             dumw(i,j,:,:) = regyxzt(j,i,:,:)
+          end do
+        end do
+        istatus = nf90_put_var(ncid, ivar, dumw)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable ', trim(vnam(ifld)), &
+                      ' write in NetCDF output'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+        deallocate(dumw)
+
 !       ** Deallocate variables for next CLM3 field
         deallocate(glon)
         deallocate(glat)
@@ -332,32 +864,23 @@
         deallocate(landmask)
         deallocate(regyxzt)
         deallocate(regxyz)
-        deallocate(regxy)
-        if ( ifld==isnd .or. ifld==icly ) deallocate(sandclay)
  
       end do  ! End nfld loop
 
-      deallocate(xlat)
-      deallocate(xlon)
-      deallocate(xlat1d)
-      deallocate(xlon1d)
-      deallocate(sigx)
- 
-!     ** Make GrADS CTL file
-      outfil_ctl = trim(dirglob)//pthsep//trim(domname)//'_CLM3.CTL'
-      open (iunctl,file=outfil_ctl,status='unknown')
-!     do ifld=1,nfld
-      do ifld = 1 , ifield
-        vnam_o(ifld) = vnam(ifld)
-      end do
-      call makectl(iunctl,domname,jx,iy,npft,ifield,dsx*1000.0,clatx,   &
-                 & clonx,platx,plonx,iprojx,ibigendx,truelatl,truelath, &
-                 & vmisdat,vnam_o,lnam,nlev,ntim,varmin,varmax)
+      call free_domain
+
 !     ** Close files
+
       call clscdf(idin,ierr)
       call clscdf(idout,ierr)
-      close (iunout)
-      close (iunctl)
+
+      istatus = nf90_close(ncid)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error Closing output file ', trim(checkfile)
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+
       print *, 'Successfully completed CLM preprocessing.'
  
       end program clmproc

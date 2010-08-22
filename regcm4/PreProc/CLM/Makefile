@@ -7,10 +7,10 @@ SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
 
 all: clm2rcm
 
-MODOBJ = mod_param_clm.o mod_read_domain.o
+MODOBJ = mod_param_clm.o mod_read_domain.o mod_date.o
 
 CLM2RCMOBJ = clm2rcm.o bilinx4d.o clm3grid1.o clm3grid2.o comp.o \
-             fexist.o julian.o makectl.o maskme.o param.o readcdfr4_360.o \
+             julian.o maskme.o param.o readcdfr4_360.o \
              readcdfr4.o readcdfr4_iso.o xlon360.o nclib.o
 
 SHRMOD = mod_dynparam.o
@@ -38,16 +38,15 @@ clean:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 bilinx4d.o: bilinx4d.f90
-clm2rcm.o: clm2rcm.f90 mod_dynparam.o
+clm2rcm.o: clm2rcm.f90 mod_dynparam.o mod_read_domain.o mod_date.o
 clm3grid1.o: clm3grid1.f90
 clm3grid2.o: clm3grid2.f90
 comp.o: comp.f90
-fexist.o: fexist.f90
 julian.o: julian.f90
-makectl.o: makectl.f90
 maskme.o: maskme.f90
 mod_param_clm.o: mod_param_clm.f90
 mod_read_domain.o: mod_read_domain.f90
+mod_date.o: mod_date.f90
 nclib.o: nclib.f90
 param.o: param.f90
 readcdfr4_360.o: readcdfr4_360.f90
