@@ -145,7 +145,7 @@
       end if
 !
       call init_grid(iy,jx,kz)
-      call init_output(jx,iy,kz)
+      call init_output
 
       nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
 

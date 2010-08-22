@@ -625,7 +625,8 @@
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
 !     G   WRITE AN INITIAL FILE FOR THE RCM
-      call writef(ptop,idate)
+      call writef(idate)
+
       if ( ehso4 ) then
         if ( ssttyp=='EH5RF' ) then
           fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &

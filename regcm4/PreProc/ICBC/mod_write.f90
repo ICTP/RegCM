@@ -19,10 +19,11 @@
 
       module mod_write
 
+      use mod_dynparam
+
       implicit none
 
       integer :: noutrec
-      integer :: iny , jnx , knz
 
       real(4) , allocatable , dimension(:,:) :: ps4 , ts4
       real(4) , allocatable , dimension(:,:,:) :: c4 , h4 , q4
@@ -32,20 +33,16 @@
 
       contains
 
-      subroutine init_output(jx,iy,kz)
+      subroutine init_output
       implicit none
-      integer , intent(in) :: jx , iy , kz
-      iny = iy
-      jnx = jx
-      knz = kz
-      allocate(ps4(jnx,iny))
-      allocate(ts4(jnx,iny))
-      allocate(c4(jnx,iny,knz))
-      allocate(h4(jnx,iny,knz))
-      allocate(q4(jnx,iny,knz))
-      allocate(t4(jnx,iny,knz))
-      allocate(u4(jnx,iny,knz))
-      allocate(v4(jnx,iny,knz))
+      allocate(ps4(jx,iy))
+      allocate(ts4(jx,iy))
+      allocate(c4(jx,iy,kz))
+      allocate(h4(jx,iy,kz))
+      allocate(q4(jx,iy,kz))
+      allocate(t4(jx,iy,kz))
+      allocate(u4(jx,iy,kz))
+      allocate(v4(jx,iy,kz))
       end subroutine init_output
 
       subroutine free_output
@@ -60,14 +57,13 @@
       deallocate(v4)
       end subroutine free_output
 
-      subroutine writef(ptop,idate)
+      subroutine writef(idate)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: idate
-      real(4) :: ptop
-      intent (in) idate , ptop
+      intent (in) idate
 !
 ! Local variables
 !
@@ -77,32 +73,31 @@
 !
 !     PRINT *,'WRITING OUTPUT:  IDATE= ',IDATE
       noutrec = noutrec + 1
-      write (64,rec=noutrec) idate , jnx , iny , knz
-      do k = knz , 1 , -1
+      write (64,rec=noutrec) idate , jx , iy , kz
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((u4(i,j,k),i=1,jnx),j=1,iny)
+        write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = knz , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((v4(i,j,k),i=1,jnx),j=1,iny)
+        write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = knz , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((t4(i,j,k),i=1,jnx),j=1,iny)
+        write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,iy)
       end do
-      do k = knz , 1 , -1
+      do k = kz , 1 , -1
         noutrec = noutrec + 1
-        write (64,rec=noutrec) ((q4(i,j,k),i=1,jnx),j=1,iny)
+        write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,iy)
       end do
       noutrec = noutrec + 1
-      write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jnx),j=1,iny)
+      write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jx),j=1,iy)
       noutrec = noutrec + 1
       write (64,rec=noutrec) ts4
 !
       end subroutine writef
 
       subroutine gradsctl(finame,idate,inumber)
-      use mod_dynparam
       use mod_grid
       implicit none
 !

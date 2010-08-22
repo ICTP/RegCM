@@ -322,7 +322,7 @@
         call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,               &
                &     dsigma,jx,iy,kz)
  
-        call writef(ptop,idate)
+        call writef(idate)
 
         deallocate(work)
       end subroutine get_cam42
@@ -939,7 +939,7 @@
  
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
  
-      call writef(ptop,idate)
+      call writef(idate)
  
       deallocate(work)
       end subroutine get_cam85
