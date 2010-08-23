@@ -1330,7 +1330,7 @@
 #else
       if ( .not.ifrest ) then
         write (aline, *) 'Reading in DOMAIN data'
-        call (say)
+        call say
         istatus = nf90_inq_varid(iutin, "topo", ivarid)
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error topo variable undefined'
@@ -1349,7 +1349,7 @@
           end do
         end do
         if ( nsg.gt.1 ) then
-          istatus = nf90_inq_varid(iutini1, "topo", ivarid)
+          istatus = nf90_inq_varid(iutin1, "topo", ivarid)
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error topo variable undefined'
             write (6,*) nf90_strerror(istatus)
