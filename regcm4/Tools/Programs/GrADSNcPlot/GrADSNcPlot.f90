@@ -443,6 +443,7 @@ program ncplot
     end if
   end do
 
+  write (11, '(a)') 'vectorpairs u,v u10,v10'
   write (11, '(a,i4)') 'vars ', totvars
 
   do i = 1 , nvars
@@ -506,11 +507,19 @@ program ncplot
         write (6,*) nf90_strerror(istatus)
         stop
       end if
-      do j = 1 , isplit
-        write (11, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
-                              j, trim(varname), ' 0 ', j-1, ',y,x ',   &
-                              trim(vardesc) , ' (', trim(varunit), ')'
-      end do
+      if (idimid == 3) then
+        do j = 1 , isplit
+          write (11, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+                                j, trim(varname), ' 0 ', j-1, ',y,x ',   &
+                                trim(vardesc) , ' (', trim(varunit), ')'
+        end do
+      else if (idimid == 4) then
+        do j = 1 , isplit
+          write (11, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+                                j, trim(varname), ' 0 t,', j-1, ',y,x ',   &
+                                trim(vardesc) , ' (', trim(varunit), ')'
+        end do
+      end if
     else
       cycle
     end if

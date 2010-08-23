@@ -125,7 +125,7 @@ module mod_projections
     real(4) , intent(out) :: alpha
     real(4) :: deltalon
 
-    deltalon = lon - stdlon
+    deltalon = stdlon - lon
     if (deltalon > +180.) deltalon = deltalon - 360.0
     if (deltalon < -180.) deltalon = deltalon + 360.0
     alpha = deltalon*degrad*conefac
@@ -198,7 +198,7 @@ module mod_projections
     real(4) , intent(out) :: alpha
     real(4) :: deltalon
 
-    deltalon = lon - stdlon
+    deltalon = stdlon - lon
     if (deltalon > +180.) deltalon = deltalon - 360.0
     if (deltalon < -180.) deltalon = deltalon + 360.0
     alpha = deltalon*degrad*hemi
