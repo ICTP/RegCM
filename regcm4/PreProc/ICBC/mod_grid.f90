@@ -152,6 +152,14 @@
           stop 'Dimension mismatch'
         end if
 
+        istatus = nf90_get_att(incin, NF90_GLOBAL,"grid_factor", &
+                       &       grdfac)
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error reading grid_factor'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
+
         istatus = nf90_inq_varid(incin, "topo", ivarid)
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error topo variable undefined'

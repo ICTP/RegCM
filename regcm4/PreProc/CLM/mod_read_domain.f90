@@ -142,11 +142,6 @@
            nf90_get_att(incin, NF90_GLOBAL,"grid_factor",grdfacx), &
           "Reading","projection")
 
-        !Read grdfacx
-        call handle_nc_err(  &
-           nf90_get_att(incin, NF90_GLOBAL,"grid_factor",grdfacx), &
-          "Reading","projection")
-
         !Read sigx
         call handle_nc_err(  &
           nf90_inq_varid(incin,"sigma",ivarid), &

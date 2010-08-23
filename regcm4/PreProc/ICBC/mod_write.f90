@@ -858,6 +858,7 @@
             stop
           end if
         end if
+        itime = itime + 1
 
         noutrec = noutrec + 1
         write (64,rec=noutrec) idate , jx , iy , kz

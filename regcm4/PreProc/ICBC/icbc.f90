@@ -191,6 +191,7 @@
         call split_idate(idate, iyr, imon, iday, ihr)
 
         if ( nnn == 1 .or. .not. lsame_month(idate, iodate) ) then
+          call newfile(idate)
           write (finame,99001) trim(dirglob), pthsep, trim(domname),    &
               '_ICBC.', idate
           if ( nnn>1 ) then
