@@ -33,7 +33,6 @@
       real(4) , allocatable , target , dimension(:,:,:) :: d3
       real(4) , allocatable , dimension(:,:,:) :: sulfate3
       real(4) , allocatable , dimension(:,:) :: pso4_3
-      real(4) , allocatable , dimension(:,:,:) :: sulfate4
 
       real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
       real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -624,9 +623,6 @@
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-!     G   WRITE AN INITIAL FILE FOR THE RCM
-      call writef(idate)
-
       if ( ehso4 ) then
         if ( ssttyp=='EH5RF' ) then
           fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
@@ -1174,11 +1170,10 @@
           end do
         end do
 !
-        do k = kz , 1 , -1
-          noutrec = noutrec + 1
-          write (64,rec=noutrec) ((sulfate4(j,i,k),j=1,jx),i=1,iy)
-        end do
       end if
+
+      call writef(idate)
+
       end subroutine geteh5om
 
       subroutine headermpi(ehso4)
@@ -1489,7 +1484,6 @@
       allocate(d3(jx,iy,klev*2))
       allocate(sulfate3(jx,iy,mlev))
       allocate(pso4_3(jx,iy))
-      allocate(sulfate4(jx,iy,kz))
 
 !     Set up pointers
 
