@@ -343,6 +343,13 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
+        istatus = nf90_put_att(ncid, izvar(1), 'standard_name',       &
+                            &  'atmosphere_sigma_coordinate')
+        if (istatus /= nf90_noerr) then
+          write (6,*) 'Error Variable sigma standard_name attribute'
+          write (6,*) nf90_strerror(istatus)
+          stop
+        end if
         istatus = nf90_put_att(ncid, izvar(1), 'long_name',      &
                             &  'Sigma at model layer midpoints')
         if (istatus /= nf90_noerr) then
