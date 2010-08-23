@@ -788,6 +788,35 @@
         integer , dimension(4) :: istart , icount
         real(8) , dimension(1) :: xdate
 !
+        noutrec = noutrec + 1
+        write (64,rec=noutrec) idate , jx , iy , kz
+        do k = kz , 1 , -1
+          noutrec = noutrec + 1
+          write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,iy)
+        end do
+        do k = kz , 1 , -1
+          noutrec = noutrec + 1
+          write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,iy)
+        end do
+        do k = kz , 1 , -1
+          noutrec = noutrec + 1
+          write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,iy)
+        end do
+        do k = kz , 1 , -1
+          noutrec = noutrec + 1
+          write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,iy)
+        end do
+        noutrec = noutrec + 1
+        write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jx),j=1,iy)
+        noutrec = noutrec + 1
+        write (64,rec=noutrec) ts4
+        if ( dattyp=='EH5OM' .and. ehso4) then
+          do k = kz , 1 , -1
+            noutrec = noutrec + 1
+            write (64,rec=noutrec) ((sulfate4(j,i,k),j=1,jx),i=1,iy)
+          end do
+        end if
+!
         istart1(1) = itime
         icount1(1) = 1
         xdate(1) = dble(idatediff(idate,irefdate))
@@ -803,6 +832,7 @@
         icount(3) = 1
         icount(2) = iy
         icount(1) = jx
+        ps4 = (ps4+ptop)*10.0
         istatus = nf90_put_var(ncid, ivar(2), ps4, istart(1:3), &
                                icount(1:3))
         if (istatus /= nf90_noerr) then
@@ -859,35 +889,6 @@
           end if
         end if
         itime = itime + 1
-
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) idate , jx , iy , kz
-        do k = kz , 1 , -1
-          noutrec = noutrec + 1
-          write (64,rec=noutrec) ((u4(i,j,k),i=1,jx),j=1,iy)
-        end do
-        do k = kz , 1 , -1
-          noutrec = noutrec + 1
-          write (64,rec=noutrec) ((v4(i,j,k),i=1,jx),j=1,iy)
-        end do
-        do k = kz , 1 , -1
-          noutrec = noutrec + 1
-          write (64,rec=noutrec) ((t4(i,j,k),i=1,jx),j=1,iy)
-        end do
-        do k = kz , 1 , -1
-          noutrec = noutrec + 1
-          write (64,rec=noutrec) ((q4(i,j,k),i=1,jx),j=1,iy)
-        end do
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ((ps4(i,j)+ptop,i=1,jx),j=1,iy)
-        noutrec = noutrec + 1
-        write (64,rec=noutrec) ts4
-        if ( dattyp=='EH5OM' .and. ehso4) then
-          do k = kz , 1 , -1
-            noutrec = noutrec + 1
-            write (64,rec=noutrec) ((sulfate4(j,i,k),j=1,jx),i=1,iy)
-          end do
-        end if
 !
       end subroutine writef
 
