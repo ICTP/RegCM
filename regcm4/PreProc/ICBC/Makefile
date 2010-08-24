@@ -3,6 +3,8 @@
   
 include ../../Makefile.inc
 
+# CPPFLAGS += -DNETCDF4_HDF5
+
 all: aerosol sst icbc install
 
 AEROSOLOBJ = aerosol.o mod_date.o
@@ -49,6 +51,9 @@ mod_header.o: mod_header.F90
 
 %.o: %.f90
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
+
+%.o: %.F90
+	$(F90) $(CPPFLAGS) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
 
 clean:
 	rm -f *.mod *.o aerosol sst icbc

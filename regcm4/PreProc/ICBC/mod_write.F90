@@ -121,7 +121,12 @@
         write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
                 & iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
 
+#ifdef NETCDF4_HDF5
+        istatus = nf90_create(ofname, ior(nf90_clobber,nf90_hdf5), &
+                              ncid)
+#else
         istatus = nf90_create(ofname, nf90_clobber, ncid)
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error creating NetCDF output ', trim(ofname)
           write (6,*) nf90_strerror(istatus)
@@ -481,8 +486,13 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3),  &
+                            &  ivar(2), deflate_level=9)
+#else
         istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3),  &
                             &  ivar(2))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable ps definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -515,8 +525,13 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(ncid, 'ts', nf90_float, idims(1:3),  &
+                            &  ivar(3), deflate_level=9)
+#else
         istatus = nf90_def_var(ncid, 'ts', nf90_float, idims(1:3),  &
                             &  ivar(3))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable ts definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -549,8 +564,13 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(ncid, 'u', nf90_float, x3ddim,  &
+                            &  ivar(4), deflate_level=9)
+#else
         istatus = nf90_def_var(ncid, 'u', nf90_float, x3ddim,  &
                             &  ivar(4))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable u definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -583,8 +603,13 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(ncid, 'v', nf90_float, x3ddim,  &
+                            &  ivar(5), deflate_level=9)
+#else
         istatus = nf90_def_var(ncid, 'v', nf90_float, x3ddim,  &
                             &  ivar(5))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable v definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -617,8 +642,13 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(ncid, 't', nf90_float, x3ddim,  &
+                            &  ivar(6), deflate_level=9)
+#else
         istatus = nf90_def_var(ncid, 't', nf90_float, x3ddim,  &
                             &  ivar(6))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable t definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -651,8 +681,13 @@
           write (6,*) nf90_strerror(istatus)
           stop
         end if
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var(ncid, 'qv', nf90_float, x3ddim,  &
+                            &  ivar(7), deflate_level=9)
+#else
         istatus = nf90_def_var(ncid, 'qv', nf90_float, x3ddim,  &
                             &  ivar(7))
+#endif
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error Variable qv definition in NetCDF output'
           write (6,*) nf90_strerror(istatus)
@@ -686,8 +721,13 @@
           stop
         end if
         if ( dattyp=='EH5OM' .and. ehso4) then
+#ifdef NETCDF4_HDF5
+          istatus = nf90_def_var(ncid, 'so4', nf90_float, x3ddim, &
+                              &  ivar(8), deflate_level=9)
+#else
           istatus = nf90_def_var(ncid, 'so4', nf90_float, x3ddim, &
                               &  ivar(8))
+#endif
           if (istatus /= nf90_noerr) then
             write (6,*) 'Error Variable so4 definition ', &
                       & 'in NetCDF output'
