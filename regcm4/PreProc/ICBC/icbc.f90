@@ -185,15 +185,13 @@
 
       idate = globidate1
       iodate = idate
+      call newfile(idate)
 
       do nnn = 1 , nsteps
 
         call split_idate(idate, iyr, imon, iday, ihr)
 
         if ( nnn == 1 .or. .not. lsame_month(idate, iodate) ) then
-          call newfile(idate)
-          write (finame,99001) trim(dirglob), pthsep, trim(domname),    &
-              '_ICBC.', idate
           if ( nnn>1 ) then
             if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
               call getncep(idate)
@@ -222,15 +220,18 @@
             else
             end if
           end if
+          write (finame,99001) trim(dirglob), pthsep, trim(domname),    &
+              '_ICBC.', idate
           if ( lsame_month(idate, globidate2) ) then
-            inmber = idatediff(globidate2, idate)
+            inmber = idatediff(globidate2, idate)/ibdyfrq + 1
           else
-            inmber = mdays(iyr, imon) * 24
+            inmber = (mdays(iyr, imon)*24)/ibdyfrq + 1
           end if
           if ( igrads==1 ) call gradsctl(finame,idate,inmber)
           call fexist(finame)
           open (64,file=finame,form='unformatted',status='replace',     &
               & recl=jx*iy*ibyte,access='direct')
+          call newfile(idate)
           ifile = ifile + 1
           noutrec = 0
         end if
