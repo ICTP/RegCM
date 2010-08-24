@@ -45,7 +45,7 @@ mod_comctl.o     mod_param3.o     mod_tracer.o     mod_comozp.o      \
 mod_when.o       mod_pmoist.o     mod_trachem.o                      \
 mod_ictp01.o     mod_iunits.o     mod_pbldim.o     mod_lake.o        \
 mod_zengocn.o    mod_aero_sett_ddep.o mod_isrchf.o     mod_cu_grell.o    \
-mod_cu_kuo.o
+mod_cu_kuo.o     mod_ncio.o
 
 CLMOBJS = \
 initializeMod.o  shr_orb_mod.o    shr_kind_mod.o  clm_varpar.o       \
@@ -171,7 +171,7 @@ mod_cvaria.o: mod_cvaria.F90 mod_dynparam.o
 mod_date.o: mod_date.F90 mod_message.o mod_param1.o mod_dynparam.o
 mod_diagnosis.o: mod_diagnosis.f90 mod_dynparam.o
 mod_dust.o: mod_dust.F90 mod_trachem.o mod_dynparam.o mod_constants.o \
-            mod_trachem.o mod_iunits.o
+            mod_trachem.o mod_iunits.o mod_ncio.o
 mod_ictp01.o: mod_ictp01.F90 mod_dynparam.o
 mod_iunits.o: mod_iunits.F90 mod_bats.o mod_date.o mod_mainchem.o \
               mod_outrad.o mod_param1.o mod_param2.o mod_dynparam.o
@@ -182,6 +182,7 @@ mod_main.o: mod_main.F90 mod_dynparam.o
 mod_mainchem.o: mod_mainchem.F90 mod_dynparam.o
 mod_message.o: mod_message.F90 mod_dynparam.o
 mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_dust.o
+mod_ncio.o: mod_ncio.F90 mod_dynparam.o mod_message.o mod_constants.o
 mod_o3blk.o: mod_o3blk.F90 mod_dynparam.o mod_main.o mod_param3.o mod_rad.o
 mod_outrad.o: mod_outrad.F90 mod_dynparam.o
 mod_outprt.o: mod_outprt.F90 mod_bdycod.o mod_constants.o mod_date.o \
@@ -329,7 +330,8 @@ outtap0.o: outtap0.F90 mod_constants.o mod_bats.o mod_date.o \
 param.o: param.F90 mod_constants.o mod_bats.o mod_cu_em.o mod_date.o \
          mod_iunits.o mod_main.o mod_message.o mod_param1.o mod_o3blk.o \
          mod_param2.o mod_param3.o mod_pmoist.o mod_dynparam.o mod_trachem.o \
-         mod_cu_bm.o mod_split.o mod_outrad.o mod_blh_tmp.o mod_aero_sett_ddep.o \
+         mod_cu_bm.o mod_split.o mod_outrad.o mod_blh_tmp.o \
+         mod_aero_sett_ddep.o mod_ncio.o \
          mod_aerosol.o mod_radbuf.o mod_bxq.o mod_bdycod.o mod_tmpsav.o
 pcp.o: pcp.f90 mod_bats.o mod_constants.o mod_cvaria.o mod_date.o mod_main.o \
        mod_param1.o mod_param2.o mod_param3.o mod_pmoist.o mod_dynparam.o \
@@ -362,11 +364,11 @@ radtap.o: radtap.F90 mod_date.o mod_iunits.o mod_outrad.o mod_param1.o \
 radtpl.o: radtpl.f90 mod_dynparam.o mod_constants.o
 ifeq ($(USECLM),1)
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
-         mod_param3.o mod_dynparam.o $(CLMLIB)
+         mod_param3.o mod_dynparam.o mod_ncio.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_param1.o mod_param2.o \
-         mod_param3.o mod_dynparam.o
+         mod_param3.o mod_dynparam.o mod_ncio.o
 endif
 reorder.o: reorder.f90
 satur.o: satur.f90 mod_constants.o mod_bats.o mod_ictp01.o mod_dynparam.o

@@ -25,6 +25,7 @@
       use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : r8pt , sigma
       use mod_message , only : aline , say
+      use mod_ncio , only : static_path_prepare
 #ifdef MPP1
       use mpi
       use mod_message , only : fatal
@@ -192,6 +193,7 @@
         write ( 6, * ) 'Check argument and namelist syntax'
         stop
       end if
+      call static_path_prepare
 
 #ifdef MPP1
       end if

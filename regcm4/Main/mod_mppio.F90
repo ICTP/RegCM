@@ -47,6 +47,7 @@
            & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io
 
       real(8) , pointer , dimension(:,:,:) :: ht1_io , satbrt1_io ,     &
+                                         &    xlat1_io , xlon1_io ,     &
                                          &    snowc_io
 !
       real(8) , pointer , dimension(:,:) :: flw2d_io , flwd2d_io ,      &
@@ -181,10 +182,12 @@
       tgb2d_io  => spacesubm1(:,:,:,19)
       tlef2d_io => spacesubm1(:,:,:,20)
       veg2d1_io => spacesubm1(:,:,:,21)
-      allocate(spacesub(nnsg,iy,jx,3))
+      allocate(spacesub(nnsg,iy,jx,5))
       ht1_io     => spacesub(:,:,:,1)
       satbrt1_io => spacesub(:,:,:,2)
       snowc_io   => spacesub(:,:,:,3)
+      xlat1_io   => spacesub(:,:,:,4)
+      xlon1_io   => spacesub(:,:,:,5)
 #ifdef BAND
       allocate(spacebat(iym1,jx,16))
 #else

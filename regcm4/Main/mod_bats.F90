@@ -82,7 +82,8 @@
            & emiss2d , evpa2d , gwet2d , ircp2d , ocld2d , rno2d ,      &
            & rnos2d , sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , &
            & swt2d , taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
-      real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1
+      real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1 , xlat1 , &
+                                             &  xlon1
 !
       real(4) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o ,  &
                                      & flwd_o , fswa_o , prcv_o ,       &
@@ -185,6 +186,8 @@
         allocate(veg2d1(nnsg,iym1,jxp))
         allocate(ht1(nnsg,iy,jxp))
         allocate(satbrt1(nnsg,iy,jxp))
+        allocate(xlat1(nnsg,iy,jxp))
+        allocate(xlon1(nnsg,iy,jxp))
         allocate(fbat(jxp,iym2,numbat))
         allocate(fsub(nnsg,jxp,iym2,numsub))
 #ifdef CLM

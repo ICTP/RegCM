@@ -335,9 +335,9 @@
       end subroutine gradsbat
 !
       subroutine gradssub(datname)
-      use netcdf
       use mod_dynparam
       use mod_message , only : fatal
+      use mod_bats
       use mod_date
       use mod_param1
       use mod_param2
@@ -360,8 +360,7 @@
       character(2) , dimension(31) :: cday
       character(3) , dimension(12) :: cmonth
       integer :: i , ifrq , j , jbend , mnend , month , myear , nbase , &
-               & mday , mhour , nnumb , nx , ny , ncid , ivarid ,       &
-               & istatus
+               & mday , mhour , nnumb , nx , ny , ii , jj , n
       real(4) , dimension(jxsg,iysg) :: xlat_s , xlon_s
 !
       data cday/'01' , '02' , '03' , '04' , '05' , '06' , '07' , '08' , &
@@ -383,6 +382,25 @@
       centerj = (jxm2)/2.
 #endif
       centeri = (iym2)/2.
+
+      do j = 1 , jxsg
+        do i = 1 , iysg
+          jj = mod(j,nsg)
+          if ( jj.eq.0 ) jj = nsg
+          ii = mod(i,nsg)
+          if ( ii.eq.0 ) ii = nsg
+          n = (jj-1)*nsg + ii
+          jj = (j+nsg-1)/nsg
+          ii = (i+nsg-1)/nsg
+#ifdef MPP1
+          xlon_s(j,i) = xlon1_io(n,ii,jj)
+          xlat_s(j,i) = xlat1_io(n,ii,jj)
+#else
+          xlon_s(j,i) = xlon1(n,ii,jj)
+          xlat_s(j,i) = xlat1(n,ii,jj)
+#endif
+        end do
+      end do
 
       open (31,file=datname//'.ctl',status='replace')
       write (31,99001) trim(datname)
@@ -486,93 +504,19 @@
                                         !
         else if ( iproj.eq.'NORMER' ) then
 #ifdef MPP1
-          call insubdom
-          istatus = nf90_open(ffin, nf90_nowrite, ncid)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error Opening SubDomain file ', trim(ffin)
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'CANNOT OPEN SUBDOMAIN FILE')
-          end if
-          istatus = nf90_inq_varid(ncid, "xlat", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xlat variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
-          istatus = nf90_get_var(ncid, ivarid, xlat_s)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xlat variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
-          istatus = nf90_inq_varid(ncid, "xlon", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xlon variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
-          istatus = nf90_get_var(ncid, ivarid, xlon_s)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xlon variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
-          istatus = nf90_close(ncid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error closing file ', trim(ffin)
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
 #ifdef BAND
-          write (31,99009) jxsg , xlon_s(nsg,nsg) ,                &
+          write (31,99009) jxsg , xlon_s(nsg,nsg) ,   &
 #else
-          write (31,99009) jxm2sg , xlon_s(nsg,nsg) ,                &
+          write (31,99009) jxm2sg , xlon_s(nsg,nsg) , &
 #endif
                          & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
           write (31,99010) iym2sg
           write (31,99011) (xlat_s(nsg+1,i),i=nsg+1,iym1sg)
 #else
-          call insubdom
-          istatus = nf90_open(ffin, nf90_nowrite, ncid)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error Opening SubDomain file ', trim(ffin)
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'CANNOT OPEN SUBDOMAIN FILE')
-          end if
-          istatus = nf90_inq_varid(ncid, "xlat", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xlat variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
-          istatus = nf90_get_var(ncid, ivarid, xlat_s)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xlat variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
-          istatus = nf90_inq_varid(ncid, "xlon", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xlon variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
-          istatus = nf90_get_var(ncid, ivarid, xlon_s)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xlon variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
-          istatus = nf90_close(ncid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error closing file ', trim(ffin)
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
 #ifdef BAND
-          write (31,99009) jxsg , xlon_s(nsg,nsg) ,                   &
+          write (31,99009) jxsg , xlon_s(nsg,nsg) ,   &
 #else
-          write (31,99009) jxm2sg , xlon_s(nsg,nsg) ,                   &
+          write (31,99009) jxm2sg , xlon_s(nsg,nsg) , &
 #endif
                          & xlon_s(nsg+1,nsg) - xlon_s(nsg,nsg)
           write (31,99010) iym2sg
