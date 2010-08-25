@@ -458,7 +458,8 @@
           svegfrac2d = 0.0
         end if
 #else
-        call read_icbc(mdatez(nnnchk),ps0,ts0,ub0,vb0,tb0,qb0,so0)
+        ndate0 = mdatez(nnnchk)
+        call read_icbc(ndate0,ps0,ts0,ub0,vb0,tb0,qb0,so0)
 !
 !       Convert surface pressure to pstar
 !
