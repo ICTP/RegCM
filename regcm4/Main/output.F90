@@ -2017,7 +2017,8 @@
  
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
         call outtap0
-        call gradsctl('OUT_HEAD.CTL')
+        call outheadname
+        call gradsctl(trim(ffout))
       end if
  
 !

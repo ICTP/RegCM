@@ -25,7 +25,7 @@
       use mod_param2 , only : ichem , ifrest , rfstrt
       use mod_param3 , only : r8pt , sigma
       use mod_message , only : aline , say
-      use mod_ncio , only : static_path_prepare
+      use mod_ncio , only : static_path_prepare , close_icbc
 #ifdef MPP1
       use mpi
       use mod_message , only : fatal
@@ -348,6 +348,7 @@
 !
 !     Simulation completed
 !
+      call close_icbc
       write (aline, 99002) xtime , ktau , jyear
       call say
 !

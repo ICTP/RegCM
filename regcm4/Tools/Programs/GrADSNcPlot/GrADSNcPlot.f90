@@ -443,7 +443,7 @@ program ncplot
     end if
   end do
 
-  write (11, '(a)') 'vectorpairs u,v u10,v10'
+  write (11, '(a)') 'vectorpairs u,v u10m,v10m'
   write (11, '(a,i4)') 'vars ', totvars
 
   do i = 1 , nvars

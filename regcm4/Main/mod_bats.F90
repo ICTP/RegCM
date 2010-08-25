@@ -1011,12 +1011,16 @@
                 ssw_o(j,i-1) = ssw_o(j,i-1) + ssw1d(n,i)
                 rsw_o(j,i-1) = rsw_o(j,i-1) + rsw1d(n,i)
                 rnos_o(j,i-1) = rnos_o(j,i-1) + rnos2d(n,i,j)
-                scv_o(j,i-1) = scv_o(j,i-1) + scv1d(n,i)
+                if (abs(scv1d(n,i)) > 1E-30) then
+                  scv_o(j,i-1) = scv_o(j,i-1) + scv1d(n,i)
+                end if
                 tlef_s(n,j,i-1) = tlef1d(n,i)
                 ssw_s(n,j,i-1) = ssw1d(n,i)
                 rsw_s(n,j,i-1) = rsw1d(n,i)
                 rnos_s(n,j,i-1) = rnos2d(n,i,j)*mmpd
-                scv_s(n,j,i-1) = scv1d(n,i)
+                if (abs(scv1d(n,i)) > 1E-30) then
+                  scv_s(n,j,i-1) = scv1d(n,i)
+                end if
                 nnn = nnn + 1
               else
                 tlef_s(n,j,i-1) = -1.E34
@@ -1184,12 +1188,16 @@
                 ssw_o(j-1,i-1) = ssw_o(j-1,i-1) + ssw1d(n,i)
                 rsw_o(j-1,i-1) = rsw_o(j-1,i-1) + rsw1d(n,i)
                 rnos_o(j-1,i-1) = rnos_o(j-1,i-1) + rnos2d(n,i,j)
-                scv_o(j-1,i-1) = scv_o(j-1,i-1) + scv1d(n,i)
+                if (abs(scv1d(n,i)) > 1E-34) then
+                  scv_o(j-1,i-1) = scv_o(j-1,i-1) + scv1d(n,i)
+                end if
                 tlef_s(n,j-1,i-1) = tlef1d(n,i)
                 ssw_s(n,j-1,i-1) = ssw1d(n,i)
                 rsw_s(n,j-1,i-1) = rsw1d(n,i)
                 rnos_s(n,j-1,i-1) = rnos2d(n,i,j)*mmpd
-                scv_s(n,j-1,i-1) = scv1d(n,i)
+                if (abs(scv1d(n,i)) > 1E-34) then
+                  scv_s(n,j-1,i-1) = scv1d(n,i)
+                end if
                 nnn = nnn + 1
               else
                 tlef_s(n,j-1,i-1) = -1.E34

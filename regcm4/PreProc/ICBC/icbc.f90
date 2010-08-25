@@ -115,12 +115,10 @@
 !
 ! Local variables
 !
-      integer :: idate , iday , ifile , imon , iyr , ihr , nnn ,&
-               & inmber , iodate
+      integer :: idate , iday , imon , iyr , ihr , nnn , iodate
       integer :: nsteps
       integer :: ierr
       character(256) :: namelistfile, prgname
-      character(256) :: finame
 !
       call header(0)
 !
@@ -181,8 +179,6 @@
         stop
       end if
  
-      ifile = 101
-
       idate = globidate1
       iodate = idate
       call newfile(idate)
@@ -220,20 +216,7 @@
             else
             end if
           end if
-          write (finame,99001) trim(dirglob), pthsep, trim(domname),    &
-              '_ICBC.', idate
-          if ( lsame_month(idate, globidate2) ) then
-            inmber = idatediff(globidate2, idate)/ibdyfrq + 1
-          else
-            inmber = (mdays(iyr, imon)*24)/ibdyfrq + 1
-          end if
-          if ( igrads==1 ) call gradsctl(finame,idate,inmber)
-          call fexist(finame)
-          open (64,file=finame,form='unformatted',status='replace',     &
-              & recl=jx*iy*ibyte,access='direct')
           call newfile(idate)
-          ifile = ifile + 1
-          noutrec = 0
         end if
         if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
           call getncep(idate)
@@ -276,5 +259,4 @@
 
       stop
 
-99001 format (a,a,a,a,i10)
       end program icbc

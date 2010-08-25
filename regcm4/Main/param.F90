@@ -196,16 +196,12 @@
 !----------------------------------------------------------------------
 !-----specify unit numbers for input/output.
 !     units 10,101,14  are input.
-!     iutbc : input slab temperature for large domain ,
-!     boundary values and tendencies for large doamin.
 !     iutrs : input saved file for large domain for restart from
 !     previous forecast.
 !     iutdat: output for dataflow, if iftape=.true.
 !     iutsav: output saved file for restart, if ifsave=.true. or
 !
       qdcrit = 3.0E-7                      ! real*4 for compact input
-      iutbc = 101
-!_sgi iutbc = 71
       iutrs = 14
 !**   initialize output file unit number
       iutdat = 50
@@ -728,11 +724,11 @@
       if ( myid.eq.0 ) then
 #endif              
         call open_domain(r8pt,dx,sigma)
-        print * , 'param: DIMS' , iy , jx , kz
-        print * , 'param: DOMAIN' , ds , clat , clon
-        print * , 'param: PROJ' , iproj
-        print * , 'param: SIGMA' , sigma
-        print * , 'param: PTOP' , r8pt
+        print * , 'param: DIMS   : ' , iy , jx , kz
+        print * , 'param: PROJ   : ' , iproj
+        print * , 'param: DOMAIN : ' , ds , clat , clon
+        print * , 'param: PTOP   : ' , r8pt
+        print * , 'param: SIGMA  : ' , sigma
 #ifdef MPP1        
       end if
       call mpi_bcast(clat,1,mpi_real,0,mpi_comm_world,ierr)

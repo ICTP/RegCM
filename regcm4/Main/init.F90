@@ -26,11 +26,10 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
-      use mod_param1 , only : dt , dt2 , dx , ibdyfrq
+      use mod_param1 , only : dt , dt2 , dx
       use mod_param2 , only : ibltyp , ichem , icup , iemiss , ifrest , &
                    & iocnflx , ipptls , lakemod , icnt
       use mod_param3 , only : a , dsigma , r8pt
-      use mod_iunits
       use mod_bats , only : ssw2da , sdeltk2d , sdelqk2d , sfracv2d ,   &
                    & sfracb2d , sfracs2d , svegfrac2d , ht1 , satbrt1 , &
                    & taf2d , tlef2d , ssw2d , srw2d , sol2d , solvd2d , &
@@ -42,6 +41,7 @@
                    & tgmx_o , w10x_o , albvgl , albvgs
       use mod_pmoist
       use mod_main
+      use mod_iunits
       use mod_mainchem
       use mod_bdycod
       use mod_rad
@@ -54,6 +54,7 @@
       use mod_radbuf
       use mod_tmpsav
       use mod_constants , only : rgti
+      use mod_ncio , only : open_icbc , read_icbc
 #ifdef DIAG
 #ifndef BAND
       use mod_diagnosis
@@ -82,13 +83,11 @@
 !-----dimension the arrays for parameterizing the sfc. variables.
 !     change the variable surface parameters
 !
-      integer :: depth , freeze , i , ibdydiff , ibdyhr0 , nxxx , nyyy ,&
-               & ibdyhr1 , ibin , ilake , im1h , ip1h , ist , jlake ,   &
-               & itr , j , k , kzzz , n
+      integer :: depth , freeze , i , ibin , ilake , im1h , ip1h , ist ,&
+               & jlake , itr , j , k , n , icbc_date
       real(8) :: eta , hg1 , hg2 , hg3 , hg4 , hgmax , hi , hii , hs ,  &
                & tlp , ts00
       integer :: jp1 , jm1
-      real(4) , dimension(iy,jx) :: io2d
 #ifdef MPP1
       real(8) , dimension(iy,jxp) :: psdot
       integer :: allrec , ierr , l
@@ -165,41 +164,21 @@
         if (ndate0.eq.globidate1 .or.                                   &
            (((ndate0/10000)*100+1)*100 .eq.                             &
            ((globidate1/10000)*100+1)*100 ) ) then
-          call inname('ICBC',globidate1)
+          icbc_date = globidate1
         else
-          call inname('ICBC',((ndate0/10000)*100+1)*100)
+          icbc_date = ((ndate0/10000)*100+1)*100
         end if
-        inquire (file=ffin,exist=existing)
-        if (.not.existing) then
-          write (aline,*) 'The following ICBC File does not exist: ' ,  &
-              &            trim(ffin), 'please check location'
-          call say
-          call fatal(__FILE__,__LINE__, 'ICBC FILE NOT FOUND')
-        else
-          open (iutbc,file=ffin,form='unformatted',status='old',        &
-          &     access='direct',recl=iy*jx*ibyte)
-        end if  
-        mmrec = 0
+        call open_icbc(icbc_date)
       end if
 #else
-      if (ndate0.eq.globidate1 .or.                                     &
-         (((ndate0/10000)*100+1)*100 .eq.                               &
+      if (ndate0.eq.globidate1 .or.                                   &
+         (((ndate0/10000)*100+1)*100 .eq.                             &
          ((globidate1/10000)*100+1)*100 ) ) then
-        call inname('ICBC',globidate1)
+        icbc_date = globidate1
       else
-        call inname('ICBC',((ndate0/10000)*100+1)*100)
+        icbc_date = ((ndate0/10000)*100+1)*100
       end if
-      inquire(file=ffin,exist=existing)
-        if (.not.existing) then
-          write (aline,*) 'The following IBC File does not exist: ' ,   &
-              &            trim(ffin), 'please check location'
-          call say
-          call fatal(__FILE__,__LINE__,' ICBC FILE NOT FOUND')
-        else 
-           open (iutbc,file=ffin,form='unformatted',status='old',       &
-           &access='direct',recl=iy*jx*ibyte)
-           mmrec = 0
-        end if
+      call open_icbc(icbc_date)
 #endif
 !
       if ( .not.ifrest ) then
@@ -266,114 +245,18 @@
 #ifdef CLM
         if ( .not. allocated(init_tgb) ) allocate(init_tgb(iy,jx))
 #endif
-        do
-          if ( myid.eq.0 ) then
-            mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ndate0 , nxxx , nyyy , kzzz
-            if ( nyyy.ne.iy .or. nxxx.ne.jx .or. kzzz.ne.kz ) then
-              write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' , &
-                            & jx , ' KX=' , kz
-              call say
-              write (aline,*) 'SET IN ICBC: NY=' , nyyy , ' NX=' ,      &
-                            & nxxx , ' NZ=' , kzzz
-              call say
-              call fatal(__FILE__,__LINE__,                             &
-                        &'IMPROPER DIMENSION SPECIFICATION')
-            end if
-            print * , 'READING INITAL CONDITIONS' , ndate0
-            if ( ndate0.lt.mdatez(nnnchk) ) then
-              print * , ndate0 , mdatez(nnnchk) , nnnchk
-              print * , 'read in datasets at :' , ndate0
-              if ( ehso4 ) then
-                mmrec = mmrec + kz*5 + 2
-              else
-                mmrec = mmrec + kz*4 + 2
-              end if
-              print * , 'Searching for proper date: ' , ndate1 ,        &
-                  & mdatez(nnnchk+1)
-              print * , ndate0 , mdatez(nnnchk)
-              cycle ! Proper date not found
-            else if ( ndate0.gt.mdatez(nnnchk) ) then
-              write (aline,*) ndate0 , mdatez(nnnchk)
-              call say
-              call fatal(__FILE__,__LINE__,                             &
-                        &'DATE IN ICBC FILE EXCEEDED DATE IN RegCM')
-            else
-            end if
-          end if
-          exit ! Found proper date
-        end do
-!
         if ( myid.eq.0 ) then
-          print * , 'U'
-          do k = kz , 1 , -1
-            mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-            do j = 1 , jx
-              do i = 1 , iy
-                ub0_io(i,k,j) = dble(io2d(i,j))
-              end do
-            end do
-          end do
-          print * , 'V'
-          do k = kz , 1 , -1
-            mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-            do j = 1 , jx
-              do i = 1 , iy
-                vb0_io(i,k,j) = dble(io2d(i,j))
-              end do
-            end do
-          end do
-          print * , 'TA'
-          do k = kz , 1 , -1
-            mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-            do j = 1 , jx
-              do i = 1 , iy
-                tb0_io(i,k,j) = dble(io2d(i,j))
-              end do
-            end do
-          end do
-          print * , 'QV'
-          do k = kz , 1 , -1
-            mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-            do j = 1 , jx
-              do i = 1 , iy
-                qb0_io(i,k,j) = dble(io2d(i,j))
-              end do
-            end do
-          end do
-          print * , 'PS'
-          mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-          do j = 1 , jx
-            do i = 1 , iy
-              ps0_io(i,j) = dble(io2d(i,j))
-            end do
-          end do
-          print * , 'TS'
-          mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-          do j = 1 , jx
-            do i = 1 , iy
-              ts0_io(i,j) = dble(io2d(i,j))
-            end do
-          end do
-          if ( ehso4 ) then
-            print * , 'SO0'
-            do k = kz , 1 , -1
-              mmrec = mmrec + 1
-              read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-              do j = 1 , jx
-                do i = 1 , iy
-                  so0_io(i,k,j) = dble(io2d(i,j))
-                end do
-              end do
-            end do
-          end if
-
+          ndate0 = mdatez(nnnchk)
+          call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
+                   &     tb0_io,qb0_io,so0_io)
+          ps0_io = ps0_io/10.0
+          print *, ps0_io(1,1)
+          print *, ts0_io(1,1)
+          print *, ub0_io(1,1,1)
+          print *, vb0_io(1,1,1)
+          print *, tb0_io(1,1,1)
+          print *, qb0_io(1,1,1)
+          print *, so0_io(1,1,1)
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -397,14 +280,11 @@
               end do
             end do
           end if
-        end if ! end if myid=0
+        end if
 !
 !       Start transmission of data to other processors
 !
         call mpi_bcast(ndate0,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(nxxx,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(nyyy,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(kzzz,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_scatter(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
                        & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
@@ -494,28 +374,6 @@
             end do
          end do
         end do
-        if ( myid.eq.0 ) then
-          mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ndate1
-          mmrec = mmrec - 1
-          ibdyhr0 = ndate0 - (ndate0/100)*100
-          ibdyhr1 = ndate1 - (ndate1/100)*100
-          if ( ibdyhr1.eq.0 ) ibdyhr1 = 24
-          ibdydiff = ibdyhr1 - ibdyhr0
-          if ( ibdydiff.ne.ibdyfrq ) then
-            write (aline,*) '  ndate0=' , ndate0 , 'ndate1=' , ndate1
-            call say
-            write (aline,*) '  ibdyfrq=' , ibdyfrq , 'ibdydiff=' ,    &
-                          & ibdydiff
-            call say
-            write (aline,*) '  ibdyhr0=' , ibdyhr0 , 'ibdyhr1=' ,     &
-                          & ibdyhr1
-            call say
-            call fatal(__FILE__,__LINE__,                             &
-                      &'BOUNDARY CONDITION FREQUENCY INCOMPATIBILITY')
-          end if
-        end if
-!
         mdate = ndate0
 !
 !       Initialize variables and convert to double precision
@@ -607,118 +465,12 @@
           svegfrac2d = 0.0
         end if
 #else
-        do
-          mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ndate0 , nxxx , nyyy , kzzz
-          if ( nyyy.ne.iy .or. nxxx.ne.jx .or. kzzz.ne.kz ) then
-            write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' ,   &
-                          & jx , ' KX=' , kz
-            call say
-            write (aline,*) 'SET IN ICBC: NY=' , nyyy , ' NX=' , nxxx , &
-                           &' NZ=' , kzzz
-            call say
-            call fatal(__FILE__,__LINE__,                               &
-                      &'IMPROPER DIMENSION SPECIFICATION')
-          end if
-          print * , 'READING INITAL CONDITIONS' , ndate0
-          if ( ndate0.lt.mdatez(nnnchk) ) then
-            print * , ndate0 , mdatez(nnnchk) , nnnchk
-            print * , 'read in datasets at :' , ndate0
-            if ( ehso4 ) then
-              mmrec = mmrec + kz*5 + 2
-            else
-              mmrec = mmrec + kz*4 + 2
-            end if
-            print * , 'Searching for proper date: ' , ndate1 ,          &
-                & mdatez(nnnchk+1)
-            print * , ndate0 , mdatez(nnnchk)
-            cycle ! Proper date still not found
-          else if ( ndate0.gt.mdatez(nnnchk) ) then
-            write (aline,*) ndate0 , mdatez(nnnchk)
-            call say
-            call fatal(__FILE__,__LINE__,                               &
-                      &'DATE IN ICBC FILE EXCEEDED DATE IN RegCM')
-          else
-          end if
-          exit ! Found proper date
-        end do
-!
-        print * , 'U'
-        do k = kz , 1 , -1
-          mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-          do j = 1 , jx
-            do i = 1 , iy
-              ub0(i,k,j) = dble(io2d(i,j))
-            end do
-          end do
-        end do
-        print * , 'V'
-        do k = kz , 1 , -1
-          mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-          do j = 1 , jx
-            do i = 1 , iy
-              vb0(i,k,j) = dble(io2d(i,j))
-            end do
-          end do
-        end do
-        print * , 'TA'
-        do k = kz , 1 , -1
-          mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-          do j = 1 , jx
-            do i = 1 , iy
-              tb0(i,k,j) = dble(io2d(i,j))
-            end do
-          end do
-        end do
-        print * , 'QV'
-        do k = kz , 1 , -1
-          mmrec = mmrec + 1
-          read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-          do j = 1 , jx
-            do i = 1 , iy
-              qb0(i,k,j) = dble(io2d(i,j))
-            end do
-          end do
-        end do
-        print * , 'PS'
-        mmrec = mmrec + 1
-        read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-        do j = 1 , jx
-          do i = 1 , iy
-            ps0(i,j) = dble(io2d(i,j))
-          end do
-        end do
-        print * , 'TS'
-        mmrec = mmrec + 1
-        read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-        do j = 1 , jx
-          do i = 1 , iy
-            ts0(i,j) = dble(io2d(i,j))
-          end do
-        end do
-        if ( ehso4 ) then
-          print * , 'SO0'
-          do k = kz , 1 , -1
-            mmrec = mmrec + 1
-            read (iutbc,rec=mmrec) ((io2d(i,j),j=1,jx),i=1,iy)
-            do j = 1 , jx
-              do i = 1 , iy
-                so0(i,k,j) = dble(io2d(i,j))
-              end do
-            end do
-          end do
-        end if
+        call read_icbc(mdatez(nnnchk),ps0,ts0,ub0,vb0,tb0,qb0,so0)
 !
 !       Convert surface pressure to pstar
 !
-        do j = 1 , jx
-          do i = 1 , iy
-            ps0(i,j) = ps0(i,j) - r8pt
-          end do
-        end do
+        ps0 = ps0/10.0 - r8pt
+
 !=======================================================================
 !
 !       this routine determines p(.) from p(x) by a 4-point
@@ -781,25 +533,6 @@
             end do
           end do
         end do
-        mmrec = mmrec + 1
-        read (iutbc,rec=mmrec) ndate1
-        mmrec = mmrec - 1
-        ibdyhr0 = ndate0 - (ndate0/100)*100
-        ibdyhr1 = ndate1 - (ndate1/100)*100
-        if ( ibdyhr1.eq.0 ) ibdyhr1 = 24
-        ibdydiff = ibdyhr1 - ibdyhr0
-        if ( ibdydiff.ne.ibdyfrq ) then
-          write (aline,*) '  ndate0=' , ndate0 , 'ndate1=' , ndate1
-          call say
-          write (aline,*) '  ibdyfrq=' , ibdyfrq , 'ibdydiff=' ,      &
-                        & ibdydiff
-          call say
-          write (aline,*) '  ibdyhr0=' , ibdyhr0 , 'ibdyhr1=' ,       &
-                        & ibdyhr1
-          call say
-          call fatal(__FILE__,__LINE__,                               &
-                    &'BOUNDARY CONDITION FREQUENCY INCOMPATIBILITY')
-        end if
 !
         mdate = ndate0
 !

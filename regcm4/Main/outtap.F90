@@ -209,9 +209,17 @@
 #else
           do j = 1 , jxm2
 #ifdef MPP1
-            fout(j,i) = qva_io(i+1,k,j+1)/psa_io(i+1,j+1)
+            if (qva_io(i+1,k,j+1) > 1E-30) then
+              fout(j,i) = qva_io(i+1,k,j+1)/psa_io(i+1,j+1)
+            else
+              fout(j,i) = 1E-30
+            end if
 #else
-            fout(j,i) = qva(i+1,k,j+1)/psa(i+1,j+1)
+            if (qva(i+1,k,j+1) > 1E-30) then
+              fout(j,i) = qva(i+1,k,j+1)/psa(i+1,j+1)
+            else
+              fout(j,i) = 1E-30
+            end if
 #endif
 #endif
           end do

@@ -25,7 +25,7 @@
       character(256) :: ffout
       character(256) :: ffin
 !
-      integer :: iutbat , iutbc , iutchem , iutdat , &
+      integer :: iutbat , iutchem , iutdat , &
                & iutlak , iutopt , iutrad , iutrs , iutsav ,   &
                & iutsub , mindisp
 !

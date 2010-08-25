@@ -165,20 +165,32 @@
 #ifdef MPP1
               frad3d(jslc,i-1,k,1) = h2ommr(i,k)
               frad3d(jslc,i-1,k,2) = cld(i,k)
-              frad3d(jslc,i-1,k,3) = clwp(i,k)
+              if (clwp(i,k) > 1E-30) then
+                frad3d(jslc,i-1,k,3) = clwp(i,k)
+              else
+                frad3d(jslc,i-1,k,3) = 1E-30
+              end if
               frad3d(jslc,i-1,k,4) = qrs(i,k)
               frad3d(jslc,i-1,k,5) = qrl(i,k)
 #else
 #ifdef BAND
               frad3d(jslc,i-1,k,1) = h2ommr(i,k)
               frad3d(jslc,i-1,k,2) = cld(i,k)
-              frad3d(jslc,i-1,k,3) = clwp(i,k)
+              if (clwp(i,k) > 1E-30) then
+                frad3d(jslc,i-1,k,3) = clwp(i,k)
+              else
+                frad3d(jslc,i-1,k,3) = 1E-30
+              end if
               frad3d(jslc,i-1,k,4) = qrs(i,k)
               frad3d(jslc,i-1,k,5) = qrl(i,k)
 #else
               frad3d(jslc-1,i-1,k,1) = h2ommr(i,k)
               frad3d(jslc-1,i-1,k,2) = cld(i,k)
-              frad3d(jslc-1,i-1,k,3) = clwp(i,k)
+              if (clwp(i,k) > 1E-30) then
+                frad3d(jslc-1,i-1,k,3) = clwp(i,k)
+              else
+                frad3d(jslc-1,i-1,k,3) = 1E-30
+              end if
               frad3d(jslc-1,i-1,k,4) = qrs(i,k)
               frad3d(jslc-1,i-1,k,5) = qrl(i,k)
 #endif

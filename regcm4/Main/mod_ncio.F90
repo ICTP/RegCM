@@ -19,17 +19,25 @@
 !
       module mod_ncio
 
-        use mod_dynparam
-
-        integer , private :: iutin , iutin1
-        character(256) , private :: dname , sdname , aername
+        integer , private :: iutin , iutin1 , ibcin
+        integer , private :: istatus
+        integer , private :: icbcrec , icbcnrec
+        character(256) , private :: dname , sdname , aername , icbcname
+        integer , dimension(:) , allocatable , private :: icbc_idate
+        integer , dimension(7) , private :: icbc_ivar
+        logical , private :: lso4p
 
         data iutin  /-1/
         data iutin1 /-1/
+        data ibcin  /-1/
+        data icbcrec /1/
+        data icbcnrec /0/
+        data lso4p /.false./
 
       contains
 
         subroutine static_path_prepare
+          use mod_dynparam
           implicit none
           character(3) :: sbstring
           dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
@@ -37,10 +45,12 @@
           sdname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'// &
               &    sbstring//'.nc'
           aername = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
+          icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'// &
+              &      'YYYYMMDDHH.nc'
         end subroutine static_path_prepare
 
         subroutine open_domain(r8pt , dx , sigma)
-
+          use mod_dynparam
           use mod_message
           use netcdf
           implicit none
@@ -49,7 +59,6 @@
           real(8) , intent(out) :: r8pt
           real(8) , dimension(kzp1) :: sigma
 
-          integer :: istatus
           integer :: ivarid , idimid
           integer :: iyy , jxx , kzz
           character(6) :: proj
@@ -152,11 +161,13 @@
 !         Consistency Check
 !
           if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kzp1 ) then
-            write (aline,*) 'param:  SET IN regcm.in   :  IY=' , iy , &
-                   & '  JX=' ,  jx , '  KX=' , kz
+            write (6,*) 'Error: dims from regcm.in and DOMAIN file ', &
+                        'differ.'
+            write (aline,*) 'Input namelist : IY=' , iy , &
+                   & '  JX=' ,  jx , '  KZ=' , kz
             call say
-            write (aline,*) 'param:  SET IN DOMAIN file: IYY=' , iyy ,&
-                   & ' JXX=' , jxx , ' KZZ=' , kzz
+            write (aline,*) 'DOMAIN file    : IY=' , iyy , &
+                   & '  JX=' ,  jxx , '  KZ=' , kzz-1
             call say
             call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
           end if
@@ -216,6 +227,7 @@
         end subroutine open_domain
 
         subroutine read_domain(ht,htsd,lnd,xlat,xlon,xmap,dmap,f,snw)
+          use mod_dynparam
           use mod_message
           use netcdf
           implicit none
@@ -230,7 +242,7 @@
           real(8) , dimension(iy,jx) , intent(out) :: f
           real(8) , dimension(nnsg,iy,jx) , intent(out) :: snw
 
-          integer :: istatus , ivarid , n
+          integer :: ivarid , n
           real(4) , dimension(jx,iy) :: sp2d
 
           if (iutin < 0) then
@@ -360,6 +372,7 @@
         end subroutine read_domain
 
         subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
+          use mod_dynparam
           use mod_message
           use mod_constants , only : gti
           use netcdf
@@ -370,7 +383,7 @@
           real(8) , dimension(nnsg,iy,jx) , intent(out) :: xlat1
           real(8) , dimension(nnsg,iy,jx) , intent(out) :: xlon1
 
-          integer :: istatus , ivarid
+          integer :: ivarid
           integer :: i , j , n , ii , jj
           real(4) , dimension(jxsg,iysg) :: sp2d1
           
@@ -479,11 +492,10 @@
         end subroutine read_subdomain
 
         subroutine close_domain
+          use mod_dynparam
           use mod_message
           use netcdf
           implicit none
-
-          integer :: istatus
 
           if (iutin >= 0) then
             istatus = nf90_close(iutin)
@@ -507,6 +519,7 @@
         end subroutine close_domain
 
         subroutine read_texture(nats,texture)
+          use mod_dynparam
           use netcdf
           use mod_message
           implicit none
@@ -514,7 +527,7 @@
           integer , intent(in) :: nats
           real(8) , dimension(iy,jx,nats) , intent(out) :: texture
 
-          integer :: istatus , ivarid
+          integer :: ivarid
           integer :: i , j , n
           integer , dimension(3) :: istart , icount
           real(4), dimension(jx,iy) ::  toto
@@ -558,6 +571,7 @@
         end subroutine read_texture
 
         subroutine read_aerosol(chtrname,chemsrc)
+          use mod_dynparam
           use netcdf
           use mod_message
           implicit none
@@ -751,5 +765,323 @@
           end if
 
         end subroutine read_aerosol
+
+        subroutine open_icbc(idate)
+          use mod_dynparam
+          use netcdf
+          use mod_message
+          use mod_date , only : timeval2idate
+          integer , intent(in) :: idate
+          character(10) :: cdate
+          integer :: idimid , itvar , i , chkdiff
+          real(8) , dimension(:) , allocatable :: icbc_xtime
+          character(64) :: icbc_timeunits
+          integer :: iyy , jxx , kzz
+
+          call close_icbc
+          write (cdate, '(i10)') idate
+          icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'// &
+              &      cdate//'.nc'
+          istatus = nf90_open(icbcname, nf90_nowrite, ibcin)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error Opening ICBC file ', trim(icbcname)
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC FILE OPEN ERROR')
+          end if
+          icbcrec = 1
+          icbcnrec = 0
+          istatus = nf90_inq_dimid(ibcin, "iy", idimid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Dimension iy missing'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_inquire_dimension(ibcin, idimid, len=iyy)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error dimension iy'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_inq_dimid(ibcin, "jx", idimid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Dimension jx missing'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_inquire_dimension(ibcin, idimid, len=jxx)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error dimension jx'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_inq_dimid(ibcin, "kz", idimid)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Dimension kz missing'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          istatus = nf90_inquire_dimension(ibcin, idimid, len=kzz)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error dimension kz'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+          if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
+            write (6,*) 'Error: dims from regcm.in and ICBC file ', &
+                        'differ.'
+            write (aline,*) 'Input namelist : IY=' , iy , &
+                   & '  JX=' ,  jx , '  KZ=' , kz
+            call say
+            write (aline,*) 'ICBC file      : IY=' , iyy , &
+                   & '  JX=' ,  jxx , '  KZ=' , kzz
+            call say
+            call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
+          end if
+          istatus = nf90_inq_dimid(ibcin, 'time', idimid)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error time dimension not present'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inquire_dimension(ibcin, idimid, len=icbcnrec)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error time dimension not present'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inq_varid(ibcin, "time", itvar)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable time'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_get_att(ibcin, itvar, "units", icbc_timeunits)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable time attribute units'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          allocate(icbc_idate(icbcnrec))
+          allocate(icbc_xtime(icbcnrec))
+          istatus = nf90_get_var(ibcin, itvar, icbc_xtime)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading time variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          do i = 1 , icbcnrec
+            icbc_idate(i) = timeval2idate(icbc_xtime(i), icbc_timeunits)
+          end do
+          chkdiff = icbc_xtime(2) - icbc_xtime(1)
+          deallocate(icbc_xtime)
+          if (chkdiff .ne. ibdyfrq) then
+            write (6,*) 'Time variable in ICBC inconsistency.'
+            write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
+            write (6,*) 'Found     ibdyfrq = ', chkdiff
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inq_varid(ibcin, "ps", icbc_ivar(1))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable ps'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inq_varid(ibcin, "ts", icbc_ivar(2))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable ts'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inq_varid(ibcin, "u", icbc_ivar(3))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable u'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inq_varid(ibcin, "v", icbc_ivar(4))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable v'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inq_varid(ibcin, "t", icbc_ivar(5))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable t'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inq_varid(ibcin, "qv", icbc_ivar(6))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error variable qv'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          istatus = nf90_inq_varid(ibcin, "so4", icbc_ivar(7))
+          if ( istatus == nf90_noerr) then
+            lso4p = .true.
+          end if
+        end subroutine open_icbc
+
+        subroutine read_icbc(idate,ps,ts,u,v,t,qv,so4)
+          use mod_dynparam
+          use netcdf
+          use mod_message
+          use mod_date , only : idatediff
+          implicit none
+          integer , intent(in) :: idate
+          real(8) , dimension(iy,kz,jx) , intent(out) :: u
+          real(8) , dimension(iy,kz,jx) , intent(out) :: v
+          real(8) , dimension(iy,kz,jx) , intent(out) :: t
+          real(8) , dimension(iy,kz,jx) , intent(out) :: qv
+          real(8) , dimension(iy,kz,jx) , intent(out) :: so4
+          real(8) , dimension(iy,jx) , intent(out) :: ps
+          real(8) , dimension(iy,jx) , intent(out) :: ts
+
+          integer , dimension(4) :: istart , icount
+          real(4) , dimension(jx,iy,kz) :: xread
+          integer :: i , j , k
+
+          if (idate > icbc_idate(icbcnrec) .or. idate < icbc_idate(1)) then
+            write (6,*) 'Cannot find ', idate, ' in ICBC file'
+            write (6,*) 'Range is : ', icbc_idate(1) , '-', &
+                       & icbc_idate(icbcnrec)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if 
+
+          icbcrec = (idatediff(idate, icbc_idate(1)) / ibdyfrq) + 1
+          istart(3) = icbcrec
+          istart(2) = 1
+          istart(1) = 1
+          icount(3) = 1
+          icount(2) = iy
+          icount(1) = jx
+          istatus = nf90_get_var(ibcin, icbc_ivar(1), xread(:,:,1), & 
+                                 istart(1:3), icount(1:3))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading ps variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          ps = transpose(xread(:,:,1))
+          istatus = nf90_get_var(ibcin, icbc_ivar(2), xread(:,:,1), & 
+                                 istart(1:3), icount(1:3))
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading ts variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          ts = transpose(xread(:,:,1))
+          istart(4) = icbcrec
+          istart(3) = 1
+          istart(2) = 1
+          istart(1) = 1
+          icount(4) = 1
+          icount(3) = kz
+          icount(2) = iy
+          icount(1) = jx
+          istatus = nf90_get_var(ibcin, icbc_ivar(3), xread, &
+                    &            istart, icount)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading u variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          do k = 1 , kz
+            do j = 1 , jx
+              do i = 1 , iy
+                u(i,k,j) = xread(j,i,k)
+              end do
+            end do
+          end do
+          istatus = nf90_get_var(ibcin, icbc_ivar(4), xread, &
+                    &            istart, icount)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading v variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          do k = 1 , kz
+            do j = 1 , jx
+              do i = 1 , iy
+                v(i,k,j) = xread(j,i,k)
+              end do
+            end do
+          end do
+          istatus = nf90_get_var(ibcin, icbc_ivar(5), xread, &
+                    &            istart, icount)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading t variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          do k = 1 , kz
+            do j = 1 , jx
+              do i = 1 , iy
+                t(i,k,j) = xread(j,i,k)
+              end do
+            end do
+          end do
+          istatus = nf90_get_var(ibcin, icbc_ivar(6), xread, &
+                    &            istart, icount)
+          if ( istatus /= nf90_noerr) then
+            write (6,*) 'Error reading qv variable'
+            write (6,*) nf90_strerror(istatus)
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
+          do k = 1 , kz
+            do j = 1 , jx
+              do i = 1 , iy
+                qv(i,k,j) = xread(j,i,k)
+              end do
+            end do
+          end do
+          if (lso4p) then
+            istatus = nf90_get_var(ibcin, icbc_ivar(7), xread, &
+                    &              istart, icount)
+            if ( istatus /= nf90_noerr) then
+              write (6,*) 'Error reading so4 variable'
+              write (6,*) nf90_strerror(istatus)
+              call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+            end if
+            do k = 1 , kz
+              do j = 1 , jx
+                do i = 1 , iy
+                  so4(i,k,j) = xread(j,i,k)
+                end do
+              end do
+            end do
+          else
+            so4 = 0.0D+00
+          end if
+        end subroutine read_icbc
+
+        subroutine close_icbc
+          use mod_dynparam
+          use netcdf
+          use mod_message
+          implicit none
+          if (ibcin >= 0) then
+            istatus = nf90_close(ibcin)
+            if ( istatus /= nf90_noerr) then
+              write (6,*) 'Error Closing ICBC file ', trim(icbcname)
+              write (6,*) nf90_strerror(istatus)
+              call fatal(__FILE__,__LINE__,'ICBC FILE CLOSE ERROR')
+            end if
+            if (allocated(icbc_idate)) deallocate(icbc_idate)
+          end if
+        end subroutine close_icbc
+
+        function icbc_search(idate)
+          use mod_dynparam
+          use mod_date , only : idatediff
+          implicit none
+          integer :: icbc_search
+          integer , intent(in) :: idate
+          if (idate > icbc_idate(icbcnrec) .or. idate < icbc_idate(1)) then
+            icbc_search = -1
+          else
+            icbc_search = (idatediff(idate, icbc_idate(1))/ibdyfrq)+1
+          end if 
+        end function icbc_search
 
       end module mod_ncio
