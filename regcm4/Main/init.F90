@@ -250,13 +250,6 @@
           call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
                    &     tb0_io,qb0_io,so0_io)
           ps0_io = ps0_io/10.0
-          print *, ps0_io(1,1)
-          print *, ts0_io(1,1)
-          print *, ub0_io(1,1,1)
-          print *, vb0_io(1,1,1)
-          print *, tb0_io(1,1,1)
-          print *, qb0_io(1,1,1)
-          print *, so0_io(1,1,1)
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
