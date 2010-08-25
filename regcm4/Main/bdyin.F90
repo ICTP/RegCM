@@ -93,6 +93,7 @@
         end if
         call read_icbc(ndate1,ps1_io,ts1_io,ub1_io,vb1_io, &
                    &     tb1_io,qb1_io,so1_io)
+        ps1_io = ps1_io/10.0
         do j = 1 , jx
           do k = 1 , kz
             do i = 1 , iy
@@ -151,7 +152,7 @@
 !     Convert surface pressure to pstar
       do j = 1 , jendl
         do i = 1 , iy
-          ps1(i,j) = ps1(i,j)/10.0 - r8pt
+          ps1(i,j) = ps1(i,j) - r8pt
         end do
       end do
 !=======================================================================
