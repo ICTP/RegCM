@@ -11,7 +11,7 @@ SHRMODS =  mod_dynparam.o mod_constants.o
 
 MODOBJS =  mod_block.o     mod_interp.o    mod_maps.o        mod_rdldtr.o \
            mod_smooth.o    mod_fudge.o     mod_projections.o mod_surf.o \
-           mod_write.o     mod_header.o
+           mod_write.o     mod_header.o    mod_maputils.o
 
 OBJS =     terrain.o
 
@@ -52,7 +52,9 @@ mod_fudge.o: mod_fudge.f90
 mod_maps.o: mod_maps.f90
 mod_write.o: mod_write.F90 mod_block.o mod_maps.o mod_dynparam.o
 mod_smooth.o: mod_smooth.f90
-mod_projections.o: mod_projections.f90 mod_constants.o mod_block.o mod_maps.o
+mod_projections.o: mod_projections.f90 mod_constants.o
+mod_maputils.o: mod_maputils.f90 mod_constants.o mod_block.o mod_maps.o \
+                mod_projections.o
 mod_interp.o: mod_interp.f90 mod_block.o mod_maps.o
 mod_rdldtr.o: mod_rdldtr.f90 mod_block.o
 mod_surf.o: mod_surf.f90 mod_block.o mod_interp.o
