@@ -16,6 +16,9 @@ mod_constants.o: ../../../Config/mod_constants.F90
 	$(F90) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
 
+mod_projections.o: ../../../PreProc/Terrain/mod_projections.f90 mod_constants.o
+	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c -o $@ $<
+
 install: GrADSNcPlot
 	@cp GrADSNcPlot $(BINDIR)
 	@chmod 755  $(BINDIR)/GrADSNcPlot
@@ -32,5 +35,3 @@ clean:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-
-mod_projections.o: mod_projections.f90 mod_constants.o
