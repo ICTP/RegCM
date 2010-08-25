@@ -234,7 +234,7 @@ chemtap.o: chemtap.F90 mod_date.o mod_iunits.o mod_main.o mod_mainchem.o \
 ifeq ($(USECLM),1)
 chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
            mod_message.o mod_dynparam.o mod_trachem.o $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
+	$(F90) $(CPPFLAGS) $(NETCDFINC) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 chsrfem.o: chsrfem.F90 mod_aerosol.o mod_dust.o mod_iunits.o mod_mainchem.o \
            mod_message.o mod_dynparam.o mod_trachem.o
