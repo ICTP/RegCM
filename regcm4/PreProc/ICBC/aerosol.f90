@@ -99,56 +99,26 @@
 
       aerofile = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
       istatus = nf90_create(aerofile, nf90_clobber, ncid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error creating NetCDF output ', trim(aerofile)
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, &
+                &   ('Error creating NetCDF output '//trim(aerofile)))
 
       terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       istatus = nf90_open(terfile, nf90_nowrite, incin)
-      if ( istatus /= nf90_noerr) then
-        write (6,*) 'Error Opening Domain file ', trim(terfile)
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, &
+                &   ('Error Opening Domain '//trim(terfile)))
 
       istatus = nf90_inq_dimid(incin, "iy", idimid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Dimension iy missing'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Dimension iy missing')
       istatus = nf90_inquire_dimension(incin, idimid, len=iyy)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error dimension iy'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Dimension iy read error')
       istatus = nf90_inq_dimid(incin, "jx", idimid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Dimension jx missing'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Dimension jx missing')
       istatus = nf90_inquire_dimension(incin, idimid, len=jxx)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error dimension jx'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Dimension jx read error')
       istatus = nf90_inq_dimid(incin, "kz", idimid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Dimension kz missing'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Dimension kz missing')
       istatus = nf90_inquire_dimension(incin, idimid, len=kzz)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error dimension kz'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Dimension kz read error')
       if ( iyy/=iy .or. jxx/=jx .or. kzz/=kz+1) then
         print * , 'IMPROPER DIMENSION SPECIFICATION'
         print * , '  namelist   : ' , iy , jx , kz
@@ -157,151 +127,72 @@
       end if
       allocate(sigma(kzp1))
       istatus = nf90_inq_varid(incin, "sigma", ivarid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error sigma variable undefined'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Variable sigma missing')
       istatus = nf90_get_var(incin, ivarid, sigma)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error reading sigma variable'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Variable sigma read error')
       istatus = nf90_inq_varid(incin, "xlat", ivarid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error xlat variable undefined'
-        write (6,*) nf90_strerror(istatus)
-        stop
-       end if
+      call check_ok(istatus, 'Variable xlat missing')
       istatus = nf90_get_var(incin, ivarid, finmat)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error reading xlat variable'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Variable xlat read error')
       xlat = transpose(finmat)
       istatus = nf90_inq_varid(incin, "xlon", ivarid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error xlon variable undefined'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Variable xlon missing')
       istatus = nf90_get_var(incin, ivarid, finmat)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error reading xlon variable'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Variable xlon read error')
       xlon = transpose(finmat)
       istatus = nf90_close(incin)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error closing Domain file ', trim(terfile)
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, &
+                 &  ('Error closing Domain file '//trim(terfile)))
       deallocate(finmat)
 !
       istatus = nf90_put_att(ncid, nf90_global, 'title',  &
            & 'ICTP Regional Climatic model V4 Aerosol program output')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global title'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global title')
       istatus = nf90_put_att(ncid, nf90_global, 'institution', &
                & 'ICTP')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global institution'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global institution')
       istatus = nf90_put_att(ncid, nf90_global, 'Conventions', &
                & 'CF-1.4')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global Conventions'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global Conventions')
       call date_and_time(values=tvals)
       write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
            tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
            tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
            ' : Created by RegCM aerosol program'
       istatus = nf90_put_att(ncid, nf90_global, 'history', history)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global history'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global history')
 
       istatus = nf90_put_att(ncid, nf90_global, 'references', &
                & 'http://eforge.escience-lab.org/gf/project/regcm')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global references'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global references')
       istatus = nf90_put_att(ncid, nf90_global, 'experiment', &
                & domname)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global experiment'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global experiment')
       istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global projection'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global projection')
 
       istatus = nf90_put_att(ncid, nf90_global,   &
                &   'grid_size_in_meters', ds*1000.0)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global gridsize'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global gridsize')
       istatus = nf90_put_att(ncid, nf90_global,   &
                &   'latitude_of_projection_origin', clat)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global clat'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global clat')
       istatus = nf90_put_att(ncid, nf90_global,   &
                &   'longitude_of_projection_origin', clon)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global clon'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global clon')
       if (iproj == 'ROTMER') then
-      istatus = nf90_put_att(ncid, nf90_global, &
-               &   'latitude_of_projection_pole', plat)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global plat'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
-      istatus = nf90_put_att(ncid, nf90_global, &
-               &   'longitude_of_projection_pole', plon)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding global plon'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+        istatus = nf90_put_att(ncid, nf90_global, &
+                 &   'latitude_of_projection_pole', plat)
+        call check_ok(istatus, 'Error adding global plat')
+        istatus = nf90_put_att(ncid, nf90_global, &
+                 &   'longitude_of_projection_pole', plon)
+        call check_ok(istatus, 'Error adding global plon')
       else if (iproj == 'LAMCON') then
         trlat(1) = truelatl
         trlat(2) = truelath
         istatus = nf90_put_att(ncid, nf90_global, &
                  &   'standard_parallel', trlat)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error adding global truelat'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok(istatus, 'Error adding global truelat')
       end if
       if (aertyp == 'AER00D0') then
         aerdesc = 'Neither aerosol, nor dust used'
@@ -325,468 +216,195 @@
 
       istatus = nf90_put_att(ncid, nf90_global,  &
                          &   'aerosol_type', aerdesc)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error adding aerosol_type'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding global aerosol_type')
       istatus = nf90_def_dim(ncid, 'iy', iy, idims(2))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error creating dimension iy'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error creating dimension iy')
       istatus = nf90_def_dim(ncid, 'jx', jx, idims(1))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error creating dimension jx'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error creating dimension jx')
       istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error creating dimension time'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error creating dimension time')
       istatus = nf90_def_dim(ncid, 'kz', kz+1, idims(4))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error creating dimension kz'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error creating dimension kz')
       istatus = nf90_def_var(ncid, 'sigma', nf90_float, idims(4),   &
                           &  izvar(1))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable sigma definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable sigma')
       istatus = nf90_put_att(ncid, izvar(1), 'standard_name',       &
                           &  'atmosphere_sigma_coordinate')    
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable sigma standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding sigma standard_name')
       istatus = nf90_put_att(ncid, izvar(1), 'long_name',      &
                           &  'Sigma at model layer midpoints')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable sigma long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding sigma long_name')
       istatus = nf90_put_att(ncid, izvar(1), 'units', '1')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable sigma units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding sigma units')
       istatus = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable sigma axis attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding sigma axis')
       istatus = nf90_put_att(ncid, izvar(1), 'positive', 'down')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable sigma positive attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding sigma positive')
       istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
                    &         'sigma: sigma ps: ps ptop: ptop')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable sigma formula_terms attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding sigma formula_terms')
       istatus = nf90_def_var(ncid, 'ptop', nf90_float,         &
                          &   varid=izvar(2))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable ptop definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable ptop')
       istatus = nf90_put_att(ncid, izvar(2), 'standard_name',  &
                           &  'air_pressure')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable ptop standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding ptop standard_name')
       istatus = nf90_put_att(ncid, izvar(2), 'long_name',      &
                           &  'Pressure at model top')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable ptop long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding ptop long_name')
       istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable ptop units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding ptop units')
       istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), &
                           &  ivvar(1))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable iy definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable iy')
       istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
                           &  'projection_y_coordinate')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable iy standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding iy standard_name')
       istatus = nf90_put_att(ncid, ivvar(1), 'long_name',      &
                           &  'y-coordinate in Cartesian system')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable iy long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding iy long_name')
       istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable iy units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding iy units')
       istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), &
                           &  ivvar(2))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable jx definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable jx')
       istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
                           &  'projection_x_coordinate')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable jx standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding jx standard_name')
       istatus = nf90_put_att(ncid, ivvar(2), 'long_name',    &
                           &  'x-coordinate in Cartesian system')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable jx long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding jx long_name')
       istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable jx units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding jx units')
       istatus = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2),  &
                           &  illvar(1))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlat definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable xlat')
       istatus = nf90_put_att(ncid, illvar(1), 'standard_name', &
                           &  'latitude')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlat standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding xlat standard_name')
       istatus = nf90_put_att(ncid, illvar(1), 'long_name',     &
                           &  'Latitude at cross points')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlat long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding xlat long_name')
       istatus = nf90_put_att(ncid, illvar(1), 'units',         &
                           &  'degrees_north')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlat units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding xlat units')
       istatus = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2),  &
                           &  illvar(2))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlon definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable xlon')
       istatus = nf90_put_att(ncid, illvar(2), 'standard_name', &
                           &  'longitude')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlon standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding xlon standard_name')
       istatus = nf90_put_att(ncid, illvar(2), 'long_name',     &
                           &  'Longitude at cross points')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlon long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding xlon long_name')
       istatus = nf90_put_att(ncid, illvar(2), 'units',         &
                           &  'degrees_east')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlon units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding xlon units')
       istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3),  &
                           &  ivar(1))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable time definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable time')
 
       irefdate = globidate1
       call split_idate(irefdate, year, month, day, hour)
       write (csdate, '(i0.4,a)') year,'-01-16 00:00:00'
       irefdate = mkidate(year, 1, 16, 0)
-
       istatus = nf90_put_att(ncid, ivar(1), 'units', &
                      &   'hours since '//csdate)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable time units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding time units')
       istatus = nf90_def_var(ncid, 'so2', nf90_float, idims(1:2),  &
                           &  ivar(2))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2 definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable so2')
       istatus = nf90_put_att(ncid, ivar(2), 'standard_name', &
                           &  'atmosphere_mass_content_of_sulfur_dioxide')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2 standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding so2 standard_name')
       istatus = nf90_put_att(ncid, ivar(2), 'long_name',     &
                           &  'Anthropogenic SO2 emission, EDGAR')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2 long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding so2 long_name')
       istatus = nf90_put_att(ncid, ivar(2), 'units', 'kg m-2')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2 units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding so2 units')
       istatus = nf90_put_att(ncid, ivar(2), 'coordinates', &
                           &  'xlon xlat')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2 coordinates attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding so2 coordinates')
       istatus = nf90_def_var(ncid, 'bc', nf90_float, idims(1:2),  &
                           &  ivar(3))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable bc')
       istatus = nf90_put_att(ncid, ivar(3), 'standard_name', &
              &  'atmosphere_mass_content_of_black_carbon_dry_aerosol')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding bc standard_name')
       istatus = nf90_put_att(ncid, ivar(3), 'long_name',     &
                           &  'Anthropogenic Black Carbon (BC), EDGAR')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding bc long_name')
       istatus = nf90_put_att(ncid, ivar(3), 'units', 'kg m-2')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding bc units')
       istatus = nf90_put_att(ncid, ivar(3), 'coordinates', &
                           &  'xlon xlat')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc coordinates attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding bc coordinates')
       istatus = nf90_def_var(ncid, 'oc', nf90_float, idims(1:2),  &
                           &  ivar(4))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc definition in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable oc')
       istatus = nf90_put_att(ncid, ivar(4), 'standard_name', &
              &  'atmosphere_mass_content_of_organic_carbon_dry_aerosol')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding oc standard_name')
       istatus = nf90_put_att(ncid, ivar(4), 'long_name',     &
                           &  'Anthropogenic Organic Carbon (OC), EDGAR')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding oc long_name')
       istatus = nf90_put_att(ncid, ivar(4), 'units', 'kg m-2')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding oc units')
       istatus = nf90_put_att(ncid, ivar(4), 'coordinates', &
                           &  'xlon xlat')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc coordinates attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding oc coordinates')
       istatus = nf90_def_var(ncid, 'so2_monthly', nf90_float,           &
                           &  idims(1:3), ivar(5))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2_monthly in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable so2_monthly')
       istatus = nf90_put_att(ncid, ivar(5), 'standard_name', &
                          &  'atmosphere_mass_content_of_sulfur_dioxide')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2_monthly standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding so2_monthly standard_name')
       istatus = nf90_put_att(ncid, ivar(5), 'long_name',     &
                          &  'Anthropogenic SO2 emission monthly, EDGAR')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2_monthly long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding so2_monthly long_name')
       istatus = nf90_put_att(ncid, ivar(5), 'units', 'kg m-2')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2_monthly units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding so2_monthly units')
       istatus = nf90_put_att(ncid, ivar(5), 'coordinates', &
                           &  'xlon xlat')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable so2_monthly coordinates attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding so2_monthly coordinates')
       istatus = nf90_def_var(ncid, 'bc_monthly', nf90_float, idims(1:3),&
                           &  ivar(6))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc_monthly in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable bc_monthly')
       istatus = nf90_put_att(ncid, ivar(6), 'standard_name', &
              &  'atmosphere_mass_content_of_black_carbon_dry_aerosol')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc_monthly standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding bc_monthly standard_name')
       istatus = nf90_put_att(ncid, ivar(6), 'long_name',     &
                      &  'Anthropogenic Black Carbon (BC), LIOUSSE')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc_montly long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding bc_monthly long_name')
       istatus = nf90_put_att(ncid, ivar(6), 'units', 'kg m-2')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc_montly units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding bc_monthly units')
       istatus = nf90_put_att(ncid, ivar(6), 'coordinates', &
                           &  'xlon xlat')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable bc_montly coordinates attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding bc_monthly coordinates')
       istatus = nf90_def_var(ncid, 'oc_monthly', nf90_float, idims(1:3),&
                           &  ivar(7))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc_monthly in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding variable oc_monthly')
       istatus = nf90_put_att(ncid, ivar(7), 'standard_name', &
              &  'atmosphere_mass_content_of_organic_carbon_dry_aerosol')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc_monthly standard_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding oc_monthly standard_name')
       istatus = nf90_put_att(ncid, ivar(7), 'long_name',     &
                        &  'Anthropogenic Organic Carbon (OC), LIOUSSE')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc_monthly long_name attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding oc_monthly long_name')
       istatus = nf90_put_att(ncid, ivar(7), 'units', 'kg m-2')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc_monthly units attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error adding oc_monthly units')
       istatus = nf90_put_att(ncid, ivar(7), 'coordinates', &
                           &  'xlon xlat')
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable oc_monthly coordinates attribute'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
-!
-!
+      call check_ok(istatus, 'Error adding oc_monthly coordinates')
 !
       istatus = nf90_enddef(ncid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error End Definitions NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
-!
-!
+      call check_ok(istatus, 'Error End Definitions NetCDF output')
 !
       istatus = nf90_put_var(ncid, izvar(1), sigma)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable sigma write in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error variable sigma write')
       deallocate(sigma)
       hptop = ptop * 10.0
       istatus = nf90_put_var(ncid, izvar(2), hptop)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable ptop write in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error variable ptop write')
       allocate(yiy(iy))
       allocate(xjx(jx))
       yiy(1) = -(dble(iy-1)/2.0) * ds
@@ -798,31 +416,15 @@
         xjx(j) = xjx(j-1)+ds
       end do
       istatus = nf90_put_var(ncid, ivvar(1), yiy)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable iy write in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error variable iy write')
       istatus = nf90_put_var(ncid, ivvar(2), xjx)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable jx write in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error variable jx write')
       deallocate(yiy)
       deallocate(xjx)
       istatus = nf90_put_var(ncid, illvar(1), transpose(xlat))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlat write in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error variable xlat write')
       istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Variable xlon write in NetCDF output'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error variable xlon write')
 !
 !     ******    SET UP LONGITUDES AND LATITUDES FOR AEROSOL DATA
 !
@@ -839,11 +441,7 @@
         read (11,rec=nrec) aer2
         call bilinx(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
         istatus = nf90_put_var(ncid, ivar(1+nrec), transpose(aermm))
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error Variable write in NetCDF output'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok(istatus, 'Error variable write')
       end do
 
       imondate = irefdate
@@ -852,11 +450,7 @@
         icount1(1) = 1
         xdate(1) = dble(idatediff(imondate,irefdate))
         istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error Variable time write in NetCDF output'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok(istatus, 'Error variable time write')
         imondate = inextmon(imondate)
       end do
 
@@ -874,11 +468,7 @@
           icount(1) = jx
           istatus = nf90_put_var(ncid, ivar(4+i), transpose(aermm),     &
                                  istart, icount)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error Variable write in NetCDF output'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus, 'Error monthly variable write')
         end do
       end do
  
@@ -887,11 +477,7 @@
       deallocate(xlon)
 
       istatus = nf90_close(ncid)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error Closing output sst file'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call check_ok(istatus, 'Error Closing output sst file')
 
       print *, 'Successfully built aerosol data for domain'
       stop
@@ -997,3 +583,15 @@
       end do
  
       end subroutine bilinx
+
+      subroutine check_ok(ierr,message)
+        use netcdf
+        implicit none
+        integer , intent(in) :: ierr
+        character(*) :: message
+        if (ierr /= nf90_noerr) then 
+          write (6,*) message
+          write (6,*) nf90_strerror(ierr)
+          stop
+        end if
+      end subroutine check_ok
