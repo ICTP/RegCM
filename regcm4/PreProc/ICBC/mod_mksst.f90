@@ -22,7 +22,6 @@
       logical , private :: lopen , lhasice
       integer , private :: ncid , ntime
       integer , dimension(3) , private :: ivar
-      character(32) , private :: timeunits
       integer , dimension(:) , allocatable , private :: itime
       real(4) , dimension(:,:) , allocatable , private :: xlandu
       real(4) , dimension(:,:) , allocatable , private :: work1 , work2
@@ -46,6 +45,7 @@
         integer :: istatus , idimid , itvar
         integer , dimension(3) :: istart , icount
         character(256) :: sstfile
+        character(64) :: timeunits
         integer :: i , j , irec , ks1 , ks2
         real(4) :: wt
         if (.not. lopen) then
@@ -124,8 +124,9 @@
           stop
         end if
 
+        irec = 0
         do i = 1 , ntime
-          if (idate < itime(i)) then
+          if (idate <= itime(i)) then
             irec = i
             exit
            end if
