@@ -67,96 +67,56 @@
           write (aline,*) 'READING HEADER FILE:', dname
           call say
           istatus = nf90_open(dname, nf90_nowrite, iutin)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error Opening Domain file ', trim(dname)
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'CANNOT OPEN DOMAIN FILE')
-          end if
+          call check_ok(istatus, &
+                        'Error Opening Domain file '//trim(dname), &
+                        'CANNOT OPEN DOMAIN FILE')
           if ( nsg.gt.1 ) then
             write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
             call say
             istatus = nf90_open(sdname, nf90_nowrite, iutin1)
-            if ( istatus /= nf90_noerr) then
-              write (6,*) 'Error Opening SubDomain file ', trim(sdname)
-              write (6,*) nf90_strerror(istatus)
-              call fatal(__FILE__,__LINE__, 'CANNOT OPEN SUBDOM FILE')
-            end if
+            call check_ok(istatus, &
+                          'Error Opening SubDomain file '//trim(sdname),&
+                          'CANNOT OPEN SUBDOM FILE')
           end if
-          istatus = nf90_inq_dimid(iutin, "iy", idimid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Dimension iy missing'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_dimid(iutin, 'iy', idimid)
+          call check_ok(istatus, 'Dimension iy missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_inquire_dimension(iutin, idimid, len=iyy)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension iy'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
-          istatus = nf90_inq_dimid(iutin, "jx", idimid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Dimension jx missing'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Dimension iy read error', &
+                        'DOMAIN FILE ERROR')
+          istatus = nf90_inq_dimid(iutin, 'jx', idimid)
+          call check_ok(istatus, 'Dimension jx missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_inquire_dimension(iutin, idimid, len=jxx)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension jx'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
-          istatus = nf90_inq_dimid(iutin, "kz", idimid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Dimension kz missing'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Dimension jx read error', &
+                        'DOMAIN FILE ERROR')
+          istatus = nf90_inq_dimid(iutin, 'kz', idimid)
+          call check_ok(istatus, 'Dimension kz missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_inquire_dimension(iutin, idimid, len=kzz)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension kz'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
-          istatus = nf90_inq_varid(iutin, "ptop", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error ptop variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Dimension kz read error', &
+                        'DOMAIN FILE ERROR')
+          istatus = nf90_inq_varid(iutin, 'ptop', ivarid)
+          call check_ok(istatus, 'Variable ptop missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, ptsp)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading ptop variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable ptop read error', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_att(iutin, nf90_global, 'projection', proj)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading projection attribute'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Attribute projection missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_att(iutin, nf90_global, &
                        &         'grid_size_in_meters', dsx)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading grid_size_in_meters attribute'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Attribute gridsize missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_att(iutin, nf90_global, &
                      &         'latitude_of_projection_origin', iclat)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading latitude_of_projection_origin'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Attribute clat missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_att(iutin, nf90_global, &
                       &         'longitude_of_projection_origin', iclon)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading longitude_of_projection_origin'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Attribute clon missing', &
+                        'DOMAIN FILE ERROR')
 !
 !         Consistency Check
 !
@@ -211,18 +171,12 @@
 !
           r8pt = ptsp/10.0
           dx = dsx
-          istatus = nf90_inq_varid(iutin, "sigma", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error sigma variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'sigma', ivarid)
+          call check_ok(istatus, 'Variable sigma missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sigma)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading sigma variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable sigma read error', &
+                        'DOMAIN FILE ERROR')
 
         end subroutine open_domain
 
@@ -250,122 +204,68 @@
             call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
           end if
 
-          istatus = nf90_inq_varid(iutin, "topo", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error topo variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'topo', ivarid)
+          call check_ok(istatus, 'Variable topo missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading topo variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable topo read error', &
+                        'DOMAIN FILE ERROR')
           ht = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, "htsd", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error htsd variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'htsd', ivarid)
+          call check_ok(istatus, 'Variable htsd missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading htsd variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable htsd read error', &
+                        'DOMAIN FILE ERROR')
           htsd = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, "landuse", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error landuse variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'landuse', ivarid)
+          call check_ok(istatus, 'Variable landuse missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading landuse variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable landuse read error', &
+                        'DOMAIN FILE ERROR')
           lnd = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, "xlat", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xlat variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'xlat', ivarid)
+          call check_ok(istatus, 'Variable xlat missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xlat variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable xlat read error', &
+                        'DOMAIN FILE ERROR')
           xlat = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, "xlon", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xlon variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'xlon', ivarid)
+          call check_ok(istatus, 'Variable xlon missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xlon variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable xlon read error', &
+                        'DOMAIN FILE ERROR')
           xlon = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, "xmap", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xmap variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'xmap', ivarid)
+          call check_ok(istatus, 'Variable xmap missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xmap variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable xmap read error', &
+                        'DOMAIN FILE ERROR')
           xmap = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, "dmap", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dmap variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'dmap', ivarid)
+          call check_ok(istatus, 'Variable dmap missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading dmap variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable dmap read error', &
+                        'DOMAIN FILE ERROR')
           dmap = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, "coriol", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error coriol variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'coriol', ivarid)
+          call check_ok(istatus, 'Variable coriol missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading coriol variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable coriol read error', &
+                        'DOMAIN FILE ERROR')
           f = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, "snowam", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error snowam variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'snowam', ivarid)
+          call check_ok(istatus, 'Variable snowam missing', &
+                        'DOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin, ivarid, sp2d)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading snowam variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable snowam read error', &
+                        'DOMAIN FILE ERROR')
           do n = 1 , nnsg
             snw(n,:,:) = transpose(sp2d)
           end do
@@ -392,18 +292,12 @@
             call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
           end if
 
-          istatus = nf90_inq_varid(iutin1, "topo", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error topo variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin1, 'topo', ivarid)
+          call check_ok(istatus, 'Variable topo missing', &
+                        'SUBDOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin1, ivarid, sp2d1)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading topo variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable topo read error', &
+                        'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
@@ -416,18 +310,12 @@
               ht1(n,ii,jj) = sp2d1(j,i)*gti
             end do
           end do
-          istatus = nf90_inq_varid(iutin1, "landuse", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error landuse variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin1, 'landuse', ivarid)
+          call check_ok(istatus, 'Variable landuse missing', &
+                        'SUBDOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin1, ivarid, sp2d1)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading landuse variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable landuse read error', &
+                        'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
@@ -440,18 +328,12 @@
               lnd1(n,ii,jj) = sp2d1(j,i)
             end do
           end do
-          istatus = nf90_inq_varid(iutin1, "xlat", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xlat variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin1, 'xlat', ivarid)
+          call check_ok(istatus, 'Variable xlat missing', &
+                        'SUBDOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin1, ivarid, sp2d1)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xlat variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable xlat read error', &
+                        'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
@@ -464,18 +346,12 @@
               xlat1(n,ii,jj) = sp2d1(j,i)
             end do
           end do
-          istatus = nf90_inq_varid(iutin1, "xlon", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error xlon variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin1, 'xlon', ivarid)
+          call check_ok(istatus, 'Variable xlon missing', &
+                        'SUBDOMAIN FILE ERROR')
           istatus = nf90_get_var(iutin1, ivarid, sp2d1)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error reading xlon variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Variable xlon read error', &
+                        'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
@@ -493,26 +369,19 @@
 
         subroutine close_domain
           use mod_dynparam
-          use mod_message
           use netcdf
           implicit none
 
           if (iutin >= 0) then
             istatus = nf90_close(iutin)
-            if (istatus /= nf90_noerr) then
-              write (6,*) 'Error File close'
-              write (6,*) nf90_strerror(istatus)
-              call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-            end if
+            call check_ok(istatus, 'Domain file close error', &
+                        'DOMAIN FILE ERROR')
             iutin = -1
           end if
           if ( nsg>1 .and. iutin1 >=0 ) then
             istatus = nf90_close(iutin1)
-            if (istatus /= nf90_noerr) then
-              write (6,*) 'Error File close'
-              write (6,*) nf90_strerror(istatus)
-              call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE ERROR')
-            end if
+            call check_ok(istatus, 'SubDomain file close error', &
+                        'SUBDOMAIN FILE ERROR')
             iutin1 = -1
           end if
 
@@ -521,7 +390,6 @@
         subroutine read_texture(nats,texture)
           use mod_dynparam
           use netcdf
-          use mod_message
           implicit none
 
           integer , intent(in) :: nats
@@ -534,18 +402,13 @@
 
           if (iutin < 0) then
             istatus = nf90_open(dname, nf90_nowrite, iutin)
-            if ( istatus /= nf90_noerr) then
-              write (6,*) 'Error Opening Domain file ', trim(dname)
-              write (6,*) nf90_strerror(istatus)
-              call fatal(__FILE__,__LINE__, 'CANNOT OPEN DOMAIN FILE')
-            end if
+            call check_ok(istatus, &
+                       &  'Error Opening Domain file '//trim(dname), &
+                       &  'DOMAIN FILE OPEN ERROR')
           end if
-          istatus = nf90_inq_varid(iutin, "texture_fraction", ivarid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error texture_fraction variable undefined'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_varid(iutin, 'texture_fraction', ivarid)
+          call check_ok(istatus, 'Variable texture_fraction missing', &
+                     &  'DOMAIN FILE ERROR')
           istart(2) = 1
           istart(1) = 1
           icount(3) = 1
@@ -554,11 +417,8 @@
           do n = 1 , nats
             istart(3) = n
             istatus = nf90_get_var(iutin, ivarid, toto, istart, icount)
-            if (istatus /= nf90_noerr) then
-              write (6,*) 'Error reading texture_fraction variable'
-              write (6,*) nf90_strerror(istatus)
-              call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-            end if
+            call check_ok(istatus, 'Variable texture_frac read error', &
+                     &  'DOMAIN FILE ERROR')
             do j = 1 , jx
               do i = 1 , iy
                 texture(i,j,n) = dble(toto(j,i))*0.01
@@ -572,8 +432,8 @@
 
         subroutine read_aerosol(chtrname,chemsrc)
           use mod_dynparam
-          use netcdf
           use mod_message
+          use netcdf
           implicit none
 
           character(5) , dimension(ntr) , intent(in) :: chtrname
@@ -586,11 +446,9 @@
           integer :: itr , i , j , m
 
           istatus = nf90_open(aername, nf90_nowrite, ncid)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error Opening Aerosol file ', trim(aername)
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'AEROSOL FILE OPEN ERROR')
-          end if
+          call check_ok(istatus, &
+                     &  'Error Opening Aerosol file '//trim(aername), &
+                     &  'AEROSOL FILE OPEN ERROR')
 
           do itr = 1 , ntr
             aerctl = chtrname(itr)
@@ -599,18 +457,12 @@
             if ( aerctl(1:4).ne.'DUST') then
               if ( aerctl(1:3).eq.'SO2' ) then
                 if ( aertyp(4:4).eq.'1' ) then
-                  istatus = nf90_inq_varid(ncid, "so2", ivarid)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error so2 variable undefined'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL SO2 ERROR')
-                  end if
+                  istatus = nf90_inq_varid(ncid, 'so2', ivarid)
+                  call check_ok(istatus, 'Variable so2 missing', &
+                            &   'AEROSOL FILE ERROR')
                   istatus = nf90_get_var(ncid, ivarid, toto)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error reading so2 variable'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL READ ERROR')
-                  end if
+                  call check_ok(istatus, 'Variable so2 read error', &
+                            &   'AEROSOL FILE ERROR')
                   do m = 1 , 12
                     do j = 1 , jx
                       do i = 1 , iy
@@ -620,12 +472,9 @@
                   end do
                 end if
                 if ( aertyp(5:5).eq.'1' ) then
-                  istatus = nf90_inq_varid(ncid, "so2_monthly", ivarid)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error so2_monthly variable undefined'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL SO2M ERROR')
-                  end if
+                  istatus = nf90_inq_varid(ncid, 'so2_monthly', ivarid)
+                  call check_ok(istatus, 'Variable so2_mon missing', &
+                            &   'AEROSOL FILE ERROR')
                   istart(1) = 1
                   istart(2) = 1
                   icount(1) = jx
@@ -635,12 +484,8 @@
                     istart(3) = m
                     istatus = nf90_get_var(ncid,ivarid,toto, &
                                         &  istart,icount)
-                    if (istatus /= nf90_noerr) then
-                      write (6,*) 'Error reading so2_monthly variable'
-                      write (6,*) nf90_strerror(istatus)
-                      call fatal(__FILE__,__LINE__,  &
-                               & 'AEROSOL SO2M READ ERROR')
-                    end if
+                    call check_ok(istatus, 'Variable so2_mon read err', &
+                            &   'AEROSOL FILE ERROR')
                     do j = 1 , jx
                       do i = 1 , iy
                         chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + &
@@ -651,18 +496,12 @@
                 end if
               else if ( aerctl(1:2).eq.'BC' ) then
                 if ( aertyp(4:4).eq.'1' ) then
-                  istatus = nf90_inq_varid(ncid, "bc", ivarid)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error bc variable undefined'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL BC ERROR')
-                  end if
+                  istatus = nf90_inq_varid(ncid, 'bc', ivarid)
+                  call check_ok(istatus, 'Variable bc missing', &
+                            &   'AEROSOL FILE ERROR')
                   istatus = nf90_get_var(ncid, ivarid, toto)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error reading bc variable'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL READ ERROR')
-                  end if
+                  call check_ok(istatus, 'Variable bc read error', &
+                            &   'AEROSOL FILE ERROR')
                   do m = 1 , 12
                     do j = 1 , jx
                       do i = 1 , iy
@@ -672,12 +511,9 @@
                   end do
                 end if
                 if ( aertyp(5:5).eq.'1' ) then
-                  istatus = nf90_inq_varid(ncid, "bc_monthly", ivarid)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error bc_monthly variable undefined'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL BCM ERROR')
-                  end if
+                  istatus = nf90_inq_varid(ncid, 'bc_monthly', ivarid)
+                  call check_ok(istatus, 'Variable bc_mon missing', &
+                            &   'AEROSOL FILE ERROR')
                   istart(1) = 1
                   istart(2) = 1
                   icount(1) = jx
@@ -687,12 +523,8 @@
                     istart(3) = m
                     istatus = nf90_get_var(ncid,ivarid,toto,  &
                                        &   istart,icount)
-                    if (istatus /= nf90_noerr) then
-                      write (6,*) 'Error reading bc_monthly variable'
-                      write (6,*) nf90_strerror(istatus)
-                      call fatal(__FILE__,__LINE__, &
-                               & 'AEROSOL READ ERROR')
-                    end if
+                    call check_ok(istatus, 'Variable bc_mon read err', &
+                            &   'AEROSOL FILE ERROR')
                     do j = 1 , jx
                       do i = 1 , iy
                         chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + &
@@ -703,18 +535,12 @@
                 end if
               else if ( aerctl(1:2).eq.'OC' ) then
                 if ( aertyp(4:4).eq.'1' ) then
-                  istatus = nf90_inq_varid(ncid, "oc", ivarid)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error oc variable undefined'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL OC ERROR')
-                  end if
+                  istatus = nf90_inq_varid(ncid, 'oc', ivarid)
+                  call check_ok(istatus, 'Variable oc missing', &
+                            &   'AEROSOL FILE ERROR')
                   istatus = nf90_get_var(ncid, ivarid, toto)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error reading oc variable'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL READ ERROR')
-                  end if
+                  call check_ok(istatus, 'Variable oc read error', &
+                            &   'AEROSOL FILE ERROR')
                   do m = 1 , 12
                     do j = 1 , jx
                       do i = 1 , iy
@@ -724,12 +550,9 @@
                   end do
                 end if
                 if ( aertyp(5:5).eq.'1' ) then
-                  istatus = nf90_inq_varid(ncid, "oc_monthly", ivarid)
-                  if (istatus /= nf90_noerr) then
-                    write (6,*) 'Error oc_monthly variable undefined'
-                    write (6,*) nf90_strerror(istatus)
-                    call fatal(__FILE__,__LINE__,'AEROSOL OCM ERROR')
-                  end if
+                  istatus = nf90_inq_varid(ncid, 'oc_monthly', ivarid)
+                  call check_ok(istatus, 'Variable oc_mon missing', &
+                            &   'AEROSOL FILE ERROR')
                   istart(1) = 1
                   istart(2) = 1
                   icount(1) = jx
@@ -739,12 +562,8 @@
                     istart(3) = m
                     istatus = nf90_get_var(ncid,ivarid,toto, &
                                        &   istart,icount)
-                    if (istatus /= nf90_noerr) then
-                      write (6,*) 'Error reading oc_monthly variable'
-                      write (6,*) nf90_strerror(istatus)
-                      call fatal(__FILE__,__LINE__,  &
-                               & 'AEROSOL READ ERROR')
-                    end if
+                    call check_ok(istatus, 'Variable oc_mon read err', &
+                            &   'AEROSOL FILE ERROR')
                     do j = 1 , jx
                       do i = 1 , iy
                         chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + &
@@ -758,18 +577,16 @@
           end do
 
           istatus = nf90_close(ncid)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error Closing Aerosol file ', trim(aername)
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'AEROSOL FILE CLOSE ERROR')
-          end if
+          call check_ok(istatus, &
+                      & 'Error Closing Aerosol file '//trim(aername), &
+                      &   'AEROSOL FILE CLOSE ERROR')
 
         end subroutine read_aerosol
 
         subroutine open_icbc(idate)
           use mod_dynparam
-          use netcdf
           use mod_message
+          use netcdf
           use mod_date , only : timeval2idate
           integer , intent(in) :: idate
           character(10) :: cdate
@@ -783,49 +600,29 @@
           icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'// &
               &      cdate//'.nc'
           istatus = nf90_open(icbcname, nf90_nowrite, ibcin)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error Opening ICBC file ', trim(icbcname)
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC FILE OPEN ERROR')
-          end if
+          call check_ok(istatus, &
+                     &  'Error Opening ICBC file '//trim(icbcname), &
+                     &  'ICBC FILE OPEN ERROR')
           icbcrec = 1
           icbcnrec = 0
-          istatus = nf90_inq_dimid(ibcin, "iy", idimid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Dimension iy missing'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          istatus = nf90_inq_dimid(ibcin, 'iy', idimid)
+          call check_ok(istatus, 'Dimension iy missing', &
+                     &  'ICBC FILE ERROR')
           istatus = nf90_inquire_dimension(ibcin, idimid, len=iyy)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension iy'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
-          istatus = nf90_inq_dimid(ibcin, "jx", idimid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Dimension jx missing'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Dimension iy read error', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_dimid(ibcin, 'jx', idimid)
+          call check_ok(istatus, 'Dimension jx missing', &
+                     &  'ICBC FILE ERROR')
           istatus = nf90_inquire_dimension(ibcin, idimid, len=jxx)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension jx'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
-          istatus = nf90_inq_dimid(ibcin, "kz", idimid)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Dimension kz missing'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Dimension jx read error', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_dimid(ibcin, 'kz', idimid)
+          call check_ok(istatus, 'Dimension kz missing', &
+                     &  'ICBC FILE ERROR')
           istatus = nf90_inquire_dimension(ibcin, idimid, len=kzz)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension kz'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
-          end if
+          call check_ok(istatus, 'Dimension kz read error', &
+                     &  'ICBC FILE ERROR')
           if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
             write (6,*) 'Error: dims from regcm.in and ICBC file ', &
                         'differ.'
@@ -838,37 +635,22 @@
             call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
           end if
           istatus = nf90_inq_dimid(ibcin, 'time', idimid)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error time dimension not present'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'Dimension time missing', &
+                     &  'ICBC FILE ERROR')
           istatus = nf90_inquire_dimension(ibcin, idimid, len=icbcnrec)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error time dimension not present'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
-          istatus = nf90_inq_varid(ibcin, "time", itvar)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable time'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
-          istatus = nf90_get_att(ibcin, itvar, "units", icbc_timeunits)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable time attribute units'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'Dimension time read error', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_varid(ibcin, 'time', itvar)
+          call check_ok(istatus, 'variable time missing', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_get_att(ibcin, itvar, 'units', icbc_timeunits)
+          call check_ok(istatus, 'variable time units missing', &
+                     &  'ICBC FILE ERROR')
           allocate(icbc_idate(icbcnrec))
           allocate(icbc_xtime(icbcnrec))
           istatus = nf90_get_var(ibcin, itvar, icbc_xtime)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading time variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'variable time read error', &
+                     &  'ICBC FILE ERROR')
           do i = 1 , icbcnrec
             icbc_idate(i) = timeval2idate(icbc_xtime(i), icbc_timeunits)
           end do
@@ -880,43 +662,25 @@
             write (6,*) 'Found     ibdyfrq = ', chkdiff
             call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
           end if
-          istatus = nf90_inq_varid(ibcin, "ps", icbc_ivar(1))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable ps'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
-          istatus = nf90_inq_varid(ibcin, "ts", icbc_ivar(2))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable ts'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
-          istatus = nf90_inq_varid(ibcin, "u", icbc_ivar(3))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable u'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
-          istatus = nf90_inq_varid(ibcin, "v", icbc_ivar(4))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable v'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
-          istatus = nf90_inq_varid(ibcin, "t", icbc_ivar(5))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable t'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
-          istatus = nf90_inq_varid(ibcin, "qv", icbc_ivar(6))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable qv'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
-          istatus = nf90_inq_varid(ibcin, "so4", icbc_ivar(7))
+          istatus = nf90_inq_varid(ibcin, 'ps', icbc_ivar(1))
+          call check_ok(istatus, 'variable ps missing', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_varid(ibcin, 'ts', icbc_ivar(2))
+          call check_ok(istatus, 'variable ts missing', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_varid(ibcin, 'u', icbc_ivar(3))
+          call check_ok(istatus, 'variable u missing', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_varid(ibcin, 'v', icbc_ivar(4))
+          call check_ok(istatus, 'variable v missing', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_varid(ibcin, 't', icbc_ivar(5))
+          call check_ok(istatus, 'variable t missing', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_varid(ibcin, 'qv', icbc_ivar(6))
+          call check_ok(istatus, 'variable qv missing', &
+                     &  'ICBC FILE ERROR')
+          istatus = nf90_inq_varid(ibcin, 'so4', icbc_ivar(7))
           if ( istatus == nf90_noerr) then
             lso4p = .true.
           end if
@@ -924,8 +688,8 @@
 
         subroutine read_icbc(idate,ps,ts,u,v,t,qv,so4)
           use mod_dynparam
-          use netcdf
           use mod_message
+          use netcdf
           use mod_date , only : idatediff
           implicit none
           integer , intent(in) :: idate
@@ -957,19 +721,13 @@
           icount(1) = jx
           istatus = nf90_get_var(ibcin, icbc_ivar(1), xread(:,:,1), & 
                                  istart(1:3), icount(1:3))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading ps variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'variable ps read error', &
+                     &  'ICBC FILE ERROR')
           ps = transpose(xread(:,:,1))
           istatus = nf90_get_var(ibcin, icbc_ivar(2), xread(:,:,1), & 
                                  istart(1:3), icount(1:3))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading ts variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'variable ts read error', &
+                     &  'ICBC FILE ERROR')
           ts = transpose(xread(:,:,1))
           istart(4) = icbcrec
           istart(3) = 1
@@ -981,11 +739,8 @@
           icount(1) = jx
           istatus = nf90_get_var(ibcin, icbc_ivar(3), xread, &
                     &            istart, icount)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading u variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'variable u read error', &
+                     &  'ICBC FILE ERROR')
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
@@ -995,11 +750,8 @@
           end do
           istatus = nf90_get_var(ibcin, icbc_ivar(4), xread, &
                     &            istart, icount)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading v variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'variable v read error', &
+                     &  'ICBC FILE ERROR')
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
@@ -1009,11 +761,8 @@
           end do
           istatus = nf90_get_var(ibcin, icbc_ivar(5), xread, &
                     &            istart, icount)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading t variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'variable t read error', &
+                     &  'ICBC FILE ERROR')
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
@@ -1023,11 +772,8 @@
           end do
           istatus = nf90_get_var(ibcin, icbc_ivar(6), xread, &
                     &            istart, icount)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading qv variable'
-            write (6,*) nf90_strerror(istatus)
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-          end if
+          call check_ok(istatus, 'variable qv read error', &
+                     &  'ICBC FILE ERROR')
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
@@ -1038,11 +784,8 @@
           if (lso4p) then
             istatus = nf90_get_var(ibcin, icbc_ivar(7), xread, &
                     &              istart, icount)
-            if ( istatus /= nf90_noerr) then
-              write (6,*) 'Error reading so4 variable'
-              write (6,*) nf90_strerror(istatus)
-              call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-            end if
+            call check_ok(istatus, 'variable so4 read error', &
+                     &  'ICBC FILE ERROR')
             do k = 1 , kz
               do j = 1 , jx
                 do i = 1 , iy
@@ -1058,15 +801,12 @@
         subroutine close_icbc
           use mod_dynparam
           use netcdf
-          use mod_message
           implicit none
           if (ibcin >= 0) then
             istatus = nf90_close(ibcin)
-            if ( istatus /= nf90_noerr) then
-              write (6,*) 'Error Closing ICBC file ', trim(icbcname)
-              write (6,*) nf90_strerror(istatus)
-              call fatal(__FILE__,__LINE__,'ICBC FILE CLOSE ERROR')
-            end if
+            call check_ok(istatus, &
+                     &  'Error Closing ICBC file '//trim(icbcname), &
+                     &  'ICBC FILE ERROR')
             if (allocated(icbc_idate)) deallocate(icbc_idate)
           end if
         end subroutine close_icbc
@@ -1083,5 +823,18 @@
             icbc_search = (idatediff(idate, icbc_idate(1))/ibdyfrq)+1
           end if 
         end function icbc_search
+
+        subroutine check_ok(ierr,m1,mf)
+          use mod_message
+          use netcdf
+          implicit none
+          integer , intent(in) :: ierr
+          character(*) :: m1 , mf
+          if (ierr /= nf90_noerr) then 
+            write (6,*) m1
+            write (6,*) nf90_strerror(ierr)
+            call fatal(__FILE__,__LINE__,mf)
+          end if
+        end subroutine check_ok
 
       end module mod_ncio
