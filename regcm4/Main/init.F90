@@ -159,25 +159,18 @@
       w10x_o = -1.E30
       psmn_o =  1.E30
 
-#ifdef MPP1
-      if ( myid.eq.0 ) then
-        if (ndate0.eq.globidate1 .or.                                   &
-           (((ndate0/10000)*100+1)*100 .eq.                             &
-           ((globidate1/10000)*100+1)*100 ) ) then
-          icbc_date = globidate1
-        else
-          icbc_date = ((ndate0/10000)*100+1)*100
-        end if
-        call open_icbc(icbc_date)
-      end if
-#else
       if (ndate0.eq.globidate1 .or.                                   &
          (((ndate0/10000)*100+1)*100 .eq.                             &
          ((globidate1/10000)*100+1)*100 ) ) then
         icbc_date = globidate1
       else
-        icbc_date = ((ndate0/10000)*100+1)*100
+          icbc_date = ((ndate0/10000)*100+1)*100
       end if
+#ifdef MPP1
+      if ( myid.eq.0 ) then
+        call open_icbc(icbc_date)
+      end if
+#else
       call open_icbc(icbc_date)
 #endif
 !

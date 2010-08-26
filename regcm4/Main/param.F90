@@ -67,6 +67,11 @@
       use mod_ictp01 , only : allocate_mod_ictp01
       use mod_o3blk , only : allocate_mod_o3blk
       use mod_ncio
+
+#ifdef DIAG 
+      use mod_diagnosis
+#endif 
+
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
