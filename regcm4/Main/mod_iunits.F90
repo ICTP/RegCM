@@ -90,6 +90,7 @@
 
       subroutine mkfile
  
+      use mod_ncio , only : prepare_common_io
       use mod_dynparam
       use mod_param1
       use mod_param2
@@ -107,6 +108,7 @@
       print * , ' '
       print * , '******* OPENING NEW OUTPUT FILES:' , idatex
       if ( iftape ) then
+        call prepare_common_io(idatex,'ATM')
         close (iutdat)
         call outname('ATM',idatex)
         if ( iotyp.eq.1 ) then
@@ -127,6 +129,7 @@
       end if
  
       if ( ifbat ) then
+        call prepare_common_io(idatex,'SRF')
         close (iutbat)
         call outname('SRF',idatex)
         if ( iotyp.eq.1 ) then
@@ -147,6 +150,7 @@
       end if
  
       if ( nsg.gt.1 .and. ifsub ) then
+        call prepare_common_io(idatex,'SUB')
         close (iutsub)
         call outname('SUB',idatex)
         if ( iotyp.eq.1 ) then
@@ -167,6 +171,7 @@
       end if
  
       if ( ifrad ) then
+        call prepare_common_io(idatex,'RAD')
         close (iutrad)
         call outname('RAD',idatex)
         if ( iotyp.eq.1 ) then
@@ -188,6 +193,7 @@
  
       if ( ichem.eq.1 ) then
         if ( ifchem ) then
+          call prepare_common_io(idatex,'CHE')
           close (iutchem)
           call outname('CHE',idatex)
           if ( iotyp.eq.1 ) then

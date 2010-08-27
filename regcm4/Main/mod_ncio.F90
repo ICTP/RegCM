@@ -78,14 +78,14 @@
           aername = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
           icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'// &
               &      'YYYYMMDDHH.nc'
-          allocate(ioxlat(jx,iy))
-          allocate(ioxlon(jx,iy))
-          allocate(iotopo(jx,iy))
+          allocate(ioxlat(jx-2,iy-2))
+          allocate(ioxlon(jx-2,iy-2))
+          allocate(iotopo(jx-2,iy-2))
           allocate(hsigma(kz))
           if (nsg > 1) then
-            allocate(ioxlat_s(jxsg,iysg))
-            allocate(ioxlon_s(jxsg,iysg))
-            allocate(iotopo_s(jxsg,iysg))
+            allocate(ioxlat_s(jxsg-2,iysg-2))
+            allocate(ioxlon_s(jxsg-2,iysg-2))
+            allocate(iotopo_s(jxsg-2,iysg-2))
           end if
         end subroutine init_mod_ncio
 
@@ -218,7 +218,7 @@
           istatus = nf90_get_var(idmin, ivarid, rsdum)
           call check_ok(istatus, 'Variable sigma read error', &
                         'DOMAIN FILE ERROR')
-          sigma = dble(rsdum)
+          sigma = rsdum
           do k = 1 , kz
             hsigma(k) = (sigma(k)+sigma(k+1))/2.0
           end do
@@ -252,10 +252,11 @@
           istatus = nf90_inq_varid(idmin, 'topo', ivarid)
           call check_ok(istatus, 'Variable topo missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(idmin, ivarid, iotopo)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable topo read error', &
                         'DOMAIN FILE ERROR')
-          ht = transpose(iotopo)
+          ht = transpose(sp2d)
+          iotopo = sp2d(2:jx-1,2:iy-1)
           istatus = nf90_inq_varid(idmin, 'htsd', ivarid)
           call check_ok(istatus, 'Variable htsd missing', &
                         'DOMAIN FILE ERROR')
@@ -273,17 +274,19 @@
           istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
           call check_ok(istatus, 'Variable xlat missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(idmin, ivarid, ioxlat)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable xlat read error', &
                         'DOMAIN FILE ERROR')
-          xlat = transpose(ioxlat)
+          xlat = transpose(sp2d)
+          ioxlat = sp2d(2:jx-1,2:iy-1)
           istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
           call check_ok(istatus, 'Variable xlon missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(idmin, ivarid, ioxlon)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable xlon read error', &
                         'DOMAIN FILE ERROR')
-          xlon = transpose(ioxlon)
+          xlon = transpose(sp2d)
+          ioxlon = sp2d(2:jx-1,2:iy-1)
           istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
           call check_ok(istatus, 'Variable xmap missing', &
                         'DOMAIN FILE ERROR')
@@ -340,7 +343,7 @@
           istatus = nf90_inq_varid(isdmin, 'topo', ivarid)
           call check_ok(istatus, 'Variable topo missing', &
                         'SUBDOMAIN FILE ERROR')
-          istatus = nf90_get_var(isdmin, ivarid, iotopo_s)
+          istatus = nf90_get_var(isdmin, ivarid, sp2d1)
           call check_ok(istatus, 'Variable topo read error', &
                         'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
@@ -352,9 +355,10 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              ht1(n,ii,jj) = iotopo_s(j,i)*gti
+              ht1(n,ii,jj) = sp2d1(j,i)*gti
             end do
           end do
+          iotopo_s = sp2d1(2:jxsg-1,2:iysg-1)
           istatus = nf90_inq_varid(isdmin, 'landuse', ivarid)
           call check_ok(istatus, 'Variable landuse missing', &
                         'SUBDOMAIN FILE ERROR')
@@ -376,7 +380,7 @@
           istatus = nf90_inq_varid(isdmin, 'xlat', ivarid)
           call check_ok(istatus, 'Variable xlat missing', &
                         'SUBDOMAIN FILE ERROR')
-          istatus = nf90_get_var(isdmin, ivarid, ioxlat_s)
+          istatus = nf90_get_var(isdmin, ivarid, sp2d1)
           call check_ok(istatus, 'Variable xlat read error', &
                         'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
@@ -388,13 +392,14 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              xlat1(n,ii,jj) = ioxlat_s(j,i)
+              xlat1(n,ii,jj) = sp2d1(j,i)
             end do
           end do
+          ioxlat_s = sp2d1(2:jxsg-1,2:iysg-1)
           istatus = nf90_inq_varid(isdmin, 'xlon', ivarid)
           call check_ok(istatus, 'Variable xlon missing', &
                         'SUBDOMAIN FILE ERROR')
-          istatus = nf90_get_var(isdmin, ivarid, ioxlon_s)
+          istatus = nf90_get_var(isdmin, ivarid, sp2d1)
           call check_ok(istatus, 'Variable xlon read error', &
                         'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
@@ -406,9 +411,10 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              xlon1(n,ii,jj) = ioxlon_s(j,i)
+              xlon1(n,ii,jj) = sp2d1(j,i)
             end do
           end do
+          ioxlon_s = sp2d1(2:jxsg-1,2:iysg-1)
 
         end subroutine read_subdomain
 
@@ -893,13 +899,14 @@
           integer , intent(in) :: idate
           character(3) , intent(in) :: ctype
           character(64) :: title
-          character(32) :: fbname , csdate , cmethodmax , cmethodmin
+          character(32) :: fbname , csdate
+          character(64) :: cmethodmax , cmethodmin
           character(256) :: ofname , history
           integer , dimension(8) :: tvals
-          real(4) , dimension(2) :: trlat
-          real(4) :: hptop
-          real(4) , dimension(iy) :: yiy
-          real(4) , dimension(jx) :: xjx
+          real(4) :: hptop , rdum1
+          real(4) , dimension(2) :: trlat , rdum2
+          real(4) , dimension(iysg) :: yiy
+          real(4) , dimension(jxsg) :: xjx
           integer :: ncid
           integer , dimension(2) :: izvar
           integer , dimension(2) :: ivvar
@@ -1019,17 +1026,17 @@
 !         ADD DIMENSIONS
 !
           if (ctype == 'SUB') then
-            istatus = nf90_def_dim(ncid, 'iy', iysg, idims(2))
+            istatus = nf90_def_dim(ncid, 'iy', iysg-2, idims(2))
             call check_ok(istatus, 'Error creating dimension iy', &
                           ctype//' FILE ERROR')
-            istatus = nf90_def_dim(ncid, 'jx', jxsg, idims(1))
+            istatus = nf90_def_dim(ncid, 'jx', jxsg-2, idims(1))
             call check_ok(istatus, 'Error creating dimension jx', &
                           ctype//' FILE ERROR')
           else
-            istatus = nf90_def_dim(ncid, 'iy', iy, idims(2))
+            istatus = nf90_def_dim(ncid, 'iy', iy-2, idims(2))
             call check_ok(istatus, 'Error creating dimension iy', &
                           ctype//' FILE ERROR')
-            istatus = nf90_def_dim(ncid, 'jx', jx, idims(1))
+            istatus = nf90_def_dim(ncid, 'jx', jx-2, idims(1))
             call check_ok(istatus, 'Error creating dimension jx', &
                           ctype//' FILE ERROR')
           end if
@@ -1253,7 +1260,7 @@
             call check_ok(istatus, 'Error adding time bounds', &
                           ctype//' FILE ERROR')
             istatus = nf90_def_var(ncid, 'time_bnds', nf90_double, &
-                                   (/idims(3),idims(8)/), isrfvar(2))
+                                   (/idims(8),idims(3)/), isrfvar(2))
             call check_ok(istatus, 'Error adding variable time_bnds', &
                           ctype//' FILE ERROR')
             istatus = nf90_put_att(ncid, isrfvar(2), 'calendar', &
@@ -1691,21 +1698,21 @@
           istatus = nf90_put_var(ncid, izvar(2), hptop)
           call check_ok(istatus, 'Error variable ptop write', &
                         ctype//' FILE ERROR')
-          yiy(1) = -(dble(iy-1)/2.0) * ds
-          xjx(1) = -(dble(jx-1)/2.0) * ds
-          do i = 2 , iy
-            yiy(i) = yiy(i-1)+ds
-          end do
-          do j = 2 , jx
-            xjx(j) = xjx(j-1)+ds
-          end do
-          istatus = nf90_put_var(ncid, ivvar(1), yiy)
-          call check_ok(istatus, 'Error variable iy write', &
-                        ctype//' FILE ERROR')
-          istatus = nf90_put_var(ncid, ivvar(2), xjx)
-          call check_ok(istatus, 'Error variable jx write', &
-                        ctype//' FILE ERROR')
           if (ctype == 'SUB') then
+            yiy(1) = -(dble((iysg-1)-1)/2.0) * ds
+            xjx(1) = -(dble((jxsg-1)-1)/2.0) * ds
+            do i = 2 , iysg-1
+              yiy(i) = yiy(i-1)+ds
+            end do
+            do j = 2 , jxsg-1
+              xjx(j) = xjx(j-1)+ds
+            end do
+            istatus = nf90_put_var(ncid, ivvar(1), yiy(1:iysg-2))
+            call check_ok(istatus, 'Error variable iy write', &
+                          ctype//' FILE ERROR')
+            istatus = nf90_put_var(ncid, ivvar(2), xjx(1:jxsg-2))
+            call check_ok(istatus, 'Error variable jx write', &
+                          ctype//' FILE ERROR')
             istatus = nf90_put_var(ncid, illtpvar(1), ioxlat_s)
             call check_ok(istatus, 'Error variable xlat write', &
                         ctype//' FILE ERROR')
@@ -1716,6 +1723,20 @@
             call check_ok(istatus, 'Error variable topo write', &
                         ctype//' FILE ERROR')
           else
+            yiy(1) = -(dble((iy-2)-1)/2.0) * ds
+            xjx(1) = -(dble((jx-2)-1)/2.0) * ds
+            do i = 2 , iy-1
+              yiy(i) = yiy(i-1)+ds
+            end do
+            do j = 2 , jx-1
+              xjx(j) = xjx(j-1)+ds
+            end do
+            istatus = nf90_put_var(ncid, ivvar(1), yiy(1:iy-2))
+            call check_ok(istatus, 'Error variable iy write', &
+                          ctype//' FILE ERROR')
+            istatus = nf90_put_var(ncid, ivvar(2), xjx(1:jx-2))
+            call check_ok(istatus, 'Error variable jx write', &
+                          ctype//' FILE ERROR')
             istatus = nf90_put_var(ncid, illtpvar(1), ioxlat)
             call check_ok(istatus, 'Error variable xlat write', &
                         ctype//' FILE ERROR')
@@ -1727,17 +1748,36 @@
                         ctype//' FILE ERROR')
           end if
           if (ctype == 'SRF' .or. ctype == 'SUB') then
-            istatus = nf90_put_var(ncid, isrvvar(1), 10)
+            rdum1 = 10
+            istatus = nf90_put_var(ncid, isrvvar(1), rdum1)
             call check_ok(istatus, 'Error variable m10 write', &
                         ctype//' FILE ERROR')
-            istatus = nf90_put_var(ncid, isrvvar(2), 2)
+            rdum1 = 2
+            istatus = nf90_put_var(ncid, isrvvar(2), rdum1)
             call check_ok(istatus, 'Error variable m2 write', &
                         ctype//' FILE ERROR')
-            istatus = nf90_put_var(ncid, isrvvar(3), (/0,1/))
+            rdum2(1) = 0
+            rdum2(2) = 1
+            istatus = nf90_put_var(ncid, isrvvar(3), rdum2)
             call check_ok(istatus, 'Error variable layer write', &
                         ctype//' FILE ERROR')
           end if
 
+          istatus = nf90_sync(ncid)
+            call check_ok(istatus, 'Error initial sync', &
+                        ctype//' FILE ERROR')
+
+          if (ctype == 'ATM') then
+            ncatm = ncid
+          else if (ctype == 'SRF') then
+            ncsrf = ncid
+          else if (ctype == 'SUB') then
+            ncsub = ncid
+          else if (ctype == 'RAD') then
+            ncrad = ncid
+          else if (ctype == 'CHE') then
+            ncche = ncid
+          end if
         end subroutine prepare_common_io
 
         subroutine addvara(ncid,ctype,vname,vst,vln,vuni,idims,lmiss, &
@@ -1756,9 +1796,9 @@
           character(64) :: cdum
           integer :: i , ndims
 
-          ndims = 1
+          ndims = 0
           do i = 1 , 9
-            if (idims(1) > 0) ndims = ndims+1
+            if (idims(i) > 0) ndims = ndims+1
           end do
 
           cdum = vname

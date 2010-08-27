@@ -174,7 +174,8 @@ mod_dust.o: mod_dust.F90 mod_trachem.o mod_dynparam.o mod_constants.o \
             mod_trachem.o mod_iunits.o mod_ncio.o
 mod_ictp01.o: mod_ictp01.F90 mod_dynparam.o
 mod_iunits.o: mod_iunits.F90 mod_bats.o mod_date.o mod_mainchem.o \
-              mod_outrad.o mod_param1.o mod_param2.o mod_dynparam.o
+              mod_outrad.o mod_param1.o mod_param2.o mod_dynparam.o \
+              mod_ncio.o
 mod_isrchf.o: mod_isrchf.f90
 mod_lake.o: mod_lake.f90 mod_bats.o mod_date.o mod_iunits.o mod_param1.o \
             mod_dynparam.o

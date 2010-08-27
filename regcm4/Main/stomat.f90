@@ -82,7 +82,7 @@
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then
 !             **********            zenith angle set in zenitm
-              if ( czen(i).gt.0.001 ) then
+              if ( (czen(i)/ilmax).gt.0.001 ) then
                 trup(n,i) = dexp(-g*rlai(n,i)/(ilmax*czen(i)))
                 trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(ilmax))
                 if ( trup(n,i) .lt. 1E-30 ) trup(n,i) = 0.0
@@ -123,7 +123,7 @@
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then
-              if ( czen(i).gt.0.001 ) then
+              if ( (czen(i)/ilmax).gt.0.001 ) then
                 vpdf = 1./dmax1(0.3D0,1.D0-vpdc(n,i)*0.025)
                 seas = 1./(rmini(n,i)+fseas(tlef1d(n,i)))
                 rs(n,i) = rsmin(lveg(n,i))*radf(n,i)*seas*vpdf
