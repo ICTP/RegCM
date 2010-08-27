@@ -19,24 +19,55 @@
 !
       module mod_ncio
 
-        integer , private :: iutin , iutin1 , ibcin
+        integer , private :: idmin , isdmin , ibcin , ncatm , ncsrf , &
+                             ncsub , ncrad , ncche
         integer , private :: istatus
-        integer , private :: icbcrec , icbcnrec
+        integer , private :: ibcrec , ibcnrec
+        integer , private :: iatmrec , isrfrec , isubrec , iradrec , &
+                             icherec
+        integer , dimension(18) :: iatmvar
+        integer , dimension(27) :: isrfvar
+        integer , dimension(16) :: isubvar
+        integer , dimension(14) :: iradvar
+        integer , dimension(16) :: ichevar
         character(256) , private :: dname , sdname , aername , icbcname
         integer , dimension(:) , allocatable , private :: icbc_idate
+        real(4) , dimension(:) , allocatable , private :: hsigma
         integer , dimension(7) , private :: icbc_ivar
         logical , private :: lso4p
 
-        data iutin  /-1/
-        data iutin1 /-1/
-        data ibcin  /-1/
-        data icbcrec /1/
-        data icbcnrec /0/
-        data lso4p /.false./
+        ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
+        ! DIM5 is m10 ,  DIM6 is m2 , DIM7 is soil_layer , DIM8 is nv
+        ! DIM9 is tracer
+        integer , dimension(9) , private :: ioutdims
+
+        data lso4p   /.false./
+        data idmin   /-1/
+        data isdmin  /-1/
+        data ibcin   /-1/
+        data ibcrec  / 1/
+        data ibcnrec / 0/
+        data ncatm   /-1/
+        data iatmrec / 1/
+        data ncsrf   /-1/
+        data isrfrec / 1/
+        data ncsub   /-1/
+        data isubrec / 1/
+        data ncrad   /-1/
+        data iradrec / 1/
+        data ncche   /-1/
+        data icherec / 1/
+
+        real(4) , dimension(:,:) , allocatable , private :: ioxlat
+        real(4) , dimension(:,:) , allocatable , private :: ioxlon
+        real(4) , dimension(:,:) , allocatable , private :: iotopo
+        real(4) , dimension(:,:) , allocatable , private :: ioxlat_s
+        real(4) , dimension(:,:) , allocatable , private :: ioxlon_s
+        real(4) , dimension(:,:) , allocatable , private :: iotopo_s
 
       contains
 
-        subroutine static_path_prepare
+        subroutine init_mod_ncio
           use mod_dynparam
           implicit none
           character(3) :: sbstring
@@ -47,7 +78,16 @@
           aername = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
           icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'// &
               &      'YYYYMMDDHH.nc'
-        end subroutine static_path_prepare
+          allocate(ioxlat(jx,iy))
+          allocate(ioxlon(jx,iy))
+          allocate(iotopo(jx,iy))
+          allocate(hsigma(kz))
+          if (nsg > 1) then
+            allocate(ioxlat_s(jxsg,iysg))
+            allocate(ioxlon_s(jxsg,iysg))
+            allocate(iotopo_s(jxsg,iysg))
+          end if
+        end subroutine init_mod_ncio
 
         subroutine open_domain(r8pt , dx , sigma)
           use mod_dynparam
@@ -60,60 +100,61 @@
           real(8) , dimension(kzp1) :: sigma
 
           integer :: ivarid , idimid
-          integer :: iyy , jxx , kzz
+          integer :: iyy , jxx , kzz , k
           character(6) :: proj
           real(4) :: dsx , iclat , iclon , ptsp
+          real(4) , dimension(kzp1) :: rsdum
 
           write (aline,*) 'READING HEADER FILE:', dname
           call say
-          istatus = nf90_open(dname, nf90_nowrite, iutin)
+          istatus = nf90_open(dname, nf90_nowrite, idmin)
           call check_ok(istatus, &
                         'Error Opening Domain file '//trim(dname), &
                         'CANNOT OPEN DOMAIN FILE')
           if ( nsg.gt.1 ) then
             write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
             call say
-            istatus = nf90_open(sdname, nf90_nowrite, iutin1)
+            istatus = nf90_open(sdname, nf90_nowrite, isdmin)
             call check_ok(istatus, &
                           'Error Opening SubDomain file '//trim(sdname),&
                           'CANNOT OPEN SUBDOM FILE')
           end if
-          istatus = nf90_inq_dimid(iutin, 'iy', idimid)
+          istatus = nf90_inq_dimid(idmin, 'iy', idimid)
           call check_ok(istatus, 'Dimension iy missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_inquire_dimension(iutin, idimid, len=iyy)
+          istatus = nf90_inquire_dimension(idmin, idimid, len=iyy)
           call check_ok(istatus, 'Dimension iy read error', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_inq_dimid(iutin, 'jx', idimid)
+          istatus = nf90_inq_dimid(idmin, 'jx', idimid)
           call check_ok(istatus, 'Dimension jx missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_inquire_dimension(iutin, idimid, len=jxx)
+          istatus = nf90_inquire_dimension(idmin, idimid, len=jxx)
           call check_ok(istatus, 'Dimension jx read error', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_inq_dimid(iutin, 'kz', idimid)
+          istatus = nf90_inq_dimid(idmin, 'kz', idimid)
           call check_ok(istatus, 'Dimension kz missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_inquire_dimension(iutin, idimid, len=kzz)
+          istatus = nf90_inquire_dimension(idmin, idimid, len=kzz)
           call check_ok(istatus, 'Dimension kz read error', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_inq_varid(iutin, 'ptop', ivarid)
+          istatus = nf90_inq_varid(idmin, 'ptop', ivarid)
           call check_ok(istatus, 'Variable ptop missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, ptsp)
+          istatus = nf90_get_var(idmin, ivarid, ptsp)
           call check_ok(istatus, 'Variable ptop read error', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_att(iutin, nf90_global, 'projection', proj)
+          istatus = nf90_get_att(idmin, nf90_global, 'projection', proj)
           call check_ok(istatus, 'Attribute projection missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_att(iutin, nf90_global, &
+          istatus = nf90_get_att(idmin, nf90_global, &
                        &         'grid_size_in_meters', dsx)
           call check_ok(istatus, 'Attribute gridsize missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_att(iutin, nf90_global, &
+          istatus = nf90_get_att(idmin, nf90_global, &
                      &         'latitude_of_projection_origin', iclat)
           call check_ok(istatus, 'Attribute clat missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_att(iutin, nf90_global, &
+          istatus = nf90_get_att(idmin, nf90_global, &
                       &         'longitude_of_projection_origin', iclon)
           call check_ok(istatus, 'Attribute clon missing', &
                         'DOMAIN FILE ERROR')
@@ -171,12 +212,16 @@
 !
           r8pt = ptsp/10.0
           dx = dsx
-          istatus = nf90_inq_varid(iutin, 'sigma', ivarid)
+          istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
           call check_ok(istatus, 'Variable sigma missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sigma)
+          istatus = nf90_get_var(idmin, ivarid, rsdum)
           call check_ok(istatus, 'Variable sigma read error', &
                         'DOMAIN FILE ERROR')
+          sigma = dble(rsdum)
+          do k = 1 , kz
+            hsigma(k) = (sigma(k)+sigma(k+1))/2.0
+          end do
 
         end subroutine open_domain
 
@@ -199,71 +244,71 @@
           integer :: ivarid , n
           real(4) , dimension(jx,iy) :: sp2d
 
-          if (iutin < 0) then
+          if (idmin < 0) then
             write (6,*) 'Error : Domain file not in open state'
             call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
           end if
 
-          istatus = nf90_inq_varid(iutin, 'topo', ivarid)
+          istatus = nf90_inq_varid(idmin, 'topo', ivarid)
           call check_ok(istatus, 'Variable topo missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, iotopo)
           call check_ok(istatus, 'Variable topo read error', &
                         'DOMAIN FILE ERROR')
-          ht = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, 'htsd', ivarid)
+          ht = transpose(iotopo)
+          istatus = nf90_inq_varid(idmin, 'htsd', ivarid)
           call check_ok(istatus, 'Variable htsd missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable htsd read error', &
                         'DOMAIN FILE ERROR')
           htsd = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, 'landuse', ivarid)
+          istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
           call check_ok(istatus, 'Variable landuse missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable landuse read error', &
                         'DOMAIN FILE ERROR')
           lnd = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, 'xlat', ivarid)
+          istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
           call check_ok(istatus, 'Variable xlat missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, ioxlat)
           call check_ok(istatus, 'Variable xlat read error', &
                         'DOMAIN FILE ERROR')
-          xlat = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, 'xlon', ivarid)
+          xlat = transpose(ioxlat)
+          istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
           call check_ok(istatus, 'Variable xlon missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, ioxlon)
           call check_ok(istatus, 'Variable xlon read error', &
                         'DOMAIN FILE ERROR')
-          xlon = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, 'xmap', ivarid)
+          xlon = transpose(ioxlon)
+          istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
           call check_ok(istatus, 'Variable xmap missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable xmap read error', &
                         'DOMAIN FILE ERROR')
           xmap = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, 'dmap', ivarid)
+          istatus = nf90_inq_varid(idmin, 'dmap', ivarid)
           call check_ok(istatus, 'Variable dmap missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable dmap read error', &
                         'DOMAIN FILE ERROR')
           dmap = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, 'coriol', ivarid)
+          istatus = nf90_inq_varid(idmin, 'coriol', ivarid)
           call check_ok(istatus, 'Variable coriol missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable coriol read error', &
                         'DOMAIN FILE ERROR')
           f = transpose(sp2d)
-          istatus = nf90_inq_varid(iutin, 'snowam', ivarid)
+          istatus = nf90_inq_varid(idmin, 'snowam', ivarid)
           call check_ok(istatus, 'Variable snowam missing', &
                         'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin, ivarid, sp2d)
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok(istatus, 'Variable snowam read error', &
                         'DOMAIN FILE ERROR')
           do n = 1 , nnsg
@@ -287,15 +332,15 @@
           integer :: i , j , n , ii , jj
           real(4) , dimension(jxsg,iysg) :: sp2d1
           
-          if (iutin1 < 0) then
+          if (isdmin < 0) then
             write (6,*) 'Error : Subdom file not in open state'
             call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
           end if
 
-          istatus = nf90_inq_varid(iutin1, 'topo', ivarid)
+          istatus = nf90_inq_varid(isdmin, 'topo', ivarid)
           call check_ok(istatus, 'Variable topo missing', &
                         'SUBDOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin1, ivarid, sp2d1)
+          istatus = nf90_get_var(isdmin, ivarid, iotopo_s)
           call check_ok(istatus, 'Variable topo read error', &
                         'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
@@ -307,13 +352,13 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              ht1(n,ii,jj) = sp2d1(j,i)*gti
+              ht1(n,ii,jj) = iotopo_s(j,i)*gti
             end do
           end do
-          istatus = nf90_inq_varid(iutin1, 'landuse', ivarid)
+          istatus = nf90_inq_varid(isdmin, 'landuse', ivarid)
           call check_ok(istatus, 'Variable landuse missing', &
                         'SUBDOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin1, ivarid, sp2d1)
+          istatus = nf90_get_var(isdmin, ivarid, sp2d1)
           call check_ok(istatus, 'Variable landuse read error', &
                         'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
@@ -328,10 +373,10 @@
               lnd1(n,ii,jj) = sp2d1(j,i)
             end do
           end do
-          istatus = nf90_inq_varid(iutin1, 'xlat', ivarid)
+          istatus = nf90_inq_varid(isdmin, 'xlat', ivarid)
           call check_ok(istatus, 'Variable xlat missing', &
                         'SUBDOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin1, ivarid, sp2d1)
+          istatus = nf90_get_var(isdmin, ivarid, ioxlat_s)
           call check_ok(istatus, 'Variable xlat read error', &
                         'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
@@ -343,13 +388,13 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              xlat1(n,ii,jj) = sp2d1(j,i)
+              xlat1(n,ii,jj) = ioxlat_s(j,i)
             end do
           end do
-          istatus = nf90_inq_varid(iutin1, 'xlon', ivarid)
+          istatus = nf90_inq_varid(isdmin, 'xlon', ivarid)
           call check_ok(istatus, 'Variable xlon missing', &
                         'SUBDOMAIN FILE ERROR')
-          istatus = nf90_get_var(iutin1, ivarid, sp2d1)
+          istatus = nf90_get_var(isdmin, ivarid, ioxlon_s)
           call check_ok(istatus, 'Variable xlon read error', &
                         'SUBDOMAIN FILE ERROR')
           do j = 1 , jxsg
@@ -361,7 +406,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              xlon1(n,ii,jj) = sp2d1(j,i)
+              xlon1(n,ii,jj) = ioxlon_s(j,i)
             end do
           end do
 
@@ -372,17 +417,17 @@
           use netcdf
           implicit none
 
-          if (iutin >= 0) then
-            istatus = nf90_close(iutin)
+          if (idmin >= 0) then
+            istatus = nf90_close(idmin)
             call check_ok(istatus, 'Domain file close error', &
                         'DOMAIN FILE ERROR')
-            iutin = -1
+            idmin = -1
           end if
-          if ( nsg>1 .and. iutin1 >=0 ) then
-            istatus = nf90_close(iutin1)
+          if ( nsg>1 .and. isdmin >=0 ) then
+            istatus = nf90_close(isdmin)
             call check_ok(istatus, 'SubDomain file close error', &
                         'SUBDOMAIN FILE ERROR')
-            iutin1 = -1
+            isdmin = -1
           end if
 
         end subroutine close_domain
@@ -400,13 +445,13 @@
           integer , dimension(3) :: istart , icount
           real(4), dimension(jx,iy) ::  toto
 
-          if (iutin < 0) then
-            istatus = nf90_open(dname, nf90_nowrite, iutin)
+          if (idmin < 0) then
+            istatus = nf90_open(dname, nf90_nowrite, idmin)
             call check_ok(istatus, &
                        &  'Error Opening Domain file '//trim(dname), &
                        &  'DOMAIN FILE OPEN ERROR')
           end if
-          istatus = nf90_inq_varid(iutin, 'texture_fraction', ivarid)
+          istatus = nf90_inq_varid(idmin, 'texture_fraction', ivarid)
           call check_ok(istatus, 'Variable texture_fraction missing', &
                      &  'DOMAIN FILE ERROR')
           istart(2) = 1
@@ -416,7 +461,7 @@
           icount(1) = jx
           do n = 1 , nats
             istart(3) = n
-            istatus = nf90_get_var(iutin, ivarid, toto, istart, icount)
+            istatus = nf90_get_var(idmin, ivarid, toto, istart, icount)
             call check_ok(istatus, 'Variable texture_frac read error', &
                      &  'DOMAIN FILE ERROR')
             do j = 1 , jx
@@ -603,8 +648,8 @@
           call check_ok(istatus, &
                      &  'Error Opening ICBC file '//trim(icbcname), &
                      &  'ICBC FILE OPEN ERROR')
-          icbcrec = 1
-          icbcnrec = 0
+          ibcrec = 1
+          ibcnrec = 0
           istatus = nf90_inq_dimid(ibcin, 'iy', idimid)
           call check_ok(istatus, 'Dimension iy missing', &
                      &  'ICBC FILE ERROR')
@@ -637,7 +682,7 @@
           istatus = nf90_inq_dimid(ibcin, 'time', idimid)
           call check_ok(istatus, 'Dimension time missing', &
                      &  'ICBC FILE ERROR')
-          istatus = nf90_inquire_dimension(ibcin, idimid, len=icbcnrec)
+          istatus = nf90_inquire_dimension(ibcin, idimid, len=ibcnrec)
           call check_ok(istatus, 'Dimension time read error', &
                      &  'ICBC FILE ERROR')
           istatus = nf90_inq_varid(ibcin, 'time', itvar)
@@ -646,12 +691,12 @@
           istatus = nf90_get_att(ibcin, itvar, 'units', icbc_timeunits)
           call check_ok(istatus, 'variable time units missing', &
                      &  'ICBC FILE ERROR')
-          allocate(icbc_idate(icbcnrec))
-          allocate(icbc_xtime(icbcnrec))
+          allocate(icbc_idate(ibcnrec))
+          allocate(icbc_xtime(ibcnrec))
           istatus = nf90_get_var(ibcin, itvar, icbc_xtime)
           call check_ok(istatus, 'variable time read error', &
                      &  'ICBC FILE ERROR')
-          do i = 1 , icbcnrec
+          do i = 1 , ibcnrec
             icbc_idate(i) = timeval2idate(icbc_xtime(i), icbc_timeunits)
           end do
           chkdiff = icbc_xtime(2) - icbc_xtime(1)
@@ -705,15 +750,15 @@
           real(4) , dimension(jx,iy,kz) :: xread
           integer :: i , j , k
 
-          if (idate > icbc_idate(icbcnrec) .or. idate < icbc_idate(1)) then
+          if (idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1)) then
             write (6,*) 'Cannot find ', idate, ' in ICBC file'
             write (6,*) 'Range is : ', icbc_idate(1) , '-', &
-                       & icbc_idate(icbcnrec)
+                       & icbc_idate(ibcnrec)
             call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
           end if 
 
-          icbcrec = (idatediff(idate, icbc_idate(1)) / ibdyfrq) + 1
-          istart(3) = icbcrec
+          ibcrec = (idatediff(idate, icbc_idate(1)) / ibdyfrq) + 1
+          istart(3) = ibcrec
           istart(2) = 1
           istart(1) = 1
           icount(3) = 1
@@ -729,7 +774,7 @@
           call check_ok(istatus, 'variable ts read error', &
                      &  'ICBC FILE ERROR')
           ts = transpose(xread(:,:,1))
-          istart(4) = icbcrec
+          istart(4) = ibcrec
           istart(3) = 1
           istart(2) = 1
           istart(1) = 1
@@ -808,8 +853,23 @@
                      &  'Error Closing ICBC file '//trim(icbcname), &
                      &  'ICBC FILE ERROR')
             if (allocated(icbc_idate)) deallocate(icbc_idate)
+            ibcin = -1
           end if
         end subroutine close_icbc
+
+        subroutine close_common(ncid, ctype)
+          use netcdf
+          implicit none
+          integer , intent(inout) :: ncid
+          character(3) , intent(in) :: ctype
+          if (ncid >= 0) then
+            istatus = nf90_close(ncid)
+            call check_ok(istatus, &
+                     &  'Error Closing '//ctype//' file', &
+                     &  ctype//' FILE ERROR')
+            ncid = -1
+          end if
+        end subroutine close_common
 
         function icbc_search(idate)
           use mod_dynparam
@@ -817,12 +877,382 @@
           implicit none
           integer :: icbc_search
           integer , intent(in) :: idate
-          if (idate > icbc_idate(icbcnrec) .or. idate < icbc_idate(1)) then
+          if (idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1)) then
             icbc_search = -1
           else
             icbc_search = (idatediff(idate, icbc_idate(1))/ibdyfrq)+1
           end if 
         end function icbc_search
+
+        subroutine prepare_common_io(idate,ctype)
+          use mod_dynparam
+          use mod_date , only : split_idate
+          use mod_message
+          use netcdf
+          implicit none
+          integer , intent(in) :: idate
+          character(3) , intent(in) :: ctype
+          character(64) :: title
+          character(32) :: fbname , csdate
+          character(256) :: ofname , history
+          integer , dimension(8) :: tvals
+          real(4) , dimension(2) :: trlat
+          real(4) :: hptop
+          real(4) , dimension(iy) :: yiy
+          real(4) , dimension(jx) :: xjx
+          integer :: ncid
+          integer , dimension(2) :: izvar
+          integer , dimension(2) :: ivvar
+          integer , dimension(3) :: illtvar
+          integer :: itvar , iyy , im , id , ih , i , j
+
+          if (ctype == 'ATM') then
+            ncid = ncatm
+            title = 'ICTP Regional Climatic model V4 ATM output'
+          else if (ctype == 'SRF') then
+            ncid = ncsrf
+            title = 'ICTP Regional Climatic model V4 SRF output'
+          else if (ctype == 'SUB') then
+            ncid = ncsub
+            title = 'ICTP Regional Climatic model V4 SUB output'
+          else if (ctype == 'RAD') then
+            ncid = ncrad
+            title = 'ICTP Regional Climatic model V4 RAD output'
+          else if (ctype == 'CHE') then
+            ncid = ncche
+            title = 'ICTP Regional Climatic model V4 CHE output'
+          else
+            write (aline,*) 'UNKNOWN IO TYPE : ', ctype
+            call say
+            write (aline,*) 'NOTHING TO DO'
+            call say
+            return
+          end if
+
+          call close_common(ncid, ctype)
+
+          write (fbname,'(a,a,i10)') trim(ctype), '.', idate
+          ofname = trim(dirout)//pthsep//trim(domname)// &
+                &  '_'//trim(fbname)//'.nc'
+          call split_idate(idate,iyy,im,id,ih)
+          write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
+               & iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
+
+#ifdef NETCDF4_HDF5
+          istatus = nf90_create(ofname, ior(nf90_clobber,nf90_hdf5), &
+                              ncid)
+#else
+          istatus = nf90_create(ofname, nf90_clobber, ncid)
+#endif
+          call check_ok(istatus,('Error creating file '//trim(ofname)), &
+                      ctype//' FILE ERROR')
+
+          istatus = nf90_put_att(ncid, nf90_global, 'title', title)
+          call check_ok(istatus, 'Error adding global title', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global, 'institution', &
+                   & 'ICTP')
+          call check_ok(istatus, 'Error adding global institution', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global, 'source', &
+                   & 'RegCM Model '//SVN_REV//' simulation output')
+          call check_ok(istatus, 'Error adding global source', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global, 'Conventions', &
+                   & 'CF-1.4')
+          call check_ok(istatus, 'Error adding global Conventions', &
+                        ctype//' FILE ERROR')
+          call date_and_time(values=tvals)
+          write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
+               tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,       &
+               tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,             &
+               ' : Created by RegCM model'
+          istatus = nf90_put_att(ncid, nf90_global, 'history', history)
+          call check_ok(istatus, 'Error adding global history', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global, 'references', &
+                   & 'http://eforge.escience-lab.org/gf/project/regcm')
+          call check_ok(istatus, 'Error adding global references', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global, 'experiment', &
+                   & domname)
+          call check_ok(istatus, 'Error adding global experiment', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
+          call check_ok(istatus, 'Error adding global projection', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global,   &
+                   &   'grid_size_in_meters', ds*1000.0)
+          call check_ok(istatus, 'Error adding global gridsize', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global,   &
+                   &   'latitude_of_projection_origin', clat)
+          call check_ok(istatus, 'Error adding global clat', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, nf90_global,   &
+                   &   'longitude_of_projection_origin', clon)
+          call check_ok(istatus, 'Error adding global clon', &
+                        ctype//' FILE ERROR')
+          if (iproj == 'ROTMER') then
+            istatus = nf90_put_att(ncid, nf90_global, &
+                     &   'latitude_of_projection_pole', plat)
+            call check_ok(istatus, 'Error adding global plat', &
+                          ctype//' FILE ERROR')
+            istatus = nf90_put_att(ncid, nf90_global, &
+                     &   'longitude_of_projection_pole', plon)
+            call check_ok(istatus, 'Error adding global plon', &
+                          ctype//' FILE ERROR')
+          else if (iproj == 'LAMCON') then
+            trlat(1) = truelatl
+            trlat(2) = truelath
+            istatus = nf90_put_att(ncid, nf90_global, &
+                     &   'standard_parallel', trlat)
+            call check_ok(istatus, 'Error adding global truelat', &
+                          ctype//' FILE ERROR')
+          end if
+!
+!         ADD RUN PARAMETERS
+!
+        ! TBD
+!
+!         ADD DIMENSIONS
+!
+          if (ctype == 'SUB') then
+            istatus = nf90_def_dim(ncid, 'iy', iysg, ioutdims(2))
+            call check_ok(istatus, 'Error creating dimension iy', &
+                          ctype//' FILE ERROR')
+            istatus = nf90_def_dim(ncid, 'jx', jxsg, ioutdims(1))
+            call check_ok(istatus, 'Error creating dimension jx', &
+                          ctype//' FILE ERROR')
+          else
+            istatus = nf90_def_dim(ncid, 'iy', iy, ioutdims(2))
+            call check_ok(istatus, 'Error creating dimension iy', &
+                          ctype//' FILE ERROR')
+            istatus = nf90_def_dim(ncid, 'jx', jx, ioutdims(1))
+            call check_ok(istatus, 'Error creating dimension jx', &
+                          ctype//' FILE ERROR')
+          end if
+          istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, &
+                              &  ioutdims(3))
+          call check_ok(istatus, 'Error creating dimension time', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_def_dim(ncid, 'kz', kz, ioutdims(4))
+          call check_ok(istatus, 'Error creating dimension kz', &
+                        ctype//' FILE ERROR')
+!
+!         OUT TYPE DEPENDENT DIMENSIONS
+!
+          if (ctype == 'SRF' .or. ctype == 'SUB') then
+            istatus = nf90_def_dim(ncid, 'm10', 1, ioutdims(5))
+            call check_ok(istatus, 'Error creating dimension m10', &
+                          ctype//' FILE ERROR')
+            istatus = nf90_def_dim(ncid, 'm2', 1, ioutdims(6))
+            call check_ok(istatus, 'Error creating dimension m2', &
+                          ctype//' FILE ERROR')
+            istatus = nf90_def_dim(ncid, 'soil_layer', 2, ioutdims(7))
+            call check_ok(istatus, &
+                      &   'Error creating dimension soil_layer', &
+                      &   ctype//' FILE ERROR')
+          end if
+          if (ctype == 'SRF') then
+            istatus = nf90_def_dim(ncid, 'nv', 2, ioutdims(8))
+            call check_ok(istatus, 'Error creating dimension nv', &
+                          ctype//' FILE ERROR')
+          end  if
+          if (ctype == 'CHE') then
+            istatus = nf90_def_dim(ncid, 'tracer', ntr, ioutdims(9))
+            call check_ok(istatus, 'Error creating dimension tracer', &
+                          ctype//' FILE ERROR')
+          end if
+          istatus = nf90_def_var(ncid, 'sigma', nf90_float, &
+                              &  ioutdims(4), izvar(1))
+          call check_ok(istatus, 'Error adding variable sigma', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(1), 'standard_name', &
+                            &  'atmosphere_sigma_coordinate')
+          call check_ok(istatus, 'Error adding sigma standard_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(1), 'long_name', &
+                            &  'Sigma at model layers')
+          call check_ok(istatus, 'Error adding sigma long_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(1), 'units', '1')
+          call check_ok(istatus, 'Error adding sigma units', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
+          call check_ok(istatus, 'Error adding sigma axis', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(1), 'positive', 'down')
+          call check_ok(istatus, 'Error adding sigma positive', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
+                     &         'sigma: sigma ps: ps ptop: ptop')
+          call check_ok(istatus, 'Error adding sigma formula_terms', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_def_var(ncid, 'ptop', nf90_float, &
+                           &   varid=izvar(2))
+          call check_ok(istatus, 'Error adding variable ptop', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(2), 'standard_name',  &
+                            &  'air_pressure')
+          call check_ok(istatus, 'Error adding ptop standard_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(2), 'long_name', &
+                            &  'Pressure at model top')
+          call check_ok(istatus, 'Error adding ptop long_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
+          call check_ok(istatus, 'Error adding ptop units', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_def_var(ncid, 'iy', nf90_float, ioutdims(2), &
+                            &  ivvar(1))
+          call check_ok(istatus, 'Error adding variable iy', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
+                            &  'projection_y_coordinate')
+          call check_ok(istatus, 'Error adding iy standard_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, ivvar(1), 'long_name', &
+                            &  'y-coordinate in Cartesian system')
+          call check_ok(istatus, 'Error adding iy long_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
+          call check_ok(istatus, 'Error adding iy units', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_def_var(ncid, 'jx', nf90_float, ioutdims(1), &
+                            &  ivvar(2))
+          call check_ok(istatus, 'Error adding variable jx', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
+                            &  'projection_x_coordinate')
+          call check_ok(istatus, 'Error adding jx standard_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, ivvar(2), 'long_name', &
+                            &  'x-coordinate in Cartesian system')
+          call check_ok(istatus, 'Error adding jx long_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
+          call check_ok(istatus, 'Error adding jx units', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_def_var(ncid, 'xlat', nf90_float, &
+                             &   ioutdims(1:2), illtvar(1))
+          call check_ok(istatus, 'Error adding variable xlat', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(1), 'standard_name', &
+                            &  'latitude')
+          call check_ok(istatus, 'Error adding xlat standard_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(1), 'long_name', &
+                            &  'Latitude at cross points')
+          call check_ok(istatus, 'Error adding xlat long_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(1), 'units', &
+                            &  'degrees_north')
+          call check_ok(istatus, 'Error adding xlat units', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_def_var(ncid, 'xlon', nf90_float, &
+                             &   ioutdims(1:2), illtvar(2))
+          call check_ok(istatus, 'Error adding variable xlon', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(2), 'standard_name', &
+                            &  'longitude')
+          call check_ok(istatus, 'Error adding xlon standard_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(2), 'long_name', &
+                            &  'Longitude at cross points')
+          call check_ok(istatus, 'Error adding xlon long_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(2), 'units',  &
+                            &  'degrees_east')
+          call check_ok(istatus, 'Error adding xlon units', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_def_var(ncid, 'topo', nf90_float, &
+                             &   ioutdims(1:2), illtvar(3))
+          call check_ok(istatus, 'Error adding variable topo', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(3), 'standard_name', &
+                            &  'surface_altitude')
+          call check_ok(istatus, 'Error adding topo standard_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(3), 'long_name',     &
+                            &  'Domain surface elevation')
+          call check_ok(istatus, 'Error adding topo long_name', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(3), 'units', 'm')
+          call check_ok(istatus, 'Error adding topo units', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, illtvar(3), 'coordinates', &
+                            &  'xlat xlon')
+          call check_ok(istatus, 'Error adding topo coordinates', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_def_var(ncid, 'time', nf90_double, &
+                               & ioutdims(3:3), itvar)
+          call check_ok(istatus, 'Error adding variable time', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, itvar, 'units', &
+                             &   'hours since '//csdate)
+          call check_ok(istatus, 'Error adding time units', &
+                        ctype//' FILE ERROR')
+          if (ctype == 'ATM') then
+            iatmvar(1) = itvar
+          else if (ctype == 'SRF') then
+            isrfvar(1) = itvar
+          else if (ctype == 'SUB') then
+            isubvar(1) = itvar
+          else if (ctype == 'RAD') then
+            iradvar(1) = itvar
+          else if (ctype == 'CHE') then
+            ichevar(1) = itvar
+          end if
+
+          istatus = nf90_enddef(ncid)
+          call check_ok(istatus, 'Error End Definitions NetCDF output', &
+                        ctype//' FILE ERROR')
+
+          istatus = nf90_put_var(ncid, izvar(1), hsigma)
+          call check_ok(istatus, 'Error variable sigma write', &
+                        ctype//' FILE ERROR')
+          hptop = ptop*10.0
+          istatus = nf90_put_var(ncid, izvar(2), hptop)
+          call check_ok(istatus, 'Error variable ptop write', &
+                        ctype//' FILE ERROR')
+          yiy(1) = -(dble(iy-1)/2.0) * ds
+          xjx(1) = -(dble(jx-1)/2.0) * ds
+          do i = 2 , iy
+            yiy(i) = yiy(i-1)+ds
+          end do
+          do j = 2 , jx
+            xjx(j) = xjx(j-1)+ds
+          end do
+          istatus = nf90_put_var(ncid, ivvar(1), yiy)
+          call check_ok(istatus, 'Error variable iy write', &
+                        ctype//' FILE ERROR')
+          istatus = nf90_put_var(ncid, ivvar(2), xjx)
+          call check_ok(istatus, 'Error variable jx write', &
+                        ctype//' FILE ERROR')
+          if (ctype == 'SUB') then
+            istatus = nf90_put_var(ncid, illtvar(1), ioxlat_s)
+            call check_ok(istatus, 'Error variable xlat write', &
+                        ctype//' FILE ERROR')
+            istatus = nf90_put_var(ncid, illtvar(2), ioxlon_s)
+            call check_ok(istatus, 'Error variable xlon write', &
+                        ctype//' FILE ERROR')
+            istatus = nf90_put_var(ncid, illtvar(3), iotopo_s)
+            call check_ok(istatus, 'Error variable topo write', &
+                        ctype//' FILE ERROR')
+          else
+            istatus = nf90_put_var(ncid, illtvar(1), ioxlat)
+            call check_ok(istatus, 'Error variable xlat write', &
+                        ctype//' FILE ERROR')
+            istatus = nf90_put_var(ncid, illtvar(2), ioxlon)
+            call check_ok(istatus, 'Error variable xlon write', &
+                        ctype//' FILE ERROR')
+            istatus = nf90_put_var(ncid, illtvar(3), iotopo)
+            call check_ok(istatus, 'Error variable topo write', &
+                        ctype//' FILE ERROR')
+          end if
+
+        end subroutine prepare_common_io
 
         subroutine check_ok(ierr,m1,mf)
           use mod_message
@@ -836,5 +1266,22 @@
             call fatal(__FILE__,__LINE__,mf)
           end if
         end subroutine check_ok
+
+        subroutine release_mod_ncio
+          call close_domain
+          call close_icbc
+          call close_common(ncatm,'ATM')
+          call close_common(ncsrf,'SRF')
+          call close_common(ncsub,'SUB')
+          call close_common(ncrad,'RAD')
+          call close_common(ncche,'CHE')
+          if (allocated(ioxlat)) deallocate(ioxlat)
+          if (allocated(ioxlon)) deallocate(ioxlon)
+          if (allocated(iotopo)) deallocate(iotopo)
+          if (allocated(hsigma)) deallocate(hsigma)
+          if (allocated(ioxlat_s)) deallocate(ioxlat_s)
+          if (allocated(ioxlon_s)) deallocate(ioxlon_s)
+          if (allocated(iotopo_s)) deallocate(iotopo_s)
+        end subroutine release_mod_ncio
 
       end module mod_ncio

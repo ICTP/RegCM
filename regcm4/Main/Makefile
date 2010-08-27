@@ -184,6 +184,7 @@ mod_message.o: mod_message.F90 mod_dynparam.o
 mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_dust.o
 mod_ncio.o: mod_ncio.F90 mod_dynparam.o mod_message.o mod_constants.o \
             mod_date.o
+	$(F90) $(NETCDFINC) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS)   -c $<
 mod_o3blk.o: mod_o3blk.F90 mod_dynparam.o mod_main.o mod_param3.o mod_rad.o
 mod_outrad.o: mod_outrad.F90 mod_dynparam.o
 mod_outprt.o: mod_outprt.F90 mod_bdycod.o mod_constants.o mod_date.o \
