@@ -233,7 +233,8 @@
 !
 !       reduce the search area for the domain
 !       [minlat:maxlat,minlon:maxlon]
-        call mxmnll(iysg,jxsg,clong,xlon_s,xlat_s,ntypec_s)
+        print *, 'Determining Subgrid coordinate range'
+        call mxmnll(iysg,jxsg,xlon_s,xlat_s)
         print * , 'after calling MXMNLL, for subgrid'
 !
         maxiter = (xmaxlat-xminlat)/xnc
@@ -285,6 +286,18 @@
                 & land_s,nobs,h2opct,nveg,aertyp,intext_s,texout_s,     &
                 & frac_tex_s,ntex)
         print * , 'after calling SURF, for subgrid'
+        if (iproj == 'POLSTR' .and. abs(clat+90.0) < 0.001) then
+          lndout_s(iysg/2,jxsg/2) = 12
+          texout_s(iysg/2,jxsg/2) = 16
+          frac_tex_s(iysg/2,jxsg/2,:) = -1e-20
+          frac_tex_s(iysg/2,jxsg/2,16) = 1.0
+        end if
+        if (iproj == 'POLSTR' .and. abs(clat-90.0) < 0.001) then
+          lndout_s(iysg/2,jxsg/2) = 15
+          texout_s(iysg/2,jxsg/2) = 14
+          frac_tex_s(iysg/2,jxsg/2,:) = -1e-20
+          frac_tex_s(iysg/2,jxsg/2,14) = 100.0
+        end if
 !       **** Adjust the Great Lake Heights to their actual values.
         if ( lakadj ) then
           print * ,                                                     &
@@ -403,7 +416,8 @@
 !
 !     reduce the search area for the domain
 !     [minlat:maxlat,minlon:maxlon]
-      call mxmnll(iy,jx,clong,xlon,xlat,ntypec)
+      print *, 'Determining Grid coordinate range'
+      call mxmnll(iysg,jxsg,xlon,xlat)
       print * , 'after calling MXMNLL'
 
       maxiter = (xmaxlat-xminlat)/xnc
@@ -457,7 +471,19 @@
       call surf(xlat,xlon,lnduse,iy,jx,nnc,xnc,lndout,land,nobs,h2opct, &
              & nveg,aertyp,intext,texout,frac_tex,ntex)
       print * , 'after calling SURF'
- 
+      if (iproj == 'POLSTR' .and. abs(clat+90.0) < 0.001) then
+        lndout(iy/2,jx/2) = 12
+        texout(iy/2,jx/2) = 16
+        frac_tex(iy/2,jx/2,:) = -1e-20
+        frac_tex(iy/2,jx/2,16) = 1.0
+      end if
+      if (iproj == 'POLSTR' .and. abs(clat-90.0) < 0.001) then
+        lndout(iy/2,jx/2) = 15
+        texout(iy/2,jx/2) = 14
+        frac_tex(iy/2,jx/2,:) = -1e-20
+        frac_tex(iy/2,jx/2,14) = 100.0
+      end if
+
 !     **** Adjust the Great Lake Heights to their actual values.
       if ( lakadj ) then
         print * , 'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'

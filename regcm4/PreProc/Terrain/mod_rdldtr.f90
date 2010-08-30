@@ -130,8 +130,8 @@
 !........process slice and store in array stores
         do j = 1 , nxmax
           rlon = j*center - center/2. - 180.
-          if ( xminlon<-180. .and. rlon>0. ) rlon = rlon - 360.
-          if ( xmaxlon>180. .and. rlon<0. ) rlon = rlon + 360.
+          if ( rlon >  180.0) rlon = rlon - 360.0
+          if ( rlon < -180.0) rlon = rlon + 360.0
           if ( rlon>=xminlon .and. rlon<=xmaxlon ) then
             lrec = lrec + 1
             stores(1) = rlat
@@ -155,17 +155,15 @@
               end do
             end if
             write (48) stores
-!add
             yobs(lrec) = rlat
             xobs(lrec) = rlon
             ht(lrec) = stores(3)
             htsd(lrec) = stores(4)
             ht2(lrec) = stores(4)**2 + stores(3)**2
-            if ( grdlnmn<=-180.0 .and. xobs(lrec)>0.0 ) xobs(lrec)      &
-               & = xobs(lrec) - 360.
             if ( xobs(lrec)<grdlnmn ) grdlnmn = xobs(lrec)
+            if ( xobs(lrec)>grdlnma ) grdlnma = xobs(lrec)
             if ( yobs(lrec)<grdltmn ) grdltmn = yobs(lrec)
-!add_
+            if ( yobs(lrec)>grdltma ) grdltma = yobs(lrec)
           end if
         end do
       end do
@@ -378,8 +376,8 @@
 !........process slice and store in array stores
         do j = 1 , nxmax
           rlon = j*center - center/2. - 180.
-          if ( xminlon<-180. .and. rlon>0. ) rlon = rlon - 360.
-          if ( xmaxlon>180. .and. rlon<0. ) rlon = rlon + 360.
+          if ( rlon >  180.0) rlon = rlon - 360.0
+          if ( rlon < -180.0) rlon = rlon + 360.0
           if ( rlon>=xminlon .and. rlon<=xmaxlon ) then
             lrec = lrec + 1
             stores(1) = rlat
@@ -395,17 +393,15 @@
               end do
             end if
             write (48) stores
-!add
             yobs(lrec) = rlat
             xobs(lrec) = rlon
             ht(lrec) = stores(3)
             htsd(lrec) = stores(4)
             ht2(lrec) = stores(4)**2 + stores(3)**2
-            if ( grdlnmn<=-180.0 .and. xobs(lrec)>0.0 ) xobs(lrec)      &
-               & = xobs(lrec) - 360.
             if ( xobs(lrec)<grdlnmn ) grdlnmn = xobs(lrec)
+            if ( xobs(lrec)>grdlnma ) grdlnma = xobs(lrec)
             if ( yobs(lrec)<grdltmn ) grdltmn = yobs(lrec)
-!add_
+            if ( yobs(lrec)>grdltma ) grdltma = yobs(lrec)
           end if
         end do
       end do

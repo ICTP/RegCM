@@ -24,12 +24,12 @@
       integer :: iblk , iter, jter
       real(4) , allocatable , dimension(:) :: ht , ht2 , htsd
       real(4) , allocatable , dimension(:) :: xobs , yobs
-      real(8) , allocatable , dimension(:,:) :: lnd8
       real(4) , dimension(50) :: stores
-      real(4) :: grdlnmn , grdltmn
       real(4) :: xmaxlat , xmaxlon , xminlat , xminlon
       real(4) :: dsinm , rin , xnc
       real(4) :: dxcen , dycen
+      real(8) :: grdlnmn , grdltmn , grdlnma , grdltma
+      logical :: lonwrap
 
       contains
 
@@ -39,7 +39,6 @@
         iter = ni
         jter = nj
         iblk = (iter*jter)/2
-        allocate(lnd8(iter,jter))
         allocate(ht(iblk))
         allocate(ht2(iblk))
         allocate(htsd(iblk))
@@ -51,7 +50,6 @@
         iter = 0
         jter = 0
         iblk = 0
-        if (allocated(lnd8)) deallocate(lnd8)
         if (allocated(ht)) deallocate(ht)
         if (allocated(ht2)) deallocate(ht2)
         if (allocated(htsd)) deallocate(htsd)
@@ -59,67 +57,38 @@
         if (allocated(yobs)) deallocate(yobs)
       end subroutine
 
-      subroutine mxmnll(iy,jx,clon,xlon,xlat,ntypec)
+      subroutine mxmnll(iy,jx,xlon,xlat)
       implicit none
 !
 ! Dummy arguments
 !
-      real(4) :: clon
-      integer :: iy , jx , ntypec
+      integer :: iy , jx
       real(4) , dimension(iy,jx) :: xlat , xlon
-      intent (in) clon , iy , jx , ntypec , xlat , xlon
-!
-! Local variables
-!
-      integer :: i , j
+      intent (in) iy , jx , xlat , xlon
 !
 !     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
 !
-      xmaxlat = -90
-      xminlat = 90
-      xminlon = 999999.
-      xmaxlon = -999999.
-!
-      do i = 1 , iy
-        do j = 1 , jx
-          xminlat = amin1(xminlat,xlat(i,j))
-          xmaxlat = amax1(xmaxlat,xlat(i,j))
-        end do
-      end do
-      do i = 1 , iy
-        do j = 1 , jx
-          if ( clon>=0.0 ) then
-            if ( xlon(i,j)>=0.0 ) then
-              xminlon = amin1(xminlon,xlon(i,j))
-              xmaxlon = amax1(xmaxlon,xlon(i,j))
-            else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)+360.)) )  &
-                    & then
-              xminlon = amin1(xminlon,xlon(i,j))
-              xmaxlon = amax1(xmaxlon,xlon(i,j))
-            else
-              xminlon = amin1(xminlon,xlon(i,j)+360.)
-              xmaxlon = amax1(xmaxlon,xlon(i,j)+360.)
-            end if
-          else if ( xlon(i,j)<0.0 ) then
-            xminlon = amin1(xminlon,xlon(i,j))
-            xmaxlon = amax1(xmaxlon,xlon(i,j))
-          else if ( abs(clon-xlon(i,j))<abs(clon-(xlon(i,j)-360.)) )    &
-                  & then
-            xminlon = amin1(xminlon,xlon(i,j))
-            xmaxlon = amax1(xmaxlon,xlon(i,j))
-          else
-            xminlon = amin1(xminlon,xlon(i,j)-360.)
-            xmaxlon = amax1(xmaxlon,xlon(i,j)-360.)
-          end if
-        end do
-      end do
+      xminlat = floor(minval(xlat))
+      xmaxlat = ceiling(maxval(xlat))
+      xminlon = floor(minval(xlon))
+      xmaxlon = ceiling(maxval(xlon))
  
-      print 99001 , xminlat , xmaxlat , xminlon , xmaxlon , ntypec
+      print *, 'Calculated extrema:'
+      print *, '         MINLAT = ', xminlat
+      print *, '         MAXLAT = ', xmaxlat
+      print *, '         MINLON = ', xminlon
+      print *, '         MAXLON = ', xmaxlon
+
+      lonwrap = .false.
+      if ((xmaxlon-xminlon) > 359.99) lonwrap = .true.
+
 !--------initialize minimum lat and lon of data from tape
-      grdltmn = xminlat + 5.
-      grdlnmn = xminlon + 5.
-99001 format (1x,'xminlat,xmaxlat,xminlon,xmaxlon,ntypec= ',4F10.2,i10)
-!
+
+      grdltmn = xminlat - sign(1.0, xminlat) * 5.0
+      grdltma = xmaxlat - sign(1.0, xmaxlat) * 5.0
+      grdlnmn = xminlon - sign(1.0, xminlon) * 5.0
+      grdlnma = xmaxlon - sign(1.0, xmaxlon) * 5.0
+
       end subroutine mxmnll
 
       end module mod_block

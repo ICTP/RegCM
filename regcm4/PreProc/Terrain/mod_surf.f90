@@ -45,56 +45,119 @@
 ! Local variables
 !
       logical :: flag
-      integer :: i , ii , iindex , ilev , j , jindex , jj , k , lrec ,  &
-               & lengdo , nbase
+      integer :: i , ii , iindex , ilev , j , jindex , jj , lrec ,  &
+               & lengdo , nbase , mxi , mxj
       real(4) , dimension(iy,jx,2) :: itex
-      real(8) :: xx , yy
-!
-!---------------------------------------------------------------------
-!
-!     imx,jmx must correspond to iy,jx in the master input file;
-!     otherwise the program will abort.
-!
-!-----------------------------------------------------------------------
+      real(8) :: xx , yy , rinc , xd , yd , wc , wm
+      logical , dimension(:,:) , allocatable :: mask
+      real(8) , dimension(:,:) , allocatable :: lnd8
 !
       flag = .true.
       lrec = 0
-      do k = 1 , 2
-        do j = 1 , jx
-          do i = 1 , iy
-            land(i,j,k) = 0
-            itex(i,j,k) = 0
-          end do
-        end do
-      end do
+      land = 0.0
+      itex = 0.0
+      rinc = incr
 !
+      print *, 'Input data point MIN is at ', grdltmn , grdlnmn
+      print *, 'Input data point MAX is at ', grdltma , grdlnma
+      print *, 'Input data resolution is   ', dsgrid
+      mxj = nint((grdlnma-grdlnmn)*rinc) + 1
+      mxi = nint((grdltma-grdltmn)*rinc) + 1
+      print *, 'Allocating ', mxi, 'x', mxj
+
       if ( aertyp(7:7)=='1' ) then
         lengdo = nveg + ntex
       else
         lengdo = nveg
       end if
+
+      if (lonwrap) then
+        mxj = mxj + 4
+      end if
+
+      allocate(mask(mxi,mxj))
+      allocate(lnd8(mxi,mxj))
+
       do ilev = 1 , lengdo
+        mask(:,:) = .false.
         rewind (48)
         do lrec = 1 , nrec
           read (48) stores
-          jindex = (stores(2)-grdlnmn)*incr + 1.1
-          iindex = (stores(1)-grdltmn)*incr + 1.1
-          if ( iindex>iter .or. jindex>jter ) then
-            print 99001 , iindex , jindex , lrec , stores(1) , stores(2)&
-                & , grdltmn , grdlnmn
+          jindex = nint((stores(2)-grdlnmn)*rinc) + 1
+          iindex = nint((stores(1)-grdltmn)*rinc) + 1
+          if ( iindex < 1 .or. iindex>iter .or. &
+               jindex < 1 .or. jindex>jter ) then
+            print 99001 , iindex , jindex , lrec , stores(1) ,          &
+                & stores(2) , grdltmn , grdlnmn
             stop 60
           end if
           lnd8(iindex,jindex) = stores(ilev+4)
+          mask(iindex,jindex) = .true.
         end do
 !
+!       Fill the matrix using nearest point to missing one.
+!
+        do ii = 1 , mxi-1
+          do jj = 1 , mxj-1
+            if (.not. mask(ii,jj)) then
+              yy = ((ii*dsgrid)-grdltmn)*rinc + 1.0D+00
+              xx = ((jj*dsgrid)-grdlnmn)*rinc + 1.0D+00
+              wc = 999.0
+              wm = 999.0
+              if (ii > 1) then
+                if (mask(ii-1,jj)) then
+                  yd = (((ii-1)*dsgrid)-grdltmn)*rinc + 1.0D+00
+                  wc = (yy-yd)
+                  lnd8(ii,jj) = lnd8(ii-1,jj)
+                  wm = wc
+                end if
+              end if
+              if (mask(ii+1,jj)) then
+                yd = (((ii+1)*dsgrid)-grdltmn)*rinc + 1.0D+00
+                wc = (yy-yd)
+                if (wc < wm) then
+                  lnd8(ii,jj) = lnd8(ii+1,jj)
+                  wm = wc
+                end if
+              end if
+              if (jj > 1) then
+                if (mask(jj > 1 .and. ii,jj-1)) then
+                  xd = (((jj-1)*dsgrid)-grdltmn)*rinc + 1.0D+00
+                  wc = (xx-xd)
+                  if (wc < wm) then
+                    lnd8(ii,jj) = lnd8(ii,jj-1)
+                    wm = wc
+                  end if
+                end if
+              end if
+              if (mask(ii,jj+1)) then
+                xd = (((jj+1)*dsgrid)-grdltmn)*rinc + 1.0D+00
+                wc = (xx-xd)
+                if (wc < wm) then
+                  lnd8(ii,jj) = lnd8(ii,jj+1)
+                  wm = wc
+                end if
+              end if
+            end if
+          end do
+        end do
+!
+!       Special case for wrapping of longitude
+!
+        if (lonwrap) then
+          lnd8 = cshift(lnd8,shift=-2,dim=2)
+          lnd8(:,1) = lnd8(:,mxj-3)
+          lnd8(:,2) = lnd8(:,mxj-4)
+          lnd8(:,mxj-2) = lnd8(:,3)
+          lnd8(:,mxj-1) = lnd8(:,4)
+        end if
+
         if ( ilev<=nveg ) then
           do ii = 1 , iy
             do jj = 1 , jx
-              yy = -(grdltmn-xlat(ii,jj))/dsgrid + 1.0
-              if ( grdlnmn<=-180.0 .and. xlon(ii,jj)>0.0 ) xlon(ii,jj)  &
-                 & = xlon(ii,jj) - 360.
-              xx = -(grdlnmn-xlon(ii,jj))/dsgrid + 1.0
-              lndout(ii,jj) = bint(yy,xx,lnd8,iter,jter,flag)
+              yy = (xlat(ii,jj)-grdltmn)*rinc + 1.0D+00
+              xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
+              lndout(ii,jj) = bint(yy,xx,lnd8,mxi,mxj,flag)
 !
 !             note: it is desirable to force grid boxes with less
 !             than 75 percent water to be a land category,
@@ -115,11 +178,9 @@
           nbase = nveg
           do ii = 1 , iy
             do jj = 1 , jx
-              yy = -(grdltmn-xlat(ii,jj))/dsgrid + 1.0
-              if ( grdlnmn<=-180.0 .and. xlon(ii,jj)>0.0 ) xlon(ii,jj)  &
-                 & = xlon(ii,jj) - 360.
-              xx = -(grdlnmn-xlon(ii,jj))/dsgrid + 1.0
-              texout(ii,jj) = bint(yy,xx,lnd8,iter,jter,flag)
+              yy = (xlat(ii,jj)-grdltmn)*rinc + 1.0D+00
+              xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
+              texout(ii,jj) = bint(yy,xx,lnd8,mxi,mxj,flag)
               frac_tex(ii,jj,ilev-nbase) = texout(ii,jj)
 !
 !             note: it is desirable to force grid boxes with less
@@ -139,6 +200,9 @@
         end if
       end do
 !
+      deallocate(mask)
+      deallocate(lnd8)
+!
       do i = 1 , iy
         do j = 1 , jx
           lndout(i,j) = land(i,j,2)
@@ -149,11 +213,6 @@
           end if
         end do
       end do
-!
-!
-!-----grid the data.  grdltmn=minimum latitude of incoming data.
-!-----grdlnmn = minimum longitude of incoming data.  point(1,1)
-!-----is value at (grdltmn,grdlnmn)
 !
 99001 format (1x,'*** iindex = ',i4,'   jindex = ',i4,'   lrec = ',i5,  &
              &'   lat = ',f10.3,3x,'lon = ',f10.3,3x,'grdltmn = ',f10.3,&

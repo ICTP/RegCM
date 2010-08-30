@@ -188,13 +188,18 @@
         implicit none
         real(4) , intent(in) :: lat , lon
         real(4) , intent(out) :: i , j
-        real(8) :: ala , alo , rm
+        real(8) :: ala , alo , rm , deltalon
 
+        deltalon = lon - reflon
+        if (deltalon > +180.) deltalon = deltalon - 360.0
+        if (deltalon < -180.) deltalon = deltalon + 360.0
+        alo = deltalon * degrad
         ala = lat * degrad
+
         rm = rebydx * cos(ala) * scale_top/(1.0 + hemi * sin(ala))
-        alo = (lon - reflon) * degrad
         i = polei + rm * cos(alo)
         j = polej + hemi * rm * sin(alo)
+
       end subroutine llij_ps
 
       subroutine ijll_ps(i,j,lat,lon)

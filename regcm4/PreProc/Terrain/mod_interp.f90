@@ -118,11 +118,11 @@
 !
       bint = 0.0
       n = 0
-      i = int(xx+0.00001)
-      j = int(yy+0.00001)
+      i = int(xx)
+      j = int(yy)
       x = xx - i
       y = yy - j
-      if ( abs(x)>0.0001 .or. abs(y)>0.0001 ) then
+      if ( abs(x)>0.001 .and. abs(y)>0.001 ) then
         do k = 1 , 4
           kk = i + k - 2
           do l = 1 , 4
@@ -168,11 +168,11 @@
         h = oned(y,stl(4,1),stl(4,2),stl(4,3),stl(4,4))
         bint = (bint+oned(x,e,f,g,h))/2.
         if ( .not.flag .and. stl(knear,lnear)<=0.001 ) bint = -0.00001
-        go to 99999
+        return
       end if
+
       bint = list(i,j)
-      return
-99999 continue
+
       end function bint
 
       function oned(x,a,b,c,d)
