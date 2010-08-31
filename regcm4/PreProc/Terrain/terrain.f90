@@ -74,6 +74,8 @@
       integer :: nunitc , nunitc_s , ctlunit , ctlunit_s
       real(4) :: clong , dsx , dsx_s , htave , htgrid_a
 !
+      data ibndry /.true./
+!
       call header(1)
 !
 !     Read input global namelist
@@ -319,7 +321,6 @@
           call lakeadj(lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,jxsg)
           print * , 'after calling LAKEADJ, for subgrid'
         end if
-        ibndry = .true.
         if ( ibndry ) then
           do j = 2 , jxsg - 1
             htgrid_s(1,j) = htgrid_s(2,j)
@@ -512,7 +513,6 @@
         call lakeadj(lnduse,htgrid,xlat,xlon,iy,jx)
       end if
  
-      ibndry = .true.
       if ( ibndry ) then
         do j = 2 , jx - 1
           htgrid(1,j) = htgrid(2,j)

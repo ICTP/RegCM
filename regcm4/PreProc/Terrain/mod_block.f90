@@ -70,8 +70,13 @@
 !
       xminlat = floor(minval(xlat))
       xmaxlat = ceiling(maxval(xlat))
-      xminlon = floor(minval(xlon(:,1)))
-      xmaxlon = ceiling(maxval(xlon(:,jx)))
+      if (abs(xminlat+90.0)<0.0001 .or. abs(xmaxlat-90.0)<0.001) then
+        xminlon = -180.0
+        xmaxlon =  180.0
+      else
+        xminlon = floor(minval(xlon(:,1)))
+        xmaxlon = ceiling(maxval(xlon(:,jx)))
+      end if
  
       print *, 'Calculated extrema:'
       print *, '         MINLAT = ', xminlat

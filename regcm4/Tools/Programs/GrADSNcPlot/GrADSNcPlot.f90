@@ -184,11 +184,6 @@ program ncplot
     stop
   end if
 
-  minlat = rounder(minval(xlat),.false.)
-  maxlat = rounder(maxval(xlat),.true.)
-  minlon = rounder(minval(xlon(1,:)),.false.)
-  maxlon = rounder(maxval(xlon(jx,:)),.true.)
-
   istatus = nf90_get_att(ncid, nf90_global, 'projection', iproj)
   if ( istatus /= nf90_noerr) then
     write (6,*) 'Error reading projection attribute'
@@ -219,13 +214,22 @@ program ncplot
     stop
   end if
 
+  minlat = rounder(minval(xlat),.false.)
+  maxlat = rounder(maxval(xlat),.true.)
+  if (abs(minlat+90.0)<0.001 .or. abs(maxlat-90.0)<0.001) then
+    minlon = -180.0
+    maxlon = 180.0
+  else
+    minlon = rounder(minval(xlon(1,:)),.false.)
+    maxlon = rounder(maxval(xlon(jx,:)),.true.)
+  end if
   rlatinc = rounder(ds/111000.0/2.0,.false.)
   rloninc = rounder(ds/111000.0/2.0,.false.)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
   if (minlon > 0.0 .and. maxlon < 0.0) then
-    nlon = nint(abs((maxlon+360.0)-minlon)/rloninc)
+    nlon = nint(abs((maxlon+360.0)-minlon)/rloninc) + 1
   else
-    nlon = nint(abs(maxlon-minlon)/rloninc)
+    nlon = nint(abs(maxlon-minlon)/rloninc) + 1
   end if
   centeri = iy/2
   centerj = jx/2
