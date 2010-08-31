@@ -132,7 +132,9 @@
           rlon = j*center - center/2. - 180.
           if ( rlon >  180.0) rlon = rlon - 360.0
           if ( rlon < -180.0) rlon = rlon + 360.0
-          if ( rlon>=xminlon .and. rlon<=xmaxlon ) then
+          if ((lcrosstime .and. &
+              (rlon>=xminlon .or. rlon<=xmaxlon)) .or. &
+              (rlon>=xminlon .and. rlon<=xmaxlon)) then
             lrec = lrec + 1
             stores(1) = rlat
             stores(2) = rlon
@@ -160,8 +162,15 @@
             ht(lrec) = stores(3)
             htsd(lrec) = stores(4)
             ht2(lrec) = stores(4)**2 + stores(3)**2
-            if ( xobs(lrec)<grdlnmn ) grdlnmn = xobs(lrec)
-            if ( xobs(lrec)>grdlnma ) grdlnma = xobs(lrec)
+            if (lcrosstime) then
+              if ( mod((xobs(lrec)+360.0),360.0)<grdlnmn ) &
+                 grdlnmn = xobs(lrec)
+              if ( mod((xobs(lrec)+360.0),360.0)>(grdlnma+360.0) ) &
+                 grdlnma = xobs(lrec)
+            else
+              if ( xobs(lrec)<grdlnmn ) grdlnmn = xobs(lrec)
+              if ( xobs(lrec)>grdlnma ) grdlnma = xobs(lrec)
+            end if
             if ( yobs(lrec)<grdltmn ) grdltmn = yobs(lrec)
             if ( yobs(lrec)>grdltma ) grdltma = yobs(lrec)
           end if
@@ -173,7 +182,11 @@
 !
       print 99013 , lrec
       ihmax = (xmaxlat-xminlat)/xnc
-      jhmax = (xmaxlon-xminlon)/xnc
+      if (xminlon > 0.0 .and. xmaxlon < 0.0) then
+        jhmax = ((xmaxlon+360.0)-xminlon)/xnc
+      else
+        jhmax = (xmaxlon-xminlon)/xnc
+      end if
       if ( ihmax>iter .or. jhmax>jter ) print 99014 , iter , ihmax ,    &
          & jter , jhmax
       if ( ihmax*jhmax>iblk ) print 99015 , ihmax*jhmax , iblk
@@ -378,7 +391,9 @@
           rlon = j*center - center/2. - 180.
           if ( rlon >  180.0) rlon = rlon - 360.0
           if ( rlon < -180.0) rlon = rlon + 360.0
-          if ( rlon>=xminlon .and. rlon<=xmaxlon ) then
+          if ((lcrosstime .and. &
+              (rlon>=xminlon .or. rlon<=xmaxlon)) .or. &
+              (rlon>=xminlon .and. rlon<=xmaxlon)) then
             lrec = lrec + 1
             stores(1) = rlat
             stores(2) = rlon
@@ -398,8 +413,15 @@
             ht(lrec) = stores(3)
             htsd(lrec) = stores(4)
             ht2(lrec) = stores(4)**2 + stores(3)**2
-            if ( xobs(lrec)<grdlnmn ) grdlnmn = xobs(lrec)
-            if ( xobs(lrec)>grdlnma ) grdlnma = xobs(lrec)
+            if (lcrosstime) then
+              if ( mod((xobs(lrec)+360.0),360.0)<grdlnmn ) &
+                 grdlnmn = xobs(lrec)
+              if ( mod((xobs(lrec)+360.0),360.0)>(grdlnma+360.0) ) &
+                 grdlnma = xobs(lrec)
+            else
+              if ( xobs(lrec)<grdlnmn ) grdlnmn = xobs(lrec)
+              if ( xobs(lrec)>grdlnma ) grdlnma = xobs(lrec)
+            end if
             if ( yobs(lrec)<grdltmn ) grdltmn = yobs(lrec)
             if ( yobs(lrec)>grdltma ) grdltma = yobs(lrec)
           end if
@@ -429,7 +451,11 @@
 !
       print 99011 , lrec
       ihmax = (xmaxlat-xminlat)/xnc
-      jhmax = (xmaxlon-xminlon)/xnc
+      if (lcrosstime) then
+        jhmax = ((xmaxlon+360.0)-xminlon)/xnc
+      else
+        jhmax = (xmaxlon-xminlon)/xnc
+      end if
       if ( ihmax>iter .or. jhmax>jter ) print 99012 , iter , ihmax ,    &
          & jter , jhmax
       if ( ihmax*jhmax>iblk ) print 99013 , ihmax*jhmax , iblk

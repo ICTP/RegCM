@@ -61,7 +61,11 @@
       print *, 'Input data point MIN is at ', grdltmn , grdlnmn
       print *, 'Input data point MAX is at ', grdltma , grdlnma
       print *, 'Input data resolution is   ', dsgrid
-      mxj = nint((grdlnma-grdlnmn)*rinc) + 1
+      if (lcrosstime) then
+        mxj = nint((mod((grdlnma+360.0),360.0)-grdlnmn)*rinc) + 1
+      else
+        mxj = nint((grdlnma-grdlnmn)*rinc) + 1
+      end if
       mxi = nint((grdltma-grdltmn)*rinc) + 1
       print *, 'Allocating ', mxi, 'x', mxj
 
@@ -83,7 +87,12 @@
         rewind (48)
         do lrec = 1 , nrec
           read (48) stores
-          jindex = nint((stores(2)-grdlnmn)*rinc) + 1
+          if (lcrosstime) then
+            jindex = nint((mod((stores(2)+360.0),360.0)-grdlnmn)*       &
+                           rinc) + 1
+          else
+            jindex = nint((stores(2)-grdlnmn)*rinc) + 1
+          end if
           iindex = nint((stores(1)-grdltmn)*rinc) + 1
           if ( iindex < 1 .or. iindex>iter .or. &
                jindex < 1 .or. jindex>jter ) then
@@ -156,7 +165,12 @@
           do ii = 1 , iy
             do jj = 1 , jx
               yy = (xlat(ii,jj)-grdltmn)*rinc + 1.0D+00
-              xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
+              if (lcrosstime) then
+                xx = (mod((xlon(ii,jj)+360.0),360.0)-grdlnmn)*rinc + &
+                      1.0D+00
+              else
+                xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
+              end if
               lndout(ii,jj) = bint(yy,xx,lnd8,mxi,mxj,flag)
 !
 !             note: it is desirable to force grid boxes with less
@@ -179,7 +193,12 @@
           do ii = 1 , iy
             do jj = 1 , jx
               yy = (xlat(ii,jj)-grdltmn)*rinc + 1.0D+00
-              xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
+              if (lcrosstime) then
+                xx = (mod((xlon(ii,jj)+360.0),360.0)-grdlnmn)*rinc + &
+                     1.0D+00
+              else
+                xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
+              end if
               texout(ii,jj) = bint(yy,xx,lnd8,mxi,mxj,flag)
               frac_tex(ii,jj,ilev-nbase) = texout(ii,jj)
 !

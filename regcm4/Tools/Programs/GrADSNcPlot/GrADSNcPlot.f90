@@ -186,8 +186,8 @@ program ncplot
 
   minlat = rounder(minval(xlat),.false.)
   maxlat = rounder(maxval(xlat),.true.)
-  minlon = rounder(minval(xlon),.false.)
-  maxlon = rounder(maxval(xlon),.true.)
+  minlon = rounder(minval(xlon(1,:)),.false.)
+  maxlon = rounder(maxval(xlon(jx,:)),.true.)
 
   istatus = nf90_get_att(ncid, nf90_global, 'projection', iproj)
   if ( istatus /= nf90_noerr) then
@@ -222,7 +222,11 @@ program ncplot
   rlatinc = rounder(ds/111000.0/2.0,.false.)
   rloninc = rounder(ds/111000.0/2.0,.false.)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
-  nlon = nint(abs(maxlon-minlon)/rloninc)
+  if (minlon > 0.0 .and. maxlon < 0.0) then
+    nlon = nint(abs((maxlon+360.0)-minlon)/rloninc)
+  else
+    nlon = nint(abs(maxlon-minlon)/rloninc)
+  end if
   centeri = iy/2
   centerj = jx/2
   deallocate(xlat)

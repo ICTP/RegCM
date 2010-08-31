@@ -238,7 +238,11 @@
         print * , 'after calling MXMNLL, for subgrid'
 !
         maxiter = (xmaxlat-xminlat)/xnc
-        maxjter = (xmaxlon-xminlon)/xnc
+        if (xmaxlon < 0.0 .and. xminlon > 0.0) then
+          maxjter = ((xmaxlon+360)-xminlon)/xnc
+        else
+          maxjter = (xmaxlon-xminlon)/xnc
+        end if
         maxdim = max(maxiter,maxjter) + 1000
         print *, 'Allocating ' , maxdim
         call allocate_block(maxdim,maxdim)
@@ -421,7 +425,11 @@
       print * , 'after calling MXMNLL'
 
       maxiter = (xmaxlat-xminlat)/xnc
-      maxjter = (xmaxlon-xminlon)/xnc
+      if (xmaxlon < 0.0 .and. xminlon > 0.0) then
+        maxjter = ((xmaxlon+360)-xminlon)/xnc
+      else
+        maxjter = (xmaxlon-xminlon)/xnc
+      end if
       maxdim = max(maxiter,maxjter) + 1000
       print *, 'Allocating ' , maxdim
       call allocate_block(maxdim,maxdim)

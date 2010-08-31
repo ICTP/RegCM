@@ -29,7 +29,7 @@
       real(4) :: dsinm , rin , xnc
       real(4) :: dxcen , dycen
       real(8) :: grdlnmn , grdltmn , grdlnma , grdltma
-      logical :: lonwrap
+      logical :: lonwrap , lcrosstime
 
       contains
 
@@ -70,8 +70,8 @@
 !
       xminlat = floor(minval(xlat))
       xmaxlat = ceiling(maxval(xlat))
-      xminlon = floor(minval(xlon))
-      xmaxlon = ceiling(maxval(xlon))
+      xminlon = floor(minval(xlon(:,1)))
+      xmaxlon = ceiling(maxval(xlon(:,jx)))
  
       print *, 'Calculated extrema:'
       print *, '         MINLAT = ', xminlat
@@ -80,7 +80,15 @@
       print *, '         MAXLON = ', xmaxlon
 
       lonwrap = .false.
-      if ((xmaxlon-xminlon) > 359.99) lonwrap = .true.
+      lcrosstime = .false.
+      if ((xmaxlon-xminlon) > 359.99) then
+        lonwrap = .true.
+        print *, 'Special case for longitude wrapping'
+      end if
+      if (xminlon > 0.0 .and. xmaxlon < 0.0) then
+        lcrosstime = .true.
+        print *, 'Special case for timeline crossing'
+      end if
 
 !--------initialize minimum lat and lon of data from tape
 

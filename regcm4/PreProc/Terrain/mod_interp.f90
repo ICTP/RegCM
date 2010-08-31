@@ -52,7 +52,11 @@
         end do
       end do
       do ii = 1 , nobs
-        jindex = (xobs(ii)-grdlnmn)*nnc + 1.1
+        if (lcrosstime) then
+          jindex = (mod((xobs(ii)+360.0),360.0)-grdlnmn)*nnc + 1.1
+        else
+          jindex = (xobs(ii)-grdlnmn)*nnc + 1.1
+        end if
         iindex = (yobs(ii)-grdltmn)*nnc + 1.1
         if ( iindex>iter .or. jindex>jter ) then
           print 99001 , ii , xobs(ii) , nnc , yobs(ii) , iindex , jindex
@@ -71,9 +75,11 @@
         do j = 1 , nx - 1
  
           yy = -(grdltmn-alat(i,j))/dsgrid + 1.0
-          if ( grdlnmn<=-180.0 .and. alon(i,j)>0.0 ) alon(i,j)          &
-             & = alon(i,j) - 360.
-          xx = -(grdlnmn-alon(i,j))/dsgrid + 1.0
+          if (lcrosstime) then
+            xx = -(grdlnmn-mod((alon(i,j)+360.0),360.0))/dsgrid + 1.0
+          else
+            xx = -(grdlnmn-alon(i,j))/dsgrid + 1.0
+          end if
  
 !         yy and xx are the exact index values of a point i,j of the
 !         mesoscale mesh when projected onto an earth-grid of lat_s
