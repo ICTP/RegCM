@@ -103,7 +103,7 @@ def main():
 
     # main loop over tests
     # number of tests temporarily fixed
-    total_tests=7
+    total_tests=2
 
     if not os.path.isdir(testdir):
         os.mkdir(testdir)
@@ -128,15 +128,35 @@ def main():
         
         shutil.copy(regcm_root+"Testing/"+testname+".in",namelist)
         
-        os.symlink(bindir,simdir+"/Bin")
+        #os.symlink(bindir,simdir+"/Bin")
         
         #edit the namelist here
 
         edit_namelist(namelist,datadir,simdir)
 
-        print datadir
-        print simdir
-        print namelist
+        # hardcoded machine params
+
+        mpistring="mpirun -np 4"
+        run_clm=0
+        run_band=0
+
+        # run selected test
+
+        log=""
+
+        err_terrain=os.system(bindir+"/terrain "+namelist)
+        if err_terrain != 0:
+            print "Terrain crashed!!",err_terrain
+        err_sst=os.system(bindir+"/sst "+namelist)
+        if err_terrain != 0:
+            print "SST crashed!!"
+        err_icbc=os.system(bindir+"/icbc "+namelist)
+        if err_terrain != 0:
+            print "ICBC crashed!!"
+
+        #print datadir
+        #print simdir
+        #print namelist
 
 if __name__ == "__main__":
     main()
