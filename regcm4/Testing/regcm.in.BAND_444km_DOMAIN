@@ -19,7 +19,7 @@
  truelath = 60,
  /
  &terrainparam
- domname = 'BAND',
+ domname = 'BAND_444km',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
