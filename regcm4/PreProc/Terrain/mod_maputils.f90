@@ -46,7 +46,7 @@
 !
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
-      call setup_lcc(clat,clon,cntri,cntrj,ds,clon,truelath,truelatl)
+      call setup_lcc(clat,clon,cntrj,cntri,ds,clon,truelath,truelatl)
 !
       do j = 1 , jx
         do i = 1 , iy
@@ -84,7 +84,7 @@
 !
       cntrj = float(jx+idot)/2.
       cntri = float(iy+idot)/2.
-      call setup_plr(clat,clon,cntri,cntrj,delx,clon)
+      call setup_plr(clat,clon,cntrj,cntri,delx,clon)
 !
       do i = 1 , iy
         do j = 1 , jx
@@ -122,7 +122,7 @@
 !
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
-      call setup_mrc(clat,clon,cntri,cntrj,delx)
+      call setup_mrc(clat,clon,cntrj,cntri,delx)
 !
       do i = 1 , iy
         do j = 1 , jx
@@ -162,7 +162,7 @@
 !
       cntrj = (jx+idot)/2.
       cntri = (iy+idot)/2.
-      call setup_rmc(clat,clon,cntri,cntrj,ds,pollon,pollat)
+      call setup_rmc(clat,clon,cntrj,cntri,ds,pollon,pollat)
 !
       do i = 1 , iy
         do j = 1 , jx
@@ -195,7 +195,7 @@
       integer :: iy , jx
       intent (in) iy , jx
       intent (in) clat , clon , iproj , truelath , truelatl
-      real(4) :: cntrj , cntri , alon , alat
+      real(4) :: cntrj , cntri , alon , alat , ri , rj
       integer :: ii
 !
 ! Local variables
@@ -221,18 +221,16 @@
         alon = xobs(ii)
         alat = yobs(ii)
         if ( iproj=='LAMCON' ) then
-          call llij_lc(alat,alon,xobs(ii),yobs(ii))
+          call llij_lc(alat,alon,rj,ri)
         else if ( iproj=='POLSTR' ) then
-          call llij_ps(alat,alon,xobs(ii),yobs(ii))
+          call llij_ps(alat,alon,rj,ri)
         else if ( iproj=='NORMER' ) then
-          call llij_mc(alat,alon,xobs(ii),yobs(ii))
+          call llij_mc(alat,alon,rj,ri)
         else if ( iproj=='ROTMER' ) then
-          call llij_rc(alat,alon,xobs(ii),yobs(ii))
+          call llij_rc(alat,alon,rj,ri)
         end if
-        xobs(ii) = (xobs(ii)-cntrj) * dsinm
-        yobs(ii) = (yobs(ii)-cntri) * dsinm
-        ht(ii) = ht(ii)/100.
-        ht2(ii) = ht2(ii)/100000.
+        xobs(ii) = rj
+        yobs(ii) = ri
       end do
 
       end subroutine xyobsll

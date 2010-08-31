@@ -23,11 +23,10 @@
       integer :: nnc
       integer :: iblk , iter, jter
       real(4) , allocatable , dimension(:) :: ht , ht2 , htsd
-      real(4) , allocatable , dimension(:) :: xobs , yobs
+      real(8) , allocatable , dimension(:) :: xobs , yobs
       real(4) , dimension(50) :: stores
       real(4) :: xmaxlat , xmaxlon , xminlat , xminlon
       real(4) :: dsinm , rin , xnc
-      real(4) :: dxcen , dycen
       real(8) :: grdlnmn , grdltmn , grdlnma , grdltma
       logical :: lonwrap , lcrosstime
 
@@ -78,7 +77,7 @@
         xmaxlon = ceiling(maxval(xlon(:,jx)))
       end if
  
-      print *, 'Calculated extrema:'
+      print *, 'Calculated large extrema:'
       print *, '         MINLAT = ', xminlat
       print *, '         MAXLAT = ', xmaxlat
       print *, '         MINLON = ', xminlon
@@ -97,10 +96,10 @@
 
 !--------initialize minimum lat and lon of data from tape
 
-      grdltmn = xminlat - sign(1.0, xminlat) * 5.0
-      grdltma = xmaxlat - sign(1.0, xmaxlat) * 5.0
-      grdlnmn = xminlon - sign(1.0, xminlon) * 5.0
-      grdlnma = xmaxlon - sign(1.0, xmaxlon) * 5.0
+      grdltmn = xminlat + 5.0
+      grdltma = xmaxlat - 5.0
+      grdlnmn = xminlon + 5.0
+      grdlnma = xmaxlon - 5.0
 
       end subroutine mxmnll
 

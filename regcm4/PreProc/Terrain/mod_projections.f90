@@ -347,11 +347,11 @@
         else
           lams = -90.0
         end if
-        i = polei + (lams-xoff)/dlon
-        j = polej + (phis-yoff)/dlon
+        i = polei + (phis-yoff)/dlon
+        j = polej + (lams-xoff)/dlon
       end subroutine llij_rc
 
-      subroutine ijll_rc(j,i,lat,lon)
+      subroutine ijll_rc(i,j,lat,lon)
         implicit none
         real(4) , intent(in) :: i , j
         real(4) , intent(out) :: lat , lon
@@ -360,7 +360,7 @@
         xr = xoff + (j-polej)*dlon
         if ( xr>180.0 ) xr = xr - 360.0
         xr = degrad*xr
-        yr = yoff + (i-polej)*dlon
+        yr = yoff + (i-polei)*dlon
         yr = 2*atan(exp(degrad*yr)) - atan(1.)*2.
  
         arg = zcospol*cos(yr)*cos(xr) + zsinpol*sin(yr)

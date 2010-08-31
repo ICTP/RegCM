@@ -25,9 +25,8 @@
                      & dmap , htgrid , htsdgrid , lndout , mask ,       &
                      & snowam , texout , xlat , xlon , xmap
       real(4) , allocatable , dimension(:,:,:) :: frac_tex
-      integer , allocatable , dimension(:,:) :: intext , lnduse , nsc
-      real(4) , allocatable , dimension(:,:) :: corc , hscr1 , htsavc , &
-                     & sumc , wtmaxc
+      integer , allocatable , dimension(:,:) :: intext , lnduse
+      real(4) , allocatable , dimension(:,:) :: hscr1
       character(1) , allocatable , dimension(:,:) :: ch
       real(4) , allocatable , dimension(:,:,:) :: itex , land
 
@@ -35,10 +34,8 @@
            & dlon_s , dmap_s , htgrid_s , htsdgrid_s , lndout_s ,       &
            & mask_s , snowam_s , texout_s , xlat_s , xlon_s , xmap_s
       real(4) , allocatable , dimension(:,:,:) :: frac_tex_s
-      integer , allocatable , dimension(:,:) :: intext_s , lnduse_s ,   &
-                     & nsc_s
-      real(4) , allocatable , dimension(:,:) :: corc_s , hscr1_s ,      &
-                     & htsavc_s , sumc_s , wtmaxc_s
+      integer , allocatable , dimension(:,:) :: intext_s , lnduse_s
+      real(4) , allocatable , dimension(:,:) :: hscr1_s
       character(1) , allocatable , dimension(:,:) :: ch_s
       real(4) , allocatable , dimension(:,:,:) :: itex_s , land_s
 
@@ -52,12 +49,7 @@
         integer , intent(in) :: iy,jx,kz,ntex
         allocate(sigma(kz+1))
         allocate(ch(iy,jx))
-        allocate(corc(iy,jx))
-        allocate(nsc(iy,jx))
         allocate(hscr1(iy,jx))
-        allocate(htsavc(iy,jx))
-        allocate(sumc(iy,jx))
-        allocate(wtmaxc(iy,jx))
         allocate(itex(iy,jx,2))
         allocate(land(iy,jx,2))
         allocate(coriol(iy,jx))
@@ -82,12 +74,7 @@
         implicit none
         integer , intent(in) :: iysg,jxsg,ntex
         allocate(ch_s(iysg,jxsg))
-        allocate(corc_s(iysg,jxsg))
-        allocate(nsc_s(iysg,jxsg))
         allocate(hscr1_s(iysg,jxsg))
-        allocate(htsavc_s(iysg,jxsg))
-        allocate(sumc_s(iysg,jxsg))
-        allocate(wtmaxc_s(iysg,jxsg))
         allocate(itex_s(iysg,jxsg,2))
         allocate(land_s(iysg,jxsg,2))
         allocate(coriol_s(iysg,jxsg))
@@ -112,12 +99,7 @@
         implicit none
         deallocate(sigma)
         deallocate(ch)
-        deallocate(corc)
-        deallocate(nsc)
         deallocate(hscr1)
-        deallocate(htsavc)
-        deallocate(sumc)
-        deallocate(wtmaxc)
         deallocate(itex)
         deallocate(land)
         deallocate(coriol)
@@ -141,12 +123,7 @@
       subroutine free_subgrid
         implicit none
         deallocate(ch_s)
-        deallocate(corc_s)
-        deallocate(nsc_s)
         deallocate(hscr1_s)
-        deallocate(htsavc_s)
-        deallocate(sumc_s)
-        deallocate(wtmaxc_s)
         deallocate(itex_s)
         deallocate(land_s)
         deallocate(coriol_s)

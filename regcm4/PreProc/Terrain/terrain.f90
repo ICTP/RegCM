@@ -56,12 +56,11 @@
       use mod_smooth , only : smth121 , smthtr
       use mod_maputils , only : lambrt , mappol , normer , rotmer ,  &
                                 &  xyobsll
-      use mod_interp , only : anal2 , interp
+      use mod_interp , only : anal2 , interp , surf
       use mod_fudge , only : lndfudge , texfudge , lakeadj
       use mod_rdldtr , only : rdldtr , rdldtr_nc
       use mod_write , only : setup , write_domain
       use mod_header , only : header
-      use mod_surf , only : surf
       implicit none
 !
 ! Local variables
@@ -188,9 +187,6 @@
 !     as calculated above.
 !
       open (48,status='scratch',form='unformatted')
-
-      dxcen = 0.0
-      dycen = 0.0
 !
       clong = clon
       if ( clong>180. ) clong = clong - 360.
@@ -267,26 +263,21 @@
           print * , 'after calling XYOBSLL, for subgrid'
 !
 !         create the terrain height fields
-          call anal2(htsdgrid_s,ht2,nobs,iysg,jxsg,corc_s,sumc_s,       &
-                   & nsc_s,wtmaxc_s,htsavc_s)
-          call anal2(htgrid_s,ht,nobs,iysg,jxsg,corc_s,sumc_s,nsc_s,    &
-                   & wtmaxc_s,htsavc_s)
+          call anal2(iysg,jxsg,htgrid_s,htsdgrid_s)
           print * , 'after calling ANAL2, for subgrid'
-          do j = 1 , jxsg
-            do i = 1 , iysg
-              htgrid_s(i,j) = amax1(htgrid_s(i,j)*100.,0.0)
-              htsdgrid_s(i,j) = amax1(htsdgrid_s(i,j)*100000.,0.0)
-              htsdgrid_s(i,j) = sqrt(amax1(htsdgrid_s(i,j)-htgrid_s(i,j)&
-                              & **2,0.0))
-            end do
-          end do
         else
           call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s,htsdgrid_s,      &
                     & ntypec_s)
           print * , 'after calling INTERP, for subgrid'
-!         print*, '  Note that the terrain standard deviation is'
-!         print*, '  underestimated using INTERP. (I dont know why?)'
         end if
+        do j = 1 , jxsg
+          do i = 1 , iysg
+            htgrid_s(i,j) = amax1(htgrid_s(i,j)*100.,0.0)
+            htsdgrid_s(i,j) = amax1(htsdgrid_s(i,j)*100000.,0.0)
+            htsdgrid_s(i,j) = sqrt(amax1(htsdgrid_s(i,j) - &
+                                         htgrid_s(i,j)**2,0.0))
+          end do
+        end do
 !       create surface landuse types
         call surf(xlat_s,xlon_s,lnduse_s,iysg,jxsg,nnc,xnc,lndout_s,    &
                 & land_s,nobs,h2opct,nveg,aertyp,intext_s,texout_s,     &
@@ -384,10 +375,8 @@
 
       end if
 !
-      dxcen = 0.0
-      dycen = 0.0
-!
 !     set up the parameters and constants
+!
       call setup(iy,jx,ntypec,iproj,ds,clat,clong)
       print * , 'after calling SETUP'
 !
@@ -455,25 +444,21 @@
         call xyobsll(iy,jx,iproj,clat,clong,plat,plon,truelatl,         &
                   &  truelath)
         print * , 'after calling XYOBSLL'
- 
 !       create the terrain height fields
-        call anal2(htsdgrid,ht2,nobs,iy,jx,corc,sumc,nsc,wtmaxc,htsavc)
-        call anal2(htgrid,ht,nobs,iy,jx,corc,sumc,nsc,wtmaxc,htsavc)
+        call anal2(iy,jx,htgrid,htsdgrid)
         print * , 'after calling ANAL2'
-        do j = 1 , jx
-          do i = 1 , iy
-            htgrid(i,j) = amax1(htgrid(i,j)*100.,0.0)
-            htsdgrid(i,j) = amax1(htsdgrid(i,j)*100000.,0.0)
-            htsdgrid(i,j) = sqrt(amax1(htsdgrid(i,j)-htgrid(i,j)**2,0.0)&
-                          & )
-          end do
-        end do
       else
         call interp(jx,iy,xlat,xlon,htgrid,htsdgrid,ntypec)
-!       print*, 'after calling INTERP'
-!       print*, '  Note that the terrain standard deviation is'
-!       print*, '  underestimated using INTERP. (I dont know why!)'
+        print*, 'after calling INTERP'
       end if
+      do j = 1 , jx
+        do i = 1 , iy
+          htgrid(i,j) = amax1(htgrid(i,j)*100.,0.0)
+          htsdgrid(i,j) = amax1(htsdgrid(i,j)*100000.,0.0)
+          htsdgrid(i,j) = sqrt(amax1(htsdgrid(i,j)-htgrid(i,j)**2,0.0)&
+                        & )
+        end do
+      end do
  
  
 !     create surface landuse types
