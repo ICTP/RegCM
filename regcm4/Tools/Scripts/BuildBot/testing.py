@@ -84,18 +84,47 @@ def edit_namelist(namelist,datadir,simdir):
         print line.rstrip()
         
     fileinput.close()
-    
-            
+
+COMMENT_CHAR = '#'
+OPTION_CHAR =  '='
+ 
+def parse_config(filename):
+    options = {}
+    f = open(filename)
+    for line in f:
+        # First, remove comments:
+        if COMMENT_CHAR in line:
+            # split on comment char, keep only the part before
+            line, comment = line.split(COMMENT_CHAR, 1)
+        # Second, find lines with an option=value:
+        if OPTION_CHAR in line:
+            # split on option char:
+            option, value = line.split(OPTION_CHAR, 1)
+            # strip spaces:
+            option = option.strip()
+            value = value.strip()
+            # store in dictionary:
+            options[option] = value
+    f.close()
+    return options
+ 
+#options = parse_config('config.ini')
+#print options
+
+                
 def main():
 
-    regcm_root=os.getcwd()+"/../../../"
+    options = parse_config('sissa.cfg')
 
-    options = MyOptions()
-    options.parse(sys.argv[1:])
+    #regcm_root=os.getcwd()+"/../../../"
 
-    datadir = options.datadir
-    bindir = options.bindir
-    testdir = options.testdir
+    #options = MyOptions()
+    #options.parse(sys.argv[1:])
+
+    datadir = options["DATADIR"]
+    bindir = options["BINDIR"]
+    testdir = options["TESTDIR"]
+    namelistdir = options["NLDIR"]
 
     datadir = os.path.abspath(datadir)
     testdir = os.path.abspath(testdir)
@@ -126,24 +155,18 @@ def main():
 
         namelist = simdir+"/regcm.in"
         
-        shutil.copy(regcm_root+"Testing/"+testname+".in",namelist)
-        
-        #os.symlink(bindir,simdir+"/Bin")
+        shutil.copy(namelistdir+"/"+testname+".in",namelist)
         
         #edit the namelist here
 
         edit_namelist(namelist,datadir,simdir)
 
-        # hardcoded machine params
+        mpistring=options["MPISTRING"]
+        run_clm=int(options["USECLM"])
+        run_band=int(options["USEBAND"])
 
-        mpistring="mpirun -np 4"
-        run_clm=0
-        run_band=0
-
-        # run selected test
-
-        log=""
-
+        # run preproc
+        # still to determine what to do to handle crashes...
         err_terrain=os.system(bindir+"/terrain "+namelist)
         if err_terrain != 0:
             print "Terrain crashed!!",err_terrain
@@ -154,9 +177,18 @@ def main():
         if err_terrain != 0:
             print "ICBC crashed!!"
 
-        #print datadir
-        #print simdir
-        #print namelist
+        # compare preproc output
+
+        # run main
+        if (int(options["SERIAL"]) == 1):
+            err_regcm=os.system(bindir+"/regcmSerial "+namelist)
+        elif int(run_clm == 1):
+            err_regcm=os.system(mpistring+" "+bindir+"/regcm_clM "+namelist)
+        elif int(run_band == 1):
+            err_regcm=os.system(mpistring+" "+bindir+"/regcm_band "+namelist)
+        else :
+            err_regcm=os.system(mpistring+" "+bindir+"/regcmMPI "+namelist)
+
 
 if __name__ == "__main__":
     main()
