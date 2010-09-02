@@ -23,49 +23,6 @@
 #
 
 import os,sys,shutil,fileinput
-from optparse import OptionParser
-
-class MyOptions(object):
-    
-    def __init__(self):
-        regcm_root=os.getcwd()+"/../../../"
-        usage = "usage: %s [-t test directory] [-b binaries directory] [-d data directory]" % sys.argv[0]
-        self.parser = OptionParser(usage)
-        self.parser.add_option("-t","--test-dir",dest="testdir",default=regcm_root+"/sandbox",
-                      help="Directory where the tests will be run", metavar="DIR")
-#        self.parser.add_option("-q", "--quiet",
-#                      action="store_false", dest="verbose", default=True,
-#                      help="Don't print status messages to stdout")
-        self.parser.add_option("-b","--bin-dir", dest="bindir",default=regcm_root+"/Bin",
-                  help="Directory where RegCM binaries are", metavar="DIR")
-	self.parser.add_option("-d","--data-dir", dest="datadir",default=regcm_root+"/data",
-                  help="Directory where RegCM preprocessing data is", metavar="DIR")
-
-    def parse(self,args):
-        
-        (self.options, self.args) = self.parser.parse_args(args=args)
-        self.datadir = self.options.datadir
-        self.testdir = self.options.testdir
-        self.bindir = self.options.bindir
-
-#	if not os.path.isdir(self.testdir):
-#            print "The directory",self.datadir,"does not exist or is not accessible!"
-#            sys.exit(1)
-
-        if not os.path.isdir(self.datadir):
-            print "The directory",self.datadir,"does not exist or is not accessible!"
-            sys.exit(1)
-
-	if not os.path.isdir(self.bindir):
-            print "The directory",self.datadir,"does not exist or is not accessible!"
-            sys.exit(1)
-
-        if not os.path.isdir(self.testdir):
-            try :
-                os.mkdir(self.testdir)
-            except OSError:
-                print "Cannot create",self.testdir,"directory!"
-                sys.exit(1)
 
 def edit_namelist(namelist,datadir,simdir):
 
@@ -90,7 +47,12 @@ OPTION_CHAR =  '='
  
 def parse_config(filename):
     options = {}
-    f = open(filename)
+    try:
+        f = open(filename)
+    except :
+        print "File "+filename+" does not exist or is not accessible!"
+        sys.exit(1)
+        
     for line in f:
         # First, remove comments:
         if COMMENT_CHAR in line:
@@ -107,19 +69,16 @@ def parse_config(filename):
             options[option] = value
     f.close()
     return options
- 
-#options = parse_config('config.ini')
-#print options
-
                 
-def main():
+def main(argv):
 
-    options = parse_config('sissa.cfg')
+    if (len(sys.argv) < 2):
+        print "Please specify a configuration file!"
+        sys.exit(1)
+        
+    cfg=sys.argv[1]
 
-    #regcm_root=os.getcwd()+"/../../../"
-
-    #options = MyOptions()
-    #options.parse(sys.argv[1:])
+    options = parse_config(cfg)
 
     datadir = options["DATADIR"]
     bindir = options["BINDIR"]
@@ -177,6 +136,9 @@ def main():
         if err_terrain != 0:
             print "ICBC crashed!!"
 
+        if run_clm == 1:
+            err_clmpre=os.system(bindir+"/clm2rcm "+namelist)
+
         # compare preproc output
 
         # run main
@@ -191,5 +153,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
 
