@@ -84,22 +84,57 @@ def main(argv):
     bindir = options["BINDIR"]
     testdir = options["TESTDIR"]
     namelistdir = options["NLDIR"]
+    teststodo = options["TESTSTODO"]
 
     datadir = os.path.abspath(datadir)
     testdir = os.path.abspath(testdir)
     bindir = os.path.abspath(bindir)
 
+    if teststodo.rfind(",") > -1 :
+        tests=teststodo.split(",")
+        listtype=0
+    elif teststodo.rfind("-") > -1:
+        tests=teststodo.split("-")
+        imin=int(tests[0])
+        imax=int(tests[1])
+        listtype=1
+    else :
+        tests=int(teststodo)
+        listtype=2
+
+
     # main loop over tests
-    # number of tests temporarily fixed
-    total_tests=2
+    # number of total tests present
+    TOT_TESTS = 10
 
     if not os.path.isdir(testdir):
         os.mkdir(testdir)
 
-    for i in range(1,total_tests+1):
+    if listtype == 2 :
+        if tests == 0 :
+            imin = 1
+            imax = TOT_TESTS
+        else :
+            imin = int(tests)
+            imax = int(tests)
+    elif listtype == 1 :
+        imin = int(tests[0])
+        imax = int(tests[1])
+    else :
+        imin = 0
+        imax = len(tests)-1
 
-        # make this better!
-        testname="test_00"+str(i)
+
+    print "imin =",imin
+    print "imax =",imax
+        
+    for i in range(imin,imax+1):
+
+        if listtype == 0 :
+            testname="test_00"+str(tests[i])
+        else :
+            # make this better!
+            testname="test_00"+str(i)
 
         simdir=testdir+"/"+testname
 
