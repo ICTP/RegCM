@@ -1,3 +1,4 @@
+! Indian ocean
 &dimparam
  iy     = 160,
  jx     = 192,
@@ -16,7 +17,7 @@
  truelath = 65.0,
  /
  &terrainparam
- domname = 'LAT+16LON067_160x192',
+ domname = 'test_004',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
@@ -76,7 +77,7 @@
  ifrest  = .false. ,
  idate0  = 1989050100,
  idate1  = 1989050100,
- idate2  = 1989060100,
+ idate2  = 1989050600,
  /
  &timeparam
  radfrq  =    30.,

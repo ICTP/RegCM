@@ -1,3 +1,4 @@
+! Chinese domain 
  &dimparam
  iy     = 80,
  jx     = 108,
@@ -16,7 +17,7 @@
  truelath = 50,
  /
  &terrainparam
- domname = 'LAT+34LON120_080x108',
+ domname = 'test_002',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
@@ -76,7 +77,7 @@
  ifrest  = .false. ,
  idate0  = 1994010100,
  idate1  = 1994010100,
- idate2  = 1994020100,
+ idate2  = 1994010600,
  /
  &timeparam
  radfrq  =    30.,
@@ -131,3 +132,9 @@
  chtrdpv   =  .00000, .00000,
  dustbsiz  =   .00,  .00,
  /
+  &clmparam
+ dirclm = '/set/this/to/where/your/input/clm/data/are',
+ imask  = 1,
+ clmfrq = 12.,
+ /
+

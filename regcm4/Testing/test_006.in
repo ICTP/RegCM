@@ -1,3 +1,4 @@
+! South American domain 
  &dimparam
  iy     = 202,
  jx     = 192,
@@ -16,7 +17,7 @@
  truelath = 60.0,
  /
  &terrainparam
- domname = 'LAT-22LON-59_202x192',
+ domname = 'test_006',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
@@ -76,7 +77,7 @@
  ifrest  = .false. ,
  idate0  = 1989010100,
  idate1  = 1989010100,
- idate2  = 1989020100,
+ idate2  = 1989010600,
  /
  &timeparam
  radfrq  =    30.,

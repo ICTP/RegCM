@@ -1,3 +1,4 @@
+! test for DUST 
  &dimparam
  iy     = 70,
  jx     = 160,
@@ -16,7 +17,7 @@
  truelath = 60,
  /
  &terrainparam
- domname = 'WAFDUST',
+ domname = 'test_008',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,

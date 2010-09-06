@@ -1,5 +1,4 @@
-! This is a simple demo input file for regcm4.0 
-! used in the RegCM Workshop in june 2010 
+! test for BAND (444km resolution)
  &dimparam
  iy     = 30,
  jx     = 90,
@@ -19,7 +18,7 @@
  truelath = 60,
  /
  &terrainparam
- domname = 'BAND_444km',
+ domname = 'test_010',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,

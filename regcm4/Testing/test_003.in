@@ -1,4 +1,5 @@
-&dimparam
+! Ethiopian domain
+ &dimparam
  iy     = 112,
  jx     = 128,
  kz     = 18,
@@ -16,7 +17,7 @@
  truelath = 60.0,
  /
  &terrainparam
- domname = 'LAT+09LON040_112x128',
+ domname = 'test_003',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
@@ -76,7 +77,7 @@
  ifrest  = .false. ,
  idate0  = 1991010100,
  idate1  = 1991010100,
- idate2  = 1991020100,
+ idate2  = 1991010600,
  /
  &timeparam
  radfrq  =    30.,

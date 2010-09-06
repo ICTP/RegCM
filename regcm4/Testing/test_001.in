@@ -1,3 +1,4 @@
+! small European domain
  &dimparam
  iy     = 34,
  jx     = 64,
@@ -16,7 +17,7 @@
  truelath = 60,
  /
  &terrainparam
- domname = 'LAT+45LON013_034x064',
+ domname = 'test_001',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
@@ -76,7 +77,7 @@
  ifrest  = .false. ,
  idate0  = 1990060100,
  idate1  = 1990060100,
- idate2  = 1990070100,
+ idate2  = 1990060600,
  /
  &timeparam
  radfrq  =    30.,
@@ -132,7 +133,7 @@
  inpdustbsiz  =   .00,  .00,
  /
  &clmparam
- dirclm = '../../Input',
+ dirclm = '/set/this/to/where/your/input/clm/data/are',
  imask  = 1,
  clmfrq = 12.,
  /
