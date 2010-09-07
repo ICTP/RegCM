@@ -125,8 +125,8 @@ def main(argv):
         imax = len(tests)-1
 
 
-    print "imin =",imin
-    print "imax =",imax
+    #print "imin =",imin
+    #print "imax =",imax
         
     for i in range(imin,imax+1):
 
@@ -159,32 +159,41 @@ def main(argv):
         run_clm=int(options["USECLM"])
         run_band=int(options["USEBAND"])
 
+        # open log file
+
+        log = testname+".log"
+
         # run preproc
-        # still to determine what to do to handle crashes...
-        err_terrain=os.system(bindir+"/terrain "+namelist)
+        # handle log+errors better with subproc??
+        err_terrain=os.system(bindir+"/terrain "+namelist+"&>"+log)
         if err_terrain != 0:
-            print "Terrain crashed!!",err_terrain
-        err_sst=os.system(bindir+"/sst "+namelist)
+            print "Terrain in",testname,"crashed!!"
+        err_sst=os.system(bindir+"/sst "+namelist+"&>"+log)
         if err_terrain != 0:
-            print "SST crashed!!"
-        err_icbc=os.system(bindir+"/icbc "+namelist)
+            print "SST in ",testname,"crashed!!"
+        err_icbc=os.system(bindir+"/icbc "+namelist+"&>"+log)
         if err_terrain != 0:
-            print "ICBC crashed!!"
+            print "ICBC in ",testname," crashed!!"
 
         if run_clm == 1:
-            err_clmpre=os.system(bindir+"/clm2rcm "+namelist)
+            err_clmpre=os.system(bindir+"/clm2rcm "+namelist+"&>"+log)
 
         # compare preproc output
 
         # run main
         if (int(options["SERIAL"]) == 1):
-            err_regcm=os.system(bindir+"/regcmSerial "+namelist)
+            err_regcm=os.system(bindir+"/regcmSerial "+namelist+"&>"+log)
         elif int(run_clm == 1):
-            err_regcm=os.system(mpistring+" "+bindir+"/regcm_clM "+namelist)
+            err_regcm=os.system(mpistring+" "+bindir+"/regcm_clM "+namelist+"&>"+log)
         elif int(run_band == 1):
-            err_regcm=os.system(mpistring+" "+bindir+"/regcm_band "+namelist)
+            err_regcm=os.system(mpistring+" "+bindir+"/regcm_band "+namelist+"&>"+log)
         else :
-            err_regcm=os.system(mpistring+" "+bindir+"/regcmMPI "+namelist)
+            err_regcm=os.system(mpistring+" "+bindir+"/regcmMPI "+namelist+"&>"+log)
+
+        #print "exit status = ",err_regcm
+
+        if err_regcm != 0:
+            print "RegCM",testname,"crashed!"
 
 
 if __name__ == "__main__":
