@@ -149,7 +149,7 @@
 !
       rinc = nnc
       if (lcrosstime) then
-        mxj = nint((mod((grdlnma+360.0),360.0)-grdlnmn)*rinc) + 1
+        mxj = nint((mod((grdlnma+360.0D0),360.0D0)-grdlnmn)*rinc) + 1
       else
         mxj = nint((grdlnma-grdlnmn)*rinc) + 1
       end if
@@ -173,7 +173,8 @@
 
       do ii = 1 , nobs
         if (lcrosstime) then
-          jindex = nint((mod((xobs(ii)+360.0),360.0)-grdlnmn)*rinc) + 1
+          jindex = nint((mod((xobs(ii)+360.0D0),360.0D0) - &
+                              grdlnmn)*rinc) + 1
         else
           jindex = nint((xobs(ii)-grdlnmn)*rinc) + 1
         end if
@@ -184,7 +185,8 @@
           stop 400
         end if
         xin1(iindex,jindex) = ht(ii)/100.
-        if (ht2(ii) <= 400000000.0) xin2(iindex,jindex) = ht2(ii)/100000.
+        if (ht2(ii) <= 400000000.0) xin2(iindex,jindex) = &
+                   ht2(ii)/100000.
         lmask(iindex,jindex) = .true.
       end do
 !
@@ -216,7 +218,7 @@
               end if
             end if
             if (jj > 1) then
-              if (lmask(jj > 1 .and. ii,jj-1)) then
+              if (lmask(ii,jj-1)) then
                 xd = (((jj-1)*dsgrid)-grdltmn)*rinc + 1.0D+00
                 wc = (xx-xd)
                 if (wc < wm) then
@@ -452,7 +454,7 @@
       print *, 'Input data point MAX is at ', grdltma , grdlnma
       print *, 'Input data resolution is   ', dsgrid
       if (lcrosstime) then
-        mxj = nint((mod((grdlnma+360.0),360.0)-grdlnmn)*rinc) + 1
+        mxj = nint((mod((grdlnma+360.0D0),360.0D0)-grdlnmn)*rinc) + 1
       else
         mxj = nint((grdlnma-grdlnmn)*rinc) + 1
       end if
@@ -521,7 +523,7 @@
                 end if
               end if
               if (jj > 1) then
-                if (lmask(jj > 1 .and. ii,jj-1)) then
+                if (lmask(ii,jj-1)) then
                   xd = (((jj-1)*dsgrid)-grdltmn)*rinc + 1.0D+00
                   wc = (xx-xd)
                   if (wc < wm) then

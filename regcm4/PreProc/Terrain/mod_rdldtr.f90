@@ -163,9 +163,9 @@
             htsd(lrec) = stores(4)
             ht2(lrec) = stores(4)**2 + stores(3)**2
             if (lcrosstime) then
-              if ( mod((xobs(lrec)+360.0),360.0)<grdlnmn ) &
+              if ( mod((xobs(lrec)+360.0D0),360.0D0)<grdlnmn ) &
                  grdlnmn = xobs(lrec)
-              if ( mod((xobs(lrec)+360.0),360.0)>(grdlnma+360.0) ) &
+              if ( mod((xobs(lrec)+360.0D0),360.0D0)>(grdlnma+360.0) ) &
                  grdlnma = xobs(lrec)
             else
               if ( xobs(lrec)<grdlnmn ) grdlnmn = xobs(lrec)
@@ -414,9 +414,9 @@
             htsd(lrec) = stores(4)
             ht2(lrec) = stores(4)**2 + stores(3)**2
             if (lcrosstime) then
-              if ( mod((xobs(lrec)+360.0),360.0)<grdlnmn ) &
+              if ( mod((xobs(lrec)+360.0D0),360.0D0)<grdlnmn ) &
                  grdlnmn = xobs(lrec)
-              if ( mod((xobs(lrec)+360.0),360.0)>(grdlnma+360.0) ) &
+              if ( mod((xobs(lrec)+360.0D0),360.0D0)>(grdlnma+360.0) ) &
                  grdlnma = xobs(lrec)
             else
               if ( xobs(lrec)<grdlnmn ) grdlnmn = xobs(lrec)
