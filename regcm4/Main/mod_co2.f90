@@ -20,6 +20,13 @@
       module mod_co2
 
       use mod_dynparam
+      use mod_runparams
+      use mod_bats
+      use mod_leaftemp
+!
+      private
+
+      public :: co2
 !
       contains
 !
@@ -48,12 +55,6 @@
 !     resistances for co2 are larger than those for h2o due to
 !                    difference in molecular weight
 !
-      use mod_dynparam
-      use mod_param1 , only : dtbat
-      use mod_bats , only : fdry , pbp1d , resp1d , ldoc1d , sigf ,     &
-                   & rlai , gwmx0, solis , tlef1d , ssw1d , tg1d ,      &
-                   & xlai , xlsai
-      use mod_ictp01
       implicit none
 !
 ! Local variables
@@ -67,8 +68,8 @@
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
             if ( sigf(n,i).gt.0.001 ) then
-              rsp = rs(n,i)*1.7
-              rap = ra(n,i)*1.5
+              rsp = lftrs(n,i)*1.7
+              rap = lftra(n,i)*1.5
               rt = rsp + rap + rmp
               cari(n,i) = sigf(n,i)*xlsai(n,i)*fdry(n,i)                &
                          & *carbon(solis(i)*rlai(n,i),tlef1d(n,i),rt,   &

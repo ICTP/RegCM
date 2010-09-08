@@ -20,6 +20,9 @@
       module mod_aero_sett_ddep
 
       use mod_dynparam , only : nveg
+      use mod_message
+      use mod_constants
+      use mod_dust
 
       implicit none
 
@@ -58,7 +61,6 @@
       contains
 
       subroutine allocate_mod_aero_sett_ddep
-        use mod_message , only : fatal
         implicit none
         allocate(aest(nveg))
         allocate(arye(nveg))
@@ -110,10 +112,6 @@
 ! - rtdry  : dry deposition tendency                      *****
 !                                                         *****
 !**************************************************************
-
-      use mod_constants , only : ep2 , gti , rgti , vonkar , mathpi ,   &
-                               & tzero , boltzk , stdpmb
-      use mod_dust, only : isize, aerosize, rhop
 
       implicit none
 !

@@ -19,6 +19,16 @@
  
       module mod_cu_bm
 
+      use mod_constants
+      use mod_dynparam
+      use mod_runparams
+      use mod_date
+      use mod_main
+      use mod_pmoist
+      use mod_rad
+      use mod_bats
+      use mod_trachem
+
       implicit none
 
       private
@@ -66,21 +76,6 @@
 !*****************************************************************
 ! *** warning: this subroutine will not work if kz.lt.12;
 !
-      use mod_dynparam
-      use mod_param1 , only : nbatst , dt2 , dtmin
-      use mod_param2
-      use mod_param3 , only : r8pt , sigma , a , dsigma
-      use mod_date , only : jyear , jyear0 , ktau
-      use mod_main
-      use mod_pmoist
-      use mod_rad
-      use mod_bats , only : pptc , veg2d , ocld2d
-      use mod_trachem
-      use mod_constants , only : rgas , gti , rovg , cpd , rcpd , ep2 , &
-                               & trel , tzero , wlhv , c4les , c3les ,  &
-                               & pq0 , aliq , bliq , cliq , dliq ,      &
-                               & aice , bice , cice1 , dice , xls0 ,    &
-                               & xls1 , rwat
       implicit none
 !
 ! PARAMETER definitions
@@ -876,8 +871,6 @@
 !
       subroutine lutbl(ptop)
 !
-      use mod_constants , only : cpd , rgas , rovcp , tzero , c3les ,   &
-                               & c4les , eliwv , pq0
       implicit none
 !
 ! PARAMETER definitions
@@ -1162,7 +1155,6 @@
 !
       function tpfc(press,thetae,tgs,d273,rl,qs,pi)
  
-      use mod_constants , only : rcpd , ep2 , rwat
       implicit none
 !
 ! Dummy arguments

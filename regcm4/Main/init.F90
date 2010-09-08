@@ -26,22 +26,11 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
-      use mod_param1 , only : dt , dt2 , dx
-      use mod_param2 , only : ibltyp , ichem , icup , iemiss , ifrest , &
-                   & iocnflx , ipptls , lakemod , icnt
-      use mod_param3 , only : a , dsigma , r8pt
-      use mod_bats , only : ssw2da , sdeltk2d , sdelqk2d , sfracv2d ,   &
-                   & sfracb2d , sfracs2d , svegfrac2d , ht1 , satbrt1 , &
-                   & taf2d , tlef2d , ssw2d , srw2d , sol2d , solvd2d , &
-                   & solvs2d , flw2d , tgb2d , swt2d , scv2d , gwet2d , &
-                   & flwd2d , fsw2d, sabv2d , sinc2d , veg2d1 , sag2d , &
-                   & sice2d , dew2d , pptnc , pptc , prca2d , prnca2d , &
-                   & ircp2d , text2d , col2d , ocld2d , tg2d , veg2d ,  &
-                   & emiss2d , psmn_o , t2mn_o , t2mx_o , tgmn_o ,      &
-                   & tgmx_o , w10x_o , albvgl , albvgs
+      use mod_runparams
+      use mod_bats
+      use mod_vecbats
       use mod_pmoist
       use mod_main
-      use mod_iunits
       use mod_mainchem
       use mod_bdycod
       use mod_rad
@@ -51,10 +40,11 @@
                    & idate1 , lyear , lmonth , lday , lhour , ndate0 ,  &
                    & ndate1 , nnnchk , jyear , jyear0, jyearr, ntime ,  &
                    & ktau , ktaur , xtime , idate0
-      use mod_radbuf
-      use mod_tmpsav
+      use mod_radiation
+      use mod_sun
       use mod_constants , only : rgti
       use mod_ncio , only : open_icbc , read_icbc
+      use mod_savefile , only : read_savefile_part1
 #ifdef DIAG
 #ifndef BAND
       use mod_diagnosis
@@ -62,12 +52,10 @@
 #endif
 #ifdef MPP1
       use mod_mppio
+      use mod_lake , only : mpilake
 #ifdef CLM
       use mod_clm
       use clm_varsur , only : init_tgb , init_grid
-      use mod_bats , only : sols2d , soll2d , solsd2d , solld2d ,       &
-                   &        aldirs2d, aldirl2d , aldifs2d , aldifl2d ,  &
-                   &        coszrs2d
 #endif
 #ifndef IBM
       use mpi
@@ -83,10 +71,9 @@
 !-----dimension the arrays for parameterizing the sfc. variables.
 !     change the variable surface parameters
 !
-      integer :: depth , freeze , i , ibin , ilake , im1h , ip1h , ist ,&
-               & jlake , itr , j , k , n , icbc_date
-      real(8) :: eta , hg1 , hg2 , hg3 , hg4 , hgmax , hi , hii , hs ,  &
-               & tlp , ts00
+      integer :: i , ibin , im1h , ip1h , ist ,itr , j , k , n , &
+                 icbc_date
+      real(8) :: hg1 , hg2 , hg3 , hg4 , hgmax , tlp , ts00
       integer :: jp1 , jm1
 #ifdef MPP1
       real(8) , dimension(iy,jxp) :: psdot
@@ -94,7 +81,6 @@
 #else
       real(8) , dimension(iy,jx) :: psdot
 #endif
-      real(8) , dimension(400) :: tlake
       logical :: existing
 !
 #ifdef DIAG
@@ -794,152 +780,14 @@
 !
 #ifdef MPP1
         if ( myid.eq.0 ) then
-          call outname('SAV', ndate0)
-          inquire (file=ffout,exist=existing)
-          if ( .not.existing ) then
-            write (aline,*) 'The following SAV File does not exist: ' , &
-                &            trim(ffout), ' please check location'
-            call say
-            call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
-          else
-            open (iutrs,file=ffout,form='unformatted',status='old')
-          end if
-          do ! Loop while ldatez.ne.idate1
-            read (iutrs) mdate0
-            jyear0 = mdate0/1000000
-            read (iutrs) ktau , xtime , ldatez , lyear , lmonth , lday ,&
-                       & lhour , ntime
-            jyear = lyear
-            jyearr = jyear
-            ktaur = ktau
-            if ( ehso4 ) then
-              read (iutrs) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , &
-                         & ts0_io , so0_io
-            else
-              read (iutrs) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , &
-                         & ts0_io
-            end if
-            read (iutrs) ua_io
-            read (iutrs) ub_io
-            read (iutrs) va_io
-            read (iutrs) vb_io
-            read (iutrs) ta_io
-            read (iutrs) tb_io
-            read (iutrs) qva_io
-            read (iutrs) qvb_io
-            read (iutrs) qca_io
-            read (iutrs) qcb_io
-            read (iutrs) psa_io , psb_io , satbrt_io , satbrt1_io , f_io
-            read (iutrs) ht_io , ht1_io , msfx_io , msfd_io , xlat_io , &
-                       & xlong_io
-            read (iutrs) tga_io , tgb_io , rainc_io , rainnc_io
-            if ( icup.eq.1 ) then
-              read (iutrs) rsheat_io , rswat_io
-            else if ( icup.eq.3 ) then
-              read (iutrs) tbase_io , cldefi_io
-            else if ( icup.eq.4 ) then
-              read (iutrs) cbmf2d_io
-            else
-            end if
-            read (iutrs) hfx_io , qfx_io , snowc_io , uvdrag_io
-#ifdef DIAG
-#ifndef BAND
-            read (iutrs) tdini , tdadv , tqini , tqadv , tqeva , tqrai
-#endif
-#endif
-            read (iutrs) absnxt_io , abstot_io , emstot_io
-            if ( ipptls.eq.1 ) read (iutrs) fcc_io
-#ifdef CLM
-            read (iutrs) sols2d_io
-            read (iutrs) soll2d_io
-            read (iutrs) solsd2d_io
-            read (iutrs) solld2d_io
-            read (iutrs) flwd2d_io
-            read (iutrs) aldirs2d_io
-            read (iutrs) aldirl2d_io
-            read (iutrs) aldifs2d_io
-            read (iutrs) aldifl2d_io
-            read (iutrs) coszrs2d_io
-            read (iutrs) ocld2d_io
-            read (iutrs) heatrt_io
-            read (iutrs) o3prof_io
-            read (iutrs) tgbb_io
-            read (iutrs) flw2d_io
-            read (iutrs) swt2d_io
-            read (iutrs) sinc2d_io
-            read (iutrs) fsw2d_io
-            read (iutrs) taf2d_io
-#else
-            read (iutrs) sol2d_io , solvd2d_io , solvs2d_io , flw2d_io ,&
-                       & flwd2d_io , fsw2d_io , sabv2d_io , sinc2d_io
-            read (iutrs) taf2d_io , tlef2d_io , tgbb_io , ssw2d_io ,    &
-                       & srw2d_io , tg2d_io , tgb2d_io , swt2d_io ,     &
-                       & scv2d_io , gwet2d_io , veg2d_io , veg2d1_io ,  &
-                       & sag2d_io , sice2d_io , dew2d_io , ircp2d_io ,  &
-                       & text2d_io , col2d_io , ocld2d_io , heatrt_io , &
-                       & o3prof_io
-#endif
-            read (iutrs) pptnc_io , pptc_io , prca2d_io , prnca2d_io
-            if ( iocnflx.eq.2 ) read (iutrs) zpbl_io
-!chem2---
-            if ( ichem.eq.1 ) then
-              read (iutrs) chia_io
-              read (iutrs) chib_io
-!             cumul removal terms (3d, 2d)
-              read (iutrs) remlsc_io
-              read (iutrs) remcvc_io
-              read (iutrs) remdrd_io
-              read (iutrs) ssw2da_io
-              read (iutrs) sdeltk2d_io
-              read (iutrs) sdelqk2d_io
-              read (iutrs) sfracv2d_io
-              read (iutrs) sfracb2d_io
-              read (iutrs) sfracs2d_io
-              read (iutrs) svegfrac2d_io
-!             cumul ad, dif, emis terms ( scalar)
-#ifdef DIAG
-#ifndef BAND
-              read (iutrs) tchiad
-              read (iutrs) tchitb
-              read (iutrs) tchie
-#endif
-#endif
-            end if
- 
-!------lake model
-            if ( lakemod.eq.1 ) then
-              lcount = 0
-              iin = 41
-              iout = 42
-              rewind (iin)
-              read (iutrs) numpts
-              print * , 'reading lake model restart file. numpts = ' ,  &
-                  & numpts
-              print * , 'jyear, ktau, xtime = ' , jyear , ktau , xtime
-              do n = 1 , numpts
-                read (iutrs) ilake , jlake , depth , freeze , hi , hii ,&
-                           & hs , eta , (tlake(j),j=1,depth)
-                print * , 'reading restart file at i, j = ' , ilake ,   &
-                    & jlake
-                write (iin) ilake , jlake , depth , freeze , hi , hii , &
-                          & hs , eta , (tlake(j),j=1,depth)
-              end do
-              rewind (iin)
-            end if
+          call read_savefile_part1(ndate0)
 !
-            print * , 'ozone profiles restart'
-            do k = 1 , kzp1
-              write (6,99004) o3prof_io(3,3,k)
-            end do
-            print 99005 , xtime , ktau , jyear , ffin
-!
-            if ( ldatez.ne.idate1 ) then
-              write (*,*) 'INIT: ldatez, idate1=' , ldatez , idate1
-              cycle
-            end if
-
-            exit ! We have ldatez.eq.idate1
+          print * , 'ozone profiles restart'
+          do k = 1 , kzp1
+            write (6,99004) o3prof_io(3,3,k)
           end do
+          print 99005 , xtime , ktau , jyear
+!
         end if
 !
 !       Start sending data to all processors : surface data
@@ -1645,12 +1493,7 @@
 #endif
 !------lake model
         if ( lakemod.eq.1 ) then
-          call mpi_bcast(ilake,1,mpi_integer,0,mpi_comm_world,ierr)
-          call mpi_bcast(jlake,1,mpi_integer,0,mpi_comm_world,ierr)
-          call mpi_bcast(depth,1,mpi_integer,0,mpi_comm_world,ierr)
-          call mpi_bcast(hs,1,mpi_real8,0,mpi_comm_world,ierr)
-          call mpi_bcast(eta,1,mpi_real8,0,mpi_comm_world,ierr)
-          call mpi_bcast(tlake,depth,mpi_real8,0,mpi_comm_world,ierr)
+          call mpilake
         end if
         call mpi_sendrecv(ht(1,jxp),iy,mpi_real8,ieast,1,               &
                         & ht(1,0),iy,mpi_real8,iwest,1,                 &
@@ -1674,136 +1517,15 @@
         dt = dt2 ! First timestep successfully read in
 
 #else
-        call outname('SAV', ndate0)
-        inquire (file=ffout,exist=existing)
-        if ( .not.existing ) then
-          write (aline,*) 'The following SAV File does not exist: ' ,   &
-              &            trim(ffout), ' please check location'
-          call say
-          call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
-        else
-          open (iutrs,file=ffout,form='unformatted',status='old')
-        end if
-
-        do ! Loop while ldatez.ne.idate1
+        call read_savefile_part1(ndate0)
 !
-!-----when ifrest=.true., read in the data saved from previous run
-!         for large domain from unit 14.
-!
-          read (iutrs) mdate0
-          jyear0 = mdate0/1000000
-          read (iutrs) ktau , xtime , ldatez , lyear , lmonth , lday ,  &
-                     & lhour , ntime
-          jyear = lyear
-          jyearr = jyear
-          ktaur = ktau
-          if ( ehso4 ) then
-            read (iutrs) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
-          else
-            read (iutrs) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
-          end if
-          read (iutrs) ua
-          read (iutrs) ub
-          read (iutrs) va
-          read (iutrs) vb
-          read (iutrs) ta
-          read (iutrs) tb
-          read (iutrs) qva
-          read (iutrs) qvb
-          read (iutrs) qca
-          read (iutrs) qcb
-          read (iutrs) psa , psb , satbrt , satbrt1 , f
-          read (iutrs) ht , ht1 , msfx , msfd , xlat , xlong
-          read (iutrs) tga , tgb , rainc , rainnc
-          if ( icup.eq.1 ) then
-            read (iutrs) rsheat , rswat
-          else if ( icup.eq.3 ) then
-            read (iutrs) tbase , cldefi
-          else if ( icup.eq.4 ) then
-            read (iutrs) cbmf2d
-          else
-          end if
-          read (iutrs) hfx , qfx , snowc , uvdrag
-#ifdef DIAG
-#ifndef BAND
-          read (iutrs) tdini , tdadv , tqini , tqadv , tqeva , tqrai
-#endif
-#endif
-          read (iutrs) absnxt , abstot , emstot
-          if ( ipptls.eq.1 ) read (iutrs) fcc
-          read (iutrs) sol2d , solvd2d , solvs2d , flw2d , flwd2d ,     &
-                     & fsw2d , sabv2d , sinc2d
-          read (iutrs) taf2d , tlef2d , tgbb , ssw2d , srw2d , tg2d ,   &
-                     & tgb2d , swt2d , scv2d , gwet2d , veg2d , veg2d1 ,&
-                     & sag2d , sice2d , dew2d , ircp2d , text2d ,       &
-                     & col2d , ocld2d , heatrt , o3prof
-          read (iutrs) pptnc , pptc , prca2d , prnca2d
-          if ( iocnflx.eq.2 ) read (iutrs) zpbl
-
-!chem2---
-          if ( ichem.eq.1 ) then
-            read (iutrs) chia
-            read (iutrs) chib
-!           cumul removal terms (3d, 2d)
-            read (iutrs) remlsc
-            read (iutrs) remcvc
-            read (iutrs) remdrd
-            read (iutrs) ssw2da
-            read (iutrs) sdeltk2d
-            read (iutrs) sdelqk2d
-            read (iutrs) sfracv2d
-            read (iutrs) sfracb2d
-            read (iutrs) sfracs2d
-            read (iutrs) svegfrac2d
-!           cumul ad, dif, emis terms ( scalar)
-#ifdef DIAG
-#ifndef BAND
-            read (iutrs) tchiad
-            read (iutrs) tchitb
-            read (iutrs) tchie
-#endif
-#endif
-          end if
-!chem2_
-!
-!------lake model
-          if ( lakemod.eq.1 ) then
-            lcount = 0
-            iin = 41
-            iout = 42
-            rewind (iin)
-            read (iutrs) numpts
-            print * , 'reading lake model restart file. numpts = ' ,    &
-                & numpts
-            print * , 'jyear, ktau, xtime = ' , jyear , ktau , xtime
-            do n = 1 , numpts
-              read (iutrs) ilake , jlake , depth , freeze , hi , hii ,  &
-                         & hs , eta , (tlake(j),j=1,depth)
-              print * , 'reading restart file at i, j = ' , ilake ,     &
-                  & jlake
-              write (iin) ilake , jlake , depth , freeze , hi , hii ,   &
-                        & hs , eta , (tlake(j),j=1,depth)
-            end do
-            rewind (iin)
-          end if
-!
-          print * , 'ozone profiles restart'
-          do k = 1 , kzp1
-            write (6,99004) o3prof(3,3,k)
-          end do
-          print 99005 , xtime , ktau , jyear , iutrs
-!
-          if ( ldatez.ne.idate1 ) then
-            write (*,*) 'INIT: ldatez, idate1=' , ldatez , idate1
-            cycle
-          end if
-
-          exit ! We have now ldatez.eq.idate1
-
+        print * , 'ozone profiles restart'
+        do k = 1 , kzp1
+          write (6,99004) o3prof(3,3,k)
         end do
-
+        print 99005 , xtime , ktau , jyear
+!
         dt = dt2 ! First timestep successfully read in
-
 #endif
 !
 !-----end of initial/restart if test
@@ -1911,16 +1633,14 @@
 !
 !-----compute the solar declination angle:
 !
+      call solar1(xtime)
 #ifdef CLM
-      call solar1clm(xtime)
       if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                     &
          & ( ktau.eq.ktaur ) ) then
         init_grid = .true.
       else
         init_grid = .false.
       end if
-#else
-      call solar1(xtime)
 #endif
       call inirad
 !

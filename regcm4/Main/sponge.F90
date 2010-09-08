@@ -58,7 +58,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
+#ifndef BAND
       integer :: jwb , jeb
+#endif
 #endif
 !
 #ifdef BAND
@@ -194,7 +196,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
+#ifndef BAND
       integer :: jwb , jeb
+#endif
 #endif
 !
 #ifdef BAND
@@ -342,7 +346,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
+#ifndef BAND
       integer :: jwb , jeb
+#endif
 #endif
 !
 #ifdef BAND
@@ -488,7 +494,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
+#ifndef BAND
       integer :: jew
+#endif
 #endif
 
 !
@@ -628,7 +636,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
+#ifndef BAND
       integer :: jew
+#endif
 #endif
 !
 #ifdef BAND

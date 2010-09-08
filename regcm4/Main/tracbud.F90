@@ -20,9 +20,7 @@
       subroutine tracbud
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_dynparam
-      use mod_param1
-      use mod_param2
-      use mod_param3 , only : dsigma
+      use mod_runparams
       use mod_main
       use mod_mainchem
       use mod_trachem
@@ -361,7 +359,7 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
  
-        if ( ifprt .and. mod(ntime,nprtfrq).eq.0 ) then
+        if ( debug_level > 1 .and. mod(ntime,ndbgfrq).eq.0 ) then
  
 !----     tracers
  

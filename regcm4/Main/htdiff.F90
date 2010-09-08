@@ -22,7 +22,6 @@
       use mod_dynparam
       use mod_pmoist
 #ifdef MPP1
-      use mod_mppio
 #ifndef IBM
       use mpi
 #else 

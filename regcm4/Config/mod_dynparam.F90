@@ -91,26 +91,14 @@
 
 !###################### I/O control flag ###############################
 
-! Create GrADS CTL files
-
-      integer :: igrads
-
-! Machine endianess. LEAVE IT UNTOUCHED IF WANT TO EXCHANGE I/O FILES
-
-      integer :: ibigend
-
 ! Number of bytes in reclen. Usually 4
 
       integer :: ibyte
 
-! Type of output files. Usually 1 (direct access). Set to 2 for sequantial
-! foles with time listing interleave.
-
-      integer ::iotyp
-
 ! Set amount of printout (still unused, sorry)
 
       integer :: debug_level
+      integer :: dbgfrq
 
 !###################### I/O control flag ###############################
 
@@ -124,10 +112,6 @@
 ! Number od split exp modes
 
       integer :: nsplit
-
-! Number of lake points for lake model
-
-      integer :: lkpts
 
 ! Type of global analysis datasets used in Pre processing
 !
@@ -250,6 +234,12 @@
 
       logical :: lakadj
 
+! Add lake depths field to output
+!
+!     true -> Add lake depth for inland water points
+
+      logical :: lakedpth
+
 ! I/O format
 !
 !     1 => direct access binary
@@ -313,10 +303,6 @@
       logical :: ifsub
       real(8) :: batfrq
 
-      logical :: ifprt
-      real(8) :: prtfrq
-      integer :: kxout , jxsex
-
       logical :: ifchem
       real(8) :: chemfrq
 
@@ -333,15 +319,14 @@
         namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
                      & plon , truelatl, truelath , i_band
         namelist /terrainparam/ domname , itype_in , ntypec , ntypec_s ,&
-                     &  ifanal , smthbdy , lakadj , fudge_lnd ,         &
+                     & ifanal , smthbdy , lakadj , lakedpth, fudge_lnd ,&
                      & fudge_lnd_s , fudge_tex , fudge_tex_s , ntex ,   &
                      & h2opct , dirter , inpter
         namelist /dimparam/ iy , jx , kz , nsg
-        namelist /ioparam/ igrads , ibigend , ibyte , iotyp
-        namelist /debugparam/ debug_level
+        namelist /ioparam/ ibyte
+        namelist /debugparam/ debug_level , dbgfrq
         namelist /boundaryparam/ nspgx , nspgd
         namelist /modesparam/ nsplit
-        namelist /lakemodparam/ lkpts
         namelist /globdatparam/ dattyp , ssttyp , ehso4 , globidate1 ,  &
                      & globidate2 , dirglob , inpglob , ibdyfrq
         namelist /aerosolparam/ aertyp , ntr, nbin
@@ -394,9 +379,9 @@
         read(ipunit, terrainparam, err=103)
 
         ! Set convenient defaults for I/O parameters
-        iotyp   = 1
-        ibigend = 1
+        ibyte = 4
         read(ipunit, ioparam, err=104)
+        dbgfrq = 3600
         read(ipunit, debugparam, err=105)
         read(ipunit, boundaryparam, err=106)
 
@@ -404,7 +389,6 @@
         nspgp = nspgx*4
 
         read(ipunit, modesparam, err=107)
-        read(ipunit, lakemodparam, err=108)
 
         ibdyfrq = 6 ! Convenient default
 
@@ -445,10 +429,6 @@
             & trim(filename)
         ierr = 1
         return
-  108   write ( 6, * ) 'Cannot read namelist stanza: lakemodparam   ',  &
-            & trim(filename)
-        ierr = 1
-        return
   109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ',  &
             & trim(filename)
         ierr = 1
@@ -482,7 +462,7 @@
 
         namelist /outparam/ ifsave , savfrq , iftape , tapfrq ,         &
               &     ifrad , radisp , ifbat , ifsub ,  batfrq ,          &
-              &     ifprt , prtfrq , kxout , jxsex , ifchem , chemfrq
+              &     ifchem , chemfrq
 
         read(ipunit, outparam, err=100)
         return
@@ -528,19 +508,15 @@
 
         call mpi_bcast(domname,64,mpi_character,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(igrads,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(ibigend,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ibyte,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(iotyp,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(debug_level,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(dbgfrq,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(nspgx,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(nspgd,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(nsplit,1,mpi_integer,0,mpi_comm_world,ierr)
-
-        call mpi_bcast(lkpts,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(ehso4,1,mpi_logical,0,mpi_comm_world,ierr)
 

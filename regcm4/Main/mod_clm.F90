@@ -17,6 +17,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#ifdef MPP1
+
 #ifdef CLM
 
       module mod_clm
@@ -24,8 +26,6 @@
       use mod_dynparam
 
       implicit none
-
-#ifdef MPP1
 
       integer :: imask
       real(8) :: clmfrq
@@ -124,8 +124,6 @@
       integer , allocatable , dimension(:) :: c2rngc
       integer , allocatable , dimension(:) :: c2rdisps
 
-#endif
-
       contains
 
       subroutine allocate_mod_clm
@@ -133,7 +131,6 @@
 !     About the dimension ordering:
 !     regcm: ix=lat,jx=lon, arrays are lat by lon
 !     clm: i=lon, j=lat, arrays are lon by lat
-#ifdef MPP1
       allocate(clmspace(jx,iy,45))
       r2ctb_all     => clmspace(:,:,1)
       r2cqb_all     => clmspace(:,:,2)
@@ -183,9 +180,10 @@
       allocate(c2rprocmap(jx,iy))
       allocate(c2rngc(nproc))
       allocate(c2rdisps(nproc))
-#endif
       end subroutine allocate_mod_clm
-
+!
       end module mod_clm
+
+#endif
 
 #endif

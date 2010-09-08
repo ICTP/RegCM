@@ -23,6 +23,9 @@
 
       real(4) ,allocatable, dimension(:,:,:) :: frad2d
       real(4) ,allocatable, dimension(:,:,:,:) :: frad3d
+#ifndef MPP1
+      real(4) ,allocatable, dimension(:,:) :: radpsa
+#endif
 
       contains
 
@@ -35,9 +38,11 @@
 #ifdef BAND
         allocate(frad2d(jx,iym2,nrad2d))
         allocate(frad3d(jx,iym2,kz,nrad3d))
+        allocate(radpsa(jx,iym2))
 #else
         allocate(frad2d(jxm2,iym2,nrad2d))
         allocate(frad3d(jxm2,iym2,kz,nrad3d))
+        allocate(radpsa(jxm2,iym2))
 #endif
 #endif
 

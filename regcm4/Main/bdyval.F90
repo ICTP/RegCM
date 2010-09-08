@@ -41,8 +41,7 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
-      use mod_param1
-      use mod_param2
+      use mod_runparams
       use mod_main
       use mod_mainchem
       use mod_bdycod
@@ -60,9 +59,7 @@
       real(8) :: chix , chix1 , chix2 , dtb , qcx , qcx2 , qvx , qvx1 , &
                & qvx2 , vavg
       integer :: itr , j , k
-#ifdef BAND
-      integer :: jp1
-#else
+#ifndef BAND
       integer :: i
       real(8) :: uavg
 #endif

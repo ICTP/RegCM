@@ -20,8 +20,7 @@
       subroutine slice3d
  
       use mod_dynparam
-      use mod_param2
-      use mod_param3 , only : r8pt , sigma , a
+      use mod_runparams
       use mod_main
       use mod_mainchem
       use mod_pbldim

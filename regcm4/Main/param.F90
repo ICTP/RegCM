@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
       subroutine param
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -25,14 +25,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_dynparam
-      use mod_param1
-      use mod_param2
-      use mod_param3 , only : wgtx , sigma , dsigma , a , anudg , twt , &
-                   & qcon , wgtd , akht1 , akht2 , kt , kxout , ncld ,  &
-                   & r8pt , ptop4 , kchi , k700 , jxsex , ispgx ,       &
-                   & ispgd , allocate_mod_param3, high_nudge,           &
-                   & medium_nudge,low_nudge
-      use mod_iunits
+      use mod_runparams
       use mod_pmoist
       use mod_bats
       use mod_main
@@ -53,21 +46,18 @@
       use mod_slice, only : allocate_mod_slice
       use mod_pbldim, only : allocate_mod_pbldim    
       use mod_outrad, only : allocate_mod_outrad  
-      use mod_blh_tmp, only : allocate_mod_blh_tmp
+      use mod_holtbl, only : allocate_mod_holtbl
       use mod_aero_sett_ddep, only : allocate_mod_aero_sett_ddep
       use mod_aerosol, only : allocate_mod_aerosol
-      use mod_radbuf, only : allocate_mod_radbuf
+      use mod_radiation, only : allocate_mod_radiation
       use mod_dust, only : allocate_mod_dust
-      use mod_bxq, only : allocate_mod_bxq
       use mod_bdycod, only : allocate_mod_bdycon 
       use mod_mainchem, only : allocate_mod_mainchem
-      use mod_radbuf, only : allocate_mod_radbuf   
-      use mod_tmpsav, only : allocate_mod_tmpsav 
       use mod_cvaria , only : allocate_mod_cvaria
-      use mod_ictp01 , only : allocate_mod_ictp01
+      use mod_leaftemp , only : allocate_mod_leaftemp
       use mod_o3blk , only : allocate_mod_o3blk
-      use mod_ncio
-
+      use mod_ncio , only : open_domain , read_domain , read_subdomain ,&
+                            close_domain
 #ifdef DIAG 
       use mod_diagnosis
 #endif 
@@ -115,15 +105,12 @@
 !
 !----------------------------------------------------------------------
 !-----vqrang is the range limit on vqflx.
-!.....qdcrit is the precipitation threshold for moisture convergence.
 !
-      data vqrang/5.0E-4/
+      data vqrang /5.0E-4/
+!
       data (mmd(i),i=1,12)/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , &
           & 31 , 30 , 31/
  
-! afracl   - frac. cover for conv. precip. when dx=dxlarg
-! afracs   -   "     "    "    "      "     "   dx=dxsmal
-!
 !----------------------------------------------------------------------
 !-----namelist:
 !
@@ -132,9 +119,8 @@
       namelist /timeparam/ radfrq , abatm , abemh , dt
  
 !chem2
-      namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifprt ,   &
-      & prtfrq , kxout , jxsex , ifrad , radisp , ifbat , ifsub ,       &
-      & batfrq , ifchem , chemfrq , dirout
+      namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifrad ,   &
+      & radisp , ifbat , ifsub , batfrq , ifchem , chemfrq , dirout
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
@@ -170,62 +156,32 @@
       call allocate_mod_aerosol
       call allocate_mod_bats
       call allocate_mod_bdycon
-      call allocate_mod_blh_tmp
-      call allocate_mod_bxq
+      call allocate_mod_holtbl
       call allocate_mod_cvaria
       call allocate_mod_dust
-      call allocate_mod_ictp01
+      call allocate_mod_leaftemp
       call allocate_mod_main
       call allocate_mod_mainchem
       call allocate_mod_outrad
       call allocate_mod_o3blk
-      call allocate_mod_param1
-      call allocate_mod_param3
       call allocate_mod_pbldim
       call allocate_mod_pmoist
-      call allocate_mod_radbuf 
+      call allocate_mod_radiation 
       call allocate_mod_rad
       call allocate_mod_slice
       call allocate_mod_split
-      call allocate_mod_tmpsav 
       call allocate_mod_trachem
-
+      call allocate_mod_runparams
+#ifdef MPP1
+      call allocate_mod_mppio
+#ifdef CLM
+      call allocate_mod_clm
+#endif
+#endif
 #ifdef DIAG
       call allocate_mod_diagnosis
 #endif
 
-#ifdef CLM
-      call allocate_mod_clm
-#endif
-
-!----------------------------------------------------------------------
-!-----specify unit numbers for input/output.
-!     units 10,101,14  are input.
-!     iutrs : input saved file for large domain for restart from
-!     previous forecast.
-!     iutdat: output for dataflow, if iftape=.true.
-!     iutsav: output saved file for restart, if ifsave=.true. or
-!
-      qdcrit = 3.0E-7                      ! real*4 for compact input
-      iutrs = 14
-!**   initialize output file unit number
-      iutdat = 50
-!**   initialize save file unit number
-      iutsav = 52
-!**   initialize bats file unit number
-      iutbat = 54
-      iutsub = 55
-!**   initialize radiation file unit number
-      iutrad = 56
-!**   initalize lake file unit number
-      iutlak = 58
-!**   initialize chemistry file number
-!chem2
-!     emission file
-      iutopt = 12
-!     out file
-      iutchem = 60
-!chem2_
 !
 !----------------------------------------------------------------------
 !-----specify the parameters used in the model:
@@ -310,18 +266,6 @@
 !
 !     radisp : if ifrad=1, specify the output interval in hours.
 !
-!     ifprt  : whether you want printer output or not.
-!     = 0 ; no
-!     = 1 ; yes
-!
-!     prtfrq : if ifprt=1, specify the output interval in mimutes.
-!
-!     iotyp  : Type of output files,
-!     1=direct access (GrADS); 2=sequential w/ time listing
-!
-!     maschk : specify the frequency in time steps, the mass-
-!     conservation information will be printed out.
-!
 !     imask : Type of land surface parameterization
 !     1= using DOMAIN.INFO for landmask (same as BATS);
 !     2= using mksrf_navyoro file landfraction for landmask and perform
@@ -358,11 +302,6 @@
       ifbat = .true.
       batfrq = 1.0      ! time interval for disposing bats output (hrs)
       ifsub = .true.
-      ifprt = .true.
-      prtfrq = 12.
-      kxout = kz
-      jxsex = 25
-      maschk = 10           ! * defined below
       dirout = './output' 
 !chem2
       ifchem = .false.
@@ -526,10 +465,6 @@
       call mpi_bcast(ifbat,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(ifsub,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(ifprt,1,mpi_logical,0,mpi_comm_world,ierr)
-      call mpi_bcast(prtfrq,1,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(kxout,1,mpi_integer,0,mpi_comm_world,ierr)
-      call mpi_bcast(jxsex,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
  
@@ -664,7 +599,7 @@
       ndate0 = idate1
       nsavfrq = nint(3600.*savfrq)
       ntapfrq = nint(3600.*tapfrq)
-      nprtfrq = nint(3600.*prtfrq)
+      ndbgfrq = nint(3600.*dbgfrq)
       ktau = 0
       ktaur = 0
       xtime = 0.
@@ -677,8 +612,6 @@
       write (aline, *) 'param: dtau = ' , dtau
       call say
       dt0 = dt      !store original dt
-      maschk = nint(prtfrq*3600./dt)
-                                   !convert prtfrq to #of time steps
       nradisp = nint(radisp*3600)
                                 !convert radisp to time steps
       ifrabe = nint(3600.*abemh/dt)
@@ -777,7 +710,6 @@
 !     all the other constants are used to compute the cloud
 !     microphysical parameterization (ref. orville & kopp, 1977 jas).
 !
-      ptop4 = 4.*r8pt
       dx2 = 2.*dx
       dx4 = 4.*dx
       dx8 = 8.*dx
@@ -797,8 +729,6 @@
       call say
       write (aline, *) ' ifsave = ' , ifsave , ' savfrq = ' , savfrq ,  &
              &' iftape = ' , iftape , ' tapfrq = ' , tapfrq ,           &
-             &' ifprt  = ' , ifprt , ' prtfrq = ' , prtfrq ,            &
-             &' kxout  = ' , kxout , ' jxsex  = ' , jxsex ,             &
              &' radisp = ' , radisp , ' batfrq = ' , batfrq ,           &
              &' ifchem = ' , ifchem , ' chemfrq =' , chemfrq,           &
              &' clmfrq = ', clmfrq
@@ -855,9 +785,6 @@
       call say
 
 #ifdef MPP1
-
-      call allocate_mod_mppio
-
       if ( .not.ifrest ) then
 
         write (aline, *) 'Reading in DOMAIN data'

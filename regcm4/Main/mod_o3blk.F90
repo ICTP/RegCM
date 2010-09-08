@@ -67,7 +67,7 @@
       subroutine o3data
 !
       use mod_dynparam
-      use mod_param3 , only : r8pt , sigma
+      use mod_runparams , only : r8pt , sigma
       use mod_main
       use mod_rad
       implicit none

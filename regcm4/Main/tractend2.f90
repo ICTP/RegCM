@@ -27,8 +27,7 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_dynparam
-      use mod_param1
-      use mod_param3 , only : dsigma , twt , r8pt , kt , a , sigma
+      use mod_runparams
       use mod_main
       use mod_mainchem
       use mod_cvaria

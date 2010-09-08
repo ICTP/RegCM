@@ -30,8 +30,7 @@
 ! the surface temperature computation
 !
       use mod_dynparam
-      use mod_param1 , only : dtmin
-      use mod_param2 , only : nradisp
+      use mod_runparams , only : dtmin , nradisp
       use mod_bats
       use mod_rad
       use mod_outrad

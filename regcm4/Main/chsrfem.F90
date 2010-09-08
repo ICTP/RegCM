@@ -24,7 +24,6 @@
       use mod_mainchem
       use mod_trachem
       use mod_dust
-      use mod_iunits
       use mod_aerosol , only : dgmix , dssamix , dextmix
       use mod_message
       use mod_ncio , only : read_aerosol
@@ -45,6 +44,7 @@
 ! Local variables
 !
       integer :: i , j , k , l , m , n
+      integer , parameter :: iutopt = 12
       logical :: there
 #ifdef MPP1
       integer :: itr , ierr

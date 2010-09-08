@@ -44,36 +44,35 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
       use mod_dynparam
-      use mod_param1
-      use mod_param2
-      use mod_param3 , only : dsigma , a , wgtx , wgtd , r8pt , ispgx , &
-                   & ispgd , akht1
+      use mod_runparams
       use mod_main
       use mod_mainchem
       use mod_bdycod
       use mod_cvaria
       use mod_pmoist
+      use mod_precip
       use mod_rad
       use mod_bats
+      use mod_vecbats
+      use mod_holtbl
       use mod_trachem
-      use mod_cu_grell , only : cuparan
-      use mod_cu_kuo , only : cupara
-      use mod_cu_bm , only : bmpara
-      use mod_cu_em , only : cupemandrv
-      use mod_date , only : dectim , nnnnnn , nstrt0 , lyear , lmonth , &
-                   & lday , lhour , ldatez , idate0 , idate1 , jyear ,  &
-                   & jyear0 , ntime , ktau , xtime , finddate
+      use mod_colmod3
+      use mod_cu_grell
+      use mod_cu_kuo
+      use mod_cu_bm
+      use mod_cu_em
+      use mod_date
       use mod_message
-      use mod_aerosol , only : aermm
-      use mod_constants , only : rgti , rgas , cpd , ep1 , gnu , omu ,  &
-                   & gnuhf , omuhf , alpha , beta , t00pg , p00pg ,     &
-                   & pgfaa1
-      use mod_zengocn , only : zengocndrv
+      use mod_aerosol
+      use mod_constants
+      use mod_zengocn
+      use mod_sun
 #ifdef MPP1
       use mod_slice
 #ifdef CLM
       use mod_clm
-      use clm_varsur , only : init_grid
+      use mod_mtrxclm
+      use clm_varsur
 #endif
 #ifndef IBM
       use mpi
@@ -102,7 +101,9 @@
 #ifdef MPP1
       integer :: ierr , icons_mpi , numrec
       real(8) , dimension(iy,kz,jxp) :: ttld
+#ifndef BAND
       real(8) , dimension(iy,kz*16+4) :: bdyewrcv , bdyewsnd
+#endif
       real(8) , dimension(nspgx,kz*16+4) :: bdynsrcv , bdynssnd
       real(8) , dimension(iy,4,jxp) :: ps4
       real(8) , dimension(iy,4,jx) :: ps_4 
@@ -2302,11 +2303,7 @@
 !     24 hours:
 !
       if ( dabs(xtime).lt.0.00001 .and. ldatez.ne.idate1 ) then
-#ifdef CLM
-        call solar1clm(xtime)
-#else
         call solar1(xtime)
-#endif
         dectim = anint(1440.+dectim)
 #ifdef MPP1
         if ( myid.eq.0 ) write (*,*) ' dectim = ' , dectim

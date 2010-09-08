@@ -19,9 +19,25 @@
 
       module mod_aerosol
 
+      use mod_constants
       use mod_dynparam
+      use mod_runparams
+      use mod_message
+      use mod_trachem
+      use mod_slice , only : rhb3d
+      use mod_main , only : psa
+      use mod_mainchem , only : chia
 
-      implicit none
+      private
+
+      public :: nspi
+      public :: aermm , aerlwtr
+      public :: dgmix , dssamix , dextmix
+      public :: tauxar_mix , tauasc_mix
+      public :: gtota_mix , ftota_mix
+      public :: tauxar_mix_cs , tauasc_mix_cs
+      public :: gtota_mix_cs , ftota_mix_cs
+      public :: allocate_mod_aerosol , aermix , aeroppt , aerout
 
 !     MODIF 16/09/2005 IBRAH Internal mixing
 
@@ -366,11 +382,6 @@
 !
 !-----------------------------------------------------------------------
  
-      use mod_param2 , only : ichem
-      use mod_slice , only : rhb3d
-      use mod_main , only : psa
-      use mod_mainchem , only : chia
-      use mod_constants , only : gtigts
       implicit none
 !
 ! Dummy arguments
@@ -465,11 +476,6 @@
 !
       subroutine aeroppt(rh,pint)
 !
-      use mod_param2 , only : ichem , idirect
-      use mod_trachem , only : mixtype , chtrname , iso4 , ibchl ,      &
-                    &          iochl , idust
-      use mod_message , only : fatal
-      use mod_constants , only : rhoso4 , rhobc, rhooc, rhodust , gtigts
       implicit none
 !
 ! Dummy arguments
@@ -940,10 +946,6 @@
 !
       subroutine aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
 !
-      use mod_dynparam , only : chemfrq
-      use mod_param2 , only : radfrq
-      use mod_trachem , only : aerext , aerssa , aerasp , aertarf ,     &
-                      &        aersrrf , aertalwrf , aersrlwrf
       implicit none
 !
 ! Dummy arguments

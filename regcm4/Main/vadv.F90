@@ -43,7 +43,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       use mod_dynparam
-      use mod_param3 , only : dsigma , r8pt , qcon , twt , a , sigma
+      use mod_runparams , only : dsigma , r8pt , qcon , twt , a , sigma
       use mod_main
       use mod_cvaria
       implicit none

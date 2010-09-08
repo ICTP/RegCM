@@ -19,6 +19,12 @@
  
       module mod_vmodes
 
+      use mod_constants
+      use mod_dynparam
+      use mod_runparams
+      use mod_split
+      use mod_message
+
       private
 
       public :: vmodes
@@ -27,12 +33,6 @@
 
       subroutine vmodes(lstand,sigmaf,kv1)
 !
-      use mod_dynparam
-      use mod_param1
-      use mod_split
-      use mod_constants , only : rgas , rovcp
-      use mod_param3 , only : r8pt
-      use mod_message
       implicit none
 !
 ! Dummy arguments
@@ -127,7 +127,7 @@
 !  compute sigmah (sigma at half levels) and delta sigma
       do k = 1 , kz
         sigmah(k) = 0.5*(sigmaf(k)+sigmaf(k+1))
-        dsigma(k) = sigmaf(k+1) - sigmaf(k)
+        sdsigma(k) = sigmaf(k+1) - sigmaf(k)
       end do
       sigmah(kzp1) = 1.0
 !
@@ -238,7 +238,7 @@
 !
 !  compute a
 !
-      a = a1+a2+a3+a4
+      a0 = a1+a2+a3+a4
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
@@ -255,10 +255,10 @@
 !
       do k = 1 , kz - 1
         do l = k , kz - 1
-          hydros(k,l) = hydros(k,l) + w1(l+1,1)*dsigma(l)               &
-                      & /(dsigma(l+1)+dsigma(l))
-          hydros(k,l+1) = hydros(k,l+1) + w1(l+1,1)*dsigma(l+1)         &
-                        & /(dsigma(l+1)+dsigma(l))
+          hydros(k,l) = hydros(k,l) + w1(l+1,1)*sdsigma(l)              &
+                      & /(sdsigma(l+1)+sdsigma(l))
+          hydros(k,l+1) = hydros(k,l+1) + w1(l+1,1)*sdsigma(l+1)        &
+                        & /(sdsigma(l+1)+sdsigma(l))
         end do
       end do
 !
@@ -273,8 +273,8 @@
 !
       tweigh(1) = 0.
       do l = 2 , kz
-        tweigh(l) = (tbarh(l)*dsigma(l)+tbarh(l-1)*dsigma(l-1))         &
-                  & /(dsigma(l)+dsigma(l-1))
+        tweigh(l) = (tbarh(l)*sdsigma(l)+tbarh(l-1)*sdsigma(l-1))       &
+                  & /(sdsigma(l)+sdsigma(l-1))
       end do
 !
       do l = 2 , kz - 1
@@ -324,7 +324,7 @@
 !
       do l = 1 , kz
         do k = 1 , kzp1
-          w3(k,l) = dsigma(l)/(1.+r8pt/(pd*sigmah(k)))
+          w3(k,l) = sdsigma(l)/(1.+r8pt/(pd*sigmah(k)))
         end do
       end do
 !
@@ -337,7 +337,7 @@
         end do
       end do
 !
-      w1 = matmul(hydros,a)
+      w1 = matmul(hydros,a0)
       tau = w1-w2
       tau = -rgas*tau
 !
@@ -437,7 +437,7 @@
         return
       end if
       call vprntv(cpfac,kz,'cpfac   ')
-      call vprntv(dsigma,kz,'dsigma  ')
+      call vprntv(sdsigma,kz,'sdsigma  ')
       call vprntv(hbar,kz,'hbar    ')
       call vprntv(sigmah,kzp1,'sigmah  ')
       call vprntv(tbarf,kzp1,'tbarf   ')
@@ -578,7 +578,6 @@
 !     Matrix inversion using linpack
 !
       subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
-      use mod_message
       implicit none
       integer na , nv , n , ier , info , ip(n)
       real(kind=8) a(n,n) , v(n,n) , work(n) , d(2)
@@ -734,4 +733,41 @@
       end if
 !
       end subroutine vchekt
+!
+      subroutine vtlaps(t,sigma,pt,pd,nk)
+
+      implicit none
+!
+! PARAMETER definitions
+!
+      real(8) , parameter :: tstrat = 218.15 , zstrat = 10769
+      real(8) :: p0
+!
+! Dummy arguments
+!
+      integer :: nk
+      real(8) :: pd , pt
+      real(8) , dimension(nk) :: sigma , t
+      intent (in) nk , pd , pt , sigma
+      intent (inout) t
+!
+! Local variables
+!
+      real(8) :: fac , p , z
+      integer :: k
+!
+!  this routine computes the temperature corresponding to a u. s.
+!  standard atmosphere (see text by hess). units of p are cb.
+!
+      p0 = stdp/1000.D0
+      fac = rgas*lrate*rgti
+      do k = 1 , nk
+        p = sigma(k)*pd + pt
+        t(k) = stdt*((p/p0)**fac)
+        z = (stdt-t(k))/lrate
+        if ( z.gt.zstrat ) t(k) = tstrat
+      end do
+!
+      end subroutine vtlaps
+!
       end module mod_vmodes

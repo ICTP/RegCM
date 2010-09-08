@@ -29,9 +29,7 @@
 !
       subroutine zengocndrv(j , ng , istart , iend , k)
 !
-      use mod_param1 , only : dtmin
-      use mod_param2 , only : kbats
-      use mod_param3 , only : r8pt
+      use mod_runparams , only : dtmin , kbats , r8pt
       use mod_main , only : tgb , psb , zpbl
       use mod_pbldim , only : rhox2d , za
       use mod_slice , only : tb3d , ubx3d , vbx3d , qvb3d
@@ -45,7 +43,7 @@
       use clm_varsur , only : landmask
 #endif
 #ifdef DCSST
-      use mod_param1 , only : dtbat
+      use mod_runparams , only : dtbat
       use mod_bats , only : deltas , tdeltas , firstcall , dtskin ,     &
                  &          fsw2d , flw2d
       use mod_bdycod , only : ts1

@@ -33,9 +33,7 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
-      use mod_iunits
-      use mod_param1
-      use mod_param3 , only : r8pt
+      use mod_runparams
       use mod_main
       use mod_bdycod
       use mod_bats , only : veg2d , ocld2d , sice2d
@@ -47,7 +45,6 @@
       use mod_date , only : idatex , ldatez , mmrec , ndate0 , ndate1 , &
                    & nmonth , nnbase , nnnnnn , nyear , nnnchk , mdate ,&
                    & xtime , imonfirst
-      use mod_tmpsav
 #ifdef MPP1
       use mod_mppio
 #ifndef IBM
@@ -63,7 +60,10 @@
       real(8) :: dtbdys
       integer :: i , j , k , nn , nnb
 #ifdef MPP1
-      integer :: ierr , ndeb , ndwb , nkk , nxeb , nxwb
+      integer :: ierr , ndeb , ndwb , nxeb , nxwb
+#ifndef BAND
+      integer :: nkk
+#endif
       real(8) , dimension(iy,jxp) :: psdot , tdum
 #else
       real(8) , dimension(iy,jx) :: psdot , tdum

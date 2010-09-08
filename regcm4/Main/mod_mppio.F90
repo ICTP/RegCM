@@ -17,13 +17,13 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#ifdef MPP1
+
       module mod_mppio
 
       use mod_dynparam
 
       implicit none
-
-#ifdef MPP1
 !
       real(8) , allocatable , target , dimension(:,:,:,:) :: spacesubm1
       real(8) , allocatable , target , dimension(:,:,:,:) :: spacesub
@@ -44,7 +44,7 @@
            & evpa2d_io , gwet2d_io , ircp2d_io , ocld2d_io , rno2d_io , &
            & rnos2d_io , sag2d_io , scv2d_io , sena2d_io , sice2d_io ,  &
            & srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
-           & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io
+           & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io , lkdpth_io
 
       real(8) , pointer , dimension(:,:,:) :: ht1_io , satbrt1_io ,     &
                                          &    xlat1_io , xlon1_io ,     &
@@ -64,6 +64,7 @@
 
       real(4) , allocatable , dimension(:,:,:) :: frad2d_io
       real(4) , allocatable , dimension(:,:,:,:) :: frad3d_io
+      real(4) , allocatable , dimension(:,:) :: radpsa
 
       real(8) , allocatable , dimension(:,:) :: cbmf2d_io
       real(8) , allocatable , dimension(:,:,:) :: fcc_io , rsheat_io ,  &
@@ -138,241 +139,310 @@
       real(4) , allocatable , dimension(:,:,:,:) :: sub_0
       real(8) , allocatable , dimension(:,:,:) :: chem0
       real(8) , allocatable , dimension(:,:,:) :: chem_0
-
 #ifdef CLM
       real(8) , pointer , dimension(:,:) :: sols2d_io , soll2d_io ,     &
                    &      solsd2d_io , solld2d_io , aldifl2d_io ,       &
                    &      aldirs2d_io , aldirl2d_io , aldifs2d_io ,     &
                    &      coszrs2d_io
 #endif
+      real(8) , allocatable , dimension(:,:,:) :: sav0
+      real(8) , allocatable , dimension(:,:,:) :: sav_0
+      real(8) , allocatable , dimension(:,:,:) :: sav0a
+      real(8) , allocatable , dimension(:,:,:) :: sav_0a
+      real(8) , allocatable , dimension(:,:,:) :: sav0b
+      real(8) , allocatable , dimension(:,:,:) :: sav_0b
+      real(8) , allocatable , dimension(:,:,:) :: sav0c
+      real(8) , allocatable , dimension(:,:,:) :: sav_0c
+      real(8) , allocatable , dimension(:,:,:) :: sav0s
+      real(8) , allocatable , dimension(:,:,:) :: sav_0s
+      real(8) , allocatable , dimension(:,:,:) :: sav0d
+      real(8) , allocatable , dimension(:,:,:) :: sav_0d
+      real(8) , allocatable , dimension(:,:,:) :: sav1
+      real(8) , allocatable , dimension(:,:,:) :: sav_1
+      real(8) , allocatable , dimension(:,:,:) :: sav2
+      real(8) , allocatable , dimension(:,:,:) :: sav_2
+      real(8) , allocatable , dimension(:,:,:) :: sav2a
+      real(8) , allocatable , dimension(:,:,:) :: sav_2a
+      real(8) , allocatable , dimension(:,:,:) :: sav4
+      real(8) , allocatable , dimension(:,:,:) :: sav_4
+      real(8) , allocatable , dimension(:,:,:) :: sav4a
+      real(8) , allocatable , dimension(:,:,:) :: sav_4a
+      real(8) , allocatable , dimension(:,:,:) :: sav6
+      real(8) , allocatable , dimension(:,:,:) :: sav_6
+#ifdef CLM
+      real(8) , allocatable , dimension(:,:,:) :: sav_clmout
+      real(8) , allocatable , dimension(:,:,:) :: sav_clmin
 #endif
+
+!---------- DATA init section--------------------------------------------
 
       contains 
 !
 !     This routines allocate all the arrays contained in the module
 !
       subroutine allocate_mod_mppio
-      use mod_dust , only : nats
-      implicit none
 
-#ifdef MPP1
+        use mod_dust , only : nats
+
+        implicit none
+
+        allocate(var1snd(kz,8))
+        allocate(var1rcv(kz,8))
+        allocate(inisrf0(iy,nnsg*3+8,jxp))
+        allocate(atm0(iy,kz*6+3+nnsg*4,jxp))
+        allocate(bat0(iym2,numbat,jxp))
+        allocate(out0(iy,3,jxp))
+        allocate(rad0(iym2,nrad3d*kz+nrad2d,jxp))
+        allocate(sub0(iym2,nnsg,numsub,jxp))
+        allocate(chem0(iy,ntr*kz+kz*3+ntr*7+5,jxp))
+
+        if (myid == 0) then
+          allocate(inisrf_0(iy,nnsg*3+8,jx))
+          allocate(atm_0(iy,kz*6+3+nnsg*4,jx))
+          allocate(bat_0(iym2,numbat,jx))
+          allocate(out_0(iy,3,jx))
+          allocate(rad_0(iym2,nrad3d*kz+nrad2d,jx))
+          allocate(sub_0(iym2,nnsg,numsub,jx))
+          allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+5,jx))
 #ifdef BAND
-      allocate(spacesubm1(nnsg,iym1,jx,21))
+          allocate(spacesubm1(nnsg,iym1,jx,22))
 #else
-      allocate(spacesubm1(nnsg,iym1,jxm1,21))
+          allocate(spacesubm1(nnsg,iym1,jxm1,22))
 #endif
-      col2d_io  => spacesubm1(:,:,:,1)
-      dew2d_io  => spacesubm1(:,:,:,2)
-      evpa2d_io => spacesubm1(:,:,:,3)
-      gwet2d_io => spacesubm1(:,:,:,4)
-      ircp2d_io => spacesubm1(:,:,:,5)
-      ocld2d_io => spacesubm1(:,:,:,6)
-      rno2d_io  => spacesubm1(:,:,:,7)
-      rnos2d_io => spacesubm1(:,:,:,8)
-      sag2d_io  => spacesubm1(:,:,:,9)
-      scv2d_io  => spacesubm1(:,:,:,10)
-      sena2d_io => spacesubm1(:,:,:,11)
-      sice2d_io => spacesubm1(:,:,:,12)
-      srw2d_io  => spacesubm1(:,:,:,13)
-      ssw2d_io  => spacesubm1(:,:,:,14)
-      swt2d_io  => spacesubm1(:,:,:,15)
-      taf2d_io  => spacesubm1(:,:,:,16)
-      text2d_io => spacesubm1(:,:,:,17)
-      tg2d_io   => spacesubm1(:,:,:,18)
-      tgb2d_io  => spacesubm1(:,:,:,19)
-      tlef2d_io => spacesubm1(:,:,:,20)
-      veg2d1_io => spacesubm1(:,:,:,21)
-      allocate(spacesub(nnsg,iy,jx,5))
-      ht1_io     => spacesub(:,:,:,1)
-      satbrt1_io => spacesub(:,:,:,2)
-      snowc_io   => spacesub(:,:,:,3)
-      xlat1_io   => spacesub(:,:,:,4)
-      xlon1_io   => spacesub(:,:,:,5)
+          col2d_io  => spacesubm1(:,:,:,1)
+          dew2d_io  => spacesubm1(:,:,:,2)
+          evpa2d_io => spacesubm1(:,:,:,3)
+          gwet2d_io => spacesubm1(:,:,:,4)
+          ircp2d_io => spacesubm1(:,:,:,5)
+          ocld2d_io => spacesubm1(:,:,:,6)
+          rno2d_io  => spacesubm1(:,:,:,7)
+          rnos2d_io => spacesubm1(:,:,:,8)
+          sag2d_io  => spacesubm1(:,:,:,9)
+          scv2d_io  => spacesubm1(:,:,:,10)
+          sena2d_io => spacesubm1(:,:,:,11)
+          sice2d_io => spacesubm1(:,:,:,12)
+          srw2d_io  => spacesubm1(:,:,:,13)
+          ssw2d_io  => spacesubm1(:,:,:,14)
+          swt2d_io  => spacesubm1(:,:,:,15)
+          taf2d_io  => spacesubm1(:,:,:,16)
+          text2d_io => spacesubm1(:,:,:,17)
+          tg2d_io   => spacesubm1(:,:,:,18)
+          tgb2d_io  => spacesubm1(:,:,:,19)
+          tlef2d_io => spacesubm1(:,:,:,20)
+          veg2d1_io => spacesubm1(:,:,:,21)
+          lkdpth_io => spacesubm1(:,:,:,22)
+          allocate(spacesub(nnsg,iy,jx,5))
+          ht1_io     => spacesub(:,:,:,1)
+          satbrt1_io => spacesub(:,:,:,2)
+          snowc_io   => spacesub(:,:,:,3)
+          xlat1_io   => spacesub(:,:,:,4)
+          xlon1_io   => spacesub(:,:,:,5)
 #ifdef BAND
-      allocate(spacebat(iym1,jx,16))
+          allocate(spacebat(iym1,jx,16))
 #else
-      allocate(spacebat(iym1,jxm1,16))
+          allocate(spacebat(iym1,jxm1,16))
 #endif
-      flw2d_io      => spacebat(:,:,1)
-      flwd2d_io     => spacebat(:,:,2)
-      fsw2d_io      => spacebat(:,:,3)
-      sabv2d_io     => spacebat(:,:,4)
-      sdelqk2d_io   => spacebat(:,:,5)
-      sdeltk2d_io   => spacebat(:,:,6)
-      sfracb2d_io   => spacebat(:,:,7)
-      sfracs2d_io   => spacebat(:,:,8)
-      sfracv2d_io   => spacebat(:,:,9)
-      sinc2d_io     => spacebat(:,:,10)
-      sol2d_io      => spacebat(:,:,11)
-      solvd2d_io    => spacebat(:,:,12)
-      solvs2d_io    => spacebat(:,:,13)
-      ssw2da_io     => spacebat(:,:,14)
-      svegfrac2d_io => spacebat(:,:,15)
-      veg2d_io      => spacebat(:,:,16)
+          flw2d_io      => spacebat(:,:,1)
+          flwd2d_io     => spacebat(:,:,2)
+          fsw2d_io      => spacebat(:,:,3)
+          sabv2d_io     => spacebat(:,:,4)
+          sdelqk2d_io   => spacebat(:,:,5)
+          sdeltk2d_io   => spacebat(:,:,6)
+          sfracb2d_io   => spacebat(:,:,7)
+          sfracs2d_io   => spacebat(:,:,8)
+          sfracv2d_io   => spacebat(:,:,9)
+          sinc2d_io     => spacebat(:,:,10)
+          sol2d_io      => spacebat(:,:,11)
+          solvd2d_io    => spacebat(:,:,12)
+          solvs2d_io    => spacebat(:,:,13)
+          ssw2da_io     => spacebat(:,:,14)
+          svegfrac2d_io => spacebat(:,:,15)
+          veg2d_io      => spacebat(:,:,16)
 #ifdef BAND
-      allocate(fbat_io(jx,iym2,numbat))
-      allocate(fsub_io(nnsg,jx,iym2,numsub)) 
-      allocate(frad2d_io(jx,iym2,nrad2d))
-      allocate(frad3d_io(jx,iym2,kz,nrad3d))
+          allocate(fbat_io(jx,iym2,numbat))
+          allocate(fsub_io(nnsg,jx,iym2,numsub)) 
+          allocate(frad2d_io(jx,iym2,nrad2d))
+          allocate(frad3d_io(jx,iym2,kz,nrad3d))
+          allocate(radpsa(jx,iym2))
 #else
-      allocate(fbat_io(jxm2,iym2,numbat))
-      allocate(fsub_io(nnsg,jxm2,iym2,numsub)) 
-      allocate(frad2d_io(jxm2,iym2,nrad2d))
-      allocate(frad3d_io(jxm2,iym2,kz,nrad3d))
+          allocate(fbat_io(jxm2,iym2,numbat))
+          allocate(fsub_io(nnsg,jxm2,iym2,numsub)) 
+          allocate(frad2d_io(jxm2,iym2,nrad2d))
+          allocate(frad3d_io(jxm2,iym2,kz,nrad3d))
+          allocate(radpsa(jxm2,iym2))
 #endif
-      allocate(cbmf2d_io(iy,jx))
-      allocate(fcc_io(iy,kz,jx))
-      allocate(rsheat_io(iy,kz,jx))
-      allocate(rswat_io(iy,kz,jx))
-      allocate(dstor_io(iy,jx,nsplit))
-      allocate(hstor_io(iy,jx,nsplit))
+          allocate(cbmf2d_io(iy,jx))
+          allocate(fcc_io(iy,kz,jx))
+          allocate(rsheat_io(iy,kz,jx))
+          allocate(rswat_io(iy,kz,jx))
+          allocate(dstor_io(iy,jx,nsplit))
+          allocate(hstor_io(iy,jx,nsplit))
 #ifdef BAND
-      allocate(absnxt_io(iym1,kz,4,jx))
-      allocate(abstot_io(iym1,kzp1,kz + 1,jx))
-      allocate(emstot_io(iym1,kzp1,jx))
-      allocate(heatrt_io(iym1,kz,jx))
-      allocate(o3prof_io(iym1,kzp1,jx))
-      allocate(aerasp_io(iym1,kz,jx))
-      allocate(aerext_io(iym1,kz,jx))
-      allocate(aerssa_io(iym1,kz,jx))
-      allocate(aersrrf_io(iym1,jx))
-      allocate(aertarf_io(iym1,jx))
-      allocate(aertalwrf_io(iym1,jx))
-      allocate(aersrlwrf_io(iym1,jx))
+          allocate(absnxt_io(iym1,kz,4,jx))
+          allocate(abstot_io(iym1,kzp1,kz + 1,jx))
+          allocate(emstot_io(iym1,kzp1,jx))
+          allocate(heatrt_io(iym1,kz,jx))
+          allocate(o3prof_io(iym1,kzp1,jx))
+          allocate(aerasp_io(iym1,kz,jx))
+          allocate(aerext_io(iym1,kz,jx))
+          allocate(aerssa_io(iym1,kz,jx))
+          allocate(aersrrf_io(iym1,jx))
+          allocate(aertarf_io(iym1,jx))
+          allocate(aertalwrf_io(iym1,jx))
+          allocate(aersrlwrf_io(iym1,jx))
 #else
-      allocate(absnxt_io(iym1,kz,4,jxm1))
-      allocate(abstot_io(iym1,kzp1,kz + 1,jxm1))
-      allocate(emstot_io(iym1,kzp1,jxm1))
-      allocate(heatrt_io(iym1,kz,jxm1))
-      allocate(o3prof_io(iym1,kzp1,jxm1))
-      allocate(aerasp_io(iym1,kz,jxm1))
-      allocate(aerext_io(iym1,kz,jxm1))
-      allocate(aerssa_io(iym1,kz,jxm1))
-      allocate(aersrrf_io(iym1,jxm1))
-      allocate(aertarf_io(iym1,jxm1))
-      allocate(aertalwrf_io(iym1,jxm1))
-      allocate(aersrlwrf_io(iym1,jxm1))
+          allocate(absnxt_io(iym1,kz,4,jxm1))
+          allocate(abstot_io(iym1,kzp1,kz + 1,jxm1))
+          allocate(emstot_io(iym1,kzp1,jxm1))
+          allocate(heatrt_io(iym1,kz,jxm1))
+          allocate(o3prof_io(iym1,kzp1,jxm1))
+          allocate(aerasp_io(iym1,kz,jxm1))
+          allocate(aerext_io(iym1,kz,jxm1))
+          allocate(aerssa_io(iym1,kz,jxm1))
+          allocate(aersrrf_io(iym1,jxm1))
+          allocate(aertarf_io(iym1,jxm1))
+          allocate(aertalwrf_io(iym1,jxm1))
+          allocate(aersrlwrf_io(iym1,jxm1))
 #endif
-      allocate(cemtrac_io(iy,jx,ntr))
-      allocate(cemtr_io(iy,jx,ntr))
-      allocate(wxaq_io(iy,jx,ntr))
-      allocate(wxsg_io(iy,jx,ntr))
-      allocate(rxsaq1_io(iy,kz,jx,ntr))
-      allocate(rxsaq2_io(iy,kz,jx,ntr))
-      allocate(rxsg_io(iy,kz,jx,ntr))
-      allocate(remcvc_io(iy,kz,jx,ntr))
-      allocate(remlsc_io(iy,kz,jx,ntr))
-      allocate(remdrd_io(iy,jx,ntr))
-      allocate(space2d(iy,jx,4))
-      ps0_io => space2d(:,:,1)
-      ps1_io => space2d(:,:,2)
-      ts0_io => space2d(:,:,3)
-      ts1_io => space2d(:,:,4)
-      allocate(space3d(iy,kz,jx,10))
-      qb0_io => space3d(:,:,:,1)
-      qb1_io => space3d(:,:,:,2)
-      so0_io => space3d(:,:,:,3)
-      so1_io => space3d(:,:,:,4)
-      tb0_io => space3d(:,:,:,5)
-      tb1_io => space3d(:,:,:,6)
-      ub0_io => space3d(:,:,:,7)
-      ub1_io => space3d(:,:,:,8)
-      vb0_io => space3d(:,:,:,9)
-      vb1_io => space3d(:,:,:,10)
-      allocate(spacev(kz,jx,8))
-      ui1_io  => spacev(:,:,1)
-      ui2_io  => spacev(:,:,2)
-      uilx_io => spacev(:,:,3)
-      uil_io  => spacev(:,:,4)
-      vi1_io  => spacev(:,:,5)
-      vi2_io  => spacev(:,:,6)
-      vilx_io => spacev(:,:,7)
-      vil_io  => spacev(:,:,8)
-      allocate(chemsrc_io(iy,jx,nats,ntr))
-      allocate(ddsfc_io(iy,jx,ntr))
-      allocate(dtrace_io(iy,jx,ntr))
-      allocate(wdcvc_io(iy,jx,ntr))
-      allocate(wdlsc_io(iy,jx,ntr))
+          allocate(cemtrac_io(iy,jx,ntr))
+          allocate(cemtr_io(iy,jx,ntr))
+          allocate(wxaq_io(iy,jx,ntr))
+          allocate(wxsg_io(iy,jx,ntr))
+          allocate(rxsaq1_io(iy,kz,jx,ntr))
+          allocate(rxsaq2_io(iy,kz,jx,ntr))
+          allocate(rxsg_io(iy,kz,jx,ntr))
+          allocate(remcvc_io(iy,kz,jx,ntr))
+          allocate(remlsc_io(iy,kz,jx,ntr))
+          allocate(remdrd_io(iy,jx,ntr))
+          allocate(space2d(iy,jx,4))
+          ps0_io => space2d(:,:,1)
+          ps1_io => space2d(:,:,2)
+          ts0_io => space2d(:,:,3)
+          ts1_io => space2d(:,:,4)
+          allocate(space3d(iy,kz,jx,10))
+          qb0_io => space3d(:,:,:,1)
+          qb1_io => space3d(:,:,:,2)
+          so0_io => space3d(:,:,:,3)
+          so1_io => space3d(:,:,:,4)
+          tb0_io => space3d(:,:,:,5)
+          tb1_io => space3d(:,:,:,6)
+          ub0_io => space3d(:,:,:,7)
+          ub1_io => space3d(:,:,:,8)
+          vb0_io => space3d(:,:,:,9)
+          vb1_io => space3d(:,:,:,10)
+          allocate(spacev(kz,jx,8))
+          ui1_io  => spacev(:,:,1)
+          ui2_io  => spacev(:,:,2)
+          uilx_io => spacev(:,:,3)
+          uil_io  => spacev(:,:,4)
+          vi1_io  => spacev(:,:,5)
+          vi2_io  => spacev(:,:,6)
+          vilx_io => spacev(:,:,7)
+          vil_io  => spacev(:,:,8)
+          allocate(chemsrc_io(iy,jx,nats,ntr))
+          allocate(ddsfc_io(iy,jx,ntr))
+          allocate(dtrace_io(iy,jx,ntr))
+          allocate(wdcvc_io(iy,jx,ntr))
+          allocate(wdlsc_io(iy,jx,ntr))
 #ifdef BAND
-      allocate(pptc_io(iym1,jx))
-      allocate(pptnc_io(iym1,jx))
-      allocate(prca2d_io(iym1,jx))
-      allocate(prnca2d_io(iym1,jx))
+          allocate(pptc_io(iym1,jx))
+          allocate(pptnc_io(iym1,jx))
+          allocate(prca2d_io(iym1,jx))
+          allocate(prnca2d_io(iym1,jx))
 #else
-      allocate(pptc_io(iym1,jxm1))
-      allocate(pptnc_io(iym1,jxm1))
-      allocate(prca2d_io(iym1,jxm1))
-      allocate(prnca2d_io(iym1,jxm1))
+          allocate(pptc_io(iym1,jxm1))
+          allocate(pptnc_io(iym1,jxm1))
+          allocate(prca2d_io(iym1,jxm1))
+          allocate(prnca2d_io(iym1,jxm1))
 #endif
-      allocate(chia_io(iy,kz,jx,ntr))
-      allocate(chib_io(iy,kz,jx,ntr))
-      allocate(spacesurf(iy,jx,20))
-      cldefi_io => spacesurf(:,:,1)
-      f_io      => spacesurf(:,:,2)
-      hfx_io    => spacesurf(:,:,3)
-      htsd_io   => spacesurf(:,:,4)
-      ht_io     => spacesurf(:,:,5)
-      msfd_io   => spacesurf(:,:,6)
-      msfx_io   => spacesurf(:,:,7)
-      psa_io    => spacesurf(:,:,8)
-      psb_io    => spacesurf(:,:,9)
-      qfx_io    => spacesurf(:,:,10)
-      rainc_io  => spacesurf(:,:,11)
-      rainnc_io => spacesurf(:,:,12)
-      satbrt_io => spacesurf(:,:,13)
-      tga_io    => spacesurf(:,:,14)
-      tgbb_io   => spacesurf(:,:,15)
-      tgb_io    => spacesurf(:,:,16)
-      uvdrag_io => spacesurf(:,:,17)
-      xlat_io   => spacesurf(:,:,18)
-      xlong_io  => spacesurf(:,:,19)
-      zpbl_io   => spacesurf(:,:,20)
-      allocate(spaceair(iy,kz,jx,12))
-      omega_io => spaceair(:,:,:,1)
-      qca_io   => spaceair(:,:,:,2)
-      qcb_io   => spaceair(:,:,:,3)
-      qva_io   => spaceair(:,:,:,4)
-      qvb_io   => spaceair(:,:,:,5)
-      ta_io    => spaceair(:,:,:,6)
-      tbase_io => spaceair(:,:,:,7)
-      tb_io    => spaceair(:,:,:,8)
-      ua_io    => spaceair(:,:,:,9)
-      ub_io    => spaceair(:,:,:,10)
-      va_io    => spaceair(:,:,:,11)
-      vb_io    => spaceair(:,:,:,12)
-      allocate(inisrf0(iy,nnsg*3+8,jxp))
-      allocate(inisrf_0(iy,nnsg*3+8,jx))
-      allocate(var1snd(kz,8))
-      allocate(var1rcv(kz,8))
-      allocate(atm0(iy,kz*6+3+nnsg*4,jxp))
-      allocate(atm_0(iy,kz*6+3+nnsg*4,jx))
-      allocate(bat0(iym2,numbat,jxp))
-      allocate(bat_0(iym2,numbat,jx))
-      allocate(out0(iy,3,jxp))
-      allocate(out_0(iy,3,jx))
-      allocate(rad0(iym2,nrad3d*kz+nrad2d,jxp))
-      allocate(rad_0(iym2,nrad3d*kz+nrad2d,jx))
-      allocate(sub0(iym2,nnsg,numsub,jxp))
-      allocate(sub_0(iym2,nnsg,numsub,jx))
-      allocate(chem0(iy,ntr*kz+kz*3+ntr*7+5,jxp))
-      allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+5,jx))
+          allocate(chia_io(iy,kz,jx,ntr))
+          allocate(chib_io(iy,kz,jx,ntr))
+          allocate(spacesurf(iy,jx,20))
+          cldefi_io => spacesurf(:,:,1)
+          f_io      => spacesurf(:,:,2)
+          hfx_io    => spacesurf(:,:,3)
+          htsd_io   => spacesurf(:,:,4)
+          ht_io     => spacesurf(:,:,5)
+          msfd_io   => spacesurf(:,:,6)
+          msfx_io   => spacesurf(:,:,7)
+          psa_io    => spacesurf(:,:,8)
+          psb_io    => spacesurf(:,:,9)
+          qfx_io    => spacesurf(:,:,10)
+          rainc_io  => spacesurf(:,:,11)
+          rainnc_io => spacesurf(:,:,12)
+          satbrt_io => spacesurf(:,:,13)
+          tga_io    => spacesurf(:,:,14)
+          tgbb_io   => spacesurf(:,:,15)
+          tgb_io    => spacesurf(:,:,16)
+          uvdrag_io => spacesurf(:,:,17)
+          xlat_io   => spacesurf(:,:,18)
+          xlong_io  => spacesurf(:,:,19)
+          zpbl_io   => spacesurf(:,:,20)
+          allocate(spaceair(iy,kz,jx,12))
+          omega_io => spaceair(:,:,:,1)
+          qca_io   => spaceair(:,:,:,2)
+          qcb_io   => spaceair(:,:,:,3)
+          qva_io   => spaceair(:,:,:,4)
+          qvb_io   => spaceair(:,:,:,5)
+          ta_io    => spaceair(:,:,:,6)
+          tbase_io => spaceair(:,:,:,7)
+          tb_io    => spaceair(:,:,:,8)
+          ua_io    => spaceair(:,:,:,9)
+          ub_io    => spaceair(:,:,:,10)
+          va_io    => spaceair(:,:,:,11)
+          vb_io    => spaceair(:,:,:,12)
 #ifdef CLM
 #ifdef BAND
-      allocate(spaceclm(iym1,jx,9))
+          allocate(spaceclm(iym1,jx,9))
 #else
-      allocate(spaceclm(iym1,jxm1,9))
+          allocate(spaceclm(iym1,jxm1,9))
 #endif
-      sols2d_io   => spaceclm(:,:,1)
-      soll2d_io   => spaceclm(:,:,2)
-      solsd2d_io  => spaceclm(:,:,3)
-      solld2d_io  => spaceclm(:,:,4)
-      aldifl2d_io => spaceclm(:,:,5)
-      aldirs2d_io => spaceclm(:,:,6)
-      aldirl2d_io => spaceclm(:,:,7)
-      aldifs2d_io => spaceclm(:,:,8)
-      coszrs2d_io => spaceclm(:,:,9)
-#endif       
-#endif       
+          sols2d_io   => spaceclm(:,:,1)
+          soll2d_io   => spaceclm(:,:,2)
+          solsd2d_io  => spaceclm(:,:,3)
+          solld2d_io  => spaceclm(:,:,4)
+          aldifl2d_io => spaceclm(:,:,5)
+          aldirs2d_io => spaceclm(:,:,6)
+          aldirl2d_io => spaceclm(:,:,7)
+          aldifs2d_io => spaceclm(:,:,8)
+          coszrs2d_io => spaceclm(:,:,9)
+#endif
+        endif
+        if (myid ==0) then
+          allocate(sav_0(iy,kz*4+2,jx))
+          allocate(sav_0a(iy,kz+nnsg+5,jx) )
+          allocate(sav_0b(iy,kzp1,jx))
+          allocate(sav_0c(iy,kz*2,jx))
+          allocate(sav_0s(iy,kz,jx))
+          allocate(sav_0d(iy,nsplit*2,jx))
+          allocate(sav_1(iym1,kz*4+(kzp1*kzp2),jx))
+          allocate(sav_2(iym1,nnsg*4+4,jx))
+          allocate(sav_2a(iym1,nnsg*5+1,jx))
+          allocate(sav_4(iy,ntr*(kz*4+1),jx))
+          allocate(sav_4a(iym1,7,jx))
+          allocate(sav_6(kz,8,jx))
+#ifdef CLM
+          allocate(sav_clmout(iym1,9,jx))
+#endif
+        end if
+        allocate(sav0(iy,kz*4+2,jxp))
+        allocate(sav0a(iy,kz+nnsg+5,jxp) )
+        allocate(sav0b(iy,kzp1,jxp))
+        allocate(sav0c(iy,kz*2,jxp))
+        allocate(sav0s(iy,kz,jxp))
+        allocate(sav0d(iy,nsplit*2,jxp))
+        allocate(sav1(iym1,kz*4+(kzp1*kzp2),jxp))
+        allocate(sav2(iym1,nnsg*4+4,jxp))
+        allocate(sav2a(iym1,nnsg*5+1,jxp))
+        allocate(sav4(iy,ntr*(kz*4+1),jxp))
+        allocate(sav4a(iym1,7,jxp))
+        allocate(sav6(kz,8,jxp))
+#ifdef CLM
+        allocate(sav_clmin(iym1,9,jxp))
+#endif
+
       end subroutine allocate_mod_mppio
       
       end module mod_mppio
+
+#endif

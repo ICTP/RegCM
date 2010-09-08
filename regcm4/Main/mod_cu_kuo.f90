@@ -19,6 +19,25 @@
  
       module mod_cu_kuo
 
+      use mod_constants
+      use mod_dynparam
+      use mod_runparams
+      use mod_main
+      use mod_cvaria
+      use mod_pmoist
+      use mod_rad
+      use mod_bats
+      use mod_trachem
+      use mod_date
+
+      private
+
+      public :: cupara
+
+!     qdcrit is the precipitation threshold for moisture convergence.
+      real(8) :: qdcrit
+      data qdcrit /3.0E-7/
+
       contains
 
       subroutine cupara(j)
@@ -33,19 +52,6 @@
 !     explained in "tend".                                            c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_dynparam
-      use mod_param1 , only : dt , dtmin , dx4 , nbatst
-      use mod_param2
-      use mod_param3 , only : dsigma , a , qcon , r8pt , k700
-      use mod_main
-      use mod_cvaria
-      use mod_pmoist
-      use mod_rad
-      use mod_bats , only : pptc
-      use mod_trachem
-      use mod_constants , only : rgas , gti , rgti , rovcp , rcpd ,     &
-                               & ep2 , wlhv , wlhvocp , tauht
-      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 !
 ! Dummy arguments

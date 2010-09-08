@@ -22,7 +22,7 @@
       use mod_dynparam
       use mod_trachem
       use mod_mainchem
-      use mod_param3 , only : dsigma
+      use mod_runparams , only : dsigma
       implicit none
 !
 ! Local variables

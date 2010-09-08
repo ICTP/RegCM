@@ -19,7 +19,11 @@
 
       module mod_dust
 
+      use mod_constants
       use mod_dynparam
+      use mod_ncio
+      use mod_trachem
+      use mod_message
 
       implicit none
 !
@@ -136,11 +140,6 @@
 !  * 12        clay                   fine               *****
 !  ***********************************************************
  
-      use mod_ncio
-      use mod_constants , only : twopi
-      use mod_trachem, only :chtrname
-      use mod_iunits
-      use mod_message
 #ifdef MPP1
 #ifdef IBM
       include 'mpif.h'
@@ -429,7 +428,6 @@
       end function cvmgt
 !
       function ustart01(rhop,dum,rhair)
-      use mod_constants , only : gti
       implicit none
 !
 ! PARAMETER definitions
@@ -469,7 +467,6 @@
       end function ustart01
 ! 
       function ustart0(rhop,dum,rhoa)
-      use mod_constants , only : gti
       implicit none
 !
 ! PARAMETER definitions
@@ -519,7 +516,6 @@
 !  * ashraf s. zakey                                   ******
 !  **********************************************************
  
-      use mod_dynparam
       implicit none
 !
 ! Dummy arguments
@@ -611,9 +607,6 @@
       subroutine dust_module(il1,il2,ilg,trsize,soilw,vegfrac,surfwd,ftex,&
                        & clayrow,roarow,z0,srel,ustarnd,rsfrow)
  
-      use mod_dynparam
-      use mod_message
-      use mod_constants , only : vonkar
       implicit none
 !
 ! Dummy arguments
@@ -758,7 +751,6 @@
       subroutine emission(ilg,il1,il2,rhop,ftex,uth,roarow,rc,      &
                         & utheff,ustar,srel,rsfrow,trsize,vegfrac)
  
-      use mod_constants , only : rgti , mathpi
       implicit none
 !
 ! PARAMETER definitions

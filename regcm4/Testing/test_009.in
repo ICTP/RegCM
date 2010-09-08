@@ -25,6 +25,7 @@
  ifanal = .true.,
  smthbdy = .false.,
  lakadj = .false.,
+ lakedpth = .false.,
  fudge_lnd   = .false.,
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
@@ -35,13 +36,11 @@
  inpter = '/set/this/to/where/your/surface/dataset/is',
  /
  &ioparam
- igrads = 1,
- ibigend = 1,
  ibyte = 4,
- iotyp = 1,
  /
  &debugparam
- debug_level = 1
+ debug_level = 1,
+ dbgfrq = 3600,
  /
  &boundaryparam
  nspgx  = 12,
@@ -49,9 +48,6 @@
  /
  &modesparam
  nsplit = 2,
- /
- &lakemodparam
- lkpts  = 10,
  /
  &globdatparam
  ssttyp = 'OI_WK',
@@ -96,10 +92,6 @@
  ifbat   = .true. ,
  ifsub   = .true. ,
    batfrq  =     3.,
- ifprt   = .false.,
-   prtfrq  =    12.,
-   kxout   =          6,
-   jxsex   =         40,
  ifchem  = .false.,
    chemfrq =     6.,
  dirout='/set/this/to/where/your/output/files/will/be/written'

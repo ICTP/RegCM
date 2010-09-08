@@ -519,7 +519,7 @@
 
       subroutine initdate
       use mod_dynparam
-      use mod_param1
+      use mod_runparams
       use mod_message
       implicit none
 !

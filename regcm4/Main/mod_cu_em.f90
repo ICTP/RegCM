@@ -19,6 +19,23 @@
  
       module mod_cu_em
 
+      use mod_constants
+      use mod_dynparam
+      use mod_runparams
+      use mod_main
+      use mod_pmoist
+      use mod_cvaria
+      use mod_slice
+      use mod_rad
+      use mod_bats
+      use mod_date
+
+      private
+
+      public :: cupemandrv
+      public :: minsig , elcrit , tlcrit , entp , sigd , sigs ,    &
+                omtrain , omtsnow , coeffr , coeffs , cu , betae , &
+                dtmax , alphae , damp , minorig
 !
       real(8) :: alphae , betae , coeffr , coeffs , cu , damp , dtmax , &
                & elcrit , entp , minsig , omtrain , omtsnow , sigd ,    &
@@ -34,16 +51,6 @@
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
  
-      use mod_dynparam
-      use mod_param1 , only : dt , nbatst
-      use mod_param3 , only : r8pt , sigma
-      use mod_main
-      use mod_pmoist
-      use mod_cvaria
-      use mod_slice
-      use mod_rad
-      use mod_bats , only : pptc
-      use mod_date , only : jyear , jyear0 , ktau
       implicit none
 !
 ! PARAMETER definitions
@@ -292,8 +299,6 @@
 !      to be evacuated.
 !   7. a maximum value to the cloud base mass flux has been added.
 !
-      use mod_constants , only : gti , rgti , cpd , rcpd , cpv , rgas , &
-                               & rwat , wlhv , tzero
       implicit none
 !
 !
@@ -1164,8 +1169,6 @@
 !
       subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
 
-      use mod_constants , only : rgas , rwat , cpd , cpv , rcpd ,       &
-                               & wlhv , tzero
       implicit none
 !
 ! Dummy arguments

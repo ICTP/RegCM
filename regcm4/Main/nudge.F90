@@ -54,9 +54,9 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       use mod_dynparam
+      use mod_runparams , only : anudg
       use mod_bdycod
       use mod_main
-      use mod_param3 , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -77,10 +77,9 @@
 #endif
 !
 #ifdef MPP1
+#ifndef BAND
       integer :: jwb , jeb
 #endif
-#ifdef BAND
-      integer :: jm1 , jp1
 #endif
 !
 !
@@ -489,7 +488,7 @@
       use mod_dynparam
       use mod_main
       use mod_bdycod
-      use mod_param3 , only : anudg
+      use mod_runparams , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -509,10 +508,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
-      integer jwb , jeb
+#ifndef BAND
+      integer :: jwb , jeb
 #endif
-#ifdef BAND
-      integer :: jm1 , jp1
 #endif
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
@@ -974,7 +972,7 @@
       use mod_dynparam
       use mod_main
       use mod_bdycod
-      use mod_param3 , only : anudg
+      use mod_runparams , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -994,10 +992,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
-      integer :: jeb , jwb
+#ifndef BAND
+      integer :: jwb , jeb
 #endif
-#ifdef BAND
-      integer :: jm1 , jp1
 #endif
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
@@ -1460,7 +1457,7 @@
       use mod_dynparam
       use mod_main
       use mod_bdycod
-      use mod_param3 , only : anudg
+      use mod_runparams , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -1480,10 +1477,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
+#ifndef BAND
       integer :: jew
 #endif
-#ifdef BAND
-      integer :: jm1 , jp1
 #endif
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
@@ -1938,7 +1934,7 @@
       use mod_dynparam
       use mod_bdycod
       use mod_main
-      use mod_param3 , only : anudg
+      use mod_runparams , only : anudg
       implicit none
 !
 ! Dummy arguments
@@ -1958,10 +1954,9 @@
       integer :: ibeg , iend , jj , jsls
 #endif
 #ifdef MPP1
+#ifndef BAND
       integer :: jew
 #endif
-#ifdef BAND
-      integer :: jm1 , jp1
 #endif
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)

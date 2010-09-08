@@ -17,23 +17,19 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine spinit(sigma,kv1)
+      subroutine spinit(xsigma,kv1)
 !
 !** compute vertical modes.
 !
       use mod_dynparam
-      use mod_param1 , only : dt , dtau , dx2
-      use mod_param2
-      use mod_param3 , only : r8pt
-      use mod_iunits
+      use mod_runparams
       use mod_bdycod
       use mod_main
       use mod_split
-      use mod_bxq
-      use mod_tmpsav
       use mod_date , only : jyear , jyear0 , ktau
       use mod_constants , only : rgas
       use mod_vmodes , only : vmodes
+      use mod_savefile , only : read_savefile_part2
 #ifdef MPP1
       use mod_mppio
 #ifndef IBM
@@ -47,7 +43,7 @@
 ! Dummy arguments
 !
       integer :: kv1
-      real(8) , dimension(kv1) :: sigma
+      real(8) , dimension(kv1) :: xsigma
 !
 ! Local variables
 !
@@ -126,12 +122,12 @@
 !**   compute vertical modes.
       lstand = .true.
       if ( jyear.ne.jyear0 .or. ktau.ne.0 ) lstand = .true.
-      call vmodes(lstand,sigma,kv1)
+      call vmodes(lstand,xsigma,kv1)
 !
 !**   subract a4 from a for use in computing am.
       do l = 1 , kz
         do k = 1 , kz
-          a(k,l) = a(k,l) - a4(k,l)
+          a0(k,l) = a0(k,l) - a4(k,l)
         end do
       end do
 !
@@ -147,7 +143,7 @@
         end do
         do l = 1 , kz
           do k = 1 , kz
-            am(k,n) = am(k,n) + a(k,l)*zmatx(l,n)
+            am(k,n) = am(k,n) + a0(k,l)*zmatx(l,n)
             tau(n,k) = tau(n,k) + rgas*zmatxr(n,l)*hydros(l,k)
           end do
         end do
@@ -182,16 +178,9 @@
       if ( ifrest ) then
 #ifdef MPP1
         if ( myid.eq.0 ) then
-          read (iutrs) dstor_io
-          read (iutrs) hstor_io
-#ifndef BAND
-          read (iutrs) uj1 , uj2 , ujlx , ujl
-#endif
-          read (iutrs) ui1_io , ui2_io , uilx_io , uil_io
-#ifndef BAND
-          read (iutrs) vj1 , vj2 , vjlx , vjl
-#endif
-          read (iutrs) vi1_io , vi2_io , vilx_io , vil_io
+
+          call read_savefile_part2
+
           do j = 1 , jx
             do n = 1 , nsplit
               do i = 1 , iy
@@ -316,16 +305,7 @@
         end if
 #endif
 #else
-        read (iutrs) dstor
-        read (iutrs) hstor
-#ifndef BAND
-        read (iutrs) uj1 , uj2 , ujlx , ujl
-#endif
-        read (iutrs) ui1 , ui2 , uilx , uil
-#ifndef BAND
-        read (iutrs) vj1 , vj2 , vjlx , vjl
-#endif
-        read (iutrs) vi1 , vi2 , vilx , vil
+        call read_savefile_part2
 #endif
       else
 !

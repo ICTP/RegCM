@@ -3,8 +3,6 @@
   
 include ../../Makefile.inc
 
-# CPPFLAGS += -DNETCDF4_HDF5
-
 all: terrain install
 
 SHRMODS =  mod_dynparam.o mod_constants.o

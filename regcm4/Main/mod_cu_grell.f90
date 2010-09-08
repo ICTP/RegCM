@@ -26,8 +26,7 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
       use mod_dynparam
-      use mod_param1 , only : dt , dtmin , nbatst
-      use mod_param3 , only : r8pt , a
+      use mod_runparams , only : dt , dtmin , nbatst , r8pt , a
       use mod_pmoist
       use mod_rad
       use mod_bats , only : pptc
@@ -149,7 +148,7 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
       use mod_dynparam
-      use mod_param2
+      use mod_runparams
       use mod_pmoist
       use mod_rad
       use mod_trachem
@@ -178,7 +177,7 @@
                                & xaa0 , xhcd , xhkb , xmb , xpwav ,     &
                                & xpwev , xqcd , xqck , xqkb
       real(8) :: adw , akclth , alsixt , aup , c0 , detdo ,             &
-               & detdoq , dg , dh , dhh , dp , dq , dt , dv1 , dv1q ,   &
+               & detdoq , dg , dh , dhh , dp , dq , xdt , dv1 , dv1q ,  &
                & dv2 , dv2q , dv3 , dv3q , dz , dz1 , dz2 , dzo , e ,   &
                & eo , f , agamma , gamma0 , gamma1 , gamma2 , gammo ,   &
                & gammo0 , mbdt , outtes , pbcdif , qrch , qrcho ,       &
@@ -555,8 +554,8 @@
               dz = -(z(i,kk)-z(i,kk+2))*.5
               bu(i) = bu(i) + dz*(hcd(i)-.5*(hes(i,kk)+hes(i,kk+1)))
               dq = (qes(i,kk)+qes(i,kk+1))*.5
-              dt = (t(i,kk)+t(i,kk+1))*.5
-              agamma = (wlhvocp)*(wlhv/(rwat*(dt**2)))*dq
+              xdt = (t(i,kk)+t(i,kk+1))*.5
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
               dh = hcd(i) - .5*(hes(i,kk)+hes(i,kk+1))
               qrcd(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
               pwd(i,kk) = dkk(i,kk)*(qcd(i)-qrcd(i,kk))
@@ -567,8 +566,8 @@
               buo(i) = buo(i) + dz*(hcdo(i)-.5*(heso(i,kk)+heso(i,kk+1))&
                      & )
               dq = (qeso(i,kk)+qeso(i,kk+1))*.5
-              dt = (tn(i,kk)+tn(i,kk+1))*.5
-              agamma = (wlhvocp)*(wlhv/(rwat*(dt**2)))*dq
+              xdt = (tn(i,kk)+tn(i,kk+1))*.5
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
               dh = hcdo(i) - .5*(heso(i,kk)+heso(i,kk+1))
               qrcdo(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
               pwdo(i,kk) = dkk(i,kk)*(qcdo(i)-qrcdo(i,kk))
@@ -792,8 +791,8 @@
               dz = -(xz(i,kk)-xz(i,kk+2))*.5
               bu(i) = bu(i) + dz*(xhcd(i)-.5*(xhes(i,kk)+xhes(i,kk+1)))
               dq = (xqes(i,kk)+xqes(i,kk+1))*.5
-              dt = (xt(i,kk)+xt(i,kk+1))*.5
-              agamma = (wlhvocp)*(wlhv/(rwat*(dt**2)))*dq
+              xdt = (xt(i,kk)+xt(i,kk+1))*.5
+              agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
               dh = xhcd(i) - .5*(xhes(i,kk)+xhes(i,kk+1))
               xqrcd(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
               xpwd(i,kk) = dkk(i,kk)*(xqcd(i)-xqrcd(i,kk))
@@ -834,11 +833,11 @@
               gamma2 = (wlhvocp)*(wlhv/(rwat*(t(i,kk+1)**2)))*          &
                      & qes(i,kk+1)
               dhh = hcd(i)
-              dt = .5*(t(i,kk)+t(i,kk+1))
+              xdt = .5*(t(i,kk)+t(i,kk+1))
               dg = .5*(gamma1+gamma2)
               dh = .5*(hes(i,kk)+hes(i,kk+1))
               dz = (z(i,kk)-z(i,kk+1))*dkk(i,kk)
-              aa0(i) = aa0(i) + edt(i)*dz*(gti/(cpd*dt))*((dhh-dh)/     &
+              aa0(i) = aa0(i) + edt(i)*dz*(gti/(cpd*xdt))*((dhh-dh)/    &
                      & (1.+dg))
 !
 !---          modified by larger scale
@@ -847,11 +846,11 @@
               gamma2 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk+1)**2)))*         &
                       & qeso(i,kk+1)
               dhh = hcdo(i)
-              dt = .5*(tn(i,kk)+tn(i,kk+1))
+              xdt = .5*(tn(i,kk)+tn(i,kk+1))
               dg = .5*(gamma1+gamma2)
               dh = .5*(heso(i,kk)+heso(i,kk+1))
               dz = (zo(i,kk)-zo(i,kk+1))*dkk(i,kk)
-              aa1(i) = aa1(i) + edto(i)*dz*(gti/(cpd*dt))               &
+              aa1(i) = aa1(i) + edto(i)*dz*(gti/(cpd*xdt))              &
                      & *((dhh-dh)/(1.+dg))
 !
 !---          modified by cloud
@@ -860,11 +859,11 @@
               gamma2 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk+1)**2)))*         &
                      & xqes(i,kk+1)
               dhh = xhcd(i)
-              dt = .5*(xt(i,kk)+xt(i,kk+1))
+              xdt = .5*(xt(i,kk)+xt(i,kk+1))
               dg = .5*(gamma1+gamma2)
               dh = .5*(xhes(i,kk)+xhes(i,kk+1))
               dz = (xz(i,kk)-xz(i,kk+1))*dkk(i,kk)
-              xaa0(i) = xaa0(i) + edtx(i)*dz*(gti/(cpd*dt))             &
+              xaa0(i) = xaa0(i) + edtx(i)*dz*(gti/(cpd*xdt))            &
                       & *((dhh-dh)/(1.+dg))
             end if
           end if

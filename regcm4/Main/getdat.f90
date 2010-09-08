@@ -32,8 +32,7 @@
 ! cloud longwave emissivity must be computed; this is done here
 !
       use mod_dynparam
-      use mod_param1
-      use mod_param3 , only : ncld , r8pt , a , sigma
+      use mod_runparams
       use mod_main
       use mod_rad
       use mod_date

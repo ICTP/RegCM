@@ -21,11 +21,12 @@
 !
       use mod_dynparam
       use mod_date
-      use mod_param1 , only : dt , dt2 , dtmin
-      use mod_param2 , only : ichem , ifrest , rfstrt
-      use mod_param3 , only : r8pt , sigma
+      use mod_runparams , only : dt , dt2 , dtmin , ichem , ifrest , &
+                                 rfstrt , r8pt , sigma
       use mod_message , only : aline , say
       use mod_ncio , only : init_mod_ncio , release_mod_ncio
+      use mod_output , only : output
+      use mod_split
 #ifdef MPP1
       use mpi
       use mod_message , only : fatal
@@ -302,7 +303,7 @@
 !
 !     Write initial state to output
 !
-      call output(iexec)
+      call output
 
 !**********************************************************************
 !
@@ -338,7 +339,7 @@
 !
 !       Write output for this timestep
 !
-        call output(iexec)
+        call output
 !
 !       Increment time
 !
@@ -389,5 +390,27 @@
 99002 format (                                                          &
          & ' ***** restart file for next run is written at time     = ',&
          & f10.2,' minutes, ktau = ',i7,' in year ',i4)
+
+      contains
+
+      subroutine for_next
+! 
+      open(99, file='restparam.nl')
+      write (99,99001) '&restartparam'
+      if ( idate1.lt.globidate2 ) then
+        write (99,99001) 'ifrest  = .true. '
+      else
+        write (99,99001) 'ifrest  = .false.'
+      end if
+      write (99,99002) 'idate0  = ' , idate0
+      write (99,99002) 'idate1  = ' , idate1
+      write (99,99002) 'idate2  = ' , globidate2
+      write (99,99002) '/'
+      close (99)
+
+99001 format (1x,a)
+99002 format (1x,a,i10,',')
+
+      end subroutine for_next
 
       end program regcm
