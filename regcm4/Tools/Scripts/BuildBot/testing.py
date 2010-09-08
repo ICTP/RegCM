@@ -22,7 +22,7 @@
 # Script for running RegCM regression tests by M. Scarcia
 #
 
-import os,sys,shutil,fileinput
+import os,sys,shutil,fileinput,subprocess
 
 def edit_namelist(namelist,datadir,simdir):
 
@@ -161,22 +161,37 @@ def main(argv):
 
         # open log file
 
-        log = testname+".log"
+        writelog=True
 
+        try:
+            log = open(testname+".log","w")
+        except :
+            print "Unable to write log!"
+            writelog=False
+        
         # run preproc
         # handle log+errors better with subproc??
-        err_terrain=os.system(bindir+"/terrain "+namelist+"&>"+log)
-        if err_terrain != 0:
+        
+        p_terrain = subprocess.Popen(bindir+"/terrain "+namelist,stdout=log,stderr=log,shell=True)
+        if p_terrain.wait() != 0:
             print "Terrain in",testname,"crashed!!"
-        err_sst=os.system(bindir+"/sst "+namelist+"&>"+log)
-        if err_terrain != 0:
-            print "SST in ",testname,"crashed!!"
-        err_icbc=os.system(bindir+"/icbc "+namelist+"&>"+log)
-        if err_terrain != 0:
-            print "ICBC in ",testname," crashed!!"
+        else:
+            print "Terrain in",testname,"passed."
+    
+        p_sst=subprocess.Popen(bindir+"/sst "+namelist,stdout=log,stderr=log,shell=True)
+        if p_sst.wait() != 0:
+            print "SST in",testname,"crashed!!"
+        else :
+            print "SST in",testname,"passed."
+            
+        p_icbc=subprocess.Popen(bindir+"/icbc "+namelist,stdout=log,stderr=log,shell=True)
+        if p_icbc.wait() != 0:
+            print "ICBC in",testname,"crashed!!"
+        else :
+            print "ICBC in",testname,"passed."
 
         if run_clm == 1:
-            err_clmpre=os.system(bindir+"/clm2rcm "+namelist+"&>"+log)
+            p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist)
 
         # compare preproc output
 
@@ -188,14 +203,20 @@ def main(argv):
         elif int(run_band == 1):
             err_regcm=os.system(mpistring+" "+bindir+"/regcm_band "+namelist+"&>"+log)
         else :
-            err_regcm=os.system(mpistring+" "+bindir+"/regcmMPI "+namelist+"&>"+log)
+            p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcmMPI "+namelist,stdout=log,stderr=log,shell=True)
 
         #print "exit status = ",err_regcm
 
-        if err_regcm != 0:
+        if p_regcm.wait() != 0:
             print "RegCM",testname,"crashed!"
+        else :
+            print "RegCM",testname,"passed."
 
+        log.close()
 
+    # end of the big loop
+    print "Test script terminated."
+    
 if __name__ == "__main__":
     main(sys.argv[1:])
 
