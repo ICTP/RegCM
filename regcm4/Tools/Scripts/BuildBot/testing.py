@@ -148,9 +148,31 @@ def main(argv):
             os.mkdir(simdir+"/output")
 
         namelist = simdir+"/regcm.in"
-        
+
         shutil.copy(namelistdir+"/"+testname+".in",namelist)
+
+        # parse for idate0 and idate2
+
+        infile = open(namelist,"r")
+        file_content = infile.readlines()
+        infile.close()
         
+        for line in file_content:
+            if line.find("globidate1") > -1 :
+                linea=line.rsplit("=")
+                globidate1=linea[1]
+            if line.find(" idate0 ") > -1 :
+                linea=line.rsplit("=")
+                idate0=linea[1]
+            if line.find(" idate1 ") > -1 :
+                linea=line.rsplit("=")
+                idate1=linea[1]
+            if line.find(" idate2 ") > -1 :
+                linea=line.rsplit("=")
+                idate2=linea[1]
+
+        print globidate1,idate0,idate1,idate2
+                
         #edit the namelist here
 
         edit_namelist(namelist,datadir,simdir)
@@ -171,51 +193,66 @@ def main(argv):
         
         # run preproc
         # handle log+errors better with subproc??
-        
+
+        runMain = True # won't run Main if PreProc crashes...
+         
         p_terrain = subprocess.Popen(bindir+"/terrain "+namelist,stdout=log,stderr=log,shell=True)
         if p_terrain.wait() != 0:
-            print "Terrain in",testname,"crashed!!"
+            print "\nError: Terrain in",testname,"crashed!!\n"
+            runMain = False
         else:
             print "Terrain in",testname,"passed."
     
         p_sst=subprocess.Popen(bindir+"/sst "+namelist,stdout=log,stderr=log,shell=True)
         if p_sst.wait() != 0:
-            print "SST in",testname,"crashed!!"
+            print "\nError: SST in",testname,"crashed!!\n"
+            runMain = False
         else :
             print "SST in",testname,"passed."
             
         p_icbc=subprocess.Popen(bindir+"/icbc "+namelist,stdout=log,stderr=log,shell=True)
         if p_icbc.wait() != 0:
-            print "ICBC in",testname,"crashed!!"
+            print "\nError: ICBC in",testname,"crashed!!\n"
+            runMain = False
         else :
             print "ICBC in",testname,"passed."
 
         if run_clm == 1:
             p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist)
+            if p_clmpre.wait() != 0:
+                print "\nError: clm2rcm in",testname,"crashed!!\n"
+                runMain = False
+            else :
+                print "clm2rcm in",testname,"passed."
 
         # compare preproc output
+        # to do
 
-        # run main
-        if (int(options["SERIAL"]) == 1):
-            err_regcm=os.system(bindir+"/regcmSerial "+namelist+"&>"+log)
-        elif int(run_clm == 1):
-            err_regcm=os.system(mpistring+" "+bindir+"/regcm_clM "+namelist+"&>"+log)
-        elif int(run_band == 1):
-            err_regcm=os.system(mpistring+" "+bindir+"/regcm_band "+namelist+"&>"+log)
+        # if preproc is ok, run main
+        if runMain :
+            if (int(options["SERIAL"]) == 1):
+                p_regcm=subprocess.Popen(bindir+"/regcmSerial "+namelist,stdout=log,stderr=log,shell=True)
+            elif int(run_clm == 1):
+                p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcm_clM "+namelist,stdout=log,stderr=log,shell=True)
+            elif int(run_band == 1):
+                p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcm_band "+namelist,stdout=log,stderr=log,shell=True)
+            else :
+                p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcmMPI "+namelist,stdout=log,stderr=log,shell=True)
+                
+            if p_regcm.wait() != 0:
+                print "\nError: RegCM",testname,"crashed!!\n"
+            else :
+                print "RegCM",testname,"passed."
         else :
-            p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcmMPI "+namelist,stdout=log,stderr=log,shell=True)
-
-        #print "exit status = ",err_regcm
-
-        if p_regcm.wait() != 0:
-            print "RegCM",testname,"crashed!"
-        else :
-            print "RegCM",testname,"passed."
+            print "PreProc did not complete correctly, RegCM main skipped..."
 
         log.close()
 
+        # compare main output
+        # to do
+
     # end of the big loop
-    print "Test script terminated."
+    print "\n****  Test script terminated.  ****"
     
 if __name__ == "__main__":
     main(sys.argv[1:])
