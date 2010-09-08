@@ -128,8 +128,7 @@ mod_aero_sett_ddep.o: mod_aero_sett_ddep.F90 mod_dynparam.o mod_message.o \
 mod_aerosol.o: mod_aerosol.F90 mod_constants.o mod_main.o mod_mainchem.o \
                mod_message.o mod_runparams.o mod_dynparam.o mod_trachem.o \
                mod_slice.o
-mod_bats.o: mod_bats.F90 mod_dynparam.o mod_bats_param.o mod_constants.o \
-            mod_date.o mod_main.o mod_runparams.o mod_pbldim.o mod_slice.o
+mod_bats.o: mod_bats.F90 mod_dynparam.o mod_bats_param.o
 mod_bdycod.o: mod_bdycod.F90 mod_dynparam.o
 mod_bndry.o: mod_bndry.F90 mod_constants.o mod_bats.o mod_leaftemp.o \
              mod_runparams.o mod_dynparam.o mod_drag.o
@@ -231,8 +230,9 @@ mod_scenarios.o: mod_scenarios.F90
 	$(F90) -c $(CPPFLAGS) -D$(SCENARIO) $(F90FLAGS)  -c $<
 mod_tracer.o: mod_tracer.f90
 mod_trachem.o: mod_trachem.F90 mod_dynparam.o mod_message.o
-mod_vecbats.o: mod_vecbats.F90 mod_date.o mod_runparams.o mod_bats.o \
-               mod_lake.o mod_main.o mod_bndry.o mod_drag.o
+mod_vecbats.o: mod_vecbats.F90 mod_constants.o mod_dynparam.o mod_date.o \
+               mod_runparams.o mod_bats.o mod_slice.o mod_pbldim.o \
+               mod_lake.o mod_main.o mod_bndry.o mod_drag.o mod_mppio.o
 mod_vmodes.o: mod_vmodes.F90 mod_runparams.o mod_dynparam.o mod_split.o \
               mod_constants.o mod_message.o
 ifeq ($(USECLM),1)

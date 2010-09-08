@@ -19,14 +19,8 @@
 
       module mod_bats
 
-      use mod_constants
       use mod_dynparam
-      use mod_runparams
       use mod_bats_param
-      use mod_main
-      use mod_pbldim
-      use mod_slice
-      use mod_date
 
       implicit none
       real(8) , allocatable , target , dimension(:,:,:) :: spacebs1d
