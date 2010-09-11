@@ -19,6 +19,7 @@
 
       program sst
 
+      use mod_header
       use mod_dynparam
       use mod_sst_grid
       use mod_sst_1deg
@@ -30,6 +31,10 @@
       integer :: ierr
       character(256) :: namelistfile , prgname
       character(256) :: terfile
+
+!     call and print header
+      call header(2)
+
 !
 !     Read input global namelist
 !

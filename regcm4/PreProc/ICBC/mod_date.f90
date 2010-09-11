@@ -333,6 +333,10 @@
         id = id - iwkday
         if (id < 1) then
           im = im - 1
+          if (im < 1) then
+            im = im + 12
+            iy = iy -1 
+          end if
           id =  mdays(iy, im) + id
         end if
         ifodweek = mkidate(iy, im, id, 0)

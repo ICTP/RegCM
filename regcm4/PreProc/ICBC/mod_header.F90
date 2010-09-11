@@ -37,6 +37,11 @@
 
         write (nrite,                                                   &
            &   "(/,2x,'This is ICBC part of the RegCM version 4 ')")
+      else 
+        write (nrite,                                                   &
+           &   "(/,2x,'This is SST part of the RegCM version 4 ')")
+       end if 
+
         write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
 
 #ifdef IBM
@@ -56,7 +61,6 @@
         write (nrite,*) ": it is running on     : ",trim(hostname)
         write (nrite,*) ": in directory         : ",trim(directory)
         write (nrite,*) "                      " 
-      end if 
       return 
 99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,          &
         &    '  time: ',A,/)

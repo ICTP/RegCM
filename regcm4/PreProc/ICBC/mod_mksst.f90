@@ -117,11 +117,12 @@
           deallocate(xtime)
           lopen = .true.
         end if
+          print *, 'Range is : ', itime(1) , ' - ', itime(ntime)
 
         if (idate > itime(ntime) .or. idate < itime(1)) then
           print *, 'Cannot find ', idate, ' in SST file'
-          print *, 'Range is : ', itime(1) , '-', itime(ntime)
           stop
+          print *, 'Range is : ', itime(1) , '-', itime(ntime)
         end if
 
         irec = 0
@@ -131,10 +132,11 @@
             exit
            end if
         end do
+!!!! why this below ? 
 
-        if (idate == itime(irec-1)) then
-          irec = irec-1
-        end if
+!        if (idate == itime(irec-1)) then
+!          irec = irec-1
+!        end if
 
         istart(3) = irec
         istart(2) = 1
