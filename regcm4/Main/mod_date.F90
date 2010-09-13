@@ -649,7 +649,7 @@
         call say
         call fatal(__FILE__,__LINE__,'UNSUPPORTED BOUNDARY FREQUENCY')
       end if
-      write (aline,*) 'nrec = ' , nrec
+      write (aline,*) 'initdate: nrec = ' , nrec
       call say
       end subroutine initdate
 !

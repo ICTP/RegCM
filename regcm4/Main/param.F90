@@ -404,31 +404,33 @@
   
 !  
 !-----read in namelist variables:
+      write (aline,*) 'param: start reading namelists' 
+      call say
       read (ipunit, restartparam)
-      print * , 'param: RESTARTPARAM READ IN'
+      print * , ' param: RESTARTPARAM namelist READ IN'
       read (ipunit, timeparam)
-      print * , 'param: TIMEPARAM READ IN'
+      print * , ' param: TIMEPARAM namelist READ IN'
       read (ipunit, outparam)
-      print * , 'param: OUTPARAM READ IN'
+      print * , ' param: OUTPARAM namelist READ IN'
       len_path = len(trim(dirout))
       if ( dirout(len_path:len_path).ne.'/' ) dirout = trim(dirout)//'/'
       read (ipunit, physicsparam)
-      print * , 'param: PHYSICSPARAM READ IN'
+      print * , ' param: PHYSICSPARAM namelist READ IN'
       if ( ipptls.eq.1 ) then
         read (ipunit, subexparam)
-        print * , 'param: SUBEXPARAM READ IN'
+        print * , ' param: SUBEXPARAM namelist READ IN'
       end if
       if ( icup.eq.2 ) then
         read (ipunit, grellparam)
-        print * , 'param: GRELLPARAM READ IN'
+        print * , ' param: GRELLPARAM namelist READ IN'
       else if ( icup.eq.4 ) then
         read (ipunit, emanparam)
-        print * , 'param: EMANPARAM READ IN'
+        print * , ' param: EMANPARAM namelist READ IN'
       else
       end if
       if ( ichem.eq.1 ) then
         read (ipunit, chemparam)
-        print * , 'param: CHEMPARAM READ IN'
+        print * , ' param: CHEMPARAM namelist READ IN'
         chtrname = inpchtrname(1:ntr)
         chtrdpv = inpchtrdpv(1:ntr,:)
         dustbsiz = inpdustbsiz(1:nbin,:)
@@ -438,7 +440,7 @@
       end if
 #ifdef CLM
       read (ipunit , clmparam)
-      print * , 'param: CLMPARAM READ IN'
+      print * , ' param: CLMPARAM namelist READ IN'
 #endif
 !
 #ifdef MPP1
@@ -557,6 +559,8 @@
  
 !first checks 
 !as
+      write (aline,*) 'param: starting first checks' 
+      call say 
       if ( mod(anint(radfrq*60.),anint(dt)).ne.0 ) then
         write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
         call say
@@ -642,8 +646,11 @@
  
 !     ktaur = nint((NSTART-NSTRT0)*ibdyfrq*60/dtmin)
       ntimax = (nnnend-nstrt0)*ibdyfrq*60
-      write (aline, *) 'param: IDATE1, IDATE2, dtmin, ktaur = ' ,       &
-                           & idate1 , idate2 , dtmin , ktaur
+      write (aline, *) 'param: initial date of this simulation: IDATE1',idate1
+      call say
+      write (aline,*) 'param: final date of this simulation: IDATE2' , idate2 
+      call say      
+      write (aline,'(a,f9.4)')  " param: dtmin(timestep in minutes)" , dtmin
       call say
       ldatez = idate1
       nnnnnn = nstart
@@ -663,11 +670,11 @@
       if ( myid.eq.0 ) then
 #endif              
         call open_domain(r8pt,dx,sigma)
-        print * , 'param: DIMS   : ' , iy , jx , kz
-        print * , 'param: PROJ   : ' , iproj
-        print * , 'param: DOMAIN : ' , ds , clat , clon
-        print * , 'param: PTOP   : ' , r8pt
-        print * , 'param: SIGMA  : ' , sigma
+!        print * , 'param: DIMS   : ' , iy , jx , kz
+!        print * , 'param: PROJ   : ' , iproj
+!        print * , 'param: DOMAIN : ' , ds , clat , clon
+!        print * , 'param: PTOP   : ' , r8pt
+!        print * , 'param: SIGMA  : ' , sigma
 #ifdef MPP1        
       end if
       call mpi_bcast(clat,1,mpi_real,0,mpi_comm_world,ierr)
@@ -679,7 +686,7 @@
  
 !rst-fix
       mdate0 = idate0
-      write (aline, *) ' param: ***** mdate = ' , mdate0
+      write (aline, *) 'param: (initial date of the global simulation: mdate  = ' , mdate0
       call say
       myear = mdate0/1000000
       nyear = idate1/1000000
@@ -726,35 +733,47 @@
 !
       conf = 1.
  
-      write (aline, *) 'param: input/output parameters '
+      write (aline,*) 'param: input/output parameters '
       call say
-      write (aline, *) ' ifsave = ' , ifsave , ' savfrq = ' , savfrq ,  &
-             &' iftape = ' , iftape , ' tapfrq = ' , tapfrq ,           &
-             &' radisp = ' , radisp , ' batfrq = ' , batfrq ,           &
-             &' ifchem = ' , ifchem , ' chemfrq =' , chemfrq,           &
-             &' clmfrq = ', clmfrq
+      write (aline,*) ' if true(T) create SAV files for restart: ifsave = ' , ifsave  
+      call say 
+      write (aline,*) ' Frequency in hours to create SAV: savfrq = ' , savfrq
+      call say 
+      write (aline,*) ' if true (T) Output ATM files:  iftape = ' , iftape 
+      call say 
+      write (aline,*) ' Frequency in hours to write  ATM: tapfrq = ' , tapfrq 
+      call say  
+      write (aline,*) ' Frequency in hours to write  RAD: radisp = ' , radisp 
+      call say
+      write(aline,*)  ' Frequency in hours to write  SRF: batfrq = ' , batfrq  
+      call say
+      write(aline,*)  ' if true (T) output CHEM files:  ifchem = ' , ifchem 
+      call say 
+      write(aline,*)  ' Frequency in hours to write CHEM: chemfrq =' , chemfrq
+      call say  
+      write(aline,*) '  Frequency in hours to write CLM: clmfrq = ', clmfrq
       call say
       write (aline, *) ' '
       call say
       write (aline, *) 'param: physical parameterizations '
       call say
-      write (aline,'(a,i2)' )  '  iboudy = ' , iboudy
+      write (aline,'(a,i2)' )  '  Lateral Boundary conditions scheme: iboudy = ' , iboudy
       call say  
-      write (aline,'(a,i2)' )  '  icup = ' , icup
+      write (aline,'(a,i2)' )  '  Cumulus convection scheme: icup = ' , icup
       call say 
-      write  (aline,'(a,i2)' ) '  igcc =' , igcc 
+      write  (aline,'(a,i2)' ) '  Grell Scheme Cumulus closure scheme: igcc =' , igcc 
       call say
-      write  (aline,'(a,i2)' ) '  ipptls = ' , ipptls 
+      write  (aline,'(a,i2)' ) '  Moisture scheme: ipptls = ' , ipptls 
       call say
-      write  (aline,'(a,i2)' ) '  iocnflx = ' , iocnflx
+      write  (aline,'(a,i2)' ) '  Ocean Flux scheme: iocnflx = ' , iocnflx
       call say
-      write  (aline,'(a,i2)' ) '  ipgf = ' , ipgf 
+      write  (aline,'(a,i2)' ) '  Pressure gradient force scheme: ipgf = ' , ipgf 
       call say   
-      write  (aline,'(a,i2)' ) '  iemiss = ' , iemiss 
+      write  (aline,'(a,i2)' ) '  Prescribed a surface LW emissivity: iemiss = ' , iemiss 
       call say 
-      write  (aline,'(a,i2)' ) '  lakemod = ' , lakemod 
+      write  (aline,'(a,i2)' ) '  Use lake model lakemod = ' , lakemod 
       call say
-      write  (aline,'(a,i2)' ) '  Chemistry active? 0=no,1=yes  ichem =' , ichem 
+      write  (aline,'(a,i2)' ) '  Use Chemical/aerosol model( 0=no,1=yes):  ichem =' , ichem 
       call say
        write  (aline,'(a,f9.6)') '  Nudge value high range   =', high_nudge 
       call say
@@ -770,17 +789,17 @@
       call say
       write (aline, *) 'param: model parameters '
       call say
-      write (aline,'(a,f12.6)')  '   radfrq = ' , radfrq 
+      write (aline,'(a,f12.6)')  ' time step for radiation model in minutes:  radfrq = ' , radfrq 
       call say 
-      write (aline,'(a,f12.6)')  '   abatm  = ' , abatm 
+      write (aline,'(a,f12.6)')  ' time step for land surface model in seconds:  abatm  = ' , abatm 
       call say
-      write (aline,'(a,f12.6)')  '   abemh  = ' , abemh 
+      write (aline,'(a,f12.6)')  ' time step for LW absorption/emissivity in hours:  abemh  = ' , abemh 
       call say
-      write (aline,'(a,f12.6)')  '   dt     = ' , dt
+      write (aline,'(a,f12.6)')  ' time step for atmosphere model in seconds:  dt     = ' , dt
       call say
       write (aline, *) ' '
       call say
-      write (aline,'(a,i2)' ) ' ncld = ' , ncld
+      write (aline,'(a,i2)' ) 'param: # of bottom model levels with no clouds:  ncld = ' , ncld
       call say
       write (aline, *) ' '
       call say
@@ -1056,7 +1075,7 @@
           exit
         end if
       end do
-      write (aline, '(a,i3)') ' Index of highest allowed pbl:  kt = ' , kt
+      write (aline, '(a,i3)') 'param: Index of highest allowed pbl:  kt = ' , kt
       call say
       write (aline, *) ' '
       call say

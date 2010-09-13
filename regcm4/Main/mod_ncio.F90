@@ -397,7 +397,7 @@
           real(4) :: dsx , iclat , iclon , ptsp
           real(4) , dimension(kzp1) :: rsdum
 
-          write (aline,*) 'READING HEADER FILE:', dname
+          write (aline,*) 'open_domain: READING HEADER FILE:', dname
           call say
           istatus = nf90_open(dname, nf90_nowrite, idmin)
           call check_ok('Error Opening Domain file '//trim(dname), &

@@ -782,7 +782,7 @@
         if ( myid.eq.0 ) then
           call read_savefile_part1(ndate0)
 !
-          print * , 'ozone profiles restart'
+          print * , ' init: ozone profiles restart'
           do k = 1 , kzp1
             write (6,99004) o3prof_io(3,3,k)
           end do
@@ -1519,7 +1519,7 @@
 #else
         call read_savefile_part1(ndate0)
 !
-        print * , 'ozone profiles restart'
+        print * , ' init: ozone profiles restart'
         do k = 1 , kzp1
           write (6,99004) o3prof(3,3,k)
         end do
