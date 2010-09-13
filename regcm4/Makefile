@@ -15,7 +15,7 @@ printall::
 	@echo '  --- make clean:  to clean all ' 
 	@echo '  --- make all: to compile all the codes and tools'
 
-all: terrain icbc clm2rcm regcm postnc postproc
+all: terrain icbc clm2rcm regcm postproc
 	@echo "##############################################################"
 	@echo "YOU HAVE DONE IT! YOU HAVE COMPILED THE MODEL!"
 	@echo "LET'S START PLAYING WITH THE BEAST....                        "

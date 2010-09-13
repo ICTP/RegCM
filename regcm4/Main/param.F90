@@ -152,6 +152,7 @@
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
+! allocating all what I need 
       call allocate_mod_aero_sett_ddep
       call allocate_mod_aerosol
       call allocate_mod_bats
@@ -787,7 +788,7 @@
 #ifdef MPP1
       if ( .not.ifrest ) then
 
-        write (aline, *) 'Reading in DOMAIN data'
+        write (aline, *) ' param: Reading in DOMAIN data'
         call say
 
         if ( myid.eq.0 ) then

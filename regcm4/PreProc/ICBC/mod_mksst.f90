@@ -117,7 +117,6 @@
           deallocate(xtime)
           lopen = .true.
         end if
-          print *, 'Range is : ', itime(1) , ' - ', itime(ntime)
 
         if (idate > itime(ntime) .or. idate < itime(1)) then
           print *, 'Cannot find ', idate, ' in SST file'
