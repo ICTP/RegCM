@@ -120,8 +120,8 @@
 
         if (idate > itime(ntime) .or. idate < itime(1)) then
           print *, 'Cannot find ', idate, ' in SST file'
-          stop
           print *, 'Range is : ', itime(1) , '-', itime(ntime)
+          stop
         end if
 
         irec = 0
@@ -129,13 +129,8 @@
           if (idate <= itime(i)) then
             irec = i
             exit
-           end if
+          end if
         end do
-!!!! why this below ? 
-
-!        if (idate == itime(irec-1)) then
-!          irec = irec-1
-!        end if
 
         istart(3) = irec
         istart(2) = 1

@@ -359,6 +359,10 @@
         id = id - iwkday
         if (id < 1) then
           im = im - 1
+          if (im < 1) then
+            im = im + 12
+            iy = iy - 1
+          end if
           id =  mdays(iy, im) + id
         end if
         ifodweek = mkidate(iy, im, id, 0)
@@ -375,6 +379,10 @@
         id = id - iwkday + 4
         if (id < 1) then
           im = im - 1
+          if (im < 1) then
+            im = im + 12
+            iy = iy - 1
+          end if
           id =  mdays(iy, im) + id
         end if
         imodweek = mkidate(iy, im, id, 0)
@@ -391,6 +399,10 @@
         id = id + (7-iwkday)
         if (id > mdays(iy, im)) then
           im = im + 1
+          if (im > 12) then
+            im = im - 12
+            iy = iy + 1
+          end if
           id =  id - mdays(iy, im)
         end if
         iladweek = mkidate(iy, im, id, 0)
