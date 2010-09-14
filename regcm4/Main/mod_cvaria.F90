@@ -18,7 +18,11 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_cvaria
-
+!
+! Storage for the prognostic variables at tau+1,
+!     decoupled variables, diagnostic variables and
+!     working spaces needed in the model.
+!
       use mod_dynparam
 
       implicit none

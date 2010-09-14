@@ -17,110 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
- 
-      program regcm
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      use mod_dynparam
-      use mod_date
-      use mod_runparams , only : dt , dt2 , dtmin , ichem , ifrest , &
-                                 rfstrt , r8pt , sigma
-      use mod_message , only : aline , say
-      use mod_ncio , only : init_mod_ncio , release_mod_ncio
-      use mod_output , only : output
-      use mod_split
-#ifdef MPP1
-      use mpi
-      use mod_message , only : fatal
-#ifdef CLM
-      use perf_mod
-      use spmdMod, only: mpicom
-#endif
-#endif
-      implicit none
+! This is the Regional Climatic Model RegCM from ICTP Trieste
 !
-! Local variables
-!
-      real(8) :: dtinc , extime
-      integer :: iexec , iexecn
-      integer :: nhours
-      integer :: ierr
-#ifdef MPP1
-      integer :: ncpu
-#else
-      integer :: myid , nproc
-#endif
-      character(256) :: namelistfile, prgname
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-!
-!     ---before runing this model, the following data sets must be
-!     prepared:
-!     1. initial data -- output from "ccm to mm4" routine,
-!     2. lateral boundary data
-!
-!     ---for each forecast, the parameters needed to be changed are
-!     in include file "parame", and namelist "mm4.in".
-!     information on data disposal set in inlcude file "dispose.f"
-!
-!
-!     parameters :
-!
-!     iy, jx, kz : dimensions of arrays in y, x, z directions
-!     for large domain.
-!
-!     nx (=7) : seven "j" (north-south) slices are needed for
-!     tau+1 variables.
-!
-!     nspgx (=6) : number of cross-point slices on the boundary
-!     affected by sponge boundary conditions.
-!
-!     nspgd (=6) : number of dot-point slices on the boundary
-!     affected by sponge boundary conditions.
-!
-!     common blocks :
-!
-!     /main/    : stores all the 3d prognostic variables in two
-!     timesteps and all the 2d variavles and constants
-!
-!     /bdycod/  : stores boundary values and tendencies of p*u,
-!     p*v, p*t, p*qv and p*, and outmost 2 slices of
-!     u and v for large domain.
-!
-!
-!     /cvaria/  : stores the prognostic variables at tau+1,
-!     decoupled variables, diagnostic variables and
-!     working spaces needed in the model.
-!
-!     /param1/  : stores the parameters specified in subroutine
-!     "param" for large domain only.
-!
-!
-!     /param2/  : stores the logicals and constants specified in
-!     subroutine "param".
-!
-!     /param3/  : stores the indexes and constants specified in
-!     subroutine "param".
-!
-!     /iunits/  : stores the input/output unit numbers specified in
-!     subroutine "param".
-!
-!     /pmoist/  : stores the parameters and constants related to
-!     moisture calculations.
-!
-!     /pbldim/  : stores the parameters and constants related to
-!     the boundary layer
-!
-!     *** comments ***
-!     1. all the variables stored in main common
-!     block must be saved for restart.
-!     2. the variables stored in common blocks:
-!     main   ,
-!     /bdycod/, /param1/
-!     are equivalent to large arrays for simplicity
-!     to transfer the variables through arguments.
-!
-!     references :
+!  References :
 !
 !     1. model:
 !
@@ -163,22 +64,62 @@
 !
 !     CCM3.6.6 code introduced by Xunqiang Bi, 2000
 !
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+      program regcm
+!
+      use mod_dynparam
+      use mod_date
+      use mod_runparams
+      use mod_message
+      use mod_ncio
+      use mod_output
+      use mod_split
+      use mod_bdycod
+      use mod_che_semdde
+      use mod_init
+      use mod_header
+      use mod_param
+      use mod_tendency
+      use mod_tstep
+#ifdef MPP1
+      use mpi
+#ifdef CLM
+      use perf_mod
+      use spmdMod, only: mpicom
+#endif
+#endif
+      implicit none
+!
+      real(8) :: dtinc , extime
+      integer :: iexec , iexecn
+      integer :: nhours
+      integer :: ierr
+#ifdef MPP1
+      integer :: ncpu
+#endif
+      character(256) :: namelistfile, prgname
+! 
+!**********************************************************************
+!
 #ifdef MPP1
 !**********************************************************************
 !
 !     MPI Initialization
+!
+!**********************************************************************
 !
       call mpi_init(ierr)
       call mpi_comm_rank(mpi_comm_world,myid,ierr)
       call mpi_comm_size(mpi_comm_world,ncpu,ierr)
 
 #endif
-
+!
 !**********************************************************************
 !
 !     Read input global namelist
+!
+!**********************************************************************
 !
 #ifdef MPP1
       if ( myid.eq.0 ) then
@@ -196,18 +137,24 @@
         stop
       end if
 !
-      call init_mod_ncio
+#ifdef BAND
+      call init_mod_ncio(.true.)
+#else
+      call init_mod_ncio(.false.)
+#endif
 !
 #ifdef MPP1
       end if
 #endif
 
 #ifdef MPP1
+!
 !**********************************************************************
 !
 !     MPI Initialization for model
 !
-
+!**********************************************************************
+!
       call broadcast_params
 
       call set_nproc(ncpu)
@@ -276,39 +223,49 @@
 !
 !     RegCM V4 printout header
 !
+!**********************************************************************
+!
       call header(myid,nproc)
-
+!
 !**********************************************************************
 !
 !     Parameter Setup
+!
+!**********************************************************************
 !
       extime = 0.
       dtinc  = 0.
       iexec  = 1
       iexecn = 1
       call param
-
+!
 !**********************************************************************
 !
 !     Read initial data and setup boundary condition
 !
+!**********************************************************************
+!
       call init
- 
+! 
       call bdyin
- 
+! 
       call spinit(sigma,kzp1)
- 
+! 
       if ( ichem.eq.1 ) call chsrfem
- 
+! 
 !**********************************************************************
 !
 !     Write initial state to output
 !
+!**********************************************************************
+!
       call output
-
+!
 !**********************************************************************
 !
 !     Time Loop : begin Forecast
+!
+!**********************************************************************
 !
       do while ( nnnnnn.lt.nnnend )
 !
@@ -347,23 +304,30 @@
         extime = extime + dtinc
 
       end do
-
+!
+!**********************************************************************
 !
 !     Simulation completed
+!
+!**********************************************************************
 !
       call release_mod_ncio
 !
       write (aline, 99002) xtime , ktau , jyear
       call say
 !
+!**********************************************************************
+!
 !     Set length of next run (auto-restart option)
+!
+!**********************************************************************
 !
       nhours = idatediff(idate2,idate1)
       idate1 = idate2
       call addhours(idate2,nhours)
       write (aline, *) ' *** new max DATE will be ' , idate2
       call say
-
+!
 #ifdef MPP1
       if ( myid.eq.0 ) then
         call for_next
@@ -372,19 +336,19 @@
 #else
       call for_next
 #endif
-!     endtime = MPI_WTIME()
-!     print *,"The Program took  ",endtime-starttime," secondes"
 #ifdef CLM
       call t_prf('timing_all',mpicom)
       call t_finalizef()
 #endif
-
+!
       call finaltime(myid)
-
+!
       if ( myid.eq.0 ) then
         print *, 'RegCM V4 simulation successfully reached end'
       end if
-
+!
+! Formats
+!
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
             & ' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
             & i7,' in year ',i4)
@@ -393,7 +357,10 @@
          & f10.2,' minutes, ktau = ',i7,' in year ',i4)
 
       contains
-
+!
+! Subroutine to write file restparam.nl with an hint for restarting the
+!    model
+!
       subroutine for_next
 ! 
       open(99, file='restparam.nl')
@@ -408,10 +375,10 @@
       write (99,99002) 'idate2  = ' , globidate2
       write (99,99002) '/'
       close (99)
-
+!
 99001 format (1x,a)
 99002 format (1x,a,i10,',')
-
+!
       end subroutine for_next
-
+!
       end program regcm

@@ -17,15 +17,13 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine init
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine reads in the initial and boundary conditions.   c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
+      module mod_init
+!
+! RegCM Init module
+!
+      use mod_constants
       use mod_dynparam
+      use mod_o3blk
       use mod_runparams
       use mod_bats
       use mod_vecbats
@@ -36,15 +34,11 @@
       use mod_rad
       use mod_trachem
       use mod_message
-      use mod_date , only : dectim , mdate , mdate0 , mmrec , ldatez ,  &
-                   & idate1 , lyear , lmonth , lday , lhour , ndate0 ,  &
-                   & ndate1 , nnnchk , jyear , jyear0, jyearr, ntime ,  &
-                   & ktau , ktaur , xtime , idate0
+      use mod_date
       use mod_radiation
       use mod_sun
-      use mod_constants , only : rgti
-      use mod_ncio , only : open_icbc , read_icbc
-      use mod_savefile , only : read_savefile_part1
+      use mod_ncio
+      use mod_savefile
 #ifdef DIAG
 #ifndef BAND
       use mod_diagnosis
@@ -52,11 +46,31 @@
 #endif
 #ifdef MPP1
       use mod_mppio
-      use mod_lake , only : mpilake
+      use mod_lake
 #ifdef CLM
       use mod_clm
       use clm_varsur , only : init_tgb , init_grid
 #endif
+#endif
+!
+      private
+!
+      public :: init
+!
+      real(8) , parameter :: tlp = 50.D0
+      real(8) , parameter :: ts00 = 288.D0
+!
+      contains
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!                                                                     c
+!     this subroutine reads in the initial and boundary conditions.   c
+!                                                                     c
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine init
+!
+#ifdef MPP1
 #ifndef IBM
       use mpi
 #else
@@ -65,15 +79,9 @@
 #endif
       implicit none
 !
-! Local variables
-!
-!----------------------------------------------------------------------
-!-----dimension the arrays for parameterizing the sfc. variables.
-!     change the variable surface parameters
-!
       integer :: i , ibin , im1h , ip1h , ist ,itr , j , k , n , &
                  icbc_date
-      real(8) :: hg1 , hg2 , hg3 , hg4 , hgmax , tlp , ts00
+      real(8) :: hg1 , hg2 , hg3 , hg4 , hgmax
       integer :: jp1 , jm1
 #ifdef MPP1
       real(8) , dimension(iy,jxp) :: psdot
@@ -86,12 +94,6 @@
 #ifdef DIAG
       real(8) :: tvmass , tcmass , tttmp
 #endif
-!
-! absnxt  - Nearest layer absorptivities
-! abstot  - Non-adjacent layer absorptivites
-! emstot  - Total emissivity
-!
-      data tlp , ts00/50.D0 , 288.D0/
 !
       existing = .false.
 #ifdef MPP1
@@ -372,29 +374,29 @@
             tgb(i,j) = ts0(i,j)
           end do
         end do
-#ifdef SEAICE
-        do j = 1 , jendx
-          do i = 1 , iym1
-            if ( veg2d(i,j).le.0.00001 ) then
-              if ( ts0(i,j).le.271.38 ) then
-                tga(i,j) = 271.38
-                tgb(i,j) = 271.38
-                ts0(i,j) = 271.38
-!               write(*,*) 'Sea Ice point:', i,j
-                do n = 1, nnsg
-                  ocld2d(n,i,j)=2.
-                  sice2d(n,i,j)=1000.
-                end do
-              else
-                do n = 1, nnsg
-                  ocld2d(n,i,j)=0.
-                  sice2d(n,i,j)=0.
-                end do
+        if (iseaice == 1) then
+          do j = 1 , jendx
+            do i = 1 , iym1
+              if ( veg2d(i,j).le.0.00001 ) then
+                if ( ts0(i,j).le.271.38 ) then
+                  tga(i,j) = 271.38
+                  tgb(i,j) = 271.38
+                  ts0(i,j) = 271.38
+!                 write(*,*) 'Sea Ice point:', i,j
+                  do n = 1, nnsg
+                    ocld2d(n,i,j)=2.
+                    sice2d(n,i,j)=1000.
+                  end do
+                else
+                  do n = 1, nnsg
+                    ocld2d(n,i,j)=0.
+                    sice2d(n,i,j)=0.
+                  end do
+                end if
               end if
-            end if
+            end do
           end do
-        end do
-#endif
+        end if
         do k = 1 , kz
           do j = 1 , jendl
             do i = 1 , iy
@@ -533,33 +535,33 @@
             tgb(i,j) = ts0(i,j)
           end do
         end do
-#ifdef SEAICE
+        if (iseaice == 1) then
 #ifdef BAND
-        do j = 1 , jx
+          do j = 1 , jx
 #else
-        do j = 1 , jxm1
+          do j = 1 , jxm1
 #endif
-          do i = 1 , iym1
-            if ( veg2d(i,j).le.0.00001 ) then
-              if ( ts0(i,j).le.271.38 ) then
-                tga(i,j) = 271.38
-                tgb(i,j) = 271.38
-                ts0(i,j) = 271.38
-!               write(*,*) 'Sea Ice point:', i,j
-                do n = 1, nnsg
-                  ocld2d(n,i,j)=2.
-                  sice2d(n,i,j)=1000.
-                end do
-              else
-                do n = 1, nnsg
-                  ocld2d(n,i,j)=0.
-                  sice2d(n,i,j)=0.
-                end do
+            do i = 1 , iym1
+              if ( veg2d(i,j).le.0.00001 ) then
+                if ( ts0(i,j).le.271.38 ) then
+                  tga(i,j) = 271.38
+                  tgb(i,j) = 271.38
+                  ts0(i,j) = 271.38
+!                 write(*,*) 'Sea Ice point:', i,j
+                  do n = 1, nnsg
+                    ocld2d(n,i,j)=2.
+                    sice2d(n,i,j)=1000.
+                  end do
+                else
+                  do n = 1, nnsg
+                    ocld2d(n,i,j)=0.
+                    sice2d(n,i,j)=0.
+                  end do
+                end if
               end if
-            end if
+            end do
           end do
-        end do
-#endif
+        end if
         do k = 1 , kz
           do j = 1 , jx
             do i = 1 , iy
@@ -782,7 +784,7 @@
         if ( myid.eq.0 ) then
           call read_savefile_part1(ndate0)
 !
-          print * , ' init: ozone profiles restart'
+          print * , 'ozone profiles restart'
           do k = 1 , kzp1
             write (6,99004) o3prof_io(3,3,k)
           end do
@@ -1519,7 +1521,7 @@
 #else
         call read_savefile_part1(ndate0)
 !
-        print * , ' init: ozone profiles restart'
+        print * , 'ozone profiles restart'
         do k = 1 , kzp1
           write (6,99004) o3prof(3,3,k)
         end do
@@ -1716,3 +1718,59 @@
              &'  read in from ',a)
 !
       end subroutine init
+!
+!     compute ozone mixing ratio distribution
+!
+      subroutine inirad
+ 
+      implicit none
+!
+      integer :: i , j , k
+!
+      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+        do k = 1 , kz
+#ifdef MPP1
+          do j = 1 , jendl
+#else
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+#endif
+            do i = 1 , iym1
+              heatrt(i,k,j) = 0.
+              o3prof(i,k,j) = 0.
+            end do
+          end do
+        end do
+#ifdef MPP1
+        do j = 1 , jendl
+#else
+#ifdef BAND
+        do j = 1 , jx
+#else
+        do j = 1 , jxm1
+#endif
+#endif
+          do i = 1 , iym1
+            o3prof(i,kzp1,j) = 0.
+          end do
+        end do
+        call o3data
+#ifdef MPP1
+        if ( myid.eq.0 ) then
+#endif
+          write (6,*) 'ozone profiles'
+          do k = 1 , kzp1
+            write (6,99001) o3prof(3,k,2)
+          end do
+#ifdef MPP1
+        end if
+#endif
+      end if
+99001 format (1x,7E12.4)
+ 
+      end subroutine inirad
+!
+      end module mod_init

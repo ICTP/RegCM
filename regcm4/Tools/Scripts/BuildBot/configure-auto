@@ -67,10 +67,6 @@ def main(argv):
     # Band yes or no?
     band = int(sys.argv[3])
 
-    # Disabled by default (will be included in regcm.in)
-    dcsst = int(0)    
-    seaice = int(0)
-
     # CLM yes or no?
     clm = int(sys.argv[4])
 
@@ -93,9 +89,9 @@ def main(argv):
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
     if mpi == 1 :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,dcsst,seaice,compiler)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler)
     else :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,dcsst,seaice,compiler)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler)
 
     print "\n\t###################################################################"
     print "\t# Configuration complete! You should now be able to compile RegCM #"
@@ -179,14 +175,12 @@ def choose_template(regcm_root,compiler,dbg):
 
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
-def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,dcsst,seaice,compiler) :
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler) :
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
 
         line=line.replace("!BAND",str(band))
         line=line.replace("!CLM",str(clm))
-        line=line.replace("!DCSST",str(dcsst))
-        line=line.replace("!SEAICE",str(seaice))
         
         line=line.replace("!REGCM_ROOT",regcm_root)
         line=line.replace("!BIN_DIR",bin_dir)

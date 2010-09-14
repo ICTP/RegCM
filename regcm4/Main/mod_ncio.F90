@@ -19,6 +19,12 @@
 !
       module mod_ncio
 !
+        use mod_constants
+        use mod_dynparam
+        use mod_runparams
+        use mod_message
+        use mod_date
+!
         private
 !
         public :: init_mod_ncio , release_mod_ncio
@@ -54,7 +60,7 @@
         logical :: lso4p
         integer :: iatmrefdate , isrfrefdate , isubrefdate , &
                    iradrefdate , icherefdate
-        real(8) :: rpt, tpd, cpd, lxtime
+        real(8) :: rpt, tpd, cfd, lxtime
         real(8) :: xns2r
 
         ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
@@ -134,7 +140,6 @@
       contains
 
         subroutine cdumlbcs
-          use mod_runparams
           implicit none
           select case (iboudy)
             case(0)
@@ -155,7 +160,6 @@
         end subroutine cdumlbcs
 
         subroutine cdumcums
-          use mod_runparams
           implicit none
           select case (icup)
             case(1)
@@ -172,7 +176,6 @@
         end subroutine cdumcums
 
         subroutine cdumcumcl
-          use mod_runparams
           implicit none
           select case (igcc)
             case(1)
@@ -185,7 +188,6 @@
         end subroutine cdumcumcl
 
         subroutine cdumpbl
-          use mod_runparams
           implicit none
           select case (ibltyp)
             case(0)
@@ -198,7 +200,6 @@
         end subroutine cdumpbl
 
         subroutine cdummoist
-          use mod_runparams
           implicit none
           select case (ipptls)
             case(1)
@@ -210,7 +211,6 @@
         end subroutine cdummoist
 
         subroutine cdumocnflx
-          use mod_runparams
           implicit none
           select case (iocnflx)
             case(1)
@@ -223,7 +223,6 @@
         end subroutine cdumocnflx
 
         subroutine cdumpgfs
-          use mod_runparams
           implicit none
           select case (ipgf)
             case(0)
@@ -237,7 +236,6 @@
         end subroutine cdumpgfs
 
         subroutine cdumemiss
-          use mod_runparams
           implicit none
           select case (iemiss)
             case(0)
@@ -250,7 +248,6 @@
         end subroutine cdumemiss
 
         subroutine cdumlakes
-          use mod_runparams
           implicit none
           select case (lakemod)
             case(0)
@@ -263,7 +260,6 @@
         end subroutine cdumlakes
 
         subroutine cdumchems
-          use mod_runparams
           implicit none
           select case (ichem)
             case(0)
@@ -274,6 +270,30 @@
              write (cdum,'(a)') 'Unknown or not specified'
           end select
         end subroutine cdumchems
+
+        subroutine cdumdcsst
+          implicit none
+          select case (idcsst)
+            case(0)
+             write (cdum,'(a)') 'Not active'
+            case(1)
+             write (cdum,'(a)') 'Active'
+            case default 
+             write (cdum,'(a)') 'Unknown or not specified'
+          end select
+        end subroutine cdumdcsst
+
+        subroutine cdumseaice
+          implicit none
+          select case (iseaice)
+            case(0)
+             write (cdum,'(a)') 'Not active'
+            case(1)
+             write (cdum,'(a)') 'Active'
+            case default 
+             write (cdum,'(a)') 'Unknown or not specified'
+          end select
+        end subroutine cdumseaice
 
         function ivarname_lookup(ctype,sname)
           implicit none
@@ -322,9 +342,9 @@
           endif
         end function ivarname_lookup
 
-        subroutine init_mod_ncio
-          use mod_dynparam
+        subroutine init_mod_ncio(lband)
           implicit none
+          logical , intent(in) :: lband
           character(3) :: sbstring
           dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
           write (sbstring,'(i0.3)') nsg
@@ -334,37 +354,37 @@
           icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'// &
               &      'YYYYMMDDHH.nc'
 
-#ifdef BAND
-          o_is = 2
-          o_ie = iy-1
-          o_js = 1
-          o_je = jx
-          o_ni = iy-2
-          o_nj = jx
-          o_isg = nsg
-          o_ieg = iysg-nsg
-          o_jsg = 1
-          o_jeg = jxsg
-          o_nig = iym2sg
-          o_njg = jxsg
-          o_nz = kz
-          lwrap = .true.
-#else
-          o_is = 2
-          o_ie = iy-1
-          o_js = 2
-          o_je = jx-1
-          o_ni = iy-2
-          o_nj = jx-2
-          o_isg = nsg
-          o_ieg = iysg-nsg
-          o_jsg = nsg
-          o_jeg = jxsg-nsg
-          o_nig = iym2sg
-          o_njg = jxm2sg
-          o_nz = kz
-          lwrap = .false.
-#endif
+          if (lband) then
+            o_is = 2
+            o_ie = iy-1
+            o_js = 1
+            o_je = jx
+            o_ni = iy-2
+            o_nj = jx
+            o_isg = nsg
+            o_ieg = iysg-nsg
+            o_jsg = 1
+            o_jeg = jxsg
+            o_nig = iym2sg
+            o_njg = jxsg
+            o_nz = kz
+            lwrap = .true.
+          else
+            o_is = 2
+            o_ie = iy-1
+            o_js = 2
+            o_je = jx-1
+            o_ni = iy-2
+            o_nj = jx-2
+            o_isg = nsg
+            o_ieg = iysg-nsg
+            o_jsg = nsg
+            o_jeg = jxsg-nsg
+            o_nig = iym2sg
+            o_njg = jxm2sg
+            o_nz = kz
+            lwrap = .false.
+          end if
           xns2r = 1.0/float(nnsg)
           allocate(hsigma(o_nz))
           allocate(ioxlat(o_nj,o_ni))
@@ -382,8 +402,6 @@
         end subroutine init_mod_ncio
 
         subroutine open_domain(r8pt , dx , sigma)
-          use mod_dynparam
-          use mod_message
           use netcdf
           implicit none
 
@@ -493,7 +511,7 @@
           r8pt = ptsp/10.0
           rpt = ptop
           tpd = 24./tapfrq
-          cpd = 24./chemfrq
+          cfd = 24./chemfrq
           dx = dsx
           istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
           call check_ok('Variable sigma missing', 'DOMAIN FILE ERROR')
@@ -507,8 +525,6 @@
         end subroutine open_domain
 
         subroutine read_domain(ht,htsd,lnd,xlat,xlon,xmap,dmap,f,snw)
-          use mod_dynparam
-          use mod_message
           use netcdf
           implicit none
 
@@ -586,9 +602,6 @@
         end subroutine read_domain
 
         subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
-          use mod_dynparam
-          use mod_message
-          use mod_constants , only : gti
           use netcdf
           implicit none
 
@@ -681,7 +694,6 @@
         end subroutine read_subdomain
 
         subroutine close_domain
-          use mod_dynparam
           use netcdf
           implicit none
 
@@ -700,7 +712,6 @@
         end subroutine close_domain
 
         subroutine read_texture(nats,texture)
-          use mod_dynparam
           use netcdf
           implicit none
 
@@ -742,8 +753,6 @@
         end subroutine read_texture
 
         subroutine read_aerosol(chtrname,chemsrc)
-          use mod_dynparam
-          use mod_message
           use netcdf
           implicit none
 
@@ -893,10 +902,7 @@
         end subroutine read_aerosol
 
         subroutine open_icbc(idate)
-          use mod_dynparam
-          use mod_message
           use netcdf
-          use mod_date , only : timeval2idate
           integer , intent(in) :: idate
           character(10) :: cdate
           integer :: idimid , itvar , i , chkdiff
@@ -978,10 +984,7 @@
         end subroutine open_icbc
 
         subroutine read_icbc(idate,ps,ts,u,v,t,qv,so4)
-          use mod_dynparam
-          use mod_message
           use netcdf
-          use mod_date , only : idatediff
           implicit none
           integer , intent(in) :: idate
           real(8) , dimension(iy,kz,jx) , intent(out) :: u
@@ -1083,7 +1086,6 @@
         end subroutine read_icbc
 
         subroutine close_icbc
-          use mod_dynparam
           use netcdf
           implicit none
           if (ibcin >= 0) then
@@ -1109,8 +1111,6 @@
         end subroutine close_common
 
         function icbc_search(idate)
-          use mod_dynparam
-          use mod_date , only : idatediff
           implicit none
           integer :: icbc_search
           integer , intent(in) :: idate
@@ -1122,10 +1122,6 @@
         end function icbc_search
 
         subroutine prepare_common_out(idate,ctype)
-          use mod_dynparam
-          use mod_runparams
-          use mod_date , only : split_idate , idate1 , idate2
-          use mod_message
           use netcdf
           implicit none
           integer , intent(in) :: idate
@@ -1262,6 +1258,9 @@
 !
 !         ADD RUN PARAMETERS
 !
+          istatus = nf90_put_att(ncid, nf90_global,  &
+                  'model_IPCC_scenario', scenario)
+          call check_ok('Error adding global scenario', fterr)
           call cdumlbcs
           istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_boundary_conditions' , trim(cdum))
@@ -1304,6 +1303,14 @@
           istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_chemistry' , trim(cdum))
           call check_ok('Error adding global ichem', fterr)
+          call cdumdcsst
+          istatus = nf90_put_att(ncid, nf90_global,  &
+                  'model_diurnal_cycle_sst' , trim(cdum))
+          call check_ok('Error adding global dcsst', fterr)
+          call cdumseaice
+          istatus = nf90_put_att(ncid, nf90_global,  &
+                  'model_seaice_effect' , trim(cdum))
+          call check_ok('Error adding global seaice', fterr)
           istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_simulation_initial_start' , globidate1)
           call check_ok('Error adding global globidate1', fterr)
@@ -1972,8 +1979,6 @@
 
         subroutine writerec_srf(nx, ny, numbat, fbat, idate)
           use netcdf
-          use mod_message
-          use mod_date , only : idatediff
           implicit none
           integer , intent(in) :: nx , ny , numbat , idate
           real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
@@ -2075,9 +2080,6 @@
 
         subroutine writerec_sub(nx, ny, ns, numsub, fsub, idate)
           use netcdf
-          use mod_message
-          use mod_date , only : idatediff
-          use mod_dynparam , only : nsg
           implicit none
           integer , intent(in) :: nx , ny , ns , numsub , idate
           real(4) , dimension(ns,nx,ny,numsub) , intent(in) :: fsub
@@ -2193,8 +2195,6 @@
         subroutine writerec_rad(nx, ny, nz, nrad3d, nrad2d, frad3d, &
                                 frad2d, ps, idate)
           use netcdf
-          use mod_message
-          use mod_date , only : idatediff
           implicit none
           integer , intent(in) :: nx , ny , nz , nrad3d , nrad2d , idate
           real(4) , dimension(nx,ny,nz,nrad3d) , intent(in) :: frad3d
@@ -2270,8 +2270,6 @@
         subroutine writerec_atm(nx, ny, nz, ns, u, v, omega, t, qv, qc, &
                                 ps, rc, rnc, tgb, swt, rno, mask, idate)
           use netcdf
-          use mod_message
-          use mod_date , only : idatediff
           implicit none
           integer , intent(in) :: nx , ny , ns , nz , idate
           real(8) , dimension(ny,nz,nx) , intent(in) :: u
@@ -2479,10 +2477,10 @@
           icount(1) = o_nj
 
           dumio(:,:,1) = 0.0
-          where (rc(o_is:o_ie,o_js:o_je) > 1E-20)
+          where (transpose(rc(o_is:o_ie,o_js:o_je)) > 1E-20)
             dumio(:,:,1) = transpose(rc(o_is:o_ie,o_js:o_je))
           end where
-          where (rnc(o_is:o_ie,o_js:o_je) > 1E-20)
+          where (transpose(rnc(o_is:o_ie,o_js:o_je)) > 1E-20)
             dumio(:,:,1) = dumio(:,:,1) + &
                            transpose(rnc(o_is:o_ie,o_js:o_je))
           end where
@@ -2540,8 +2538,6 @@
                                 wxsg, wxaq, cemtrac, aertarf, aersrrf, &
                                 aertalwrf, aersrlwrf, ps, idate)
           use netcdf
-          use mod_message
-          use mod_date , only : idatediff
           implicit none
           integer , intent(in) :: nx , ny , nz , nt , idate
           real(8) , dimension(ny,nz,nx,nt) , intent(in) :: chia
@@ -2656,32 +2652,32 @@
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(7)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cpd
+            dumio(:,:,1) = transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(8), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(8)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cpd
+            dumio(:,:,1) = transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(9), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(9)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cpd
+            dumio(:,:,1) = transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(10), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(10)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cpd
+            dumio(:,:,1) = transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(11), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(11)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cpd
+            dumio(:,:,1) = transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(12), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(12)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cpd
+            dumio(:,:,1) = transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(13), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(13)// &
@@ -2720,7 +2716,6 @@
         end subroutine writerec_che
 
         subroutine check_ok(m1,mf)
-          use mod_message
           use netcdf
           implicit none
           character(*) :: m1 , mf

@@ -18,7 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_pmoist
-
+!
+! Storage, parameters and constants related to
+!     moisture calculations.
+!
       use mod_dynparam
 
       implicit none
@@ -41,61 +44,46 @@
       integer ,allocatable, dimension(:) :: icon
       integer ,allocatable, dimension(:,:) :: kbmax2d
       integer :: kbmax
-
+!
       contains
-
-      subroutine allocate_mod_pmoist
+!
+      subroutine allocate_mod_pmoist(lmpi)
       implicit none
-#ifdef MPP1
-      allocate(cbmf2d(iy,jxp))
-      allocate(cgul(iy,jxp))
-      allocate(dtauc2d(iy,jxp))
-      allocate(edtmax2d(iy,jxp))
-      allocate(edtmaxo2d(iy,jxp))
-      allocate(edtmaxx2d(iy,jxp))
-      allocate(edtmin2d(iy,jxp))
-      allocate(edtmino2d(iy,jxp))
-      allocate(edtminx2d(iy,jxp))
-      allocate(htmax2d(iy,jxp))
-      allocate(htmin2d(iy,jxp))
-      allocate(mincld2d(iy,jxp))
-      allocate(pbcmax2d(iy,jxp))
-      allocate(qck1(iy,jxp))
-      allocate(rh0(iy,jxp))
-      allocate(shrmax2d(iy,jxp))
-      allocate(shrmin2d(iy,jxp))
-      allocate(fcc(iy,kz,jxp))
-      allocate(rsheat(iy,kz,jxp))
-      allocate(rswat(iy,kz,jxp))
-      allocate(icon(jxp))
-      allocate(kbmax2d(iy,jxp))
-#else
-      allocate(cbmf2d(iy,jx))
-      allocate(cgul(iy,jx))
-      allocate(dtauc2d(iy,jx))
-      allocate(edtmax2d(iy,jx))
-      allocate(edtmaxo2d(iy,jx))
-      allocate(edtmaxx2d(iy,jx))
-      allocate(edtmin2d(iy,jx))
-      allocate(edtmino2d(iy,jx))
-      allocate(edtminx2d(iy,jx))
-      allocate(htmax2d(iy,jx))
-      allocate(htmin2d(iy,jx))
-      allocate(mincld2d(iy,jx))
-      allocate(pbcmax2d(iy,jx))
-      allocate(qck1(iy,jx))
-      allocate(rh0(iy,jx))
-      allocate(shrmax2d(iy,jx))
-      allocate(shrmin2d(iy,jx))
-      allocate(fcc(iy,kz,jx))
-      allocate(rsheat(iy,kz,jx))
-      allocate(rswat(iy,kz,jx))
-      allocate(icon(jx))
-      allocate(kbmax2d(iy,jx))
-#endif
+      logical , intent(in) :: lmpi
+      integer :: nj
+
+      if (lmpi) then
+        nj = jxp
+      else
+        nj = jx
+      end if
+
+      allocate(cbmf2d(iy,nj))
+      allocate(cgul(iy,nj))
+      allocate(dtauc2d(iy,nj))
+      allocate(edtmax2d(iy,nj))
+      allocate(edtmaxo2d(iy,nj))
+      allocate(edtmaxx2d(iy,nj))
+      allocate(edtmin2d(iy,nj))
+      allocate(edtmino2d(iy,nj))
+      allocate(edtminx2d(iy,nj))
+      allocate(htmax2d(iy,nj))
+      allocate(htmin2d(iy,nj))
+      allocate(mincld2d(iy,nj))
+      allocate(pbcmax2d(iy,nj))
+      allocate(qck1(iy,nj))
+      allocate(rh0(iy,nj))
+      allocate(shrmax2d(iy,nj))
+      allocate(shrmin2d(iy,nj))
+      allocate(fcc(iy,kz,nj))
+      allocate(rsheat(iy,kz,nj))
+      allocate(rswat(iy,kz,nj))
+      allocate(icon(nj))
+      allocate(kbmax2d(iy,nj))
       allocate(qwght(kz))
       allocate(twght(kz,5:kz,1:kz-3))
       allocate(vqflx(kz,5:kz,1:kz-3))
+!
       end subroutine allocate_mod_pmoist
-
+!
       end module mod_pmoist

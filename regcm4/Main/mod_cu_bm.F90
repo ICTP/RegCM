@@ -18,7 +18,36 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_cu_bm
-
+!
+! Betts Miller Cumulus Convection Scheme
+!
+! Convective adjustment for deep or shallow convection
+! Modified by Jack Kain of Penn State to replace the look-up table
+!  by calculations.
+!
+!*****************************************************************
+!                                                                *
+!  references:                                                   *
+!                                                                *
+!  Betts, A.K., 1986:  A new convective adjustment scheme.       *
+!    Part I: Observational and theoretical basis.  Quart. J. R.  *
+!    Met. Soc., 112, 677-691.                                    *
+!                                                                *
+!  Betts, A.K., and M.J. Miller, 1986:  A new convective         *
+!    adjustment scheme.  Part II: Single column tests using      *
+!    gate wave, bomex, atex and arctic air mass data sets.       *
+!    Quart. J. R. Met. Soc., 112, 693-709.                       *
+!                                                                *
+!  N.B.  Part of the code is scalar.  In global models           *
+!  convection occurs in less than 30/100 points.  With           *
+!  simulataneous vector processing for both deep and shallow     *
+!  convection, there would be a lot of redundant vector          *
+!  computations.  If vector processing is 10 times faster        *
+!  than scalar, one might hope that the cpu time will be about   *
+!  the same for both scalar and vector code.                     *
+!                                                                *
+!*****************************************************************
+!
       use mod_constants
       use mod_dynparam
       use mod_runparams
@@ -44,41 +73,14 @@
       public :: bmpara , lutbl
 
       contains
-
+!
       subroutine bmpara(tten,qten,j)
 !
-! modified by jack kain of penn state to replace the look-up tabl
-!  by calculations.
-!
-!*****************************************************************
-!                                                                *
-!  convective adjustment for deep or shallow convection          *
-!                                                                *
-!  references:                                                   *
-!                                                                *
-!  betts, a.k., 1986:  a new convective adjustment scheme.       *
-!    part i: observational and theoretical basis.  quart. j. r.  *
-!    met. soc., 112, 677-691.                                    *
-!                                                                *
-!  betts, a.k., and m.j. miller, 1986:  a new convective         *
-!    adjustment scheme.  part ii: single column tests using      *
-!    gate wave, bomex, atex and arctic air mass data sets.       *
-!    quart. j. r. met. soc., 112, 693-709.                       *
-!                                                                *
-!  n.b.  part of the code is scalar.  in global models           *
-!  convection occurs in less than 30/100 points.  with           *
-!  simulataneous vector processing for both deep and shallow     *
-!  convection, there would be a lot of redundant vector          *
-!  computations.  if vector processing is 10 times faster        *
-!  than scalar, one might hope that the cpu time will be about   *
-!  the same for both scalar and vector code.                     *
-!                                                                *
 !*****************************************************************
 ! *** warning: this subroutine will not work if kz.lt.12;
+!*****************************************************************
 !
       implicit none
-!
-! PARAMETER definitions
 !
       real(8) , parameter :: h1 = 1.E0 , h3000 = 3000.E0 ,              &
                            & h10e5 = 100000.E0 , d00 = 0.E0 ,           &
@@ -118,14 +120,10 @@
                            & cprlg = cpd/(row*gti*wlhv)
       integer :: lp1 , lm1
 !
-! Dummy arguments
-!
       integer :: j
       real(8) , dimension(iy,kz) :: qten , tten
       intent (in) j
       intent (inout) qten , tten
-!
-! Local variables
 !
       real(8) :: ak , akclth , apekl , aprdiv , avrgt , avrgtl , cell , &
                & cthrs , den , dentpy , dhdt , difql , diftl , dpkl ,   &
@@ -867,23 +865,17 @@
 
       end subroutine bmpara
 !
-!
+! Look up table (calculated version)
 !
       subroutine lutbl(ptop)
 !
       implicit none
 !
-! PARAMETER definitions
-!
       real(8) , parameter :: eps = 2.D-12 ! little number
 
 !
-! Dummy arguments
-!
       real(8) :: ptop
       intent (in) ptop
-!
-! Local variables
 !
       real(8) :: ape , dp , dqs , dth , dthe , p , ph , pt , qs , qs0k ,&
                & sqsk , sthek , th , the0k , thh
@@ -1017,18 +1009,12 @@
 !
       end subroutine lutbl
 !
-!
-!
-      subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew)
- 
-      implicit none
-!
 !*****************************************************************
 !                                                                *
-!  this is a one-dimensional cubic spline fitting routine        *
+!  This is a one-dimensional cubic spline fitting routine        *
 !  programed for a small scalar machine.                         *
 !                                                                *
-!  programer\ z. janjic, yugoslav fed. hydromet. inst., beograd  *
+!  Programer: Z. Janjic, Yugoslav Fed. Hydromet. Inst., Beograd  *
 !                                                                *
 !  nold - number of given values of the function.  must be ge 3. *
 !  xold - locations of the points at which the values of the     *
@@ -1046,7 +1032,9 @@
 !                                                                *
 !*****************************************************************
 !
-! Dummy arguments
+      subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew)
+ 
+      implicit none
 !
       integer :: nnew , nold
       real(8) , dimension(nold) :: xold , yold , y2
@@ -1055,13 +1043,13 @@
       intent (out) ynew
       intent (inout) y2
 !
-! Local variables
-!
       real(8) , dimension(nold-2) :: p , q
       real(8) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
                & dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
       integer :: k , k1 , k2 , kold , noldm1
+!
 !-----------------------------------------------------------------------
+!
       ak = 0.0
       bk = 0.0
       ck = 0.0
@@ -1151,20 +1139,16 @@
 !-----------------------------------------------------------------------
       end subroutine spline
 !
-!
+! Calculates tpfc
 !
       function tpfc(press,thetae,tgs,d273,rl,qs,pi)
  
       implicit none
 !
-! Dummy arguments
-!
       real(8) :: d273 , pi , press , qs , rl , tgs , thetae
       real(8) :: tpfc
       intent (in) d273 , pi , press , rl , tgs , thetae
       intent (inout) qs
-!
-! Local variables
 !
       real(8) :: dt , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
 !
@@ -1193,4 +1177,5 @@
         go to 100
       end if
       end function tpfc
+!
       end module mod_cu_bm

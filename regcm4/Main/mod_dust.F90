@@ -18,7 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_dust
-
+!
+! DUST module
+!
       use mod_constants
       use mod_dynparam
       use mod_ncio
@@ -26,8 +28,6 @@
       use mod_message
 
       implicit none
-!
-! PARAMETER definitions
 !
       integer , parameter :: nsoil = 152
       integer , parameter :: nats = 12 ! ntex - 5
@@ -76,19 +76,17 @@
       real(8) ,allocatable,  dimension(:,:,:,:) :: srel2d
       real(8) , allocatable , dimension(:,:,:) ::dustsotex
       real(8) , dimension(nsoil) :: dp
-
-!DATA section
-      
+!
 ! Initialise sub bin aerosol distribution 
-
+!
       data  aerosize/1.0E-08 , 2.0E-08 , 2.0E-08 , 4.0E-08 , 4.0E-08 ,   &
          & 8.0E-08 , 8.0E-08 , 1.6E-07 , 1.6E-07 , 3.2E-07 , 3.2E-07 ,  &
          & 6.4E-07 , 6.4E-07 , 1.28E-06 , 1.28E-06 , 2.56E-06 ,         &
          & 2.56E-06 , 5.12E-06 , 5.12E-06 , 10.4E-06 , 10.24E-06 ,      &
          & 20.48E-06 , 20.48E-06 , 40.6E-06/
-
+!
       contains 
-
+!
       subroutine allocate_mod_dust 
         implicit none
 
@@ -118,9 +116,7 @@
 #endif 
 
       end subroutine allocate_mod_dust
-
-      subroutine inidust
- 
+!
 !  ***********************************************************
 !  * description of 12- soil categories                  *****
 !  *                                                     *****
@@ -139,7 +135,9 @@
 !  * 11        silty clay             medium-fine        *****
 !  * 12        clay                   fine               *****
 !  ***********************************************************
- 
+!
+      subroutine inidust
+! 
 #ifdef MPP1
 #ifdef IBM
       include 'mpif.h'
@@ -148,13 +146,10 @@
 #endif
 #endif
       implicit none
-
+!
 #ifdef MPP1
       integer :: ierr
 #endif
-
-!
-! Local variables
 !
       real(8) , dimension(nats) :: bcly , bslt , bsnd
       real(8) :: deldp , eps , rhop , stotal , xk , xl , xm , xn
@@ -166,45 +161,38 @@
       character(5) :: aerctl
       real(8) :: alogdi , amean1 , amean2 , amean3 , asigma1 ,          &
                & asigma2 , asigma3 , rwi , totv1 , totv2 , totv3
-
+!
 ! Fab update 
 ! change type 1 and 2 and 3 to Laurent et al., 2008, marticorena et al., 1997
 !  soil size parameter 
-
+!
       data bcly/0.00 , 0.10 , 0.10 , 0.15 , 0.15 , 0.15 , 0.20 , 0.20 , &
          & 0.30 , 0.35 , 0.40 , 0.50/
       data bsnd/0.90 , 0.60 , 0.60 , 0.50 , 0.45 , 0.35 , 0.30 , 0.30 , &
          & 0.20 , 0.65 , 0.60 , 0.50/
       data bslt/0.10 , 0.30 , 0.30 , 0.35 , 0.40 , 0.50 , 0.50 , 0.50 , &
          & 0.50 , 0.00 , 0.00 , 0.00/
- 
+! 
       data rhop/2650.000/
       data eps/1.0E-7/
-!      data mmd/1000.0 , 100.0 , 10.0 , 690.0 , 100.0 , 10.0 , 520.0 ,   &
-
-    data mmd/690.0 , 210.0 , 10.0 , 690.0 , 210.0 , 0.0 , 690.0 ,   &
+!
+      data mmd/690.0 , 210.0 , 10.0 , 690.0 , 210.0 , 0.0 , 690.0 ,     &
          & 210.0 , 0.0 , 520.0 , 100.0 , 5.0 , 520.0 , 75.0 , 2.5 ,     &
          & 520.0 , 75.0 , 2.5 , 210.0 , 75.0 , 2.5 , 210.0 , 50.0 ,     &
          & 2.5 , 125.0 , 50.0 , 1.0 , 100.0 , 10.0 , 1.0 , 100.0 ,      &
          & 10.0 , 0.5 , 100.0 , 10.0 , 0.5/
- 
-!      data sigma/1.6 , 1.7 , 1.8 , 1.6 , 1.7 , 1.8 , 1.6 , 1.7 , 1.8 ,  &
+! 
       data sigma/1.6 , 1.8 , 1.8 , 1.6 , 1.8 , 1.8 , 1.6 , 1.8 , 1.8 ,  &
          & 1.6 , 1.7 , 1.8 , 1.6 , 1.7 , 1.8 , 1.6 , 1.7 , 1.8 , 1.7 ,  &
          & 1.7 , 1.8 , 1.7 , 1.7 , 1.8 , 1.7 , 1.7 , 1.8 , 1.8 , 1.8 ,  &
          & 1.8 , 1.8 , 1.8 , 1.8 , 1.8 , 1.8 , 1.8/
- 
-!      data pcent/0.90 , 0.10 , 0.00 , 0.60 , 0.30 , 0.10 , 0.60 , 0.30 ,&
-
+! 
        data pcent/1.0 , 0.00 , 0.00 , 0.90 , 0.10 , 0.00 , 0.80 , 0.20 ,&
          & 0.00 , 0.50 , 0.35 , 0.15 , 0.45 , 0.40 , 0.15 , 0.35 ,      &
          & 0.50 , 0.15 , 0.30 , 0.50 , 0.20 , 0.30 , 0.50 , 0.20 ,      &
          & 0.20 , 0.50 , 0.30 , 0.65 , 0.00 , 0.35 , 0.60 , 0.00 ,      &
          & 0.40 , 0.50 , 0.00 , 0.50/
- 
-
-!FAB read texture file 
-
+!
       rd_tex = .false.
 #ifdef MPP1
       if ( myid.eq.0 ) then
@@ -412,8 +400,6 @@
       function cvmgt(val1,val2,cond)
       implicit none
 !
-! Dummy arguments
-!
       logical :: cond
       real(8) :: val1 , val2
       real(8) :: cvmgt
@@ -427,26 +413,6 @@
 !
       end function cvmgt
 !
-      function ustart01(rhop,dum,rhair)
-      implicit none
-!
-! PARAMETER definitions
-!
-      real(8) , parameter :: a2 = 0.129 , c1 = 0.006 , c2 = 1.928 ,     &
-                           & c3 = 0.0858 , c4 = -0.0617 , c5 = 2.5 ,    &
-                           & y1 = 1331.647 , y2 = 1.561228 ,            &
-                           & y3 = 0.38194
-!
-! Dummy arguments
-!
-      real(8) :: dum , rhair , rhop
-      real(8) :: ustart01
-      intent (in) dum , rhair , rhop
-!
-! Local variables
-!
-      real(8) :: dm , rep , term , term1 , term2
-!
 !     *****************************************************************
 !     * calculate of ustar01(d) using iversen and white (1982)     ****
 !     * for smoth surface:                                         ****
@@ -455,7 +421,21 @@
 !     * dum    : particle diameter [um]                            ****
 !     * ustar0 : threshold frication velocity [m/s]                ****
 !     *****************************************************************
- 
+!
+      function ustart01(rhop,dum,rhair)
+      implicit none
+!
+      real(8) , parameter :: a2 = 0.129 , c1 = 0.006 , c2 = 1.928 ,     &
+                           & c3 = 0.0858 , c4 = -0.0617 , c5 = 2.5 ,    &
+                           & y1 = 1331.647 , y2 = 1.561228 ,            &
+                           & y3 = 0.38194
+!
+      real(8) :: dum , rhair , rhop
+      real(8) :: ustart01
+      intent (in) dum , rhair , rhop
+!
+      real(8) :: dm , rep , term , term1 , term2
+! 
       dm = dum  !* 1.0e-4      ! cm
       rep = y1*(dm**y2) + y3
       term1 = sqrt(1.0+(c1/(rhop*gti*0.1*(dm**c5))))
@@ -463,25 +443,8 @@
       term = term1*term2
       ustart01 = cvmgt(a2*term*(1.0-c3*exp(c4*(rep-10.0))),             &
                & a2*term/sqrt(c2*(rep**0.092)-1.0),rep.gt.10.0)
- 
-      end function ustart01
 ! 
-      function ustart0(rhop,dum,rhoa)
-      implicit none
-!
-! PARAMETER definitions
-!
-      real(8) , parameter :: agamma = 3.0E-4 , f = 0.0123
-!
-! Dummy arguments
-!
-      real(8) :: dum , rhoa , rhop
-      real(8) :: ustart0
-      intent (in) dum , rhoa , rhop
-!
-! Local variables
-!
-      real(8) :: dm , sigma
+      end function ustart01
 !
 !     *****************************************************************
 !     *                                                            ****
@@ -492,20 +455,26 @@
 !     * dum:    particle diameter                   [um]           ****
 !     * ustar0: threshold friction velocity       [cm/s]           ****
 !     *****************************************************************
-                                   ! a constant
- 
-      sigma = rhop/rhoa        ! gravity parameter    [m s-2]
-      dm = dum*1.0E-2    !* 1.0e-6
+! 
+      function ustart0(rhop,dum,rhoa)
+      implicit none
+!
+      real(8) , parameter :: agamma = 3.0E-4 , f = 0.0123
+!
+      real(8) :: dum , rhoa , rhop
+      real(8) :: ustart0
+      intent (in) dum , rhoa , rhop
+!
+      real(8) :: dm , sigma
+! 
+      sigma = rhop/rhoa
+      dm = dum*1.0E-2
       ustart0 = f*(sigma*gti*dm+agamma/(rhoa*dm))
       ustart0 = sqrt(ustart0)
       ustart0 = ustart0*100.0
+!
       end function ustart0
 ! 
-!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
-      subroutine sfflux(ilg,il1,il2,jloop,luc,ivegcov,vegfrac, &
-                      & ustarnd,z0,soilw,surfwd,roarow,trsize,rsfrow)
- 
 !  **********************************************************
 !  *  dust emission scheme                             ******
 !  *                                                   ******
@@ -515,10 +484,11 @@
 !  * the modification coded by:                        ******
 !  * ashraf s. zakey                                   ******
 !  **********************************************************
- 
+! 
+      subroutine sfflux(ilg,il1,il2,jloop,luc,ivegcov,vegfrac, &
+                      & ustarnd,z0,soilw,surfwd,roarow,trsize,rsfrow)
+! 
       implicit none
-!
-! Dummy arguments
 !
       integer :: il1 , il2 , ilg , jloop , luc
       integer , dimension(ilg) ::  ivegcov
@@ -529,8 +499,6 @@
       intent (in) il1 , il2 ,  ivegcov , jloop , roarow ,     &
                 & soilw , surfwd , vegfrac , z0 , ustarnd
       intent (out) rsfrow
-!
-! Local variables
 !
       integer :: i , ieff , ieffmax , n , ns
       real(8) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
@@ -609,8 +577,6 @@
  
       implicit none
 !
-! Dummy arguments
-!
       integer :: il1 , il2 , ilg
       real(8) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
                                 & vegfrac , z0 , ustarnd
@@ -619,8 +585,6 @@
       real(8) , dimension(ilg,nsoil,nats) :: srel
       real(8) , dimension(nbin,2) :: trsize
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
-!
-! Local variables
 !
       real(8) , dimension(ilg) :: alamda , hc , rc , srl , wprim
       real(8) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,        &
@@ -725,8 +689,6 @@
       subroutine uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop,dp)
       implicit none
 !
-! Dummy arguments
-!
       integer :: il1 , il2 , ilg , nsoil , ust
       real(8) :: rhop
       real(8) , dimension(nsoil) :: dp
@@ -734,8 +696,6 @@
       real(8) , dimension(ilg,nsoil) :: utheff
       intent (in) il1 , il2 , ilg , nsoil , ust
       intent (out) utheff
-!
-! Local variables
 !
       integer :: i , j
 !
@@ -753,10 +713,6 @@
  
       implicit none
 !
-! PARAMETER definitions
-!
-! Dummy arguments
-!
       integer :: il1 , il2 , ilg
       real(8) :: rhop , uth
       real(8) , dimension(ilg) :: rc ,ustar, roarow , vegfrac
@@ -769,8 +725,6 @@
                 & trsize , ustar , utheff , vegfrac, ftex
       intent (inout) rsfrow , uth
 !
-! Local variables
-!
 !     real(8) :: beffect
       real(8) :: beta , const,                                & 
                & p1, p2 , p3, rwi, dec, ec , fdp1 , fdp2
@@ -779,8 +733,8 @@
       real(8) , dimension(ilg,isize,nats) :: rsfrowsub
       real(8), dimension(ilg,nbin,nats):: rsfrowt
 !
-!      data const/2.3/ , beta/16300./ put const consistent with soil parameters and LAurent et al., 08
-       data const/1./, beta/16300./ 
+!     Put const consistent with soil parameters and Laurent et al., 08
+      data const/1./, beta/16300./ 
  
       p1 = 0.0
       p2 = 0.0
@@ -833,44 +787,39 @@
                   p1 = 0.
                   p2 = 0.
                   p3 = 0.
-                else
                 end if
  
-                fsoil1(i,nt) = fsoil1(i,nt) + 1.E-2*p1*(dec/e1)*(mathpi/6.)   &
-                          & *rhop*((d1*1.E-04)**3.)
-                fsoil2(i,nt) = fsoil2(i,nt) + 1.E-2*p2*(dec/e2)*(mathpi/6.)   &
-                          & *rhop*((d2*1.E-04)**3.)
-                fsoil3(i,nt) = fsoil3(i,nt) + 1.E-2*p3*(dec/e3)*(mathpi/6.)   &
-                          & *rhop*((d3*1.E-04)**3.)
+                fsoil1(i,nt) = fsoil1(i,nt) + 1.E-2*p1*(dec/e1)* &
+                               (mathpi/6.)*rhop*((d1*1.E-04)**3.)
+                fsoil2(i,nt) = fsoil2(i,nt) + 1.E-2*p2*(dec/e2)* &
+                               (mathpi/6.)*rhop*((d2*1.E-04)**3.)
+                fsoil3(i,nt) = fsoil3(i,nt) + 1.E-2*p3*(dec/e3)* &
+                               (mathpi/6.)*rhop*((d3*1.E-04)**3.)
               end if
-             end if
-           end do
-          end do
-         end do
-
-
-
-! calculate fluxes for each of transport bins
-
-      
-      rsfrowt(:,:,:) = 0.
-      do nt=1,nats
-       do n = 1 , isize
-        do i = il1 , il2
- 
-!         discretisation of the modal emission in isize emission sub bin
-          rsfrowsub(i,n,nt) = fsoil1(i,nt)*frac1(n) + fsoil2(i,nt)*frac2(n)      &
-                         & + fsoil3(i,nt)*frac3(n)
- 
-!         and in tranport bins (nbin)
-          rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
-
-          do k = 1 , nbin
-            if ( rwi.ge.trsize(k,1) .and. rwi.lt.trsize(k,2) )          &
-               & rsfrowt(i,k,nt) = rsfrowt(i,k,nt) + rsfrowsub(i,n,nt)
+            end if
           end do
         end do
       end do
+!
+! calculate fluxes for each of transport bins
+!
+      rsfrowt(:,:,:) = 0.
+      do nt = 1 , nats
+        do n = 1 , isize
+          do i = il1 , il2
+!         discretisation of the modal emission in isize emission sub bin
+            rsfrowsub(i,n,nt) = fsoil1(i,nt)*frac1(n) + &
+                                fsoil2(i,nt)*frac2(n) + &
+                                fsoil3(i,nt)*frac3(n)
+!         and in tranport bins (nbin)
+            rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
+
+            do k = 1 , nbin
+              if ( rwi.ge.trsize(k,1) .and. rwi.lt.trsize(k,2) )          &
+                 & rsfrowt(i,k,nt) = rsfrowt(i,k,nt) + rsfrowsub(i,n,nt)
+            end do
+          end do
+        end do
       end do 
 
 ! Finally, aggregation of the dust flux at the grid cell level =
@@ -886,20 +835,17 @@
 ! there is no need to multipky by sand2row.
 
        rsfrow(:,:) = 0.
-       do k=1,nbin
-       do nt=1,nats
-       do i=il1,il2
-        rsfrow(i,k) =  rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt)  &
-     &      * (1 - vegfrac(i)) 
-
-! * EBL(i)              
-!     &* (1-snowfrac)     
-
+       do k = 1 , nbin
+         do nt = 1 , nats
+           do i = il1 , il2
+              rsfrow(i,k) =  rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt)  &
+                          &  * (1 - vegfrac(i)) 
+! * EBL(i)
+!                         &  * (1-snowfrac)     
+           end do
+         end do
        end do
-       end do
-       end do
-
+!
       end subroutine emission
-
-
+!
       end module mod_dust

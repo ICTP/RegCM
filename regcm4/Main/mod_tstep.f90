@@ -17,30 +17,31 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
+      module mod_tstep
+!
+! Calculate smaller timesteps for model startup
+!
+      use mod_dynparam
+      use mod_runparams
+      use mod_date
+!
+      private
+!
+      public :: tstep
+!
+      contains
+!
+!     This subroutine makes a refined start to the model, i.e. the
+!     model is started with a series of small time steps.
+!
       subroutine tstep(extime,dtinc,deltmx)
 
-      use mod_dynparam
-      use mod_runparams , only : dt , dt2 , dtmin
-      use mod_date , only : jyear , jyear0 , ktau
       implicit none
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!                                                                     c
-!     this subroutine makes a refined start to the model, i.e. the    c
-!     model is started with a series of small time steps.             c
-!                                                                     c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-! Dummy arguments
 !
       real(8) :: deltmx , dtinc , extime
       intent (in) extime
       intent (out) dtinc
       intent (inout) deltmx
-!
-! Local variables
 !
       real(8) :: deltmn , tscale
       integer :: idtmax
@@ -65,3 +66,5 @@
       if ( jyear.ne.jyear0 .or. ktau.ne.0 ) dt = dt2
 !
       end subroutine tstep
+!
+      end module mod_tstep

@@ -23,6 +23,21 @@
 
       module mod_mtrxclm
 
+      use mod_constants
+      use mod_dynparam
+      use mod_runparams
+      use mod_date
+      use mod_clm
+      use mod_bats
+      use mod_mppio
+      use mod_main
+      use mod_pbldim
+      use mod_slice
+      use mod_bats
+      use mod_vecbats
+      use mod_drag
+      use mod_zengocn
+
       contains
 
       subroutine mtrxclm
@@ -46,7 +61,6 @@
 !                            in mm/s.
 !=======================================================================
 ! include clm modules
-      use mod_clm
       use atmdrvMod       , only : rcmdrv
       use clm_comp        , only : clm_run1, clm_run2
 !
@@ -97,7 +111,6 @@
 ! PRECCmms convective precipitation (mm H2O / sec)  optional (replaces PRECT)
 ! PRECLmms large-scale precipitation (mm H2O / sec) optional (replaces PRECT)
  
-      use mod_dynparam
 !
       use initializeMod
       use shr_orb_mod
@@ -114,17 +127,7 @@
       use clm_comp 
       use clmtype
       use perf_mod
-!
       use mpi
-      use mod_date
-      use mod_runparams
-      use mod_clm
-      use mod_bats
-      use mod_mppio
-      use mod_constants
-      use mod_main
-      use mod_pbldim
-      use mod_slice
 ! 
       implicit none
 !
@@ -778,11 +781,6 @@
 !
       subroutine albedoclm(j,iemiss)
  
-      use mod_dynparam
-      use mod_bats
-      use mod_vecbats
-      use mod_drag
-      use mod_constants , only : tzero
       use clm_varsur,     only : landfrac
       implicit none
 !
@@ -880,30 +878,24 @@
 !         can't use pointer "nalbk" here because not set - use nldock
 !         instead tgb1d(i) used instead of tbelow
 !
-#ifdef SEAICE
-          if ( ldoc1d(n,i).gt.1.5 ) then
-            tdiffs=ts1d(n,i)-tzero
-            tdiff=dmax1(tdiffs,0.d0)
-            tdiffs=dmin1(tdiff,20.d0)
-            albgl=sical1-1.1e-2*tdiffs
-            albgs=sical0-2.45e-2*tdiffs
-            albg=fsol1*albgs+fsol2*albgl
-            albgsd=albgs
-            albgld=albgl
-          else if ( ldoc1d(n,i).gt.0.1D0 .and.                          &
-           &       sice1d(n,i).eq.0.D0 ) then
-#else
-           if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
-#endif
+          if (iseaice == 1) then
+            if ( ldoc1d(n,i).gt.1.5 ) then
+              tdiffs=ts1d(n,i)-tzero
+              tdiff=dmax1(tdiffs,0.d0)
+              tdiffs=dmin1(tdiff,20.d0)
+              albgl=sical1-1.1e-2*tdiffs
+              albgs=sical0-2.45e-2*tdiffs
+              albg=fsol1*albgs+fsol2*albgl
+              albgsd=albgs
+              albgld=albgl
+            end if
+          end if
+          if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
             sfac = 1.D0 - fseas(tgb1d(n,i))
- 
 !           **********  ccm tests here on land mask for veg and soils
- 
- 
 !c          data *** reduces albedo at low temps !!!!!should respond to
 !c          moisture too the following card inactivated (commented out)
 !c          (pat, 27 oct 86)
- 
 !           veg1d(i)=vegc(lveg(i))-seasf(lveg(i))*sfac
             albs = albvgs(lveg(n,i))
             albl = albvgl(lveg(n,i))
@@ -1117,22 +1109,10 @@
 ! ivers = 1 : regcm -> clm
 ! ivers = 2 : clm -> regcm
 !
-      use mod_dynparam
       use clm_varsur,    only : landmask, landfrac
       use clmtype
       use clm_varsur,    only : c2r_allout,omap_i,omap_j
       use mpi
-      use mod_clm
-      use mod_date
-      use mod_main
-      use mod_runparams
-      use mod_slice
-      use mod_pbldim
-      use mod_bats
-      use mod_vecbats
-      use mod_mppio
-      use mod_constants
-      use mod_zengocn , only : zengocndrv
       implicit none
 !
 ! Dummy arguments

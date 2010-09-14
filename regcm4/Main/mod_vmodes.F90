@@ -22,14 +22,81 @@
       use mod_constants
       use mod_dynparam
       use mod_runparams
-      use mod_split
       use mod_message
 
       private
 
-      public :: vmodes
+      public :: allocate_mod_vmodes , vmodes
+
+      public :: a0 , a4
+      public :: hbar , sigmah , tbarh
+      public :: xps , pd
+      public :: zmatx , zmatxr
+      public :: tau , varpa1
+      public :: hydroc , hydros
+
+      real(8) :: xps , pd
+      real(8) , allocatable , dimension(:,:) :: a0 , a4
+      real(8) , allocatable , dimension(:) ::  hbar , sigmah , tbarh
+      real(8) , allocatable , dimension(:,:) :: zmatx , zmatxr
+      real(8) , allocatable , dimension(:,:) :: tau
+      real(8) , allocatable , dimension(:,:) :: varpa1
+      real(8) , allocatable , dimension(:,:) :: hydroc , hydros
+!
+      real(8) , allocatable , dimension(:,:) :: a1 , a2 , a3 , &
+                & d1 , d2 , e1 , e2 , e3 , g1 , g2 , g3 , s1 , &
+                & s2 , w1 , w2 , w3 , x1
+      integer , allocatable , dimension(:) :: iw2
+      real(8) , allocatable , dimension(:) :: tbarf , thetaf
+      real(8) , allocatable , dimension(:) :: thetah , tweigh
+      real(8) :: alpha1 , alpha2
+      real(8) , allocatable , dimension(:) :: cpfac , sdsigma , hweigh
+      real(8) , allocatable , dimension(:,:) :: varpa2
+      real(8) , allocatable , dimension(:,:) :: hydror
 
       contains
+
+      subroutine allocate_mod_vmodes
+        implicit none
+        allocate(a0(kz,kz))
+        allocate(a1(kz,kz))
+        allocate(a2(kz,kz))
+        allocate(a3(kz,kz))
+        allocate(a4(kz,kz))
+        allocate(d1(kz,kz))
+        allocate(d2(kz,kz))
+        allocate(e1(kz,kz))
+        allocate(e2(kz,kz))
+        allocate(e3(kz,kz))
+        allocate(g1(kz,kz))
+        allocate(g2(kz,kz))
+        allocate(g3(kz,kz))
+        allocate(s1(kz,kz))
+        allocate(s2(kz,kz))
+        allocate(w1(kz,kz))
+        allocate(w2(kz,kz))
+        allocate(x1(kz,kz))
+        allocate(iw2(kz))
+        allocate(thetah(kz))
+        allocate(tweigh(kz))
+        allocate(tbarf(kzp1))
+        allocate(thetaf(kzp1))
+        allocate(w3(kzp1,kz))
+        allocate(cpfac(kz))
+        allocate(sdsigma(kz))
+        allocate(hbar(kz))
+        allocate(hweigh(kz))
+        allocate(tbarh(kz))
+        allocate(hydroc(kz,kzp1))
+        allocate(varpa1(kz,kzp1))
+        allocate(hydror(kz,kz))
+        allocate(hydros(kz,kz))
+        allocate(tau(kz,kz))
+        allocate(zmatx(kz,kz))
+        allocate(zmatxr(kz,kz))
+        allocate(sigmah(kzp1))
+        allocate(varpa2(kzp1,kzp1))
+      end subroutine allocate_mod_vmodes
 
       subroutine vmodes(lstand,sigmaf,kv1)
 !
@@ -76,7 +143,7 @@
 !
 !  iunit is the output unit number for file of eigenvectors, etc.
 !  lstand = .true. if standard atmosphere t to be used (ignore input
-!            tbarh and ps in that case).  otherwise, ps and tbarh must
+!            tbarh and xps in that case).  otherwise, xps and tbarh must
 !            be defined on input.  note that in either case, r8pt must
 !            also be defined on input (common block named cvert).
 !
@@ -93,9 +160,9 @@
 !       set arrays describing vertical structure
 !
 !  set reference pressures
-      if ( lstand ) ps = 100.
-                            ! standard ps in cb; otherwise ps set in tav
-      pd = ps - r8pt
+      if ( lstand ) xps = 100.
+                            ! standard xps in cb; otherwise xps set in tav
+      pd = xps - r8pt
 !
 !  read sigmaf (sigma at full (integral) index levels; kzp1 values as
 !  in the mm4.   check that values are ordered properly.
@@ -394,7 +461,7 @@
         end do
       end do
 !
-      ps2 = ps*ps
+      ps2 = xps*xps
       do k1 = 1 , kzp1
         do k2 = 1 , kz
           varpa1(k2,k1) = 0.
@@ -413,7 +480,7 @@
         end do
       end do
 !
-      alpha1 = hydros(kz,kz)*tbarh(kz)/ps
+      alpha1 = hydros(kz,kz)*tbarh(kz)/xps
       alpha2 = hweigh(kz)
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -425,7 +492,7 @@
 #endif
       call vprntv(sigmaf,kzp1,'sigmaf  ')
       call vprntv(tbarh,kz,'t mean  ')
-      pps(1) = ps
+      pps(1) = xps
       call vprntv(pps,1,'ps mean ')
       print 99003 , kz , numerr
 #ifdef MPP1

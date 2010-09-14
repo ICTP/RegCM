@@ -14,10 +14,6 @@
 USEBAND = !BAND
 # Set to 1 to enable CLM coupling
 USECLM = !CLM
-# Set to 1 to enable daily cycle SST
-USEDCSST = !DCSST
-# Set to 1 to enable Sea Ice effects
-USESEAICE = !SEAICE
 
 # GENERAL FLAGS: these should be always defined!  
 
@@ -67,14 +63,6 @@ endif
 
 ifeq ($(USECLM),1)
   CPPFLAGS += -WF,-DCLM
-endif
-
-ifeq ($(USESEAICE),1)
-  CPPFLAGS += -WF,-DSEAICE
-endif
-
-ifeq ($(USEDCSST),1)
-  CPPFLAGS += -WF,-DDCSST
 endif
 
 # Specific compiler flags (eg.: optimization / debugging) 

@@ -107,6 +107,9 @@
  iemiss  =          0,
  lakemod =          0,
  ichem   =          0,
+ scenario = 'A1B',
+ idcsst = 0,
+ iseaice = 0,
  /
  &subexparam
  qck1land=   .250E-03,

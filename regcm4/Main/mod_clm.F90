@@ -22,21 +22,23 @@
 #ifdef CLM
 
       module mod_clm
-
+!
+! Storage and parameters for CLM model v3.5
+!
       use mod_dynparam
-
+!
       implicit none
 
       integer :: imask
       real(8) :: clmfrq
-
+!
       integer :: r2cdtime      ! timestep in seconds
       integer :: r2cnsrest     ! 0=initial, 1=restart
       integer :: r2cnestep     ! final timestep (or day if negative) number
       integer :: r2cnelapse    ! # of timesteps (or days if negative) 
                                ! to extend a run
       integer :: r2cnstep      ! current timestep (ktau)
-
+!
       integer :: r2cstart_ymd  ! starting date for run in yearmmdd format
       integer :: r2cstart_tod  ! starting time of day for run in seconds
       integer :: r2cstop_ymd   ! stopping date for run in yearmmdd format
@@ -123,11 +125,49 @@
       integer , allocatable , dimension(:,:) :: c2rprocmap
       integer , allocatable , dimension(:) :: c2rngc
       integer , allocatable , dimension(:) :: c2rdisps
-
+!
+      real(8) , allocatable , target , dimension(:,:,:) :: spaceclm
+      private :: spaceclm
+      ! Direct solar rad incident on surface (<0.7)
+      real(8) , pointer , dimension(:,:) :: sols2d
+      ! Direct solar rad incident on surface (>=0.7)
+      real(8) , pointer , dimension(:,:) :: soll2d
+      ! Diffuse solar rad incident on surface (<0.7)
+      real(8) , pointer , dimension(:,:) :: solsd2d
+      ! Diffuse solar rad incident on surface (>=0.7)
+      real(8) , pointer , dimension(:,:) :: solld2d
+      real(8) , pointer , dimension(:,:) :: aldirs2d
+      real(8) , pointer , dimension(:,:) :: aldirl2d
+      real(8) , pointer , dimension(:,:) :: aldifs2d
+      real(8) , pointer , dimension(:,:) :: aldifl2d
+      real(8) , pointer , dimension(:,:) :: coszrs2d
+      real(8) , pointer , dimension(:,:) :: rs2d
+      real(8) , pointer , dimension(:,:) :: ra2d
+      ! 2 meter specific humidity
+      real(8) , pointer , dimension(:,:) :: q2d
+!
       contains
-
-      subroutine allocate_mod_clm
+!
+      subroutine allocate_mod_clm(lmpi,lband)
       implicit none
+      logical , intent(in) :: lmpi , lband
+      integer :: nj , njm1 , njm2
+
+      if (lmpi) then
+        nj = jxp
+        njm1 = jxp
+        njm2 = jxp
+      else
+        if (lband) then
+          nj = jx
+          njm1 = jx
+          njm2 = jx
+        else
+          nj = jx
+          njm1 = jxm1
+          njm2 = jxm2
+        end if
+      end if
 !     About the dimension ordering:
 !     regcm: ix=lat,jx=lon, arrays are lat by lon
 !     clm: i=lon, j=lat, arrays are lon by lat
@@ -180,10 +220,23 @@
       allocate(c2rprocmap(jx,iy))
       allocate(c2rngc(nproc))
       allocate(c2rdisps(nproc))
+      allocate(spaceclm(iym1,njm1,12))
+      sols2d   => spaceclm(:,:,1)
+      soll2d   => spaceclm(:,:,2)
+      solsd2d  => spaceclm(:,:,3)
+      solld2d  => spaceclm(:,:,4)
+      aldirs2d => spaceclm(:,:,5)
+      aldirl2d => spaceclm(:,:,6)
+      aldifs2d => spaceclm(:,:,7)
+      aldifl2d => spaceclm(:,:,8)
+      coszrs2d => spaceclm(:,:,9)
+      rs2d     => spaceclm(:,:,10)
+      ra2d     => spaceclm(:,:,11)
+      q2d      => spaceclm(:,:,12)
       end subroutine allocate_mod_clm
 !
       end module mod_clm
-
+!
 #endif
-
+!
 #endif

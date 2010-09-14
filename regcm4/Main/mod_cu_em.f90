@@ -18,7 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_cu_em
-
+!
+! Kerry Emanuel Convective scheme
+!
       use mod_constants
       use mod_dynparam
       use mod_runparams
@@ -29,9 +31,9 @@
       use mod_rad
       use mod_bats
       use mod_date
-
+!
       private
-
+!
       public :: cupemandrv
       public :: minsig , elcrit , tlcrit , entp , sigd , sigs ,    &
                 omtrain , omtsnow , coeffr , coeffs , cu , betae , &
@@ -44,25 +46,19 @@
       integer :: minorig
 !
       contains
-
-      subroutine cupemandrv(j)
- 
+!
 ! **********************************************
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
- 
+!
+      subroutine cupemandrv(j)
+! 
       implicit none
-!
-! PARAMETER definitions
-!
-      integer , parameter :: ntra = 0
-!
-! Dummy arguments
 !
       integer :: j
       intent (in) j
 !
-! Local variables
+      integer , parameter :: ntra = 0
 !
       real(8) :: akclth , aprdiv , cbmf , dtime , fppt , qprime ,       &
                & tprime , uconv , wd
@@ -149,20 +145,14 @@
       end do
  
       icon(j) = iconj
- 
+! 
       end subroutine cupemandrv
-!
-!
-!
-      subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,delt,iflag,  &
-                       & ft,fq,fu,fv,ftra,precip,wd,tprime,qprime,cbmf, &
-                       & icb,inb)
 !
 !**************************************************************************
 !****                       subroutine cupeman (formerly convect)     *****
-!****                          version 4.3c                           *****
-!****                          20 may, 2002                           *****
-!****                          kerry emanuel                          *****
+!****                          version 4.3C                           *****
+!****                          20 May, 2002                           *****
+!****                          Kerry Emanuel                          *****
 !**************************************************************************
 !
 !-----------------------------------------------------------------------------
@@ -299,10 +289,11 @@
 !      to be evacuated.
 !   7. a maximum value to the cloud base mass flux has been added.
 !
+      subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,delt,iflag,  &
+                       & ft,fq,fu,fv,ftra,precip,wd,tprime,qprime,cbmf, &
+                       & icb,inb)
+!
       implicit none
-!
-!
-! Dummy arguments
 !
       real(8) :: cbmf , delt , precip , qprime , tprime , wd
       integer :: icb , iflag , inb , na , nd , nl , ntra
@@ -313,8 +304,6 @@
       intent (out) tprime , wd
       intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
                    & inb , precip , q , qprime , qs , t , tra , u , v
-!
-! Local variables
 !
       real(8) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
                & alv , alvnew , am , amp1 , anum , asij , asum , awat , &
@@ -1165,21 +1154,17 @@
 !
       end subroutine cupeman
 !
-! ---------------------------------------------------------------------------
+! Calculate lifting level temperature
 !
       subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
 
       implicit none
-!
-! Dummy arguments
 !
       integer :: icb , kk , nd , nk , nl
       real(8) , dimension(nd) :: clw , gz , p , q , qs , t , tpk , tvp
       intent (in) gz , icb , kk , nd , nk , nl , p , q , qs , t
       intent (out) tvp
       intent (inout) clw , tpk
-!
-! Local variables
 !
       real(8) :: ah0 , ahg , alv , cl , cpinv , cpp ,                   &
                & cpvmcl , denom , eps , epsi , es , qg , rg ,           &
@@ -1248,6 +1233,7 @@
         rg = qg/(1.-q(nk))
         tvp(i) = tpk(i)*(1.+rg*epsi)
       end do
+!
       end subroutine tlift
-
+!
       end module mod_cu_em

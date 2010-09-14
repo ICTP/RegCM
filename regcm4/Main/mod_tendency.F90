@@ -17,6 +17,57 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
+      module mod_tendency
+
+      use mod_dynparam
+      use mod_runparams
+      use mod_main
+      use mod_mainchem
+      use mod_bdycod
+      use mod_cvaria
+      use mod_pmoist
+      use mod_precip
+      use mod_rad
+      use mod_bats
+      use mod_vecbats
+      use mod_holtbl
+      use mod_trachem
+      use mod_colmod3
+      use mod_cu_grell
+      use mod_cu_kuo
+      use mod_cu_bm
+      use mod_cu_em
+      use mod_date
+      use mod_message
+      use mod_aerosol
+      use mod_constants
+      use mod_zengocn
+      use mod_sun
+      use mod_slice
+      use mod_cldfrac
+      use mod_cumtran
+      use mod_condtq
+      use mod_diffusion
+      use mod_advection
+      use mod_nudge
+      use mod_che_tend
+#ifdef DIAG
+      use mod_diagnosis
+#endif
+#ifdef MPP1
+#ifdef CLM
+      use mod_clm
+      use mod_mtrxclm
+      use clm_varsur
+#endif
+#endif
+
+      private
+
+      public :: tend
+
+      contains
+
       subroutine tend(iexec)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -43,37 +94,7 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      use mod_dynparam
-      use mod_runparams
-      use mod_main
-      use mod_mainchem
-      use mod_bdycod
-      use mod_cvaria
-      use mod_pmoist
-      use mod_precip
-      use mod_rad
-      use mod_bats
-      use mod_vecbats
-      use mod_holtbl
-      use mod_trachem
-      use mod_colmod3
-      use mod_cu_grell
-      use mod_cu_kuo
-      use mod_cu_bm
-      use mod_cu_em
-      use mod_date
-      use mod_message
-      use mod_aerosol
-      use mod_constants
-      use mod_zengocn
-      use mod_sun
 #ifdef MPP1
-      use mod_slice
-#ifdef CLM
-      use mod_clm
-      use mod_mtrxclm
-      use clm_varsur
-#endif
 #ifndef IBM
       use mpi
 #else
@@ -593,7 +614,7 @@
 !
 !=======================================================================
 !
-      call slice3d
+      call slice
 
 #ifdef CLM
       if ( init_grid ) then
@@ -1176,8 +1197,7 @@
             xtm1 = xtime - dtmin
             if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )     &
                & xtm1 = -dtmin
-            call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(1,j),c203,j,  &
-                       & iboudy)
+            call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(1,j),j,iboudy)
           else
           end if
 #ifndef BAND
@@ -1406,7 +1426,7 @@
             end do
           end do
 !
-          call diffut_t(difft(1,1,j),xkc(1,1,j),c203,j)
+          call diffut_t(difft(1,1,j),xkc(1,1,j),j)
 !
 !**q**compute the moisture tendencies:
 !
@@ -1478,8 +1498,8 @@
 !           completing qvten computation, do not use diffq for other
 
 !           purpose.
-            call diffutqv(diffq(1,1,j),xkc(1,1,j),c203,j)
-            call diffutqc(qcten(1,1,j),xkc(1,1,j),c203,j)
+            call diffutqv(diffq(1,1,j),xkc(1,1,j),j)
+            call diffutqc(qcten(1,1,j),xkc(1,1,j),j)
           end if
 !
 !chem2    compute the tracers tendencies
@@ -1660,9 +1680,9 @@
             xtm1 = xtime - dtmin
             if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )        &
                & xtm1 = -dtmin
-            call nudge_t(ispgx,fnudge,gnudge,xtm1,tten(1,1,j),c203,j,   &
+            call nudge_t(ispgx,fnudge,gnudge,xtm1,tten(1,1,j),j,   &
                        & iboudy)
-            call nudgeqv(ispgx,fnudge,gnudge,xtm1,qvten(1,1,j),c203,j,  &
+            call nudgeqv(ispgx,fnudge,gnudge,xtm1,qvten(1,1,j),j,  &
                        & iboudy)
           end if
 !
@@ -1850,8 +1870,8 @@
           end do
         end do
 !
-        call diffu_u(difuu(1,1,j),xkc(1,1,j),c203,j,1)
-        call diffu_v(difuv(1,1,j),xkc(1,1,j),c203,j,1)
+        call diffu_u(difuu(1,1,j),xkc(1,1,j),j,1)
+        call diffu_v(difuv(1,1,j),xkc(1,1,j),j,1)
 !
 !..uv.compute the horizontal advection terms for u and v:
 !
@@ -2061,9 +2081,9 @@
 !..uv.apply the nudging boundary conditions:
 !
         if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
-          call nudge_u(ispgd,fnudge,gnudge,xtm1,uten(1,1,j),c203,j,     &
+          call nudge_u(ispgd,fnudge,gnudge,xtm1,uten(1,1,j),j,     &
                      & iboudy)
-          call nudge_v(ispgd,fnudge,gnudge,xtm1,vten(1,1,j),c203,j,     &
+          call nudge_v(ispgd,fnudge,gnudge,xtm1,vten(1,1,j),j,     &
                      & iboudy)
         end if
 !
@@ -2313,3 +2333,5 @@
       end if
 !
       end subroutine tend
+!
+      end module mod_tendency

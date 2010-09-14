@@ -18,7 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_precip
-
+!
+! Large Scale Precipitation -- Pal et al. 2000 JGR-Atmos
+!
       use mod_constants
       use mod_runparams
       use mod_bats
@@ -28,15 +30,13 @@
       use mod_slice
       use mod_trachem
       use mod_date
-
+!
       private
-
+!
       public :: pcp
-
+!
       contains
-
-      subroutine pcp(j , istart , iend , nk)
-
+!
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
 !     This subroutine computes the 'large scale' precipitation        c
@@ -51,14 +51,12 @@
 !     See Pal et al. 2000 JGR-Atmos for more information.             c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine pcp(j , istart , iend , nk)
 
       implicit none
 !
-! Dummy arguments
-!
       integer , intent(in) :: j , istart , iend , nk
-!
-! Local variables
 !
       real(8) :: aprdiv , dpovg , es , afc , i1000 , p , pptacc ,       &
                & pptkm1 , pptmax , pptnew , q , qcincld , qcleft , qcw ,&
@@ -67,7 +65,6 @@
       integer :: i , k , kk
       real(8) , dimension(istart:iend) :: pptsum
 !
- 
 ! Precip sum beginning from top
 ! maximum precipation rate (total cloud water/dt)
  
@@ -78,7 +75,6 @@
 !     - Raindrop Accretion:  Beheng (1994); EQN 6
 !     - Raindrop Evaporation:  Sundqvist (1988); EQN 3.4a
 !--------------------------------------------------------------------
- 
  
 !     1a. Perform computations for the top layer (layer 1)
       thog = 1000.*rgti       ! precipation accumulated from above
@@ -93,9 +89,8 @@
         if ( afc.gt.0.01 ) then ! if there is a cloud
 !         1aa. Compute temperature and humidities with the adjustments
 !         due to convection.
-!         q = qvb3d(i,1,j) + qcuten(i,1)*dt                 
-!         ![kg/kg][avg] tk = tb3d(i,1,j) + tcuten(i,1)*dt              
-!         ![k][avg]
+!         q = qvb3d(i,1,j) + qcuten(i,1)*dt  [kg/kg][avg] 
+!         tk = tb3d(i,1,j) + tcuten(i,1)*dt  [k][avg]
           q = qvb3d(i,1,j)                                   ![kg/kg][avg]
           tk = tb3d(i,1,j)                                   ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
@@ -278,12 +273,12 @@
         end do
       end if
 !chem2_
- 
- 
+! 
 !--------------------------------------------------------------------
 !     3. Convert the accumlated precipitation to appropriate units for
 !     the surface physics and the output
 !--------------------------------------------------------------------
+!
       uconv = 60.*dtmin
       aprdiv = 1./dble(nbatst)
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
@@ -293,5 +288,5 @@
       end do
  
       end subroutine pcp
-
+!
       end module mod_precip

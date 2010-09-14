@@ -16,51 +16,68 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ 
+      module mod_che_semdde
 !
-      module mod_aero_sett_ddep
-
-      use mod_dynparam , only : nveg
-      use mod_message
+! Chemical and aerosol surface emission and dry deposition
+!
       use mod_constants
+      use mod_dynparam
+      use mod_mainchem
+      use mod_trachem
       use mod_dust
-
-      implicit none
-
+      use mod_aerosol
+      use mod_message
+      use mod_ncio
+#ifdef MPP1
+      use mod_mppio
+#ifdef CLM
+!      use surfrdMod , only : clm_getsoitex
+!      use clm_varsur, only : clm_soitex
+#endif
+#endif 
+!
+      private
+!
+      public :: allocate_mod_che_semdde , chsrfem , chdrydep
+!
 !     Dynamic Viscosity Parameters
+!
       real(8) , parameter :: a1 = 145.8
       real(8) , parameter :: a2 = 1.5
       real(8) , parameter :: a3 = 110.4
-
+!
 !     Molecular Free Path calculation parameters
+!
       real(8) , parameter :: c1 = 6.54E-8
       real(8) , parameter :: c2 = 1.818E-5
       real(8) , parameter :: c3 = 1.013E5
       real(8) , parameter :: c4 = 293.15
-
+!
 !     Cunningham slip correction factor parameters
+!
       real(8) , parameter :: aa1 = 1.257
       real(8) , parameter :: aa2 = 0.4
       real(8) , parameter :: aa3 = 1.1
-
+!
 !     Stokes parameter
+!
       real(8) , dimension(20) :: aest_bats
       real(8) , dimension(20) :: arye_bats
       real(8) , allocatable , dimension(:) :: aest
       real(8) , allocatable , dimension(:) :: arye
 !
-! DATA SECTION
-!
       data aest_bats/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,&
          & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
          & 1.2 , 1.2 , 1.2/
-
+!
       data arye_bats/0.5 , 5.0 , 0.5 , 5.0 , 1.0 , 1.0 , 0.0001 , 5.0 , &
          & 10.0 , 10.0 , 0.0001 , 0.0001 , 0.56 , 0.56 , 0.56 , 0.56 ,  &
          & 0.56 , 0.56 , 0.56 , 0.56/
-
+!
       contains
-
-      subroutine allocate_mod_aero_sett_ddep
+!
+      subroutine allocate_mod_che_semdde
         implicit none
         allocate(aest(nveg))
         allocate(arye(nveg))
@@ -70,52 +87,243 @@
           arye = arye_bats
         else
           print *, 'Undefined stokes parameters for non bats'
-          print *, 'Please define them in mod_aero_sett_ddep'
+          print *, 'Please define them in mod_che_semdde'
           call fatal(__FILE__,__LINE__,                                 &
-                 &  'STOKES UNDEF IN MOD_AERO_SETT_DDEP')
+                 &  'STOKES UNDEF IN MOD_CHE_SEMDDE')
         end if
-      end subroutine allocate_mod_aero_sett_ddep
+      end subroutine allocate_mod_che_semdde
+!
+! SURFACE EMIOSSION
+!
+      subroutine chsrfem
+
+      use netcdf
+#ifdef MPP1
+#ifndef IBM
+      use mpi
+#else 
+      include 'mpif.h'
+#endif 
+#endif
+      implicit none
+!
+! Local variables
+!
+      integer :: i , j , k , l , m , n
+      integer , parameter :: iutopt = 12
+      logical :: there
+#ifdef MPP1
+      integer :: itr , ierr
+#endif
+!
+
+! fisrt activate dust initialization
+
+     write (aline, *) 'Calling inidust'
+     call say
+     call inidust
+
+! read the monthly aerosol emission files
+
+#ifdef MPP1
+      if ( myid.eq.0 ) then
+        chemsrc_io = 0.0D+00
+        if (aertyp(4:5).ne.'00') then
+          call read_aerosol(chtrname,chemsrc_io)
+        end if
+        do j = 1 , jx
+          do itr = 1 , ntr
+            do m = 1 , mpy
+              do i = 1 , iy
+                src_0(i,m,itr,j) = chemsrc_io(i,j,m,itr)
+              end do
+            end do
+          end do
+        end do
+      end if
+!     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      call mpi_scatter(src_0(1,1,1,1),iy*mpy*ntr*jxp,mpi_real8,         &
+                     & src0(1,1,1,1), iy*mpy*ntr*jxp,mpi_real8,         &
+                     & 0,mpi_comm_world,ierr)
+      do j = 1 , jendl
+        do itr = 1 , ntr
+          do m = 1 , mpy
+            do i = 1 , iy
+              chemsrc(i,j,m,itr) = src0(i,m,itr,j)
+            end do
+          end do
+        end do
+      end do
+#else
+      chemsrc = 0.0D+00
+      if (aertyp(4:5).ne.'00') then
+        call read_aerosol(chtrname,chemsrc)
+      end if
+#endif
+ 
+!     sulfates sources
+
+      do m = 1 , mpy
+#ifdef MPP1
+        do j = 1 , jendl
+#else
+        do j = 1 , jx
+#endif
+          do i = 1 , iy
+            if ( iso4.gt.0 ) chemsrc(i,j,m,iso4)                        &
+               & = 0.02*chemsrc(i,j,m,iso2)
+            if ( iso2.gt.0 ) chemsrc(i,j,m,iso2)                        &
+               & = 0.98*chemsrc(i,j,m,iso2)
+ 
+!           partition hydrophilic hydrophonic ( cooke et al.1999)
+!           BC
+            if ( ibchb.gt.0 .and. ibchl.gt.0 ) then
+              chemsrc(i,j,m,ibchl) = 0.2*chemsrc(i,j,m,ibchb)
+              chemsrc(i,j,m,ibchb) = 0.8*chemsrc(i,j,m,ibchb)
+            end if
+!           OC
+            if ( iochb.gt.0 .and. iochl.gt.0 ) then
+              chemsrc(i,j,m,iochl) = 0.5*chemsrc(i,j,m,iochb)
+              chemsrc(i,j,m,iochb) = 0.5*chemsrc(i,j,m,iochb)
+            end if
+          end do
+        end do
+      end do
+ 
+!     OPtical properties / internal mixing
+      if ( mixtype.eq.2 ) then
+#ifdef MPP1
+        if ( myid.eq.0 ) then
+          inquire (file='optdat.bin',exist=there)
+          if ( .not.there ) then
+            write (*,*) 'For mixtype=2, optdat.bin is required'
+            write (*,*) 'ln -s ../Main/Commons/optdat.bin optdat.bin'
+            call fatal(__FILE__,__LINE__,'optdat.bin is required')
+          end if
+          open (iutopt,file='optdat.bin',form='unformatted',            &
+              & recl=4*19*11*11*11*11*ibyte,access='direct')
+          read (iutopt,rec=1) ((((((dextmix(i,j,k,l,m,n),i=1,4),j=1,19),&
+                            & k=1,11),l=1,11),m=1,11),n=1,11)
+          read (iutopt,rec=2) ((((((dssamix(i,j,k,l,m,n),i=1,4),j=1,19),&
+                            & k=1,11),l=1,11),m=1,11),n=1,11)
+          read (iutopt,rec=3) ((((((dgmix(i,j,k,l,m,n),i=1,4),j=1,19),k=&
+                            & 1,11),l=1,11),m=1,11),n=1,11)
+          close (iutopt)
+        end if
+        call mpi_bcast(dextmix,4*19*11*11*11*11,mpi_real,0,             &
+                     & mpi_comm_world,ierr)
+        call mpi_bcast(dssamix,4*19*11*11*11*11,mpi_real,0,             &
+                     & mpi_comm_world,ierr)
+        call mpi_bcast(dgmix,4*19*11*11*11*11,mpi_real,0,mpi_comm_world,&
+                     & ierr)
+#else
+        inquire (file='optdat.bin',exist=there)
+        if ( .not.there ) then
+          write (*,*) 'For mixtype=2, optdat.bin is required'
+          write (*,*) 'ln -s ../Main/Commons/optdat.bin optdat.bin'
+          call fatal(__FILE__,__LINE__,'optdat.bin is required')
+        end if
+        open (iutopt,file='optdat.bin',form='unformatted',              &
+            & recl=4*19*11*11*11*11*ibyte,access='direct')
+        read (iutopt,rec=1) ((((((dextmix(i,j,k,l,m,n),i=1,4),j=1,19),k=&
+                          & 1,11),l=1,11),m=1,11),n=1,11)
+        read (iutopt,rec=2) ((((((dssamix(i,j,k,l,m,n),i=1,4),j=1,19),k=&
+                          & 1,11),l=1,11),m=1,11),n=1,11)
+        read (iutopt,rec=3) ((((((dgmix(i,j,k,l,m,n),i=1,4),j=1,19),k=1,&
+                          & 11),l=1,11),m=1,11),n=1,11)
+        close (iutopt)
+#endif
+ 
+!       Check !
+ 
+        do k = 1 , 11
+          do l = 1 , 11
+            do m = 1 , 11
+              do n = 1 , 11
+ 
+                if ( k+l+m+n.eq.14 ) then
+                  do i = 1 , 4
+                    do j = 1 , 19
+ 
+                      if ( (dextmix(i,j,k,l,m,n).lt.0.) .or.            &
+                         & (dextmix(i,j,k,l,m,n).gt.20.) ) then
+                        write (aline,*) 'problem in dextmix ' ,         &
+                                      & dextmix(i,j,k,l,m,n)
+                        call say
+                        call fatal(__FILE__,__LINE__,'DETMIX ERROR')
+                      end if
+ 
+                      if ( (dssamix(i,j,k,l,m,n).lt.0.) .or.            &
+                         & (dssamix(i,j,k,l,m,n).gt.1.) ) then
+                        write (aline,*) 'problem in dssamix ' ,         &
+                                      & dssamix(i,j,k,l,m,n)
+                        call say
+                        call fatal(__FILE__,__LINE__,'DSSAMIX ERROR')
+                      end if
+ 
+                      if ( (dgmix(i,j,k,l,m,n).lt.0.) .or.              &
+                         & (dgmix(i,j,k,l,m,n).gt.1.) ) then
+                        write (aline,*) 'problem in dgmix ' ,           &
+                                      & dgmix(i,j,k,l,m,n)
+                        call say
+                        call fatal(__FILE__,__LINE__,'DGMIX ERROR')
+                      end if
+ 
+                    end do
+                  end do
+                end if
+ 
+              end do
+            end do
+          end do
+        end do
+ 
+#ifdef MPP1
+        if ( myid.eq.0 ) write (*,*) '! OPDATA CHECKED !'
+#else
+        write (*,*) '! OPDATA CHECKED !'
+#endif
+      end if
+      end subroutine chsrfem
+!
+!**************************************************************
+!  dry depostion scheme
+!  this scheme based on :
+! - zhang et al,(2001) : a size-segregated particle
+!   dry deposition scheme for an atmospheric aerosol
+!   module, atmos. env. 35, 549-560
+!
+! - giorgi, f. (1986): a particle dry deposition
+!      parameterization scheme for use in tracer
+!      transport models. jgr,91, 9794-9806
+!
+!  input:
+!  =====
+! - throw : temperature in k
+! - roarow : air density
+! - shj    : local mid-layer sigma value
+! - pressg : grid row of surface pressure [pa]
+! - temp2  : temperature at 10m. (deg k)
+! - sutemp : surface temperature (deg k)
+! - srad   : solar irradiance at the ground(w/m**2)
+! - rh10   : relative humidity of air at 10m.
+! -vegcover: vegetation cover
+! - wind10 : wind at 10 m
+! - xrow   : dust concentration [kg/kg]
+! - ustar  : u*
+! - ilev   : number of model level
+!
+! output
+! ======
+! - rtdry  : dry deposition tendency
+!
+!**************************************************************
 !
       subroutine chdrydep(ilg,il1,il2,ilev,luc,nbin,ivegcov,throw,      &
                         & roarow,shj,pressg,temp2,sutemp,srad,rh10,     &
                         & wind10,zeff,trsize,pdepv)
-
-!**************************************************************
-!  dry depostion scheme for dust particles                *****
-!  this scheme based on :                                 *****
-! - zhang et al,(2001) : a size-segregated particle       *****
-!   dry deposition scheme for an atmospheric aerosol      *****
-!   module, atmos. env. 35, 549-560                       *****
-!                                                         *****
-! - giorgi, f. (1986): a particle dry deposition          *****
-!      parameterization scheme for use in tracer          *****
-!      transport models. jgr,91, 9794-9806                *****
-!                                                         *****
-!  input:                                                 *****
-!  =====                                                  *****
-! - throw : temperature in k                              *****
-! - roarow : air density                                  *****
-! - shj    : local mid-layer sigma value                  *****
-! - pressg : grid row of surface pressure [pa]            *****
-! - temp2  : temperature at 10m. (deg k)                  *****
-! - sutemp : surface temperature (deg k)                  *****
-! - srad   : solar irradiance at the ground(w/m**2)       *****
-! - rh10   : relative humidity of air at 10m.             *****
-! -vegcover: vegetation cover                             *****
-! - wind10 : wind at 10 m                                 *****
-! - xrow   : dust concentration      [kg/kg]              *****
-! - ustar  : u*                                           *****
-! - ilev   : number of model level                        *****
-!                                                         *****
-! output                                                  *****
-! ======                                                  *****
-! - rtdry  : dry deposition tendency                      *****
-!                                                         *****
-!**************************************************************
-
-      implicit none
 !
-! Dummy arguments
+      implicit none
 !
       integer :: il1 , il2 , ilev , ilg , luc , nbin
       integer , dimension(ilg) :: ivegcov
@@ -129,8 +337,6 @@
                 & pressg , rh10 , roarow , shj , srad , sutemp , temp2 ,&
                 & throw , trsize , wind10 , zeff
       intent (inout) pdepv
-!
-! Local variables
 !
       real(8) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
                & eim , ein , es , fh , fm , frx1 , kui , logratio ,     &
@@ -507,8 +713,9 @@
         end do
  
       end do  ! end nsize loop
- 
+! 
 !     average deposition velocities on bin
+! 
       do k = 1 , nbin
         tot = 0
         do lev = 1 , ilev
@@ -535,7 +742,7 @@
           end do
         end if
       end do
- 
+! 
       end subroutine chdrydep
-
-      end module mod_aero_sett_ddep
+!
+      end module mod_che_semdde

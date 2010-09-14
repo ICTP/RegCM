@@ -17,8 +17,21 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine cldfrac(j)
- 
+      module mod_cldfrac
+!
+!     Fractional cloud coverage and liquid water content
+!
+      use mod_dynparam
+      use mod_pmoist
+      use mod_rad
+      use mod_slice
+!
+      private
+!
+      public :: cldfrac
+!
+      contains
+!
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
 !     This subroutine computes the fractional cloud coverage and      c
@@ -47,22 +60,17 @@
 !     See Pal et al (200) for more info.                              c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
-      use mod_dynparam
-      use mod_pmoist
-      use mod_rad
-      use mod_slice
-      implicit none
 !
-! Dummy arguments
+      subroutine cldfrac(j)
+!
+      implicit none
 !
       integer :: j
       intent (in) j
 !
-! Local variables
-!
       real(8) :: exlwc , rh0adj
       integer :: i , k
+!
 !--------------------------------------------------------------------
 !     1.  Determine large-scale cloud fraction
 !--------------------------------------------------------------------
@@ -104,3 +112,5 @@
       end do
  
       end subroutine cldfrac
+!
+      end module mod_cldfrac

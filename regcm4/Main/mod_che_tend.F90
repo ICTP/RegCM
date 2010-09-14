@@ -17,15 +17,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine tractend2(j)
+      module mod_che_tend
 !
-!     This subroutine computes the tendencies for tracer transport and
-!     chemistry
+! Tendency and budget for tracer transport and chemicals
 !
-!     ntr:           dimension of tracer arrays in species index
-!     j:             index of j slice in current computation
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_main
@@ -39,17 +35,34 @@
       use mod_dust
       use mod_date
       use mod_message
-      use mod_aero_sett_ddep
-      use mod_constants , only : gti , zlnd , zoce , zsno , ep2 , svp1 ,&
-                               & svp2 , svp3 , svp4 , svp5 , svp6 ,     &
-                               & tzero
+      use mod_che_semdde
+      use mod_diffusion
+      use mod_advection
+#ifdef DIAG
+      use mod_diagnosis
+#endif
+#ifdef MPP1
+      use mod_mppio
+#endif
+      private
+
+      public :: tractend2 , tracbud
+
+      contains
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+!     This subroutine computes the tendencies for tracer transport and
+!     chemistry
+!
+!     j:             index of j slice in current computation
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine tractend2(j)
       implicit none
 !
-! Dummy arguments
-!
       integer :: j
-!
-! Local variables
 !
       real(8) :: agct , ak00t , ak0tm , akval , chimol , cldno , clmin ,&
                & facb , facs , fact , facv , oh1 , pres10 , qsat10 ,    &
@@ -131,7 +144,7 @@
  
 !----horizontal diffusion: initialize scratch vars to 0.
 !       need to compute tracer tendencies due to diffusion
-        call diffutch(chiten(1,1,j,itr),xkc(1,1,j),c203,itr,j)
+        call diffutch(chiten(1,1,j,itr),xkc(1,1,j),itr,j)
  
       end do ! end tracer loop
  
@@ -671,3 +684,104 @@
       end do
 !*******************
       end subroutine tractend2
+!
+      subroutine tracbud
+!
+#ifdef MPP1
+#ifndef IBM
+      use mpi
+#else 
+      include 'mpif.h'
+#endif 
+#endif
+      implicit none
+!
+! Local variables
+!
+      integer :: i , itr , j , k
+!
+      do itr = 1 , ntr
+#ifdef MPP1
+        do j = 1 , jendx
+#else
+#ifdef BAND
+        do j = 1 , jx
+#else
+        do j = 1 , jxm1
+#endif
+#endif
+          do i = 1 , iym1
+            dtrace(i,j,itr) = 0.0
+            wdlsc(i,j,itr) = 0.0
+            wdcvc(i,j,itr) = 0.0
+            wxsg(i,j,itr) = 0.0
+            wxaq(i,j,itr) = 0.0
+            ddsfc(i,j,itr) = 0.0
+          end do
+        end do
+      end do
+ 
+!-----tracers (unit = kg):
+      do itr = 1 , ntr
+#ifdef MPP1
+        do j = 1 , jendx
+#else
+#ifdef BAND
+        do j = 1 , jx
+#else
+        do j = 1 , jxm1
+#endif
+#endif
+          do i = 1 , iym1
+            do k = 1 , kz
+              dtrace(i,j,itr) = dtrace(i,j,itr) + chia(i,k,j,itr)       &
+                              & *dsigma(k)
+              wdlsc(i,j,itr) = wdlsc(i,j,itr) + remlsc(i,k,j,itr)       &
+                             & *dsigma(k)
+              wdcvc(i,j,itr) = wdcvc(i,j,itr) + remcvc(i,k,j,itr)       &
+                             & *dsigma(k)
+              wxsg(i,j,itr) = wxsg(i,j,itr) + rxsg(i,k,j,itr)*dsigma(k)
+!             sum ls and conv contribution
+              wxaq(i,j,itr) = wxaq(i,j,itr)                             &
+                            & + (rxsaq1(i,k,j,itr)+rxsaq2(i,k,j,itr))   &
+                            & *dsigma(k)
+            end do
+            ddsfc(i,j,itr) = ddsfc(i,j,itr) + remdrd(i,j,itr)*dsigma(kz)
+!           Source cumulated diag(care the unit are alredy .m-2)
+            cemtrac(i,j,itr) = cemtr(i,j,itr)
+          end do
+        end do
+      end do
+
+#ifdef DIAG
+      call contrac
+#endif 
+
+      do itr = 1 , ntr
+#ifdef MPP1
+        do j = 1 , jendx
+#else
+#ifdef BAND
+        do j = 1 , jx
+#else
+        do j = 1 , jxm1
+#endif
+#endif
+          do i = 1 , iym1
+            dtrace(i,j,itr) = 1.E6*dtrace(i,j,itr)*1000.*rgti
+                                                        ! unit: mg/m2
+            wdlsc(i,j,itr) = 1.E6*wdlsc(i,j,itr)*1000.*rgti
+            wdcvc(i,j,itr) = 1.E6*wdcvc(i,j,itr)*1000.*rgti
+            ddsfc(i,j,itr) = 1.E6*ddsfc(i,j,itr)*1000.*rgti
+            wxsg(i,j,itr) = 1.E6*wxsg(i,j,itr)*1000.*rgti
+            wxaq(i,j,itr) = 1.E6*wxaq(i,j,itr)*1000.*rgti
+!           emtrac isbuilt from chsurfem so just need the 1e6*dt/2
+!           factor to to pass im mg/m2
+            cemtrac(i,j,itr) = 1.E6*cemtrac(i,j,itr)
+          end do
+        end do
+      end do
+
+      end subroutine tracbud
+!
+      end module mod_che_tend

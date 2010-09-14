@@ -18,11 +18,13 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_bats
-
+!
+! Storage for Surface (BATS and shared by CLM) variables
+!
       use mod_dynparam
+      use mod_runparams
       use mod_bats_param
-
-      implicit none
+!
       real(8) , allocatable , target , dimension(:,:,:) :: spacebs1d
       real(8) , allocatable , target , dimension(:,:) :: spaceb1d
       private :: spacebs1d , spaceb1d
@@ -101,233 +103,94 @@
       real(4) , target , allocatable, dimension(:,:,:) :: fbat
       real(4) , target ,allocatable, dimension(:,:,:,:) :: fsub
 !
-#ifdef MPP1
-#ifdef CLM
-      real(8) , allocatable , target , dimension(:,:,:) :: spaceclm
-      private :: spaceclm
-      ! Direct solar rad incident on surface (<0.7)
-      real(8) , pointer , dimension(:,:) :: sols2d
-      ! Direct solar rad incident on surface (>=0.7)
-      real(8) , pointer , dimension(:,:) :: soll2d
-      ! Diffuse solar rad incident on surface (<0.7)
-      real(8) , pointer , dimension(:,:) :: solsd2d
-      ! Diffuse solar rad incident on surface (>=0.7)
-      real(8) , pointer , dimension(:,:) :: solld2d
-      real(8) , pointer , dimension(:,:) :: aldirs2d
-      real(8) , pointer , dimension(:,:) :: aldirl2d
-      real(8) , pointer , dimension(:,:) :: aldifs2d
-      real(8) , pointer , dimension(:,:) :: aldifl2d
-      real(8) , pointer , dimension(:,:) :: coszrs2d
-      real(8) , pointer , dimension(:,:) :: rs2d
-      real(8) , pointer , dimension(:,:) :: ra2d
-      ! 2 meter specific humidity
-      real(8) , pointer , dimension(:,:) :: q2d
-#endif
-#endif
-
-#ifdef DCSST
       ! dtskin is difference between skin tem and bulk sst
       real(8) , allocatable , dimension(:,:) :: deltas , tdeltas ,      &
                            &                    dtskin
       logical , allocatable , dimension(:,:) :: firstcall
-#endif
 
       contains
 
-       subroutine allocate_mod_bats 
-       implicit none
-#ifdef MPP1
-        allocate(flw2d(iym1,jxp)) 
-        allocate(flwa2d(iym1,jxp))
-        allocate(flwd2d(iym1,jxp))
-        allocate(flwda2d(iym1,jxp))
-        allocate(fsw2d(iym1,jxp))
-        allocate(fswa2d(iym1,jxp))
-        allocate(pptc(iym1,jxp))  
-        allocate(pptnc(iym1,jxp))
-        allocate(prca2d(iym1,jxp))
-        allocate(prnca2d(iym1,jxp))
-        allocate(sabv2d(iym1,jxp))
-        allocate(sdelqk2d(iym1,jxp))
-        allocate(sdeltk2d(iym1,jxp))
-        allocate(sfracb2d (iym1,jxp))
-        allocate(sfracs2d(iym1,jxp))
-        allocate(sfracv2d(iym1,jxp))
-        allocate(sina2d(iym1,jxp))
-        allocate(sinc2d(iym1,jxp))
-        allocate(sol2d(iym1,jxp))
-        allocate(solvd2d(iym1,jxp))
-        allocate(solvs2d(iym1,jxp))
-        allocate(ssw2da(iym1,jxp))
-        allocate(svegfrac2d(iym1,jxp))
-        allocate(svga2d(iym1,jxp))
-        allocate(veg2d(iym1,jxp))
-        allocate(col2d(nnsg,iym1,jxp))
-        allocate(dew2d(nnsg,iym1,jxp))
-        allocate(emiss2d(nnsg,iym1,jxp))
-        allocate(evpa2d(nnsg,iym1,jxp))
-        allocate(gwet2d(nnsg,iym1,jxp))
-        allocate(ircp2d(nnsg,iym1,jxp))
-        allocate(ocld2d(nnsg,iym1,jxp))
-        allocate(rno2d(nnsg,iym1,jxp))
-        allocate(rnos2d(nnsg,iym1,jxp))
-        allocate(sag2d(nnsg,iym1,jxp))
-        allocate(scv2d(nnsg,iym1,jxp))
-        allocate(sena2d(nnsg,iym1,jxp))
-        allocate(sice2d(nnsg,iym1,jxp))
-        allocate(srw2d(nnsg,iym1,jxp))
-        allocate(ssw2d(nnsg,iym1,jxp))
-        allocate(swt2d(nnsg,iym1,jxp))
-        allocate(taf2d(nnsg,iym1,jxp))
-        allocate(text2d(nnsg,iym1,jxp))
-        allocate(tg2d(nnsg,iym1,jxp))
-        allocate(tgb2d(nnsg,iym1,jxp))
-        allocate(tlef2d(nnsg,iym1,jxp))
-        allocate(veg2d1(nnsg,iym1,jxp))
-        allocate(lkdpth(nnsg,iym1,jxp))
-        allocate(ht1(nnsg,iy,jxp))
-        allocate(satbrt1(nnsg,iy,jxp))
-        allocate(xlat1(nnsg,iy,jxp))
-        allocate(xlon1(nnsg,iy,jxp))
-        allocate(fbat(jxp,iym2,numbat))
-        allocate(fsub(nnsg,jxp,iym2,numsub))
-#ifdef CLM
-        allocate(spaceclm(iym1,jxp,12))
-        sols2d   => spaceclm(:,:,1)
-        soll2d   => spaceclm(:,:,2)
-        solsd2d  => spaceclm(:,:,3)
-        solld2d  => spaceclm(:,:,4)
-        aldirs2d => spaceclm(:,:,5)
-        aldirl2d => spaceclm(:,:,6)
-        aldifs2d => spaceclm(:,:,7)
-        aldifl2d => spaceclm(:,:,8)
-        coszrs2d => spaceclm(:,:,9)
-        rs2d     => spaceclm(:,:,10)
-        ra2d     => spaceclm(:,:,11)
-        q2d      => spaceclm(:,:,12)
-#endif
-#ifdef DCSST
-        allocate(deltas(iy,jxp))
-        allocate(tdeltas(iy,jxp))
-        allocate(dtskin(iy,jxp))
-        allocate(firstcall(iy,jxp))
-#endif
-#else
-#ifdef BAND
-        allocate(flw2d(iym1,jx)) 
-        allocate(flwa2d(iym1,jx))
-        allocate(flwd2d(iym1,jx))
-        allocate(flwda2d(iym1,jx))
-        allocate(fsw2d(iym1,jx))
-        allocate(fswa2d(iym1,jx))
-        allocate(pptc(iym1,jx))  
-        allocate(pptnc(iym1,jx))
-        allocate(prca2d(iym1,jx))
-        allocate(prnca2d(iym1,jx))
-        allocate(sabv2d(iym1,jx))
-        allocate(sdelqk2d(iym1,jx))
-        allocate(sdeltk2d(iym1,jx))
-        allocate(sfracb2d (iym1,jx))
-        allocate(sfracs2d(iym1,jx))
-        allocate(sfracv2d(iym1,jx))
-        allocate(sina2d(iym1,jx))
-        allocate(sinc2d(iym1,jx))
-        allocate(sol2d(iym1,jx))
-        allocate(solvd2d(iym1,jx))
-        allocate(solvs2d(iym1,jx))
-        allocate(ssw2da(iym1,jx))
-        allocate(svegfrac2d(iym1,jx))
-        allocate(svga2d(iym1,jx))
-        allocate(veg2d(iym1,jx))
-        allocate(col2d(nnsg,iym1,jx))
-        allocate(dew2d(nnsg,iym1,jx))
-        allocate(emiss2d(nnsg,iym1,jx))
-        allocate(evpa2d(nnsg,iym1,jx))
-        allocate(gwet2d(nnsg,iym1,jx))
-        allocate(ircp2d(nnsg,iym1,jx))
-        allocate(ocld2d(nnsg,iym1,jx))
-        allocate(rno2d(nnsg,iym1,jx))
-        allocate(rnos2d(nnsg,iym1,jx))
-        allocate(sag2d(nnsg,iym1,jx))
-        allocate(scv2d(nnsg,iym1,jx))
-        allocate(sena2d(nnsg,iym1,jx))
-        allocate(sice2d(nnsg,iym1,jx))
-        allocate(srw2d(nnsg,iym1,jx))
-        allocate(ssw2d(nnsg,iym1,jx))
-        allocate(swt2d(nnsg,iym1,jx))
-        allocate(taf2d(nnsg,iym1,jx))
-        allocate(text2d(nnsg,iym1,jx))
-        allocate(tg2d(nnsg,iym1,jx))
-        allocate(tgb2d(nnsg,iym1,jx))
-        allocate(tlef2d(nnsg,iym1,jx))
-        allocate(veg2d1(nnsg,iym1,jx))
-        allocate(lkdpth(nnsg,iym1,jx))
-#else
-        allocate(flw2d(iym1,jxm1)) 
-        allocate(flwa2d(iym1,jxm1))
-        allocate(flwd2d(iym1,jxm1))
-        allocate(flwda2d(iym1,jxm1))
-        allocate(fsw2d(iym1,jxm1))
-        allocate(fswa2d(iym1,jxm1))
-        allocate(pptc(iym1,jxm1))  
-        allocate(pptnc(iym1,jxm1))
-        allocate(prca2d(iym1,jxm1))
-        allocate(prnca2d(iym1,jxm1))
-        allocate(sabv2d(iym1,jxm1))
-        allocate(sdelqk2d(iym1,jxm1))
-        allocate(sdeltk2d(iym1,jxm1))
-        allocate(sfracb2d (iym1,jxm1))
-        allocate(sfracs2d(iym1,jxm1))
-        allocate(sfracv2d(iym1,jxm1))
-        allocate(sina2d(iym1,jxm1))
-        allocate(sinc2d(iym1,jxm1))
-        allocate(sol2d(iym1,jxm1))
-        allocate(solvd2d(iym1,jxm1))
-        allocate(solvs2d(iym1,jxm1))
-        allocate(ssw2da(iym1,jxm1))
-        allocate(svegfrac2d(iym1,jxm1))
-        allocate(svga2d(iym1,jxm1))
-        allocate(veg2d(iym1,jxm1))
-        allocate(col2d(nnsg,iym1,jxm1))
-        allocate(dew2d(nnsg,iym1,jxm1))
-        allocate(emiss2d(nnsg,iym1,jxm1))
-        allocate(evpa2d(nnsg,iym1,jxm1))
-        allocate(gwet2d(nnsg,iym1,jxm1))
-        allocate(ircp2d(nnsg,iym1,jxm1))
-        allocate(ocld2d(nnsg,iym1,jxm1))
-        allocate(rno2d(nnsg,iym1,jxm1))
-        allocate(rnos2d(nnsg,iym1,jxm1))
-        allocate(sag2d(nnsg,iym1,jxm1))
-        allocate(scv2d(nnsg,iym1,jxm1))
-        allocate(sena2d(nnsg,iym1,jxm1))
-        allocate(sice2d(nnsg,iym1,jxm1))
-        allocate(srw2d(nnsg,iym1,jxm1))
-        allocate(ssw2d(nnsg,iym1,jxm1))
-        allocate(swt2d(nnsg,iym1,jxm1))
-        allocate(taf2d(nnsg,iym1,jxm1))
-        allocate(text2d(nnsg,iym1,jxm1))
-        allocate(tg2d(nnsg,iym1,jxm1))
-        allocate(tgb2d(nnsg,iym1,jxm1))
-        allocate(tlef2d(nnsg,iym1,jxm1))
-        allocate(veg2d1(nnsg,iym1,jxm1))
-        allocate(lkdpth(nnsg,iym1,jxm1))
-#endif
-        allocate(ht1(nnsg,iy,jx))
-        allocate(satbrt1(nnsg,iy,jx))
-#ifdef BAND
-        allocate(fbat(jx,iym2,numbat))
-        allocate(fsub(nnsg,jx,iym2,numsub))
-#else
-        allocate(fbat(jxm2,iym2,numbat))
-        allocate(fsub(nnsg,jxm2,iym2,numsub))
-#endif
-#ifdef DCSST
-        allocate(deltas(iy,jx))
-        allocate(tdeltas(iy,jx))
-        allocate(dtskin(iy,jx))
-        allocate(firstcall(iy,jx))
-#endif
-#endif
+        subroutine allocate_mod_bats(lmpi,lband)
+        implicit none
+        logical , intent(in) :: lmpi , lband
+        integer :: nj , njm1 , njm2
+
+        if (lmpi) then
+          nj = jxp
+          njm1 = jxp
+          njm2 = jxp
+        else
+          if (lband) then
+            nj = jx
+            njm1 = jx
+            njm2 = jx
+          else
+            nj = jx
+            njm1 = jxm1
+            njm2 = jxm2
+          end if
+        end if
+
+        allocate(flw2d(iym1,njm1)) 
+        allocate(flwa2d(iym1,njm1))
+        allocate(flwd2d(iym1,njm1))
+        allocate(flwda2d(iym1,njm1))
+        allocate(fsw2d(iym1,njm1))
+        allocate(fswa2d(iym1,njm1))
+        allocate(pptc(iym1,njm1))  
+        allocate(pptnc(iym1,njm1))
+        allocate(prca2d(iym1,njm1))
+        allocate(prnca2d(iym1,njm1))
+        allocate(sabv2d(iym1,njm1))
+        allocate(sdelqk2d(iym1,njm1))
+        allocate(sdeltk2d(iym1,njm1))
+        allocate(sfracb2d (iym1,njm1))
+        allocate(sfracs2d(iym1,njm1))
+        allocate(sfracv2d(iym1,njm1))
+        allocate(sina2d(iym1,njm1))
+        allocate(sinc2d(iym1,njm1))
+        allocate(sol2d(iym1,njm1))
+        allocate(solvd2d(iym1,njm1))
+        allocate(solvs2d(iym1,njm1))
+        allocate(ssw2da(iym1,njm1))
+        allocate(svegfrac2d(iym1,njm1))
+        allocate(svga2d(iym1,njm1))
+        allocate(veg2d(iym1,njm1))
+        allocate(col2d(nnsg,iym1,njm1))
+        allocate(dew2d(nnsg,iym1,njm1))
+        allocate(emiss2d(nnsg,iym1,njm1))
+        allocate(evpa2d(nnsg,iym1,njm1))
+        allocate(gwet2d(nnsg,iym1,njm1))
+        allocate(ircp2d(nnsg,iym1,njm1))
+        allocate(ocld2d(nnsg,iym1,njm1))
+        allocate(rno2d(nnsg,iym1,njm1))
+        allocate(rnos2d(nnsg,iym1,njm1))
+        allocate(sag2d(nnsg,iym1,njm1))
+        allocate(scv2d(nnsg,iym1,njm1))
+        allocate(sena2d(nnsg,iym1,njm1))
+        allocate(sice2d(nnsg,iym1,njm1))
+        allocate(srw2d(nnsg,iym1,njm1))
+        allocate(ssw2d(nnsg,iym1,njm1))
+        allocate(swt2d(nnsg,iym1,njm1))
+        allocate(taf2d(nnsg,iym1,njm1))
+        allocate(text2d(nnsg,iym1,njm1))
+        allocate(tg2d(nnsg,iym1,njm1))
+        allocate(tgb2d(nnsg,iym1,njm1))
+        allocate(tlef2d(nnsg,iym1,njm1))
+        allocate(veg2d1(nnsg,iym1,njm1))
+        allocate(lkdpth(nnsg,iym1,njm1))
+        allocate(ht1(nnsg,iy,nj))
+        allocate(satbrt1(nnsg,iy,nj))
+        allocate(xlat1(nnsg,iy,nj))
+        allocate(xlon1(nnsg,iy,nj))
+        allocate(fbat(njm2,iym2,numbat))
+        allocate(fsub(nnsg,njm2,iym2,numsub))
+        if (idcsst == 1) then
+          allocate(deltas(iy,nj))
+          allocate(tdeltas(iy,nj))
+          allocate(dtskin(iy,nj))
+          allocate(firstcall(iy,nj))
+        end if
         allocate(spacebs1d(nnsg,iym1,123))
         p1d0     => spacebs1d(:,:,1)
         qs1d0    => spacebs1d(:,:,2)
@@ -523,9 +386,7 @@
         sena_s => fsub(:,:,:,14)
         prcv_s => fsub(:,:,:,15)
         ps_s   => fsub(:,:,:,16)
-#ifdef DCSST
-        firstcall(:,:) = .false.
-#endif
+        if (idcsst == 1) firstcall(:,:) = .false.
 !
       end subroutine allocate_mod_bats 
 !

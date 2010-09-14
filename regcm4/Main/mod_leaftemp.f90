@@ -18,17 +18,21 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_leaftemp
-
+!
+!     Calculate leaf temperature, leaf fluxes, and net transpiration.
+!     documented in NCAR Tech Note, Dickinson et al., 1986.
+!     modifications by Klaus Blumel, 1988.
+!
       use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_bats
-
+!
       private
-
+!
       public :: lfta , lftb , lftrs , lftra
       public :: allocate_mod_leaftemp , lftemp , satur
-
+!
       real(8) , allocatable , dimension(:,:) :: lfta , lftb
       real(8) , allocatable , dimension(:,:) :: lftra , lftrs
 !
@@ -45,7 +49,7 @@
       real(8) , allocatable , dimension(:,:) :: trup , trupd
       real(8) , allocatable , dimension(:,:) :: cdrmin , dlstaf
       real(8) , allocatable , dimension(:,:) :: rib , rib1
-
+!
       contains
 !
       subroutine allocate_mod_leaftemp
@@ -78,7 +82,9 @@
 
       end subroutine allocate_mod_leaftemp
 !
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!=======================================================================
+!l  based on: bats version 1e          copyright 18 august 1989
+!=======================================================================
 !
 !     Calculate leaf temperature, leaf fluxes, and net transpiration.
 !     documented in NCAR Tech Note, Dickinson et al., 1986.
@@ -125,7 +131,7 @@
 !     change of latent heat fluxes small enough, or if
 !     maximum iteration reached (itmax).
 !
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!=======================================================================
 !
       subroutine lftemp(iemiss)
 !
@@ -419,8 +425,6 @@
 !
       implicit none
 !
-! Local variables
-!
       real(8) :: difzen , g , radfi , seas , vpdf , x , fseas
       integer :: il , ilmax , n , i
       real(8) , dimension(10) :: rad , radd
@@ -616,13 +620,9 @@
 !
       implicit none
 !
-! Dummy arguments
-!
       real(8) , dimension(nnsg,iym1) :: p , qsat , t
       intent (in) p , t
       intent (out) qsat
-!
-! Local variables
 !
       integer :: n , i
 !
@@ -653,8 +653,6 @@
       subroutine lfdrag
 !
       implicit none
-!
-! Local variables
 !
       real(8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
       integer :: n , i

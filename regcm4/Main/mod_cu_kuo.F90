@@ -18,7 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_cu_kuo
-
+!
+!     This module implements Kuo cumulus parameterization scheme.
+!     The basic method follows Anthes and Keyser (1979) and Kuo (1983).
+!
       use mod_constants
       use mod_dynparam
       use mod_runparams
@@ -29,57 +32,46 @@
       use mod_bats
       use mod_trachem
       use mod_date
+      use mod_advection
 
       private
 
-      public :: cupara
-
-!     qdcrit is the precipitation threshold for moisture convergence.
-      real(8) :: qdcrit
-      data qdcrit /3.0E-7/
-
-      contains
-
-      subroutine cupara(j)
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine performs cumulus parameterization scheme.       c
-!     the basic method follows anthes and keyser (1979) and           c
-!     kuo (1983).                                                     c
-!                                                                     c
-!     all the other arguments are passed from subroutine "tend" and   c
-!     explained in "tend".                                            c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      implicit none
+      public :: cupara , htdiff
 !
-! Dummy arguments
-!
-      integer :: j
-!
-! Local variables
-!
-      real(8) :: akclth , apcnt , aprdiv , arh , c301 , cdscld , dalr , &
-               & deqt , dlnp , dlt , dplr , dsc , e1 , eddyf , emax ,   &
-               & eqt , eqtm , es , perq , pert , plcl , pmax , prainx , &
-               & psg , psx , pux , q , qmax , qs , rh , rsht , rswt ,   &
-               & sca , siglcl , suma , sumb , t1 , tdmax , tlcl , tmax ,&
-               & tmean , ttconv , ttp , ttsum , xsav , zlcl
-      integer :: i , k , kbase , kbaseb , kclth , kk , ktop
-      real(8) , dimension(kz) :: seqt
-      real(8) , dimension(iy,kz) :: tmp3
-!
-!
-!----------------------------------------------------------------------
-!
+!     qdcrit : the precipitation threshold for moisture convergence.
 !     pert   : perturbation temperature
 !     perq   : perturbation mixing ratio
 !     dlt    : temperature difference used to allow over shooting.
 !     cdscld : critical cloud depth in delta sigma.
 !
-      data pert , perq/1. , 1.E-3/
-      data dlt , cdscld/3.0 , 0.3/
+      real(8) , parameter :: qdcrit = 3.0E-7
+      real(8) , parameter :: pert   = 1
+      real(8) , parameter :: perq   = 1.E-3
+      real(8) , parameter :: dlt    = 3.0
+      real(8) , parameter :: cdscld = 0.3
+!
+      contains
+!
+      subroutine cupara(j)
+!
+!     All the other arguments are passed from subroutine "tend" and
+!     explained in "tend".
+!
+      implicit none
+!
+      integer :: j
+!
+      real(8) :: akclth , apcnt , aprdiv , arh , c301 , dalr ,    &
+               & deqt , dlnp , dplr , dsc , e1 , eddyf , emax ,   &
+               & eqt , eqtm , es , plcl , pmax , prainx , psg ,   &
+               & psx , pux , q , qmax , qs , rh , rsht , rswt ,   &
+               & sca , siglcl , suma , sumb , t1 , tdmax , tlcl , &
+               & tmax , tmean , ttconv , ttp , ttsum , xsav , zlcl
+      integer :: i , k , kbase , kbaseb , kclth , kk , ktop
+      real(8) , dimension(kz) :: seqt
+      real(8) , dimension(iy,kz) :: tmp3
+!
+!----------------------------------------------------------------------
 !
 !
       pmax = 0.0
@@ -350,6 +342,161 @@
 !
       end subroutine cupara
 !
+      subroutine htdiff(dto2,dxsq,akht1)
+
+#ifdef MPP1
+#ifndef IBM
+      use mpi
+#else 
+      include 'mpif.h'
+#endif 
+#endif
+      implicit none
 !
+      real(8) :: akht1 , dto2 , dxsq
+      intent (in) akht1 , dto2 , dxsq
+!
+      integer :: i , im1 , ip1 , j , jm1 , jp1 , k
+#ifdef MPP1
+      integer :: ierr
+      real(8) , dimension(iy,0:jxp+1) :: wr
+#else
+      real(8) , dimension(iy,jx) :: wr
+#endif
+!
+#ifdef MPP1
+      do k = 1 , kz
+        do j = 1 , jendl
+          do i = 1 , iy
+            wr(i,j) = rsheat(i,k,j)
+          end do
+        end do
+        call mpi_sendrecv(wr(1,jxp),iy,mpi_real8,ieast,1,               &
+                        & wr(1,0),iy,mpi_real8,iwest,1,                 &
+                        & mpi_comm_world,mpi_status_ignore,ierr)
+        call mpi_sendrecv(wr(1,1),iy,mpi_real8,iwest,2,                 &
+                        & wr(1,jxp+1),iy,mpi_real8,ieast,2,             &
+                        & mpi_comm_world,mpi_status_ignore,ierr)
+        do j = jbegin , jendm
+#ifdef BAND
+          jm1 = j - 1
+          jp1 = j + 1
+#else
+          if ( myid.eq.0 ) then
+            jm1 = max0(j-1,2)
+          else
+            jm1 = j - 1
+          end if
+          if ( myid.eq.nproc-1 ) then
+            jp1 = min0(j+1,jxp-2)
+          else
+            jp1 = j + 1
+          end if
+#endif
+          do i = 2 , iym2
+            im1 = max0(i-1,2)
+            ip1 = min0(i+1,iym2)
+            rsheat(i,k,j) = rsheat(i,k,j)                               &
+                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
+                          & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
+          end do
+        end do
+      end do
+#else
+      do k = 1 , kz
+        do j = 1 , jx
+          do i = 1 , iy
+            wr(i,j) = rsheat(i,k,j)
+          end do
+        end do
+#ifdef BAND
+        do j = 1 , jx
+          jm1 = j - 1
+          jp1 = j + 1
+          if(jm1.eq.0) jm1 = jx
+          if(jp1.eq.jx+1) jp1 = 1
+#else
+        do j = 2 , jxm2
+          jm1 = max0(j-1,2)
+          jp1 = min0(j+1,jxm2)
+#endif
+          do i = 2 , iym2
+            im1 = max0(i-1,2)
+            ip1 = min0(i+1,iym2)
+            rsheat(i,k,j) = rsheat(i,k,j)                               &
+                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
+                          & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
+          end do
+        end do
+      end do
+#endif
+!
+#ifdef MPP1
+      do k = 1 , kz
+        do j = 1 , jendl
+          do i = 1 , iy
+            wr(i,j) = rswat(i,k,j)
+          end do
+        end do
+        call mpi_sendrecv(wr(1,jxp),iy,mpi_real8,ieast,1,               &
+                        & wr(1,0),iy,mpi_real8,iwest,1,                 &
+                        & mpi_comm_world,mpi_status_ignore,ierr)
+        call mpi_sendrecv(wr(1,1),iy,mpi_real8,iwest,2,                 &
+                        & wr(1,jxp+1),iy,mpi_real8,ieast,2,             &
+                        & mpi_comm_world,mpi_status_ignore,ierr)
+        do j = jbegin , jendm
+#ifdef BAND
+          jm1 = j - 1
+          jp1 = j + 1
+#else
+          if ( myid.eq.0 ) then
+            jm1 = max0(j-1,2)
+          else
+            jm1 = j - 1
+          end if
+          if ( myid.eq.nproc-1 ) then
+            jp1 = min0(j+1,jxp-2)
+          else
+            jp1 = j + 1
+          end if
+#endif
+          do i = 2 , iym2
+            im1 = max0(i-1,2)
+            ip1 = min0(i+1,iym2)
+            rswat(i,k,j) = rswat(i,k,j)                                 &
+                         & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
+                         & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
+          end do
+        end do
+      end do
+#else
+      do k = 1 , kz
+        do j = 1 , jx
+          do i = 1 , iy
+            wr(i,j) = rswat(i,k,j)
+          end do
+        end do
+#ifdef BAND
+        do j = 1 , jx
+          jm1 = j - 1
+          jp1 = j + 1
+          if(jm1.eq.0) jm1 = jx
+          if(jp1.eq.jx+1) jp1 = 1
+#else
+        do j = 2 , jxm2
+          jm1 = max0(j-1,2)
+          jp1 = min0(j+1,jxm2)
+#endif
+          do i = 2 , iym2
+            im1 = max0(i-1,2)
+            ip1 = min0(i+1,iym2)
+            rswat(i,k,j) = rswat(i,k,j)                                 &
+                         & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
+                         & +wr(i,jm1)+wr(i,jp1)-4.*wr(i,j))
+          end do
+        end do
+      end do
+#endif
+      end subroutine htdiff
 !
       end module mod_cu_kuo

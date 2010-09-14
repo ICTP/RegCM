@@ -41,6 +41,7 @@
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
+      use mod_clm
       use restFileMod, only : restFile_write, restFile_write_binary
       use restFileMod, only : restFile_filename
       use clm_varctl , only : filer_rest
@@ -2213,7 +2214,7 @@
       do i = 1 , imax
         do j = 1 , jmax
 #ifdef MPP1
-          radpsa(j,i) = (psa_io(i+1,j)+r8pt)*10.
+          radpsa_io(j,i) = (psa_io(i+1,j)+r8pt)*10.
 #else
           radpsa(j,i) = (psa(i+1,j)+r8pt)*10.
 #endif
@@ -2223,7 +2224,7 @@
 #ifdef MPP1
       call writerec_rad(jmax, imax, kz, 4, 9, &
                         frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:10), &
-                        radpsa, idatex)
+                        radpsa_io, idatex)
 #else
       call writerec_rad(jmax, imax, kz, 4, 9, &
                         frad3d(:,:,:,2:5), frad2d(:,:,1:10), &

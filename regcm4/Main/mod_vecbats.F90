@@ -36,7 +36,7 @@
 
       private
 
-      public :: interf , initb , vecbats , albedov
+      public :: interf , initb , vecbats , albedov , slice1D
 
       contains
 
@@ -1144,30 +1144,24 @@
 !         can't use pointer "nalbk" here because not set - use nldock
 !         instead tgb1d(i) used instead of tbelow
 !
-#ifdef SEAICE
-          if ( ldoc1d(n,i).gt.1.5 ) then
-            tdiffs=ts1d(n,i)-tzero
-            tdiff=dmax1(tdiffs,0.d0)
-            tdiffs=dmin1(tdiff,20.d0)
-            albgl=sical1-1.1e-2*tdiffs
-            albgs=sical0-2.45e-2*tdiffs
-            albg=fsol1*albgs+fsol2*albgl
-            albgsd=albgs
-            albgld=albgl
-          else if ( ldoc1d(n,i).gt.0.1D0 .and.                          &
-           &       sice1d(n,i).eq.0.D0 ) then
-#else
-           if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
-#endif
+          if (iseaice == 1) then
+            if ( ldoc1d(n,i).gt.1.5 ) then
+              tdiffs=ts1d(n,i)-tzero
+              tdiff=dmax1(tdiffs,0.d0)
+              tdiffs=dmin1(tdiff,20.d0)
+              albgl=sical1-1.1e-2*tdiffs
+              albgs=sical0-2.45e-2*tdiffs
+              albg=fsol1*albgs+fsol2*albgl
+              albgsd=albgs
+              albgld=albgl
+            end if
+          end if
+          if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
             sfac = 1.D0 - fseas(tgb1d(n,i))
- 
 !           **********  ccm tests here on land mask for veg and soils
- 
- 
 !c          data *** reduces albedo at low temps !!!!!should respond to
 !c          moisture too the following card inactivated (commented out)
 !c          (pat, 27 oct 86)
- 
 !           veg1d(i)=vegc(lveg(i))-seasf(lveg(i))*sfac
             albs = albvgs(lveg(n,i))
             albl = albvgl(lveg(n,i))
@@ -1479,5 +1473,45 @@
       end do
 !
       end subroutine zenith
+!
+      subroutine slice1D(j)
+ 
+      implicit none
+!
+! Dummy arguments
+!
+      integer :: j
+      intent (in) j
+!
+! Local variables
+!
+      real(8) :: amxtem , sfac
+      integer :: n , i
+! 
+!     ********* For albedov
+!     **********            This is taken from subroutine interf so that
+!     **********            radiation can be called in tend (not
+!     vecbats).
+      do i = 2 , iym1
+        do n = 1 , nnsg
+          ldoc1d(n,i) = ocld2d(n,i,j)
+          sice1d(n,i) = sice2d(n,i,j)
+          tgb1d(n,i) = tgb2d(n,i,j)
+          ssw1d(n,i) = ssw2d(n,i,j)
+          lveg(n,i) = nint(veg2d1(n,i,j))
+          amxtem = dmax1(298.-tgb1d(n,i),0.D0)
+          sfac = 1. - dmax1(0.D0,1.-0.0016*amxtem**2)
+          if ( lveg(n,i).eq.0 ) then
+            veg1d(n,i) = 0.
+          else
+            veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
+          end if
+          ts1d(n,i) = thx3d(i,kz,j)-6.5E-3*rgti*(ht1(n,i,j)-ht(i,j))
+          scv1d(n,i) = scv2d(n,i,j)
+          sag1d(n,i) = sag2d(n,i,j)
+        end do
+      end do
+ 
+      end subroutine slice1D
 !
       end module mod_vecbats

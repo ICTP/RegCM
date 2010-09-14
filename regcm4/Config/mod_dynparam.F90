@@ -180,7 +180,6 @@
       integer :: nspgv
       integer :: nspgp
 
-#ifdef MPP1
 !####################### MPI parameters ################################
 
       integer :: nproc
@@ -194,7 +193,6 @@
       integer :: jendm , iendm
 
 !####################### MPI parameters ################################
-#endif
 
 ! Surface minimum H2O percent to be considered water
 
@@ -276,6 +274,7 @@
       integer , parameter :: numsub = 16
       integer , parameter :: nrad2d = 21
       integer , parameter :: nrad3d = 5
+      integer , parameter :: mpy = 12
 
       character(1), parameter :: pthsep = '/'
 
@@ -284,9 +283,7 @@
       character(256) :: dirter , inpter
       character(256) :: dirglob , inpglob
       character(256) :: dirout
-#ifdef CLM
       character(256) :: dirclm
-#endif
 
 ! Model output control parameters
 

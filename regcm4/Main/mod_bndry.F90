@@ -18,27 +18,26 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_bndry
-
+!
       use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_bats
       use mod_leaftemp
       use mod_drag
-
+!
       private
-
+!
       public :: bndry
-
+!
       contains
-
-      subroutine bndry
-
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-!     this is the main routine when interfacing with a
+!=======================================================================
+!l  based on: bats version 1e          copyright 18 august 1989
+!=======================================================================
+!
+!     This is the main routine when interfacing with a
 !     meteorological model
-!
 !
 !                f l o w   d i a g r a m   f o r   b n d r y
 !
@@ -54,8 +53,6 @@
 !                             water                         condch
 !                                                           condcq
 !                                                            deriv
-!
-!
 !  **  type1  = crop
 !  **  type2  = short grass
 !  **  type3  = evergreen needle leaf tree
@@ -77,12 +74,9 @@
 !
 !  ** note: water and soil parameters are in mm
 !
+      subroutine bndry
+!
       implicit none
-!
-! Dummy arguments
-!
-!
-! Local variables
 !
       real(8) :: fact , qsatd , rai
       integer :: n , i
@@ -263,14 +257,15 @@
  
       end subroutine bndry
 !
-!     provides leaf and stem area parameters;
+!=======================================================================
+! VCOVER
+!     Provides leaf and stem area parameters;
 !     depends on climate through subsoil temperatures.
+!=======================================================================
 !
       subroutine vcover
  
       implicit none
-!
-! Local variables
 !
       integer :: n , i
 !
@@ -300,14 +295,15 @@
 !
       end subroutine vcover
 !
-!  excess leaf water is put into rain or snow;
-!  leaf water is reset to its maximum value.
+!=======================================================================
+!  DRIP
+!     Excess leaf water is put into rain or snow;
+!     leaf water is reset to its maximum value.
+!=======================================================================
 !
       subroutine drip
  
       implicit none
-!
-! Local variables
 !
       integer :: n , i
 !
@@ -340,7 +336,9 @@
  
       end subroutine drip
 ! 
-!     routine provides sensible and latent fluxes
+!=======================================================================
+! TSEAICE
+!     Routine provides sensible and latent fluxes
 !             and snow melt over ice
 !
 !     fss = conductive heat flow through ice
@@ -350,10 +348,10 @@
 !
 !         sea-ice mask could be reset in here with "imelt" - but not
 !                  done at present
+!=======================================================================
 !
- 
       subroutine tseaice
-
+!
       implicit none
 !
       real(8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
@@ -367,10 +365,9 @@
           if ( lveg(n,i).eq.14 ) exit   ! lake model handles this case
  
           if ( ldoc1d(n,i).gt.1.5 ) then
-#ifdef SEAICE
-            if ( sice1d(n,i).lt.1000. ) sice1d(n,i) = 1000.0
-#endif
- 
+            if ( iseaice == 1 .and. sice1d(n,i).lt.1000. ) then
+              sice1d(n,i) = 1000.0
+            end if
 ! ******                rhosw = density of snow relative to water
             rhosw3 = rhosw(n,i)**3
             imelt(n,i) = 0
@@ -453,7 +450,9 @@
  
       end subroutine tseaice
 !
-!              update soil moisture and runoff
+!=======================================================================
+! WATER
+!     update soil moisture and runoff
 !
 !     new algorithms for three soil layers (dickinson & kennedy 8-88)
 !     calculate fluxes through air, surface layer, and root layer faces
@@ -479,12 +478,11 @@
 !          if the land isn't at least 60% saturated.
 !     veg type 13 and 14 are water covered (lake, swamp, rice paddy);
 !          negative runoff keeps this land saturated.
+!=======================================================================
 !
       subroutine water
 !
       implicit none
-!
-! Local variables
 !
       real(8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
                & evmxt , rap , vakb , wtg2c , xxkb
@@ -493,9 +491,6 @@
            & xkmx2 , xkmxr
       integer :: n , i
 !
-!***********************************************************************
-!
- 
 !=======================================================================
 !     1.   define soil water fluxes
 !=======================================================================
@@ -704,6 +699,8 @@
 !
       end subroutine water
 ! 
+!=======================================================================
+! SNOW
 !     update snow cover and snow age
 !
 !     three-part if block:
@@ -722,11 +719,11 @@
 !           age3: accumulation  of other particles, soot, etc., which
 !                      is small in southern hemisphere
 !
+!=======================================================================
+!
       subroutine snow
 !
       implicit none
-!
-! Local variables
 !
       real(8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels ,&
                & sge , tage
@@ -799,12 +796,11 @@
  
       end subroutine snow
 !
-      subroutine tgrund
-!
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!=======================================================================
+! TGRUND
 ! 
-!     present version of diurnal and seasonal force restore (red 7-88)
-!     based on dickinson (1988) force restore paper in j. climate.
+!     Present version of diurnal and seasonal force restore (red 7-88)
+!     based on Dickinson (1988) force restore paper in j. climate.
 !     in particular, shows that a 0.1 m or thicker surface layer will
 !     dominate thermal conductivity for surface temperature over the
 !     diurnal cycle, and the first 1 m gives appropriate conductivity
@@ -833,10 +829,11 @@
 !         hs = net energy flux into the surface
 !         sg = solar flux absorbed by bare ground
 !     skd,ska= diurnal and annual thermal diffusivities
+!=======================================================================
+!
+      subroutine tgrund
 !
       implicit none
-!
-! Local variables
 !
       real(8) , dimension(nnsg,iym1) :: bb , bcoef , cc , depann ,      &
            & depdiu , deprat , fct2 , hs , rscsa , rscsd , ska , skd ,  &

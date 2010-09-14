@@ -17,11 +17,27 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine condtq(j)
- 
+      module mod_condtq
+!
+! Heating term for explicit moisture
+!
+      use mod_constants
+      use mod_dynparam
+      use mod_runparams
+      use mod_main
+      use mod_cvaria
+      use mod_pmoist
+      use mod_slice
+!
+      private
+!
+      public :: condtq
+!
+      contains
+!
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
-!     this subroutine computes the condensational or evaporational    c
+!     This subroutine computes the condensational or evaporational    c
 !     heating term and the fallout term of precipitation from the     c
 !     explicit moisture scheme.                                       c
 !                                                                     c
@@ -37,24 +53,13 @@
 !        cloudy portion).                                             c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
-      use mod_dynparam
-      use mod_runparams
-      use mod_main
-      use mod_cvaria
-      use mod_pmoist
-      use mod_slice
-      use mod_constants , only : cpd , ep2 , wlhv , wlhvocp , svp1 ,    &
-                               & svp2 , svp3 , svp4 , svp5 , svp6 ,     &
-                               & tzero , rwat
+! 
+      subroutine condtq(j)
+! 
       implicit none
-!
-! Dummy arguments
 !
       integer :: j
       intent (in) j
-!
-! Local variables
 !
 ! rhc    - Relative humidity at ktau+1
 ! rh0adj - Adjusted relative humidity threshold at ktau+1
@@ -65,7 +70,6 @@
       integer :: i , k
       real(8) , dimension(iy,kz) :: qccs , tmp1 , tmp2 , tmp3
 !
- 
 !---------------------------------------------------------------------
 !     1.  Compute t, qv, and qc at tau+1 without condensational term
 !---------------------------------------------------------------------
@@ -144,3 +148,5 @@
       end do
  
       end subroutine condtq
+!
+      end module mod_condtq

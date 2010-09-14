@@ -18,7 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_holtbl
-
+!
+! Holtslag planetary boundary layer scheme
+! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
+!
       use mod_constants
       use mod_dynparam
       use mod_runparams
@@ -31,20 +34,38 @@
       use mod_slice
       use mod_trachem
 #ifdef DIAG
+#ifdef MPP1
+      use mod_mppio
+#endif
       use mod_diagnosis
 #endif
-
+!
       private
-
+!
       public :: allocate_mod_holtbl , holtbl
-
+!
       real(8) ,allocatable, dimension(:,:,:) :: cgh , kvc , kvh , kvm , &
                                              &  kvq
       real(8) ,allocatable, dimension(:,:) :: hfxv , obklen , th10 ,    &
                                              & ustr , xhfx , xqfx
-
+!
+!     minimum eddy diffusivity
+      real(8) , parameter :: kzo = 1.0
+!     coef. of proportionality and lower % of bl in sfc layer
+      real(8) , parameter :: fak = 8.5
+      real(8) , parameter :: sffrac = 0.1
+!     beta coefs. for momentum, stable conditions and heat
+      real(8) , parameter :: betam = 15.0
+      real(8) , parameter :: betas = 5.0
+      real(8) , parameter :: betah = 15.0
+!     power in formula for k and critical ri for judging stability
+      real(8) , parameter :: pink = 2.0
+      real(8) , parameter :: ricr = 0.25
+!     exponent : one third
+      real(8) , parameter :: onet = 1./3.
+! 
       contains
-
+!
       subroutine allocate_mod_holtbl
       implicit none
 #ifdef MPP1
@@ -53,16 +74,13 @@
       allocate(kvh(iy,kz,jxp))        
       allocate(kvm(iy,kz,jxp))        
       allocate(kvq(iy,kz,jxp))
-
       allocate(hfxv(iy,jxp))        
       allocate(obklen(iy,jxp))        
       allocate(th10(iy,jxp))        
       allocate(ustr(iy,jxp))        
       allocate(xhfx(iy,jxp))        
       allocate(xqfx(iy,jxp))        
-
 #else 
-
 #ifdef BAND
       allocate(cgh(iy,kz,jx))        
       allocate(kvc(iy,kz,jx))        
@@ -76,21 +94,16 @@
       allocate(kvm(iy,kz,jxm1))        
       allocate(kvq(iy,kz,jxm1))
 #endif
-
       allocate(hfxv(iy,jx))        
       allocate(obklen(iy,jx))        
       allocate(th10(iy,jx))        
       allocate(ustr(iy,jx))        
       allocate(xhfx(iy,jx))        
       allocate(xqfx(iy,jx))        
-
 #endif 
-
       end  subroutine allocate_mod_holtbl
 !
       subroutine holtbl
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
 #ifdef MPP1
 #ifndef IBM
@@ -99,13 +112,14 @@
       include 'mpif.h'
 #endif 
 #endif
+!
       implicit none
 !
       real(8) , dimension(iy,kz) :: alphak , betak , chix , coef1 ,     &
                                   & coef2 , coef3 , coefe , coeff1 ,    &
                                   & coeff2 , tpred1 , tpred2
-      real(8) :: drgdot , dumr , kzmax , kzo , oblen , xps , ps2 , ri , &
-               & sf , sh10 , ss , szkm , tvcon , uflxsf , uflxsfx ,     &
+      real(8) :: drgdot , dumr , kzmax , oblen , xps , ps2 , ri , &
+               & sf , sh10 , ss , tvcon , uflxsf , uflxsfx ,      &
                & vflxsf , vflxsfx
       real(8) , dimension(iym1) :: govrth
       integer :: jdx , jm1
@@ -133,12 +147,13 @@
 #endif
 #endif
 !
-      data kzo/1./
-      data szkm/1600./
+      real(8) , parameter :: szkm = 1600.0
 !
 ! *********************************************************************
 !
 !     diagnostic on total evaporation
+!
+! *********************************************************************
 !
 #ifdef DIAG
 #ifndef BAND
@@ -523,7 +538,8 @@
 !
 !       first compute coefficients of the tridiagonal matrix
 !
- 
+! **********************************************************************
+!
         do k = 2 , kz - 1
           do i = 2 , iym1
             coef1(i,k) = dt*alphak(i,k)*betak(i,k+1)
@@ -1010,8 +1026,6 @@
       end do
       end subroutine holtbl
 !
-      subroutine blhnew
-!
 ! ------------------------------------------------------------
 ! this routine computes the boundary layer eddy diffusivities
 ! for momentum, heat and moisture and the counter-gradient
@@ -1033,7 +1047,6 @@
 !                    hfxv    surface virtual heat flux
 !                    obklen  monin obukov length
 !                    ustr    friction velocity
-!                    kzo     minimum eddy diffusivity
 !
 ! input/output
 ! arguments :        therm   thermal temperature excess
@@ -1044,38 +1057,24 @@
 !                    kvh     eddy diffusivity for heat
 !                    kvq     eddy diffusivity for moisture
 !                    zpbl     boundary layer height
+! ------------------------------------------------------------
+!
+      subroutine blhnew
 !
       implicit none
 !
-! Local variables
-!
-      real(8) :: betah , betam , betas , binh , binm , ccon , fak ,     &
-               & fak1 , fak2 , fht , xfmt , kzo , onet , pblk , pblk1 , &
-               & pblk2 , pfcor , phpblm , pink , pr , ricr , sffrac ,   &
-               & therm2 , tkv , tlv , ttkl , vv , vvl , wsc , z , zh ,  &
-               & zl , zm , zp , zzh , zzhnew , zzhnew2
+      real(8) :: binh , binm , ccon , fak1 , fak2 , fht , xfmt , pblk , &
+               & pblk1 , pblk2 , pfcor , phpblm , pr , therm2 , tkv ,   &
+               & tlv , ttkl , vv , vvl , wsc , z , zh , zl , zm , zp ,  &
+               & zzh , zzhnew , zzhnew2
       integer :: i , j , k , k2
       real(8) , dimension(iy,kz) :: ri
       real(8) , dimension(iy) :: therm
 !
-      data kzo/1./
-!
-!
 !     ------------------------------------------------------------
-!
 !     real(kind=8)  cgq(iy,kz)
 !     -----------------------------------------------------------
  
-!     gravity
-!     coef. of proportionality and lower % of bl in sfc layer
-      data fak , sffrac/8.5 , 0.1/
-!     beta coefs. for momentum, stable conditions and heat
-      data betam , betas , betah/15.0 , 5.0 , 15.0/
-!     power in formula for k and critical ri for judging stability
-      data pink , ricr/2.0 , 0.25/
- 
-!     exponent : one third
-      onet = 1./3.
       pblk2 = 0.0
       zzhnew2 = 0.0
 !     set constants
@@ -1091,7 +1090,6 @@
       do j = 2 , jxm1
 #endif
 #endif
- 
 !       ****note: kt, max no. of pbl levels, calculated in param
 !       ******   compute richardson number
         do i = 2 , iym1
@@ -1110,7 +1108,6 @@
         do i = 2 , iym1
           zpbl(i,j) = za(i,kz,j)
         end do
- 
 !       ******   looking for bl top
         do k = kz , kt + 1 , -1
           k2 = k - 1
@@ -1308,4 +1305,5 @@
       end do
  
       end subroutine blhnew
+!
       end module mod_holtbl

@@ -18,45 +18,34 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_zengocn
-
-      implicit none
-
+!
+! Ocean flux model
+! Implement Zeng and Beljaars, GRL , 2005, ZB2005
+!
+      use mod_constants
+      use mod_dynparam
+      use mod_runparams
+      use mod_main
+      use mod_pbldim
+      use mod_slice
+      use mod_bats
+      use mod_date
+      use mod_bdycod
+#ifdef CLM
+      use clm_varsur , only : landmask
+#endif
+!
       private
-
+!
       public :: zengocndrv
-
+!
       contains
 !
       subroutine zengocndrv(j , ng , istart , iend , k)
 !
-      use mod_runparams , only : dtmin , kbats , r8pt
-      use mod_main , only : tgb , psb , zpbl
-      use mod_pbldim , only : rhox2d , za
-      use mod_slice , only : tb3d , ubx3d , vbx3d , qvb3d
-      use mod_bats , only : tgb1d , ocld2d , tgb2d , tg1d , sent1d ,    &
-                   & evpr1d , drag1d , u10m1d , v10m1d , t2m_1d , q2m_1d
-      use mod_date , only : jyear , jyearr , ntime , ktau , ktaur
-      use mod_constants , only : wlhv , tzero
-
-#ifdef CLM
-      use mod_dynparam , only : myid , jxp
-      use clm_varsur , only : landmask
-#endif
-#ifdef DCSST
-      use mod_runparams , only : dtbat
-      use mod_bats , only : deltas , tdeltas , firstcall , dtskin ,     &
-                 &          fsw2d , flw2d
-      use mod_bdycod , only : ts1
-      use mod_constants , only : sigm , rhoh2o , cpw0 , emsw , gti ,    &
-                 &               vonkar
-#endif
       implicit none
 !
-! Dummy arguments
-!
       integer , intent (in) :: j , ng , istart , iend , k
-!
-! Local variables
 !
       real(kind=8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh ,&
                & t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi ,&
@@ -65,7 +54,6 @@
 #ifdef CLM
       integer :: jj
 #endif
-#ifdef DCSST
 !     Implement Zeng and Beljaars, GRL , 2005, ZB2005
 !     Account for SST diurnal evoluation warm layer/ skin temperature
 !     scheme
@@ -84,7 +72,6 @@
       real(8) , parameter :: kw = 0.60
       real(8) , parameter :: nu = 0.3
       real(8) , parameter :: d = 3 ! reference depth for bulk SST
-#endif
 !
 #ifdef CLM
       jj = (jxp*myid) + j
@@ -105,95 +92,95 @@
             psurf = (psb(i,j)+r8pt)*10.
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,        &
                        & uv10,tau,lh,sh,dth,dqh,ustar,zo)
-#ifdef DCSST
-!           time step considered for the integration of prognostic skin
-!           temperature , equal to BATS time step
-            dtsst = dtbat
-!           handle the first call of the scheme
-            if ( .not.firstcall(i,j) ) then
-              deltas(i,j) = 0.001
-              tdeltas(i,j) = tgb(i,j) - 0.001
-              firstcall(i,j) = .true.
-              td = tdeltas(i,j)
-            end if
-!           Init local variables
-            delta = deltas(i,j)
-            tdelta = tdeltas(i,j)
-!           td is now the 3m bulk SST from the forcing variable
-            td = ts1(i,j)
+            if (idcsst == 1) then
+!             time step considered for the integration of prognostic skin
+!             temperature , equal to BATS time step
+              dtsst = dtbat
+!             handle the first call of the scheme
+              if ( .not.firstcall(i,j) ) then
+                deltas(i,j) = 0.001
+                tdeltas(i,j) = tgb(i,j) - 0.001
+                firstcall(i,j) = .true.
+                td = tdeltas(i,j)
+              end if
+!             Init local variables
+              delta = deltas(i,j)
+              tdelta = tdeltas(i,j)
+!             td is now the 3m bulk SST from the forcing variable
+              td = ts1(i,j)
 !
-!           deep impact of aod on sst
-!           if ( sum(aerext(i,:,j)).le.1 ) then
-!             td = ts1(i,j) - sum(aerext(i,:,j))*0.8
-!           else if ( sum(aerext(i,:,j)).gt.1 ) then
-!             td = ts1(i,j)- 1.*0.8
-!           end if
+!             deep impact of aod on sst
+!             if ( sum(aerext(i,:,j)).le.1 ) then
+!               td = ts1(i,j) - sum(aerext(i,:,j))*0.8
+!             else if ( sum(aerext(i,:,j)).gt.1 ) then
+!               td = ts1(i,j)- 1.*0.8
+!             end if
 !
-!           rs is the net surface sw flux (sw energy absorbed)
-            rs = fsw2d(i,j)
-!           rd is sw flux at 3m
-            rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
-!           ustar water (with air density ==1)
-            ustarw = 0.5*ustar*(rhox2d(i,j)/rhoh2o)**0.5
-!           lwds =  flwd2d(i,j)
-!           lwus =  emsw*sigm*(tsurf+273.16)**4
-!           q is the skin cooling term inckude net lw flux from
-!           the radiative scheme
-!           q = -(lh+sh+(lwus-lwds))
-            q = -(lh+sh+flw2d(i,j))
-!           fraction of solar radiation abosrbed in the sublayer
-            fs = 0.065+11.*delta-(6.6e-5/delta)*(1-dexp(-delta/8.e-4))
-!           dts= temperature difference between bulk level and skin level
+!             rs is the net surface sw flux (sw energy absorbed)
+              rs = fsw2d(i,j)
+!             rd is sw flux at 3m
+              rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
+!             ustar water (with air density ==1)
+              ustarw = 0.5*ustar*(rhox2d(i,j)/rhoh2o)**0.5
+!             lwds =  flwd2d(i,j)
+!             lwus =  emsw*sigm*(tsurf+273.16)**4
+!             q is the skin cooling term inckude net lw flux from
+!             the radiative scheme
+!             q = -(lh+sh+(lwus-lwds))
+              q = -(lh+sh+flw2d(i,j))
+!             fraction of solar radiation abosrbed in the sublayer
+              fs = 0.065+11.*delta-(6.6e-5/delta)*(1-dexp(-delta/8.e-4))
+!             dts= temperature difference between bulk level and skin level
 !                determined from previous time step (via tdelta and td)
-            dts = tdelta-td
-!           m.o lenght calculation
-            if ( dts.gt.0 ) then
-              fd = (nu*gti*alphaw/(5*d))**0.5*                         &
-                  &  rhoh2o*cpw0*ustarw**2*dts**0.5
-            else
-              fd = gti*alphaw*(q+rs-rd)
+              dts = tdelta-td
+!             m.o lenght calculation
+              if ( dts.gt.0 ) then
+                fd = (nu*gti*alphaw/(5*d))**0.5*                       &
+                    &  rhoh2o*cpw0*ustarw**2*dts**0.5
+              else
+                fd = gti*alphaw*(q+rs-rd)
+              end if
+              l = rhoh2o*cpw0*ustarw**3/(vonkar*fd)
+!             calulation of phidl (stability function)
+              if ( (d/l).ge.0 ) then
+                phidl = 1+5.*(d/l)
+              else
+                phidl = (1-16.*(d/l))**(-0.5)
+              end if
+!             prognostic evolution of dts
+!             we can split the tendencies ddts/dt = a - b * dts
+!             with a and b are ultimately function of dts through q
+              aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+1))
+              bb = (nu+1) * vonkar * ustarw / (d*phidl)
+!             exponential solution
+              dtstend = aa - dts*(1-dexp(-bb*dtsst))/dtsst
+!             update dts
+              dts = dts + dtstend * dtsst
+!             update tdelta
+              tdelta = dts + td
+!             update delta thickness  and cool skin tempearture
+              aa = -16.*gti*alphaw*rhoh2o*cpw0*nuw**3./                 &
+                  &     (ustarw**4. *kw**2.)
+              bb =  aa *(q+rs*fs)
+              if ( bb.gt.0 ) then
+!               case of cool skin layer correction
+                cc= bb**(3./4.)
+                lamb=6.*( (1.+(aa*(q+rs*fs))**0.75)**(-0.333))
+                delta = lamb*nuw/ustarw
+                tskin= delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
+              else
+!               no cool skin layer in this case, tskin = warm layer
+!               temperature
+                tskin=tdelta
+              end if
+!             save the temperature difference and skin layer thickness
+!             for next time step
+              deltas(i,j) = delta
+              tdeltas(i,j) = tdelta
+              dtskin(i,j) = tskin-td
+!             now feedback tskin in surface variable
+              tgb(i,j) = tskin
             end if
-            l = rhoh2o*cpw0*ustarw**3/(vonkar*fd)
-!           calulation of phidl (stability function)
-            if ( (d/l).ge.0 ) then
-              phidl = 1+5.*(d/l)
-            else
-              phidl = (1-16.*(d/l))**(-0.5)
-            end if
-!           prognostic evolution of dts
-!           we can split the tendencies ddts/dt = a - b * dts
-!           with a and b are ultimately function of dts through q
-            aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+1))
-            bb = (nu+1) * vonkar * ustarw / (d*phidl)
-!           exponential solution
-            dtstend = aa - dts*(1-dexp(-bb*dtsst))/dtsst
-!           update dts
-            dts = dts + dtstend * dtsst
-!           update tdelta
-            tdelta = dts + td
-!           update delta thickness  and cool skin tempearture
-            aa = -16.*gti*alphaw*rhoh2o*cpw0*nuw**3./                   &
-                &     (ustarw**4. *kw**2.)
-            bb =  aa *(q+rs*fs)
-            if ( bb.gt.0 ) then
-!             case of cool skin layer correction
-              cc= bb**(3./4.)
-              lamb=6.*( (1.+(aa*(q+rs*fs))**0.75)**(-0.333))
-              delta = lamb*nuw/ustarw
-              tskin= delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
-            else
-!             no cool skin layer in this case, tskin = warm layer
-!             temperature
-              tskin=tdelta
-            end if
-!           save the temperature difference and skin layer thickness
-!           for next time step
-            deltas(i,j) = delta
-            tdeltas(i,j) = tdelta
-            dtskin(i,j) = tskin-td
-!           now feedback tskin in surface variable
-            tgb(i,j) = tskin
-#endif
             tg1d(n,i) = tgb(i,j)
             tgb1d(n,i) = tgb(i,j)
             sent1d(n,i) = sh
@@ -216,11 +203,6 @@
       end do
 !
       end subroutine zengocndrv
-!
-!
-!
-      subroutine zengocn(u,ts,t,q,hgt,zi,ps,qs,u10,tau,                 &
-                       & alh,ash,dth,dqh,ustar,zo)
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -263,17 +245,14 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      use mod_constants , only : gti , rgti , rgas , rovcp , vonkar ,   &
-                                 cpd , ep2 , tzero
-      implicit none
+      subroutine zengocn(u,ts,t,q,hgt,zi,ps,qs,u10,tau,                 &
+                       & alh,ash,dth,dqh,ustar,zo)
 !
-! Dummy arguments
+      implicit none
 !
       real(kind=8) , intent (in) :: hgt , q , t , u , zi , ts , ps
       real(kind=8) , intent (out) :: alh , ash , tau , u10
       real(kind=8) , intent (inout) :: dqh , dth , qs , ustar , zo
-!
-! Local variables
 !
       real(kind=8) :: dthv , hq , ht , hu , obu , pr , qstar , rb ,     &
                & rho , th , thv , thvstar , tstar , um , visa , zot ,   &
@@ -340,7 +319,7 @@
 !     main iterations (2-10 iterations would be fine)
 !
       do i = 1 , 10
-        call rough(zo,zot,zoq,ustar,visa,gti)
+        call ocnrough(zo,zot,zoq,ustar,visa,gti)
 !
 !       wind
 !
@@ -439,13 +418,9 @@
       function psi(k,zeta)
       implicit none
 !
-! Dummy arguments
-!
       integer , intent(in) :: k
       real(kind=8) , intent(in) :: zeta
       real(kind=8) :: psi
-!
-! Local variables
 !
       real(kind=8) :: chik
 !
@@ -465,8 +440,6 @@
       function qsat(t,p)
       implicit none
 !
-! Dummy arguments
-!
       real(kind=8) , intent (in) :: p , t
       real(kind=8) :: qsat
 !
@@ -477,17 +450,13 @@
 !
 !  our formulation for zo,zot,zoq
 !
-      subroutine rough(zo,zot,zoq,ustar,visa,g)
+      subroutine ocnrough(zo,zot,zoq,ustar,visa,g)
 !
       implicit none
-!
-! Dummy arguments
 !
       real(kind=8) , intent (in) :: g , ustar , visa
       real(kind=8) , intent (out) :: zoq , zot
       real(kind=8) , intent (inout) :: zo
-!
-! Local variables
 !
       real(kind=8) :: re , xq , xt
 !
@@ -501,6 +470,6 @@
       xt = xq
       zoq = zo/exp(xq)
       zot = zo/exp(xt)
-      end subroutine rough
+      end subroutine ocnrough
 !
       end module mod_zengocn

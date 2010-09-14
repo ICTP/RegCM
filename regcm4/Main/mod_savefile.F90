@@ -28,7 +28,6 @@
         use mod_mainchem
         use mod_bdycod
         use mod_rad
-        use mod_split
         use mod_trachem
         use mod_date
         use mod_radiation

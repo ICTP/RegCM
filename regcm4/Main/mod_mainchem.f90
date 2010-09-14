@@ -23,8 +23,6 @@
 
       implicit none
 !
-      integer, parameter  :: nmonth = 12
-    
       real(8) , allocatable, dimension(:,:,:,:) :: chemsrc
       real(8) , allocatable, dimension(:,:,:,:) :: chia , chib
       real(8) , allocatable, dimension(:,:,:) :: srclp2
@@ -34,47 +32,40 @@
 
       real(4) , allocatable , dimension(:,:) :: fchem
 
-#ifdef MPP1
-      real(8) , allocatable , dimension(:,:,:,:) :: src0
-      real(8) , allocatable , dimension(:,:,:,:) :: src_0
-#endif
-
       contains 
 
-        subroutine allocate_mod_mainchem
+        subroutine allocate_mod_mainchem(lmpi,lband)
         implicit none
-#ifdef MPP1
-        allocate(chemsrc(iy,jxp,nmonth,ntr))
-        allocate(chia(iy,kz,-1:jxp+2,ntr))
-        allocate(chib(iy,kz,-1:jxp+2,ntr))
-        allocate(srclp2(iy,jxp,ntr))
-        allocate(ddsfc(iy,jxp,ntr)) 
-        allocate(dtrace(iy,jxp,ntr))
-        allocate(wdcvc(iy,jxp,ntr))
-        allocate(wdlsc(iy,jxp,ntr))
-        allocate(wxaq(iy,jxp,ntr))
-        allocate(wxsg(iy,jxp,ntr))
-        allocate(src0(iy,nmonth,ntr,jxp))
-        allocate(src_0(iy,nmonth,ntr,jx))
-#else
-        allocate(chemsrc(iy,jx,nmonth,ntr))
-        allocate(chia(iy,kz,jx,ntr))
-        allocate(chib(iy,kz,jx,ntr))
-        allocate(srclp2(iy,jx,ntr))
-        allocate(ddsfc(iy,jx,ntr))
-        allocate(dtrace(iy,jx,ntr))
-        allocate(wdcvc(iy,jx,ntr))
-        allocate(wdlsc(iy,jx,ntr))
-        allocate(wxaq(iy,jx,ntr))
-        allocate(wxsg(iy,jx,ntr))
-#endif 
-#ifdef BAND
-        allocate(fchem(jx,iym2))
-#else
-        allocate(fchem(jxm2,iym2))
-#endif 
-       
-       end subroutine allocate_mod_mainchem
- 
+        logical , intent(in) :: lmpi , lband
 
+        if (lmpi) then
+          allocate(chemsrc(iy,jxp,mpy,ntr))
+          allocate(chia(iy,kz,-1:jxp+2,ntr))
+          allocate(chib(iy,kz,-1:jxp+2,ntr))
+          allocate(srclp2(iy,jxp,ntr))
+          allocate(ddsfc(iy,jxp,ntr)) 
+          allocate(dtrace(iy,jxp,ntr))
+          allocate(wdcvc(iy,jxp,ntr))
+          allocate(wdlsc(iy,jxp,ntr))
+          allocate(wxaq(iy,jxp,ntr))
+          allocate(wxsg(iy,jxp,ntr))
+        else
+          allocate(chemsrc(iy,jx,mpy,ntr))
+          allocate(chia(iy,kz,jx,ntr))
+          allocate(chib(iy,kz,jx,ntr))
+          allocate(srclp2(iy,jx,ntr))
+          allocate(ddsfc(iy,jx,ntr))
+          allocate(dtrace(iy,jx,ntr))
+          allocate(wdcvc(iy,jx,ntr))
+          allocate(wdlsc(iy,jx,ntr))
+          allocate(wxaq(iy,jx,ntr))
+          allocate(wxsg(iy,jx,ntr))
+        end if
+        if (lband) then
+          allocate(fchem(jx,iym2))
+        else
+          allocate(fchem(jxm2,iym2))
+        end if
+       end subroutine allocate_mod_mainchem
+!
       end module mod_mainchem

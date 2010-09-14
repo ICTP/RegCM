@@ -18,26 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_colmod3
-
-      use mod_constants
-      use mod_dynparam
-      use mod_bats
-      use mod_date
-      use mod_radiation
-
-      private
-
-      public :: colmod3
-
-      logical :: aeregen , aeres , anncyc , cpuchek , dodiavg , lbrnch ,&
-               & ldebug , nlend , nlhst , nlres , ozncyc , sstcyc
-      integer :: iradae , iradlw , iradsw , itsst , nsrest
-
-      contains
-
-      subroutine colmod3(jslc)
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
 !-----------------------------NOTICE------------------------------------
 !
 !            NCAR COMMUNITY CLIMATE MODEL, VERSION 3.0
@@ -103,56 +84,29 @@
 !     by Keiichi Nishizawa on leave from CRIEPI (Japan)
 !     in April, 1997
 !
-!     NB:
-!     The following comments have not been changed from the original
-!     in the ccm3 column radiation model (crm)
-!     Therefore, they are not necessarily appropriate
-!     for the regcm3 radiation package
-!
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-!     All routines except crm(), getdat(), radctl(), and four
-!     dummy routines (readric(), writeric(), outfld(), and radozn()) are
-!     included straight from CCM3 code. The purpose of the (non-dummy)
-!     routines is:
+      use mod_constants
+      use mod_runparams
+      use mod_dynparam
+      use mod_bats
+      use mod_date
+      use mod_radiation
+      use mod_main
+      use mod_rad
+      use mod_outrad
 !
-!     crm(): the main() routine. This routine takes the place of tphysbc()
-!     in the ccm3 calling tree. It places the required calls to the cloud
-!     routines cldefr() and cldems() directly, rather than invoking cldint().
+      private
 !
-!     getdat(): reads the stdin file to parse the user-specified column
-!     profile. overwrites the co2vmr previsouly set by radini() with the
-!     user specified value. computes o3vmr (instead of in radozn()).
-!     sets the calday variable in comtim.h used in zenith() and radinp().
+      public :: colmod3
 !
-!     radctl(): main radiation driving routine, same as ccm3 version except:
-!     receives additional input variable o3vmr, and passes out
-!     additional diagnostic radiation quantities and eccf usually local to
-!     radctl(). does all cgs-->mks conversion for all fluxes.
+      contains
 !
-!
-!     The files that need to be either -included-, specified in the
-!     compilation statement, or linked from a ccm3 library are...
-!
-!     aermix.F    fmrgrid.F    radclr.F   radinp.F    trcabn.F    whenfgt.F
-!     albland.F   intmax.F     radclw.F   radoz2.F    trcems.F    whenflt.F
-!     albocean.F  isrchfgt.F   radcsw.F   radtpl.F    trcmix.F    whenne.F
-!     blkdat.F    isrchfle.F   radded.F   resetr.F    trcplk.F    zenith.F
-!     cldefr.F    myhandler.F  radems.F   torgrid.F   trcpth.F
-!     cldems.F    radabs.F     radini.F   trcab.F     wheneq.F
-!
-!
-!     Standard input file is a text (ascii) file. At the end of the included
-!     input file are notes describing more fully the input. The standard
-!     output file is also a text (ascii) file.
+      subroutine colmod3(jslc)
 !
       implicit none
 !
-! Dummy arguments
-!
       integer :: jslc
-!
-! Local variables
 !
       real(8) , dimension(iym1) :: alb , albc , aldif , aldir , asdif ,&
                                   & asdir , alat , coslat , flns ,      &
@@ -168,9 +122,6 @@
       real(8) :: eccf
       integer :: i , ii0 , ii1 , ii2 , k , n
       integer , dimension(iym1) :: ioro
-!
-!KN   added below
-!
 !
 !     Fields specified by the user in getdat()
 !
@@ -259,15 +210,6 @@
       dolw = .true.
       doabsems = .true.
 !
-!     Set parameters in common block comctl:
-!     anncyc,dodiavg,iradsw,iradlw,iradae
-!
-      anncyc = .true.
-      dodiavg = .false.
-      iradsw = 1
-      iradlw = 1
-      iradae = 1
-!
 !     radini sets many radiation parameters
 !     radini() must be called before getdat(), because
 !     the co2 mixing ratio set (by the user) in getdat() should
@@ -309,25 +251,11 @@
 !     but passed from vecbats() to colmod3() as an argument
 !     therefore, subroutine zenith() is not necessary in regcm3
 !
-!     Get coszrs: needed as input to albland(), albocean(), radctl()
-!
-!KN   call zenith (calday  ,dodiavg ,alat    ,coszrs  )
-!
 !     NB:
 !     land and ocean albedos are calculated
 !     not in albland() and albocean() located below
 !     but in albedov() called from subroutine vecbats()
 !     therefore, the following subroutines are not called here
-!
-!     Find the albedo for land points
-!
-!KN   call albland(ilat     ,ioro    ,sndpth  ,coszrs  ,asdir   ,
-!KN   $     aldir   ,asdif   ,aldif   )
-!
-!     Find the albedo for ocean/sea-ice points
-!
-!KN   call albocean(ilat     ,ioro    ,sndpth  ,coszrs  ,asdir   ,
-!KN   $     aldir   ,asdif   ,aldif   )
 !
 !     NB:
 !     albedos are copied from module bats2,
@@ -339,8 +267,6 @@
         aldir(i) = aldirl(i)
         aldif(i) = aldifl(i)
       end do
-!
-!KN   modified above
 !
 !     Cloud particle size and fraction of ice
 !
@@ -368,20 +294,12 @@
 !     Main radiation driving routine.
 !     NB: All fluxes returned from radctl() have already been converted
 !     to MKS.
-!++csz
-!add  by bixq
-!add_
+!
       call radctl(jslc,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
                 & qm1,cld,effcld,clwp,asdir,asdif,aldir,aldif,fsns,qrs, &
                 & qrl,flwds,rel,rei,fice,sols,soll,solsd,solld,emiss1d, &
                 & fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,&
                 & fsds,fsnirt,fsnrtc,fsnirtsq,eccf,o3vmr)
-                  ! input
-!--csz
-!
-!     write out final results:
-!
-!KN   added below
 !
 !     subroutine radout() is not included in the ccm3 crm itself
 !     but introduced from the former regcm2 radiation package
@@ -392,17 +310,12 @@
 !     Names of some output variables (in MKS) have been changed
 !     from those in the CCM2 radiation package.
 !
-!add  by bixq
-!add_
       call radout(solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,flntc,flnsc,&
                 & qrl,flwds,srfrad,sols,soll,solsd,solld,alb,albc,fsds, &
                 & fsnirt,fsnrtc,fsnirtsq,jslc,h2ommr,cld,clwp)
 !
-!KN   added above
-!
       end subroutine colmod3
 !
-      subroutine cldefr(ioro,t,rel,rei,fice,ps,pmid)
 !-----------------------------------------------------------------------
 !
 ! Compute cloud drop size
@@ -410,10 +323,6 @@
 !---------------------------Code history--------------------------------
 !
 ! Original version:  J. Kiehl, January 1993
-!
-!-----------------------------------------------------------------------
-!
-      implicit none
 !
 !------------------------------Arguments--------------------------------
 !
@@ -436,23 +345,17 @@
 ! pnrml  - normalized pressure
 ! weight - coef. for determining rei as fn of P/PS
 !
+!-----------------------------------------------------------------------
 !
-! Dummy arguments
+      subroutine cldefr(ioro,t,rel,rei,fice,ps,pmid)
+!
+      implicit none
 !
       real(8) , dimension(iym1,kz) :: fice , pmid , rei , rel , t
       integer , dimension(iym1) :: ioro
       real(8) , dimension(iym1) :: ps
       intent (in) ioro , pmid , ps , t
       intent (out) fice , rei , rel
-!
-!---------------------------Local workspace-----------------------------
-!
-! i, k   - longitude, level indices
-! rliq   - temporary liquid drop size
-!
-!-----------------------------------------------------------------------
-!
-! Local variables
 !
       integer :: i , k
       real(8) :: picemn , pirnge , pnrml , reimax , rirnge , rliq ,     &
@@ -519,8 +422,6 @@
 !
       end subroutine cldefr
 !
-      subroutine cldems(clwp,fice,rei,emis)
-
 !-----------------------------------------------------------------------
 !
 ! Compute cloud emissivity using cloud liquid water path (g/m**2)
@@ -530,15 +431,6 @@
 ! Original version:  J. Kiehl
 ! Standardized:      J. Rosinski, June 1992
 ! Reviewed:          J. Hack, J. Kiehl, August 1992
-!
-!-----------------------------------------------------------------------
-!
-      implicit none
-!
-! PARAMETER definitions
-!
-!     longwave absorption coeff (m**2/g)
-      real(8) , parameter :: kabsl = 0.090361
 !
 !------------------------------Arguments--------------------------------
 !
@@ -554,21 +446,22 @@
 !
 !-----------------------------------------------------------------------
 !
-! Dummy arguments
+      subroutine cldems(clwp,fice,rei,emis)
+
+!
+      implicit none
 !
       real(8) , dimension(iym1,kz) :: clwp , emis , fice , rei
       intent (in) clwp , fice , rei
       intent (out) emis
 !
-! Local variables
+!     longwave absorption coeff (m**2/g)
 !
-!-----------------------------------------------------------------------
+      real(8) , parameter :: kabsl = 0.090361
 !
 ! i, k    - longitude, level indices
 ! kabs    - longwave absorption coeff (m**2/g)
 ! kabsi   - ice absorption coefficient
-!
-!-----------------------------------------------------------------------
 !
       integer :: i , k
       real(8) :: kabs , kabsi
@@ -582,5 +475,240 @@
       end do
 !
       end subroutine cldems
+!
+!-----------------------------------------------------------------------
+!
+! interface routine for column model that both initializes
+! certain constants and reads external data:
+!
+! o3 mass mixing ratios are read in, but the model also requires the
+! path lengths; they are computed here
+!
+! also, from the cloud input (fraction and liquid water path), the
+! cloud longwave emissivity must be computed; this is done here
+!
+!     output arguments
+!
+! model latitude in radians
+! cloud fraction
+! cloud liquid water path (g/m**2)
+! cosine latitude
+! local time of solar computation
+! o3 mass mixing ratio
+! o3 volume mixing ratio
+! ln(pintm1)
+! pressure at model interfaces
+! pressure at model mid-levels
+! ln(pmidm1)
+! model surface pressure field
+! moisture field
+! atmospheric temperature
+! surface (air)  temperature
+!
+!-----------------------------------------------------------------------
+!
+      subroutine getdat(jslc,h2ommr,alat,cld,clwp,coslat,loctim,o3mmr,  &
+                      & o3vmr,pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
+!
+      implicit none
+!
+      integer :: jslc
+      real(8) , dimension(iym1) :: alat , coslat , loctim , ps , ts
+      real(8) , dimension(iym1,kzp1) :: cld , pilnm1 , pintm1
+      real(8) , dimension(iym1,kz) :: clwp , h2ommr , o3mmr , o3vmr ,&
+           & pmidm1 , pmlnm1 , qm1 , tm1
+      intent (in) jslc
+      intent (out) clwp , coslat , loctim , o3vmr , pilnm1 , pmlnm1 ,   &
+                 & qm1 , ts
+      intent (inout) alat , cld , h2ommr , o3mmr , pintm1 , pmidm1 ,    &
+                   & ps , tm1
+!
+      real(8) :: amd , amo , ccvtem , clwtem , vmmr
+      real(8) , dimension(iym1,kz) :: deltaz
+      integer :: i , k , kj , n , ncldm1 , nll
+      real(8) , dimension(iym1) :: rlat
+!
+      data amd/28.9644/
+      data amo/48.0000/
+!
+!     begin read of data:
+!-----
+!-----surface pressure and scaled pressure, from which level pressures
+!-----are computed
+      do n = 1 , iym1
+        ps(n) = (psb(n,jslc)+r8pt)*10.
+        do nll = 1 , kz
+          pmidm1(n,nll) = (psb(n,jslc)*a(nll)+r8pt)*10.
+!KN       sclpr(nll)=pmidm1(n,nll)/ps(n)
+        end do
+      end do
+!
+!.......... convert pressures from mb to pascals and define
+!.......... interface pressures:
+!
+      do i = 1 , iym1
+        ps(i) = ps(i)*100.
+        do k = 1 , kz
+!
+          pmidm1(i,k) = pmidm1(i,k)*100.
+          pmlnm1(i,k) = dlog(pmidm1(i,k))
+!
+        end do
+      end do
+      do k = 1 , kzp1
+        do i = 1 , iym1
+          pintm1(i,k) = (psb(i,jslc)*sigma(k)+r8pt)*1000.
+          pilnm1(i,k) = dlog(pintm1(i,k))
+        end do
+      end do
+!
+!-----
+!-----air temperatures
+!-----
+      do nll = 1 , kz
+        do n = 1 , iym1
+          tm1(n,nll) = tb(n,nll,jslc)/psb(n,jslc)
+        end do
+      end do
+!-----
+!-----surface air temperature
+!-----
+!-----
+!-----h2o mass mixing ratio
+!-----
+      do nll = 1 , kz
+        do n = 1 , iym1
+          h2ommr(n,nll) = dmax1(1.D-7,qvb(n,nll,jslc)/psb(n,jslc))
+          qm1(n,nll) = h2ommr(n,nll)
+        end do
+      end do
+!-----
+!-----o3 mass mixing ratio
+!-----
+      do nll = 1 , kz
+        do n = 1 , iym1
+          kj = kzp1 - nll
+          o3mmr(n,nll) = o3prof(n,kj,jslc)
+        end do
+      end do
+!-----
+!-----fractional cloud cover (dependent on relative humidity)
+!-----
+!qc   = gary's mods for clouds/radiation tie-in to exmois
+      do nll = 1 , kz
+        do n = 1 , iym1
+ 
+          ccvtem = 0.   !cqc mod
+!KN       cldfrc(n,nll)=dmax1(cldfra(n,nll)*0.9999999,ccvtem)
+          cld(n,nll) = dmax1(cldfra(n,nll)*0.9999999,ccvtem)
+!KN       cldfrc(n,nll)=dmin1(cldfrc(n,nll),0.9999999)
+          cld(n,nll) = dmin1(cld(n,nll),0.9999999D0)
+!
+!         implement here the new formula then multiply by 10e6
+!qc       if (tm1(n,nll).gt.t0max) clwtem=clwmax
+!qc       if (tm1(n,nll).ge.t0st .and. tm1(n,nll).le.t0max)
+!qc       1     clwtem=clw0st+((tm1(n,nll)-t0st)/(t0max-t0st))**2
+!qc       1     *(clwmax-clw0st)
+!qc       if (tm1(n,nll).ge.t0min .and. tm1(n,nll).lt.t0st)
+!qc       1     clwtem=clw0st+(tm1(n,nll)-t0st)/(t0min-t0st)
+!qc       1     *(clwmin-clw0st)
+!qc       if (tm1(n,nll).lt.t0min) clwtem=clwmin
+!qc       clwtem=clwtem*1.e6
+!
+!         convert liquid water content into liquid water path, i.e.
+!         multiply b deltaz
+          clwtem = cldlwc(n,nll)
+                               !cqc mod
+          deltaz(n,nll) = rgas*tm1(n,nll)*(pintm1(n,nll+1) - &
+                          pintm1(n,nll))/(gti*pmidm1(n,nll))
+          clwp(n,nll) = clwtem*deltaz(n,nll)
+!KN       if (cldfrc(n,nll).eq.0.) clwp(n,nll)=0.
+          if ( cld(n,nll).eq.0. ) clwp(n,nll) = 0.
+        end do
+      end do
+ 
+!     only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
+!     do 89 nll=1,kz
+!     do 89 n=1,iym1
+!     if (pintm1(n,nll+1) .lt. 40000. ) then
+!     cld(n,nll)=dmin1(cld(n,nll),0.25d0)
+!
+!     else
+!     cld(n,nll)=dmin1(cld(n,nll),0.7d0)
+!
+!     end if
+!     89  continue
+ 
+!
+!     set cloud fractional cover at top model level = 0
+      do n = 1 , iym1
+        cld(n,1) = 0.
+        clwp(n,1) = 0.
+        cld(n,2) = 0.       !yhuang, 8/97 two-level
+        clwp(n,2) = 0.
+      end do
+!
+!     set cloud fractional cover at bottom (ncld) model levels = 0
+!
+      ncldm1 = ncld - 1
+      do nll = kz - ncldm1 , kz
+        do n = 1 , iym1
+!KN       cldfrc(n,nll)=0.
+          cld(n,nll) = 0.
+          clwp(n,nll) = 0.
+        end do
+      end do
+!
+!-----
+!-----ground temperature
+!-----
+      do n = 1 , iym1
+!       tg(n)=tgb(n,jlsc)
+!       when using bats calculate an equivalent ground (skin)
+!       temperature by averaging over vegetated and non-vegetated areas
+!jsp    tg(n)=((1.-vgfrac(n))*tgb(n,jslc)**4.+vgfrac(n)*
+!jsp    1   tlef2d(n,jslc)**4.)**0.25
+!jsp    tg(n)=tgbb(n,jslc)
+        ts(n) = tgbb(n,jslc)
+      end do
+!
+!     cloud cover at surface interface always zero
+!
+      do i = 1 , iym1
+!KN     effcld(i,kzp1) = 0.
+!KN     cldfrc(i,kzp1) = 0.
+        cld(i,kzp1) = 0.
+      end do
+!
+!KN   adopted from regcm2 above
+!
+!----------------------------------------------------------------------
+!
+      do i = 1 , iym1
+!
+        do k = 1 , kz
+          if ( cld(i,k).gt.0.999 ) cld(i,k) = .999
+        end do
+!
+        rlat(i) = xlat(i,jslc)
+        calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+!
+        loctim(i) = (calday-aint(calday))*24.
+        alat(i) = rlat(i)*degrad
+        coslat(i) = dcos(alat(i))
+!
+      end do
+!
+!     Convert ozone mass mixing ratio to ozone volume mixing ratio:
+!
+      vmmr = amo/amd
+      do k = 1 , kz
+        do i = 1 , iym1
+!         o3mmr(i,k) = vmmr*o3vmr(i,k)
+          o3vmr(i,k) = o3mmr(i,k)/vmmr
+        end do
+      end do
+!
+      end subroutine getdat
 !
       end module mod_colmod3

@@ -17,47 +17,36 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      subroutine param
+      module mod_param
 
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine defines various model parameters.               c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_pmoist
       use mod_bats
       use mod_main
       use mod_trachem
-      use mod_date , only : mdate0 , ntimax , julday , gmt , deltmx ,   &
-                   & dectim , nnnnnn , nstart , idate0 , idate1 ,       &
-                   & idate2 , nstrt0 , nyear , nnnend , nmonth ,        &
-                   & ndate0 , nnnchk , lyear , lmonth , lday , lhour ,  &
-                   & ldatez , idatex , jyear , jyear0 , jyearr , ntime ,&
-                   & ktau , ktaur , xtime , initdate , finddate
+      use mod_date
       use mod_message
-      use mod_cu_bm , only : lutbl
+      use mod_cu_bm
       use mod_cu_em
-      use mod_constants , only : mathpi , gti , rgti , rgas , vonkar ,  &
-                               & cpd , tauht
-      use mod_rad , only : allocate_mod_rad
-      use mod_split, only : allocate_mod_split
-      use mod_slice, only : allocate_mod_slice
-      use mod_pbldim, only : allocate_mod_pbldim    
-      use mod_outrad, only : allocate_mod_outrad  
-      use mod_holtbl, only : allocate_mod_holtbl
-      use mod_aero_sett_ddep, only : allocate_mod_aero_sett_ddep
-      use mod_aerosol, only : allocate_mod_aerosol
-      use mod_radiation, only : allocate_mod_radiation
-      use mod_dust, only : allocate_mod_dust
-      use mod_bdycod, only : allocate_mod_bdycon 
-      use mod_mainchem, only : allocate_mod_mainchem
-      use mod_cvaria , only : allocate_mod_cvaria
-      use mod_leaftemp , only : allocate_mod_leaftemp
-      use mod_o3blk , only : allocate_mod_o3blk
-      use mod_ncio , only : open_domain , read_domain , read_subdomain ,&
-                            close_domain
+      use mod_rad
+      use mod_split
+      use mod_slice
+      use mod_pbldim
+      use mod_outrad
+      use mod_holtbl
+      use mod_che_semdde
+      use mod_aerosol
+      use mod_radiation
+      use mod_dust
+      use mod_bdycod
+      use mod_mainchem
+      use mod_cvaria
+      use mod_leaftemp
+      use mod_o3blk
+      use mod_ncio
+      use mod_scenarios
 #ifdef DIAG 
       use mod_diagnosis
 #endif 
@@ -65,8 +54,24 @@
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
-      use mod_clm , only : imask , clmfrq , allocate_mod_clm
+      use mod_clm
 #endif
+#endif
+
+      private
+
+      public :: param
+
+      contains
+
+      subroutine param
+
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!                                                                     c
+!     this subroutine defines various model parameters.               c
+!                                                                     c
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+#ifdef MPP1
 #ifndef IBM
       use mpi
 #else 
@@ -90,7 +95,7 @@
       real(8) , dimension(maxntr,2) :: inpchtrdpv
       real(8) , dimension(maxnbin,2) :: inpdustbsiz
       integer :: len_path
-
+      logical :: lband , lmpi
 #ifdef MPP1
       integer :: n , ierr
 #ifndef CLM
@@ -124,7 +129,7 @@
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
-      & medium_nudge, low_nudge 
+      & medium_nudge, low_nudge , scenario , idcsst , iseaice
 !chem2_
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -147,42 +152,7 @@
 #ifdef CLM
       namelist /clmparam/ dirclm , imask , clmfrq
 #endif
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
 !
-! allocating all what I need 
-      call allocate_mod_aero_sett_ddep
-      call allocate_mod_aerosol
-      call allocate_mod_bats
-      call allocate_mod_bdycon
-      call allocate_mod_holtbl
-      call allocate_mod_cvaria
-      call allocate_mod_dust
-      call allocate_mod_leaftemp
-      call allocate_mod_main
-      call allocate_mod_mainchem
-      call allocate_mod_outrad
-      call allocate_mod_o3blk
-      call allocate_mod_pbldim
-      call allocate_mod_pmoist
-      call allocate_mod_radiation 
-      call allocate_mod_rad
-      call allocate_mod_slice
-      call allocate_mod_split
-      call allocate_mod_trachem
-      call allocate_mod_runparams
-#ifdef MPP1
-      call allocate_mod_mppio
-#ifdef CLM
-      call allocate_mod_clm
-#endif
-#endif
-#ifdef DIAG
-      call allocate_mod_diagnosis
-#endif
-
 !
 !----------------------------------------------------------------------
 !-----specify the parameters used in the model:
@@ -325,6 +295,9 @@
       lakemod = 1
       ichem = 0
       imask = 1
+      scenario = 'A1B'
+      idcsst = 0
+      iseaice = 0
       high_nudge = 3 
       medium_nudge=2
       low_nudge=1   
@@ -396,6 +369,17 @@
       imask = 2
 #endif
 
+#ifdef MPP1
+      lmpi = .true.
+#else
+      lmpi = .false.
+#endif
+#ifdef BAND
+      lband = .true.
+#else
+      lband = .false.
+#endif
+
 !---------------------------------------------------------------------
 !
 #ifdef MPP1
@@ -404,33 +388,31 @@
   
 !  
 !-----read in namelist variables:
-      write (aline,*) 'param: start reading namelists' 
-      call say
       read (ipunit, restartparam)
-      print * , ' param: RESTARTPARAM namelist READ IN'
+      print * , 'param: RESTARTPARAM namelist READ IN'
       read (ipunit, timeparam)
-      print * , ' param: TIMEPARAM namelist READ IN'
+      print * , 'param: TIMEPARAM namelist READ IN'
       read (ipunit, outparam)
-      print * , ' param: OUTPARAM namelist READ IN'
+      print * , 'param: OUTPARAM namelist READ IN'
       len_path = len(trim(dirout))
       if ( dirout(len_path:len_path).ne.'/' ) dirout = trim(dirout)//'/'
       read (ipunit, physicsparam)
-      print * , ' param: PHYSICSPARAM namelist READ IN'
+      print * , 'param: PHYSICSPARAM namelist READ IN'
       if ( ipptls.eq.1 ) then
         read (ipunit, subexparam)
-        print * , ' param: SUBEXPARAM namelist READ IN'
+        print * , 'param: SUBEXPARAM namelist READ IN'
       end if
       if ( icup.eq.2 ) then
         read (ipunit, grellparam)
-        print * , ' param: GRELLPARAM namelist READ IN'
+        print * , 'param: GRELLPARAM namelist READ IN'
       else if ( icup.eq.4 ) then
         read (ipunit, emanparam)
-        print * , ' param: EMANPARAM namelist READ IN'
+        print * , 'param: EMANPARAM namelist READ IN'
       else
       end if
       if ( ichem.eq.1 ) then
         read (ipunit, chemparam)
-        print * , ' param: CHEMPARAM namelist READ IN'
+        print * , 'param: CHEMPARAM namelist READ IN'
         chtrname = inpchtrname(1:ntr)
         chtrdpv = inpchtrdpv(1:ntr,:)
         dustbsiz = inpdustbsiz(1:nbin,:)
@@ -440,11 +422,11 @@
       end if
 #ifdef CLM
       read (ipunit , clmparam)
-      print * , ' param: CLMPARAM namelist READ IN'
+      print * , 'param: CLMPARAM namelist READ IN'
 #endif
-!
 #ifdef MPP1
       end if 
+
       call mpi_barrier(mpi_comm_world,ierr) 
 !
 !  communicate to all processors 
@@ -481,10 +463,12 @@
       call mpi_bcast(iemiss,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(lakemod,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ichem,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(scenario,3,mpi_character,0,mpi_comm_world,ierr)
+      call mpi_bcast(idcsst,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(iseaice,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
- 
 #ifdef CLM
       call mpi_bcast(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
       call mpi_bcast(imask,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -556,11 +540,51 @@
         call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
       end if
 #endif
- 
-!first checks 
-!as
+!
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------ALLOCATE NEEDED SPACE---------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!
+      call allocate_mod_che_semdde
+      call allocate_mod_aerosol
+      call allocate_mod_bats(lmpi,lband)
+      call allocate_mod_bdycon
+      call allocate_mod_holtbl
+      call allocate_mod_cvaria
+      call allocate_mod_dust
+      call allocate_mod_leaftemp
+      call allocate_mod_main(lmpi)
+      call allocate_mod_mainchem(lmpi,lband)
+      call allocate_mod_outrad
+      call allocate_mod_o3blk
+      call allocate_mod_pbldim(lmpi)
+      call allocate_mod_pmoist(lmpi)
+      call allocate_mod_radiation 
+      call allocate_mod_rad(lmpi,lband)
+      call allocate_mod_slice
+      call allocate_mod_split
+      call allocate_mod_trachem
+      call allocate_mod_runparams
+#ifdef MPP1
+      call allocate_mod_mppio(lband)
+#ifdef CLM
+      call allocate_mod_clm(lmpi,lband)
+#endif
+#endif
+#ifdef DIAG
+      call allocate_mod_diagnosis
+#endif
+!
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------ALLOCATE NEEDED SPACE---------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!
       write (aline,*) 'param: starting first checks' 
-      call say 
+      call say
       if ( mod(anint(radfrq*60.),anint(dt)).ne.0 ) then
         write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
         call say
@@ -638,6 +662,7 @@
       klake = nint(dtlake/dt)
 !sb   end lake model mods
 !
+      call set_scenario(scenario)
       call initdate
       call finddate(nstrt0,idate0)
       call finddate(nstart,idate1)
@@ -646,11 +671,14 @@
  
 !     ktaur = nint((NSTART-NSTRT0)*ibdyfrq*60/dtmin)
       ntimax = (nnnend-nstrt0)*ibdyfrq*60
-      write (aline, *) 'param: initial date of this simulation: IDATE1',idate1
+      write (aline,*) 'param: initial date of this '// &
+                      'simulation: IDATE1',idate1
       call say
-      write (aline,*) 'param: final date of this simulation: IDATE2' , idate2 
-      call say      
-      write (aline,'(a,f9.4)')  " param: dtmin(timestep in minutes)" , dtmin
+      write (aline,*) 'param:   final date of this '// &
+                      'simulation: IDATE2' , idate2
+      call say
+      write (aline,'(a,f9.4)')  &
+           'param: dtmin(timestep in minutes)' , dtmin
       call say
       ldatez = idate1
       nnnnnn = nstart
@@ -670,11 +698,6 @@
       if ( myid.eq.0 ) then
 #endif              
         call open_domain(r8pt,dx,sigma)
-!        print * , 'param: DIMS   : ' , iy , jx , kz
-!        print * , 'param: PROJ   : ' , iproj
-!        print * , 'param: DOMAIN : ' , ds , clat , clon
-!        print * , 'param: PTOP   : ' , r8pt
-!        print * , 'param: SIGMA  : ' , sigma
 #ifdef MPP1        
       end if
       call mpi_bcast(clat,1,mpi_real,0,mpi_comm_world,ierr)
@@ -686,7 +709,8 @@
  
 !rst-fix
       mdate0 = idate0
-      write (aline, *) 'param: (initial date of the global simulation: mdate  = ' , mdate0
+      write (aline, *) 'param: initial date of the global '// &
+                       'simulation: mdate  = ' , mdate0
       call say
       myear = mdate0/1000000
       nyear = idate1/1000000
@@ -724,7 +748,6 @@
       dx16 = 16.*dx
       dxsq = dx*dx
       c200 = vonkar*vonkar*dx/(4.*(100.-r8pt))
-      c201 = (100.-r8pt)/dxsq
       c203 = 1./dxsq
       xkhz = 1.5E-3*dxsq/dt
       xkhmax = dxsq/(64.*dt)
@@ -733,53 +756,77 @@
 !
       conf = 1.
  
-      write (aline,*) 'param: input/output parameters '
+      write (aline, *) 'param: input/output parameters '
       call say
-      write (aline,*) ' if true(T) create SAV files for restart: ifsave = ' , ifsave  
+      write (aline,*) ' if true(T) create SAV files for '// &
+                      'restart: ifsave = ' , ifsave  
       call say 
-      write (aline,*) ' Frequency in hours to create SAV: savfrq = ' , savfrq
+      write (aline,*) ' Frequency in hours to create SAV: savfrq = ' , &
+                      savfrq
       call say 
-      write (aline,*) ' if true (T) Output ATM files:  iftape = ' , iftape 
+      write (aline,*) ' if true (T) Output ATM files:  iftape = ' , &
+                       iftape 
       call say 
-      write (aline,*) ' Frequency in hours to write  ATM: tapfrq = ' , tapfrq 
+      write (aline,*) ' Frequency in hours to write  ATM: tapfrq = ' , &
+                      tapfrq 
       call say  
-      write (aline,*) ' Frequency in hours to write  RAD: radisp = ' , radisp 
+      write (aline,*) ' Frequency in hours to write  RAD: radisp = ' , &
+                      radisp 
       call say
-      write(aline,*)  ' Frequency in hours to write  SRF: batfrq = ' , batfrq  
+      write(aline,*) ' Frequency in hours to write  SRF: batfrq = ' , &
+                      batfrq  
       call say
-      write(aline,*)  ' if true (T) output CHEM files:  ifchem = ' , ifchem 
+      write(aline,*) ' if true (T) output CHEM files:  ifchem = ' , &
+                      ifchem 
       call say 
-      write(aline,*)  ' Frequency in hours to write CHEM: chemfrq =' , chemfrq
+      write(aline,*) ' Frequency in hours to write CHEM: chemfrq =' , &
+                      chemfrq
       call say  
-      write(aline,*) '  Frequency in hours to write CLM: clmfrq = ', clmfrq
+      write(aline,*) ' Frequency in hours to write CLM: clmfrq = ', &
+                      clmfrq
       call say
-      write (aline, *) ' '
+      write (aline,*) ' '
       call say
-      write (aline, *) 'param: physical parameterizations '
+      write (aline,*) 'param: physical parameterizations '
       call say
-      write (aline,'(a,i2)' )  '  Lateral Boundary conditions scheme: iboudy = ' , iboudy
+      write (aline,'(a,i2)') ' Lateral Boundary conditions '// &
+                              'scheme: iboudy = ' , iboudy
       call say  
-      write (aline,'(a,i2)' )  '  Cumulus convection scheme: icup = ' , icup
+      write (aline,'(a,i2)') ' Cumulus convection scheme: icup = ' , &
+                             icup
+      call say
+      write  (aline,'(a,i2)') ' Grell Scheme Cumulus closure '// &
+                              'scheme: igcc =' , igcc 
+      call say
+      write  (aline,'(a,i2)') ' Moisture scheme: ipptls = ' , ipptls 
+      call say
+      write  (aline,'(a,i2)') ' Ocean Flux scheme: iocnflx = ' , iocnflx
+      call say
+      write  (aline,'(a,i2)') ' Pressure gradient force scheme: '// &
+                              'ipgf = ' , ipgf 
+      call say
+      write  (aline,'(a,i2)') ' Prescribed a surface LW emissivity: '// &
+                              'iemiss = ' , iemiss 
       call say 
-      write  (aline,'(a,i2)' ) '  Grell Scheme Cumulus closure scheme: igcc =' , igcc 
+      write  (aline,'(a,i2)') ' Use lake model lakemod = ' , lakemod 
       call say
-      write  (aline,'(a,i2)' ) '  Moisture scheme: ipptls = ' , ipptls 
+      write  (aline,'(a,i2)') ' Use Chemical/aerosol model '// &
+                              '(0=no,1=yes):  ichem =' , ichem 
       call say
-      write  (aline,'(a,i2)' ) '  Ocean Flux scheme: iocnflx = ' , iocnflx
-      call say
-      write  (aline,'(a,i2)' ) '  Pressure gradient force scheme: ipgf = ' , ipgf 
-      call say   
-      write  (aline,'(a,i2)' ) '  Prescribed a surface LW emissivity: iemiss = ' , iemiss 
+      write  (aline,'(a,i2)') ' Use diurnal sst cycle effect '// &
+                              '(0=no,1=yes):  idcsst =' , idcsst 
       call say 
-      write  (aline,'(a,i2)' ) '  Use lake model lakemod = ' , lakemod 
+      write  (aline,'(a,i2)') ' Use sea ice effect '// &
+                              '(0=no,1=yes):  iseaice =' , iseaice 
       call say
-      write  (aline,'(a,i2)' ) '  Use Chemical/aerosol model( 0=no,1=yes):  ichem =' , ichem 
+      write  (aline,'(a,f9.6)') ' Nudge value high range   =', &
+                                high_nudge 
       call say
-       write  (aline,'(a,f9.6)') '  Nudge value high range   =', high_nudge 
+      write  (aline,'(a,f9.6)') ' Nudge value medium range =', &
+                                medium_nudge 
       call say
-       write  (aline,'(a,f9.6)') '  Nudge value medium range =', medium_nudge 
-      call say
-       write  (aline,'(a,f9.6)') '  Nudge value low range    =', low_nudge 
+      write  (aline,'(a,f9.6)') ' Nudge value low range    =', &
+                                low_nudge 
       call say
 #ifdef CLM 
        write  (aline,'(a,i2)' ) '  imask=' , imask 
@@ -789,17 +836,22 @@
       call say
       write (aline, *) 'param: model parameters '
       call say
-      write (aline,'(a,f12.6)')  ' time step for radiation model in minutes:  radfrq = ' , radfrq 
+      write (aline,'(a,f12.6)')  ' time step for radiation '// &
+              'model in minutes:  radfrq = ' , radfrq 
       call say 
-      write (aline,'(a,f12.6)')  ' time step for land surface model in seconds:  abatm  = ' , abatm 
+      write (aline,'(a,f12.6)')  ' time step for land surface '// &
+              'model in seconds:  abatm  = ' , abatm 
       call say
-      write (aline,'(a,f12.6)')  ' time step for LW absorption/emissivity in hours:  abemh  = ' , abemh 
+      write (aline,'(a,f12.6)')  ' time step for LW absorption/'// &
+              'emissivity in hours:  abemh  = ' , abemh 
       call say
-      write (aline,'(a,f12.6)')  ' time step for atmosphere model in seconds:  dt     = ' , dt
+      write (aline,'(a,f12.6)')  ' time step for atmosphere model '// &
+              ' in seconds:  dt     = ' , dt
       call say
       write (aline, *) ' '
       call say
-      write (aline,'(a,i2)' ) 'param: # of bottom model levels with no clouds:  ncld = ' , ncld
+      write (aline,'(a,i2)' ) 'param: # of bottom model levels '// &
+                              'with no clouds:  ncld = ' , ncld
       call say
       write (aline, *) ' '
       call say
@@ -807,7 +859,7 @@
 #ifdef MPP1
       if ( .not.ifrest ) then
 
-        write (aline, *) ' param: Reading in DOMAIN data'
+        write (aline, *) 'param: Reading in DOMAIN data'
         call say
 
         if ( myid.eq.0 ) then
@@ -849,7 +901,7 @@
               ht_io(i,j) = ht_io(i,j)*gti
             end do
           end do
-        end if                 ! end if (myid.eq.0)
+        end if  ! end if (myid.eq.0)
  
         call mpi_barrier(mpi_comm_world,ierr)
         call mpi_scatter(inisrf_0(1,1,1),iy*(nnsg*3+8)*jxp,mpi_real8,   &
@@ -1075,7 +1127,8 @@
           exit
         end if
       end do
-      write (aline, '(a,i3)') 'param: Index of highest allowed pbl:  kt = ' , kt
+      write (aline, '(a,i3)') 'param: Index of highest allowed pbl:'// &
+                              '  kt = ' , kt
       call say
       write (aline, *) ' '
       call say
@@ -1446,3 +1499,5 @@
 99019 format (' maximum  hor. diff. coef. = ',e12.5,' m*m/s')
 !
       end subroutine param
+!
+      end module mod_param

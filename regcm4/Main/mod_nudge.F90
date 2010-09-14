@@ -17,12 +17,26 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine nudge_p(ip,fcoef,gcoef,xt,pten,c203,j,iboudy)
-
+      module mod_nudge
+!
+! Relaxation and Sponge Boundary Conditions
+!
+      use mod_dynparam
+      use mod_runparams
+      use mod_bdycod
+      use mod_main
+!
+      private
+!
+      public :: sponge_p , sponge_t , spongeqv , sponge_u , sponge_v
+      public :: nudge_p , nudge_t , nudgeqv , nudge_u , nudge_v
+!
+      contains
+!
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
-!     this subroutine applies relaxation boundary conditions to the   c
-!     tendency term - pten.                                           c
+!     these subroutines apply relaxation boundary conditions to the   c
+!     tendency term - xpten.                                          c
 !                                                                     c
 !     ip    : is the number of slices affected by nudging.            c
 !                                                                     c
@@ -32,7 +46,7 @@
 !                                                                     c
 !     gcoef : are the coefficients for the diffusion term.            c
 !                                                                     c
-!     pten  : is the tendency calculated from the model.              c
+!     xpten : is the tendency calculated from the model.              c
 !                                                                     c
 !     peb, pwb, pss, pnb : are the observed boundary values           c
 !                   on east, west, south, and north boundaries.       c
@@ -42,32 +56,24 @@
 !                                                                     c
 !     psb    : is the variable at tau-1.                               c
 !                                                                     c
-!     c203  : = 1./(dx*dx), defined in 'param'.                       c
-!                                                                     c
 !     ie = iy, je = jx for dot-point variables.                       c
 !     ie = iym1, je = jxm1 for cross-point variables.                 c
 !                                                                     c
 !     j    : is the j'th slice of the tendency to be adjusted.        c
-!     iboudy : type of boundary condition relaxation, 1=linear        c
+!     ibdy : type of boundary condition relaxation, 1=linear        c
 !              5 = exponential                                        c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-      use mod_dynparam
-      use mod_runparams , only : anudg
-      use mod_bdycod
-      use mod_main
+!
+      subroutine nudge_p(ip,fcoef,gcoef,xt,xpten,j,ibdy)
+!
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: c203 , fcoef , gcoef , xt
-      integer :: iboudy , ip , j
-      real(8) , dimension(iy) :: pten
-      intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
-      intent (inout) pten
-!
-! Local variables
+      real(8) :: fcoef , gcoef , xt
+      integer :: ibdy , ip , j
+      real(8) , dimension(iy) :: xpten
+      intent (in) fcoef , gcoef , ibdy , ip , j , xt
+      intent (inout) xpten
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
       integer :: i , ii , kk , mm
@@ -82,7 +88,6 @@
 #endif
 #endif
 !
-!
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
@@ -93,7 +98,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -109,7 +114,7 @@
             fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
-            pten(i) = pten(i) + fcx*fls0 -                              &
+            xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
@@ -117,7 +122,7 @@
             fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
-            pten(ii) = pten(ii) + fcx*fls0 -                            &
+            xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
 #else
@@ -136,7 +141,7 @@
             fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - psb(i,jp1)
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
-            pten(i) = pten(i) + fcx*fls0 -                              &
+            xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
@@ -144,12 +149,12 @@
             fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - psb(ii,jp1)
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
-            pten(ii) = pten(ii) + fcx*fls0 -                            &
+            xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
 #endif
 !
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
  
@@ -165,7 +170,7 @@
             fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
-            pten(i) = pten(i) + fcx*fls0 -                              &
+            xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
@@ -173,7 +178,7 @@
             fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
-            pten(ii) = pten(ii) + fcx*fls0 -                            &
+            xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
 #else
@@ -192,7 +197,7 @@
             fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - psb(i,jp1)
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
-            pten(i) = pten(i) + fcx*fls0 -                              &
+            xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
@@ -200,7 +205,7 @@
             fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - psb(ii,jp1)
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
-            pten(ii) = pten(ii) + fcx*fls0 -                            &
+            xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
 #endif
@@ -232,7 +237,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -248,7 +253,7 @@
             fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
-            pten(i) = pten(i) + fcx*fls0 -                              &
+            xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
@@ -256,7 +261,7 @@
             fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
-            pten(ii) = pten(ii) + fcx*fls0 -                            &
+            xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
           end do
 !
@@ -275,7 +280,7 @@
               fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
               fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
               fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
-              pten(i) = pten(i) + fcx*fls0 -                            &
+              xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
               fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
@@ -283,7 +288,7 @@
               fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
               fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
               fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
-              pten(ii) = pten(ii) + fcx*fls0 -                          &
+              xpten(ii) = xpten(ii) + fcx*fls0 -                        &
                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
             ibeg = jsls
@@ -308,7 +313,7 @@
               fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - psb(i,j-1)
               fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - psb(i,j+1)
 #endif
-              pten(i) = pten(i) + fcx*fls0 -                            &
+              xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
           else if ( jj.le.ip ) then
@@ -329,7 +334,7 @@
               fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - psb(i,j-1)
               fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - psb(i,j+1)
 #endif
-              pten(i) = pten(i) + fcx*fls0 -                            &
+              xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
           else
@@ -337,7 +342,7 @@
         else
         end if
 !
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
  
@@ -353,7 +358,7 @@
             fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
-            pten(i) = pten(i) + fcx*fls0 -                              &
+            xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
@@ -361,7 +366,7 @@
             fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
-            pten(ii) = pten(ii) + fcx*fls0 -                            &
+            xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
           end do
 !
@@ -380,7 +385,7 @@
               fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
               fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
               fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
-              pten(i) = pten(i) + fcx*fls0 -                            &
+              xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
               fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
@@ -388,7 +393,7 @@
               fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
               fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
               fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
-              pten(ii) = pten(ii) + fcx*fls0 -                          &
+              xpten(ii) = xpten(ii) + fcx*fls0 -                        &
                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
             ibeg = jsls
@@ -413,7 +418,7 @@
               fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - psb(i,j-1)
               fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - psb(i,j+1)
 #endif
-              pten(i) = pten(i) + fcx*fls0 -                            &
+              xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
           else if ( jj.le.ip ) then
@@ -434,7 +439,7 @@
               fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - psb(i,j-1)
               fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - psb(i,j+1)
 #endif
-              pten(i) = pten(i) + fcx*fls0 -                            &
+              xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
           else
@@ -449,57 +454,15 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine nudge_t(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine applies relaxation boundary conditions to the   c
-!     tendency term - ften.                                           c
-!                                                                     c
-!     ip    : is the number of slices affected by nudging.            c
-!                                                                     c
-!     xt    : is the time in minutes for variable "tb".               c
-!                                                                     c
-!     fcoef : are the coefficients for the newtonian term.            c
-!                                                                     c
-!     gcoef : are the coefficients for the diffusion term.            c
-!                                                                     c
-!     ften  : is the tendency calculated from the model.              c
-!                                                                     c
-!     teb, twb, tsb, tnb : are the observed boundary values           c
-!                   on east, west, south, and north boundaries.       c
-!                                                                     c
-!     tebt, twbt, tsbt, tnbt : are the large-scale or observed        c
-!             tendencies at east, west, south, and north boundaries.  c
-!                                                                     c
-!     tb    : is the variable at tau-1.                               c
-!                                                                     c
-!     c203  : = 1./(dx*dx), defined in 'param'.                       c
-!                                                                     c
-!     ie = iy, je = jx for dot-point variables.                       c
-!     ie = iym1, je = jxm1 for cross-point variables.                 c
-!                                                                     c
-!     j    : is the j'th slice of the tendency to be adjusted.        c
-!     iboudy : type of boundary condition relaxation, 1=linear        c
-!              5 = exponential                                        c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-      use mod_dynparam
-      use mod_main
-      use mod_bdycod
-      use mod_runparams , only : anudg
+      subroutine nudge_t(ip,fcoef,gcoef,xt,ften,j,ibdy)
+!
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: c203 , fcoef , gcoef , xt
-      integer :: iboudy , ip , j
+      real(8) :: fcoef , gcoef , xt
+      integer :: ibdy , ip , j
       real(8) , dimension(iy,kz) :: ften
-      intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+      intent (in) fcoef , gcoef , ibdy , ip , j , xt
       intent (inout) ften
-!
-! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
       integer :: i , ii , k , kk , mm
@@ -523,7 +486,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -582,7 +545,7 @@
             end do
           end do
 #endif
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
  
@@ -669,7 +632,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -798,7 +761,7 @@
         else
         end if
 !
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
  
@@ -934,56 +897,15 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine nudgeqv(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine applies relaxation boundary conditions to the   c
-!     tendency term - ften.                                           c
-!                                                                     c
-!     ip    : is the number of slices affected by nudging.            c
-!                                                                     c
-!     xt    : is the time in minutes for variable "qvb".               c
-!                                                                     c
-!     fcoef : are the coefficients for the newtonian term.            c
-!                                                                     c
-!     gcoef : are the coefficients for the diffusion term.            c
-!                                                                     c
-!     ften  : is the tendency calculated from the model.              c
-!                                                                     c
-!     qeb, qwb, qsb, qnb : are the observed boundary values           c
-!                   on east, west, south, and north boundaries.       c
-!                                                                     c
-!     qebt, qwbt, qsbt, qnbt : are the large-scale or observed        c
-!             tendencies at east, west, south, and north boundaries.  c
-!                                                                     c
-!     tb    : is the variable at tau-1.                               c
-!                                                                     c
-!     c203  : = 1./(dx*dx), defined in 'param'.                       c
-!                                                                     c
-!     ie = iy, je = jx for dot-point variables.                       c
-!     ie = iym1, je = jxm1 for cross-point variables.                 c
-!                                                                     c
-!     j    : is the j'th slice of the tendency to be adjusted.        c
-!     iboudy : type of boundary condition relaxation, 1=linear        c
-!              5 = exponential                                        c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_dynparam
-      use mod_main
-      use mod_bdycod
-      use mod_runparams , only : anudg
+      subroutine nudgeqv(ip,fcoef,gcoef,xt,ften,j,ibdy)
+!
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: c203 , fcoef , gcoef , xt
-      integer :: iboudy , ip , j
+      real(8) :: fcoef , gcoef , xt
+      integer :: ibdy , ip , j
       real(8) , dimension(iy,kz) :: ften
-      intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+      intent (in) fcoef , gcoef , ibdy , ip , j , xt
       intent (inout) ften
-!
-! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
       integer :: i , ii , k , kk , mm
@@ -1007,7 +929,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -1066,7 +988,7 @@
             end do
          end do
 #endif
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
  
@@ -1153,7 +1075,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -1282,7 +1204,7 @@
         else
         end if
 !
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
  
@@ -1418,57 +1340,15 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine nudge_u(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine applies relaxation boundary conditions to the   c
-!     tendency term - ften.                                           c
-!                                                                     c
-!     ip    : is the number of slices affected by nudging.            c
-!                                                                     c
-!     xt    : is the time in minutes for variable "ub".               c
-!                                                                     c
-!     fcoef : are the coefficients for the newtonian term.            c
-!                                                                     c
-!     gcoef : are the coefficients for the diffusion term.            c
-!                                                                     c
-!     ften  : is the tendency calculated from the model.              c
-!                                                                     c
-!     ueb, uwb, usb, unb : are the observed boundary values           c
-!                   on east, west, south, and north boundaries.       c
-!                                                                     c
-!     uebt, uwbt, usbt, unbt : are the large-scale or observed        c
-!             tendencies at east, west, south, and north boundaries.  c
-!                                                                     c
-!     tb    : is the variable at tau-1.                               c
-!                                                                     c
-!     c203  : = 1./(dx*dx), defined in 'param'.                       c
-!                                                                     c
-!     ie = iy, je = jx for dot-point variables.                       c
-!     ie = iym1, je = jxm1 for cross-point variables.                 c
-!                                                                     c
-!     j    : is the j'th slice of the tendency to be adjusted.        c
-!     iboudy : type of boundary condition relaxation, 1=linear        c
-!              5 = exponential                                        c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-      use mod_dynparam
-      use mod_main
-      use mod_bdycod
-      use mod_runparams , only : anudg
+      subroutine nudge_u(ip,fcoef,gcoef,xt,ften,j,ibdy)
+!
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: c203 , fcoef , gcoef , xt
-      integer :: iboudy , ip , j
+      real(8) :: fcoef , gcoef , xt
+      integer :: ibdy , ip , j
       real(8) , dimension(iy,kz) :: ften
-      intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+      intent (in) fcoef , gcoef , ibdy , ip , j , xt
       intent (inout) ften
-!
-! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
       integer :: i , ii , k , kk , mm
@@ -1492,7 +1372,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -1551,7 +1431,7 @@
             end do
          end do
 #endif
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
 #ifdef MPP1
@@ -1630,7 +1510,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -1759,7 +1639,7 @@
         else
         end if
 !
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
  
@@ -1895,57 +1775,15 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine nudge_v(ip,fcoef,gcoef,xt,ften,c203,j,iboudy)
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine applies relaxation boundary conditions to the   c
-!     tendency term - ften.                                           c
-!                                                                     c
-!     ip    : is the number of slices affected by nudging.            c
-!                                                                     c
-!     xt    : is the time in minutes for variable "vb".               c
-!                                                                     c
-!     fcoef : are the coefficients for the newtonian term.            c
-!                                                                     c
-!     gcoef : are the coefficients for the diffusion term.            c
-!                                                                     c
-!     ften  : is the tendency calculated from the model.              c
-!                                                                     c
-!     veb, vwb, vsb, vnb : are the observed boundary values           c
-!                   on east, west, south, and north boundaries.       c
-!                                                                     c
-!     vebt, vwbt, vsbt, vnbt : are the large-scale or observed        c
-!             tendencies at east, west, south, and north boundaries.  c
-!                                                                     c
-!     tb    : is the variable at tau-1.                               c
-!                                                                     c
-!     c203  : = 1./(dx*dx), defined in 'param'.                       c
-!                                                                     c
-!     ie = iy, je = jx for dot-point variables.                       c
-!     ie = iym1, je = jxm1 for cross-point variables.                 c
-!                                                                     c
-!     j    : is the j'th slice of the tendency to be adjusted.        c
-!     iboudy : type of boundary condition relaxation, 1=linear        c
-!              5 = exponential                                        c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-      use mod_dynparam
-      use mod_bdycod
-      use mod_main
-      use mod_runparams , only : anudg
+      subroutine nudge_v(ip,fcoef,gcoef,xt,ften,j,ibdy)
+!
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: c203 , fcoef , gcoef , xt
-      integer :: iboudy , ip , j
+      real(8) :: fcoef , gcoef , xt
+      integer :: ibdy , ip , j
       real(8) , dimension(iy,kz) :: ften
-      intent (in) c203 , fcoef , gcoef , iboudy , ip , j , xt
+      intent (in) fcoef , gcoef , ibdy , ip , j , xt
       intent (inout) ften
-!
-! Local variables
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
       integer :: i , ii , k , kk , mm
@@ -1969,7 +1807,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -2028,7 +1866,7 @@
             end do
          end do
 #endif
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
 #ifdef MPP1
@@ -2107,7 +1945,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( iboudy.eq.1 ) then
+      if ( ibdy.eq.1 ) then
 !
 !---------use linear method
 !
@@ -2236,7 +2074,7 @@
         else
         end if
 !
-      else if ( iboudy.eq.5 ) then
+      else if ( ibdy.eq.5 ) then
  
 !----------use exponential method
  
@@ -2369,3 +2207,608 @@
       end if
 #endif
       end subroutine nudge_v
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!                                                                     c
+!     this subroutine applies sponge boundary condition to the        c
+!     tendency term - ften.                                           c
+!                                                                     c
+!     ip   : is the number of slices affected by sponge boundary.     c
+!                                                                     c
+!     wg   : are the weightings.                                      c
+!                                                                     c
+!     ften : is the tendency calculated from the model.               c
+!                                                                     c
+!     pebt, pwbt, pnbt, psbt : are the large-scale or observed        c
+!            tendencies at east, west, north, and south boundaries.   c
+!                                                                     c
+!     ie = iy, je = jx for dot-point variables.                       c
+!     ie = iym1, je = jxm1 for cross-point variables.                 c
+!                                                                     c
+!     j    : is the j'th slice of the tendency to be adjusted.        c
+!                                                                     c
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine sponge_p(ip,wg,ften,j)
+!
+      implicit none
+!
+      integer :: ip , j
+      real(8) , dimension(iy) :: ften
+      real(8) , dimension(ip) :: wg
+      intent (in) ip , j , wg
+      intent (inout) ften
+!
+      integer :: i , ii
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
+#ifdef MPP1
+#ifndef BAND
+      integer :: jwb , jeb
+#endif
+#endif
+!
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i
+!.......south boundary:
+         ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
+!.......north boundary:
+         ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
+      end do
+
+#else
+!----------------------------------------------------------------------
+!
+#ifdef MPP1
+      jsls = j + myid*jxp
+      jj = jx - jsls
+      if ( jj.le.ip ) jsls = jj
+      jwb = jsls
+      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
+      if ( jwb.eq.0 ) jwb = jxp
+      if ( myid.eq.nproc-1 ) then
+        jeb = jsls
+      else
+        jeb = jsls + 1
+      end if
+      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
+      if ( jeb.eq.0 ) jeb = jxp
+#else
+      jsls = j
+      jj = jx - jsls
+      if ( jj.le.ip ) jsls = jj
+#endif
+!
+      if ( jsls.gt.ip ) then
+!-----interior j slices:
+        do i = 2 , ip
+          ii = iy - i
+!.......south boundary:
+          ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
+!.......north boundary:
+          ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
+        end do
+!
+      else if ( jsls.le.ip ) then
+        ibeg = 2
+        iend = iym1 - 1
+        if ( jsls.gt.2 ) then
+          do i = 2 , jsls - 1
+            ii = iy - i
+!........south boundary:
+            ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
+!........north boundary:
+            ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
+          end do
+          ibeg = jsls
+          iend = iy - jsls
+        end if
+!
+        if ( jj.gt.ip ) then
+!------west-boundary slice:
+          do i = ibeg , iend
+#ifdef MPP1
+            if ( jsls.le.ip ) ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))&
+                                      & *pwbt(i,jwb)
+#else
+            ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))*pwbt(i,jsls)
+#endif
+          end do
+        else if ( jj.le.ip ) then
+!------east-boundary slice:
+          do i = ibeg , iend
+#ifdef MPP1
+            if ( jsls.le.ip ) ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))&
+                                      & *pebt(i,jeb)
+#else
+            ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))*pebt(i,jsls)
+#endif
+          end do
+        else
+        end if
+!
+      else
+      end if
+
+#endif
+      end subroutine sponge_p
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine sponge_t(ip,wg,ften,j)
+!
+      implicit none
+!
+      integer :: ip , j
+      real(8) , dimension(iy,kz) :: ften
+      real(8) , dimension(ip) :: wg
+      intent (in) ip , j , wg
+      intent (inout) ften
+!
+      integer :: i , ii , k
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
+#ifdef MPP1
+#ifndef BAND
+      integer :: jwb , jeb
+#endif
+#endif
+!
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i
+         do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*tnbt(i,k,j)
+         end do
+      end do
+
+#else
+!----------------------------------------------------------------------
+!
+#ifdef MPP1
+      jsls = j + myid*jxp
+      jj = jx - jsls
+      if ( jj.le.ip ) jsls = jj
+      jwb = jsls
+      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
+      if ( jwb.eq.0 ) jwb = jxp
+      if ( myid.eq.nproc-1 ) then
+        jeb = jsls
+      else
+        jeb = jsls + 1
+      end if
+      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
+      if ( jeb.eq.0 ) jeb = jxp
+#else
+      jsls = j
+      jj = jx - jsls
+      if ( jj.le.ip ) jsls = jj
+#endif
+!
+      if ( jsls.gt.ip ) then
+!-----interior j slices:
+        do i = 2 , ip
+          ii = iy - i
+          do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*tnbt(i,k,j)
+          end do
+        end do
+!
+      else if ( jsls.le.ip ) then
+        ibeg = 2
+        iend = iym1 - 1
+        if ( jsls.gt.2 ) then
+          do i = 2 , jsls - 1
+            ii = iy - i
+            do k = 1 , kz
+!........south boundary:
+              ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
+!........north boundary:
+              ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*tnbt(i,k,j)
+            end do
+          end do
+          ibeg = jsls
+          iend = iy - jsls
+        end if
+!
+        if ( jj.gt.ip ) then
+!------west-boundary slice:
+          do k = 1 , kz
+            do i = ibeg , iend
+#ifdef MPP1
+              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+                 & + (1.-wg(jsls))*twbt(i,k,jwb)
+#else
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+                        & *twbt(i,k,jsls)
+#endif
+            end do
+          end do
+        else if ( jj.le.ip ) then
+!------east-boundary slice:
+          do k = 1 , kz
+            do i = ibeg , iend
+#ifdef MPP1
+              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+                 & + (1.-wg(jsls))*tebt(i,k,jeb)
+#else
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+                        & *tebt(i,k,jsls)
+#endif
+            end do
+          end do
+        else
+        end if
+!
+      else
+      end if
+#endif
+
+      end subroutine sponge_t
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine spongeqv(ip,wg,ften,j)
+!
+      implicit none
+!
+      integer :: ip , j
+      real(8) , dimension(iy,kz) :: ften
+      real(8) , dimension(ip) :: wg
+      intent (in) ip , j , wg
+      intent (inout) ften
+!
+      integer :: i , ii , k
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
+#ifdef MPP1
+#ifndef BAND
+      integer :: jwb , jeb
+#endif
+#endif
+!
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i
+         do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*qnbt(i,k,j)
+         end do
+      end do
+#else
+!----------------------------------------------------------------------
+!
+#ifdef MPP1
+      jsls = j + myid*jxp
+      jj = jx - jsls
+      if ( jj.le.ip ) jsls = jj
+      jwb = jsls
+      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
+      if ( jwb.eq.0 ) jwb = jxp
+      if ( myid.eq.nproc-1 ) then
+        jeb = jsls
+      else
+        jeb = jsls + 1
+      end if
+      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
+      if ( jeb.eq.0 ) jeb = jxp
+#else
+      jsls = j
+      jj = jx - jsls
+      if ( jj.le.ip ) jsls = jj
+#endif
+!
+      if ( jsls.gt.ip ) then
+!-----interior j slices:
+        do i = 2 , ip
+          ii = iy - i
+          do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*qnbt(i,k,j)
+          end do
+        end do
+!
+      else if ( jsls.le.ip ) then
+        ibeg = 2
+        iend = iym1 - 1
+        if ( jsls.gt.2 ) then
+          do i = 2 , jsls - 1
+            ii = iy - i
+            do k = 1 , kz
+!........south boundary:
+              ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
+!........north boundary:
+              ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*qnbt(i,k,j)
+            end do
+          end do
+          ibeg = jsls
+          iend = iy - jsls
+        end if
+!
+        if ( jj.gt.ip ) then
+!------west-boundary slice:
+          do k = 1 , kz
+            do i = ibeg , iend
+#ifdef MPP1
+              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+                 & + (1.-wg(jsls))*qwbt(i,k,jwb)
+#else
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+                        & *qwbt(i,k,jsls)
+#endif
+            end do
+          end do
+        else if ( jj.le.ip ) then
+!------east-boundary slice:
+          do k = 1 , kz
+            do i = ibeg , iend
+#ifdef MPP1
+              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+                 & + (1.-wg(jsls))*qebt(i,k,jeb)
+#else
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+                        & *qebt(i,k,jsls)
+#endif
+            end do
+          end do
+        else
+        end if
+!
+      else
+      end if
+#endif
+      end subroutine spongeqv
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine sponge_u(ip,wg,ften,j)
+!
+      implicit none
+!
+      integer :: ip , j
+      real(8) , dimension(iy,kz) :: ften
+      real(8) , dimension(ip) :: wg
+      intent (in) ip , j , wg
+      intent (inout) ften
+!
+      integer :: i , ii , k
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
+#ifdef MPP1
+#ifndef BAND
+      integer :: jew
+#endif
+#endif
+
+!
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i + 1
+         do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*unbt(i,k,j)
+         end do
+      end do
+#else
+!----------------------------------------------------------------------
+!
+#ifdef MPP1
+      jsls = j + myid*jxp
+      jj = jxp1 - jsls
+      if ( jj.le.ip ) jsls = jj
+      jew = jsls
+      if ( jew.gt.jxp ) jew = mod(jsls,jxp)
+      if ( jew.eq.0 ) jew = jxp
+#else
+      jsls = j
+      jj = jxp1 - jsls
+      if ( jj.le.ip ) jsls = jj
+#endif
+!
+      if ( jsls.gt.ip ) then
+!-----interior j slices:
+        do i = 2 , ip
+          ii = iy - i + 1
+          do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*unbt(i,k,j)
+          end do
+        end do
+!
+      else if ( jsls.le.ip ) then
+        ibeg = 2
+        iend = iym1
+        if ( jsls.gt.2 ) then
+          do i = 2 , jsls - 1
+            ii = iy - i + 1
+            do k = 1 , kz
+!........south boundary:
+              ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
+!........north boundary:
+              ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*unbt(i,k,j)
+            end do
+          end do
+          ibeg = jsls
+          iend = iy - jsls + 1
+        end if
+!
+        if ( jj.gt.ip ) then
+!------west-boundary slice:
+          do k = 1 , kz
+            do i = ibeg , iend
+#ifdef MPP1
+              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+                 & + (1.-wg(jsls))*uwbt(i,k,jew)
+#else
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+                        & *uwbt(i,k,jsls)
+#endif
+            end do
+          end do
+        else if ( jj.le.ip ) then
+!------east-boundary slice:
+          do k = 1 , kz
+            do i = ibeg , iend
+#ifdef MPP1
+              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+                 & + (1.-wg(jsls))*uebt(i,k,jew)
+#else
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+                        & *uebt(i,k,jsls)
+#endif
+            end do
+          end do
+        else
+        end if
+!
+      else
+      end if
+#endif
+      end subroutine sponge_u
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine sponge_v(ip,wg,ften,j)
+!
+      implicit none
+!
+      integer :: ip , j
+      real(8) , dimension(iy,kz) :: ften
+      real(8) , dimension(ip) :: wg
+      intent (in) ip , j , wg
+      intent (inout) ften
+!
+      integer :: i , ii , k
+#ifndef BAND
+      integer :: ibeg , iend , jj , jsls
+#endif
+#ifdef MPP1
+#ifndef BAND
+      integer :: jew
+#endif
+#endif
+!
+#ifdef BAND
+!----------------------------------------------------------------------
+!
+!-----interior j slices:
+      do i = 2 , ip
+         ii = iy - i + 1
+         do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*vnbt(i,k,j)
+         end do
+      end do
+#else
+!----------------------------------------------------------------------
+!
+#ifdef MPP1
+      jsls = j + myid*jxp
+      jj = jxp1 - jsls
+      if ( jj.le.ip ) jsls = jj
+      jew = jsls
+      if ( jew.gt.jxp ) jew = mod(jsls,jxp)
+      if ( jew.eq.0 ) jew = jxp
+#else
+      jsls = j
+      jj = jxp1 - jsls
+      if ( jj.le.ip ) jsls = jj
+#endif
+!
+      if ( jsls.gt.ip ) then
+!-----interior j slices:
+        do i = 2 , ip
+          ii = iy - i + 1
+          do k = 1 , kz
+!.......south boundary:
+            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
+!.......north boundary:
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*vnbt(i,k,j)
+          end do
+        end do
+!
+      else if ( jsls.le.ip ) then
+        ibeg = 2
+        iend = iym1
+        if ( jsls.gt.2 ) then
+          do i = 2 , jsls - 1
+            ii = iy - i + 1
+            do k = 1 , kz
+!........south boundary:
+              ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
+!........north boundary:
+              ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*vnbt(i,k,j)
+            end do
+          end do
+          ibeg = jsls
+          iend = iy - jsls + 1
+        end if
+!
+        if ( jj.gt.ip ) then
+!------west-boundary slice:
+          do k = 1 , kz
+            do i = ibeg , iend
+#ifdef MPP1
+              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+                 & + (1.-wg(jsls))*vwbt(i,k,jew)
+#else
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+                        & *vwbt(i,k,jsls)
+#endif
+            end do
+          end do
+        else if ( jj.le.ip ) then
+!------east-boundary slice:
+          do k = 1 , kz
+            do i = ibeg , iend
+#ifdef MPP1
+              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+                 & + (1.-wg(jsls))*vebt(i,k,jew)
+#else
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+                        & *vebt(i,k,jsls)
+#endif
+            end do
+          end do
+        else
+        end if
+!
+      else
+      end if
+#endif
+      end subroutine sponge_v
+!
+      end module mod_nudge

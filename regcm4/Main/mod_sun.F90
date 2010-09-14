@@ -18,29 +18,29 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_sun
-
+!
+! Sun zenith and declination
+!
       use mod_constants
       use mod_dynparam
       use mod_main
       use mod_message
       use mod_date
-
+!
 #ifdef CLM
+      use mod_clm
       use clm_time_manager , only : get_curr_calday
       use clm_varsur ,  only : numdays
       use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
                                shr_orb_params
-      use mod_clm
 #endif
-
+!
       private
-
+!
       public :: solar1 , zenitm
-
+!
       contains
-
-      subroutine solar1(xtime)
-
+!
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
 !     this subroutine computes the solar declination angle from the   c
@@ -49,14 +49,12 @@
 !     xtime  : forecast time in minutes.                              c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine solar1(xtime)
+
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: xtime
-      intent (in) xtime
-!
-! Local variables
+      real(8) , intent(in) :: xtime
 !
       real(8) :: calday , decdeg , delta
 #ifdef CLM
@@ -109,8 +107,6 @@
 !
       end subroutine solar1
 !
-      subroutine zenitm(coszrs,ivmx,jslc)
-!
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !   this subroutine calculates the cosine of the solar zenith angle
@@ -121,21 +117,19 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
+      subroutine zenitm(coszrs,ivmx,jslc)
+!
       implicit none
 !
-! Arguments
-!
       integer, intent (in) :: ivmx , jslc
-      real(kind=8) , intent (inout), dimension(iy) :: coszrs
-!
-! Local variables
+      real(8) , intent (inout), dimension(iy) :: coszrs
 !
       integer :: ill
 #ifdef CLM
       integer :: jj
-      real(kind=8) :: cldy , declinp1
+      real(8) :: cldy , declinp1
 #else
-      real(kind=8) :: omega , tlocap , xt24 , xxlat
+      real(8) :: omega , tlocap , xt24 , xxlat
 #endif
 !
 !***********************************************************************

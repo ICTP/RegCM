@@ -17,21 +17,30 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      module mod_header
+
+      private
+
+      public :: header , finaltime
+
+      integer , parameter :: nrite=6
+      character (len=24) :: cdata='?'
+
+      contains
+
       subroutine header(myid,nproc)
       implicit none 
       integer , intent(in) :: myid,nproc
       integer :: ihost , idir
       integer :: hostnm
       integer :: getcwd
-      character (len=24) :: cdata='?'
       character (len=32) :: hostname='?' 
       character (len=32) :: user='?' 
       character (len=256) :: directory='?'
-      integer , parameter :: nrite=6
   
       if ( myid.eq.0 )  then 
 
-        write (nrite,"(/,2x,'This is RegCM version 4 ')")
+        write (nrite,"(/,2x,'This is RegCM version 4.1 ')")
         write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
 
 #ifdef IBM
@@ -46,11 +55,11 @@
 
         idir = getcwd(directory)
 
-        write (nrite,*) ": this run started at    : ",cdata
-        write (nrite,*) ": it is submitted by   : ",trim(user)
-        write (nrite,*) ": it is running on     : ",trim(hostname)
-        write (nrite,*) ": it is using          : ",nproc, '  processors' 
-        write (nrite,*) ": in directory         : ",trim(directory)
+        write (nrite,*) ": this run start at  : ",cdata
+        write (nrite,*) ": it is submitted by : ",trim(user)
+        write (nrite,*) ": it is running on   : ",trim(hostname)
+        write (nrite,*) ": it is using        : ",nproc, '  processors' 
+        write (nrite,*) ": in directory       : ",trim(directory)
         write (nrite,*) "                      " 
       end if 
       return 
@@ -61,7 +70,6 @@
       subroutine finaltime(myid)
         implicit none
         integer , intent (in) :: myid
-        character (len=24) :: cdata='?'
 
         if ( myid.eq. 0 ) then
 #ifdef IBM
@@ -69,8 +77,10 @@
 #else
           call fdate(cdata)
 #endif 
-          write ( 6,* ) ': this run terminated at : ', cdata
+          write (nrite,*) ': this run stops at  : ', cdata
         end if
 
         return
       end subroutine finaltime
+
+      end module mod_header

@@ -100,30 +100,6 @@ def main():
         except :
             band = int(0)
 
-    print "\n  ****  Do you want to enable the DCSST  - 1 or not - 0? \n\t[0]"
-    dcsst=raw_input("\tDCSST = ")
-    if len(dcsst) == 0 :
-        dcsst = int(0)
-    else:
-        try :
-            dcsst = int(dcsst)
-            if not 0<=dcsst<=1:
-                dcsst = int(0)
-        except :
-            dcsst = int(0)
-
-    print "\n  ****  Do you want to enable the SeaIce  - 1 or not - 0? \n\t[0]"
-    seaice=raw_input("\tSeaIce = ")
-    if len(seaice) == 0 :
-        seaice = int(0)
-    else:
-        try :
-            seaice = int(seaice)
-            if not 0<=seaice<=1:
-                seaice = int(0)
-        except :
-            seaice = int(0)
-
     print "\n  ****  Do you want to enable CLM  - 1 or not - 0? \n\t[0]"
     clm=raw_input("\tCLM = ")
     if len(clm) == 0 :
@@ -167,8 +143,6 @@ def main():
     #print dbg
     #print mpi
     #print band
-    #print dcsst
-    #print seaice
     #print clm
     #print compiler
     #print mpi_compiler
@@ -183,9 +157,9 @@ def main():
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
     if mpi == 1 :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,dcsst,seaice,compiler)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler)
     else :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,dcsst,seaice,compiler)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler)
 
     #If the user has chosen the Sun compilers:
     #Write a note to the user indicating that the -M line will need to be
@@ -293,14 +267,12 @@ def choose_template(regcm_root,compiler,dbg):
 
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
-def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,dcsst,seaice,compiler) :
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler) :
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
 
         line=line.replace("!BAND",str(band))
         line=line.replace("!CLM",str(clm))
-        line=line.replace("!DCSST",str(dcsst))
-        line=line.replace("!SEAICE",str(seaice))
         
         line=line.replace("!REGCM_ROOT",regcm_root)
         line=line.replace("!BIN_DIR",bin_dir)

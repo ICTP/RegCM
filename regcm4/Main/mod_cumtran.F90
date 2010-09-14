@@ -17,12 +17,23 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine cumtran
-
+      module mod_cumtran
+!
+! Tracer convective transport
+!
       use mod_dynparam
       use mod_trachem
       use mod_mainchem
-      use mod_runparams , only : dsigma
+      use mod_runparams
+!
+      private
+!
+      public :: cumtran
+!
+      contains
+!
+      subroutine cumtran
+
       implicit none
 !
 ! Local variables
@@ -33,8 +44,9 @@
 !hy   the well-mixing only over cumulus cloud fraction (assuming 0.3)
 !     add the well-mixing fraction in dt step (5%) - only updraft
 !hy   cumfrc = 0.3
+!
       cumfrc = 0.015
- 
+!
       do n = 1 , ntr
 #ifdef MPP1
         do j = jbegin , jendx
@@ -68,4 +80,7 @@
           end do
         end do
       end do
+!
       end subroutine cumtran
+!
+      end module mod_cumtran

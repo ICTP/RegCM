@@ -18,21 +18,23 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_co2
-
+!
       use mod_dynparam
       use mod_runparams
       use mod_bats
       use mod_leaftemp
 !
       private
-
+!
       public :: co2
 !
       contains
 !
-      subroutine co2
-
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!=======================================================================
+!l  based on: bats version 1e          copyright 18 august 1989
+!=======================================================================
+!
+! CO2
 !
 !     model for plant carbon uptake and dead carbon decomposition
 !
@@ -55,9 +57,11 @@
 !     resistances for co2 are larger than those for h2o due to
 !                    difference in molecular weight
 !
-      implicit none
+!=======================================================================
 !
-! Local variables
+      subroutine co2
+!
+      implicit none
 !
       real(8) , dimension(nnsg,iym1) :: cari
       integer :: n , i
@@ -95,25 +99,9 @@
       end do
       end subroutine co2
 !
+!=======================================================================
+! CARBON
 !
-!
-      function carbon(vf,t,rm,tg,xlai,xlsai)
-      implicit none
-!
-! Dummy arguments
-!
-      real(8) :: rm , t , tg , vf , xlai , xlsai
-      real(8) :: carbon
-      intent (in) rm , tg , vf , xlai , xlsai
-!
-! Local variables
-!
-      real(8) :: a , ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
-               & cco2i , ccold , gt , p , pm , pml , rt , sl , tmx , w ,&
-               & wd , wp , xk , xkb , xl
-      real(8) :: e , g , r
-      integer :: it
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ***  a model for whole leaf photosynthesis based on that derived
 !     *** by tenhunen as summarized in the text of d gates
 !
@@ -125,9 +113,25 @@
 !     parameterisation of resps for cultivated land ok ?
 !     betatl = rai/lai  (must be set reasonably)
 !====================================================================
+!
+      function carbon(vf,t,rm,tg,xlai,xlsai)
+      implicit none
+!
+      real(8) :: rm , t , tg , vf , xlai , xlsai
+      real(8) :: carbon
+      intent (in) rm , tg , vf , xlai , xlsai
+!
+      real(8) :: a , ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
+               & cco2i , ccold , gt , p , pm , pml , rt , sl , tmx , w ,&
+               & wd , wp , xk , xkb , xl
+      real(8) :: e , g , r
+      integer :: it
+!
+!====================================================================
 !     this fn is not in si - vf (radn) and rm (res) handed in are in si
 !     result of fn (carbon) is handed back in si (kg/m**2/s)
 !======================================================================
+!
       g(t,tmx,sl) = dexp(sl*(1./tmx-1./t))                              &
                   & /(1.+(dexp(sl*(1./tmx-1./t)*6)))*5.E-3*t
 !     ***  temperature dependence of dark respiration
@@ -188,7 +192,7 @@
                & *p-3.0E-4*(alphtl*rt+betatl*r(tg)))
         return
       end if
- 
+! 
       end function carbon
 !
       end module mod_co2

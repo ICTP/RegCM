@@ -17,51 +17,331 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      subroutine diffut_t(ften,xkc,c203,j)
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine computes the diffusion term for cross-point     c
-!     variable 'f' on a constant sigma surface.                       c
-!                                                                     c
-!     ---fourth-order diffusion scheme is applied for the interior    c
-!        and second-order scheme is applied for the boundary.         c
-!                                                                     c
-!     ften   : tendency for variable f                                c
-!                                                                     c
-!     tb3d   : variable f at t-1 time step                            c
-!                                                                     c
-!     psb    : p* at t-1 time step                                    c
-!                                                                     c
-!     xkc    : horizontal diffusion coefficient                       c
-!                                                                     c
-!     c203   : = c203 defined in 'param'                              c
-!     c203   : = (100.-ptop)/(dx*dx), defined in 'param'              c
-!                                                                     c
-!     j      : j'th slice of variable tb3d                            c
-!                                                                     c
-!     iend   : = iym2 for cross-point variables                       c
-!              = iym1  for dot-point   variables                       c
-!                                                                     c
-!     jend   : = jxm2 for cross-point variables                       c
-!              = jlx  for dot-point   variables                       c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
+      module mod_diffusion
+!
+! Diffusion calculations
+!
       use mod_dynparam
+      use mod_runparams
       use mod_slice
       use mod_main
+
+      private
+
+      public :: diffu_u , diffu_v , diffut_t , diffutqv , diffutqc , &
+                diffutch
+!
+      contains
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!                                                                     c
+!     These subroutines computes the diffusion term for decoupled     c
+!     variable on constant sigma surface.                             c
+!                                                                     c
+!     ften    : tendency for variable                                 c
+!                                                                     c
+!     xkc     : horizontal diffusion coefficient                      c
+!                                                                     c
+!     j       : j'th slice of variable ubd3d                          c
+!                                                                     c
+!     ind = 1 : var is already multiplied by map scale factor         c
+!         = 0 : var is "not"   multiplied by map scale factor         c
+!                                                                     c
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine diffu_u(ften,xkc,j,ind)
+!
       implicit none
 !
 ! Dummy arguments
 !
-      real(8) :: c203
-      integer :: j
+      integer :: ind , j
       real(8) , dimension(iy,kz) :: ften , xkc
-      intent (in) c203 , j , xkc
+      intent (in) ind , j , xkc
       intent (inout) ften
 !
 ! Local variables
+!
+      integer :: i , k
+      integer :: jm1 , jm2 , jp1, jp2
+!
+      jm1 = j - 1
+      jm2 = j - 2
+      jp1 = j + 1
+      jp2 = j + 2
+#ifdef BAND
+!---------------------------------------------------------------------
+#if defined(BAND) && (!defined(MPP1))
+      if(jm1.lt.1) jm1 = jm1 + jx
+      if(jm2.lt.1) jm2 = jm2 + jx
+      if(jp1.gt.jx) jp1 = jp1 -jx
+      if(jp2.gt.jx) jp2 = jp2 -jx
+#endif
+!
+!.....fourth-order scheme for interior:
+      do k = 1 , kz
+        do i = 3 , iym1 - 1
+          if ( ind.eq.0 ) then
+            ften(i,k) = ften(i,k) - xkc(i,k)                          &
+                      & *c203*(ubd3d(i,k,jp2)+ubd3d(i,k,jm2)          &
+                      & +ubd3d(i+2,k,j)+ubd3d(i-2,k,j)                &
+                      & -4.*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)            &
+                      & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j))               &
+                      & +12.*ubd3d(i,k,j))*pdotb(i,j)
+          else
+            ften(i,k) = ften(i,k) - xkc(i,k)                          &
+                      & *c203*(ubd3d(i,k,jp2)/msfd(i,jp2)             &
+                      & +ubd3d(i,k,jm2)/msfd(i,jm2)+ubd3d(i+2,k,j)    &
+                      & /msfd(i+2,j)+ubd3d(i-2,k,j)/msfd(i-2,j)       &
+                      & -4.*(ubd3d(i,k,jp1)/msfd(i,jp1)+ubd3d(i,k,jm1)&
+                      & /msfd(i,jm1)+ubd3d(i+1,k,j)/msfd(i+1,j)       &
+                      & +ubd3d(i-1,k,j)/msfd(i-1,j))+12.*ubd3d(i,k,j) &
+                      & /msfd(i,j))*pdotb(i,j)
+          end if
+        end do
+      end do
+!......second-order scheme for north and south boundaries:
+      do i = 2 , iym1 , iym1 - 2
+        do k = 1 , kz
+          if ( ind.eq.0 ) then
+            ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                      & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
+                      & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)-4.*ubd3d(i,k,j)&
+                      & )*pdotb(i,j)
+          else
+            ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                      & *c203*(ubd3d(i,k,jp1)/msfd(i,jp1)             &
+                      & +ubd3d(i,k,jm1)/msfd(i,jm1)+ubd3d(i+1,k,j)    &
+                      & /msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j)       &
+                      & -4.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+          end if
+        end do
+      end do
+!
+#else
+!---------------------------------------------------------------------
+!
+#ifdef MPP1
+      if ( (myid.eq.0 .and. j.eq.2) .or.                                &
+         & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
+#else
+      if (j.eq.2 .or. j.eq.jxm1) then
+#endif
+!
+!......second-order scheme for east or west boundary:
+        do k = 1 , kz
+          do i = 2 , iym1
+            if ( ind.eq.0 ) then
+              ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                        & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
+                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)-4.*ubd3d(i,k,j)&
+                        & )*pdotb(i,j)
+            else
+              ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                        & *c203*(ubd3d(i,k,jp1)/msfd(i,jp1)             &
+                        & +ubd3d(i,k,jm1)/msfd(i,jm1)+ubd3d(i+1,k,j)    &
+                        & /msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j)       &
+                        & -4.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+            end if
+          end do
+        end do
+!
+      else
+!
+!.....fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym1 - 1
+            if ( ind.eq.0 ) then
+              ften(i,k) = ften(i,k) - xkc(i,k)                          &
+                        & *c203*(ubd3d(i,k,jp2)+ubd3d(i,k,jm2)          &
+                        & +ubd3d(i+2,k,j)+ubd3d(i-2,k,j)                &
+                        & -4.*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)            &
+                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j))               &
+                        & +12.*ubd3d(i,k,j))*pdotb(i,j)
+            else
+              ften(i,k) = ften(i,k) - xkc(i,k)                          &
+                        & *c203*(ubd3d(i,k,jp2)/msfd(i,jp2)             &
+                        & +ubd3d(i,k,jm2)/msfd(i,jm2)+ubd3d(i+2,k,j)    &
+                        & /msfd(i+2,j)+ubd3d(i-2,k,j)/msfd(i-2,j)       &
+                        & -4.*(ubd3d(i,k,jp1)/msfd(i,jp1)+ubd3d(i,k,jm1)&
+                        & /msfd(i,jm1)+ubd3d(i+1,k,j)/msfd(i+1,j)       &
+                        & +ubd3d(i-1,k,j)/msfd(i-1,j))+12.*ubd3d(i,k,j) &
+                        & /msfd(i,j))*pdotb(i,j)
+            end if
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        do i = 2 , iym1 , iym1 - 2
+          do k = 1 , kz
+            if ( ind.eq.0 ) then
+              ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                        & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
+                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)-4.*ubd3d(i,k,j)&
+                        & )*pdotb(i,j)
+            else
+              ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                        & *c203*(ubd3d(i,k,jp1)/msfd(i,jp1)             &
+                        & +ubd3d(i,k,jm1)/msfd(i,jm1)+ubd3d(i+1,k,j)    &
+                        & /msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j)       &
+                        & -4.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+            end if
+          end do
+        end do
+!
+      end if
+!
+#endif
+      end subroutine diffu_u
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+      subroutine diffu_v(ften,xkc,j,ind)
+!
+      implicit none
+!
+      integer :: ind , j
+      real(8) , dimension(iy,kz) :: ften , xkc
+      intent (in) ind , j , xkc
+      intent (inout) ften
+!
+      integer :: i , k
+      integer :: jm1 , jm2 , jp1, jp2
+!
+      jm1 = j - 1
+      jm2 = j - 2
+      jp1 = j + 1
+      jp2 = j + 2
+#ifdef BAND
+!---------------------------------------------------------------------
+#if defined(BAND) && (!defined(MPP1))
+      if(jm1.lt.1) jm1 = jm1 + jx
+      if(jm2.lt.1) jm2 = jm2 + jx
+      if(jp1.gt.jx) jp1 = jp1 -jx
+      if(jp2.gt.jx) jp2 = jp2 -jx
+#endif
+!
+!.....fourth-order scheme for interior:
+      do k = 1 , kz
+        do i = 3 , iym1 - 1
+          if ( ind.eq.0 ) then
+            ften(i,k) = ften(i,k) - xkc(i,k)                          &
+                      & *c203*(vbd3d(i,k,jp2)+vbd3d(i,k,jm2)          &
+                      & +vbd3d(i+2,k,j)+vbd3d(i-2,k,j)                &
+                      & -4.*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)            &
+                      & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j))               &
+                      & +12.*vbd3d(i,k,j))*pdotb(i,j)
+          else
+            ften(i,k) = ften(i,k) - xkc(i,k)                          &
+                      & *c203*(vbd3d(i,k,jp2)/msfd(i,jp2)             &
+                      & +vbd3d(i,k,jm2)/msfd(i,jm2)+vbd3d(i+2,k,j)    &
+                      & /msfd(i+2,j)+vbd3d(i-2,k,j)/msfd(i-2,j)       &
+                      & -4.*(vbd3d(i,k,jp1)/msfd(i,jp1)+vbd3d(i,k,jm1)&
+                      & /msfd(i,jm1)+vbd3d(i+1,k,j)/msfd(i+1,j)       &
+                      & +vbd3d(i-1,k,j)/msfd(i-1,j))+12.*vbd3d(i,k,j) &
+                      & /msfd(i,j))*pdotb(i,j)
+          end if
+        end do
+      end do
+!......second-order scheme for north and south boundaries:
+      do i = 2 , iym1 , iym1 - 2
+        do k = 1 , kz
+          if ( ind.eq.0 ) then
+            ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                      & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
+                      & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)-4.*vbd3d(i,k,j)&
+                      & )*pdotb(i,j)
+          else
+            ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                      & *c203*(vbd3d(i,k,jp1)/msfd(i,jp1)             &
+                      & +vbd3d(i,k,jm1)/msfd(i,jm1)+vbd3d(i+1,k,j)    &
+                      & /msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j)       &
+                      & -4.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+          end if
+        end do
+      end do
+#else
+!---------------------------------------------------------------------
+!
+#ifdef MPP1
+      if ( (myid.eq.0 .and. j.eq.2) .or.                                &
+         & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
+#else
+      if (j.eq.2 .or. j.eq.jxm1) then
+#endif
+!
+!......second-order scheme for east or west boundary:
+        do k = 1 , kz
+          do i = 2 , iym1
+            if ( ind.eq.0 ) then
+              ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                        & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
+                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)-4.*vbd3d(i,k,j)&
+                        & )*pdotb(i,j)
+            else
+              ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                        & *c203*(vbd3d(i,k,jp1)/msfd(i,jp1)             &
+                        & +vbd3d(i,k,jm1)/msfd(i,jm1)+vbd3d(i+1,k,j)    &
+                        & /msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j)       &
+                        & -4.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+            end if
+          end do
+        end do
+!
+      else
+!
+!.....fourth-order scheme for interior:
+        do k = 1 , kz
+          do i = 3 , iym1 - 1
+            if ( ind.eq.0 ) then
+              ften(i,k) = ften(i,k) - xkc(i,k)                          &
+                        & *c203*(vbd3d(i,k,jp2)+vbd3d(i,k,jm2)          &
+                        & +vbd3d(i+2,k,j)+vbd3d(i-2,k,j)                &
+                        & -4.*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)            &
+                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j))               &
+                        & +12.*vbd3d(i,k,j))*pdotb(i,j)
+            else
+              ften(i,k) = ften(i,k) - xkc(i,k)                          &
+                        & *c203*(vbd3d(i,k,jp2)/msfd(i,jp2)             &
+                        & +vbd3d(i,k,jm2)/msfd(i,jm2)+vbd3d(i+2,k,j)    &
+                        & /msfd(i+2,j)+vbd3d(i-2,k,j)/msfd(i-2,j)       &
+                        & -4.*(vbd3d(i,k,jp1)/msfd(i,jp1)+vbd3d(i,k,jm1)&
+                        & /msfd(i,jm1)+vbd3d(i+1,k,j)/msfd(i+1,j)       &
+                        & +vbd3d(i-1,k,j)/msfd(i-1,j))+12.*vbd3d(i,k,j) &
+                        & /msfd(i,j))*pdotb(i,j)
+            end if
+          end do
+        end do
+!......second-order scheme for north and south boundaries:
+        do i = 2 , iym1 , iym1 - 2
+          do k = 1 , kz
+            if ( ind.eq.0 ) then
+              ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                        & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
+                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)-4.*vbd3d(i,k,j)&
+                        & )*pdotb(i,j)
+            else
+              ften(i,k) = ften(i,k) + xkc(i,k)                          &
+                        & *c203*(vbd3d(i,k,jp1)/msfd(i,jp1)             &
+                        & +vbd3d(i,k,jm1)/msfd(i,jm1)+vbd3d(i+1,k,j)    &
+                        & /msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j)       &
+                        & -4.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+            end if
+          end do
+        end do
+!
+      end if
+!
+#endif
+      end subroutine diffu_v
+!
+      subroutine diffut_t(ften,xkc,j)
+!
+      implicit none
+!
+      integer :: j
+      real(8) , dimension(iy,kz) :: ften , xkc
+      intent (in) j , xkc
+      intent (inout) ften
 !
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
@@ -154,50 +434,15 @@
 !
 #endif
       end subroutine diffut_t
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine diffutqv(ften,xkc,c203,j)
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine computes the diffusion term for cross-point     c
-!     variable 'f' on a constant sigma surface.                       c
-!                                                                     c
-!     ---fourth-order diffusion scheme is applied for the interior    c
-!        and second-order scheme is applied for the boundary.         c
-!                                                                     c
-!     ften   : tendency for variable f                                c
-!                                                                     c
-!     qvb3d  : variable f at t-1 time step                            c
-!                                                                     c
-!     psb    : p* at t-1 time step                                    c
-!                                                                     c
-!     xkc    : horizontal diffusion coefficient                       c
-!                                                                     c
-!     c203   : = c203 defined in 'param'                              c
-!     c203   : = (100.-ptop)/(dx*dx), defined in 'param'              c
-!                                                                     c
-!     j      : j'th slice of variable qvb3d                           c
-!                                                                     c
-!     iend   : = iym2 for cross-point variables                       c
-!              = iym1  for dot-point   variables                       c
-!                                                                     c
-!     jend   : = jxm2 for cross-point variables                       c
-!              = jlx  for dot-point   variables                       c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_dynparam
-      use mod_slice
-      use mod_main
+!
+      subroutine diffutqv(ften,xkc,j)
+!
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: c203
       integer :: j
       real(8) , dimension(iy,kz) :: ften , xkc
-      intent (in) c203 , j , xkc
+      intent (in) j , xkc
       intent (inout) ften
-!
-! Local variables
 !
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
@@ -296,50 +541,15 @@
 !
 #endif
       end subroutine diffutqv
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine diffutqc(ften,xkc,c203,j)
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine computes the diffusion term for cross-point     c
-!     variable 'f' on a constant sigma surface.                       c
-!                                                                     c
-!     ---fourth-order diffusion scheme is applied for the interior    c
-!        and second-order scheme is applied for the boundary.         c
-!                                                                     c
-!     ften   : tendency for variable f                                c
-!                                                                     c
-!     qcb3d  : variable f at t-1 time step                            c
-!                                                                     c
-!     psb    : p* at t-1 time step                                    c
-!                                                                     c
-!     xkc    : horizontal diffusion coefficient                       c
-!                                                                     c
-!     c203   : = c203 defined in 'param'                              c
-!     c203   : = (100.-ptop)/(dx*dx), defined in 'param'              c
-!                                                                     c
-!     j      : j'th slice of variable qcb3d                           c
-!                                                                     c
-!     iend   : = iym2 for cross-point variables                       c
-!              = iym1  for dot-point   variables                       c
-!                                                                     c
-!     jend   : = jxm2 for cross-point variables                       c
-!              = jlx  for dot-point   variables                       c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_dynparam
-      use mod_slice
-      use mod_main
+!
+      subroutine diffutqc(ften,xkc,j)
+!
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: c203
       integer :: j
       real(8) , dimension(iy,kz) :: ften , xkc
-      intent (in) c203 , j , xkc
+      intent (in) j , xkc
       intent (inout) ften
-!
-! Local variables
 !
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
@@ -438,50 +648,15 @@
 !
 #endif
       end subroutine diffutqc
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine diffutch(ften,xkc,c203,n,j)
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine computes the diffusion term for cross-point     c
-!     variable 'f' on a constant sigma surface.                       c
-!                                                                     c
-!     ---fourth-order diffusion scheme is applied for the interior    c
-!        and second-order scheme is applied for the boundary.         c
-!                                                                     c
-!     ften   : tendency for variable f                                c
-!                                                                     c
-!     chib3d : variable f at t-1 time step                            c
-!                                                                     c
-!     psb    : p* at t-1 time step                                    c
-!                                                                     c
-!     xkc    : horizontal diffusion coefficient                       c
-!                                                                     c
-!     c203   : = c203 defined in 'param'                              c
-!     c203   : = (100.-ptop)/(dx*dx), defined in 'param'              c
-!                                                                     c
-!     j      : j'th slice of variable chib3d                          c
-!                                                                     c
-!     iend   : = iym2 for cross-point variables                       c
-!              = iym1  for dot-point   variables                       c
-!                                                                     c
-!     jend   : = jxm2 for cross-point variables                       c
-!              = jlx  for dot-point   variables                       c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use mod_dynparam
-      use mod_slice
-      use mod_main
+!
+      subroutine diffutch(ften,xkc,n,j)
+!
       implicit none
 !
-! Dummy arguments
-!
-      real(8) :: c203
       integer :: j , n
       real(8) , dimension(iy,kz) :: ften , xkc
-      intent (in) c203 , j , n , xkc
+      intent (in) j , n , xkc
       intent (inout) ften
-!
-! Local variables
 !
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
@@ -580,3 +755,5 @@
 !
 #endif
       end subroutine diffutch
+!
+      end module mod_diffusion

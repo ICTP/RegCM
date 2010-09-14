@@ -18,119 +18,48 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_split
-
+!
+! Split explicit time integration
+!
       use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_main
-
+      use mod_vmodes
+      use mod_runparams
+      use mod_bdycod
+      use mod_main
+      use mod_date
+      use mod_savefile
+!
       private
-
-      public :: allocate_mod_split , splitf
-      public :: sigmah , sdsigma
-      public :: thetaf , thetah
-      public :: tbarh , tbarf
-      public :: hweigh , tweigh , hbar
-      public :: hydroc , hydros , hydror
-      public :: alpha1 , alpha2
-      public :: varpa1 , varpa2
-      public :: zmatx , zmatxr
-      public :: x1 , iw2 , w1 , w2 , w3
-      public :: e1 , e2 , e3
-      public :: s1 , s2 , s3
-      public :: a0 , a1 , a2 , a3 , a4
-      public :: d1 , d2 , g1 , g2
-      public :: ps , pd , tau
-      public :: cpfac
-      public :: dstor , hstor
+!
+      public :: allocate_mod_split , spinit , splitf
       public :: m
       public :: uuu , vvv
       public :: am , an
-
+!
       integer , allocatable , dimension(:) :: m
-      real(8) , allocatable , dimension(:,:) :: a0 , a1 , a2 , a3 , a4 ,&
-               & d1 , d2 , e1 , e2 , e3 , g1 , g2 , g3 , s1 , s2 , w1 , &
-               & w2 , w3 , x1
-      integer , allocatable , dimension(:) :: iw2
-      real(8) , allocatable , dimension(:) :: tbarf , thetaf
-      real(8) , allocatable , dimension(:) :: thetah , tweigh
-!
-      real(8) :: alpha1 , alpha2 , pd , ps
-      real(8) , allocatable , dimension(:) :: cpfac , sdsigma , hbar ,  &
-               & hweigh , tbarh
-      real(8) , allocatable , dimension(:,:) :: hydroc , varpa1
-      real(8) , allocatable , dimension(:,:) :: hydror , hydros , tau , &
-               & zmatx , zmatxr
-      real(8) , allocatable , dimension(:) :: sigmah
-      real(8) , allocatable , dimension(:,:) :: varpa2
-!
-      real(8) , allocatable , dimension(:,:) :: am
       real(8) , allocatable , dimension(:) :: an
-
-      real(8) , allocatable, dimension(:,:,:) :: dstor , hstor
-
-      real(8) ,allocatable, dimension(:,:,:) :: ddsum
-      real(8) ,allocatable, dimension(:,:,:,:) :: deld
-      real(8) ,allocatable, dimension(:,:,:,:) :: delh
-      real(8) ,allocatable, dimension(:,:,:) :: dhsum
-      real(8) ,allocatable, dimension(:,:) :: psdot
-      real(8) ,allocatable, dimension(:,:,:) :: work
-      real(8) ,allocatable, dimension(:,:) :: uu , vv
-      real(8) ,allocatable, dimension(:,:,:) :: uuu , vvv
-
+      real(8) , allocatable , dimension(:,:) :: am
+      real(8) , allocatable , dimension(:,:,:) :: uuu , vvv
+!
+      real(8) , allocatable , dimension(:,:,:) :: ddsum
+      real(8) , allocatable , dimension(:,:,:,:) :: deld
+      real(8) , allocatable , dimension(:,:,:,:) :: delh
+      real(8) , allocatable , dimension(:,:,:) :: dhsum
+      real(8) , allocatable , dimension(:,:) :: psdot
+      real(8) , allocatable , dimension(:,:,:) :: work
+      real(8) , allocatable , dimension(:,:) :: uu , vv
+!
       contains 
-
+!
       subroutine allocate_mod_split
         implicit none
-#ifdef MPP1
-        allocate(dstor(iy,0:jxp+1,nsplit))
-        allocate(hstor(iy,0:jxp+1,nsplit))
-#else
-        allocate(dstor(iy,jx,nsplit))
-        allocate(hstor(iy,jx,nsplit))
-#endif 
+        call allocate_mod_vmodes
         allocate(m(nsplit))
-        allocate(a0(kz,kz))
-        allocate(a1(kz,kz))
-        allocate(a2(kz,kz))
-        allocate(a3(kz,kz))
-        allocate(a4(kz,kz))
-        allocate(d1(kz,kz))
-        allocate(d2(kz,kz))
-        allocate(e1(kz,kz))
-        allocate(e2(kz,kz))
-        allocate(e3(kz,kz))
-        allocate(g1(kz,kz))
-        allocate(g2(kz,kz))
-        allocate(g3(kz,kz))
-        allocate(s1(kz,kz))
-        allocate(s2(kz,kz))
-        allocate(w1(kz,kz))
-        allocate(w2(kz,kz))
-        allocate(x1(kz,kz))
-        allocate(iw2(kz))
-        allocate(thetah(kz))
-        allocate(tweigh(kz))
-        allocate(tbarf(kzp1))
-        allocate(thetaf(kzp1))
-        allocate(w3(kzp1,kz))
-        allocate(cpfac(kz))
-        allocate(sdsigma(kz))
-        allocate(hbar(kz))
-        allocate(hweigh(kz))
-        allocate(tbarh(kz))
-        allocate(hydroc(kz,kzp1))
-        allocate(varpa1(kz,kzp1))
-        allocate(hydror(kz,kz))
-        allocate(hydros(kz,kz))
-        allocate(tau(kz,kz))
-        allocate(zmatx(kz,kz))
-        allocate(zmatxr(kz,kz))
-        allocate(sigmah(kzp1))
-        allocate(varpa2(kzp1,kzp1))
         allocate(am(kz,nsplit))
         allocate(an(nsplit))
-!
 #ifdef MPP1
         allocate(ddsum(iy,jxp,nsplit))
         allocate(deld(iy,jxp,nsplit,3))
@@ -156,12 +85,11 @@
 #endif 
         end subroutine allocate_mod_split
 !
-      subroutine splitf
+! Intial computation of vertical modes.
 !
-!** compute deld, delh
-!** integrate in time and add correction terms appropriately
-!
+      subroutine spinit(xsigma,kv1)
 #ifdef MPP1
+      use mod_mppio
 #ifndef IBM
       use mpi
 #else
@@ -170,7 +98,403 @@
 #endif
       implicit none
 !
-! Local variables
+      integer :: kv1
+      real(8) , dimension(kv1) :: xsigma
+!
+      real(8) :: eps , eps1 , fac , pdlog
+      integer :: i , ijlx , j , k , l , n , ns
+      logical :: lstand
+#ifdef MPP1
+      integer :: ierr
+#endif
+      integer :: jp1
+!
+!     lstand = .true. if standard atmosphere t to be used (ignore input
+!     tbarh and xps in that case).  otherwise, xps and tbarh must
+!     be defined on input.  note that in either case, r8pt must
+!     also be defined on input (common block named cvert).
+!
+!
+!     ******dtau = time steps(in sec)for modes in split explicit is
+!     ******specified in namelist as array dtsplit
+!
+!**   zero new arrays
+
+      dstor = 0.0
+      hstor = 0.0
+!
+!**   compute m.
+      do ns = 1 , nsplit
+        m(ns) = nint(dt/dtau(ns))
+        if ( jyear.ne.jyear0 .or. ktau.ne.0 ) m(ns)                     &
+           & = nint(.5*dt/dtau(ns))
+      end do
+#ifdef MPP1
+      if ( myid.eq.0 ) print * , 'dt, dtau = ' , dt , dtau
+#else
+      print * , 'dt, dtau = ' , dt , dtau
+#endif
+!
+!**   compute xps and tbarh for use in vmodes.
+      xps = 0.
+      do k = 1 , kz
+        tbarh(k) = 0.
+      end do
+#ifdef MPP1
+      ijlx = iym1*jendx
+      do j = 1 , jendx
+#else
+#ifdef BAND
+      ijlx = iym1*jx
+      do j = 1 , jx
+#else
+      ijlx = iym1*jxm1
+      do j = 1 , jxm1
+#endif
+#endif
+        do i = 1 , iym1
+          xps = xps + psa(i,j)/ijlx
+        end do
+      end do
+
+      do k = 1 , kz
+#ifdef MPP1
+        do j = 1 , jendx
+#else
+#ifdef BAND
+        do j = 1 , jx
+#else
+        do j = 1 , jxm1
+#endif
+#endif
+          do i = 1 , iym1
+            tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
+          end do
+        end do
+      end do
+!
+!**   compute vertical modes.
+      lstand = .true.
+      if ( jyear.ne.jyear0 .or. ktau.ne.0 ) lstand = .true.
+      call vmodes(lstand,xsigma,kv1)
+!
+!**   subract a4 from a for use in computing am.
+      do l = 1 , kz
+        do k = 1 , kz
+          a0(k,l) = a0(k,l) - a4(k,l)
+        end do
+      end do
+!
+!**   compute am and an.
+      do n = 1 , nsplit
+        an(n) = 0.
+        do l = 1 , kz
+          an(n) = an(n) + dsigma(l)*zmatx(l,n)
+        end do
+        do k = 1 , kz
+          am(k,n) = 0.
+          tau(n,k) = 0.
+        end do
+        do l = 1 , kz
+          do k = 1 , kz
+            am(k,n) = am(k,n) + a0(k,l)*zmatx(l,n)
+            tau(n,k) = tau(n,k) + rgas*zmatxr(n,l)*hydros(l,k)
+          end do
+        end do
+!
+        do k = 1 , kzp1
+          varpa1(n,k) = 0.
+        end do
+        do l = 1 , kz
+          do k = 1 , kzp1
+            varpa1(n,k) = varpa1(n,k) + rgas*zmatxr(n,l)*hydroc(l,k)
+          end do
+        end do
+      end do
+!
+!**   multiply am, an and zmatx by factor.
+      do l = 1 , nsplit
+        fac = 2.*dt/(2.*dble(m(l))+1.)
+        if ( jyear.ne.jyear0 .or. ktau.ne.0 )                           &
+           & fac = dt/(2.*dble(m(l))+1.)
+#ifdef MPP1
+        if ( myid.eq.0 ) print * , 'm, fac = ' , m(l) , fac
+#else
+        print * , 'm, fac = ' , m(l) , fac
+#endif
+        an(l) = an(l)*fac
+        do k = 1 , kz
+          zmatx(k,l) = zmatx(k,l)*fac
+          am(k,l) = am(k,l)*fac
+        end do
+      end do
+!
+      if ( ifrest ) then
+#ifdef MPP1
+        if ( myid.eq.0 ) then
+
+          call read_savefile_part2
+
+          do j = 1 , jx
+            do n = 1 , nsplit
+              do i = 1 , iy
+                sav_0d(i,n,j) = dstor_io(i,j,n)
+                sav_0d(i,n+nsplit,j) = hstor_io(i,j,n)
+              end do
+            end do
+          end do
+          do j = 1 , jx
+            do k = 1 , kz
+              sav_6(k,1,j) = ui1_io(k,j)
+              sav_6(k,2,j) = ui2_io(k,j)
+              sav_6(k,3,j) = uilx_io(k,j)
+              sav_6(k,4,j) = uil_io(k,j)
+              sav_6(k,5,j) = vi1_io(k,j)
+              sav_6(k,6,j) = vi2_io(k,j)
+              sav_6(k,7,j) = vilx_io(k,j)
+              sav_6(k,8,j) = vil_io(k,j)
+            end do
+          end do
+        end if
+        call mpi_scatter(sav_0d(1,1,1),iy*nsplit*2*jxp,mpi_real8,       &
+                       & sav0d(1,1,1), iy*nsplit*2*jxp,mpi_real8,       &
+                       & 0,mpi_comm_world,ierr)
+        do j = 1 , jendl
+          do n = 1 , nsplit
+            do i = 1 , iy
+              dstor(i,j,n) = sav0d(i,n,j)
+              hstor(i,j,n) = sav0d(i,n+nsplit,j)
+            end do
+          end do
+        end do
+        call mpi_scatter(sav_6(1,1,1),kz*8*jxp,mpi_real8,               &
+                       & sav6(1,1,1),kz*8*jxp,mpi_real8,0,              &
+                       & mpi_comm_world,ierr)
+        do j = 1 , jendl
+          do k = 1 , kz
+            ui1(k,j) = sav6(k,1,j)
+            ui2(k,j) = sav6(k,2,j)
+            uilx(k,j) = sav6(k,3,j)
+            uil(k,j) = sav6(k,4,j)
+            vi1(k,j) = sav6(k,5,j)
+            vi2(k,j) = sav6(k,6,j)
+            vilx(k,j) = sav6(k,7,j)
+            vil(k,j) = sav6(k,8,j)
+          end do
+        end do
+#ifndef BAND
+        call mpi_bcast(uj1,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(uj2,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vj1,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vj2,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(ujlx,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(ujl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vjlx,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(vjl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+        if ( myid.ne.nproc-1 ) then
+#endif
+          do k = 1 , kz
+            var1snd(k,1) = ui1(k,jxp)
+            var1snd(k,2) = vi1(k,jxp)
+            var1snd(k,3) = ui2(k,jxp)
+            var1snd(k,4) = vi2(k,jxp)
+            var1snd(k,5) = uilx(k,jxp)
+            var1snd(k,6) = vilx(k,jxp)
+            var1snd(k,7) = uil(k,jxp)
+            var1snd(k,8) = vil(k,jxp)
+          end do
+#ifndef BAND
+        end if
+#endif
+        call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,ieast,            &
+                        & 1,var1rcv(1,1),kz*8,mpi_real8,                &
+                        & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
+#ifndef BAND
+        if ( myid.ne.0 ) then
+#endif
+          do k = 1 , kz
+            ui1(k,0) = var1rcv(k,1)
+            vi1(k,0) = var1rcv(k,2)
+            ui2(k,0) = var1rcv(k,3)
+            vi2(k,0) = var1rcv(k,4)
+            uilx(k,0) = var1rcv(k,5)
+            vilx(k,0) = var1rcv(k,6)
+            uil(k,0) = var1rcv(k,7)
+            vil(k,0) = var1rcv(k,8)
+          end do
+#ifndef BAND
+        end if
+        if ( myid.ne.0 ) then
+#endif
+          do k = 1 , kz
+            var1snd(k,1) = ui1(k,1)
+            var1snd(k,2) = vi1(k,1)
+            var1snd(k,3) = ui2(k,1)
+            var1snd(k,4) = vi2(k,1)
+            var1snd(k,5) = uilx(k,1)
+            var1snd(k,6) = vilx(k,1)
+            var1snd(k,7) = uil(k,1)
+            var1snd(k,8) = vil(k,1)
+          end do
+#ifndef BAND
+        end if
+#endif
+        call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,iwest,            &
+                        & 2,var1rcv(1,1),kz*8,mpi_real8,                &
+                        & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
+#ifndef BAND
+        if ( myid.ne.nproc-1 ) then
+#endif
+          do k = 1 , kz
+            ui1(k,jxp+1) = var1rcv(k,1)
+            vi1(k,jxp+1) = var1rcv(k,2)
+            ui2(k,jxp+1) = var1rcv(k,3)
+            vi2(k,jxp+1) = var1rcv(k,4)
+            uilx(k,jxp+1) = var1rcv(k,5)
+            vilx(k,jxp+1) = var1rcv(k,6)
+            uil(k,jxp+1) = var1rcv(k,7)
+            vil(k,jxp+1) = var1rcv(k,8)
+          end do
+#ifndef BAND
+        end if
+#endif
+#else
+        call read_savefile_part2
+#endif
+      else
+!
+!=======================================================================
+!******* divergence manipulations (0)
+!
+!**     compute divergence z from u and v
+!       ( u must be pstar * u ; similarly for v )
+!       ( note: map scale factors have been inverted in model (init) )
+!
+        do k = 1 , kz
+#ifdef MPP1
+          do j = 1 , jendl
+            do i = 1 , iy
+              uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
+              vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
+            end do
+          end do
+#else
+          do j = 1 , jx
+            do i = 1 , iy
+              uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
+              vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
+            end do
+          end do
+#endif
+        end do
+#ifdef MPP1
+        call mpi_sendrecv(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,           &
+                        & uuu(1,1,jxp+1),iy*kz,mpi_real8,               &
+                        & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
+        call mpi_sendrecv(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,           &
+                        & vvv(1,1,jxp+1),iy*kz,mpi_real8,               &
+                        & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
+#endif
+!
+        do l = 1 , nsplit
+#ifdef MPP1
+          do j = 1 , jendl
+            do i = 1 , iy
+              dstor(i,j,l) = 0.
+            end do
+          end do
+#else
+          do j = 1 , jx
+            do i = 1 , iy
+              dstor(i,j,l) = 0.
+            end do
+          end do
+#endif
+        end do
+        do l = 1 , nsplit
+          do k = 1 , kz
+#ifdef MPP1
+            do j = 1 , jendx
+#else
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+#endif
+              jp1 = j+1
+#if defined(BAND) && (!defined(MPP1))
+              if(jp1.eq.jx+1) jp1 = 1
+#endif
+              do i = 1 , iym1
+                fac = dx2*msfx(i,j)*msfx(i,j)
+                dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k) &
+                             & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j)&
+                             & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1)&
+                             & -vvv(i,k,j)-vvv(i,k,jp1))/fac
+              end do
+            end do
+          end do
+        end do
+!
+!=======================================================================
+!
+!******* geopotential manipulations
+        do l = 1 , nsplit
+          pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
+          eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
+#ifdef MPP1
+          do j = 1 , jendx
+#else
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+#endif
+            do i = 1 , iym1
+              eps = eps1*(psb(i,j)-pd)
+              hstor(i,j,l) = pdlog + eps
+            end do
+          end do
+
+          do k = 1 , kz
+            pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
+            eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
+#ifdef MPP1
+            do j = 1 , jendx
+#else
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+#endif
+              do i = 1 , iym1
+                eps = eps1*(psb(i,j)-pd)
+                hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&
+                             & /psb(i,j) + eps
+              end do
+            end do
+          end do
+        end do
+      end if
+!
+      end subroutine spinit
+!
+! Compute deld, delh, integrate in time and add correction terms appropriately
+!
+      subroutine splitf
+!
+#ifdef MPP1
+#ifndef IBM
+      use mpi
+#else
+      include 'mpif.h'
+#endif
+#endif
+!
+      implicit none
 !
       real(8) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , &
                & y
@@ -664,14 +988,10 @@
 #endif
       implicit none
 !
-! Dummy arguments
-!
       real(8) :: dx2
       real(8) , dimension(nsplit) :: dtau , hhbar
       integer , dimension(nsplit) :: im
       intent (in) dtau , dx2 , hhbar , im
-!
-! Local variables
 !
       real(8) :: dtau2 , fac
       integer :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
@@ -1075,4 +1395,5 @@
       end do
 !
       end subroutine spstep
+!
       end module mod_split

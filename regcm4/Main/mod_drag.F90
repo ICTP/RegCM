@@ -18,31 +18,36 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
       module mod_drag
-
+!
       use mod_constants
+      use mod_runparams
       use mod_dynparam
       use mod_bats
-
+!
       private
-
+!
       public :: drag , depth
-
+!
       contains
-
-      subroutine drag
- 
+! 
+!=======================================================================
+!l  based on: bats version 1e          copyright 18 august 1989
+!=======================================================================
+!
 !     *** determines surface transfer coeffs. at anemom. level from
 !     *** lowest model level based on monin-obukov theory using
 !     *** deardorff parameterization in terms of bulk richardson no.
- 
+! 
 !     ****  a.  calculates neutral drag coefficient (cdrn) as a fn of
 !     ****             underlying surface
- 
+! 
 !     ****  b.  modifies cdrn as fn of bulk rich. no. of surface layer
- 
-      implicit none
 !
-! Local variables
+!=======================================================================
+!
+      subroutine drag
+! 
+      implicit none
 !
       real(8) , dimension(nnsg,iym1) :: cdrmin , rib , ribl , ribn
       real(8) :: dthdz , u1 , u2 , zatild
@@ -147,7 +152,8 @@
  
       end subroutine drag
 !
-      subroutine dragdn
+!=======================================================================
+! DRAGDN
 !
 !     returns neutral drag coefficient for grid square
 !
@@ -164,9 +170,11 @@
 !     cdv = neutral drag coeff over vegetation
 !     cdrn = neutral drag coeff for momentum avgd over grid point
 !
-      implicit none
+!=======================================================================
 !
-! Local variables
+      subroutine dragdn
+!
+      implicit none
 !
       real(8) :: asigf , cdb , cds , cdv , frab , fras , frav
       integer :: n , i
@@ -186,15 +194,13 @@
           z1(n,i) = z1d(n,i)
           z1log(n,i) = dlog(z1(n,i))
  
-#ifdef SEAICE
-           if ( ldoc1d(n,i).gt.1.5 ) then
-             sigf(n,i) = 0.0
-             cdrn(n,i) = ( vonkar / dlog( z1(n,i)/zlnd ) )**2
-           else if ( ldoc1d(n,i).gt.0.5 ) then
-#else
+           if (iseaice == 1) then
+             if ( ldoc1d(n,i).gt.1.5 ) then
+               sigf(n,i) = 0.0
+               cdrn(n,i) = ( vonkar / dlog( z1(n,i)/zlnd ) )**2
+             end if
+           end if
            if ( ldoc1d(n,i).gt.0.5 ) then
-#endif
- 
 !           ******           drag coeff over land
             frav = sigf(n,i)
             asigf = veg1d(n,i)
@@ -216,7 +222,8 @@
  
       end subroutine dragdn
 !
-      subroutine depth
+!=======================================================================
+! SNOW DEPTH
 !
 !          wt = fraction of vegetation covered by snow
 !        sigf = fraction of veg. cover, excluding snow-covered veg.
@@ -231,9 +238,11 @@
 !     wt now scaled so that runs betw. 0 & 1 and wt=0.5 when depth
 !     of snow equals height of vegetation
 !
-      implicit none
+!=======================================================================
 !
-! Local variables
+      subroutine depth
+!
+      implicit none
 !
       real(8) :: age
       integer :: n , i
@@ -255,7 +264,7 @@
           end if
         end do
       end do
- 
+! 
       end subroutine depth
 !
       end module mod_drag

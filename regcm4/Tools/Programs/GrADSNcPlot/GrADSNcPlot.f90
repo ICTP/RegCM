@@ -414,7 +414,11 @@ program ncplot
     if (idimid > 1) then
       lvarflag(i) = .true.
       if (idimid == 2) then
-        totvars = totvars + 1
+        if (dimids(2) == iydimid) then
+          totvars = totvars + 1
+        else
+          lvarflag(i) = .false.
+        end if
       else if (idimid == 3) then
         if (dimids(3) == kzdimid .and. dimids(2) == iydimid) then
           totvars = totvars + 1
@@ -451,7 +455,7 @@ program ncplot
     end if
   end do
 
-  write (11, '(a)') 'vectorpairs u,v u10m,v10m'
+  write (11, '(a)') 'vectorpairs u,v s01u10m,s01v10m'
   write (11, '(a,i4)') 'vars ', totvars
 
   do i = 1 , nvars

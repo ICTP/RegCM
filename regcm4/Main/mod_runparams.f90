@@ -28,13 +28,14 @@
       real(8) :: dt , dt0 , dt2 , dtbat , dtlake , dtmin
       real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
       real(8) :: abatm , abemh
-      real(8) :: c200 , c201 , c203 
+      real(8) :: c200 , c203 
       real(8) :: fnudge , gnudge
       real(8) :: xkhmax , xkhz
 
       integer :: ibltyp , iboudy , ichem , icnt , icup , idirect ,      &
                & iemiss , igcc , iocnflx , ipgf , ipptls , kbats ,      &
-               & kchem , lakemod , nradisp , ntrad , ntsave , nttape
+               & kchem , lakemod , nradisp , ntrad , ntsave , nttape ,  &
+               & idcsst , iseaice
 
       logical :: ifrest , rfstrt
  
@@ -53,6 +54,8 @@
       real(8) , allocatable , dimension(:,:) :: twt
       real(8) , allocatable , dimension(:) :: wgtd
       real(8) , allocatable , dimension(:) :: wgtx
+
+      character(len=3) :: scenario
 
       contains
 
