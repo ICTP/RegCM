@@ -80,6 +80,10 @@
       real(8) :: xfun , xfune
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
+#else
+#ifndef MPP1
+      integer :: jp1 , jm1
+#endif
 #endif
 !
 #ifdef MPP1
@@ -469,6 +473,10 @@
       real(8) :: xfun , xfune
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
+#else
+#ifndef MPP1
+      integer :: jp1 , jm1
+#endif
 #endif
 #ifdef MPP1
 #ifndef BAND
@@ -912,6 +920,10 @@
       real(8) :: xfun , xfune
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
+#else
+#ifndef MPP1
+      integer :: jp1 , jm1
+#endif
 #endif
 #ifdef MPP1
 #ifndef BAND
@@ -1355,6 +1367,10 @@
       real(8) :: xfun , xfune
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
+#else
+#ifndef MPP1
+      integer :: jp1 , jm1
+#endif
 #endif
 #ifdef MPP1
 #ifndef BAND
@@ -1790,6 +1806,10 @@
       real(8) :: xfun , xfune
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
+#else
+#ifndef MPP1
+      integer :: jp1 , jm1
+#endif
 #endif
 #ifdef MPP1
 #ifndef BAND

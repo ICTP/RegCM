@@ -1420,6 +1420,10 @@
 #ifndef BAND
       integer :: i
       real(8) :: uavg
+#else
+#ifndef MPP1
+      integer :: jp1
+#endif
 #endif
 !
 !*********************************************************************
