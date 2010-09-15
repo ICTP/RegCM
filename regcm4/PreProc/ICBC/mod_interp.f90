@@ -211,22 +211,21 @@
               p2 = hlon(ii+1) - alon(i,j)
               i1 = ii
               i2 = ii + 1
-              go to 20
+              exit
             else if ( alon(i,j)>=hlon(ii)-360 .and. alon(i,j)<hlon(ii+1)&
                     & -360. ) then
               p1 = alon(i,j) - (hlon(ii)-360.)
               p2 = (hlon(ii+1)-360.) - alon(i,j)
               i1 = ii
               i2 = ii + 1
-              go to 20
+              exit
             else if ( alon(i,j)>=hlon(ii)+360 .and. alon(i,j)<hlon(ii+1)&
                     & +360. ) then
               p1 = alon(i,j) - (hlon(ii)+360.)
               p2 = (hlon(ii+1)+360.) - alon(i,j)
               i1 = ii
               i2 = ii + 1
-              go to 20
-            else
+              exit
             end if
           end do
           if ( alon(i,j)>=hlon(nlon) .and. alon(i,j)<hlon(1)+360. ) then
@@ -252,9 +251,7 @@
             p2 = (hlon(1)-360.) - alon(i,j)
             i1 = nlon
             i2 = 1
-          else
           end if
- 20       continue
           if ( i1==1000 ) stop 'Could not find the right longitude'
           j1 = 1000
           do jj = 1 , nlat - 1
@@ -263,21 +260,23 @@
               q2 = hlat(jj+1) - alat(i,j)
               j1 = jj
               j2 = jj + 1
-            else if ( alat(i,j)<hlat(1) ) then
+              exit
+            else if ( alat(i,j)<=hlat(1) ) then
               if ( alat(i,j)>=-90. ) then
                 q1 = alat(i,j) + 90.
                 q2 = hlat(1) - alat(i,j)
                 j1 = 0
                 j2 = 1
+                exit
               end if
-            else if ( alat(i,j)>hlat(nlat) ) then
+            else if ( alat(i,j)>=hlat(nlat) ) then
               if ( alat(i,j)<=90. ) then
                 q1 = alat(i,j) - hlat(nlat)
                 q2 = 90. - alat(i,j)
                 j1 = nlat
                 j2 = nlat + 1
+                exit
               end if
-            else
             end if
           end do
           if ( j1==1000 ) stop 'Could not find the right latitude'
