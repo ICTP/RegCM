@@ -171,7 +171,7 @@ def main(argv):
                 linea=line.rsplit("=")
                 idate2=linea[1]
 
-        print globidate1,idate0,idate1,idate2
+        #print globidate1,idate0,idate1,idate2
                 
         #edit the namelist here
 
