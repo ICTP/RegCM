@@ -32,6 +32,13 @@
       character(6) :: iproj
       intent (in) clat , clon , ds , iproj , iy , jx , ntypec
 !
+      rin = 1.5          ! 1.5 rad of influence-coarse mesh
+!
+      dsinm = ds*1000.
+!
+      nnc = nint(60./float(ntypec))
+      xnc = float(ntypec)/60.
+!
       write (6,*) ' '
       write (6,*) 'Doing Domain Setup with following parameters'
       write (6,*) ' '
@@ -44,14 +51,8 @@
       write (6,*) 'rin    = ' , rin
       write (6,*) 'iproj  = ' , iproj
       write (6,*) ' '
-!
-      rin = 1.5          ! 1.5 rad of influence-coarse mesh
-!
-      dsinm = ds*1000.
-!
-      nnc = nint(60./float(ntypec))
-      xnc = float(ntypec)/60.
-      print * , '***** Terrain resolution (min): ' , xnc*60.
+      write (6,*) '***** Terrain resolution (min): ' , xnc*60.
+      write (6,*) ' '
 !
       end subroutine setup
 !

@@ -71,7 +71,7 @@
       integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
       logical :: ibndry
       integer :: nunitc , nunitc_s , ctlunit , ctlunit_s
-      real(4) :: clong , dsx , dsx_s , htave , htgrid_a
+      real(4) :: clong , htave , htgrid_a
 !
       data ibndry /.true./
 !
@@ -191,19 +191,22 @@
       clong = clon
       if ( clong>180. ) clong = clong - 360.
       if ( clong<=-180. ) clong = clong + 360.
+
       nunitc  = 109
       ctlunit = 110
+
       if ( nsg>1 ) then
         nunitc_s  = 119
         ctlunit_s = 120
+
         call setup(iysg,jxsg,ntypec_s,iproj,ds/nsg,clat,clong)
+        print * , 'Subgrid setup done'
+
         if ( iproj=='LAMCON' ) then
           call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,0,xn,truelatl,truelath)
           call lambrt(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,1,xn,truelatl,truelath)
-          write (*,*) 'XN,TRUELATL,TRUELATH = ' , xn , truelatl ,       &
-                    & truelath
         else if ( iproj=='POLSTR' ) then
           call mappol(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,0)
@@ -223,17 +226,17 @@
                     & clat,plon,plat,dsinm,1)
           xn = 0.
         else
-          print * , 'iproj MAP PROJECTION IS NOT AN OPTION'
-          stop 999
+          write (6,*) 'iproj = ', iproj
+          write (6,*) 'Unrecognized or unsupported projection'
+          write (6,*) 'Set iproj to one in LAMCON,POLSTR,NORMER,ROTMER'
+          stop
         end if
-        dsx_s = dsinm
-        print * , 'after calling MAP PROJECTION, for subgrid'
+        print * , 'Subgrid Geo mapping done'
 !
 !       reduce the search area for the domain
 !       [minlat:maxlat,minlon:maxlon]
-        print *, 'Determining Subgrid coordinate range'
         call mxmnll(iysg,jxsg,xlon_s,xlat_s)
-        print * , 'after calling MXMNLL, for subgrid'
+        print * , 'Determined Subgrid coordinate range'
 !
         maxiter = (xmaxlat-xminlat)/xnc
         if (xmaxlon < 0.0 .and. xminlon > 0.0) then
@@ -242,33 +245,32 @@
           maxjter = (xmaxlon-xminlon)/xnc
         end if
         maxdim = max(maxiter,maxjter) + 1000
-        print *, 'Allocating ' , maxdim
+        print *, 'Allocating blocks of dimension ' , maxdim
         call allocate_block(maxdim,maxdim)
 !
 !       read in the terrain & landuse data
         if ( itype_in==1 ) then
           call rdldtr(inpter,ntypec_s,nveg,ntex,aertyp,ibyte)
-          print * , 'after calling RDLDTR_s, for subgrid'
         else if ( itype_in==2 ) then
           call rdldtr_nc(inpter,ntypec_s,nveg,ntex,aertyp)
-          print * , 'after calling RDLDTR_nc, for subgrid'
         else
-          print * , 'Unknown Itype for input'
+          write (6,*) 'itype_in =', itype_in
+          write (6,*) 'Unsupported input type selected.'
+          write (6,*) 'Set itype_in to one in 1,2'
           stop
         endif
+        print *, 'Static terrain data successfully read in'
         if ( ifanal ) then
+          print *, 'Using anal2 to fill output elevation subgrid'
 !         convert xobs and yobs from LON and LAT to x and y in mesh
           call xyobsll(iysg,jxsg,iproj,clat,clong,plat,plon,        &
                      & truelatl,truelath)
-          print * , 'after calling XYOBSLL, for subgrid'
-!
 !         create the terrain height fields
           call anal2(iysg,jxsg,htgrid_s,htsdgrid_s)
-          print * , 'after calling ANAL2, for subgrid'
         else
+          print *, 'Using interpo to fill output elevation subgrid'
           call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s,htsdgrid_s,      &
                     & ntypec_s)
-          print * , 'after calling INTERP, for subgrid'
         end if
         do j = 1 , jxsg
           do i = 1 , iysg
@@ -278,11 +280,11 @@
                                          htgrid_s(i,j)**2,0.0))
           end do
         end do
+        print * , 'Elevetion grids successfully filled'
 !       create surface landuse types
         call surf(xlat_s,xlon_s,lnduse_s,iysg,jxsg,nnc,xnc,lndout_s,    &
                 & land_s,nobs,h2opct,nveg,aertyp,intext_s,texout_s,     &
                 & frac_tex_s,ntex)
-        print * , 'after calling SURF, for subgrid'
         if (iproj == 'POLSTR' .and. abs(clat+90.0) < 0.001) then
           lndout_s(iysg/2,jxsg/2) = 12
           texout_s(iysg/2,jxsg/2) = 16
@@ -295,12 +297,12 @@
           frac_tex_s(iysg/2,jxsg/2,:) = -1e-20
           frac_tex_s(iysg/2,jxsg/2,14) = 100.0
         end if
+        print * , 'Surface grids successfully filled'
 !       **** Adjust the Great Lake Heights to their actual values.
         if ( lakadj ) then
           print * ,                                                     &
-               &'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
+               &'Calling lakeadj for the first time (before 2dx pass)'
           call lakeadj(lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,jxsg)
-          print * , 'after calling LAKEADJ, for subgrid'
         end if
         call smth121(htgrid_s,iysg,jxsg,hscr1_s)
         call smth121(htsdgrid_s,iysg,jxsg,hscr1_s)
@@ -308,9 +310,8 @@
 !       again.
         if ( lakadj ) then
           print * ,                                                     &
-               &'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
+               &'Calling lakeadj for the second time (after 2dx pass)'
           call lakeadj(lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,jxsg)
-          print * , 'after calling LAKEADJ, for subgrid'
         end if
         if ( ibndry ) then
           do j = 2 , jxsg - 1
@@ -366,11 +367,7 @@
                     & trim(char_lnd))
         if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex_s,ch_s,texout_s,&
            & htgrid_s,iysg,jxsg,trim(char_tex))
-        print * , 'after calling FUDGE, for subgrid'
-!       output terrestrial fields
-!       OUTPUT is used to output also the fraction of each
-!       LANDUSE legend and TEXTURE type
-
+        print * , 'Fudging data (if requested) succeeded'
         call free_block
 
       end if
@@ -378,7 +375,7 @@
 !     set up the parameters and constants
 !
       call setup(iy,jx,ntypec,iproj,ds,clat,clong)
-      print * , 'after calling SETUP'
+      print * , 'Grid setup done'
 !
 !-----calling the map projection subroutine
       if ( iproj=='LAMCON' ) then
@@ -386,7 +383,6 @@
                   & truelatl,truelath)
         call lambrt(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1,xn,  &
                   & truelatl,truelath)
-        write (*,*) 'XN,TRUELATL,TRUELATH = ' , xn , truelatl , truelath
       else if ( iproj=='POLSTR' ) then
         call mappol(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
         call mappol(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
@@ -402,17 +398,17 @@
                   & dsinm,1)
         xn = 0.
       else
-        print * , 'iproj MAP PROJECTION IS NOT AN OPTION'
-        stop 999
+        write (6,*) 'iproj = ', iproj
+        write (6,*) 'Unrecognized or unsupported projection'
+        write (6,*) 'Set iproj to one in LAMCON, POLSTR, NORMER, ROTMER'
+        stop
       end if
-      dsx = dsinm
-      print * , 'after calling MAP PROJECTION'
+      print * , 'Geo mapping done'
 !
 !     reduce the search area for the domain
 !     [minlat:maxlat,minlon:maxlon]
-      print *, 'Determining Grid coordinate range'
       call mxmnll(iysg,jxsg,xlon,xlat)
-      print * , 'after calling MXMNLL'
+      print *, 'Determined Grid coordinate range'
 
       maxiter = (xmaxlat-xminlat)/xnc
       if (xmaxlon < 0.0 .and. xminlon > 0.0) then
@@ -421,35 +417,32 @@
         maxjter = (xmaxlon-xminlon)/xnc
       end if
       maxdim = max(maxiter,maxjter) + 1000
-      print *, 'Allocating ' , maxdim
+      print *, 'Allocating blocks of dimension ' , maxdim
       call allocate_block(maxdim,maxdim)
 !
 !     read in the terrain & landuse data
       if ( itype_in==1 ) then
         call rdldtr(inpter,ntypec,nveg,ntex,aertyp,ibyte)
-        print * , 'after calling RDLDTR'
       else if (itype_in==2 ) then
         call rdldtr_nc(inpter,ntypec,nveg,ntex,aertyp)
-        print * , 'after calling RDLDTR_nc'
       else
+        write (6,*) 'itype_in =', itype_in
+        write (6,*) 'Unsupported input type selected.'
+        write (6,*) 'Set itype_in to one in 1,2'
+        stop
       endif
- 
-!     compute the scaled standard deviation of terrain height.
-!     (must be called before XYOBSLL because xobs/yobs are modified)
-!     CALL SCALESD
-!     print*, 'after calling SCALESD'
+      print * , 'Static terrain data successfully read in'
  
       if ( ifanal ) then
+        print *, 'Using anal2 to fill output elevation grid'
 !       convert xobs and yobs from LON and LAT to x and y in mesh
         call xyobsll(iy,jx,iproj,clat,clong,plat,plon,truelatl,         &
                   &  truelath)
-        print * , 'after calling XYOBSLL'
 !       create the terrain height fields
         call anal2(iy,jx,htgrid,htsdgrid)
-        print * , 'after calling ANAL2'
       else
+        print*, 'Using interpolation to fill output elevation grid'
         call interp(jx,iy,xlat,xlon,htgrid,htsdgrid,ntypec)
-        print*, 'after calling INTERP'
       end if
       do j = 1 , jx
         do i = 1 , iy
@@ -459,12 +452,12 @@
                         & )
         end do
       end do
- 
+      print * , 'Elevetion grids successfully filled'
  
 !     create surface landuse types
       call surf(xlat,xlon,lnduse,iy,jx,nnc,xnc,lndout,land,nobs,h2opct, &
              & nveg,aertyp,intext,texout,frac_tex,ntex)
-      print * , 'after calling SURF'
+      print * , 'Surface grids successfully filled'
       if (iproj == 'POLSTR' .and. abs(clat+90.0) < 0.001) then
         lndout(iy/2,jx/2) = 12
         texout(iy/2,jx/2) = 16
@@ -482,7 +475,6 @@
       if ( lakadj ) then
         print * , 'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
         call lakeadj(lnduse,htgrid,xlat,xlon,iy,jx)
-        print * , 'after calling LAKEADJ'
       end if
  
 !     ******           preliminary heavy smoothing of boundaries
@@ -494,7 +486,7 @@
  
 !     **** Readjust the Great Lake Heights to their actual values again.
       if ( lakadj ) then
-        print * , 'CALLING LAKEADJ FOR THE SECOND TIME (after 2dx pass)'
+        print * , 'Calling lakeadj for the second time (after 2dx pass)'
         call lakeadj(lnduse,htgrid,xlat,xlon,iy,jx)
       end if
  
@@ -552,10 +544,7 @@
       call lndfudge(fudge_lnd,ch,lndout,htgrid,iy,jx,trim(char_lnd))
       if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex,ch,texout,htgrid, &
          & iy,jx,trim(char_tex))
-      print * , 'after calling FUDGE'
-!     output terrestrial fields
-!     OUTPUT is used to output also the fraction of each
-!     LANDUSE legend and TEXTURE type
+      print * , 'Fudging data (if requested) succeeded'
       call free_block
 
       if ( nsg>1 ) then
@@ -594,7 +583,7 @@
         end do
 
         call write_domain(.true.)
-        print * , 'after calling OUTPUT, for subgrid'
+        print * , 'Subgrid data written to output file'
         call free_subgrid
       end if
 
@@ -608,14 +597,12 @@
         end do
       end do
       call write_domain(.false.)
-      print * , 'after calling OUTPUT'
+      print * , 'Grid data written to output file'
       call free_grid
 
       close (48, status='delete')
 
       print *, 'Successfully completed terrain fields generation'
- 
-!     stop 9999
 !
 99001 format (a,a,a,a8,i0.3)
 99002 format (a,a,a,a8)
