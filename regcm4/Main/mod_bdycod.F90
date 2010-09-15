@@ -47,9 +47,10 @@
       public :: vi1 , vi2 , vilx , vil
       public :: ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
 #ifndef BAND
-      public :: peb , pebt , pwb , pwbt , pnb , pnbt , pss , psbt
+      public :: peb , pebt , pwb , pwbt
       public :: ueb , uebt , veb , vebt , uwb , uwbt , vwb , vwbt
 #endif
+      public :: pnb , pnbt , pss , psbt
       public :: unb , unbt , vnb , vnbt , usb , usbt , vsb , vsbt
 #ifndef BAND
       public :: teb , tebt , qeb , qebt , twb , twbt , qwb , qwbt
