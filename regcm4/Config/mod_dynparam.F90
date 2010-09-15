@@ -361,7 +361,7 @@
         read(ipunit, geoparam, err=102)
 
         if ( i_band.eq.1 ) then
-          ds = (2.0D0*mathpi*earthrad)/dble(jx)
+          ds = (2.0D0*mathpi*erkm)/dble(jx)
           iproj = 'NORMER'
           clat  =   0.0
           clon  = 180.0

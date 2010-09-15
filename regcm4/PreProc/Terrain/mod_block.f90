@@ -64,6 +64,7 @@
       integer :: iy , jx
       real(4) , dimension(iy,jx) :: xlat , xlon
       intent (in) iy , jx , xlat , xlon
+      real(4) :: xtstlon1 , xtstlon2
 !
 !     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
 !
@@ -72,16 +73,21 @@
       if (abs(xminlat+90.0)<0.0001 .or. abs(xmaxlat-90.0)<0.001) then
         xminlon = -180.0
         xmaxlon =  180.0
+        xtstlon1 = xminlon
+        xtstlon2 = xmaxlon
       else
         xminlon = floor(minval(xlon(:,1)))
         xmaxlon = ceiling(maxval(xlon(:,jx)))
+        xtstlon1 = floor(maxval(xlon(:,1)))
+        xtstlon2 = ceiling(minval(xlon(:,jx)))
       end if
- 
-      print *, 'Calculated large extrema:'
-      print *, '         MINLAT = ', xminlat
-      print *, '         MAXLAT = ', xmaxlat
-      print *, '         MINLON = ', xminlon
-      print *, '         MAXLON = ', xmaxlon
+
+      if (xminlon == xmaxlon) then
+        xminlon = -180.0
+        xmaxlon =  180.0
+        xtstlon1 = xminlon
+        xtstlon2 = xmaxlon
+      end if
 
       lonwrap = .false.
       lcrosstime = .false.
@@ -89,8 +95,12 @@
         lonwrap = .true.
         print *, 'Special case for longitude wrapping'
       end if
-      if (xminlon > 0.0 .and. xmaxlon < 0.0) then
+      if (xminlon < 0.0 .and. xtstlon1 > 0.0 .or.   &
+          xmaxlon > 0.0 .and. xtstlon2 < 0.0 .or.   &
+          xminlon > 0.0 .and. xmaxlon < 0.0) then
         lcrosstime = .true.
+        if (xminlon < 0.0 .and. xtstlon1 > 0.0) xminlon = xtstlon1
+        if (xmaxlon > 0.0 .and. xtstlon2 < 0.0) xmaxlon = xtstlon2
         print *, 'Special case for timeline crossing'
       end if
 
@@ -100,6 +110,12 @@
       grdltma = xmaxlat - 5.0
       grdlnmn = xminlon + 5.0
       grdlnma = xmaxlon - 5.0
+
+      print *, 'Calculated large extrema:'
+      print *, '         MINLAT = ', xminlat
+      print *, '         MAXLAT = ', xmaxlat
+      print *, '         MINLON = ', xminlon
+      print *, '         MAXLON = ', xmaxlon
 
       end subroutine mxmnll
 

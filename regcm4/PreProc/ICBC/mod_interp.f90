@@ -255,7 +255,7 @@
           else
           end if
  20       continue
-          if ( i1==1000 ) stop 'Could not find the right longitute'
+          if ( i1==1000 ) stop 'Could not find the right longitude'
           j1 = 1000
           do jj = 1 , nlat - 1
             if ( alat(i,j)>=hlat(jj) .and. alat(i,j)<hlat(jj+1) ) then
