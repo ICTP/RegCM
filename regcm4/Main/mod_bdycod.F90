@@ -39,15 +39,21 @@
       private
 !
       public :: allocate_mod_bdycon , bdyin , bdyval
+#ifndef BAND
       public :: uj1 , uj2 , ujlx , ujl
       public :: vj1 , vj2 , vjlx , vjl
+#endif
       public :: ui1 , ui2 , uilx , uil
       public :: vi1 , vi2 , vilx , vil
       public :: ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
+#ifndef BAND
       public :: peb , pebt , pwb , pwbt , pnb , pnbt , pss , psbt
       public :: ueb , uebt , veb , vebt , uwb , uwbt , vwb , vwbt
+#endif
       public :: unb , unbt , vnb , vnbt , usb , usbt , vsb , vsbt
+#ifndef BAND
       public :: teb , tebt , qeb , qebt , twb , twbt , qwb , qwbt
+#endif
       public :: tnb , tnbt , qnb , qnbt , tsb , tsbt , qsb , qsbt
       public :: ts1 ! FOR DCSST
 !
