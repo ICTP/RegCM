@@ -561,7 +561,7 @@
         call check_alloc(ierr,'sav6',size(sav6))
 #ifdef CLM
         allocate(sav_clmin(iym1,9,jxp),stat=ierr)
-        check_alloc(ierr,'sav_clmin',size(sav_clmin))
+        call check_alloc(ierr,'sav_clmin',size(sav_clmin))
 #endif
 
         write(aline,*) 'allocate_mod_mppio: '//&
