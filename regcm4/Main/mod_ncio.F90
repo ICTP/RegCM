@@ -2079,13 +2079,17 @@
           use netcdf
           implicit none
           integer , intent(in) :: nx , ny , ns , nsub , idate
-          real(4) , dimension(ns,nx,ny,nsub) , intent(in) :: fsub
+          real(4) , dimension(ns*ns,nx/ns,ny/ns,nsub) , &
+                    intent(in) :: fsub
           integer :: ivar
-          integer :: n
+          integer :: n , nxb , nyb
           integer , dimension(4) :: istart , icount
           real(8) , dimension(1) :: xtime
           character(len=10) :: ctime
           logical :: lskip
+
+          nxb = o_njg / nsg
+          nyb = o_nig / nsg
 
           if (nx /= o_njg .or. ny /= o_nig .or. ns /= nsg) then
             write (6,*) 'Error writing record on SUB file'
@@ -2109,7 +2113,7 @@
               lskip = .false.
               cycle
             end if
-            call reorder(fsub(:,:,:,n),subio,nx,ny,nsg)
+            call reorder(fsub,subio,nxb,nyb,nsg,nsub,n)
             if (ivar == ivarname_lookup('SUB', 'u10m')   .or. &
                 ivar == ivarname_lookup('SUB', 'v10m')   .or. &
                 ivar == ivarname_lookup('SUB', 't2m')    .or. &
@@ -2140,7 +2144,7 @@
               call check_ok('Error writing '//sub_names(ivar)// &
                             ' at '//ctime, 'SUB FILE ERROR')
               istart(3) = 2
-              call reorder(fsub(:,:,:,n+1),subio,nx,ny,nsg)
+              call reorder(fsub,subio,nxb,nyb,nsg,nsub,n+1)
               istatus = nf90_put_var(ncsub, isubvar(ivar), & 
                               subio, istart, icount)
               call check_ok('Error writing '//sub_names(ivar)// &
@@ -2165,18 +2169,18 @@
           isubrec = isubrec + 1
         end subroutine writerec_sub
 
-        subroutine reorder(fdp,fsp,nx,ny,nz)
+        subroutine reorder(fdp,fsp,nx,ny,nz,nn,n)
           implicit none
-          integer :: ny , nx , nz
-          real(4) , dimension(nz*nz,nx/nz,ny/nz) :: fdp
-          real(4) , dimension(nx,ny) :: fsp
-          intent (in) fdp , ny , nx , nz
+          integer :: ny , nx , nz , nn , n
+          real(4) , dimension(nz*nz,nx,ny,nn) :: fdp
+          real(4) , dimension(nx*nz,ny*nz) :: fsp
+          intent (in) fdp , ny , nx , nz , nn , n
           intent (out) fsp
 
           integer :: i , ii , j , jj , k
 !
-          do j = 1 , nx
-            do i = 1 , ny
+          do j = 1 , nx*nz
+            do i = 1 , ny*nz
               jj = mod(j,nz)
               if ( jj.eq.0 ) jj = nz
               ii = mod(i,nz)
@@ -2184,7 +2188,7 @@
               k = (jj-1)*nz + ii
               jj = (j+nz-1)/nz
               ii = (i+nz-1)/nz
-              fsp(j,i) = fdp(k,jj,ii)
+              fsp(j,i) = fdp(k,jj,ii,n)
             end do
           end do
         end subroutine reorder
