@@ -114,10 +114,8 @@
           else
           end if
           read (iutrst) hfx_io , qfx_io , snowc_io , uvdrag_io
-#ifdef DIAG
 #ifndef BAND
-          read (iutrst) tdini , tdadv , tqini , tqadv , tqeva , tqrai
-#endif
+          if (debug_level > 2) call restdiag(iutrst)
 #endif
           read (iutrst) absnxt_io , abstot_io , emstot_io
           if ( ipptls.eq.1 ) read (iutrst) fcc_io
@@ -168,11 +166,8 @@
             read (iutrst) sfracs2d_io
             read (iutrst) svegfrac2d_io
 !           cumul ad, dif, emis terms ( scalar)
-#ifdef DIAG
 #ifndef BAND
-            read (iutrst) tchiad
-            read (iutrst) tchitb
-#endif
+            if (debug_level > 2) call restchemdiag(iutrst)
 #endif
           end if
 #else
@@ -203,10 +198,8 @@
           else
           end if
           read (iutrst) hfx , qfx , snowc , uvdrag
-#ifdef DIAG
 #ifndef BAND
-          read (iutrst) tdini , tdadv , tqini , tqadv , tqeva , tqrai
-#endif
+          if (debug_level > 2) call restdiag(iutrst)
 #endif
           read (iutrst) absnxt , abstot , emstot
           if ( ipptls.eq.1 ) read (iutrst) fcc
@@ -233,12 +226,8 @@
             read (iutrst) sfracs2d
             read (iutrst) svegfrac2d
 !           cumul ad, dif, emis terms ( scalar)
-#ifdef DIAG
 #ifndef BAND
-            read (iutrst) tchiad
-            read (iutrst) tchitb
-            read (iutrst) tchie
-#endif
+            if (debug_level > 2) call restchemdiag(iutrst)
 #endif
           end if
 #endif
@@ -340,10 +329,8 @@
           else
           end if
           write (iutsav) hfx_io , qfx_io , snowc_io , uvdrag_io
-#ifdef DIAG
 #ifndef BAND
-          write (iutsav) tdini , tdadv , tqini , tqadv , tqeva , tqrai
-#endif
+          if (debug_level > 2) call savediag(iutsav)
 #endif
           write (iutsav) absnxt_io , abstot_io , emstot_io
           if ( ipptls.eq.1 ) write (iutsav) fcc_io
@@ -394,11 +381,8 @@
             write (iutsav) sfracs2d_io
             write (iutsav) svegfrac2d_io
 !           cumul ad, dif, emis terms ( scalar)
-#ifdef DIAG
 #ifndef BAND
-            write (iutsav) tchiad
-            write (iutsav) tchitb
-#endif
+            if (debug_level > 2) call savechemdiag(iutsav)
 #endif
           end if
 #else
@@ -429,10 +413,8 @@
           else
           end if
           write (iutsav) hfx , qfx , snowc , uvdrag
-#ifdef DIAG
 #ifndef BAND
-          write (iutsav) tdini , tdadv , tqini , tqadv , tqeva , tqrai
-#endif
+          if (debug_level > 2) call savediag(iutsav)
 #endif
           write (iutsav) absnxt , abstot , emstot
           if ( ipptls.eq.1 ) write (iutsav) fcc
@@ -459,12 +441,8 @@
             write (iutsav) sfracs2d
             write (iutsav) svegfrac2d
 !           cumul ad, dif, emis terms ( scalar)
-#ifdef DIAG
 #ifndef BAND
-            write (iutsav) tchiad
-            write (iutsav) tchitb
-            write (iutsav) tchie
-#endif
+            if (debug_level > 2) call savechemdiag(iutsav)
 #endif
           end if
 #endif

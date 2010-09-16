@@ -33,7 +33,6 @@ CXXNETCDF = !NETCDFC++
 
 # Add further preprocessor flags, if necessary. Those available are:
 # -DIBM : to compile using IBM xlf compiler
-# -DDIAG : to compile enabling Diagnostic capabilities (?)
 
 CPPFLAGS = -WF,-DIBM
 

@@ -318,8 +318,8 @@
       end if
 !
       call mpi_bcast(ndate1,1,mpi_integer,0,mpi_comm_world,ierr)
-      call mpi_scatter(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
-                     & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
+      call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
+                     & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                      & 0,mpi_comm_world,ierr)
       do j = 1 , jendl
         do k = 1 , kz
@@ -336,8 +336,8 @@
         end do
       end do
       if ( ehso4 ) then
-        call mpi_scatter(sav_0s(1,1,1),iy*kz*jxp,mpi_real8,           &
-                       & sav0s(1,1,1),iy*kz*jxp,mpi_real8,            &
+        call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,           &
+                       & sav0s,iy*kz*jxp,mpi_real8,            &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz

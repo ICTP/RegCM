@@ -47,9 +47,7 @@
       use mod_o3blk
       use mod_ncio
       use mod_scenarios
-#ifdef DIAG 
       use mod_diagnosis
-#endif 
 
 #ifdef MPP1
       use mod_mppio
@@ -573,8 +571,8 @@
       call allocate_mod_clm(lmpi,lband)
 #endif
 #endif
-#ifdef DIAG
-      call allocate_mod_diagnosis
+#ifndef BAND
+      if (debug_level > 2) call allocate_mod_diagnosis
 #endif
 !
 !-----------------------------------------------------------------------
@@ -758,31 +756,31 @@
  
       write (aline, *) 'param: input/output parameters '
       call say
-      write (aline,*) ' if true(T) create SAV files for '// &
+      write (aline,*) 'if true(T) create SAV files for '// &
                       'restart: ifsave = ' , ifsave  
       call say 
-      write (aline,*) ' Frequency in hours to create SAV: savfrq = ' , &
+      write (aline,*) 'Frequency in hours to create SAV: savfrq = ' , &
                       savfrq
       call say 
-      write (aline,*) ' if true (T) Output ATM files:  iftape = ' , &
+      write (aline,*) 'if true (T) Output ATM files:  iftape = ' , &
                        iftape 
       call say 
-      write (aline,*) ' Frequency in hours to write  ATM: tapfrq = ' , &
+      write (aline,*) 'Frequency in hours to write  ATM: tapfrq = ' , &
                       tapfrq 
       call say  
-      write (aline,*) ' Frequency in hours to write  RAD: radisp = ' , &
+      write (aline,*) 'Frequency in hours to write  RAD: radisp = ' , &
                       radisp 
       call say
-      write(aline,*) ' Frequency in hours to write  SRF: batfrq = ' , &
+      write (aline,*) 'Frequency in hours to write  SRF: batfrq = ' , &
                       batfrq  
       call say
-      write(aline,*) ' if true (T) output CHEM files:  ifchem = ' , &
+      write (aline,*) 'if true (T) output CHEM files:  ifchem = ' , &
                       ifchem 
       call say 
-      write(aline,*) ' Frequency in hours to write CHEM: chemfrq =' , &
+      write (aline,*) 'Frequency in hours to write CHEM: chemfrq =' , &
                       chemfrq
       call say  
-      write(aline,*) ' Frequency in hours to write CLM: clmfrq = ', &
+      write (aline,*) 'Frequency in hours to write CLM: clmfrq = ', &
                       clmfrq
       call say
       write (aline,*) ' '
@@ -904,8 +902,8 @@
         end if  ! end if (myid.eq.0)
  
         call mpi_barrier(mpi_comm_world,ierr)
-        call mpi_scatter(inisrf_0(1,1,1),iy*(nnsg*3+8)*jxp,mpi_real8,   &
-                       & inisrf0(1,1,1), iy*(nnsg*3+8)*jxp,mpi_real8,   &
+        call mpi_scatter(inisrf_0,iy*(nnsg*3+8)*jxp,mpi_real8,   &
+                       & inisrf0, iy*(nnsg*3+8)*jxp,mpi_real8,   &
                        & 0,mpi_comm_world,ierr)
         call mpi_barrier(mpi_comm_world,ierr)
         do j = 1 , jxp

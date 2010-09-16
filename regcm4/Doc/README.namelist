@@ -80,10 +80,11 @@
               !   2 => sequential I/O with time listing interleaved for legacy
  /
 !
-! Debug I/O printout level. Currently unused
+! Debug I/O printout level.
 !
  &debugparam
- debug_level = 1
+ debug_level = 1, ! Currently value of 2 and 3 control previous DIAG flag
+ dbgfrq = 3,      ! Interval for printout if debug_level >= 3
  /
 !
 ! Buffer Zone Depth

@@ -51,9 +51,7 @@
       use mod_advection
       use mod_nudge
       use mod_che_tend
-#ifdef DIAG
       use mod_diagnosis
-#endif
 #ifdef MPP1
 #ifdef CLM
       use mod_clm
@@ -1285,9 +1283,8 @@
           ps4(i,4,j) = psa(i,j)
         end do
       end do
-      call mpi_gather(ps4(1,1,1),iy*4*jxp,mpi_real8,                    &
-                    & ps_4(1,1,1),iy*4*jxp,mpi_real8,0,                 &
-                    & mpi_comm_world,ierr)
+      call mpi_gather(ps4,iy*4*jxp,mpi_real8,ps_4,iy*4*jxp,mpi_real8, &
+                      0,mpi_comm_world,ierr)
 #endif
       iptn = 0
       ptntot = 0.
@@ -2232,11 +2229,11 @@
 !     the lateral boundaries before updating the values
 !     at boundary slices.
 !
-#ifdef DIAG
 #ifndef BAND
-      call conadv
-      if ( ichem.eq.1 ) call tracdiag(xkc)
-#endif
+      if (debug_level > 2) then
+        call conadv
+        if ( ichem.eq.1 ) call tracdiag(xkc)
+      end if
 #endif
  
 !-----fill up the boundary values for xxb and xxa variables:
@@ -2253,10 +2250,8 @@
  
 !-----trace the mass conservation of dry air and water substance:
 !
-#ifdef DIAG
 #ifndef BAND
-      call conmas
-#endif
+      if (debug_level > 2) call conmas
 #endif
 !
 !

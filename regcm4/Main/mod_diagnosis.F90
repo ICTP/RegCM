@@ -21,7 +21,7 @@
 !
 ! Diagnostic printout subroutines
 !
-#ifdef DIAG
+#ifndef BAND
 
       use mod_constants
       use mod_dynparam
@@ -36,11 +36,11 @@
 
       private
 
-      public :: allocate_mod_diagnosis , conadv , conmas
+      public :: allocate_mod_diagnosis , initdiag , mpidiag
+      public :: restdiag , restchemdiag
+      public :: savediag , savechemdiag
+      public :: conadv , conmas , conqeva
       public :: tracdiag , contrac
-      public :: tdini , tdadv , tqini , tqadv , tqeva , tqrai
-      public :: tchiad , tchitb , ttrace , tchie
-      public :: tremcvc , trxsaq1 , trxsaq2 , tremlsc , tremdrd , trxsg
 !
       real(8) :: tdadv , tdini , tqadv , tqeva , tqini , tqrai
 !
@@ -62,6 +62,225 @@
         allocate(trxsg(ntr,2))
         allocate(ttrace(ntr,2))
       end subroutine allocate_mod_diagnosis
+!
+      subroutine initdiag
+#ifdef MPP1
+#ifndef IBM
+        use mpi
+#else 
+        include 'mpif.h'
+#endif 
+#endif
+#ifdef MPP1
+        implicit none
+        real(8) :: tvmass , tcmass , tttmp
+#ifdef MPP1
+        integer :: ierr
+#endif
+        integer :: i , j , k
+
+        tvmass = 0.0
+        tcmass = 0.0
+        tttmp = 0.0
+        tdini = 0.0
+        tdadv = 0.0
+        tqini = 0.0
+        tqadv = 0.0
+        tqeva = 0.0
+        tqrai = 0.0
+        ttrace = 0.0
+        tchie = 0.0
+        tchiad = 0.0
+        tchitb = 0.0
+
+!=======================================================================
+!
+!-----dry air (unit = kg):
+!
+        call mpi_gather(psa,   iy*jxp,mpi_real8, &
+                      & psa_io,iy*jxp,mpi_real8, &
+                      & 0,mpi_comm_world,ierr)
+        if ( myid.eq.0 ) then
+          do k = 1 , kz
+            tttmp = 0.
+            do j = 1 , jxm1
+              do i = 1 , iym1
+                tttmp = tttmp + psa_io(i,j)
+              end do
+            end do
+            tdini = tdini + tttmp*dsigma(k)
+          end do
+          tdini = tdini*dx*dx*1000.*rgti
+        end if
+        call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
+!
+!-----water substance (unit = kg):
+!
+        call mpi_gather(qva,   iy*kz*jxp,mpi_real8, &
+                      & qva_io,iy*kz*jxp,mpi_real8, &
+                      & 0,mpi_comm_world,ierr)
+        if ( myid.eq.0 ) then
+          do k = 1 , kz
+            tttmp = 0.
+            do j = 1 , jxm1
+              do i = 1 , iym1
+                tttmp = tttmp + qva_io(i,k,j)
+              end do
+            end do
+            tvmass = tvmass + tttmp*dsigma(k)
+          end do
+          tvmass = tvmass*dx*dx*1000.*rgti
+        end if
+        call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
+!
+        call mpi_gather(qca,   iy*kz*jxp,mpi_real8,              &
+                      & qca_io,iy*kz*jxp,mpi_real8,              &
+                      & 0,mpi_comm_world,ierr)
+        if ( myid.eq.0 ) then
+          do k = 1 , kz
+            tttmp = 0.
+            do j = 1 , jxm1
+              do i = 1 , iym1
+                tttmp = tttmp + qca_io(i,k,j)
+              end do
+            end do
+            tcmass = tcmass + tttmp*dsigma(k)
+          end do
+          tcmass = tcmass*dx*dx*1000.*rgti
+        end if
+        call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
+        tqini = tvmass + tcmass
+!=======================================================================
+        if ( myid.eq.0 ) print 99003 , tdini , tqini
+#else
+!=======================================================================
+!
+!-----dry air (unit = kg):
+!
+        do k = 1 , kz
+          tttmp = 0.
+          do j = 1 , jxm1
+            do i = 1 , iym1
+              tttmp = tttmp + psa(i,j)
+            end do
+          end do
+          tdini = tdini + tttmp*dsigma(k)
+        end do
+        tdini = tdini*dx*dx*1000.*rgti
+!
+!-----water substance (unit = kg):
+!
+        do k = 1 , kz
+          tttmp = 0.
+          do j = 1 , jxm1
+            do i = 1 , iym1
+              tttmp = tttmp + qva(i,k,j)
+            end do
+          end do
+          tvmass = tvmass + tttmp*dsigma(k)
+        end do
+        tvmass = tvmass*dx*dx*1000.*rgti
+!
+        do k = 1 , kz
+          tttmp = 0.
+          do j = 1 , jxm1
+            do i = 1 , iym1
+              tttmp = tttmp + qca(i,k,j)
+            end do
+          end do
+          tcmass = tcmass + tttmp*dsigma(k)
+        end do
+        tcmass = tcmass*dx*dx*1000.*rgti
+        tqini = tvmass + tcmass
+!=======================================================================
+        print 99003 , tdini , tqini
+#endif
+99003 format (' *** initial total air = ',e12.5,' kg, total water = ',  &
+            & e12.5,' kg in large domain.')
+      end subroutine initdiag
+!
+#ifdef MPP1
+      subroutine mpidiag
+#ifndef IBM
+        use mpi
+#else 
+        include 'mpif.h'
+#endif 
+        implicit none
+        integer :: ierr
+        call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tdadv,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tqini,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tqadv,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
+        if ( ichem.eq.1 ) then
+          call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
+          call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
+          call mpi_bcast(tchie,ntr,mpi_real8,0,mpi_comm_world,ierr)
+        end if
+      end subroutine mpidiag
+#endif
+!
+      subroutine restdiag(iunit)
+#ifdef MPP1
+#ifndef IBM
+        use mpi
+#else 
+        include 'mpif.h'
+#endif 
+#endif
+        implicit none
+        integer , intent(in) :: iunit
+#ifdef MPP1
+        integer :: ierr
+#endif
+        read (iunit) tdini , tdadv , tqini , tqadv , tqeva , tqrai
+#ifdef MPP1
+        call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tdadv,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tqini,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tqadv,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
+#endif
+      end subroutine restdiag
+!
+      subroutine restchemdiag(iunit)
+#ifdef MPP1
+#ifndef IBM
+        use mpi
+#else 
+        include 'mpif.h'
+#endif 
+#endif
+        implicit none
+        integer , intent(in) :: iunit
+#ifdef MPP1
+        integer :: ierr
+#endif
+        read (iunit) tchiad
+        read (iunit) tchitb
+#ifdef MPP1
+        call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(tchie,ntr,mpi_real8,0,mpi_comm_world,ierr)
+#endif
+      end subroutine restchemdiag
+!
+      subroutine savediag(iunit)
+        implicit none
+        integer , intent(in) :: iunit
+        write (iunit) tdini , tdadv , tqini , tqadv , tqeva , tqrai
+      end subroutine savediag
+!
+      subroutine savechemdiag(iunit)
+        implicit none
+        integer , intent(in) :: iunit
+        write (iunit) tchiad
+        write (iunit) tchitb
+        write (iunit) tchie
+      end subroutine savechemdiag
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -146,11 +365,11 @@
           va01(k,j) = va(1,k,j)
         end do
       end do
-      call mpi_gather(vaix(1,1),  kz*jxp,mpi_real8,                     &
-                    & vaix_g(1,1),kz*jxp,mpi_real8,                     &
+      call mpi_gather(vaix,  kz*jxp,mpi_real8,                     &
+                    & vaix_g,kz*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(va01(1,1),  kz*jxp,mpi_real8,                     &
-                    & va01_g(1,1),kz*jxp,mpi_real8,                     &
+      call mpi_gather(va01,  kz*jxp,mpi_real8,                     &
+                    & va01_g,kz*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kz
@@ -231,16 +450,16 @@
         psailx(j) = psa(iym1,j)
         psa01(j) = psa(1,j)
       end do
-      call mpi_gather(qvailx(1,1),  kz*jxp,mpi_real8,                   &
-                    & qvailx_g(1,1),kz*jxp,mpi_real8,                   &
+      call mpi_gather(qvailx,  kz*jxp,mpi_real8,                   &
+                    & qvailx_g,kz*jxp,mpi_real8,                   &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(qva01(1,1),  kz*jxp,mpi_real8,                    &
-                    & qva01_g(1,1),kz*jxp,mpi_real8,                    &
+      call mpi_gather(qva01,  kz*jxp,mpi_real8,                    &
+                    & qva01_g,kz*jxp,mpi_real8,                    &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(psailx(1),  jxp,mpi_real8,                        &
-                    & psailx_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(psa01(1),  jxp,mpi_real8,                         &
-                      psa01_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psailx,  jxp,mpi_real8,                        &
+                    & psailx_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psa01,  jxp,mpi_real8,                         &
+                      psa01_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
@@ -320,11 +539,11 @@
           qca01(k,j) = qca(1,k,j)
         end do
       end do
-      call mpi_gather(qcailx(1,1),  kz*jxp,mpi_real8,                   &
-                    & qcailx_g(1,1),kz*jxp,mpi_real8,                   &
+      call mpi_gather(qcailx,  kz*jxp,mpi_real8,                   &
+                    & qcailx_g,kz*jxp,mpi_real8,                   &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(qca01(1,1),  kz*jxp,mpi_real8,                    &
-                    & qca01_g(1,1),kz*jxp,mpi_real8,                    &
+      call mpi_gather(qca01,  kz*jxp,mpi_real8,                    &
+                    & qca01_g,kz*jxp,mpi_real8,                    &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kz
@@ -366,7 +585,11 @@
       subroutine conmas
 !
 #ifdef MPP1
+#ifndef IBM
       use mpi
+#else 
+      include 'mpif.h'
+#endif 
 #endif
       implicit none
 !
@@ -393,8 +616,8 @@
 !
       tdrym = 0.
 #ifdef MPP1
-      call mpi_gather(psa(1,1),   iy*jxp,mpi_real8,                     &
-                    & psa_io(1,1),iy*jxp,mpi_real8,                     &
+      call mpi_gather(psa,   iy*jxp,mpi_real8,                     &
+                    & psa_io,iy*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kz
@@ -426,8 +649,8 @@
 !
       tvmass = 0.
 #ifdef MPP1
-      call mpi_gather(qva(1,1,1),   iy*kz*jxp,mpi_real8,                &
-                    & qva_io(1,1,1),iy*kz*jxp,mpi_real8,                &
+      call mpi_gather(qva,   iy*kz*jxp,mpi_real8,                &
+                    & qva_io,iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kz
@@ -459,8 +682,8 @@
       tcmass = 0.
 
 #ifdef MPP1
-      call mpi_gather(qca(1,1,1),   iy*kz*jxp,mpi_real8,                &
-                    & qca_io(1,1,1),iy*kz*jxp,mpi_real8,                &
+      call mpi_gather(qca,   iy*kz*jxp,mpi_real8,                &
+                    & qca_io,iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kz
@@ -503,11 +726,11 @@
 !-----total raifall at this time:
 !
 #ifdef MPP1
-      call mpi_gather(rainc(1,1),   iy*jxp,mpi_real8,                   &
-                    & rainc_io(1,1),iy*jxp,mpi_real8,                   &
+      call mpi_gather(rainc,   iy*jxp,mpi_real8,                   &
+                    & rainc_io,iy*jxp,mpi_real8,                   &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(rainnc(1,1),   iy*jxp,mpi_real8,                  &
-                    & rainnc_io(1,1),iy*jxp,mpi_real8,                  &
+      call mpi_gather(rainnc,   iy*jxp,mpi_real8,                  &
+                    & rainnc_io,iy*jxp,mpi_real8,                  &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         tcrai = 0.
@@ -540,7 +763,7 @@
 !
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        if ( debug_level > 1 .and. mod(ntime,ndbgfrq).eq.0 ) then
+        if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
           xh = xtime/1440.
           print * , '***** day = ' , ldatez + xh , ' *****'
           print 99001 , tdrym , error1
@@ -555,7 +778,7 @@
         end if
       end if
 #else
-      if ( debug_level > 1 .and. mod(ntime,ndbgfrq).eq.0 ) then
+      if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
         xh = xtime/1440.
         print * , '***** day = ' , ldatez + xh , ' *****'
         print 99001 , tdrym , error1
@@ -589,9 +812,12 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
       subroutine tracdiag(xkc)
- 
 #ifdef MPP1
+#ifndef IBM
       use mpi
+#else 
+      include 'mpif.h'
+#endif 
 #endif
       implicit none
 !
@@ -729,38 +955,38 @@
         psa01(j) = psa(1,j)
         psa02(j) = psa(2,j)
       end do
-      call mpi_gather(vaill(1,1),  kz*jxp,mpi_real8,                    &
-                    & vaill_g(1,1),kz*jxp,mpi_real8,                    &
+      call mpi_gather(vaill,  kz*jxp,mpi_real8,                    &
+                    & vaill_g,kz*jxp,mpi_real8,                    &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(va02(1,1),  kz*jxp,mpi_real8,                     &
-                    & va02_g(1,1),kz*jxp,mpi_real8,                     &
+      call mpi_gather(va02,  kz*jxp,mpi_real8,                     &
+                    & va02_g,kz*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(xkcill1(1,1),  kz*jxp,mpi_real8,                  &
-                    & xkcill1_g(1,1),kz*jxp,mpi_real8,                  &
+      call mpi_gather(xkcill1,  kz*jxp,mpi_real8,                  &
+                    & xkcill1_g,kz*jxp,mpi_real8,                  &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(xkc02(1,1),  kz*jxp,mpi_real8,                    &
-                    & xkc02_g(1,1),kz*jxp,mpi_real8,                    &
+      call mpi_gather(xkc02,  kz*jxp,mpi_real8,                    &
+                    & xkc02_g,kz*jxp,mpi_real8,                    &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chiaill(1,1,1),  kz*ntr*jxp,mpi_real8,            &
-                    & chiaill_g(1,1,1),kz*ntr*jxp,mpi_real8,            &
+      call mpi_gather(chiaill,  kz*ntr*jxp,mpi_real8,            &
+                    & chiaill_g,kz*ntr*jxp,mpi_real8,            &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chiaill1(1,1,1),  kz*ntr*jxp,mpi_real8,           &
-                    & chiaill1_g(1,1,1),kz*ntr*jxp,mpi_real8,           &
+      call mpi_gather(chiaill1,  kz*ntr*jxp,mpi_real8,           &
+                    & chiaill1_g,kz*ntr*jxp,mpi_real8,           &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chia01(1,1,1),  kz*ntr*jxp,mpi_real8,             &
-                    & chia01_g(1,1,1),kz*ntr*jxp,mpi_real8,             &
+      call mpi_gather(chia01,  kz*ntr*jxp,mpi_real8,             &
+                    & chia01_g,kz*ntr*jxp,mpi_real8,             &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(chia02(1,1,1),  kz*ntr*jxp,mpi_real8,             &
-                    & chia02_g(1,1,1),kz*ntr*jxp,mpi_real8,             &
+      call mpi_gather(chia02,  kz*ntr*jxp,mpi_real8,             &
+                    & chia02_g,kz*ntr*jxp,mpi_real8,             &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(psaill(1),  jxp,mpi_real8,                        &
-                    & psaill_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(psaill1(1),  jxp,mpi_real8,                       &
-                    & psaill1_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(psa01(1),  jxp,mpi_real8,                         &
-                    & psa01_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_gather(psa02(1),  jxp,mpi_real8,                         &
-                    & psa02_g(1),jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psaill,  jxp,mpi_real8,                        &
+                    & psaill_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psaill1,  jxp,mpi_real8,                       &
+                    & psaill1_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psa01,  jxp,mpi_real8,                         &
+                    & psa01_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_gather(psa02,  jxp,mpi_real8,                         &
+                    & psa02_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do n = 1 , ntr
           do k = 1 , kz
@@ -932,9 +1158,6 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
       subroutine contrac
-!
-#ifndef BAND
-!
 #ifdef MPP1
 #ifndef IBM
       use mpi
@@ -988,7 +1211,7 @@
         call mpi_gather(remdrd(1,1,itr),   iy*jxp,mpi_real8,            &
                       & remdrd_io(1,1,itr),iy*jxp,mpi_real8,            &
                       & 0,mpi_comm_world,ierr)
-        do l = 1 , 12
+        do l = 1 , mpy
           call mpi_gather(chemsrc(1,1,l,itr),   iy*jxp,mpi_real8,       &
                         & chemsrc_io(1,1,l,itr),iy*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
@@ -1170,7 +1393,7 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
  
-        if ( debug_level > 1 .and. mod(ntime,ndbgfrq).eq.0 ) then
+        if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
  
 !----     tracers
  
@@ -1200,7 +1423,7 @@
         end if
       end if
 #else
-      if ( debug_level > 1 .and. mod(ntime,ndbgfrq).eq.0 ) then
+      if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
 
 !----   tracers
 
@@ -1238,9 +1461,43 @@
                   & ' kg')
 99007       format ('total mass (at ktau), tracer',i1,':',e12.5,' kg')
 !99008       format('error trac',I1,':',e12.5,' % ')
-
-#endif
       end subroutine contrac
+!
+! diagnostic on total evaporation
+!
+      subroutine conqeva
+#ifdef MPP1
+#ifndef IBM
+      use mpi
+#else 
+      include 'mpif.h'
+#endif 
+#endif
+      implicit none
+#ifdef MPP1
+      integer :: ierr
+#endif
+      integer :: i , j
+#ifdef MPP1
+      call mpi_gather(qfx,   iy*jxp,mpi_real8,  &
+                    & qfx_io,iy*jxp,mpi_real8,  &
+                    & 0,mpi_comm_world,ierr)
+      if ( myid.eq.0 ) then
+        do j = 2 , jxm2
+          do i = 2 , iym2
+            tqeva = tqeva + qfx_io(i,j)*dx*dx*dtmin*60.
+          end do
+        end do
+      end if
+      call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
+#else
+      do j = 2 , jxm2
+        do i = 2 , iym2
+          tqeva = tqeva + qfx(i,j)*dx*dx*dtmin*60.
+        end do
+      end do
+#endif
+      end subroutine conqeva
 !
 #endif
 !

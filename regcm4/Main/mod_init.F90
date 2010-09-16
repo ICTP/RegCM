@@ -39,11 +39,7 @@
       use mod_sun
       use mod_ncio
       use mod_savefile
-#ifdef DIAG
-#ifndef BAND
       use mod_diagnosis
-#endif
-#endif
 #ifdef MPP1
       use mod_mppio
       use mod_lake
@@ -90,10 +86,6 @@
       real(8) , dimension(iy,jx) :: psdot
 #endif
       logical :: existing
-!
-#ifdef DIAG
-      real(8) :: tvmass , tcmass , tttmp
-#endif
 !
       existing = .false.
 #ifdef MPP1
@@ -170,34 +162,10 @@
         qca = 0.0
         qcb = 0.0
 !
-#ifdef DIAG
-#ifndef BAND
-        tdini = 0.
-        tdadv = 0.
-        tqini = 0.
-        tqadv = 0.
-        tqeva = 0.
-        tqrai = 0.
-#endif
-#endif
-!
 !chem2
         if ( ichem.eq.1 ) then
-!-----    total tracer concs (initial, emission, advected)
-#ifdef DIAG
-#ifndef BAND
-          do itr = 1 , ntr
-            ttrace(itr,1) = 0.
-            ttrace(itr,2) = 0.
-            tchie(itr) = 0.
-            tchiad(itr) = 0.
-            tchitb(itr) = 0.
-          end do
-#endif
-#endif
 !qhy      tchie, tchitb(replace tchidp:deposition)
 !         initialize removal terms
-!
           remlsc = 0.0
           remcvc = 0.0
           rxsg   = 0.0
@@ -259,12 +227,12 @@
 !       Start transmission of data to other processors
 !
         call mpi_bcast(ndate0,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_scatter(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
+                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         if ( ehso4 )                                                    &
-          & call mpi_scatter(sav_0s(1,1,1),iy*kz*jxp,mpi_real8,         &
-          &                  sav0s(1,1,1), iy*kz*jxp,mpi_real8,         &
+          & call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,         &
+          &                  sav0s, iy*kz*jxp,mpi_real8,         &
           &                  0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
@@ -613,119 +581,8 @@
           svegfrac2d = 0.0
         end if
 #endif
-
-#ifdef DIAG
 #ifndef BAND
-#ifdef MPP1
-!=======================================================================
-!
-!-----dry air (unit = kg):
-!
-        tdini = 0.
-        call mpi_gather(psa(1,1),   iy*jxp,mpi_real8,                   &
-                      & psa_io(1,1),iy*jxp,mpi_real8,                   &
-                      & 0,mpi_comm_world,ierr)
-        if ( myid.eq.0 ) then
-          do k = 1 , kz
-            tttmp = 0.
-            do j = 1 , jxm1
-              do i = 1 , iym1
-                tttmp = tttmp + psa_io(i,j)
-              end do
-            end do
-            tdini = tdini + tttmp*dsigma(k)
-          end do
-          tdini = tdini*dx*dx*1000.*rgti
-        end if
-        call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
-!
-!-----water substance (unit = kg):
-!
-        tvmass = 0.
-        call mpi_gather(qva(1,1,1),   iy*kz*jxp,mpi_real8,              &
-                      & qva_io(1,1,1),iy*kz*jxp,mpi_real8,              &
-                      & 0,mpi_comm_world,ierr)
-        if ( myid.eq.0 ) then
-          do k = 1 , kz
-            tttmp = 0.
-            do j = 1 , jxm1
-              do i = 1 , iym1
-                tttmp = tttmp + qva_io(i,k,j)
-              end do
-            end do
-            tvmass = tvmass + tttmp*dsigma(k)
-          end do
-          tvmass = tvmass*dx*dx*1000.*rgti
-        end if
-        call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
-!
-        tcmass = 0.
-        call mpi_gather(qca(1,1,1),   iy*kz*jxp,mpi_real8,              &
-                      & qca_io(1,1,1),iy*kz*jxp,mpi_real8,              &
-                      & 0,mpi_comm_world,ierr)
-        if ( myid.eq.0 ) then
-          do k = 1 , kz
-            tttmp = 0.
-            do j = 1 , jxm1
-              do i = 1 , iym1
-                tttmp = tttmp + qca_io(i,k,j)
-              end do
-            end do
-            tcmass = tcmass + tttmp*dsigma(k)
-          end do
-          tcmass = tcmass*dx*dx*1000.*rgti
-        end if
-        call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
-        tqini = tvmass + tcmass
-!=======================================================================
-        if ( myid.eq.0 ) print 99003 , tdini , tqini
-#else
-!=======================================================================
-!
-!-----dry air (unit = kg):
-!
-        tdini = 0.
-        do k = 1 , kz
-          tttmp = 0.
-          do j = 1 , jxm1
-            do i = 1 , iym1
-              tttmp = tttmp + psa(i,j)
-            end do
-          end do
-          tdini = tdini + tttmp*dsigma(k)
-        end do
-        tdini = tdini*dx*dx*1000.*rgti
-!
-!-----water substance (unit = kg):
-!
-        tvmass = 0.
-        do k = 1 , kz
-          tttmp = 0.
-          do j = 1 , jxm1
-            do i = 1 , iym1
-              tttmp = tttmp + qva(i,k,j)
-            end do
-          end do
-          tvmass = tvmass + tttmp*dsigma(k)
-        end do
-        tvmass = tvmass*dx*dx*1000.*rgti
-!
-        tcmass = 0.
-        do k = 1 , kz
-          tttmp = 0.
-          do j = 1 , jxm1
-            do i = 1 , iym1
-              tttmp = tttmp + qca(i,k,j)
-            end do
-          end do
-          tcmass = tcmass + tttmp*dsigma(k)
-        end do
-        tcmass = tcmass*dx*dx*1000.*rgti
-        tqini = tvmass + tcmass
-!=======================================================================
-        print 99003 , tdini , tqini
-#endif
-#endif
+        if (debug_level > 2) call initdiag
 #endif
 !
 !chem2
@@ -1478,21 +1335,11 @@
         call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyearr,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ktaur,1,mpi_integer,0,mpi_comm_world,ierr)
-#ifdef DIAG
+
 #ifndef BAND
-        call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tdadv,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tqini,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tqadv,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
-        if ( ichem.eq.1 ) then
-          call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
-          call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
-          call mpi_bcast(tchie,ntr,mpi_real8,0,mpi_comm_world,ierr)
-        end if
+        if (debug_level > 2) call mpidiag
 #endif
-#endif
+
 !------lake model
         if ( lakemod.eq.1 ) then
           call mpilake
@@ -1706,12 +1553,6 @@
       write (aline, *) 'dectim = ' , dectim
       call say
 
-#ifdef DIAG
-#ifndef BAND
-99003 format (' *** initial total air = ',e12.5,' kg, total water = ',  &
-            & e12.5,' kg in large domain.')
-#endif
-#endif
 99004 format (1x,7E12.4)
 99005 format (' ***** restart file for large domain at time = ',f8.0,   &
              &' minutes, ktau = ',i7,' in year = ',i4,                  &

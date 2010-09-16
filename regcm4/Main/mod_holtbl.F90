@@ -33,11 +33,9 @@
       use mod_bats
       use mod_slice
       use mod_trachem
-#ifdef DIAG
+      use mod_diagnosis
 #ifdef MPP1
       use mod_mppio
-#endif
-      use mod_diagnosis
 #endif
 !
       private
@@ -149,35 +147,16 @@
 !
       real(8) , parameter :: szkm = 1600.0
 !
-! *********************************************************************
-!
-!     diagnostic on total evaporation
-!
-! *********************************************************************
-!
-#ifdef DIAG
 #ifndef BAND
-#ifdef MPP1
-      call mpi_gather(qfx(1,1),   iy*jxp,mpi_real8,                     &
-                    & qfx_io(1,1),iy*jxp,mpi_real8,                     &
-                    & 0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
-        do j = 2 , jxm2
-          do i = 2 , iym2
-            tqeva = tqeva + qfx_io(i,j)*dx*dx*dtmin*60.
-          end do
-        end do
-      end if
-      call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
-#else
-      do j = 2 , jxm2
-        do i = 2 , iym2
-          tqeva = tqeva + qfx(i,j)*dx*dx*dtmin*60.
-        end do
-      end do
+!
+! *********************************************************************
+!     diagnostic on total evaporation
+! *********************************************************************
+!
+      if (debug_level > 2) call conqeva
+!
 #endif
-#endif
-#endif
+!
 !----------------------------------------------------------------------
 !-----some of the storage spaces for high-resolution pbl
 !     are use mod_to store the variables in this subroutine.

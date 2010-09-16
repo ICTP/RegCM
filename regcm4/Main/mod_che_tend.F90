@@ -38,9 +38,7 @@
       use mod_che_semdde
       use mod_diffusion
       use mod_advection
-#ifdef DIAG
       use mod_diagnosis
-#endif
 #ifdef MPP1
       use mod_mppio
 #endif
@@ -753,9 +751,9 @@
         end do
       end do
 
-#ifdef DIAG
-      call contrac
-#endif 
+#ifndef BAND
+      if (debug_level > 2) call contrac
+#endif
 
       do itr = 1 , ntr
 #ifdef MPP1

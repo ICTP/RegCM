@@ -40,7 +40,7 @@
  /
  &debugparam
  debug_level = 1,
- dbgfrq = 3600,
+ dbgfrq = 3,
  /
  &boundaryparam
  nspgx  = 5,

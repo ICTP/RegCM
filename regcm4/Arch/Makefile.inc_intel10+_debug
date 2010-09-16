@@ -35,7 +35,6 @@ CXXNETCDF = !NETCDFC++
 
 # Add further preprocessor flags, if necessary. Those available are:
 # -DIBM : to compile using IBM xlf compiler
-# -DDIAG : to compile enabling Diagnostic capabilities (?) 
 
 CPPFLAGS =
 
@@ -57,7 +56,8 @@ endif
 # IMPORTANT : Check that your compiler complies with this RegCM features:
 # - RegCM expects the output to be written in big endian format
 # - RegCM expects Fortran records to be measured in bytes
-F90FLAGS = -O0 -g -convert big_endian -assume byterecl -check all \
+F90FLAGS = -O0 -g -convert big_endian -assume byterecl \
+           -check arg_temp_created,bounds,format,output_conversion,uninit \
            -traceback -warn all -fp-model strict
 
 # Set the Fortran 90 compiler here
