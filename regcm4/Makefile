@@ -10,7 +10,6 @@ printall::
 	@echo '  --- make icbc: to compile icbc codes'
 	@echo '  --- make clm2rcm: to compile clm24cm code'
 	@echo '  --- make regcm:  to compile main regcm code' 
-	@echo '  --- make postnc:  to compile C++ NetCDF postprocessing code' 
 	@echo '  --- make postproc:  to compile F90 postprocessing code' 
 	@echo '  --- make clean:  to clean all ' 
 	@echo '  --- make all: to compile all the codes and tools'
@@ -49,12 +48,6 @@ regcm:
 	@echo "SUCCESSFULLY CREATED MODEL BINARY FILE"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
-postnc:
-	@$(MAKE) -C $(REGCM_BASE_DIR)/PostNc
-	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-	@echo "SUCCESSFULLY CREATED C++ POSTPROC BINARY FILES"
-	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-
 postproc:
 	@$(MAKE) -C $(REGCM_BASE_DIR)//PostProc all TARGET=$(TARGET)
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
@@ -65,8 +58,8 @@ clean:
 	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain clean 
 	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC clean 
 	@$(MAKE) -C $(REGCM_BASE_DIR)/Main clean 
-	#@$(MAKE) -C $(REGCM_BASE_DIR)/PostNc clean 
 	@$(MAKE) -C $(REGCM_BASE_DIR)/PostProc clean 
+	@rm -f Bin/*
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CLEANED ALL BINARY FILES"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
