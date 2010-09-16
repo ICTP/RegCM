@@ -411,10 +411,6 @@
       if ( ichem.eq.1 ) then
         read (ipunit, chemparam)
         print * , 'param: CHEMPARAM namelist READ IN'
-        chtrname = inpchtrname(1:ntr)
-        chtrdpv = inpchtrdpv(1:ntr,:)
-        dustbsiz = inpdustbsiz(1:nbin,:)
-        chtrsol = inpchtrsol(1:ntr)
       else
         ntr = 0
       end if
@@ -529,13 +525,6 @@
         call mpi_bcast(ichdrdepo,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ichcumtra,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(idirect,1,mpi_integer,0,mpi_comm_world,ierr)
-        do n = 1 , ntr
-          call mpi_bcast(chtrname(n),5,mpi_character,0,mpi_comm_world,  &
-                       & ierr)
-        end do
-        call mpi_bcast(chtrsol,ntr,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
       end if
 #endif
 !
@@ -853,6 +842,22 @@
       call say
       write (aline, *) ' '
       call say
+
+      if ( ichem.eq.1 ) then
+        chtrname = inpchtrname(1:ntr)
+        chtrdpv = inpchtrdpv(1:ntr,:)
+        dustbsiz = inpdustbsiz(1:nbin,:)
+        chtrsol = inpchtrsol(1:ntr)
+#ifdef MPP1
+        do n = 1 , ntr
+          call mpi_bcast(chtrname(n),5,mpi_character,0,mpi_comm_world,  &
+                       & ierr)
+        end do
+        call mpi_bcast(chtrsol,ntr,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
+#endif
+      end if
 
 #ifdef MPP1
       if ( .not.ifrest ) then
