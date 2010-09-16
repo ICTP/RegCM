@@ -361,7 +361,7 @@
             o_je = jx
             o_ni = iy-2
             o_nj = jx
-            o_isg = nsg
+            o_isg = nsg+1
             o_ieg = iysg-nsg
             o_jsg = 1
             o_jeg = jxsg
@@ -376,9 +376,9 @@
             o_je = jx-1
             o_ni = iy-2
             o_nj = jx-2
-            o_isg = nsg
+            o_isg = nsg+1
             o_ieg = iysg-nsg
-            o_jsg = nsg
+            o_jsg = nsg+1
             o_jeg = jxsg-nsg
             o_nig = iym2sg
             o_njg = jxm2sg
@@ -1719,12 +1719,9 @@
                 'Total evapotranspiration','kg m-2', &
                 tyx,.false.,isubvar(12))
             call addvara(ncid,ctype,'runoff','surface_runoff_flux', &
-                'Surface runoff','kg m-2 day-1', &
-                tyx,.true.,isubvar(13))
+                'Surface runoff','kg m-2 day-1',tyx,.true.,isubvar(13))
             call addvara(ncid,ctype,'scv','snowfall_amount', &
-                'Snow precipitation','kg m-2', &
-                (/idims(1),idims(2),idims(3),-1,-1,-1,-1,-1,-1/), &
-                .true.,isubvar(14))
+                'Snow precipitation','kg m-2',tyx,.true.,isubvar(14))
             call addvara(ncid,ctype,'sena', &
                 'surface_downward_sensible_heat_flux', &
                 'Sensible heat flux','W m-2',tyx,.false.,isubvar(15))
@@ -2078,11 +2075,11 @@
           isrfrec = isrfrec + 1
         end subroutine writerec_srf
 
-        subroutine writerec_sub(nx, ny, ns, numsub, fsub, idate)
+        subroutine writerec_sub(nx, ny, ns, nsub, fsub, idate)
           use netcdf
           implicit none
-          integer , intent(in) :: nx , ny , ns , numsub , idate
-          real(4) , dimension(ns,nx,ny,numsub) , intent(in) :: fsub
+          integer , intent(in) :: nx , ny , ns , nsub , idate
+          real(4) , dimension(ns,nx,ny,nsub) , intent(in) :: fsub
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
@@ -2090,9 +2087,9 @@
           character(len=10) :: ctime
           logical :: lskip
 
-          if (nx /= o_nj .or. ny /= o_ni .or. ns /= nsg) then
+          if (nx /= o_njg .or. ny /= o_nig .or. ns /= nsg) then
             write (6,*) 'Error writing record on SUB file'
-            write (6,*) 'Expecting layers ', nsg, 'x', o_nj, 'x', o_ni
+            write (6,*) 'Expecting layers ', nsg, 'x', o_njg, 'x', o_nig
             write (6,*) 'Got layers       ', ns, 'x', nx, 'x', ny
             call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
           end if
@@ -2100,19 +2097,19 @@
           write (ctime, '(i10)') idate
 
           istart(1) = isubrec
-          icount(1) = 2
+          icount(1) = 1
           xtime(1) = dble(idatediff(idate,isubrefdate))
           istatus = nf90_put_var(ncsub, isubvar(1), xtime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'SUB FILE ERROR')
           ivar = 2
           lskip = .false.
-          do n = 1 , numsub
+          do n = 1 , nsub
             if (lskip) then
               lskip = .false.
               cycle
             end if
-            call reorder(fsub(1,1,1,n),subio,nx,ny,nsg)
+            call reorder(fsub(:,:,:,n),subio,nx,ny,nsg)
             if (ivar == ivarname_lookup('SUB', 'u10m')   .or. &
                 ivar == ivarname_lookup('SUB', 'v10m')   .or. &
                 ivar == ivarname_lookup('SUB', 't2m')    .or. &
@@ -2143,7 +2140,7 @@
               call check_ok('Error writing '//sub_names(ivar)// &
                             ' at '//ctime, 'SUB FILE ERROR')
               istart(3) = 2
-              call reorder(fsub(1,1,1,n+1),subio,nx,ny,nsg)
+              call reorder(fsub(:,:,:,n+1),subio,nx,ny,nsg)
               istatus = nf90_put_var(ncsub, isubvar(ivar), & 
                               subio, istart, icount)
               call check_ok('Error writing '//sub_names(ivar)// &
@@ -2168,18 +2165,18 @@
           isubrec = isubrec + 1
         end subroutine writerec_sub
 
-        subroutine reorder(fdp,fsp,jx,iy,nz)
+        subroutine reorder(fdp,fsp,nx,ny,nz)
           implicit none
-          integer :: iy , jx , nz
-          real(4) , dimension(nz*nz,jx,iy) :: fdp
-          real(4) , dimension(jx*nz,iy*nz) :: fsp
-          intent (in) fdp , iy , jx , nz
+          integer :: ny , nx , nz
+          real(4) , dimension(nz*nz,nx/nz,ny/nz) :: fdp
+          real(4) , dimension(nx,ny) :: fsp
+          intent (in) fdp , ny , nx , nz
           intent (out) fsp
 
           integer :: i , ii , j , jj , k
 !
-          do j = 1 , jx*nz
-            do i = 1 , iy*nz
+          do j = 1 , nx
+            do i = 1 , ny
               jj = mod(j,nz)
               if ( jj.eq.0 ) jj = nz
               ii = mod(i,nz)
