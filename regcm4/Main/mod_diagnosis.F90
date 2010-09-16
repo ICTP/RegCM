@@ -33,14 +33,17 @@
 #ifdef MPP1
       use mod_mppio
 #endif
-
+!
       private
-
-      public :: allocate_mod_diagnosis , initdiag , mpidiag
+!
+      public :: allocate_mod_diagnosis , initdiag
       public :: restdiag , restchemdiag
       public :: savediag , savechemdiag
       public :: conadv , conmas , conqeva
       public :: tracdiag , contrac
+#ifdef MPP1
+      public :: mpidiag
+#endif
 !
       real(8) :: tdadv , tdini , tqadv , tqeva , tqini , tqrai
 !
@@ -71,12 +74,11 @@
         include 'mpif.h'
 #endif 
 #endif
-#ifdef MPP1
         implicit none
-        real(8) :: tvmass , tcmass , tttmp
 #ifdef MPP1
         integer :: ierr
 #endif
+        real(8) :: tvmass , tcmass , tttmp
         integer :: i , j , k
 
         tvmass = 0.0
@@ -93,6 +95,7 @@
         tchiad = 0.0
         tchitb = 0.0
 
+#ifdef MPP1
 !=======================================================================
 !
 !-----dry air (unit = kg):
