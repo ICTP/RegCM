@@ -95,8 +95,8 @@
         lonwrap = .true.
         print *, 'Special case for longitude wrapping'
       end if
-      if (xminlon < 0.0 .and. xtstlon1 > 0.0 .or.   &
-          xmaxlon > 0.0 .and. xtstlon2 < 0.0 .or.   &
+      if (abs(xminlon - xtstlon1) > 180.0 .or.   &
+          abs(xmaxlon - xtstlon2) > 180.0 .or.   &
           xminlon > 0.0 .and. xmaxlon < 0.0) then
         lcrosstime = .true.
         if (xminlon < 0.0 .and. xtstlon1 > 0.0) xminlon = xtstlon1
