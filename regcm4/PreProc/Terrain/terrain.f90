@@ -71,7 +71,7 @@
       integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
       logical :: ibndry
       integer :: nunitc , nunitc_s , ctlunit , ctlunit_s
-      real(4) :: clong , htave , htgrid_a
+      real(4) :: clong , hsum , have
 !
       data ibndry /.true./
 !
@@ -407,7 +407,7 @@
 !
 !     reduce the search area for the domain
 !     [minlat:maxlat,minlon:maxlon]
-      call mxmnll(iysg,jxsg,xlon,xlat)
+      call mxmnll(iy,jx,xlon,xlat)
       print *, 'Determined Grid coordinate range'
 
       maxiter = (xmaxlat-xminlat)/xnc
@@ -552,28 +552,29 @@
           do j = 1 , jx
             i0 = (i-1)*nsg
             j0 = (j-1)*nsg
-            htave = 0.0
+            hsum = 0.0
             do m = 1 , nsg
               do n = 1 , nsg
-                if ( htgrid(i,j)<0.1 .and.(lndout(i,j)>14.5 .and.       &
-                   & lndout(i,j)<15.5) ) then
+                if ( htgrid(i,j)<0.1 .and. &
+                    (lndout(i,j)>14.5 .and. lndout(i,j)<15.5) ) then
                   htgrid_s(i0+m,j0+n) = 0.0
-                  lndout_s(i0+m,j0+n) = 15.
+                  lndout_s(i0+m,j0+n) = 15.0
                 end if
-                htave = htave + htgrid_s(i0+m,j0+n)
+                hsum = hsum + htgrid_s(i0+m,j0+n)
               end do
             end do
-            htgrid_a = htave/float(nsg*nsg)
+            have = hsum/float(nnsg)
             do m = 1 , nsg
               do n = 1 , nsg
-                htgrid_s(i0+m,j0+n) = htgrid_s(i0+m,j0+n) - htgrid_a +  &
-                                    & htgrid(i,j)
+                htgrid_s(i0+m,j0+n) = htgrid(i,j) + &
+                                      (htgrid_s(i0+m,j0+n) - have)
               end do
             end do
           end do
         end do
-        do i = 1 , iy
-          do j = 1 , jx
+
+        do i = 1 , iysg
+          do j = 1 , jxsg
             if ( lndout_s(i,j)>13.5 .and. lndout_s(i,j)<15.5 ) then
               mask_s(i,j) = 0.0
             else
