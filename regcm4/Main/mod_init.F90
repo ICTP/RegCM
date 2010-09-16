@@ -1555,8 +1555,7 @@
 
 99004 format (1x,7E12.4)
 99005 format (' ***** restart file for large domain at time = ',f8.0,   &
-             &' minutes, ktau = ',i7,' in year = ',i4,                  &
-             &'  read in from ',a)
+             &' minutes, ktau = ',i7,' in year = ',i4,' read in')
 !
       end subroutine init
 !
