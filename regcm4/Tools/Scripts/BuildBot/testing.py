@@ -225,6 +225,8 @@ def main(argv):
             else :
                 print "clm2rcm in",testname,"passed."
 
+	sys.stdout.flush()
+
         # compare preproc output
         # to do
 
@@ -247,6 +249,8 @@ def main(argv):
             print "PreProc did not complete correctly, RegCM main skipped..."
 
         log.close()
+
+	sys.stdout.flush()
 
         # compare main output
         # to do
