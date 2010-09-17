@@ -2244,31 +2244,50 @@
 
       implicit none
 !
-      integer :: i , itr , j , k
+      integer :: ni , itr , nj , nk , is , ie , js , je
 
 #ifdef BAND
-      i = iym2
-      j = jx
-      k = kz
+      ni = iym2
+      nj = jx
+      nk = kz
       itr = ntr
+      is = 2
+      js = 1
+      ie = iym1
+      je = jx
+      iie = 
+      jje =
 #else
-      i = iym2
-      j = jxm2
-      k = kz
+      ni = iym2
+      nj = jxm2
+      nk = kz
       itr = ntr
+      is = 2
+      js = 2
+      ie = iym1
+      je = jxm1
 #endif
 
 #ifdef MPP1
-     call writerec_che(j,i,k,itr,chia_io, aerext_io, aerssa_io,  &
-                       aerasp_io, dtrace_io, wdlsc_io, wdcvc_io, &
-                       ddsfc_io, wxsg_io, wxaq_io, cemtrac_io,   &
-                       aertarf_io, aersrrf_io, aertalwrf_io,     &
-                       aersrlwrf_io, psa_io, idatex)
+     call writerec_che(nj, ni, nk, itr, chia_io(is:ie,:,js:je,:),     &
+                aerext_io(is:ie,:,js:je), aerssa_io(is:ie,:,js:je),   &
+                aerasp_io(is:ie,:,js:je), dtrace_io(is:ie,js:je,:),   &
+                wdlsc_io(is:ie,js:je,:), wdcvc_io(is:ie,js:je,:),     &
+                ddsfc_io(is:ie,js:je,:), wxsg_io(is:ie,js:je,:),      &
+                wxaq_io(is:ie,js:je,:), cemtrac_io(is:ie,js:je,:),    &
+                aertarf_io(is:ie,js:je), aersrrf_io(is:ie,js:je),     &
+                aertalwrf_io(is:ie,js:je), aersrlwrf_io(is:ie,js:je), &
+                psa_io(is:ie,js:je), idatex)
 #else
-     call writerec_che(j,i,k,itr,chia, aerext, aerssa, aerasp, dtrace, &
-                       wdlsc, wdcvc, ddsfc, wxsg, wxaq, cemtrac,       &
-                       aertarf, aersrrf, aertalwrf, aersrlwrf, psa,    &
-                       idatex)
+     call writerec_che(nj, ni, nk, itr, chia(is:ie,:,js:je,:),  &
+                aerext(is:ie,:,js:je), aerssa(is:ie,:,js:je),   &
+                aerasp(is:ie,:,js:je), dtrace(is:ie,js:je,:),   &
+                wdlsc(is:ie,js:je,:), wdcvc(is:ie,js:je,:),     &
+                ddsfc(is:ie,js:je,:), wxsg(is:ie,js:je,:),      &
+                wxaq(is:ie,js:je,:), cemtrac(is:ie,js:je,:),    &
+                aertarf(is:ie,js:je), aersrrf(is:ie,js:je),     &
+                aertalwrf(is:ie,js:je), aersrlwrf(is:ie,js:je), &
+                psa(is:ie,js:je), idatex)
 #endif
       write (*,*) 'CHE variables written at ' , idatex , xtime
 

@@ -205,12 +205,24 @@ def netcdf_search(nclib,ncinc):
                 nclib = path_lib
                 ncinc = path_inc
                 ncok=True
-                if not(os.path.isfile(path_lib+"/libnetcdf_c++.a") or os.path.isfile(path_lib+"/libnetcdf_c++.so")):
-                    print "\tWarning! NetCDF C++ interface not found, you won't be able to compile PostNC!"
             else :
                 ncok=False
         except KeyError :
             ncok=False
+
+    if not ncok:
+        path_a="/usr"
+        if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+            nclib = path_a+"/lib"
+            ncinc = path_a+"/include"
+            ncok=True
+        elif (os.path.isfile(path_a+"/lib64/libnetcdf.a") or os.path.isfile(path_a+"/lib64/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+            nclib = path_a+"/lib64"
+            ncinc = path_a+"/include"
+            ncok=True
+        else :
+            ncok=False
+
     if ncok:
         print "\tNetCDF library found..."
         return nclib,ncinc

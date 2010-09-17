@@ -671,12 +671,16 @@
 !
               tauxar_mix_cs(i,ns) = tauxar_mix_cs(i,ns)               &
                                   & + tauaer(i,itr)
-              tauasc_mix_cs(i,ns) = tauasc_mix_cs(i,ns)               &
-                                  & + tauaer(i,itr)*waer(i,itr)
-              gtota_mix_cs(i,ns) = gtota_mix_cs(i,ns) + gaer(i,itr)   &
-                                 & *tauaer(i,itr)*waer(i,itr)
-              ftota_mix_cs(i,ns) = ftota_mix_cs(i,ns) + faer(i,itr)   &
-                                 & *tauaer(i,itr)*waer(i,itr)
+              if (waer(i,itr) > 1E-30) then
+                tauasc_mix_cs(i,ns) = tauasc_mix_cs(i,ns) +             &
+                                  & tauaer(i,itr)*waer(i,itr)
+              end if
+              if (gaer(i,itr) > 1E-20 .and. waer(i,itr) > 1E-20) then
+                gtota_mix_cs(i,ns) = gtota_mix_cs(i,ns) + gaer(i,itr) * &
+                                 & tauaer(i,itr)*waer(i,itr)
+                ftota_mix_cs(i,ns) = ftota_mix_cs(i,ns) + faer(i,itr) * &
+                                 & tauaer(i,itr)*waer(i,itr)
+              end if
             end do
           end do
 !

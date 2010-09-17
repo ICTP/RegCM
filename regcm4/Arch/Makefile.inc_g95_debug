@@ -23,7 +23,6 @@ BINDIR = !BIN_DIR
 
 NETCDFINC = !NETCDFINC
 NETCDFLIB = !NETCDFLIB
-CXXNETCDF = !NETCDFC++
 
 # PREPROCESSOR AND COMPILER OPTIONS
 
@@ -35,6 +34,8 @@ CXXNETCDF = !NETCDFC++
 
 # Add further preprocessor flags, if necessary. Those available are:
 # -DIBM : to compile using IBM xlf compiler
+# -DNETCDF4_HDF5 : to use new NetCDF 4.x HDF5 format with compression
+# Note, the latter needs to be enabled in NetCDF installation
 
 CPPFLAGS =
 
@@ -60,12 +61,6 @@ F90FLAGS = -O0 -fendian=big -g -Wall -Wextra -fbounds-check -ftrace=full -fmulti
 
 # Set the Fortran 90 compiler here
 F90 = g95
-
-# Set the C++ compiler here
-CXX = g++
-
-# Compilation flags for C++
-CXXFLAGS = -O2 -g
 
 # Set the MPI Fortran 90 compiler here
 MPIF90 = !MPIF90

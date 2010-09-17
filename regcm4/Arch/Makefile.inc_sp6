@@ -33,8 +33,6 @@ BINDIR = !BIN_DIR
 
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf -L$(HDF5_LIB) -lhdf5 -lhdf5_hl \
             -L$(SZLIB_LIB) -lsz
-CXXNETCDF = -L$(NETCDF_LIB) -lnetcdf_c++ -lnetcdf \
-            -L$(HDF5_LIB) -lhdf5 -lhdf5_hl -L$(SZLIB_LIB) -lsz
 NETCDFINC = -I$(NETCDF_INC)
 
 # PREPROCESSOR AND COMPILER OPTIONS
@@ -46,7 +44,9 @@ NETCDFINC = -I$(NETCDF_INC)
 # PARALLEL = MPP1
 
 # Add further preprocessor flags, if necessary. Those available are:
-# -DIBM : to compile using IBM xlf compiler
+# -WF,-DIBM : to compile using IBM xlf compiler
+# -WF,-DNETCDF4_HDF5 : to use new NetCDF 4.x HDF5 format with compression
+# Note, the latter needs to be enabled in NetCDF installation
 
 CPPFLAGS = -WF,-DIBM
 
@@ -76,13 +76,6 @@ MAKE = gmake
 
 # Set the Fortran 90 compiler here
 F90 = xlf90
-
-# Set the C++ compiler here 
-CXX = xlC
-AIXSP6 = 1
-
-# Compilation flags for C++
-CXXFLAGS = -O2 -g  
 
 # Set the MPI Fortran 90 compiler here
 MPIF90 = !MPIF90

@@ -21,7 +21,6 @@ BINDIR = !BIN_DIR
 
 NETCDFINC = !NETCDFINC
 NETCDFLIB = !NETCDFLIB 
-CXXNETCDF = !NETCDFC++
 
 # PREPROCESSOR AND COMPILER OPTIONS
 
@@ -32,7 +31,9 @@ CXXNETCDF = !NETCDFC++
 # PARALLEL = MPP1
 
 # Add further preprocessor flags, if necessary. Those available are:
-# -DIBM : to compile using IBM xlf compiler
+# -WF,-DIBM : to compile using IBM xlf compiler
+# -WF,-DNETCDF4_HDF5 : to use new NetCDF 4.x HDF5 format with compression
+# Note, the latter needs to be enabled in NetCDF installation
 
 CPPFLAGS = -WF,-DIBM
 
@@ -63,13 +64,6 @@ MAKE = gmake
 # Set the Fortran 90 compiler here
 F90 = xlf90
 
-# Set the C++ compiler here 
-CXX = xlC
-AIXSP6 = 1
-
-# Compilation flags for C++
-CXXFLAGS = -O0 -g  
-
 # Set the MPI Fortran 90 compiler here
 MPIF90 = !MPIF90
 
@@ -81,4 +75,3 @@ LDFLAGS =
 # You should not change the lines below unless you are a developer
 
 SVNDEF := -WF,-D'SVN_REV="$(shell svnversion -n .)"'
-CXXSVN := -D'SVN_REV="$(shell svnversion -n .)"'

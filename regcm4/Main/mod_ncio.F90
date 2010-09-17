@@ -1941,15 +1941,15 @@
           end do
 
           cdum = vname
-#ifdef NETCDF4_HDF5
-          istatus = nf90_def_var(ncid, cdum, nf90_float, &
-                             &   idims(1:ndims), ivar, deflate_level=9)
-#else
           istatus = nf90_def_var(ncid, cdum, nf90_float, &
                              &   idims(1:ndims), ivar)
-#endif
           call check_ok('Error adding variable '//vname, &
                         ctype//' FILE ERROR')
+#ifdef NETCDF4_HDF5
+          istatus = nf90_def_var_deflate(ncid, ivar, 1, 1, 9)
+          call check_ok('Error setting deflate on variable '//vname, &
+                        ctype//' FILE ERROR')
+#endif
           cdum = vst
           istatus = nf90_put_att(ncid, ivar, 'standard_name', cdum)
           call check_ok('Error adding '//vname//' standard_name', &
@@ -2578,7 +2578,7 @@
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'CHE FILE ERROR')
 
-          dumio(:,:,1) = (transpose(ps(o_is:o_ie,o_js:o_je))+rpt)*10.0
+          dumio(:,:,1) = transpose(ps+rpt)*10.0
           istart(3) = icherec
           istart(2) = 1
           istart(1) = 1
@@ -2601,8 +2601,7 @@
             icount(2) = o_ni
             icount(1) = o_nj
             do k = 1 , nz
-              dumio(:,:,k) = transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
-                                       ps(o_is:o_ie,o_js:o_je))
+              dumio(:,:,k) = transpose(chia(:,k,:,n)/ps)
             end do
             istatus = nf90_put_var(ncche, ichevar(3), &
                                  dumio, istart, icount)
@@ -2619,21 +2618,21 @@
           icount(2) = o_ni
           icount(1) = o_nj
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerext(o_is:o_ie,o_js:o_je,k))
+            dumio(:,:,k) = transpose(aerext(:,:,k))
           end do
           istatus = nf90_put_var(ncche, ichevar(4), &
                                  dumio, istart(1:4), icount(1:4))
           call check_ok('Error writing '//che_names(4)//' at '//ctime, &
                         'CHE FILE ERROR')
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerssa(o_is:o_ie,o_js:o_je,k))
+            dumio(:,:,k) = transpose(aerssa(:,:,k))
           end do
           istatus = nf90_put_var(ncche, ichevar(5), &
                                  dumio, istart(1:4), icount(1:4))
           call check_ok('Error writing '//che_names(5)//' at '//ctime, &
                         'CHE FILE ERROR')
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerasp(o_is:o_ie,o_js:o_je,k))
+            dumio(:,:,k) = transpose(aerasp(:,:,k))
           end do
           istatus = nf90_put_var(ncche, ichevar(6), &
                                  dumio, istart(1:4), icount(1:4))
@@ -2648,37 +2647,37 @@
             icount(3) = 1
             icount(2) = o_ni
             icount(1) = o_nj
-            dumio(:,:,1) = transpose(dtrace(o_is:o_ie,o_js:o_je,n))
+            dumio(:,:,1) = transpose(dtrace(:,:,n))
             istatus = nf90_put_var(ncche, ichevar(7), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(7)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = transpose(wdlsc(:,:,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(8), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(8)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = transpose(wdcvc(:,:,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(9), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(9)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = transpose(ddsfc(:,:,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(10), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(10)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = transpose(wxsg(:,:,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(11), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(11)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = transpose(wxaq(:,:,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(12), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(12)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = transpose(cemtrac(:,:,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(13), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(13)// &
@@ -2690,22 +2689,22 @@
           icount(3) = 1
           icount(2) = o_ni
           icount(1) = o_nj
-          dumio(:,:,1) = transpose(aertarf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = transpose(aertarf)
           istatus = nf90_put_var(ncche, ichevar(14), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(14)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aersrrf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = transpose(aersrrf)
           istatus = nf90_put_var(ncche, ichevar(15), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(15)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aertalwrf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = transpose(aertalwrf)
           istatus = nf90_put_var(ncche, ichevar(16), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(16)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aersrlwrf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = transpose(aersrlwrf)
           istatus = nf90_put_var(ncche, ichevar(17), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(17)//' at '//ctime, &
