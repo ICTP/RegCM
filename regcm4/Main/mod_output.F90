@@ -2255,8 +2255,6 @@
       js = 1
       ie = iym1
       je = jx
-      iie = 
-      jje =
 #else
       ni = iym2
       nj = jxm2
