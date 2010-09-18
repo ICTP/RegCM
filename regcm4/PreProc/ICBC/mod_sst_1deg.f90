@@ -75,6 +75,13 @@
           print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
         end if
+        inquire (file=trim(inpglob)//'/SST/GISST_194712_200209',        &
+              &    exist=there)
+        if ( .not. there ) then
+          print *, 'GISST_194712_200209 is not available' ,  &
+                   &' under ',trim(inpglob),'/SST/'
+          stop
+        end if
         open (11,file=trim(inpglob)//'/SST/GISST_194712_200209',        &
              &form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
             & status='old')
@@ -86,14 +93,19 @@
           stop
         end if
         inquire (file=trim(inpglob)//'/SST/sst.mnmean.nc',exist=there)
-        if ( .not.there ) print * , 'sst.mnmean.nc is not available' ,  &
-                               &' under ',trim(inpglob),'/SST/'
+        if ( .not.there ) then
+          print * , 'sst.mnmean.nc is not available' ,  &
+                  &' under ',trim(inpglob),'/SST/'
+          stop
+        end if
         if ( ssttyp=='OI2ST' ) then
           inquire (file=trim(inpglob)//'/SST/icec.mnmean.nc',           &
               &    exist=there)
-          if ( .not. there )                                            &
-            & print *, 'icec.mnmean.nc is not available' ,              &
+          if ( .not. there ) then
+            print *, 'icec.mnmean.nc is not available' ,                &
                    &' under ',trim(inpglob),'/SST/'
+            stop
+          end if
         end if
       else if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) then
         if ( globidate1<1981110100 .or. globidate2<1981110106 ) then
@@ -103,26 +115,32 @@
         end if
         inquire (file=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc',    &
              &   exist=there)
-        if ( .not.there ) print * ,                                     &
-                             &'sst.wkmean.1981-1989.nc is not available'&
-                            & , ' under ',trim(inpglob),'/SST/'
+        if ( .not.there ) then
+          print * , 'sst.wkmean.1981-1989.nc is not available'&
+                  & , ' under ',trim(inpglob),'/SST/'
+          stop
+        end if
         inquire (file=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc', &
                & exist=there)
-        if ( .not.there ) print * ,                                     &
-                          &'sst.wkmean.1990-present.nc is not available'&
-                         & , ' under ',trim(inpglob),'/SST/'
+        if ( .not.there ) then
+          print * , 'sst.wkmean.1990-present.nc is not available'&
+                    & , ' under ',trim(inpglob),'/SST/'
+          stop
+        end if
         if ( ssttyp=='OI2WK' ) then
           inquire (file=trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc', &
                 & exist=there)
           if ( .not.there ) then
             print *, 'icec.wkmean.1981-1989.nc is not available',       &
                 &    ' under ',trim(inpglob),'/SST/'
+            stop
           end if
           inquire (file=trim(inpglob)//                                 &
                  '/SST/icec.wkmean.1990-present.nc',exist=there)
           if ( .not.there ) then
             print *, 'icec.wkmean.1990-present.nc is not available',    &
                 &    ' under ',trim(inpglob),'/SST/'
+            stop
           end if
         end if
       else
